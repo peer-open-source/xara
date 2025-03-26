@@ -189,7 +189,6 @@ UserDefinedHingeIntegration::getSectionWeights(int numSections,
     lpJ += wtsR(j);
   }
 
-  double oneOverL = 1.0/L;
   wt[i++] = 0.5-0.5*(lpI+lpJ);
   wt[i++] = 0.5-0.5*(lpI+lpJ);
 
