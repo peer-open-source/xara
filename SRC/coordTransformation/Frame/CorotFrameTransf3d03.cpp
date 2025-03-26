@@ -1132,8 +1132,13 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
 int
 CorotFrameTransf3d03::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
 {
-  static Vector dx(3);
+  ZAxis(0) = vz[0];
+  ZAxis(1) = vz[1];
+  ZAxis(2) = vz[2];
+  if (nodes[0] == nullptr)
+    return -1;
 
+  static Vector dx(3);
   dx = (nodes[1]->getCrds() + nodeJOffset) - (nodes[0]->getCrds() + nodeIOffset);
   if (nodeIInitialDisp != 0) {
     dx(0) -= nodeIInitialDisp[0];
@@ -1240,8 +1245,7 @@ CorotFrameTransf3d03::getBasicIncrDisp()
 const Vector &
 CorotFrameTransf3d03::getBasicTrialVel()
 {
-  opserr << "WARNING CorotFrameTransf3d03::getBasicTrialVel()"
-         << " - has not been implemented yet. Returning zeros." << endln;
+  opserr << "WARNING unimplemented method\n";
   static Vector dummy(6);
   return dummy;
 }
@@ -1250,8 +1254,7 @@ CorotFrameTransf3d03::getBasicTrialVel()
 const Vector &
 CorotFrameTransf3d03::getBasicTrialAccel()
 {
-  opserr << "WARNING CorotFrameTransf3d03::getBasicTrialAccel()"
-      << " - has not been implemented yet. Returning zeros." << endln;
+  opserr << "WARNING unimplemented method\n";
   static Vector dummy(6);
   return dummy;
 }
@@ -1260,9 +1263,9 @@ CorotFrameTransf3d03::getBasicTrialAccel()
 const Matrix &
 CorotFrameTransf3d03::getGlobalMatrixFromLocal(const Matrix &local)
 {
-    static Matrix Mg(12,12);
-    blk3x12x3(R0, local, Mg);
-    return Mg;
+  static Matrix Mg(12,12);
+  blk3x12x3(R0, local, Mg);
+  return Mg;
 }
 
 double
@@ -1292,6 +1295,7 @@ CorotFrameTransf3d03::Print(OPS_Stream &s, int flag)
       s << "\tvxz: " << Vector(vz);
       s << "\tnodeI Offset: " << nodeIOffset;
       s << "\tnodeJ Offset: " << nodeJOffset;
+      return;
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
