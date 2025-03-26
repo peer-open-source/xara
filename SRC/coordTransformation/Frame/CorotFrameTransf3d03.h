@@ -61,12 +61,6 @@ public:
     const Vector &getBasicTrialVel();
     const Vector &getBasicTrialAccel();
 
-    Versor getNodeRotation(int node) {
-      // use union for storage? then we just switch to
-      // whatever element has been requesting
-      return Versor::from_vector(vr[node]);
-    };
-
     virtual VectorND<12>    pushResponse(VectorND<12>&pl) override final;
     virtual VectorND<12>    pushConstant(const VectorND<12>&pl) const override final;
 
