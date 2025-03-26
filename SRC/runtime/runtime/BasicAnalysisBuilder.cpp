@@ -274,8 +274,8 @@ BasicAnalysisBuilder::domainChanged(void)
 
   theAnalysisModel->clearDOFGraph();
 
-  // finally we invoke domainChanged on the Integrator and Algorithm
-  // objects .. informing them that the model has changed
+  // finally invoke domainChanged on the Integrator and Algorithm
+  // informing them that the model has changed
   switch (this->CurrentAnalysisFlag) {
 
   case STATIC_ANALYSIS:
@@ -288,7 +288,7 @@ BasicAnalysisBuilder::domainChanged(void)
   case TRANSIENT_ANALYSIS:
 
     if (theTransientIntegrator->domainChanged() < 0) {
-      opserr << "BasicAnalysisBuilder::domainChange - Integrator::domainChanged() failed\n";
+      opserr << "BasicAnalysisBuilder: Integrator failed in domainChanged()\n";
       return -4;
     }
     break;
@@ -336,7 +336,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
       // This is used for parallelization
       result = theAnalysisModel->analysisStep(0.0);
       if (result < 0) {
-        opserr << "StaticAnalysis::analyze - the AnalysisModel failed\n";
+        opserr << "The AnalysisModel failed\n";
         opserr << " at step: " << i << " with domain at load factor ";
         opserr << theDomain->getCurrentTime() << "\n";
         theDomain->revertToLastCommit();
@@ -753,7 +753,7 @@ BasicAnalysisBuilder::set(ConvergenceTest* obj)
 void
 BasicAnalysisBuilder::set(EigenSOE &theNewSOE)
 {
-  // invoke the destructor on the old one if not the same!
+  // destroy the old one if not the same type
   if (theEigenSOE != nullptr) {
     if (theEigenSOE->getClassTag() != theNewSOE.getClassTag()) {
       delete theEigenSOE;
