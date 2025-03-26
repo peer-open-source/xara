@@ -2034,7 +2034,7 @@ PartitionedDomain::getElementResponse(int eleTag, const char **argv, int argc) {
 }
 
 int
-PartitionedDomain::calculateNodalReactions(bool inclInertia)
+PartitionedDomain::calculateNodalReactions(int inclInertia)
 {
   int res = this->Domain::calculateNodalReactions(inclInertia);
 
