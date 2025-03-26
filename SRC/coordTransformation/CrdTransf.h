@@ -32,28 +32,11 @@
 #include <MovableObject.h>
 #include <TaggedObject.h>
 
-typedef int BasicForceLayout[10];
-
-enum class BasicForce : int {
-    N,
-    Vyi,
-    Vzi,
-    Vyj,
-    Vzj,
-    T,
-    Myi,
-    Mzi,
-    Myj,
-    Mzj,
-};
-
 class Vector;
 class ID;
 class Matrix;
 class Node;
 class Response;
-
-// class definition
 
 class CrdTransf: public TaggedObject, public MovableObject
 {
@@ -81,7 +64,7 @@ public:
     virtual const Vector &getBasicIncrDisp() = 0;
     virtual const Vector &getBasicIncrDeltaDisp() = 0;
     virtual const Vector &getBasicTrialVel() = 0;
-    virtual const Vector &getBasicTrialAccel() = 0;
+    // virtual const Vector &getBasicTrialAccel() = 0;
 
     virtual const Vector &getGlobalResistingForce(const Vector &basicForce, const Vector &uniformLoad) = 0;
     virtual const Matrix &getGlobalStiffMatrix(const Matrix &basicStiff, const Vector &basicForce) = 0;
