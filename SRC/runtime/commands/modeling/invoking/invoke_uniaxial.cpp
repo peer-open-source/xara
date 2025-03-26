@@ -29,7 +29,7 @@ static Tcl_CmdProc TclCommand_getStressUniaxialMaterial;
 static Tcl_CmdProc TclCommand_getTangUniaxialMaterial;
 static Tcl_CmdProc TclCommand_integrateUniaxialMaterial;
 
-const struct {const char*name; const Tcl_CmdProc*func;} command_table[] = {
+const struct {const char*name; Tcl_CmdProc*func;} command_table[] = {
   {"strain",      TclCommand_setStrainUniaxialMaterial },
   {"commit",      TclCommand_commitState               },
   {"stress",      TclCommand_getStressUniaxialMaterial },
