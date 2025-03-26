@@ -41,7 +41,7 @@ int
 addPrismMass(MatT Mass, double factor, FrameSection& section, double length)
 {
 
-  double total_mass, twist_mass;
+  double total_mass; // , twist_mass;
 
   MatrixND<12,12> M;
   if (total_mass == 0.0)
