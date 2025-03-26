@@ -707,9 +707,10 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
       responseID = (int)NodeData::Accel;
     else if (strcmp(argv[3], "resiudal") == 0)
       responseID = (int)NodeData::UnbalancedLoad;
-    else
+    else {
       opserr << "WARNING unknown response " << argv[3] << "\n";
       return TCL_ERROR;
+    }
   }
 
   dof--;
