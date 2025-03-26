@@ -1,6 +1,6 @@
 
   template <int ir, int nr> inline void
-  assemble(const VectorND<nr> &v, double fact)
+  assemble(const VectorND<nr> &v, double fact=1)
   {
     static_assert((ir >= 0) && ((ir + nr - 1) < N));
 
@@ -15,6 +15,21 @@
       (*this)[a+i] += v[i]*scale;
   }
 
+  template <int ir, int nr> inline void
+  insert(const VectorND<nr> &v, double fact=1)
+  {
+    static_assert((ir >= 0) && ((ir + nr - 1) < N));
+
+     for (int j=0; j<nr; j++)
+        (*this)(ir + j) = v[j]*fact;
+  }
+
+  template<int nr> void
+  insert(int a, const VectorND<nr>& v, double scale) noexcept
+  {
+    for (int i=0; i<nr; i++)
+      (*this)[a+i]  = v[i]*scale;
+  }
 
   int
   addVector(const T thisFact, const Vector &other, const T otherFact) 
