@@ -21,7 +21,7 @@ template <int ndim, PlaneType type>
 const char *
 ElasticIsotropic<ndim, type>::getClassType() const
 {
-    return "ElasticIsotropic";
+  return "ElasticIsotropic";
 }
 
 
