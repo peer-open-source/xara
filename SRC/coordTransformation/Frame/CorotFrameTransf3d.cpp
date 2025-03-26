@@ -1486,6 +1486,13 @@ CorotFrameTransf3d::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
 int
 CorotFrameTransf3d::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
 {
+
+  ZAxis(0) = vAxis[0];
+  ZAxis(1) = vAxis[1];
+  ZAxis(2) = vAxis[2];
+  if (nodes[0] == nullptr)
+    return 0;
+
   static Vector dx(3);
 
   dx = (nodes[1]->getCrds() + nodeJOffset) - (nodes[0]->getCrds() + nodeIOffset);
