@@ -89,32 +89,6 @@ public:
     void Print(OPS_Stream &s, int flag = 0);
 
 protected:
-    virtual const Layout& getNodeLayout() const {
-      static std::vector<int> l {
-         0, 0, 0, 0, 0, 0, // Node i
-         1, 1, 1, 1, 1, 1  // Node j
-      };
-      return l;
-    }
-    virtual const Layout& getForceLayout() const {
-      static std::vector<int> l {
-        // Node i
-        FrameTransform3d::N,  // 0
-        FrameTransform3d::Vy, // 0
-        FrameTransform3d::Vz, // 0
-        FrameTransform3d::T,  // 0
-        FrameTransform3d::My, // 0
-        FrameTransform3d::Mz, // 0
-        // Node j
-        FrameTransform3d::N,  // 1
-        FrameTransform3d::Vy, // 1
-        FrameTransform3d::Vz, // 1
-        FrameTransform3d::T,  // 1
-        FrameTransform3d::My, // 1
-        FrameTransform3d::Mz, // 1
-      };
-      return l;
-    }
 
 private:
 
