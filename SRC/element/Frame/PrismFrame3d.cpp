@@ -395,7 +395,7 @@ PrismFrame3d::getResistingForce()
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
-  // opserr << wrapper;
+
   return wrapper;
 }
 
@@ -411,14 +411,16 @@ PrismFrame3d::getMass()
 {
     if (total_mass == 0.0) {
 
-        thread_local MatrixND<12,12> M{0.0};
+        thread_local MatrixND<12,12> M;
+        M.zero();
         thread_local Matrix Wrapper{M};
         return Wrapper;
 
     } else if (mass_flag == 0)  {
         // Lumped mass matrix
 
-        thread_local MatrixND<12,12> M{0.0};
+        thread_local MatrixND<12,12> M;
+        M.zero();
         thread_local Matrix Wrapper{M};
         double m = 0.5*total_mass;
         M(0,0) = m;
