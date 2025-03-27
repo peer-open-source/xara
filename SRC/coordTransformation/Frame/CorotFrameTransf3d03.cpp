@@ -1300,8 +1300,10 @@ CorotFrameTransf3d03::Print(OPS_Stream &s, int flag)
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
       s << OPS_PRINT_JSON_MATE_INDENT << "{";
-      s << "\"name\": \"" << this->getTag() << "\", \"type\": \"CorotFrameTransf3d03\"";
-      s << ", \"vecInLocXZPlane\": [" << vz(0) << ", " << vz(1) << ", " << vz(2) << "]";
+      s << "\"name\": \"" << this->getTag() << "\", ";
+      s << "\"type\": \"CorotFrameTransf3d03\"";
+      s << ", \"vecInLocXZPlane\": [" 
+        << vz(0) << ", " << vz(1) << ", " << vz(2) << "]";
       if (nodeIOffset != 0)
           s << ", \"iOffset\": [" << nodeIOffset[0] << ", " << nodeIOffset[1] << ", " << nodeIOffset[2] << "]";
       if (nodeJOffset != 0)
