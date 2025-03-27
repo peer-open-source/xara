@@ -59,7 +59,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2PlateFibreMaterial)
   
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: nDMaterial J2PlateFibre \n";
+    opserr << "WARNING invalid integer tag\n";
     return 0;
   }
   
@@ -69,7 +69,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2PlateFibreMaterial)
     numData = 5;
   
   if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: nDMaterial J2PlateFibre : " << iData[0] <<"\n";
+    opserr << "WARNING invalid data: " << iData[0] <<"\n";
     return 0;
   }  
   

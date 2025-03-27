@@ -58,13 +58,13 @@ void * OPS_ADD_RUNTIME_VPV(OPS_NewPlasticDamageConcretePlaneStress)
 
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: nDMaterial EasticIsotropic \n";
+    opserr << "WARNING invalid integer tag\n";
     return 0;
   }
 
   numData = numArgs - 1;;
   if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: nDMaterial EasticIsotropic : " << iData[0] <<"\n";
+    opserr << "WARNING invalid data: " << iData[0] <<"\n";
     return 0;
   }
 
@@ -152,7 +152,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_NewPlasticDamageConcretePlaneStress)
  }
 
  int
- PlasticDamageConcretePlaneStress::setTrialStrain (const Vector &strain)
+ PlasticDamageConcretePlaneStress::setTrialStrain(const Vector &strain)
  {
    eps[0] = strain(0);
    eps[1] = strain(1);

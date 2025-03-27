@@ -17,7 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
 
 #include <PlaneStressLayeredMaterial.h>
 #include <Channel.h>

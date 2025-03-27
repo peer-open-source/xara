@@ -19,14 +19,11 @@
 
 // Written: Rui Wang, Tsinghua University, August, 2013
 //
-// Cyclic constitutive model for post-liquefaction shear deformationof sand 
-// 
-//
+// Cyclic constitutive model for post-liquefaction shear deformationof sand
 //
 //  Cutting Plane Integration Scheme 
 //
 //
-
 #include <CycLiqCPSPPlaneStrain.h>
 
 #include <Channel.h>

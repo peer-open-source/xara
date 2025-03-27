@@ -50,21 +50,21 @@ void* OPS_ADD_RUNTIME_VPV(OPS_SmearedSteelDoubleLayerT2DMaterial01)
 	// nDMaterial tag
 	int numData = 1;
 	if (OPS_GetInt(&numData, &tag) != 0) {
-		opserr << "WARNING invalid integer tag: nDMaterial SmearedSteelDoubleLayerT2DMaterial01" << endln; 
+		opserr << "WARNING invalid integer tag\n"; 
 		return 0;
 	}
 
 	// Material tags of 2 steel layers
 	numData = 2;
 	if (OPS_GetInt(&numData, iData) != 0) {
-		opserr << "WARNING: Invalid uniaxialMaterial tags: nDMaterial SmearedSteelDoubleLayerT2DMaterial01: " << tag << "\n";
+		opserr << "WARNING: Invalid uniaxialMaterial tags\n";
 		return 0;
 	}
 
 	// Material parameters
 	numData = 3;
 	if (OPS_GetDouble(&numData, dData) != 0) {
-		opserr << "WARNING invalid data: nDMaterial SmearedSteelDoubleLayerT2DMaterial01: " << tag << "\n";
+		opserr << "WARNING invalid data\n";
 		return 0;
 	}
 

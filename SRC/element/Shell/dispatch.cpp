@@ -129,7 +129,7 @@ TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, int argc, T
   int iData[4];
   int numData = 4;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellANDeS \n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 
@@ -169,7 +169,7 @@ TclDispatch_newShellDKGQ(ClientData clientData, Tcl_Interp* interp, int argc, TC
   int iData[6];
   int numData = 6;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellDKGQ \n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 
@@ -197,7 +197,7 @@ TclDispatch_newShellDKGT(ClientData clientData, Tcl_Interp* interp, int argc, TC
   int iData[5];
   int numData = 5;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellDKGT \n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 
@@ -244,7 +244,7 @@ TclDispatch_newShellMITC4(ClientData clientData, Tcl_Interp* interp, int argc, T
   int iData[6];
   int numData = 6;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellMITC4 \n";
+    opserr << "WARNING invalid integer tag\n";
     return TCL_ERROR;
   }
 
@@ -285,7 +285,7 @@ TclDispatch_newShellMITC4Thermal(ClientData clientData, Tcl_Interp* interp, int 
   int iData[6];
   int numData = 6;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellMITC4Thermal \n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 
@@ -313,7 +313,7 @@ TclDispatch_newShellMITC9(ClientData clientData, Tcl_Interp* interp, int argc, T
   int iData[11];
   int numData = 11;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellMITC9\n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 
@@ -345,7 +345,7 @@ TclDispatch_newShellNLDKGQ(ClientData clientData, Tcl_Interp* interp, int argc, 
   int iData[6];
   int numData = 6;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellNLDKGQ \n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 
@@ -376,7 +376,7 @@ TclDispatch_newShellNLDKGQThermal(ClientData clientData, Tcl_Interp* interp, int
   int iData[6];
   int numData = 6;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellNLDKGQThermal \n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 
@@ -406,7 +406,7 @@ TclDispatch_newShellNLDKGT(ClientData clientData, Tcl_Interp* interp, int argc, 
   int iData[5];
   int numData = 5;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellNLDKGT \n";
+    opserr << "WARNING invalid integer tag\n";
     return nullptr;
   }
 

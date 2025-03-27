@@ -17,9 +17,9 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // $Revision: 1.25 $                                                              
-// $Date: 2009-01-29 00:42:03 $                                                                  
+// $Date: 2009-01-29 00:42:03 $       
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticIsotropicMaterial.cpp,v $                                                                
 // Written: MHS 
 // Created: Feb 2000
@@ -44,9 +44,9 @@
 #include <Information.h>
 #include <Parameter.h>
 
+#include <assert.h>
 #include <OPS_Globals.h>
 #include <elementAPI.h>
-#include <string.h>
 #include <stdlib.h>
 
 
@@ -67,7 +67,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropicMaterial)
   
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: nDMaterial ElasticIsotropic \n";
+    opserr << "WARNING invalid integer tag\n";
     return 0;
   }
   
@@ -77,7 +77,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropicMaterial)
     numData = 2;
   
   if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: nDMaterial ElasticIsotropic : " << iData[0] <<"\n";
+    opserr << "WARNING invalid data" << iData[0] <<"\n";
     return 0;
   }  
   
@@ -88,9 +88,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropicMaterial)
 
 
 
-ElasticIsotropicMaterial::ElasticIsotropicMaterial
-(int tag, int classTag, double e, double nu, double r)
-  :NDMaterial(tag, classTag), E(e), v(nu), rho(r), parameterID(0)
+ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double e, double nu, double r)
+  : NDMaterial(tag, classTag), E(e), v(nu), rho(r), parameterID(0)
 {
 
 }
@@ -167,24 +166,21 @@ int
 ElasticIsotropicMaterial::setTrialStrain (const Vector &v)
 {
     opserr << "ElasticIsotropicMaterial::setTrialStrain -- subclass responsibility\n";
-    exit(-1);
     return -1;
 }
 
 int
 ElasticIsotropicMaterial::setTrialStrain (const Vector &v, const Vector &rate)
 {
-    opserr << "ElasticIsotropicMaterial::setTrialStrain -- subclass responsibility\n";
-    exit(-1);
-    return -1;
+  assert(false);
+  return -1;
 }
 
 int
 ElasticIsotropicMaterial::setTrialStrainIncr (const Vector &v)
 {
-    opserr << "ElasticIsotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-    exit(-1);
-    return -1;
+  assert(false);
+  return -1;
 }
 
 int
@@ -196,7 +192,7 @@ ElasticIsotropicMaterial::setTrialStrainIncr (const Vector &v, const Vector &rat
 }
 
 const Matrix&
-ElasticIsotropicMaterial::getTangent (void)
+ElasticIsotropicMaterial::getTangent()
 {
   opserr << "ElasticIsotropicMaterial::getTangent -- subclass responsibility\n";
   exit(-1);
@@ -207,13 +203,13 @@ ElasticIsotropicMaterial::getTangent (void)
 }
 
 const Matrix&
-ElasticIsotropicMaterial::getInitialTangent (void)
+ElasticIsotropicMaterial::getInitialTangent()
 {
   return this->getTangent();
 }
 
 const Vector&
-ElasticIsotropicMaterial::getStress (void)
+ElasticIsotropicMaterial::getStress()
 {
   opserr << "ElasticIsotropicMaterial::getStress -- subclass responsibility\n";
   exit(-1);
@@ -224,7 +220,7 @@ ElasticIsotropicMaterial::getStress (void)
 }
 
 const Vector&
-ElasticIsotropicMaterial::getStrain (void)
+ElasticIsotropicMaterial::getStrain()
 {
   opserr << "ElasticIsotropicMaterial::getStrain -- subclass responsibility\n";
   exit(-1);
@@ -235,7 +231,7 @@ ElasticIsotropicMaterial::getStrain (void)
 }
 
 int
-ElasticIsotropicMaterial::commitState (void)
+ElasticIsotropicMaterial::commitState()
 {
   opserr << "ElasticIsotropicMaterial::commitState -- subclass responsibility\n";
   exit(-1);
@@ -243,7 +239,7 @@ ElasticIsotropicMaterial::commitState (void)
 }
 
 int
-ElasticIsotropicMaterial::revertToLastCommit (void)
+ElasticIsotropicMaterial::revertToLastCommit()
 {
   opserr << "ElasticIsotropicMaterial::revertToLastCommit -- subclass responsibility\n";
   exit(-1);
@@ -335,14 +331,16 @@ ElasticIsotropicMaterial::Print(OPS_Stream &s, int flag)
         s << "\tE:  " << E << endln;
         s << "\tv:  " << v << endln;
         s << "\trho:  " << rho << endln;
-
-    } else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        return;
+    } 
+    else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
         s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": \"" << this->getTag() << "\", ";
         s << "\"type\": \"" << this->getClassType() << "\", ";
         s << "\"E\": "   << E   << ", ";
         s << "\"nu\": "  << v   << ", ";
         s << "\"rho\": " << rho << "}";
+        return;
     }
 }
 

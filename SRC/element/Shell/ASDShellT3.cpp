@@ -60,16 +60,14 @@ OPS_ADD_RUNTIME_VPV(OPS_ASDShellT3)
 
     int numArgs = OPS_GetNumRemainingInputArgs();
     if (numArgs < 5) {
-        opserr << "Want: element ASDShellT3 $tag $iNode $jNode $kNode $secTag "
-            "<-corotational> <-reducedIntegration> <-drillingNL> <-damp $dampTag>"
-            "<-local $x1 $x2 $x3>";
+        opserr << "WARNING Insufficient number of arguments\n";
         return 0;
     }
 
     int iData[5];
     int numData = 5;
     if (OPS_GetInt(&numData, iData) != 0) {
-        opserr << "WARNING invalid integer tag: element ASDShellT3 \n";
+        opserr << "WARNING invalid integer tag\n";
         return 0;
     }
 
@@ -1455,33 +1453,8 @@ ASDShellT3::setResponse(const char** argv, int argc, OPS_Stream& output)
         theResponse = new ElementResponse(this, 3, Vector(24));
     }
 
-    else if (m_damping && strcmp(argv[0], "dampingStresses") == 0) {
-
-        for (int i = 0; i < 3; i++) {
-            output.tag("GaussPoint");
-            output.attr("number", i + 1);
-            output.attr("eta", XI[i]);
-            output.attr("neta", ETA[i]);
-
-            output.tag("SectionForceDeformation");
-            int section_pos = m_reduced_integration ? 0 : i;
-            output.attr("classType", m_sections[section_pos]->getClassTag());
-            output.attr("tag", m_sections[section_pos]->getTag());
-
-            output.tag("ResponseType", "p11");
-            output.tag("ResponseType", "p22");
-            output.tag("ResponseType", "p12");
-            output.tag("ResponseType", "m11");
-            output.tag("ResponseType", "m22");
-            output.tag("ResponseType", "m12");
-            output.tag("ResponseType", "q1");
-            output.tag("ResponseType", "q2");
-
-            output.endTag(); // GaussPoint
-            output.endTag(); // NdMaterialOutput
-        }
-
-        theResponse = new ElementResponse(this, 4, Vector(24));
+    else if (strcmp(argv[0], "dampingStresses") == 0) {
+        theResponse = nullptr;
     }
 
     output.endTag();

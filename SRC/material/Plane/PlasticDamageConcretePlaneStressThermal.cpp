@@ -59,14 +59,14 @@ void * OPS_ADD_RUNTIME_VPV(OPS_PlasticDamageConcretePlaneStressThermal)
 
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: nDMaterial EasticIsotropic \n";
-    return 0;
+    opserr << "WARNING invalid integer tag\n";
+    return nullptr;
   }
 
   numData = numArgs - 1;;
   if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: nDMaterial EasticIsotropic : " << iData[0] <<"\n";
-    return 0;
+    opserr << "WARNING invalid data:" << iData[0] <<"\n";
+    return nullptr;
   }
 
   theMaterial = new PlasticDamageConcretePlaneStressThermal(iData[0],

@@ -462,9 +462,6 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
 
       while (tracker.current() != Position::End) {
         switch (tracker.current()) {
-//        case Position::Tag :
-//          opserr << "tag ";
-//          break;
           case Position::E:
             opserr << "E ";
             break;

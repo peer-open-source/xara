@@ -43,7 +43,7 @@ OPS_ADD_RUNTIME_VPV(OPS_IGAShellMITC9)
   int iData[11];
   int numData = 11;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element IGAShellMITC9\n";
+    opserr << "WARNING invalid integer tag\n";
     return 0;
   }
 

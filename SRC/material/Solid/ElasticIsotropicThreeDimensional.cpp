@@ -33,7 +33,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropic3D)
   int numArgs = OPS_GetNumRemainingInputArgs();
   
   if (numArgs < 3) {
-    opserr << "Want: nDMaterial ElasticIsotropic3D $tag $E $nu <$rho>" << endln;
+    opserr << "Want: nDMaterial ElasticIsotropic3D $tag $E $nu <$rho>\n";
     return 0;	
   }
   
@@ -43,7 +43,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropic3D)
   
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: nDMaterial ElasticIsotropic3D \n";
+    opserr << "WARNING invalid integer tag\n";
     return 0;
   }
   
@@ -53,7 +53,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropic3D)
     numData = 2;
   
   if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: nDMaterial ElasticIsotropic3D : " << iData[0] <<"\n";
+    opserr << "WARNING invalid data: " << iData[0] <<"\n";
     return 0;
   }  
   

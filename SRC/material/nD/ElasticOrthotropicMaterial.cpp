@@ -67,7 +67,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicMaterial)
   
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: nDMaterial ElasticOrthotropic \n";
+    opserr << "WARNING invalid integer tag\n";
     return 0;
   }
   
@@ -77,7 +77,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicMaterial)
     numData = 9;
   
   if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: nDMaterial EasticIsotropic : " << iData[0] <<"\n";
+    opserr << "WARNING invalid data: " << iData[0] <<"\n";
     return 0;
   }  
   
