@@ -338,6 +338,12 @@ LinearFrameTransf3d::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
   vAxis(0) = R(0,2);
   vAxis(1) = R(1,2);
   vAxis(2) = R(2,2);
+  if (nodeIPtr == nullptr) {
+    ZAxis(0) = vAxis(0);
+    ZAxis(1) = vAxis(1);
+    ZAxis(2) = vAxis(2);
+    return 0;
+  }
 
   static Vector3D e1;
   e1[0] = R(0,0);
@@ -407,7 +413,7 @@ LinearFrameTransf3d::getBasicTrialDisp()
   const Vector &disp1 = nodeIPtr->getTrialDisp();
   const Vector &disp2 = nodeJPtr->getTrialDisp();
 
-  static double ug[12];
+  static VectorND<12> ug;
   for (int i = 0; i < 6; i++) {
     ug[i]     = disp1(i);
     ug[i + 6] = disp2(i);
@@ -427,8 +433,8 @@ LinearFrameTransf3d::getBasicTrialDisp()
 
   static VectorND<6> ub;
   static Vector wrapper(ub);
-
-  ub = getBasic(ug, R, nodeIOffset, nodeJOffset, oneOverL);
+  VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
+  ub = getBasic(ul, oneOverL);
   return wrapper;
 }
 
@@ -439,7 +445,7 @@ LinearFrameTransf3d::getBasicIncrDisp()
   const Vector &disp1 = nodeIPtr->getIncrDisp();
   const Vector &disp2 = nodeJPtr->getIncrDisp();
 
-  static double ug[12];
+  static VectorND<12> ug;
   for (int i = 0; i < 6; i++) {
     ug[i]     = disp1(i);
     ug[i + 6] = disp2(i);
@@ -449,8 +455,8 @@ LinearFrameTransf3d::getBasicIncrDisp()
 
   static VectorND<6> ub;
   static Vector wrapper(ub);
-
-  ub = getBasic(ug, R, nodeIOffset, nodeJOffset, oneOverL);
+  VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
+  ub = getBasic(ul, oneOverL);
 
   return wrapper;
 }
@@ -462,7 +468,7 @@ LinearFrameTransf3d::getBasicIncrDeltaDisp()
   const Vector &disp1 = nodeIPtr->getIncrDeltaDisp();
   const Vector &disp2 = nodeJPtr->getIncrDeltaDisp();
 
-  static double ug[12];
+  static VectorND<12> ug;
   for (int i = 0; i < 6; i++) {
     ug[i]     = disp1(i);
     ug[i + 6] = disp2(i);
@@ -473,7 +479,8 @@ LinearFrameTransf3d::getBasicIncrDeltaDisp()
   static VectorND<6> ub;
   static Vector wrapper(ub);
 
-  ub = getBasic(ug, R, nodeIOffset, nodeJOffset, oneOverL);
+  VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
+  ub = getBasic(ul, oneOverL);
   return wrapper;
 }
 
@@ -484,7 +491,7 @@ LinearFrameTransf3d::getBasicTrialVel()
   const Vector &vel1 = nodeIPtr->getTrialVel();
   const Vector &vel2 = nodeJPtr->getTrialVel();
 
-  static double vg[12];
+  static VectorND<12> vg;
   for (int i = 0; i < 6; i++) {
     vg[i]     = vel1(i);
     vg[i + 6] = vel2(i);
@@ -494,7 +501,9 @@ LinearFrameTransf3d::getBasicTrialVel()
 
   static VectorND<6> ub;
   static Vector wrapper(ub);
-  ub = getBasic(vg, R, nodeIOffset, nodeJOffset, oneOverL);
+
+  VectorND<12> vl = getLocal<2,6>(vg, R, nodeIOffset, nodeJOffset);
+  ub = getBasic(vl, oneOverL);
   return wrapper;
 }
 
@@ -505,21 +514,21 @@ LinearFrameTransf3d::getBasicTrialAccel()
   const Vector &accel1 = nodeIPtr->getTrialAccel();
   const Vector &accel2 = nodeJPtr->getTrialAccel();
 
-  static double ag[12];
+  static VectorND<12> ag;
   for (int i = 0; i < 6; i++) {
     ag[i]     = accel1(i);
     ag[i + 6] = accel2(i);
   }
 
-  double oneOverL = 1.0 / L;
-
   static VectorND<6> ub;
   static Vector wrapper(ub);
-  ub = getBasic(ag, R, nodeIOffset, nodeJOffset, oneOverL);
+
+  VectorND<12> al = getLocal<2,6>(ag, R, nodeIOffset, nodeJOffset);
+  ub = getBasic(al, 1/L);
   return wrapper;
 
 //static Vector ub //(6);
-//  = getBasic(ag, R, nodeIOffset, nodeJOffset, oneOverL);
+//  = getBasic(ag, oneOverL);
 //return ub;
 }
 
@@ -565,41 +574,6 @@ LinearFrameTransf3d::pushConstant(const MatrixND<12,12>& kl)
 {
 
   MatrixND<12,12> kg;
-#if 0
-  static double RWI[3][3];
-
-  if (nodeIOffset) {
-    // Compute -R'*Wi
-    RWI[0][0] = -R(1,0) * nodeIOffset[2] + R(2,0) * nodeIOffset[1];
-    RWI[1][0] = -R(1,1) * nodeIOffset[2] + R(2,1) * nodeIOffset[1];
-    RWI[2][0] = -R(1,2) * nodeIOffset[2] + R(2,2) * nodeIOffset[1];
-
-    RWI[0][1] = R(0,0) * nodeIOffset[2] - R(2,0) * nodeIOffset[0];
-    RWI[1][1] = R(0,1) * nodeIOffset[2] - R(2,1) * nodeIOffset[0];
-    RWI[2][1] = R(0,2) * nodeIOffset[2] - R(2,2) * nodeIOffset[0];
-
-    RWI[0][2] = -R(0,0) * nodeIOffset[1] + R(1,0) * nodeIOffset[0];
-    RWI[1][2] = -R(0,1) * nodeIOffset[1] + R(1,1) * nodeIOffset[0];
-    RWI[2][2] = -R(0,2) * nodeIOffset[1] + R(1,2) * nodeIOffset[0];
-  }
-
-  static double RWJ[3][3];
-
-  if (nodeJOffset) {
-    // Compute RWJ
-    RWJ[0][0] = -R(1,0) * nodeJOffset[2] + R(2,0) * nodeJOffset[1];
-    RWJ[1][0] = -R(1,1) * nodeJOffset[2] + R(2,1) * nodeJOffset[1];
-    RWJ[2][0] = -R(1,2) * nodeJOffset[2] + R(2,2) * nodeJOffset[1];
-
-    RWJ[0][1] = R(0,0) * nodeJOffset[2] - R(2,0) * nodeJOffset[0];
-    RWJ[1][1] = R(0,1) * nodeJOffset[2] - R(2,1) * nodeJOffset[0];
-    RWJ[2][1] = R(0,2) * nodeJOffset[2] - R(2,2) * nodeJOffset[0];
-
-    RWJ[0][2] = -R(0,0) * nodeJOffset[1] + R(1,0) * nodeJOffset[0];
-    RWJ[1][2] = -R(0,1) * nodeJOffset[1] + R(1,1) * nodeJOffset[0];
-    RWJ[2][2] = -R(0,2) * nodeJOffset[1] + R(1,2) * nodeJOffset[0];
-  }
-#endif
 
   // Transform local stiffness to global system
   // First compute kl*T_{lg}
@@ -664,7 +638,6 @@ LinearFrameTransf3d::pushConstant(const MatrixND<12,12>& kl)
       kg(11, m) += RWJ[0][2] * tmp[6][m] + RWJ[1][2] * tmp[7][m] + RWJ[2][2] * tmp[8][m];
     }
   }
-
   return kg;
 }
 
@@ -993,7 +966,7 @@ LinearFrameTransf3d::getBasicDisplFixedGrad()
   const Vector &disp1 = nodeIPtr->getTrialDisp();
   const Vector &disp2 = nodeJPtr->getTrialDisp();
 
-  double ug[12];
+  VectorND<12> ug;
   for (int i = 0; i < 6; i++) {
     ug[i]     = disp1(i);
     ug[i + 6] = disp2(i);
@@ -1019,12 +992,13 @@ LinearFrameTransf3d::getBasicDisplFixedGrad()
   static VectorND<6> dub;
   static Vector wrapper(dub);
 
-  Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
-  dub = getBasic(ug, dR, nodeIOffset, nodeJOffset, 1/L);
+//Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
+
+  VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
+  dub = getBasic(ul, 1/L);
 
   //
   //
-  VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
   //
   dub[0] += 0;
   double dL = this->getLengthGrad();
@@ -1044,7 +1018,7 @@ const Vector &
 LinearFrameTransf3d::getBasicDisplTotalGrad(int gradNumber)
 {
 
-  double dug[12];
+  VectorND<12> dug;
   for (int i = 0; i < 6; i++) {
     dug[i]     = nodeIPtr->getDispSensitivity((i + 1), gradNumber);
     dug[i + 6] = nodeJPtr->getDispSensitivity((i + 1), gradNumber);
@@ -1054,7 +1028,9 @@ LinearFrameTransf3d::getBasicDisplTotalGrad(int gradNumber)
   static Vector wrapper(dub);
 
   // dub = T_{bl} T_{lg} * ug'
-  dub = getBasic(dug, R, nodeIOffset, nodeJOffset, 1/L);
+
+  VectorND<12> dul = getLocal<2,6>(dug, R, nodeIOffset, nodeJOffset);
+  dub = getBasic(dul, 1/L);
 
   wrapper += getBasicDisplFixedGrad();
 
@@ -1069,7 +1045,9 @@ LinearFrameTransf3d::Print(OPS_Stream &s, int flag)
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag()
       << "\", \"type\": \"LinearFrameTransf3d\"";
-    s << ", \"vecInLocXZPlane\": [" << R(0,2) << ", " << R(1,2) << ", "
+    s << ", \"vecInLocXZPlane\": [" 
+      << R(0,2) << ", " 
+      << R(1,2) << ", "
       << R(2,2) << "]";
     if (nodeIOffset != 0)
       s << ", \"iOffset\": [" << nodeIOffset[0] << ", " << nodeIOffset[1]
