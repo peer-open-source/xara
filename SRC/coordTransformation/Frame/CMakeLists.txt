@@ -10,6 +10,7 @@ target_sources(OPS_Transform
         CorotFrameTransf3d.cpp
         CorotFrameTransf3d03.cpp
         LinearFrameTransf3d.cpp
+        BasicFrameTransf.cpp
         PDeltaFrameTransf3d.cpp
     PUBLIC
         CorotFrameTransf3d.h

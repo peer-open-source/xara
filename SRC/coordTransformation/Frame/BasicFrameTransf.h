@@ -39,11 +39,10 @@ public:
     virtual int revertToLastCommit() override final;
     virtual int revertToStart() override final;
 
-    virtual const Vector &getBasicTrialDisp() override;
-    virtual const Vector &getBasicIncrDisp();
-    virtual const Vector &getBasicIncrDeltaDisp();
-    virtual const Vector &getBasicTrialVel();
-    virtual const Vector &getBasicTrialAccel();
+    virtual const Vector &getBasicTrialDisp() override final;
+    virtual const Vector &getBasicIncrDisp() override final;
+    virtual const Vector &getBasicIncrDeltaDisp() override final;
+    virtual const Vector &getBasicTrialVel() override final;
 
     virtual VectorND<12>    pushResponse(VectorND<12>&pl) override final;
     virtual VectorND<12>    pushConstant(const VectorND<12>&pl) const override final;
@@ -51,9 +50,9 @@ public:
     virtual MatrixND<12,12> pushResponse(MatrixND<12,12>& kl, const VectorND<12>& pl) override final;
     virtual MatrixND<12,12> pushConstant(const MatrixND<12,12>& kl) override final;
 
-    virtual const Vector &getGlobalResistingForce(const Vector &basicForce, const Vector &p0);
-    virtual const Matrix &getGlobalStiffMatrix(const Matrix &basicStiff, const Vector &basicForce);
-    virtual const Matrix &getInitialGlobalStiffMatrix(const Matrix &basicStiff);
+    virtual const Vector &getGlobalResistingForce(const Vector &basicForce, const Vector &p0) final;
+    virtual const Matrix &getGlobalStiffMatrix(const Matrix &basicStiff, const Vector &basicForce) final;
+    virtual const Matrix &getInitialGlobalStiffMatrix(const Matrix &basicStiff) final;
 
     // method used to rotate consistent mass matrix
     const Matrix &getGlobalMatrixFromLocal(const Matrix &local);

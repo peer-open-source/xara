@@ -17,7 +17,6 @@
 using namespace OpenSees;
 
 
-
 BasicFrameTransf3d::BasicFrameTransf3d(FrameTransform<2,6> *t)
 
   : FrameTransform3d(t->getTag(), 0),
@@ -94,8 +93,7 @@ BasicFrameTransf3d::getBasicTrialDisp()
 {
   static VectorND<6> ub;
   static Vector wrapper(ub);
-  static VectorND<12> ul;
-
+  VectorND<12> ul;
   ul.insert<0, 3>(t.getNodePosition(0));
   ul.insert<3, 3>(t.getNodeRotationLogarithm(0));
   ul.insert<6, 3>(t.getNodePosition(1));
@@ -110,7 +108,6 @@ BasicFrameTransf3d::getBasicIncrDeltaDisp()
   static VectorND<6> ub;
   static Vector wrapper(ub);
   VectorND<12> ul = t.getStateVariation();
-  opserr << "ul = " << Vector(ul);
   ub = getBasic(ul, 1/t.getInitialLength());
   return wrapper;
 }
@@ -130,14 +127,6 @@ BasicFrameTransf3d::getBasicTrialVel()
   static VectorND<6> ub;
   static Vector wrapper(ub);
   opserr << "Unimplemented method\n";
-  return wrapper;
-}
-
-const Vector &
-BasicFrameTransf3d::getBasicTrialAccel()
-{
-  static VectorND<6> ub;
-  static Vector wrapper(ub);
   return wrapper;
 }
 
@@ -290,7 +279,7 @@ BasicFrameTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
 {
   static double kb[6][6];     // Basic stiffness
   static MatrixND<12,12> kl;  // Local stiffness
-  static double tmp[12][12];  // Temporary storage
+  static double tmp[6][12];  // Temporary storage
   double oneOverL = 1.0 / t.getInitialLength();
 
   for (int i = 0; i < 6; i++)
@@ -347,24 +336,19 @@ BasicFrameTransf3d::getCopy()
 }
 
 const Matrix &
-BasicFrameTransf3d::getGlobalMatrixFromLocal(const Matrix &ml)
+BasicFrameTransf3d::getGlobalMatrixFromLocal(const Matrix &M)
 {
-  static MatrixND<12,12> kg;
-  static Matrix wrapper(kg);
-  Matrix3D Rm;
-  Vector3D x, y, z;
-  t.getLocalAxes(x, y, z);
-  for (int i=0; i<3; i++) {
-    Rm(i,0) = x[i];
-    Rm(i,1) = y[i];
-    Rm(i,2) = z[i];
-  }
+  //
+  // Do diag(R)*M*diag(R)'
+  //
+  constexpr static int nn = 2;
+  constexpr static int ndf = 6;
 
-
-  blk3x12x3(Rm, ml, kg);
-
-  opserr << "  M: " << wrapper ;
-
+  static MatrixND<12,12> Kout;
+  static Matrix wrapper(Kout);
+  wrapper = M;
+  MatrixND<12,12> Kg = pushConstant(Kout);
+  Kout = Kg;
   return wrapper;
 }
 
