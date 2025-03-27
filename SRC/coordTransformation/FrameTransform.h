@@ -44,16 +44,14 @@ public:
   FrameTransform<nn,ndf>(int tag) : TaggedObject(tag) {}
 
   // TODO(cmp) : make (almost?) everything pure virtual
-  virtual FrameTransform<nn,ndf> *getCopy() {
-    return nullptr;
-  }
+  virtual FrameTransform<nn,ndf> *getCopy() =0;
 
   virtual VectorND<nn*ndf> getStateVariation() =0;
 
-  // virtual VectorND<ndm>  getNodePosition(int tag);
+  virtual Vector3D  getNodePosition(int tag) =0;
+  virtual Vector3D  getNodeRotationLogarithm(int tag) =0;
   // virtual Versor         getNodeRotation(int tag);
   // virtual Vector3D       getNodeRotationVariation(int tag);
-  // virtual VectorND<ndf>  getNodeRotationLogarithm(int tag);
   // virtual VectorND<ndf>  getNodeRotationIncrement(int tag);
 
   // virtual VectorND<ndf>  getNodeLogarithm(int tag) =0;
@@ -61,15 +59,9 @@ public:
   // virtual VectorND<ndf>  getNodeVelocity(int tag);
   // virtual VectorND<ndm>  getNodeLocation(int tag);
 
-  // const Vector &getBasicIncrDeltaDisp();
-  // const Vector &getBasicTrialVel();
-  // const Vector &getBasicTrialAccel();
-
-
   virtual int initialize(std::array<Node*, nn>& nodes)=0;
   virtual int update() = 0;
   virtual int commit() = 0;
-  // virtual int revert() = 0;
   virtual int revertToLastCommit() = 0;
   virtual int revertToStart() = 0;
 
@@ -77,10 +69,10 @@ public:
   virtual double getDeformedLength() = 0;
 
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) =0;
-  virtual VectorND<nn*ndf>    pushConstant(const VectorND<nn*ndf>&pl) const =0;
-
   virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl) =0;
-  virtual MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl) =0;
+
+  VectorND<nn*ndf>    pushConstant(const VectorND<nn*ndf>&pl);
+  MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
 
   //
   virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) = 0;
@@ -95,14 +87,16 @@ public:
   };
 
   // Sensitivity
-  virtual const Vector &getBasicDisplTotalGrad(int grad);
-  virtual const Vector &getBasicDisplFixedGrad();
-  virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int gradNumber);
+  virtual const Vector &getBasicDisplTotalGrad(int grad)=0;
+  virtual const Vector &getBasicDisplFixedGrad()=0;
+  virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int grad)=0;
   virtual bool   isShapeSensitivity() {return false;}
   virtual double getLengthGrad() {return 0.0;}
   virtual double getd1overLdh() {return 0.0;}
   //
 };
+
+#include "FrameTransform.tpp"
 
 //
 // 2D
@@ -132,17 +126,6 @@ public:
   virtual CrdTransf *getCopy3d() {
     return getCopy();
   }
-
-  /*
-  */
-
-//template <int n>
-//VectorND<n> pushResponse(const VectorND<n>& response) {
-//  VectorND<n> pushed;
-//  const Vector wrap(response);
-//  pushResponse(Vector(pushed), response);
-//  return pushed;
-//}
 
   //
   //
@@ -238,10 +221,10 @@ getLocal(VectorND<nn*ndf>& ug, const Matrix3D& R, std::array<Vector3D,nn>* offse
 }
 
 static inline VectorND<6>
-getBasic(double ug[12], const Matrix3D& R, double nodeIOffset[], double nodeJOffset[], double oneOverL)
+getBasic(VectorND<12>& ul, double oneOverL)
 {
   VectorND<6> ub;
-  VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
+  // VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
 
 #if 0
   static double ul[12];
