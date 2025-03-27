@@ -57,11 +57,7 @@ PDeltaFrameTransf3d::PDeltaFrameTransf3d(int tag, const Vector &vecInLocXZPlane,
   R(2,2) = vecInLocXZPlane(2);
 
   // check rigid joint offset for node I
-  if (rigJntOffset1.Size() != 3) {
-    opserr << "PDeltaFrameTransf3d::PDeltaFrameTransf3d:  Invalid rigid joint "
-              "offset vector for node I\n";
-    opserr << "Size must be 3\n";
-  } else if (rigJntOffset1.Norm() > 0.0) {
+  if (rigJntOffset1.Norm() > 0.0) {
     nodeIOffset    = new double[3];
     nodeIOffset[0] = rigJntOffset1(0);
     nodeIOffset[1] = rigJntOffset1(1);
@@ -69,11 +65,7 @@ PDeltaFrameTransf3d::PDeltaFrameTransf3d(int tag, const Vector &vecInLocXZPlane,
   }
 
   // check rigid joint offset for node J
-  if (rigJntOffset2.Size() != 3) {
-    opserr << "PDeltaFrameTransf3d::PDeltaFrameTransf3d:  Invalid rigid joint "
-              "offset vector for node J\n";
-    opserr << "Size must be 3\n";
-  } else if (rigJntOffset2.Norm() > 0.0) {
+  if (rigJntOffset2.Norm() > 0.0) {
     nodeJOffset    = new double[3];
     nodeJOffset[0] = rigJntOffset2(0);
     nodeJOffset[1] = rigJntOffset2(1);
@@ -87,12 +79,10 @@ PDeltaFrameTransf3d::PDeltaFrameTransf3d()
       nodeIOffset(0), nodeJOffset(0), L(0), ul17(0), ul28(0),
       nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)
 {
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      R(j,i) = 0.0;
+  R.zero();
 }
 
-// destructor:
+
 PDeltaFrameTransf3d::~PDeltaFrameTransf3d()
 {
   if (nodeIOffset)
