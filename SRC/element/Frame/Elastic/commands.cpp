@@ -21,8 +21,8 @@
 #include <ArgumentTracker.h>
 
 #include <Domain.h>
-#include <FrameTransform.h>
-#include <LinearFrameTransf3d.h>
+#include <BasicFrameTransf.h>
+#include <LinearFrameTransf.hpp>
 
 #include "ElasticBeam2d.h"
 #include "ElasticBeam3d.h"
@@ -120,11 +120,11 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid iNode" << tag << "\n";
+    opserr << OpenSees::PromptValueError << "invalid iNode " << argv[3] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid jNode" << tag << "\n";
+    opserr << OpenSees::PromptValueError << "invalid jNode " << argv[4] << "\n";
     return TCL_ERROR;
   }
 
@@ -219,6 +219,9 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
       tracker.consume(Position::Transform);
     }
     else if (strcmp(argv[argi], "-vertical") == 0) {
+      //
+      // -vertical {$x $y $z}
+      //
       if (argc < argi + 2) {
         opserr << OpenSees::PromptValueError
                << "not enough arguments, expected -vertical $vertical?\n";
@@ -230,13 +233,13 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
         opserr << G3_ERROR_PROMPT << "could not split list\n";
         return TCL_ERROR;
       }
-      double vertical[3];
+      Vector3D vertical;
       for (int j=0; j<3; j++)
         if (Tcl_GetDouble(interp, yargv[j], &vertical[j]) != TCL_OK) {
           opserr << G3_ERROR_PROMPT << "could not read vector\n";
           return TCL_ERROR;
         }
-      theTrans3d = new LinearFrameTransf3d(0, Vector(vertical,3));
+      theTrans3d = new BasicFrameTransf3d(new LinearFrameTransf<2,6>(0, vertical));
       builder->addTaggedObject<FrameTransform3d>(*theTrans3d);
       Tcl_Free((char *)yargv);
       argi += 1;
@@ -348,8 +351,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[positions[i]], &transTag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid transTag" << tag;
-        opserr << " iNode jNode sectionTag? transfTag?\n";
+        opserr << OpenSees::PromptValueError << "invalid transTag " << argv[positions[i]] << "\n";
         return TCL_ERROR;
       }
       // Check that the builder has a transform with tag; error will be
@@ -514,7 +516,6 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
     if (theSection != nullptr) {
       // now create the beam and add it to the Domain
 
-//    std::array<int, 2> nodes {iNode, jNode};
       theBeam = new PrismFrame2d(tag, iNode, jNode, 
                                  *theSection, *theTrans2d, 
                                  beam_data.thermal_coeff, beam_data.thermal_depth, 
@@ -554,6 +555,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
       opserr << ", for 3d problem  need 6\n";
       return TCL_ERROR;
     }
+
 
     if (theSection != nullptr) {
       // now create the beam and add it to the Domain

@@ -1,0 +1,658 @@
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
+// Description: This file contains the implementation for the
+// LinearFrameTransf class. LinearFrameTransf is a linear
+// transformation for a space frame between the global
+// and basic coordinate systems
+//
+// Adapted: Remo Magalhaes de Souza
+// Created: 04/2000
+//
+#pragma once
+#include <Vector.h>
+#include <Matrix.h>
+#include <Matrix3D.h>
+#include <Node.h>
+#include <Channel.h>
+#include <Logging.h>
+#include <Rotations.hpp>
+#include <string>
+#include <LinearFrameTransf.hpp>
+#include "blk3x12x3.h"
+
+using namespace OpenSees;
+
+static MatrixND<3,3>
+FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj, 
+                         const Vector3D& vz, int di, int dj, int dv)
+{
+    Vector3D v1  = xj - xi;
+    double L     = v1.norm();
+    Vector3D e1  = v1/L;
+
+    Vector3D v2  = vz.cross(e1);
+
+    Vector3D e2 = v2 / v2.norm();
+//  Vector3D v3 = e1.cross(e2);
+//  Vector3D e3 = v3 / v3.norm();
+
+    //
+    Vector3D dvz{0.0};
+    Vector3D dxi{0.0};
+    Vector3D dxj{0.0};
+
+    if (di != 0)
+      dxi(di-1) = 1.0;
+    if (dj != 0)
+      dxj(dj-1) = 1.0;
+    if (dv != 0)
+      dvz(dv-1) = 1.0;
+
+    //
+
+    double   dL  = 1/L*(xj - xi).dot(dxj - dxi);
+    Vector3D dv1 = dxj - dxi;
+    Vector3D de1 = 1/(L*L)*(dv1*L - v1*dL);
+
+    double L2    = v2.norm();
+    Vector3D dv2 = dvz.cross(e1) + vz.cross(de1);
+    double dL2   = 1/L2*v2.dot(dv2);
+    Vector3D de2 = 1/(L2*L2)*(dv2*L2 - v2*dL2);
+
+    Vector3D de3 = de1.cross(e2) + e1.cross(de2);
+
+    MatrixND<3,3> dR;
+    dR(0,0) = de1(0);
+    dR(1,0) = de1(1);
+    dR(2,0) = de1(2);
+
+    dR(0,1) = de2(0);
+    dR(1,1) = de2(1);
+    dR(2,1) = de2(2);
+
+    dR(0,2) = de3(0);
+    dR(1,2) = de3(1);
+    dR(2,2) = de3(2);
+
+    return dR;
+
+//  return np.stack([de1,de2,de3])
+}
+
+
+template <int nn, int ndf>
+VectorND<nn*ndf> 
+LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug, 
+             const Matrix3D& R, 
+             const std::array<Vector3D, nn> *offset) 
+{
+  
+  constexpr static int N = nn * ndf;
+
+  // (A) Initialize ul = ug
+  VectorND<N> ul = ug;
+
+  // (B) 
+  // Do ui -= ri x wi
+  if constexpr (ndf >= 6)
+    if (offset) {
+      const std::array<Vector3D, nn>& offsets = *offset;
+      for (int i=0; i<nn; i++) {
+
+        const int j = i * ndf;
+        Vector3D w {ug[j+0],ug[j+1],ug[j+2]};
+
+        ul.assemble(j, offsets[i].cross(w), -1.0);
+      }
+    }
+
+  // (C) Rotations and translations
+  for (int i=0; i<nn; i++) {
+    const int j = i * ndf;
+    ul.insert(j  , R^Vector3D{ul[j+0], ul[j+1], ul[j+2]}, 1.0);
+    ul.insert(j+3, R^Vector3D{ul[j+3], ul[j+4], ul[j+5]}, 1.0);
+  }
+
+  return ul;
+}
+
+template <int nn, int ndf>
+LinearFrameTransf<nn,ndf>::LinearFrameTransf(int tag, 
+                                             const Vector3D &vecxz, 
+                                             const std::array<Vector3D, nn> *offset,
+                                             int offset_flags)
+
+  : FrameTransform<nn,ndf>(tag),
+    L(0),
+    offsets{nullptr},
+    offset_flags(offset_flags),
+    u_init{nullptr}, initialDispChecked(false)
+{
+  R.zero();
+
+  for (int i=0; i<3; i++)
+    vz[i] = vecxz[i];
+
+  R(0,2) = vz(0);
+  R(1,2) = vz(1);
+  R(2,2) = vz(2);
+
+  // Rigid joint offsets
+  if (offset != nullptr) {
+    offsets = new std::array<Vector3D, nn>{};
+    *offsets = *offset;
+  }
+}
+
+
+
+template <int nn, int ndf>
+LinearFrameTransf<nn,ndf>::~LinearFrameTransf()
+{
+  if (offsets != nullptr)
+    delete offsets;
+
+  for (int i=0; i<nn; i++)
+    if (u_init[i] != nullptr)
+      delete u_init[i];
+}
+
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::commit()
+{
+  return 0;
+}
+
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::revertToLastCommit()
+{
+  return 0;
+}
+
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::revertToStart()
+{
+  return 0;
+}
+
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::update()
+{
+  return 0;
+}
+
+
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
+{
+  int error;
+
+  for (int i=0; i<nn; i++) {
+    nodes[i] = new_nodes[i];
+    if (nodes[i] == nullptr) {
+      opserr << "invalid pointers to the element nodes\n";
+      return -1;
+    }
+  }
+
+  // Check for initial displacements at nodes
+  if (initialDispChecked == false) {
+    for (int i = 0; i<nn; i++) {
+      const Vector &u = nodes[i]->getDisp();
+      
+      for (int j = 0; j < ndf; j++)
+        if (u(j) != 0.0) {
+          u_init[i] = new VectorND<ndf>{};
+          for (int l = 0; l < ndf; l++)
+            (*u_init[i])[l] = u(l);
+          // break out
+          j = ndf;
+        }
+    }
+    initialDispChecked = true;
+  }
+
+  // get element length and orientation
+  if ((error = this->computeElemtLengthAndOrient()))
+    return error;
+
+  Vector3D XAxis, YAxis, ZAxis;
+
+  // fill rotation matrix
+  if ((error = this->getLocalAxes(XAxis, YAxis, ZAxis)))
+    return error;
+
+  return 0;
+}
+
+
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::computeElemtLengthAndOrient()
+{
+
+  const Vector &XI = nodes[   0]->getCrds();
+  const Vector &XJ = nodes[nn-1]->getCrds();
+
+  for (int i=0; i<3; i++) {
+    xi[i] = XI[i];
+    xj[i] = XJ[i];
+  }
+  
+  Vector3D dx = xj - xi;
+
+  if (offsets != nullptr) {
+    for (int i=0; i<3; i++)
+      dx(i) -= (*offsets)[   0][i];
+    for (int i=0; i<3; i++)
+      dx(i) += (*offsets)[nn-1][i];
+  }
+
+
+  if (u_init[0] != 0) {
+    for (int i=0; i<3; i++)
+      dx(i) -= (*u_init[0])[i];
+  }
+
+  if (u_init[nn-1] != 0) {
+    for (int i=0; i<3; i++)
+      dx(i) += (*u_init[nn-1])[i];
+  }
+
+  // calculate the element length
+  L = dx.norm();
+
+  if (L == 0.0)
+    return -2;
+
+  // Calculate the element local x axis components (direction cosines)
+  // wrt to the global coordinates
+  R(0,0) = dx(0) / L;
+  R(1,0) = dx(1) / L;
+  R(2,0) = dx(2) / L;
+
+  return 0;
+}
+
+
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::getLocalAxes(Vector3D &XAxis, Vector3D &YAxis, Vector3D &ZAxis)
+{
+  // Compute y = v cross x
+  // Note: v(i) is stored in R(i,2)
+  static Vector vAxis(3);
+  vAxis(0) = R(0,2);
+  vAxis(1) = R(1,2);
+  vAxis(2) = R(2,2);
+  if (nodes[0] == nullptr) {
+    ZAxis(0) = vAxis(0);
+    ZAxis(1) = vAxis(1);
+    ZAxis(2) = vAxis(2);
+    return 0;
+  }
+
+  Vector3D e1;
+  e1[0] = R(0,0);
+  e1[1] = R(1,0);
+  e1[2] = R(2,0);
+  XAxis(0) = e1[0];
+  XAxis(1) = e1[1];
+  XAxis(2) = e1[2];
+
+  Vector3D e2;
+  e2(0) = vAxis(1) * e1(2) - vAxis(2) * e1(1);
+  e2(1) = vAxis(2) * e1(0) - vAxis(0) * e1(2);
+  e2(2) = vAxis(0) * e1(1) - vAxis(1) * e1(0);
+
+  double ynorm = e2.norm();
+
+  if (ynorm == 0) {
+    opserr << "\nLinearFrameTransf::getLocalAxes";
+    opserr << "\nvector v that defines plane xz is parallel to x axis\n";
+    return -3;
+  }
+
+  e2 /= ynorm;
+
+  YAxis(0) = e2[0];
+  YAxis(1) = e2[1];
+  YAxis(2) = e2[2];
+
+  // Compute z = x cross y
+  Vector3D e3 = e1.cross(e2);
+
+  ZAxis(0) = e3[0];
+  ZAxis(1) = e3[1];
+  ZAxis(2) = e3[2];
+
+  // Fill in transformation matrix
+  R(0,1) = e2[0];
+  R(1,1) = e2[1];
+  R(2,1) = e2[2];
+
+  R(0,2) = e3[0];
+  R(1,2) = e3[1];
+  R(2,2) = e3[2];
+
+  return 0;
+}
+
+template <int nn, int ndf>
+double
+LinearFrameTransf<nn,ndf>::getInitialLength()
+{
+  return L;
+}
+
+template <int nn, int ndf>
+double
+LinearFrameTransf<nn,ndf>::getDeformedLength()
+{
+  return L;
+}
+
+
+//
+// Pull
+//
+
+template <int nn, int ndf>
+VectorND<nn*ndf>
+LinearFrameTransf<nn,ndf>::getStateVariation()
+{
+
+  static VectorND<nn*ndf> ug;
+  for (int i=0; i<nn; i++) {
+    const Vector &ddu = nodes[i]->getIncrDeltaDisp();
+    for (int j = 0; j < ndf; j++) {
+      ug[i*ndf+j] = ddu(j);
+    }
+  }
+  return LinearFrameTransf<nn,ndf>::pullConstant(ug, R, offsets);
+}
+
+template <int nn, int ndf>
+Vector3D
+LinearFrameTransf<nn,ndf>::getNodePosition(int node)
+{
+  Vector3D v;
+  const Vector& u = nodes[node]->getTrialDisp();
+  for (int i=0; i<3; i++)
+    v[i] = u[i];
+  return R^v;
+}
+
+template <int nn, int ndf>
+Vector3D
+LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
+{
+  Vector3D v;
+  const Vector& u = nodes[node]->getTrialDisp();
+  for (int i=0; i<3; i++)
+    v[i] = u[3+i];
+  return R^v;
+}
+
+
+//
+// Push
+//
+template <int nn, int ndf>
+VectorND<nn*ndf>
+LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&pl)
+{
+  return this->FrameTransform<nn,ndf>::pushConstant(pl);
+}
+
+template <int nn, int ndf>
+MatrixND<nn*ndf,nn*ndf>
+LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kl, const VectorND<nn*ndf>& pl)
+{
+  return this->FrameTransform<nn,ndf>::pushConstant(kl);
+}
+
+
+template <int nn, int ndf>
+FrameTransform<nn,ndf> *
+LinearFrameTransf<nn,ndf>::getCopy() const
+{
+  // create a new instance of LinearFrameTransf
+
+  Vector3D xz;
+  xz(0) = R(0,2);
+  xz(1) = R(1,2);
+  xz(2) = R(2,2);
+
+
+  LinearFrameTransf *theCopy = new LinearFrameTransf<nn,ndf>(this->getTag(), xz, offsets);
+
+  theCopy->nodes = nodes;
+  theCopy->L     = L;
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+      theCopy->R(j,i) = R(j,i);
+  
+    
+
+  return theCopy;
+}
+
+
+// Sensitivity
+
+template <int nn, int ndf>
+bool
+LinearFrameTransf<nn,ndf>::isShapeSensitivity()
+{
+  int nodeParameterI = nodes[0]->getCrdsSensitivity();
+  int nodeParameterJ = nodes[1]->getCrdsSensitivity();
+  // TODO: implement dvz
+
+  return (nodeParameterI != 0 || nodeParameterJ != 0);
+}
+
+
+template <int nn, int ndf>
+double
+LinearFrameTransf<nn,ndf>::getLengthGrad()
+{
+  const int di = nodes[0]->getCrdsSensitivity();
+  const int dj = nodes[1]->getCrdsSensitivity();
+
+  Vector3D dxi{0.0};
+  Vector3D dxj{0.0};
+
+  if (di != 0)
+    dxi(di-1) = 1.0;
+  if (dj != 0)
+    dxj(dj-1) = 1.0;
+
+  return 1/L*(xj - xi).dot(dxj - dxi);
+}
+
+template <int nn, int ndf>
+double
+LinearFrameTransf<nn,ndf>::getd1overLdh()
+{
+  return -getLengthGrad()/(L*L);
+}
+
+template <int nn, int ndf>
+const Vector &
+LinearFrameTransf<nn,ndf>::getGlobalResistingForceShapeSensitivity(const Vector &pb,
+                                                           const Vector &p0,
+                                                           int gradNumber)
+{
+  
+  static Vector pg(12);
+  pg.Zero();
+
+  //
+  // dp = T_{lg}' pl
+  //
+  int dv = 0; // TODO
+  int di = nodes[0]->getCrdsSensitivity();
+  int dj = nodes[1]->getCrdsSensitivity();
+
+  VectorND<12> pl = pushLocal(pb, L);
+  
+  pl[0] += p0[0];
+  pl[1] += p0[1];
+  pl[7] += p0[2];
+  pl[2] += p0[3];
+  pl[8] += p0[4];
+
+  Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
+  for (int i=0; i<4; i++)
+    for (int j=0; j<3; j++)
+      pg(i*3+j) = dR(j,0) * pl(3*i) + dR(j,1) * pl(3*i+1) + dR(j,2) * pl(3*i+2);
+
+  
+  //
+  // dp += T_{gl} dpl
+  //
+  double dL = this->getLengthGrad();
+  double doneOverL = -dL/(L*L);
+  VectorND<12> dpl{0.0};
+  dpl[1]  =  doneOverL * (pb[1] + pb[2]);  // Viy
+  dpl[2]  = -doneOverL * (pb[3] + pb[4]);  // Viz
+  dpl[7]  = -dpl[1];                       // Vjy
+  dpl[8]  = -dpl[2];                       // Vjz
+
+  for (int i=0; i<4; i++)
+    for (int j=0; j<3; j++)
+      pg(i*3+j) += R(j,0) * dpl(3*i) + R(j,1) * dpl(3*i+1) + R(j,2) * dpl(3*i+2);
+
+  return pg;
+}
+
+
+template <int nn, int ndf>
+const Vector &
+LinearFrameTransf<nn,ndf>::getBasicDisplFixedGrad()
+{
+  static VectorND<6> dub;
+  static Vector wrapper(dub);
+  //
+  // Form ug
+  //
+#if 0
+  VectorND<nn*ndf> ug;
+  for (int i = 0; i < nn; i++) {
+    const Vector& u = nodes[i]->getTrialDisp();
+    for (int j = 0; j < ndf; j++) {
+      ug[i*ndf+j] = u(j);
+    }
+  }
+
+  if (u_init[0] != 0) {
+    for (int j = 0; j < ndf; j++)
+      ug[j] -= (*u_init[0])[j];
+  }
+
+  if (u_init[nn-1] != 0) {
+    for (int j = 0; j < ndf; j++)
+      ug[j + 6] -= (*u_init[nn-1])[j];
+  }
+
+  //
+  // dub += (T_{bl}' T_{lg} + T_{bl} T_{lg}') * ug
+  //
+  int dv = 0; // TODO
+
+  // TODO
+  int di = nodes[0]->getCrdsSensitivity();
+  int dj = nodes[1]->getCrdsSensitivity();
+
+
+  // TODO
+  // Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
+  // dub = getBasic(ug, 1/L);
+
+  //
+  //
+  VectorND<nn*ndf> ul = LinearFrameTransf<nn,ndf>::pullConstant(ug, R, offsets);
+  //
+  dub[0] += 0;
+  double dL = this->getLengthGrad();
+  double doneOverL = -dL/(L*L);
+  double tmp   = doneOverL * (ul[1] - ul[7]);
+  dub[1] +=  tmp;
+  dub[2] +=  tmp;
+  tmp   = doneOverL * (ul[8] - ul[2]);
+  dub[3] +=  tmp;
+  dub[4] +=  tmp;
+#endif
+  return wrapper;
+}
+
+template <int nn, int ndf>
+const Vector &
+LinearFrameTransf<nn,ndf>::getBasicDisplTotalGrad(int gradNumber)
+{
+
+  double dug[12];
+  for (int i = 0; i < 6; i++) {
+    dug[i]     = nodes[0]->getDispSensitivity((i + 1), gradNumber);
+    dug[i + 6] = nodes[1]->getDispSensitivity((i + 1), gradNumber);
+  }
+
+  static VectorND<6> dub;
+  static Vector wrapper(dub);
+
+  // dub = T_{bl} T_{lg} * ug'
+  // TODO
+  // dub = getBasic(dug, R, offsets[0], offsets[nn-1], 1/L);
+
+  wrapper += getBasicDisplFixedGrad();
+
+  return wrapper;
+}
+
+
+template <int nn, int ndf>
+void
+LinearFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"LinearFrameTransf\"";
+    s << ", \"vecxz\": [" 
+      << R(0,2) << ", " 
+      << R(1,2) << ", "
+      << R(2,2) << "]";
+    if (offsets != nullptr) {
+      s << ", \"offsets\": [";
+      for (int i=0; i<nn; i++) {
+        s << "["
+          << (*offsets)[i][0] << ", " 
+          << (*offsets)[i][1] << ", "
+          << (*offsets)[i][2] << "]";
+        if (i < nn-1)
+          s << ", ";
+      }
+      s << "]";
+    }
+
+    s << "}";
+
+    return;
+  }
+
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "\nFrameTransform: " << this->getTag() << " Type: LinearFrameTransf\n";
+    s << "\tOrientation: " << Matrix(&R(0,0), 3,3) << "\n";
+  }
+}
+

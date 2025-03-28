@@ -22,13 +22,18 @@ using OpenSees::VectorND;
 using OpenSees::MatrixND;
 using OpenSees::Matrix3D;
 
-typedef std::vector<int> Layout;
 
 enum {
  CRDTR_TAG_CorotFrameTransfWarping3d,
  CRDTR_TAG_CorotFrameTransf3d,
  CRDTR_TAG_LinearFrameTransf3d,
  CRDTR_TAG_PDeltaFrameTransf3d
+};
+
+enum {
+  OffsetGlobal = 0,
+  OffsetLocal  = 1,
+  OffsetNormalized = 2
 };
 
 //
@@ -44,7 +49,7 @@ public:
   FrameTransform<nn,ndf>(int tag) : TaggedObject(tag) {}
 
   // TODO(cmp) : make (almost?) everything pure virtual
-  virtual FrameTransform<nn,ndf> *getCopy() =0;
+  virtual FrameTransform<nn,ndf> *getCopy() const =0;
 
   virtual VectorND<nn*ndf> getStateVariation() =0;
 
@@ -186,39 +191,6 @@ getLocal(VecT ug, const Matrix3D& R, double nodeIOffset[], double nodeJOffset[])
   return ul;
 }
 
-template<int nn, int ndf, typename VecT>
-static inline VectorND<nn*ndf>
-getLocal(VectorND<nn*ndf>& ug, const Matrix3D& R, std::array<Vector3D,nn>* offset)
-{
-  VectorND<nn*ndf> ul = ug;
-
-  for (int i=0; i<nn; i++)
-    for (int j=0; j<6; j++)
-      ul[i*ndf+j%3] = R(0,j%3)*ug[i*ndf] + R(1,j%3)*ug[i*ndf+1] + R(2,j%3)*ug[3*i+2];
-
-  if (offset) {
-    double Wu[3];
-    std::array<Vector3D, nn>& offsets = *offset;
-
-    Wu[0] =  offsets[0][2] * ug[4] - offsets[0][1] * ug[5];
-    Wu[1] = -offsets[0][2] * ug[3] + offsets[0][0] * ug[5];
-    Wu[2] =  offsets[0][1] * ug[3] - offsets[0][0] * ug[4];
-
-    ul[0] += R(0,0) * Wu[0] + R(1,0) * Wu[1] + R(2,0) * Wu[2];
-    ul[1] += R(0,1) * Wu[0] + R(1,1) * Wu[1] + R(2,1) * Wu[2];
-    ul[2] += R(0,2) * Wu[0] + R(1,2) * Wu[1] + R(2,2) * Wu[2];
-
-    Wu[0] =  offsets[1][2] * ug[10] - offsets[1][1] * ug[11];
-    Wu[1] = -offsets[1][2] * ug[ 9] + offsets[1][0] * ug[11];
-    Wu[2] =  offsets[1][1] * ug[ 9] - offsets[1][0] * ug[10];
-
-    ul[6] += R(0,0) * Wu[0] + R(1,0) * Wu[1] + R(2,0) * Wu[2];
-    ul[7] += R(0,1) * Wu[0] + R(1,1) * Wu[1] + R(2,1) * Wu[2];
-    ul[8] += R(0,2) * Wu[0] + R(1,2) * Wu[1] + R(2,2) * Wu[2];
-  }
-
-  return ul;
-}
 
 static inline VectorND<6>
 getBasic(VectorND<12>& ul, double oneOverL)

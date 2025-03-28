@@ -1146,11 +1146,9 @@ ForceFrame3d::getStressGrad(VectorND<nsr>& dspdh, int isec, int gradNumber)
         } else {
           switch (scheme[ii]) {
           case SECTION_RESPONSE_VY:
-            //sp(ii) += Vy2;
             dspdh(ii) += dVy2dh;
             break;
           case SECTION_RESPONSE_VZ:
-            //sp(ii) += Vz2;
             dspdh(ii) += dVz2dh;
             break;
           case SECTION_RESPONSE_MY:
@@ -1696,77 +1694,6 @@ ForceFrame3d::getInitialDeformations(Vector& v0)
   return 0;
 }
 
-void
-ForceFrame3d::compSectionDisplacements(Vector sectionCoords[], Vector sectionDispls[]) const
-{
-  // get basic displacements and increments
-  THREAD_LOCAL Vector ub(NBV);
-  ub = theCoordTransf->getBasicTrialDisp();
-
-  double L = theCoordTransf->getInitialLength();
-
-  // setup Vandermode and CBDI influence matrices
-
-  const int numSections = points.size();
-  // get CBDI influence matrix
-  Matrix ls(numSections, numSections);
-
-  { // enclose xi in a scope
-    double *xi = new double[numSections];
-    stencil->getSectionLocations(numSections, L, xi);
-    getCBDIinfluenceMatrix(numSections, xi, L, ls);
-    delete[] xi;
-  }
-
-  // get section curvatures
-  Vector kappa_y(numSections);
-  Vector kappa_z(numSections);
-
-  for (int i = 0; i < numSections; i++) {
-    // get section deformations
-    // TODO: Im removing getDeformation, deformations should just be computed
-    // right here by the element;
-    // VectorND<nsr> es = points[i].material->getDeformation<nsr,scheme>();
-
-    // for (int j = 0; j < nsr; j++) {
-    //   if (scheme[j] == SECTION_RESPONSE_MZ)
-    //     kappa_z(i) = es[j];
-    //   if (scheme[j] == SECTION_RESPONSE_MY)
-    //     kappa_y(i) = es[j];
-    // }
-  }
-
-  Vector v(numSections),
-         w(numSections);
-  THREAD_LOCAL VectorND<ndm> xl, uxb;
-  THREAD_LOCAL VectorND<ndm> xg, uxg;
-  // double theta;                             // angle of twist of the sections
-
-  // v = ls * kappa_z;
-  v.addMatrixVector(0.0, ls, kappa_z, 1.0);
-  // w = ls * kappa_y *  (-1);
-  w.addMatrixVector(0.0, ls, kappa_y, -1.0);
-
-  for (int i = 0; i < numSections; i++) {
-
-    xl[0] = points[i].point * L;
-    xl[1] = 0;
-    xl[2] = 0;
-
-    // get section global coordinates
-    sectionCoords[i] = theCoordTransf->getPointGlobalCoordFromLocal(xl);
-
-    // compute section displacements
-    //theta  = xi * ub(5); // consider linear variation for angle of twist. CHANGE LATER!!!!!!!!!!
-    uxb[0] = points[i].point * ub(0); // consider linear variation for axial displacement. CHANGE LATER!!!!!!!!!!
-    uxb[1] = v[i];
-    uxb[2] = w[i];
-
-    // get section displacements in global system
-    sectionDispls[i] = theCoordTransf->getPointGlobalDisplFromBasic(points[i].point, uxb);
-  }
-  return;
-}
 
 void
 ForceFrame3d::Print(OPS_Stream& s, int flag)
@@ -1801,7 +1728,7 @@ ForceFrame3d::Print(OPS_Stream& s, int flag)
     s << points[points.size() - 1].material->getTag() << "]";
     s << ", ";
 
-    s << "\"crdTransformation\": " << theCoordTransf->getTag();
+    s << "\"transform\": " << theCoordTransf->getTag();
     s << ", ";
 
     s << "\"integration\": ";

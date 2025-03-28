@@ -5,7 +5,7 @@
 //===----------------------------------------------------------------------===//
 //
 // Description: This file contains the implementation for the
-// CorotFrameTransf3d03 class. CorotFrameTransf3d03 is a Corotational
+// SouzaFrameTransf class. SouzaFrameTransf is a Corotational
 // transformation for a spatial frame element between the global
 // and basic coordinate systems. The formulation is derived from
 // Crisfield (1991) and employs a heuristic approximation to the
@@ -36,7 +36,7 @@
 #include <Node.h>
 #include <Channel.h>
 #include <Logging.h>
-#include <CorotFrameTransf3d03.h>
+#include <SouzaFrameTransf.hpp>
 
 #include <Triad.h>
 #include <Vector.h>
@@ -49,15 +49,6 @@
 #include "blk3x12x3.h"
 #include "Orient/CrisfieldTransform.h"
 using namespace OpenSees;
-
-// MatrixND<12,3> CorotFrameTransf3d03::Lr2{};
-// MatrixND<12,3> CorotFrameTransf3d03::Lr3{};
-
-#undef OPS_STATIC
-#define OPS_STATIC static 
-#ifndef THREAD_LOCAL
-# define THREAD_LOCAL static
-#endif
 
 
 // Permutation matrix (to renumber basic dof's)
@@ -85,7 +76,7 @@ using namespace OpenSees;
 //     {1,    0,    0,    0,    0,    0 }}};
 
 // So-called "Matrix of rigid body modes"
-static MatrixND<6,12> T12_6 {
+constexpr static MatrixND<6,12> T12_6 {
 //   N Mz Mz My My  T
    {{0, 0, 0, 0, 0, 0}, // Ni
     {0, 0, 0, 0, 0, 0},
@@ -102,112 +93,59 @@ static MatrixND<6,12> T12_6 {
     {0, 0, 1, 0, 0, 0}} // Mz
 };
 
-CorotFrameTransf3d03::CorotFrameTransf3d03(int tag, const Vector &vecInLocXZPlane,
-                                       const Vector &rigJntOffsetI,
-                                       const Vector &rigJntOffsetJ)
-  : FrameTransform3d(tag, CRDTR_TAG_CorotFrameTransf3d),
-    nodeIOffset(3), nodeJOffset(3),
-    offset{nullptr, nullptr},
+template <int nn, int ndf>
+SouzaFrameTransf<nn,ndf>::SouzaFrameTransf(int tag, const Vector3D &vz,
+                                            const std::array<Vector3D, nn> *offset,
+                                            int offset_flags)
+  : FrameTransform<nn,ndf>(tag),
+    vz(vz),
+    offsets{nullptr},
     L(0), Ln(0),
     nodeIInitialDisp(0), nodeJInitialDisp(0),
     initialDispChecked(false)
 {
-    alphaI.zero();
-    alphaJ.zero();
+  alphaI.zero();
+  alphaJ.zero();
 
-    // Check vector that defines local xz plane
-    if (vecInLocXZPlane.Size() != 3 ) {
-        vz[0] = 0;
-        vz[1] = 0;
-        vz[2] = 1;
-    }
-    else {
-      vz[0] = vecInLocXZPlane[0];
-      vz[1] = vecInLocXZPlane[1];
-      vz[2] = vecInLocXZPlane[2];
-    }
-
-    // check rigid joint offset for node I
-    if (rigJntOffsetI.Size() != 3 ) {
-        opserr << "CorotFrameTransf3d: Invalid rigid joint offset vector for node I\n";
-        opserr << "Size must be 3\n";
-        nodeIOffset.Zero();
-    }
-    else
-        nodeIOffset = rigJntOffsetI;
-
-    // Check rigid joint offset for node J
-    if (rigJntOffsetJ.Size() != 3 ) {
-        opserr << "CorotFrameTransf3d:  Invalid rigid joint offset vector for node J\n";
-        opserr << "Size must be 3\n";
-        nodeJOffset.Zero();
-    }
-    else
-        nodeJOffset = rigJntOffsetJ;
-
-    if (nodeIOffset.Norm() != 0)
-      joint_offsets |= end_i;
-    if (nodeJOffset.Norm() != 0)
-      joint_offsets |= end_j;
-
-    // TODO: implement joint offsets
-    if ((joint_offsets & end_i) || (joint_offsets & end_j)) {
-        opserr << "Rigid joint zones not implemented yet\n";
-        opserr << "Using zero values\n"; 
-        nodeIOffset.Zero();
-        nodeJOffset.Zero();
-    }
+  // Rigid joint offsets
+  if (offset != nullptr) {
+    offsets = new std::array<Vector3D, nn>{};
+    *offsets = *offset;
+  }
 }
 
 
-
-// invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
-CorotFrameTransf3d03::CorotFrameTransf3d03():
-  FrameTransform3d(0, CRDTR_TAG_CorotFrameTransf3d),
-  nodeIOffset(3), nodeJOffset(3),
-  L(0.0), Ln(0.0),
-  nodeIInitialDisp(0), nodeJInitialDisp(0), 
-  initialDispChecked(false)
+template <int nn, int ndf>
+SouzaFrameTransf<nn,ndf>::~SouzaFrameTransf()
 {
-
+  if (offsets != nullptr)
+    delete offsets;
 }
 
 
-CorotFrameTransf3d03::~CorotFrameTransf3d03()
-{
-  if (nodeIInitialDisp != nullptr)
-    delete [] nodeIInitialDisp;
-
-  if (nodeJInitialDisp != nullptr)
-    delete [] nodeJInitialDisp;
-}
-
-
+template <int nn, int ndf>
 double
-CorotFrameTransf3d03::getInitialLength()
+SouzaFrameTransf<nn,ndf>::getInitialLength()
 {
   return L;
 }
 
 
+template <int nn, int ndf>
 double
-CorotFrameTransf3d03::getDeformedLength()
+SouzaFrameTransf<nn,ndf>::getDeformedLength()
 {
   return Ln;
 }
 
 
-FrameTransform3d *
-CorotFrameTransf3d03::getCopy()
+template <int nn, int ndf>
+FrameTransform<nn,ndf> *
+SouzaFrameTransf<nn,ndf>::getCopy() const
 {
 
-  CorotFrameTransf3d03 *theCopy =
-    new CorotFrameTransf3d03(this->getTag(), Vector(vz), nodeIOffset, nodeJOffset);
-
-  if (!theCopy) {
-    opserr << "CorotFrameTransf3d03::getCopy() - out of memory creating copy\n";
-    return 0;
-  }
+  SouzaFrameTransf *theCopy =
+    new SouzaFrameTransf<nn,ndf>(this->getTag(), vz, offsets);
 
   theCopy->nodes[0]  = nodes[0];
   theCopy->nodes[1]  = nodes[1];
@@ -221,17 +159,18 @@ CorotFrameTransf3d03::getCopy()
   theCopy->Q_past[1] = Q_past[1];
   theCopy->ul = ul;
   theCopy->ulcommit = ulcommit;
-
   return theCopy;
 }
 
 
+template <int nn, int ndf>
 int
-CorotFrameTransf3d03::revertToStart()
+SouzaFrameTransf<nn,ndf>::revertToStart()
 {
   ul.zero();
   Q_pres[0] = VersorFromMatrix(R0);
-  Q_pres[1] = VersorFromMatrix(R0);
+  for (int i=1; i<nn; i++)
+    Q_pres[i] = Q_pres[0];
 
   alphaI.zero();
   alphaJ.zero();
@@ -241,8 +180,9 @@ CorotFrameTransf3d03::revertToStart()
 }
 
 
+template <int nn, int ndf>
 int
-CorotFrameTransf3d03::commitState()
+SouzaFrameTransf<nn,ndf>::commit()
 {
   ulcommit  = ul;
   Q_past[0] = Q_pres[0];
@@ -251,8 +191,9 @@ CorotFrameTransf3d03::commitState()
 }
 
 
+template <int nn, int ndf>
 int
-CorotFrameTransf3d03::revertToLastCommit()
+SouzaFrameTransf<nn,ndf>::revertToLastCommit()
 {
     // determine global displacement increments from last iteration
     const Vector &dispI = nodes[0]->getTrialDisp();
@@ -273,32 +214,33 @@ CorotFrameTransf3d03::revertToLastCommit()
 }
 
 
+template <int nn, int ndf>
 int
-CorotFrameTransf3d03::initialize(Node *nodeIPointer, Node *nodeJPointer)
+SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
 {
 
-    nodes[0] = nodeIPointer;
-    nodes[1] = nodeJPointer;
 
-    if ((!nodes[0]) || (!nodes[1])) {
-      opserr << "\nCorotFrameTransf3d03::initialize";
-      opserr << "\ninvalid pointers to the element nodes\n";
-      return -1;
+    for (int i=0; i<nn; i++) {
+      nodes[i] = new_nodes[i];
+      if (nodes[i] == nullptr) {
+        opserr << "invalid pointers to the element nodes\n";
+        return -1;
+      }
     }
 
-    dX  = nodes[1]->getCrds() - nodes[0]->getCrds();
+    dX  = nodes[nn-1]->getCrds() - nodes[0]->getCrds();
 
     // Add initial displacements at nodes
     if (initialDispChecked == false) {
       const Vector &nodeIDisp = nodes[0]->getDisp();
       const Vector &nodeJDisp = nodes[1]->getDisp();
       for (int i = 0; i<6; i++)
-      if (nodeIDisp[i] != 0.0) {
-        nodeIInitialDisp = new double [6];
-        for (int j = 0; j<6; j++)
-          nodeIInitialDisp[j] = nodeIDisp[j];
-        i = 6;
-      }
+        if (nodeIDisp[i] != 0.0) {
+          nodeIInitialDisp = new double [6];
+          for (int j = 0; j<6; j++)
+            nodeIInitialDisp[j] = nodeIDisp[j];
+          i = 6;
+        }
 
       for (int j = 0; j<6; j++)
         if (nodeJDisp[j] != 0.0) {
@@ -323,9 +265,7 @@ CorotFrameTransf3d03::initialize(Node *nodeIPointer, Node *nodeJPointer)
     // }
 
     int error;
-    static Vector XAxis(3);
-    static Vector YAxis(3);
-    static Vector ZAxis(3);
+    Vector3D XAxis, YAxis, ZAxis;
 
     // Set rotation matrix
     if ((error = this->getLocalAxes(XAxis, YAxis, ZAxis)))
@@ -334,13 +274,48 @@ CorotFrameTransf3d03::initialize(Node *nodeIPointer, Node *nodeJPointer)
     // Compute initial pseudo-vectors for nodal triads
     Q_pres[0] = Q_pres[1] = VersorFromMatrix(R0);
 
-    this->commitState();
+    this->commit();
 
     return 0;
 }
 
+template <int nn, int ndf>
+VectorND<nn*ndf>
+SouzaFrameTransf<nn,ndf>::getStateVariation()
+{
+  return ul - ulpr;
+}
+
+template <int nn, int ndf>
+Vector3D
+SouzaFrameTransf<nn,ndf>::getNodePosition(int tag)
+{
+  Vector3D u;
+  for (int i=0; i<3; i++)
+    u[i] = ul[tag*6+i];
+  return u;
+  // Vector3D v;
+  // const Vector& u = nodes[tag]->getTrialDisp();
+  // for (int i=0; i<3; i++)
+  //   v[i] = u[i];
+
+  // if (offsets != nullptr)
+  //   v += Q_pres[tag].rotate((*offsets)[tag]);
+
+  // Matrix3D R = crs.getRotation();
+  // return R^v;
+}
+
+template <int nn, int ndf>
+Vector3D
+SouzaFrameTransf<nn,ndf>::getNodeRotationLogarithm(int tag)
+{
+  return vr[tag];
+}
+
+template <int nn, int ndf>
 void inline
-CorotFrameTransf3d03::compTransfMatrixBasicGlobal(
+SouzaFrameTransf<nn,ndf>::compTransfMatrixBasicGlobal(
                                                 const Versor& Qbar,
                                                 const Versor* Q_pres)
 {
@@ -353,15 +328,15 @@ CorotFrameTransf3d03::compTransfMatrixBasicGlobal(
       &e1  =  crs.getBasisE1(), // E[1],
       &e2  =  crs.getBasisE2(), // E[2],
       &e3  =  crs.getBasisE3(), // E[3],
-      &r1  =  r[1], // .rotate(E1), 
-      &r2  =  r[2], // .rotate(E2), 
-      &r3  =  r[3], // .rotate(E3),
-      &rI1 = rI[1], // .rotate(E1),
-      &rI2 = rI[2], // .rotate(E2), 
-      &rI3 = rI[3], // .rotate(E3),
-      &rJ1 = rJ[1], // .rotate(E1), 
-      &rJ2 = rJ[2], // .rotate(E2), 
-      &rJ3 = rJ[3]; // .rotate(E3);
+      &r1  =  r[1],
+      &r2  =  r[2],
+      &r3  =  r[3],
+      &rI1 = rI[1],
+      &rI2 = rI[2],
+      &rI3 = rI[3],
+      &rJ1 = rJ[1],
+      &rJ2 = rJ[2],
+      &rJ3 = rJ[3];
 
     // Compute the transformation matrix from the basic to the
     // global system
@@ -529,8 +504,9 @@ CorotFrameTransf3d03::compTransfMatrixBasicGlobal(
 //
 // Set RI,RJ,Rbar, Ln, e and ul
 //
+template <int nn, int ndf>
 int
-CorotFrameTransf3d03::update()
+SouzaFrameTransf<nn,ndf>::update()
 {
     // determine global displacement increments from last iteration
 
@@ -552,7 +528,7 @@ CorotFrameTransf3d03::update()
       Ln = dx.norm();
 
       if (Ln == 0.0) {
-        opserr << "\nCorotFrameTransf3d03: deformed length is 0.0\n";
+        opserr << "\nSouzaFrameTransf: deformed length is 0.0\n";
         return -2;
       }
     }
@@ -563,8 +539,8 @@ CorotFrameTransf3d03::update()
 
       for (int k = 0; k < 3; k++) {
         dAlphaI[k] =  dispI(k+3) - alphaI[k];
-        dAlphaJ[k] =  dispJ(k+3) - alphaJ[k];
         alphaI[k]  =  dispI(k+3);
+        dAlphaJ[k] =  dispJ(k+3) - alphaJ[k];
         alphaJ[k]  =  dispJ(k+3);
       }
 
@@ -608,14 +584,15 @@ CorotFrameTransf3d03::update()
 }
 
 
-inline VectorND<12>
-CorotFrameTransf3d03::pushResponse(VectorND<12>&pl)
+template <int nn, int ndf>
+inline VectorND<nn*ndf>
+SouzaFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&pl)
 {
   // return T^pl;
-  VectorND<12> pg{};
-  for (int a = 0; a<2; a++) {
-    VectorND<6> pa {pl(a*6+0), pl(a*6+1), pl(a*6+2), 
-                    pl(a*6+3), pl(a*6+4), pl(a*6+5)};
+  VectorND<nn*ndf> pg{};
+  for (int a = 0; a<nn; a++) {
+    VectorND<6> pa {pl(a*ndf+0), pl(a*ndf+1), pl(a*ndf+2), 
+                    pl(a*ndf+3), pl(a*ndf+4), pl(a*ndf+5)};
 
     for (int b = 0; b<2; b++) {
       VectorND<6> pab = pushResponse(pa, a, b);
@@ -625,8 +602,9 @@ CorotFrameTransf3d03::pushResponse(VectorND<12>&pl)
   return pg;
 }
 
+template <int nn, int ndf>
 VectorND<6>
-CorotFrameTransf3d03::pushResponse(const VectorND<6>&pa, int a, int b)
+SouzaFrameTransf<nn,ndf>::pushResponse(const VectorND<6>&pa, int a, int b)
 {
   VectorND<6> pg{};
   for (int i = 0; i < 6; i++)
@@ -636,228 +614,12 @@ CorotFrameTransf3d03::pushResponse(const VectorND<6>&pa, int a, int b)
   return pg;
 }
 
-
-MatrixND<12,12>
-CorotFrameTransf3d03::pushConstant(const MatrixND<12,12>&kl)
-{
-
-  MatrixND<12,12> kg;
-  static double RWI[3][3]{};
-  static double RWJ[3][3]{};
-
-#if 0
-
-  if (joint_offsets & end_i) {
-    // Compute RWI
-    RWI[0][0] = -R0(1, 0) * nodeIOffset[2] + R0(2, 0) * nodeIOffset[1];
-    RWI[1][0] = -R0(1, 1) * nodeIOffset[2] + R0(2, 1) * nodeIOffset[1];
-    RWI[2][0] = -R0(1, 2) * nodeIOffset[2] + R0(2, 2) * nodeIOffset[1];
-
-    RWI[0][1] = R0(0, 0) * nodeIOffset[2] - R0(2, 0) * nodeIOffset[0];
-    RWI[1][1] = R0(0, 1) * nodeIOffset[2] - R0(2, 1) * nodeIOffset[0];
-    RWI[2][1] = R0(0, 2) * nodeIOffset[2] - R0(2, 2) * nodeIOffset[0];
-
-    RWI[0][2] = -R0(0, 0) * nodeIOffset[1] + R0(1, 0) * nodeIOffset[0];
-    RWI[1][2] = -R0(0, 1) * nodeIOffset[1] + R0(1, 1) * nodeIOffset[0];
-    RWI[2][2] = -R0(0, 2) * nodeIOffset[1] + R0(1, 2) * nodeIOffset[0];
-  }
-
-
-  if (joint_offsets & end_j) {
-    // Compute RWJ
-    RWJ[0][0] = -R0(1, 0) * nodeJOffset[2] + R0(2, 0) * nodeJOffset[1];
-    RWJ[1][0] = -R0(1, 1) * nodeJOffset[2] + R0(2, 1) * nodeJOffset[1];
-    RWJ[2][0] = -R0(1, 2) * nodeJOffset[2] + R0(2, 2) * nodeJOffset[1];
-
-    RWJ[0][1] = R0(0, 0) * nodeJOffset[2] - R0(2, 0) * nodeJOffset[0];
-    RWJ[1][1] = R0(0, 1) * nodeJOffset[2] - R0(2, 1) * nodeJOffset[0];
-    RWJ[2][1] = R0(0, 2) * nodeJOffset[2] - R0(2, 2) * nodeJOffset[0];
-
-    RWJ[0][2] = -R0(0, 0) * nodeJOffset[1] + R0(1, 0) * nodeJOffset[0];
-    RWJ[1][2] = -R0(0, 1) * nodeJOffset[1] + R0(1, 1) * nodeJOffset[0];
-    RWJ[2][2] = -R0(0, 2) * nodeJOffset[1] + R0(1, 2) * nodeJOffset[0];
-  }
-#endif
-
-  // Transform local stiffness to global system
-  // First compute kl*T_{lg}
-  static double tmp[12][12];  // Temporary storage
-  for (int m = 0; m < 12; m++) {
-    tmp[m][0] = kl(m, 0) * R0(0, 0) + kl(m, 1) * R0(0, 1) + kl(m, 2) * R0(0, 2);
-    tmp[m][1] = kl(m, 0) * R0(1, 0) + kl(m, 1) * R0(1, 1) + kl(m, 2) * R0(1, 2);
-    tmp[m][2] = kl(m, 0) * R0(2, 0) + kl(m, 1) * R0(2, 1) + kl(m, 2) * R0(2, 2);
-
-    tmp[m][3] = kl(m, 3) * R0(0, 0) + kl(m, 4) * R0(0, 1) + kl(m, 5) * R0(0, 2);
-    tmp[m][4] = kl(m, 3) * R0(1, 0) + kl(m, 4) * R0(1, 1) + kl(m, 5) * R0(1, 2);
-    tmp[m][5] = kl(m, 3) * R0(2, 0) + kl(m, 4) * R0(2, 1) + kl(m, 5) * R0(2, 2);
-
-    if (joint_offsets & end_i) {
-      tmp[m][3] += kl(m, 0) * RWI[0][0] + kl(m, 1) * RWI[1][0] + kl(m, 2) * RWI[2][0];
-      tmp[m][4] += kl(m, 0) * RWI[0][1] + kl(m, 1) * RWI[1][1] + kl(m, 2) * RWI[2][1];
-      tmp[m][5] += kl(m, 0) * RWI[0][2] + kl(m, 1) * RWI[1][2] + kl(m, 2) * RWI[2][2];
-    }
-
-    tmp[m][6] = kl(m, 6) * R0(0, 0) + kl(m, 7) * R0(0, 1) + kl(m, 8) * R0(0, 2);
-    tmp[m][7] = kl(m, 6) * R0(1, 0) + kl(m, 7) * R0(1, 1) + kl(m, 8) * R0(1, 2);
-    tmp[m][8] = kl(m, 6) * R0(2, 0) + kl(m, 7) * R0(2, 1) + kl(m, 8) * R0(2, 2);
-
-    tmp[m][9]  = kl(m, 9) * R0(0, 0) + kl(m, 10) * R0(0, 1) + kl(m, 11) * R0(0, 2);
-    tmp[m][10] = kl(m, 9) * R0(1, 0) + kl(m, 10) * R0(1, 1) + kl(m, 11) * R0(1, 2);
-    tmp[m][11] = kl(m, 9) * R0(2, 0) + kl(m, 10) * R0(2, 1) + kl(m, 11) * R0(2, 2);
-
-    if (joint_offsets & end_j) {
-      tmp[m][ 9] += kl(m, 6) * RWJ[0][0] + kl(m, 7) * RWJ[1][0] + kl(m, 8) * RWJ[2][0];
-      tmp[m][10] += kl(m, 6) * RWJ[0][1] + kl(m, 7) * RWJ[1][1] + kl(m, 8) * RWJ[2][1];
-      tmp[m][11] += kl(m, 6) * RWJ[0][2] + kl(m, 7) * RWJ[1][2] + kl(m, 8) * RWJ[2][2];
-    }
-  }
-
-  // Now compute T'_{lg}*(kl*T_{lg})
-  for (int m = 0; m < 12; m++) {
-    kg(0, m) = R0(0, 0) * tmp[0][m] + R0(0, 1) * tmp[1][m] + R0(0, 2) * tmp[2][m];
-    kg(1, m) = R0(1, 0) * tmp[0][m] + R0(1, 1) * tmp[1][m] + R0(1, 2) * tmp[2][m];
-    kg(2, m) = R0(2, 0) * tmp[0][m] + R0(2, 1) * tmp[1][m] + R0(2, 2) * tmp[2][m];
-
-    kg(3, m) = R0(0, 0) * tmp[3][m] + R0(0, 1) * tmp[4][m] + R0(0, 2) * tmp[5][m];
-    kg(4, m) = R0(1, 0) * tmp[3][m] + R0(1, 1) * tmp[4][m] + R0(1, 2) * tmp[5][m];
-    kg(5, m) = R0(2, 0) * tmp[3][m] + R0(2, 1) * tmp[4][m] + R0(2, 2) * tmp[5][m];
-
-    if (joint_offsets & end_i) {
-      kg(3, m) += RWI[0][0] * tmp[0][m] + RWI[1][0] * tmp[1][m] + RWI[2][0] * tmp[2][m];
-      kg(4, m) += RWI[0][1] * tmp[0][m] + RWI[1][1] * tmp[1][m] + RWI[2][1] * tmp[2][m];
-      kg(5, m) += RWI[0][2] * tmp[0][m] + RWI[1][2] * tmp[1][m] + RWI[2][2] * tmp[2][m];
-    }
-
-    kg( 6, m) = R0(0, 0) * tmp[6][m] + R0(0, 1) * tmp[7][m] + R0(0, 2) * tmp[8][m];
-    kg( 7, m) = R0(1, 0) * tmp[6][m] + R0(1, 1) * tmp[7][m] + R0(1, 2) * tmp[8][m];
-    kg( 8, m) = R0(2, 0) * tmp[6][m] + R0(2, 1) * tmp[7][m] + R0(2, 2) * tmp[8][m];
-
-    kg( 9, m) = R0(0, 0) * tmp[9][m] + R0(0, 1) * tmp[10][m] + R0(0, 2) * tmp[11][m];
-    kg(10, m) = R0(1, 0) * tmp[9][m] + R0(1, 1) * tmp[10][m] + R0(1, 2) * tmp[11][m];
-    kg(11, m) = R0(2, 0) * tmp[9][m] + R0(2, 1) * tmp[10][m] + R0(2, 2) * tmp[11][m];
-
-    if (joint_offsets & end_j) {
-      kg( 9, m) += RWJ[0][0] * tmp[6][m] + RWJ[1][0] * tmp[7][m] + RWJ[2][0] * tmp[8][m];
-      kg(10, m) += RWJ[0][1] * tmp[6][m] + RWJ[1][1] * tmp[7][m] + RWJ[2][1] * tmp[8][m];
-      kg(11, m) += RWJ[0][2] * tmp[6][m] + RWJ[1][2] * tmp[7][m] + RWJ[2][2] * tmp[8][m];
-    }
-  }
-
-  return kg;
-}
-
-
-VectorND<12>
-CorotFrameTransf3d03::pushConstant(const VectorND<12>&pl) const
-{
-  // transform vector from local to global coordinates
-
-  VectorND<12> pg;
-  for (int i=0; i<4; i++)
-    for (int j=0; j<3; j++)
-      pg[i*3+j] = R0(j,0)*pl[3*i] + R0(j,1)*pl[3*i+1] + R0(j,2)*pl[3*i+2];
-
-//
-// TODO(cmp): joint offsets
-//
-//if (joint_offsets & end_i) {
-//  pg[3] += -nodeIOffset[2] * pg[1] + nodeIOffset[1] * pg[2];
-//  pg[4] +=  nodeIOffset[2] * pg[0] - nodeIOffset[0] * pg[2];
-//  pg[5] += -nodeIOffset[1] * pg[0] + nodeIOffset[0] * pg[1];
-//}
-
-//if (joint_offsets & end_j) {
-//  pg[ 9] += -nodeJOffset[2] * pg[7] + nodeJOffset[1] * pg[8];
-//  pg[10] +=  nodeJOffset[2] * pg[6] - nodeJOffset[0] * pg[8];
-//  pg[11] += -nodeJOffset[1] * pg[6] + nodeJOffset[0] * pg[7];
-//}
-
-  return pg;
-}
-
-
-
-const Vector &
-CorotFrameTransf3d03::getGlobalResistingForce(const Vector &pb, const Vector &p0)
-{
-    static VectorND<12> pg;
-    static Vector wrapper(pg);
-
-    // Transform resisting forces from the basic to local
-    static VectorND<12> pl;
-    pl = pushLocal(pb, L);
-
-    // Transform from local to global
-    pg = pushResponse(pl);
-
-    // If there are no element loads present, just return
-    if (p0 == 0.0)
-      return wrapper;
-
-    // Add end forces due to element p0 loads
-    // assuming member loads are in local system
-    static VectorND<12> pl0{0};
-    pl0[0] = p0[0]; // N
-    pl0[1] = p0[1]; // Viy
-    pl0[7] = p0[2]; // Vjy
-    pl0[2] = p0[3]; // Viz
-    pl0[8] = p0[4]; // Vjz
-
-    pg += pushConstant(pl0);
-
-    return wrapper;
-}
-
-
-
-const Matrix &
-CorotFrameTransf3d03::getInitialGlobalStiffMatrix(const Matrix &kb)
-{
-  // transform tangent from the basic system to local coordinates
-  static Matrix kl(12,12);
-  kl.addMatrixTripleProduct(0.0, T12_6, kb, 1.0);   // kl = Tp ^ kb * Tp;
-
-  // transform tangent from local to global coordinates
-  static Matrix kg(12,12);
-
-  // compute the tangent matrix in global coordinates
-  kg.addMatrixTripleProduct(0.0, T, kl, 1.0);
-
-  return kg;
-}
-
-
-const Matrix &
-CorotFrameTransf3d03::getGlobalStiffMatrix(const Matrix &kb, const Vector &pb)
-{
-  // transform kb from the basic system to local
-  static MatrixND<12,12> kl;
-  static Matrix Kl(kl);
-
-  // transform basic stiffness to 7x7 Remo layout
-  // Kl.addMatrixTripleProduct(0.0, Tp, kb, 1.0); // kl = Tp ^ kb * Tp;
-  Kl.addMatrixTripleProduct(0.0, T12_6, kb, 1.0); //
-
-
-  // transform resisting forces from the basic system to local
-  VectorND<12> pl = pushLocal(pb, L);
-
-  //
-  // Transform kl from local to global system
-  //
-  THREAD_LOCAL MatrixND<12,12> kg;
-  static Matrix Wrapper(kg);
-  kg.addMatrixTripleProduct(0.0, T, kl, 1.0);
-  
-  this->addTangent(kg, pl);
-  return Wrapper;
-}
-
-
 // do 
 //    K = ag'*Km*ag + Kp
-MatrixND<12,12>
-CorotFrameTransf3d03::pushResponse(MatrixND<12,12>& kl, const VectorND<12>& pl)
+//
+template <int nn, int ndf>
+MatrixND<nn*ndf,nn*ndf>
+SouzaFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl)
 {    
   MatrixND<12,12> K;
   K.addMatrixTripleProduct(0.0, T, kl, 1.0);
@@ -876,8 +638,9 @@ CorotFrameTransf3d03::pushResponse(MatrixND<12,12>& kl, const VectorND<12>& pl)
 //         m(2)*ks2r2t1 + m(3)*ks2r3t1 + ...
 //         m(5)*ks2r2u1 + m(6)*ks2r3u1 + ...
 //         ks3 + ks3' + ks4 + ks5;
+template <int nn, int ndf>
 int
-CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
+SouzaFrameTransf<nn,ndf>::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
 {    
     const Triad r {MatrixFromVersor(crs.getReference())},
                 rI{MatrixFromVersor(Q_pres[0])},
@@ -895,8 +658,8 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
       &rJ1 = rJ[1], // .rotate(E1), 
       &rJ2 = rJ[2], // .rotate(E2), 
       &rJ3 = rJ[3]; // .rotate(E3);
-    // NOTE[cmp] 
-    // CorotFrameTransf3d03::compTransfMatrixBasicGlobal must be 
+    // NOTE[cmp]
+    // SouzaFrameTransf::compTransfMatrixBasicGlobal must be 
     // called first to set Lr1, Lr2 and T
 
     // Matrix3D A;
@@ -947,7 +710,7 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
     //    kd = -Lr3*S(rJ2)*m(3)  
     //         +Lr3*S(rJ1)*m(5);
 
-    static VectorND<6> m;
+    VectorND<6> m;
     m[0] =  0.5*pl[imx]/std::cos(ul(imx));
     m[2] = -0.5*pl[imy]/std::cos(ul(imy));
     m[1] =  0.5*pl[imz]/std::cos(ul(imz));
@@ -992,8 +755,7 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
     // Ksigma4
     //
     {
-      static Matrix3D ks33;
-  
+      Matrix3D ks33;
       ks33.zero();
       ks33.addSpinProduct(e2, rI3,  m[3]);
       ks33.addSpinProduct(e3, rI2, -m[3]);
@@ -1008,7 +770,7 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
     // Ksigma4
     //
     {
-      static Matrix3D ks33;
+      Matrix3D ks33;
       ks33.zero();
       ks33.addSpinProduct(e2, rJ3, -m[3]);
       ks33.addSpinProduct(e3, rJ2,  m[3]);
@@ -1036,7 +798,7 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
     //   = vi + vj
     //
     {
-      OPS_STATIC Vector3D v;
+      Vector3D v;
       v.addVector(0.0, rI2, m[1]);
       v.addVector(1.0, rI3, m[2]);
       v.addVector(1.0, rJ2, m[4]);
@@ -1094,9 +856,8 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
     kg.assembleTranspose(ks33, 9, 6, -1.0);
 
     // Ksigma -------------------------------
-    OPS_STATIC Vector3D rm;
+    Vector3D rm = rI3;
 
-    rm = rI3;
     rm.addVector(1.0, rJ3, -1.0);
     kg.addMatrix(CrisfieldTransform::getKs2Matrix(A, e1, r1, Ln, r2, rm), m[3]);
 
@@ -1129,35 +890,28 @@ CorotFrameTransf3d03::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
 }
 
 
+template <int nn, int ndf>
 int
-CorotFrameTransf3d03::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
+SouzaFrameTransf<nn,ndf>::getLocalAxes(Vector3D &XAxis, Vector3D &YAxis, Vector3D &ZAxis)
 {
+
   ZAxis(0) = vz[0];
   ZAxis(1) = vz[1];
   ZAxis(2) = vz[2];
   if (nodes[0] == nullptr)
-    return -1;
+    return 0;
 
-  static Vector dx(3);
-  dx = (nodes[1]->getCrds() + nodeJOffset) - (nodes[0]->getCrds() + nodeIOffset);
-  if (nodeIInitialDisp != 0) {
-    dx(0) -= nodeIInitialDisp[0];
-    dx(1) -= nodeIInitialDisp[1];
-    dx(2) -= nodeIInitialDisp[2];
-  }
+  Vector3D dx;
 
-  if (nodeJInitialDisp != 0) {
-    dx(0) += nodeJInitialDisp[0];
-    dx(1) += nodeJInitialDisp[1];
-    dx(2) += nodeJInitialDisp[2];
-  }
+  dx = nodes[nn-1]->getCrds() - nodes[0]->getCrds();
+
 
   // calculate the element length
 
-  L = dx.Norm();
+  L = dx.norm();
 
   if (L == 0.0) {
-      opserr << "\nCorotFrameTransf3d03::computeElemtLengthAndOrien: 0 length\n";
+      opserr << "\nSouzaFrameTransf::computeElemtLengthAndOrien: 0 length\n";
       return -2;
   }
 
@@ -1177,8 +931,7 @@ CorotFrameTransf3d03::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
   const double ynorm = yAxis.norm();
 
   if (ynorm == 0.0) {
-      opserr << "\nCorotFrameTransf3d03::getElementLengthAndOrientation";
-      opserr << "\nvector v that defines plane xz is parallel to x axis\n";
+      opserr << "WARNING vector that defines plane xz is parallel to x axis\n";
       return -3;
   }
 
@@ -1198,78 +951,13 @@ CorotFrameTransf3d03::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
       R0(i,1) = yAxis[i];
       R0(i,2) = zAxis[i];
   }
-
   return 0;
 }
 
 
-const Vector &
-CorotFrameTransf3d03::getBasicTrialDisp()
-{
-  static Vector ub(6);
-  LocalToBasic(ul, ub);
-  return ub;
-}
-
-
-const Vector &
-CorotFrameTransf3d03::getBasicIncrDeltaDisp()
-{
-  static VectorND<12> dul;
-
-  // dul = ul - ulpr;
-  dul = ul;
-  dul.addVector(1.0, ulpr, -1.0);
-
-  static Vector dub(6);
-  LocalToBasic(dul, dub);
-  return dub;
-}
-
-
-const Vector &
-CorotFrameTransf3d03::getBasicIncrDisp()
-{
-  static VectorND<12> Dul;
-
-  // Dul = ul - ulcommit;
-  Dul = ul;
-  Dul.addVector(1.0, ulcommit, -1.0);
-
-  static Vector Dub(6);
-  LocalToBasic(Dul, Dub);
-  return Dub;
-}
-
-
-const Vector &
-CorotFrameTransf3d03::getBasicTrialVel()
-{
-  opserr << "WARNING unimplemented method\n";
-  static Vector dummy(6);
-  return dummy;
-}
-
-
-const Vector &
-CorotFrameTransf3d03::getBasicTrialAccel()
-{
-  opserr << "WARNING unimplemented method\n";
-  static Vector dummy(6);
-  return dummy;
-}
-
-
-const Matrix &
-CorotFrameTransf3d03::getGlobalMatrixFromLocal(const Matrix &local)
-{
-  static Matrix Mg(12,12);
-  blk3x12x3(R0, local, Mg);
-  return Mg;
-}
-
+template <int nn, int ndf>
 double
-CorotFrameTransf3d03::getLengthGrad()
+SouzaFrameTransf<nn,ndf>::getLengthGrad()
 {
   const int di = nodes[0]->getCrdsSensitivity();
   const int dj = nodes[1]->getCrdsSensitivity();
@@ -1285,187 +973,72 @@ CorotFrameTransf3d03::getLengthGrad()
   return 1/L * dX.dot(dxj - dxi);
 }
 
+template <int nn, int ndf>
+const Vector &
+SouzaFrameTransf<nn,ndf>::getBasicDisplTotalGrad(int gradNumber)
+{
+    opserr << "WARNING CrdTransf::getBasicDisplTotalGrad() - this method "
+        << " should not be called." << endln;
+    
+    static Vector dummy(1);
+    return dummy;
+}
 
+template <int nn, int ndf>
+const Vector &
+SouzaFrameTransf<nn,ndf>::getBasicDisplFixedGrad()
+{
+    opserr << "ERROR CrdTransf::getBasicDisplFixedGrad() - has not been"
+           << " implemented yet for the chosen transformation." << endln;
+    
+    static Vector dummy(1);
+    return dummy;
+}
+
+
+template <int nn, int ndf>
+const Vector &
+SouzaFrameTransf<nn,ndf>::getGlobalResistingForceShapeSensitivity(const Vector &pb,
+						   const Vector &p0,
+						   int gradNumber)
+{
+    opserr << "ERROR CrdTransf::getGlobalResistingForceSensitivity() - has not been"
+        << " implemented yet for the chosen transformation." << endln;
+    
+    static Vector dummy(1);
+    return dummy;
+}
+
+template <int nn, int ndf>
 void
-CorotFrameTransf3d03::Print(OPS_Stream &s, int flag)
+SouzaFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
 {
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
-      s << "\nFrameTransform: " << this->getTag() << " Type: CorotFrameTransf3d03";
+      s << "\nFrameTransform: " << this->getTag() << " Type: SouzaFrameTransf";
       s << "\tvxz: " << Vector(vz);
-      s << "\tnodeI Offset: " << nodeIOffset;
-      s << "\tnodeJ Offset: " << nodeJOffset;
-      return;
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << OPS_PRINT_JSON_MATE_INDENT << "{";
-      s << "\"name\": \"" << this->getTag() << "\", ";
-      s << "\"type\": \"CorotFrameTransf3d03\"";
-      s << ", \"vecxz\": [" 
-        << vz(0) << ", " << vz(1) << ", " << vz(2) << "]";
-      if (nodeIOffset != 0)
-          s << ", \"iOffset\": [" << nodeIOffset[0] << ", " << nodeIOffset[1] << ", " << nodeIOffset[2] << "]";
-      if (nodeJOffset != 0)
-          s << ", \"jOffset\": [" << nodeJOffset[0] << ", " << nodeJOffset[1] << ", " << nodeJOffset[2] << "]";
-      s << "}";
-      return;
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"SouzaFrameTransf\"" << ", ";
+    s << "\"vecxz\": [" << vz(0) << ", " << vz(1) << ", " << vz(2) << "]";
+
+    if (offsets != nullptr) {
+      s << ", \"offsets\": [";
+      for (int i=0; i<nn; i++) {
+        s << "["
+          << (*offsets)[i][0] << ", " 
+          << (*offsets)[i][1] << ", "
+          << (*offsets)[i][2] << "]";
+        if (i < nn-1)
+          s << ", ";
+      }
+      s << "]";
+    }
+    s << "}";
+    return;
   }
-}
-
-
-const Vector &
-CorotFrameTransf3d03::getPointGlobalCoordFromLocal(const Vector &xl)
-{
-  static Vector xg(3);
-  opserr << " CorotFrameTransf3d03::getPointGlobalCoordFromLocal: not implemented yet" ;
-  return xg;
-}
-
-
-const Vector &
-CorotFrameTransf3d03::getPointGlobalDisplFromBasic(double xi, const Vector &uxb)
-{
-  static Vector uxg(3);
-  opserr << " CorotFrameTransf3d03::getPointGlobalDisplFromBasic: not implemented yet" ;
-  return uxg;
-}
-
-
-const Vector &
-CorotFrameTransf3d03::getPointLocalDisplFromBasic(double xi, const Vector &uxb)
-{
-  static Vector uxg(3);
-  opserr << " CorotFrameTransf3d03::getPointLocalDisplFromBasic: not implemented yet" ;
-
-  return uxg;
-}
-
-int
-CorotFrameTransf3d03::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  static Vector data(48);
-  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
-    opserr << " CorotFrameTransf3d03::recvSelf() - data could not be received\n" ;
-    return -1;
-  }
-
-  for (int i = 0; i<7; i++)
-    ulcommit[i] = data(i);
-
-  for (int j = 0; j<3; j++) {
-    Q_past[0].vector[j] = data(7+j);
-    Q_past[1].vector[j] = data(11+j);
-  }
-  Q_past[0].scalar = data(10);
-  Q_past[1].scalar = data(15);
-
-  for (int k=0; k<3; k++) {
-    xAxis(k) = data(15+k);
-    vz[k] = data(18+k);
-    nodeIOffset(k) = data(21+k);
-    nodeJOffset(k) = data(24+k);
-    alphaI(k) = data(27+k);
-    alphaJ(k) = data(30+k);
-  }
-
-  int flag;
-  flag = 0;
-  for (int i=34; i<=39; i++)
-    if (data(i) != 0.0)
-      flag = 1;
-  if (flag == 1) {
-    if (nodeIInitialDisp == 0)
-      nodeIInitialDisp = new double[6];
-    for (int i=34, j = 0; i<=39; i++, j++)
-      nodeIInitialDisp[j] = data(i);
-  }
-
-  flag = 0;
-  for (int i=40; i<=45; i++)
-    if (data(i) != 0.0)
-      flag = 1;
-
-  if (flag == 1) {
-    if (nodeJInitialDisp == 0)
-      nodeJInitialDisp = new double[6];
-    for (int i=40, j = 0; i<=45; i++, j++)
-      nodeJInitialDisp[j] = data(i);
-  }
-  L  = data(46);
-  Ln = data(47);
-
-  ul = ulcommit;
-  Q_pres[0] = Q_past[0];
-  Q_pres[1] = Q_past[1];
-
-  initialDispChecked = true;
-  return 0;
-}
-
-int
-CorotFrameTransf3d03::sendSelf(int cTag, Channel &theChannel)
-{
-  static Vector data(48);
-  for (int i = 0; i<7; i++)
-    data[i] = ulcommit[i];
-
-  // [7 - 15]: 4 times 2 quaternions
-  for (int j = 0; j<3; j++) {
-    data(7+j)  = Q_past[0].vector[j];
-    data(11+j) = Q_past[1].vector[j];
-  }
-  data(10) = Q_past[0].scalar;
-  data(15) = Q_past[1].scalar;
-
-  for (int k=0; k<3; k++) {
-    data(15+k) = xAxis(k);
-    data(18+k) = vz[k];
-    data(21+k) = nodeIOffset(k);
-    data(24+k) = nodeJOffset(k);
-    data(27+k) = alphaI(k);
-    data(30+k) = alphaJ(k);
-  }
-
-  if (nodeIInitialDisp != 0) {
-    data(34) = nodeIInitialDisp[0];
-    data(35) = nodeIInitialDisp[1];
-    data(36) = nodeIInitialDisp[2];
-    data(37) = nodeIInitialDisp[3];
-    data(38) = nodeIInitialDisp[4];
-    data(39) = nodeIInitialDisp[5];
-  } else {
-    data(34)  = 0.0;
-    data(35)  = 0.0;
-    data(36) = 0.0;
-    data(37) = 0.0;
-    data(38) = 0.0;
-    data(39) = 0.0;
-  }
-
-  if (nodeJInitialDisp != 0) {
-    data(40) = nodeJInitialDisp[0];
-    data(41) = nodeJInitialDisp[1];
-    data(42) = nodeJInitialDisp[2];
-    data(43) = nodeJInitialDisp[3];
-    data(44) = nodeJInitialDisp[4];
-    data(45) = nodeJInitialDisp[5];
-  } else {
-    data(40) = 0.0;
-    data(41) = 0.0;
-    data(42) = 0.0;
-    data(43) = 0.0;
-    data(44) = 0.0;
-    data(45) = 0.0;
-  }
-  data(46) = L;
-  data(47) = Ln;
-
-  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-    opserr << " CorotFrameTransf3d03::sendSelf() - data could not be sent\n" ;
-    return -1;
-  }
-
-  return 0;
 }
 

@@ -32,12 +32,13 @@
 #include <string.h>
 
 #include <classTags.h>
-#include <elementAPI.h>
 
 Vector ElasticSection3d::s(4);
 Matrix ElasticSection3d::ks(4,4);
 ID ElasticSection3d::code(4);
 
+#if 0 
+#include <elementAPI.h>
 void *
 OPS_ADD_RUNTIME_VPV(OPS_ElasticSection3d)
 {
@@ -59,9 +60,10 @@ OPS_ADD_RUNTIME_VPV(OPS_ElasticSection3d)
     return new ElasticSection3d(tag,data[0],data[1],data[2],
 				data[3],data[4],data[5]);
 }
+#endif
 
 
-ElasticSection3d::ElasticSection3d(void)
+ElasticSection3d::ElasticSection3d()
 :FrameSection(0, SEC_TAG_Elastic3d),
  E(0.0), A(0.0), Iz(0.0), Iy(0.0), G(0.0), J(0.0), e(4)
 {
@@ -74,9 +76,9 @@ ElasticSection3d::ElasticSection3d(void)
 }
 
 ElasticSection3d::ElasticSection3d
-(int tag, double E_in, double A_in, double Iz_in, double Iy_in, double G_in, double J_in)
+(int tag, double E, double A, double Iz, double Iy, double G, double J)
 :FrameSection(tag, SEC_TAG_Elastic3d),
- E(E_in), A(A_in), Iz(Iz_in), Iy(Iy_in), G(G_in), J(J_in), e(4)
+ E(E), A(A), Iz(Iz), Iy(Iy), G(G), J(J), e(4)
 {
   if (E <= 0.0)  {
     //opserr << "ElasticSection3d::ElasticSection3d -- Input E <= 0.0\n";
@@ -317,7 +319,7 @@ ElasticSection3d::Print(OPS_Stream &s, int flag)
 	}
 
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
 		s << "\"name\": \"" << this->getTag() << "\", ";
 		s << "\"type\": \"ElasticSection3d\", ";
 		s << "\"E\": " << E << ", ";

@@ -245,6 +245,8 @@ int
 TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
                           TCL_Char ** const argv)
 {
+  // block3D numX? numY? startNode? startEle? eleType? eleArgs?
+  //
   assert(clientData != nullptr);
   BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
   Domain *theTclDomain = builder->getDomain();
@@ -259,13 +261,11 @@ TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int numX, numY, numZ, startNodeNum, startEleNum;
   if (Tcl_GetInt(interp, argv[1], &numX) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
-    opserr << " : invalid numX: " << argv[1] << "\n";
+    opserr << G3_ERROR_PROMPT << "invalid numX: " << argv[1] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &numY) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
-    opserr << " : invalid numY: " << argv[2] << "\n";
+    opserr << G3_ERROR_PROMPT << "invalid numY: " << argv[2] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3], &numZ) != TCL_OK) {
@@ -279,8 +279,7 @@ TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[5], &startEleNum) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
-    opserr << " : invalid startEle: " << argv[5] << "\n";
+    opserr << G3_ERROR_PROMPT << "invalid startEle: " << argv[5] << "\n";
     return TCL_ERROR;
   }
 
@@ -300,22 +299,19 @@ TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
   int count = 0;
   while (count < argcNodes) {
     if ((count + ndm + 1) > argcNodes) {
-      opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType eleArgs?";
-      opserr << " : invalid number of node args: " << argv[8] << "\n";
+      opserr << G3_ERROR_PROMPT << "invalid number of node args: " << argv[8] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     int nodeTag;
     double value;
     if (Tcl_GetInt(interp, argvNodes[count], &nodeTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
-      opserr << " : invalid node id in node args: " << argvNodes[count] << "\n";
+      opserr << G3_ERROR_PROMPT << "invalid node id in node args: " << argvNodes[count] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     if (nodeTag < 1 || nodeTag > 27) {
-      opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
-      opserr << " : node tag out of bounds [1, 27]: " << argvNodes[count] << "\n";
+      opserr << G3_ERROR_PROMPT << "node tag out of bounds [1, 27]: " << argvNodes[count] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }

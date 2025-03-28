@@ -79,7 +79,6 @@ int
 TclCommand_systemSize(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicAnalysisBuilder* builder = (BasicAnalysisBuilder*)clientData;
   LinearSOE *theSOE = ((BasicAnalysisBuilder *)clientData)->getLinearSOE();
 
 

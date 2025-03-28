@@ -55,7 +55,7 @@ Vector CorotCrdTransf2d::dub(3);
 Vector CorotCrdTransf2d::Dub(3);
 Matrix CorotCrdTransf2d::kg(6, 6);
 
-// constructor:
+
 CorotCrdTransf2d::CorotCrdTransf2d(int tag, const Vector &rigJntOffsetI,
                                    const Vector &rigJntOffsetJ)
     : FrameTransform2d(tag, CRDTR_TAG_CorotCrdTransf2d), nodeIOffset(2),
@@ -124,7 +124,7 @@ CorotCrdTransf2d::revertToLastCommit(void)
 }
 
 int
-CorotCrdTransf2d::revertToStart(void)
+CorotCrdTransf2d::revertToStart()
 {
   ub.Zero();
   this->update();

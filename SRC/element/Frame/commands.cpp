@@ -14,8 +14,7 @@
 //        E? A? I? transfTag? <-shear shearLength?> <-mass massDens?> 
 //        <-iter maxIters tolerance>
 #if 1
-  #include <array>
-
+// Standard library
   #include <string>
   #include <array>
   #include <vector>
@@ -32,27 +31,23 @@
   #endif
   #define strcmp strcasecmp
   
-    // Parsing
+  // Parsing
   #include <tcl.h>
   #include <Logging.h>
   #include <Parsing.h>
   #include <ArgumentTracker.h>
   
-    // Model
+  // Model
   #include <Node.h>
   #include <Domain.h>
   #include <BasicModelBuilder.h>
   
-    // Sections
+  // Sections
   #include <FrameSection.h>
   #include <ElasticSection2d.h>
   #include <ElasticSection3d.h>
   
-    // Geometry
-  #include <FrameTransform.h>
-  #include <LinearFrameTransf3d.h>
-  
-    // Elements
+  // Elements
   #include "ElasticBeam2d.h"
   #include "ElasticBeam2d.h"
   #include "ElasticBeam3d.h"
@@ -88,7 +83,7 @@
   #include <ForceBeamColumnWarping2d.h>
   #include <TimoshenkoBeamColumn2d.h>
   
-    // Quadrature
+  // Quadrature
   #include <BeamIntegration.h>
   #include <LobattoBeamIntegration.h>
   #include <LegendreBeamIntegration.h>
@@ -97,44 +92,11 @@
   #include <HingeRadauBeamIntegration.h>
   #include <HingeRadauTwoBeamIntegration.h>
 
-#else 
-
-// Standard library
-#include <string>
-#include <array>
-#include <vector>
-#include <utility>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <math.h>
-#ifdef _MSC_VER 
-#  include <string.h>
-#  define strcasecmp _stricmp
 #else
-#  include <strings.h>
-#endif
-#define strcmp strcasecmp
-
-// Parsing
-#include <tcl.h>
-#include <Logging.h>
-#include <Parsing.h>
-#include <ArgumentTracker.h>
-
-// Model
-#include <Node.h>
-#include <Domain.h>
-#include <BasicModelBuilder.h>
-
 // Sections
 #include <FrameSection.h>
 #include <ElasticSection2d.h>
 #include <ElasticSection3d.h>
-
-// Geometry
-#include <FrameTransform.h>
-#include <LinearFrameTransf3d.h>
 
 // Elements
 #include "ElasticBeam2d.h"
@@ -343,13 +305,11 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
   if (argc < 6) {
     opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
-    opserr << "Want: element " << argv[1]
-           << " tag? iNode? jNode? transfTag? ...\n";
     return TCL_ERROR;
   }
 
   //
-  // Essential positional arguments
+  // Required positional arguments
   //
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
@@ -833,7 +793,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         std::array<int, 2> nodes {iNode, jNode};
 
         theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
-                                      *beamIntegr, *theTransf3d, mass, options.mass_flag);
+                                      *beamIntegr, *theTransf3d, 
+                                      mass, options.mass_flag);
       } 
 
       else if ((strstr(argv[1], "Force") != 0) ||

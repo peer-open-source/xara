@@ -39,7 +39,7 @@ class ElasticSection3d : public FrameSection
   ElasticSection3d(void);
   ~ElasticSection3d(void);
   
-  const char *getClassType(void) const {return "ElasticSection3d";};
+  const char *getClassType() const {return "ElasticSection3d";};
   
   int commitState(void);
   int revertToLastCommit(void);
