@@ -920,7 +920,7 @@ LinearFrameTransf3d::getGlobalResistingForceShapeSensitivity(const Vector &pb,
   //
   // dp = T_{lg}' pl
   //
-  int dv = 0; // TODO
+  int dv = 0; // TODO: Sensitivity
   int di = nodeIPtr->getCrdsSensitivity();
   int dj = nodeJPtr->getCrdsSensitivity();
 

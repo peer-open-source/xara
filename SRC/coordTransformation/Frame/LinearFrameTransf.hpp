@@ -41,6 +41,7 @@ public:
 
     virtual double getInitialLength();
     virtual double getDeformedLength();
+    virtual const std::array<Vector3D,nn> *getRigidOffsets() const { return offsets; };
     
     virtual int initialize(std::array<Node*, nn>& new_nodes) override final;
     virtual int update() override final;
@@ -74,7 +75,8 @@ public:
     static inline VectorND<nn*ndf> 
     pullConstant(const VectorND<nn*ndf>& ug, 
                 const Matrix3D& R, 
-                const std::array<Vector3D, nn> *offset = nullptr);
+                const std::array<Vector3D, nn> *offset = nullptr,
+                int offset_flags = 0);
 
 private:
 

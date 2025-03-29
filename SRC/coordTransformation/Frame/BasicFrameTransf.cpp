@@ -341,8 +341,6 @@ BasicFrameTransf3d::getGlobalMatrixFromLocal(const Matrix &M)
   //
   // Do diag(R)*M*diag(R)'
   //
-  constexpr static int nn = 2;
-  constexpr static int ndf = 6;
 
   static MatrixND<12,12> Kout;
   static Matrix wrapper(Kout);

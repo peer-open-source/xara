@@ -918,15 +918,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
                 case 6:
                   theElement = new ExactFrame3d<4,0>(tag, nodes, sections.data(), *theTransf3d);
                   break;
-                // case 7:
-                //   theElement = new ExactFrame3d<4,1>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                // case 8:
-                //   theElement = new ExactFrame3d<4,2>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                // case 9:
-                //   theElement = new ExactFrame3d<4,3>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
                 default:
                   opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
                   status = TCL_ERROR;
@@ -940,15 +931,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
                 case 6:
                   theElement = new ExactFrame3d<5,0>(tag, nodes, sections.data(), *theTransf3d);
                   break;
-                // case 7:
-                //   theElement = new ExactFrame3d<5,1>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                // case 8:
-                //   theElement = new ExactFrame3d<5,2>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                // case 9:
-                //   theElement = new ExactFrame3d<5,3>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
                 default:
                   opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
                   status = TCL_ERROR;

@@ -150,9 +150,8 @@ CorotFrameTransf3d03::CorotFrameTransf3d03(int tag, const Vector &vecInLocXZPlan
     if (nodeJOffset.Norm() != 0)
       joint_offsets |= end_j;
 
-    // TODO: implement joint offsets
     if ((joint_offsets & end_i) || (joint_offsets & end_j)) {
-        opserr << "Rigid joint zones not implemented yet\n";
+        opserr << "Rigid joint zones not implemented; ";
         opserr << "Using zero values\n"; 
         nodeIOffset.Zero();
         nodeJOffset.Zero();

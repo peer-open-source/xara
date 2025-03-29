@@ -72,6 +72,7 @@ public:
 
   virtual double getInitialLength() = 0;
   virtual double getDeformedLength() = 0;
+  virtual const std::array<Vector3D,nn> *getRigidOffsets() const = 0;
 
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) =0;
   virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl) =0;

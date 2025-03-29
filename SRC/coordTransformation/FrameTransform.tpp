@@ -1,5 +1,6 @@
 #pragma once
 #include "FrameTransform.h"
+#include "Logging.h"
 #include <MatrixND.h>
 
 template <int nn, int ndf>
@@ -17,8 +18,8 @@ FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl)
       R(i,2) = z[i];
     }
     // TODO: Rigid offsets
-    const std::array<Vector3D,nn> *offset = nullptr;
     constexpr int N = nn * ndf;
+    const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
 
     //
     // Initialize

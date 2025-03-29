@@ -391,7 +391,7 @@ SouzaFrameTransf<nn,ndf>::compTransfMatrixBasicGlobal(
     Se  = rI1.cross(e3);
     Se -= rI3.cross(e1);
     for (int i = 0; i < 3; i++) {
-        T(imy,i  ) =  At[i]*-1; // TODO: Check
+        T(imy,i  ) =  At[i]*-1;
         T(imy,i+3) =  Se[i]*-1;
         T(imy,i+6) = -At[i]*-1;
     }
@@ -417,7 +417,7 @@ SouzaFrameTransf<nn,ndf>::compTransfMatrixBasicGlobal(
     Se  = rJ1.cross(e3);  // (-S(rJ3)*e1 + S(rJ1)*e3)
     Se -= rJ3.cross(e1);
     for (int i = 0; i < 3; i++) {
-        T(jmy,i  ) =  At[i]*-1; // TODO: Check
+        T(jmy,i  ) =  At[i]*-1;
         T(jmy,i+6) = -At[i]*-1;
         T(jmy,i+9) =  Se[i]*-1;
     }

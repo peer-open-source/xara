@@ -88,7 +88,8 @@ template <int nn, int ndf>
 VectorND<nn*ndf> 
 LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug, 
              const Matrix3D& R, 
-             const std::array<Vector3D, nn> *offset) 
+             const std::array<Vector3D, nn> *offset,
+            int offset_flags) 
 {
   
   constexpr static int N = nn * ndf;
@@ -99,12 +100,12 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
   // (B) 
   // Do ui -= ri x wi
   if constexpr (ndf >= 6)
-    if (offset) {
+    if (offset && !(offset_flags&OffsetLocal)) {
       const std::array<Vector3D, nn>& offsets = *offset;
       for (int i=0; i<nn; i++) {
 
         const int j = i * ndf;
-        Vector3D w {ug[j+0],ug[j+1],ug[j+2]};
+        Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
 
         ul.assemble(j, offsets[i].cross(w), -1.0);
       }
@@ -116,6 +117,18 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
     ul.insert(j  , R^Vector3D{ul[j+0], ul[j+1], ul[j+2]}, 1.0);
     ul.insert(j+3, R^Vector3D{ul[j+3], ul[j+4], ul[j+5]}, 1.0);
   }
+
+  if constexpr (ndf >= 6)
+    if (offset && (offset_flags&OffsetLocal)) {
+      const std::array<Vector3D, nn>& offsets = *offset;
+      for (int i=0; i<nn; i++) {
+
+        const int j = i * ndf;
+        Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
+
+        ul.assemble(j, offsets[i].cross(w), -1.0);
+      }
+    }
 
   return ul;
 }
@@ -378,7 +391,7 @@ LinearFrameTransf<nn,ndf>::getStateVariation()
       ug[i*ndf+j] = ddu(j);
     }
   }
-  return LinearFrameTransf<nn,ndf>::pullConstant(ug, R, offsets);
+  return LinearFrameTransf<nn,ndf>::pullConstant(ug, R, offsets, offset_flags);
 }
 
 template <int nn, int ndf>
@@ -387,8 +400,22 @@ LinearFrameTransf<nn,ndf>::getNodePosition(int node)
 {
   Vector3D v;
   const Vector& u = nodes[node]->getTrialDisp();
+
   for (int i=0; i<3; i++)
     v[i] = u[i];
+
+  if (offsets) {
+    if (!(offset_flags&OffsetLocal)) {
+      Vector3D w {u[3], u[4], u[5]};
+      v -= offsets->at(node).cross(w);
+      return R^v;
+    } else {
+      // TODO: Local offsets
+      // Vector3D w {u[3], u[4], u[5]};
+      // v += offsets->at(node).cross(w);
+      // return R^v;
+    }
+  }
   return R^v;
 }
 
@@ -426,7 +453,6 @@ template <int nn, int ndf>
 FrameTransform<nn,ndf> *
 LinearFrameTransf<nn,ndf>::getCopy() const
 {
-  // create a new instance of LinearFrameTransf
 
   Vector3D xz;
   xz(0) = R(0,2);
@@ -441,8 +467,6 @@ LinearFrameTransf<nn,ndf>::getCopy() const
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
       theCopy->R(j,i) = R(j,i);
-  
-    
 
   return theCopy;
 }
@@ -568,14 +592,14 @@ LinearFrameTransf<nn,ndf>::getBasicDisplFixedGrad()
   //
   // dub += (T_{bl}' T_{lg} + T_{bl} T_{lg}') * ug
   //
-  int dv = 0; // TODO
+  int dv = 0; // TODO: Sensitivity
 
-  // TODO
+  // TODO: Sensitivity
   int di = nodes[0]->getCrdsSensitivity();
   int dj = nodes[1]->getCrdsSensitivity();
 
 
-  // TODO
+  // TODO: Sensitivity
   // Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
   // dub = getBasic(ug, 1/L);
 

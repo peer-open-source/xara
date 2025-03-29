@@ -561,7 +561,7 @@ LinearCrdTransf2dInt::getGlobalResistingForceInt(const Vector &pb, const Vector 
 
 
 const Vector &
-LinearCrdTransf2dInt::getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0)
+LinearCrdTransf2dInt::getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int)
 {
 	// transform resisting forces from the basic system to local coordinates
 	static double pl[6];
