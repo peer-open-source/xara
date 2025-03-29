@@ -416,24 +416,18 @@ const Matrix&  BBarBrickUP::getTangentStiff( )
 //return secant matrix
 //const Matrix&  BBarBrickUP::getSecantStiff( )
 
-const Matrix&  BBarBrickUP::getInitialStiff( )
+const Matrix& 
+BBarBrickUP::getInitialStiff( )
 {
   if (Ki != 0)
     return *Ki;
 
   //strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31
-  static const int ndm = 3 ;
-  static const int ndf = 3 ;
-  static const int ndff = 4 ;
-  static const int nstress = 6 ;
-  static const int numberNodes = 8 ;
-  static const int numberGauss = 8 ;
-  static const int nShape = 4 ;
 
   int i, j, k, p, q ;
   int jj, kk ;
 
-  static double xsj ;  // determinant jacaobian matrix
+  double xsj ;  // determinant jacaobian matrix
   static double gaussPoint[ndm] ;
   static Vector strain(nstress) ;  //strain
   static Matrix stiffJK(ndf,ndf) ; //nodeJK stiffness
@@ -457,51 +451,51 @@ const Matrix&  BBarBrickUP::getInitialStiff( )
 
   int count = 0 ;
 
-  for ( i = 0; i < 2; i++ ) {
-    for ( j = 0; j < 2; j++ ) {
-      for ( k = 0; k < 2; k++ ) {
+  for (int i = 0; i < 2; i++ ) {
+    for (int j = 0; j < 2; j++ ) {
+      for (int k = 0; k < 2; k++ ) {
 
         gaussPoint[0] = sg[i] ;
-	    gaussPoint[1] = sg[j] ;
-	    gaussPoint[2] = sg[k] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-	    //get shape functions
-	    shp3d( gaussPoint, xsj, shp, xl ) ;
+        // get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-	    //save shape functions
-	    for ( p = 0; p < nShape; p++ ) {
-	      for ( q = 0; q < numberNodes; q++ )
-	        Shape[p][q][count] = shp[p][q] ;
-	    } // end for p
+        // save shape functions
+        for (int p = 0; p < nShape; p++ ) {
+          for (int q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+        }
 
-	    //volume element to also be saved
-	    dvol[count] = wg[count] * xsj ;
+        // volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
         count++ ;
 
-      } //end for k
-    } //end for j
-  } // end for i
+      }
+    }
+  }
 
   computeBBar();
 
-  //gauss loop
-  for ( i = 0; i < numberGauss; i++ ) {
+  // Gauss loop
+  for (int i = 0; i < numberGauss; i++ ) {
 
     dd = materialPointers[i]->getInitialTangent( ) ;
     dd *= dvol[i] ;
 
     jj = 0;
-    for ( j = 0; j < numberNodes; j++ ) {
+    for (int j = 0; j < numberNodes; j++ ) {
 
       BJ = computeB(j, i) ;
 
       //transpose
-      //BJtran = transpose( nstress, ndf, BJ ) ;
-      for (p=0; p<ndf; p++) {
-	    for (q=0; q<nstress; q++)
-	      BJtran(p,q) = BJ(q,p) ;
-      }//end for p
+      // BJtran = transpose( nstress, ndf, BJ ) ;
+      for (int p=0; p<ndf; p++) {
+        for (int q=0; q<nstress; q++)
+          BJtran(p,q) = BJ(q,p) ;
+        }
 
       //BJtranD = BJtran * dd ;
       BJtranD.addMatrixProduct(0.0,  BJtran, dd, 1.0) ;
@@ -509,17 +503,17 @@ const Matrix&  BBarBrickUP::getInitialStiff( )
       kk = 0 ;
       for ( k = 0; k < numberNodes; k++ ) {
 
-	    BK = computeB(k, i) ;
+        BK = computeB(k, i) ;
 
-    	//stiffJK =  BJtranD * BK  ;
-    	stiffJK.addMatrixProduct(0.0,  BJtranD, BK, 1.0) ;
+        //stiffJK =  BJtranD * BK  ;
+        stiffJK.addMatrixProduct(0.0,  BJtranD, BK, 1.0) ;
 
-    	for ( p = 0; p < ndf; p++ )  {
-    	  for ( q = 0; q < ndf; q++ )
-    	    stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-    	} //end for p
+        for ( p = 0; p < ndf; p++ )  {
+          for ( q = 0; q < ndf; q++ )
+            stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
+        } //end for p
 
-    	kk += ndff ;
+        kk += ndff ;
 
       } // end for k loop
 
@@ -557,13 +551,6 @@ const Matrix&  BBarBrickUP::getDamp( )
 
 void BBarBrickUP::formDampingTerms( int tangFlag )
 {
-  static const int ndm = 3 ;
-  static const int ndf = 3 ;
-  static const int ndff = 4 ;
-  static const int numberNodes = 8 ;
-  static const int numberGauss = 8 ;
-  static const int numberDOFs = 32 ;
-  static const int nShape = 4 ;
   static double xsj ;  // determinant jacaobian matrix
   static double shp[nShape][numberNodes] ;  //shape functions at a gauss point
   static double gaussPoint[ndm] ;
@@ -584,28 +571,26 @@ void BBarBrickUP::formDampingTerms( int tangFlag )
   for ( i = 0; i < 2; i++ ) {
     for ( j = 0; j < 2; j++ ) {
       for ( k = 0; k < 2; k++ ) {
-
         gaussPoint[0] = sg[i] ;
-	gaussPoint[1] = sg[j] ;
-	gaussPoint[2] = sg[k] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-	//get shape functions
-	shp3d( gaussPoint, xsj, shp, xl ) ;
+        //get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-	//save shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-	    Shape[p][q][count] = shp[p][q] ;
-	} // end for p
+        //save shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+        } // end for p
 
-	//volume element to also be saved
-	dvol[count] = wg[count] * xsj ;
+        //volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
-	count++ ;
-
-      } //end for k
-    } //end for j
-  } // end for i
+        count++ ;
+      }
+    }
+  } 
 
   computeBBar();
 
@@ -618,13 +603,13 @@ void BBarBrickUP::formDampingTerms( int tangFlag )
 
 
   if (alphaM != 0.0) {
-	this->getMass();
+    this->getMass();
     for (i = 0; i < numberDOFs; i += ndff) {
       for (j = 0; j < numberDOFs; j += ndff) {
         damp(i,j) += mass(i,j)*alphaM;
         damp(i+1,j+1) += mass(i+1,j+1)*alphaM;
         damp(i+2,j+2) += mass(i+2,j+2)*alphaM;
-	  }
+      }
     }
   }
 
@@ -653,10 +638,10 @@ void BBarBrickUP::formDampingTerms( int tangFlag )
     for (j = 3; j < numberDOFs; j += ndff) {
       int j1 = (j-3) / ndff;
       for (m = 0; m < numberGauss; m++) {
-	    damp(i,j) -= dvol[m]*(perm[0]*BBarp[0][i1][m]*BBarp[0][j1][m] +
-	                          perm[1]*BBarp[1][i1][m]*BBarp[1][j1][m]+
-					          perm[2]*BBarp[2][i1][m]*BBarp[2][j1][m]);
-	  }
+        damp(i,j) -= dvol[m]*(perm[0]*BBarp[0][i1][m]*BBarp[0][j1][m] +
+                              perm[1]*BBarp[1][i1][m]*BBarp[1][j1][m]+
+                      perm[2]*BBarp[2][i1][m]*BBarp[2][j1][m]);
+      }
     }
   }
 

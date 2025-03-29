@@ -141,7 +141,16 @@ class BBarBrickUP : public Element {
 
   private :
 
-    //static data
+    static constexpr int ndm = 3 ;
+    static constexpr int ndf = 3 ;
+    static constexpr int ndff = 4 ;
+    static constexpr int numberNodes = 8 ;
+    static constexpr int numberGauss = 8 ;
+    static constexpr int numberDOFs = 32 ;
+    static constexpr int nShape = 4 ;
+    static constexpr int nstress = 6 ;
+
+    // static data
 
 
     static Matrix stiff ;
