@@ -229,7 +229,7 @@ ForceFrame3d<NIP,nsr,nwm>::commitState()
 
   // Call element commitState to do any base class stuff
   if ((status = this->Element::commitState()) != 0)
-    opserr << "ForceFrame3d::commitState () - failed in base class";
+    opserr << "ForceFrame3d::commitState - failed in base class";
 
   for (GaussPoint& point : points) {
     point.es_save = point.es;
@@ -464,18 +464,22 @@ ForceFrame3d<NIP,nsr,nwm>::update()
   if (state_flag == 2)
     this->revertToLastCommit();
 
-  // update the transformation
+
+  //
+  // Localize deformations
+  //
   theCoordTransf->update();
 
   double L   = theCoordTransf->getInitialLength();
   double jsx = 1.0 / L;
-
-  //
   const Vector& v = theCoordTransf->getBasicTrialDisp();
 
   THREAD_LOCAL VectorND<NBV> dv;
   dv = theCoordTransf->getBasicIncrDeltaDisp();
 
+  //
+  //
+  //
   if (state_flag != 0 && (dv.norm() <= DBL_EPSILON) && (eleLoads.size()==0))
     return 0;
 
@@ -784,7 +788,6 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           opserr << "ForceFrame3d: Failed to invert flexibility\n";
 
         VectorND<NBV> dqe = K_trial * dv;
-      //dqe.addMatrixVector(0.0, K_trial, dv, 1.0);
 
         dW = dqe.dot(dv);
         if (dW0 == 0.0)
@@ -863,7 +866,7 @@ template <int NIP, int nsr, int nwm>
 const Matrix &
 ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
 {
-  MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
+  MatrixND<NBV,NBV> kb = this->getBasicTangent(State::Pres, 0);
 
   double q0 = q_pres[0];
   double q1 = q_pres[1];
@@ -874,19 +877,19 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
 
   double L = theCoordTransf->getInitialLength();
 
-  THREAD_LOCAL VectorND<12> pl;
-  pl[0]  = -q0;               // Ni
-  pl[1]  =  (q1 + q2)/L;      // Viy
-  pl[2]  = -(q3 + q4)/L;      // Viz
-  pl[3]  = -q5;               // Ti
-  pl[4]  =  q3;
-  pl[5]  =  q1;
-  pl[6]  =  q0;               // Nj
-  pl[7]  = -pl[1];            // Vjy
-  pl[8]  = -pl[2];            // Vjz
-  pl[9]  =  q5;               // Tj
-  pl[10] =  q4;
-  pl[11] =  q2;
+  VectorND<NDF*2> pl;
+  pl[0*NDF+0]  = -q0;               // Ni
+  pl[0*NDF+1]  =  (q1 + q2)/L;      // Viy
+  pl[0*NDF+2]  = -(q3 + q4)/L;      // Viz
+  pl[0*NDF+3]  = -q5;               // Ti
+  pl[0*NDF+4]  =  q3;
+  pl[0*NDF+5]  =  q1;
+  pl[1*NDF+0]  =  q0;               // Nj
+  pl[1*NDF+1]  = -pl[1];            // Vjy
+  pl[1*NDF+2]  = -pl[2];            // Vjz
+  pl[1*NDF+3]  =  q5;               // Tj
+  pl[1*NDF+4]  =  q4;
+  pl[1*NDF+5]  =  q2;
   
 
   // Transform basic stiffness to local system
@@ -927,7 +930,9 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
 
   ALWAYS_STATIC MatrixND<12,12> Kg;
   ALWAYS_STATIC Matrix Wrapper(Kg);
+
   Kg = theCoordTransf->pushResponse(kl, pl);
+
   return Wrapper;
 }
 
@@ -1243,6 +1248,9 @@ template <int NIP, int nsr, int nwm>
 int
 ForceFrame3d<NIP,nsr,nwm>::sendSelf(int commitTag, Channel& theChannel)
 {
+#if 1 
+  return -1;
+#else
   // place the integer data into an ID
   int dbTag = this->getDbTag();
   int loc = 0;
@@ -1373,6 +1381,7 @@ ForceFrame3d<NIP,nsr,nwm>::sendSelf(int commitTag, Channel& theChannel)
     return -1;
   }
   return 0;
+#endif
 }
 
 
@@ -1769,81 +1778,6 @@ ForceFrame3d<NIP,nsr,nwm>::getInitialDeformations(Vector& v0)
   return 0;
 }
 
-
-template <int NIP, int nsr, int nwm>
-void
-ForceFrame3d<NIP,nsr,nwm>::compSectionDisplacements(Vector sectionCoords[], Vector sectionDispls[]) const
-{
-  // get basic displacements and increments
-  THREAD_LOCAL Vector ub(NBV);
-  ub = theCoordTransf->getBasicTrialDisp();
-
-  double L = theCoordTransf->getInitialLength();
-
-  // setup Vandermode and CBDI influence matrices
-
-  const int numSections = points.size();
-  // get CBDI influence matrix
-  Matrix ls(numSections, numSections);
-
-  { // enclose xi in a scope
-    double *xi = new double[numSections];
-    stencil->getSectionLocations(numSections, L, xi);
-    getCBDIinfluenceMatrix(numSections, xi, L, ls);
-    delete[] xi;
-  }
-
-  // get section curvatures
-  Vector kappa_y(numSections);
-  Vector kappa_z(numSections);
-
-  for (int i = 0; i < numSections; i++) {
-    // get section deformations
-    // TODO: Im removing getDeformation, deformations should just be computed
-    // right here by the element;
-    // VectorND<nsr> es = points[i].material->getDeformation<nsr,scheme>();
-
-    // for (int j = 0; j < nsr; j++) {
-    //   if (scheme[j] == SECTION_RESPONSE_MZ)
-    //     kappa_z(i) = es[j];
-    //   if (scheme[j] == SECTION_RESPONSE_MY)
-    //     kappa_y(i) = es[j];
-    // }
-  }
-
-  Vector v(numSections),
-         w(numSections);
-  THREAD_LOCAL VectorND<ndm> xl, uxb;
-//THREAD_LOCAL VectorND<ndm> xg, uxg;
-  // double theta;                             // angle of twist of the sections
-
-  // v = ls * kappa_z;
-  v.addMatrixVector(0.0, ls, kappa_z, 1.0);
-  // w = ls * kappa_y *  (-1);
-  w.addMatrixVector(0.0, ls, kappa_y, -1.0);
-
-  for (int i = 0; i < numSections; i++) {
-
-    xl[0] = points[i].point * L;
-    xl[1] = 0;
-    xl[2] = 0;
-
-    // get section global coordinates
-    sectionCoords[i] = theCoordTransf->getPointGlobalCoordFromLocal(xl);
-
-    // compute section displacements
-    //theta  = xi * ub(5); // consider linear variation for angle of twist. CHANGE LATER!!!!!!!!!!
-    uxb[0] = points[i].point * ub(0); // consider linear variation for axial displacement. CHANGE LATER!!!!!!!!!!
-    uxb[1] = v[i];
-    uxb[2] = w[i];
-
-    // get section displacements in global system
-    sectionDispls[i] = theCoordTransf->getPointGlobalDisplFromBasic(points[i].point, uxb);
-  }
-  return;
-}
-
-
 template <int NIP, int nsr, int nwm>
 void
 ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
@@ -1878,7 +1812,7 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
     s << points[points.size() - 1].material->getTag() << "]";
     s << ", ";
 
-    s << "\"crdTransformation\": " << theCoordTransf->getTag();
+    s << "\"transform\": " << theCoordTransf->getTag();
     s << ", ";
 
     s << "\"integration\": ";
@@ -1922,52 +1856,6 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
     s << "\t" << -T << "\t" << MY1 << "\t" << MZ1 << "\n";
     s << "MOMENT\t" << eleTag << "\t" << counter << "\t1";
     s << "\t" << T << ' ' << MY2 << ' ' << MZ2 << "\n";
-  }
-
-  //
-  // flag set to 2 used for viewing data with UCSD renderer
-  //
-  else if (flag == 2) {
-    static Vector xAxis(3), yAxis(3), zAxis(3);
-    theCoordTransf->getLocalAxes(xAxis, yAxis, zAxis);
-
-    s << "#ForceFrame3D\n";
-    s << "#LocalAxis " << xAxis(0) << " " << xAxis(1) << " " << xAxis(2);
-    s << " " << yAxis(0) << " " << yAxis(1) << " " << yAxis(2) << " ";
-    s << zAxis(0) << " " << zAxis(1) << " " << zAxis(2) << "\n";
-
-    const Vector& xi = theNodes[0]->getCrds();
-    const Vector& xj = theNodes[1]->getCrds();
-    const Vector& ui = theNodes[0]->getDisp();
-    const Vector& uj = theNodes[1]->getDisp();
-
-    s << "#NODE " << xi(0) << " " << xi(1) << " " << xi(2) << " " << ui(0)
-      << " " << ui(1) << " " << ui(2) << " " << ui(3) << " " << ui(4)
-      << " " << ui(5) << "\n";
-
-    s << "#NODE " << xj(0) << " " << xj(1) << " " << xj(2) << " " << uj(0)
-      << " " << uj(1) << " " << uj(2) << " " << uj(3) << " " << uj(4)
-      << " " << uj(5) << "\n";
-
-    double P     = q_save[0];
-    double MZ1   = q_save[1];
-    double MZ2   = q_save[2];
-    double MY1   = q_save[3];
-    double MY2   = q_save[4];
-    double L     = theCoordTransf->getInitialLength();
-    double VY    = (MZ1 + MZ2) / L;
-    double VZ    = (MY1 + MY2) / L;
-    double T     = q_save[5];
-
-    double p0[5];
-    p0[0] = p0[1] = p0[2] = p0[3] = p0[4] = 0.0;
-    if (eleLoads.size() > 0)
-      this->computeReactions(p0);
-
-    s << "#END_FORCES " << -P + p0[0] << ' ' << VY + p0[1] << ' ' << -VZ + p0[3] << ' ' << -T << ' '
-      << MY1 << ' ' << MZ1 << "\n";
-    s << "#END_FORCES " << P << ' ' << -VY + p0[2] << ' ' << VZ + p0[4] << ' ' << T << ' ' << MY2
-      << ' ' << MZ2 << "\n";
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
@@ -2119,12 +2007,6 @@ ForceFrame3d<NIP,nsr,nwm>::setResponse(const char** argv, int argc, OPS_Stream& 
   } else if (strcmp(argv[0], "tangentDrift") == 0) {
     theResponse = new ElementResponse(this, 6, Vector(4));
 
-  } else if (strcmp(argv[0], "getRemCriteria1") == 0) {
-    theResponse = new ElementResponse(this, 77, Vector(2));
-
-  } else if (strcmp(argv[0], "getRemCriteria2") == 0) {
-    theResponse = new ElementResponse(this, 8, Vector(2), ID(6));
-
   } else if (strcmp(argv[0], "RayleighForces") == 0 || 
              strcmp(argv[0], "rayleighForces") == 0) {
 
@@ -2168,14 +2050,15 @@ ForceFrame3d<NIP,nsr,nwm>::setResponse(const char** argv, int argc, OPS_Stream& 
     theResponse = new ElementResponse(this, 110, ID(points.size()));
 
   else if (strcmp(argv[0], "sectionDisplacements") == 0) {
-    if (argc > 1 && strcmp(argv[1], "local") == 0)
-      theResponse = new ElementResponse(this, 1111, Matrix(points.size(), 3));
-    else
-      theResponse = new ElementResponse(this, 111, Matrix(points.size(), 3));
+    opserr << "sectionDisplacements is not implemented\n";
+    return nullptr;
   }
 
-  else if (strcmp(argv[0], "cbdiDisplacements") == 0)
-    theResponse = new ElementResponse(this, 112, Matrix(20, 3));
+  else if (strcmp(argv[0], "cbdiDisplacements") == 0) {
+    opserr << "cbdiDisplacements is not implemented\n";
+    // theResponse = new ElementResponse(this, 112, Matrix(20, 3));
+    return nullptr;
+  }
 
 
   else if (strstr(argv[0], "section") != 0) {
@@ -2267,12 +2150,12 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
     if (eleLoads.size() > 0)
       this->computeReactions(p0);
     // Axial
-    double N     = q_pres[0];
+    double N  = q_pres[0];
     v_resp(6) =  N;
     v_resp(0) = -N + p0[0];
 
     // Torsion
-    double T     = q_pres[5];
+    double T  = q_pres[5];
     v_resp(9) =  T;
     v_resp(3) = -T;
 
@@ -2291,12 +2174,11 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
     M2            = q_pres[4];
     v_resp(4)  = M1;
     v_resp(10) = M2;
-    V             = (M1 + M2) / L;
+    V          = (M1 + M2) / L;
     v_resp(2)  = -V + p0[3];
     v_resp(8)  =  V + p0[4];
 
     return info.setVector(v_wrap);
-
   }
 
   // Chord rotation
@@ -2360,94 +2242,9 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
   }
 
   else if (responseID == 111 || responseID == 1111) {
-    double L = theCoordTransf->getInitialLength();
-    double pts[NIP];
-    const int numSections = points.size();
-    stencil->getSectionLocations(numSections, L, pts);
-    // CBDI influence matrix
-    Matrix ls(numSections, numSections);
-    getCBDIinfluenceMatrix(numSections, pts, L, ls);
-    // Curvature vector
-    Vector kappaz(numSections); // about section z
-    Vector kappay(numSections); // about section y
-    for (int i = 0; i < numSections; i++) {
-      const ID& code  = points[i].material->getType();
-      const Vector& e = points[i].material->getSectionDeformation();
-      for (int j = 0; j < nsr; j++) {
-        if (code(j) == SECTION_RESPONSE_MZ)
-          kappaz(i) += e(j);
-        if (code(j) == SECTION_RESPONSE_MY)
-          kappay(i) += e(j);
-      }
-    }
-    // Displacement vector
-    Vector dispsy(numSections); // along local y
-    Vector dispsz(numSections); // along local z
-    dispsy.addMatrixVector(0.0, ls, kappaz, 1.0);
-    dispsz.addMatrixVector(0.0, ls, kappay, -1.0);
-    stencil->getSectionLocations(numSections, L, pts);
-    static Vector uxb(3);
-    static Vector uxg(3);
-    Matrix disps(numSections, 3);
-    vp = theCoordTransf->getBasicTrialDisp();
-    for (int i = 0; i < numSections; i++) {
-      uxb(0) = pts[i] * vp(0); // linear shape function
-      uxb(1) = dispsy(i);
-      uxb(2) = dispsz(i);
-      if (responseID == 111)
-        uxg = theCoordTransf->getPointGlobalDisplFromBasic(pts[i], uxb);
-      else
-        uxg = theCoordTransf->getPointLocalDisplFromBasic(pts[i], uxb);
-      disps(i, 0) = uxg(0);
-      disps(i, 1) = uxg(1);
-      disps(i, 2) = uxg(2);
-    }
-    return info.setMatrix(disps);
   }
 
   else if (responseID == 112) {
-    double L = theCoordTransf->getInitialLength();
-    double ipts[NIP];
-    const int numSections = points.size();
-    stencil->getSectionLocations(numSections, L, ipts);
-    // CBDI influence matrix
-    double pts[20];
-    for (int i = 0; i < 20; i++)
-      pts[i] = 1.0 / (20 - 1) * i;
-    Matrix ls(20, numSections);
-    getCBDIinfluenceMatrix(20, pts, numSections, ipts, L, ls);
-    // Curvature vector
-    Vector kappaz(numSections); // about section z
-    Vector kappay(numSections); // about section y
-    for (int i = 0; i < numSections; i++) {
-      const ID& code  = points[i].material->getType();
-      const Vector& e = points[i].material->getSectionDeformation();
-      for (int j = 0; j < nsr; j++) {
-        if (code(j) == SECTION_RESPONSE_MZ)
-          kappaz(i) += e(j);
-        if (code(j) == SECTION_RESPONSE_MY)
-          kappay(i) += e(j);
-      }
-    }
-    // Displacement vector
-    Vector dispsy(20); // along local y
-    Vector dispsz(20); // along local z
-    dispsy.addMatrixVector(0.0, ls, kappaz, 1.0);
-    dispsz.addMatrixVector(0.0, ls, kappay, -1.0);
-    static Vector uxb(3);
-    static Vector uxg(3);
-    Matrix disps(20, 3);
-    vp = theCoordTransf->getBasicTrialDisp();
-    for (int i = 0; i < 20; i++) {
-      uxb(0)      = pts[i] * vp[0]; // linear shape function
-      uxb(1)      = dispsy(i);
-      uxb(2)      = dispsz(i);
-      uxg         = theCoordTransf->getPointGlobalDisplFromBasic(pts[i], uxb);
-      disps(i, 0) = uxg(0);
-      disps(i, 1) = uxg(1);
-      disps(i, 2) = uxg(2);
-    }
-    return info.setMatrix(disps);
   }
 
   else if (responseID == 12)
@@ -2547,135 +2344,9 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
     d(1) = d3z;
     d(2) = d2y;
     d(3) = d3y;
-
     return info.setVector(d);
-
-  } else if (responseID == 77) { // Why is this here?
-    return -1;
-
-  } else if (responseID == 8) {
-
-    ID* infoID = info.theID;
-
-    int compID     = (*infoID)(0);
-    int critID     = (*infoID)(1);
-    int nTagbotn11 = (*infoID)(2);
-    int nTagmidn11 = (*infoID)(3);
-    int nTagtopn11 = (*infoID)(4);
-    int globgrav11 = (*infoID)(5);
-
-    const char* filenamewall = info.theString;
-
-    // int returns
-    double value       = 0.0;
-    double checkvalue1 = 0.0;
-
-    if (critID == 7) {
-      Domain* theDomain = this->getDomain();
-
-      double oofwallresp;
-      // determine the in plane horizontal deformation axis
-      // and the out of plane horizontal deformation axis
-      Node* theNode1a      = theDomain->getNode(nTagbotn11);
-      Node* theNode3a      = theDomain->getNode(nTagtopn11);
-      const Vector& crdIa1 = theNode1a->getCrds();
-      const Vector& crdJa1 = theNode3a->getCrds();
-      int indwdir1;
-      int indwdir2;
-      if (globgrav11 == 1) {
-        indwdir1 = 1;
-        indwdir2 = 2;
-      } else if (globgrav11 == 2) {
-        indwdir1 = 0;
-        indwdir2 = 2;
-      } else if (globgrav11 == 3) {
-        indwdir1 = 0;
-        indwdir2 = 1;
-      } else {
-        return -1;
-      }
-
-      double dir1a1    = crdJa1(indwdir1) - crdIa1(indwdir1);
-      double dir2a1    = crdJa1(indwdir2) - crdIa1(indwdir2);
-      double dirsumdum = sqrt(dir1a1 * dir1a1 + dir2a1 * dir2a1);
-      double dir1inp   = dir1a1 / dirsumdum;
-      double dir2inp   = dir2a1 / dirsumdum;
-
-      double dir1oop = -dir2inp;
-      double dir2oop = dir1inp;
-
-      Node* theNode1                = theDomain->getNode(nTagbotn11);
-      const Vector& theResponsewall = theNode1->getTrialDisp();
-      double valbotinfn = theResponsewall(indwdir1) * dir1inp + theResponsewall(indwdir2) * dir2inp;
-      double valbotoutfn =
-          theResponsewall(indwdir1) * dir1oop + theResponsewall(indwdir2) * dir2oop;
-
-      Node* theNode2                 = theDomain->getNode(nTagmidn11);
-      const Vector& theResponsewall2 = theNode2->getTrialDisp();
-      double valmidinfn =
-          theResponsewall2(indwdir1) * dir1inp + theResponsewall2(indwdir2) * dir2inp;
-      double valmidoutfn =
-          theResponsewall2(indwdir1) * dir1oop + theResponsewall2(indwdir2) * dir2oop;
-
-      Node* theNode3                 = theDomain->getNode(nTagtopn11);
-      const Vector& theResponsewall3 = theNode3->getTrialDisp();
-      double valtopinfn =
-          theResponsewall3(indwdir1) * dir1inp + theResponsewall3(indwdir2) * dir2inp;
-      double valtopoutfn =
-          theResponsewall3(indwdir1) * dir1oop + theResponsewall3(indwdir2) * dir2oop;
-
-      value             = sqrt(pow((valtopinfn - valbotinfn), 2.0));
-      double valoutchck = valmidoutfn - (valtopoutfn + valbotoutfn) / 2.0;
-      oofwallresp       = sqrt(pow(valoutchck, 2.0));
-      //
-      double outplanevaldat;  // variable for input value
-      double inplanevaldat;   // variable for input value
-      double outplanevaldat1; // variable for input value
-      double inplanevaldat1;  // variable for input value
-      std::ifstream indata;
-
-      if (filenamewall != nullptr) {
-        //
-        indata.open(filenamewall); // opens the file
-        if (!indata) {             // file couldn't be opened
-          opserr << "ForceFrame3d::getResponse"
-                 << " file for infill wall (" << filenamewall << " could not be opened" << "\n";
-          return -1;
-        }
-        checkvalue1    = 0.0;
-        int counterdum = 0;
-        while (!indata.eof()) { // keep reading until end-of-file
-          counterdum = counterdum + 1;
-          indata >> outplanevaldat >> inplanevaldat; // sets EOF flag if no value found
-          if (counterdum != 1) {
-            if (oofwallresp >= outplanevaldat1 && oofwallresp <= outplanevaldat) {
-              checkvalue1 = inplanevaldat1 + (oofwallresp - outplanevaldat1) /
-                                                 (outplanevaldat - outplanevaldat1) *
-                                                 (inplanevaldat - inplanevaldat1);
-              break;
-            }
-          }
-          indata >> outplanevaldat1 >> inplanevaldat1;
-          if (oofwallresp >= outplanevaldat && oofwallresp <= outplanevaldat1) {
-            checkvalue1 = inplanevaldat + (oofwallresp - outplanevaldat) /
-                                              (outplanevaldat1 - outplanevaldat) *
-                                              (inplanevaldat1 - inplanevaldat);
-            break;
-          }
-        }
-        indata.close();
-      }
-
-      static Vector result8(2);
-      result8(0) = value;
-      result8(1) = checkvalue1;
-
-      return info.setVector(result8);
-    }
-
-    return -1;
   }
-  //by SAJalali
+
   else if (responseID == 2000) {
     const int numSections = points.size();
     double xi[NIP];
