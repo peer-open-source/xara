@@ -129,11 +129,10 @@ NodalLoad::applyLoad(double loadFactor)
 
     // add the load times the loadfactor to nodal unbalanced load
     if (konstant == false)
-	myNodePtr->addUnbalancedLoad(*load,loadFactor);
+      myNodePtr->addUnbalancedLoad(*load, loadFactor);
     else
-	myNodePtr->addUnbalancedLoad(*load,1.0);	
-    
-    //    opserr << "loadFactor: " << loadFactor << *myNodePtr;
+      myNodePtr->addUnbalancedLoad(*load, 1.0);	
+
 }
 
 void
