@@ -64,27 +64,23 @@ TclCommand_addActuator(ClientData clientData, Tcl_Interp *interp, int argc,
   double rho = 0.0;
 
   if (Tcl_GetInt(interp, argv[1 + eleArgStart], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid actuator eleTag" << "\n";
+    opserr << OpenSees::PromptValueError << "invalid element tag" << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid iNode\n";
-    opserr << "actuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid jNode\n";
-    opserr << "actuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[4 + eleArgStart], &EA) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid EA\n";
-    opserr << "actuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[5 + eleArgStart], &ipPort) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid ipPort\n";
-    opserr << "actuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   for (int i = 6 + eleArgStart; i < argc; ++i) {
@@ -95,7 +91,6 @@ TclCommand_addActuator(ClientData clientData, Tcl_Interp *interp, int argc,
     if (i + 1 < argc && strcmp(argv[i], "-rho") == 0) {
       if (Tcl_GetDouble(interp, argv[i + 1], &rho) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "invalid rho\n";
-        opserr << "actuator element: " << tag << "\n";
         return TCL_ERROR;
       }
     }
@@ -109,7 +104,6 @@ TclCommand_addActuator(ClientData clientData, Tcl_Interp *interp, int argc,
   Domain* theTclDomain = builder->getDomain();
   if (theTclDomain->addElement(theElement) == false) {
     opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    opserr << "actuator element: " << tag << "\n";
     delete theElement;
     return TCL_ERROR;
   }
@@ -152,22 +146,18 @@ TclCommand_addActuatorCorot(ClientData clientData, Tcl_Interp *interp,
   }
   if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid iNode\n";
-    opserr << "corotActuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid jNode\n";
-    opserr << "corotActuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[4 + eleArgStart], &EA) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid EA\n";
-    opserr << "corotActuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[5 + eleArgStart], &ipPort) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid ipPort\n";
-    opserr << "corotActuator element: " << tag << "\n";
     return TCL_ERROR;
   }
   for (int i = 6 + eleArgStart; i < argc; ++i) {
@@ -192,7 +182,6 @@ TclCommand_addActuatorCorot(ClientData clientData, Tcl_Interp *interp,
   Domain* theTclDomain = builder->getDomain();
   if (theTclDomain->addElement(theElement) == false) {
     opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    opserr << "corotActuator element: " << tag << "\n";
     delete theElement;
     return TCL_ERROR;
   }
@@ -235,7 +224,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
   // read the number of nodes
   if (strcmp(argv[2 + eleArgStart], "-node") != 0) {
     opserr << OpenSees::PromptValueError << "expecting -node flag\n";
-    opserr << "adapter element: " << tag << "\n";
     return TCL_ERROR;
   }
   argi = 3 + eleArgStart;
@@ -246,7 +234,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
   }
   if (numNodes == 0) {
     opserr << OpenSees::PromptValueError << "no nodes specified\n";
-    opserr << "adapter element: " << tag << "\n";
     return TCL_ERROR;
   }
   // create the ID arrays to hold the nodes and dofs
@@ -257,7 +244,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
   for (i = 0; i < numNodes; ++i) {
     if (Tcl_GetInt(interp, argv[argi], &node) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid node\n";
-      opserr << "adapter element: " << tag << "\n";
       return TCL_ERROR;
     }
     nodes(i) = node;
@@ -268,7 +254,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
     numDOFj = 0;
     if (strcmp(argv[argi], "-dof") != 0) {
       opserr << OpenSees::PromptValueError << "expect -dof\n";
-      opserr << "adapter element: " << tag << "\n";
       return TCL_ERROR;
     }
     argi++;
@@ -284,7 +269,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
     for (i = 0; i < numDOFj; ++i) {
       if (Tcl_GetInt(interp, argv[argi], &dof) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "invalid dof\n";
-        opserr << "adapter element: " << tag << "\n";
         return TCL_ERROR;
       }
       dofsj(i) = dof - 1;
@@ -296,13 +280,11 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
   Matrix kb(numDOF, numDOF);
   if (strcmp(argv[argi], "-stif") != 0) {
     opserr << OpenSees::PromptValueError << "expecting -stif flag\n";
-    opserr << "adapter element: " << tag << "\n";
     return TCL_ERROR;
   }
   argi++;
   if (argc - 1 < argi + numDOF * numDOF) {
     opserr << OpenSees::PromptValueError << "incorrect number of stiffness terms\n";
-    opserr << "adapter element: " << tag << "\n";
     return TCL_ERROR;
   }
   double stif;
@@ -310,7 +292,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
     for (k = 0; k < numDOF; k++) {
       if (Tcl_GetDouble(interp, argv[argi], &stif) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "invalid stiffness term\n";
-        opserr << "adapter element: " << tag << "\n";
         return TCL_ERROR;
       }
       kb(j, k) = stif;
@@ -320,7 +301,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
   // get ip-port
   if (Tcl_GetInt(interp, argv[argi], &ipPort) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid ipPort\n";
-    opserr << "adapter element: " << tag << "\n";
     return TCL_ERROR;
   }
   argi++;
@@ -334,7 +314,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
     if (strcmp(argv[i], "-mass") == 0) {
       if (argc - 1 < i + numDOF * numDOF) {
         opserr << OpenSees::PromptValueError << "incorrect number of mass terms\n";
-        opserr << "adapter element: " << tag << "\n";
         return TCL_ERROR;
       }
       mass = new Matrix(numDOF, numDOF);
@@ -343,7 +322,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
         for (k = 0; k < numDOF; k++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + numDOF * j + k], &m) != TCL_OK) {
             opserr << OpenSees::PromptValueError << "invalid mass term\n";
-            opserr << "adapter element: " << tag << "\n";
             return TCL_ERROR;
           }
           (*mass)(j, k) = m;
@@ -367,7 +345,6 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
   Domain* theTclDomain = builder->getDomain();
   if (theTclDomain->addElement(theElement) == false) {
     opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    opserr << "adapter element: " << tag << "\n";
     delete theElement;
     return TCL_ERROR;
   }
