@@ -22,16 +22,14 @@
                                                                         
 #ifndef FireLoadPattern_h
 #define FireLoadPattern_h
-
-// File: ~/domain/pattern/EarthquakePattern.h
 //
 // Written: fmk 11/98
 // Revised:
 //
 // Purpose: This file contains the class definition for EarthquakePattern.
 // EarthquakePattern is an abstract class.
-
-//Modified by Panagistis Kotsoivnos,[University of Edinburgh]
+//
+// Modified by Panagistis Kotsoivnos,[University of Edinburgh]
 
 #include <LoadPattern.h>
 #include <Vector.h>
@@ -64,10 +62,7 @@ class FireLoadPattern : public LoadPattern
 			   TimeSeries *theSeries3, TimeSeries *theSeries4, TimeSeries *theSeries5, 
 			   TimeSeries *theSeries6, TimeSeries *theSeries7, TimeSeries *theSeries8, TimeSeries *theSeries9);
     
-    // methods for o/p
-    // int sendSelf(int commitTag, Channel &theChannel) =0;
-    // int recvSelf(int commitTag, Channel &theChannel, 
-    //		 FEM_ObjectBroker &theBroker) =0;
+
     void Print(OPS_Stream &s, int flag =0);        
     
     // method to obtain a blank copy of the LoadPattern
@@ -87,7 +82,6 @@ class FireLoadPattern : public LoadPattern
     TimeSeries *theSeries8;
     TimeSeries *theSeries9;
     Vector loadFactors;
-
     //PK end
     double currentTime;
 };

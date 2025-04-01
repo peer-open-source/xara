@@ -59,12 +59,10 @@ MultiSupportPattern::MultiSupportPattern()
 
 MultiSupportPattern::~MultiSupportPattern()
 {
-  // invoke the destructor on all ground motions supplied
   for (int i=0; i<numMotions; i++)
       delete theMotions[i];
   
-  if (theMotions != 0)
-    //    free ((void *)theMotions);
+  if (theMotions != nullptr)
     delete [] theMotions;
 }
 
@@ -92,11 +90,6 @@ MultiSupportPattern::addMotion(GroundMotion &theMotion, int tag)
 
   // make space for new
   GroundMotion **newMotions = new GroundMotion *[numMotions+1];
-  //  GroundMotion **newMotions = (GroundMotion **)malloc(sizeof(GroundMotion *)*(numMotions+1));
-  if (newMotions == 0) {
-    opserr << "MultiSupportPattern::addMotion - could not add new, out of mem\n";
-    return -1;
-  }
   
   // copy old
   for (int i=0; i<numMotions; i++)
@@ -105,8 +98,7 @@ MultiSupportPattern::addMotion(GroundMotion &theMotion, int tag)
   // add the new motion to new
   newMotions[numMotions] = &theMotion;
 
-  // delete the old
-  if (theMotions != 0)
+  if (theMotions != nullptr)
     delete [] theMotions;
 
   // reset
@@ -150,7 +142,6 @@ MultiSupportPattern::addElementalLoad(ElementalLoad *)
 int 
 MultiSupportPattern::sendSelf(int commitTag, Channel &theChannel)
 {
-  // get my current database tag
 
   // NOTE - dbTag equals 0 if not sending to a database OR has not yet been sent
   int myDbTag = this->getDbTag();

@@ -24,15 +24,15 @@ BasicFrame3d::update()
 }
 
 
-double
-BasicFrame3d::getLength(State state)
-{
-  if (state == State::Init)
-    return theCoordTransf->getInitialLength();
+// double
+// BasicFrame3d::getLength(State state)
+// {
+//   if (state == State::Init)
+//     return theCoordTransf->getInitialLength();
 
-  else
-    return theCoordTransf->getDeformedLength();
-}
+//   else
+//     return theCoordTransf->getDeformedLength();
+// }
 
 
 int
@@ -297,7 +297,7 @@ BasicFrame3d::getMass()
         // consistent (cubic) mass matrix
 
         // get initial element length
-        double L  = this->getLength(State::Init);
+        double L  = theCoordTransf->getInitialLength();
         double m  = total_mass/420.0;
         double mx = twist_mass;
         static MatrixND<12,12> ml{0};

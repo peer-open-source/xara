@@ -92,6 +92,7 @@
   #include <HingeRadauBeamIntegration.h>
   #include <HingeRadauTwoBeamIntegration.h>
 
+  #include <transform/FrameTransformBuilder.hpp>
 #else
 // Sections
 #include <FrameSection.h>
@@ -493,7 +494,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
         argi++;
         if (Tcl_GetInt(interp, argv[argi], &transfTag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid transfTag\n";
+          opserr << G3_ERROR_PROMPT << "invalid transform\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -563,7 +564,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     for (int i = 0; i < nIP; i++) {
       int secTag;
       if (Tcl_GetInt(interp, argv[positions[2+i]], &secTag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid secTag\n";
+        opserr << G3_ERROR_PROMPT << "invalid section\n";
         status = TCL_ERROR;
         goto clean_up;
       }
@@ -571,7 +572,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     }
 
     if (Tcl_GetInt(interp, argv[positions[2+nIP]], &transfTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid transfTag\n";
+      opserr << G3_ERROR_PROMPT << "invalid transform\n";
       status = TCL_ERROR;
       goto clean_up;
     }
@@ -592,7 +593,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
     // Geometric transformation
     if (Tcl_GetInt(interp, argv[positions[0]], &transfTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid transfTag\n";
+      opserr << G3_ERROR_PROMPT 
+             << "invalid transform " << argv[positions[0]] 
+             << OpenSees::SignalMessageEnd;
       status = TCL_ERROR;
       goto clean_up;
     }
@@ -636,7 +639,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   else if (positions.size() == 3) {
     // Transform
     if (Tcl_GetInt(interp, argv[positions[2]], &transfTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid transfTag\n";
+      opserr << G3_ERROR_PROMPT << "invalid transform\n";
       status = TCL_ERROR;
       goto clean_up;
     }
@@ -787,190 +790,103 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
 
     } else {
+      //
       // ndm == 3
-
-      if (strcmp(argv[1], "CubicFrame") == 0) {
-        std::array<int, 2> nodes {iNode, jNode};
-
-        theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
-                                      *beamIntegr, *theTransf3d, 
-                                      mass, options.mass_flag);
-      } 
-
-      else if ((strstr(argv[1], "Force") != 0) ||
-               (strcmp(argv[1], "MixedFrame") == 0)) {
-        std::array<int, 2> nodes {iNode, jNode};
-
-        if (strcmp(argv[1], "ForceDeltaFrame") == 0 || options.geom_flag) {
-          if (!options.shear_flag)
-            static_loop<1,10>([&](auto nip) constexpr {
-              if (nip.value == sections.size())
-                theElement = new ForceDeltaFrame3d<nip.value, 4>(tag, nodes, sections,
-                                              *beamIntegr, *theTransf3d, 
-                                              mass, options.mass_flag, use_mass,
-                                              max_iter, tol,
-                                              options.shear_flag
-                                              );
-            });
-          else
-            static_loop<1,10>([&](auto nip) constexpr {
-              if (nip.value == sections.size())
-                theElement = new ForceDeltaFrame3d<nip.value, 6>(tag, nodes, sections,
-                                              *beamIntegr, *theTransf3d, 
-                                              mass, options.mass_flag, use_mass,
-                                              max_iter, tol,
-                                              options.shear_flag
-                                              );
-            });
-            // theElement = new ForceDeltaFrame3d<20, 6>(tag, nodes, sections,
-            //   *beamIntegr, *theTransf3d, 
-            //   mass, options.mass_flag, use_mass,
-            //   max_iter, tol,
-            //   options.shear_flag
-            //   );
-        } else {
-          if (!options.shear_flag) {
-            theElement = new ForceFrame3d<20, 4>(tag, nodes, sections,
-                                          *beamIntegr, *theTransf3d,
-                                          mass, options.mass_flag, use_mass,
-                                          max_iter, tol
-                                          );
-          }
-          else
-            theElement = new ForceFrame3d<20, 6>(tag, nodes, sections,
-                                          *beamIntegr, *theTransf3d,
-                                          mass, options.mass_flag, use_mass,
-                                          max_iter, tol
-                                          );
-        }
-      }
-
-      else if (strcmp(argv[1], "ExactFrame") == 0) {
-        if (!options.shear_flag) {
-          opserr << G3_ERROR_PROMPT << "ExactFrame3d requires shear formulation\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-        int ndf = builder->getNDF();
-        if (multi_node && sections.size() < multi_nodes.size()-1)
-          for (int i = 0; i < multi_nodes.size()-1; ++i)
-            sections.push_back(sections[0]);
-
-        // for_int<4>([&](auto nen) constexpr {
-        //   if (multi_nodes.size() == nen.value+1) {
-        //     std::array<int, nen.value+1> nodes;
-        //     std::copy_n(multi_nodes.begin(), nen.value+1, nodes.begin());
-        //     for_int<3>([&](auto nwm) constexpr {
-        //       if (ndf-6 == nwm.value)
-        //         theElement = new ExactFrame3d<nen.value+1, nwm.value>(tag, nodes, sections.data(), *theTransf3d);
-        //     });
-        //   }
-        // });
-
-        if (!multi_node) {
+      //
+      if (strstr(argv[1], "Frame") != nullptr) {
+        if (!multi_node && (strstr(argv[1], "Exact") == nullptr)) {
           std::array<int, 2> nodes {iNode, jNode};
-          switch (ndf) {
-            case 6:
-              theElement = new ExactFrame3d<2>(tag, nodes, sections.data(), *theTransf3d);
-              break;
-            case 7:
-              theElement = new ExactFrame3d<2,1>(tag, nodes, sections.data(), *theTransf3d);
-              break;
-            case 8:
-              theElement = new ExactFrame3d<2,2>(tag, nodes, sections.data(), *theTransf3d);
-              break;
-            case 9:
-              theElement = new ExactFrame3d<2,3>(tag, nodes, sections.data(), *theTransf3d);
-              break;
-            default:
-              opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
-              status = TCL_ERROR;
-              goto clean_up;
+
+          FrameTransform<2,6> *tran = nullptr;
+          if (FrameTransformBuilder* tb; (tb = builder->getTypedObject<FrameTransformBuilder>(transfTag))) {
+            tran = tb->template create<2,6>();
+          }
+          else {
+            opserr << G3_ERROR_PROMPT << "invalid transform\n";
+            status = TCL_ERROR;
+            goto clean_up;
+          }
+          if (strcmp(argv[1], "CubicFrame") == 0) {
+
+            theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
+                                          *beamIntegr, *theTransf3d, 
+                                          mass, options.mass_flag);
+          } 
+
+          else if (strcmp(argv[1], "DisplFrame") == 0) {
+            theElement =  new EulerDeltaFrame3d(tag, nodes, sections,
+                                                *beamIntegr, *theTransf3d, 
+                                                mass, options.mass_flag, use_mass);
+          }
+
+          else if ((strstr(argv[1], "Force") != 0) ||
+                  (strcmp(argv[1], "MixedFrame") == 0)) {
+            if (strcmp(argv[1], "ForceDeltaFrame") == 0 || options.geom_flag) {
+              if (!options.shear_flag)
+                static_loop<1,10>([&](auto nip) constexpr {
+                  if (nip.value == sections.size())
+                    theElement = new ForceDeltaFrame3d<nip.value, 4>(tag, nodes, sections,
+                                                  *beamIntegr, *theTransf3d, 
+                                                  mass, options.mass_flag, use_mass,
+                                                  max_iter, tol,
+                                                  options.shear_flag
+                                                  );
+                });
+              else
+                static_loop<1,10>([&](auto nip) constexpr {
+                  if (nip.value == sections.size())
+                    theElement = new ForceDeltaFrame3d<nip.value, 6>(tag, nodes, sections,
+                                                  *beamIntegr, *theTransf3d, 
+                                                  mass, options.mass_flag, use_mass,
+                                                  max_iter, tol,
+                                                  options.shear_flag
+                                                  );
+                });
+            } else {
+              if (!options.shear_flag) {
+                theElement = new ForceFrame3d<20, 4>(tag, nodes, sections,
+                                              *beamIntegr, *theTransf3d,
+                                              mass, options.mass_flag, use_mass,
+                                              max_iter, tol
+                                              );
+              }
+              else
+                theElement = new ForceFrame3d<20, 6>(tag, nodes, sections,
+                                              *beamIntegr, *theTransf3d,
+                                              mass, options.mass_flag, use_mass,
+                                              max_iter, tol
+                                              );
+            }
           }
         }
-        else {
-          switch (multi_nodes.size()) {
-            case 3: {
-              std::array<int, 3> nodes {multi_nodes[0], multi_nodes[1], multi_nodes[2]};
-              switch (ndf) {
-                case 6:
-                  theElement = new ExactFrame3d<3,0>(tag, nodes, sections.data(), *theTransf3d);
-                  break;
-                case 7:
-                  theElement = new ExactFrame3d<3,1>(tag, nodes, sections.data(), *theTransf3d);
-                  break;
-                // case 8:
-                //   theElement = new ExactFrame3d<3,2>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                // case 9:
-                //   theElement = new ExactFrame3d<3,3>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                default:
-                  opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
-                  status = TCL_ERROR;
-                  goto clean_up;
-              }
-              break;
+
+        else if (strcmp(argv[1], "ExactFrame") == 0) {
+          if (!options.shear_flag) {
+            opserr << G3_ERROR_PROMPT << "ExactFrame3d requires shear formulation\n";
+            status = TCL_ERROR;
+            goto clean_up;
+          }
+          int ndf = builder->getNDF();
+          if (multi_node && sections.size() < multi_nodes.size()-1)
+            for (int i = 0; i < multi_nodes.size()-1; ++i)
+              sections.push_back(sections[0]);
+
+          static_loop<2,6>([&](auto nn) constexpr {
+            if (nn.value == multi_nodes.size()) {
+              std::array<int, nn.value> nodes;
+              std::copy_n(multi_nodes.begin(), nn.value, nodes.begin());
+              static_loop<0,4>([&](auto nwm) constexpr {
+                if (nwm.value+6 == ndf)
+                  theElement = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *theTransf3d);
+              });
             }
-            case 4: {
-              std::array<int, 4> nodes {multi_nodes[0], multi_nodes[1], multi_nodes[2], multi_nodes[3]};
-              switch (ndf) {
-                case 6:
-                  theElement = new ExactFrame3d<4,0>(tag, nodes, sections.data(), *theTransf3d);
-                  break;
-                default:
-                  opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
-                  status = TCL_ERROR;
-                  goto clean_up;
-              }
-              break;
-            }
-            case 5: {
-              std::array<int, 5> nodes {multi_nodes[0], multi_nodes[1], multi_nodes[2], multi_nodes[3], multi_nodes[4]};
-              switch (ndf) {
-                case 6:
-                  theElement = new ExactFrame3d<5,0>(tag, nodes, sections.data(), *theTransf3d);
-                  break;
-                default:
-                  opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
-                  status = TCL_ERROR;
-                  goto clean_up;
-              }
-              break;
-            }
-            case 6: {
-              std::array<int, 6> nodes {multi_nodes[0], multi_nodes[1], multi_nodes[2], multi_nodes[3], multi_nodes[4], multi_nodes[5]};
-              switch (ndf) {
-                case 6:
-                  theElement = new ExactFrame3d<6,0>(tag, nodes, sections.data(), *theTransf3d);
-                  break;
-                // case 7:
-                //   theElement = new ExactFrame3d<6,1,1>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                // case 8:
-                //   theElement = new ExactFrame3d<6,1,2>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-                // case 9:
-                //   theElement = new ExactFrame3d<6,1,3>(tag, nodes, sections.data(), *theTransf3d);
-                //   break;
-              }
-              break;
-            }
-            default:
-              opserr << G3_ERROR_PROMPT << "invalid number of nodes for ExactFrame\n";
-              status = TCL_ERROR;
-              goto clean_up;
+          });
+          if (theElement == nullptr) {
+            opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
+            status = TCL_ERROR;
+            goto clean_up;
           }
         }
-      }
-
-
-      else if (strcmp(argv[1], "DisplFrame") == 0) {
-        std::array<int, 2> nodes {iNode, jNode};
-        theElement =
-            new EulerDeltaFrame3d(tag, nodes, sections,
-                                  *beamIntegr, *theTransf3d, 
-                                  mass, options.mass_flag, use_mass);
 
       }
 
@@ -1003,7 +919,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
 
     if (domain->addElement(theElement) == false) {
-      opserr << G3_ERROR_PROMPT << "could not add element to the domain\n";
+      opserr << G3_ERROR_PROMPT 
+             << "could not add element to the domain"
+             << OpenSees::SignalMessageEnd;
       delete theElement;
       status = TCL_ERROR;
       goto clean_up;

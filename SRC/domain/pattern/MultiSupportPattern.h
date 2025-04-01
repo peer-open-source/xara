@@ -50,13 +50,12 @@ class MultiSupportPattern : public LoadPattern
     virtual bool addElementalLoad(ElementalLoad *);
     
     // methods for o/p
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     virtual void Print(OPS_Stream &s, int flag =0);        
 
     // method to obtain a blank copy of the LoadPattern
-    virtual LoadPattern *getCopy(void);
+    virtual LoadPattern *getCopy();
 
     int addMotion(GroundMotion &theMotion, int tag);    
     GroundMotion *getMotion(int tag);        

@@ -117,7 +117,7 @@ PrismFrame3d::setNodes()
   if (status != 0)
     return status;
 
-  L = this->getLength(State::Init);
+  L = theCoordTransf->getInitialLength();
 
   if (L == 0.0) {
     opserr << "PrismFrame3d::setDomain  tag: " << this->getTag() << " -- Element has zero length\n";
@@ -435,7 +435,7 @@ PrismFrame3d::getMass()
       // Consistent (cubic, prismatic) mass matrix
 
       if (!shear_flag) {
-        double L  = this->getLength(State::Init);
+        double L  = theCoordTransf->getInitialLength();
         double m  = total_mass/420.0;
         double mx = twist_mass;
         thread_local MatrixND<12,12> M{0};
@@ -523,120 +523,13 @@ PrismFrame3d::getMass()
 int
 PrismFrame3d::sendSelf(int cTag, Channel &theChannel)
 {
-    int res = 0;
-
-    static Vector data(19);
-    
-    data(0) = A;
-    data(1) = E;
-    data(2) = G;
-    data(3) = Jx;
-    data(4) = Iy;
-    data(5) = Iz;
-
-// 
-    data( 6) = total_mass; // TODO
-    data( 7) = mass_flag;
-    data( 8) = this->getTag();
-    data( 9) = connectedExternalNodes(0);
-    data(10) = connectedExternalNodes(1);
-    data(11) = theCoordTransf->getClassTag();            
-
-    int dbTag = theCoordTransf->getDbTag();
-    
-    if (dbTag == 0) {
-      dbTag = theChannel.getDbTag();
-      if (dbTag != 0)
-        theCoordTransf->setDbTag(dbTag);
-    }
-
-    data(12) = dbTag;
-    
-    data(13) = alphaM;
-    data(14) = betaK;
-    data(15) = betaK0;
-    data(16) = betaKc;
-    data(17) = releasez;
-    data(18) = releasey;    
-    
-    // Send the data vector
-    res += theChannel.sendVector(this->getDbTag(), cTag, data);
-    if (res < 0) {
-      return res;
-    }
-
-    // Ask the CoordTransf to send itself
-    res += theCoordTransf->sendSelf(cTag, theChannel);
-    if (res < 0) {
-      return res;
-    }
-
-    return res;
+  return -1;
 }
 
 int
 PrismFrame3d::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-  int res = 0;
-  static Vector data(19);
-
-  res += theChannel.recvVector(this->getDbTag(), cTag, data);
-  if (res < 0) {
-    return res;
-  }
-
-  A  = data(0);
-  E  = data(1); 
-  G  = data(2); 
-  Jx = data(3); 
-  Iy = data(4); 
-  Iz = data(5);     
-
-  total_mass = data(6);
-  mass_flag  = (int)data(7);
-  this->setTag((int)data(8));
-  connectedExternalNodes(0) = (int)data(9);
-  connectedExternalNodes(1) = (int)data(10);
-  
-  alphaM   = data(13);
-  betaK    = data(14);
-  betaK0   = data(15);
-  betaKc   = data(16);
-  releasez = (int)data(17);
-  releasey = (int)data(18);
-  
-  // Check if the CoordTransf is null; if so, get a new one
-  int crdTag = (int)data(11);
-  if (theCoordTransf == nullptr) {
-    // TODO(cmp)
-    theCoordTransf = nullptr; // theBroker.getNewFrameTransform3d(crdTag);
-    if (theCoordTransf == 0) {
-      opserr << "PrismFrame3d::recvSelf -- could not get a FrameTransform3d\n";
-      return -1;
-    }
-  }
-
-  // Check that the CoordTransf is of the right type; if not, delete
-  // the current one and get a new one of the right type
-  if (theCoordTransf->getClassTag() != crdTag) {
-    delete theCoordTransf;
-    // TODO(cmp)
-    theCoordTransf = nullptr; // theBroker.getNewFrameTransform3d(crdTag);
-    if (theCoordTransf == 0) {
-      opserr << "PrismFrame3d::recvSelf -- could not get a FrameTransform3d\n";
-      return -1;
-    }
-  }
-
-  // Now, receive the CoordTransf
-  theCoordTransf->setDbTag((int)data(12));
-  res += theCoordTransf->recvSelf(cTag, theChannel, theBroker);
-  if (res < 0) {
-    opserr << "PrismFrame3d::recvSelf -- could not receive CoordTransf\n";
-    return res;
-  }
-
-  return res;
+  return -1;
 }
 
 void

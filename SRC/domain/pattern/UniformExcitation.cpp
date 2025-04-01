@@ -35,9 +35,6 @@
 #include <FEM_ObjectBroker.h>
 #include <SP_ConstraintIter.h>
 #include <SP_Constraint.h>
-#include <elementAPI.h>
-
-// void* OPS_ADD_RUNTIME_VPV(OPS_TimeSeriesIntegrator);
 
 
 UniformExcitation::UniformExcitation()
@@ -49,7 +46,7 @@ UniformExcitation::UniformExcitation()
 
 
 UniformExcitation::UniformExcitation(GroundMotion &_theMotion, 
-				     int dof, int tag, double velZero, double theFactor)
+                                     int dof, int tag, double velZero, double theFactor)
 :EarthquakePattern(tag, PATTERN_TAG_UniformExcitation), 
  theMotion(&_theMotion), theDof(dof), vel0(velZero), fact(theFactor)
 {
@@ -65,7 +62,7 @@ UniformExcitation::~UniformExcitation()
 
 
 const GroundMotion *
-UniformExcitation::getGroundMotion(void)
+UniformExcitation::getGroundMotion()
 {
   return theMotion;
 }
@@ -103,10 +100,10 @@ UniformExcitation::setDomain(Domain *theDomain)
     SP_Constraint *theSP;
     ID constrainedNodes(0);
     int count = 0;
-    while ((theSP=theSPs()) != 0) {
+    while ((theSP=theSPs()) != nullptr) {
       if (theSP->getDOF_Number() == theDof) {
-	constrainedNodes[count] = theSP->getNodeTag();
-	count++;
+        constrainedNodes[count] = theSP->getNodeTag();
+        count++;
       }
     }
 
@@ -118,14 +115,14 @@ UniformExcitation::setDomain(Domain *theDomain)
     while ((theNode = theNodes()) != 0) {
       int tag = theNode->getTag();
       if (constrainedNodes.getLocation(tag) < 0) {
-	int numDOF = theNode->getNumberDOF();
-	if (numDOF != currentSize) 
-	  newVel.resize(numDOF);
-	
-	newVel = theNode->getVel();
-	newVel(theDof) = vel0;
-	theNode->setTrialVel(newVel);
-	theNode->commitState();
+        int numDOF = theNode->getNumberDOF();
+        if (numDOF != currentSize) 
+          newVel.resize(numDOF);
+        
+        newVel = theNode->getVel();
+        newVel(theDof) = vel0;
+        theNode->setTrialVel(newVel);
+        theNode->commitState();
       }
     }
   }
@@ -147,9 +144,8 @@ UniformExcitation::applyLoad(double time)
         int ndm = crds.Size();
         
         if (ndm == 1) {
-          if (theDof < 1) {
+          if (theDof < 1)
             theNode->setR(theDof, 0, fact);
-          }
         }
         else if (ndm == 2) {
             if (theDof < 2) {
@@ -204,13 +200,13 @@ void
 UniformExcitation::applyLoadSensitivity(double time)
 {
   Domain *theDomain = this->getDomain();
-  if (theDomain == 0)
+  if (theDomain == nullptr)
     return;
 
 //  if (numNodes != theDomain->getNumNodes()) {
     NodeIter &theNodes = theDomain->getNodes();
     Node *theNode;
-    while ((theNode = theNodes()) != 0) {
+    while ((theNode = theNodes()) != nullptr) {
       theNode->setNumColR(1);
       theNode->setR(theDof, 0, 1.0);
     }
@@ -312,7 +308,7 @@ UniformExcitation::Print(OPS_Stream &s, int flag)
 }
 
 LoadPattern *
-UniformExcitation::getCopy(void)
+UniformExcitation::getCopy()
 {
   LoadPattern *theCopy = new UniformExcitation(*theMotion, theDof, this->getTag());
    return theCopy;

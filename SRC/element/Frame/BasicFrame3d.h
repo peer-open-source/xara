@@ -26,13 +26,13 @@ class BasicFrame3d : public FiniteElement<2, 3, 6> {
 
   public:
     virtual ~BasicFrame3d();
-    BasicFrame3d(int tag, int clstag, std::array<int, 2> &nodes, 
+    BasicFrame3d(int tag, int clstag,
+                 std::array<int, 2> &nodes, 
                  FrameTransform3d& tran)
       : FiniteElement<2, 3, 6> (tag, clstag, nodes), 
         theCoordTransf(tran.getCopy()),
         wx(0.0), wy(0.0), wz(0.0),
         p_iner(12),
-        // numEleLoads(0), // sizeEleLoads(0), eleLoads(0), eleLoadFactors(0),
         parameterID(0)
     {
         zeroLoad();
@@ -46,7 +46,6 @@ class BasicFrame3d : public FiniteElement<2, 3, 6> {
       : FiniteElement<2, 3, 6> (tag, classtag), theCoordTransf(nullptr), 
         p_iner(12), 
         wx(0.0), wy(0.0), wz(0.0),
-        // numEleLoads(0), // sizeEleLoads(0), eleLoads(0), eleLoadFactors(0),
         parameterID(0)
     {
         zeroLoad();
@@ -61,17 +60,6 @@ class BasicFrame3d : public FiniteElement<2, 3, 6> {
     // For FiniteElement
     //
     virtual int             setNodes();
-#ifdef FEFT
-    virtual VectorND<12>    getForce(State state, int rate) override final {
-      // TODO: Implement getForce?
-      VectorND<12> p;
-      return p;
-    }
-    virtual MatrixND<12,12> getTangent(State state, int rate) override final {
-      MatrixND<12,12> K;
-      return K;
-    }
-#endif
 
     //
     // For Element
@@ -79,9 +67,6 @@ class BasicFrame3d : public FiniteElement<2, 3, 6> {
     virtual int   update();
     virtual const Matrix &getTangentStiff();
     virtual const Matrix &getMass();
-#if 0
-    virtual const Vector &getResistingForce();
-#endif
 
     virtual void  zeroLoad();
     virtual int   addLoad(ElementalLoad *theLoad, double loadFactor) final;
@@ -111,8 +96,6 @@ protected:
 
 
   // Supplied to children
-          double         getLength(State flag);
-  const   VectorND<6>&   getBasicState(State flag);
   // Reactions of basic system due to element loads
   void addReactionGrad(double *dp0dh, int gradNumber);
   void computeReactions(double *p0);
@@ -127,19 +110,17 @@ protected:
 
 
    Vector p_iner;
-  private:
+
+private:
    int cMass;
    double rho;
 
-   VectorND<12> pg;
+  //  VectorND<12> pg;
    double total_mass,
           twist_mass;
 
    // TODO: Remove
     int releasez; // moment release for bending about z-axis 0=none, 1=I, 2=J, 3=I,J
     int releasey; // same for y-axis
-
-    // Matrix K;
-    // Vector P;
 };
 

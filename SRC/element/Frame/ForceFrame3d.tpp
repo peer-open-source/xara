@@ -131,7 +131,7 @@ ForceFrame3d<NIP,nsr,nwm>::setNodes()
 {
   this->BasicFrame3d::setNodes();
 
-  double L = this->getLength(State::Init);
+  double L = theCoordTransf->getInitialLength();
 
   if (L == 0.0)
     return -1;
@@ -371,7 +371,7 @@ ForceFrame3d<NIP,nsr,nwm>::getMass()
   } else {
       // consistent (cubic, prismatic) mass matrix
 
-      double L  = this->getLength(State::Init);
+      double L  = theCoordTransf->getInitialLength();
       double m  = total_mass/420.0;
       double mx = twist_mass;
       ALWAYS_STATIC MatrixND<12,12> ml{};
@@ -1788,7 +1788,8 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"" << this->getClassType() << "\"";
+    s << "\"type\": \"" << this->getClassType() 
+                        << "<" << NIP << ", " << nsr << ", " << nwm <<  ">" << "\"";
     s << ", ";
 
     s << "\"nodes\": [" << node_tags(0) << ", " 

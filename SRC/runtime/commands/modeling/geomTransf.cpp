@@ -268,7 +268,6 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (getenv("CRD04")) {
-
     auto tb = builder->getTypedObject<FrameTransformBuilder>(tag);
     if (tb == nullptr) {
       opserr << G3_ERROR_PROMPT << "transformation not found with tag " << tag << "\n";

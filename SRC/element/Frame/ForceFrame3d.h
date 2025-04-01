@@ -41,7 +41,7 @@ class ForceFrame3d: public BasicFrame3d
 
   const char *
   getClassType() const final {
-    return "ForceFrame3d";
+    return "ForceFrame";
   }
 
   int setNodes();
@@ -118,18 +118,13 @@ class ForceFrame3d: public BasicFrame3d
   //
   // Functions
   //
-  int setSectionPointers(std::vector<FrameSection*>&);
   int getInitialFlexibility(MatrixND<NBV,NBV> &fe);
   int getInitialDeformations(Vector &v0);
-  
-  // Add section forces due to element loads
+
   void addLoadAtSection(VectorND<nsr> &sp, double x);
 
-  void compSectionDisplacements(Vector sectionCoords[], Vector sectionDispls[]) const;
+  int setSectionPointers(std::vector<FrameSection*>&);
   void initializeSectionHistoryVariables();
-//void getForceInterpolatMatrix(double xi, Matrix &b, const ID &code);
-//void getDistrLoadInterpolatMatrix(double xi, Matrix &bp, const ID &code);
-
 
   // Sensitivity
   int parameterID;

@@ -103,13 +103,11 @@ TclCommand_addActuator(ClientData clientData, Tcl_Interp *interp, int argc,
 
   Domain* theTclDomain = builder->getDomain();
   if (theTclDomain->addElement(theElement) == false) {
-    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
+    opserr << OpenSees::PromptValueError << "Failed to add element to the domain\n";
     delete theElement;
     return TCL_ERROR;
   }
 
-  // if get here we have successfully created the actuator and added it to the
-  // domain
   return TCL_OK;
 }
 
