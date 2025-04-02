@@ -44,6 +44,7 @@ namespace Internal {
 }; // namespace OpenSees::Internal
 
   // Default to no color
+  const char * SignalMessageEnd      = "\n";
   const char * PromptParseError      = Internal::ErrorPromptNoColor;
   const char * PromptValueError      = PromptParseError;
 

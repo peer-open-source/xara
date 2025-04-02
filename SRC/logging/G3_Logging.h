@@ -15,6 +15,10 @@ extern const char *G3_ERROR_PROMPT;
 extern const char *G3_DEBUG_PROMPT;
 
 namespace OpenSees {
+// NOTE: These are defined in logging.cpp
+
+// maybe change "Prompt" to "Signal"
+extern const char * SignalMessageEnd;
 extern const char * PromptParseError;
 extern const char * PromptValueError;
 extern const char * PromptAnalysisFailure;
