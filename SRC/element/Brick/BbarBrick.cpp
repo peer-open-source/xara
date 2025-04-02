@@ -742,18 +742,18 @@ BbarBrick::formInertiaTerms( int tangFlag )
 }
 
 //*********************************************************************
-//form residual and tangent
+// form residual and tangent
 void  BbarBrick::formResidAndTangent( int tang_flag )
 {
 
   //strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31
 
-  static const int ndm = 3 ;
-  static const int ndf = 3 ;
-  static const int nstress = 6 ;
-  static const int numberNodes = 8 ;
-  static const int numberGauss = 8 ;
-  static const int nShape = 4 ;
+  static constexpr int ndm = 3 ;
+  static constexpr int ndf = 3 ;
+  static constexpr int nstress = 6 ;
+  static constexpr int numberNodes = 8 ;
+  static constexpr int numberGauss = 8 ;
+  static constexpr int nShape = 4 ;
 
   int i, j, k, p, q ;
   int jj, kk ;
