@@ -40,9 +40,9 @@ class XmlFileStream : public OPS_Stream
   ~XmlFileStream();
 
 
-  int setFile(const char *fileName, openMode mode = openMode::OVERWRITE);
-  int open(void);
-  int close(void);
+  int setFile(const char *fileName, openMode mode = openMode::OVERWRITE, bool echo=false);
+  int open();
+  int close();
 
   int setPrecision(int precision);
   int setFloatField(OPS_Stream::Float);
@@ -120,8 +120,8 @@ class XmlFileStream : public OPS_Stream
   Vector **theRemoteData;
 
   int xmlOrderProcessed; // -1 waiting, 1 processed, 2 processed
-  char *xmlString;
-  int xmlStringLength;
+//  char *xmlString;
+//  int xmlStringLength;
 
   int numXMLTags;
   ID *xmlColumns;

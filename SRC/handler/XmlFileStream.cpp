@@ -43,7 +43,9 @@ XmlFileStream::XmlFileStream(int indent)
    fileOpen(0), fileName(0), filePrecision(6), indentSize(indent), numIndent(-1),
    attributeMode(false), numTag(0), sizeTags(0), tags(0), sendSelfCount(0), theChannels(0), numDataRows(0),
    mapping(0), maxCount(0), sizeColumns(0), theColumns(0), theData(0), theRemoteData(0), 
-   xmlOrderProcessed(0), xmlString(0), xmlStringLength(0), numXMLTags(0), xmlColumns(0)
+   xmlOrderProcessed(0), 
+   // xmlString(0), xmlStringLength(0), 
+   numXMLTags(0), xmlColumns(0)
 {
   if (indentSize < 1) indentSize = 1;
   indentString = new char[indentSize+1];
@@ -56,7 +58,9 @@ XmlFileStream::XmlFileStream(const char *name, openMode mode, int indent)
    fileOpen(0), fileName(0), filePrecision(6), indentSize(indent), numIndent(-1),
    attributeMode(false), numTag(0), sizeTags(0), tags(0), sendSelfCount(0), theChannels(0), numDataRows(0),
    mapping(0), maxCount(0), sizeColumns(0), theColumns(0), theData(0), theRemoteData(0), 
-   xmlOrderProcessed(0), xmlString(0), xmlStringLength(0), numXMLTags(0), xmlColumns(0)
+   xmlOrderProcessed(0), 
+   // xmlString(0), xmlStringLength(0), 
+   numXMLTags(0), xmlColumns(0)
 {
   if (indentSize < 1) indentSize = 1;
   indentString = new char[indentSize+1];
@@ -130,7 +134,7 @@ XmlFileStream::~XmlFileStream()
 }
 
 int 
-XmlFileStream::setFile(const char *name, openMode mode)
+XmlFileStream::setFile(const char *name, openMode mode, bool echo)
 {
   if (name == 0) {
     std::cerr << "XmlFileStream::setFile() - no name passed\n";
@@ -170,7 +174,7 @@ XmlFileStream::setFile(const char *name, openMode mode)
 }
 
 int 
-XmlFileStream::open(void)
+XmlFileStream::open()
 {
   // check setFile has been called
   if (fileName == 0) {
@@ -218,7 +222,7 @@ XmlFileStream::open(void)
 }
 
 int 
-XmlFileStream::close(void)
+XmlFileStream::close()
 {
   if (fileOpen == 1) {
     for (int i=0; i<numTag; i++)
