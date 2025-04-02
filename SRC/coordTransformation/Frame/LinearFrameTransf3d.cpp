@@ -22,7 +22,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <Logging.h>
-#include <string>
 #include <LinearFrameTransf3d.h>
 #include "blk3x12x3.h"
 
@@ -88,7 +87,7 @@ FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj, const Vector3D&
 // initialize static variables
 Matrix LinearFrameTransf3d::kg(12, 12);
 
-// constructor:
+
 LinearFrameTransf3d::LinearFrameTransf3d(int tag, const Vector &vecInLocXZPlane)
     : FrameTransform3d(tag, CRDTR_TAG_LinearFrameTransf3d),
       nodeIPtr(nullptr), nodeJPtr(nullptr),
@@ -107,7 +106,7 @@ LinearFrameTransf3d::LinearFrameTransf3d(int tag, const Vector &vecInLocXZPlane)
   R(2,2) = vz(2);
 }
 
-// constructor:
+
 LinearFrameTransf3d::LinearFrameTransf3d(int tag, const Vector &vecInLocXZPlane,
                                          const Vector &rigJntOffset1,
                                          const Vector &rigJntOffset2)
@@ -156,7 +155,7 @@ LinearFrameTransf3d::LinearFrameTransf3d(int tag, const Vector &vecInLocXZPlane,
   }
 }
 
-// constructor:
+
 // invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
 LinearFrameTransf3d::LinearFrameTransf3d()
     : FrameTransform3d(0, CRDTR_TAG_LinearFrameTransf3d), nodeIPtr(0), nodeJPtr(0),
@@ -166,7 +165,7 @@ LinearFrameTransf3d::LinearFrameTransf3d()
   R.zero();
 }
 
-// destructor:
+
 LinearFrameTransf3d::~LinearFrameTransf3d()
 {
   if (nodeIOffset)
@@ -429,12 +428,10 @@ LinearFrameTransf3d::getBasicTrialDisp()
       ug[j + 6] -= nodeJInitialDisp[j];
   }
 
-  double oneOverL = 1.0 / L;
-
   static VectorND<6> ub;
   static Vector wrapper(ub);
   VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
-  ub = getBasic(ul, oneOverL);
+  ub = getBasic(ul, 1.0/L);
   return wrapper;
 }
 
@@ -451,12 +448,10 @@ LinearFrameTransf3d::getBasicIncrDisp()
     ug[i + 6] = disp2(i);
   }
 
-  double oneOverL = 1.0 / L;
-
   static VectorND<6> ub;
   static Vector wrapper(ub);
   VectorND<12> ul = getLocal<2,6>(ug, R, nodeIOffset, nodeJOffset);
-  ub = getBasic(ul, oneOverL);
+  ub = getBasic(ul, 1.0 / L);
 
   return wrapper;
 }
@@ -527,9 +522,6 @@ LinearFrameTransf3d::getBasicTrialAccel()
   ub = getBasic(al, 1/L);
   return wrapper;
 
-//static Vector ub //(6);
-//  = getBasic(ag, oneOverL);
-//return ub;
 }
 
 VectorND<12>
