@@ -21,8 +21,6 @@
 // $Revision: 1.6 $
 // $Date: 2002-12-05 22:49:10 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticIsotropicPlateFiber.cpp,v $
-                                                                        
-                                                                        
 
 #include <ElasticIsotropicPlateFiber.h>           
 #include <Channel.h>
