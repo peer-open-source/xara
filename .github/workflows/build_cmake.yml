@@ -7,10 +7,10 @@ env:
 
 on:
   push:
-    branches: [test-build]
+    branches: [main]
 
-#  pull_request:
-#    branches: [master]
+  pull_request:
+    branches: [main]
 
 jobs:
   build-ubuntu:
