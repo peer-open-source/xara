@@ -1,8 +1,9 @@
-// Written: MHS
-// Created: Aug 2001
 //
 // Description: This file contains the implementation of the
 // TclBasicBuilder_addFedeasMaterial() function.
+//
+// Written: MHS
+// Created: Aug 2001
 //
 #include <FedeasHardeningMaterial.h>
 #include <FedeasBond1Material.h>
@@ -273,22 +274,18 @@ TclBasicBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING invalid fpc\n";
-      printCommand(argc, argv);
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
       opserr << "WARNING invalid epsc0\n";
-      printCommand(argc, argv);
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
       opserr << "WARNING invalid fpcu\n";
-      printCommand(argc, argv);
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
       opserr << "WARNING invalid epscu\n";
-      printCommand(argc, argv);
       return 0;
     }
 
@@ -298,7 +295,6 @@ TclBasicBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "concr2") == 0) {
     if (argc < 10) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? "
                 "epscu? rat? ft? Ets?"
              << endln;
@@ -310,17 +306,14 @@ TclBasicBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING invalid fpc\n";
-      printCommand(argc, argv);
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
       opserr << "WARNING invalid epsc0\n";
-      printCommand(argc, argv);
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
       opserr << "WARNING invalid fpcu\n";
-      printCommand(argc, argv);
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
@@ -653,9 +646,9 @@ TclBasicBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp,
   }
 
   else if (strcmp(argv[1], "Steel02") == 0) {
+    // uniaxialMaterial Steel02 $tag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
     if (argc < 6) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Steel02 tag? fy? E? b? <R0? cR1? cR2? "
                 "<a1? a2? a3? a4?>>"
              << endln;
@@ -700,28 +693,25 @@ TclBasicBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp,
       if (argc > 12) {
         if (Tcl_GetDouble(interp, argv[9], &a1) != TCL_OK) {
           opserr << "WARNING invalid a1\n";
-          printCommand(argc, argv);
           return 0;
         }
         if (Tcl_GetDouble(interp, argv[10], &a2) != TCL_OK) {
           opserr << "WARNING invalid a2\n";
-          printCommand(argc, argv);
           return 0;
         }
         if (Tcl_GetDouble(interp, argv[11], &a3) != TCL_OK) {
           opserr << "WARNING invalid a3\n";
-          printCommand(argc, argv);
           return 0;
         }
         if (Tcl_GetDouble(interp, argv[12], &a4) != TCL_OK) {
           opserr << "WARNING invalid a4\n";
-          printCommand(argc, argv);
           return 0;
         }
         theMaterial = new FedeasSteel2Material(tag, fy, E, b, R0, cR1, cR2, a1,
                                                a2, a3, a4);
       } else
         theMaterial = new FedeasSteel2Material(tag, fy, E, b, R0, cR1, cR2);
+
     } else
       theMaterial = new FedeasSteel2Material(tag, fy, E, b);
 
