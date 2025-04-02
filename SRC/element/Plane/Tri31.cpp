@@ -71,12 +71,6 @@ Tri31::Tri31(int tag,
     for (int i = 0; i < NIP; i++) {
         // Get copies of the material model for each integration point
         theMaterial[i] = m.getCopy(type);
-            
-        // Check allocation
-        if (theMaterial[i] == nullptr) {
-            opserr << "Tri31::Tri31 -- failed to get a copy of material model\n";
-            return;
-        }
     }
 
     // Set connected external node IDs
