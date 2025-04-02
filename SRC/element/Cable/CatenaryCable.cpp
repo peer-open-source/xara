@@ -72,7 +72,7 @@ Matrix CatenaryCable::Mass(6,6);
 Matrix CatenaryCable::ZeroMatrix(6,6);
 Vector CatenaryCable::Forces(6);
 
-// constructor:
+
 //  responsible for allocating the necessary space needed by each object
 //  and storing the tags of the CatenaryCable end nodes.
 
@@ -184,7 +184,7 @@ CatenaryCable::CatenaryCable(int tag, int node1, int node2, double weight_, doub
     load_incl_inertia = 0;
 }
 
-// constructor:
+
 //   invoked by a FEM_ObjectBroker - blank object that recvSelf needs
 //   to be invoked upon
 CatenaryCable::CatenaryCable()
