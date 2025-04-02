@@ -27,7 +27,7 @@ using OpenSees::Matrix3D;
 
 #define THREAD_LOCAL static
 
-// constructor:
+
 PDeltaFrameTransf3d::PDeltaFrameTransf3d(int tag, const Vector &vecInLocXZPlane)
     : FrameTransform3d(tag, CRDTR_TAG_PDeltaFrameTransf3d),
       nodeIPtr(nullptr), nodeJPtr(nullptr),
@@ -41,7 +41,7 @@ PDeltaFrameTransf3d::PDeltaFrameTransf3d(int tag, const Vector &vecInLocXZPlane)
   R(2,2) = vecInLocXZPlane(2);
 }
 
-// constructor:
+
 PDeltaFrameTransf3d::PDeltaFrameTransf3d(int tag, const Vector &vecInLocXZPlane,
                                      const Vector &rigJntOffset1,
                                      const Vector &rigJntOffset2)
