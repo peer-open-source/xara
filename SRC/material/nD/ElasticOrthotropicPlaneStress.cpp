@@ -151,7 +151,6 @@ ElasticOrthotropicPlaneStress :: ~ElasticOrthotropicPlaneStress( )
 }
 
 
-//make a clone of this material
 NDMaterial* ElasticOrthotropicPlaneStress :: getCopy( ) 
 { 
   ElasticOrthotropicPlaneStress  *clone;
@@ -161,7 +160,6 @@ NDMaterial* ElasticOrthotropicPlaneStress :: getCopy( )
 }
 
 
-//send back type of material
 const char* ElasticOrthotropicPlaneStress :: getType( ) const 
 {
   return "OrthotropicPlaneStress" ;
