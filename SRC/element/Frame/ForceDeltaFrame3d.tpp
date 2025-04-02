@@ -164,7 +164,7 @@ ForceDeltaFrame3d<NIP,nsr>::~ForceDeltaFrame3d()
   if (stencil != nullptr)
     delete stencil;
 
-  if (Ki != 0)
+  if (Ki != nullptr)
     delete Ki;
 }
 
@@ -174,7 +174,7 @@ ForceDeltaFrame3d<NIP,nsr>::setNodes()
 {
   this->BasicFrame3d::setNodes();
 
-  double L = this->getLength(State::Init);
+  double L = theCoordTransf->getInitialLength();
 
   int numSections = points.size();
 //double *xi = new double[numSections];
@@ -3385,7 +3385,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedfedh(int igrad)
   double oneOverL = 1.0 / L;
 
   double dLdh   = theCoordTransf->getLengthGrad();
-  double d1oLdh = theCoordTransf->getd1overLdh();
+//double d1oLdh = theCoordTransf->getd1overLdh();
 
   double xi[NIP];
   stencil->getSectionLocations(numSections, L, xi);
