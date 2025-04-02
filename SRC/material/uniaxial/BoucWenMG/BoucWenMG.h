@@ -15,8 +15,8 @@ public:
     // UniaxialMaterial
     int revertToStart();
     int revertToLastCommit();
-    int setTrialStrain(double tstrain);
-    int setTrialStrain(double tstrain, double) {
+    virtual int setTrialStrain(double tstrain);
+    virtual int setTrialStrain(double tstrain, double) {
         return setTrialStrain(tstrain);
     }
     int commitState();
