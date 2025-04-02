@@ -17,8 +17,8 @@
 
 #include <array>
 #include <FrameTransform.h>
-#include <Vector.h>
-#include <Matrix.h>
+#include <Vector3D.h>
+#include <MatrixND.h>
 
 template <int nn, int ndf>
 class LinearFrameTransf: public FrameTransform<nn,ndf>
@@ -84,7 +84,6 @@ private:
 
     std::array<Node*, nn> nodes;
 
-    // Rigid joint offsets
     std::array<Vector3D, nn> *offsets;
     int offset_flags;
 
@@ -93,9 +92,6 @@ private:
     Matrix3D R;         // rotation matrix
 
     double L;           // undeformed element length
-
-//  static Matrix Tlg;  // matrix that transforms from global to local coordinates
-//  static Matrix kg;   // global stiffness matrix
 
     std::array<VectorND<ndf>*, nn> u_init;
     bool initialDispChecked;
