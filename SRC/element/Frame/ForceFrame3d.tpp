@@ -96,6 +96,7 @@ ForceFrame3d<NIP,nsr,nwm>::ForceFrame3d(int tag, std::array<int, 2>& nodes,
    density(dens), mass_flag(mass_flag_), use_density(use_density),
    mass_initialized(false),
    max_iter(max_iter_), tol(tolerance),
+  //  theCoordTransf(coordTransf.getCopy()),
    parameterID(0)
 {
   K_pres.zero();
@@ -375,6 +376,7 @@ ForceFrame3d<NIP,nsr,nwm>::getMass()
       double m  = total_mass/420.0;
       double mx = twist_mass;
       ALWAYS_STATIC MatrixND<12,12> ml{};
+      ALWAYS_STATIC Matrix mg{ml};
 
       ml(0,0) = ml(6,6) = m*140.0;
       ml(0,6) = ml(6,0) = m*70.0;
@@ -401,7 +403,8 @@ ForceFrame3d<NIP,nsr,nwm>::getMass()
       ml( 5, 7) = ml( 7, 5) = -ml(1,11);
 
       // transform local mass matrix to global system
-      return theCoordTransf->getGlobalMatrixFromLocal(ml);
+      ml = theCoordTransf->pushConstant(ml);
+      return mg; // theCoordTransf->getGlobalMatrixFromLocal(ml);
   }
 }
 
@@ -472,7 +475,6 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
   double L   = theCoordTransf->getInitialLength();
   double jsx = 1.0 / L;
-  const Vector& v = theCoordTransf->getBasicTrialDisp();
 
   THREAD_LOCAL VectorND<NBV> dv;
   dv = theCoordTransf->getBasicIncrDeltaDisp();
@@ -484,12 +486,20 @@ ForceFrame3d<NIP,nsr,nwm>::update()
     return 0;
 
   THREAD_LOCAL VectorND<NBV> Dv;
-  Dv  = v;
-  Dv -= dv;
+  {
+  #if 1
+    const Vector& v = theCoordTransf->getBasicTrialDisp();
+    Dv  = v;
+  #else
+    VectorND<12> ul;
+    ul.insert<0, 3>(t.getNodePosition(0));
+    ul.insert<3, 3>(t.getNodeRotationLogarithm(0));
+    ul.insert<6, 3>(t.getNodePosition(1));
+    ul.insert<9, 3>(t.getNodeRotationLogarithm(1));
+  #endif
+    Dv -= dv;
+  }
 
-
-  THREAD_LOCAL VectorND<NBV> vr;       // element residual deformations
-  THREAD_LOCAL MatrixND<NBV, NBV> F;   // element flexibility matrix
   THREAD_LOCAL VectorND<NBV> dvToDo,
                              dv_trial;
 
@@ -544,7 +554,9 @@ ForceFrame3d<NIP,nsr,nwm>::update()
       q_trial += K_pres*dv;
 
       for (int j = 0; j < numIters; j++) {
-        // Initialize F and vr for integration
+
+        THREAD_LOCAL VectorND<NBV> vr;       // element residual deformations
+        THREAD_LOCAL MatrixND<NBV, NBV> F;   // element flexibility matrix
         F.zero();
         vr.zero();
 
@@ -851,7 +863,8 @@ iterations_completed:
   if (converged == false) {
     opserr << "WARNING - ForceFrame3d failed internal state determination ";
     opserr << "for element " << this->getTag() 
-           << "; dW = " << dW << ", dW0 = " << dW0
+           << "; dW = " << dW 
+           << ", dW0 = " << dW0
            << "\n";
     return -1;
   }
@@ -868,63 +881,62 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
 {
   MatrixND<NBV,NBV> kb = this->getBasicTangent(State::Pres, 0);
 
-  double q0 = q_pres[0];
-  double q1 = q_pres[1];
-  double q2 = q_pres[2];
-  double q3 = q_pres[3];
-  double q4 = q_pres[4];
-  double q5 = q_pres[5];
-
+  VectorND<NDF*2> pl{};
+  pl[0*NDF+0]  = -q_pres[0];               // Ni
+#ifdef DO_BASIC
   double L = theCoordTransf->getInitialLength();
-
-  VectorND<NDF*2> pl;
-  pl[0*NDF+0]  = -q0;               // Ni
   pl[0*NDF+1]  =  (q1 + q2)/L;      // Viy
   pl[0*NDF+2]  = -(q3 + q4)/L;      // Viz
-  pl[0*NDF+3]  = -q5;               // Ti
-  pl[0*NDF+4]  =  q3;
-  pl[0*NDF+5]  =  q1;
-  pl[1*NDF+0]  =  q0;               // Nj
   pl[1*NDF+1]  = -pl[1];            // Vjy
   pl[1*NDF+2]  = -pl[2];            // Vjz
-  pl[1*NDF+3]  =  q5;               // Tj
-  pl[1*NDF+4]  =  q4;
-  pl[1*NDF+5]  =  q2;
+#endif
+  pl[0*NDF+3]  = -q_pres[5];               // Ti
+  pl[0*NDF+4]  =  q_pres[3];
+  pl[0*NDF+5]  =  q_pres[1];
+  pl[1*NDF+0]  =  q_pres[0];               // Nj
+  pl[1*NDF+3]  =  q_pres[5];               // Tj
+  pl[1*NDF+4]  =  q_pres[4];
+  pl[1*NDF+5]  =  q_pres[2];
   
 
   // Transform basic stiffness to local system
-  THREAD_LOCAL double tmp[6][12];
+  double tmp[6][12]{};
   // First compute kb*T_{bl}
   for (int i = 0; i < 6; i++) {
     tmp[i][ 0] = -kb(i, 0);
-    tmp[i][ 1] =  (kb(i, 1) + kb(i, 2))/L;
-    tmp[i][ 2] = -(kb(i, 3) + kb(i, 4))/L;
+#ifdef DO_BASIC
+    tmp[i][0*NDF+1] =  (kb(i, 1) + kb(i, 2))/L;
+    tmp[i][0*NDF+2] = -(kb(i, 3) + kb(i, 4))/L;
+    tmp[i][1*NDF+1] = -tmp[i][1];
+    tmp[i][1*NDF+2] = -tmp[i][2];
+#endif
     tmp[i][ 3] = -kb(i, 5);
     tmp[i][ 4] =  kb(i, 3);
     tmp[i][ 5] =  kb(i, 1);
     tmp[i][ 6] =  kb(i, 0);
-    tmp[i][ 7] = -tmp[i][1];
-    tmp[i][ 8] = -tmp[i][2];
     tmp[i][ 9] =  kb(i, 5);
     tmp[i][10] =  kb(i, 4);
     tmp[i][11] =  kb(i, 2);
   }
 
-  THREAD_LOCAL MatrixND<12,12> kl;  // Local stiffness
+  MatrixND<12,12> kl;  // Local stiffness
+  kl.zero();
   // Now compute T'_{bl}*(kb*T_{bl})
   for (int i = 0; i < 12; i++) {
-    kl( 0, i) =  -tmp[0][i];
-    kl( 1, i) =  (tmp[1][i] + tmp[2][i])/L;
-    kl( 2, i) = -(tmp[3][i] + tmp[4][i])/L;
-    kl( 3, i) =  -tmp[5][i];
-    kl( 4, i) =   tmp[3][i];
-    kl( 5, i) = tmp[1][i];
-    kl( 6, i) = tmp[0][i];
-    kl( 7, i) = -kl(1, i);
-    kl( 8, i) = -kl(2, i);
-    kl( 9, i) = tmp[5][i];
-    kl(10, i) = tmp[4][i];
-    kl(11, i) = tmp[2][i];
+    kl(0*NDF+0, i) =  -tmp[0][i];
+#ifdef DO_BASIC
+    kl(0*NDF+1, i) =  (tmp[1][i] + tmp[2][i])/L;
+    kl(0*NDF+2, i) = -(tmp[3][i] + tmp[4][i])/L;
+    kl(1*NDF+1, i) = -kl(1, i);
+    kl(1*NDF+2, i) = -kl(2, i);
+#endif
+    kl(0*NDF+3, i) =  -tmp[5][i];
+    kl(0*NDF+4, i) =   tmp[3][i];
+    kl(0*NDF+5, i) = tmp[1][i];
+    kl(1*NDF+0, i) = tmp[0][i];
+    kl(1*NDF+3, i) = tmp[5][i];
+    kl(1*NDF+4, i) = tmp[4][i];
+    kl(1*NDF+5, i) = tmp[2][i];
   }
 
 
@@ -1248,140 +1260,7 @@ template <int NIP, int nsr, int nwm>
 int
 ForceFrame3d<NIP,nsr,nwm>::sendSelf(int commitTag, Channel& theChannel)
 {
-#if 1 
   return -1;
-#else
-  // place the integer data into an ID
-  int dbTag = this->getDbTag();
-  int loc = 0;
-
-  ID idData(11);
-  idData(0) = this->getTag();
-  idData(1) = connectedExternalNodes(0);
-  idData(2) = connectedExternalNodes(1);
-  idData(3) = points.size();
-  idData(4) = max_iter;
-  idData(5) = state_flag;
-
-  idData(7)          = theCoordTransf->getClassTag();
-  int crdTransfDbTag = theCoordTransf->getDbTag();
-  if (crdTransfDbTag == 0) {
-    crdTransfDbTag = theChannel.getDbTag();
-    if (crdTransfDbTag != 0)
-      theCoordTransf->setDbTag(crdTransfDbTag);
-  }
-  idData(8) = crdTransfDbTag;
-
-
-  idData(9)           = stencil->getClassTag();
-  int stencilDbTag = stencil->getDbTag();
-  if (stencilDbTag == 0) {
-    stencilDbTag = theChannel.getDbTag();
-    if (stencilDbTag != 0)
-      stencil->setDbTag(stencilDbTag);
-  }
-  idData(10) = stencilDbTag;
-
-  if (theChannel.sendID(dbTag, commitTag, idData) < 0) {
-    opserr << "ForceFrame3d::sendSelf() - failed to send ID data\n";
-    return -1;
-  }
-
-  // Send the coordinate transformation
-
-  if (theCoordTransf->sendSelf(commitTag, theChannel) < 0) {
-    opserr << "ForceFrame3d::sendSelf() - failed to send crdTranf\n";
-    return -1;
-  }
-
-  // Send the beam integration
-  if (stencil->sendSelf(commitTag, theChannel) < 0) {
-    opserr << "ForceFrame3d::sendSelf() - failed to send stencil\n";
-    return -1;
-  }
-
-  //
-  // Send an ID for the sections containing each sections dbTag and classTag
-  // if section ha no dbTag get one and assign it
-  //
-
-  const int numSections = points.size();
-  ID idSections(2 * numSections);
-  loc = 0;
-  for (int i = 0; i < numSections; i++) {
-    int sectClassTag = points[i].material->getClassTag();
-    int sectDbTag    = points[i].material->getDbTag();
-    if (sectDbTag == 0) {
-      sectDbTag = theChannel.getDbTag();
-      points[i].material->setDbTag(sectDbTag);
-    }
-
-    idSections(loc)     = sectClassTag;
-    idSections(loc + 1) = sectDbTag;
-    loc += 2;
-  }
-
-  if (theChannel.sendID(dbTag, commitTag, idSections) < 0) {
-    opserr << "ForceFrame3d::sendSelf() - failed to send ID data\n";
-    return -1;
-  }
-
-  //
-  // Send the sections
-  //
-
-  for (int j = 0; j < numSections; j++) {
-    if (points[j].material->sendSelf(commitTag, theChannel) < 0) {
-      opserr << "ForceFrame3d::sendSelf() - section " << j << "failed to send itself\n";
-      return -1;
-    }
-  }
-
-  // into a vector place distrLoadCommit, rho, UeCommit, q_save and K_save
-  int secDefSize = 0;
-  for (int i = 0; i < numSections; i++) {
-    int size = points[i].material->getOrder();
-    secDefSize += size;
-  }
-
-  Vector dData(1 + 1 + 1 + NBV + NBV * NBV + secDefSize + 4);
-  loc = 0;
-
-  // place double variables into Vector
-  dData(loc++) = density;
-  dData(loc++) = tol;
-
-  // put  distrLoadCommit into the Vector
-  //  for (i=0; i<NL; i++)
-  //dData(loc++) = distrLoadcommit(i);
-
-  // place K_save into vector
-  for (int i = 0; i < NBV; i++)
-    dData(loc++) = q_save[i];
-
-  // place K_save into vector
-  for (int i = 0; i < NBV; i++)
-    for (int j = 0; j < NBV; j++)
-      dData(loc++) = K_save(i, j);
-
-  // place es_save into vector
-  for (int k = 0; k < numSections; k++)
-    for (int i = 0; i < nsr; i++)
-      dData(loc++) = points[k].es_save[i];
-
-  // send damping coefficients
-  dData(loc++) = alphaM;
-  dData(loc++) = betaK;
-  dData(loc++) = betaK0;
-  dData(loc++) = betaKc;
-
-  if (theChannel.sendVector(dbTag, commitTag, dData) < 0) {
-    opserr << "ForceFrame3d::sendSelf() - failed to send Vector data\n";
-
-    return -1;
-  }
-  return 0;
-#endif
 }
 
 
@@ -1389,222 +1268,7 @@ template <int NIP, int nsr, int nwm>
 int
 ForceFrame3d<NIP,nsr,nwm>::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
-#if 1
   return -1;
-#else
-  //
-  // receive the integer data containing tag, numSections and coord transformation info
-  //
-  int dbTag = this->getDbTag();
-
-  ID idData(11); // one bigger than needed
-
-  if (theChannel.recvID(dbTag, commitTag, idData) < 0) {
-    opserr << "ForceFrame3d::recvSelf() - failed to recv ID data\n";
-
-    return -1;
-  }
-
-  this->setTag(idData(0));
-  connectedExternalNodes(0) = idData(1);
-  connectedExternalNodes(1) = idData(2);
-  max_iter                  = idData(4);
-  state_flag                = idData(5);
-
-  int crdTransfClassTag = idData(7);
-  int crdTransfDbTag    = idData(8);
-
-  int stencilClassTag = idData(9);
-  int stencilDbTag    = idData(10);
-
-  // create a new crdTransf object if one needed
-  if (theCoordTransf == 0 || theCoordTransf->getClassTag() != crdTransfClassTag) {
-    if (theCoordTransf != 0)
-      delete theCoordTransf;
-
-    // TODO(cmp) - add FrameTransform to ObjBroker
-    theCoordTransf = nullptr; // theBroker.getNewFrameTransform3d(crdTransfClassTag);
-
-    if (theCoordTransf == nullptr) {
-      opserr << "ForceFrame3d::recvSelf() - failed to obtain a CrdTrans object with classTag"
-             << crdTransfClassTag << "\n";
-      return -2;
-    }
-  }
-
-  theCoordTransf->setDbTag(crdTransfDbTag);
-  // invoke recvSelf on the crdTransf obkject
-  if (theCoordTransf->recvSelf(commitTag, theChannel, theBroker) < 0) {
-    opserr << "ForceFrame3d::sendSelf() - failed to recv crdTranf\n";
-    return -3;
-  }
-
-  // create a new stencil object if one needed
-  if (stencil == 0 || stencil->getClassTag() != stencilClassTag) {
-    if (stencil != 0)
-      delete stencil;
-
-    stencil = theBroker.getNewBeamIntegration(stencilClassTag);
-
-    if (stencil == 0) {
-      opserr
-          << "ForceFrame3d::recvSelf() - failed to obtain the beam integration object with classTag"
-          << stencilClassTag << "\n";
-      return -1;
-    }
-  }
-
-  stencil->setDbTag(stencilDbTag);
-
-  // invoke recvSelf on the stencil object
-  if (stencil->recvSelf(commitTag, theChannel, theBroker) < 0) {
-    opserr << "ForceFrame3d::sendSelf() - failed to recv beam integration\n";
-
-    return -3;
-  }
-
-  //
-  // recv an ID for the sections containing each sections dbTag and classTag
-  //
-
-  ID idSections(2 * idData(3));
-  int loc = 0;
-
-  if (theChannel.recvID(dbTag, commitTag, idSections) < 0) {
-    opserr << "ForceFrame3d::recvSelf() - failed to recv ID data\n";
-    return -1;
-  }
-
-  //
-  // now receive the sections
-  //
-  int numSections = points.size();
-  if (numSections != idData(3)) {
-
-    //
-    // we do not have correct number of sections, must delete the old and create
-    // new ones before can recvSelf on the sections
-    //
-    // delete the old
-    if (points.size() != 0) {
-      for (int i = 0; i < points.size(); i++)
-        delete points[i].material;
-    }
-    points.clear();
-
-
-    // create a section and recvSelf on it
-    numSections = idData(3);
-
-//  // create a new array to hold pointers
-//  sections = new FrameSection*[idData(3)];
-
-    loc = 0;
-
-    for (int i = 0; i < numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag    = idSections(loc + 1);
-      loc += 2;
-      // TODO(cmp) add FrameSection to broker
-//    sections[i] = theBroker.getNewSection(sectClassTag);
-//    if (sections[i] == 0) {
-//      opserr << "ForceFrame3d::recvSelf() - Broker could not create Section of class type"
-//             << sectClassTag << "\n";
-//      return -1;
-//    }
-
-      points[i].material->setDbTag(sectDbTag);
-      if (points[i].material->recvSelf(commitTag, theChannel, theBroker) < 0) {
-        opserr << "ForceFrame3d::recvSelf() - section " << i << " failed to recv itself\n";
-        return -1;
-      }
-    }
-
-    this->initializeSectionHistoryVariables();
-  }
-  else {
-    //
-    // for each existing section, check it is of correct type
-    // (if not delete old & create a new one) then recvSelf on it
-    //
-
-    loc = 0;
-    for (int i = 0; i < numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag    = idSections(loc + 1);
-      loc += 2;
-
-      // check of correct type
-      if (points[i].material->getClassTag() != sectClassTag) {
-      // TODO(cmp) add FrameSection to broker
-        // delete the old section[i] and create a new one
-//      delete sections[i];
-//      sections[i] = theBroker.getNewSection(sectClassTag);
-//      if (sections[i] == 0) {
-//        opserr << "ForceFrame3d::recvSelf() - Broker could not create Section of class type "
-//               << sectClassTag << "\n";
-//        ;
-//        return -1;
-//      }
-      }
-
-      // recvvSelf on it
-      points[i].material->setDbTag(sectDbTag);
-      if (points[i].material->recvSelf(commitTag, theChannel, theBroker) < 0) {
-        opserr << "ForceFrame3d::recvSelf() - section " << i << " failed to recv itself\n";
-        return -1;
-      }
-    }
-  }
-
-  // into a vector place distrLoadCommit, rho, UeCommit, q_save and K_save
-  int secDefSize = nsr*points.size();
-
-  Vector dData(1 + 1 + NBV + NBV * NBV + secDefSize + 4);
-
-  if (theChannel.recvVector(dbTag, commitTag, dData) < 0) {
-    opserr << "ForceFrame3d::recvSelf() - failed to send Vector data\n";
-    return -1;
-  }
-
-  loc = 0;
-
-  // place double variables into Vector
-  density = dData(loc++);
-  tol = dData(loc++);
-
-  // put  distrLoadCommit into the Vector
-  //for (i=0; i<NL; i++)
-  // distrLoad(i) = dData(loc++);
-
-  // place q_save into vector
-  for (int i = 0; i < NBV; i++)
-    q_save[i] = dData(loc++);
-
-  // place K_save into matrix
-  for (int i = 0; i < NBV; i++)
-    for (int j = 0; j < NBV; j++)
-      K_save(i, j) = dData(loc++);
-
-  K_pres = K_save;
-  q_pres = q_save;
-
-  for (int k = 0; k < numSections; k++) {
-    // place es_save into vector
-    points[k].es_save.zero();
-    for (int i = 0; i < nsr; i++)
-      points[k].es_save[i] = dData(loc++);
-  }
-
-  // set damping coefficients
-  alphaM = dData(loc++);
-  betaK  = dData(loc++);
-  betaK0 = dData(loc++);
-  betaKc = dData(loc++);
-
-  state_flag = 2;
-  return 0;
-#endif
 }
 
 
@@ -1810,7 +1474,8 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
     s << "\"sections\": [";
     for (decltype(points.size()) i = 0; i < points.size() - 1; i++)
       s << points[i].material->getTag() << ", ";
-    s << points[points.size() - 1].material->getTag() << "]";
+    s << points[points.size() - 1].material->getTag() 
+      << "]";
     s << ", ";
 
     s << "\"transform\": " << theCoordTransf->getTag();
@@ -1819,44 +1484,6 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
     s << "\"integration\": ";
     stencil->Print(s, flag);
     s << "}";
-  }
-
-  // flags with negative values are used by GSA
-  if (flag == -1) {
-    int eleTag = this->getTag();
-    s << "EL_BEAM\t" << eleTag << "\t";
-    s << points[0].material->getTag() << "\t" << points[nip - 1].material->getTag();
-    s << "\t" << node_tags(0) << "\t" << node_tags(1);
-    s << "\t0\t0.0000000\n";
-  }
-
-  // flags with negative values are used by GSA
-  else if (flag < -1) {
-    int eleTag   = this->getTag();
-    int counter  = (flag + 1) * -1;
-    double P     = q_save[0];
-    double MZ1   = q_save[1];
-    double MZ2   = q_save[2];
-    double MY1   = q_save[3];
-    double MY2   = q_save[4];
-    double L     = theCoordTransf->getInitialLength();
-    double VY    = (MZ1 + MZ2) / L;
-    double VZ    = (MY1 + MY2) / L;
-    double T     = q_save[5];
-
-    double p0[5];
-    p0[0] = p0[1] = p0[2] = p0[3] = p0[4] = 0.0;
-    if (eleLoads.size() > 0)
-      this->computeReactions(p0);
-
-    s << "FORCE\t" << eleTag << "\t" << counter << "\t0";
-    s << "\t" << -P + p0[0] << "\t" << VY + p0[1] << "\t" << -VZ + p0[3] << "\n";
-    s << "FORCE\t" << eleTag << "\t" << counter << "\t1";
-    s << "\t" << P << ' ' << -VY + p0[2] << ' ' << VZ + p0[4] << "\n";
-    s << "MOMENT\t" << eleTag << "\t" << counter << "\t0";
-    s << "\t" << -T << "\t" << MY1 << "\t" << MZ1 << "\n";
-    s << "MOMENT\t" << eleTag << "\t" << counter << "\t1";
-    s << "\t" << T << ' ' << MY2 << ' ' << MZ2 << "\n";
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
@@ -3052,16 +2679,19 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
 
   double L = theCoordTransf->getInitialLength();
 
-  thread_local VectorND<12> pl;
-  pl[ 0]  = -q0;                    // Ni
+  VectorND<12> pl;
+  pl.zero();
+  pl[ 0]  = -q_pres[0];                    // Ni
+#ifdef DO_BASIC
   pl[ 1]  =  (q1 + q2)/L;           // Viy
   pl[ 2]  = -(q3 + q4)/L;           // Viz
-  pl[ 3]  = -q5;                    // Ti
-  pl[ 4]  =  q3;
-  pl[ 5]  =  q1;
-  pl[ 6]  =  q0;                    // Nj
   pl[ 7]  = -pl[1];                 // Vjy
   pl[ 8]  = -pl[2];                 // Vjz
+#endif
+  pl[ 3]  = -q_pres[5];                    // Ti
+  pl[ 4]  =  q_pres[3];
+  pl[ 5]  =  q_pres[1];
+  pl[ 6]  =  q_pres[0];                    // Nj
   pl[ 9]  = q5;                     // Tj
   pl[10]  = q4;
   pl[11]  = q2;

@@ -189,6 +189,8 @@ class ForceFrame3d: public BasicFrame3d
   std::vector<GaussPoint> points;
   BeamIntegration*        stencil;
 
+  // FrameTransform3d* theCoordTransf;
+
   Matrix *Ki;
 };
 
