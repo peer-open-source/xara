@@ -27,6 +27,11 @@ options = {
             "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=FALSE",
 #           "-DProfileBuild:BOOL=TRUE",
         ],
+        "light": [
+            "-DCMAKE_BUILD_TYPE=RELEASE",
+            "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=FALSE",
+#           "-DProfileBuild:BOOL=TRUE",
+        ],
         "debug": [
             "-DCMAKE_BUILD_TYPE=DEBUG",
             "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=FALSE",
