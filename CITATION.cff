@@ -7,8 +7,8 @@ authors:
 - family-names: "Mckenna"
   given-names: "Frank"
 
-title: "OpenSeesRT"
+title: "xara"
 version: 0.0.64
-doi: 10.5281/zenodo.11651402
+doi: 10.5281/zenodo.10456866
 date-released: 2024-08-18
-url: "https://github.com/claudioperez/OpenSeesRT"
+url: "https://github.com/peer-open-source/xara"
