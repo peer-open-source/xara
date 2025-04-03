@@ -46,7 +46,6 @@ private:
 	double betaKc;
 
 	int updateCount;
-	double c2, c3;
 	Vector *U, *Ut;
 	Vector  *Utdotdot, *Utdotdot1;
 	Vector *Udot, *Utdot, *Utdot1;

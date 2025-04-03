@@ -325,13 +325,11 @@ AnalysisModel::getDOFGraph(void)
     
     FE_Element *elePtr =0;
     FE_EleIter &eleIter = this->getFEs();
-    int cnt = 0;
     
     myDOFGraph->startAddEdge();
     while((elePtr = eleIter()) != 0) {
       const ID &id = elePtr->getID();
-      cnt++;
-      int size = id.Size();
+      const int size = id.Size();
       for (int i=0; i<size; i++) {
         int eqn1 = id(i);
         
@@ -354,7 +352,7 @@ AnalysisModel::getDOFGraph(void)
 
 
 Graph &
-AnalysisModel::getDOFGroupGraph(void)
+AnalysisModel::getDOFGroupGraph()
 {
   if (myGroupGraph == 0) {
     // int numVertex = this->getNumDOF_Groups();
