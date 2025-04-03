@@ -7,7 +7,7 @@ Nonlinear finite element analysis.
 
 <div style="align:center">
 
-[![Latest PyPI version](https://img.shields.io/pypi/v/opensees?logo=pypi)](https://pypi.python.org/pypi/opensees)
+[![Latest PyPI version](https://img.shields.io/pypi/v/xara?logo=pypi)](https://pypi.python.org/pypi/xara)
 [![](https://img.shields.io/conda/v/opensees/opensees?color=%23660505)](https://anaconda.org/opensees/opensees)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/opensees)](https://pypi.org/project/opensees)
 
@@ -82,14 +82,6 @@ There are several ways to use the `xara` package:
 ## Development
 
 To compile the project see [about/compiling](https://github.com/claudioperez/OpenSeesRT/blob/main/about/compiling.md)
-
-<!-- Badge links -->
-
-[pypi-d-image]: https://img.shields.io/pypi/dm/opensees.svg
-[license-badge]: https://img.shields.io/pypi/l/opensees.svg
-[pypi-d-link]: https://pypi.org/project/opensees
-[pypi-v-image]: https://img.shields.io/pypi/v/opensees.svg
-[pypi-v-link]: https://pypi.org/project/opensees
 
 
 ## Support
