@@ -61,6 +61,7 @@
 #include <ElementalLoad.h>
 
 #define ELE_TAG_ForceFrame3d 0 // TODO
+#define DO_BASIC
 
 // Constructor invoked by FEM_ObjectBroker; 
 // recvSelf() needs to be invoked on this object.
@@ -85,18 +86,29 @@ template <int NIP, int nsr, int nwm>
 ForceFrame3d<NIP,nsr,nwm>::ForceFrame3d(int tag, std::array<int, 2>& nodes, 
                            std::vector<FrameSection*>& sec,
                            BeamIntegration& bi,
+#ifdef NEW_TRANSFORM
+                           FrameTransform<2,6+nwm>& coordTransf, 
+#else
                            FrameTransform3d& coordTransf, 
+#endif
                            double dens, int mass_flag_, bool use_density,
                            int max_iter_, double tolerance
                            )
- : BasicFrame3d(tag, ELE_TAG_ForceFrame3d, nodes, coordTransf),
+ :
+#ifdef NEW_TRANSFORM
+ BasicFrame3d(tag, ELE_TAG_ForceFrame3d, nodes),
+#else
+   BasicFrame3d(tag, ELE_TAG_ForceFrame3d, nodes, coordTransf),
+#endif
    stencil(nullptr),
    state_flag(0),
    Ki(nullptr),
    density(dens), mass_flag(mass_flag_), use_density(use_density),
    mass_initialized(false),
    max_iter(max_iter_), tol(tolerance),
-  //  theCoordTransf(coordTransf.getCopy()),
+#ifdef NEW_TRANSFORM
+   theCoordTransf(coordTransf.getCopy()),
+#endif
    parameterID(0)
 {
   K_pres.zero();
@@ -862,7 +874,8 @@ iterations_completed:
 
   if (converged == false) {
     opserr << "WARNING - ForceFrame3d failed internal state determination ";
-    opserr << "for element " << this->getTag() 
+    opserr << "for element " 
+           << this->getTag() 
            << "; dW = " << dW 
            << ", dW0 = " << dW0
            << "\n";
@@ -885,6 +898,10 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   pl[0*NDF+0]  = -q_pres[0];               // Ni
 #ifdef DO_BASIC
   double L = theCoordTransf->getInitialLength();
+  const double q1 = q_pres[1],
+               q2 = q_pres[2],
+               q3 = q_pres[3],
+               q4 = q_pres[4];
   pl[0*NDF+1]  =  (q1 + q2)/L;      // Viy
   pl[0*NDF+2]  = -(q3 + q4)/L;      // Viz
   pl[1*NDF+1]  = -pl[1];            // Vjy
@@ -1250,7 +1267,8 @@ ForceFrame3d<NIP,nsr,nwm>::getStressGrad(VectorND<nsr>& dspdh, int isec, int gra
     } else {
       opserr << "ForceFrame3d::getStressGrad -- load type unknown for element "
                 "with tag: "
-             << this->getTag() << "\n";
+             << this->getTag() 
+             << "\n";
     }
   }
 }
@@ -2224,7 +2242,6 @@ int
 ForceFrame3d<NIP,nsr,nwm>::activateParameter(int passedParameterID)
 {
   parameterID = passedParameterID;
-
   return 0;
 }
 
