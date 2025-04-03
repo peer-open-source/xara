@@ -16,7 +16,6 @@ OPS_Routine OPS_AlphaOS;
 OPS_Routine OPS_AlphaOS_TP;
 OPS_Routine OPS_AlphaOSGeneralized;
 OPS_Routine OPS_AlphaOSGeneralized_TP;
-OPS_Routine OPS_CentralDifference;
 OPS_Routine OPS_CentralDifferenceAlternative;
 OPS_Routine OPS_CentralDifferenceNoDamping;
 OPS_Routine OPS_Collocation;
@@ -185,7 +184,7 @@ TransientIntegratorLibrary = {
 
   {"ExplicitDifference",           DISPATCH(TransientIntegrator, ExplicitDifference)},
 
-  {"CentralDifference",            dispatch<TransientIntegrator, OPS_CentralDifference>},
+  {"CentralDifference",            DISPATCH(TransientIntegrator, CentralDifference)},
 
   {"CentralDifferenceAlternative", dispatch<TransientIntegrator, OPS_CentralDifferenceAlternative>},
 
