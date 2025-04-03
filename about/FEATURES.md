@@ -5,7 +5,6 @@
     new consolidated memory ownership model.
   - `-mck` options
 
-- improved `printA` command
 
 - improved `print` command
   - new `-registry` option.
