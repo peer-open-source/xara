@@ -84,7 +84,7 @@ UmfpackGenLinSolver::solve()
     if (status!=UMFPACK_OK) {
       // TODO
       // opserr<<"WARNING: numeric analysis returns "<<status<<" -- Umfpackgenlinsolver::solve\n";
-	return -1;
+      return -1;
     }
 
     // solve
@@ -95,7 +95,7 @@ UmfpackGenLinSolver::solve()
 
     // delete Numeric
     if (Numeric != nullptr) {
-	umfpack_di_free_numeric(&Numeric);
+      umfpack_di_free_numeric(&Numeric);
     }
 
     // check error

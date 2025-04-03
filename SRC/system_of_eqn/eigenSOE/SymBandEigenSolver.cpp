@@ -219,18 +219,18 @@ SymBandEigenSolver::solve(int nModes, bool generalized, bool findSmallest)
   delete [] ifail;
 
   if (info < 0) {
-    opserr << "SymBandEigenSolver::solve() -- invalid argument number " << -info << " passed to LAPACK dsbevx\n";
+    opserr << "SymBandEigenSolver::solve -- invalid argument number " << -info << " passed to LAPACK dsbevx\n";
     return info;
   }
 
   if (info > 0) {
-    opserr << "SymBandEigenSolver::solve() -- LAPACK dsbevx returned error code " << info << endln;
+    opserr << "SymBandEigenSolver::solve -- LAPACK dsbevx returned error code " << info << endln;
     return -info;
   }
 
   if (m < numModes) {
-    opserr << "SymBandEigenSolver::solve() -- LAPACK dsbevx only computed " << m << " eigenvalues, " <<
-      numModes << "were requested\n";
+    opserr << "SymBandEigenSolver::solve -- LAPACK dsbevx only computed " << m << " eigenvalues, " <<
+      numModes << " were requested\n";
 
     numModes = m;
   }
@@ -248,7 +248,7 @@ SymBandEigenSolver::solve(int nModes, bool generalized, bool findSmallest)
       double *eigVectJptr = &eigenvector[j*ldz];
       double *MPtr = M;
       for (int i=0; i<size; i++) 
-	*eigVectJptr++ *= *MPtr++;
+        *eigVectJptr++ *= *MPtr++;
     }
   }
 

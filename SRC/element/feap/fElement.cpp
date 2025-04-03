@@ -55,7 +55,7 @@ static int sizeWork = 0;
 
 #define MAX_NST 64
 
-// constructor:
+
 //  responsible for allocating the necessary space needed by each object
 //  and storing the tags of the fElement end nodes.
 fElement::fElement(int tag, 
@@ -176,7 +176,7 @@ fElement::fElement(int tag,
     numfElements++;
 }
 
-// constructor:
+
 //   invoked by a FEM_ObjectBroker - blank object that recvSelf needs
 //   to be invoked upon
 fElement::fElement(int classTag)

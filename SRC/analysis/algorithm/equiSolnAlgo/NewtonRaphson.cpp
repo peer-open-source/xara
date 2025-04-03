@@ -38,7 +38,7 @@
 #include <ConvergenceTest.h>
 #include <ID.h>
 
-
+#if 1
 #include <elementAPI.h>
 
 void *
@@ -88,8 +88,8 @@ OPS_ADD_RUNTIME_VPV(OPS_NewtonRaphsonAlgorithm)
     }
 
     return new NewtonRaphson(formTangent, iFactor, cFactor);
-
 }
+#endif 
 
 // Constructor
 NewtonRaphson::NewtonRaphson(int theTangentToUse, double iFact, double cFact)
@@ -142,17 +142,16 @@ NewtonRaphson::solveCurrentStep()
     //
     // 1 Form unbalance
     //
-    if (theIntegrator->formUnbalance() < 0) {
-      opserr << "WARNING NewtonRaphson::solveCurrentStep() - ";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIntegrator->formUnbalance() < 0)
       return SolutionAlgorithm::BadFormResidual;
-    }            
 
-    // set itself as the ConvergenceTest objects EquiSolnAlgo
+
+    // Set self as the ConvergenceTest's EquiSolnAlgo;
+    // TODO: Perhaps move this to the BasicAnalysisBuilder;
+    // at least the call to start. Its prbably good to pass
+    // theTest as an argument to solveCurrentStep.
     theTest->setEquiSolnAlgo(*this);
     if (theTest->start() < 0) {
-      opserr << "NewtonRaphson::solveCurrentStep() - ";
-      opserr << "the ConvergenceTest object failed in start()\n";
       return SolutionAlgorithm::BadTestStart;
     }
 
@@ -188,6 +187,7 @@ NewtonRaphson::solveCurrentStep()
           return SolutionAlgorithm::BadFormTangent;
 
       }
+
       //
       // 2.2 Solve for dx
       //
