@@ -2,11 +2,6 @@
 
 #include <Parsing.h>
 
-#include <Dynamic/TRBDF3.h>
-int
-TclCommand_createTRBDF3() {
-  return new TRBDF3();
-}
 
 #include <Dynamic/Houbolt.h>
 int
@@ -156,7 +151,7 @@ TclCommand_createAlphaOS(ClientData clientData, Tcl_Interp* interp, int argc, TC
 
 
 
-#include <SRC/analysis/integrator/AlphaOS_TP.h>
+#include <analysis/integrator/Dynamic/AlphaOS_TP.h>
 int
 TclCommand_createAlphaOS_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -203,9 +198,9 @@ TclCommand_createAlphaOS_TP(ClientData clientData, Tcl_Interp* interp, int argc,
 
 
 
-#include <SRC/analysis/integrator/ArcLength1.h>
+#include <analysis/integrator/Static/ArcLength1.h>
 int
-TclCommand_createArcLength1() {
+TclCommand_createArcLength1(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   double arcLength;
   double alpha;
   if (OPS_GetNumRemainingInputArgs() < 2) {
@@ -226,7 +221,7 @@ TclCommand_createArcLength1() {
 }
 
 
-#include <SRC/analysis/integrator/ArcLength.h>
+#include <analysis/integrator/Static/ArcLength.h>
 int
 TclCommand_createArcLength() 
 {
@@ -252,9 +247,9 @@ TclCommand_createArcLength()
 
 
 
-#include <SRC/analysis/integrator/BackwardEuler.h>
+#include <analysis/integrator/Dynamic/BackwardEuler.h>
 int
-TclCommand_createBackwardEuler() {
+TclCommand_createBackwardEuler(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   int optn = 0;
   if (OPS_GetNumRemainingInputArgs() > 0) {
     int numdata = 1;
@@ -265,48 +260,6 @@ TclCommand_createBackwardEuler() {
     }
   }
   return new BackwardEuler(optn);
-}
-
-
-
-
-#include <SRC/analysis/integrator/CentralDifferenceAlternative.h>
-int
-TclCommand_createCentralDifferenceAlternative(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
-
-  theIntegrator = new CentralDifferenceAlternative();
-
-  return theIntegrator;
-}
-
-
-
-
-#include <SRC/analysis/integrator/CentralDifferenceNoDamping.h>
-int
-TclCommand_createCentralDifferenceNoDamping(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
-
-  theIntegrator = new CentralDifferenceNoDamping();
-
-  return theIntegrator;
-}
-
-
-
-
-#include <SRC/analysis/integrator/CentralDifference.h>
-int
-TclCommand_createCentralDifference(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
-
-  theIntegrator = new CentralDifference();
-
-  return theIntegrator;
 }
 
 
@@ -440,6 +393,7 @@ TclCommand_createCollocationHSIncrLimit(ClientData clientData, Tcl_Interp* inter
 
 
 #include <SRC/analysis/integrator/CollocationHSIncrReduct.h>
+
 int
 TclCommand_createCollocationHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -510,9 +464,9 @@ TclCommand_createCollocation(ClientData clientData, Tcl_Interp* interp, int argc
 
 
 
-#include <SRC/analysis/integrator/DisplacementControl.h>
+#include <SRC/analysis/integrator/Static/DisplacementControl.h>
 int
-TclCommand_createDisplacementControlIntegrator() {
+TclCommand_createDisplacementControlIntegrator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   if (OPS_GetNumRemainingInputArgs() < 3) {
     opserr << "insufficient arguments for DisplacementControl\n";
     return TCL_ERROR;
@@ -579,19 +533,7 @@ TclCommand_createDisplacementControlIntegrator() {
 
 
 
-#include <SRC/analysis/integrator/ExplicitDifference.h>
-int
-TclCommand_createExplicitDifference(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  TransientIntegrator *theIntegrator = 0;
-  theIntegrator = new ExplicitDifference();
-
-  return theIntegrator;
-}
-
-
-
-
-#include <SRC/analysis/integrator/GeneralizedAlpha.h>
+#include <analysis/integrator/GeneralizedAlpha.h>
 int
 TclCommand_createGeneralizedAlpha(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // Pointer to an integrator that will be returned
@@ -623,7 +565,7 @@ TclCommand_createGeneralizedAlpha(ClientData clientData, Tcl_Interp* interp, int
 
 
 
-#include <SRC/analysis/integrator/GimmeMCK.h>
+#include <analysis/integrator/GimmeMCK.h>
 int
 TclCommand_createGimmeMCK(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -659,51 +601,7 @@ TclCommand_createGimmeMCK(ClientData clientData, Tcl_Interp* interp, int argc, T
 
 
 
-
-#include <SRC/analysis/integrator/HarmonicSteadyState.h>
-int
-TclCommand_createHarmonicSteadyState() {
-  if (OPS_GetNumRemainingInputArgs() < 2) {
-    opserr << "insufficient arguments\n";
-    return TCL_ERROR;
-  }
-
-  double lambda;
-  int numData = 1;
-  if (OPS_GetDoubleInput(&numData, &lambda) < 0) {
-    opserr << "WARNING failed to read double lambda\n";
-    return TCL_ERROR;
-  }
-
-  double period = 0;
-  numData = 1;
-  if (OPS_GetDoubleInput(&numData, &period) < 0) {
-    opserr << "WARNING failed to read double period\n";
-    return TCL_ERROR;
-  }
-
-  int numIter = 1;
-  double mLambda[2] = {lambda, lambda};
-  if (OPS_GetNumRemainingInputArgs() > 2) {
-    if (OPS_GetIntInput(&numData, &numIter) < 0) {
-      opserr << "WARNING failed to read int numIter\n";
-      return TCL_ERROR;
-    }
-    numData = 2;
-    if (OPS_GetDoubleInput(&numData, &mLambda[0]) < 0) {
-      opserr << "WARNING failed to read double min and max\n";
-      return TCL_ERROR;
-    }
-  }
-
-  return new HarmonicSteadyState(lambda, period, numIter, mLambda[0],
-                                 mLambda[1]);
-}
-
-
-
-
-#include <SRC/analysis/integrator/HHTExplicit.h>
+#include <analysis/integrator/Dynamic/HHTExplicit.h>
 int
 TclCommand_createHHTExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -756,7 +654,7 @@ TclCommand_createHHTExplicit(ClientData clientData, Tcl_Interp* interp, int argc
 
 
 
-#include <SRC/analysis/integrator/HHTExplicit_TP.h>
+#include <analysis/integrator/Dynamic/HHTExplicit_TP.h>
 int
 TclCommand_createHHTExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -787,7 +685,7 @@ TclCommand_createHHTExplicit_TP(ClientData clientData, Tcl_Interp* interp, int a
 
 
 
-#include <SRC/analysis/integrator/HHTGeneralizedExplicit.h>
+#include <analysis/integrator/Dynamic/HHTGeneralizedExplicit.h>
 int
 TclCommand_createHHTGeneralizedExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -836,7 +734,7 @@ TclCommand_createHHTGeneralizedExplicit(ClientData clientData, Tcl_Interp* inter
 
 
 
-#include <SRC/analysis/integrator/HHTGeneralizedExplicit_TP.h>
+#include <analysis/integrator/Dynamic/HHTGeneralizedExplicit_TP.h>
 int
 TclCommand_createHHTGeneralizedExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -872,7 +770,7 @@ TclCommand_createHHTGeneralizedExplicit_TP(ClientData clientData, Tcl_Interp* in
 
 
 
-#include <SRC/analysis/integrator/HHTGeneralized.h>
+#include <analysis/integrator/Dynamic/HHTGeneralized.h>
 int
 TclCommand_createHHTGeneralized(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -904,7 +802,7 @@ TclCommand_createHHTGeneralized(ClientData clientData, Tcl_Interp* interp, int a
 
 
 
-#include <SRC/analysis/integrator/HHTGeneralized_TP.h>
+#include <analysis/integrator/HHTGeneralized_TP.h>
 int
 TclCommand_createHHTGeneralized_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -937,7 +835,7 @@ TclCommand_createHHTGeneralized_TP(ClientData clientData, Tcl_Interp* interp, in
 
 
 
-#include <SRC/analysis/integrator/HHTHSFixedNumIter.h>
+#include <analysis/integrator/Dynamic/HHTHSFixedNumIter.h>
 int
 TclCommand_createHHTHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -994,7 +892,7 @@ TclCommand_createHHTHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, in
 
 
 
-#include <SRC/analysis/integrator/HHTHSFixedNumIter_TP.h>
+#include <analysis/integrator/Dynamic/HHTHSFixedNumIter_TP.h>
 int
 TclCommand_createHHTHSFixedNumIter_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1051,7 +949,7 @@ TclCommand_createHHTHSFixedNumIter_TP(ClientData clientData, Tcl_Interp* interp,
 
 
 
-#include <SRC/analysis/integrator/HHTHSIncrLimit.h>
+#include <analysis/integrator/Dynamic/HHTHSIncrLimit.h>
 int
 TclCommand_createHHTHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1107,7 +1005,7 @@ TclCommand_createHHTHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int a
 
 
 
-#include <SRC/analysis/integrator/HHTHSIncrLimit_TP.h>
+#include <analysis/integrator/Dynamic/HHTHSIncrLimit_TP.h>
 int
 TclCommand_createHHTHSIncrLimit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1163,7 +1061,7 @@ TclCommand_createHHTHSIncrLimit_TP(ClientData clientData, Tcl_Interp* interp, in
 
 
 
-#include <SRC/analysis/integrator/HHTHSIncrReduct.h>
+#include <analysis/integrator/Dynamic/HHTHSIncrReduct.h>
 int
 TclCommand_createHHTHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1198,7 +1096,7 @@ TclCommand_createHHTHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int 
 
 
 
-#include <SRC/analysis/integrator/HHTHSIncrReduct_TP.h>
+#include <analysis/integrator/Dynamic/HHTHSIncrReduct_TP.h>
 int
 TclCommand_createHHTHSIncrReduct_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1231,7 +1129,7 @@ TclCommand_createHHTHSIncrReduct_TP(ClientData clientData, Tcl_Interp* interp, i
   return theIntegrator;
 }
 
-#include <SRC/analysis/integrator/HHT.h>
+#include <analysis/integrator/Dynamic/HHT.h>
 
 int
 TclCommand_createHHT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
@@ -1263,7 +1161,7 @@ TclCommand_createHHT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Ch
 
 
 
-#include <SRC/analysis/integrator/HHT_TP.h>
+#include <analysis/integrator/Dynamic/HHT_TP.h>
 int
 TclCommand_createHHT_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1289,10 +1187,6 @@ TclCommand_createHHT_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL
 
   return theIntegrator;
 }
-
-
-
-
 
 
 
@@ -1336,7 +1230,7 @@ TclCommand_createHSConstraint() {
 
 
 
-#include <SRC/analysis/integrator/KRAlphaExplicit.h>
+#include <analysis/integrator/Dynamic/KRAlphaExplicit.h>
 int
 TclCommand_createKRAlphaExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1372,7 +1266,7 @@ TclCommand_createKRAlphaExplicit(ClientData clientData, Tcl_Interp* interp, int 
 
 
 
-#include <SRC/analysis/integrator/KRAlphaExplicit_TP.h>
+#include <analysis/integrator/Dynamic/KRAlphaExplicit_TP.h>
 int
 TclCommand_createKRAlphaExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1432,14 +1326,7 @@ TclCommand_createLoadControlIntegrator() {
 }
 
 
-
-
-#include <SRC/analysis/integrator/LoadPath.h>
-
-
-
-
-#include <SRC/analysis/integrator/MinUnbalDispNorm.h>
+#include <SRC/analysis/integrator/Static/MinUnbalDispNorm.h>
 int
 TclCommand_createMinUnbalDispNorm() {
   double lambda11, minlambda, maxlambda;
@@ -1490,7 +1377,7 @@ TclCommand_createMinUnbalDispNorm() {
 
 
 
-#include <SRC/analysis/integrator/Newmark1.h>
+#include <analysis/integrator/Dynamic/Newmark1.h>
 int
 TclCommand_createNewmark1() {
   int numdata = OPS_GetNumRemainingInputArgs();
@@ -1519,14 +1406,12 @@ TclCommand_createNewmark1() {
 
 
 
-#include <SRC/analysis/integrator/NewmarkExplicit.h>
+#include <analysis/integrator/Dynamic/NewmarkExplicit.h>
 int
 TclCommand_createNewmarkExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
-  if (argc != 1) {
+
+  if (argc != 3) {
     opserr
         << "WARNING - incorrect number of args want NewmarkExplicit $gamma\n";
     return TCL_ERROR;
@@ -1538,6 +1423,7 @@ TclCommand_createNewmarkExplicit(ClientData clientData, Tcl_Interp* interp, int 
     return TCL_ERROR;
   }
 
+  TransientIntegrator *theIntegrator = 0;
   theIntegrator = new NewmarkExplicit(gamma);
 
   return theIntegrator;
@@ -1546,7 +1432,7 @@ TclCommand_createNewmarkExplicit(ClientData clientData, Tcl_Interp* interp, int 
 
 
 
-#include <SRC/analysis/integrator/NewmarkHSFixedNumIter.h>
+#include <analysis/integrator/Dynamic/NewmarkHSFixedNumIter.h>
 int
 TclCommand_createNewmarkHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1591,7 +1477,7 @@ TclCommand_createNewmarkHSFixedNumIter(ClientData clientData, Tcl_Interp* interp
 
 
 
-#include <SRC/analysis/integrator/NewmarkHSIncrLimit.h>
+#include <analysis/integrator/Dynamic/NewmarkHSIncrLimit.h>
 int
 TclCommand_createNewmarkHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1635,7 +1521,7 @@ TclCommand_createNewmarkHSIncrLimit(ClientData clientData, Tcl_Interp* interp, i
 
 
 
-#include <SRC/analysis/integrator/NewmarkHSIncrReduct.h>
+#include <analysis/integrator/Dynamic/NewmarkHSIncrReduct.h>
 int
 TclCommand_createNewmarkHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // pointer to an integrator that will be returned
@@ -1664,7 +1550,7 @@ TclCommand_createNewmarkHSIncrReduct(ClientData clientData, Tcl_Interp* interp, 
 
 
 
-#include <SRC/analysis/integrator/Newmark.h>
+#include <analysis/integrator/Dynamic/Newmark.h>
 int
 TclCommand_createNewmark(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
   // Pointer to a uniaxial material that will be returned
@@ -1790,15 +1676,7 @@ TclCommand_createStagedNewmark(ClientData clientData, Tcl_Interp* interp, int ar
 
 
 
-
-#include <SRC/analysis/integrator/TRBDF2.h>
-int
-TclCommand_createTRBDF2() {
-  return new TRBDF2(); 
-}
-
-
-#include <SRC/analysis/integrator/WilsonTheta.h>
+#include <analysis/integrator/Dynamic/WilsonTheta.h>
 
 int
 TclCommand_createWilsonTheta(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
