@@ -24,6 +24,8 @@ if (UNIX)
 endif()
 add_compile_definitions(NCHOLMOD)
 
+
+find_package(OpenMP)
 function (add_umflib libname libsource)
   #list(APPEND UMF_CREATED ${libname})
   set(UMF_CREATED ${UMF_CREATED} ${libname} PARENT_SCOPE)
@@ -32,6 +34,10 @@ function (add_umflib libname libsource)
   foreach(def ${ARGN})
     target_compile_definitions(${libname} PRIVATE ${def})
   endforeach()
+
+  if (OpenMP_C_FOUND)
+    target_link_libraries(${libname} PUBLIC OpenMP::OpenMP_C)
+  endif()
 endfunction()
 #----------------------------------------------------------------------
 # Files with different variants
@@ -166,7 +172,6 @@ target_compile_definitions(UMF         PRIVATE DINT)
 target_compile_definitions(UMFPACK_II  PRIVATE DINT)
 target_compile_definitions(UMFPACK_DI  PRIVATE DINT)
 
-find_package(OpenMP)
 if(OpenMP_C_FOUND)
   message(STATUS "OpenMP_C Found")
   target_link_libraries(UMF        PUBLIC OpenMP::OpenMP_C)
