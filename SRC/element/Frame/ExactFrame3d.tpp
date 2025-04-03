@@ -464,10 +464,18 @@ ExactFrame3d<nen,nwm>::addLoad(ElementalLoad* theLoad, double loadFactor)
   if (type == LOAD_TAG_FrameLoad && loadFactor == 0.0)
     frame_loads.erase((FrameLoad*)theLoad);
   
-  else if (type == LOAD_TAG_FrameLoad) {// && loadFactor == 1.0)
-    frame_loads.insert((FrameLoad*)theLoad);
+  else if (type == LOAD_TAG_FrameLoad && loadFactor == 1.0) {
+    FrameLoad* frame_load = (FrameLoad*)theLoad;
+    if (!frame_load->conservative())
+      frame_loads.insert(frame_load);
   }
   else 
+  // TODO: compute conservative load on flag == -1?
+#if 0
+  else {
+    c_loads[frame_load->getTag()] = VectorND<ndf*nn>{0.0};
+  }
+#endif
     return -1;
 
   return 0;
@@ -769,7 +777,7 @@ ExactFrame3d<nen,nwm>::Print(OPS_Stream& stream, int flag)
     stream << pres[pres.size() - 1].material->getTag() << "]";
     stream << ", ";
 
-    stream << "\"crdTransformation\": " << transform->getTag()  ;
+    stream << "\"transform\": " << transform->getTag()  ;
     stream << "}";
   }
 }

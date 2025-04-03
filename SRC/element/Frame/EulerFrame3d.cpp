@@ -142,7 +142,7 @@ EulerFrame3d::setNodes()
   // call the parent class method
   int status = this->BasicFrame3d::setNodes();
 
-  double L = this->getLength(State::Init);
+  double L = theCoordTransf->getInitialLength();
 
   if (L == 0.0)
     return -1;
@@ -237,7 +237,7 @@ EulerFrame3d::update()
   // Update the transformation
   theCoordTransf->update();
 
-  double jsx = 1.0/this->getLength(State::Init);
+  double jsx = 1.0/theCoordTransf->getInitialLength();
   
   // Get basic deformations
   const Vector &v = theCoordTransf->getBasicTrialDisp();
@@ -676,7 +676,7 @@ EulerFrame3d::Print(OPS_Stream &s, int flag)
       s << ", ";
 
       // Transform
-      s << "\"crdTransformation\": " << theCoordTransf->getTag();
+      s << "\"transform\": " << theCoordTransf->getTag();
       s << ", ";
 
       //
@@ -759,7 +759,7 @@ EulerFrame3d::getMass()
     } else {
         // consistent (cubic, prismatic) mass matrix
 
-        double L  = this->getLength(State::Init);
+        double L  = theCoordTransf->getInitialLength();
         double m  = total_mass/420.0;
         double mx = twist_mass;
         thread_local MatrixND<12,12> ml{0};
@@ -901,7 +901,7 @@ EulerFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
       if (argc > 2 && (this->setNodes() == 0)) {
 
         float sectionLoc = atof(argv[1]);
-        double L = this->getLength(State::Init);
+        double L = theCoordTransf->getInitialLength();
 
         sectionLoc /= L;
         
@@ -928,7 +928,7 @@ EulerFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
       if (argc > 1 && (this->setNodes() == 0)) {
         
         int sectionNum = atoi(argv[1]);
-        double L = this->getLength(State::Init);
+        double L = theCoordTransf->getInitialLength();
 
         if (sectionNum > 0 && sectionNum <= numSections && argc > 2) {
 
@@ -1046,7 +1046,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
     if (this->setState(State::Init) != 0)
       return -1;
 
-    double L = this->getLength(State::Init);
+    double L = theCoordTransf->getInitialLength();
     Vector locs(points.size());
     for (int i = 0; i < numSections; i++)
       locs[i] = wt[i]*L;
@@ -1073,7 +1073,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
   //by SAJalali
   else if (responseID == 13) {
     if (this->setState(State::Init) == 0) {
-      double L = this->getLength(State::Init);
+      double L = theCoordTransf->getInitialLength();
       double energy = 0;
       for (int i = 0; i < numSections; i++)
           energy += points[i].material->getEnergy()*xi[i] * L;
@@ -1105,7 +1105,7 @@ EulerFrame3d::setParameter(const char **argv, int argc, Parameter &param)
         return -1;
       
       float sectionLoc = atof(argv[1]);
-      double L = this->getLength(State::Init);
+      double L = theCoordTransf->getInitialLength();
       
       sectionLoc /= L;
 

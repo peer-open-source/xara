@@ -26,6 +26,7 @@ class BasicFrame3d : public FiniteElement<2, 3, 6> {
 
   public:
     virtual ~BasicFrame3d();
+
     BasicFrame3d(int tag, int clstag,
                  std::array<int, 2> &nodes, 
                  FrameTransform3d& tran)

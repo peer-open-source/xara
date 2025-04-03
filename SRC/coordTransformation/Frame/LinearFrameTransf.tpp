@@ -408,7 +408,6 @@ LinearFrameTransf<nn,ndf>::getNodePosition(int node)
     if (!(offset_flags&OffsetLocal)) {
       Vector3D w {u[3], u[4], u[5]};
       v -= offsets->at(node).cross(w);
-      return R^v;
     } else {
       // TODO: Local offsets
       // Vector3D w {u[3], u[4], u[5]};
@@ -445,7 +444,8 @@ template <int nn, int ndf>
 MatrixND<nn*ndf,nn*ndf>
 LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kl, const VectorND<nn*ndf>& pl)
 {
-  return this->FrameTransform<nn,ndf>::pushConstant(kl);
+  MatrixND<nn*ndf,nn*ndf> Kl = kl;
+  return this->FrameTransform<nn,ndf>::pushConstant(Kl);
 }
 
 

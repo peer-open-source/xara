@@ -31,7 +31,7 @@ class EulerFrame3d : public BasicFrame3d
     EulerFrame3d();
     ~EulerFrame3d();
 
-    const char *getClassType() const {return "EulerFrame3d";};
+    const char *getClassType() const {return "EulerFrame3d";}
     static constexpr const char* class_name = "EulerFrame3d";
 
 

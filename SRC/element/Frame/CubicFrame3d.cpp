@@ -37,7 +37,8 @@ using namespace OpenSees;
 CubicFrame3d::CubicFrame3d(int tag, 
                            std::array<int, 2>& nodes, 
                            std::vector<FrameSection*>& sections,
-                           BeamIntegration& bi, FrameTransform3d& coordTransf, 
+                           BeamIntegration& bi,
+                           FrameTransform3d& coordTransf, 
                            double r)
  : Element(tag, ELE_TAG_CubicFrame3d),
    numSections(sections.size()),
@@ -54,7 +55,6 @@ CubicFrame3d::CubicFrame3d(int tag,
   theSections = new FrameSection*[numSections];
 
   for (int i = 0; i < numSections; i++) {
-
     // Get copies of the material for each integration point
     theSections[i] = sections[i]->getFrameCopy(scheme);
   }
@@ -307,7 +307,8 @@ CubicFrame3d::update()
         e(j) = jsx / (1 + phiz) * ((xi6 - 4.0 - phiz) * v(1) + (xi6 - 2.0 + phiz) * v(2));
         break;
       default:
-        e(j) = 0.0; break;
+        e(j) = 0.0; 
+        break;
       }
     }
 
@@ -324,14 +325,13 @@ CubicFrame3d::getTangentStiff()
   static MatrixND<6,6> kb;
   static Matrix wrapper(kb);
 
-  // Zero for integral
-  kb.zero();
-  q.Zero();
 
   double L   = theCoordTransf->getInitialLength();
   double jsx = 1.0 / L;
 
 
+  kb.zero();
+  q.Zero();
   // Loop over the integration points
   for (int i = 0; i < numSections; i++) {
 
@@ -343,14 +343,13 @@ CubicFrame3d::getTangentStiff()
     double phiy = phiys[i];
 
     // Get the section tangent stiffness and stress resultant
-    const MatrixND<nsr,nsr> ks = theSections[i]->getTangent<nsr,scheme>(State::Pres);
-    const VectorND<nsr>     s  = theSections[i]->getResultant<nsr,scheme>();
-
+     MatrixND<nsr,nsr> ks = theSections[i]->getTangent<nsr,scheme>(State::Pres);
+    const VectorND<nsr> s = theSections[i]->getResultant<nsr,scheme>();
     // Perform numerical integration
     //kb.addMatrixTripleProduct(1.0, *B, ks, wts(i)/L);
     double wti = wt[i] * jsx;
-    double tmp;
     for (int j = 0; j < nsr; j++) {
+      double tmp;
       switch (scheme[j]) {
       case SECTION_RESPONSE_P:
         for (int k = 0; k < nsr; k++)
@@ -392,6 +391,7 @@ CubicFrame3d::getTangentStiff()
       }
     }
     for (int j = 0; j < nsr; j++) {
+      double tmp;
       switch (scheme[j]) {
       case SECTION_RESPONSE_P:
         for (int k = 0; k < 6; k++)
@@ -455,8 +455,11 @@ CubicFrame3d::getTangentStiff()
         q(3) += 0.5 * phiy * L / (1 + phiy) * si;
         q(4) += 0.5 * phiy * L / (1 + phiy) * si;
         break;
-      case SECTION_RESPONSE_T: q(5) += si; break;
-      default:                 break;
+      case SECTION_RESPONSE_T: 
+        q(5) += si;
+        break;
+      default:
+        break;
       }
     }
   }
@@ -658,6 +661,7 @@ CubicFrame3d::addLoad(ElementalLoad* theLoad, double loadFactor)
     q0[2] += Mz;
     q0[3] += My;
     q0[4] -= My;
+
   } else if (type == LOAD_TAG_Beam3dPointLoad) {
     double Py     = data(0) * loadFactor;
     double Pz     = data(1) * loadFactor;
@@ -697,7 +701,233 @@ CubicFrame3d::addLoad(ElementalLoad* theLoad, double loadFactor)
     M2 = a2 * b * Pz * L2;
     q0[3] -= M1;
     q0[4] -= M2;
-  } else {
+  }
+
+#if 0
+  else if (type == LOAD_TAG_Beam3dThermalAction) {
+
+     // load not inside fire load pattern
+           //static Vector factors(9);
+           //factors.Zero();
+           //factors += loadFactor;
+          // return this->addLoad(theLoad, factors);
+      // This code block is added by LJ and copied from DispBeamColumn2d(Modified edition) for 'FireLoadPattern'--08-May-2012--//[END]
+      counterTemperature = 1;
+      for(int i=0; i<5; i++){
+          residThermal[i]=0;
+      }
+      double ThermalN, ThermalMz, ThermalMy;
+      ThermalN = 0.;
+      ThermalMz = 0;
+      ThermalMy = 0;
+
+      double xi[maxNumSections];
+      beamInt->getSectionLocations(numSections, L, xi);
+      double wt[maxNumSections];
+      beamInt->getSectionWeights(numSections, L, wt);
+
+        // Zero for integration
+        //q.Zero();
+      Vector* dataMixV;
+      dataMixV = new Vector(data.Size());
+
+      *dataMixV=data;
+
+      // Loop over the integration points
+      for (int i = 0; i < numSections; i++) {
+        // Get section stress resultant
+        const Vector &s = theSections[i]->getTemperatureStress(*dataMixV);
+
+        //apply temp along y
+        residThermal[0] = -s(0);
+        residThermal[1] = -s(1);
+        residThermal[2] = s(1);
+        residThermal[3] = -s(2);
+        residThermal[4] = s(2);
+        //apply temp along z
+        //residThermal[0] = -s(0);
+        //residThermal[1] = -0.;
+        //residThermal[2] = -0.;
+        //residThermal[3] = -s(1);
+        //residThermal[4] = s(1);
+        SectionThermalElong[i]=0;
+      }
+      AverageThermalElong=0;
+    }
+
+    //Added by Liming for implementation of NodalThermalAction
+    else if (type == LOAD_TAG_NodalThermalAction) {
+
+        // load not inside fire load pattern
+        AverageThermalElong=0.0;
+        for(int i=0; i<5; i++){
+            residThermal[i]=0;
+        }
+
+        NodalThermalAction* theNodalThermal0 = theNodes[0]->getNodalThermalActionPtr();
+        NodalThermalAction* theNodalThermal1 = theNodes[1]->getNodalThermalActionPtr();
+        int type;
+        const Vector &data0 = theNodalThermal0->getData(type);
+        const Vector &data1 = theNodalThermal1->getData(type);
+        Vector* Loc;Vector* NodalT0;Vector* NodalT1;
+
+        if (data0.Size()==9){
+           Loc = new Vector(9);
+           NodalT0 = new Vector(9);
+           NodalT1 = new Vector(9);
+
+           for(int i =0; i<9;i++){
+               if(data0(2*i+1)-data1(2*i+1)>1e-8||data0(2*i+1)-data1(2*i+1)<-1e-8){
+                       opserr<<"Warning:The NodalThermalAction in dispBeamColumn2dThermalNUT "<<this->getTag()
+                            << "incompatible loc input for datapoint "<< i << endln;
+               }
+               else {
+                   (*Loc)(i)=data0(2*i+1);
+                   (*NodalT0)(i)=data0(2*i);
+                   (*NodalT1)(i)=data1(2*i);
+              }
+           }
+        }
+
+        //for 9 data POINTS
+        else {
+          Loc = new Vector(10);
+          NodalT0 = new Vector(15);
+          NodalT1 = new Vector(15);
+
+          for(int i =0; i<5;i++){
+           if (data0(2*i+1)-data1(2*i+1)>1e-8||data0(2*i+1)-data1(2*i+1)<-1e-8){
+                  opserr <<"Warning:The NodalThermalAction in dispBeamColumn2dThermalNUT "<<this->getTag()
+                         << "incompatible loc input for datapoint "<< i << endln;
+           } else {
+                 //for loc
+                (*Loc)(i)=data0(2*i+1);
+                (*Loc)(i+5)=data0(3*i+12);
+                //for NodalT0
+                (*NodalT0)(i)=data0(2*i);
+                (*NodalT0)(i+5)=data0(3*i+10);
+                (*NodalT0)(i+10)=data0(3*i+11);
+                //for NodalT1
+                (*NodalT1)(i)=data1(2*i);
+                (*NodalT1)(i+5)=data1(3*i+10);
+                (*NodalT1)(i+10)=data1(3*i+11);
+           }
+          }
+        }
+        //for 15 data points
+        double ThermalN, ThermalMz, ThermalMy;
+        ThermalN =  0;
+        ThermalMz = 0;
+        ThermalMy = 0;
+
+        double xi[maxNumSections];
+        beamInt->getSectionLocations(numSections, L, xi);
+        double wt[maxNumSections];
+        beamInt->getSectionWeights(numSections, L, wt);
+
+        // Loop over the integration points
+        for (int i = 0; i < numSections; i++) {
+          // Get section stress resultant
+          Vector* dataMixV;
+          if (NodalT0->Size()==9){
+            for(int m=0;m<9;m++){
+                (*dataMixV)(2*m)=(*NodalT0)(m)+xi[i]*((*NodalT1)(m) - (*NodalT0)(m)); //Linear temperature interpolation
+                (*dataMixV)(2*m+1)=(*Loc)(m);
+                (*dataMixV)(18+m)=1000;
+            }
+          }
+          else if (NodalT0->Size()==15) {
+             for (int m=0;m<5;m++){
+                (*dataMixV)(2*m)=(*NodalT0)(m)+xi[i]*((*NodalT1)(m)-(*NodalT0)(m)); ////5 temps through y, Linear temperature interpolation
+                (*dataMixV)(3*m+10)=(*NodalT0)(m+5)+xi[i]*((*NodalT1)(m+5)-(*NodalT0)(m+5));///////5 temps through Z in bottom flange
+                (*dataMixV)(3*m+11)=(*NodalT0)(m+10)+xi[i]*((*NodalT1)(m+10)-(*NodalT0)(m+10));/////5 temps through Z in top flange
+                (*dataMixV)(2*m+1)=(*Loc)(m);////5 (*Loc)s through y
+                (*dataMixV)(3*m+12)=(*Loc)(m+5);///////5 (*Loc)s through Z
+             }
+          }
+          const Vector &s = theSections[i]->getTemperatureStress(*dataMixV);
+
+          SectionThermalElong[i]= theSections[i]->getThermalElong()(0);
+          //apply temp along y
+          residThermal[0] = -s(0);
+          residThermal[1] = -s(1);
+          residThermal[2] = s(1);
+          residThermal[3] = -s(2);
+          residThermal[4] = s(2);
+          //apply temp along z
+          //residThermal[0] = -s(0);
+          //residThermal[1] = -0.;
+          //residThermal[2] = -0.;
+          //residThermal[3] = -s(1);
+          //residThermal[4] = s(1);
+          double ThermalEloni  = SectionThermalElong[i]*wt[i];
+          AverageThermalElong += ThermalEloni;
+        }
+        counterTemperature = 1;
+    }
+
+    else if(type == LOAD_TAG_ThermalActionWrapper) {
+        counterTemperature = 1;
+        double ThermalN, ThermalMz, ThermalMy;
+        ThermalN =  0;
+        ThermalMz = 0;
+        ThermalMy = 0;
+
+        AverageThermalElong=0.0;
+
+        double xi[maxNumSections];
+        beamInt->getSectionLocations(numSections, L, xi);
+        double wt[maxNumSections];
+        beamInt->getSectionWeights(numSections, L, wt);
+
+         Vector theNode0Crds = theNodes[0]->getCrds();
+         Vector theNode1Crds = theNodes[1]->getCrds();
+         int ndm = theNode0Crds.Size();
+         Vector theIntCrds = Vector(ndm);
+
+        // Loop over the integration points
+         // Get section stress resultant
+        for (int i = 0; i < numSections; i++) {
+          int order = theSections[i]->getOrder();
+          const ID &code = theSections[i]->getType();
+
+          double xi6 = 6.0*xi[i];
+          theIntCrds.Zero();
+          for (int m = 0; m<ndm; m++){
+              theIntCrds(m) =  theNode0Crds(m)+xi[i]*(theNode1Crds(m)- theNode0Crds(m));
+          }
+
+          //NodalThermalActions attached with the wrapper would have been updated by pattern;
+          Vector dataMixV = ((ThermalActionWrapper*) theLoad)->getIntData(theIntCrds);
+
+          const Vector &s = theSections[i]->getTemperatureStress(dataMixV);
+          if (theSections[i]->getClassTag()==SEC_TAG_FiberSection3dThermal)
+              SectionThermalElong[i] = ((FiberSection3dThermal*)theSections[i])->getThermalElong()(0);
+          else if (theSections[i]->getClassTag()==SEC_TAG_FiberSectionGJThermal)
+              SectionThermalElong[i] = ((FiberSectionGJThermal*)theSections[i])->getThermalElong()(0);
+
+
+          //apply temp along y
+          residThermal[0] = -s(0);
+          residThermal[1] = -s(1);
+          residThermal[2] = s(1);
+          residThermal[3] = -s(2);
+          residThermal[4] = s(2);
+
+          //apply temp along z
+          //residThermal[0] = -s(0);
+          //residThermal[1] = -0.;
+          //residThermal[2] = -0.;
+          //residThermal[3] = -s(1);
+          //residThermal[4] = s(1);
+          AverageThermalElong += SectionThermalElong[i]*wt[i];
+    }
+        //end of for loop for section
+        //counterTemperature = 1;
+  }
+#endif
+
+  else {
     opserr << "CubicFrame3d::addLoad() -- load type unknown for element with tag: "
            << this->getTag() << "\n";
     return -1;

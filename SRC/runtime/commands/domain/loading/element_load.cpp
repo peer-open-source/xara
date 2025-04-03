@@ -276,16 +276,16 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
-                            TCL_Char **const argv)
+TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_main,
+                            TCL_Char **const argv_main)
 {
-  if (argc < 2) {
+  if (argc_main < 2) {
     opserr << "WARNING eleLoad - expecting eleLoad type\n";
     return TCL_ERROR;
   }
 
-  if (strcmp(argv[1], "Frame") == 0) {
-    return TclCommand_addFrameLoad(clientData, interp, argc, argv);
+  if (strcmp(argv_main[1], "Frame") == 0) {
+    return TclCommand_addFrameLoad(clientData, interp, argc_main, argv_main);
   }
 
 
@@ -300,69 +300,84 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
   std::vector<int> element_tags;
   int loadPatternTag = 0;
 
-  // First create an ID containing the ele tags of all elements
+  // Arguments argv_main will be copied into argv. 
+  // We initialize with two placeholders for "-type" and $typeName.
+  // Everything else will be appended.
+  std::vector<const char *> argv{nullptr, nullptr};
+
+  int typeIndex = -1;
+  // Create an ID containing the ele tags of all elements
   // for which the load applies.
   int count    = 1;
-  int doneEle  = 0;
-  int typeIndex = -1;
-  while (doneEle == 0 && count < argc) {
+  while (count < argc_main) {
 
     // Element tags
-    if (strcmp(argv[count], "-ele") == 0) {
+    if (strcmp(argv_main[count], "-ele") == 0) {
       count++;
       int eleStart = count;
       int eleEnd   = 0;
       int eleID;
-      while (count < argc && eleEnd == 0) {
-        if (Tcl_GetInt(interp, argv[count], &eleID) != TCL_OK)
+      while (count < argc_main && eleEnd == 0) {
+        if (Tcl_GetInt(interp, argv_main[count], &eleID) != TCL_OK)
           eleEnd = count;
         else
           count++;
       }
       if (eleStart != eleEnd) {
         for (int i = eleStart; i < eleEnd; ++i) {
-          Tcl_GetInt(interp, argv[i], &eleID);
+          Tcl_GetInt(interp, argv_main[i], &eleID);
           element_tags.push_back(eleID);
         }
       }
     }
-    else if (strcmp(argv[count], "-range") == 0) {
+
+    else if (strcmp(argv_main[count], "-range") == 0) {
       count++;
       int eleStart, eleEnd;
-      if (Tcl_GetInt(interp, argv[count], &eleStart) != TCL_OK) {
-        opserr << "WARNING eleLoad -range invalid eleStart " << argv[count]
+      if (Tcl_GetInt(interp, argv_main[count], &eleStart) != TCL_OK) {
+        opserr << "WARNING eleLoad -range invalid eleStart " << argv_main[count]
                << "\n";
         return TCL_ERROR;
       }
       count++;
-      if (Tcl_GetInt(interp, argv[count], &eleEnd) != TCL_OK) {
-        opserr << "WARNING eleLoad -range invalid eleEnd " << argv[count] << "\n";
+      if (Tcl_GetInt(interp, argv_main[count], &eleEnd) != TCL_OK) {
+        opserr << "WARNING eleLoad -range invalid eleEnd " << argv_main[count] << "\n";
         return TCL_ERROR;
       }
       count++;
       for (int i = eleStart; i <= eleEnd; ++i)
         element_tags.push_back(i);
+    }
 
-    } 
-
-    else if (strcmp(argv[count], "-pattern") == 0) {
-      count++;
-      explicitPatternPassed = true;
-      if (Tcl_GetInt(interp, argv[count], &loadPatternTag) != TCL_OK) {
-        opserr << "WARNING eleLoad -range invalid eleStart " << argv[count]
-               << "\n";
+    else if (strcmp(argv_main[count], "-pattern") == 0) {
+      if (count == argc_main - 1) {
+        opserr << "WARNING eleLoad -pattern paramter missing required argument\n";
         return TCL_ERROR;
       }
+      int ptag;
+      if (Tcl_GetInt(interp, argv_main[++count], &ptag) != TCL_OK) {
+        opserr << "WARNING eleLoad -pattern parameter expected integer\n";
+        return TCL_ERROR;
+      }
+      explicitPatternPassed = true;
+      loadPatternTag = ptag;
       count++;
+    }
 
-    } 
-    else if (strcmp(argv[count], "-type") == 0) {
-      typeIndex = count;
-      doneEle = 1;
+    else if (strcmp(argv_main[count], "-type") == 0) {
+      argv[0] = argv_main[count++];
+      argv[1] = argv_main[count++];
+      if (count >= argc_main) {
+        opserr << "WARNING eleLoad -type paramter missing required argument\n";
+        return TCL_ERROR;
+      }
+      typeIndex = 0;
 
-    } else
-      doneEle = 1;
+    } else {
+      argv.push_back(argv_main[count++]);
+    }
   }
+  const int argc = static_cast<int>(argv.size());
 
   // If  -pattern  wasnt given explicitly, see if there is one
   // activated in the builder
@@ -378,20 +393,20 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
 
-  //
-  // Create the load
-  //
-  if ((typeIndex == -1) && (strcmp(argv[count], "-type") != 0)) {
-    opserr << "WARNING eleLoad - expecting -type option but got " << argv[count]
+  if ((typeIndex == -1)) {
+    opserr << "WARNING missing required -type option"
            << "\n";
     return TCL_ERROR;
   }
 
+  //
+  // Create the load
+  //
   count = typeIndex+1;
-//count++;
 
-  if (strcmp(argv[count], "-beamUniform") == 0 ||
-      strcmp(argv[count], "beamUniform") == 0) {
+  if ((strcmp(argv[count], "-beamUniform") == 0) ||
+      (strcmp(argv[count], "BeamUniform") == 0) ||
+      (strcmp(argv[count], "beamUniform") == 0)) {
     //
     // see https://portwooddigital.com/2021/05/05/trapezoidal-beam-loads
     //
@@ -869,24 +884,24 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
       else if (argc - count == 4) {
         if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
           opserr << "WARNING eleLoad - invalid T1 " << argv[count]
-                 << " for -shellThermal\n";
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[count + 1], &locY1) != TCL_OK) {
           opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1]
-                 << " for -shellThermal\n";
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[count + 2], &t2) != TCL_OK) {
           opserr << "WARNING eleLoad - invalid T2 " << argv[count]
-                 << " for -shellThermal\n";
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[count + 3], &locY2) != TCL_OK) {
           opserr << "WARNING eleLoad - invalid LocY2 " << argv[count + 1]
-                 << " for -shellThermal\n";
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
@@ -896,11 +911,8 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
                                            element_tags[i]);
 
           // add the load to the domain
-          if (domain->addElementalLoad(theLoad, loadPatternTag) ==
-              false) {
-            opserr << "WARNING eleLoad - could not add following load to "
-                      "domain:\n ";
-            opserr << theLoad;
+          if (domain->addElementalLoad(theLoad, loadPatternTag) ==  false) {
+            opserr << "WARNING eleLoad - could not add load to domain\n ";
             delete theLoad;
             return TCL_ERROR;
           }
@@ -969,7 +981,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
         int NodalTtag;
 
         if (Tcl_GetInt(interp, argv[count + i], &NodalTtag) != TCL_OK) {
-          opserr << "WARNING invalid nodeId: " << argv[1];
+          opserr << "WARNING invalid nodeId " << argv[1];
           return TCL_ERROR;
         }
 
@@ -1036,9 +1048,8 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
     } //end of for loop
     return 0;
   }
-  //------------------------end  of using ThermalActionWrapper--------------------------
-  //-----------------Adding tcl command for beam thermal action(2D&3D), 2013..[Begin]---------------
 
+  //-----------------Adding tcl command for beam thermal action(2D&3D), 2013..[Begin]---------------
   else if (strcmp(argv[count], "-beamThermal") == 0) {
     count++;
     //For two dimensional model
@@ -1135,7 +1146,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
             eleLoadTag++;
           } //end of for loop
           return 0;
-        } //end of <if(strcmp(argv[count+1],"-node") = 0)>
+        } // end of <if(strcmp(argv[count+1],"-node") = 0)>
         //--------------------------end for beam2DThermalAction with time series ----------------------------------------
       } else {
         //(1) 9 temperature points, i.e. 8 layers
@@ -1670,6 +1681,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
           eleLoadTag++;
         }
       }
+
       // One twmp change give, uniform temp change in element
       else if (argc - count == 1) {
         if (Tcl_GetDouble(interp, argv[count], &temp1) != TCL_OK) {

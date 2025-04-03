@@ -215,7 +215,7 @@ EulerDeltaFrame3d::update()
     double ddNw2 = -ddNv[1];
     double Nf1   =  xi1;
 
-    double dx   = jsx*v[0];                // u'
+    double dx   = jsx*v[0];                     // u'
     double dy   =  dNw1*v(3) +  dNw2*v(4);      // y'
     double dz   =  dNv[0]*v(1) +  dNv[1]*v(2);  // z'
     double phi  = Nf1*v(5);                 // phi
@@ -325,7 +325,7 @@ EulerDeltaFrame3d::getResistingForce()
 const Matrix &
 EulerDeltaFrame3d::getTangentStiff()
 {
-  static MatrixND<ndf*nen,  ndf*nen> kb;
+  static MatrixND<ndf*nen, ndf*nen> kb;
   static MatrixND<nsr,  8> A;
   static MatrixND<  8, 12> B;
   static MatrixND<  8,  8> ks;
@@ -361,7 +361,7 @@ EulerDeltaFrame3d::getTangentStiff()
 
     // Beam geometric stiffness matrix
     Gm( 1,  1) = Gm(2,  2) = Gm(3, 3) = Gm(4, 4) =  s[0] * 4.0 / 30.0; // 4/30*N
-    Gm( 1,  3) = Gm(2,  4) = Gm(3, 1) = Gm(4, 2) = -s[0] / 30.0;      // -1/30*N
+    Gm( 1,  3) = Gm(2,  4) = Gm(3, 1) = Gm(4, 2) = -s[0] / 30.0;       // -1/30*N
     Gm( 9,  8) = Gm(8,  9) =  s[1];                                    // Mz
     Gm( 9,  7) = Gm(7,  9) =  s[2];                                    // My
     Gm(10, 10)             =  s[3];                                    // W
@@ -800,273 +800,11 @@ EulerDeltaFrame3d::activateParameter(int passedParameterID)
 int
 EulerDeltaFrame3d::sendSelf(int commitTag, Channel &theChannel)
 {
-  // place the integer data into an ID
-
-  int dbTag = this->getDbTag();
-  int i, j;
-  int loc = 0;
-
-  static Vector data(16);
-  data(0)            = this->getTag();
-  data(1)            = connectedExternalNodes(0);
-  data(2)            = connectedExternalNodes(1);
-  data(3)            = numSections;
-  data(4)            = theCoordTransf->getClassTag();
-  int crdTransfDbTag = theCoordTransf->getDbTag();
-  if (crdTransfDbTag == 0) {
-    crdTransfDbTag = theChannel.getDbTag();
-    if (crdTransfDbTag != 0)
-      theCoordTransf->setDbTag(crdTransfDbTag);
-  }
-  data(5)          = crdTransfDbTag;
-  data(6)          = beamInt->getClassTag();
-  int beamIntDbTag = beamInt->getDbTag();
-  if (beamIntDbTag == 0) {
-    beamIntDbTag = theChannel.getDbTag();
-    if (beamIntDbTag != 0)
-      beamInt->setDbTag(beamIntDbTag);
-  }
-  data(7)  = beamIntDbTag;
-  data(8)  = density;
-  data(9)  = mass_flag;
-  data(10) = alphaM;
-  data(11) = betaK;
-  data(12) = betaK0;
-  data(13) = betaKc;
-
-  if (theChannel.sendVector(dbTag, commitTag, data) < 0) {
-    opserr << "EulerDeltaFrame3d::sendSelf() - failed to send data Vector\n";
-    return -1;
-  }
-
-  // send the coordinate transformation
-  if (theCoordTransf->sendSelf(commitTag, theChannel) < 0) {
-    opserr << "EulerDeltaFrame3d::sendSelf() - failed to send crdTranf\n";
-    return -1;
-  }
-
-  // send the beam integration
-  if (beamInt->sendSelf(commitTag, theChannel) < 0) {
-    opserr << "EulerDeltaFrame3d::sendSelf() - failed to send beamInt\n";
-    return -1;
-  }
-
-  //
-  // send an ID for the sections containing each sections dbTag and classTag
-  // if section ha no dbTag get one and assign it
-  //
-
-  ID idSections(2 * numSections);
-  loc = 0;
-  for (i = 0; i < numSections; i++) {
-    int sectClassTag = sections[i]->getClassTag();
-    int sectDbTag    = sections[i]->getDbTag();
-    if (sectDbTag == 0) {
-      sectDbTag = theChannel.getDbTag();
-      sections[i]->setDbTag(sectDbTag);
-    }
-
-    idSections(loc)     = sectClassTag;
-    idSections(loc + 1) = sectDbTag;
-    loc += 2;
-  }
-
-  if (theChannel.sendID(dbTag, commitTag, idSections) < 0) {
-    opserr << "EulerDeltaFrame3d::sendSelf() - failed to send ID data\n";
-    return -1;
-  }
-
-  //
-  // send the sections
-  //
-
-  for (int j = 0; j < numSections; j++) {
-    if (sections[j]->sendSelf(commitTag, theChannel) < 0) {
-      opserr << "EulerDeltaFrame3d::sendSelf() - section " << j
-             << "failed to send itself\n";
-      return -1;
-    }
-  }
-
-  return 0;
+  return -1;
 }
 
 int
-EulerDeltaFrame3d::recvSelf(int commitTag, Channel &theChannel,
-                               FEM_ObjectBroker &theBroker)
+EulerDeltaFrame3d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-  //
-  // receive the integer data containing tag, numSections and coord transformation info
-  //
-  int dbTag = this->getDbTag();
-  int i;
-
-  static Vector data(16);
-
-  if (theChannel.recvVector(dbTag, commitTag, data) < 0) {
-    opserr << "EulerDeltaFrame3d::recvSelf() - failed to recv data Vector\n";
-    return -1;
-  }
-
-  this->setTag((int)data(0));
-  connectedExternalNodes(0) = (int)data(1);
-  connectedExternalNodes(1) = (int)data(2);
-  int nSect                 = (int)data(3);
-  int crdTransfClassTag     = (int)data(4);
-  int crdTransfDbTag        = (int)data(5);
-
-  int beamIntClassTag = (int)data(6);
-  int beamIntDbTag    = (int)data(7);
-
-  density   = data(8);
-  mass_flag = (int)data(9);
-
-  alphaM = data(10);
-  betaK  = data(11);
-  betaK0 = data(12);
-  betaKc = data(13);
-
-  // create a new crdTransf object if one needed
-  if (theCoordTransf == 0 || theCoordTransf->getClassTag() != crdTransfClassTag) {
-    if (theCoordTransf != 0)
-      delete theCoordTransf;
-
-    // TODO(cmp) - add FrameTransform to ObjBroker
-    theCoordTransf = nullptr; // theBroker.getNewFrameTransform3d(crdTransfClassTag);
-
-    if (theCoordTransf == nullptr) {
-      opserr << "EulerDeltaFrame3d::recvSelf() - "
-             << "failed to obtain a CrdTrans object with classTag" << crdTransfClassTag
-             << "\n";
-      return -2;
-    }
-  }
-
-  theCoordTransf->setDbTag(crdTransfDbTag);
-
-  // invoke recvSelf on the crdTransf object
-  if (theCoordTransf->recvSelf(commitTag, theChannel, theBroker) < 0) {
-    opserr << "EulerDeltaFrame3d::sendSelf() - failed to recv crdTranf\n";
-    return -3;
-  }
-
-  // create a new beamInt object if one needed
-  if (beamInt == 0 || beamInt->getClassTag() != beamIntClassTag) {
-    if (beamInt != 0)
-      delete beamInt;
-
-    beamInt = theBroker.getNewBeamIntegration(beamIntClassTag);
-
-    if (beamInt == 0) {
-      opserr << "EulerDeltaFrame3d::recvSelf() - failed to obtain the beam "
-                "integration object with classTag"
-             << beamIntClassTag << "\n";
-      return -3;
-    }
-  }
-
-  beamInt->setDbTag(beamIntDbTag);
-
-  // invoke recvSelf on the beamInt object
-  if (beamInt->recvSelf(commitTag, theChannel, theBroker) < 0) {
-    opserr << "EulerDeltaFrame3d::sendSelf() - failed to recv beam integration\n";
-    return -3;
-  }
-
-  //
-  // recv an ID for the sections containing each sections dbTag and classTag
-  //
-
-  ID idSections(2 * nSect);
-  int loc = 0;
-
-  if (theChannel.recvID(dbTag, commitTag, idSections) < 0) {
-    opserr << "EulerDeltaFrame3d::recvSelf() - failed to recv ID data\n";
-    return -1;
-  }
-
-  //
-  // now receive the sections
-  //
-
-  if (numSections != nSect) {
-
-    //
-    // we do not have correct number of sections, must delete the old and create
-    // new ones before can recvSelf on the sections
-    //
-
-    // delete the old
-    if (numSections != 0) {
-      for (int i = 0; i < numSections; i++)
-        delete sections[i];
-      delete[] sections;
-    }
-
-    // create a new array to hold pointers
-    sections = new FrameSection *[nSect];
-
-    // create a section and recvSelf on it
-    numSections = nSect;
-    loc         = 0;
-
-    for (i = 0; i < numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag    = idSections(loc + 1);
-      loc += 2;
-      // TODO(cmp) add FrameSection to broker
-//    sections[i] = theBroker.getNewSection(sectClassTag);
-      if (sections[i] == nullptr) {
-        opserr << "EulerDeltaFrame3d::recvSelf() - Broker could not create Section of "
-                  "class type"
-               << sectClassTag << "\n";
-        return -1;
-      }
-      sections[i]->setDbTag(sectDbTag);
-      if (sections[i]->recvSelf(commitTag, theChannel, theBroker) < 0) {
-        opserr << "EulerDeltaFrame3d::recvSelf() - section " << i
-               << "failed to recv itself\n";
-        return -1;
-      }
-    }
-
-  } else {
-
-    //
-    // for each existing section, check it is of correct type
-    // (if not delete old & create a new one) then recvSelf on it
-    //
-
-    loc = 0;
-    for (i = 0; i < numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag    = idSections(loc + 1);
-      loc += 2;
-
-      // check of correct type
-      if (sections[i]->getClassTag() != sectClassTag) {
-        // delete the old section[i] and create a new one
-        delete sections[i];
-      // TODO(cmp) add FrameSection to broker
-//      sections[i] = theBroker.getNewSection(sectClassTag);
-        if (sections[i] == nullptr) {
-          opserr << "EulerDeltaFrame3d::recvSelf() - Broker could not create Section "
-                    "of class type"
-                 << sectClassTag << "\n";
-          return -1;
-        }
-      }
-
-      // recvSelf on it
-      sections[i]->setDbTag(sectDbTag);
-      if (sections[i]->recvSelf(commitTag, theChannel, theBroker) < 0) {
-        opserr << "EulerDeltaFrame3d::recvSelf() - section " << i
-               << "failed to recv itself\n";
-        return -1;
-      }
-    }
-  }
-
-  return 0;
+  return -1;
 }
-
