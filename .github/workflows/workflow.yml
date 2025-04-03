@@ -22,5 +22,5 @@ jobs:
         python-version: "3.x"
 
     - name: Install OpenSees
-      run: pip install opensees
+      run: pip install opensees xara veux
 
