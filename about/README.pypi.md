@@ -7,23 +7,19 @@ Nonlinear finite element analysis.
 
 <div style="align:center">
 
-[![Latest PyPI version](https://img.shields.io/pypi/v/opensees?logo=pypi)](https://pypi.python.org/pypi/opensees)
-[![](https://img.shields.io/conda/v/opensees/opensees?color=%23660505)](https://anaconda.org/opensees/opensees)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/opensees)](https://pypi.org/project/opensees)
+[![Latest PyPI version](https://img.shields.io/pypi/v/xara?logo=pypi)](https://pypi.python.org/pypi/xara)
+[![](https://img.shields.io/conda/v/xara/xara?color=%23660505)](https://anaconda.org/xara/xara)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/xara)](https://pypi.org/project/xara)
 
 </div>
 
-<p style="text-align: center;">
-<b>This package is <i>experimental</i> and not yet intended for public use.</b>
-</p>
 
-<!-- Badge links -->
 
-[pypi-d-image]: https://img.shields.io/pypi/dm/opensees.svg
-[license-badge]: https://img.shields.io/pypi/l/opensees.svg
-[pypi-d-link]: https://pypi.org/project/opensees
-[pypi-v-image]: https://img.shields.io/pypi/v/opensees.svg
-[pypi-v-link]: https://pypi.org/project/opensees
+[pypi-d-image]: https://img.shields.io/pypi/dm/xara.svg
+[license-badge]: https://img.shields.io/pypi/l/xara.svg
+[pypi-d-link]: https://pypi.org/project/xara
+[pypi-v-image]: https://img.shields.io/pypi/v/xara.svg
+[pypi-v-link]: https://pypi.org/project/xara
 
 <!--
 ## Support

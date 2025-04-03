@@ -13,17 +13,13 @@ Nonlinear finite element analysis.
 
 </div>
 
-OpenSeesRT is a framework that provides an intuitive API for nonlinear
-finite element analysis, implemented in C++ through the OpenSees framework. 
+*xara* is a Python package that provides an intuitive and performant API for nonlinear
+finite element analysis, implemented in C++ through the OpenSeesRT framework. 
 OpenSees features state-of-the-art finite element formulations and solution 
 algorithms, including mixed formulations for beams and solids, over 200 material models, and an
 extensive collection of continuation algorithms to solve highly nonlinear
 problems. 
 
-<!--
-The `opensees` package supports high quality interactive post processing via the
-[`sees`](https://pypi.org/project/sees) package.
--->
 
 This package may be used as a drop-in replacement for both `OpenSees.exe` and
 OpenSeesPy (see *Getting Started* below), and generally provides a substantial performance boost.
@@ -114,14 +110,6 @@ To compile the project see [about/compiling](https://github.com/claudioperez/Ope
     </a>
   </td>
 
-  <td>
-    <!-- <a href="https://brace2.herokuapp.com"> -->
-    <a href="https://stairlab.berkeley.edu">
-    <img src="https://raw.githubusercontent.com/claudioperez/sdof/master/docs/assets/stairlab.svg"
-         alt="STAIRlab Logo" width="200"/>
-    </a>
-  </td>
- 
  </tr>
 </table>
 
