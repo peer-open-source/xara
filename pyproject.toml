@@ -79,7 +79,7 @@ my-client = "opensees.__main__:main_cli"
 
 [tool.setuptools.packages.find]
 where = ["SRC"]
-include=["opensees*", "xara*"]
+include=["xara*"]
 exclude = ["SRC*", "site*", "test*"]
 
 [tool.setuptools.package-data]
