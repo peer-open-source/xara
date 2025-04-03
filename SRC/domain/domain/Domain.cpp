@@ -93,32 +93,31 @@ Domain::Domain()
  lastChannel(0),
  paramIndex(0), paramSize(0), numParameters(0)
 {
-  
-    // initialize the arrays for storing the domain components
-    theElements     = new MapOfTaggedObjects();
-    theNodes        = new MapOfTaggedObjects();
-    theSPs          = new MapOfTaggedObjects();
-    thePCs          = new MapOfTaggedObjects();
-    theMPs          = new MapOfTaggedObjects();    
-    theLoadPatterns = new MapOfTaggedObjects();
-    theParameters   = new MapOfTaggedObjects();
+  // initialize the arrays for storing the domain components
+  theElements     = new MapOfTaggedObjects();
+  theNodes        = new MapOfTaggedObjects();
+  theSPs          = new MapOfTaggedObjects();
+  thePCs          = new MapOfTaggedObjects();
+  theMPs          = new MapOfTaggedObjects();    
+  theLoadPatterns = new MapOfTaggedObjects();
+  theParameters   = new MapOfTaggedObjects();
 
-    // initialize the iterators
-    theEleIter = new SingleDomEleIter(theElements);    
-    theNodIter = new SingleDomNodIter(theNodes);
-    theSP_Iter = new SingleDomSP_Iter(theSPs);
-    thePC_Iter = new SingleDomPC_Iter(thePCs);
-    theMP_Iter = new SingleDomMP_Iter(theMPs);
-    theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
-    allSP_Iter = new SingleDomAllSP_Iter(*this);
-    theParamIter = new SingleDomParamIter(theParameters);
+  // initialize the iterators
+  theEleIter = new SingleDomEleIter(theElements);    
+  theNodIter = new SingleDomNodIter(theNodes);
+  theSP_Iter = new SingleDomSP_Iter(theSPs);
+  thePC_Iter = new SingleDomPC_Iter(thePCs);
+  theMP_Iter = new SingleDomMP_Iter(theMPs);
+  theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
+  allSP_Iter = new SingleDomAllSP_Iter(*this);
+  theParamIter = new SingleDomParamIter(theParameters);
 
-    theBounds(0) = 0.0;
-    theBounds(1) = 0.0;
-    theBounds(2) = 0.0;
-    theBounds(3) = 0.0;
-    theBounds(4) = 0.0;
-    theBounds(5) = 0.0;
+  theBounds(0) = 0.0;
+  theBounds(1) = 0.0;
+  theBounds(2) = 0.0;
+  theBounds(3) = 0.0;
+  theBounds(4) = 0.0;
+  theBounds(5) = 0.0;
 }
 
 
@@ -189,12 +188,12 @@ Domain::Domain(TaggedObjectStorage &theNodesStorage,
 {
     // check that the containers are empty
     if (theElements->getNumComponents() != 0 ||
-	theNodes->getNumComponents() != 0 ||
-	theSPs->getNumComponents() != 0 ||
-	theMPs->getNumComponents() != 0 ||
-	theLoadPatterns->getNumComponents() != 0 ) {
+        theNodes->getNumComponents() != 0 ||
+        theSPs->getNumComponents() != 0 ||
+        theMPs->getNumComponents() != 0 ||
+        theLoadPatterns->getNumComponents() != 0 ) {
 
-	opserr << ("Domain::Domain(&, & ...) - out of memory\n");	
+        opserr << "Domain::Domain(&, & ...) - out of memory\n";
     }
 
     // init the arrays for storing the domain components
@@ -209,7 +208,7 @@ Domain::Domain(TaggedObjectStorage &theNodesStorage,
     theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
     allSP_Iter         = new SingleDomAllSP_Iter(*this);
     theParameters      = new MapOfTaggedObjects();    
-    theParamIter       = new SingleDomParamIter(theParameters);	
+    theParamIter       = new SingleDomParamIter(theParameters);
  
     theBounds(0) = 0.0;
     theBounds(1) = 0.0;
@@ -369,17 +368,15 @@ Domain::addElement(Element *element)
 
   // check all the elements nodes exist in the domain
   const ID &nodes = element->getExternalNodes();
-  int numDOF = 0;
   for (int i=0; i<nodes.Size(); i++) {
       int nodeTag = nodes(i);
       Node *nodePtr = this->getNode(nodeTag);
       if (nodePtr == nullptr) {
-	opserr << "WARNING Domain::addElement - In element " << eleTag;
-	  opserr << "\n no Node " << nodeTag << " exists in the domain\n";
-	  return false;
+        opserr << "WARNING Domain::addElement - In element " << eleTag;
+        opserr << "\n no Node " << nodeTag << " exists in the domain\n";
+        return false;
       }
-      numDOF += nodePtr->getNumberDOF();
-  }   
+  }
 
   // check if an Element with a similar tag already exists in the Domain
   TaggedObject *other = theElements->getComponentPtr(eleTag);
@@ -393,15 +390,6 @@ Domain::addElement(Element *element)
   if (result == true) {
     element->setDomain(this);
     element->update();
-
-    // finally check the ele has correct number of dof
-#ifdef _G3DEBUG
-    if (numDOF != element->getNumDOF()) {
-      opserr << "Domain::addElement - element " << eleTag << " - #DOF does not match with number at nodes\n";
-      theElements->removeComponent(eleTag);
-      return false;
-    }
-#endif
 
     // mark the Domain as having been changed
     this->domainChange();
@@ -626,9 +614,9 @@ Domain::addSP_Constraint(int axisDirn, double axisValue,
 	    while ((found == false) && ((theExistingSP = theExistingSPs()) != 0)) {
 	      int spNodeTag = theExistingSP->getNodeTag();
 	      int dof = theExistingSP->getDOF_Number();
-	      if (nodeTag == spNodeTag && i == dof) {
-		found = true;
-	      }
+	      if (nodeTag == spNodeTag && i == dof)
+            found = true;
+
 	    }
 	    
 	    // if no sp constraint, create one and ass it
@@ -667,7 +655,7 @@ Domain::addMP_Constraint(MP_Constraint *mpConstraint)
     Node *nodePtr = this->getNode(nodeConstrained);
     if (nodePtr == nullptr) {
       opserr << "Domain::addMP_Constraint - cannot add as constrained node with tag " <<
-	nodeConstrained << " does not exist in model\n";
+      nodeConstrained << " does not exist in model\n";
       return false;
     }
     
@@ -675,7 +663,7 @@ Domain::addMP_Constraint(MP_Constraint *mpConstraint)
     nodePtr = this->getNode(nodeRetained);
     if (nodePtr == nullptr) {
       opserr << "Domain::addMP_Constraint - cannot add as retained node with tag " <<
-	nodeRetained << " does not exist in model\n";
+      nodeRetained << " does not exist in model\n";
       return false;
     }      
     // MISSING CODE
@@ -687,7 +675,6 @@ Domain::addMP_Constraint(MP_Constraint *mpConstraint)
   if (other != nullptr) {
     opserr << "Domain::addMP_Constraint - cannot add as constraint with tag " 
            << tag << " already exists in model";             
-			      
     return false;
   }
   
@@ -710,8 +697,7 @@ Domain::addLoadPattern(LoadPattern *load)
     TaggedObject *other = theLoadPatterns->getComponentPtr(tag);
     if (other != nullptr) {
       opserr << "Domain::addLoadPattern - cannot add as LoadPattern with tag "
-             << tag << " already exists in model\n";             
-				
+             << tag << " already exists in model\n";
       return false;
     }    
 
@@ -1660,10 +1646,10 @@ Domain::getElementResponse(int eleTag, const char **argv, int argc)
   else  {
 
     if (argc == 1) {
-      if (strcmp(argv[0],"forces") == 0) {
+      if (strcmp(argv[0], "forces") == 0) {
         return &(theEle->getResistingForce());
-
-      } else if (strcmp(argv[0],"nodeTags") == 0) {
+      } 
+      else if (strcmp(argv[0],"nodeTags") == 0) {
         const ID&theNodes = theEle->getExternalNodes();
         int size = theNodes.Size();
         if (responseData.Size() != size) 
@@ -1790,13 +1776,13 @@ Domain::applyLoad(double scale)
     Node *nodePtr;
     NodeIter &theNodeIter = this->getNodes();
     while ((nodePtr = theNodeIter()) != nullptr)
-	nodePtr->zeroUnbalancedLoad();
+      nodePtr->zeroUnbalancedLoad();
 
     Element *elePtr;
     ElementIter &theElemIter = this->getElements();    
     while ((elePtr = theElemIter()) != nullptr)
-	if (elePtr->isSubdomain() == false)
-	    elePtr->zeroLoad();    
+      if (elePtr->isSubdomain() == false)
+          elePtr->zeroLoad();    
 
     //
     // now loop over load patterns, invoking applyLoad on them
@@ -1973,19 +1959,19 @@ Domain::revertToStart(void)
     Node *nodePtr;
     NodeIter &theNodeIter = this->getNodes();
     while ((nodePtr = theNodeIter()) != nullptr) 
-	nodePtr->revertToStart();
+        nodePtr->revertToStart();
 
     Element *elePtr;
     ElementIter &theElements = this->getElements();    
     while ((elePtr = theElements()) != nullptr) {
-	elePtr->revertToStart();
+        elePtr->revertToStart();
     }
 
     // ADDED BY TERJE //////////////////////////////////
     // invoke 'restart' on all recorders
     for (int i=0; i<numRecorders; i++) 
       if (theRecorders[i] != nullptr)
-	theRecorders[i]->restart();
+        theRecorders[i]->restart();
     /////////////////////////////////////////////////////
 
     // set the current time and load factor in the domain to last committed
@@ -2215,16 +2201,16 @@ Domain::getDomainChangeFlag(void)
 
 int
 Domain::hasDomainChanged(void)
-{	
+{
     // if the flag indicating the domain has changed since the
     // last call to this method has changed, increment the integer
     // and reset the flag
     bool result = hasDomainChangedFlag;
     hasDomainChangedFlag = false;
     if (result == true) {
-	currentGeoTag++;
-	nodeGraphBuiltFlag = false;
-	eleGraphBuiltFlag = false;
+        currentGeoTag++;
+        nodeGraphBuiltFlag = false;
+        eleGraphBuiltFlag = false;
     }
 
     // return the integer so user can determine if domain has changed 
@@ -2277,7 +2263,7 @@ void Domain::Print(OPS_Stream &s, ID *nodeTags, ID *eleTags, int flag)
       int nodeTag = (*nodeTags)(i);
       TaggedObject *theNode = theNodes->getComponentPtr(nodeTag);
       if (theNode != nullptr)
-	theNode->Print(s, flag);
+        theNode->Print(s, flag);
     }
   }
 
@@ -2287,7 +2273,7 @@ void Domain::Print(OPS_Stream &s, ID *nodeTags, ID *eleTags, int flag)
       int eleTag = (*eleTags)(i);
       TaggedObject *theEle = theElements->getComponentPtr(eleTag);
       if (theEle != 0)
-	theEle->Print(s, flag);
+        theEle->Print(s, flag);
     }
   }
 }
@@ -2362,9 +2348,9 @@ Domain::removeRecorder(int tag)
   for (int i=0; i<numRecorders; i++) {
     if (theRecorders[i] != 0) {
       if (theRecorders[i]->getTag() == tag) {
-	delete theRecorders[i];
-	theRecorders[i] = 0;
-	return 0;
+        delete theRecorders[i];
+        theRecorders[i] = 0;
+        return 0;
       }
     }
   }
@@ -2381,7 +2367,7 @@ Domain::addRegion(MeshRegion &theRegion)
     MeshRegion **newRegions = new MeshRegion *[numRegions + 1]; 
 
     for (int i=0; i<numRegions; i++)
-	newRegions[i] = theRegions[i];
+        newRegions[i] = theRegions[i];
     newRegions[numRegions] = &theRegion;
     theRegion.setDomain(this);
     if (theRegions != 0)
@@ -3087,8 +3073,8 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 
       // now receive the ID about the nodes, class tag and dbTags
       if (theChannel.recvID(dbNod, geoTag, nodeData) < 0) {
-	opserr << "Domain::recv - channel failed to recv the node ID\n";
-	return -2;
+        opserr << "Domain::recv - channel failed to recv the node ID\n";
+        return -2;
       }
 
       // now for each node we 1) get a new node of the correct type from the ObjectBroker
@@ -3096,29 +3082,29 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
       // blank node and 4) add this node to the domain
       loc = 0;
       for (i=0; i<numNod; i++) {
-	int classTag = nodeData(loc);
-	int dbTag = nodeData(loc+1);
+        int classTag = nodeData(loc);
+        int dbTag = nodeData(loc+1);
       
-	Node *theNode = theBroker.getNewNode(classTag);
+        Node *theNode = theBroker.getNewNode(classTag);
 
-	if (theNode == 0) {
-	  opserr << "Domain::recv - cannot create node with classTag " << classTag << endln;
-	  return -2;
-	}			
+        if (theNode == 0) {
+          opserr << "Domain::recv - cannot create node with classTag " << classTag << endln;
+          return -2;
+        }                        
 
-	theNode->setDbTag(dbTag);
+        theNode->setDbTag(dbTag);
       
-	if (theNode->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	  opserr << "Domain::recv - node with dbTag " << dbTag << " failed in recvSelf\n";
-	  return -2;
-	}			
+        if (theNode->recvSelf(commitTag, theChannel, theBroker) < 0) {
+          opserr << "Domain::recv - node with dbTag " << dbTag << " failed in recvSelf\n";
+          return -2;
+        }                        
 
-	if (this->addNode(theNode) == false) {
-	  opserr << "Domain::recv - could not add node with tag " << theNode->getTag() << " into domain\n!";
-	  return -3;
-	}			
+        if (this->addNode(theNode) == false) {
+          opserr << "Domain::recv - could not add node with tag " << theNode->getTag() << " into domain\n!";
+          return -3;
+        }                        
 
-	loc += 2;
+        loc += 2;
       }
     }
 
@@ -3133,33 +3119,33 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
       ID eleData(2*numEle);
 
       if (theChannel.recvID(dbEle, geoTag, eleData) < 0) {
-	opserr << "Domain::recv - channel failed to recv the Ele ID\n";
-	return -2;
+        opserr << "Domain::recv - channel failed to recv the Ele ID\n";
+        return -2;
       }
 
       loc = 0;
       for (i=0; i<numEle; i++) {
-	int classTag = eleData(loc);
-	int dbTag = eleData(loc+1);
+        int classTag = eleData(loc);
+        int dbTag = eleData(loc+1);
       
-	Element *theEle = theBroker.getNewElement(classTag);
-	if (theEle == 0) {
-	  opserr << "Domain::recv - cannot create element with classTag " << classTag << endln;
-	  return -2;
-	}			
-	theEle->setDbTag(dbTag);
+        Element *theEle = theBroker.getNewElement(classTag);
+        if (theEle == 0) {
+          opserr << "Domain::recv - cannot create element with classTag " << classTag << endln;
+          return -2;
+        }                        
+        theEle->setDbTag(dbTag);
       
-	if (theEle->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	  opserr << "Domain::recv - Ele with dbTag " << dbTag << " failed in recvSelf()\n";
-	  return -2;
-	}			
+        if (theEle->recvSelf(commitTag, theChannel, theBroker) < 0) {
+          opserr << "Domain::recv - Ele with dbTag " << dbTag << " failed in recvSelf()\n";
+          return -2;
+        }                        
 
-	if (this->addElement(theEle) == false) {
-	  opserr << "Domain::recv - could not add Ele with tag " << theEle->getTag() << " into domain!\n";
-	  return -3;
-	}			
+        if (this->addElement(theEle) == false) {
+          opserr << "Domain::recv - could not add Ele with tag " << theEle->getTag() << " into domain!\n";
+          return -3;
+        }                        
 
-	loc+=2;
+        loc+=2;
       }
     }
 
@@ -3172,33 +3158,33 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
       ID spData(2*numSPs);
 
       if (theChannel.recvID(dbSPs, geoTag, spData) < 0) {
-	opserr << "Domain::recv - channel failed to recv the SP_Constraints ID\n";
-	return -2;
+        opserr << "Domain::recv - channel failed to recv the SP_Constraints ID\n";
+        return -2;
       }
 
       loc = 0;
       for (i=0; i<numSPs; i++) {
-	int classTag = spData(loc);
-	int dbTag = spData(loc+1);
+        int classTag = spData(loc);
+        int dbTag = spData(loc+1);
       
-	SP_Constraint *theSP = theBroker.getNewSP(classTag);
-	if (theSP == 0) {
-	  opserr << "Domain::recv - cannot create SP_Constraint with classTag " << classTag << endln;
-	  return -2;
-	}			
-	theSP->setDbTag(dbTag);
+        SP_Constraint *theSP = theBroker.getNewSP(classTag);
+        if (theSP == 0) {
+          opserr << "Domain::recv - cannot create SP_Constraint with classTag " << classTag << endln;
+          return -2;
+        }                        
+        theSP->setDbTag(dbTag);
       
-	if (theSP->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	  opserr << "Domain::recv - SP_Constraint with dbTag " << dbTag << " failed in recvSelf\n";
-	  return -2;
-	}			
+        if (theSP->recvSelf(commitTag, theChannel, theBroker) < 0) {
+          opserr << "Domain::recv - SP_Constraint with dbTag " << dbTag << " failed in recvSelf\n";
+          return -2;
+        }                        
 
-	if (this->addSP_Constraint(theSP) == false) {
-	  opserr << "Domain::recv - could not add SP_Constraint with tag " << theSP->getTag() << " into domain!\n";
-	  return -3;
-	}			
+        if (this->addSP_Constraint(theSP) == false) {
+          opserr << "Domain::recv - could not add SP_Constraint with tag " << theSP->getTag() << " into domain!\n";
+          return -3;
+        }                        
 
-	loc+=2;
+        loc+=2;
       }
     }
 
@@ -3224,18 +3210,18 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
         if (thePC == 0) {
             opserr << "Domain::recv - cannot create Pressure_Constraint with classTag " << classTag << endln;
             return -2;
-        }			
+        }                        
         thePC->setDbTag(dbTag);
     
         if (thePC->recvSelf(commitTag, theChannel, theBroker) < 0) {
             opserr << "Domain::recv - Pressure_Constraint with dbTag " << dbTag << " failed in recvSelf\n";
             return -2;
-        }	
+        }        
 
         if (this->addPressure_Constraint(thePC) == false) {
             opserr << "Domain::recv - could not add Pressure_Constraint with tag " << thePC->getTag() << " into domain!\n";
             return -3;
-        }			
+        }                        
 
         loc+=2;
       }
@@ -3252,33 +3238,33 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
       ID mpData(2*numMPs);
 
       if (theChannel.recvID(dbMPs, geoTag, mpData) < 0) {
-	opserr << "Domain::recv - channel failed to recv the MP_Constraints ID\n";
-	return -2;
+        opserr << "Domain::recv - channel failed to recv the MP_Constraints ID\n";
+        return -2;
       }
 
       loc = 0;
       for (i=0; i<numMPs; i++) {
-	int classTag = mpData(loc);
-	int dbTag = mpData(loc+1);
+        int classTag = mpData(loc);
+        int dbTag = mpData(loc+1);
       
-	MP_Constraint *theMP = theBroker.getNewMP(classTag);
-	if (theMP == 0) {
-	  opserr << "Domain::recv - cannot create MP_Constraint with classTag " << classTag << endln;
-	  return -2;
-	}			
-	theMP->setDbTag(dbTag);
+        MP_Constraint *theMP = theBroker.getNewMP(classTag);
+        if (theMP == 0) {
+          opserr << "Domain::recv - cannot create MP_Constraint with classTag " << classTag << endln;
+          return -2;
+        }                        
+        theMP->setDbTag(dbTag);
       
-	if (theMP->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	  opserr << "Domain::recv - MP_Constraint with dbTag " << dbTag << " failed in recvSelf\n";
-	  return -2;
-	}			
+        if (theMP->recvSelf(commitTag, theChannel, theBroker) < 0) {
+          opserr << "Domain::recv - MP_Constraint with dbTag " << dbTag << " failed in recvSelf\n";
+          return -2;
+        }                        
 
-	if (this->addMP_Constraint(theMP) == false) {
-	  opserr << "Domain::recv - could not add MP_Constraint with tag " << theMP->getTag() << " into domain!\n";
-	  return -3;
-	}			
-	
-	loc+=2;
+        if (this->addMP_Constraint(theMP) == false) {
+          opserr << "Domain::recv - could not add MP_Constraint with tag " << theMP->getTag() << " into domain!\n";
+          return -3;
+        }                        
+        
+        loc+=2;
       }
     }
 
@@ -3293,33 +3279,33 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
       ID lpData(2*numLPs);
       
       if (theChannel.recvID(dbLPs, geoTag, lpData) < 0) {
-	opserr << "Domain::recv - channel failed to recv the LoadPatterns ID\n";
-	return -2;
+        opserr << "Domain::recv - channel failed to recv the LoadPatterns ID\n";
+        return -2;
       }
 
       loc = 0;
       for (i=0; i<numLPs; i++) {
-	int classTag = lpData(loc);
-	int dbTag = lpData(loc+1);
+        int classTag = lpData(loc);
+        int dbTag = lpData(loc+1);
 
-	LoadPattern *theLP = theBroker.getNewLoadPattern(classTag);
-	if (theLP == 0) {
-	  opserr << "Domain::recv - cannot create LoadPattern with classTag  " << classTag << endln;
-	  return -2;
-	}			
-	theLP->setDbTag(dbTag);
+        LoadPattern *theLP = theBroker.getNewLoadPattern(classTag);
+        if (theLP == 0) {
+          opserr << "Domain::recv - cannot create LoadPattern with classTag  " << classTag << endln;
+          return -2;
+        }                        
+        theLP->setDbTag(dbTag);
       
-	if (theLP->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	  opserr << "Domain::recv - LoadPattern with dbTag " << dbTag << " failed in recvSelf\n";
-	  return -2;
-	}			
+        if (theLP->recvSelf(commitTag, theChannel, theBroker) < 0) {
+          opserr << "Domain::recv - LoadPattern with dbTag " << dbTag << " failed in recvSelf\n";
+          return -2;
+        }                        
 
-	if (this->addLoadPattern(theLP) == false) {
-	  opserr << "Domain::recv - could not add LoadPattern with tag " << theLP->getTag() <<  " into the Domain\n";
-	  return -3;
-	}			
+        if (this->addLoadPattern(theLP) == false) {
+          opserr << "Domain::recv - could not add LoadPattern with tag " << theLP->getTag() <<  " into the Domain\n";
+          return -3;
+        }                        
 
-	loc+=2;
+        loc+=2;
       }
     }
 
@@ -3331,33 +3317,33 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
       ID paramData(2*numParameters);
       
       if (theChannel.recvID(dbParameters, geoTag, paramData) < 0) {
-	opserr << "Domain::recv - channel failed to recv the Parameters ID\n";
-	return -2;
+        opserr << "Domain::recv - channel failed to recv the Parameters ID\n";
+        return -2;
       }
 
       loc = 0;
       for (i=0; i<numParameters; i++) {
-	int classTag = paramData(loc);
-	int dbTag = paramData(loc+1);
+        int classTag = paramData(loc);
+        int dbTag = paramData(loc+1);
 
-	Parameter *theParameter = theBroker.getParameter(classTag);
-	if (theParameter == 0) {
-	  opserr << "Domain::recv - cannot create Parameter with classTag  " << classTag << endln;
-	  return -2;
-	}			
-	theParameter->setDbTag(dbTag);
+        Parameter *theParameter = theBroker.getParameter(classTag);
+        if (theParameter == 0) {
+          opserr << "Domain::recv - cannot create Parameter with classTag  " << classTag << endln;
+          return -2;
+        }                        
+        theParameter->setDbTag(dbTag);
       
-	if (theParameter->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	  opserr << "Domain::recv - Parameter with dbTag " << dbTag << " failed in recvSelf\n";
-	  return -2;
-	}			
+        if (theParameter->recvSelf(commitTag, theChannel, theBroker) < 0) {
+          opserr << "Domain::recv - Parameter with dbTag " << dbTag << " failed in recvSelf\n";
+          return -2;
+        }                        
 
-	if (this->addParameter(theParameter) == false) {
-	  opserr << "Domain::recv - could not add Parameter with tag " << theParameter->getTag() <<  " into the Domain\n";
-	  return -3;
-	}			
+        if (this->addParameter(theParameter) == false) {
+          opserr << "Domain::recv - could not add Parameter with tag " << theParameter->getTag() <<  " into the Domain\n";
+          return -3;
+        }                        
 
-	loc+=2;
+        loc+=2;
       }
     }
 
@@ -3377,8 +3363,8 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
     NodeIter &theNodes = this->getNodes();
     while ((theNode = theNodes()) != nullptr) {
       if (theNode->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	opserr << "Domain::recv - node with tag " << theNode->getTag() << " failed in recvSelf\n";
-	return -7;
+        opserr << "Domain::recv - node with tag " << theNode->getTag() << " failed in recvSelf\n";
+        return -7;
       }
     }
 
@@ -3386,8 +3372,8 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
     ElementIter &theElements = this->getElements();
     while ((theEle = theElements()) != nullptr) {
       if (theEle->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	opserr << "Domain::recv - element with tag " << theEle->getTag() <<  " failed in recvSelf\n";
-	return -8;
+        opserr << "Domain::recv - element with tag " << theEle->getTag() <<  " failed in recvSelf\n";
+        return -8;
       }
       theEle->update();
     }
@@ -3396,8 +3382,8 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
     SP_ConstraintIter &theSPs = this->getSPs();
     while ((theSP = theSPs()) != nullptr) {
       if (theSP->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	opserr << "Domain::recv - SP_Constraint with tag " << theSP->getTag() << " failed in recvSelf\n";
-	return -9;
+        opserr << "Domain::recv - SP_Constraint with tag " << theSP->getTag() << " failed in recvSelf\n";
+        return -9;
       }
     }    
 
@@ -3414,8 +3400,8 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
     MP_ConstraintIter &theMPs = this->getMPs();
     while ((theMP = theMPs()) != nullptr) {
       if (theMP->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	opserr << "Domain::recv - MP_Constraint with tag " << theMP->getTag() << " failed in recvSelf\n";
-	return -10;
+        opserr << "Domain::recv - MP_Constraint with tag " << theMP->getTag() << " failed in recvSelf\n";
+        return -10;
       }
     }    
 
@@ -3423,8 +3409,8 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
     LoadPatternIter &theLPs = this->getLoadPatterns();
     while ((theLP = theLPs()) != nullptr) {
       if (theLP->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	opserr << "Domain::recv - LoadPattern with tag " << theLP->getTag() << " failed in recvSelf";
-	return -11;
+        opserr << "Domain::recv - LoadPattern with tag " << theLP->getTag() << " failed in recvSelf";
+        return -11;
       }
     }  
 
@@ -3432,11 +3418,11 @@ Domain::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
     ParameterIter &theParams = this->getParameters();
     while ((theParam = theParams()) != nullptr) {
       if (theParam->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	opserr << "Domain::recv - Parameter with tag " << theParam->getTag() << " failed in recvSelf";
-	return -12;
+        opserr << "Domain::recv - Parameter with tag " << theParam->getTag() << " failed in recvSelf";
+        return -12;
       }
-    }  
-  } 
+    }
+  }
 
   // now set the domains lastGeoSendTag and currentDomainChangedFlag
   lastGeoSendTag = currentGeoTag;  
@@ -3499,7 +3485,6 @@ Domain::getRecorder(int tag)
 {
   Recorder* res = nullptr;
 
-  // invoke record on all recorders
   for (int i = 0; i < numRecorders; i++) {
     if (theRecorders[i] == 0)
       break;
@@ -3514,35 +3499,4 @@ Domain::getRecorder(int tag)
 
 
 
-#if 0
-int Domain::activateElements(const ID& elementList)
-{
-    Element* theElement;
-    for (int i = 0; i < elementList.Size(); ++i)
-    {
-        int eleTag = elementList(i);
-        theElement = this->getElement(eleTag);
-        if (theElement != 0)
-        {
-            theElement->activate();
-        }
-    }
-    return 0;
-}
 
-
-int Domain::deactivateElements(const ID& elementList)
-{
-    Element* theElement;
-    for (int i = 0; i < elementList.Size(); ++i)
-    {
-        int eleTag = elementList(i);
-        theElement = this->getElement(eleTag);
-        if (theElement != 0)
-        {
-            theElement->deactivate();
-        }
-    }
-    return 0;
-}
-#endif
