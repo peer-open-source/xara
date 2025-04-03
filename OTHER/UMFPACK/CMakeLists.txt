@@ -166,6 +166,12 @@ target_compile_definitions(UMF         PRIVATE DINT)
 target_compile_definitions(UMFPACK_II  PRIVATE DINT)
 target_compile_definitions(UMFPACK_DI  PRIVATE DINT)
 
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(UMF        PUBLIC OpenMP::OpenMP_C)
+  target_link_libraries(UMFPACK_II PUBLIC OpenMP::OpenMP_C)
+  target_link_libraries(UMFPACK_DI PUBLIC OpenMP::OpenMP_C)
+endif()
 #----------------------------------------------------------------------
 # Create the libumfpack.a library
 #----------------------------------------------------------------------
@@ -184,8 +190,4 @@ add_library(UMFPACK #INTERFACE)
 target_link_libraries(UMFPACK PUBLIC ${UMF_CREATED})
 set_target_properties(UMFPACK PROPERTIES LINKER_LANGUAGE C)
 
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-  target_link_libraries(UMFPACK PUBLIC OpenMP::OpenMP_C)
-endif()
 
