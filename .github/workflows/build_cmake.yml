@@ -34,16 +34,16 @@ jobs:
         mkdir build
         cd build
         cmake .. -DNoOpenSeesPyRT:BOOL=TRUE
-        cmake --build . --target OpenSeesRT -j8 2>&1 | tee build.log
-
-    - name: Count warnings
-      id: count
-      run: |
+        cmake --build . --target OpenSeesRT -j3 2>&1 | tee build.log
         # Count lines containing "warning:"
         WARNINGS=$(grep -c "warning:" build.log || true)
         echo "WARNING_COUNT=$WARNINGS" >> $GITHUB_ENV
         echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT 
         echo "::warning::We found $WARNING_COUNT warnings"
+
+#   - name: Count warnings
+#     id: count
+#     run: |
 
     - name: Comment on PR with warning count
       # Only run if it's a PR (not just a push)
@@ -86,15 +86,16 @@ jobs:
 #       run: |
 #        ln -s /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
 
-      - name: Install GCC (which includes gfortran)
-        run: brew install gcc
+#     - name: Install GCC (which includes gfortran)
+#       run: brew install gcc
 
       - name: Build
         run: |
           mkdir build
           cd build
+          export FC=$(brew --prefix gcc)/bin/gfortran-$(brew list gcc | grep -Eo 'gfortran-[0-9]+' | head -n1 | grep -Eo '[0-9]+')
           cmake .. -DNoOpenSeesPyRT:BOOL=TRUE
-          cmake --build . --target OpenSeesRT -j8
+          cmake --build . --target OpenSeesRT -j3
 
 #     - name: Verification
 #       run: |
