@@ -95,11 +95,15 @@ int
 setNodeCoord(ClientData clientData, Tcl_Interp *interp, int argc,
              TCL_Char ** const argv)
 {
+  //
+  // setNodeCoord nodeTag? dim? value?
+  //
   assert(clientData != nullptr);
   Domain *domain = (Domain*)clientData;
-
   if (argc < 4) {
-    opserr << "WARNING want - setNodeCoord nodeTag? dim? value?\n";
+    opserr << OpenSees::PromptValueError 
+           << "expected setNodeCoord nodeTag? dim? value?"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -698,6 +702,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
     opserr << "WARNING nodeResponse nodeTag? dof? - could not read dof? \n";
     return TCL_ERROR;
   }
+
   if (Tcl_GetInt(interp, argv[3], &responseID) != TCL_OK) {
     if (strcmp(argv[3], "displacement") == 0)
       responseID = (int)NodeData::Disp;
@@ -707,9 +712,10 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
       responseID = (int)NodeData::Accel;
     else if (strcmp(argv[3], "resiudal") == 0)
       responseID = (int)NodeData::UnbalancedLoad;
-    else
+    else {
       opserr << "WARNING unknown response " << argv[3] << "\n";
       return TCL_ERROR;
+    }
   }
 
   dof--;
@@ -722,6 +728,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
       return TCL_ERROR;
 
     nodalResponse = theNode->getResponse((NodeData)responseID);
+
   } else
     nodalResponse =
         the_domain->getNodeResponse(tag, (NodeData)responseID);
@@ -1009,7 +1016,9 @@ nodeDOFs(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const 
   Domain *the_domain = (Domain*)clientData;
 
   if (argc != 2) {
-    opserr << G3_ERROR_PROMPT << "expected - nodeDOFs nodeTag?\n";
+    opserr << OpenSees::PromptValueError 
+           << "Missing required arguments"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -1022,14 +1031,18 @@ nodeDOFs(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const 
 
   Node *theNode = the_domain->getNode(tag);
   if (theNode == nullptr) {
-    opserr << G3_ERROR_PROMPT << "nodeDOFs node " << tag << " not found" << endln;
+    opserr << OpenSees::PromptValueError 
+           << "node with tag " << tag << " not found" 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   int numDOF = theNode->getNumberDOF();
   DOF_Group *theDOFgroup = theNode->getDOF_GroupPtr();
   if (theDOFgroup == nullptr) {
-    opserr << G3_ERROR_PROMPT << "nodeDOFs DOF group null" << endln;
+    opserr << OpenSees::PromptValueError
+           << "nodeDOFs DOF group null" 
+           << OpenSees::SignalMessageEnd;
     return -1;
   }
 
