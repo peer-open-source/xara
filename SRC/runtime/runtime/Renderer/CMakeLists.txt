@@ -5,7 +5,6 @@
 #
 #==============================================================================
 
-add_compile_definitions(_NOGRAPHICS)
 
 add_library(OPS_Renderer           OBJECT EXCLUDE_FROM_ALL)
 
