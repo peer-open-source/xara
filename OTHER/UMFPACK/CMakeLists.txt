@@ -33,7 +33,6 @@ function (add_umflib libname libsource)
     target_compile_definitions(${libname} PRIVATE ${def})
   endforeach()
 endfunction()
-
 #----------------------------------------------------------------------
 # Files with different variants
 #----------------------------------------------------------------------
@@ -184,4 +183,9 @@ add_library(UMFPACK #INTERFACE)
 )
 target_link_libraries(UMFPACK PUBLIC ${UMF_CREATED})
 set_target_properties(UMFPACK PROPERTIES LINKER_LANGUAGE C)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(UMFPACK PUBLIC OpenMP::OpenMP_C)
+endif()
 

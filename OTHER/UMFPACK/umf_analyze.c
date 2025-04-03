@@ -90,7 +90,11 @@ GLOBAL Int UMF_analyze
     /* ==== initializations ================================================= */
     /* ====================================================================== */
 
-#pragma ivdep
+#ifdef __INTEL_COMPILER
+    #pragma ivdep
+#elif defined(__GNUC__) || defined(__clang__)
+    #pragma omp simd
+#endif
     for (j = 0 ; j < n_col ; j++)
     {
 	Link [j] = EMPTY ;
