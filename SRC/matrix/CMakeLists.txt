@@ -4,7 +4,7 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
-if (NOT WIN32)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(OPS_Matrix PRIVATE -fno-math-errno 
                                             -fno-signaling-nans 
                                             -fno-trapping-math 
