@@ -384,19 +384,20 @@ setParameter(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   Domain *theDomain = (Domain*)clientData;
 
-  int argLoc = 1;
   double newValue = 0.0;
   ID eleIDs(0, 32);
   int numEle = 0;
   int flag = 0;
 
-  if (strstr(argv[argLoc], "-val") != 0) {
+  int argLoc = 1;
+  if ((strstr(argv[argLoc], "-val") != 0) ||
+      (strcmp(argv[argLoc], "-value") == 0)) {
     if (Tcl_GetDouble(interp, argv[argLoc + 1], &newValue) != TCL_OK) {
-      opserr << "WARNING setParameter: invalid parameter value\n";
+      opserr << "WARNING invalid parameter value\n";
       return TCL_ERROR;
     }
   } else {
-    opserr << "WARNING setParameter:  -val not found " << endln;
+    opserr << "WARNING setParameter:  -val not found\n";
     return TCL_ERROR;
   }
 
