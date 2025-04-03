@@ -9,8 +9,6 @@ target_sources(OPS_Runtime PRIVATE dispatch.cpp)
 
 target_sources(OPS_SysOfEqn
   PRIVATE
-#   MumpsParallelSOE.cpp
-#   MumpsParallelSolver.cpp
     MumpsSOE.cpp
     MumpsSolver.cpp
   PUBLIC
@@ -21,3 +19,15 @@ target_sources(OPS_SysOfEqn
 
 target_include_directories(OPS_SysOfEqn PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
+#
+# 
+#
+add_library(OPS_Mumps_Parallel OBJECT)
+
+target_sources(OPS_Mumps_Parallel
+  PRIVATE
+    MumpsParallelSOE.cpp
+    MumpsParallelSolver.cpp
+)
+
+target_include_directories(OPS_Mumps_Parallel PUBLIC ${CMAKE_CURRENT_LIST_DIR})
