@@ -245,8 +245,8 @@ LehighJoint2d::setDomain(Domain *theDomain)
 
 	if ((dofNd1 != 3) || (dofNd2 != 3) || (dofNd3 != 3) || (dofNd4 != 3)) 
 	{
-			opserr << "ERROR : BeamColumnJoint::setDomain -- number of DOF associated with the node incorrect"<< endln;
-			exit(-1); // donot go any further - otherwise segmentation fault
+		opserr << "ERROR : BeamColumnJoint::setDomain -- number of DOF associated with the node incorrect"<< endln;
+		exit(-1); // donot go any further - otherwise segmentation fault
 	}
 
 
