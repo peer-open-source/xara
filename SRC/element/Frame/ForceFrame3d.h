@@ -135,7 +135,6 @@ class ForceFrame3d: public BasicFrame3d
   //
   // Data
   //
-
   enum Respond: int {
     GlobalForce = 1,
     BasicPlasticDeformation = 4,
@@ -143,8 +142,7 @@ class ForceFrame3d: public BasicFrame3d
     BasicForce  = 7,
     BasicStiff  =19,
   };
-  
- 
+
   //
   // Element State
   //
@@ -189,8 +187,9 @@ class ForceFrame3d: public BasicFrame3d
   std::vector<GaussPoint> points;
   BeamIntegration*        stencil;
 
-  // FrameTransform3d* theCoordTransf;
-
+#ifdef NEW_TRANSFORM
+  FrameTransform3d* theCoordTransf;
+#endif
   Matrix *Ki;
 };
 
