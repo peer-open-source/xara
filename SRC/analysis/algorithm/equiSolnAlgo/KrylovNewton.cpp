@@ -98,7 +98,7 @@ KrylovNewton::solveCurrentStep(void)
   if (  (theAnaModel == nullptr) 
      || (theIntegrator == nullptr) 
      || (theSOE == nullptr)
-     || (theTest == nullptr)){
+     || (theTest == nullptr)) {
     opserr << "WARNING KrylovNewton::solveCurrentStep() - setLinks() has";
     opserr << " not been called - or no ConvergenceTest has been set\n";
     return SolutionAlgorithm::BadAlgorithm;
