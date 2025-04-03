@@ -7,9 +7,12 @@
 #
 import os
 import sys
+import uuid
 import json
 import atexit
 import pathlib
+import textwrap
+import tempfile
 import platform
 from contextlib import contextmanager
 
@@ -70,7 +73,6 @@ def exec(script: str, silent=False, analysis=True)->dict:
     return interp
 
 def eval(script: str):
-    import textwrap
     interp = _create_interp()
     return interp.eval(textwrap.dedent(f"""
     {script}
@@ -147,6 +149,12 @@ class Interpreter:
         except:
             pass
 
+        self._err_file = pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}"
+        try:
+            self.eval(f"logFile {self._err_file} -noEcho")
+        except:
+            self._err_file = None
+
         if model is not None:
             self.send(model)
 
@@ -166,6 +174,17 @@ class Interpreter:
 
         except tkinter._tkinter.TclError as e:
             err = self._tcl.getvar("errorInfo")
+            if err.count("\n") > 2:
+                err = "\n".join(err.split("\n")[2:])
+            else:
+                err = ""
+            if self._err_file is not None:
+                with open(self._err_file, "r") as f:
+                    err += "\n" + textwrap.indent(f.read(), "    ")
+                try:
+                    os.remove(self._err_file)
+                except:
+                    pass
             raise InterpreterError(err) from None
 
     def serialize(self)->dict:
