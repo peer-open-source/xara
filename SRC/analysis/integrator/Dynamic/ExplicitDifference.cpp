@@ -9,28 +9,13 @@
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
-#define OPS_Export 
-
-
-void *
-OPS_ADD_RUNTIME_VPV(OPS_ExplicitDifference)
-{
-	TransientIntegrator *theIntegrator = 0;
-	theIntegrator = new ExplicitDifference();
-
-	if (theIntegrator == 0)
-		opserr << "WARNING - out of memory creating ExplicitDifference integrator\n";
-
-	return theIntegrator;
-}
 
 
 ExplicitDifference::ExplicitDifference()
 	: TransientIntegrator(INTEGRATOR_TAGS_ExplicitDifference),
 	deltaT(0.0),
 	alphaM(0.0), betaK(0.0), betaKi(0.0), betaKc(0.0),
-	updateCount(0), c2(0.0), c3(0.0),
+	updateCount(0),
     Ut(0), Utdot(0), Utdotdot(0),
 	Udot(0), Utdotdot1(0), U(0), Utdot1(0)
 {
@@ -43,7 +28,7 @@ ExplicitDifference::ExplicitDifference(
 	: TransientIntegrator(INTEGRATOR_TAGS_ExplicitDifference),
 	deltaT(0.0),
 	alphaM(_alphaM), betaK(_betaK), betaKi(_betaKi), betaKc(_betaKc),
-	updateCount(0), c2(0.0), c3(0.0),
+	updateCount(0),
 	Ut(0), Utdot(0), Utdotdot(0),
 	Udot(0), Utdotdot1(0), U(0), Utdot1(0)
 {
