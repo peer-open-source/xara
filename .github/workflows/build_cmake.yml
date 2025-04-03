@@ -37,7 +37,7 @@ jobs:
         cmake .. -DNoOpenSeesPyRT:BOOL=TRUE
         cmake --build . --target OpenSeesRT -j3 2>&1 | tee build.log
         # Count lines containing "warning:"
-        export XARA_SRC_WARN_COUNT=$(grep -c "SRC/.*warning:" build.log || true)
+        export XARA_SRC_WARN_COUNT=$(grep -c "warning:" build.log || true)
         echo "XARA_SRC_WARN_COUNT=$XARA_SRC_WARN_COUNT" >> $GITHUB_ENV
         echo "warnings=$XARA_SRC_WARN_COUNT" >> $GITHUB_OUTPUT 
         echo "::warning::We found $XARA_SRC_WARN_COUNT warnings"
