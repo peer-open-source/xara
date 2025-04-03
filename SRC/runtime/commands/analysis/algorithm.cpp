@@ -428,10 +428,8 @@ static EquiSolnAlgo *
 G3_newBFGS(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
 
   // ConvergenceTest *theTest = builder->getConvergenceTest();
-
 
   int formTangent = CURRENT_TANGENT;
   int count = -1;
