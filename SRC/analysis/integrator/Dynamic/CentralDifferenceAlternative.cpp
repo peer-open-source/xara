@@ -36,14 +36,6 @@
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
-
-
-void *
-OPS_ADD_RUNTIME_VPV(OPS_CentralDifferenceAlternative)
-{ 
-    return new CentralDifferenceAlternative();
-}
 
 
 CentralDifferenceAlternative::CentralDifferenceAlternative()
