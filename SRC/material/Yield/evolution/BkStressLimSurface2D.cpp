@@ -140,8 +140,8 @@ void BkStressLimSurface2D::setTrialPlasticStrains(double lamda, const Vector &f,
 
 	double x0 = translate_hist(0);
 	double y0 = translate_hist(1);
-	double fx = f(0);
-	double fy = f(1);
+//	double fx = f(0);
+//	double fy = f(1);
 
 	limSurface->hModel->toOriginalCoord(x0, y0);
 	double drift = limSurface->getDrift(x0, y0);
