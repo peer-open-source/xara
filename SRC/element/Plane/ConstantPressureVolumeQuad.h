@@ -1,14 +1,14 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
 //
-// Ed "C++" Love
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
 //
 // Constant Presssure/Volume Four Node Quadrilateral
 // Plane Strain (NOT PLANE STRESS)
 //
-
+// Ed "C++" Love
+//
 #include <ID.h> 
 #include <Vector.h>
 #include <Matrix.h>
@@ -28,8 +28,8 @@ class ConstantPressureVolumeQuad : public Element
 			        int node3,
 			        int node4,
 			        NDMaterial &theMaterial,
-                    double t) ;
-    virtual ~ConstantPressureVolumeQuad( ) ;
+                    double thickness);
+    virtual ~ConstantPressureVolumeQuad();
 
     const char *getClassType(void) const {return "ConstantPressureVolumeQuad";}
     static constexpr const char* class_name = "ConstantPressureVolumeQuad";
