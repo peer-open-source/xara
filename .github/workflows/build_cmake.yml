@@ -21,16 +21,43 @@ jobs:
     - uses: actions/checkout@v2
       #with: {ref: cmake-build}
 
-    - name: Install Tcl
+    - name: Install Libraries
       run:
-        sudo apt-get install tcl-dev
+        sudo apt-get install tcl-dev libopenblas-dev
 
     - name: Build
       run: |
         mkdir build
         cd build
         cmake .. -DNoOpenSeesPyRT:BOOL=TRUE
-        cmake --build . --target OpenSeesRT -j8
+        cmake --build . --target OpenSeesRT -j8 2>&1 | tee build.log
+
+    - name: Count warnings
+      id: count
+      run: |
+        # Count lines containing "warning:"
+        WARNINGS=$(grep -c "warning:" build.log || true)
+        echo "WARNING_COUNT=$WARNINGS" >> $GITHUB_ENV
+        echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT 
+        echo "::warning::We found $WARNING_COUNT warnings"
+
+    - name: Comment on PR with warning count
+      # Only run if it's a PR (not just a push)
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          // Read the warning count from the 'count' step output (or from the env var)
+          const warningCount = parseInt(`${{ steps.count.outputs.warnings }}`, 10);
+
+          // Create a comment on the PR
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: `We found **${warningCount}** compiler warnings in the latest build.`
+          });
 
 #   - name: Verification
 #     run: |
