@@ -849,7 +849,7 @@ void  EnhancedQuad::shape2d(double ss, double tt,
 
 
   // form global derivatives 
-  
+
   for (int i = 0; i < 4; i++ ) {
     temp      = shp[0][i]*sx(0,0) + shp[1][i]*sx(1,0) ;
     shp[1][i] = shp[0][i]*sx(0,1) + shp[1][i]*sx(1,1) ;
@@ -885,6 +885,7 @@ EnhancedQuad::setResponse(const char **argv, int argc,
     }
     
     theResponse =  new ElementResponse(this, 1, resid);
+
   }  else if (strcmp(argv[0],"material") == 0 || strcmp(argv[0],"integrPoint") == 0) {
     int pointNum = atoi(argv[1]);
     if (pointNum > 0 && pointNum <= 4) {
@@ -923,7 +924,7 @@ EnhancedQuad::setResponse(const char **argv, int argc,
       theResponse =  new ElementResponse(this, 3, Vector(12));
   }
   
-  else if ((strcmp(argv[0],"strain") == 0) ||(strcmp(argv[0],"strains") == 0)) {
+  else if ((strcmp(argv[0],"strain") == 0) || (strcmp(argv[0],"strains") == 0)) {
 
       for (int i=0; i<4; i++) {
         output.tag("GaussPoint");
@@ -935,9 +936,9 @@ EnhancedQuad::setResponse(const char **argv, int argc,
         output.attr("classType", materialPointers[i]->getClassTag());
         output.attr("tag", materialPointers[i]->getTag());
 
-        output.tag("ResponseType","eta11");
-        output.tag("ResponseType","eta22");
-        output.tag("ResponseType","eta12");
+        output.tag("ResponseType", "eta11");
+        output.tag("ResponseType", "eta22");
+        output.tag("ResponseType", "eta12");
 
         output.endTag(); // GaussPoint
         output.endTag(); // NdMaterialOutput
@@ -967,14 +968,15 @@ EnhancedQuad::getResponse(int responseID, Information &eleInfo)
 
       // Get material stress response
       const Vector &sigma = materialPointers[i]->getStress();
-      stresses(cnt) = sigma(0);
+      stresses(cnt)   = sigma(0);
       stresses(cnt+1) = sigma(1);
       stresses(cnt+2) = sigma(2);
       cnt += 3;
     }
     return eleInfo.setVector(stresses);
+  }
 
-  } else if (responseID == 4) {
+  else if (responseID == 4) {
 
     // Loop over the integration points
     static Vector stresses(12);
@@ -990,8 +992,8 @@ EnhancedQuad::getResponse(int responseID, Information &eleInfo)
     }
     return eleInfo.setVector(stresses);
         
-  } else
-
+  }
+  else
     return -1;
 }
 
