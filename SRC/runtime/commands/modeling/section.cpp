@@ -828,8 +828,11 @@ findSectionBuilder(BasicModelBuilder* builder, Tcl_Interp *interp, int argc, con
 // This function assumes torsion is not NULL when num==3
 static int
 initSectionCommands(ClientData clientData, Tcl_Interp *interp,
-                    int secTag, UniaxialMaterial *theTorsion, double Ys, double Zs, 
-                    double alpha, const FiberSectionConfig& options)
+                    int secTag, 
+                    UniaxialMaterial *theTorsion, 
+                    double Ys, double Zs, 
+                    double alpha, 
+                    const FiberSectionConfig& options)
 {
   assert(clientData != nullptr);
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
@@ -864,8 +867,6 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
     }
   }
   else if (ndm == 3) {
-    // This function is not called when torsion is NULL and num==3
-    assert(theTorsion != nullptr);
 
     if (options.isND) {
       if (options.isNew) {
@@ -880,6 +881,9 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
         section = sec;
       }
     } else {
+
+      assert(theTorsion != nullptr);
+
       if (options.isThermal) {
         auto sec = new FiberSection3dThermal(secTag, 30, *theTorsion,
                                              options.computeCentroid);
