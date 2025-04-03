@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
+//
 // TripleFrictionPendulumX element 
 // Written by Hyunmyung Kim (hkim59@buffalo.edu) and Michael C. Constantinou (constan1@buffalo.edu)
 // Created: 2021/11
@@ -212,7 +208,7 @@ TripleFrictionPendulumX::TripleFrictionPendulumX(int tag,
     Gap6 = Ubar3 * (1 - L1 / L3);
 
     //Unit conversion for pressure to be used in the pressure factor computation
-    p_Unit_Convert; //To convert to MPa
+//  p_Unit_Convert; //To convert to MPa
     if (unit == 1) { p_Unit_Convert = 0.000001; }
     if (unit == 2) { p_Unit_Convert = 0.001; }
     if (unit == 3) { p_Unit_Convert = 1.0; }
@@ -222,7 +218,7 @@ TripleFrictionPendulumX::TripleFrictionPendulumX(int tag,
     if (unit == 7) { p_Unit_Convert = 0.00004788; }
     if (unit == 8) { p_Unit_Convert = 0.04788; }
 
-    v_Unit_Convert; //To convert velocity 
+//  v_Unit_Convert; //To convert velocity 
     if (unit == 1) { v_Unit_Convert = 1.0; }
     if (unit == 2) { v_Unit_Convert = 1.0; }
     if (unit == 3) { v_Unit_Convert = 0.001; }
@@ -2387,7 +2383,7 @@ int TripleFrictionPendulumX::recvSelf(int commitTag, Channel& theChannel, FEM_Ob
     Gap6 = Ubar3 * (1 - L1 / L3);
 
     //Unit conversion for pressure to be used in the pressure factor computation
-    p_Unit_Convert; //To convert to MPa
+//  p_Unit_Convert; //To convert to MPa
     if (unit == 1) { p_Unit_Convert = 0.000001; }
     if (unit == 2) { p_Unit_Convert = 0.001; }
     if (unit == 3) { p_Unit_Convert = 1.0; }
@@ -2397,7 +2393,7 @@ int TripleFrictionPendulumX::recvSelf(int commitTag, Channel& theChannel, FEM_Ob
     if (unit == 7) { p_Unit_Convert = 0.00004788; }
     if (unit == 8) { p_Unit_Convert = 0.04788; }
 
-    v_Unit_Convert; //To convert velocity 
+//  v_Unit_Convert; //To convert velocity 
     if (unit == 1) { v_Unit_Convert = 1.0; }
     if (unit == 2) { v_Unit_Convert = 1.0; }
     if (unit == 3) { v_Unit_Convert = 0.001; }
