@@ -1,34 +1,18 @@
-# Documentation
-*.fig
-*.pstex*
-docs/**/*.tex
-docs/contrib/static/
-docs/**/*.rst
-docs/**/*.PDF
-# Image  files of this specific length do not need to be
-# checked in
-docs/static/????????????????????????????????????????.png
-docs/api/
-doc/
-out/
-build
-bin
-ci/
-src/emme/data
-src/emme/seismic
-CMakeUserPresets.json
 
 # Editor
 .vscode/
 *.swp
 
-# C extensions
+# C artifacts
 *.out
 *.so
 
+#
 # Distribution / packaging
-.Python
+#
 build/
+bin
+out/
 develop-eggs/
 dist/
 downloads/
@@ -37,20 +21,22 @@ eggs/
 lib/
 lib64/
 parts/
-sdist/
 var/
+# Python
+sdist/
 *.whl
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
-
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+MANIFEST
+# CMake
+CMakeUserPresets.json
+
 
 # PyInstaller
 *.manifest
@@ -61,7 +47,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-htmlcov/
 .tox/
 .nox/
 .coverage
@@ -78,25 +63,6 @@ coverage.xml
 *.mo
 *.pot
 
-# Django:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask:
-instance/
-.webassets-cache
-
-# Scrapy:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
@@ -106,16 +72,6 @@ ipython_config.py
 
 # pyenv
 .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# celery beat schedule file
-celerybeat-schedule
 
 # SageMath parsed files
 *.sage.py
@@ -175,17 +131,14 @@ archive/
 *.dylib
 *.dll
 *.pyd
-
 # Fortran module files
 *.mod
 *.smod
-
 # Compiled Static libraries
 *.lai
 *.la
 *.a
 *.lib
-
 # Executables
 *.out
 *.app
@@ -208,7 +161,6 @@ out/
 .clang-format
 
 # OTHER
-Makefile.def
 PlainConcrete.f
 forumat.f
 Damage2p.cpp
@@ -232,11 +184,7 @@ SRC/interpreter/pythonInterpreter
 SRC/interpreter/tclInterpreter
 SRC/interpreter/openseespy
 SRC/interpreter/openseestcl
-filip
 PML
-CPlaneStrain.h
-CPlaneStress.h
-CPlaneStress2d.h
-CThreeDimensional.h
 Concrete.h
 forumat.for
+
