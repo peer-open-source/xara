@@ -67,7 +67,6 @@ OPS_Routine OPS_WilsonTheta;
 #include <ParkLMS3.h>
 #include <BackwardEuler.h>
 #include <ExplicitDifference.h>
-// OPS_Routine OPS_ExplicitDifference;
 
 
 Tcl_CmdProc G3Parse_newHSIntegrator;
