@@ -1777,13 +1777,12 @@ int InelasticYS2DGNL::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBro
 }
 
 
-Response* InelasticYS2DGNL::setResponse(const char **argv, int argc)
+Response* 
+InelasticYS2DGNL::setResponse(const char **argv, int argc, OPS_Stream& output)
 {
-Response *suResponse=0;
+  Response *suResponse = this->UpdatedLagrangianBeam2D::setResponse(argv, argc, output);
 
-	suResponse = this->UpdatedLagrangianBeam2D::setResponse(argv, argc);
-
-	if(suResponse != 0)
+	if(suResponse != nullptr)
 		return suResponse;
 
     if (strcmp(argv[0],"ysVisual") == 0)

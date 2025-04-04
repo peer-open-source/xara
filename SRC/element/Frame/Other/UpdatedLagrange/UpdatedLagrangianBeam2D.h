@@ -96,7 +96,7 @@ public:
   // method for graphics
   int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
   
-  virtual Response *setResponse(const char **argv, int argc);
+  virtual Response *setResponse(const char **argv, int argc, OPS_Stream&);
   virtual int getResponse(int responseID, Information &eleInformation);
   
  protected:

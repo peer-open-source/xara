@@ -114,6 +114,24 @@ class ForceFrame3d: public BasicFrame3d
     FrameStress::Vy,
     FrameStress::Vz,
   };
+  enum : int {
+    inx =  -6, //  0
+    iny = -12, //  1
+    inz = -12, //  2
+    imx =  -5, //  3
+    imy =   3, //  4
+    imz =   1, //  5
+    jnx =   0, //  6
+    jny = -12, //  7
+    jnz = -12, //  8
+    jmx =   5, // 10
+    jmy =   4, // 11
+    jmz =   2, // 12
+  };
+  constexpr static int iq[] = {
+    inx, iny, inz, imx, imy, imz,
+    jnx, jny, jnz, jmx, jmy, jmz
+  };
 
   //
   // Functions
