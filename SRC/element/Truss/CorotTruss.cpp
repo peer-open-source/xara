@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision$
-// $Date$
-// $URL$
-                                                                        
+//
 // Written: MHS 
 // Created: May 2001
 //
@@ -68,7 +64,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CorotTrussElement)
   if (numRemainingArgs < 4) {
     opserr << "Invalid Args want: element CorotTruss $tag $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>";
     opserr << " or: element CorotTruss $tag $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-    return 0;	
+    return 0;        
   }
 
   if (numRemainingArgs == 4 || numRemainingArgs == 6 || numRemainingArgs == 8 || numRemainingArgs == 10)
@@ -92,7 +88,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CorotTrussElement)
   if (OPS_GetDouble(&numData, &A) != 0) {
     opserr << "WARNING: Invalid A: element CorotTruss " << iData[0] << 
       " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-    return 0;	
+    return 0;        
   }
 
   numData = 1;
@@ -117,27 +113,27 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CorotTrussElement)
     if (strcmp(argvS,"-rho") == 0) {
       numData = 1;
       if (OPS_GetDouble(&numData, &rho) != 0) {
-	opserr << "WARNING Invalid rho in element CorotTruss " << iData[0] << 
-	  " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-	return 0;
+        opserr << "WARNING Invalid rho in element CorotTruss " << iData[0] << 
+          " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        return 0;
       }
     } else if (strcmp(argvS,"-cMass") == 0) {
       numData = 1;
       if (OPS_GetInt(&numData, &cMass) != 0) {
-	opserr << "WARNING: Invalid cMass in element CorotTruss " << iData[0] << 
-	  " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-	return 0;
+        opserr << "WARNING: Invalid cMass in element CorotTruss " << iData[0] << 
+          " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        return 0;
       }
     } else if (strcmp(argvS,"-doRayleigh") == 0) {
       numData = 1;
       if (OPS_GetInt(&numData, &doRayleigh) != 0) {
-	opserr << "WARNING: Invalid doRayleigh in element CorotTruss " << iData[0] << 
-	  " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-	return 0;
+        opserr << "WARNING: Invalid doRayleigh in element CorotTruss " << iData[0] << 
+          " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        return 0;
       }
     } else {
       opserr << "WARNING: Invalid option " << argvS << "  in: element CorotTruss " << iData[0] << 
-	" $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        " $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
       return 0;
     }      
     numRemainingArgs -= 2;
@@ -287,9 +283,9 @@ OPS_CorotTrussElement(const ID& info, G3_Runtime* rt=0)
 //  responsible for allocating the necessary space needed by each object
 //  and storing the tags of the CorotTruss end nodes.
 CorotTruss::CorotTruss(int tag, int dim,
-			   int Nd1, int Nd2, 
-			   UniaxialMaterial &theMat,
-			   double a, double r,
+                           int Nd1, int Nd2, 
+                           UniaxialMaterial &theMat,
+                           double a, double r,
                int damp, int cm)
   :Element(tag,ELE_TAG_CorotTruss),     
   theMaterial(0), connectedExternalNodes(2),
@@ -363,7 +359,7 @@ CorotTruss::getNumExternalNodes(void) const
 const ID &
 CorotTruss::getExternalNodes(void) 
 {
-	return connectedExternalNodes;
+        return connectedExternalNodes;
 }
 
 Node **
@@ -375,7 +371,7 @@ CorotTruss::getNodePtrs(void)
 int
 CorotTruss::getNumDOF(void) 
 {
-	return numDOF;
+        return numDOF;
 }
 
 // method: setDomain()
@@ -400,7 +396,7 @@ CorotTruss::setDomain(Domain *theDomain)
   int Nd1 = connectedExternalNodes(0);
   int Nd2 = connectedExternalNodes(1);
   theNodes[0] = theDomain->getNode(Nd1);
-  theNodes[1] = theDomain->getNode(Nd2);	
+  theNodes[1] = theDomain->getNode(Nd2);        
   
   // if can't find both - send a warning message
   if ((theNodes[0] == 0) || (theNodes[1] == 0)) {
@@ -415,7 +411,7 @@ CorotTruss::setDomain(Domain *theDomain)
   
   // now determine the number of dof and the dimesnion    
   int dofNd1 = theNodes[0]->getNumberDOF();
-  int dofNd2 = theNodes[1]->getNumberDOF();	
+  int dofNd2 = theNodes[1]->getNumberDOF();        
   
   // if differing dof at the ends - print a warning message
   if (dofNd1 != dofNd2) {
@@ -426,7 +422,7 @@ CorotTruss::setDomain(Domain *theDomain)
     numDOF = 6;    
     
     return;
-  }	
+  }        
   
   if (numDIM == 1 && dofNd1 == 1) {
     numDOF = 2;
@@ -476,15 +472,15 @@ CorotTruss::setDomain(Domain *theDomain)
         return;
     }          
     
-	// call the base class method
-	this->DomainComponent::setDomain(theDomain);
+        // call the base class method
+        this->DomainComponent::setDomain(theDomain);
 
-	// now determine the length, cosines and fill in the transformation
-	// NOTE t = -t(every one else uses for residual calc)
-	const Vector &end1Crd = theNodes[0]->getCrds();
-	const Vector &end2Crd = theNodes[1]->getCrds();
+        // now determine the length, cosines and fill in the transformation
+        // NOTE t = -t(every one else uses for residual calc)
+        const Vector &end1Crd = theNodes[0]->getCrds();
+        const Vector &end2Crd = theNodes[1]->getCrds();
 
-	// Determine global offsets
+        // Determine global offsets
     double cosX[3];
     cosX[0] = 0.0;  cosX[1] = 0.0;  cosX[2] = 0.0;
     int i;
@@ -492,54 +488,54 @@ CorotTruss::setDomain(Domain *theDomain)
         cosX[i] += end2Crd(i)-end1Crd(i);
     }
 
-	// Set undeformed and initial length
-	Lo = cosX[0]*cosX[0] + cosX[1]*cosX[1] + cosX[2]*cosX[2];
-	Lo = sqrt(Lo);
-	Ln = Lo;
+        // Set undeformed and initial length
+        Lo = cosX[0]*cosX[0] + cosX[1]*cosX[1] + cosX[2]*cosX[2];
+        Lo = sqrt(Lo);
+        Ln = Lo;
 
     // Initial offsets
-   	d21[0] = Lo;
-	d21[1] = 0.0;
-	d21[2] = 0.0;
+           d21[0] = Lo;
+        d21[1] = 0.0;
+        d21[2] = 0.0;
 
-	// Set global orientation
-	cosX[0] /= Lo;
-	cosX[1] /= Lo;
-	cosX[2] /= Lo;
+        // Set global orientation
+        cosX[0] /= Lo;
+        cosX[1] /= Lo;
+        cosX[2] /= Lo;
 
-	R(0,0) = cosX[0];
-	R(0,1) = cosX[1];
-	R(0,2) = cosX[2];
+        R(0,0) = cosX[0];
+        R(0,1) = cosX[1];
+        R(0,2) = cosX[2];
 
-	// Element lies outside the YZ plane
-	if (fabs(cosX[0]) > 0.0) {
-		R(1,0) = -cosX[1];
-		R(1,1) =  cosX[0];
-		R(1,2) =  0.0;
+        // Element lies outside the YZ plane
+        if (fabs(cosX[0]) > 0.0) {
+                R(1,0) = -cosX[1];
+                R(1,1) =  cosX[0];
+                R(1,2) =  0.0;
 
-		R(2,0) = -cosX[0]*cosX[2];
-		R(2,1) = -cosX[1]*cosX[2];
-		R(2,2) =  cosX[0]*cosX[0] + cosX[1]*cosX[1];
-	}
-	// Element is in the YZ plane
-	else {
-		R(1,0) =  0.0;
-		R(1,1) = -cosX[2];
-		R(1,2) =  cosX[1];
+                R(2,0) = -cosX[0]*cosX[2];
+                R(2,1) = -cosX[1]*cosX[2];
+                R(2,2) =  cosX[0]*cosX[0] + cosX[1]*cosX[1];
+        }
+        // Element is in the YZ plane
+        else {
+                R(1,0) =  0.0;
+                R(1,1) = -cosX[2];
+                R(1,2) =  cosX[1];
 
-		R(2,0) =  1.0;
-		R(2,1) =  0.0;
-		R(2,2) =  0.0;
-	}
+                R(2,0) =  1.0;
+                R(2,1) =  0.0;
+                R(2,2) =  0.0;
+        }
 
-	// Orthonormalize last two rows of R
-	double norm;
-	for (i = 1; i < 3; i++) {
-		norm = sqrt(R(i,0)*R(i,0) + R(i,1)*R(i,1) + R(i,2)*R(i,2));
-		R(i,0) /= norm;
-		R(i,1) /= norm;
-		R(i,2) /= norm;
-	}
+        // Orthonormalize last two rows of R
+        double norm;
+        for (i = 1; i < 3; i++) {
+                norm = sqrt(R(i,0)*R(i,0) + R(i,1)*R(i,1) + R(i,2)*R(i,2));
+                R(i,0) /= norm;
+                R(i,1) /= norm;
+                R(i,2) /= norm;
+        }
 }
 
 int
@@ -557,15 +553,15 @@ CorotTruss::commitState()
 int
 CorotTruss::revertToLastCommit()
 {
-	// Revert the material
-	return theMaterial->revertToLastCommit();
+        // Revert the material
+        return theMaterial->revertToLastCommit();
 }
 
 int
 CorotTruss::revertToStart()
 {
-	// Revert the material to start
-	return theMaterial->revertToStart();
+        // Revert the material to start
+        return theMaterial->revertToStart();
 }
 
 int
@@ -575,7 +571,7 @@ CorotTruss::update(void)
   const Vector &end1Disp  = theNodes[0]->getTrialDisp();
   const Vector &end2Disp  = theNodes[1]->getTrialDisp();    
   const Vector &end1Vel   = theNodes[0]->getTrialVel();
-  const Vector &end2Vel   = theNodes[1]->getTrialVel();	
+  const Vector &end2Vel   = theNodes[1]->getTrialVel();        
   
   // Initial offsets
   d21[0] = Lo; d21[1] = d21[2] = 0.0;
@@ -811,15 +807,15 @@ CorotTruss::addInertiaLoadToUnbalance(const Vector &accel)
 const Vector &
 CorotTruss::getResistingForce()
 {
-	// Get material stress
-	double SA = A*theMaterial->getStress();
-	SA /= Ln;
+        // Get material stress
+        double SA = A*theMaterial->getStress();
+        SA /= Ln;
 
     static Vector ql(3);
 
-	ql(0) = d21[0]*SA;
-	ql(1) = d21[1]*SA;
-	ql(2) = d21[2]*SA;
+        ql(0) = d21[0]*SA;
+        ql(1) = d21[1]*SA;
+        ql(2) = d21[2]*SA;
 
     static Vector qg(3);
     qg.addMatrixTransposeVector(0.0, R, ql, 1.0);
@@ -841,7 +837,7 @@ CorotTruss::getResistingForce()
 
 const Vector &
 CorotTruss::getResistingForceIncInertia()
-{	
+{        
     Vector &P = *theVector;
     P = this->getResistingForce();
     
@@ -853,7 +849,7 @@ CorotTruss::getResistingForceIncInertia()
         
         // add inertia forces from element mass
         const Vector &accel1 = theNodes[0]->getTrialAccel();
-        const Vector &accel2 = theNodes[1]->getTrialAccel();	
+        const Vector &accel2 = theNodes[1]->getTrialAccel();        
         
         int numDOF2 = numDOF/2;
         
@@ -924,7 +920,7 @@ CorotTruss::sendSelf(int commitTag, Channel &theChannel)
   if (res < 0) {
     opserr << "WARNING Truss::sendSelf() - " << this->getTag() << " failed to send Vector\n";
     return -1;
-  }	      
+  }              
 
   // truss then sends the tags of it's two end nodes
   res = theChannel.sendID(dataTag, commitTag, connectedExternalNodes);
@@ -957,7 +953,7 @@ CorotTruss::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBr
   if (res < 0) {
     opserr << "WARNING Truss::recvSelf() - failed to receive Vector\n";
     return -1;
-  }	      
+  }              
 
   this->setTag((int)data(0));
   numDIM = (int)data(1);
@@ -991,7 +987,7 @@ CorotTruss::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBr
     theMaterial = theBroker.getNewUniaxialMaterial(matClass);
     if (theMaterial == 0) {
       opserr << "WARNING Truss::recvSelf() - " << this->getTag() << 
-	"failed to get a blank Material of type: " << matClass << endln;
+        "failed to get a blank Material of type: " << matClass << endln;
       return -3;
     }
   }
@@ -1009,9 +1005,9 @@ CorotTruss::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBr
 int
 CorotTruss::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
 {
-	// ensure setDomain() worked
-	if (Ln == 0.0)
-		return 0;
+        // ensure setDomain() worked
+        if (Ln == 0.0)
+                return 0;
 
     static Vector v1(3);
     static Vector v2(3);
@@ -1025,32 +1021,32 @@ CorotTruss::displaySelf(Renderer &theViewer, int displayMode, float fact, const 
 void
 CorotTruss::Print(OPS_Stream &s, int flag)
 {
-	if (flag == OPS_PRINT_CURRENTSTATE) {
-		s << "\nCorotTruss, tag: " << this->getTag() << endln;
-		s << "\tConnected Nodes: " << connectedExternalNodes;
-		s << "\tSection Area: " << A << endln;
-		s << "\tUndeformed Length: " << Lo << endln;
-		s << "\tCurrent Length: " << Ln << endln;
-		s << "\tMass Density/Length: " << rho << endln;
-		s << "\tConsistent Mass: " << cMass << endln;
-		s << "\tRotation matrix: " << endln;
+        if (flag == OPS_PRINT_CURRENTSTATE) {
+                s << "\nCorotTruss, tag: " << this->getTag() << endln;
+                s << "\tConnected Nodes: " << connectedExternalNodes;
+                s << "\tSection Area: " << A << endln;
+                s << "\tUndeformed Length: " << Lo << endln;
+                s << "\tCurrent Length: " << Ln << endln;
+                s << "\tMass Density/Length: " << rho << endln;
+                s << "\tConsistent Mass: " << cMass << endln;
+                s << "\tRotation matrix: " << endln;
         
-		if (theMaterial) {
-			s << "\tAxial Force: " << A*theMaterial->getStress() << endln;
-			s << "\tUniaxialMaterial, tag: " << theMaterial->getTag() << endln;
-			theMaterial->Print(s, flag);
-		}
-	}
+                if (theMaterial) {
+                        s << "\tAxial Force: " << A*theMaterial->getStress() << endln;
+                        s << "\tUniaxialMaterial, tag: " << theMaterial->getTag() << endln;
+                        theMaterial->Print(s, flag);
+                }
+        }
     
-	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
-		s << "\"name\": " << this->getTag() << ", ";
-		s << "\"type\": \"CorotTruss\", ";
-		s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
-		s << "\"A\": " << A << ", ";
-		s << "\"massperlength\": " << rho << ", ";
-		s << "\"material\": \"" << theMaterial->getTag() << "\"}";
-	}
+        if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+                s << "\t\t\t{";
+                s << "\"name\": " << this->getTag() << ", ";
+                s << "\"type\": \"CorotTruss\", ";
+                s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
+                s << "\"A\": " << A << ", ";
+                s << "\"massperlength\": " << rho << ", ";
+                s << "\"material\": \"" << theMaterial->getTag() << "\"}";
+        }
 }
 
 Response*
@@ -1083,9 +1079,9 @@ CorotTruss::setResponse(const char **argv, int argc, OPS_Stream &output)
             theResponse =  new ElementResponse(this, 1, Vector(numDOF));
 
     } else if ((strcmp(argv[0],"axialForce") == 0) ||
-	       (strcmp(argv[0],"basicForce") == 0) || 
-	       (strcmp(argv[0],"localForces") == 0) || 
-	       (strcmp(argv[0],"basicForces") == 0)) {
+               (strcmp(argv[0],"basicForce") == 0) || 
+               (strcmp(argv[0],"localForces") == 0) || 
+               (strcmp(argv[0],"basicForces") == 0)) {
             output.tag("ResponseType", "N");
             theResponse =  new ElementResponse(this, 2, 0.0);
 
