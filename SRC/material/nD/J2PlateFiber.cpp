@@ -53,15 +53,13 @@ Vector J2PlateFiber :: strain_vec(5) ;
 Vector J2PlateFiber :: stress_vec(5) ;
 Matrix J2PlateFiber :: tangent_matrix(5,5) ;
 
-//null constructor
-J2PlateFiber ::  J2PlateFiber( ) : 
+
+J2PlateFiber::J2PlateFiber( ) : 
 J2Plasticity( ) 
 {
   commitEps22 =0.0;
 }
 
-
-//full constructor
 J2PlateFiber :: 
 J2PlateFiber(   int    tag, 
                  double K,
@@ -93,16 +91,14 @@ J2Plasticity(tag, ND_TAG_J2PlateFiber, K, G )
 //destructor
 J2PlateFiber :: ~J2PlateFiber( ) 
 {  
-
 } 
 
 
-//make a clone of this material
 NDMaterial* J2PlateFiber :: getCopy( ) 
 { 
   J2PlateFiber  *clone;
-  clone = new J2PlateFiber( ) ;   //new instance of this class
-  *clone = *this ;          //asignment to make copy
+  clone = new J2PlateFiber();   // new instance of this class
+  *clone = *this ;              // asignment to make copy
   return clone ;
 }
 
