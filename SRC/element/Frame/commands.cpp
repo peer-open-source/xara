@@ -883,7 +883,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
             }
           });
           if (theElement == nullptr) {
-            opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
+            opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame; got " << ndf 
+                   << "\n";
             status = TCL_ERROR;
             goto clean_up;
           }
