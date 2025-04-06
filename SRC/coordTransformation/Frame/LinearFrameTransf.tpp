@@ -26,7 +26,7 @@
 
 using namespace OpenSees;
 
-static MatrixND<3,3>
+static inline MatrixND<3,3>
 FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj, 
                          const Vector3D& vz, int di, int dj, int dv)
 {
@@ -422,11 +422,17 @@ template <int nn, int ndf>
 Vector3D
 LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 {
-  Vector3D v;
+  // constexpr Vector3D iv{1, 0, 0};
+  // constexpr Matrix3D ix = Hat(iv);
+  Vector3D v, w;
   const Vector& u = nodes[node]->getTrialDisp();
-  for (int i=0; i<3; i++)
-    v[i] = u[3+i];
-  return R^v;
+  for (int i=0; i<3; i++) {
+    v[i] = u[i];
+    w[i] = u[3+i];
+  }
+
+  // w.addMatrixVector(1, ix, v, -1/L);
+  return R^w;
 }
 
 
@@ -435,17 +441,64 @@ LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 //
 template <int nn, int ndf>
 VectorND<nn*ndf>
-LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&pl)
+LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
 {
-  return this->FrameTransform<nn,ndf>::pushConstant(pl);
+  VectorND<nn*ndf> pa = p;
+  constexpr Vector3D iv{1, 0, 0};
+  constexpr Matrix3D ix = Hat(iv);
+
+  // 1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
+  Vector3D m{};
+  for (int i=0; i<nn; i++) {
+    // m += mi
+    for (int j=0; j<3; j++) 
+      m[j] += p[i*ndf+3+j];
+
+    const Vector3D n = Vector3D{p[i*ndf+0], p[i*ndf+1], p[i*ndf+2]};
+    m.addVector(1, iv.cross(n), double(i)/double(nn-1)*L);
+  }
+  const Vector3D ixm = ix*m;
+
+  // 2) Adjust force part
+  for (int i=0; i<nn; i++) {
+    pa.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)/L);
+    pa[i*ndf+3] += m[0]*(i? -1:1)*0.5;
+  }
+  
+  // 3) Rotate and do joint offsets
+  auto pg = this->FrameTransform<nn,ndf>::pushConstant(pa);
+  return pg;
 }
 
 template <int nn, int ndf>
 MatrixND<nn*ndf,nn*ndf>
-LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kl, const VectorND<nn*ndf>& pl)
+LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kb, const VectorND<nn*ndf>&)
 {
-  MatrixND<nn*ndf,nn*ndf> Kl = kl;
-  return this->FrameTransform<nn,ndf>::pushConstant(Kl);
+
+  MatrixND<nn*ndf,nn*ndf> A{};
+  A.addDiagonal(1.0);
+  constexpr Vector3D axis{1, 0, 0};
+  constexpr Matrix3D ix = Hat(axis);
+  constexpr Matrix3D ioi = axis.bun(axis);
+
+  MatrixND<3,ndf> Gb{};
+  Gb.template insert<0, 3>(ioi, 0.5);
+  for (int a = 0; a<nn; a++) {
+    for (int b = 0; b<nn; b++) {
+      // TODO(nn>2): Interpolate coordinate?
+      if (b == 0)
+        Gb.template insert<0,0>(ix, -1/L);
+      else if (b == nn-1)
+        Gb.template insert<0,0>(ix,  1/L);
+      // TODO(nn>2): Interpolate coordinate?
+      A.assemble(ix*Gb, a*ndf  , b*ndf,  double(a)/double(nn-1)*L);
+      A.assemble(   Gb, a*ndf+3, b*ndf, -1.0);
+    }
+  }
+
+  MatrixND<12,12> kl;
+  kl.addMatrixTripleProduct(0, A, kb, 1);
+  return this->FrameTransform<nn,ndf>::pushConstant(kl);
 }
 
 
@@ -473,13 +526,13 @@ LinearFrameTransf<nn,ndf>::getCopy() const
 
 
 // Sensitivity
-
+//
 template <int nn, int ndf>
 bool
 LinearFrameTransf<nn,ndf>::isShapeSensitivity()
 {
-  int nodeParameterI = nodes[0]->getCrdsSensitivity();
-  int nodeParameterJ = nodes[1]->getCrdsSensitivity();
+  int nodeParameterI = nodes[   0]->getCrdsSensitivity();
+  int nodeParameterJ = nodes[nn-1]->getCrdsSensitivity();
   // TODO: implement dvz
 
   return (nodeParameterI != 0 || nodeParameterJ != 0);
