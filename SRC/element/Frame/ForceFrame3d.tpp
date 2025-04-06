@@ -2548,7 +2548,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
   static Matrix dfedh(NBV, NBV);
 
   dfedh.Zero();
-
+#if 0
   double L   = theCoordTransf->getInitialLength();
   double jsx = 1.0 / L;
 
@@ -2651,7 +2651,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
       }
     }
   }
-
+#endif
   return dfedh;
 }
 
