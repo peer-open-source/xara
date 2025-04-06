@@ -3,7 +3,8 @@
 // BBarFourNodeQuadUP, a 4-node plane strain element for solid-fluid fully   //
 // coupled analysis. This implementation is a simplified u-p formulation     //
 // of Biot theory (u - solid displacement, p - fluid pressure).              //
-// Each element node has two DOFs for u and 1 DOF for p.                     //
+// Each element node has two DOFs for u and 1 DOF for p.                     // 
+//
 // Constant volume/pressure integration (BBar method) is used for integration//
 // of the volumetric component of solid phase and the fulid phase.           //
 //                                                                           //
