@@ -168,8 +168,7 @@ MidDistanceBeamIntegration::recvSelf(int cTag, Channel &theChannel,
 }
 
 int
-MidDistanceBeamIntegration::setParameter(const char **argv,
-					 int argc, Information &info)
+MidDistanceBeamIntegration::setParameter(const char **argv, int argc, Parameter &)
 {
   return -1;
 }
@@ -216,20 +215,20 @@ MidDistanceBeamIntegration::Print(OPS_Stream &s, int flag)
 }
 
 void 
-MidDistanceBeamIntegration::getLocationsDeriv(int numSections,
-					      double L, double *dptsdh)
+MidDistanceBeamIntegration::getLocationsDeriv(int n,
+					      double L, double , double *dptsdh)
 {
-  for (int i = 0; i < numSections; i++)
+  for (int i = 0; i < n; i++)
     dptsdh[i] = 0.0;
 
   return;
 }
 
 void
-MidDistanceBeamIntegration::getWeightsDeriv(int numSections,
-					    double L, double *dwtsdh)
+MidDistanceBeamIntegration::getWeightsDeriv(int n,
+					    double L, double dLdh, double *dwtsdh)
 {
-  for (int i = 0; i < numSections; i++)
+  for (int i = 0; i < n; i++)
     dwtsdh[i] = 0.0;
 
   return;

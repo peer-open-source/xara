@@ -188,8 +188,7 @@ HingeEndpointBeamIntegration::recvSelf(int cTag, Channel &theChannel,
 }
 
 int
-HingeEndpointBeamIntegration::setParameter(const char **argv, int argc,
-					   Parameter &param)
+HingeEndpointBeamIntegration::setParameter(const char **argv, int argc, Parameter &param)
 {
   if (argc < 1)
     return -1;

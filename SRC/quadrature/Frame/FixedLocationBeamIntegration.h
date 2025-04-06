@@ -47,7 +47,7 @@ class FixedLocationBeamIntegration : public BeamIntegration
   int sendSelf(int cTag, Channel &theChannel);
   int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-  int setParameter(const char **argv, int argc, Information &info);
+  int setParameter(const char **argv, int argc, Parameter &);
   int updateParameter(int parameterID, Information &info);
   int activateParameter(int parameterID);
 

@@ -47,14 +47,14 @@ class MidDistanceBeamIntegration : public BeamIntegration
   int sendSelf(int cTag, Channel &theChannel);
   int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-  int setParameter(const char **argv, int argc, Information &info);
-  int updateParameter(int parameterID, Information &info);
+  int setParameter(const char **argv, int argc, Parameter &);
+  int updateParameter(int parameterID, Information &);
   int activateParameter(int parameterID);
 
   void Print(OPS_Stream &s, int flag = 0);  
 
-  void getLocationsDeriv(int nIP, double L, double *dptsdh);
-  void getWeightsDeriv(int nIP, double L, double *dwtsdh);
+  void getLocationsDeriv(int nIP, double L, double dLdh,  double *dptsdh);
+  void getWeightsDeriv(int nIP, double L, double dLdh, double *dwtsdh);
 
  private:
   Vector pts;

@@ -153,8 +153,7 @@ FixedLocationBeamIntegration::recvSelf(int cTag, Channel &theChannel,
 }
 
 int
-FixedLocationBeamIntegration::setParameter(const char **argv,
-					   int argc, Information &info)
+FixedLocationBeamIntegration::setParameter(const char **argv, int argc, Parameter &)
 {
   return -1;
 }
