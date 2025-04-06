@@ -163,11 +163,11 @@ ExactFrame3d<nen,nwm>::setNodes()
 
 
   // Node locations in local (scalar) coordinate
-  for (int i=0; i < nen; i++)
-    xn[i] = i*L/(nen-1);
+  for (unsigned i=0; i < nen; i++)
+    xn[i] = i*L/double(nen-1);
 
   GaussLegendre<1, nip>    gauss;
-  for (int i=0; i < nip; i++) {
+  for (unsigned i=0; i < nip; i++) {
     pres[i].point  = (gauss.pts[i] + 1.0)*L/2.0;
     pres[i].weight =  gauss.wts[i]*L/2.0;
     lagrange<nen>(pres[i].point, xn, pres[i].shape);
@@ -765,7 +765,7 @@ ExactFrame3d<nen,nwm>::Print(OPS_Stream& stream, int flag)
     stream << "\"name\": " << this->getTag() << ", ";
     stream << "\"type\": \"" << this->getClassType() << "\", ";
     stream << "\"nodes\": [";
-    for (int i = 0; i < nen - 1; i++)
+    for (int i = 0; i < (int)nen - 1; i++)
       stream << node_tags(i) << ", ";
     stream << node_tags(nen - 1) << "]";
     stream << ", ";
