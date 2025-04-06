@@ -100,8 +100,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2Plasticity)
     return mat;
 }
 
-//zero internal variables
-void J2Plasticity :: zero ( ) 
+// zero internal variables
+void J2Plasticity :: zero () 
 {
   xi_n = 0.0 ;
   xi_nplus1 = 0.0 ;
@@ -114,7 +114,6 @@ void J2Plasticity :: zero ( )
 }
 
 
-//null constructor
 J2Plasticity ::  J2Plasticity( ) : 
 NDMaterial( ),
 epsilon_p_n(3,3),
@@ -132,14 +131,13 @@ parameterID(0)
   eta         = 0.0 ;
   rho = 0.0;
 
-  this->zero( ) ;     // or (*this).zero( ) 
-
+  this->zero();
   plastic_integrator();
 }
 
 
 //full constructor
-J2Plasticity :: J2Plasticity(int    tag,
+J2Plasticity :: J2Plasticity(int tag,
                              int classTag,
                              double K,
                              double G,
@@ -166,7 +164,7 @@ J2Plasticity :: J2Plasticity(int    tag,
   eta         = viscosity ;
   rho = r;
 
-  this->zero( ) ;
+  this->zero( );
 
   plastic_integrator();
 }
@@ -193,7 +191,7 @@ parameterID(0)
   Hard        = 0.0 ;
   eta         = 0.0 ;
 
-  this->zero( ) ;
+  this->zero();
 }
 
 
@@ -206,7 +204,7 @@ J2Plasticity :: ~J2Plasticity( )
 
 
 NDMaterial*
-J2Plasticity :: getCopy (const char *type)
+J2Plasticity :: getCopy(const char *type)
 {
     if (strcmp(type,"PlaneStress2D") == 0 || strcmp(type,"PlaneStress") == 0)
     {
@@ -215,14 +213,16 @@ J2Plasticity :: getCopy (const char *type)
                                   sigma_infty, delta, Hard, eta, rho) ;
         return clone ;
     }
-    else if (strcmp(type,"PlaneStrain2D") == 0 || strcmp(type,"PlaneStrain") == 0)
+    else if (strcmp(type,"PlaneStrain2D") == 0 || 
+             strcmp(type,"PlaneStrain") == 0)
     {
         J2PlaneStrain  *clone ;
         clone = new J2PlaneStrain(this->getTag(), bulk, shear, sigma_0,
                                   sigma_infty, delta, Hard, eta, rho) ;
         return clone ;
     }
-    else if (strcmp(type,"AxiSymmetric2D") == 0 || strcmp(type,"AxiSymmetric") == 0)
+    else if (strcmp(type,"AxiSymmetric2D") == 0 || 
+             strcmp(type,"AxiSymmetric") == 0)
     {
         J2AxiSymm  *clone ;
         clone = new J2AxiSymm(this->getTag(), bulk, shear, sigma_0,
@@ -232,20 +232,14 @@ J2Plasticity :: getCopy (const char *type)
     else if ((strcmp(type,"ThreeDimensional") == 0) ||
              (strcmp(type,"3D") == 0))
     {
-        J2ThreeDimensional  *clone ;
-        clone = new J2ThreeDimensional(this->getTag(), bulk, shear, sigma_0,
-                                       sigma_infty, delta, Hard, eta, rho) ;
-        return clone ;        
+        return new J2ThreeDimensional(this->getTag(), bulk, shear, sigma_0,
+                                       sigma_infty, delta, Hard, eta, rho);
     }
     else if ( (strcmp(type,"PlateFiber") == 0) )
     {
-        J2PlateFiber  *clone ;
-        clone = new J2PlateFiber(this->getTag(), bulk, shear, sigma_0,
-                                 sigma_infty, delta, Hard, eta, rho) ;
-        return clone ;        
-    }
-
- 
+        return new J2PlateFiber(this->getTag(), bulk, shear, sigma_0,
+                                 sigma_infty, delta, Hard, eta, rho); 
+    } 
     // Handle other cases
     else
     {
@@ -253,21 +247,37 @@ J2Plasticity :: getCopy (const char *type)
     }
 }
 
-//print out material data
+// print out material data
 void J2Plasticity :: Print( OPS_Stream &s, int flag )
 {
-  s << endln ;
-  s << "J2-Plasticity : " ; 
-  s << this->getType( ) << endln ;
-  s << "Bulk Modulus =   " << bulk        << endln ;
-  s << "Shear Modulus =  " << shear       << endln ;
-  s << "Sigma_0 =        " << sigma_0     << endln ;
-  s << "Sigma_infty =    " << sigma_infty << endln ;
-  s << "Delta =          " << delta       << endln ;
-  s << "H =              " << Hard        << endln ;
-  s << "Eta =            " << eta         << endln ;
-  s << "Rho =            " << rho         << endln ;
-  s << endln ;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << TaggedObject::JsonPropertyIndent << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"J2Plasticity\", ";
+    s << "\"K\": " << bulk << ", ";
+    s << "\"G\": " << shear << ", ";
+    s << "\"sig0\": " << sigma_0 << ", ";
+    s << "\"sigInf\": " << sigma_infty << ", ";
+    s << "\"delta\": " << delta << ", ";
+    s << "\"H\": " << Hard << ", ";
+    s << "\"eta\": " << eta << ", ";
+    s << "\"rho\": " << rho;
+    s << "}";
+    return;
+  }
+  else if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << endln ;
+    s << "J2-Plasticity : " ;
+    s << "Bulk Modulus =   " << bulk        << endln ;
+    s << "Shear Modulus =  " << shear       << endln ;
+    s << "Sigma_0 =        " << sigma_0     << endln ;
+    s << "Sigma_infty =    " << sigma_infty << endln ;
+    s << "Delta =          " << delta       << endln ;
+    s << "H =              " << Hard        << endln ;
+    s << "Eta =            " << eta         << endln ;
+    s << "Rho =            " << rho         << endln ;
+    s << endln ;
+  }
 }
 
 
@@ -278,21 +288,17 @@ void J2Plasticity :: plastic_integrator( )
 {
   const double tolerance = (1.0e-8)*sigma_0 ;
 
-  const double dt = ops_Dt ; //time step
+  const double dt = ops_Dt ; // time step
 
-  static Matrix dev_strain(3,3) ; //deviatoric strain
+  static Matrix dev_strain(3,3) ; // deviatoric strain
 
-  static Matrix dev_stress(3,3) ; //deviatoric stress
+  static Matrix dev_stress(3,3) ; // deviatoric stress
  
-  static Matrix normal(3,3) ;     //normal to yield surface
+  static Matrix normal(3,3) ;     // normal to yield surface
 
-  double NbunN ; //normal bun normal 
-  double norm_tau = 0.0 ;   //norm of deviatoric stress 
+  double NbunN ; // normal bun normal 
   double inv_norm_tau = 0.0 ;
-  double phi = 0.0 ; //trial value of yield function
   double trace = 0.0 ; //trace of strain
-  double gamma = 0.0 ; //consistency parameter
-  double resid = 1.0 ; 
   double tang  = 0.0 ;
   
   double theta = 0.0 ; 
@@ -305,8 +311,7 @@ void J2Plasticity :: plastic_integrator( )
   int i,j,k,l;
   int ii, jj ; 
 
-  int iteration_counter ;
-  const int max_iterations = 25 ;
+  constexpr static int max_iterations = 25 ;
 
   //compute the deviatoric strains
 
@@ -316,21 +321,19 @@ void J2Plasticity :: plastic_integrator( )
   for (int i = 0; i < 3; i++ )
     dev_strain(i,i) -= ( 1./3. *trace ) ;
    
-  //compute the trial deviatoric stresses
+  // compute the trial deviatoric stresses
 
-  //   dev_stress = (2.0*shear) * ( dev_strain - epsilon_p_n ) ;
+  // dev_stress = (2.0*shear) * ( dev_strain - epsilon_p_n ) ;
   dev_stress = dev_strain;
   dev_stress -= epsilon_p_n;
   dev_stress *= 2.0 * shear;
 
-  //compute norm of deviatoric stress
 
-  norm_tau = 0.0 ;
+  double norm_tau = 0.0 ;   // norm of deviatoric stress
   for (int i = 0; i < 3; i++ ){
     for (int j = 0; j < 3; j++ ) 
       norm_tau += dev_stress(i,j)*dev_stress(i,j) ;
   }
-
   norm_tau = sqrt( norm_tau ) ;
 
   if ( norm_tau > tolerance ) {
@@ -341,16 +344,17 @@ void J2Plasticity :: plastic_integrator( )
     inv_norm_tau = 0.0 ;
   }
 
-  //compute trial value of yield function
+  // compute trial value of yield function
 
-  phi = norm_tau -  root23 * q(xi_n) ;
+  double phi = norm_tau -  root23 * q(xi_n) ;
 
-  if ( phi > 0.0 ) { //plastic
+  double gamma = 0.0 ;
+  if ( phi > 0.0 ) { 
+     // plastic
 
-     //solve for gamma 
-     gamma = 0.0 ;
-     resid = 1.0 ;
-     iteration_counter = 0 ;
+     // solve for gamma 
+     double resid = 1.0 ;
+     int iteration_counter = 0 ;
      while ( fabs(resid) > tolerance ) {
 
         resid = norm_tau 
@@ -359,8 +363,7 @@ void J2Plasticity :: plastic_integrator( )
         if (eta > 0.0 && dt > 0.0)
           resid -= (eta/dt) * gamma ;
 
-        tang =  - (2.0*shear)  
-          - 2./3. * qprime( xi_n + root23*gamma );
+        tang =  - (2.0*shear)  - 2./3. * qprime( xi_n + root23*gamma );
         if (eta > 0.0 && dt > 0.0)
           tang -= (eta/dt) ;
 
@@ -372,9 +375,8 @@ void J2Plasticity :: plastic_integrator( )
             opserr << "More than " << max_iterations ;
             opserr << " iterations in constituive subroutine J2-plasticity \n" ;
             break ;
-        }
-        
-     } //end while resid
+        }  
+     }
 
 
      gamma *= (1.0 - 1e-08) ;
@@ -385,23 +387,22 @@ void J2Plasticity :: plastic_integrator( )
 
      xi_nplus1 = xi_n + root23*gamma ;
 
-     //recompute deviatoric stresses 
+     // recompute deviatoric stresses 
 
      dev_stress = (2.0*shear) * ( dev_strain - epsilon_p_nplus1 ) ;
 
      //compute the terms for plastic part of tangent
 
-     theta =  (2.0*shear) +  2./3. * qprime( xi_nplus1 );
+     theta =  (2.0*shear) +  2./3. * qprime(xi_nplus1);
 
      if (eta > 0.0 && dt > 0.0)
-       theta += (eta/dt) ;
+        theta += (eta/dt);
 
-     theta_inv = 1.0/theta ;
-
+     theta_inv = 1.0/theta;
   }
   else { //elastic 
 
-    //update history variables -- they remain unchanged
+    // update history variables -- they remain unchanged
 
     epsilon_p_nplus1 = epsilon_p_n ;
 
@@ -416,37 +417,37 @@ void J2Plasticity :: plastic_integrator( )
   } //end if phi > 0
 
 
-  //add on bulk part of stress
+  // add on bulk part of stress
 
   stress = dev_stress ;
   for (int i = 0; i < 3; i++ )
      stress(i,i) += bulk*trace ;
 
-  //compute the tangent
+  // compute the tangent
 
   c1 = -4.0 * shear * shear ;
   c2 = c1 * theta_inv ;
   c3 = c1 * gamma * inv_norm_tau ;
 
-  for ( ii = 0; ii < 6; ii++ ) {
-    for ( jj = 0; jj < 6; jj++ )  {
+  for (int ii = 0; ii < 6; ii++ ) {
+    for (int jj = 0; jj < 6; jj++ )  {
 
           index_map( ii, i, j ) ;
           index_map( jj, k, l ) ;
 
           NbunN  = normal(i,j)*normal(k,l) ; 
 
-          //elastic terms
+          // elastic terms
           tangent[i][j][k][l]  = bulk * IbunI[i][j][k][l] ;
 
           tangent[i][j][k][l] += (2.0*shear) * IIdev[i][j][k][l] ;
 
-          //plastic terms 
+          // plastic terms 
           tangent[i][j][k][l] += c2 * NbunN ;
 
           tangent[i][j][k][l] += c3 * (  IIdev[i][j][k][l] - NbunN ) ;
 
-          //minor symmetries 
+          // minor symmetries 
           tangent [j][i][k][l] = tangent[i][j][k][l] ;
           tangent [i][j][l][k] = tangent[i][j][k][l] ;
           tangent [j][i][l][k] = tangent[i][j][k][l] ;
@@ -462,55 +463,54 @@ void J2Plasticity :: plastic_integrator( )
 // set up for initial elastic
 void J2Plasticity :: doInitialTangent( )
 {
-  int ii,jj,i,j,k,l;
+  int i,j,k,l;
 
-  //compute the deviatoric strains
-  for ( ii = 0; ii < 6; ii++ ) {
-    for ( jj = 0; jj < 6; jj++ )  {
+  // compute the deviatoric strains
+  for (int ii = 0; ii < 6; ii++ ) {
+    for (int jj = 0; jj < 6; jj++ )  {
 
           index_map( ii, i, j ) ;
           index_map( jj, k, l ) ;
 
-          //elastic terms
+          // elastic terms
           initialTangent[i][j][k][l]  = bulk * IbunI[i][j][k][l] ;
           initialTangent[i][j][k][l] += (2.0*shear) * IIdev[i][j][k][l] ;
 
-          //minor symmetries 
+          // minor symmetries 
           initialTangent [j][i][k][l] = initialTangent[i][j][k][l] ;
           initialTangent [i][j][l][k] = initialTangent[i][j][k][l] ;
           initialTangent [j][i][l][k] = initialTangent[i][j][k][l] ;
 
-    } // end for jj
-  } // end for ii
+    }
+  }
 
   return ;
 } 
 
 
 
-//hardening function
+// hardening function
 double J2Plasticity :: q( double xi ) 
 {
 //  q(xi) = simga_infty + (sigma_0 - sigma_infty)*exp(-delta*xi) + H*xi 
 
- return    sigma_infty
+ return sigma_infty
          + (sigma_0 - sigma_infty)*exp(-delta*xi)
          + Hard*xi ;
 }
 
 
-//hardening function derivative
+// hardening function derivative
 double J2Plasticity :: qprime( double xi )
 {
-  return  (sigma_0 - sigma_infty) * (-delta) * exp(-delta*xi)
-         + Hard ;
+  return  (sigma_0 - sigma_infty) * (-delta) * exp(-delta*xi) + Hard ;
 }
 
 
-//matrix_index ---> tensor indices i,j
+// matrix_index ---> tensor indices i,j
 void J2Plasticity :: index_map( int matrix_index, int &i, int &j )
 {
-  switch ( matrix_index+1 ) { //add 1 for standard tensor indices
+  switch ( matrix_index+1 ) { // add 1 for standard tensor indices
 
     case 1 :
       i = 1 ; 
@@ -558,7 +558,7 @@ void J2Plasticity :: index_map( int matrix_index, int &i, int &j )
 
 
 NDMaterial*
-J2Plasticity::getCopy (void)
+J2Plasticity::getCopy ()
 {
   opserr << "J2Plasticity::getCopy -- subclass responsibility\n"; 
   exit(-1);
@@ -566,7 +566,7 @@ J2Plasticity::getCopy (void)
 }
 
 const char*
-J2Plasticity::getType (void) const
+J2Plasticity::getType() const
 {
     opserr << "J2Plasticity::getType -- subclass responsibility\n";
     exit(-1);
@@ -574,7 +574,7 @@ J2Plasticity::getType (void) const
 }
 
 int
-J2Plasticity::getOrder (void) const
+J2Plasticity::getOrder() const
 {
     opserr << "J2Plasticity::getOrder -- subclass responsibility\n";
     exit(-1);
@@ -583,7 +583,7 @@ J2Plasticity::getOrder (void) const
 
 
 int 
-J2Plasticity::commitState( ) 
+J2Plasticity::commitState() 
 {
   epsilon_p_n = epsilon_p_nplus1 ;
   xi_n        = xi_nplus1 ;
@@ -688,7 +688,7 @@ J2Plasticity::sendSelf(int commitTag, Channel &theChannel)
 }
 
 int
-J2Plasticity::recvSelf (int commitTag, Channel &theChannel, 
+J2Plasticity::recvSelf(int commitTag, Channel &theChannel, 
                          FEM_ObjectBroker &theBroker)
 {
   // recv the vector object from the channel which defines material param and state
@@ -713,7 +713,7 @@ J2Plasticity::recvSelf (int commitTag, Channel &theChannel,
   xi_n = data(cnt++);
 
   for (int i=0; i<3; i++)
-    for (int j=0; j<3; j++) 
+    for (int j=0; j<3; j++)
       epsilon_p_n(i,j) = data(cnt++);
 
   epsilon_p_nplus1 = epsilon_p_n;
