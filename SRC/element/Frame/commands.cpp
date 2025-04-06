@@ -870,7 +870,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
           }
           int ndf = builder->getNDF();
           if (multi_node && sections.size() < multi_nodes.size()-1)
-            for (int i = 0; i < multi_nodes.size()-1; ++i)
+            for (unsigned i = 0; i < multi_nodes.size()-1; ++i)
               sections.push_back(sections[0]);
 
           static_loop<2,6>([&](auto nn) constexpr {
