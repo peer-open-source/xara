@@ -20,7 +20,6 @@
 #include <Channel.h>
 #include <Logging.h>
 #include <Rotations.hpp>
-#include <string>
 #include <LinearFrameTransf.hpp>
 
 using namespace OpenSees;
