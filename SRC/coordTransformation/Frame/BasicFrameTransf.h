@@ -84,6 +84,30 @@ public:
 protected:
 private:
     FrameTransform<2,6> &t;
+
+    constexpr static int NBV = 6;
+    constexpr static int NDF = 6;
+    enum : int {
+        inx = -12, //  0
+        iny = -12, //  1
+        inz = -12, //  2
+        imx = -12, //  3
+        imy =   3, //  4
+        imz =   1, //  5
+        jnx =   0, //  6
+        jny = -12, //  7
+        jnz = -12, //  8
+        jmx =   5, //  9
+        jmy =   4, // 10
+        jmz =   2, // 11
+    };
+
+    constexpr static int iq[] = {
+        // jnx, imz, jmz, imy, jmy, imx
+        inx, iny, inz, imx, imy, imz,
+        jnx, jny, jnz, jmx, jmy, jmz
+    };
+
 };
 } // namespace OpenSees
 #endif

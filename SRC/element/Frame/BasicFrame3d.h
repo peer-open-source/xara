@@ -78,9 +78,9 @@ class BasicFrame3d : public FiniteElement<2, 3, 6> {
 
     // Sensitivity
     const Matrix & getMassSensitivity(int gradNumber);
-    virtual int setParameter(const char **argv, int argc, Parameter &param);
-    virtual int            updateParameter(int parameterID, Information &info);
-    virtual int            activateParameter(int parameterID);
+    virtual int setParameter(const char **argv, int argc, Parameter &);
+    virtual int updateParameter(int param, Information &);
+    virtual int activateParameter(int param);
 
 
 protected:

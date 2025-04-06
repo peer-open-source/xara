@@ -33,49 +33,6 @@
 #include "Orient/CrisfieldTransform.h"
 using namespace OpenSees;
 
-
-// Permutation matrix (to renumber basic dof's)
-
-// v = Tp * ul
-//
-//      |   thI  |   thJ  |
-//      | x z -y | x 
-//      | 0 1  2 | 3 4  5 | 6
-// Tp=  [ 0 0  0   0 0  0   1;  0 // axial
-//        0 1  0   0 0  0   0;  1 // rot z I
-//        0 0  0   0 1  0   0;  2 // rot z J
-//        0 0 -1   0 0  0   0;  3 // rot y I
-//        0 0  0   0 0 -1   0;  4 // rot y J
-//       -1 0  0   1 0  0   0]; 5 // torsion
-//
-//
-// constexpr MatrixND<6,7> T = {{
-//     {0,    0,    0,    0,    0,   -1 },
-//     {0,    1,    0,    0,    0,    0 },
-//     {0,    0,    0,   -1,    0,    0 },
-//     {0,    0,    0,    0,    0,    1 },
-//     {0,    0,    1,    0,    0,    0 },
-//     {0,    0,    0,    0,   -1,    0 },
-//     {1,    0,    0,    0,    0,    0 }}};
-
-// So-called "Matrix of rigid body modes"
-constexpr static MatrixND<6,12> T12_6 {
-//   N Mz Mz My My  T
-   {{0, 0, 0, 0, 0, 0}, // Ni
-    {0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0}, // Ti
-    {0, 0, 0, 1, 0, 0}, // My
-    {0, 1, 0, 0, 0, 0}, // Mz
-
-    {1, 0, 0, 0, 0, 0}, // Nj
-    {0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 2}, // Tj
-    {0, 0, 0, 0, 1, 0}, // My
-    {0, 0, 1, 0, 0, 0}} // Mz
-};
-
 template <int nn, int ndf>
 SouzaFrameTransf<nn,ndf>::SouzaFrameTransf(int tag, const Vector3D &vz,
                                             const std::array<Vector3D, nn> *offset,
@@ -973,7 +930,7 @@ SouzaFrameTransf<nn,ndf>::getBasicDisplFixedGrad()
 {
     opserr << "ERROR CrdTransf::getBasicDisplFixedGrad() - has not been"
            << " implemented yet for the chosen transformation." << endln;
-    
+
     static Vector dummy(1);
     return dummy;
 }

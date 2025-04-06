@@ -305,7 +305,7 @@ ElementalLoad *LoadPattern::removeElementalLoad(int tag)
     return 0;
 
   ElementalLoad *result = (ElementalLoad *)obj;
-  result->setDomain(0);
+  result->setDomain(nullptr);
   currentGeoTag++;
   return result;
 }
