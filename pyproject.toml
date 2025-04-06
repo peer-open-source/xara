@@ -1,6 +1,6 @@
 [project]
 name = "opensees"
-version = "0.1.13"
+version = "0.1.15"
 # authors = [
 #   {name=""}
 #   # <50180406+claudioperez@users.noreply.github.com>"
@@ -72,8 +72,8 @@ testing = [
 
 
 [project.urls]
-Repository = "https://github.com/claudioperez/OpenSeesRT"
-Documentation = "https://opensees.stairlab.io"
+Repository = "https://github.com/OpenSees/OpenSees"
+Documentation = "https://opensees.berkeley.edu"
 Examples = "https://gallery.stairlab.io"
 
 [build-system]

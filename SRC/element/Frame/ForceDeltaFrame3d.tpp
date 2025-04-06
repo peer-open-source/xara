@@ -3376,10 +3376,11 @@ template<int NIP, int nsr>
 const Matrix&
 ForceDeltaFrame3d<NIP,nsr>::computedfedh(int igrad)
 {
-  int numSections = points.size();
   static Matrix dfedh(6, 6);
-
   dfedh.Zero();
+#if 0
+  int numSections = points.size();
+
 
   double L        = theCoordTransf->getInitialLength();
   double oneOverL = 1.0 / L;
@@ -3489,7 +3490,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedfedh(int igrad)
       }
     }
   }
-
+#endif
   return dfedh;
 }
 
@@ -3606,8 +3607,8 @@ ForceDeltaFrame3d<NIP,nsr>::sendSelf(int commitTag, Channel& theChannel)
       dData(loc++) = K_past(i, j);
 
   // place e_past into vector
-  for (int k = 0; k < points.size(); k++)
-    for (int i = 0; i < nsr; i++)
+  for (unsigned k = 0; k < points.size(); k++)
+    for (unsigned i = 0; i < nsr; i++)
       dData(loc++) = points[k].es_save[i];
 
   // send damping coefficients
@@ -3820,9 +3821,9 @@ ForceDeltaFrame3d<NIP,nsr>::recvSelf(int commitTag, Channel& theChannel, FEM_Obj
   K_pres = K_past;
   q_pres = q_past;
 
-  for (int k = 0; k < points.size(); k++) {
+  for (unsigned k = 0; k < points.size(); k++) {
     // place es_save into vector
-    for (int i = 0; i < nsr; i++)
+    for (unsigned i = 0; i < nsr; i++)
       points[k].es_save[i] = dData(loc++);
   }
 

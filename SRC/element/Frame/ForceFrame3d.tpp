@@ -1711,9 +1711,10 @@ ForceFrame3d<NIP,nsr,nwm>::setResponse(const char** argv, int argc, OPS_Stream& 
 
     if (argc > 1) {
 
+      const int nip = points.size();
       int sectionNum = atoi(argv[1]);
 
-      if (sectionNum > 0 && sectionNum <= points.size() && argc > 2) {
+      if (sectionNum > 0 && sectionNum <= nip && argc > 2) {
         if (this->setState(State::Init) != 0)
           return nullptr;
 
@@ -2178,7 +2179,7 @@ ForceFrame3d<NIP,nsr,nwm>::setParameter(const char** argv, int argc, Parameter& 
     // Get section number
     int sectionNum = atoi(argv[1]);
 
-    if (sectionNum > 0 && sectionNum <= points.size())
+    if (sectionNum > 0 && sectionNum <= (int)points.size())
       return points[sectionNum - 1].material->setParameter(&argv[2], argc - 2, param);
 
     else
@@ -2548,7 +2549,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
   static Matrix dfedh(NBV, NBV);
 
   dfedh.Zero();
-
+#if 0
   double L   = theCoordTransf->getInitialLength();
   double jsx = 1.0 / L;
 
@@ -2651,7 +2652,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
       }
     }
   }
-
+#endif
   return dfedh;
 }
 

@@ -46,7 +46,7 @@ public:
   constexpr static int ndm = 3;
 
 public:
-  FrameTransform<nn,ndf>(int tag) : TaggedObject(tag) {}
+  FrameTransform(int tag) : TaggedObject(tag) {}
 
   virtual FrameTransform<nn,ndf> *getCopy() const =0;
 

@@ -230,7 +230,7 @@ int
 Graph::addEdgeFast(int vertexTag, int otherVertexTag)
 {
     // get pointers to the vertices, if one does not exist return
-    if (vertices.size()<=vertexTag ||
+    if ((int)vertices.size()<=vertexTag ||
     vertices.size()<=otherVertexTag) {
       opserr << "WARNING: the size of vertices is not correct\n";
       return -1;
