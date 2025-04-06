@@ -145,7 +145,7 @@ FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl)
       R(i,1) = y[i];
       R(i,2) = z[i];
     }
-    // TODO: Rigid offsets
+
     constexpr int N = nn * ndf;
     const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
 
@@ -206,9 +206,10 @@ FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
     const Matrix3D RT = R.transpose();
     for (int i=0; i<nn; i++) {
       for (int j=0; j<nn; j++) {
+        // loop over 3x3 blocks for n and m
         for (int k=0; k<2; k++) {
           for (int l=0; l<2; l++) {
-            Matrix3D Kab {{
+            const Matrix3D Kab {{
               {Kg(i*ndf+3*k+0, j*ndf+3*l  ), Kg(i*ndf+3*k+1, j*ndf+3*l  ), Kg(i*ndf+3*k+2, j*ndf+3*l  )},
               {Kg(i*ndf+3*k+0, j*ndf+3*l+1), Kg(i*ndf+3*k+1, j*ndf+3*l+1), Kg(i*ndf+3*k+2, j*ndf+3*l+1)},
               {Kg(i*ndf+3*k+0, j*ndf+3*l+2), Kg(i*ndf+3*k+1, j*ndf+3*l+2), Kg(i*ndf+3*k+2, j*ndf+3*l+2)}
@@ -219,8 +220,38 @@ FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
       }
     }
 
-    //
-    // TODO: Rigid offsets
-    //
+    const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
+    if (offset) {
+      const std::array<Vector3D, nn>& offsets = *offset;
+      for (int i=0; i<nn; i++) {
+        for (int j=0; j<nn; j++) {
+          {
+            Matrix3D KmnW{};
+            KmnW.addMatrixSpinProduct(Kg.template extract<3,3>(i*ndf+3, j*ndf), offsets[j], -1.0);
+            Kg.assemble(KmnW, i*ndf+3, j*ndf+3, 1.0);
+          }
+          {
+            Matrix3D WKnm{};
+            WKnm.addSpinMatrixProduct(offsets[i], Kg.template extract<3,3>(i*ndf, j*ndf+3), 1.0);
+            Kg.assemble(WKnm, i*ndf+3, j*ndf+3, 1.0);
+          }
+          {
+            Matrix3D WKnn{};
+            {
+              Matrix3D Knn = Kg.template extract<3,3>(i*ndf, j*ndf);
+              {
+                Matrix3D KnnW{};
+                KnnW.addMatrixSpinProduct(Knn, offsets[j], -1.0);
+                Kg.assemble(KnnW, i*ndf, j*ndf+3, 1.0);
+              }
+              WKnn.addSpinMatrixProduct(offsets[i], Knn, 1.0);
+              Kg.assemble(WKnn, i*ndf+3, j*ndf, 1.0);
+            }
+            Matrix3D WKmmW{};
+            WKmmW.addMatrixSpinProduct(WKnn, offsets[j], -1.0);
+            Kg.assemble(WKmmW, i*ndf+3, j*ndf+3, 1.0);
+          }
+        }
+      }}
     return Kg;
 }

@@ -31,31 +31,48 @@
 //
 // It is based on previous work of Jun Peng(Stanford)
 //
-//
 // Written: fmk
 // Created: 05.09
 //
+#include <math.h>
+#include <stdio.h>
 #include <DataFileStream.h>
 #include <ArpackSolver.h>
 #include <ArpackSOE.h>
 #include <LinearSOE.h>
-
-#include <math.h>
-// #include <f2c.h>
-
-#include <stdio.h>
 #include <AnalysisModel.h>
 #include <DOF_GrpIter.h>
 #include <DOF_Group.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
 #include <Integrator.h>
-#include <string.h>
 #include <Channel.h>
+#include <arpack.hpp>
 
-#include <fstream>
-#include <iostream>
-using namespace std;
+#include <string.h>
+#if !defined(_WIN32)
+#  define DSAUPD dsaupd_
+#  define DSEUPD dseupd_
+#endif
+
+#define ARPACK_ICB
+
+extern "C" void DSAUPD(int *ido, char* bmat, 
+                       int *n, char *which,
+                       int *nev, 
+                       double *tol, double *resid, int *ncv, double *v, 
+                       int *ldv,
+                       int *iparam, int *ipntr, double *workd, double *workl,
+                       int *lworkl, int *info);
+
+extern "C" void DSEUPD(bool *rvec, char *howmny,
+                       int *select, double *d, double *z,
+                       int *ldz, double *sigma, char *bmat,
+                       int         *n, char *which,
+                       int *nev, double *tol, double *resid, int *ncv, 
+                       double *v,
+                       int *ldv, int *iparam, int *ipntr, double *workd, 
+                       double *workl, int *lworkl, int *info);
 
 static double *workArea = nullptr;
 static int sizeWork = 0;
@@ -92,40 +109,6 @@ ArpackSolver::~ArpackSolver()
   sizeWork = 0;
 }
 
-#ifdef _WIN32
-
-extern "C" void DSAUPD(int *ido, char* bmat, 
-                       int *n, char *which,
-                       int *nev, 
-                       double *tol, double *resid, int *ncv, double *v, 
-                       int *ldv,
-                       int *iparam, int *ipntr, double *workd, double *workl,
-                       int *lworkl, int *info);
-
-extern "C" void DSEUPD(bool *rvec, char *howmny,
-                       int *select, double *d, double *z,
-                       int *ldz, double *sigma, char *bmat,
-                       int         *n, char *which,
-                       int *nev, double *tol, double *resid, int *ncv, 
-                       double *v,
-                       int *ldv, int *iparam, int *ipntr, double *workd, 
-                       double *workl, int *lworkl, int *info);
-#else
-
-extern "C" void dsaupd_(int *ido, char* bmat, int *n, char *which, int *nev, 
-                       double *tol, double *resid, int *ncv, double *v, int *ldv,
-                       int *iparam, int *ipntr, double *workd, double *workl,
-                       int *lworkl, int *info);
-
-extern "C" void dseupd_(bool *rvec, char *howmny, int *select, double *d, double *z,
-                       int *ldz, double *sigma, char *bmat, int *n, char *which,
-                       int *nev, double *tol, double *resid, int *ncv, double *v,
-                       int *ldv, int *iparam, int *ipntr, double *workd, 
-                       double *workl, int *lworkl, int *info);
-#endif
-
-
-
 
 int
 ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
@@ -152,18 +135,16 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
   int lworkl = ncv*ncv + 8*ncv;
 
   int processID = theArpackSOE->processID;
-  
-  // set up the space for ARPACK functions.
-  // this is done each time method is called!! .. this needs to be cleaned up
+
   if (numModes > numModesMax) {
     
-    if (v != 0) delete [] v;
-    if (workl != 0) delete [] workl;
-    if (workd != 0) delete [] workd;
-    if (eigenvalues != 0) delete [] eigenvalues;
-    if (eigenvectors != 0) delete [] eigenvectors;
-    if (resid != 0) delete [] resid;
-    if (select != 0) delete [] select;
+    if (v     != nullptr) delete [] v;
+    if (workl != nullptr) delete [] workl;
+    if (workd != nullptr) delete [] workd;
+    if (eigenvalues != nullptr) delete [] eigenvalues;
+    if (eigenvectors != nullptr) delete [] eigenvectors;
+    if (resid  != nullptr) delete [] resid;
+    if (select != nullptr) delete [] select;
     
     v = new double[ldv * ncv];
     workl = new double[lworkl + 1];
@@ -174,64 +155,56 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
     select = new int[ncv];
 
     for (int i=0; i<lworkl+1; i++)
-           workl[i] = 0;
+      workl[i] = 0;
     for (int i=0; i<3*n+1; i++)
       workd[i] = 0;
-
     for (int i=0; i<ldv*ncv; i++)
       v[i] = 0;
     
     numModesMax = numModes;
   }
 
-  char which[3];
-  if (findSmallest == true) {
-    strcpy(which, "LM");
-  }  else {
-    strcpy(which, "SM");
-  }
-
-
-  char bmat  = 'G';
-  char howmy = 'A';
-  
-  // some more variables
+  int counter = 0;
+  int ido = 0;
+  int ierr = 0;
   double tol = 0.0;
   int info = 0;
   int maxitr = 1000;
   int mode = 3;
-  
+  bool rvec = true;
   iparam[0] = 1;
   iparam[2] = maxitr;
-  iparam[6] = mode; 
+  iparam[6] = mode;
 
-  
-  bool rvec = true;
-  
-  int ido = 0;
-  int ierr = 0;
-  
-  int counter = 0;
+#if !defined(ARPACK_ICB)
+char which[3];
+  if (findSmallest == true)
+    strcpy(which, "LM");
+  else
+    strcpy(which, "SM");
+
+  char bmat  = 'G';
+  char howmy = 'A';
+
+#else
+  arpack::which which = findSmallest
+                      ? arpack::which::largest_magnitude
+                      : arpack::which::smallest_magnitude; 
+
+  arpack::bmat bmat = arpack::bmat::generalized;
+  arpack::howmny howmy = arpack::howmny::ritz_vectors;
+#endif
 
   while (1) { 
       
-
-#ifdef _WIN32
-    unsigned int sizeWhich =2;
-    unsigned int sizeBmat =1;
-    unsigned int sizeHowmany =1;
-    unsigned int sizeOne = 1;
-
-   // opserr << "ArpackSOE::solver) -  before DSAPPD\n";
+#if  !defined(ARPACK_ICB)
     DSAUPD(&ido, &bmat, &n, which, &nev, &tol, resid, 
            &ncv, v, &ldv,
            iparam, ipntr, workd, workl, &lworkl, &info);
-        // opserr << "ArpackSOE::solver) - 1 after DSAPPD\n";
 #else
-    dsaupd_(&ido, &bmat, &n, which, &nev, &tol, resid, &ncv, v, &ldv,
-            iparam, ipntr, workd, workl, &lworkl, &info);
+    arpack::saupd(ido, bmat, n, which, nev, tol, resid, ncv, v, ldv,
+                  iparam, ipntr, workd, workl, lworkl, info);
 #endif
-        
 
     if (theArpackSOE->checkSameInt(ido) != 1) {
       opserr << "ArpackSolver::solve - ido values not the same .. ido, processID: "
@@ -240,6 +213,11 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
     }
 
     if (ido == -1) {
+      // IDO = -1: compute  Y = OP * X  where
+      //           IPNTR(1) is the pointer into WORKD for X,
+      //           IPNTR(2) is the pointer into WORKD for Y.
+      //           This is for the initialization phase to force the
+      //           starting vector into the range of OP.
     
       myMv(n, &workd[ipntr[0]-1], &workd[ipntr[1]-1]); 
     
@@ -254,29 +232,38 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
       const Vector &X = theSOE->getX();
       theVector = X;
 
-      continue;
-      
-    } else if (ido == 1) {
-      
-      //  double ratio = 1.0;
+      continue; 
+    }
+
+    else if (ido == 1) {
+      // compute  Y = OP * X  where
+      // IPNTR(1) is the pointer into WORKD for X,
+      // IPNTR(2) is the pointer into WORKD for Y.
+      // In mode 3, the vector B * X is already
+      // available in WORKD(ipntr(3)).  It does not
+      // need to be recomputed in forming OP * X.
+
+      // double ratio = 1.0;
       myCopy(n, &workd[ipntr[2]-1], &workd[ipntr[1]-1]);
-      //opserr << "ArpackSOE::solver) - 1 before SOE-setVector\n"; 
       theVector.setData(&workd[ipntr[1] - 1], size);
-           //opserr << "ArpackSOE::solver) - 1 after SOE-setEVctor\n";
       if (processID > 0)
-             theSOE->zeroB();
+        theSOE->zeroB();
       else
-              theSOE->setB(theVector);
+        theSOE->setB(theVector);
 
       theSOE->solve();
    
       const Vector &X = theSOE->getX();
       theVector = X;
-      //      theVector.setData(&workd[ipntr[1] - 1], size);
+      // theVector.setData(&workd[ipntr[1] - 1], size);
 
       continue;
-      
-    } else if (ido == 2) {
+    }
+
+    else if (ido == 2) {
+      // IDO =  2: compute  Y = M * X  where
+      //           IPNTR(1) is the pointer into WORKD for X,
+      //           IPNTR(2) is the pointer into WORKD for Y.
       myMv(n, &workd[ipntr[0]-1], &workd[ipntr[1]-1]);
       continue;
     }
@@ -284,9 +271,8 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
   }
   
   if (info < 0) {
-    opserr << "ArpackSolver::Error with _saupd info = " << info << endln;
+    opserr << "Arpack returned with flag " << info << "\n  ";
     switch(info) {
-      
     case -1: 
       opserr << "N must be positive.\n";
       break;
@@ -330,25 +316,26 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
     case -9999:
       opserr << "Could not build an Arnoldi factorization.\n";
       opserr << "IPARAM(5) - the size of the current Arnoldi factorization is " << iparam[4] << ".\n";
-      opserr << "The user is advised to check that enough workspace and array storage have been allocated.\n";
+      opserr << "Check that enough workspace and array storage have been allocated.\n";
       break;
     default:
       opserr << "unrecognised return value\n";
     }
 
-    if (eigenvalues != 0) 
+    if (eigenvalues != nullptr) 
       delete [] eigenvalues;
-    eigenvalues = 0;
-    if (eigenvectors != 0)
+    eigenvalues = nullptr;
+    if (eigenvectors != nullptr)
       delete [] eigenvectors;
-    eigenvectors = 0;
+    eigenvectors = nullptr;
     
     return info;
 
   } else {
     if (info == 1) {
-      opserr << "ArpackSolver::Maximum number of iteration reached." << endln;
-    } else if (info == 3) {
+      opserr << "ArpackSolver::Maximum number of iteration reached.\n";
+    }
+    else if (info == 3) {
       opserr << "ArpackSolver::No Shifts could be applied during implicit,";
       opserr << "Arnoldi update, try increasing NCV." << endln;
     }
@@ -358,19 +345,18 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
       rvec = true;
       n = size;    
       ldv = n;
-      
-#ifdef _WIN32
-      unsigned int sizeWhich =2;
-      unsigned int sizeBmat =1;
-      unsigned int sizeHowmany =1;
-      
-      DSEUPD(&rvec, &howmy, (int*)(select), eigenvalues, eigenvectors, &ldv, &sigma, &bmat, &n, which,
+
+#if !defined(ARPACK_ICB)
+      DSEUPD(&rvec, &howmy, (int*)(select), 
+             eigenvalues, eigenvectors, &ldv, &sigma, &bmat, &n, which,
              &nev, &tol, resid, &ncv, v, &ldv, iparam, ipntr, workd,
              workl, &lworkl, &info);
 #else
-      dseupd_(&rvec, &howmy, (int*)(select), eigenvalues, eigenvectors, &ldv, &sigma, &bmat, &n, which,
-              &nev, &tol, resid, &ncv, v, &ldv, iparam, ipntr, workd,
-              workl, &lworkl, &info);
+      arpack::seupd(rvec, howmy, select,
+                    eigenvalues, eigenvectors, 
+                    ldv, sigma, bmat, n, which,
+                    nev, tol, resid, ncv, v, ldv, iparam, ipntr, workd,
+                    workl, lworkl, info);
 #endif
       if (info != 0) {
         opserr << "ArpackSolver::Error with dseupd_" << info;
@@ -422,8 +408,7 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
         default:
           ;
         }
-        
-        
+
         return info;
         
       }
@@ -471,7 +456,7 @@ ArpackSolver::myMv(int n, double *v, double *result)
       for (int i=0; i<n; i++)
         result[i] = M[i]*v[i];
     } else {
-      opserr << "ArpackSolver::myMv() n > Msize!\n";
+      opserr << "ArpackSolver: n > Msize!\n";
       return;
     }
 
@@ -549,9 +534,6 @@ ArpackSolver::getEigenvector(int mode)
   int index = (mode - 1) * size;
   
   theVector.setData(&eigenvectors[index], size);
-
-
-  
 
   return theVector;;  
 }

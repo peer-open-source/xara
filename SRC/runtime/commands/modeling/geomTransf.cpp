@@ -53,13 +53,14 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
   int tag;
   const char *name = argv[1];
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid tag\n";
+    opserr << G3_ERROR_PROMPT 
+           << "invalid tag\n";
     return TCL_ERROR;
   }
 
   FrameTransformBuilder& transform = *new FrameTransformBuilder(ndm, tag, name);
 
-  // parse orientation vector
+  // Parse orientation vector
   int argi = 3;
   bool parsed_xz = (ndm == 2);
   int argxz = 0;
@@ -89,12 +90,14 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       // -orient {x y z}
       argi++;
       if (parsed_xz) {
-        opserr << G3_ERROR_PROMPT << "orientation already provided\n";
+        opserr << G3_ERROR_PROMPT 
+               << "orientation already provided\n";
         return TCL_ERROR;
       }
 
       if (argi == argc) {
-        opserr << G3_ERROR_PROMPT << "missing orientation vector\n";
+        opserr << G3_ERROR_PROMPT 
+               << "missing orientation vector\n";
         return TCL_ERROR;
       }
 
@@ -103,12 +106,13 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       Tcl_SplitList(interp, argv[argi], &xznum, &xzarg);
       if (xznum != 3) {
         Tcl_Free((char *)xzarg);
-        opserr << G3_ERROR_PROMPT << "invalid orientation vector\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid orientation vector\n";
         return TCL_ERROR;
       }
       for (int i=0; i<3; ++i)
         if (Tcl_GetDouble(interp, xzarg[i], &transform.vz[i]) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "failed  to parse vectxz\n";
+          opserr << G3_ERROR_PROMPT << "failed  to parse vecxz\n";
           return TCL_ERROR;
         }
       
@@ -139,20 +143,24 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
         FrameTransformBuilder* transform = static_cast<FrameTransformBuilder*>(cd);
         assert(transform != nullptr);
         if (oargc < 2) {
-          opserr << G3_ERROR_PROMPT << "insufficient number of offset arguments\n";
+          opserr << G3_ERROR_PROMPT 
+                 << "insufficient number of offset arguments\n";
           return TCL_ERROR;
         }
         int offset_tag;
         if (Tcl_GetInt(interp, oargv[0], &offset_tag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid offset tag\n";
+          opserr << G3_ERROR_PROMPT 
+                 << "invalid offset tag\n";
           return TCL_ERROR;
         }
         if (offset_tag < 1 || offset_tag > MAX_OFFSETS) {
-          opserr << G3_ERROR_PROMPT << "invalid offset tag\n";
+          opserr << G3_ERROR_PROMPT 
+                 << "invalid offset tag\n";
           return TCL_ERROR;
         }
         if (oargc < 2) {
-          opserr << G3_ERROR_PROMPT << "missing offset vector\n";
+          opserr << G3_ERROR_PROMPT 
+                 << "missing offset vector\n";
           return TCL_ERROR;
         }
 
@@ -169,7 +177,8 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
           if (Tcl_GetDouble(interp, xzarg[i], &transform->offsets[offset_tag][i]) != TCL_OK) {
             if (oargc == 2)
               Tcl_Free((char *)xzarg);
-            opserr << G3_ERROR_PROMPT << "failed to parse offset vector\n";
+            opserr << G3_ERROR_PROMPT 
+                   << "failed to parse offset vector\n";
             return TCL_ERROR;
           }
         if (oargc == 2)
@@ -181,7 +190,8 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       }
 
       if (Tcl_Eval(interp, argv[argi]) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to parse offset block\n";
+        opserr << G3_ERROR_PROMPT 
+               << "failed to parse offset block\n";
         return TCL_ERROR;
       } else {
         for (int i=0; i<MAX_OFFSETS; i++) {
@@ -211,7 +221,8 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       for (int i=0; i<3; ++i)
           if (Tcl_GetDouble(interp, xzarg[i], &transform.vz[i]) != TCL_OK) {
             Tcl_Free((char *)xzarg);
-            opserr << G3_ERROR_PROMPT << "Failed to parse vectxz\n";
+            opserr << G3_ERROR_PROMPT 
+                   << "Failed to parse vectxz\n";
             return TCL_ERROR;
           }
       argi++;
@@ -222,12 +233,14 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
 
   if (!parsed_xz) {
     if (argxz+3 > argc) {
-      opserr << G3_ERROR_PROMPT << "missing orientation vector\n";
+      opserr << G3_ERROR_PROMPT 
+             << "missing orientation vector\n";
       return TCL_ERROR;
     }
     for (int i=0; i<3; i++)
       if (Tcl_GetDouble(interp, argv[argxz++], &transform.vz[i]) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid vecxzPlaneX\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid vecxz component\n";
         return TCL_ERROR;
       }
   }
@@ -263,14 +276,18 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid tag\n";
+    opserr << G3_ERROR_PROMPT 
+           << "invalid tag"
+           << "\n";
     return TCL_ERROR;
   }
 
   if (getenv("CRD04")) {
     auto tb = builder->getTypedObject<FrameTransformBuilder>(tag);
     if (tb == nullptr) {
-      opserr << G3_ERROR_PROMPT << "transformation not found with tag " << tag << "\n";
+      opserr << G3_ERROR_PROMPT 
+             << "transformation not found with tag " << tag 
+             << "\n";
       return TCL_ERROR;
     }
     FrameTransform3d* t = new BasicFrameTransf3d(tb->template create<2,6>());
@@ -278,7 +295,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   int ndm = builder->getNDM();
-  int ndf = builder->getNDF(); // number of degrees of freedom per node
+  int ndf = builder->getNDF();
   //
   // 2D Case
   //
@@ -296,7 +313,9 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int i = 0; i < 2; ++i) {
           if (argi == argc ||
               Tcl_GetDouble(interp, argv[argi++], &jntOffsetI(i)) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "invalid jntOffset value\n";
+            opserr << G3_ERROR_PROMPT 
+                   << "invalid jntOffset value"
+                   << "\n";
             return TCL_ERROR;
           }
         }
@@ -304,15 +323,19 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int i = 0; i < 2; ++i) {
           if (argi == argc ||
               Tcl_GetDouble(interp, argv[argi++], &jntOffsetJ(i)) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "invalid jntOffset value\n";
+            opserr << G3_ERROR_PROMPT 
+                   << "invalid jntOffset value"
+                   << "\n";
             return TCL_ERROR;
           }
         }
       }
 
       else {
-        opserr << G3_ERROR_PROMPT << "unexpected argument " << argv[argi] << "\n";
-        return TCL_ERROR;
+        opserr << G3_ERROR_PROMPT 
+               << "unexpected argument " << argv[argi] 
+               << "\n";
+        // return TCL_ERROR;
       }
     }
 
@@ -356,7 +379,8 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
     if (argc < 6) {
       opserr << G3_ERROR_PROMPT 
-             << "insufficient arguments\n";
+             << "insufficient arguments"
+             << "\n";
       return TCL_ERROR;
     }
 

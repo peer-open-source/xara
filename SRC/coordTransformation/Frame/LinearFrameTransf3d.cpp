@@ -23,7 +23,7 @@
 #include <Channel.h>
 #include <Logging.h>
 #include <LinearFrameTransf3d.h>
-#include "blk3x12x3.h"
+#include "Utility/blk3x12x3.h"
 
 using namespace OpenSees;
 

@@ -797,7 +797,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       if (strstr(argv[1], "Frame") != nullptr) {
         if (!multi_node && (strstr(argv[1], "Exact") == nullptr)) {
           std::array<int, 2> nodes {iNode, jNode};
-
+#ifdef NEW_TRANSFORM
           FrameTransform<2,6> *tran = nullptr;
           if (FrameTransformBuilder* tb; (tb = builder->getTypedObject<FrameTransformBuilder>(transfTag))) {
             tran = tb->template create<2,6>();
@@ -807,6 +807,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
             status = TCL_ERROR;
             goto clean_up;
           }
+#endif
           if (strcmp(argv[1], "CubicFrame") == 0) {
 
             theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
@@ -883,7 +884,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
             }
           });
           if (theElement == nullptr) {
-            opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame\n";
+            opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame; got " << ndf 
+                   << "\n";
             status = TCL_ERROR;
             goto clean_up;
           }

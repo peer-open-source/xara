@@ -145,26 +145,16 @@ OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthContactNTS2D)
   return theEle;
 }
   
-
-
-
 //*********************************************************************
 //  Full Constructor:
-
-
-
-
-
-
-
 ZeroLengthContactNTS2D::ZeroLengthContactNTS2D(int tag, int sNdNum, int pNdNum, const ID& Nodes,
 					       double Knormal, double Ktangent, double frictionAngle)
   :Element(tag,ELE_TAG_ZeroLengthContactNTS2D),
    connectedExternalNodes(sNdNum + pNdNum),
+   numberNodes(sNdNum + pNdNum),
    N(6), T(6), ContactNormal(2), Ki(0), load(0)
 {
   //static data
-  numberNodes = sNdNum + pNdNum;
   SecondaryNodeNum = sNdNum;
   PrimaryNodeNum = pNdNum;
     
@@ -180,11 +170,7 @@ ZeroLengthContactNTS2D::ZeroLengthContactNTS2D(int tag, int sNdNum, int pNdNum, 
   // allocate shear gap vector
   shear_gap.resize(numberNodes);
   stored_shear_gap.resize(numberNodes);
-  
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != numberNodes)
-    opserr << "FATAL ZeroLength::setUp - failed to create an ID of correct size\n";
-  
+
   // create an ID of correct size
   nodePointers = new Node* [numberNodes];
   
@@ -212,20 +198,15 @@ ZeroLengthContactNTS2D::ZeroLengthContactNTS2D(int tag, int sNdNum, int pNdNum, 
 }
 
 //null constructor
-ZeroLengthContactNTS2D::ZeroLengthContactNTS2D(void)
+ZeroLengthContactNTS2D::ZeroLengthContactNTS2D()
   :Element(0,ELE_TAG_ZeroLengthContactNTS2D),
-  connectedExternalNodes(numberNodes),
+  connectedExternalNodes(0),
+  numberNodes(0),
   N(2*numberNodes), T(2*numberNodes), Ki(0), load(0)
 {
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != numberNodes)
-		opserr << "FATAL ZeroLengthContactNTS2D::ZeroLengthContactNTS2D - failed to create an ID of correct size\n";
-    for (int j = 0; j < numberNodes; j++ ) 
-		nodePointers[j] = 0;
 }
 
 
-//  Destructor:
 //  delete must be invoked on any objects created by the object
 //  and on the matertial object.
 ZeroLengthContactNTS2D::~ZeroLengthContactNTS2D()
@@ -354,7 +335,7 @@ ZeroLengthContactNTS2D::revertToStart()
     //return code;
 	// zero stored_shear_gap
 
-	for(int i = 0; i < numberNodes; i++) 
+	for (int i = 0; i < numberNodes; i++) 
 		stored_shear_gap(i) = 0;
 	return 0;
 }

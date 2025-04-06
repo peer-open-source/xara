@@ -158,7 +158,7 @@ NodalThermalAction::getData(int &type)
 
 
 void 
-NodalThermalAction::applyLoad(const Vector &factors) 
+NodalThermalAction::applyLoad(Vector &factors) 
 {
 	opserr<<"NodalThermalAction::applyLoad(Vector& factors) should not be called)"<<endln;
 }

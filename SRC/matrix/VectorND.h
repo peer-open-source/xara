@@ -110,15 +110,23 @@ struct VectorND {
 
   // Tensor product, also known as the "bun" product
   template <int nc>
-  inline OpenSees::MatrixND<N,nc,double>
+  constexpr inline OpenSees::MatrixND<N,nc,double>
   bun(const VectorND<nc> &other) const {
-    OpenSees::MatrixND<N,nc,double> prod;
+    if constexpr (N == 3 && nc == 3)
+      return OpenSees::MatrixND<N,nc,double> {{
+        {values[0]*other[0], values[1]*other[0], values[2]*other[0]},
+        {values[0]*other[1], values[1]*other[1], values[2]*other[1]},
+        {values[0]*other[2], values[1]*other[2], values[2]*other[2]}
+      }};
+    else {
+      OpenSees::MatrixND<N,nc,double> prod;
 
-    for (index_t j = 0; j < other.size(); ++j)
-      for (index_t i = 0; i < this->size(); ++i)
-        prod(i,j) = values[i] * other.values[j];
+      for (index_t j = 0; j < other.size(); ++j)
+        for (index_t i = 0; i < this->size(); ++i)
+          prod(i,j) = values[i] * other.values[j];
 
-    return prod;
+      return prod;
+    }
   }
 
   constexpr T

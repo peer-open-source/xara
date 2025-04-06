@@ -150,10 +150,9 @@
     return 0;
   }
 
-
   template <int NC>
   inline int
-  addMatrixVector(double thisFact, const MatrixND<N, NC, double> &m, const Vector &v, double otherFact)
+  addMatrixVector(double thisFact, const MatrixND<N, NC, double> &m, const Vector& v, double otherFact)
   {
     // check the sizes are compatable
     assert(NC == v.sz);
@@ -171,8 +170,9 @@
              &m.values[0][0], &i,
              v.theData, &incr,
              &thisFact,
-             values,   &incr);
-      // successfull
+             values,
+             &incr);
+
       return 0;
     } 
   }
@@ -184,7 +184,7 @@
     // check the sizes are compatable
     assert(NR == v.sz);
 
-    // see if quick return
+
     if (thisFact == 1.0 && otherFact == 0.0)
       return 0;
 
@@ -198,7 +198,6 @@
             v.theData, &incr,
             &thisFact,
             values,   &incr);
-      // successfull
       return 0;
     } 
   }

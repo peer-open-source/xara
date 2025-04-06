@@ -16,23 +16,7 @@
 //
 // Adapted from: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
 //
-#if __cplusplus >= 202302L
-    // C++23 (and later) code
-#  include <utility>
-   using std::unreachable;
-#else  
-# define GCC_VERSION (__GNUC__ * 10000 \
-                               + __GNUC_MINOR__ * 100 \
-                               + __GNUC_PATCHLEVEL__)
-# if GCC_VERSION >= 40500
-# define unreachable()  __builtin_unreachable()
-# else
-# define unreachable() do {;} while(0)
-# endif
-#endif
-
 #include <math.h>
-
 #include <Node.h>
 #include <Channel.h>
 #include <Logging.h>
@@ -46,7 +30,6 @@
 #include <MatrixND.h>
 #include <Matrix3D.h>
 #include <Rotations.hpp>
-#include "blk3x12x3.h"
 #include "Orient/CrisfieldTransform.h"
 using namespace OpenSees;
 

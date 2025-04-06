@@ -46,7 +46,7 @@
 #include <MatrixND.h>
 #include <Matrix3D.h>
 #include <Rotations.hpp>
-#include "blk3x12x3.h"
+#include "Utility/blk3x12x3.h"
 using namespace OpenSees;
 
 // initialize static variables

@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
 
-if (NOT DEFINED CMAKE_BUILD_TYPE)
-   set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
-endif ()
-
 # project(arpack C Fortran)
 
 set(arpack_ng_MAJOR_VERSION 3)
@@ -26,8 +22,7 @@ endif ()
 
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static libraries" OFF)
 option(MPI "Enable parallel support" OFF)
-option(ICB "Enable support for *[ae]upd_c with ISO_C_BINDING" OFF)
-option(EIGEN "Enable support for eigenvalue-problems solver based on ICB and eigen" OFF)
+option(ICB "Enable support for *[ae]upd_c with ISO_C_BINDING" ON)
 option(PYTHON3 "Enable python3 support" OFF)
 set(BOOST_PYTHON_LIBSUFFIX "" CACHE STRING "suffix to add to custom boost python libs")
 option(EXAMPLES "Compile ARPACK examples" OFF)
@@ -42,13 +37,13 @@ set(SYMBOLSUFFIX ""
     CACHE STRING "suffix to add to ARPACK, BLAS and LAPACK function names")
 option(INTERFACE64 "use the 64-bit integer interface (ILP64) for ARPACK, BLAS and LAPACK")
 
-# 'make install' to the correct location, and also define
-# paths for target_include_directories and target_link_libraries
-include(GNUInstallDirs)
-set(ARPACK_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}/arpack${ITF64SUFFIX}")
-set(ARPACK_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/arpackng${LIBSUFFIX}${ITF64SUFFIX}")
+# # 'make install' to the correct location, and also define
+# # paths for target_include_directories and target_link_libraries
+# include(GNUInstallDirs)
+# set(ARPACK_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}/arpack${ITF64SUFFIX}")
+# set(ARPACK_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/arpackng${LIBSUFFIX}${ITF64SUFFIX}")
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 function(prefixlist list_name prefix)
     set(${list_name}_TMP)
@@ -76,72 +71,13 @@ function(pexamples list_name)
     endforeach()
 endfunction(pexamples)
 
-if (PYTHON3)
-    enable_language(C CXX) # Boost requirement.
-    set(CMAKE_CXX_STANDARD 14) # Boost requirement.
-
-    find_package(PythonInterp 3 REQUIRED)
-    find_package(PythonLibs 3 REQUIRED)
-    find_package(Boost 1.78 COMPONENTS python${BOOST_PYTHON_LIBSUFFIX} numpy${BOOST_PYTHON_LIBSUFFIX} REQUIRED)
-
-    set(EIGEN "ON")
-endif ()
-
-if (EIGEN)
-    find_package(Eigen3 3.3 QUIET)
-    if (NOT EIGEN3_FOUND) # If not found, piggy-back pkg-config files.
-        message(WARNING "CMake didn't find the Eigen3 package. Try to look for pkg-config file...")
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(EIGEN3 REQUIRED eigen3>=3.3)
-        set(EIGEN3_INCLUDE_DIR ${EIGEN3_INCLUDE_DIRS})
-    endif ()
-
-    # Look for headers.
-    find_path(EIGEN3_ITERATIVE_SOLVER_DIR NAMES IterativeLinearSolvers PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_ITERATIVE_SOLVER_DIR)
-        message(FATAL_ERROR "-- Eigen/IterativeLinearSolvers header not found.")
-    endif ()
-    find_path(EIGEN3_SPARSE_DIR NAMES Sparse PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_SPARSE_DIR)
-        message(FATAL_ERROR "-- Eigen/Sparse header not found.")
-    endif ()
-    find_path(EIGEN3_SPARSELU_SOLVER_DIR NAMES SparseLU PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_SPARSELU_SOLVER_DIR)
-        message(FATAL_ERROR "-- Eigen/SparseLU header not found.")
-    endif ()
-    find_path(EIGEN3_SPARSEQR_SOLVER_DIR NAMES SparseQR PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_SPARSEQR_SOLVER_DIR)
-        message(FATAL_ERROR "-- Eigen/SparseQR header not found.")
-    endif ()
-    find_path(EIGEN3_SPARSECHOLESKY_SOLVER_DIR NAMES SparseCholesky PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_SPARSECHOLESKY_SOLVER_DIR)
-        message(FATAL_ERROR "-- Eigen/SparseCholesky header not found.")
-    endif ()
-    find_path(EIGEN3_DENSE_DIR NAMES Dense PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_DENSE_DIR)
-        message(FATAL_ERROR "-- Eigen/Dense header not found.")
-    endif ()
-    find_path(EIGEN3_DENSELU_DIR NAMES LU PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_DENSELU_DIR)
-        message(FATAL_ERROR "-- Eigen/LU header not found.")
-    endif ()
-    find_path(EIGEN3_DENSEQR_DIR NAMES QR PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_DENSEQR_DIR)
-        message(FATAL_ERROR "-- Eigen/QR header not found.")
-    endif ()
-    find_path(EIGEN3_DENSECHOLESKY_DIR NAMES Cholesky PATHS ${EIGEN3_INCLUDE_DIR} PATH_SUFFIXES Eigen)
-    if (NOT EIGEN3_DENSECHOLESKY_DIR)
-        message(FATAL_ERROR "-- Eigen/Cholesky header not found.")
-    endif ()
-
-    set(ICB "ON")
-endif ()
 
 # Enable language(s) before any find_package (in particular before MPI find_package).
 if (ICB)
     enable_language(C CXX) # For testing binding with c/c++.
 
     set(CMAKE_CXX_STANDARD 11) # OK, since cmake-3.1 only.
+#   set_property(TARGET tgt PROPERTY CXX_STANDARD 11)
 
     file(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/PROG_ICB.f90
          "
@@ -158,6 +94,7 @@ if (ICB)
     else()
       message("-- Fortran compiler does support iso_c_binding.")
     endif()
+
 else()
     # ICB saves you from old-fashion-boring-cumbersome-fortran/C crap... For arpack symbols (only).
 
@@ -247,7 +184,7 @@ if (MPI)
       message(WARNING "build script does not know how to preprocess Fortran code: set it manually via FFLAGS.")
     endif ()
 
-    if(ICB)
+    if (ICB)
         if (NOT TARGET MPI::MPI_C) # Search only if not already found by upper CMakeLists.txt
             include(FindMPI)
             find_package(MPI REQUIRED COMPONENTS C)
@@ -358,9 +295,17 @@ file(GLOB arpacksrc_STAT_SRCS ${arpack_SOURCE_DIR}/dbgini.f ${arpack_SOURCE_DIR}
 
 set(arpacksrc_ICB "")
 set(parpacksrc_ICB "")
-if(ICB)
-  file(GLOB arpacksrc_ICB ${arpack_SOURCE_DIR}/SRC/icba*.F90 ${arpack_SOURCE_DIR}/ICB/debug_icb.F90 ${arpack_SOURCE_DIR}/ICB/stat_icb.F90)
-  file(GLOB parpacksrc_ICB ${arpack_SOURCE_DIR}/PARPACK/SRC/MPI/icbp*.F90 ${arpack_SOURCE_DIR}/ICB/debug_icb.F90 ${arpack_SOURCE_DIR}/ICB/stat_icb.F90)
+if (ICB)
+  file(GLOB arpacksrc_ICB 
+       ${arpack_SOURCE_DIR}/SRC/icba*.F90 
+       ${arpack_SOURCE_DIR}/ICB/debug_icb.F90 
+       ${arpack_SOURCE_DIR}/ICB/stat_icb.F90
+  )
+  file(GLOB parpacksrc_ICB 
+       ${arpack_SOURCE_DIR}/PARPACK/SRC/MPI/icbp*.F90 
+       ${arpack_SOURCE_DIR}/ICB/debug_icb.F90 
+       ${arpack_SOURCE_DIR}/ICB/stat_icb.F90
+  )
 endif()
 
 set(arpackutil_STAT_SRCS
@@ -386,7 +331,11 @@ if (MPI)
 endif()
 
 # use -DBUILD_SHARED_LIBS=ON|OFF to control static/shared
-add_library(arpack ${arpackutil_STAT_SRCS} ${arpacksrc_STAT_SRCS} ${arpacksrc_ICB})
+add_library(arpack 
+            ${arpackutil_STAT_SRCS}
+            ${arpacksrc_STAT_SRCS}
+            ${arpacksrc_ICB}
+)
 
 target_link_libraries(arpack
   PUBLIC
@@ -395,6 +344,7 @@ target_link_libraries(arpack
   $<BUILD_INTERFACE:LAPACK::LAPACK>
   $<BUILD_INTERFACE:BLAS::BLAS>
 )
+
 target_link_options(arpack PUBLIC "${EXTRA_LDFLAGS}")
 set_target_properties(arpack PROPERTIES OUTPUT_NAME arpack${LIBSUFFIX}${ITF64SUFFIX})
 set_target_properties(arpack PROPERTIES VERSION 2.1.0)
@@ -407,7 +357,7 @@ target_include_directories(arpack
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   # For ICB interface
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ICB>
+  $<BUILD_INTERFACE:${arpack_SOURCE_DIR}/ICB>
 )
 
 if (MPI)
@@ -424,9 +374,7 @@ if (MPI)
     set_target_properties(parpack PROPERTIES SOVERSION 2)
 endif ()
 
-set(PYINT "int32" CACHE STRING "int type to be used in python scripts") # PYINT : int used with python.
 if (INTERFACE64)
-    set(PYINT "int64" CACHE STRING "int type to be used in python scripts") # PYINT : int used with python.
     set(INTERFACE64 1)
     if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_Fortran_COMPILER_ID}" STREQUAL "LLVMFlang")
       set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fdefault-integer-8")
@@ -447,185 +395,14 @@ endif ()
 include_directories("${PROJECT_BINARY_DIR}") # Find arpackdef.h and arpackicb.h
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-############################
+#---------------------------
 # EXAMPLES
-############################
-if (EXAMPLES)
-    ############################
-    # EXAMPLES/BAND
-    ############################
-    set(arpackexample_DIR ${arpack_SOURCE_DIR}/EXAMPLES/BAND/)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/EXAMPLES/BAND/)
+#---------------------------
+add_subdirectory(examples)
 
-    set(examples_EXTRA_SRCS ${arpackexample_DIR}/cnband.f)
-    set(examples_STAT_SRCS
-        cnbdr1.f
-        cnbdr2.f
-        cnbdr3.f
-        cnbdr4.f)
-    examples(examples_STAT_SRCS)
-
-    set(examples_EXTRA_SRCS ${arpackexample_DIR}/dnband.f)
-    set(examples_STAT_SRCS
-        dnbdr1.f
-        dnbdr2.f
-        dnbdr3.f
-        dnbdr4.f
-        dnbdr5.f
-        dnbdr6.f)
-    examples(examples_STAT_SRCS)
-
-    set(examples_EXTRA_SRCS ${arpackexample_DIR}/dsband.f)
-    set(examples_STAT_SRCS
-        dsbdr1.f
-        dsbdr2.f
-        dsbdr3.f
-        dsbdr4.f
-        dsbdr5.f
-        dsbdr6.f)
-    examples(examples_STAT_SRCS)
-
-    set(examples_EXTRA_SRCS ${arpackexample_DIR}/snband.f)
-    set(examples_STAT_SRCS
-        snbdr1.f
-        snbdr2.f
-        snbdr3.f
-        snbdr4.f
-        snbdr5.f
-        snbdr6.f)
-    examples(examples_STAT_SRCS)
-
-    set(examples_EXTRA_SRCS ${arpackexample_DIR}/ssband.f)
-    set(examples_STAT_SRCS
-        ssbdr1.f
-        ssbdr2.f
-        ssbdr3.f
-        ssbdr4.f
-        ssbdr5.f
-        ssbdr6.f)
-    examples(examples_STAT_SRCS)
-
-    set(examples_EXTRA_SRCS ${arpackexample_DIR}/znband.f)
-    set(examples_STAT_SRCS
-        znbdr1.f
-        znbdr2.f
-        znbdr3.f
-        znbdr4.f)
-    examples(examples_STAT_SRCS)
-    set(examples_EXTRA_SRCS)
-
-    ############################
-    # EXAMPLES/COMPLEX
-    ############################
-    set(arpackexample_DIR ${arpack_SOURCE_DIR}/EXAMPLES/COMPLEX/)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/EXAMPLES/COMPLEX/)
-
-    set(examples_STAT_SRCS
-        cndrv1.f
-        cndrv2.f
-        cndrv3.f
-        cndrv4.f
-        zndrv1.f
-        zndrv2.f
-        zndrv3.f
-        zndrv4.f)
-    examples(examples_STAT_SRCS)
-
-    ############################
-    # examples/nonsym
-    ############################
-    set(arpackexample_DIR ${arpack_SOURCE_DIR}/EXAMPLES/NONSYM/)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/EXAMPLES/NONSYM/)
-
-    set(examples_STAT_SRCS
-        dndrv1.f
-        dndrv2.f
-        dndrv3.f
-        dndrv4.f
-        dndrv5.f
-        dndrv6.f
-        sndrv1.f
-        sndrv2.f
-        sndrv3.f
-        sndrv4.f
-        sndrv5.f
-        sndrv6.f)
-    examples(examples_STAT_SRCS)
-
-    ############################
-    # examples/SIMPLE
-    ############################
-    set(arpackexample_DIR ${arpack_SOURCE_DIR}/EXAMPLES/SIMPLE/)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/EXAMPLES/SIMPLE/)
-
-    set(examples_STAT_SRCS
-        cnsimp.f
-        dnsimp.f
-        dssimp.f
-        snsimp.f
-        sssimp.f
-        znsimp.f)
-
-    examples(examples_STAT_SRCS)
-
-    ############################
-    # examples/svd
-    ############################
-    set(arpackexample_DIR ${arpack_SOURCE_DIR}/EXAMPLES/SVD/)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/EXAMPLES/SVD/)
-
-    set(examples_STAT_SRCS
-        ssvd.f)
-
-    examples(examples_STAT_SRCS)
-
-    ############################
-    # examples/sym
-    ############################
-    set(arpackexample_DIR ${arpack_SOURCE_DIR}/EXAMPLES/SYM/)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/EXAMPLES/SYM/)
-
-    set(examples_STAT_SRCS
-        dsdrv1.f
-        dsdrv2.f
-        dsdrv3.f
-        dsdrv4.f
-        dsdrv5.f
-        dsdrv6.f
-        ssdrv1.f
-        ssdrv2.f
-        ssdrv3.f
-        ssdrv4.f
-        ssdrv5.f
-        ssdrv6.f)
-
-    examples(examples_STAT_SRCS)
-
-    ############################
-    # parpack/examples
-    ############################
-    if (MPI)
-        set(parpackexample_DIR ${arpack_SOURCE_DIR}/PARPACK/EXAMPLES/MPI/)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/PARPACK/EXAMPLES/MPI/)
-
-        set(pexamples_STAT_SRCS
-            pcndrv1.f
-            pdndrv1.f
-            pdndrv3.f
-            pdsdrv1.f
-            psndrv1.f
-            psndrv3.f
-            pssdrv1.f
-            pzndrv1.f)
-
-        pexamples(pexamples_STAT_SRCS)
-    endif()
-endif()
-
-
-############################
+#---------------------------
 # TEST
-############################
+#---------------------------
 function(build_tests)  
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/TESTS)
 
@@ -669,7 +446,7 @@ function(build_tests)
   target_link_libraries(bug_142_gen arpack BLAS::BLAS LAPACK::LAPACK ${EXTRA_LDFLAGS})
   add_test(bug_142_gen_tst ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bug_142_gen)
 
-  if(MPI)
+  if (MPI)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/PARPACK/TESTS/MPI)
 
     add_executable(issue46 PARPACK/TESTS/MPI/issue46.f)
@@ -677,7 +454,7 @@ function(build_tests)
     add_test(issue46_tst mpiexec -n 2 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/issue46)
   endif()
 
-  if(ICB)
+  if (ICB)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/TESTS)
 
     add_executable(icb_arpack_c TESTS/icb_arpack_c.c)
@@ -689,93 +466,6 @@ function(build_tests)
     target_include_directories(icb_arpack_cpp PUBLIC ${PROJECT_SOURCE_DIR}/ICB) # Get arpack.hpp
     target_link_libraries(icb_arpack_cpp arpack BLAS::BLAS LAPACK::LAPACK ${EXTRA_LDFLAGS})
     add_test(icb_arpack_cpp_tst ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/icb_arpack_cpp)
-
-    if (EIGEN)
-      find_program (BASH_PROGRAM bash)
-
-      set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/EXAMPLES/MATRIX_MARKET)
-
-      add_executable(arpackmm EXAMPLES/MATRIX_MARKET/arpackmm.cpp)
-      target_include_directories(arpackmm PUBLIC ${PROJECT_SOURCE_DIR}/ICB ${EIGEN3_INCLUDE_DIR}) # Get arpack.h + eigen
-      target_link_libraries(arpackmm arpack BLAS::BLAS LAPACK::LAPACK ${EXTRA_LDFLAGS})
-      configure_file(EXAMPLES/MATRIX_MARKET/As.mtx ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/As.mtx)
-      configure_file(EXAMPLES/MATRIX_MARKET/An.mtx ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/An.mtx)
-      configure_file(EXAMPLES/MATRIX_MARKET/Az.mtx ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Az.mtx)
-      configure_file(EXAMPLES/MATRIX_MARKET/B.mtx  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/B.mtx)
-      configure_file(EXAMPLES/MATRIX_MARKET/Bz.mtx ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Bz.mtx)
-      configure_file(EXAMPLES/MATRIX_MARKET/arpackmm.sh ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/arpackmm.sh)
-      add_test(NAME arpackmm_tst WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${BASH_PROGRAM} -eu arpackmm.sh)
-      configure_file(EXAMPLES/MATRIX_MARKET/issue401.mtx ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/issue401.mtx)
-      configure_file(EXAMPLES/MATRIX_MARKET/issue401.sh ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/issue401.sh)
-      add_test(NAME issue401_tst WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${BASH_PROGRAM} -eu issue401.sh)
-      configure_file(EXAMPLES/MATRIX_MARKET/issue215.mtx ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/issue215.mtx)
-      configure_file(EXAMPLES/MATRIX_MARKET/issue215.sh ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/issue215.sh)
-      add_test(NAME issue215_tst WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${BASH_PROGRAM} -eu issue215.sh)
-    endif()
-
-    if (FALSE) #(PYTHON3)
-      python_add_module(pyarpack ${arpackutil_STAT_SRCS} ${arpacksrc_STAT_SRCS} ${arpacksrc_ICB} ${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpack.cpp)
-      target_include_directories(pyarpack
-          PRIVATE
-          ${PROJECT_BINARY_DIR}
-          ${PROJECT_SOURCE_DIR}
-          ${PROJECT_SOURCE_DIR}/ICB
-          ${PROJECT_SOURCE_DIR}/EXAMPLES/MATRIX_MARKET
-          ${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK
-          ${EIGEN3_INCLUDE_DIR}
-          ${Boost_INCLUDE_DIRS}
-          ${PYTHON_INCLUDE_DIRS})
-      target_link_libraries(pyarpack
-          BLAS::BLAS LAPACK::LAPACK ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
-      install(TARGETS pyarpack
-              ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/pyarpack
-              LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/pyarpack)
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseBiCGDiag.py.in" "${CMAKE_BINARY_DIR}/pyarpackSparseBiCGDiag.py" @ONLY)
-      add_test(NAME pyarpackSparseBiCGDiag_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseBiCGDiag.py)
-      set_tests_properties(pyarpackSparseBiCGDiag_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseBiCGILU.py.in"  "${CMAKE_BINARY_DIR}/pyarpackSparseBiCGILU.py" @ONLY)
-      add_test(NAME pyarpackSparseBiCGILU_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseBiCGILU.py)
-      set_tests_properties(pyarpackSparseBiCGILU_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseCGDiag.py.in" "${CMAKE_BINARY_DIR}/pyarpackSparseCGDiag.py" @ONLY)
-      add_test(NAME pyarpackSparseCGDiag_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseCGDiag.py)
-      set_tests_properties(pyarpackSparseCGDiag_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseCGILU.py.in" "${CMAKE_BINARY_DIR}/pyarpackSparseCGILU.py" @ONLY)
-      add_test(NAME pyarpackSparseCGILU_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseCGILU.py)
-      set_tests_properties(pyarpackSparseCGILU_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseLLT.py.in" "${CMAKE_BINARY_DIR}/pyarpackSparseLLT.py" @ONLY)
-      add_test(NAME pyarpackSparseLLT_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseLLT.py)
-      set_tests_properties(pyarpackSparseLLT_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseLDLT.py.in" "${CMAKE_BINARY_DIR}/pyarpackSparseLDLT.py" @ONLY)
-      add_test(NAME pyarpackSparseLDLT_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseLDLT.py)
-      set_tests_properties(pyarpackSparseLDLT_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseLU.py.in" "${CMAKE_BINARY_DIR}/pyarpackSparseLU.py" @ONLY)
-      add_test(NAME pyarpackSparseLU_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseLU.py)
-      set_tests_properties(pyarpackSparseLU_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackSparseQR.py.in" "${CMAKE_BINARY_DIR}/pyarpackSparseQR.py" @ONLY)
-      add_test(NAME pyarpackSparseQR_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackSparseQR.py)
-      set_tests_properties(pyarpackSparseQR_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackDenseLLT.py.in" "${CMAKE_BINARY_DIR}/pyarpackDenseLLT.py" @ONLY)
-      add_test(NAME pyarpackDenseLLT_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackDenseLLT.py)
-      set_tests_properties(pyarpackDenseLLT_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackDenseLDLT.py.in" "${CMAKE_BINARY_DIR}/pyarpackDenseLDLT.py" @ONLY)
-      add_test(NAME pyarpackDenseLDLT_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackDenseLDLT.py)
-      set_tests_properties(pyarpackDenseLDLT_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackDenseLURR.py.in" "${CMAKE_BINARY_DIR}/pyarpackDenseLURR.py" @ONLY)
-      add_test(NAME pyarpackDenseLURR_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackDenseLURR.py)
-      set_tests_properties(pyarpackDenseLURR_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackDenseQRRR.py.in" "${CMAKE_BINARY_DIR}/pyarpackDenseQRRR.py" @ONLY)
-      add_test(NAME pyarpackDenseQRRR_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackDenseQRRR.py)
-      set_tests_properties(pyarpackDenseQRRR_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackDenseLUPP.py.in" "${CMAKE_BINARY_DIR}/pyarpackDenseLUPP.py" @ONLY)
-      add_test(NAME pyarpackDenseLUPP_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackDenseLUPP.py)
-      set_tests_properties(pyarpackDenseLUPP_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackDenseQRPP.py.in" "${CMAKE_BINARY_DIR}/pyarpackDenseQRPP.py" @ONLY)
-      add_test(NAME pyarpackDenseQRPP_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackDenseQRPP.py)
-      set_tests_properties(pyarpackDenseQRPP_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-      configure_file("${PROJECT_SOURCE_DIR}/EXAMPLES/PYARPACK/pyarpackRestart.py.in" "${CMAKE_BINARY_DIR}/pyarpackRestart.py" @ONLY)
-      add_test(NAME pyarpackRestart_tst COMMAND ${PYTHON_EXECUTABLE} pyarpackRestart.py)
-      set_tests_properties(pyarpackRestart_tst PROPERTIES ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH})
-    endif()
 
     if (MPI)
       set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/PARPACK/TESTS/MPI)
@@ -793,7 +483,7 @@ function(build_tests)
   endif()
 endfunction(build_tests)
 
-if(TESTS)
+if (TESTS)
     enable_testing()
     set(CMAKE_CTEST_COMMAND ctest -V)   
     build_tests()
@@ -808,9 +498,6 @@ set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix \${prefix})
 set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
 set(includedir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
-set(PACKAGE_NAME ${PROJECT_NAME})
-set(PACKAGE_VERSION ${arpack_ng_VERSION})
-set(PACKAGE_URL "https://github.com/opencollab/arpack-ng/")
 
 # Convert (LAPACK|BLAS)_LIBRARIES to -l flags, store in ARPACK_PC_LIBS_PRIVATE.
 # LAPACK_LIBRARIES contains transitive deps, no need to parse BLAS_LIBRARIES.
@@ -834,78 +521,83 @@ configure_file(pkg-config/arpack.pc.in "${PROJECT_BINARY_DIR}/arpack${LIBSUFFIX}
 configure_file(pkg-config/parpack.pc.in "${PROJECT_BINARY_DIR}/parpack${LIBSUFFIX}${ITF64SUFFIX}.pc" @ONLY)
 
 if (FALSE)
-install(TARGETS arpack
-    EXPORT arpackngTargets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES "${PROJECT_BINARY_DIR}/arpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-if (MPI)
-  install(TARGETS parpack
+  install(TARGETS arpack
       EXPORT arpackngTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-  install(FILES "${PROJECT_BINARY_DIR}/parpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
-      DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-endif ()
-
-if(ICB)
-  install(FILES ICB/arpack.h DESTINATION "${ARPACK_INSTALL_INCLUDEDIR}")
-  install(FILES ICB/arpack.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  install(
+    FILES 
+      "${PROJECT_BINARY_DIR}/arpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
+    DESTINATION 
+      ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+  )
   if (MPI)
-    install(FILES ICB/parpack.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-    install(FILES ICB/parpack.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+    install(TARGETS parpack
+        EXPORT arpackngTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(FILES "${PROJECT_BINARY_DIR}/parpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+  endif ()
+
+  if(ICB)
+    install(FILES ICB/arpack.h DESTINATION "${ARPACK_INSTALL_INCLUDEDIR}")
+    install(FILES ICB/arpack.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+    if (MPI)
+      install(FILES ICB/parpack.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+      install(FILES ICB/parpack.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+    endif()
   endif()
-  if (EIGEN)
-    install(FILES EXAMPLES/MATRIX_MARKET/arpackSolver.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  install(FILES debug.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  install(FILES debugF90.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  if(ICB)
+    install(FILES ICB/debug_c.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+    install(FILES ICB/debug_c.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
   endif()
-endif()
-install(FILES debug.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-install(FILES debugF90.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-if(ICB)
-  install(FILES ICB/debug_c.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-  install(FILES ICB/debug_c.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-endif()
 
-install(FILES stat.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-install(FILES statF90.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  install(FILES stat.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  install(FILES statF90.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
 
-if(ICB)
-  install(FILES ICB/stat_c.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-  install(FILES ICB/stat_c.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-endif()
-
-configure_file(arpackdef.h.in "${PROJECT_BINARY_DIR}/arpackdef.h" @ONLY)
-install(FILES "${PROJECT_BINARY_DIR}/arpackdef.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-
-configure_file(arpackicb.h.in "${PROJECT_BINARY_DIR}/arpackicb.h" @ONLY)
-install(FILES "${PROJECT_BINARY_DIR}/arpackicb.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
-
-install(EXPORT arpackngTargets
-  DESTINATION "${ARPACK_INSTALL_CMAKEDIR}"
-)
-
-# Provide find_package for arpack-ng to users.
-configure_file(cmake/arpackng-config.cmake.in "${PROJECT_BINARY_DIR}/arpackng-config.cmake" @ONLY)
-configure_file(cmake/arpackng-config-version.cmake.in "${PROJECT_BINARY_DIR}/arpackng-config-version.cmake" @ONLY)
-install(
-  FILES
-  "${PROJECT_BINARY_DIR}/arpackng-config.cmake"
-  "${PROJECT_BINARY_DIR}/arpackng-config-version.cmake"
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/arpackng${LIBSUFFIX}${ITF64SUFFIX}) # find_package(arpackng)
-
-configure_file(cmake/tstCMakeInstall.sh.in ${PROJECT_BINARY_DIR}/tstCMakeInstall.sh @ONLY)
+  if (ICB)
+    install(FILES ICB/stat_c.h DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+    install(FILES ICB/stat_c.hpp DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  endif()
 endif(FALSE)
 
-# Packaging: ease arpack-ng distribution (precompiled binaries and sources tarballs).
-set(CPACK_VERSION_MAJOR "${arpack_ng_MAJOR_VERSION}")
-set(CPACK_VERSION_MINOR "${arpack_ng_MINOR_VERSION}")
-set(CPACK_VERSION_PATCH "${arpack_ng_PATCH_VERSION}")
-set(CPACK_SOURCE_IGNORE_FILES "/BUILD/" "/Build/" "/build/" "/local/") # Do not ship (eventual) build or install directories in tarballs.
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "arpack-ng-${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}.${CPACK_VERSION_PATCH}")
-include(CPack)
+  configure_file(arpackdef.h.in "${PROJECT_BINARY_DIR}/arpackdef.h" @ONLY)
+  configure_file(arpackicb.h.in "${PROJECT_BINARY_DIR}/arpackicb.h" @ONLY)
+
+if (FALSE)
+  install(FILES "${PROJECT_BINARY_DIR}/arpackdef.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+
+  install(FILES "${PROJECT_BINARY_DIR}/arpackicb.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+
+  install(EXPORT arpackngTargets
+    DESTINATION "${ARPACK_INSTALL_CMAKEDIR}"
+  )
+
+# Provide find_package for arpack-ng to users.
+  configure_file(cmake/arpackng-config.cmake.in "${PROJECT_BINARY_DIR}/arpackng-config.cmake" @ONLY)
+  configure_file(cmake/arpackng-config-version.cmake.in "${PROJECT_BINARY_DIR}/arpackng-config-version.cmake" @ONLY)
+  install(
+    FILES
+    "${PROJECT_BINARY_DIR}/arpackng-config.cmake"
+    "${PROJECT_BINARY_DIR}/arpackng-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/arpackng${LIBSUFFIX}${ITF64SUFFIX}) # find_package(arpackng)
+
+  configure_file(cmake/tstCMakeInstall.sh.in ${PROJECT_BINARY_DIR}/tstCMakeInstall.sh @ONLY)
+
+  # Packaging: ease arpack-ng distribution (precompiled binaries and sources tarballs).
+  set(CPACK_VERSION_MAJOR "${arpack_ng_MAJOR_VERSION}")
+  set(CPACK_VERSION_MINOR "${arpack_ng_MINOR_VERSION}")
+  set(CPACK_VERSION_PATCH "${arpack_ng_PATCH_VERSION}")
+  set(CPACK_SOURCE_IGNORE_FILES "/BUILD/" "/Build/" "/build/" "/local/") # Do not ship (eventual) build or install directories in tarballs.
+  set(CPACK_SOURCE_PACKAGE_FILE_NAME "arpack-ng-${CPACK_VERSION_MAJOR}.${CPACK_VERSION_MINOR}.${CPACK_VERSION_PATCH}")
+  include(CPack)
+endif(FALSE)
+
 
 function(libsummary title include libraries)
     message("   -- ${title}:")
@@ -967,11 +659,4 @@ if (MPI)
 endif()
 libsummary("BLAS" "" "${BLAS_LIBRARIES}")
 libsummary("LAPACK" "" "${LAPACK_LIBRARIES}")
-if (EIGEN)
-    libsummary("EIGEN3" "${EIGEN3_INCLUDE_DIR}" "")
-endif()
-if (PYTHON3)
-  libsummary("PYTHON" "${PYTHON_INCLUDE_DIRS}" "${PYTHON_LIBRARIES}")
-  message("      -- exe:     ${PYTHON_EXECUTABLE}")
-  libsummary("BOOST" "${Boost_INCLUDE_DIRS}" "${Boost_LIBRARIES}")
-endif()
+

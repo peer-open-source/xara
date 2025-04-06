@@ -63,7 +63,7 @@ class NodalThermalAction : public NodalLoad
       
   const Vector &getData(int& type);
   const Vector &getCrds(void);
-  virtual void applyLoad(const Vector &loadFactors); 
+  virtual void applyLoad(Vector &loadFactors); 
   virtual void applyLoad(double loadFactor); 
 
   int getThermalActionType(void);

@@ -35,8 +35,6 @@ class ForceFrame3d: public BasicFrame3d
                int max_iter, double tolerance
   );
 
-  ForceFrame3d();
-  
   ~ForceFrame3d();
 
   const char *
@@ -114,6 +112,33 @@ class ForceFrame3d: public BasicFrame3d
     FrameStress::Vy,
     FrameStress::Vz,
   };
+  enum : int {
+    inx = -12, //  0
+    iny = -12, //  1
+    inz = -12, //  2
+    imx = -12, //  3
+    imy =   3, //  4
+    imz =   1, //  5
+    jnx =   0, //  6
+    jny = -12, //  7
+    jnz = -12, //  8
+    jmx =   5, //  9
+    jmy =   4, // 10
+    jmz =   2, // 11
+  };
+  constexpr static int iq[] = {
+    // jnx, imz, jmz, imy, jmy, imx
+    inx, iny, inz, imx, imy, imz,
+    jnx, jny, jnz, jmx, jmy, jmz
+  };
+
+  enum Respond: int {
+    GlobalForce = 1,
+    BasicPlasticDeformation = 4,
+    LocalForce  = 2,
+    BasicForce  = 7,
+    BasicStiff  =19,
+  };
 
   //
   // Functions
@@ -135,13 +160,6 @@ class ForceFrame3d: public BasicFrame3d
   //
   // Data
   //
-  enum Respond: int {
-    GlobalForce = 1,
-    BasicPlasticDeformation = 4,
-    LocalForce  = 2,
-    BasicForce  = 7,
-    BasicStiff  =19,
-  };
 
   //
   // Element State

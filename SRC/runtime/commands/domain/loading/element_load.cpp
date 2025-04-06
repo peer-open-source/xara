@@ -393,7 +393,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
   }
 
 
-  if ((typeIndex == -1)) {
+  if (typeIndex == -1) {
     opserr << "WARNING missing required -type option"
            << "\n";
     return TCL_ERROR;

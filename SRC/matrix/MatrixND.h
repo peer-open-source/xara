@@ -67,24 +67,6 @@ struct MatrixND {
 
   MatrixND<NR,NC,T>& addDiagonal(const double vol) requires(NR == NC);
 
-
-  MatrixND<NR,NC,T> bun(const VectorND<NR,T>& a, const VectorND<NC,T> &b)
-  {
-    if constexpr (NR == 3)
-      return MatrixND<NR,NC,T> {{{
-        {a[0]*b[0], a[1]*b[0], a[2]*b[0]},
-        {a[0]*b[1], a[1]*b[1], a[2]*b[1]},
-        {a[0]*b[2], a[1]*b[2], a[2]*b[2]}
-      }}};
-
-    MatrixND<NR,NC,T> result;
-    for (int i=0; i<NR; i++)
-      for (int j=0; j<NC; j++)
-        result(i,j) = a[i]*b[j];
-    return result;
-  
-  }
-
   int symeig(VectorND<NR>& vals) requires(NR == NC == 3) {
     double work[3][3];
     cmx_eigSY3(values, work, vals.values);
@@ -265,6 +247,34 @@ struct MatrixND {
       for (int j=0; j<col1-col0; j++)
         m(i,j) = (*this)(row0+i, col0+j);
     return m;
+  }
+
+  template<int er, int ec>
+  inline MatrixND<er,ec>
+  extract(int row0, int col0) const
+  {
+    MatrixND<er,ec> m;
+    for (int i=0; i<er; i++)
+      for (int j=0; j<ec; j++)
+        m(i,j) = (*this)(row0+i, col0+j);
+    return m;
+  }
+
+  template <int init_row, int init_col, int nr, int nc> inline void
+  insert(const MatrixND<nr, nc, double> &M, double fact) 
+  {
+ 
+    [[maybe_unused]] int final_row = init_row + nr - 1;
+    [[maybe_unused]] int final_col = init_col + nc - 1; 
+    assert((init_row >= 0) && (final_row < NR) && (init_col >= 0) && (final_col < NC));
+
+    for (int i=0; i<nc; i++) {
+       int pos_Cols = init_col + i;
+       for (int j=0; j<nr; j++) {
+          int pos_Rows = init_row + j; 
+          (*this)(pos_Rows,pos_Cols) = M(j,i)*fact;
+       }
+    }
   }
 
   template <int nr, int nc> inline void

@@ -75,7 +75,6 @@ class ArpackSolver : public EigenSolver
     Vector theVector;
 
     double shift;
-    int ncv;
     double *v;
     double *workl;
     double *workd;
