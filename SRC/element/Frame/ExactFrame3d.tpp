@@ -347,7 +347,7 @@ ExactFrame3d<nen,nwm>::update()
       A(6+j,6+j) = 1.0;
 
     MatrixND<nsr,ndf> B[nen];
-    for (int j=0; j<nen; j++) {
+    for (unsigned j=0; j<nen; j++) {
       MatrixND<nsr,ndf> Bj;
       Bj.zero();
       B_nat<nen,nwm>(Bj,  pres[i].shape, dx, j);
@@ -361,7 +361,7 @@ ExactFrame3d<nen,nwm>::update()
 
     // Material Tangent
     MatrixND<ndf,ndf> Kjk;
-    for (int j=0; j<nen; j++) {
+    for (unsigned j=0; j<nen; j++) {
       for (int k=0; k<nen; k++) {
         Kjk.addMatrixTripleProduct(0.0, B[j], Ks, B[k], pres[i].weight);
 
@@ -375,8 +375,8 @@ ExactFrame3d<nen,nwm>::update()
 
     // Geometric Tangent
     MatrixND<ndf,ndf> G;
-    for (int j=0; j<nen; j++) {
-      for (int k=0; k<nen; k++) {
+    for (unsigned j=0; j<nen; j++) {
+      for (unsigned k=0; k<nen; k++) {
         G.zero();
         G_matrix<nen,nwm>(G, A*s, dx, pres[i].shape, j, k);
         K.assemble(G, ndf*j, ndf*k, pres[i].weight);
@@ -396,8 +396,8 @@ ExactFrame3d<nen,nwm>::update()
         q = theNodes[nen-1]->getTrialRotation();
       else {
         opserr << "ERROR\n";
-        Vector3D v;
-        for (int i=0; i<nen; i++)
+        Vector3D v{};
+        for (unsigned i=0; i<nen; i++)
           v += shp[0][i]*theNodes[i]->getTrialDisp();
         q = VersorFromMatrix(R0*ExpSO3(v));
       }
@@ -601,7 +601,7 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
 
       int sectionNum = atoi(argv[1]);
 
-      if (sectionNum > 0 && sectionNum <= pres.size() && argc > 2) {
+      if (sectionNum > 0 && sectionNum <= (int)pres.size() && argc > 2) {
         if (this->setState(State::Init) != 0)
           return nullptr;
 
@@ -682,7 +682,7 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
 
     auto p = this->getResistingForce();
   
-    for (int i=0; i<nen; i++) {
+    for (unsigned i=0; i<nen; i++) {
       for (int j=0; j<3; j++) {
         q(i*ndf+j) = 0;
         q(i*ndf+j+3) = 0;
@@ -705,7 +705,7 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
       return -1;
 
     Vector locs(pres.size());
-    for (int i = 0; i < pres.size(); i++)
+    for (int i = 0; i < nip; i++)
       locs[i] = pres[i].point * L;
 
     return info.setVector(locs);
@@ -717,7 +717,7 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
       return -1;
 
     Vector weights(pres.size());
-    for (int i = 0; i < pres.size(); i++)
+    for (unsigned i = 0; i < nip; i++)
       weights(i) = pres[i].weight * L;
 
     return info.setVector(weights);
