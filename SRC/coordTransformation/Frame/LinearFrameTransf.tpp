@@ -22,7 +22,6 @@
 #include <Rotations.hpp>
 #include <string>
 #include <LinearFrameTransf.hpp>
-#include "blk3x12x3.h"
 
 using namespace OpenSees;
 
@@ -79,8 +78,6 @@ FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj,
     dR(2,2) = de3(2);
 
     return dR;
-
-//  return np.stack([de1,de2,de3])
 }
 
 
@@ -89,7 +86,7 @@ VectorND<nn*ndf>
 LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug, 
              const Matrix3D& R, 
              const std::array<Vector3D, nn> *offset,
-            int offset_flags) 
+             int offset_flags) 
 {
   
   constexpr static int N = nn * ndf;

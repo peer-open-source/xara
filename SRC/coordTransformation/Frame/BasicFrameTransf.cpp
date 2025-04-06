@@ -12,7 +12,6 @@
 #include <Channel.h>
 #include <Logging.h>
 #include <BasicFrameTransf.h>
-#include "blk3x12x3.h"
 
 using namespace OpenSees;
 
