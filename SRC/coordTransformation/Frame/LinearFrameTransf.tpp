@@ -619,6 +619,7 @@ LinearFrameTransf<nn,ndf>::getBasicDisplFixedGrad()
   //
   // Form ug
   //
+  // TODO(sensitivity)
 #if 0
   VectorND<nn*ndf> ug;
   for (int i = 0; i < nn; i++) {

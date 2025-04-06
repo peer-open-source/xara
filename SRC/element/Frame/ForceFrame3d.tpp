@@ -986,11 +986,11 @@ ForceFrame3d<NIP,nsr,nwm>::addLoadAtSection(VectorND<nsr>& sp, double x)
 
       for (int ii = 0; ii < nsr; ii++) {
         switch (scheme[ii]) {
-        case SECTION_RESPONSE_P:  sp[ii] += wa * (L - x); break;
-        case SECTION_RESPONSE_VY: sp[ii] += wy * (x - 0.5 * L); break;
-        case SECTION_RESPONSE_VZ: sp[ii] += wz * (0.5 * L - x); break;
-        case SECTION_RESPONSE_MZ: sp[ii] += wy * 0.5 * x * (x - L); break;
-        case SECTION_RESPONSE_MY: sp[ii] += wz * 0.5 * x * (L - x); break;
+        case FrameStress::N:  sp[ii] += wa * (L - x); break;
+        case FrameStress::Vy: sp[ii] += wy * (x - 0.5 * L); break;
+        case FrameStress::Vz: sp[ii] += wz * (0.5 * L - x); break;
+        case FrameStress::Mz: sp[ii] += wy * 0.5 * x * (x - L); break;
+        case FrameStress::My: sp[ii] += wz * 0.5 * x * (L - x); break;
         default:                  break;
         }
       }
@@ -1017,19 +1017,19 @@ ForceFrame3d<NIP,nsr,nwm>::addLoadAtSection(VectorND<nsr>& sp, double x)
 
         if (x <= a) {
           switch (scheme[ii]) {
-          case SECTION_RESPONSE_P:  sp[ii] +=       N; break;
-          case SECTION_RESPONSE_VY: sp[ii] -=     Vy1; break;
-          case SECTION_RESPONSE_VZ: sp[ii] -=     Vz1; break;
-          case SECTION_RESPONSE_MY: sp[ii] += x * Vz1; break;
-          case SECTION_RESPONSE_MZ: sp[ii] -= x * Vy1; break;
+          case FrameStress::N:  sp[ii] +=       N; break;
+          case FrameStress::Vy: sp[ii] -=     Vy1; break;
+          case FrameStress::Vz: sp[ii] -=     Vz1; break;
+          case FrameStress::My: sp[ii] += x * Vz1; break;
+          case FrameStress::Mz: sp[ii] -= x * Vy1; break;
           default:                  break;
           }
         } else {
           switch (scheme[ii]) {
-          case SECTION_RESPONSE_MZ: sp[ii] -= (L - x) * Vy2; break;
-          case SECTION_RESPONSE_VY: sp[ii] += Vy2; break;
-          case SECTION_RESPONSE_MY: sp[ii] += (L - x) * Vz2; break;
-          case SECTION_RESPONSE_VZ: sp[ii] += Vz2; break;
+          case FrameStress::Mz: sp[ii] -= (L - x) * Vy2; break;
+          case FrameStress::Vy: sp[ii] += Vy2; break;
+          case FrameStress::My: sp[ii] += (L - x) * Vz2; break;
+          case FrameStress::Vz: sp[ii] += Vz2; break;
           default:                  break;
           }
         }
@@ -1064,19 +1064,19 @@ ForceFrame3d<NIP,nsr,nwm>::addLoadAtSection(VectorND<nsr>& sp, double x)
       for (int ii = 0; ii < nsr; ii++) {
         if (x <= a) {
           switch(scheme[ii]) {
-          case SECTION_RESPONSE_P:
+          case FrameStress::N:
             sp(ii) += Fa;
             break;
-          case SECTION_RESPONSE_MZ:
+          case FrameStress::Mz:
             sp(ii) -= VyI*x;
             break;
-          case SECTION_RESPONSE_MY:
+          case FrameStress::My:
             sp(ii) += VzI*x;
             break;
-          case SECTION_RESPONSE_VY:
+          case FrameStress::Vy:
             sp(ii) -= VyI;
             break;
-          case SECTION_RESPONSE_VZ:
+          case FrameStress::Vz:
         sp(ii) += VzI;
             break;            
           default:
@@ -1085,16 +1085,16 @@ ForceFrame3d<NIP,nsr,nwm>::addLoadAtSection(VectorND<nsr>& sp, double x)
         }
         else if (x >= b) {
           switch(scheme[ii]) {
-          case SECTION_RESPONSE_MZ:
+          case FrameStress::Mz:
             sp(ii) += VyJ*(x-L);
             break;
-          case SECTION_RESPONSE_MY:
+          case FrameStress::My:
             sp(ii) -= VzJ*(x-L);
             break;            
-          case SECTION_RESPONSE_VY:
+          case FrameStress::Vy:
             sp(ii) += VyJ;
             break;
-          case SECTION_RESPONSE_VZ:
+          case FrameStress::Vz:
             sp(ii) -= VzJ;            
             break;
           default:
@@ -1105,19 +1105,19 @@ ForceFrame3d<NIP,nsr,nwm>::addLoadAtSection(VectorND<nsr>& sp, double x)
           double wyy = wy + (wyb - wy) / (b - a) * (x - a);
           double wzz = wz + (wzb - wz) / (b - a) * (x - a);
           switch(scheme[ii]) {
-          case SECTION_RESPONSE_P:
+          case FrameStress::N:
             sp(ii) += Fa - wa * (x - a) - 0.5 * (wab - wa) / (b - a) * (x - a) * (x - a);
             break;
-          case SECTION_RESPONSE_MZ:
+          case FrameStress::Mz:
             sp(ii) += -VyI * x + 0.5 * wy * (x - a) * (x - a) + 0.5 * (wyy - wy) * (x - a) * (x - a) / 3.0;
             break;
-          case SECTION_RESPONSE_MY:
+          case FrameStress::My:
             sp(ii) += VzI * x - 0.5 * wz * (x - a) * (x - a) - 0.5 * (wzz - wz) * (x - a) * (x - a) / 3.0;
             break;            
-          case SECTION_RESPONSE_VY:
+          case FrameStress::Vy:
             sp(ii) += -VyI + wy * (x - a) + 0.5 * (wyy - wy) * (x - a);
             break;
-          case SECTION_RESPONSE_VZ:           
+          case FrameStress::Vz:           
             sp(ii) -= -VzI + wz * (x - a) - 0.5 * (wzz - wz) * (x - a);
             break;
           default:
@@ -1166,25 +1166,25 @@ ForceFrame3d<NIP,nsr,nwm>::getStressGrad(VectorND<nsr>& dspdh, int isec, int gra
 
       for (int ii = 0; ii < nsr; ii++) {
         switch (scheme[ii]) {
-        case SECTION_RESPONSE_P:
+        case FrameStress::N:
           //sp(ii) += wa*(L-x);
           dspdh(ii) += dwadh * (L - x) + wa * (dLdh - dxdh);
           break;
-        case SECTION_RESPONSE_MZ:
+        case FrameStress::Mz:
           //sp(ii) += wy*0.5*x*(x-L);
           //dspdh(ii) += 0.5*(dwydh*x*(x-L) + wy*dxdh*(x-L) + wy*x*(dxdh-dLdh));
           dspdh(ii) += 0.5 * (dwydh * x * (x - L) + wy * (dxdh * (2 * x - L) - x * dLdh));
           break;
-        case SECTION_RESPONSE_VY:
+        case FrameStress::Vy:
           //sp(ii) += wy*(x-0.5*L);
           dspdh(ii) += dwydh * (x - 0.5 * L) + wy * (dxdh - 0.5 * dLdh);
           break;
-        case SECTION_RESPONSE_MY:
+        case FrameStress::My:
           //sp(ii) += wz*0.5*x*(L-x);
           //dspdh(ii) += 0.5*(dwzdh*x*(L-x) + wz*dxdh*(L-x) + wz*x*(dLdh-dxdh));
           dspdh(ii) += 0.5 * (dwzdh * x * (L - x) + wz * (dxdh * (L - 2 * x) + x * dLdh));
           break;
-        case SECTION_RESPONSE_VZ:
+        case FrameStress::Vz:
           //sp(ii) += wz*(x-0.5*L);
           dspdh(ii) += dwzdh * (0.5 * L - x) + wz * (0.5 * dLdh - dxdh);
           break;
@@ -1221,23 +1221,23 @@ ForceFrame3d<NIP,nsr,nwm>::getStressGrad(VectorND<nsr>& dspdh, int isec, int gra
 
         if (x <= a) {
           switch (scheme[ii]) {
-          case SECTION_RESPONSE_P:
+          case FrameStress::N:
             //sp(ii) += N;
             dspdh(ii) += dNdh;
             break;
-          case SECTION_RESPONSE_MZ:
+          case FrameStress::Mz:
             //sp(ii) -= x*Vy1;
             dspdh(ii) -= (dxdh * Vy1 + x * dVy1dh);
             break;
-          case SECTION_RESPONSE_VY:
+          case FrameStress::Vy:
             //sp(ii) -= Vy1;
             dspdh(ii) -= dVy1dh;
             break;
-          case SECTION_RESPONSE_MY:
+          case FrameStress::My:
             //sp(ii) += x*Vz1;
             dspdh(ii) += (dxdh * Vz1 + x * dVz1dh);
             break;
-          case SECTION_RESPONSE_VZ:
+          case FrameStress::Vz:
             //sp(ii) -= Vz1;
             dspdh(ii) -= dVz1dh;
             break;
@@ -1245,19 +1245,19 @@ ForceFrame3d<NIP,nsr,nwm>::getStressGrad(VectorND<nsr>& dspdh, int isec, int gra
           }
         } else {
           switch (scheme[ii]) {
-          case SECTION_RESPONSE_VY:
+          case FrameStress::Vy:
             //sp(ii) += Vy2;
             dspdh(ii) += dVy2dh;
             break;
-          case SECTION_RESPONSE_VZ:
+          case FrameStress::Vz:
             //sp(ii) += Vz2;
             dspdh(ii) += dVz2dh;
             break;
-          case SECTION_RESPONSE_MY:
+          case FrameStress::My:
             //sp(ii) += (L-x)*Vz2;
             dspdh(ii) += (dLdh - dxdh) * Vz2 + (L - x) * dVz2dh;
             break;
-          case SECTION_RESPONSE_MZ:
+          case FrameStress::Mz:
             //sp(ii) -= (L-x)*Vy2;
             dspdh(ii) -= (dLdh - dxdh) * Vy2 + (L - x) * dVy2dh;
             break;
@@ -1314,39 +1314,39 @@ ForceFrame3d<NIP,nsr,nwm>::getInitialFlexibility(MatrixND<NBV,NBV>& fe)
     FB.zero();
     for (int ii = 0; ii < nsr; ii++) {
       switch (scheme[ii]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         for (int jj = 0; jj < nsr; jj++)
           FB(jj, 0) += fSec(jj, ii) * wtL;
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         for (int jj = 0; jj < nsr; jj++) {
           double tmp = fSec(jj, ii) * wtL;
           FB(jj, 1) += xL1 * tmp;
           FB(jj, 2) += xL * tmp;
         }
         break;
-      case SECTION_RESPONSE_VY:
+      case FrameStress::Vy:
         for (int jj = 0; jj < nsr; jj++) {
           double tmp = jsx * fSec(jj, ii) * wtL;
           FB(jj, 1) += tmp;
           FB(jj, 2) += tmp;
         }
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         for (int jj = 0; jj < nsr; jj++) {
           double tmp = fSec(jj, ii) * wtL;
           FB(jj, 3) += xL1 * tmp;
           FB(jj, 4) += xL * tmp;
         }
         break;
-      case SECTION_RESPONSE_VZ:
+      case FrameStress::Vz:
         for (int jj = 0; jj < nsr; jj++) {
           double tmp = jsx * fSec(jj, ii) * wtL;
           FB(jj, 3) += tmp;
           FB(jj, 4) += tmp;
         }
         break;
-      case SECTION_RESPONSE_T:
+      case FrameStress::T:
         for (int jj = 0; jj < nsr; jj++)
           FB(jj, 5) += fSec(jj, ii) * wtL;
         break;
@@ -1356,39 +1356,39 @@ ForceFrame3d<NIP,nsr,nwm>::getInitialFlexibility(MatrixND<NBV,NBV>& fe)
     //
     for (int ii = 0; ii < nsr; ii++) {
       switch (scheme[ii]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         for (int jj = 0; jj < NBV; jj++)
           fe(0, jj) += FB(ii, jj);
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         for (int jj = 0; jj < NBV; jj++) {
           double tmp = FB(ii, jj);
           fe(1, jj) += xL1 * tmp;
           fe(2, jj) += xL * tmp;
         }
         break;
-      case SECTION_RESPONSE_VY:
+      case FrameStress::Vy:
         for (int jj = 0; jj < NBV; jj++) {
           double tmp = jsx * FB(ii, jj);
           fe(1, jj) += tmp;
           fe(2, jj) += tmp;
         }
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         for (int jj = 0; jj < NBV; jj++) {
           double tmp = FB(ii, jj);
           fe(3, jj) += xL1 * tmp;
           fe(4, jj) += xL * tmp;
         }
         break;
-      case SECTION_RESPONSE_VZ:
+      case FrameStress::Vz:
         for (int jj = 0; jj < NBV; jj++) {
           double tmp = jsx * FB(ii, jj);
           fe(3, jj) += tmp;
           fe(4, jj) += tmp;
         }
         break;
-      case SECTION_RESPONSE_T:
+      case FrameStress::T:
         for (int jj = 0; jj < NBV; jj++)
           fe(5, jj) += FB(ii, jj);
         break;
@@ -1432,24 +1432,24 @@ ForceFrame3d<NIP,nsr,nwm>::getInitialDeformations(Vector& v0)
       double tmp;
       double dei = e[ii] * wtL;
       switch (scheme[ii]) {
-      case SECTION_RESPONSE_P:
-        v0(0) += dei;
+      case FrameStress::N:
+        v0[0] += dei;
         break;
-      case SECTION_RESPONSE_VY:
+      case FrameStress::Vy:
         tmp = jsx * dei;
         v0[1] += tmp;
         v0[2] += tmp;
         break;
-      case SECTION_RESPONSE_VZ:
+      case FrameStress::Vz:
         tmp = jsx * dei;
         v0[3] += tmp;
         v0[4] += tmp;
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         v0[3] += xL1 * dei;
         v0[4] += xL  * dei;
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         v0[1] += xL1 * dei;
         v0[2] += xL  * dei;
         break;
@@ -1521,8 +1521,7 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
     double VZ    = (MY1 + MY2) / L;
     double T     = q_save[5];
 
-    double p0[5];
-    p0[0] = p0[1] = p0[2] = p0[3] = p0[4] = 0.0;
+    double p0[5]{};
     if (eleLoads.size() > 0)
       this->computeReactions(p0);
 
@@ -1945,7 +1944,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
       double kappa   = 0.0;
       if (x < LIz) {
         for (int j = 0; j < nsr; j++)
-          if (type(j) == SECTION_RESPONSE_MZ)
+          if (type(j) == FrameStress::Mz)
             kappa += points[i].es[j];
         double b = -LIz + x;
         d2z += (wts[i] * L) * kappa * b;
@@ -1953,7 +1952,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
       kappa = 0.0;
       if (x < LIy) {
         for (int j = 0; j < nsr; j++)
-          if (type(j) == SECTION_RESPONSE_MY)
+          if (type(j) == FrameStress::My)
             kappa += points[i].es[j];
         double b = -LIy + x;
         d2y += (wts[i] * L) * kappa * b;
@@ -1968,7 +1967,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
       double kappa   = 0.0;
       if (x > LIz) {
         for (int j = 0; j < nsr; j++)
-          if (scheme[j] == SECTION_RESPONSE_MZ)
+          if (scheme[j] == FrameStress::Mz)
             kappa += points[i].es[j];
         double b = x - LIz;
         d3z += (wts[i] * L) * kappa * b;
@@ -1976,7 +1975,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
       kappa = 0.0;
       if (x > LIy) {
         for (int j = 0; j < nsr; j++)
-          if (scheme[j] == SECTION_RESPONSE_MY)
+          if (scheme[j] == FrameStress::My)
             kappa += points[i].es[j];
         double b = x - LIy;
         d3y += (wts[i] * L) * kappa * b;
@@ -2068,13 +2067,13 @@ ForceFrame3d<NIP,nsr,nwm>::getResponseSensitivity(int responseID, int gradNumber
 
     for (int ii = 0; ii < nsr; ii++) {
       switch (scheme[ii]) {
-      case SECTION_RESPONSE_P:  dsdh(ii) += dqdh(0); break;
-      case SECTION_RESPONSE_MZ: dsdh(ii) += xL1 * dqdh(1) + xL * dqdh(2); break;
-      case SECTION_RESPONSE_VY: dsdh(ii) += jsx * (dqdh(1) + dqdh(2)); break;
-      case SECTION_RESPONSE_MY: dsdh(ii) += xL1 * dqdh(3) + xL * dqdh(4); break;
-      case SECTION_RESPONSE_VZ: dsdh(ii) += jsx * (dqdh(3) + dqdh(4)); break;
-      case SECTION_RESPONSE_T:  dsdh(ii) += dqdh(5); break;
-      default:                  dsdh(ii) += 0.0; break;
+      case FrameStress::N:  dsdh(ii) += dqdh(jnx); break;
+      case FrameStress::Mz: dsdh(ii) += xL1 * dqdh(imz) + xL * dqdh(jmz); break;
+      case FrameStress::Vy: dsdh(ii) += jsx * (dqdh(1) + dqdh(2)); break;
+      case FrameStress::My: dsdh(ii) += xL1 * dqdh(3) + xL * dqdh(4); break;
+      case FrameStress::Vz: dsdh(ii) += jsx * (dqdh(3) + dqdh(4)); break;
+      case FrameStress::T:  dsdh(ii) += dqdh(jmx); break;
+      default:              dsdh(ii) += 0.0; break;
       }
     }
 
@@ -2087,17 +2086,16 @@ ForceFrame3d<NIP,nsr,nwm>::getResponseSensitivity(int responseID, int gradNumber
 
     for (int j = 0; j < nsr; j++) {
       switch (code(j)) {
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         dsdh(j) += dxLdh * (q_pres[imz] + q_pres[jmz]);
         //dsdh(j) -= dLdh*xL/L*(Se(1)+Se(2));
         break;
-      case SECTION_RESPONSE_VY: dsdh(j) += d1oLdh * (q_pres[imz] + q_pres[jmz]); break;
-      case SECTION_RESPONSE_MY: dsdh(j) += dxLdh  * (q_pres[imy] + q_pres[jmy]); break;
-      case SECTION_RESPONSE_VZ: dsdh(j) += d1oLdh * (q_pres[imy] + q_pres[jmy]); break;
+      case FrameStress::Vy: dsdh(j) += d1oLdh * (q_pres[imz] + q_pres[jmz]); break;
+      case FrameStress::My: dsdh(j) += dxLdh  * (q_pres[imy] + q_pres[jmy]); break;
+      case FrameStress::Vz: dsdh(j) += d1oLdh * (q_pres[imy] + q_pres[jmy]); break;
       default:                  break;
       }
     }
-
     return info.setVector(dsdh);
   }
 
@@ -2366,12 +2364,12 @@ ForceFrame3d<NIP,nsr,nwm>::commitSensitivity(int gradNumber, int numGrads)
 
     for (int j = 0; j < nsr; j++) {
       switch (scheme[j]) {
-      case SECTION_RESPONSE_P:  ds(j) += dqdh(0); break;
-      case SECTION_RESPONSE_VY: ds(j) += jsx * (dqdh(1) + dqdh(2)); break;
-      case SECTION_RESPONSE_VZ: ds(j) += jsx * (dqdh(3) + dqdh(4)); break;
-      case SECTION_RESPONSE_T:  ds(j) += dqdh(5); break;
-      case SECTION_RESPONSE_MY: ds(j) += xL1 * dqdh(3) + xL * dqdh(4); break;
-      case SECTION_RESPONSE_MZ: ds(j) += xL1 * dqdh(1) + xL * dqdh(2); break;
+      case FrameStress::N:  ds(j) += dqdh(0); break;
+      case FrameStress::Vy: ds(j) += jsx * (dqdh(1) + dqdh(2)); break;
+      case FrameStress::Vz: ds(j) += jsx * (dqdh(3) + dqdh(4)); break;
+      case FrameStress::T:  ds(j) += dqdh(5); break;
+      case FrameStress::My: ds(j) += xL1 * dqdh(3) + xL * dqdh(4); break;
+      case FrameStress::Mz: ds(j) += xL1 * dqdh(1) + xL * dqdh(2); break;
       default:                  ds(j) += 0.0; break;
       }
     }
@@ -2381,10 +2379,10 @@ ForceFrame3d<NIP,nsr,nwm>::commitSensitivity(int gradNumber, int numGrads)
 
     for (int j = 0; j < nsr; j++) {
       switch (scheme[j]) {
-      case SECTION_RESPONSE_MZ: ds(j) += dxLdh  * (q_pres[imz] + q_pres[jmz]); break;
-      case SECTION_RESPONSE_VY: ds(j) += d1oLdh * (q_pres[imz] + q_pres[jmz]); break;
-      case SECTION_RESPONSE_MY: ds(j) += dxLdh  * (q_pres[imy] + q_pres[jmy]); break;
-      case SECTION_RESPONSE_VZ: ds(j) += d1oLdh * (q_pres[imy] + q_pres[jmy]); break;
+      case FrameStress::Mz: ds(j) += dxLdh  * (q_pres[imz] + q_pres[jmz]); break;
+      case FrameStress::Vy: ds(j) += d1oLdh * (q_pres[imz] + q_pres[jmz]); break;
+      case FrameStress::My: ds(j) += dxLdh  * (q_pres[imy] + q_pres[jmy]); break;
+      case FrameStress::Vz: ds(j) += d1oLdh * (q_pres[imy] + q_pres[jmy]); break;
       default:                  break;
       }
     }
@@ -2451,10 +2449,10 @@ ForceFrame3d<NIP,nsr,nwm>::getBasicForceGrad(int gradNumber)
 
     for (int j = 0; j < nsr; j++) {
       switch (scheme[j]) {
-      case SECTION_RESPONSE_MZ: dsdh(j) -= dxLdh  * (q_pres[imz] + q_pres[jmz]); break;
-      case SECTION_RESPONSE_VY: dsdh(j) -= d1oLdh * (q_pres[imz] + q_pres[jmz]); break;
-      case SECTION_RESPONSE_MY: dsdh(j) -= dxLdh  * (q_pres[imy] + q_pres[jmy]); break;
-      case SECTION_RESPONSE_VZ: dsdh(j) -= d1oLdh * (q_pres[imy] + q_pres[jmy]); break;
+      case FrameStress::Mz: dsdh(j) -= dxLdh  * (q_pres[imz] + q_pres[jmz]); break;
+      case FrameStress::Vy: dsdh(j) -= d1oLdh * (q_pres[imz] + q_pres[jmz]); break;
+      case FrameStress::My: dsdh(j) -= dxLdh  * (q_pres[imy] + q_pres[jmy]); break;
+      case FrameStress::Vz: dsdh(j) -= d1oLdh * (q_pres[imy] + q_pres[jmy]); break;
       default:                  break;
       }
     }
@@ -2466,29 +2464,29 @@ ForceFrame3d<NIP,nsr,nwm>::getBasicForceGrad(int gradNumber)
     for (int j = 0; j < nsr; j++) {
       double dei = dedh(j) * wtL;
       switch (scheme[j]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         dvdh(0) += dei;
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         dvdh(1) += xL1 * dei;
         dvdh(2) += xL * dei;
         break;
-      case SECTION_RESPONSE_VY:
+      case FrameStress::Vy:
         dei = jsx * dei;
         dvdh(1) += dei;
         dvdh(2) += dei;
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         dvdh(3) += xL1 * dei;
         dvdh(4) += xL * dei;
         break;
-      case SECTION_RESPONSE_VZ:
+      case FrameStress::Vz:
         dei = jsx * dei;
         dvdh(3) += dei;
         dvdh(4) += dei;
         break;
-      case SECTION_RESPONSE_T:
-        dvdh(5) += dei;
+      case FrameStress::T:
+        dvdh(jmx) += dei;
         break;
       default:
         break;
@@ -2498,34 +2496,34 @@ ForceFrame3d<NIP,nsr,nwm>::getBasicForceGrad(int gradNumber)
     const VectorND<nsr>& e = points[i].es;
     for (int j = 0; j < nsr; j++) {
       switch (scheme[j]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         dvdh(0) -= e(j) * dwtLdh; 
         break;
-      case SECTION_RESPONSE_VY:
+      case FrameStress::Vy:
           dvdh(1) -= jsx * e(j) * dwtLdh;
           dvdh(2) -= jsx * e(j) * dwtLdh;
   
           dvdh(1) -= d1oLdh * e(j) * wtL;
           dvdh(2) -= d1oLdh * e(j) * wtL;
           break;
-      case SECTION_RESPONSE_VZ:
+      case FrameStress::Vz:
         dvdh(3) -= jsx * e(j) * dwtLdh;
         dvdh(4) -= jsx * e(j) * dwtLdh;
 
         dvdh(3) -= d1oLdh * e(j) * wtL;
         dvdh(4) -= d1oLdh * e(j) * wtL;
         break;
-      case SECTION_RESPONSE_T:
+      case FrameStress::T:
           dvdh(5) -= e(j) * dwtLdh; 
           break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         dvdh(1) -= xL1 * e(j) * dwtLdh;
         dvdh(2) -= xL * e(j) * dwtLdh;
 
         dvdh(1) -= dxLdh * e(j) * wtL;
         dvdh(2) -= dxLdh * e(j) * wtL;
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         dvdh(3) -= xL1 * e(j) * dwtLdh;
         dvdh(4) -= xL * e(j) * dwtLdh;
 
@@ -2583,7 +2581,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
     double tmp;
     for (int ii = 0; ii < nsr; ii++) {
       switch (scheme[ii]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         for (int jj = 0; jj < nsr; jj++) {
           fb(jj, 0) += dfsdh(jj, ii) * wtL; // 1
 
@@ -2592,7 +2590,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
           //fb2(jj,0) += fs(jj,ii)*wtL; // 4
         }
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         for (int jj = 0; jj < nsr; jj++) {
           tmp = dfsdh(jj, ii) * wtL; // 1
           fb(jj, 1) += xL1 * tmp;
@@ -2611,7 +2609,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
           //fb2(jj,2) += xL*tmp;
         }
         break;
-      case SECTION_RESPONSE_VY:
+      case FrameStress::Vy:
         for (int jj = 0; jj < nsr; jj++) {
           tmp = jsx * dfsdh(jj, ii) * wtL;
           fb(jj, 1) += tmp;
@@ -2625,11 +2623,11 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
     }
     for (int ii = 0; ii < nsr; ii++) {
       switch (scheme[ii]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         for (int jj = 0; jj < NBV; jj++)
           dfedh(0, jj) += fb(ii, jj);
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         for (int jj = 0; jj < NBV; jj++) {
           tmp = fb(ii, jj); // 1,2,3
           dfedh(1, jj) += xL1 * tmp;
@@ -2640,7 +2638,7 @@ ForceFrame3d<NIP,nsr,nwm>::computedfedh(int gradNumber)
           //dfedh(2,jj) += dxLdh*tmp;
         }
         break;
-      case SECTION_RESPONSE_VY:
+      case FrameStress::Vy:
         for (int jj = 0; jj < NBV; jj++) {
           tmp = jsx * fb(ii, jj);
           dfedh(1, jj) += tmp;
@@ -2684,7 +2682,6 @@ const Vector &
 ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
 {
   double p0[5]{};
-  
   if (eleLoads.size() > 0)
     this->computeReactions(p0);
 
@@ -2701,21 +2698,21 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
     pl[1*NDF+1]  = -pl[1];            // Vjy
     pl[1*NDF+2]  = -pl[2];            // Vjz
   #endif
-    pl[0*NDF+3]  = -q_pres[jmx];             // Ti
+    pl[0*NDF+3]  = -q_pres[jmx];      // Ti
     pl[0*NDF+4]  =  q_pres[imy];
     pl[0*NDF+5]  =  q_pres[imz];
-    pl[1*NDF+0]  =  q_pres[jnx];             // Nj
-    pl[1*NDF+3]  =  q_pres[jmx];             // Tj
+    pl[1*NDF+0]  =  q_pres[jnx];      // Nj
+    pl[1*NDF+3]  =  q_pres[jmx];      // Tj
     pl[1*NDF+4]  =  q_pres[jmy];
     pl[1*NDF+5]  =  q_pres[jmz];
 
   thread_local VectorND<NDF*2> pf;
   pf.zero();
-  pf[0] = p0[0];
-  pf[1] = p0[1];
-  pf[7] = p0[2];
-  pf[2] = p0[3];
-  pf[8] = p0[4];
+  pf[0*NDF + 0] = p0[0];
+  pf[0*NDF + 1] = p0[1];
+  pf[0*NDF + 2] = p0[3];
+  pf[1*NDF + 1] = p0[2];
+  pf[1*NDF + 2] = p0[4];
 
   thread_local VectorND<NDF*2> pg;
   thread_local Vector wrapper(pg);
@@ -2739,22 +2736,22 @@ ForceFrame3d<NIP,nsr,nwm>::getDistrLoadInterpolatMatrix(double xi, Matrix& bp, c
   double L = theCoordTransf->getInitialLength();
   for (int i = 0; i < code.Size(); i++) {
     switch (code(i)) {
-    case SECTION_RESPONSE_MZ: // Moment, Mz, interpolation
+    case FrameStress::Mz: // Moment, Mz, interpolation
       bp(i, 1) = xi * (xi - 1) * L * L / 2;
       break;
-    case SECTION_RESPONSE_P: // Axial, P, interpolation
+    case FrameStress::N: // Axial, P, interpolation
       bp(i, 0) = (1 - xi) * L;
       break;
-    case SECTION_RESPONSE_VY: // Shear, Vy, interpolation
+    case FrameStress::Vy: // Shear, Vy, interpolation
       bp(i, 1) = (xi - 0.5) * L;
       break;
-    case SECTION_RESPONSE_MY: // Moment, My, interpolation
+    case FrameStress::My: // Moment, My, interpolation
       bp(i, 2) = xi * (1 - xi) * L * L / 2;
       break;
-    case SECTION_RESPONSE_VZ: // Shear, Vz, interpolation
+    case FrameStress::Vz: // Shear, Vz, interpolation
       bp(i, 2) = (0.5 - xi) * L;
       break;
-    case SECTION_RESPONSE_T: // Torsion, T, interpolation
+    case FrameStress::T: // Torsion, T, interpolation
       break;
     default: break;
     }
@@ -2769,23 +2766,23 @@ ForceFrame3d<NIP,nsr,nwm>::getForceInterpolatMatrix(double xi, Matrix& b, const 
   double L = theCoordTransf->getInitialLength();
   for (int i = 0; i < code.Size(); i++) {
     switch (code(i)) {
-    case SECTION_RESPONSE_P: // Axial, P, interpolation
+    case FrameStress::N: // Axial, P, interpolation
       b(i, 0) = 1.0;
       break;
-    case SECTION_RESPONSE_VY: // Shear, Vy, interpolation
+    case FrameStress::Vy: // Shear, Vy, interpolation
       b(i, 1) = b(i, 2) = 1.0 / L;
       break;
-    case SECTION_RESPONSE_VZ: // Shear, Vz, interpolation
+    case FrameStress::Vz: // Shear, Vz, interpolation
       b(i, 3) = b(i, 4) = 1.0 / L;
       break;
-    case SECTION_RESPONSE_T: // Torque, T, interpolation
+    case FrameStress::T: // Torque, T, interpolation
       b(i, 5) = 1.0;
       break;
-    case SECTION_RESPONSE_MY: // Moment, My, interpolation
+    case FrameStress::My: // Moment, My, interpolation
       b(i, 3) = xi - 1.0;
       b(i, 4) = xi;
       break;
-    case SECTION_RESPONSE_MZ: // Moment, Mz, interpolation
+    case FrameStress::Mz: // Moment, Mz, interpolation
       b(i, 1) = xi - 1.0;
       b(i, 2) = xi;
       break;
@@ -2793,6 +2790,5 @@ ForceFrame3d<NIP,nsr,nwm>::getForceInterpolatMatrix(double xi, Matrix& b, const 
     }
   }
 }
-
 #endif
 
