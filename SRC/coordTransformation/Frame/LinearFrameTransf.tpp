@@ -90,10 +90,10 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
   
   constexpr static int N = nn * ndf;
 
-  // (A) Initialize ul = ug
+  // Initialize ul = ug
   VectorND<N> ul = ug;
 
-  // (B) 
+  // (1)
   // Do ui -= ri x wi
   if constexpr (ndf >= 6)
     if (offset && !(offset_flags&OffsetLocal)) {
@@ -107,13 +107,14 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
       }
     }
 
-  // (C) Rotations and translations
+  // (2) Rotations and translations
   for (int i=0; i<nn; i++) {
     const int j = i * ndf;
     ul.insert(j  , R^Vector3D{ul[j+0], ul[j+1], ul[j+2]}, 1.0);
     ul.insert(j+3, R^Vector3D{ul[j+3], ul[j+4], ul[j+5]}, 1.0);
   }
 
+  // 3)
   if constexpr (ndf >= 6)
     if (offset && (offset_flags&OffsetLocal)) {
       const std::array<Vector3D, nn>& offsets = *offset;
@@ -125,6 +126,9 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
         ul.assemble(j, offsets[i].cross(w), -1.0);
       }
     }
+  //
+  // (4)
+  //
 
   return ul;
 }
