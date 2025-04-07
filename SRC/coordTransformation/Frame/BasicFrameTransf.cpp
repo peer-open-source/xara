@@ -160,25 +160,25 @@ BasicFrameTransf3d::getGlobalResistingForce(const Vector &q_pres, const Vector &
   // transform resisting forces from the basic system to local coordinates
   
   thread_local VectorND<NDF*2> pl{};
-  pl[0*NDF+0]  = -q_pres[jnx];               // Ni
   #ifdef DO_BASIC
-    double L = theCoordTransf->getInitialLength();
-    const double q1 = q_pres[imz],
-                 q2 = q_pres[jmz],
-                 q3 = q_pres[imy],
-                 q4 = q_pres[jmy];
-    pl[0*NDF+1]  =  (q1 + q2)/L;      // Viy
-    pl[0*NDF+2]  = -(q3 + q4)/L;      // Viz
-    pl[1*NDF+1]  = -pl[1];            // Vjy
-    pl[1*NDF+2]  = -pl[2];            // Vjz
+  double L = theCoordTransf->getInitialLength();
+  const double q1 = q_pres[imz],
+                q2 = q_pres[jmz],
+                q3 = q_pres[imy],
+                q4 = q_pres[jmy];
+  pl[0*NDF+1]  =  (q1 + q2)/L;      // Viy
+  pl[0*NDF+2]  = -(q3 + q4)/L;      // Viz
+  pl[1*NDF+1]  = -pl[1];            // Vjy
+  pl[1*NDF+2]  = -pl[2];            // Vjz
   #endif
-    pl[0*NDF+3]  = -q_pres[jmx];      // Ti
-    pl[0*NDF+4]  =  q_pres[imy];
-    pl[0*NDF+5]  =  q_pres[imz];
-    pl[1*NDF+0]  =  q_pres[jnx];      // Nj
-    pl[1*NDF+3]  =  q_pres[jmx];      // Tj
-    pl[1*NDF+4]  =  q_pres[jmy];
-    pl[1*NDF+5]  =  q_pres[jmz];
+  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
+  pl[0*NDF+3]  = -q_pres[jmx];      // Ti
+  pl[0*NDF+4]  =  q_pres[imy];
+  pl[0*NDF+5]  =  q_pres[imz];
+  pl[1*NDF+0]  =  q_pres[jnx];      // Nj
+  pl[1*NDF+3]  =  q_pres[jmx];      // Tj
+  pl[1*NDF+4]  =  q_pres[jmy];
+  pl[1*NDF+5]  =  q_pres[jmz];
 
   thread_local VectorND<NDF*2> pf;
   pf.zero();
@@ -202,7 +202,6 @@ BasicFrameTransf3d::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_pres)
 {
 
   VectorND<NDF*2> pl{};
-  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
 #ifdef DO_BASIC
   double L = t.getInitialLength();
   const double q1 = q_pres[imz],
@@ -214,6 +213,7 @@ BasicFrameTransf3d::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_pres)
   pl[1*NDF+1]  = -pl[1];            // Vjy
   pl[1*NDF+2]  = -pl[2];            // Vjz
 #endif
+  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
   pl[0*NDF+3]  = -q_pres[jmx];      // Ti
   pl[0*NDF+4]  =  q_pres[imy];
   pl[0*NDF+5]  =  q_pres[imz];
