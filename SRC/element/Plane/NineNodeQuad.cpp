@@ -49,7 +49,7 @@ double NineNodeQuad::shp[3][NEN];
 
 NineNodeQuad::NineNodeQuad(int tag, 
                            const std::array<int,9>& nodes,
-                           NDMaterial &m, const char *type, 
+                           NDMaterial &m,
                            double thickness,
                            double p, 
                            double rho, double b1, double b2)
@@ -69,7 +69,7 @@ NineNodeQuad::NineNodeQuad(int tag,
     for (int i = 0; i < nip; i++) {
 
       // Get copies of the material model for each integration point
-      theMaterial[i] = m.getCopy(type);
+      theMaterial[i] = m.getCopy();
 
       // Check allocation
       if (theMaterial[i] == nullptr) {

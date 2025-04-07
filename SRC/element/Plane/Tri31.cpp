@@ -49,8 +49,7 @@ double Tri31::wts[1];
 
 Tri31::Tri31(int tag, 
              std::array<int,3> &nodes,
-             NDMaterial &m, 
-             const char *type, 
+             NDMaterial &m,
              double thickness,
              double p, double r, 
              double b1, double b2)
@@ -67,10 +66,10 @@ Tri31::Tri31(int tag,
     b[0] = b1;
     b[1] = b2;
 
+    // Get copies of the material model for each integration point
     // Note: type is checked by parser
     for (int i = 0; i < NIP; i++) {
-        // Get copies of the material model for each integration point
-        theMaterial[i] = m.getCopy(type);
+      theMaterial[i] = m.getCopy();
     }
 
     // Set connected external node IDs

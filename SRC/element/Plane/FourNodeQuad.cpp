@@ -34,8 +34,10 @@ double FourNodeQuad::shp[3][4];
 
 FourNodeQuad::FourNodeQuad(int tag, 
                            std::array<int,4>& nodes,
-                           NDMaterial &m, double thickness,
-                           double pressure, double rho, 
+                           NDMaterial &m, 
+                           double thickness,
+                           double pressure, 
+                           double rho, 
                            double b1, double b2)
  : Element(tag, ELE_TAG_FourNodeQuad), 
    connectedExternalNodes(4), 

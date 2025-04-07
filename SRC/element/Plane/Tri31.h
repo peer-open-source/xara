@@ -46,7 +46,6 @@ class Tri31 : public Element
     Tri31(int tag, 
           std::array<int,3> &nodes,
           NDMaterial &m,
-          const char *type,
           double thickness, 
           double pressure,
           double rho,

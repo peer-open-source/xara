@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #  include <string.h>
 #  define strcasecmp _stricmp
 #else

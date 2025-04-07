@@ -50,7 +50,7 @@ class NineNodeQuad : public Element ,
 public:
   NineNodeQuad(int tag, 
                const std::array<int,9>& nodes,
-               NDMaterial &m, const char *type, 
+               NDMaterial &m,
                double thickness,
                double pressure = 0.0, double rho = 0.0, double b1 = 0.0,
                double b2 = 0.0);
