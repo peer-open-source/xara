@@ -43,9 +43,12 @@ class FourNodeQuad : public Element,
                      protected GaussLegendre<2,4>
 {
   public:
-    FourNodeQuad(int tag, std::array<int,4>& nodes,
-                 NDMaterial &m, double thickness,
-                 double p, double r, double b1, double b2);
+    FourNodeQuad(int tag,
+                 std::array<int,4>& nodes,
+                 NDMaterial &m, 
+                 double thickness,
+                 double p, double r, 
+                 double b1, double b2);
 
     FourNodeQuad();
     ~FourNodeQuad();
@@ -144,7 +147,7 @@ class FourNodeQuad : public Element,
     double pressure;                 // Normal surface traction (pressure) over entire element
                                      // Note: positive for outward normal
     double rho;
-    static double shp[3][NEN];       // shape functions and derivatives
+    double shp[3][NEN];              // shape functions and derivatives
 
     int parameterID;
 

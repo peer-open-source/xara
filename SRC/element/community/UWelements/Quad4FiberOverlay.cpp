@@ -56,7 +56,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Quad4FiberOverlay)
 {
   if (num_Quad4FiberOverlay == 0) {
     num_Quad4FiberOverlay++;
-    opserr << "Quad4FiberOverlay element - Written: M.Chiaramonte, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog << "Quad4FiberOverlay element - Written: M.Chiaramonte, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
 	
 	Element *theElement = 0;

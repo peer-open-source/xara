@@ -311,7 +311,7 @@ void ASDEmbeddedNodeElement::setDomain(Domain* theDomain)
         int node_id = m_node_ids(static_cast<int>(i));
         Node* node = theDomain->getNode(node_id);
         if (node == nullptr) {
-            opserr << "ASDEmbeddedNodeElement Error in setDomain: node " << node_id << " does not exit in the domain\n";
+            opserr << "ASDEmbeddedNodeElement Error in setDomain: node " << node_id << " does not exist in the domain\n";
             exit(-1);
         }
 

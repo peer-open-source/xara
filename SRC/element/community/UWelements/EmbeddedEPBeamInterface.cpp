@@ -52,7 +52,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_EmbeddedEPBeamInterface)
 {
     if (num_EmbeddedEPBeamInterface == 0) {
         num_EmbeddedEPBeamInterface++;
-        opserr << "EmbeddedEPBeamInterface element - Written: A.Ghofrani, D.Turello, P.Arduino, U.Washington\n";
+        opslog << "EmbeddedEPBeamInterface element - Written: A.Ghofrani, D.Turello, P.Arduino, U.Washington\n";
     }
 
     Element *theElement = 0;

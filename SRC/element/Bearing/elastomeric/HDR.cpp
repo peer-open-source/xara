@@ -34,7 +34,6 @@
 #include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
-#include <elementAPI.h>
 
 #include <float.h>
 #include <math.h>
@@ -43,9 +42,8 @@
 
 #include <OPS_Globals.h>
 #include <Message.h>
-using namespace std;
-#include <iostream>
-
+#include <Logging.h>
+#include <elementAPI.h>
 #define PI 3.14159l
 
 
@@ -60,7 +58,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_HDR)
 {
     // print out a message about who wrote this element & any copyright info wanted
     if (numMyBearing == 0) {
-        opserr << "HDR element - Written by Manish Kumar, University at Buffalo, 2012\n";
+        opslog << "HDR element - Written by Manish Kumar, University at Buffalo, 2012\n";
         numMyBearing++;
     }
     

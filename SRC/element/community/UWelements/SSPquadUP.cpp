@@ -65,7 +65,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPquadUP)
 {
     if (num_SSPquadUP == 0) {
         num_SSPquadUP++;
-        opserr<<"SSPquadUP element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+        opslog<<"SSPquadUP element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
     }
 
     // Pointer to an element that will be returned
