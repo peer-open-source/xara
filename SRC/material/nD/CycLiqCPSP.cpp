@@ -64,7 +64,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CycLiqCPSPMaterial)
   if (numCycLiqCPSPMaterials == 0) {
     numCycLiqCPSPMaterials=1;
     //OPS_Error("\nCycLiqCPSP - Written: Rui Wang, Jian-Min Zhang, Gang Wang\nPlease refer to: Wang R., Zhang J.M., Wang G., 2014. A unified plasticity model for large post-liquefaction shear deformation of sand. Computers and Geotechnics. 59, 54-66.\n", 1);
-    opserr<<"\nCycLiqCPSP - Written: Rui Wang, Jian-Min Zhang, Gang Wang\nPlease refer to: Wang R., Zhang J.M., Wang G., 2014. A unified plasticity model for large post-liquefaction shear deformation of sand. Computers and Geotechnics. 59, 54-66.\n";
+    opslog<<"\nCycLiqCPSP - Written: Rui Wang, Jian-Min Zhang, Gang Wang\nPlease refer to: Wang R., Zhang J.M., Wang G., 2014. A unified plasticity model for large post-liquefaction shear deformation of sand. Computers and Geotechnics. 59, 54-66.\n";
   }
 
   NDMaterial *theMaterial = 0;

@@ -27,8 +27,6 @@
 
 class ElasticOrthotropicPlaneStress : public NDMaterial {
 
-//-------------------Declarations-------------------------------
-
   public : 
 
   //null constructor
