@@ -52,7 +52,8 @@ NineNodeQuad::NineNodeQuad(int tag,
                            NDMaterial &m,
                            double thickness,
                            double p, 
-                           double rho, double b1, double b2)
+                           double rho, 
+                           double b1, double b2)
 
 :Element (tag, ELE_TAG_NineNodeQuad),
   theMaterial(0), connectedExternalNodes(NEN),
@@ -66,16 +67,9 @@ NineNodeQuad::NineNodeQuad(int tag,
     // Allocate arrays of pointers to NDMaterials
     theMaterial = new NDMaterial *[nip];
 
+    // Get copies of the material model for each integration point
     for (int i = 0; i < nip; i++) {
-
-      // Get copies of the material model for each integration point
       theMaterial[i] = m.getCopy();
-
-      // Check allocation
-      if (theMaterial[i] == nullptr) {
-        opserr << "NineNodeQuad::NineNodeQuad -- failed to get a copy of material model\n";
-        return;
-      }
     }
 
     // Set connected external node IDs
@@ -106,7 +100,7 @@ NineNodeQuad::~NineNodeQuad()
   if (theMaterial)
     delete [] theMaterial;
 
-  if (Ki != 0)
+  if (Ki != nullptr)
     delete Ki;
 }
 
@@ -215,38 +209,38 @@ NineNodeQuad::revertToStart()
 int
 NineNodeQuad::update()
 {
-    // Collect displacements at each node into a local array
-    double u[NDM][NEN];
+  // Collect displacements at each node into a local array
+  double u[NDM][NEN];
 
-    for (int i=0; i<NEN; i++) {
-        const Vector &displ = theNodes[i]->getTrialDisp();
-        for (int j=0; j<NDM; j++) {
-           u[j][i] = displ[j];
-        }
-    }
+  for (int i=0; i<NEN; i++) {
+      const Vector &displ = theNodes[i]->getTrialDisp();
+      for (int j=0; j<NDM; j++) {
+          u[j][i] = displ[j];
+      }
+  }
 
-    int ret = 0;
+  int ret = 0;
 
-    // Loop over the integration points
-    for (int i = 0; i < nip; i++) {
+  // Loop over the integration points
+  for (int i = 0; i < nip; i++) {
 
-        // Determine Jacobian for this integration point
-        this->shapeFunction(pts[i][0], pts[i][1]);
+      // Determine Jacobian for this integration point
+      this->shapeFunction(pts[i][0], pts[i][1]);
 
-        // Interpolate strains
-        //eps = B*u;
-        VectorND<3> eps{};
-        for (int beta = 0; beta < NEN; beta++) {
-            eps[0] += shp[0][beta]*u[0][beta];
-            eps[1] += shp[1][beta]*u[1][beta];
-            eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
-        }
+      // Interpolate strains
+      //eps = B*u;
+      VectorND<3> eps{};
+      for (int beta = 0; beta < NEN; beta++) {
+          eps[0] += shp[0][beta]*u[0][beta];
+          eps[1] += shp[1][beta]*u[1][beta];
+          eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
+      }
 
-        // Set the material strain
-        ret += theMaterial[i]->setTrialStrain(eps);
-    }
+      // Set the material strain
+      ret += theMaterial[i]->setTrialStrain(eps);
+  }
 
-    return ret;
+  return ret;
 }
 
 
@@ -254,56 +248,56 @@ const Matrix&
 NineNodeQuad::getTangentStiff()
 {
 
-    K.Zero();
+  K.Zero();
 
-    double DB[3][2];
+  double DB[3][2];
 
-    // Loop over the integration points
-    for (int i = 0; i < nip; i++) {
+  // Loop over the integration points
+  for (int i = 0; i < nip; i++) {
 
-      // Determine Jacobian for this integration point
-      double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
-      dvol *= (thickness*wts[i]);
+    // Determine Jacobian for this integration point
+    double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+    dvol *= (thickness*wts[i]);
 
-      // Get the material tangent
-      const Matrix &D = theMaterial[i]->getTangent();
+    // Get the material tangent
+    const Matrix &D = theMaterial[i]->getTangent();
 
-      // Perform numerical integration
-      //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
-      //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
+    // Perform numerical integration
+    //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
+    //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
 
-      double D00 = D(0,0); double D01 = D(0,1); double D02 = D(0,2);
-      double D10 = D(1,0); double D11 = D(1,1); double D12 = D(1,2);
-      double D20 = D(2,0); double D21 = D(2,1); double D22 = D(2,2);
+    double D00 = D(0,0); double D01 = D(0,1); double D02 = D(0,2);
+    double D10 = D(1,0); double D11 = D(1,1); double D12 = D(1,2);
+    double D20 = D(2,0); double D21 = D(2,1); double D22 = D(2,2);
 
-      //      for (int beta = 0, ib = 0, colIb =0, colIbP1 = 8;
-      //   beta < 4;
-      //   beta++, ib += 2, colIb += 16, colIbP1 += 16) {
+    //      for (int beta = 0, ib = 0, colIb =0, colIbP1 = 8;
+    //   beta < 4;
+    //   beta++, ib += 2, colIb += 16, colIbP1 += 16) {
 
-      for (int alpha = 0, ia = 0; alpha < NEN; alpha++, ia += 2) {
-        for (int beta = 0, ib = 0; beta < NEN; beta++, ib += 2) {
+    for (int alpha = 0, ia = 0; alpha < NEN; alpha++, ia += 2) {
+      for (int beta = 0, ib = 0; beta < NEN; beta++, ib += 2) {
 
-          DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
-          DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
-          DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
-          DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
-          DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
-          DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
+        DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
+        DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
+        DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
+        DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
+        DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
+        DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
 
-          K(ia,ib) += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-          K(ia,ib+1) += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-          K(ia+1,ib) += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-          K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
-          //          matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-          //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-          //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-          //matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+        K(ia,ib) += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        K(ia,ib+1) += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        K(ia+1,ib) += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+        //          matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        //matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
 
-        }
       }
     }
+  }
 
-    return K;
+  return K;
 }
 
 
@@ -403,14 +397,14 @@ NineNodeQuad::getMass()
 void
 NineNodeQuad::zeroLoad()
 {
-    Q.Zero();
+  Q.Zero();
 
-    applyLoad = 0;
+  applyLoad = 0;
 
-    appliedB[0] = 0.0;
-    appliedB[1] = 0.0;
+  appliedB[0] = 0.0;
+  appliedB[1] = 0.0;
 
-    return;
+  return;
 }
 
 int
@@ -630,7 +624,6 @@ NineNodeQuad::sendSelf(int commitTag, Channel &theChannel)
 
   static ID idData(2*nip+NEN);
 
-  int i;
   for (int i = 0; i < nip; i++) {
     idData(i) = theMaterial[i]->getClassTag();
     matDbTag = theMaterial[i]->getDbTag();
@@ -644,7 +637,7 @@ NineNodeQuad::sendSelf(int commitTag, Channel &theChannel)
     idData(i+nip) = matDbTag;
   }
 
-  for( i = 0; i < NEN; i++)
+  for (int i = 0; i < NEN; i++)
     idData(2*nip+i) = connectedExternalNodes(i);
 
   res += theChannel.sendID(dataTag, commitTag, idData);
@@ -814,23 +807,28 @@ NineNodeQuad::Print(OPS_Stream &s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << "\t\t\t{";
-      s << "\"name\": " << this->getTag() << ", ";
-      s << "\"type\": \"NineNodeQuad\", ";
-      s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-      s << connectedExternalNodes(1) << ", ";
-      s << connectedExternalNodes(2) << ", ";
-      s << connectedExternalNodes(3) << ", ";
-      s << connectedExternalNodes(4) << ", ";
-      s << connectedExternalNodes(5) << ", ";
-      s << connectedExternalNodes(6) << ", ";
-      s << connectedExternalNodes(7) << ", ";
-      s << connectedExternalNodes(8) << "], ";
-      s << "\"thickness\": " << thickness << ", ";
-      s << "\"surfacePressure\": " << pressure << ", ";
-      s << "\"masspervolume\": " << rho << ", ";
-      s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
-      s << "\"material\": \"" << theMaterial[0]->getTag() << "\"}";
+    const ID& node_tags = this->getExternalNodes();
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+
+    s << "\"nodes\": [";
+    for (int i=0; i < NEN-1; i++)
+        s << node_tags(i) << ", ";
+    s << node_tags(NEN-1) << "]";
+    s << ", ";
+
+    s << "\"thickness\": " << thickness << ", ";
+    s << "\"surfacePressure\": " << pressure << ", ";
+    s << "\"masspervolume\": " << rho << ", ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
+    s << "\"material\": [";
+    for (int i = 0; i < nip - 1; i++)
+      s << theMaterial[i]->getTag() << ", ";
+    s << theMaterial[nip - 1]->getTag() << "]";
+
+    s << "}";
+    return;
   }
 }
 

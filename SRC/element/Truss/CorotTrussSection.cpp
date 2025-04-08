@@ -65,7 +65,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CorotTrussSectionElement)
 
   if (numRemainingArgs < 4) {
     opserr << "Invalid Args want: element CorotTrussSection $tag $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-    return 0;	
+    return 0;        
   }
 
   int    iData[4];
@@ -95,27 +95,27 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CorotTrussSectionElement)
     if (strcmp(argvS,"-rho") == 0) {
       numData = 1;
       if (OPS_GetDouble(&numData, &rho) != 0) {
-	opserr << "WARNING Invalid rho in element CorotTrussSection " << iData[0] << 
-	  " $iNode $jNode $secTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-	return 0;
+        opserr << "WARNING Invalid rho in element CorotTrussSection " << iData[0] << 
+          " $iNode $jNode $secTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        return 0;
       }
     } else if (strcmp(argvS,"-cMass") == 0) {
       numData = 1;
       if (OPS_GetInt(&numData, &cMass) != 0) {
-	opserr << "WARNING: Invalid cMass in element CorotTrussSection " << iData[0] << 
-	  " $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-	return 0;
+        opserr << "WARNING: Invalid cMass in element CorotTrussSection " << iData[0] << 
+          " $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        return 0;
       }
     } else if (strcmp(argvS,"-doRayleigh") == 0) {
       numData = 1;
       if (OPS_GetInt(&numData, &doRayleigh) != 0) {
-	opserr << "WARNING: Invalid doRayleigh in element CorotTrussSection " << iData[0] << 
-	  " $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
-	return 0;
+        opserr << "WARNING: Invalid doRayleigh in element CorotTrussSection " << iData[0] << 
+          " $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        return 0;
       }
     } else {
       opserr << "WARNING: Invalid option " << argvS << "  in: element CorotTrussSection " << iData[0] << 
-	" $iNode $jNode $secTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
+        " $iNode $jNode $secTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>\n";
       return 0;
     }
     numRemainingArgs -= 2;
@@ -137,9 +137,9 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CorotTrussSectionElement)
 //  responsible for allocating the necessary space needed by each object
 //  and storing the tags of the CorotTrussSection end nodes.
 CorotTrussSection::CorotTrussSection(int tag, int dim,
-			   int Nd1, int Nd2, 
-			   SectionForceDeformation &theSec,
-			   double r, int damp, int cm)
+                           int Nd1, int Nd2, 
+                           SectionForceDeformation &theSec,
+                           double r, int damp, int cm)
   :Element(tag,ELE_TAG_CorotTrussSection),     
   theSection(0), connectedExternalNodes(2),
   numDOF(0), numDIM(dim), Lo(0.0), Ln(0.0),
@@ -187,7 +187,7 @@ CorotTrussSection::CorotTrussSection()
   if (connectedExternalNodes.Size() != 2) {
     opserr << "FATAL CorotTrussSection::CorotTrussSection - failed to create an ID of size 2\n";
     exit(-1);
-  }			  
+  }                          
 }
 
 //  destructor
@@ -210,7 +210,7 @@ CorotTrussSection::getNumExternalNodes(void) const
 const ID &
 CorotTrussSection::getExternalNodes(void) 
 {
-	return connectedExternalNodes;
+        return connectedExternalNodes;
 }
 
 
@@ -223,7 +223,7 @@ CorotTrussSection::getNodePtrs(void)
 int
 CorotTrussSection::getNumDOF(void) 
 {
-	return numDOF;
+        return numDOF;
 }
 
 // method: setDomain()
@@ -248,11 +248,11 @@ CorotTrussSection::setDomain(Domain *theDomain)
   int Nd1 = connectedExternalNodes(0);
   int Nd2 = connectedExternalNodes(1);
   theNodes[0] = theDomain->getNode(Nd1);
-  theNodes[1] = theDomain->getNode(Nd2);	
+  theNodes[1] = theDomain->getNode(Nd2);        
   
   // if can't find both - send a warning message
   if ((theNodes[0] == 0) || (theNodes[1] == 0)) {
-    opserr << "CorotTrussSection::setDomain() - CorotTrussSection " << 			  
+    opserr << "CorotTrussSection::setDomain() - CorotTrussSection " <<                           
       this->getTag() << " node doe not exist in the model\n";
     
     // fill this in so don't segment fault later
@@ -263,7 +263,7 @@ CorotTrussSection::setDomain(Domain *theDomain)
   
   // now determine the number of dof and the dimesnion    
   int dofNd1 = theNodes[0]->getNumberDOF();
-  int dofNd2 = theNodes[1]->getNumberDOF();	
+  int dofNd2 = theNodes[1]->getNumberDOF();        
   
   // if differing dof at the ends - print a warning message
   if (dofNd1 != dofNd2) {
@@ -274,7 +274,7 @@ CorotTrussSection::setDomain(Domain *theDomain)
     numDOF = 6;    
     
     return;
-  }	
+  }        
   
   if (numDIM == 1 && dofNd1 == 1) {
     numDOF = 2;
@@ -324,15 +324,15 @@ CorotTrussSection::setDomain(Domain *theDomain)
         return;
     }          
     
-	// call the base class method
-	this->DomainComponent::setDomain(theDomain);
+        // call the base class method
+        this->DomainComponent::setDomain(theDomain);
 
-	// now determine the length, cosines and fill in the transformation
-	// NOTE t = -t(every one else uses for residual calc)
-	const Vector &end1Crd = theNodes[0]->getCrds();
-	const Vector &end2Crd = theNodes[1]->getCrds();
+        // now determine the length, cosines and fill in the transformation
+        // NOTE t = -t(every one else uses for residual calc)
+        const Vector &end1Crd = theNodes[0]->getCrds();
+        const Vector &end2Crd = theNodes[1]->getCrds();
 
-	// Determine global offsets
+        // Determine global offsets
     double cosX[3];
     cosX[0] = 0.0;  cosX[1] = 0.0;  cosX[2] = 0.0;
     int i;
@@ -340,54 +340,54 @@ CorotTrussSection::setDomain(Domain *theDomain)
         cosX[i] += end2Crd(i)-end1Crd(i);
     }
 
-	// Set undeformed and initial length
-	Lo = cosX[0]*cosX[0] + cosX[1]*cosX[1] + cosX[2]*cosX[2];
-	Lo = sqrt(Lo);
-	Ln = Lo;
+        // Set undeformed and initial length
+        Lo = cosX[0]*cosX[0] + cosX[1]*cosX[1] + cosX[2]*cosX[2];
+        Lo = sqrt(Lo);
+        Ln = Lo;
 
     // Initial offsets
-   	d21[0] = Lo;
-	d21[1] = 0.0;
-	d21[2] = 0.0;
+           d21[0] = Lo;
+        d21[1] = 0.0;
+        d21[2] = 0.0;
 
-	// Set global orientation
-	cosX[0] /= Lo;
-	cosX[1] /= Lo;
-	cosX[2] /= Lo;
+        // Set global orientation
+        cosX[0] /= Lo;
+        cosX[1] /= Lo;
+        cosX[2] /= Lo;
 
-	R(0,0) = cosX[0];
-	R(0,1) = cosX[1];
-	R(0,2) = cosX[2];
+        R(0,0) = cosX[0];
+        R(0,1) = cosX[1];
+        R(0,2) = cosX[2];
 
-	// Element lies outside the YZ plane
-	if (fabs(cosX[0]) > 0.0) {
-		R(1,0) = -cosX[1];
-		R(1,1) =  cosX[0];
-		R(1,2) =  0.0;
+        // Element lies outside the YZ plane
+        if (fabs(cosX[0]) > 0.0) {
+                R(1,0) = -cosX[1];
+                R(1,1) =  cosX[0];
+                R(1,2) =  0.0;
 
-		R(2,0) = -cosX[0]*cosX[2];
-		R(2,1) = -cosX[1]*cosX[2];
-		R(2,2) =  cosX[0]*cosX[0] + cosX[1]*cosX[1];
-	}
-	// Element is in the YZ plane
-	else {
-		R(1,0) =  0.0;
-		R(1,1) = -cosX[2];
-		R(1,2) =  cosX[1];
+                R(2,0) = -cosX[0]*cosX[2];
+                R(2,1) = -cosX[1]*cosX[2];
+                R(2,2) =  cosX[0]*cosX[0] + cosX[1]*cosX[1];
+        }
+        // Element is in the YZ plane
+        else {
+                R(1,0) =  0.0;
+                R(1,1) = -cosX[2];
+                R(1,2) =  cosX[1];
 
-		R(2,0) =  1.0;
-		R(2,1) =  0.0;
-		R(2,2) =  0.0;
-	}
+                R(2,0) =  1.0;
+                R(2,1) =  0.0;
+                R(2,2) =  0.0;
+        }
 
-	// Orthonormalize last two rows of R
-	double norm;
-	for (i = 1; i < 3; i++) {
-		norm = sqrt(R(i,0)*R(i,0) + R(i,1)*R(i,1) + R(i,2)*R(i,2));
-		R(i,0) /= norm;
-		R(i,1) /= norm;
-		R(i,2) /= norm;
-	}
+        // Orthonormalize last two rows of R
+        double norm;
+        for (i = 1; i < 3; i++) {
+                norm = sqrt(R(i,0)*R(i,0) + R(i,1)*R(i,1) + R(i,2)*R(i,2));
+                R(i,0) /= norm;
+                R(i,1) /= norm;
+                R(i,2) /= norm;
+        }
 }
 
 int
@@ -405,39 +405,39 @@ CorotTrussSection::commitState()
 int
 CorotTrussSection::revertToLastCommit()
 {
-	// Revert the material
-	return theSection->revertToLastCommit();
+        // Revert the material
+        return theSection->revertToLastCommit();
 }
 
 int
 CorotTrussSection::revertToStart()
 {
-	// Revert the material to start
-	return theSection->revertToStart();
+        // Revert the material to start
+        return theSection->revertToStart();
 }
 
 int
 CorotTrussSection::update(void)
 {
     if (Lo == 0.0) { // - problem in setDomain() no further warnings
-	return -1;
+        return -1;
     }
     
     // determine the current strain given trial displacements at nodes
     double strain = this->computeCurrentStrain();
 
-	int order = theSection->getOrder();
-	const ID &code = theSection->getType();
+        int order = theSection->getOrder();
+        const ID &code = theSection->getType();
 
     Vector e (order);
-	
+        
     int i;
     for (i = 0; i < order; i++) {
       if (code(i) == SECTION_RESPONSE_P)
-	e(i) = strain;
+        e(i) = strain;
     }
     
-	return theSection->setTrialSectionDeformation(e);
+        return theSection->setTrialSectionDeformation(e);
 }
 
 const Matrix &
@@ -448,34 +448,34 @@ CorotTrussSection::getTangentStiff(void)
     // Material stiffness
     //
     // Get material tangent
-	int order = theSection->getOrder();
-	const ID &code = theSection->getType();
+        int order = theSection->getOrder();
+        const ID &code = theSection->getType();
 
-	const Matrix &ks = theSection->getSectionTangent();
-	const Vector &s  = theSection->getStressResultant();
-	
-	double EA = 0.0;
-	double q = 0.0;
+        const Matrix &ks = theSection->getSectionTangent();
+        const Vector &s  = theSection->getStressResultant();
+        
+        double EA = 0.0;
+        double q = 0.0;
 
-	int i,j;
-	for (i = 0; i < order; i++) {
-		if (code(i) == SECTION_RESPONSE_P) {
-			EA += ks(i,i);
-			q  += s(i);
-		}
-	}
+        int i,j;
+        for (i = 0; i < order; i++) {
+                if (code(i) == SECTION_RESPONSE_P) {
+                        EA += ks(i,i);
+                        q  += s(i);
+                }
+        }
 
-	EA /= (Ln*Ln*Lo);
+        EA /= (Ln*Ln*Lo);
 
     for (i = 0; i < 3; i++)
         for (int j = 0; j < 3; j++)
             kl(i,j) = EA*d21[i]*d21[j];
 
-	// Geometric stiffness
-	//
-	// Get material stress
-	double SA = q/(Ln*Ln*Ln);
-	double SL = q/Ln;
+        // Geometric stiffness
+        //
+        // Get material stress
+        double SA = q/(Ln*Ln*Ln);
+        double SL = q/Ln;
 
     for (i = 0; i < 3; i++) {
         kl(i,i) += SL;
@@ -522,7 +522,7 @@ CorotTrussSection::getInitialStiff(void)
     int i,j;
     for (i = 0; i < order; i++) {
       if (code(i) == SECTION_RESPONSE_P) {
-	EA += ks(i,i);
+        EA += ks(i,i);
       }
     }
 
@@ -539,10 +539,10 @@ CorotTrussSection::getInitialStiff(void)
     int numDOF2 = numDOF/2;
     for (i = 0; i < numDIM; i++) {
       for (j = 0; j < numDIM; j++) {
-	K(i,j)                 =  kg(i,j);
-	K(i,j+numDOF2)         = -kg(i,j);
-	K(i+numDOF2,j)         = -kg(i,j);
-	K(i+numDOF2,j+numDOF2) =  kg(i,j);
+        K(i,j)                 =  kg(i,j);
+        K(i,j+numDOF2)         = -kg(i,j);
+        K(i+numDOF2,j)         = -kg(i,j);
+        K(i+numDOF2,j+numDOF2) =  kg(i,j);
       }
     }
 
@@ -598,7 +598,7 @@ CorotTrussSection::getMass(void)
 void 
 CorotTrussSection::zeroLoad(void)
 {
-	theLoad->Zero();
+        theLoad->Zero();
 }
 
 int 
@@ -642,26 +642,26 @@ CorotTrussSection::addInertiaLoadToUnbalance(const Vector &accel)
 const Vector &
 CorotTrussSection::getResistingForce()
 {
-	int order = theSection->getOrder();
-	const ID &code = theSection->getType();
+        int order = theSection->getOrder();
+        const ID &code = theSection->getType();
 
-	const Vector &s  = theSection->getStressResultant();
+        const Vector &s  = theSection->getStressResultant();
 
-	double SA = 0.0;
-	
-	int i;
-	for (i = 0; i < order; i++) {
-		if (code(i) == SECTION_RESPONSE_P)
-			SA += s(i);
-	}
+        double SA = 0.0;
+        
+        int i;
+        for (i = 0; i < order; i++) {
+                if (code(i) == SECTION_RESPONSE_P)
+                        SA += s(i);
+        }
 
-	SA /= Ln;
+        SA /= Ln;
 
     static Vector ql(3);
 
-	ql(0) = d21[0]*SA;
-	ql(1) = d21[1]*SA;
-	ql(2) = d21[2]*SA;
+        ql(0) = d21[0]*SA;
+        ql(1) = d21[1]*SA;
+        ql(2) = d21[2]*SA;
 
     static Vector qg(3);
     qg.addMatrixTransposeVector(0.0, R, ql, 1.0);
@@ -681,7 +681,7 @@ CorotTrussSection::getResistingForce()
 
 const Vector &
 CorotTrussSection::getResistingForceIncInertia()
-{	
+{        
     Vector &P = *theVector;
     P = this->getResistingForce();
     
@@ -693,7 +693,7 @@ CorotTrussSection::getResistingForceIncInertia()
         
         // add inertia forces from element mass
         const Vector &accel1 = theNodes[0]->getTrialAccel();
-        const Vector &accel2 = theNodes[1]->getTrialAccel();	
+        const Vector &accel2 = theNodes[1]->getTrialAccel();        
         
         int numDOF2 = numDOF/2;
         
@@ -763,7 +763,7 @@ CorotTrussSection::sendSelf(int commitTag, Channel &theChannel)
   if (res < 0) {
     opserr << "WARNING CorotTrussSection::sendSelf() - " << this->getTag() << " failed to send Vector\n";
     return -1;
-  }	      
+  }              
 
   // truss then sends the tags of it's two end nodes
   res = theChannel.sendID(dataTag, commitTag, connectedExternalNodes);
@@ -796,7 +796,7 @@ CorotTrussSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
   if (res < 0) {
     opserr << "WARNING CorotTrussSection::recvSelf() - failed to receive Vector\n";
     return -1;
-  }	      
+  }              
 
   this->setTag((int)data(0));
   numDIM = (int)data(1);
@@ -820,12 +820,12 @@ CorotTrussSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 
   // Get new section if null
   if (theSection == 0)
-	  theSection = theBroker.getNewSection(sectClass);
+          theSection = theBroker.getNewSection(sectClass);
 
   // Check that section is of right type
   else if (theSection->getClassTag() != sectClass) {
-	  delete theSection;
-	  theSection = theBroker.getNewSection(sectClass);
+          delete theSection;
+          theSection = theBroker.getNewSection(sectClass);
   }
   
   // Check if either allocation failed
@@ -848,9 +848,9 @@ CorotTrussSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 int
 CorotTrussSection::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **moes, int numMode)
 {
-	// ensure setDomain() worked
-	if (Ln == 0.0)
-		return 0;
+        // ensure setDomain() worked
+        if (Ln == 0.0)
+                return 0;
 
     static Vector v1(3);
     static Vector v2(3);
@@ -894,26 +894,26 @@ CorotTrussSection::computeCurrentStrain(void)
 {
     // NOTE method will not be called if Lo == 0
 
-	// Nodal displacements
-	const Vector &end1Disp = theNodes[0]->getTrialDisp();
-	const Vector &end2Disp = theNodes[1]->getTrialDisp();    
+        // Nodal displacements
+        const Vector &end1Disp = theNodes[0]->getTrialDisp();
+        const Vector &end2Disp = theNodes[1]->getTrialDisp();    
 
     // Initial offsets
-	d21[0] = Lo;
-	d21[1] = 0.0;
-	d21[2] = 0.0;
+        d21[0] = Lo;
+        d21[1] = 0.0;
+        d21[2] = 0.0;
 
-   	// Update offsets in basic system due to nodal displacements
-	int i;
+           // Update offsets in basic system due to nodal displacements
+        int i;
     for (i = 0; i < numDIM; i++) {
         d21[0] += R(0,i)*(end2Disp(i)-end1Disp(i));
         d21[1] += R(1,i)*(end2Disp(i)-end1Disp(i));
         d21[2] += R(2,i)*(end2Disp(i)-end1Disp(i));
     }
 
-	// Compute new length
-	Ln = d21[0]*d21[0] + d21[1]*d21[1] + d21[2]*d21[2];
-	Ln = sqrt(Ln);
+        // Compute new length
+        Ln = d21[0]*d21[0] + d21[1]*d21[1] + d21[2]*d21[2];
+        Ln = sqrt(Ln);
 
     // this method should never be called with Lo == 0
     return (Ln-Lo)/Lo;

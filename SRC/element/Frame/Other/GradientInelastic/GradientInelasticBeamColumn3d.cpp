@@ -989,13 +989,8 @@ GradientInelasticBeamColumn3d::update(void)
 		// Determine Current Trial Basic Displacements
 		q = q_t - (1.0 - r) * q_inc;
 
-		//std::cout << "q =      " << q(0) << ", " << q(1) << ", " << q(2) << "\n" << endln;
-
 		// Do Newton-Raphson Iteration to Achieve Compatible Forces
 		for (int l = 0; l < 4; l++) {
-
-			//std::cout << "l = " << l << endln;
-			//std::cout << "\n";
 
 			*d_tot = d_tot_prev;
 			Q = Q_prev;

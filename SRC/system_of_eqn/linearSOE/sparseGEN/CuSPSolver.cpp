@@ -150,22 +150,8 @@ int CuSPSolver::solve(void)
   
   int *rowPtr=theSOE->rowStartA;
   int *colInd=theSOE->colA;
-/*std::cout<<"\nIN CUSPSOLVERL.CPP\t";/*<<maxInteration<<"\n";
-std::cout<<"size\t"<<n<<"\n";
-std::cout<<"non zero\t"<<nnz<<"\n";
-std::cout<<"A\n";
-for(int i=0;i<nnz;i++)
-std::cout<<i<<"\t"<<Aptr[i]<<"\n";
-std::cout<<"\n";
-std::cout<<"rowPtr\n";
-for(int i=0;i<n;i++)
-std::cout<<rowPtr[i]<<"\t";
-std::cout<<"\n";
-std::cout<<"colInd\n";
-for(int i=0;i<n;i++)
-std::cout<<colInd[i]<<"\t";
-std::cout<<"\n";*/
-	#ifdef _WIN32
+
+#ifdef _WIN32
 	{
 	 int errorcode=SolveFunc(Aptr,Bptr,Xptr,n,nnz,rowPtr,colInd,maxInteration,relTolerance,preCond,solver);
 	  if (errorcode!=0)
@@ -178,8 +164,8 @@ std::cout<<"\n";*/
 		  return -1;
 		}
 	}
-       #endif
-theSOE->getA();
+#endif
+  theSOE->getA();
   int errorcode=cuspsolver(Aptr,Bptr,Xptr,n,nnz,rowPtr,colInd,maxInteration,relTolerance,preCond,solver);
   if (errorcode!=0)
     {
