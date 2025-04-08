@@ -12,7 +12,7 @@ void *
 OPS_ADD_RUNTIME_VPV(OPS_APDFMD)
 {
     if (numAPDFMD == 0) {
-        opserr << "APDFMD unaxial material - Written by BUCEA 2024; \n";
+        opslog << "APDFMD unaxial material - Written by BUCEA 2024; \n";
         numAPDFMD++;
     }
 
