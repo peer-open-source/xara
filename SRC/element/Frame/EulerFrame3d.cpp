@@ -320,7 +320,6 @@ EulerFrame3d::getResistingForce()
 MatrixND<6,6>&
 EulerFrame3d::getBasicTangent(State state, int rate)
 {
-  // Matrix kb(6,6);
 
   // Zero for integral
   kb.zero();
