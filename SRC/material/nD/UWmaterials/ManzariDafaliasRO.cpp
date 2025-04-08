@@ -42,7 +42,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ManzariDafaliasMaterialRO)
 {
   if (numManzariDafaliasMaterials == 0) {
     numManzariDafaliasMaterials++;
-    opserr << "ManzariDafaliasRO nDmaterial - Written: A.Ghofrani, P.Arduino, U.Washington\n";
+    opslog << "ManzariDafaliasRO nDmaterial - Written: A.Ghofrani, P.Arduino, U.Washington\n";
   }
 
   NDMaterial *theMaterial = 0;

@@ -29,7 +29,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_FAFourSteelPCPlaneStressMaterial)
 {
   if (numFAFourSteelPCPlaneStressMaterials == 0) {
     numFAFourSteelPCPlaneStressMaterials++;
-    opserr << "FAFourSteelPCPlaneStress unaxial material - Written by A.Laskar, Thomas T.C. Hsu and Y.L. Mo - Copyright@2009\n";
+    opslog << "FAFourSteelPCPlaneStress unaxial material - Written by A.Laskar, Thomas T.C. Hsu and Y.L. Mo - Copyright@2009\n";
   }
 
   // Pointer to a uniaxial material that will be returned

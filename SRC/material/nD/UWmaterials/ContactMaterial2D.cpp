@@ -51,7 +51,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ContactMaterial2DMaterial)
 {
   if (numContactMaterial2DMaterials == 0) {
     numContactMaterial2DMaterials++;
-    opserr << "ContactMaterial2D nDmaterial - Written: K.Petek, P.Mackenzie-Helnwein, P.Arduino, U.Washington\n";
+    opslog << "ContactMaterial2D nDmaterial - Written: K.Petek, P.Mackenzie-Helnwein, P.Arduino, U.Washington\n";
   }
 
   // Pointer to a nDmaterial that will be returned

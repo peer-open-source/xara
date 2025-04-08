@@ -28,7 +28,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_FAFourSteelRCPlaneStressMaterial)
 {
   if (numFAFourSteelRCPPlaneStressMaterials == 0) {
     numFAFourSteelRCPPlaneStressMaterials++;
-    opserr << "FAFourSteelRCPPlaneStress unaxial material - Written by J.Zhong, Thomas T.C. Hsu and Y.L. Mo - Copyright@2009\n";
+    opslog << "FAFourSteelRCPPlaneStress unaxial material - Written by J.Zhong, Thomas T.C. Hsu and Y.L. Mo - Copyright@2009\n";
   }
 
   // Pointer to a uniaxial material that will be returned

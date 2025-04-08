@@ -33,7 +33,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_LinearCap) {
 
   if (numLinearCap == 0) {
     numLinearCap++;
-    opserr << "LinearCap nDmaterial - Written: Quan Gu and Zhijian Qiu \n";
+    opslog << "LinearCap nDmaterial - Written: Quan Gu and Zhijian Qiu \n";
   }
 
   // Pointer to a uniaxial material that will be returned
