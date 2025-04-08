@@ -1699,7 +1699,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_ConfinedConcrete01Material)
 {
   if (numConfinedConcrete01Materials == 0) {
     numConfinedConcrete01Materials++;
-    opserr << "ConfinedConceret01 unaxial material - Written by M.D'Amato, University of Basilicata, Italy 2009\n";
+    opslog << "ConfinedConceret01 unaxial material - Written by M.D'Amato, University of Basilicata, Italy 2009\n";
   }
 
   // Pointer to a uniaxial material that will be returned
