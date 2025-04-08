@@ -63,7 +63,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticTubularJoint)
 
   if (numElasticTubularJoint == 0) {
     numElasticTubularJoint++;
-    opserr<<"ElasticTubularJoint element - Written by Kia & Alanjari\n";
+    opslog<<"ElasticTubularJoint element - Written by Kia & Alanjari\n";
   }
 
   // get the id and end nodes 

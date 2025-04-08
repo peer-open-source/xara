@@ -31,7 +31,7 @@ static int numPY_Macro2D = 0;
 OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PY_Macro2D)
 {
   if (numPY_Macro2D == 0) {
-    opserr << "PY_Macro2D element - Written by V.Varun and A.Shafiee, Georgia Tech Copyright 2009\n";
+    opslog << "PY_Macro2D element - Written by V.Varun and A.Shafiee, Georgia Tech Copyright 2009\n";
     numPY_Macro2D++;
   }
   // get the id and end nodes

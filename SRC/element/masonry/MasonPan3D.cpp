@@ -50,7 +50,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MasonPan3D)
   if (numMyPanel == 0) {
   opserr << " \n";
     opserr << "                 REFINED MASONRY PANEL\n";
-    opserr << "   Written by Gonzalo Torrisi UNCuyo Copyright 2016\n";
+    opslog << "   Written by Gonzalo Torrisi UNCuyo Copyright 2016\n";
   opserr << "          Model with 6 compression struts\n";
   opserr << "                      3D VERSION \n";
     opserr << "                Use at your Own Peril\n";

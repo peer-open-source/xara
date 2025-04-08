@@ -30,7 +30,6 @@ using namespace OpenSees;
 double FourNodeQuad::matrixData[64];
 Matrix FourNodeQuad::K(matrixData, 8, 8);
 Vector FourNodeQuad::P(8);
-double FourNodeQuad::shp[3][4];
 
 FourNodeQuad::FourNodeQuad(int tag, 
                            std::array<int,4>& nodes,
@@ -796,7 +795,6 @@ FourNodeQuad::Print(OPS_Stream &s, int flag)
       for (int i = 0; i < nip - 1; i++)
         s << theMaterial[i]->getTag() << ", ";
       s << theMaterial[nip - 1]->getTag() << "]";
-
       s << "}";
       return;
   }

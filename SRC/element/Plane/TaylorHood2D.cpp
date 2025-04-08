@@ -99,7 +99,7 @@ TaylorHood2D::TaylorHood2D(int tag, int nd1, int nd2, int nd3,
     kappa = sqrt(ka);
 }
 
-// destructor
+
 TaylorHood2D::~TaylorHood2D()
 {
     HigherOrder& ho = OPS_getHigherOrder();

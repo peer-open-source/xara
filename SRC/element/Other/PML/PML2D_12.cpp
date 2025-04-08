@@ -105,7 +105,7 @@ PML2D_12::PML2D_12(int tag,
 {
   eleCount++;
   if (eleCount == 1) {
-    opserr << "Perfectly Matched Layer 2D_12 (PML) element -  Written: W. Zhang, E. Taciroglu, A. Pakzad, P. Arduino, UCLA, UCLA, U.Washington, U.Washington\n ";
+    opslog << "Perfectly Matched Layer 2D_12 (PML) element -  Written: W. Zhang, E. Taciroglu, A. Pakzad, P. Arduino, UCLA, UCLA, U.Washington, U.Washington\n ";
   }
   for (int i=0; i<PML2D_12_NUM_NODES; i++) {
     connectedExternalNodes(i) = nodeTags[i];
