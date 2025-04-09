@@ -13,6 +13,7 @@
 //     element beamWithHinges tag? ndI? ndJ? secTagI? lenI? secTagJ? lenJ? 
 //        E? A? I? transfTag? <-shear shearLength?> <-mass massDens?> 
 //        <-iter maxIters tolerance>
+//
 #if 1
 // Standard library
   #include <string>
@@ -816,6 +817,11 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         }
 
         else if (strcmp(argv[1], "ExactFrame") == 0) {
+          if (!multi_node) {
+            multi_nodes.push_back(iNode);
+            multi_nodes.push_back(jNode);
+            multi_node = true;
+          }
           if (!options.shear_flag) {
             opserr << G3_ERROR_PROMPT << "ExactFrame3d requires shear formulation\n";
             status = TCL_ERROR;
@@ -825,9 +831,10 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
           if (multi_node && sections.size() < multi_nodes.size()-1)
             for (unsigned i = 0; i < multi_nodes.size()-1; ++i)
               sections.push_back(sections[0]);
-
+          
+          unsigned nen = multi_nodes.size();
           static_loop<2,6>([&](auto nn) constexpr {
-            if (nn.value == multi_nodes.size()) {
+            if (nn.value == nen) {
               std::array<int, nn.value> nodes;
               std::copy_n(multi_nodes.begin(), nn.value, nodes.begin());
               static_loop<0,4>([&](auto nwm) constexpr {
