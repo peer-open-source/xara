@@ -207,13 +207,15 @@ getLoadFactor(ClientData clientData, Tcl_Interp *interp, int argc,
   Domain* domain = (Domain*)clientData; 
 
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "no load pattern supplied -- getLoadFactor\n";
+    opserr << G3_ERROR_PROMPT 
+           << "no load pattern supplied -- getLoadFactor\n";
     return TCL_ERROR;
   }
 
   int pattern;
   if (Tcl_GetInt(interp, argv[1], &pattern) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "reading load pattern tag -- getLoadFactor\n";
+    opserr << G3_ERROR_PROMPT 
+           << "reading load pattern tag -- getLoadFactor\n";
     return TCL_ERROR;
   }
 
@@ -288,36 +290,37 @@ int
 rayleighDamping(ClientData clientData, Tcl_Interp *interp, int argc,
                 TCL_Char ** const argv)
 {
-
+  //
+  // rayleigh alphaM? betaK? betaK0? betaKc?
+  //
   if (argc < 3) {
     opserr << G3_ERROR_PROMPT
-           << "rayleigh alphaM? betaK? betaK0? betaKc? - not enough "
-              "arguments to command\n";
+           << "not enough arguments to command\n";
     return TCL_ERROR;
   }
 
   double alphaM, betaK, betaK0=0.0, betaKc=0.0;
   if (Tcl_GetDouble(interp, argv[1], &alphaM) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
-              "read alphaM? \n";
+    opserr << G3_ERROR_PROMPT 
+           << "could not read alphaM? \n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[2], &betaK) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
-              "read betaK? \n";
+    opserr << G3_ERROR_PROMPT 
+           << "could not read betaK? \n";
     return TCL_ERROR;
   }
 
   if (argc > 3 && Tcl_GetDouble(interp, argv[3], &betaK0) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
-              "read betaK0? \n";
+    opserr << G3_ERROR_PROMPT 
+           << "could not read betaK0? \n";
     return TCL_ERROR;
   }
 
   if (argc > 4 && Tcl_GetDouble(interp, argv[4], &betaKc) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
-              "read betaKc? \n";
+    opserr << G3_ERROR_PROMPT 
+           << "could not read betaKc? \n";
     return TCL_ERROR;
   }
 
@@ -349,7 +352,8 @@ getEleClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
     int eleTag;
 
     if (Tcl_GetInt(interp, argv[1], &eleTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "getParamValue -- could not read paramTag \n";
+      opserr << G3_ERROR_PROMPT 
+             << "getParamValue -- could not read paramTag \n";
       return TCL_ERROR;
     }
 
@@ -360,7 +364,8 @@ getEleClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
     Tcl_AppendResult(interp, buffer, NULL);
 
   } else {
-    opserr << G3_ERROR_PROMPT << "want - getEleClassTags <eleTag?>\n" << endln;
+    opserr << G3_ERROR_PROMPT 
+           << "want - getEleClassTags <eleTag?>\n" << endln;
     return TCL_ERROR;
   }
 
