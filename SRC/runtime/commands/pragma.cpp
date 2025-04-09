@@ -9,6 +9,10 @@
 #include <string.h>
 #include <OPS_Globals.h>
 
+class Domain;
+
+int G3_AddTclAnalysisAPI(Tcl_Interp *interp, Domain* domain);
+
 int
 TclObjCommand_pragma([[maybe_unused]] ClientData clientData, 
                      Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
@@ -37,7 +41,24 @@ TclObjCommand_pragma([[maybe_unused]] ClientData clientData,
         "namespace eval opensees::pragma {set analysis off}\n"
       );
       return TCL_OK;
-    } 
+    } else if (argi < objc && strcmp(Tcl_GetString(objv[argi]), "on") == 0) {
+      Tcl_Eval(interp,
+        "proc loadConst {args} {return 0}\n"
+        "proc wipeAnalysis	{args} {return 0}\n"
+        "proc constraints {args} {return 0}\n"
+        "proc numberer {args} {return 0}\n"
+        "proc system {args} {return 0}\n"
+        "proc test {args} {return 0}\n"
+        "proc algorithm {args} {return 0}\n"
+        "proc sensitivityAlgorithm {args} {return 0}\n"
+        "proc integrator {args} {return 0}\n"
+        "proc analysis {args} {return 0}\n"
+        "proc analyze {args} {}\n"
+        "proc eigen {args} {}\n"
+        "namespace eval opensees::pragma {set analysis on}\n"
+      );
+      return TCL_OK;
+    }
   }
   else if (strcmp(pragma, "openseespy") == 0) {
     if (argi < objc && strcmp(Tcl_GetString(objv[argi]), "off") == 0) {

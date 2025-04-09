@@ -209,6 +209,7 @@ PrismFrame3d::update()
   int ok = theCoordTransf->update();
 
   const Vector &v = theCoordTransf->getBasicTrialDisp();
+  
 
   // Form the axial force
   double N = E*A/L*v[0];
