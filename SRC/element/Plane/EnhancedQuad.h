@@ -21,9 +21,9 @@ class EnhancedQuad : public Element,
   public:
 
     EnhancedQuad(int tag, 
-     std::array<int,4>& nodes,
-		 NDMaterial &theMaterial, 
-     double thickness);
+                  std::array<int,4>& nodes,
+                  NDMaterial &theMaterial, 
+                  double thickness);
 
     EnhancedQuad();
 
@@ -31,8 +31,7 @@ class EnhancedQuad : public Element,
 
     const char *getClassType() const {return "EnhancedQuad";}
 
-    //set domain
-    void setDomain( Domain *theDomain ) ;
+    void setDomain( Domain *theDomain );
 
     int getNumExternalNodes( ) const ;
     const ID &getExternalNodes( ) ;
@@ -56,21 +55,17 @@ class EnhancedQuad : public Element,
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    //get residual
-    const Vector &getResistingForce();
-    
-    //get residual with inertia terms
+
+    const Vector &getResistingForce();    
     const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    Response *setResponse(const char **argv, int argc, 
-			  OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
     int getResponse(int responseID, Information &eleInformation);
     int sendSelf (int commitTag, Channel &);
     int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
 
-    //print out element data
     void Print( OPS_Stream &s, int flag );
 
   private:
@@ -92,27 +87,17 @@ class EnhancedQuad : public Element,
     static Matrix mass ;
     static Matrix damping ;
 
-    //quadrature data
-//  static const double root3 ;
-//  static const double one_over_root3 ;    
-//  static const double sg[4] ;
-//  static const double tg[4] ;
-//  static const double wg[4] ;
-
     // //stress data
     // static double stressData[][4] ;
 
     // //tangent data 
     // static double tangentData[][3][4] ;
 
-    //node information
-    ID connectedExternalNodes ;  //four node numbers
-    Node *theNodes[NEN] ;      //pointers to four nodes
+    ID connectedExternalNodes ;  // node tags
+    Node *theNodes[NEN] ;        // pointers to nodes
 
-    //enhanced strain parameters
-    Vector alpha ;
+    Vector alpha ; // enhanced strain parameters
 
-    //element thickness
     double thickness ;
 
     //material information
@@ -122,31 +107,14 @@ class EnhancedQuad : public Element,
     //    static double xl[2][4] ; 
     static double xl[][4] ; 
 
-    //compute enhanced strain B-matrices
-    // const Matrix& computeBenhanced( int node, 
-		// 	     double L1,
-		// 	     double L2,
-		// 	     double j, 
-		// 	     const Matrix &Jinv ) ;
-
-			   
     //compute local coordinates and basis
     void computeBasis( ) ;
         
     //
     int formResidAndTangent( int tang_flag ) ;
 
-    //inertia terms
     void formInertiaTerms( int tangFlag ) ;
 
-
-    // //compute Jacobian matrix and inverse at point {L1,L2}
-    // void  computeJacobian( double L1, double L2, 
-		// 	   const double x[2][4], 
-    //                        Matrix &JJ, 
-    //                        Matrix &JJinv ) ;
-
-    //
     void computeB(int node, const double shp[3][4], 
                           OpenSees::MatrixND<3,2,double> &B);
 
