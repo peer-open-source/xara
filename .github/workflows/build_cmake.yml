@@ -3,7 +3,8 @@ name: CMake Build
 
 env:
   CMAKE_VERSION: 3.20.1
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
+  OPENSEESRT_BUILD: local
 
 on:
 # push:
