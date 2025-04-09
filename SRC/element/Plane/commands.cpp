@@ -367,7 +367,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
     for (int i=0; i<4; i++)
       nodes[i] = multi_nodes[i];
 
-    if (strcmp(argv[1], "LagrangeQuad") == 0) {
+    if (strcasecmp(argv[1], "LagrangeQuad") == 0) {
       Mate<2> *mat_2d = builder->getTypedObject<Mate<2>>(mat_tag);
       if (mat_2d == nullptr)
         return TCL_ERROR;
