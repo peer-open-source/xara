@@ -25,8 +25,8 @@ class LinearFrameTransf3d: public FrameTransform3d
 public:
     LinearFrameTransf3d(int tag, const Vector &vecInLocXZPlane);
     LinearFrameTransf3d(int tag, const Vector &vecInLocXZPlane,
-        const Vector &rigJntOffsetI,
-        const Vector &rigJntOffsetJ);
+                        const Vector &rigJntOffsetI,
+                        const Vector &rigJntOffsetJ);
     
     LinearFrameTransf3d();
     ~LinearFrameTransf3d();
