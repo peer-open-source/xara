@@ -12,8 +12,8 @@
 #include <string>
 #include <string.h>
 #include <assert.h>
-#include <BasicModelBuilder.h>
 #include <Logging.h>
+#include <BasicModelBuilder.h>
 
 #include <LinearCrdTransf2d.h>
 #include <LinearCrdTransf3d.h>
@@ -270,7 +270,8 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
-    opserr << G3_ERROR_PROMPT << "insufficient number of arguments\n";
+    opserr << G3_ERROR_PROMPT 
+           << "insufficient number of arguments\n";
     return TCL_ERROR;
   }
 
@@ -364,7 +365,8 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
           new CorotCrdTransfWarping2d(tag, jntOffsetI, jntOffsetJ);
 
     else {
-      opserr << G3_ERROR_PROMPT << "invalid Type: " << argv[1] << "\n";
+      opserr << G3_ERROR_PROMPT 
+             << "invalid Type: " << argv[1] << "\n";
       return TCL_ERROR;
     }
 
@@ -399,7 +401,8 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
       if (xznum == 3) {
         for (int i=0; i<3; ++i)
            if (Tcl_GetDouble(interp, xzarg[i], &vecxzPlane(i)) != TCL_OK) {
-             opserr << G3_ERROR_PROMPT << "Failed  to parse vectxz\n";
+             opserr << G3_ERROR_PROMPT 
+                    << "Failed  to parse vectxz\n";
              return TCL_ERROR;
            }
 
@@ -410,17 +413,20 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
     if (!parsed_xz) {
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(0)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid vecxzPlaneX\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid vecxzPlaneX\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(1)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid vecxzPlaneY\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid vecxzPlaneY\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(2)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid vecxzPlaneZ\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid vecxzPlaneZ\n";
         return TCL_ERROR;
       }
     }
