@@ -35,14 +35,12 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <Renderer.h>
-#include <OPS_Globals.h>
-#include <ErrorHandler.h>
+#include <Logging.h>
 #include <NDMaterial.h>
 #include <ElementalLoad.h>
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h> 
 
 double LysmerTriangle :: oneOverRoot3 = 1.0/sqrt(3.0);
 double LysmerTriangle :: GsPts[1][1];
@@ -57,7 +55,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_LysmerTriangle)
 {
   if (num_LysmerTriangle == 0) {
     num_LysmerTriangle++;
-    opserr<<"LysmerTriangle element - Written: J. A. Abell (UANDES). www.joseabell.com\n";
+    opslog <<"LysmerTriangle element - Written: J. A. Abell (UANDES). www.joseabell.com\n";
   }
 
   // Pointer to a uniaxial material that will be returned
