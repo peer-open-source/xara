@@ -7,7 +7,6 @@
 //
 #include <tcl.h>
 #include <string.h>
-#include <OPS_Globals.h>
 
 class Domain;
 

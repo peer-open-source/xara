@@ -8,8 +8,7 @@
 // the interpreter when the appropriate command name is specified.
 //
 #include <tcl.h>
-#include <G3_Logging.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <elementAPI.h>
 #include <classTags.h>
 //
