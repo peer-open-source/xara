@@ -40,6 +40,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 #include <elementAPI.h>
 #include <vector>
@@ -881,12 +882,14 @@ Response* LinearElasticSpring::setResponse(const char **argv, int argc,
     char outputData[10];
     
     // global forces
-    if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0 ||
-        strcmp(argv[0],"globalForce") == 0 || strcmp(argv[0],"globalForces") == 0)
+    if (strcmp(argv[0],"force") == 0 || 
+        strcmp(argv[0],"forces") == 0 ||
+        strcmp(argv[0],"globalForce") == 0 || 
+        strcmp(argv[0],"globalForces") == 0)
     {
         for (int i=0; i<numDOF; i++)  {
-            sprintf(outputData,"P%d",i+1);
-            output.tag("ResponseType",outputData);
+            std::string key = "P" + std::to_string(i+1);
+            output.tag("ResponseType", key.c_str());
         }
         theResponse = new ElementResponse(this, 1, *theVector);
     }
@@ -894,8 +897,8 @@ Response* LinearElasticSpring::setResponse(const char **argv, int argc,
     else if (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)
     {
         for (int i=0; i<numDOF; i++)  {
-            sprintf(outputData,"p%d",i+1);
-            output.tag("ResponseType",outputData);
+            std::string key = "p" + std::to_string(i+1);
+            output.tag("ResponseType", key.c_str());
         }
         theResponse = new ElementResponse(this, 2, *theVector);
     }
@@ -903,8 +906,8 @@ Response* LinearElasticSpring::setResponse(const char **argv, int argc,
     else if (strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0)
     {
         for (int i=0; i<numDIR; i++)  {
-            sprintf(outputData,"q%d",i+1);
-            output.tag("ResponseType",outputData);
+            std::string key = "q" + std::to_string(i+1);
+            output.tag("ResponseType", key.c_str());
         }
         theResponse = new ElementResponse(this, 3, Vector(numDIR));
     }
@@ -913,8 +916,8 @@ Response* LinearElasticSpring::setResponse(const char **argv, int argc,
         strcmp(argv[0],"localDisplacements") == 0)
     {
         for (int i=0; i<numDOF; i++)  {
-            sprintf(outputData,"dl%d",i+1);
-            output.tag("ResponseType",outputData);
+            std::string key = "dl" + std::to_string(i+1);
+            output.tag("ResponseType", key.c_str());
         }
         theResponse = new ElementResponse(this, 4, Vector(numDOF));
     }
@@ -924,8 +927,8 @@ Response* LinearElasticSpring::setResponse(const char **argv, int argc,
         strcmp(argv[0],"basicDisplacement") == 0 || strcmp(argv[0],"basicDisplacements") == 0)
     {
         for (int i=0; i<numDIR; i++)  {
-            sprintf(outputData,"db%d",i+1);
-            output.tag("ResponseType",outputData);
+            std::string key = "db" + std::to_string(i+1);
+            output.tag("ResponseType", key.c_str());
         }
         theResponse = new ElementResponse(this, 5, Vector(numDIR));
     }
@@ -933,14 +936,13 @@ Response* LinearElasticSpring::setResponse(const char **argv, int argc,
     else if (strcmp(argv[0],"defoANDforce") == 0 || strcmp(argv[0],"deformationANDforce") == 0 ||
         strcmp(argv[0],"deformationsANDforces") == 0)
     {
-        int i;
-        for (i=0; i<numDIR; i++)  {
-            sprintf(outputData,"db%d",i+1);
-            output.tag("ResponseType",outputData);
+        for (int i=0; i<numDIR; i++)  {
+            std::string key = "db" + std::to_string(i+1);
+            output.tag("ResponseType", key.c_str());
         }
-        for (i=0; i<numDIR; i++)  {
-            sprintf(outputData,"q%d",i+1);
-            output.tag("ResponseType",outputData);
+        for (int i=0; i<numDIR; i++)  {
+            std::string key = "q" + std::to_string(i+1);
+            output.tag("ResponseType", key.c_str());
         }
         theResponse = new ElementResponse(this, 6, Vector(numDIR*2));
     }
