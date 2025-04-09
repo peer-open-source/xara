@@ -49,7 +49,7 @@ keywords = [
 ] 
 
 dependencies = [
-    "shps", # Shape functions and quadrature
+    "shps>=0.1.14", # Shape functions and quadrature
     "numpy < 1.20.0; python_version<'3.8'",
     "numpy ; python_version>='3.8'",
 
