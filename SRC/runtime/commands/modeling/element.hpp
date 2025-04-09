@@ -154,6 +154,8 @@ Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addNineFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addBBarFourNodeQuadUP;
+// Shell
+Tcl_CmdProc TclBasicBuilder_addShell;
 // Brick
 Tcl_CmdProc TclBasicBuilder_addBrickUP;
 Tcl_CmdProc TclBasicBuilder_addBBarBrickUP;
@@ -193,6 +195,18 @@ element_dispatch_tcl = {
 
   {"tri6n",                     TclBasicBuilder_addSixNodeTri},
   {"tri31",                     TclBasicBuilder_addFourNodeQuad},
+
+// Shell
+  {"ASDShellQ4",                   TclBasicBuilder_addShell},
+  {"ShellMITC4",                   TclBasicBuilder_addShell},
+  {"ShellMITC9",                   TclBasicBuilder_addShell},
+  {"ShellDKGQ",                    TclBasicBuilder_addShell},
+  {"ShellDKGT",                    TclBasicBuilder_addShell},
+  {"ShellNLDKGQ",                  TclBasicBuilder_addShell},
+  {"ShellNLDKGT",                  TclBasicBuilder_addShell},
+  // {"ShellANDeS",                   TclBasicBuilder_addShell},
+  {"ShellMITC4Thermal",            TclBasicBuilder_addShell},
+  {"ShellNLDKGQThermal",           TclBasicBuilder_addShell},
 
 // U-P
 
