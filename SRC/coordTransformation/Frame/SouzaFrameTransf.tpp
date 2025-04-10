@@ -135,22 +135,22 @@ template <int nn, int ndf>
 int
 SouzaFrameTransf<nn,ndf>::revertToLastCommit()
 {
-    // determine global displacement increments from last iteration
-    const Vector &dispI = nodes[0]->getTrialDisp();
-    const Vector &dispJ = nodes[1]->getTrialDisp();
+  // determine global displacement increments from last iteration
+  const Vector &dispI = nodes[0]->getTrialDisp();
+  const Vector &dispJ = nodes[1]->getTrialDisp();
 
-    for (int k = 0; k < 3; k++) {
-      alphaI(k) =  dispI(k+3);
-      alphaJ(k) =  dispJ(k+3);
-    }
+  for (int k = 0; k < 3; k++) {
+    alphaI(k) =  dispI(k+3);
+    alphaJ(k) =  dispJ(k+3);
+  }
 
-    ul        = ulcommit;
-    Q_pres[0] = Q_past[0];
-    Q_pres[1] = Q_past[1];
+  ul        = ulcommit;
+  Q_pres[0] = Q_past[0];
+  Q_pres[1] = Q_past[1];
 
-    this->update();
+  this->update();
 
-    return 0;
+  return 0;
 }
 
 
@@ -158,65 +158,63 @@ template <int nn, int ndf>
 int
 SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
 {
+  for (int i=0; i<nn; i++) {
+    nodes[i] = new_nodes[i];
+    if (nodes[i] == nullptr) {
+      opserr << "invalid pointers to the element nodes\n";
+      return -1;
+    }
+  }
 
+  dX  = nodes[nn-1]->getCrds() - nodes[0]->getCrds();
 
-    for (int i=0; i<nn; i++) {
-      nodes[i] = new_nodes[i];
-      if (nodes[i] == nullptr) {
-        opserr << "invalid pointers to the element nodes\n";
-        return -1;
+  // Add initial displacements at nodes
+  if (initialDispChecked == false) {
+    const Vector &nodeIDisp = nodes[0]->getDisp();
+    const Vector &nodeJDisp = nodes[1]->getDisp();
+    for (int i = 0; i<6; i++)
+      if (nodeIDisp[i] != 0.0) {
+        nodeIInitialDisp = new double [6];
+        for (int j = 0; j<6; j++)
+          nodeIInitialDisp[j] = nodeIDisp[j];
+        i = 6;
       }
-    }
 
-    dX  = nodes[nn-1]->getCrds() - nodes[0]->getCrds();
+    for (int j = 0; j<6; j++)
+      if (nodeJDisp[j] != 0.0) {
+        nodeJInitialDisp = new double [6];
+        for (int i = 0; i<6; i++)
+          nodeJInitialDisp[i] = nodeJDisp[i];
+        j = 6;
+      }
+    initialDispChecked = true;
+  }
 
-    // Add initial displacements at nodes
-    if (initialDispChecked == false) {
-      const Vector &nodeIDisp = nodes[0]->getDisp();
-      const Vector &nodeJDisp = nodes[1]->getDisp();
-      for (int i = 0; i<6; i++)
-        if (nodeIDisp[i] != 0.0) {
-          nodeIInitialDisp = new double [6];
-          for (int j = 0; j<6; j++)
-            nodeIInitialDisp[j] = nodeIDisp[j];
-          i = 6;
-        }
+  // if (nodeIInitialDisp != nullptr) {
+  //   dX[0] -= nodeIInitialDisp[0];
+  //   dX[1] -= nodeIInitialDisp[1];
+  //   dX[2] -= nodeIInitialDisp[2];
+  // }
 
-      for (int j = 0; j<6; j++)
-        if (nodeJDisp[j] != 0.0) {
-          nodeJInitialDisp = new double [6];
-          for (int i = 0; i<6; i++)
-            nodeJInitialDisp[i] = nodeJDisp[i];
-          j = 6;
-        }
-      initialDispChecked = true;
-    }
+  // if (nodeJInitialDisp != nullptr) {
+  //   dX[0] += nodeJInitialDisp[0];
+  //   dX[1] += nodeJInitialDisp[1];
+  //   dX[2] += nodeJInitialDisp[2];
+  // }
 
-    // if (nodeIInitialDisp != nullptr) {
-    //   dX[0] -= nodeIInitialDisp[0];
-    //   dX[1] -= nodeIInitialDisp[1];
-    //   dX[2] -= nodeIInitialDisp[2];
-    // }
+  int error;
+  Vector3D XAxis, YAxis, ZAxis;
 
-    // if (nodeJInitialDisp != nullptr) {
-    //   dX[0] += nodeJInitialDisp[0];
-    //   dX[1] += nodeJInitialDisp[1];
-    //   dX[2] += nodeJInitialDisp[2];
-    // }
+  // Set rotation matrix
+  if ((error = this->getLocalAxes(XAxis, YAxis, ZAxis)))
+    return error;
 
-    int error;
-    Vector3D XAxis, YAxis, ZAxis;
+  // Compute initial pseudo-vectors for nodal triads
+  Q_pres[0] = Q_pres[1] = VersorFromMatrix(R0);
 
-    // Set rotation matrix
-    if ((error = this->getLocalAxes(XAxis, YAxis, ZAxis)))
-      return error;
+  this->commit();
 
-    // Compute initial pseudo-vectors for nodal triads
-    Q_pres[0] = Q_pres[1] = VersorFromMatrix(R0);
-
-    this->commit();
-
-    return 0;
+  return 0;
 }
 
 template <int nn, int ndf>
@@ -259,186 +257,185 @@ SouzaFrameTransf<nn,ndf>::compTransfMatrixBasicGlobal(
                                                 const Versor& Qbar,
                                                 const Versor* Q_pres)
 {
+  // extract columns of rotation matrices
+  const Triad r {MatrixFromVersor(Qbar)},
+              rI{MatrixFromVersor(Q_pres[0])},
+              rJ{MatrixFromVersor(Q_pres[1])};
+  const Vector3D 
+    &e1  =  crs.getBasisE1(), // E[1],
+    &e2  =  crs.getBasisE2(), // E[2],
+    &e3  =  crs.getBasisE3(), // E[3],
+    &r1  =  r[1],
+    &r2  =  r[2],
+    &r3  =  r[3],
+    &rI1 = rI[1],
+    &rI2 = rI[2],
+    &rI3 = rI[3],
+    &rJ1 = rJ[1],
+    &rJ2 = rJ[2],
+    &rJ3 = rJ[3];
 
-    // extract columns of rotation matrices
-    const Triad r {MatrixFromVersor(Qbar)},
-                rI{MatrixFromVersor(Q_pres[0])},
-                rJ{MatrixFromVersor(Q_pres[1])};
-    const Vector3D 
-      &e1  =  crs.getBasisE1(), // E[1],
-      &e2  =  crs.getBasisE2(), // E[2],
-      &e3  =  crs.getBasisE3(), // E[3],
-      &r1  =  r[1],
-      &r2  =  r[2],
-      &r3  =  r[3],
-      &rI1 = rI[1],
-      &rI2 = rI[2],
-      &rI3 = rI[3],
-      &rJ1 = rJ[1],
-      &rJ2 = rJ[2],
-      &rJ3 = rJ[3];
+  // Compute the transformation matrix from the basic to the
+  // global system
+  //   A = (1/Ln)*(I - e1*e1');
+  // Matrix3D A;
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+      A(i,j) = (double(i==j) - e1[i]*e1[j])/Ln;
 
-    // Compute the transformation matrix from the basic to the
-    // global system
-    //   A = (1/Ln)*(I - e1*e1');
-    // Matrix3D A;
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        A(i,j) = (double(i==j) - e1[i]*e1[j])/Ln;
+  // This must be called up here
+  CrisfieldTransform::getLMatrix(A, e1, r1, r2, Lr2);
+  CrisfieldTransform::getLMatrix(A, e1, r1, r3, Lr3);
 
-    // This must be called up here
-    CrisfieldTransform::getLMatrix(A, e1, r1, r2, Lr2);
-    CrisfieldTransform::getLMatrix(A, e1, r1, r3, Lr3);
+  //               3 |             3            |     3    |           3              |
+  //   T1 = [      O', (-S(rI3)*e2 + S(rI2)*e3)',        O',                        O']'; imx
+  //   T2 = [(A*rI2)', (-S(rI2)*e1 + S(rI1)*e2)', -(A*rI2)',                        O']'; imz
+  //   T3 = [(A*rI3)', (-S(rI3)*e1 + S(rI1)*e3)', -(A*rI3)',                        O']'; imy
+  //
+  //   T4 = [      O',                        O',        O', ( S(rJ2)*e3 - S(rJ3)*e2 )']'; jmx
+  //   T5 = [(A*rJ2)',                        O', -(A*rJ2)', ( S(rJ1)*e2 - S(rJ2)*e1 )']'; jmz
+  //   T6 = [(A*rJ3)',                        O', -(A*rJ3)', ( S(rJ1)*e3 - S(rJ3)*e1 )']'; jmy
 
-    //               3 |             3            |     3    |           3              |
-    //   T1 = [      O', (-S(rI3)*e2 + S(rI2)*e3)',        O',                        O']'; imx
-    //   T2 = [(A*rI2)', (-S(rI2)*e1 + S(rI1)*e2)', -(A*rI2)',                        O']'; imz
-    //   T3 = [(A*rI3)', (-S(rI3)*e1 + S(rI1)*e3)', -(A*rI3)',                        O']'; imy
-    //
-    //   T4 = [      O',                        O',        O', ( S(rJ2)*e3 - S(rJ3)*e2 )']'; jmx
-    //   T5 = [(A*rJ2)',                        O', -(A*rJ2)', ( S(rJ1)*e2 - S(rJ2)*e1 )']'; jmz
-    //   T6 = [(A*rJ3)',                        O', -(A*rJ3)', ( S(rJ1)*e3 - S(rJ3)*e1 )']'; jmy
+  T.zero();
 
-    T.zero();
+  //   T1 = [      O', (-S(rI3)*e2 + S(rI2)*e3)',        O', O']';
 
-    //   T1 = [      O', (-S(rI3)*e2 + S(rI2)*e3)',        O', O']';
+  // (-S(rI3)*e2 + S(rI2)*e3)
+  Vector3D Se  = rI2.cross(e3);
+  Se -= rI3.cross(e2);
+  for (int i = 0; i < 3; i++)
+    // T(jmx,i+3) =  -Se[i];
+    T(imx,i+3) =  Se[i];
 
-    // (-S(rI3)*e2 + S(rI2)*e3)
-    Vector3D Se  = rI2.cross(e3);
-    Se -= rI3.cross(e2);
-    for (int i = 0; i < 3; i++)
-      // T(jmx,i+3) =  -Se[i];
-      T(imx,i+3) =  Se[i];
+  //   T2 = [(A*rI2)', (-S(rI2)*e1 + S(rI1)*e2)', -(A*rI2)', O']';
 
-    //   T2 = [(A*rI2)', (-S(rI2)*e1 + S(rI1)*e2)', -(A*rI2)', O']';
+  Vector3D At = A*rI2;
 
-    Vector3D At = A*rI2;
+  // (-S(rI2)*e1 + S(rI1)*e2)'
+  Se  = rI1.cross(e2);
+  Se -= rI2.cross(e1);
+  for (int i = 0; i < 3; i++) {
+      T(imz,i  ) =  At[i];
+      T(imz,i+3) =  Se[i];
+      T(imz,i+6) = -At[i];
+  }
 
-    // (-S(rI2)*e1 + S(rI1)*e2)'
-    Se  = rI1.cross(e2);
-    Se -= rI2.cross(e1);
-    for (int i = 0; i < 3; i++) {
-        T(imz,i  ) =  At[i];
-        T(imz,i+3) =  Se[i];
-        T(imz,i+6) = -At[i];
+  //   T3 = [(A*rI3)', (-S(rI3)*e1 + S(rI1)*e3)', -(A*rI3)', O']';
+
+  At = A*rI3;
+  
+  // -S(rI3)*e1 + S(rI1)*e3
+  Se  = rI1.cross(e3);
+  Se -= rI3.cross(e1);
+  for (int i = 0; i < 3; i++) {
+      T(imy,i  ) =  At[i]*-1;
+      T(imy,i+3) =  Se[i]*-1;
+      T(imy,i+6) = -At[i]*-1;
+  }
+
+  //   T4 = [      O', O',        O', (-S(rJ3)*e2 + S(rJ2)*e3)']';
+  Se  = rJ2.cross(e3);
+  Se -= rJ3.cross(e2);
+  for (int i = 0; i < 3; i++)
+    T(jmx, i+9) =  Se[i];   // S(rJ2)*e3 - S(rJ3)*e2
+
+  // T5 = [(A*rJ2)', O', -(A*rJ2)', (-S(rJ2)*e1 + S(rJ1)*e2)']';
+  At = A*rJ2;
+  Se  = rJ1.cross(e2); 
+  Se -= rJ2.cross(e1);
+  for (int i = 0; i < 3; i++) {
+      T(jmz, i  ) =  At[i];
+      T(jmz, i+6) = -At[i];
+      T(jmz, i+9) =  Se[i]; // (-S(rJ2)*e1 + S(rJ1)*e2)
+  }
+
+  // T6 = [(A*rJ3)', O', -(A*rJ3)', (-S(rJ3)*e1 + S(rJ1)*e3)']'
+  At  = A*rJ3;
+  Se  = rJ1.cross(e3);  // (-S(rJ3)*e1 + S(rJ1)*e3)
+  Se -= rJ3.cross(e1);
+  for (int i = 0; i < 3; i++) {
+      T(jmy,i  ) =  At[i]*-1;
+      T(jmy,i+6) = -At[i]*-1;
+      T(jmy,i+9) =  Se[i]*-1;
+  }
+
+  //
+  // Second part
+  //
+
+  // T(:,1) += Lr3*rI2 - Lr2*rI3;
+  // T(:,2) +=           Lr2*rI1; z
+  // T(:,3) += Lr3*rI1          ; y
+
+  // T(:,4) += Lr3*rJ2 - Lr2*rJ3;
+  // T(:,5) += Lr2*rJ1          ; z    // ?????? check sign
+  // T(:,6) += Lr3*rJ1          ; y    // ?????? check sign
+
+  // Bending Z
+  for (int i = 0; i < 12; i++) {
+    double T1i = 0;
+    for (int k=0; k<3; k++)
+      T1i += Lr2(i,k)*rI1[k];
+    T(imz,i) += T1i;
+  }
+
+  for (int i = 0; i < 12; i++) {
+    double T4i = 0;
+    for (int k=0; k<3; k++)
+      T4i += Lr2(i,k)*rJ1[k]; // Lr[i];
+    T(jmz,i) += T4i;
+  }
+
+  // Torsion
+  for (int i = 0; i < 12; i++) {
+    double T0i = 0;
+    for (int k=0; k<3; k++)
+      T0i += Lr3(i,k)*rI2[k] - Lr2(i,k)*rI3[k];
+    // T(jmx,i) += -T0i;
+    T(imx,i) += T0i;
+  }
+  for (int i = 0; i < 12; i++) {
+    double T3i = 0;
+    for (int k=0; k<3; k++)
+      T3i += Lr3(i,k)*rJ2[k] - Lr2(i,k)*rJ3[k];
+    T(jmx,i) += T3i;
+  }
+  // Bending Y
+  for (int i = 0; i < 12; i++) {
+    double T2i = 0;
+    for (int k=0; k<3; k++)
+      T2i += Lr3(i,k)*rI1[k]; // Lr[i];
+    T(imy,i) += T2i*-1; // TODO: Check
+  }
+  for (int i = 0; i < 12; i++) {
+    double T5i = 0;
+    for (int k=0; k<3; k++)
+      T5i += Lr3(i,k)*rJ1[k]; // Lr[i];
+    T(jmy,i) += T5i*-1; // TODO: Check
+  }
+
+  //
+  //
+  //
+  for (int node=0; node < 2; node++)
+    for (int j = 0; j < 3; j++) {
+      const double c = 0.5 / std::cos(ul[(node? jmx : imx) + j]);
+      for (int i = 0; i < 12; i++)
+        T((node? jmx : imx) + j, i) *= c;
     }
 
-    //   T3 = [(A*rI3)', (-S(rI3)*e1 + S(rI1)*e3)', -(A*rI3)', O']';
+  // Axial
+  // T(:,7) = [-e1' O' e1' O']';
+  for (int i = 0; i < 3; i++) {
+      T(jnx,i  ) = -e1[i];
+      T(jnx,i+6) =  e1[i];
+  }
 
-    At = A*rI3;
-    
-    // -S(rI3)*e1 + S(rI1)*e3
-    Se  = rI1.cross(e3);
-    Se -= rI3.cross(e1);
-    for (int i = 0; i < 3; i++) {
-        T(imy,i  ) =  At[i]*-1;
-        T(imy,i+3) =  Se[i]*-1;
-        T(imy,i+6) = -At[i]*-1;
-    }
-
-    //   T4 = [      O', O',        O', (-S(rJ3)*e2 + S(rJ2)*e3)']';
-    Se  = rJ2.cross(e3);
-    Se -= rJ3.cross(e2);
-    for (int i = 0; i < 3; i++)
-      T(jmx, i+9) =  Se[i];   // S(rJ2)*e3 - S(rJ3)*e2
-
-    // T5 = [(A*rJ2)', O', -(A*rJ2)', (-S(rJ2)*e1 + S(rJ1)*e2)']';
-    At = A*rJ2;
-    Se  = rJ1.cross(e2); 
-    Se -= rJ2.cross(e1);
-    for (int i = 0; i < 3; i++) {
-        T(jmz, i  ) =  At[i];
-        T(jmz, i+6) = -At[i];
-        T(jmz, i+9) =  Se[i]; // (-S(rJ2)*e1 + S(rJ1)*e2)
-    }
-
-    // T6 = [(A*rJ3)', O', -(A*rJ3)', (-S(rJ3)*e1 + S(rJ1)*e3)']'
-    At  = A*rJ3;
-    Se  = rJ1.cross(e3);  // (-S(rJ3)*e1 + S(rJ1)*e3)
-    Se -= rJ3.cross(e1);
-    for (int i = 0; i < 3; i++) {
-        T(jmy,i  ) =  At[i]*-1;
-        T(jmy,i+6) = -At[i]*-1;
-        T(jmy,i+9) =  Se[i]*-1;
-    }
-
-    //
-    // Second part
-    //
-
-    // T(:,1) += Lr3*rI2 - Lr2*rI3;
-    // T(:,2) +=           Lr2*rI1; z
-    // T(:,3) += Lr3*rI1          ; y
-
-    // T(:,4) += Lr3*rJ2 - Lr2*rJ3;
-    // T(:,5) += Lr2*rJ1          ; z    // ?????? check sign
-    // T(:,6) += Lr3*rJ1          ; y    // ?????? check sign
-
-    // Bending Z
-    for (int i = 0; i < 12; i++) {
-      double T1i = 0;
-      for (int k=0; k<3; k++)
-        T1i += Lr2(i,k)*rI1[k];
-      T(imz,i) += T1i;
-    }
-
-    for (int i = 0; i < 12; i++) {
-      double T4i = 0;
-      for (int k=0; k<3; k++)
-        T4i += Lr2(i,k)*rJ1[k]; // Lr[i];
-      T(jmz,i) += T4i;
-    }
-
-    // Torsion
-    for (int i = 0; i < 12; i++) {
-      double T0i = 0;
-      for (int k=0; k<3; k++)
-        T0i += Lr3(i,k)*rI2[k] - Lr2(i,k)*rI3[k];
-      // T(jmx,i) += -T0i;
-      T(imx,i) += T0i;
-    }
-    for (int i = 0; i < 12; i++) {
-      double T3i = 0;
-      for (int k=0; k<3; k++)
-        T3i += Lr3(i,k)*rJ2[k] - Lr2(i,k)*rJ3[k];
-      T(jmx,i) += T3i;
-    }
-    // Bending Y
-    for (int i = 0; i < 12; i++) {
-      double T2i = 0;
-      for (int k=0; k<3; k++)
-        T2i += Lr3(i,k)*rI1[k]; // Lr[i];
-      T(imy,i) += T2i*-1; // TODO: Check
-    }
-    for (int i = 0; i < 12; i++) {
-      double T5i = 0;
-      for (int k=0; k<3; k++)
-        T5i += Lr3(i,k)*rJ1[k]; // Lr[i];
-      T(jmy,i) += T5i*-1; // TODO: Check
-    }
-
-    //
-    //
-    //
-    for (int node=0; node < 2; node++)
-      for (int j = 0; j < 3; j++) {
-        const double c = 0.5 / std::cos(ul[(node? jmx : imx) + j]);
-        for (int i = 0; i < 12; i++)
-          T((node? jmx : imx) + j, i) *= c;
-      }
-
-    // Axial
-    // T(:,7) = [-e1' O' e1' O']';
-    for (int i = 0; i < 3; i++) {
-        T(jnx,i  ) = -e1[i];
-        T(jnx,i+6) =  e1[i];
-    }
-
-    // Combine torsion
-    for (int i=0; i<12; i++) {
-      T(jmx,i) -= T(imx,i);
-      T(imx,i) = 0;
-    }
+  // Combine torsion
+  for (int i=0; i<12; i++) {
+    T(jmx,i) -= T(imx,i);
+    T(imx,i) = 0;
+  }
 }
 
 //
@@ -448,79 +445,79 @@ template <int nn, int ndf>
 int
 SouzaFrameTransf<nn,ndf>::update()
 {
-    // determine global displacement increments from last iteration
+  // determine global displacement increments from last iteration
 
-    const Vector& dispI = nodes[0]->getTrialDisp();
-    const Vector& dispJ = nodes[1]->getTrialDisp();
+  const Vector& dispI = nodes[0]->getTrialDisp();
+  const Vector& dispJ = nodes[1]->getTrialDisp();
 
-    //
-    // Update state
-    //
-    // 1.1 Relative translation
-    Vector3D dx = dX;// dx = dX + dJI;
-    {
-      // Relative translation
-      for (int k = 0; k < 3; k++)
-        dx[k] += dispJ(k) - dispI(k);
+  //
+  // Update state
+  //
+  // 1.1 Relative translation
+  Vector3D dx = dX;// dx = dX + dJI;
+  {
+    // Relative translation
+    for (int k = 0; k < 3; k++)
+      dx[k] += dispJ(k) - dispI(k);
 
 
-      // Calculate the deformed length
-      Ln = dx.norm();
+    // Calculate the deformed length
+    Ln = dx.norm();
 
-      if (Ln == 0.0) {
-        opserr << "\nSouzaFrameTransf: deformed length is 0.0\n";
-        return -2;
-      }
+    if (Ln == 0.0) {
+      opserr << "\nSouzaFrameTransf: deformed length is 0.0\n";
+      return -2;
+    }
+  }
+
+  // 1.2 Rotational displacement increments
+  {
+    Vector3D dAlphaI, dAlphaJ;
+
+    for (int k = 0; k < 3; k++) {
+      dAlphaI[k] =  dispI(k+3) - alphaI[k];
+      alphaI[k]  =  dispI(k+3);
+      dAlphaJ[k] =  dispJ(k+3) - alphaJ[k];
+      alphaJ[k]  =  dispJ(k+3);
     }
 
-    // 1.2 Rotational displacement increments
-    {
-      Vector3D dAlphaI, dAlphaJ;
+    // Update the nodal rotations
+    Q_pres[0] = VersorProduct(Q_pres[0],  Versor::from_vector(dAlphaI));
+    Q_pres[1] = VersorProduct(Q_pres[1],  Versor::from_vector(dAlphaJ));
+  }
 
-      for (int k = 0; k < 3; k++) {
-        dAlphaI[k] =  dispI(k+3) - alphaI[k];
-        alphaI[k]  =  dispI(k+3);
-        dAlphaJ[k] =  dispJ(k+3) - alphaJ[k];
-        alphaJ[k]  =  dispJ(k+3);
-      }
+  //
+  // 2) Form transformation
+  //
 
-      // Update the nodal rotations
-      Q_pres[0] = VersorProduct(Q_pres[0],  Versor::from_vector(dAlphaI));
-      Q_pres[1] = VersorProduct(Q_pres[1],  Versor::from_vector(dAlphaJ));
-    }
+  crs.update(Q_pres[0], Q_pres[1], dx);
+  // Form the transformation tangent
+  this->compTransfMatrixBasicGlobal(crs.getReference(), Q_pres);
 
-    //
-    // 2) Form transformation
-    //
+  //
+  // 3) Local deformations
+  //
 
-    crs.update(Q_pres[0], Q_pres[1], dx);
-    // Form the transformation tangent
-    this->compTransfMatrixBasicGlobal(crs.getReference(), Q_pres);
+  // Save previous state
+  ulpr = ul;
 
-    //
-    // 3) Local deformations
-    //
+  // Rotations
+  {
+    Matrix3D e = crs.getRotation();
+    vr[0] = LogC90(e^MatrixFromVersor(Q_pres[0]));
+    for (int i=0; i<3; i++)
+      ul[imx+i] = vr[0][i];
 
-    // Save previous state
-    ulpr = ul;
+    vr[1] = LogC90(e^MatrixFromVersor(Q_pres[1]));
+    for (int i=0; i<3; i++)
+      ul[jmx+i] = vr[1][i];
+  }
 
-    // Rotations
-    {
-      Matrix3D e = crs.getRotation();
-      vr[0] = LogC90(e^MatrixFromVersor(Q_pres[0]));
-      for (int i=0; i<3; i++)
-        ul[imx+i] = vr[0][i];
+  // Axial
+  ul(inx) = 0;
+  ul(jnx) = Ln - L;
 
-      vr[1] = LogC90(e^MatrixFromVersor(Q_pres[1]));
-      for (int i=0; i<3; i++)
-        ul[jmx+i] = vr[1][i];
-    }
-
-    // Axial
-    ul(inx) = 0;
-    ul(jnx) = Ln - L;
-
-    return 0;
+  return 0;
 }
 
 
