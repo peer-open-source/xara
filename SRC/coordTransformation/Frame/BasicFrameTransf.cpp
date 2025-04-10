@@ -17,9 +17,8 @@ using namespace OpenSees;
 
 
 BasicFrameTransf3d::BasicFrameTransf3d(FrameTransform<2,6> *t)
-
-  : FrameTransform3d(t->getTag(), 0),
-    t(*t)
+: FrameTransform3d(t->getTag(), 0),
+  t(*t)
 {
 }
 
@@ -91,22 +90,38 @@ BasicFrameTransf3d::getBasicTrialDisp()
 {
   static VectorND<6> ub;
   static Vector wrapper(ub);
-  VectorND<12> ul;
-  ul.insert<0, 3>(t.getNodePosition(0));
-  ul.insert<3, 3>(t.getNodeRotationLogarithm(0));
-  ul.insert<6, 3>(t.getNodePosition(1));
-  ul.insert<9, 3>(t.getNodeRotationLogarithm(1));
-  ub = getBasic(ul, 1/t.getInitialLength());
+  // VectorND<12> ul;
+  // ul.insert<0, 3>(t.getNodePosition(0));
+  // ul.insert<3, 3>(t.getNodeRotationLogarithm(0));
+  // ul.insert<6, 3>(t.getNodePosition(1));
+  // ul.insert<9, 3>(t.getNodeRotationLogarithm(1));
+  // ub = getBasic(ul, 1/t.getInitialLength());
+
+  Vector3D wi = t.getNodeRotationLogarithm(0),
+           wj = t.getNodeRotationLogarithm(1);
+  ub[0] = t.getNodePosition(1)[0];
+  ub[1] = wi[2];
+  ub[2] = wj[2];
+  ub[3] = wi[1];
+  ub[4] = wj[1];
+  ub[5] = wj[0];
   return wrapper;
 }
 
 const Vector &
 BasicFrameTransf3d::getBasicIncrDeltaDisp()
 {
+  constexpr static int ndf = 6;
   static VectorND<6> ub;
   static Vector wrapper(ub);
   VectorND<12> ul = t.getStateVariation();
-  ub = getBasic(ul, 1/t.getInitialLength());
+  // ub = getBasic(ul, 1/t.getInitialLength());
+  // ub[0] = -ul[1*ndf+0];
+  // ub[1] =  ul[0*ndf+5];
+  // ub[2] =  ul[1*ndf+5];
+  // ub[3] =  ul[0*ndf+4];
+  // ub[4] =  ul[1*ndf+4];
+  // ub[5] =  ul[1*ndf+3] - ul[0*ndf+3];
   return wrapper;
 }
 
@@ -242,8 +257,8 @@ BasicFrameTransf3d::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_pres)
   }
 
   for (int i = 0; i < 2*NDF; i++) {
-    kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
-    kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
+    kl(0*NDF+0, i) = kl(i, 0*NDF+0) = i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
+    kl(0*NDF+3, i) = kl(i, 0*NDF+3) = i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   }
 #else
   // Transform basic stiffness to local system
@@ -346,7 +361,6 @@ BasicFrameTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
 FrameTransform3d *
 BasicFrameTransf3d::getCopy()
 {
-
   BasicFrameTransf3d *theCopy = new BasicFrameTransf3d(t.getCopy());
   return theCopy;
 }
