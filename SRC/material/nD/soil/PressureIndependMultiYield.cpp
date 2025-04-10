@@ -998,11 +998,17 @@ void PressureIndependMultiYield::getBackbone (Matrix & bb)
 
 }
 
-void PressureIndependMultiYield::Print(OPS_Stream &s, int flag )
+void
+PressureIndependMultiYield::Print(OPS_Stream &s, int flag )
 {
-  // TODO: impolement JSON
+  // TODO: impolement better JSON
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "          {\"type\": \"PressureIndependMultiYield\", \"loadStage\": " <<  loadStagex[matN] << "}";
+    s << OPS_PRINT_JSON_MATE_INDENT
+      << "{"
+      << "\"type\": \"" << this->getClassType() << "\", "
+      << "\"name\": " << this->getTag() << ", "
+      << "\"loadStage\": " <<  loadStagex[matN] 
+      << "}";
     return;
   }
   s << "PressureIndependMultiYield - loadStage: " <<  loadStagex[matN] << endln;

@@ -506,6 +506,7 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, int argc,
 static int
 printA(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
+  // printA <filename> - m <double> -c <double> -k <double>
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
 
@@ -545,7 +546,7 @@ printA(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const ar
       }
 
       if (outputFile.setFile(argv[currentArg]) != 0) {
-        opserr << "printA <filename> .. - failed to open file: "
+        opserr << "failed to open file: "
                << argv[currentArg] << "\n";
         return TCL_ERROR;
       }

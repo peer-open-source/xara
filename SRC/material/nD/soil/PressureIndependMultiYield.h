@@ -39,7 +39,7 @@ public:
      // Destructor: clean up memory storage space.
      virtual ~PressureIndependMultiYield ();
 
-     const char *getClassType(void) const {return "PressureIndependMultiYield";};
+     const char *getClassType(void) const {return "PressureIndependMultiYield";}
 
      double getRho(void) {return rhox[matN];} ;
 

@@ -26,7 +26,7 @@ public:
      // Initialization constructor
      PressureDependMultiYield (int tag, 
 			       int nd,
-						 double rho,
+				  double rho,
 			       double refShearModul,
 			       double refBulkModul,
 			       double frictionAng,
@@ -120,7 +120,7 @@ protected:
 
 private:
   // user supplied 
-	 static int matCount;
+	static int matCount;
      static int* ndmx;  //num of dimensions (2 or 3)
      static int* loadStagex;  //=0 if elastic; =1 or 2 if plastic
      static double* rhox;  //mass density
@@ -144,15 +144,15 @@ private:
      static double* volLimit2x;
      static double* volLimit3x;
      static double pAtm;
-	 static double* Hvx;
-	 static double* Pvx;
+	static double* Hvx;
+	static double* Pvx;
 
      // internal
      static double* residualPressx;
      static double* stressRatioPTx;
      static Matrix theTangent;
      
-	 int matN;
+	int matN;
      int e2p;
      MultiYieldSurface * theSurfaces; // NOTE: surfaces[0] is not used  
      MultiYieldSurface * committedSurfaces;  

@@ -44,6 +44,9 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
   BasicModelBuilder *theNewBuilder = nullptr;
 
+  //
+  //
+  //
   if (clientData == nullptr) {
     theNewDomain = new Domain();
 
@@ -61,6 +64,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     }
   }
 
+
   // make sure at least one other argument to contain model builder type given
   if (argc < 2) {
     opserr << G3_ERROR_PROMPT << "need to specify a model type, valid types:\n";
@@ -76,7 +80,8 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
       (strcmp(argv[1], "basicBuilder") == 0)) {
 
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "incorrect number of arguments\n";
+      opserr << G3_ERROR_PROMPT 
+             << "incorrect number of arguments\n";
       return TCL_ERROR;
     }
     int ndm = 0;
@@ -90,7 +95,8 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
         argPos++;
         if (argPos < argc) {
           if (Tcl_GetInt(interp, argv[argPos], &ndm) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "error reading ndm, got '" << argv[argPos] << "'\n";
+            opserr << G3_ERROR_PROMPT 
+                   << "error reading ndm, got '" << argv[argPos] << "'\n";
             return TCL_ERROR;
           }
         }
