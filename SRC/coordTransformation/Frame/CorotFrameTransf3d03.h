@@ -25,7 +25,7 @@
 #include "Orient/CrisfieldTransform.h"
 
 struct Triad;
-using namespace OpenSees; // TODO
+using namespace OpenSees;
 
 class CorotFrameTransf3d03: public FrameTransform3d
 {
