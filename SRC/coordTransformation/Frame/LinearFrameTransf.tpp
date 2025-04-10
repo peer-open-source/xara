@@ -28,109 +28,53 @@ static inline MatrixND<3,3>
 FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj, 
                          const Vector3D& vz, int di, int dj, int dv)
 {
-    Vector3D v1  = xj - xi;
-    double L     = v1.norm();
-    Vector3D e1  = v1/L;
+  Vector3D v1  = xj - xi;
+  double L     = v1.norm();
+  Vector3D e1  = v1/L;
 
-    Vector3D v2  = vz.cross(e1);
+  Vector3D v2  = vz.cross(e1);
 
-    Vector3D e2 = v2 / v2.norm();
+  Vector3D e2 = v2 / v2.norm();
 //  Vector3D v3 = e1.cross(e2);
 //  Vector3D e3 = v3 / v3.norm();
 
-    //
-    Vector3D dvz{0.0};
-    Vector3D dxi{0.0};
-    Vector3D dxj{0.0};
-
-    if (di != 0)
-      dxi(di-1) = 1.0;
-    if (dj != 0)
-      dxj(dj-1) = 1.0;
-    if (dv != 0)
-      dvz(dv-1) = 1.0;
-
-    //
-
-    double   dL  = 1/L*(xj - xi).dot(dxj - dxi);
-    Vector3D dv1 = dxj - dxi;
-    Vector3D de1 = 1/(L*L)*(dv1*L - v1*dL);
-
-    double L2    = v2.norm();
-    Vector3D dv2 = dvz.cross(e1) + vz.cross(de1);
-    double dL2   = 1/L2*v2.dot(dv2);
-    Vector3D de2 = 1/(L2*L2)*(dv2*L2 - v2*dL2);
-
-    Vector3D de3 = de1.cross(e2) + e1.cross(de2);
-
-    MatrixND<3,3> dR;
-    dR(0,0) = de1(0);
-    dR(1,0) = de1(1);
-    dR(2,0) = de1(2);
-
-    dR(0,1) = de2(0);
-    dR(1,1) = de2(1);
-    dR(2,1) = de2(2);
-
-    dR(0,2) = de3(0);
-    dR(1,2) = de3(1);
-    dR(2,2) = de3(2);
-
-    return dR;
-}
-
-
-template <int nn, int ndf>
-VectorND<nn*ndf> 
-LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug, 
-             const Matrix3D& R, 
-             const std::array<Vector3D, nn> *offset,
-             int offset_flags) 
-{
-  
-  constexpr static int N = nn * ndf;
-
-  // Initialize ul = ug
-  VectorND<N> ul = ug;
-
-  // (1)
-  // Do ui -= ri x wi
-  if constexpr (ndf >= 6)
-    if (offset && !(offset_flags&OffsetLocal)) {
-      const std::array<Vector3D, nn>& offsets = *offset;
-      for (int i=0; i<nn; i++) {
-
-        const int j = i * ndf;
-        Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
-
-        ul.assemble(j, offsets[i].cross(w), -1.0);
-      }
-    }
-
-  // (2) Rotations and translations
-  for (int i=0; i<nn; i++) {
-    const int j = i * ndf;
-    ul.insert(j  , R^Vector3D{ul[j+0], ul[j+1], ul[j+2]}, 1.0);
-    ul.insert(j+3, R^Vector3D{ul[j+3], ul[j+4], ul[j+5]}, 1.0);
-  }
-
-  // 3)
-  if constexpr (ndf >= 6)
-    if (offset && (offset_flags&OffsetLocal)) {
-      const std::array<Vector3D, nn>& offsets = *offset;
-      for (int i=0; i<nn; i++) {
-
-        const int j = i * ndf;
-        Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
-
-        ul.assemble(j, offsets[i].cross(w), -1.0);
-      }
-    }
   //
-  // (4)
-  //
+  Vector3D dvz{0.0};
+  Vector3D dxi{0.0};
+  Vector3D dxj{0.0};
 
-  return ul;
+  if (di != 0)
+    dxi(di-1) = 1.0;
+  if (dj != 0)
+    dxj(dj-1) = 1.0;
+  if (dv != 0)
+    dvz(dv-1) = 1.0;
+
+  double   dL  = 1/L*(xj - xi).dot(dxj - dxi);
+  Vector3D dv1 = dxj - dxi;
+  Vector3D de1 = 1/(L*L)*(dv1*L - v1*dL);
+
+  double L2    = v2.norm();
+  Vector3D dv2 = dvz.cross(e1) + vz.cross(de1);
+  double dL2   = 1/L2*v2.dot(dv2);
+  Vector3D de2 = 1/(L2*L2)*(dv2*L2 - v2*dL2);
+
+  Vector3D de3 = de1.cross(e2) + e1.cross(de2);
+
+  MatrixND<3,3> dR;
+  dR(0,0) = de1(0);
+  dR(1,0) = de1(1);
+  dR(2,0) = de1(2);
+
+  dR(0,1) = de2(0);
+  dR(1,1) = de2(1);
+  dR(2,1) = de2(2);
+
+  dR(0,2) = de3(0);
+  dR(1,2) = de3(1);
+  dR(2,2) = de3(2);
+
+  return dR;
 }
 
 template <int nn, int ndf>
@@ -140,6 +84,7 @@ LinearFrameTransf<nn,ndf>::LinearFrameTransf(int tag,
                                              int offset_flags)
 
   : FrameTransform<nn,ndf>(tag),
+    Du{0},
     L(0),
     offsets{nullptr},
     offset_flags(offset_flags),
@@ -199,6 +144,7 @@ template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::update()
 {
+  Du = this->pullPosition<&Node::getTrialDisp>(nn-1) - this->pullPosition<&Node::getTrialDisp>(0);
   return 0;
 }
 
@@ -379,6 +325,76 @@ LinearFrameTransf<nn,ndf>::getDeformedLength()
 // Pull
 //
 
+
+template <int nn, int ndf>
+VectorND<nn*ndf> 
+LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug, 
+             const Matrix3D& R, 
+             const std::array<Vector3D, nn> *offset,
+             int offset_flags) 
+{
+
+  constexpr static int N = nn * ndf;
+
+  // Initialize ul = ug
+  VectorND<N> ul = ug;
+
+  // (1)
+  // Do ui -= ri x wi
+  if constexpr (ndf >= 6)
+    if (offset && !(offset_flags&OffsetLocal)) {
+      const std::array<Vector3D, nn>& offsets = *offset;
+      for (int i=0; i<nn; i++) {
+
+        const int j = i * ndf;
+        Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
+
+        ul.assemble(j, offsets[i].cross(w), -1.0);
+      }
+    }
+
+  // (2) Rotations and translations
+  for (int i=0; i<nn; i++) {
+    const int j = i * ndf;
+    ul.insert(j  , R^Vector3D{ul[j+0], ul[j+1], ul[j+2]}, 1.0);
+    ul.insert(j+3, R^Vector3D{ul[j+3], ul[j+4], ul[j+5]}, 1.0);
+  }
+
+  // 3)
+  if constexpr (ndf >= 6)
+    if (offset && (offset_flags&OffsetLocal)) {
+      const std::array<Vector3D, nn>& offsets = *offset;
+      for (int i=0; i<nn; i++) {
+
+        const int j = i * ndf;
+        Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
+
+        ul.assemble(j, offsets[i].cross(w), -1.0);
+      }
+    }
+  
+  // TODO:
+  // return ul;
+
+  // (4)
+  // TODO (nn>2)
+  constexpr static Vector3D iv {1,0,0};
+  Vector3D uI = ul.template extract<3>(0);
+  Vector3D Du = ul.template extract<3>((nn-1)*ndf) - uI;
+  Vector3D ixDu = iv.cross(Du);
+  for (int i=0; i<nn; i++) {
+    // Translation
+    ul.assemble(i*ndf, uI, -1.0);
+    for (int j=1; j<3; j++)
+      ul[i*ndf+j] -= double(i)/(nn-1.0)*Du[j];
+
+    // Rotation
+    ul.assemble(i*ndf+3, ixDu, -1.0/L);
+  }
+
+  return ul;
+}
+
 template <int nn, int ndf>
 VectorND<nn*ndf>
 LinearFrameTransf<nn,ndf>::getStateVariation()
@@ -398,41 +414,37 @@ template <int nn, int ndf>
 Vector3D
 LinearFrameTransf<nn,ndf>::getNodePosition(int node)
 {
-  Vector3D v;
-  const Vector& u = nodes[node]->getTrialDisp();
-
-  for (int i=0; i<3; i++)
-    v[i] = u[i];
-
-  if (offsets) {
-    if (!(offset_flags&OffsetLocal)) {
-      Vector3D w {u[3], u[4], u[5]};
-      v -= offsets->at(node).cross(w);
-    } else {
-      // TODO: Local offsets
-      // Vector3D w {u[3], u[4], u[5]};
-      // v += offsets->at(node).cross(w);
-      // return R^v;
-    }
+  Vector3D v{};
+  if (node == 0) {
+    return v;
+  } else if (node == nn-1) {
+    v[0] = Du[0];
+    return v;
   }
-  return R^v;
+
+  // TODO(nn>2)
+  v = this->pullPosition<&Node::getTrialDisp>(node) 
+    - this->pullPosition<&Node::getTrialDisp>(0);
+  return v;
 }
 
 template <int nn, int ndf>
 Vector3D
 LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 {
-  // constexpr Vector3D iv{1, 0, 0};
-  // constexpr Matrix3D ix = Hat(iv);
-  Vector3D v, w;
+  constexpr Vector3D iv{1, 0, 0};
+  constexpr Matrix3D ix = Hat(iv);
+
+  Vector3D w;
   const Vector& u = nodes[node]->getTrialDisp();
   for (int i=0; i<3; i++) {
-    v[i] = u[i];
     w[i] = u[3+i];
   }
 
-  // w.addMatrixVector(1, ix, v, -1/L);
-  return R^w;
+  w = R^w;
+
+  w.addMatrixVector(1, ix, Du, -1.0/L);
+  return w;
 }
 
 
