@@ -303,7 +303,7 @@ int FluidSolidPorousMaterial::setParameter(const char **argv, int argc, Paramete
   if (this->getTag() == matTag) {
 
     if (strcmp(argv[0],"updateMaterialStage") == 0) 
-    	return param.addObject(1, this);  
+    	return param.addObject(1, this);
     else if (strcmp(argv[0],"combinedBulkModulus") == 0) 
       return param.addObject(2, this);  
   }
@@ -588,8 +588,16 @@ int FluidSolidPorousMaterial::getResponse (int responseID, Information &matInfo)
 
 void FluidSolidPorousMaterial::Print(OPS_Stream &s, int flag )
 {
-  // TODO: impolement JSON
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) return;
+  // TODO: impolement better JSON
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT
+      << "{"
+      << "\"type\": \"" << this->getClassType() << "\", "
+      << "\"name\": " << this->getTag() << ", "
+      << "\"loadStage\": " <<  loadStagex[matN] 
+      << "}";
+    return;
+  }
   s << "FluidSolidPorousMaterial" << endln;
 }
 
