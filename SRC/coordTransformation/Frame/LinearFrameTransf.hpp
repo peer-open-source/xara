@@ -72,7 +72,7 @@ public:
     // TaggedObject
     void Print(OPS_Stream &s, int flag = 0);
 
-    static inline VectorND<nn*ndf> 
+    inline VectorND<nn*ndf> 
     pullConstant(const VectorND<nn*ndf>& ug, 
                 const Matrix3D& R, 
                 const std::array<Vector3D, nn> *offset = nullptr,
@@ -82,15 +82,36 @@ private:
 
     int computeElemtLengthAndOrient();
 
+    template<const Vector& (Node::*Getter)()>
+    const Vector3D
+    pullPosition(int node)
+    {
+        const Vector &u = (nodes[node]->*Getter)();
+
+        Vector3D v;
+        for (int i=0; i<3; i++)
+          v[i] = u[i];
+
+        // 1) Offsets
+        if (offsets) {
+          if (!(offset_flags&OffsetLocal)) {
+            Vector3D w {u[3], u[4], u[5]};
+            v -= offsets->at(node).cross(w);
+          }
+        }
+
+        // 2) Constant Rotation
+        return R^v;
+    }
+
     std::array<Node*, nn> nodes;
+    Vector3D Du;
 
     std::array<Vector3D, nn> *offsets;
     int offset_flags;
 
     Vector3D xi, xj, vz;
-
     Matrix3D R;         // rotation matrix
-
     double L;           // undeformed element length
 
     std::array<VectorND<ndf>*, nn> u_init;
