@@ -92,7 +92,7 @@ template <int ndim, PlaneType type>
 Mate<ndim> *
 ElasticIsotropic<ndim, type>::getCopy()
 {
-    return new ElasticIsotropic<ndim, type>(this->getTag(), E, nu, rho);
+  return new ElasticIsotropic<ndim, type>(this->getTag(), E, nu, rho);
 }
 
 template <int ndim, PlaneType type>
