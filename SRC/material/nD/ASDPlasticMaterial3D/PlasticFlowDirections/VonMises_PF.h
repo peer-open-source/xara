@@ -34,8 +34,6 @@
 #include <typeinfo>
 
 
-using namespace std;
-
 template<class AlphaHardeningType>
 class VonMises_PF : public PlasticFlowBase<VonMises_PF<AlphaHardeningType>> // CRTP
 {

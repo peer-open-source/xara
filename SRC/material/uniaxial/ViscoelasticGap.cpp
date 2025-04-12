@@ -54,7 +54,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_ViscoelasticGap)
   // kudos
   if (numViscoelasticGap == 0) {
     numViscoelasticGap++;
-    opserr << "ViscoelasticGap model written by Patrick J. Hughes, UC San Diego\n";
+    opslog << "ViscoelasticGap model written by Patrick J. Hughes, UC San Diego\n";
   }
   
   // Pointer to a uniaxial material that will be returned
