@@ -90,13 +90,6 @@ BasicFrameTransf3d::getBasicTrialDisp()
 {
   static VectorND<6> ub;
   static Vector wrapper(ub);
-  // VectorND<12> ul;
-  // ul.insert<0, 3>(t.getNodePosition(0));
-  // ul.insert<3, 3>(t.getNodeRotationLogarithm(0));
-  // ul.insert<6, 3>(t.getNodePosition(1));
-  // ul.insert<9, 3>(t.getNodeRotationLogarithm(1));
-  // ub = getBasic(ul, 1/t.getInitialLength());
-
   Vector3D wi = t.getNodeRotationLogarithm(0),
            wj = t.getNodeRotationLogarithm(1);
   ub[0] = t.getNodePosition(1)[0];
@@ -104,7 +97,7 @@ BasicFrameTransf3d::getBasicTrialDisp()
   ub[2] = wj[2];
   ub[3] = wi[1];
   ub[4] = wj[1];
-  ub[5] = wj[0];
+  ub[5] = wj[0] - wi[0];
   return wrapper;
 }
 
@@ -115,13 +108,12 @@ BasicFrameTransf3d::getBasicIncrDeltaDisp()
   static VectorND<6> ub;
   static Vector wrapper(ub);
   VectorND<12> ul = t.getStateVariation();
-  // ub = getBasic(ul, 1/t.getInitialLength());
-  // ub[0] = -ul[1*ndf+0];
-  // ub[1] =  ul[0*ndf+5];
-  // ub[2] =  ul[1*ndf+5];
-  // ub[3] =  ul[0*ndf+4];
-  // ub[4] =  ul[1*ndf+4];
-  // ub[5] =  ul[1*ndf+3] - ul[0*ndf+3];
+  ub[0] =  ul[1*ndf+0];
+  ub[1] =  ul[0*ndf+5];
+  ub[2] =  ul[1*ndf+5];
+  ub[3] =  ul[0*ndf+4];
+  ub[4] =  ul[1*ndf+4];
+  ub[5] =  ul[1*ndf+3] - ul[0*ndf+3];
   return wrapper;
 }
 
@@ -260,6 +252,7 @@ BasicFrameTransf3d::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_pres)
     kl(0*NDF+0, i) = kl(i, 0*NDF+0) = i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
     kl(0*NDF+3, i) = kl(i, 0*NDF+3) = i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   }
+
 #else
   // Transform basic stiffness to local system
   static double tmp[NBV][12];
@@ -310,7 +303,7 @@ BasicFrameTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
 {
   static double kb[6][6];     // Basic stiffness
   static MatrixND<12,12> kl;  // Local stiffness
-  static double tmp[6][12];   // Temporary storage
+  double tmp[6][12]{};   // Temporary storage
   double oneOverL = 1.0 / t.getInitialLength();
 
   for (int i = 0; i < 6; i++)
@@ -321,14 +314,16 @@ BasicFrameTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
   // First compute kb*T_{bl}
   for (int i = 0; i < 6; i++) {
     tmp[i][0]  = -kb[i][0];
+#ifdef DO_BASIC
     tmp[i][1]  =  oneOverL * (kb[i][1] + kb[i][2]);
     tmp[i][2]  = -oneOverL * (kb[i][3] + kb[i][4]);
+    tmp[i][7]  = -tmp[i][1];
+    tmp[i][8]  = -tmp[i][2];
+#endif
     tmp[i][3]  = -kb[i][5];
     tmp[i][4]  =  kb[i][3];
     tmp[i][5]  =  kb[i][1];
     tmp[i][6]  =  kb[i][0];
-    tmp[i][7]  = -tmp[i][1];
-    tmp[i][8]  = -tmp[i][2];
     tmp[i][9]  =  kb[i][5];
     tmp[i][10] =  kb[i][4];
     tmp[i][11] =  kb[i][2];
@@ -337,14 +332,16 @@ BasicFrameTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
   // Now compute T'_{bl}*(kb*T_{bl})
   for (int i = 0; i < 12; i++) {
     kl( 0, i) = -tmp[0][i];
+#ifdef DO_BASIC
     kl( 1, i) =  oneOverL * (tmp[1][i] + tmp[2][i]);
     kl( 2, i) = -oneOverL * (tmp[3][i] + tmp[4][i]);
+    kl( 7, i) = -kl(1, i);
+    kl( 8, i) = -kl(2, i);
+#endif
     kl( 3, i) = -tmp[5][i];
     kl( 4, i) = tmp[3][i];
     kl( 5, i) = tmp[1][i];
     kl( 6, i) = tmp[0][i];
-    kl( 7, i) = -kl(1, i);
-    kl( 8, i) = -kl(2, i);
     kl( 9, i) = tmp[5][i];
     kl(10, i) = tmp[4][i];
     kl(11, i) = tmp[2][i];
@@ -446,7 +443,6 @@ BasicFrameTransf3d::getBasicDisplFixedGrad()
 const Vector &
 BasicFrameTransf3d::getBasicDisplTotalGrad(int gradNumber)
 {
-
   static VectorND<6> dub;
   static Vector wrapper(dub);
   opserr << "WARNING unimplemented method\n";

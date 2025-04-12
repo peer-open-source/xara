@@ -76,6 +76,9 @@ public:
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) =0;
   virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl) =0;
 
+  // // template<
+  // VectorND<nn*ndf-6> pushResponse(VectorND<nn*ndf-6>&pb);
+
   VectorND<nn*ndf>    pushConstant(const VectorND<nn*ndf>&pl);
   MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
 

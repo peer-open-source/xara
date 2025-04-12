@@ -212,6 +212,12 @@ SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
   // Compute initial pseudo-vectors for nodal triads
   Q_pres[0] = Q_pres[1] = VersorFromMatrix(R0);
 
+  ul.zero();
+  ulpr.zero();
+
+  for (int i=0; i<nn; i++)
+    vr[i].zero();
+
   this->commit();
 
   return 0;
@@ -230,7 +236,7 @@ SouzaFrameTransf<nn,ndf>::getNodePosition(int tag)
 {
   Vector3D u;
   for (int i=0; i<3; i++)
-    u[i] = ul[tag*6+i];
+    u[i] = ul[tag*ndf+i];
   return u;
   // Vector3D v;
   // const Vector& u = nodes[tag]->getTrialDisp();

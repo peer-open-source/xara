@@ -82,7 +82,6 @@ LinearFrameTransf<nn,ndf>::LinearFrameTransf(int tag,
                                              const Vector3D &vecxz, 
                                              const std::array<Vector3D, nn> *offset,
                                              int offset_flags)
-
   : FrameTransform<nn,ndf>(tag),
     Du{0},
     L(0),
@@ -137,14 +136,6 @@ template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::revertToStart()
 {
-  return 0;
-}
-
-template <int nn, int ndf>
-int
-LinearFrameTransf<nn,ndf>::update()
-{
-  Du = this->pullPosition<&Node::getTrialDisp>(nn-1) - this->pullPosition<&Node::getTrialDisp>(0);
   return 0;
 }
 
@@ -325,6 +316,13 @@ LinearFrameTransf<nn,ndf>::getDeformedLength()
 // Pull
 //
 
+template <int nn, int ndf>
+int
+LinearFrameTransf<nn,ndf>::update()
+{
+  Du = this->pullPosition<&Node::getTrialDisp>(nn-1) - this->pullPosition<&Node::getTrialDisp>(0);
+  return 0;
+}
 
 template <int nn, int ndf>
 VectorND<nn*ndf> 
@@ -372,9 +370,6 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
         ul.assemble(j, offsets[i].cross(w), -1.0);
       }
     }
-  
-  // TODO:
-  // return ul;
 
   // (4)
   // TODO (nn>2)
@@ -463,7 +458,7 @@ LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
   Vector3D m{};
   for (int i=0; i<nn; i++) {
     // m += mi
-    for (int j=0; j<3; j++) 
+    for (int j=0; j<3; j++)
       m[j] += p[i*ndf+3+j];
 
     const Vector3D n = Vector3D{p[i*ndf+0], p[i*ndf+1], p[i*ndf+2]};
@@ -476,7 +471,7 @@ LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
     pa.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)/L);
     pa[i*ndf+3] += m[0]*(i? -1:1)*0.5;
   }
-  
+
   // 3) Rotate and do joint offsets
   auto pg = this->FrameTransform<nn,ndf>::pushConstant(pa);
   return pg;
@@ -537,6 +532,7 @@ LinearFrameTransf<nn,ndf>::getCopy() const
 }
 
 
+//
 // Sensitivity
 //
 template <int nn, int ndf>
@@ -545,7 +541,7 @@ LinearFrameTransf<nn,ndf>::isShapeSensitivity()
 {
   int nodeParameterI = nodes[   0]->getCrdsSensitivity();
   int nodeParameterJ = nodes[nn-1]->getCrdsSensitivity();
-  // TODO: implement dvz
+  // TODO(sensitivity): implement dvz
 
   return (nodeParameterI != 0 || nodeParameterJ != 0);
 }
@@ -658,14 +654,14 @@ LinearFrameTransf<nn,ndf>::getBasicDisplFixedGrad()
   //
   // dub += (T_{bl}' T_{lg} + T_{bl} T_{lg}') * ug
   //
-  int dv = 0; // TODO: Sensitivity
+  int dv = 0; // TODO(sensitivity)
 
   // TODO: Sensitivity
   int di = nodes[0]->getCrdsSensitivity();
   int dj = nodes[1]->getCrdsSensitivity();
 
 
-  // TODO: Sensitivity
+  // TODO(sensitivity)
   // Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
   // dub = getBasic(ug, 1/L);
 
