@@ -24,17 +24,6 @@ BasicFrame3d::update()
 }
 
 
-// double
-// BasicFrame3d::getLength(State state)
-// {
-//   if (state == State::Init)
-//     return theCoordTransf->getInitialLength();
-
-//   else
-//     return theCoordTransf->getDeformedLength();
-// }
-
-
 int
 BasicFrame3d::setNodes()
 {
@@ -48,57 +37,6 @@ BasicFrame3d::setNodes()
   return 0;
 }
 
-#if 0
-const Vector &
-BasicFrame3d::getResistingForce()
-{
-  VectorND<6> q  = this->getBasicForce();
-
-  double q0 = q[0];
-  double q1 = q[1];
-  double q2 = q[2];
-  double q3 = q[3];
-  double q4 = q[4];
-  double q5 = q[5];
-
-  double oneOverL = 1.0 / theCoordTransf->getInitialLength();
-
-  thread_local VectorND<12> pl;
-  pl[0]  = -q0;                    // Ni
-  pl[1]  =  oneOverL * (q1 + q2);  // Viy
-  pl[2]  = -oneOverL * (q3 + q4);  // Viz
-  pl[3]  = -q5;                    // Ti
-  pl[4]  =  q3;
-  pl[5]  =  q1;
-  pl[6]  =  q0;                    // Nj
-  pl[7]  = -pl[1];                 // Vjy
-  pl[8]  = -pl[2];                 // Vjz
-  pl[9]  = q5;                     // Tj
-  pl[10] = q4;
-  pl[11] = q2;
-
-  thread_local VectorND<12> pf{0.0};
-  pf[0] = p0[0];
-  pf[1] = p0[1];
-  pf[7] = p0[2];
-  pf[2] = p0[3];
-  pf[8] = p0[4];
-
-
-  thread_local VectorND<12> pg;
-  thread_local Vector wrapper(pg);
-//    const Vector p0Vec(p0);
-//    P = theCoordTransf->getGlobalResistingForce(q, p0Vec);
-  pg  = theCoordTransf->pushResponse(pl);
-  pg += theCoordTransf->pushConstant(pf);
-
-  // Subtract other external nodal loads ... P_res = P_int - P_ext
-  if (total_mass != 0.0)
-    wrapper.addVector(1.0, p_iner, -1.0);
-
-  return wrapper;
-}
-#endif
 
 const Matrix &
 BasicFrame3d::getTangentStiff()
@@ -108,72 +46,6 @@ BasicFrame3d::getTangentStiff()
   MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
 
   return theCoordTransf->getGlobalStiffMatrix(Matrix(kb), Vector(q));
-//    q += q0; // TODO!!! move this into PrismFrame and maybe DisplFrame
-
-  double q0 = q[0];
-  double q1 = q[1];
-  double q2 = q[2];
-  double q3 = q[3];
-  double q4 = q[4];
-  double q5 = q[5];
-
-  double oneOverL = 1.0 / theCoordTransf->getInitialLength();
-
-  thread_local VectorND<12> pl;
-  pl[0]  = -q0;                    // Ni
-  pl[1]  =  oneOverL * (q1 + q2);  // Viy
-  pl[2]  = -oneOverL * (q3 + q4);  // Viz
-  pl[3]  = -q5;                    // Ti
-  pl[4]  =  q3;
-  pl[5]  =  q1;
-  pl[6]  =  q0;                    // Nj
-  pl[7]  = -pl[1];                 // Vjy
-  pl[8]  = -pl[2];                 // Vjz
-  pl[9]  =  q5;                    // Tj
-  pl[10] =  q4;
-  pl[11] =  q2;
-  
-
-  // Transform basic stiffness to local system
-  static MatrixND<12,12> kl;  // Local stiffness
-  static double tmp[6][12];  // Temporary storage
-  // First compute kb*T_{bl}
-  for (int i = 0; i < 6; i++) {
-    tmp[i][ 0] = -kb(i, 0);
-    tmp[i][ 1] =  oneOverL * (kb(i, 1) + kb(i, 2));
-    tmp[i][ 2] = -oneOverL * (kb(i, 3) + kb(i, 4));
-    tmp[i][ 3] = -kb(i, 5);
-    tmp[i][ 4] =  kb(i, 3);
-    tmp[i][ 5] =  kb(i, 1);
-    tmp[i][ 6] =  kb(i, 0);
-    tmp[i][ 7] = -tmp[i][1];
-    tmp[i][ 8] = -tmp[i][2];
-    tmp[i][ 9] =  kb(i, 5);
-    tmp[i][10] =  kb(i, 4);
-    tmp[i][11] =  kb(i, 2);
-  }
-
-  // Now compute T'_{bl}*(kb*T_{bl})
-  for (int i = 0; i < 12; i++) {
-    kl( 0, i) = -tmp[0][i];
-    kl( 1, i) =  oneOverL * (tmp[1][i] + tmp[2][i]);
-    kl( 2, i) = -oneOverL * (tmp[3][i] + tmp[4][i]);
-    kl( 3, i) = -tmp[5][i];
-    kl( 4, i) = tmp[3][i];
-    kl( 5, i) = tmp[1][i];
-    kl( 6, i) = tmp[0][i];
-    kl( 7, i) = -kl(1, i);
-    kl( 8, i) = -kl(2, i);
-    kl( 9, i) = tmp[5][i];
-    kl(10, i) = tmp[4][i];
-    kl(11, i) = tmp[2][i];
-  }
-
-
-  static MatrixND<12,12> Kg;
-  static Matrix Wrapper(Kg);
-  Kg = theCoordTransf->pushResponse(kl, pl);
-  return Wrapper;
 }
 
 
@@ -294,43 +166,43 @@ BasicFrame3d::getMass()
         return Wrapper;
 
     } else {
-        // consistent (cubic) mass matrix
+      // consistent (cubic) mass matrix
 
-        // get initial element length
-        double L  = theCoordTransf->getInitialLength();
-        double m  = total_mass/420.0;
-        double mx = twist_mass;
-        static MatrixND<12,12> ml{0};
-        ml(0,0) = ml(6,6) = m*140.0;
-        ml(0,6) = ml(6,0) = m*70.0;
+      // get initial element length
+      double L  = theCoordTransf->getInitialLength();
+      double m  = total_mass/420.0;
+      double mx = twist_mass;
+      static MatrixND<12,12> ml{0};
+      ml(0,0) = ml(6,6) = m*140.0;
+      ml(0,6) = ml(6,0) = m*70.0;
 
-        ml(3,3) = ml(9,9) = mx/3.0; // Twisting
-        ml(3,9) = ml(9,3) = mx/6.0;
+      ml(3,3) = ml(9,9) = mx/3.0; // Twisting
+      ml(3,9) = ml(9,3) = mx/6.0;
 
-        ml( 2, 2) = ml( 8, 8) =  m*156.0;
-        ml( 2, 8) = ml( 8, 2) =  m*54.0;
-        ml( 4, 4) = ml(10,10) =  m*4.0*L*L;
-        ml( 4,10) = ml(10, 4) = -m*3.0*L*L;
-        ml( 2, 4) = ml( 4, 2) = -m*22.0*L;
-        ml( 8,10) = ml(10, 8) = -ml(2,4);
-        ml( 2,10) = ml(10, 2) =  m*13.0*L;
-        ml( 4, 8) = ml( 8, 4) = -ml(2,10);
+      ml( 2, 2) = ml( 8, 8) =  m*156.0;
+      ml( 2, 8) = ml( 8, 2) =  m*54.0;
+      ml( 4, 4) = ml(10,10) =  m*4.0*L*L;
+      ml( 4,10) = ml(10, 4) = -m*3.0*L*L;
+      ml( 2, 4) = ml( 4, 2) = -m*22.0*L;
+      ml( 8,10) = ml(10, 8) = -ml(2,4);
+      ml( 2,10) = ml(10, 2) =  m*13.0*L;
+      ml( 4, 8) = ml( 8, 4) = -ml(2,10);
 
-        ml( 1, 1) = ml( 7, 7) =  m*156.0;
-        ml( 1, 7) = ml( 7, 1) =  m*54.0;
-        ml( 5, 5) = ml(11,11) =  m*4.0*L*L;
-        ml( 5,11) = ml(11, 5) = -m*3.0*L*L;
-        ml( 1, 5) = ml( 5, 1) =  m*22.0*L;
-        ml( 7,11) = ml(11, 7) = -ml(1,5);
-        ml( 1,11) = ml(11, 1) = -m*13.0*L;
-        ml( 5, 7) = ml( 7, 5) = -ml(1,11);
+      ml( 1, 1) = ml( 7, 7) =  m*156.0;
+      ml( 1, 7) = ml( 7, 1) =  m*54.0;
+      ml( 5, 5) = ml(11,11) =  m*4.0*L*L;
+      ml( 5,11) = ml(11, 5) = -m*3.0*L*L;
+      ml( 1, 5) = ml( 5, 1) =  m*22.0*L;
+      ml( 7,11) = ml(11, 7) = -ml(1,5);
+      ml( 1,11) = ml(11, 1) = -m*13.0*L;
+      ml( 5, 7) = ml( 7, 5) = -ml(1,11);
 
-        // transform local mass matrix to global system
-        return theCoordTransf->getGlobalMatrixFromLocal(ml);
+      // transform local mass matrix to global system
+      return theCoordTransf->getGlobalMatrixFromLocal(ml);
     }
 }
 
-void 
+void
 BasicFrame3d::zeroLoad()
 {
   q0.zero();

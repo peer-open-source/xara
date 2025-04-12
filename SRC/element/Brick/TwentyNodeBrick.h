@@ -21,10 +21,6 @@
 #ifndef TWENTYNODEBRICK_H
 #define TWENTYNODEBRICK_H
 
-#ifndef _bool_h
-#include "bool.h"
-#endif
-
 #include <Element.h>
 #include <Node.h> 
 
@@ -82,7 +78,7 @@ class TwentyNodeBrick: public Element
     TwentyNodeBrick ();
     ~TwentyNodeBrick();
 
-    const char *getClassType(void) const {return "TwentyNodeBrick";};
+    const char *getClassType(void) const {return "TwentyNodeBrick";}
     static constexpr const char* class_name = "TwentyNodeBrick";
 
     int getNumExternalNodes () const;

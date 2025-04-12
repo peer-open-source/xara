@@ -152,6 +152,7 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
 
       else if ((strcmp(argv[i], "-shear-y") == 0) ||
                (strcmp(argv[i], "-Ay") == 0)) {
+        // TODO: Ay is not used.
         if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.Ay) != TCL_OK) {
           opserr << OpenSees::PromptParseError << "invalid shear area.\n";
           return TCL_ERROR;

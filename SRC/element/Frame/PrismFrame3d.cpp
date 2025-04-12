@@ -37,7 +37,7 @@ PrismFrame3d::PrismFrame3d()
 }
 
 PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
-                           double  a, double  E, double  G, 
+                           double  A, double  E, double  G, 
                            double jx, double iy, double iz,
                            FrameTransform3d &coordTransf, 
                            double r, int cm, 
@@ -45,7 +45,7 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
                            int geom)
 
   :BasicFrame3d(tag,ELE_TAG_ElasticBeam3d, nodes, coordTransf),
-   A(a), E(E), G(G), Jx(jx), 
+   A(A), E(E), G(G), Jx(jx), 
    Iy(iy), Iz(iz), Iyz(0),
    mass_flag(cm), density(r),
    releasez(rz), releasey(ry),
