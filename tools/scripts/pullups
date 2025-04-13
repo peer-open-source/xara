@@ -1,0 +1,60 @@
+#!/usr/bin/bash
+
+# Claudio Perez
+#
+# Based on https://stackoverflow.com/a/36510671
+
+set -e
+workspace=".merge"
+upstream="upstream/master"
+
+
+merge() {
+  merge_file=$1
+  local_file=$2
+
+  filename="$(basename $local_file)"
+
+  #cp $file "$workspace/common.tmp"
+
+  # First try to find a merge-base
+  merge_base="$(git merge-base HEAD $upstream)"
+  if git show "$merge_base:$merge_file" > "$workspace/common.tmp"; then
+    echo "Using merge base : $merge_base"
+  else
+    # otherwise, just use the first commit with the file in upstream
+    first="$(git log $upstream --diff-filter=A -- $merge_file | grep commit )"
+    git show "${first/commit /}:$merge_file" > $workspace/common.tmp; 
+    echo "Using first commit : $first"
+  fi
+  dos2unix $workspace/common.tmp;
+  git show "HEAD:$local_file" > $workspace/current.tmp; 
+  dos2unix $workspace/current.tmp;
+  git show "$upstream:$merge_file" > $workspace/upstream.tmp; 
+  dos2unix $workspace/upstream.tmp;
+  git merge-file -p \
+    "$workspace/current.tmp" \
+    "$workspace/common.tmp" \
+    "$workspace/upstream.tmp" \
+    > "$workspace/$filename";
+
+  # Clean up
+  rm "$workspace/current.tmp" \
+     "$workspace/upstream.tmp" \
+     "$workspace/common.tmp" ;
+}
+
+#
+#-------------------------------------
+#
+mkdir -p $workspace
+
+merge_file="$1"
+if [ $# -eq 1 ]
+then
+  local_file=$merge_file
+else
+  local_file=$2
+fi
+merge $merge_file $local_file
+

@@ -1,3 +1,10 @@
-*.ipynb linguist-documentation
-*.tex   linguist-documentation
 *.html  linguist-documentation
+*.ipynb linguist-documentation
+*.cmake linguist-documentation
+*.txt   linguist-documentation
+*.tex   linguist-documentation
+
+
+tests/** linguist-detectable=true
+
+

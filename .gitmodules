@@ -1,3 +1,0 @@
-[submodule "src/libg3"]
-	path = src/libg3
-	url = ../../claudioperez/OpenSees.git

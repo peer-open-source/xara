@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Perez"
+  given-names: "Claudio"
+  orcid: "https://orcid.org/0000-0001-8156-2651"
+- family-names: "Mckenna"
+  given-names: "Frank"
+
+title: "xara"
+version: 0.0.64
+doi: 10.5281/zenodo.10456866
+date-released: 2024-08-18
+url: "https://github.com/peer-open-source/xara"

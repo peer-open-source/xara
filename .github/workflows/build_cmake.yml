@@ -1,0 +1,95 @@
+
+name: CMake Build
+
+env:
+  CMAKE_VERSION: 3.20.1
+  BUILD_TYPE: Debug
+
+on:
+  push:
+    branches: [test-build]
+
+#  pull_request:
+#    branches: [master]
+
+jobs:
+  build-ubuntu:
+    name: Ubuntu bundled build
+    runs-on: ubuntu-latest
+    steps:
+    #- uses: claudioperez/OpenSees@cmake-build
+    - uses: actions/checkout@v2
+      #with: {ref: cmake-build}
+
+    - name: Install Tcl
+      run:
+        sudo apt-get install tcl-dev
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DNoOpenSeesPyRT:BOOL=TRUE
+        cmake --build . --target OpenSeesRT -j8
+
+#   - name: Verification
+#     run: |
+#       cd build
+#       make trussExample
+#       make planeFrame
+
+        #ctest
+        #cd ./EXAMPLES/verification/ && ../../build/OpenSeesTcl runVerificationSuite.tcl
+
+  build-mac:
+    name: Mac Build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install Library
+        run: |
+         ln -s /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DNoOpenSeesPyRT:BOOL=TRUE
+          cmake --build . --target OpenSeesRT
+
+#     - name: Verification
+#       run: |
+#         cd ./EXAMPLES/Verification/
+
+
+# Not building on Windows until we can figure out how to use Fortran
+# with Github Actions
+# build-win32:
+#   name: Build on Windows
+#   runs-on: [windows-latest]
+#   steps:
+#   - uses: awvwgk/setup-fortran@v1
+#     with:
+#       compiler: "intel"
+#       version:  "2023.1"
+
+#   - name: Checkout sources
+#     uses: actions/checkout@v2
+#     with: {ref: cmake-build}
+#   
+#   - name: Install Conan
+#     uses: turtlebrowser/get-conan@main
+  
+  
+#   - name: Build
+#     run: |
+#       mkdir build
+#       cd build
+#       cmake ..
+#       cmake --build . --target OpenSeesRT -j5
+
+

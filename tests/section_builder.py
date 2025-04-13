@@ -150,7 +150,7 @@ for P in np.linspace(500, -8.5e6, 15):
 
     with sect as s:
         e = e0 = solve_axial(s,  k0,  P,  0.0)
-        
+
         # begin with two points so we can test the increment
         # in the while-loop
         PM = [
@@ -322,5 +322,5 @@ print(opensees.tcl.dumps(sect))
     	fiber   -25.0  -4.333333333333334  1.0  $uniaxialMaterial(<2>) 
     	fiber   -25.0  4.333333333333332  1.0  $uniaxialMaterial(<2>) 
     	fiber   -25.0  13.0  1.0  $uniaxialMaterial(<2>) 
-    } 
+    }
 """

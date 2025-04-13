@@ -1,8 +1,13 @@
 [requires]
-tcl/8.6.11
+tcl/8.6.13
 
 [options]
-tcl:shared=True
+tcl/*:shared=True
 
 [generators]
-cmake
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
+

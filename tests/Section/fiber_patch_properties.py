@@ -8,20 +8,20 @@ of patches layers and fibers.
  4   |    |  b   |    |
   __ |    |______|    |
      | a  |      | c  | 16
-     |    |      |    |   
+     |    |      |    |
      |    |      |    |
      |____|      |____| __
-     
+
      | 4  |  8   |  4 |
-  
+
 
 """
 
 def test_rectangles():
     sect = section.FiberSection(areas=[
-        patch.rect(vertices=[[-8,  0],[-4, 16]]),
-        patch.rect(vertices=[[-4, 12],[ 4, 16]]),
-        patch.rect(vertices=[[ 4,  0],[ 8, 16]]),
+        patch.rect(corners=[[-8,  0],[-4, 16]]),
+        patch.rect(corners=[[-4, 12],[ 4, 16]]),
+        patch.rect(corners=[[ 4,  0],[ 8, 16]]),
     ])
 
     assert sect.areas[0].ixc == 4*16**3/12

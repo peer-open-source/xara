@@ -1,0 +1,119 @@
+[project]
+name = "xara"
+version = "0.0.1"
+authors = [
+  {name="Claudio M Perez", email="50180406+claudioperez@users.noreply.github.com"}
+]
+
+
+readme = "about/README.pypi.md"
+
+description = "Nonlinear finite element analysis."
+
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Science/Research',
+    'Intended Audience :: Developers',
+
+    'Programming Language :: C',
+    'Programming Language :: C++',
+    'Programming Language :: Fortran',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3 :: Only',
+
+    'Topic :: Software Development',
+    'Topic :: Scientific/Engineering',
+
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX',
+    'Operating System :: Unix',
+    'Operating System :: MacOS',
+]
+
+keywords = [
+    "computational-mechanics",
+    "structural-analysis",
+    "finite-element-analysis",
+    "earthquake",
+    "engineering",
+    "berkeley",
+] 
+
+dependencies = [
+    "opensees"
+]
+
+[project.optional-dependencies]
+testing = [
+    "pytest >= 4.6",
+    "pytest-checkdocs >= 2.4",
+    "pytest-flake8",
+    "nbmake"
+]
+
+# py = ["openseespy"]
+
+
+[project.urls]
+Repository = "https://github.com/peer-open-source/xara"
+Documentation = "https://xara.so"
+Examples = "https://gallery.stairlab.io"
+
+[build-system]
+requires = [
+    "amoeba-build >= 0.0.12",
+    "pybind11",
+    "setuptools >= 52.0.2",
+]
+
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+my-client = "opensees.__main__:main_cli"
+
+[tool.setuptools.packages.find]
+where = ["SRC"]
+include=["xara*"]
+exclude = ["SRC*", "site*", "test*"]
+
+[tool.setuptools.package-data]
+opensees = ["*.py", "*.so", "*.dll", "*.dylib"]
+
+[tool.setuptools.exclude-package-data]
+opensees = ["site*", "docs*", "tools", "*.html", ".git*", "*.[htc]pp", "*.[ch]", "*.cmake", "*.tex", "*.txt"]
+
+
+[tool.cibuildwheel]
+# environment = {OPENSEESRT_LIB=""}
+# test-command = 'python -m opensees -c "puts test-interpreter"'
+manylinux-x86_64-image="manylinux2014"
+manylinux-aarch64-image="manylinux2014"
+skip=["pp*", "*i686*", "UNKNOWN*", "cp3[67]-*"]
+
+[tool.cibuildwheel.windows]
+skip = ["pp*", "*-win32", "*UNKNOWN", "cp3[678]-*", "cp31[4]-*"]
+
+[tool.cibuildwheel.macos]
+skip = ["pp*", "*i686*", "UNKNOWN*", "*musllinux*", "cp3[6789]-*"]
+
+
+[tool.cibuildwheel.linux]
+skip = ["pp*", "*i686*", "UNKNOWN*", "*musllinux*", "cp3[678]-*"]
+before-all = "yum install -y epel-release"
+before-build = "yum install -y tcl-devel mysql-devel openblas-devel" # lapack-devel
+repair-wheel-command = "auditwheel repair --exclude libOpenSeesRT.so  -w {dest_dir} {wheel}"
+
+
+[tool.cibuildwheel.linux.environment]
+# RUNNER_OS is a GitHub Actions specific env var; define it here so it works on Cirrus CI too
+RUNNER_OS="Linux"
+# /project will be the $PWD equivalent inside the docker used to build the wheel
+PKG_CONFIG_PATH="/project/.openblas"
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/project/.openblas/lib"
+

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+get_script() {
+  script_name="$(sed 's:/:_:' <<< $1)"
+  {
+    docker run --rm $1 
+  } > ./$script_name
+  chmod +x ./$script_name
+}
+
+case $1 in 
+  -h)
+   dockcross/manylinux2010-x86
+   dockcross/windows-shared-x86
+EOF
+  ;;
+  *)
+  get_script $1
+  ;;
+esac
+

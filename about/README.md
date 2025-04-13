@@ -2,27 +2,17 @@
 
 <img align="left" src="https://raw.githubusercontent.com/claudioperez/sdof/master/docs/assets/peer-black-300.png" width="150px" alt="PEER Logo">
 
-Fast nonlinear finite element analysis.
+Nonlinear finite element analysis.
 
 <br>
 
 <div style="align:center">
 
-<!--
-[![Latest conda-forge version](https://img.shields.io/conda/vn/conda-forge/opensees?logo=conda-forge&style=for-the-badge)](https://anaconda.org/conda-forge/opensees)
--->
-
-<!-- [![PyPI Downloads][pypi-v-image]][pypi-v-link] -->
-
-[![Latest PyPI version](https://img.shields.io/pypi/v/opensees?logo=pypi&style=for-the-badge)](https://pypi.python.org/pypi/opensees)
-[![](https://img.shields.io/conda/v/opensees/opensees?color=%23660505&style=for-the-badge)](https://anaconda.org/opensees/opensees)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/opensees?style=for-the-badge)](https://pypi.org/project/opensees)
+[![Latest PyPI version](https://img.shields.io/pypi/v/opensees?logo=pypi)](https://pypi.python.org/pypi/opensees)
+[![](https://img.shields.io/conda/v/opensees/opensees?color=%23660505)](https://anaconda.org/opensees/opensees)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/opensees)](https://pypi.org/project/opensees)
 
 </div>
-
-<!-- 
--------------------------------------------------------------------- 
--->
 
 
 `opensees` is a Python package that provides an intuitive API for nonlinear
@@ -32,7 +22,7 @@ algorithms, including mixed formulations for beams and solids, over 200 material
 extensive collection of continuation algorithms to solve highly nonlinear
 problems. 
 
-The `opensees` package supports high quality interactive post processing via the
+The `opensees` package supports interactive post processing via the
 [`sees`](https://pypi.org/project/sees) package.
 
 
@@ -150,17 +140,9 @@ For more projects by the STAIRlab, visit https://github.com/STAIRlab .
 ## Support
 
 <table align="center" style="border: 0;">
- <tr style="background-color:rgba(0, 0, 0, 0);">
-  <td style="background-color:rgba(0, 0, 0, 0);" colspan="3">
-    <a>
-    <img src="https://raw.githubusercontent.com/claudioperez/opensees/master/docs/figures/opensees.svg" 
-         width="600" alt="OpenSeesRT Logo">
-    </a>
-  </td>
- </tr>
 
-<tr>
-  <td>
+ <tr style="background-color:rgba(0, 0, 0, 0);">
+  <td style="background-color:rgba(0, 0, 0, 0);" >
     <a href="https://peer.berkeley.edu">
     <img src="https://raw.githubusercontent.com/claudioperez/sdof/master/docs/assets/peer-black-300.png"
          alt="PEER Logo" width="200"/>

@@ -1,0 +1,26 @@
+name: Install OpenSees on Push to Master
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-pip-install:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+
+    - name: Install OpenSees
+      run: pip install opensees xara veux
+

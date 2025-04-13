@@ -1,4 +1,3 @@
-
 # Documentation
 *.fig
 *.pstex*
@@ -12,9 +11,12 @@ docs/static/????????????????????????????????????????.png
 docs/api/
 doc/
 out/
+build
+bin
 ci/
 src/emme/data
 src/emme/seismic
+CMakeUserPresets.json
 
 # Editor
 .vscode/
@@ -37,7 +39,7 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
+*.whl
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
@@ -150,3 +152,91 @@ zeros/
 zeros.txt
 wheelhouse/
 plantuml-images
+
+archive/
+# Prerequisites
+*.d
+
+# old text editor files
+*~
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so*
+*.dylib
+*.dll
+*.pyd
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.out
+*.app
+
+# Visual Studio
+*.vcxproj.user
+*.bsc
+*.pdb
+.vs
+obj
+*.exp
+out/
+
+# CLion
+.idea
+.dropbox.attr
+
+# VSCode
+.vscode
+.clang-format
+
+# OTHER
+Makefile.def
+PlainConcrete.f
+forumat.f
+Damage2p.cpp
+Damage2p.h
+Damage2p3D.cpp
+Damage2p3D.h
+Damage2pThanh.tar
+Damage2ppstress.cpp
+Damage2ppstress.h
+Faria1998.cpp
+Faria1998.h
+Faria1998PlaneStrain.cpp
+Faria1998PlaneStrain.h
+Faria1998PlaneStress.cpp
+Faria1998PlaneStress.h
+Faria1998PlaneStress2d.cpp
+Faria1998PlaneStress2d.h
+Faria1998ThreeDimensional.cpp
+Faria1998ThreeDimensional.h
+SRC/interpreter/pythonInterpreter
+SRC/interpreter/tclInterpreter
+SRC/interpreter/openseespy
+SRC/interpreter/openseestcl
+filip
+PML
+CPlaneStrain.h
+CPlaneStress.h
+CPlaneStress2d.h
+CThreeDimensional.h
+Concrete.h
+forumat.for

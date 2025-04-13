@@ -1,39 +1,22 @@
 # Compiling
 
-1. Clone the package repository with submodules:
+1. Clone the package repository:
    ``` shell
-   git clone --recurse-submodules https://github.com/claudioperez/opensees
+   git clone https://github.com/claudioperez/OpenSeesRT
    ```
-   This will additionally clone the [`claudioperez/OpenSeesRT`](https://github.com/claudioperez/OpenSeesRT) repository,
-   which is a fork of OpenSees where most of the global variables have been relegated to various "runtime" classes 
-   (see the added `SRC/runtime/` directory).
 
-
-2. Install *compile-time* dependencies; see **Dependencies** below. Note that
-   *run-time* dependencies are handled in the next step automatically by `pip`.
-
-
-3. Install the package:
-   ``` shell
-   python -m pip install -e .
+2. install *run-time* dependencies. These are the libraries that will be needed 
+   in order to use OpenSees. To install these, run:
+   ```bash
+   python -m pip install opensees
    ```
-   This will (1) carry out a full build, (2) copy the build artifacts into
-   the project source directory, (3) install the `opensees` package
-   into the current Python environment, and (4) remove the build directory. 
 
-   If you do not expect to actively develop in C/C++, nothing else needs to
-   be done. However, for users planning to actively develop in C/C++, it is 
-   convenient to set up a *persistent* build directory that does not
-   get cleaned out by `pip`. This is explained in the optional step 5.
 
-4. Check that everything was built properly by running the following command:
-   ```shell
-   python -m opensees
-   ```
-   This should start an OpenSees interpreter which can be closed by running
-   the `exit` command.
+2. Install *compile-time* dependencies; see **Dependencies** below. These dependencies are only
+   needed for the compilinf process.
 
-5. (Optional) Create a *persistent* build tree for C/C++ development:
+
+3. Create a *persistent* build tree for C/C++ development:
 
    1. Run the CMake *configure* operation. This should be carried out
       by running the following command:
@@ -64,6 +47,19 @@
       package needs to be told where to find it. This can be done by setting
       an environment variable with the name `OPENSEESRT_LIB` to point to
       the location of `libOpenSeesRT.so` in the build tree.
+      To this end, you may want to add a line llike the following to your shell
+      startup script (e.g., `.bashrc`):
+      ```bash
+      export OPENSEESRT_LIB="/path/to/your/compiled/libOpenSeesRT.so"
+      ```
+
+4. Check that everything was built properly by running the following command:
+   ```shell
+   python -m opensees
+   ```
+   This should start an OpenSees interpreter which can be closed by running
+   the `exit` command.
+
 
 ## Dependencies
 
