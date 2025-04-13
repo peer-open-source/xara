@@ -420,10 +420,12 @@ PrismFrame3d::getResistingForce()
   pg  = theCoordTransf->pushResponse(pl);
   pg += theCoordTransf->pushConstant(pf);
 
+  opserr << "pg  = " << wrapper;
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
 
+  opserr << "pgi = " << wrapper;
   return wrapper;
 }
 
