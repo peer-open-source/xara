@@ -599,7 +599,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
                 si[ii] = xL1 * q_trial[imz] + xL * q_trial[jmz];
                 break;
               case FrameStress::Bimoment:
-                si[ii] = xL1 * q_trial[imx] + xL * q_trial[6];
+                si[ii] = xL1 * q_trial[jmx] + xL * q_trial[6];
                 break;
             }
           }
