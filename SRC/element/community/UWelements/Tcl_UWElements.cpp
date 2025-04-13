@@ -57,7 +57,7 @@ TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Ch
   static int num_SSPbrick;
   if (num_SSPbrick == 0) {
     num_SSPbrick++;
-    opserr << "SSPbrick element - Written: C.McGann, P.Arduino, "
+    opslog << "SSPbrick element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -125,7 +125,7 @@ TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   static int num_SSPbrickUP;
   if (num_SSPbrickUP == 0) {
     num_SSPbrickUP++;
-    opserr << "SSPbrickUP element - Written: C.McGann, P.Arduino, "
+    opslog << "SSPbrickUP element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -223,7 +223,7 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
   static int num_SSPquad;
   if (num_SSPquad == 0) {
     num_SSPquad++;
-    opserr << "SSPquad element - Written: C.McGann, P.Arduino, "
+    opslog << "SSPquad element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -367,7 +367,7 @@ TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
   static int num_SSPquadUP;
   if (num_SSPquadUP == 0) {
     num_SSPquadUP++;
-    opserr << "SSPquadUP element - Written: C.McGann, P.Arduino, "
+    opslog << "SSPquadUP element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -456,7 +456,7 @@ TclDispatch_BeamContact2D(ClientData clientData, Tcl_Interp* interp, int argc, T
 
   if (num_BeamContact2D == 0) {
     num_BeamContact2D++;
-    opserr << "BeamContact2D element - Written: C.McGann, P.Arduino, "
+    opslog << "BeamContact2D element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -530,7 +530,7 @@ TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
 
   if (num_BeamContact2Dp == 0) {
     num_BeamContact2Dp++;
-    opserr << "BeamContact2Dp element - Written: C.McGann, P.Arduino, "
+    opslog << "BeamContact2Dp element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -606,7 +606,7 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
 
   if (num_BeamContact3D == 0) {
     num_BeamContact3D++;
-    opserr << "BeamContact3D element - Written: K.Petek, P.Arduino, "
+    opslog << "BeamContact3D element - Written: K.Petek, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -706,7 +706,7 @@ TclDispatch_BeamContact3Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
 
   if (num_BeamContact3Dp == 0) {
     num_BeamContact3Dp++;
-    opserr << "BeamContact3Dp element - Written: K.Petek, C.McGann, P.Arduino, "
+    opslog << "BeamContact3Dp element - Written: K.Petek, C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -807,7 +807,7 @@ TclDispatch_BeamEndContact3D(ClientData clientData, Tcl_Interp* interp, int argc
 
   if (num_BeamEndContact3D == 0) {
     num_BeamEndContact3D++;
-    opserr << "BeamEndContact3D element - Written: C.McGann, P.Arduino, "
+    opslog << "BeamEndContact3D element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -879,7 +879,7 @@ TclDispatch_BeamEndContact3Dp(ClientData clientData, Tcl_Interp* interp, int arg
 
   if (num_BeamEndContact3Dp == 0) {
     num_BeamEndContact3Dp++;
-    opserr << "BeamEndContact3Dp element - Written: C.McGann, P.Arduino, "
+    opslog << "BeamEndContact3Dp element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -948,7 +948,7 @@ static Element *OPS_Brick8FiberOverlay(void)
 
   if (num_Brick8FiberOverlay == 0) {
     num_Brick8FiberOverlay++;
-    opserr << "Brick8FiberOverlay element - Written: M.Chiaramonte, P.Arduino, "
+    opslog << "Brick8FiberOverlay element - Written: M.Chiaramonte, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -1019,7 +1019,7 @@ static Element *OPS_EmbeddedBeamInterfaceL(void)
 
   if (num_EmbeddedBeamInterfaceL == 0) {
     num_EmbeddedBeamInterfaceL++;
-    opserr << "EmbeddedBeamInterfaceL element - Written: A.Ghofrani, "
+    opslog << "EmbeddedBeamInterfaceL element - Written: A.Ghofrani, "
               "D.Turello, P.Arduino, U.Washington\n";
   }
 
@@ -1063,7 +1063,7 @@ static Element *OPS_EmbeddedBeamInterfaceP(void)
 
   if (num_EmbeddedBeamInterfaceP == 0) {
     num_EmbeddedBeamInterfaceP++;
-    opserr << "EmbeddedBeamInterfaceP element - Written: A.Ghofrani, "
+    opslog << "EmbeddedBeamInterfaceP element - Written: A.Ghofrani, "
               "D.Turello, P.Arduino, U.Washington\n";
   }
 
@@ -1108,7 +1108,7 @@ static Element *OPS_EmbeddedEPBeamInterface(void)
 
   if (num_EmbeddedEPBeamInterface == 0) {
     num_EmbeddedEPBeamInterface++;
-    opserr << "EmbeddedEPBeamInterface element - Written: A.Ghofrani, "
+    opslog << "EmbeddedEPBeamInterface element - Written: A.Ghofrani, "
               "D.Turello, P.Arduino, U.Washington\n";
   }
 
@@ -1156,7 +1156,7 @@ TclDispatch_PileToe3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
     num_PileToe3D++;
     // OPS_Error("PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein,
     // U.Washington\n", 1);
-    opserr << "PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, "
+    opslog << "PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, "
               "U.Washington\n";
   }
 
@@ -1232,7 +1232,7 @@ static Element *OPS_Quad4FiberOverlay(void)
 
   if (num_Quad4FiberOverlay == 0) {
     num_Quad4FiberOverlay++;
-    opserr << "Quad4FiberOverlay element - Written: M.Chiaramonte, P.Arduino, "
+    opslog << "Quad4FiberOverlay element - Written: M.Chiaramonte, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -1303,7 +1303,7 @@ static Element *OPS_QuadBeamEmbedContact(void)
 
   if (num_QuadBeamEmbedContact == 0) {
     num_QuadBeamEmbedContact++;
-    opserr << "QuadBeamEmbedContact element - Written: A.Ghofrani, P.Arduino, "
+    opslog << "QuadBeamEmbedContact element - Written: A.Ghofrani, P.Arduino, "
               "U.Washington\n";
   }
 
@@ -1370,7 +1370,7 @@ TclDispatch_SimpleContact2D(ClientData clientData, Tcl_Interp* interp, int argc,
     num_SimpleContact2D++;
     // OPS_Error("SimpleContact2D element - Written: K.Petek, P.Arduino,
     // P.Mackenzie-Helnwein, U.Washington\n", 1);
-    opserr << "SimpleContact2D element - Written: K.Petek, P.Arduino, "
+    opslog << "SimpleContact2D element - Written: K.Petek, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
@@ -1434,7 +1434,7 @@ TclDispatch_SimpleContact3D(ClientData clientData, Tcl_Interp* interp, int argc,
   static int num_SimpleContact3D;
   if (num_SimpleContact3D == 0) {
     num_SimpleContact3D++;
-    opserr << "SimpleContact3D element - Written: K.Petek, P.Arduino, "
+    opslog << "SimpleContact3D element - Written: K.Petek, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
