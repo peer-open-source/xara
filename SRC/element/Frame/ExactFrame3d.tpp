@@ -362,7 +362,7 @@ ExactFrame3d<nen,nwm>::update()
     // Material Tangent
     MatrixND<ndf,ndf> Kjk;
     for (unsigned j=0; j<nen; j++) {
-      for (int k=0; k<nen; k++) {
+      for (unsigned k=0; k<nen; k++) {
         Kjk.addMatrixTripleProduct(0.0, B[j], Ks, B[k], pres[i].weight);
 
         for (int ii=0; ii<ndf; ii++) {
