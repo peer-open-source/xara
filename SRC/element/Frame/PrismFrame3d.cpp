@@ -371,9 +371,6 @@ PrismFrame3d::update()
 
   q  = ke*v;
 
-  opserr << "q  = " << Vector(q);
-  opserr << "v  = " << Vector(v);
-  opserr << "q0 = " << Vector(q0);
   q += q0;
 
   return ok;
@@ -428,8 +425,6 @@ PrismFrame3d::getResistingForce()
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
 
-  
-  opserr << "pg  = " << wrapper;
   return wrapper;
 }
 
@@ -912,6 +907,11 @@ PrismFrame3d::setParameter(const char **argv, int argc, Parameter &param)
     return param.addObject(Param::E,  this);
   }
 
+  if (strcmp(argv[0],"rho") == 0) {
+    param.setValue(rho);
+    return param.addObject(Param::Rho, this);
+  }
+
   if (strcmp(argv[0],"A") == 0) {
     param.setValue(A);
     return param.addObject(Param::A,  this);
@@ -947,6 +947,15 @@ PrismFrame3d::setParameter(const char **argv, int argc, Parameter &param)
     return param.addObject(Param::J, this);
   }
 
+  if (strcmp(argv[0],"releasez") == 0) {
+    param.setValue(releasez);
+    return param.addObject(Param::HingeZ, this);
+  }
+
+  if (strcmp(argv[0],"releasey") == 0) {
+    param.setValue(releasey);
+    return param.addObject(Param::HingeY, this);
+  }
   return -1;
 }
 
@@ -977,6 +986,22 @@ PrismFrame3d::updateParameter(int param, Information &info)
         return 0;
       case Param::J:
         Jx = info.theDouble;
+        return 0;
+
+      case Param::Rho:
+        rho = info.theDouble;
+        return 0;
+      
+      case Param::HingeZ:
+        releasez = (int)info.theDouble;
+        if (releasez < 0 || releasez > 3)
+          releasez = 0;
+        return 0;
+
+      case Param::HingeY:
+        releasey = (int)info.theDouble;
+        if (releasey < 0 || releasey > 3)
+          releasey = 0;
         return 0;
 
       default:

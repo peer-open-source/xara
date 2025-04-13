@@ -112,6 +112,9 @@ protected:
 
    Vector p_iner;
 
+   // TODO: Remove
+  //  int releasez; // moment release for bending about z-axis 0=none, 1=I, 2=J, 3=I,J
+  //  int releasey; // same for y-axis
 private:
    int cMass;
    double rho;
@@ -120,8 +123,5 @@ private:
    double total_mass,
           twist_mass;
 
-   // TODO: Remove
-    int releasez; // moment release for bending about z-axis 0=none, 1=I, 2=J, 3=I,J
-    int releasey; // same for y-axis
 };
 

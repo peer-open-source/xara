@@ -97,7 +97,7 @@ class PrismFrame3d : public BasicFrame3d
     constexpr static int NEN = 2;
     constexpr static int NBV = 6;
     struct Param {
-      enum {E, G, A, Ay, Az, Iy, Iz, J};
+      enum {E, G, A, Ay, Az, Iy, Iz, J, HingeY, HingeZ, Rho};
     };
 
     void formBasicStiffness(OpenSees::MatrixND<6,6>& kb) const;

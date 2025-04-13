@@ -220,6 +220,8 @@ BasicFrame3d::zeroLoad()
 int 
 BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
+  constexpr int releasey = 0;
+  constexpr int releasez = 0;
   //
   // TODO:
   //
@@ -314,12 +316,10 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
     p0[3] = Pz*(1.0-a/L); // V1
     p0[4] = Pz*a/L; // V2
 
-
+    // Fixed end forces in basic system
     double L2 = 1.0/(L*L);
     double a2 = a*a;
     double b2 = b*b;
-
-    // Fixed end forces in basic system
     q0[0] -= N*a/L;
     double M1 = -a * b2 * Py * L2;
     double M2 = a2 *  b * Py * L2;
@@ -340,7 +340,7 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
       const double c  = 0.5 * (b + a);
       double cOverL = c / L;
 
-      double P = wa * (b - a);
+      double P  = wa * (b - a);
       double Fy = wy * (b - a);
       double Fz = wz * (b - a);
 
@@ -445,22 +445,6 @@ BasicFrame3d::setParameter(const char **argv, int argc, Parameter &param)
   if (strcmp(argv[0],"updateMaterialStage") == 0) {
     return -1;
   }
-  
-  // If the parameter belongs to the element itself
-  if (strcmp(argv[0],"rho") == 0) {
-    param.setValue(rho);
-    return param.addObject(1, this);
-  }
-
-  // moment release
-  if (strcmp(argv[0],"releasez") == 0) {
-    param.setValue(releasez);
-    return param.addObject(7, this);
-  }
-  if (strcmp(argv[0],"releasey") == 0) {
-    param.setValue(releasey);
-    return param.addObject(8, this);
-  }  
 
   return -1;
 }
@@ -468,27 +452,7 @@ BasicFrame3d::setParameter(const char **argv, int argc, Parameter &param)
 int
 BasicFrame3d::updateParameter(int paramID, Information &info)
 {
-    switch (paramID) {
-      case -1:
-        return -1;
-
-      case 1:
-        rho = info.theDouble;
-        return 0;
-      
-      case 7:
-        releasez = (int)info.theDouble;
-        if (releasez < 0 || releasez > 3)
-          releasez = 0;
-        return 0;
-      case 8:
-        releasey = (int)info.theDouble;
-        if (releasey < 0 || releasey > 3)
-          releasey = 0;
-        return 0;                          
-      default:
-        return -1;  
-    }
+  return -1;
 }
 
 int
@@ -503,11 +467,11 @@ void
 //BasicFrame3d::computeReactions(VectorND<6>& p0)
 BasicFrame3d::computeReactions(double* p0)
 {
-  int type;
   double L = theCoordTransf->getInitialLength();
 
   for (auto[load, loadFactor] : eleLoads) {
 
+    int type;
     const  Vector& data = load->getData(type, loadFactor);
 
     if (type == LOAD_TAG_Beam3dUniformLoad) {
@@ -575,16 +539,15 @@ BasicFrame3d::computeReactions(double* p0)
 void
 BasicFrame3d::addReactionGrad(double* dp0dh, int gradNumber)
 {
-  int type;
   double L = theCoordTransf->getInitialLength();
 
   double dLdh = theCoordTransf->getLengthGrad();
 
-//for (int i = 0; i < numEleLoads; i++) {
   for (auto[load, loadFactor] : eleLoads) {
 
 //  ElementalLoad& load = *eleLoads[i];
 
+    int type;
     const Vector& data = load->getData(type, 1.0);
 
     if (type == LOAD_TAG_Beam3dUniformLoad) {

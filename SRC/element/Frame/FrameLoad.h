@@ -176,7 +176,6 @@ public:
             Vector3D px,mx,rx;
             rx = r[q];
             rx[0] = 0.0;
-            // rx = R*(R0^rx);
             rx = R*(R0*rx);
             switch (basis) {
                 case Embedding:
