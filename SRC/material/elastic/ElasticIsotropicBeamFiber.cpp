@@ -23,7 +23,7 @@
 //
 // Description: Elastic isotropic model where stress components 22, 33, and 23
 // are condensed out.
-
+//
 #include <ElasticIsotropicBeamFiber.h>           
 #include <Channel.h>
 #include <string.h>
@@ -116,13 +116,13 @@ ElasticIsotropicBeamFiber::getStress()
 }
 
 const Vector&
-ElasticIsotropicBeamFiber::getStrain (void)
+ElasticIsotropicBeamFiber::getStrain ()
 {
   return Tepsilon;
 }
 
 int
-ElasticIsotropicBeamFiber::commitState (void)
+ElasticIsotropicBeamFiber::commitState ()
 {
   return 0;
 }
