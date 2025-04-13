@@ -246,7 +246,7 @@ ExactFrame3d<nen,nwm>::update()
   // Collect nodal parameters
   //
   VectorND<ndf> ddu[nen];
-  for (int i=0; i < nen; i++) {
+  for (unsigned i=0; i < nen; i++) {
     const Vector& ddui = theNodes[i]->getIncrDeltaDisp();
     for (int j=0; j<ndf; j++)
       ddu[i][j] = ddui[j];
@@ -255,7 +255,7 @@ ExactFrame3d<nen,nwm>::update()
   // Form displaced node locations xyz
   VectorND<ndm> xyz[nen];
   double uwarp[nen][nwm]{};
-  for (int i=0; i < nen; i++) {
+  for (unsigned i=0; i < nen; i++) {
     const Vector& xi = theNodes[i]->getCrds();
     const Vector& ui = theNodes[i]->getTrialDisp();
     for (int j=0; j<ndm; j++)
