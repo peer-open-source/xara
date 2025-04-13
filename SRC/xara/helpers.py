@@ -187,7 +187,8 @@ class Prism:
                  geometry:  str = None,
                  transform: str = None,
                  divisions: int = 1,
-                 rotation = None):
+                 rotation = None,
+                 shear = True):
 
         self.length    = length
         self.element   = element
@@ -196,10 +197,10 @@ class Prism:
         self.geometry  = geometry
         self.transform = transform
         self.divisions = divisions
-        self.use_shear = True
+        self.use_shear = shear
         self.rotation = rotation
 
-    def create_model(self, ndm=3):
+    def create_model(self, ndm=3, file=None):
         import opensees.openseespy as ops
 
         L  = self.length
@@ -214,8 +215,9 @@ class Prism:
         # Number of integration points along each element
         nIP = 5
         nn = ne + 1
-
-        model = ops.Model(ndm=ndm)
+        if file is not None:
+            file = open(file, "w+")
+        model = ops.Model(ndm=ndm, echo_file=file)
 
         for i in range(1, nn+1):
             x = (i-1)/float(ne)*L
@@ -272,12 +274,14 @@ class Prism:
             if self.geometry is None or self.geometry == "Linear" or "Exact" in elem_type:
                 model.element(elem_type, i, (i, i+1),
                             section=sec_tag,
-                            transform=geo_tag)
+                            transform=geo_tag,
+                            shear=int(self.use_shear))
             else:
                 model.element(elem_type, i, (i, i+1),
                             section=sec_tag,
                             order={"Linear": 0, "delta": 1}[self.geometry],
-                            transform=geo_tag)
+                            transform=geo_tag,
+                            shear=int(self.use_shear))
 
         return model
 
