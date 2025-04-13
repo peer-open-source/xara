@@ -370,6 +370,10 @@ PrismFrame3d::update()
     }
 
   q  = ke*v;
+
+  opserr << "q  = " << Vector(q);
+  opserr << "v  = " << Vector(v);
+  opserr << "q0 = " << Vector(q0);
   q += q0;
 
   return ok;
@@ -420,12 +424,12 @@ PrismFrame3d::getResistingForce()
   pg  = theCoordTransf->pushResponse(pl);
   pg += theCoordTransf->pushConstant(pf);
 
-  opserr << "pg  = " << wrapper;
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
 
-  opserr << "pgi = " << wrapper;
+  
+  opserr << "pg  = " << wrapper;
   return wrapper;
 }
 
