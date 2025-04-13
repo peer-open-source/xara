@@ -277,7 +277,7 @@ ExactFrame3d<nen,nwm>::update()
     Vector3D theta  {0.0};
     Vector3D dtheta {0.0};
 
-    for (int j=0; j < nen; j++) {
+    for (unsigned j=0; j < nen; j++) {
       for (int l=0; l<3; l++)
         dx[l]     += pres[i].shape[1][j]*xyz[j][l];
       for (int l=0; l<3; l++)
@@ -289,13 +289,13 @@ ExactFrame3d<nen,nwm>::update()
     double warp[nwm]{};
     double dwarp[nwm]{};
     if (false) {//(nsr == 7 && scheme[6] == FrameStress::Bishear) {
-      for (int j=0; j < nen; j++)
+      for (unsigned j=0; j < nen; j++)
         ;
         // dwarp += pres[i].shape[0][j]*uwarp[j];
     }
     else {//if (nsr == 8 && scheme[6] == FrameStress::Bishear) {
       for (int k=0; k<nwm; k++) {
-        for (int j=0; j < nen; j++) {
+        for (unsigned j=0; j < nen; j++) {
           warp[k]  += pres[i].shape[0][j]*uwarp[j][k];
           dwarp[k] += pres[i].shape[1][j]*uwarp[j][k];
         }
