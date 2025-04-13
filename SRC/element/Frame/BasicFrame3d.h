@@ -30,11 +30,11 @@ class BasicFrame3d : public FiniteElement<2, 3, 6> {
     BasicFrame3d(int tag, int clstag,
                  std::array<int, 2> &nodes, 
                  FrameTransform3d& tran)
-      : FiniteElement<2, 3, 6> (tag, clstag, nodes), 
-        theCoordTransf(tran.getCopy()),
-        wx(0.0), wy(0.0), wz(0.0),
-        p_iner(12),
-        parameterID(0)
+    : FiniteElement<2, 3, 6> (tag, clstag, nodes), 
+      theCoordTransf(tran.getCopy()),
+      wx(0.0), wy(0.0), wz(0.0),
+      p_iner(12),
+      parameterID(0)
     {
         zeroLoad();
 
