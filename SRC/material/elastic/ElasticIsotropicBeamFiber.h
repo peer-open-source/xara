@@ -46,10 +46,10 @@ class ElasticIsotropicBeamFiber : public ElasticIsotropicMaterial
     int setTrialStrain (const Vector &v, const Vector &r);
     int setTrialStrainIncr (const Vector &v);
     int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
+    const Matrix &getTangent();
+    const Matrix &getInitialTangent();
+    const Vector &getStress();
+    const Vector &getStrain();
         
     int commitState (void);
     int revertToLastCommit (void);
