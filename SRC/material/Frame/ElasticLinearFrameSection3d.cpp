@@ -136,7 +136,8 @@ ElasticLinearFrameSection3d::getConstants(FrameSectionConstants& consts) const
   if (G != 0) {
     consts.Ay  =  (K(1,10) + K(1,1))/G;
     consts.Az  =  (K(2,11) + K(2,2))/G;
-    consts.Ca  =  K(7,7)/G;
+    consts.Ca  =  K(9,9)/G;
+    consts.Cw  =  K(6,6)/E;
   } else {
     consts.Ay  =  0;
     consts.Az  =  0;
@@ -491,9 +492,12 @@ ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
     s << "\"A\": "   << consts.A   << ", ";
     s << "\"Ay\": "  << consts.Ay  << ", ";
     s << "\"Az\": "  << consts.Az  << ", ";
-    s << "\"Jx\": " <<        J  << ", ";
     s << "\"Iy\": " << consts.Iy << ", ";
-    s << "\"Iz\": " << consts.Iz;
+    s << "\"Iz\": " << consts.Iz << ", ";
+
+    s << "\"Jx\": " <<        J << ", ";
+    s << "\"Ca\": " << consts.Ca << ", ";
+    s << "\"Cw\": " << consts.Cw ;
 
     double mass;
     if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0) {
