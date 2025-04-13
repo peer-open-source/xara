@@ -57,6 +57,7 @@
 
 #define ARPACK_ICB
 
+#if !defined(ARPACK_ICB)
 extern "C" void DSAUPD(int *ido, char* bmat, 
                        int *n, char *which,
                        int *nev, 
@@ -73,6 +74,7 @@ extern "C" void DSEUPD(bool *rvec, char *howmny,
                        double *v,
                        int *ldv, int *iparam, int *ipntr, double *workd, 
                        double *workl, int *lworkl, int *info);
+#endif 
 
 static double *workArea = nullptr;
 static int sizeWork = 0;
@@ -164,7 +166,6 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
     numModesMax = numModes;
   }
 
-  int counter = 0;
   int ido = 0;
   int ierr = 0;
   double tol = 0.0;
