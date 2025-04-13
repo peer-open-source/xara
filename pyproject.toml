@@ -46,7 +46,9 @@ keywords = [
 ] 
 
 dependencies = [
-    "opensees"
+    "opensees",
+    "shps",
+    "mdof"
 ]
 
 [project.optional-dependencies]
