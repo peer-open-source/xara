@@ -41,7 +41,8 @@ class PrismFrame3d : public BasicFrame3d
 		             FrameTransform3d &theTransf,
                  double density, int mass_flag, bool use_mass,
 		             int releasez, int releasey,
-                 int geom);
+                 int geom,
+                 int shear_flag);
 
     PrismFrame3d();
 

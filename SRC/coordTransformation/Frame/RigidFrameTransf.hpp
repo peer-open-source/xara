@@ -5,35 +5,35 @@
 //===----------------------------------------------------------------------===//
 //
 // Description: This file contains the class definition for
-// LinearFrameTransf.h. LinearFrameTransf provides the
+// RigidFrameTransf.h. RigidFrameTransf provides the
 // abstraction of a linear transformation for a spatial frame
 // between the global and basic coordinate systems
 //
-// Written: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
-// Created: 04/2000
+// Written: cmp
+// Created: 04/2025
 //
-#ifndef LinearFrameTransf_hpp
-#define LinearFrameTransf_hpp
+#ifndef RigidFrameTransf_hpp
+#define RigidFrameTransf_hpp
 
 #include <array>
 #include <FrameTransform.h>
 #include <Vector3D.h>
 #include <MatrixND.h>
 
-template <int nn, int ndf>
-class LinearFrameTransf: public FrameTransform<nn,ndf>
+template <int nn, int ndf, typename BasisT>
+class RigidFrameTransf: public FrameTransform<nn,ndf>
 {
 public:
     constexpr static int n = nn*ndf;
 
-    LinearFrameTransf(int tag, 
+    RigidFrameTransf(int tag, 
                       const Vector3D &vecxz,
                       const std::array<Vector3D, nn> *offset=nullptr,
                       int offset_flags = 0);
 
-    ~LinearFrameTransf();
+    ~RigidFrameTransf();
     
-    const char *getClassType() const {return "LinearFrameTransf";}
+    const char *getClassType() const {return "RigidFrameTransf";}
     
     virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const;
     
@@ -62,9 +62,9 @@ public:
 
     // Sensitivity
     //
-    const Vector & getBasicDisplFixedGrad();
-    const Vector & getBasicDisplTotalGrad(int gradNumber);
-    const Vector &getGlobalResistingForceShapeSensitivity (const Vector &basicForce, const Vector &p0, int grad);
+    // const Vector & getBasicDisplFixedGrad();
+    // const Vector & getBasicDisplTotalGrad(int gradNumber);
+    // const Vector &getGlobalResistingForceShapeSensitivity (const Vector &basicForce, const Vector &p0, int grad);
     bool isShapeSensitivity();
     double getLengthGrad();
     double getd1overLdh();
@@ -72,9 +72,6 @@ public:
     // TaggedObject
     void Print(OPS_Stream &s, int flag = 0);
 
-    // Personal
-    Vector3D getDelta() {return Du;}
-            
 private:
 
     int computeElemtLengthAndOrient();
@@ -108,19 +105,19 @@ private:
     }
 
     std::array<Node*, nn> nodes;
-    Vector3D Du;
+    std::array<Vector3D, nn> ur; // rotation vector
+    std::array<Vector3D, nn> ux; // displacement vector
 
     std::array<Vector3D, nn> *offsets;
     int offset_flags;
 
     Vector3D xi, xj, vz;
-    Matrix3D R;         // rotation matrix
+    Matrix3D R0;        // rotation matrix
     double L;           // undeformed element length
 
-    std::array<VectorND<ndf>*, nn> u_init;
-    bool initialDispChecked;
+    BasisT basis;
 };
 
-#include "LinearFrameTransf.tpp"
+#include "RigidFrameTransf.tpp"
 #endif
 

@@ -23,68 +23,19 @@ class ElasticLinearFrameSection3d : public FrameSection
 {
 
  public:
-  // Constructor like ElasticSection3d
-  ElasticLinearFrameSection3d(int tag, double E, double A, 
-                              double Iz, double Iy, double G, double J,
-                              double mass, bool use_mass)
-    : ElasticLinearFrameSection3d(tag, 
-                                    E,   G, 
-                                    A,
-                                   Iy,  Iz, 0.0,
-                                  0.0, Iy+Iz-J,       // Cw, Ca
-                                  0.0, 0.0,           // Q
-                                  0.0, 0.0, 0.0,      // R
-                           -(Iy+Iz-J), 0.0, 0.0,      // S
-                                  mass, use_mass)
-  {}
-
-  // Constructor like ElasticSection2d
-  ElasticLinearFrameSection3d(int tag, double E, double A, double Iz, double mass, bool use_mass)
-    : ElasticLinearFrameSection3d(tag, 
-                                    E, 0.0,           // Material
-                                    A,                // Axial
-                                  0.0,  Iz, 0.0,      // Flexure
-                                  0.0, 0.0,           // Warping (Cw, Ca)
-                                  0.0, 0.0,
-                                  0.0, 0.0, 0.0,
-                                  0.0, 0.0, 0.0,
-                                  mass, use_mass)
-  {}
-
-  // Full constructor
   ElasticLinearFrameSection3d(int tag, 
-      double E, 
-      double G, 
-      // n-n
-      double A,
-      // m-m
-      double Iy,
-      double Iz,
-      double Iyz,
-      // w-w
-      double Cw,
-      double Ca,
-      // n-m
-      double cy,
-      double cz,
-      // n-w
-      double Rw,
-      double Ry,
-      double Rz,
-      // m-w
-      double Sa,
-      double Sy,
-      double Sz,
-      //
-      double mass,
-      bool   use_mass
+              double E, 
+              double G, 
+              const FrameSectionConstants&,
+              double mass,
+              bool   use_mass
   );
 
   ElasticLinearFrameSection3d();
   ~ElasticLinearFrameSection3d();
 
   const char *getClassType() const {
-       return "ElasticLinearFrameSection3d";
+       return "ElasticFrameSection3d";
   }
   
   int commitState();

@@ -83,7 +83,7 @@ public:
   MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
 
   //
-  virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) =0;
+  virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const =0;
 
   // Recorders
   virtual Response *setResponse(const char **argv, int argc, 
@@ -95,13 +95,39 @@ public:
   };
 
   // Sensitivity
-  virtual const Vector &getBasicDisplTotalGrad(int grad)=0;
-  virtual const Vector &getBasicDisplFixedGrad()=0;
-  virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int grad)=0;
+  // virtual const Vector &getBasicDisplTotalGrad(int grad)=0;
+  // virtual const Vector &getBasicDisplFixedGrad()=0;
+  // virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int grad)=0;
   virtual bool   isShapeSensitivity() {return false;}
   virtual double getLengthGrad() {return 0.0;}
   virtual double getd1overLdh() {return 0.0;}
-  //
+
+  static int Orient(const Vector3D& dx, const Vector3D& vz, Matrix3D &R) {
+
+    // calculate the element local x axis components wrt to the global coordinates
+
+    Vector3D e1 = dx/dx.norm();
+
+    //
+    Vector3D e2 = vz.cross(e1);
+
+    const double ynorm = e2.norm();
+
+    if (ynorm == 0.0)
+        return -1;
+
+    e2 /= ynorm;
+
+    Vector3D e3 = e1.cross(e2);
+
+    for (int i = 0; i < 3; i++) {
+      R(i,0) = e1[i];
+      R(i,1) = e2[i];
+      R(i,2) = e3[i];
+    }
+    return 0;
+  }
+  
 };
 
 #include "FrameTransform.tpp"
@@ -151,7 +177,6 @@ public:
     static MatrixND<12,12> empty{};
     return empty;
   }
-
 };
 
 #endif // include guard

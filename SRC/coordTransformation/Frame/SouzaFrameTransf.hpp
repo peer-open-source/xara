@@ -49,7 +49,7 @@ public:
     int commit();
     int revertToLastCommit();        
     int revertToStart();
-    int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z);
+    int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const;
     virtual const std::array<Vector3D,nn> *getRigidOffsets() const { return offsets; }
 
     double getInitialLength();

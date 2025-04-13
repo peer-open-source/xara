@@ -115,6 +115,13 @@ FrameSolidSection3d::getIntegral(Field field, State state, double& value) const
       }
       return 0;
 
+    case Field::UnitZ: // TODO: Centroid
+      for (int i=0; i<nf; i++) {
+        const double A  = (*fibers)[i].area;
+        const double z  = (*fibers)[i].z; // - yBar;
+        value += A*z;
+      }
+      return 0;
 
     case Field::UnitYY:
     case Field::UnitCentroidYY:

@@ -46,8 +46,8 @@ public:
           e[0] /= Ln;
           Triad r = Triad{MatrixFromVersor(Qbar)};
           Vector3D r1 = r[1],
-                    r2 = r[2],
-                    r3 = r[3];
+                   r2 = r[2],
+                   r3 = r[3];
 
           // e2 = r2 - (e1 + r1)*((r2^e1)*0.5);
       
@@ -57,20 +57,29 @@ public:
       
           e[1] = tmp;
           {
-              // const Vector3D r2 = Qbar.rotate(E2);
-              e[1] *= 0.5*r2.dot(e[0]);
-              e[1].addVector(-1.0,  r2, 1.0);
+            // const Vector3D r2 = Qbar.rotate(E2);
+            e[1] *= 0.5*r2.dot(e[0]);
+            e[1].addVector(-1.0,  r2, 1.0);
           }
       
           // e3 = r3 - (e1 + r1)*((r3^e1)*0.5);
           e[2] = tmp;
           {
-              // const Vector3D r3 = Qbar.rotate(E3);
-              e[2] *= r3.dot(e[0])*0.5;
-              e[2].addVector(-1.0,  r3, 1.0);
+            // const Vector3D r3 = Qbar.rotate(E3);
+            e[2] *= r3.dot(e[0])*0.5;
+            e[2].addVector(-1.0,  r3, 1.0);
           }
       }
       return 0;
+  }
+  inline Matrix3D
+  getRotation() const noexcept
+  {
+    Matrix3D E;
+      for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+          E(i,j) = e[j][i];
+    return E;
   }
 
   constexpr const Vector3D& 
@@ -89,15 +98,6 @@ public:
     return e[2];
   }
 
-  inline Matrix3D
-  getRotation() const noexcept
-  {
-    Matrix3D E;
-      for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-          E(i,j) = e[j][i];
-    return E;
-  }
 
   const Versor&
   getReference()

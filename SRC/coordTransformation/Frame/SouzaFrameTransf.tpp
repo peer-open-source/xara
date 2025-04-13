@@ -202,11 +202,26 @@ SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
   //   dX[2] += nodeJInitialDisp[2];
   // }
 
-  int error;
-  Vector3D XAxis, YAxis, ZAxis;
 
+  //
+  // Length and Orientation
+  //
+  Vector3D dx;
+
+  dx = nodes[nn-1]->getCrds() - nodes[0]->getCrds();
+
+  L = dx.norm();
+
+  if (L == 0.0) {
+      opserr << "\nSouzaFrameTransf::computeElemtLengthAndOrien: 0 length\n";
+      return -2;
+  }
+
+  //
   // Set rotation matrix
-  if ((error = this->getLocalAxes(XAxis, YAxis, ZAxis)))
+  //
+  int error = FrameTransform<nn,ndf>::Orient(dx, vz, R0);
+  if (error)
     return error;
 
   // Compute initial pseudo-vectors for nodal triads
@@ -835,64 +850,12 @@ SouzaFrameTransf<nn,ndf>::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl
 
 template <int nn, int ndf>
 int
-SouzaFrameTransf<nn,ndf>::getLocalAxes(Vector3D &XAxis, Vector3D &YAxis, Vector3D &ZAxis)
+SouzaFrameTransf<nn,ndf>::getLocalAxes(Vector3D &e1, Vector3D &e2, Vector3D &e3) const
 {
-
-  ZAxis(0) = vz[0];
-  ZAxis(1) = vz[1];
-  ZAxis(2) = vz[2];
-  if (nodes[0] == nullptr)
-    return 0;
-
-  Vector3D dx;
-
-  dx = nodes[nn-1]->getCrds() - nodes[0]->getCrds();
-
-
-  // calculate the element length
-
-  L = dx.norm();
-
-  if (L == 0.0) {
-      opserr << "\nSouzaFrameTransf::computeElemtLengthAndOrien: 0 length\n";
-      return -2;
-  }
-
-  // calculate the element local x axis components wrt to the global coordinates
-
-  xAxis(0) = dx(0)/L;
-  xAxis(1) = dx(1)/L;
-  xAxis(2) = dx(2)/L;
-
-  XAxis(0) = xAxis(0);
-  XAxis(1) = xAxis(1);
-  XAxis(2) = xAxis(2);
-
-  //
-  Vector3D yAxis = vz.cross(xAxis);
-
-  const double ynorm = yAxis.norm();
-
-  if (ynorm == 0.0) {
-      opserr << "WARNING vector that defines plane xz is parallel to x axis\n";
-      return -3;
-  }
-
-  yAxis /= ynorm;
-  YAxis(0) = yAxis(0);
-  YAxis(1) = yAxis(1);
-  YAxis(2) = yAxis(2);
-
-  Vector3D zAxis = xAxis.cross(yAxis);
-
-  ZAxis(0) = zAxis(0);
-  ZAxis(1) = zAxis(1);
-  ZAxis(2) = zAxis(2);
-
   for (int i = 0; i < 3; i++) {
-      R0(i,0) = xAxis[i];
-      R0(i,1) = yAxis[i];
-      R0(i,2) = zAxis[i];
+    e1[i] = R0(i,0);
+    e2[i] = R0(i,1);
+    e3[i] = R0(i,2);
   }
   return 0;
 }
@@ -922,7 +885,7 @@ SouzaFrameTransf<nn,ndf>::getBasicDisplTotalGrad(int gradNumber)
 {
     opserr << "WARNING CrdTransf::getBasicDisplTotalGrad() - this method "
         << " should not be called." << endln;
-    
+
     static Vector dummy(1);
     return dummy;
 }

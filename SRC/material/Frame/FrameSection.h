@@ -9,6 +9,7 @@
 #include <Field.h>
 #include <material/section/SectionForceDeformation.h>
 
+// TODO: Maybe make this public under ElasticFrameSection
 struct FrameSectionConstants {
   // n-n
   double A;

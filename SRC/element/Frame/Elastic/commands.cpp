@@ -80,11 +80,11 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
   struct FrameFlags {
-    int                                  shear_flag = 0;
-    int                                  geom_flag  = 0;
-    int                                  relz_flag  = 0;
-    int                                  rely_flag  = 0;
-    enum  {NoWarp=0, HaveWarp}           warp_flag  = NoWarp;
+    int                          shear_flag = 0;
+    int                          geom_flag  = 0;
+    int                          relz_flag  = 0;
+    int                          rely_flag  = 0;
+    enum  {NoWarp=0, HaveWarp}   warp_flag  = NoWarp;
     enum  {
       RigidMass=0,
       PrismMass
@@ -263,6 +263,21 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
       argi += 1;
     }
 
+    // Shear flag
+    else if (strcmp(argv[argi], "-shear") == 0) {
+      if (argc < argi + 2) {
+        opserr << OpenSees::PromptValueError
+               << "not enough arguments, expected -shear $flag\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetInt(interp, argv[argi + 1], &options.shear_flag) != TCL_OK) {
+        opserr << OpenSees::PromptValueError
+               << "invalid shear flag\n";
+        return TCL_ERROR;
+      }
+      argi += 1;
+    }
+
     // Geometry flag
     else if (strcmp(argv[argi], "-order") == 0) {
       if (argc < argi + 2) {
@@ -276,9 +291,9 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
         return TCL_ERROR;
       }
       argi += 1;
+    }
 
     // Mass flags
-    }
     else if ((strcmp(argv[argi], "-lMass") == 0) ||
                (strcmp(argv[argi], "lMass") == 0)) {
       options.mass_type = FrameFlags::RigidMass;
@@ -354,6 +369,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
         opserr << OpenSees::PromptValueError << "invalid transTag " << argv[positions[i]] << "\n";
         return TCL_ERROR;
       }
+
       // Check that the builder has a transform with tag; error will be
       // printed from builder
       if (ndm == 2) {
@@ -501,8 +517,6 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
 
-
-
   Element *theBeam = nullptr;
 
   if (ndm == 2) {
@@ -561,16 +575,17 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
       // now create the beam and add it to the Domain
 
       std::array<int, 2> nodes {iNode, jNode};
-      theBeam = new PrismFrame3d(tag, nodes, *theSection, *theTrans3d, 
+      theBeam = new PrismFrame3d(tag, nodes, 
+                                 *theSection, *theTrans3d, 
                                  mass,
                                  options.mass_type,
                                  use_mass,
                                  options.relz_flag, 
                                  options.rely_flag,
-                                 options.geom_flag);
+                                 options.geom_flag,
+                                 options.shear_flag);
 
     } else {
-      // now create the beam and add it to the Domain
       if (strcmp(argv[1], "PrismFrame") == 0) {
         std::array<int, 2> nodes {iNode, jNode};
         theBeam = new PrismFrame3d(tag, 

@@ -1,3 +1,9 @@
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once
 #include "FrameTransform.h"
 #include "Logging.h"

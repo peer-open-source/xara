@@ -144,7 +144,6 @@ template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
 {
-  int error;
 
   for (int i=0; i<nn; i++) {
     nodes[i] = new_nodes[i];
@@ -171,14 +170,9 @@ LinearFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
     initialDispChecked = true;
   }
 
+  int error;
   // get element length and orientation
   if ((error = this->computeElemtLengthAndOrient()))
-    return error;
-
-  Vector3D XAxis, YAxis, ZAxis;
-
-  // fill rotation matrix
-  if ((error = this->getLocalAxes(XAxis, YAxis, ZAxis)))
     return error;
 
   return 0;
@@ -224,76 +218,19 @@ LinearFrameTransf<nn,ndf>::computeElemtLengthAndOrient()
   if (L == 0.0)
     return -2;
 
-  // Calculate the element local x axis components (direction cosines)
-  // wrt to the global coordinates
-  R(0,0) = dx(0) / L;
-  R(1,0) = dx(1) / L;
-  R(2,0) = dx(2) / L;
-
-  return 0;
+  return FrameTransform<nn,ndf>::Orient(dx, vz, R);
 }
 
 
 template <int nn, int ndf>
 int
-LinearFrameTransf<nn,ndf>::getLocalAxes(Vector3D &XAxis, Vector3D &YAxis, Vector3D &ZAxis)
+LinearFrameTransf<nn,ndf>::getLocalAxes(Vector3D &e1, Vector3D &e2, Vector3D &e3) const
 {
-  // Compute y = v cross x
-  // Note: v(i) is stored in R(i,2)
-  static Vector vAxis(3);
-  vAxis(0) = R(0,2);
-  vAxis(1) = R(1,2);
-  vAxis(2) = R(2,2);
-  if (nodes[0] == nullptr) {
-    ZAxis(0) = vAxis(0);
-    ZAxis(1) = vAxis(1);
-    ZAxis(2) = vAxis(2);
-    return 0;
+  for (int i = 0; i < 3; i++) {
+    e1[i] = R(i,0);
+    e2[i] = R(i,1);
+    e3[i] = R(i,2);
   }
-
-  Vector3D e1;
-  e1[0] = R(0,0);
-  e1[1] = R(1,0);
-  e1[2] = R(2,0);
-  XAxis(0) = e1[0];
-  XAxis(1) = e1[1];
-  XAxis(2) = e1[2];
-
-  Vector3D e2;
-  e2(0) = vAxis(1) * e1(2) - vAxis(2) * e1(1);
-  e2(1) = vAxis(2) * e1(0) - vAxis(0) * e1(2);
-  e2(2) = vAxis(0) * e1(1) - vAxis(1) * e1(0);
-
-  double ynorm = e2.norm();
-
-  if (ynorm == 0) {
-    opserr << "\nLinearFrameTransf::getLocalAxes";
-    opserr << "\nvector v that defines plane xz is parallel to x axis\n";
-    return -3;
-  }
-
-  e2 /= ynorm;
-
-  YAxis(0) = e2[0];
-  YAxis(1) = e2[1];
-  YAxis(2) = e2[2];
-
-  // Compute z = x cross y
-  Vector3D e3 = e1.cross(e2);
-
-  ZAxis(0) = e3[0];
-  ZAxis(1) = e3[1];
-  ZAxis(2) = e3[2];
-
-  // Fill in transformation matrix
-  R(0,1) = e2[0];
-  R(1,1) = e2[1];
-  R(2,1) = e2[2];
-
-  R(0,2) = e3[0];
-  R(1,2) = e3[1];
-  R(2,2) = e3[2];
-
   return 0;
 }
 

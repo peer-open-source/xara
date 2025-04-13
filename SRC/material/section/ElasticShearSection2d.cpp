@@ -30,12 +30,13 @@
 #include <string.h>
 
 #include <classTags.h>
-#include <elementAPI.h>
 
 Vector ElasticShearSection2d::s(3);
 Matrix ElasticShearSection2d::ks(3,3);
 ID ElasticShearSection2d::code(3);
 
+#if 0
+#include <elementAPI.h>
 void *
 OPS_ADD_RUNTIME_VPV(OPS_ElasticShearSection2d)
 {
@@ -56,7 +57,7 @@ OPS_ADD_RUNTIME_VPV(OPS_ElasticShearSection2d)
 
     return new ElasticShearSection2d(tag,data[0],data[1],data[2],data[3],data[4]);
 }
-
+#endif
 
 ElasticShearSection2d::ElasticShearSection2d(void)
 :FrameSection(0, SEC_TAG_ElasticShear2d),
@@ -277,14 +278,15 @@ ElasticShearSection2d::Print(OPS_Stream &s, int flag)
 	}
 
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
 		s << "\"name\": \"" << this->getTag() << "\", ";
 		s << "\"type\": \"ElasticShearSection2d\", ";
 		s << "\"E\": " << E << ", ";
 		s << "\"G\": " << E << ", ";
 		s << "\"A\": " << A << ", ";
 		s << "\"Avy\": " << alpha*A << ", ";
-		s << "\"Iz\": " << I << "}";
+		s << "\"Iz\": " << I ;
+    s << "}";
 	}
 }
 

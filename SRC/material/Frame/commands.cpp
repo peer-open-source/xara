@@ -18,6 +18,8 @@
 //
 #include <ElasticLinearFrameSection3d.h>
 #include <ElasticSection3d.h>
+#include <ElasticShearSection2d.h>
+#include <ElasticSection2d.h>
 #include <SectionAggregator.h>
 
 
@@ -76,13 +78,11 @@ validate(FrameSectionConstants& section, int ndm, int shear)
 //    -Q    {$Qy $Qz <$Qyx $Qyz>}
 //    -R    {$Qy $Qz}
 //
+template <typename Position, int NDM>
 int
-TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
+TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
-    enum class Position : int {
-      Tag, E, A, Iz, Iy, G, J, End
-    };
 
     assert(clientData != nullptr);
     BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
@@ -91,7 +91,6 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
     ArgumentTracker<Position> tracker;
     std::set<int> positional;
 
-    FrameSection* theSection = nullptr;
     bool construct_full = false;
 
     if (argc < 5) {
@@ -101,16 +100,15 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
     }
 
     int tag;
-    double E, G, J;
+    double E, 
+           G = 0, 
+           J = 0;
 
     bool use_mass = false;
     double mass=0.0;
-
-    if (builder->getNDM() == 2) {
-        tracker.consume(Position::G);
-        tracker.consume(Position::J);
-        tracker.consume(Position::Iy);
-    }
+    // All 3D elements have been refactored to select shear themselves, but
+    // in 2D the element may check the section for shear.
+    bool use_shear = NDM == 3;
 
     int i;
     for (i=2; i<argc; i++) {
@@ -153,6 +151,7 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
       else if ((strcmp(argv[i], "-shear-y") == 0) ||
                (strcmp(argv[i], "-Ay") == 0)) {
         // TODO: Ay is not used.
+        use_shear = true;
         if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.Ay) != TCL_OK) {
           opserr << OpenSees::PromptParseError << "invalid shear area.\n";
           return TCL_ERROR;
@@ -278,6 +277,9 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
     // Positional arguments
     //
     for (int i : positional) {
+      if (tracker.current() == Position::EndRequired)
+        tracker.increment();
+
       switch (tracker.current()) {
         case Position::Tag :
           if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
@@ -342,16 +344,33 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
             break;
           }
 
+        case Position::ky: {
+          double ky;
+          if (Tcl_GetDouble (interp, argv[i], &ky) != TCL_OK) {
+              opserr << OpenSees::PromptParseError << "invalid ky.\n";
+              return TCL_ERROR;
+          } else {
+            use_shear = true;
+            consts.Ay = ky * consts.A;
+            tracker.increment();
+            break;
+          }
+        }
+
+        case Position::EndRequired:
+          // This will not be reached
+          break;
+
         case Position::End:
           opserr << OpenSees::PromptParseError << "unexpected argument " << argv[i] << ".\n";
           return TCL_ERROR;
       }
     }
 
-    if (tracker.current() != Position::End) {
+    if (tracker.current() < Position::EndRequired) {
       opserr << OpenSees::PromptParseError
              << "missing required arguments: ";
-      while (tracker.current() != Position::End) {
+      while (tracker.current() != Position::EndRequired) {
         switch (tracker.current()) {
           case Position::Tag :
             opserr << "tag ";
@@ -374,11 +393,14 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
           case Position::J:
             opserr << "J ";
             break;
+
+          case Position::ky:
+          case Position::EndRequired:
           case Position::End:
             break;
         }
 
-        if (tracker.current() == Position::End)
+        if (tracker.current() == Position::EndRequired)
           break;
 
         tracker.consume(tracker.current());
@@ -389,43 +411,79 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
 
+    //
+    // Create the section
+    //
+    if constexpr (NDM == 2) {
 
+      SectionForceDeformation* theSection = nullptr;
+      if (strcmp(argv[1], "Elastic") == 0 && !use_shear)
+        theSection = new ElasticSection2d(tag, E, consts.A, consts.Iz);
+  
+      else if (strcmp(argv[1], "Elastic") == 0 && use_shear)
+        theSection = new ElasticShearSection2d(tag, E, consts.A, consts.Iz, G, consts.Ay/consts.A);
+                                             
+      if (theSection == nullptr || builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
+        if (theSection != nullptr)
+          delete theSection;
+        return TCL_ERROR;
+      } else
+        return TCL_OK;
 
-    if (construct_full) {
-      consts.Ca =   consts.Iy + consts.Iz - J;
-      consts.Sa = -(consts.Iy + consts.Iz - J);
-      theSection = new ElasticLinearFrameSection3d(tag,
-          E, G,
-          consts.A,                                     // n-n
-          consts.Iy, consts.Iz, consts.Iyz,             // m-m
-          consts.Cw, consts.Ca,                         // w-w
-          consts.Qy, consts.Qz,                         // n-m
-          consts.Rw, consts.Ry, consts.Rz,              // n-w|v
-          consts.Sa, consts.Sy, consts.Sz,              // m-v|w
-          mass, use_mass                                // mass
-      );
+    } else {
+
+      FrameSection* theSection = nullptr;
+
+      if (construct_full) {
+        consts.Ca =   consts.Iy + consts.Iz - J;
+        consts.Sa = -(consts.Iy + consts.Iz - J);
+        theSection = new ElasticLinearFrameSection3d(tag,
+            E, G,
+            consts,
+            mass, use_mass                                // mass
+        );
+      }
+      else if (strcmp(argv[1], "Elastic") == 0)
+        theSection = new ElasticSection3d(tag, E, consts.A, consts.Iz, consts.Iy, G, J);
+
+      // else
+      //   theSection = new ElasticLinearFrameSection3d(tag, E,  consts.A,
+      //                                                consts.Iz, consts.Iy, 
+      //                                                G, J, mass, use_mass);
+
+  
+
+      if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
+        if (theSection != nullptr)
+          delete theSection;
+        return TCL_ERROR;
+      } else
+        return TCL_OK;
     }
-    else if (strcmp(argv[1], "Elastic") == 0)
-      theSection = new ElasticSection3d(tag, E, consts.A, consts.Iz, consts.Iy, G, J);
 
-    else if (builder->getNDM() == 3) { //argc > 8) {
-      theSection = new ElasticLinearFrameSection3d(tag, E,  consts.A,
-                                                   consts.Iz, consts.Iy, 
-                                                   G, J, mass, use_mass);
-    }
-    else
-      theSection = new ElasticLinearFrameSection3d(tag, E, consts.A, 
-                                                   consts.Iz, mass, use_mass);
-
-
-    if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
-      if (theSection != nullptr)
-        delete theSection;
-      return TCL_ERROR;
-    } else
-      return TCL_OK;
 }
 
+int
+TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
+                            int argc, TCL_Char ** const argv)
+{
+  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+
+  int ndm = builder->getNDM();
+
+  if (ndm==2) {
+    enum class Position : int {
+      Tag, E, A, Iz, EndRequired, G, ky, End, Iy, J
+    };
+    return TclCommand_newElasticSectionTemplate<Position, 2>(clientData, interp, argc, argv);
+
+  } else {
+    enum class Position : int {
+      Tag, E, A, Iz, Iy, G, J, EndRequired, End, ky
+    };
+    return TclCommand_newElasticSectionTemplate<Position, 3>(clientData, interp, argc, argv);
+  }
+}
 
 int
 TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)

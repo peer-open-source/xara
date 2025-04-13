@@ -54,7 +54,7 @@ public:
     virtual const Matrix &getGlobalStiffMatrix(const Matrix &basicStiff, const Vector &basicForce) final;
     virtual const Matrix &getInitialGlobalStiffMatrix(const Matrix &basicStiff) final;
 
-    // method used to rotate consistent mass matrix
+    // rotate consistent mass matrix
     const Matrix &getGlobalMatrixFromLocal(const Matrix &local);
     
     // methods used in post-processing only
@@ -66,7 +66,7 @@ public:
     // Sensitivity
     //
     const Vector & getBasicDisplFixedGrad();
-    const Vector & getBasicDisplTotalGrad(int gradNumber);
+    const Vector & getBasicDisplTotalGrad(int grad);
     const Vector &getGlobalResistingForceShapeSensitivity (const Vector &basicForce, const Vector &p0, int grad);
     bool isShapeSensitivity();
     double getLengthGrad();

@@ -166,7 +166,7 @@ BasicFrameTransf3d::getGlobalResistingForce(const Vector &q_pres, const Vector &
 {
   // transform resisting forces from the basic system to local coordinates
   
-  thread_local VectorND<NDF*2> pl{};
+  VectorND<NDF*2> pl{};
   #ifdef DO_BASIC
   double L = theCoordTransf->getInitialLength();
   const double q1 = q_pres[imz],
@@ -187,7 +187,7 @@ BasicFrameTransf3d::getGlobalResistingForce(const Vector &q_pres, const Vector &
   pl[1*NDF+4]  =  q_pres[jmy];
   pl[1*NDF+5]  =  q_pres[jmz];
 
-  thread_local VectorND<NDF*2> pf;
+  VectorND<NDF*2> pf;
   pf.zero();
   pf[0*NDF + 0] = p0[0];
   pf[0*NDF + 1] = p0[1];
@@ -195,8 +195,8 @@ BasicFrameTransf3d::getGlobalResistingForce(const Vector &q_pres, const Vector &
   pf[1*NDF + 1] = p0[2];
   pf[1*NDF + 2] = p0[4];
 
-  thread_local VectorND<NDF*2> pg;
-  thread_local Vector wrapper(pg);
+  static VectorND<NDF*2> pg;
+  static Vector wrapper(pg);
 
   pg  = t.pushResponse(pl);
   pg += t.pushConstant(pf);
@@ -304,7 +304,6 @@ BasicFrameTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
   static double kb[6][6];     // Basic stiffness
   static MatrixND<12,12> kl;  // Local stiffness
   double tmp[6][12]{};   // Temporary storage
-  double oneOverL = 1.0 / t.getInitialLength();
 
   for (int i = 0; i < 6; i++)
     for (int j = 0; j < 6; j++)
@@ -315,6 +314,7 @@ BasicFrameTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
   for (int i = 0; i < 6; i++) {
     tmp[i][0]  = -kb[i][0];
 #ifdef DO_BASIC
+double oneOverL = 1.0 / t.getInitialLength();
     tmp[i][1]  =  oneOverL * (kb[i][1] + kb[i][2]);
     tmp[i][2]  = -oneOverL * (kb[i][3] + kb[i][4]);
     tmp[i][7]  = -tmp[i][1];
@@ -426,7 +426,12 @@ BasicFrameTransf3d::getGlobalResistingForceShapeSensitivity(const Vector &pb,
                                                            const Vector &p0,
                                                            int gradNumber)
 {
-  return t.getGlobalResistingForceShapeSensitivity(pb, p0, gradNumber);
+  // return t.getGlobalResistingForceShapeSensitivity(pb, p0, gradNumber);
+
+  static VectorND<6> dub;
+  static Vector wrapper(dub);
+  opserr << "WARNING unimplemented method\n";
+  return wrapper;
 }
 
 
@@ -437,7 +442,6 @@ BasicFrameTransf3d::getBasicDisplFixedGrad()
   static Vector wrapper(dub);
   opserr << "WARNING unimplemented method\n";
   return wrapper;
-
 }
 
 const Vector &

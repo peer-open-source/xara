@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara  
 //
 //===----------------------------------------------------------------------===//
 //
@@ -24,10 +24,6 @@
 #include <LinearCrdTransf2dInt.h>
 #include <CorotCrdTransfWarping2d.h>
 
-#include <LinearFrameTransf3d.h>
-#include <PDeltaFrameTransf3d.h>
-#include <CorotFrameTransf3d.h>
-#include <CorotFrameTransf3d03.h>
 
 #include <BasicFrameTransf.h>
 #include <transform/FrameTransformBuilder.hpp>
@@ -208,6 +204,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
     }
   } // keyword arguments
 
+
   // Ensure orientation was provided
   if (!parsed_xz) {
     if (argxz == 0 || argxz >= argc) {
@@ -283,7 +280,10 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  if (getenv("CRD04")) {
+  int ndm = builder->getNDM();
+  int ndf = builder->getNDF();
+
+  if (ndm == 3 && !getenv("CRD")) {
     auto tb = builder->getTypedObject<FrameTransformBuilder>(tag);
     if (tb == nullptr) {
       opserr << G3_ERROR_PROMPT 
@@ -295,8 +295,6 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     return builder->addTaggedObject<FrameTransform3d>(*t);
   }
 
-  int ndm = builder->getNDM();
-  int ndf = builder->getNDF();
   //
   // 2D Case
   //
@@ -465,26 +463,26 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     FrameTransform3d *crdTransf3d=nullptr;
 
     if (strcmp(argv[1], "Linear") == 0)
-      if (!getenv("CRD"))
-        crdTransf3d = new LinearFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      else
+      // if (!getenv("CRD"))
+      //   crdTransf3d = new LinearFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // else
         crdTransf3d = new LinearCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else if (strcmp(argv[1], "PDelta") == 0 ||
              strcmp(argv[1], "LinearWithPDelta") == 0)
-      if (!getenv("CRD"))
-        crdTransf3d = new PDeltaFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      else
+      // if (!getenv("CRD"))
+      //   crdTransf3d = new PDeltaFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // else
         crdTransf3d = new PDeltaCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else if (strcmp(argv[1], "Corotational") == 0)
-      if (getenv("CRD03")) {
-        crdTransf3d = new CorotFrameTransf3d03(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      }
-      else
-        crdTransf3d = new CorotFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // if (getenv("CRD03")) {
+      //   crdTransf3d = new CorotFrameTransf3d03(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // }
+      // else
+      //   crdTransf3d = new CorotFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 //    else
-//      crdTransf3d = new CorotCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      crdTransf3d = new CorotCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else {
       opserr << G3_ERROR_PROMPT << "invalid Type\n";
