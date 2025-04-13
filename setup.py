@@ -5,13 +5,16 @@ from glob import glob
 from pathlib import Path
 from os.path import basename, splitext
 
-import amoeba
+try:
+    import amoeba
+except:
+    amoeba = None
 import setuptools
 
 #--------------------------------------------------
 
-version    = "0.0.59"
-build_type = "local"
+version    = "0.0.2"
+build_type = "no-build"
 
 #--------------------------------------------------
 
