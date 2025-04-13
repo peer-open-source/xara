@@ -12,8 +12,6 @@
 #include <Parameter.h>
 #include <classTags.h>
 
-// #include <string.h>
-
 using namespace OpenSees;
 
 constexpr int SEC_TAG_ElasticLinearFrame3d = 0;
@@ -136,8 +134,8 @@ ElasticLinearFrameSection3d::getConstants(FrameSectionConstants& consts) const
   consts.Iz  =  K(5,5)/E;
 
   if (G != 0) {
-    consts.Ay  =  K(1,1)/G;
-    consts.Az  =  K(2,2)/G;
+    consts.Ay  =  (K(1,10) + K(1,1))/G;
+    consts.Az  =  (K(2,11) + K(2,2))/G;
     consts.Ca  =  K(7,7)/G;
   } else {
     consts.Ay  =  0;
@@ -149,7 +147,7 @@ ElasticLinearFrameSection3d::getConstants(FrameSectionConstants& consts) const
 int
 ElasticLinearFrameSection3d::getIntegral(Field field, State state, double& value) const
 {
-  FrameSectionConstants consts;
+  FrameSectionConstants consts{};
   getConstants(consts);
 
   switch (field) {
@@ -487,7 +485,7 @@ ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"ElasticLinearFrameSection3d\", ";
+    s << "\"type\": \"ElasticFrameSection3d\", ";
     s << "\"E\": "   << E  << ", ";
     s << "\"G\": "   << G  << ", ";
     s << "\"A\": "   << consts.A   << ", ";
