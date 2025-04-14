@@ -309,9 +309,9 @@ ForceDeltaFrame3d<NIP,nsr>::update()
 {
   constexpr static int nip = NIP;
 
-  THREAD_LOCAL VectorND<nsr>     es_trial[NIP]; //  strain
-  THREAD_LOCAL VectorND<nsr>     sr_trial[NIP]; //  stress resultant
-  THREAD_LOCAL MatrixND<nsr,nsr> Fs_trial[NIP]; //  flexibility
+  VectorND<nsr>     es_trial[NIP]; //  strain
+  VectorND<nsr>     sr_trial[NIP]; //  stress resultant
+  MatrixND<nsr,nsr> Fs_trial[NIP]; //  flexibility
 
   // if have completed a recvSelf() - do a revertToLastCommit
   // to get sr, etc. set correctly
@@ -353,12 +353,9 @@ ForceDeltaFrame3d<NIP,nsr>::update()
   }
 
 
-  Vector stilde(nsr * nip);
-  for (int i = 0; i < nip; i++) {
-    auto s = points[i].material->template getResultant<nsr,scheme>();
-    for (int j = 0; j < nsr; j++)
-      stilde(nsr*i + j) = s[j];
-  }
+  VectorND<nsr> stilde[nip];
+  for (int i = 0; i < nip; i++)
+    stilde[i] = points[i].material->template getResultant<nsr,scheme>();
 
   // Get CBDI influence matrix
   Matrix ls(nip, nip);
@@ -397,36 +394,35 @@ ForceDeltaFrame3d<NIP,nsr>::update()
     }
   }
 
-  static VectorND<nq>    dq_trial, vr;
-  static MatrixND<nq,nq> F;        // Element flexibility
-
   // Calculate nodal force increments and update nodal forces
   // dq_trial = kv * dv;
-  dq_trial.addMatrixVector(0.0, K_trial, dv_trial, 1.0);
+  VectorND<nq> dq_trial = K_trial * dv_trial;
 
-  VectorND<NIP> gamma; // (nip);
-  VectorND<NIP> gammaz; // (nip);
-  VectorND<NIP> kappa; // (nip);
-  VectorND<NIP> kappay; // (nip);
 
   Vector w(nip);
   Vector wp(nip);
   Vector wz(nip);
   Vector wpz(nip);
-  Vector ds_tilde(nsr * nip);
-  MatrixND<nsr * nip, nsr * nip> K_tilde; // (nsr * nip, nsr * nip);
-  Vector de_tilde(nsr * nip);
+  MatrixND<nsr * nip, nsr * nip> K_tilde{}; // (nsr * nip, nsr * nip);
 
+  MatrixND<nq,nq> F; // Element flexibility
   for (int j = 0; j < max_iter; j++) {
     // initialize F and vr for integration
     F.zero();
-    vr.zero();
+    VectorND<nq> vr{};
 
     q_trial += dq_trial;
 
+    VectorND<nsr * nip> de_tilde{};
+    VectorND<nsr * nip> ds_tilde{};
+  
     //
     // Preliminary Gauss Loop
     //
+    VectorND<NIP> gamma{};
+    VectorND<NIP> gammaz{};
+    VectorND<NIP> kappa{};
+    VectorND<NIP> kappay{};
     for (int i = 0; i < nip; i++) {
       kappa(i)  = 0.0;
       gamma(i)  = 0.0;
@@ -473,29 +469,26 @@ ForceDeltaFrame3d<NIP,nsr>::update()
       //
       for (int j = 0; j < nsr; j++) {
         if (scheme[j] == FrameStress::N)
-          ds_tilde(index) = q_trial[0] - stilde(index);
+          ds_tilde(index) = q_trial[0] - stilde[i][j];
         if (scheme[j] == FrameStress::Vy)
-          ds_tilde(index) =  -wp(i) * q_trial[0] - oneOverL * (q_trial[1] + q_trial[2]) - stilde(index);
+          ds_tilde(index) =  -wp(i) * q_trial[0] - oneOverL * (q_trial[1] + q_trial[2]) - stilde[i][j];
         if (scheme[j] == FrameStress::Vz)
-          ds_tilde(index) = -wpz(i) * q_trial[0] - oneOverL * (q_trial[3] + q_trial[4]) - stilde(index);
-        if (scheme[j] == SECTION_RESPONSE_T)
-          ds_tilde(index) = q_trial[5] - stilde(index);
+          ds_tilde(index) = -wpz(i) * q_trial[0] - oneOverL * (q_trial[3] + q_trial[4]) - stilde[i][j];
+        if (scheme[j] == FrameStress::T)
+          ds_tilde(index) = q_trial[5] - stilde[i][j];
         if (scheme[j] == FrameStress::My)
-          ds_tilde(index) =  wz(i) * q_trial[0] + (xL - 1) * q_trial[3] + xL * q_trial[4] - stilde(index);
+          ds_tilde(index) =  wz(i) * q_trial[0] + (xL - 1) * q_trial[3] + xL * q_trial[4] - stilde[i][j];
         if (scheme[j] == FrameStress::Mz)
-          ds_tilde(index) =   w(i) * q_trial[0] + (xL - 1) * q_trial[1] + xL * q_trial[2] - stilde(index);
+          ds_tilde(index) =   w(i) * q_trial[0] + (xL - 1) * q_trial[1] + xL * q_trial[2] - stilde[i][j];
         index++;
       }
 
       // Add the effects of element loads
       // si += bp*w
       //
-      if (eleLoads.size() > 0) {
-        VectorND<nsr> sp{0.0};
-        this->computeSectionForces(sp, i);
-        for (int ii = 0; ii < nsr; ii++)
-          ds_tilde(nsr*i + ii) += sp[ii];
-      }
+      if (eleLoads.size() > 0) 
+        this->computeSectionForces(stilde[i], i);
+
     } // Gauss loop
 
     //
@@ -599,7 +592,7 @@ ForceDeltaFrame3d<NIP,nsr>::update()
           ds_tilde(index) = -wp(i) * q_trial[0] - oneOverL * (q_trial[1] + q_trial[2]);
         if (scheme[j] == FrameStress::Vz)
           ds_tilde(index) = -wpz(i) * q_trial[0] - oneOverL * (q_trial[3] + q_trial[4]);
-        if (scheme[j] == SECTION_RESPONSE_T)
+        if (scheme[j] == FrameStress::T)
           ds_tilde(index) = q_trial[5];
         if (scheme[j] == FrameStress::Mz)
           ds_tilde(index) = w(i) * q_trial[0] + (xL - 1.0) * q_trial[1] + xL * q_trial[2];
@@ -697,30 +690,24 @@ ForceDeltaFrame3d<NIP,nsr>::update()
 
     // Form stilde
     for (int i = 0; i < nip; i++) {
-      int index = nsr * i;
       for (int j = 0; j < nsr; j++) {
         if (scheme[j] == FrameStress::N)
-          stilde(index) = q_trial[0];
+          stilde[i][j] = q_trial[0];
         if (scheme[j] == FrameStress::Vy)
-          stilde(index) = -wp[i] * q_trial[0] - oneOverL * (q_trial[1] + q_trial[2]);
+          stilde[i][j] = -wp[i] * q_trial[0] - oneOverL * (q_trial[1] + q_trial[2]);
         if (scheme[j] == FrameStress::Vz)
-          stilde(index) = -wp[i] * q_trial[0] - oneOverL * (q_trial[3] + q_trial[4]);
-        if (scheme[j] == SECTION_RESPONSE_T)
-          stilde(index) = q_trial[5];
+          stilde[i][j] = -wp[i] * q_trial[0] - oneOverL * (q_trial[3] + q_trial[4]);
+        if (scheme[j] == FrameStress::T)
+          stilde[i][j] = q_trial[5];
         if (scheme[j] == FrameStress::Mz)
-          stilde(index) = w[i] * q_trial[0] + (xi[i] - 1) * q_trial[1] + xi[i] * q_trial[2];
+          stilde[i][j] = w[i] * q_trial[0] + (xi[i] - 1) * q_trial[1] + xi[i] * q_trial[2];
         if (scheme[j] == FrameStress::My)
-          stilde(index) = w[i] * q_trial[0] + (xi[i] - 1) * q_trial[3] + xi[i] * q_trial[4];
-
-        index++;
+          stilde[i][j] = w[i] * q_trial[0] + (xi[i] - 1) * q_trial[3] + xi[i] * q_trial[4];
       }
 
-      if (eleLoads.size() > 0) {
-        VectorND<nsr> sp{0.0};
-        this->computeSectionForces(sp, i);
-        for (int ii = 0; ii < nsr; ii++)
-          stilde(nsr*i + ii) += sp[ii];
-      }
+      if (eleLoads.size() > 0) 
+        this->computeSectionForces(stilde[i], i);
+
     } // loop over sections
 
     Matrix dwidq(2 * nip, nq);
@@ -762,7 +749,7 @@ ForceDeltaFrame3d<NIP,nsr>::update()
           Bhat(j, 3) = -oneOverL;
           Bhat(j, 4) = -oneOverL;
         }
-        if (scheme[j] == SECTION_RESPONSE_T) {
+        if (scheme[j] == FrameStress::T) {
           Bstr(j, 5) = 1.0;
           Bhat(j, 5) = 1.0;
         }
@@ -858,7 +845,7 @@ ForceDeltaFrame3d<NIP,nsr>::update()
           vr[3] -= tmp;
           vr[4] -= tmp;
           break;
-        case SECTION_RESPONSE_T:
+        case FrameStress::T:
           vr[5] += dei;
           break;
         case FrameStress::My:
@@ -917,8 +904,6 @@ template<int NIP, int nsr>
 const Vector &
 ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
 {
- 
-  double q0 = q_pres[0];
   double q1 = q_pres[1];
   double q2 = q_pres[2];
   double q3 = q_pres[3];
@@ -927,16 +912,12 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
 
   double oneOverL = 1.0 / theCoordTransf->getInitialLength();
 
-  thread_local VectorND<12> pl;
-  pl[0]  = -q0;                    // Ni
-  pl[1]  =  oneOverL * (q1 + q2);  // Viy
-  pl[2]  = -oneOverL * (q3 + q4);  // Viz
+  VectorND<12> pl{};
+  pl[0]  = -q_pres[0];             // Ni
   pl[3]  = -q5;                    // Ti
   pl[4]  =  q3;
   pl[5]  =  q1;
-  pl[6]  =  q0;                    // Nj
-  pl[7]  = -pl[1];                 // Vjy
-  pl[8]  = -pl[2];                 // Vjz
+  pl[6]  =  q_pres[0];             // Nj
   pl[9]  = q5;                     // Tj
   pl[10] = q4;
   pl[11] = q2;
@@ -961,8 +942,9 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   pf[8] = p0[4];
 
   pg += theCoordTransf->pushConstant(pf);
-//if (total_mass != 0.0)
-//  wrapper.addVector(1.0, p_iner, -1.0);
+
+  if (total_mass != 0.0)
+    wrapper.addVector(1.0, p_iner, -1.0);
 
   return wrapper;
 }
@@ -973,68 +955,55 @@ ForceDeltaFrame3d<NIP,nsr>::getTangentStiff()
 {
   MatrixND<nq,nq> kb = this->getBasicTangent(State::Pres, 0);
 
-  double q0 = q_pres[0];
-  double q1 = q_pres[1];
-  double q2 = q_pres[2];
-  double q3 = q_pres[3];
-  double q4 = q_pres[4];
-  double q5 = q_pres[5];
-
-  double oneOverL = 1.0 / theCoordTransf->getInitialLength();
 
   THREAD_LOCAL VectorND<12> pl;
-  pl[0]  = -q0;                    // Ni
+  pl[0]  = -q_pres[0];                    // Ni
+#if 0
+  double oneOverL = 1.0 / theCoordTransf->getInitialLength();
   pl[1]  =  oneOverL * (q1 + q2);  // Viy
   pl[2]  = -oneOverL * (q3 + q4);  // Viz
-  pl[3]  = -q5;                    // Ti
-  pl[4]  =  q3;
-  pl[5]  =  q1;
-  pl[6]  =  q0;                    // Nj
   pl[7]  = -pl[1];                 // Vjy
   pl[8]  = -pl[2];                 // Vjz
-  pl[9]  =  q5;                    // Tj
-  pl[10] =  q4;
-  pl[11] =  q2;
-  
+#endif
+  pl[3]  = -q_pres[5];                    // Ti
+  pl[4]  =  q_pres[3];
+  pl[5]  =  q_pres[1];
+  pl[6]  =  q_pres[0];                    // Nj
+  pl[9]  =  q_pres[5];                    // Tj
+  pl[10] =  q_pres[4];
+  pl[11] =  q_pres[2];
+
 
   // Transform basic stiffness to local system
-  THREAD_LOCAL double tmp[6][12];  // Temporary storage
+  double tmp[6][12]{};  // Temporary storage
   // First compute kb*T_{bl}
   for (int i = 0; i < 6; i++) {
     tmp[i][ 0] = -kb(i, 0);
-    tmp[i][ 1] =  oneOverL * (kb(i, 1) + kb(i, 2));
-    tmp[i][ 2] = -oneOverL * (kb(i, 3) + kb(i, 4));
     tmp[i][ 3] = -kb(i, 5);
     tmp[i][ 4] =  kb(i, 3);
     tmp[i][ 5] =  kb(i, 1);
     tmp[i][ 6] =  kb(i, 0);
-    tmp[i][ 7] = -tmp[i][1];
-    tmp[i][ 8] = -tmp[i][2];
     tmp[i][ 9] =  kb(i, 5);
     tmp[i][10] =  kb(i, 4);
     tmp[i][11] =  kb(i, 2);
   }
 
-  THREAD_LOCAL MatrixND<12,12> kl;  // Local stiffness
+  MatrixND<12,12> kl{};  // Local stiffness
   // Now compute T'_{bl}*(kb*T_{bl})
   for (int i = 0; i < 12; i++) {
     kl( 0, i) = -tmp[0][i];
-    kl( 1, i) =  oneOverL * (tmp[1][i] + tmp[2][i]);
-    kl( 2, i) = -oneOverL * (tmp[3][i] + tmp[4][i]);
     kl( 3, i) = -tmp[5][i];
     kl( 4, i) = tmp[3][i];
     kl( 5, i) = tmp[1][i];
     kl( 6, i) = tmp[0][i];
-    kl( 7, i) = -kl(1, i);
-    kl( 8, i) = -kl(2, i);
     kl( 9, i) = tmp[5][i];
     kl(10, i) = tmp[4][i];
     kl(11, i) = tmp[2][i];
   }
 
 
-  THREAD_LOCAL MatrixND<12,12> Kg;
-  THREAD_LOCAL Matrix Wrapper(Kg);
+  static MatrixND<12,12> Kg;
+  static Matrix Wrapper(Kg);
   Kg = theCoordTransf->pushResponse(kl, pl);
   return Wrapper;
 }
@@ -1716,7 +1685,7 @@ ForceDeltaFrame3d<NIP,nsr>::getInitialFlexibility(Matrix& fe)
           fb(jj, 4) += tmp;
         }
         break;
-      case SECTION_RESPONSE_T:
+      case FrameStress::T:
         for (int jj = 0; jj < nsr; jj++)
           fb(jj, 5) += fSec(jj, ii) * wtL;
         break;
@@ -1757,7 +1726,7 @@ ForceDeltaFrame3d<NIP,nsr>::getInitialFlexibility(Matrix& fe)
           fe(4, jj) += tmp;
         }
         break;
-      case SECTION_RESPONSE_T:
+      case FrameStress::T:
         for (int jj = 0; jj < nq; jj++)
           fe(5, jj) += fb(ii, jj);
         break;
@@ -1829,7 +1798,7 @@ ForceDeltaFrame3d<NIP,nsr>::getInitialDeformations(Vector& v0)
         v0(3) += tmp;
         v0(4) += tmp;
         break;
-      case SECTION_RESPONSE_T: v0(5) += dei; break;
+      case FrameStress::T: v0(5) += dei; break;
       default:                 break;
       }
     }
