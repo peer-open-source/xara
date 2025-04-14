@@ -56,12 +56,11 @@ class NodalLoad : public Load
     
     virtual void Print(OPS_Stream &s, int flag =0);   
     
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     int setParameter(const char **argv, int argc, Parameter &param);
     int            updateParameter(int parameterID, Information &info);
     int            activateParameter(int parameterID);
     const Vector & getExternalForceSensitivity(int gradNumber);
-    // AddingSensitivity:END ///////////////////////////////////////////
 
 	//Change made by Liming for NodalThermalAction [SIF]
 	virtual void applyLoad(Vector& loadFactors);
@@ -75,10 +74,9 @@ class NodalLoad : public Load
     Node *myNodePtr;    // pointer to Node object on which load acts
     Vector *load;       // the reference load - pointer to new copy or 0
     bool  konstant;     // true if load is load factor independent
-    // AddingSensitivity:BEGIN /////////////////////////////////////
+    // Sensitivity
     int parameterID;
     static Vector gradientVector;
-    // AddingSensitivity:END ///////////////////////////////////////
 };
 
 #endif

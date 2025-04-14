@@ -884,7 +884,7 @@ const Vector &
 SouzaFrameTransf<nn,ndf>::getBasicDisplTotalGrad(int gradNumber)
 {
     opserr << "WARNING CrdTransf::getBasicDisplTotalGrad() - this method "
-        << " should not be called." << endln;
+        << " should not be called.\n";
 
     static Vector dummy(1);
     return dummy;
@@ -895,7 +895,7 @@ const Vector &
 SouzaFrameTransf<nn,ndf>::getBasicDisplFixedGrad()
 {
     opserr << "ERROR CrdTransf::getBasicDisplFixedGrad() - has not been"
-           << " implemented yet for the chosen transformation." << endln;
+           << " implemented yet for the chosen transformation\n.";
 
     static Vector dummy(1);
     return dummy;

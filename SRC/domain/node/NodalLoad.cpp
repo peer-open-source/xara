@@ -207,9 +207,19 @@ NodalLoad::recvSelf(int cTag, Channel &theChannel,
 void
 NodalLoad::Print(OPS_Stream &s, int flag)
 {
-  s << "Nodal Load: " << myNode;
-  if (load != 0)
-    s << " load : " << *load;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"value\": " << "[]";
+    s << "}";
+    return;
+  }
+
+  else if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "Nodal Load: " << myNode;
+    if (load != nullptr)
+      s << " load : " << *load;
+  }
 }
 
 
@@ -296,9 +306,10 @@ NodalLoad::getExternalForceSensitivity(int gradNumber)
 }
 
 
-//Adding general function for using NodalThermalAction, L.Jiang [SIF]
+// Adding general function for using NodalThermalAction, L.Jiang [SIF]
 void
-NodalLoad::applyLoad(Vector& loadFactors) {
+NodalLoad::applyLoad(Vector& loadFactors) 
+{
 
 }
 

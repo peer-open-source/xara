@@ -71,14 +71,14 @@ Node::Node(int theClassTag)
 {
   // for FEM_ObjectBroker, recvSelf() must be invoked on object
 
-  // AddingSensitivity:BEGIN /////////////////////////////////////////
-  dispSensitivity = 0;
-  velSensitivity  = 0;
-  accSensitivity  = 0;
+  // Sensitivity
+  dispSensitivity = nullptr;
+  velSensitivity  = nullptr;
+  accSensitivity  = nullptr;
   parameterID     = 0;
-  // AddingSensitivity:END ///////////////////////////////////////////
 
-  theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
+
+  theNodalThermalActionPtr = 0; //Added by Liming for initializing NodalLoadPointer, [SIF]
 }
 
 
@@ -97,9 +97,9 @@ Node::Node(int tag, int theClassTag)
   // for subclasses - they must implement all the methods with
   // their own data structures.
 
-  dispSensitivity = 0;
-  velSensitivity = 0;
-  accSensitivity = 0;
+  dispSensitivity = nullptr;
+  velSensitivity  = nullptr;
+  accSensitivity  = nullptr;
   parameterID = 0;
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
