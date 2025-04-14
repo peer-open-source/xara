@@ -58,7 +58,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_LeadRubberY)
 {
     // print out a message about who wrote this element & any copyright info wanted
     if (numMyBearing == 0) {
-        opserr << "LeadRubberY element - Written by Manish Kumar, University at Buffalo, 2012\n";
+        opslog << "LeadRubberY element - Written by Manish Kumar, University at Buffalo, 2012\n";
 		opserr << "Modified by Ya-Heng Yang, 2023\n";
         numMyBearing++;
     }

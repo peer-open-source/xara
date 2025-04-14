@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara  
 //
 //===----------------------------------------------------------------------===//
 //
@@ -12,8 +12,8 @@
 #include <string>
 #include <string.h>
 #include <assert.h>
-#include <BasicModelBuilder.h>
 #include <Logging.h>
+#include <BasicModelBuilder.h>
 
 #include <LinearCrdTransf2d.h>
 #include <LinearCrdTransf3d.h>
@@ -24,10 +24,6 @@
 #include <LinearCrdTransf2dInt.h>
 #include <CorotCrdTransfWarping2d.h>
 
-#include <LinearFrameTransf3d.h>
-#include <PDeltaFrameTransf3d.h>
-#include <CorotFrameTransf3d.h>
-#include <CorotFrameTransf3d03.h>
 
 #include <BasicFrameTransf.h>
 #include <transform/FrameTransformBuilder.hpp>
@@ -208,6 +204,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
     }
   } // keyword arguments
 
+
   // Ensure orientation was provided
   if (!parsed_xz) {
     if (argxz == 0 || argxz >= argc) {
@@ -270,7 +267,8 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
-    opserr << G3_ERROR_PROMPT << "insufficient number of arguments\n";
+    opserr << G3_ERROR_PROMPT 
+           << "insufficient number of arguments\n";
     return TCL_ERROR;
   }
 
@@ -282,7 +280,10 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  if (getenv("CRD04")) {
+  int ndm = builder->getNDM();
+  int ndf = builder->getNDF();
+
+  if (ndm == 3 && !getenv("CRD")) {
     auto tb = builder->getTypedObject<FrameTransformBuilder>(tag);
     if (tb == nullptr) {
       opserr << G3_ERROR_PROMPT 
@@ -294,8 +295,6 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     return builder->addTaggedObject<FrameTransform3d>(*t);
   }
 
-  int ndm = builder->getNDM();
-  int ndf = builder->getNDF();
   //
   // 2D Case
   //
@@ -364,7 +363,8 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
           new CorotCrdTransfWarping2d(tag, jntOffsetI, jntOffsetJ);
 
     else {
-      opserr << G3_ERROR_PROMPT << "invalid Type: " << argv[1] << "\n";
+      opserr << G3_ERROR_PROMPT 
+             << "invalid Type: " << argv[1] << "\n";
       return TCL_ERROR;
     }
 
@@ -399,7 +399,8 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
       if (xznum == 3) {
         for (int i=0; i<3; ++i)
            if (Tcl_GetDouble(interp, xzarg[i], &vecxzPlane(i)) != TCL_OK) {
-             opserr << G3_ERROR_PROMPT << "Failed  to parse vectxz\n";
+             opserr << G3_ERROR_PROMPT 
+                    << "Failed  to parse vectxz\n";
              return TCL_ERROR;
            }
 
@@ -410,17 +411,20 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
     if (!parsed_xz) {
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(0)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid vecxzPlaneX\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid vecxzPlaneX\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(1)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid vecxzPlaneY\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid vecxzPlaneY\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(2)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid vecxzPlaneZ\n";
+        opserr << G3_ERROR_PROMPT 
+               << "invalid vecxzPlaneZ\n";
         return TCL_ERROR;
       }
     }
@@ -459,26 +463,26 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     FrameTransform3d *crdTransf3d=nullptr;
 
     if (strcmp(argv[1], "Linear") == 0)
-      if (!getenv("CRD"))
-        crdTransf3d = new LinearFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      else
+      // if (!getenv("CRD"))
+      //   crdTransf3d = new LinearFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // else
         crdTransf3d = new LinearCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else if (strcmp(argv[1], "PDelta") == 0 ||
              strcmp(argv[1], "LinearWithPDelta") == 0)
-      if (!getenv("CRD"))
-        crdTransf3d = new PDeltaFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      else
+      // if (!getenv("CRD"))
+      //   crdTransf3d = new PDeltaFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // else
         crdTransf3d = new PDeltaCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else if (strcmp(argv[1], "Corotational") == 0)
-      if (getenv("CRD03")) {
-        crdTransf3d = new CorotFrameTransf3d03(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      }
-      else
-        crdTransf3d = new CorotFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // if (getenv("CRD03")) {
+      //   crdTransf3d = new CorotFrameTransf3d03(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      // }
+      // else
+      //   crdTransf3d = new CorotFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 //    else
-//      crdTransf3d = new CorotCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
+      crdTransf3d = new CorotCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else {
       opserr << G3_ERROR_PROMPT << "invalid Type\n";

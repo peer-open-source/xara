@@ -154,12 +154,11 @@ int StagedLoadControl::formTangent(int statFlag)
             int dof = elenodedofs(i);
             if (dof > numEqn)
             {
-                std::cout << "i = " << i << std::endl;
-                std::cout << "numEqn = " << numEqn << std::endl;
-                std::cout << "elenodedofs(i) = " << dof << std::endl;
-                exit(-1);
+                opserr << "i = " << i << std::endl;
+                opserr << "numEqn = " << numEqn << std::endl;
+                opserr << "elenodedofs(i) = " << dof << std::endl;
+                return -1;
             }
-            // std::cout << "i = " << i << " numEqn = " << numEqn << " dof = " << dof << std::endl;
             if (dof >= 0 && elePtr->isActive())
             {
 

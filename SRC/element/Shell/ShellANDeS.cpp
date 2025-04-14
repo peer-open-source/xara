@@ -62,10 +62,6 @@ Obtainable as of July 22 2012 at http://www.colorado.edu/engineering/CAS/Felippa
 These documents all mirror published works in indexed journals.
 */
 
-#include <iomanip>
-#include <iostream>
-
-using namespace std;
 
 #include <Vector.h>
 #include <cmath>
@@ -1542,8 +1538,7 @@ const Matrix &ShellANDeS::getBendingTangentStiffness()
   // Form completestiffness
   static Matrix Kb_bending(9, 9); // Basic bending stiffness
   static Matrix Kh_bending(9, 9); // High-order bending stiffness
-  static Matrix Klocal(
-      18, 18); // Total (membrane + bending) stiffness in local coordinates
+  static Matrix Klocal(18, 18); // Total (membrane + bending) stiffness in local coordinates
   static Matrix TLG(18, 18); // Local-to-global transformation matrix
 
   Kb_bending.Zero();
@@ -2486,8 +2481,8 @@ void ShellANDeS::initializeGeometry(double n1, double n2, double n3)
   e3.Normalize();
 
   if (Area < 0) {
-    cout << "ThreeNodeAndesMembrane::initializeGeometry() -> Element # "
-         << getTag() << " has A < 0!! " << endl;
+    opserr << "ThreeNodeAndesMembrane::initializeGeometry() -> Element # "
+         << getTag() << " has A < 0!\n";
   }
 
   //Local y axis is orthogonal to e1 and e3.

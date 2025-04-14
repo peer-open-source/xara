@@ -678,7 +678,7 @@ OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthInterface2D) {
 
   if (numZeroLengthInterface2D == 0) {
     numZeroLengthInterface2D++;
-    opserr << "ZeroLengthContactNTS2d - Written by Roozbeh G. Mikola and N.Sitar, UC Berkeley\n";
+    opslog << "ZeroLengthContactNTS2d - Written by Roozbeh G. Mikola and N.Sitar, UC Berkeley\n";
   }
 
   Element *theEle = 0;

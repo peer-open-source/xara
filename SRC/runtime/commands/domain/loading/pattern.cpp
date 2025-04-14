@@ -29,7 +29,7 @@
 #include <runtimeAPI.h>
 
 #include <runtimeAPI.h>
-#include <G3_Logging.h>
+#include <Logging.h>
 
 #include <Domain.h>
 #include <LoadPattern.h>
@@ -738,7 +738,8 @@ TclCommand_addPattern(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // now add the load pattern to the modelBuilder
   if (domain->addLoadPattern(thePattern) == false) {
-    opserr << OpenSees::PromptValueError << "could not add load pattern to the domain "
+    opserr << OpenSees::PromptValueError 
+           << "could not add load pattern to the domain "
            << *thePattern;
     delete thePattern;
     return TCL_ERROR;
@@ -808,7 +809,6 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     int nodeId;
     if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1];
-      opserr << " - load nodeId " << ndf << " forces\n";
       return TCL_ERROR;
     }
 
@@ -817,7 +817,8 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     for (int i = 0; i < ndf; ++i) {
       double theForce;
       if (Tcl_GetDouble(interp, argv[2 + i], &theForce) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid force " << i + 1 << " in load " << nodeId;
+        opserr << OpenSees::PromptValueError 
+               << "invalid force " << i + 1 << " in load " << nodeId;
         opserr << ", got " << ndf << " forces\n";
         return TCL_ERROR;
       } else
@@ -837,8 +838,9 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
         if (endMarker == argc ||
             Tcl_GetInt(interp, argv[endMarker], &loadPatternTag) != TCL_OK) {
 
-          opserr << OpenSees::PromptValueError << "invalid patternTag - load " << nodeId << " ";
-          opserr << ndf << " forces pattern patterntag\n";
+          opserr << OpenSees::PromptValueError 
+                 << "invalid patternTag " << argv[endMarker] 
+                 << "\n";
           return TCL_ERROR;
         }
       }
@@ -848,8 +850,8 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     // get the current pattern tag if no tag given in i/p
     if (explicitPatternPassed == false) {
       if (theTclLoadPattern == nullptr) {
-        opserr << OpenSees::PromptParseError << "no current load pattern - load " << nodeId;
-        opserr << " " << ndf << " forces\n";
+        opserr << OpenSees::PromptParseError 
+               << "no current load pattern\n";
         return TCL_ERROR;
       } else
         loadPatternTag = theTclLoadPattern->getTag();

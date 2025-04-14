@@ -292,7 +292,6 @@ public:
         // In displacement_control, we have to do double update.
         // ==========================================
 
-        // cout << "strain_increment = " << strain_increment << endl;
 
         double max_component = 0.0;
         for (int i = 0; i < 6; ++i)

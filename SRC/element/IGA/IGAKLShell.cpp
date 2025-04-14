@@ -68,9 +68,8 @@
 
 // for debugging
 #include <signal.h>
-
 #include <set>
-using namespace std;
+
 template<typename T>
 std::vector<T> arange(T start, T stop, T step = 1) {
   std::vector<T> values;

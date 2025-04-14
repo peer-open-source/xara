@@ -43,9 +43,7 @@
 
 #include <OPS_Globals.h>
 #include <Message.h>
-using namespace std;
-#include <iostream>
-
+#include <Logging.h>
 #define PI 3.14159l
 
 
@@ -60,7 +58,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_LeadRubberX)
 {
     // print out a message about who wrote this element & any copyright info wanted
     if (numMyBearing == 0) {
-        opserr << "LeadRubberX element - Written by Manish Kumar, University at Buffalo, 2012\n";
+        opslog << "LeadRubberX element - Written by Manish Kumar, University at Buffalo, 2012\n";
         numMyBearing++;
     }
     

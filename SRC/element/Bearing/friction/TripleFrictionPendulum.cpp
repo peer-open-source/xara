@@ -59,7 +59,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_TripleFrictionPendulum)
 {
     if (numTripleFrictionPendulum == 0) {
         numTripleFrictionPendulum++;
-        opserr << "TripleFrictionPendulum element v2.0.0 - Written by Nhan@unr\n";
+        opslog << "TripleFrictionPendulum element v2.0.0 - Written by Nhan@unr\n";
     }
     
     // get the id and end nodes 

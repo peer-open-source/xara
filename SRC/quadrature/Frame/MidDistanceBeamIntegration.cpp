@@ -215,8 +215,7 @@ MidDistanceBeamIntegration::Print(OPS_Stream &s, int flag)
 }
 
 void 
-MidDistanceBeamIntegration::getLocationsDeriv(int n,
-					      double L, double , double *dptsdh)
+MidDistanceBeamIntegration::getLocationsDeriv(int n, double L, double , double *dptsdh)
 {
   for (int i = 0; i < n; i++)
     dptsdh[i] = 0.0;
@@ -225,8 +224,7 @@ MidDistanceBeamIntegration::getLocationsDeriv(int n,
 }
 
 void
-MidDistanceBeamIntegration::getWeightsDeriv(int n,
-					    double L, double dLdh, double *dwtsdh)
+MidDistanceBeamIntegration::getWeightsDeriv(int n, double L, double dLdh, double *dwtsdh)
 {
   for (int i = 0; i < n; i++)
     dwtsdh[i] = 0.0;

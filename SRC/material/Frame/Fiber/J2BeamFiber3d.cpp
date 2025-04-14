@@ -17,28 +17,25 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.3 $
-// $Date: 2002-12-05 22:49:09 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/J2BeamFiber3d.cpp,v $
-
+//
+// Description: Elastic isotropic model where stress 
+// components 22, 33, 13, and 23 are constrained to 0.
+//
 // Written: MHS
 // Created: Aug 2001
 //
-// Description: Elastic isotropic model where stress 
-// components 22, 33, 13, and 23 are condensed out.
-
 #include <J2BeamFiber3d.h>           
 #include <Channel.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
-
-#include <OPS_Globals.h>
+#include <MatrixND.h>
+#include <VectorND.h>
 #include <elementAPI.h>
 #include <string.h>
 #include <stdlib.h>
 
+using namespace OpenSees;
 Vector J2BeamFiber3d::sigma(3);
 Matrix J2BeamFiber3d::D(3,3);
 
@@ -59,7 +56,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2BeamFiber3dMaterial)
   
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: nDMaterial J2BeamFiber \n";
+    opserr << "WARNING invalid integer tag\n";
     return 0;
   }
   
@@ -69,7 +66,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2BeamFiber3dMaterial)
     numData = 5;
   
   if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: nDMaterial J2BeamFiber : " << iData[0] <<"\n";
+    opserr << "WARNING invalid data" << iData[0] <<"\n";
     return 0;
   }  
   
@@ -109,65 +106,63 @@ J2BeamFiber3d::J2BeamFiber3d():
   epsPn1[2] = 0.0;
 }
 
-J2BeamFiber3d::~J2BeamFiber3d ()
+J2BeamFiber3d::~J2BeamFiber3d()
 {
   if (SHVs != 0)
     delete SHVs;
 }
 
 int
-J2BeamFiber3d::setTrialStrain (const Vector &strain)
+J2BeamFiber3d::setTrialStrain(const Vector &strain)
 {
   Tepsilon = strain;
-
   return 0;
 }
 
 int
-J2BeamFiber3d::setTrialStrain (const Vector &strain, const Vector &rate)
+J2BeamFiber3d::setTrialStrain(const Vector &strain, const Vector &rate)
 {
   Tepsilon = strain;
-
   return 0;
 }
 
 int
-J2BeamFiber3d::setTrialStrainIncr (const Vector &strain)
+J2BeamFiber3d::setTrialStrainIncr(const Vector &strain)
 {
   return 0;
 }
 
 int
-J2BeamFiber3d::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+J2BeamFiber3d::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   return 0;
 }
 
 const Matrix&
-J2BeamFiber3d::getTangent (void)
+J2BeamFiber3d::getTangent()
 {
   double twoG = E/(1.0+nu);
   double G = 0.5*twoG;
 
-  double sig[3];
-  sig[0] = E*(Tepsilon(0)-epsPn[0]);
-  sig[1] = G*(Tepsilon(1)-epsPn[1]);
-  sig[2] = G*(Tepsilon(2)-epsPn[2]);
+  Vector3D sig;
+  sig[0] = E*(Tepsilon(0) - epsPn[0]);
+  sig[1] = G*(Tepsilon(1) - epsPn[1]);
+  sig[2] = G*(Tepsilon(2) - epsPn[2]);
 
-  static const double one3 = 1.0/3;
-  static const double two3 = 2.0*one3;
-  static const double root23 = sqrt(two3);
+  static constexpr double one3 = 1.0/3;
+  static constexpr double two3 = 2.0*one3;
+  static const double root23 = std::sqrt(two3);
 
   double two3Hkin = two3*Hkin;
 
-  double xsi[3];
+  Vector3D xsi;
   //xsi[0] = sig[0] - two3*Hkin*1.5*epsPn[0];
   //xsi[1] = sig[1] - two3*Hkin*0.5*epsPn[1];
   xsi[0] = sig[0] -      Hkin*epsPn[0];
   xsi[1] = sig[1] - one3*Hkin*epsPn[1];
   xsi[2] = sig[2] - one3*Hkin*epsPn[2];
 
-  double q = sqrt(two3*xsi[0]*xsi[0] + 2.0*xsi[1]*xsi[1] + 2.0*xsi[2]*xsi[2]);
+  double q = sqrt(2./3.*xsi[0]*xsi[0] + 2.*xsi[1]*xsi[1] + 2.*xsi[2]*xsi[2]);
   double F = q - root23*(sigmaY + Hiso*alphan);
 
   if (F < -100*DBL_EPSILON) {
@@ -188,35 +183,40 @@ J2BeamFiber3d::getTangent (void)
     // Solve for dg
     double dg = 0.0;
 
-    static Vector R(4);
-    R(0) = 0.0; R(1) = 0.0; R(2) = 0.0; R(3) = F;
-    static Vector x(4);
-    x(0) = xsi[0]; x(1) = xsi[1]; x(2) = xsi[2]; x(3) = dg;
+    VectorND<4> R {   0.0,    0.0,    0.0,  F};
+    VectorND<4> x {xsi[0], xsi[1], xsi[2], dg};
 
-    static Matrix J(4,4);
-    static Vector dx(4);
+    MatrixND<4,4> J;
+    VectorND<4> dx;
 
-    int iter = 0; int maxIter = 25;
-    while (iter < maxIter && R.Norm() > sigmaY*1.0e-14) {
-        iter++;
+    int iter = 0;
+    int maxIter = 25;
+    constexpr static double tol = 1.0e-8;
+    while (R.norm() > sigmaY*tol && iter++ < maxIter) {
 
-        J(0,0) = 1.0 + dg*two3*(E+Hkin); J(0,1) = 0.0; J(0,2) = 0.0;
-        J(1,0) = 0.0; J(1,1) = 1.0 + dg*(twoG+two3Hkin); J(1,2) = 0.0;
-        J(2,0) = 0.0; J(2,1) = 0.0; J(2,2) = 1.0 + dg*(twoG+two3Hkin);
+        J(0,0) = 1.0 + dg*two3*(E+Hkin); 
+        J(0,1) = 0.0;
+        J(0,2) = 0.0;
+        J(1,0) = 0.0; 
+        J(1,1) = 1.0 + dg*2*(G + Hkin/3); 
+        J(1,2) = 0.0;
+        J(2,0) = 0.0; 
+        J(2,1) = 0.0; 
+        J(2,2) = 1.0 + dg*2*(G + Hkin/3);
 
         J(0,3) = two3*(E+Hkin)*x(0);
-        J(1,3) = (twoG+two3Hkin)*x(1);
-        J(2,3) = (twoG+two3Hkin)*x(2);
+        J(1,3) = 2*(G + Hkin/3)*x(1);
+        J(2,3) = 2*(G + Hkin/3)*x(2);
 
         //J(2,0) = x(0)*two3/q; J(2,1) = x(1)*2.0/q;
-        J(3,0) = (1.0-two3*Hiso*dg)*x(0)*two3/q;
-        J(3,1) = (1.0-two3*Hiso*dg)*x(1)*2.0/q;
-        J(3,2) = (1.0-two3*Hiso*dg)*x(2)*2.0/q;
+        J(3,0) = (1.0 - 2/3*Hiso*dg)*x[0]*two3/q;
+        J(3,1) = (1.0 - 2/3*Hiso*dg)*x[1]*2.0/q;
+        J(3,2) = (1.0 - 2/3*Hiso*dg)*x[2]*2.0/q;
 
         //J(2,2) = -root23*Hiso;
-	J(3,3) = -two3*Hiso*q;
+        J(3,3) = -two3*Hiso*q;
 
-        J.Solve(R, dx);
+        J.solve(R, dx);
         x.addVector(1.0, dx, -1.0);
 
         dg = x(3);
@@ -231,7 +231,7 @@ J2BeamFiber3d::getTangent (void)
     }
 
     if (iter == maxIter) {
-      //opserr << "J2BeamFiber3d::getTangent -- maxIter reached " << R.Norm() << endln;
+      opserr << "J2BeamFiber3d::getTangent -- maxIter reached, " << R.norm() << " > " << sigmaY*tol << endln;
     }
 
     alphan1 = alphan + dg*root23*q;
@@ -245,9 +245,14 @@ J2BeamFiber3d::getTangent (void)
     //static Matrix invJ(3,3);
     //J.Invert(invJ);
 
-    J(0,0) = 1.0 + dg*two3*E/(1.0+dg*two3Hkin); J(0,1) = 0.0; J(0,2) = 0.0;
-    J(1,0) = 0.0; J(1,1) = 1.0 + dg*twoG/(1.0+dg*two3Hkin); J(1,2) = 0.0;
-    J(2,0) = 0.0; J(2,1) = 0.0; J(2,2) = 1.0 + dg*twoG/(1.0+dg*two3Hkin);
+    J(0,0) = 1.0 + dg*two3*E/(1.0+dg*two3Hkin); 
+    J(0,1) = 0.0; 
+    J(0,2) = 0.0;
+    J(1,0) = 0.0; 
+    J(1,1) = 1.0 + dg*twoG/(1.0+dg*two3Hkin); J(1,2) = 0.0;
+    J(2,0) = 0.0; 
+    J(2,1) = 0.0; 
+    J(2,2) = 1.0 + dg*twoG/(1.0+dg*two3Hkin);
 
     J(0,3) = (two3*E-dg*two3*E/(1.0+dg*two3Hkin)*two3Hkin)*x(0);
     J(1,3) = (twoG  -dg*  twoG/(1.0+dg*two3Hkin)*two3Hkin)*x(1);
@@ -264,8 +269,8 @@ J2BeamFiber3d::getTangent (void)
     //J(2,2) = -q*two3Hkin/(1.0+dg*two3Hkin) - root23*Hiso;
     J(3,3) = -q*two3Hkin/(1.0+dg*two3Hkin) - two3*Hiso*q;
 
-    static Matrix invJ(4,4);
-    J.Invert(invJ);
+    MatrixND<4,4> invJ;
+    J.invert(invJ);
 
     D(0,0) = invJ(0,0)*E;
     D(1,0) = invJ(1,0)*E;
@@ -282,7 +287,7 @@ J2BeamFiber3d::getTangent (void)
 }
 
 const Matrix&
-J2BeamFiber3d::getInitialTangent (void)
+J2BeamFiber3d::getInitialTangent()
 {
   double G = 0.5*E/(1.0+nu);
 
@@ -297,7 +302,7 @@ J2BeamFiber3d::getInitialTangent (void)
 }
 
 const Vector&
-J2BeamFiber3d::getStress (void)
+J2BeamFiber3d::getStress()
 {
   double G = 0.5*E/(1.0+nu);
 
@@ -316,7 +321,7 @@ J2BeamFiber3d::getStress (void)
   xsi[1] = sigma(1) - one3*Hkin*epsPn[1];
   xsi[2] = sigma(2) - one3*Hkin*epsPn[2];
 
-  double q = sqrt(two3*xsi[0]*xsi[0] + 2.0*xsi[1]*xsi[1] + 2.0*xsi[2]*xsi[2]);
+  double q = std::sqrt(two3*xsi[0]*xsi[0] + 2.0*xsi[1]*xsi[1] + 2.0*xsi[2]*xsi[2]);
   double F = q - root23*(sigmaY + Hiso*alphan);
 
   if (F < -100*DBL_EPSILON) {
@@ -356,7 +361,7 @@ J2BeamFiber3d::getStress (void)
         J(3,2) = (1.0-two3*Hiso*dg)*x(2)*2.0/q;
 
         //J(2,2) = -root23*Hiso;
-	J(3,3) = -two3*Hiso*q;
+        J(3,3) = -two3*Hiso*q;
 
         J.Solve(R, dx);
         x = x-dx;
@@ -393,13 +398,13 @@ J2BeamFiber3d::getStress (void)
 }
 
 const Vector&
-J2BeamFiber3d::getStrain (void)
+J2BeamFiber3d::getStrain()
 {
   return Tepsilon;
 }
 
 int
-J2BeamFiber3d::commitState (void)
+J2BeamFiber3d::commitState()
 {
   epsPn[0] = epsPn1[0];
   epsPn[1] = epsPn1[1];
@@ -411,7 +416,7 @@ J2BeamFiber3d::commitState (void)
 }
 
 int
-J2BeamFiber3d::revertToLastCommit (void)
+J2BeamFiber3d::revertToLastCommit()
 {
   epsPn1[0] = epsPn[0];
   epsPn1[1] = epsPn[1];
@@ -423,7 +428,7 @@ J2BeamFiber3d::revertToLastCommit (void)
 }
 
 int
-J2BeamFiber3d::revertToStart (void)
+J2BeamFiber3d::revertToStart()
 {
   Tepsilon.Zero();
 
@@ -447,7 +452,7 @@ J2BeamFiber3d::revertToStart (void)
 }
 
 NDMaterial*
-J2BeamFiber3d::getCopy (void)
+J2BeamFiber3d::getCopy()
 {
   J2BeamFiber3d *theCopy =
     new J2BeamFiber3d (this->getTag(), E, nu, sigmaY, Hiso, Hkin);
@@ -456,22 +461,22 @@ J2BeamFiber3d::getCopy (void)
 }
 
 NDMaterial*
-J2BeamFiber3d::getCopy (const char *type)
+J2BeamFiber3d::getCopy(const char *type)
 {
-  if (strcmp(type,this->getType()) == 0)
+  if (strcmp(type, this->getType()) == 0)
     return this->getCopy();
 
-  return 0;
+  return nullptr;
 }
 
 const char*
-J2BeamFiber3d::getType (void) const
+J2BeamFiber3d::getType() const
 {
   return "BeamFiber";
 }
 
 int
-J2BeamFiber3d::getOrder (void) const
+J2BeamFiber3d::getOrder() const
 {
   return 3;
 }
@@ -510,7 +515,10 @@ J2BeamFiber3d::getStressSensitivity(int gradIndex, bool conditional)
 
   double G = 0.5*E/(1.0+nu);
 
-  double depsPdh[3]; depsPdh[0] = 0.0; depsPdh[1] = 0.0; depsPdh[2] = 0.0;
+  double depsPdh[3]; 
+  depsPdh[0] = 0.0; 
+  depsPdh[1] = 0.0; 
+  depsPdh[2] = 0.0;
   double dalphadh = 0.0;
   if (SHVs != 0) {
     depsPdh[0] = (*SHVs)(0,gradIndex);
@@ -687,7 +695,7 @@ J2BeamFiber3d::commitSensitivity(const Vector &depsdh, int gradIndex, int numGra
 
 
 int
-J2BeamFiber3d::sendSelf (int commitTag, Channel &theChannel)
+J2BeamFiber3d::sendSelf(int commitTag, Channel &theChannel)
 {
   int res = 0;
 
@@ -758,7 +766,9 @@ J2BeamFiber3d::setParameter(const char **argv, int argc,
     param.setValue(nu);
     return param.addObject(2, this);  
   }
-  else if (strcmp(argv[0],"sigmaY") == 0 || strcmp(argv[0],"fy") == 0  || strcmp(argv[0],"Fy") == 0) {
+  else if (strcmp(argv[0],"sigmaY") == 0 || 
+           strcmp(argv[0],"fy") == 0  || 
+           strcmp(argv[0],"Fy") == 0) {
     param.setValue(sigmaY);
     return param.addObject(5, this);
   }

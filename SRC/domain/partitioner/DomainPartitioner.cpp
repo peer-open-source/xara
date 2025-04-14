@@ -176,9 +176,9 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
     if (i != mainPartition) {
       Subdomain *subdomainPtr = myDomain->getSubdomainPtr(i);
       if (subdomainPtr == 0) {
-	opserr << "DomainPartitioner::partition - No Subdomain: ";
-	opserr << i << " exists\n";
-	return -1;
+        opserr << "DomainPartitioner::partition - No Subdomain: ";
+        opserr << i << " exists\n";
+        return -1;
       }
     }
   }

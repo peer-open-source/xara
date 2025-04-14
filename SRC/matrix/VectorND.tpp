@@ -31,6 +31,16 @@
       (*this)[a+i]  = v[i]*scale;
   }
 
+  template<int nr>
+  VectorND<nr> 
+  extract(int a) noexcept
+  {
+    VectorND<nr> v;
+    for (int i=0; i<nr; i++)
+      v[i] = (*this)[a+i];
+    return v;
+  }
+
   int
   addVector(const T thisFact, const Vector &other, const T otherFact) 
   {

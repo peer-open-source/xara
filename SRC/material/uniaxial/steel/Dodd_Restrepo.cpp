@@ -43,7 +43,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Dodd_Restrepo)
 {
   if (numDoddRestrepo == 0) {
     numDoddRestrepo++;
-    opserr << "Dodd_Restrepo unaxial material - Written by L.L. Dodd & J. Restepo\n";
+    opslog << "Dodd_Restrepo unaxial material - Written by L.L. Dodd & J. Restepo\n";
   }
 
   // Pointer to a uniaxial material that will be returned

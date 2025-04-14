@@ -37,8 +37,6 @@
 #define VECTOR_BLAS
 #endif
 
-// Vector():
-//        Standard constructor, sets size = 0;
 
 Vector::Vector()
 : sz(0), theData(nullptr), fromFree(0)
@@ -46,18 +44,16 @@ Vector::Vector()
 
 }
 
-// Vector(int size):
-//        Constructor used to allocate a vector of size size.
 
 Vector::Vector(int size)
 : sz(size), theData(nullptr), fromFree(0)
 {
   assert(size >= 0);
 
-  // get some space for the vector
   if (size > 0)
     theData = new double [size]{};
 }
+
 
 Vector::Vector(std::shared_ptr<double[]> data, int size)
 : sz(size), theData(nullptr), fromFree(0)
@@ -76,10 +72,7 @@ Vector::Vector(double *data, int size)
 {
   assert(sz >= 0);
 }
- 
 
-// Vector(const Vector&):
-//        Constructor to init a vector from another.
 
 Vector::Vector(const Vector &other)
 : sz(other.sz),theData(0),fromFree(0)
@@ -92,7 +85,7 @@ Vector::Vector(const Vector &other)
     theData[i] = other.theData[i];
 }
 
-// Vector(const Vector&):
+
 //  Move constructor
 #if !defined(NO_CXX11_MOVE)   
 Vector::Vector(Vector &&other)

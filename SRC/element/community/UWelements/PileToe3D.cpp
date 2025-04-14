@@ -57,7 +57,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PileToe3D)
   if (num_PileToe3D == 0) {
     num_PileToe3D++;
     //OPS_Error("PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, U.Washington\n", 1);
-    opserr <<"PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog <<"PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
 
   // Pointer to a uniaxial material that will be returned

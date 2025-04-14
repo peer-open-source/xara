@@ -11,20 +11,20 @@
 // Created: 07/99
 //
 #include <set>
+#include <assert.h>
+#include <tcl.h>
+#include <string.h>
+#include <fstream>
+#include <iostream>
 #include <Parsing.h>
 #include <Logging.h>
 #include <ArgumentTracker.h>
-#include <assert.h>
-#include <tcl.h>
 #include <runtimeAPI.h>
-#include <G3_Logging.h>
+#include <Logging.h>
 #include <elementAPI.h>
 #include <PlaneSection.h>
 #include <BasicModelBuilder.h>
 #include <Parameter.h>
-#include <string.h>
-#include <fstream>
-#include <iostream>
 
 #include <packages.h>
 

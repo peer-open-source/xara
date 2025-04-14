@@ -257,7 +257,6 @@ RockingBC::RockingBC(int tag, int Nd1, int Nd2, int nw,
   {
 	  Yw(Nw-i-1) = 1.0 - pow(2.0*i/(Nw - 1), yexp);
   }
-  //std::cout << Yw << std::endl;
 
   UNM_calc(Yw, UN, UM);
 
@@ -736,7 +735,6 @@ RockingBC::update(void)
 double
 RockingBC::getDt(void) {
 	curtime = this->DomainComponent::getDomain()->getCurrentTime();
-	//std::cout << "Dt= " << curtime - committedtime << std::endl;
 	return curtime - committedtime;
 }
 
@@ -1099,7 +1097,6 @@ RockingBC::state_determination(void)
 
 		for (size_t j = 0; j < slidingmodes_try.size(); j++) {
 			slidmode = slidingmodes_try[j];
-			//std::cout << "Trying sliding mode " << slidmode << std::endl;
 			NLsolvesuccess = NL_solve_dyn();
 			if (NLsolvesuccess == 0 && slidmode == newslidmode) {
 				slidmode_init = slidmode;
@@ -1142,14 +1139,9 @@ RockingBC::state_determination(void)
 	}
 	if (!isdynamic) {
 		Fst = std::fabs(Fe[3]);
-		//std::cout << Fst << std::endl;
 	}
 
-	//std::cout << "Dynamic step, Forces: " << FnVec[0] << " " << FnVec_com[0] << " " << Fe[0] << " " << Fecommit[0] << std::endl;
-	//std::cout << "Dynamic step: " << dyncount << " forceratios: " << forceratioN << " " << forceratioT << " " << dueV.norm() << " " << DueV.norm() << " " << Dt << std::endl;
-
 	if (errorifNexceeds && Due.Norm() > 0 && Dt > 1.01 * Dtlim && ( forceratioN > NlimN || forceratioT > NlimT ) ) {
-		//std::cout << "Large rate of change of axial force: forceratioN= " << forceratioN << ", forceratioT= " << forceratioT <<", Dtcur=" << Dt << std::endl;
 		return -1; // Raise Error
 	}
 	
@@ -2768,7 +2760,7 @@ double RockingBC::I_calc(double y, double r)
 {
 	static const double pi{ std::atan(1) * 4 };
 	static const double A = -1 / pi;
-	static const double B = -0.19532775;
+	static constexpr double B = -0.19532775;
 
 	return A*I_FA(y, r) + B*I_FB(y, r) + I_FP(y, r);
 }
@@ -2777,7 +2769,7 @@ double RockingBC::J_calc(double y, double r)
 {
 	static const double pi{ std::atan(1.) * 4 };
 	static const double A = -1 / pi;
-	static const double B = -0.19532775;
+	static constexpr double B = -0.19532775;
 
 	return A*J_FA(y, r) + B*J_FB(y, r) + J_FP(y, r);
 }
@@ -3814,8 +3806,6 @@ void RockingBC::interval_interior(double wl, double wr, double ey, double dy, co
 			}
 		}
 	}
-	
-	//std::cout << Eigen::Map<Vector>(&s_com[0], s_com.size()).transpose() << std::endl;
 	
     Wnf.push_back(Wn[Wn.size()-1]);
     Yf.push_back(Y[Y.size()-1]);   

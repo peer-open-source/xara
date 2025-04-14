@@ -80,12 +80,6 @@ BBarFourNodeQuadUP::BBarFourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int n
     // Get copies of the material model for each integration point
     theMaterial[i] = m.getCopy(type);
 
-    // Check allocation
-    if (theMaterial[i] == 0) {
-      opserr << "BBarFourNodeQuadUP::BBarFourNodeQuadUP -- failed to get a copy of material model\n";
-      exit(-1);
-    }
-
     // Need 3D stresses
     Information info;
     theMaterial[i]->updateParameter(20, info);

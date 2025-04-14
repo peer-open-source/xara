@@ -30,8 +30,10 @@ class EightNodeQuad : public Element,
                    protected LegendreFixedQuadrilateral<9>
 {
 public:
-  EightNodeQuad(int tag, int nd1, int nd2, int nd3, int nd4, int nd5, int nd6,
-               int nd7, int nd8, NDMaterial &m, const char *type, double t,
+  EightNodeQuad(int tag, 
+               std::array<int,8> &nodes, 
+               NDMaterial &m, 
+               double t,
                double pressure = 0.0, double rho = 0.0, double b1 = 0.0,
                double b2 = 0.0);
   EightNodeQuad();

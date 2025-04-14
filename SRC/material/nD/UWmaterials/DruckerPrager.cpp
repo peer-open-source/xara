@@ -59,7 +59,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_DruckerPragerMaterial)
 {
   if (numDruckerPragerMaterials == 0) {
     numDruckerPragerMaterials++;
-    opserr << "DruckerPrager nDmaterial - Written: K.Petek, P.Mackenzie-Helnwein, P.Arduino, U.Washington\n";
+    opslog << "DruckerPrager nDmaterial - Written: K.Petek, P.Mackenzie-Helnwein, P.Arduino, U.Washington\n";
   }
 
   // Pointer to a uniaxial material that will be returned

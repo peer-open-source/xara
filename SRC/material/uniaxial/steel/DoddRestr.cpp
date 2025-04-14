@@ -44,14 +44,8 @@
 #include <math.h>
 #include <float.h>
 
-
 #include <elementAPI.h>
-#include <OPS_Globals.h>
 
-
-//#include <iostream>
-//#include <fstream>
-//using namespace std;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_DoddRestr)
 {

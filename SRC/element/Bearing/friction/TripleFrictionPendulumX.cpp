@@ -50,8 +50,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <Message.h>
-using namespace std;
-#include <iostream>
 #include <Vector.h>
 #include <SingleFPSimple3d.h>
 

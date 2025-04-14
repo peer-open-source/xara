@@ -9,6 +9,7 @@
 #include <Field.h>
 #include <material/section/SectionForceDeformation.h>
 
+// TODO: Maybe make this public under ElasticFrameSection
 struct FrameSectionConstants {
   // n-n
   double A;
@@ -292,6 +293,7 @@ OpenSees::MatrixND<n,n, double>
 FrameSection::getFlexibility(State state)
 {
   OpenSees::MatrixND<n,n,double> K = getTangent<n,scheme>(state);
+  // TODO: clean this up, validate
   OpenSees::MatrixND<n,n,double> F;
   K.invert(F);
   return F;

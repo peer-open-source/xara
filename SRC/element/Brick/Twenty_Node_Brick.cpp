@@ -22,8 +22,6 @@
 //
 // 20NodeBrick element
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -38,7 +36,6 @@
 #include <Twenty_Node_Brick.h>
 #include <shp3d.h>
 #include <shp3dv.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 
@@ -126,8 +123,7 @@ connectedExternalNodes(20), applyLoad(0), load(0), Ki(0)//, kc(0), rho(0)
 }
 
 
-//*********************************************************************
-//full constructor
+
 Twenty_Node_Brick::Twenty_Node_Brick(int tag,
 											   int node1,
 											   int node2,
@@ -846,10 +842,7 @@ void Twenty_Node_Brick::formDampingTerms( int tangFlag )
 
 
 
-	return; /////////
-
-
-
+	return;
 }
 
 
@@ -1035,8 +1028,6 @@ const Vector&  Twenty_Node_Brick::getResistingForce( )
 
 	for (i = 0; i < nintu; i++) {
 
-
-
 		// Get material stress response
 
 		const Vector &sigma = materialPointers[i]->getStress();
@@ -1049,7 +1040,7 @@ const Vector&  Twenty_Node_Brick::getResistingForce( )
 
 		//P.addMatrixTransposeVector(1.0, B, sigma, intWt(i)*intWt(j)*detJ);
 
-		for (j = 0; j < nenu; j++) {
+		for (int j = 0; j < nenu; j++) {
 
 
 
@@ -1091,9 +1082,7 @@ const Vector&  Twenty_Node_Brick::getResistingForce( )
 
 
 
-
-
-			for(k = 0; k < 3; k++) {
+			for(int k = 0; k < 3; k++) {
 
 				for(k1 = 0; k1 < 6; k1++)
 
@@ -1110,7 +1099,6 @@ const Vector&  Twenty_Node_Brick::getResistingForce( )
 			double r = mixtureRho(i);
 
 			if (applyLoad == 0) {
-
 				resid(j*3) -= dvolu[i]*(shgu[3][j][i]*r*b[0]);
 
 				resid(j*3+1) -= dvolu[i]*(shgu[3][j][i]*r*b[1]);
@@ -1386,25 +1374,12 @@ double Twenty_Node_Brick::mixtureRho(int i)
 
 
 
-void   Twenty_Node_Brick::computeBasis( )
-
+void
+Twenty_Node_Brick::computeBasis( )
 {
-
-
-
-	//nodal coordinates
-
-
-
-	int i ;
-
-	for ( i = 0; i < nenu; i++ ) {
-
-
+	for (int i = 0; i < nenu; i++ ) {
 
 		const Vector &coorI = nodePointers[i]->getCrds( ) ;
-
-
 
 		xl[0][i] = coorI(0) ;
 
@@ -1412,12 +1387,7 @@ void   Twenty_Node_Brick::computeBasis( )
 
 		xl[2][i] = coorI(2) ;
 
-
-
-	}  //end for i
-
-
-
+	}
 }
 
 
@@ -1434,8 +1404,6 @@ int  Twenty_Node_Brick::sendSelf (int commitTag, Channel &theChannel)
 
 	int res = 0;
 
-
-
 	// note: we don't check for dataTag == 0 for Element
 
 	// objects as that is taken care of in a commit by the Domain
@@ -1445,9 +1413,7 @@ int  Twenty_Node_Brick::sendSelf (int commitTag, Channel &theChannel)
 	int dataTag = this->getDbTag();
 
 
-
 	// Quad packs its data into a Vector and sends this to theChannel
-
 	// along with its dbTag and the commitTag passed in the arguments
 
 
@@ -1479,11 +1445,8 @@ int  Twenty_Node_Brick::sendSelf (int commitTag, Channel &theChannel)
 		// tag if we are sending to a database channel.
 
 		if (matDbTag == 0) {
-
 			matDbTag = theChannel.getDbTag();
-
 			if (matDbTag != 0)
-
 				materialPointers[i]->setDbTag(matDbTag);
 
 		}
@@ -1493,19 +1456,14 @@ int  Twenty_Node_Brick::sendSelf (int commitTag, Channel &theChannel)
 	}
 
 	for( i = 0; i < 20; i++)
-
 		idData(54+i) = connectedExternalNodes(i);
-
-
 
 
 
 	res += theChannel.sendID(dataTag, commitTag, idData);
 
 	if (res < 0) {
-
 		opserr << "WARNING Twenty_Node_Brick::sendSelf() - " << this->getTag() << " failed to send ID\n";
-
 		return res;
 
 	}
@@ -1674,25 +1632,8 @@ int  Twenty_Node_Brick::recvSelf (int commitTag,
 
 	}
 
-
-
 	return res;
-
 }
-
-//**************************************************************************
-
-
-
-int
-
-Twenty_Node_Brick::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-
-   return 0;
-
-}
-
 
 
 Response*

@@ -246,7 +246,7 @@ ExactFrame3d<nen,nwm>::update()
   // Collect nodal parameters
   //
   VectorND<ndf> ddu[nen];
-  for (int i=0; i < nen; i++) {
+  for (unsigned i=0; i < nen; i++) {
     const Vector& ddui = theNodes[i]->getIncrDeltaDisp();
     for (int j=0; j<ndf; j++)
       ddu[i][j] = ddui[j];
@@ -255,7 +255,7 @@ ExactFrame3d<nen,nwm>::update()
   // Form displaced node locations xyz
   VectorND<ndm> xyz[nen];
   double uwarp[nen][nwm]{};
-  for (int i=0; i < nen; i++) {
+  for (unsigned i=0; i < nen; i++) {
     const Vector& xi = theNodes[i]->getCrds();
     const Vector& ui = theNodes[i]->getTrialDisp();
     for (int j=0; j<ndm; j++)
@@ -277,7 +277,7 @@ ExactFrame3d<nen,nwm>::update()
     Vector3D theta  {0.0};
     Vector3D dtheta {0.0};
 
-    for (int j=0; j < nen; j++) {
+    for (unsigned j=0; j < nen; j++) {
       for (int l=0; l<3; l++)
         dx[l]     += pres[i].shape[1][j]*xyz[j][l];
       for (int l=0; l<3; l++)
@@ -289,13 +289,13 @@ ExactFrame3d<nen,nwm>::update()
     double warp[nwm]{};
     double dwarp[nwm]{};
     if (false) {//(nsr == 7 && scheme[6] == FrameStress::Bishear) {
-      for (int j=0; j < nen; j++)
+      for (unsigned j=0; j < nen; j++)
         ;
         // dwarp += pres[i].shape[0][j]*uwarp[j];
     }
     else {//if (nsr == 8 && scheme[6] == FrameStress::Bishear) {
       for (int k=0; k<nwm; k++) {
-        for (int j=0; j < nen; j++) {
+        for (unsigned j=0; j < nen; j++) {
           warp[k]  += pres[i].shape[0][j]*uwarp[j][k];
           dwarp[k] += pres[i].shape[1][j]*uwarp[j][k];
         }
@@ -362,7 +362,7 @@ ExactFrame3d<nen,nwm>::update()
     // Material Tangent
     MatrixND<ndf,ndf> Kjk;
     for (unsigned j=0; j<nen; j++) {
-      for (int k=0; k<nen; k++) {
+      for (unsigned k=0; k<nen; k++) {
         Kjk.addMatrixTripleProduct(0.0, B[j], Ks, B[k], pres[i].weight);
 
         for (int ii=0; ii<ndf; ii++) {

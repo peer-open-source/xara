@@ -23,7 +23,7 @@
 // Description: This file contains the implementation of the SSPbrick class
 
 #include "SSPbrick.h"
-
+#include <Logging.h>
 #include <elementAPI.h>
 #include <Information.h>
 #include <ElementResponse.h>
@@ -42,7 +42,6 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #define OPS_Export
 
@@ -53,7 +52,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPbrick)
 
   if (num_SSPbrick == 0) {
     num_SSPbrick++;
-    opserr << "SSPbrick element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog << "SSPbrick element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
   
   // Pointer to an element that will be returned

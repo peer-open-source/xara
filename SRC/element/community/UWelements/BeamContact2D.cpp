@@ -52,7 +52,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_BeamContact2D)
 {
   if (num_BeamContact2D == 0) {
     num_BeamContact2D++;
-    opserr<<"BeamContact2D element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog<<"BeamContact2D element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
 
   // Pointer to an element that will be returned

@@ -12,7 +12,6 @@ typedef void *OPS_Routine(G3_Runtime* , int, const char** const);
 
 extern OPS_Routine OPS_ComponentElement2d;
 extern OPS_Routine OPS_ComponentElement3d;
-// extern  void *OPS_ComponentElementDamp2d(G3_Runtime*);
 extern OPS_Routine OPS_TrussElement;
 extern OPS_Routine OPS_TrussSectionElement;
 extern OPS_Routine OPS_CorotTrussElement;
@@ -145,41 +144,18 @@ class CaseInsensitive
     }
 };
 
-#if 0
-// template <OPS_Routine fn2d, OPS_Routine fn3d> static int
-class BasicModelBuilder;
-struct Tcl_Interp;
-class Domain;
-template <OPS_Routine fn> static int
-dispatch(BasicModelBuilder* builder, Tcl_Interp* interp, int argc, const char** const argv)
-{
-  int ndm = builder->getNDM();
-  Domain* domain = builder->getDomain();
-  G3_Runtime *rt = G3_getRuntime(interp);
-
-  Element* theElement = (Element*)fn( rt, argc, argv );
-
-  if (domain->addElement(*theElement) == false) {
-    opserr << G3_ERROR_PROMPT << "Could not add element to the domain.\n";
-    delete theElement;
-    return TCL_ERROR;
-  }
-  return TCL_OK;
-}
-#endif
 Tcl_CmdProc TclCommand_addTwoNodeLink;
 // Plane
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuad;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadWithSensitivity;
 Tcl_CmdProc TclBasicBuilder_addConstantPressureVolumeQuad;
 Tcl_CmdProc TclBasicBuilder_addNineNodeMixedQuad;
-Tcl_CmdProc TclBasicBuilder_addNineNodeQuad;
 Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
-Tcl_CmdProc TclBasicBuilder_addEightNodeQuad;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addNineFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addBBarFourNodeQuadUP;
-Tcl_CmdProc TclDispatch_newTri31;
+// Shell
+Tcl_CmdProc TclBasicBuilder_addShell;
 // Brick
 Tcl_CmdProc TclBasicBuilder_addBrickUP;
 Tcl_CmdProc TclBasicBuilder_addBBarBrickUP;
@@ -201,10 +177,12 @@ element_dispatch_tcl = {
 //
 // Plane
 //
-  {"Quad",                      TclBasicBuilder_addFourNodeQuad},
   {"stdQuad",                   TclBasicBuilder_addFourNodeQuad},
   {"LagrangeQuad",              TclBasicBuilder_addFourNodeQuad},
   {"enhancedQuad",              TclBasicBuilder_addFourNodeQuad},
+  {"quad",                      TclBasicBuilder_addFourNodeQuad},
+  {"quad9n",                    TclBasicBuilder_addFourNodeQuad},
+  {"quad8n",                    TclBasicBuilder_addFourNodeQuad},
 
   {"quadWithSensitivity",       TclBasicBuilder_addFourNodeQuadWithSensitivity},
 
@@ -212,13 +190,23 @@ element_dispatch_tcl = {
   {"mixedQuad",                 TclBasicBuilder_addConstantPressureVolumeQuad},
 
   {"nineNodeMixedQuad",         TclBasicBuilder_addNineNodeMixedQuad},
-  {"nineNodeQuad",              TclBasicBuilder_addNineNodeMixedQuad},
+  {"nineNodeQuad",              TclBasicBuilder_addNineNodeMixedQuad}, // ??
 
-  {"quad9n",                    TclBasicBuilder_addNineNodeQuad},
-  {"quad8n",                    TclBasicBuilder_addEightNodeQuad},
 
   {"tri6n",                     TclBasicBuilder_addSixNodeTri},
-  {"tri31",                     TclDispatch_newTri31},
+  {"tri31",                     TclBasicBuilder_addFourNodeQuad},
+
+// Shell
+  {"ASDShellQ4",                   TclBasicBuilder_addShell},
+  {"ShellMITC4",                   TclBasicBuilder_addShell},
+  {"ShellMITC9",                   TclBasicBuilder_addShell},
+  {"ShellDKGQ",                    TclBasicBuilder_addShell},
+  {"ShellDKGT",                    TclBasicBuilder_addShell},
+  {"ShellNLDKGQ",                  TclBasicBuilder_addShell},
+  {"ShellNLDKGT",                  TclBasicBuilder_addShell},
+  // {"ShellANDeS",                   TclBasicBuilder_addShell},
+  {"ShellMITC4Thermal",            TclBasicBuilder_addShell},
+  {"ShellNLDKGQThermal",           TclBasicBuilder_addShell},
 
 // U-P
 

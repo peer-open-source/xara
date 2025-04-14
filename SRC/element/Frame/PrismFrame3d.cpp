@@ -4,7 +4,10 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// 3D prismatic frame element. 
+// 3D prismatic frame element with:
+//
+// - Type 3 (uniform) warping from shear and torsion and 
+// - symmetric cross section,
 //
 // Written: cmp 2024
 //
@@ -37,7 +40,7 @@ PrismFrame3d::PrismFrame3d()
 }
 
 PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
-                           double  a, double  E, double  G, 
+                           double  A, double  E, double  G, 
                            double jx, double iy, double iz,
                            FrameTransform3d &coordTransf, 
                            double r, int cm, 
@@ -45,7 +48,7 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
                            int geom)
 
   :BasicFrame3d(tag,ELE_TAG_ElasticBeam3d, nodes, coordTransf),
-   A(a), E(E), G(G), Jx(jx), 
+   A(A), E(E), G(G), Jx(jx), 
    Iy(iy), Iz(iz), Iyz(0),
    mass_flag(cm), density(r),
    releasez(rz), releasey(ry),
@@ -53,6 +56,9 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
    section_tag(-1)
 {
   q.zero();
+  ke.zero();
+  kg.zero();
+  km.zero();
 }
 
 
@@ -62,7 +68,8 @@ PrismFrame3d::PrismFrame3d(int tag,
                            FrameTransform3d &coordTransf, 
                            double density, int cMass, bool use_mass, 
                            int rz, int ry,
-                           int geom
+                           int geom,
+                           int shear_flag
                            )
   : BasicFrame3d(tag,ELE_TAG_ElasticBeam3d, nodes, coordTransf),
     mass_flag(cMass), density(density),
@@ -70,34 +77,52 @@ PrismFrame3d::PrismFrame3d(int tag,
     geom_flag(geom)
 {
   q.zero();
+  ke.zero();
+  kg.zero();
+  km.zero();
 
+  // 1) Get Area properties
   section_tag = section.getTag();
   section.getIntegral(Field::Unit,   State::Init, A);
   section.getIntegral(Field::UnitZZ, State::Init, Iy);
   section.getIntegral(Field::UnitYY, State::Init, Iz);
-  if (section.getIntegral(Field::UnitY,  State::Init, Ay) != 0)
-    Ay = 0; //A;
-  if (section.getIntegral(Field::UnitZ,  State::Init, Az) != 0)
-    Az = 0; // A;
-  Jx = Iy + Iz;
+
+  {
+    // 2) Get Young and Shear Modulus
+    const ID& layout = section.getType();
+    const Matrix& Ks = section.getInitialTangent();
+    for (int i=0; i<layout.Size(); i++) {
+      if (layout(i) == FrameStress::N) {
+        E = Ks(i,i)/A;
+      }
+      else if (layout(i) == FrameStress::Vy) {
+        G = Ks(i,i)/A;
+      } else if (layout(i) == FrameStress::T) {
+        G = Ks(i,i)/(Iy + Iz);
+      }
+    }
+  }
+
+  // 3) Remaining Constants
+  static constexpr FrameStressLayout scheme = {
+    FrameStress::N,
+    FrameStress::Vy,
+    FrameStress::Vz,
+    FrameStress::T,
+    FrameStress::My,
+    FrameStress::Mz,
+  };
+
+  MatrixND<6,6> Kc = section.getTangent<6,scheme>(State::Init);
+
+  Jx = Kc(3,3)/G;
   Iyz = 0.0;
 
-  const Matrix &sectTangent = section.getInitialTangent();
-  const ID &sectCode = section.getType();
-
-  for (int i=0; i<sectCode.Size(); i++) {
-    int code = sectCode(i);
-    switch(code) {
-    case SECTION_RESPONSE_P:
-      E = sectTangent(i,i)/A;
-      break;
-    case SECTION_RESPONSE_T:
-      if (Jx != 0)
-        G  = sectTangent(i,i)/Jx;
-      break;
-    default:
-      break;
-    }
+  if (!shear_flag) {
+    Ay = Az = 0.0;
+  } else {
+    Ay = Kc(1,1)/G;
+    Az = Kc(2,2)/G;
   }
 
   // TODO
@@ -156,6 +181,7 @@ PrismFrame3d::formBasicStiffness(OpenSees::MatrixND<6,6>& kb) const
       kb(2,1) = kb(1,2) = E*Iz*(2-phiY)/(L*(1+phiY));
       kb(1,4) = kb(4,1) = 2.0*E*Iyz/L; // iz-jy and jy-iz
     }
+
     if (releasez == 1)   // release I; TODO: shear correction
       kb(2,2) = 3.0*E*Iz/L;
 
@@ -209,6 +235,7 @@ PrismFrame3d::update()
   int ok = theCoordTransf->update();
 
   const Vector &v = theCoordTransf->getBasicTrialDisp();
+  
 
   // Form the axial force
   double N = E*A/L*v[0];
@@ -343,6 +370,10 @@ PrismFrame3d::update()
     }
 
   q  = ke*v;
+
+  opserr << "q  = " << Vector(q);
+  opserr << "v  = " << Vector(v);
+  opserr << "q0 = " << Vector(q0);
   q += q0;
 
   return ok;
@@ -358,7 +389,6 @@ PrismFrame3d::getBasicForce()
 const Vector &
 PrismFrame3d::getResistingForce()
 {
-  double q0 = q[0];
   double q1 = q[1];
   double q2 = q[2];
   double q3 = q[3];
@@ -366,28 +396,30 @@ PrismFrame3d::getResistingForce()
   double q5 = q[5];
 
   thread_local VectorND<12> pl;
-  pl[0]  = -q0;           // Ni
+  pl[0]  = -q[0];           // Ni
+#if 0
   pl[1]  =  (q1 + q2)/L;  // Viy
   pl[2]  = -(q3 + q4)/L;  // Viz
+  pl[7]  = -pl[1];        // Vjy
+  pl[8]  = -pl[2];        // Vjz
+#endif
   pl[3]  = -q5;           // Ti
   pl[4]  =  q3;
   pl[5]  =  q1;
-  pl[6]  =  q0;           // Nj
-  pl[7]  = -pl[1];        // Vjy
-  pl[8]  = -pl[2];        // Vjz
+  pl[6]  =  q[0];           // Nj
   pl[9]  = q5;            // Tj
   pl[10] = q4;
   pl[11] = q2;
 
-  thread_local VectorND<12> pf{0.0};
+  VectorND<12> pf{0.0};
   pf[0] = p0[0];
   pf[1] = p0[1];
   pf[7] = p0[2];
   pf[2] = p0[3];
   pf[8] = p0[4];
 
-  thread_local VectorND<12> pg;
-  thread_local Vector wrapper(pg);
+  static VectorND<12> pg;
+  static Vector wrapper(pg);
 
   pg  = theCoordTransf->pushResponse(pl);
   pg += theCoordTransf->pushConstant(pf);
@@ -396,6 +428,8 @@ PrismFrame3d::getResistingForce()
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
 
+  
+  opserr << "pg  = " << wrapper;
   return wrapper;
 }
 

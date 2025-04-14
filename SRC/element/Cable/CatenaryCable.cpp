@@ -85,7 +85,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CatenaryCableElement)
 
   if (num_CatenaryCableElement == 0) {
     num_CatenaryCableElement++;
-    opserr<<"CatenaryCableElement element - Written: P. Ibanez and J. A. Abell (UANDES). www.joseabell.com.\n";
+    opslog<<"CatenaryCableElement element - Written: P. Ibanez and J. A. Abell (UANDES). www.joseabell.com.\n";
   }
 
   Element *theElement = 0;

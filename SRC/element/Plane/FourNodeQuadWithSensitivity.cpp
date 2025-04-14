@@ -149,22 +149,10 @@ FourNodeQuadWithSensitivity::FourNodeQuadWithSensitivity(int tag, int nd1, int n
     // Allocate arrays of pointers to NDMaterials
     theMaterial = new NDMaterial *[4];
 
-    if (theMaterial == 0) {
-      opserr << "FourNodeQuadWithSensitivity::FourNodeQuadWithSensitivity - failed allocate material model pointer\n";
-      exit(-1);
-    }
-
 	int i;
     for (i = 0; i < 4; i++) {
-
       // Get copies of the material model for each integration point
       theMaterial[i] = m.getCopy(type);
-
-      // Check allocation
-      if (theMaterial[i] == 0) {
-	opserr << "FourNodeQuadWithSensitivity::FourNodeQuadWithSensitivity -- failed to get a copy of material model\n";
-	exit(-1);
-      }
     }
 
     // Set connected external node IDs

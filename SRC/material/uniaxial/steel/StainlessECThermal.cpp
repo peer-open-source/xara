@@ -37,8 +37,7 @@
 
 #include <elementAPI.h>
 #include <OPS_Globals.h>
-#include<iostream>
-using namespace std;
+#include <iostream>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_StainlessECThermal)
 {

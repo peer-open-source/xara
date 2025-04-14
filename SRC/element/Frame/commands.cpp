@@ -13,6 +13,7 @@
 //     element beamWithHinges tag? ndI? ndJ? secTagI? lenI? secTagJ? lenJ? 
 //        E? A? I? transfTag? <-shear shearLength?> <-mass massDens?> 
 //        <-iter maxIters tolerance>
+//
 #if 1
 // Standard library
   #include <string>
@@ -58,12 +59,12 @@
   #include "PrismFrame3d.h"
   #include "PrismFrame3d.h"
   
-  #include <element/Frame/CubicFrame3d.h>
-  #include <element/Frame/ForceFrame3d.h>
-  #include <element/Frame/ForceDeltaFrame3d.h>
-  #include <element/Frame/EulerFrame3d.h>
-  #include <element/Frame/EulerDeltaFrame3d.h>
-  #include <element/Frame/ExactFrame3d.h>
+  #include <CubicFrame3d.h>
+  #include <ForceFrame3d.h>
+  #include <ForceDeltaFrame3d.h>
+  #include <EulerFrame3d.h>
+  #include <EulerDeltaFrame3d.h>
+  #include <ExactFrame3d.h>
   
   #include <DispBeamColumn2d.h>
   #include <DispBeamColumn2dThermal.h>
@@ -94,59 +95,13 @@
   #include <HingeRadauTwoBeamIntegration.h>
 
   #include <transform/FrameTransformBuilder.hpp>
-#else
-// Sections
-#include <FrameSection.h>
-#include <ElasticSection2d.h>
-#include <ElasticSection3d.h>
-
-// Elements
-#include "ElasticBeam2d.h"
-#include "ElasticBeam3d.h"
-#include "PrismFrame2d.h"
-#include "PrismFrame3d.h"
-
-#include <element/Frame/Basic/CubicFrame3d.h>
-#include <element/Frame/Basic/ForceFrame3d.h>
-#include <element/Frame/Basic/ForceDeltaFrame3d.h>
-#include <element/Frame/Basic/EulerFrame3d.h>
-#include <element/Frame/Basic/EulerDeltaFrame3d.h>
-#include <element/Frame/Basic/ExactFrame3d.h>
-
-#include <DispBeamColumn2d.h>
-#include <DispBeamColumn2dThermal.h>
-#include <DispBeamColumn3d.h>
-#include <DispBeamColumn3dThermal.h>
-#include <DispBeamColumnNL2d.h>
-
-#include <ElasticForceBeamColumn2d.h>
-#include <ElasticForceBeamColumn3d.h>
-#include <ElasticForceBeamColumnWarping2d.h>
-
-#include <ForceBeamColumn2d.h>
-#include <ForceBeamColumn2d.h>
-#include <ForceBeamColumn2dThermal.h>
-#include <ForceBeamColumn3d.h>
-#include <ForceBeamColumn3d.h>
-#include <ForceBeamColumnCBDI2d.h>
-#include <ForceBeamColumnCBDI3d.h>
-#include <ForceBeamColumnWarping2d.h>
-#include <TimoshenkoBeamColumn2d.h>
-
-// Quadrature
-#include <BeamIntegration.h>
-#include <LobattoBeamIntegration.h>
-#include <LegendreBeamIntegration.h>
-#include <HingeEndpointBeamIntegration.h>
-#include <HingeMidpointBeamIntegration.h>
-#include <HingeRadauBeamIntegration.h>
-#include <HingeRadauTwoBeamIntegration.h>
 #endif
 
 using namespace OpenSees;
 
 struct Options {
   int mass_flag;
+  int use_mass;
   int shear_flag;
   int geom_flag;
 };
@@ -154,6 +109,239 @@ struct Options {
 
 extern BeamIntegration*     GetBeamIntegration(TCL_Char* type);
 extern BeamIntegrationRule* GetHingeStencil(int argc, TCL_Char ** const argv);
+
+
+template <int ndm, typename Transform, typename Section>
+static Element*
+CreateFrame(BasicModelBuilder& builder, 
+            const char* name,
+            int tag,
+            std::vector<int>& nodev,
+            int transfTag,
+            const std::vector<int>& section_tags,
+            BeamIntegration& beamIntegr,
+            double mass, int max_iter, double tol,
+            Options& options) 
+{
+
+  std::vector<Section*> sections;
+
+  // Finalize sections
+  assert(section_tags.size() != 0);
+  for (int tag : section_tags) {
+    Section *section = builder.getTypedObject<Section>(tag);
+    if (section == nullptr)
+      return nullptr;
+    sections.push_back(section);
+  }
+  int nIP = sections.size();
+
+  SectionForceDeformation** secptrs = (SectionForceDeformation**)(sections.data());
+
+  if (options.shear_flag == -1) {
+    options.shear_flag = 0;
+    const ID& resultants = sections[0]->getType();
+    for (int i=0; i< sections[0]->getOrder(); i++)
+      if (resultants(i) == FrameStress::Vy)
+        options.shear_flag = 1;
+  }
+
+
+
+  // Finalize the coordinate transform
+  Transform* theTransf = builder.getTypedObject<Transform>(transfTag);
+  if (theTransf == nullptr) {
+    opserr << OpenSees::PromptValueError << "transformation not found with tag " << transfTag << "\n";
+    return nullptr;
+  }
+
+  //
+  // Create the element
+  //
+  Element  *theElement   = nullptr;
+
+  int iNode = nodev[0],
+      jNode = nodev[1];
+  bool use_mass = options.use_mass;
+
+  if constexpr (ndm == 2) {
+
+    if (strcmp(name, "elasticForceBeamColumn") == 0)
+      theElement = new ElasticForceBeamColumn2d(
+          tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+    else if (strcmp(name, "timoshenkoBeamColumn") == 0)
+      theElement =
+          new TimoshenkoBeamColumn2d(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+    else if (strcmp(name, "dispBeamColumn") == 0)
+      theElement =
+          new DispBeamColumn2d(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass, options.mass_flag);
+    else if (strcmp(name, "dispBeamColumnNL") == 0)
+      theElement =
+          new DispBeamColumnNL2d(tag, iNode, jNode, nIP, secptrs,
+                                 beamIntegr, *theTransf, mass);
+
+    else if (strcmp(name, "dispBeamColumnThermal") == 0)
+      theElement = new DispBeamColumn2dThermal(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+
+    else if (strcmp(name, "dispBeamColumnWithSensitivity") == 0)
+      theElement = new DispBeamColumn2d(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+
+
+    // Force formulations
+    else if (strcmp(name, "forceBeamColumnCBDI") == 0)
+      theElement = new ForceBeamColumnCBDI2d(tag, iNode, jNode, nIP, secptrs,
+                                             beamIntegr, *theTransf, mass, false);
+
+    else if (strcmp(name, "forceBeamColumnCSBDI") == 0)
+      return  new ForceBeamColumnCBDI2d(tag, iNode, jNode, nIP, secptrs,
+                                              beamIntegr, *theTransf, mass, true);
+
+    else if (strcmp(name, "forceBeamColumnWarping") == 0)
+      return
+          new ForceBeamColumnWarping2d(tag, iNode, jNode, nIP,
+                                       secptrs, beamIntegr, *theTransf);
+
+    else if (strcmp(name, "forceBeamColumnThermal") == 0)
+      return new ForceBeamColumn2dThermal(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+
+    else if (strcmp(name, "elasticForceBeamColumnWarping") == 0)
+      return new ElasticForceBeamColumnWarping2d(
+          tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf);
+    else
+      theElement =
+          new ForceBeamColumn2d(tag, iNode, jNode, nIP, secptrs,
+                                beamIntegr, *theTransf, mass, max_iter, tol);
+
+
+  } else {
+    //
+    // ndm == 3
+    //
+    if (strstr(name, "Frame") != nullptr) {
+      if (strstr(name, "Exact") == nullptr) {
+        std::array<int, 2> nodes {nodev[0], nodev[1]};
+
+#ifdef NEW_TRANSFORM
+        FrameTransform<2,6> *tran = nullptr;
+        if (FrameTransformBuilder* tb; (tb = builder.getTypedObject<FrameTransformBuilder>(transfTag))) {
+          tran = tb->template create<2,6>();
+        }
+        else {
+          opserr << OpenSees::PromptValueError << "invalid transform\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+#endif
+        if (strcmp(name, "CubicFrame") == 0) {
+
+          theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
+                                        beamIntegr, *theTransf, 
+                                        mass, options.mass_flag);
+        } 
+
+        else if (strcmp(name, "DisplFrame") == 0) {
+          theElement =  new EulerDeltaFrame3d(tag, nodes, sections,
+                                              beamIntegr, *theTransf, 
+                                              mass, options.mass_flag, use_mass);
+        }
+
+        else if ((strstr(name, "Force") != 0) ||
+                (strcmp(name, "MixedFrame") == 0)) {
+          if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
+            if (!options.shear_flag)
+              static_loop<1,10>([&](auto nip) constexpr {
+                if (nip.value == sections.size())
+                  theElement = new ForceDeltaFrame3d<nip.value, 4>(tag, nodes, sections,
+                                                beamIntegr, *theTransf, 
+                                                mass, options.mass_flag, use_mass,
+                                                max_iter, tol,
+                                                options.shear_flag
+                                                );
+              });
+            else
+              static_loop<1,10>([&](auto nip) constexpr {
+                if (nip.value == sections.size())
+                  theElement = new ForceDeltaFrame3d<nip.value, 6>(tag, nodes, sections,
+                                                beamIntegr, *theTransf, 
+                                                mass, options.mass_flag, use_mass,
+                                                max_iter, tol,
+                                                options.shear_flag
+                                                );
+              });
+          } else {
+            if (!options.shear_flag) {
+              theElement = new ForceFrame3d<20, 4>(tag, nodes, sections,
+                                            beamIntegr, *theTransf,
+                                            mass, options.mass_flag, use_mass,
+                                            max_iter, tol
+                                            );
+            }
+            else
+              theElement = new ForceFrame3d<20, 6>(tag, nodes, sections,
+                                            beamIntegr, *theTransf,
+                                            mass, options.mass_flag, use_mass,
+                                            max_iter, tol
+                                            );
+          }
+        }
+      }
+
+      else if (strcmp(name, "ExactFrame") == 0) {
+        if (!options.shear_flag) {
+          opserr << OpenSees::PromptValueError << "ExactFrame3d requires shear formulation\n";
+          return nullptr;
+        }
+        int ndf = builder.getNDF();
+        if (sections.size() < nodev.size()-1)
+          for (unsigned i = 0; i < nodev.size()-1; ++i)
+            sections.push_back(sections[0]);
+        
+        unsigned nen = nodev.size();
+        static_loop<2,6>([&](auto nn) constexpr {
+          if (nn.value == nen) {
+            std::array<int, nn.value> nodes;
+            std::copy_n(nodev.begin(), nn.value, nodes.begin());
+            static_loop<0,4>([&](auto nwm) constexpr {
+              if (nwm.value+6 == ndf)
+                theElement = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *theTransf);
+            });
+          }
+        });
+        if (theElement == nullptr) {
+          opserr << OpenSees::PromptValueError << "invalid number of dofs for ExactFrame; got " << ndf 
+                 << "\n";
+          return nullptr;
+        }
+      }
+    }
+
+    else if (strcmp(name, "elasticForceBeamColumn") == 0)
+      theElement = new ElasticForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs, 
+                                                beamIntegr, *theTransf, mass);
+
+    else if (strcmp(name, "dispBeamColumn") == 0)
+      theElement = new DispBeamColumn3d(tag, iNode, jNode, nIP, secptrs,
+                                        beamIntegr, *theTransf, 
+                                        mass, options.mass_flag);
+
+    else if (strcmp(name, "dispBeamColumnWithSensitivity") == 0)
+      theElement = new DispBeamColumn3d(
+          tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+
+    else if (strcmp(name, "dispBeamColumnThermal") == 0)
+      theElement = new DispBeamColumn3dThermal(
+          tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+
+    else if (strcmp(name, "forceBeamColumnCBDI") == 0)
+      theElement = new ForceBeamColumnCBDI3d(tag, iNode, jNode, nIP, secptrs,
+                                             beamIntegr, *theTransf, 
+                                             mass, false, max_iter, tol);
+    else
+      theElement = new ForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs,
+                                         beamIntegr, *theTransf, mass, max_iter, tol);
+  }
+  return theElement;
+}
 
 
 #if 0
@@ -299,14 +487,14 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       ok = 1;
 
     if (ok == 0) {
-      opserr << G3_ERROR_PROMPT << "ndm = " << ndm << " and ndf = " << ndf
+      opserr << OpenSees::PromptValueError << "ndm = " << ndm << " and ndf = " << ndf
              << " not compatible with Frame element" << "\n";
       return TCL_ERROR;
     }
   }
 
   if (argc < 6) {
-    opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
     return TCL_ERROR;
   }
 
@@ -315,55 +503,43 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid " << " tag " << tag << "\n";
+    opserr << OpenSees::PromptValueError << "invalid " << " tag " << tag << "\n";
     return TCL_ERROR;
   }
 
   int argi = 5;
-  int iNode=0, jNode=0;
-  bool multi_node = false;
+  // int iNode=0, jNode=0;
+  // bool multi_node = false;
   std::vector<int> multi_nodes;
   {
     int list_argc;
     TCL_Char **list_argv;
     if (Tcl_SplitList(interp, argv[3], &list_argc, &list_argv) == TCL_OK && list_argc >= 2) {
       argi -= 1;
-      if (list_argc == 2) {
-        // Nodes were passed as a list, but still only two nodes
-        multi_node = false;
-        if (Tcl_GetInt(interp, list_argv[0], &iNode) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid iNode\n";
+      
+      for (int i = 0; i < list_argc; ++i) {
+        int node;
+        if (Tcl_GetInt(interp, list_argv[i], &node) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid node\n";
           return TCL_ERROR;
         }
-    
-        if (Tcl_GetInt(interp, list_argv[1], &jNode) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid jNode\n";
-          return TCL_ERROR;
-        }
-      } else {
-        // More than 2 nodes
-        multi_node = true;
-        for (int i = 0; i < list_argc; ++i) {
-          int node;
-          if (Tcl_GetInt(interp, list_argv[i], &node) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "invalid node\n";
-            return TCL_ERROR;
-          }
-          multi_nodes.push_back(node); 
-        }
+        multi_nodes.push_back(node); 
       }
       Tcl_Free((char *)list_argv);
     }
     else {
+      int iNode, jNode;
       if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid iNode\n";
+        opserr << OpenSees::PromptValueError << "invalid iNode\n";
         return TCL_ERROR;
       }
   
       if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid jNode\n";
+        opserr << OpenSees::PromptValueError << "invalid jNode\n";
         return TCL_ERROR;
       }
+      multi_nodes.push_back(iNode);
+      multi_nodes.push_back(jNode);
     }
   }
 
@@ -393,12 +569,12 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       // Shear
       if (strcmp(argv[argi], "-shear") == 0) {
         if (argc < argi + 2) {
-          opserr << G3_ERROR_PROMPT << "not enough arguments, expected -shear $flag\n";
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -shear $flag\n";
           status = TCL_ERROR;
           goto clean_up;
         }
         if (Tcl_GetInt(interp, argv[argi + 1], &options.shear_flag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid shear_flag, expected integer\n";
+          opserr << OpenSees::PromptValueError << "invalid shear_flag, expected integer\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -408,12 +584,12 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       // Shear
       else if (strcmp(argv[argi], "-order") == 0) {
         if (argc < argi + 2) {
-          opserr << G3_ERROR_PROMPT << "not enough arguments, expected -order $flag\n";
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -order $flag\n";
           status = TCL_ERROR;
           goto clean_up;
         }
         if (Tcl_GetInt(interp, argv[argi + 1], &options.geom_flag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid geom_flag, expected integer\n";
+          opserr << OpenSees::PromptValueError << "invalid geom_flag, expected integer\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -423,17 +599,17 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       // -iter $max_iter $tol 
       else if (strcmp(argv[argi], "-iter") == 0) {
         if (argc < argi + 3) {
-          opserr << G3_ERROR_PROMPT << "not enough -iter args need -iter max_iter? tol?\n";
+          opserr << OpenSees::PromptValueError << "not enough -iter args need -iter max_iter? tol?\n";
           status = TCL_ERROR;
           goto clean_up;
         }
         if (Tcl_GetInt(interp, argv[argi + 1], &max_iter) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid max_iter\n";
+          opserr << OpenSees::PromptValueError << "invalid max_iter\n";
           status = TCL_ERROR;
           goto clean_up;
         }
         if (Tcl_GetDouble(interp, argv[argi + 2], &tol) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid tol\n";
+          opserr << OpenSees::PromptValueError << "invalid tol\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -442,12 +618,12 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       // mass
       else if (strcmp(argv[argi], "-mass") == 0) {
         if (argc < argi + 2) {
-          opserr << G3_ERROR_PROMPT << "not enough arguments, expected -mass $mass\n";
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -mass $mass\n";
           status = TCL_ERROR;
           goto clean_up;
         }
         if (Tcl_GetDouble(interp, argv[argi + 1], &mass) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid mass\n";
+          opserr << OpenSees::PromptValueError << "invalid mass\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -469,7 +645,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       // Quadrature
       else if (strcmp(argv[argi], "-integration") == 0) {
         if (argc < argi + 2) {
-          opserr << G3_ERROR_PROMPT << "not enough arguments, expected -integration $integration\n";
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -integration $integration\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -478,7 +654,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         beamIntegr = GetBeamIntegration(argv[argi]);
 
         if (beamIntegr == nullptr) {
-          opserr << G3_ERROR_PROMPT << "invalid integration type\n";
+          opserr << OpenSees::PromptValueError << "invalid integration type\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -488,14 +664,14 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       // Transform
       else if (strcmp(argv[argi], "-transform") == 0) {
         if (argc < argi + 2) {
-          opserr << G3_ERROR_PROMPT << "not enough arguments, expected -transform $transform\n";
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -transform $transform\n";
           status = TCL_ERROR;
           goto clean_up;
         }
 
         argi++;
         if (Tcl_GetInt(interp, argv[argi], &transfTag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid transform\n";
+          opserr << OpenSees::PromptValueError << "invalid transform\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -505,7 +681,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       // Section
       else if (strcmp(argv[argi], "-section") == 0) {
         if (argc < argi + 2) {
-          opserr << G3_ERROR_PROMPT << "not enough arguments, expected -section $section\n";
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -section $section\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -513,7 +689,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         argi++;
         int sec_tag;
         if (Tcl_GetInt(interp, argv[argi], &sec_tag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid sec_tag\n";
+          opserr << OpenSees::PromptValueError << "invalid sec_tag\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -528,13 +704,13 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     // split possible lists present in argv
     //char *List = Tcl_Merge(inArgc, inArgv);
     //if (List == nullptr) {
-    //  opserr << G3_ERROR_PROMPT << "problem merging list\n";
+    //  opserr << OpenSees::PromptValueError << "problem merging list\n";
     //  return TCL_ERROR;
     //}
     //  int secc;
     //  TCL_Char ** secv;
     //  if (Tcl_SplitList(interp, argv[positions[2]], &secc, &secv) != TCL_OK) {
-    //    opserr << G3_ERROR_PROMPT << "problem splitting list\n";
+    //    opserr << OpenSees::PromptValueError << "problem splitting list\n";
     //    return TCL_ERROR;
     //  }
     //Tcl_Free((char *)List);
@@ -555,7 +731,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
     int nIP;
     if (Tcl_GetInt(interp, argv[positions[0]], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       status = TCL_ERROR;
       goto clean_up;
     }
@@ -565,7 +741,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     for (int i = 0; i < nIP; i++) {
       int secTag;
       if (Tcl_GetInt(interp, argv[positions[2+i]], &secTag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid section\n";
+        opserr << OpenSees::PromptValueError << "invalid section\n";
         status = TCL_ERROR;
         goto clean_up;
       }
@@ -573,7 +749,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     }
 
     if (Tcl_GetInt(interp, argv[positions[2+nIP]], &transfTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid transform\n";
+      opserr << OpenSees::PromptValueError << "invalid transform\n";
       status = TCL_ERROR;
       goto clean_up;
     }
@@ -594,7 +770,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
     // Geometric transformation
     if (Tcl_GetInt(interp, argv[positions[0]], &transfTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "invalid transform " << argv[positions[0]] 
              << OpenSees::SignalMessageEnd;
       status = TCL_ERROR;
@@ -612,7 +788,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       integrCommand.insert(integrCommand.find(" "), " "+std::to_string(itg_tag)+" ");
       integrCommand.insert(0, "beamIntegration ");
       if (Tcl_Eval(interp, integrCommand.c_str()) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to parse integration\n";
+        opserr << OpenSees::PromptValueError << "failed to parse integration\n";
         status = TCL_ERROR;
         goto clean_up;
       }
@@ -640,28 +816,27 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   else if (positions.size() == 3) {
     // Transform
     if (Tcl_GetInt(interp, argv[positions[2]], &transfTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid transform\n";
+      opserr << OpenSees::PromptValueError << "invalid transform\n";
       status = TCL_ERROR;
       goto clean_up;
     }
 
     int nIP;
     if (Tcl_GetInt(interp, argv[positions[0]], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       status = TCL_ERROR;
       goto clean_up;
     }
     if (nIP <= 0) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP, must be > 0\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP, must be > 0\n";
       status = TCL_ERROR;
       goto clean_up;
     }
 
-
     //
     int secTag;
     if (Tcl_GetInt(interp, argv[positions[1]], &secTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTag\n";
+      opserr << OpenSees::PromptValueError << "invalid secTag\n";
       status = TCL_ERROR;
       goto clean_up;
     }
@@ -692,10 +867,17 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
   //
   //
+  options.use_mass = use_mass;
   {
-    Element          *theElement   = nullptr;
+    
+
+    Element *theElement = ndm == 2 
+                        ? CreateFrame<2, FrameTransform2d, SectionForceDeformation>(*builder, argv[1], tag, multi_nodes, transfTag, 
+                                                              section_tags, *beamIntegr, mass, max_iter, tol, options)
+                        : CreateFrame<3, FrameTransform3d, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
+                                                                        section_tags, *beamIntegr, mass, max_iter, tol, options);
+#if 0
     std::vector<FrameSection*> sections;
-    SectionForceDeformation** secptrs = nullptr;
     int nIP = 0;
     CrdTransf        *theTransf2d  = nullptr;
     FrameTransform3d *theTransf3d  = nullptr;
@@ -711,7 +893,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       sections.push_back(section);
     }
     nIP = sections.size();
-    secptrs = (SectionForceDeformation**)(sections.data());
+
+    SectionForceDeformation** secptrs = (SectionForceDeformation**)(sections.data());
 
     if (options.shear_flag == -1) {
       options.shear_flag = 0;
@@ -727,7 +910,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       case 2:
         theTransf2d = builder->getTypedObject<FrameTransform2d>(transfTag);
         if (theTransf2d == nullptr) {
-          opserr << G3_ERROR_PROMPT << "transformation not found with tag " << transfTag << "\n";
+          opserr << OpenSees::PromptValueError << "transformation not found with tag " << transfTag << "\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -736,7 +919,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       case 3:
         theTransf3d = builder->getTypedObject<FrameTransform3d>(transfTag);
         if (theTransf3d == nullptr) {
-          opserr << G3_ERROR_PROMPT << "transformation not found with tag " << transfTag << "\n";
+          opserr << OpenSees::PromptValueError << "transformation not found with tag " << transfTag << "\n";
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -803,7 +986,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
             tran = tb->template create<2,6>();
           }
           else {
-            opserr << G3_ERROR_PROMPT << "invalid transform\n";
+            opserr << OpenSees::PromptValueError << "invalid transform\n";
             status = TCL_ERROR;
             goto clean_up;
           }
@@ -863,8 +1046,13 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         }
 
         else if (strcmp(argv[1], "ExactFrame") == 0) {
+          if (!multi_node) {
+            multi_nodes.push_back(iNode);
+            multi_nodes.push_back(jNode);
+            multi_node = true;
+          }
           if (!options.shear_flag) {
-            opserr << G3_ERROR_PROMPT << "ExactFrame3d requires shear formulation\n";
+            opserr << OpenSees::PromptValueError << "ExactFrame3d requires shear formulation\n";
             status = TCL_ERROR;
             goto clean_up;
           }
@@ -872,9 +1060,10 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
           if (multi_node && sections.size() < multi_nodes.size()-1)
             for (unsigned i = 0; i < multi_nodes.size()-1; ++i)
               sections.push_back(sections[0]);
-
+          
+          unsigned nen = multi_nodes.size();
           static_loop<2,6>([&](auto nn) constexpr {
-            if (nn.value == multi_nodes.size()) {
+            if (nn.value == nen) {
               std::array<int, nn.value> nodes;
               std::copy_n(multi_nodes.begin(), nn.value, nodes.begin());
               static_loop<0,4>([&](auto nwm) constexpr {
@@ -884,7 +1073,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
             }
           });
           if (theElement == nullptr) {
-            opserr << G3_ERROR_PROMPT << "invalid number of dofs for ExactFrame; got " << ndf 
+            opserr << OpenSees::PromptValueError << "invalid number of dofs for ExactFrame; got " << ndf 
                    << "\n";
             status = TCL_ERROR;
             goto clean_up;
@@ -920,9 +1109,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     }
 
 
-
+#endif 
     if (domain->addElement(theElement) == false) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "could not add element to the domain"
              << OpenSees::SignalMessageEnd;
       delete theElement;
@@ -946,7 +1135,6 @@ clean_up:
 
   return status;
 }
-
 
 #if 1
 int

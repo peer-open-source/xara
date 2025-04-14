@@ -12,9 +12,6 @@
 #include <Parameter.h>
 #include <classTags.h>
 
-#include <stdlib.h>
-#include <string.h>
-
 using namespace OpenSees;
 
 constexpr int SEC_TAG_ElasticLinearFrame3d = 0;
@@ -50,26 +47,7 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d()
 ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
     double E_in,
     double G_in,
-    // n-n
-    double A,
-    // m-m
-    double Iy,     //   \int z^2
-    double Iz,     //   \int y^2
-    double Iyz,    //
-    // w-w 
-    double Cw,     // 
-    double Ca,     // 
-    // n-m
-    double Qy,     //  int y = A*zs
-    double Qz,     //  int z
-
-    double Rw,     // n-w
-    double Ry,     // n-v
-    double Rz,
-
-    double Sa,     // m-v
-    double Sy,     // m-w, int  z warp(x,y)
-    double Sz,     // m-w, int -y warp(x,y) 
+    const FrameSectionConstants& cons,
     //
     double mass_,
     bool use_mass
@@ -80,10 +58,39 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
   Ksen(nullptr),
   Ks(new MatrixND<nr,nr> {})
 {
+
+  // n-n
+  double A  = cons.A;
+  double Ay = cons.Ay;
+  double Az = cons.Az;
+  // m-m
+  double Iy = cons.Iy;     //   \int z^2
+  double Iz = cons.Iz;     //   \int y^2
+  double Iyz = cons.Iyz;   //
+  // w-w 
+  double Cw = cons.Cw;     // 
+  double Ca = cons.Ca;     // 
+  // n-m
+  double Qy = cons.Qy;     //  int y = A*zs
+  double Qz = cons.Qz;     //  int z
+
+  double Rw = cons.Rw;     // n-w
+  double Ry = cons.Ry;     // n-v
+  double Rz = cons.Rz;
+
+  double Sa = cons.Sa;     // m-v
+  double Sy = cons.Sy;     // m-w, int  z warp(x,y)
+  double Sz = cons.Sz;     // m-w, int -y warp(x,y) 
+
   centroid = {Qz/A, Qy/A};
 
   // Polar moment of inertia
   const double I0   = Iy + Iz;
+
+  double GSnyy = G*(Ay - A);
+  double GSnzz = G*(Az - A);
+  double GSy   = -GSnyy; 
+  double GSz   = -GSnzz;
 
   // Centroidal moments of inertia
   // const double Ic33 =  Iy  - A*zc*zc;
@@ -96,20 +103,20 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
   *Ks = {
     //            N                       M                      W                 Q    
     //                        |                        |                 |                |
-    {{  E*A,      0.,     0.,      0.,   E*Qy,  -E*Qz,    E*Rw ,  0.,  0.,    0.,  0.,  0.},
-     {    0.,    G*A,     0.,   -G*Qy,     0.,     0.,     0.  ,  0.,  0.,  G*Ry,  0.,  0.},
-     {    0.,     0.,    G*A,    G*Qz,     0.,     0.,     0.  ,  0.,  0.,  G*Rz,  0.,  0.},
-    //                        |                        |          0.,  0.,      ,  0.,  0.|
-     {    0.,  -G*Qy,   G*Qz,    G*I0,     0.,     0.,     0.  ,  0.,  0.,  G*Sa,  0.,  0.},
-     {  E*Qy,     0.,     0.,      0.,  E*Iy , -E*Iyz,     E*Sy,  0.,  0.,    0.,  0.,  0.},
-     { -E*Qz,     0.,     0.,      0., -E*Iyz,  E*Iz ,     E*Sz,  0.,  0.,    0.,  0.,  0.},
-    //                        |                        |          0.,  0.,      ,  0.,  0.|
-     {  E*Rw,     0.,     0.,      0.,   E*Sy,   E*Sz,    E*Cw ,  0.,  0.,    0.,  0.,  0.}, // Bimoment
-     {    0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,  0.,  0.},
-     {    0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,  0.,  0.},
-     {    0.,   G*Ry,   G*Rz,    G*Sa,     0.,     0.,      0. ,  0.,  0.,  G*Ca,  0.,  0.}, // Bishear
-     {    0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,  0.,  0.},
-     {    0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,  0.,  0.}}
+    {{  E*A,      0.,     0.,      0.,   E*Qy,  -E*Qz,    E*Rw ,  0.,  0.,    0.,     0.,     0.},
+     {    0.,    G*A,     0.,   -G*Qy,     0.,     0.,     0.  ,  0.,  0.,  G*Ry,  GSnyy,     0.},
+     {    0.,     0.,    G*A,    G*Qz,     0.,     0.,     0.  ,  0.,  0.,  G*Rz,     0.,  GSnzz},
+    //                        |                        |          0.,  0.,      ,     0.,     0.|
+     {    0.,  -G*Qy,   G*Qz,    G*I0,     0.,     0.,     0.  ,  0.,  0.,  G*Sa,     0.,     0.},
+     {  E*Qy,     0.,     0.,      0.,  E*Iy , -E*Iyz,     E*Sy,  0.,  0.,    0.,     0.,     0.},
+     { -E*Qz,     0.,     0.,      0., -E*Iyz,  E*Iz ,     E*Sz,  0.,  0.,    0.,     0.,     0.},
+    //                        |                        |          0.,  0.,      ,     0.,     0.|
+     {  E*Rw,     0.,     0.,      0.,   E*Sy,   E*Sz,    E*Cw ,  0.,  0.,    0.,     0.,     0.}, // Bimoment
+     {    0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,     0.},
+     {    0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,     0.},
+     {    0.,   G*Ry,   G*Rz,    G*Sa,     0.,     0.,      0. ,  0.,  0.,  G*Ca,     0.,     0.}, // Bishear
+     {    0.,  GSnyy,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,    GSy,     0.},
+     {    0.,     0.,  GSnzz,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,    GSz}}
   };
 
     //                        |                        |                |
@@ -127,9 +134,10 @@ ElasticLinearFrameSection3d::getConstants(FrameSectionConstants& consts) const
   consts.Iz  =  K(5,5)/E;
 
   if (G != 0) {
-    consts.Ay  =  K(1,1)/G;
-    consts.Az  =  K(2,2)/G;
-    consts.Ca  =  K(7,7)/G;
+    consts.Ay  =  (K(1,10) + K(1,1))/G;
+    consts.Az  =  (K(2,11) + K(2,2))/G;
+    consts.Ca  =  K(9,9)/G;
+    consts.Cw  =  K(6,6)/E;
   } else {
     consts.Ay  =  0;
     consts.Az  =  0;
@@ -140,7 +148,7 @@ ElasticLinearFrameSection3d::getConstants(FrameSectionConstants& consts) const
 int
 ElasticLinearFrameSection3d::getIntegral(Field field, State state, double& value) const
 {
-  FrameSectionConstants consts;
+  FrameSectionConstants consts{};
   getConstants(consts);
 
   switch (field) {
@@ -149,11 +157,11 @@ ElasticLinearFrameSection3d::getIntegral(Field field, State state, double& value
       return 0;
 
     case Field::UnitY:
-      value = consts.Ay;
+      value = consts.Qy;
       return 0;
 
     case Field::UnitZ:
-      value = consts.Az;
+      value = consts.Qz;
       return 0;
 
     case Field::Density:
@@ -460,7 +468,7 @@ void
 ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
 {
 
-  FrameSectionConstants consts;
+  FrameSectionConstants consts{};
   getConstants(consts);
 
   double J = consts.Iy + consts.Iz - consts.Ca;
@@ -478,15 +486,18 @@ ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"ElasticLinearFrameSection3d\", ";
+    s << "\"type\": \"ElasticFrameSection3d\", ";
     s << "\"E\": "   << E  << ", ";
     s << "\"G\": "   << G  << ", ";
     s << "\"A\": "   << consts.A   << ", ";
     s << "\"Ay\": "  << consts.Ay  << ", ";
     s << "\"Az\": "  << consts.Az  << ", ";
-    s << "\"Jx\": " <<        J  << ", ";
     s << "\"Iy\": " << consts.Iy << ", ";
-    s << "\"Iz\": " << consts.Iz;
+    s << "\"Iz\": " << consts.Iz << ", ";
+
+    s << "\"Jx\": " <<        J << ", ";
+    s << "\"Ca\": " << consts.Ca << ", ";
+    s << "\"Cw\": " << consts.Cw ;
 
     double mass;
     if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0) {

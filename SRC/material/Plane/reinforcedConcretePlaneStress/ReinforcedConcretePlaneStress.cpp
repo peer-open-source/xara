@@ -27,7 +27,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_ReinforcedConcretePlaneStressMaterial)
 {
   if (numReinforcedConcretePlaneStressMaterials == 0) {
     numReinforcedConcretePlaneStressMaterials++;
-    opserr << "ReinforcedConcretePlaneStress unaxial material - Written by J.Zhong, Thomas T.C. Hsu and Y.L. Mo - Copyright@2009\n";
+    opslog << "ReinforcedConcretePlaneStress unaxial material - Written by J.Zhong, Thomas T.C. Hsu and Y.L. Mo - Copyright@2009\n";
   }
 
   // Pointer to a uniaxial material that will be returned

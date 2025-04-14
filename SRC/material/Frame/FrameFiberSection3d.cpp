@@ -139,7 +139,6 @@ FrameFiberSection3d::getIntegral(Field field, State state, double& value) const
       for (int i=0; i<numFibers; i++) {
         double density;
         const double A  = matData[3*i+2];
-//      if (theMaterials[i]->getIntegral(field, state, density) == 0)
         if (theMaterials[i]->getRho() != 0)
           value += A*density;
         else
@@ -154,6 +153,15 @@ FrameFiberSection3d::getIntegral(Field field, State state, double& value) const
         value += A*y;
       }
       return 0;
+
+    case Field::UnitZ: // TODO: Centroid
+      for (int i=0; i<numFibers; i++) {
+        const double A  = matData[3*i+2];
+        const double z  = matData[3*i+1] - zBar;
+        value += A*z;
+      }
+      return 0;
+
 
 
     case Field::UnitYY:

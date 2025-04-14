@@ -67,12 +67,12 @@ class Element : public DomainComponent
     virtual const Matrix &getInitialStiff() =0;
     virtual const Matrix &getDamp();
     virtual const Matrix &getMass();
-    virtual const Matrix &getGeometricTangentStiff();
+    virtual const Matrix &getGeometricTangentStiff() final;
 
     // methods for applying loads
     virtual void zeroLoad();	
-    virtual int  addLoad(ElementalLoad *theLoad, double loadFactor);
-    virtual int  addLoad(ElementalLoad *theLoad, const Vector &loadFactors);
+    virtual int  addLoad(ElementalLoad *, double loadFactor);
+    virtual int  addLoad(ElementalLoad *, const Vector &loadFactors);
 
     virtual int addInertiaLoadToUnbalance(const Vector &accel);
     virtual int setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc);
@@ -82,13 +82,11 @@ class Element : public DomainComponent
     virtual const Vector &getResistingForceIncInertia();
 
     // method for obtaining information specific to an element
-    virtual Response *setResponse(const char **argv, int argc, 
-				  OPS_Stream &theHandler);
+    virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
     virtual int getResponse(int responseID, Information &eleInformation);
 
 // AddingSensitivity:BEGIN //////////////////////////////////////////
-    virtual int getResponseSensitivity(int responseID, int gradIndex,
-				                               Information &eleInformation);
+    virtual int getResponseSensitivity(int responseID, int gradIndex, Information &);
     virtual int addInertiaLoadSensitivityToUnbalance(const Vector &accel, bool tag);
     virtual const Vector & getResistingForceSensitivity(int gradIndex);
     virtual const Matrix & getTangentStiffSensitivity(int gradIndex);

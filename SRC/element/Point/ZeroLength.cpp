@@ -122,11 +122,11 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ZeroLength)
       theDampMats[i] = 0;
 
       if (theMats[i] == 0) {
-	opserr << "WARNING no material " << matTags(i) <<
-	  "exitsts - element ZeroLength eleTag? iNode? jNode? " <<
-	  "-mat matID1? ... -dir dirMat1? .. " <<
-	  "<-orient x1? x2? x3? y1? y2? y3?>\n";
-	return 0;
+        opserr << "WARNING no material " << matTags(i) <<
+          "exists - element ZeroLength eleTag? iNode? jNode? " <<
+          "-mat matID1? ... -dir dirMat1? .. " <<
+          "<-orient x1? x2? x3? y1? y2? y3?>\n";
+        return 0;
       }
     }
 
@@ -141,11 +141,11 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ZeroLength)
         return 0;
     }
     if (OPS_GetNumRemainingInputArgs() < numMats) {
-	opserr << "WARNING not enough directions provided for ele " << idata[0] <<
-	    "- element ZeroLength eleTag? iNode? jNode? " <<
-	    "-mat matID1? ... -dir dirMat1? .. " <<
-	    "<-orient x1? x2? x3? y1? y2? y3?>\n";
-	return 0;
+      opserr << "WARNING not enough directions provided for ele " << idata[0] <<
+          "- element ZeroLength eleTag? iNode? jNode? " <<
+          "-mat matID1? ... -dir dirMat1? .. " <<
+          "<-orient x1? x2? x3? y1? y2? y3?>\n";
+      return 0;
     }
     
     ID dirs(numMats);
@@ -244,11 +244,6 @@ ZeroLength::ZeroLength(int tag,
   // allocate memory for numMaterials1d uniaxial material models
   theMaterial1d = new UniaxialMaterial*  [numMaterials1d];
   dir1d	  = new ID(numMaterials1d);
-  
-  if ( theMaterial1d == 0 || dir1d == 0 ) {
-    opserr << "FATAL ZeroLength::ZeroLength - failed to create a 1d  material or direction array\n";
-    exit(-1);
-  }
 
   // initialize uniaxial materials and directions and check for valid values
   if (direction == 2 && dim == 2) // For Keri Ryan
@@ -259,10 +254,7 @@ ZeroLength::ZeroLength(int tag,
   
   // get a copy of the material and check we obtained a valid copy
   theMaterial1d[0] = theMat.getCopy();
-  if (theMaterial1d[0] == 0) {
-    opserr << "FATAL ZeroLength::ZeroLength - failed to get a copy of material " << theMat.getTag() << endln;
-    exit(-1);
-  }
+
 
   // establish the connected nodes and set up the transformation matrix for orientation
   this->setUp( Nd1, Nd2, x, yp);
@@ -279,20 +271,15 @@ ZeroLength::ZeroLength(int tag,
 		       UniaxialMaterial &theMat,
 		       UniaxialMaterial &theDampMat,
 		       int direction)
- :Element(tag,ELE_TAG_ZeroLength),     
-  connectedExternalNodes(2),
-  dimension(dim), numDOF(0), transformation(3,3), useRayleighDamping(2),
-  theMatrix(0), theVector(0),
-  numMaterials1d(1), theMaterial1d(0), dir1d(0), t1d(0), d0(0), v0(0)
+ : Element(tag,ELE_TAG_ZeroLength),     
+   connectedExternalNodes(2),
+   dimension(dim), numDOF(0), transformation(3,3), useRayleighDamping(2),
+   theMatrix(0), theVector(0),
+   numMaterials1d(1), theMaterial1d(0), dir1d(0), t1d(0), d0(0), v0(0)
 {
   // allocate memory for numMaterials1d uniaxial material models
   theMaterial1d = new UniaxialMaterial*[2];
   dir1d	  = new ID(numMaterials1d);
-  
-  if ( theMaterial1d == 0 || dir1d == 0 ) {
-    opserr << "FATAL ZeroLength::ZeroLength - failed to create a 1d  material or direction array\n";
-    exit(-1);
-  }
 
   // initialize uniaxial materials and directions and check for valid values
   if (direction == 2 && dim == 2) // For Keri Ryan
@@ -304,12 +291,7 @@ ZeroLength::ZeroLength(int tag,
   // get a copy of the material and check we obtained a valid copy
 
   theMaterial1d[0] = theMat.getCopy();
-
   theMaterial1d[1] = theDampMat.getCopy();
-  if (theMaterial1d[0] == 0 || theMaterial1d[1] == 0) {
-    opserr << "FATAL ZeroLength::ZeroLength - failed to get a copy of material " << theMat.getTag() << endln;
-    exit(-1);
-  }
 
   // establish the connected nodes and set up the transformation matrix for orientation
   this->setUp( Nd1, Nd2, x, yp);
@@ -340,12 +322,7 @@ ZeroLength::ZeroLength(int tag,
     // allocate memory for numMaterials1d uniaxial material models
     theMaterial1d = new UniaxialMaterial*  [numMaterials1d];
     dir1d	  = new ID(numMaterials1d);
-    
-    if ( theMaterial1d == 0 || dir1d == 0 ) {
-      opserr << "FATAL ZeroLength::ZeroLength - failed to create a 1d  material or direction array\n";
-      exit(-1);
-    }
-    
+
     // initialize uniaxial materials and directions and check for valid values
     *dir1d = direction;
     for (int i = 0; i < n1dMat; i++) {
@@ -357,11 +334,7 @@ ZeroLength::ZeroLength(int tag,
     // get a copy of the material objects and check we obtained a valid copy
     for (int i=0; i<numMaterials1d; i++) {
       theMaterial1d[i] = theMat[i]->getCopy();
-      if (theMaterial1d[i] == 0) {
-	opserr << "FATAL ZeroLength::ZeroLength - failed to get a copy of material " <<theMat[i]->getTag() << endln;
-	exit(-1);
-      }
-     }
+    }
 	
     // establish the connected nodes and set up the transformation matrix for orientation
     this->setUp( Nd1, Nd2, x, yp);
@@ -391,11 +364,7 @@ ZeroLength::ZeroLength(int tag,
     // allocate memory for numMaterials1d uniaxial material models
     theMaterial1d = new UniaxialMaterial*  [2*numMaterials1d];
     dir1d	  = new ID(numMaterials1d);
-    
-    if ( theMaterial1d == 0 || dir1d == 0 ) {
-      opserr << "FATAL ZeroLength::ZeroLength - failed to create a 1d  material or direction array\n";
-      exit(-1);
-    }
+
     
     // initialize uniaxial materials and directions and check for valid values
     *dir1d = direction;
@@ -409,10 +378,6 @@ ZeroLength::ZeroLength(int tag,
     for (int i=0; i<numMaterials1d; i++) {
       theMaterial1d[i] = theMat[i]->getCopy();
       theMaterial1d[i+numMaterials1d] = theDampMat[i]->getCopy();
-      if (theMaterial1d[i] == 0) {
-	opserr << "FATAL ZeroLength::ZeroLength - failed to get a copy of material " <<theMat[i]->getTag() << endln;
-	exit(-1);
-      }
      }
 	
     // establish the connected nodes and set up the transformation matrix for orientation
@@ -434,12 +399,8 @@ ZeroLength::ZeroLength(void)
   numMaterials1d(0), theMaterial1d(0),
   dir1d(0), t1d(0), d0(0), v0(0)
 {
-    // ensure the connectedExternalNode ID is of correct size 
-    if (connectedExternalNodes.Size() != 2)
-      opserr << "FATAL ZeroLength::ZeroLength - failed to create an ID of correct size\n";
-
-    // designate to setDomain that this is the null construction of the element
-    mInitialize = 0;
+  // designate to setDomain that this is the null construction of the element
+  mInitialize = 0;
 }
 
 
@@ -477,30 +438,30 @@ ZeroLength::~ZeroLength()
 
 
 int
-ZeroLength::getNumExternalNodes(void) const
+ZeroLength::getNumExternalNodes() const
 {
-    return 2;
+  return 2;
 }
 
 
 const ID &
-ZeroLength::getExternalNodes(void) 
+ZeroLength::getExternalNodes() 
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 
 
 Node **
-ZeroLength::getNodePtrs(void) 
+ZeroLength::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-ZeroLength::getNumDOF(void) 
+ZeroLength::getNumDOF() 
 {
-    return numDOF;
+  return numDOF;
 }
 
 
@@ -515,9 +476,9 @@ ZeroLength::setDomain(Domain *theDomain)
 {
     // check Domain is not null - invoked when object removed from a domain
     if (theDomain == 0) {
-	theNodes[0] = 0;
-	theNodes[1] = 0;
-	return;
+      theNodes[0] = 0;
+      theNodes[1] = 0;
+      return;
     }
 
     // set default values for error conditions
@@ -575,45 +536,45 @@ ZeroLength::setDomain(Domain *theDomain)
     
     // set the number of dof for element and set matrix and vector pointer
     if (dimension == 1 && dofNd1 == 1) {
-	numDOF = 2;    
-	theMatrix = &ZeroLengthM2;
-	theVector = &ZeroLengthV2;
-	elemType  = D1N2;
+      numDOF = 2;    
+      theMatrix = &ZeroLengthM2;
+      theVector = &ZeroLengthV2;
+      elemType  = D1N2;
     }
     else if (dimension == 2 && dofNd1 == 2) {
-	numDOF = 4;
-	theMatrix = &ZeroLengthM4;
-	theVector = &ZeroLengthV4;
-	elemType  = D2N4;
+      numDOF = 4;
+      theMatrix = &ZeroLengthM4;
+      theVector = &ZeroLengthV4;
+      elemType  = D2N4;
     }
     else if (dimension == 2 && dofNd1 == 3) {
-	numDOF = 6;	
-	theMatrix = &ZeroLengthM6;
-	theVector = &ZeroLengthV6;
-	elemType  = D2N6;
+      numDOF = 6;	
+      theMatrix = &ZeroLengthM6;
+      theVector = &ZeroLengthV6;
+      elemType  = D2N6;
     }
     else if (dimension == 3 && dofNd1 == 3) {
-	numDOF = 6;	
-	theMatrix = &ZeroLengthM6;
-	theVector = &ZeroLengthV6;
-	elemType  = D3N6;
+      numDOF = 6;	
+      theMatrix = &ZeroLengthM6;
+      theVector = &ZeroLengthV6;
+      elemType  = D3N6;
     }
     else if (dimension == 3 && dofNd1 == 6) {
-	numDOF = 12;	    
-	theMatrix = &ZeroLengthM12;
-	theVector = &ZeroLengthV12;
-	elemType  = D3N12;
+      numDOF = 12;	    
+      theMatrix = &ZeroLengthM12;
+      theVector = &ZeroLengthV12;
+      elemType  = D3N12;
     }
     else {
       opserr << "WARNING ZeroLength::setDomain cannot handle " << dimension << 
-	"dofs at nodes in " << dofNd1 << " d problem\n"; 
+                "dofs at nodes in " << dofNd1 << " d problem\n"; 
       return;
     }
 
     // create the basic deformation-displacement transformation matrix for the element
     // for 1d materials (uniaxial materials)
     if ( numMaterials1d > 0 )
-	this->setTran1d( elemType, numMaterials1d );
+      this->setTran1d( elemType, numMaterials1d );
 
     // get trial displacements and take difference
     const Vector& disp1 = theNodes[0]->getTrialDisp();
@@ -639,131 +600,131 @@ ZeroLength::setDomain(Domain *theDomain)
 int
 ZeroLength::commitState()
 {
-    int code=0;
+  int code=0;
 
-    // call element commitState to do any base class stuff
-    if ((code = this->Element::commitState()) != 0) {
-      opserr << "ZeroLength::commitState () - failed in base class";
-    }    
+  // call element commitState to do any base class stuff
+  if ((code = this->Element::commitState()) != 0) {
+    opserr << "ZeroLength::commitState () - failed in base class";
+  }    
 
-    // commit 1d materials
-    int numMat = numMaterials1d;
-    if (useRayleighDamping == 2)
-      numMat *= 2;
-    for (int i=0; i<numMat; i++) 
-	code += theMaterial1d[i]->commitState();
+  // commit 1d materials
+  int numMat = numMaterials1d;
+  if (useRayleighDamping == 2)
+    numMat *= 2;
+  for (int i=0; i<numMat; i++) 
+    code += theMaterial1d[i]->commitState();
 
-    return code;
+  return code;
 }
 
 int
 ZeroLength::revertToLastCommit()
 {
-    int code=0;
-    
-    // revert state for 1d materials
-    int numMat = numMaterials1d;
-    if (useRayleighDamping == 2)
-      numMat *= 2;
-    for (int i=0; i<numMat; i++) 
-	code += theMaterial1d[i]->revertToLastCommit();
-    
-    return code;
+  int code=0;
+  
+  // revert state for 1d materials
+  int numMat = numMaterials1d;
+  if (useRayleighDamping == 2)
+    numMat *= 2;
+  for (int i=0; i<numMat; i++) 
+    code += theMaterial1d[i]->revertToLastCommit();
+  
+  return code;
 }
 
 
 int
 ZeroLength::revertToStart()
-{   
-    int code=0;
-    
-    // revert to start for 1d materials
-    int numMat = numMaterials1d;
-    if (useRayleighDamping == 2)
-      numMat *= 2;
-    for (int i=0; i<numMat; i++) 
-	code += theMaterial1d[i]->revertToStart();
-    
-    return code;
+{
+  int code=0;
+  
+  // revert to start for 1d materials
+  int numMat = numMaterials1d;
+  if (useRayleighDamping == 2)
+    numMat *= 2;
+  for (int i=0; i<numMat; i++) 
+    code += theMaterial1d[i]->revertToStart();
+  
+  return code;
 }
 
 
 int
-ZeroLength::update(void)
+ZeroLength::update()
 {
-    double strain;
-    double strainRate;
+  double strain;
+  double strainRate;
 
-    // get trial displacements and take difference
-    const Vector& disp1 = theNodes[0]->getTrialDisp();
-    const Vector& disp2 = theNodes[1]->getTrialDisp();
-    Vector  diff  = disp2-disp1;
-    const Vector& vel1  = theNodes[0]->getTrialVel();
-    const Vector& vel2  = theNodes[1]->getTrialVel();
-    Vector  diffv = vel2-vel1;
-    
-    if (d0 != 0)
-      diff -= *d0;
+  // get trial displacements and take difference
+  const Vector& disp1 = theNodes[0]->getTrialDisp();
+  const Vector& disp2 = theNodes[1]->getTrialDisp();
+  Vector  diff  = disp2-disp1;
+  const Vector& vel1  = theNodes[0]->getTrialVel();
+  const Vector& vel2  = theNodes[1]->getTrialVel();
+  Vector  diffv = vel2-vel1;
+  
+  if (d0 != 0)
+    diff -= *d0;
 
-    if (v0 != 0)
-      diffv -= *v0;
-    
-    // loop over 1d materials
-    
-    //    Matrix& tran = *t1d;
-    int ret = 0;
-    for (int mat=0; mat<numMaterials1d; mat++) {
-	// compute strain and rate; set as current trial for material
-	strain     = this->computeCurrentStrain1d(mat,diff );
-        strainRate = this->computeCurrentStrain1d(mat,diffv);
-	ret += theMaterial1d[mat]->setTrialStrain(strain,strainRate);
-	if (useRayleighDamping == 2) {
-	  ret += theMaterial1d[mat+numMaterials1d]->setTrialStrain(strainRate);	  
-	}
+  if (v0 != 0)
+    diffv -= *v0;
+  
+  // loop over 1d materials
+  
+  //    Matrix& tran = *t1d;
+  int ret = 0;
+  for (int mat=0; mat<numMaterials1d; mat++) {
+    // compute strain and rate; set as current trial for material
+    strain     = this->computeCurrentStrain1d(mat,diff );
+    strainRate = this->computeCurrentStrain1d(mat,diffv);
+    ret += theMaterial1d[mat]->setTrialStrain(strain,strainRate);
+    if (useRayleighDamping == 2) {
+      ret += theMaterial1d[mat+numMaterials1d]->setTrialStrain(strainRate);	  
     }
+  }
 
-    return ret;
+  return ret;
 }
 
 const Matrix &
-ZeroLength::getTangentStiff(void)
+ZeroLength::getTangentStiff()
 {
-    double E;
+  double E;
 
-    // stiff is a reference to the matrix holding the stiffness matrix
-    Matrix& stiff = *theMatrix;
+  // stiff is a reference to the matrix holding the stiffness matrix
+  Matrix& stiff = *theMatrix;
+  
+  // zero stiffness matrix
+  stiff.Zero();
+  
+  // loop over 1d materials
+  
+  Matrix& tran = *t1d;;
+  for (int mat=0; mat<numMaterials1d; mat++) {
     
-    // zero stiffness matrix
-    stiff.Zero();
+    // get tangent for material
+    E = theMaterial1d[mat]->getTangent();
     
-    // loop over 1d materials
-    
-    Matrix& tran = *t1d;;
-    for (int mat=0; mat<numMaterials1d; mat++) {
-      
-      // get tangent for material
-      E = theMaterial1d[mat]->getTangent();
-      
-      // compute contribution of material to tangent matrix
-      for (int i=0; i<numDOF; i++)
-	for(int j=0; j<i+1; j++)
-	  stiff(i,j) +=  tran(mat,i) * E * tran(mat,j);
-      
-    }
-
-    // end loop over 1d materials 
-    
-    // complete symmetric stiffness matrix
+    // compute contribution of material to tangent matrix
     for (int i=0; i<numDOF; i++)
-      for(int j=0; j<i; j++)
-	stiff(j,i) = stiff(i,j);
+      for(int j=0; j<i+1; j++)
+        stiff(i,j) +=  tran(mat,i) * E * tran(mat,j);
+    
+  }
 
-    return stiff;
+  // end loop over 1d materials 
+  
+  // complete symmetric stiffness matrix
+  for (int i=0; i<numDOF; i++)
+    for(int j=0; j<i; j++)
+      stiff(j,i) = stiff(i,j);
+
+  return stiff;
 }
 
 
 const Matrix &
-ZeroLength::getInitialStiff(void)
+ZeroLength::getInitialStiff()
 {
     double E;
 
@@ -783,8 +744,8 @@ ZeroLength::getInitialStiff(void)
       
       // compute contribution of material to tangent matrix
       for (int i=0; i<numDOF; i++)
-	for(int j=0; j<i+1; j++)
-	  stiff(i,j) +=  tran(mat,i) * E * tran(mat,j);
+        for(int j=0; j<i+1; j++)
+          stiff(i,j) +=  tran(mat,i) * E * tran(mat,j);
       
     }
 
@@ -867,9 +828,8 @@ ZeroLength::getMass(void)
 
 
 void 
-ZeroLength::zeroLoad(void)
+ZeroLength::zeroLoad()
 {
-  // does nothing now
 }
 
 int 
@@ -1085,9 +1045,8 @@ ZeroLength::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBr
 	delete dir1d;
       dir1d = new ID(numMaterials1d);
       if (dir1d == 0) {
-	opserr << "ZeroLength::recvSelf -- failed to new dir ID\n";
-				
-	return -1;
+        opserr << "ZeroLength::recvSelf -- failed to new dir ID\n";
+        return -1;
       }
     }
     

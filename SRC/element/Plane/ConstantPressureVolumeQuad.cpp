@@ -136,13 +136,7 @@ connectedExternalNodes(4), thickness(thickness), load(0)
   connectedExternalNodes(3) = node4 ;
 
   for (int i = 0 ;  i < 4; i++ ) {
-
       materialPointers[i] = theMaterial.getCopy("AxiSymmetric2D") ;
-
-      if (materialPointers[i] == 0) {
-        opserr << "ConstantPressureVolumeQuad::constructor - failed to get a material of type: AxiSymmetric2D\n";
-        exit(-1);
-      }   
   }
 }
 

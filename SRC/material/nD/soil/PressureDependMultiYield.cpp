@@ -733,7 +733,7 @@ PressureDependMultiYield::getInitialTangent (void)
 }
 
 const Vector &
-PressureDependMultiYield::getStress (void)
+PressureDependMultiYield::getStress(void)
 {
   int loadStage = loadStagex[matN];
   int numOfSurfaces = numOfSurfacesx[matN];
@@ -829,7 +829,7 @@ PressureDependMultiYield::getStrain (void)
 }
 
 int
-PressureDependMultiYield::commitState (void)
+PressureDependMultiYield::commitState(void)
 {
   int loadStage = loadStagex[matN];
   int numOfSurfaces = numOfSurfacesx[matN];
@@ -1422,8 +1422,17 @@ PressureDependMultiYield::getResponse (int responseID, Information &matInfo)
 
 void
 PressureDependMultiYield::Print(OPS_Stream &s, int flag )
-
 {
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT
+      << "{"
+      << "\"type\": \"" << this->getClassType() << "\", "
+      << "\"name\": " << this->getTag() << ", "
+      << "\"loadStage\": " <<  loadStagex[matN] 
+      << "}";
+    return;
+  }
   int theLoadStage = loadStagex[matN];
   s << "PressureDependMultiYield - loadSatge: " << theLoadStage << endln;
 }

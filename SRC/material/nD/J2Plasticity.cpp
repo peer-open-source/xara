@@ -55,15 +55,10 @@
 #include <elementAPI.h>
 #include <matrix/identity.h> // IbunI, IIdev
 
-//parameters
-// const double J2Plasticity :: one3   = 1.0 / 3.0 ;
-// const double J2Plasticity :: two3   = 2.0 / 3.0 ;
 const double J2Plasticity :: four3  = 4.0 / 3.0 ;
 const double J2Plasticity :: root23 = sqrt( 2.0 / 3.0 ) ;
 
 double J2Plasticity::initialTangent[3][3][3][3] ;   //material tangent
-// double J2Plasticity::IIdev[3][3][3][3] ; //rank 4 deviatoric 
-// double J2Plasticity::IbunI[3][3][3][3] ; //rank 4 I bun I
 
 void * OPS_ADD_RUNTIME_VPV(OPS_J2Plasticity)
 {
@@ -114,8 +109,8 @@ void J2Plasticity :: zero ()
 }
 
 
-J2Plasticity ::  J2Plasticity( ) : 
-NDMaterial( ),
+J2Plasticity::J2Plasticity(): 
+NDMaterial(),
 epsilon_p_n(3,3),
 epsilon_p_nplus1(3,3),
 stress(3,3),

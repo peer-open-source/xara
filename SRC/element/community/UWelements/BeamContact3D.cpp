@@ -61,7 +61,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_BeamContact3D)
   if (num_BeamContact3D == 0) {
     num_BeamContact3D++;
     //OPS_Error("BeamContact3D element - Written: K.Petek, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n", 1);
-    opserr << "BeamContact3D element - Written: K.Petek, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog << "BeamContact3D element - Written: K.Petek, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
 
   // Pointer to a uniaxial material that will be returned

@@ -57,7 +57,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_TriSurfaceLoad)
 {
   if (num_TriSurfaceLoad == 0) {
     num_TriSurfaceLoad++;
-    opserr<<"TriSurfaceLoad element - Written: J. A. Abell (UANDES). Inspired by the makers of SurfaceLoad\n";
+    opslog<<"TriSurfaceLoad element - Written: J. A. Abell (UANDES). Inspired by the makers of SurfaceLoad\n";
   }
 
   // Pointer to a uniaxial material that will be returned

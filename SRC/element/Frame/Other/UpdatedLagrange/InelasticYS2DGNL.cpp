@@ -180,12 +180,10 @@ int InelasticYS2DGNL::computeTrueEleForce(Vector &trialForce)
     	if(d1 == OUTSIDE)
 		{
     		ys1->setToSurface(eleForce, ys1->RadialReturn);
-		//cout <<" ys1 outside\n";
 		}
     	else
 		{
     	    ys1->setToSurface(eleForce, ys1->ConstantYReturn);
-		//cout << "ys1 inside \n";
 		}
     }
 
@@ -195,12 +193,10 @@ int InelasticYS2DGNL::computeTrueEleForce(Vector &trialForce)
     	if(d2 == OUTSIDE)
 		{
     		ys2->setToSurface(eleForce, ys2->RadialReturn);
-		//cout << "ys2 outside\n";
 		}
     	else
 		{
     		ys2->setToSurface(eleForce, ys2->ConstantYReturn);
-		//cout << "ys2 inside\n";
 		}
     }
 
@@ -893,13 +889,8 @@ double t= num/denom;
 
 // now drift the other end by the same amount
 	Vector trialForce2(6), step_force(6);
-	
-	
-	
-	//cout << "Splitting step by - " << t << endl ;
-	//cout << "Original trial force = " << trial_force;
+
 	trialForce2 = eleForce_hist + t*(trial_force - eleForce_hist);
-	//cout << "Drift one end by trial force = " <<  trialForce2;
 	
 Vector f_surface = eleForce_hist;
 int count =0;

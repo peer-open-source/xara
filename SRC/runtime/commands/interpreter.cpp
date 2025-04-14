@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <runtimeAPI.h>
 #include <G3_Runtime.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <Timer.h>
 #include "interpreter.h"
 

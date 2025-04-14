@@ -58,7 +58,7 @@ OPS_Hertzdamp(void)
   // kudos
   if (numHertzdamp == 0) {
     numHertzdamp++;
-    opserr << "Hertzdamp model written by Patrick J. Hughes, UC San Diego\n";
+    opslog << "Hertzdamp model written by Patrick J. Hughes, UC San Diego\n";
   }
   
   // Pointer to a uniaxial material that will be returned

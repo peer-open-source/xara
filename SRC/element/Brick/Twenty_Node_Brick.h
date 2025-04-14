@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
+//
 // by Jinchi Lu and Zhaohui Yang (May 2004)
 //
 // 20NodeBrick element
@@ -39,10 +39,9 @@
 class Twenty_Node_Brick : public Element {
 
  public:
-    //null constructor
-    Twenty_Node_Brick( ) ;
+    Twenty_Node_Brick();
 
-    //full constructor
+
     Twenty_Node_Brick( int tag,
 		int node1,
 		int node2,
@@ -68,9 +67,9 @@ class Twenty_Node_Brick : public Element {
 		double b1 = 0.0, double b2 = 0.0, double b3 = 0.0) ;
 
     //destructor
-    virtual ~Twenty_Node_Brick( ) ;
+    virtual ~Twenty_Node_Brick();
 
-    const char *getClassType(void) const {return "Twenty_Node_Brick";};
+    const char *getClassType(void) const {return "Twenty_Node_Brick";}
     static constexpr const char* class_name = "Twenty_Node_Brick";
 
     //set domain
@@ -83,24 +82,18 @@ class Twenty_Node_Brick : public Element {
     const ID &getExternalNodes( ) ;
     Node **getNodePtrs(void);
 
-    //return number of dofs
     int getNumDOF( ) ;
 
-    //commit state
     int commitState( ) ;
 
-    //revert to last commit
     int revertToLastCommit( ) ;
 
-    //revert to start
     int revertToStart( ) ;
 
-    //print out element data
     void Print( OPS_Stream &s, int flag ) ;
 
 	int update(void);
 
-    //return stiffness matrix
     const Matrix &getTangentStiff( ) ;
     const Matrix &getInitialStiff( ) ;
     const Matrix &getDamp(void);
@@ -110,32 +103,36 @@ class Twenty_Node_Brick : public Element {
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    //get residual
-    const Vector &getResistingForce( ) ;
-
-    //get residual with inertia terms
-    const Vector &getResistingForceIncInertia( ) ;
+    const Vector &getResistingForce( );
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-		&theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker&);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
-
-    //plotting
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
+    int getResponse(int responseID, Information &);
 
 private :
 
-    //static data
+    void formInertiaTerms( int tangFlag ) ;
+    void formDampingTerms( int tangFlag ) ;
+
+    // Mixture mass density at integration point i
+    double mixtureRho(int ipt);
+    void computeBasis( ) ;
+    void compuLocalShapeFunction();
+    void Jacobian3d(int gaussPoint, double& xsj, int mode);
+    const Matrix&  getStiff( int flag );
+
+
+    // static data
     static Matrix stiff ;
     static Vector resid ;
     static Matrix mass ;
     static Matrix damp ;
 
-    //quadrature data
+    // quadrature data
     static const int nintu;
     static const int nenu;
 
@@ -145,7 +142,6 @@ private :
     Node *nodePointers[20] ;      //pointers to eight nodes
 
 
-    //material information
     NDMaterial **materialPointers; // pointer to the ND material objects
 
     //local nodal coordinates, three coordinates for each of twenty nodes
@@ -161,27 +157,11 @@ private :
     static double wu[27];		// Stores quadrature weights
     static double dvolu[27];  // Stores detJacobian (overwritten)
 
-    //inertia terms
-    void formInertiaTerms( int tangFlag ) ;
-
-    //damping terms
-    void formDampingTerms( int tangFlag ) ;
-
-	// Mixture mass density at integration point i
-	double mixtureRho(int ipt);
-
-    //compute coordinate system
-    void computeBasis( ) ;
-
     Vector *load;
     Matrix *Ki;
 
 	// compute local shape functions
-	void compuLocalShapeFunction();
-	void Jacobian3d(int gaussPoint, double& xsj, int mode);
-	const Matrix&  getStiff( int flag );
 
-
-} ;
+};
 
 #endif

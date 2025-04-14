@@ -266,12 +266,13 @@ ElasticSection2d::Print(OPS_Stream &s, int flag)
   }
   
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-	s << "\"name\": \"" << this->getTag() << "\", ";
-	s << "\"type\": \"ElasticSection2d\", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"ElasticSection2d\", ";
     s << "\"E\": " << E << ", ";
     s << "\"A\": " << A << ", ";
-    s << "\"Iz\": " << I << "}";
+    s << "\"Iz\": " << I;
+    s << "}";
   }
 }  
 

@@ -15,7 +15,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -69,12 +68,6 @@ FourNodeQuadUP::FourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
   for (int i = 0; i < nip; i++) {
     // Get copies of the material model for each integration point
     theMaterial[i] = m.getCopy(type);
-
-      // Check allocation
-    if (theMaterial[i] == 0) {
-      opserr << "FourNodeQuadUP::FourNodeQuadUP -- failed to get a copy of material model\n";
-      exit(-1);
-    }
   }
 
   // Set connected external node IDs
@@ -91,54 +84,41 @@ FourNodeQuadUP::FourNodeQuadUP()
  Q(12), pressureLoad(12), applyLoad(0), thickness(0.0), kc(0.0), rho(0.0), pressure(0.0),
  end1InitDisp(0),end2InitDisp(0),end3InitDisp(0),end4InitDisp(0)
 {
-  // pts[0][0] = -0.577350269189626;
-  // pts[0][1] = -0.577350269189626;
-  // pts[1][0] =  0.577350269189626;
-  // pts[1][1] = -0.577350269189626;
-  // pts[2][0] =  0.577350269189626;
-  // pts[2][1] =  0.577350269189626;
-  // pts[3][0] = -0.577350269189626;
-  // pts[3][1] =  0.577350269189626;
-
-  // wts[0] = 1.0;
-  // wts[1] = 1.0;
-  // wts[2] = 1.0;
-  // wts[3] = 1.0;
 }
 
 FourNodeQuadUP::~FourNodeQuadUP()
 {
-    for (int i = 0; i < 4; i++) {
-      if (theMaterial[i])
-        delete theMaterial[i];
-    }
+  for (int i = 0; i < 4; i++) {
+    if (theMaterial[i])
+      delete theMaterial[i];
+  }
 
-    // Delete the array of pointers to NDMaterial pointer arrays
-    if (theMaterial)
+  // Delete the array of pointers to NDMaterial pointer arrays
+  if (theMaterial)
     delete [] theMaterial;
 
-    if (Ki != 0)
-      delete Ki;
-    if (end1InitDisp != 0)
-      delete [] end1InitDisp;
-    if (end2InitDisp != 0)
-      delete [] end2InitDisp;
-    if (end3InitDisp != 0)
-      delete [] end3InitDisp;
-    if (end4InitDisp != 0)
-      delete [] end4InitDisp;
+  if (Ki != 0)
+    delete Ki;
+  if (end1InitDisp != 0)
+    delete [] end1InitDisp;
+  if (end2InitDisp != 0)
+    delete [] end2InitDisp;
+  if (end3InitDisp != 0)
+    delete [] end3InitDisp;
+  if (end4InitDisp != 0)
+    delete [] end4InitDisp;
 }
 
 int
 FourNodeQuadUP::getNumExternalNodes() const
 {
-    return 4;
+  return 4;
 }
 
 const ID&
 FourNodeQuadUP::getExternalNodes()
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 Node **
@@ -555,7 +535,7 @@ FourNodeQuadUP::getMass()
 }
 
 void
-FourNodeQuadUP::zeroLoad(void)
+FourNodeQuadUP::zeroLoad()
 {
   Q.Zero();
   applyLoad = 0;
@@ -728,7 +708,6 @@ FourNodeQuadUP::getResistingForceIncInertia()
 
   // Compute the current resisting force
   this->getResistingForce();
-  //opserr<<"K "<<P<<endln;
 
   // Compute the mass matrix
   this->getMass();
@@ -737,7 +716,6 @@ FourNodeQuadUP::getResistingForceIncInertia()
     for (int j = 0; j < 12; j++)
       P(i) += K(i,j)*a[j];
   }
-  //opserr<<"K+M "<<P<<endln;
 
   // dynamic seepage force
   /*for (i = 0, k = 0; i < 4; i++, k += 3) {
@@ -972,46 +950,6 @@ FourNodeQuadUP::Print(OPS_Stream &s, int flag)
     s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
 }
 
-int
-FourNodeQuadUP::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **argv, int numModes)
-{
-    // get the end point display coords
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-    nd1Ptr->getDisplayCrds(v1, fact, displayMode);
-    nd2Ptr->getDisplayCrds(v2, fact, displayMode);
-    nd3Ptr->getDisplayCrds(v3, fact, displayMode);
-    nd4Ptr->getDisplayCrds(v4, fact, displayMode);
-
-    // place values in coords matrix
-    static Matrix coords(4, 3);
-    for (int i = 0; i < 3; i++) {
-        coords(0, i) = v1(i);
-        coords(1, i) = v2(i);
-        coords(2, i) = v3(i);
-        coords(3, i) = v4(i);
-    }
-
-    // set the quantity to be displayed at the nodes;
-    // if displayMode is 1 through 3 we will plot material stresses otherwise 0.0
-    static Vector values(4);
-    if (displayMode < 4 && displayMode > 0) {
-        for (int i = 0; i < 4; i++) {
-            const Vector& stress = theMaterial[i]->getStress();
-            values(i) = stress(displayMode - 1);
-        }
-    }
-    else {
-        for (int i = 0; i < 4; i++)
-            values(i) = 0.0;
-    }
-
-    // draw the polygon
-    return theViewer.drawPolygon(coords, values, this->getTag());
-}
-
 Response*
 FourNodeQuadUP::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
@@ -1179,7 +1117,7 @@ FourNodeQuadUP::updateParameter(int parameterID, Information &info)
   }
 }
 
-void FourNodeQuadUP::shapeFunction(void)
+void FourNodeQuadUP::shapeFunction()
 {
   double xi, eta, oneMinuseta, onePluseta, oneMinusxi, onePlusxi,
          detJ, oneOverdetJ, J[2][2], L[2][2], L00, L01, L10, L11,
@@ -1278,7 +1216,8 @@ void FourNodeQuadUP::shapeFunction(void)
 }
 
 
-double FourNodeQuadUP::mixtureRho(int i)
+double
+FourNodeQuadUP::mixtureRho(int i)
 {
   double rhoi, e, n;
   rhoi= theMaterial[i]->getRho();
@@ -1288,9 +1227,9 @@ double FourNodeQuadUP::mixtureRho(int i)
   return rhoi;
 }
 
-void FourNodeQuadUP::setPressureLoadAtNodes(void)
+void FourNodeQuadUP::setPressureLoadAtNodes()
 {
-        pressureLoad.Zero();
+  pressureLoad.Zero();
 
   if (pressure == 0.0)
     return;

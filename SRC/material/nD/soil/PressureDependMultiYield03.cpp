@@ -1764,11 +1764,11 @@ void PressureDependMultiYield03::setUpSurfaces (double * gredu)
     double refShearModulus = refShearModulusx[matN];
     int numOfSurfaces = numOfSurfacesx[matN];
     double frictionAngle = frictionAnglex[matN];
-	double cohesion = cohesionx[matN];
+    double cohesion = cohesionx[matN];
     double peakShearStrain = peakShearStrainx[matN];
     double phaseTransfAngle = phaseTransfAnglex[matN];
-	double stressRatioPT = stressRatioPTx[matN];
-	int mType = mTypex[matN];
+    double stressRatioPT = stressRatioPTx[matN];
+    int mType = mTypex[matN];
 
     double refStrain, peakShear, coneHeight;
     double stress1, stress2, strain1, strain2, size, elasto_plast_modul, plast_modul;
@@ -1833,75 +1833,77 @@ void PressureDependMultiYield03::setUpSurfaces (double * gredu)
       if (plast_modul > UP_LIMIT) plast_modul = UP_LIMIT;
       if (ii==numOfSurfaces) plast_modul = 0;
       workV6.Zero();
-	  //opserr<<ii<<" "<<size<<" "<<plast_modul<<endln;
       committedSurfaces[ii] = MultiYieldSurface(workV6,size,plast_modul);
 		}  // ii
 	}
 	else {  //user defined surfaces
-		int ii = 2*(numOfSurfaces-1);
-		double tmax = refShearModulus*gredu[ii]*gredu[ii+1];
-		double Mnys = -(sqrt(3.) * tmax - 2.* cohesion) / refPressure;
+        int ii = 2*(numOfSurfaces-1);
+        double tmax = refShearModulus*gredu[ii]*gredu[ii+1];
+        double Mnys = -(sqrt(3.) * tmax - 2.* cohesion) / refPressure;
         residualPress = 2 * cohesion / Mnys;
         if (residualPress < 0.0001*pAtm) residualPress = 0.0001*pAtm;
         coneHeight = - (refPressure - residualPress);
 
         double sinPhi = 3*Mnys /(6+Mnys);
-		if (sinPhi<0. || sinPhi>1.) {
-			opserr <<"\nNDMaterial " <<this->getTag()<<": Invalid friction angle, please modify ref. pressure or G/Gmax curve."<<endln;
-            exit(-1);
-		}
+        if (sinPhi<0. || sinPhi>1.) {
+          opserr << "\nNDMaterial "
+                 << this->getTag()<< ": Invalid friction angle, please modify ref. pressure or G/Gmax curve."<<endln;
+          exit(-1);
+        }
 
-		frictionAngle = asin(sinPhi)*180/pi;
-		opserr << "\nNDMaterial " <<this->getTag()<<": Friction angle is "<<frictionAngle<<"\n"<<endln;
+        frictionAngle = asin(sinPhi)*180/pi;
+        opserr << "\nNDMaterial " <<this->getTag()<<": Friction angle is "<<frictionAngle<<"\n"<<endln;
         if (phaseTransfAngle > frictionAngle) {
-			opserr << "\nNDMaterial " <<this->getTag()<<": phase Transformation Angle > friction Angle,"
-				   << "will set phase Transformation Angle = friction Angle.\n" <<endln;
-			phaseTransfAngle = frictionAngle;
-		}
-		double sinPhiPT = sin(phaseTransfAngle * pi/180.);
+          opserr << "\nNDMaterial " <<this->getTag()
+                  << ": phase Transformation Angle > friction Angle,"
+                  << "will set phase Transformation Angle = friction Angle.\n" 
+                  << endln;
+          phaseTransfAngle = frictionAngle;
+        }
+        double sinPhiPT = sin(phaseTransfAngle * pi/180.);
         stressRatioPT = 6.*sinPhiPT/(3.-sinPhiPT);
 
-		for (int i=1; i<numOfSurfaces; i++) {
-			int ii = 2*(i-1);
-			strain1 = gredu[ii];
-            stress1 = refShearModulus*gredu[ii+1]*strain1;
-			strain2 = gredu[ii+2];
-            stress2 = refShearModulus*gredu[ii+3]*strain2;
+        for (int i=1; i<numOfSurfaces; i++) {
+          int ii = 2*(i-1);
+          strain1 = gredu[ii];
+                stress1 = refShearModulus*gredu[ii+1]*strain1;
+          strain2 = gredu[ii+2];
+                stress2 = refShearModulus*gredu[ii+3]*strain2;
 
-            ratio1 = sqrt(3.) * stress1 / coneHeight;
-            ratio2 = sqrt(3.) * stress2 / coneHeight;
-            if (ratio1 <= stressRatioPT && ratio2 >= stressRatioPT) {
-               double ratio = (ratio2 - stressRatioPT)/(ratio2 - ratio1);
-			  // gamma_oct = sqrt(6)/3*gamma12
-              strainPTOcta = sqrt(6.)/3 * (strain2 - ratio * (strain2 - strain1));
-			}
+                ratio1 = sqrt(3.) * stress1 / coneHeight;
+                ratio2 = sqrt(3.) * stress2 / coneHeight;
+                if (ratio1 <= stressRatioPT && ratio2 >= stressRatioPT) {
+                  double ratio = (ratio2 - stressRatioPT)/(ratio2 - ratio1);
+            // gamma_oct = sqrt(6)/3*gamma12
+                  strainPTOcta = sqrt(6.)/3 * (strain2 - ratio * (strain2 - strain1));
+          }
 
-            size = ratio1;
-            elasto_plast_modul = 2.*(stress2 - stress1)/(strain2 - strain1);
+          size = ratio1;
+          elasto_plast_modul = 2.*(stress2 - stress1)/(strain2 - strain1);
 
-			if ( (2.*refShearModulus - elasto_plast_modul) <= 0)
-					plast_modul = UP_LIMIT;
-            else
-					plast_modul = (2.*refShearModulus * elasto_plast_modul)/
-                        (2.*refShearModulus - elasto_plast_modul);
-            if (plast_modul <= 0) {
-				opserr << "\nNDMaterial " <<this->getTag()<<": Surface " << i
-					   << " has plastic modulus < 0.\n Please modify G/Gmax curve.\n"<<endln;
+          if ( (2.*refShearModulus - elasto_plast_modul) <= 0)
+            plast_modul = UP_LIMIT;
+          else
+            plast_modul = (2.*refShearModulus * elasto_plast_modul)/
+                          (2.*refShearModulus - elasto_plast_modul);
+          if (plast_modul <= 0) {
+            opserr << "\nNDMaterial " <<this->getTag()<<": Surface " << i
+                    << " has plastic modulus < 0.\n Please modify G/Gmax curve.\n"<<endln;
             exit(-1);
-      }
-      if (plast_modul > UP_LIMIT) plast_modul = UP_LIMIT;
+          }
+          if (plast_modul > UP_LIMIT) 
+            plast_modul = UP_LIMIT;
 
-      workV6.Zero();
-			//opserr<<size<<" "<<i<<" "<<plast_modul<<" "<<gredu[ii]<<" "<<gredu[ii+1]<<endln;
-      committedSurfaces[i] = MultiYieldSurface(workV6,size,plast_modul);
+          workV6.Zero();
+          //opserr<<size<<" "<<i<<" "<<plast_modul<<" "<<gredu[ii]<<" "<<gredu[ii+1]<<endln;
+          committedSurfaces[i] = MultiYieldSurface(workV6,size,plast_modul);
 
-	  if (i==(numOfSurfaces-1)) {
-		plast_modul = 0;
-		size = ratio2;
-		//opserr<<size<<" "<<i+1<<" "<<plast_modul<<" "<<gredu[ii+2]<<" "<<gredu[ii+3]<<endln;
-        committedSurfaces[i+1] = MultiYieldSurface(workV6,size,plast_modul);
+          if (i==(numOfSurfaces-1)) {
+              plast_modul = 0;
+              size = ratio2;
+              committedSurfaces[i+1] = MultiYieldSurface(workV6,size,plast_modul);
+          }
 	  }
-	}
   }
 
   residualPressx[matN] = residualPress;

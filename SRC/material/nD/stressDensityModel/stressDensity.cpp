@@ -38,7 +38,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_StressDensityMaterial)
     static int numStressDensity = 0;
 
     if(numStressDensity == 0) {
-        opserr << "stressDensity nDMaterial - Written: Saumyasuchi Das, U.Canterbury\n" << endln;
+        opslog << "stressDensity nDMaterial - Written: Saumyasuchi Das, U.Canterbury\n" << endln;
         numStressDensity++;
     }
 

@@ -599,7 +599,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
                 si[ii] = xL1 * q_trial[imz] + xL * q_trial[jmz];
                 break;
               case FrameStress::Bimoment:
-                si[ii] = xL1 * q_trial[imx] + xL * q_trial[6];
+                si[ii] = xL1 * q_trial[jmx] + xL * q_trial[6];
                 break;
             }
           }
@@ -878,7 +878,6 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   MatrixND<NBV,NBV> kb = this->getBasicTangent(State::Pres, 0);
 
   VectorND<NDF*2> pl{};
-  pl[0*NDF+0]  = -q_pres[jnx];               // Ni
 #ifdef DO_BASIC
   double L = theCoordTransf->getInitialLength();
   const double q1 = q_pres[imz],
@@ -890,13 +889,15 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   pl[1*NDF+1]  = -pl[1];            // Vjy
   pl[1*NDF+2]  = -pl[2];            // Vjz
 #endif
-  pl[0*NDF+3]  = -q_pres[jmx];               // Ti
   pl[0*NDF+4]  =  q_pres[imy];
   pl[0*NDF+5]  =  q_pres[imz];
-  pl[1*NDF+0]  =  q_pres[jnx];               // Nj
-  pl[1*NDF+3]  =  q_pres[jmx];               // Tj
+  pl[1*NDF+0]  =  q_pres[jnx];      // Nj
+  pl[1*NDF+3]  =  q_pres[jmx];      // Tj
   pl[1*NDF+4]  =  q_pres[jmy];
   pl[1*NDF+5]  =  q_pres[jmz];
+  //
+  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
+  pl[0*NDF+3]  = -q_pres[jmx];      // Ti
   
 
   MatrixND<2*NDF,2*NDF> kl;
@@ -921,6 +922,7 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
     kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
     kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   }
+
 #else
   // Transform basic stiffness to local system
   double tmp[6][12]{};
@@ -958,7 +960,7 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   }
 #endif
 
-  ALWAYS_STATIC MatrixND<12,12> Kg;
+  ALWAYS_STATIC MatrixND<2*NDF,2*NDF> Kg;
   ALWAYS_STATIC Matrix Wrapper(Kg);
 
   Kg = theCoordTransf->pushResponse(kl, pl);
@@ -1037,11 +1039,11 @@ ForceFrame3d<NIP,nsr,nwm>::addLoadAtSection(VectorND<nsr>& sp, double x)
     } 
   
     else if (type == LOAD_TAG_Beam3dPartialUniformLoad) {
-      double wy = data(0) * loadFactor;  // Transverse Y at start
-      double wz = data(1) * loadFactor;  // Transverse Z at start
-      double wa = data(2) * loadFactor;  // Axial at start
-      double a = data(3)*L;
-      double b = data(4)*L;
+      double wy  = data(0) * loadFactor;  // Transverse Y at start
+      double wz  = data(1) * loadFactor;  // Transverse Z at start
+      double wa  = data(2) * loadFactor;  // Axial at start
+      double a   = data(3)*L;
+      double b   = data(4)*L;
       double wyb = data(5) * loadFactor;  // Transverse Y at end
       double wzb = data(6) * loadFactor;  // Transverse Z at end
       double wab = data(7) * loadFactor;  // Axial at end

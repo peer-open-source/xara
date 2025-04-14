@@ -61,7 +61,7 @@
 #define OPS_GetDomain ops_getdomain_
 
 #include <OPS_Globals.h>
-
+#include <logging/Logging.h>
 #ifdef __cplusplus
 #include <map>
 #include <vector>

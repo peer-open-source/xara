@@ -72,7 +72,7 @@ OPS_ADD_RUNTIME_VPV(OPS_AxEqDispBeamColumn2d)
 {
   // print out a message about who wrote this element & any copyright info wanted
   if (numMyDBEle == 0) {
-    opserr << "AxEqDispBeamColumn2d element - Written by Danilo Tarquini 2017 \n";
+    opslog << "AxEqDispBeamColumn2d element - Written by Danilo Tarquini 2017 \n";
     numMyDBEle++;
   }
 

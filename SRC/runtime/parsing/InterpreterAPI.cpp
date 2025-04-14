@@ -11,7 +11,7 @@
 #include <elementAPI.h>
 #include <stdlib.h>
 #include <packages.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <Domain.h>
 #include <Node.h>
 #include <runtimeAPI.h>

@@ -28,12 +28,13 @@
 #include <string.h>
 
 #include <classTags.h>
-#include <elementAPI.h>
 
 Vector ElasticShearSection3d::s(6);
 Matrix ElasticShearSection3d::ks(6,6);
 ID ElasticShearSection3d::code(6);
 
+#if 0
+#include <elementAPI.h>
 void *
 OPS_ADD_RUNTIME_VPV(OPS_ElasticShearSection3d)
 {
@@ -56,7 +57,7 @@ OPS_ADD_RUNTIME_VPV(OPS_ElasticShearSection3d)
                                      data[3],data[4],data[5],data[6],
                                      data[7]);
 }
-
+#endif
 
 ElasticShearSection3d::ElasticShearSection3d(void)
 :FrameSection(0, SEC_TAG_ElasticShear3d),

@@ -42,9 +42,8 @@
 #include <string.h>
 
 #include <OPS_Globals.h>
+#include <Logging.h>
 #include <Message.h>
-using namespace std;
-#include <iostream>
 
 #define PI 3.14159l
 
@@ -60,7 +59,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericX)
 {
     // print out a message about who wrote this element & any copyright info wanted
     if (numMyBearing == 0) {
-        opserr << "ElastomericX element - Written by Manish Kumar, University at Buffalo, 2012\n";
+        opslog << "ElastomericX element - Written by Manish Kumar, University at Buffalo, 2012\n";
         numMyBearing++;
     }
     

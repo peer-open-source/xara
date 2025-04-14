@@ -72,7 +72,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_TPB1D)
 {
   // print out a message about who wrote this element & any copyright info wanted
   if (numMyTPB1D == 0) {
-    opserr << "TPB1D2D element - Written by Troy/Fenz UC Berkeley Copyright 2011 - Use at your Own Peril\n";
+    opslog << "TPB1D2D element - Written by Troy/Fenz UC Berkeley Copyright 2011 - Use at your Own Peril\n";
     numMyTPB1D++;
   }
 

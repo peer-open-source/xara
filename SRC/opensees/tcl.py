@@ -149,9 +149,10 @@ class Interpreter:
         except:
             pass
 
-        self._err_file = pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}"
+        self._err_file = None #pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}"
         try:
-            self.eval(f"logFile {self._err_file} -noEcho")
+            if self._err_file is not None:
+                self.eval(f"logFile {self._err_file} -noEcho")
         except:
             self._err_file = None
 
@@ -174,11 +175,11 @@ class Interpreter:
 
         except tkinter._tkinter.TclError as e:
             err = self._tcl.getvar("errorInfo")
-            if err.count("\n") > 2:
-                err = "\n".join(err.split("\n")[2:])
-            else:
-                err = ""
             if self._err_file is not None:
+                if err.count("\n") > 2:
+                    err = "\n".join(err.split("\n")[2:])
+                else:
+                    err = ""
                 with open(self._err_file, "r") as f:
                     err += "\n" + textwrap.indent(f.read(), "    ")
                 try:

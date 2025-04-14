@@ -54,7 +54,7 @@ static int numDowelType = 0;
 void *OPS_ADD_RUNTIME_VPV(OPS_DowelType)
 {
     if (numDowelType == 0) {
-        opserr << "DowelType v1.03 - Written by Hanlin Dong (self@hanlindong.com) and Xijun Wang ";
+        opslog << "DowelType v1.03 - Written by Hanlin Dong (self@hanlindong.com) and Xijun Wang ";
         opserr << "from Tongji University, Copyright 2021 - Use at your Own Peril" << endln;
         numDowelType = 1;
     }

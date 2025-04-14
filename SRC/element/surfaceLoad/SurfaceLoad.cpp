@@ -58,7 +58,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SurfaceLoad)
 {
   if (num_SurfaceLoad == 0) {
     num_SurfaceLoad++;
-    opserr<<"SurfaceLoad element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog<<"SurfaceLoad element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
 
   // Pointer to a uniaxial material that will be returned

@@ -50,7 +50,7 @@
 
 #include <OPS_Globals.h>
 #include <Message.h>
-using namespace std;
+;
 #include <iostream>
 #include <Vector.h>
 
@@ -64,7 +64,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
 {
   // print out a message about who wrote this element & any copyright info wanted
   if (numMyBearing == 0) {
-    opserr << "FPBearingPTV element - Written by Manish Kumar, University at Buffalo Copyright 2013\n";
+    opslog << "FPBearingPTV element - Written by Manish Kumar, University at Buffalo Copyright 2013\n";
     numMyBearing++;
   }
 

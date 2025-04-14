@@ -1,12 +1,14 @@
 #pragma once
 
-#ifndef opserr
 #  include <handler/OPS_Stream.h>
+#ifndef opserr
    extern OPS_Stream *opserrPtr;
 #  define opserr (*opserrPtr)
 #  define endln "\n"
 #endif
 
+extern OPS_Stream *opslogPtr;
+#  define opslog (*opslogPtr)
 #include "G3_Logging.h"
 
 #include <logging/AnsiColors.h>

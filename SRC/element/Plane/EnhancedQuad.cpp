@@ -35,7 +35,7 @@ Vector  EnhancedQuad::resid(8) ;
 Matrix  EnhancedQuad::mass(8,8) ;
 
 
-//***********************************************************************
+
 // compute Jacobian matrix and inverse at point {L1,L2} 
 template <typename MatT>
 static inline void 
@@ -435,7 +435,7 @@ const Vector&  EnhancedQuad::getResistingForceIncInertia( )
 void   EnhancedQuad::formInertiaTerms( int tangFlag ) 
 {
 
-  static double shp[nShape][numberNodes] ;  // shape functions at a gauss point
+  double shp[nShape][numberNodes] ;  // shape functions at a gauss point
 
   static Vector momentum(NDF);
   mass.Zero( ) ;
@@ -500,7 +500,8 @@ void   EnhancedQuad::formInertiaTerms( int tangFlag )
 
 //*********************************************************************
 // form residual and tangent
-int  EnhancedQuad::formResidAndTangent( int tang_flag ) 
+int
+EnhancedQuad::formResidAndTangent( int tang_flag ) 
 {
 
   static constexpr double tolerance = 1.0e-08 ;
@@ -510,7 +511,7 @@ int  EnhancedQuad::formResidAndTangent( int tang_flag )
 
   OPS_STATIC double xsj[nip] ;  // determinant jacaobian matrix 
   OPS_STATIC double dvol[nip] ; // volume element
-  OPS_STATIC double Shape[nip][nShape][numberNodes]; // [nip] ; // all the shape functions
+  OPS_STATIC double Shape[nip][nShape][NEN]; // [nip] ; // all the shape functions
 
   static Vector residJ(NDF) ; // nodeJ residual
   // static Matrix dd(nstress,nstress) ;  // material tangent
@@ -577,7 +578,7 @@ int  EnhancedQuad::formResidAndTangent( int tang_flag )
       VectorND<nstress> strain {};
 
       // j-node loop to compute nodal strain contributions
-      for (int j = 0; j < numberNodes; j++ )  {
+      for (int j = 0; j < NEN; j++ )  {
 
         // compute B matrix 
         computeB( j, Shape[i], B[j]) ;
@@ -693,7 +694,7 @@ int  EnhancedQuad::formResidAndTangent( int tang_flag )
     // residual and tangent calculations node loops
 
     int jj = 0 ;
-    for (int j = 0; j < numberNodes; j++ ) {
+    for (int j = 0; j < NEN; j++ ) {
 
       computeB( j, Shape[i], B[j]) ;
 
@@ -712,7 +713,7 @@ int  EnhancedQuad::formResidAndTangent( int tang_flag )
 
          // node-node stiffness
          int kk = 0 ;
-         for (int k = 0; k < numberNodes; k++ ) {
+         for (int k = 0; k < NEN; k++ ) {
 
             computeB( k, Shape[i], B[k]) ;
   
@@ -745,7 +746,7 @@ int  EnhancedQuad::formResidAndTangent( int tang_flag )
           }
 
          // enhanced-node stiffness Keu 
-         kk = 0 ;
+         kk = 0;
          for (int k = 0; k < nModes; k++ ) {
 
             MatrixND<nstress,NDF> BK;
@@ -804,11 +805,11 @@ EnhancedQuad::computeBasis()
 
 //************************************************************************
 // shape function routine for four node quads
-
-void  EnhancedQuad::shape2d(double ss, double tt, 
-                            const double x[2][4], 
-                            double shp[3][4], 
-                            double &xsj)
+void
+EnhancedQuad::shape2d(double ss, double tt, 
+                      const double x[2][4], 
+                      double shp[3][4], 
+                      double &xsj)
 {
 
   double temp ;
@@ -1156,30 +1157,38 @@ EnhancedQuad::recvSelf(int commitTag, Channel &theChannel,
 void
 EnhancedQuad::Print( OPS_Stream &s, int flag )
 {
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << endln;
-        s << "Enhanced Strain Four Node Quad \n";
-        s << "Element Number: " << this->getTag() << endln;
-        s << "Node 1 : " << connectedExternalNodes(0) << endln;
-        s << "Node 2 : " << connectedExternalNodes(1) << endln;
-        s << "Node 3 : " << connectedExternalNodes(2) << endln;
-        s << "Node 4 : " << connectedExternalNodes(3) << endln;
-        s << "thickness : " << thickness << endln;
-        s << "Material Information : \n ";
-        materialPointers[0]->Print(s, flag);
-        s << endln;
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"EnhancedQuad\", ";
-        s << "\"nodes\": [" 
-          << connectedExternalNodes(0) << ", ";
-        s << connectedExternalNodes(1) << ", ";
-        s << connectedExternalNodes(2) << ", ";
-        s << connectedExternalNodes(3) << "], ";
-        s << "\"thickness\": " << thickness << ", ";
-        s << "\"material\": [" << materialPointers[0]->getTag() << "]}";
-    }
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+      s << endln;
+      s << "Enhanced Strain Four Node Quad \n";
+      s << "Element Number: " << this->getTag() << endln;
+      s << "Node 1 : " << connectedExternalNodes(0) << endln;
+      s << "Node 2 : " << connectedExternalNodes(1) << endln;
+      s << "Node 3 : " << connectedExternalNodes(2) << endln;
+      s << "Node 4 : " << connectedExternalNodes(3) << endln;
+      s << "thickness : " << thickness << endln;
+      s << "Material Information : \n ";
+      materialPointers[0]->Print(s, flag);
+      s << endln;
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    const ID& node_tags = this->getExternalNodes();
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+
+    s << "\"nodes\": [";
+    for (int i=0; i < NEN-1; i++)
+        s << node_tags(i) << ", ";
+    s << node_tags(NEN-1) << "]";
+    s << ", ";
+
+    s << "\"thickness\": " << thickness << ", ";
+    s << "\"material\": [";
+    for (int i = 0; i < nip - 1; i++)
+      s << materialPointers[i]->getTag() << ", ";
+    s << materialPointers[nip - 1]->getTag() << "]";
+    s << "}";
+    return;
+  }
 }

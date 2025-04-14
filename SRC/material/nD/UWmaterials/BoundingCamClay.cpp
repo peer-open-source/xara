@@ -51,7 +51,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BoundingCamClayMaterial)
 {
     if (numBoundingCamClayMaterials == 0) {
       numBoundingCamClayMaterials++;
-      opserr << "BoundingCamClay nDmaterial - Written: C.McGann, K.Petek, P.Arduino, U.Washington\n";
+      opslog << "BoundingCamClay nDmaterial - Written: C.McGann, K.Petek, P.Arduino, U.Washington\n";
     }
   
     NDMaterial *theMaterial = 0;

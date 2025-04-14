@@ -80,37 +80,51 @@ class _Surface:
     def __init__(self, nodes, cells, child, points, split):
         import shps.child
         import shps.plane
-        self.nodes  = nodes
-        self.cells  = cells
-        self.points = points
-        self.split = split
+        self.nodes   = nodes
+        self.cells   = cells
+        self.points  = points
+        self.split   = split
+        self.order   = child.order
         self.outline = shps.child.IsoparametricMap(shps.plane.Q9, nodes=points)
 
 
     def walk_edge(self):
         import numpy as np
         nx, ny = self.split
+        nx *= self.order
+        ny *= self.order
 
         nat_exterior = [
-              *[ ( x, -1)  for x in np.linspace(-1, 1, nx+1)[:-1]],
-              *[ ( 1,  y)  for y in np.linspace(-1, 1, ny+1)[:-1]],
-              *[ ( x,  1)  for x in reversed(np.linspace(-1, 1, nx+1)[1:])],
-              *[ (-1,  y)  for y in reversed(np.linspace(-1, 1, ny+1)[1:])],
+              [ ( x, -1)  for x in np.linspace(-1, 1, nx+1)[:]],
+              [ ( 1,  y)  for y in np.linspace(-1, 1, ny+1)[:]],
+              [ ( x,  1)  for x in reversed(np.linspace(-1, 1, nx+1)[:])],
+              [ (-1,  y)  for y in reversed(np.linspace(-1, 1, ny+1)[:])],
         ]
+#       nat_exterior = [
+#            *[ ( x, -1)  for x in np.linspace(-1, 1, nx+1)[:-1]],
+#            *[ ( 1,  y)  for y in np.linspace(-1, 1, ny+1)[:-1]],
+#            *[ ( x,  1)  for x in reversed(np.linspace(-1, 1, nx+1)[1:])],
+#            *[ (-1,  y)  for y in reversed(np.linspace(-1, 1, ny+1)[1:])],
+#       ]
 
         def find_node(coord):
             for tag, xyz in self.nodes.items():
                 if np.linalg.norm(np.array(xyz) - np.array(coord)) <= 1e-12:
                     return tag
 
-        exterior_coords = [self.outline.coord(x) for x in nat_exterior]
+#       exterior_coords = [self.outline.coord(x) for x in nat_exterior]
 
-        for i in range(1,len(exterior_coords)):
-            yield (find_node(exterior_coords[i-1]),
-                   find_node(exterior_coords[i]))
+#       for i in range(1,len(exterior_coords)):
+#           yield tuple(find_node(exterior_coords[i-1]),
+#                  find_node(exterior_coords[i]))
+#       yield (find_node(exterior_coords[-1]),
+#              find_node(exterior_coords[ 0]))
+        nen = self.order + 1
+        for i,edge in enumerate(nat_exterior):
+#           print(len(edge), self.split[i%2])
+            for j in range(self.split[i%2]):
+                yield tuple(find_node(self.outline.coord(xn)) for xn in edge[j*(nen-1):j*(nen-1)+nen])
 
-        yield (find_node(exterior_coords[-1]),
-               find_node(exterior_coords[ 0]))
 
 
     def __getitem__(self, item):
@@ -134,6 +148,7 @@ class OpenSeesPy:
             mode = os.environ.get("XARA_ECHO_MODE", "w+")
             echo_file = open(os.environ["XARA_ECHO_FILE"], mode)
         self._echo    = echo_file #sys.stdout # echo_file
+
 
         self._mesh = {"line": {}, "quad": {}}
 
@@ -485,7 +500,7 @@ class Model:
             gc.collect()
         return A; #.reshape([int(np.sqrt(len(A)))]*2)
 
-    def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None):
+    def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
         # anchor
         # normal
         import numpy as np
@@ -494,7 +509,20 @@ class Model:
         add_node    = partial(self._openseespy._invoke_proc, "node")
         add_element = partial(self._openseespy._invoke_proc, "element")
 
-        if isinstance(element, str):
+        cell_type = None
+
+        if shape is None:
+            shape = "Q"
+
+        if order == 1 and shape == "Q":
+            cell_type = shps.plane.Q4
+        elif order == 2 and shape == "Q":
+            cell_type = shps.plane.Q9
+        elif order == 2 and shape == "T":
+            cell_type = shps.plane.T6
+
+
+        if isinstance(element, str) and cell_type is None:
             # element is an element name
             cell_type = {
                     "ShellMITC4": shps.plane.Q4,
@@ -504,10 +532,10 @@ class Model:
             cell_type = shps.plane.Q4
             element = None
 
-        else:
-            assert isinstance(name, str)
+        elif isinstance(name, str):
             cell_type = element
             element = name
+
 
         m_elems = self._openseespy._invoke_proc("getEleTags")
         if isinstance(m_elems, int):
@@ -547,9 +575,13 @@ class Model:
 
         if element is not None:
             for tag, elem_nodes in elems.items():
-                add_element(element, tag, tuple(map(int,elem_nodes)), *args)
+                add_element(element, tag, list(map(int,elem_nodes)), *args)
 
-        return _Surface(nodes=nodes, cells=elems, child=cell_type, points=points, split=split)
+        return _Surface(nodes=nodes,
+                        cells=elems,
+                        child=cell_type,
+                        points=points,
+                        split=split)
 
 
     def __getattr__(self, name: str):
@@ -625,6 +657,7 @@ __all__ = [
     "patch",
     "layer",
     "geomTransf",
+    "transform",
     "beamIntegration",
     "loadConst",
     "eleLoad",

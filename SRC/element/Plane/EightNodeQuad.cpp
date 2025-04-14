@@ -18,7 +18,6 @@
 #include <VectorND.h>
 #include <ID.h>
 #include <Domain.h>
-#include <string.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <Channel.h>
@@ -35,13 +34,16 @@ double EightNodeQuad::shp[3][NEN];
 // double EightNodeQuad::pts[nip][2];
 // double EightNodeQuad::wts[nip];
 
-EightNodeQuad::EightNodeQuad(int tag, int nd1, int nd2, int nd3, int nd4,
-                           int nd5, int nd6, int nd7, int nd8,
-                           NDMaterial &m, const char *type, double t,
-                           double p, double r, double b1, double b2)
+EightNodeQuad::EightNodeQuad(int tag, 
+                           std::array<int,8>& nodes,
+                           NDMaterial &m, 
+                           double thickness,
+                           double p, double r, 
+                           double b1, double b2)
 :Element (tag, ELE_TAG_EightNodeQuad),
   theMaterial(0), connectedExternalNodes(NEN),
- Q(NEN*2), applyLoad(0), pressureLoad(NEN*2), thickness(t), pressure(p), rho(r), Ki(0)
+ Q(NEN*2), applyLoad(0), pressureLoad(NEN*2), 
+ thickness(thickness), pressure(p), rho(r), Ki(0)
 {
 //  pts[0][0] = -0.7745966692414834;
 //  pts[0][1] = -0.7745966692414834;
@@ -72,11 +74,6 @@ EightNodeQuad::EightNodeQuad(int tag, int nd1, int nd2, int nd3, int nd4,
 //  wts[7] = 0.49382716049382713;
 //  wts[8] = 0.7901234567901234;
 
-    if (strcmp(type,"PlaneStrain") != 0 && strcmp(type,"PlaneStress") != 0
-        && strcmp(type,"PlaneStrain2D") != 0 && strcmp(type,"PlaneStress2D") != 0) {
-      opserr << "EightNodeQuad::EightNodeQuad -- improper material type: " << type << "for EightNodeQuad\n";
-      exit(-1);
-    }
 
     // Body forces
     b[0] = b1;
@@ -85,27 +82,14 @@ EightNodeQuad::EightNodeQuad(int tag, int nd1, int nd2, int nd3, int nd4,
     // Allocate arrays of pointers to NDMaterials
     theMaterial = new NDMaterial *[nip];
 
+    // Get copies of the material model for each integration point
     for (int i = 0; i < nip; i++) {
-
-      // Get copies of the material model for each integration point
-      theMaterial[i] = m.getCopy(type);
-
-      // Check allocation
-      if (theMaterial[i] == 0) {
-        opserr << "EightNodeQuad::EightNodeQuad -- failed to get a copy of material model\n";
-        exit(-1);
-      }
+      theMaterial[i] = m.getCopy();
     }
 
     // Set connected external node IDs
-    connectedExternalNodes(0) = nd1;
-    connectedExternalNodes(1) = nd2;
-    connectedExternalNodes(2) = nd3;
-    connectedExternalNodes(3) = nd4;
-    connectedExternalNodes(4) = nd5;
-    connectedExternalNodes(5) = nd6;
-    connectedExternalNodes(6) = nd7;
-    connectedExternalNodes(7) = nd8;
+    for (int i=0; i<NEN; i++)
+      connectedExternalNodes(i) = nodes[i];
 
     for (int i=0; i<NEN; i++)
       theNodes[i] = nullptr;
