@@ -318,8 +318,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
       if (argc == ++argi ||
           Tcl_GetDouble(interp, argv[argi], &beam_data.thermal_depth) != TCL_OK) {
         opserr << OpenSees::PromptValueError 
-               << "invalid thermal depth" << tag
-               << " iNode jNode A E I alpha depth \n";
+               << "invalid thermal depth\n";
         return TCL_ERROR;
       }
     } 
@@ -613,7 +612,6 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
   if (builder->getDomain()->addElement(theBeam) == false) {
     opserr << OpenSees::PromptValueError 
            << "could not add beam to domain.\n";
-    opserr << *theBeam;
     delete theBeam;
     return TCL_ERROR;
   }
