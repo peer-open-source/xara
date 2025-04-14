@@ -10,7 +10,6 @@ target_sources(OPS_Domain
     Load.cpp
     #ElementalLoad.cpp
     ElementalLoadIter.cpp
-    NodalLoadIter.cpp
     Beam2dUniformLoad.cpp
     Beam2dPointLoad.cpp
     Beam2dPartialUniformLoad.cpp
