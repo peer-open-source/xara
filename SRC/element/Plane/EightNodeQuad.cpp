@@ -780,7 +780,7 @@ EightNodeQuad::Print(OPS_Stream &s, int flag)
       s << node_tags(NEN-1) << "], ";
       s << "\"thickness\": " << thickness << ", ";
       s << "\"surfacePressure\": " << pressure << ", ";
-      s << "\"masspervolume\": " << rho << ", ";
+      s << "\"density\": " << rho << ", ";
       s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
       s << "\"materials\": [" << theMaterial[0]->getTag() << "]}";
   }

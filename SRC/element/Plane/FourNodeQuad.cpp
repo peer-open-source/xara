@@ -789,9 +789,9 @@ FourNodeQuad::Print(OPS_Stream &s, int flag)
 
       s << "\"thickness\": " << thickness << ", ";
       s << "\"surfacePressure\": " << pressure << ", ";
-      s << "\"masspervolume\": " << rho << ", ";
+      s << "\"density\": " << rho << ", ";
       s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
-      s << "\"material\": [";
+      s << "\"materials\": [";
       for (int i = 0; i < nip - 1; i++)
         s << theMaterial[i]->getTag() << ", ";
       s << theMaterial[nip - 1]->getTag() << "]";

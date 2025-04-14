@@ -171,21 +171,22 @@ void
 HashMapOfTaggedObjects::Print(OPS_Stream &s, int flag)
 {
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      int i = 0;
       MAP_TAGGED_ITERATOR p = theMap.begin();
       while (p != theMap.end()) {
-          ((*p).second)->Print(s, flag);
-          p++;
+        if (i++)
           s << ",\n";
+        ((*p).second)->Print(s, flag);
+        p++;
       }
       return;
     }
 
-    // s << "\nnumComponents: " << this->getNumComponents();
     // go through the array invoking Print on non-zero entries
     MAP_TAGGED_ITERATOR p = theMap.begin();
     while (p != theMap.end()) {
-	((*p).second)->Print(s, flag);
-	p++;
+        ((*p).second)->Print(s, flag);
+        p++;
     }
 }
 

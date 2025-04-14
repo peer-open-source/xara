@@ -822,7 +822,7 @@ int LoadPattern::recvSelf(int cTag, Channel &theChannel,
 void LoadPattern::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"type\": \"Plain\"" << ", ";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"scale\": " << scaleFactor << ",";
