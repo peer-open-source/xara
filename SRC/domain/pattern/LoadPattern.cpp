@@ -25,11 +25,8 @@
 // Revised:
 //
 #include <string.h>
-#include <string>
-#include <stdlib.h>
 
 #include <LoadPattern.h>
-#include <stdlib.h>
 #include <ID.h>
 #include <TimeSeries.h>
 #include <NodalLoad.h>
@@ -47,13 +44,13 @@
 
 
 LoadPattern::LoadPattern(int tag, int clasTag, double fact)
-    : TaggedObject(tag), MovableObject(clasTag), 
-      isConstant(false), 
-      loadFactor(0.0), scaleFactor(fact), 
-      theSeries(nullptr), 
-      currentGeoTag(0), lastGeoSendTag(-1),
-      theNodalLoads(nullptr), theElementalLoads(nullptr), theSPs(nullptr), theNodIter(nullptr),
-      theEleIter(nullptr), theSpIter(nullptr), lastChannel(0)
+  : TaggedObject(tag), MovableObject(clasTag), 
+    isConstant(false), 
+    loadFactor(0.0), scaleFactor(fact), 
+    theSeries(nullptr), 
+    currentGeoTag(0), lastGeoSendTag(-1),
+    theNodalLoads(nullptr), theElementalLoads(nullptr), theSPs(nullptr), theNodIter(nullptr),
+    theEleIter(nullptr), theSpIter(nullptr), lastChannel(0)
 {
   // constructor for subclass
   theNodalLoads     = new MapOfTaggedObjects();
@@ -64,43 +61,30 @@ LoadPattern::LoadPattern(int tag, int clasTag, double fact)
   theNodIter = new NodalLoadIter(theNodalLoads);
   theSpIter  = new SingleDomSP_Iter(theSPs);
 
-  // AddingSensitivity:BEGIN /////////////////////////////
   randomLoads = 0;
   dLambdadh   = 0;
-  // AddingSensitivity:END ///////////////////////////////
 }
 
 LoadPattern::LoadPattern()
-    : TaggedObject(0), MovableObject(PATTERN_TAG_LoadPattern),
-    isConstant(false),
-    loadFactor(0.0), scaleFactor(1.0), 
-    theSeries(0), 
-    currentGeoTag(0), lastGeoSendTag(-1), 
-    dbSPs(0), dbNod(0), dbEle(0), theNodalLoads(0),
-    theElementalLoads(0), theSPs(0), theNodIter(0), theEleIter(0), theSpIter(0),
-    lastChannel(0)
+  : TaggedObject(0), MovableObject(PATTERN_TAG_LoadPattern),
+  isConstant(false),
+  loadFactor(0.0), scaleFactor(1.0), 
+  theSeries(0), 
+  currentGeoTag(0), lastGeoSendTag(-1), 
+  dbSPs(0), dbNod(0), dbEle(0), theNodalLoads(0),
+  theElementalLoads(0), theSPs(0), theNodIter(0), theEleIter(0), theSpIter(0),
+  lastChannel(0)
 {
   theNodalLoads     = new MapOfTaggedObjects();
   theElementalLoads = new MapOfTaggedObjects();
   theSPs            = new MapOfTaggedObjects();
 
-  if (theNodalLoads == 0 || theElementalLoads == 0 || theSPs == 0) {
-    opserr << " LoadPattern::LoadPattern() - ran out of memory\n";
-    exit(-1);
-  }
-
   theEleIter = new ElementalLoadIter(theElementalLoads);
   theNodIter = new NodalLoadIter(theNodalLoads);
   theSpIter  = new SingleDomSP_Iter(theSPs);
 
-  if (theEleIter == 0 || theNodIter == 0 || theSpIter == 0) {
-    opserr << " LoadPattern::LoadPattern() - ran out of memory\n";
-    exit(-1);
-  }
-  // AddingSensitivity:BEGIN /////////////////////////////
   randomLoads = 0;
   dLambdadh   = 0;
-  // AddingSensitivity:END ///////////////////////////////
 }
 
 LoadPattern::LoadPattern(int tag, double fact)
@@ -117,27 +101,14 @@ LoadPattern::LoadPattern(int tag, double fact)
   theElementalLoads = new MapOfTaggedObjects();
   theSPs            = new MapOfTaggedObjects();
 
-  if (theNodalLoads == 0 || theElementalLoads == 0 || theSPs == 0) {
-    opserr << " LoadPattern::LoadPattern() - ran out of memory\n";
-    exit(-1);
-  }
-
   theEleIter = new ElementalLoadIter(theElementalLoads);
   theNodIter = new NodalLoadIter(theNodalLoads);
   theSpIter  = new SingleDomSP_Iter(theSPs);
 
-  if (theEleIter == 0 || theNodIter == 0 || theSpIter == 0) {
-    opserr << " LoadPattern::LoadPattern() - ran out of memory\n";
-    exit(-1);
-  }
-  // AddingSensitivity:BEGIN /////////////////////////////
   randomLoads = 0;
   dLambdadh   = 0;
-  // AddingSensitivity:END ///////////////////////////////
 }
 
-// ~LoadPattern()
-//	destructor
 
 LoadPattern::~LoadPattern()
 {
@@ -162,12 +133,10 @@ LoadPattern::~LoadPattern()
   if (theSpIter != 0)
     delete theSpIter;
 
-  // AddingSensitivity:BEGIN /////////////////////////////
   if (randomLoads != 0)
     delete randomLoads;
   if (dLambdadh != 0)
     delete dLambdadh;
-  // AddingSensitivity:END ///////////////////////////////
 }
 
 void LoadPattern::setTimeSeries(TimeSeries *theTimeSeries)
@@ -186,22 +155,21 @@ void LoadPattern::setDomain(Domain *theDomain)
   if (theNodalLoads != 0) {
     NodalLoad *nodLoad;
     NodalLoadIter &theNodalIter = this->getNodalLoads();
-    while ((nodLoad = theNodalIter()) != 0)
+    while ((nodLoad = theNodalIter()) != nullptr)
       nodLoad->setDomain(theDomain);
 
     ElementalLoad *eleLoad;
     ElementalLoadIter &theElementalIter = this->getElementalLoads();
-    while ((eleLoad = theElementalIter()) != 0)
+    while ((eleLoad = theElementalIter()) != nullptr)
       eleLoad->setDomain(theDomain);
 
     SP_Constraint *theSP;
     SP_ConstraintIter &theSpConstraints = this->getSPs();
-    while ((theSP = theSpConstraints()) != 0)
+    while ((theSP = theSpConstraints()) != nullptr)
       theSP->setDomain(theDomain);
   }
 
   this->theDomain = theDomain;
-
 }
 
 bool LoadPattern::addNodalLoad(NodalLoad *load)
@@ -257,19 +225,19 @@ bool LoadPattern::addSP_Constraint(SP_Constraint *theSp)
   return result;
 }
 
-NodalLoadIter &LoadPattern::getNodalLoads(void)
+NodalLoadIter &LoadPattern::getNodalLoads()
 {
   theNodIter->reset();
   return *theNodIter;
 }
 
-ElementalLoadIter &LoadPattern::getElementalLoads(void)
+ElementalLoadIter &LoadPattern::getElementalLoads()
 {
   theEleIter->reset();
   return *theEleIter;
 }
 
-SP_ConstraintIter &LoadPattern::getSPs(void)
+SP_ConstraintIter &LoadPattern::getSPs()
 {
   theSpIter->reset();
   return *theSpIter;
@@ -853,25 +821,45 @@ int LoadPattern::recvSelf(int cTag, Channel &theChannel,
 
 void LoadPattern::Print(OPS_Stream &s, int flag)
 {
-  s << "Load Pattern: " << this->getTag() << "\n";
-  s << "  Scale Factor: " << scaleFactor << endln;
-  if (theSeries != 0)
-    theSeries->Print(s, flag);
-  s << "  Nodal Loads: \n";
-  theNodalLoads->Print(s, flag);
-  s << "\n  Elemental Loads: \n";
-  theElementalLoads->Print(s, flag);
-  s << "\n  Single Point Constraints: \n";
-  theSPs->Print(s, flag);
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "{";
+    s << "\"type\": \"Plain\"" << ", ";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"scale\": " << scaleFactor << ",";
+    s << "\"nodes\": [\n";
+    theNodalLoads->Print(s, flag);
+    s << "],\n";
+    s << "\"elements\": [\n";
+    theElementalLoads->Print(s, flag);
+    s << "]\n";
+    // for (int i = 0; i < theNodalLoads->getNumComponents(); i++) {
+    //   NodalLoad *theNodalLoad = (NodalLoad *)theNodalLoads->getComponent(i);
+    //   if (i != 0)
+    //     s << ", ";
+    //   s << theNodalLoad->Print(s, flag);
+    // }
+    s << " }";
+    return;
+  }
+  
+  else {
+    s << "Load Pattern: " << this->getTag() << "\n";
+    s << "  Scale Factor: " << scaleFactor << endln;
+    if (theSeries != 0)
+      theSeries->Print(s, flag);
+    s << "  Nodal Loads: \n";
+    theNodalLoads->Print(s, flag);
+    s << "\n  Elemental Loads: \n";
+    theElementalLoads->Print(s, flag);
+    s << "\n  Single Point Constraints: \n";
+    theSPs->Print(s, flag);
+  }
 }
 
 LoadPattern *LoadPattern::getCopy(void)
 {
   LoadPattern *theCopy = new LoadPattern(this->getTag());
-  if (theCopy == 0) {
-    opserr << "LoadPattern::getCopy() - ran out of memory\n";
-    return theCopy; // in case fatal() does not exit
-  }
+
   theCopy->loadFactor  = loadFactor;
   theCopy->scaleFactor = scaleFactor;
   theCopy->isConstant  = isConstant;
