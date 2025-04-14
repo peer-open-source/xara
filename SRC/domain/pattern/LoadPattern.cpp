@@ -828,17 +828,11 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
     s << "\"scale\": " << scaleFactor << ",";
     s << "\"nodes\": [\n";
     theNodalLoads->Print(s, flag);
-    s << "],\n";
-    s << "\"elements\": [\n";
-    theElementalLoads->Print(s, flag);
-    s << "]\n";
-    // for (int i = 0; i < theNodalLoads->getNumComponents(); i++) {
-    //   NodalLoad *theNodalLoad = (NodalLoad *)theNodalLoads->getComponent(i);
-    //   if (i != 0)
-    //     s << ", ";
-    //   s << theNodalLoad->Print(s, flag);
-    // }
-    s << " }";
+    s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "],\n";
+    s << OPS_PRINT_JSON_MATE_INDENT << "\"elements\": [\n";
+    //theElementalLoads->Print(s, flag);
+    s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "]\n";
+    s << OPS_PRINT_JSON_MATE_INDENT << "}";
     return;
   }
   
