@@ -25,61 +25,40 @@
 // Purpose: This file contains the implementation of NodalLoad
 //
 #include <NodalLoad.h>
-#include <stdlib.h>
 #include <Domain.h>
 #include <Channel.h>
 #include <Information.h>
 #include <Parameter.h>
-// #include <string>
-// #include <elementAPI.h>
 
-// AddingSensitivity:BEGIN /////////////////////////////////////
 Vector NodalLoad::gradientVector(1);
-// AddingSensitivity:END ///////////////////////////////////////
 
 NodalLoad::NodalLoad(int theClasTag)
 :Load(0,theClasTag), 
  myNode(0), myNodePtr(0), load(0), konstant(false)
 {
-    // constructor for a FEM_ObjectBroker
-  // AddingSensitivity:BEGIN /////////////////////////////////////
   parameterID = 0;
-  // AddingSensitivity:END ///////////////////////////////////////
 }
 
 NodalLoad::NodalLoad(int tag, int node, int theClassTag)
 :Load(tag,theClassTag), 
  myNode(node), myNodePtr(0), load(0), konstant(false)
 {
-  // AddingSensitivity:BEGIN /////////////////////////////////////
   parameterID = 0;
-  // AddingSensitivity:END ///////////////////////////////////////
 }
 
 NodalLoad::NodalLoad(int tag, int node, const Vector &theLoad, bool isLoadConstant)
 :Load(tag, LOAD_TAG_NodalLoad), 
  myNode(node), myNodePtr(0), load(0), konstant(isLoadConstant)
 {
-    load = new Vector(theLoad);    
+  load = new Vector(theLoad);    
 
-    if (load == 0) {
-	opserr << "FATAL NodalLoad::NodalLoad(int node, const Vector &theLoad) -";
-	opserr << " ran out of memory for load on Node " << node << endln;
-	exit(-1);
-    }
-    // AddingSensitivity:BEGIN /////////////////////////////////////
-    parameterID = 0;
-    // AddingSensitivity:END ///////////////////////////////////////
+  parameterID = 0;
 }
-
-
-// ~NodalLoad()
-// 	destructor
 
 NodalLoad::~NodalLoad()
 {
-    if (load != 0)
-	delete load;
+  if (load != 0)
+    delete load;
 }
 
 void 
@@ -108,134 +87,132 @@ NodalLoad::setDomain(Domain *newDomain)
 }
 
 int 
-NodalLoad::getNodeTag(void) const
+NodalLoad::getNodeTag() const
 {
-    return myNode;
+  return myNode;
 }
 
 
 void
 NodalLoad::applyLoad(double loadFactor)
 {
-    if (myNodePtr == nullptr) {
-      Domain *theDomain=this->getDomain();
-      if ((theDomain == 0) || 
-	  (myNodePtr = theDomain->getNode(myNode)) == 0) {
-	opserr << "WARNING NodalLoad::applyLoad() - No associated Node node " ;
-	opserr << " for NodalLoad " << *this;
-	return;
-      }
+  if (myNodePtr == nullptr) {
+    Domain *theDomain=this->getDomain();
+    if ((theDomain == 0) || 
+        (myNodePtr = theDomain->getNode(myNode)) == 0) {
+      opserr << "WARNING NodalLoad::applyLoad() - No associated Node node " ;
+      opserr << " for NodalLoad " << *this;
+      return;
     }
+  }
 
-    // add the load times the loadfactor to nodal unbalanced load
-    if (konstant == false)
-      myNodePtr->addUnbalancedLoad(*load, loadFactor);
-    else
-      myNodePtr->addUnbalancedLoad(*load, 1.0);	
-
+  // add the load times the loadfactor to nodal unbalanced load
+  if (konstant == false)
+    myNodePtr->addUnbalancedLoad(*load, loadFactor);
+  else
+    myNodePtr->addUnbalancedLoad(*load, 1.0);
 }
+
 
 void
 NodalLoad::applyLoadSensitivity(double loadFactor)
 {
-    if (myNodePtr == 0) {
-	Domain *theDomain=this->getDomain();
-	if ((theDomain == 0) || 
-	    (myNodePtr = theDomain->getNode(myNode)) == 0) {
-	    opserr << "WARNING NodalLoad::applyLoadSensitivity() - No associated Node node " ;
-	    opserr << " for NodalLoad " << *this;
-	    return;
-	}
+  if (myNodePtr == 0) {
+    Domain *theDomain=this->getDomain();
+    if ((theDomain == 0) || 
+        (myNodePtr = theDomain->getNode(myNode)) == 0) {
+        opserr << "WARNING NodalLoad::applyLoadSensitivity() - No associated Node node " ;
+        opserr << " for NodalLoad " << *this;
+        return;
     }
+  }
 
-    // load sensitivity
-    Vector loadsens(load->Size());
-    if(parameterID == 0)
-      return;
-    if(parameterID > loadsens.Size())
-      return;
-    loadsens(parameterID-1) = 1;
+  // load sensitivity
+  Vector loadsens(load->Size());
+  if(parameterID == 0)
+    return;
+  if(parameterID > loadsens.Size())
+    return;
+  loadsens(parameterID-1) = 1;
 
-    // add the load times the loadfactor to nodal unbalanced load
-    if (konstant == false)
-	myNodePtr->addUnbalancedLoad(loadsens,loadFactor);
-    else
-	myNodePtr->addUnbalancedLoad(loadsens,1.0);	
-    
-    //    opserr << "loadFactor: " << loadFactor << *myNodePtr;
+  // add the load times the loadfactor to nodal unbalanced load
+  if (konstant == false)
+    myNodePtr->addUnbalancedLoad(loadsens,loadFactor);
+  else
+    myNodePtr->addUnbalancedLoad(loadsens,1.0);
 } 
 
 int 
 NodalLoad::sendSelf(int cTag, Channel &theChannel)
 {
-    int dataTag = this->getDbTag();
-    ID data(5);
-    data(0) = this->getTag();    
-    data(1) = myNode;
-    if (load != 0)
-	data(2) = load->Size();
-    else
-	data(2) = 0;
-    data(3) = konstant;
-    data(4) = this->getLoadPatternTag();
-    
-    int result = theChannel.sendID(dataTag, cTag, data);
+  int dataTag = this->getDbTag();
+  ID data(5);
+  data(0) = this->getTag();    
+  data(1) = myNode;
+  if (load != 0)
+    data(2) = load->Size();
+  else
+    data(2) = 0;
+
+  data(3) = konstant;
+  data(4) = this->getLoadPatternTag();
+  
+  int result = theChannel.sendID(dataTag, cTag, data);
+  if (result < 0) {
+    opserr << "NodalLoad::sendSelf - failed to send data\n";
+    return result;
+  }
+
+  if (load != nullptr) {
+    int result = theChannel.sendVector(dataTag, cTag, *load);
     if (result < 0) {
-	opserr << "NodalLoad::sendSelf - failed to send data\n";
-	return result;
+        opserr << "NodalLoad::sendSelf - failed to Load data\n";
+        return result;
     }
+  }    
 
-    if (load != 0){
-	int result = theChannel.sendVector(dataTag, cTag, *load);
-	if (result < 0) {
-	    opserr << "NodalLoad::sendSelf - failed to Load data\n";
-	    return result;
-	}
-    }    
-
-    return 0;
+  return 0;
 }
 
 int 
 NodalLoad::recvSelf(int cTag, Channel &theChannel, 
 		    FEM_ObjectBroker &theBroker)
 {	
-    int result;
-    int dataTag = this->getDbTag();
-    ID data(5);
-    result = theChannel.recvID(dataTag, cTag, data);
+  int result;
+  int dataTag = this->getDbTag();
+  ID data(5);
+  result = theChannel.recvID(dataTag, cTag, data);
+  if (result < 0) {
+    opserr << "NodalLoad::recvSelf() - failed to recv data\n";
+    return result;
+  }    
+  this->setTag(data(0));
+  myNode = data(1);
+  int loadSize = data(2);
+  konstant = (data(3) != 0);
+  this->setLoadPatternTag(data(4));
+  if (loadSize != 0) {
+    load = new Vector(data(2));
+    result = theChannel.recvVector(dataTag, cTag, *load);
     if (result < 0) {
-      opserr << "NodalLoad::recvSelf() - failed to recv data\n";
+      opserr << "NodalLoad::recvSelf() - failed to recv load\n";
       return result;
-    }    
-    this->setTag(data(0));
-    myNode = data(1);
-    int loadSize = data(2);
-    konstant = (data(3) != 0);
-    this->setLoadPatternTag(data(4));
-    if (loadSize != 0) {
-	load = new Vector(data(2));
-	result = theChannel.recvVector(dataTag, cTag, *load);
-	if (result < 0) {
-	  opserr << "NodalLoad::recvSelf() - failed to recv load\n";
-	  return result;
-	}    
     }
+  }
 
-    return 0;
+  return 0;
 }
 
 
 void
 NodalLoad::Print(OPS_Stream &s, int flag)
 {
-     s << "Nodal Load: " << myNode;
-     if (load != 0)
-	 s << " load : " << *load;
+  s << "Nodal Load: " << myNode;
+  if (load != 0)
+    s << " load : " << *load;
 }
 
 
-// AddingSensitivity:BEGIN /////////////////////////////////////
 int
 NodalLoad::setParameter(const char **argv, int argc, Parameter &param)
 {
@@ -317,9 +294,6 @@ NodalLoad::getExternalForceSensitivity(int gradNumber)
   
   return gradientVector;
 }
-
-
-// AddingSensitivity:END //////////////////////////////////////
 
 
 //Adding general function for using NodalThermalAction, L.Jiang [SIF]
