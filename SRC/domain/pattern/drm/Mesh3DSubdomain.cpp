@@ -3,9 +3,7 @@
 #include <iostream>
 #include <OPS_Globals.h>
 #include <StandardStream.h>
-//#include <Timer.h>
 #include <fstream>
-#include <string>
 #include <sstream>
 #include <stdexcept>
 #include <NDMaterial.h>
@@ -33,7 +31,6 @@
 #include <Matrix.h>
 #include "GeometricBrickDecorator.h"
 #include <math.h>
-// using namespace std;
 
 
 // #include <DummyNode.h>
