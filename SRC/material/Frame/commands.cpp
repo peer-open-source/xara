@@ -5,9 +5,6 @@
 //===----------------------------------------------------------------------===//
 //
 // Written: cmp
-//
-// TODO:
-// section ElasticFrame 1 -linearize 2 
 // 
 #include <tcl.h>
 #include <string.h>
@@ -150,7 +147,6 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
 
       else if ((strcmp(argv[i], "-shear-y") == 0) ||
                (strcmp(argv[i], "-Ay") == 0)) {
-        // TODO: Ay is not used.
         use_shear = true;
         if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.Ay) != TCL_OK) {
           opserr << OpenSees::PromptParseError << "invalid shear area.\n";
@@ -417,10 +413,10 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
     if constexpr (NDM == 2) {
 
       SectionForceDeformation* theSection = nullptr;
-      if (strcmp(argv[1], "Elastic") == 0 && !use_shear)
+      if (!use_shear)
         theSection = new ElasticSection2d(tag, E, consts.A, consts.Iz);
   
-      else if (strcmp(argv[1], "Elastic") == 0 && use_shear)
+      else
         theSection = new ElasticShearSection2d(tag, E, consts.A, consts.Iz, G, consts.Ay/consts.A);
                                              
       if (theSection == nullptr || builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
@@ -434,24 +430,24 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
 
       FrameSection* theSection = nullptr;
 
+      consts.Ca =   consts.Iy + consts.Iz - J;
+      consts.Sa = -(consts.Iy + consts.Iz - J);
       if (construct_full) {
-        consts.Ca =   consts.Iy + consts.Iz - J;
-        consts.Sa = -(consts.Iy + consts.Iz - J);
         theSection = new ElasticLinearFrameSection3d(tag,
             E, G,
             consts,
-            mass, use_mass                                // mass
+            mass, use_mass
         );
       }
       else if (strcmp(argv[1], "Elastic") == 0)
         theSection = new ElasticSection3d(tag, E, consts.A, consts.Iz, consts.Iy, G, J);
 
-      // else
-      //   theSection = new ElasticLinearFrameSection3d(tag, E,  consts.A,
-      //                                                consts.Iz, consts.Iy, 
-      //                                                G, J, mass, use_mass);
-
-  
+      else       
+        theSection = new ElasticLinearFrameSection3d(tag,
+            E, G,
+            consts,
+            mass, use_mass
+        );
 
       if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
         if (theSection != nullptr)
