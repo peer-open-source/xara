@@ -97,12 +97,10 @@ Node::Node(int tag, int theClassTag)
   // for subclasses - they must implement all the methods with
   // their own data structures.
 
-  // AddingSensitivity:BEGIN /////////////////////////////////////////
   dispSensitivity = 0;
   velSensitivity = 0;
   accSensitivity = 0;
   parameterID = 0;
-  // AddingSensitivity:END ///////////////////////////////////////////
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 }
@@ -120,12 +118,10 @@ Node::Node(int tag, int ndof, double Crd1, Vector *dLoc)
  index(-1), reaction(0)//, displayLocation(0)
 {
   this->createDisp();
-  // AddingSensitivity:BEGIN /////////////////////////////////////////
   dispSensitivity = 0;
   velSensitivity  = 0;
   accSensitivity  = 0;
   parameterID     = 0;
-  // AddingSensitivity:END ///////////////////////////////////////////
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
@@ -149,12 +145,10 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
  reaction(0)//, displayLocation(0)
 {
   this->createDisp();
-  // AddingSensitivity:BEGIN /////////////////////////////////////////
   dispSensitivity = 0;
   velSensitivity = 0;
   accSensitivity = 0;
   parameterID = 0;
-  // AddingSensitivity:END ///////////////////////////////////////////
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
@@ -182,12 +176,10 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
  reaction(0)//, displayLocation(0)
 {
   this->createDisp();
-  // AddingSensitivity:BEGIN /////////////////////////////////////////
   dispSensitivity = 0;
   velSensitivity = 0;
   accSensitivity = 0;
   parameterID = 0;
-  // AddingSensitivity:END ///////////////////////////////////////////
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
@@ -216,12 +208,10 @@ Node::Node(const Node &otherNode, bool copyMass)
    reaction(0)//, displayLocation(0)
 {
   this->createDisp();
-  // AddingSensitivity:BEGIN /////////////////////////////////////////
   dispSensitivity = 0;
   velSensitivity = 0;
   accSensitivity = 0;
   parameterID = 0;
-  // AddingSensitivity:END ///////////////////////////////////////////
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
@@ -270,75 +260,75 @@ Node::Node(const Node &otherNode, bool copyMass)
 
 Node::~Node()
 {
-    // delete anything that we created with new
-    if (Crd != 0)
-      delete Crd;
+  // delete anything that we created with new
+  if (Crd != 0)
+    delete Crd;
 
-    if (commitDisp != 0)
-      delete commitDisp;
+  if (commitDisp != 0)
+    delete commitDisp;
 
-    if (commitVel != 0)
-      delete commitVel;
+  if (commitVel != 0)
+    delete commitVel;
 
-    if (commitAccel != 0)
-      delete commitAccel;
+  if (commitAccel != 0)
+    delete commitAccel;
 
-    if (trialDisp != 0)
-      delete trialDisp;
+  if (trialDisp != 0)
+    delete trialDisp;
 
-    if (trialVel != 0)
-      delete trialVel;
+  if (trialVel != 0)
+    delete trialVel;
 
-    if (trialAccel != 0)
-      delete trialAccel;
+  if (trialAccel != 0)
+    delete trialAccel;
 
-    if (rotation != nullptr)
-      delete rotation;
+  if (rotation != nullptr)
+    delete rotation;
 
-    if (incrDisp != 0)
-      delete incrDisp;
+  if (incrDisp != 0)
+    delete incrDisp;
 
-    if (incrDeltaDisp != 0)
-      delete incrDeltaDisp;
+  if (incrDeltaDisp != 0)
+    delete incrDeltaDisp;
 
-    if (unbalLoad != 0)
-      delete unbalLoad;
+  if (unbalLoad != 0)
+    delete unbalLoad;
 
-    if (disp != 0)
-      delete [] disp;
+  if (disp != 0)
+    delete [] disp;
 
-    if (vel != 0)
-      delete [] vel;
+  if (vel != 0)
+    delete [] vel;
 
-    if (accel != 0)
-      delete [] accel;
+  if (accel != 0)
+    delete [] accel;
 
-    if (mass != 0)
-      delete mass;
+  if (mass != 0)
+    delete mass;
 
-    if (R != 0)
-      delete R;
+  if (R != 0)
+    delete R;
 
-    if (unbalLoadWithInertia != 0)
-      delete unbalLoadWithInertia;
+  if (unbalLoadWithInertia != 0)
+    delete unbalLoadWithInertia;
 
-    if (theEigenvectors != 0)
-      delete theEigenvectors;
+  if (theEigenvectors != 0)
+    delete theEigenvectors;
 
-    // AddingSensitivity:BEGIN ///////////////////////////////////////
-    if (dispSensitivity != 0)
-      delete dispSensitivity;
-    if (velSensitivity != 0)
-      delete velSensitivity;
-    if (accSensitivity != 0)
-      delete accSensitivity;
-    // AddingSensitivity:END /////////////////////////////////////////
+  // AddingSensitivity:BEGIN ///////////////////////////////////////
+  if (dispSensitivity != 0)
+    delete dispSensitivity;
+  if (velSensitivity != 0)
+    delete velSensitivity;
+  if (accSensitivity != 0)
+    delete accSensitivity;
+  // AddingSensitivity:END /////////////////////////////////////////
 
-    if (reaction != 0)
-      delete reaction;
+  if (reaction != 0)
+    delete reaction;
 
-    if (theDOF_GroupPtr != 0)
-      theDOF_GroupPtr->resetNodePtr();
+  if (theDOF_GroupPtr != 0)
+    theDOF_GroupPtr->resetNodePtr();
 }
 
 
@@ -530,52 +520,52 @@ Node::setTrialDisp(const Vector &newTrialDisp)
 int
 Node::setTrialVel(const Vector &newTrialVel)
 {
-    // check vector arg is of correct size
-    assert(newTrialVel.Size() == numberDOF);
+  // check vector arg is of correct size
+  assert(newTrialVel.Size() == numberDOF);
 
-    // construct memory and Vectors for trial and committed
-    // accel on first call to this method, getTrialVEl(),
-    // getVEl(), or incrTrialVel()
-    if (trialVel == 0)
-      this->createVel();
+  // construct memory and Vectors for trial and committed
+  // accel on first call to this method, getTrialVEl(),
+  // getVEl(), or incrTrialVel()
+  if (trialVel == 0)
+    this->createVel();
 
-    // set the trial quantities
-    for (int i=0; i<numberDOF; i++)
-      vel[i] = newTrialVel(i);
+  // set the trial quantities
+  for (int i=0; i<numberDOF; i++)
+    vel[i] = newTrialVel(i);
 
-    return 0;
+  return 0;
 }
 
 int
 Node::incrTrialDisp(const Vector &incrDispl)
 {
-    // check vector arg is of correct size
-    assert(incrDispl.Size() == numberDOF);
+  // check vector arg is of correct size
+  assert(incrDispl.Size() == numberDOF);
 
-    // create a copy if no trial exists and add committed
-    if (trialDisp == nullptr) {
-      this->createDisp();
-      for (int i = 0; i<numberDOF; i++) {
-        double incrDispI = incrDispl(i);
-        disp[i]             = incrDispI;
-        disp[i+2*numberDOF] = incrDispI;
-        disp[i+3*numberDOF] = incrDispI;
-      }
-      return 0;
-    }
-
-    // otherwise set trial = incr + trial
+  // create a copy if no trial exists and add committed
+  if (trialDisp == nullptr) {
+    this->createDisp();
     for (int i = 0; i<numberDOF; i++) {
-        double incrDispI = incrDispl(i);
-        disp[i]             += incrDispI;
-        disp[i+2*numberDOF] += incrDispI;
-        disp[i+3*numberDOF]  = incrDispI;
+      double incrDispI = incrDispl(i);
+      disp[i]             = incrDispI;
+      disp[i+2*numberDOF] = incrDispI;
+      disp[i+3*numberDOF] = incrDispI;
     }
-    if (rotation != nullptr && this->getNumberDOF() >= 6) {
-      (*rotation) = (*rotation) * Versor::from_vector(&disp[3+3*numberDOF]);
-    }
-
     return 0;
+  }
+
+  // otherwise set trial = incr + trial
+  for (int i = 0; i<numberDOF; i++) {
+      double incrDispI = incrDispl(i);
+      disp[i]             += incrDispI;
+      disp[i+2*numberDOF] += incrDispI;
+      disp[i+3*numberDOF]  = incrDispI;
+  }
+  if (rotation != nullptr && this->getNumberDOF() >= 6) {
+    (*rotation) = (*rotation) * Versor::from_vector(&disp[3+3*numberDOF]);
+  }
+
+  return 0;
 }
 
 
@@ -601,45 +591,45 @@ Node::setTrialAccel(const Vector &newTrialAccel)
 int
 Node::incrTrialVel(const Vector &incrVel)
 {
-    // check vector arg is of correct size
-    assert(incrVel.Size() == numberDOF);
+  // check vector arg is of correct size
+  assert(incrVel.Size() == numberDOF);
 
-    // create Vectors and array if none exist and set trial
-    if (trialVel == nullptr) {
-      this->createVel();
-      for (int i = 0; i<numberDOF; i++)
-          vel[i] = incrVel(i);
-      return 0;
-    }
-
-    // otherwise set trial = incr + trial
+  // create Vectors and array if none exist and set trial
+  if (trialVel == nullptr) {
+    this->createVel();
     for (int i = 0; i<numberDOF; i++)
-      vel[i] += incrVel(i);
-
+        vel[i] = incrVel(i);
     return 0;
+  }
+
+  // otherwise set trial = incr + trial
+  for (int i = 0; i<numberDOF; i++)
+    vel[i] += incrVel(i);
+
+  return 0;
 }
 
 
 int
 Node::incrTrialAccel(const Vector &incrAccel)
 {
-    // check vector arg is of correct size
-    assert(incrAccel.Size() == numberDOF);
+  // check vector arg is of correct size
+  assert(incrAccel.Size() == numberDOF);
 
-    // create a copy if no trial exists and add committed
-    if (trialAccel == 0) {
-        this->createAccel();
-      for (int i = 0; i<numberDOF; i++)
-            accel[i] = incrAccel(i);
-
-        return 0;
-    }
-
-    // otherwise set trial = incr + trial
+  // create a copy if no trial exists and add committed
+  if (trialAccel == 0) {
+      this->createAccel();
     for (int i = 0; i<numberDOF; i++)
-      accel[i] += incrAccel(i);
+          accel[i] = incrAccel(i);
 
-    return 0;
+      return 0;
+  }
+
+  // otherwise set trial = incr + trial
+  for (int i = 0; i<numberDOF; i++)
+    accel[i] += incrAccel(i);
+
+  return 0;
 }
 
 
@@ -653,25 +643,23 @@ Node::zeroUnbalancedLoad(void)
 int
 Node::addUnbalancedLoad(const Vector &add, double fact)
 {
-    // check vector arg is of correct size
-    if (add.Size() != numberDOF) {
-      opserr << "Node::addunbalLoad - load to add of incorrect size ";
-      opserr << add.Size() << " should be " <<  numberDOF << endln;
-      return -1;
-    }
-
-    // if no load yet create it and assign
-    if (unbalLoad == 0) {
-      unbalLoad = new Vector(add);
-      if (fact != 1.0)
-           (*unbalLoad) *= fact;
-      return 0;
-    }
-
-    // add fact*add to the unbalanced load
-    unbalLoad->addVector(1.0, add,fact);
-
+  // check vector arg is of correct size
+  if (add.Size() != numberDOF) {
+    opserr << "Node::addunbalLoad - load to add of incorrect size ";
+    opserr << add.Size() << " should be " <<  numberDOF << endln;
+    return -1;
+  }
+  // if no load yet create it and assign
+  if (unbalLoad == 0) {
+    unbalLoad = new Vector(add);
+    if (fact != 1.0)
+          (*unbalLoad) *= fact;
     return 0;
+  }
+
+  // add fact*add to the unbalanced load
+  unbalLoad->addVector(1.0, add,fact);
+  return 0;
 }
 
 
