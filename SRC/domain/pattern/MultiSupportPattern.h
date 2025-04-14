@@ -57,7 +57,7 @@ class MultiSupportPattern : public LoadPattern
     // method to obtain a blank copy of the LoadPattern
     virtual LoadPattern *getCopy();
 
-    int addMotion(GroundMotion &theMotion, int tag);    
+    int addMotion(GroundMotion &, int tag);    
     GroundMotion *getMotion(int tag);        
 
  protected:
