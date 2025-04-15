@@ -910,8 +910,6 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   double q4 = q_pres[4];
   double q5 = q_pres[5];
 
-  double oneOverL = 1.0 / theCoordTransf->getInitialLength();
-
   VectorND<12> pl{};
   pl[0]  = -q_pres[0];             // Ni
   pl[3]  = -q5;                    // Ti
