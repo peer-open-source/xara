@@ -96,7 +96,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2Plasticity)
 }
 
 // zero internal variables
-void J2Plasticity :: zero () 
+void
+J2Plasticity::zero () 
 {
   xi_n = 0.0 ;
   xi_nplus1 = 0.0 ;
@@ -279,7 +280,8 @@ void J2Plasticity :: Print( OPS_Stream &s, int flag )
 //--------------------Plasticity-------------------------------------
 
 //plasticity integration routine
-void J2Plasticity :: plastic_integrator( )
+int 
+J2Plasticity :: plastic_integrator()
 {
   const double tolerance = (1.0e-8)*sigma_0 ;
 
@@ -369,8 +371,8 @@ void J2Plasticity :: plastic_integrator( )
         if ( iteration_counter > max_iterations ) {
             opserr << "More than " << max_iterations ;
             opserr << " iterations in constituive subroutine J2-plasticity \n" ;
-            break ;
-        }  
+            return -1;
+        }
      }
 
 
@@ -450,7 +452,7 @@ void J2Plasticity :: plastic_integrator( )
     } // end for jj
   } // end for ii
 
-  return ;
+  return 0;
 } 
 
 
