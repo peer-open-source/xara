@@ -671,13 +671,25 @@ J2BeamFiber2d::recvSelf (int commitTag, Channel &theChannel,
 void
 J2BeamFiber2d::Print (OPS_Stream &s, int flag)
 {
-  s << "J2 Beam Fiber Material Model" << endln;
-  s << "\tE:  " << E << endln;
-  s << "\tnu:  " << nu << endln;
-  s << "\tsigmaY:  " << sigmaY << endln;
-  s << "\tHiso:  " << Hiso << endln;
-  s << "\tHkin:  " << Hkin << endln;
-  
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "J2 Beam Fiber Material Model" << endln;
+    s << "\tE:  " << E << endln;
+    s << "\tnu:  " << nu << endln;
+    s << "\tsigmaY:  " << sigmaY << endln;
+    s << "\tHiso:  " << Hiso << endln;
+    s << "\tHkin:  " << Hkin << endln;
+  }
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"J2BeamFiber\", ";
+    s << "\"E\": " << E << ", ";
+    s << "\"nu\": " << nu << ", ";
+    s << "\"sigmaY\": " << sigmaY << ", ";
+    s << "\"Hiso\": " << Hiso << ", ";
+    s << "\"Hkin\": " << Hkin;
+    s << "}";
+  }
   return;
 }
 
