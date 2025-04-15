@@ -28,7 +28,7 @@ int
 BasicFrame3d::setNodes()
 {
   if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
-      opserr << "PrismFrame3d::setDomain  tag: " 
+      opserr << "BasicFrame3d::setDomain  tag: " 
              << this->getTag()
              << " -- Error initializing coordinate transformation\n";
       return -1;
