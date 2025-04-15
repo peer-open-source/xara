@@ -207,7 +207,7 @@ class CycLiqCP : public NDMaterial {
   void zero( ) ;
 
   //plasticity integration routine
-  void plastic_integrator( ) ;
+  int plastic_integrator( ) ;
 
   void doInitialTangent( ) ;
 
