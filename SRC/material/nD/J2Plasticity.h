@@ -142,7 +142,7 @@ class J2Plasticity : public NDMaterial {
   //material input
   Matrix strain ;               //strain tensor
 
-  //parameters
+  // parameters
   static const double one3 ;
   static const double two3 ;
   static const double four3 ;
@@ -151,8 +151,8 @@ class J2Plasticity : public NDMaterial {
   //zero internal variables
   void zero( ) ;
 
-  //plasticity integration routine
-  void plastic_integrator( ) ;
+  // plasticity integration routine
+  int plastic_integrator( ) ;
 
   void doInitialTangent( ) ;
 
