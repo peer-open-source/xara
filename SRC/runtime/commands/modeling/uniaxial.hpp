@@ -186,7 +186,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
   UniaxialMaterial* theMaterial = (UniaxialMaterial*)fn( rt, argc, argv );
 
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "Could not add uniaxialMaterial to the model builder.\n";
+    opserr << G3_ERROR_PROMPT << "Failed to add UniaxialMaterial to the model builder.\n";
     delete theMaterial;
     return TCL_ERROR;
   }
