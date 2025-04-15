@@ -230,7 +230,7 @@ TclCommand_newIsotropicMaterial(ClientData clientData, Tcl_Interp *interp,
                 return TCL_ERROR;
             }
         }
-        
+
         if (!gotParam1 || !gotParam2) {
             opserr << "Must specify exactly two independent elastic parameters.\n";
             return TCL_ERROR;
