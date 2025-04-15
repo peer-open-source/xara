@@ -573,9 +573,15 @@ class Model:
         for tag, coord in nodes.items():
             add_node(tag, *coord) #*np.array(coord)-anchor_coord)
 
+        if isinstance(args, dict):
+            ekwds = args
+            args = ()
+        else:
+            ekwds = {}
+
         if element is not None:
             for tag, elem_nodes in elems.items():
-                add_element(element, tag, list(map(int,elem_nodes)), *args)
+                add_element(element, tag, list(map(int,elem_nodes)), *args, **ekwds)
 
         return _Surface(nodes=nodes,
                         cells=elems,
