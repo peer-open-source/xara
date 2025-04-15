@@ -114,7 +114,8 @@ namespace {
       double b = lambda + E;
       double c = -lambda;
       double disc = b*b - 4.0 * a * c;
-      if (disc < 0.0) return -1;
+      if (disc < 0.0)
+        return -1;
       double sqrt_disc = std::sqrt(disc);
       double nu1 = (-b + sqrt_disc) / (2.0 * a);
       double nu2 = (-b - sqrt_disc) / (2.0 * a);
@@ -126,10 +127,11 @@ namespace {
     // (Any other combination is not supported.)
     return -1;
   }
-} // end anonymous namespace
+} // anonymous namespace
 
 
-int isotropic_constants(int flag1, double in1, int flag2, double in2, IsotropicConstants &iso)
+int
+isotropic_constants(int flag1, double in1, int flag2, double in2, IsotropicConstants &iso)
 {
   // Convert to canonical (E, ν)
   double E, nu;
@@ -145,14 +147,14 @@ int isotropic_constants(int flag1, double in1, int flag2, double in2, IsotropicC
 }
 
 //---------------------------------------------------------------------
-// Main conversion function.
 // First converts the given input pair into (E, ν) and then computes the requested
 // property (if not already provided as one of the inputs).
 //
-int isotropic_convert(int flag1, double in1,
-                         int flag2, double in2,
-                         int flag_out,
-                         double & out)
+int
+isotropic_convert(int flag1, double in1,
+                  int flag2, double in2,
+                  int flag_out,
+                  double & out)
 {
   // If the output is already one of the inputs, return it.
   if (flag_out == flag1) {
