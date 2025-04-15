@@ -222,10 +222,10 @@ const Vector& J2PlateFiber :: getStrain( )
 } 
 
 
-//send back the stress 
-const Vector& J2PlateFiber :: getStress( ) 
+// send back the stress 
+const Vector& 
+J2PlateFiber :: getStress( ) 
 {
- 
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
 
