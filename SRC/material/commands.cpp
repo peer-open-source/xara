@@ -152,8 +152,16 @@ TclCommand_setIsotropicParameters(ClientData clientData, Tcl_Interp *interp, int
                 opserr << "Invalid value for option " << argv[i-1] << "\n";
                 return TCL_ERROR;
             }
-            if (!gotParam1) { gotParam1 = true; val1 = val; flag1 = static_cast<int>(Isotropy::Parameter::LameLambda); }
-            else if (!gotParam2) { gotParam2 = true; val2 = val; flag2 = static_cast<int>(Isotropy::Parameter::LameLambda); }
+            if (!gotParam1) {
+              gotParam1 = true;
+              val1 = val;
+              flag1 = static_cast<int>(Isotropy::Parameter::LameLambda);
+            }
+            else if (!gotParam2) {
+              gotParam2 = true;
+              val2 = val;
+              flag2 = static_cast<int>(Isotropy::Parameter::LameLambda);
+            }
             else {
                 opserr << "Too many elastic parameter options provided.\n";
                 return TCL_ERROR;
