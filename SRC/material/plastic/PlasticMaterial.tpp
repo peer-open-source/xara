@@ -248,7 +248,7 @@ PlasticMaterial<n,type,index>::Print(OPS_Stream& s, int flag)
 
 //plasticity integration routine
 template <int n, PlaneType type, typename index>
-void
+int
 PlasticMaterial<n,type,index>::plastic_integrator()
 {
   const double tolerance = (1.0e-8) * sigma_0;
@@ -314,7 +314,7 @@ PlasticMaterial<n,type,index>::plastic_integrator()
     gamma             = 0.0;
     resid             = 1.0;
     iteration_counter = 0;
-    while (fabs(resid) > tolerance) {
+    while (std::fabs(resid) > tolerance) {
 
       resid = norm_tau - (2.0 * shear) * gamma - root23 * q(xi_n + root23 * gamma);
       if (eta > 0.0 && dt > 0.0)
@@ -331,7 +331,7 @@ PlasticMaterial<n,type,index>::plastic_integrator()
       if (iteration_counter > max_iterations) {
         opserr << "More than " << max_iterations;
         opserr << " iterations in constituive subroutine J2-plasticity \n";
-        break;
+        return -1;
       }
 
     } //end while resid
@@ -417,7 +417,7 @@ PlasticMaterial<n,type,index>::plastic_integrator()
     }
   }
 
-  return;
+  return 0;
 }
 
 
