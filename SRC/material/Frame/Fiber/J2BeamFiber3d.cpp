@@ -192,7 +192,7 @@ J2BeamFiber3d::getTangent()
     int iter = 0;
     int maxIter = 25;
     constexpr static double tol = 1.0e-8;
-    while (R.norm() > sigmaY*tol && iter++ < maxIter) {
+    do {
 
         J(0,0) = 1.0 + dg*two3*(E+Hkin); 
         J(0,1) = 0.0;
@@ -228,9 +228,9 @@ J2BeamFiber3d::getTangent()
         R(1) = x(1) - xsi[1] + dg*(twoG+two3Hkin)*x(1);
         R(2) = x(2) - xsi[2] + dg*(twoG+two3Hkin)*x(2);
         R(3) = q - root23*(sigmaY + Hiso*(alphan+dg*root23*q));
-    }
+    } while (R.norm() > sigmaY*tol && iter++ < maxIter);
 
-    if (iter == maxIter) {
+    if (R.norm() > sigmaY*tol) {
       opserr << "J2BeamFiber3d::getTangent -- maxIter reached, " << R.norm() << " > " << sigmaY*tol << endln;
     }
 
@@ -343,7 +343,8 @@ J2BeamFiber3d::getStress()
     static Matrix J(4,4);
     static Vector dx(4);
 
-    int iter = 0; int maxIter = 25;
+    int iter = 0;
+    int maxIter = 25;
     while (iter < maxIter && R.Norm() > sigmaY*1.0e-14) {
         iter++;
 
@@ -744,13 +745,25 @@ J2BeamFiber3d::recvSelf (int commitTag, Channel &theChannel,
 void
 J2BeamFiber3d::Print (OPS_Stream &s, int flag)
 {
-  s << "J2 Beam Fiber Material Model" << endln;
-  s << "\tE:  " << E << endln;
-  s << "\tnu:  " << nu << endln;
-  s << "\tsigmaY:  " << sigmaY << endln;
-  s << "\tHiso:  " << Hiso << endln;
-  s << "\tHkin:  " << Hkin << endln;
-  
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "J2 Beam Fiber Material Model" << endln;
+    s << "\tE:  " << E << endln;
+    s << "\tnu:  " << nu << endln;
+    s << "\tsigmaY:  " << sigmaY << endln;
+    s << "\tHiso:  " << Hiso << endln;
+    s << "\tHkin:  " << Hkin << endln;
+  }
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"J2BeamFiber\", ";
+    s << "\"E\": " << E << ", ";
+    s << "\"nu\": " << nu << ", ";
+    s << "\"sigmaY\": " << sigmaY << ", ";
+    s << "\"Hiso\": " << Hiso << ", ";
+    s << "\"Hkin\": " << Hkin;
+    s << "}";
+  }
   return;
 }
 
