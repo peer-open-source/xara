@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-
-// $Revision: 1.3 $
-// $Date: 2002-12-05 22:49:09 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticIsotropicBeamFiber2d.h,v $
-
+//
 // Written: MHS
 // Created: Aug 2001
 //
