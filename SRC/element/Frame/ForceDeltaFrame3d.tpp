@@ -956,13 +956,6 @@ ForceDeltaFrame3d<NIP,nsr>::getTangentStiff()
 
   THREAD_LOCAL VectorND<12> pl;
   pl[0]  = -q_pres[0];                    // Ni
-#if 0
-  double oneOverL = 1.0 / theCoordTransf->getInitialLength();
-  pl[1]  =  oneOverL * (q1 + q2);  // Viy
-  pl[2]  = -oneOverL * (q3 + q4);  // Viz
-  pl[7]  = -pl[1];                 // Vjy
-  pl[8]  = -pl[2];                 // Vjz
-#endif
   pl[3]  = -q_pres[5];                    // Ti
   pl[4]  =  q_pres[3];
   pl[5]  =  q_pres[1];
