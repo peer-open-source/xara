@@ -65,7 +65,7 @@ Vector InertiaTruss::trussV12(12);
 
 static int numMyTruss = 0;
 
-// constructor:
+
 //  responsible for allocating the necessary space needed by each object
 //  and storing the tags of the inertiatruss end nodes.
 
@@ -154,7 +154,7 @@ InertiaTruss::InertiaTruss(int tag, int dim,
 // AddingSensitivity:END //////////////////////////////////////
 }
 
-// constructor:
+
 //   invoked by a FEM_ObjectBroker - blank object that recvSelf needs
 //   to be invoked upon
 InertiaTruss::InertiaTruss()
