@@ -129,6 +129,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
 
   if (strcmp(argv[1], "Fiber") == 0 || 
       strcmp(argv[1], "fiberSec") == 0 ||
+      strcmp(argv[1], "FiberSec") == 0 ||
       strcmp(argv[1], "FiberFrame") == 0 ||
       strcmp(argv[1], "FrameFiber") == 0 ||
       strcmp(argv[1], "AxialFiber") == 0 ||
