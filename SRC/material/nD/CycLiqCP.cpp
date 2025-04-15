@@ -336,7 +336,7 @@ stress_nplus1(3,3)
   I.Zero();
   I(0,0)=I(1,1)=I(2,2)=1.0;
 
-    plastic_integrator();
+  plastic_integrator();
 }
 
 //destructor
@@ -396,10 +396,11 @@ CycLiqCP :: getCopy ()
 //--------------------Plasticity-------------------------------------
 
 //plasticity integration routine
-void CycLiqCP :: plastic_integrator( )
+int
+CycLiqCP::plastic_integrator()
 {
-  const double tolerance = 1.0e-8*pcut ; //tolerance
-  const double tole = 1.0e-6*pcut ; //tolerance
+  const double tolerance = 1.0e-8*pcut ;
+  const double tole = 1.0e-6*pcut ;
   const double dt = ops_Dt ; //time step
 
   static Matrix dev_strain(3,3) ; //deviatoric strain
@@ -484,8 +485,8 @@ void CycLiqCP :: plastic_integrator( )
 		dev_stress=dev_stress_n+2.0 * G*(dev_strain-dev_strain_n);
 		K=(1+en)/kappa*pat*sqrt(p_nplus1/pat);
         G=G0*pat*(pow((2.97-en),2)/(1+en))*sqrt(p_nplus1/pat);
-  		for ( ii = 0; ii < 6; ii++ ) {
-        for ( jj = 0; jj < 6; jj++ )  {
+  		for (int ii = 0; ii < 6; ii++ ) {
+        for (int jj = 0; jj < 6; jj++ )  {
       
               index_map( ii, i, j ) ;
               index_map( jj, k, l ) ;
@@ -504,7 +505,7 @@ void CycLiqCP :: plastic_integrator( )
         } // end for ii
 		initializeState = false;
  // proceed with full algorithm if initialization analysis is not designated==========================
-    }else if (mElastFlag == 1) {
+    } else if (mElastFlag == 1) {
         // set initial confining pressure p0
     	if (!initializeState) {
     		p0=p_n;
@@ -613,7 +614,7 @@ void CycLiqCP :: plastic_integrator( )
 	    	}
 	        if (beta<1.0-tolerance)
 	        {opserr << "beta="<<beta<<"\n";
-	        exit(-1);
+	         return -1;
 	        }
 		}
 		rbar=alpha_ns+beta*(r-alpha_ns);
@@ -749,8 +750,8 @@ void CycLiqCP :: plastic_integrator( )
 	  K=(1+en)/kappa*pat*sqrt((p_nplus1+p_nplus1)/2.0/pat);
       G=G0*pat*(pow((2.97-en),2)/(1+en))*sqrt((p_nplus1+p_nplus1)/2.0/pat);
 
-  		for ( ii = 0; ii < 6; ii++ ) {
-        for ( jj = 0; jj < 6; jj++ )  {
+  		for (int ii = 0; ii < 6; ii++ ) {
+        for (int jj = 0; jj < 6; jj++ )  {
       
               index_map( ii, i, j ) ;
               index_map( jj, k, l ) ;
@@ -790,13 +791,12 @@ void CycLiqCP :: plastic_integrator( )
 	        beta=(-bx+sqrt(bx*bx-4*ax*cx))/2.0/ax;
 	        if (beta<1.0-tolerance)
 	      	{
-	  	  	    opserr << "beta="<<beta<<"\n";
-	  	  	    beta=(-bx-sqrt(bx*bx-4*ax*cx))/2.0/ax;
+	  	  	    opserr << "beta=" << beta << "\n";
+	  	  	    beta = (-bx-sqrt(bx*bx-4*ax*cx))/2.0/ax;
 	  	    }
-	        if (beta<1.0-tolerance)
-	        {
-				opserr << "beta="<<beta<<"\n";
-	            exit(-1);
+	        if (beta<1.0-tolerance) {
+            opserr << "beta="<<beta<<"\n";
+	          return -1;
 	        }
 		 }
 	  rbar=alpha_nplus1+beta*(r-alpha_nplus1);
@@ -842,7 +842,6 @@ void CycLiqCP :: plastic_integrator( )
 	  }
 	  }
   }
-
 }
 
 
@@ -856,7 +855,7 @@ void CycLiqCP :: plastic_integrator( )
 	  strain_n=-1.0*strain_n;
 	  stress_nplus1=-1.0*stress_nplus1;
 
-  return ;
+  return 0;
 } 
 
 
