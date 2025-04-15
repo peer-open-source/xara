@@ -100,6 +100,13 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
+  {
+    auto tcl_cmd = material_dispatch2.find(std::string(argv[1]));
+    if (tcl_cmd != material_dispatch2.end()) {
+      return (*tcl_cmd->second)(clientData, interp, argc, &argv[0]);
+    }
+  }
+
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, 0);
 
   // Pointer to an ND material that will be added to the model builder
@@ -108,13 +115,11 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
   auto tcl_cmd = material_dispatch.find(std::string(argv[1]));
   if (tcl_cmd != material_dispatch.end()) {
     void* theMat = (*tcl_cmd->second)(rt, argc, &argv[0]);
-    if (theMat != 0)
+    if (theMat != nullptr)
       theMaterial = (NDMaterial *)theMat;
     else
       return TCL_ERROR;
   }
-
-  // Check argv[1] for ND material type
   else if (strcmp(argv[1], "J2BeamFiber") == 0) {
     void *theMat = 0;
     if (builder->getNDM() == 2)
@@ -136,7 +141,7 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
 
-    int tag = 0;
+    int  tag = 0;
     double E = 0.0;
     double v = 0.0;
     double rho = 0.0;
@@ -244,10 +249,10 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
      nDmaterial PlaneStressJ2  $matTag  $G  $K  $sig0  $H_kin  $H_iso
   */
   else if ((strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0)) {
+
     if (argc < 8) {
       opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: nDmaterial Simplified3DJ2  $matTag  $G  $K  $sig0  "
-                "$H_kin  $H_iso"
+      opserr << "Want: nDmaterial Simplified3DJ2  $matTag  $G  $K  $sig0 $H_kin  $H_iso"
              << "\n";
       return TCL_ERROR;
     }
@@ -262,31 +267,26 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &G) != TCL_OK) {
       opserr << "WARNING invalid G\n";
-      opserr << "nDMaterial SimplifiedJ2: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &K) != TCL_OK) {
       opserr << "WARNING invalid K\n";
-      opserr << "nDMaterial SimplifiedJ2: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &sig0) != TCL_OK) {
       opserr << "WARNING invalid sig0\n";
-      opserr << "nDMaterial SimplifiedJ2: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &H_kin) != TCL_OK) {
       opserr << "WARNING invalid H_kin\n";
-      opserr << "nDMaterial SimplifiedJ2: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &H_iso) != TCL_OK) {
       opserr << "WARNING invalid H_iso\n";
-      opserr << "nDMaterial SimplifiedJ2: " << tag << "\n";
       return TCL_ERROR;
     }
 
@@ -294,9 +294,6 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
         new SimplifiedJ2(tag, 3, G, K, sig0, H_kin, H_iso);
 
     theMaterial = new PlaneStressSimplifiedJ2(tag, 2, *theMaterial2);
-
-    //        delete theMaterial2;
-
   }
 
   /////////////////////////////////////////////////////////////////
@@ -328,60 +325,50 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &rho) != TCL_OK) {
       opserr << "WARNING invalid rho\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &K) != TCL_OK) {
       opserr << "WARNING invalid K\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &G) != TCL_OK) {
       opserr << "WARNING invalid G\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &Su) != TCL_OK) {
       opserr << "WARNING invalid alpha1\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &Ho) != TCL_OK) {
       opserr << "WARNING invalid Ho\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &h) != TCL_OK) {
       opserr << "WARNING invalid h\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[9], &m) != TCL_OK) {
       opserr << "WARNING invalid m\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[10], &beta) != TCL_OK) {
       opserr << "WARNING invalid beta\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[11], &Kcoeff) != TCL_OK) {
       opserr << "WARNING invalid Kcoeff\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (argc > 12 && Tcl_GetDouble(interp, argv[12], &eta) != TCL_OK) {
       opserr << "WARNING invalid eta\n";
-      opserr << "nDMaterial MultiaxialCyclicPlasticity: " << tag << "\n";
       return TCL_ERROR;
     }
 
@@ -833,7 +820,6 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
     for (int i = 3; (i < argc && i < in); ++i)
       if (Tcl_GetDouble(interp, argv[i], &param[i - 3]) != TCL_OK) {
         opserr << "WARNING invalid " << arg[i - 3] << "\n";
-        opserr << "nDMaterial PressureDependMultiYield03: " << tag << "\n";
         return TCL_ERROR;
       }
 
@@ -847,7 +833,6 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
       for (int i = 0; i < 2 * param[numParam]; ++i)
         if (Tcl_GetDouble(interp, argv[i + in], &gredu[i]) != TCL_OK) {
           opserr << "WARNING invalid " << arg[i - 3] << "\n";
-          opserr << "nDMaterial PressureDependMultiYield03: " << tag << "\n";
           return TCL_ERROR;
         }
     }
