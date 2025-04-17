@@ -12,18 +12,17 @@ target_sources(OPS_Material
     FSAM.cpp
     AcousticMedium.cpp
     ASDConcrete3DMaterial.cpp
-    ElasticPlaneStress.cpp
+#   ElasticPlaneStress.cpp
     VonPapaDamage.cpp
     ElasticIsotropicAxiSymm.cpp
     ElasticIsotropicMaterial.cpp
     ElasticOrthotropicMaterial.cpp
     ElasticOrthotropicPlaneStress.cpp
-    PressureDependentElastic3D.cpp
-    J2AxiSymm.cpp
-    J2Plasticity.cpp
 
+    J2AxiSymm.cpp
     J2PlateFiber.cpp
     J2PlateFibre.cpp
+
     PlateFiberMaterial.cpp
     ElasticIsotropicPlateFiber.cpp
     PlateFromPlaneStressMaterial.cpp
@@ -43,7 +42,6 @@ target_sources(OPS_Material
     ConcreteMcftNonLinear7.cpp
     CapPlasticity.cpp
     ConcreteS.cpp
-    SimplifiedJ2.cpp
     LinearCap.cpp
     AcousticMedium.cpp
     DruckerPrager3DThermal.cpp
@@ -51,12 +49,13 @@ target_sources(OPS_Material
     ElasticIsotropic3DThermal.cpp
     ElasticIsotropicMaterialThermal.cpp
     J2PlasticityThermal.cpp
-    UVCmultiaxial.cpp
-    UVCplanestress.cpp
     PlateRebarMaterialThermal.cpp
     OrthotropicMaterial.cpp
     Series3DMaterial.cpp
     Parallel3DMaterial.cpp
+  
+    PressureDependentElastic3D.cpp
+
   PUBLIC
     NDMaterial.h
     PlasticDamageConcrete3d.h
@@ -70,13 +69,14 @@ target_sources(OPS_Material
     ElasticIsotropicPlateFiber.h
     ElasticOrthotropicMaterial.h
     ElasticOrthotropicPlaneStress.h
-    ElasticPlaneStress.h
+#   ElasticPlaneStress.h
     VonPapaDamage.h
     PressureDependentElastic3D.h
+
     J2AxiSymm.h
-    J2Plasticity.h
     J2PlateFiber.h
     J2PlateFibre.h
+
     PlateFiberMaterial.h
     PlateRebarMaterial.h
     CycLiqCP.h
@@ -91,7 +91,6 @@ target_sources(OPS_Material
     ConcreteMcftNonLinear7.h
     CapPlasticity.h
     ConcreteS.h
-    SimplifiedJ2.h
     LinearCap.h
     AcousticMedium.h
     DruckerPrager3DThermal.h
@@ -100,8 +99,6 @@ target_sources(OPS_Material
     ElasticIsotropicMaterialThermal.h
     J2PlasticityThermal.h
     PlateFiberMaterialThermal.h
-    UVCmultiaxial.h
-    UVCplanestress.h
     PlateRebarMaterialThermal.h
     PlateFromPlaneStressMaterial.h
     PlateFromPlaneStressMaterialThermal.h
