@@ -239,6 +239,111 @@ TclBasicBuilder_addUniaxialMetallic(ClientData clientData, Tcl_Interp *interp,
   return builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
 
+int
+TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
+                                  int argc, TCL_Char ** const argv)
+{
+
+  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+
+  if (argc < 3) {
+    opserr << "WARNING insufficient number of arguments\n";
+    return TCL_ERROR;
+  }
+
+  enum Positions {
+    E, sigY, Hiso, Hkin, alp, aln, ft, Ets, rat
+  };
+
+  int tag;
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << "WARNING invalid uniaxialMaterial tag\n";
+    return TCL_ERROR;
+  }
+
+  UniaxialMaterial *theMaterial = nullptr;
+
+  if (strcmp(argv[1], "Concrete1") == 0 ||
+           strcmp(argv[1], "concrete01") == 0) {
+
+    if (argc < 7) {
+      opserr << "WARNING invalid number of arguments\n";
+      opserr
+          << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? epscu?"
+          << endln;
+      return TCL_ERROR;
+    }
+
+    double fpc, epsc0, fpcu, epscu;
+
+    if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
+      opserr << "WARNING invalid fpc\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
+      opserr << "WARNING invalid epsc0\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
+      opserr << "WARNING invalid fpcu\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
+      opserr << "WARNING invalid epscu\n";
+      return TCL_ERROR;
+    }
+
+    theMaterial = new Concrete01(tag, fpc, epsc0, fpcu, epscu);
+  }
+
+  else if (strcmp(argv[1], "concr2") == 0) {
+    if (argc < 10) {
+      opserr << "WARNING invalid number of arguments\n";
+      opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? "
+                "epscu? rat? ft? Ets?"
+             << endln;
+      return TCL_ERROR;
+    }
+
+    double fpc, epsc0, fpcu, epscu;
+    double rat, ft, Ets;
+
+    if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
+      opserr << "WARNING invalid fpc\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
+      opserr << "WARNING invalid epsc0\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
+      opserr << "WARNING invalid fpcu\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
+      opserr << "WARNING invalid epscu\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[7], &rat) != TCL_OK) {
+      opserr << "WARNING invalid rat\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[8], &ft) != TCL_OK) {
+      opserr << "WARNING invalid ft\n";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[9], &Ets) != TCL_OK) {
+      opserr << "WARNING invalid Ets\n";
+      return TCL_ERROR;
+    }
+
+    theMaterial =
+        new Concrete02(tag, fpc, epsc0, fpcu, epscu, rat, ft, Ets);
+  }
+
+  return builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
+}
+
 #if 0
 #include <FedeasHardeningMaterial.h>
 #include <FedeasBond1Material.h>
