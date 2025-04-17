@@ -1425,11 +1425,11 @@ ForceDeltaFrame3d<NIP,nsr>::computeSectionForces(VectorND<nsr>& sp, int isec)
 
         if (x <= a) {
           switch (scheme[ii]) {
-          case FrameStress::N:  sp[ii] += N; break;
+          case FrameStress::N:  sp[ii] +=       N; break;
           case FrameStress::Mz: sp[ii] -= x * Vy1; break;
-          case FrameStress::Vy: sp[ii] -= Vy1; break;
+          case FrameStress::Vy: sp[ii] -=     Vy1; break;
           case FrameStress::My: sp[ii] += x * Vz1; break;
-          case FrameStress::Vz: sp[ii] -= Vz1; break;
+          case FrameStress::Vz: sp[ii] -=     Vz1; break;
           default:                  break;
           }
         } else {
