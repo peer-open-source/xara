@@ -14,7 +14,7 @@ class APDFMD : public UniaxialMaterial
    
     virtual ~APDFMD();
 
-    const char *getClassType(void) const {return "APDFMD";};
+    const char *getClassType(void) const {return "APDFMD";}
 
     double getInitialTangent(void);
     UniaxialMaterial *getCopy(void);

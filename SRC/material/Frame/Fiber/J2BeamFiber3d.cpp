@@ -192,8 +192,8 @@ J2BeamFiber3d::getTangent()
     int iter = 0;
     int maxIter = 25;
     constexpr static double tol = 1.0e-8;
-    do {
 
+    do {
         J(0,0) = 1.0 + dg*two3*(E+Hkin); 
         J(0,1) = 0.0;
         J(0,2) = 0.0;

@@ -126,9 +126,6 @@ public:
 		this->_NDMRevertToLastCommit = revertToLastCommit;
 		this->_NDMGetType = getType;
 		this->_NDMGetOrder = getOrder;
-
-
-
 	}
 protected:
 

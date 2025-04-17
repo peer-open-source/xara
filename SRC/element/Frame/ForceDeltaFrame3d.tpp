@@ -364,12 +364,8 @@ ForceDeltaFrame3d<NIP,nsr>::update()
   Matrix lskp(nip, nip);
   Matrix lsg(nip, nip);
   {
-    Matrix Ginv(nip, nip);
-    {
-      Matrix G(nip, nip);
-      vandermonde(nip, xi, G);
-      G.Invert(Ginv);
-    }
+    MatrixND<NIP, NIP> Ginv;
+    vandermonde_inverse<NIP>(NIP, xi, Ginv);
     {
       MatrixND<nip, nip> Hk;
       getHk<nip>(xi, Hk);
@@ -1009,8 +1005,8 @@ ForceDeltaFrame3d<NIP,nsr>::computew(Vector& w, Vector& wp, double xi[], const V
   double L = theCoordTransf->getInitialLength();
 
 
-  Matrix Ginv(NIP, NIP);
-  vandermonde_inverse(numSections, xi, Ginv);
+  MatrixND<NIP, NIP> Ginv;
+  vandermonde_inverse<NIP>(numSections, xi, Ginv);
 
 
   bool isGamma = false;
@@ -1804,70 +1800,64 @@ template<int NIP, int nsr>
 void
 ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector& q)
 {
-  // int numSections = points.size();
-  constexpr static int numSections = NIP;
-
   double L        = theCoordTransf->getInitialLength();
   double oneOverL = 1.0 / L;
 
   double xi[NIP];
-  stencil->getSectionLocations(numSections, L, xi);
+  stencil->getSectionLocations(NIP, L, xi);
 
-  Matrix G(numSections, numSections);
-  vandermonde(numSections, xi, G);
+  MatrixND<NIP,NIP> Ginv;
+  vandermonde_inverse<NIP>(NIP, xi, Ginv);
 
-  Matrix Ginv(numSections, numSections);
-  vandermonde_inverse(numSections, xi, Ginv);
-
-  Matrix Hk(numSections, numSections);
+  Matrix Hk(NIP, NIP);
   getHk<NIP>(xi, Hk);
 
-  Matrix ls(numSections, numSections);
+  Matrix ls(NIP, NIP);
   ls.addMatrixProduct(0.0, Hk, Ginv, 1.0);
 
-  Matrix Hg(numSections, numSections);
+  Matrix Hg(NIP, NIP);
   getHg<NIP>(xi, Hg);
 
-  Matrix lsg(numSections, numSections);
+  Matrix lsg(NIP, NIP);
   lsg.addMatrixProduct(0.0, Hg, Ginv, 1.0);
 
-  Matrix Hkp(numSections, numSections);
+  Matrix Hkp(NIP, NIP);
   getHkp<NIP>(xi, Hkp);
 
-  Matrix lskp(numSections, numSections);
+  Matrix lskp(NIP, NIP);
   lskp.addMatrixProduct(0.0, Hkp, Ginv, 1.0);
 
-  Matrix Hgp(numSections, numSections);
+  Matrix Hgp(NIP, NIP);
   getHgp<NIP>(xi, Hgp);
 
-  Matrix lsgp(numSections, numSections);
+  Matrix lsgp(NIP, NIP);
   lsgp.addMatrixProduct(0.0, Hgp, Ginv, 1.0);
 
   double dLdh = theCoordTransf->getLengthGrad();
   double dxidh[NIP];
-  stencil->getLocationsDeriv(numSections, L, dLdh, dxidh);
+  stencil->getLocationsDeriv(NIP, L, dLdh, dxidh);
 
   bool isdxidh = false;
-  for (int i = 0; i < numSections; i++) {
+  for (int i = 0; i < NIP; i++) {
     dxidh[i] = dxidh[i]; // - xi[i]/L*dLdh;
     if (dxidh[i] != 0.0)
       isdxidh = true;
   }
 
-  Matrix A(2 * numSections, 2 * numSections);
-  Vector b(2 * numSections);
+  Matrix A(2 * NIP, 2 * NIP);
+  Vector b(2 * NIP);
 
-  Vector Fksdsdh(numSections);
-  Vector Fgsdsdh(numSections);
+  Vector Fksdsdh(NIP);
+  Vector Fgsdsdh(NIP);
 
-  Vector kappa(numSections);
-  Vector gamma(numSections);
+  Vector kappa(NIP);
+  Vector gamma(NIP);
 
   const double q1   = q(0);
   double q2q3 = q(1) + q(2);
 
 
-  for (int i = 0; i < numSections; i++) {
+  for (int i = 0; i < NIP; i++) {
 
     const Matrix& fs   = points[i].material->getSectionFlexibility();
     const Vector& dsdh = points[i].material->getStressResultantSensitivity(igrad, true);
@@ -1910,26 +1900,26 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
     }
 
     A(i, i)                             = 1.0;
-    A(i + numSections, i + numSections) = 1.0;
+    A(i + NIP, i + NIP) = 1.0;
 
-    for (int j = 0; j < numSections; j++) {
+    for (int j = 0; j < NIP; j++) {
       A(j, i) -= q1 * L * L * FkM * ls(j, i);
       if (shear_flag) {
         A(j, i) -= q1 * L * FgM * lsg(j, i);
 
-        A(j, i + numSections) += q1 * L * L * FkV * ls(j, i);
-        A(j, i + numSections) += q1 * L * FgV * lsg(j, i);
+        A(j, i + NIP) += q1 * L * L * FkV * ls(j, i);
+        A(j, i + NIP) += q1 * L * FgV * lsg(j, i);
 
-        A(j + numSections, i) -= q1 * L * FkM * lskp(j, i);
-        A(j + numSections, i) -= q1 * FgM * lsgp(j, i);
+        A(j + NIP, i) -= q1 * L * FkM * lskp(j, i);
+        A(j + NIP, i) -= q1 * FgM * lsgp(j, i);
 
-        A(j + numSections, i + numSections) += q1 * L * FkV * lskp(j, i);
-        A(j + numSections, i + numSections) += q1 * FgV * lsgp(j, i);
+        A(j + NIP, i + NIP) += q1 * L * FkV * lskp(j, i);
+        A(j + NIP, i + NIP) += q1 * FgV * lsgp(j, i);
       }
     }
   }
 
-  Vector mhs(numSections);
+  Vector mhs(NIP);
 
   mhs.addMatrixVector(0.0, ls, Fksdsdh, L * L);
   mhs.addMatrixVector(1.0, ls, kappa, 2 * L * dLdh);
@@ -1937,7 +1927,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
     mhs.addMatrixVector(1.0, lsg, Fgsdsdh, L);
     mhs.addMatrixVector(1.0, lsg, gamma, dLdh);
   }
-  for (int i = 0; i < numSections; i++)
+  for (int i = 0; i < NIP; i++)
     b(i) = mhs(i);
 
   if (shear_flag) {
@@ -1945,26 +1935,26 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
     mhs.addMatrixVector(1.0, lsgp, Fgsdsdh, 1.0);
     mhs.addMatrixVector(1.0, lskp, kappa, dLdh);
     //mhs.addMatrixVector(1.0, lsgp, gamma, 0*dLdh);
-    for (int i = 0; i < numSections; i++)
-      b(i + numSections) = mhs(i);
+    for (int i = 0; i < NIP; i++)
+      b(i + NIP) = mhs(i);
   }
 
 
   if (isdxidh) {
-    Matrix dGdh(numSections, numSections);
-    for (int i = 0; i < numSections; i++) {
+    Matrix dGdh(NIP, NIP);
+    for (int i = 0; i < NIP; i++) {
       dGdh(i, 0) = 0;
-      for (int j = 1; j < numSections; j++) {
+      for (int j = 1; j < NIP; j++) {
         dGdh(i, j) = j * pow(xi[i], j - 1) * dxidh[i];
       }
     }
 
-    Matrix dlsdh(numSections, numSections);
+    Matrix dlsdh(NIP, NIP);
 
 
-    Matrix dHkdh(numSections, numSections);
-    for (int i = 0; i < numSections; i++) {
-      for (int j = 0; j < numSections; j++) {
+    Matrix dHkdh(NIP, NIP);
+    for (int i = 0; i < NIP; i++) {
+      for (int j = 0; j < NIP; j++) {
         dHkdh(i, j) = (pow(xi[i], j + 1) / (j + 1) - 1.0 / (j + 1) / (j + 2)) * dxidh[i];
       }
     }
@@ -1973,9 +1963,9 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
     mhs.addMatrixVector(0.0, dlsdh, kappa, L * L);
 
     if (shear_flag) {
-      Matrix dHgdh(numSections, numSections);
-      for (int i = 0; i < numSections; i++) {
-        for (int j = 0; j < numSections; j++) {
+      Matrix dHgdh(NIP, NIP);
+      for (int i = 0; i < NIP; i++) {
+        for (int j = 0; j < NIP; j++) {
           dHgdh(i, j) = (pow(xi[i], j) - 1.0 / (j + 1)) * dxidh[i];
         }
       }
@@ -1984,14 +1974,14 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
       mhs.addMatrixVector(1.0, dlsdh, gamma, L);
     }
 
-    for (int i = 0; i < numSections; i++)
+    for (int i = 0; i < NIP; i++)
       b[i] += mhs[i];
 
 
     if (shear_flag) {
-      Matrix dHkpdh(numSections, numSections);
-      for (int i = 0; i < numSections; i++) {
-        for (int j = 0; j < numSections; j++) {
+      Matrix dHkpdh(NIP, NIP);
+      for (int i = 0; i < NIP; i++) {
+        for (int j = 0; j < NIP; j++) {
           dHkpdh(i, j) = pow(xi[i], j) * dxidh[i];
         }
       }
@@ -1999,10 +1989,10 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
       dlsdh.addMatrixProduct(1.0, lskp * dGdh, Ginv, -1.0);
       mhs.addMatrixVector(0.0, dlsdh, kappa, L);
 
-      Matrix dHgpdh(numSections, numSections);
-      for (int i = 0; i < numSections; i++) {
+      Matrix dHgpdh(NIP, NIP);
+      for (int i = 0; i < NIP; i++) {
         dHgpdh(i, 0) = 0.0;
-        for (int j = 1; j < numSections; j++) {
+        for (int j = 1; j < NIP; j++) {
           dHgpdh(i, j) = (j * pow(xi[i], j - 1)) * dxidh[i];
         }
       }
@@ -2010,13 +2000,13 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
       dlsdh.addMatrixProduct(1.0, lsgp * dGdh, Ginv, -1.0);
       mhs.addMatrixVector(1.0, dlsdh, gamma, 1.0);
 
-      for (int i = 0; i < numSections; i++)
-        b(i + numSections) += mhs(i);
+      for (int i = 0; i < NIP; i++)
+        b(i + NIP) += mhs(i);
     }
   }
 
 
-  Vector ajs(dwidh, 2 * numSections);
+  Vector ajs(dwidh, 2 * NIP);
 
   A.Solve(b, ajs);
 
@@ -2760,8 +2750,8 @@ ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, In
     wp.Zero();
     this->computew(w, wp, pts, kappa, gamma);
 
-    Matrix Ginv(NIP, NIP);
-    vandermonde_inverse(NIP, pts, Ginv);
+    MatrixND<NIP, NIP> Ginv;
+    vandermonde_inverse<NIP>(NIP, pts, Ginv);
 
     Matrix ls(NIP, NIP);
     Matrix Hk(NIP, NIP);
@@ -3088,8 +3078,8 @@ ForceDeltaFrame3d<NIP,nsr>::commitSensitivity(int igrad, int numGrads)
   wp.Zero();
   this->computew(w, wp, pts, kappa, gamma);
 
-  Matrix Ginv(numSections, numSections);
-  vandermonde_inverse(numSections, pts, Ginv);
+  MatrixND<NIP, NIP> Ginv;
+  vandermonde_inverse<NIP>(NIP, pts, Ginv);
 
   Matrix ls(numSections, numSections);
   Matrix Hk(numSections, numSections);
@@ -3224,8 +3214,8 @@ ForceDeltaFrame3d<NIP,nsr>::getBasicForceGrad(int igrad)
   wp.Zero();
   this->computew(w, wp, pts, kappa, gamma);
 
-  Matrix Ginv(numSections, numSections);
-  vandermonde_inverse(numSections, pts, Ginv);
+  MatrixND<NIP, NIP> Ginv;
+  vandermonde_inverse<NIP>(NIP, pts, Ginv);
 
   double dwidh[2 * NIP];
   this->computedwdh(dwidh, igrad, q_pres);

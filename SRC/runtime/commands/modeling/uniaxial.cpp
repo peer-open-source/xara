@@ -46,17 +46,20 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
                                        Tcl_Interp *interp, int cArg, int mArg,
                                        TCL_Char ** const argv, Domain *domain);
 
-// extern void *OPS_PlateBearingConnectionThermal(G3_Runtime*);
 
-// extern int TclCommand_ConfinedConcrete02(ClientData clientData, Tcl_Interp
-// *interp, int argc, 					 TCL_Char ** const argv, TclBasicBuilder
-// *theTclBuilder);
-
-// extern UniaxialMaterial *Tcl_AddLimitStateMaterial(ClientData clientData,
-//                                                    Tcl_Interp *interp, int argc,
-//                                                    TCL_Char **arg);
 
 #if 0
+extern void *OPS_PlateBearingConnectionThermal(G3_Runtime*);
+
+extern int TclCommand_ConfinedConcrete02(ClientData clientData, Tcl_Interp
+*interp, int argc, 					 TCL_Char ** const argv, TclBasicBuilder
+*theTclBuilder);
+
+extern UniaxialMaterial *Tcl_AddLimitStateMaterial(ClientData clientData,
+                                                   Tcl_Interp *interp, int argc,
+                                                   TCL_Char **arg);
+
+
 extern UniaxialMaterial *
 Tcl_addWrapperUniaxialMaterial(matObj *, ClientData clientData,
                                Tcl_Interp *interp, int argc, TCL_Char ** const argv);
@@ -900,25 +903,21 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << G3_ERROR_PROMPT << "invalid fpc\n";
-      opserr << "Concrete01 material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
       opserr << G3_ERROR_PROMPT << "invalid epsc0\n";
-      opserr << "Concrete01 material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
       opserr << G3_ERROR_PROMPT << "invalid fpcu\n";
-      opserr << "Concrete01 material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
       opserr << G3_ERROR_PROMPT << "invalid epscu\n";
-      opserr << "Concrete01 material: " << tag << "\n";
       return TCL_ERROR;
     }
 
@@ -929,7 +928,6 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
       double endStrainSITC;
       if (Tcl_GetDouble(interp, argv[7], &endStrainSITC) != TCL_OK) {
         opserr << G3_ERROR_PROMPT << "invalid epscu\n";
-        opserr << "Concrete01 material: " << tag << "\n";
         return TCL_ERROR;
       }
       theMaterial =
@@ -948,16 +946,16 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
   return TCL_OK;
 }
 
+
 #include <UniaxialJ2Plasticity.h>
 static int
 TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char** const argv)
 {
-  // ----- 1D J2 Plasticity ----
+    // ----- 1D J2 Plasticity ----
     if (argc < 7) {
       opserr << "WARNING invalid number of arguments\n";
       printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial UniaxialJ2Plasticity tag? E? sigmaY? "
-                "Hkin? <Hiso?>"
+      opserr << "Want: uniaxialMaterial UniaxialJ2Plasticity tag? E? sigmaY? Hkin? <Hiso?>"
              << endln;
       return TCL_ERROR;
     }
@@ -974,26 +972,22 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
       opserr << "WARNING invalid E\n";
-      opserr << "uniaxiaMaterial UniaxialJ2Plasticity: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &sigmaY) != TCL_OK) {
       opserr << "WARNING invalid sigmaY\n";
-      opserr << "uniaxiaMaterial UniaxialJ2Plasticity: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &Hkin) != TCL_OK) {
       opserr << "WARNING invalid Hkin\n";
-      opserr << "uniaxiaMaterial SmoothPSConcrete: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (argc >= 7)
       if (Tcl_GetDouble(interp, argv[6], &Hiso) != TCL_OK) {
         opserr << "WARNING invalid Hiso\n";
-        opserr << "uniaxialMaterial UniaxialJ2Plasticity: " << tag << endln;
         return TCL_ERROR;
       }
 
@@ -1004,11 +998,10 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
    builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
    return TCL_OK;
-
 }
 
 
-#include <Pinching4Material.h>       // NM
+#include <Pinching4Material.h>  // NM
 static int
 TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
 {

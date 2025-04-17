@@ -249,7 +249,7 @@ CreateFrame(BasicModelBuilder& builder,
                 (strcmp(name, "MixedFrame") == 0)) {
           if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
             if (!options.shear_flag)
-              static_loop<1,10>([&](auto nip) constexpr {
+              static_loop<2,6>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 4>(tag, nodes, sections,
                                                 beamIntegr, *theTransf, 
@@ -259,7 +259,7 @@ CreateFrame(BasicModelBuilder& builder,
                                                 );
               });
             else
-              static_loop<1,10>([&](auto nip) constexpr {
+              static_loop<2,6>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 6>(tag, nodes, sections,
                                                 beamIntegr, *theTransf, 

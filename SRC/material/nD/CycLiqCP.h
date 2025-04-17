@@ -12,11 +12,7 @@
 ** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1 $
-// $Date: 2012-09-01 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/soil/CycLiqCP.h,v $
-
+//
 // Written: Rui Wang, Tsinghua University, September, 2012
 //
 // Cyclic constitutive model for liquefaction of sand 
@@ -46,12 +42,9 @@
 
 class CycLiqCP : public NDMaterial {
 
-//-------------------Declarations-------------------------------
+public: 
 
-  public : 
-
-  //null constructor
-  CycLiqCP() ;
+  CycLiqCP();
 
   //full constructor
   CycLiqCP(int    tag,
@@ -69,29 +62,22 @@ class CycLiqCP : public NDMaterial {
 	   double ein1,      //initial void ratio
 	   double rho1=0.0) ;
   
-  //destructor
-  ~CycLiqCP( ) ;
+
+  ~CycLiqCP();
   
-  virtual const char *getClassType(void) const {return "CycLiqCP";};
+  virtual const char *getClassType(void) const {return "CycLiqCP";}
   
   //make a clone of this material
   virtual NDMaterial *getCopy(const char *type);
-  virtual NDMaterial* getCopy (void);
-  
-  //send back type of material
-  virtual const char* getType( void ) const ;
-  
-  //send back order of strain in vector form
-  virtual int getOrder( void ) const ;
-  
-  //swap history variables
-  int commitState( ) ; 
-  
-  //revert to last saved state
-  int revertToLastCommit( ) ;
-  
-  //revert to start
-  int revertToStart( ) ;
+  virtual NDMaterial* getCopy();
+
+  virtual const char* getType() const;
+
+  virtual int getOrder() const;
+
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
 
   //sending and receiving
   int sendSelf(int commitTag, Channel &theChannel) ;  
@@ -107,7 +93,7 @@ class CycLiqCP : public NDMaterial {
   
   double getRho(void) {return rho;}
   
-  protected :
+protected :
 
   //cutoff pressure
   //double p_cut=
@@ -220,7 +206,7 @@ class CycLiqCP : public NDMaterial {
   void index_map( int matrix_index, int &i, int &j ) ;
 
 
-  private:
+private:
 
   //static vectors and matrices sent back in get functions
   static Vector strain_vec ;     //strain in vector notation

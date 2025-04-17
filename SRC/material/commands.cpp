@@ -19,7 +19,6 @@
 #include <commands.h>
 #include <BasicModelBuilder.h>
 
-
 #include <PressureDependentElastic3D.h>
 
 #include <PlaneStressMaterial.h>

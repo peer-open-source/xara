@@ -191,7 +191,6 @@ parameterID(0)
 }
 
 
-//destructor
 J2Plasticity :: ~J2Plasticity( ) 
 {
 
@@ -281,13 +280,12 @@ void J2Plasticity :: Print( OPS_Stream &s, int flag )
 
 //plasticity integration routine
 int 
-J2Plasticity :: plastic_integrator()
+J2Plasticity::plastic_integrator()
 {
   const double tolerance = (1.0e-8)*sigma_0 ;
 
   const double dt = ops_Dt ; // time step
 
-  static Matrix dev_strain(3,3) ; // deviatoric strain
 
   static Matrix dev_stress(3,3) ; // deviatoric stress
  
@@ -295,28 +293,22 @@ J2Plasticity :: plastic_integrator()
 
   double NbunN ; // normal bun normal 
   double inv_norm_tau = 0.0 ;
-  double trace = 0.0 ; //trace of strain
   double tang  = 0.0 ;
   
   double theta = 0.0 ; 
   double theta_inv = 0.0 ;
 
-  double c1 = 0.0 ; 
-  double c2 = 0.0 ;
-  double c3 = 0.0 ;
-
-  int i,j,k,l;
-  int ii, jj ; 
 
   constexpr static int max_iterations = 25 ;
 
-  //compute the deviatoric strains
+  // compute the deviatoric strains
 
-  trace = strain(0,0) + strain(1,1) + strain(2,2) ;
+  double trace = strain(0,0) + strain(1,1) + strain(2,2) ;
  
+  static Matrix dev_strain(3,3);
   dev_strain = strain ;
   for (int i = 0; i < 3; i++ )
-    dev_strain(i,i) -= ( 1./3. *trace ) ;
+    dev_strain(i,i) -=  1./3. *trace;
    
   // compute the trial deviatoric stresses
 
@@ -345,8 +337,15 @@ J2Plasticity :: plastic_integrator()
 
   double phi = norm_tau -  root23 * q(xi_n) ;
 
+  double c1 = 0.0 ; 
+  double c2 = 0.0 ;
+  double c3 = 0.0 ;
+
+  int i,j,k,l;
+  int ii, jj ;
+
   double gamma = 0.0 ;
-  if ( phi > 0.0 ) { 
+  if ( phi > 0.0 ) {
      // plastic
 
      // solve for gamma 
@@ -356,7 +355,8 @@ J2Plasticity :: plastic_integrator()
 
         resid = norm_tau 
           - (2.0*shear) * gamma 
-          - root23 * q( xi_n + root23*gamma );
+          - root23 * q(xi_n + root23*gamma);
+
         if (eta > 0.0 && dt > 0.0)
           resid -= (eta/dt) * gamma ;
 
@@ -376,7 +376,7 @@ J2Plasticity :: plastic_integrator()
      }
 
 
-     gamma *= (1.0 - 1e-08) ;
+     gamma *= 1.0 - 1e-08;
 
      // update plastic internal variables
 
@@ -397,7 +397,8 @@ J2Plasticity :: plastic_integrator()
 
      theta_inv = 1.0/theta;
   }
-  else { //elastic 
+  else { 
+    // elastic 
 
     // update history variables -- they remain unchanged
 
@@ -487,20 +488,20 @@ void J2Plasticity :: doInitialTangent( )
 
 
 // hardening function
-double J2Plasticity :: q( double xi ) 
+double
+J2Plasticity::q(double xi) 
 {
-//  q(xi) = simga_infty + (sigma_0 - sigma_infty)*exp(-delta*xi) + H*xi 
-
- return sigma_infty
-         + (sigma_0 - sigma_infty)*exp(-delta*xi)
-         + Hard*xi ;
+  return Hard*xi
+         + sigma_infty
+         + (sigma_0 - sigma_infty)*exp(-delta*xi);
 }
 
 
 // hardening function derivative
-double J2Plasticity :: qprime( double xi )
+double
+J2Plasticity::qprime(double xi)
 {
-  return  (sigma_0 - sigma_infty) * (-delta) * exp(-delta*xi) + Hard ;
+  return  (sigma_0 - sigma_infty) * (-delta) * exp(-delta*xi) + Hard;
 }
 
 
@@ -557,25 +558,25 @@ void J2Plasticity :: index_map( int matrix_index, int &i, int &j )
 NDMaterial*
 J2Plasticity::getCopy ()
 {
-  opserr << "J2Plasticity::getCopy -- subclass responsibility\n"; 
-  exit(-1);
-  return 0;
+  // TODO: Clean up subclassing
+  assert(false);
+  opserr << "J2Plasticity::getCopy -- subclass responsibility\n";
+  return nullptr;
 }
 
 const char*
 J2Plasticity::getType() const
 {
-    opserr << "J2Plasticity::getType -- subclass responsibility\n";
-    exit(-1);
-    return 0;
+  assert(false);
+  opserr << "J2Plasticity::getType -- subclass responsibility\n";
+  return nullptr;
 }
 
 int
 J2Plasticity::getOrder() const
 {
-    opserr << "J2Plasticity::getOrder -- subclass responsibility\n";
-    exit(-1);
-    return 0;
+  opserr << "J2Plasticity::getOrder -- subclass responsibility\n";
+  return -1;
 }
 
 
@@ -589,21 +590,21 @@ J2Plasticity::commitState()
 }
 
 int 
-J2Plasticity::revertToLastCommit( ) 
+J2Plasticity::revertToLastCommit() 
 {
   return 0;
 }
 
 
 int 
-J2Plasticity::revertToStart( ) {
-
+J2Plasticity::revertToStart()
+{
   // added: C.McGann, U.Washington for InitialStateAnalysis
   if (ops_InitialStateAnalysis) {
         // do nothing, keep state variables from last step
   } else {
         // normal call for revertToStart (not initialStateAnalysis)
-    this->zero( ) ;
+    this->zero();
   }
 
   return 0;

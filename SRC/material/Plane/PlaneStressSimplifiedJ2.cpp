@@ -1,3 +1,5 @@
+// -------------------
+//
 // Written: Quan Gu and Zhijian Qiu
 // Created: 2013.7
 //
@@ -7,7 +9,7 @@
 // plasticity, Theory and applications (see pages 357 to 366), 2008.
 // 
 // 3D J2 plasticity model with linear isotropic and kinematic hardening
-//  
+//
 // -------------------
 
 #include <math.h>   
@@ -33,63 +35,13 @@ Vector PlaneStressSimplifiedJ2::tmpVector(3);
 // be careful! Here we use  eps(1,1),eps(2,2),2*eps(1,2). i.e., the same as that of element. 
 
 #include <SimplifiedJ2.h>
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_PlaneStressSimplifiedJ2) {
-
-  int tag;
-  double K, G, sig0, H_kin, H_iso;
-
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  if (numArgs != 6) {
-    opserr << "ndMaterial PlaneStressSimplifiedJ2 incorrect num args: want tag G K sig0 H_kin H_iso\n";
-    return 0;
-  }
-
-  int iData[1];
-  double dData[5];
-
-  int numData = 1;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer values: nDMaterial PlaneStressSimplifiedJ2 \n";
-    return 0;
-  }  
-  tag = iData[0]; 
-
-  numData = 5;  
-  if (OPS_GetDouble(&numData, dData) != 0) {
-      opserr << "WARNING invalid double values: nDMaterial PlaneStressSimplifiedJ2 " << tag << endln;
-    return 0;
-  }  
-  G = dData[0];
-  K = dData[1];
-  sig0 = dData[2];
-  H_kin = dData[3];
-  H_iso = dData[4];
-
-  NDMaterial *theMaterial2 =  new SimplifiedJ2 (tag, 
-						3,
-						G,   
-						K,
-						sig0,
-						H_kin,
-						H_iso);
-  
-  
-  NDMaterial *theMaterial = new PlaneStressSimplifiedJ2 (tag, 
-							 2,
-							 *theMaterial2);
-  return theMaterial;
-}
-
 
 
 PlaneStressSimplifiedJ2::PlaneStressSimplifiedJ2 (int pTag, 
 						   int nd, 
 						   NDMaterial &passed3DMaterial)
   : NDMaterial(pTag, ND_TAG_PlaneStress), stress(3),
-    strain(3), Cstress(3), Cstrain(3),theTangent(3,3)	
-    
+    strain(3), Cstress(3), Cstrain(3),theTangent(3,3)
 {
   this->ndm = 2;    
   the3DMaterial = passed3DMaterial.getCopy();  
@@ -120,16 +72,6 @@ int PlaneStressSimplifiedJ2::plastIntegrator(){
 	double tol = 1e-12;
 	double e33 = CsavedStrain33;
 
-	int debugFlag =0;
-	static int counter =0;
-	counter++;
-//	opserr<<"counter:"<<counter<<endln;
-
-	if (fabs(e33)>tol ) {
-	 // opserr<<"testing planestress j2 part "<<endln;
-	//  debugFlag =1;
-	}
-
 	static Vector strain3D(6);
 	static Vector stress3D(6);
 	static Matrix tangent3D(6,6);
@@ -148,55 +90,25 @@ int PlaneStressSimplifiedJ2::plastIntegrator(){
 
 	int i =0;
 
-// ------ debug ---------
-
-	if (debugFlag ==1){
-		opserr<<"iteration number:" <<i<<endln;	
-		opserr<<"strain is:" <<strain3D<<endln;
-		opserr<<"stress is:"<<stress3D<<endln;
-		opserr<<"tangent is:"<< tangent3D<<endln;
-	
-	}
-
 	double e33_old=e33+1.0;
 
 	while (( fabs(e33-e33_old)>tol) &&( fabs(stress3D(2))>tol) &&(i<maxIter)) {
-
 	    e33_old = e33;		
 		e33 -= stress3D(2)/tangent3D(2,2);
 		strain3D(2) = e33;
 	    the3DMaterial->setTrialStrain(strain3D);
 	    stress3D = the3DMaterial->getStress();
 		tangent3D = the3DMaterial->getTangent();
-
-	if (debugFlag ==1){
-		opserr<<"iteration number:" <<i<<endln;	
-		opserr<<"strain is:" <<strain3D<<endln;
-		opserr<<"stress is:"<<stress3D<<endln;
-		opserr<<"tangent is:"<< tangent3D<<endln;
-	
-	}
-	//   opserr.precision(16);
-	//	opserr<<"iteration number is" <<i;	
-	//	opserr<<": strain_zz is:" <<strain3D(2)<< ", stress is:"<<stress3D(2)<<endln;
-
-
-
-
 		i++;
-
 	} 
 
 	if (( fabs(e33-e33_old)>tol) &&(fabs(stress3D(2))>tol)) {
-		opserr<<"Fatal: PlaneStressSimplifiedJ2::plastIntegrator() can not find e33!"<<endln;
-		exit(-1);
+		opserr<<"PlaneStressSimplifiedJ2::plastIntegrator() can not find e33"<<endln;
+		return -1;
 	}
 
 	// --------- update the stress and tangent -----
 	savedStrain33 = e33;
-
-//	opserr<<"Total iteration number:" <<i<<endln;	
-
 
    stress(0) = stress3D(0);
    stress(1) = stress3D(1);
@@ -230,38 +142,30 @@ for( int i=0; i<3; i++)
   for (int j=0; j<3; j++)
 	  theTangent(i,j) = D11(i,j)-1.0/D22*D12(i)*D21(j);
 
-	if (debugFlag ==1){
-		opserr<<"Final 2D tangent is:"<< theTangent<<endln;
-	
-	}
  
-	return 0;
+  return 0;
 
-};
+}
  
 
-int PlaneStressSimplifiedJ2::setTrialStrain (const Vector &pStrain){
+int
+PlaneStressSimplifiedJ2::setTrialStrain (const Vector &pStrain)
+{
 
- 
     strain = pStrain;
  
   // ----- change to real strain instead of eng. strain
 
   // strain[2] /=2.0;     be careful!           
-  
-  this->plastIntegrator();
 
+  return this->plastIntegrator();
+}
 
-
-	return 0;
-
-};   
-
-int PlaneStressSimplifiedJ2::setTrialStrain(const Vector &v, const Vector &r){
-
+int
+PlaneStressSimplifiedJ2::setTrialStrain(const Vector &v, const Vector &r)
+{
 	return this->setTrialStrain ( v);
-
-};
+}
 
 int PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v){
 	
@@ -278,56 +182,48 @@ int PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v){
 
 };
 
-int PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v, const Vector &r){
-
- 
-
+int
+PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v, const Vector &r)
+{
 	return this->setTrialStrainIncr(v);
+}
 
+// Calculates current tangent stiffness.
+const Matrix & 
+PlaneStressSimplifiedJ2::getTangent()
+{
+	return theTangent;
+}
 
-};
-
-     // Calculates current tangent stiffness.
-
-const Matrix & PlaneStressSimplifiedJ2::getTangent (void){
-		return theTangent;
-
-};
-const Matrix & PlaneStressSimplifiedJ2::getInitialTangent (void){
-
- 
-
+const Matrix & PlaneStressSimplifiedJ2::getInitialTangent()
+{
 	return this->getTangent();
-
-};
+}
         
      
-const Vector & PlaneStressSimplifiedJ2::getStress (void){
-
+const Vector & PlaneStressSimplifiedJ2::getStress()
+{
   return stress;
+}
 
-};
+const Vector & PlaneStressSimplifiedJ2::getStrain()
+{
+  return strain; 
+}
 
-const Vector & PlaneStressSimplifiedJ2::getStrain (void){
-
-	return strain; 
-};
-
-const Vector & PlaneStressSimplifiedJ2::getCommittedStress (void){ 
-
+const Vector & PlaneStressSimplifiedJ2::getCommittedStress()
+{
     return Cstress;
-};
+}
 
-const Vector & PlaneStressSimplifiedJ2::getCommittedStrain (void){
-
-    return Cstrain; 
-
-};
-
-
-int PlaneStressSimplifiedJ2::commitState (void){
+const Vector & PlaneStressSimplifiedJ2::getCommittedStrain()
+{
+    return Cstrain;
+}
 
 
+int PlaneStressSimplifiedJ2::commitState()
+{
 	CsavedStrain33 = savedStrain33; 
 	Cstress = stress;
 	Cstrain = strain;
@@ -336,25 +232,28 @@ int PlaneStressSimplifiedJ2::commitState (void){
 
 	return 0;
 
-};
+}
 
-int PlaneStressSimplifiedJ2::revertToLastCommit (void){
-
+int PlaneStressSimplifiedJ2::revertToLastCommit()
+{
 // -- to be implemented.
 	return 0;
-};
+}
 
-int PlaneStressSimplifiedJ2::revertToStart(void) {
+int PlaneStressSimplifiedJ2::revertToStart()
+{
 	// -- to be implemented.
 	return 0;
 }
 
 
 
-NDMaterial * PlaneStressSimplifiedJ2::getCopy (void){
+NDMaterial * 
+PlaneStressSimplifiedJ2::getCopy()
+{
     PlaneStressSimplifiedJ2 * theJ2 = new PlaneStressSimplifiedJ2(this->getTag(),this->ndm, *the3DMaterial);
     return theJ2;
-};
+}
 
 NDMaterial * PlaneStressSimplifiedJ2::getCopy (const char *type){
   if (strcmp(type,"PlaneStress") == 0) {
@@ -363,22 +262,22 @@ NDMaterial * PlaneStressSimplifiedJ2::getCopy (const char *type){
   } else {
     return 0;
   }
-};
+}
  
 
 
-int PlaneStressSimplifiedJ2::sendSelf(int commitTag, Channel &theChannel){
+int
+PlaneStressSimplifiedJ2::sendSelf(int commitTag, Channel &theChannel){
 	// -- to be implemented.
 
 
 	return 0;
-};  
+}
 
 int PlaneStressSimplifiedJ2::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker){
 	// -- to be implemented.
-
 	return 0;
-};    
+}
   
      
 Response * PlaneStressSimplifiedJ2::setResponse (const char **argv, int argc, OPS_Stream &s){
@@ -403,10 +302,10 @@ Response * PlaneStressSimplifiedJ2::setResponse (const char **argv, int argc, OP
 
 
 
-int PlaneStressSimplifiedJ2::getResponse (int responseID, Information &matInfo){
+int
+PlaneStressSimplifiedJ2::getResponse(int responseID, Information &matInfo)
+{
 		
-
-
 	switch (responseID) {
 		case -1:
 			return -1;

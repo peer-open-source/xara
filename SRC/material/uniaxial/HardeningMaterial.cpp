@@ -35,68 +35,26 @@
 
 #include <math.h>
 #include <float.h>
-#include <elementAPI.h>
 
-void * OPS_ADD_RUNTIME_VPV(OPS_HardeningMaterial)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 5) {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: uniaxialMaterial Hardening tag? E? sigmaY? H_iso? H_kin?" << endln;
-      return 0;
-    }
-
-    int tag;
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata,&tag) < 0) {
-      opserr << "WARNING: failed to read tag\n";
-      return 0;
-    }
-
-    double data[4];
-    numdata = 4;
-    if (OPS_GetDoubleInput(&numdata,data)) {
-      opserr << "WARING: failed to read data\n";
-      return 0;
-    }
-
-    double eta = 0.0;
-    numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata > 0) {
-      numdata = 1;
-      if (OPS_GetDouble(&numdata,&eta)<0) {
-          opserr << "WARNING: failed to read eta\n";
-          return 0;
-      }
-    }
-
-    UniaxialMaterial* mat = new HardeningMaterial(tag,data[0],data[1],data[2],data[3],eta);
-
-    return mat;
-}
 
 HardeningMaterial::HardeningMaterial(int tag, double e, double s,
 				     double hi, double hk, double n)
-:UniaxialMaterial(tag,MAT_TAG_Hardening),
+: UniaxialMaterial(tag,MAT_TAG_Hardening),
  E(e), sigmaY(s), Hiso(hi), Hkin(hk)
 {
-// AddingSensitivity:BEGIN /////////////////////////////////////
 	parameterID = 0;
 	SHVs = 0;
-// AddingSensitivity:END //////////////////////////////////////
 
 	// Initialize variables
-    this->revertToStart();
+  this->revertToStart();
 }
 
 HardeningMaterial::HardeningMaterial()
 :UniaxialMaterial(0,MAT_TAG_Hardening),
  E(0.0), sigmaY(0.0), Hiso(0.0), Hkin(0.0)
 {
-// AddingSensitivity:BEGIN /////////////////////////////////////
 	parameterID = 0;
 	SHVs = 0;
-// AddingSensitivity:END //////////////////////////////////////
 
 	// Initialize variables
 	this->revertToStart();
@@ -104,60 +62,58 @@ HardeningMaterial::HardeningMaterial()
 
 HardeningMaterial::~HardeningMaterial()
 {
-// AddingSensitivity:BEGIN /////////////////////////////////////
 	if (SHVs != 0) 
 		delete SHVs;
-// AddingSensitivity:END //////////////////////////////////////
 }
 
 int 
-HardeningMaterial::setTrialStrain (double strain, double strainRate)
+HardeningMaterial::setTrialStrain(double strain, double strainRate)
 {
 
-    if (fabs(Tstrain-strain) < DBL_EPSILON)
-      return 0;
-
-    // Set total strain
-    Tstrain = strain;
-    
-    // Elastic trial stress
-    Tstress = E * (Tstrain - CplasticStrain);
-
-    // Compute trial stress relative to committed back stress
-    double xsi = Tstress - Hkin*CplasticStrain;
-
-    // Compute yield criterion
-    double f = fabs(xsi) - (sigmaY + Hiso*Chardening);
-
-    // Elastic step ... no updates required
-    if (f <= -DBL_EPSILON * E) {
-      // Set trial tangent
-      Ttangent = E;
-    }
-
-    // Plastic step ... perform return mapping algorithm
-    else {
-
-      // Compute consistency parameter
-      double dGamma = f / (E+Hiso+Hkin);
-
-      // Find sign of xsi
-      int sign = (xsi < 0) ? -1 : 1;
-
-      // Bring trial stress back to yield surface
-      Tstress -= dGamma*E*sign;
-
-      // Update plastic strain
-      TplasticStrain = CplasticStrain + dGamma*sign;
-
-      // Update internal hardening variable
-      Thardening = Chardening + dGamma;
-
-      // Set trial tangent
-      Ttangent = E*(Hkin + Hiso) / (E + Hkin + Hiso);
-    }
-
+  if (fabs(Tstrain-strain) < DBL_EPSILON)
     return 0;
+
+  // Set total strain
+  Tstrain = strain;
+  
+  // Elastic trial stress
+  Tstress = E * (Tstrain - CplasticStrain);
+
+  // Compute trial stress relative to committed back stress
+  double xsi = Tstress - Hkin*CplasticStrain;
+
+  // Compute yield criterion
+  double f = fabs(xsi) - (sigmaY + Hiso*Chardening);
+
+  // Elastic step ... no updates required
+  if (f <= -DBL_EPSILON * E) {
+    // Set trial tangent
+    Ttangent = E;
+  }
+
+  // Plastic step ... perform return mapping algorithm
+  else {
+
+    // Compute consistency parameter
+    double dGamma = f / (E+Hiso+Hkin);
+
+    // Find sign of xsi
+    int n = (xsi < 0) ? -1 : 1;
+
+    // Bring trial stress back to yield surface
+    Tstress -= dGamma*E*n;
+
+    // Update plastic strain
+    TplasticStrain = CplasticStrain + dGamma*n;
+
+    // Update internal hardening variable
+    Thardening = Chardening + dGamma;
+
+    // Set trial tangent
+    Ttangent = E*(Hkin + Hiso) / (E + Hkin + Hiso);
+  }
+
+  return 0;
 }
 
 double 
@@ -181,11 +137,11 @@ HardeningMaterial::getStrain()
 int 
 HardeningMaterial::commitState()
 {
-    // Commit trial history variables
-    CplasticStrain = TplasticStrain;
-    Chardening = Thardening;
-    
-    return 0;
+  // Commit trial history variables
+  CplasticStrain = TplasticStrain;
+  Chardening = Thardening;
+  
+  return 0;
 }
 
 int 
@@ -210,10 +166,8 @@ HardeningMaterial::revertToStart()
     Tstress = 0.0;
     Ttangent = E;
 
-  // AddingSensitivity:BEGIN /////////////////////////////////
     if (SHVs != 0) 
       SHVs->Zero();
-  // AddingSensitivity:END //////////////////////////////////
 
     return 0;
 }
@@ -221,23 +175,23 @@ HardeningMaterial::revertToStart()
 UniaxialMaterial *
 HardeningMaterial::getCopy(void)
 {
-    HardeningMaterial *theCopy =
-         new HardeningMaterial(this->getTag(), E, sigmaY, Hiso, Hkin);
+  HardeningMaterial *theCopy =
+        new HardeningMaterial(this->getTag(), E, sigmaY, Hiso, Hkin);
 
-    // Copy committed history variables
-    theCopy->CplasticStrain = CplasticStrain;
-    theCopy->Chardening = Chardening;
+  // Copy committed history variables
+  theCopy->CplasticStrain = CplasticStrain;
+  theCopy->Chardening = Chardening;
 
-    // Copy trial history variables
-    theCopy->TplasticStrain = TplasticStrain;
-    theCopy->Thardening = Thardening;
+  // Copy trial history variables
+  theCopy->TplasticStrain = TplasticStrain;
+  theCopy->Thardening = Thardening;
 
-    // Copy trial state variables
-    theCopy->Tstrain = Tstrain;
-    theCopy->Tstress = Tstress;
-    theCopy->Ttangent = Ttangent;
-    
-    return theCopy;
+  // Copy trial state variables
+  theCopy->Tstrain = Tstrain;
+  theCopy->Tstress = Tstress;
+  theCopy->Ttangent = Ttangent;
+  
+  return theCopy;
 }
 
 int 
@@ -313,17 +267,17 @@ HardeningMaterial::Print(OPS_Stream &s, int flag)
     
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
 		s << OPS_PRINT_JSON_MATE_INDENT << "{";
-		s << "\"name\": \"" << this->getTag() << "\", ";
+		s << "\"name\": " << this->getTag() << ", ";
 		s << "\"type\": \"HardeningMaterial\", ";
 		s << "\"E\": " << E << ", ";
 		s << "\"fy\": " << sigmaY << ", ";
 		s << "\"Hiso\": " << Hiso << ", ";
-		s << "\"Hkin\": " << Hkin << ", ";
+		s << "\"Hkin\": " << Hkin;
+    s << "}";
 	}
 }
 
 
-// AddingSensitivity:BEGIN ///////////////////////////////////
 int
 HardeningMaterial::setParameter(const char **argv, int argc, Parameter &param)
 {
@@ -377,11 +331,8 @@ int
 HardeningMaterial::activateParameter(int passedParameterID)
 {
 	parameterID = passedParameterID;
-
 	return 0;
 }
-
-
 
 
 double
@@ -593,5 +544,4 @@ HardeningMaterial::commitSensitivity(double TstrainSensitivity, int gradIndex, i
 
 	return 0;
 }
-// AddingSensitivity:END /////////////////////////////////////////////
 

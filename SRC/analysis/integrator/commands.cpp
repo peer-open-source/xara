@@ -1,22 +1,34 @@
-
-
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//
+//===----------------------------------------------------------------------===//
+//
 #include <Parsing.h>
-
-
+#include <Logging.h>
+#include <Node.h>
+#include <Domain.h>
+#include <BasicAnalysisBuilder.h>
 #include <Dynamic/Houbolt.h>
+
+#if 0
 int
-TclCommand_createHoubolt() {
+TclCommand_createHoubolt(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   return new Houbolt(); 
 }
+#endif
 
 #include <Dynamic/AlphaOSGeneralized.h>
 #include <Dynamic/AlphaOSGeneralized_TP.h>
 int
-TclCommand_createAlphaOSGeneralized(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createAlphaOSGeneralized(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 2 && argc != 4 && argc != 5) {
     opserr << "WARNING - incorrect number of args want AlphaOSGeneralized "
               "$rhoInf <-updateElemDisp>\n";
@@ -47,22 +59,25 @@ TclCommand_createAlphaOSGeneralized(ClientData clientData, Tcl_Interp* interp, i
       updElemDisp = true;
   }
 
+  TransientIntegrator *theIntegrator = nullptr;
   if (argc < 3)
     theIntegrator = new AlphaOSGeneralized(dData[0], updElemDisp);
   else
     theIntegrator = new AlphaOSGeneralized(dData[0], dData[1], dData[2],
                                            dData[3], updElemDisp);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 int
-TclCommand_createAlphaOSGeneralized_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createAlphaOSGeneralized_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 2 && argc != 4 && argc != 5) {
     opserr << "WARNING - incorrect number of args want AlphaOSGeneralized_TP "
               "$rhoInf <-updateElemDisp>\n";
@@ -93,13 +108,15 @@ TclCommand_createAlphaOSGeneralized_TP(ClientData clientData, Tcl_Interp* interp
       updElemDisp = true;
   }
 
+  TransientIntegrator *theIntegrator = nullptr;
   if (argc < 3)
     theIntegrator = new AlphaOSGeneralized_TP(dData[0], updElemDisp);
   else
     theIntegrator = new AlphaOSGeneralized_TP(dData[0], dData[1], dData[2],
                                               dData[3], updElemDisp);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -107,11 +124,12 @@ TclCommand_createAlphaOSGeneralized_TP(ClientData clientData, Tcl_Interp* interp
 
 #include <Dynamic/AlphaOS.h>
 int
-TclCommand_createAlphaOS(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createAlphaOS(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc < 1 || argc > 4) {
     opserr << "WARNING - incorrect number of args want AlphaOS $alpha "
               "<-updateElemDisp>\n";
@@ -139,13 +157,15 @@ TclCommand_createAlphaOS(ClientData clientData, Tcl_Interp* interp, int argc, TC
       updElemDisp = true;
   }
 
+  TransientIntegrator *theIntegrator = nullptr;
   if (argc < 3)
     theIntegrator = new AlphaOS(dData[0], updElemDisp);
   else
     theIntegrator = new AlphaOS(dData[0], dData[1], dData[2], updElemDisp);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -153,11 +173,13 @@ TclCommand_createAlphaOS(ClientData clientData, Tcl_Interp* interp, int argc, TC
 
 #include <analysis/integrator/Dynamic/AlphaOS_TP.h>
 int
-TclCommand_createAlphaOS_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createAlphaOS_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+  TransientIntegrator *theIntegrator = nullptr;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc < 1 || argc > 4) {
     opserr << "WARNING - incorrect number of args want AlphaOS_TP $alpha "
               "<-updateElemDisp>\n";
@@ -192,7 +214,8 @@ TclCommand_createAlphaOS_TP(ClientData clientData, Tcl_Interp* interp, int argc,
     theIntegrator = new AlphaOS_TP(dData[0], dData[1], dData[2], updElemDisp);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -200,7 +223,10 @@ TclCommand_createAlphaOS_TP(ClientData clientData, Tcl_Interp* interp, int argc,
 
 #include <analysis/integrator/Static/ArcLength1.h>
 int
-TclCommand_createArcLength1(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
+TclCommand_createArcLength1(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   double arcLength;
   double alpha;
   if (OPS_GetNumRemainingInputArgs() < 2) {
@@ -217,14 +243,18 @@ TclCommand_createArcLength1(ClientData clientData, Tcl_Interp* interp, int argc,
     opserr << "WARNING integrator ArcLength failed to read alpha\n";
     return TCL_ERROR;
   }
-  return new ArcLength1(arcLength, alpha);
+
+  builder->set(*new ArcLength1(arcLength, alpha));
+  return TCL_OK;
 }
 
 
 #include <analysis/integrator/Static/ArcLength.h>
 int
-TclCommand_createArcLength() 
+TclCommand_createArcLength(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
 {
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   double arcLength;
   double alpha;
   if (OPS_GetNumRemainingInputArgs() < 2) {
@@ -241,7 +271,8 @@ TclCommand_createArcLength()
     opserr << "WARNING integrator ArcLength failed to read alpha\n";
     return TCL_ERROR;
   }
-  return new ArcLength(arcLength, alpha);
+  builder->set(*new ArcLength(arcLength, alpha));
+  return TCL_OK;
 }
 
 
@@ -249,7 +280,10 @@ TclCommand_createArcLength()
 
 #include <analysis/integrator/Dynamic/BackwardEuler.h>
 int
-TclCommand_createBackwardEuler(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
+TclCommand_createBackwardEuler(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   int optn = 0;
   if (OPS_GetNumRemainingInputArgs() > 0) {
     int numdata = 1;
@@ -259,19 +293,23 @@ TclCommand_createBackwardEuler(ClientData clientData, Tcl_Interp* interp, int ar
       return TCL_ERROR;
     }
   }
-  return new BackwardEuler(optn);
+  builder->set(* new BackwardEuler(optn));
+  return TCL_OK;
 }
 
 
 
-
-#include <SRC/analysis/integrator/CollocationHSFixedNumIter.h>
+#if 0
+#include <analysis/integrator/CollocationHSFixedNumIter.h>
 int
-TclCommand_createCollocationHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createCollocationHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 3 && argc != 5) {
     opserr << "WARNING - incorrect number of args want "
               "CollocationHSFixedNumIter $theta <-polyOrder $O>\n";
@@ -322,19 +360,22 @@ TclCommand_createCollocationHSFixedNumIter(ClientData clientData, Tcl_Interp* in
     theIntegrator =
         new CollocationHSFixedNumIter(dData[0], dData[1], dData[2], polyOrder);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 
 
-#include <SRC/analysis/integrator/CollocationHSIncrLimit.h>
-int
-TclCommand_createCollocationHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+#include <analysis/integrator/CollocationHSIncrLimit.h>
+int
+TclCommand_createCollocationHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
+  argc -= 2;
+
   if (argc != 2 && argc != 4 && argc != 6) {
     opserr << "WARNING - incorrect number of args want CollocationHSIncrLimit "
               "$theta $limit <-normType $T>\n";
@@ -379,6 +420,7 @@ TclCommand_createCollocationHSIncrLimit(ClientData clientData, Tcl_Interp* inter
     }
   }
 
+  TransientIntegrator *theIntegrator = 0;
   if (numData == 2)
     theIntegrator = new CollocationHSIncrLimit(dData[0], dData[1], normType);
   else if (numData == 4)
@@ -386,20 +428,22 @@ TclCommand_createCollocationHSIncrLimit(ClientData clientData, Tcl_Interp* inter
                                                dData[3], normType);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
-
-
-#include <SRC/analysis/integrator/CollocationHSIncrReduct.h>
+#include <analysis/integrator/CollocationHSIncrReduct.h>
 
 int
-TclCommand_createCollocationHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createCollocationHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 2 && argc != 4) {
     opserr << "WARNING - incorrect number of args want CollocationHSIncrReduct "
               "$theta $reduct\n";
@@ -427,19 +471,22 @@ TclCommand_createCollocationHSIncrReduct(ClientData clientData, Tcl_Interp* inte
     opserr << "WARNING - out of memory creating CollocationHSIncrReduct "
               "integrator\n";
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 
 
-#include <SRC/analysis/integrator/Collocation.h>
+#include <analysis/integrator/Collocation.h>
 int
-TclCommand_createCollocation(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createCollocation(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 3) {
     opserr << "WARNING - incorrect number of args want Collocation $theta\n";
     opserr << "          or Collocation $theta $beta $gamma\n";
@@ -458,15 +505,20 @@ TclCommand_createCollocation(ClientData clientData, Tcl_Interp* interp, int argc
   else
     theIntegrator = new Collocation(dData[0], dData[1], dData[2]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
+#endif
 
 
 
 
-#include <SRC/analysis/integrator/Static/DisplacementControl.h>
+#include <analysis/integrator/Static/DisplacementControl.h>
 int
-TclCommand_createDisplacementControlIntegrator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
+TclCommand_createDisplacementControlIntegrator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   if (OPS_GetNumRemainingInputArgs() < 3) {
     opserr << "insufficient arguments for DisplacementControl\n";
     return TCL_ERROR;
@@ -512,9 +564,9 @@ TclCommand_createDisplacementControlIntegrator(ClientData clientData, Tcl_Interp
   }
 
   // check node
-  Domain *theDomain = OPS_GetDomain();
+  Domain *theDomain = builder->getDomain();
   Node *theNode = theDomain->getNode(iData[0]);
-  if (theNode == 0) {
+  if (theNode == nullptr) {
     opserr << "WARNING integrator DisplacementControl node dof dU : Node does "
               "not exist\n";
     return TCL_ERROR;
@@ -527,19 +579,23 @@ TclCommand_createDisplacementControlIntegrator(ClientData clientData, Tcl_Interp
     return TCL_ERROR;
   }
 
-  return new DisplacementControl(iData[0], iData[1] - 1, incr, theDomain,
-                                 numIter, data[0], data[1], formTangent);
+  builder->set(*new DisplacementControl(iData[0], iData[1] - 1, incr, theDomain,
+                                 numIter, data[0], data[1], formTangent));
+  return TCL_OK;
 }
 
 
 
-#include <analysis/integrator/GeneralizedAlpha.h>
+#include <analysis/integrator/Dynamic/GeneralizedAlpha.h>
 int
-TclCommand_createGeneralizedAlpha(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // Pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createGeneralizedAlpha(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+  TransientIntegrator *theIntegrator = nullptr;
+
+  argc -= 2;
+
   if (argc != 2 && argc != 4) {
     opserr << "WARNING - incorrect number of args want GeneralizedAlpha "
               "$alphaM $alphaF <$gamma $beta>\n";
@@ -559,19 +615,23 @@ TclCommand_createGeneralizedAlpha(ClientData clientData, Tcl_Interp* interp, int
     theIntegrator =
         new GeneralizedAlpha(dData[0], dData[1], dData[2], dData[3]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 
 
+#if 0
 #include <analysis/integrator/GimmeMCK.h>
 int
-TclCommand_createGimmeMCK(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createGimmeMCK(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc < 3) {
     opserr
         << "WARNING - incorrect number of args want GimmeMCK $m $c $k <$ki>\n";
@@ -596,18 +656,20 @@ TclCommand_createGimmeMCK(ClientData clientData, Tcl_Interp* interp, int argc, T
   theIntegrator = new GimmeMCK(ddata[0], ddata[1], ddata[2], ki);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
-
 
 
 #include <analysis/integrator/Dynamic/HHTExplicit.h>
 int
-TclCommand_createHHTExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc < 1 || argc > 3) {
     opserr << "WARNING - incorrect number of args want HHTExplicit $alpha "
               "<-updateElemDisp>\n";
@@ -648,7 +710,8 @@ TclCommand_createHHTExplicit(ClientData clientData, Tcl_Interp* interp, int argc
   else if (numData == 2)
     theIntegrator = new HHTExplicit(dData[0], dData[1], updElemDisp);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -656,11 +719,12 @@ TclCommand_createHHTExplicit(ClientData clientData, Tcl_Interp* interp, int argc
 
 #include <analysis/integrator/Dynamic/HHTExplicit_TP.h>
 int
-TclCommand_createHHTExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createHHTExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc < 1 || argc > 2) {
     opserr << "WARNING - incorrect number of args want HHTExplicit_TP $alpha\n";
     opserr << "          or HHTExplicit_TP $alpha $gamma\n";
@@ -674,24 +738,29 @@ TclCommand_createHHTExplicit_TP(ClientData clientData, Tcl_Interp* interp, int a
     return TCL_ERROR;
   }
 
+  TransientIntegrator *theIntegrator = 0;
   if (argc == 1)
     theIntegrator = new HHTExplicit_TP(dData[0]);
   else if (argc == 2)
     theIntegrator = new HHTExplicit_TP(dData[0], dData[1]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
+
 
 
 
 
 #include <analysis/integrator/Dynamic/HHTGeneralizedExplicit.h>
 int
-TclCommand_createHHTGeneralizedExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createHHTGeneralizedExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+  TransientIntegrator *theIntegrator = nullptr;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc < 2 || argc > 5) {
     opserr << "WARNING - incorrect number of args want HHTGeneralizedExplicit "
               "$rhoB $alphaF <-updateElemDisp>\n";
@@ -728,7 +797,8 @@ TclCommand_createHHTGeneralizedExplicit(ClientData clientData, Tcl_Interp* inter
     theIntegrator = new HHTGeneralizedExplicit(dData[0], dData[1], dData[2],
                                                dData[3], updElemDisp);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -736,11 +806,12 @@ TclCommand_createHHTGeneralizedExplicit(ClientData clientData, Tcl_Interp* inter
 
 #include <analysis/integrator/Dynamic/HHTGeneralizedExplicit_TP.h>
 int
-TclCommand_createHHTGeneralizedExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTGeneralizedExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 2 && argc != 4) {
     opserr << "WARNING - incorrect number of args want "
               "HHTGeneralizedExplicit_TP $rhoB $alphaF\n";
@@ -764,7 +835,8 @@ TclCommand_createHHTGeneralizedExplicit_TP(ClientData clientData, Tcl_Interp* in
     theIntegrator =
         new HHTGeneralizedExplicit_TP(dData[0], dData[1], dData[2], dData[3]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -772,11 +844,12 @@ TclCommand_createHHTGeneralizedExplicit_TP(ClientData clientData, Tcl_Interp* in
 
 #include <analysis/integrator/Dynamic/HHTGeneralized.h>
 int
-TclCommand_createHHTGeneralized(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTGeneralized(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 4) {
     opserr
         << "WARNING - incorrect number of args want HHTGeneralized $rhoInf\n";
@@ -796,7 +869,8 @@ TclCommand_createHHTGeneralized(ClientData clientData, Tcl_Interp* interp, int a
   else
     theIntegrator = new HHTGeneralized(dData[0], dData[1], dData[2], dData[3]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -804,11 +878,12 @@ TclCommand_createHHTGeneralized(ClientData clientData, Tcl_Interp* interp, int a
 
 #include <analysis/integrator/HHTGeneralized_TP.h>
 int
-TclCommand_createHHTGeneralized_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTGeneralized_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 4) {
     opserr << "WARNING - incorrect number of args want HHTGeneralized_TP "
               "$rhoInf\n";
@@ -829,7 +904,8 @@ TclCommand_createHHTGeneralized_TP(ClientData clientData, Tcl_Interp* interp, in
     theIntegrator =
         new HHTGeneralized_TP(dData[0], dData[1], dData[2], dData[3]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -837,11 +913,12 @@ TclCommand_createHHTGeneralized_TP(ClientData clientData, Tcl_Interp* interp, in
 
 #include <analysis/integrator/Dynamic/HHTHSFixedNumIter.h>
 int
-TclCommand_createHHTHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 3 && argc != 4 && argc != 6) {
     opserr << "WARNING - incorrect number of args want HHTHSFixedNumIter "
               "$rhoInf <-polyOrder $O>\n";
@@ -886,7 +963,8 @@ TclCommand_createHHTHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, in
     theIntegrator = new HHTHSFixedNumIter(dData[0], dData[1], dData[2],
                                           dData[3], polyOrder, updDomFlag);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -894,11 +972,12 @@ TclCommand_createHHTHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, in
 
 #include <analysis/integrator/Dynamic/HHTHSFixedNumIter_TP.h>
 int
-TclCommand_createHHTHSFixedNumIter_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTHSFixedNumIter_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 3 && argc != 4 && argc != 6) {
     opserr << "WARNING - incorrect number of args want HHTHSFixedNumIter_TP "
               "$rhoInf <-polyOrder $O>\n";
@@ -943,7 +1022,8 @@ TclCommand_createHHTHSFixedNumIter_TP(ClientData clientData, Tcl_Interp* interp,
     theIntegrator = new HHTHSFixedNumIter_TP(dData[0], dData[1], dData[2],
                                              dData[3], polyOrder, updDomFlag);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -951,11 +1031,12 @@ TclCommand_createHHTHSFixedNumIter_TP(ClientData clientData, Tcl_Interp* interp,
 
 #include <analysis/integrator/Dynamic/HHTHSIncrLimit.h>
 int
-TclCommand_createHHTHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 2 && argc != 4 && argc != 5 && argc != 7) {
     opserr << "WARNING - incorrect number of args want HHTHSIncrLimit $rhoInf "
               "$limit <-normType $T>\n";
@@ -999,7 +1080,8 @@ TclCommand_createHHTHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int a
     theIntegrator = new HHTHSIncrLimit(dData[0], dData[1], dData[2], dData[3],
                                        dData[4], normType);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -1007,11 +1089,12 @@ TclCommand_createHHTHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int a
 
 #include <analysis/integrator/Dynamic/HHTHSIncrLimit_TP.h>
 int
-TclCommand_createHHTHSIncrLimit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTHSIncrLimit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 2 && argc != 4 && argc != 5 && argc != 7) {
     opserr << "WARNING - incorrect number of args want HHTHSIncrLimit_TP "
               "$rhoInf $limit <-normType $T>\n";
@@ -1055,7 +1138,8 @@ TclCommand_createHHTHSIncrLimit_TP(ClientData clientData, Tcl_Interp* interp, in
     theIntegrator = new HHTHSIncrLimit_TP(dData[0], dData[1], dData[2],
                                           dData[3], dData[4], normType);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -1063,11 +1147,12 @@ TclCommand_createHHTHSIncrLimit_TP(ClientData clientData, Tcl_Interp* interp, in
 
 #include <analysis/integrator/Dynamic/HHTHSIncrReduct.h>
 int
-TclCommand_createHHTHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 2 && argc != 5) {
     opserr << "WARNING - incorrect number of args want HHTHSIncrReduct $rhoInf "
               "$reduct\n";
@@ -1090,7 +1175,8 @@ TclCommand_createHHTHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int 
     theIntegrator =
         new HHTHSIncrReduct(dData[0], dData[1], dData[2], dData[3], dData[4]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -1098,11 +1184,12 @@ TclCommand_createHHTHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int 
 
 #include <analysis/integrator/Dynamic/HHTHSIncrReduct_TP.h>
 int
-TclCommand_createHHTHSIncrReduct_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHTHSIncrReduct_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 2 && argc != 5) {
     opserr << "WARNING - incorrect number of args want HHTHSIncrReduct_TP "
               "$rhoInf $reduct\n";
@@ -1126,17 +1213,23 @@ TclCommand_createHHTHSIncrReduct_TP(ClientData clientData, Tcl_Interp* interp, i
     theIntegrator = new HHTHSIncrReduct_TP(dData[0], dData[1], dData[2],
                                            dData[3], dData[4]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
+#endif
 
+//
+//
+//
 #include <analysis/integrator/Dynamic/HHT.h>
 
 int
-TclCommand_createHHT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createHHT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 3) {
     opserr << "WARNING - incorrect number of args want HHT $alpha <$gamma "
               "$beta>\n";
@@ -1149,13 +1242,15 @@ TclCommand_createHHT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Ch
     return TCL_ERROR;
   }
 
+  TransientIntegrator *theIntegrator = nullptr;
   if (argc == 1)
     theIntegrator = new HHT(dData[0]);
   else
     theIntegrator = new HHT(dData[0], dData[1], dData[2]);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -1163,11 +1258,13 @@ TclCommand_createHHT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Ch
 
 #include <analysis/integrator/Dynamic/HHT_TP.h>
 int
-TclCommand_createHHT_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createHHT_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 3) {
     opserr << "WARNING - incorrect number of args want HHT_TP $alpha <$gamma "
               "$beta>\n";
@@ -1185,13 +1282,14 @@ TclCommand_createHHT_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL
   else
     theIntegrator = new HHT_TP(dData[0], dData[1], dData[2]);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 
-
-#include <SRC/analysis/integrator/HSConstraint.h>
+#if 0
+#include <analysis/integrator/HSConstraint.h>
 int
 TclCommand_createHSConstraint() {
   int numdata = OPS_GetNumRemainingInputArgs();
@@ -1226,17 +1324,20 @@ TclCommand_createHSConstraint() {
 
   return TCL_ERROR;
 }
+#endif
 
 
 
 
 #include <analysis/integrator/Dynamic/KRAlphaExplicit.h>
 int
-TclCommand_createKRAlphaExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createKRAlphaExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1 && argc != 2) {
     opserr << "WARNING - incorrect number of args want KRAlphaExplicit $rhoInf "
               "<-updateElemDisp>\n";
@@ -1260,7 +1361,8 @@ TclCommand_createKRAlphaExplicit(ClientData clientData, Tcl_Interp* interp, int 
 
   theIntegrator = new KRAlphaExplicit(rhoInf, updElemDisp);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -1268,11 +1370,13 @@ TclCommand_createKRAlphaExplicit(ClientData clientData, Tcl_Interp* interp, int 
 
 #include <analysis/integrator/Dynamic/KRAlphaExplicit_TP.h>
 int
-TclCommand_createKRAlphaExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createKRAlphaExplicit_TP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1) {
     opserr << "WARNING - incorrect number of args want KRAlphaExplicit_TP "
               "$rhoInf\n";
@@ -1287,15 +1391,19 @@ TclCommand_createKRAlphaExplicit_TP(ClientData clientData, Tcl_Interp* interp, i
 
   theIntegrator = new KRAlphaExplicit_TP(rhoInf);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 
 
-#include <SRC/analysis/integrator/LoadControl.h>
+#include <analysis/integrator/Static/LoadControl.h>
 int
-TclCommand_createLoadControlIntegrator() {
+TclCommand_createLoadControlIntegrator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   if (OPS_GetNumRemainingInputArgs() < 1) {
     opserr << "LoadControl - insufficient arguments\n";
     return TCL_ERROR;
@@ -1322,13 +1430,17 @@ TclCommand_createLoadControlIntegrator() {
     }
   }
 
-  return new LoadControl(lambda, numIter, mLambda[0], mLambda[1]);
+  builder->set(*new LoadControl(lambda, numIter, mLambda[0], mLambda[1]));
+  return TCL_OK;
 }
 
 
-#include <SRC/analysis/integrator/Static/MinUnbalDispNorm.h>
+#include <analysis/integrator/Static/MinUnbalDispNorm.h>
 int
-TclCommand_createMinUnbalDispNorm() {
+TclCommand_createMinUnbalDispNorm(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   double lambda11, minlambda, maxlambda;
   int numIter;
   if (OPS_GetNumRemainingInputArgs() < 1) {
@@ -1362,24 +1474,28 @@ TclCommand_createMinUnbalDispNorm() {
     numIter = 1;
   }
 
-  int signFirstStepMethod = SIGN_LAST_STEP;
+  int signFirstStepMethod = MinUnbalDispNorm::SIGN_LAST_STEP;
   if (OPS_GetNumRemainingInputArgs() > 0) {
     const char *flag = OPS_GetString();
     if ((strcmp(flag, "-determinant") == 0) || (strcmp(flag, "-det") == 0)) {
-      signFirstStepMethod = CHANGE_DETERMINANT;
+      signFirstStepMethod = MinUnbalDispNorm::CHANGE_DETERMINANT;
     }
   }
 
-  return new MinUnbalDispNorm(lambda11, numIter, minlambda, maxlambda,
-                              signFirstStepMethod);
-}
 
+  builder->set(*new MinUnbalDispNorm(lambda11, numIter, minlambda, maxlambda,
+                                     signFirstStepMethod));
+  return TCL_OK;
+}
 
 
 
 #include <analysis/integrator/Dynamic/Newmark1.h>
 int
-TclCommand_createNewmark1() {
+TclCommand_createNewmark1(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+
   int numdata = OPS_GetNumRemainingInputArgs();
   if (numdata != 2 && numdata != 6) {
     opserr << "WARNING integrator Newmark1 gamma beta <alphaM> <betaKcurrent> "
@@ -1398,9 +1514,10 @@ TclCommand_createNewmark1() {
   double alphaM = data[2], betaK = data[3], betaKi = data[4], betaKc = data[5];
 
   if (numdata == 2)
-    return new Newmark1(gamma, beta);
+    builder->set(* new Newmark1(gamma, beta));
   else
-    return new Newmark1(gamma, beta, alphaM, betaK, betaKi, betaKc);
+    builder->set(*new Newmark1(gamma, beta, alphaM, betaK, betaKi, betaKc));
+  return TCL_OK;
 }
 
 
@@ -1408,8 +1525,9 @@ TclCommand_createNewmark1() {
 
 #include <analysis/integrator/Dynamic/NewmarkExplicit.h>
 int
-TclCommand_createNewmarkExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-
+TclCommand_createNewmarkExplicit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
   if (argc != 3) {
     opserr
@@ -1423,22 +1541,23 @@ TclCommand_createNewmarkExplicit(ClientData clientData, Tcl_Interp* interp, int 
     return TCL_ERROR;
   }
 
-  TransientIntegrator *theIntegrator = 0;
-  theIntegrator = new NewmarkExplicit(gamma);
+  TransientIntegrator *theIntegrator = new NewmarkExplicit(gamma);
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 
-
+#if 0
 #include <analysis/integrator/Dynamic/NewmarkHSFixedNumIter.h>
 int
-TclCommand_createNewmarkHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createNewmarkHSFixedNumIter(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 2 && argc != 4) {
     opserr << "WARNING - incorrect number of args want NewmarkHSFixedNumIter "
               "$gamma $beta <-polyOrder $O>\n";
@@ -1471,7 +1590,8 @@ TclCommand_createNewmarkHSFixedNumIter(ClientData clientData, Tcl_Interp* interp
       new NewmarkHSFixedNumIter(dData[0], dData[1], polyOrder, updDomFlag);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -1479,11 +1599,12 @@ TclCommand_createNewmarkHSFixedNumIter(ClientData clientData, Tcl_Interp* interp
 
 #include <analysis/integrator/Dynamic/NewmarkHSIncrLimit.h>
 int
-TclCommand_createNewmarkHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createNewmarkHSIncrLimit(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 3 && argc != 5) {
     opserr << "WARNING - incorrect number of args want NewmarkHSIncrLimit "
               "$gamma $beta $limit <-normType $T>\n";
@@ -1515,7 +1636,8 @@ TclCommand_createNewmarkHSIncrLimit(ClientData clientData, Tcl_Interp* interp, i
       new NewmarkHSIncrLimit(dData[0], dData[1], dData[2], normType);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
@@ -1523,11 +1645,12 @@ TclCommand_createNewmarkHSIncrLimit(ClientData clientData, Tcl_Interp* interp, i
 
 #include <analysis/integrator/Dynamic/NewmarkHSIncrReduct.h>
 int
-TclCommand_createNewmarkHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
+TclCommand_createNewmarkHSIncrReduct(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
   TransientIntegrator *theIntegrator = 0;
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 3) {
     opserr << "WARNING - incorrect number of args want NewmarkHSIncrReduct "
               "$gamma $beta $reduct\n";
@@ -1544,19 +1667,23 @@ TclCommand_createNewmarkHSIncrReduct(ClientData clientData, Tcl_Interp* interp, 
   theIntegrator = new NewmarkHSIncrReduct(dData[0], dData[1], dData[2]);
 
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
-
+#endif
 
 
 
 #include <analysis/integrator/Dynamic/Newmark.h>
 int
-TclCommand_createNewmark(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // Pointer to a uniaxial material that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createNewmark(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  TransientIntegrator *theIntegrator = nullptr;
+
+  argc -= 2;
+
   if (argc != 2 && argc != 4) {
     opserr << "WARNING - incorrect number of args want Newmark $gamma $beta "
               "<-form $typeUnknown>\n";
@@ -1591,15 +1718,17 @@ TclCommand_createNewmark(ClientData clientData, Tcl_Interp* interp, int argc, TC
     theIntegrator = new Newmark(dData[0], dData[1], dispFlag);
   }
 
-  return theIntegrator;
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }
 
 
 
-
-#include <SRC/analysis/integrator/StagedLoadControl.h>
+#if 0
+#include <analysis/integrator/StagedLoadControl.h>
 int
-TclCommand_createStagedLoadControlIntegrator() {
+TclCommand_createStagedLoadControlIntegrator()
+{
   if (OPS_GetNumRemainingInputArgs() < 1) {
     opserr << "insufficient arguments\n";
     return TCL_ERROR;
@@ -1628,62 +1757,19 @@ TclCommand_createStagedLoadControlIntegrator() {
 
   return new StagedLoadControl(lambda, numIter, mLambda[0], mLambda[1]);
 }
-#include <tcl.h>
-#include <SRC/analysis/integrator/StagedNewmark.h>
-
-int
-TclCommand_createStagedNewmark(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // Pointer to a uniaxial material that will be returned
-  TransientIntegrator *theIntegrator = 0;
-
-  int argc = OPS_GetNumRemainingInputArgs();
-  if (argc != 2 && argc != 4) {
-    opserr << "WARNING - incorrect number of args want StagedNewmark $gamma "
-              "$beta <-form $typeUnknown>\n";
-    return TCL_ERROR;
-  }
-
-  bool dispFlag = true;
-  double dData[2];
-  int numData = 2;
-
-  if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING - invalid args want StagedNewmark $gamma $beta <-form "
-              "$typeUnknown>\n";
-    return TCL_ERROR;
-  }
-
-  if (argc == 2)
-    theIntegrator = new StagedNewmark(dData[0], dData[1]);
-  else {
-    //    char nextString[10];
-    const char *nextString = OPS_GetString();
-    //    OPS_GetString(nextString, 10);
-    if (strcmp(nextString, "-form") == 0) {
-      //      OPS_GetString(nextString, 10);
-      nextString = OPS_GetString();
-      if ((nextString[0] == 'D') || (nextString[0] == 'd'))
-        dispFlag = true;
-      else if ((nextString[0] == 'A') || (nextString[0] == 'a'))
-        dispFlag = false;
-    }
-    theIntegrator = new StagedNewmark(dData[0], dData[1], dispFlag);
-  }
-
-
-  return theIntegrator;
-}
+#endif
 
 
 
 #include <analysis/integrator/Dynamic/WilsonTheta.h>
 
 int
-TclCommand_createWilsonTheta(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) {
-  // pointer to an integrator that will be returned
-  TransientIntegrator *theIntegrator = 0;
+TclCommand_createWilsonTheta(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
+{
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-  int argc = OPS_GetNumRemainingInputArgs();
+  argc -= 2;
+
   if (argc != 1) {
     opserr << "WARNING - incorrect number of args want WilsonTheta $theta\n";
     return TCL_ERROR;
@@ -1695,7 +1781,9 @@ TclCommand_createWilsonTheta(ClientData clientData, Tcl_Interp* interp, int argc
     return TCL_ERROR;
   }
 
-  theIntegrator = new WilsonTheta(theta);
+  TransientIntegrator *theIntegrator = new WilsonTheta(theta);
 
-  return theIntegrator;
+
+  builder->set(*theIntegrator);
+  return TCL_OK;
 }

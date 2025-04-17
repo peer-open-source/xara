@@ -608,22 +608,27 @@ MatrixND<nr, nc, T>::map(F func, MatrixND<nr,nc,T>& destination)
 template <index_t nr, index_t nc, typename T> inline int
 MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 {
-  int status;
   static_assert(nr == nc, "Matrix must be square");
   static_assert(nr > 1 && nr < 7, "Matrix must be 2x2, 3x3, 4x4, 5x5, or 6x6");
+
+  int status;
+  if constexpr (nr == 2) {
+    cmx_inv2(&this->values[0][0], &M.values[0][0], &status);
+    return status;
+  }
+  if constexpr (nr == 3) {
+    cmx_inv3(&this->values[0][0], &M.values[0][0], &status);
+    return status;
+  }
+  if constexpr (nr == 4) {
+    cmx_inv4(&this->values[0][0], &M.values[0][0], &status);
+    return status;
+  }
+  if constexpr (nr == 5) {
+    cmx_inv5(&this->values[0][0], &M.values[0][0], &status);
+    return status;
+  }
   switch (nr) {
-    case 2:
-      cmx_inv2(&this->values[0][0], &M.values[0][0], &status);
-      break;
-    case 3:
-      cmx_inv3(&this->values[0][0], &M.values[0][0], &status);
-      break;
-    case 4:
-      cmx_inv4(&this->values[0][0], &M.values[0][0], &status);
-      break;
-    case 5:
-      cmx_inv5(&this->values[0][0], &M.values[0][0], &status);
-      break;
     case 6:
       cmx_inv6(&this->values[0][0], &M.values[0][0], &status);
       break;

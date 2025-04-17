@@ -62,12 +62,10 @@ class J2Plasticity : public NDMaterial {
 
   public : 
 
-  //null constructor
   J2Plasticity() ;
 
-  //full constructor
-  J2Plasticity(    int    tag,
-		   int    classTag,
+  J2Plasticity(int tag,
+		           int classTag,
                    double K,
                    double G,
                    double yield0,
@@ -77,13 +75,12 @@ class J2Plasticity : public NDMaterial {
                    double viscosity = 0,
 		   double rho = 0.0) ;
 
-  //elastic constructor
-  J2Plasticity( int tag, int classTag, double K, double G ) ;
+  // elastic constructor
+  J2Plasticity( int tag, int classTag, double K, double G );
 
-  //destructor
   virtual ~J2Plasticity( ) ;
 
-  virtual const char *getClassType(void) const {return "J2Plasticity";};
+  virtual const char *getClassType() const {return "J2Plasticity";}
 
   virtual NDMaterial* getCopy (const char *type);
 
@@ -102,19 +99,32 @@ class J2Plasticity : public NDMaterial {
 		       FEM_ObjectBroker &theBroker ) ;
 
   //print out material data
-  void Print(OPS_Stream &s, int flag = 0) ;
+  void Print(OPS_Stream &s, int flag = 0);
 
-  virtual NDMaterial *getCopy (void) ;
-  virtual const char *getType (void) const ;
-  virtual int getOrder (void) const ;
+  virtual NDMaterial *getCopy() ;
+  virtual const char *getType() const;
+  virtual int getOrder() const ;
 
-  double getRho(void) {return rho;}
+  double getRho() {return rho;}
 
   virtual int setParameter(const char **argv, int argc, Parameter &param);
   virtual int updateParameter(int parameterID, Information &info);
   virtual int activateParameter(int paramID);
 
-  protected :
+protected:
+
+  // zero internal variables
+  void zero();
+  int plastic_integrator();
+
+  void doInitialTangent();
+
+  // hardening function and derivative
+  double q( double xi );
+  double qprime( double xi );
+  
+  // matrix index to tensor index mapping
+  virtual void index_map( int matrix_index, int &i, int &j ) ;
 
   //material parameters
   double bulk ;        //bulk modulus
@@ -136,39 +146,18 @@ class J2Plasticity : public NDMaterial {
   double tangent[3][3][3][3] ;   //material tangent
   static double initialTangent[3][3][3][3] ;   //material tangent
 
-//static double IIdev[3][3][3][3] ; //rank 4 deviatoric 
-//static double IbunI[3][3][3][3] ; //rank 4 I bun I 
-
   //material input
   Matrix strain ;               //strain tensor
 
   // parameters
-  static const double one3 ;
+  // static const double one3 ;
   static const double two3 ;
   static const double four3 ;
   static const double root23 ;
 
-  //zero internal variables
-  void zero( ) ;
-
-  // plasticity integration routine
-  int plastic_integrator( ) ;
-
-  void doInitialTangent( ) ;
-
-  //hardening function
-  double q( double xi ) ;
-
-  //hardening function derivative
-  double qprime( double xi ) ;
-  
-  //matrix index to tensor index mapping
-  virtual void index_map( int matrix_index, int &i, int &j ) ;
-
   double rho;
-  
-  int parameterID;
 
-} ; //end of J2Plasticity declarations
+  int parameterID;
+};
 
 #endif
