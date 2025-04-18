@@ -6,7 +6,6 @@
 #==============================================================================
 
 target_link_libraries(OPS_Runtime PRIVATE OPS_Element)
-target_sources(OPS_Runtime PRIVATE dispatch.cpp)
 
 target_sources(OPS_Element
     PRIVATE
