@@ -12,7 +12,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
-#include <isotropy.h>
+#include "isotropy.h"
 #include <BasicModelBuilder.h>
 #include <HardeningMaterial.h>
 
