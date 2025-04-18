@@ -304,7 +304,23 @@ UniformExcitation::recvSelf(int commitTag, Channel &theChannel,
 void 
 UniformExcitation::Print(OPS_Stream &s, int flag)
 {
-  s << "UniformExcitation  " << this->getTag() << " - Not Printing the GroundMotion\n";
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"" << this->getClassType() <<"\", ";
+    s << "\"dof\": " << theDof << ", ";
+    s << "\"vel0\": " << vel0 << ", ";
+    s << "\"fact\": " << fact;
+    // if (theMotion != 0) {
+    //   s << ", \"groundMotion\": ";
+    //   theMotion->Print(s, flag);
+    // }
+    s << "}";
+
+  }
+  else {
+    s << "UniformExcitation  " << this->getTag() << "\n";
+  }
 }
 
 LoadPattern *
