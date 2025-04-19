@@ -35,36 +35,9 @@
 #include <Matrix.h>
 #include <Information.h>
 #include <Parameter.h>
-#include <elementAPI.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
-
-
-void * OPS_ADD_RUNTIME_VPV(OPS_UniaxialJ2Plasticity)
-{
-    int argc = OPS_GetNumRemainingInputArgs() + 2;
-    if (argc < 7) {
-      opserr << "WARNING invalid number of arguments\n";
-      opserr << "Want: uniaxialMaterial UniaxialJ2Plasticity tag? E? sigmaY? Hkin? <Hiso?>\n";
-      return 0;
-    }    
-      
-    int tag;
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) {
-      opserr << "WARNING invalid uniaxialMaterial UniaxialJ2Plasticity tag\n";
-      return 0;
-    }
-    
-    // double E, sigmaY, Hkin, Hiso;
-    // Hiso =0.0;
-    double data[4] = {0,0,0,0};
-    numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata > 4) numdata = 4; 
-      // Parsing was successful, allocate the material
-      return new UniaxialJ2Plasticity(tag, data[0], data[1], data[2], data[3]);
-}
 
 
 UniaxialJ2Plasticity::UniaxialJ2Plasticity(int pTag, double pE, double pSigmaY,
@@ -72,10 +45,8 @@ UniaxialJ2Plasticity::UniaxialJ2Plasticity(int pTag, double pE, double pSigmaY,
 :UniaxialMaterial(pTag,MAT_TAG_UniaxialJ2Plasticity),
  E(pE), sigmaY(pSigmaY), Hiso(pHiso), Hkin(pHkin)
 {
-// AddingSensitivity:BEGIN /////////////////////////////////////
    parameterID = 0;
    SHVs = 0;
-// AddingSensitivity:END //////////////////////////////////////
 
    // Initialize variables
    this->revertToStart();
@@ -83,22 +54,18 @@ UniaxialJ2Plasticity::UniaxialJ2Plasticity(int pTag, double pE, double pSigmaY,
 
 UniaxialJ2Plasticity::~UniaxialJ2Plasticity()
 {
-// AddingSensitivity:BEGIN /////////////////////////////////////
     if (SHVs != 0) 
         delete SHVs;
     SHVs =0;
-// AddingSensitivity:END //////////////////////////////////////
 }
 
 int 
-UniaxialJ2Plasticity::setTrialStrain (double strain, double strainRate)
+UniaxialJ2Plasticity::setTrialStrain(double strain, double strainRate)
 {
-
     t_strain = strain;
 
     // ------ Elastic trial -------
 
-    
     TPlasticStrain = CPlasticStrain;
     TBackStress = CBackStress;
     TAccumulatedPlasticStrain = CAccumulatedPlasticStrain;
@@ -119,7 +86,7 @@ UniaxialJ2Plasticity::setTrialStrain (double strain, double strainRate)
 
     // ------- Plastic step ... perform return mapping algorithm ---
     else {
-      double deltaLambda = (fabs(xsi)-CSigmaY)/(E+Hkin+Hiso);
+      double deltaLambda = (fabs(xsi) - CSigmaY)/(E+Hkin+Hiso);
 
       // Find sign of xsi
       int sign = (xsi < 0) ? -1 : 1;
@@ -140,46 +107,46 @@ UniaxialJ2Plasticity::setTrialStrain (double strain, double strainRate)
 }
 
 double 
-UniaxialJ2Plasticity::getStress(void)
+UniaxialJ2Plasticity::getStress()
 {
     return t_stress;
 }
 
 double 
-UniaxialJ2Plasticity::getTangent(void)
+UniaxialJ2Plasticity::getTangent()
 {
     return TTangent;
 }
 
 double 
-UniaxialJ2Plasticity::getStrain(void)
+UniaxialJ2Plasticity::getStrain()
 {
     return t_strain;
 }
 
 int 
-UniaxialJ2Plasticity::commitState(void)
+UniaxialJ2Plasticity::commitState()
 {
     // Commit trial history variables
     CPlasticStrain = TPlasticStrain;
     CBackStress = TBackStress;
     CAccumulatedPlasticStrain = TAccumulatedPlasticStrain;
 
-    c_strain = t_strain;        // Committed strain
-    c_stress = t_stress;        // Committed stress
-    CTangent = TTangent; 
+    c_strain = t_strain;
+    c_stress = t_stress;
+    CTangent = TTangent;
     
     return 0;
 }
 
 int 
-UniaxialJ2Plasticity::revertToLastCommit(void)
+UniaxialJ2Plasticity::revertToLastCommit()
 {
   return 0;
 }
 
 int 
-UniaxialJ2Plasticity::revertToStart(void)
+UniaxialJ2Plasticity::revertToStart()
 {
     // Reset committed history variables
     CPlasticStrain = 0.0;
@@ -201,19 +168,17 @@ UniaxialJ2Plasticity::revertToStart(void)
     c_stress = 0.0;
     CTangent = E;
 
-// AddingSensitivity:BEGIN /////////////////////////////////
     if (SHVs != 0) 
         SHVs->Zero();
-// AddingSensitivity:END //////////////////////////////////
 
     return 0;
 }
 
 UniaxialMaterial *
-UniaxialJ2Plasticity::getCopy(void)
+UniaxialJ2Plasticity::getCopy()
 {
     UniaxialJ2Plasticity *theCopy =
-    new UniaxialJ2Plasticity(this->getTag(), E, sigmaY, Hkin, Hiso);
+        new UniaxialJ2Plasticity(this->getTag(), E, sigmaY, Hkin, Hiso);
 
     // Copy committed history variables
     theCopy->CPlasticStrain = CPlasticStrain;
@@ -305,10 +270,13 @@ UniaxialJ2Plasticity::Print(OPS_Stream &s, int flag)
       s << "\"name\": \"" << this->getTag() << "\", ";
       s << "\"type\": \"" << this->getClassType() <<"\", ";
       s << "\"E\": " << E << ", ";
-      s << "\"sigmaY\": " << sigmaY << ", ";
+      s << "\"Y\": " << sigmaY << ", ";
       s << "\"Hiso\": " << Hiso << ", ";
-      s << "\"Hkin\": " << Hkin << "}";
-    } else {
+      s << "\"Hkin\": " << Hkin;
+      s << "}";
+      return;
+    }
+    else {
       s << "UniaxialJ2Plasticity, tag: " << this->getTag() << endln;
       s << "  E: " << E << endln;
       s << "  sigmaY: " << sigmaY << endln;
@@ -319,7 +287,6 @@ UniaxialJ2Plasticity::Print(OPS_Stream &s, int flag)
 }
 
 
-// AddingSensitivity:BEGIN ///////////////////////////////////
 int
 UniaxialJ2Plasticity::setParameter(const char **argv, int argc, Parameter &param)
 {
@@ -337,6 +304,7 @@ UniaxialJ2Plasticity::setParameter(const char **argv, int argc, Parameter &param
 
   return -1;
 }
+
 
 int
 UniaxialJ2Plasticity::updateParameter(int parameterID, Information &info)
@@ -610,15 +578,10 @@ UniaxialJ2Plasticity::commitSensitivity(double t_strainSensitivity, int gradInde
       (*SHVs)(2,gradIndex) = TAccumulatedPlasticStrainSensitivity;
       (*SHVs)(3,gradIndex) = sensitivity;      // for recorder purpose
       (*SHVs)(4,gradIndex) = t_strainSensitivity;  // for recorder purpose
-
-
-
-
     }
 
       
 
     return 0;
 }
-// AddingSensitivity:END /////////////////////////////////////////////
 
