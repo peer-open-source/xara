@@ -16,9 +16,6 @@ OPS_Routine OPS_AlphaOS;
 OPS_Routine OPS_AlphaOS_TP;
 OPS_Routine OPS_AlphaOSGeneralized;
 OPS_Routine OPS_AlphaOSGeneralized_TP;
-OPS_Routine OPS_CentralDifference;
-OPS_Routine OPS_CentralDifferenceAlternative;
-OPS_Routine OPS_CentralDifferenceNoDamping;
 OPS_Routine OPS_Collocation;
 OPS_Routine OPS_CollocationHSFixedNumIter;
 OPS_Routine OPS_CollocationHSIncrLimit;
@@ -67,8 +64,9 @@ OPS_Routine OPS_WilsonTheta;
 #include <ParkLMS3.h>
 #include <BackwardEuler.h>
 #include <ExplicitDifference.h>
-// OPS_Routine OPS_ExplicitDifference;
-
+#include <CentralDifferenceAlternative.h>
+#include <CentralDifference.h>
+#include <CentralDifferenceNoDamping.h>
 
 Tcl_CmdProc G3Parse_newHSIntegrator;
 Tcl_CmdProc G3Parse_newLoadControl;
@@ -186,11 +184,11 @@ TransientIntegratorLibrary = {
 
   {"ExplicitDifference",           DISPATCH(TransientIntegrator, ExplicitDifference)},
 
-  {"CentralDifference",            dispatch<TransientIntegrator, OPS_CentralDifference>},
+  {"CentralDifference",            DISPATCH(TransientIntegrator, CentralDifference)},
 
-  {"CentralDifferenceAlternative", dispatch<TransientIntegrator, OPS_CentralDifferenceAlternative>},
+  {"CentralDifferenceAlternative", DISPATCH(TransientIntegrator, CentralDifferenceAlternative)},
 
-  {"CentralDifferenceNoDamping",   dispatch<TransientIntegrator, OPS_CentralDifferenceNoDamping>},
+  {"CentralDifferenceNoDamping",   DISPATCH(TransientIntegrator, CentralDifferenceNoDamping)},
 
 };
 
