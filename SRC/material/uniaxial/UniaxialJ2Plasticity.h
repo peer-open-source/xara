@@ -45,19 +45,19 @@ class UniaxialJ2Plasticity : public UniaxialMaterial
 		      double Hkin, double Hiso);
     ~UniaxialJ2Plasticity();
 
-    const char *getClassType(void) const {return "UniaxialJ2Plasticity";};
+    const char *getClassType() const {return "UniaxialJ2Plasticity";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void) {return E;};
+    double getStrain();          
+    double getStress();
+    double getTangent();
+    double getInitialTangent() {return E;}
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
     int sendSelf(int commitTag, Channel &theChannel);  
     int recvSelf(int commitTag, Channel &theChannel, 
@@ -65,7 +65,7 @@ class UniaxialJ2Plasticity : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag =0);
     
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     int setParameter (const char **argv, int argc, Parameter &param);
     int    updateParameter          (int parameterID, Information &info);
     int    activateParameter        (int parameterID);
