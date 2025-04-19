@@ -1,8 +1,8 @@
 [project]
 name = "xara"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
-  {name="Claudio M Perez", email="50180406+claudioperez@users.noreply.github.com"}
+  {name="Pacific Earthquake Engineering Research", email="50180406+claudioperez@users.noreply.github.com"}
 ]
 
 

@@ -254,7 +254,7 @@ class Prism:
             properties.append("-" + k)
             properties.append(v)
 
-        model.section("FrameElastic", sec_tag, *properties)
+        model.section("ElasticFrame", sec_tag, *properties)
 
         # Define geometric transformation
         geo_tag = 1
@@ -275,6 +275,7 @@ class Prism:
                 model.element(elem_type, i, (i, i+1),
                             section=sec_tag,
                             transform=geo_tag,
+#                           iter=(2, 1e-12),
                             shear=int(self.use_shear))
             else:
                 model.element(elem_type, i, (i, i+1),
