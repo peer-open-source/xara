@@ -3,7 +3,7 @@
 //
 #include <Vector.h>
 #include <cmath>
-#include <iostream>
+#include <Logging.h>
 #include "UVCuniaxial.h"
 
 #include <elementAPI.h>
@@ -15,17 +15,6 @@
 #include <OPS_Globals.h>
 
 
-
-/**
-*
-* @tparam T type of val, note will warn if unsigned type.
-* @param val value to check the sign of, should be numeric.
-* @return -1 if abs(val) < 0, 1 if abs(val) > 0, and 0 if val = 0.
-*
-*/
-// Returns the sign of val
-// From: https ://stackoverflow.com/a/4609795
-//
 template <typename T> static int 
 sgn(T val) {
   return (T(0) < val) - (val < T(0));
@@ -39,7 +28,7 @@ sgn(T val) {
 void * OPS_ADD_RUNTIME_VPV(OPS_UVCuniaxial) {
   static int numUVCuniaxial = 0;
   if (numUVCuniaxial == 0) {
-    opserr << "Using the UVCuniaxial material, see "
+    opslog << "Using the UVCuniaxial material, see "
       "https://www.epfl.ch/labs/resslab/resslab-tools/" << endln;
     numUVCuniaxial++;
   }
@@ -567,12 +556,6 @@ int UVCuniaxial::recvSelf(int commitTag, Channel& theChannel,
 
 /* ------------------------------------------------------------------------ */
 
-/**
- *
- * @param s the opensees output stream
- * @param flag is 2 for standard output, 25000 for JSON output
- (see OPS_Globals.h)
- */
 void UVCuniaxial::Print(OPS_Stream& s, int flag) {
 
   // todo: change these back when not only .dll
@@ -589,9 +572,8 @@ void UVCuniaxial::Print(OPS_Stream& s, int flag) {
     }
   }
 
-  // if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-  if (flag == 25000) {
-    s << "\t\t\t{";
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"UVCuniaxial\", ";
     s << "\"E\": " << elasticModulus << ", ";
@@ -602,6 +584,7 @@ void UVCuniaxial::Print(OPS_Stream& s, int flag) {
       s << "\"C\": " << cK[i] << ", ";
       s << "\"gam\": " << gammaK[i] << ", ";
     }
+    return;
   }
 
 }
