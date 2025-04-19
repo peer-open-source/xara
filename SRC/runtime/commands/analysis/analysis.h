@@ -52,7 +52,7 @@ extern Tcl_CmdProc TclCommand_sensLambda;
 struct char_cmd {
   const char* name;
   Tcl_CmdProc*  func;
-}  const tcl_analysis_cmds[] =  {
+} const tcl_analysis_cmds[] =  {
     {"system",              &specifySysOfEqnTable},
     {"systemSize",          &TclCommand_systemSize},
 
