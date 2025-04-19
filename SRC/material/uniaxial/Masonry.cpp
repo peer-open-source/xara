@@ -33,7 +33,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Masonry)
 { 
   // print out some KUDO's 
   if (numMasonry == 0) { 
-    opserr << "Masonry unaxial material - Written by Gonzalo Torrisi based on Crisafulli material model, Copyright 2015\n"; 
+    opslog << "Masonry unaxial material - Written by Gonzalo Torrisi based on Crisafulli material model, Copyright 2015\n"; 
     numMasonry =1; 
   } 
   // Pointer to a uniaxial material that will be returned 
