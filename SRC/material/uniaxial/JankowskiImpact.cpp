@@ -36,7 +36,7 @@
 // mEff: effective mass of the colliding bodies
 // gap: initial gap distance (must be a negative value)
 // n: displacement exponent (default is 1.5)
-
+//
 #include <stdlib.h>
 #include <Vector.h>
 #include <Channel.h>
@@ -174,42 +174,42 @@ JankowskiImpact::setTrialStrain(double strain, double strainRate)
 
 // retrieve trial strain
 double 
-JankowskiImpact::getStrain(void)
+JankowskiImpact::getStrain()
 {
   return trialStrain;
 }
 
 // retrieve trial strain rate
 double 
-JankowskiImpact::getStrainRate(void)
+JankowskiImpact::getStrainRate()
 {
   return trialStrainRate;
 }
 
 // retrieve trial stress
 double 
-JankowskiImpact::getStress(void)
+JankowskiImpact::getStress()
 {
   return trialStress;
 }
 
 // retrieve trial tangent stiffness
 double 
-JankowskiImpact::getTangent(void)
+JankowskiImpact::getTangent()
 {
   return trialTangent;
 }
 
 // retrieve initial tangent stiffness
 double 
-JankowskiImpact::getInitialTangent(void)
+JankowskiImpact::getInitialTangent()
 {
   return 0.0; 
 }
 
 // commit state
 int 
-JankowskiImpact::commitState(void)
+JankowskiImpact::commitState()
 {
 	commitStrain = trialStrain;
 	commitStrainRate = trialStrainRate;
@@ -220,7 +220,7 @@ JankowskiImpact::commitState(void)
 
 // revert to last comitted state
 int 
-JankowskiImpact::revertToLastCommit(void)
+JankowskiImpact::revertToLastCommit()
 {
 	trialStrain = commitStrain;
 	trialStrainRate = commitStrainRate;
@@ -231,7 +231,7 @@ JankowskiImpact::revertToLastCommit(void)
 
 // revert to initial state
 int 
-JankowskiImpact::revertToStart(void)
+JankowskiImpact::revertToStart()
 {
     commitStrain = 0.0;
     commitStrainRate = 0.0;
@@ -246,7 +246,7 @@ JankowskiImpact::revertToStart(void)
 
 // copy state
 UniaxialMaterial *
-JankowskiImpact::getCopy(void)
+JankowskiImpact::getCopy()
 {
     JankowskiImpact *theCopy = new JankowskiImpact(this->getTag(),Kh,xi,mEff,gap,n);
 	theCopy->commitStrain = commitStrain;
