@@ -52,7 +52,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SAWSMaterial)
   if (numSAWSMaterials == 0) {
     numSAWSMaterials++;
     //OPS_Error("SAWSMaterial unaxial material - Written by Paxti Uriz, Exponent 2009\n", 1);
-    opserr << "SAWSMaterial unaxial material - Written by Paxti Uriz, Exponent 2009\n";
+    opslog << "SAWSMaterial unaxial material - Written by Paxti Uriz, Exponent 2009\n";
   }
 
   // Pointer to a uniaxial material that will be returned
