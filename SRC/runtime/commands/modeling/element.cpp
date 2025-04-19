@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #  include <string.h>
 #  define strcasecmp _stricmp
 #else
@@ -112,16 +112,7 @@ G3_TclElementCommand TclBasicBuilder_addBeamGT;
 
 
 // Shells
-Element* TclDispatch_newASDShellQ4(ClientData, Tcl_Interp*, int, TCL_Char** const);
 Element* TclDispatch_newShellANDeS(ClientData, Tcl_Interp*, int, TCL_Char** const);
-Element* TclDispatch_newShellDKGQ(ClientData, Tcl_Interp*, int, TCL_Char** const);
-Element* TclDispatch_newShellDKGT(ClientData, Tcl_Interp*, int, TCL_Char** const);
-Tcl_CmdProc TclDispatch_newShellMITC4;
-Element* TclDispatch_newShellMITC4Thermal(ClientData, Tcl_Interp*, int, TCL_Char** const);
-Element* TclDispatch_newShellMITC9(ClientData, Tcl_Interp*, int, TCL_Char** const);
-Element* TclDispatch_newShellNLDKGQ(ClientData, Tcl_Interp*, int, TCL_Char** const);
-Element* TclDispatch_newShellNLDKGQThermal(ClientData, Tcl_Interp*, int, TCL_Char** const);
-Element* TclDispatch_newShellNLDKGT(ClientData, Tcl_Interp*, int, TCL_Char** const);
 
 
 
@@ -319,49 +310,11 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
 //
 // Shells
 //
-  else if ((strcmp(argv[1], "Shell") == 0) ||
-           (strcmp(argv[1], "ShellMITC4") == 0)) {
-    return TclDispatch_newShellMITC4(clientData, interp, argc, argv);
-  }
-
-  else if ((strcmp(argv[1], "ShellNL") == 0) ||
-             (strcmp(argv[1], "ShellMITC9") == 0)) {
-    theEle = TclDispatch_newShellMITC9(clientData, interp, argc, argv);
-  }
-
-  else if (strcmp(argv[1], "ShellMITC4Thermal") == 0) {
-    theEle = TclDispatch_newShellMITC4Thermal(clientData, interp, argc, argv);
-  }
-
-  else if (strcmp(argv[1], "ShellNLDKGQThermal") == 0) {
-    theEle = TclDispatch_newShellNLDKGQThermal(clientData, interp, argc, argv);
-  }
-
-
-  else if ((strcmp(argv[1], "shellDKGQ") == 0) ||
-           (strcmp(argv[1], "ShellDKGQ") == 0)) {
-    theEle = TclDispatch_newShellDKGQ(clientData, interp, argc, argv);
-  }
-
-  else if (strcmp(argv[1], "ShellNLDKGQ") == 0) {
-    theEle = TclDispatch_newShellNLDKGQ(clientData, interp, argc, argv);
-  }
-
-  else if (strcmp(argv[1], "ShellDKGT") == 0) {
-    theEle = TclDispatch_newShellDKGT(clientData, interp, argc, argv);
-  }
-
-  else if (strcmp(argv[1], "ShellNLDKGT") == 0) {
-    theEle = TclDispatch_newShellNLDKGT(clientData, interp, argc, argv);
-  }
-
-  else if (strcmp(argv[1], "ASDShellQ4") == 0) {
-    theEle = TclDispatch_newASDShellQ4(clientData, interp, argc, argv);
-  }
 
   else if (strcmp(argv[1], "ShellANDeS") == 0) {
     theEle = TclDispatch_newShellANDeS(clientData, interp, argc, argv);
   }
+
 
 
   // if one of the above worked
@@ -428,11 +381,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
              (strcmp(argv[1], "BeamWithHinges") == 0)) {
     return TclBasicBuilder_addBeamWithHinges(clientData, interp, argc, argv);
 
-  //
-  //
-//
-// Brick
-//
+
 //
 // Zero-Length
 //
