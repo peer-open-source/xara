@@ -1,4 +1,4 @@
-#include <elementAPI.h>
+
 #include "BWBN.h"
 
 #include <Vector.h>
@@ -17,7 +17,7 @@ signum(double value)
     return -1.0;
 }
 
-
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_BWBN)
 {
   // Pointer to a uniaxial material that will be returned
@@ -60,20 +60,20 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BWBN)
 
 
 BWBN::BWBN(int tag, 
-       double p_alpha,
-       double p_ko,
-       double p_n,
-       double p_gamma,
-       double p_beta,
-       double p_Ao,
-       double p_q,
-       double p_zetas,
-       double p_p,
-       double p_Shi,
-       double p_deltaShi,
-       double p_lamda,
-       double ptolerance,
-       int pMaxNumIter)
+          double p_alpha,
+          double p_ko,
+          double p_n,
+          double p_gamma,
+          double p_beta,
+          double p_Ao,
+          double p_q,
+          double p_zetas,
+          double p_p,
+          double p_Shi,
+          double p_deltaShi,
+          double p_lamda,
+          double ptolerance,
+          int pMaxNumIter)
  :UniaxialMaterial(tag,MAT_TAG_BWBN),
   alpha(p_alpha), ko(p_ko), n(p_n), gamma(p_gamma), beta(p_beta), Ao(p_Ao), q(p_q), 
   zetas(p_zetas), p(p_p), Shi(p_Shi), deltaShi(p_deltaShi), lamda(p_lamda), tolerance(ptolerance),
@@ -358,7 +358,7 @@ void
 BWBN::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": " << "\"BWBN\", ";
     s << "\"alpha\": " << alpha << ", ";
@@ -374,6 +374,7 @@ BWBN::Print(OPS_Stream &s, int flag)
     s << "\"deltaNu\": " << deltaShi << ", ";
     s << "\"deltaEta\": " << lamda ;
     s << "}";
+    return;
 
   } else {
     s << "BWBN, tag: " << this->getTag() << endln;

@@ -10,7 +10,6 @@
 // Written: fmk, MHS, cmp
 // Created: 07/99
 //
-
 #include <G3_Logging.h>
 #include <iostream>
 #include <BasicModelBuilder.h>
@@ -38,7 +37,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include <UniaxialJ2Plasticity.h> // Quan
+#include <UniaxialJ2Plasticity.h>
 
 class G3_Runtime;
 
@@ -64,6 +63,7 @@ extern UniaxialMaterial *
 Tcl_addWrapperUniaxialMaterial(matObj *, ClientData clientData,
                                Tcl_Interp *interp, int argc, TCL_Char ** const argv);
 #endif
+
 typedef struct uniaxialPackageCommand {
   char *funcName;
   void *(*funcPtr)();
@@ -71,13 +71,6 @@ typedef struct uniaxialPackageCommand {
 } UniaxialPackageCommand;
 
 static UniaxialPackageCommand *theUniaxialPackageCommands = NULL;
-
-static void printCommand(int argc, TCL_Char ** const argv) {
-  opserr << "Input command: ";
-  for (int i = 0; i < argc; ++i)
-    opserr << argv[i] << " ";
-  opserr << "\n";
-}
 
 //
 // external functions
@@ -266,7 +259,6 @@ TclCommand_newFatigueMaterial(ClientData clientData, Tcl_Interp* interp, int arg
 
   if (argc < 4) {
     opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
-    printCommand(argc, argv);
     opserr << "Want: uniaxialMaterial Fatigue tag? matTag?";
     opserr << " <-D_max dmax?> <-e0 e0?> <-m m?>" << "\n";
     opserr << " <-min min?> <-max max?>" << "\n";
@@ -354,7 +346,6 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
   if (strcmp(argv[1], "Elastic2") == 0) {
     if (argc < 4 || argc > 5) {
       opserr << G3_ERROR_PROMPT << "invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Elastic tag? E? <eta?>" << "\n";
       return TCL_ERROR;
     }
@@ -388,7 +379,6 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
   } else if (strcmp(argv[1], "ENT") == 0) {
     if (argc < 4) {
       opserr << G3_ERROR_PROMPT << "invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial ENT tag? E?" << "\n";
       return TCL_ERROR;
     }
@@ -415,7 +405,6 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
   else if (strcmp(argv[1], "BarSlip") == 0) {
     if (argc != 17 && argc != 15) {
       opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial BarSlip tag? fc? fy? Es? fu? Eh? db? "
                 "ld? nb? width? depth? bsflag? type? <damage? unit?>"
              << "\n";
@@ -607,7 +596,6 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
   else if (strcmp(argv[1], "ShearPanel") == 0) {
     if (argc != 42 && argc != 31) {
       opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial ShearPanel tag? stress1p? strain1p? "
                 "stress2p? strain2p? stress3p? strain3p? stress4p? strain4p? "
              << "\n<stress1n? strain1n? stress2n? strain2n? stress3n? "
@@ -884,7 +872,6 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
   else if (strcmp(argv[1], "Concrete01WithSITC") == 0) {
     if (argc < 7) {
       opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? "
                 "epscu? <endStrainSITC?>"
              << "\n";
@@ -954,7 +941,6 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
     // ----- 1D J2 Plasticity ----
     if (argc < 7) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial UniaxialJ2Plasticity tag? E? sigmaY? Hkin? <Hiso?>"
              << endln;
       return TCL_ERROR;
@@ -1308,7 +1294,6 @@ TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int 
    else if (strcmp(argv[1], "Backbone") == 0) {
       if (argc < 4) {
         opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
-        printCommand(argc, argv);
         opserr << "Want: uniaxialMaterial Backbone tag? bbTag?" << "\n";
         return TCL_ERROR;
       }

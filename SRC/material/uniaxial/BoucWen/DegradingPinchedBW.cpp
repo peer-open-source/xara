@@ -1,5 +1,5 @@
-#include <elementAPI.h>
-#include <DegradingPinchedBW.h>
+
+#include "DegradingPinchedBW.h"
 
 #include <Vector.h>
 #include <Channel.h>
@@ -8,7 +8,7 @@
 #include <Information.h>
 #include <Parameter.h>
 
-
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_DegradingPinchedBW)
 {
   // Pointer to a uniaxial material that will be returned

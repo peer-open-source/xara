@@ -544,7 +544,6 @@ int
 TclBasicBuilder_addNineNodeMixedQuad(ClientData clientData, Tcl_Interp *interp,
                                      int argc, TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 2) {
@@ -648,7 +647,6 @@ TclBasicBuilder_addFourNodeQuadWithSensitivity(ClientData clientData,
                                                Tcl_Interp *interp, int argc,
                                                TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
 
   if (builder == 0 || clientData == 0) {
@@ -913,7 +911,6 @@ int
 TclBasicBuilder_addNineFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
 
   if (builder == 0 || clientData == 0) {
@@ -1373,7 +1370,6 @@ int
 TclBasicBuilder_addEightNodeQuad(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 2) {

@@ -46,7 +46,7 @@ class Response;
 class SectionForceDeformation;
 
 class UniaxialMaterial : // public Material
-                         public TaggedObject, public MovableObject
+      public TaggedObject, public MovableObject
 {
   public:
     UniaxialMaterial(int tag, int classTag);    
@@ -75,12 +75,11 @@ class UniaxialMaterial : // public Material
 
 
     // method for this material to update itself according to its new parameters
-    virtual void update(void) {return;}
+    virtual void update() {return;}
 
     
-    virtual Response *setResponse (const char **argv, int argc, 
-				   OPS_Stream &theOutputStream);
-    virtual int getResponse (int responseID, Information &matInformation);    
+    virtual Response *setResponse (const char **argv, int argc, OPS_Stream &output);
+    virtual int getResponse(int responseID, Information &matInformation);
     virtual bool hasFailed() {return false;}
 
     // AddingSensitivity:BEGIN //////////////////////////////////////////

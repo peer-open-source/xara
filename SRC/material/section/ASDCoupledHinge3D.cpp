@@ -29,8 +29,6 @@
 //
 // Purpose: This file contains the implementation for the ASDCoupledHinge3D class. 
 
-//#include <stdlib.h>
-
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <classTags.h>

@@ -49,7 +49,6 @@ TclModelBuilder_addTLFD20nBrick(ClientData clientData,
                                 TclModelBuilder *theTclBuilder,
                                 int eleArgStart)
 {
-  // ensure the destructor has not been called -
   if (theTclBuilder == 0)
   {
     opserr << "command: element TotalLagrangianFD20nbrick - no modelbuilder \n";
@@ -170,7 +169,6 @@ TclModelBuilder_addTLFD8nBrick(ClientData clientData,
                                 TclModelBuilder *theTclBuilder,
                                 int eleArgStart)
 {
-  // ensure the destructor has not been called -
   if (theTclBuilder == 0)
   {
     opserr << "command: element TotalLagrangianFD8nbrick - no modelbuilder \n";

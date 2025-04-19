@@ -10,7 +10,7 @@
 // Developed by: Francisco Crisafulli (1997)
 // Written in C++ by: Stavroula Skafida (2013)
 // Modified by : Gonzalo Torrisi, Universidad Nacional de Cuyo, 2014
-
+//
 #include <stdlib.h> 
 #include "Masonry.h" 
 #include <OPS_Globals.h> 
@@ -22,7 +22,7 @@
 #include <math.h> 
 #include "classTags.h" 
 #include "elementAPI.h" 
- 
+
 /******************************************************************************* 
 * GETTING STARTED : Create a new Uniaxial Material class named "Masonry"  
 *******************************************************************************/ 

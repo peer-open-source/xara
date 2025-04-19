@@ -17,23 +17,23 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-//
-// Written: MD
-// Created: April 2008
-//
-#include <HyperbolicGapMaterial.h>
+
+#include "HyperbolicGapMaterial.h"
 #include <BasicModelBuilder.h>
-#include <Vector.h>
+#include <Logging.h>
+#include <Parsing.h>
 #include <string.h>
 #include <tcl.h>
 
 int
 TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
 {
-
+//
+// Written: MD
+// Created: April 2008
+//
   int tag;
   double Kmax, Kur, Rf, Fult, gap;
-  UniaxialMaterial *theMaterial = 0;
 
   if (argc < 8) {
     opserr << "WARNING insufficient number of arguments\n";
@@ -70,13 +70,32 @@ TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, int 
     return TCL_ERROR;	
   }
   
-  theMaterial = new HyperbolicGapMaterial(tag, Kmax, Kur, Rf, Fult, gap);
+  if (gap>=0) {
+    opserr << "Initial gap size must be negative for compression-only material, setting to negative\n";
+
+    gap = -gap;
+  }
+  if (Fult>0) {
+      opserr << "Fult must be negative for compression-only material, setting to negative\n";
+    Fult = -Fult;
+  }
+  if (Kmax == 0.0) {
+      opserr << "Kmax is zero, continuing with Kmax = Fult/0.002\n";
+      if (Fult != 0.0)
+          Kmax = fabs(Fult)/0.002;
+      else {
+          opserr << "Kmax and Fult are zero\n";
+          return TCL_ERROR;
+      }
+  }
+
+  UniaxialMaterial *theMaterial = new HyperbolicGapMaterial(tag, Kmax, Kur, Rf, Fult, gap);
 
   BasicModelBuilder* builder = (BasicModelBuilder*)(clientData);
-  if (builder->addTaggedObject<UniaxialMaterial>(theMaterial) == TCL_OK)
+  if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) == TCL_OK)
     return TCL_OK;
   else
-    return -1;
+    return TCL_ERROR;
 
-  return -1;
+  return TCL_ERROR;
 }

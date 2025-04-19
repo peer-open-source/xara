@@ -17,14 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-//                                                                        
-// Revision: 1.0
-// Date: 05/2019
-// Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/ViscoelasticGap.cpp
-//
-// Written: Patrick J. Hughes, University of California - San Diego
-// Created: 05/2019
-//
 // Description: This file contains the class implementation for the
 // ViscoelasticGap uniaxialMaterial.
 //
@@ -36,7 +28,14 @@
 // K: linear stiffness
 // C: linear damping coefficient
 // gap: initial gap (must be a negative value)
-
+//                                                                        
+// Revision: 1.0
+// Date: 05/2019
+// Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/ViscoelasticGap.cpp
+//
+// Written: Patrick J. Hughes, University of California - San Diego
+// Created: 05/2019
+//
 #include <stdlib.h>
 #include <Vector.h>
 #include <Channel.h>
@@ -119,7 +118,7 @@ ViscoelasticGap::ViscoelasticGap()
 
 }
 
-// destructor
+
 ViscoelasticGap::~ViscoelasticGap()
 {
   // does nothing
@@ -161,42 +160,42 @@ ViscoelasticGap::setTrialStrain(double strain, double strainRate)
 
 // retrieve trial strain
 double 
-ViscoelasticGap::getStrain(void)
+ViscoelasticGap::getStrain()
 {
   return trialStrain;
 }
 
 // retrieve trial strain rate
 double 
-ViscoelasticGap::getStrainRate(void)
+ViscoelasticGap::getStrainRate()
 {
   return trialStrainRate;
 }
 
 // retrieve trial stress
 double 
-ViscoelasticGap::getStress(void)
+ViscoelasticGap::getStress()
 {
   return trialStress;
 }
 
 // retrieve trial tangent stiffness
 double 
-ViscoelasticGap::getTangent(void)
+ViscoelasticGap::getTangent()
 {
   return trialTangent;
 }
 
 // retrieve initial tangent stiffness
 double 
-ViscoelasticGap::getInitialTangent(void)
+ViscoelasticGap::getInitialTangent()
 {
   return 0.0; 
 }
 
 // commit state
 int 
-ViscoelasticGap::commitState(void)
+ViscoelasticGap::commitState()
 {
 	commitStrain = trialStrain;
 	commitStrainRate = trialStrainRate;
@@ -207,7 +206,7 @@ ViscoelasticGap::commitState(void)
 
 // revert to last comitted state
 int 
-ViscoelasticGap::revertToLastCommit(void)
+ViscoelasticGap::revertToLastCommit()
 {
 	trialStrain = commitStrain;
 	trialStrainRate = commitStrainRate;
@@ -218,7 +217,7 @@ ViscoelasticGap::revertToLastCommit(void)
 
 // revert to initial state
 int 
-ViscoelasticGap::revertToStart(void)
+ViscoelasticGap::revertToStart()
 {
     commitStrain = 0.0;
     commitStrainRate = 0.0;
@@ -233,7 +232,7 @@ ViscoelasticGap::revertToStart(void)
 
 // copy state
 UniaxialMaterial *
-ViscoelasticGap::getCopy(void)
+ViscoelasticGap::getCopy()
 {
     ViscoelasticGap *theCopy = new ViscoelasticGap(this->getTag(),K,C,gap);
 	theCopy->commitStrain = commitStrain;

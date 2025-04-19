@@ -42,7 +42,6 @@ TclCommand_addActuator(ClientData clientData, Tcl_Interp *interp, int argc,
                             TCL_Char ** const argv)
 {
   constexpr static int eleArgStart = 1;
-  // ensure the destructor has not been called
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
 
   // check the number of arguments is correct

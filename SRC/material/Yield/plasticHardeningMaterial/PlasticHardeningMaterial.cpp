@@ -12,8 +12,9 @@
 //////////////////////////////////////////////////////////////////////
 
 PlasticHardeningMaterial::PlasticHardeningMaterial(int tag, int classTag)
-:Material(tag, classTag), val_hist(0), val_trial(0),
- sFactor(1.0), residual(1.0)
+: TaggedObject(tag), MovableObject(classTag),
+  val_hist(0), val_trial(0),
+  sFactor(1.0), residual(1.0)
 {
 }
 
@@ -30,7 +31,7 @@ int PlasticHardeningMaterial::setTrialValue(double xVal, double factor)
 	return 0;	
 }
 
-double PlasticHardeningMaterial::getTrialValue(void)
+double PlasticHardeningMaterial::getTrialValue()
 {
 	return val_trial;
 }
@@ -39,7 +40,8 @@ int PlasticHardeningMaterial::setTrialIncrValue(double dxVal)
 {
 	sFactor = 1.0;
 	val_trial = val_hist + dxVal;
-	if(val_trial < 0) val_trial = 0;
+	if(val_trial < 0)
+		val_trial = 0;
 	return 0;	
 }
 
@@ -57,7 +59,7 @@ int PlasticHardeningMaterial::commitState ()
 	return 0;	
 }
 
-int PlasticHardeningMaterial::revertToLastCommit (void)
+int PlasticHardeningMaterial::revertToLastCommit()
 {
 	val_trial = val_hist;
 	return 0;	

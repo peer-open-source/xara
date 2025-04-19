@@ -11,14 +11,6 @@
 #include "ElTawil2D.h"
 #include "ElTawil2DUnSym.h"
 
-static void
-printCommand(int argc, TCL_Char ** const argv)
-{
-  opserr << "Input command: ";
-  for (int i = 0; i < argc; i++)
-    opserr << argv[i] << " ";
-  opserr << "\n";
-}
 
 int
 TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
@@ -41,7 +33,6 @@ TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
   if (strcmp(argv[1], "null") == 0) {
     if (argc < 4) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: yieldSurfaceBC null tag? dimensions?" << "\n";
       return TCL_ERROR;
     }
@@ -65,11 +56,10 @@ TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
       opserr << "incorrect dimension for null ys\n";
       return TCL_ERROR;
     }
-
-  } else if (strcmp(argv[1], "Orbison2D") == 0) {
+  }
+  else if (strcmp(argv[1], "Orbison2D") == 0) {
     if (argc < 6) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       // Orbison2D(int tag, double xmax, double ymax, YS_HardeningModel &model);
       opserr << "Want: yieldSurfaceBC Orbison2D tag? xCap? yCap? ys_model_tag?"
              << "\n";
@@ -118,7 +108,6 @@ TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "ElTawil2D") == 0) {
     if (argc < 7) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       // Orbison2D(int tag, double xmax, double ymax, YS_HardeningModel &model);
       opserr << "Want: yieldSurfaceBC ElTawil2D tag? xCap? yCap? ys_model_tag?"
              << "\n";
@@ -179,7 +168,6 @@ TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "ElTawil2DUnSym") == 0) {
     if (argc < 9) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       // Orbison2D(int tag, double xmax, double ymax, YS_HardeningModel &model);
       opserr << "Want: yieldSurfaceBC ElTawil2DUnSym tag? xPosBal? yPosBal? "
              << "xNegBal? yPos? yNeg? ys_model_tag?" << "\n";
@@ -258,7 +246,6 @@ TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
 
     if (argc < 6 || argc > 14) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: yieldSurfaceBC Attalla2D tag? xCap? yCap? matXTag? "
                 "maxYTag? isoRatio? <..>"
              << "\n";
@@ -333,7 +320,6 @@ TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "Hajjar2D") == 0) {
     if (argc < 9) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr
           << "Want: yieldSurfaceBC Hajjar2D tag? ysModelTag? D? b? t? fc? fy?"
           << "\n";
@@ -399,7 +385,6 @@ TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
 
   else {
     opserr << "Warning - unknown yield surface type \n";
-    printCommand(argc, argv);
   }
 
   ///////////////////////////////////////////////////////////////
@@ -1172,14 +1157,12 @@ TclBasicBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp,
 
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments\n";
-    printCommand(argc, argv);
     return 0;
   }
 
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid section tag\n";
-    printCommand(argc, argv);
     return 0;
   }
 
@@ -1190,7 +1173,6 @@ TclBasicBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp,
 
     if (argc < 7) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: section YS_Section2D01 tag? E? A? Iz? ysTag? <algo?>"
              << "\n";
       return 0;
@@ -1252,7 +1234,6 @@ TclBasicBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp,
 
     if (argc < 8) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: section YS_Section2D01 tag? E? A? Iz? maxPlastRot? "
                 "ysTag? <algo?>"
              << "\n";
@@ -1323,7 +1304,6 @@ TclBasicBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp,
 
     if (argc < 10) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: section soilFootingSection2d tag? FS? Vult? L? Kv? dL?"
              << "\n";
       return 0;

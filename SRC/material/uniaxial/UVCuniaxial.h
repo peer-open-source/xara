@@ -7,8 +7,6 @@
 
 #include <vector>
 #include "UniaxialMaterial.h"
-#include <OPS_Globals.h>
-#include <elementAPI.h>
 
 /* ------------------------------------------------------------------------ */
 
@@ -20,12 +18,11 @@ class UVCuniaxial : public UniaxialMaterial
   /* ------------------------------------------------------------------------ */
 
 public:
-  //! Constructor
   UVCuniaxial(int tag, double E, double sy0, double qInf, double b,
     double dInf, double a,
     std::vector<double> cK, std::vector<double> gammaK);
   UVCuniaxial();
-  //! Destructor
+
   ~UVCuniaxial();
 
   /* ------------------------------------------------------------------------ */
@@ -33,35 +30,34 @@ public:
   /* ------------------------------------------------------------------------ */
 
 public:
-  //! Returns the class type
-  const char *getClassType(void) const { return "UVCuniaxial"; };
+  const char *getClassType() const { return "UVCuniaxial"; }
 
   //! Calculates the trail strain and stress
   int setTrialStrain(double strain, double strainRate = 0);
 
   //! Returns the trial strain
-  double getStrain(void);
+  double getStrain();
 
   //! Returns the trial stress
-  double getStress(void);
+  double getStress();
 
   //! Returns the trial elastoplastic tangent modulus
-  double getTangent(void);
+  double getTangent();
 
   //! Returns the tangent modulus in the undeformed configuration
-  double getInitialTangent(void);
+  double getInitialTangent();
 
   //! Sets the converged state to be the current trial state
-  int commitState(void);
+  int commitState();
 
   //! Sets the trial state to be the converged state
-  int revertToLastCommit(void);
+  int revertToLastCommit();
 
   //! Sets the converged state to the undeformed configuration
-  int revertToStart(void);
+  int revertToStart();
 
   //! Returns a copy of the material in the current state
-  UniaxialMaterial *getCopy(void);
+  UniaxialMaterial *getCopy();
 
   //! todo: fill out
   int sendSelf(int commitTag, Channel &theChannel);

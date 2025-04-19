@@ -209,7 +209,6 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
                                    int argc,
                                    TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
@@ -307,7 +306,6 @@ int
 TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
                            TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
@@ -445,14 +443,9 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
                                           int argc, TCL_Char ** const argv)
 
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
-  if (builder == 0 || clientData == 0) {
-    opserr << "WARNING builder has been destroyed\n";
-    return TCL_ERROR;
-  }
 
   if (builder->getNDM() != 3) {
     opserr << "WARNING -- model dimensions and/or nodal DOF not compatible "
@@ -593,7 +586,6 @@ int
 TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
                                TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
   Domain* theTclDomain = builder->getDomain();
 

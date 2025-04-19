@@ -4,17 +4,10 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
+
 target_link_libraries(OPS_Material PRIVATE OPS_Domain OPS_Logging)
 target_sources(OPS_Runtime PRIVATE commands.cpp)
 
-target_sources(OPS_Runtime PRIVATE commands.cpp)
-
-target_sources(OPS_Material
-    PRIVATE
-      Material.cpp
-    PUBLIC
-      Material.h
-)
 
 target_include_directories(OPS_Material
   PUBLIC
@@ -43,6 +36,7 @@ target_include_directories(OPS_Material
     ${CMAKE_CURRENT_LIST_DIR}/nD/UANDESmaterials
     ${CMAKE_CURRENT_LIST_DIR}/nD/UWmaterials
 )
+
 add_subdirectory(Frame)
 #add_subdirectory(Shell)
 add_subdirectory(uniaxial)

@@ -64,7 +64,6 @@ extern OPS_Routine OPS_FRCC;
 extern OPS_Routine OPS_GNGMaterial;
 extern OPS_Routine OPS_HoehlerStanton;
 extern OPS_Routine OPS_HookGap;
-extern OPS_Routine OPS_HyperbolicGapMaterial;
 extern OPS_Routine OPS_HystereticMaterial;
 extern OPS_Routine OPS_HystereticPoly;
 extern OPS_Routine OPS_HystereticAsym;
@@ -163,14 +162,20 @@ static Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
 extern Tcl_CmdProc TclCommand_newBoucWenMG;
 Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
 Tcl_CmdProc TclCommand_ContinuumUniaxialMaterial;
+// Bearing
 Tcl_CmdProc TclCommand_AxialSp;
 Tcl_CmdProc TclCommand_AxialSpHD;
 Tcl_CmdProc TclCommand_KikuchiAikenHDR;
 Tcl_CmdProc TclCommand_KikuchiAikenLRB;
+// Concrete
 Tcl_CmdProc TclCommand_newUniaxialConcrete04;
 Tcl_CmdProc TclCommand_newUniaxialConcrete06;
 Tcl_CmdProc TclCommand_newUniaxialConcrete07;
+// Bouc-Wen
 Tcl_CmdProc TclCommand_newUniaxialBoucWen;
+// Abutment
+Tcl_CmdProc TclCommand_HyperbolicGapMaterial;
+// Wrapper
 Tcl_CmdProc TclCommand_newParallelMaterial;
 
 // typedef int (TclCommand_UniaxialMaterial)(ClientData, Tcl_Interp*, int, TCL_Char ** const);
@@ -367,7 +372,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
     {"HookGap",                dispatch<OPS_HookGap>                   },
 
-    {"HyperbolicGapMaterial",  dispatch<OPS_HyperbolicGapMaterial>     },
+    {"HyperbolicGapMaterial",  dispatch<TclCommand_HyperbolicGapMaterial>},
 
     {"FRPConfinedConcrete02",  dispatch<OPS_FRPConfinedConcrete02>     },
     {"FRCC",                   dispatch<OPS_FRCC>                      },

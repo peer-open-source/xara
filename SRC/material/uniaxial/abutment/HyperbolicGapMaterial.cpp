@@ -30,7 +30,8 @@
 // Description: This file contains the class implementation for
 // HyperbolicGapMaterial.  This material is based on abutment stiffness
 // models for bridge simulation proposed by Patrick Wilson and Ahmed Elgamal
-// at UCSD.  The abutment stiffness models are based on large-scale abutment
+// at UCSD.  
+// The abutment stiffness models are based on large-scale abutment
 // tests performed on the outdoor shaking table at UCSD.  The model is described
 // for a 1.68 meter (5.5 ft) tall backwall height (typical size) and a 1 meter
 // wide section along the width of the abutment (to be scaled accordingly).
@@ -47,73 +48,21 @@
 // The model is implemented as a compression-only gap material, thus the values
 // of Fult and gap should be negative.
 //
-#include <stdlib.h>
 
-#include <HyperbolicGapMaterial.h>
+#include "HyperbolicGapMaterial.h"
 #include <Vector.h>
 #include <Channel.h>
+#include <Logging.h>
 #include <math.h>
 #include <float.h>
 
-#include <OPS_Globals.h>
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_HyperbolicGapMaterial)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 6) {
-        opserr << "WARNING: Insufficient arguments\n";
-        return 0;
-    }
-
-    int tag;
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata,&tag) < 0) {
-        return 0;
-    }
-
-    double data[5];
-    numdata = 5;
-    if (OPS_GetDoubleInput(&numdata,data)) {
-        return 0;
-    }
-
-    UniaxialMaterial* mat = new HyperbolicGapMaterial(tag,data[0],data[1],data[2],data[3],data[4]);
-    if (mat == 0) {
-        opserr << "WARNING: failed to create Hyperbolicgapmaterial material\n";
-        return 0;
-    }
-
-    return mat;
-}
 
 HyperbolicGapMaterial::HyperbolicGapMaterial(int tag, double kmax, double kur, double rf, double fult, double gap0)
     :UniaxialMaterial(tag,MAT_TAG_HyperbolicGapMaterial),
     Kmax(kmax), Kur(kur), Rf(rf), Fult(fult), gap(gap0)
 {
-    if (gap>=0) {
-        opserr << "HyperbolicGapMaterial::HyperbolicGapMaterial -- Initial gap size must be negative for compression-only material, setting to negative\n";
-        //exit(-1);
-	gap = -gap;
-    }
-    if (Fult>0) {
-        opserr << "HyperbolicGapMaterial::HyperbolicGapMaterial -- Fult must be negative for compression-only material, setting to negative\n";
-        //exit(-1);
-	Fult = -Fult;
-    }
-    if (Kmax == 0.0) {
-        opserr << "HyperbolicGapMaterial::HyperbolicGapMaterial -- Kmax is zero, continuing with Kmax = Fult/0.002\n";
-        if (Fult != 0.0)
-            Kmax = fabs(Fult)/0.002;
-        else {
-            opserr << "HyperbolicGapMaterial::HyperbolicGapMaterial -- Kmax and Fult are zero\n";
-            exit(-1);
-        }
-    }
-    else
-
-        // Initialize history variables
-        this->revertToStart();
+    // Initialize history variables
+    this->revertToStart();
     this->revertToLastCommit();
 }
 

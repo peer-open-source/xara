@@ -18,10 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 
-// $Revision: $
-// $Date: $
-// $URL: $
-
 #ifndef BoucWenOriginal_h
 #define BoucWenOriginal_h
 

@@ -16,7 +16,7 @@ public:
 	virtual ~MultiLinearKp();
 	
 	double getTrialPlasticStiffness();
-    PlasticHardeningMaterial *getCopy(void);
+    PlasticHardeningMaterial *getCopy();
     void Print(OPS_Stream &s, int flag =0);
 
   private:

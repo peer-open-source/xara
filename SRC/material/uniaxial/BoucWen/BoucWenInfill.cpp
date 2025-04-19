@@ -36,8 +36,7 @@
 // Journal of Engineering Mechanics, 147(11), 04021092.
 //
 
-#include <elementAPI.h>
-#include <BoucWenInfill.h>
+#include "BoucWenInfill.h"
 
 #include <Vector.h>
 #include <Channel.h>
@@ -47,8 +46,9 @@
 #include <Parameter.h>
 
 
+#include <elementAPI.h>
 void *
-OPS_BoucWenInfill(void)
+OPS_BoucWenInfill()
 {
     int numdata = OPS_GetNumRemainingInputArgs();
     if (numdata < 16) {

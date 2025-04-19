@@ -28,6 +28,7 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/material/uniaxial_metallics.cpp"
     "modeling/material/plastic.cpp"
     "modeling/material/elastic.cpp"
+    "modeling/material/isotropy.cpp"
     "modeling/material/shell.cpp"
     "modeling/printing.cpp"
     "modeling/blockND.cpp"

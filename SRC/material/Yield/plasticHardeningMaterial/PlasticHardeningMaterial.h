@@ -1,11 +1,14 @@
 #ifndef PlasticHardeningMaterial_h
 #define PlasticHardeningMaterial_h
 
-#include <Material.h>
+#include <TaggedObject.h>
+#include <MovableObject.h>
+#include <Vector.h>
+#include <Matrix.h>
 class Information;
 class Response;
 
-class PlasticHardeningMaterial : public Material
+class PlasticHardeningMaterial : public TaggedObject, public MovableObject // public Material
 {
   public:
     PlasticHardeningMaterial (int tag, int classTag);

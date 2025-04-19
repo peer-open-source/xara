@@ -23,7 +23,6 @@ int
 TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
                                      int argc, TCL_Char ** const argv)
 {
-  // ensure the destructor has not been called -
   assert(clientData != nullptr);
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
 

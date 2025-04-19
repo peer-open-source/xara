@@ -25,7 +25,7 @@
 // Description: This file contains the implementation of the
 // BoucWenOriginal uniaxial material class.
 //
-#include <BoucWenOriginal.h>
+#include "BoucWenOriginal.h"
 #include <Vector.h>
 #include <Channel.h>
 #include <math.h>
@@ -34,6 +34,7 @@
 #include <Information.h>
 #include <Parameter.h>
 #include <string.h>
+
 #include <elementAPI.h>
 #include <OPS_Globals.h>
 

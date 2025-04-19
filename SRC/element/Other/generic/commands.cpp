@@ -24,7 +24,6 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
 {
   const int eleArgStart = 1;
 
-  // ensure the destructor has not been called
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
@@ -187,7 +186,6 @@ TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int ar
                                TCL_Char ** const argv)
 {
   const int eleArgStart = 1;
-  // ensure the destructor has not been called
   BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
