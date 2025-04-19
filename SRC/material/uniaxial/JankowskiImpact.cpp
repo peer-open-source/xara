@@ -54,7 +54,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_JankowskiImpact)
   // kudos
   if (numJankowskiImpact == 0) {
     numJankowskiImpact++;
-    opserr << "JankowskiImpact model written by Patrick J. Hughes, UC San Diego\n";
+    opslog << "JankowskiImpact model written by Patrick J. Hughes, UC San Diego\n";
   }
   
   // Pointer to a uniaxial material that will be returned
