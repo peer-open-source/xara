@@ -126,6 +126,8 @@ OPS_ADD_RUNTIME_VPV(OPS_TDConcreteMC10NL) {
 				//Return new material:
 				return theMaterial;
 			}
+
+      return nullptr;
 }
 
 //-----------------------------------------------------------------------
