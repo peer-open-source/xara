@@ -56,7 +56,6 @@
 // Disclaimer: This software is provided �as is�, without any warranties, expressed or implied. In no event shall the developers be liable for any claim, damages, or liability arising from or in connection with this software.
 //----------------------------------------------------------------------------------------------------------------------------
 
-#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -66,10 +65,8 @@
 #include <float.h>
 #include <Channel.h>
 #include <Information.h>
-#include <iostream>     //Added by AMK for debugging
 #include <elementAPI.h> //Added by AMK to use methods for parsing data line;
 #include <Domain.h>     //Added by AMK to get current Domain time;
-using namespace std;    //Added by AMK for debugging
 #include <MaterialResponse.h>
 #include <Vector.h>
 
@@ -92,7 +89,7 @@ OPS_ADD_RUNTIME_VPV(OPS_TDConcreteEXP)
 {
   // Print description of material model:
   if (numTDConcrete == 0) {
-    opserr << "Time-Dependent Concrete Material Model - Written by Adam "
+    opslog << "Time-Dependent Concrete Material Model - Written by Adam "
               "Knaack, University of Notre Dame, 2012 \n";
     numTDConcrete = 1;
   }
@@ -454,7 +451,7 @@ TDConcreteEXP::commitState(void)
   epsP_m     = eps_m;
   if (eps_m < 0 && fabs(eps_m) > 0.50 * fabs(fc / Ec)) {
     double s = fabs(eps_m / fc) * Ec;
-    cout << "\n          Strain Compression Limit Exceeded: " << s << "fc'";
+    opserr << "\n          Strain Compression Limit Exceeded: " << s << "fc'";
   }
 
   //Cracking flags:
