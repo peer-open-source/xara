@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <runtimeAPI.h>
 #include <G3_Runtime.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <Timer.h>
 #include "interpreter.h"
 
@@ -179,9 +179,8 @@ OPS_SetObjCmd(ClientData clientData, Tcl_Interp *interp, int objc,
 static int
 logFile(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
-
   if (argc < 2) {
-    opserr << "WARNING logFile fileName? - no filename supplied\n";
+    opserr << "WARNING no filename supplied\n";
     return TCL_ERROR;
   }
   bool echo = true;
@@ -197,9 +196,15 @@ logFile(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const a
     cArg++;
   }
 
-  if (opserr.setFile(argv[1], mode, echo) < 0)
-    opserr << "WARNING logFile " << argv[1] << " failed to set the file\n";
+  if (opserr.setFile(argv[1], mode, echo) < 0) {
+    opserr << "WARNING logFile " << argv[1] << " failed to set the file"
+           << "\n";
+  }
+  std::string cmd = std::string{"namespace eval opensees::internal {set log_file \""}
+                  + std::string{argv[1]}
+                  + std::string{"\"}\n"};
 
+  Tcl_Eval(interp, cmd.c_str());
 
   return TCL_OK;
 }
