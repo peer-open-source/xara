@@ -1,6 +1,6 @@
 /* PD1.f -- translated by f2c (version 20020621).
    You must link the resulting object file with the libraries:
-	-lf2c -lm   (in that order)
+        -lf2c -lm   (in that order)
 */
 
 
@@ -10,60 +10,57 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* Builtin functions */
+double sqrt(double);
+
 static int c0 = 0;
 static int c1 = 1;
-static int c9 = 9;
-static int c5 = 5;
 
 int reloading_(double *, double *, 
-	       double *, double *, double *, double *, 
-	       double *, double *, double *, double *, int *);
+               double *, double *, double *, double *, 
+               double *, double *, double *, double *, int *);
 
 int  unloading_(double *, double *, double *, double 
-		*, double *, double *, double *, int *);
+                *, double *, double *, double *, int *);
 
 int yield1_(int *, double *, double *,
-	    double *, double *);
+            double *, double *);
 
 int vdtan1_(int *, int *, 
-	    double *, double *, double *, double *, 
-	    double *, double *, double *, double *, 
-	    double *, double *);
+            double *, double *, double *, double *, 
+            double *, double *, double *, double *, 
+            double *, double *);
 
 int crstr1_(double *, double *, 
-	    double *, double *, double *, double *);
+            double *, double *, double *, double *);
   
 int degrad1_(int *, int *, double *, 
-	     double *, double *, double *, double *, 
-	     double *, double *);
+             double *, double *, double *, double *, 
+             double *, double *);
 
 int plasto1_(double *, double *, 
-	     int *, double *, double *, double *, double *,
-	     double *, double *, double *, double *, 
-	     double *, double *, double *, double *, 
-	     double *, int *);
+             int *, double *, double *, double *, double *,
+             double *, double *, double *, double *, 
+             double *, double *, double *, double *, 
+             double *, int *);
 
 int setpara_(double *, double *);
 
 int algotan1_(double *, double *, double *, double *, 
-	      double *, double *, double *, double *);
+              double *, double *, double *, double *);
 
 int elastan1_(double *, double *, double *, double *);
 
 
 int pd_(double *d__, double *hstvp, double *hstv,
-	double *epsp, double *sigp, double *deps, double *
-	str, double *dd, int *ist)
+        double *epsp, double *sigp, double *deps, double *
+        str, double *dd, int *ist)
 {
-  /* System generated locals */
-  double d1, d2;
-  
-  /* Builtin functions */
-  double sqrt(double);
   
   /* Local variables */
   static double phibound, e;
-  static double ck, kp, mu, xl[4]	/* was [2][2] */, deg, lam, fkp, eps, tol, tol2;
+  static double ck, kp, mu, xl[4] /* was [2][2] */, 
+                deg, lam, fkp, eps, tol, tol2;
   static int flag__;
   static double kapa[2], vdeg, cohn[2], delt, cmax, resf, ieps, sign, temp, peps, estr, fstr, dplas;
   static int index;
@@ -74,6 +71,9 @@ int pd_(double *d__, double *hstvp, double *hstv,
   static int maxitr;
   static double viscot;
   static double matpara[4], fenergy;
+
+  /* System generated locals */
+  double d1, d2;
   
   /*       One-D version of (ElastoVisco) Plastic-Damage Model */
   
@@ -156,23 +156,21 @@ int pd_(double *d__, double *hstvp, double *hstv,
     if (kp > 0. && index == 2) {
       *deps = eps - oldeps;
       if (*deps < 0.) {
-	/* +++++++++++++++++++++++++ Reloading +++++++++++++++++++++++++++++++ */
-	/* Computing 2nd power */
-	d1 = xl[0] - xl[2];
-	/* Computing 2nd power */
-	d2 = xl[1] - xl[3];
-	chleng = sqrt(d1 * d1 + d2 * d2);
-	reloading_(&chleng, &kp, &d__[1], matpara, &eps, deps, &peps, 
-		   &phibound, cohn, &tol, &maxitr);
-	kapa[1] = kp;
+        /* +++++++++++++++++++++++++ Reloading +++++++++++++++++++++++++++++++ */
+        /* Computing 2nd power */
+        double d1 = xl[0] - xl[2];
+        /* Computing 2nd power */
+        double d2 = xl[1] - xl[3];
+        chleng = sqrt(d1 * d1 + d2 * d2);
+        reloading_(&chleng, &kp, &d__[1], matpara, &eps, deps, &peps, 
+                   &phibound, cohn, &tol, &maxitr);
+        kapa[1] = kp;
       } else {
-	unloading_(&d__[1], &eps, deps, &kp, cohn, &peps, &tol, &
-		   maxitr);
-	phibound = resf / cohn[1] + 1.;
+        unloading_(&d__[1], &eps, deps, &kp, cohn, &peps, &tol, &maxitr);
+        phibound = resf / cohn[1] + 1.;
       }
     }
-    degrad1_(&c0, &index, &d__[1], matpara, kapa, &kapa[1], &ck, &deg, &
-	     degstr);
+    degrad1_(&c0, &index, &d__[1], matpara, kapa, &kapa[1], &ck, &deg, &degstr);
     ieps = viscot * peps + viscom * ieps;
     deleps = eps - ieps;
     vdeg = viscom * vdeg + viscot * deg;
@@ -181,9 +179,9 @@ int pd_(double *d__, double *hstvp, double *hstv,
   } else {
     /*  plastic loading state  --------------------------------------------- */
     /* Computing 2nd power */
-    d1 = xl[0] - xl[2];
+    double d1 = xl[0] - xl[2];
     /* Computing 2nd power */
-    d2 = xl[1] - xl[3];
+    double d2 = xl[1] - xl[3];
     chleng = sqrt(d1 * d1 + d2 * d2);
     if (kp > ktcrit && index == 1) {
       delps = 0.;
@@ -192,8 +190,8 @@ int pd_(double *d__, double *hstvp, double *hstv,
       /*          write(*,*) '!!! crmode ON' */
     } else {
       plasto1_(&d__[1], matpara, &index, &sign, &chleng, &eps, &trstr, &
-	       lam, &kp, cohn, &fenergy, &fstr, &fkp, &ck, &dplas1, &tol,
-	       &maxitr);
+               lam, &kp, cohn, &fenergy, &fstr, &fkp, &ck, &dplas1, &tol,
+               &maxitr);
       delps = lam * sign;
       algotan1_(&e, &sign, &lam, &fenergy, &fstr, &fkp, &ck, dd);
     }
@@ -205,14 +203,14 @@ int pd_(double *d__, double *hstvp, double *hstv,
       kapa[1] = kp;
     }
     degrad1_(&c1, &index, &d__[1], matpara, kapa, &kapa[1], &ck, &deg, &
-	     degstr);
+             degstr);
     trstr = dplas1 * e * (eps - ieps);
     ieps = viscot * peps + viscom * ieps;
     deleps = eps - ieps;
     vdeg = viscom * vdeg + viscot * deg;
     *str = (1. - vdeg) * dplas1 * e * deleps;
     vdtan1_(&crmode, &index, &d__[1], &dplas1, &mu, &delt, &trstr, &estr, 
-	    &vdeg, &degstr, &d2_eps__, dd);
+            &vdeg, &degstr, &d2_eps__, dd);
   }
   /*  Compute secant tangent stiffness (only for elastic part) */
   /*  Post-processing part */
@@ -232,14 +230,10 @@ int pd_(double *d__, double *hstvp, double *hstv,
   return 0;
 } /* pd_ */
 
- int setpara_(double *d__, double *matpara)
+int
+setpara_(double *d__, double *matpara)
 {
-  /* System generated locals */
-  double d1, d2;
-  
-  
   /* Local variables */
-  static double deg_para1__, deg_para2__, deg_para3__;
   static double temp;
   
   /* Parameter adjustments */
@@ -247,14 +241,14 @@ int pd_(double *d__, double *hstvp, double *hstv,
   --d__;
   
   /* Function Body */
-  deg_para1__ = .7f;
-  deg_para2__ = .5f;
-  deg_para3__ = 1.f;
+  static double deg_para1__ = .7f;
+  static double deg_para2__ = .5f;
+  static double deg_para3__ = 1.f;
   /* ----- compute the parameters for the material model */
   temp = d__[6] / d__[5];
   matpara[1] = temp * 2. - 1. + sqrt(temp * temp - temp) * 2.;
-  d1 = 1. - deg_para1__;
-  d2 = 1. / deg_para3__;
+  double d1 = 1. - deg_para1__;
+  double d2 = 1. / deg_para3__;
   temp = pow(d1, d2);
   matpara[2] = deg_para3__;
   matpara[3] = log(1. - deg_para2__) / log(.5 / matpara[1] + .5);
@@ -262,8 +256,9 @@ int pd_(double *d__, double *hstvp, double *hstv,
   return 0;
 } /* setpara_ */
 
- int crstr1_(double *e, double *cohn, double *
-			     trstr, double *dplas, double *dplas1, double *d2_eps__)
+int
+crstr1_(double *e, double *cohn, double *trstr, 
+        double *dplas, double *dplas1, double *d2_eps__)
 {
   /* Parameter adjustments */
   --cohn;
@@ -278,20 +273,18 @@ int pd_(double *d__, double *hstvp, double *hstv,
 
 
 int damg1_(int *, int *, double *, 
-	   double *, double *, double *, double *, 
-	   double *, double *);
+           double *, double *, double *, double *, 
+           double *, double *);
 int coml1_(int *, double *, 
-	   double *, double *, double *, double *, 
-	   double *);
+           double *, double *, double *, double *, 
+           double *);
 
 int plasto1_(double *d__, double *matpara, int *
-	     index, double *sign, double *chleng, double *eps, 
-	     double *trstr, double *lam, double *kp, double *cohn, 
-	     double *fenergy, double *fstr, double *fkp, double *
-	     ck, double *dplas1, double *toler, int *maxitr)
+             index, double *sign, double *chleng, double *eps, 
+             double *trstr, double *lam, double *kp, double *cohn, 
+             double *fenergy, double *fstr, double *fkp, double *
+             ck, double *dplas1, double *toler, int *maxitr)
 {
-  /* Builtin functions */
-  
   /* Local variables */
   static double e, kpn;
   static int iter;
@@ -328,15 +321,11 @@ int plasto1_(double *d__, double *matpara, int *
     /*   check the convergence of the damage evolution eqn */
     resq = kpn - *kp + *sign * *lam * *fstr / *fenergy;
     error = fabs(resq);
-    /*      write(*,*) '#################################' */
-    /*      write(*,*) 'toler =',toler */
-    /*      write(*,*) 'error =', error */
-    /*      write(*,*) 'kp =',kp */
     if (error > *toler) {
       if (iter > *maxitr) {
-	fprintf(stderr, "toler = %f\n error = %f\n kp = %f\n",*toler, error, *kp);
-	fprintf(stderr, "VEPD_@D: exceed the maximum iteration(iter)!\n");
-	exit(-1);
+        fprintf(stderr, "toler = %f\n error = %f\n kp = %f\n",*toler, error, *kp);
+        fprintf(stderr, "VEPD_@D: exceed the maximum iteration(iter)!\n");
+        exit(-1);
       }
       q_lam__ = *sign * *fstr / *fenergy;
       q_kapa__ = *sign * *lam * *fkp / *fenergy - 1.;
@@ -345,10 +334,10 @@ int plasto1_(double *d__, double *matpara, int *
       *kp -= resq;
       temp = 1. - *toler;
       if (*kp < kpn) {
-	*kp = kpn;
+        *kp = kpn;
       } else if (*kp > temp) {
-	*kp = temp;
-	switch__ = -1;
+        *kp = temp;
+        switch__ = -1;
       }
       goto L100;
       /* ---> go back to 100 */
@@ -358,21 +347,19 @@ int plasto1_(double *d__, double *matpara, int *
 } /* plasto1_ */
 
 int algotan1_(double *e, double *sign, double *
-	      lam, double *fenergy, double *fstr, double *fkp, 
-	      double *ck, double *dd)
+              lam, double *fenergy, double *fstr, double *fkp, 
+              double *ck, double *dd)
 {
-  static double omega;
-  
   /*   construct the algorithmic tangent stiffness: dd */
-  omega = *fstr * *ck / (*fenergy - *sign * *lam * *fkp);
+  double omega = *fstr * *ck / (*fenergy - *sign * *lam * *fkp);
   *dd = *e * omega / (omega - *e);
   return 0;
 } /* algotan1_ */
 
 int vdtan1_(int *crmode, int *index, double *d__,
-	    double *dplas1, double *mu, double *delt, double *
-	    tstr, double *estr, double *vdeg, double *degstr, 
-	    double *d2_eps__, double *dd)
+            double *dplas1, double *mu, double *delt, double *
+            tstr, double *estr, double *vdeg, double *degstr, 
+            double *d2_eps__, double *dd)
 {
   /* Local variables */
   static double e, temp, vdeg1, temp2;
@@ -397,7 +384,7 @@ int vdtan1_(int *crmode, int *index, double *d__,
 } /* vdtan1_ */
 
 int elastan1_(double *e, double *vdeg, double *
-	      dplas1, double *dd)
+              dplas1, double *dd)
 {
   /*    compute the elastic tangent stiffness */
   *dd = (1. - *vdeg) * *dplas1 * *e;
@@ -405,7 +392,7 @@ int elastan1_(double *e, double *vdeg, double *
 } /* elastan1_ */
 
 int coml1_(int *index, double *e, double *trstr, 
-	   double *cohn, double *ck, double *lam, double *lamkp)
+           double *cohn, double *ck, double *lam, double *lamkp)
 {
   /* Parameter adjustments */
   --cohn;
@@ -422,7 +409,7 @@ int coml1_(int *index, double *e, double *trstr,
 } /* coml1_ */
 
 int yield1_(int *index, double *cohn, double *
-	    str, double *resf, double *fb)
+            str, double *resf, double *fb)
 {
   /* Parameter adjustments */
   --cohn;
@@ -438,8 +425,8 @@ int yield1_(int *index, double *cohn, double *
 } /* yield1_ */
 
 int damg1_(int *flag__, int *index, double *d__, 
-	   double *matpara, double *kapa, double *cohn, double *
-	   fstr, double *fkp, double *ck)
+           double *matpara, double *kapa, double *cohn, double *
+           fstr, double *fkp, double *ck)
 {
   /* System generated locals */
   double d1, d2;
@@ -473,7 +460,7 @@ int damg1_(int *flag__, int *index, double *d__,
     d1 = 1. - rt;
     d2 = -rt;
     *ck = ty * .5 * at * (at + 2.) * (pow(temp, d1) / rpht - (1. - 
-								   rt) * pow(temp, d2) / at);
+                                                                   rt) * pow(temp, d2) / at);
     /* --- Compressive Damage */
   } else {
     cy = d__[5];
@@ -490,14 +477,14 @@ int damg1_(int *flag__, int *index, double *d__,
     d1 = 1. - rc;
     d2 = -rc;
     *ck = cy * -.5 * ac * (ac + 2.) * (pow(temp, d1) / rphc - (1. 
-								    - rc) * pow(temp, d2) / ac);
+                                                                    - rc) * pow(temp, d2) / ac);
   }
   return 0;
 } /* damg1_ */
 
 int degrad1_(int *flag__, int *index, double *
-	     d__, double *matpara, double *kapa1, double *kapa2, 
-	     double *ck, double *deg, double *degstr)
+             d__, double *matpara, double *kapa1, double *kapa2, 
+             double *ck, double *deg, double *degstr)
 {
   /* System generated locals */
   double d1;
@@ -532,7 +519,7 @@ int degrad1_(int *flag__, int *index, double *
     if (*index == 1) {
       d1 = rt - 1.;
       degkp = s * .5 * (at + 2.) * (1. - dc) * rt * pow(temp, d1)
-	/ phi;
+        / phi;
       degkp /= *ck;
       *degstr = (1. - dc) * degkp;
     } else {
@@ -546,21 +533,21 @@ int degrad1_(int *flag__, int *index, double *
 } /* degrad1_ */
 
 int reloading_(double *chleng, double *kp, 
-	       double *d__, double *matpara, double *eps, double *
-	       deps, double *peps, double *phib, double *cohn, 
-	       double *toler, int *maxitr)
+               double *d__, double *matpara, double *eps, double *
+               deps, double *peps, double *phib, double *cohn, 
+               double *toler, int *maxitr)
 {
   /* Local variables */
   static double e, ck, ek, ar, br, cr, fkp, phi, kpn, resf;
   static int iter;
   static double temp, resq, estr, fstr;
   extern  int damg1_(int *, int *, double *, 
-		     double *, double *, double *, double *, 
-		     double *, double *);
+                     double *, double *, double *, double *, 
+                     double *, double *);
   static int index;
   static double pepsn, error;
   extern  int yield1_(int *, double *, double *,
-		      double *, double *);
+                      double *, double *);
   static double q_kapa__;
   static int switch__;
   static double fenergy;
@@ -592,7 +579,7 @@ int reloading_(double *chleng, double *kp,
   ++iter;
   estr = e * (*eps - *peps);
   damg1_(&c1, &index, &d__[1], &matpara[1], kp, &cohn[1], &fstr, &fkp, &
-	 ck);
+         ck);
   yield1_(&index, &cohn[1], &estr, &resf, &temp);
   /*   check the convergence of the damage evolution eqn */
   phi = resf / cohn[2] + 1.;
@@ -631,8 +618,8 @@ int reloading_(double *chleng, double *kp,
 int yield1_(int *, double *, double *, double *, double *);
 
 int unloading_(double *d__, double *eps, double *
-	       deps, double *kp, double *cohn, double *peps, double *
-	       toler, int *maxitr)
+               deps, double *kp, double *cohn, double *peps, double *
+               toler, int *maxitr)
 {
   /* Local variables */
   static double e, ar, br, resf;
