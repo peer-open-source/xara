@@ -11,7 +11,8 @@
 #include <string>
 #include <iomanip>
 #include <fstream>
-#include <OPS_Globals.h>
+#include <Logging.h>
+#include <Parsing.h>
 
 extern int binaryToText(const char *inputFile, const char *outputFile);
 extern int textToBinary(const char *inputFile, const char *outputFile);
