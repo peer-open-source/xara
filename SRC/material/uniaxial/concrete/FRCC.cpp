@@ -40,7 +40,7 @@
 #include <iostream>
 #include <fstream>
 #include <elementAPI.h>
-using namespace std;
+;
 
 
 void* OPS_ADD_RUNTIME_VPV(OPS_FRCC)
