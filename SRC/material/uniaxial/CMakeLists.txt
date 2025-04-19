@@ -12,7 +12,6 @@ target_sources(OPS_Material
     APDFMD.cpp
     APDMD.cpp
     APDVFD.cpp
-    BWBN.cpp
     Bilin.cpp
     Bilin02.cpp
     DowelType.cpp
@@ -29,7 +28,6 @@ target_sources(OPS_Material
     HystereticSMMaterial.cpp
     HystereticSmooth.cpp
     HystereticAsym.cpp
-    MaterialState.cpp
     MultiplierMaterial.cpp
     ParallelMaterial.cpp
     ResilienceLow.cpp
@@ -39,7 +37,6 @@ target_sources(OPS_Material
   PUBLIC
     APDMD.h
     APDVFD.h
-    BWBN.h
     Bilin.h
     Bilin02.h
     DowelType.h
@@ -56,7 +53,6 @@ target_sources(OPS_Material
     HystereticSMMaterial.h
     HystereticSmooth.h
     HystereticAsym.h
-    MaterialState.h
     MultiplierMaterial.h
     ParallelMaterial.h
     ResilienceLow.h
@@ -74,14 +70,12 @@ target_sources(OPS_Material
       BarSlipMaterial.cpp
       BilinearOilDamper.cpp
       Bond_SP01.cpp
-      BoucWenOriginal.cpp
       CFSSSWP.cpp
       CFSWSWP.cpp
       CableMaterial.cpp
       Cast.cpp
       CubicSpline.cpp
       DamperMaterial.cpp
-      DegradingPinchedBW.cpp
       DrainMaterial.cpp
       ECC01.cpp
       ENTMaterial.cpp
@@ -94,7 +88,6 @@ target_sources(OPS_Material
       HardeningMaterial.cpp
       #HardeningMaterial2.cpp
       HookGap.cpp
-      HyperbolicGapMaterial.cpp
       HystereticMaterial.cpp
       HystereticPoly.cpp
       ImpactMaterial.cpp
@@ -127,105 +120,9 @@ target_sources(OPS_Material
       # WrapperUniaxialMaterial.cpp
       pyUCLA.cpp
       SMAMaterial.cpp
-      
       DuctileFracture.cpp
-
-    PUBLIC
-      ASD_SMA_3K.h
-      ASDConcrete1DMaterial.h
-      BackboneMaterial.h
-      BarSlipMaterial.h
-      BilinearOilDamper.h
-      Bond_SP01.h
-      BoucWenOriginal.h
-      CFSSSWP.h
-      CFSWSWP.h
-      CableMaterial.h
-      Cast.h
-#     Concrete02IS.h
-#     Concrete02Thermal.h
-#     ConcreteECThermal.h
-#     ConcreteSakaiKawashima.h
-#     ConcretewBeta.h
-#     ConfinedConcrete01.h
-      CubicSpline.h
-      DamperMaterial.h
-      DegradingPinchedBW.h
-#     DoddRestr.h
-#     Dodd_Restrepo.h
-      DrainMaterial.h
-      ECC01.h
-      ENTMaterial.h
-      EPPGapMaterial.h
-      ElasticBDMaterial.h
-      ElasticMaterialThermal.h
-#     FRPConfinedConcrete.h
-#     FRPConfinedConcrete02.h
-      FatigueMaterial.h
-      #FedeasMaterial.h
-      GNGMaterial.h
-      #HardeningMaterial.h
-      HardeningMaterial2.h
-      HookGap.h
-      HyperbolicGapMaterial.h
-      HystereticMaterial.h
-      HystereticPoly.h
-      ImpactMaterial.h
-      InitStrainMaterial.h
-      InitStressMaterial.h
-      Maxwell.h
-      MinMaxMaterial.h
-      ModIMKPeakOriented.h
-      ModIMKPeakOriented02.h
-      ModIMKPinching.h
-      ModIMKPinching02.h
-      MultiLinear.h
-      Neoprene.h
-      OOHystereticMaterial.h
-      PathIndependentMaterial.h
-      Pinching4Material.h
-
-      ResilienceMaterialHR.h
-      SAWSMaterial.h
-      SPSW02.h
-      SelfCenteringMaterial.h
-      SeriesMaterial.h
-      ShearPanelMaterial.h
-      SimpleFractureMaterial.h
-      SLModel.h
-
-#     SecantConcrete.h
-#     TDConcrete.h
-#     TDConcreteEXP.h
-#     TDConcreteMC10.h
-#     TDConcreteMC10NL.h
-      # WrapperUniaxialMaterial.h
-      TensionOnlyMaterial.h
-      UniaxialJ2Plasticity.h
-      ViscousDamper.h
-      ViscousMaterial.h
-      ViscoelasticGap.h
-      pyUCLA.h
-
-      DuctileFracture.h
 )
 
-
-
-target_sources(OPS_Material
-  PRIVATE
-   Masonry.cpp
-   Masonryt.cpp
-   Trilinwp.cpp
-   Trilinwp2.cpp
-   Trilinwpd.cpp
-  PUBLIC
-   Masonry.h
-   Masonryt.h
-   Trilinwp.h
-   Trilinwp2.h
-   Trilinwpd.h
-)
 
 target_sources(OPS_Material
   PRIVATE
@@ -255,16 +152,13 @@ endif()
 # )
 
 target_link_libraries(OPS_Material PUBLIC OPS_Material_f)
-
+add_subdirectory(abutment)
 add_subdirectory(BoucWen)
 add_subdirectory(BoucWenMG)
 add_subdirectory(AxialSpring)
 add_subdirectory(AlgebraicHysteresis)
 add_subdirectory(backbone)
 add_subdirectory(bearing)
-add_subdirectory(stiffness)
-add_subdirectory(strength)
-add_subdirectory(unloading)
 add_subdirectory(limitState)
 add_subdirectory(Parallel)
 add_subdirectory(concrete)
