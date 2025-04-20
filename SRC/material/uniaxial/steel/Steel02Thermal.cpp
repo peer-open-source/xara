@@ -30,91 +30,12 @@
 
 #include <stdlib.h>
 #include <Steel02Thermal.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <float.h>
 #include <Channel.h>
 #include <Information.h>
 
 #include <math.h>
-
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_Steel02Thermal)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-
-  int    iData[1];
-  double dData[12];
-  int numData = 1;
-
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial Steel02Thermal tag" << endln;
-    return 0;
-  }
-
-  numData = OPS_GetNumRemainingInputArgs();
-
-  if (numData != 3 && numData != 6 && numData != 10 && numData != 11) {
-    opserr << "Invalid #args, want: uniaxialMaterial Steel02Thermal " << iData[0] << 
-      " fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-    return 0;
-  }
-
-  if (numData == 3) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel02Thermal " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02Thermal(iData[0], dData[0], dData[1], dData[2]);    
-    
-  } else if (numData == 6) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel02Thermal " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-    
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02Thermal(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5]);    
-
-  } else if (numData == 10) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel02Thermal " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02Thermal(iData[0], dData[0], dData[1], dData[2], 
-				     dData[3], dData[4], dData[5], dData[6], 
-				     dData[7], dData[8], dData[9]);    
-
-  } else if (numData == 11) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel02Thermal " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02Thermal(iData[0], dData[0], dData[1], dData[2], 
-				     dData[3], dData[4], dData[5], dData[6], 
-				     dData[7], dData[8], dData[9], dData[10]);    
-
-  }   
-
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Steel02Thermal Material\n";
-    return 0;
-  }
-
-  return theMaterial;
-}
-
 
 
 Steel02Thermal::Steel02Thermal(int tag,
@@ -154,9 +75,6 @@ Steel02Thermal::Steel02Thermal(int tag,
 	  epsP = sigini/E0;
 	  sigP = sigini;
    } 
-
-
-
 
 }
 
@@ -241,19 +159,19 @@ Steel02Thermal::Steel02Thermal(int tag, double _Fy, double _E0, double _b):
  // ThermalElongation = 1e-6; //initialize
 }
 
-Steel02Thermal::Steel02Thermal(void):
+Steel02Thermal::Steel02Thermal():
   UniaxialMaterial(0, MAT_TAG_Steel02Thermal)
 {
   konP = 0;
 }
 
-Steel02Thermal::~Steel02Thermal(void)
+Steel02Thermal::~Steel02Thermal()
 {
   // Does nothing
 }
 
 UniaxialMaterial*
-Steel02Thermal::getCopy(void)
+Steel02Thermal::getCopy()
 {
   Steel02Thermal *theCopy = new Steel02Thermal(this->getTag(), Fy, E0, b, R0, cR1, cR2, a1, a2, a3, a4, sigini);
   
@@ -261,7 +179,7 @@ Steel02Thermal::getCopy(void)
 }
 
 double
-Steel02Thermal::getInitialTangent(void)
+Steel02Thermal::getInitialTangent()
 {
   return E0;
 }
@@ -416,19 +334,19 @@ Steel02Thermal::setTrialStrain(double trialStrain, double FiberTemperature, doub
 
 
 double 
-Steel02Thermal::getStrain(void)
+Steel02Thermal::getStrain()
 {
   return eps;
 }
 
 double 
-Steel02Thermal::getStress(void)
+Steel02Thermal::getStress()
 {
   return sig;
 }
 
 double 
-Steel02Thermal::getTangent(void)
+Steel02Thermal::getTangent()
 {
   return e;
 }
@@ -536,7 +454,7 @@ else if (TempT <= 980){
 //JZ 07/10 /////////////////////////////////////////////////////////////end 
 
 int 
-Steel02Thermal::commitState(void)
+Steel02Thermal::commitState()
 {
   epsminP = epsmin;
   epsmaxP = epsmax;
@@ -557,7 +475,7 @@ Steel02Thermal::commitState(void)
 }
 
 int 
-Steel02Thermal::revertToLastCommit(void)
+Steel02Thermal::revertToLastCommit()
 {
   epsmin = epsminP;
   epsmax = epsmaxP;
@@ -577,7 +495,7 @@ Steel02Thermal::revertToLastCommit(void)
 }
 
 int 
-Steel02Thermal::revertToStart(void)
+Steel02Thermal::revertToStart()
 {
   eP = E0;
   epsP = 0.0;

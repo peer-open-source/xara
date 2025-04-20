@@ -8,6 +8,7 @@
 
 #include "SLModel.h"
 
+#include <Logging.h>
 #include <OPS_Globals.h>
 
 
@@ -19,7 +20,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SLModel)
   if (numSLModel == 0) {
     numSLModel++;
     //opserr << "SLModel version 2019.2\n";
-	opserr << "SLModel version 2023.03\n";
+	opslog << "SLModel version 2023.03\n";
   }
 
   // Pointer to a uniaxial material that will be returned

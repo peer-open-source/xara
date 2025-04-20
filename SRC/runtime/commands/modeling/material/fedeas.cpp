@@ -5,239 +5,404 @@
 //===----------------------------------------------------------------------===//
 //
 //
-// Description: This file contains the implementation of the
-// TclBasicBuilder_addFedeasMaterial() function.
-//
-// Written: MHS
-// Created: Aug 2001
+// Written: CMP
 //
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <Vector.h>
+#include <ArgumentTracker.h>
 #include <string.h>
 
 #include <Steel01.h>
+#include <Steel01Thermal.h>
+#include <Steel2.h>
 #include <Steel02.h>
+#include <Steel02Thermal.h>
 #include <Concrete01.h>
 #include <Concrete02.h>
 
 
-int
-TclBasicBuilder_addUniaxialMetallic(ClientData clientData, Tcl_Interp *interp,
+template <typename Positions>
+static int
+FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
-
+  // fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>  <sigInit?>
   BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
 
-  if (argc < 3) {
-    opserr << "WARNING insufficient number of arguments\n";
-    return TCL_ERROR;
-  }
-
-  enum Positions {
-    E, sigY, Hiso, Hkin, alp, aln, ft, Ets, rat
-  };
-  int tag;
-  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << "WARNING invalid uniaxialMaterial tag\n";
-    return TCL_ERROR;
-  }
+  ArgumentTracker<Positions> tracker;
+  std::set<int> positional;
 
   UniaxialMaterial *theMaterial = nullptr;
 
-  if (strcmp(argv[1], "Concrete1") == 0 ||
-           strcmp(argv[1], "concrete01") == 0) {
-    if (argc < 7) {
-      opserr << "WARNING invalid number of arguments\n";
-      opserr
-          << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? epscu?"
-          << endln;
-      return TCL_ERROR;
-    }
+  int tag;
+  double fy, E, b;
 
-    double fpc, epsc0, fpcu, epscu;
+  double   a1 = 0.0,
+           a2 = 1.0,
+           a3 = 0.0,
+           a4 = 1.0;
+  double   R0 = 15.0,
+          cR1 = 0.925,
+          cR2 = 0.15;
 
-    if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
-      opserr << "WARNING invalid fpc\n";
-      return TCL_ERROR;
+  for (int i=2; i<argc; i++) {
+    if ((strcmp(argv[i], "-fy") == 0) ||
+        strcmp(argv[i], "-Fy") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &fy) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::fy);
     }
-    if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
-      opserr << "WARNING invalid epsc0\n";
-      return TCL_ERROR;
+    else if (strcmp(argv[i], "-E") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &E) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::E);
     }
-    if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
-      opserr << "WARNING invalid fpcu\n";
-      return TCL_ERROR;
+    else if (strcmp(argv[i], "-b") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &b) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::b);
     }
-    if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
-      opserr << "WARNING invalid epscu\n";
-      return TCL_ERROR;
+    else if (strcmp(argv[i], "-R0") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &R0) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::R0);
     }
-
-    theMaterial = new Concrete01(tag, fpc, epsc0, fpcu, epscu);
+    else if (strcmp(argv[i], "-cR1") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &cR1) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::cR1);
+    }
+    else if (strcmp(argv[i], "-cR2") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &cR2) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::cR2);
+    }
+    else if (strcmp(argv[i], "-a1") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &a1) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::a1);
+    }
+    else if (strcmp(argv[i], "-a2") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &a2) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::a2);
+    }
+    else if (strcmp(argv[i], "-a3") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &a3) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::a3);
+    }
+    else if (strcmp(argv[i], "-a4") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &a4) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::a4);
+    }
+    else
+      positional.insert(i);
   }
 
-  else if (strcmp(argv[1], "concr2") == 0) {
-    if (argc < 10) {
-      opserr << "WARNING invalid number of arguments\n";
-      opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? "
-                "epscu? rat? ft? Ets?"
-             << endln;
-      return TCL_ERROR;
-    }
+  //
+  // Positional arguments
+  //
+  for (int i : positional) {
 
-    double fpc, epsc0, fpcu, epscu;
-    double rat, ft, Ets;
+    if (tracker.current() == Positions::EndRequired)
+      tracker.increment();
 
-    if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
-      opserr << "WARNING invalid fpc\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
-      opserr << "WARNING invalid epsc0\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
-      opserr << "WARNING invalid fpcu\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
-      opserr << "WARNING invalid epscu\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[7], &rat) != TCL_OK) {
-      opserr << "WARNING invalid rat\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[8], &ft) != TCL_OK) {
-      opserr << "WARNING invalid ft\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[9], &Ets) != TCL_OK) {
-      opserr << "WARNING invalid Ets\n";
-      return TCL_ERROR;
-    }
+    switch (tracker.current()) {
+      case Positions::Tag:
+        if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
+          opserr << "invalid tag.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::fy :
+        if (Tcl_GetDouble(interp, argv[i], &fy) != TCL_OK) {
+          opserr << "invalid fy.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::E:
+        if (Tcl_GetDouble(interp, argv[i], &E) != TCL_OK) {
+          opserr << "invalid E.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::b:
+        if (Tcl_GetDouble(interp, argv[i], &b) != TCL_OK) {
+          opserr << "invalid b.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::R0:
+        if (Tcl_GetDouble(interp, argv[i], &R0) != TCL_OK) {
+          opserr << "invalid R0.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::cR1:
+        if (Tcl_GetDouble(interp, argv[i], &cR1) != TCL_OK) {
+          opserr << "invalid cR1.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::cR2:
+        if (Tcl_GetDouble(interp, argv[i], &cR2) != TCL_OK) {
+          opserr << "invalid cR2.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::a1:
+        if (Tcl_GetDouble(interp, argv[i], &a1) != TCL_OK) {
+          opserr << "invalid a1.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::a2:
+        if (Tcl_GetDouble(interp, argv[i], &a2) != TCL_OK) {
+          opserr << "invalid a2.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::a3:
+        if (Tcl_GetDouble(interp, argv[i], &a3) != TCL_OK) {
+          opserr << "invalid a3.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::a4:
+        if (Tcl_GetDouble(interp, argv[i], &a4) != TCL_OK) {
+          opserr << "invalid a4.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Positions::sig0:
+        if (Tcl_GetDouble(interp, argv[i], &a4) != TCL_OK) {
+          opserr << "invalid sig0.\n";
+          return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
 
-    theMaterial =
-        new Concrete02(tag, fpc, epsc0, fpcu, epscu, rat, ft, Ets);
+      case Positions::EndRequired:
+        // This will not be reached
+        break;
+
+      case Positions::End:
+        opserr << "unexpected argument " << argv[i] << ".\n";
+        return TCL_ERROR;
+    }
   }
 
-  else if (strcmp(argv[1], "Steel1") == 0 || 
-           strcmp(argv[1], "Steel01") == 0) {
-    if (argc < 6) {
-      opserr << "WARNING invalid number of arguments\n";
-      opserr
-          << "Want: uniaxialMaterial Steel01 tag? fy? E? b? <a1? a2? a3? a4?>"
-          << endln;
-      return TCL_ERROR;
+  // Check all required arguments are present
+  if (tracker.current() < Positions::EndRequired) {
+    opserr << "missing required arguments: ";
+    while (tracker.current() != Positions::EndRequired) {
+      switch (tracker.current()) {
+        case Positions::Tag :
+          opserr << "tag ";
+          break;
+        case Positions::fy :
+          opserr << "fy ";
+          break;
+        case Positions::E:
+          opserr << "E ";
+          break;
+        case Positions::b:
+          opserr << "b ";
+          break;
+        case Positions::R0:
+          opserr << "R0 ";
+          break;
+        case Positions::cR1:
+          opserr << "cR1 ";
+          break;
+        case Positions::cR2:
+          opserr << "cR2 ";
+          break;
+        case Positions::a1:
+          opserr << "a1 ";
+          break;
+        case Positions::a2:
+          opserr << "a2 ";
+          break;
+        case Positions::a3:
+          opserr << "a3 ";
+          break;
+        case Positions::a4:
+          opserr << "a4 ";
+          break;
+        case Positions::sig0:
+          opserr << "sig0 ";
+          break;
+
+        case Positions::EndRequired:
+        case Positions::End:
+        default:
+          break;
+      }
+
+      if (tracker.current() == Positions::EndRequired)
+        break;
+
+      tracker.consume(tracker.current());
     }
 
-    double fy, E, b;
-    double a1, a2, a3, a4;
+    opserr << "\n";
 
-    if (Tcl_GetDouble(interp, argv[3], &fy) != TCL_OK) {
-      opserr << "WARNING invalid fy\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[4], &E) != TCL_OK) {
-      opserr << "WARNING invalid E\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[5], &b) != TCL_OK) {
-      opserr << "WARNING invalid b\n";
-      return TCL_ERROR;
-    }
-    if (argc > 9) {
-      if (Tcl_GetDouble(interp, argv[6], &a1) != TCL_OK) {
-        opserr << "WARNING invalid a1\n";
-        return TCL_ERROR;
-      }
-      if (Tcl_GetDouble(interp, argv[7], &a2) != TCL_OK) {
-        opserr << "WARNING invalid a2\n";
-        return TCL_ERROR;
-      }
-      if (Tcl_GetDouble(interp, argv[8], &a3) != TCL_OK) {
-        opserr << "WARNING invalid a3\n";
-        return TCL_ERROR;
-      }
-      if (Tcl_GetDouble(interp, argv[9], &a4) != TCL_OK) {
-        opserr << "WARNING invalid a4\n";
-        return TCL_ERROR;
-      }
-      theMaterial = new Steel01(tag, fy, E, b, a1, a2, a3, a4);
-    } else
-      theMaterial = new Steel01(tag, fy, E, b);
+    return TCL_ERROR;
   }
 
-  else if (strcmp(argv[1], "Steel02") == 0) {
-    // uniaxialMaterial Steel02 $tag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
-    if (argc < 6) {
-      opserr << "WARNING invalid number of arguments\n";
-      opserr << "Want: uniaxialMaterial Steel02 tag? fy? E? b? <R0? cR1? cR2? "
-                "<a1? a2? a3? a4?>>"
-             << endln;
-      return TCL_ERROR;
-    }
 
-    double fy, E, b;
-    double R0, cR1, cR2;
-    double a1, a2, a3, a4;
-
-    if (Tcl_GetDouble(interp, argv[3], &fy) != TCL_OK) {
-      opserr << "WARNING invalid fy\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[4], &E) != TCL_OK) {
-      opserr << "WARNING invalid E\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[5], &b) != TCL_OK) {
-      opserr << "WARNING invalid b\n";
-      return TCL_ERROR;
-    }
-    if (argc > 8) {
-      if (Tcl_GetDouble(interp, argv[6], &R0) != TCL_OK) {
-        opserr << "WARNING invalid R0\n";
-        return TCL_ERROR;
-      }
-      if (Tcl_GetDouble(interp, argv[7], &cR1) != TCL_OK) {
-        opserr << "WARNING invalid cR1\n";
-        return TCL_ERROR;
-      }
-      if (Tcl_GetDouble(interp, argv[8], &cR2) != TCL_OK) {
-        opserr << "WARNING invalid cR2\n";
-        return TCL_ERROR;
-      }
-      if (argc > 12) {
-        if (Tcl_GetDouble(interp, argv[9], &a1) != TCL_OK) {
-          opserr << "WARNING invalid a1\n";
-          return TCL_ERROR;
-        }
-        if (Tcl_GetDouble(interp, argv[10], &a2) != TCL_OK) {
-          opserr << "WARNING invalid a2\n";
-          return TCL_ERROR;
-        }
-        if (Tcl_GetDouble(interp, argv[11], &a3) != TCL_OK) {
-          opserr << "WARNING invalid a3\n";
-          return TCL_ERROR;
-        }
-        if (Tcl_GetDouble(interp, argv[12], &a4) != TCL_OK) {
-          opserr << "WARNING invalid a4\n";
-          return TCL_ERROR;
-        }
-        theMaterial = new Steel02(tag, fy, E, b, R0, cR1, cR2, a1,
-                                               a2, a3, a4);
-      } else
-        theMaterial = new Steel02(tag, fy, E, b, R0, cR1, cR2);
-
-    } else
-      theMaterial = new Steel02(tag, fy, E, b);
-
+  if (strcmp(argv[1], "Steel1") == 0 || 
+      strcmp(argv[1], "Steel01") == 0) {
+    theMaterial = new Steel01(tag, fy, E, b, a1, a2, a3, a4);
   }
+
+  else if (strcmp(argv[1], "Steel01Thermal") == 0) {
+    theMaterial = new Steel01Thermal(tag, fy, E, b, a1, a2, a3, a4);
+  }
+
+  else if ((strcmp(argv[1], "Steel2") == 0)) {
+    theMaterial = new Steel2(tag, fy, E, b, R0, cR1, cR2, a1, a2, a3, a4);
+  }
+
+  else if ((strcmp(argv[1], "Steel02") == 0)) {
+    theMaterial = new Steel02(tag, fy, E, b, R0, cR1, cR2, a1, a2, a3, a4);
+  }
+
+  else if ((strcmp(argv[1], "Steel02Thermal") == 0)) {
+    theMaterial = new Steel02Thermal(tag, fy, E, b, R0, cR1, cR2);
+  }
+
+  if (theMaterial == nullptr)
+    return TCL_ERROR;
 
   return builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
+
+
+int 
+TclCommand_newFedeasSteel(ClientData clientData, Tcl_Interp *interp,
+                          int argc, TCL_Char ** const argv)
+{
+
+  if (strcmp(argv[1], "Steel01") == 0 ||
+      strcmp(argv[1], "Steel1") == 0) {
+
+    // uniaxialMaterial Steel01 tag? fy? E? b? <a1? a2? a3? a4?>
+    enum class Positions: int {
+      Tag,
+      fy, E, b,       EndRequired, 
+      a1, a2, a3, a4, End,
+      R0, cR1, cR2, sig0
+    };
+
+    return FedeasSteelParse<Positions>(clientData, interp, argc, argv);
+  }
+
+  else if ((strcmp(argv[1], "Steel02") == 0) || 
+           (strcmp(argv[1], "Steel2") == 0) || 
+           (strcmp(argv[1], "Steel02Thermal") == 0) || 
+           (strcmp(argv[1], "SteelMP") == 0)
+  ) {
+    
+    // uniaxialMaterial Steel02 $tag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
+    enum class Positions: int {
+      Tag,
+      fy, E, b,                           EndRequired, 
+      R0, cR1, cR2, a1, a2, a3, a4, sig0, End
+    };
+    return FedeasSteelParse<Positions>(clientData, interp, argc, argv);
+  }
+
+  return TCL_ERROR;
+}
+
 
 int
 TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
@@ -252,7 +417,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
   }
 
   enum Positions {
-    E, sigY, Hiso, Hkin, alp, aln, ft, Ets, rat
+    E, End
   };
 
   int tag;

@@ -6,6 +6,19 @@
 //
 #include "isotropy.h"
 #include <cmath>
+#include <assert.h>
+#include <Logging.h>
+#include <Parsing.h>
+
+namespace Isotropy {
+  enum class Parameter : int {
+      YoungModulus  = 1 << 0,  // E
+      ShearModulus  = 1 << 1,  // G
+      BulkModulus   = 1 << 2,  // K
+      PoissonsRatio = 1 << 3,  // ν
+      LameLambda    = 1 << 4   // λ, Lamé's first parameter
+  };
+}
 
 namespace {
   const int E_FLAG       = static_cast<int>(Isotropy::Parameter::YoungModulus);
@@ -130,6 +143,7 @@ namespace {
       if (nu2 > -1.0 && nu2 < 0.5) { nu = nu2; return 0; }
       return -1;
     }
+
     // (Any other combination is not supported.)
     return -1;
   }
@@ -152,16 +166,17 @@ isotropic_constants(int flag1, double in1, int flag2, double in2, IsotropicConst
   return 0;
 }
 
-//---------------------------------------------------------------------
-// First converts the given input pair into (E, ν) and then computes the requested
-// property (if not already provided as one of the inputs).
-//
+
 int
 isotropic_convert(int flag1, double in1,
                   int flag2, double in2,
                   int flag_out,
                   double & out)
 {
+
+  // First converts the given input pair into (E, ν) and then computes the requested
+  // property (if not already provided as one of the inputs).
+
   // If the output is already one of the inputs, return it.
   if (flag_out == flag1) {
     out = in1;
@@ -206,3 +221,184 @@ isotropic_convert(int flag1, double in1,
   return -1;
 }
 
+
+int
+TclCommand_setIsotropicParameters(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+{
+  // We expect the syntax:
+  //    material Isotropic $tag <options>
+  // The tag is still the first non-option argument (argv[2]).
+  // Among the options, exactly two independent elastic parameters must be provided.
+  // Valid elastic options: -E, -G, -K, -nu, -lambda.
+
+  bool gotParam1 = false,
+        gotParam2 = false;
+
+  int flag1 = 0, 
+      flag2 = 0;
+  double val1 = 0.0, 
+         val2 = 0.0;
+
+  IsotropicParse* data = static_cast<IsotropicParse*>(clientData);
+  IsotropicConstants* iso  = &data->constants;
+  std::set<int>& positions =  data->positions;
+
+  assert(iso != nullptr);
+
+  // Process the remaining arguments.
+  for (int i = 0; i < argc; i++) {
+    if ((strcmp(argv[i], "-E") == 0) || 
+        (strcmp(argv[i], "-youngs-modulus") == 0)) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &iso->E) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (!gotParam1) { 
+          gotParam1 = true; 
+          val1 = iso->E; 
+          flag1 = static_cast<int>(Isotropy::Parameter::YoungModulus);
+      }
+      else if (!gotParam2) { 
+          gotParam2 = true; 
+          val2 = iso->E; 
+          flag2 = static_cast<int>(Isotropy::Parameter::YoungModulus); 
+      }
+      else {
+          opserr << "Too many elastic parameter options provided.\n";
+          return TCL_ERROR;
+      }
+      positions.insert(i-1);
+      positions.insert(i);
+    }
+
+    else if (strcmp(argv[i], "-G") == 0 || 
+             strcmp(argv[i], "-shear-modulus") == 0 ||
+             strcmp(argv[i], "-mu") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+
+      if (Tcl_GetDouble(interp, argv[i], &iso->G) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (!gotParam1) {
+        gotParam1 = true;
+        val1 = iso->G;
+        flag1 = static_cast<int>(Isotropy::Parameter::ShearModulus);
+      }
+      else if (!gotParam2) {
+        gotParam2 = true;
+        val2 = iso->G;
+        flag2 = static_cast<int>(Isotropy::Parameter::ShearModulus);
+      }
+      else {
+          opserr << "Too many elastic parameter options provided.\n";
+          return TCL_ERROR;
+      }
+      positions.insert(i-1);
+      positions.insert(i);
+    }
+    else if (strcmp(argv[i], "-K") == 0 || strcmp(argv[i], "-bulk-modulus") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      double val;
+      if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (!gotParam1) {
+        gotParam1 = true;
+        val1 = val;
+        flag1 = static_cast<int>(Isotropy::Parameter::BulkModulus);
+      }
+      else if (!gotParam2) {
+        gotParam2 = true;
+        val2 = val;
+        flag2 = static_cast<int>(Isotropy::Parameter::BulkModulus);
+      }
+      else {
+          opserr << "Too many elastic parameter options provided.\n";
+          return TCL_ERROR;
+      }
+      positions.insert(i-1);
+      positions.insert(i);
+    }
+    else if (strcmp(argv[i], "-nu") == 0 || strcmp(argv[i], "-poissons-ratio") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      double val;
+      if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (!gotParam1) { 
+        gotParam1 = true; 
+        val1 = val; 
+        flag1 = static_cast<int>(Isotropy::Parameter::PoissonsRatio);
+      }
+      else if (!gotParam2) {
+        gotParam2 = true; 
+        val2 = val; 
+        flag2 = static_cast<int>(Isotropy::Parameter::PoissonsRatio);
+      }
+      else {
+        opserr << "Too many elastic parameter options provided.\n";
+        return TCL_ERROR;
+      }
+      positions.insert(i-1);
+      positions.insert(i);
+    }
+    else if (strcmp(argv[i], "-lambda") == 0 || strcmp(argv[i], "-lame-lambda") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      double val;
+      if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (!gotParam1) {
+        gotParam1 = true;
+        val1 = val;
+        flag1 = static_cast<int>(Isotropy::Parameter::LameLambda);
+      }
+      else if (!gotParam2) {
+        gotParam2 = true;
+        val2 = val;
+        flag2 = static_cast<int>(Isotropy::Parameter::LameLambda);
+      }
+      else {
+        opserr << "Too many elastic parameter options provided.\n";
+        return TCL_ERROR;
+      }
+      positions.insert(i-1);
+      positions.insert(i);
+    }
+  }
+  
+  // Compute canonical Young's modulus and Poisson's ratio.
+  int ret = isotropic_constants(flag1, val1, flag2, val2, *iso);
+  if (data->required == 1 && gotParam1)
+    return TCL_OK;
+
+  if (!gotParam1 || !gotParam2) {
+    // opserr << "Must specify exactly two independent elastic parameters.\n";
+    return TCL_ERROR;
+  }
+
+  if (ret != 0)
+    return TCL_ERROR;
+
+  return TCL_OK;
+}

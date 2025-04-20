@@ -102,13 +102,6 @@ extern OPS_Routine OPS_SPSW02;           // SAJalali
 extern OPS_Routine OPS_SeriesMaterial;
 extern OPS_Routine OPS_SimpleFractureMaterial;
 extern OPS_Routine OPS_StainlessECThermal;
-extern OPS_Routine OPS_Steel01;
-extern OPS_Routine OPS_Steel01Thermal;
-extern OPS_Routine OPS_Steel02;
-extern OPS_Routine OPS_Steel02Fatigue;
-extern OPS_Routine OPS_Steel02Thermal;
-extern OPS_Routine OPS_Steel2;
-extern OPS_Routine OPS_Steel4;
 extern OPS_Routine OPS_SteelBRB;
 extern OPS_Routine OPS_SteelECThermal;
 extern OPS_Routine OPS_SteelFractureDI; // galvisf
@@ -127,7 +120,13 @@ extern OPS_Routine OPS_ViscousMaterial;
 extern OPS_Routine OPS_ViscoelasticGap;
 extern OPS_Routine OPS_pyUCLA;
 
-extern void *OPS_ConcretewBeta(void);
+// extern OPS_Routine OPS_Steel01Thermal;
+extern OPS_Routine OPS_Steel02Fatigue;
+// extern OPS_Routine OPS_Steel02Thermal;
+// extern OPS_Routine OPS_Steel2;
+extern OPS_Routine OPS_Steel4;
+
+extern void *OPS_ConcretewBeta();
 
 #if 0
 const char** DeprecatedUniaxialMaterials {
@@ -160,6 +159,7 @@ extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 static Tcl_CmdProc TclCommand_newFatigueMaterial;
 static Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
 extern Tcl_CmdProc TclCommand_newBoucWenMG;
+Tcl_CmdProc TclCommand_newFedeasSteel;
 Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
 Tcl_CmdProc TclCommand_ContinuumUniaxialMaterial;
 // Bearing
@@ -239,9 +239,9 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 // Steel
 //
     {"Steel",                  dispatch<TclCommand_newPlasticMaterial>},
-    {"Steel01",                dispatch<OPS_Steel01>                   },
-    {"Steel02",                dispatch<OPS_Steel02>                   },
-    {"Steel2",                 dispatch<OPS_Steel2>                    },
+    {"Steel01",                dispatch<TclCommand_newFedeasSteel>     },
+    {"Steel02",                dispatch<TclCommand_newFedeasSteel>     },
+    {"Steel2",                 dispatch<TclCommand_newFedeasSteel>     },
     {"Steel4",                 dispatch<OPS_Steel4>                    },
     {"RambergOsgood",          dispatch<OPS_RambergOsgoodSteel>        },
     {"RambergOsgoodSteel",     dispatch<OPS_RambergOsgoodSteel>        },
@@ -393,9 +393,9 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"JankowskiImpact",        dispatch<OPS_JankowskiImpact>           },
 
 // Thermal
-    {"Steel01Thermal",         dispatch<OPS_Steel01Thermal>            },
+    {"Steel01Thermal",         dispatch<TclCommand_newFedeasSteel>     },
 
-    {"Steel02Thermal",         dispatch<OPS_Steel02Thermal>            },
+    {"Steel02Thermal",         dispatch<TclCommand_newFedeasSteel>     },
 
     {"SteelECThermal",         dispatch<OPS_SteelECThermal>            },
 

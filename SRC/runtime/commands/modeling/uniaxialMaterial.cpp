@@ -79,7 +79,6 @@ extern OPS_Routine OPS_HookGap;
 extern OPS_Routine OPS_FRPConfinedConcrete;
 extern OPS_Routine OPS_FRPConfinedConcrete02;
 extern OPS_Routine OPS_UVCuniaxial;
-extern OPS_Routine OPS_Steel01Thermal;
 extern OPS_Routine OPS_Concrete02Thermal;
 extern OPS_Routine OPS_StainlessECThermal;     // L.Jiang [SIF]
 extern OPS_Routine OPS_SteelECThermal;         // L.Jiang [SIF]
@@ -98,7 +97,6 @@ extern void *OPS_ConcretewBeta();
 extern OPS_Routine OPS_ConcreteD;
 extern OPS_Routine OPS_PinchingLimitState;
 extern OPS_Routine OPS_OriginCentered;
-extern OPS_Routine OPS_Steel2;
 extern OPS_Routine OPS_ConcreteSakaiKawashima;
 extern OPS_Routine OPS_ResilienceMaterialHR;
 extern OPS_Routine OPS_CFSSSWP;
@@ -269,14 +267,8 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     else
       return TCL_ERROR;
 
-  } else if (strcmp(argv[1], "Steel01Thermal") == 0) {
-    void *theMat = OPS_Steel01Thermal(rt, argc, argv);
-    if (theMat != 0)
-      theMaterial = (UniaxialMaterial *)theMat;
-    else
-      return TCL_ERROR;
-
-  } else if (strcmp(argv[1], "ConcretewBeta") == 0) {
+  }
+  else if (strcmp(argv[1], "ConcretewBeta") == 0) {
     void *theMat = OPS_ConcretewBeta();
     if (theMat != 0)
       theMaterial = (UniaxialMaterial *)theMat;

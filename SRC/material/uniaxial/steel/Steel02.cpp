@@ -40,82 +40,6 @@
 #include <Information.h>
 #include <Parameter.h>
 
-#include <OPS_Globals.h>
-
-#if 1
-#include <elementAPI.h>
-void * OPS_ADD_RUNTIME_VPV(OPS_Steel02)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-
-  int    iData[1];
-  double dData[12];
-  int numData = 1;
-
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial Steel02 tag" << endln;
-    return 0;
-  }
-
-  numData = OPS_GetNumRemainingInputArgs();
-
-  if (numData != 3 && numData != 6 && numData != 10 && numData != 11) {
-    opserr << "Invalid #args, want: uniaxialMaterial Steel02 " << iData[0] << 
-      " fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-    return 0;
-  }
-
-  if (numData == 3) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid double: uniaxialMaterial Steel02 " << iData[0] << 
-  " fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02(iData[0], dData[0], dData[1], dData[2]);    
-
-  } else if (numData == 6) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid int: uniaxialMaterial Steel02 " << iData[0] << 
-  " fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5]);    
-
-  } else if (numData == 10) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel02 " << iData[0] << 
-  " fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02(iData[0], dData[0], dData[1], dData[2], 
-            dData[3], dData[4], dData[5], dData[6], 
-            dData[7], dData[8], dData[9]);    
-
-  } else if (numData == 11) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel02 " << iData[0] << 
-  " fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel02(iData[0], dData[0], dData[1], dData[2], 
-            dData[3], dData[4], dData[5], dData[6], 
-            dData[7], dData[8], dData[9], dData[10]);    
-
-  }   
-
-  return theMaterial;
-}
-#endif
-
 
 Steel02::Steel02(int tag,
      double _Fy, double _E0, double _b,
@@ -128,15 +52,29 @@ Steel02::Steel02(int tag,
   this->revertToStart();
 }
 
+
+Steel02::Steel02():
+  UniaxialMaterial(0, MAT_TAG_Steel02)
+{
+  EnergyP = 0;  //by SAJalali
+  konP = 0;
+}
+
+Steel02::~Steel02()
+{
+  // Does nothing
+}
+
+
 int 
-Steel02::revertToStart(void)
+Steel02::revertToStart()
 {
   EnergyP = 0;  //by SAJalali
   eP = E0;
   epsP = 0.0;
   sigP = 0.0;
-  sig = 0.0;
-  eps = 0.0;
+  sig  = 0.0;
+  eps  = 0.0;
   e = E0;  
 
   konP = 0;
@@ -156,85 +94,9 @@ Steel02::revertToStart(void)
   return 0;
 }
 
-Steel02::Steel02(int tag,
-     double _Fy, double _E0, double _b,
-     double _R0, double _cR1, double _cR2):
-  UniaxialMaterial(tag, MAT_TAG_Steel02),
-  Fy(_Fy), E0(_E0), b(_b), R0(_R0), cR1(_cR1), cR2(_cR2), sigini(0.0)
-{
-  EnergyP = 0;  //by SAJalali
-  konP = 0;
-
-  // Default values for no isotropic hardening
-  a1 = 0.0;
-  a2 = 1.0;
-  a3 = 0.0;
-  a4 = 1.0;
-
-  eP = E0;
-  epsP = 0.0;
-  sigP = 0.0;
-  sig = 0.0;
-  eps = 0.0;
-  e = E0;
-
-  epsmaxP = Fy/E0;
-  epsminP = -epsmaxP;
-  epsplP = 0.0;
-  epss0P = 0.0;
-  sigs0P = 0.0;
-  epssrP = 0.0;
-  sigsrP = 0.0;
-}
-
-Steel02::Steel02(int tag, double _Fy, double _E0, double _b):
-  UniaxialMaterial(tag, MAT_TAG_Steel02),
-  Fy(_Fy), E0(_E0), b(_b), sigini(0.0)
-{
-  EnergyP = 0;  // by SAJalali
-  konP    = 0;  //
-
-  // Default values for elastic to hardening transitions
-  R0  = 15.0;
-  cR1 = 0.925;
-  cR2 = 0.15;
-
-  // Default values for no isotropic hardening
-  a1 = 0.0;
-  a2 = 1.0;
-  a3 = 0.0;
-  a4 = 1.0;
-
-  eP   = E0;
-  epsP = 0.0;
-  sigP = 0.0;
-  sig  = 0.0;
-  eps  = 0.0;
-  e    = E0;
-
-  epsmaxP = Fy/E0;
-  epsminP = -epsmaxP;
-  epsplP = 0.0;
-  epss0P = 0.0;
-  sigs0P = 0.0;
-  epssrP = 0.0;
-  sigsrP = 0.0;
-}
-
-Steel02::Steel02(void):
-  UniaxialMaterial(0, MAT_TAG_Steel02)
-{
-  EnergyP = 0;  //by SAJalali
-  konP = 0;
-}
-
-Steel02::~Steel02(void)
-{
-  // Does nothing
-}
 
 UniaxialMaterial*
-Steel02::getCopy(void)
+Steel02::getCopy()
 {
   Steel02 *theCopy = new Steel02(this->getTag(), Fy, E0, b, R0, cR1, cR2, a1, a2, a3, a4, sigini);
   
@@ -242,7 +104,7 @@ Steel02::getCopy(void)
 }
 
 double
-Steel02::getInitialTangent(void)
+Steel02::getInitialTangent()
 {
   return E0;
 }
@@ -365,25 +227,25 @@ Steel02::setTrialStrain(double trialStrain, double strainRate)
 
 
 double 
-Steel02::getStrain(void)
+Steel02::getStrain()
 {
   return eps;
 }
 
 double 
-Steel02::getStress(void)
+Steel02::getStress()
 {
   return sig;
 }
 
 double 
-Steel02::getTangent(void)
+Steel02::getTangent()
 {
   return e;
 }
 
 int 
-Steel02::commitState(void)
+Steel02::commitState()
 {
   epsminP = epsmin;
   epsmaxP = epsmax;
@@ -405,7 +267,7 @@ Steel02::commitState(void)
 }
 
 int 
-Steel02::revertToLastCommit(void)
+Steel02::revertToLastCommit()
 {
   epsmin = epsminP;
   epsmax = epsmaxP;
@@ -504,7 +366,7 @@ Steel02::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
     //    s << "Steel02:(strain, stress, tangent) " << eps << " " << sig << " " << e << endln;
-    s << "Steel02 tag: " << this->getTag() << endln;
+    s << "Steel02 tag: " << this->getTag() << "\n";
     s << "  fy: " << Fy << ", ";
     s << "  E0: " << E0 << ", ";
     s << "   b: " << b << ", ";
@@ -514,12 +376,12 @@ Steel02::Print(OPS_Stream &s, int flag)
     s << "  a1: " << a1 << ", ";
     s << "  a2: " << a2 << ", ";
     s << "  a3: " << a3 << ", ";
-    s << "  a4: " << a4;    
+    s << "  a4: " << a4 << "\n";
   }
   
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT  << "{";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"Steel02\", ";
     s << "\"E\": " << E0 << ", ";
     s << "\"fy\": " << Fy << ", ";
@@ -531,11 +393,13 @@ Steel02::Print(OPS_Stream &s, int flag)
     s << "\"a2\": " << a2 << ", ";
     s << "\"a3\": " << a3 << ", ";
     s << "\"a4\": " << a4 << ", ";    
-    s << "\"sigini\": " << sigini << "}";
+    s << "\"sigini\": " << sigini;
+    s << "}";
+    return;
   }
 }
 
-// AddingSensitivity:BEGIN ///////////////////////////////////
+
 int
 Steel02::setParameter(const char **argv, int argc, Parameter &param)
 {

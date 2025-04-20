@@ -1,5 +1,8 @@
 #ifndef ISOTROPIC_UTILITIES_H
 #define ISOTROPIC_UTILITIES_H
+#include <set>
+#include <tcl.h>
+#include <Parsing.h>
 
 struct IsotropicConstants {
   double E;      // Young's modulus
@@ -9,18 +12,11 @@ struct IsotropicConstants {
   double lambda; // Lamé's first parameter
 };
 
-namespace Isotropy {
-
-  // A scoped enum with modern names for the isotropic parameters.
-  enum class Parameter : int {
-      YoungModulus  = 1 << 0,  // E
-      ShearModulus  = 1 << 1,  // G
-      BulkModulus   = 1 << 2,  // K
-      PoissonsRatio = 1 << 3,  // ν
-      LameLambda    = 1 << 4   // λ, Lamé's first parameter
-  };
-
-} // namespace Isotropy
+struct IsotropicParse {
+  IsotropicConstants &constants;
+  int required;
+  std::set<int>       positions;
+};
 
 //---------------------------------------------------------------------
 // Conversion routine:
@@ -37,6 +33,10 @@ namespace Isotropy {
 //   Example: To compute the shear modulus (G) from a pair of inputs,
 //     flag_out should be set to the value corresponding to Isotropy::Parameter::ShearModulus
 //
+
+int
+TclCommand_setIsotropicParameters(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
+
 int isotropic_convert(int flag1, double in1,
                          int flag2, double in2,
                          int flag_out,

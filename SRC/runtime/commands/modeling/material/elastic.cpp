@@ -14,6 +14,7 @@
 #include "BasicModelBuilder.h"
 #include "Logging.h"
 #include "Parsing.h"
+#include "ArgumentTracker.h"
 #include "isotropy.h"
 
 #include <ElasticMaterial.h>
@@ -38,234 +39,239 @@
 #include <PlateFiberMaterial.h>
 #include <BeamFiberMaterial.h>
 
-#if 1
-// TclCommand_newIsotropicMaterial
-//   Default (positional) syntax:
-//      material Isotropic $tag $young $poisson <$rho>
-//   Option syntax:
-//      material Isotropic $tag <options>
-//   Valid elastic parameter options are:
-//      -E (or -youngs-modulus), -G (or -shear-modulus),
-//      -K (or -bulk-modulus), -nu (or -poissons-ratio),
-//      -lambda (or -lame-lambda)
-//   Optionally, -rho (or -density) specifies density.
+
+
+template <typename Position>
 int
-TclCommand_newIsotropicMaterial(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
+                            int argc, TCL_Char ** const argv)
 {
-    // Retrieve the model builder.
-    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  assert(clientData != nullptr);
 
-    // Determine which form is being used.
-    // If none of the arguments (starting at argv[2]) begins with '-' (except when followed by a digit)
-    // we assume the default positional form.
-    bool defaultForm = true;
-    for (int i = 2; i < argc; i++) {
-        if (argv[i][0] == '-' && argv[i][1] != '\0' && !isdigit(argv[i][1])) {
-            defaultForm = false;
-            break;
-        }
+  ArgumentTracker<Position> tracker;
+  std::set<int> positional;
+
+  int niso = (
+    (Position::E      < Position::EndRequired) +
+    (Position::G      < Position::EndRequired) +
+    (Position::Nu     < Position::EndRequired) +
+    (Position::K      < Position::EndRequired) +
+    (Position::Lambda < Position::EndRequired)
+  );
+
+  int tag;
+  double density = 0.0;
+  // Isotropy
+  IsotropicConstants consts {};
+  // Viscosity
+  double eta=0;
+
+
+  // Isotropy
+  IsotropicParse iso {consts, niso};
+  if (TclCommand_setIsotropicParameters((ClientData)&iso, interp, argc, argv) == TCL_OK) {
+    tracker.consume(Position::E);
+    tracker.consume(Position::G);
+    tracker.consume(Position::Nu);
+    tracker.consume(Position::K);
+    tracker.consume(Position::Lambda);
+  }
+
+  //
+  // Keywords
+  //
+  for (int i=2; i<argc; i++) {
+    if (iso.positions.find(i) != iso.positions.end()) {
+      continue;
     }
 
-    int tag;
-    double E=0.0, nu=0.0, rho = 0.0;
-    bool useRho = false;
-
-    if (defaultForm) {
-        // Default positional form: material Isotropic $tag $young $poisson <$rho>
-        if (argc < 5 || argc > 6) {
-            opserr << "Invalid number of arguments for default isotropic material.\n";
-            return TCL_ERROR;
-        }
-        if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-            opserr << "Invalid tag: " << argv[2] << "\n";
-            return TCL_ERROR;
-        }
-        if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-            opserr << "Invalid Young's modulus: " << argv[3] << "\n";
-            return TCL_ERROR;
-        }
-        if (Tcl_GetDouble(interp, argv[4], &nu) != TCL_OK) {
-            opserr << "Invalid Poisson's ratio: " << argv[4] << "\n";
-            return TCL_ERROR;
-        }
-        useRho = (argc == 6);
-        if (useRho) {
-            if (Tcl_GetDouble(interp, argv[5], &rho) != TCL_OK) {
-                opserr << "Invalid density: " << argv[5] << "\n";
-                return TCL_ERROR;
-            }
-        }
+    else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
+          opserr << "Invalid density value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
     }
-    else {
-        // Option-based form.
-        // We expect the syntax:
-        //    material Isotropic $tag <options>
-        // The tag is still the first non-option argument (argv[2]).
-        // Among the options, exactly two independent elastic parameters must be provided.
-        // Valid elastic options: -E, -G, -K, -nu, -lambda.
-        // An optional option: -rho (or -density) for density.
-        bool gotParam1 = false, gotParam2 = false;
-        int flag1 = 0, flag2 = 0;
-        double val1 = 0.0, val2 = 0.0;
-
-        // Parse tag from argv[2].
-        if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-            opserr << "Invalid tag: " << argv[2] << "\n";
-            return TCL_ERROR;
-        }
-        // Process the remaining arguments.
-        for (int i = 3; i < argc; i++) {
-            if (strcmp(argv[i], "-E") == 0 || strcmp(argv[i], "-youngs-modulus") == 0) {
-                if (++i >= argc) {
-                    opserr << "Missing value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                double val;
-                if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
-                    opserr << "Invalid value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                if (!gotParam1) { 
-                    gotParam1 = true; 
-                    val1 = val; 
-                    flag1 = static_cast<int>(Isotropy::Parameter::YoungModulus);
-                }
-                else if (!gotParam2) { 
-                    gotParam2 = true; val2 = val; flag2 = static_cast<int>(Isotropy::Parameter::YoungModulus); }
-                else {
-                    opserr << "Too many elastic parameter options provided.\n";
-                    return TCL_ERROR;
-                }
-            }
-            else if (strcmp(argv[i], "-G") == 0 || strcmp(argv[i], "-shear-modulus") == 0) {
-                if (++i >= argc) {
-                    opserr << "Missing value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                double val;
-                if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
-                    opserr << "Invalid value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                if (!gotParam1) { gotParam1 = true; val1 = val; flag1 = static_cast<int>(Isotropy::Parameter::ShearModulus); }
-                else if (!gotParam2) { gotParam2 = true; val2 = val; flag2 = static_cast<int>(Isotropy::Parameter::ShearModulus); }
-                else {
-                    opserr << "Too many elastic parameter options provided.\n";
-                    return TCL_ERROR;
-                }
-            }
-            else if (strcmp(argv[i], "-K") == 0 || strcmp(argv[i], "-bulk-modulus") == 0) {
-                if (++i >= argc) {
-                    opserr << "Missing value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                double val;
-                if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
-                    opserr << "Invalid value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                if (!gotParam1) { gotParam1 = true; val1 = val; flag1 = static_cast<int>(Isotropy::Parameter::BulkModulus); }
-                else if (!gotParam2) { gotParam2 = true; val2 = val; flag2 = static_cast<int>(Isotropy::Parameter::BulkModulus); }
-                else {
-                    opserr << "Too many elastic parameter options provided.\n";
-                    return TCL_ERROR;
-                }
-            }
-            else if (strcmp(argv[i], "-nu") == 0 || strcmp(argv[i], "-poissons-ratio") == 0) {
-                if (++i >= argc) {
-                    opserr << "Missing value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                double val;
-                if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
-                    opserr << "Invalid value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                if (!gotParam1) { 
-                  gotParam1 = true; 
-                  val1 = val; 
-                  flag1 = static_cast<int>(Isotropy::Parameter::PoissonsRatio);
-                }
-                else if (!gotParam2) {
-                  gotParam2 = true; 
-                  val2 = val; 
-                  flag2 = static_cast<int>(Isotropy::Parameter::PoissonsRatio);
-                }
-                else {
-                    opserr << "Too many elastic parameter options provided.\n";
-                    return TCL_ERROR;
-                }
-            }
-            else if (strcmp(argv[i], "-lambda") == 0 || strcmp(argv[i], "-lame-lambda") == 0) {
-                if (++i >= argc) {
-                    opserr << "Missing value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                double val;
-                if (Tcl_GetDouble(interp, argv[i], &val) != TCL_OK) {
-                    opserr << "Invalid value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                if (!gotParam1) { gotParam1 = true; val1 = val; flag1 = static_cast<int>(Isotropy::Parameter::LameLambda); }
-                else if (!gotParam2) { gotParam2 = true; val2 = val; flag2 = static_cast<int>(Isotropy::Parameter::LameLambda); }
-                else {
-                    opserr << "Too many elastic parameter options provided.\n";
-                    return TCL_ERROR;
-                }
-            }
-            else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
-                if (++i >= argc) {
-                    opserr << "Missing value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                if (Tcl_GetDouble(interp, argv[i], &rho) != TCL_OK) {
-                    opserr << "Invalid density value for option " << argv[i-1] << "\n";
-                    return TCL_ERROR;
-                }
-                useRho = true;
-            }
-            else {
-                opserr << "Unknown option: " << argv[i] << "\n";
-                return TCL_ERROR;
-            }
-        }
-
-        if (!gotParam1 || !gotParam2) {
-            opserr << "Must specify exactly two independent elastic parameters.\n";
-            return TCL_ERROR;
-        }
-        
-        // Use the conversion utility to compute canonical Young's modulus and Poisson's ratio.
-        int ret = isotropic_convert(flag1, val1, flag2, val2,
-                                       static_cast<int>(Isotropy::Parameter::YoungModulus), E);
-        if (ret != 0) {
-            opserr << "Error converting elastic parameters to Young's modulus.\n";
-            return TCL_ERROR;
-        }
-        ret = isotropic_convert(flag1, val1, flag2, val2,
-                                   static_cast<int>(Isotropy::Parameter::PoissonsRatio), nu);
-        if (ret != 0) {
-            opserr << "Error converting elastic parameters to Poisson's ratio.\n";
-            return TCL_ERROR;
-        }
-    }
-    
-    // Create the isotropic material.
-    NDMaterial *theMaterial = nullptr;
-    if (useRho)
-        theMaterial = new ElasticIsotropicMaterial(tag, E, nu, rho);
     else
-        theMaterial = new ElasticIsotropicMaterial(tag, E, nu);
+      positional.insert(i);
+  }
 
-    if (theMaterial == nullptr || builder->addTaggedObject<NDMaterial>(*theMaterial) < 0) {
-        if (theMaterial != nullptr)
-            delete theMaterial;
+  //
+  // Positional arguments
+  //
+  for (int i : positional) {
+  
+    if (tracker.current() == Position::EndRequired)
+      tracker.increment();
+
+    switch (tracker.current()) {
+      case Position::Tag :
+        if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid section Elastic tag.\n";
+            return TCL_ERROR;           
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Position::E:
+        if (Tcl_GetDouble (interp, argv[i], &consts.E) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid E.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+
+      case Position::G:
+        if (Tcl_GetDouble (interp, argv[i], &consts.G) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid G.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+
+      case Position::K:
+        if (Tcl_GetDouble (interp, argv[i], &consts.K) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid K.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+
+      case Position::Nu:
+        if (Tcl_GetDouble (interp, argv[i], &consts.nu) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid nu.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      
+      case Position::Lambda:
+        if (Tcl_GetDouble (interp, argv[i], &consts.lambda) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid Lame lambda.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      
+      case Position::Eta:
+        if (Tcl_GetDouble (interp, argv[i], &eta) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid eta.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+      case Position::Density:
+        if (Tcl_GetDouble (interp, argv[i], &density) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid density.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+
+      case Position::EndRequired:
+        // This will not be reached
+        break;
+
+      case Position::End:
+        opserr << OpenSees::PromptParseError << "unexpected argument " << argv[i] << ".\n";
         return TCL_ERROR;
     }
+  }
+
+  if (tracker.current() < Position::EndRequired) {
+    opserr << OpenSees::PromptParseError
+            << "missing required arguments: ";
+    while (tracker.current() != Position::EndRequired) {
+      switch (tracker.current()) {
+        case Position::Tag :
+          opserr << "tag ";
+          break;
+        case Position::E:
+          opserr << "E ";
+          break;
+        case Position::G:
+          opserr << "G ";
+          break;
+        case Position::K:
+          opserr << "K ";
+          break;
+        case Position::Nu:
+          opserr << "nu ";
+          break;
+        case Position::Lambda:
+          opserr << "lambda ";
+          break;
+
+        case Position::EndRequired:
+        case Position::End:
+        default:
+          break;
+      }
+
+      if (tracker.current() == Position::EndRequired)
+        break;
+
+      tracker.consume(tracker.current());
+    }
+
+    opserr << "\n";
+
+    return TCL_ERROR;
+  }
+
+  //
+  // Create the material
+  //
+  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  if ((strcmp(argv[1], "ElasticIsotropic") == 0) ||
+      (strcmp(argv[1], "Elastic") == 0)) {
+    double E = consts.E;
+    double nu = consts.nu;
+    if (builder->addTaggedObject<UniaxialMaterial>(*new ElasticMaterial(tag, E, eta, E)) != TCL_OK ) {
+      return TCL_ERROR;
+    }
+    if (builder->addTaggedObject<NDMaterial>(*new ElasticIsotropicMaterial(tag, E, 0.0, density)) != TCL_OK ) {
+      return TCL_ERROR;
+    }
+    if (builder->addTaggedObject<Mate<3>>(*new ElasticIsotropic<3>(tag, E, nu, density)) != TCL_OK ) {
+      return TCL_ERROR;
+    }
     return TCL_OK;
+  }
+
+  return TCL_ERROR;
 }
-#endif
+
+int
+TclCommand_newElasticMaterial2(ClientData clientData, Tcl_Interp *interp,
+                              int argc, TCL_Char ** const argv)
+{
+  // 
+  if (strcmp(argv[1], "ElasticIsotropic") == 0 ||
+      strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) {
+
+    // "ElasticIsotropic" tag?  E?  nu?  rho?
+    enum class Position : int {
+      Tag, E, Nu,  EndRequired, 
+      Density, End,
+      G, K, Lambda, Eta
+    };
+    return TclCommand_newElasticParser<Position>(clientData, interp, argc, argv);
+  }
+
+  return TCL_ERROR;
+}
+
 
 
 enum class MaterialSymmetry {
@@ -294,13 +300,7 @@ TclCommand_newElasticMaterial(ClientData clientData, Tcl_Interp* interp, int arg
       (strcmp(argv[1], "Elastic") == 0) ||
       (strcmp(argv[1], "ElasticBeamFiber") == 0) ||
       (strcmp(argv[1], "ElasticIsotropic3D") == 0))
-
   {
-    if (argc < 5) {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: nDMaterial ElasticIsotropic tag? E? v? <rho?>" << "\n";
-      return TCL_ERROR;
-    }
 
     int tag;
     double E, v;

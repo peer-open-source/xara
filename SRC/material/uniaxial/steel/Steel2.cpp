@@ -35,136 +35,24 @@
 
 #include <stdlib.h>
 #include <Steel2.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <float.h>
 #include <Channel.h>
 
 
-#include <elementAPI.h>
-#include <OPS_Globals.h>
-
-
-void * OPS_ADD_RUNTIME_VPV(OPS_Steel2)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-
-  int    iData[1];
-  double dData[12];
-  int numData = 1;
-
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial Steel2 tag" << endln;
-    return 0;
-  }
-
-  numData = OPS_GetNumRemainingInputArgs();
-
-  if (numData != 3 && numData != 6 && numData != 10 && numData != 11) {
-    opserr << "Invalid #args, want: uniaxialMaterial Steel2 " << iData[0] << 
-      " fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-    return 0;
-  }
-
-  if (numData == 3) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel2 " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel2(iData[0], dData[0], dData[1], dData[2]);    
-
-  } else if (numData == 6) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel2 " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel2(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5]);    
-
-  } else if (numData == 10) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel2 " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel2(iData[0], dData[0], dData[1], dData[2], 
-			      dData[3], dData[4], dData[5], dData[6], 
-			      dData[7], dData[8], dData[9]);    
-
-  } else if (numData == 11) {
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "Invalid arggs: uniaxialMaterial Steel2 " << iData[0] << 
-	" fy? E? b? <R0? cR1? cR2? <a1? a2? a3? a4?>>" << endln;
-      return 0;
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new Steel2(iData[0], dData[0], dData[1], dData[2], 
-			      dData[3], dData[4], dData[5], dData[6], 
-			      dData[7], dData[8], dData[9], dData[10]);    
-
-  }   
-
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Steel2 Material\n";
-    return 0;
-  }
-
-  return theMaterial;
-}
-
 Steel2::Steel2(int tag,
-	double _Fy, double _E0, double _b,
-	double _R0, double _cR1, double _cR2,
-	double _a1, double _a2, double _a3, double _a4, double sigInit):
+	double Fy, double E0, double b,
+	double R0, double cR1, double cR2,
+	double a1, double a2, double a3, double a4, double sigInit):
 UniaxialMaterial(tag, MAT_TAG_Steel2),
-	Fy(_Fy), E0(_E0), b(_b), R0(_R0), cR1(_cR1), cR2(_cR2), a1(_a1), a2(_a2), a3(_a3), a4(_a4), 
+	Fy(Fy), E0(E0), b(b), R0(R0), cR1(cR1), cR2(cR2), a1(a1), a2(a2), a3(a3), a4(a4), 
 	sigini(sigInit)
 {
 	this->revertToStart();
 }
 
-Steel2::Steel2(int tag,
-	double _Fy, double _E0, double _b,
-	double _R0, double _cR1, double _cR2):
-UniaxialMaterial(tag, MAT_TAG_Steel2),
-	Fy(_Fy), E0(_E0), b(_b), R0(_R0), cR1(_cR1), cR2(_cR2), sigini(0.0)
-{
-	// Default values for no isotropic hardening
-	a1 = 0.0;
-	a2 = 1.0;
-	a3 = 0.0;
-	a4 = 1.0;
 
-	this->revertToStart();
-}
-
-Steel2::Steel2(int tag, double _Fy, double _E0, double _b):
-UniaxialMaterial(tag, MAT_TAG_Steel2),
-	Fy(_Fy), E0(_E0), b(_b), sigini(0.0)
-{
-	// Default values for elastic to hardening transitions
-	R0 = 15.0;
-	cR1 = 0.925;
-	cR2 = 0.15;
-
-	// Default values for no isotropic hardening
-	a1 = 0.0;
-	a2 = 1.0;
-	a3 = 0.0;
-	a4 = 1.0;
-
-	this->revertToStart();
-}
-
-Steel2::Steel2(void):
+Steel2::Steel2():
 UniaxialMaterial(0, MAT_TAG_Steel2)
 {
 	Fy = 0.0;
@@ -186,7 +74,7 @@ UniaxialMaterial(0, MAT_TAG_Steel2)
 	this->revertToStart();
 }
 
-Steel2::~Steel2(void)
+Steel2::~Steel2()
 {
 	// Does nothing
 }

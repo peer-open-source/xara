@@ -48,21 +48,12 @@ class Steel2 : public UniaxialMaterial
 	    double fy, double E0, double b,
 	    double R0, double cR1, double cR2,
 	    double a1, double a2, double a3, double a4, double sigInit =0.0);
-    
-    // Constructor for no isotropic hardening
-    Steel2(int tag,
-	    double fy, double E0, double b,
-	    double R0, double cR1, double cR2);
-    
-    // Constructor for no isotropic hardening
-    // Also provides default values for R0, cR1, and cR2
-    Steel2(int tag, double fy, double E0, double b);
-	    
-    Steel2(void);
+
+    Steel2();
     virtual ~Steel2();
     
 
-    const char *getClassType(void) const {return "Steel2";};
+    const char *getClassType(void) const {return "Steel2";}
 
     double getInitialTangent(void);
     UniaxialMaterial *getCopy(void);

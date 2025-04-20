@@ -36,59 +36,6 @@
 #include <math.h>
 #include <float.h>
 
-#include <OPS_Globals.h>
-
-#if 1
-#include <elementAPI.h>
-void * OPS_ADD_RUNTIME_VPV(OPS_Steel01)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-
-  int    iData[1];
-  double dData[7];
-  int numData = 1;
-
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial Steel01 tag" << endln;
-    return 0;
-  }
-
-  numData = OPS_GetNumRemainingInputArgs();
-
-  if (numData != 3 && numData != 7) {
-    opserr << "Invalid #args, want: uniaxialMaterial Steel01 " << iData[0] << " fy? E? b? <a1? a2? a3? a4?>>" << endln;
-    return 0;
-  }
-
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid #args, want: uniaxialMaterial Steel01 " << iData[0] << " fy? E? b? <a1? a2? a3? a4?>>" << endln;
-    return 0;
-  }
-
-  if (numData == 3) {
-    dData[3] = STEEL_01_DEFAULT_A1;
-    dData[4] = STEEL_01_DEFAULT_A2;
-    dData[5] = STEEL_01_DEFAULT_A3;
-    dData[6] = STEEL_01_DEFAULT_A4;
-  }
-
-  // Parsing was successful, allocate the material
-  theMaterial = new Steel01(iData[0], dData[0], dData[1], 
-			    dData[2], dData[3], dData[4], 
-			    dData[5], dData[6]);
-
-  
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Steel01 Material\n";
-    return 0;
-  }
-
-  return theMaterial;
-}
-#endif
-
-
 
 Steel01::Steel01(int tag, double FY, double E, double B,
                 double A1, double A2, double A3, double A4):
@@ -109,18 +56,14 @@ Steel01::Steel01():UniaxialMaterial(0,MAT_TAG_Steel01),
 {
   Energy = 0;	//by SAJalali
 
-  // AddingSensitivity:BEGIN /////////////////////////////////////
   parameterID = 0;
   SHVs = 0;
-  // AddingSensitivity:END //////////////////////////////////////
 }
 
 Steel01::~Steel01 ()
 {
-// AddingSensitivity:BEGIN /////////////////////////////////////
   if (SHVs != 0) 
       delete SHVs;
-// AddingSensitivity:END //////////////////////////////////////
 }
 
 int Steel01::setTrialStrain (double strain, double strainRate)
@@ -143,7 +86,7 @@ int Steel01::setTrialStrain (double strain, double strainRate)
      Tstrain = strain;
 
      // Calculate the trial state given the trial strain
-     determineTrialState (dStrain);
+     determineTrialState(dStrain);
 
    }
 
@@ -499,10 +442,10 @@ void Steel01::Print (OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
-	s << "\"name\": \"" << this->getTag() << "\", ";
-	s << "\"type\": \"Steel01\", ";
-	s << "\"E\": " << E0 << ", ";
-	s << "\"fy\": " << fy << ", ";
+	 s << "\"name\": " << this->getTag() << ", ";
+	 s << "\"type\": \"Steel01\", ";
+	 s << "\"E\": " << E0 << ", ";
+	 s << "\"fy\": " << fy << ", ";
     s << "\"b\": " << b << ", ";
     s << "\"a1\": " << a1 << ", ";
     s << "\"a2\": " << a2 << ", ";

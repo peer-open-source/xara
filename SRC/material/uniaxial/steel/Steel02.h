@@ -48,33 +48,24 @@ class Steel02 : public UniaxialMaterial
 	    double fy, double E0, double b,
 	    double R0, double cR1, double cR2,
 	    double a1, double a2, double a3, double a4, double sigInit =0.0);
-    
-    // Constructor for no isotropic hardening
-    Steel02(int tag,
-	    double fy, double E0, double b,
-	    double R0, double cR1, double cR2);
-    
-    // Constructor for no isotropic hardening
-    // Also provides default values for R0, cR1, and cR2
-    Steel02(int tag, double fy, double E0, double b);
-	    
-    Steel02(void);
+
+    Steel02();
     virtual ~Steel02();
     
 
-    const char *getClassType(void) const {return "Steel02";};
+    const char *getClassType() const {return "Steel02";}
 
-    double getInitialTangent(void);
-    UniaxialMaterial *getCopy(void);
+    double getInitialTangent();
+    UniaxialMaterial *getCopy();
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);      
-    double getStress(void);
-    double getTangent(void);
+    double getStrain();      
+    double getStress();
+    double getTangent();
     
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
     
     int sendSelf(int commitTag, Channel &theChannel);  
     int recvSelf(int commitTag, Channel &theChannel, 
