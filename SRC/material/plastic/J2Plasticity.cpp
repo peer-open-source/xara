@@ -38,7 +38,6 @@
 //
 //  set eta := 0 for rate independent case
 //
-
 #include <J2Plasticity.h>
 #include <J2PlaneStress.h>
 #include <J2PlaneStrain.h>
@@ -62,7 +61,7 @@ double J2Plasticity::initialTangent[3][3][3][3] ;   //material tangent
 
 // zero internal variables
 void
-J2Plasticity::zero () 
+J2Plasticity::zero()
 {
   xi_n = 0.0 ;
   xi_nplus1 = 0.0 ;
@@ -97,17 +96,16 @@ parameterID(0)
 }
 
 
-//full constructor
-J2Plasticity :: J2Plasticity(int tag,
-                             int classTag,
-                             double K,
-                             double G,
-                             double yield0,
-                             double yield_infty,
-                             double d,
-                             double H,
-                             double viscosity,
-                             double r) 
+J2Plasticity::J2Plasticity(int tag,
+                           int classTag,
+                           double K,
+                           double G,
+                           double yield0,
+                           double yield_infty,
+                           double d,
+                           double H,
+                           double viscosity,
+                           double r) 
 : 
   NDMaterial(tag, classTag),
   epsilon_p_n(3,3),
@@ -125,24 +123,22 @@ J2Plasticity :: J2Plasticity(int tag,
   eta         = viscosity ;
   rho = r;
 
-  this->zero( );
+  this->zero();
 
   plastic_integrator();
 }
 
 
-//elastic constructor
-J2Plasticity :: 
-J2Plasticity(   int    tag, 
+J2Plasticity::J2Plasticity(int tag, 
                 int  classTag,
                 double K, 
                 double G ) :
-NDMaterial(tag, classTag),
-epsilon_p_n(3,3),
-epsilon_p_nplus1(3,3),
-stress(3,3),
-strain(3,3),
-parameterID(0)
+  NDMaterial(tag, classTag),
+  epsilon_p_n(3,3),
+  epsilon_p_nplus1(3,3),
+  stress(3,3),
+  strain(3,3),
+  parameterID(0)
 {
   bulk        = K ;
   shear       = G ; 
@@ -156,7 +152,7 @@ parameterID(0)
 }
 
 
-J2Plasticity :: ~J2Plasticity( ) 
+J2Plasticity::~J2Plasticity() 
 {
 
 }
@@ -164,47 +160,47 @@ J2Plasticity :: ~J2Plasticity( )
 
 
 NDMaterial*
-J2Plasticity :: getCopy(const char *type)
+J2Plasticity::getCopy(const char *type)
 {
-    if (strcmp(type,"PlaneStress2D") == 0 || strcmp(type,"PlaneStress") == 0)
-    {
-        J2PlaneStress  *clone ;
-        clone = new J2PlaneStress(this->getTag(), bulk, shear, sigma_0,
-                                  sigma_infty, delta, Hard, eta, rho) ;
-        return clone ;
-    }
-    else if (strcmp(type,"PlaneStrain2D") == 0 || 
-             strcmp(type,"PlaneStrain") == 0)
-    {
-        J2PlaneStrain  *clone ;
-        clone = new J2PlaneStrain(this->getTag(), bulk, shear, sigma_0,
-                                  sigma_infty, delta, Hard, eta, rho) ;
-        return clone ;
-    }
-    else if (strcmp(type,"AxiSymmetric2D") == 0 || 
-             strcmp(type,"AxiSymmetric") == 0)
-    {
-        J2AxiSymm  *clone ;
-        clone = new J2AxiSymm(this->getTag(), bulk, shear, sigma_0,
-                              sigma_infty, delta, Hard, eta, rho) ;
-        return clone ;        
-    }
-    else if ((strcmp(type,"ThreeDimensional") == 0) ||
-             (strcmp(type,"3D") == 0))
-    {
-        return new J2ThreeDimensional(this->getTag(), bulk, shear, sigma_0,
-                                       sigma_infty, delta, Hard, eta, rho);
-    }
-    else if ( (strcmp(type,"PlateFiber") == 0) )
-    {
-        return new J2PlateFiber(this->getTag(), bulk, shear, sigma_0,
-                                 sigma_infty, delta, Hard, eta, rho); 
-    } 
-    // Handle other cases
-    else
-    {
-      return NDMaterial::getCopy(type);
-    }
+  if (strcmp(type,"PlaneStress2D") == 0 || strcmp(type,"PlaneStress") == 0)
+  {
+      J2PlaneStress  *clone ;
+      clone = new J2PlaneStress(this->getTag(), bulk, shear, sigma_0,
+                                sigma_infty, delta, Hard, eta, rho) ;
+      return clone ;
+  }
+  else if (strcmp(type,"PlaneStrain2D") == 0 || 
+            strcmp(type,"PlaneStrain") == 0)
+  {
+      J2PlaneStrain  *clone ;
+      clone = new J2PlaneStrain(this->getTag(), bulk, shear, sigma_0,
+                                sigma_infty, delta, Hard, eta, rho) ;
+      return clone ;
+  }
+  else if (strcmp(type,"AxiSymmetric2D") == 0 || 
+            strcmp(type,"AxiSymmetric") == 0)
+  {
+      J2AxiSymm  *clone ;
+      clone = new J2AxiSymm(this->getTag(), bulk, shear, sigma_0,
+                            sigma_infty, delta, Hard, eta, rho) ;
+      return clone ;        
+  }
+  else if ((strcmp(type,"ThreeDimensional") == 0) ||
+            (strcmp(type,"3D") == 0))
+  {
+      return new J2ThreeDimensional(this->getTag(), bulk, shear, sigma_0,
+                                      sigma_infty, delta, Hard, eta, rho);
+  }
+  else if ( (strcmp(type,"PlateFiber") == 0) )
+  {
+      return new J2PlateFiber(this->getTag(), bulk, shear, sigma_0,
+                                sigma_infty, delta, Hard, eta, rho); 
+  } 
+  // Handle other cases
+  else
+  {
+    return NDMaterial::getCopy(type);
+  }
 }
 
 
@@ -226,6 +222,7 @@ J2Plasticity::Print( OPS_Stream &s, int flag )
     s << "}";
     return;
   }
+
   else if (flag == OPS_PRINT_CURRENTSTATE) {
     s << endln ;
     s << "J2-Plasticity : " ;
@@ -363,6 +360,7 @@ J2Plasticity::plastic_integrator()
 
      theta_inv = 1.0/theta;
   }
+
   else { 
     // elastic 
 
@@ -376,9 +374,9 @@ J2Plasticity::plastic_integrator()
     
     gamma = 0.0 ; 
     theta = 0.0 ;
-    theta_inv = 0.0 ;
+    theta_inv = 0.0;
 
-  } //end if phi > 0
+  } // end if phi > 0
 
 
   // add on bulk part of stress
@@ -396,28 +394,28 @@ J2Plasticity::plastic_integrator()
   for (int ii = 0; ii < 6; ii++ ) {
     for (int jj = 0; jj < 6; jj++ )  {
 
-          index_map( ii, i, j ) ;
-          index_map( jj, k, l ) ;
+      index_map( ii, i, j ) ;
+      index_map( jj, k, l ) ;
 
-          NbunN  = normal(i,j)*normal(k,l) ; 
+      NbunN  = normal(i,j)*normal(k,l) ; 
 
-          // elastic terms
-          tangent[i][j][k][l]  = bulk * IbunI[i][j][k][l] ;
+      // elastic terms
+      tangent[i][j][k][l]  = bulk * IbunI[i][j][k][l] ;
 
-          tangent[i][j][k][l] += (2.0*shear) * IIdev[i][j][k][l] ;
+      tangent[i][j][k][l] += (2.0*shear) * IIdev[i][j][k][l] ;
 
-          // plastic terms 
-          tangent[i][j][k][l] += c2 * NbunN ;
+      // plastic terms 
+      tangent[i][j][k][l] += c2 * NbunN ;
 
-          tangent[i][j][k][l] += c3 * (  IIdev[i][j][k][l] - NbunN ) ;
+      tangent[i][j][k][l] += c3 * (  IIdev[i][j][k][l] - NbunN ) ;
 
-          // minor symmetries 
-          tangent [j][i][k][l] = tangent[i][j][k][l] ;
-          tangent [i][j][l][k] = tangent[i][j][k][l] ;
-          tangent [j][i][l][k] = tangent[i][j][k][l] ;
+      // minor symmetries 
+      tangent [j][i][k][l] = tangent[i][j][k][l] ;
+      tangent [i][j][l][k] = tangent[i][j][k][l] ;
+      tangent [j][i][l][k] = tangent[i][j][k][l] ;
 
-    } // end for jj
-  } // end for ii
+    }
+  }
 
   return 0;
 } 
@@ -425,25 +423,26 @@ J2Plasticity::plastic_integrator()
 
 
 // set up for initial elastic
-void J2Plasticity :: doInitialTangent( )
+void
+J2Plasticity::doInitialTangent( )
 {
-  int i,j,k,l;
 
   // compute the deviatoric strains
   for (int ii = 0; ii < 6; ii++ ) {
     for (int jj = 0; jj < 6; jj++ )  {
 
-          index_map( ii, i, j ) ;
-          index_map( jj, k, l ) ;
+      int i,j,k,l;
+      index_map( ii, i, j ) ;
+      index_map( jj, k, l ) ;
 
-          // elastic terms
-          initialTangent[i][j][k][l]  = bulk * IbunI[i][j][k][l] ;
-          initialTangent[i][j][k][l] += (2.0*shear) * IIdev[i][j][k][l] ;
+      // elastic terms
+      initialTangent[i][j][k][l]  = bulk * IbunI[i][j][k][l] ;
+      initialTangent[i][j][k][l] += (2.0*shear) * IIdev[i][j][k][l] ;
 
-          // minor symmetries 
-          initialTangent [j][i][k][l] = initialTangent[i][j][k][l] ;
-          initialTangent [i][j][l][k] = initialTangent[i][j][k][l] ;
-          initialTangent [j][i][l][k] = initialTangent[i][j][k][l] ;
+      // minor symmetries 
+      initialTangent [j][i][k][l] = initialTangent[i][j][k][l] ;
+      initialTangent [i][j][l][k] = initialTangent[i][j][k][l] ;
+      initialTangent [j][i][l][k] = initialTangent[i][j][k][l] ;
 
     }
   }
@@ -522,7 +521,7 @@ void J2Plasticity :: index_map( int matrix_index, int &i, int &j )
 
 
 NDMaterial*
-J2Plasticity::getCopy ()
+J2Plasticity::getCopy()
 {
   // TODO: Clean up subclassing
   assert(false);
@@ -567,9 +566,9 @@ J2Plasticity::revertToStart()
 {
   // added: C.McGann, U.Washington for InitialStateAnalysis
   if (ops_InitialStateAnalysis) {
-        // do nothing, keep state variables from last step
+    // do nothing, keep state variables from last step
   } else {
-        // normal call for revertToStart (not initialStateAnalysis)
+    // normal call for revertToStart (not initialStateAnalysis)
     this->zero();
   }
 

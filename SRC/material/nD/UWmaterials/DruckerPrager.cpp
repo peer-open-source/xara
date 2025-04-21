@@ -930,7 +930,7 @@ void DruckerPrager::Print(OPS_Stream &s, int flag )
 	s << "\"Fo\": " << mKo << ", ";
 	s << "\"Fs\": " << mKinf << ", ";
 	// Hardening
-	s << "\"Hiso\": " << mtheta*mHard << ", ";
+	s << "\"Hiso\": " <<      mtheta*mHard << ", ";
 	s << "\"Hkin\": " << (1 - mtheta)*mHard << ", ";
 	s << "\"Hsat\": " << mdelta1;
 	s << "}";

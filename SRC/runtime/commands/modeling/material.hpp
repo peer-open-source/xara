@@ -72,7 +72,6 @@ extern OPS_Routine OPS_ElasticIsotropicMaterialThermal;           // L.Jiang [SI
 extern OPS_Routine OPS_DruckerPragerMaterialThermal;              // L.Jiang [SIF]
 extern OPS_Routine OPS_PlasticDamageConcretePlaneStressThermal;   // L.Jiang [SIF]
 
-
 extern OPS_Routine OPS_AllASDPlasticMaterials;
 
 #ifdef _HAVE_Faria1998
@@ -87,8 +86,10 @@ extern OPS_Routine OPS_Damage2p;
 #endif
 
 
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp, int cArg,
-  int mArg, TCL_Char ** const argv, Domain *domain);
+extern "C"
+int OPS_ResetInputNoBuilder(ClientData, Tcl_Interp *, int cArg,
+                            int mArg, TCL_Char ** const argv, Domain *);
+
 
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
@@ -157,9 +158,9 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
   {"BeamFiber2dPS",                    dispatch<OPS_BeamFiberMaterial2dPS> },
 
   {"DruckerPragerThermal",             dispatch<OPS_DruckerPragerMaterialThermal> },
-  {"TruncatedDP",                      dispatch<OPS_LinearCap            > },
-  {"FSAM",                             dispatch<OPS_FSAMMaterial         > },
-  {"AcousticMedium",                   dispatch<OPS_AcousticMedium       > },
+  {"TruncatedDP",                      dispatch<OPS_LinearCap     > },
+  {"FSAM",                             dispatch<OPS_FSAMMaterial  > },
+  {"AcousticMedium",                   dispatch<OPS_AcousticMedium> },
   {"CycLiqCP",                         dispatch<OPS_CycLiqCPMaterial>},
   {"CycLiqCPSP",                       dispatch<OPS_CycLiqCPSPMaterial>},
   {"BoundingCamClay",                  dispatch<OPS_BoundingCamClayMaterial>},
@@ -172,7 +173,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
   {"PlaneStrain",                      dispatch<TclCommand_addPlaneWrapper>},
 //
 // Other
-
+//
   {"InitStressMaterial",               dispatch<OPS_InitStressNDMaterial>},
   {"InitStrainMaterial",               dispatch<OPS_InitStrainNDMaterial>},
   {"InitStrain",                       dispatch<OPS_InitStrainNDMaterial>},
@@ -216,19 +217,19 @@ static std::unordered_map<std::string, OPS_Routine*> material_dispatch = {
 
 //{"MaterialCMM",    OPS_MaterialCMM},
 
-  {"PM4Sand", OPS_PM4SandMaterial},
+  {"PM4Sand",                       OPS_PM4SandMaterial},
 
-  {"J2CyclicBoundingSurface", OPS_J2CyclicBoundingSurfaceMaterial},
+  {"J2CyclicBoundingSurface",       OPS_J2CyclicBoundingSurfaceMaterial},
 
-  {"PM4Silt", OPS_PM4SiltMaterial},
+  {"PM4Silt",                       OPS_PM4SiltMaterial},
 
-  {"ContactMaterial2D", OPS_ContactMaterial2DMaterial},
+  {"ContactMaterial2D",             OPS_ContactMaterial2DMaterial},
 
-  {"ContactMaterial3D", OPS_ContactMaterial3DMaterial},
+  {"ContactMaterial3D",             OPS_ContactMaterial3DMaterial},
 
-  {"InitialStateAnalysisWrapper", OPS_InitialStateAnalysisWrapperMaterial},
+  {"InitialStateAnalysisWrapper",   OPS_InitialStateAnalysisWrapperMaterial},
 
-  {"stressDensity", OPS_StressDensityMaterial},
+  {"stressDensity",                 OPS_StressDensityMaterial},
 
   {"IncrementalElasticIsotropic3D", OPS_IncrementalElasticIsotropicThreeDimensional},
 

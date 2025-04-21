@@ -51,23 +51,22 @@ SimplifiedJ2::SimplifiedJ2(int pTag,
    CplastStrainDev(6),CbackStress(6), plastStrainDev(6),
    backStress(6)
 {
-    this->ndm = pNd;    
-    this->G = pG; 
-    this->K = pK;
-    this->sigmaY0 = pSigmaY0;
-    this->H_kin = pH_kin;
-    this->H_iso = pH_iso; 
+  this->ndm = pNd;    
+  this->G = pG; 
+  this->K = pK;
+  this->sigmaY0 = pSigmaY0;
+  this->H_kin = pH_kin;
+  this->H_iso = pH_iso; 
 
-    stress.Zero();
-    strain.Zero();
-    sigmaY = pSigmaY0;
+  stress.Zero();
+  strain.Zero();
+  sigmaY = pSigmaY0;
 
-    Cstress.Zero();
-    Cstrain.Zero();
-    CsigmaY = pSigmaY0;
+  Cstress.Zero();
+  Cstrain.Zero();
+  CsigmaY = pSigmaY0;
 
-    lambda = 0.;
-
+  lambda = 0.;
 }
 
 SimplifiedJ2::SimplifiedJ2():
@@ -81,35 +80,32 @@ SimplifiedJ2::SimplifiedJ2():
 
 SimplifiedJ2::SimplifiedJ2 (const SimplifiedJ2 &a):
    NDMaterial(a.getTag(),ND_TAG_SimplifiedJ2), stress(6),
-   strain(6), Cstress(6), Cstrain(6),theTangent(tangent),
-   CplastStrainDev(6),CbackStress(6),plastStrainDev(6),backStress(6)
+   strain(6), Cstress(6), Cstrain(6), theTangent(tangent),
+   CplastStrainDev(6),CbackStress(6), plastStrainDev(6),backStress(6)
 {
-    this->ndm = a.ndm;
-    this->G = a.G; 
-    this->K = a.K;
-    this->sigmaY0 = a.sigmaY0;
-    this->H_kin = a.H_kin;
-    this->H_iso = a.H_iso; 
+  this->ndm = a.ndm;
+  this->G = a.G; 
+  this->K = a.K;
+  this->sigmaY0 = a.sigmaY0;
+  this->H_kin = a.H_kin;
+  this->H_iso = a.H_iso; 
 
-    stress.Zero();
-    strain.Zero();
-    sigmaY = a.sigmaY0;
-    lambda    =0.;
-    Cstress.Zero();
-    Cstrain.Zero();
-    CsigmaY = a.sigmaY0;
-
+  stress.Zero();
+  strain.Zero();
+  sigmaY = a.sigmaY0;
+  lambda    =0.;
+  Cstress.Zero();
+  Cstrain.Zero();
+  CsigmaY = a.sigmaY0;
 }
 
 
 SimplifiedJ2::~SimplifiedJ2()
 {
-    return; 
+  return; 
 }
 
-     
 
-    
 int
 SimplifiedJ2::plastIntegrator()
 {
@@ -174,7 +170,7 @@ SimplifiedJ2::plastIntegrator()
       
     double C = 2.*G*lambda/pow(Teta&&Teta, 0.5);
 
-    //  double D = 2./3.*H_kin*lambda/pow(Teta&&Teta, 0.5);
+  //  double D = 2./3.*H_kin*lambda/pow(Teta&&Teta, 0.5);
 
 
 //----------------//////////////////////////////////////////////////--------------------------------
@@ -205,47 +201,45 @@ SimplifiedJ2::plastIntegrator()
     MatrixND<6,6> non{};
 
     for (int i=0; i<6; i++) {
-        for ( int j=0; j<3; j++)
-            non(i,j) = n[i]*n[j];
-        for ( int j=3; j<6; j++)
-            non(i,j) = n[i]*n[j]*2.0;     // To be consistent with the transformation between 4th order tensor and matrix
+      for ( int j=0; j<3; j++)
+        non(i,j) = n[i]*n[j];
+      for ( int j=3; j<6; j++)
+        non(i,j) = n[i]*n[j]*2.0;     // To be consistent with the transformation between 4th order tensor and matrix
     }
 
-          
     tangent.addMatrix(non, 2.*G*(C-A));
-
   }
 
   else {
-      //
-      // elastic
-      //
+    //
+    // elastic
+    //
 
 
-      sigmaY = CsigmaY;
-      backStress.addVector(0.0, CbackStress, 1.0);
-      plastStrainDev.addVector(0.0, CplastStrainDev, 1.0);
-      //cumPlastStrainDev = CcumPlastStrainDev;
-      // sigmaY = CsigmaY;
-      Vector n(6);
-      n.addVector(0, Teta, 1./ pow( (Teta &&  Teta),0.5));
+    sigmaY = CsigmaY;
+    backStress.addVector(0.0, CbackStress, 1.0);
+    plastStrainDev.addVector(0.0, CplastStrainDev, 1.0);
+    //cumPlastStrainDev = CcumPlastStrainDev;
+    // sigmaY = CsigmaY;
+    Vector n(6);
+    n.addVector(0, Teta, 1./ pow( (Teta &&  Teta),0.5));
 
-      //Vector eta(6);
-      //eta.addVector(0, n, pow( (Teta &&  Teta),0.5));
+    //Vector eta(6);
+    //eta.addVector(0, n, pow( (Teta &&  Teta),0.5));
 
-      stress.addVector(0.0, TstressDev,1.0);
-    //stress.addVector(1.0, I2, 1./3*K*trace);
-      stress.addVector(1.0, I2, K*trace);
-      
+    stress.addVector(0.0, TstressDev,1.0);
+  //stress.addVector(1.0, I2, 1./3*K*trace);
+    stress.addVector(1.0, I2, K*trace);
+    
 
-      theTangent.Zero();
+    theTangent.Zero();
 
-      for(int i=0; i<3; i++)
-         for (int j=0; j<3; j++)
-             theTangent(i,j) = K-2.0/3.0*G;
+    for(int i=0; i<3; i++)
+        for (int j=0; j<3; j++)
+            theTangent(i,j) = K-2.0/3.0*G;
 
-      for(int i=0; i<6; i++)
-         theTangent(i,i) += 2.0*G;
+    for(int i=0; i<6; i++)
+        theTangent(i,i) += 2.0*G;
   }
 
      
@@ -291,16 +285,15 @@ SimplifiedJ2::setTrialStrain (const Vector &pStrain)
 
 }
 
-int SimplifiedJ2::setTrialStrain(const Vector &v, const Vector &r){
-
-    return this->setTrialStrain(v);
-
+int
+SimplifiedJ2::setTrialStrain(const Vector &v, const Vector &r)
+{
+  return this->setTrialStrain(v);
 }
 
 int
 SimplifiedJ2::setTrialStrainIncr(const Vector &v)
 {
-  
   // ----- change to real strain instead of eng. strain
  // ---- since all strain in material is the true strain, not eng.strain. 
 
@@ -330,33 +323,33 @@ SimplifiedJ2::setTrialStrainIncr(const Vector &v)
 
 }
 
+
 int
 SimplifiedJ2::setTrialStrainIncr(const Vector &v, const Vector &r)
 {
    return this->setTrialStrainIncr(v);
 }
 
+
 // Calculates current tangent stiffness.
 const Matrix & 
 SimplifiedJ2::getTangent()
 {
-
-    if (ndm ==3)
-         return theTangent; 
-    else {
-        static Matrix workM(3,3);
-        workM(0,0) = theTangent(0,0);
-        workM(0,1) = theTangent(0,1);
-        workM(0,2) = theTangent(0,3);
-        workM(1,0) = theTangent(1,0);
-        workM(1,1) = theTangent(1,1);
-        workM(1,2) = theTangent(1,3);
-        workM(2,0) = theTangent(3,0);
-        workM(2,1) = theTangent(3,1);
-        workM(2,2) = theTangent(3,3);
-        return workM;
-    }
-
+  if (ndm ==3)
+    return theTangent; 
+  else {
+    static Matrix workM(3,3);
+    workM(0,0) = theTangent(0,0);
+    workM(0,1) = theTangent(0,1);
+    workM(0,2) = theTangent(0,3);
+    workM(1,0) = theTangent(1,0);
+    workM(1,1) = theTangent(1,1);
+    workM(1,2) = theTangent(1,3);
+    workM(2,0) = theTangent(3,0);
+    workM(2,1) = theTangent(3,1);
+    workM(2,2) = theTangent(3,3);
+    return workM;
+  }
 }
 
 const Matrix & SimplifiedJ2::getInitialTangent()
@@ -421,21 +414,20 @@ SimplifiedJ2::revertToStart()
 NDMaterial * 
 SimplifiedJ2::getCopy()
 {
-  SimplifiedJ2 * theJ2 = new SimplifiedJ2(*this);
-  return theJ2;
+  return new SimplifiedJ2(*this);
 }
 
 
 
 NDMaterial * 
-SimplifiedJ2::getCopy (const char *code)
+SimplifiedJ2::getCopy(const char *code)
 {
-  if (strcmp(code,"PlaneStress") == 0 || strcmp(code,"PlaneStrain") == 0
-      || strcmp(code,"ThreeDimensional") == 0) {
+  if (strcmp(code,"PlaneStress") == 0 || 
+      strcmp(code,"PlaneStrain") == 0 ||
+      strcmp(code,"ThreeDimensional") == 0) {
         SimplifiedJ2 * theJ2 = new SimplifiedJ2(*this);
         return theJ2;
   }
-
   return NDMaterial::getCopy(code);
 }
 
@@ -468,7 +460,8 @@ int SimplifiedJ2::sendSelf(int commitTag, Channel &theChannel)
   return 0;  
 }
 
-int SimplifiedJ2::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+int
+SimplifiedJ2::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
   static Vector data(7+6+6+6+6+1);
   if (theChannel.recvVector(this->getDbTag(), commitTag, data) < 0) {
@@ -502,20 +495,20 @@ SimplifiedJ2::setResponse(const char **argv, int argc, OPS_Stream &s)
 {
 
   if (strcmp(argv[0],"stress") == 0 || strcmp(argv[0],"stresses") == 0)
-        return new MaterialResponse(this, 1, stress);
+    return new MaterialResponse(this, 1, stress);
 
   else if (strcmp(argv[0],"strain") == 0 || strcmp(argv[0],"strains") == 0)
-        return new MaterialResponse(this, 2, strain);
+    return new MaterialResponse(this, 2, strain);
 
   else if (strcmp(argv[0],"tangent") == 0 || strcmp(argv[0],"Tangent") == 0)
-        return new MaterialResponse(this, 3, theTangent);
+    return new MaterialResponse(this, 3, theTangent);
 
     
   else if (strcmp(argv[0],"plasticStrainDev") == 0 || strcmp(argv[0],"plasticStrainDevs") == 0)
-        return new MaterialResponse(this, 4, plastStrainDev);
+    return new MaterialResponse(this, 4, plastStrainDev);
     
   else
-        return 0;
+    return 0;
     
 }
 
