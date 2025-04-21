@@ -52,7 +52,6 @@
 #include <string.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #include <matrix/identity.h> // IbunI, IIdev
 
 const double J2Plasticity :: four3  = 4.0 / 3.0 ;
@@ -60,40 +59,6 @@ const double J2Plasticity :: root23 = sqrt( 2.0 / 3.0 ) ;
 
 double J2Plasticity::initialTangent[3][3][3][3] ;   //material tangent
 
-void * OPS_ADD_RUNTIME_VPV(OPS_J2Plasticity)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 7) {
-        opserr << "WARNING: Insufficient arguments\n";
-        opserr << "Want: nDMaterial J2Plasticity tag? K? G? sig0? sigInf? delta? H? <eta?>\n";
-        return 0;
-    }
-
-    int tag;
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata,&tag) < 0) {
-        opserr << "WARNING invalid J2Plasticity tag\n";
-        return 0;
-    }
-
-    double data[7] = {0,0,0,0,0,0,0};
-    numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata > 7) {
-        numdata = 7;
-    }
-    if (OPS_GetDoubleInput(&numdata,data)) {
-        opserr << "WARNING invalid J2Plasticity double inputs\n";
-        return 0;
-    }
-
-    NDMaterial* mat = new J2Plasticity(tag,0,data[0],data[1],data[2],data[3],data[4],data[5],data[6]);
-    if (mat == 0) {
-        opserr << "WARNING: failed to create J2Plasticity material\n";
-        return 0;
-    }
-
-    return mat;
-}
 
 // zero internal variables
 void
@@ -242,21 +207,22 @@ J2Plasticity :: getCopy(const char *type)
     }
 }
 
-// print out material data
-void J2Plasticity :: Print( OPS_Stream &s, int flag )
+
+void
+J2Plasticity::Print( OPS_Stream &s, int flag )
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << TaggedObject::JsonPropertyIndent << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"J2Plasticity\", ";
-    s << "\"K\": " << bulk << ", ";
     s << "\"G\": " << shear << ", ";
-    s << "\"sig0\": " << sigma_0 << ", ";
-    s << "\"sigInf\": " << sigma_infty << ", ";
-    s << "\"delta\": " << delta << ", ";
-    s << "\"H\": " << Hard << ", ";
+    s << "\"K\": " << bulk << ", ";
+    s << "\"Fy\": " << sigma_0 << ", ";
+    s << "\"Fs\": " << sigma_infty << ", ";
+    s << "\"Hsat\": " << delta << ", ";
+    s << "\"Hiso\": " << Hard << ", ";
     s << "\"eta\": " << eta << ", ";
-    s << "\"rho\": " << rho;
+    s << "\"density\": " << rho;
     s << "}";
     return;
   }

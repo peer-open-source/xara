@@ -22,7 +22,6 @@ extern OPS_Routine OPS_ElasticOrthotropicPlaneStress;
 extern OPS_Routine OPS_OrthotropicMaterial;
 extern OPS_Routine OPS_Series3DMaterial;
 extern OPS_Routine OPS_Parallel3DMaterial;
-extern OPS_Routine OPS_J2Plasticity;
 extern OPS_Routine OPS_J2PlateFibreMaterial;
 extern OPS_Routine OPS_J2CyclicBoundingSurfaceMaterial;
 extern OPS_Routine OPS_ASDConcrete3DMaterial;
@@ -42,7 +41,6 @@ extern OPS_Routine OPS_ElasticIsotropicMaterial;
 extern OPS_Routine OPS_ElasticIsotropic3D;
 extern OPS_Routine OPS_IncrementalElasticIsotropicThreeDimensional;
 extern OPS_Routine OPS_ElasticOrthotropicMaterial;
-extern OPS_Routine OPS_DruckerPragerMaterial;
 extern OPS_Routine OPS_BoundingCamClayMaterial;
 extern OPS_Routine OPS_ContactMaterial2DMaterial;
 extern OPS_Routine OPS_ContactMaterial3DMaterial;
@@ -136,13 +134,14 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
 //
 // Plasticity
 //
-  {"J2",                               dispatch<OPS_J2Plasticity>},
-  {"J2Plasticity",                     dispatch<OPS_J2Plasticity>},
+  {"J2",                               dispatch<TclCommand_newPlasticMaterial>},
+  {"J2Plasticity",                     dispatch<TclCommand_newPlasticMaterial>},
   {"SimplifiedJ2",                     dispatch<TclCommand_newPlasticMaterial>},
   {"J2Simplified",                     dispatch<TclCommand_newPlasticMaterial>},
-  {"Simplified3DJ2",                   dispatch<TclCommand_newJ2Simplified>},
-  {"3DJ2",                             dispatch<TclCommand_newJ2Simplified>},
-  {"PlaneStressSimplifiedJ2",          dispatch<TclCommand_newJ2Simplified>},
+  {"Simplified3DJ2",                   dispatch<TclCommand_newPlasticMaterial>},
+  {"3DJ2",                             dispatch<TclCommand_newPlasticMaterial>},
+  {"PlaneStressSimplifiedJ2",          dispatch<TclCommand_newPlasticMaterial>},
+  {"DruckerPrager",                    dispatch<TclCommand_newPlasticMaterial>},
 
   {"UVCplanestress",                   dispatch<OPS_UVCplanestress       > },
   {"UVCmultiaxial",                    dispatch<OPS_UVCmultiaxial        > },
@@ -156,8 +155,8 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
   {"BeamFiber",                        dispatch<OPS_BeamFiberMaterial> },
   {"BeamFiber2d",                      dispatch<OPS_BeamFiberMaterial2d> },
   {"BeamFiber2dPS",                    dispatch<OPS_BeamFiberMaterial2dPS> },
+
   {"DruckerPragerThermal",             dispatch<OPS_DruckerPragerMaterialThermal> },
-  {"DruckerPrager",                    dispatch<OPS_DruckerPragerMaterial> },
   {"TruncatedDP",                      dispatch<OPS_LinearCap            > },
   {"FSAM",                             dispatch<OPS_FSAMMaterial         > },
   {"AcousticMedium",                   dispatch<OPS_AcousticMedium       > },

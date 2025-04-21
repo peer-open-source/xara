@@ -61,7 +61,6 @@ const double  Brick::sg[] = { -one_over_root3, one_over_root3  } ;
 const double  Brick::wg[] = { 1.0, 1.0, 1.0, 1.0, 
                               1.0, 1.0, 1.0, 1.0  } ;
 
-  
 static Matrix B(6,3) ;
 
 
@@ -93,7 +92,7 @@ Brick::Brick(int tag,
 	     int node8,
 	     NDMaterial &theMaterial,
 	     double b1, double b2, double b3)
-  :Element(tag, ELE_TAG_Brick),
+  : Element(tag, ELE_TAG_Brick),
    connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
 {
   B.Zero();
@@ -109,8 +108,7 @@ Brick::Brick(int tag,
   connectedExternalNodes(7) = node8 ;
 
   for (int i=0; i<8; i++ ) {
-      materialPointers[i] = theMaterial.getCopy("ThreeDimensional") ;
-
+      materialPointers[i] = theMaterial.getCopy("ThreeDimensional");
       theNodes[i] = nullptr;
   }
 
@@ -220,95 +218,95 @@ Brick::revertToStart( )
 }
 
 
-void  Brick::Print(OPS_Stream &s, int flag)
+void
+Brick::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"Brick\", ";
-        s << "\"nodes\": ["
-          << connectedExternalNodes(0) << ", ";
-        for (int i = 1; i < 7; i++)
-            s << connectedExternalNodes(i) << ", ";
-        s << connectedExternalNodes(7) << "], ";
-        s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
-        s << "\"material\": \"" << materialPointers[0]->getTag() << "\"}";
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"Brick\", ";
+    s << "\"nodes\": ["
+      << connectedExternalNodes(0) << ", ";
+    for (int i = 1; i < 7; i++)
+        s << connectedExternalNodes(i) << ", ";
+    s << connectedExternalNodes(7) << "], ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
+    s << "\"material\": [" << materialPointers[0]->getTag() << "]}";
 
-        return;
-    }
+    return;
+  }
 
-    if (flag == 2) {
-        
-        s << "#Brick\n";
-        
-        int i;
-        const int numNodes = 8;
-        const int nstress = 6;
+  if (flag == 2) {
+    
+    s << "#Brick\n";
+    
+    int i;
+    const int numNodes = 8;
+    const int nstress = 6;
 
-        for (i = 0; i < numNodes; i++) {
-            const Vector &nodeCrd = theNodes[i]->getCrds();
-            const Vector &nodeDisp = theNodes[i]->getDisp();
-            s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2)
-                << " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << endln;
-        }
-        
-        // spit out the section location & invoke print on the scetion
-        const int numMaterials = 8;
-        
-        static Vector avgStress(nstress);
-        static Vector avgStrain(nstress);
-        avgStress.Zero();
-        avgStrain.Zero();
-        for (i = 0; i < numMaterials; i++) {
-            avgStress += materialPointers[i]->getStress();
-            avgStrain += materialPointers[i]->getStrain();
-        }
-        avgStress /= numMaterials;
-        avgStrain /= numMaterials;
-        
-        s << "#AVERAGE_STRESS ";
-        for (i = 0; i < nstress; i++)
-            s << avgStress(i) << " ";
-        s << endln;
-        
-        s << "#AVERAGE_STRAIN ";
-        for (i = 0; i < nstress; i++)
-            s << avgStrain(i) << " ";
-        s << endln;
-        
-        /*
-        for (i=0; i<numMaterials; i++) {
-          s << "#MATERIAL\n";
-          //      materialPointers[i]->Print(s, flag);
-          s << materialPointers[i]->getStress();
-        }
-        */
+    for (i = 0; i < numNodes; i++) {
+        const Vector &nodeCrd = theNodes[i]->getCrds();
+        const Vector &nodeDisp = theNodes[i]->getDisp();
+        s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2)
+            << " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << endln;
     }
     
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        
-        s << "Standard Eight Node Brick \n";
-        s << "Element Number: " << this->getTag() << endln;
-        s << "Nodes: " << connectedExternalNodes;
-        
-        s << "Material Information : \n ";
-        materialPointers[0]->Print(s, flag);
-        
-        s << endln;
-        s << this->getTag() << " " << connectedExternalNodes(0)
-            << " " << connectedExternalNodes(1)
-            << " " << connectedExternalNodes(2)
-            << " " << connectedExternalNodes(3)
-            << " " << connectedExternalNodes(4)
-            << " " << connectedExternalNodes(5)
-            << " " << connectedExternalNodes(6)
-            << " " << connectedExternalNodes(7)
-            << endln;
-        
-        s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << endln;
-        s << "Resisting Force (no inertia): " << this->getResistingForce();
-    }
+    // spit out the section location & invoke print on the scetion
+    const int numMaterials = 8;
     
+    static Vector avgStress(nstress);
+    static Vector avgStrain(nstress);
+    avgStress.Zero();
+    avgStrain.Zero();
+    for (i = 0; i < numMaterials; i++) {
+        avgStress += materialPointers[i]->getStress();
+        avgStrain += materialPointers[i]->getStrain();
+    }
+    avgStress /= numMaterials;
+    avgStrain /= numMaterials;
+    
+    s << "#AVERAGE_STRESS ";
+    for (i = 0; i < nstress; i++)
+        s << avgStress(i) << " ";
+    s << endln;
+    
+    s << "#AVERAGE_STRAIN ";
+    for (i = 0; i < nstress; i++)
+        s << avgStrain(i) << " ";
+    s << endln;
+    
+    /*
+    for (i=0; i<numMaterials; i++) {
+      s << "#MATERIAL\n";
+      //      materialPointers[i]->Print(s, flag);
+      s << materialPointers[i]->getStress();
+    }
+    */
+  }
+
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+      
+      s << "Standard Eight Node Brick \n";
+      s << "Element Number: " << this->getTag() << endln;
+      s << "Nodes: " << connectedExternalNodes;
+      
+      s << "Material Information : \n ";
+      materialPointers[0]->Print(s, flag);
+      
+      s << endln;
+      s << this->getTag() << " " << connectedExternalNodes(0)
+          << " " << connectedExternalNodes(1)
+          << " " << connectedExternalNodes(2)
+          << " " << connectedExternalNodes(3)
+          << " " << connectedExternalNodes(4)
+          << " " << connectedExternalNodes(5)
+          << " " << connectedExternalNodes(6)
+          << " " << connectedExternalNodes(7)
+          << endln;
+      
+      s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << endln;
+      s << "Resisting Force (no inertia): " << this->getResistingForce();
+  }
 }
  
  
@@ -969,16 +967,6 @@ Brick::formResidAndTangent( int tang_flag )
       //               | N,2     N,1     0   |
       //               |   0     N,3    N,2  |
       //               | N,3      0     N,1  |
-
-      //      B(0,0) = shp[0][node] ;
-      //      B(1,1) = shp[1][node] ;
-      //      B(2,2) = shp[2][node] ;
-      //      B(3,0) = shp[1][node] ;
-      //      B(3,1) = shp[0][node] ;
-      //      B(4,1) = shp[2][node] ;
-      //      B(4,2) = shp[1][node] ;
-      //      B(5,0) = shp[2][node] ;
-      //      B(5,2) = shp[0][node] ;
 
       double b00 = shp[0][j];
       double b11 = shp[1][j];

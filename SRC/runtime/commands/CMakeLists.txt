@@ -21,6 +21,7 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/element.cpp"
     "modeling/element/frames.cpp"
     "modeling/element/shells.cpp"
+    "modeling/element/brick.cpp"
     "modeling/nDMaterial.cpp"
     "modeling/section.cpp"
     "modeling/uniaxialMaterial.cpp"

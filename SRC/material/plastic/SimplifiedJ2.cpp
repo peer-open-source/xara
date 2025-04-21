@@ -558,11 +558,11 @@ SimplifiedJ2::Print(OPS_Stream &s, int flag)
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"" << this->getClassType() << "\", ";
-    s << "\"G\":"    << G << ", ";
-    s << "\"K\":"    << K << ", ";
-    s << "\"Y\":" << sigmaY0 << ", ";
-    s << "\"Hiso\":" << H_iso << ", ";
-    s << "\"Hkin\":" << H_kin;
+    s << "\"G\": "    << G << ", ";
+    s << "\"K\": "    << K << ", ";
+    s << "\"Fy\": "   << sigmaY0 << ", ";
+    s << "\"Hiso\": " << H_iso << ", ";
+    s << "\"Hkin\": " << H_kin;
     s << "}";
   }
   return;
@@ -608,7 +608,6 @@ SimplifiedJ2::updateParameter(int responseID, Information &eleInformation)
     case 6:
         this->H_iso= info.theDouble; // 
         break;
-
     }
     */
     return 0;

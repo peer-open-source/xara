@@ -1,8 +1,9 @@
+//===----------------------------------------------------------------------===//
 //
-// Ed "C++" Love
+//        OpenSees - Open System for Earthquake Engineering Simulation    
 //
-
-
+//===----------------------------------------------------------------------===//
+//
 // 3D isoparametric 8-node element shape function
 //
 // 
@@ -21,15 +22,17 @@
 //                    shp[2][i] = dN_i/dzc
 //                    shp[3][i] =  N_i
 //
-void  shp3d(const double xn[3],
+//
+// Ed "C++" Love
+//
+void
+shp3d(const double xn[3],
             double &xsj,
             double shp[4][8],
             const double xl[3][8])
 {
-
-
-  /* static */ double xs[3][3]; 
-  /* static */ double ad[3][3];
+  double xs[3][3]; 
+  double ad[3][3];
 
   // Compute shape functions and their natural coord. derivatives
 

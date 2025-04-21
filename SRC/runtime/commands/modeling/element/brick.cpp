@@ -1,24 +1,8 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
 //
-// $Source: /usr/local/cvs/OpenSees/SRC/element/brick/TclBrickCommand.cpp,v $
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
 //
 // Written: fmk
 // Created: 03/01
@@ -55,8 +39,10 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // get the id and end nodes
-  int BrickId, Node1, Node2, Node3, Node4, matID;
-  int Node5, Node6, Node7, Node8;
+  int BrickId;
+  int matID;
+  int Node1, Node2, Node3, Node4,
+      Node5, Node6, Node7, Node8;
 
   if (Tcl_GetInt(interp, argv[1 + eleArgStart], &BrickId) != TCL_OK) {
     opserr << "WARNING invalid Brick eleTag" << endln;
@@ -65,49 +51,40 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (Tcl_GetInt(interp, argv[2 + eleArgStart], &Node1) != TCL_OK) {
     opserr << "WARNING invalid Node1\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3 + eleArgStart], &Node2) != TCL_OK) {
     opserr << "WARNING invalid Node2\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[4 + eleArgStart], &Node3) != TCL_OK) {
     opserr << "WARNING invalid Node3\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[5 + eleArgStart], &Node4) != TCL_OK) {
     opserr << "WARNING invalid Node4\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[6 + eleArgStart], &Node5) != TCL_OK) {
     opserr << "WARNING invalid Node5\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[7 + eleArgStart], &Node6) != TCL_OK) {
     opserr << "WARNING invalid Node6\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[8 + eleArgStart], &Node7) != TCL_OK) {
     opserr << "WARNING invalid Node7\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[9 + eleArgStart], &Node8) != TCL_OK) {
     opserr << "WARNING invalid Node8\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[10 + eleArgStart], &matID) != TCL_OK) {
     opserr << "WARNING invalid matTag\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
 
@@ -144,7 +121,7 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // now create the Brick and add it to the Domain
-  Element *theBrick = 0;
+  Element *theBrick = nullptr;
   if (strcmp(argv[1], "stdBrick") == 0) {
     theBrick = new Brick(BrickId, Node1, Node2, Node3, Node4, Node5, Node6,
                          Node7, Node8, *theMaterial, b1, b2, b3);
@@ -172,13 +149,11 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (theBrick == 0) {
     opserr << "WARNING ran out of memory creating element\n";
-    opserr << "Brick element: " << BrickId << endln;
     return TCL_ERROR;
   }
 
   if (theTclDomain->addElement(theBrick) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "Brick element: " << BrickId << endln;
     delete theBrick;
     return TCL_ERROR;
   }
@@ -242,40 +217,32 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
   for (int i = 0; i < 20; i++)
     if (Tcl_GetInt(interp, argv[1 + argStart + i], &(Nod[i])) != TCL_OK) {
       opserr << "WARNING invalid Node number\n";
-      opserr << "20NodeBrick element: " << brickId << endln;
       return TCL_ERROR;
     }
   if (Tcl_GetInt(interp, argv[21 + argStart], &matID) != TCL_OK) {
     opserr << "WARNING invalid matID\n";
-    opserr << "20NodeBrick element: " << brickId << endln;
     return TCL_ERROR;
   }
   if ((argc - argStart) >= 23) {
     if (Tcl_GetDouble(interp, argv[22 + argStart], &b1) != TCL_OK) {
       opserr << "WARNING invalid b1\n";
-      opserr << "20NodeBrick element: " << brickId << endln;
       return TCL_ERROR;
     }
   }
   if ((argc - argStart) >= 24) {
     if (Tcl_GetDouble(interp, argv[23 + argStart], &b2) != TCL_OK) {
       opserr << "WARNING invalid b2\n";
-      opserr << "20NodeBrick element: " << brickId << endln;
       return TCL_ERROR;
     }
   }
   if ((argc - argStart) >= 25) {
     if (Tcl_GetDouble(interp, argv[24 + argStart], &b3) != TCL_OK) {
       opserr << "WARNING invalid b3\n";
-      opserr << "20NodeBrick element: " << brickId << endln;
       return TCL_ERROR;
     }
   }
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-  if (theMaterial == 0) {
-    opserr << "WARNING material not found\n";
-    opserr << "Material: " << matID;
-    opserr << "\20NodeBrick element: " << brickId << endln;
+  if (theMaterial == nullptr) {
     return TCL_ERROR;
   }
   // now create the brick and add it to the Domain
@@ -288,12 +255,10 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
                             *theMaterial, b1, b2, b3);
   if (theTwentyNodeBrick == 0) {
     opserr << "WARNING ran out of memory creating element\n";
-    opserr << "20NodeBrick element: " << brickId << endln;
     return TCL_ERROR;
   }
   if (theTclDomain->addElement(theTwentyNodeBrick) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "20NodeBrick element: " << brickId << endln;
     delete theTwentyNodeBrick;
     return TCL_ERROR;
   }
@@ -351,37 +316,31 @@ TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (Tcl_GetInt(interp, argv[9 + argStart], &matID) != TCL_OK) {
     opserr << "WARNING invalid matID\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[10 + argStart], &bk) != TCL_OK) {
     opserr << "WARNING invalid fluid bulk modulus\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[11 + argStart], &r) != TCL_OK) {
     opserr << "WARNING invalid fluid mass density\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[12 + argStart], &perm1) != TCL_OK) {
     opserr << "WARNING invalid permeability_x\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[13 + argStart], &perm2) != TCL_OK) {
     opserr << "WARNING invalid permeability_y\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[14 + argStart], &perm3) != TCL_OK) {
     opserr << "WARNING invalid permeability_z\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     return TCL_ERROR;
   }
 
@@ -422,13 +381,11 @@ TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
       *theMaterial, bk, r, perm1, perm2, perm3, b1, b2, b3);
   if (theBrickUP == 0) {
     opserr << "WARNING ran out of memory creating element\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     return TCL_ERROR;
   }
 
   if (theTclDomain->addElement(theBrickUP) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "brickUP element: " << brickUPId << endln;
     delete theBrickUP;
     return TCL_ERROR;
   }

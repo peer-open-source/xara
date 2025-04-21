@@ -50,66 +50,6 @@ const double DruckerPrager :: one3   = 1.0 / 3.0 ;
 const double DruckerPrager :: two3   = 2.0 / 3.0 ;
 const double DruckerPrager :: root23 = sqrt( 2.0 / 3.0 ) ;
 
-#include <elementAPI.h>
-#define OPS_Export 
-
-static int numDruckerPragerMaterials = 0;
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_DruckerPragerMaterial)
-{
-  if (numDruckerPragerMaterials == 0) {
-    numDruckerPragerMaterials++;
-    opslog << "DruckerPrager nDmaterial - Written: K.Petek, P.Mackenzie-Helnwein, P.Arduino, U.Washington\n";
-  }
-
-  // Pointer to a uniaxial material that will be returned
-  NDMaterial *theMaterial = 0;
-
-  int numArgs = OPS_GetNumRemainingInputArgs();
-
-  if (numArgs < 12) {
-    opserr << "Want: nDMaterial DruckerPrager tag? K? G? sigma_y? rho? rho_bar? Kinf? Ko? delta1? delta2? H? theta? <massDensity? atm?>" << endln;
-    return 0;	
-  }
-  
-  int tag;
-  double dData[14];
-
-  int numData = 1;
-  if (OPS_GetInt(&numData, &tag) != 0) {
-    opserr << "WARNING invalid nDMaterial DruckerPrager material  tag" << endln;
-    return 0;
-  }
-  if (numArgs == 12) {
-      numData = 11;
-  } else if (numArgs == 13) {
-      numData = 12;
-  } else {
-	  numData = 13;
-  }
-
-  if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid material data for nDMaterial DruckerPrager material  with tag: " << tag << endln;
-    return 0;
-  }
-
-  if (numArgs == 12) {
-	theMaterial = new DruckerPrager(tag, 0, dData[0], dData[1], dData[2], dData[3], dData[4], dData[5],
-				    dData[6], dData[7], dData[8], dData[9], dData[10]);
-  } else if (numArgs  == 13) {
-    theMaterial = new DruckerPrager(tag, 0, dData[0], dData[1], dData[2], dData[3], dData[4], dData[5],
-				    dData[6], dData[7], dData[8], dData[9], dData[10], dData[11]);
-  } else {
-    theMaterial = new DruckerPrager(tag, 0, dData[0], dData[1], dData[2], dData[3], dData[4], dData[5],
-				    dData[6], dData[7], dData[8], dData[9], dData[10], dData[11], dData[12]);
-  }
-
-  if (theMaterial == 0) {
-    opserr << "WARNING ran out of memory for nDMaterial DruckerPrager material  with tag: " << tag << endln;
-  }
-
-  return theMaterial;
-}
 
 
 DruckerPrager::DruckerPrager(int tag, int classTag, double bulk, double shear, double s_y, double r,
@@ -980,18 +920,19 @@ void DruckerPrager::Print(OPS_Stream &s, int flag )
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
 	s << OPS_PRINT_JSON_MATE_INDENT << "{";
+	s << "\"name\": " << this->getTag() << ", ";
 	s << "\"type\": \"" << this->getClassType() << "\", ";
-	s << "\"tag\": " << this->getTag() << ", ";
 	// Isotropy
-	s << "\"K\": " << mK << ", ";
 	s << "\"G\": " << mG << ", ";
+	s << "\"K\": " << mK << ", ";
 	// Yielding
 	s << "\"Fy\": " << msigma_y << ", ";
 	s << "\"Fo\": " << mKo << ", ";
 	s << "\"Fs\": " << mKinf << ", ";
 	// Hardening
-	s << "\"Hmix\": " << mHard << ", ";
-	s << "\"theta\": " << mtheta;
+	s << "\"Hiso\": " << mtheta*mHard << ", ";
+	s << "\"Hkin\": " << (1 - mtheta)*mHard << ", ";
+	s << "\"Hsat\": " << mdelta1;
 	s << "}";
 	return;
   }
