@@ -135,6 +135,7 @@ public :
 private :
 
   //Number of Gauss-points
+  constexpr static int NEN = 10;
   enum {NumGaussPoints=4};
   enum {NumNodes=10};
   enum {NumDOFsPerNode=3};

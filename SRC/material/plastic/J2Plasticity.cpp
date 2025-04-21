@@ -59,20 +59,6 @@ const double J2Plasticity :: root23 = sqrt( 2.0 / 3.0 ) ;
 double J2Plasticity::initialTangent[3][3][3][3] ;   //material tangent
 
 
-// zero internal variables
-void
-J2Plasticity::zero()
-{
-  xi_n = 0.0 ;
-  xi_nplus1 = 0.0 ;
-  
-  epsilon_p_n.Zero( ) ;
-  epsilon_p_nplus1.Zero( ) ;
-
-  stress.Zero();
-  strain.Zero();
-}
-
 
 J2Plasticity::J2Plasticity(): 
 NDMaterial(),
@@ -105,7 +91,7 @@ J2Plasticity::J2Plasticity(int tag,
                            double d,
                            double H,
                            double viscosity,
-                           double r) 
+                           double density) 
 : 
   NDMaterial(tag, classTag),
   epsilon_p_n(3,3),
@@ -121,7 +107,7 @@ J2Plasticity::J2Plasticity(int tag,
   delta       = d ;
   Hard        = H ;
   eta         = viscosity ;
-  rho = r;
+  rho = density;
 
   this->zero();
 
@@ -130,9 +116,9 @@ J2Plasticity::J2Plasticity(int tag,
 
 
 J2Plasticity::J2Plasticity(int tag, 
-                int  classTag,
-                double K, 
-                double G ) :
+                          int  classTag,
+                          double K, 
+                          double G ) :
   NDMaterial(tag, classTag),
   epsilon_p_n(3,3),
   epsilon_p_nplus1(3,3),
@@ -178,24 +164,24 @@ J2Plasticity::getCopy(const char *type)
       return clone ;
   }
   else if (strcmp(type,"AxiSymmetric2D") == 0 || 
-            strcmp(type,"AxiSymmetric") == 0)
-  {
+            strcmp(type,"AxiSymmetric") == 0) {
       J2AxiSymm  *clone ;
       clone = new J2AxiSymm(this->getTag(), bulk, shear, sigma_0,
                             sigma_infty, delta, Hard, eta, rho) ;
       return clone ;        
   }
+
   else if ((strcmp(type,"ThreeDimensional") == 0) ||
-            (strcmp(type,"3D") == 0))
-  {
+            (strcmp(type,"3D") == 0)) {
       return new J2ThreeDimensional(this->getTag(), bulk, shear, sigma_0,
                                       sigma_infty, delta, Hard, eta, rho);
   }
-  else if ( (strcmp(type,"PlateFiber") == 0) )
-  {
+
+  else if ( (strcmp(type,"PlateFiber") == 0) ) {
       return new J2PlateFiber(this->getTag(), bulk, shear, sigma_0,
                                 sigma_infty, delta, Hard, eta, rho); 
   } 
+
   // Handle other cases
   else
   {
@@ -224,22 +210,36 @@ J2Plasticity::Print( OPS_Stream &s, int flag )
   }
 
   else if (flag == OPS_PRINT_CURRENTSTATE) {
-    s << endln ;
+    s << "\n" ;
     s << "J2-Plasticity : " ;
-    s << "Bulk Modulus =   " << bulk        << endln ;
-    s << "Shear Modulus =  " << shear       << endln ;
-    s << "Sigma_0 =        " << sigma_0     << endln ;
-    s << "Sigma_infty =    " << sigma_infty << endln ;
-    s << "Delta =          " << delta       << endln ;
-    s << "H =              " << Hard        << endln ;
-    s << "Eta =            " << eta         << endln ;
-    s << "Rho =            " << rho         << endln ;
-    s << endln ;
+    s << "Bulk Modulus =   " << bulk        << "\n" ;
+    s << "Shear Modulus =  " << shear       << "\n" ;
+    s << "Sigma_0 =        " << sigma_0     << "\n" ;
+    s << "Sigma_infty =    " << sigma_infty << "\n" ;
+    s << "Delta =          " << delta       << "\n" ;
+    s << "H =              " << Hard        << "\n" ;
+    s << "Eta =            " << eta         << "\n" ;
+    s << "Rho =            " << rho         << "\n" ;
+    s << "\n" ;
   }
 }
 
 
 //--------------------Plasticity-------------------------------------
+
+// zero internal variables
+void
+J2Plasticity::zero()
+{
+  xi_n = 0.0 ;
+  xi_nplus1 = 0.0 ;
+  
+  epsilon_p_n.Zero( ) ;
+  epsilon_p_nplus1.Zero( ) ;
+
+  stress.Zero();
+  strain.Zero();
+}
 
 //plasticity integration routine
 int 
@@ -401,12 +401,10 @@ J2Plasticity::plastic_integrator()
 
       // elastic terms
       tangent[i][j][k][l]  = bulk * IbunI[i][j][k][l] ;
-
       tangent[i][j][k][l] += (2.0*shear) * IIdev[i][j][k][l] ;
 
       // plastic terms 
       tangent[i][j][k][l] += c2 * NbunN ;
-
       tangent[i][j][k][l] += c3 * (  IIdev[i][j][k][l] - NbunN ) ;
 
       // minor symmetries 

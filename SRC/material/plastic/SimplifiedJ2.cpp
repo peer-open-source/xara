@@ -41,8 +41,10 @@ SimplifiedJ2::SimplifiedJ2(int pTag,
                            double pK,
                            double pSigmaY0,
                            double pH_kin,
-                           double pH_iso)
+                           double pH_iso,
+                           double density)
  : NDMaterial(pTag,ND_TAG_SimplifiedJ2),
+   density(density),
    stress(6),
    strain(6),
    Cstress(6),
@@ -555,7 +557,8 @@ SimplifiedJ2::Print(OPS_Stream &s, int flag)
     s << "\"K\": "    << K << ", ";
     s << "\"Fy\": "   << sigmaY0 << ", ";
     s << "\"Hiso\": " << H_iso << ", ";
-    s << "\"Hkin\": " << H_kin;
+    s << "\"Hkin\": " << H_kin << ", ";
+    s << "\"density\": " << density;
     s << "}";
   }
   return;

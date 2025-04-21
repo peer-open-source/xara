@@ -349,19 +349,18 @@ const ID&  TenNodeTetrahedron::getExternalNodes( )
 }
 
 Node **
-TenNodeTetrahedron::getNodePtrs(void)
+TenNodeTetrahedron::getNodePtrs()
 {
 	return nodePointers ;
 }
 
-//return number of dofs
+
 int  TenNodeTetrahedron::getNumDOF( )
 {
 	return NumDOFsTotal ;
 }
 
 
-//commit state
 int  TenNodeTetrahedron::commitState( )
 {
 	int success = 0 ;
@@ -379,34 +378,54 @@ int  TenNodeTetrahedron::commitState( )
 }
 
 
-//revert to last commit
-int  TenNodeTetrahedron::revertToLastCommit( )
+
+int
+TenNodeTetrahedron::revertToLastCommit()
 {
-	int i ;
 	int success = 0 ;
 
-	for ( i = 0; i < NumGaussPoints; i++ )
+	for (int i = 0; i < NumGaussPoints; i++ )
 		success += materialPointers[i]->revertToLastCommit( ) ;
 
 	return success ;
 }
 
 
-//revert to start
-int  TenNodeTetrahedron::revertToStart( )
+
+int
+TenNodeTetrahedron::revertToStart( )
 {
-	int i ;
 	int success = 0 ;
 
-	for ( i = 0; i < NumGaussPoints; i++ )
+	for (int i = 0; i < NumGaussPoints; i++ )
 		success += materialPointers[i]->revertToStart( ) ;
 
 	return success ;
 }
 
-//print out element data
-void  TenNodeTetrahedron::Print(OPS_Stream &s, int flag)
+
+void
+TenNodeTetrahedron::Print(OPS_Stream &s, int flag)
 {
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+
+		const ID& node_tags = this->getExternalNodes();
+
+		s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"TenNodeTetrahedron\", ";
+
+		s << "\"nodes\": [";
+		for (int i=0; i < NEN-1; i++)
+			s << node_tags(i) << ", ";
+		s << node_tags(NEN-1) << "]";
+		s << ", ";
+
+		s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
+		s << "\"material\": [" << materialPointers[0]->getTag() << "]}";
+		return;
+	}
+
 	if (flag == 2) {
 
 		s << "#TenNodeTetrahedron\n";
@@ -473,18 +492,6 @@ void  TenNodeTetrahedron::Print(OPS_Stream &s, int flag)
 		// s << "DEBUGME!" << endln;
 
 		s << "Resisting Force (no inertia): " << this->getResistingForce();
-	}
-
-	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
-		s << "\"name\": " << this->getTag() << ", ";
-		s << "\"type\": \"TenNodeTetrahedron\", ";
-		s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-		for (int i = 1; i < 2; i++)
-			s << connectedExternalNodes(i) << ", ";
-		s << connectedExternalNodes(3) << "], ";
-		s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
-		s << "\"material\": \"" << materialPointers[0]->getTag() << "\"}";
 	}
 }
 

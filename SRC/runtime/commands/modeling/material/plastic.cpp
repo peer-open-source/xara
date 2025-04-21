@@ -5,6 +5,7 @@
 //===----------------------------------------------------------------------===//
 //
 // cmp
+// April 2025
 //
 #include <tcl.h>
 #include <set>
@@ -35,6 +36,10 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   ArgumentTracker<Position> tracker;
   std::set<int> positional;
 
+
+  // Count the number of required isotropic parameters.
+  // This is needed to accommodate uniaxial materials, which generally
+  // only require one isotropic parameter (ie, E).
   int niso = (
     (Position::E      < Position::EndRequired) +
     (Position::G      < Position::EndRequired) +
@@ -43,6 +48,9 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
     (Position::Lambda < Position::EndRequired)
   );
 
+  // 
+  // Values we're parsing for
+  //
   int tag;
   double density = 0.0;
   // Isotropy
@@ -57,14 +65,17 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
     double Hsat  = 0;
     double Hmix  = 0;
   } hard{};
+  bool mix = Position::Theta < Position::End;
   // Viscosity
   double eta=0;
-  // Other
+  // Drucker-Prager
   double rho = 0, rho_bar = 0;
   double atm = 101.0;
   double delta2 = 0.0;
-  bool mix = Position::Theta < Position::End;
 
+  //
+  // Keyword arguments
+  //
 
   // Isotropy
   IsotropicParse iso {consts, niso};
@@ -76,9 +87,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
     tracker.consume(Position::Lambda);
   }
 
-  //
-  // Plasticity
-  //
+  // Other arguments
   for (int i=2; i<argc; i++) {
     if (iso.positions.find(i) != iso.positions.end()) {
       continue;
@@ -108,8 +117,21 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
       }
       tracker.consume(Position::YieldStress);
     }
-    else if (strcmp(argv[i], "-Fsat") == 0 || 
-             strcmp(argv[i], "-fsat") == 0) {
+    else if ((strcmp(argv[i], "-Fo") == 0) || 
+             (strcmp(argv[i], "-Ko") == 0)) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &Fo) != TCL_OK) {
+          opserr << "Invalid initial saturation stress value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::SatStress0);
+    }
+    else if ((strcmp(argv[i], "-Fs") == 0) || 
+             (strcmp(argv[i], "-Fsat") == 0) ||
+             (strcmp(argv[i], "-fsat") == 0)) {
       if (++i >= argc) {
           opserr << "Missing value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
@@ -147,7 +169,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
       mix = false;
       tracker.consume(Position::Hkin);
     }
-    else if (strcmp(argv[i], "-Hmix") == 0 || strcmp(argv[i], "-H") == 0) {
+    else if (strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "-Hmix") == 0) {
       if (++i >= argc) {
           opserr << "Missing value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
@@ -174,7 +196,8 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
       tracker.consume(Position::Theta);
     }
     else if (strcmp(argv[i], "-Hsat") == 0 || 
-             strcmp(argv[i], "-delta") == 0) {
+             strcmp(argv[i], "-delta") == 0 || 
+             strcmp(argv[i], "-delta1") == 0) {
       if (++i >= argc) {
           opserr << "Missing value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
@@ -184,6 +207,53 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
           return TCL_ERROR;
       }
       tracker.consume(Position::Hsat);
+    }
+    // Drucker-Prager
+    else if (strcmp(argv[i], "-delta2") == 0 ||
+             strcmp(argv[i], "-Hten") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &delta2) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Delta2);
+    }
+    else if (strcmp(argv[i], "-atm") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &atm) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Atm);
+    }
+    else if (strcmp(argv[i], "-Rvol") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &rho) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Rho);
+    }
+    else if (strcmp(argv[i], "-Rbar") == 0 ||
+             strcmp(argv[i], "-rhoBar") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &rho_bar) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::RhoBar);
     }
     // Viscosity
     else if (strcmp(argv[i], "-eta") == 0 || strcmp(argv[i], "-viscosity") == 0) {
@@ -210,6 +280,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
       tracker.increment();
 
     switch (tracker.current()) {
+      // General
       case Position::Tag :
         if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid section Elastic tag.\n";
@@ -218,6 +289,15 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
           tracker.increment();
           break;
         }
+      case Position::Density:
+        if (Tcl_GetDouble (interp, argv[i], &density) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid density.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
+
       // Isotropy
       case Position::E:
         if (Tcl_GetDouble (interp, argv[i], &consts.E) != TCL_OK) {
@@ -263,6 +343,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
           tracker.increment();
           break;
         }
+
       // Yielding
       case Position::YieldStress:
         if (Tcl_GetDouble(interp, argv[i], &Fy) != TCL_OK) {
@@ -347,7 +428,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
         }
       case Position::Rho:
         if (Tcl_GetDouble (interp, argv[i], &rho) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid rho.\n";
+            opserr << OpenSees::PromptParseError << "invalid Rvol.\n";
             return TCL_ERROR;
         } else {
           tracker.increment();
@@ -355,7 +436,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
         }
       case Position::RhoBar:
         if (Tcl_GetDouble (interp, argv[i], &rho_bar) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid rho_bar.\n";
+            opserr << OpenSees::PromptParseError << "invalid Rbar.\n";
             return TCL_ERROR;
         } else {
           tracker.increment();
@@ -365,16 +446,6 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
       case Position::Eta:
         if (Tcl_GetDouble (interp, argv[i], &eta) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid eta.\n";
-            return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
-        }
-
-      // Other
-      case Position::Density:
-        if (Tcl_GetDouble (interp, argv[i], &density) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid density.\n";
             return TCL_ERROR;
         } else {
           tracker.increment();
@@ -443,6 +514,18 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
         case Position::Theta:
           opserr << "theta ";
           break;
+
+        // Drucker-Prager
+        case Position::Delta2:
+          opserr << "Hten ";
+          break;
+        case Position::Rho:
+          opserr << "Rvol ";
+          break;
+        case Position::RhoBar:
+          opserr << "Rbar ";
+          break;
+        
         // Viscosity
         case Position::Eta:
           opserr << "eta ";
@@ -483,10 +566,11 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   else if ((strcmp(argv[1], "Simplified3DJ2") == 0) ||
            (strcmp(argv[1], "SimplifiedJ2") == 0) ||
            (strcmp(argv[1], "J2Simplified") == 0) ||
+           (strcmp(argv[1], "J2L") == 0) ||
            (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) ||
            (strcmp(argv[1], "3DJ2") == 0)) {
 
-    NDMaterial* theMaterial = new SimplifiedJ2(tag, 3, consts.G, consts.K, Fy, Hkin, Hiso);
+    NDMaterial* theMaterial = new SimplifiedJ2(tag, 3, consts.G, consts.K, Fy, Hkin, Hiso, density);
     if (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) {
       theMaterial = new PlaneStressSimplifiedJ2(tag, 2, *theMaterial);
     }
@@ -498,10 +582,11 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   }
 
   else if ((strcmp(argv[1], "J2") == 0) ||
+           (strcmp(argv[1], "J2N") == 0) ||
            (strcmp(argv[1], "J2Plasticity")  == 0)) {
 
     NDMaterial* theMaterial = new J2Plasticity(tag, 0, consts.K, consts.G, 
-                                               Fy, Fsat, hard.Hsat, Hiso, eta);
+                                               Fy, Fsat, hard.Hsat, Hiso, eta, density);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -536,13 +621,13 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       strcmp(argv[1], "3DJ2") == 0 ||
       strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) {
 
-    // "SimplifiedJ2"  tag?  G?  K?  Y? $Hkin  $Hiso
+    // "SimplifiedJ2"  tag?  G?  K?  Fy? Hkin?  Hiso?
     enum class Position : int {
       Tag, G, K, YieldStress, Hkin, Hiso, EndRequired, 
       End,
       E, Nu, Lambda, Eta, Theta, Hmix, Hsat,
       SatStress, SatStress0, 
-      Delta2, Rho, RhoBar,
+      Delta2, Rho, RhoBar, Atm,
       Density
     };
     return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
@@ -552,20 +637,22 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "UniaxialJ2Plasticity") == 0) {
   }
 
-  // "Hardening"  tag?  E?  Y?  Hiso?  Hkin?
   else if (strcmp(argv[1], "HardeningMaterial") == 0 ||
            strcmp(argv[1], "Hardening")  == 0 ||
            strcmp(argv[1], "Hardening2") == 0 ||
            strcmp(argv[1], "Steel") == 0) {
 
+    // "Hardening"  tag?  E?  Y?  Hiso?  Hkin?
     enum class Position : int {
       Tag, E, YieldStress, Hiso, EndRequired, 
       Hkin,
       End,
+      // Keyword-only arguments
+      Density,
+      // Unused
       Eta, G, K, Nu, Lambda, Theta, Hmix, Hsat,
       SatStress, SatStress0, 
-      Delta2, Rho, RhoBar,
-      Density
+      Delta2, Rho, RhoBar, Atm,
     };
     return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
   }
@@ -579,7 +666,7 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       Tag, K, G, YieldStress, SatStress, Hsat, Hiso, EndRequired, 
       Eta,                                           End,
       E, Nu, Lambda, Hkin, Theta, Hmix, SatStress0, 
-      Delta2, Rho, RhoBar,
+      Delta2, Rho, RhoBar, Atm,
       Density
     };
     return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
@@ -652,8 +739,8 @@ TclCommand_newJ2Simplified(ClientData clientData, Tcl_Interp* interp, int argc, 
       (strcmp(argv[1], "3DJ2") == 0) ||
       (strcmp(argv[1], "SimplifiedJ2") == 0) ||
       (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0)) {
-
-    theMaterial = new SimplifiedJ2(tag, 3, G, K, sig0, H_kin, H_iso);
+    double density = 0.0;
+    theMaterial = new SimplifiedJ2(tag, 3, G, K, sig0, H_kin, H_iso, density);
 
     if (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) {
       theMaterial = new PlaneStressSimplifiedJ2(tag, 2, *theMaterial);

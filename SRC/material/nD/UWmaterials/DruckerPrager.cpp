@@ -932,7 +932,9 @@ void DruckerPrager::Print(OPS_Stream &s, int flag )
 	// Hardening
 	s << "\"Hiso\": " <<      mtheta*mHard << ", ";
 	s << "\"Hkin\": " << (1 - mtheta)*mHard << ", ";
-	s << "\"Hsat\": " << mdelta1;
+	s << "\"Hsat\": " << mdelta1 << ", ";
+	//
+    s << "\"density\": " << massDen;
 	s << "}";
 	return;
   }

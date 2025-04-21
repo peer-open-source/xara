@@ -152,6 +152,12 @@ LinearSeries::recvSelf(int commitTag, Channel &theChannel,
 void
 LinearSeries::Print(OPS_Stream &s, int flag)
 {
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "{\"type\": \"LinearSeries\", ";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"factor\": " << cFactor;
+    s << "}";
+    return;
+  } else
     s << "Linear Series: constant factor: " << cFactor << "\n";
-
 }

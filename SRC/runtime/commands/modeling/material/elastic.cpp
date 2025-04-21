@@ -4,6 +4,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// cmp
+//
 #include <tcl.h>
 #include <string.h>
 #include <BasicModelBuilder.h>

@@ -27,7 +27,8 @@ class SimplifiedJ2 : public NDMaterial
                 double K,
                 double sigmaY0,
                 double H_kin,
-                double H_iso);
+                double H_iso,
+                double density);
   SimplifiedJ2();
   
   SimplifiedJ2(const SimplifiedJ2 &);
@@ -35,6 +36,8 @@ class SimplifiedJ2 : public NDMaterial
   
   const char *getClassType(void) const {return "SimplifiedJ2";}
   const char *getType(void) const { return "ThreeDimensional";}
+
+  double getRho() {return density;}
 
   int setTrialStrain (const Vector &strain);
   int setTrialStrain(const Vector &v, const Vector &r);
@@ -85,6 +88,7 @@ class SimplifiedJ2 : public NDMaterial
   double sigmaY0;
   double H_kin;
   double H_iso;
+  double density;
   
   
   // --- trial variables

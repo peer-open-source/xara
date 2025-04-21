@@ -48,6 +48,8 @@ extern OPS_Routine OPS_MixedBeamColumnAsym3dTcl; // Xinlong Du
 #endif
 
 extern OPS_Routine OPS_FourNodeTetrahedron;
+extern OPS_Routine OPS_TenNodeTetrahedron;
+
 extern OPS_Routine OPS_TPB1D;
 extern OPS_Routine OPS_TFP_Bearing;
 extern OPS_Routine OPS_FPBearingPTV;
@@ -329,6 +331,7 @@ element_dispatch = {
   {"ASDAbsorbingBoundary2D",       OPS_ASDAbsorbingBoundary2D},
   {"ASDAbsorbingBoundary3D",       OPS_ASDAbsorbingBoundary3D},
   {"FourNodeTetrahedron",          OPS_FourNodeTetrahedron},
+  {"TenNodeTetrahedron",           OPS_TenNodeTetrahedron},
   {"LinearElasticSpring",          OPS_LinearElasticSpring},
   {"Inerter",                      OPS_Inerter},
   {"Adapter",                      OPS_Adapter},
