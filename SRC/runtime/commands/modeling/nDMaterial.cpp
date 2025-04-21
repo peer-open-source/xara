@@ -74,9 +74,6 @@ NDMaterial *TclBasicBuilder_addFeapMaterial(ClientData clientData,
 #endif // _OPS_Material_FEAP
 
 
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp, int cArg,
-                          int mArg, TCL_Char ** const argv, Domain *domain);
-
 typedef struct ndMaterialPackageCommand {
   char *funcName;
   void *(*funcPtr)();
@@ -166,7 +163,6 @@ int
 TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
-  G3_Runtime *rt = G3_getRuntime(interp);
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
 
   // Make sure there is a minimum number of arguments
@@ -183,6 +179,7 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
+  G3_Runtime *rt = G3_getRuntime(interp);
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, 0);
 
   // Pointer to an ND material that will be added to the model builder

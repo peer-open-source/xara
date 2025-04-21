@@ -61,10 +61,11 @@ class DruckerPrager : public NDMaterial
   ~DruckerPrager();
   
   NDMaterial *getCopy(const char *type);
+  const char* getClassType() const { return "DruckerPrager"; }
   
-  int commitState(void);
-  int revertToLastCommit(void);
-  int revertToStart(void);
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
   
   NDMaterial *getCopy(void);
   const char *getType(void) const;

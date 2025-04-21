@@ -26,7 +26,7 @@
 #include <stdlib.h> 
 #include <math.h> 
 
-#include <ID.h> 
+#include <ID.h>
 #include <Vector.h>
 #include <Matrix.h>
 #include <Element.h>
@@ -56,8 +56,7 @@ Matrix  Brick::mass(24,24) ;
 const double  Brick::root3 = sqrt(3.0) ;
 const double  Brick::one_over_root3 = 1.0 / root3 ;
 
-const double  Brick::sg[] = { -one_over_root3,  
-			       one_over_root3  } ;
+const double  Brick::sg[] = { -one_over_root3, one_over_root3  } ;
 
 const double  Brick::wg[] = { 1.0, 1.0, 1.0, 1.0, 
                               1.0, 1.0, 1.0, 1.0  } ;
@@ -139,11 +138,11 @@ Brick::~Brick()
 }
 
 
-//set domain
-void  Brick::setDomain( Domain *theDomain ) 
+void
+Brick::setDomain( Domain *theDomain ) 
 {
   for (int i=0; i<8; i++ ) 
-     theNodes[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
+    theNodes[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
   this->DomainComponent::setDomain(theDomain);
 
@@ -318,9 +317,9 @@ Brick::getTangentStiff( )
 {
   int tang_flag = 1 ; //get the tangent 
 
-  formResidAndTangent( tang_flag ) ;  
+  formResidAndTangent( tang_flag );
 
-  return stiff ;
+  return stiff;
 }
 
 const Matrix&
@@ -751,7 +750,7 @@ Brick::update()
 
   
   //compute basis vectors and local nodal coordinates
-  computeBasis( ) ;
+  computeBasis();
 
   //gauss loop to compute and save shape functions 
 
@@ -780,8 +779,6 @@ Brick::update()
 
         //volume element to also be saved
         dvol[count] = wg[count] * xsj ;  
-
-        //volume += dvol[count] ;
 
         count++ ;
 
@@ -815,28 +812,9 @@ Brick::update()
       //nodal displacements 
       const Vector &ul = theNodes[j]->getTrialDisp( ) ;
 
-      //compute the strain
-      //strain += (BJ*ul) ; 
-      strain.addMatrixVector(1.0,  BJ,ul,1.0 ) ;
+      // compute the strain
+      // strain += (BJ*ul) ;
       ***************************************************/
-
-
-      //               | N,1      0     0    | 
-      //   B       =   |   0     N,2    0    |
-      //               |   0      0     N,3  |   (6x3)
-      //               | N,2     N,1     0   |
-      //               |   0     N,3    N,2  |
-      //               | N,3      0     N,1  |
-
-      //      B(0,0) = shp[0][node] ;
-      //      B(1,1) = shp[1][node] ;
-      //      B(2,2) = shp[2][node] ;
-      //      B(3,0) = shp[1][node] ;
-      //      B(3,1) = shp[0][node] ;
-      //      B(4,1) = shp[2][node] ;
-      //      B(4,2) = shp[1][node] ;
-      //      B(5,0) = shp[2][node] ;
-      //      B(5,2) = shp[0][node] ;
 
       double b00 = shp[0][j];
       double b11 = shp[1][j];
@@ -860,10 +838,9 @@ Brick::update()
       strain(3) += b30 * ul0 + b31 * ul1;
       strain(4) += b41 * ul1 + b42 * ul2;
       strain(5) += b50 * ul0 + b52 * ul2;
-
     }
     
-    // send the strain to the material 
+    //
     success = materialPointers[i]->setTrialStrain(strain);
 
   }
@@ -889,11 +866,7 @@ Brick::formResidAndTangent( int tang_flag )
   int i, j, k, p, q ;
 
 
-  static double volume ;
-
-  static double xsj ;  // determinant jacaobian matrix 
   static double dvol[numberGauss] ; //volume element
-  static double gaussPoint[ndm] ;
   static double shp[nShape][numberNodes] ;  //shape functions at a gauss point
   static double Shape[nShape][numberNodes][numberGauss] ; //all the shape functions
 
@@ -906,11 +879,8 @@ Brick::formResidAndTangent( int tang_flag )
   //---------B-matrices------------------------------------
 
   static Matrix BJ(nstress,ndf) ;      // B matrix node J
-
   static Matrix BJtran(ndf,nstress) ;
-
   static Matrix BK(nstress,ndf) ;      // B matrix node k
-
   static Matrix BJtranD(ndf,nstress) ;
 
   //-------------------------------------------------------
@@ -921,23 +891,24 @@ Brick::formResidAndTangent( int tang_flag )
   resid.Zero( ) ;
 
   //compute basis vectors and local nodal coordinates
-  computeBasis( ) ;
+  computeBasis();
 
   //gauss loop to compute and save shape functions 
 
   int count = 0 ;
-  volume = 0.0 ;
 
-  for ( i = 0; i < 2; i++ ) {
-    for ( j = 0; j < 2; j++ ) {
-      for ( k = 0; k < 2; k++ ) {
+  // double volume = 0.0 ;
 
-        gaussPoint[0] = sg[i] ;        
-        gaussPoint[1] = sg[j] ;        
-        gaussPoint[2] = sg[k] ;
+  for (int i = 0; i < 2; i++ ) {
+    for (int j = 0; j < 2; j++ ) {
+      for (int k = 0; k < 2; k++ ) {
 
-        //get shape functions    
-        shp3d( gaussPoint, xsj, shp, xl ) ;
+
+        // Evaluate shape functions
+        double xsj ;  // determinant jacaobian matrix
+
+        double xi[ndm]  = {sg[i], sg[j], sg[k]} ;
+        shp3d( xi, xsj, shp, xl ) ;
 
         //save shape functions
         for ( p = 0; p < nShape; p++ ) {
@@ -954,26 +925,27 @@ Brick::formResidAndTangent( int tang_flag )
     }
   }
   
-
-  // gauss loop 
-  for ( i = 0; i < numberGauss; i++ ) {
+  //
+  // gauss loop
+  //
+  for (int i = 0; i < numberGauss; i++ ) {
 
     //extract shape functions from saved array
-    for ( p = 0; p < nShape; p++ ) {
-       for ( q = 0; q < numberNodes; q++ )
-	  shp[p][q]  = Shape[p][q][i] ;
-    } // end for p
+    for (int p = 0; p < nShape; p++ ) {
+      for (int q = 0; q < numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i];
+    }
 
-
-    //compute the stress
+    // compute the stress
     stress = materialPointers[i]->getStress( ) ;
 
     stress  *= dvol[i] ;
-
+  
+  
     if ( tang_flag == 1 ) {
       dd = materialPointers[i]->getTangent( ) ;
-      dd *= dvol[i] ;
-    } //end if tang_flag
+      dd *= dvol[i];
+    }
 
 
     double stress0 = stress(0);
@@ -986,7 +958,7 @@ Brick::formResidAndTangent( int tang_flag )
     //residual and tangent calculations node loops
 
     int jj = 0 ;
-    for ( j = 0; j < numberNodes; j++ ) {
+    for (int j = 0; j < numberNodes; j++ ) {
 
       /* ************** fmk - unwinding for performance 
       ************************************************* */
@@ -1024,16 +996,14 @@ Brick::formResidAndTangent( int tang_flag )
       
       BJ = computeB( j, shp ) ;
    
-      //transpose 
-      //BJtran = transpose( nstress, ndf, BJ ) ;
+      //transpose
       for (int p=0; p<ndf; p++) {
         for (int q=0; q<nstress; q++) 
           BJtran(p,q) = BJ(q,p) ;
       }
 
-
       // residual 
-      for ( p = 0; p < ndf; p++ ) {
+      for (int p = 0; p < ndf; p++ ) {
         resid( jj + p ) += residJ(p)  ;
         if (applyLoad == 0)
           resid( jj + p ) -= dvol[i]*b[p]*shp[3][j];
@@ -1050,8 +1020,8 @@ Brick::formResidAndTangent( int tang_flag )
         for (int k = 0; k < numberNodes; k++ ) {
 
             BK = computeB( k, shp ) ;
-                  //stiffJK =  BJtranD * BK  ;
-            stiffJK.addMatrixProduct(0.0,  BJtranD,BK,1.0) ;
+            //stiffJK =  BJtranD * BK  ;
+            stiffJK.addMatrixProduct(0.0,  BJtranD, BK,1.0) ;
 
             for (int p = 0; p < ndf; p++ )  {
               for (int q = 0; q < ndf; q++ )
@@ -1083,15 +1053,13 @@ Brick::computeBasis( )
   //nodal coordinates 
 
   for (int i = 0; i < 8; i++ ) {
+    const Vector &coorI = theNodes[i]->getCrds( ) ;
 
-       const Vector &coorI = theNodes[i]->getCrds( ) ;
+    xl[0][i] = coorI(0) ;
+    xl[1][i] = coorI(1) ;
+    xl[2][i] = coorI(2) ;
 
-       xl[0][i] = coorI(0) ;
-       xl[1][i] = coorI(1) ;
-       xl[2][i] = coorI(2) ;
-
-  }  //end for i 
-
+  }
 }
 
 //*************************************************************************
@@ -1113,7 +1081,7 @@ Brick::computeB( int node, const double shp[4][8] )
 //                -                   -       
 //
 //-------------------------------------------------------------------
-
+  B.Zero();
   B(0,0) = shp[0][node] ;
   B(1,1) = shp[1][node] ;
   B(2,2) = shp[2][node] ;
@@ -1286,8 +1254,8 @@ int  Brick::recvSelf (int commitTag,
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
+        opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -1299,21 +1267,21 @@ int  Brick::recvSelf (int commitTag,
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (materialPointers[i]->getClassTag() != matClassTag) {
-	delete materialPointers[i];
-	materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-	if (materialPointers[i] == 0) {
-	  opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " <<
-	    matClassTag << endln;
-	  exit(-1);
-	}
-	materialPointers[i]->setDbTag(matDbTag);
+        delete materialPointers[i];
+        materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
+        if (materialPointers[i] == 0) {
+          opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " <<
+          matClassTag << endln;
+          return -1;
+        }
+        materialPointers[i]->setDbTag(matDbTag);
       }
       // Receive the material
 
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "Brick::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
+        opserr << "Brick::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }

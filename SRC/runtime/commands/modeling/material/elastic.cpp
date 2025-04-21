@@ -233,18 +233,21 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
   // Create the material
   //
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+
   if ((strcmp(argv[1], "ElasticIsotropic") == 0) ||
       (strcmp(argv[1], "Elastic") == 0)) {
     double E = consts.E;
     double nu = consts.nu;
-    if (builder->addTaggedObject<UniaxialMaterial>(*new ElasticMaterial(tag, E, eta, E)) != TCL_OK ) {
-      return TCL_ERROR;
-    }
     if (builder->addTaggedObject<NDMaterial>(*new ElasticIsotropicMaterial(tag, E, 0.0, density)) != TCL_OK ) {
       return TCL_ERROR;
     }
-    if (builder->addTaggedObject<Mate<3>>(*new ElasticIsotropic<3>(tag, E, nu, density)) != TCL_OK ) {
-      return TCL_ERROR;
+    if (strcmp(argv[0], "material") == 0) {
+      if (builder->addTaggedObject<UniaxialMaterial>(*new ElasticMaterial(tag, E, eta, E)) != TCL_OK ) {
+        return TCL_ERROR;
+      }
+      if (builder->addTaggedObject<Mate<3>>(*new ElasticIsotropic<3>(tag, E, nu, density)) != TCL_OK ) {
+        return TCL_ERROR;
+      }
     }
     return TCL_OK;
   }
@@ -253,7 +256,7 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
 }
 
 int
-TclCommand_newElasticMaterial2(ClientData clientData, Tcl_Interp *interp,
+TclCommand_newElasticMaterial(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
   // 
@@ -289,7 +292,7 @@ enum class MaterialSymmetry {
 
 
 int
-TclCommand_newElasticMaterial(ClientData clientData, Tcl_Interp* interp, int argc, const char**const argv)
+TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int argc, const char**const argv)
 {
   BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
 

@@ -799,7 +799,6 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
   int  loadPatternTag = 0;
 
   if (true) {
-    // make sure at least one other argument to contain type
     if (argc < (2 + ndf)) {
       opserr << OpenSees::PromptValueError << "bad command - want: load nodeId " << ndf << " forces\n";
       return TCL_ERROR;

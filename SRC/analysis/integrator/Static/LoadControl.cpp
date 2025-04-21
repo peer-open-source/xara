@@ -69,33 +69,33 @@ LoadControl::~LoadControl()
 int 
 LoadControl::newStep()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();    
-    if (theModel == nullptr) {
-      opserr << "LoadControl::newStep() - no associated AnalysisModel\n";
-      return -1;
-    }
+  AnalysisModel *theModel = this->getAnalysisModel();    
+  if (theModel == nullptr) {
+    opserr << "LoadControl::newStep() - no associated AnalysisModel\n";
+    return -1;
+  }
 
-    // determine delta lambda for this step based on dLambda and #iter of last step
-    double expon  = 1.0;
-    double factor = std::pow(specNumIncrStep/numIncrLastStep, expon);
+  // determine delta lambda for this step based on dLambda and #iter of last step
+  double expon  = 1.0;
+  double factor = std::pow(specNumIncrStep/numIncrLastStep, expon);
 
-    deltaLambda *= factor;
+  deltaLambda *= factor;
 
-    if (deltaLambda < dLambdaMin)
-      deltaLambda = dLambdaMin;
+  if (deltaLambda < dLambdaMin)
+    deltaLambda = dLambdaMin;
 
-    else if (deltaLambda > dLambdaMax)
-      deltaLambda = dLambdaMax;
+  else if (deltaLambda > dLambdaMax)
+    deltaLambda = dLambdaMax;
 
 
-    double currentLambda = theModel->getCurrentDomainTime();
+  double currentLambda = theModel->getCurrentDomainTime();
 
-    currentLambda += deltaLambda;
-    theModel->applyLoadDomain(currentLambda);
+  currentLambda += deltaLambda;
+  theModel->applyLoadDomain(currentLambda);
 
-    numIncrLastStep = 0;
-   
-    return 0;
+  numIncrLastStep = 0;
+  
+  return 0;
 }
     
 int

@@ -16,6 +16,7 @@ static Tcl_CmdProc TclCommand_addPlaneWrapper;
 extern Tcl_CmdProc TclCommand_newJ2Material;
 extern Tcl_CmdProc TclCommand_newJ2Simplified;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
+extern Tcl_CmdProc TclCommand_newElasticMaterial;
 
 extern OPS_Routine OPS_ElasticOrthotropicPlaneStress;
 extern OPS_Routine OPS_OrthotropicMaterial;
@@ -87,12 +88,22 @@ extern OPS_Routine OPS_FSAMMaterial; // K Kolozvari
 extern OPS_Routine OPS_Damage2p;
 #endif
 
+
+extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp, int cArg,
+  int mArg, TCL_Char ** const argv, Domain *domain);
+
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
 {
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+
+  OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, 0);
+
   G3_Runtime *rt = G3_getRuntime(interp);
   NDMaterial* theMaterial = (NDMaterial*)fn( rt, argc, argv );
+  if (theMaterial == nullptr) {
+    return TCL_ERROR;
+  }
 
   if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK) {
     opserr << G3_ERROR_PROMPT << "Failed to add material to the model builder.\n";
@@ -116,7 +127,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
 //
 // Isotropic
   {"ElasticIsotropic3D",               dispatch<OPS_ElasticIsotropic3D>},
-  {"ElasticIsotropic",                 dispatch<OPS_ElasticIsotropicMaterial>},
+  {"ElasticIsotropic",                 dispatch<TclCommand_newElasticMaterial>},
   {"ElasticIsotropic3DThermal",        dispatch<OPS_ElasticIsotropicMaterialThermal>},
 // Orthotropic
   {"ElasticOrthotropic",               dispatch<OPS_ElasticOrthotropicMaterial>},

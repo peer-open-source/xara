@@ -496,7 +496,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc ||
             Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
 
-          opserr << G3_ERROR_PROMPT << "invalid cFactor " << argv[endMarker] << " - ";
+          opserr << G3_ERROR_PROMPT << "invalid scale factor " << argv[endMarker] << " - ";
           opserr << " Series -factor ... \n";
           return 0;
         }

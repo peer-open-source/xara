@@ -516,9 +516,36 @@ PathTimeSeries::recvSelf(int commitTag, Channel &theChannel,
 void
 PathTimeSeries::Print(OPS_Stream &s, int flag)
 {
+
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "  {";
+    s << "\"type\": \"PathTimeSeries\", ";
+    s << "\"tag\": " << this->getTag();
+    if (thePath != 0) {
+      s << ", \"values\": [";
+      for (int i = 0; i < thePath->Size(); i++) {
+        s << (*thePath)(i);
+        if (i < thePath->Size() - 1)
+          s << ", ";
+      }
+      s << "]";
+    }
+    if (time != 0) {
+      s << ", \"time\": [";
+      for (int i = 0; i < time->Size(); i++) {
+        s << (*time)(i);
+        if (i < time->Size() - 1)
+          s << ", ";
+      }
+      s << "]";
+    }
+    s << "}";
+  }
+  else {
     s << "Path Time Series: constant factor: " << cFactor;
     if (flag == 1 && thePath != 0) {
       s << " specified path: " << *thePath;
       s << " specified time: " << *time;
     }
+  }
 }

@@ -45,47 +45,8 @@
 #include <Parameter.h>
 
 #include <assert.h>
-#include <OPS_Globals.h>
-#include <elementAPI.h>
+#include <Logging.h>
 #include <stdlib.h>
-
-
-void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropicMaterial)
-{
-  NDMaterial *theMaterial = 0;
-  
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numArgs < 3) {
-    opserr << "Want: nDMaterial ElasticIsotropic $tag $E $nu <$rho>" << endln;
-    return 0;	
-  }
-  
-  int iData[1];
-  double dData[3];
-  dData[2] = 0.0;
-  
-  int numData = 1;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag\n";
-    return 0;
-  }
-  
-  if (numArgs > 3) 
-    numData = 3;
-  else
-    numData = 2;
-  
-  if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data" << iData[0] <<"\n";
-    return 0;
-  }  
-  
-  theMaterial = new ElasticIsotropicMaterial(iData[0], dData[0], dData[1], dData[2]);
-  
-  return theMaterial;
-}
-
 
 
 ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double e, double nu, double r)
@@ -135,7 +96,7 @@ ElasticIsotropicMaterial::getCopy (const char *type)
   
   else if (strcmp(type,"ThreeDimensional") == 0 || strcmp(type,"3D") == 0) {
     ElasticIsotropicThreeDimensional *theModel;
-    theModel = new ElasticIsotropicThreeDimensional (this->getTag(), E, v, rho);
+    theModel = new ElasticIsotropicThreeDimensional(this->getTag(), E, v, rho);
     return theModel;
   }
 
@@ -163,14 +124,14 @@ ElasticIsotropicMaterial::getCopy (const char *type)
 }
 
 int
-ElasticIsotropicMaterial::setTrialStrain (const Vector &v)
+ElasticIsotropicMaterial::setTrialStrain(const Vector &v)
 {
     opserr << "ElasticIsotropicMaterial::setTrialStrain -- subclass responsibility\n";
     return -1;
 }
 
 int
-ElasticIsotropicMaterial::setTrialStrain (const Vector &v, const Vector &rate)
+ElasticIsotropicMaterial::setTrialStrain(const Vector &v, const Vector &rate)
 {
   assert(false);
   return -1;
@@ -248,7 +209,7 @@ ElasticIsotropicMaterial::revertToLastCommit()
 }
 
 int
-ElasticIsotropicMaterial::revertToStart (void)
+ElasticIsotropicMaterial::revertToStart()
 {
   opserr << "ElasticIsotropicMaterial::revertToStart -- subclass responsibility\n";
   exit(-1);
@@ -256,7 +217,7 @@ ElasticIsotropicMaterial::revertToStart (void)
 }
 
 NDMaterial*
-ElasticIsotropicMaterial::getCopy (void)
+ElasticIsotropicMaterial::getCopy()
 {
   opserr << "ElasticIsotropicMaterial::getCopy -- subclass responsibility\n";
   exit(-1);
@@ -264,16 +225,15 @@ ElasticIsotropicMaterial::getCopy (void)
 }
 
 const char*
-ElasticIsotropicMaterial::getType (void) const
+ElasticIsotropicMaterial::getType() const
 {
   opserr << "ElasticIsotropicMaterial::getType -- subclass responsibility\n";
-  exit(-1);	
-
+  exit(-1);
   return 0;
 }
 
 int
-ElasticIsotropicMaterial::getOrder (void) const
+ElasticIsotropicMaterial::getOrder() const
 {
   opserr << "ElasticIsotropicMaterial::getOrder -- subclass responsibility\n";
   exit(-1);
