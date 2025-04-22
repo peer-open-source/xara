@@ -444,7 +444,7 @@ CreatePrismaticFrame(std::string);
 //        if GetInt(interp, pos[1]):
 //           itag = pos[1]
 //        else
-//            ParseHingeScheme(pos[1])
+//           ParseHingeScheme(pos[1])
 //
 //      case 3: 
 //         // Form (c)
@@ -581,7 +581,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         argi += 2;
       }
 
-      // Shear
+      // Geometry
       else if (strcmp(argv[argi], "-order") == 0) {
         if (argc < argi + 2) {
           opserr << OpenSees::PromptValueError << "not enough arguments, expected -order $flag\n";
@@ -635,11 +635,11 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
                  (strcmp(argv[argi], "lMass") == 0)) {
         options.mass_flag = 0;
         argi++;
-      } else if ((strcmp(argv[argi], "-cMass") == 0) ||
+      }
+      else if ((strcmp(argv[argi], "-cMass") == 0) ||
                  (strcmp(argv[argi], "cMass") == 0)) {
         options.mass_flag = 1;
         argi++;
-
       }
 
       // Quadrature

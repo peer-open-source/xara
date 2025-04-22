@@ -110,10 +110,17 @@ Beam2dUniformLoad::recvSelf(int commitTag, Channel &theChannel,  FEM_ObjectBroke
 void 
 Beam2dUniformLoad::Print(OPS_Stream &s, int flag)
 {
-  s << "Beam2dUniformLoad - tag " << this->getTag() << endln;
-  s << "  Transverse: " << wTrans << endln;
-  s << "  Axial:      " << wAxial << endln;
-  s << "  Element acted on: " << eleTag << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "  {";
+    s << "";
+    s << "}";
+  }
+  else {
+    s << "Beam2dUniformLoad - tag " << this->getTag() << endln;
+    s << "  Transverse: " << wTrans << endln;
+    s << "  Axial:      " << wAxial << endln;
+    s << "  Element acted on: " << eleTag << endln;
+  }
 }
 
 int
@@ -153,7 +160,6 @@ int
 Beam2dUniformLoad::activateParameter(int paramID)
 {
   parameterID = paramID;
-
   return 0;
 }
 

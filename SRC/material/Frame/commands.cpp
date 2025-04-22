@@ -423,8 +423,12 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
         if (theSection != nullptr)
           delete theSection;
         return TCL_ERROR;
-      } else
-        return TCL_OK;
+      }
+
+      // For the elastic elements
+      builder->addTaggedObject<FrameSection>(*new ElasticLinearFrameSection3d(tag,E,G,consts,mass,use_mass));
+
+      return TCL_OK;
 
     } else {
 

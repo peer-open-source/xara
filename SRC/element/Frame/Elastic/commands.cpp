@@ -55,7 +55,7 @@
 //
 
 
-template <typename Position>
+template <typename Position, typename Section>
 int
 Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
                                TCL_Char ** const argv)
@@ -98,7 +98,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
 
   FrameTransform2d *theTrans2d = nullptr;
   FrameTransform3d *theTrans3d = nullptr;
-  FrameSection* theSection     = nullptr;
+  Section* theSection     = nullptr;
 
 
 
@@ -148,7 +148,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
         return TCL_ERROR;
       }
 
-      theSection = builder->getTypedObject<FrameSection>(section);
+      theSection = builder->getTypedObject<Section>(section);
       if (theSection == nullptr)
         return TCL_ERROR;
 
@@ -642,9 +642,9 @@ TclBasicBuilder_addElasticBeam(ClientData clientData, Tcl_Interp *interp, int ar
   };
 
   if (ndm == 2)
-    return Parse_ElasticBeam<Args2D>(clientData, interp, argc, argv);
+    return Parse_ElasticBeam<Args2D, FrameSection>(clientData, interp, argc, argv);
 
   else
-    return Parse_ElasticBeam<Args3D>(clientData, interp, argc, argv);
+    return Parse_ElasticBeam<Args3D, FrameSection>(clientData, interp, argc, argv);
 }
 
