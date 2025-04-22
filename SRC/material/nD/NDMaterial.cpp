@@ -145,7 +145,7 @@ NDMaterial::setTrialStrainIncr(const Vector &v, const Vector &r)
 }
 
 const Matrix &
-NDMaterial::getTangent(void)
+NDMaterial::getTangent()
 {
    opserr << "NDMaterial::getTangent -- subclass responsibility\n";
    return errMatrix;    
@@ -153,14 +153,14 @@ NDMaterial::getTangent(void)
 
 #if 1
 const Vector &
-NDMaterial::getStress(void)
+NDMaterial::getStress()
 {
    opserr << "NDMaterial::getStress -- subclass responsibility\n";
    return errVector;    
 }
 
 const Vector &
-NDMaterial::getStrain(void)
+NDMaterial::getStrain()
 {
    opserr << "NDMaterial::getStrain -- subclass responsibility\n";
    return errVector;    
