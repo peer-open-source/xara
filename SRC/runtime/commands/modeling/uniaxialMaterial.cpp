@@ -1,7 +1,8 @@
-/* ****************************************************************** **
-**    Opensee - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//
+//===----------------------------------------------------------------------===//
 //
 // Description: This file contains the function invoked when the user invokes
 // the uniaxialMaterial command in the interpreter.
@@ -21,10 +22,12 @@
 #include <Steel03.h>            // KM
 #include <Concrete01WithSITC.h> // Won Lee
 #include <ECC01.h>              // Won Lee
+
 #include <Concrete04.h>
 #include <Concrete05.h>
 #include <Concrete06.h>              // LMS
 #include <Concrete07.h>              // JDW
+
 #include <HystereticBackbone.h>      // MHS
 #include <EPPGapMaterial.h>          // Mackie
 #include <PathIndependentMaterial.h> // MHS
@@ -483,43 +486,36 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING invalid fpc\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
       opserr << "WARNING invalid epsc0\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &epscu) != TCL_OK) {
       opserr << "WARNING invalid epscu\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &Ec0) != TCL_OK) {
       opserr << "WARNING invalid Ec0\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
     if (argc == 9 || argc == 10) {
       if (Tcl_GetDouble(interp, argv[7], &ft) != TCL_OK) {
         opserr << "WARNING invalid ft\n";
-        opserr << "Concrete04 material: " << tag << endln;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[8], &etu) != TCL_OK) {
         opserr << "WARNING invalid etu\n";
-        opserr << "Concrete04 material: " << tag << endln;
         return TCL_ERROR;
       }
     }
     if (argc == 10) {
       if (Tcl_GetDouble(interp, argv[9], &beta) != TCL_OK) {
         opserr << "WARNING invalid beta\n";
-        opserr << "Concrete04 material: " << tag << endln;
         return TCL_ERROR;
       }
     }
@@ -546,7 +542,7 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     int tag;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial Concrete06 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial tag" << endln;
       return TCL_ERROR;
     }
 
@@ -633,56 +629,43 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING: Invalid peak compression stress\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
       opserr << "WARNING: Invalid peak compression strain\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &Ec) != TCL_OK) {
       opserr << "WARNING: Invalid Young's Modulus\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &fpt) != TCL_OK) {
       opserr << "WARNING: Invalid peak tension stress\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &epst0) != TCL_OK) {
       opserr << "WARNING: Invalid peak tension strain\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &xcrp) != TCL_OK) {
       opserr << "WARNING: Invalid critical nondimensional strain in tension\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[9], &xcrn) != TCL_OK) {
       opserr
           << "WARNING: Invalid critical nondimensional strain in compression\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[10], &r) != TCL_OK) {
       opserr << "WARNING: Invalid value for r\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
     }
-
-    //		opserr << "fpc: " << fpc << endln << "epsc0: " << epsc0 << endln <<
-    //"Ec: " << Ec << endln; 		opserr << "fpt: " << fpt << endln << "epst0: " <<
-    //epst0 << endln << "xcrp: " << xcrp << endln; 		opserr << "xcrn: " << xcrn <<
-    //endln << "r: " << r << endln;
 
     // Parsing was successful, allocate the material
 
@@ -717,6 +700,7 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     theMaterial = new PathIndependentMaterial(tag, *material);
   }
+  
 
   else if (strcmp(argv[1], "Backbone") == 0) {
     if (argc < 4) {

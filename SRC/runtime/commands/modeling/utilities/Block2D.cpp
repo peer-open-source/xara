@@ -12,7 +12,7 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <Vector3D.h>
-#include <Block2D.h>
+#include "Block2D.h"
 
 
 Block2D::Block2D(int numx, int numy, 
@@ -44,14 +44,7 @@ Block2D::Block2D(int numx, int numy,
 }
 
 
-//destructor
-Block2D::~Block2D( )
-{ 
-
-}
-
-
-//set up xl array
+// set up xl array
 int
 Block2D::setUpXl( const ID &nodeID, const Matrix &coorArray ) 
 {

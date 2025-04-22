@@ -11,7 +11,6 @@
 #include <BasicModelBuilder.h>
 
 #include <set>
-#include <cctype>      // for isdigit()
 #include <cstdlib>
 #include "BasicModelBuilder.h"
 #include "Logging.h"

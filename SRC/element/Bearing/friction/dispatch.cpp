@@ -42,22 +42,6 @@
 
 #include <api/runtimeAPI.h>
 
-// static MapOfTaggedObjects theFrictionModelObjects;
-
-
-// bool OPS_addFrictionModel(FrictionModel *newComponent)
-// {
-//     return theFrictionModelObjects.addComponent(newComponent);
-// }
-
-
-
-// void
-// OPS_ADD_RUNTIME_VXV(OPS_clearAllFrictionModel)
-// {
-//     theFrictionModelObjects.clearAll();
-// }
-
 
 int
 TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
@@ -1713,29 +1697,7 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
   // to the domain
   return TCL_OK;
 }
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
 
-// $Revision$
-// $Date$
-// $URL$
 
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 02/06
@@ -1775,7 +1737,7 @@ TclCommand_addFrictionModel(ClientData clientData, Tcl_Interp *interp,
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
 
   // pointer to a friction model that will be added to the model builder
-  FrictionModel *theFrnMdl = 0;
+  FrictionModel *theFrnMdl = nullptr;
 
   // ----------------------------------------------------------------------------
   if (strcmp(argv[1], "Coulomb") == 0 || strcmp(argv[1], "Constant") == 0) {

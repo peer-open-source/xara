@@ -18,12 +18,15 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/nodes.cpp"
     "modeling/constraint.cpp"
     "modeling/geomTransf.cpp"
+
     "modeling/element.cpp"
     "modeling/element/frames.cpp"
     "modeling/element/shells.cpp"
     "modeling/element/brick.cpp"
-    "modeling/nDMaterial.cpp"
+    
     "modeling/section.cpp"
+
+    "modeling/nDMaterial.cpp"
     "modeling/uniaxialMaterial.cpp"
     "modeling/uniaxial.cpp"
     "modeling/material/plastic.cpp"
@@ -31,10 +34,13 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/material/isotropy.cpp"
     "modeling/material/fedeas.cpp"
     "modeling/material/shell.cpp"
+
     "modeling/printing.cpp"
-    "modeling/blockND.cpp"
-    "modeling/Block2D.cpp"
-    "modeling/Block3D.cpp"
+
+    "modeling/utilities/blockND.cpp"
+    "modeling/utilities/Block2D.cpp"
+    "modeling/utilities/Block3D.cpp"
+
     "modeling/invoking/invoke.cpp"
     "modeling/invoking/invoke_uniaxial.cpp"
     "modeling/invoking/invoke_section.cpp"

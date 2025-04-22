@@ -20,31 +20,25 @@
 
 class Block3D {
 
- public:
+public:
 
-  //constructor
   Block3D(int numx, int numy, int numz,
 	  const ID& nodeID, 
 	  const Matrix& coorArray);
 
-  //destructor
-  virtual ~Block3D();
-
-  //generate node 
+  // generate nodes
   const Vector &getNodalCoords(int i, int j, int k);
 
-  //generate element
+  // generate elements
   const ID &getElementNodes(int i, int j, int k);
 
  protected:
 
  private:
 
-  int nx; //number of elements x-direction
-
-  int ny; //number of elements y-direction
-
-  int nz; //number of elements z-direction
+  int nx; // number of elements x-direction
+  int ny; // number of elements y-direction
+  int nz; // number of elements z-direction
 
   double xl[3][27]; //block coordinates 
 
@@ -52,13 +46,13 @@ class Block3D {
 
   ID element; //ID-array of an element
 
-  //set up xl array
+  // set up xl array
   void setUpXl(const ID &nodeID, const Matrix &coorArray);
   
-  //transform to real coordiantes
+  // transform to real coordiantes
   void transformNodalCoordinates();
 
-  //shape functions
+  // shape functions
   void shape3d(double x1, 
 	       double x2, 
 	       double x3,

@@ -5,7 +5,7 @@
 //===----------------------------------------------------------------------===//
 //
 //
-// Written: CMP
+// Written: cmp
 //
 #include <tcl.h>
 #include <Logging.h>
@@ -181,7 +181,7 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
         }
       case Positions::fy :
         if (Tcl_GetDouble(interp, argv[i], &fy) != TCL_OK) {
-          opserr << "invalid fy.\n";
+          opserr << "invalid Fy.\n";
           return TCL_ERROR;
         } else {
           tracker.increment();
@@ -404,6 +404,7 @@ TclCommand_newFedeasSteel(ClientData clientData, Tcl_Interp *interp,
 }
 
 
+template <typename Positions>
 int
 TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
@@ -416,20 +417,24 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  enum Positions {
-    E, End
-  };
+  // enum Positions {
+  //   E, End
+  // };
 
+
+  UniaxialMaterial *theMaterial = nullptr;
+
+  double fpc, epsc0, fpcu, epscu;
+  double rat, ft, Ets;
   int tag;
+
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial tag\n";
     return TCL_ERROR;
   }
 
-  UniaxialMaterial *theMaterial = nullptr;
-
   if (strcmp(argv[1], "Concrete1") == 0 ||
-           strcmp(argv[1], "concrete01") == 0) {
+      strcmp(argv[1], "concrete01") == 0) {
 
     if (argc < 7) {
       opserr << "WARNING invalid number of arguments\n";
@@ -438,8 +443,6 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
           << endln;
       return TCL_ERROR;
     }
-
-    double fpc, epsc0, fpcu, epscu;
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING invalid fpc\n";
@@ -464,14 +467,10 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "concr2") == 0) {
     if (argc < 10) {
       opserr << "WARNING invalid number of arguments\n";
-      opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? "
-                "epscu? rat? ft? Ets?"
+      opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? epscu? rat? ft? Ets?"
              << endln;
       return TCL_ERROR;
     }
-
-    double fpc, epsc0, fpcu, epscu;
-    double rat, ft, Ets;
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING invalid fpc\n";
@@ -494,7 +493,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[8], &ft) != TCL_OK) {
-      opserr << "WARNING invalid ft\n";
+      opserr << "WARNING invalid Ft\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[9], &Ets) != TCL_OK) {

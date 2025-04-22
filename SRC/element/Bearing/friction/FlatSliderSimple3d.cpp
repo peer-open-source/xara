@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <FrictionModel.h>
@@ -245,12 +244,6 @@ FlatSliderSimple3d::FlatSliderSimple3d(int tag, int Nd1, int Nd2,
     L(0.0), onP0(true), ub(6), ubPlastic(2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubPlasticC(2), kbInit(6,6), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "FlatSliderSimple3d::FlatSliderSimple3d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -268,26 +261,9 @@ FlatSliderSimple3d::FlatSliderSimple3d(int tag, int Nd1, int Nd2,
         exit(-1);
     }
     
-    // check material input
-    if (materials == 0)  {
-        opserr << "FlatSliderSimple3d::FlatSliderSimple3d() - "
-            << "null material array passed.\n";
-        exit(-1);
-    }
-    
     // get copies of the uniaxial materials
     for (int i=0; i<4; i++)  {
-        if (materials[i] == 0)  {
-            opserr << "FlatSliderSimple3d::FlatSliderSimple3d() - "
-                "null uniaxial material pointer passed.\n";
-            exit(-1);
-        }
         theMaterials[i] = materials[i]->getCopy();
-        if (theMaterials[i] == 0)  {
-            opserr << "FlatSliderSimple3d::FlatSliderSimple3d() - "
-                << "failed to copy uniaxial material.\n";
-            exit(-1);
-        }
     }
     
     // initialize initial stiffness matrix
@@ -310,14 +286,7 @@ FlatSliderSimple3d::FlatSliderSimple3d()
     kFactUplift(1E-12),
     L(0.0), onP0(false), ub(6), ubPlastic(2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubPlasticC(2), kbInit(6,6), theLoad(12)
-{
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "FlatSliderSimple3d::FlatSliderSimple3d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
-    
+{    
     // set node pointers to NULL
     for (int i=0; i<2; i++)
         theNodes[i] = 0;
@@ -953,41 +922,6 @@ int FlatSliderSimple3d::recvSelf(int commitTag, Channel &rChannel,
     this->revertToStart();
     
     return 0;
-}
-
-
-int FlatSliderSimple3d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    int errCode = 0;
-
-    // get coordinates
-    const Vector& end1Crd = theNodes[0]->getCrds();
-    const Vector& end2Crd = theNodes[1]->getCrds();
-    Vector xp = end2Crd - end1Crd;
-
-    // get displaced coordinates for ends
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    // get displacement vector for rotation
-    static Vector r2(6);
-    theNodes[1]->getDisplayRots(r2, fact, displayMode);
-
-    // calculate coordinates of intermediate point
-    for (int i = 0; i < 2; i++) {
-        v3(0) = v1(0) + v2(0) - end2Crd(0) + xp(1) * r2(2) - xp(2) * r2(1);
-        v3(1) = v1(1) + v2(1) - end2Crd(1) - xp(0) * r2(2) + xp(2) * r2(0);
-        v3(2) = v1(2) + v2(2) - end2Crd(2) + xp(0) * r2(1) - xp(1) * r2(0);
-    }
-    
-    errCode += theViewer.drawLine (v1, v3, 1.0, 1.0, this->getTag(), 0);
-    errCode += theViewer.drawLine (v3, v2, 1.0, 1.0, this->getTag(), 0);
-    
-    return errCode;
 }
 
 

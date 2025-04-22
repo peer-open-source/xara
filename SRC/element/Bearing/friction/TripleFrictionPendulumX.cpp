@@ -24,7 +24,8 @@
 // Last update: 2023/05
 // Version: 2.0
 
-// Description: This class is similar with TripleFrictionPendulum element(Dao et al). The key difference lies in 
+// Description: This class is similar with TripleFrictionPendulum element (Dao et al). 
+// The key difference lies in 
 // consideration of dependence of coefficient of firction on instantaneous values of sliding velocity, axial pressure on the bearing, 
 // and temperature  at the sliding surface.
 
@@ -38,7 +39,7 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
+#include <Logging.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
@@ -68,7 +69,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_TripleFrictionPendulumX)
 {
     if (numTripleFrictionPendulumX == 0) {
         numTripleFrictionPendulumX++;
-        opserr << "TripleFrictionPendulumX \n";
+        opslog << "TripleFrictionPendulumX \n";
     }
 
     // get the id and end nodes 
@@ -2407,43 +2408,6 @@ int TripleFrictionPendulumX::recvSelf(int commitTag, Channel& theChannel, FEM_Ob
     return 0;
 }
 
-
-int TripleFrictionPendulumX::displaySelf(Renderer& theViewer,
-    int displayMode, float fact, const char** modes, int numMode)
-{
-    int errCode = 0;
-
-    // first determine the end points of the element based on
-    // the display factor (a measure of the distorted image)
-    const Vector& end1Crd = theNodes[0]->getCrds();
-    const Vector& end2Crd = theNodes[1]->getCrds();
-    Vector xp = end2Crd - end1Crd;
-
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-
-    if (displayMode >= 0) {
-        const Vector& end1Disp = theNodes[0]->getDisp();
-        const Vector& end2Disp = theNodes[1]->getDisp();
-
-        for (int i = 0; i < 3; i++) {
-            v1(i) = end1Crd(i) + end1Disp(i) * fact;
-            v3(i) = end2Crd(i) + end2Disp(i) * fact;
-        }
-        v2(0) = end1Crd(0) + (end2Disp(0) + xp(1) * end2Disp(5) - xp(2) * end2Disp(4)) * fact;
-        v2(1) = end1Crd(1) + (end2Disp(1) - xp(0) * end2Disp(5) + xp(2) * end2Disp(3)) * fact;
-        v2(2) = end1Crd(2) + (end2Disp(2) + xp(0) * end2Disp(4) - xp(1) * end2Disp(3)) * fact;
-    }
-    else {
-      // cmp 
-    }
-
-    errCode += theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag(), 0);
-    errCode += theViewer.drawLine(v2, v3, 1.0, 1.0, this->getTag(), 0);
-
-    return errCode;
-}
 
 
 void TripleFrictionPendulumX::Print(OPS_Stream& s, int flag)

@@ -20,21 +20,18 @@ class Vector;
 
 class Block2D {
 
- public:
+public:
 
-  //constructor
   Block2D(int numx, int numy, 
 	  const ID& nodeID, 
 	  const Matrix& coorArray,
 	  int numNodeElement);
 
-  // destructor
-  ~Block2D();
 
-  // generate node 
+  // generate nodes
   Vector3D getNodalCoords(int i, int j);
 
-  // generate element
+  // generate elements
   const ID &getElementNodes(int i, int j);
 
 
@@ -47,11 +44,11 @@ class Block2D {
 
   // shape functions
   void shape2d(double x1, 
-	       double x2, 
-	       double shape[9]);
+                double x2, 
+                double shape[9]);
 
-  int nx; //number of elements x-direction
-  int ny; //number of elements y-direction
+  int nx; // number of elements x-direction
+  int ny; // number of elements y-direction
 
   double xl[3][9]; //block coordinates 
 

@@ -9,10 +9,9 @@
 // Written: Ed Love
 // Created: 07/01
 //
-#include <Block3D.h>
+#include "Block3D.h"
 
 
-//constructor
 Block3D::Block3D(int numx, int numy, int numz,
                  const ID& nodeID, 
                  const Matrix& coorArray ) 
@@ -24,13 +23,7 @@ Block3D::Block3D(int numx, int numy, int numz,
 }
 
 
-// destructor
-Block3D::~Block3D( )
-{ 
-}
-
-
-//set up xl array
+// set up xl array
 void  Block3D::setUpXl( const ID &nodeID, const Matrix &coorArray ) 
 {
 
@@ -264,16 +257,15 @@ void  Block3D::transformNodalCoordinates( )
 }
 
 
-
-//shape functions
-void  Block3D::shape3d( double r, double s, double t,
-                        double shape[27]     ) 
+void
+Block3D::shape3d( double r, double s, double t, double shape[27]) 
 /*
  * Adapted from:
       subroutine shp04(shp,glu,glo,gu,eu,to,xjac,detj,r,s,t,xl,ul)
 c-----------------------------------------------------------------------
 c.....compute shape functions and their derivatives for linear,quadratic
-c.....lagrangian and serendipity isoparametric  3-d elements
+c.....lagrangian and serendipity isoparametric  3-d hexahedral elements
+c.....
 c.....global coordinate system x,y,z
 c.....local coordinate system xsi,eta,zeta
 c-----------------------------------------------------------------------
@@ -281,9 +273,7 @@ c-----------------------------------------------------------------------
 {
 
   static constexpr int ri[] = {-1, 1, 1,-1, -1, 1, 1,-1,  -1, 1, 1,-1,   0, 1, 0,-1, 0, 0, 1, 0,-1, 0,   0, 1, 0,-1, 0};
-
   static constexpr int si[] = {-1,-1, 1, 1, -1,-1, 1, 1,  -1,-1, 1, 1,  -1, 0, 1, 0, 0, -1, 0, 1, 0, 0,  -1, 0, 1, 0, 0};
-
   static constexpr int ti[] = {-1,-1,-1,-1,  1, 1, 1, 1,   0, 0, 0, 0,  -1,-1,-1,-1,-1, 1, 1, 1, 1, 1,   0, 0, 0, 0, 0};
 
 
@@ -299,46 +289,45 @@ c-----------------------------------------------------------------------
 
   int kk;
 
-  //shape functions for 27-node element
+  // shape functions for 27-node element
   for (int k=1; k<=27; k++ ) {
 
-    kk = k-1; //C-style numbering 
+    kk = k-1; // C-style numbering 
 
     double r0 = r*ri[kk];
     double s0 = s*si[kk];
     double t0 = t*ti[kk];
 
-    //corner nodes top/bottom
+    // corner nodes top/bottom
     if ( k>=1 && k<=8 ) 
-       shape[kk] = d8*(rr+r0)     *(ss+s0)          *(tt+t0);
+      shape[kk] = d8*(rr+r0)     *(ss+s0)          *(tt+t0);
 
-    //corner nodes midside
+    // corner nodes midside
     if ( k>=9 && k<=12 )  
-       shape[kk] = d4*(rr+r0)     *(ss+s0)     *(d1-tt);
+      shape[kk] = d4*(rr+r0)     *(ss+s0)     *(d1-tt);
 
-    //midside nodes top/bottom  r-dir
+    // midside nodes top/bottom  r-dir
     if ( k==13 ||  k==15 || k==18 || k==20 )
-       shape[kk] = d4*(d1-rr)*(ss+s0)     *(tt+t0);
+      shape[kk] = d4*(d1-rr)*(ss+s0)     *(tt+t0);
 
-    //midside nodes top/bottom  s-dir
+    // midside nodes top/bottom  s-dir
     if ( k==14 ||  k==16 ||  k==19 ||  k==21 )
       shape[kk] = d4*(rr+r0)     *(d1-ss)*(tt+t0);
 
-    //midside nodes mid plane  r-dir
+    // midside nodes mid plane  r-dir
     if ( k==23 ||  k==25 )
       shape[kk] = d2*(d1-rr)*(ss+s0)     *(d1-tt);
 
-    //midside nodes mid plane  s-dir
+    // midside nodes mid plane  s-dir
     if ( k==24 ||  k==26 ) 
       shape[kk] = d2*(rr+r0)     *(d1-ss)*(d1-tt);
 
-    //central nodes top/bottom
+    // central nodes top/bottom
     if ( k==17 ||  k==22 )
       shape[kk] = d2*(d1-rr)*(d1-ss)*(tt+t0);
 
     if ( k==27 )
       shape[kk] = (d1-rr)*(d1-ss)*(d1-tt);
-
   }
 
   return;

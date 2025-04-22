@@ -36,7 +36,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
@@ -1302,30 +1301,6 @@ int FPBearingPTV::recvSelf(int commitTag, Channel &rChannel,
 }
 
 
-int FPBearingPTV::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    int errCode = 0;
-
-    const Vector& end2Crd = theNodes[1]->getCrds();
-
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    for (int i = 0; i < 2; i++)
-        v3(i) = v1(i) + v2(i) - end2Crd(i);
-
-    errCode += theViewer.drawLine(v1, v3, 1.0, 1.0, this->getTag(), 0);
-    errCode += theViewer.drawLine(v3, v2, 1.0, 1.0, this->getTag(), 0);
-
-    return errCode;
-}
-
-
 void FPBearingPTV::Print(OPS_Stream &s, int flag)
 {
     if (flag == OPS_PRINT_CURRENTSTATE) {
@@ -1347,7 +1322,7 @@ void FPBearingPTV::Print(OPS_Stream &s, int flag)
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"FPBearingPTV\", ";
         s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
@@ -1364,6 +1339,7 @@ void FPBearingPTV::Print(OPS_Stream &s, int flag)
         s << "\"mass\": " << mass << ", ";
         s << "\"maxIter\": " << maxIter << ", ";
         s << "\"tol\": " << tol << "}";
+        return;
     }
 }
 

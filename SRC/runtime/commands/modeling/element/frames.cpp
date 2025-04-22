@@ -1110,6 +1110,10 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
 
 #endif 
+    if (theElement == nullptr) {
+      status = TCL_ERROR;
+      goto clean_up;
+    }
     if (domain->addElement(theElement) == false) {
       opserr << OpenSees::PromptValueError 
              << "could not add element to the domain"
