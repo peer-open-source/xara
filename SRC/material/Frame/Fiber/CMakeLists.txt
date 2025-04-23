@@ -6,14 +6,10 @@
 #==============================================================================
 target_sources(OPS_Material
   PRIVATE
-    J2BeamFiber2d.cpp
-    J2BeamFiber3d.cpp
     BeamFiberMaterial.cpp
     BeamFiberMaterial2d.cpp
     BeamFiberMaterial2dPS.cpp
   PUBLIC
-    J2BeamFiber2d.h
-    J2BeamFiber3d.h
     BeamFiberMaterial.h
     BeamFiberMaterial2d.h
     BeamFiberMaterial2dPS.h

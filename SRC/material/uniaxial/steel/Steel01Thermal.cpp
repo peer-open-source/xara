@@ -17,11 +17,10 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-//Modified by:  Jian Zhang(j.zhang@ed.ac.uk)---------07,2010// 
+//
+// Modified by:  Jian Zhang(j.zhang@ed.ac.uk)---------07,2010// 
 //              Panagiotis Kotsovinos(P.Kotsovinos@ed.ac.uk)// 
-
-
+//
 #include <Steel01Thermal.h>
 #include <Vector.h>
 #include <Matrix.h>
@@ -40,44 +39,44 @@ Steel01Thermal::Steel01Thermal(int tag, double FY, double E, double B,
    UniaxialMaterial(tag,MAT_TAG_Steel01Thermal),
    fyT(FY), E0T(E), b(B), a1(A1), a2(A2), a3(A3), a4(A4)
 {
-   // Sets all history and state variables to initial values
-   // History variables
-   CminStrain = 0.0;
-   CmaxStrain = 0.0;
-   CshiftP = 1.0;
-   CshiftN = 1.0;
-   Cloading = 0;
+  // Sets all history and state variables to initial values
+  // History variables
+  CminStrain = 0.0;
+  CmaxStrain = 0.0;
+  CshiftP = 1.0;
+  CshiftN = 1.0;
+  Cloading = 0;
 
-   TminStrain = 0.0;
-   TmaxStrain = 0.0;
-   TshiftP = 1.0;
-   TshiftN = 1.0;
-   Tloading = 0;
+  TminStrain = 0.0;
+  TmaxStrain = 0.0;
+  TshiftP = 1.0;
+  TshiftN = 1.0;
+  Tloading = 0;
 
-   // State variables
-   Cstrain = 0.0;
-   Cstress = 0.0;
-   //Ctangent = E0;
+  // State variables
+  Cstrain = 0.0;
+  Cstress = 0.0;
+  //Ctangent = E0;
 
-   Ctangent = E0T;///JZ, 07/10//
-   Cmodulus=E0T; //added by Princeton
+  Ctangent = E0T;///JZ, 07/10//
+  Cmodulus=E0T; //added by Princeton
 
-   Tstrain = 0.0;
-   Tstress = 0.0;
-  // Ttangent = E0;
+  Tstrain = 0.0;
+  Tstress = 0.0;
+// Ttangent = E0;
 
-   Ttangent = E0T;///JZ, 07/10//
-   Tmodulus=E0T; //added by Princeton
-// AddingSensitivity:BEGIN /////////////////////////////////////
-	parameterID = 0;
-	SHVs = 0;
-// AddingSensitivity:END //////////////////////////////////////
+  Ttangent = E0T;///JZ, 07/10//
+  Tmodulus=E0T; //added by Princeton
 
-	  ThermalElongation = 0; //initialize //JZ, 07/10//
-	  E0 = E0T;//JZ, 07/10//
-	  fy = fyT;//JZ, 07/10//
-	  fp = 0;//JZ, 11/10//
-	  TemperautreC = 0;
+  // Sensitivity
+  parameterID = 0;
+  SHVs = 0;
+
+  ThermalElongation = 0; //initialize //JZ, 07/10//
+  E0 = E0T;//JZ, 07/10//
+  fy = fyT;//JZ, 07/10//
+  fp = 0;//JZ, 11/10//
+  TemperautreC = 0;
 }
 
 Steel01Thermal::Steel01Thermal():UniaxialMaterial(0,MAT_TAG_Steel01Thermal),
@@ -88,13 +87,12 @@ Steel01Thermal::Steel01Thermal():UniaxialMaterial(0,MAT_TAG_Steel01Thermal),
 // AddingSensitivity:BEGIN /////////////////////////////////////
 	parameterID = 0;
 	SHVs = 0;
-// AddingSensitivity:END //////////////////////////////////////
 
-	  ThermalElongation = 0; //initialize //JZ, 07/10//
-	  E0 = E0T;//JZ, 07/10//
-	  fy = fyT;//JZ, 07/10//
-	  fp = 0;//JZ, 11/10//
-	  TemperautreC = 0;
+  ThermalElongation = 0; //initialize //JZ, 07/10//
+  E0 = E0T;//JZ, 07/10//
+  fy = fyT;//JZ, 07/10//
+  fp = 0;//JZ, 11/10//
+  TemperautreC = 0;
 
 }
 
@@ -234,27 +232,20 @@ void Steel01Thermal::determineTrialState (double dStrain)
     //Princeton code starts:
     
     if ((E0!=E0T)){
-        
+
         int position=1;
         
         double e=Tstrain;
         double epl=Cstrain-Cstress/(Cmodulus);
-        double ep=(fp/E0);
-        double ey=0.02;
-        double absepeff=0;
-        double absepeff2=0;
-        double epeff=0;
-        double epeff2=0;
-        int seg=0;
+        double ep = (fp/E0);
+        constexpr static double ey = 0.02;
         
         int sign =0;
         int signpl=0;
-        if (e<0) {
-            sign = -1;
-        }
-        else {
-            sign=1;
-        }
+        if (e<0)
+          sign = -1;
+        else
+          sign=1;
         
         if (epl<0) {
             signpl = -1;
@@ -263,59 +254,45 @@ void Steel01Thermal::determineTrialState (double dStrain)
             signpl=1;
         }
         
-        const int n=500;
-        double eps [n+1];
-        double sig [n+1];
-        double epl_prop [n+1];
         double fepeff=0;
         
         double cfun=(pow((fy-fp),2))/((ey-ep)*E0-2*(fy-fp));
         double bfun=cfun*(ey-ep)*E0+pow(cfun,2);
         double afun=(ey-ep)*(ey-ep+cfun/E0);
         
-        int i;
+        double absepeff=0;
+
+
+        constexpr static int n = 500;
+        double eps [n+1];
+        for (int i=0 ; i<(n+1) ; i++ )
+          eps[i]= ep + i*(ey-ep)/n;
         
-        for ( i=0 ; i<(n+1) ; i++ )
-        {
-            eps[i]= ep+i*(ey-ep)/n;
-        }
+        double sig [n+1];
+        for (int i=0 ; i<(n+1) ; i++ )
+          sig[i]=fp-cfun+(sqrt(bfun)/sqrt(afun))*pow((afun-pow((ey-eps[i]),2)),0.5);
+
+        double epl_prop [n+1];
+        for (int i=0 ; i<(n+1) ; i++ )
+          epl_prop[i]=eps[i]-sig[i]/E0;
+
         
-        for ( i=0 ; i<(n+1) ; i++ )
-        {
-            sig[i]=fp-cfun+(sqrt(bfun)/sqrt(afun))*pow((afun-pow((ey-eps[i]),2)),0.5);
+        if ((fabs(epl)+fy/E0) < 0.02) {            
+            int seg=0;
+            for (int i=1 ; i<(n+1) ; i++ )
+                if (epl_prop[n-i] <= fabs(epl) && fabs(epl) <= epl_prop[n-i+1])
+                  seg = n-i;
             
-        }
-        
-        for ( i=0 ; i<(n+1) ; i++ )
-        {
-            epl_prop[i]=eps[i]-sig[i]/E0;;
-            
-        }
-        
-        
-        if ((fabs(epl)+fy/E0) < 0.02)
-        {
-            for ( i=1 ; i<(n+1) ; i++ )
-            {
-                if (epl_prop[n-i]<=fabs(epl) && fabs(epl) <= epl_prop[n-i+1]){
-                    seg=n-i;
-                }
-            }
-            
-            absepeff=eps[seg]+(fabs(epl)-epl_prop[seg])/(epl_prop[seg+1]-epl_prop[seg])*(eps[seg+1]-eps[seg]);
+            absepeff = eps[seg]+(fabs(epl)-epl_prop[seg])/(epl_prop[seg+1]-epl_prop[seg])*(eps[seg+1]-eps[seg]);
         }
         else
-            absepeff=fabs(epl)+fy/E0;
+            absepeff = fabs(epl)+fy/E0;
         
-        
-        absepeff=signpl*absepeff;
-        absepeff2=absepeff-signpl*2*ep;
-        
-        
-        epeff=fmax(absepeff,absepeff2);
-        epeff2=fmin(absepeff,absepeff2);
-        
-        seg=0;
+        absepeff = signpl*absepeff;
+        double absepeff2 = absepeff-signpl*2*ep;
+
+        double epeff  = fmax(absepeff, absepeff2);
+        double epeff2 = fmin(absepeff, absepeff2);
         
         if ((fabs(epl)+fy/E0) < 0.02)
         {
@@ -329,30 +306,23 @@ void Steel01Thermal::determineTrialState (double dStrain)
                 c=sign*fy;
                 Ttangent = (1E-10)*E0;
             }
-            
             else if (e>epeff || e<epeff2) {
                 
                 if (epl>=0) {
                     
-                    if (fabs(e)>fabs(epeff)){
-                        for ( i=1 ; i<(n+1) ; i++ )
-                        {
-                            if ((eps[n-i]<=fabs(e))&&(fabs(e)<=eps[n-i+1])){
-                                seg=n-i;
-                            }
-                        }
+                    if (fabs(e)>fabs(epeff)) {
+                        int seg = 0;
+                        for (int  i=1 ; i<(n+1) ; i++ )
+                          if ((eps[n-i]<=fabs(e)) && (fabs(e)<=eps[n-i+1]))
+                              seg=n-i;
                         c=sign*(sig[seg]+(sig[seg+1]-sig[seg])*(fabs(e)-eps[seg])/(eps[seg+1]-eps[seg]));
                         Ttangent = fabs((sig[seg+1]-sig[seg])/(eps[seg+1]-eps[seg]));
-                    }
                     
-                    else
-                    {
-                        for ( i=1 ; i<(n+1) ; i++ )
-                        {
-                            if ((eps[n-i]<=fabs(epeff))&&(fabs(epeff)<=eps[n-i+1])){
-                                seg=n-i;
-                            }
-                        }
+                    } else {
+                        int seg = 0;
+                        for (int i=1 ; i<(n+1) ; i++ )
+                          if ((eps[n-i]<=fabs(epeff)) && (fabs(epeff)<=eps[n-i+1]))
+                              seg=n-i;
                         fepeff=signpl*(sig[seg]+(sig[seg+1]-sig[seg])*(fabs(epeff)-eps[seg])/(eps[seg+1]-eps[seg]));
                         c=(fepeff-2*fp)-fabs(((2*fepeff-2*fp)/(epeff2+epeff))*(e-epeff2));
                         Ttangent = fabs(((2*fepeff-2*fp)/(epeff2+epeff)));
@@ -363,7 +333,8 @@ void Steel01Thermal::determineTrialState (double dStrain)
                 else if (epl<0) {
                     
                     if (fabs(e) > fabs(epeff2)){
-                        for ( i=1 ; i<(n+1) ; i++ )
+                        int seg = 0;
+                        for (int i=1 ; i<(n+1) ; i++ )
                         {
                             if ((eps[n-i]<=fabs(e))&&(fabs(e)<=eps[n-i+1])){
                                 seg=n-i;
@@ -372,11 +343,9 @@ void Steel01Thermal::determineTrialState (double dStrain)
                         c=sign*(sig[seg]+(sig[seg+1]-sig[seg])*(fabs(e)-eps[seg])/(eps[seg+1]-eps[seg]));
                         Ttangent = fabs((sig[seg+1]-sig[seg])/(eps[seg+1]-eps[seg]));
                     }
-                    
-                    else
-                    {
-                        
-                        for ( i=1 ; i<(n+1) ; i++ )
+                    else {
+                        int seg = 0;
+                        for (int i=1 ; i<(n+1) ; i++ )
                         {
                             if ((eps[n-i]<=fabs(epeff2))&&(fabs(epeff2)<=eps[n-i+1])){
                                 seg=n-i;
@@ -388,10 +357,8 @@ void Steel01Thermal::determineTrialState (double dStrain)
                     }
                 }
             }
-        }
-        
-        else
-        {
+        } else {
+
             if ((e<=epeff) && (e>=epeff2)) {
                 c=E0*(e-epl);
                 position=0;
@@ -408,10 +375,7 @@ void Steel01Thermal::determineTrialState (double dStrain)
                     double fepeff=fy;
                     c=(fepeff-2*fp)-fabs(((2*fepeff-2*fp)/(epeff2+epeff))*(e-epeff2));
                     Ttangent=fabs(((2*fepeff-2*fp)/(epeff2+epeff)));
-                }
-                
-                else
-                {
+                } else {
                     double fepeff2=-fy;
                     c=(fepeff2+2*fp)+fabs(((2*fepeff2+2*fp)/(epeff+epeff2))*(e-epeff));
                     Ttangent=fabs(((2*fepeff2+2*fp)/(epeff2+epeff)));
@@ -420,26 +384,22 @@ void Steel01Thermal::determineTrialState (double dStrain)
         }
         
         int signcheck=0;
-        if (c<0) {
+        if (c<0)
             signcheck = -1;
-        }
-        else {
+        else
             signcheck=1;
-        }
         
         if (fabs(c)>fy) {
-            c= signcheck * fy;
+          c = signcheck * fy;
         }
-        
+
         Tstress=c;
         Tmodulus=E0;
-        
-        
     }
     // Princeton code ends.
     
 
-      //************JZ 11/10 S 
+    //************JZ 11/10 S 
 	  double EpsiPT = fp/E0;
 	  double EpsiYT = 0.02;
 	  double EpsiT = 0.2;
@@ -447,35 +407,35 @@ void Steel01Thermal::determineTrialState (double dStrain)
 	  double CT = (fy-fp)*(fy-fp)/((EpsiYT-EpsiPT)*E0-2*(fy - fp));
 	  double BT = pow(CT*(EpsiYT-EpsiPT)*E0+CT*CT, 0.5);
 	  double AT = pow((EpsiYT-EpsiPT)*(EpsiYT-EpsiPT+CT/E0),0.5);
-	  
-      if (Tloading == 0 && dStrain != 0.0) {
-	  if (dStrain > 0.0)
-	    Tloading = 1;
-	  else
-	    Tloading = -1;
-      }
+  
+    if (Tloading == 0 && dStrain != 0.0) {
+      if (dStrain > 0.0)
+        Tloading =  1;
+      else
+        Tloading = -1;
+    }
 
-      // Transition from loading to unloading, i.e. positive strain increment
-      // to negative strain increment
-      if (Tloading == 1 && dStrain < 0.0) {
-	  Tloading = -1;
-	  if (Cstrain > TmaxStrain)
-	    TmaxStrain = Cstrain;
-	  TshiftN = 1 + a1*pow((TmaxStrain-TminStrain)/(2.0*a2*epsy),0.8);
-      }
+    // Transition from loading to unloading, i.e. positive strain increment
+    // to negative strain increment
+    if (Tloading == 1 && dStrain < 0.0) {
+      Tloading = -1;
+      if (Cstrain > TmaxStrain)
+        TmaxStrain = Cstrain;
+      TshiftN = 1 + a1*pow((TmaxStrain-TminStrain)/(2.0*a2*epsy),0.8);
+    }
 
-      // Transition from unloading to loading, i.e. negative strain increment
-      // to positive strain increment
-      if (Tloading == -1 && dStrain > 0.0) {
-	  Tloading = 1;
-	  if (Cstrain < TminStrain)
-	    TminStrain = Cstrain;
-	  TshiftP = 1 + a3*pow((TmaxStrain-TminStrain)/(2.0*a4*epsy),0.8);
-      }
-
+    // Transition from unloading to loading, i.e. negative strain increment
+    // to positive strain increment
+    if (Tloading == -1 && dStrain > 0.0) {
+      Tloading = 1;
+      if (Cstrain < TminStrain)
+        TminStrain = Cstrain;
+      TshiftP = 1 + a3*pow((TmaxStrain-TminStrain)/(2.0*a4*epsy),0.8);
+    }
 }
 
-void Steel01Thermal::detectLoadReversal (double dStrain)
+void
+Steel01Thermal::detectLoadReversal(double dStrain)
 {
    // Determine initial loading condition
    if (Tloading == 0 && dStrain != 0.0)
@@ -525,7 +485,7 @@ double Steel01Thermal::getTangent ()
 }
 
 double 
-Steel01Thermal::getThermalElongation(void) //***JZ
+Steel01Thermal::getThermalElongation() //***JZ
 {
   return ThermalElongation;
 }
@@ -712,7 +672,6 @@ else {fp = 0;}
   TemperautreC = TempT;
 
   //opserr << "\getelongation: " << ET << "\ temp:" << TemperautreC <<endln; //PK Check
-
 
   return 0;
 }
@@ -1200,29 +1159,30 @@ Steel01Thermal::getVariable(const char *variable, Information &info)
   if (strcmp(variable,"ThermalElongation") == 0) {
     info.theDouble = ThermalElongation;    
     return 0;
-  } else if (strcmp(variable,"ElongTangent") == 0) {
+  }
+  else if (strcmp(variable,"ElongTangent") == 0) {
     Vector *theVector = info.theVector;
     if (theVector != 0) {
-      double tempT, ET, Elong, TempTmax;
-      tempT = (*theVector)(0);
-	  ET = (*theVector)(1);
-	  Elong = (*theVector)(2);
-      TempTmax = (*theVector)(3);
+      double tempT    = (*theVector)(0);
+      double ET       = (*theVector)(1);
+      double Elong    = (*theVector)(2);
+      double TempTmax = (*theVector)(3);
       this->getElongTangent(tempT, ET, Elong, TempTmax);
-	  (*theVector)(0) = tempT;
+      (*theVector)(0) = tempT;
       (*theVector)(1) = ET;
       (*theVector)(2) = Elong;
-	  (*theVector)(3) = TempTmax;
+      (*theVector)(3) = TempTmax;
     }
     return 0;
-  } else if (strcmp(variable,"TempAndElong") == 0) {
+  }
+  else if (strcmp(variable,"TempAndElong") == 0) {
     Vector *theVector = info.theVector;
-	if (theVector!= 0) {
-	  (*theVector)(0) = Temp;//Ttemperature;
-	  (*theVector)(1) = ThermalElongation;
-	}else{
-		opserr<<"null Vector in Steel01Thermal"<<endln;
-	}
+    if (theVector!= 0) {
+      (*theVector)(0) = Temp;//Ttemperature;
+      (*theVector)(1) = ThermalElongation;
+    }else{
+      opserr<<"null Vector in Steel01Thermal"<<endln;
+    }
 	return 0;
  }
  //end of adding "TempAndElong"

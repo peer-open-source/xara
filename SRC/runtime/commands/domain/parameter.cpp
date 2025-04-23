@@ -379,7 +379,7 @@ getParamValue(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-setParameter(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, int argc,
              TCL_Char ** const argv)
 {
   Domain *theDomain = (Domain*)clientData;

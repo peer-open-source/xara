@@ -274,6 +274,5 @@ const Matrix& J2ThreeDimensionalThermal :: getInitialTangent( )
 
 //send back TempAndElong(Liming)
 const Vector& J2ThreeDimensionalThermal::getTempAndElong() {
-
 	return TempAndElong;
 }

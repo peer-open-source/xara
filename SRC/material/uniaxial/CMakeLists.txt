@@ -29,7 +29,6 @@ target_sources(OPS_Material
     HystereticSmooth.cpp
     HystereticAsym.cpp
     MultiplierMaterial.cpp
-    ParallelMaterial.cpp
     ResilienceLow.cpp
     Ratchet.cpp
     UVCuniaxial.cpp
@@ -54,7 +53,6 @@ target_sources(OPS_Material
     HystereticSmooth.h
     HystereticAsym.h
     MultiplierMaterial.h
-    ParallelMaterial.h
     ResilienceLow.h
     Ratchet.h
     UVCuniaxial.h
@@ -91,8 +89,6 @@ target_sources(OPS_Material
       HystereticMaterial.cpp
       HystereticPoly.cpp
       ImpactMaterial.cpp
-      InitStrainMaterial.cpp
-      InitStressMaterial.cpp
       Maxwell.cpp                      # Uses ops_Dt
       MinMaxMaterial.cpp
       ModIMKPeakOriented.cpp
@@ -108,7 +104,6 @@ target_sources(OPS_Material
       SAWSMaterial.cpp
       SPSW02.cpp
       SelfCenteringMaterial.cpp
-      SeriesMaterial.cpp
       ShearPanelMaterial.cpp
       SimpleFractureMaterial.cpp
       SLModel.cpp
@@ -160,14 +155,12 @@ add_subdirectory(AlgebraicHysteresis)
 add_subdirectory(backbone)
 add_subdirectory(bearing)
 add_subdirectory(limitState)
-add_subdirectory(Parallel)
 add_subdirectory(concrete)
 add_subdirectory(steel)
 
 add_subdirectory(PY)
 add_subdirectory(snap)
 add_subdirectory(fedeas)
-add_subdirectory(wrapper)
 add_subdirectory(drain)
 add_subdirectory(legacy)
 

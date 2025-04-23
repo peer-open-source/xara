@@ -24,9 +24,7 @@
 
 // Written: fmk
 // Created: Sep 2010
-
-#include <stdlib.h>
-
+//
 #include <InitStrainMaterial.h>
 #include <ID.h>
 #include <Channel.h>
@@ -34,48 +32,6 @@
 #include <FEM_ObjectBroker.h>
 #include <Information.h>
 #include <Parameter.h>
-
-#include <OPS_Globals.h>
-
-#include <elementAPI.h>
-#define OPS_Export 
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_InitStrainMaterial)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-  UniaxialMaterial *theOtherMaterial = 0;
-
-  int    iData[2];
-  double dData[1];
-  int numData = 2;
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial InitStrainMaterial $tag $otherTag" << endln;
-    return 0;
-  }
-
-  theOtherMaterial = OPS_GetUniaxialMaterial(iData[1]);
-  if (theOtherMaterial == 0) {
-    opserr << "Could not find material with tag: " << iData[1] << "uniaxialMaterial InitStrain $tag $otherTag $eps0" << endln;
-    return 0;	
-  }
-
-  numData = 1;
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid Args want: uniaxialMaterial InitStrain $tag $otherTag $eps0" << endln;
-    return 0;	
-  }
-
-  // Parsing was successful, allocate the material
-  theMaterial = new InitStrainMaterial(iData[0], *theOtherMaterial, dData[0]);
-
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type InitStrainMaterial\n";
-    return 0;
-  }
-
-  return theMaterial;
-}
 
 
 InitStrainMaterial::InitStrainMaterial(int tag, 
@@ -85,14 +41,8 @@ InitStrainMaterial::InitStrainMaterial(int tag,
    epsInit(epsini), localStrain(0.0)
 {
   theMaterial = material.getCopy();
-
-  if (theMaterial == 0) {
-    opserr <<  "InitStrainMaterial::InitStrainMaterial -- failed to get copy of material\n";
-    //exit(-1);
-  } else {
-    theMaterial->setTrialStrain(epsInit);
-    theMaterial->commitState();
-  }
+  theMaterial->setTrialStrain(epsInit);
+  theMaterial->commitState();
 }
 
 InitStrainMaterial::InitStrainMaterial()
@@ -120,7 +70,7 @@ InitStrainMaterial::setTrialStrain(double strain, double strainRate)
 }
 
 double 
-InitStrainMaterial::getStress(void)
+InitStrainMaterial::getStress()
 {
   if (theMaterial)
     return theMaterial->getStress();
@@ -129,7 +79,7 @@ InitStrainMaterial::getStress(void)
 }
 
 double 
-InitStrainMaterial::getTangent(void)
+InitStrainMaterial::getTangent()
 {
   if (theMaterial)
     return theMaterial->getTangent();
@@ -138,7 +88,7 @@ InitStrainMaterial::getTangent(void)
 }
 
 double 
-InitStrainMaterial::getDampTangent(void)
+InitStrainMaterial::getDampTangent()
 {
   if (theMaterial)
     return theMaterial->getDampTangent();
@@ -147,7 +97,7 @@ InitStrainMaterial::getDampTangent(void)
 }
 
 double 
-InitStrainMaterial::getStrain(void)
+InitStrainMaterial::getStrain()
 {
   if (theMaterial)
     return theMaterial->getStrain();
@@ -156,7 +106,7 @@ InitStrainMaterial::getStrain(void)
 }
 
 double 
-InitStrainMaterial::getStrainRate(void)
+InitStrainMaterial::getStrainRate()
 {
   if (theMaterial)
     return theMaterial->getStrainRate();
@@ -164,8 +114,8 @@ InitStrainMaterial::getStrainRate(void)
     return 0.0;
 }
 
-int 
-InitStrainMaterial::commitState(void)
+int
+InitStrainMaterial::commitState()
 {
   if (theMaterial)
     return theMaterial->commitState();
@@ -174,7 +124,7 @@ InitStrainMaterial::commitState(void)
 }
 
 int 
-InitStrainMaterial::revertToLastCommit(void)
+InitStrainMaterial::revertToLastCommit()
 {
   if (theMaterial)
     return theMaterial->revertToLastCommit();
@@ -183,7 +133,7 @@ InitStrainMaterial::revertToLastCommit(void)
 }
 
 int 
-InitStrainMaterial::revertToStart(void)
+InitStrainMaterial::revertToStart()
 {
   int res = 0;
   if (theMaterial) {
@@ -291,15 +241,19 @@ void
 InitStrainMaterial::Print(OPS_Stream &s, int flag)
 {
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
 		s << "\"name\": \"" << this->getTag() << "\", ";
 		s << "\"type\": \"InitStrainMaterial\", ";
 		if (theMaterial)
 		  s << "\"Material\": " << theMaterial->getTag() << ", ";
 		else
-		  s << "\"Material\": " << "NULL" << ", ";
-		s << "\"initialStrain\": " << epsInit <<  "}";
-	} else {
+		  s << "\"Material\": " << "null" << ", ";
+		s << "\"initial_strain\": " << epsInit;
+    s <<  "}";
+    return;
+	}
+
+  else {
 		s << "InitStrainMaterial tag: " << this->getTag() << endln;
 		if (theMaterial)
 		  s << "\tMaterial: " << theMaterial->getTag() << endln;
@@ -312,7 +266,7 @@ InitStrainMaterial::Print(OPS_Stream &s, int flag)
 int 
 InitStrainMaterial::setParameter(const char **argv, int argc, Parameter &param)
 {
-  if (strcmp(argv[0],"epsInit") == 0) {
+  if (strcmp(argv[0], "initial_strain")==0 || strcmp(argv[0],"epsInit") == 0) {
     param.setValue(epsInit);
     return param.addObject(1, this);
   }

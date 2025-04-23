@@ -12,13 +12,11 @@ target_sources(OPS_Material
         ElasticIsotropicThreeDimensional.cpp
         ElasticOrthotropicThreeDimensional.cpp
         IncrementalElasticIsotropicThreeDimensional.cpp
-        J2ThreeDimensional.cpp
         J2ThreeDimensionalThermal.cpp
     PUBLIC
         ElasticIsotropicThreeDimensional.h
         ElasticOrthotropicThreeDimensional.h
         IncrementalElasticIsotropicThreeDimensional.h
-        J2ThreeDimensional.h
         J2ThreeDimensionalThermal.h
 )
 

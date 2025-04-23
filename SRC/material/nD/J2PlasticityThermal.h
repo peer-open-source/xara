@@ -109,6 +109,8 @@ class J2PlasticityThermal : public NDMaterial {
   virtual int getOrder (void) const ;
 
   double getRho(void) {return rho;}
+
+private:
   double setThermalTangentAndElongation(double &TempT, double &, double &);//Liming add
   
 

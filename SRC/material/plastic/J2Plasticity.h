@@ -60,14 +60,14 @@ public :
 
   J2Plasticity(int tag,
 		           int classTag,
-                double K,
-                double G,
-                double yield0,
-                double yield_infty,
-                double d,
-                double H,
-                double viscosity,
-                double density) ;
+               double K,
+               double G,
+               double yield0,
+               double yield_infty,
+               double d,
+               double H,
+               double viscosity,
+               double density) ;
 
   J2Plasticity( int tag, int classTag, double K, double G );
 
@@ -97,14 +97,13 @@ public :
   virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) ;
 
   // TaggedObject
-  void Print(OPS_Stream &s, int flag = 0);
+  virtual void Print(OPS_Stream &s, int flag = 0) final;
 
 protected:
 
   // zero internal variables
   void zero();
   int plastic_integrator();
-
   void doInitialTangent();
 
   // hardening function and derivative

@@ -42,47 +42,45 @@ class Steel01Thermal : public UniaxialMaterial
     Steel01Thermal();
     ~Steel01Thermal();
 
-    const char *getClassType(void) const {return "Steel01Thermal";};
+    const char *getClassType() const {return "Steel01Thermal";}
 
-
-    double getThermalElongation(void); //***JZ
-    double getElongTangent(double, double&, double&, double);//***JZ //PK add to include max temp
 
     int setTrialStrain(double strain, double strainRate =0); 
     int setTrialStrain(double strain, double FiberTemperature, double strainRate); //***JZ
 
     int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
-    double getStrain(void);              
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void) {return E0;};
+    double getStrain();              
+    double getStress();
+    double getTangent();
+    double getInitialTangent() {return E0;}
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
     void Print(OPS_Stream &s, int flag =0);
 
     int getVariable(const char *variable, Information &);
     
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     int setParameter(const char **argv, int argc, Parameter &param);
     int    updateParameter          (int parameterID, Information &info);
     int    activateParameter        (int parameterID);
     double getStressSensitivity     (int gradIndex, bool conditional);
     double getInitialTangentSensitivity(int gradIndex);
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
-    // AddingSensitivity:END ///////////////////////////////////////////
     
  protected:
     
  private:
+
+    double getThermalElongation(); //***JZ
+    double getElongTangent(double, double&, double&, double);//***JZ //PK add to include max temp
 
     //JZ 07/10 /////////////////////////////////////////////////////////////start
     double Temp;  // material temp  

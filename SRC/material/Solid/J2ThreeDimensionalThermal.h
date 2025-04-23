@@ -119,7 +119,7 @@ class J2ThreeDimensionalThermal : public J2PlasticityThermal {
   const Matrix& getInitialTangent( ) ;
 
   //added by Limin
-  const Vector& getTempAndElong();
+  virtual const Vector& getTempAndElong() override;
 
   private :
 

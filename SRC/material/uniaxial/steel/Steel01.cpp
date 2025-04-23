@@ -55,7 +55,6 @@ Steel01::Steel01():UniaxialMaterial(0,MAT_TAG_Steel01),
  fy(0.0), E0(0.0), b(0.0), a1(0.0), a2(0.0), a3(0.0), a4(0.0)
 {
   Energy = 0;	//by SAJalali
-
   parameterID = 0;
   SHVs = 0;
 }
@@ -87,13 +86,12 @@ int Steel01::setTrialStrain (double strain, double strainRate)
 
      // Calculate the trial state given the trial strain
      determineTrialState(dStrain);
-
    }
 
    return 0;
 }
 
-int Steel01::setTrial (double strain, double &stress, double &tangent, double strainRate)
+int Steel01::setTrial(double strain, double &stress, double &tangent, double strainRate)
 {
    // Reset history variables to last converged state
    TminStrain = CminStrain;
@@ -140,23 +138,22 @@ void Steel01::determineTrialState (double dStrain)
 
       /**********************************************************
          removal of the following lines due to problems with
-	 optimization may be required (e.g. on gnucc compiler
+         optimization may be required (e.g. on gnucc compiler
          with optimization turned on & -ffloat-store option not
          used) .. replace them with line that follows but which 
          now requires 2 function calls to achieve same result !!
       ************************************************************/
 
       double c1c3 = c1 + c3;
-
       if (c1c3 < c)
-	Tstress = c1c3;
+         Tstress = c1c3;
       else
-	Tstress = c;
+         Tstress = c;
 
       double c1c2 = c1-c2;
 
       if (c1c2 > Tstress)
-	Tstress = c1c2;
+         Tstress = c1c2;
 
       /* ***********************************************************
       and replace them with:
@@ -309,10 +306,8 @@ Steel01::revertToStart()
    Tstress  = 0.0;
    Ttangent = E0;
 
-// AddingSensitivity:BEGIN /////////////////////////////////
    if (SHVs != 0) 
       SHVs->Zero();
-// AddingSensitivity:END //////////////////////////////////
 
    return 0;
 }
@@ -445,12 +440,14 @@ void Steel01::Print (OPS_Stream& s, int flag)
 	 s << "\"name\": " << this->getTag() << ", ";
 	 s << "\"type\": \"Steel01\", ";
 	 s << "\"E\": " << E0 << ", ";
-	 s << "\"fy\": " << fy << ", ";
+	 s << "\"Fy\": " << fy << ", ";
     s << "\"b\": " << b << ", ";
     s << "\"a1\": " << a1 << ", ";
     s << "\"a2\": " << a2 << ", ";
     s << "\"a3\": " << a3 << ", ";
-    s << "\"a4\": " << a4 << "}";
+    s << "\"a4\": " << a4;
+    s << "}";
+    return;
   }
   else if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {    
     s << "Steel01 tag: " << this->getTag() << endln;
@@ -464,15 +461,11 @@ void Steel01::Print (OPS_Stream& s, int flag)
   } 
 }
 
-
-
-
-// AddingSensitivity:BEGIN ///////////////////////////////////
 int
 Steel01::setParameter(const char **argv, int argc, Parameter &param)
 {
 
-  if (strcmp(argv[0],"sigmaY") == 0 || strcmp(argv[0],"fy") == 0 || strcmp(argv[0],"Fy") == 0) {
+  if (strcmp(argv[0],"Fy") == 0 || strcmp(argv[0],"fy") == 0 || strcmp(argv[0],"sigmaY") == 0) {
     param.setValue(fy);
     return param.addObject(1, this);
   }
@@ -537,7 +530,7 @@ Steel01::updateParameter(int parameterID, Information &info)
 		return -1;
 	}
 
-	Ttangent = E0;          // Initial stiffness
+	Ttangent = E0;  // Initial stiffness
 
 	return 0;
 }

@@ -224,10 +224,12 @@ Parameter::Print(OPS_Stream &s, int flag)
       s << ", ";
       s << "\"index\": " << gradIndex ;
       s << ", ";
+      s << "\"count\": " << numObjects ;
+      s << ", ";
       s << "\"objects\": [" ;
-//    for (int i=0; i<numObjects-1; i++)
-//      s << "\"" << theObjects[i]->getClassType() << "\", ";
-//    s << "\"" << theObjects[numObjects-1]->getClassType() << "\"";
+      // for (int i=0; i<numObjects-1; i++)
+      //   s << "\"" << theObjects[i]->getClassType() << "\", ";
+      // s << "\"" << theObjects[numObjects-1]->getClassType() << "\"";
       s << "]";
       s << "}";
 

@@ -45,69 +45,6 @@
 namespace OpenSees {
 ID FiberSection3dThermal::code(4);
 
-#if 0
-#include <elementAPI.h>
-void* OPS_FiberSection3dThermal()
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-            opserr<<"insufficient arguments for FiberSection3d\n";
-            return 0;
-    }
-    
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData, &tag) < 0) return 0;
-
-    if (OPS_GetNumRemainingInputArgs() < 2) {
-      opserr << "WARNING torsion not specified for FiberSection\n";
-      opserr << "Use either -GJ $GJ or -torsion $matTag\n";
-      opserr << "\nFiberSection3d section: " << tag << "\n";
-      return 0;
-    }
-    
-    UniaxialMaterial *torsion = 0;
-    bool deleteTorsion = false;
-    bool computeCentroid = true;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt,"-noCentroid") == 0) {
-        computeCentroid = false;
-      }
-      if (strcmp(opt, "-GJ") == 0 && OPS_GetNumRemainingInputArgs() > 0) {
-        numData = 1;
-        double GJ;
-        if (OPS_GetDoubleInput(&numData, &GJ) < 0) {
-          opserr << "WARNING: failed to read GJ\n";
-          return 0;
-        }
-        torsion = new ElasticMaterial(0,GJ);
-        deleteTorsion = true;
-      }
-      if (strcmp(opt, "-torsion") == 0 && OPS_GetNumRemainingInputArgs() > 0) {
-        numData = 1;
-        int torsionTag;
-        if (OPS_GetIntInput(&numData, &torsionTag) < 0) {
-          opserr << "WARNING: failed to read torsion\n";
-          return 0;
-        }
-        torsion = OPS_getUniaxialMaterial(torsionTag);
-      }
-    }
-
-    if (torsion == 0) {
-      opserr << "WARNING torsion not specified for FiberSection\n";
-      opserr << "\nFiberSection3d section: " << tag << "\n";
-      return 0;
-    }
-    
-    int num = 30;
-    FrameSection *section = new FiberSection3dThermal(tag, num, *torsion, computeCentroid);
-    if (deleteTorsion)
-      delete torsion;
-    return section;
-}
-#endif
 
 #if 0
 // constructors:
@@ -327,14 +264,14 @@ FiberSection3dThermal::setTrialSectionDeformation (const Vector &deforms)
       double stress = 0.0;
       double ThermalElongation = 0.0;
       static Vector tData(4);
-      static Information iData(tData);
+      static Information info(tData);
       tData(0) = FiberTemperature;
       tData(1) = tangent;
       tData(2) = ThermalElongation;
       tData(3) = FiberTempMax;
-      iData.setVector(tData);
-      theMat->getVariable("ElongTangent", iData);
-      tData = iData.getData();
+      info.setVector(tData);
+      theMat->getVariable("ElongTangent", info);
+      tData = info.getData();
       tangent = tData(1);
       ThermalElongation = tData(2);
 

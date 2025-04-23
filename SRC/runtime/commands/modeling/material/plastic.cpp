@@ -20,13 +20,15 @@
 #include <SimplifiedJ2.h>
 #include <PlaneStressSimplifiedJ2.h>
 #include <J2Plasticity.h>
+#include <J2PlasticityThermal.h>
 #include <MultiaxialCyclicPlasticity.h>
 #include <DruckerPrager.h>
-
+#include <J2BeamFiber2d.h>
+#include <J2BeamFiber3d.h>
 
 
 template <typename Position>
-int
+static inline int
 TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
@@ -434,6 +436,14 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
           tracker.increment();
           break;
         }
+      case Position::Atm:
+        if (Tcl_GetDouble (interp, argv[i], &atm) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid atm.\n";
+            return TCL_ERROR;
+        } else {
+          tracker.increment();
+          break;
+        }
       case Position::RhoBar:
         if (Tcl_GetDouble (interp, argv[i], &rho_bar) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid Rbar.\n";
@@ -563,6 +573,20 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
   }
 
+  else if (strcmp(argv[1], "J2BeamFiber") == 0) {
+    NDMaterial* theMaterial = nullptr;
+    if (builder->getNDM() == 2)
+      theMaterial = new J2BeamFiber2d(tag, consts.E, consts.G, Fy, Hkin, Hiso);
+    else 
+      theMaterial = new J2BeamFiber3d(tag, consts.E, consts.G, Fy, Hkin, Hiso);
+
+    if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+      delete theMaterial;
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  }
+
   else if ((strcmp(argv[1], "Simplified3DJ2") == 0) ||
            (strcmp(argv[1], "SimplifiedJ2") == 0) ||
            (strcmp(argv[1], "J2Simplified") == 0) ||
@@ -594,6 +618,16 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
   }
 
+  else if ((strcmp(argv[1], "J2PlasticityThermal") == 0) ||
+           (strcmp(argv[1], "J2Thermal") == 0)) {
+    NDMaterial* theMaterial = new J2PlasticityThermal(tag, 0, consts.K, consts.G, 
+              Fy, Fsat, hard.Hsat, Hiso, eta, density);
+    if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+    delete theMaterial;
+    return TCL_ERROR;
+    }
+    return TCL_OK;
+  }
   else if (strcmp(argv[1], "DruckerPrager") == 0 ||
            strcmp(argv[1], "DP") == 0) {
 
@@ -626,9 +660,21 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       Tag, G, K, YieldStress, Hkin, Hiso, EndRequired, 
       End,
       E, Nu, Lambda, Eta, Theta, Hmix, Hsat,
-      SatStress, SatStress0, 
+      SatStress, SatStress0,
       Delta2, Rho, RhoBar, Atm,
       Density
+    };
+    return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
+  }
+  else if (strcmp(argv[1], "J2BeamFiber") == 0) {
+    // J2BeamFiber $tag $E $v $sigmaY $Hiso $Hkin <$rho>
+    enum class Position : int {
+      Tag, E, G, YieldStress, Hkin, Hiso, EndRequired,
+      Density,
+      End,
+      Nu, K, Eta, Lambda, Theta, Hmix, Hsat,
+      SatStress, SatStress0,
+      Delta2, Rho, RhoBar, Atm
     };
     return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
   }
@@ -687,6 +733,59 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
 }
 
 
+#include <UniaxialJ2Plasticity.h>
+int
+TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char** const argv)
+{
+    // ----- 1D J2 Plasticity ----
+    if (argc < 7) {
+      opserr << "WARNING invalid number of arguments\n";
+      opserr << "Want: uniaxialMaterial UniaxialJ2Plasticity tag? E? sigmaY? Hkin? <Hiso?>"
+             << endln;
+      return TCL_ERROR;
+    }
+
+    int tag;
+    double E, sigmaY, Hkin, Hiso;
+    Hiso = 0.0;
+
+    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+      opserr << "WARNING invalid uniaxialMaterial UniaxialJ2Plasticity tag"
+             << endln;
+      return TCL_ERROR;
+    }
+
+    if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
+      opserr << "WARNING invalid E\n";
+      return TCL_ERROR;
+    }
+
+    if (Tcl_GetDouble(interp, argv[4], &sigmaY) != TCL_OK) {
+      opserr << "WARNING invalid sigmaY\n";
+      return TCL_ERROR;
+    }
+
+    if (Tcl_GetDouble(interp, argv[5], &Hkin) != TCL_OK) {
+      opserr << "WARNING invalid Hkin\n";
+      return TCL_ERROR;
+    }
+
+    if (argc >= 7)
+      if (Tcl_GetDouble(interp, argv[6], &Hiso) != TCL_OK) {
+        opserr << "WARNING invalid Hiso\n";
+        return TCL_ERROR;
+      }
+
+    // Parsing was successful, allocate the material
+    UniaxialMaterial* theMaterial = new UniaxialJ2Plasticity(tag, E, sigmaY, Hkin, Hiso);
+
+   assert(clientData != nullptr);
+   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+   builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
+   return TCL_OK;
+}
+
+
 int
 TclCommand_newJ2Simplified(ClientData clientData, Tcl_Interp* interp, int argc, const char** const argv)
 {
@@ -724,12 +823,12 @@ TclCommand_newJ2Simplified(ClientData clientData, Tcl_Interp* interp, int argc, 
   }
 
   if (Tcl_GetDouble(interp, argv[6], &H_kin) != TCL_OK) {
-    opserr << "WARNING invalid H_kin\n";
+    opserr << "WARNING invalid Hkin\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[7], &H_iso) != TCL_OK) {
-    opserr << "WARNING invalid H_iso\n";
+    opserr << "WARNING invalid Hiso\n";
     return TCL_ERROR;
   }
 

@@ -601,13 +601,11 @@ J2PlasticityThermal::setThermalTangentAndElongation(double &tempT, double&ET, do
 
 	}
 	else if (TempT <= 200) {
-
 		bulk = bulk_0*(1 - (TempT - 100)*0.1 / 100);
 		shear = shear_0*(1 - (TempT - 100)*0.1 / 100);
 		sigma_y = sigma_0;
 		ET = E00*(1 - (TempT - 100)*0.1 / 100);
 		Hard = 0.01*ET / 2.8;
-
 	}
 	else if (TempT <= 300) {
 

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <InitStressNDMaterial.h>
+#include "InitStressNDMaterial.h"
 #include <Matrix.h>
 #include <ID.h>
 #include <Channel.h>

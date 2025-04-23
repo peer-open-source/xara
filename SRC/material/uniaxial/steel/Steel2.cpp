@@ -88,13 +88,13 @@ UniaxialMaterial*
 }
 
 double
-	Steel2::getInitialTangent(void)
+Steel2::getInitialTangent(void)
 {
 	return E0;
 }
 
 int
-	Steel2::setTrialStrain(double trialStrain, double strainRate)
+Steel2::setTrialStrain(double trialStrain, double strainRate)
 {
 	double Esh = b * E0;
 	double epsy = Fy / E0;

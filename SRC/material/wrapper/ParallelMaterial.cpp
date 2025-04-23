@@ -44,90 +44,6 @@
 #include <string.h>
 #include <MaterialResponse.h>
 
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_ParallelMaterial)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-  Vector *theFactors = 0;
-
-  int argc = OPS_GetNumRemainingInputArgs();
-
-  if (argc < 2) {
-    opserr << "Invalid #args,  want: uniaxialMaterial Parallel $tag $tag1 $tag2 ... <-factors $fact1 $fact2 ...>" << endln;
-    return 0;
-  }
-
-  // count the number of materials
-  int numMats = -1;
-  int gotFactors = 0;
-
-  while (argc > 0)  {
-    const char *argvLoc = OPS_GetString();
-    if (strcmp(argvLoc, "-factors") == 0) {
-      gotFactors = 1;
-      break;
-    }
-    numMats++;
-    argc = OPS_GetNumRemainingInputArgs();
-  }
-  
-  // reset to read from beginning
-  OPS_ResetCurrentInputArg(2);
-  
-  int numData = 1+numMats;
-  int *iData = new int[numData];
-  UniaxialMaterial **theMats = new UniaxialMaterial *[numMats];
-  double *dData = 0;
-
-  if (gotFactors) {
-      dData = new double[numMats];
-      theFactors = new Vector(dData, numMats);
-  }
-  
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid data for uniaxialMaterial Parallel" << endln;
-    return 0;
-  }
-
-  for (int i=1; i<numMats+1; i++) {
-    UniaxialMaterial *theMat = OPS_getUniaxialMaterial(iData[i]);
-    if (theMat == 0) {
-      opserr << "WARNING no existing material with tag " << iData[i] 
-	     << " for uniaxialMaterial Parallel" << iData[0] << endln;
-      delete [] iData;
-      delete [] theMats;
-      return 0;
-    }
-    theMats[i-1] = theMat;
-  }
-  
-  if (gotFactors) {
-    const char *argvLoc = OPS_GetString();
-    if (OPS_GetDoubleInput(&numMats, dData) != 0) {
-      opserr << "WARNING invalid factors for uniaxialMaterial Parallel" << endln;
-      return 0;
-    }
-  }
-
-  // Parsing was successful, allocate the material
-  theMaterial = new ParallelMaterial(iData[0], numMats, theMats, theFactors);
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Parallel\n";
-    return 0;
-  }
-  
-  delete [] iData;
-  delete [] theMats;
-
-  if (theFactors != 0) 
-    delete theFactors;
-  
-  return theMaterial;
-}
-
-
 
 ParallelMaterial::ParallelMaterial(
 				 int tag, 
@@ -141,16 +57,10 @@ ParallelMaterial::ParallelMaterial(
     // create an array (theModels) to store copies of the MaterialModels
     theModels = new UniaxialMaterial *[num];
 
-    if (theModels == 0) {
-	opserr << "FATAL ParallelMaterial::ParallelMaterial() ";
-	opserr << " ran out of memory for array of size: " << num << "\n";
-	exit(-1);
-    }
-
     // into the newly created array store a pointer to a copy
     // of the UniaxialMaterial stored in theMaterialModels
     for (int i=0; i<num; i++) {
-	theModels[i] = theMaterialModels[i]->getCopy();
+      theModels[i] = theMaterialModels[i]->getCopy();
     }
 
     // copy the factors
@@ -175,17 +85,17 @@ ParallelMaterial::ParallelMaterial()
 
 ParallelMaterial::~ParallelMaterial()
 {
-    // invoke the destructor on each MaterialModel object
-    for (int i=0; i<numMaterials; i++)
-	    delete theModels[i];
+  // invoke the destructor on each MaterialModel object
+  for (int i=0; i<numMaterials; i++)
+    delete theModels[i];
 
-    // now we can delete the array
-    if (theModels != 0) // just in case blank constructor called and no recvSelf()
-	    delete [] theModels;
+  // now we can delete the array
+  if (theModels != 0) // just in case blank constructor called and no recvSelf()
+    delete [] theModels;
 
-    // clean up the factors
-    if (theFactors != 0)
-        delete theFactors;
+  // clean up the factors
+  if (theFactors != 0)
+      delete theFactors;
 }
 
 
@@ -193,98 +103,98 @@ ParallelMaterial::~ParallelMaterial()
 int 
 ParallelMaterial::setTrialStrain(double strain, double strainRate)
 {
-    // set the trialStrain and the trialStrain in each of the
-    // local MaterialModel objects 
-    trialStrain = strain;
-    trialStrainRate = strainRate;
+  // set the trialStrain and the trialStrain in each of the
+  // local MaterialModel objects 
+  trialStrain = strain;
+  trialStrainRate = strainRate;
 
-    for (int i=0; i<numMaterials; i++)
-      theModels[i]->setTrialStrain(strain, strainRate);
+  for (int i=0; i<numMaterials; i++)
+    theModels[i]->setTrialStrain(strain, strainRate);
 
-    return 0;
+  return 0;
 }
 
 
 double 
-ParallelMaterial::getStrain(void)
+ParallelMaterial::getStrain()
 {
   return trialStrain;
 }
 
 double 
-ParallelMaterial::getStrainRate(void)
+ParallelMaterial::getStrainRate()
 {
     return trialStrainRate;
 }
 
 double 
-ParallelMaterial::getStress(void)
+ParallelMaterial::getStress()
 {
-    // get the stress = sum of stress in all local MaterialModel objects
-    double stress = 0.0;
-    if (theFactors == 0) {
-        for (int i=0; i<numMaterials; i++)
-            stress += theModels[i]->getStress();
-    } else {
-        for (int i=0; i<numMaterials; i++)
-            stress += (*theFactors)(i) * theModels[i]->getStress();
-    }
+  // get the stress = sum of stress in all local MaterialModel objects
+  double stress = 0.0;
+  if (theFactors == 0) {
+      for (int i=0; i<numMaterials; i++)
+          stress += theModels[i]->getStress();
+  } else {
+      for (int i=0; i<numMaterials; i++)
+          stress += (*theFactors)(i) * theModels[i]->getStress();
+  }
 
-    return stress;
+  return stress;
 }
 
 
 
 double 
-ParallelMaterial::getTangent(void)
+ParallelMaterial::getTangent()
 {
-    // get the tangent = sum of tangents in all local MaterialModel objects    
-    double E = 0.0;
-    if (theFactors == 0) {
-        for (int i=0; i<numMaterials; i++)
-            E += theModels[i]->getTangent();
-    } else {
-        for (int i=0; i<numMaterials; i++)
-            E += (*theFactors)(i) * theModels[i]->getTangent();
-    }
+  // get the tangent = sum of tangents in all local MaterialModel objects    
+  double E = 0.0;
+  if (theFactors == 0) {
+      for (int i=0; i<numMaterials; i++)
+          E += theModels[i]->getTangent();
+  } else {
+      for (int i=0; i<numMaterials; i++)
+          E += (*theFactors)(i) * theModels[i]->getTangent();
+  }
 
-    return E;
+  return E;
 }
 
 double 
-ParallelMaterial::getInitialTangent(void)
+ParallelMaterial::getInitialTangent()
 {
-    // get the tangent = sum of tangents in all local MaterialModel objects    
-    double E = 0.0;
-    if (theFactors == 0) {
-        for (int i=0; i<numMaterials; i++)
-            E += theModels[i]->getInitialTangent();
-    } else {
-        for (int i=0; i<numMaterials; i++)
-            E += (*theFactors)(i) * theModels[i]->getInitialTangent();
-    }
+  // get the tangent = sum of tangents in all local MaterialModel objects    
+  double E = 0.0;
+  if (theFactors == 0) {
+      for (int i=0; i<numMaterials; i++)
+          E += theModels[i]->getInitialTangent();
+  } else {
+      for (int i=0; i<numMaterials; i++)
+          E += (*theFactors)(i) * theModels[i]->getInitialTangent();
+  }
 
-    return E;
+  return E;
 }
 
 double 
-ParallelMaterial::getDampTangent(void)
+ParallelMaterial::getDampTangent()
 {
-    // get the damp tangent = sum of damp tangents in all local MaterialModel objects    
-    double eta = 0.0;
-    if (theFactors == 0) {
-        for (int i=0; i<numMaterials; i++)
-            eta += theModels[i]->getDampTangent();
-    } else {
-        for (int i=0; i<numMaterials; i++)
-            eta += (*theFactors)(i) * theModels[i]->getDampTangent();
-    }
+  // get the damp tangent = sum of damp tangents in all local MaterialModel objects    
+  double eta = 0.0;
+  if (theFactors == 0) {
+      for (int i=0; i<numMaterials; i++)
+          eta += theModels[i]->getDampTangent();
+  } else {
+      for (int i=0; i<numMaterials; i++)
+          eta += (*theFactors)(i) * theModels[i]->getDampTangent();
+  }
 
-    return eta;
+  return eta;
 }
 
 int 
-ParallelMaterial::commitState(void)
+ParallelMaterial::commitState()
 {
   // invoke commitState() on each of local MaterialModel objects
   for (int i=0; i<numMaterials; i++)
@@ -332,7 +242,7 @@ ParallelMaterial::revertToStart(void)
 
 
 UniaxialMaterial *
-ParallelMaterial::getCopy(void)
+ParallelMaterial::getCopy()
 {
   ParallelMaterial *theCopy = new 
     ParallelMaterial(this->getTag(), numMaterials, theModels, theFactors);
@@ -494,7 +404,7 @@ ParallelMaterial::Print(OPS_Stream &s, int flag)
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
         s << "\"name\": \"" << this->getTag() << "\", ";
         s << "\"type\": \"ParallelMaterial\", ";
         s << "\"materials\": [";
@@ -507,6 +417,7 @@ ParallelMaterial::Print(OPS_Stream &s, int flag)
                 s << (*theFactors)(i) << ", ";
             s << (*theFactors)(numMaterials-1) << "]}";
         }
+        return;
     }
 }
 

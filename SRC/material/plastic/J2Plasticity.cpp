@@ -241,14 +241,13 @@ J2Plasticity::zero()
   strain.Zero();
 }
 
-//plasticity integration routine
-int 
+
+int
 J2Plasticity::plastic_integrator()
 {
-  const double tolerance = (1.0e-8)*sigma_0 ;
+  const double tolerance = 1.0e-10*sigma_0;
 
   const double dt = ops_Dt ; // time step
-
 
   static Matrix dev_stress(3,3) ; // deviatoric stress
  
@@ -258,8 +257,6 @@ J2Plasticity::plastic_integrator()
   double inv_norm_tau = 0.0 ;
   double tang  = 0.0 ;
   
-  double theta = 0.0 ; 
-  double theta_inv = 0.0 ;
 
 
   constexpr static int max_iterations = 25 ;
@@ -304,8 +301,7 @@ J2Plasticity::plastic_integrator()
   double c2 = 0.0 ;
   double c3 = 0.0 ;
 
-  int i,j,k,l;
-  int ii, jj ;
+  double theta_inv = 0.0 ;
 
   double gamma = 0.0 ;
   if ( phi > 0.0 ) {
@@ -333,7 +329,8 @@ J2Plasticity::plastic_integrator()
 
         if ( iteration_counter > max_iterations ) {
             opserr << "More than " << max_iterations ;
-            opserr << " iterations in constituive subroutine J2-plasticity \n" ;
+            opserr << " iterations in J2-plasticity. "
+                   << "residual is " << fabs(resid) << " > " << tolerance << "\n" ;
             return -1;
         }
      }
@@ -353,7 +350,7 @@ J2Plasticity::plastic_integrator()
 
      //compute the terms for plastic part of tangent
 
-     theta =  (2.0*shear) +  2./3. * qprime(xi_nplus1);
+     double theta =  (2.0*shear) +  2./3. * qprime(xi_nplus1);
 
      if (eta > 0.0 && dt > 0.0)
         theta += (eta/dt);
@@ -361,19 +358,17 @@ J2Plasticity::plastic_integrator()
      theta_inv = 1.0/theta;
   }
 
-  else { 
-    // elastic 
+  else {
+    //
+    // Elastic 
+    //
 
     // update history variables -- they remain unchanged
 
-    epsilon_p_nplus1 = epsilon_p_n ;
-
-    xi_nplus1 = xi_n ;
-
-    //no extra tangent terms to compute 
+    epsilon_p_nplus1 = epsilon_p_n;
+    xi_nplus1 = xi_n;
     
-    gamma = 0.0 ; 
-    theta = 0.0 ;
+    gamma = 0.0; 
     theta_inv = 0.0;
 
   } // end if phi > 0
@@ -394,6 +389,8 @@ J2Plasticity::plastic_integrator()
   for (int ii = 0; ii < 6; ii++ ) {
     for (int jj = 0; jj < 6; jj++ )  {
 
+      int i,j,k,l;
+    
       index_map( ii, i, j ) ;
       index_map( jj, k, l ) ;
 
@@ -419,8 +416,6 @@ J2Plasticity::plastic_integrator()
 } 
 
 
-
-// set up for initial elastic
 void
 J2Plasticity::doInitialTangent( )
 {
@@ -548,7 +543,6 @@ J2Plasticity::commitState()
 {
   epsilon_p_n = epsilon_p_nplus1 ;
   xi_n        = xi_nplus1 ;
-
   return 0;
 }
 
@@ -582,9 +576,15 @@ J2Plasticity::setParameter(const char **argv, int argc,
   
   else if (strcmp(argv[0],"G") == 0 || strcmp(argv[0],"mu") == 0)
     return param.addObject(2, this);
-  
+
+  else if (strcmp(argv[0],"E") == 0)
+    return param.addObject(5, this);
+
   else if (strcmp(argv[0],"rho") == 0)
     return param.addObject(3, this);
+
+  else if (strcmp(argv[0],"Fy") == 0)
+    return param.addObject(4, this);
 
   return -1;
 }
@@ -602,6 +602,19 @@ J2Plasticity::updateParameter(int parameterID, Information &info)
   case 3:
     rho = info.theDouble;
     return 0;
+  case 4:
+    sigma_0 = info.theDouble;
+    return 0;
+
+  case 5: {
+    // Got E, update at constant nu
+
+    double K = bulk, G = shear;
+    double nu = (3*K - 2*G)/(2*(3*K + G));
+    shear = info.theDouble/(2*(1.0 + nu));
+    bulk = info.theDouble/(3.0*(1 - 2.0*nu));
+    return 0;
+  }
   default:
     return -1;
   }

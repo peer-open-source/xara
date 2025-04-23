@@ -113,6 +113,7 @@ Tcl_CmdProc updateElementDomain;
 Tcl_CmdProc getParamTags;
 Tcl_CmdProc TclCommand_parameter;
 Tcl_CmdProc getParamValue;
+Tcl_CmdProc TclCommand_setParameter;
 
 
 //

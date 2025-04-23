@@ -17,6 +17,7 @@
 //   Zaohui Yang      (zhyang@ucdavis.edu)
 //   Zhao Cheng       (zcheng@ucdavis.edu)
 //
+//===----------------------------------------------------------------------===//
 #include "material.hpp"
 #include <BasicModelBuilder.h>
 #include <elementAPI.h>
@@ -40,8 +41,6 @@
 // end Yuli Huang & Xinzheng Lu
 
 #include <CapPlasticity.h>           // Quan Gu & ZhiJian Qiu  2013
-#include <SimplifiedJ2.h>            // Quan Gu & ZhiJian Qiu 2013-6-26
-#include <PlaneStressSimplifiedJ2.h> // Quan Gu & ZhiJian Qiu 2013-6-26
 
 #include <BeamFiberMaterial.h>
 #include <ConcreteMcftNonLinear5.h>
@@ -53,7 +52,6 @@
 #include <PressureDependMultiYield03.h>
 #include <FluidSolidPorousMaterial.h>
 
-#include <J2PlasticityThermal.h>                 // added by L.Jiang [SIF]
 #include <PlateFiberMaterialThermal.h>           // L.Jiang [SIF]
 #include <PlateFromPlaneStressMaterialThermal.h> // Liming Jiang [SIF]
 #include <PlateRebarMaterialThermal.h>           // Liming Jiang [SIF]
@@ -64,8 +62,6 @@
 extern NDMaterial *Tcl_addWrapperNDMaterial(matObj *, ClientData, Tcl_Interp *,
                                             int, TCL_Char **);
 #endif
-extern OPS_Routine OPS_J2BeamFiber2dMaterial;
-extern OPS_Routine OPS_J2BeamFiber3dMaterial;
 
 #if defined(OPSDEF_Material_FEAP)
 NDMaterial *TclBasicBuilder_addFeapMaterial(ClientData clientData,
@@ -189,18 +185,6 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
   if (tcl_cmd != material_dispatch.end()) {
     void* theMat = (*tcl_cmd->second)(rt, argc, &argv[0]);
     if (theMat != nullptr)
-      theMaterial = (NDMaterial *)theMat;
-    else
-      return TCL_ERROR;
-  }
-  else if (strcmp(argv[1], "J2BeamFiber") == 0) {
-    void *theMat = 0;
-    if (builder->getNDM() == 2)
-      theMat = OPS_J2BeamFiber2dMaterial(rt, argc, argv);
-    else
-      theMat = OPS_J2BeamFiber3dMaterial(rt, argc, argv);
-
-    if (theMat != 0)
       theMaterial = (NDMaterial *)theMat;
     else
       return TCL_ERROR;
@@ -1361,69 +1345,9 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
     theMaterial = new PlateRebarMaterialThermal(tag, *theMat, angle);
 //
-  } else if ((strcmp(argv[1], "J2PlasticityThermal") == 0) ||
-             (strcmp(argv[1], "J2Thermal") == 0)) {
-    if (argc < 9) {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: nDMaterial J2PlasticityThermal tag? K? G? sig0? sigInf? "
-                "delta? H? <eta?>"
-             << "\n";
-      return TCL_ERROR;
-    }
+  }
 
-    int tag;
-    double K, G, sig0, sigInf, delta, H;
-    double eta = 0.0;
-
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid J2PlasticityThermal tag" << "\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[3], &K) != TCL_OK) {
-      opserr << "WARNING invalid K\n";
-      opserr << "nDMaterial J2PlasticityThermal: " << tag << "\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[4], &G) != TCL_OK) {
-      opserr << "WARNING invalid G\n";
-      opserr << "nDMaterial J2PlasticityThermal: " << tag << "\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[5], &sig0) != TCL_OK) {
-      opserr << "WARNING invalid sig0\n";
-      opserr << "nDMaterial J2PlasticityThermal: " << tag << "\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[6], &sigInf) != TCL_OK) {
-      opserr << "WARNING invalid sigInf\n";
-      opserr << "nDMaterial J2PlasticityThermal: " << tag << "\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[7], &delta) != TCL_OK) {
-      opserr << "WARNING invalid delta\n";
-      opserr << "nDMaterial J2PlasticityThermal: " << tag << "\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[8], &H) != TCL_OK) {
-      opserr << "WARNING invalid H\n";
-      opserr << "nDMaterial J2PlasticityThermal: " << tag << "\n";
-      return TCL_ERROR;
-    }
-    if (argc > 9 && Tcl_GetDouble(interp, argv[9], &eta) != TCL_OK) {
-      opserr << "WARNING invalid eta\n";
-      opserr << "nDMaterial J2PlasticityThermal: " << tag << "\n";
-      return TCL_ERROR;
-    }
-
-    theMaterial =
-        new J2PlasticityThermal(tag, 0, K, G, sig0, sigInf, delta, H, eta);
-
-  } else if (strcmp(argv[1], "PlateFiberMaterialThermal") == 0 ||
+  else if (strcmp(argv[1], "PlateFiberMaterialThermal") == 0 ||
              strcmp(argv[1], "PlateFiberThermal") == 0) {
     if (argc < 4) {
       opserr << "WARNING insufficient arguments\n";

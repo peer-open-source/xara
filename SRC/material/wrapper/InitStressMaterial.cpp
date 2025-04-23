@@ -20,8 +20,7 @@
 //
 // Written: fmk
 // Created: Sep 2010
-
-#include <stdlib.h>
+//
 #include <math.h>
 
 #include <InitStressMaterial.h>
@@ -32,50 +31,8 @@
 #include <Information.h>
 #include <Parameter.h>
 
-#include <OPS_Globals.h>
-
-#include <elementAPI.h>
-#define OPS_Export 
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_InitStressMaterial)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-  UniaxialMaterial *theOtherMaterial = 0;
-
-  int    iData[2];
-  double dData[1];
-  int numData = 2;
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial InitStressMaterial $tag $otherTag" << endln;
-    return 0;
-  }
-
-  theOtherMaterial = OPS_GetUniaxialMaterial(iData[1]);
-  if (theOtherMaterial == 0) {
-    opserr << "Could not find material with tag: " << iData[1] << "uniaxialMaterial InitStress $tag $otherTag $sig0" << endln;
-    return 0;	
-  }
-
-  numData = 1;
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid Args want: uniaxialMaterial InitStress $tag $otherTag $sig0" << endln;
-    return 0;	
-  }
-
-  // Parsing was successful, allocate the material
-  theMaterial = new InitStressMaterial(iData[0], *theOtherMaterial, dData[0]);
-
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type InitStressMaterial\n";
-    return 0;
-  }
-
-  return theMaterial;
-}
-
 int
-InitStressMaterial::findInitialStrain(void)
+InitStressMaterial::findInitialStrain()
 {
   // determine the initial strain
   double tol  = fabs(sigInit)*1e-12;
@@ -107,17 +64,12 @@ InitStressMaterial::findInitialStrain(void)
 }
 
 InitStressMaterial::InitStressMaterial(int tag, 
-				       UniaxialMaterial &material,
-				       double sigini)
+                                        UniaxialMaterial &material,
+                                        double sigini)
   :UniaxialMaterial(tag,MAT_TAG_InitStress), theMaterial(0),
    epsInit(0.0), sigInit(sigini)
 {
   theMaterial = material.getCopy();
-
-  if (theMaterial == 0) {
-    opserr <<  "InitStressMaterial::InitStressMaterial -- failed to get copy of material\n";
-    exit(-1);
-  }
 
   if (this->findInitialStrain() == 0)
     theMaterial->commitState();
@@ -143,49 +95,49 @@ InitStressMaterial::setTrialStrain(double strain, double strainRate)
 }
 
 double 
-InitStressMaterial::getStress(void)
+InitStressMaterial::getStress()
 {
   return theMaterial->getStress();
 }
 
 double 
-InitStressMaterial::getTangent(void)
+InitStressMaterial::getTangent()
 {
   return theMaterial->getTangent();  
 }
 
 double 
-InitStressMaterial::getDampTangent(void)
+InitStressMaterial::getDampTangent()
 {
   return theMaterial->getDampTangent();
 }
 
 double 
-InitStressMaterial::getStrain(void)
+InitStressMaterial::getStrain()
 {
   return theMaterial->getStrain();
 }
 
 double 
-InitStressMaterial::getStrainRate(void)
+InitStressMaterial::getStrainRate()
 {
   return theMaterial->getStrainRate();
 }
 
 int 
-InitStressMaterial::commitState(void)
+InitStressMaterial::commitState()
 {	
   return theMaterial->commitState();
 }
 
 int 
-InitStressMaterial::revertToLastCommit(void)
+InitStressMaterial::revertToLastCommit()
 {
   return theMaterial->revertToLastCommit();
 }
 
 int 
-InitStressMaterial::revertToStart(void)
+InitStressMaterial::revertToStart()
 {
   int res = 0;
   res = theMaterial->revertToStart();
@@ -195,7 +147,7 @@ InitStressMaterial::revertToStart(void)
 }
 
 UniaxialMaterial *
-InitStressMaterial::getCopy(void)
+InitStressMaterial::getCopy()
 {
   InitStressMaterial *theCopy = 
     new InitStressMaterial(this->getTag(), *theMaterial, sigInit);
@@ -281,9 +233,18 @@ InitStressMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 InitStressMaterial::Print(OPS_Stream &s, int flag)
 {
-  s << "InitStressMaterial tag: " << this->getTag() << endln;
-  s << "\tMaterial: " << theMaterial->getTag() << endln;
-  s << "\tinitital strain: " << epsInit << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"initial_stress\": " << sigInit;
+    s << "}";
+    return;
+  }
+  else {
+    s << "InitStressMaterial tag: " << this->getTag() << endln;
+    s << "\tMaterial: " << theMaterial->getTag() << endln;
+    s << "\tinitital strain: " << epsInit << endln;
+  }
 }
 
 int 
@@ -325,7 +286,7 @@ InitStressMaterial::getInitialTangentSensitivity(int gradIndex)
 
 int
 InitStressMaterial::commitSensitivity(double strainGradient, 
-				      int gradIndex, int numGrads)
+                                      int gradIndex, int numGrads)
 {
   return theMaterial->commitSensitivity(strainGradient, gradIndex, numGrads);
 }

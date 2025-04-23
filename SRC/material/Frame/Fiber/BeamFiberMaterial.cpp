@@ -211,15 +211,13 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     threeDstrain(4) = this->Tgamma23;
     threeDstrain(5) = this->strain(2);
 
-    if (theMaterial->setTrialStrain(threeDstrain) < 0) {
-      opserr << "BeamFiberMaterial::setTrialStrain - setStrain failed in material with strain " << threeDstrain;
-      return -1;   
-    }
+    if (theMaterial->setTrialStrain(threeDstrain) < 0)
+      return -1;
 
-    //three dimensional stress
+    // three dimensional stress
     const Vector &threeDstress = theMaterial->getStress();
 
-    //three dimensional tangent 
+    // three dimensional tangent 
     const Matrix &threeDtangent = theMaterial->getTangent();
 
     //NDmaterial strain order        = 11, 22, 33, 12, 23, 31  

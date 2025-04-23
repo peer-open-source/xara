@@ -70,7 +70,7 @@ class Steel02Fatigue : public UniaxialMaterial
     virtual ~Steel02Fatigue();
     
 
-    const char *getClassType(void) const {return "Steel02Fatigue";};
+    const char *getClassType(void) const {return "Steel02Fatigue";}
 
     double getInitialTangent(void);
     UniaxialMaterial *getCopy(void);

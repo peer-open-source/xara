@@ -72,6 +72,11 @@ public:
     return OpenSees::Flag::Success;
   }
 
+  // Element: Parameters
+  virtual int setParameter(const char **argv, int argc, Parameter &);
+  virtual int updateParameter(int parameterID, Information &);
+  virtual int activateParameter(int parameterID);
+
   Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
   virtual int getResponse(int responseID, Information &) final;
 
@@ -146,6 +151,8 @@ public:
     //
     VectorND<nen*ndf> p;
     MatrixND<nen*ndf,nen*ndf> K;
+    // Parameters
+    int parameterID;
 };
 
 } // namespace OpenSees

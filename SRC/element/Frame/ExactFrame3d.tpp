@@ -327,7 +327,10 @@ ExactFrame3d<nen,nwm>::update()
     }
 
     FrameSection& section = *pres[i].material;
-    section.setTrialState<nsr,scheme>(e);
+
+    if (section.template setTrialState<nsr,scheme>(e) != 0)
+      return -1;
+
     VectorND<nsr> s = section.getResultant<nsr,scheme>();
     MatrixND<nsr,nsr> Ks = section.getTangent<nsr,scheme>(State::Pres);
 
@@ -485,8 +488,7 @@ template<std::size_t nen, int nwm>
 Response*
 ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& output)
 {
-  for (int i=0; i<argc; i++)
-    opserr << argv[i] << " ";
+  
   Response* theResponse = nullptr;
   double L = 0;
   if (this->setState(State::Init) == 0) {
@@ -780,6 +782,112 @@ ExactFrame3d<nen,nwm>::Print(OPS_Stream& stream, int flag)
     stream << "\"transform\": " << transform->getTag()  ;
     stream << "}";
   }
+}
+
+template<std::size_t nen, int nwm>
+int
+ExactFrame3d<nen,nwm>::setParameter(const char** argv, int argc, Parameter& param)
+{
+  if (argc < 1)
+    return -1;
+
+  int result = -1;
+
+
+  // Section response
+  if (strstr(argv[0], "sectionX") != 0) {
+    if (argc > 2) {
+      float sectionLoc = atof(argv[1]);
+
+      const int numSections = pres.size();
+      double xi[nip];
+      double L = jxs;
+      stencil->getSectionLocations(numSections, L, xi);
+
+      sectionLoc /= L;
+
+      float minDistance = fabs(xi[0] - sectionLoc);
+      int sectionNum    = 0;
+      for (int i = 1; i < numSections; i++) {
+        if (fabs(pres[i].point - sectionLoc) < minDistance) {
+          minDistance = fabs(pres[i].point - sectionLoc);
+          sectionNum  = i;
+        }
+      }
+
+      return pres[sectionNum].material->setParameter(&argv[2], argc - 2, param);
+    }
+  }
+
+  // If the parameter belongs to a particular section or lower
+  if (strstr(argv[0], "section") != 0) {
+
+    if (argc < 3)
+      return -1;
+
+    // Get section number
+    int sectionNum = atoi(argv[1]);
+
+    if (sectionNum > 0 && sectionNum <= (int)pres.size())
+      return pres[sectionNum - 1].material->setParameter(&argv[2], argc - 2, param);
+
+    else
+      return -1;
+  }
+
+  // If the parameter belongs to all sections or lower
+  if (strstr(argv[0], "allSections") != 0) {
+
+    if (argc < 2)
+      return -1;
+
+    for (GaussPoint& point : pres) {
+      int ok = point.material->setParameter(&argv[1], argc - 1, param);
+      if (ok != -1)
+        result = ok;
+    }
+
+    return result;
+  }
+
+  if (strstr(argv[0], "integration") != 0) {
+
+    if (argc < 2)
+      return -1;
+
+    return stencil->setParameter(&argv[1], argc - 1, param);
+  }
+
+  // Default, send to everything
+
+  for (GaussPoint& point : pres) {
+    int ok = point.material->setParameter(argv, argc, param);
+    if (ok != -1)
+      result = ok;
+  }
+
+  int ok = stencil->setParameter(argv, argc, param);
+  if (ok != -1)
+    result = ok;
+
+  return result;
+}
+
+
+template<std::size_t nen, int nwm>
+int
+ExactFrame3d<nen,nwm>::updateParameter(int parameterID, Information& info)
+{
+  return -1;
+}
+
+
+template<std::size_t nen, int nwm>
+int
+ExactFrame3d<nen,nwm>::activateParameter(int passedParameterID)
+{
+  parameterID = passedParameterID;
+  return 0;
 }
 
 } // namespace OpenSees

@@ -40,16 +40,6 @@
 #include <math.h>
 #include <float.h>
 
-/*
-#ifdef _USRDLL
-#define OPS_Export extern "C" _declspec(dllexport)
-#elif _MACOSX
-#define OPS_Export extern "C" __attribute__((visibility("default")))
-#else
-#define OPS_Export extern "C"
-#endif
-*/
-
 
 //OPS_Export void *
 void * OPS_ADD_RUNTIME_VPV(OPS_SteelDRC)

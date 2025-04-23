@@ -23,7 +23,7 @@
 //
 // Description: Elastic isotropic model where stress components 22, 33, and 23
 // are condensed out.
-
+//
 #ifndef J2BeamFiber2d_h
 #define J2BeamFiber2d_h
 
@@ -40,7 +40,7 @@
 class J2BeamFiber2d : public NDMaterial
 {
   public:
-  J2BeamFiber2d (int tag, double E, double G, double sigY, double Hi, double Hk);
+  J2BeamFiber2d(int tag, double E, double G, double sigY, double Hi, double Hk);
   J2BeamFiber2d ();
   ~J2BeamFiber2d ();
 

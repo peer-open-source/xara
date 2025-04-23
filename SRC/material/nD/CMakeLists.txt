@@ -36,8 +36,6 @@ target_sources(OPS_Material
     CycLiqCPSP3D.cpp
     # WrapperNDMaterial.cpp
     MinMaxNDMaterial.cpp
-    InitStressNDMaterial.cpp
-    InitStrainNDMaterial.cpp
     ConcreteMcftNonLinear5.cpp
     ConcreteMcftNonLinear7.cpp
     CapPlasticity.cpp
@@ -85,8 +83,6 @@ target_sources(OPS_Material
     CycLiqCPSP3D.h
     # WrapperNDMaterial.h
     MinMaxNDMaterial.h
-    InitStressNDMaterial.h
-    InitStrainNDMaterial.h
     ConcreteMcftNonLinear5.h
     ConcreteMcftNonLinear7.h
     CapPlasticity.h

@@ -41,7 +41,7 @@
 
 
 UniaxialJ2Plasticity::UniaxialJ2Plasticity(int pTag, double pE, double pSigmaY,
-                     double pHkin, double pHiso)
+                                           double pHkin, double pHiso)
 :UniaxialMaterial(pTag,MAT_TAG_UniaxialJ2Plasticity),
  E(pE), sigmaY(pSigmaY), Hiso(pHiso), Hkin(pHkin)
 {

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <InitStrainNDMaterial.h>
+#include "InitStrainNDMaterial.h"
 #include <Matrix.h>
 #include <ID.h>
 #include <Channel.h>
@@ -102,167 +102,175 @@ OPS_ADD_RUNTIME_VPV(OPS_InitStrainNDMaterial)
     return theMaterial;
 }
 
-InitStrainNDMaterial::InitStrainNDMaterial(int tag, NDMaterial& material, const Vector& eps0)
+template <std::size_t ns>
+InitialStrain<ns>::InitStrainNDMaterial(int tag, NDMaterial& material, const VectorND<ns>& eps0)
     : NDMaterial(tag, ND_TAG_InitStrainNDMaterial)
     , theMaterial(nullptr)
-    , epsInit(eps0)
+    , initial_strain(eps0)
 {
-    // get copy of the main material
-    theMaterial = material.getCopy("ThreeDimensional");
-    if (theMaterial == nullptr) {
-        opserr << "InitStrainNDMaterial::InitStrainNDMaterial -- failed to get copy of material (a 3D material is required)\n";
-        exit(-1);
-    }
-
-    // make sure the input strain vector is of correct size
-    if (epsInit.Size() != 6) {
-        opserr << "InitStrainNDMaterial::InitStrainNDMaterial -- input eps0 vector of incorrect size\n";
-        exit(-1);
-    }
+    theMaterial = material.getCopy();
 }
 
-InitStrainNDMaterial::InitStrainNDMaterial(int tag, NDMaterial& material, double eps0)
+template <std::size_t ns>
+InitialStrain<ns>::InitStrainNDMaterial(int tag, NDMaterial& material, double eps0)
     : NDMaterial(tag, ND_TAG_InitStrainNDMaterial)
     , theMaterial(0)
 {
     // get copy of the main material
     theMaterial = material.getCopy("ThreeDimensional");
     if (theMaterial == nullptr) {
-        opserr << "InitStrainNDMaterial::InitStrainNDMaterial -- failed to get copy of material (a 3D material is required)\n";
+        opserr << "InitialStrain<ns>::InitStrainNDMaterial -- failed to get copy of material (a 3D material is required)\n";
         exit(-1);
     }
 
-    // initialize epsInit
-    epsInit.resize(6);
-    epsInit.Zero();
+    // initialize initial_strain
+    initial_strain.resize(6);
+    initial_strain.Zero();
     for (int i = 0; i < 3; ++i)
-        epsInit(i) = eps0;
+        initial_strain(i) = eps0;
 }
 
-InitStrainNDMaterial::InitStrainNDMaterial()
+template <std::size_t ns>
+InitialStrain<ns>::InitStrainNDMaterial()
     : NDMaterial(0, ND_TAG_InitStrainNDMaterial)
     , theMaterial(nullptr)
-    , epsInit(6)
+    , initial_strain(6)
 {
 
 }
 
-InitStrainNDMaterial::~InitStrainNDMaterial()
+template <std::size_t ns>
+InitialStrain<ns>::~InitStrainNDMaterial()
 {
     if (theMaterial)
         delete theMaterial;
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::setTrialStrain(const Vector& strain)
+InitialStrain<ns>::setTrialStrain(const Vector& strain)
 {
     static Vector total_strain(6);
     total_strain = strain;
-    total_strain.addVector(1.0, epsInit, 1.0);
+    total_strain.addVector(1.0, initial_strain, 1.0);
     return theMaterial->setTrialStrain(total_strain);
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::setTrialStrain(const Vector& strain, const Vector& /*strainRate*/)
+InitialStrain<ns>::setTrialStrain(const Vector& strain, const Vector& /*strainRate*/)
 {
     return setTrialStrain(strain);
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::setTrialStrainIncr(const Vector& strain)
+InitialStrain<ns>::setTrialStrainIncr(const Vector& strain)
 {
-    static Vector strain_from_ele(6);
+    static Vector strain_from_ele(ns);
     strain_from_ele = theMaterial->getStrain();
-    strain_from_ele.addVector(1.0, epsInit, -1.0);
+    strain_from_ele.addVector(1.0, initial_strain, -1.0);
     strain_from_ele.addVector(1.0, strain, 1.0);
     return setTrialStrain(strain_from_ele);
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::setTrialStrainIncr(const Vector& strain, const Vector& /*strainRate*/)
+InitialStrain<ns>::setTrialStrainIncr(const Vector& strain, const Vector& /*strainRate*/)
 {
     return setTrialStrainIncr(strain);
 }
 
+template <std::size_t ns>
 const Vector&
-InitStrainNDMaterial::getStress(void)
+InitialStrain<ns>::getStress()
 {
     return theMaterial->getStress();
 }
 
+template <std::size_t ns>
 const Matrix&
-InitStrainNDMaterial::getTangent(void)
+InitialStrain<ns>::getTangent()
 {
     return theMaterial->getTangent();
 }
 
+template <std::size_t ns>
 const Matrix&
-InitStrainNDMaterial::getInitialTangent(void)
+InitialStrain<ns>::getInitialTangent()
 {
     return theMaterial->getInitialTangent();
 }
 
+template <std::size_t ns>
 const Vector&
-InitStrainNDMaterial::getStrain(void)
+InitialStrain<ns>::getStrain()
 {
     return theMaterial->getStrain();
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::commitState(void)
+InitialStrain<ns>::commitState()
 {
     return theMaterial->commitState();
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::revertToLastCommit(void)
+InitialStrain<ns>::revertToLastCommit()
 {
     return theMaterial->revertToLastCommit();
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::revertToStart(void)
+InitialStrain<ns>::revertToStart()
 {
     return theMaterial->revertToStart();
 }
 
 double
-InitStrainNDMaterial::getRho(void)
+InitialStrain<ns>::getRho()
 {
     return theMaterial->getRho();
 }
 
 NDMaterial*
-InitStrainNDMaterial::getCopy(void)
+InitialStrain<ns>::getCopy()
 {
-    InitStrainNDMaterial* theCopy = new InitStrainNDMaterial(getTag(), *theMaterial, epsInit);
-    return theCopy;
+    return new InitStrainNDMaterial(getTag(), *theMaterial, initial_strain);
 }
 
 NDMaterial *
-InitStrainNDMaterial::getCopy(const char *type)
+InitialStrain<ns>::getCopy(const char *type)
 {
+    NDMaterial *new_inner = theMaterial->getCopy(type);
+    switch (new_inner->getOrder()) {
+        
+    }
     if (strcmp(type, "ThreeDimensional") == 0)
         return getCopy();
     return NDMaterial::getCopy(type);
 }
 
 const char*
-InitStrainNDMaterial::getType(void) const
+InitialStrain<ns>::getType() const
 {
     return theMaterial->getType();
 }
 
-int InitStrainNDMaterial::getOrder(void) const
+int InitialStrain<ns>::getOrder() const
 {
     return 6;
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::sendSelf(int cTag, Channel& theChannel)
+InitialStrain<ns>::sendSelf(int cTag, Channel& theChannel)
 {
     if (theMaterial == nullptr) {
-        opserr << "InitStrainNDMaterial::sendSelf() - theMaterial is null, nothing to send" << endln;
+        opserr << "InitialStrain<ns>::sendSelf() - theMaterial is null, nothing to send" << endln;
         return -1;
     }
 
@@ -278,32 +286,32 @@ InitStrainNDMaterial::sendSelf(int cTag, Channel& theChannel)
     }
     dataID(2) = matDbTag;
     if (theChannel.sendID(dbTag, cTag, dataID) < 0) {
-        opserr << "InitStrainNDMaterial::sendSelf() - failed to send the ID\n";
+        opserr << "InitialStrain<ns>::sendSelf() - failed to send the ID\n";
         return -1;
     }
 
-    if (theChannel.sendVector(dbTag, cTag, epsInit) < 0) {
-        opserr << "InitStrainNDMaterial::sendSelf() - failed to send epsInit\n";
+    if (theChannel.sendVector(dbTag, cTag, initial_strain) < 0) {
+        opserr << "InitialStrain<ns>::sendSelf() - failed to send initial_strain\n";
         return -2;
     }
 
     if (theMaterial->sendSelf(cTag, theChannel) < 0) {
-        opserr << "InitStrainNDMaterial::sendSelf() - failed to send the Material\n";
+        opserr << "InitialStrain<ns>::sendSelf() - failed to send the Material\n";
         return -3;
     }
 
     return 0;
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::recvSelf(int cTag, Channel& theChannel,
-    FEM_ObjectBroker& theBroker)
+InitialStrain<ns>::recvSelf(int cTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
     int dbTag = this->getDbTag();
 
     static ID dataID(3);
     if (theChannel.recvID(dbTag, cTag, dataID) < 0) {
-        opserr << "InitStrainNDMaterial::recvSelf() - failed to get the ID\n";
+        opserr << "InitialStrain<ns>::recvSelf() - failed to get the ID\n";
         return -1;
     }
     setTag(dataID(0));
@@ -313,21 +321,21 @@ InitStrainNDMaterial::recvSelf(int cTag, Channel& theChannel,
         int matClassTag = dataID(1);
         theMaterial = theBroker.getNewNDMaterial(matClassTag);
         if (theMaterial == 0) {
-            opserr << "InitStrainNDMaterial::recvSelf() - failed to create Material with classTag "
+            opserr << "InitialStrain<ns>::recvSelf() - failed to create Material with classTag "
                 << matClassTag << endln;
             return -2;
         }
     }
     theMaterial->setDbTag(dataID(2));
 
-    epsInit.resize(6);
-    if (theChannel.recvVector(dbTag, cTag, epsInit) < 0) {
-        opserr << "InitStrainNDMaterial::recvSelf() - failed to get the epsInit vector\n";
+    initial_strain.resize(6);
+    if (theChannel.recvVector(dbTag, cTag, initial_strain) < 0) {
+        opserr << "InitialStrain<ns>::recvSelf() - failed to get the initial_strain vector\n";
         return -3;
     }
 
     if (theMaterial->recvSelf(cTag, theChannel, theBroker) < 0) {
-        opserr << "InitStrainNDMaterial::recvSelf() - failed to get the Material\n";
+        opserr << "InitialStrain<ns>::recvSelf() - failed to get the Material\n";
         return -4;
     }
 
@@ -335,92 +343,101 @@ InitStrainNDMaterial::recvSelf(int cTag, Channel& theChannel,
 }
 
 void
-InitStrainNDMaterial::Print(OPS_Stream& s, int flag)
+InitialStrain<ns>::Print(OPS_Stream& s, int flag)
 {
     s << "InitStrainNDMaterial tag: " << this->getTag() << endln;
     s << "\tMaterial: " << theMaterial->getTag() << endln;
-    s << "\tinitital strain: " << epsInit << endln;
+    s << "\tinitital strain: " << initial_strain << endln;
 }
 
+template <std::size_t ns>
 int
-InitStrainNDMaterial::setParameter(const char** argv, int argc, Parameter& param)
+InitialStrain<ns>::setParameter(const char** argv, int argc, Parameter& param)
 {
     if (argc > 0) {
         if (strcmp(argv[0], "eps0") == 0) {
             // eps0 is assumed to impose with a single scalar a volumetric stress = I*eps0
-            param.setValue(epsInit(0));
+            param.setValue(initial_strain(0));
             return param.addObject(param_base_index, this);
         }
         else if (strcmp(argv[0], "eps0_11") == 0) {
-            param.setValue(epsInit(0));
+            param.setValue(initial_strain(0));
             return param.addObject(param_base_index + 1, this);
         }
         else if (strcmp(argv[0], "eps0_22") == 0) {
-            param.setValue(epsInit(1));
+            param.setValue(initial_strain(1));
             return param.addObject(param_base_index + 2, this);
         }
         else if (strcmp(argv[0], "eps0_33") == 0) {
-            param.setValue(epsInit(2));
+            param.setValue(initial_strain(2));
             return param.addObject(param_base_index + 3, this);
         }
         else if (strcmp(argv[0], "eps0_12") == 0) {
-            param.setValue(epsInit(3));
+            param.setValue(initial_strain(3));
             return param.addObject(param_base_index + 4, this);
         }
         else if (strcmp(argv[0], "eps0_23") == 0) {
-            param.setValue(epsInit(4));
+            param.setValue(initial_strain(4));
             return param.addObject(param_base_index + 5, this);
         }
         else if (strcmp(argv[0], "eps0_13") == 0) {
-            param.setValue(epsInit(5));
+            param.setValue(initial_strain(5));
             return param.addObject(param_base_index + 6, this);
         }
     }
     return theMaterial->setParameter(argv, argc, param);
 }
 
-int InitStrainNDMaterial::updateParameter(int parameterID, Information& info)
+template <std::size_t ns>
+int
+InitialStrain<ns>::updateParameter(int parameterID, Information& info)
 {
     switch (parameterID) {
     case param_base_index:
-        epsInit(0) = epsInit(1) = epsInit(2) = info.theDouble;
+        initial_strain(0) = initial_strain(1) = initial_strain(2) = info.theDouble;
         return 0;
     case param_base_index + 1:
-        epsInit(0) = info.theDouble;
+        initial_strain(0) = info.theDouble;
         return 0;
     case param_base_index + 2:
-        epsInit(1) = info.theDouble;
+        initial_strain(1) = info.theDouble;
         return 0;
     case param_base_index + 3:
-        epsInit(2) = info.theDouble;
+        initial_strain(2) = info.theDouble;
         return 0;
     case param_base_index + 4:
-        epsInit(3) = info.theDouble;
+        initial_strain(3) = info.theDouble;
         return 0;
     case param_base_index + 5:
-        epsInit(4) = info.theDouble;
+        initial_strain(4) = info.theDouble;
         return 0;
     case param_base_index + 6:
-        epsInit(5) = info.theDouble;
+        initial_strain(5) = info.theDouble;
         return 0;
     default:
         return -1;
     }
 }
 
-Response* InitStrainNDMaterial::setResponse(const char** argv, int argc, OPS_Stream& output)
+template <std::size_t ns>
+Response* 
+InitialStrain<ns>::setResponse(const char** argv, int argc, OPS_Stream& output)
 {
     return theMaterial->setResponse(argv, argc, output);
 }
 
+
+template <std::size_t ns>
 const Vector&
-InitStrainNDMaterial::getStressSensitivity(int gradIndex, bool conditional)
+InitialStrain<ns>::getStressSensitivity(int gradIndex, bool conditional)
 {
     return theMaterial->getStressSensitivity(gradIndex, conditional);
 }
 
+
+template <std::size_t ns>
 int
-InitStrainNDMaterial::commitSensitivity(const Vector& depsdh,
+InitialStrain<ns>::commitSensitivity(const Vector& depsdh,
     int gradIndex, int numGrads)
 {
     return theMaterial->commitSensitivity(depsdh, gradIndex, numGrads);

@@ -42,7 +42,7 @@
 
 #include <ElasticMaterial.h>
 #include <ElasticPPMaterial.h>
-#include <ParallelMaterial.h>
+#include <wrapper/ParallelMaterial.h>
 #include <EPPGapMaterial.h>
 
 #include <math.h>

@@ -29,11 +29,13 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/nDMaterial.cpp"
     "modeling/uniaxialMaterial.cpp"
     "modeling/uniaxial.cpp"
+    "modeling/material/shell.cpp"
+    "modeling/material/fedeas.cpp"
+    "modeling/material/legacy.cpp"
+    "modeling/material/wrapper.cpp"
     "modeling/material/plastic.cpp"
     "modeling/material/elastic.cpp"
     "modeling/material/isotropy.cpp"
-    "modeling/material/fedeas.cpp"
-    "modeling/material/shell.cpp"
 
     "modeling/printing.cpp"
 
