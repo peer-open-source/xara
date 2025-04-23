@@ -83,7 +83,7 @@ HystereticBackbone::getVariable (int varID, double &theValue)
 }
 
 int
-HystereticBackbone::setParameter(char **argv, int argc, Information &eleInformation)
+HystereticBackbone::setParameter(char **argv, int argc, Parameter &)
 {
   return -1;
 }

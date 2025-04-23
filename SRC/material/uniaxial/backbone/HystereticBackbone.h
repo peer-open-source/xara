@@ -35,6 +35,7 @@
 #include <MovableObject.h>
 
 class Information;
+class Parameter;
 
 class HystereticBackbone : public TaggedObject, public MovableObject
 {
@@ -53,7 +54,7 @@ class HystereticBackbone : public TaggedObject, public MovableObject
   virtual int setVariable(char *argv);
   virtual int getVariable(int varID, double &theValue);
   
-  virtual int setParameter(char **argv, int argc, Information &eleInformation);
+  virtual int setParameter(char **argv, int argc, Parameter &eleInformation);
   virtual int updateParameter(int responseID, Information &eleInformation);	
   
  protected:
