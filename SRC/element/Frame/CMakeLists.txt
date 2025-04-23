@@ -5,9 +5,7 @@
 #
 #==============================================================================
 
-target_sources(OPS_Runtime PRIVATE commands.cpp)
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang|GNU")
+if (FALSE) #CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang|GNU")
   target_compile_options(OPS_Runtime PRIVATE -g -save-temps=obj -fverbose-asm)
 endif()
 

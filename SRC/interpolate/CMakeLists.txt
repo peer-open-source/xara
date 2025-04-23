@@ -6,7 +6,6 @@
 #==============================================================================
 target_sources(OPS_Matrix
   PRIVATE
-    cbdi.cpp
     shp3d.cpp
     shp3dv.cpp
     nurbs.cpp

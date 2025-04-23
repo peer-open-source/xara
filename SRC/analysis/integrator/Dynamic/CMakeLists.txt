@@ -1,0 +1,74 @@
+#==============================================================================
+# 
+#        OpenSees -- Open System For Earthquake Engineering Simulation
+#                Pacific Earthquake Engineering Research Center
+#
+#==============================================================================
+target_sources(OPS_Analysis
+    PRIVATE
+        AlphaOS.cpp
+        AlphaOSGeneralized.cpp
+        AlphaOSGeneralized_TP.cpp
+        AlphaOS_TP.cpp
+        BackwardEuler.cpp
+        CentralDifferenceAlternative.cpp
+        CentralDifference.cpp
+        CentralDifferenceNoDamping.cpp
+        Collocation.cpp
+        ExplicitDifference.cpp
+        GeneralizedAlpha.cpp
+        GimmeMCK.cpp
+        HHT.cpp
+        HHTExplicit.cpp
+        HHTExplicit_TP.cpp
+        HHTGeneralized.cpp
+        HHTGeneralizedExplicit.cpp
+        HHTGeneralized_TP.cpp
+        HHT_TP.cpp
+        Houbolt.cpp
+        KRAlphaExplicit.cpp
+        KRAlphaExplicit_TP.cpp
+        Newmark1.cpp
+        Newmark.cpp
+        GeneralizedNewmark.cpp
+        NewmarkExplicit.cpp
+        ParkLMS3.cpp
+#       PFEMIntegrator.cpp
+        TRBDF2.cpp
+        TRBDF3.cpp
+        WilsonTheta.cpp
+    PUBLIC
+        AlphaOSGeneralized.h
+        AlphaOSGeneralized_TP.h
+        AlphaOS.h
+        AlphaOS_TP.h
+        BackwardEuler.h
+        CentralDifferenceAlternative.h
+        CentralDifference.h
+        CentralDifferenceNoDamping.h
+        Collocation.h
+        ExplicitDifference.h
+        GeneralizedAlpha.h
+        GimmeMCK.h
+        HHTExplicit.h
+        HHTExplicit_TP.h
+        HHTGeneralizedExplicit.h
+        HHTGeneralized.h
+        HHTGeneralized_TP.h
+        HHT.h
+        HHT_TP.h
+        Houbolt.h
+        KRAlphaExplicit.h
+        KRAlphaExplicit_TP.h
+        Newmark1.h
+        NewmarkExplicit.h
+        Newmark.h
+        GeneralizedNewmark.h
+        ParkLMS3.h
+#       PFEMIntegrator.h
+        TRBDF2.h
+        TRBDF3.h
+        WilsonTheta.h
+)
+target_include_directories(OPS_Analysis PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
