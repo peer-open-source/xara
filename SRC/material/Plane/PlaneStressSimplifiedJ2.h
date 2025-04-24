@@ -30,8 +30,8 @@ class PlaneStressSimplifiedJ2 : public NDMaterial
   
   virtual ~PlaneStressSimplifiedJ2 ();
   
-  const char *getClassType(void) const {return "PlaneStressSimplifiedJ2";};
-  const char *getType(void) const{ return "PlaneStress";};
+  const char *getClassType(void) const {return "PlaneStressSimplifiedJ2";}
+  const char *getType(void) const{ return "PlaneStress";}
   int setTrialStrain (const Vector &strain);
   int setTrialStrain(const Vector &v, const Vector &r);
   int setTrialStrainIncr(const Vector &v);

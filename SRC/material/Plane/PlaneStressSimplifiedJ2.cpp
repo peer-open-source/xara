@@ -336,19 +336,22 @@ PlaneStressSimplifiedJ2::getResponse(int responseID, Information &matInfo)
  
 
 	return 0;
-};
+}
 
-void PlaneStressSimplifiedJ2::Print(OPS_Stream &s, int flag){
-	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << TaggedObject::JsonPropertyIndent;
-		s << "{";
-		s << "\"name\": \"" << this->getTag() << "\", ";
-		s << "\"type\": \"PlaneStressSimplifiedJ2\", ";
-		s << "}";
-		return;
-	}
-	return;
-};
+void PlaneStressSimplifiedJ2::Print(OPS_Stream &s, int flag)
+{
+  the3DMaterial->Print(s,flag);
+	// if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+	// 	s << TaggedObject::JsonPropertyIndent;
+	// 	s << "{";
+	// 	s << "\"name\": \"" << this->getTag() << "\", ";
+	// 	s << "\"type\": \"PlaneStressSimplifiedJ2\", ";
+	// 	s << "\"G\":"
+	// 	s << "}";
+	// 	return;
+	// }
+	// return;
+}
 
 
 int PlaneStressSimplifiedJ2::setParameter(const char **argv, int argc, Parameter &param){

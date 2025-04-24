@@ -1,4 +1,6 @@
-import opensees
+import xara
+import veux
+
 mat_1 = ...
 mat_2 = ...
 
@@ -22,14 +24,15 @@ block_2  = {
     8: (1.1, 0.5)
 }
 
-model = opensees.model(ndm=2, ndf=2)
+model = xara.Model(ndm=2, ndf=2)
 
-model.block((2,2), "ShellMITC4", ["1", "PlaneStress", "1"], block_1)
+model.nDMaterial("ElasticIsotropic", 1, E=29e3, nu=0.3)
+model.surface((2,2), "Quad", ["1", "PlaneStress", "1"], block_1)
 
-model.block((2,2), "ShellMITC4", ["2", "PlaneStress", "1"], block_2)
+model.surface((2,2), "Quad", ["2", "PlaneStress", "1"], block_2)
 
 
 #print(opensees.tcl.dumps(model))
 
 
-
+veux.serve(veux.render(model))

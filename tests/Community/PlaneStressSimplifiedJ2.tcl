@@ -40,7 +40,7 @@ pattern Plain 1 "Linear" {
    
 }
 
-
+print -JSON b.json
 system BandGeneral
 test NormDispIncr 1.0e-8 10 
 constraints Transformation
