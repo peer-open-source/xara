@@ -76,7 +76,7 @@ validate(FrameSectionConstants& section, int ndm, int shear)
 //    -R    {$Qy $Qz}
 //
 template <typename Position, int NDM>
-int
+static inline int
 TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {

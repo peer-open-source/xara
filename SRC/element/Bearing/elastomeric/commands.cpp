@@ -32,6 +32,9 @@
 // Description: This file contains the function to parse the TCL input
 // for the elastomericBearingUFRP element.
 //
+//
+//  element ElastomericX tag? ni? nj? Fy? alpha? $Gr $Kbulk $D1 $D2 $ts $tr $n < < $x1 $x2 $x3 > $y1 $y2 $y3 > < $kc > < $PhiM > < $ac > < $sDratio > < $m > < $cd > < $tc > < $tag1 > < $tag2 > < $tag3 > < $tag4 >
+//
 #include <BasicModelBuilder.h>
 #include <BasicModelBuilder.h>
 #include <tcl.h>
@@ -45,7 +48,6 @@
 
 #include <ElastomericBearingBoucWen2d.h>
 #include <ElastomericBearingBoucWen3d.h>
-
 
 #include <ElastomericBearingPlasticity2d.h>
 #include <ElastomericBearingPlasticity3d.h>

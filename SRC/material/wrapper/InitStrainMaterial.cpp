@@ -35,8 +35,8 @@
 
 
 InitStrainMaterial::InitStrainMaterial(int tag, 
-				       UniaxialMaterial &material,
-				       double epsini)
+                                       UniaxialMaterial &material,
+                                       double epsini)
   :UniaxialMaterial(tag,MAT_TAG_InitStrain), theMaterial(0),
    epsInit(epsini), localStrain(0.0)
 {
@@ -198,7 +198,7 @@ InitStrainMaterial::sendSelf(int cTag, Channel &theChannel)
 
 int 
 InitStrainMaterial::recvSelf(int cTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker)
+                         FEM_ObjectBroker &theBroker)
 {
   int dbTag = this->getDbTag();
 
@@ -215,7 +215,7 @@ InitStrainMaterial::recvSelf(int cTag, Channel &theChannel,
     theMaterial = theBroker.getNewUniaxialMaterial(matClassTag);
     if (theMaterial == 0) {
       opserr << "InitStrainMaterial::recvSelf() - failed to create Material with classTag " 
-	   << dataID(0) << endln;
+           << dataID(0) << endln;
       return -2;
     }
   }
@@ -240,27 +240,26 @@ InitStrainMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 InitStrainMaterial::Print(OPS_Stream &s, int flag)
 {
-	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << OPS_PRINT_JSON_MATE_INDENT << "{";
-		s << "\"name\": \"" << this->getTag() << "\", ";
-		s << "\"type\": \"InitStrainMaterial\", ";
-		if (theMaterial)
-		  s << "\"Material\": " << theMaterial->getTag() << ", ";
-		else
-		  s << "\"Material\": " << "null" << ", ";
-		s << "\"initial_strain\": " << epsInit;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"InitStrainMaterial\", ";
+    if (theMaterial)
+      s << "\"Material\": " << theMaterial->getTag() << ", ";
+    else
+      s << "\"Material\": " << "null" << ", ";
+    s << "\"initial_strain\": " << epsInit;
     s <<  "}";
     return;
-	}
-
+  }
   else {
-		s << "InitStrainMaterial tag: " << this->getTag() << endln;
-		if (theMaterial)
-		  s << "\tMaterial: " << theMaterial->getTag() << endln;
-		else
-		  s << "\tMaterial is NULL" << endln;
-		s << "\tinitital strain: " << epsInit << endln;
-	}
+    s << "InitStrainMaterial tag: " << this->getTag() << endln;
+    if (theMaterial)
+      s << "\tMaterial: " << theMaterial->getTag() << endln;
+    else
+      s << "\tMaterial is NULL" << endln;
+    s << "\tinitital strain: " << epsInit << endln;
+  }
 }
 
 int 
@@ -313,7 +312,7 @@ InitStrainMaterial::getInitialTangentSensitivity(int gradIndex)
 
 int
 InitStrainMaterial::commitSensitivity(double strainGradient, 
-				      int gradIndex, int numGrads)
+                                      int gradIndex, int numGrads)
 {
   if (theMaterial)
     return theMaterial->commitSensitivity(strainGradient, gradIndex, numGrads);

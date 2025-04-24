@@ -45,6 +45,7 @@
 // initialize the class wide variables
 Matrix FlatSliderSimple2d::theMatrix(6,6);
 Vector FlatSliderSimple2d::theVector(6);
+
 #if 0
 #include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_FlatSliderSimple2d)

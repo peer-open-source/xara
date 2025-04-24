@@ -867,7 +867,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     for (int i = 0; i < argc; ++i)
       opserr << argv[i] << ' ';
     opserr << "\n";
-    // type of load pattern type unknown
+    // type unknown
     opserr << "WARNING unknown Series type " << argv[0] << " - ";
     opserr << " valid types: Linear, Rectangular, Path, Constant, Trig, Sine\n";
     return 0;

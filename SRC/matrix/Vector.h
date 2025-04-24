@@ -190,7 +190,9 @@ Vector::operator[](int x) const
 inline double &
 Vector::operator()(int x)
 {
-  assert(x >= 0 && x < sz);
+  assert(x >= 0); //  && x < sz);
+  if (x >= sz)
+    resize(x+1);
   return theData[x];
 }
 

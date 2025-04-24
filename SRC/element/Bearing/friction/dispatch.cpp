@@ -39,9 +39,10 @@
 #include <FrictionModel.h>
 #include <UniaxialMaterial.h>
 
-
 #include <api/runtimeAPI.h>
-
+// element TFP_Bearing             tag? iNode? jNode? R1? R2? R3? R4? D1? D2? D3? D4? d1? d2? d3? d4? mu1? mu2? mu3? mu4? h1? h2? h3? h4? H0? colLoad <? K >
+// element TripleFrictionPendulum  tag? iNode? jNode? frnTag1? frnTag2? frnTag3? vertMat? rotZMat? rotXMat? rotYMat? L1? L2? L3? d1? d2? d3? W? uy? kvt? minFv? tol
+// element TripleFrictionPendulumX tag? iNode? jNode?   flag1?   flag2?          vertMat? rotZMat? rotXMat? rotYMat? kpFactor? kTFactor? kvFactor? Mu1? Mu2? Mu3? L1? L2? L3? d1_star? d2_star? d3_star? b1? b2? b3? t2? t3? W? uy? kvt? minFv? Tol? refPressure1? refPressure2? refPressure3? Diffusivity? Conductivity? Temperature0? rateParameter? kTmodels unit?
 
 int
 TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
@@ -92,29 +93,24 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
     }
     if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
       opserr << "WARNING invalid iNode\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
       opserr << "WARNING invalid jNode\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[4 + eleArgStart], &frnMdlTag) != TCL_OK) {
       opserr << "WARNING invalid frnMdlTag\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     FrictionModel *theFrnMdl = builder->getTypedObject<FrictionModel>(frnMdlTag);
     if (theFrnMdl == 0) {
       opserr << "WARNING friction model not found\n";
       opserr << "frictionModel: " << frnMdlTag << endln;
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[5 + eleArgStart], &kInit) != TCL_OK) {
       opserr << "WARNING invalid kInit\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     UniaxialMaterial *theMaterials[2];
@@ -123,14 +119,11 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[0] = 0;
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
           opserr << "WARNING invalid matTag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         recvMat++;
@@ -140,14 +133,11 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-Mz") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
           opserr << "WARNING invalid matTag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         recvMat++;
@@ -156,7 +146,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
     if (recvMat != 2) {
       opserr << "WARNING wrong number of materials\n";
       opserr << "got " << recvMat << " materials, but want 2 materials\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -202,7 +191,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
           }
         } else {
           opserr << "WARNING insufficient arguments after -orient flag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -211,7 +199,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-shearDist") == 0) {
         if (Tcl_GetDouble(interp, argv[i + 1], &shearDistI) != TCL_OK) {
           opserr << "WARNING invalid -shearDist value\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -224,7 +211,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-mass") == 0) {
         if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
           opserr << "WARNING invalid -mass value\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -233,12 +219,10 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 2 < argc && strcmp(argv[i], "-iter") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &maxIter) != TCL_OK) {
           opserr << "WARNING invalid maxIter\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[i + 2], &tol) != TCL_OK) {
           opserr << "WARNING invalid tol\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -251,14 +235,12 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
 
     if (theElement == 0) {
       opserr << "WARNING ran out of memory creating element\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
 
     // then add the flatSliderBearing to the domain
     if (theTclDomain->addElement(theElement) == false) {
       opserr << "WARNING could not add element to the domain\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       delete theElement;
       return TCL_ERROR;
     }
@@ -299,29 +281,24 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
     }
     if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
       opserr << "WARNING invalid iNode\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
       opserr << "WARNING invalid jNode\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[4 + eleArgStart], &frnMdlTag) != TCL_OK) {
       opserr << "WARNING invalid frnMdlTag\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     FrictionModel *theFrnMdl = builder->getTypedObject<FrictionModel>(frnMdlTag);
     if (theFrnMdl == 0) {
       opserr << "WARNING friction model not found\n";
       opserr << "frictionModel: " << frnMdlTag << endln;
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[5 + eleArgStart], &kInit) != TCL_OK) {
       opserr << "WARNING invalid kInit\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
     UniaxialMaterial *theMaterials[4];
@@ -329,14 +306,11 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-P") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
           opserr << "WARNING invalid axial matTag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         recvMat++;
@@ -346,14 +320,11 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-T") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
           opserr << "WARNING invalid torsional matTag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         recvMat++;
@@ -363,14 +334,11 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-My") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
           opserr << "WARNING invalid moment y matTag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         theMaterials[2] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[2] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         recvMat++;
@@ -380,14 +348,11 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-Mz") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
           opserr << "WARNING invalid moment z matTag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         theMaterials[3] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[3] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         recvMat++;
@@ -396,7 +361,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
     if (recvMat != 4) {
       opserr << "WARNING wrong number of materials\n";
       opserr << "got " << recvMat << " materials, but want 4 materials\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -459,7 +423,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
           }
         } else {
           opserr << "WARNING insufficient arguments after -orient flag\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -468,7 +431,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-shearDist") == 0) {
         if (Tcl_GetDouble(interp, argv[i + 1], &shearDistI) != TCL_OK) {
           opserr << "WARNING invalid -shearDist value\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -481,7 +443,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 1 < argc && strcmp(argv[i], "-mass") == 0) {
         if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
           opserr << "WARNING invalid -mass value\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -490,12 +451,10 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       if (i + 2 < argc && strcmp(argv[i], "-iter") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &maxIter) != TCL_OK) {
           opserr << "WARNING invalid maxIter\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[i + 2], &tol) != TCL_OK) {
           opserr << "WARNING invalid tol\n";
-          opserr << "flatSliderBearing element: " << tag << endln;
           return TCL_ERROR;
         }
       }
@@ -517,14 +476,12 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
 
     if (theElement == 0) {
       opserr << "WARNING ran out of memory creating element\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       return TCL_ERROR;
     }
 
     // then add the flatSliderBearing to the domain
     if (theTclDomain->addElement(theElement) == false) {
       opserr << "WARNING could not add element to the domain\n";
-      opserr << "flatSliderBearing element: " << tag << endln;
       delete theElement;
       return TCL_ERROR;
     }
@@ -650,7 +607,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -667,7 +623,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -684,7 +639,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[2] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[2] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -883,7 +837,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -900,7 +853,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -917,7 +869,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[2] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[2] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -934,7 +885,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[3] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[3] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -951,7 +901,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[4] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[4] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -968,7 +917,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[5] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[5] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "RJWatsonEqsBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -1259,7 +1207,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "singleFPBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -1276,7 +1223,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "singleFPBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -1486,7 +1432,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "singleFPBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -1503,7 +1448,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "singleFPBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -1520,7 +1464,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[2] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[2] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "singleFPBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -1537,7 +1480,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
         theMaterials[3] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[3] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << endln;
           opserr << "singleFPBearing element: " << tag << endln;
           return TCL_ERROR;
         }
@@ -1699,26 +1641,23 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
 }
 
 
+#include <FrictionModel.h>
+#include <tcl.h>
+#include <elementAPI.h>
+#include <BasicModelBuilder.h>
+
+#include <Coulomb.h>
+#include <VelDependent.h>
+#include <VelPressureDep.h>
+#include <VelDepMultiLinear.h>
+#include <VelNormalFrcDep.h>
+
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 02/06
 // Revision: A
 //
 // Description: This file contains the function invoked when the user invokes
 // the frictionModel command in the interpreter.
-
-#include <FrictionModel.h>
-#include <tcl.h>
-#include <elementAPI.h>
-#include <BasicModelBuilder.h>
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp,
-                                       int cArg, int mArg, TCL_Char ** const argv,
-                                       Domain *domain);
-
-extern OPS_Routine OPS_Coulomb;
-extern OPS_Routine OPS_VelDependent;
-extern OPS_Routine OPS_VelDepMultiLinear;
-extern OPS_Routine OPS_VelNormalFrcDep;
-extern OPS_Routine OPS_VelPressureDep;
 
 int
 TclCommand_addFrictionModel(ClientData clientData, Tcl_Interp *interp,
@@ -1727,73 +1666,251 @@ TclCommand_addFrictionModel(ClientData clientData, Tcl_Interp *interp,
   BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
   G3_Runtime *rt = G3_getRuntime(interp);
 
-  // make sure there is a minimum number of arguments
-  if (argc < 3) {
-    opserr << "WARNING insufficient number of friction model arguments\n";
-    opserr << "Want: frictionModel type tag <specific friction model args>\n";
-    return TCL_ERROR;
+    // make sure there is a minimum number of arguments
+    if (argc < 3)  {
+      opserr << "WARNING insufficient number of friction model arguments\n";
+      opserr << "Want: frictionModel type tag <specific friction model args>\n";
+      return TCL_ERROR;
   }
-
-  OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
-
+  
   // pointer to a friction model that will be added to the model builder
-  FrictionModel *theFrnMdl = nullptr;
-
-  // ----------------------------------------------------------------------------
-  if (strcmp(argv[1], "Coulomb") == 0 || strcmp(argv[1], "Constant") == 0) {
-    void *theFrn = OPS_Coulomb(rt, argc, argv);
-    if (theFrn != 0)
-      theFrnMdl = (FrictionModel *)theFrn;
-    else
+  FrictionModel *theFrnMdl = 0;
+  
+  // ----------------------------------------------------------------------------	
+  if (strcmp(argv[1],"Coulomb") == 0 || strcmp(argv[1],"Constant") == 0)  {
+      if (argc != 4)  {
+          opserr << "WARNING invalid number of arguments\n";
+          return TCL_ERROR;
+      }    
+      
+      int tag;
+      double mu;
+      
+      if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK)  {
+          opserr << "WARNING invalid Coulomb friction model tag\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[3], &mu) != TCL_OK)  {
+          opserr << "WARNING invalid mu\n";
+          return TCL_ERROR;
+      }
+      
+      // parsing was successful, allocate the friction model
+      theFrnMdl = new Coulomb(tag, mu);
+  }
+  
+  // ----------------------------------------------------------------------------	
+  if (strcmp(argv[1],"VelDependent") == 0 || strcmp(argv[1],"VDependent") == 0)  {
+      if (argc != 6)  {
+          opserr << "WARNING invalid number of arguments\n";
+          opserr << "Want: frictionModel VelDependent tag muSlow muFast transRate\n";
+          return TCL_ERROR;
+      }    
+      
+      int tag;
+      double muSlow, muFast, transRate;
+      
+      if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK)  {
+          opserr << "WARNING invalid VelDependent friction model tag\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[3], &muSlow) != TCL_OK)  {
+          opserr << "WARNING invalid muSlow\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[4], &muFast) != TCL_OK)  {
+          opserr << "WARNING invalid muFast\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[5], &transRate) != TCL_OK)  {
+          opserr << "WARNING invalid transRate\n";
+          return TCL_ERROR;
+      }
+      
+      // parsing was successful, allocate the friction model
+      theFrnMdl = new VelDependent(tag, muSlow, muFast, transRate);
+  }
+  
+  // ----------------------------------------------------------------------------	
+  if (strcmp(argv[1],"VelPressureDep") == 0 || strcmp(argv[1],"VPDependent") == 0)  {
+      if (argc != 9)  {
+          opserr << "WARNING invalid number of arguments\n";
+          opserr << "Want: frictionModel VelPressureDep tag muSlow muFast0 A deltaMu alpha transRate\n";
+          return TCL_ERROR;
+      }    
+      
+      int tag;
+      double muSlow, muFast0, A, deltaMu, alpha, transRate;
+      
+      if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK)  {
+          opserr << "WARNING invalid VelPressureDep friction model tag\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[3], &muSlow) != TCL_OK)  {
+          opserr << "WARNING invalid muSlow\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[4], &muFast0) != TCL_OK)  {
+          opserr << "WARNING invalid muFast0\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[5], &A) != TCL_OK)  {
+          opserr << "WARNING invalid A\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[6], &deltaMu) != TCL_OK)  {
+          opserr << "WARNING invalid deltaMu\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[7], &alpha) != TCL_OK)  {
+          opserr << "WARNING invalid alpha\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[8], &transRate) != TCL_OK)  {
+          opserr << "WARNING invalid transRate\n";
+          return TCL_ERROR;
+      }
+      
+      // parsing was successful, allocate the friction model
+      theFrnMdl = new VelPressureDep(tag, muSlow, muFast0, A, deltaMu, alpha, transRate);
+  }
+  
+  // ----------------------------------------------------------------------------	
+  if (strcmp(argv[1],"VelDepMultiLinear") == 0 || strcmp(argv[1],"VDependentMultiLinear") == 0)  {
+      if (argc < 9)  {
+          opserr << "WARNING invalid number of arguments\n";
+          opserr << "Want: frictionModel VelDepMultiLinear tag ";
+          opserr << "-vel velocityPoints -frn frictionPoints  ";
+          opserr << "(with at least two friction-velocity points)";
+          return TCL_ERROR;
+      }    
+      
+      int tag, numVelPts, numFrnPts, i;
+      double velData[64];
+      double frnData[64];
+      
+      if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK)  {
+          opserr << "WARNING invalid VelDepMultiLinear friction model tag\n";
+          return TCL_ERROR;
+      }
+      
+      // get velocity data points
+      i = 3;
+      if (strcmp(argv[i],"-vel") == 0)  {
+          i++;
+          numVelPts = 0;
+          while (i < argc && strcmp(argv[i],"-frn") != 0)  {
+              if (Tcl_GetDouble(interp, argv[i], (velData+numVelPts)) != TCL_OK)  {
+                  opserr << "WARNING invalid velocity value\n";
+                  opserr << "VelDepMultiLinear friction model: " << tag << endln;
+                  return TCL_ERROR;
+              }
+              numVelPts++;
+              i++;
+          }
+      } else  {
+          opserr << "WARNING expecting -vel but got " << argv[i] << endln;
+          opserr << "VelDepMultiLinear friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      Vector velocityPts(velData,numVelPts);
+      
+      // get friction data points
+      if (strcmp(argv[i],"-frn") == 0)  {
+          i++;
+          numFrnPts = 0;
+          while (i < argc)  {
+              if (Tcl_GetDouble(interp, argv[i], (frnData+numFrnPts)) != TCL_OK)  {
+                  opserr << "WARNING invalid friction value\n";
+                  opserr << "VelDepMultiLinear friction model: " << tag << endln;
+                  return TCL_ERROR;
+              }
+              numFrnPts++;
+              i++;
+          }
+      } else  {
+          opserr << "WARNING expecting -frn but got " << argv[i] << endln;
+          opserr << "VelDepMultiLinear friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (numVelPts != numFrnPts)  {
+          opserr << "WARNING velocity and friction arrays have different length\n";
+          opserr << "VelDepMultiLinear friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      Vector frictionPts(frnData,numFrnPts);
+      
+      // parsing was successful, allocate the friction model
+      theFrnMdl = new VelDepMultiLinear(tag, velocityPts, frictionPts);
+  }
+  
+  // ----------------------------------------------------------------------------	
+  if (strcmp(argv[1],"VelNormalFrcDep") == 0 || strcmp(argv[1],"VNDependent") == 0)  {
+      if (argc != 11)  {
+          opserr << "WARNING invalid number of arguments\n";
+          opserr << "Want: frictionModel VelNormalFrcDep tag aSlow nSlow aFast nFast alpha0 alpha1 alpha2 maxMuFact\n";
+          return TCL_ERROR;
+      }    
+      
+      int tag;
+      double aSlow, nSlow, aFast, nFast;
+      double alpha0, alpha1, alpha2, maxMuFact;
+      
+      if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK)  {
+          opserr << "WARNING invalid VelNormalFrcDep friction model tag\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[3], &aSlow) != TCL_OK)  {
+          opserr << "WARNING invalid aSlow\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[4], &nSlow) != TCL_OK)  {
+          opserr << "WARNING invalid nSlow\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[5], &aFast) != TCL_OK)  {
+          opserr << "WARNING invalid aFast\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[6], &nFast) != TCL_OK)  {
+          opserr << "WARNING invalid nFast\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[7], &alpha0) != TCL_OK)  {
+          opserr << "WARNING invalid alpha0\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[8], &alpha1) != TCL_OK)  {
+          opserr << "WARNING invalid alpha1\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[9], &alpha2) != TCL_OK)  {
+          opserr << "WARNING invalid alpha2\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[10], &maxMuFact) != TCL_OK)  {
+          opserr << "WARNING invalid maxMuFact\n";
+          opserr << "VelNormalFrcDep friction model: " << tag << endln;
+          return TCL_ERROR;
+      }
+      
+      // parsing was successful, allocate the friction model
+      theFrnMdl = new VelNormalFrcDep(tag, aSlow, nSlow, aFast, nFast,
+          alpha0, alpha1, alpha2, maxMuFact);
+  }
+  
+  // ----------------------------------------------------------------------------	
+  if (theFrnMdl == 0)  {
+      opserr << "WARNING could not create friction model " << argv[1] << endln;
       return TCL_ERROR;
   }
-
-  // ----------------------------------------------------------------------------
-  if (strcmp(argv[1], "VelDependent") == 0 ||
-      strcmp(argv[1], "VDependent") == 0) {
-    void *theFrn = OPS_VelDependent(rt, argc, argv);
-    if (theFrn != 0)
-      theFrnMdl = (FrictionModel *)theFrn;
-    else
-      return TCL_ERROR;
-  }
-
-  // ----------------------------------------------------------------------------
-  if (strcmp(argv[1], "VelDepMultiLinear") == 0 ||
-      strcmp(argv[1], "VDependentMultiLinear") == 0) {
-    void *theFrn = OPS_VelDepMultiLinear(rt, argc, argv);
-    if (theFrn != 0)
-      theFrnMdl = (FrictionModel *)theFrn;
-    else
-      return TCL_ERROR;
-  }
-
-  // ----------------------------------------------------------------------------
-  if (strcmp(argv[1], "VelNormalFrcDep") == 0 ||
-      strcmp(argv[1], "VNDependent") == 0) {
-    void *theFrn = OPS_VelNormalFrcDep(rt, argc, argv);
-    if (theFrn != 0)
-      theFrnMdl = (FrictionModel *)theFrn;
-    else
-      return TCL_ERROR;
-  }
-
-  // ----------------------------------------------------------------------------
-  if (strcmp(argv[1], "VelPressureDep") == 0 ||
-      strcmp(argv[1], "VPDependent") == 0) {
-    void *theFrn = OPS_VelPressureDep(rt, argc, argv);
-    if (theFrn != 0)
-      theFrnMdl = (FrictionModel *)theFrn;
-    else
-      return TCL_ERROR;
-  }
-
-  // ----------------------------------------------------------------------------
-  if (theFrnMdl == nullptr) {
-    opserr << "WARNING could not create friction model " << argv[1] << endln;
-    return TCL_ERROR;
-  }
-
   // now add the friction model to the modelBuilder
   if (builder->addTypedObject<FrictionModel>(theFrnMdl->getTag(), theFrnMdl) < 0) {
     opserr << "WARNING could not add friction model to the domain\n";

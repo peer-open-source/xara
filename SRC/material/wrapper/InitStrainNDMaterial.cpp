@@ -17,14 +17,10 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision$
-// $Date$
-// $Source$
-
+//
 // Written: Massimo Petracca - ASDEA Software, Italy
 // Created: 03/2024
-
+//
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
@@ -36,7 +32,6 @@
 #include <FEM_ObjectBroker.h>
 #include <string.h>
 #include <Parameter.h>
-#include <OPS_Globals.h>
 
 namespace {
 
@@ -60,8 +55,6 @@ InitStrainNDMaterial::InitStrainNDMaterial(int tag, NDMaterial& material, const 
 
     // make sure the input strain vector is of correct size
     assert(epsInit.Size() == 6);
-    // opserr << "InitStrainNDMaterial::InitStrainNDMaterial -- input eps0 vector of incorrect size\n";
-
 }
 
 InitStrainNDMaterial::InitStrainNDMaterial(int tag, NDMaterial& material, double eps0)
@@ -128,55 +121,55 @@ InitStrainNDMaterial::setTrialStrainIncr(const Vector& strain, const Vector& /*s
 }
 
 const Vector&
-InitStrainNDMaterial::getStress(void)
+InitStrainNDMaterial::getStress()
 {
     return theMaterial->getStress();
 }
 
 const Matrix&
-InitStrainNDMaterial::getTangent(void)
+InitStrainNDMaterial::getTangent()
 {
     return theMaterial->getTangent();
 }
 
 const Matrix&
-InitStrainNDMaterial::getInitialTangent(void)
+InitStrainNDMaterial::getInitialTangent()
 {
     return theMaterial->getInitialTangent();
 }
 
 const Vector&
-InitStrainNDMaterial::getStrain(void)
+InitStrainNDMaterial::getStrain()
 {
     return theMaterial->getStrain();
 }
 
 int
-InitStrainNDMaterial::commitState(void)
+InitStrainNDMaterial::commitState()
 {
     return theMaterial->commitState();
 }
 
 int
-InitStrainNDMaterial::revertToLastCommit(void)
+InitStrainNDMaterial::revertToLastCommit()
 {
     return theMaterial->revertToLastCommit();
 }
 
 int
-InitStrainNDMaterial::revertToStart(void)
+InitStrainNDMaterial::revertToStart()
 {
     return theMaterial->revertToStart();
 }
 
 double
-InitStrainNDMaterial::getRho(void)
+InitStrainNDMaterial::getRho()
 {
     return theMaterial->getRho();
 }
 
 NDMaterial*
-InitStrainNDMaterial::getCopy(void)
+InitStrainNDMaterial::getCopy()
 {
     InitStrainNDMaterial* theCopy = new InitStrainNDMaterial(getTag(), *theMaterial, epsInit);
     return theCopy;
@@ -191,12 +184,12 @@ InitStrainNDMaterial::getCopy(const char *type)
 }
 
 const char*
-InitStrainNDMaterial::getType(void) const
+InitStrainNDMaterial::getType() const
 {
     return theMaterial->getType();
 }
 
-int InitStrainNDMaterial::getOrder(void) const
+int InitStrainNDMaterial::getOrder() const
 {
     return 6;
 }
@@ -280,9 +273,24 @@ InitStrainNDMaterial::recvSelf(int cTag, Channel& theChannel,
 void
 InitStrainNDMaterial::Print(OPS_Stream& s, int flag)
 {
-    s << "InitStrainNDMaterial tag: " << this->getTag() << endln;
-    s << "\tMaterial: " << theMaterial->getTag() << endln;
-    s << "\tinitital strain: " << epsInit << endln;
+
+    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
+        s << "\"name\": \"" << this->getTag() << "\", ";
+        s << "\"type\": \"InitialStrain\", ";
+        if (theMaterial)
+          s << "\"Material\": " << theMaterial->getTag() << ", ";
+        else
+          s << "\"Material\": " << "null" << ", ";
+        s << "\"initial_strain\": " << epsInit;
+        s <<  "}";
+        return;
+    }
+    else {
+        s << "InitStrainNDMaterial tag: " << this->getTag() << endln;
+        s << "\tMaterial: " << theMaterial->getTag() << endln;
+        s << "\tinitital strain: " << epsInit << endln;
+    }
 }
 
 int
@@ -363,8 +371,7 @@ InitStrainNDMaterial::getStressSensitivity(int gradIndex, bool conditional)
 }
 
 int
-InitStrainNDMaterial::commitSensitivity(const Vector& depsdh,
-    int gradIndex, int numGrads)
+InitStrainNDMaterial::commitSensitivity(const Vector& depsdh, int gradIndex, int numGrads)
 {
     return theMaterial->commitSensitivity(depsdh, gradIndex, numGrads);
 }

@@ -17,11 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
 #ifndef FrictionModel_h
 #define FrictionModel_h
 
@@ -45,10 +40,7 @@ class Response;
 class FrictionModel : public TaggedObject, public MovableObject
 {
 public:
-    // constructor
     FrictionModel(int tag, int classTag);
-    
-    // destructor
     virtual ~FrictionModel();
     
     // public methods to set and obtain response
@@ -66,13 +58,11 @@ public:
     
     virtual FrictionModel *getCopy() = 0;
     
-    virtual Response *setResponse(const char **argv, int argc,
-        OPS_Stream &theOutputStream);
-    virtual int getResponse(int responseID, Information &info);
+    virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    virtual int getResponse(int responseID, Information &);
     
-    virtual int sendSelf(int commitTag, Channel &theChannel) = 0;
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-        FEM_ObjectBroker &theBroker) = 0;
+    virtual int sendSelf(int commitTag, Channel &) = 0;
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) = 0;
     
     virtual void Print(OPS_Stream &s, int flag = 0) = 0;
     

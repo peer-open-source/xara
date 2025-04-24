@@ -501,6 +501,29 @@ class Model:
         return A; #.reshape([int(np.sqrt(len(A)))]*2)
 
     def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
+        """
+        Create a surface mesh of elements in the current model.
+        
+        Parameters
+        ----------
+        :param split: tuple of integers
+            The number of elements in the x and y directions.
+        :param element: str
+            The name of the element type to use.
+        :param args: tuple
+            The arguments to pass to the element constructor.
+        :param points: list of tuples
+            The coordinates of the points in the mesh.
+        :param name: str
+            The name of the mesh.
+        :param kwds: dict
+            The keyword arguments to pass to the element constructor.
+        :param order: int
+            The order of the elements to use.
+        :param shape: str
+            The shape of the elements to use. Can be "Q" for quadrilateral or "T" for triangular.
+        :return: Surface
+        """
         # anchor
         # normal
         import numpy as np

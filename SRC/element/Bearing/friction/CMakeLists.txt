@@ -5,7 +5,9 @@
 #
 #==============================================================================
 target_sources(OPS_Runtime PRIVATE dispatch.cpp)
-
+target_compile_options(OPS_Element PRIVATE 
+"-fno-omit-frame-pointer"
+-fno-limit-debug-info)
 target_sources(OPS_Element
   PRIVATE
     FlatSliderSimple2d.cpp
