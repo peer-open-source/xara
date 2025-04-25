@@ -636,31 +636,26 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid E" << endln;
-      opserr << "ElasticMembranePlateSection section: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &nu) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid nu" << endln;
-      opserr << "ElasticMembranePlateSection section: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &h) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid h" << endln;
-      opserr << "ElasticMembranePlateSection section: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (argc > 6 && Tcl_GetDouble(interp, argv[6], &rho) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid rho" << endln;
-      opserr << "ElasticMembranePlateSection section: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (argc > 7 && Tcl_GetDouble(interp, argv[7], &Ep_mod) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid Ep_mod" << endln;
-      opserr << "ElasticMembranePlateSection section: " << tag << endln;
       return TCL_ERROR;
     }
 

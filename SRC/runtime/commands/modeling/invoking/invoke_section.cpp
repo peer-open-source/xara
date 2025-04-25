@@ -13,6 +13,7 @@
 
 #include <tcl.h>
 #include <Vector.h>
+#include <VectorND.h>
 #include <DummyStream.h>
 #include <G3_Logging.h>
 #include <Response.h>
@@ -23,10 +24,12 @@ static Tcl_CmdProc SectionTest_setStrainSection;
 static Tcl_CmdProc SectionTest_getStressSection;
 static Tcl_CmdProc SectionTest_getTangSection;
 static Tcl_CmdProc SectionTest_getResponseSection;
+static Tcl_CmdProc SectionTest_Commit;
 
 
-static int count;
-static int countsTillCommit;
+using namespace OpenSees;
+// static int count;
+// static int countsTillCommit;
 
 // invoke Section $tag $commands
 int
@@ -53,6 +56,9 @@ TclCommand_useCrossSection(ClientData clientData, Tcl_Interp *interp, int argc, 
 
   Tcl_CreateCommand(interp, "stress",
                     SectionTest_getStressSection, (ClientData)theSection, NULL);
+  
+  Tcl_CreateCommand(interp, "commit",
+                      SectionTest_Commit, (ClientData)theSection, NULL);
 
   Tcl_CreateCommand(interp, "tangent", SectionTest_getTangSection,
                     (ClientData)theSection, NULL);
@@ -71,6 +77,7 @@ TclCommand_useCrossSection(ClientData clientData, Tcl_Interp *interp, int argc, 
   Tcl_DeleteCommand(interp, "strain");
   Tcl_DeleteCommand(interp, "stress");
   Tcl_DeleteCommand(interp, "tangent");
+  Tcl_DeleteCommand(interp, "commit");
   Tcl_DeleteCommand(interp, "responseSectionTest");
 
   return TCL_OK;
@@ -92,7 +99,8 @@ SectionTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
   // get the sectionID form command line
   // Need to set the data based on argc, otherwise it crashes when setting
   // "data(i-1) = strain"
-  static Vector data(argc - 1);
+  VectorND<12> e{};
+  Vector data(e);
   double strain;
   for (int i = 1; i < argc; ++i) {
     if (Tcl_GetDouble(interp, argv[i], &strain) != TCL_OK) {
@@ -105,12 +113,15 @@ SectionTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
 
   theSection->setTrialSectionDeformation(data);
 
-  if (count == countsTillCommit) {
-    theSection->commitState();
-    count = 1;
-  } else
-    count++;
+  return TCL_OK;
+}
 
+static int
+SectionTest_Commit(ClientData clientData, Tcl_Interp *interp,
+                                  int argc, TCL_Char ** const argv)
+{
+  SectionForceDeformation *theSection = (SectionForceDeformation*)clientData;
+  const Vector &stress = theSection->commitState();
   return TCL_OK;
 }
 
