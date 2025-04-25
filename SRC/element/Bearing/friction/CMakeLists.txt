@@ -5,9 +5,7 @@
 #
 #==============================================================================
 target_sources(OPS_Runtime PRIVATE dispatch.cpp)
-target_compile_options(OPS_Element PRIVATE 
-"-fno-omit-frame-pointer"
--fno-limit-debug-info)
+
 target_sources(OPS_Element
   PRIVATE
     FlatSliderSimple2d.cpp
@@ -18,9 +16,6 @@ target_sources(OPS_Element
     RJWatsonEQS3d.cpp
     SingleFPSimple2d.cpp
     SingleFPSimple3d.cpp
-    #TclFlatSliderCommand.cpp
-    #TclRJWatsonEQSCommand.cpp
-    #TclSingleFPCommand.cpp
     TFP_Bearing2d.cpp
     TFP_Bearing.cpp
     TPB1D.cpp
