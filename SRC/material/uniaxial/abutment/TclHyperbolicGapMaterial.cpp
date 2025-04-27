@@ -23,6 +23,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <string.h>
+#include <math.h>
 #include <tcl.h>
 
 int
