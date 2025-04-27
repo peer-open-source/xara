@@ -1443,7 +1443,7 @@ const Vector *ShadowSubdomain::getElementResponse(int tag, const char **argv,
   return NULL;
 }
 
-int ShadowSubdomain::calculateNodalReactions(bool incInertia)
+int ShadowSubdomain::calculateNodalReactions(int incInertia)
 {
   msgData(0) = ShadowActorSubdomain_calculateNodalReactions;
   if (incInertia == true)

@@ -142,11 +142,11 @@ class ShadowSubdomain: public Shadow, public Subdomain
     virtual int setAnalysisEigenSOE(EigenSOE &theSOE);
     virtual int setAnalysisConvergenceTest(ConvergenceTest &theTest);
     virtual void clearAnalysis(void);
-    virtual void domainChange(void);
-    virtual bool getDomainChangeFlag(void);    
+    virtual void domainChange();
+    virtual bool getDomainChangeFlag();    
     
-    virtual int 	getNumExternalNodes(void) const;    
-    virtual const ID   &getExternalNodes(void);
+    virtual int 	getNumExternalNodes() const;    
+    virtual const ID   &getExternalNodes();
     virtual int 	getNumDOF(void);
 
     virtual const Matrix &getTang(void);    
@@ -164,7 +164,7 @@ class ShadowSubdomain: public Shadow, public Subdomain
     virtual int recvSelf(int commitTag, Channel &theChannel, 
 			 FEM_ObjectBroker &theBroker);    
 
-    virtual double getCost(void);
+    virtual double getCost();
     
     virtual  void Print(OPS_Stream &s, int flag =0);
     virtual void Print(OPS_Stream &s, ID *nodeTags, ID *eleTags, int flag =0);
@@ -175,12 +175,11 @@ class ShadowSubdomain: public Shadow, public Subdomain
 
     virtual const Vector *getNodeResponse(int tag, NodeData responseType);
     virtual const Vector *getElementResponse(int eleTag, const char **argv, int argc); 
-    virtual int calculateNodalReactions(bool inclInertia);
+    virtual int calculateNodalReactions(int inclInertia);
     
   protected:    
 
-
-    virtual int buildMap(void);
+    virtual int buildMap();
     virtual int buildEleGraph(Graph *theEleGraph);
     virtual int buildNodeGraph(Graph *theNodeGraph);    
     
