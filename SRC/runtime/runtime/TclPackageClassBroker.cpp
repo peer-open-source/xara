@@ -246,15 +246,15 @@ using namespace OpenSees::Hash::literals;
 
 #include "Shell/ShellMITC4.h"
 #include "Shell/ShellMITC9.h"
-#include "Shell/ShellDKGQ.h"   // Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
-#include "Shell/ShellNLDKGQ.h" // Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
-#include "Shell/ASDShellQ4.h"  // Massimo Petracca
+#include "Shell/ShellDKGQ.h"
+#include "Shell/ShellNLDKGQ.h"
+#include "Shell/ASDShellQ4.h"
 #include "Brick/Brick.h"
 #include "Brick/BbarBrick.h"
 #include "Brick/BrickUP.h"
 #include "Brick/BBarBrickUP.h"
 #include "Brick/Twenty_Eight_Node_BrickUP.h"
-#include "Joint/Joint2D.h" // Arash
+#include "Joint/Joint2D.h"
 #include "Link/TwoNodeLink.h"
 #include "Link/LinearElasticSpring.h"
 #include "Link/Inerter.h"
@@ -284,10 +284,10 @@ using namespace OpenSees::Hash::literals;
 #include "Bearing/friction/frictionModel/VelNormalFrcDep.h"
 
 
-#include "mvlem/MVLEM.h"        // Kristijan Kolozvari
-#include "mvlem/SFI_MVLEM.h"    // Kristijan Kolozvari
-#include "mvlem/MVLEM_3D.h"     // Kristijan Kolozvari
-#include "mvlem/SFI_MVLEM_3D.h" // Kristijan Kolozvari
+#include "mvlem/MVLEM.h"       
+#include "mvlem/SFI_MVLEM.h"   
+#include "mvlem/MVLEM_3D.h"    
+#include "mvlem/SFI_MVLEM_3D.h"
 
 #include "Boundary/RockingBC.h"
 
@@ -614,19 +614,11 @@ TclPackageClassBroker::getNewElement(int classTag)
 {
   switch ((std::size_t)classTag) {
 
-    DISPATCH(Truss);
     DISPATCH(Truss2);
     DISPATCH(TrussSection);
-    DISPATCH(CorotTruss);
     DISPATCH(CorotTrussSection);
     DISPATCH(InertiaTruss);
 
-    // case ELE_TAG_ZeroLengthND:
-    // return new ZeroLengthND();
-
-    DISPATCH(FourNodeQuadUP);
-    DISPATCH(FourNodeQuad);
-    DISPATCH(Tri31);
     DISPATCH(ElasticBeam2d);
     DISPATCH(ModElasticBeam2d);
     DISPATCH(ModElasticBeam3d);
@@ -641,6 +633,9 @@ TclPackageClassBroker::getNewElement(int classTag)
     DISPATCH(MixedBeamColumnAsym3d);
 
 // Quads
+    DISPATCH(FourNodeQuadUP);
+    DISPATCH(FourNodeQuad);
+    DISPATCH(Tri31);
     DISPATCH(EnhancedQuad);
     DISPATCH(NineNodeMixedQuad);
     DISPATCH(NineNodeQuad);
@@ -659,7 +654,6 @@ TclPackageClassBroker::getNewElement(int classTag)
     DISPATCH(SSPbrickUP);
 #endif
     DISPATCH(PML2D);
-
     DISPATCH(PML3D);
 
 // Bricks
@@ -674,7 +668,7 @@ TclPackageClassBroker::getNewElement(int classTag)
     DISPATCH(ShellMITC9);
     DISPATCH(ShellDKGQ);
     DISPATCH(ShellNLDKGQ);
-    DISPATCH(ASDShellQ4); // Massimo Petracca
+    DISPATCH(ASDShellQ4);
 
 #if defined(OPSDEF_Elements_UW)
     DISPATCH(BeamContact2D);
@@ -696,15 +690,15 @@ TclPackageClassBroker::getNewElement(int classTag)
 
 
 
-    DISPATCH(Joint2D); // Arash
+    DISPATCH(Joint2D);
     DISPATCH(TwoNodeLink);
     DISPATCH(LinearElasticSpring);
     DISPATCH(Inerter);
 
-    DISPATCH(MVLEM); // Kristijan Kolozvari
-    DISPATCH(SFI_MVLEM); // Kristijan Kolozvari
-    DISPATCH(MVLEM_3D); // Kristijan Kolozvari
-    DISPATCH(SFI_MVLEM_3D); // Kristijan Kolozvari
+    DISPATCH(MVLEM);
+    DISPATCH(SFI_MVLEM);
+    DISPATCH(MVLEM_3D);
+    DISPATCH(SFI_MVLEM_3D);
 
 
     DISPATCH(ElastomericBearingBoucWen2d);
@@ -723,7 +717,6 @@ TclPackageClassBroker::getNewElement(int classTag)
     DISPATCH(SingleFPSimple2d);
     DISPATCH(SingleFPSimple3d);
     DISPATCH(TripleFrictionPendulum);
-
 
     DISPATCH(RockingBC);
     DISPATCH(ASDEmbeddedNodeElement);
@@ -964,6 +957,7 @@ TclPackageClassBroker::getNewUniaxialMaterial(int classTag)
   case MAT_TAG_ASD_SMA_3K:
     return new ASD_SMA_3K();
 
+// Concrete
   case MAT_TAG_Concrete01:
     return new Concrete01();
 
@@ -981,7 +975,7 @@ TclPackageClassBroker::getNewUniaxialMaterial(int classTag)
 
   case MAT_TAG_ConcretewBeta:
     return new ConcretewBeta();
-
+// Steel
   case MAT_TAG_Steel01:
     return new Steel01();
 
@@ -1003,6 +997,7 @@ TclPackageClassBroker::getNewUniaxialMaterial(int classTag)
   case MAT_TAG_Hardening:
     return new HardeningMaterial();
 
+// Other
   case MAT_TAG_PySimple1:
     return new PySimple1();
 
