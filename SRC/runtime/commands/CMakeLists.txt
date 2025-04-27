@@ -28,6 +28,7 @@ target_sources(OPS_Runtime PRIVATE
     
     "modeling/section.cpp"
     "modeling/section/plane.cpp"
+    "modeling/section/frame.cpp"
     "modeling/section/truss.cpp"
 
     "modeling/nDMaterial.cpp"

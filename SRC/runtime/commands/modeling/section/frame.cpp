@@ -20,41 +20,6 @@
 #include <SectionAggregator.h>
 
 
-static int
-validate(FrameSectionConstants& section, int ndm, int shear)
-{
-  int status = 0;
-  if (section.A <= 0.0) {
-    status -= 1;
-    //opserr << "A <= 0.0\n";
-  }
-  
-  if (section.Iz <= 0.0) {
-    status -= 1;
-    //opserr << "Iz <= 0.0\n";
-  }
-  
-  
-//if (shear)
-//  if (section.G <= 0.0) {
-//    status -= 1;
-//    //opserr << "G <= 0.0\n";
-//  }
-  
-  if (ndm == 3) {
-//  if (section.J <= 0.0) {
-//    //opserr << "J <= 0.0\n";
-//    status -= 1;
-//  }
-    if (section.Iy <= 0.0)  {
-      //opserr << "Iy <= 0.0\n";
-      status -= 1;
-    }
-  }
-  return status;
-}
-
-
 // section ElasticFrame tag E? A? Iz? <Iy? G? J?>
 //                          E  A  I
 //                          E  A  I  G  J
@@ -167,7 +132,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
       else if ((strcmp(argv[i], "-inertia") == 0) ||
                (strcmp(argv[i], "-I") == 0) ||
                (strcmp(argv[i], "-Iz") == 0)) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.Iz) != TCL_OK) {
+        if (argc == ++i || (Tcl_GetDouble(interp, argv[i], &consts.Iz) != TCL_OK)) {
           opserr << OpenSees::PromptParseError << "invalid inertia Iz\n";
           return TCL_ERROR;
         }
@@ -176,7 +141,8 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
 
       else if ((strcmp(argv[i], "-inertia-y") == 0) ||
                (strcmp(argv[i], "-Iy") == 0)) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.Iy) != TCL_OK) {
+        if (argc == ++i || 
+            (Tcl_GetDouble (interp, argv[i], &consts.Iy) != TCL_OK)) {
           opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
           return TCL_ERROR;
         }
@@ -499,6 +465,8 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
       return TCL_ERROR;
     }
 
+    int status = TCL_ERROR;
+
     int tag;
     int secTag;
     FrameSection *theSec = nullptr;
@@ -540,12 +508,15 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
       int tagI;
       if (Tcl_GetInt(interp, argv[i], &tagI) != TCL_OK) {
         opserr << G3_ERROR_PROMPT << "invalid Aggregator matTag" << endln;
-        return TCL_ERROR;
+        status = TCL_ERROR;
+        goto cleanup;
       }
 
       theMats[j] = builder->getTypedObject<UniaxialMaterial>(tagI);
-      if (theMats[j] == 0)
-        return TCL_ERROR;
+      if (theMats[j] == 0) {
+        status = TCL_ERROR;
+        goto cleanup;
+      }
 
       i++;
 
@@ -564,22 +535,27 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
       else {
         opserr << G3_ERROR_PROMPT << "invalid code" << endln;
         opserr << "\nsection Aggregator: " << tag << endln;
-        return TCL_ERROR;
+        status = TCL_ERROR;
+        goto cleanup;
       }
     }
 
-    FrameSection* theSection = nullptr;
-    if (theSec)
-      theSection = new SectionAggregator(tag, *theSec, nMats, theMats, codes);
-    else
-      theSection = new SectionAggregator(tag, nMats, theMats, codes);
+    {
+      FrameSection* theSection = nullptr;
+      if (theSec)
+        theSection = new SectionAggregator(tag, *theSec, nMats, theMats, codes);
+      else
+        theSection = new SectionAggregator(tag, nMats, theMats, codes);
 
-    // Now add the material to the modelBuilder
-    if (builder->addTaggedObject<FrameSection>(*theSection) < 0) {
-      delete theSection;
-      return TCL_ERROR;
-    } else
-      return TCL_OK;
+      // Now add the material to the modelBuilder
+      if (builder->addTaggedObject<FrameSection>(*theSection) < 0) {
+        delete theSection;
+        status = TCL_ERROR;
+      } else 
+        status = TCL_OK;
+    }
 
+cleanup:
     delete[] theMats;
+    return status;
 }

@@ -4,10 +4,6 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
-target_sources(OPS_Runtime
-  PRIVATE
-    commands.cpp
-)
 
 target_sources(OPS_Material
   PRIVATE
