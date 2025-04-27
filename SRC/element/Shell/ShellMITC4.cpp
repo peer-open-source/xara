@@ -201,7 +201,6 @@ int ShellMITC4::getNumDOF()
 }
 
 
-// commit state
 int ShellMITC4::commitState()
 {
   int success = 0;
@@ -217,8 +216,9 @@ int ShellMITC4::commitState()
   return success;
 }
 
-// revert to last commit
-int ShellMITC4::revertToLastCommit()
+
+int
+ShellMITC4::revertToLastCommit()
 {
   int success = 0;
 
@@ -466,8 +466,8 @@ int ShellMITC4::getResponse(int responseID, Information &eleInfo)
   cnt = 0;
 }
 
-// return stiffness matrix
-const Matrix &ShellMITC4::getTangentStiff()
+const Matrix &
+ShellMITC4::getTangentStiff()
 {
   int tang_flag = 1; // get the tangent
 
@@ -794,7 +794,8 @@ const Vector &ShellMITC4::getResistingForce()
 }
 
 // get residual with inertia terms
-const Vector &ShellMITC4::getResistingForceIncInertia()
+const Vector &
+ShellMITC4::getResistingForceIncInertia()
 {
   static Vector res(24);
   int tang_flag = 0; // don't get the tangent
@@ -931,23 +932,22 @@ void ShellMITC4::formInertiaTerms(int tangFlag)
 //
 //  Shear strains gamma02, gamma12 constant through cross section
 //
-void ShellMITC4::formResidAndTangent(int tang_flag)
+void
+ShellMITC4::formResidAndTangent(int tang_flag)
 {
 
-  int jj, kk;
   int success;
   double volume = 0.0;
   double xsj;                   // determinant jacaobian matrix
 
-  OPS_STATIC double dvol[nip];             // volume element
   OPS_STATIC double shp[3][NEN];      // shape functions at a gauss point
 
   //  static double Shape[3][NEN][nip] ; // all the shape functions
   static Vector stress(nstress);      // stress resultants
   static Vector strain(nstress);      // strain
                                       //
-  OPS_STATIC VectorND<ndf> residJ;
-  OPS_STATIC MatrixND<nstress,nstress> dd; // material tangent
+  VectorND<ndf> residJ;
+  MatrixND<nstress,nstress> dd; // material tangent
 
 
   double epsDrill = 0.0; // drilling "strain"
@@ -1025,6 +1025,7 @@ void ShellMITC4::formResidAndTangent(int tang_flag)
   double r2 = 0;
   double r3 = 0;
 
+  double dvol[nip];             // volume element
   // Gauss loop
   for (int i = 0; i < nip; i++) {
 
@@ -1118,7 +1119,7 @@ void ShellMITC4::formResidAndTangent(int tang_flag)
 
     // residual and tangent calculations node loops
 
-    jj = 0;
+    int jj = 0;
     for (int j = 0; j < NEN; j++) {
       MatrixND<ndf, nstress> BJtran = B[j].transpose();
 
@@ -1147,7 +1148,7 @@ void ShellMITC4::formResidAndTangent(int tang_flag)
         for (int p = 0; p < ndf; p++)
           BdrillJ[p] *= (Ktt * dvol[i]);
 
-        kk = 0;
+        int kk = 0;
         for (int k = 0; k < NEN; k++) {
 
           // drilling B matrix
@@ -1226,10 +1227,10 @@ void ShellMITC4::computeBasis()
   // and use those as basis vectors but this is easier
   // and the shell is flat anyway.
 
-  OPS_STATIC Vector3D temp;
-  OPS_STATIC Vector3D v1;
-  OPS_STATIC Vector3D v2;
-  OPS_STATIC Vector3D v3;
+  Vector3D temp;
+  Vector3D v1;
+  Vector3D v2;
+  Vector3D v3;
 
   // get two vectors (v1, v2) in plane of shell by
   // nodal coordinate differences

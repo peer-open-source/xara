@@ -34,8 +34,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <elementAPI.h>
 #include <vector>
 
 // initialize the class wide variables
@@ -47,118 +45,6 @@ Vector TwoNodeLinkSection::TwoNodeLinkSectionV2(2);
 Vector TwoNodeLinkSection::TwoNodeLinkSectionV4(4);
 Vector TwoNodeLinkSection::TwoNodeLinkSectionV6(6);
 Vector TwoNodeLinkSection::TwoNodeLinkSectionV12(12);
-
-void* OPS_ADD_RUNTIME_VPV(OPS_TwoNodeLinkSection)
-{
-    int ndm = OPS_GetNDM();
-    if (OPS_GetNumRemainingInputArgs() < 4) {
-        opserr << "WARNING insufficient arguments\n";
-        opserr << "Want: twoNodeLink eleTag iNode jNode secTag <-orient <x1 x2 x3> y1 y2 y3> <-pDelta Mratios> <-shearDist sDratios> <-doRayleigh> <-mass m>\n";
-        return 0;
-    }
-    
-    // tags
-    int idata[4];
-    int numdata = 4;
-    if (OPS_GetIntInput(&numdata, idata) < 0) {
-        opserr << "WARNING: invalid integer data\n";
-        return 0;
-    }
-
-    // get section
-    SectionForceDeformation* theSection = OPS_getSectionForceDeformation(idata[3]);
-    if(theSection == 0) {
-      opserr << "twoNodeLinkSection -- no section with tag " << idata[3] << " exists in Domain" << endln;
-      return 0;
-    }    
-
-    // options
-    Vector x, y, Mratio, sDistI;
-    int doRayleigh = 0;
-    double mass = 0.0;
-    if (OPS_GetNumRemainingInputArgs() < 1) {
-        return new TwoNodeLinkSection(idata[0], ndm, idata[1], idata[2], *theSection);
-    }
-    
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-        const char *type = OPS_GetString();
-        if (strcmp(type, "-orient") == 0) {
-            if (OPS_GetNumRemainingInputArgs() < 3) {
-                opserr << "WARNING: insufficient arguments after -orient\n";
-                return 0;
-            }
-            numdata = 3;
-            x.resize(3);
-            if (OPS_GetDoubleInput(&numdata, &x(0)) < 0) {
-                opserr << "WARNING: invalid -orient values\n";
-                return 0;
-            }
-            if (OPS_GetNumRemainingInputArgs() < 3) {
-                y = x;
-                x = Vector();
-                continue;
-            }
-            y.resize(3);
-            if (OPS_GetDoubleInput(&numdata, &y(0)) < 0) {
-                y = x;
-                x = Vector();
-                continue;
-            }
-        }
-        else if (strcmp(type, "-pDelta") == 0) {
-            Mratio.resize(4);
-            Mratio.Zero();
-            numdata = 4;
-            double* ptr = &Mratio(0);
-            if (ndm == 2) {
-                numdata = 2;
-                ptr += 2;
-            }
-            if (OPS_GetNumRemainingInputArgs() < numdata) {
-                opserr << "WARNING: insufficient data for -pDelta\n";
-                return 0;
-            }
-            if (OPS_GetDoubleInput(&numdata, ptr) < 0) {
-                opserr << "WARNING: invalid -pDelta value\n";
-                return 0;
-            }
-        }
-        else if (strcmp(type, "-shearDist") == 0) {
-            sDistI.resize(2);
-            numdata = 2;
-            if (ndm == 2) {
-                numdata = 1;
-                sDistI(1) = 0.5;
-            }
-            if (OPS_GetNumRemainingInputArgs() < numdata) {
-                opserr << "WARNING: insufficient data for -shearDist\n";
-                return 0;
-            }
-            if (OPS_GetDoubleInput(&numdata, &sDistI(0)) < 0) {
-                opserr << "WARNING: invalid -shearDist value\n";
-                return 0;
-            }
-        }
-        else if (strcmp(type, "-doRayleigh") == 0) {
-            doRayleigh = 1;
-        }
-        else if (strcmp(type, "-mass") == 0) {
-            if (OPS_GetNumRemainingInputArgs() < 1) {
-                opserr << "WANRING: insufficient mass value\n";
-                return 0;
-            }
-            numdata = 1;
-            if (OPS_GetDoubleInput(&numdata, &mass) < 0) {
-                opserr << "WANRING: invalid -mass value\n";
-                return 0;
-            }
-        }
-    }
-    
-    // create object
-    return new TwoNodeLinkSection(idata[0], ndm, idata[1], idata[2],
-        *theSection, y, x, Mratio, sDistI, doRayleigh, mass);
-}
 
 
 // responsible for allocating the necessary space needed

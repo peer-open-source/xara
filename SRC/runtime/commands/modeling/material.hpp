@@ -39,7 +39,6 @@ extern OPS_Routine OPS_RAFourSteelPCPlaneStressMaterial;
 extern OPS_Routine OPS_NewPlasticDamageConcrete3d;
 extern OPS_Routine OPS_NewPlasticDamageConcretePlaneStress;
 extern OPS_Routine OPS_ElasticIsotropicMaterial;
-extern OPS_Routine OPS_ElasticIsotropic3D;
 extern OPS_Routine OPS_IncrementalElasticIsotropicThreeDimensional;
 extern OPS_Routine OPS_ElasticOrthotropicMaterial;
 extern OPS_Routine OPS_BoundingCamClayMaterial;
@@ -125,7 +124,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
 // Elastic 
 //
 // Isotropic
-  {"ElasticIsotropic3D",               dispatch<OPS_ElasticIsotropic3D>},
+  {"ElasticIsotropic3D",               dispatch<TclCommand_newElasticMaterial>},
   {"ElasticIsotropic",                 dispatch<TclCommand_newElasticMaterial>},
   {"ElasticIsotropic3DThermal",        dispatch<OPS_ElasticIsotropicMaterialThermal>},
 // Orthotropic

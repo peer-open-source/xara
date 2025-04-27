@@ -45,29 +45,28 @@ class ElasticIsotropicThreeDimensional : public ElasticIsotropicMaterial
     ElasticIsotropicThreeDimensional();
     ~ElasticIsotropicThreeDimensional();
 
-    const char *getClassType(void) const {return "ElasticIsotropicThreeDimensional";};
+    const char *getClassType() const {return "ElasticIsotropicThreeDimensional";}
 
-    int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
-    int setTrialStrainIncr (const Vector &v);
-    int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+    virtual int setTrialStrain (const Vector &v) final;
+    virtual int setTrialStrain (const Vector &v, const Vector &r) final;
+    virtual int setTrialStrainIncr (const Vector &v) final;
+    virtual int setTrialStrainIncr (const Vector &v, const Vector &r) final;
+    virtual const Matrix &getTangent() final;
+    virtual const Matrix &getInitialTangent() final;
     
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
+    const Vector &getStress();
+    const Vector &getStrain();
     
-    int commitState (void);
-    int revertToLastCommit (void);
-    int revertToStart (void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
     
-    NDMaterial *getCopy (void);
-    const char *getType (void) const;
-    int getOrder (void) const;
+    NDMaterial *getCopy();
+    const char *getType() const;
+    int getOrder() const;
 
     int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
     
     const Vector& getStressSensitivity(int gradIndex,
 				       bool conditional);

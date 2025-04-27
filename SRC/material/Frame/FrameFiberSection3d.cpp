@@ -34,14 +34,14 @@ typedef SensitiveResponse<FrameSection> SectionResponse;
 
 ID FrameFiberSection3d::code(4);
 
-FrameFiberSection3d::FrameFiberSection3d(int tag, int num, UniaxialMaterial &torsion, bool compCentroid, 
+FrameFiberSection3d::FrameFiberSection3d(int tag, int num, UniaxialMaterial *torsion, bool compCentroid, 
                                          double mass, bool use_mass)
   : FrameSection(tag, SEC_TAG_FrameFiberSection3d, mass, use_mass),
     numFibers(0), sizeFibers(num), 
     theMaterials(nullptr), matData(new double [num*3]{}),
     QzBar(0.0), QyBar(0.0), Abar(0.0), 
     yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
-    theTorsion(0),
+    theTorsion(nullptr),
 #ifdef N_FIBER_THREADS
     pool((void*)new OpenSees::thread_pool{N_FIBER_THREADS}),
 #endif
@@ -52,9 +52,8 @@ FrameFiberSection3d::FrameFiberSection3d(int tag, int num, UniaxialMaterial &tor
       // matData.reset();
     }
 
-    theTorsion = torsion.getCopy();
-    if (theTorsion == nullptr)
-      opserr << "FrameFiberSection3d::FrameFiberSection3d -- failed to get copy of torsion material\n";
+    if (torsion != nullptr)
+      theTorsion = torsion->getCopy();
 
     es.zero();
     sr.zero();
@@ -617,7 +616,7 @@ FrameFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
 
   this->setTag(data(0));
 
-  if (data(2) == 1 && theTorsion == 0) {      
+  if (data(2) == 1 && theTorsion == nullptr) {      
     int cTag = data(3);
     theTorsion = theBroker.getNewUniaxialMaterial(cTag);
     if (theTorsion == 0) {
@@ -1141,8 +1140,8 @@ FrameFiberSection3d::getStressResultantSensitivity(int gradIndex, bool condition
     ds(1) += (tmpMatrix(1,0)*e(0) + tmpMatrix(1,1)*e(1) + tmpMatrix(1,2)*e(2))*A;
     ds(2) += (tmpMatrix(2,0)*e(0) + tmpMatrix(2,1)*e(1) + tmpMatrix(2,2)*e(2))*A;
   }
-
-  ds(3) = theTorsion->getStressSensitivity(gradIndex, conditional);
+  if (theTorsion != nullptr)
+    ds(3) = theTorsion->getStressSensitivity(gradIndex, conditional);
 
   return ds;
 }
@@ -1153,8 +1152,8 @@ FrameFiberSection3d::getSectionTangentSensitivity(int gradIndex)
   static Matrix something(nsr,nsr);
   
   something.Zero();
-
-  something(3,3) = theTorsion->getTangentSensitivity(gradIndex);
+  if (theTorsion != nullptr)
+    something(3,3) = theTorsion->getTangentSensitivity(gradIndex);
   
   return something;
 }
@@ -1204,7 +1203,8 @@ FrameFiberSection3d::commitSensitivity(const Vector& defSens, int gradIndex, int
     theMaterials[i]->commitSensitivity(depsdh,gradIndex,numGrads);
   }
 
-  theTorsion->commitSensitivity(d3, gradIndex, numGrads);
+  if (theTorsion != nullptr)
+    theTorsion->commitSensitivity(d3, gradIndex, numGrads);
 
   return 0;
 }

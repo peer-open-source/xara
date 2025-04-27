@@ -26,7 +26,7 @@
 #include <Parsing.h>
 #include <Domain.h>
 #include <ArgumentTracker.h>
-#include <PlaneSection.h>
+#include <section/PlaneSection.h>
 #include <FourNodeQuad.h>
 #include <FourNodeQuad3d.h>
 #include <FourNodeQuadWithSensitivity.h>
@@ -192,7 +192,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
   double b1 = 0.0;
   double b2 = 0.0;
   TCL_Char *type = nullptr;
-  if (true) { // argc != 10 && argc != 14) {
+  if (true) {
     enum class Position : int {
       Thickness, Type, Material, Pressure, Density, B1, B2, End
     };

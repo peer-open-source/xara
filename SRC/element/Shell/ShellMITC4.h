@@ -19,7 +19,7 @@
 ** ****************************************************************** */
 //
 // Original implementation: Ed "C++" Love
-// Reimplementation: Leopoldo Tesser, Diego A. Talledo, Véronique Le Corvec
+// Reimplementation: Leopoldo Tesser, Diego A. Talledo, Vï¿½ronique Le Corvec
 //
 // Bathe MITC 4 four node shell element with membrane and drill
 // Ref: Dvorkin,Bathe, A continuum mechanics based four node shell
@@ -58,7 +58,6 @@ class ShellMITC4 : public    Element,
                 SectionForceDeformation &theMaterial,
                 bool updateBasis=false) ;
     
-    // destructor 
     virtual ~ShellMITC4( ) ;
 
     const char* getClassType() const final {

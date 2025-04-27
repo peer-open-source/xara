@@ -18,10 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.10 $
-// $Date: 2010-02-04 01:17:47 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/zeroLength/ZeroLengthSection.h,v $
-                                                                        
 // Written: MHS
 // Created: Sept 2000
 //
@@ -59,7 +55,7 @@ class ZeroLengthSection : public Element
     ZeroLengthSection();    
     ~ZeroLengthSection();
 
-    const char *getClassType(void) const {return "ZeroLengthSection";};
+    const char *getClassType(void) const {return "ZeroLengthSection";}
     static constexpr const char* class_name = "ZeroLengthSection";
 
     // public methods to obtain information about dof & connectivity    
@@ -91,7 +87,6 @@ class ZeroLengthSection : public Element
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
     void Print(OPS_Stream &s, int flag =0);    
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &output);

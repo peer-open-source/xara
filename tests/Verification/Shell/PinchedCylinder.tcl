@@ -24,8 +24,9 @@ puts "\n  Displacement Under Applied Load:\n"
 set formatString {%20s%10s%15s%15s%15s}
 puts [format $formatString "Element Type" "   mesh  " "OpenSees" "Exact" "%Error"]
 
+set meshes {4 16 32}
 foreach shellType {ShellMITC4 ShellDKGQ ShellNLDKGQ} {
-    foreach numEle {4 16 32} {
+    foreach numEle $meshes {
 
 	wipe
 

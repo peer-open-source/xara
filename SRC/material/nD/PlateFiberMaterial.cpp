@@ -29,66 +29,63 @@
 #include <elementAPI.h>
 
 // static vector and matrices
-Vector  PlateFiberMaterial::stress(5);
-Matrix  PlateFiberMaterial::tangent(5,5);
+Vector PlateFiberMaterial::stress(5);
+Matrix PlateFiberMaterial::tangent(5, 5);
 
 //      0  1  2  3  4  5
 // ND: 11 22 33 12 23 31
 // PF: 11 22 12 23 31 33
 
-NDMaterial *G3_GetNDMaterial(G3_Runtime* rt, int matTag);
-void * OPS_ADD_RUNTIME_VPV(OPS_PlateFiberMaterial)
+NDMaterial* G3_GetNDMaterial(G3_Runtime* rt, int matTag);
+
+void*
+OPS_ADD_RUNTIME_VPV(OPS_PlateFiberMaterial)
 {
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 2) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: nDMaterial PlateFiber tag? matTag?" << endln;
-	return 0;
-    }
+  int numdata = OPS_GetNumRemainingInputArgs();
+  if (numdata < 2) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: nDMaterial PlateFiber tag? matTag?" << endln;
+    return 0;
+  }
 
-    int tag[2];
-    numdata = 2;
-    if (OPS_GetIntInput(&numdata,tag)<0) {
-	opserr << "WARNING invalid tags\n";
-	return 0;
-    }
+  int tag[2];
+  numdata = 2;
+  if (OPS_GetIntInput(&numdata, tag) < 0) {
+    opserr << "WARNING invalid tags\n";
+    return 0;
+  }
 
-    NDMaterial *threeDMaterial = G3_GetNDMaterial(rt, tag[1]);
+  NDMaterial* threeDMaterial = G3_GetNDMaterial(rt, tag[1]);
 
-    if (threeDMaterial == nullptr) {
-	opserr << "WARNING nD material does not exist\n";
-	opserr << "nD material: " << tag[1];
-	opserr << "\nPlateFiber nDMaterial: " << tag[0] << endln;
-	return 0;
-    }
-      
-    NDMaterial* mat = new PlateFiberMaterial( tag[0], *threeDMaterial );
+  if (threeDMaterial == nullptr) {
+    opserr << "WARNING nD material does not exist\n";
+    opserr << "nD material: " << tag[1];
+    opserr << "\nPlateFiber nDMaterial: " << tag[0] << endln;
+    return 0;
+  }
 
-    if (mat == nullptr) {
-	opserr << "WARNING: failed to create PlaneStrain material\n";
-	return 0;
-    }
+  NDMaterial* mat = new PlateFiberMaterial(tag[0], *threeDMaterial);
 
-    return mat;
-}
+  if (mat == nullptr) {
+    opserr << "WARNING: failed to create PlaneStrain material\n";
+    return 0;
+  }
 
-//null constructor
-PlateFiberMaterial::PlateFiberMaterial() : 
-NDMaterial(0, ND_TAG_PlateFiberMaterial), 
-theMaterial(0),
-strain(5) 
-{ 
-    Tstrain22 = 0.0;
-    Cstrain22 = 0.0;
+  return mat;
 }
 
 
-//full constructor
-PlateFiberMaterial::PlateFiberMaterial(   
-				   int tag, 
-                                   NDMaterial &the3DMaterial) :
-NDMaterial(tag, ND_TAG_PlateFiberMaterial),
-strain(5)
+PlateFiberMaterial::PlateFiberMaterial()
+ : NDMaterial(0, ND_TAG_PlateFiberMaterial), theMaterial(0), strain(5)
+{
+  Tstrain22 = 0.0;
+  Cstrain22 = 0.0;
+}
+
+
+
+PlateFiberMaterial::PlateFiberMaterial(int tag, NDMaterial& the3DMaterial)
+ : NDMaterial(tag, ND_TAG_PlateFiberMaterial), strain(5)
 {
   theMaterial = the3DMaterial.getCopy("ThreeDimensional");
 
@@ -97,23 +94,16 @@ strain(5)
 }
 
 
-
 //destructor
-PlateFiberMaterial::~PlateFiberMaterial() 
-{ 
-  delete theMaterial;
-} 
+PlateFiberMaterial::~PlateFiberMaterial() { delete theMaterial; }
 
 
-
-//make a clone of this material
 NDMaterial*
-PlateFiberMaterial::getCopy() 
+PlateFiberMaterial::getCopy()
 {
-  PlateFiberMaterial *clone;   //new instance of this class
+  PlateFiberMaterial* clone; //new instance of this class
 
-  clone = new PlateFiberMaterial(this->getTag(), 
-                                   *theMaterial); //make the copy
+  clone = new PlateFiberMaterial(this->getTag(), *theMaterial);
 
   clone->Tstrain22 = this->Tstrain22;
   clone->Cstrain22 = this->Cstrain22;
@@ -122,16 +112,16 @@ PlateFiberMaterial::getCopy()
 }
 
 
-//make a clone of this material
-NDMaterial* 
-PlateFiberMaterial::getCopy(const char *type) 
+
+NDMaterial*
+PlateFiberMaterial::getCopy(const char* type)
 {
   return this->getCopy();
 }
 
 
 //send back order of strain in vector form
-int 
+int
 PlateFiberMaterial::getOrder() const
 {
   return 5;
@@ -139,16 +129,15 @@ PlateFiberMaterial::getOrder() const
 
 
 const char*
-PlateFiberMaterial::getType() const 
+PlateFiberMaterial::getType() const
 {
-  return "PlateFiber"; 
+  return "PlateFiber";
 }
 
 
-
 //swap history variables
-int 
-PlateFiberMaterial::commitState() 
+int
+PlateFiberMaterial::commitState()
 {
   Cstrain22 = Tstrain22;
 
@@ -156,9 +145,8 @@ PlateFiberMaterial::commitState()
 }
 
 
-
 //revert to last saved state
-int 
+int
 PlateFiberMaterial::revertToLastCommit()
 {
   Tstrain22 = Cstrain22;
@@ -167,7 +155,6 @@ PlateFiberMaterial::revertToLastCommit()
 }
 
 
-//revert to start
 int
 PlateFiberMaterial::revertToStart()
 {
@@ -178,7 +165,7 @@ PlateFiberMaterial::revertToStart()
 }
 
 
-//mass per unit volume
+// mass per unit volume
 double
 PlateFiberMaterial::getRho()
 {
@@ -187,8 +174,8 @@ PlateFiberMaterial::getRho()
 
 
 //receive the strain
-int 
-PlateFiberMaterial::setTrialStrain(const Vector &strainFromElement)
+int
+PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
 {
   static const double tolerance = 1.0e-08;
 
@@ -204,48 +191,49 @@ PlateFiberMaterial::setTrialStrain(const Vector &strainFromElement)
   static Vector threeDstrain(6);
   double dd22;
 
-  int count = 0;
+  int count          = 0;
   const int maxCount = 20;
   double norm0;
 
   //newton loop to solve for out-of-plane strains
   do {
 
-    //set three dimensional strain
+    // set three dimensional strain
     threeDstrain(0) = this->strain(0);
     threeDstrain(1) = this->strain(1);
     threeDstrain(2) = this->Tstrain22;
-    threeDstrain(3) = this->strain(2); 
+    threeDstrain(3) = this->strain(2);
     threeDstrain(4) = this->strain(3);
     threeDstrain(5) = this->strain(4);
 
     if (theMaterial->setTrialStrain(threeDstrain) < 0) {
-      opserr << "PlateFiberMaterial::setTrialStrain - material failed in setTrialStrain() with strain " << threeDstrain;
+      opserr
+          << "PlateFiberMaterial::setTrialStrain - material failed in setTrialStrain() with strain "
+          << threeDstrain;
       return -1;
     }
 
-    //three dimensional stress
-    const Vector &threeDstress = theMaterial->getStress();
+    // three dimensional stress
+    const Vector& threeDstress = theMaterial->getStress();
 
-    //three dimensional tangent 
-    const Matrix &threeDtangent = theMaterial->getTangent();
+    // three dimensional tangent
+    const Matrix& threeDtangent = theMaterial->getTangent();
 
-    //NDmaterial strain order          = 11, 22, 33, 12, 23, 31 
-    //PlateFiberMaterial strain order =  11, 22, 12, 23, 31, 33 
+    //NDmaterial strain order          = 11, 22, 33, 12, 23, 31
+    //PlateFiberMaterial strain order =  11, 22, 12, 23, 31, 33
 
     condensedStress = threeDstress(2);
 
-    dd22 = threeDtangent(2,2);
+    dd22 = threeDtangent(2, 2);
 
-    //set norm
     norm = fabs(condensedStress);
     if (count == 0)
       norm0 = norm;
 
-    //condensation 
-    strainIncrement = condensedStress/dd22;
+    // condensation
+    strainIncrement = condensedStress / dd22;
 
-    //update out of plane strains
+    // update out of plane strains
     Tstrain22 -= strainIncrement;
 
   } while (count++ < maxCount && norm > tolerance);
@@ -254,19 +242,19 @@ PlateFiberMaterial::setTrialStrain(const Vector &strainFromElement)
 }
 
 
-//send back the strain
-const Vector& 
+
+const Vector&
 PlateFiberMaterial::getStrain()
 {
   return strain;
 }
 
 
-//send back the stress 
-const Vector&  
+//send back the stress
+const Vector&
 PlateFiberMaterial::getStress()
 {
-  const Vector &threeDstress = theMaterial->getStress();
+  const Vector& threeDstress = theMaterial->getStress();
 
   stress(0) = threeDstress(0);
   stress(1) = threeDstress(1);
@@ -277,11 +265,10 @@ PlateFiberMaterial::getStress()
   return stress;
 }
 
-const Vector& 
-PlateFiberMaterial::getStressSensitivity(int gradIndex,
-                                         bool conditional)
+const Vector&
+PlateFiberMaterial::getStressSensitivity(int gradIndex, bool conditional)
 {
-  const Vector &threeDstress = theMaterial->getStressSensitivity(gradIndex, conditional);
+  const Vector& threeDstress = theMaterial->getStressSensitivity(gradIndex, conditional);
 
   stress(0) = threeDstress(0);
   stress(1) = threeDstress(1);
@@ -289,87 +276,87 @@ PlateFiberMaterial::getStressSensitivity(int gradIndex,
   stress(3) = threeDstress(4);
   stress(4) = threeDstress(5);
 
-  const Matrix &threeDtangent = theMaterial->getTangent();
+  const Matrix& threeDtangent = theMaterial->getTangent();
 
   static Vector dd12(5);
-  dd12(0) = threeDtangent(0,2);
-  dd12(1) = threeDtangent(1,2);
-  dd12(2) = threeDtangent(3,2);
-  dd12(3) = threeDtangent(4,2);
-  dd12(4) = threeDtangent(5,2);
+  dd12(0) = threeDtangent(0, 2);
+  dd12(1) = threeDtangent(1, 2);
+  dd12(2) = threeDtangent(3, 2);
+  dd12(3) = threeDtangent(4, 2);
+  dd12(4) = threeDtangent(5, 2);
 
-  double dd22 = threeDtangent(2,2);
+  double dd22 = threeDtangent(2, 2);
 
   double sigma2 = threeDstress(2);
 
-  double dd22sigma2 = sigma2/dd22;
+  double dd22sigma2 = sigma2 / dd22;
 
   stress.addVector(1.0, dd12, -dd22sigma2);
 
   return stress;
 }
 
-//send back the tangent 
-const Matrix&  
+//send back the tangent
+const Matrix&
 PlateFiberMaterial::getTangent()
 {
-  const Matrix &threeDtangent = theMaterial->getTangent();
+  const Matrix& threeDtangent = theMaterial->getTangent();
 
-  static Matrix dd11(5,5);
-  dd11(0,0) = threeDtangent(0,0);
-  dd11(1,0) = threeDtangent(1,0);
-  dd11(2,0) = threeDtangent(3,0);
-  dd11(3,0) = threeDtangent(4,0);
-  dd11(4,0) = threeDtangent(5,0);
+  static Matrix dd11(5, 5);
+  dd11(0, 0) = threeDtangent(0, 0);
+  dd11(1, 0) = threeDtangent(1, 0);
+  dd11(2, 0) = threeDtangent(3, 0);
+  dd11(3, 0) = threeDtangent(4, 0);
+  dd11(4, 0) = threeDtangent(5, 0);
 
-  dd11(0,1) = threeDtangent(0,1);
-  dd11(1,1) = threeDtangent(1,1);
-  dd11(2,1) = threeDtangent(3,1);
-  dd11(3,1) = threeDtangent(4,1);
-  dd11(4,1) = threeDtangent(5,1);
+  dd11(0, 1) = threeDtangent(0, 1);
+  dd11(1, 1) = threeDtangent(1, 1);
+  dd11(2, 1) = threeDtangent(3, 1);
+  dd11(3, 1) = threeDtangent(4, 1);
+  dd11(4, 1) = threeDtangent(5, 1);
 
-  dd11(0,2) = threeDtangent(0,3);
-  dd11(1,2) = threeDtangent(1,3);
-  dd11(2,2) = threeDtangent(3,3);
-  dd11(3,2) = threeDtangent(4,3);
-  dd11(4,2) = threeDtangent(5,3);
+  dd11(0, 2) = threeDtangent(0, 3);
+  dd11(1, 2) = threeDtangent(1, 3);
+  dd11(2, 2) = threeDtangent(3, 3);
+  dd11(3, 2) = threeDtangent(4, 3);
+  dd11(4, 2) = threeDtangent(5, 3);
 
-  dd11(0,3) = threeDtangent(0,4);
-  dd11(1,3) = threeDtangent(1,4);
-  dd11(2,3) = threeDtangent(3,4);
-  dd11(3,3) = threeDtangent(4,4);
-  dd11(4,3) = threeDtangent(5,4);
+  dd11(0, 3) = threeDtangent(0, 4);
+  dd11(1, 3) = threeDtangent(1, 4);
+  dd11(2, 3) = threeDtangent(3, 4);
+  dd11(3, 3) = threeDtangent(4, 4);
+  dd11(4, 3) = threeDtangent(5, 4);
 
-  dd11(0,4) = threeDtangent(0,5);
-  dd11(1,4) = threeDtangent(1,5);
-  dd11(2,4) = threeDtangent(3,5);
-  dd11(3,4) = threeDtangent(4,5);
-  dd11(4,4) = threeDtangent(5,5);
+  dd11(0, 4) = threeDtangent(0, 5);
+  dd11(1, 4) = threeDtangent(1, 5);
+  dd11(2, 4) = threeDtangent(3, 5);
+  dd11(3, 4) = threeDtangent(4, 5);
+  dd11(4, 4) = threeDtangent(5, 5);
 
-  static Matrix dd12(5,1);
-  dd12(0,0) = threeDtangent(0,2);
-  dd12(1,0) = threeDtangent(1,2);
-  dd12(2,0) = threeDtangent(3,2);
-  dd12(3,0) = threeDtangent(4,2);
-  dd12(4,0) = threeDtangent(5,2);
+  static Matrix dd12(5, 1);
+  dd12(0, 0) = threeDtangent(0, 2);
+  dd12(1, 0) = threeDtangent(1, 2);
+  dd12(2, 0) = threeDtangent(3, 2);
+  dd12(3, 0) = threeDtangent(4, 2);
+  dd12(4, 0) = threeDtangent(5, 2);
 
-  static Matrix dd21(1,5);
-  dd21(0,0) = threeDtangent(2,0);
-  dd21(0,1) = threeDtangent(2,1);
-  dd21(0,2) = threeDtangent(2,3);
-  dd21(0,3) = threeDtangent(2,4);
-  dd21(0,4) = threeDtangent(2,5);
+  static Matrix dd21(1, 5);
+  dd21(0, 0) = threeDtangent(2, 0);
+  dd21(0, 1) = threeDtangent(2, 1);
+  dd21(0, 2) = threeDtangent(2, 3);
+  dd21(0, 3) = threeDtangent(2, 4);
+  dd21(0, 4) = threeDtangent(2, 5);
 
-  double dd22 = threeDtangent(2,2);
+  double dd22 = threeDtangent(2, 2);
 
   //int Solve(const Vector &V, Vector &res) const;
   //int Solve(const Matrix &M, Matrix &res) const;
-  //condensation 
-  static Matrix dd22invdd21(1,5);
+  //condensation
+  static Matrix dd22invdd21(1, 5);
   //dd22.Solve(dd21, dd22invdd21);
-  dd22invdd21.addMatrix(0.0, dd21, 1.0/dd22);
+  dd22invdd21.addMatrix(0.0, dd21, 1.0 / dd22);
 
-  //this->tangent   = dd11; 
+  //this->tangent   = dd11;
   //this->tangent  -= (dd12*dd22invdd21);
   dd11.addMatrixProduct(1.0, dd12, dd22invdd21, -1.0);
   tangent = dd11;
@@ -378,66 +365,66 @@ PlateFiberMaterial::getTangent()
 }
 
 
-const Matrix&  
+const Matrix&
 PlateFiberMaterial::getInitialTangent()
 {
-  const Matrix &threeDtangent = theMaterial->getInitialTangent();
+  const Matrix& threeDtangent = theMaterial->getInitialTangent();
 
-  static Matrix dd11(5,5);
-  dd11(0,0) = threeDtangent(0,0);
-  dd11(1,0) = threeDtangent(1,0);
-  dd11(2,0) = threeDtangent(3,0);
-  dd11(3,0) = threeDtangent(4,0);
-  dd11(4,0) = threeDtangent(5,0);
+  static Matrix dd11(5, 5);
+  dd11(0, 0) = threeDtangent(0, 0);
+  dd11(1, 0) = threeDtangent(1, 0);
+  dd11(2, 0) = threeDtangent(3, 0);
+  dd11(3, 0) = threeDtangent(4, 0);
+  dd11(4, 0) = threeDtangent(5, 0);
 
-  dd11(0,1) = threeDtangent(0,1);
-  dd11(1,1) = threeDtangent(1,1);
-  dd11(2,1) = threeDtangent(3,1);
-  dd11(3,1) = threeDtangent(4,1);
-  dd11(4,1) = threeDtangent(5,1);
+  dd11(0, 1) = threeDtangent(0, 1);
+  dd11(1, 1) = threeDtangent(1, 1);
+  dd11(2, 1) = threeDtangent(3, 1);
+  dd11(3, 1) = threeDtangent(4, 1);
+  dd11(4, 1) = threeDtangent(5, 1);
 
-  dd11(0,2) = threeDtangent(0,3);
-  dd11(1,2) = threeDtangent(1,3);
-  dd11(2,2) = threeDtangent(3,3);
-  dd11(3,2) = threeDtangent(4,3);
-  dd11(4,2) = threeDtangent(5,3);
+  dd11(0, 2) = threeDtangent(0, 3);
+  dd11(1, 2) = threeDtangent(1, 3);
+  dd11(2, 2) = threeDtangent(3, 3);
+  dd11(3, 2) = threeDtangent(4, 3);
+  dd11(4, 2) = threeDtangent(5, 3);
 
-  dd11(0,3) = threeDtangent(0,4);
-  dd11(1,3) = threeDtangent(1,4);
-  dd11(2,3) = threeDtangent(3,4);
-  dd11(3,3) = threeDtangent(4,4);
-  dd11(4,3) = threeDtangent(5,4);
+  dd11(0, 3) = threeDtangent(0, 4);
+  dd11(1, 3) = threeDtangent(1, 4);
+  dd11(2, 3) = threeDtangent(3, 4);
+  dd11(3, 3) = threeDtangent(4, 4);
+  dd11(4, 3) = threeDtangent(5, 4);
 
-  dd11(0,4) = threeDtangent(0,5);
-  dd11(1,4) = threeDtangent(1,5);
-  dd11(2,4) = threeDtangent(3,5);
-  dd11(3,4) = threeDtangent(4,5);
-  dd11(4,4) = threeDtangent(5,5);
+  dd11(0, 4) = threeDtangent(0, 5);
+  dd11(1, 4) = threeDtangent(1, 5);
+  dd11(2, 4) = threeDtangent(3, 5);
+  dd11(3, 4) = threeDtangent(4, 5);
+  dd11(4, 4) = threeDtangent(5, 5);
 
-  static Matrix dd12(5,1);
-  dd12(0,0) = threeDtangent(0,2);
-  dd12(1,0) = threeDtangent(1,2);
-  dd12(2,0) = threeDtangent(3,2);
-  dd12(3,0) = threeDtangent(4,2);
-  dd12(4,0) = threeDtangent(5,2);
+  static Matrix dd12(5, 1);
+  dd12(0, 0) = threeDtangent(0, 2);
+  dd12(1, 0) = threeDtangent(1, 2);
+  dd12(2, 0) = threeDtangent(3, 2);
+  dd12(3, 0) = threeDtangent(4, 2);
+  dd12(4, 0) = threeDtangent(5, 2);
 
-  static Matrix dd21(1,5);
-  dd21(0,0) = threeDtangent(2,0);
-  dd21(0,1) = threeDtangent(2,1);
-  dd21(0,2) = threeDtangent(2,3);
-  dd21(0,3) = threeDtangent(2,4);
-  dd21(0,4) = threeDtangent(2,5);
+  static Matrix dd21(1, 5);
+  dd21(0, 0) = threeDtangent(2, 0);
+  dd21(0, 1) = threeDtangent(2, 1);
+  dd21(0, 2) = threeDtangent(2, 3);
+  dd21(0, 3) = threeDtangent(2, 4);
+  dd21(0, 4) = threeDtangent(2, 5);
 
-  double dd22 = threeDtangent(2,2);
+  double dd22 = threeDtangent(2, 2);
 
   //int Solve(const Vector &V, Vector &res) const;
   //int Solve(const Matrix &M, Matrix &res) const;
-  //condensation 
-  static Matrix dd22invdd21(1,5);
+  //condensation
+  static Matrix dd22invdd21(1, 5);
   //dd22.Solve(dd21, dd22invdd21);
-  dd22invdd21.addMatrix(0.0, dd21, 1.0/dd22);
+  dd22invdd21.addMatrix(0.0, dd21, 1.0 / dd22);
 
-  //this->tangent   = dd11; 
+  //this->tangent   = dd11;
   //this->tangent  -= (dd12*dd22invdd21);
   dd11.addMatrixProduct(1.0, dd12, dd22invdd21, -1.0);
   tangent = dd11;
@@ -446,19 +433,19 @@ PlateFiberMaterial::getInitialTangent()
 }
 
 //print out data
-void  
-PlateFiberMaterial::Print(OPS_Stream &s, int flag)
+void
+PlateFiberMaterial::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << "\t\t\t{";
-      s << "\"name\": \"" << this->getTag() << "\", ";
-      s << "\"type\": \"PlateFiberMaterial\", ";
-      s << "\"material\": " << theMaterial->getTag();
-      s << "}";
-      return;
+    s << "\t\t\t{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"PlateFiberMaterial\", ";
+    s << "\"material\": " << theMaterial->getTag();
+    s << "}";
+    return;
   }
   s << "General Plate Fiber Material \n";
-  s << " Tag: " << this->getTag() << "\n"; 
+  s << " Tag: " << this->getTag() << "\n";
   s << "using the 3D material : \n";
 
   theMaterial->Print(s, flag);
@@ -467,22 +454,22 @@ PlateFiberMaterial::Print(OPS_Stream &s, int flag)
 }
 
 
-int 
-PlateFiberMaterial::sendSelf(int commitTag, Channel &theChannel) 
+int
+PlateFiberMaterial::sendSelf(int commitTag, Channel& theChannel)
 {
   int res = 0;
 
   // put tag and associated materials class and database tags into an id and send it
   static ID idData(3);
-  idData(0) = this->getTag();
-  idData(1) = theMaterial->getClassTag();
+  idData(0)    = this->getTag();
+  idData(1)    = theMaterial->getClassTag();
   int matDbTag = theMaterial->getDbTag();
   if (matDbTag == 0) {
     matDbTag = theChannel.getDbTag();
     theMaterial->setDbTag(matDbTag);
   }
   idData(2) = matDbTag;
-  
+
   res = theChannel.sendID(this->getDbTag(), commitTag, idData);
   if (res < 0) {
     opserr << "PlateFiberMaterial::sendSelf() - failed to send id data\n";
@@ -501,14 +488,14 @@ PlateFiberMaterial::sendSelf(int commitTag, Channel &theChannel)
 
   // now send the materials data
   res = theMaterial->sendSelf(commitTag, theChannel);
-  if (res < 0) 
+  if (res < 0)
     opserr << "PlateFiberMaterial::sendSelf() - failed to send vector material\n";
 
   return res;
 }
 
-int 
-PlateFiberMaterial::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+int
+PlateFiberMaterial::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
   int res = 0;
 
@@ -530,7 +517,8 @@ PlateFiberMaterial::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
       delete theMaterial;
     theMaterial = theBroker.getNewNDMaterial(matClassTag);
     if (theMaterial == 0) {
-      opserr << "PlateFiberMaterial::recvSelf() - failed to get a material of type: " << matClassTag << endln;
+      opserr << "PlateFiberMaterial::recvSelf() - failed to get a material of type: " << matClassTag
+             << endln;
       return -1;
     }
   }
@@ -549,32 +537,28 @@ PlateFiberMaterial::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
 
   // now receive the associated materials data
   res = theMaterial->recvSelf(commitTag, theChannel, theBroker);
-  if (res < 0) 
+  if (res < 0)
     opserr << "PlateFiberMaterial::sendSelf() - failed to send vector material\n";
-  
+
   return res;
 }
- 
+
 int
-PlateFiberMaterial::setParameter(const char **argv, int argc,
-				 Parameter &param)
+PlateFiberMaterial::setParameter(const char** argv, int argc, Parameter& param)
 {
   return theMaterial->setParameter(argv, argc, param);
 }
 
-Response* PlateFiberMaterial::setResponse(const char** argv, int argc, OPS_Stream& s)
+Response*
+PlateFiberMaterial::setResponse(const char** argv, int argc, OPS_Stream& s)
 {
-    // for strain, stress and tangent use the base class implementation
-    // so that the output will be that of the adapter
-    if (strcmp(argv[0], "Tangent") == 0 ||
-        strcmp(argv[0], "tangent") == 0 ||
-        strcmp(argv[0], "stress") == 0 ||
-        strcmp(argv[0], "stresses") == 0 ||
-        strcmp(argv[0], "strain") == 0 ||
-        strcmp(argv[0], "strains") == 0
-        ) {
-        return NDMaterial::setResponse(argv, argc, s);
-    }
-    // otherwise, for other custom results, forward the call to the adaptee
-    return theMaterial->setResponse(argv, argc, s);
+  // for strain, stress and tangent use the base class implementation
+  // so that the output will be that of the adapter
+  if (strcmp(argv[0], "Tangent") == 0 || strcmp(argv[0], "tangent") == 0 ||
+      strcmp(argv[0], "stress") == 0 || strcmp(argv[0], "stresses") == 0 ||
+      strcmp(argv[0], "strain") == 0 || strcmp(argv[0], "strains") == 0) {
+    return NDMaterial::setResponse(argv, argc, s);
+  }
+  // otherwise, for other custom results, forward the call to the adaptee
+  return theMaterial->setResponse(argv, argc, s);
 }

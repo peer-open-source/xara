@@ -48,7 +48,6 @@ class LoadPattern;
 class TimeSeries;
 class TimeSeriesIntegrator;
 
-
 class Matrix;
 class Vector;
 class ID;
@@ -77,6 +76,7 @@ class SectionIntegration;
 
 class UniaxialMaterial;
 class SectionForceDeformation;
+class FrameSection;
 class NDMaterial;
 class Fiber;
 class FrictionModel;
@@ -125,7 +125,8 @@ class FEM_ObjectBroker
     virtual SectionIntegration *getNewSectionIntegration(int classTag);
 
     virtual UniaxialMaterial  *getNewUniaxialMaterial(int classTag);
-    virtual SectionForceDeformation  *getNewSection(int classTag);    
+    virtual SectionForceDeformation  *getNewSection(int classTag);
+    virtual FrameSection *getNewFrameSection(int classTag) { return 0; };
     virtual NDMaterial *getNewNDMaterial(int classTag);
     virtual Fiber *getNewFiber(int classTag);
     virtual FrictionModel *getNewFrictionModel(int classTag);

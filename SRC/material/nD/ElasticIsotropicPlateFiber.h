@@ -49,6 +49,8 @@ class ElasticIsotropicPlateFiber : public ElasticIsotropicMaterial
     ElasticIsotropicPlateFiber ();
     ~ElasticIsotropicPlateFiber ();
 
+    const char *getClassType() const {return "ElasticIsotropicPlateFiber";}
+
     int setTrialStrain (const Vector &v);
     int setTrialStrain (const Vector &v, const Vector &r);
     int setTrialStrainIncr (const Vector &v);

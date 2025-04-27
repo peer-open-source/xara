@@ -21,50 +21,13 @@
 #include <ElasticIsotropicThreeDimensional.h>           
 #include <Channel.h>
 
-#include <elementAPI.h>
 
 Vector ElasticIsotropicThreeDimensional::sigma(6);
 Matrix ElasticIsotropicThreeDimensional::D(6,6);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_ElasticIsotropic3D)
-{
-  NDMaterial *theMaterial = 0;
-  
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numArgs < 3) {
-    opserr << "Want: nDMaterial ElasticIsotropic3D $tag $E $nu <$rho>\n";
-    return 0;	
-  }
-  
-  int iData[1];
-  double dData[3];
-  dData[2] = 0.0;
-  
-  int numData = 1;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag\n";
-    return 0;
-  }
-  
-  if (numArgs > 3) 
-    numData = 3;
-  else
-    numData = 2;
-  
-  if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: " << iData[0] <<"\n";
-    return 0;
-  }  
-  
-  theMaterial = new ElasticIsotropicThreeDimensional(iData[0], dData[0], dData[1], dData[2]);
-  
-  return theMaterial;
-}
 
-ElasticIsotropicThreeDimensional::ElasticIsotropicThreeDimensional
-(int tag, double E, double nu, double rho) :
- ElasticIsotropicMaterial (tag, ND_TAG_ElasticIsotropicThreeDimensional, E, nu, rho),
+ElasticIsotropicThreeDimensional::ElasticIsotropicThreeDimensional(int tag, double E, double nu, double rho) :
+ ElasticIsotropicMaterial(tag, ND_TAG_ElasticIsotropicThreeDimensional, E, nu, rho),
  epsilon(6), Cepsilon(6)
 {
   epsilon.Zero();
@@ -85,54 +48,42 @@ ElasticIsotropicThreeDimensional::~ElasticIsotropicThreeDimensional ()
 }
 
 int
-ElasticIsotropicThreeDimensional::setTrialStrain (const Vector &strain)
+ElasticIsotropicThreeDimensional::setTrialStrain(const Vector &strain)
 {
   epsilon = strain;
   return 0;
 }
 
 int
-ElasticIsotropicThreeDimensional::setTrialStrain (const Vector &strain, const Vector &rate)
+ElasticIsotropicThreeDimensional::setTrialStrain(const Vector &strain, const Vector &rate)
 {
   epsilon = strain;
   return 0;
 }
 
 int
-ElasticIsotropicThreeDimensional::setTrialStrainIncr (const Vector &strain)
+ElasticIsotropicThreeDimensional::setTrialStrainIncr(const Vector &strain)
 {
   epsilon += strain;
   return 0;
 }
 
 int
-ElasticIsotropicThreeDimensional::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+ElasticIsotropicThreeDimensional::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   epsilon += strain;
   return 0;
 }
 
 const Matrix&
-ElasticIsotropicThreeDimensional::getTangent (void)
+ElasticIsotropicThreeDimensional::getTangent()
 {
-  double mu2 = E/(1.0+v);
-  double lam = v*mu2/(1.0-2.0*v);
-  double mu = 0.50*mu2;
-  mu2 += lam;
-
-  D(0,0) = D(1,1) = D(2,2) = mu2;
-  D(0,1) = D(1,0) = D(0,2) = D(2,0) = D(1,2) = D(2,1) = lam;
-  D(3,3) = mu;
-  D(4,4) = mu;
-  D(5,5) = mu;
-
-  return D;
+  return getInitialTangent();
 }
 
 const Matrix&
-ElasticIsotropicThreeDimensional::getInitialTangent (void)
+ElasticIsotropicThreeDimensional::getInitialTangent()
 {
-  //  return this->getTangent();
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
   double mu = 0.50*mu2;
@@ -148,7 +99,7 @@ ElasticIsotropicThreeDimensional::getInitialTangent (void)
 }
 
 const Vector&
-ElasticIsotropicThreeDimensional::getStress (void)
+ElasticIsotropicThreeDimensional::getStress()
 {
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
@@ -177,27 +128,27 @@ ElasticIsotropicThreeDimensional::getStress (void)
 }
 
 const Vector&
-ElasticIsotropicThreeDimensional::getStrain (void)
+ElasticIsotropicThreeDimensional::getStrain()
 {
   return epsilon;
 }
 
 int
-ElasticIsotropicThreeDimensional::commitState (void)
+ElasticIsotropicThreeDimensional::commitState()
 {
   Cepsilon=epsilon;
   return 0;
 }
 
 int
-ElasticIsotropicThreeDimensional::revertToLastCommit (void)
+ElasticIsotropicThreeDimensional::revertToLastCommit()
 {
   epsilon=Cepsilon;
   return 0;
 }
 
 int
-ElasticIsotropicThreeDimensional::revertToStart (void)
+ElasticIsotropicThreeDimensional::revertToStart()
 {
   epsilon.Zero();
   Cepsilon.Zero();
@@ -205,7 +156,7 @@ ElasticIsotropicThreeDimensional::revertToStart (void)
 }
 
 NDMaterial*
-ElasticIsotropicThreeDimensional::getCopy (void)
+ElasticIsotropicThreeDimensional::getCopy()
 {
   ElasticIsotropicThreeDimensional *theCopy =
     new ElasticIsotropicThreeDimensional (this->getTag(), E, v, rho);
@@ -217,13 +168,13 @@ ElasticIsotropicThreeDimensional::getCopy (void)
 }
 
 const char*
-ElasticIsotropicThreeDimensional::getType (void) const
+ElasticIsotropicThreeDimensional::getType() const
 {
   return "ThreeDimensional";
 }
 
 int
-ElasticIsotropicThreeDimensional::getOrder (void) const
+ElasticIsotropicThreeDimensional::getOrder() const
 {
   return 6;
 }

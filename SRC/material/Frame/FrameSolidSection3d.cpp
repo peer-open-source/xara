@@ -620,7 +620,6 @@ FrameSolidSection3d::setResponse(const char **argv, int argc,
       
       output.endTag();
     }
-
   }
 
   if (theResponse == nullptr)

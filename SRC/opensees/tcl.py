@@ -51,7 +51,8 @@ def exec(script: str, silent=False, analysis=True)->dict:
     if analysis is False:
         interp.eval(f"""
             pragma analysis off
-            proc eigen {{args}} {{set a 1}}
+            proc eigen {{n args}} {{set a [range $n]}}
+            proc verify {{args}} {{set a 1}}
             # ANALYZE SHOULD RETURN A NUMBER IN CASE ITS CHECKED IN SCRIPT
             proc analyze {{args}} {{set a 1}}
             {puts}

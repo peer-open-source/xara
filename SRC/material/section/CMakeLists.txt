@@ -28,7 +28,7 @@ target_sources(OPS_Material
     FiberSection3dThermal.cpp
 #   FiberSectionGJ.cpp
 #   FiberSectionGJThermal.cpp    
-    GenericSection1d.cpp
+    # GenericSection1d.cpp
     Isolator2spring.cpp
     NDFiberSection2d.cpp
     NDFiberSection3d.cpp

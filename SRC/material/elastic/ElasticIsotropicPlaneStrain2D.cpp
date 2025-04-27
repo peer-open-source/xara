@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.5 $
-// $Date: 2002-12-05 22:49:09 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticIsotropicPlaneStrain2D.cpp,v $
-                                                                        
-                                                                        
+//
 #include <ElasticIsotropicPlaneStrain2D.h>                                                                        
 #include <Channel.h>
 Vector ElasticIsotropicPlaneStrain2D::sigma(3);
@@ -79,22 +74,13 @@ ElasticIsotropicPlaneStrain2D::setTrialStrainIncr (const Vector &strain, const V
 }
 
 const Matrix&
-ElasticIsotropicPlaneStrain2D::getTangent (void)
+ElasticIsotropicPlaneStrain2D::getTangent()
 {
-  double mu2 = E/(1.0+v);
-  double lam = v*mu2/(1.0-2.0*v);
-  double mu = 0.50*mu2;
-  mu2 += lam;
-  
-  D(0,0) = D(1,1) = mu2;
-  D(0,1) = D(1,0) = lam;
-  D(2,2) = mu;
-  
-  return D;
+  return getInitialTangent();
 }
 
 const Matrix&
-ElasticIsotropicPlaneStrain2D::getInitialTangent (void)
+ElasticIsotropicPlaneStrain2D::getInitialTangent()
 {
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
@@ -103,12 +89,12 @@ ElasticIsotropicPlaneStrain2D::getInitialTangent (void)
   D(0,0) = D(1,1) = mu2+lam;
   D(0,1) = D(1,0) = lam;
   D(2,2) = mu;
-  
+
   return D;
 }
 
 const Vector&
-ElasticIsotropicPlaneStrain2D::getStress (void)
+ElasticIsotropicPlaneStrain2D::getStress()
 {
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
@@ -128,27 +114,27 @@ ElasticIsotropicPlaneStrain2D::getStress (void)
 }
 
 const Vector&
-ElasticIsotropicPlaneStrain2D::getStrain (void)
+ElasticIsotropicPlaneStrain2D::getStrain()
 {
   return epsilon;
 }
 
 int
-ElasticIsotropicPlaneStrain2D::commitState (void)
+ElasticIsotropicPlaneStrain2D::commitState()
 {
   Cepsilon=epsilon;
   return 0;
 }
 
 int
-ElasticIsotropicPlaneStrain2D::revertToLastCommit (void)
+ElasticIsotropicPlaneStrain2D::revertToLastCommit()
 {
   epsilon=Cepsilon;
   return 0;
 }
 
 int
-ElasticIsotropicPlaneStrain2D::revertToStart (void)
+ElasticIsotropicPlaneStrain2D::revertToStart()
 {
   epsilon.Zero();
   Cepsilon.Zero();
@@ -156,7 +142,7 @@ ElasticIsotropicPlaneStrain2D::revertToStart (void)
 }
 
 NDMaterial*
-ElasticIsotropicPlaneStrain2D::getCopy (void)
+ElasticIsotropicPlaneStrain2D::getCopy()
 {
   ElasticIsotropicPlaneStrain2D *theCopy =
     new ElasticIsotropicPlaneStrain2D (this->getTag(), E, v, rho);
@@ -167,13 +153,13 @@ ElasticIsotropicPlaneStrain2D::getCopy (void)
 }
 
 const char*
-ElasticIsotropicPlaneStrain2D::getType (void) const
+ElasticIsotropicPlaneStrain2D::getType() const
 {
   return "PlaneStrain";
 }
 
 int
-ElasticIsotropicPlaneStrain2D::getOrder (void) const
+ElasticIsotropicPlaneStrain2D::getOrder() const
 {
   return 3;
 }

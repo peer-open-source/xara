@@ -33,9 +33,6 @@
 #include <TaggedObjectStorage.h>
 
 
-// SingleDomParamIter(SingleDomain &theDomain):
-//	constructor that takes the model, just the basic iter
-
 SingleDomParamIter::SingleDomParamIter(TaggedObjectStorage *theStorage)
   :myIter(theStorage->getComponents())
 {
@@ -47,14 +44,14 @@ SingleDomParamIter::~SingleDomParamIter()
 }    
 
 void
-SingleDomParamIter::reset(void)
+SingleDomParamIter::reset()
 {
     myIter.reset();
 }    
 
 
 Parameter *
-SingleDomParamIter::operator()(void)
+SingleDomParamIter::operator()()
 {
     // check if we still have parameters in the model
     // if not return 0, indicating we are done

@@ -71,19 +71,17 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   double mass = 0.0;
 
   if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
-    opserr << "WARNING invalid twoNodeLink eleTag\n";
+    opserr << "WARNING invalid eleTag\n";
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &iNode) != TCL_OK) {
     opserr << "WARNING invalid iNode\n";
-    opserr << "twoNodeLink element: " << tag << endln;
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &jNode) != TCL_OK) {
     opserr << "WARNING invalid jNode\n";
-    opserr << "twoNodeLink element: " << tag << endln;
     return TCL_ERROR;
   }
   argi++;
@@ -91,7 +89,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   numMat = 0;
   if (strcmp(argv[argi], "-mat") != 0) {
     opserr << "WARNING expecting -mat flag\n";
-    opserr << "twoNodeLink element: " << tag << endln;
     return TCL_ERROR;
   }
   argi++;
@@ -102,7 +99,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   }
   if (numMat == 0) {
     opserr << "WARNING no directions specified\n";
-    opserr << "twoNodeLink element: " << tag << endln;
     return TCL_ERROR;
   }
   // create array of uniaxial materials
@@ -124,7 +120,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   numDir = 0;
   if (strcmp(argv[argi], "-dir") != 0) {
     opserr << "WARNING expecting -dir flag\n";
-    opserr << "twoNodeLink element: " << tag << endln;
     return TCL_ERROR;
   }
   argi++;
@@ -138,7 +133,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   }
   if (numDir != numMat) {
     opserr << "WARNING wrong number of directions specified\n";
-    opserr << "twoNodeLink element: " << tag << endln;
     return TCL_ERROR;
   }
   // create the ID array to hold the direction IDs
@@ -293,15 +287,13 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   // then add the twoNodeLink to the domain
   if (builder->getDomain()->addElement(theElement) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "twoNodeLink element: " << tag << endln;
     delete theElement;
     return TCL_ERROR;
   }
 
-  // if get here we have successfully created the twoNodeLink and added it to
-  // the domain
   return TCL_OK;
 }
+
 
 int
 TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int argc,
@@ -330,7 +322,7 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
   // get the id and end nodes
   int tag, iNode, jNode, stag;
   if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
-    opserr << "WARNING invalid twoNodeLinkSection eleTag\n";
+    opserr << "WARNING invalid eleTag\n";
     return TCL_ERROR;
   }
   argi++;
@@ -432,8 +424,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         i += 1;
       }
   }
-
-
 
   // Check for optional arguments
   for (int i = argi; i < argc; i++) {
@@ -555,7 +545,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
   // now create the twoNodeLink
   Element* theElement = new TwoNodeLinkSection(tag, ndm, iNode, jNode,
         *theSection, y, x, Mratio, shearDistI, doRayleigh, mass);
-
 
 
   // then add the twoNodeLinkSection to the domain

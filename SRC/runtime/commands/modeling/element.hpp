@@ -12,10 +12,10 @@ typedef void *OPS_Routine(G3_Runtime* , int, const char** const);
 
 extern OPS_Routine OPS_ComponentElement2d;
 extern OPS_Routine OPS_ComponentElement3d;
-extern OPS_Routine OPS_TrussElement;
-extern OPS_Routine OPS_TrussSectionElement;
-extern OPS_Routine OPS_CorotTrussElement;
-extern OPS_Routine OPS_CorotTrussSectionElement;
+// extern OPS_Routine OPS_TrussElement;
+// extern OPS_Routine OPS_TrussSectionElement;
+// extern OPS_Routine OPS_CorotTrussElement;
+// extern OPS_Routine OPS_CorotTrussSectionElement;
 extern OPS_Routine OPS_ElasticTubularJoint;
 extern OPS_Routine OPS_ZeroLength;
 extern OPS_Routine OPS_ZeroLengthContactNTS2D;
@@ -38,8 +38,6 @@ extern OPS_Routine OPS_AxEqDispBeamColumn2d;
 extern OPS_Routine OPS_BeamGT;
 // extern void* OPS_GradientInelasticBeamColumn2d();
 // extern void* OPS_GradientInelasticBeamColumn3d();
-extern OPS_Routine OPS_DispBeamColumnAsym3dTcl;  // Xinlong Du
-extern OPS_Routine OPS_MixedBeamColumnAsym3dTcl; // Xinlong Du
 #if defined(_HAVE_LHNMYS) || defined(OPSDEF_ELEMENT_LHNMYS)
   extern void *OPS_BeamColumn2DwLHNMYS(G3_Runtime*);
   extern void *OPS_Beam2dDamage(G3_Runtime*);
@@ -114,6 +112,7 @@ extern OPS_Routine OPS_LehighJoint2d;
 extern OPS_Routine OPS_MasonPan12;
 extern OPS_Routine OPS_MasonPan3D;
 
+
 #include <algorithm>
 #include <string>
 static
@@ -146,7 +145,9 @@ class CaseInsensitive
     }
 };
 
+Tcl_CmdProc TclCommand_addTruss;
 Tcl_CmdProc TclCommand_addTwoNodeLink;
+Tcl_CmdProc TclCommand_addTwoNodeLinkSection;
 // Plane
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuad;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadWithSensitivity;
@@ -175,7 +176,11 @@ static
 std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
 element_dispatch_tcl = {
   {"twoNodeLink",               TclCommand_addTwoNodeLink},
-  {"twoNodeLinkSection",        TclCommand_addTwoNodeLink},
+  {"twoNodeLinkSection",        TclCommand_addTwoNodeLinkSection},
+  {"Truss",                     TclCommand_addTruss},
+  {"TrussSection",              TclCommand_addTruss},
+  {"CorotTruss",                TclCommand_addTruss},
+  {"CorotTrussSection",         TclCommand_addTruss},
 //
 // Plane
 //
@@ -253,8 +258,6 @@ static
 std::unordered_map<std::string, OPS_Routine *, CaseInsensitive, CaseInsensitive> 
 element_dispatch = {
 // Truss
-  {"TrussSection",                 OPS_TrussSectionElement},
-  {"CorotTrussSection",            OPS_CorotTrussSectionElement},
   {"N4BiaxialTruss",               OPS_N4BiaxialTruss},
   {"Truss2",                       OPS_Truss2},
   {"CorotTruss2",                  OPS_CorotTruss2},

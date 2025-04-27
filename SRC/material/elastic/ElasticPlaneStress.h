@@ -27,11 +27,7 @@
 
 class ElasticPlaneStress : public NDMaterial {
 
-//-------------------Declarations-------------------------------
-
   public : 
-
-  //null constructor
   ElasticPlaneStress( ) ;
 
   //full constructor
@@ -85,7 +81,7 @@ class ElasticPlaneStress : public NDMaterial {
   int sendSelf(int commitTag, Channel &theChannel) ;  
   int recvSelf(int commitTag, Channel &theChannel, 
                FEM_ObjectBroker &theBroker ) ;
-  //print out material data
+
   void Print(OPS_Stream &s, int flag = 0) ;
   
   private : 
@@ -97,11 +93,6 @@ class ElasticPlaneStress : public NDMaterial {
 
   double E, nu, rho;
 
-  //index mapping special for plane stress because of 
-  // condensation on tangent
-  void index_map( int matrix_index, int &i, int &j ) ;
-
-} ; //end of ElasticPlaneStress declarations
-
+};
 
 #endif

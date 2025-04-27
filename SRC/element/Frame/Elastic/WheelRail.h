@@ -71,8 +71,7 @@ class WheelRail : public Element
     void getActiveDof();
     void getShapeFuns();
     
-    void zeroLoad(void);	
-    int addLoad(const Vector &addP);
+    void zeroLoad();	
     int addInertiaLoadToUnbalance(const Vector &accel);
     const Vector &getResistingForce(void);
     const Vector &getResistingForceIncInertia(void);            

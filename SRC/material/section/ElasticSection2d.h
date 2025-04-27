@@ -41,7 +41,7 @@ class ElasticSection2d: public FrameSection
   int revertToLastCommit(void);
   int revertToStart(void);
   
-  const char *getClassType(void) const {return "ElasticSection2d";};
+  const char *getClassType(void) const {return "ElasticSection2d";}
   
   int setTrialSectionDeformation(const Vector&);
   const Vector &getSectionDeformation(void);

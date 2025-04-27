@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.7 $
 // $Date: 2006/08/03 23:49:46 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/section/MembranePlateFiberSectionThermal.h,v $
@@ -28,9 +28,9 @@
 //
 
 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <math.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -40,103 +40,102 @@
 #include <SectionForceDeformation.h>
 
 
-class MembranePlateFiberSectionThermal : public SectionForceDeformation{
+class MembranePlateFiberSectionThermal : public SectionForceDeformation {
 
-//-------------------Declarations-------------------------------
+  //-------------------Declarations-------------------------------
 
-  public : 
+public:
+  //null constructor
+  MembranePlateFiberSectionThermal();
 
-    //null constructor
-    MembranePlateFiberSectionThermal( ) ;
-
-    //full constructor
-    MembranePlateFiberSectionThermal(   int    tag, 
-                                 double thickness, 
-                                 NDMaterial &Afiber ) ;
+  //full constructor
+  MembranePlateFiberSectionThermal(int tag, double thickness, NDMaterial& Afiber);
 
 
-    const char *getClassType(void) const {return "MembranePlateFiberSectionThermal";};
+  const char*
+  getClassType(void) const
+  {
+    return "MembranePlateFiberSectionThermal";
+  };
 
-    //destructor
-    virtual ~MembranePlateFiberSectionThermal( ) ;
+  //destructor
+  virtual ~MembranePlateFiberSectionThermal();
 
-    //make a clone of this material
-    SectionForceDeformation *getCopy( ) ;
+  //make a clone of this material
+  SectionForceDeformation* getCopy();
 
-    //mass per unit area
-    double getRho() ;
+  //mass per unit area
+  double getRho();
 
-    //send back order of strain in vector form
-    int getOrder( ) const ;
+  //send back order of strain in vector form
+  int getOrder() const;
 
-    //send back order of strain in vector form
-    const ID& getType( ) ;
+  //send back order of strain in vector form
+  const ID& getType();
 
-    //swap history variables
-    int commitState( ) ; 
+  //swap history variables
+  int commitState();
 
-    //revert to last saved state
-    int revertToLastCommit( ) ;
+  //revert to last saved state
+  int revertToLastCommit();
 
-    //revert to start
-    int revertToStart( ) ;
+  //revert to start
+  int revertToStart();
 
-    //get the strain and integrate plasticity equations
-    int setTrialSectionDeformation( const Vector &strain_from_element ) ;
+  //get the strain and integrate plasticity equations
+  int setTrialSectionDeformation(const Vector& strain_from_element);
 
-	const Vector &getTemperatureStress(const Vector&); //J.Jiang add to get Ft=EA*Elongation//
+  const Vector& getTemperatureStress(const Vector&); //J.Jiang add to get Ft=EA*Elongation//
 
-    //send back the strain
-    const Vector& getSectionDeformation( ) ;
+  //send back the strain
+  const Vector& getSectionDeformation();
 
-    //send back the stress 
-    const Vector& getStressResultant( ) ;
+  //send back the stress
+  const Vector& getStressResultant();
 
-    //send back the tangent 
-    const Matrix& getSectionTangent( ) ;
+  //send back the tangent
+  const Matrix& getSectionTangent();
 
-    //send back the initial tangent 
-    const Matrix& getInitialTangent( ) {return this->getSectionTangent();}
+  //send back the initial tangent
+  const Matrix&
+  getInitialTangent()
+  {
+    return this->getSectionTangent();
+  }
 
-    //print out data
-    void Print( OPS_Stream &s, int flag ) ;
+  //print out data
+  void Print(OPS_Stream& s, int flag);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 
-	  Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &info);
-
-
-  private :
-
-    //quadrature data
-    static const double sg[5] ;
-    static const double wg[5] ;
-
-    double h ; //plate thickness
-
-    NDMaterial *theFibers[5] ;  //pointers to five materials (fibers)
-
-    static const double root56 ; // =sqrt(5/6) 
-
-    Vector strainResultant ;
-
-    static Vector stressResultant ;
-
-    static Matrix tangent ;
-
-    static ID array ; 
-
-	double   sTData[2];   //Data for section resisting force due to thermal load 
-	Vector  *sT;  //  Pointer to sTData
-	double  ThermalElongation[5]; // Temperature dependent elasticity modulus
-	int countnGauss;
-	double ThermalGradientShink;
-
-} ; //end of MembranePlateFiberSectionThermal declarations
+  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
+  int getResponse(int responseID, Information& info);
 
 
+private:
+  //quadrature data
+  static const double sg[5];
+  static const double wg[5];
 
+  double h; //plate thickness
 
+  NDMaterial* theFibers[5]; //pointers to five materials (fibers)
 
+  static const double root56; // =sqrt(5/6)
+
+  Vector strainResultant;
+
+  static Vector stressResultant;
+
+  static Matrix tangent;
+
+  static ID array;
+
+  double sTData[2];            //Data for section resisting force due to thermal load
+  Vector* sT;                  //  Pointer to sTData
+  double ThermalElongation[5]; // Temperature dependent elasticity modulus
+  int countnGauss;
+  double ThermalGradientShink;
+
+}; //end of MembranePlateFiberSectionThermal declarations

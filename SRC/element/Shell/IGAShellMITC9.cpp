@@ -25,41 +25,8 @@
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #define min(a,b) ( (a)<(b) ? (a):(b) )
 
-
-void *
-OPS_ADD_RUNTIME_VPV(OPS_IGAShellMITC9)
-{
-  Element *theElement = 0;
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numArgs < 11) {
-    opserr << "Want: element IGAShellMITC9 $tag $node1 $node2 .... $node9 $secTag";
-    return 0;    
-  }
-  
-  int iData[11];
-  int numData = 11;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag\n";
-    return 0;
-  }
-
-  SectionForceDeformation *theSection = OPS_getSectionForceDeformation(iData[10]);
-
-  if (theSection == 0) {
-    opserr << "ERROR:  element IGAShellMITC9 " << iData[0] << "section " << iData[10] << " not found\n";
-    return 0;
-  }
-  
-  theElement = new IGAShellMITC9(iData[0], iData[1], iData[2], iData[3],
-               iData[4], iData[5], iData[6], iData[7],
-               iData[8], iData[9], *theSection);
-
-  return theElement;
-}
 
 
 //quadrature data
@@ -67,7 +34,6 @@ const double  IGAShellMITC9::root3 = sqrt(3.0) ;
 const double  IGAShellMITC9::root3_over_root5 = root3 / sqrt(5.0) ;
 
 
-//null constructor
 IGAShellMITC9::IGAShellMITC9( ) :
   Element( 0, ELE_TAG_ShellMITC9 ),
   connectedExternalNodes(9), load(0), Ki(0)

@@ -62,14 +62,14 @@ ElasticIsotropicPlaneStress2D::setTrialStrain (const Vector &strain, const Vecto
 }
 
 int
-ElasticIsotropicPlaneStress2D::setTrialStrainIncr (const Vector &strain)
+ElasticIsotropicPlaneStress2D::setTrialStrainIncr(const Vector &strain)
 {
   epsilon += strain;
   return 0;
 }
 
 int
-ElasticIsotropicPlaneStress2D::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+ElasticIsotropicPlaneStress2D::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   epsilon += strain;
   return 0;
@@ -78,15 +78,7 @@ ElasticIsotropicPlaneStress2D::setTrialStrainIncr (const Vector &strain, const V
 const Matrix&
 ElasticIsotropicPlaneStress2D::getTangent()
 {
-    double d00 = E/(1.0-v*v);
-    double d01 = v*d00;
-    double d22 = 0.5*(d00-d01);
-
-    D(0,0) = D(1,1) = d00;
-    D(1,0) = D(0,1) = d01;
-    D(2,2) = d22;
-
-    return D;
+    return getInitialTangent();
 }
 
 const Matrix&

@@ -12,43 +12,7 @@
 ** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2008-10-20 22:23:03 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticPlaneStress.cpp,v $
-
-// Written: Ed "C++" Love
 //
-// ElasticPlaneStress isotropic hardening material class
-// 
-//  Elastic Model
-//  sigma = K*trace(epsilion_elastic) + (2*G)*dev(epsilon_elastic)
-//
-//  Yield Function
-//  phi(sigma,q) = || dev(sigma) ||  - sqrt(2/3)*q(xi) 
-//
-//  Saturation Isotropic Hardening with linear term
-//  q(xi) = simga_infty + (sigma_0 - sigma_infty)*exp(-delta*xi) + H*xi 
-//
-//  Flow Rules
-//  \dot{epsilon_p} =  gamma * d_phi/d_sigma
-//  \dot{xi}        = -gamma * d_phi/d_q 
-//
-//  Linear Viscosity 
-//  gamma = phi / eta  ( if phi > 0 ) 
-//
-//  Backward Euler Integration Routine 
-//  Yield condition enforced at time n+1 
-//
-//  Send strains in following format :
-// 
-//     strain_vec = {   eps_00
-//                      eps_11
-//                    2 eps_01   }   <--- note the 2
-// 
-//  set eta := 0 for rate independent case
-//
-
 #include <ElasticPlaneStress.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -59,57 +23,6 @@ Vector ElasticPlaneStress :: stress_vec(3) ;
 Matrix ElasticPlaneStress :: tangent_matrix(3,3) ;
 
 
-void* OPS_ElasticPlaneStress(void) 
-{
-  
-  opserr << "ndMaterial ElasticPlaneStress tag E nu rho\n";
-
-  int tag;
-  double E, nu, rho;
-
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  if (numArgs != 4) {
-    opserr << "ndMaterial ElasticPlaneStress tag E nu rho\n";
-    return 0;
-  }
-
-  int iData[1];
-  double dData[3];
-
-  int numData = 1;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer values: nDMaterial ElasticPlaneStress \n";
-    return 0;
-  }  
-  tag = iData[0]; 
-
-  numData = 3;  
-  if (OPS_GetDouble(&numData, dData) != 0) {
-      opserr << "WARNING invalid double values: nDMaterial ElasticPlaneStress " << tag << endln;
-    return 0;
-  }  
-  E = dData[0];
-  nu = dData[1];
-  rho = dData[2];
-
-  opserr << "Creating new ElasticPlaneStress with \n" 
-    << "tag  = " << tag << endln
-    << "E    = " << E << endln
-    << "nu   = " << nu << endln
-    << "rho  = " << rho << endln;
-
-
-
-  NDMaterial *theMaterial =  new ElasticPlaneStress (tag, E, nu, rho);
-  
-  return theMaterial;
-}
-
-
-
-
-
-
 //null constructor
 ElasticPlaneStress ::  ElasticPlaneStress( ) : 
 NDMaterial(0, ND_TAG_ElasticPlaneStress), 
@@ -117,7 +30,8 @@ strain_vec(3),
 E(0),
 nu(0),
 rho(0)
-{  }
+{
+}
 
 
 //full constructor
@@ -137,7 +51,7 @@ rho(rho_)
 
 
 //destructor
-ElasticPlaneStress :: ~ElasticPlaneStress( ) 
+ElasticPlaneStress :: ~ElasticPlaneStress() 
 {  } 
 
 
@@ -180,7 +94,7 @@ int ElasticPlaneStress :: setTrialStrain( const Vector &strain_from_element )
 }
 
 
-//unused trial strain functions
+// unused trial strain functions
 int ElasticPlaneStress :: setTrialStrain( const Vector &v, const Vector &r )
 { 
    opserr << "ElasticPlaneStress :: setTrialStrain( const Vector &v, const Vector &r ) -- should not be used! \n";
@@ -199,15 +113,12 @@ int ElasticPlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r )
     return this->setTrialStrainIncr(v);
 }
 
-
-//send back the strain
 const Vector& ElasticPlaneStress :: getStrain( ) 
 {
   return strain_vec ;
-} 
+}
 
 
-//send back the stress 
 const Vector& ElasticPlaneStress :: getStress( ) 
 {
 
@@ -223,7 +134,8 @@ const Vector& ElasticPlaneStress :: getStress( )
 }
 
 //send back the tangent 
-const Matrix& ElasticPlaneStress :: getTangent( ) 
+const Matrix& 
+ElasticPlaneStress :: getTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -253,8 +165,7 @@ const Matrix& ElasticPlaneStress :: getTangent( )
 } 
 
 
-//send back the tangent 
-const Matrix& ElasticPlaneStress :: getInitialTangent( ) 
+const Matrix& ElasticPlaneStress::getInitialTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -262,52 +173,42 @@ const Matrix& ElasticPlaneStress :: getInitialTangent( )
   //   0           0 0
   //   1           1 1
   //   2           0 1  ( or 1 0 ) 
-  // 
-
-
+  //
   return this->getTangent() ;
 } 
 
 int 
 ElasticPlaneStress::commitState( ) 
 {
-
   return 0;
 }
 
 int 
-ElasticPlaneStress::revertToLastCommit( ) {
-
-
+ElasticPlaneStress::revertToLastCommit( ) 
+{
   return 0;
 }
 
 
 int 
-ElasticPlaneStress::revertToStart( ) {
- 
-
+ElasticPlaneStress::revertToStart()
+{
   return 0;
 }
 
 int
 ElasticPlaneStress::sendSelf(int commitTag, Channel &theChannel)
 {
-  
-
   return -1;
 }
 
 int
 ElasticPlaneStress::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-  
-
   return -1;
 }
 
 
-//print out material data
 void ElasticPlaneStress :: Print( OPS_Stream &s, int flag )
 {
   s << endln ;
@@ -318,58 +219,3 @@ void ElasticPlaneStress :: Print( OPS_Stream &s, int flag )
   s << "mass density =        " << rho     << endln ;
   s << endln ;
 }
-
-
-//matrix_index ---> tensor indices i,j
-// plane stress different because of condensation on tangent
-// case 3 switched to 1-2 and case 4 to 3-3 
-void 
-ElasticPlaneStress :: index_map( int matrix_index, int &i, int &j )
-{
-  switch ( matrix_index+1 ) { //add 1 for standard tensor indices
-
-    case 1 :
-      i = 1 ; 
-      j = 1 ;
-      break ;
- 
-    case 2 :
-      i = 2 ;
-      j = 2 ; 
-      break ;
-
-    case 3 :
-      i = 1 ;
-      j = 2 ;
-      break ;
-
-    case 4 :
-      i = 3 ;
-      j = 3 ;
-      break ;
-
-    case 5 :
-      i = 2 ;
-      j = 3 ;
-      break ;
-
-    case 6 :
-      i = 3 ;
-      j = 1 ;
-      break ;
-
-
-    default :
-      i = 1 ;
-      j = 1 ;
-      break ;
-
-  } //end switch
-
-i-- ; //subtract 1 for C-indexing
-j-- ;
-
-return ; 
-}
-
-

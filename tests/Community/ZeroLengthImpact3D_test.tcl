@@ -32,8 +32,6 @@ model BasicBuilder -ndm 3 -ndf 3;
 
 
 
-
-
 # for plane of ( z=0.0) : 
 node 01 0.0 0.0 0.0; 
 node 02 10.0 0.0 0.0; 
@@ -116,14 +114,6 @@ recorder Node -file output/disp2Y.out -node 21 22 24 25 -dof 2 disp;
 recorder Node -file output/disp1Y.out -node 11 12 14 15 -dof 2 disp;
 recorder Element -file output/ele2212g.out -ele 2212 globalForce;
 
-
-#recorder display $windowTitle $xLoc $yLoc $xPixels $yPixels <-file $fileName>
-recorder display "animation" 10 10 800 800 -wipe;
-prp 1.0 1.0 1.0;
-vup -1.0 1.0 -1.0;#view-up vector (vup)
-vpn 1.0 1.0 1.0;#view-plane normal (vpn)
-viewWindow -15 15 -15 15;
-display 1 3 1;
 
 
 wipeAnalysis

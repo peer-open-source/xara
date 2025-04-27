@@ -1764,50 +1764,49 @@ Domain::getCreep(void) const
 void
 Domain::applyLoad(double scale)
 {
+  // set the current pseudo time in the domain to be newTime
+  currentTime = scale;
+  dT = currentTime - committedTime;
 
-    // set the current pseudo time in the domain to be newTime
-    currentTime = scale;
-    dT = currentTime - committedTime;
+  //
+  // first zero all loads
+  //
 
-    //
-    // first zero all loads
-    //
+  Node *nodePtr;
+  NodeIter &theNodeIter = this->getNodes();
+  while ((nodePtr = theNodeIter()) != nullptr)
+    nodePtr->zeroUnbalancedLoad();
 
-    Node *nodePtr;
-    NodeIter &theNodeIter = this->getNodes();
-    while ((nodePtr = theNodeIter()) != nullptr)
-      nodePtr->zeroUnbalancedLoad();
+  Element *elePtr;
+  ElementIter &theElemIter = this->getElements();    
+  while ((elePtr = theElemIter()) != nullptr)
+    if (elePtr->isSubdomain() == false)
+        elePtr->zeroLoad();    
 
-    Element *elePtr;
-    ElementIter &theElemIter = this->getElements();    
-    while ((elePtr = theElemIter()) != nullptr)
-      if (elePtr->isSubdomain() == false)
-          elePtr->zeroLoad();    
+  //
+  // now loop over load patterns, invoking applyLoad on them
+  //
+  LoadPattern *thePattern;
+  LoadPatternIter &thePatterns = this->getLoadPatterns();
+  while((thePattern = thePatterns()) != nullptr)
+    thePattern->applyLoad(scale);
 
-    //
-    // now loop over load patterns, invoking applyLoad on them
-    //
-    LoadPattern *thePattern;
-    LoadPatternIter &thePatterns = this->getLoadPatterns();
-    while((thePattern = thePatterns()) != nullptr)
-      thePattern->applyLoad(scale);
+  //
+  // finally loop over the MP_Constraints and SP_Constraints of the domain
+  //
 
-    //
-    // finally loop over the MP_Constraints and SP_Constraints of the domain
-    //
+  MP_ConstraintIter &theMPs = this->getMPs();
+  MP_Constraint *theMP;
+  while ((theMP = theMPs()) != nullptr)
+    theMP->applyConstraint(scale);
 
-    MP_ConstraintIter &theMPs = this->getMPs();
-    MP_Constraint *theMP;
-    while ((theMP = theMPs()) != nullptr)
-      theMP->applyConstraint(scale);
+  SP_ConstraintIter &theSPs = this->getSPs();
+  SP_Constraint *theSP;
+  while ((theSP = theSPs()) != nullptr) {
+    theSP->applyConstraint(scale);
+  }
 
-    SP_ConstraintIter &theSPs = this->getSPs();
-    SP_Constraint *theSP;
-    while ((theSP = theSPs()) != nullptr) {
-      theSP->applyConstraint(scale);
-    }
-
-    ops_Dt = dT;
+  ops_Dt = dT;
 }
 
 
@@ -2024,7 +2023,7 @@ Domain::updateParameter(int tag, int value)
   TaggedObject *mc = theParameters->getComponentPtr(tag);
   
   // if not there return 0
-  if (mc == 0) 
+  if (mc == 0)
       return 0;
 
   // convert to a parameter & update

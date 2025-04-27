@@ -99,7 +99,7 @@ ElasticIsotropic3DThermal::setTrialStrainIncr (const Vector &strain, const Vecto
 }
 
 const Matrix&
-ElasticIsotropic3DThermal::getTangent (void)
+ElasticIsotropic3DThermal::getTangent()
 {
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
@@ -116,7 +116,7 @@ ElasticIsotropic3DThermal::getTangent (void)
 }
 
 const Matrix&
-ElasticIsotropic3DThermal::getInitialTangent (void)
+ElasticIsotropic3DThermal::getInitialTangent()
 {
   //  return this->getTangent();
   double mu2 = E/(1.0+v);
@@ -134,7 +134,7 @@ ElasticIsotropic3DThermal::getInitialTangent (void)
 }
 
 const Vector&
-ElasticIsotropic3DThermal::getStress (void)
+ElasticIsotropic3DThermal::getStress()
 {
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
@@ -225,27 +225,27 @@ ElasticIsotropic3DThermal::setThermalTangentAndElongation(double &TempT, double&
 }
 
 const Vector&
-ElasticIsotropic3DThermal::getStrain (void)
+ElasticIsotropic3DThermal::getStrain()
 {
   return epsilon;
 }
 
 int
-ElasticIsotropic3DThermal::commitState (void)
+ElasticIsotropic3DThermal::commitState()
 {
   Cepsilon=epsilon;
   return 0;
 }
 
 int
-ElasticIsotropic3DThermal::revertToLastCommit (void)
+ElasticIsotropic3DThermal::revertToLastCommit()
 {
   epsilon=Cepsilon;
   return 0;
 }
 
 int
-ElasticIsotropic3DThermal::revertToStart (void)
+ElasticIsotropic3DThermal::revertToStart()
 {
   epsilon.Zero();
   Cepsilon.Zero();
@@ -253,7 +253,7 @@ ElasticIsotropic3DThermal::revertToStart (void)
 }
 
 NDMaterial*
-ElasticIsotropic3DThermal::getCopy (void)
+ElasticIsotropic3DThermal::getCopy()
 {
   ElasticIsotropic3DThermal *theCopy =
     new ElasticIsotropic3DThermal (this->getTag(), E, v, rho,Alpha);
@@ -265,13 +265,13 @@ ElasticIsotropic3DThermal::getCopy (void)
 }
 
 const char*
-ElasticIsotropic3DThermal::getType (void) const
+ElasticIsotropic3DThermal::getType() const
 {
   return "ThreeDimensionalThermal";
 }
 
 int
-ElasticIsotropic3DThermal::getOrder (void) const
+ElasticIsotropic3DThermal::getOrder() const
 {
   return 6;
 }

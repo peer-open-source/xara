@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision$
 // $Date$
 // $URL$
@@ -25,7 +25,7 @@
 #ifndef CorotTruss_h
 #define CorotTruss_h
 
-// Written: MHS 
+// Written: MHS
 // Created: May 2001
 //
 // Description: This file contains the class definition for CorotTruss,
@@ -41,96 +41,93 @@ class Node;
 class Channel;
 class UniaxialMaterial;
 
-class CorotTruss : public Element
-{
-  public:
-    CorotTruss(int tag, int dim,
-               int Nd1, int Nd2, 
-               UniaxialMaterial &theMaterial,
-               double A, double rho = 0.0,
-               int doRayleighDamping = 0,
-           int cMass = 0);
-    
-    CorotTruss();    
-    ~CorotTruss();
+class CorotTruss : public Element {
+public:
+  CorotTruss(int tag, int dim, int Nd1, int Nd2, UniaxialMaterial& theMaterial, double A,
+             double rho = 0.0, int doRayleighDamping = 0, int cMass = 0);
 
-    const char *getClassType(void) const {return "CorotTruss";};
+  CorotTruss();
+  ~CorotTruss();
 
-    // public methods to obtain information about dof & connectivity    
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+  const char*
+  getClassType(void) const
+  {
+    return "CorotTruss";
+  };
 
-    int getNumDOF(void);        
-    void setDomain(Domain *theDomain);
+  // public methods to obtain information about dof & connectivity
+  int getNumExternalNodes(void) const;
+  const ID& getExternalNodes(void);
+  Node** getNodePtrs(void);
 
-    // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);        
-    int revertToStart(void);        
-    int update(void);
-    
-    // public methods to obtain stiffness, mass, damping and residual information    
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getDamp(void);
-    const Matrix &getMass(void);    
+  int getNumDOF(void);
+  void setDomain(Domain* theDomain);
 
-    void zeroLoad(void);        
-    int addLoad(ElementalLoad *theLoad, double loadFactor);
-    int addInertiaLoadToUnbalance(const Vector &accel);
+  // public methods to set the state of the element
+  int commitState(void);
+  int revertToLastCommit(void);
+  int revertToStart(void);
+  int update(void);
 
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);            
+  // public methods to obtain stiffness, mass, damping and residual information
+  const Matrix& getTangentStiff(void);
+  const Matrix& getInitialStiff(void);
+  const Matrix& getDamp(void);
+  const Matrix& getMass(void);
 
-    // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);    
+  void zeroLoad(void);
+  int addLoad(ElementalLoad* theLoad, double loadFactor);
+  int addInertiaLoadToUnbalance(const Vector& accel);
 
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
+  const Vector& getResistingForce(void);
+  const Vector& getResistingForceIncInertia(void);
 
-    int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+  // public methods for element output
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+  int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
+  void Print(OPS_Stream& s, int flag = 0);
 
-  protected:
-    
-  private:
-   
-    // private attributes - a copy for each object of the class
-    UniaxialMaterial *theMaterial;  // pointer to a material
-    ID  connectedExternalNodes;     // contains the tags of the end nodes
-    int numDOF;                            // number of dof for CorotTruss
-    int numDIM;                     // number of dimensions
+  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
+  int getResponse(int responseID, Information& eleInformation);
 
-    double Lo;              // initial length of truss
-    double Ln;              // current length of truss
-    double d21[3];          // current displacement offsets in basic system
-    double v21[3];          // current velocity offsets in basic system
-    double A;               // area of CorotTruss
-    double rho;             // mass density per unit length
-    int doRayleighDamping;  // flag to include Rayleigh damping
-    int cMass;              // consistent mass flag
+  int setParameter(const char** argv, int argc, Parameter& param);
+  int updateParameter(int parameterID, Information& info);
 
-    Node *theNodes[2];
+protected:
+private:
+  // private attributes - a copy for each object of the class
+  UniaxialMaterial* theMaterial; // pointer to a material
+  ID connectedExternalNodes;     // contains the tags of the end nodes
+  int numDOF;                    // number of dof for CorotTruss
+  int numDIM;                    // number of dimensions
 
-    Matrix R;        // Rotation matrix
+  double Lo;             // initial length of truss
+  double Ln;             // current length of truss
+  double d21[3];         // current displacement offsets in basic system
+  double v21[3];         // current velocity offsets in basic system
+  double A;              // area of CorotTruss
+  double rho;            // mass density per unit length
+  int doRayleighDamping; // flag to include Rayleigh damping
+  int cMass;             // consistent mass flag
 
-    Vector *theLoad;    // pointer to the load vector P
-    Matrix *theMatrix;  // pointer to objects matrix (a class wide Matrix)
-    Vector *theVector;  // pointer to objects vector (a class wide Vector)
-    
-    static Matrix M2;
-    static Matrix M4;
-    static Matrix M6;
-    static Matrix M12;
-    
-    static Vector V2;
-    static Vector V4;
-    static Vector V6;
-    static Vector V12;
+  Node* theNodes[2];
+
+  Matrix R; // Rotation matrix
+
+  Vector* theLoad;   // pointer to the load vector P
+  Matrix* theMatrix; // pointer to objects matrix (a class wide Matrix)
+  Vector* theVector; // pointer to objects vector (a class wide Vector)
+
+  static Matrix M2;
+  static Matrix M4;
+  static Matrix M6;
+  static Matrix M12;
+
+  static Vector V2;
+  static Vector V4;
+  static Vector V6;
+  static Vector V12;
 };
 
 #endif

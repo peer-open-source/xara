@@ -757,7 +757,14 @@ void ASDShellT3::Print(OPS_Stream& s, int flag)
         s << "\"type\": \"ASDShellT3\", ";
         s << "\"nodes\": [" << m_node_ids(0) << ", " << m_node_ids(1) << ", ";
         s << m_node_ids(2) << "], ";
-        s << "\"section\": \"" << m_sections[0]->getTag() << "\"}";
+        s << "\"section\": " << m_sections[0]->getTag() << ", ";
+        s << "\"geometry\": \"";
+        if (m_transformation->isLinear())
+            s << "linear";
+        else
+            s << "corotational";
+        s << "\"";
+        s << "}";
     }
 }
 

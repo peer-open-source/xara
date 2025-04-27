@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.6 $
 // $Date: 2006-08-04 18:18:38 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/PlateFiberMaterial.h,v $
@@ -26,102 +26,93 @@
 //
 // Generic Plate Fiber Material
 //
-
 #ifndef PlateFiberMaterial_h
 #define PlateFiberMaterial_h
 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <math.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <Vector.h>
 #include <Matrix.h>
-#include <ID.h> 
+#include <ID.h>
 #include <NDMaterial.h>
 
-class PlateFiberMaterial: public NDMaterial{
+class PlateFiberMaterial : public NDMaterial {
 
-//-------------------Declarations-------------------------------
+  //-------------------Declarations-------------------------------
 
-  public : 
+public:
+  PlateFiberMaterial();
 
-    //null constructor
-    PlateFiberMaterial( ) ;
+  PlateFiberMaterial(int tag, NDMaterial& the3DMaterial);
 
-    //full constructor
-    PlateFiberMaterial(   int    tag, 
-                           NDMaterial &the3DMaterial ) ;
+  virtual ~PlateFiberMaterial();
 
+  virtual const char*
+  getClassType(void) const
+  {
+    return "PlateFiberMaterial";
+  }
 
-    //destructor
-    virtual ~PlateFiberMaterial( ) ;
+  // make a clone of this material
+  NDMaterial* getCopy();
+  NDMaterial* getCopy(const char* type);
 
-    virtual const char *getClassType(void) const {return "PlateFiberMAterial";};
+  //send back order of strain in vector form
+  int getOrder() const;
 
-    //make a clone of this material
-    NDMaterial *getCopy( ) ;
-    NDMaterial *getCopy( const char *type ) ;
+  //send back order of strain in vector form
+  const char* getType() const;
 
-    //send back order of strain in vector form
-    int getOrder( ) const ;
+  //swap history variables
+  int commitState();
 
-    //send back order of strain in vector form
-    const char *getType( ) const ;
+  //revert to last saved state
+  int revertToLastCommit();
 
-    //swap history variables
-    int commitState( ) ; 
+  //revert to start
+  int revertToStart();
 
-    //revert to last saved state
-    int revertToLastCommit( ) ;
+  //get the strain
+  int setTrialStrain(const Vector& strainFromElement);
 
-    //revert to start
-    int revertToStart( ) ;
+  //send back the strain
+  const Vector& getStrain();
 
-    //get the strain 
-    int setTrialStrain( const Vector &strainFromElement ) ;
+  //send back the stress
+  const Vector& getStress();
 
-    //send back the strain
-    const Vector& getStrain( ) ;
+  //send back the tangent
+  const Matrix& getTangent();
+  const Matrix& getInitialTangent();
 
-    //send back the stress 
-    const Vector& getStress( ) ;
+  //density
+  double getRho();
 
-    //send back the tangent 
-    const Matrix& getTangent( ) ;
-    const Matrix &getInitialTangent(void);
+  void Print(OPS_Stream& s, int flag);
 
-    //density
-    double getRho( ) ;
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 
-    //print out data
-    void Print( OPS_Stream &s, int flag ) ;
+  int setParameter(const char** argv, int argc, Parameter& param);
+  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  const Vector& getStressSensitivity(int gradIndex, bool conditional);
 
-    int setParameter(const char **argv, int argc, Parameter &param);
-    Response* setResponse(const char** argv, int argc, OPS_Stream& s);
+private:
+  //out of plane strain
+  double Tstrain22;
+  double Cstrain22;
 
-    const Vector& getStressSensitivity(int gradIndex,
-                                       bool conditional);
+  NDMaterial* theMaterial; //pointer to three dimensional material
 
-  private :
+  Vector strain;
 
-    //out of plane strain
-    double Tstrain22 ;
-    double Cstrain22 ;
+  static Vector stress;
 
-    NDMaterial *theMaterial ;  //pointer to three dimensional material
-
-    Vector strain ;
-
-    static Vector stress ;
-
-    static Matrix tangent ;
-} ; //end of PlateFiberMaterial declarations
-
-
-
+  static Matrix tangent;
+}; //end of PlateFiberMaterial declarations
 
 
 #endif

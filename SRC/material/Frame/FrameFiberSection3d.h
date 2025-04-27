@@ -30,7 +30,8 @@ class FrameFiberSection3d : public FrameSection
 {
   public:
     FrameFiberSection3d(); 
-    FrameFiberSection3d(int tag, int numFibers, UniaxialMaterial &torsion, 
+    FrameFiberSection3d(int tag, int numFibers, 
+                        UniaxialMaterial *torsion, 
                         bool compCentroid,
                         double mass, bool use_mass);
     ~FrameFiberSection3d();

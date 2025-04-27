@@ -76,7 +76,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   double delta2 = 0.0;
 
   //
-  // Keyword arguments
+  // 1. Keyword arguments
   //
 
   // Isotropy
@@ -274,7 +274,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   }
 
   //
-  // Positional arguments
+  // 2) Positional arguments
   //
   for (int i : positional) {
   
@@ -477,6 +477,9 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
     Hkin = (1.0 - hard.theta) * hard.Hmix;
   }
 
+  //
+  // 3. Check for required arguments
+  //
   if (tracker.current() < Position::EndRequired) {
     opserr << OpenSees::PromptParseError
             << "missing required arguments: ";

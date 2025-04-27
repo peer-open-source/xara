@@ -22,9 +22,9 @@
 //
 // Ed "C++" Love
 //
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <math.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -35,79 +35,71 @@
 
 class ElasticPlateSection : public SectionForceDeformation {
 
-//-------------------Declarations-------------------------------
+  //-------------------Declarations-------------------------------
 
-  public : 
+public:
+  //null constructor
+  ElasticPlateSection();
 
-    //null constructor
-    ElasticPlateSection( ) ;
-
-    //full constructor
-    ElasticPlateSection(   int    tag, 
-                           double E,
-                           double nu,
-                           double h = 1.0 ) ;
+  //full constructor
+  ElasticPlateSection(int tag, double E, double nu, double h = 1.0);
 
 
+  //destructor
+  ~ElasticPlateSection();
 
-    //destructor
-    ~ElasticPlateSection( ) ;
-
-    //make a clone of this material
-    SectionForceDeformation *getCopy( ) ;
+  //make a clone of this material
+  SectionForceDeformation* getCopy();
 
 
-    //send back order of strain in vector form
-    int getOrder( ) const ;
+  //send back order of strain in vector form
+  int getOrder() const;
 
-    //send back order of strain in vector form
-    const ID& getType( ) ;
+  //send back order of strain in vector form
+  const ID& getType();
 
-    //swap history variables
-    int commitState( ) ; 
+  //swap history variables
+  int commitState();
 
-    //revert to last saved state
-    int revertToLastCommit( ) ;
+  //revert to last saved state
+  int revertToLastCommit();
 
-    //revert to start
-    int revertToStart( ) ;
+  //revert to start
+  int revertToStart();
 
-    //get the strain and integrate plasticity equations
-    int setTrialSectionDeformation( const Vector &strain_from_element ) ;
+  //get the strain and integrate plasticity equations
+  int setTrialSectionDeformation(const Vector& strain_from_element);
 
-    //send back the strain
-    const Vector& getSectionDeformation( ) ;
+  //send back the strain
+  const Vector& getSectionDeformation();
 
-    //send back the stress 
-    const Vector& getStressResultant( ) ;
+  //send back the stress
+  const Vector& getStressResultant();
 
-    //send back the tangent 
-    const Matrix& getSectionTangent( ) ;
+  //send back the tangent
+  const Matrix& getSectionTangent();
 
-    //send back the initial tangent 
-    const Matrix& getInitialTangent( ) ;
+  //send back the initial tangent
+  const Matrix& getInitialTangent();
 
-    //print out data
-    void Print( OPS_Stream &s, int flag ) ;
+  //print out data
+  void Print(OPS_Stream& s, int flag);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 
-  private :
+private:
+  double E;  // elastic modulus
+  double nu; // poisson ratio
+  double h;  // plate thickness
 
-    double E ;  // elastic modulus
-    double nu ; // poisson ratio
-    double h  ; // plate thickness
+  static const double five6; // =5/6 = shear correction factor
 
-    static const double five6 ; // =5/6 = shear correction factor
+  Vector strain;
 
-    Vector strain ;
+  static Vector stress;
 
-    static Vector stress ;
+  static Matrix tangent;
 
-    static Matrix tangent ;
-
-    static ID array ;  
-
+  static ID array;
 };
-

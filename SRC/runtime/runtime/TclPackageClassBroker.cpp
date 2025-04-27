@@ -1167,8 +1167,8 @@ TclPackageClassBroker::getNewSection(int classTag)
   case SEC_TAG_Elastic3d:
     return new ElasticSection3d();
 
-  case SEC_TAG_Generic1d:
-    return new GenericSection1d();
+  // case SEC_TAG_Generic1d:
+  //   return new GenericSection1d();
 
     // case SEC_TAG_GenericNd:
     // return new GenericSectionNd();

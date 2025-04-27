@@ -22,7 +22,6 @@
 #include <PlaneStrainMaterial.h>
 
 #include <ParallelMaterial.h>
-
 #include <FatigueMaterial.h>
 
 int
@@ -97,13 +96,14 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
         }
 
         if (argc == 5) {
-            double evol;
-            if (Tcl_GetDouble(interp, argv[4], &evol) != TCL_OK) {
-                opserr << G3_ERROR_PROMPT << "failed to read initial value\n";
-                return TCL_ERROR;
-            }
-            for (int i = 0; i < 3; ++i)
-                initial(i) = evol;
+          double evol;
+          if (Tcl_GetDouble(interp, argv[4], &evol) != TCL_OK) {
+              opserr << G3_ERROR_PROMPT << "failed to read initial value\n";
+              return TCL_ERROR;
+          }
+          for (int i = 0; i < 3; ++i)
+            initial(i) = evol;
+
         } else {
             for (int i=0; i<6; ++i) {
                 if (Tcl_GetDouble(interp, argv[4+i], &initial(i)) != TCL_OK) {
@@ -114,7 +114,7 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
         }
 
         if (strstr(argv[1], "Strain") != 0)
-            return builder->addTypedObject<NDMaterial>(tago, new InitStrainNDMaterial(tago, *inside, initial));
+          return builder->addTypedObject<NDMaterial>(tago, new InitStrainNDMaterial(tago, *inside, initial));
     }
 
 

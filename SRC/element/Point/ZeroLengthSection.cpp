@@ -36,78 +36,17 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <SectionForceDeformation.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <elementAPI.h>
 
 Matrix ZeroLengthSection::K6(6,6);
 Matrix ZeroLengthSection::K12(12,12);
 
 Vector ZeroLengthSection::P6(6);
 Vector ZeroLengthSection::P12(12);
-
-void * OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthSection)
-{
-    int ndm = OPS_GetNDM();
-    
-    if(OPS_GetNumRemainingInputArgs() < 4) {
-	opserr<<"insufficient arguments for ZeroLengthSection\n";
-	return 0;
-    }
-
-    // get eleTag,iNode,jNode,secTag
-    int iData[4];
-    int numData = 4;
-    if(OPS_GetIntInput(&numData,&iData[0]) < 0) {
-	opserr<<"WARNING: invalid integer inputs\n";
-	return 0;
-    }
-
-    // options
-    Vector x(3); x(0) = 1.0; x(1) = 0.0; x(2) = 0.0;
-    Vector y(3); y(0) = 0.0; y(1) = 1.0; y(2) = 0.0;
-    double *x_ptr=&x(0), *y_ptr=&y(0);
-    int doRayleighDamping = 1;
-    while(OPS_GetNumRemainingInputArgs() > 1) {
-	const char* type = OPS_GetString();
-	if(strcmp(type, "-orient") == 0) {
-	    if(OPS_GetNumRemainingInputArgs() > 5) {
-		numData = 3;
-		if(OPS_GetDoubleInput(&numData,x_ptr) < 0) {
-		    opserr<<"WARNING: invalid double inputs\n";
-		    return 0;
-		}
-		if(OPS_GetDoubleInput(&numData,y_ptr) < 0) {
-		    opserr<<"WARNING: invalid double inputs\n";
-		    return 0;
-		}
-	    }
-	} else if(strcmp(type, "-doRayleigh") == 0) {
-	    numData = 1;
-	    if(OPS_GetIntInput(&numData,&doRayleighDamping) < 0) {
-		opserr<<"WARNING: invalid integer inputs\n";
-		return 0;
-	    }
-	}
-    }
-
-    // get section
-    SectionForceDeformation* theSection = OPS_getSectionForceDeformation(iData[3]);
-    if(theSection == 0) {
-	opserr << "zeroLengthSection -- no section with tag " << iData[0] << " exists in Domain\n";
-	return 0;
-    }
-
-    return new ZeroLengthSection(iData[0],ndm,iData[1],iData[2],x,y,*theSection,doRayleighDamping);
-}
-
-//  Constructor:
-//  responsible for allocating the necessary space needed by each object
-//  and storing the tags of the ZeroLengthSection end nodes.
 
 ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2, 
 				     const Vector& x, const Vector& yprime, 
@@ -121,11 +60,6 @@ ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2,
 {
 	// Obtain copy of section model
 	theSection = sec.getCopy();
-	
-	if (theSection == 0) {
-	  opserr << "ZeroLengthSection::ZeroLengthSection -- failed to get copy of section\n";
-	  exit(-1);
-	}
 
 	// Get the section order
 	order = theSection->getOrder();
@@ -501,21 +435,12 @@ ZeroLengthSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 
 		A = new Matrix(order, numDOF);
 
-		if (A == 0) {
-		  opserr << "ZeroLengthSection::recvSelf -- failed to allocate transformation Matrix\n";
-		  exit(-1);
-		}
 
 		// Allocate section deformation vector
 		if (v != 0)
 			delete v;
 
 		v = new Vector(order);
-
-		if (v == 0) {
-		  opserr << "ZeroLengthSection::recvSelf -- failed to allocate deformation Vector\n";
-		  exit(-1);
-		}
 
 		if (numDOF == 6) {
 			P = &P6;
@@ -556,22 +481,6 @@ ZeroLengthSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 	return res;
 }
 
-int
-ZeroLengthSection::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // ensure setDomain() worked
-    if (theNodes[0] == 0 || theNodes[1] == 0)
-		return 0;
-
-	// get the end point display coords    
-	static Vector v1(3);
-	static Vector v2(3);
-	theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-	theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-	// draw the line
-	return theViewer.drawLine(v1, v2, 0.0, 0.0, this->getTag());
-}
 
 void
 ZeroLengthSection::Print(OPS_Stream &s, int flag)

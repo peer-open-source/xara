@@ -57,7 +57,7 @@ ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double
 
 ElasticIsotropicMaterial::ElasticIsotropicMaterial
 (int tag, double e, double nu, double r)
-  :NDMaterial(tag, ND_TAG_ElasticIsotropic), E(e), v(nu), rho(r), parameterID(0)
+  : NDMaterial(tag, ND_TAG_ElasticIsotropic), E(e), v(nu), rho(r), parameterID(0)
 {
 
 }
@@ -147,9 +147,9 @@ ElasticIsotropicMaterial::setTrialStrainIncr (const Vector &v)
 int
 ElasticIsotropicMaterial::setTrialStrainIncr (const Vector &v, const Vector &rate)
 {
-    opserr << "ElasticIsotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-    exit(-1);
-    return -1;
+  opserr << "ElasticIsotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
+  exit(-1);
+  return -1;
 }
 
 const Matrix&

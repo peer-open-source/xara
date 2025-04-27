@@ -22,7 +22,6 @@
 #include <runtimeAPI.h>
 #include <Logging.h>
 #include <elementAPI.h>
-#include <PlaneSection.h>
 #include <BasicModelBuilder.h>
 #include <Parameter.h>
 
@@ -49,11 +48,6 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <FrameFiberSection3d.h>
 #include <FrameSolidSection3d.h>
 #include <FiberSectionAsym3d.h>
-
-
-#include <LayeredShellFiberSection.h> // Yuli Huang & Xinzheng Lu
-#include <ElasticMembranePlateSection.h>
-#include <MembranePlateFiberSection.h>
 
 // SectionBuilder
 #include <QuadPatch.h>
@@ -94,6 +88,8 @@ Tcl_CmdProc TclCommand_addUCFiberSection;
 Tcl_CmdProc TclCommand_addSectionAggregator;
 Tcl_CmdProc TclCommand_addPlaneSection;
 Tcl_CmdProc TclCommand_addElasticShellSection;
+Tcl_CmdProc TclCommand_addUniaxialSection;
+Tcl_CmdProc TclCommand_ShellSection;
 
 // extern OPS_Routine OPS_WFSection2d;
 // extern OPS_Routine OPS_RCCircularSection;
@@ -148,6 +144,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
 
     return TclCommand_addFiberSection(clientData, interp, argc, argv);
 
+
   else if (strcmp(argv[1], "FiberInt") == 0) {
     // TODO
     // return TclCommand_addFiberIntSection(clientData, interp, argc, argv);
@@ -162,32 +159,25 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "UCFiber") == 0)
     return TclCommand_addUCFiberSection(clientData, interp, argc, argv);
 
+  else if ((strcmp(argv[1], "Elastic") == 0) ||
+    (strcmp(argv[1], "ElasticShear") == 0) ||
+    (strcmp(argv[1], "ElasticWarpingShear") == 0) ||
+    (strcmp(argv[1], "FrameElastic") == 0) ||
+    (strcmp(argv[1], "ElasticFrame") == 0)) {
+    return TclCommand_newElasticSection(clientData, interp, argc, argv);
+  }
+
+  else if (strcmp(argv[1], "Generic1D") == 0 ||
+        strcmp(argv[1], "Generic1d") == 0 ||
+        strcmp(argv[1], "Uniaxial") == 0) {
+    return TclCommand_addUniaxialSection(clientData, interp, argc, argv);
+  }
+
   else if (strcmp(argv[1], "Parallel") == 0) {
     SectionForceDeformation *theSection = 
                  (SectionForceDeformation*)OPS_ParallelSection(rt, argc, argv);
 
     if (theSection == nullptr || builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
-      if (theSection != nullptr)
-        delete theSection;
-      return TCL_ERROR;
-    } else
-      return TCL_OK;
-  }
-
-  else if ((strcmp(argv[1], "Elastic") == 0) ||
-           (strcmp(argv[1], "ElasticShear") == 0) ||
-           (strcmp(argv[1], "ElasticWarpingShear") == 0) ||
-           (strcmp(argv[1], "FrameElastic") == 0) ||
-           (strcmp(argv[1], "ElasticFrame") == 0)) {
-      return TclCommand_newElasticSection(clientData, interp, argc, argv);
-  }
-
-  else if (strcmp(argv[1], "Generic1D") == 0 ||
-           strcmp(argv[1], "Generic1d") == 0 ||
-           strcmp(argv[1], "Uniaxial") == 0) {
-    FrameSection *theSection = (FrameSection *)OPS_UniaxialSection(rt, argc, argv);
-    // Now add the section to the modelBuilder
-    if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
       if (theSection != nullptr)
         delete theSection;
       return TCL_ERROR;
@@ -234,6 +224,23 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
 
 
   //
+  // Shell
+  //
+  else if ((strcmp(argv[1], "ElasticMembranePlateSection") == 0) ||
+           (strcmp(argv[1], "ElasticShell") == 0) ||
+           (strcmp(argv[1], "ElasticPlateSection") == 0) ||
+           (strcmp(argv[1], "ElasticMembraneSection") == 0)) {
+    return TclCommand_addElasticShellSection(clientData, interp, argc, argv);
+  }
+
+  else if ((strcmp(argv[1], "LayeredShell") == 0) || 
+           (strcmp(argv[1], "LayeredShellThermal") == 0) ||
+           (strcmp(argv[1], "PlateFiber") == 0) || 
+           (strcmp(argv[1], "PlateFiberThermal") == 0)) {
+    return TclCommand_ShellSection(clientData, interp, argc, argv);
+  }
+
+  //
   // Membrane
   //
   else if ((strcmp(argv[1], "ReinforcedConcreteLayeredMembraneSection") == 0) || 
@@ -256,261 +263,6 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
 
   //
   //
-  //
-  else if (strcmp(argv[1], "PlateFiber") == 0) {
-    if (argc < 5) {
-      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-      opserr << "Want: section PlateFiber tag? matTag? h? " << endln;
-      return TCL_ERROR;
-    }
-
-    double h;
-    int tag, matTag;
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section tag" << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid matTag" << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[4], &h) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid h" << endln;
-      return TCL_ERROR;
-    }
-
-    NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matTag);
-    if (theMaterial == nullptr) {
-      opserr << OpenSees::PromptValueError << "nD material does not exist\n";
-      opserr << "nD material: " << matTag;
-      return TCL_ERROR;
-    }
-
-    theSection = new MembranePlateFiberSection(tag, h, *theMaterial);
-    // Now add the material to the modelBuilder
-    if (builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
-      delete theSection;
-      return TCL_ERROR;
-    } else
-      return TCL_OK;
-  }
-
-  //
-  // Shell
-  //
-  else if ((strcmp(argv[1], "ElasticMembranePlateSection") == 0) ||
-           (strcmp(argv[1], "ElasticShell") == 0) ||
-           (strcmp(argv[1], "ElasticPlateSection") == 0) ||
-           (strcmp(argv[1], "ElasticMembraneSection") == 0)) {
-    return TclCommand_addElasticShellSection(clientData, interp, argc, argv);
-  }
-
-  // start Yuli Huang & Xinzheng Lu LayeredShellFiberSection
-  else if (strcmp(argv[1], "LayeredShell") == 0) {
-    if (argc < 6) {
-      opserr << OpenSees::PromptValueError << "insufficient arguments" << "\n";
-      opserr << "Want: section LayeredShell tag? nLayers? matTag1? h1? ... "
-                "matTagn? hn? "
-             << endln;
-      return TCL_ERROR;
-    }
-
-    int tag, nLayers, matTag;
-    double h, *thickness;
-    NDMaterial **theMats;
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section LayeredShell tag" << "\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetInt(interp, argv[3], &nLayers) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nLayers" << "\n";
-      opserr << "LayeredShell section: " << tag << "\n";
-      return TCL_ERROR;
-    }
-
-    if (nLayers < 3) {
-      opserr << "ERROR number of layers must be larger than 2" << endln;
-      return TCL_ERROR;
-    }
-
-    theMats = new NDMaterial *[nLayers];
-    thickness = new double[nLayers];
-
-    if (argc < 3+2*nLayers) {
-      opserr << OpenSees::PromptValueError << "Must provide " << 2*nLayers << " layers\n";
-      return TCL_ERROR;
-    }
-
-    for (int iLayer = 0; iLayer < nLayers; iLayer++) {
-
-      if (Tcl_GetInt(interp, argv[4 + 2 * iLayer], &matTag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid matTag" << endln;
-        opserr << "LayeredShell section: " << tag << endln;
-        return TCL_ERROR;
-      }
-
-      theMats[iLayer] = builder->getTypedObject<NDMaterial>(matTag);
-      if (theMats[iLayer] == 0) {
-        opserr << OpenSees::PromptValueError << "nD material does not exist" << endln;
-        opserr << "nD material: " << matTag;
-        return TCL_ERROR;
-      }
-
-      if (Tcl_GetDouble(interp, argv[5 + 2 * iLayer], &h) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid h" << endln;
-        opserr << "LayeredShell section: " << tag << endln;
-        return TCL_ERROR;
-      }
-
-      if (h < 0) {
-        opserr << OpenSees::PromptValueError << "invalid h" << endln;
-        opserr << "PlateFiber section: " << tag << endln;
-        return TCL_ERROR;
-      }
-
-      thickness[iLayer] = h;
-    }
-
-    theSection = new LayeredShellFiberSection(tag, nLayers, thickness, theMats);
-    if (thickness != nullptr)
-      delete[] thickness;
-    if (theMats != 0)
-      delete[] theMats;
-
-    // Now add the material to the modelBuilder
-    if (builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
-      delete theSection;
-      return TCL_ERROR;
-    }
-
-    return TCL_OK;
-  }
-  // end Yuli Huang & Xinzheng Lu LayeredShellFiberSection
-
-  //-----Thermo-mechanical shell sections added by L.Jiang [SIF]
-  else if (strcmp(argv[1], "PlateFiberThermal") == 0) {
-    if (argc < 5) {
-      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-      opserr << "Want: section PlateFiberThermal tag? matTag? h? " << endln;
-      return TCL_ERROR;
-    }
-
-    int tag, matTag;
-    double h;
-
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section PlateFiberThermal tag" << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid matTag" << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[4], &h) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid h" << endln;
-      return TCL_ERROR;
-    }
-
-    NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matTag);
-    if (theMaterial == nullptr) {
-      return TCL_ERROR;
-    }
-
-    theSection = new MembranePlateFiberSectionThermal(tag, h, *theMaterial);
-    // Now add the material to the modelBuilder
-    if (builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
-      delete theSection; // invoke the material objects destructor, otherwise mem leak
-      return TCL_ERROR;
-    } else
-      return TCL_OK;
-  }
-
-  // LayeredShellFiberSectionThermal based on the
-  // LayeredShellFiberSectionThermal by Yuli Huang & Xinzheng Lu
-  else if (strcmp(argv[1], "LayeredShellThermal") == 0) {
-    if (argc < 6) {
-      opserr << OpenSees::PromptValueError << "insufficient arguments" << endln;
-      opserr << "Want: section LayeredShellThermal tag? nLayers? matTag1? h1? "
-                "... matTagn? hn? "
-             << endln;
-      return TCL_ERROR;
-    }
-
-    int tag, nLayers, matTag;
-    double h, *thickness;
-    NDMaterial **theMats;
-
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section LayeredShellThermal tag" << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetInt(interp, argv[3], &nLayers) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nLayers" << endln;
-      opserr << "LayeredShellThermal section: " << tag << endln;
-      return TCL_ERROR;
-    }
-
-    if (nLayers < 3) {
-      opserr << "ERROR number of layers must be larger than 2" << endln;
-      opserr << "LayeredShellThermal section: " << tag << endln;
-      return TCL_ERROR;
-    }
-
-    theMats = new NDMaterial *[nLayers];
-    thickness = new double[nLayers];
-
-    for (int iLayer = 0; iLayer < nLayers; iLayer++) {
-      if (Tcl_GetInt(interp, argv[4 + 2 * iLayer], &matTag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid matTag" << endln;
-        opserr << "LayeredShellThermal section: " << tag << endln;
-        return TCL_ERROR;
-      }
-
-      theMats[iLayer] = builder->getTypedObject<NDMaterial>(matTag);
-      if (theMats[iLayer] == 0) {
-        opserr << OpenSees::PromptValueError << "nD material does not exist" << endln;
-        ;
-        opserr << "nD material: " << matTag;
-        opserr << "LayeredShellThermal section: " << tag << endln;
-        return TCL_ERROR;
-      }
-
-      if (Tcl_GetDouble(interp, argv[5 + 2 * iLayer], &h) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid h" << endln;
-        opserr << "LayeredShellThermal section: " << tag << endln;
-        return TCL_ERROR;
-      }
-
-      if (h < 0) {
-        opserr << OpenSees::PromptValueError << "invalid h" << endln;
-        opserr << "LayeredShellThermal section: " << tag << endln;
-        return TCL_ERROR;
-      }
-
-      thickness[iLayer] = h;
-    }
-
-    theSection =
-        new LayeredShellFiberSectionThermal(tag, nLayers, thickness, theMats);
-    if (thickness != 0)
-      delete[] thickness;
-    if (theMats != 0)
-      delete[] theMats;
-
-    // Now add the material to the modelBuilder
-    if (builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
-      delete theSection; // invoke the material objects destructor, otherwise mem leak
-      return TCL_ERROR;
-    } else
-      return TCL_OK;
-  }
-  // end L.Jiang [SIF] added based on LayeredShellFiberSectionThermal section
   //
   else if (strcmp(argv[1], "Iso2spring") == 0) {
     if (argc < 10) {
@@ -608,174 +360,6 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
 }
 
-int
-TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
-                                  int argc, TCL_Char** const argv)
-{
-
-    BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
-
-    if (argc < 5) {
-      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-      opserr << "Want: section ElasticMembranePlateSection tag? E? nu? h? "
-                "<rho?> <Ep_mod?>"
-             << endln;
-      return TCL_ERROR;
-    }
-
-    int tag;
-    double E, nu, h;
-    double rho = 0.0;
-    double Ep_mod = 1.0;
-
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section ElasticMembranePlateSection tag"
-             << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid E" << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[4], &nu) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nu" << endln;
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[5], &h) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid h" << endln;
-      return TCL_ERROR;
-    }
-
-    if (argc > 6 && Tcl_GetDouble(interp, argv[6], &rho) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid rho" << endln;
-      return TCL_ERROR;
-    }
-
-    if (argc > 7 && Tcl_GetDouble(interp, argv[7], &Ep_mod) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid Ep_mod" << endln;
-      return TCL_ERROR;
-    }
-
-    builder->addTaggedObject<SectionForceDeformation>(*new ElasticMembranePlateSection(tag, E, nu, h, rho, Ep_mod));
-    return TCL_OK;
-}
-
-int
-TclCommand_addPlaneSection(ClientData clientData, Tcl_Interp *interp,
-                              int argc, TCL_Char ** const argv)
-{
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
-  enum class Positions : int {
-    Material, Thickness, End
-  };
-  ArgumentTracker<Positions> tracker;
-  std::set<int> positional;
-
-  // section Plane[Strain|Stress] $tag $material $thickness
-  if (argc < 5) {
-    opserr << OpenSees::PromptValueError
-           << "incorrect number of arguments\n";
-    return TCL_ERROR;
-  }
-
-  int tag;
-  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError
-           << "failed to read integer tag\n";
-    return TCL_ERROR;
-  }
-  int mtag;
-  double thickness;
-  for (int i=3; i<argc; ++i) {
-    if (strcmp(argv[i], "-material") == 0) {
-      if (argc == ++i || Tcl_GetInt(interp, argv[i], &mtag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError
-               << "failed to read integer material tag\n";
-        return TCL_ERROR;
-      }
-      tracker.consume(Positions::Material);
-
-    }
-    else if (strcmp(argv[i], "-thickness") == 0) {
-      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &thickness) != TCL_OK) {
-        opserr << OpenSees::PromptValueError
-               << "failed to read thickness\n";
-        return TCL_ERROR;
-      }
-      tracker.consume(Positions::Thickness);
-    }
-    else {
-      positional.insert(i);
-    }
-  }
-  for (int i: positional) {
-    switch (tracker.current()) {
-      case Positions::Material:
-        if (Tcl_GetInt(interp, argv[i], &mtag) != TCL_OK) {
-          opserr << OpenSees::PromptValueError
-                 << "failed to read integer material tag\n";
-          return TCL_ERROR;
-        }
-        tracker.increment();
-        break;
-
-      case Positions::Thickness:
-        if (Tcl_GetDouble(interp, argv[i], &thickness) != TCL_OK) {
-          opserr << OpenSees::PromptValueError
-                 << "failed to read thickness\n";
-          return TCL_ERROR;
-        }
-        tracker.increment();
-        break;
-
-      case Positions::End:
-      default:
-        opserr << OpenSees::PromptValueError
-               << "unexpected argument\n";
-        return TCL_ERROR;
-    }
-  }
-
-  // if (Tcl_GetInt(interp, argv[3], &mtag) != TCL_OK) {
-  //   opserr << OpenSees::PromptValueError
-  //          << "failed to read integer material tag\n";
-  //   return TCL_ERROR;
-  // }
-
-  // if (Tcl_GetDouble(interp, argv[4], &thickness) != TCL_OK) {
-  //   opserr << OpenSees::PromptValueError
-  //          << "failed to read thickness\n";
-  //   return TCL_ERROR;
-  // }
-
-  NDMaterial* mptr = builder->getTypedObject<NDMaterial>(mtag);
-  if (mptr == nullptr)
-    return TCL_ERROR;
-
-  NDMaterial* pptr = nullptr;
-  if (strcmp(argv[1], "PlaneStrain") == 0) {
-    if (!(pptr = mptr->getCopy("PlaneStrain"))) {
-      pptr = new PlaneStrainMaterial(tag, *mptr);
-    }
-  }
-  else if (strcmp(argv[1], "PlaneStress") == 0) {
-    if (!(pptr = mptr->getCopy("PlaneStress"))) {
-      pptr = new PlaneStressMaterial(tag, *mptr);
-    }
-  }
-  else {
-    opserr << OpenSees::PromptValueError
-           << "unknown plane section\n";
-    return TCL_ERROR;
-  }
-
-  builder->addTaggedObject<PlaneSection<NDMaterial>>(*(new PlaneSection<NDMaterial>(tag, *pptr, thickness)));
-
-  return TCL_OK;
-}
 
 struct FiberSectionConfig {
    bool isND            = false;
@@ -893,7 +477,7 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
 
       } else {
         if (options.isNew) {
-          auto sec = new FrameFiberSection3d(secTag, 30, *theTorsion, options.computeCentroid, 
+          auto sec = new FrameFiberSection3d(secTag, 30,  theTorsion, options.computeCentroid, 
                                              options.density, options.use_density);
           sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FrameFiberSection3d>(*builder, *sec);
           section = sec;
@@ -911,19 +495,19 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  if (ndm >= 3){
-    if (builder->addTaggedObject<FrameSection>(*section) < 0) {
-      return TCL_ERROR;
-    }
+
+  // In 2D truss elements still look for FrameSections
+  if (builder->addTaggedObject<FrameSection>(*section) < 0) {
+    return TCL_ERROR;
   }
-  else {
-    if (builder->addTaggedObject<SectionForceDeformation>(*section) < 0) {
-      return TCL_ERROR;
-    }
-  }
+  // if (ndm == 2) {
+  //   if (builder->addTaggedObject<SectionForceDeformation>(*section->getCopy()) < 0) {
+  //     return TCL_ERROR;
+  //   }
+  // }
 
   if (builder->addTypedObject<SectionBuilder>(secTag, sbuilder) < 0) {
-    opserr << OpenSees::PromptValueError << "cannot add section\n";
+    opserr << OpenSees::PromptValueError << "Faled to add section\n";
     return TCL_ERROR;
   }
 

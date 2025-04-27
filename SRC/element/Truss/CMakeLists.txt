@@ -5,18 +5,16 @@
 #
 #==============================================================================
 
-target_sources(OPS_Runtime PRIVATE commands.cpp)
-
 target_sources(OPS_Element
   PRIVATE
-    Truss.cpp
+    # Truss.cpp
     TrussSection.cpp
-    CorotTruss.cpp
+    # CorotTruss.cpp
     CorotTrussSection.cpp
   PUBLIC
-    Truss.h
+    # Truss.h
     TrussSection.h
-    CorotTruss.h
+    # CorotTruss.h
     CorotTrussSection.h
 )
 

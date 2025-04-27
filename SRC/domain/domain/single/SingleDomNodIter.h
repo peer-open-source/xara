@@ -47,8 +47,8 @@ class SingleDomNodIter : public NodeIter
     SingleDomNodIter(TaggedObjectStorage *theStorage);
     virtual ~SingleDomNodIter();
     
-    virtual void reset(void);
-    virtual Node *operator()(void);
+    virtual void reset();
+    virtual Node *operator()();
     
   private:
     TaggedObjectIter &myIter;

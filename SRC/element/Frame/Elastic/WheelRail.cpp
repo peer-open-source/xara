@@ -374,12 +374,6 @@ WheelRail::zeroLoad(void)
 }
 
 int 
-WheelRail::addLoad(const Vector &addP)
-{
-  return 0;  // ok
-}
-
-int 
 WheelRail::addInertiaLoadToUnbalance(const Vector &accel)
 {
   return 0;  // ok
