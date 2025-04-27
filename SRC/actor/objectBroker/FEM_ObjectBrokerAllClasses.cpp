@@ -344,23 +344,23 @@
 
 #include "Shell/ShellMITC4.h"
 #include "Shell/ShellMITC9.h"
-#include "Shell/ShellDKGQ.h"   //Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
-#include "Shell/ShellNLDKGQ.h" //Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
-#include "Shell/ASDShellQ4.h" // Massimo Petracca
+#include "Shell/ShellDKGQ.h"
+#include "Shell/ShellNLDKGQ.h"
+#include "Shell/ASDShellQ4.h"
 #include "Brick/Brick.h"
 #include "Brick/BbarBrick.h"
-#include "Joint/Joint2D.h"		// Arash
+#include "Joint/Joint2D.h"		
 #include "Link/TwoNodeLink.h"
 #include "Link/LinearElasticSpring.h"
 #include "Link/Inerter.h"
 #include "tetrahedron/FourNodeTetrahedron.h"
 
-#include "mvlem/MVLEM.h"		// Kristijan Kolozvari
-#include "mvlem/SFI_MVLEM.h"	// Kristijan Kolozvari
-#include "mvlem/MVLEM_3D.h"		// Kristijan Kolozvari
-#include "mvlem/SFI_MVLEM_3D.h"	// Kristijan Kolozvari
-#include "mvlem/E_SFI_MVLEM_3D.h"	// Kristijan Kolozvari
-#include "mvlem/E_SFI.h"		// C. N. Lopez
+#include "mvlem/MVLEM.h"		
+#include "mvlem/SFI_MVLEM.h"	
+#include "mvlem/MVLEM_3D.h"		
+#include "mvlem/SFI_MVLEM_3D.h"	
+#include "mvlem/E_SFI_MVLEM_3D.h"	
+#include "mvlem/E_SFI.h"		
 
 #include "Bearing/elastomeric/ElastomericBearingBoucWen2d.h"
 #include "Bearing/elastomeric/ElastomericBearingBoucWen3d.h"
@@ -778,23 +778,20 @@ FEM_ObjectBrokerAllClasses::getNewElement(int classTag)
 {
     switch(classTag) {
 	     
-    case ELE_TAG_Truss:  
-      return new Truss(); 
-      
+    // case ELE_TAG_Truss:  
+    //   return new Truss(); 
+
     case ELE_TAG_Truss2:  
       return new Truss2(); 
       
     case ELE_TAG_TrussSection:  
-      return new TrussSection(); 	     
-      
-    case ELE_TAG_CorotTruss:  
-      return new CorotTruss(); 
+      return new TrussSection();
       
     case ELE_TAG_CorotTrussSection:  
       return new CorotTrussSection(); 
 
-	case ELE_TAG_InertiaTruss:
-		return new InertiaTruss();
+	  case ELE_TAG_InertiaTruss:
+		  return new InertiaTruss();
       
     case ELE_TAG_ZeroLength:  
       return new ZeroLength(); 	     
@@ -933,34 +930,34 @@ FEM_ObjectBrokerAllClasses::getNewElement(int classTag)
       return new SSPbrickUP();
 
     case ELE_TAG_Quad4FiberOverlay:
-      return new Quad4FiberOverlay(); //Amin Pakzad
-	
-	case ELE_TAG_Brick8FiberOverlay:
-      return new Brick8FiberOverlay(); //Amin Pakzad
+      return new Quad4FiberOverlay();
+    
+    case ELE_TAG_Brick8FiberOverlay:
+        return new Brick8FiberOverlay();
 
-	case ELE_TAG_EmbeddedBeamInterfaceL:
-	  return new EmbeddedBeamInterfaceL(); //Amin Pakzad
+    case ELE_TAG_EmbeddedBeamInterfaceL:
+      return new EmbeddedBeamInterfaceL();
 
     case ELE_TAG_FourNodeTetrahedron:
       return new FourNodeTetrahedron();
-      
-	case ELE_TAG_PML2D:
-	  return new PML2D();
+        
+    case ELE_TAG_PML2D:
+      return new PML2D();
 
-	case ELE_TAG_PML3D:
-	  return new PML3D();
+    case ELE_TAG_PML3D:
+      return new PML3D();
 
-	case ELE_TAG_PML2D_3:
-	  return new PML2D_3(); // Amin Pakzad
-	
-	case ELE_TAG_PML2D_5:
-	  return new PML2D_5(); // Amin Pakzad
+    case ELE_TAG_PML2D_3:
+      return new PML2D_3();
+    
+    case ELE_TAG_PML2D_5:
+      return new PML2D_5();
 
-	case ELE_TAG_PML2D_12:
-	  return new PML2D_12(); // Amin Pakzad
+    case ELE_TAG_PML2D_12:
+      return new PML2D_12();
 
-	case ELE_TAG_PML2DVISCOUS:
-	  return new PML2DVISCOUS(); // Amin Pakzad
+    case ELE_TAG_PML2DVISCOUS:
+      return new PML2DVISCOUS();
 	
     case ELE_TAG_BeamContact2D:
       return new BeamContact2D();
@@ -989,20 +986,20 @@ FEM_ObjectBrokerAllClasses::getNewElement(int classTag)
     case ELE_TAG_ShellMITC9:
       return new ShellMITC9();
       
-    case ELE_TAG_ShellDKGQ:      //Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
-      return new ShellDKGQ();  //Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
+    case ELE_TAG_ShellDKGQ:
+      return new ShellDKGQ();
       
-    case ELE_TAG_ShellNLDKGQ:      //Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
-      return new ShellNLDKGQ();  //Added by Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
+    case ELE_TAG_ShellNLDKGQ:
+      return new ShellNLDKGQ();
     
-    case ELE_TAG_ASDShellQ4:   // Massimo Petracca
-      return new ASDShellQ4(); // Massimo Petracca
+    case ELE_TAG_ASDShellQ4:
+      return new ASDShellQ4();
     
     case ELE_TAG_BbarBrick:
       return new BbarBrick();
             
-    case ELE_TAG_Joint2D:				// Arash
-      return new Joint2D();			// Arash
+    case ELE_TAG_Joint2D:				
+      return new Joint2D();			
       
     case ELE_TAG_TwoNodeLink:				
       return new TwoNodeLink();			
@@ -1013,23 +1010,23 @@ FEM_ObjectBrokerAllClasses::getNewElement(int classTag)
     case ELE_TAG_Inerter:
         return new Inerter();
 
-	case ELE_TAG_MVLEM:				// Kristijan Kolozvari
-		return new MVLEM();	// Kristijan Kolozvari
+    case ELE_TAG_MVLEM:
+      return new MVLEM();	
 
-	case ELE_TAG_SFI_MVLEM:			// Kristijan Kolozvari
-		return new SFI_MVLEM();	// Kristijan Kolozvari
+    case ELE_TAG_SFI_MVLEM:			
+      return new SFI_MVLEM();	
 
-	case ELE_TAG_MVLEM_3D:		// Kristijan Kolozvari
-		return new MVLEM_3D();	// Kristijan Kolozvari
+    case ELE_TAG_MVLEM_3D:		
+      return new MVLEM_3D();	
 
-	case ELE_TAG_SFI_MVLEM_3D:		// Kristijan Kolozvari
-		return new SFI_MVLEM_3D();	// Kristijan Kolozvari
+    case ELE_TAG_SFI_MVLEM_3D:		
+      return new SFI_MVLEM_3D();	
 
-	case ELE_TAG_E_SFI_MVLEM_3D:		// Kristijan Kolozvari
-		return new E_SFI_MVLEM_3D();	// Kristijan Kolozvari
-		
-	case ELE_TAG_E_SFI:			// C. N. Lopez
-		return new E_SFI();		// C. N. Lopez	
+    case ELE_TAG_E_SFI_MVLEM_3D:		
+      return new E_SFI_MVLEM_3D();	
+      
+    case ELE_TAG_E_SFI:
+      return new E_SFI();
 
     case ELE_TAG_BBarFourNodeQuadUP:
       return new BBarFourNodeQuadUP();			
@@ -1146,8 +1143,8 @@ FEM_ObjectBrokerAllClasses::getNewMP(int classTag)
 	case CNSTRNT_TAG_MP_Constraint:  
 	     return new MP_Constraint(classTag);
 
- 	case CNSTRNT_TAG_MP_Joint2D:			// Arash
-	     return new MP_Joint2D();			// Arash
+ 	case CNSTRNT_TAG_MP_Joint2D:			
+	     return new MP_Joint2D();			
 	
 	default:
 	     opserr << "FEM_ObjectBrokerAllClasses::getNewMP - ";
