@@ -815,7 +815,6 @@ int LoadPattern::recvSelf(int cTag, Channel &theChannel,
     }
   }
 
-  // if we get here we are successful
   return 0;
 }
 
@@ -825,7 +824,12 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"type\": \"Plain\"" << ", ";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"scale\": " << scaleFactor << ",";
+    s << "\"scale\": " << scaleFactor << ", ";
+    if (theSeries) {
+      s << "\"series\": ";
+      theSeries->Print(s, flag); 
+      s << ", ";
+    }
     s << "\"nodes\": [\n";
     theNodalLoads->Print(s, flag);
     s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "],\n";
@@ -850,7 +854,7 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
   }
 }
 
-LoadPattern *LoadPattern::getCopy(void)
+LoadPattern *LoadPattern::getCopy()
 {
   LoadPattern *theCopy = new LoadPattern(this->getTag());
 
