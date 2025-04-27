@@ -2467,23 +2467,23 @@ Recorder *
 FEM_ObjectBrokerAllClasses::getPtrNewRecorder(int classTag)
 {
     switch(classTag) {
-	case RECORDER_TAGS_ElementRecorder:  
-	     return new ElementRecorder();
+      case RECORDER_TAGS_ElementRecorder:  
+          return new ElementRecorder();
 
-	case RECORDER_TAGS_NodeRecorder:  
-	     return new NodeRecorder();
+      case RECORDER_TAGS_NodeRecorder:  
+          return new NodeRecorder();
 
-	case RECORDER_TAGS_EnvelopeNodeRecorder:  
-	     return new EnvelopeNodeRecorder();
+      case RECORDER_TAGS_EnvelopeNodeRecorder:  
+          return new EnvelopeNodeRecorder();
 
-	case RECORDER_TAGS_EnvelopeElementRecorder:  
-	     return new EnvelopeElementRecorder();
+      case RECORDER_TAGS_EnvelopeElementRecorder:  
+        return new EnvelopeElementRecorder();
 
-	case RECORDER_TAGS_VTK_Recorder:  
-	     return new VTK_Recorder();
+      case RECORDER_TAGS_VTK_Recorder:  
+        return new VTK_Recorder();
 
-        case RECORDER_TAGS_DriftRecorder:  
-	     return new DriftRecorder();
+      case RECORDER_TAGS_DriftRecorder:  
+        return new DriftRecorder();
 
         case RECORDER_TAGS_TclFeViewer:  
 	  return 0;
