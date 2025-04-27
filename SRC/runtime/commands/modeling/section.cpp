@@ -284,42 +284,35 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &tol) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid tol\n";
-      opserr << "section Iso2spring: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &k1) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid k1\n";
-      opserr << "section Iso2spring: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &Fy) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid Fy\n";
-      opserr << "section Iso2spring: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &kb) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid k2\n";
-      opserr << "section Iso2spring: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &kvo) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid kv\n";
-      opserr << "section Iso2spring: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[8], &hb) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid hb\n";
-      opserr << "section Iso2spring: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[9], &Pe) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid Pe\n";
-      opserr << "section Iso2spring: " << tag << endln;
       return TCL_ERROR;
     }
     if (argc > 10) {

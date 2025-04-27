@@ -41,7 +41,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
-#include <Renderer.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,7 +53,7 @@ OPS_ADD_RUNTIME_VPV(OPS_ASDShellT3)
 {
     static bool first_done = false;
     if (!first_done) {
-        opserr << "Using ASDShellT3 - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+        opslog << "Using ASDShellT3 - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
         first_done = true;
     }
 
@@ -485,9 +484,7 @@ namespace
     }
 
     // invert bending terms
-    void invertBBendingTerms(
-        const Matrix& B,
-        Matrix& B1)
+    void invertBBendingTerms(const Matrix& B, Matrix& B1)
     {
         // due to the convention in the shell sections, we need to change the sign of the bending terms
         // for the B^T case.
@@ -571,10 +568,6 @@ ASDShellT3::ASDShellT3(
     // copy sections
     for (int i = 0; i < 3; i++) {
         m_sections[i] = section->getCopy();
-        if (m_sections[i] == 0) {
-            opserr << "ASDShellT3::constructor - failed to get a material of type: ShellSection\n";
-            exit(-1);
-        }
     }
 
     // allocate non-linear drilling data
@@ -663,28 +656,28 @@ void ASDShellT3::setDomain(Domain* theDomain)
         // compute section orientation angle
         ASDShellT3LocalCoordinateSystem reference_cs = m_transformation->createReferenceCoordinateSystem();
         Vector3Type e1_local = reference_cs.Vx();
-        Vector3Type e1;
+        Vector3Type e1 {};
         if (m_local_x) {
             // user-defined (already normalized in c-tor)
-            e1 = *m_local_x;
+            e1 = Vector3D(*m_local_x);
             // make sure it's on the reference x-y plane
             Vector3Type e3 = reference_cs.Vz();
             Vector3Type e2 = e3.cross(e1);
             double e2_norm = e2.normalize();
             if (e2_norm == 0.0) {
-                opserr << "ASDShellT3::setDomain Error: The provided local X axis cannot be aligned with the shell normal vector";
-                exit(-1);
+                opserr << "ASDShellT3: The provided local X axis cannot be aligned with the shell normal vector";
             }
             e1 = e2.cross(e3);
             e1.normalize();
         }
-        else {
-            // default one
-            const Vector& P1 = m_transformation->getNodes()[0]->getCrds();
-            const Vector& P2 = m_transformation->getNodes()[1]->getCrds();
-            e1 = (P2 - P1) / 2.0;
-            e1.normalize();
-        }
+        // else {
+        //     // default one
+        //     const Vector3Type P1(m_transformation->getNodes()[0]->getCrds());
+        //     const Vector3Type P2(m_transformation->getNodes()[1]->getCrds());
+        //     // e1 = (P2 - P1) / 2.0;
+        //     // e1.normalize();
+        // }
+
         m_angle = std::acos(std::max(-1.0, std::min(1.0, e1.dot(e1_local))));
         if (m_angle != 0.0) {
             // if they are not counter-clock-wise, let's change the sign of the angle
@@ -695,8 +688,7 @@ void ASDShellT3::setDomain(Domain* theDomain)
 #ifdef OPS_USE_DAMPING
         for (int i = 0; i < 3; i++) {
             if (m_damping[i] && m_damping[i]->setDomain(theDomain, 8)) {
-                opserr << "ASDShellT3::setDomain -- Error initializing damping\n";
-                exit(-1);
+                return;
             }
         }
 #endif
@@ -752,7 +744,7 @@ void ASDShellT3::Print(OPS_Stream& s, int flag)
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ASDShellT3\", ";
         s << "\"nodes\": [" << m_node_ids(0) << ", " << m_node_ids(1) << ", ";
@@ -763,6 +755,18 @@ void ASDShellT3::Print(OPS_Stream& s, int flag)
             s << "linear";
         else
             s << "corotational";
+        s << "\", ";
+        s << "\"integration\": \"";
+        if (m_reduced_integration)
+            s << "reduced";
+        else
+            s << "full";
+        s << "\", ";
+        s << "\"drilling\": \"";
+        if (m_drill_mode == DrillingDOF_NonLinear)
+            s << "nonlinear";
+        else if (m_drill_mode == DrillingDOF_Elastic)
+            s << "elastic";
         s << "\"";
         s << "}";
     }
@@ -803,7 +807,7 @@ const ID& ASDShellT3::getExternalNodes()
 }
 
 Node**
-ASDShellT3::getNodePtrs(void)
+ASDShellT3::getNodePtrs()
 {
     return m_transformation->getNodes().data();
 }
@@ -891,31 +895,31 @@ int  ASDShellT3::revertToStart()
 
 int ASDShellT3::update()
 {
-    // calculate
     auto& LHS = ASDShellT3Globals::instance().LHS;
     auto& RHS = ASDShellT3Globals::instance().RHS;
     return calculateAll(LHS, RHS, (OPT_UPDATE));
 }
 
-const Matrix& ASDShellT3::getTangentStiff()
+const Matrix& 
+ASDShellT3::getTangentStiff()
 {
-    // calculate
     auto& LHS = ASDShellT3Globals::instance().LHS;
     auto& RHS = ASDShellT3Globals::instance().RHS;
     calculateAll(LHS, RHS, (OPT_LHS));
     return LHS;
 }
 
-const Matrix& ASDShellT3::getInitialStiff()
+const Matrix& 
+ASDShellT3::getInitialStiff()
 {
-    // calculate
     auto& LHS = ASDShellT3Globals::instance().LHS_initial;
     auto& RHS = ASDShellT3Globals::instance().RHS;
     calculateAll(LHS, RHS, (OPT_LHS | OPT_LHS_IS_INITIAL));
     return LHS;
 }
 
-const Matrix& ASDShellT3::getMass()
+const Matrix& 
+ASDShellT3::getMass()
 {
     // Output matrix
     auto& LHS = ASDShellT3Globals::instance().LHS_mass;
@@ -985,7 +989,8 @@ ASDShellT3::addInertiaLoadToUnbalance(const Vector& accel)
     return 0;
 }
 
-const Vector& ASDShellT3::getResistingForce()
+const Vector& 
+ASDShellT3::getResistingForce()
 {
     // calculate
     auto& LHS = ASDShellT3Globals::instance().LHS;
@@ -994,7 +999,8 @@ const Vector& ASDShellT3::getResistingForce()
     return RHS;
 }
 
-const Vector& ASDShellT3::getResistingForceIncInertia()
+const Vector& 
+ASDShellT3::getResistingForceIncInertia()
 {
     // calculate
     auto& LHS = ASDShellT3Globals::instance().LHS;
@@ -1009,8 +1015,7 @@ const Vector& ASDShellT3::getResistingForceIncInertia()
     const auto& M = getMass();
 
     // Add M*acc to unbalance, taking advantage of lumped mass matrix
-    for (int i = 0; i < 3; i++)
-    {
+    for (int i = 0; i < 3; i++) {
         const auto& A = m_transformation->getNodes()[i]->getTrialAccel();
         int index = i * 6;
         for (int j = 0; j < 6; j++)
@@ -1549,11 +1554,12 @@ int ASDShellT3::setParameter(const char** argv, int argc, Parameter& param)
     return res;
 }
 
-int ASDShellT3::calculateAll(Matrix& LHS, Vector& RHS, int options)
+int
+ASDShellT3::calculateAll(Matrix& LHS, Vector& RHS, int options)
 {
     // Check options
     if (!m_transformation->isLinear()) {
-        // corotational calculation of the tangent LHS requires the RHS!
+        // corotational calculation of the tangent LHS requires the RHS
         if (options & OPT_LHS)
             options |= OPT_RHS;
     }
@@ -1636,16 +1642,16 @@ int ASDShellT3::calculateAll(Matrix& LHS, Vector& RHS, int options)
     double dh_scale_factor = DH_SCALE * std::pow(getCharacteristicLength(), 2.0);
 
     // gauss integration
-    const auto& gx = m_reduced_integration ? XI0 : XI;
+    const auto& gx = m_reduced_integration ? XI0  : XI;
     const auto& gy = m_reduced_integration ? ETA0 : ETA;
     const auto& gw = m_reduced_integration ? WTS0 : WTS;
 
     for (int igauss = 0; igauss < gx.size(); ++igauss)
     {
         // Current integration point data
-        double xi = gx[igauss];
+        double xi  = gx[igauss];
         double eta = gy[igauss];
-        double w = gw[igauss];
+        double w   = gw[igauss];
         shapeFunctions(xi, eta, N);
         shapeFunctionsNaturalDerivatives(xi, eta, dN);
         jac.calculate(reference_cs, dN);
@@ -1658,7 +1664,7 @@ int ASDShellT3::calculateAll(Matrix& LHS, Vector& RHS, int options)
             computeBdrilling(dNdX, N, Bd, Bhx, Bhy);
         }
 
-        // Update strain strain
+        // Update strain
         if (options & OPT_UPDATE)
         {
             // Section deformation
@@ -1847,32 +1853,3 @@ double ASDShellT3::evaluateSectionThickness()
     double h = std::sqrt(12.0 * k33 / k00);
     return h;
 }
-
-int
-ASDShellT3::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** modes, int numMode)
-{
-    // get the end point display coords
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    nodePointers[0]->getDisplayCrds(v1, fact, displayMode);
-    nodePointers[1]->getDisplayCrds(v2, fact, displayMode);
-    nodePointers[2]->getDisplayCrds(v3, fact, displayMode);
-
-    // place values in coords matrix
-    static Matrix coords(3, 3);
-    for (int i = 0; i < 3; i++) {
-        coords(0, i) = v1(i);
-        coords(1, i) = v2(i);
-        coords(2, i) = v3(i);
-    }
-
-    // set the quantity to be displayed at the nodes;
-    static Vector values(3);
-    for (int i = 0; i < 3; i++)
-        values(i) = 0.0;
-
-    // draw the polygon
-    return theViewer.drawPolygon(coords, values, this->getTag());
-}
-

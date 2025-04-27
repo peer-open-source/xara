@@ -35,7 +35,7 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
 
   if (ok == 0) {
     opserr << "WARNING -- NDM = " << ndm << " and NDF = " << ndf
-           << " not compatible with dispBeamColumn element" << endln;
+           << " not compatible with dispBeamColumnInt element" << endln;
     return TCL_ERROR;
   }
 
@@ -53,25 +53,22 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
   int argi = 2;
 
   if (Tcl_GetInt(interp, argv[argi++], &eleTag) != TCL_OK) {
-    opserr << "WARNING invalid dispBeamColumn eleTag" << endln;
+    opserr << "WARNING invalid dispBeamColumnInt eleTag" << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[argi++], &iNode) != TCL_OK) {
     opserr << "WARNING invalid iNode ";
-    opserr << "dispBeamColumn element: " << eleTag << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[argi++], &jNode) != TCL_OK) {
     opserr << "WARNING invalid jNode ";
-    opserr << "dispBeamColumn element: " << eleTag << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[argi++], &nIP) != TCL_OK) {
     opserr << "WARNING invalid nIP ";
-    opserr << "dispBeamColumn element: " << eleTag << endln;
     return TCL_ERROR;
   }
 
@@ -160,13 +157,11 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
 
   if (theElement == nullptr) {
     opserr << "WARNING ran out of memory creating element\n";
-    opserr << "dispBeamColumn element: " << eleTag << endln;
     return TCL_ERROR;
   }
 
   if (builder->getDomain()->addElement(theElement) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "dispBeamColumn element: " << eleTag << endln;
     delete theElement;
     return TCL_ERROR;
   }

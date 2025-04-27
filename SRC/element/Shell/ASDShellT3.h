@@ -136,9 +136,6 @@ public:
 
     int setParameter(const char** argv, int argc, Parameter& param);
 
-    // display
-    int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
-
 private:
 
     // internal method to compute everything using switches...

@@ -26,22 +26,20 @@
 
 #ifndef NDMaterial_h
 #define NDMaterial_h
-
-// Written: MHS
-// Created: Feb 2000
-// Revision: A
 //
 // Description: This file contains the class definition for NDMaterial.
 // NDMaterial is an abstract base class and thus no objects of it's type
 // can be instantiated. It has pure virtual functions which must be
 // implemented in it's derived classes.
 //
-// What: "@(#) NDMaterial.h, revA"
-
+//
+// Written: MHS
+// Created: Feb 2000
+// Revision: A
+//
 #include <Vector.h> // TODO: remove this include
 #include <TaggedObject.h>
 #include <MovableObject.h>
-// #include <Material.h>
 
 class Matrix;
 class ID;
@@ -49,8 +47,7 @@ class Vector;
 class Information;
 class Response;
 
-class NDMaterial : // public Material
-                   public TaggedObject, public MovableObject
+class NDMaterial : public TaggedObject, public MovableObject
 {
   public:
     NDMaterial(int tag, int classTag);
@@ -58,38 +55,38 @@ class NDMaterial : // public Material
     virtual ~NDMaterial();
 
     // methods to set state and retrieve state using Matrix and Vector classes
-    virtual double getRho(void);
+    virtual double getRho();
 
     virtual int setTrialStrain(const Vector &v);
     virtual int setTrialStrain(const Vector &v, const Vector &r);
     virtual int setTrialStrainIncr(const Vector &v);
     virtual int setTrialStrainIncr(const Vector &v, const Vector &r);
-    virtual const Matrix &getTangent(void);
-    virtual const Matrix &getInitialTangent(void) {return this->getTangent();};
+    virtual const Matrix &getTangent();
+    virtual const Matrix &getInitialTangent() {return this->getTangent();}
 
     //Added by L.Jiang, [SIF]
     virtual double getThermalTangentAndElongation(double &TempT, double &, double &);
     virtual double setThermalTangentAndElongation(double &TempT, double &, double &);
-    virtual const Vector& getTempAndElong(void);
+    virtual const Vector& getTempAndElong();
     //Added by L.Jiang, [SIF]
 
-    virtual const Vector &getStress(void);
-    virtual const Vector &getStrain(void);
+    virtual const Vector &getStress();
+    virtual const Vector &getStrain();
 
-    virtual int commitState(void) = 0;
-    virtual int revertToLastCommit(void) = 0;
-    virtual int revertToStart(void) = 0;
+    virtual int commitState() = 0;
+    virtual int revertToLastCommit() = 0;
+    virtual int revertToStart() = 0;
 
-    virtual NDMaterial *getCopy(void) = 0;
+    virtual NDMaterial *getCopy() = 0;
     virtual NDMaterial *getCopy(const char *code);
 
-    virtual const char *getType(void) const = 0;
-    virtual int getOrder(void) const {return 0;};  //??
+    virtual const char *getType() const = 0;
+    virtual int getOrder() const {return 0;};  //??
 
     virtual Response *setResponse (const char **argv, int argc, OPS_Stream &s);
     virtual int getResponse (int responseID, Information &matInformation);
 
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     virtual const Vector & getStressSensitivity         (int gradIndex, bool conditional);
     virtual const Vector & getStrainSensitivity         (int gradIndex);
     virtual const Matrix & getTangentSensitivity        (int gradIndex);
@@ -97,19 +94,14 @@ class NDMaterial : // public Material
     virtual const Matrix & getDampTangentSensitivity    (int gradIndex);
     virtual double         getRhoSensitivity            (int gradIndex);
     virtual int            commitSensitivity            (const Vector & strainGradient, int gradIndex, int numGrads);
-    // AddingSensitivity:END ///////////////////////////////////////////
+
 
   protected:
 
   private:
     static Matrix errMatrix;
     static Vector errVector;
-};
 
-// extern bool OPS_addNDMaterial(NDMaterial *newComponent);
-// extern NDMaterial *OPS_getNDMaterial(int tag);
-// extern bool OPS_removeNDMaterial(int tag);
-// extern void OPS_clearAllNDMaterial(void);
-// extern void OPS_printNDMaterial(OPS_Stream &s, int flag = 0);
+};
 
 #endif

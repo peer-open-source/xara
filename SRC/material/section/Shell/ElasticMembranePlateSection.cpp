@@ -155,19 +155,15 @@ ElasticMembranePlateSection::getStressResultant()
   stress(2) = G * strain(2);
 
 
-  G *=
-      (five6 *
-       (Ep /
-        Em)); //multiply by product of shear correction factor and ratio of bending to membrane moduli
+  //multiply by product of shear correction factor and ratio of bending to membrane moduli
+  G *= (five6 * (Ep / Em)); 
 
   double D = Ep * (h * h * h) / 12.0 / (1.0 - nu * nu); // bending modulus
 
   // bending resultants
 
   stress(3) = -(D * strain(3) + nu * D * strain(4));
-
   stress(4) = -(nu * D * strain(3) + D * strain(4));
-
   stress(5) = -0.5 * D * (1.0 - nu) * strain(5);
 
   stress(6) = G * strain(6);
@@ -203,10 +199,8 @@ ElasticMembranePlateSection::getSectionTangent()
   tangent(2, 2) = G;
 
 
-  G *=
-      (five6 *
-       (Ep /
-        Em)); //multiply by product of shear correction factor and ratio of bending to membrane moduli
+  //multiply by product of shear correction factor and ratio of bending to membrane moduli
+  G *= (five6 * (Ep / Em));
 
   double D = Ep * (h * h * h) / 12.0 / (1.0 - nu * nu); //bending modulus
 
@@ -214,21 +208,16 @@ ElasticMembranePlateSection::getSectionTangent()
 
   tangent(3, 3) = -D;
   tangent(4, 4) = -D;
-
   tangent(3, 4) = -nu * D;
   tangent(4, 3) = tangent(3, 4);
-
   tangent(5, 5) = -0.5 * D * (1.0 - nu);
-
   tangent(6, 6) = G;
-
   tangent(7, 7) = G;
 
   return this->tangent;
 }
 
 
-//send back the initial tangent
 const Matrix&
 ElasticMembranePlateSection::getInitialTangent()
 {
@@ -242,7 +231,7 @@ ElasticMembranePlateSection::getInitialTangent()
 
   tangent.Zero();
 
-  //membrane tangent terms
+  // membrane tangent terms
 
   tangent(0, 0) = M;
   tangent(1, 1) = M;
@@ -278,7 +267,6 @@ ElasticMembranePlateSection::getInitialTangent()
 }
 
 
-//print out data
 void
 ElasticMembranePlateSection::Print(OPS_Stream& s, int flag)
 {

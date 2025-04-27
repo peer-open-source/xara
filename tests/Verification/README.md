@@ -5,7 +5,7 @@
 | PASSED |  PortalFrame2d.tcl
 | PASSED |  EigenFrame.tcl
 | PASSED |  EigenFrame.Extra.tcl eleType: elasticBeam
-FAILED : EigenFrame.Extra.tcl eleType: forceBeamElasticSection
+| FAILED |  EigenFrame.Extra.tcl eleType: forceBeamElasticSection
 | PASSED |  EigenFrame.Extra.tcl eleType: dispBeamElasticSection
 | PASSED |  EigenFrame.Extra.tcl eleType: forceBeamFiberSectionElasticMaterial
 | PASSED |  EigenFrame.Extra.tcl eleType: dispBeamFiberSectionElasticMaterial

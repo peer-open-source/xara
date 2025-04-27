@@ -12,10 +12,6 @@ typedef void *OPS_Routine(G3_Runtime* , int, const char** const);
 
 extern OPS_Routine OPS_ComponentElement2d;
 extern OPS_Routine OPS_ComponentElement3d;
-// extern OPS_Routine OPS_TrussElement;
-// extern OPS_Routine OPS_TrussSectionElement;
-// extern OPS_Routine OPS_CorotTrussElement;
-// extern OPS_Routine OPS_CorotTrussSectionElement;
 extern OPS_Routine OPS_ElasticTubularJoint;
 extern OPS_Routine OPS_ZeroLength;
 extern OPS_Routine OPS_ZeroLengthContactNTS2D;
@@ -36,8 +32,6 @@ extern OPS_Routine OPS_ElasticTimoshenkoBeam2d;
 extern OPS_Routine OPS_ElasticTimoshenkoBeam3d;
 extern OPS_Routine OPS_AxEqDispBeamColumn2d;
 extern OPS_Routine OPS_BeamGT;
-// extern void* OPS_GradientInelasticBeamColumn2d();
-// extern void* OPS_GradientInelasticBeamColumn3d();
 #if defined(_HAVE_LHNMYS) || defined(OPSDEF_ELEMENT_LHNMYS)
   extern void *OPS_BeamColumn2DwLHNMYS(G3_Runtime*);
   extern void *OPS_Beam2dDamage(G3_Runtime*);
@@ -172,7 +166,7 @@ Tcl_CmdProc TclCommand_addActuatorCorot;
 Tcl_CmdProc TclCommand_addAdapter;
 Tcl_CmdProc TclBasicBuilder_addRJWatsonEqsBearing;
 
-static
+const static
 std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
 element_dispatch_tcl = {
   {"twoNodeLink",               TclCommand_addTwoNodeLink},
@@ -199,7 +193,6 @@ element_dispatch_tcl = {
   {"nineNodeMixedQuad",         TclBasicBuilder_addNineNodeMixedQuad},
   {"nineNodeQuad",              TclBasicBuilder_addNineNodeMixedQuad}, // ??
 
-
   {"tri6n",                     TclBasicBuilder_addSixNodeTri},
   {"tri31",                     TclBasicBuilder_addFourNodeQuad},
 
@@ -211,7 +204,7 @@ element_dispatch_tcl = {
   {"ShellDKGT",                    TclBasicBuilder_addShell},
   {"ShellNLDKGQ",                  TclBasicBuilder_addShell},
   {"ShellNLDKGT",                  TclBasicBuilder_addShell},
-  // {"ShellANDeS",                   TclBasicBuilder_addShell},
+// {"ShellANDeS",                   TclBasicBuilder_addShell},
   {"ShellMITC4Thermal",            TclBasicBuilder_addShell},
   {"ShellNLDKGQThermal",           TclBasicBuilder_addShell},
 

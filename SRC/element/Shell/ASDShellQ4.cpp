@@ -461,7 +461,9 @@ void computeBMatrix(
         BQ.addMatrix(1.0, BQ_mean, -1.0);
     }
 
-    // membrane ************************************************************************************************
+    //
+    // membrane
+    //
     // this is the memebrane part of the compatible standard in-plane displacement field
 
     B(0, 0) = dNdX(0, 0);   B(0, 6) = dNdX(1, 0);   B(0, 12) = dNdX(2, 0);   B(0, 18) = dNdX(3, 0);
@@ -488,14 +490,14 @@ void computeBMatrix(
     Bd(19) =  0.5 * dNdX(3, 0);
     Bd(23) = -N(3);
 
-    // bending *************************************************************************************************
+    // bending
 
     B(3, 4) = -dNdX(0, 0);   B(3, 10) = -dNdX(1, 0);   B(3, 16) = -dNdX(2, 0);   B(3, 22) = -dNdX(3, 0);
     B(4, 3) =  dNdX(0, 1);   B(4, 9)  =  dNdX(1, 1);   B(4, 15) =  dNdX(2, 1);   B(4, 21) =  dNdX(3, 1);
     B(5, 3) =  dNdX(0, 0);   B(5, 9)  =  dNdX(1, 0);   B(5, 15) =  dNdX(2, 0);   B(5, 21) =  dNdX(3, 0);
     B(5, 4) = -dNdX(0, 1);   B(5, 10) = -dNdX(1, 1);   B(5, 16) = -dNdX(2, 1);   B(5, 22) = -dNdX(3, 1);
 
-    // shear ***************************************************************************************************
+    // shear
 
     // MITC modified shape functions
     static Matrix MITCShapeFunctions(2, 4);
@@ -629,10 +631,6 @@ ASDShellQ4::ASDShellQ4(
     // copy sections
     for (int i = 0; i < 4; i++) {
         m_sections[i] = section->getCopy();
-        if (m_sections[i] == 0) {
-            opserr << "ASDShellQ4::constructor - failed to get a material of type: ShellSection\n";
-            exit(-1);
-        }
     }
 
     // allocate non-linear drilling data
@@ -735,21 +733,21 @@ void  ASDShellQ4::setDomain(Domain* theDomain)
             Vector3Type e2 = e3.cross(e1);
             double e2_norm = e2.normalize();
             if (e2_norm == 0.0) {
-                opserr << "ASDShellQ4::setDomain Error: The provided local X axis cannot be aligned with the shell normal vector";
-                exit(-1);
+                opserr << "ASDShellQ4: The provided local X axis cannot be aligned with the shell normal vector";
             }
             e1 = e2.cross(e3);
             e1.normalize();
         }
-        else {
-            // default one
-            Vector3Type P1(m_transformation->getNodes()[0]->getCrds());
-            Vector3Type P2(m_transformation->getNodes()[1]->getCrds());
-            Vector3Type P3(m_transformation->getNodes()[2]->getCrds());
-            Vector3Type P4(m_transformation->getNodes()[3]->getCrds());
-            Vector3Type e1 = (P2 + P3) / 2.0 - (P1 + P4) / 2.0;
-            e1.normalize();
-        }
+        // else {
+        //     // default one
+        //     Vector3Type P1(m_transformation->getNodes()[0]->getCrds());
+        //     Vector3Type P2(m_transformation->getNodes()[1]->getCrds());
+        //     Vector3Type P3(m_transformation->getNodes()[2]->getCrds());
+        //     Vector3Type P4(m_transformation->getNodes()[3]->getCrds());
+        //     Vector3Type e1 = (P2 + P3) / 2.0 - (P1 + P4) / 2.0;
+        //     e1.normalize();
+        // }
+
         m_angle = std::acos(std::max(-1.0, std::min(1.0, e1.dot(e1_local))));
         if (m_angle != 0.0) {
             // if they are not counter-clock-wise, let's change the sign of the angle
@@ -1407,7 +1405,7 @@ int  ASDShellQ4::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& 
         m_damping[i] = theBroker.getNewDamping(dmpTag);
         if (m_damping[i] == 0) {
           opserr << "ASDShellQ4::recvSelf -- could not get a Damping\n";
-          exit(-1);
+          return -1;
         }
       }
   
@@ -1418,7 +1416,7 @@ int  ASDShellQ4::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& 
         m_damping[i] = theBroker.getNewDamping(dmpTag);
         if (m_damping[i] == 0) {
           opserr << "ASDShellQ4::recvSelf -- could not get a Damping\n";
-          exit(-1);
+          return -1;
         }
       }
   
@@ -1492,8 +1490,8 @@ ASDShellQ4::setResponse(const char **argv, int argc, OPS_Stream &output)
 
             output.endTag();
         }
-
     }
+
     else if (strcmp(argv[0], "stresses") == 0) {
 
         for (int i = 0; i < 4; i++) {

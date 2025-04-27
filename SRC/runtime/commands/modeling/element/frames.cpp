@@ -318,7 +318,7 @@ CreateFrame(BasicModelBuilder& builder,
       theElement = new ElasticForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs, 
                                                 beamIntegr, *theTransf, mass);
 
-    else if (strcmp(name, "dispBeamColumn") == 0)
+    else if (strcasecmp(name, "dispBeamColumn") == 0)
       theElement = new DispBeamColumn3d(tag, iNode, jNode, nIP, secptrs,
                                         beamIntegr, *theTransf, 
                                         mass, options.mass_flag);

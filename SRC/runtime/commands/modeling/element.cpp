@@ -309,27 +309,27 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
     return TclBasicBuilder_addWheelRail(clientData, interp, argc, argv);
   }
 
-  else if (strcmp(argv[1], "DisplFrame") == 0 ||
-           strcmp(argv[1], "CubicFrame") == 0 ||
-           strcmp(argv[1], "ForceFrame") == 0 ||
-           strcmp(argv[1], "MixedFrame") == 0 ||
-           strcmp(argv[1], "ExactFrame") == 0 ||
-           strcmp(argv[1], "ForceDeltaFrame") == 0 ||
+  else if (strcasecmp(argv[1], "DisplFrame") == 0 ||
+           strcasecmp(argv[1], "CubicFrame") == 0 ||
+           strcasecmp(argv[1], "ForceFrame") == 0 ||
+           strcasecmp(argv[1], "MixedFrame") == 0 ||
+           strcasecmp(argv[1], "ExactFrame") == 0 ||
+           strcasecmp(argv[1], "ForceDeltaFrame") == 0 ||
 
-           strcmp(argv[1], "ForceBeamColumn") == 0 ||
-           strcmp(argv[1], "DispBeamColumn") == 0 ||
-           strcmp(argv[1], "DispBeamColumn") == 0 ||
-           strcmp(argv[1], "TimoshenkoBeamColumn") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnCBDI") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnCSBDI") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnWarping") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnThermal") == 0 ||
-           strcmp(argv[1], "ElasticForceBeamColumnWarping") == 0 ||
-           strcmp(argv[1], "DispBeamColumnNL") == 0 ||
-           strcmp(argv[1], "DispBeamColumnThermal") == 0 ||
-           strcmp(argv[1], "ElasticForceBeamColumn") == 0 ||
-           strcmp(argv[1], "NonlinearBeamColumn") == 0 ||
-           strcmp(argv[1], "DispBeamColumnWithSensitivity") == 0) {
+           strcasecmp(argv[1], "ForceBeamColumn") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumn") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumn") == 0 ||
+           strcasecmp(argv[1], "TimoshenkoBeamColumn") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnCBDI") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnCSBDI") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnWarping") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnThermal") == 0 ||
+           strcasecmp(argv[1], "ElasticForceBeamColumnWarping") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumnNL") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumnThermal") == 0 ||
+           strcasecmp(argv[1], "ElasticForceBeamColumn") == 0 ||
+           strcasecmp(argv[1], "NonlinearBeamColumn") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumnWithSensitivity") == 0) {
 
     return TclBasicBuilder_addForceBeamColumn(clientData, interp, argc, argv);
 

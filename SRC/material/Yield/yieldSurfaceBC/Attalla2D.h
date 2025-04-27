@@ -16,9 +16,6 @@ public:
 	virtual ~Attalla2D();
 
 	virtual YieldSurface_BC *getCopy(void);
-#ifdef _GRAPHICS
-	virtual int		displaySelf(Renderer &theViewer, int displayMode, float fact);
-#endif
 	virtual void	Print(OPS_Stream &s, int flag =0);
 
 //protected:

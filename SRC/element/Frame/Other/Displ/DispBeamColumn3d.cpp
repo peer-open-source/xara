@@ -65,27 +65,11 @@ DispBeamColumn3d::DispBeamColumn3d(int tag, int nd1, int nd2,
     
     // Get copies of the material model for each integration point
     theSections[i] = s[i]->getCopy();
-    
-    // Check allocation
-    if (theSections[i] == 0) {
-      opserr << "DispBeamColumn3d::DispBeamColumn3d -- failed to get a copy of section model\n";
-      exit(-1);
-    }
   }
   
   beamInt = bi.getCopy();
-  
-  if (beamInt == 0) {
-    opserr << "DispBeamColumn3d::DispBeamColumn3d - failed to copy beam integration\n";
-    exit(-1);
-  }
 
   crdTransf = coordTransf.getCopy3d();
-  
-  if (crdTransf == 0) {
-    opserr << "DispBeamColumn3d::DispBeamColumn3d - failed to copy coordinate transformation\n";
-    exit(-1);
-  }
   
   // Set connected external node IDs
   connectedExternalNodes(0) = nd1;
@@ -131,20 +115,19 @@ DispBeamColumn3d::~DispBeamColumn3d()
 int
 DispBeamColumn3d::getNumExternalNodes() const
 {
-    return 2;
+  return 2;
 }
 
 const ID&
 DispBeamColumn3d::getExternalNodes()
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 Node **
 DispBeamColumn3d::getNodePtrs()
 {
-
-    return theNodes;
+  return theNodes;
 }
 
 int

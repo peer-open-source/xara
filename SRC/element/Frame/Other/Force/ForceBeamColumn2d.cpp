@@ -256,20 +256,17 @@ ForceBeamColumn2d::setDomain(Domain *theDomain)
   
   if ((dofNode1 != NND) || (dofNode2 != NND)) {
     opserr << "ForceBeamColumn2d::setDomain(): Nd2 or Nd1 incorrect dof ";
-    exit(0);
   }
    
   // initialize the transformation
   if (crdTransf->initialize(theNodes[0], theNodes[1])) {
     opserr << "ForceBeamColumn2d::setDomain(): Error initializing coordinate transformation";  
-    exit(0);
   }
     
   // get element length
   double L = crdTransf->getInitialLength();
   if (L == 0.0) {
     opserr << "ForceBeamColumn2d::setDomain(): Zero element length:" << this->getTag();  
-    exit(0);
   }
 
   if (initialFlag == 0) 
@@ -395,7 +392,6 @@ ForceBeamColumn2d::getInitialStiff(void)
     opserr << "ForceBeamColumn2d::getInitialStiff -- could not invert flexibility, "
            << "got code " << code <<"\n";
 
-  //TODO: Check memory
   Ki = new Matrix(crdTransf->getInitialGlobalStiffMatrix(kvInit));
   return *Ki;
 }
