@@ -585,10 +585,6 @@ ASDShellT3::ASDShellT3(
     if (theDamping) {
         for (int i = 0; i < 3; i++) {
             m_damping[i] = theDamping->getCopy();
-            if (!m_damping[i]) {
-                opserr << "ASDShellT3::constructor - failed to get copy of damping\n";
-                exit(-1);
-            }
         }
     }
 #endif
@@ -824,7 +820,6 @@ int ASDShellT3::commitState()
     // transformation
     m_transformation->commit();
 
-    // section
     // sections
     for (int i = 0; i < 3; i++)
         success += m_sections[i]->commitState();

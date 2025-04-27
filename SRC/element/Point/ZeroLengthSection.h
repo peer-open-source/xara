@@ -52,7 +52,7 @@ class ZeroLengthSection : public Element
 		      SectionForceDeformation& theSection,
 		      int doRayleighDamping = 0);
 
-    ZeroLengthSection();    
+    ZeroLengthSection();
     ~ZeroLengthSection();
 
     const char *getClassType(void) const {return "ZeroLengthSection";}

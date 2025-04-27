@@ -21,10 +21,9 @@
 #include <Hash.h>
 using namespace OpenSees::Hash;
 using namespace OpenSees::Hash::literals;
+
 #define DISPATCH(symbol) case  hasher<std::string>()(#symbol): return new symbol();
-//
-// case hasher<std::string>()(Truss::class_name):  return new Truss();
-//
+
 #include "packages.h"
 #include <TclPackageClassBroker.h>
 
@@ -757,8 +756,8 @@ TclPackageClassBroker::getNewMP(int classTag)
   case CNSTRNT_TAG_MP_Constraint:
     return new MP_Constraint(classTag);
 
-  case CNSTRNT_TAG_MP_Joint2D: // Arash
-    return new MP_Joint2D();   // Arash
+  case CNSTRNT_TAG_MP_Joint2D:
+    return new MP_Joint2D();
 
   default:
     opserr << "TclPackageClassBroker::getNewMP - ";
