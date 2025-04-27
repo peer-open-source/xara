@@ -61,7 +61,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
   BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
 
   int tag;
-  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+  if (argc < 3 || (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK)) {
     opserr << OpenSees::PromptValueError
            << "failed to read integer tag\n";
     return TCL_ERROR;
@@ -76,22 +76,25 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
   UniaxialMaterial *material = nullptr;
   FrameSection *section = nullptr;
 
+  //
   // 1. Parse nodes
+  //
   int nodes[2] = {0, 0};
   int node_end = 5;
-  if (Tcl_GetInt(interp, argv[3], &nodes[0]) != TCL_OK) {
+  if (argc < 4 || (Tcl_GetInt(interp, argv[3], &nodes[0]) != TCL_OK)) {
     opserr << OpenSees::PromptValueError
            << "failed to read integer node tag\n";
     return TCL_ERROR;
   }
   tracker.consume(Positions::iNode);
-  if (Tcl_GetInt(interp, argv[4], &nodes[1]) != TCL_OK) {
+  if (argc < 5 || (Tcl_GetInt(interp, argv[4], &nodes[1]) != TCL_OK)) {
     opserr << OpenSees::PromptValueError
            << "failed to read integer node tag\n";
     return TCL_ERROR;
   }
   tracker.consume(Positions::jNode);
 
+  //
   // 2. Keywords 
   //    -rho <rho> <-cMass <flag> <-doRayleigh <flag> <-useInitialDisp <flag>
   for (int i=node_end; i<argc; i++) {
