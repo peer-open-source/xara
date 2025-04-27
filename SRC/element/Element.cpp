@@ -33,7 +33,6 @@
 
 #include "Element.h"
 #include "ElementResponse.h"
-//#include <Renderer.h>
 #include <Vector.h>
 #include <Matrix.h>
 #include <Node.h>
@@ -139,10 +138,6 @@ Element::setRayleighDampingFactors(double alpham, double betak, double betak0, d
 
       Vector **nextVectors1 = new Vector *[numMatrices+1];
       Vector **nextVectors2 = new Vector *[numMatrices+1];
-      if (nextVectors1 == 0 || nextVectors2 == 0) {
-        opserr << "Element::getTheVector - out of memory\n";
-        exit(-1);
-      }
 
       for (int j=0; j<numMatrices; j++) {
         nextVectors1[j] = theVectors1[j];
@@ -733,74 +728,15 @@ Element::getPreviousK(int num) {
     return 0;
 }
 
-#if 0
-int 
-Element::displaySelf(Renderer &, int mode, float fact, const char **displayModes, int numModes)
-{
-  return 0;
-}
-#endif
-
-
 const Matrix &
 Element::getGeometricTangentStiff()
 {
-    if (index == -1) {
-        this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
-    }
-    
-    Matrix *theMatrix = theMatrices[index];
-    theMatrix->Zero();
-    
-    return *theMatrix;
+  if (index == -1) {
+    this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
+  }
+  
+  Matrix *theMatrix = theMatrices[index];
+  theMatrix->Zero();
+  
+  return *theMatrix;
 }
-
-#if 0
-void Element::activate()
-{
-    // opserr << "Activating element # " << this->getTag() << endln;
-    is_this_element_active = true;
-    this->onActivate();
-}
-
-void Element::deactivate()
-{
-    // opserr << "Deactivating element # " << this->getTag() << endln;
-    is_this_element_active = false;
-    this->onDeactivate();
-}
-
-void Element::onActivate()
-{
-    static bool report_once = true;
-    if (report_once)
-    {
-        opserr << "onActivate not implemented for this element. classTag = " << this->getClassTag() << endln;
-        report_once = false;
-    }
-}
-
-void Element::onDeactivate()
-{   static bool report_once = true;
-    if (report_once)
-    {
-        opserr << "onDeactivate not implemented for this element. classTag = " << this->getClassTag() << endln;
-        report_once = false;
-    }
-}    
-
-
-bool  Element::isActive()
-{
-    // opserr << "Element::isActive() [tag = " << this->getTag() << "] = ";
-    // if (is_this_element_active)
-    // {
-    //     opserr << "TRUE" << endln;
-    // }
-    // else
-    // {
-    //     opserr << "FALSE" << endln;
-    // }
-    return is_this_element_active;
-}
-#endif
