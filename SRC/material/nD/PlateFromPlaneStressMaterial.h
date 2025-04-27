@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.0 $
 // $Date: 2012-05-27 21:11:45 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/PlateFromPlaneStressMaterial.h,v $
@@ -31,82 +31,55 @@ concrete high-rise building induced by extreme earthquakes,
 Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723*/
 
 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <math.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <Vector.h>
 #include <Matrix.h>
-#include <ID.h> 
+#include <ID.h>
 #include <NDMaterial.h>
 
 
+class PlateFromPlaneStressMaterial : public NDMaterial {
+public:
+  PlateFromPlaneStressMaterial();
+  PlateFromPlaneStressMaterial(int tag, NDMaterial&, double G);
 
-class PlateFromPlaneStressMaterial: public NDMaterial{
-  public : 
-    PlateFromPlaneStressMaterial( ) ;
-    PlateFromPlaneStressMaterial(int tag, 
-			NDMaterial &ndMat, double g ) ;
+  virtual ~PlateFromPlaneStressMaterial();
 
-    virtual ~PlateFromPlaneStressMaterial( ) ;
+  NDMaterial* getCopy();
+  NDMaterial* getCopy(const char* type);
 
-    //make a clone of this material
-    NDMaterial *getCopy( ) ;
-    NDMaterial *getCopy( const char *type ) ;
+  int getOrder() const;
+  const char* getType() const;
 
-    //send back order of strain in vector form
-    int getOrder( ) const ;
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
 
-    //send back order of strain in vector form
-    const char *getType( ) const ;
+  int setTrialStrain(const Vector& strainFromElement);
 
-    //swap history variables
-    int commitState( ) ; 
+  const Vector& getStrain();
+  const Vector& getStress();
+  const Matrix& getTangent();
+  const Matrix& getInitialTangent(); // AV Not Sure if it works
 
-    //revert to last saved state
-    int revertToLastCommit( ) ;
+  //density
+  double getRho();
 
-    //revert to start
-    int revertToStart( ) ;
+  void Print(OPS_Stream& s, int flag);
 
-    //get the strain 
-    int setTrialStrain( const Vector &strainFromElement ) ;
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 
-    //send back the strain
-    const Vector& getStrain( ) ;
+  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
 
-    //send back the stress 
-    const Vector& getStress( ) ;
+private:
+  NDMaterial* theMat; //pointer to three dimensional material
+  double gmod;
 
-    //send back the tangent 
-    const Matrix& getTangent( ) ;
-
-    const Matrix& getInitialTangent( ) ;  // AV Not Sure if it works
-
-    //density
-    double getRho( ) ;
-
-    //print out data
-    void Print( OPS_Stream &s, int flag ) ;
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-
-    //setResponse - added by V.K. Papanikolaou [AUTh] - start
-    Response* setResponse(const char** argv, int argc, OPS_Stream& s);
-    //setResponse - added by V.K. Papanikolaou [AUTh] - end
-
-private :
-    NDMaterial *theMat ;  //pointer to three dimensional material
-    double gmod;
-
-    Vector strain ;
-    static Vector stress ;
-    static Matrix tangent ;
-
-} ;
-
-
-
-
-
+  Vector strain;
+  static Vector stress;
+  static Matrix tangent;
+};

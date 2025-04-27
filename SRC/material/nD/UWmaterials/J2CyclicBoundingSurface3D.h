@@ -55,14 +55,11 @@ class J2CyclicBoundingSurface3D : public J2CyclicBoundingSurface
   // Unused trialStrain functions
   int setTrialStrain(const Vector &v, const Vector &r);
     
-  //send back the strain
   const Vector& getStrain();
   
-  //send back the stress 
   const Vector& getStress();
   const Vector& getStressToRecord();
 
-  //send back the tangent 
   const Matrix& getTangent();
   const Matrix& getInitialTangent();
 

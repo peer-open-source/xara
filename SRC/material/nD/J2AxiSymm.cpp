@@ -97,7 +97,6 @@ J2AxiSymm :: ~J2AxiSymm( )
 { } 
 
 
-//make a clone of this material
 NDMaterial* J2AxiSymm :: getCopy( ) 
 { 
   J2AxiSymm  *clone;
@@ -114,7 +113,6 @@ const char* J2AxiSymm :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int J2AxiSymm :: getOrder( ) const 
 { 
   return 4 ; 
@@ -157,7 +155,6 @@ int J2AxiSymm :: setTrialStrainIncr( const Vector &v, const Vector &r )
 
 
 
-//send back the strain
 const Vector& J2AxiSymm :: getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
@@ -170,7 +167,6 @@ const Vector& J2AxiSymm :: getStrain( )
 } 
 
 
-//send back the stress 
 const Vector& J2AxiSymm :: getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
@@ -182,7 +178,6 @@ const Vector& J2AxiSymm :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& J2AxiSymm :: getTangent( ) 
 {
   // matrix to tensor mapping
@@ -210,7 +205,6 @@ const Matrix& J2AxiSymm :: getTangent( )
   return tangent_matrix ;
 } 
 
-//send back the tangent 
 const Matrix& J2AxiSymm :: getInitialTangent( ) 
 {
   // matrix to tensor mapping
@@ -250,13 +244,11 @@ int J2AxiSymm :: commitState( )
 }
 
 
-//revert to last saved state
 int J2AxiSymm :: revertToLastCommit( )
 { 
   return 0 ;
 } 
 
-//revert to start
 int J2AxiSymm :: revertToStart( ) 
 
 {  

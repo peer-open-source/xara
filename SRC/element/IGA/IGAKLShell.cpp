@@ -303,7 +303,6 @@ int  IGAKLShell::revertToLastCommit( )
 }
 
 
-//revert to start
 int  IGAKLShell::revertToStart( )
 {
   int success = 0 ;

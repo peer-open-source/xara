@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 
 // $Revision: 1.3 $
 // $Date: 2002-12-05 22:49:09 $
@@ -42,48 +42,44 @@
 #include <Information.h>
 #include <Parameter.h>
 
-class J2BeamFiber3d : public NDMaterial
-{
-  public:
-  J2BeamFiber3d (int tag, double E, double G, double sigY, double Hi, double Hk);
-  J2BeamFiber3d ();
-  ~J2BeamFiber3d ();
+class J2BeamFiber3d : public NDMaterial {
+public:
+  J2BeamFiber3d(int tag, double E, double G, double sigY, double Hi, double Hk);
+  J2BeamFiber3d();
+  ~J2BeamFiber3d();
 
-  int setTrialStrain (const Vector &v);
-  int setTrialStrain (const Vector &v, const Vector &r);
-  int setTrialStrainIncr (const Vector &v);
-  int setTrialStrainIncr (const Vector &v, const Vector &r);
-  const Matrix &getTangent (void);
-  const Matrix &getInitialTangent (void);
-  const Vector &getStress (void);
-  const Vector &getStrain (void);
-  
-  int commitState (void);
-  int revertToLastCommit (void);
-  int revertToStart (void);
-  
-  NDMaterial *getCopy (void);
-  NDMaterial *getCopy (const char *type);
-  const char *getType (void) const;
-  int getOrder (void) const;
-  
-  int sendSelf(int commitTag, Channel &theChannel);  
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);    
-    
-  void Print(OPS_Stream &s, int flag = 0);
+  int setTrialStrain(const Vector& v);
+  int setTrialStrain(const Vector& v, const Vector& r);
+  int setTrialStrainIncr(const Vector& v);
+  int setTrialStrainIncr(const Vector& v, const Vector& r);
+  const Matrix& getTangent(void);
+  const Matrix& getInitialTangent(void);
+  const Vector& getStress(void);
+  const Vector& getStrain(void);
 
-  int setParameter(const char **argv, int argc, Parameter &param);
-  int updateParameter(int parameterID, Information &info);
+  int commitState(void);
+  int revertToLastCommit(void);
+  int revertToStart(void);
+
+  NDMaterial* getCopy(void);
+  NDMaterial* getCopy(const char* type);
+  const char* getType(void) const;
+  int getOrder(void) const;
+
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+
+  void Print(OPS_Stream& s, int flag = 0);
+
+  int setParameter(const char** argv, int argc, Parameter& param);
+  int updateParameter(int parameterID, Information& info);
   int activateParameter(int paramID);
 
-  const Vector& getStressSensitivity(int gradIndex,
-				     bool conditional);
-  int commitSensitivity(const Vector &depsdh, int gradIndex, int numGrads);
-  
- protected:
-  
- private:
+  const Vector& getStressSensitivity(int gradIndex, bool conditional);
+  int commitSensitivity(const Vector& depsdh, int gradIndex, int numGrads);
+
+protected:
+private:
   double E;
   double nu;
   double sigmaY;
@@ -91,11 +87,11 @@ class J2BeamFiber3d : public NDMaterial
   double Hkin;
 
   int parameterID;
-  Matrix *SHVs;
+  Matrix* SHVs;
 
-  static Vector sigma;	// Stress vector ... class-wide for returns
-  static Matrix D;		// Elastic constants
-  Vector Tepsilon;		// Trial strains
+  static Vector sigma; // Stress vector ... class-wide for returns
+  static Matrix D;     // Elastic constants
+  Vector Tepsilon;     // Trial strains
 
   double alphan;
   double alphan1;

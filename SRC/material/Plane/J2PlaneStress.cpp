@@ -53,18 +53,18 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-Vector J2PlaneStress :: strain_vec(3) ;
-Vector J2PlaneStress :: stress_vec(3) ;
-Matrix J2PlaneStress :: tangent_matrix(3,3) ;
+Vector J2PlaneStress::strain_vec(3) ;
+Vector J2PlaneStress::stress_vec(3) ;
+Matrix J2PlaneStress::tangent_matrix(3,3) ;
 
 //null constructor
-J2PlaneStress ::  J2PlaneStress( ) : 
+J2PlaneStress:: J2PlaneStress( ) : 
 J2Plasticity( ) 
 {  }
 
 
 //full constructor
-J2PlaneStress :: 
+J2PlaneStress::
 J2PlaneStress(   int    tag, 
                  double K,
                  double G,
@@ -82,7 +82,7 @@ J2Plasticity(tag, ND_TAG_J2PlaneStress,
 
 
 //elastic constructor
-J2PlaneStress :: 
+J2PlaneStress::
 J2PlaneStress(   int    tag, 
                  double K, 
                  double G ) :
@@ -93,12 +93,11 @@ J2Plasticity(tag, ND_TAG_J2PlaneStress, K, G )
 
 
 //destructor
-J2PlaneStress :: ~J2PlaneStress( ) 
+J2PlaneStress::~J2PlaneStress( ) 
 {  } 
 
 
-//make a clone of this material
-NDMaterial* J2PlaneStress :: getCopy( ) 
+NDMaterial* J2PlaneStress::getCopy( ) 
 { 
   J2PlaneStress  *clone;
   clone = new J2PlaneStress( ) ;   //new instance of this class
@@ -108,20 +107,20 @@ NDMaterial* J2PlaneStress :: getCopy( )
 
 
 //send back type of material
-const char* J2PlaneStress :: getType( ) const 
+const char* J2PlaneStress::getType( ) const 
 {
   return "PlaneStress" ;
 }
 
 
-//send back order of strain in vector form
-int J2PlaneStress :: getOrder( ) const 
+int
+J2PlaneStress::getOrder() const
 { 
   return 3 ; 
 } 
 
 //get the strain and integrate plasticity equations
-int J2PlaneStress :: setTrialStrain( const Vector &strain_from_element ) 
+int J2PlaneStress::setTrialStrain( const Vector &strain_from_element ) 
 {
   const double tolerance = (1.0e-8)*sigma_0 ;
 
@@ -183,12 +182,12 @@ int J2PlaneStress :: setTrialStrain( const Vector &strain_from_element )
 
 
 //unused trial strain functions
-int J2PlaneStress :: setTrialStrain( const Vector &v, const Vector &r )
+int J2PlaneStress::setTrialStrain( const Vector &v, const Vector &r )
 { 
    return this->setTrialStrain( v ) ;
 } 
 
-int J2PlaneStress :: setTrialStrainIncr( const Vector &v ) 
+int J2PlaneStress::setTrialStrainIncr( const Vector &v ) 
 {
   static Vector newStrain(3);
   newStrain(0) = strain(0,0) + v(0);
@@ -198,14 +197,13 @@ int J2PlaneStress :: setTrialStrainIncr( const Vector &v )
   return this->setTrialStrain(newStrain);  
 }
 
-int J2PlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
+int J2PlaneStress::setTrialStrainIncr( const Vector &v, const Vector &r ) 
 {
     return this->setTrialStrainIncr(v);
 }
 
 
-//send back the strain
-const Vector& J2PlaneStress :: getStrain( ) 
+const Vector& J2PlaneStress::getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
@@ -215,8 +213,7 @@ const Vector& J2PlaneStress :: getStrain( )
 } 
 
 
-//send back the stress 
-const Vector& J2PlaneStress :: getStress( ) 
+const Vector& J2PlaneStress::getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
@@ -225,8 +222,7 @@ const Vector& J2PlaneStress :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
-const Matrix& J2PlaneStress :: getTangent( ) 
+const Matrix& J2PlaneStress::getTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -253,8 +249,7 @@ const Matrix& J2PlaneStress :: getTangent( )
 } 
 
 
-//send back the tangent 
-const Matrix& J2PlaneStress :: getInitialTangent( ) 
+const Matrix& J2PlaneStress::getInitialTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -387,7 +382,7 @@ J2PlaneStress::recvSelf (int commitTag, Channel &theChannel,
 // plane stress different because of condensation on tangent
 // case 3 switched to 1-2 and case 4 to 3-3 
 void 
-J2PlaneStress :: index_map( int matrix_index, int &i, int &j )
+J2PlaneStress::index_map( int matrix_index, int &i, int &j )
 {
   switch ( matrix_index+1 ) { //add 1 for standard tensor indices
 

@@ -152,7 +152,6 @@ LayeredShellFiberSection::commitState()
   return success;
 }
 
-//revert to last saved state
 int
 LayeredShellFiberSection::revertToLastCommit()
 {
@@ -164,7 +163,6 @@ LayeredShellFiberSection::revertToLastCommit()
   return success;
 }
 
-//revert to start
 int
 LayeredShellFiberSection::revertToStart()
 {
@@ -322,7 +320,6 @@ LayeredShellFiberSection::getStressResultant()
 }
 
 
-//send back the tangent
 const Matrix&
 LayeredShellFiberSection::getSectionTangent()
 {
@@ -489,7 +486,6 @@ LayeredShellFiberSection::getSectionTangent()
 }
 
 
-//print out data
 void
 LayeredShellFiberSection::Print(OPS_Stream& s, int flag)
 {

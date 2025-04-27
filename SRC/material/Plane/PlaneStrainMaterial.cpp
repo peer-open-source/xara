@@ -104,7 +104,6 @@ PlaneStrainMaterial::~PlaneStrainMaterial( )
 
 
 
-//make a clone of this material
 NDMaterial*
 PlaneStrainMaterial::getCopy( ) 
 {
@@ -117,7 +116,6 @@ PlaneStrainMaterial::getCopy( )
 }
 
 
-//make a clone of this material
 NDMaterial* 
 PlaneStrainMaterial::getCopy( const char *type ) 
 {
@@ -125,7 +123,6 @@ PlaneStrainMaterial::getCopy( const char *type )
 }
 
 
-//send back order of strain in vector form
 int 
 PlaneStrainMaterial::getOrder( ) const
 {
@@ -150,7 +147,6 @@ PlaneStrainMaterial::commitState( )
 
 
 
-//revert to last saved state
 int 
 PlaneStrainMaterial::revertToLastCommit( )
 {
@@ -158,7 +154,6 @@ PlaneStrainMaterial::revertToLastCommit( )
 }
 
 
-//revert to start
 int
 PlaneStrainMaterial::revertToStart( )
 {
@@ -205,7 +200,6 @@ PlaneStrainMaterial::setTrialStrain( const Vector &strainFromElement )
 }
 
 
-//send back the strain
 const Vector& 
 PlaneStrainMaterial::getStrain( )
 {
@@ -213,7 +207,6 @@ PlaneStrainMaterial::getStrain( )
 }
 
 
-//send back the stress 
 const Vector&  
 PlaneStrainMaterial::getStress( )
 {
@@ -228,7 +221,6 @@ PlaneStrainMaterial::getStress( )
 }
 
 
-//send back the tangent 
 const Matrix&  
 PlaneStrainMaterial::getTangent( )
 {
@@ -252,7 +244,6 @@ PlaneStrainMaterial::getTangent( )
 }
 
 // AV not sure if it actually works
-//send back the tangent 
 const Matrix&  
 PlaneStrainMaterial::getInitialTangent( )
 {

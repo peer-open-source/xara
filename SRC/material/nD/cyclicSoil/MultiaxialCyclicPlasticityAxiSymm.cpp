@@ -81,7 +81,6 @@ MultiaxialCyclicPlasticityAxiSymm :: ~MultiaxialCyclicPlasticityAxiSymm( )
 { } 
 
 
-//make a clone of this material
 NDMaterial* MultiaxialCyclicPlasticityAxiSymm :: getCopy( ) 
 { 
   MultiaxialCyclicPlasticityAxiSymm  *clone;
@@ -98,7 +97,6 @@ const char* MultiaxialCyclicPlasticityAxiSymm :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int MultiaxialCyclicPlasticityAxiSymm :: getOrder( ) const 
 { 
   return 4 ; 
@@ -172,7 +170,6 @@ int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrainIncr( const Vector &v, co
 
 
 
-//send back the strain
 const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
@@ -185,7 +182,6 @@ const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStrain( )
 } 
 
 
-//send back the stress 
 const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
@@ -196,7 +192,6 @@ const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& MultiaxialCyclicPlasticityAxiSymm :: getTangent( ) 
 {
   // matrix to tensor mapping
@@ -223,7 +218,6 @@ const Matrix& MultiaxialCyclicPlasticityAxiSymm :: getTangent( )
   return tangent_matrix ;
 } 
 
-//send back the tangent 
 const Matrix& MultiaxialCyclicPlasticityAxiSymm :: getInitialTangent( ) 
 {
   // matrix to tensor mapping
@@ -267,13 +261,11 @@ int MultiaxialCyclicPlasticityAxiSymm :: commitState( )
 }
 
 
-//revert to last saved state
 int MultiaxialCyclicPlasticityAxiSymm :: revertToLastCommit( )
 { 
   return 0 ;
 } 
 
-//revert to start
 int MultiaxialCyclicPlasticityAxiSymm :: revertToStart( ) 
 
 {  

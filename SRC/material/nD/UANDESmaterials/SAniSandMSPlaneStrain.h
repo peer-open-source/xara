@@ -61,15 +61,12 @@ class SAniSandMSPlaneStrain : public SAniSandMS
   // Unused trialStrain functions
   int setTrialStrain(const Vector &v, const Vector &r);
     
-  //send back the strain
   const Vector& getStrain();
   const Vector& getEStrain();
 
-  //send back the stress 
   const Vector& getStress();
   const Vector& getStressToRecord();
 
-  //send back the tangent 
   const Matrix& getTangent();
   const Matrix& getInitialTangent();
   

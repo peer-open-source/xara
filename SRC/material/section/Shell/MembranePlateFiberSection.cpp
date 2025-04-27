@@ -131,7 +131,6 @@ MembranePlateFiberSection::commitState()
 }
 
 
-//revert to last saved state
 int
 MembranePlateFiberSection::revertToLastCommit()
 {

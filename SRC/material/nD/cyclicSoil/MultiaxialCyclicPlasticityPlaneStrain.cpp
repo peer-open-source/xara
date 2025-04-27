@@ -84,7 +84,6 @@ MultiaxialCyclicPlasticityPlaneStrain :: ~MultiaxialCyclicPlasticityPlaneStrain(
 
 
 
-//make a clone of this material
 NDMaterial* MultiaxialCyclicPlasticityPlaneStrain :: getCopy( ) 
 { 
   MultiaxialCyclicPlasticityPlaneStrain  *clone;
@@ -102,7 +101,6 @@ const char* MultiaxialCyclicPlasticityPlaneStrain :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int MultiaxialCyclicPlasticityPlaneStrain :: getOrder( ) const 
 { 
   return 3 ; 
@@ -160,7 +158,6 @@ int MultiaxialCyclicPlasticityPlaneStrain :: setTrialStrainIncr( const Vector &v
 }
 
 
-//send back the strain
 const Vector& MultiaxialCyclicPlasticityPlaneStrain :: getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
@@ -171,7 +168,6 @@ const Vector& MultiaxialCyclicPlasticityPlaneStrain :: getStrain( )
 } 
 
 
-//send back the stress 
 const Vector& MultiaxialCyclicPlasticityPlaneStrain :: getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
@@ -181,7 +177,6 @@ const Vector& MultiaxialCyclicPlasticityPlaneStrain :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& MultiaxialCyclicPlasticityPlaneStrain :: getTangent( ) 
 {
   // matrix to tensor mapping
@@ -209,7 +204,6 @@ const Matrix& MultiaxialCyclicPlasticityPlaneStrain :: getTangent( )
 } 
 
 
-//send back the tangent 
 const Matrix& MultiaxialCyclicPlasticityPlaneStrain :: getInitialTangent( ) 
 {
   // matrix to tensor mapping

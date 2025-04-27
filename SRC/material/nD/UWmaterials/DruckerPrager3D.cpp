@@ -47,7 +47,6 @@ DruckerPrager3D :: ~DruckerPrager3D( )
 {} 
 
 
-//make a clone of this material
 NDMaterial* DruckerPrager3D :: getCopy( ) 
 { 
   DruckerPrager3D  *clone;
@@ -64,7 +63,6 @@ const char* DruckerPrager3D :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int DruckerPrager3D :: getOrder( ) const 
 { 
   return 6 ; 
@@ -88,26 +86,22 @@ int DruckerPrager3D::setTrialStrain (const Vector &v, const Vector &r)
 }
 
 
-//send back the strain
 const Vector& DruckerPrager3D :: getStrain( ) 
 {
   return mEpsilon ;
 } 
 
 
-//send back the stress 
 const Vector& DruckerPrager3D :: getStress( ) 
 {
   return mSigma ;
 }
 
-//send back the tangent 
 const Matrix& DruckerPrager3D :: getTangent( ) 
 {
   return mCep ;
 } 
 
-//send back the tangent 
 const Matrix& DruckerPrager3D :: getInitialTangent( ) 
 {
   return mCe ;

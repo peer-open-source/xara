@@ -102,7 +102,6 @@ J2ThreeDimensionalThermal :: ~J2ThreeDimensionalThermal( )
 {} 
 
 
-//make a clone of this material
 NDMaterial* J2ThreeDimensionalThermal :: getCopy( ) 
 { 
   J2ThreeDimensionalThermal  *clone;
@@ -119,7 +118,6 @@ const char* J2ThreeDimensionalThermal :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int J2ThreeDimensionalThermal :: getOrder( ) const 
 { 
   return 6 ; 
@@ -176,7 +174,6 @@ int J2ThreeDimensionalThermal :: setTrialStrainIncr( const Vector &v, const Vect
 
 
 
-//send back the strain
 const Vector& J2ThreeDimensionalThermal :: getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
@@ -193,7 +190,6 @@ const Vector& J2ThreeDimensionalThermal :: getStrain( )
 } 
 
 
-//send back the stress 
 const Vector& J2ThreeDimensionalThermal :: getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
@@ -209,7 +205,6 @@ const Vector& J2ThreeDimensionalThermal :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& J2ThreeDimensionalThermal :: getTangent( ) 
 {
   // matrix to tensor mapping
@@ -240,7 +235,6 @@ const Matrix& J2ThreeDimensionalThermal :: getTangent( )
   return tangent_matrix ;
 } 
 
-//send back the tangent 
 const Matrix& J2ThreeDimensionalThermal :: getInitialTangent( ) 
 {
   // matrix to tensor mapping

@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.0 $
 // $Date: 2012-05-23 21:11:45 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/PlateRebarMaterialThermal.h,v $
@@ -33,86 +33,70 @@ Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723*/
 #ifndef PlateRebarMaterialThermal_h
 #define PlateRebarMaterialThermal_h
 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <math.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include <Vector.h>
 #include <Matrix.h>
-#include <ID.h> 
+#include <ID.h>
 #include <UniaxialMaterial.h>
 #include <NDMaterial.h>
 
 
+class PlateRebarMaterialThermal : public NDMaterial {
+public:
+  PlateRebarMaterialThermal();
+  PlateRebarMaterialThermal(int tag, UniaxialMaterial& uniMat, double ang);
 
-class PlateRebarMaterialThermal: public NDMaterial{
-  public : 
-    PlateRebarMaterialThermal( ) ;
-    PlateRebarMaterialThermal( int tag,
-                        UniaxialMaterial &uniMat,
-                        double ang ) ;
+  virtual ~PlateRebarMaterialThermal();
 
-    virtual ~PlateRebarMaterialThermal( ) ;
+  NDMaterial* getCopy();
+  NDMaterial* getCopy(const char* type);
 
-    //make a clone of this material
-    NDMaterial *getCopy( ) ;
-    NDMaterial *getCopy( const char *type ) ;
+  int getOrder() const;
 
-    //send back order of strain in vector form
-    int getOrder( ) const ;
+  const char* getType() const;
 
-    //send back order of strain in vector form
-    const char *getType( ) const ;
+  //swap history variables
+  int commitState();
 
-    //swap history variables
-    int commitState( ) ; 
+  int revertToLastCommit();
 
-    //revert to last saved state
-    int revertToLastCommit( ) ;
+  int revertToStart();
 
-    //revert to start
-    int revertToStart( ) ;
+  //get the strain
+  int setTrialStrain(const Vector& strainFromElement);
 
-    //get the strain 
-    int setTrialStrain( const Vector &strainFromElement ) ;
+  const Vector& getStrain();
 
-    //send back the strain
-    const Vector& getStrain( ) ;
+  const Vector& getStress();
 
-    //send back the stress 
-    const Vector& getStress( ) ;
+  const Matrix& getTangent();
 
-    //send back the tangent 
-    const Matrix& getTangent( ) ;
+  Response* setResponse(const char** argv, int argc, OPS_Stream& output);
+  int getResponse(int responseID, Information& matInformation);
 
-	  Response *setResponse (const char **argv, int argc, OPS_Stream &output);
-	int getResponse (int responseID, Information &matInformation);
+  const Matrix& getInitialTangent(); // AV Not Sure if it works
+  double getThermalTangentAndElongation(double& TempT, double& ET, double& Elong);
 
-    const Matrix& getInitialTangent( ) ;  // AV Not Sure if it works
-	double getThermalTangentAndElongation(double &TempT, double&ET, double&Elong);
+  //density
+  double getRho();
 
-    //density
-    double getRho( ) ;
+  void Print(OPS_Stream& s, int flag);
 
-    //print out data
-    void Print( OPS_Stream &s, int flag ) ;
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+private:
+  UniaxialMaterial* theMat;
+  double angle, c, s;
+  double temperature;
 
-private :
-    UniaxialMaterial *theMat ;
-    double angle, c, s;
-	double temperature;
-
-    Vector strain ;
-    static Vector stress ;
-    static Matrix tangent ;
-
-} ;
-
+  Vector strain;
+  static Vector stress;
+  static Matrix tangent;
+};
 
 
 #endif
-
-

@@ -179,7 +179,6 @@ void PlaneStressUserMaterial::setInitials()
   tangent = eTangent;
 }
 
-//make a clone of this material
 NDMaterial*
 PlaneStressUserMaterial::getCopy( ) 
 {
@@ -189,7 +188,6 @@ PlaneStressUserMaterial::getCopy( )
 }
 
 
-//make a clone of this material
 NDMaterial* 
 PlaneStressUserMaterial::getCopy( const char *type ) 
 {
@@ -201,7 +199,6 @@ PlaneStressUserMaterial::getCopy( const char *type )
 }
 
 
-//send back order of strain in vector form
 int 
 PlaneStressUserMaterial::getOrder( ) const
 {
@@ -228,7 +225,6 @@ PlaneStressUserMaterial::commitState( )
 }
 
 
-//revert to last saved state
 int 
 PlaneStressUserMaterial::revertToLastCommit( )
 {
@@ -236,7 +232,6 @@ PlaneStressUserMaterial::revertToLastCommit( )
 }
 
 
-//revert to start
 int
 PlaneStressUserMaterial::revertToStart( )
 {
@@ -283,7 +278,6 @@ PlaneStressUserMaterial::setTrialStrain( const Vector &strainFromElement )
 }
 
 
-//send back the strain
 const Vector& 
 PlaneStressUserMaterial::getStrain( )
 {
@@ -291,7 +285,6 @@ PlaneStressUserMaterial::getStrain( )
 }
 
 
-//send back the stress 
 const Vector&  
 PlaneStressUserMaterial::getStress( )
 {
@@ -299,7 +292,6 @@ PlaneStressUserMaterial::getStress( )
 }
 
 
-//send back the tangent 
 const Matrix&  
 PlaneStressUserMaterial::getTangent( )
 {
@@ -314,7 +306,6 @@ PlaneStressUserMaterial::getInitialTangent
 }
 
 
-//print out data
 void  
 PlaneStressUserMaterial::Print( OPS_Stream &s, int flag )
 {

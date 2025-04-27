@@ -248,7 +248,6 @@ int  BbarBrick::revertToLastCommit( )
 }
 
 
-//revert to start
 int  BbarBrick::revertToStart( )
 {
   int i ;

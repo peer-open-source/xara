@@ -84,7 +84,6 @@ MultiaxialCyclicPlasticity3D :: ~MultiaxialCyclicPlasticity3D( )
 { } 
 
 
-//make a clone of this material
 NDMaterial* MultiaxialCyclicPlasticity3D :: getCopy( ) 
 { 
   MultiaxialCyclicPlasticity3D  *clone;
@@ -101,7 +100,6 @@ const char* MultiaxialCyclicPlasticity3D :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int MultiaxialCyclicPlasticity3D :: getOrder( ) const 
 { 
   return 6 ; 
@@ -171,7 +169,6 @@ int MultiaxialCyclicPlasticity3D :: setTrialStrainIncr( const Vector &v, const V
 
 
 
-//send back the strain
 const Vector& MultiaxialCyclicPlasticity3D :: getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
@@ -188,7 +185,6 @@ const Vector& MultiaxialCyclicPlasticity3D :: getStrain( )
 } 
 
 
-//send back the stress 
 const Vector& MultiaxialCyclicPlasticity3D :: getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
@@ -204,7 +200,6 @@ const Vector& MultiaxialCyclicPlasticity3D :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& MultiaxialCyclicPlasticity3D :: getTangent( ) 
 {
   // matrix to tensor mapping
@@ -234,7 +229,6 @@ const Matrix& MultiaxialCyclicPlasticity3D :: getTangent( )
   return tangent_matrix ;
 } 
 
-//send back the tangent 
 const Matrix& MultiaxialCyclicPlasticity3D :: getInitialTangent( ) 
 {
   // matrix to tensor mapping

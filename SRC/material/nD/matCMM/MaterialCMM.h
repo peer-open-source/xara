@@ -47,42 +47,33 @@ class MaterialCMM: public NDMaterial{
 
     virtual ~MaterialCMM( ) ;
 
-    //make a clone of this material
-    NDMaterial *getCopy( ) ;
+        NDMaterial *getCopy( ) ;
     NDMaterial *getCopy( const char *type ) ;
 
-    //send back order of strain in vector form
-    int getOrder( ) const ;
+        int getOrder( ) const ;
 
-    //send back order of strain in vector form
-    const char *getType( ) const ;
+        const char *getType( ) const ;
 
     void setInitials() ;
 
     //swap history variables
     int commitState( ) ; 
 
-    //revert to last saved state
-    int revertToLastCommit( ) ;
+        int revertToLastCommit( ) ;
 
-    //revert to start
-    int revertToStart( ) ;
+        int revertToStart( ) ;
 
     //get the strain 
     int setTrialStrain( const Vector &strainFromElement ) ;
 
-    //send back the strain
     const Vector& getStrain( ) ;
 
-    //send back the stress 
     const Vector& getStress( ) ;
 
-    //send back the tangent 
     const Matrix& getTangent( ) ;
 
     const Matrix& getInitialTangent( ) ;
 
-    //print out data
     void Print( OPS_Stream &s, int flag ) ;
 
     int sendSelf(int commitTag, Channel &theChannel);

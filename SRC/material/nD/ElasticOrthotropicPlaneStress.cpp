@@ -166,7 +166,6 @@ const char* ElasticOrthotropicPlaneStress :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int ElasticOrthotropicPlaneStress :: getOrder( ) const 
 { 
   return 3 ; 
@@ -209,14 +208,12 @@ int ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v, const 
 }
 
 
-//send back the strain
 const Vector& ElasticOrthotropicPlaneStress :: getStrain( ) 
 {
   return strain_vec ;
 } 
 
 
-//send back the stress 
 const Vector& ElasticOrthotropicPlaneStress :: getStress( ) 
 {
 
@@ -225,7 +222,6 @@ const Vector& ElasticOrthotropicPlaneStress :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& ElasticOrthotropicPlaneStress :: getTangent( ) 
 {
   // matrix to tensor mapping

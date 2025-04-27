@@ -126,7 +126,6 @@ MaterialCMM::~MaterialCMM( )
 } 
 
 
-//make a clone of this material
 NDMaterial*
 MaterialCMM::getCopy( ) 
 {
@@ -138,7 +137,6 @@ MaterialCMM::getCopy( )
 }
 
 
-//make a clone of this material
 NDMaterial* 
 MaterialCMM::getCopy( const char *type ) 
 {
@@ -149,7 +147,6 @@ MaterialCMM::getCopy( const char *type )
 }
 
 
-//send back order of strain in vector form
 int 
 MaterialCMM::getOrder( ) const
 {
@@ -184,7 +181,6 @@ MaterialCMM::commitState( )
 }
 
 
-//revert to last saved state
 int 
 MaterialCMM::revertToLastCommit( )
 {
@@ -192,7 +188,6 @@ MaterialCMM::revertToLastCommit( )
 }
 
 
-//revert to start
 int
 MaterialCMM::revertToStart( )
 {
@@ -245,7 +240,6 @@ MaterialCMM::setTrialStrain( const Vector &strainIN )
 }
 
 
-//send back the strain
 const Vector& 
 MaterialCMM::getStrain( )
 {
@@ -253,7 +247,6 @@ MaterialCMM::getStrain( )
 }
 
 
-//send back the stress 
 const Vector&  
 MaterialCMM::getStress( )
 {
@@ -261,7 +254,6 @@ MaterialCMM::getStress( )
 }
 
 
-//send back the tangent 
 const Matrix&  
 MaterialCMM::getTangent( )
 {
@@ -278,7 +270,6 @@ MaterialCMM::getInitialTangent( )
 }
 
 
-//print out data
 void  
 MaterialCMM::Print( OPS_Stream &s, int flag )
 {

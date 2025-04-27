@@ -100,7 +100,6 @@ PlaneStressRebarMaterial::~PlaneStressRebarMaterial( )
 } 
 
 
-//make a clone of this material
 NDMaterial*
 PlaneStressRebarMaterial::getCopy( ) 
 {
@@ -113,7 +112,6 @@ PlaneStressRebarMaterial::getCopy( )
 }
 
 
-//make a clone of this material
 NDMaterial* 
 PlaneStressRebarMaterial::getCopy( const char *type ) 
 {
@@ -124,7 +122,6 @@ PlaneStressRebarMaterial::getCopy( const char *type )
 }
 
 
-//send back order of strain in vector form
 int 
 PlaneStressRebarMaterial::getOrder( ) const
 {
@@ -149,7 +146,6 @@ PlaneStressRebarMaterial::commitState( )
 
 
 
-//revert to last saved state
 int 
 PlaneStressRebarMaterial::revertToLastCommit( )
 {
@@ -157,7 +153,6 @@ PlaneStressRebarMaterial::revertToLastCommit( )
 }
 
 
-//revert to start
 int
 PlaneStressRebarMaterial::revertToStart( )
 {
@@ -192,7 +187,6 @@ PlaneStressRebarMaterial::setTrialStrain( const Vector &strainFromElement )
 }
 
 
-//send back the strain
 const Vector& 
 PlaneStressRebarMaterial::getStrain( )
 {
@@ -200,7 +194,6 @@ PlaneStressRebarMaterial::getStrain( )
 }
 
 
-//send back the stress 
 const Vector&  
 PlaneStressRebarMaterial::getStress( )
 {
@@ -221,7 +214,6 @@ PlaneStressRebarMaterial::getStress( )
 }
 
 
-//send back the tangent 
 const Matrix&  
 PlaneStressRebarMaterial::getTangent( )
 {
@@ -273,7 +265,6 @@ PlaneStressRebarMaterial::getInitialTangent
 }
 
 
-//print out data
 void  
 PlaneStressRebarMaterial::Print( OPS_Stream &s, int flag )
 {

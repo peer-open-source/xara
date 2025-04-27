@@ -295,7 +295,6 @@ int  IGAKLShell_BendingStrip::revertToLastCommit( )
 }
 
 
-//revert to start
 int  IGAKLShell_BendingStrip::revertToStart( )
 {
   int success = 0 ;

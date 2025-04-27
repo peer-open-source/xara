@@ -305,8 +305,8 @@ TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int 
 {
   BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
 
-  MaterialSymmetry symm = MaterialSymmetry::Isotropic;
-  PlaneType type = PlaneType::None;
+//MaterialSymmetry symm = MaterialSymmetry::Isotropic;
+//PlaneType type = PlaneType::None;
 
   if ((strcmp(argv[1], "ElasticIsotropic") == 0) || 
       (strcmp(argv[1], "Elastic") == 0) ||

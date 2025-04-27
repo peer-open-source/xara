@@ -121,11 +121,9 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
   //swap history variables
   virtual int commitState( ) ;
 
-  //revert to last saved state
-  virtual int revertToLastCommit( ) ;
+    virtual int revertToLastCommit( ) ;
 
-  //revert to start
-  virtual int revertToStart( ) ;
+    virtual int revertToStart( ) ;
 
   //sending and receiving
   virtual int sendSelf(int commitTag, Channel &theChannel) ;

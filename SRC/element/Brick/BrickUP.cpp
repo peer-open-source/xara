@@ -312,7 +312,6 @@ int  BrickUP::revertToLastCommit( )
 }
 
 
-//revert to start
 int  BrickUP::revertToStart( )
 {
   int i ;

@@ -42,8 +42,7 @@ class PlaneStressRebarMaterial: public NDMaterial{
 
     virtual ~PlaneStressRebarMaterial( );
 
-    //make a clone of this material
-    NDMaterial *getCopy( );
+        NDMaterial *getCopy( );
     NDMaterial *getCopy( const char *type );
 
     int getOrder( ) const ;

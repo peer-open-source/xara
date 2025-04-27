@@ -107,7 +107,6 @@ ElasticMembranePlateSection::~ElasticMembranePlateSection( )
 
 
 
-//make a clone of this material
 SectionForceDeformation*  ElasticMembranePlateSection::getCopy( ) 
 {
   ElasticMembranePlateSection *clone ;   
@@ -129,14 +128,12 @@ ElasticMembranePlateSection::getRho( )
 }
 
 
-//send back order of strain in vector form
 int ElasticMembranePlateSection::getOrder( ) const
 {
   return 8 ;
 }
 
 
-//send back order of strain in vector form
 const ID& ElasticMembranePlateSection::getType( )
 {
     static bool initialized = false;
@@ -164,13 +161,11 @@ int ElasticMembranePlateSection::commitState( )
 
 
 
-//revert to last saved state
 int ElasticMembranePlateSection::revertToLastCommit( )
 {
   return 0 ;
 }
 
-//revert to start
 int ElasticMembranePlateSection::revertToStart( )
 {
   return 0 ;
@@ -187,14 +182,12 @@ setTrialSectionDeformation( const Vector &strain_from_element)
 }
 
 
-//send back the strain
 const Vector& ElasticMembranePlateSection::getSectionDeformation( )
 {
   return this->strain ;
 }
 
 
-//send back the stress 
 const Vector&  ElasticMembranePlateSection::getStressResultant( )
 {
 
@@ -236,7 +229,6 @@ const Vector&  ElasticMembranePlateSection::getStressResultant( )
 }
 
 
-//send back the tangent 
 const Matrix&  ElasticMembranePlateSection::getSectionTangent( )
 {
 
@@ -330,7 +322,6 @@ const Matrix&  ElasticMembranePlateSection::getInitialTangent( )
 }
 
 
-//print out data
 void  ElasticMembranePlateSection::Print( OPS_Stream &s, int flag )
 {
     if (flag == OPS_PRINT_PRINTMODEL_SECTION) {

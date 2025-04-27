@@ -91,8 +91,7 @@ public :
     //revert to last commit
     int revertToLastCommit( ) ;
 
-    //revert to start
-    int revertToStart( ) ;
+        int revertToStart( ) ;
 
     // update
     int update(void);

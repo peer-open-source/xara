@@ -149,7 +149,6 @@ private:
     // optional 
     bool m_reduced_integration = false;
 
-    // cross sections
     SectionForceDeformation* m_sections[3] = { nullptr, nullptr, nullptr };
 
     // nodal ids

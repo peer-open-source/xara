@@ -40,8 +40,6 @@
 
 class PlateFiberMaterial : public NDMaterial {
 
-  //-------------------Declarations-------------------------------
-
 public:
   PlateFiberMaterial();
 
@@ -59,31 +57,17 @@ public:
   NDMaterial* getCopy();
   NDMaterial* getCopy(const char* type);
 
-  //send back order of strain in vector form
   int getOrder() const;
 
-  //send back order of strain in vector form
   const char* getType() const;
 
-  //swap history variables
   int commitState();
-
-  //revert to last saved state
   int revertToLastCommit();
-
-  //revert to start
   int revertToStart();
-
-  //get the strain
   int setTrialStrain(const Vector& strainFromElement);
 
-  //send back the strain
   const Vector& getStrain();
-
-  //send back the stress
   const Vector& getStress();
-
-  //send back the tangent
   const Matrix& getTangent();
   const Matrix& getInitialTangent();
 

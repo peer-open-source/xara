@@ -271,7 +271,6 @@ int  BbarBrickWithSensitivity::revertToLastCommit( )
 }
 
 
-//revert to start
 int  BbarBrickWithSensitivity::revertToStart( )
 {
   int i ;

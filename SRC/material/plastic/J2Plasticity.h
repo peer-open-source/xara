@@ -12,7 +12,7 @@
 ** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.7 $
 // $Date: 2008-10-21 18:58:59 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/J2Plasticity.h,v $
@@ -23,29 +23,29 @@
 // Written: Ed "C++" Love
 //
 // J2 isotropic hardening material class
-// 
+//
 //  Elastic Model
 //  sigma = K*trace(epsilion_elastic) + (2*G)*dev(epsilon_elastic)
 //
 //  Yield Function
-//  phi(sigma,q) = || dev(sigma) ||  - sqrt(2/3)*q(xi) 
+//  phi(sigma,q) = || dev(sigma) ||  - sqrt(2/3)*q(xi)
 //
 //  Saturation Isotropic Hardening with linear term
-//  q(xi) = simga_0 + (sigma_infty - sigma_0)*exp(-delta*xi) + H*xi 
+//  q(xi) = simga_0 + (sigma_infty - sigma_0)*exp(-delta*xi) + H*xi
 //
 //  Flow Rules
 //  \dot{epsilon_p} =  gamma * d_phi/d_sigma
-//  \dot{xi}        = -gamma * d_phi/d_q 
+//  \dot{xi}        = -gamma * d_phi/d_q
 //
-//  Linear Viscosity 
-//  gamma = phi / eta  ( if phi > 0 ) 
+//  Linear Viscosity
+//  gamma = phi / eta  ( if phi > 0 )
 //
-//  Backward Euler Integration Routine 
-//  Yield condition enforced at time n+1 
+//  Backward Euler Integration Routine
+//  Yield condition enforced at time n+1
 //
 //  set eta := 0 for rate independent case
 //
-#include <math.h> 
+#include <math.h>
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -54,12 +54,11 @@
 
 class J2Plasticity : public NDMaterial {
 
-public : 
-
-  J2Plasticity() ;
+public:
+  J2Plasticity();
 
   J2Plasticity(int tag,
-		           int classTag,
+               int classTag,
                double K,
                double G,
                double yield0,
@@ -67,75 +66,82 @@ public :
                double d,
                double H,
                double viscosity,
-               double density) ;
+               double density);
 
-  J2Plasticity( int tag, int classTag, double K, double G );
+  J2Plasticity(int tag, int classTag, double K, double G);
 
   virtual ~J2Plasticity();
 
-  virtual NDMaterial* getCopy (const char *type);
+  virtual NDMaterial* getCopy(const char* type);
 
   // Material State
-  virtual int commitState(); 
+  virtual int commitState();
   virtual int revertToLastCommit();
   virtual int revertToStart();
 
 
-  virtual NDMaterial *getCopy() ;
-  virtual const char *getType() const;
-  virtual int getOrder() const ;
+  virtual NDMaterial* getCopy();
+  virtual const char* getType() const;
+  virtual int getOrder() const;
 
-  double getRho() {return rho;}
+  double
+  getRho()
+  {
+    return rho;
+  }
 
-  virtual int setParameter(const char **argv, int argc, Parameter &param);
-  virtual int updateParameter(int parameterID, Information &info);
+  virtual int setParameter(const char** argv, int argc, Parameter& param);
+  virtual int updateParameter(int parameterID, Information& info);
   virtual int activateParameter(int paramID);
 
   // MovableObject
-  virtual const char *getClassType() const {return "J2Plasticity";}
-  virtual int sendSelf(int commitTag, Channel &) ;  
-  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) ;
+  virtual const char*
+  getClassType() const
+  {
+    return "J2Plasticity";
+  }
+  virtual int sendSelf(int commitTag, Channel&);
+  virtual int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
   // TaggedObject
-  virtual void Print(OPS_Stream &s, int flag = 0) final;
+  virtual void Print(OPS_Stream& s, int flag = 0) final;
 
 protected:
-
   // zero internal variables
   void zero();
   int plastic_integrator();
   void doInitialTangent();
 
   // hardening function and derivative
-  double q( double xi );
-  double qprime( double xi );
-  
+  double q(double xi);
+  double qprime(double xi);
+
   // matrix index to tensor index mapping
-  virtual void index_map( int matrix_index, int &i, int &j ) ;
+  virtual void index_map(int matrix_index, int& i, int& j);
 
   // material parameters
-  double bulk ;        // bulk modulus
-  double shear ;       // shear modulus
-  double sigma_0 ;     // initial yield stress
-  double sigma_infty ; // final saturation yield stress
-  double delta ;       // exponential hardening parameter
-  double Hard ;        // linear hardening parameter
-  double eta ;         // viscosity
-  double rho;          // density
+  double bulk;        // bulk modulus
+  double shear;       // shear modulus
+  double sigma_0;     // initial yield stress
+  double sigma_infty; // final saturation yield stress
+  double delta;       // exponential hardening parameter
+  double Hard;        // linear hardening parameter
+  double eta;         // viscosity
+  double rho;         // density
 
   // internal variables
-  Matrix epsilon_p_n ;       // plastic strain time n
-  Matrix epsilon_p_nplus1 ;  // plastic strain time n+1
-  double xi_n ;              // xi time n
-  double xi_nplus1 ;         // xi time n+1
+  Matrix epsilon_p_n;      // plastic strain time n
+  Matrix epsilon_p_nplus1; // plastic strain time n+1
+  double xi_n;             // xi time n
+  double xi_nplus1;        // xi time n+1
 
-  // material response 
-  Matrix stress ;                //stress tensor
-  double tangent[3][3][3][3] ;   //material tangent
-  static double initialTangent[3][3][3][3] ;   //material tangent
+  // material response
+  Matrix stress;                            //stress tensor
+  double tangent[3][3][3][3];               //material tangent
+  static double initialTangent[3][3][3][3]; //material tangent
 
   // material input
-  Matrix strain ;               //strain tensor
+  Matrix strain; //strain tensor
 
   // parameters
   int parameterID;

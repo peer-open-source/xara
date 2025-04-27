@@ -83,7 +83,6 @@ PlateFiberMaterial::PlateFiberMaterial()
 }
 
 
-
 PlateFiberMaterial::PlateFiberMaterial(int tag, NDMaterial& the3DMaterial)
  : NDMaterial(tag, ND_TAG_PlateFiberMaterial), strain(5)
 {
@@ -112,15 +111,12 @@ PlateFiberMaterial::getCopy()
 }
 
 
-
 NDMaterial*
 PlateFiberMaterial::getCopy(const char* type)
 {
   return this->getCopy();
 }
 
-
-//send back order of strain in vector form
 int
 PlateFiberMaterial::getOrder() const
 {
@@ -145,7 +141,6 @@ PlateFiberMaterial::commitState()
 }
 
 
-//revert to last saved state
 int
 PlateFiberMaterial::revertToLastCommit()
 {
@@ -242,7 +237,6 @@ PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
 }
 
 
-
 const Vector&
 PlateFiberMaterial::getStrain()
 {
@@ -250,7 +244,6 @@ PlateFiberMaterial::getStrain()
 }
 
 
-//send back the stress
 const Vector&
 PlateFiberMaterial::getStress()
 {
@@ -296,7 +289,6 @@ PlateFiberMaterial::getStressSensitivity(int gradIndex, bool conditional)
   return stress;
 }
 
-//send back the tangent
 const Matrix&
 PlateFiberMaterial::getTangent()
 {
@@ -432,7 +424,6 @@ PlateFiberMaterial::getInitialTangent()
   return tangent;
 }
 
-//print out data
 void
 PlateFiberMaterial::Print(OPS_Stream& s, int flag)
 {

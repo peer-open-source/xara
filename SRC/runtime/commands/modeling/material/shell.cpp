@@ -1,7 +1,8 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
 //
 // Written: rms, MHS, cmp
 // Created: 07/99
@@ -9,7 +10,6 @@
 // Description: This file contains the function invoked when the user invokes
 // the section command in the interpreter.
 //
-// What: "@(#) TclModelBuilderMaterialCommands.C, revA"
 //
 #include <tcl.h>
 #include <string.h>
@@ -46,33 +46,39 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
     double Ep_mod = 1.0;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section ElasticMembranePlateSection tag"
+      opserr << OpenSees::PromptValueError 
+             << "invalid section ElasticMembranePlateSection tag"
              << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid E" << endln;
+      opserr << OpenSees::PromptValueError 
+             << "invalid E" << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &nu) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nu" << endln;
+      opserr << OpenSees::PromptValueError 
+             << "invalid nu" << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &h) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid h" << endln;
+      opserr << OpenSees::PromptValueError 
+             << "invalid h" << endln;
       return TCL_ERROR;
     }
 
     if (argc > 6 && Tcl_GetDouble(interp, argv[6], &rho) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid rho" << endln;
+      opserr << OpenSees::PromptValueError 
+             << "invalid rho" << endln;
       return TCL_ERROR;
     }
 
     if (argc > 7 && Tcl_GetDouble(interp, argv[7], &Ep_mod) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid Ep_mod" << endln;
+      opserr << OpenSees::PromptValueError 
+             << "invalid Ep_mod" << endln;
       return TCL_ERROR;
     }
 
@@ -96,7 +102,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL
       return TCL_ERROR;
     }
 
-    int tag, matTag;
+    int tag;
     double h;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
@@ -104,6 +110,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL
       return TCL_ERROR;
     }
 
+    int matTag;
     if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
       opserr << "WARNING invalid material tag " << argv[3] << "\n";
       return TCL_ERROR;
@@ -163,14 +170,14 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL
     thickness = new double[nLayers];
 
     for (int iLayer = 0; iLayer < nLayers; iLayer++) {
-
-      if (Tcl_GetInt(interp, argv[4 + 2 * iLayer], &matTag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid matTag" << endln;
+      int mat;
+      if (Tcl_GetInt(interp, argv[4 + 2 * iLayer], &mat) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "invalid material tag" << endln;
         status = TCL_ERROR;
         goto cleanup;
       }
 
-      NDMaterial* material = builder->getTypedObject<NDMaterial>(matTag);
+      NDMaterial* material = builder->getTypedObject<NDMaterial>(mat);
       if (material == nullptr) {
         status = TCL_ERROR;
         goto cleanup;
@@ -178,17 +185,19 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL
 
       theMats[iLayer] = material->getCopy("PlateFiber");
       if (theMats[iLayer] == nullptr) {
-        theMats[iLayer] = new PlateFiberMaterial(matTag, *material);
+        theMats[iLayer] = new PlateFiberMaterial(mat, *material);
       }
 
       if (Tcl_GetDouble(interp, argv[5 + 2 * iLayer], &h) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid h" << endln;
+        opserr << OpenSees::PromptValueError 
+               << "invalid h at layer " << iLayer << "\n";
         status = TCL_ERROR;
         goto cleanup;
       }
 
-      if (h < 0) {
-        opserr << OpenSees::PromptValueError << "invalid h" << endln;
+      if (h <= 0) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid h at layer " << iLayer << "\n";
         status = TCL_ERROR;
         goto cleanup;
       }

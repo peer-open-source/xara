@@ -43,14 +43,12 @@ Matrix ElasticPlateSection::tangent(5, 5);
 ID ElasticPlateSection::array(5);
 
 
-//null constructor
 ElasticPlateSection::ElasticPlateSection()
  : SectionForceDeformation(0, SEC_TAG_ElasticPlateSection), strain(5)
 {
 }
 
 
-//full constructor
 ElasticPlateSection::ElasticPlateSection(int tag, double young, double poisson, double thickness)
  : SectionForceDeformation(tag, SEC_TAG_ElasticPlateSection), strain(5)
 {
@@ -60,11 +58,12 @@ ElasticPlateSection::ElasticPlateSection(int tag, double young, double poisson, 
 }
 
 
-//destructor
-ElasticPlateSection::~ElasticPlateSection() {}
+ElasticPlateSection::~ElasticPlateSection() 
+{
+
+}
 
 
-//make a clone of this material
 SectionForceDeformation*
 ElasticPlateSection::getCopy()
 {
@@ -78,7 +77,6 @@ ElasticPlateSection::getCopy()
 }
 
 
-//send back order of strain in vector form
 int
 ElasticPlateSection::getOrder() const
 {
@@ -86,7 +84,6 @@ ElasticPlateSection::getOrder() const
 }
 
 
-//send back order of strain in vector form
 const ID&
 ElasticPlateSection::getType()
 {
@@ -111,14 +108,12 @@ ElasticPlateSection::commitState()
 }
 
 
-//revert to last saved state
 int
 ElasticPlateSection::revertToLastCommit()
 {
   return 0;
 }
 
-//revert to start
 int
 ElasticPlateSection::revertToStart()
 {
@@ -136,7 +131,6 @@ ElasticPlateSection ::setTrialSectionDeformation(const Vector& strain_from_eleme
 }
 
 
-//send back the strain
 const Vector&
 ElasticPlateSection::getSectionDeformation()
 {
@@ -144,7 +138,6 @@ ElasticPlateSection::getSectionDeformation()
 }
 
 
-//send back the stress
 const Vector&
 ElasticPlateSection::getStressResultant()
 {
@@ -171,7 +164,6 @@ ElasticPlateSection::getStressResultant()
 }
 
 
-//send back the tangent
 const Matrix&
 ElasticPlateSection::getSectionTangent()
 {
@@ -227,7 +219,6 @@ ElasticPlateSection::getInitialTangent()
   return this->tangent;
 }
 
-//print out data
 void
 ElasticPlateSection::Print(OPS_Stream& s, int flag)
 {

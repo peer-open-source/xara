@@ -60,7 +60,6 @@ PlateFiberMaterialThermal::PlateFiberMaterialThermal(int tag, NDMaterial& the3DM
 PlateFiberMaterialThermal::~PlateFiberMaterialThermal() { delete theMaterial; }
 
 
-//make a clone of this material
 NDMaterial*
 PlateFiberMaterialThermal::getCopy()
 {
@@ -78,7 +77,6 @@ PlateFiberMaterialThermal::getCopy()
 }
 
 
-//make a clone of this material
 NDMaterial*
 PlateFiberMaterialThermal::getCopy(const char* type)
 {
@@ -86,7 +84,6 @@ PlateFiberMaterialThermal::getCopy(const char* type)
 }
 
 
-//send back order of strain in vector form
 int
 PlateFiberMaterialThermal::getOrder() const
 {
@@ -111,7 +108,6 @@ PlateFiberMaterialThermal::commitState()
 }
 
 
-//revert to last saved state
 int
 PlateFiberMaterialThermal::revertToLastCommit()
 {
@@ -121,7 +117,6 @@ PlateFiberMaterialThermal::revertToLastCommit()
 }
 
 
-//revert to start
 int
 PlateFiberMaterialThermal::revertToStart()
 {
@@ -273,7 +268,6 @@ PlateFiberMaterialThermal::setTrialStrain(const Vector& strainFromElement)
 }
 
 
-//send back the strain
 const Vector&
 PlateFiberMaterialThermal::getStrain()
 {
@@ -281,7 +275,6 @@ PlateFiberMaterialThermal::getStrain()
 }
 
 
-//send back the stress
 const Vector&
 PlateFiberMaterialThermal::getStress()
 {
@@ -304,7 +297,6 @@ PlateFiberMaterialThermal::getStress()
   return this->stress;
 }
 
-//send back the tangent
 const Matrix&
 PlateFiberMaterialThermal::getTangent()
 {
@@ -411,7 +403,6 @@ PlateFiberMaterialThermal::indexMap(int i)
 }
 
 
-//print out data
 void
 PlateFiberMaterialThermal::Print(OPS_Stream& s, int flag)
 {

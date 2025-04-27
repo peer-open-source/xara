@@ -114,7 +114,6 @@ MembranePlateFiberSectionThermal::~MembranePlateFiberSectionThermal()
 }
 
 
-//make a clone of this material
 SectionForceDeformation*
 MembranePlateFiberSectionThermal::getCopy()
 {
@@ -169,7 +168,6 @@ MembranePlateFiberSectionThermal::commitState()
 }
 
 
-//revert to last saved state
 int
 MembranePlateFiberSectionThermal::revertToLastCommit()
 {
@@ -182,7 +180,6 @@ MembranePlateFiberSectionThermal::revertToLastCommit()
   return success;
 }
 
-//revert to start
 int
 MembranePlateFiberSectionThermal::revertToStart()
 {
@@ -417,7 +414,6 @@ MembranePlateFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
   return *sT;
 }
 
-//send back the tangent
 const Matrix&
 MembranePlateFiberSectionThermal::getSectionTangent()
 {
@@ -586,7 +582,6 @@ MembranePlateFiberSectionThermal::getSectionTangent()
 }
 
 
-//print out data
 void
 MembranePlateFiberSectionThermal::Print(OPS_Stream& s, int flag)
 {

@@ -110,7 +110,6 @@ const char* J2PlateFiber :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int J2PlateFiber :: getOrder( ) const 
 { 
   return 5 ; 
@@ -205,7 +204,6 @@ int J2PlateFiber :: setTrialStrainIncr( const Vector &v, const Vector &r )
 
 
 
-//send back the strain
 const Vector& J2PlateFiber :: getStrain( ) 
 {
 
@@ -238,7 +236,6 @@ J2PlateFiber :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& J2PlateFiber :: getTangent( ) 
 {
 
@@ -270,7 +267,6 @@ const Matrix& J2PlateFiber :: getTangent( )
 } 
 
 
-//send back the tangent 
 const Matrix& J2PlateFiber :: getInitialTangent( ) 
 {
 

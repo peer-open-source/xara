@@ -62,37 +62,29 @@ public:
   //destructor
   virtual ~DoubleMembranePlateFiberSection();
 
-  //make a clone of this material
-  SectionForceDeformation* getCopy();
+    SectionForceDeformation* getCopy();
 
   //mass per unit area
   double getRho();
 
-  //send back order of strain in vector form
-  int getOrder() const;
+    int getOrder() const;
 
-  //send back order of strain in vector form
-  const ID& getType();
+    const ID& getType();
 
   //swap history variables
   int commitState();
 
-  //revert to last saved state
-  int revertToLastCommit();
+    int revertToLastCommit();
 
-  //revert to start
-  int revertToStart();
+    int revertToStart();
 
   //get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);
 
-  //send back the strain
   const Vector& getSectionDeformation();
 
-  //send back the stress
   const Vector& getStressResultant();
 
-  //send back the tangent
   const Matrix& getSectionTangent();
 
   //send back the initial tangent
@@ -102,7 +94,6 @@ public:
     return this->getSectionTangent();
   }
 
-  //print out data
   void Print(OPS_Stream& s, int flag);
 
   int sendSelf(int commitTag, Channel& theChannel);

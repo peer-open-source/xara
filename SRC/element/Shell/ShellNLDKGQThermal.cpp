@@ -243,7 +243,6 @@ int ShellNLDKGQThermal::revertToLastCommit()
   return success;
 }
 
-//revert to start
 int ShellNLDKGQThermal::revertToStart()
 {
   int i;

@@ -25,7 +25,6 @@ PlasticMaterial<n,type,index>::getCopy()
 }
 
 
-//send back the strain
 template <int n, PlaneType type, typename index>
 MatrixSD<n,true>
 PlasticMaterial<n,type,index>::getStrain() 
@@ -97,7 +96,6 @@ PlasticMaterial<n,type,index>::getTangent()
   return tangent_matrix ;
 } 
 
-//send back the tangent 
 template <int n, PlaneType type, typename index>
 const Matrix& 
 PlasticMaterial<n,type,index>::getInitialTangent() 

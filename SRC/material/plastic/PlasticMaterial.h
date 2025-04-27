@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//        OpenSees - Open System for Earthquake Engineering Simulation
 //
 //===----------------------------------------------------------------------===//
 //
@@ -53,23 +53,22 @@ class TensorIndexing {
   static void map(int matrix_index, int& i, int& j);
 };
 
-template <int n, PlaneType type, typename index>
-class PlasticMaterial : public Mate<n> {
+template <int n, PlaneType type, typename index> class PlasticMaterial : public Mate<n> {
 public:
   // null constructor
   PlasticMaterial();
 
   // full constructor
   PlasticMaterial(int tag,
-               int classTag,
-               double K,
-               double G,
-               double yield0,
-               double yield_infty,
-               double d,
-               double H,
-               double viscosity = 0,
-               double rho       = 0.0);
+                  int classTag,
+                  double K,
+                  double G,
+                  double yield0,
+                  double yield_infty,
+                  double d,
+                  double H,
+                  double viscosity = 0,
+                  double rho       = 0.0);
 
   // elastic constructor
   PlasticMaterial(int tag, int classTag, double K, double G);
@@ -86,23 +85,21 @@ public:
   //swap history variables
   virtual int commitState();
 
-  //revert to last saved state
   virtual int revertToLastCommit();
 
-  //revert to start
   virtual int revertToStart();
 
   //get the strain and integrate plasticity equations
-  virtual int setTrialStrain(const MatrixSD<n,true>& e) final;
-  virtual int setTrialStrain(const MatrixND<n,n>& F) final;
+  virtual int setTrialStrain(const MatrixSD<n, true>& e) final;
+  virtual int setTrialStrain(const MatrixND<n, n>& F) final;
 
   //unused trial strain functions
-//int setTrialStrain(const MatrixSD<n,true>& v, const Vector& r);
-//int setTrialStrainIncr(const MatrixSD<n,true>& v);
-//int setTrialStrainIncr(const MatrixSD<n,true>& v, const Vector& r);
+  //int setTrialStrain(const MatrixSD<n,true>& v, const Vector& r);
+  //int setTrialStrainIncr(const MatrixSD<n,true>& v);
+  //int setTrialStrainIncr(const MatrixSD<n,true>& v, const Vector& r);
 
 
-  MatrixSD<n,true> getStrain();
+  MatrixSD<n, true> getStrain();
   const MatrixSD<n>& getStress();
   const Matrix& getTangent();
   const Matrix& getInitialTangent();
@@ -120,7 +117,8 @@ public:
   virtual PlaneType getType() const;
   virtual int getOrder() const;
 
-  double getRho()
+  double
+  getRho()
   {
     return rho;
   }
@@ -157,23 +155,22 @@ protected:
   double eta;         //viscosity
 
   // internal variables
-  MatrixND<3,3> epsilon_p_n;      // plastic strain time n
-  MatrixND<3,3> epsilon_p_nplus1; // plastic strain time n+1
-  double xi_n;             // xi time n
-  double xi_nplus1;        // xi time n+1
+  MatrixND<3, 3> epsilon_p_n;      // plastic strain time n
+  MatrixND<3, 3> epsilon_p_nplus1; // plastic strain time n+1
+  double xi_n;                     // xi time n
+  double xi_nplus1;                // xi time n+1
 
   // material response
-  MatrixSD<3> stress;                       // stress tensor
-  double tangent[3][3][3][3];               // material tangent
-  double initialTangent[3][3][3][3];        // initial tangent
+  MatrixSD<3> stress;                // stress tensor
+  double tangent[3][3][3][3];        // material tangent
+  double initialTangent[3][3][3][3]; // initial tangent
 
   MatrixSD<6> tangent_matrix;
 
   // material input
   MatrixSD<n> strain; //strain tensor
 
-  static constexpr double root23
-      = OpenSees::Constants::sqrt2/OpenSees::Constants::sqrt3;
+  static constexpr double root23 = OpenSees::Constants::sqrt2 / OpenSees::Constants::sqrt3;
 
 
   double rho;
@@ -181,10 +178,9 @@ protected:
   int parameterID;
 
 }; // class PlasticMaterial
-}
+} // namespace OpenSees
 
 #include "PlasticMaterial.tpp"
 // namespace OpenSees
 
 #endif
-

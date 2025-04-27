@@ -84,8 +84,7 @@ class BbarBrickWithSensitivity : public Element {
     //revert to last commit
     int revertToLastCommit( ) ;
 
-    //revert to start
-    int revertToStart( ) ;
+        int revertToStart( ) ;
 
     //print out element data
     void Print( OPS_Stream &s, int flag ) ;

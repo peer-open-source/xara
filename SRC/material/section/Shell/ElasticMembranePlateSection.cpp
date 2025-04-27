@@ -78,7 +78,6 @@ ElasticMembranePlateSection::getOrder() const
 }
 
 
-//send back order of strain in vector form
 const ID&
 ElasticMembranePlateSection::getType()
 {

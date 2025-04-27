@@ -412,7 +412,6 @@ LayeredShellFiberSectionThermal::getStressResultant()
 }
 
 
-//send back the tangent
 const Matrix&
 LayeredShellFiberSectionThermal::getSectionTangent()
 {
@@ -579,7 +578,6 @@ LayeredShellFiberSectionThermal::getSectionTangent()
 }
 
 
-//print out data
 void
 LayeredShellFiberSectionThermal::Print(OPS_Stream& s, int flag)
 {

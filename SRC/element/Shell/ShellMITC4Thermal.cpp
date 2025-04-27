@@ -250,7 +250,6 @@ int ShellMITC4Thermal::revertToLastCommit()
   return success;
 }
 
-//revert to start
 int ShellMITC4Thermal::revertToStart()
 {
   int i;

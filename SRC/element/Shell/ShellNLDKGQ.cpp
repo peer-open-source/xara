@@ -224,7 +224,6 @@ int ShellNLDKGQ::revertToLastCommit()
   return success;
 }
 
-//revert to start
 int ShellNLDKGQ::revertToStart()
 {
   int i;

@@ -143,7 +143,6 @@ DoubleMembranePlateFiberSection::~DoubleMembranePlateFiberSection()
 }
 
 
-//make a clone of this material
 SectionForceDeformation*
 DoubleMembranePlateFiberSection::getCopy()
 {
@@ -198,7 +197,6 @@ DoubleMembranePlateFiberSection::commitState()
 }
 
 
-//revert to last saved state
 int
 DoubleMembranePlateFiberSection::revertToLastCommit()
 {
@@ -212,7 +210,6 @@ DoubleMembranePlateFiberSection::revertToLastCommit()
   return success;
 }
 
-//revert to start
 int
 DoubleMembranePlateFiberSection::revertToStart()
 {
@@ -378,7 +375,6 @@ DoubleMembranePlateFiberSection::getStressResultant()
 }
 
 
-//send back the tangent
 const Matrix&
 DoubleMembranePlateFiberSection::getSectionTangent()
 {
@@ -688,7 +684,6 @@ DoubleMembranePlateFiberSection::getSectionTangent()
 }
 
 
-//print out data
 void
 DoubleMembranePlateFiberSection::Print(OPS_Stream& s, int flag)
 {

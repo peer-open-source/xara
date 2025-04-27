@@ -326,7 +326,6 @@ int  TwentyEightNodeBrickUP::revertToLastCommit( )
 }
 
 
-//revert to start
 int  TwentyEightNodeBrickUP::revertToStart( )
 {
     int i ;

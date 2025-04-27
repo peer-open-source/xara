@@ -76,14 +76,12 @@ class MultiaxialCyclicPlasticityAxiSymm : public MultiaxialCyclicPlasticity {
 
   const char *getClassType(void) const {return "MultiaxialCyclicPlasticityAxiSymm";};
 
-  //make a clone of this material
-  NDMaterial* getCopy( ) ;
+    NDMaterial* getCopy( ) ;
 
   //send back type of material
   const char* getType( ) const ;
 
-  //send back order of strain in vector form
-  int getOrder( ) const ;
+    int getOrder( ) const ;
 
   //get the strain and integrate plasticity equations
   int setTrialStrain( const Vector &strain_from_element) ;
@@ -93,13 +91,10 @@ class MultiaxialCyclicPlasticityAxiSymm : public MultiaxialCyclicPlasticity {
   int setTrialStrainIncr( const Vector &v ) ;
   int setTrialStrainIncr( const Vector &v, const Vector &r ) ;
 
-  //send back the strain
   const Vector& getStrain( ) ;
 
-  //send back the stress 
   const Vector& getStress( ) ;
 
-  //send back the tangent 
   const Matrix& getTangent( ) ;
   const Matrix& getInitialTangent( ) ;
 

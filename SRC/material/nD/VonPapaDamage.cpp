@@ -298,7 +298,6 @@ VonPapaDamage :: ~VonPapaDamage( )
 {  }
 
 
-//make a clone of this material
 NDMaterial* VonPapaDamage :: getCopy( )
 {
   VonPapaDamage  *clone;
@@ -315,7 +314,6 @@ const char* VonPapaDamage :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int VonPapaDamage :: getOrder( ) const
 {
   return 3 ;
@@ -399,14 +397,12 @@ int VonPapaDamage :: setTrialStrainIncr( const Vector &v, const Vector &r )
 }
 
 
-//send back the strain
 const Vector& VonPapaDamage :: getStrain( )
 {
   return strain_vec ;
 }
 
 
-//send back the stress
 const Vector& VonPapaDamage :: getStress( )
 {
 
@@ -415,7 +411,6 @@ const Vector& VonPapaDamage :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent
 const Matrix& VonPapaDamage :: getTangent( )
 {
   // matrix to tensor mapping
@@ -446,7 +441,6 @@ const Matrix& VonPapaDamage :: getTangent( )
 }
 
 
-//send back the tangent
 const Matrix& VonPapaDamage :: getInitialTangent( )
 {
   // matrix to tensor mapping

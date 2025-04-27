@@ -48,7 +48,6 @@ DruckerPrager3DThermal :: ~DruckerPrager3DThermal( )
 { } 
 
 
-//make a clone of this material
 NDMaterial* DruckerPrager3DThermal :: getCopy( ) 
 { 
   DruckerPrager3DThermal  *clone;
@@ -65,7 +64,6 @@ const char* DruckerPrager3DThermal :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int DruckerPrager3DThermal :: getOrder( ) const 
 { 
   return 6 ; 
@@ -90,26 +88,22 @@ int DruckerPrager3DThermal::setTrialStrain (const Vector &v, const Vector &r)
 }
 
 
-//send back the strain
 const Vector& DruckerPrager3DThermal :: getStrain( ) 
 {
   return mEpsilon ;
 } 
 
 
-//send back the stress 
 const Vector& DruckerPrager3DThermal :: getStress( ) 
 {
   return mSigma ;
 }
 
-//send back the tangent 
 const Matrix& DruckerPrager3DThermal :: getTangent( ) 
 {
   return mCep ;
 } 
 
-//send back the tangent 
 const Matrix& DruckerPrager3DThermal :: getInitialTangent( ) 
 {
   return mCe ;

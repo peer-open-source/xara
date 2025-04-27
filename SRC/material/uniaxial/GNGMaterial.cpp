@@ -252,14 +252,12 @@ GNGMaterial::setTrialStrain(double strain, double strainRate)
 //method and compute the stress and tangent quantities again in the interests of 
 //saving memory.
 
-//send back the strain
 double 
 GNGMaterial::getStrain(void)
 {
     return trialStrain;
 }
 
-//send back the stress
 double 
 GNGMaterial::getStress(void)
 {
@@ -267,14 +265,12 @@ GNGMaterial::getStress(void)
 
 }
 
-//send back the tangent
 double 
 GNGMaterial::getTangent(void)
 {
   return trialTangent;
 }
 
-//send back the tangent
 double 
 GNGMaterial::getInitialTangent(void)
 {

@@ -105,15 +105,12 @@ public:
     // Unused trialStrain functions
     int setTrialStrain(const Vector &v, const Vector &r);
     
-    //send back the strain
     const Vector& getStrain( ) ;
 
-    //send back the stress 
     const Vector& getStress( ) ;
 
     int commitState(void);
 
-    //send back the tangent 
     const Matrix& getTangent( ) ;
     const Matrix& getInitialTangent( ) ; 
 

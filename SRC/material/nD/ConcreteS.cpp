@@ -114,7 +114,6 @@ void ConcreteS::setInitials()
   ftmin = 1.0e-3 * ft;
 }
 
-//make a clone of this material
 NDMaterial*
 ConcreteS::getCopy( ) 
 {
@@ -126,7 +125,6 @@ ConcreteS::getCopy( )
 }
 
 
-//make a clone of this material
 NDMaterial* 
 ConcreteS::getCopy( const char *type ) 
 {
@@ -134,7 +132,6 @@ ConcreteS::getCopy( const char *type )
 }
 
 
-//send back order of strain in vector form
 int 
 ConcreteS::getOrder( ) const
 {
@@ -161,7 +158,6 @@ ConcreteS::commitState( )
 }
 
 
-//revert to last saved state
 int 
 ConcreteS::revertToLastCommit( )
 {
@@ -169,7 +165,6 @@ ConcreteS::revertToLastCommit( )
 }
 
 
-//revert to start
 int
 ConcreteS::revertToStart( )
 {
@@ -286,7 +281,6 @@ ConcreteS::setTrialStrain( const Vector &strainFromElement )
 }
 
 
-//send back the strain
 const Vector& 
 ConcreteS::getStrain( )
 {
@@ -294,7 +288,6 @@ ConcreteS::getStrain( )
 }
 
 
-//send back the stress 
 const Vector&  
 ConcreteS::getStress( )
 {
@@ -302,7 +295,6 @@ ConcreteS::getStress( )
 }
 
 
-//send back the tangent 
 const Matrix&  
 ConcreteS::getTangent( )
 {
@@ -317,7 +309,6 @@ ConcreteS::getInitialTangent
 }
 
 
-//print out data
 void  
 ConcreteS::Print( OPS_Stream &s, int flag )
 {

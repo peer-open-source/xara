@@ -313,7 +313,6 @@ int  Twenty_Node_Brick::revertToLastCommit( )
 }
 
 
-//revert to start
 int  Twenty_Node_Brick::revertToStart( )
 {
 	int success = 0 ;

@@ -55,7 +55,6 @@ ElasticPlaneStress :: ~ElasticPlaneStress()
 {  } 
 
 
-//make a clone of this material
 NDMaterial* ElasticPlaneStress :: getCopy( ) 
 { 
   ElasticPlaneStress  *clone;
@@ -72,7 +71,6 @@ const char* ElasticPlaneStress :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int ElasticPlaneStress :: getOrder( ) const 
 { 
   return 3 ; 
@@ -133,7 +131,6 @@ const Vector& ElasticPlaneStress :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& 
 ElasticPlaneStress :: getTangent( ) 
 {

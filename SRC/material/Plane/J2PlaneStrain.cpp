@@ -97,7 +97,6 @@ J2PlaneStrain :: ~J2PlaneStrain( )
 } 
 
 
-//make a clone of this material
 NDMaterial* J2PlaneStrain :: getCopy( ) 
 { 
   J2PlaneStrain  *clone;
@@ -115,7 +114,6 @@ const char* J2PlaneStrain :: getType( ) const
 }
 
 
-//send back order of strain in vector form
 int J2PlaneStrain :: getOrder( ) const 
 { 
   return 3 ; 
@@ -160,7 +158,6 @@ int J2PlaneStrain :: setTrialStrainIncr( const Vector &v, const Vector &r )
 }
 
 
-//send back the strain
 const Vector& J2PlaneStrain :: getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
@@ -171,7 +168,6 @@ const Vector& J2PlaneStrain :: getStrain( )
 } 
 
 
-//send back the stress 
 const Vector& J2PlaneStrain :: getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
@@ -181,7 +177,6 @@ const Vector& J2PlaneStrain :: getStress( )
   return stress_vec ;
 }
 
-//send back the tangent 
 const Matrix& J2PlaneStrain :: getTangent( ) 
 {
   // matrix to tensor mapping
@@ -209,7 +204,6 @@ const Matrix& J2PlaneStrain :: getTangent( )
 } 
 
 
-//send back the tangent 
 const Matrix& J2PlaneStrain :: getInitialTangent( ) 
 {
   // matrix to tensor mapping
