@@ -583,7 +583,6 @@ TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
   Domain *domain = G3_getDomain(rt);
 
   // BasicModelBuilder *theTclBuilder = G3_getSafeBuilder(G3_getRuntime(interp));
-  // // ensure the destructor has not been called -
   // BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
 
 
