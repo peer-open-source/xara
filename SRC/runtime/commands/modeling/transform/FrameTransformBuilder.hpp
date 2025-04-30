@@ -1,18 +1,27 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara  
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once
 #include <map>
-#include <VectorND.h>
 #include <TaggedObject.h>
+#include <VectorND.h>
 #include <Vector3D.h>
 
 #include <FrameTransform.h>
 #include <LinearFrameTransf.hpp>
 #include <SouzaFrameTransf.hpp>
+#include <PDeltaFrameTransf3d.hpp>
 
 
 class FrameTransformBuilder : public TaggedObject {
 public:
     FrameTransformBuilder(int ndm, int t, const char *n) 
-    : ndm(ndm), TaggedObject(t), vz{{0, 0, 0}}, offsets{}, offset_flags(0) {
+    : ndm(ndm), 
+      TaggedObject(t), 
+      vz{{0, 0, 0}}, offsets{}, offset_flags(0) {
       strncpy(name, n, 128);
     }
     virtual ~FrameTransformBuilder() {}
@@ -38,6 +47,8 @@ public:
         return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
       else if (strstr(name, "Corot") != nullptr)
         return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+      else if (strstr(name, "PDelta") != nullptr)
+        return new PDeltaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
       else
         return nullptr;
     }
@@ -61,6 +72,7 @@ public:
             s << "}";
         }
     }
+
     int ndm;
     int tag;
     char name[128];
