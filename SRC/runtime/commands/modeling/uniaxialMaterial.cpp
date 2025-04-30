@@ -1,7 +1,8 @@
-/* ****************************************************************** **
-**    Opensee - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//
+//===----------------------------------------------------------------------===//
 //
 // Description: This file contains the function invoked when the user invokes
 // the uniaxialMaterial command in the interpreter.
@@ -21,10 +22,12 @@
 #include <Steel03.h>            // KM
 #include <Concrete01WithSITC.h> // Won Lee
 #include <ECC01.h>              // Won Lee
+
 #include <Concrete04.h>
 #include <Concrete05.h>
 #include <Concrete06.h>              // LMS
 #include <Concrete07.h>              // JDW
+
 #include <HystereticBackbone.h>      // MHS
 #include <EPPGapMaterial.h>          // Mackie
 #include <PathIndependentMaterial.h> // MHS
@@ -76,11 +79,9 @@ extern OPS_Routine OPS_Cast;
 extern OPS_Routine OPS_DoddRestr;
 extern OPS_Routine OPS_ElasticMultiLinear;
 extern OPS_Routine OPS_HookGap;
-extern OPS_Routine OPS_HyperbolicGapMaterial;
 extern OPS_Routine OPS_FRPConfinedConcrete;
 extern OPS_Routine OPS_FRPConfinedConcrete02;
 extern OPS_Routine OPS_UVCuniaxial;
-extern OPS_Routine OPS_Steel01Thermal;
 extern OPS_Routine OPS_Concrete02Thermal;
 extern OPS_Routine OPS_StainlessECThermal;     // L.Jiang [SIF]
 extern OPS_Routine OPS_SteelECThermal;         // L.Jiang [SIF]
@@ -95,11 +96,10 @@ extern OPS_Routine OPS_ModIMKPeakOriented;
 extern OPS_Routine OPS_ModIMKPeakOriented02;
 extern OPS_Routine OPS_ModIMKPinching;
 extern OPS_Routine OPS_ModIMKPinching02;
-extern void *OPS_ConcretewBeta(void);
+extern void *OPS_ConcretewBeta();
 extern OPS_Routine OPS_ConcreteD;
 extern OPS_Routine OPS_PinchingLimitState;
 extern OPS_Routine OPS_OriginCentered;
-extern OPS_Routine OPS_Steel2;
 extern OPS_Routine OPS_ConcreteSakaiKawashima;
 extern OPS_Routine OPS_ResilienceMaterialHR;
 extern OPS_Routine OPS_CFSSSWP;
@@ -135,29 +135,16 @@ typedef struct uniaxialPackageCommand {
 
 static UniaxialPackageCommand *theUniaxialPackageCommands = NULL;
 
-static void
-printCommand(int argc, TCL_Char ** const argv)
-{
-  opserr << "Input command: ";
-  for (int i = 0; i < argc; ++i)
-    opserr << argv[i] << " ";
-  opserr << endln;
-}
 
 // external functions
 
-Tcl_CmdProc TclCommand_KikuchiAikenHDR;
-Tcl_CmdProc TclCommand_KikuchiAikenLRB;
+UniaxialMaterial *TclBasicBuilder_addDrainMaterial(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv);
 
-UniaxialMaterial *TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv);
+UniaxialMaterial *TclBasicBuilder_addSnapMaterial(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv);
 
-UniaxialMaterial *TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv);
+UniaxialMaterial *TclBasicBuilder_addPyTzQzMaterial(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv, Domain *);
 
-UniaxialMaterial *TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv,
-                                                    Domain *theDomain);
-
-UniaxialMaterial *TclBasicBuilder_FRPCnfinedConcrete(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv,
-                                                     Domain *theDomain);
+UniaxialMaterial *TclBasicBuilder_FRPCnfinedConcrete(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv, Domain *);
 
 UniaxialMaterial *TclBasicBuilder_addDegradingMaterial(ClientData, Tcl_Interp *, int, TCL_Char **);
 
@@ -283,14 +270,8 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     else
       return TCL_ERROR;
 
-  } else if (strcmp(argv[1], "Steel01Thermal") == 0) {
-    void *theMat = OPS_Steel01Thermal(rt, argc, argv);
-    if (theMat != 0)
-      theMaterial = (UniaxialMaterial *)theMat;
-    else
-      return TCL_ERROR;
-
-  } else if (strcmp(argv[1], "ConcretewBeta") == 0) {
+  }
+  else if (strcmp(argv[1], "ConcretewBeta") == 0) {
     void *theMat = OPS_ConcretewBeta();
     if (theMat != 0)
       theMaterial = (UniaxialMaterial *)theMat;
@@ -309,7 +290,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   } else if (strcmp(argv[1], "Elastic2") == 0) {
     if (argc < 4 || argc > 5) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Elastic tag? E? <eta?>" << endln;
       return TCL_ERROR;
     }
@@ -343,7 +323,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   } else if (strcmp(argv[1], "ENT") == 0) {
     if (argc < 4) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial ENT tag? E?" << endln;
       return TCL_ERROR;
     }
@@ -379,7 +358,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     // Check that there is the minimum number of arguments
     if (argc < 9) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Steel03 tag? fy? E0? b? r? cR1 cR2?";
       opserr << " <a1? a2? a3? a4?>" << endln;
       return TCL_ERROR;
@@ -397,37 +375,31 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     if (Tcl_GetDouble(interp, argv[3], &fy) != TCL_OK) {
       opserr << "WARNING invalid fy\n";
-      opserr << "uniaxialMaterial Steel03: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &E) != TCL_OK) {
       opserr << "WARNING invalid E0\n";
-      opserr << "uniaxialMaterial Steel03: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &b) != TCL_OK) {
       opserr << "WARNING invalid b\n";
-      opserr << "uniaxialMaterial Steel03: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &r) != TCL_OK) {
       opserr << "WARNING invalid r\n";
-      opserr << "uniaxialMaterial Steel03: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &cR1) != TCL_OK) {
       opserr << "WARNING invalid cR1\n";
-      opserr << "uniaxialMaterial Steel03: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &cR2) != TCL_OK) {
       opserr << "WARNING invalid cR2\n";
-      opserr << "uniaxialMaterial Steel03: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -496,7 +468,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     //        opserr << argc << endln;
     if (argc != 10 && argc != 9 && argc != 7) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Concrete04 tag? fpc? epsc0? epscu? "
                 "Ec0? <ft? etu? <beta?> >"
              << endln;
@@ -515,43 +486,36 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING invalid fpc\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
       opserr << "WARNING invalid epsc0\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &epscu) != TCL_OK) {
       opserr << "WARNING invalid epscu\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &Ec0) != TCL_OK) {
       opserr << "WARNING invalid Ec0\n";
-      opserr << "Concrete04 material: " << tag << endln;
       return TCL_ERROR;
     }
     if (argc == 9 || argc == 10) {
       if (Tcl_GetDouble(interp, argv[7], &ft) != TCL_OK) {
         opserr << "WARNING invalid ft\n";
-        opserr << "Concrete04 material: " << tag << endln;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[8], &etu) != TCL_OK) {
         opserr << "WARNING invalid etu\n";
-        opserr << "Concrete04 material: " << tag << endln;
         return TCL_ERROR;
       }
     }
     if (argc == 10) {
       if (Tcl_GetDouble(interp, argv[9], &beta) != TCL_OK) {
         opserr << "WARNING invalid beta\n";
-        opserr << "Concrete04 material: " << tag << endln;
         return TCL_ERROR;
       }
     }
@@ -569,7 +533,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "Concrete06") == 0) {
     if (argc < 12) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Concrete06 tag? fc? eo? r? k? alphaC? "
                 "fcr? ecr? b? alphaT?"
              << endln;
@@ -579,7 +542,7 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     int tag;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial Concrete06 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial tag" << endln;
       return TCL_ERROR;
     }
 
@@ -649,7 +612,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     // Check to see if there are enough arquements
     if (argc < 11) {
       opserr << "WARNING: Insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Concrete07 tag? fpc? epsc0? Ec? fpt? "
                 "epst0? xcrp? xcrn? r?\n";
       return TCL_ERROR;
@@ -667,56 +629,43 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
       opserr << "WARNING: Invalid peak compression stress\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
       opserr << "WARNING: Invalid peak compression strain\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &Ec) != TCL_OK) {
       opserr << "WARNING: Invalid Young's Modulus\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &fpt) != TCL_OK) {
       opserr << "WARNING: Invalid peak tension stress\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &epst0) != TCL_OK) {
       opserr << "WARNING: Invalid peak tension strain\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &xcrp) != TCL_OK) {
       opserr << "WARNING: Invalid critical nondimensional strain in tension\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[9], &xcrn) != TCL_OK) {
       opserr
           << "WARNING: Invalid critical nondimensional strain in compression\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[10], &r) != TCL_OK) {
       opserr << "WARNING: Invalid value for r\n";
-      opserr << "uniaxialMaterial Concrete07: " << tag << endln;
     }
-
-    //		opserr << "fpc: " << fpc << endln << "epsc0: " << epsc0 << endln <<
-    //"Ec: " << Ec << endln; 		opserr << "fpt: " << fpt << endln << "epst0: " <<
-    //epst0 << endln << "xcrp: " << xcrp << endln; 		opserr << "xcrn: " << xcrn <<
-    //endln << "r: " << r << endln;
 
     // Parsing was successful, allocate the material
 
@@ -727,7 +676,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "PathIndependent") == 0) {
     if (argc < 4) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial PathIndependent tag? matTag?" << endln;
       return TCL_ERROR;
     }
@@ -752,11 +700,11 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     theMaterial = new PathIndependentMaterial(tag, *material);
   }
+  
 
   else if (strcmp(argv[1], "Backbone") == 0) {
     if (argc < 4) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Backbone tag? bbTag?" << endln;
       return TCL_ERROR;
     }
@@ -790,7 +738,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "Fatigue") == 0) {
     if (argc < 4) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Fatigue tag? matTag?";
       opserr << " <-D_max dmax?> <-e0 e0?> <-m m?>" << endln;
       opserr << " <-min min?> <-max max?>" << endln;
@@ -930,7 +877,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "Pinching4") == 0) {
     if (argc != 42 && argc != 31) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Pinching4 tag? stress1p? strain1p? "
                 "stress2p? strain2p? stress3p? strain3p? stress4p? strain4p? "
              << "\n<stress1n? strain1n? stress2n? strain2n? stress3n? "
@@ -1219,7 +1165,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "BarSlip") == 0) {
     if (argc != 17 && argc != 15) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial BarSlip tag? fc? fy? Es? fu? Eh? db? "
                 "ld? nb? width? depth? bsflag? type? <damage? unit?>"
              << endln;
@@ -1424,7 +1369,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "ShearPanel") == 0) {
     if (argc != 42 && argc != 31) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial ShearPanel tag? stress1p? strain1p? "
                 "stress2p? strain2p? stress3p? strain3p? stress4p? strain4p? "
              << "\n<stress1n? strain1n? stress2n? strain2n? stress3n? "
@@ -1701,7 +1645,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "Concrete01WithSITC") == 0) {
     if (argc < 7) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? "
                 "epscu? <endStrainSITC?>"
              << endln;
@@ -1760,7 +1703,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "ECC01") == 0) {
     if (argc < 16) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial ECC01 TAG? SIGT0? EPST0? SIGT1? EPST1? "
                 "EPST2? SIGC0? EPSC0? EPSC1? ";
       opserr << "ALPHAT1? ALPHAT2? ALPHAC? ALPHACU? BETAT? BETAC\n";
@@ -1867,7 +1809,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "SelfCentering") == 0) {
     if (argc < 7) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial SelfCentering tag? k1? k2? ActF? beta? "
                 "<SlipDef? BearDef? rBear?>"
              << endln;
@@ -1948,7 +1889,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
     // Check that there is the minimum number of arguments
     if (argc < 4) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial SteelMP tag? fy? E0? b? ";
       opserr << " <coeffR1?  coeffR2? a1? a2?>" << endln;
       return TCL_ERROR;
@@ -1984,7 +1924,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 
     if (argc < 5) {
       opserr << "WARNING insufficient number of hardening parameters\n";
-      opserr << "uniaxialMaterial Steel03: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -2034,7 +1973,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "SmoothPSConcrete") == 0) {
     if (argc < 6 || argc > 9) {
       opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: uniaxialMaterial SmoothPSConcrete tag? fc? fu? Ec? "
                 "<eps0?> <epsu?> <eta?>"
              << endln;
