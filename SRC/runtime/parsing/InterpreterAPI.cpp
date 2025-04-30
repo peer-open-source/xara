@@ -375,7 +375,10 @@ G3_getSectionForceDeformation(G3_Runtime* rt, int tag)
 {
   BasicModelBuilder* builder = G3_getSafeBuilder(rt);
   assert(builder);
-  SectionForceDeformation* theSection = builder->getTypedObject<FrameSection>(tag);
+  SectionForceDeformation* theSection = nullptr;
+
+  if (builder->getNDM() == 3)
+    theSection = builder->getTypedObject<FrameSection>(tag);
 
   if (theSection != nullptr)
     return theSection;
