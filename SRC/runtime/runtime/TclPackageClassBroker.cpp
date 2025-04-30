@@ -115,7 +115,7 @@ using namespace OpenSees::Hash::literals;
 #include "drain/DrainClough1Material.h"
 #include "drain/DrainClough2Material.h"
 #include "drain/DrainPinch1Material.h"
-#include "HyperbolicGapMaterial.h"
+#include "abutment/HyperbolicGapMaterial.h"
 #include "ImpactMaterial.h"
 
 // Sections
