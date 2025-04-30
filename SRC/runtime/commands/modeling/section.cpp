@@ -916,9 +916,17 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  if (builder->addTaggedObject<FrameSection>(*section) < 0) {
-    return TCL_ERROR;
+  if (ndm >= 3){
+    if (builder->addTaggedObject<FrameSection>(*section) < 0) {
+      return TCL_ERROR;
+    }
   }
+  else {
+    if (builder->addTaggedObject<SectionForceDeformation>(*section) < 0) {
+      return TCL_ERROR;
+    }
+  }
+
   if (builder->addTypedObject<SectionBuilder>(secTag, sbuilder) < 0) {
     opserr << OpenSees::PromptValueError << "cannot add section\n";
     return TCL_ERROR;
