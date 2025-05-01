@@ -503,7 +503,7 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
   output.attr("eleType", this->getClassType());
   output.attr("eleTag", this->getTag());
   output.attr("node1",  node_tags(0));
-  output.attr("node2",  node_tags(1));
+  output.attr("node2",  node_tags(nen-1));
 
   //
   // compare argv[0] for known response types
@@ -621,8 +621,8 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
         }
 
         output.endTag();
-
-      } else if (sectionNum == 0) { 
+      }
+      else if (sectionNum == 0) { 
         // argv[1] was not an int, we want all sections,
 
         CompositeResponse* theCResponse = new CompositeResponse();
@@ -637,7 +637,7 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
 
           Response* theSectionResponse = pres[i].material->setResponse(&argv[1], argc - 1, output);
 
-          if (theSectionResponse != 0) {
+          if (theSectionResponse != nullptr) {
             numResponse = theCResponse->addResponse(theSectionResponse);
           }
         }
