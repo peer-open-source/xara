@@ -184,7 +184,9 @@ SectionForceDeformation::setResponse(const char **argv, int argc,
     theResponse =  new SectionResponse(*this, 1, this->getSectionDeformation());
   
   // forces
-  } else if (strcmp(argv[0],"forces") == 0 || strcmp(argv[0],"force") == 0) {
+  } else if (strcmp(argv[0], "resultant")==0 || 
+             strcmp(argv[0], "forces") == 0 || 
+             strcmp(argv[0], "force") == 0) {
     for (int i=0; i<typeSize; i++) {
       int code = type(i);
       switch (code){
