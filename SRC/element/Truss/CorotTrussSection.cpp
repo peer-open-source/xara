@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
+//
 // Written: MHS
 // Created: May 2001
 //
@@ -35,7 +31,8 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <FrameSection.h>
-
+#include <VectorND.h>
+using namespace OpenSees;
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,15 +101,13 @@ CorotTrussSection::CorotTrussSection()
 {
   // set node pointers to NULL
   for (int i = 0; i < 2; i++)
-    theNodes[i] = 0;
+    theNodes[i] = nullptr;
 }
 
 
 CorotTrussSection::~CorotTrussSection()
 {
-  // invoke the destructor on any objects created by the object
-  // that the object still holds a pointer to
-  if (theSection != 0)
+  if (theSection != nullptr)
     delete theSection;
 }
 
@@ -141,7 +136,7 @@ CorotTrussSection::getNumDOF()
   return numDOF;
 }
 
-// method: setDomain()
+
 //    to set a link to the enclosing Domain and to set the node pointers.
 //    also determines the number of dof associated
 //    with the CorotTrussSection element, we set matrix and vector pointers,
@@ -289,9 +284,8 @@ CorotTrussSection::setDomain(Domain* theDomain)
   }
 
   // Orthonormalize last two rows of R
-  double norm;
   for (int i = 1; i < 3; i++) {
-    norm = sqrt(R(i, 0) * R(i, 0) + R(i, 1) * R(i, 1) + R(i, 2) * R(i, 2));
+    double norm = sqrt(R(i, 0) * R(i, 0) + R(i, 1) * R(i, 1) + R(i, 2) * R(i, 2));
     R(i, 0) /= norm;
     R(i, 1) /= norm;
     R(i, 2) /= norm;
@@ -332,6 +326,10 @@ CorotTrussSection::update()
   // determine the current strain given trial displacements at nodes
   double strain = this->computeCurrentStrain();
 
+#if 1
+  VectorND<1> e{strain};
+  return theSection->setTrialState<1,section_layout>(e);
+#else
   int order      = theSection->getOrder();
   const ID& code = theSection->getType();
 
@@ -341,8 +339,8 @@ CorotTrussSection::update()
     if (code(i) == SECTION_RESPONSE_P)
       e(i) = strain;
   }
-
   return theSection->setTrialSectionDeformation(e);
+#endif
 }
 
 const Matrix&
@@ -362,8 +360,7 @@ CorotTrussSection::getTangentStiff()
   double EA = 0.0;
   double q  = 0.0;
 
-  int i, j;
-  for (i = 0; i < order; i++) {
+  for (int i = 0; i < order; i++) {
     if (code(i) == SECTION_RESPONSE_P) {
       EA += ks(i, i);
       q += s(i);
@@ -372,7 +369,7 @@ CorotTrussSection::getTangentStiff()
 
   EA /= (Ln * Ln * Lo);
 
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
       kl(i, j) = EA * d21[i] * d21[j];
 
@@ -382,9 +379,9 @@ CorotTrussSection::getTangentStiff()
   double SA = q / (Ln * Ln * Ln);
   double SL = q / Ln;
 
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     kl(i, i) += SL;
-    for (j = 0; j < 3; j++)
+    for (int j = 0; j < 3; j++)
       kl(i, j) -= SA * d21[i] * d21[j];
   }
 
@@ -397,12 +394,12 @@ CorotTrussSection::getTangentStiff()
 
   // Copy stiffness into appropriate blocks in element stiffness
   int numDOF2 = numDOF / 2;
-  for (i = 0; i < numDIM; i++) {
-    for (j = 0; j < numDIM; j++) {
-      K(i, j)                     = kg(i, j);
+  for (int i = 0; i < numDIM; i++) {
+    for (int j = 0; j < numDIM; j++) {
+      K(i, j)                     =  kg(i, j);
       K(i, j + numDOF2)           = -kg(i, j);
       K(i + numDOF2, j)           = -kg(i, j);
-      K(i + numDOF2, j + numDOF2) = kg(i, j);
+      K(i + numDOF2, j + numDOF2) =  kg(i, j);
     }
   }
 
@@ -424,8 +421,7 @@ CorotTrussSection::getInitialStiff()
 
   double EA = 0.0;
 
-  int i, j;
-  for (i = 0; i < order; i++) {
+  for (int i = 0; i < order; i++) {
     if (code(i) == SECTION_RESPONSE_P) {
       EA += ks(i, i);
     }
@@ -442,12 +438,12 @@ CorotTrussSection::getInitialStiff()
 
   // Copy stiffness into appropriate blocks in element stiffness
   int numDOF2 = numDOF / 2;
-  for (i = 0; i < numDIM; i++) {
-    for (j = 0; j < numDIM; j++) {
-      K(i, j)                     = kg(i, j);
+  for (int i = 0; i < numDIM; i++) {
+    for (int j = 0; j < numDIM; j++) {
+      K(i, j)                     =  kg(i, j);
       K(i, j + numDOF2)           = -kg(i, j);
       K(i + numDOF2, j)           = -kg(i, j);
-      K(i + numDOF2, j + numDOF2) = kg(i, j);
+      K(i + numDOF2, j + numDOF2) =  kg(i, j);
     }
   }
 
@@ -776,7 +772,7 @@ CorotTrussSection::Print(OPS_Stream& s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"CorotTrussSection\", ";
     s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
@@ -800,8 +796,7 @@ CorotTrussSection::computeCurrentStrain()
   d21[2] = 0.0;
 
   // Update offsets in basic system due to nodal displacements
-  int i;
-  for (i = 0; i < numDIM; i++) {
+  for (int i = 0; i < numDIM; i++) {
     d21[0] += R(0, i) * (end2Disp(i) - end1Disp(i));
     d21[1] += R(1, i) * (end2Disp(i) - end1Disp(i));
     d21[2] += R(2, i) * (end2Disp(i) - end1Disp(i));
