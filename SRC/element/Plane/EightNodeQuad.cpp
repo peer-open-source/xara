@@ -915,16 +915,12 @@ EightNodeQuad::setResponse(const char **argv, int argc,
       // output.attr("eta",pts[i][0]);
       // output.attr("neta",pts[i][1]);
 
-      // output.tag("NdMaterialOutput");
-      // output.attr("classType", theMaterial[i]->getClassTag());
-      // output.attr("tag", theMaterial[i]->getTag());
 
       output.tag("ResponseType","sigma11");
       output.tag("ResponseType","sigma22");
       output.tag("ResponseType","sigma12");
 
       output.endTag(); // GaussPoint
-      // output.endTag(); // NdMaterialOutput
       }
     theResponse =  new ElementResponse(this, 11, Vector(3*NEN));
   }
