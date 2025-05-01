@@ -131,8 +131,7 @@ TrussSection::TrussSection()
   theLoadSens = 0;
 }
 
-//     delete must be invoked on any objects created by the object
-//     and on the matertial object.
+
 TrussSection::~TrussSection()
 {
   if (theSection != 0)
@@ -172,18 +171,18 @@ TrussSection::getNumDOF()
 
 
 // method: setDomain()
-//    to set a link to the enclosing Domain and to set the node pointers.
-//    also determines the number of dof associated
-//    with the truss element, we set matrix and vector pointers,
+//    Set a link to the enclosing Domain and set the node pointers.
+//    also determines the number of DOFs associated
+//    with the element, we set matrix and vector pointers,
 //    allocate space for t matrix, determine the length
 //    and set the transformation matrix.
 void
 TrussSection::setDomain(Domain* theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
-  if (theDomain == 0) {
-    theNodes[0] = 0;
-    theNodes[1] = 0;
+  if (theDomain == nullptr) {
+    theNodes[0] = nullptr;
+    theNodes[1] = nullptr;
     L           = 0;
     return;
   }
