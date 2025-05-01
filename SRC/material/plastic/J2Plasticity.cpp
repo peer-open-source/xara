@@ -178,7 +178,7 @@ J2Plasticity::Print(OPS_Stream& s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << TaggedObject::JsonPropertyIndent << "{";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"J2Plasticity\", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"G\": " << shear << ", ";
     s << "\"K\": " << bulk << ", ";
     s << "\"Fy\": " << sigma_0 << ", ";
