@@ -928,13 +928,14 @@ FourNodeQuad::setResponse(const char **argv, int argc,
       // output.attr("classType", theMaterial[i]->getClassTag());
       // output.attr("tag", theMaterial[i]->getTag());
 
-      output.tag("ResponseType","sigma11");
-      output.tag("ResponseType","sigma22");
-      output.tag("ResponseType","sigma12");
+      output.tag("ResponseType", "sigma11");
+      output.tag("ResponseType", "sigma22");
+      output.tag("ResponseType", "sigma12");
 
       output.endTag(); // GaussPoint
       // output.endTag(); // NdMaterialOutput
-      }
+    }
+
     theResponse =  new ElementResponse(this, 11, Vector(12)); // 3 * nnodes
   }
 
@@ -968,10 +969,10 @@ int
 FourNodeQuad::getResponse(int responseID, Information &eleInfo)
 {
   if (responseID == 1) {
-
     return eleInfo.setVector(this->getResistingForce());
-
-  } else if (responseID == 3) {
+  }
+  
+  else if (responseID == 3) {
 
     // Loop over the integration points
     static Vector stresses(12);
@@ -980,26 +981,29 @@ FourNodeQuad::getResponse(int responseID, Information &eleInfo)
 
       // Get material stress response
       const Vector &sigma = theMaterial[i]->getStress();
-      stresses(cnt) = sigma(0);
+      stresses(cnt)   = sigma(0);
       stresses(cnt+1) = sigma(1);
       stresses(cnt+2) = sigma(2);
       cnt += 3;
     }
     
-    return eleInfo.setVector(stresses);
-      
-  } else if (responseID == 11) {
+    return eleInfo.setVector(stresses);    
+  }
+
+  else if (responseID == 11) {
+    // stressAtNodes
 
     // extrapolate stress from Gauss points to element nodes
     static Vector stressGP(12);      // 3*nip
     static Vector stressAtNodes(12); // 3*nnodes
     stressAtNodes.Zero();
     int cnt = 0;
-        // first get stress components (xx, yy, xy) at Gauss points
+
+    // first get stress components (xx, yy, xy) at Gauss points
     for (int i = 0; i < 4; i++) { // nip
       // Get material stress response
       const Vector &sigma = theMaterial[i]->getStress();
-      stressGP(cnt) = sigma(0);
+      stressGP(cnt+0) = sigma(0);
       stressGP(cnt+1) = sigma(1);
       stressGP(cnt+2) = sigma(2);
       cnt += 3;
@@ -1011,21 +1015,21 @@ FourNodeQuad::getResponse(int responseID, Information &eleInfo)
                                  {0.1339745962155614, -0.5, 1.8660254037844386, -0.5},
                                  {-0.5, 0.1339745962155614, -0.5, 1.8660254037844386}};
 
-    int p, l;
+    int l;
     for (int i = 0; i < 4; i++) { // nnodes
       for (int k = 0; k < 3; k++) { // number of stress components
-            p = 3*i + k;
+            int p = 3*i + k;
             for (int j = 0; j < 4; j++) { // nip
               l = 3*j + k;
               stressAtNodes(p) += We[i][j] * stressGP(l);
-              // opserr << "stressAtNodes(" << p << ") = We[" << i << "][" << j << "] * stressGP(" << l << ") = " << We[i][j] << " * " << stressGP(l) << " = " << stressAtNodes(p) <<  "\n";
             }
       }
     }
 
     return eleInfo.setVector(stressAtNodes);
+  }
 
-  } else if (responseID == 4) {
+  else if (responseID == 4) {
 
     // Loop over the integration points
     static Vector stresses(12);
