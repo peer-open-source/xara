@@ -1273,11 +1273,6 @@ CubicFrame3d::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& the
 
     // create a new array to hold pointers
     theSections = new FrameSection*[nSect];
-    if (theSections == 0) {
-      opserr << "CubicFrame3d::recvSelf() - out of memory creating sections array of size" << nSect
-             << "\n";
-      exit(-1);
-    }
 
     // create a section and recvSelf on it
     numSections = nSect;
