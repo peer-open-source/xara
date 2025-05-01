@@ -378,21 +378,21 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
     //
     if constexpr (NDM == 2) {
 
-      SectionForceDeformation* theSection = nullptr;
+      FrameSection* theSection = nullptr;
       if (!use_shear)
         theSection = new ElasticSection2d(tag, E, consts.A, consts.Iz);
   
       else
         theSection = new ElasticShearSection2d(tag, E, consts.A, consts.Iz, G, consts.Ay/consts.A);
                                              
-      if (theSection == nullptr || builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
+      if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
         if (theSection != nullptr)
           delete theSection;
         return TCL_ERROR;
       }
 
       // For the elastic elements
-      builder->addTaggedObject<FrameSection>(*new ElasticLinearFrameSection3d(tag,E,G,consts,mass,use_mass));
+      // builder->addTaggedObject<FrameSection>(*new ElasticLinearFrameSection3d(tag,E,G,consts,mass,use_mass));
 
       return TCL_OK;
 
