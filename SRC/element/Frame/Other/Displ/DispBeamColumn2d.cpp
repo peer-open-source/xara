@@ -61,37 +61,20 @@ DispBeamColumn2d::DispBeamColumn2d(int tag, int nd1, int nd2,
   theSections = new SectionForceDeformation *[numSections];
 
   for (int i = 0; i < numSections; i++) {
-
     // Get copies of the material model for each integration point
     theSections[i] = s[i]->getCopy();
-
-    // Check allocation
-    if (theSections[i] == 0) {
-      opserr << "DispBeamColumn2d::DispBeamColumn2d -- failed to get a copy of section model\n";
-      exit(-1);
-    }
   }
 
   beamInt = bi.getCopy();
 
-  if (beamInt == 0) {
-    opserr << "DispBeamColumn2d::DispBeamColumn2d - failed to copy beam integration\n";
-    exit(-1);
-  }
-
   crdTransf = coordTransf.getCopy2d();
-
-  if (crdTransf == 0) {
-    opserr << "DispBeamColumn2d::DispBeamColumn2d - failed to copy coordinate transformation\n";
-    exit(-1);
-  }
 
   // Set connected external node IDs
   connectedExternalNodes(0) = nd1;
   connectedExternalNodes(1) = nd2;
 
-  theNodes[0] = 0;
-  theNodes[1] = 0;
+  theNodes[0] = nullptr;
+  theNodes[1] = nullptr;
 
   q0[0] = 0.0;
   q0[1] = 0.0;
