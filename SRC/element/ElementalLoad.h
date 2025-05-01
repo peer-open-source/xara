@@ -37,7 +37,7 @@ class ElementalLoad : public Load
   public:
     ElementalLoad(int tag, int classTag, int eleTag);
     ElementalLoad(int tag, int classTag);
-    ElementalLoad(int classTag);    
+    ElementalLoad(int classTag);
     ~ElementalLoad();
 
     virtual void setDomain(Domain *theDomain);
@@ -46,11 +46,11 @@ class ElementalLoad : public Load
     virtual const Vector &getData(int &type, double loadFactor) = 0;
     virtual const Vector &getSensitivityData(int gradIndex);
 
-    virtual int getElementTag(void);
+    virtual int getElementTag();
 
   protected:
     int eleTag;
-    Element *theElement;  // pointer to associated element
+    Element *theElement;
 
   private:
 
