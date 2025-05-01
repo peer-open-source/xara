@@ -1682,7 +1682,7 @@ Domain::getElementResponse(int eleTag, const char **argv, int argc)
 
 
 Graph  &
-Domain::getNodeGraph(void)
+Domain::getNodeGraph()
 {
     if (nodeGraphBuiltFlag == false) {
 	
@@ -2543,7 +2543,7 @@ Domain::buildEleGraph(Graph *theEleGraph)
 }
 
 Graph  &
-Domain::getElementGraph(void)
+Domain::getElementGraph()
 {
     if (eleGraphBuiltFlag == false) {
 	// if the current graph is out of date .. delete it so we can start again
@@ -2750,23 +2750,23 @@ Domain::sendSelf(int cTag, Channel &theChannel)
       int loc = 0;
     
       while ((theEle = theElements()) != nullptr) {
-	elementData(loc) = theEle->getClassTag();
-	int dbTag = theEle->getDbTag();
+        elementData(loc) = theEle->getClassTag();
+        int dbTag = theEle->getDbTag();
 
-	if (dbTag == 0) {// go get a new tag and setDbTag in ele if this not 0 
-	  dbTag = theChannel.getDbTag();
-	  if (dbTag != 0)
-	    theEle->setDbTag(dbTag);
-	}
-      
-	elementData(loc+1) = dbTag;
-	loc+=2;
+        if (dbTag == 0) {// go get a new tag and setDbTag in ele if this not 0 
+          dbTag = theChannel.getDbTag();
+          if (dbTag != 0)
+            theEle->setDbTag(dbTag);
+        }
+
+        elementData(loc+1) = dbTag;
+        loc+=2;
       }
 
       // now send the ID
       if (theChannel.sendID(dbEle, currentGeoTag, elementData) < 0) {
-	opserr << "Domain::send - channel failed to send the element ID\n";
-	return -3;
+        opserr << "Domain::send - channel failed to send the element ID\n";
+        return -3;
       }
     }
 
