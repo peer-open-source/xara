@@ -146,6 +146,12 @@ PrismFrame3d::setNodes()
 
   if (L == 0.0) {
     opserr << "PrismFrame3d::setDomain  tag: " << this->getTag() << " -- Element has zero length\n";
+    total_mass = 0;
+    twist_mass = 0;
+    phiY = 0;
+    phiZ = 0;
+
+    formBasicStiffness(km);
     return -1;
   }
 
