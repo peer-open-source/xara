@@ -116,7 +116,7 @@ public:
   }
 
   template <int n, const FrameStressLayout& scheme>
-  int setTrialState(OpenSees::VectorND<n, double> e);
+  int setTrialState(const OpenSees::VectorND<n>& e);
 
 
   template <int n, const FrameStressLayout& scheme>
@@ -236,7 +236,7 @@ private:
 
 template <int n, const FrameStressLayout& scheme>
 int 
-FrameSection::setTrialState(OpenSees::VectorND<n, double> e) {
+FrameSection::setTrialState(const OpenSees::VectorND<n>& e) {
   double strain_data[FrameStress::Max]{};
 
   const int m = this->getOrder();
