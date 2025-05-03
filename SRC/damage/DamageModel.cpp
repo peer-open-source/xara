@@ -17,8 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
+//
 // $Date: 2008-04-14 22:38:26 $
 // $Source: /usr/local/cvs/OpenSees/SRC/damage/DamageModel.cpp,v $                                                                        
                                                                         
@@ -27,7 +26,7 @@
 // Revision: AA
 //
 // Description: This file contains the class implementation for DamageModel
-
+//
 #include <DamageModel.h>
 #include <Response.h>
 #include <DamageResponse.h>
@@ -36,21 +35,6 @@
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
 #include <api/runtimeAPI.h>
-
-static MapOfTaggedObjects theDamageModelObjects;
-
-
-// DamageModel *OPS_getDamageModel(int tag) {
-
-//   TaggedObject *theResult = theDamageModelObjects.getComponentPtr(tag);
-//   if (theResult == 0) {
-//     opserr << "DamageModel *getDamageModel(int tag) - none found with tag: " << tag << endln;
-//     return 0;
-//   }
-//   DamageModel *theMat = (DamageModel *)theResult;
-
-//   return theMat;
-// }
 
 
 DamageModel::DamageModel(int tag, int clasTag)
