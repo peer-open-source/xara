@@ -477,25 +477,21 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
     opserr << "WARNING invalid iNode\n";
-    opserr << "Joint2D element: " << Joint2DId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
     opserr << "WARNING invalid jNode\n";
-    opserr << "Joint2D element: " << Joint2DId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
     opserr << "WARNING invalid kNode\n";
-    opserr << "Joint2D element: " << Joint2DId << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
     opserr << "WARNING invalid lNode\n";
-    opserr << "Joint2D element: " << Joint2DId << endln;
     return TCL_ERROR;
   }
 
@@ -503,7 +499,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
   int CenterNodeTag;
   if (Tcl_GetInt(interp, argv[5 + argStart], &CenterNodeTag) != TCL_OK) {
     opserr << "WARNING invalid tag for center node\n";
-    opserr << "Joint2D element: " << Joint2DId << endln;
     return TCL_ERROR;
   }
 
@@ -513,7 +508,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
     opserr
         << "WARNING node tag specified for the center node already exists.\n";
     opserr << "Use a new node tag.\n";
-    opserr << "Joint2D element: " << Joint2DId << endln;
     return TCL_ERROR;
   }
 
@@ -534,7 +528,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int PanelMatId;
       if (Tcl_GetInt(interp, argv[6 + argStart], &PanelMatId) != TCL_OK) {
         opserr << "WARNING invalid matID\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -554,7 +547,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatIid;
       if (Tcl_GetInt(interp, argv[6 + argStart], &MatIid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring I\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -569,7 +561,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatJid;
       if (Tcl_GetInt(interp, argv[7 + argStart], &MatJid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring J\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -584,7 +575,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatKid;
       if (Tcl_GetInt(interp, argv[8 + argStart], &MatKid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring K\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
 
         return TCL_ERROR;
       }
@@ -599,7 +589,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatLid;
       if (Tcl_GetInt(interp, argv[9 + argStart], &MatLid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring L\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
       if (MatLid != 0) {
@@ -617,7 +606,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int PanelMatId;
       if (Tcl_GetInt(interp, argv[10 + argStart], &PanelMatId) != TCL_OK) {
         opserr << "WARNING invalid matID\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
       PanelMaterial = builder->getTypedObject<UniaxialMaterial>(PanelMatId);
@@ -625,7 +613,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       if (PanelMaterial == 0) {
         opserr << "WARNING material not found\n";
         opserr << "Material: " << PanelMatId;
-        opserr << "\nJoint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -640,11 +627,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
         new Joint2D(Joint2DId, iNode, jNode, kNode, lNode, CenterNodeTag,
                     springModels, domain, LargeDisp);
 
-    if (theJoint2D == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      opserr << "Joint2D element: " << Joint2DId << endln;
-      return TCL_ERROR;
-    }
 
     if (domain->addElement(theJoint2D) == false) {
       opserr << "WARNING could not add element to the domain\n";
@@ -670,7 +652,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int PanelMatId;
       if (Tcl_GetInt(interp, argv[6 + argStart], &PanelMatId) != TCL_OK) {
         opserr << "WARNING invalid matID\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -684,31 +665,25 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       if (PanelMaterial == 0) {
         opserr << "WARNING material not found\n";
         opserr << "Material: " << PanelMatId;
-        opserr << "\nJoint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       if (strcmp(argv[8 + argStart], "-damage") != 0 &&
           strcmp(argv[8 + argStart], "-Damage") != 0) {
         opserr << "WARNING incorrect command line\n";
-        opserr << "\nJoint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       int PanelDamageId;
       if (Tcl_GetInt(interp, argv[9 + argStart], &PanelDamageId) != TCL_OK) {
         opserr << "WARNING invalid damageID\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
-      DamageModel *PanelDamage;
-      PanelDamage = OPS_getDamageModel(PanelDamageId);
+      DamageModel *PanelDamage = builder->getTypedObject<DamageModel>(PanelDamageId);
 
       if (PanelDamage == 0) {
         opserr << "WARNING damage model not found\n";
-        opserr << "Damage Model: " << PanelDamageId;
-        opserr << "\nJoint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
     }
@@ -718,7 +693,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatIid;
       if (Tcl_GetInt(interp, argv[6 + argStart], &MatIid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring I\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -727,8 +701,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
         if (MatI == nullptr) {
           opserr << "WARNING material not found\n";
-          opserr << "Material: " << MatIid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -737,7 +709,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatJid;
       if (Tcl_GetInt(interp, argv[7 + argStart], &MatJid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring J\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -747,7 +718,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
         if (MatJ == nullptr) {
           opserr << "WARNING material not found\n";
           opserr << "Material: " << MatJid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -756,7 +726,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatKid;
       if (Tcl_GetInt(interp, argv[8 + argStart], &MatKid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring K\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
 
         return TCL_ERROR;
       }
@@ -775,7 +744,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int MatLid;
       if (Tcl_GetInt(interp, argv[9 + argStart], &MatLid) != TCL_OK) {
         opserr << "WARNING invalid material ID for spring L\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
       if (MatLid != 0) {
@@ -793,7 +761,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int PanelMatId;
       if (Tcl_GetInt(interp, argv[10 + argStart], &PanelMatId) != TCL_OK) {
         opserr << "WARNING invalid matID\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
       PanelMaterial = builder->getTypedObject<UniaxialMaterial>(PanelMatId);
@@ -801,7 +768,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       if (PanelMaterial == 0) {
         opserr << "WARNING material not found\n";
         opserr << "Material: " << PanelMatId;
-        opserr << "\nJoint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
@@ -813,19 +779,17 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       if (strcmp(argv[12 + argStart], "-damage") != 0 &&
           strcmp(argv[12 + argStart], "-Damage") != 0) {
         opserr << "WARNING incorrect command line\n";
-        opserr << "\nJoint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       int DmgIid;
       if (Tcl_GetInt(interp, argv[13 + argStart], &DmgIid) != TCL_OK) {
         opserr << "WARNING invalid damage model ID for spring I\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       if (DmgIid != 0 && MatI != 0) {
-        DmgI = OPS_getDamageModel(DmgIid);
+        DmgI = builder->getTypedObject<DamageModel>(DmgIid);
 
         if (DmgI == nullptr) {
           opserr << "WARNING damage model not found\n";
@@ -839,12 +803,11 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int DmgJid;
       if (Tcl_GetInt(interp, argv[14 + argStart], &DmgJid) != TCL_OK) {
         opserr << "WARNING invalid damage model ID for spring J\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       if (DmgJid != 0 && MatJ != 0) {
-        DmgJ = OPS_getDamageModel(DmgJid);
+        DmgJ = builder->getTypedObject<DamageModel>(DmgJid);
 
         if (DmgJ == nullptr) {
           opserr << "WARNING damage model not found\n";
@@ -858,12 +821,11 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int DmgKid;
       if (Tcl_GetInt(interp, argv[15 + argStart], &DmgKid) != TCL_OK) {
         opserr << "WARNING invalid damage model ID for spring K\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       if (DmgKid != 0 && MatK != 0) {
-        DmgK = OPS_getDamageModel(DmgKid);
+        DmgK = builder->getTypedObject<DamageModel>(DmgKid);
 
         if (DmgK == nullptr) {
           opserr << "WARNING damage model not found\n";
@@ -877,12 +839,11 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int DmgLid;
       if (Tcl_GetInt(interp, argv[16 + argStart], &DmgLid) != TCL_OK) {
         opserr << "WARNING invalid damage model ID for spring L\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       if (DmgLid != 0 && MatL != 0) {
-        DmgL = OPS_getDamageModel(DmgLid);
+        DmgL = builder->getTypedObject<DamageModel>(DmgLid);
 
         if (DmgL == nullptr) {
           opserr << "WARNING damage model not found\n";
@@ -896,12 +857,11 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       int PanelDmgId;
       if (Tcl_GetInt(interp, argv[17 + argStart], &PanelDmgId) != TCL_OK) {
         opserr << "WARNING invalid panel DmgID\n";
-        opserr << "Joint2D element: " << Joint2DId << endln;
         return TCL_ERROR;
       }
 
       if (PanelDmgId != 0 && PanelMaterial != 0) {
-        PanelDamage = OPS_getDamageModel(PanelDmgId);
+        PanelDamage = builder->getTypedObject<DamageModel>(PanelDmgId);
 
         if (PanelDamage == nullptr) {
           opserr << "WARNING damage model not found\n";

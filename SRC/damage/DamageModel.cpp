@@ -39,27 +39,19 @@
 
 static MapOfTaggedObjects theDamageModelObjects;
 
-bool OPS_addDamageModel(DamageModel *newComponent) {
-  return theDamageModelObjects.addComponent(newComponent);
-}
 
-DamageModel *OPS_getDamageModel(int tag) {
+// DamageModel *OPS_getDamageModel(int tag) {
 
-  TaggedObject *theResult = theDamageModelObjects.getComponentPtr(tag);
-  if (theResult == 0) {
-    opserr << "DamageModel *getDamageModel(int tag) - none found with tag: " << tag << endln;
-    return 0;
-  }
-  DamageModel *theMat = (DamageModel *)theResult;
+//   TaggedObject *theResult = theDamageModelObjects.getComponentPtr(tag);
+//   if (theResult == 0) {
+//     opserr << "DamageModel *getDamageModel(int tag) - none found with tag: " << tag << endln;
+//     return 0;
+//   }
+//   DamageModel *theMat = (DamageModel *)theResult;
 
-  return theMat;
-}
+//   return theMat;
+// }
 
-void
-OPS_ADD_RUNTIME_VXV(OPS_clearAllDamageModel)
-{
-  theDamageModelObjects.clearAll();
-}
 
 DamageModel::DamageModel(int tag, int clasTag)
 :TaggedObject(tag), MovableObject(clasTag)
