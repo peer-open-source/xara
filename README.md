@@ -1,7 +1,25 @@
 
+
+<p align="center">
+  <a href="https://gallery.stairlab.io/">
+    <img src="https://raw.githubusercontent.com/claudioperez/sdof/master/docs/assets/peer-black-300.png" alt="PEER logo" width="150" >
+  </a>
+</p>
+
+<hr>
+
+<h3 align="center">xara</h3>
+
+
+<p align="center">
+  Nonlinear finite element analysis.
+  <br>
+</p>
+
+
+
 <img align="left" src="https://raw.githubusercontent.com/claudioperez/sdof/master/docs/assets/peer-black-300.png" width="150px" alt="PEER Logo">
 
-Nonlinear finite element analysis.
 
 <br>
 
@@ -24,9 +42,6 @@ problems.
 This package may be used as a drop-in replacement for both `OpenSees.exe` and
 OpenSeesPy (see *Getting Started* below), and generally provides a substantial performance boost.
 
-<p style="text-align: center;">
-<b>This package is <i>experimental</i> and not yet intended for public use.</b>
-</p>
 
 
 > [!NOTE]
@@ -104,6 +119,8 @@ To compile the project see [about/compiling](https://github.com/claudioperez/Ope
 
  </tr>
 </table>
+
+
 
 ```stl
 solid 
