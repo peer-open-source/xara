@@ -23,17 +23,25 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/element/frames.cpp"
     "modeling/element/shells.cpp"
     "modeling/element/brick.cpp"
+    "modeling/element/plane.cpp"
+    "modeling/element/truss.cpp"
     
     "modeling/section.cpp"
+    "modeling/section/plane.cpp"
+    "modeling/section/frame.cpp"
+    "modeling/section/truss.cpp"
 
     "modeling/nDMaterial.cpp"
     "modeling/uniaxialMaterial.cpp"
     "modeling/uniaxial.cpp"
+    "modeling/material/shell.cpp"
+    "modeling/material/fedeas.cpp"
+    "modeling/material/legacy.cpp"
+    "modeling/material/wrapper.cpp"
     "modeling/material/plastic.cpp"
     "modeling/material/elastic.cpp"
     "modeling/material/isotropy.cpp"
-    "modeling/material/fedeas.cpp"
-    "modeling/material/shell.cpp"
+
 
     "modeling/printing.cpp"
 
@@ -66,3 +74,5 @@ target_sources(OPS_Runtime PRIVATE
 add_subdirectory(domain)
 add_subdirectory(parallel)
 
+target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR}/modeling)

@@ -167,8 +167,7 @@ CreateFrame(BasicModelBuilder& builder,
   if constexpr (ndm == 2) {
 
     if (strcmp(name, "elasticForceBeamColumn") == 0)
-      theElement = new ElasticForceBeamColumn2d(
-          tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+      theElement = new ElasticForceBeamColumn2d(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
     else if (strcmp(name, "timoshenkoBeamColumn") == 0)
       theElement =
           new TimoshenkoBeamColumn2d(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
@@ -319,7 +318,7 @@ CreateFrame(BasicModelBuilder& builder,
       theElement = new ElasticForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs, 
                                                 beamIntegr, *theTransf, mass);
 
-    else if (strcmp(name, "dispBeamColumn") == 0)
+    else if (strcasecmp(name, "dispBeamColumn") == 0)
       theElement = new DispBeamColumn3d(tag, iNode, jNode, nIP, secptrs,
                                         beamIntegr, *theTransf, 
                                         mass, options.mass_flag);
@@ -563,7 +562,24 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   bool deleteBeamIntegr = true;
   bool removeHingeIntegr = false;
 
+  //
+  // Defaults
+  //
+  if (strcasecmp(argv[1], "elasticBeamColumn") == 0) {
+    options.shear_flag = 0;
+  }
+  if (strcasecmp(argv[1], "dispBeamColumn") == 0 || 
+      strcasecmp(argv[1], "nonlinearBeamColumn") == 0) {
+    options.shear_flag = 0;
+  }
+  else if (strcasecmp(argv[1], "timoshenkoBeamColumn") == 0) {
+    options.shear_flag = 1;
+  }
 
+
+  //
+  // Parse positions
+  //
   {
     while (argi < argc) {
       // Shear
@@ -872,7 +888,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     
 
     Element *theElement = ndm == 2 
-                        ? CreateFrame<2, FrameTransform2d, SectionForceDeformation>(*builder, argv[1], tag, multi_nodes, transfTag, 
+                        ? CreateFrame<2, FrameTransform2d, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
                                                               section_tags, *beamIntegr, mass, max_iter, tol, options)
                         : CreateFrame<3, FrameTransform3d, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
                                                                         section_tags, *beamIntegr, mass, max_iter, tol, options);

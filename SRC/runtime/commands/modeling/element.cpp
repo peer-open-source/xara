@@ -54,16 +54,10 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp
 //
 
 #if 0 // cmp - commented out to eliminate use of TclBasicBuilder
-extern int TclBasicBuilder_addFeapTruss(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv, Domain *, TclBasicBuilder *, int argStart);
 extern int Tcl_addWrapperElement(eleObj *, ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv, Domain *, TclBuilder *);
 // Added by Quan Gu and Yongdou Liu, et al. on 2018/10/31 (Xiamen University)
 #endif
 static Tcl_CmdProc TclBasicBuilder_addWheelRail;
-
-
-
-extern OPS_Routine OPS_ElasticBeam3d;
-extern void *OPS_ElasticBeam2d(G3_Runtime *, const ID &);
 
 
 // Frame
@@ -150,14 +144,6 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
     return (*tcl_cmd->second)(clientData, interp, argc, &argv[0]);
   }
 
-  if (strcasecmp(argv[1], "truss") == 0) {
-    theEle = OPS_TrussElement(rt, argc, argv);
-
-    // for backward compatibility
-    if (theEle == nullptr)
-      theEle = OPS_TrussSectionElement(rt, argc, argv);
-  }
-
   else if ((strcasecmp(argv[1], "elasticBeamColumn") == 0) ||
            (strcasecmp(argv[1], "elasticBeam") == 0)  ||
            (strcasecmp(argv[1], "PrismFrame") == 0)) {
@@ -223,14 +209,6 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
     theEle = OPS_TFP_Bearing(rt, argc, argv);
   }
 
-  else if (strcasecmp(argv[1], "CorotTruss") == 0) {
-    theEle = OPS_CorotTrussElement(rt, argc, argv);
-
-    // for backward compatibility
-    if (theEle == nullptr)
-      theEle = OPS_CorotTrussSectionElement(rt, argc, argv);
-  }
-
   else if ((strcmp(argv[1], "MultiFP2d") == 0) ||
             (strcmp(argv[1], "MultiFPB2d") == 0)) {
 
@@ -272,10 +250,6 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
                                            interp,
                                            argc,
                                            argv);
-//  if (ndm == 2)
-//    theEle = OPS_FlatSliderSimple2d(rt, argc, argv);
-//  else
-//    theEle = OPS_FlatSliderSimple3d(rt, argc, argv);
   }
 
   else if (strcmp(argv[1], "SingleFPBearing") == 0 ||
@@ -286,26 +260,8 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
                                          interp,
                                          argc,
                                          argv);
-//  if (ndm == 2)
-//    theEle = OPS_SingleFPSimple2d(rt, argc, argv);
-//  else
-//    theEle = OPS_SingleFPSimple3d(rt, argc, argv);
   }
 
-  // Xinlong Du
-  else if ((strcmp(argv[1], "DispBeamColumnAsym") == 0) ||
-           (strcmp(argv[1], "DispBeamAsym")) == 0) {
-    if (ndm == 3)
-      theEle = OPS_DispBeamColumnAsym3dTcl(rt, argc, argv);
-  }
-
-  else if ((strcmp(argv[1], "MixedBeamColumnAsym") == 0) ||
-           (strcmp(argv[1], "MixedBeamAsym") == 0)) {
-
-    if (ndm == 3)
-      theEle = OPS_MixedBeamColumnAsym3dTcl(rt, argc, argv);
-  }
-  // Xinlong Du
 
 //
 // Shells
@@ -353,27 +309,27 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
     return TclBasicBuilder_addWheelRail(clientData, interp, argc, argv);
   }
 
-  else if (strcmp(argv[1], "DisplFrame") == 0 ||
-           strcmp(argv[1], "CubicFrame") == 0 ||
-           strcmp(argv[1], "ForceFrame") == 0 ||
-           strcmp(argv[1], "MixedFrame") == 0 ||
-           strcmp(argv[1], "ExactFrame") == 0 ||
-           strcmp(argv[1], "ForceDeltaFrame") == 0 ||
+  else if (strcasecmp(argv[1], "DisplFrame") == 0 ||
+           strcasecmp(argv[1], "CubicFrame") == 0 ||
+           strcasecmp(argv[1], "ForceFrame") == 0 ||
+           strcasecmp(argv[1], "MixedFrame") == 0 ||
+           strcasecmp(argv[1], "ExactFrame") == 0 ||
+           strcasecmp(argv[1], "ForceDeltaFrame") == 0 ||
 
-           strcmp(argv[1], "ForceBeamColumn") == 0 ||
-           strcmp(argv[1], "DispBeamColumn") == 0 ||
-           strcmp(argv[1], "DispBeamColumn") == 0 ||
-           strcmp(argv[1], "TimoshenkoBeamColumn") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnCBDI") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnCSBDI") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnWarping") == 0 ||
-           strcmp(argv[1], "ForceBeamColumnThermal") == 0 ||
-           strcmp(argv[1], "ElasticForceBeamColumnWarping") == 0 ||
-           strcmp(argv[1], "DispBeamColumnNL") == 0 ||
-           strcmp(argv[1], "DispBeamColumnThermal") == 0 ||
-           strcmp(argv[1], "ElasticForceBeamColumn") == 0 ||
-           strcmp(argv[1], "NonlinearBeamColumn") == 0 ||
-           strcmp(argv[1], "DispBeamColumnWithSensitivity") == 0) {
+           strcasecmp(argv[1], "ForceBeamColumn") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumn") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumn") == 0 ||
+           strcasecmp(argv[1], "TimoshenkoBeamColumn") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnCBDI") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnCSBDI") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnWarping") == 0 ||
+           strcasecmp(argv[1], "ForceBeamColumnThermal") == 0 ||
+           strcasecmp(argv[1], "ElasticForceBeamColumnWarping") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumnNL") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumnThermal") == 0 ||
+           strcasecmp(argv[1], "ElasticForceBeamColumn") == 0 ||
+           strcasecmp(argv[1], "NonlinearBeamColumn") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumnWithSensitivity") == 0) {
 
     return TclBasicBuilder_addForceBeamColumn(clientData, interp, argc, argv);
 
@@ -392,11 +348,11 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
     return TclCommand_addZeroLengthSection(clientData, interp, argc, argv);
 
   } else if (strcmp(argv[1], "zeroLengthRocking") == 0) {
-    int result = TclCommand_addZeroLengthRocking(clientData, interp, argc, argv);
-    return result;
+    return TclCommand_addZeroLengthRocking(clientData, interp, argc, argv);
+
   } else if (strcmp(argv[1], "zeroLengthContact2D") == 0) {
-    int result = TclCommand_addZeroLengthContact2D(clientData, interp, argc, argv);
-    return result;
+    return TclCommand_addZeroLengthContact2D(clientData, interp, argc, argv);
+
   } else if (strcmp(argv[1], "zeroLengthContact3D") == 0) {
     return TclCommand_addZeroLengthContact3D(clientData, interp, argc, argv);
 

@@ -37,9 +37,10 @@ createLinearRigidBeam(Domain &theDomain, int ret_tag, int con_tag)
  
     // get a pointer to the retained and constrained nodes - make sure they exist
     Node *nodeR = theDomain.getNode(ret_tag);
+
     if (nodeR == nullptr) {
       opserr << G3_ERROR_PROMPT 
-             << "retained Node" <<  ret_tag <<  " not in domain\n";
+             << "retained node " <<  ret_tag <<  " not in domain\n";
       return CONSTRAINT_ERROR;
     }
 
@@ -248,7 +249,7 @@ createLinearRigidDiaphragm(Domain &theDomain, int ret_tag, ID &nC,
     const Vector &crdR = nodeR->getCrds();
     if ((nodeR->getNumberDOF() != 6) || (crdR.Size() != 3)){
       opserr << G3_ERROR_PROMPT 
-             << "retained Node " << ret_tag << " not in 3d space with 6 DOFs\n";
+             << "retained node " << ret_tag << " not in 3d space with 6 DOFs\n";
       return CONSTRAINT_ERROR;
     }	
 
@@ -430,25 +431,30 @@ TclCommand_RigidLink(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
 
   int rNode, cNode;
   if (Tcl_GetInt(interp, argv[2], &rNode) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "rigidLink linkType? rNode? cNode? - could not read rNode \n"; 
+      opserr << G3_ERROR_PROMPT 
+             << "invalid rNode"
+             << OpenSees::SignalMessageEnd; 
       return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3], &cNode) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "rigidLink linkType? rNode? cNode? - could not read CNode \n"; 
+      opserr << G3_ERROR_PROMPT 
+             << "invalid CNode"
+             << OpenSees::SignalMessageEnd; 
       return TCL_ERROR;
   }
 
   // construct a rigid rod or beam depending on 1st arg
   if ((strcmp(argv[1],"-bar") == 0) || (strcmp(argv[1],"bar") == 0)) {
     // RigidRod theLink(*theTclDomain, rNode, cNode);
-    createLinearRigidRod(*theTclDomain, rNode, cNode);
+    return createLinearRigidRod(*theTclDomain, rNode, cNode);
 
   } else if ((strcmp(argv[1],"-beam") == 0) || (strcmp(argv[1],"beam") == 0)) {
-    createLinearRigidBeam(*theTclDomain, rNode, cNode);
+    return createLinearRigidBeam(*theTclDomain, rNode, cNode);
     //RigidBeam theLink(*theTclDomain, rNode, cNode);
 
   } else {
-      opserr << G3_ERROR_PROMPT << "rigidLink linkType? rNode? cNode? - unrecognised link type (-bar, -beam) \n"; 
+      opserr << G3_ERROR_PROMPT 
+             << "unrecognised link type (-bar, -beam) \n"; 
       return TCL_ERROR;
   }
   return TCL_OK;

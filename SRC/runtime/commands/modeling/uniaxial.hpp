@@ -15,14 +15,13 @@
 #include <string>
 #include <unordered_map>
 #include <runtimeAPI.h>
-#include <BarSlipMaterial.h>
+#include <UniaxialMaterial.h>
 
 extern OPS_Routine OPS_ASD_SMA_3K;
 extern OPS_Routine OPS_ASDConcrete1DMaterial;
 extern OPS_Routine OPS_APDFMD;
 extern OPS_Routine OPS_APDMD;
 extern OPS_Routine OPS_APDVFD;
-extern OPS_Routine OPS_BWBN;
 extern OPS_Routine OPS_Bilin02;
 extern OPS_Routine OPS_Bilin;
 extern OPS_Routine OPS_BilinearOilDamper;
@@ -44,6 +43,7 @@ extern OPS_Routine OPS_ConcreteECThermal;
 extern OPS_Routine OPS_ConcreteL01Material;
 extern OPS_Routine OPS_ConcreteSakaiKawashima;
 extern OPS_Routine OPS_ConcreteZ01Material;
+
 extern OPS_Routine OPS_ConfinedConcrete01Material;
 extern OPS_Routine OPS_DamperMaterial;
 extern OPS_Routine OPS_DegradingPinchedBW;
@@ -74,8 +74,6 @@ extern OPS_Routine OPS_IMKPeakOriented;
 extern OPS_Routine OPS_IMKPinching;
 extern OPS_Routine OPS_JankowskiImpact;
 extern OPS_Routine OPS_ImpactMaterial;
-extern OPS_Routine OPS_InitStrainMaterial;
-extern OPS_Routine OPS_InitStressMaterial;
 extern OPS_Routine OPS_Masonry;
 extern OPS_Routine OPS_Masonryt;
 extern OPS_Routine OPS_Maxwell;
@@ -99,7 +97,6 @@ extern OPS_Routine OPS_SAWSMaterial;
 extern OPS_Routine OPS_SLModel;
 extern OPS_Routine OPS_SMAMaterial;
 extern OPS_Routine OPS_SPSW02;           // SAJalali
-extern OPS_Routine OPS_SeriesMaterial;
 extern OPS_Routine OPS_SimpleFractureMaterial;
 extern OPS_Routine OPS_StainlessECThermal;
 extern OPS_Routine OPS_SteelBRB;
@@ -123,7 +120,6 @@ extern OPS_Routine OPS_pyUCLA;
 // extern OPS_Routine OPS_Steel01Thermal;
 extern OPS_Routine OPS_Steel02Fatigue;
 // extern OPS_Routine OPS_Steel02Thermal;
-// extern OPS_Routine OPS_Steel2;
 extern OPS_Routine OPS_Steel4;
 
 extern void *OPS_ConcretewBeta();
@@ -153,15 +149,17 @@ std::unordered_map<std::string, G3_TclUniaxialPackage *> tcl_uniaxial_package_ta
 };
 
 
-typedef UniaxialMaterial* (TclDispatch_UniaxialMaterial)(G3_Runtime*, int, TCL_Char ** const);
-TclDispatch_UniaxialMaterial TclCommand_ReinforcingSteel;
+// Plastic
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
-static Tcl_CmdProc TclCommand_newFatigueMaterial;
-static Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
-extern Tcl_CmdProc TclCommand_newBoucWenMG;
-Tcl_CmdProc TclCommand_newFedeasSteel;
-Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
-Tcl_CmdProc TclCommand_ContinuumUniaxialMaterial;
+extern Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
+// Fedeas
+extern Tcl_CmdProc TclCommand_newFedeasSteel;
+extern Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
+// Wrapper
+extern Tcl_CmdProc TclCommand_addWrappingMaterial;
+extern Tcl_CmdProc TclCommand_newFatigueMaterial;
+extern Tcl_CmdProc TclCommand_newParallelMaterial;
+extern OPS_Routine OPS_SeriesMaterial;
 // Bearing
 Tcl_CmdProc TclCommand_AxialSp;
 Tcl_CmdProc TclCommand_AxialSpHD;
@@ -172,15 +170,19 @@ Tcl_CmdProc TclCommand_newUniaxialConcrete04;
 Tcl_CmdProc TclCommand_newUniaxialConcrete06;
 Tcl_CmdProc TclCommand_newUniaxialConcrete07;
 // Bouc-Wen
-Tcl_CmdProc TclCommand_newUniaxialBoucWen;
+extern OPS_Routine OPS_BWBN;
+extern Tcl_CmdProc TclCommand_newUniaxialBoucWen;
+extern Tcl_CmdProc TclCommand_newBoucWenMG;
 // Abutment
 Tcl_CmdProc TclCommand_HyperbolicGapMaterial;
-// Wrapper
-Tcl_CmdProc TclCommand_newParallelMaterial;
-
-// typedef int (TclCommand_UniaxialMaterial)(ClientData, Tcl_Interp*, int, TCL_Char ** const);
+// Other
 static Tcl_CmdProc TclDispatch_newUniaxialPinching4;
-static Tcl_CmdProc TclDispatch_LegacyUniaxials;
+extern Tcl_CmdProc TclDispatch_LegacyUniaxials;
+
+
+typedef UniaxialMaterial* (TclDispatch_UniaxialMaterial)(G3_Runtime*, int, TCL_Char ** const);
+TclDispatch_UniaxialMaterial TclCommand_ReinforcingSteel;
+
 
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
@@ -229,12 +231,9 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 //
     {"ElasticPP",                dispatch<OPS_ElasticPPMaterial>              },
     {"UniaxialJ2Plasticity",     dispatch<TclCommand_newUniaxialJ2Plasticity> },
-  //{"Hardening",                dispatch<OPS_HardeningMaterial>         },
-  //{"Hardening2",               dispatch<OPS_HardeningMaterial>         },
     {"UVCuniaxial",              dispatch<OPS_UVCuniaxial>                    },
     {"Hardening",                dispatch<TclCommand_newPlasticMaterial>      },
     {"Hardening2",               dispatch<TclCommand_newPlasticMaterial>      },
-    {"GNG",                      dispatch<OPS_GNGMaterial>                    },
 //
 // Steel
 //
@@ -290,42 +289,49 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 //
 // Bouc
 //
-    {"BoucWen",                dispatch<TclCommand_newUniaxialBoucWen>   },
-    {"BoucWenMG",              dispatch<TclCommand_newBoucWenMG>         },
+    {"BoucWen",                dispatch<TclCommand_newUniaxialBoucWen> },
+    {"BoucWenMG",              dispatch<TclCommand_newBoucWenMG>       },
     {"BWBN",                   dispatch<OPS_BWBN>                      },
     {"BoucWenOriginal",        dispatch<OPS_BoucWenOriginal>           },
     {"DegradingPinchedBW",     dispatch<OPS_DegradingPinchedBW>        },
 //
 // Multilinear
 //
-    {"BilinMaterial",            dispatch<OPS_Bilin>                     },
-    {"Bilin",                    dispatch<OPS_Bilin>                     },
-    {"MultiLinear",            dispatch<OPS_MultiLinear>               },
-    {"IMKBilin",               dispatch<OPS_IMKBilin>                  },
-    {"IMKPeakOriented",        dispatch<OPS_IMKPeakOriented>           },
-    {"IMKPinching",            dispatch<OPS_IMKPinching>               },
-    {"ModIMKPinching",         dispatch<OPS_ModIMKPinching>            },
-    {"ModIMKPinching02",       dispatch<OPS_ModIMKPinching02>          },
-    {"ModIMKPeakOriented",     dispatch<OPS_ModIMKPeakOriented>        },
-    {"ModIMKPeakOriented02",   dispatch<OPS_ModIMKPeakOriented02>      },
-    {"Bilin02",                dispatch<OPS_Bilin02>                   },
+    {"BilinMaterial",           dispatch<OPS_Bilin>                     },
+    {"Bilin",                   dispatch<OPS_Bilin>                     },
+    {"MultiLinear",             dispatch<OPS_MultiLinear>               },
+    {"IMKBilin",                dispatch<OPS_IMKBilin>                  },
+    {"IMKPeakOriented",         dispatch<OPS_IMKPeakOriented>           },
+    {"IMKPinching",             dispatch<OPS_IMKPinching>               },
+    {"ModIMKPinching",          dispatch<OPS_ModIMKPinching>            },
+    {"ModIMKPinching02",        dispatch<OPS_ModIMKPinching02>          },
+    {"ModIMKPeakOriented",      dispatch<OPS_ModIMKPeakOriented>        },
+    {"ModIMKPeakOriented02",    dispatch<OPS_ModIMKPeakOriented02>      },
+    {"Bilin02",                 dispatch<OPS_Bilin02>                   },
 
 // Piles
-    {"PySimple3",              dispatch<OPS_PySimple3>                 },
+    {"PySimple3",               dispatch<OPS_PySimple3>                 },
 
 //
 // Wrappers
 //
+    {"InitStrainMaterial",     dispatch<TclCommand_addWrappingMaterial>},
+    {"InitialStrain",          dispatch<TclCommand_addWrappingMaterial>},
+    {"InitStrain",             dispatch<TclCommand_addWrappingMaterial>},
+    {"InitStressMaterial",     dispatch<TclCommand_addWrappingMaterial>},
+    {"InitialStress",          dispatch<TclCommand_addWrappingMaterial>},
+    {"InitStress",             dispatch<TclCommand_addWrappingMaterial>},
+    {"ContinuumUniaxial",      dispatch<TclCommand_addWrappingMaterial>},
     {"MinMaxMaterial",         dispatch<OPS_MinMaxMaterial>            },
     {"MinMax",                 dispatch<OPS_MinMaxMaterial>            },
     {"Series",                 dispatch<OPS_SeriesMaterial>            },
-    {"Parallel",               dispatch<TclCommand_newParallelMaterial>  },
-
-    {"Ratchet",                dispatch<OPS_Ratchet>                     },
+    {"Parallel",               dispatch<TclCommand_newParallelMaterial>},
+    {"Ratchet",                dispatch<OPS_Ratchet>                   },
     {"Fatigue",                dispatch<TclCommand_newFatigueMaterial> },
   
 // Other
 
+    {"GNG",                      dispatch<OPS_GNGMaterial>                    },
     {"Bond_SP01",              dispatch<OPS_Bond_SP01>                 },
     {"Bond",                   dispatch<OPS_Bond_SP01>                 },
     {"APDFMD",               dispatch<OPS_APDFMD> },
@@ -338,7 +344,6 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
     {"AxialSp",              dispatch<TclCommand_AxialSp>               },
     {"AxialSpHD",            dispatch<TclCommand_AxialSpHD>             },
-    {"ContinuumUniaxial",    dispatch<TclCommand_ContinuumUniaxialMaterial>},
 
 /*
   {"PlateBearingConnectionThermal",  OPS_PlateBearingConnectionThermal},
@@ -351,7 +356,6 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
     {"ImpactMaterial",         dispatch<OPS_ImpactMaterial>            },
     {"Impact",                 dispatch<OPS_ImpactMaterial>            },
-
 
     {"SimpleFractureMaterial", dispatch<OPS_SimpleFractureMaterial>    },
     {"SimpleFracture",         dispatch<OPS_SimpleFractureMaterial>    },
@@ -380,12 +384,6 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
     {"PinchingLimitState",     dispatch<OPS_PinchingLimitState>        },
 
-    {"InitStrainMaterial",     dispatch<OPS_InitStrainMaterial>        },
-    {"InitStrain",             dispatch<OPS_InitStrainMaterial>        },
-
-    {"InitStressMaterial",     dispatch<OPS_InitStressMaterial>        },
-    {"InitStress",             dispatch<OPS_InitStressMaterial>        },
-
     {"pyUCLA",                 dispatch<OPS_pyUCLA>                    },
     {"PYUCLA",                 dispatch<OPS_pyUCLA>                    },
 
@@ -394,7 +392,6 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
 // Thermal
     {"Steel01Thermal",         dispatch<TclCommand_newFedeasSteel>     },
-
     {"Steel02Thermal",         dispatch<TclCommand_newFedeasSteel>     },
 
     {"SteelECThermal",         dispatch<OPS_SteelECThermal>            },
@@ -406,7 +403,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"ConcreteECThermal",      dispatch<OPS_ConcreteECThermal>         },
 
     {"Concrete02Thermal",      dispatch<OPS_Concrete02Thermal>         },
-
+//
     {"ConcreteD",              dispatch<OPS_ConcreteD>                 },
 
     {"ConcreteSakaiKawashima", dispatch<OPS_ConcreteSakaiKawashima>    },
@@ -452,7 +449,6 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"ConcreteL01",            dispatch<OPS_ConcreteL01Material>       },
 
     {"Creep",                  dispatch<OPS_CreepMaterial>             },
-
 
     {"TendonL01Material",      dispatch<OPS_TendonL01Material>         },
     {"TendonL01",              dispatch<OPS_TendonL01Material>         },

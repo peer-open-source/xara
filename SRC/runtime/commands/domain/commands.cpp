@@ -141,6 +141,7 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
   Tcl_CreateCommand(interp, "parameter",           &TclCommand_parameter,    domain, nullptr);
   Tcl_CreateCommand(interp, "addToParameter",      &TclCommand_parameter,    domain, nullptr);
   Tcl_CreateCommand(interp, "updateParameter",     &TclCommand_parameter,    domain, nullptr);
+  Tcl_CreateCommand(interp, "setParameter",        &TclCommand_setParameter, domain, nullptr);
 
   Tcl_CreateObjCommand(interp, "fixedNodes",          &fixedNodes,          domain, nullptr);
   Tcl_CreateObjCommand(interp, "fixedDOFs",           &fixedDOFs,           domain, nullptr);
@@ -188,7 +189,6 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 
 
 //   TODO: cmp, moved definition to packages/optimization; need to link in optionally
-//   Tcl_CreateCommand(interp, "setParameter", &setParameter, nullptr, nullptr);
 
   // Tcl_CreateCommand(interp, "sdfResponse",      &sdfResponse, nullptr, nullptr);
   // Tcl_CreateCommand(interp, "database", &addDatabase, nullptr, nullptr);

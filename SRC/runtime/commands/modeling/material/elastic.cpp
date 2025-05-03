@@ -239,7 +239,7 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
       (strcmp(argv[1], "Elastic") == 0)) {
     double E = consts.E;
     double nu = consts.nu;
-    if (builder->addTaggedObject<NDMaterial>(*new ElasticIsotropicMaterial(tag, E, 0.0, density)) != TCL_OK ) {
+    if (builder->addTaggedObject<NDMaterial>(*new ElasticIsotropicMaterial(tag, E, nu, density)) != TCL_OK ) {
       return TCL_ERROR;
     }
     if (strcmp(argv[0], "material") == 0) {
@@ -249,6 +249,14 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
       if (builder->addTaggedObject<Mate<3>>(*new ElasticIsotropic<3>(tag, E, nu, density)) != TCL_OK ) {
         return TCL_ERROR;
       }
+    }
+    return TCL_OK;
+  }
+  else if (strcmp(argv[1], "ElasticIsotropic3D") == 0) {
+    double E = consts.E;
+    double nu = consts.nu;
+    if (builder->addTaggedObject<NDMaterial>(*new ElasticIsotropicThreeDimensional(tag, E, nu, density)) != TCL_OK ) {
+      return TCL_ERROR;
     }
     return TCL_OK;
   }
@@ -297,8 +305,8 @@ TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int 
 {
   BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
 
-  MaterialSymmetry symm = MaterialSymmetry::Isotropic;
-  PlaneType type = PlaneType::None;
+//MaterialSymmetry symm = MaterialSymmetry::Isotropic;
+//PlaneType type = PlaneType::None;
 
   if ((strcmp(argv[1], "ElasticIsotropic") == 0) || 
       (strcmp(argv[1], "Elastic") == 0) ||
