@@ -8,10 +8,10 @@ env:
 
 on:
   push:
-    branches: [main]
+    branches: [stable]
 
   pull_request:
-    branches: [main]
+    branches: [stable]
 
 permissions:
   contents: write
