@@ -27,13 +27,13 @@ template<> struct GaussLobatto<1,3> {
   constexpr static int deg = 3;
 
   constexpr static double pts[3] = {
-     -0.99999999999999778,
-     6.6613381477509392e-16,
-      0.99999999999999989
+     -1.0,
+      0.0,
+      1.0
   };
   constexpr static double wts[3] = {
       0.33333333333333476,
-       1.3333333333333315,
+      1.3333333333333315,
       0.33333333333333354
   };
 };
