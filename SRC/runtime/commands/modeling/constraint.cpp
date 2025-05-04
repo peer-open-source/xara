@@ -62,7 +62,7 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, int argc,
       return TCL_ERROR;
     }
     // create a homogeneous constraint
-    SP_Constraint *theSP = new SP_Constraint(nodeId, dof-1, 0.0, true);
+    SP_Constraint *theSP = new SP_Constraint(nodeId, dof-1, 0.0, true, true);
 
     // add it to the domain
     if (theTclDomain->addSP_Constraint(theSP) == false) {
@@ -97,7 +97,7 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, int argc,
     } else {
       if (theFixity != 0) {
         // create a homogeneous constraint
-        SP_Constraint *theSP = new SP_Constraint(nodeId, i, 0.0, true);
+        SP_Constraint *theSP = new SP_Constraint(nodeId, i, 0.0, true, true);
 
         // add it to the domain
         if (theTclDomain->addSP_Constraint(theSP) == false) {
@@ -341,9 +341,8 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // get the nodeID, dofId and value of the constraint
-  int nodeId, dofId;
-  double value;
 
+  int nodeId, dofId;
   if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1] << " -  sp nodeId dofID value\n";
     return TCL_ERROR;
@@ -357,6 +356,7 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, int argc,
   // Decrement the DOF index by 1 to go to C/C++ 0-indexing
   dofId--; 
 
+  double value;
   if (Tcl_GetDouble(interp, argv[3], &value) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid value: " << argv[3] << " -  sp ";
     opserr << nodeId << " dofID value\n";
@@ -364,6 +364,7 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   bool isSpConst = false;
+  bool retZeroInit = true;
   bool userSpecifiedPattern = false;
   int loadPatternTag = 0; // some pattern that will never be used!
 
@@ -372,8 +373,11 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, int argc,
     if (strcmp(argv[endMarker],"-const") == 0) {
       // allow user to specify const load
       isSpConst = true;
-
-    } else if (strcmp(argv[endMarker],"-pattern") == 0) {
+    }
+    else if (strcmp(argv[endMarker], "-subtractInit") == 0) {
+      retZeroInit = false;
+    }
+    else if (strcmp(argv[endMarker],"-pattern") == 0) {
       // allow user to specify load pattern other than current
       endMarker++;
       userSpecifiedPattern = true;
@@ -401,7 +405,7 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, int argc,
   // LoadPattern *thePattern = theTclDomain->getLoadPattern(loadPatternTag);
 
   // create a homogeneous constraint
-  SP_Constraint *theSP = new SP_Constraint(nodeId, dofId, value, isSpConst);
+  SP_Constraint *theSP = new SP_Constraint(nodeId, dofId, value, isSpConst, retZeroInit);
 
   if (theTclDomain->addSP_Constraint(theSP, loadPatternTag) == false) {
     opserr << OpenSees::PromptValueError << "could not add SP_Constraint to domain ";
