@@ -832,6 +832,7 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
     }
     s << "\"nodes\": [\n";
     theNodalLoads->Print(s, flag);
+    theSPs->Print(s, flag);
     s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "],\n";
     s << OPS_PRINT_JSON_MATE_INDENT << "\"elements\": [\n";
     //theElementalLoads->Print(s, flag);
