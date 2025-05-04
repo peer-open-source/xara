@@ -6,6 +6,7 @@
 //
 #include <tcl.h>
 #include <assert.h>
+#include <element/Frame/for_int.tpp>
 #include <Logging.h>
 #include <Parsing.h>
 #include <elementAPI.h>
@@ -16,6 +17,8 @@
 #include <FrameSection.h>
 #include <BasicModelBuilder.h>
 #include <BeamIntegration.h>
+#include <FrameQuadrature.hpp>
+#include <quadrature/GaussLobatto1D.hpp>
 #include <LobattoBeamIntegration.h>
 #include <LegendreBeamIntegration.h>
 #include <RadauBeamIntegration.h>
@@ -61,27 +64,33 @@ extern void* OPS_ConcentratedCurvatureBeamIntegration(int&, ID&);
 
 
 BeamIntegration*
-GetBeamIntegration(TCL_Char* type)
+GetBeamIntegration(TCL_Char* type, int n)
 {
-      if (strcmp(type, "Lobatto") == 0)
-        return new LobattoBeamIntegration();
+  if (strcmp(type, "Lobatto") == 0) {
+    BeamIntegration* bi = nullptr;
+    static_loop<2, 20>([&](auto i) {
+      if ((int)i.value == n)
+        bi = new FrameQuadrature<GaussLobatto<1,i.value>>;
+    });
+    return bi; // new FrameQuadrature<GaussLobatto<1,20>>; // LobattoBeamIntegration();
+  }
 
-      else if (strcmp(type, "Legendre") == 0)
-        return new LegendreBeamIntegration();
+  else if (strcmp(type, "Legendre") == 0)
+    return new LegendreBeamIntegration();
 
-      else if (strcmp(type, "Radau") == 0)
-        return new RadauBeamIntegration();
+  else if (strcmp(type, "Radau") == 0)
+    return new RadauBeamIntegration();
 
-      else if (strcmp(type, "NewtonCotes") == 0)
-        return new NewtonCotesBeamIntegration();
+  else if (strcmp(type, "NewtonCotes") == 0)
+    return new NewtonCotesBeamIntegration();
 
-      else if (strcmp(type, "Trapezoidal") == 0)
-        return new TrapezoidalBeamIntegration();
+  else if (strcmp(type, "Trapezoidal") == 0)
+    return new TrapezoidalBeamIntegration();
 
-      else if (strcmp(type, "CompositeSimpson") == 0)
-        return new CompositeSimpsonBeamIntegration();
-      else
-        return nullptr;
+  else if (strcmp(type, "CompositeSimpson") == 0)
+    return new CompositeSimpsonBeamIntegration();
+  else
+    return nullptr;
 }
 
 extern int
@@ -105,6 +114,7 @@ TclCommand_addBeamIntegration(ClientData clientData, Tcl_Interp *interp,
     bi = (BeamIntegration *)OPS_LobattoBeamIntegration(iTag, secTags);
   } else if (strcmp(argv[1], "Legendre") == 0) {
     bi = (BeamIntegration *)OPS_LegendreBeamIntegration(iTag, secTags);
+
   } else if (strcmp(argv[1], "NewtonCotes") == 0) {
     bi = (BeamIntegration *)OPS_NewtonCotesBeamIntegration(iTag, secTags);
   } else if (strcmp(argv[1], "Radau") == 0) {

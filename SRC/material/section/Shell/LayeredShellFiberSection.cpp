@@ -22,20 +22,19 @@
 //
 // Layered Shell Section
 //
-/* Ref: Lu X, Lu XZ, Guan H, Ye LP, Collapse simulation of reinforced 
-concrete high-rise building induced by extreme earthquakes, 
-Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723*/
-
-
+// Ref: Lu X, Lu XZ, Guan H, Ye LP, Collapse simulation of reinforced 
+//      concrete high-rise building induced by extreme earthquakes, 
+//      Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723
+//
+//
 #include <LayeredShellFiberSection.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <SensitiveResponse.h>
 typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
 #include <Information.h>
-#include <elementAPI.h>
 
-//static vector and matrices
+
 Vector LayeredShellFiberSection::stressResultant(8);
 Matrix LayeredShellFiberSection::tangent(8, 8);
 ID LayeredShellFiberSection::array(8);
@@ -77,12 +76,12 @@ LayeredShellFiberSection::LayeredShellFiberSection(int tag,
 
 LayeredShellFiberSection::~LayeredShellFiberSection()
 {
-  if (sg != 0)
+  if (sg != nullptr)
     delete sg;
-  if (wg != 0)
+  if (wg != nullptr)
     delete wg;
 
-  if (theFibers != 0) {
+  if (theFibers != nullptr) {
     for (int i = 0; i < nLayers; i++) {
       if (theFibers[i] != 0)
         delete theFibers[i];
@@ -140,7 +139,6 @@ LayeredShellFiberSection::getType()
 }
 
 
-//swap history variables
 int
 LayeredShellFiberSection::commitState()
 {
@@ -174,7 +172,7 @@ LayeredShellFiberSection::revertToStart()
   return success;
 }
 
-//mass per unit area
+
 double
 LayeredShellFiberSection::getRho()
 {
@@ -230,7 +228,7 @@ LayeredShellFiberSection::getResponse(int responseID, Information& secInfo)
 }
 
 
-//receive the strainResultant
+// receive the strainResultant
 int
 LayeredShellFiberSection ::setTrialSectionDeformation(const Vector& strainResultant_from_element)
 {
@@ -240,27 +238,19 @@ LayeredShellFiberSection ::setTrialSectionDeformation(const Vector& strainResult
 
   int success = 0;
 
-  int i;
+  for (int i = 0; i < nLayers; i++) {
 
-  double z;
-
-  for (i = 0; i < nLayers; i++) {
-
-    z = (0.5 * h) * sg[i];
+    double z = (0.5 * h) * sg[i];
 
     strain(0) = strainResultant(0) - z * strainResultant(3);
-
     strain(1) = strainResultant(1) - z * strainResultant(4);
-
     strain(2) = strainResultant(2) - z * strainResultant(5);
-
     strain(3) = strainResultant(6);
-
     strain(4) = strainResultant(7);
 
     success += theFibers[i]->setTrialStrain(strain);
 
-  } //end for i
+  }
 
   return success;
 }
@@ -326,20 +316,17 @@ LayeredShellFiberSection::getSectionTangent()
   static Matrix dd(5, 5);
 
   //  static Matrix Aeps(5,8) ;
-
   //  static Matrix Asig(8,5) ;
 
-  int i;
 
-  double z, weight;
 
   tangent.Zero();
 
-  for (i = 0; i < nLayers; i++) {
+  for (int i = 0; i < nLayers; i++) {
 
-    z = (0.5 * h) * sg[i];
+    double z = (0.5 * h) * sg[i];
 
-    weight = (0.5 * h) * wg[i];
+    double weight = (0.5 * h) * wg[i];
 
     /*      //compute Aeps
 
@@ -416,25 +403,25 @@ LayeredShellFiberSection::getSectionTangent()
 
     //row 3
     //[      d31,           d32,           d33,        -z*d31,        -z*d32,        -z*d33,    d34,    d35]
-    tangent(2, 0) += dd(2, 0);
-    tangent(2, 1) += dd(2, 1);
-    tangent(2, 2) += dd(2, 2);
+    tangent(2, 0) +=      dd(2, 0);
+    tangent(2, 1) +=      dd(2, 1);
+    tangent(2, 2) +=      dd(2, 2);
     tangent(2, 3) += -z * dd(2, 0);
     tangent(2, 4) += -z * dd(2, 1);
     tangent(2, 5) += -z * dd(2, 2);
-    tangent(2, 6) += dd(2, 3);
-    tangent(2, 7) += dd(2, 4);
+    tangent(2, 6) +=      dd(2, 3);
+    tangent(2, 7) +=      dd(2, 4);
 
     //row 4
     //[     z*d11,         z*d12,         z*d13,      -z^2*d11,      -z^2*d12,      -z^2*d13,  z*d14,  z*d15]
-    tangent(3, 0) += z * dd(0, 0);
-    tangent(3, 1) += z * dd(0, 1);
-    tangent(3, 2) += z * dd(0, 2);
+    tangent(3, 0) +=      z * dd(0, 0);
+    tangent(3, 1) +=      z * dd(0, 1);
+    tangent(3, 2) +=      z * dd(0, 2);
     tangent(3, 3) += -z * z * dd(0, 0);
     tangent(3, 4) += -z * z * dd(0, 1);
     tangent(3, 5) += -z * z * dd(0, 2);
-    tangent(3, 6) += z * dd(0, 3);
-    tangent(3, 7) += z * dd(0, 4);
+    tangent(3, 6) +=      z * dd(0, 3);
+    tangent(3, 7) +=      z * dd(0, 4);
 
     //row 5
     //[     z*d21,         z*d22,         z*d23,      -z^2*d21,      -z^2*d22,      -z^2*d23,  z*d24,  z*d25]
@@ -480,7 +467,7 @@ LayeredShellFiberSection::getSectionTangent()
     tangent(7, 6) += dd(4, 3);
     tangent(7, 7) += dd(4, 4);
 
-  } //end for i
+  }
 
   return this->tangent;
 }
@@ -500,13 +487,13 @@ LayeredShellFiberSection::Print(OPS_Stream& s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"LayeredShellFiberSection\", ";
     s << "\"totalThickness\": " << h << ", ";
     s << "\"fibers\": [\n";
     for (int i = 0; i < nLayers; i++) {
-      s << "\t\t\t\t{\"layer\": " << i + 1 << ", ";
+      s << OPS_PRINT_JSON_MATE_INDENT << "  {\"layer\": " << i + 1 << ", ";
       s << "\"thickness\": " << 0.5 * wg[i] * h << ", ";
       s << "\"material\": \"" << theFibers[i]->getTag() << "\"";
       if (i < nLayers - 1)
@@ -514,7 +501,7 @@ LayeredShellFiberSection::Print(OPS_Stream& s, int flag)
       else
         s << "}\n";
     }
-    s << "\t\t\t]}";
+    s << OPS_PRINT_JSON_MATE_INDENT << "]}";
   }
 }
 

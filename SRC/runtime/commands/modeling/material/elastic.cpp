@@ -22,22 +22,21 @@
 #include <ElasticIsotropic.h>
 #include <ElasticIsotropicMaterial.h>
 #include <ElasticOrthotropicMaterial.h>
-#include <material/Solid/ElasticIsotropicThreeDimensional.h>
-#include <material/nD/ElasticIsotropicAxiSymm.h>
-#include <material/nD/ElasticIsotropicMaterial.h>
-#include <material/nD/ElasticIsotropicMaterialThermal.h>
-#include <material/nD/ElasticIsotropicPlateFiber.h>
-
-#include <material/nD/ElasticIsotropic3DThermal.h>
-#include "ElasticIsotropicPlaneStress2D.h"
-#include "ElasticIsotropicPlaneStrain2D.h"
-#include <material/elastic/ElasticIsotropicBeamFiber2d.h>
-#include <material/elastic/ElasticIsotropicBeamFiber.h>
 
 #include <ElasticIsotropicMaterial.h>
+#include "ElasticIsotropicPlaneStress2D.h"
+#include "ElasticIsotropicPlaneStrain2D.h"
+#include <material/elastic/ElasticIsotropic3DThermal.h>
+#include <material/elastic/ElasticIsotropicAxiSymm.h>
+#include <material/elastic/ElasticIsotropicBeamFiber.h>
+#include <material/elastic/ElasticIsotropicBeamFiber2d.h>
+#include <material/elastic/ElasticIsotropicMaterial.h>
+#include <material/elastic/ElasticIsotropicMaterialThermal.h>
+#include <material/elastic/ElasticIsotropicPlateFiber.h>
+#include <material/elastic/ElasticIsotropicThreeDimensional.h>
+
 // #include <ElasticCrossAnisotropic.h>
 #include <PlaneStressMaterial.h>
-#include <PlateFiberMaterial.h>
 #include <BeamFiberMaterial.h>
 
 

@@ -29,8 +29,7 @@
 /* Ref: Lu X, Lu XZ, Guan H, Ye LP, Collapse simulation of reinforced 
 concrete high-rise building induced by extreme earthquakes, 
 Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723*/
-
-#include <stdio.h>
+//
 #include <stdlib.h>
 #include <math.h>
 
@@ -57,9 +56,8 @@ public:
   getClassType(void) const
   {
     return "LayeredShellFiberSection";
-  };
+  }
 
-  //destructor
   virtual ~LayeredShellFiberSection();
 
     SectionForceDeformation* getCopy();
@@ -67,30 +65,24 @@ public:
   //mass per unit area
   double getRho();
 
-    int getOrder() const;
+  int getOrder() const;
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
   int getResponse(int responseID, Information& info);
 
-    const ID& getType();
+  const ID& getType();
 
-  //swap history variables
   int commitState();
-
-    int revertToLastCommit();
-
-    int revertToStart();
+  int revertToLastCommit();
+  int revertToStart();
 
   //get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);
 
   const Vector& getSectionDeformation();
-
   const Vector& getStressResultant();
-
   const Matrix& getSectionTangent();
 
-  //send back the initial tangent
   const Matrix&
   getInitialTangent()
   {
@@ -105,20 +97,14 @@ public:
 
 private:
   int nLayers;
-  //quadrature data
   double* sg;
   double* wg;
-
   double h; //plate thickness
 
   NDMaterial** theFibers; //pointers to the materials (fibers)
-
   Vector strainResultant;
-
   static Vector stressResultant;
-
   static Matrix tangent;
-
   static ID array;
 
 }; //end of LayeredShellFiberSection declarations

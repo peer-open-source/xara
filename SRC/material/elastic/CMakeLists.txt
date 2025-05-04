@@ -8,10 +8,17 @@
 target_sources(OPS_Material 
   PRIVATE
     ElasticIsotropicPlaneStrain2D.cpp
+    ElasticIsotropicThreeDimensional.cpp
     ElasticIsotropicPlaneStress2D.cpp
     ElasticIsotropicBeamFiber2d.cpp
     ElasticIsotropicBeamFiber.cpp
+    ElasticIsotropicAxiSymm.cpp
+    ElasticIsotropicMaterial.cpp
+    ElasticIsotropicPlateFiber.cpp
+    ElasticIsotropic3DThermal.cpp
+    ElasticIsotropicMaterialThermal.cpp
   PUBLIC
+#   ElasticIsotropicThreeDimensional.h
     ElasticIsotropicPlaneStrain2D.h
     ElasticIsotropicPlaneStress2D.h
     ElasticIsotropicBeamFiber2d.h

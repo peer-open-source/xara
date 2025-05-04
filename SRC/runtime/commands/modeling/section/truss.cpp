@@ -1,3 +1,11 @@
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
+// Written: cmp
+//
 #include <set>
 #include <tcl.h>
 #include <string.h>
@@ -11,7 +19,7 @@
 
 int 
 TclCommand_addUniaxialSection(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+                              int argc, TCL_Char ** const argv)
 {
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
 

@@ -14,21 +14,12 @@ target_sources(OPS_Material
     ASDConcrete3DMaterial.cpp
 #   ElasticPlaneStress.cpp
     VonPapaDamage.cpp
-    ElasticIsotropicAxiSymm.cpp
-    ElasticIsotropicMaterial.cpp
     ElasticOrthotropicMaterial.cpp
     ElasticOrthotropicPlaneStress.cpp
 
     J2AxiSymm.cpp
     J2PlateFiber.cpp
     J2PlateFibre.cpp
-
-    PlateFiberMaterial.cpp
-    ElasticIsotropicPlateFiber.cpp
-    PlateFromPlaneStressMaterial.cpp
-    PlateRebarMaterial.cpp
-    PlateFiberMaterialThermal.cpp
-    PlateFromPlaneStressMaterialThermal.cpp
 
     CycLiqCP.cpp
     CycLiqCP3D.cpp
@@ -44,10 +35,7 @@ target_sources(OPS_Material
     AcousticMedium.cpp
     DruckerPrager3DThermal.cpp
     DruckerPragerThermal.cpp
-    ElasticIsotropic3DThermal.cpp
-    ElasticIsotropicMaterialThermal.cpp
     J2PlasticityThermal.cpp
-    PlateRebarMaterialThermal.cpp
     OrthotropicMaterial.cpp
     Series3DMaterial.cpp
     Parallel3DMaterial.cpp
@@ -61,10 +49,6 @@ target_sources(OPS_Material
     FSAM.h
     AcousticMedium.h
     ASDConcrete3DMaterial.h
-    ElasticIsotropicAxiSymm.h
-
-    ElasticIsotropicMaterial.h
-    ElasticIsotropicPlateFiber.h
     ElasticOrthotropicMaterial.h
     ElasticOrthotropicPlaneStress.h
 #   ElasticPlaneStress.h
@@ -75,8 +59,6 @@ target_sources(OPS_Material
     J2PlateFiber.h
     J2PlateFibre.h
 
-    PlateFiberMaterial.h
-    PlateRebarMaterial.h
     CycLiqCP.h
     CycLiqCP3D.h
     CycLiqCPSP.h
@@ -91,13 +73,7 @@ target_sources(OPS_Material
     AcousticMedium.h
     DruckerPrager3DThermal.h
     DruckerPragerThermal.h
-    ElasticIsotropic3DThermal.h
-    ElasticIsotropicMaterialThermal.h
     J2PlasticityThermal.h
-    PlateFiberMaterialThermal.h
-    PlateRebarMaterialThermal.h
-    PlateFromPlaneStressMaterial.h
-    PlateFromPlaneStressMaterialThermal.h
     OrthotropicMaterial.h
     Series3DMaterial.h
     Parallel3DMaterial.h

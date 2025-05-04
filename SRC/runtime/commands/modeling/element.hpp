@@ -326,8 +326,10 @@ element_dispatch = {
   {"LysmerTriangle",               OPS_LysmerTriangle},
   {"ASDAbsorbingBoundary2D",       OPS_ASDAbsorbingBoundary2D},
   {"ASDAbsorbingBoundary3D",       OPS_ASDAbsorbingBoundary3D},
+
   {"FourNodeTetrahedron",          OPS_FourNodeTetrahedron},
   {"TenNodeTetrahedron",           OPS_TenNodeTetrahedron},
+
   {"LinearElasticSpring",          OPS_LinearElasticSpring},
   {"Inerter",                      OPS_Inerter},
   {"Adapter",                      OPS_Adapter},
