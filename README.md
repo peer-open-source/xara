@@ -85,7 +85,7 @@ There are several ways to use the `xara` package:
 
 ## Development
 
-To compile the project see [about/compiling](https://github.com/claudioperez/OpenSeesRT/blob/main/about/compiling.md)
+To compile the project see [about/compiling](https://github.com/peer-open-source/xara/blob/stable/about/compiling.md)
 
 <!-- Badge links -->
 
