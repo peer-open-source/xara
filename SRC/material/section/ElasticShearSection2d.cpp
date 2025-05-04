@@ -35,31 +35,8 @@ Vector ElasticShearSection2d::s(3);
 Matrix ElasticShearSection2d::ks(3,3);
 ID ElasticShearSection2d::code(3);
 
-#if 0
-#include <elementAPI.h>
-void *
-OPS_ADD_RUNTIME_VPV(OPS_ElasticShearSection2d)
-{
-    if(OPS_GetNumRemainingInputArgs() < 6) {
-	opserr<<"insufficient arguments for ealstic shear section\n";
-	return 0;
-    }
 
-    // get tag
-    int tag;
-    int numData = 1;
-    if(OPS_GetIntInput(&numData,&tag) < 0) return 0;
-
-    // get data
-    numData = 5;
-    double data[5];
-    if(OPS_GetDoubleInput(&numData,&data[0]) < 0) return 0;
-
-    return new ElasticShearSection2d(tag,data[0],data[1],data[2],data[3],data[4]);
-}
-#endif
-
-ElasticShearSection2d::ElasticShearSection2d(void)
+ElasticShearSection2d::ElasticShearSection2d()
 :FrameSection(0, SEC_TAG_ElasticShear2d),
  E(0.0), A(0.0), I(0.0), G(0.0), alpha(0.0),
  e(3), parameterID(0)
@@ -76,27 +53,7 @@ ElasticShearSection2d::ElasticShearSection2d
 :FrameSection(tag, SEC_TAG_ElasticShear2d),
  E(E_in), A(A_in), I(I_in), G(G_in), alpha(alpha_in),
  e(3), parameterID(0)
-{
-  if (E <= 0.0)  {
-    opserr << "ElasticShearSection2d::ElasticShearSection2d -- Input E <= 0.0";
-  }
-  
-  if (A <= 0.0)  {
-    opserr << "ElasticShearSection2d::ElasticShearSection2d -- Input A <= 0.0";
-  }
-  
-  if (I <= 0.0)  {
-    opserr << "ElasticShearSection2d::ElasticShearSection2d -- Input I <= 0.0";
-  }    
-  
-  if (G <= 0.0)  {
-    opserr << "ElasticShearSection2d::ElasticShearSection2d -- Input G <= 0.0";
-  }    
-  
-  if (alpha <= 0.0)  {
-    opserr << "ElasticShearSection2d::ElasticShearSection2d -- Input alpha <= 0.0";
-  }    
-  
+{  
   if (code(0) != SECTION_RESPONSE_P) {
     code(0) = SECTION_RESPONSE_P;	// P is the first quantity
     code(1) = SECTION_RESPONSE_MZ;	// Mz is the second
@@ -104,25 +61,25 @@ ElasticShearSection2d::ElasticShearSection2d
   }
 }
 
-ElasticShearSection2d::~ElasticShearSection2d(void)
+ElasticShearSection2d::~ElasticShearSection2d()
 {
   return;
 }
 
 int 
-ElasticShearSection2d::commitState(void)
+ElasticShearSection2d::commitState()
 {
   return 0;
 }
 
 int 
-ElasticShearSection2d::revertToLastCommit(void)
+ElasticShearSection2d::revertToLastCommit()
 {
   return 0;
 }
 
 int 
-ElasticShearSection2d::revertToStart(void)
+ElasticShearSection2d::revertToStart()
 {
   return 0;
 }
@@ -136,13 +93,13 @@ ElasticShearSection2d::setTrialSectionDeformation (const Vector &def)
 }
 
 const Vector &
-ElasticShearSection2d::getSectionDeformation (void)
+ElasticShearSection2d::getSectionDeformation ()
 {
   return e;
 }
 
 const Vector &
-ElasticShearSection2d::getStressResultant (void)
+ElasticShearSection2d::getStressResultant ()
 {
   s(0) = E*A*e(0);
   s(1) = E*I*e(1);
@@ -152,7 +109,7 @@ ElasticShearSection2d::getStressResultant (void)
 }
 
 const Matrix &
-ElasticShearSection2d::getSectionTangent(void)
+ElasticShearSection2d::getSectionTangent()
 {
   ks(0,0) = E*A;
   ks(1,1) = E*I;
@@ -162,7 +119,7 @@ ElasticShearSection2d::getSectionTangent(void)
 }
 
 const Matrix &
-ElasticShearSection2d::getInitialTangent(void)
+ElasticShearSection2d::getInitialTangent()
 {
   ks(0,0) = E*A;
   ks(1,1) = E*I;
@@ -172,7 +129,7 @@ ElasticShearSection2d::getInitialTangent(void)
 }
 
 const Matrix &
-ElasticShearSection2d::getSectionFlexibility (void)
+ElasticShearSection2d::getSectionFlexibility ()
 {
   ks(0,0) = 1.0/(E*A);
   ks(1,1) = 1.0/(E*I);
@@ -182,7 +139,7 @@ ElasticShearSection2d::getSectionFlexibility (void)
 }
 
 const Matrix &
-ElasticShearSection2d::getInitialFlexibility(void)
+ElasticShearSection2d::getInitialFlexibility()
 {
   ks(0,0) = 1.0/(E*A);
   ks(1,1) = 1.0/(E*I);
@@ -192,7 +149,7 @@ ElasticShearSection2d::getInitialFlexibility(void)
 }
 
 FrameSection*
-ElasticShearSection2d::getFrameCopy(void)
+ElasticShearSection2d::getFrameCopy()
 {
   ElasticShearSection2d *theCopy =
     new ElasticShearSection2d (this->getTag(), E, A, I, G, alpha);
@@ -209,7 +166,7 @@ ElasticShearSection2d::getType()
 }
 
 int
-ElasticShearSection2d::getOrder(void) const
+ElasticShearSection2d::getOrder() const
 {
   return 3;
 }

@@ -61,8 +61,7 @@ class ConstantPressureVolumeQuad : public Element
     const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    Response *setResponse(const char **argv, int argc, 
-			  OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
     int getResponse(int responseID, Information &eleInformation);
     int sendSelf (int tag, Channel &);

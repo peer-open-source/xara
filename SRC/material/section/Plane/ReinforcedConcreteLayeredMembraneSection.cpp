@@ -26,7 +26,6 @@
 #include <SensitiveResponse.h>
 typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
 #include <limits>
-// #include <algorithm>
 /*min, max*/
 #include <DummyStream.h>
 
@@ -210,15 +209,6 @@ ReinforcedConcreteLayeredMembraneSection::ReinforcedConcreteLayeredMembraneSecti
 	TheReinforcedSteel2DMaterial = new NDMaterial * [numberReinforcedSteelLayers];
 	TheConcrete2DMaterial = new NDMaterial * [numberConcreteLayers];
 
-	if (TheReinforcedSteel2DMaterial == 0) {
-		opserr << "ReinforcedConcreteLayeredMembraneSection::ReinforcedConcreteLayeredMembraneSection() - Failed to allocate pointers for ND reinforced steel materials.\n";
-		exit(-1);
-	}
-	if (TheConcrete2DMaterial == 0) {
-		opserr << "ReinforcedConcreteLayeredMembraneSection::ReinforcedConcreteLayeredMembraneSection() - Failed to allocate pointers for ND concrete materials.\n";
-		exit(-1);
-	}
-
 	// Get copies of the ND reinforced steel materials 
 	for (int i = 0; i < numberReinforcedSteelLayers; i++) {
 		if (reinforcedSteelMaterialObjects[i] == 0) {
@@ -357,33 +347,33 @@ int ReinforcedConcreteLayeredMembraneSection::setTrialSectionDeformation(const V
 	return 0;
 }
 
-const Vector& ReinforcedConcreteLayeredMembraneSection::getSectionDeformation(void)
+const Vector& ReinforcedConcreteLayeredMembraneSection::getSectionDeformation()
 {
 	return TSectionStrain;
 }
 
-const Vector& ReinforcedConcreteLayeredMembraneSection::getStressResultant(void)
+const Vector& ReinforcedConcreteLayeredMembraneSection::getStressResultant()
 {
 	// newName = TSectionStress/espesor_total
 	return TSectionStress;
 }
 
-const Matrix& ReinforcedConcreteLayeredMembraneSection::getSectionTangent(void)
+const Matrix& ReinforcedConcreteLayeredMembraneSection::getSectionTangent()
 {
 	return TSectionTangent;
 }
 
-const Vector& ReinforcedConcreteLayeredMembraneSection::getCommittedStrain(void)
+const Vector& ReinforcedConcreteLayeredMembraneSection::getCommittedStrain()
 {
 	return CSectionStrain;
 }
 
-const Vector& ReinforcedConcreteLayeredMembraneSection::getCommittedStress(void)
+const Vector& ReinforcedConcreteLayeredMembraneSection::getCommittedStress()
 {
 	return CSectionStress;
 }
 
-double ReinforcedConcreteLayeredMembraneSection::getRho(void)
+double ReinforcedConcreteLayeredMembraneSection::getRho()
 {
 	double rhoH = 0.0;
 
@@ -394,7 +384,7 @@ double ReinforcedConcreteLayeredMembraneSection::getRho(void)
 	return rhoH;
 }
 
-double ReinforcedConcreteLayeredMembraneSection::getEcAvg(void)
+double ReinforcedConcreteLayeredMembraneSection::getEcAvg()
 {
 	DummyStream theDummyStream;
 
@@ -429,7 +419,7 @@ double ReinforcedConcreteLayeredMembraneSection::getEcAvg(void)
 	return EcAvg;
 }
 
-const Matrix& ReinforcedConcreteLayeredMembraneSection::getInitialTangent(void)
+const Matrix& ReinforcedConcreteLayeredMembraneSection::getInitialTangent()
 {
 	// Get the initial membrane section stiffness
 	double initialSectionTangent[3][3];			// membrane section stiffness: [Dm] = h*[MaterialTangent] is the membrane stiffness Tangent = Sum(Tangent_ic(zTop_ic - zBottom_ic)) + Sum(Tangent_is(t_is))
@@ -475,7 +465,7 @@ const Matrix& ReinforcedConcreteLayeredMembraneSection::getInitialTangent(void)
 	return InitialTangent;
 }
 
-SectionForceDeformation* ReinforcedConcreteLayeredMembraneSection::getCopy(void)
+SectionForceDeformation* ReinforcedConcreteLayeredMembraneSection::getCopy()
 {
 	ReinforcedConcreteLayeredMembraneSection* theCopy = new ReinforcedConcreteLayeredMembraneSection(this->getTag(),
 		numberReinforcedSteelLayers,
@@ -487,7 +477,8 @@ SectionForceDeformation* ReinforcedConcreteLayeredMembraneSection::getCopy(void)
 	return theCopy;
 }
 
-const ID& ReinforcedConcreteLayeredMembraneSection::getType(void)
+const ID& 
+ReinforcedConcreteLayeredMembraneSection::getType()
 {
 	static bool initialized = false;
 	if (!initialized) {
@@ -499,12 +490,12 @@ const ID& ReinforcedConcreteLayeredMembraneSection::getType(void)
 	return array;
 }
 
-int ReinforcedConcreteLayeredMembraneSection::getOrder(void) const
+int ReinforcedConcreteLayeredMembraneSection::getOrder() const
 {
 	return 3;
 }
 
-int ReinforcedConcreteLayeredMembraneSection::commitState(void)
+int ReinforcedConcreteLayeredMembraneSection::commitState()
 {
 	int success = 0;
 
@@ -527,7 +518,7 @@ int ReinforcedConcreteLayeredMembraneSection::commitState(void)
 	return success;
 }
 
-int ReinforcedConcreteLayeredMembraneSection::revertToLastCommit(void)
+int ReinforcedConcreteLayeredMembraneSection::revertToLastCommit()
 {
 	int success = 0;
 
@@ -547,7 +538,7 @@ int ReinforcedConcreteLayeredMembraneSection::revertToLastCommit(void)
 	return success;
 }
 
-int ReinforcedConcreteLayeredMembraneSection::revertToStart(void)
+int ReinforcedConcreteLayeredMembraneSection::revertToStart()
 {
 	int success = 0;
 
@@ -948,7 +939,7 @@ int ReinforcedConcreteLayeredMembraneSection::getResponse(int responseID, Inform
 }
 
 // Function that returns bending parameters - added for MEFI3D by Maria Jose Nunez, UChile
-Vector ReinforcedConcreteLayeredMembraneSection::getBendingParameters(void)
+Vector ReinforcedConcreteLayeredMembraneSection::getBendingParameters()
 {
 	Vector input_par(2);
 
@@ -960,7 +951,7 @@ Vector ReinforcedConcreteLayeredMembraneSection::getBendingParameters(void)
 	return input_par;
 }
 
-void ReinforcedConcreteLayeredMembraneSection::setCrackPattern(void)
+void ReinforcedConcreteLayeredMembraneSection::setCrackPattern()
 {
 	// Get strain concrete propierties (ec, ecr)
 	double* strainAtFt = new double[numberConcreteLayers];
@@ -1056,17 +1047,17 @@ void ReinforcedConcreteLayeredMembraneSection::setCrackPattern(void)
 
 }
 
-const Vector& ReinforcedConcreteLayeredMembraneSection::getCrackPattern(void)
+const Vector& ReinforcedConcreteLayeredMembraneSection::getCrackPattern()
 {
 	return crackPattern;
 }
 
-double ReinforcedConcreteLayeredMembraneSection::getThetaPDAngle(void)
+double ReinforcedConcreteLayeredMembraneSection::getThetaPDAngle()
 {
 	return thetaPrincipalDirection;
 }
 
-Vector ReinforcedConcreteLayeredMembraneSection::getSectionStressAvg(void)
+Vector ReinforcedConcreteLayeredMembraneSection::getSectionStressAvg()
 {
 	Vector SectionStressAvg(3);
 
@@ -1079,7 +1070,7 @@ Vector ReinforcedConcreteLayeredMembraneSection::getSectionStressAvg(void)
 	return SectionStressAvg;
 }
 
-void ReinforcedConcreteLayeredMembraneSection::calculateStrainPrincipalDirections01(void)
+void ReinforcedConcreteLayeredMembraneSection::calculateStrainPrincipalDirections01()
 {
 	double strain_vec[3];		//ex, ey, gamma
 	double doubleThetaPD, cos2Theta, sin2Theta;

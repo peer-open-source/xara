@@ -21,6 +21,7 @@
 // Generic Plate Fiber Material
 //
 // Ed "C++" Love
+//
 // $Date: 2007-05-03 23:03:26 $
 //
 #include <PlateFiberMaterial.h>
@@ -28,52 +29,14 @@
 #include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
 
-// static vector and matrices
+
 Vector PlateFiberMaterial::stress(5);
 Matrix PlateFiberMaterial::tangent(5, 5);
 
 //      0  1  2  3  4  5
 // ND: 11 22 33 12 23 31
 // PF: 11 22 12 23 31 33
-
-NDMaterial* G3_GetNDMaterial(G3_Runtime* rt, int matTag);
-
-void*
-OPS_ADD_RUNTIME_VPV(OPS_PlateFiberMaterial)
-{
-  int numdata = OPS_GetNumRemainingInputArgs();
-  if (numdata < 2) {
-    opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: nDMaterial PlateFiber tag? matTag?" << endln;
-    return 0;
-  }
-
-  int tag[2];
-  numdata = 2;
-  if (OPS_GetIntInput(&numdata, tag) < 0) {
-    opserr << "WARNING invalid tags\n";
-    return 0;
-  }
-
-  NDMaterial* threeDMaterial = G3_GetNDMaterial(rt, tag[1]);
-
-  if (threeDMaterial == nullptr) {
-    opserr << "WARNING nD material does not exist\n";
-    opserr << "nD material: " << tag[1];
-    opserr << "\nPlateFiber nDMaterial: " << tag[0] << endln;
-    return 0;
-  }
-
-  NDMaterial* mat = new PlateFiberMaterial(tag[0], *threeDMaterial);
-
-  if (mat == nullptr) {
-    opserr << "WARNING: failed to create PlaneStrain material\n";
-    return 0;
-  }
-
-  return mat;
-}
-
+//
 
 PlateFiberMaterial::PlateFiberMaterial()
  : NDMaterial(0, ND_TAG_PlateFiberMaterial), theMaterial(0), strain(5)
@@ -174,11 +137,11 @@ PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
 {
   static const double tolerance = 1.0e-08;
 
-  strain(0) = strainFromElement(0); //11
-  strain(1) = strainFromElement(1); //22
-  strain(2) = strainFromElement(2); //12
-  strain(3) = strainFromElement(3); //23
-  strain(4) = strainFromElement(4); //31
+  strain(0) = strainFromElement(0); // xx
+  strain(1) = strainFromElement(1); // yy
+  strain(2) = strainFromElement(2); // xy
+  strain(3) = strainFromElement(3); // yz
+  strain(4) = strainFromElement(4); // zx
 
   double norm;
   double condensedStress;
@@ -190,16 +153,16 @@ PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
   const int maxCount = 20;
   double norm0;
 
-  //newton loop to solve for out-of-plane strains
+  // newton loop to solve for out-of-plane strains
   do {
 
     // set three dimensional strain
-    threeDstrain(0) = this->strain(0);
-    threeDstrain(1) = this->strain(1);
-    threeDstrain(2) = this->Tstrain22;
-    threeDstrain(3) = this->strain(2);
-    threeDstrain(4) = this->strain(3);
-    threeDstrain(5) = this->strain(4);
+    threeDstrain(0) = this->strain(0); // xx
+    threeDstrain(1) = this->strain(1); // yy
+    threeDstrain(2) = this->Tstrain22; // zz
+    threeDstrain(3) = this->strain(2); // xy
+    threeDstrain(4) = this->strain(3); // yz
+    threeDstrain(5) = this->strain(4); // zx
 
     if (theMaterial->setTrialStrain(threeDstrain) < 0) {
       opserr
@@ -214,8 +177,8 @@ PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
     // three dimensional tangent
     const Matrix& threeDtangent = theMaterial->getTangent();
 
-    //NDmaterial strain order          = 11, 22, 33, 12, 23, 31
-    //PlateFiberMaterial strain order =  11, 22, 12, 23, 31, 33
+    // NDmaterial strain order          = 11, 22, 33, 12, 23, 31
+    // PlateFiberMaterial strain order =  11, 22, 12, 23, 31, 33
 
     condensedStress = threeDstress(2);
 
@@ -225,10 +188,10 @@ PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
     if (count == 0)
       norm0 = norm;
 
-    // condensation
+    // Condensation
     strainIncrement = condensedStress / dd22;
 
-    // update out of plane strains
+    // Update
     Tstrain22 -= strainIncrement;
 
   } while (count++ < maxCount && norm > tolerance);
@@ -249,11 +212,11 @@ PlateFiberMaterial::getStress()
 {
   const Vector& threeDstress = theMaterial->getStress();
 
-  stress(0) = threeDstress(0);
-  stress(1) = threeDstress(1);
-  stress(2) = threeDstress(3);
-  stress(3) = threeDstress(4);
-  stress(4) = threeDstress(5);
+  stress(0) = threeDstress(0); // xx
+  stress(1) = threeDstress(1); // yy
+  stress(2) = threeDstress(3); // xy
+  stress(3) = threeDstress(4); // yz
+  stress(4) = threeDstress(5); // zx
 
   return stress;
 }

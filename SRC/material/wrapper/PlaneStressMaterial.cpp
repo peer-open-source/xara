@@ -27,17 +27,15 @@
 //
 // Generic Plane Stress Material
 //
-
-
 #include <PlaneStressMaterial.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #include <Vector.h>
 #include <Vector3D.h>
 #include <Matrix3D.h>
 using namespace OpenSees;
-//static vector and matrices
+
+// static vector and matrices
 Vector  PlaneStressMaterial::stress(3) ;
 Matrix  PlaneStressMaterial::tangent(3,3) ;
 
@@ -45,47 +43,13 @@ Matrix  PlaneStressMaterial::tangent(3,3) ;
 // ND: 11 22 33 12 23 31
 // PS: 11 22 12 33 23 31
 
-//null constructor
+
 PlaneStressMaterial::PlaneStressMaterial( ) : 
 NDMaterial(0, ND_TAG_PlaneStressMaterial ), 
 strain(3) 
 { }
 
-void * OPS_ADD_RUNTIME_VPV(OPS_PlaneStress)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 2) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: nDMaterial PlaneStress tag? matTag?" << endln;
-	return 0;
-    }
 
-    int tag[2];
-    numdata = 2;
-    if (OPS_GetIntInput(&numdata,tag)<0) {
-	opserr << "WARNING invalid nDMaterial PlaneStress tags" << endln;
-	return 0;
-    }
-
-    NDMaterial *threeDMaterial = OPS_getNDMaterial(tag[1]);
-    if (threeDMaterial == 0) {
-	opserr << "WARNING nD material does not exist\n";
-	opserr << "nD material: " << tag[1];
-	opserr << "\nPlaneStress nDMaterial: " << tag[0] << endln;
-	return 0;
-    }
-      
-    NDMaterial* mat = new PlaneStressMaterial( tag[0], *threeDMaterial );
-
-    if (mat == 0) {
-	opserr << "WARNING: failed to create PlaneStress material\n";
-	return 0;
-    }
-
-    return mat;
-}
-
-//full constructor
 PlaneStressMaterial::PlaneStressMaterial(    
 				   int tag, 
                                    NDMaterial &the3DMaterial ) :
@@ -104,7 +68,6 @@ strain(3)
 
 
 
-//destructor
 PlaneStressMaterial::~PlaneStressMaterial( ) 
 { 
   delete theMaterial ;
@@ -152,7 +115,6 @@ PlaneStressMaterial::getType( ) const
 
 
 
-//swap history variables
 int 
 PlaneStressMaterial::commitState( ) 
 {
@@ -236,10 +198,7 @@ PlaneStressMaterial::setTrialStrain( const Vector &strainFromElement )
       return -1;
     }
 
-    //three dimensional stress
     const Vector &threeDstress = theMaterial->getStress();
-
-    //three dimensional tangent 
     const Matrix &threeDtangent = theMaterial->getTangent();
 
     //NDmaterial strain order          = 11, 22, 33, 12, 23, 31 
@@ -269,7 +228,7 @@ PlaneStressMaterial::setTrialStrain( const Vector &strainFromElement )
     //condensation 
     dd22.solve(condensedStress, strainIncrement);
 
-    //update out of plane strains
+    // Update
     this->Tstrain22 -= strainIncrement[0];
     this->Tgamma12  -= strainIncrement[1];
     this->Tgamma02  -= strainIncrement[2];

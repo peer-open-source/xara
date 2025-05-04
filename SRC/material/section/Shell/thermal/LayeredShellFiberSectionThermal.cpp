@@ -32,7 +32,7 @@ Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723*/
 // Modified for SIF modelling by Liming Jiang [http://openseesforfire.github.io]
 
 
-#include <LayeredShellFiberSectionThermal.h>
+#include "LayeredShellFiberSectionThermal.h"
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <SensitiveResponse.h>

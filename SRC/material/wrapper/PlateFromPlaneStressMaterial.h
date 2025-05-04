@@ -65,7 +65,6 @@ public:
   const Matrix& getTangent();
   const Matrix& getInitialTangent(); // AV Not Sure if it works
 
-  //density
   double getRho();
 
   void Print(OPS_Stream& s, int flag);

@@ -59,12 +59,12 @@ public:
   getClassType(void) const
   {
     return "LayeredShellFiberSectionThermal";
-  };
+  }
 
-  //destructor
+
   virtual ~LayeredShellFiberSectionThermal();
 
-    SectionForceDeformation* getCopy();
+  SectionForceDeformation* getCopy();
 
   //mass per unit area
   double getRho();
@@ -74,14 +74,13 @@ public:
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
   int getResponse(int responseID, Information& info);
 
-    const ID& getType();
+  const ID& getType();
 
-  //swap history variables
   int commitState();
 
-    int revertToLastCommit();
+  int revertToLastCommit();
 
-    int revertToStart();
+  int revertToStart();
 
   //get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);

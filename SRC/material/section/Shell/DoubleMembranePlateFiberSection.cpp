@@ -74,7 +74,7 @@ OPS_ADD_RUNTIME_VPV(OPS_DoubleMembranePlateFiberSection)
   return new DoubleMembranePlateFiberSection(idata[0], h, d, *theMaterial);
 }
 
-//parameters
+
 const double DoubleMembranePlateFiberSection::root56 = sqrt(5.0 / 6.0); //shear correction
 
 //static vector and matrices

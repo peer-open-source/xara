@@ -310,49 +310,41 @@ TclBasicBuilder_addElement2dYS01(ClientData clientData, Tcl_Interp *interp,
 
   if (Tcl_GetInt(interp, argv[3], &ndI) != TCL_OK) {
     opserr << "WARNING invalid node I\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[4], &ndJ) != TCL_OK) {
     opserr << "WARNING invalid node J\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[5], &A) != TCL_OK) {
     opserr << "WARNING invalid A\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[6], &E) != TCL_OK) {
     opserr << "WARNING invalid E\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[7], &I) != TCL_OK) {
     opserr << "WARNING invalid I\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[8], &ysID1) != TCL_OK) {
     opserr << "WARNING invalid ysID1\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[9], &ysID2) != TCL_OK) {
     opserr << "WARNING invalid ysID2\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[10], &rf_algo) != TCL_OK) {
     opserr << "WARNING invalid ysID1\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
@@ -365,8 +357,6 @@ TclBasicBuilder_addElement2dYS01(ClientData clientData, Tcl_Interp *interp,
 
   YieldSurface_BC *theYS2 = builder->getTypedObject<YieldSurface_BC>(ysID2);
   if (theYS2 == 0) {
-    opserr << "WARNING element2dYS: " << tag << "\n";
-    opserr << " no yield surface exists with tag: " << ysID2 << "\n";
     return TCL_ERROR;
   }
 
@@ -384,7 +374,6 @@ TclBasicBuilder_addElement2dYS01(ClientData clientData, Tcl_Interp *interp,
   // element
   if (theElement == 0) {
     opserr << "WARNING ran out of memory creating element\n";
-    opserr << "element2dYS: " << tag << "\n";
     opserr << "\a";
     return TCL_ERROR;
   }
@@ -438,49 +427,41 @@ TclBasicBuilder_addElement2dYS02(ClientData clientData, Tcl_Interp *interp,
 
   if (Tcl_GetInt(interp, argv[3], &ndI) != TCL_OK) {
     opserr << "WARNING invalid node I\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[4], &ndJ) != TCL_OK) {
     opserr << "WARNING invalid node J\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[5], &A) != TCL_OK) {
     opserr << "WARNING invalid A\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[6], &E) != TCL_OK) {
     opserr << "WARNING invalid E\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[7], &I) != TCL_OK) {
     opserr << "WARNING invalid I\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[8], &ysID1) != TCL_OK) {
     opserr << "WARNING invalid ysID1\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[9], &ysID2) != TCL_OK) {
     opserr << "WARNING invalid ysID2\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[10], &cyc_type) != TCL_OK) {
     opserr << "WARNING invalid cyc_type\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
@@ -494,19 +475,16 @@ TclBasicBuilder_addElement2dYS02(ClientData clientData, Tcl_Interp *interp,
   double delpmax, alfa, beta;
   if (Tcl_GetDouble(interp, argv[11], &delpmax) != TCL_OK) {
     opserr << "WARNING invalid power\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[12], &alfa) != TCL_OK) {
     opserr << "WARNING invalid power\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[13], &beta) != TCL_OK) {
     opserr << "WARNING invalid rfalgo\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
@@ -543,7 +521,6 @@ TclBasicBuilder_addElement2dYS02(ClientData clientData, Tcl_Interp *interp,
   // element
   if (theElement == 0) {
     opserr << "WARNING ran out of memory creating element\n";
-    opserr << "element2dYS: " << tag << "\n";
     opserr << "\a";
     return TCL_ERROR;
   }
@@ -599,61 +576,51 @@ TclBasicBuilder_addElement2dYS03(ClientData clientData, Tcl_Interp *interp,
 
   if (Tcl_GetInt(interp, argv[3], &ndI) != TCL_OK) {
     opserr << "WARNING invalid node I\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[4], &ndJ) != TCL_OK) {
     opserr << "WARNING invalid node J\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[5], &aTens) != TCL_OK) {
     opserr << "WARNING invalid A\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[6], &aComp) != TCL_OK) {
     opserr << "WARNING invalid A\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[7], &E) != TCL_OK) {
     opserr << "WARNING invalid E\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[8], &Ipos) != TCL_OK) {
     opserr << "WARNING invalid I\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[9], &Ineg) != TCL_OK) {
     opserr << "WARNING invalid I\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[10], &ysID1) != TCL_OK) {
     opserr << "WARNING invalid ysID1\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[11], &ysID2) != TCL_OK) {
     opserr << "WARNING invalid ysID2\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[12], &rf_algo) != TCL_OK) {
     opserr << "WARNING invalid ysID1\n";
-    opserr << "element2dYS: " << tag << "\n";
     return TCL_ERROR;
   }
 
@@ -688,7 +655,6 @@ TclBasicBuilder_addElement2dYS03(ClientData clientData, Tcl_Interp *interp,
   // element
   if (theElement == 0) {
     opserr << "WARNING ran out of memory creating element\n";
-    opserr << "element2dYS: " << tag << "\n";
     opserr << "\a";
     return TCL_ERROR;
   }

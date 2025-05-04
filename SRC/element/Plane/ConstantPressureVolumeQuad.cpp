@@ -31,56 +31,6 @@
 #include <FEM_ObjectBroker.h>
 
 
-#if 0
-void * OPS_ADD_RUNTIME_VPV(OPS_ConstantPressureVolumeQuad)
-{
-    if (OPS_GetNDM() != 2 || OPS_GetNDF() != 2) {
-        opserr << "WARNING -- model dimensions and/or nodal DOF not compatible with quad element\n";
-        return 0;
-    }
-    
-    if (OPS_GetNumRemainingInputArgs() < 7) {
-        opserr << "WARNING insufficient arguments\n";
-        opserr << "Want: element ConstantPressureVolumeQuad eleTag? iNode? jNode? kNode? lNode? thk? matTag?\n";
-        return 0;
-    }
-
-    // ConstantPressureVolumeQuadId, iNode, jNode, kNode, lNode
-    int idata[5];
-    int num = 5;
-    if (OPS_GetIntInput(&num,idata) < 0) {
-        opserr<<"WARNING: invalid integer input\n";
-        return 0;
-    }
-
-    double thk = 1.0;
-    num = 1;
-    if (OPS_GetDoubleInput(&num, &thk) < 0) {
-        opserr << "WARNING: invalid double inputs\n";
-        return 0;
-    }
-
-    int matTag;
-    num = 1;
-    if (OPS_GetIntInput(&num, &matTag) < 0) {
-        opserr << "WARNING: invalid matTag\n";
-        return 0;
-    }
-    
-    NDMaterial* mat = OPS_getNDMaterial(matTag);
-    if (mat == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matTag;
-        opserr << "\nConstantPressureVolumeQuad element: " << idata[0] << endln;
-        return 0;
-    }
-
-    return new ConstantPressureVolumeQuad(idata[0],idata[1],idata[2],idata[3],idata[4],
-                                          *mat,thk);
-}
-#endif
-
-//static data
 double ConstantPressureVolumeQuad :: matrixData[64];
 Matrix ConstantPressureVolumeQuad :: stiff(matrixData,8,8)   ;
 Vector ConstantPressureVolumeQuad :: resid(8)     ;
@@ -93,7 +43,7 @@ double ConstantPressureVolumeQuad :: two3  = 2.0 / 3.0 ;
 double ConstantPressureVolumeQuad :: four3 = 4.0 / 3.0 ;
 double ConstantPressureVolumeQuad :: one9  = 1.0 / 9.0 ;
     
-//quadrature data
+// quadrature data
 double ConstantPressureVolumeQuad :: root3 = sqrt(3.0) ;
 double ConstantPressureVolumeQuad :: one_over_root3 = 1.0 / root3 ;
 
@@ -110,16 +60,15 @@ double ConstantPressureVolumeQuad :: tg[] = { -one_over_root3,
 double ConstantPressureVolumeQuad :: wg[] = { 1.0, 1.0, 1.0, 1.0 } ;
   
 
-//null constructor
+
 ConstantPressureVolumeQuad :: ConstantPressureVolumeQuad( ) :
 Element( 0, ELE_TAG_ConstantPressureVolumeQuad ),
 connectedExternalNodes(4), thickness(0.0), load(0)
 { 
   for (int i=0; i<4; i++)
-    materialPointers[i] = 0;
+    materialPointers[i] = nullptr;
 }
 
-//full constructor
 ConstantPressureVolumeQuad::ConstantPressureVolumeQuad(int tag, 
                                                        int node1,
                                                        int node2,
@@ -140,23 +89,24 @@ connectedExternalNodes(4), thickness(thickness), load(0)
   }
 }
 
-//destructor 
-ConstantPressureVolumeQuad :: ~ConstantPressureVolumeQuad( )
+
+ConstantPressureVolumeQuad::~ConstantPressureVolumeQuad( )
 {
   for (int i = 0 ;  i < 4; i++ ) {
 
     delete materialPointers[i] ;
     materialPointers[i] = 0 ; 
 
-    nodePointers[i] = 0 ;
-  } //end for i
+    nodePointers[i] = nullptr;
+  }
 
   if (load != 0)
     delete load;
 }
 
 
-void ConstantPressureVolumeQuad :: setDomain( Domain *theDomain ) 
+void
+ConstantPressureVolumeQuad::setDomain( Domain *theDomain ) 
 {
   for (int i = 0;  i < 4; i++ ) {
 
@@ -167,14 +117,13 @@ void ConstantPressureVolumeQuad :: setDomain( Domain *theDomain )
 
          xl[0][i] = coor(0) ;
          xl[1][i] = coor(1) ; 
-     } // end if 
+     }
 
-  } //end for i 
+  }
   
   this->DomainComponent::setDomain(theDomain);
 }
 
-//get the number of external nodes
 int ConstantPressureVolumeQuad :: getNumExternalNodes( ) const
 {
   return 4 ;
@@ -226,7 +175,7 @@ int ConstantPressureVolumeQuad :: revertToLastCommit( )
 }
     
 //revert to start 
-int ConstantPressureVolumeQuad :: revertToStart( ) 
+int ConstantPressureVolumeQuad::revertToStart( ) 
 {
   int i ;
   int success = 0 ;
@@ -237,7 +186,7 @@ int ConstantPressureVolumeQuad :: revertToStart( )
   return success ;
 }
 
-int 
+int
 ConstantPressureVolumeQuad :: update( ) 
 {
   // strains ordered  00, 11, 22, 01  
@@ -265,10 +214,8 @@ ConstantPressureVolumeQuad :: update( )
 
   static Vector strain(4) ; //strain in vector form 
 
-  double trace = 0.0 ; //trace of the strain 
-
   static Vector one(4) ; //rank 2 identity as a vector
-  
+
   //one vector
   one(0) = 1.0 ;
   one(1) = 1.0 ;
@@ -328,13 +275,11 @@ ConstantPressureVolumeQuad :: update( )
       const Vector &ul = nodePointers[node]->getTrialDisp( ) ;
 
       strain(0) += shp[0][node][i] * ul(0) ;
-
       strain(1) += shp[1][node][i] * ul(1) ;
-
       strain(2) = 0.0 ;  // not zero for axisymmetry
 
-    } // end for node
-    trace  =  strain(0) + strain(1) + strain(2) ;
+    }
+    double trace  =  strain(0) + strain(1) + strain(2) ;
     theta +=  trace * dvol[i] ;
   }
   theta /= volume ;
@@ -354,12 +299,11 @@ ConstantPressureVolumeQuad :: update( )
       strain(1) += shp[1][node][i] * ul(1) ;
       strain(2) = 0.0 ; // not zero for axisymmetry
 
-      strain(3) +=  shp[1][node][i] * ul(0)     
-              + shp[0][node][i] * ul(1) ; 
+      strain(3) +=  shp[1][node][i] * ul(0)  + shp[0][node][i] * ul(1) ; 
 
     }
 
-    trace = strain(0) + strain(1) + strain(2) ;
+    double trace = strain(0) + strain(1) + strain(2) ;
 
     //strain -= (one3*trace)*one ;
     strain.addVector(1.0,  one, -one3*trace ) ;
@@ -418,9 +362,9 @@ const Matrix& ConstantPressureVolumeQuad :: getInitialStiff( )
   int i,  j,  k, l, p, q ;
   int jj, kk ;
   
-  static double tmp_shp[3][4] ; //shape functions
+  static double tmp_shp[3][4] ; // shape functions
 
-  static double shp[3][4][4] ; //shape functions at each gauss point
+  static double shp[3][4][4] ; // shape functions at each gauss point
 
   static double vol_avg_shp[3][4] ; // volume averaged shape functions
 
@@ -854,7 +798,8 @@ void   ConstantPressureVolumeQuad::formInertiaTerms( int tangFlag )
 
 //*********************************************************************
 //form residual and tangent
-void ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag ) 
+void 
+ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag ) 
 {
   // strains ordered  00, 11, 22, 01  
   //            i.e.  11, 22, 33, 12 
@@ -865,7 +810,7 @@ void ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   //            strain(3) = 2*eps_01
   //
   //  same ordering for stresses but no 2 
-
+  //
   int i,  j,  k, l, p, q ;
   int jj, kk ;
   
@@ -959,7 +904,7 @@ void ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   for ( k = 0; k < 3; k++ ){
     for ( l = 0; l < 4; l++ ) 
         vol_avg_shp[k][l] = 0.0 ; 
-  } //end for k
+  }
 
 
   //gauss loop to compute volume averaged shape functions
@@ -1205,12 +1150,13 @@ void ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   return ;
 }
 
-//shape function routine for four node quads
-void ConstantPressureVolumeQuad :: shape2d( double ss, double tt, 
-                                            const double x[2][4], 
-                                            double shp[3][4], 
-                                            double &xsj, 
-                                            Matrix &sx ) 
+
+void
+ConstantPressureVolumeQuad :: shape2d( double ss, double tt, 
+                                        const double x[2][4], 
+                                        double shp[3][4], 
+                                        double &xsj, 
+                                        Matrix &sx ) 
 { 
 
   int i, j, k ;

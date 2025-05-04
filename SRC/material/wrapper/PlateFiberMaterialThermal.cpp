@@ -244,8 +244,7 @@ PlateFiberMaterialThermal::setTrialStrain(const Vector& strainFromElement)
     //+outOfPlaneStress(0))/threeDtangent(2,2);
     dd22.Solve(outOfPlaneStress, strainIncrement);
 
-    //strain33incr = strainIncrement(0);
-    //update out of plane strains
+    // Update
     // if( (Ttemp-Ctemp)<tolerance){
     this->Tstrain22 -= strainIncrement(0);
     //this->Tstrain22 -= Incrstrain22;

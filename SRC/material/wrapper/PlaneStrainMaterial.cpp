@@ -17,65 +17,26 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // $Revision: 1.2 $
 // $Date: 2009-05-20 22:03:16 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/PlaneStrainMaterial.cpp,v $
-
 //
 // Antonios Vytiniotis
 //
 // Generic Plane Strain Material
 //
-
-#include <Vector.h>
 #include <VectorND.h>
 #include <PlaneStrainMaterial.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <MaterialResponse.h>   //Antonios Vytiniotis used for the recorder
-#include <elementAPI.h>
+#include <MaterialResponse.h>
 using namespace OpenSees;
 
-void * OPS_ADD_RUNTIME_VPV(OPS_PlaneStrain)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 2) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: nDMaterial PlaneStrain tag? matTag?" << endln;
-	return 0;
-    }
-
-    int tag[2];
-    numdata = 2;
-    if (OPS_GetIntInput(&numdata,tag)<0) {
-	opserr << "WARNING invalid nDMaterial PlaneStrain tags" << endln;
-	return 0;
-    }
-
-    NDMaterial *threeDMaterial = OPS_getNDMaterial(tag[1]);
-    if (threeDMaterial == 0) {
-	opserr << "WARNING nD material does not exist\n";
-	opserr << "nD material: " << tag[1];
-	opserr << "\nPlaneStrain nDMaterial: " << tag[0] << endln;
-	return 0;
-    }
-      
-    NDMaterial* mat = new PlaneStrainMaterial( tag[0], *threeDMaterial );
-
-    if (mat == 0) {
-	opserr << "WARNING: failed to create PlaneStrain material\n";
-	return 0;
-    }
-
-    return mat;
-}
-
-//static vector and matrices
 Vector  PlaneStrainMaterial::stress(3) ;
 Matrix  PlaneStrainMaterial::tangent(3,3) ;
 
-//null constructor
+
 PlaneStrainMaterial::PlaneStrainMaterial( ) : 
 NDMaterial(0, ND_TAG_PlaneStrainMaterial ), 
 strain(3) 
@@ -83,7 +44,7 @@ strain(3)
 }
 
 
-//full constructor
+
 PlaneStrainMaterial::PlaneStrainMaterial(    
 				   int tag, NDMaterial &the3DMaterial ) :
 NDMaterial( tag, ND_TAG_PlaneStrainMaterial ),
@@ -213,9 +174,9 @@ PlaneStrainMaterial::getStress( )
   //three dimensional stress
   const Vector &threeDstress = theMaterial->getStress();
 
-  stress(0)=threeDstress(0);
-  stress(1)=threeDstress(1);
-  stress(2)=threeDstress(3);
+  stress(0) = threeDstress(0);
+  stress(1) = threeDstress(1);
+  stress(2) = threeDstress(3);
 
   return this->stress ;
 }

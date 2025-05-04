@@ -21,11 +21,13 @@
 #include <Matrix.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #include <Parameter.h>
 
 using namespace std;
 
+ID ElasticMembraneSection::array(3);
+
+#include <elementAPI.h>
 // Read input parameters and build the section
 void* OPS_ElasticMembraneSection()
 {
@@ -64,10 +66,7 @@ void* OPS_ElasticMembraneSection()
 	return theSection;
 }
 
-//static vector and matrices
-ID ElasticMembraneSection::array(3);
 
-// Full constructor
 ElasticMembraneSection::ElasticMembraneSection(int tag,		// section tag
 	double elasticModulus,									// Young's Modulus
 	double poisson,											// Poisson ratio
@@ -98,7 +97,7 @@ ElasticMembraneSection::ElasticMembraneSection() :
 	this->revertToStart();
 }
 
-// Destructor (clean up memory the ElasticMembraneSection objects allocates)
+
 ElasticMembraneSection::~ElasticMembraneSection()
 {
 
@@ -150,38 +149,38 @@ int ElasticMembraneSection::setTrialSectionDeformation(const Vector& newTrialSec
 	return 0;
 }
 
-const Vector& ElasticMembraneSection::getSectionDeformation(void)
+const Vector& ElasticMembraneSection::getSectionDeformation()
 {
 	return TSectionStrain;
 }
 
-const Vector& ElasticMembraneSection::getStressResultant(void)
+const Vector& ElasticMembraneSection::getStressResultant()
 {
 	return TSectionStress;
 }
 
-const Matrix& ElasticMembraneSection::getSectionTangent(void)
+const Matrix& ElasticMembraneSection::getSectionTangent()
 {
 	return TSectionTangent;
 }
 
-const Vector& ElasticMembraneSection::getCommittedStrain(void)
+const Vector& ElasticMembraneSection::getCommittedStrain()
 {
 	return CSectionStrain;
 }
 
-const Vector& ElasticMembraneSection::getCommittedStress(void)
+const Vector& ElasticMembraneSection::getCommittedStress()
 {
 	return CSectionStress;
 }
 
 // density per unit area
-double ElasticMembraneSection::getRho(void)
+double ElasticMembraneSection::getRho()
 {
 	return rho;
 }
 
-const Matrix& ElasticMembraneSection::getInitialTangent(void)
+const Matrix& ElasticMembraneSection::getInitialTangent()
 {
 	// Get the initial membrane section stiffness
 	double initialSectionTangent[3][3];			// membrane section stiffness: [Dm] = h*[MaterialTangent] is the membrane stiffness Tangent 
@@ -210,7 +209,7 @@ const Matrix& ElasticMembraneSection::getInitialTangent(void)
 	return InitialTangent;
 }
 
-SectionForceDeformation* ElasticMembraneSection::getCopy(void)
+SectionForceDeformation* ElasticMembraneSection::getCopy()
 {
 	ElasticMembraneSection* theCopy = new ElasticMembraneSection(this->getTag(),
 		E,
@@ -221,7 +220,8 @@ SectionForceDeformation* ElasticMembraneSection::getCopy(void)
 	return theCopy;
 }
 
-const ID& ElasticMembraneSection::getType(void)
+const ID& 
+ElasticMembraneSection::getType()
 {
 	static bool initialized = false;
 	if (!initialized) {
@@ -233,12 +233,12 @@ const ID& ElasticMembraneSection::getType(void)
 	return array;
 }
 
-int ElasticMembraneSection::getOrder(void) const
+int ElasticMembraneSection::getOrder() const
 {
 	return 3;
 }
 
-int ElasticMembraneSection::commitState(void)
+int ElasticMembraneSection::commitState()
 {
 	int success = 0;
 
@@ -250,7 +250,7 @@ int ElasticMembraneSection::commitState(void)
 	return success;
 }
 
-int ElasticMembraneSection::revertToLastCommit(void)
+int ElasticMembraneSection::revertToLastCommit()
 {
 	int success = 0;
 
@@ -262,7 +262,7 @@ int ElasticMembraneSection::revertToLastCommit(void)
 	return success;
 }
 
-int ElasticMembraneSection::revertToStart(void)
+int ElasticMembraneSection::revertToStart()
 {
 	int success = 0;
 

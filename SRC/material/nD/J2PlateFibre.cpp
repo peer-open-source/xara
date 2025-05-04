@@ -25,8 +25,10 @@
 // Written: MHS
 // Created: Aug 2001
 //
-// Description: Elastic isotropic model where stress 
+// Description: J2 plasticity with linear hardening and stress 
 // components 22, 33, 13, and 23 are condensed out.
+//
+// NOTE(cmp) THE COMMENT ABOVE IS WRONG
 
 #include <J2PlateFibre.h>           
 #include <Channel.h>

@@ -17,69 +17,29 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
+//
 // written: fmk derived from code in PlateRebarMaterial from
 // Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
-
+//
 #include <PlaneStressRebarMaterial.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <MaterialResponse.h>   //Antonios Vytiniotis used for the recorder
+#include <MaterialResponse.h>
 #include <math.h>
-#include <elementAPI.h>
 
 //static vector and matrices
 Vector  PlaneStressRebarMaterial::stress(3) ;
 Matrix  PlaneStressRebarMaterial::tangent(3,3) ;
 
-//null constructor
+
 PlaneStressRebarMaterial::PlaneStressRebarMaterial( ) : 
 NDMaterial(0, ND_TAG_PlaneStressRebarMaterial ), 
 strain(5) 
-{ }
+{ 
 
-void * OPS_ADD_RUNTIME_VPV(OPS_PlaneStressRebarMaterial)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 3) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: nDMaterial PlaneStressRebarMaterial tag? matTag? angle?" << endln;
-	return 0;
-    }
-
-    int tag[2];
-    numdata = 2;
-    if (OPS_GetIntInput(&numdata, tag)<0) {
-	opserr << "WARNING invalid nDMaterial PlaneStressRebarMaterial tag or matTag" << endln;
-	return 0;
-    }
-
-    UniaxialMaterial *theMaterial = OPS_getUniaxialMaterial(tag[1]);
-    if (theMaterial == 0) {
-      opserr << "WARNING uniaxialmaterial does not exist\n";
-      opserr << "UniaxialMaterial: " << tag[1];
-      opserr << "\nPlaneStressRebarMaterial nDMaterial: " << tag[0] << endln;
-      return 0;
-    }
-    
-    double angle;
-    numdata = 1;
-    if (OPS_GetDoubleInput(&numdata, &angle)<0) {
-      opserr << "WARNING invalid angle" << endln;
-      return 0;
-    }
-    
-    NDMaterial* mat = new PlaneStressRebarMaterial( tag[0], *theMaterial, angle);
-
-    if (mat == 0) {
-	opserr << "WARNING: failed to create PlaneStressRebarMaterial material\n";
-	return 0;
-    }
-    return mat;
 }
 
 
-//full constructor
 PlaneStressRebarMaterial::PlaneStressRebarMaterial(int tag,
 						   UniaxialMaterial &uniMat,
 						   double ang)
@@ -107,7 +67,7 @@ PlaneStressRebarMaterial::getCopy( )
 
   clone = new PlaneStressRebarMaterial( this->getTag(), 
 					*theMat,
-					angle ) ; //make the copy
+					angle);
   return clone ;
 }
 
@@ -169,7 +129,6 @@ PlaneStressRebarMaterial::getRho( )
 }
 
 
-//receive the strain
 int 
 PlaneStressRebarMaterial::setTrialStrain( const Vector &strainFromElement )
 {
@@ -177,6 +136,7 @@ PlaneStressRebarMaterial::setTrialStrain( const Vector &strainFromElement )
 
   if (angle == 0)
     return theMat->setTrialStrain(strain(0));
+
   else if (angle == 90)
     return theMat->setTrialStrain(strain(1));
   
@@ -312,7 +272,6 @@ PlaneStressRebarMaterial::sendSelf(int commitTag, Channel &theChannel)
     return res;
   }
 
-  // now send the materials data
   res += theMat->sendSelf(commitTag, theChannel);
   if (res < 0) 
     opserr << "PlaneStressRebarMaterial::sendSelf() - failed to send material1" << endln;

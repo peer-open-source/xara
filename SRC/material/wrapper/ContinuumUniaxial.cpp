@@ -159,26 +159,25 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
     //three dimensional stress
     const Vector &threeDstress = theMaterial->getStress();
 
-    //three dimensional tangent 
     const Matrix &threeDtangent = theMaterial->getTangent();
 
-    //out of plane stress and tangents
+    // out of plane stress and tangents
     for (int i=0; i<5; i++) {
 
       condensedStress(i) = threeDstress(i+1);
 
       for (int j=0; j<5; j++) 
-	dd22(i,j) = threeDtangent(i+1,j+1);
+        dd22(i,j) = threeDtangent(i+1,j+1);
 
     }
 
     //set norm
     norm = condensedStress.Norm();
 
-    //condensation 
+    // Condensation 
     dd22.Solve(condensedStress, strainIncrement);
 
-    //update out of plane strains
+    // Update
     Tstrain22 -= strainIncrement(0);
     Tstrain33 -= strainIncrement(1);
     Tgamma12  -= strainIncrement(2);
@@ -200,7 +199,6 @@ double
 ContinuumUniaxial::getStress()
 {
   const Vector &threeDstress = theMaterial->getStress();
-
   return threeDstress(0);
 }
 
@@ -225,9 +223,9 @@ ContinuumUniaxial::getTangent()
     }
   }
 
-  //condensation 
+  // condensation 
   dd22.Solve(dd21, dd22invdd21);
-  //dd11 -= (dd12*dd22invdd21);
+  // dd11 -= (dd12*dd22invdd21);
   dd11.addMatrixProduct(1.0, dd12, dd22invdd21, -1.0);
 
   return dd11(0,0);

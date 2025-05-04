@@ -15,6 +15,6 @@ target_sources(OPS_Material
     ElasticLinearFrameSection3d.h
 )
 
-add_subdirectory(Fiber)
+# add_subdirectory(Fiber)
 target_include_directories(OPS_Material PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(OPS_Element PUBLIC ${CMAKE_CURRENT_LIST_DIR})

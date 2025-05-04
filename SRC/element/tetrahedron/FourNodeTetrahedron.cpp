@@ -91,99 +91,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FourNodeTetrahedron)
     return new FourNodeTetrahedron(idata[0],idata[1],idata[2],idata[3],idata[4],*mat,data[0],data[1],data[2]);
 }
 
-#if 0
-void* OPS_FourNodeTetrahedron(const ID& info)
-{
-    if (info.Size() == 0) {
-	opserr << "WARNING: info is empty -- FourNodeTetrahedron\n";
-	return 0;
-    }
 
-    // save data
-    static std::map<int, Vector> meshdata;
-    int idata[6];
-    double data[3] = {0,0,0};
-    if (info(0) == 1) {
-
-	// check input
-	if (info.Size() < 2) {
-	    opserr << "WARNING: need info -- inmesh, meshtag\n";
-	    return 0;
-	}
-	if (OPS_GetNumRemainingInputArgs() < 1) {
-	    opserr << "WARNING insufficient arguments:\n";
-	    opserr << "matTag <b1, b2, b3>\n";
-	    return 0;
-	}
-
-	// get tag
-	int numdata = 1;
-	if (OPS_GetIntInput(&numdata, &idata[5]) < 0) {
-	    opserr << "WARNING: failed to get material tag -- FourNodeTetrahedron\n";
-	    return 0;
-	}
-
-	// get body forces
-	numdata = OPS_GetNumRemainingInputArgs();
-	if (numdata > 3) {
-	    numdata = 3;
-	}
-	if (numdata > 0) {
-	    if (OPS_GetDoubleInput(&numdata,data) < 0) {
-		opserr << "WARNING: failed to get body force -- FourNodeTetrahedron\n";
-		return 0;
-	    }
-	}
-
-	// save data for a mesh
-	Vector& mdata = meshdata[info(1)];
-	mdata.resize(4);
-	mdata(0) = (double)idata[5];
-	for (int i=0; i<3; ++i) {
-	    mdata(i+1) = data[i];
-	}
-	return &meshdata;
-    }
-
-    // load data
-    if (info(0) == 2) {
-	if (info.Size() < 7) {
-	    opserr << "WARNING: need info -- inmesh, meshtag, eleTag, nd1, nd2, nd3, nd4\n";
-	    return 0;
-	}
-
-	// get data for a mesh
-	Vector& mdata = meshdata[info(1)];
-	if (mdata.Size() < 4) {
-	    return 0;
-	}
-
-	idata[5] = (int)mdata(0);
-	for (int i=0; i<3; ++i) {
-	    data[i] = mdata(i+1);
-	}
-
-	for (int i=2; i<7; ++i) {
-	    idata[i-2] = info(i);
-	}
-
-	// check material
-	NDMaterial* mat = OPS_getNDMaterial(idata[5]);
-	if (mat == 0) {
-	    opserr << "WARNING material not found\n";
-	    opserr << "material tag: " << idata[5];
-	    opserr << "\nFourNodeTetrahedron element: " << idata[0] << endln;
-	}
-
-	return new FourNodeTetrahedron(idata[0],idata[1],idata[2],idata[3],idata[4],*mat,data[0],data[1],data[2]);
-    }
-
-    return 0;
-    
-}
-#endif
-
-//static data
 double  FourNodeTetrahedron::xl[3][NumNodes] ;
 Matrix  FourNodeTetrahedron::stiff(NumDOFsTotal,NumDOFsTotal) ;
 Vector  FourNodeTetrahedron::resid(NumDOFsTotal) ;
@@ -202,7 +110,7 @@ const double  FourNodeTetrahedron::wg[] = { 0.166666666666666667 } ;
   
 Matrix FourNodeTetrahedron::B(NumStressComponents,NumDOFsPerNode) ;
 
-//null constructor
+
 FourNodeTetrahedron::FourNodeTetrahedron( ) 
 :Element( 0, ELE_TAG_FourNodeTetrahedron ),
  connectedExternalNodes(NumNodes), applyLoad(0), load(0), Ki(0)
@@ -475,11 +383,8 @@ const Matrix&  FourNodeTetrahedron::getTangentStiff( )
 }    
 
 
-//return secant matrix 
-//const Matrix&  FourNodeTetrahedron::getSecantStiff( ) 
-
-const Matrix&  FourNodeTetrahedron::getInitialStiff( ) 
-
+const Matrix&
+FourNodeTetrahedron::getInitialStiff( ) 
 {
   if (Ki != 0)
     return *Ki;

@@ -113,7 +113,7 @@ ElasticIsotropicAxiSymm::getInitialTangent (void)
 }
 
 const Vector&
-ElasticIsotropicAxiSymm::getStress (void)
+ElasticIsotropicAxiSymm::getStress(void)
 {
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);

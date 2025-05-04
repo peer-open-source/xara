@@ -167,7 +167,8 @@ PlaneStressLayeredMaterial::getCopy(const char *type) {
   }
 }
 
-NDMaterial  *PlaneStressLayeredMaterial::getCopy( ) 
+NDMaterial *
+PlaneStressLayeredMaterial::getCopy( ) 
 {
   PlaneStressLayeredMaterial *clone = 0;   //new instance of this class
   clone = new PlaneStressLayeredMaterial(this->getTag(),
@@ -229,9 +230,8 @@ PlaneStressLayeredMaterial::getRho( )
 
 }
 
-//receive the strainResultant 
-int PlaneStressLayeredMaterial ::
-setTrialStrain( const Vector &inStrain)
+int
+PlaneStressLayeredMaterial::setTrialStrain( const Vector &inStrain)
 {
   strain = inStrain;
   int success = 0;
@@ -282,7 +282,8 @@ const Vector&  PlaneStressLayeredMaterial::getStress( )
 
 
 const Matrix&  
-PlaneStressLayeredMaterial::getInitialTangent( ){
+PlaneStressLayeredMaterial::getInitialTangent( )
+{
   tangent.Zero();
   for (int i = 0; i < nLayers; i++ ) {
     const Matrix &dd = theFibers[i]->getInitialTangent( ) ;
@@ -294,18 +295,20 @@ PlaneStressLayeredMaterial::getInitialTangent( ){
 
 
 const Matrix&  
-PlaneStressLayeredMaterial::getTangent( ){
+PlaneStressLayeredMaterial::getTangent( )
+{
   tangent.Zero();
   for (int i = 0; i < nLayers; i++ ) {
     const Matrix &dd = theFibers[i]->getTangent( ) ;
     tangent.addMatrix(1.0, dd, wg[i]);
-  } //end for i
+  }
 
   return tangent;
 }
 
 
-void  PlaneStressLayeredMaterial::Print( OPS_Stream &s, int flag )
+void
+PlaneStressLayeredMaterial::Print( OPS_Stream &s, int flag )
 {
   s << "PlaneStressLayered Section tag: " << this->getTag() << endln ; 
   s << "Total thickness h = " << h << endln ;

@@ -144,12 +144,6 @@ OPS_Export void* OPS_ADD_RUNTIME_VPV(OPS_OrthotropicRotatingAngleConcreteT2DMate
 		dData[0], dData[1], 
 		rhoNDM, damageCte1, damageCte2);
 
-	if (theMaterial == 0) {
-		opserr << "WARNING ran out memory creating material\n";
-		opserr << "OrthotropicRotatingAngleConcreteT2DMaterial01: " << tag << endln;
-		return 0;
-	}
-
 	return theMaterial;
 }
 

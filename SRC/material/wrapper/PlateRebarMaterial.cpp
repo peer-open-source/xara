@@ -27,68 +27,22 @@
 //
 // Generic Plate Rebar Material
 //
-/* Ref: Lu X, Lu XZ, Guan H, Ye LP, Collapse simulation of reinforced 
-concrete high-rise building induced by extreme earthquakes, 
-Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723*/
-
+// Ref: Lu X, Lu XZ, Guan H, Ye LP, Collapse simulation of reinforced 
+//      concrete high-rise building induced by extreme earthquakes, 
+//      Earthquake Engineering & Structural Dynamics, 2013, 42(5): 705-723
+//
 #include <PlateRebarMaterial.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <MaterialResponse.h> //Antonios Vytiniotis used for the recorder
+#include <MaterialResponse.h>
 #include <math.h>
-#include <elementAPI.h>
 
-//static vector and matrices
 Vector PlateRebarMaterial::stress(5);
 Matrix PlateRebarMaterial::tangent(5, 5);
 
-//null constructor
 PlateRebarMaterial::PlateRebarMaterial() : NDMaterial(0, ND_TAG_PlateRebarMaterial), strain(5) {}
 
-void*
-OPS_ADD_RUNTIME_VPV(OPS_PlateRebarMaterial)
-{
-  int numdata = OPS_GetNumRemainingInputArgs();
-  if (numdata < 3) {
-    opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: nDMaterial PlateRebar tag? matTag? angle?" << endln;
-    return 0;
-  }
 
-  int tag[2];
-  numdata = 2;
-  if (OPS_GetIntInput(&numdata, tag) < 0) {
-    opserr << "WARNING invalid nDMaterial PlateRebar tag or matTag" << endln;
-    return 0;
-  }
-
-  UniaxialMaterial* theMaterial = OPS_getUniaxialMaterial(tag[1]);
-  if (theMaterial == 0) {
-    opserr << "WARNING uniaxialmaterial does not exist\n";
-    opserr << "UniaxialMaterial: " << tag[1];
-    opserr << "\nPlateRebar nDMaterial: " << tag[0] << endln;
-    return 0;
-  }
-
-  double angle;
-  numdata = 1;
-  if (OPS_GetDoubleInput(&numdata, &angle) < 0) {
-    opserr << "WARNING invalid angle" << endln;
-    return 0;
-  }
-
-  NDMaterial* mat = new PlateRebarMaterial(tag[0], *theMaterial, angle);
-
-  if (mat == 0) {
-    opserr << "WARNING: failed to create PlateRebar material\n";
-    return 0;
-  }
-
-  return mat;
-}
-
-
-//full constructor
 PlateRebarMaterial::PlateRebarMaterial(int tag, UniaxialMaterial& uniMat, double ang)
  : NDMaterial(tag, ND_TAG_PlateRebarMaterial), strain(5), angle(ang)
 {
@@ -99,10 +53,9 @@ PlateRebarMaterial::PlateRebarMaterial(int tag, UniaxialMaterial& uniMat, double
 }
 
 
-//destructor
 PlateRebarMaterial::~PlateRebarMaterial()
 {
-  if (theMat != 0)
+  if (theMat != nullptr)
     delete theMat;
 }
 
@@ -110,12 +63,7 @@ PlateRebarMaterial::~PlateRebarMaterial()
 NDMaterial*
 PlateRebarMaterial::getCopy()
 {
-  PlateRebarMaterial* clone; //new instance of this class
-
-  clone = new PlateRebarMaterial(this->getTag(), *theMat,
-                                 angle); //make the copy
-
-  return clone;
+  return new PlateRebarMaterial(this->getTag(), *theMat,angle);
 }
 
 
@@ -124,8 +72,8 @@ PlateRebarMaterial::getCopy(const char* type)
 {
   if (strcmp(type, this->getType()) == 0)
     return this->getCopy();
-  else
-    return 0;
+
+  return this->NDMaterial::getCopy(type);
 }
 
 
@@ -143,7 +91,6 @@ PlateRebarMaterial::getType() const
 }
 
 
-//swap history variables
 int
 PlateRebarMaterial::commitState()
 {
@@ -208,8 +155,10 @@ PlateRebarMaterial::getStress()
   stress.Zero();
   if (angle == 0)
     stress(0) = sig;
+
   else if (angle == 90)
     stress(1) = sig;
+
   else {
     stress(0) = sig * c * c;
     stress(1) = sig * s * s;

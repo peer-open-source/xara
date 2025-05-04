@@ -18,7 +18,7 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Description: Elastic isotropic model where stress
+// Description: J2 plasticity material where stress
 // components 22, 33, 13, and 23 are constrained to 0.
 //
 // Written: MHS

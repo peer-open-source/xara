@@ -55,7 +55,7 @@ class ParallelSection : public SectionForceDeformation
 
     ~ParallelSection();
 
-    const char *getClassType(void) const {return "ParallelSection";};
+    const char *getClassType(void) const {return "ParallelSection";}
 
     int   setTrialSectionDeformation(const Vector &deforms); 
     const Vector &getSectionDeformation(void);

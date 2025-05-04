@@ -31,7 +31,7 @@
 
 const double MembranePlateFiberSection::root56 = sqrt(5.0 / 6.0); //shear correction
 
-//static vector and matrices
+
 Vector MembranePlateFiberSection::stressResultant(8);
 Matrix MembranePlateFiberSection::tangent(8, 8);
 ID MembranePlateFiberSection::array(8);
@@ -41,31 +41,16 @@ const double MembranePlateFiberSection::sg[] = {-1, -0.65465367, 0, 0.65465367, 
 
 const double MembranePlateFiberSection::wg[] = {0.1, 0.5444444444, 0.7111111111, 0.5444444444, 0.1};
 
-/*      from Ham-O
-        case 5:
-         xi(0,0) = -1.;
-         xi(1,0) = -0.65465367;
-         xi(2,0) =  0.;
-         xi(3,0) =  0.65465367;
-         xi(4,0) =  1.;
-      
-         w(0) =  0.1;
-         w(1) =  0.5444444444;
-         w(2) =  0.7111111111;
-         w(3) =  0.5444444444;
-         w(4) =  0.1;
-      break;
-*/
 
 MembranePlateFiberSection::MembranePlateFiberSection()
  : SectionForceDeformation(0, SEC_TAG_MembranePlateFiberSection), h(0.), strainResultant(8)
 {
   for (int i = 0; i < numFibers; i++)
-    theFibers[i] = 0;
+    theFibers[i] = nullptr;
 }
 
 
-//full constructor
+
 MembranePlateFiberSection::MembranePlateFiberSection(int tag, double thickness, NDMaterial& Afiber)
  : SectionForceDeformation(tag, SEC_TAG_MembranePlateFiberSection), strainResultant(8)
 {
@@ -90,7 +75,6 @@ MembranePlateFiberSection::getCopy()
 }
 
 
-//send back order of strainResultant in vector form
 int
 MembranePlateFiberSection::getOrder() const
 {

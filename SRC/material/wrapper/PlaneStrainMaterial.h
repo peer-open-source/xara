@@ -17,19 +17,13 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2009-10-13 21:11:45 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/PlaneStrainMaterial.h,v $
-
+//
 // Antonios Vytiniotis
 //
 // Generic Plane Strain Material
 //
+#pragma once
 
-
-#include <stdio.h> 
-#include <stdlib.h> 
 #include <math.h> 
 
 #include <Vector.h>

@@ -961,7 +961,7 @@ void ShellDKGQ::formResidAndTangent(int tang_flag)
     strain.Zero();
 
     // j-node loop to compute strain
-    for (j = 0; j < ShellDKGQ::numberNodes; j++) {
+    for (int j = 0; j < ShellDKGQ::numberNodes; j++) {
 
       //compute B matrix
 

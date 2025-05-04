@@ -25,7 +25,7 @@
 // Description: This file contains the implementation of the commands used
 // to add beam column joint to a model.
 // Update: Optional User interfaces added in.
-
+//
 #include <tcl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +41,6 @@
 
 #include <Node.h>
 #include <UniaxialMaterial.h>
-// #include <elementAPI.h>
 
 
 int

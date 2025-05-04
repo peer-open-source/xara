@@ -30,8 +30,7 @@
 // condensation on a three-dimensional material model to give the 11 and 12
 // stress components which can then be integrated over an area to model a
 // shear flexible 2D beam.
-
-#include <stdio.h> 
+//
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -44,37 +43,35 @@ class BeamFiberMaterial2dPS: public NDMaterial {
 
   public:
     BeamFiberMaterial2dPS(int tag, NDMaterial &theMat);
-    BeamFiberMaterial2dPS(void);
-    virtual ~BeamFiberMaterial2dPS(void);
+    BeamFiberMaterial2dPS();
+    virtual ~BeamFiberMaterial2dPS();
 
     int setTrialStrain( const Vector &strainFromElement);
-    const Vector& getStrain(void);
-    const Vector& getStress(void);
-    const Matrix& getTangent(void);
-    const Matrix& getInitialTangent(void);
+    const Vector& getStrain();
+    const Vector& getStress();
+    const Matrix& getTangent();
+    const Matrix& getInitialTangent();
 
-    double getRho(void);
+    double getRho();
 
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
-    NDMaterial *getCopy(void);
+    NDMaterial *getCopy();
     NDMaterial *getCopy(const char *type);
-    const char *getType(void) const;
-    int getOrder(void) const; 
+    const char *getType() const;
+    int getOrder() const; 
 
     void Print(OPS_Stream &s, int flag);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     int setParameter(const char **argv, int argc, Parameter &param);
 
-    const Vector& getStressSensitivity(int gradIndex,
-				       bool conditional);
-    int commitSensitivity(const Vector &depsdh, int gradIndex,
-			  int numGrads);
+    const Vector& getStressSensitivity(int gradIndex, bool conditional);
+    int commitSensitivity(const Vector &depsdh, int gradIndex, int numGrads);
 
   private:
     double Tstrain22;

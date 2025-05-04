@@ -30,7 +30,7 @@
 //
 
 
-#include <MembranePlateFiberSectionThermal.h>
+#include "MembranePlateFiberSectionThermal.h"
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <SensitiveResponse.h>
@@ -38,7 +38,6 @@ typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
 #include <Information.h>
 
 
-//parameters
 //const double MembranePlateFiberSectionThermal::root56 = 1 ; //shear correction
 const double MembranePlateFiberSectionThermal::root56 = sqrt(5.0 / 6.0); //shear correction
 
