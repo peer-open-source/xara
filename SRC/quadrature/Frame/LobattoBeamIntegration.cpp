@@ -212,8 +212,7 @@ LobattoBeamIntegration::getSectionLocations(int numSections,
 }
 
 void
-LobattoBeamIntegration::getSectionWeights(int numSections, double L,
-					  double *wt) const
+LobattoBeamIntegration::getSectionWeights(int numSections, double L, double *wt) const
 {
   switch (numSections) {
     
@@ -252,7 +251,7 @@ LobattoBeamIntegration::getSectionWeights(int numSections, double L,
     wt[5] = 0.06666666667;
     break;
     
-  case 7:    
+  case 7:
     wt[0] = 0.04761904762;
     wt[1] = 0.2768260473;
     wt[2] = 0.4317453812;

@@ -41,12 +41,11 @@ class LobattoBeamIntegration : public BeamIntegration
   void getSectionLocations(int nIP, double L, double *xi) const;
   void getSectionWeights(int nIP, double L, double *wt) const;
 
-  BeamIntegration *getCopy(void);
+  BeamIntegration *getCopy();
 
   // These two methods do nothing
-  int sendSelf(int cTag, Channel &theChannel) {return 0;}
-  int recvSelf(int cTag, Channel &theChannel,
-	       FEM_ObjectBroker &theBroker) {return 0;}
+  int sendSelf(int cTag, Channel &) {return 0;}
+  int recvSelf(int cTag, Channel &, FEM_ObjectBroker &) {return 0;}
 
   void Print(OPS_Stream &s, int flag = 0);  
 };
