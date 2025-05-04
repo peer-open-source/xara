@@ -60,16 +60,15 @@ J2Plasticity( )
   commitEps22 =0.0;
 }
 
-J2PlateFiber :: 
-J2PlateFiber(   int    tag, 
-                 double K,
-                 double G,
-                 double yield0,
-                 double yield_infty,
-                 double d,
-                 double H,
-		double viscosity,
-		double rho) : 
+J2PlateFiber::J2PlateFiber(   int    tag, 
+                          double K,
+                          double G,
+                          double yield0,
+                          double yield_infty,
+                          double d,
+                          double H,
+                          double viscosity,
+                          double rho) : 
 J2Plasticity(tag, ND_TAG_J2PlateFiber, 
              K, G, yield0, yield_infty, d, H, viscosity, rho )
 { 

@@ -26,16 +26,12 @@
 //
 //  Elastic Plate Section
 //
-
-
 #include <ElasticPlateSection.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-//parameters
-const double ElasticPlateSection::five6 = 5.0 / 6.0; //shear correction
 
 //static vector and matrices
 Vector ElasticPlateSection::stress(5);
@@ -145,7 +141,7 @@ ElasticPlateSection::getStressResultant()
 
   double G = 0.5 * E / (1.0 + nu); //shear modulus
 
-  G *= five6;
+  G *= shear_factor;
   G *= h;
 
 
@@ -183,7 +179,7 @@ ElasticPlateSection::getSectionTangent()
 
   tangent(2, 2) = -0.5 * D * (1.0 - nu);
 
-  tangent(3, 3) = five6 * G * h;
+  tangent(3, 3) = shear_factor * G * h;
 
   tangent(4, 4) = tangent(3, 3);
 
@@ -211,7 +207,7 @@ ElasticPlateSection::getInitialTangent()
 
   tangent(2, 2) = -0.5 * D * (1.0 - nu);
 
-  tangent(3, 3) = five6 * G * h;
+  tangent(3, 3) = shear_factor * G * h;
 
   tangent(4, 4) = tangent(3, 3);
 

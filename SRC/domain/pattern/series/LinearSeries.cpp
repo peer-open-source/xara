@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.3 $
-// $Date: 2010-02-04 00:34:10 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/pattern/LinearSeries.cpp,v $
-
-
+//
 // Written: fmk
 // Created: 07/99
 // Revision: A

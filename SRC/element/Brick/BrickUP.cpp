@@ -76,7 +76,7 @@ const double  BrickUP::sg[] = { -one_over_root3,
 			       one_over_root3  } ;
 
 const double  BrickUP::wg[] = { 1.0, 1.0, 1.0, 1.0,
-                              1.0, 1.0, 1.0, 1.0  } ;
+                                1.0, 1.0, 1.0, 1.0  } ;
 
 
 
