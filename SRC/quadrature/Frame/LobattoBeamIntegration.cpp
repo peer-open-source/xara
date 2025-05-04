@@ -23,11 +23,13 @@
 // $Source: /usr/local/cvs/OpenSees/SRC/element/forceBeamColumn/LobattoBeamIntegration.cpp,v $
 
 #include <LobattoBeamIntegration.h>
-#include <elementAPI.h>
 #include <ID.h>
 
-void* OPS_LobattoBeamIntegration(int& integrationTag, ID& secTags)
+#include <elementAPI.h>
+void* 
+OPS_LobattoBeamIntegration(int& integrationTag, ID& secTags)
 {
+  // integrationTag,secTag,N   -or-   N,*secTagList
   int nArgs = OPS_GetNumRemainingInputArgs();
 
   if (nArgs < 3) {
@@ -64,6 +66,7 @@ void* OPS_LobattoBeamIntegration(int& integrationTag, ID& secTags)
       secTags(i) = iData[1];
     }
   }
+
   else {
     // inputs: integrationTag,N,*secTagList
     int Nsections = iData[1];
@@ -110,6 +113,7 @@ LobattoBeamIntegration::getSectionLocations(int numSections,
 					    double L,
 					    double *xi) const
 {
+
   switch(numSections) {
     
   case 2:

@@ -241,10 +241,12 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
+
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
   if (theMaterial == nullptr) {
     return TCL_ERROR;
   }
+
   // now create the brick and add it to the Domain
   Twenty_Node_Brick *theTwentyNodeBrick =
       new Twenty_Node_Brick(brickId, Nod[0], Nod[1], Nod[2], Nod[3], Nod[4],
@@ -253,10 +255,7 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
                             Nod[14],
                             Nod[15], Nod[16], Nod[17], Nod[18], Nod[19],
                             *theMaterial, b1, b2, b3);
-  if (theTwentyNodeBrick == 0) {
-    opserr << "WARNING ran out of memory creating element\n";
-    return TCL_ERROR;
-  }
+
   if (theTclDomain->addElement(theTwentyNodeBrick) == false) {
     opserr << "WARNING could not add element to the domain\n";
     delete theTwentyNodeBrick;

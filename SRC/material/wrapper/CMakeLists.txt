@@ -17,7 +17,6 @@ target_sources(OPS_Material
     InitStrainNDMaterial.cpp
     ParallelMaterial.cpp
     SeriesMaterial.cpp
-
     # Plate
     PlateFiberMaterial.cpp
     PlateFromPlaneStressMaterial.cpp

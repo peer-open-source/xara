@@ -22,8 +22,6 @@
 //
 // Ed "C++" Love
 //
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 
 #include <Vector.h>
@@ -35,17 +33,9 @@
 
 class ElasticPlateSection : public SectionForceDeformation {
 
-  //-------------------Declarations-------------------------------
-
 public:
-  //null constructor
   ElasticPlateSection();
-
-  //full constructor
   ElasticPlateSection(int tag, double E, double nu, double h = 1.0);
-
-
-  //destructor
   ~ElasticPlateSection();
 
   SectionForceDeformation* getCopy();
@@ -55,23 +45,14 @@ public:
 
   const ID& getType();
 
-  //swap history variables
   int commitState();
-
   int revertToLastCommit();
-
   int revertToStart();
-
-  //get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);
 
   const Vector& getSectionDeformation();
-
   const Vector& getStressResultant();
-
   const Matrix& getSectionTangent();
-
-  //send back the initial tangent
   const Matrix& getInitialTangent();
 
   void Print(OPS_Stream& s, int flag);
@@ -84,13 +65,10 @@ private:
   double nu; // poisson ratio
   double h;  // plate thickness
 
-  static const double five6; // =5/6 = shear correction factor
+  static constexpr double shear_factor = 5.0/6.0; // shear correction factor
 
   Vector strain;
-
   static Vector stress;
-
   static Matrix tangent;
-
   static ID array;
 };

@@ -75,17 +75,7 @@ FlatSliderSimple2d::FlatSliderSimple2d(int tag, int Nd1, int Nd2,
     
     // get copies of the uniaxial materials
     for (int i=0; i<2; i++)  {
-        if (materials[i] == 0)  {
-            opserr << "FlatSliderSimple2d::FlatSliderSimple2d() - "
-                "null uniaxial material pointer passed.\n";
-            exit(-1);
-        }
         theMaterials[i] = materials[i]->getCopy();
-        if (theMaterials[i] == 0)  {
-            opserr << "FlatSliderSimple2d::FlatSliderSimple2d() - "
-                << "failed to copy uniaxial material.\n";
-            exit(-1);
-        }
     }
     
     // initialize initial stiffness matrix
@@ -178,7 +168,7 @@ void FlatSliderSimple2d::setDomain(Domain *theDomain)
                 << " does not exist in the model for";
         }
         opserr << " element: " << this->getTag() << ".\n";
-        
+
         return;
     }
     
@@ -439,7 +429,8 @@ const Matrix& FlatSliderSimple2d::getDamp()
 }
 
 
-const Matrix& FlatSliderSimple2d::getMass()
+const Matrix& 
+FlatSliderSimple2d::getMass()
 {
     // zero the matrix
     theMatrix.Zero();

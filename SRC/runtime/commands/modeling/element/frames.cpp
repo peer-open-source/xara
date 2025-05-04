@@ -14,7 +14,6 @@
 //        E? A? I? transfTag? <-shear shearLength?> <-mass massDens?> 
 //        <-iter maxIters tolerance>
 //
-#if 1
 // Standard library
   #include <string>
   #include <array>
@@ -95,7 +94,6 @@
   #include <HingeRadauTwoBeamIntegration.h>
 
   #include <transform/FrameTransformBuilder.hpp>
-#endif
 
 using namespace OpenSees;
 
@@ -797,6 +795,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       deleteBeamIntegr = false;
       removeHingeIntegr = false;
     }
+
     else {
       // If we fail to parse an integer tag, treat it like an inline definition
       builder->findFreeTag<BeamIntegrationRule>(itg_tag);
@@ -830,12 +829,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   //
   else if (positions.size() == 3) {
-    // Transform
-    if (Tcl_GetInt(interp, argv[positions[2]], &transfTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid transform\n";
-      status = TCL_ERROR;
-      goto clean_up;
-    }
 
     int nIP;
     if (Tcl_GetInt(interp, argv[positions[0]], &nIP) != TCL_OK) {
@@ -859,6 +852,13 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
     for (int i=0; i < nIP; i++)
       section_tags.push_back(secTag);
+
+    // Transform
+    if (Tcl_GetInt(interp, argv[positions[2]], &transfTag) != TCL_OK) {
+      opserr << OpenSees::PromptValueError << "invalid transform\n";
+      status = TCL_ERROR;
+      goto clean_up;
+    }
   }
 
   
@@ -874,9 +874,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   // Finalize the quadrature
   if (beamIntegr == nullptr) {
     if (strstr(argv[1], "ispBeam") == 0) {
-      beamIntegr = new LobattoBeamIntegration();
+      beamIntegr = GetBeamIntegration("Lobatto"); // new LobattoBeamIntegration();
     } else {
-      beamIntegr = new LegendreBeamIntegration();
+      beamIntegr = GetBeamIntegration("Legendre"); // LegendreBeamIntegration();
     }
     deleteBeamIntegr = true;
   }

@@ -43,8 +43,6 @@
 #include <string.h>
 
 
-
-
 // initialize the class wide variables
 Matrix RJWatsonEQS3d::theMatrix(12,12);
 Vector RJWatsonEQS3d::theVector(12);

@@ -14,7 +14,7 @@
 // Source: \OpenSees\SRC\material\section\LayeredMembraneSection
 //
 // Rev: 1.0
-
+//
 #ifndef LayeredMembraneSection_h
 #define LayeredMembraneSection_h
 

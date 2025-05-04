@@ -21,15 +21,12 @@
 // $Revision: 1.8 $
 // $Date: 2007/05/03 23:03:01 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/section/MembranePlateFiberSectionThermal.cpp,v $
-
+//
 // Ed "C++" Love
 //
 //  Generic Plate Section with membrane
 // Modified for SIF modelling by Jian Jiang,Liming Jiang [http://openseesforfire.github.io]
-
 //
-
-
 #include "MembranePlateFiberSectionThermal.h"
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
