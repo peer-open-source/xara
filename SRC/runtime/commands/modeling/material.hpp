@@ -4,6 +4,45 @@
 //
 //===----------------------------------------------------------------------===//
 //
+//
+//                 stress         |          strain
+//          1   2   3   4   5   6 |  
+//         xx  yy  zz  xy  yz  zx |  11  22  33  12  23  31
+//    PSn:  1   2       3         |   1   2   0   3   0   0
+//    PSe:  1   2   0   3   -   ? |   1   2  [1]  3  [2] [3]
+//    PF :  1   2   -   3   4   5 |   1   2  [1]  3   4   5
+//    BF :  1   0   0   2   0   3 |   1  [1] [2]  2  [3]  3
+//    AS?:  1   2   3   4   -   
+//
+// strains ordered  00, 11, 22, 01  
+//            i.e.  11, 22, 33, 12 
+//
+//            strain(0) =   eps_00
+//            strain(1) =   eps_11
+//            strain(2) =   eps_22
+//            strain(3) = 2*eps_01
+//
+//  same ordering for stresses but no 2 
+//
+//
+// strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31 
+// NDmaterial  strain order       = 11, 22, 33, 12, 23, 31 
+// PlaneStress strain order       = 11, 22, 12, 33, 23, 31
+// BeamFiber   strain order       = 11, 12, 31, 22, 33, 23
+// PlateFiber strain order        = 11, 22, 12, 23, 31, 33
+
+// Platefiber: 22, 33, 13, and 23 are condensed out.
+
+// PlateFiberMaterial strain order =  11, 22, 12, 23, 31, 33
+
+//
+//      0  1  2  3  4  5
+// ND : 11 22 33   12   23   31
+// PS : 11 22 12   33   23   31 
+// PF : 11 22 12   23   31   33 | 
+// BF : 11 12 13 | 22   33   23 
+// AS : 11 22 33 12
+//
 #include <tcl.h>
 #include <string>
 #include <assert.h>
@@ -12,12 +51,14 @@
 #include <elementAPI.h>
 #include <NDMaterial.h>
 
-static Tcl_CmdProc TclCommand_addPlaneWrapper;
+extern Tcl_CmdProc TclCommand_addPlaneWrapper;
 extern Tcl_CmdProc TclCommand_newJ2Material;
 extern Tcl_CmdProc TclCommand_newJ2Simplified;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 extern Tcl_CmdProc TclCommand_newElasticMaterial;
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
+extern Tcl_CmdProc TclCommand_newPlateRebar;
+extern Tcl_CmdProc TclCommand_newPlateFiber;
 
 extern OPS_Routine OPS_ElasticOrthotropicPlaneStress;
 extern OPS_Routine OPS_OrthotropicMaterial;
@@ -54,11 +95,6 @@ extern OPS_Routine OPS_CycLiqCPSPMaterial;
 extern OPS_Routine OPS_InitStressNDMaterial;
 extern OPS_Routine OPS_StressDensityMaterial;
 extern OPS_Routine OPS_PlaneStressLayeredMaterial;
-extern OPS_Routine OPS_PlaneStressRebarMaterial;
-extern OPS_Routine OPS_PlateFiberMaterial;
-extern OPS_Routine OPS_BeamFiberMaterial;
-extern OPS_Routine OPS_BeamFiberMaterial2d;
-extern OPS_Routine OPS_BeamFiberMaterial2dPS;
 extern OPS_Routine OPS_LinearCap;
 extern OPS_Routine OPS_AcousticMedium;
 extern OPS_Routine OPS_UVCmultiaxial;
@@ -130,7 +166,6 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
 // Orthotropic
   {"ElasticOrthotropic",               dispatch<OPS_ElasticOrthotropicMaterial>},
   {"ElasticOrthotropicPlaneStress",    dispatch<OPS_ElasticOrthotropicPlaneStress>},
-
 //
 // Plasticity
 //
@@ -151,16 +186,11 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
 
   {"UVCplanestress",                   dispatch<OPS_UVCplanestress       > },
   {"UVCmultiaxial",                    dispatch<OPS_UVCmultiaxial        > },
-  {"J2PlateFibre",                     dispatch<OPS_J2PlateFibreMaterial>}, 
-  {"PlateFiber",                       dispatch<OPS_PlateFiberMaterial>},
+  {"J2PlateFibre",                     dispatch<OPS_J2PlateFibreMaterial >},
 //
   {"ManzariDafalias",                  dispatch<OPS_ManzariDafaliasMaterial>},
   {"ManzariDafaliasRO",                dispatch<OPS_ManzariDafaliasMaterialRO>},
 
-  // Beam fiber
-  {"BeamFiber",                        dispatch<OPS_BeamFiberMaterial> },
-  {"BeamFiber2d",                      dispatch<OPS_BeamFiberMaterial2d> },
-  {"BeamFiber2dPS",                    dispatch<OPS_BeamFiberMaterial2dPS> },
 
   {"DruckerPragerThermal",             dispatch<OPS_DruckerPragerMaterialThermal> },
   {"TruncatedDP",                      dispatch<OPS_LinearCap     > },
@@ -172,10 +202,6 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
 //
 // Wrapper
 //
-  {"PlaneStressMaterial",              dispatch<TclCommand_addPlaneWrapper>},
-  {"PlaneStress",                      dispatch<TclCommand_addPlaneWrapper>},
-  {"PlaneStrainMaterial",              dispatch<TclCommand_addPlaneWrapper>},
-  {"PlaneStrain",                      dispatch<TclCommand_addPlaneWrapper>},
   {"InitStrainMaterial",               dispatch<TclCommand_addWrappingMaterial>},
   {"InitStrain",                       dispatch<TclCommand_addWrappingMaterial>},
   {"InitialStrain",                    dispatch<TclCommand_addWrappingMaterial>},
@@ -184,12 +210,26 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
   {"Series3DMaterial",                 dispatch<OPS_Series3DMaterial>},
   {"Parallel3DMaterial",               dispatch<OPS_Parallel3DMaterial>},
   {"Parallel3D",                       dispatch<OPS_Parallel3DMaterial>},
+  // Beam fiber (             22, 33, and 23 == 0)
+  {"BeamFiber",                        dispatch<TclCommand_newPlateFiber>},
+  {"BeamFiber2d",                      dispatch<TclCommand_newPlateFiber>},
+  {"BeamFiber2dPS",                    dispatch<TclCommand_newPlateFiber>},
+  // Plane 
+  {"PlaneStressMaterial",              dispatch<TclCommand_addPlaneWrapper>},
+  {"PlaneStress",                      dispatch<TclCommand_addPlaneWrapper>},
+  {"PlaneStrainMaterial",              dispatch<TclCommand_addPlaneWrapper>},
+  {"PlaneStrain",                      dispatch<TclCommand_addPlaneWrapper>},
+  {"PlaneStressRebarMaterial",         dispatch<TclCommand_newPlateRebar>},
+  // Plate  (constrain stress 33 == 13 == 23 == 0) 
+  {"PlateRebarMaterial",               dispatch<TclCommand_newPlateRebar>},
+  {"PlateRebar",                       dispatch<TclCommand_newPlateRebar>},
+  {"PlateFiberMaterial",               dispatch<TclCommand_newPlateFiber>},
+  {"PlateFiber",                       dispatch<TclCommand_newPlateFiber>},
 //
 // Other
 //
   {"ReinforcedConcretePlaneStress",    dispatch<OPS_ReinforcedConcretePlaneStressMaterial>},
   {"PlaneStressLayeredMaterial",       dispatch<OPS_PlaneStressLayeredMaterial>},
-  {"PlaneStressRebarMaterial",         dispatch<OPS_PlaneStressRebarMaterial>},
   {"ASDConcrete3D",                    dispatch<OPS_ASDConcrete3DMaterial>},
   {"PlasticDamageConcrete",            dispatch<OPS_NewPlasticDamageConcrete3d>},
   {"PlasticDamageConcretePlaneStress", dispatch<OPS_NewPlasticDamageConcretePlaneStress>},

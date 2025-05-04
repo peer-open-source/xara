@@ -63,11 +63,15 @@ if (UNIX)
 
     if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
       add_compile_options(
-        $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-fsanitize=address,undefined> #, leak
+        -g
+        -fno-omit-frame-pointer
+#       -gdwarf-4
+#       -fsanitize=address,undefined #, leak
       )
-      add_link_options(
-        $<$<LINK_LANG_AND_ID:CXX,AppleClang>:-fsanitize=address,undefined> # , leak
-      )
+#     add_link_options(
+#       -fsanitize=address,undefined # , leak
+#       -shared-libsan
+#     )
     endif()
   else()
     message(":: LINUX")
@@ -99,9 +103,16 @@ if (UNIX)
   add_compile_options(
     $<$<CONFIG:DEBUG>:-g3>
     $<$<CONFIG:DEBUG>:-Og>
-    $<$<CONFIG:DEBUG>:-O0>
-    $<$<CONFIG:RELEASE>:-O3>
+    $<$<CONFIG:DEBUG>:-O1>
   )
+  if (FALSE) #DEFINED ENV{OPENSEESRT_BUILD} AND  STREQUAL "light")
+    # For CI environments; minimize optimization and debug info
+    # for efficiency
+    add_compile_options(-O2 -g0)
+  elseif (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+    add_compile_options(-O3)
+  elseif (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+  endif()
 
   if (DEFINED ProfileBuild)
     # Profiling with gprof
@@ -164,35 +175,36 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 else ()
   # This includes AppleClang
   set(CMAKE_CXX_STANDARD 17)
- 
 endif()
-
-set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# Compiler warnings
-if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    add_compile_options(-Wno-unused-parameter)
-endif()
-add_compile_options(
-  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>"
-  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-reorder>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-unused-parameter>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-deprecated-declarations>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-ignored-optimization-argument>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-invalid-utf8>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-inconsistent-missing-override>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-reorder>"
-  "$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-dummy-argument>"
-)
 
 # Global compiler definitions
 add_compile_definitions(
     "$<$<COMPILE_LANGUAGE:C,CXX>: OPS_USE_RUNTIME>"
     "$<$<COMPILE_LANGUAGE:C,CXX>: USE_TCL_STUBS>"
     "$<$<COMPILE_LANGUAGE:C,CXX>: _TCL85>"
-    "$<$<COMPILE_LANGUAGE:C,CXX>: _NOGRAPHICS>"
+#   "$<$<COMPILE_LANGUAGE:C,CXX>: _NOGRAPHICS>"
 ) # _THREADS
+
+
+# Compiler warnings
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  add_compile_options(
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wall>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder-ctor>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-inconsistent-missing-override>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated-declarations>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>"
+  )
+endif()
+add_compile_options(
+  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-reorder>"
+  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-deprecated-declarations>"
+  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-ignored-optimization-argument>"
+  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-invalid-utf8>"
+  "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-reorder>"
+  "$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-dummy-argument>"
+)
 
 #----------------------------------------------------------------
 # Global Includes
@@ -233,7 +245,7 @@ include_directories(
   ${OPS_SRC_DIR}/graph/partitioner
   ${OPS_SRC_DIR}/material
   ${OPS_SRC_DIR}/material/nD
-  ${OPS_SRC_DIR}/material/Solid
+  ${OPS_SRC_DIR}/material/elastic
   ${OPS_SRC_DIR}/material/section
   ${OPS_SRC_DIR}/material/section/yieldSurface
   ${OPS_SRC_DIR}/material/uniaxial
@@ -249,7 +261,6 @@ include_directories(
   ${OPS_SRC_DIR}/analysis/numberer
   ${OPS_SRC_DIR}/analysis/integrator
   ${OPS_SRC_DIR}/runtime/runtime/Renderer
-
 )
 
 #==============================================================================
@@ -330,9 +341,6 @@ add_library(G3)
 set_property(TARGET OPS_Runtime           PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_MaterialFortran   PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_ElementFortran    PROPERTY POSITION_INDEPENDENT_CODE 1)
-if ("${CMAKE_Fortran_COMPILER_ID}" MATCHES "GNU")
-  target_compile_options(OPS_ElementFortran PRIVATE "-w")
-endif()
 set_property(TARGET G3                    PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 
@@ -403,13 +411,6 @@ foreach(extension IN LISTS OPS_Exclude_List)
   add_compile_definitions(${ext_flag})
 endforeach()
 
-# Reliability
-#----------------------------
-if ("OPS_Reliability" IN_LIST OPS_Extension_List)
-    add_compile_definitions(_RELIABILITY)
-    target_link_libraries(${OPS_FINAL_TARGET} OPS_Reliability)
-endif()
-
 
 # HDF5
 #----------------------------
@@ -451,6 +452,9 @@ get_target_property(OPS_Element_COMPILE_OPTIONS OPS_Element COMPILE_OPTIONS)
   string(REPLACE "-Wextra" "" OPS_Element_COMPILE_OPTIONS "${OPS_Element_COMPILE_OPTIONS}")
   set_target_properties(OPS_Element PROPERTIES COMPILE_OPTIONS "${OPS_Element_COMPILE_OPTIONS}")
 
+if ("${CMAKE_Fortran_COMPILER_ID}" MATCHES "GNU")
+  target_compile_options(OPS_ElementFortran PRIVATE "-w")
+endif()
 
 #
 # Install

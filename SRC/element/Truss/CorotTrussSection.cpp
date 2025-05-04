@@ -22,7 +22,7 @@
 // Created: May 2001
 //
 // Description: This file contains the class implementation for CorotTrussSection.
-
+//
 #include <CorotTrussSection.h>
 #include <Information.h>
 

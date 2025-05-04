@@ -41,9 +41,9 @@ ElasticBDShearSection2d::ElasticBDShearSection2d()
 {
     if (code(0) != SECTION_RESPONSE_P)
     {
-      code(0) = SECTION_RESPONSE_P;      // P is the first quantity
-      code(1) = SECTION_RESPONSE_MZ;     // Mz is the second
-      code(2) = SECTION_RESPONSE_VY;     // Vy is the third
+      code(0) = SECTION_RESPONSE_P; 
+      code(1) = SECTION_RESPONSE_MZ;
+      code(2) = SECTION_RESPONSE_VY;
     }    
 }
 

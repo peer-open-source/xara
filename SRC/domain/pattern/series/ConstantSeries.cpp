@@ -40,57 +40,6 @@
 #include <classTags.h>
 #include <Parameter.h>
 
-#if 0
-#include <elementAPI.h>
-#define OPS_Export 
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_ConstantSeries)
-{
-  // Pointer to a uniaxial material that will be returned
-  TimeSeries *theSeries = 0;
-
-  int numRemainingArgs = OPS_GetNumRemainingInputArgs();
-
-  int tag = 0;
-  double cFactor = 1.0;
-  int numData = 0;
-
-  if (numRemainingArgs != 0) {
-  
-    if (numRemainingArgs == 1 || numRemainingArgs == 3) {
-      numData = 1;
-      if (OPS_GetIntInput(&numData, &tag) != 0) {
-	opserr << "WARNING invalid series tag in ConstantSeries tag? <-factor factor?>" << endln;
-	return 0;
-      }
-      numRemainingArgs --;
-    }
-
-    if (numRemainingArgs > 1) {
-      const char *argvS = OPS_GetString();
-	  if (argvS == 0) {
-		  opserr << "WARNING string error in  ConstantSeries with tag: " << tag << endln;
-		return 0;
-	  }
-      numData = 1;
-      if (OPS_GetDouble(&numData, &cFactor) != 0) {
-	  opserr << "WARNING invalid factor in  ConstantSeries with tag: " << tag << endln;
-	  return 0;
-      }
-    }
-  }
-
-  theSeries = new ConstantSeries(tag, cFactor);
-
-  if (theSeries == 0) {
-    opserr << "WARNING ran out of memory creating ConstantTimeSeries with tag: " << tag << "\n";
-    return 0;
-  }
-
-  return theSeries;
-}
-#endif
-
 
 ConstantSeries::ConstantSeries(int tag, double theFactor)
   :TimeSeries(tag,  TSERIES_TAG_ConstantSeries),

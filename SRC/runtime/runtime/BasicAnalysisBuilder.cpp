@@ -307,17 +307,17 @@ BasicAnalysisBuilder::domainChanged(void)
 int
 BasicAnalysisBuilder::analyze(int num_steps, double size_steps, int flag)
 {
-
+  int status = -1;
   switch (this->CurrentAnalysisFlag) {
 
     case STATIC_ANALYSIS:
-      return this->analyzeStatic(num_steps, flag);
+      status = this->analyzeStatic(num_steps, flag);
       break;
 
     case TRANSIENT_ANALYSIS: {
       // TODO: Need to remove global timestep variable;
       ops_Dt = size_steps;
-      return this->analyzeTransient(num_steps, size_steps);
+      status = this->analyzeTransient(num_steps, size_steps);
       break;
     }
 
@@ -325,6 +325,11 @@ BasicAnalysisBuilder::analyze(int num_steps, double size_steps, int flag)
       opserr << G3_ERROR_PROMPT << "No Analysis type has been specified \n";
       return -1;
   }
+
+  // TODO: This should be done when exact compatibility with upstream is needed;
+  // add an environment variable or flag to control it.
+  // theDomain->flushRecorders();
+  return status;
 }
 
 int

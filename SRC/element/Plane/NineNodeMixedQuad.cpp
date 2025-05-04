@@ -2,18 +2,16 @@
 **    OpenSees - Open System for Earthquake Engineering Simulation    **
 **          Pacific Earthquake Engineering Research Center            **
 **                                                                    **
-**                                                                    **
 ** ****************************************************************** */
 //
 // Ed "C++" Love
 //
 // Mixed Presssure/Volume Nine Node Quadrilateral
 // Plane Strain (NOT PLANE STRESS)
-// 
+//
 // Q2/P1 ??
 
 #include <string.h>
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -43,53 +41,6 @@ double   NineNodeMixedQuad::root06 = sqrt(0.6) ;
 double   NineNodeMixedQuad::sg[] = { -root06,   0.0,      root06  } ;
 double   NineNodeMixedQuad::wg[] = {  5.0/9.0,  8.0/9.0,  5.0/9.0 } ;
 
-#if 0
-void * OPS_ADD_RUNTIME_VPV(OPS_NineNodeMixedQuad)
-{
-    if (OPS_GetNDM() != 2 || OPS_GetNDF() != 2) {
-        opserr << "WARNING -- model dimensions and/or nodal DOF not compatible with quad element\n";
-        return 0;
-    }
-
-    // check the number of arguments is correct
-    if (OPS_GetNumRemainingInputArgs() < 11) {
-        opserr << "WARNING insufficient arguments\n";
-        opserr << "Want: element NineNodeMixedQuad  eleTag?"  
-               << " iNode? jNode? kNode? lNode? mNode, nNode, pNode, qNode, centerNode " 
-               << " matTag?\n"; 
-        return 0;
-    }    
-
-    // get the id and end nodes
-    int idata[11];
-    int numdata = 11;
-    // int NineNodeMixedQuadId, iNode, jNode, kNode, lNode ;
-    // int                  mNode, nNode, pNode, qNode ;
-    // int centerNode ;
-    // int matID;
-
-    if (OPS_GetIntInput(&numdata, idata) < 0) {
-        opserr << "WARNING invalid NineNodeMixedQuad int inputs" << endln;
-        return 0;
-    }
-    
-    NDMaterial *theMaterial = OPS_getNDMaterial(idata[10]);
-      
-    if (theMaterial == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << idata[10];
-        opserr << "\nNineNodeMixedQuad element: " << idata[0] << endln;
-        return 0;
-    }
-  
-    // now create the NineNodeMixedQuad and add it to the Domain
-    NineNodeMixedQuad *theNineNodeMixed = 
-        new NineNodeMixedQuad(idata[0],idata[1],idata[2],idata[3],idata[4],
-                              idata[5],idata[6],idata[7],idata[8],idata[9], *theMaterial);
-
-    return theNineNodeMixed;
-}
-#endif
 
 //null constructor
 NineNodeMixedQuad :: NineNodeMixedQuad( ) :
@@ -101,7 +52,6 @@ connectedExternalNodes(9) , load(0), Ki(0)
 }
 
 
-//full constructor
 NineNodeMixedQuad :: NineNodeMixedQuad( int tag, 
                                         int node1,
                                         int node2,
@@ -132,15 +82,12 @@ connectedExternalNodes(9) , load(0), Ki(0)
     materialPointers[i] = theMaterial.getCopy("AxiSymmetric2D") ;
     
     if (materialPointers[i] == 0) {
-
       opserr << "NineNodeMixedQuad::constructor() - failed to get a material of type: AxiSymmetric2D\n";
-    } //end if
-      
-  } //end for i 
+    }   
+  }
 }
 
 
-//destructor 
 NineNodeMixedQuad :: ~NineNodeMixedQuad( )
 {
   for (int i=0 ; i<9; i++ ) {
@@ -159,7 +106,6 @@ NineNodeMixedQuad :: ~NineNodeMixedQuad( )
 }
 
 
-//set domain
 void 
 NineNodeMixedQuad::setDomain( Domain *theDomain ) 
 {  
@@ -218,7 +164,6 @@ NineNodeMixedQuad::commitState( )
  
 
 
-//revert to last commit 
 int 
 NineNodeMixedQuad::revertToLastCommit( ) 
 {
@@ -355,11 +300,8 @@ NineNodeMixedQuad::getInitialStiff( )
   //---------B-matrices------------------------------------
 
     static Matrix BJ(nstress,ndf) ;      // B matrix node J
-
     static Matrix BJtran(ndf,nstress) ;
-
     static Matrix BK(nstress,ndf) ;      // B matrix node k
-
     static Matrix BJtranD(ndf,nstress) ;
 
   //-------------------------------------------------------
@@ -441,8 +383,8 @@ NineNodeMixedQuad::getInitialStiff( )
       //increment gauss point counter
       count++ ;
 
-    } // end for j
-  } // end for i 
+    }
+  }
   
 
 
@@ -775,9 +717,7 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
   static double xsj ;  // determinant jacaobian matrix 
 
   static double dvol[numberGauss] ; //volume element
-
   static double gaussPoint[ndm] ;
-
   static double natCoorArray[ndm][numberGauss] ;
 
   static Vector strain(nstress) ;  //strain

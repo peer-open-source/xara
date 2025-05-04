@@ -1,4 +1,11 @@
-
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
+// Written: cmp
+//
 #include <tcl.h>
 #include <string.h>
 #include <Parsing.h>
@@ -11,7 +18,7 @@
 
 int
 TclCommand_addPlaneSection(ClientData clientData, Tcl_Interp *interp,
-                              int argc, TCL_Char ** const argv)
+                           int argc, TCL_Char ** const argv)
 {
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
   enum class Positions : int {
@@ -57,6 +64,7 @@ TclCommand_addPlaneSection(ClientData clientData, Tcl_Interp *interp,
       positional.insert(i);
     }
   }
+
   for (int i: positional) {
     switch (tracker.current()) {
       case Positions::Material:

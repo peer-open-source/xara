@@ -79,7 +79,7 @@ createLinearRigidBeam(Domain &theDomain, int ret_tag, int con_tag)
              <<  con_tag <<  " must be >= dimension of problem\n";
       return CONSTRAINT_ERROR;
     }
-    
+
     // create the ID to identify the constrained dof 
     ID id(numDOF);
 
@@ -366,14 +366,15 @@ createLinearRigidDiaphragm(Domain &theDomain, int ret_tag, ID &nC,
           delete newC;
           return CONSTRAINT_ERROR;
         }
+      }
 
-      } else  {
+      else  {
         opserr << G3_WARN_PROMPT 
                << "ignoring constrained node  " << ndC << ", not 3D node\n";
         return CONSTRAINT_OK;
-      }
-      
+      }      
     } // for each node in constrained nodes
+
     return CONSTRAINT_OK;
 }
 
@@ -436,21 +437,20 @@ TclCommand_RigidLink(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
              << OpenSees::SignalMessageEnd; 
       return TCL_ERROR;
   }
+
   if (Tcl_GetInt(interp, argv[3], &cNode) != TCL_OK) {
       opserr << G3_ERROR_PROMPT 
              << "invalid CNode"
-             << OpenSees::SignalMessageEnd; 
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
   }
 
   // construct a rigid rod or beam depending on 1st arg
   if ((strcmp(argv[1],"-bar") == 0) || (strcmp(argv[1],"bar") == 0)) {
-    // RigidRod theLink(*theTclDomain, rNode, cNode);
     return createLinearRigidRod(*theTclDomain, rNode, cNode);
 
   } else if ((strcmp(argv[1],"-beam") == 0) || (strcmp(argv[1],"beam") == 0)) {
     return createLinearRigidBeam(*theTclDomain, rNode, cNode);
-    //RigidBeam theLink(*theTclDomain, rNode, cNode);
 
   } else {
       opserr << G3_ERROR_PROMPT 

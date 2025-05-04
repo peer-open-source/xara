@@ -27,7 +27,7 @@
 //
 // Description: Elastic isotropic model where stress 
 // components 22, 33, 13, and 23 are condensed out.
-
+//
 #include <ElasticIsotropicBeamFiber2d.h>           
 #include <Channel.h>
 #include <string.h>

@@ -63,34 +63,33 @@ class LoadPattern :
     LoadPattern(int tag, double fact = 1.0);    
     LoadPattern();                                         // for FEM_ObjectBroker
     LoadPattern(int tag, int classTag, double fact = 1.0); // for subclasses
-    
-    // destructor
+
     virtual ~LoadPattern();
 
     // method to set the associated TimeSeries and Domain
     virtual void setTimeSeries(TimeSeries *theSeries);
     virtual void setDomain(Domain *theDomain);
-    Domain* getDomain(void) {return theDomain;}
+    Domain* getDomain() {return theDomain;}
 
     // methods to add loads
     virtual bool addSP_Constraint(SP_Constraint *);
     virtual bool addNodalLoad(NodalLoad *);
     virtual bool addElementalLoad(ElementalLoad *);
-    virtual NodalLoadIter     &getNodalLoads(void);
-    virtual ElementalLoadIter &getElementalLoads(void);    
-    virtual SP_ConstraintIter &getSPs(void);        
+    virtual NodalLoadIter     &getNodalLoads();
+    virtual ElementalLoadIter &getElementalLoads();    
+    virtual SP_ConstraintIter &getSPs();        
 
     // methods to remove loads
-    virtual void clearAll(void);
+    virtual void clearAll();
     virtual NodalLoad *removeNodalLoad(int tag);
     virtual ElementalLoad *removeElementalLoad(int tag);
     virtual SP_Constraint *removeSP_Constraint(int tag);
 
     // methods to apply loads
     virtual void applyLoad(double pseudoTime = 0.0);
-    virtual void setLoadConstant(void);
-    virtual void unsetLoadConstant(void);
-    virtual double getLoadFactor(void);
+    virtual void setLoadConstant();
+    virtual void unsetLoadConstant();
+    virtual double getLoadFactor();
 
     // methods for o/p
     virtual int sendSelf(int commitTag, Channel &theChannel);
@@ -106,14 +105,13 @@ class LoadPattern :
 
     // AddingSensitivity:BEGIN //////////////////////////////////////////
     virtual void applyLoadSensitivity(double pseudoTime = 0.0);
-    virtual int setParameter(const char **argv, int argc, Parameter &param);
+    virtual int  setParameter(const char **argv, int argc, Parameter &param);
     virtual int  updateParameter(int parameterID, Information &info);
     virtual int  activateParameter(int parameterID);
     virtual const Vector & getExternalForceSensitivity(int gradNumber);
 
     virtual int saveLoadFactorSensitivity(double dlambdadh, int gradIndex, int numGrads);
     virtual double getLoadFactorSensitivity(int gradIndex);
-    // AddingSensitivity:END ///////////////////////////////////////////
 
   protected:
     bool   isConstant;     // to indicate whether setConstant has been called

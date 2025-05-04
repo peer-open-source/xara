@@ -54,22 +54,23 @@ public:
 	Response* setResponse(const char** argv, int argc, OPS_Stream& theOutputStream);
 	int getResponse(int responseID, Information& matInformation);
 
-	int commitState(void);
+	int commitState();
 	int revertToLastCommit(void);
 	int revertToStart(void);
 
-	NDMaterial* getCopy(void);
+	NDMaterial* getCopy();
 	NDMaterial* getCopy(const char* type);
 
 	void Print(OPS_Stream& s, int flag = 0);
 	int sendSelf(int commitTag, Channel& theChannel);
 	int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 
-	const char* getType(void) const { return "PlaneStress"; };
+	const char* getType(void) const { return "PlaneStress"; }
+
 	int getOrder(void) const { return 3; };
 
-	const Vector& getStress(void);
-	const Vector& getStrain(void);
+	const Vector& getStress();
+	const Vector& getStrain();
 
 protected:
 

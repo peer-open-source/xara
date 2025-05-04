@@ -20,11 +20,6 @@ algorithms, including mixed formulations for beams and solids, over 200 material
 extensive collection of continuation algorithms to solve highly nonlinear
 problems. 
 
-<!--
-The `opensees` package supports high quality interactive post processing via the
-[`sees`](https://pypi.org/project/sees) package.
--->
-
 This package may be used as a drop-in replacement for both `OpenSees.exe` and
 OpenSeesPy (see *Getting Started* below), and generally provides a substantial performance boost.
 

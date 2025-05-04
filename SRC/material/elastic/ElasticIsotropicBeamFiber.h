@@ -23,7 +23,7 @@
 //
 // Written: MHS
 // Created: Aug 2001
-// //
+//
 #ifndef ElasticIsotropicBeamFiber_h
 #define ElasticIsotropicBeamFiber_h
 

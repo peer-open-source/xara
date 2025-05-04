@@ -22,8 +22,8 @@
 #ifndef ShellThermalAction_h
 #define ShellThermalAction_h
 
-  //Based on JZ, JJ @Edinburgh University                                                                    
- //Modified by Liming Jiang [http://openseesforfire.github.io]
+// Based on JZ, JJ @Edinburgh University                                                                    
+// Modified by Liming Jiang [http://openseesforfire.github.io]
 
 #include <ElementalLoad.h>
 #include <TimeSeries.h>

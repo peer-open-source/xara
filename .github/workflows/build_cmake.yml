@@ -8,10 +8,10 @@ env:
 
 on:
   push:
-    branches: [main]
+    branches: [stable]
 
   pull_request:
-    branches: [main]
+    branches: [stable]
 
 permissions:
   contents: write
@@ -33,6 +33,7 @@ jobs:
     - name: Build
       id: build
       run: |
+        set -o pipefail
         mkdir build
         cd build
         cmake .. -DNoOpenSeesPyRT:BOOL=TRUE
@@ -43,9 +44,6 @@ jobs:
         echo "warnings=$XARA_SRC_WARN_COUNT" >> $GITHUB_OUTPUT 
         echo "::warning::We found $XARA_SRC_WARN_COUNT warnings"
 
-#   - name: Count warnings
-#     id: count
-#     run: |
 
     - name: Comment on PR with warning count
       # Only run if it's a PR (not just a push)

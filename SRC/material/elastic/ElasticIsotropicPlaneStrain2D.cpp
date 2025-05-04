@@ -20,6 +20,7 @@
 //
 #include <ElasticIsotropicPlaneStrain2D.h>                                                                        
 #include <Channel.h>
+
 Vector ElasticIsotropicPlaneStrain2D::sigma(3);
 Matrix ElasticIsotropicPlaneStrain2D::D(3,3);
 

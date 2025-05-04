@@ -22,15 +22,14 @@
 // $Date: 2007-10-26 04:47:37 $
 // $Source: /usr/local/cvs/OpenSees/SRC/element/forceBeamColumn/HingeEndpointBeamIntegration.cpp,v $
 
-/*
- * Reference
-
-Scott, M. H. and G. L. Fenves. "Plastic Hinge Integration Methods for
-Force-Based Beam-Column Elements." Journal of Structural Engineering,
-132(2):244-252, February 2006.
-
- *
- */
+//
+// Reference
+//
+//  Scott, M. H. and G. L. Fenves. "Plastic Hinge Integration Methods for
+//  Force-Based Beam-Column Elements." Journal of Structural Engineering,
+//  132(2):244-252, February 2006.
+//
+//
 
 #include <HingeEndpointBeamIntegration.h>
 #include <ElementalLoad.h>

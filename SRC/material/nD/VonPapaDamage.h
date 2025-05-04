@@ -32,14 +32,11 @@
 
 class VonPapaDamage : public NDMaterial {
 
-//-------------------Declarations-------------------------------
 
 public :
 
-  //null constructor
   VonPapaDamage( ) ;
 
-  //full constructor
   VonPapaDamage(int tag,
                 double E1,
                 double E2,
@@ -64,14 +61,12 @@ public :
                 double  b) ;
 
 
-  //destructor
   ~VonPapaDamage( ) ;
 
   const char *getClassType(void) const {return "VonPapaDamage";};
 
     NDMaterial* getCopy( ) ;
 
-  //send back type of material
   const char* getType( ) const ;
 
     int getOrder( ) const ;

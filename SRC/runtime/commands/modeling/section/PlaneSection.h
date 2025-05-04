@@ -1,9 +1,18 @@
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
+// Written: cmp
+//
 #pragma once
 #include <TaggedObject.h>
 
 
 template<typename MatT>
 class PlaneSection: public TaggedObject {
+
   public:
 
     PlaneSection(int tag, MatT& material, double thickness) 
