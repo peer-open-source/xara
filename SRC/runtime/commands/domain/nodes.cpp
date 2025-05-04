@@ -733,6 +733,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
     nodalResponse =
         the_domain->getNodeResponse(tag, (NodeData)responseID);
 
+
   if (nodalResponse == nullptr || nodalResponse->Size() < dof || dof < 0)
     // TODO: add error message
     return TCL_ERROR;
