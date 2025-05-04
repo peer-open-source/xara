@@ -1854,6 +1854,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResponse(int responseID, Information& info)
   }
 
   else if (responseID == 10) {
+    // "integrationPoints" response
     // ensure we have L, xi[] and wt[]
     if (this->setState(State::Init) != 0)
       return -1;

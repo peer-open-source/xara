@@ -50,21 +50,20 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-//static vectors and matrices
-Vector J2AxiSymm :: strain_vec(4) ;
-Vector J2AxiSymm :: stress_vec(4) ;
-Matrix J2AxiSymm :: tangent_matrix(4,4) ;
+// static vectors and matrices
+Vector J2AxiSymm::strain_vec(4) ;
+Vector J2AxiSymm::stress_vec(4) ;
+Matrix J2AxiSymm::tangent_matrix(4,4) ;
 
 
-//null constructor
-J2AxiSymm ::  J2AxiSymm( ) : 
+J2AxiSymm::J2AxiSymm(): 
 J2Plasticity( ) 
-{  }
+{
+
+}
 
 
-//full constructor
-J2AxiSymm :: 
-J2AxiSymm(   int    tag, 
+J2AxiSymm::J2AxiSymm(   int    tag, 
 	     double K,
 	     double G,
 	     double yield0,
@@ -80,7 +79,6 @@ J2Plasticity( tag, ND_TAG_J2AxiSymm,
 }
 
 
-//elastic constructor
 J2AxiSymm :: 
 J2AxiSymm(   int    tag, 
                  double K, 
@@ -119,7 +117,7 @@ int J2AxiSymm :: getOrder( ) const
 } 
 
 
-//get the strain and integrate plasticity equations
+// get the strain and integrate plasticity equations
 int J2AxiSymm :: setTrialStrain( const Vector &strain_from_element) 
 {
   strain.Zero( ) ;
@@ -131,43 +129,46 @@ int J2AxiSymm :: setTrialStrain( const Vector &strain_from_element)
   strain(0,1) = 0.50 * strain_from_element(3) ;
   strain(1,0) =        strain(0,1) ;
 
-  this->plastic_integrator( ) ;
+  this->plastic_integrator();
 
   return 0 ;
 }
 
 
-//unused trial strain functions
-int J2AxiSymm :: setTrialStrain( const Vector &v, const Vector &r )
+int
+J2AxiSymm::setTrialStrain( const Vector &v, const Vector &r )
 { 
    return this->setTrialStrain( v ) ;
 } 
 
-int J2AxiSymm :: setTrialStrainIncr( const Vector &v ) 
+int
+J2AxiSymm::setTrialStrainIncr( const Vector &v ) 
 {
     return -1 ;
 }
 
-int J2AxiSymm :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
+int
+J2AxiSymm::setTrialStrainIncr( const Vector &v, const Vector &r ) 
 {
     return -1 ;
 }
 
 
 
-const Vector& J2AxiSymm :: getStrain( ) 
+const Vector&
+J2AxiSymm::getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
   strain_vec(2) =       strain(2,2) ;
-
   strain_vec(3) = 2.0 * strain(0,1) ;
 
   return strain_vec ;
 } 
 
 
-const Vector& J2AxiSymm :: getStress( ) 
+const Vector&
+J2AxiSymm::getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
@@ -178,7 +179,8 @@ const Vector& J2AxiSymm :: getStress( )
   return stress_vec ;
 }
 
-const Matrix& J2AxiSymm :: getTangent( ) 
+const Matrix&
+J2AxiSymm::getTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -205,7 +207,8 @@ const Matrix& J2AxiSymm :: getTangent( )
   return tangent_matrix ;
 } 
 
-const Matrix& J2AxiSymm :: getInitialTangent( ) 
+const Matrix&
+J2AxiSymm::getInitialTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -235,7 +238,8 @@ const Matrix& J2AxiSymm :: getInitialTangent( )
 } 
 
 //swap history variables
-int J2AxiSymm :: commitState( )  
+int
+J2AxiSymm::commitState( )  
 {
   epsilon_p_n = epsilon_p_nplus1 ;
   xi_n        = xi_nplus1 ;
@@ -244,12 +248,14 @@ int J2AxiSymm :: commitState( )
 }
 
 
-int J2AxiSymm :: revertToLastCommit( )
+int
+J2AxiSymm::revertToLastCommit( )
 { 
   return 0 ;
 } 
 
-int J2AxiSymm :: revertToStart( ) 
+int
+J2AxiSymm::revertToStart( ) 
 
 {  
   this->zero( ) ;

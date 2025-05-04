@@ -39,57 +39,6 @@
 #include <Vector.h>
 #include <Channel.h>
 
-#if 0
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_LinearSeries)
-{
-  // Pointer to a uniaxial material that will be returned
-  TimeSeries *theSeries = 0;
-
-  int numRemainingArgs = OPS_GetNumRemainingInputArgs();
-
-  int tag = 0;
-  double cFactor = 1.0;
-  int numData = 0;
-
-  if (numRemainingArgs != 0) {
-
-    if (numRemainingArgs == 1 || numRemainingArgs == 3) {
-      numData = 1;
-      if (OPS_GetIntInput(&numData, &tag) != 0) {
-	opserr << "WARNING invalid series tag in LinearSeries tag? <-factor factor?>" << endln;
-	return 0;
-      }
-      numRemainingArgs--;
-    }
-
-    if (numRemainingArgs > 1) {
-      const char *argvS = OPS_GetString();
-	   if (argvS == 0) {
-		  opserr << "WARNING string error in LinearSeries with tag: " << tag << endln;
-		return 0;
-	  }
-      numData = 1;
-      if (OPS_GetDouble(&numData, &cFactor) != 0) {
-	opserr << "WARNING invalid factor in LinearSeries with tag: " << tag << endln;
-	return 0;
-      }
-    }
-  }
-
-  theSeries = new LinearSeries(tag, cFactor);
-
-  if (theSeries == 0) {
-    opserr << "WARNING ran out of memory creating ConstantTimeSeries with tag: " << tag << "\n";
-    return 0;
-  }
-
-  return theSeries;
-}
-#endif
-
-
 LinearSeries::LinearSeries(int tag, double theFactor)
   :TimeSeries(tag, TSERIES_TAG_LinearSeries),
    cFactor(theFactor)

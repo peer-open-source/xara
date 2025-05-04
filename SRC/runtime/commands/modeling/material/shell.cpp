@@ -96,6 +96,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL
 
   if ((strcmp(argv[1], "PlateFiber") == 0) ||
       (strcmp(argv[1], "PlateFiberThermal") == 0)) { // TODO: add thermal
+    
     if (argc < 5) {
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: section PlateFiber tag? matTag? h? \n";
@@ -130,14 +131,14 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL
 
   else if ((strcmp(argv[1], "LayeredShell") == 0) ||
            (strcmp(argv[1], "LayeredShellThermal") == 0)) { // TODO: add thermal
-    
+
     // section LayeredShell tag? nLayers? <mat1? h1? ... matTagn? hn?> -or- <matTag? thickness?> 
 
     int status = TCL_ERROR;
     if (argc < 6) {
       opserr << OpenSees::PromptValueError 
              << "insufficient arguments " << "\n";
-      opserr << "Want: section LayeredShell tag? nLayers? matTag1? h1? ... matTagn? hn? "
+      opserr << "Want: section LayeredShell tag? nLayers? mat1? h1? ... matn? hn? "
              << endln;
       return TCL_ERROR;
     }

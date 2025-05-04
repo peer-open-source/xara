@@ -53,9 +53,9 @@ std::string toLower( const std::string & s )
 }
 
 static bool 
-equalsIgnoreCase( const std::string & lhs, const std::string & rhs )
+equalsIgnoreCase(const std::string & lhs, const std::string & rhs )
 {
-    return toLower( lhs ) == toLower( rhs );
+    return toLower(lhs) == toLower( rhs );
 }
 
 class CaseInsensitive
@@ -269,8 +269,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
         case Position::Type:
           type = argv[i];
 
-          if (strcmp(type,"PlaneStrain") != 0 && 
-              strcmp(type,"PlaneStress") != 0 &&
+          if (strcmp(type,"PlaneStrain") != 0   && 
+              strcmp(type,"PlaneStress") != 0   &&
               strcmp(type,"PlaneStrain2D") != 0 && 
               strcmp(type,"PlaneStress2D") != 0) {
             opserr << OpenSees::PromptValueError 
@@ -362,6 +362,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
           new Tri31(tag, nodes, *nd_mat, thickness, p, rho, b1, b2);
     }
   }
+
   else if (nen == 4) {
     std::array<int, 4> nodes;
     for (int i=0; i<4; i++)
@@ -384,15 +385,20 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
         return TCL_ERROR;
       }
       if (strcasecmp(argv[1], "EnhancedQuad") == 0) {
-
         theElement =
             new EnhancedQuad(tag, nodes, *nd_mat, thickness);
+      }
+      else if (strcasecmp(argv[1], "bbarQuad") == 0 || 
+               strcasecmp(argv[1], "mixedQuad") == 0) {
+        theElement = new ConstantPressureVolumeQuad(tag, nodes[0], nodes[1], nodes[2], nodes[3], *nd_mat, thickness);
+
       }
       else 
         theElement =
             new FourNodeQuad(tag, nodes, *nd_mat, thickness, p, rho, b1, b2);
     }
   }
+
   else if (nen == 8) {
     std::array<int, 8> nodes;
     for (int i=0; i<8; i++)
@@ -469,8 +475,7 @@ TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
   // check the number of arguments is correct
   if ((argc - argStart) < 7) {
     opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-    opserr << "Want: element ConstantPressureVolumeQuad eleTag? iNode? jNode? "
-              "kNode? lNode? thk? matTag?\n";
+    opserr << "Want: element ConstantPressureVolumeQuad eleTag? iNode? jNode? kNode? lNode? thk? matTag?\n";
     return TCL_ERROR;
   }
 
@@ -479,7 +484,7 @@ TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
   double thickness = 1.0;
 
   if (Tcl_GetInt(interp, argv[argStart], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid ConstantPressureVolumeQuad eleTag" << "\n";
+    opserr << OpenSees::PromptValueError << "invalid eleTag" << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {

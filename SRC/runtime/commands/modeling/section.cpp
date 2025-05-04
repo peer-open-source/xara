@@ -7,25 +7,29 @@
 // Description: This file contains the function invoked when the user invokes
 // the section command in the interpreter.
 //
+// Membrane      nxx nyy nxy
+// MembranePlate nxx nyy nxy mxx myy mxy vxz vyz
+//
 // Written: rms, mhs, cmp
 // Created: 07/99
 //
+//
 #include <set>
 #include <assert.h>
-#include <tcl.h>
 #include <string.h>
 #include <fstream>
 #include <iostream>
+
+#include <tcl.h>
 #include <Parsing.h>
 #include <Logging.h>
 #include <ArgumentTracker.h>
-#include <runtimeAPI.h>
-#include <Logging.h>
-#include <elementAPI.h>
 #include <BasicModelBuilder.h>
 #include <Parameter.h>
 
 #include <packages.h>
+#include <runtimeAPI.h>
+#include <elementAPI.h>
 
 using namespace OpenSees;
 
@@ -61,12 +65,8 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <Elliptical2.h>
 #include <Isolator2spring.h>
 
-//--- Adding Thermo-mechanical Sections:[BEGIN]   by UoE OpenSees Group ---//
 #include <FiberSection2dThermal.h>
 #include <FiberSection3dThermal.h> //Added by L.Jiang [SIF] 2017
-#include <MembranePlateFiberSectionThermal.h> //Added by Liming, [SIF] 2017
-#include <LayeredShellFiberSectionThermal.h>  //Added by Liming, [SIF] 2017
-//--- Adding Thermo-mechanical Sections: [END]   by UoE OpenSees Group ---//
 
 //#include <McftSection2dfiber.h>
 

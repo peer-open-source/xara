@@ -165,14 +165,13 @@ connectedExternalNodes(20), Ki(0), Q(60), bf(3), rho(0.0), pressure(0.0), mmodel
 //#############################################################################
 
 
-TwentyNodeBrick::~TwentyNodeBrick ()
+TwentyNodeBrick::~TwentyNodeBrick()
 {
 
     int total_number_of_Gauss_points = r_integration_order*s_integration_order*t_integration_order;
 
     for (int i = 0; i < total_number_of_Gauss_points; i++) {
- // Delete the NDMaterials at each integration point
-     if (matpoint[i])
+      if (matpoint[i])
         delete matpoint[i];
     }
 
@@ -188,11 +187,8 @@ TwentyNodeBrick::~TwentyNodeBrick ()
 void TwentyNodeBrick::incremental_Update()
 {
     double r  = 0.0;
-    // double rw = 0.0;
     double s  = 0.0;
-    // double sw = 0.0;
     double t  = 0.0;
-    // double tw = 0.0;
 
     short where = 0;
     //,,,,,    double weight = 0.0;
@@ -3771,11 +3767,9 @@ int TwentyNodeBrick::getResponse (int responseID, Information &eleInfo)
 
 
 
-Vector TwentyNodeBrick::getWeightofGP(void)
-  {
-    //int M_dim[] = {8,3,3,8};
-    //int M_dim[] = {60,60};
-    //tensor Mm(2,M_dim,0.0);
+Vector 
+TwentyNodeBrick::getWeightofGP()
+{
 
     Vector Weight( FixedOrder * FixedOrder );
 

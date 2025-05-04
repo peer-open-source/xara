@@ -13,12 +13,8 @@ target_sources(OPS_Material
         CycLiqCPSPPlaneStrain.cpp
         J2PlaneStrain.cpp
         J2PlaneStress.cpp
-        PlaneStrainMaterial.cpp
-        PlaneStressLayeredMaterial.cpp
-        PlaneStressMaterial.cpp
-        PlaneStressRebarMaterial.cpp
-        PlaneStressSimplifiedJ2.cpp
         PlaneStressUserMaterial.cpp
+        PlaneStressSimplifiedJ2.cpp
         PlasticDamageConcretePlaneStress.cpp
         # PlasticDamageConcretePlaneStressThermal.cpp
     PUBLIC
@@ -26,12 +22,6 @@ target_sources(OPS_Material
         CycLiqCPSPPlaneStrain.h
         J2PlaneStrain.h
         J2PlaneStress.h
-        PlaneStrainMaterial.h
-        PlaneStressLayeredMaterial.h
-        PlaneStressMaterial.h
-        PlaneStressRebarMaterial.h
-        PlaneStressSimplifiedJ2.h
-        PlaneStressUserMaterial.h
         PlasticDamageConcretePlaneStress.h
         # PlasticDamageConcretePlaneStressThermal.h
 )

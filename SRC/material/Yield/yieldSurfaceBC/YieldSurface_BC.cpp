@@ -16,31 +16,6 @@ const int YieldSurface_BC::NoFP(4);
 const int YieldSurface_BC::SurfOnly(5);
 const int YieldSurface_BC::StateLoading(6);
 
-static MapOfTaggedObjects theYieldSurface_BCObjects;
-
-bool OPS_addYieldSurface_BC(YieldSurface_BC *newComponent)
-{
-    return theYieldSurface_BCObjects.addComponent(newComponent);
-}
-
-YieldSurface_BC *OPS_getYieldSurface_BC(int tag)
-{
-
-  TaggedObject *theResult = theYieldSurface_BCObjects.getComponentPtr(tag);
-  if(theResult == 0) {
-      opserr << "NDMaterial no found with tag: " << tag << "\n";
-      return 0;
-  }
-  YieldSurface_BC *theobj = (YieldSurface_BC *)theResult;
-
-  return theobj;
-}
-
-void
-OPS_ADD_RUNTIME_VXV(OPS_clearAllYieldSurface_BC)
-{
-    theYieldSurface_BCObjects.clearAll();
-}
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
