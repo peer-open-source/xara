@@ -15,7 +15,7 @@ class FrameQuadrature : public BeamIntegration
     getSectionLocations(int numSections, double L, double *xi) const override {
         
         static_loop<0, T::nip>([&](auto i) {
-            if (i.value >= numSections) 
+            if ((int)i.value >= numSections) 
                 return;
             xi[i.value] = T::pts[i.value];
         });
@@ -28,7 +28,7 @@ class FrameQuadrature : public BeamIntegration
     virtual void 
     getSectionWeights(int numSections, double L, double *wt) const override {
         static_loop<0, T::nip>([&](auto i) {
-            if (i.value >= numSections) 
+            if ((int)i.value >= numSections) 
                 return;
             wt[i.value] = T::wts[i.value];
         });
