@@ -3,6 +3,7 @@
 ## C++ Style
 
 - DO NOT USE `exit()`. There is no reason to call this function. Validate all arguments to an object's constructor before calling it. Validation should not happen inside constructors.
+- Pull requests that increase the number of compiler warnings will not be accepted.
 - Dont use `void` as an argument type. This is good practice in C, but bad in C++ ([source](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#nl25-dont-use-void-as-an-argument-type))
 - Dont write redundant comments. For example, dont do:
   ```c++
