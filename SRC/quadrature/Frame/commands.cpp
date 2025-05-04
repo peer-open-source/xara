@@ -6,6 +6,7 @@
 //
 #include <tcl.h>
 #include <assert.h>
+#include <element/Frame/for_int.tpp>
 #include <Logging.h>
 #include <Parsing.h>
 #include <elementAPI.h>
@@ -63,10 +64,16 @@ extern void* OPS_ConcentratedCurvatureBeamIntegration(int&, ID&);
 
 
 BeamIntegration*
-GetBeamIntegration(TCL_Char* type)
+GetBeamIntegration(TCL_Char* type, int n)
 {
-  if (strcmp(type, "Lobatto") == 0)
-    return new FrameQuadrature<GaussLobatto<1,20>>; // LobattoBeamIntegration();
+  if (strcmp(type, "Lobatto") == 0) {
+    BeamIntegration* bi = nullptr;
+    static_loop<2, 20>([&](auto i) {
+      if ((int)i.value == n)
+        bi = new FrameQuadrature<GaussLobatto<1,i.value>>;
+    });
+    return bi; // new FrameQuadrature<GaussLobatto<1,20>>; // LobattoBeamIntegration();
+  }
 
   else if (strcmp(type, "Legendre") == 0)
     return new LegendreBeamIntegration();
