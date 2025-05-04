@@ -46,14 +46,15 @@ int SP_Constraint_SetNextTag(int next) {
   return nextTag;
 }
 
-int SP_Constraint_GetNextTag(void) {
+int SP_Constraint_GetNextTag() {
   return nextTag;
 }
 
 // constructor for FEM_ObjectBroker
 SP_Constraint::SP_Constraint(int clasTag)
 :DomainComponent(0,clasTag),
- nodeTag(0), dofNumber(0), valueR(0.0), valueC(0.0), initialValue(0.0), initialized(false), isConstant(true), 
+ nodeTag(0), dofNumber(0), valueR(0.0), valueC(0.0), initialValue(0.0), 
+ initialized(false), isConstant(true), retZeroInitValue(true),
  loadPatternTag(-1)
 {
   numSPs++;
@@ -62,7 +63,8 @@ SP_Constraint::SP_Constraint(int clasTag)
 // constructor for a subclass to use
 SP_Constraint::SP_Constraint(int node, int ndof, int clasTag)
 :DomainComponent(nextTag++, clasTag),
- nodeTag(node), dofNumber(ndof), valueR(0.0), valueC(0.0), initialValue(0.0), initialized(false), isConstant(true), 
+ nodeTag(node), dofNumber(ndof), valueR(0.0), valueC(0.0), initialValue(0.0), 
+ initialized(false), isConstant(true), retZeroInitValue(true),
  loadPatternTag(-1)
  // valueC is set to 1.0 so that homo will be false when recvSelf() invoked
  // should be ok as valueC cannot be used by subclasses and subclasses should
@@ -72,9 +74,10 @@ SP_Constraint::SP_Constraint(int node, int ndof, int clasTag)
 }
 
 // constructor for object of type SP_Constraint
-SP_Constraint::SP_Constraint(int node, int ndof, double value, bool ISconstant)
+SP_Constraint::SP_Constraint(int node, int ndof, double value, bool ISconstant, bool retZeroInitValue)
 :DomainComponent(nextTag++, CNSTRNT_TAG_SP_Constraint),
- nodeTag(node), dofNumber(ndof), valueR(value), valueC(value), initialValue(0.0), initialized(false), isConstant(ISconstant),
+ nodeTag(node), dofNumber(ndof), valueR(value), valueC(value), initialValue(0.0), 
+ initialized(false), isConstant(ISconstant), retZeroInitValue(retZeroInitValue),
  loadPatternTag(-1)
 {
   numSPs++;
@@ -88,14 +91,14 @@ SP_Constraint::~SP_Constraint()
 }
 
 int
-SP_Constraint::getNodeTag(void) const
+SP_Constraint::getNodeTag() const
 {
     // return id of constrained node
     return nodeTag;
 }
 
 int
-SP_Constraint::getDOF_Number(void) const
+SP_Constraint::getDOF_Number() const
 {
     //  return the number of the constrained DOF    
     return dofNumber;
@@ -103,17 +106,22 @@ SP_Constraint::getDOF_Number(void) const
 
 
 double
-SP_Constraint::getValue(void)
+SP_Constraint::getValue()
 {
     // return the value of the constraint
     return valueC;
 }
 
 double
-SP_Constraint::getInitialValue(void)
+SP_Constraint::getInitialValue()
 {
-    // return the initial value of the constraint
+  if (retZeroInitValue == false)    
+    // return the initial value of the constraint if retZeroInitValue is false,
+    //   - constraint handlers will subtract this off the current getValue()    
     return initialValue;
+  
+  else
+    return 0;
 }
 
 int
@@ -121,14 +129,13 @@ SP_Constraint::applyConstraint(double loadFactor)
 {
     // as SP_Constraint objects are time invariant nothing is done
     if (isConstant == false)
-	valueC = loadFactor*valueR;
-
+      valueC = loadFactor*valueR;
     return 0;
 }
 
 
 bool
-SP_Constraint::isHomogeneous(void) const
+SP_Constraint::isHomogeneous() const
 {
     if (valueR == 0.0)
 	return true;
@@ -143,7 +150,7 @@ SP_Constraint::setLoadPatternTag(int tag)
 }
 
 int
-SP_Constraint::getLoadPatternTag(void) const
+SP_Constraint::getLoadPatternTag() const
 {
   return loadPatternTag;
 }
