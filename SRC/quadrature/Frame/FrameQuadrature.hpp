@@ -17,12 +17,8 @@ class FrameQuadrature : public BeamIntegration
         static_loop<0, T::nip>([&](auto i) {
             if ((int)i.value >= numSections) 
                 return;
-            xi[i.value] = T::pts[i.value];
+            xi[i.value] = 0.5*(1.0 + T::pts[i.value]);
         });
-
-        for (int i = 0; i < numSections; i++) {
-            xi[i] = 0.5 * (xi[i] + 1.0);
-        }
     }
 
     virtual void 
@@ -30,7 +26,7 @@ class FrameQuadrature : public BeamIntegration
         static_loop<0, T::nip>([&](auto i) {
             if ((int)i.value >= numSections) 
                 return;
-            wt[i.value] = T::wts[i.value];
+            wt[i.value] = T::wts[i.value]*0.5;
         });
     }
     int sendSelf(int cTag, Channel &) {return 0;}
