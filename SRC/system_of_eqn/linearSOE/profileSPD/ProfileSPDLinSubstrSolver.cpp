@@ -285,7 +285,7 @@ ProfileSPDLinSubstrSolver::condenseRHS(int numInt, Vector *v)
 
 
     // set some pointers
-    double *B = theSOE->B;
+    double *B = &theSOE->B[0];
 
     //
     // form Y1*, leaving in Y1
@@ -407,7 +407,7 @@ ProfileSPDLinSubstrSolver::getCondensedRHS(void)
 }
 
 const Vector &
-ProfileSPDLinSubstrSolver::getCondensedMatVect(void)
+ProfileSPDLinSubstrSolver::getCondensedMatVect()
 {
     assert(false);
     // opserr << "ProfileSPDLinSubstrSolver::computeCondensedMatVect() -";
@@ -460,7 +460,7 @@ ProfileSPDLinSubstrSolver::setComputedXext(const Vector &xExt)
 **
 */
 int 
-ProfileSPDLinSubstrSolver::solveXint(void)
+ProfileSPDLinSubstrSolver::solveXint()
 {
 
   /*
@@ -468,8 +468,8 @@ ProfileSPDLinSubstrSolver::solveXint(void)
    */
 
     int numInt = theSOE->numInt;
-    double *X = theSOE->X;
-    double *B = theSOE->B;
+    double *X = &theSOE->X[0];
+    double *B = &theSOE->B[0];
     
     for (int j=0; j<numInt; j++) 
 	X[j] = B[j]/invD[j];
@@ -500,7 +500,7 @@ ProfileSPDLinSubstrSolver::solveXint(void)
 
 	for (int j=rowktop; j<k; j++) 
 	    X[j] -= *ajiPtr++ * Xk;
-    }   	     
+    }
     return 0;
 }
 

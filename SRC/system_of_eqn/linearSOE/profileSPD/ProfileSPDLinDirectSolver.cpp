@@ -53,7 +53,7 @@ ProfileSPDLinDirectSolver::~ProfileSPDLinDirectSolver()
 }
 
 int
-ProfileSPDLinDirectSolver::setSize(void)
+ProfileSPDLinDirectSolver::setSize()
 {
     assert(theSOE != nullptr);
 
@@ -114,12 +114,12 @@ ProfileSPDLinDirectSolver::solve(void)
 	return 0;
 
     // set some pointers
-    double *B = theSOE->B;
-    double *X = theSOE->X;
+    double *B = &theSOE->B[0];
+    double *X = &theSOE->X[0];
     int theSize = theSOE->size;
     // copy B into X
     for (int ii=0; ii<theSize; ii++)
-	X[ii] = B[ii];
+		X[ii] = B[ii];
 
     
     if (theSOE->isAfactored == false)  {

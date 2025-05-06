@@ -180,8 +180,8 @@ ProfileSPDLinDirectThreadSolver::solve(void)
 
     // set some pointers
     double *A = theSOE->A;
-    double *B = theSOE->B;
-    double *X = theSOE->X;
+    double *B = &theSOE->B[0];
+    double *X = &theSOE->X[0];
     int *iDiagLoc = theSOE->iDiagLoc;
     int size = theSOE->size;
 
