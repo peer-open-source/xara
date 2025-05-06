@@ -43,9 +43,11 @@ BandSPDLinLapackSolver::~BandSPDLinLapackSolver()
 
 
 int
-BandSPDLinLapackSolver::solve(void)
+BandSPDLinLapackSolver::solve()
 {
-  assert(theSOE != nullptr);
+    assert(theSOE != nullptr);
+    if (theSOE->size == 0)
+      return 0;
 
     int n = theSOE->size;
     int kd = theSOE->half_band -1;
@@ -54,16 +56,16 @@ BandSPDLinLapackSolver::solve(void)
     int ldB = n;
     int info;
     double *Aptr = theSOE->A;
-    double *Xptr = theSOE->X;
-    double *Bptr = theSOE->B;
+    double *Xptr = &theSOE->X[0];
+    double *Bptr = &theSOE->B[0];
 
     // first copy B into X
     for (int i=0; i<n; i++)
       *(Xptr++) = *(Bptr++);
-    Xptr = theSOE->X;
+
+    Xptr = &theSOE->X[0];
 
     // now solve AX = Y
-
 
     char tflag[] = "U";
     if (theSOE->factored == false) {
@@ -75,16 +77,16 @@ BandSPDLinLapackSolver::solve(void)
       // unsigned int sizeC = 1;
       // DPBTRS("U", sizeC, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
 
-        DPBTRS(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
+      DPBTRS(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
     }
 
 
     // check if successful
     if (info != 0) {
       if (info > 0) {
-	return -info+1;
+        return -info+1;
       } else {
-	return info;
+        return info;
       }
     }
 
@@ -101,8 +103,7 @@ BandSPDLinLapackSolver::setSize()
 }
 
 int
-BandSPDLinLapackSolver::sendSelf(int cTag,
-				 Channel &theChannel)
+BandSPDLinLapackSolver::sendSelf(int cTag, Channel &theChannel)
 {
   // nothing to do
   return 0;
@@ -110,8 +111,8 @@ BandSPDLinLapackSolver::sendSelf(int cTag,
 
 int
 BandSPDLinLapackSolver::recvSelf(int tag,
-				 Channel &theChannel,
-				 FEM_ObjectBroker &theBroker)
+                                Channel &theChannel,
+                                FEM_ObjectBroker &theBroker)
 {
   // nothing to do
   return 0;
