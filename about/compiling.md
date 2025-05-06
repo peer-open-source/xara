@@ -2,7 +2,7 @@
 
 1. Clone the package repository:
    ``` shell
-   git clone https://github.com/claudioperez/OpenSeesRT
+   git clone https://github.com/peer-open-source/xara
    ```
 
 2. install *run-time* dependencies. These are the libraries that will be needed 

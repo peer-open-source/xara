@@ -1032,17 +1032,18 @@ TransformationDOF_Group::enforceSPs(int doMP)
   
   if (doMP == 1) {
     for (int i=0; i<numDof; i++)
-      if (theSPs[i] != 0) {
-	double value = theSPs[i]->getValue();
+      if (theSPs[i] != nullptr) {
+        double value = theSPs[i]->getValue();
+
 #ifdef TRANSF_INCREMENTAL_SP
-    // include the initial value for staged analyses.
-    // note: do it only here. No need to do it when doMP == 0
-    // because it will be called after doMP == 1 and the value
-    // has already been set to the retained node
-    double initial_value = theSPs[i]->getInitialValue();
-    myNode->setTrialDisp(value + initial_value, i);
+      // include the initial value for staged analyses.
+      // note: do it only here. No need to do it when doMP == 0
+      // because it will be called after doMP == 1 and the value
+      // has already been set to the retained node
+      double initial_value = theSPs[i]->getInitialValue();
+      myNode->setTrialDisp(value + initial_value, i);
 #else
-    myNode->setTrialDisp(value, i);
+      myNode->setTrialDisp(value, i);
 #endif // TRANSF_INCREMENTAL_SP
       }
   } 
