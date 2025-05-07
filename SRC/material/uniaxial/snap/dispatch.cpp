@@ -30,7 +30,8 @@
 //
 // Description: This file contains the implementation of the
 // TclBasicBuilder_addSnapMaterial() function.
-
+#include <Logging.h>
+#include <Parsing.h>
 #include <Pinching.h>
 #include <Clough.h>
 #include <CloughHenry.h>
@@ -38,6 +39,7 @@
 #include <CloughDamage.h>
 #include <Bilinear.h>
 #include <DamageModel.h>
+#include <BasicModelBuilder.h>
 
 #include <tcl.h>
 #include <Vector.h>
@@ -57,6 +59,9 @@ UniaxialMaterial *
 TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
                                 int argc, TCL_Char ** const argv)
 {
+
+  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments for the Snap material "
               "model\n";
@@ -96,7 +101,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(9) == 0) {
       strength = NULL;
     } else {
-      strength = OPS_getDamageModel((int)input(9));
+      strength = builder->getTypedObject<DamageModel>((int)input(9));
 
       if (strength == 0) {
         opserr << "WARNING damage model for strength deterioration not found\n";
@@ -110,7 +115,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(10) == 0) {
       stiffness = NULL;
     } else {
-      stiffness = OPS_getDamageModel((int)input(10));
+      stiffness = builder->getTypedObject<DamageModel>((int)input(10));
 
       if (stiffness == 0) {
         opserr
@@ -125,7 +130,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(11) == 0) {
       capping = NULL;
     } else {
-      capping = OPS_getDamageModel((int)input(11));
+      capping = builder->getTypedObject<DamageModel>((int)input(11));
 
       if (capping == 0) {
         opserr << "WARNING damage model for capping deterioration not found\n";
@@ -194,7 +199,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(8) == 0) {
       strength = NULL;
     } else {
-      strength = OPS_getDamageModel((int)input(8));
+      strength = builder->getTypedObject<DamageModel>((int)input(8));
 
       if (strength == 0) {
         opserr << "WARNING damage model for strength deterioration not found\n";
@@ -208,7 +213,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(9) == 0) {
       stiffness = NULL;
     } else {
-      stiffness = OPS_getDamageModel((int)input(9));
+      stiffness = builder->getTypedObject<DamageModel>((int)input(9));
 
       if (stiffness == 0) {
         opserr
@@ -223,7 +228,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(10) == 0) {
       accelerated = NULL;
     } else {
-      accelerated = OPS_getDamageModel((int)input(10));
+      accelerated = builder->getTypedObject<DamageModel>((int)input(10));
 
       if (accelerated == 0) {
         opserr << "WARNING damage model for accelerated stiffness "
@@ -238,7 +243,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(11) == 0) {
       capping = NULL;
     } else {
-      capping = OPS_getDamageModel((int)input(11));
+      capping = builder->getTypedObject<DamageModel>((int)input(11));
 
       if (capping == 0) {
         opserr << "WARNING damage model for capping deterioration not found\n";
@@ -301,7 +306,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(11) == 0) {
       strength = NULL;
     } else {
-      strength = OPS_getDamageModel((int)input(11));
+      strength = builder->getTypedObject<DamageModel>((int)input(11));
 
       if (strength == 0) {
         opserr << "WARNING damage model for strength deterioration not found\n";
@@ -315,7 +320,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(12) == 0) {
       stiffness = NULL;
     } else {
-      stiffness = OPS_getDamageModel((int)input(12));
+      stiffness = builder->getTypedObject<DamageModel>((int)input(12));
       if (stiffness == 0) {
         opserr
             << "WARNING damage model for stiffness deterioration not found\n";
@@ -329,7 +334,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(13) == 0) {
       accelerated = NULL;
     } else {
-      accelerated = OPS_getDamageModel((int)input(13));
+      accelerated = builder->getTypedObject<DamageModel>((int)input(13));
       if (accelerated == 0) {
         opserr << "WARNING damage model for accelerated stiffness "
                   "deterioration not found\n";
@@ -343,7 +348,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
     if ((int)input(14) == 0) {
       capping = NULL;
     } else {
-      capping = OPS_getDamageModel((int)input(14));
+      capping = builder->getTypedObject<DamageModel>((int)input(14));
 
       if (capping == 0) {
         opserr << "WARNING damage model for capping deterioration not found\n";
