@@ -58,7 +58,7 @@ ProfileSPDLinSubstrSolver::solve()
 }
 
 int
-ProfileSPDLinSubstrSolver::setSize(void)
+ProfileSPDLinSubstrSolver::setSize()
 {
     return this->ProfileSPDLinDirectSolver::setSize();
 }    
@@ -112,10 +112,6 @@ ProfileSPDLinSubstrSolver::condenseA(int numInt)
     //    - done using Crout decomposition
     //
 
-
-
-
-
     this->factor(numInt);
     
     /*
@@ -125,43 +121,43 @@ ProfileSPDLinSubstrSolver::condenseA(int numInt)
     int i;
 
     for (i=numInt; i<size; i++) {
-	
-	int rowitop = RowTop[i];
-	double *ajiPtr = topRowPtr[i];
-
-	int jstrt = rowitop;
-	if (rowitop == 0) {
-	    jstrt = 1;
-	    ajiPtr++;
-	} else {
-	    jstrt = rowitop;
-	}
-
-	
-	for (int j=jstrt; j<numInt; j++) {
-	    double tmp = *ajiPtr;
-	  
-	    int rowjtop = RowTop[j];
-
-	    double *akiPtr, *akjPtr;
-	   
-	    if (rowitop > rowjtop) {
-		akiPtr = topRowPtr[i];
-		akjPtr = topRowPtr[j] + (rowitop-rowjtop);
 		
-		for (int k=rowitop; k<j; k++) 
-		    tmp -= *akjPtr++ * *akiPtr++ ;
-	      
-	    } else {
-		akiPtr = topRowPtr[i] + (rowjtop-rowitop);
-		akjPtr = topRowPtr[j];
-	       
-		for (int k=rowjtop; k<j; k++) 
-		    tmp -= *akjPtr++ * *akiPtr++ ;	    
-	    }
+		int rowitop = RowTop[i];
+		double *ajiPtr = topRowPtr[i];
 
-	    *ajiPtr++ = tmp;
-	}
+		int jstrt = rowitop;
+		if (rowitop == 0) {
+			jstrt = 1;
+			ajiPtr++;
+		} else {
+			jstrt = rowitop;
+		}
+
+		
+		for (int j=jstrt; j<numInt; j++) {
+			double tmp = *ajiPtr;
+		
+			int rowjtop = RowTop[j];
+
+			double *akiPtr, *akjPtr;
+		
+			if (rowitop > rowjtop) {
+			akiPtr = topRowPtr[i];
+			akjPtr = topRowPtr[j] + (rowitop-rowjtop);
+			
+			for (int k=rowitop; k<j; k++) 
+				tmp -= *akjPtr++ * *akiPtr++ ;
+			
+			} else {
+			akiPtr = topRowPtr[i] + (rowjtop-rowitop);
+			akjPtr = topRowPtr[j];
+			
+			for (int k=rowjtop; k<j; k++) 
+				tmp -= *akjPtr++ * *akiPtr++ ;	    
+			}
+
+			*ajiPtr++ = tmp;
+		}
     }
 
 
@@ -285,7 +281,7 @@ ProfileSPDLinSubstrSolver::condenseRHS(int numInt, Vector *v)
 
 
     // set some pointers
-    double *B = theSOE->B;
+    double *B = &theSOE->B[0];
 
     //
     // form Y1*, leaving in Y1
@@ -407,7 +403,7 @@ ProfileSPDLinSubstrSolver::getCondensedRHS(void)
 }
 
 const Vector &
-ProfileSPDLinSubstrSolver::getCondensedMatVect(void)
+ProfileSPDLinSubstrSolver::getCondensedMatVect()
 {
     assert(false);
     // opserr << "ProfileSPDLinSubstrSolver::computeCondensedMatVect() -";
@@ -460,7 +456,7 @@ ProfileSPDLinSubstrSolver::setComputedXext(const Vector &xExt)
 **
 */
 int 
-ProfileSPDLinSubstrSolver::solveXint(void)
+ProfileSPDLinSubstrSolver::solveXint()
 {
 
   /*
@@ -468,8 +464,8 @@ ProfileSPDLinSubstrSolver::solveXint(void)
    */
 
     int numInt = theSOE->numInt;
-    double *X = theSOE->X;
-    double *B = theSOE->B;
+    double *X = &theSOE->X[0];
+    double *B = &theSOE->B[0];
     
     for (int j=0; j<numInt; j++) 
 	X[j] = B[j]/invD[j];
@@ -500,7 +496,7 @@ ProfileSPDLinSubstrSolver::solveXint(void)
 
 	for (int j=rowktop; j<k; j++) 
 	    X[j] -= *ajiPtr++ * Xk;
-    }   	     
+    }
     return 0;
 }
 

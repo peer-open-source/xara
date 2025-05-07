@@ -107,8 +107,8 @@ ProfileSPDLinDirectBlockSolver::solve(void)
 	return 0;
 
     // set some pointers
-    double *B = theSOE->B;
-    double *X = theSOE->X;
+    double *B = &theSOE->B[0];
+    double *X = &theSOE->X[0];
     int n = theSOE->size;
 
     // copy B into X

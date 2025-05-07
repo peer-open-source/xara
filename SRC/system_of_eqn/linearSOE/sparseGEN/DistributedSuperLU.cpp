@@ -118,9 +118,9 @@ DistributedSuperLU::~DistributedSuperLU()
 }
 
 int
-DistributedSuperLU::solve(void)
+DistributedSuperLU::solve()
 {
-  if (theSOE == 0) {
+  if (theSOE == nullptr) {
     opserr << "WARNING DistributedSuperLU::solve(void)- ";
     opserr << " No LinearSOE object has been set\n";
     return -1;
