@@ -95,7 +95,7 @@ TclCommand_specifyAlgorithm(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // Make sure at least one other argument to contain numberer
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "Need to specify an Algorithm type.\n";
+    opserr << OpenSees::PromptValueError << "Need to specify an Algorithm type.\n";
     return TCL_ERROR;
   }
 
@@ -168,7 +168,7 @@ G3Parse_newEquiSolnAlgo(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   else {
-    opserr << G3_ERROR_PROMPT << "Unknown algorithm type '" << argv[1] << "'\n";
+    opserr << OpenSees::PromptValueError << "Unknown algorithm type '" << argv[1] << "'\n";
     return nullptr;
   }
 
@@ -373,7 +373,7 @@ G3Parse_newSecantNewtonAlgorithm(ClientData clientData, Tcl_Interp *interp,
   ConvergenceTest *theTest = builder->getConvergenceTest();
 
   if (theTest == nullptr) {
-    opserr << G3_ERROR_PROMPT << "No ConvergenceTest yet specified\n";
+    opserr << OpenSees::PromptValueError << "No ConvergenceTest yet specified\n";
     return nullptr;
   }
 
@@ -408,7 +408,7 @@ G3Parse_newSecantNewtonAlgorithm(ClientData clientData, Tcl_Interp *interp,
       if (i+1 < argc)
         numTerms = atoi(argv[++i]);
       else {
-        opserr << G3_ERROR_PROMPT << "Flag -numTerms requires follow up argument\n";
+        opserr << OpenSees::PromptValueError << "Flag -numTerms requires follow up argument\n";
         return nullptr;
       }
     }
@@ -463,7 +463,7 @@ G3_newNewtonLineSearch(ClientData clientData, Tcl_Interp *interp, int argc,
   ConvergenceTest *theTest = builder->getConvergenceTest();
 
   if (theTest == nullptr) {
-    opserr << G3_ERROR_PROMPT << " No ConvergenceTest yet specified\n";
+    opserr << OpenSees::PromptValueError << " No ConvergenceTest yet specified\n";
     return nullptr;
   }
 
@@ -552,7 +552,7 @@ TclCommand_newKrylovNewton(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // TODO: Fix this not showing
   if (theTest == nullptr) {
-    opserr << G3_ERROR_PROMPT << "A ConvergenceTest must be specified before initializing KrylovNewton\n";
+    opserr << OpenSees::PromptValueError << "A ConvergenceTest must be specified before initializing KrylovNewton\n";
     opserr.flush();
     return TCL_ERROR;
   }
@@ -602,7 +602,7 @@ G3_newRaphsonNewton(ClientData clientData, Tcl_Interp *interp, int argc,
   ConvergenceTest *theTest = builder->getConvergenceTest();
 
   if (theTest == nullptr) {
-    opserr << G3_ERROR_PROMPT << "No ConvergenceTest yet specified\n";
+    opserr << OpenSees::PromptValueError << "No ConvergenceTest yet specified\n";
     return nullptr;
   }
 
@@ -645,7 +645,7 @@ G3_newMillerNewton(ClientData clientData, Tcl_Interp *interp, int argc,
   ConvergenceTest *theTest = builder->getConvergenceTest();
 
   if (theTest == nullptr) {
-    opserr << G3_ERROR_PROMPT << "No ConvergenceTest yet specified\n";
+    opserr << OpenSees::PromptValueError << "No ConvergenceTest yet specified\n";
     return nullptr;
   }
 
@@ -691,7 +691,7 @@ G3_newPeriodicNewton(ClientData clientData, Tcl_Interp *interp, int argc,
   ConvergenceTest *theTest = builder->getConvergenceTest();
 
   if (theTest == nullptr) {
-    opserr << G3_ERROR_PROMPT << "No ConvergenceTest yet specified\n";
+    opserr << OpenSees::PromptValueError << "No ConvergenceTest yet specified\n";
     return nullptr;
   }
 
@@ -743,7 +743,7 @@ G3_newBroyden(ClientData clientData, Tcl_Interp *interp, int argc,
   int count = -1;
 
   if (theTest == nullptr) {
-    opserr << G3_ERROR_PROMPT << "No ConvergenceTest yet specified\n";
+    opserr << OpenSees::PromptValueError << "No ConvergenceTest yet specified\n";
     return nullptr;
   }
   for (int i = 2; i < argc; ++i) {
@@ -780,7 +780,7 @@ printAlgorithm(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int eleArg = 0;
   if (theAlgorithm == nullptr) {
-    opserr << G3_ERROR_PROMPT << "No algorithm has been set.\n";
+    opserr << OpenSees::PromptValueError << "No algorithm has been set.\n";
     return TCL_ERROR;
   }
 

@@ -98,7 +98,7 @@ specifySysOfEqnTable(ClientData clientData, Tcl_Interp *interp, int argc, G3_Cha
 {
   // make sure at least one other argument to contain type of system
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT
+    opserr << OpenSees::PromptValueError
            << "need to specify a system type" << "\n";
     return TCL_ERROR;
   }
@@ -176,7 +176,7 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, int argc, G3_Cha
 #endif
 
   else {
-    opserr << G3_ERROR_PROMPT << " system '" << argv[1] << "' is unknown or not installed\n";
+    opserr << OpenSees::PromptValueError << " system '" << argv[1] << "' is unknown or not installed\n";
     return nullptr;
   }
 

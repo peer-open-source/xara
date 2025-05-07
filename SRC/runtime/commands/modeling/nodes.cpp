@@ -40,7 +40,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // make sure corect number of arguments on command line
   if (argc < 2 + ndm) {
-    opserr << G3_ERROR_PROMPT << "insufficient arguments, expected:\n";
+    opserr << OpenSees::PromptValueError << "insufficient arguments, expected:\n";
     opserr << "      node nodeTag? [ndm coordinates?] <-mass [ndf values?]>\n";
     return TCL_ERROR;
   }
@@ -50,7 +50,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   // read the node id
   int nodeId;
   if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid nodeTag\n";
+    opserr << OpenSees::PromptValueError << "invalid nodeTag\n";
     opserr << "        Want: node nodeTag? [ndm coordinates?] <-mass [ndf values?]>\n";
     return TCL_ERROR;
   }
@@ -60,7 +60,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   if (ndm == 1) {
     // create a node in 1d space
     if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid coordinate\n";
+      opserr << OpenSees::PromptValueError << "invalid coordinate\n";
       return TCL_ERROR;
     }
   }
@@ -68,12 +68,12 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   else if (ndm == 2) {
     // create a node in 2d space
     if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid 1st coordinate\n";
+      opserr << OpenSees::PromptValueError << "invalid 1st coordinate\n";
       opserr << "node: " << nodeId << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid 2nd coordinate\n";
+      opserr << OpenSees::PromptValueError << "invalid 2nd coordinate\n";
       opserr << "node: " << nodeId << "\n";
       return TCL_ERROR;
     }
@@ -82,20 +82,20 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   else if (ndm == 3) {
     // create a node in 3d space
     if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid 1st coordinate\n";
+      opserr << OpenSees::PromptValueError << "invalid 1st coordinate\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid 2nd coordinate\n";
+      opserr << OpenSees::PromptValueError << "invalid 2nd coordinate\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[4], &zLoc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid 3rd coordinate\n";
+      opserr << OpenSees::PromptValueError << "invalid 3rd coordinate\n";
       return TCL_ERROR;
     }
 
   } else {
-    opserr << G3_ERROR_PROMPT << "unsupported model dimension\n";
+    opserr << OpenSees::PromptValueError << "unsupported model dimension\n";
     return TCL_ERROR;
   }
 
@@ -103,7 +103,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   int currentArg = 2 + ndm;
   if (currentArg < argc && strcmp(argv[currentArg], "-ndf") == 0) {
     if (Tcl_GetInt(interp, argv[currentArg + 1], &ndf) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nodal ndf given for node " << nodeId << "\n";
+      opserr << OpenSees::PromptValueError << "invalid nodal ndf given for node " << nodeId << "\n";
       return TCL_ERROR;
     }
     currentArg += 2;
@@ -143,7 +143,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
     if (strcmp(argv[currentArg], "-mass") == 0) {
       currentArg++;
       if (argc < currentArg + ndf) {
-        opserr << G3_ERROR_PROMPT << "incorrect number of nodal mass terms\n";
+        opserr << OpenSees::PromptValueError << "incorrect number of nodal mass terms\n";
         opserr << "node: " << nodeId << "\n";
         return TCL_ERROR;
       }
@@ -152,7 +152,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       Matrix mass(ndf, ndf);
       for (int i = 0; i < ndf; ++i) {
         if (Tcl_GetDouble(interp, argv[currentArg++], &theMass) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid nodal mass term";
+          opserr << OpenSees::PromptValueError << "invalid nodal mass term";
           opserr << " at dof " << i + 1 << "\n";
           return TCL_ERROR;
         }
@@ -163,7 +163,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
     } else if (strcmp(argv[currentArg], "-dispLoc") == 0) {
       currentArg++;
       if (argc < currentArg + ndm) {
-        opserr << G3_ERROR_PROMPT << "incorrect number of nodal display location terms, "
+        opserr << OpenSees::PromptValueError << "incorrect number of nodal display location terms, "
                   "need ndm\n";
         return TCL_ERROR;
       }
@@ -171,7 +171,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       double theCrd;
       for (int i = 0; i < ndm; ++i) {
         if (Tcl_GetDouble(interp, argv[currentArg++], &theCrd) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid nodal mass term\n";
+          opserr << OpenSees::PromptValueError << "invalid nodal mass term\n";
           opserr << "node: " << nodeId << ", dof: " << i + 1 << "\n";
           return TCL_ERROR;
         }
@@ -182,7 +182,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
     } else if (strcmp(argv[currentArg], "-disp") == 0) {
       currentArg++;
       if (argc < currentArg + ndf) {
-        opserr << G3_ERROR_PROMPT << "incorrect number of nodal disp terms\n";
+        opserr << OpenSees::PromptValueError << "incorrect number of nodal disp terms\n";
         opserr << "node: " << nodeId << "\n";
         return TCL_ERROR;
       }
@@ -190,7 +190,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       double theDisp;
       for (int i = 0; i < ndf; ++i) {
         if (Tcl_GetDouble(interp, argv[currentArg++], &theDisp) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid nodal disp term\n";
+          opserr << OpenSees::PromptValueError << "invalid nodal disp term\n";
           opserr << "node: " << nodeId << ", dof: " << i + 1 << "\n";
           return TCL_ERROR;
         }
@@ -202,7 +202,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
     } else if (strcmp(argv[currentArg], "-vel") == 0) {
       currentArg++;
       if (argc < currentArg + ndf) {
-        opserr << G3_ERROR_PROMPT << "incorrect number of nodal vel terms, ";
+        opserr << OpenSees::PromptValueError << "incorrect number of nodal vel terms, ";
         opserr << "expected " << ndf << "\n";
         return TCL_ERROR;
       }
@@ -211,7 +211,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       Vector disp(ndf);
       for (int i = 0; i < ndf; ++i) {
         if (Tcl_GetDouble(interp, argv[currentArg++], &theDisp) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid nodal vel term at ";
+          opserr << OpenSees::PromptValueError << "invalid nodal vel term at ";
           opserr << " dof " << i + 1 << "\n";
           return TCL_ERROR;
         }
@@ -228,7 +228,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   // add the node to the domain
   //
   if (theTclDomain->addNode(theNode) == false) {
-    opserr << G3_ERROR_PROMPT << "failed to add node to the domain\n";
+    opserr << OpenSees::PromptValueError << "failed to add node to the domain\n";
     delete theNode;
     return TCL_ERROR;
   }
@@ -248,7 +248,7 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // make sure at least one other argument
   if (argc < (1 + ndf)) {
-    opserr << G3_ERROR_PROMPT << "insufficient arguments, expected:\n"
+    opserr << OpenSees::PromptValueError << "insufficient arguments, expected:\n"
               "      mass nodeId <" << ndf << " mass values>\n"; 
     return TCL_ERROR;
   }
@@ -256,7 +256,7 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
   // get the id of the node
   int nodeId;
   if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid nodeId: " << argv[1];
+    opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1];
     opserr << " - mass nodeId " << ndf << " forces\n";
     return TCL_ERROR;
   }
@@ -266,7 +266,7 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
   for (int i=0; i<ndf; ++i) {
      double theMass;
      if (Tcl_GetDouble(interp, argv[i+2], &theMass) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid nodal mass term\n";
+          opserr << OpenSees::PromptValueError << "invalid nodal mass term\n";
           opserr << "node: " << nodeId << ", dof: " << i+1 << "\n";
           return TCL_ERROR;
       }
@@ -274,7 +274,7 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (theTclDomain->setMass(mass, nodeId) != 0) {
-    opserr << G3_ERROR_PROMPT << "failed to set mass at node " << nodeId << "\n";
+    opserr << OpenSees::PromptValueError << "failed to set mass at node " << nodeId << "\n";
     return TCL_ERROR;
   }
 
@@ -296,13 +296,13 @@ TclCommand_getNDM(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char 
   if (argc > 1) {
     int tag;
     if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "ndm nodeTag? \n";
+      opserr << OpenSees::PromptValueError << "ndm nodeTag? \n";
       return TCL_ERROR;
     }
 
     Node *theNode = the_domain->getNode(tag);
     if (theNode == nullptr) {
-      opserr << G3_ERROR_PROMPT << "nodeTag " << tag << " does not exist \n";
+      opserr << OpenSees::PromptValueError << "nodeTag " << tag << " does not exist \n";
       return TCL_ERROR;
     }
     const Vector &coords = theNode->getCrds();
@@ -327,12 +327,12 @@ TclCommand_getNDF(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char 
   if (argc > 1) {
     int tag;
     if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "ndf nodeTag? \n";
+      opserr << OpenSees::PromptValueError << "ndf nodeTag? \n";
       return TCL_ERROR;
     }
     Node *theNode = the_domain->getNode(tag);
     if (theNode == nullptr) {
-      opserr << G3_ERROR_PROMPT << "nodeTag " << tag << " does not exist \n";
+      opserr << OpenSees::PromptValueError << "nodeTag " << tag << " does not exist \n";
       return TCL_ERROR;
     }
     ndf = theNode->getNumberDOF();

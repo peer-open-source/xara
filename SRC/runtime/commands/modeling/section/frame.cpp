@@ -458,7 +458,7 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
     BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
 
     if (argc < 5) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: section Aggregator tag? uniTag1? code1? ... <-section "
                 "secTag?>"
              << endln;
@@ -472,7 +472,7 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
     FrameSection *theSec = nullptr;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid Aggregator tag" << endln;
+      opserr << OpenSees::PromptValueError << "invalid Aggregator tag" << endln;
       return TCL_ERROR;
     }
 
@@ -481,7 +481,7 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
     for (int ii = 5; ii < argc; ii++) {
       if (strcmp(argv[ii], "-section") == 0 && ++ii < argc) {
         if (Tcl_GetInt(interp, argv[ii], &secTag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid Aggregator tag" << endln;
+          opserr << OpenSees::PromptValueError << "invalid Aggregator tag" << endln;
           return TCL_ERROR;
         }
         
@@ -496,7 +496,7 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
     int nMats = nArgs / 2;
 
     if (nArgs % 2 != 0) {
-      opserr << G3_ERROR_PROMPT << "improper number of arguments for Aggregator" << endln;
+      opserr << OpenSees::PromptValueError << "improper number of arguments for Aggregator" << endln;
       return TCL_ERROR;
     }
 
@@ -507,7 +507,7 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
     for (i = 3, j = 0; j < nMats; i++, j++) {
       int tagI;
       if (Tcl_GetInt(interp, argv[i], &tagI) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid Aggregator matTag" << endln;
+        opserr << OpenSees::PromptValueError << "invalid Aggregator matTag" << endln;
         status = TCL_ERROR;
         goto cleanup;
       }
@@ -533,7 +533,7 @@ TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int a
       else if (strcmp(argv[i], "T") == 0)
         codes(j) = SECTION_RESPONSE_T;
       else {
-        opserr << G3_ERROR_PROMPT << "invalid code" << endln;
+        opserr << OpenSees::PromptValueError << "invalid code" << endln;
         opserr << "\nsection Aggregator: " << tag << endln;
         status = TCL_ERROR;
         goto cleanup;

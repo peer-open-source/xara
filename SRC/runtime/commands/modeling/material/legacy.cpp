@@ -25,7 +25,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
 
   if (strcmp(argv[1], "Elastic2") == 0) {
     if (argc < 4 || argc > 5) {
-      opserr << G3_ERROR_PROMPT << "invalid number of arguments\n";
+      opserr << OpenSees::PromptValueError << "invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial Elastic tag? E? <eta?>" << "\n";
       return TCL_ERROR;
     }
@@ -35,19 +35,19 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
     double eta = 0.0;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid uniaxialMaterial Elastic tag" << "\n";
+      opserr << OpenSees::PromptValueError << "invalid uniaxialMaterial Elastic tag" << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid E\n";
+      opserr << OpenSees::PromptValueError << "invalid E\n";
       opserr << "uniaxiaMaterial Elastic: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (argc == 5) {
       if (Tcl_GetDouble(interp, argv[4], &eta) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid eta\n";
+        opserr << OpenSees::PromptValueError << "invalid eta\n";
         opserr << "uniaxialMaterial Elastic: " << tag << "\n";
         return TCL_ERROR;
       }
@@ -58,7 +58,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
 
   } else if (strcmp(argv[1], "ENT") == 0) {
     if (argc < 4) {
-      opserr << G3_ERROR_PROMPT << "invalid number of arguments\n";
+      opserr << OpenSees::PromptValueError << "invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial ENT tag? E?" << "\n";
       return TCL_ERROR;
     }
@@ -67,12 +67,12 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
     double E;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid uniaxialMaterial ENT tag" << "\n";
+      opserr << OpenSees::PromptValueError << "invalid uniaxialMaterial ENT tag" << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid E\n";
+      opserr << OpenSees::PromptValueError << "invalid E\n";
       opserr << "uniaxiaMaterial ENT: " << tag << "\n";
       return TCL_ERROR;
     }
@@ -84,7 +84,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
 
   else if (strcmp(argv[1], "BarSlip") == 0) {
     if (argc != 17 && argc != 15) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: uniaxialMaterial BarSlip tag? fc? fy? Es? fu? Eh? db? "
                 "ld? nb? width? depth? bsflag? type? <damage? unit?>"
              << "\n";
@@ -97,47 +97,47 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
     int argStart = 2;
 
     if (Tcl_GetInt(interp, argv[argStart++], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid tag\n";
+      opserr << OpenSees::PromptValueError << "invalid tag\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &fc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid fc\n";
+      opserr << OpenSees::PromptValueError << "invalid fc\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &fy) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid fy\n";
+      opserr << OpenSees::PromptValueError << "invalid fy\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &Es) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid Es\n";
+      opserr << OpenSees::PromptValueError << "invalid Es\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &fu) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid fu\n";
+      opserr << OpenSees::PromptValueError << "invalid fu\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &Eh) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid Eh\n";
+      opserr << OpenSees::PromptValueError << "invalid Eh\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &db) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid db\n";
+      opserr << OpenSees::PromptValueError << "invalid db\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &ld) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid ld\n";
+      opserr << OpenSees::PromptValueError << "invalid ld\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[argStart++], &nb) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nbars\n";
+      opserr << OpenSees::PromptValueError << "invalid nbars\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &width) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid width\n";
+      opserr << OpenSees::PromptValueError << "invalid width\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[argStart++], &depth) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid depth\n";
+      opserr << OpenSees::PromptValueError << "invalid depth\n";
       return TCL_ERROR;
     }
 
@@ -156,7 +156,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
         bsf = 1;
       }
     } else {
-      opserr << G3_ERROR_PROMPT << "invalid bond strength specified\n";
+      opserr << OpenSees::PromptValueError << "invalid bond strength specified\n";
       return TCL_ERROR;
     }
     y++;
@@ -188,7 +188,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
         typ = 2;
       }
     } else {
-      opserr << G3_ERROR_PROMPT << "invalid location of bar specified\n";
+      opserr << OpenSees::PromptValueError << "invalid location of bar specified\n";
       return TCL_ERROR;
     }
     if (argc == 17) {
@@ -216,7 +216,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
         }
 
       } else {
-        opserr << G3_ERROR_PROMPT << "invalid damage specified\n";
+        opserr << OpenSees::PromptValueError << "invalid damage specified\n";
         return TCL_ERROR;
       }
 
@@ -255,7 +255,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
           unt = 6;
         }
       } else {
-        opserr << G3_ERROR_PROMPT << "invalid unit specified\n";
+        opserr << OpenSees::PromptValueError << "invalid unit specified\n";
         return TCL_ERROR;
       }
     }
@@ -275,7 +275,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
 
   else if (strcmp(argv[1], "ShearPanel") == 0) {
     if (argc != 42 && argc != 31) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: uniaxialMaterial ShearPanel tag? stress1p? strain1p? "
                 "stress2p? strain2p? stress3p? strain3p? stress4p? strain4p? "
              << "\n<stress1n? strain1n? stress2n? strain2n? stress3n? "
@@ -301,230 +301,230 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
     int i = 2;
 
     if (Tcl_GetInt(interp, argv[i++], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid uniaxialMaterial ShearPanel tag" << "\n";
+      opserr << OpenSees::PromptValueError << "invalid uniaxialMaterial ShearPanel tag" << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &stress1p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid stress1p\n";
+      opserr << OpenSees::PromptValueError << "invalid stress1p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &strain1p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid strain1p\n";
+      opserr << OpenSees::PromptValueError << "invalid strain1p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &stress2p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid stress2p\n";
+      opserr << OpenSees::PromptValueError << "invalid stress2p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &strain2p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid strain2p\n";
+      opserr << OpenSees::PromptValueError << "invalid strain2p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &stress3p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid stress3p\n";
+      opserr << OpenSees::PromptValueError << "invalid stress3p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &strain3p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid strain3p\n";
+      opserr << OpenSees::PromptValueError << "invalid strain3p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &stress4p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid stress4p\n";
+      opserr << OpenSees::PromptValueError << "invalid stress4p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &strain4p) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid strain4p\n";
+      opserr << OpenSees::PromptValueError << "invalid strain4p\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (argc == 42) {
       if (Tcl_GetDouble(interp, argv[i++], &stress1n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress1n\n";
+        opserr << OpenSees::PromptValueError << "invalid stress1n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain1n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain1n\n";
+        opserr << OpenSees::PromptValueError << "invalid strain1n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &stress2n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress2n\n";
+        opserr << OpenSees::PromptValueError << "invalid stress2n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain2n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain2n\n";
+        opserr << OpenSees::PromptValueError << "invalid strain2n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &stress3n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress3n\n";
+        opserr << OpenSees::PromptValueError << "invalid stress3n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain3n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain3n\n";
+        opserr << OpenSees::PromptValueError << "invalid strain3n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &stress4n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress4n\n";
+        opserr << OpenSees::PromptValueError << "invalid stress4n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain4n) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain4n\n";
+        opserr << OpenSees::PromptValueError << "invalid strain4n\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &rDispP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid rDispP\n";
+      opserr << OpenSees::PromptValueError << "invalid rDispP\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &rForceP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid rForceP\n";
+      opserr << OpenSees::PromptValueError << "invalid rForceP\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &uForceP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid uForceP\n";
+      opserr << OpenSees::PromptValueError << "invalid uForceP\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (argc == 42) {
       if (Tcl_GetDouble(interp, argv[i++], &rDispN) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid rDispN\n";
+        opserr << OpenSees::PromptValueError << "invalid rDispN\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &rForceN) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid rForceN\n";
+        opserr << OpenSees::PromptValueError << "invalid rForceN\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &uForceN) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid uForceN\n";
+        opserr << OpenSees::PromptValueError << "invalid uForceN\n";
         opserr << "ShearPanel material: " << tag << "\n";
         return TCL_ERROR;
       }
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &gammaK1) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaK1\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaK1\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaK2) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaK2\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaK2\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaK3) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaK3\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaK3\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaK4) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaK4\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaK4\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaKLimit) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaKLimit\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaKLimit\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaD1) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaD1\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaD1\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaD2) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaD2\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaD2\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaD3) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaD3\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaD3\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaD4) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaD4\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaD4\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaDLimit) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaDLimit\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaDLimit\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaF1) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaF1\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaF1\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaF2) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaF2\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaF2\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaF3) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaF3\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaF3\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaF4) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaF4\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaF4\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[i++], &gammaFLimit) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaFLimit\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaFLimit\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &gammaE) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid gammaE\n";
+      opserr << OpenSees::PromptValueError << "invalid gammaE\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[i++], &yStr) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid yield stress\n";
+      opserr << OpenSees::PromptValueError << "invalid yield stress\n";
       opserr << "ShearPanel material: " << tag << "\n";
       return TCL_ERROR;
     }
@@ -551,7 +551,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
 
   else if (strcmp(argv[1], "Concrete01WithSITC") == 0) {
     if (argc < 7) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? "
                 "epscu? <endStrainSITC?>"
              << "\n";
@@ -561,7 +561,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
     int tag;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid uniaxialMaterial Concrete01 tag" << "\n";
+      opserr << OpenSees::PromptValueError << "invalid uniaxialMaterial Concrete01 tag" << "\n";
       return TCL_ERROR;
     }
 
@@ -569,22 +569,22 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
     double fpc, epsc0, fpcu, epscu;
 
     if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid fpc\n";
+      opserr << OpenSees::PromptValueError << "invalid fpc\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid epsc0\n";
+      opserr << OpenSees::PromptValueError << "invalid epsc0\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &fpcu) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid fpcu\n";
+      opserr << OpenSees::PromptValueError << "invalid fpcu\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &epscu) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid epscu\n";
+      opserr << OpenSees::PromptValueError << "invalid epscu\n";
       return TCL_ERROR;
     }
 
@@ -594,7 +594,7 @@ TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc,
     else {
       double endStrainSITC;
       if (Tcl_GetDouble(interp, argv[7], &endStrainSITC) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid epscu\n";
+        opserr << OpenSees::PromptValueError << "invalid epscu\n";
         return TCL_ERROR;
       }
       theMaterial =

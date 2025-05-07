@@ -70,7 +70,7 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
 
   // make sure at least one other argument to contain test type
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "need to specify a ConvergenceTest type \n";
+    opserr << OpenSees::PromptValueError << "need to specify a ConvergenceTest type \n";
     return nullptr;
   }
 
@@ -225,7 +225,7 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
   ConvergenceTest *theNewTest = nullptr;
 
   if (numIter == 0) {
-    opserr << G3_ERROR_PROMPT << "no numIter specified in test command\n";
+    opserr << OpenSees::PromptValueError << "no numIter specified in test command\n";
     return nullptr;
   }
 
@@ -234,7 +234,7 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
 
   else {
     if (tol == 0.0) {
-      opserr << G3_ERROR_PROMPT << "no tolerance specified in test command\n";
+      opserr << OpenSees::PromptValueError << "no tolerance specified in test command\n";
       return nullptr;
     }
 
@@ -269,7 +269,7 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
       return new CTestRelativeTotalNormDispIncr(tol, numIter, flag, normType);
 
     else {
-      opserr << G3_ERROR_PROMPT << "unknown ConvergenceTest type";
+      opserr << OpenSees::PromptValueError << "unknown ConvergenceTest type";
       return nullptr;
     }
   }
@@ -297,7 +297,7 @@ getCTestNorms(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_OK;
   }
 
-  opserr << G3_ERROR_PROMPT << "testNorms - no convergence test has been constructed.\n";
+  opserr << OpenSees::PromptValueError << "no convergence test has been defined.\n";
   return TCL_ERROR;
 }
 
@@ -318,7 +318,7 @@ getCTestIter(ClientData clientData, Tcl_Interp *interp, int argc, G3_Char ** con
     return TCL_OK;
   }
 
-  opserr << G3_ERROR_PROMPT << "testIter - no convergence test.\n";
+  opserr << OpenSees::PromptValueError << "no convergence test was found.\n";
   return TCL_ERROR;
 }
 
