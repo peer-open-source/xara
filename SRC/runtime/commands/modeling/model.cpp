@@ -67,7 +67,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
   // make sure at least one other argument to contain model builder type given
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "need to specify a model type, valid types:\n";
+    opserr << OpenSees::PromptValueError << "need to specify a model type, valid types:\n";
     opserr << "\tBasicBuilder\n";
     return TCL_ERROR;
   }
@@ -80,7 +80,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
       (strcmp(argv[1], "basicBuilder") == 0)) {
 
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "incorrect number of arguments\n";
       return TCL_ERROR;
     }
@@ -95,7 +95,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
         argPos++;
         if (argPos < argc) {
           if (Tcl_GetInt(interp, argv[argPos], &ndm) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT 
+            opserr << OpenSees::PromptValueError 
                    << "error reading ndm, got '" << argv[argPos] << "'\n";
             return TCL_ERROR;
           }
@@ -108,7 +108,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
         argPos++;
         if (argPos < argc)
           if (Tcl_GetInt(interp, argv[argPos], &ndf) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "invalid parameter ndf";
+            opserr << OpenSees::PromptValueError << "invalid parameter ndf";
             return TCL_ERROR;
           }
         argPos++;
@@ -116,7 +116,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
       } else if (posArg == 1) {
         if (Tcl_GetInt(interp, argv[argPos], &ndm) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid parameter ndm";
+          opserr << OpenSees::PromptValueError << "invalid parameter ndm";
           return TCL_ERROR;
         }
         argPos++;
@@ -124,7 +124,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
       } else if (posArg == 2) {
         if (Tcl_GetInt(interp, argv[argPos], &ndf) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "error reading ndf: " << argv[argPos] << "\n";
+          opserr << OpenSees::PromptValueError << "error reading ndf: " << argv[argPos] << "\n";
           return TCL_ERROR;
         }
         argPos++;
@@ -138,7 +138,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
     // check that ndm was specified
     if (ndm == 0) {
-      opserr << G3_ERROR_PROMPT << "missing required argument ndm\n";
+      opserr << OpenSees::PromptValueError << "missing required argument ndm\n";
       return TCL_ERROR;
     }
 
@@ -151,7 +151,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
       else if (ndm == 3)
         ndf = 6;
       else {
-        opserr << G3_ERROR_PROMPT << "specified ndm, " << ndm << ", will not work\n";
+        opserr << OpenSees::PromptValueError << "specified ndm, " << ndm << ", will not work\n";
         opserr << "        with any elements in BasicBuilder\n";
         return TCL_ERROR;
       }
@@ -179,7 +179,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     }
     theNewBuilder = new TclUniaxialMaterialTester(*theNewDomain, interp, count);
     if (theNewBuilder == 0) {
-      opserr << G3_ERROR_PROMPT << "ran out of memory in creating "
+      opserr << OpenSees::PromptValueError << "ran out of memory in creating "
                 "TclUniaxialMaterialTester model\n";
       return TCL_ERROR;
     } else {
@@ -200,7 +200,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
     theNewBuilder = new TclPlaneStressMaterialTester(theDomain, interp, count);
     if (theNewBuilder == 0) {
-      opserr << G3_ERROR_PROMPT << "ran out of memory in creating "
+      opserr << OpenSees::PromptValueError << "ran out of memory in creating "
                 "TclUniaxialMaterialTester model\n";
       return TCL_ERROR;
     }
@@ -218,7 +218,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     }
     theNewBuilder = new TclSectionTestBuilder(theDomain, interp, count);
     if (theNewBuilder == 0) {
-      opserr << G3_ERROR_PROMPT << "ran out of memory in creating "
+      opserr << OpenSees::PromptValueError << "ran out of memory in creating "
                 "TclUniaxialMAterialTester model\n";
       return TCL_ERROR;
     } 
@@ -226,7 +226,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 #endif
 
   else {
-    opserr << G3_ERROR_PROMPT << "unknown model builder type '" << argv[1] << "' not supported\n";
+    opserr << OpenSees::PromptValueError << "unknown model builder type '" << argv[1] << "' not supported\n";
     return TCL_ERROR;
   }
 
@@ -283,11 +283,11 @@ buildModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv[]
     return builder->buildFE_Model();
 
   } else if (builder != 0 && builtModel == true) {
-    opserr << G3_ERROR_PROMPT << "Model has already been built - not built again \n";
+    opserr << OpenSees::PromptValueError << "Model has already been built - not built again \n";
     return TCL_ERROR;
 
   } else {
-    opserr << G3_ERROR_PROMPT << "No ModelBuilder type has been specified \n";
+    opserr << OpenSees::PromptValueError << "No ModelBuilder type has been specified \n";
     return TCL_ERROR;
   }
 }

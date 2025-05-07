@@ -14,6 +14,7 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+// Framework
 #include <tcl.h>
 #include <Logging.h>
 #include <ID.h>
@@ -733,6 +734,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
     nodalResponse =
         the_domain->getNodeResponse(tag, (NodeData)responseID);
 
+
   if (nodalResponse == nullptr || nodalResponse->Size() < dof || dof < 0)
     // TODO: add error message
     return TCL_ERROR;
@@ -907,14 +909,14 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
   Domain *the_domain = (Domain*)clientData;
 
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "want - nodeCoord nodeTag? <dim?>\n";
+    opserr << OpenSees::PromptValueError << "want - nodeCoord nodeTag? <dim?>\n";
     return TCL_ERROR;
   }
 
   int tag;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "nodeCoord nodeTag? dim? - could not read nodeTag? \n";
+    opserr << OpenSees::PromptValueError << "nodeCoord nodeTag? dim? - could not read nodeTag? \n";
     return TCL_ERROR;
   }
 
@@ -931,7 +933,7 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
              strcmp(argv[2], "3") == 0)
       dim = 2;
     else {
-      opserr << G3_ERROR_PROMPT << "" << "nodeCoord nodeTag? dim? - could not read dim? \n";
+      opserr << OpenSees::PromptValueError << "" << "nodeCoord nodeTag? dim? - could not read dim? \n";
       return TCL_ERROR;
     }
   }
@@ -939,7 +941,7 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
   Node *theNode = the_domain->getNode(tag);
 
   if (theNode == nullptr) {
-    opserr << G3_ERROR_PROMPT << "Unable to retrieve node with tag '" << tag << "'\n";
+    opserr << OpenSees::PromptValueError << "Unable to retrieve node with tag '" << tag << "'\n";
     return TCL_ERROR;
   }
 
@@ -973,7 +975,7 @@ retainedNodes(ClientData clientData, Tcl_Interp *interp, int argc,
   int cNode;
   if (argc > 1) {
     if (Tcl_GetInt(interp, argv[1], &cNode) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "retainedNodes <cNode?> - could not read cNode? \n";
+      opserr << OpenSees::PromptValueError << "retainedNodes <cNode?> - could not read cNode? \n";
       return TCL_ERROR;
     }
     all = 0;
@@ -1024,7 +1026,7 @@ nodeDOFs(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const 
 
   int tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "nodeDOFs nodeTag?\n";
+    opserr << OpenSees::PromptValueError << "nodeDOFs nodeTag?\n";
     return TCL_ERROR;
   }
 

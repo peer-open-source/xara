@@ -184,18 +184,18 @@ removeObject(ClientData clientData, Tcl_Interp *interp, int argc,
 
   else if (strcmp(remove_type, "recorder") == 0) {
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "want - remove recorder recorderTag?\n";
+      opserr << OpenSees::PromptValueError << "want - remove recorder recorderTag?\n";
       return TCL_ERROR;
     }
     int tag;
     if (Tcl_GetIntFromObj(interp, objv[2], &tag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "remove recorder tag? failed to read tag: " << Tcl_GetString(objv[2])
                << "\n";
       return TCL_ERROR;
     }
     if (the_domain->removeRecorder(tag) != 0) {
-      opserr << G3_ERROR_PROMPT << "No recorder found with tag " << tag << "\n";
+      opserr << OpenSees::PromptValueError << "No recorder found with tag " << tag << "\n";
       return TCL_ERROR;
     }
     return TCL_OK;
@@ -396,7 +396,7 @@ fixedDOFs(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Obj *const *o
 
   Node *node = theDomain->getNode(fNode);
   if (node == nullptr) {
-    opserr << G3_ERROR_PROMPT << " fixedDOFs fNode? - could not find node with tag " << fNode << "\n";
+    opserr << OpenSees::PromptValueError << " fixedDOFs fNode? - could not find node with tag " << fNode << "\n";
     return TCL_ERROR;
   }
 
@@ -541,18 +541,20 @@ int
 retainedDOFs(ClientData clientData, Tcl_Interp *interp, int argc,
              TCL_Char ** const argv)
 {
+  //
+  // retainedDOFs rNode? <cNode?> <cDOF?>
+  //
   assert(clientData != nullptr);
   Domain *domain = (Domain*)clientData;
 
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "want - retainedDOFs rNode? <cNode?> <cDOF?>\n";
+    opserr << OpenSees::PromptValueError << "want - retainedDOFs rNode? <cNode?> <cDOF?>\n";
     return TCL_ERROR;
   }
 
   int rNode;
   if (Tcl_GetInt(interp, argv[1], &rNode) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "retainedDOFs rNode? <cNode?> <cDOF?> - could not read "
-              "rNode? \n";
+    opserr << OpenSees::PromptValueError << "could not read rNode? \n";
     return TCL_ERROR;
   }
 
@@ -560,8 +562,7 @@ retainedDOFs(ClientData clientData, Tcl_Interp *interp, int argc,
   bool allNodes = 1;
   if (argc > 2) {
     if (Tcl_GetInt(interp, argv[2], &cNode) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "retainedDOFs rNode? <cNode?> <cDOF?> - could not read "
-                "cNode? \n";
+      opserr << OpenSees::PromptValueError << "could not read cNode? \n";
       return TCL_ERROR;
     }
     allNodes = 0;
@@ -571,8 +572,8 @@ retainedDOFs(ClientData clientData, Tcl_Interp *interp, int argc,
   bool allDOFs = 1;
   if (argc > 3) {
     if (Tcl_GetInt(interp, argv[3], &cDOF) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "retainedDOFs rNode? <cNode?> <cDOF?> - could not read "
-                "cDOF? \n";
+      opserr << OpenSees::PromptValueError 
+             << "could not read cDOF? \n";
       return TCL_ERROR;
     }
     cDOF--;
