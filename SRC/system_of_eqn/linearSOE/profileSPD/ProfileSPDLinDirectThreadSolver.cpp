@@ -124,7 +124,7 @@ ProfileSPDLinDirectThreadSolver::~ProfileSPDLinDirectThreadSolver()
 }
 
 int
-ProfileSPDLinDirectThreadSolver::setSize(void)
+ProfileSPDLinDirectThreadSolver::setSize()
 {
     assert(theSOE != nullptr);
 

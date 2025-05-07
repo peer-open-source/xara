@@ -33,47 +33,9 @@
 #include <FEM_ObjectBroker.h>
 #include <DataFileStream.h>
 #include <iostream>
-#include <elementAPI.h>
 #include <string>
 using std::nothrow;
 
-void* OPS_SuperLUSolver()
-{
-  //    int count = 2;
-//  double thresh = 0.0;
-    int npRow = 1;
-    int npCol = 1;
-    int np = 1;
-    int permSpec = 0;
-    int panelSize = 6;
-    int relax = 6;
-    char symmetric = 'N';
-    double drop_tol = 0.0;
-    
-    int numData = 1;
-
-    while (OPS_GetNumRemainingInputArgs() > 1) {
-	std::string type = OPS_GetString();
-	if(type=="p"||type=="piv"||type=="-piv") {
-//        thresh = 1.0;
-	} else if(type=="np"||type=="-np") {
-	    if(OPS_GetIntInput(&numData,&np)<0) return 0;
-	} else if(type=="npRow"||type=="-npRow") {
-	    if(OPS_GetIntInput(&numData,&npRow)<0) return 0;
-	} else if(type=="npCol"||type=="-npCol") {
-	    if(OPS_GetIntInput(&numData,&npCol)<0) return 0;
-	} else if(type=="s"||type=="symmetric"||type=="-symm") {
-	    symmetric = 'Y';
-	}
-    }
-
-    SparseGenColLinSolver *theSolver = new SuperLU(permSpec,drop_tol,panelSize,relax,symmetric);
-    if(theSolver == 0) {
-	opserr<<"run out of memory in creating SuperLU\n";
-	return 0;
-    }
-    return new SparseGenColLinSOE(*theSolver);
-}
 
 SuperLU::SuperLU(int perm, 
 		 double drop_tolerance, 
@@ -164,24 +126,24 @@ extern "C" void    dCreate_Dense_Matrix(SuperMatrix *, int, int, double *, int,
 */
 
 int
-SuperLU::solve(void)
+SuperLU::solve()
 {
-    if (theSOE == 0) {
-	opserr << "WARNING SuperLU::solve(void)- ";
-	opserr << " No LinearSOE object has been set\n";
-	return -1;
+    if (theSOE == nullptr) {
+      opserr << "WARNING SuperLU::solve(void)- ";
+      opserr << " No LinearSOE object has been set\n";
+      return -1;
     }
     
     int n = theSOE->size;
-    
+
     // check for quick return
     if (n == 0)
-	return 0;
+      return 0;
 
     if (sizePerm == 0) {
-	opserr << "WARNING SuperLU::solve(void)- ";
-	opserr << " size for row and col permutations 0 - has setSize() been called?\n";
-	return -1;
+      opserr << "WARNING SuperLU::solve(void)- ";
+      opserr << " size for row and col permutations 0 - has setSize() been called?\n";
+      return -1;
     }
 
     /*
@@ -215,35 +177,35 @@ SuperLU::solve(void)
     double *Xptr = theSOE->X;
     double *Bptr = theSOE->B;
     for (int i=0; i<n; i++)
-	*(Xptr++) = *(Bptr++);
+      *(Xptr++) = *(Bptr++);
 
-    GlobalLU_t Glu; /* Not needed on return. */
+        GlobalLU_t Glu; /* Not needed on return. */
 
-    if (theSOE->factored == false) {
-	// factor the matrix
-	int info;
+        if (theSOE->factored == false) {
+      // factor the matrix
+      int info;
 
-	if (L.ncol != 0 && symmetric == 'N') {
-	  Destroy_SuperNode_Matrix(&L);
-	  Destroy_CompCol_Matrix(&U);	  
-	}
+      if (L.ncol != 0 && symmetric == 'N') {
+        Destroy_SuperNode_Matrix(&L);
+        Destroy_CompCol_Matrix(&U);	  
+      }
 
-	dgstrf(&options, &AC, relax, panelSize,
-	       etree, NULL, 0, perm_c, perm_r, &L, &U, &Glu, &stat, &info);
+      dgstrf(&options, &AC, relax, panelSize,
+            etree, NULL, 0, perm_c, perm_r, &L, &U, &Glu, &stat, &info);
 
 
-	if (info != 0) {	
-	  opserr << "WARNING SuperLU::solve(void)- ";
-	  opserr << " Error " << info << " returned in factorization dgstrf()\n";
-	  return -info;
-	}
+      if (info != 0) {	
+        opserr << "WARNING SuperLU::solve(void)- ";
+        opserr << " Error " << info << " returned in factorization dgstrf()\n";
+        return -info;
+      }
 
-	if (symmetric == 'Y')
-	  options.Fact= SamePattern_SameRowPerm;
-	else
-	  options.Fact = SamePattern;
-	
-	theSOE->factored = true;
+      if (symmetric == 'Y')
+        options.Fact= SamePattern_SameRowPerm;
+      else
+        options.Fact = SamePattern;
+      
+      theSOE->factored = true;
     }	
 
     // do forward and backward substitution
@@ -315,14 +277,14 @@ SuperLU::setSize()
       options.Fact = DOFACT;
 
       if (symmetric == 'Y')
-	options.SymmetricMode=YES;
+        options.SymmetricMode=YES;
 
     } else if (n == 0)
-	return 0;
+      return 0;
     else {
-	opserr << "WARNING SuperLU::setSize()";
-	opserr << " - order of system <  0\n";
-	return -1;	
+      opserr << "WARNING SuperLU::setSize()";
+      opserr << " - order of system <  0\n";
+      return -1;	
     }
 	
     return 0;

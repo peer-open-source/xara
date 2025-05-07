@@ -379,49 +379,41 @@ SparseGenRowLinSOE::zeroA(void)
 }
 	
 void 
-SparseGenRowLinSOE::zeroB(void)
+SparseGenRowLinSOE::zeroB()
 {
     double *Bptr = B;
     for (int i=0; i<size; i++)
-	*Bptr++ = 0;
+		*Bptr++ = 0;
 }
 
 void 
 SparseGenRowLinSOE::setX(int loc, double value)
 {
     if (loc < size && loc >=0)
-	X[loc] = value;
+		X[loc] = value;
 }
 
 void 
 SparseGenRowLinSOE::setX(const Vector &x)
 {
-  if (x.Size() == size && vectX != 0)
-    *vectX = x;
+  if (x.Size() == size)
+    X = x;
 }
 
 const Vector &
-SparseGenRowLinSOE::getX(void)
+SparseGenRowLinSOE::getX()
 {
-    if (vectX == 0) {
-	opserr << "FATAL SparseGenRowLinSOE::getX - vectX == 0";
-	exit(-1);
-    }
-    return *vectX;
+	return X;
 }
 
 const Vector &
-SparseGenRowLinSOE::getB(void)
+SparseGenRowLinSOE::getB()
 {
-    if (vectB == 0) {
-	opserr << "FATAL SparseGenRowLinSOE::getB - vectB == 0";
-	exit(-1);
-    }        
-    return *vectB;
+	return B;
 }
 
 double 
-SparseGenRowLinSOE::normRHS(void)
+SparseGenRowLinSOE::normRHS()
 {
     double norm =0.0;
     for (int i=0; i<size; i++) {

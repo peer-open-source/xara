@@ -58,7 +58,7 @@ ProfileSPDLinSubstrSolver::solve()
 }
 
 int
-ProfileSPDLinSubstrSolver::setSize(void)
+ProfileSPDLinSubstrSolver::setSize()
 {
     return this->ProfileSPDLinDirectSolver::setSize();
 }    
@@ -112,10 +112,6 @@ ProfileSPDLinSubstrSolver::condenseA(int numInt)
     //    - done using Crout decomposition
     //
 
-
-
-
-
     this->factor(numInt);
     
     /*
@@ -125,43 +121,43 @@ ProfileSPDLinSubstrSolver::condenseA(int numInt)
     int i;
 
     for (i=numInt; i<size; i++) {
-	
-	int rowitop = RowTop[i];
-	double *ajiPtr = topRowPtr[i];
-
-	int jstrt = rowitop;
-	if (rowitop == 0) {
-	    jstrt = 1;
-	    ajiPtr++;
-	} else {
-	    jstrt = rowitop;
-	}
-
-	
-	for (int j=jstrt; j<numInt; j++) {
-	    double tmp = *ajiPtr;
-	  
-	    int rowjtop = RowTop[j];
-
-	    double *akiPtr, *akjPtr;
-	   
-	    if (rowitop > rowjtop) {
-		akiPtr = topRowPtr[i];
-		akjPtr = topRowPtr[j] + (rowitop-rowjtop);
 		
-		for (int k=rowitop; k<j; k++) 
-		    tmp -= *akjPtr++ * *akiPtr++ ;
-	      
-	    } else {
-		akiPtr = topRowPtr[i] + (rowjtop-rowitop);
-		akjPtr = topRowPtr[j];
-	       
-		for (int k=rowjtop; k<j; k++) 
-		    tmp -= *akjPtr++ * *akiPtr++ ;	    
-	    }
+		int rowitop = RowTop[i];
+		double *ajiPtr = topRowPtr[i];
 
-	    *ajiPtr++ = tmp;
-	}
+		int jstrt = rowitop;
+		if (rowitop == 0) {
+			jstrt = 1;
+			ajiPtr++;
+		} else {
+			jstrt = rowitop;
+		}
+
+		
+		for (int j=jstrt; j<numInt; j++) {
+			double tmp = *ajiPtr;
+		
+			int rowjtop = RowTop[j];
+
+			double *akiPtr, *akjPtr;
+		
+			if (rowitop > rowjtop) {
+			akiPtr = topRowPtr[i];
+			akjPtr = topRowPtr[j] + (rowitop-rowjtop);
+			
+			for (int k=rowitop; k<j; k++) 
+				tmp -= *akjPtr++ * *akiPtr++ ;
+			
+			} else {
+			akiPtr = topRowPtr[i] + (rowjtop-rowitop);
+			akjPtr = topRowPtr[j];
+			
+			for (int k=rowjtop; k<j; k++) 
+				tmp -= *akjPtr++ * *akiPtr++ ;	    
+			}
+
+			*ajiPtr++ = tmp;
+		}
     }
 
 
