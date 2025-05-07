@@ -331,7 +331,7 @@ G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp, int ar
   
   // Begin parse
   if (argc < 3) {
-    opserr << G3_ERROR_PROMPT << "integrator ArcLength arcLength alpha \n";
+    opserr << OpenSees::PromptValueError << "integrator ArcLength arcLength alpha \n";
     return nullptr;
   }
 
@@ -344,13 +344,13 @@ G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp, int ar
     }
     else if ((strcmp(argv[i], "-exp") == 0)) {
       if (++i >= argc || Tcl_GetDouble(interp, argv[i], &expon) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read expon\n";
+        opserr << OpenSees::PromptValueError << "failed to read expon\n";
         return nullptr;
       }
     }
     else if ((strcmp(argv[i], "-j") == 0)) {
       if (++i >= argc || Tcl_GetDouble(interp, argv[i], &numIter) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read iter\n";
+        opserr << OpenSees::PromptValueError << "failed to read iter\n";
         return nullptr;
       }
     }
@@ -360,7 +360,7 @@ G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp, int ar
       }
     } else if (!got_alpha) {
       if (Tcl_GetDouble(interp, argv[i], &alpha) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read alpha, got " << argv[i] << "\n";
+        opserr << OpenSees::PromptValueError << "failed to read alpha, got " << argv[i] << "\n";
         return nullptr;
       }
       got_alpha = true;
@@ -384,7 +384,7 @@ G3Parse_newMinUnbalDispNormIntegrator(ClientData clientData, Tcl_Interp* interp,
 
     double lambda11;
     if (Tcl_GetDouble(interp, argv[2], &lambda11) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "expected float for lambda11 but got " << argv[2] << "\n";
+      opserr << OpenSees::PromptValueError << "expected float for lambda11 but got " << argv[2] << "\n";
       return nullptr;
     }
 
