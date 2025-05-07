@@ -363,7 +363,7 @@ getParamValue(ClientData clientData, Tcl_Interp *interp, int argc,
   int paramTag;
 
   if (Tcl_GetInt(interp, argv[1], &paramTag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "getParamValue -- could not read paramTag \n";
+    opserr << OpenSees::PromptValueError << "getParamValue -- could not read paramTag \n";
     return TCL_ERROR;
   }
 

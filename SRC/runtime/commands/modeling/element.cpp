@@ -124,7 +124,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
 
   // check at least two arguments so don't segemnt fault on strcmp
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "insufficient arguments, expected:\n";
+    opserr << OpenSees::PromptValueError << "insufficient arguments, expected:\n";
     opserr << "      element eleType <specific element args> .. \n";
     return TCL_ERROR;
   }
@@ -1937,7 +1937,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
   // -- End of a 2D wheel-rail element(By Quan Gu, Yongdou Liu, et al.) on 2018/10/29
 
   else if (ndm == 3) {
-    opserr << G3_ERROR_PROMPT << "Unimplemented." << endln;
+    opserr << OpenSees::PromptValueError << "Unimplemented." << endln;
     return TCL_ERROR;
   }
 
