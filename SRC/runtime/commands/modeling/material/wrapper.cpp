@@ -46,17 +46,17 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
     BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
 
     if (argc < 4) {
-        opserr << G3_ERROR_PROMPT << " insufficient arguments\n";
+        opserr << OpenSees::PromptValueError << " insufficient arguments\n";
         return TCL_ERROR;
     }
 
     int tago, tagi;
     if (Tcl_GetInt(interp, argv[2], &tago) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read tag\n";
+        opserr << OpenSees::PromptValueError << "failed to read tag\n";
         return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[3], &tagi) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read tag\n";
+        opserr << OpenSees::PromptValueError << "failed to read tag\n";
         return TCL_ERROR;
     }
 
@@ -76,7 +76,7 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
             
         double initial;
         if (Tcl_GetDouble(interp, argv[4], &initial) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "failed to read initial value\n";
+            opserr << OpenSees::PromptValueError << "failed to read initial value\n";
             return TCL_ERROR;
         }
         UniaxialMaterial* inside = builder->getTypedObject<UniaxialMaterial>(tagi);
@@ -102,14 +102,14 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
         
         inside = inside->getCopy("ThreeDimensional");
         if (!inside || strcmp(inside->getType(), "ThreeDimensional") != 0) {
-            opserr << G3_ERROR_PROMPT << "InitStressNDMaterial only works with 3D materials\n";
+            opserr << OpenSees::PromptValueError << "InitStressNDMaterial only works with 3D materials\n";
             return TCL_ERROR;
         }
 
         if (argc == 5) {
           double evol;
           if (Tcl_GetDouble(interp, argv[4], &evol) != TCL_OK) {
-              opserr << G3_ERROR_PROMPT << "failed to read initial value\n";
+              opserr << OpenSees::PromptValueError << "failed to read initial value\n";
               return TCL_ERROR;
           }
           for (int i = 0; i < 3; ++i)
@@ -118,7 +118,7 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
         } else {
             for (int i=0; i<6; ++i) {
                 if (Tcl_GetDouble(interp, argv[4+i], &initial(i)) != TCL_OK) {
-                    opserr << G3_ERROR_PROMPT << "failed to read initial value\n";
+                    opserr << OpenSees::PromptValueError << "failed to read initial value\n";
                     return TCL_ERROR;
                 }
             }
@@ -295,14 +295,14 @@ TclCommand_newPlateRebar(ClientData clientData, Tcl_Interp* interp, int argc, G3
 
   if (strcmp(argv[1], "PlateRebarMaterial") == 0 ||
       strcmp(argv[1], "PlateRebar") == 0) {
-    if (builder->addTaggedObject(*new PlateRebarMaterial(tag, *theMat, angle)) != TCL_OK) {
+    if (builder->addTaggedObject<NDMaterial>(*new PlateRebarMaterial(tag, *theMat, angle)) != TCL_OK) {
       return TCL_ERROR;
     }
   }
 
   else if (strcmp(argv[1], "PlaneStressRebarMaterial") == 0 ||
            strcmp(argv[1], "PlaneStressRebar") == 0) {
-    if (builder->addTaggedObject(*new PlaneStressRebarMaterial(tag, *theMat, angle)) != TCL_OK) {
+    if (builder->addTaggedObject<NDMaterial>(*new PlaneStressRebarMaterial(tag, *theMat, angle)) != TCL_OK) {
       return TCL_ERROR;
     }
   }
@@ -323,7 +323,7 @@ TclCommand_newFatigueMaterial(ClientData clientData, Tcl_Interp* interp, int arg
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
 
   if (argc < 4) {
-    opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
     opserr << "Want: uniaxialMaterial Fatigue tag? matTag?";
     opserr << " <-D_max dmax?> <-e0 e0?> <-m m?>" << "\n";
     opserr << " <-min min?> <-max max?>" << "\n";
@@ -333,12 +333,12 @@ TclCommand_newFatigueMaterial(ClientData clientData, Tcl_Interp* interp, int arg
   int tag, matTag;
 
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid uniaxialMaterial Fatigue tag" << "\n";
+    opserr << OpenSees::PromptValueError << "invalid uniaxialMaterial Fatigue tag" << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid component tag\n";
+    opserr << OpenSees::PromptValueError << "invalid component tag\n";
     return TCL_ERROR;
   }
 
@@ -352,30 +352,30 @@ TclCommand_newFatigueMaterial(ClientData clientData, Tcl_Interp* interp, int arg
     if (strcmp(argv[j], "-Dmax") == 0) {
       if ((j + 1 >= argc) ||
           (Tcl_GetDouble(interp, argv[++j], &Dmax) != TCL_OK)) {
-        opserr << G3_ERROR_PROMPT << "invalid -Dmax";
+        opserr << OpenSees::PromptValueError << "invalid -Dmax";
         return TCL_ERROR;
       }
     } else if (strcmp(argv[j], "-E0") == 0) {
       if ((j + 1 >= argc) || (Tcl_GetDouble(interp, argv[++j], &E0) != TCL_OK)) {
-        opserr << G3_ERROR_PROMPT << "invalid -E0";
+        opserr << OpenSees::PromptValueError << "invalid -E0";
         return TCL_ERROR;
       }
     } else if (strcmp(argv[j], "-m") == 0) {
       if ((j + 1 >= argc) ||
           (Tcl_GetDouble(interp, argv[++j], &m) != TCL_OK)) {
-        opserr << G3_ERROR_PROMPT << "invalid -m";
+        opserr << OpenSees::PromptValueError << "invalid -m";
         return TCL_ERROR;
       }
     } else if (strcmp(argv[j], "-min") == 0) {
       if ((j + 1 >= argc) ||
           (Tcl_GetDouble(interp, argv[++j], &epsmin) != TCL_OK)) {
-        opserr << G3_ERROR_PROMPT << "invalid -min ";
+        opserr << OpenSees::PromptValueError << "invalid -min ";
         return TCL_ERROR;
       }
     } else if (strcmp(argv[j], "-max") == 0) {
       if ((j + 1 >= argc) ||
           (Tcl_GetDouble(interp, argv[++j], &epsmax) != TCL_OK)) {
-        opserr << G3_ERROR_PROMPT << "invalid -max";
+        opserr << OpenSees::PromptValueError << "invalid -max";
         return TCL_ERROR;
       }
     }
@@ -384,7 +384,7 @@ TclCommand_newFatigueMaterial(ClientData clientData, Tcl_Interp* interp, int arg
   UniaxialMaterial *theMat = builder->getTypedObject<UniaxialMaterial>(matTag);
 
   if (theMat == nullptr) {
-    opserr << G3_ERROR_PROMPT << "component material does not exist\n";
+    opserr << OpenSees::PromptValueError << "component material does not exist\n";
     return TCL_ERROR;
   }
 

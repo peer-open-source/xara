@@ -144,7 +144,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
       for (int i = 0; i < list_argc; ++i) {
         int node;
         if (Tcl_GetInt(interp, list_argv[i], &node) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT 
+          opserr << OpenSees::PromptValueError 
                  << "invalid node " << list_argv[i]
                  << "\n";
           return TCL_ERROR;

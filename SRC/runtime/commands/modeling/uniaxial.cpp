@@ -93,7 +93,7 @@ TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
-    opserr << G3_ERROR_PROMPT 
+    opserr << OpenSees::PromptValueError 
            << "insufficient number of uniaxial material arguments\n"
            << "Want: uniaxialMaterial type? tag? <specific material args>\n";
     return TCL_ERROR;
@@ -230,13 +230,13 @@ TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
   // if still here the element command does not exist
   //
   if (theMaterial == nullptr) {
-    opserr << G3_ERROR_PROMPT << "Could not create uniaxialMaterial " << argv[1] << "\n";
+    opserr << OpenSees::PromptValueError << "Could not create uniaxialMaterial " << argv[1] << "\n";
     return TCL_ERROR;
   }
 
   // Now add the material to the modelBuilder
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "Could not add uniaxialMaterial to the model builder.\n";
+    opserr << OpenSees::PromptValueError << "Could not add uniaxialMaterial to the model builder.\n";
     delete theMaterial;
     return TCL_ERROR;
   }
@@ -257,7 +257,7 @@ TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int 
 
    if (strcmp(argv[1], "Pinching4") == 0) {
       if (argc != 42 && argc != 31) {
-        opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+        opserr << OpenSees::PromptValueError << "insufficient arguments\n";
         opserr << "Want: uniaxialMaterial Pinching4 tag? stress1p? strain1p? "
                   "stress2p? strain2p? stress3p? strain3p? stress4p? strain4p? "
                << "\n<stress1n? strain1n? stress2n? strain2n? stress3n? "
@@ -283,163 +283,163 @@ TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int 
       int i = 2;
 
       if (Tcl_GetInt(interp, argv[i++], &tag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid uniaxialMaterial Pinching4 tag" << "\n";
+        opserr << OpenSees::PromptValueError << "invalid uniaxialMaterial Pinching4 tag" << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &stress1p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress1p\n";
+        opserr << OpenSees::PromptValueError << "invalid stress1p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain1p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain1p\n";
+        opserr << OpenSees::PromptValueError << "invalid strain1p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &stress2p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress2p\n";
+        opserr << OpenSees::PromptValueError << "invalid stress2p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain2p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain2p\n";
+        opserr << OpenSees::PromptValueError << "invalid strain2p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &stress3p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress3p\n";
+        opserr << OpenSees::PromptValueError << "invalid stress3p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain3p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain3p\n";
+        opserr << OpenSees::PromptValueError << "invalid strain3p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &stress4p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid stress4p\n";
+        opserr << OpenSees::PromptValueError << "invalid stress4p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &strain4p) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid strain4p\n";
+        opserr << OpenSees::PromptValueError << "invalid strain4p\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (argc == 42) {
         if (Tcl_GetDouble(interp, argv[i++], &stress1n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid stress1n\n";
+          opserr << OpenSees::PromptValueError << "invalid stress1n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &strain1n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid strain1n\n";
+          opserr << OpenSees::PromptValueError << "invalid strain1n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &stress2n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid stress2n\n";
+          opserr << OpenSees::PromptValueError << "invalid stress2n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &strain2n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid strain2n\n";
+          opserr << OpenSees::PromptValueError << "invalid strain2n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &stress3n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid stress3n\n";
+          opserr << OpenSees::PromptValueError << "invalid stress3n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &strain3n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid strain3n\n";
+          opserr << OpenSees::PromptValueError << "invalid strain3n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &stress4n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid stress4n\n";
+          opserr << OpenSees::PromptValueError << "invalid stress4n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &strain4n) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid strain4n\n";
+          opserr << OpenSees::PromptValueError << "invalid strain4n\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &rDispP) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid rDispP\n";
+        opserr << OpenSees::PromptValueError << "invalid rDispP\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &rForceP) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid rForceP\n";
+        opserr << OpenSees::PromptValueError << "invalid rForceP\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &uForceP) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid uForceP\n";
+        opserr << OpenSees::PromptValueError << "invalid uForceP\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (argc == 42) {
         if (Tcl_GetDouble(interp, argv[i++], &rDispN) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid rDispN\n";
+          opserr << OpenSees::PromptValueError << "invalid rDispN\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &rForceN) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid rForceN\n";
+          opserr << OpenSees::PromptValueError << "invalid rForceN\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i++], &uForceN) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid uForceN\n";
+          opserr << OpenSees::PromptValueError << "invalid uForceN\n";
           opserr << "Pinching4 material: " << tag << "\n";
           return TCL_ERROR;
         }
       }
 
       if (Tcl_GetDouble(interp, argv[i++], &gammaK1) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid gammaK1\n";
+        opserr << OpenSees::PromptValueError << "invalid gammaK1\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i++], &gammaK2) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid gammaK2\n";
+        opserr << OpenSees::PromptValueError << "invalid gammaK2\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i++], &gammaK3) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid gammaK3\n";
+        opserr << OpenSees::PromptValueError << "invalid gammaK3\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i++], &gammaK4) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid gammaK4\n";
+        opserr << OpenSees::PromptValueError << "invalid gammaK4\n";
         opserr << "Pinching4 material: " << tag << "\n";
         return TCL_ERROR;
       }
@@ -553,7 +553,7 @@ TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int 
 #if 0
    else if (strcmp(argv[1], "Backbone") == 0) {
       if (argc < 4) {
-        opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+        opserr << OpenSees::PromptValueError << "insufficient arguments\n";
         opserr << "Want: uniaxialMaterial Backbone tag? bbTag?" << "\n";
         return TCL_ERROR;
       }
@@ -561,13 +561,13 @@ TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int 
       int tag, bbTag;
 
       if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid tag\n";
+        opserr << OpenSees::PromptValueError << "invalid tag\n";
         opserr << "Backbone material: " << tag << "\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetInt(interp, argv[3], &bbTag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid bTag\n";
+        opserr << OpenSees::PromptValueError << "invalid bTag\n";
         opserr << "Backbone material: " << tag << "\n";
         return TCL_ERROR;
       }
@@ -575,7 +575,7 @@ TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int 
       HystereticBackbone *backbone = OPS_getHystereticBackbone(bbTag);
 
       if (backbone == 0) {
-        opserr << G3_ERROR_PROMPT << "backbone does not exist\n";
+        opserr << OpenSees::PromptValueError << "backbone does not exist\n";
         opserr << "backbone: " << bbTag;
         opserr << "\nuniaxialMaterial Backbone: " << tag << "\n";
         return TCL_ERROR;
