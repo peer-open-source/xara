@@ -191,7 +191,7 @@ FrameFiberSection3d::getIntegral(Field field, State state, double& value) const
 
 int
 FrameFiberSection3d::addFiber(UniaxialMaterial &theMat, 
-                              const double Area, const double yLoc, const double zLoc)
+                              double Area, double yLoc, double zLoc)
 {
   // need to create a larger array
   if (numFibers == sizeFibers) {
