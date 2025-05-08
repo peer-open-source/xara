@@ -19,6 +19,7 @@
 #include <BeamIntegration.h>
 #include <FrameQuadrature.hpp>
 #include <quadrature/GaussLobatto1D.hpp>
+#include <quadrature/GaussLegendre1D.hpp>
 #include <LobattoBeamIntegration.h>
 #include <LegendreBeamIntegration.h>
 #include <RadauBeamIntegration.h>
@@ -68,15 +69,24 @@ GetBeamIntegration(TCL_Char* type, int n)
 {
   if (strcmp(type, "Lobatto") == 0) {
     BeamIntegration* bi = nullptr;
-    static_loop<2, 20>([&](auto i) {
+
+    static_loop<2, 30>([&](auto i) {
       if ((int)i.value == n)
         bi = new FrameQuadrature<GaussLobatto<1,i.value>>;
     });
-    return bi; // new FrameQuadrature<GaussLobatto<1,20>>; // LobattoBeamIntegration();
+    return bi; // LobattoBeamIntegration();
   }
 
-  else if (strcmp(type, "Legendre") == 0)
-    return new LegendreBeamIntegration();
+  else if (strcmp(type, "Legendre") == 0) {
+    BeamIntegration* bi = nullptr;
+
+    static_loop<2, 30>([&](auto i) {
+      if ((int)i.value == n)
+        bi = new FrameQuadrature<GaussLegendre<1,i.value>>;
+    });
+    return bi; // LobattoBeamIntegration();
+  }
+  // return new LegendreBeamIntegration();
 
   else if (strcmp(type, "Radau") == 0)
     return new RadauBeamIntegration();
@@ -101,7 +111,7 @@ TclCommand_addBeamIntegration(ClientData clientData, Tcl_Interp *interp,
   BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
 
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "want beamIntegration type tag...\n";
+    opserr << OpenSees::PromptValueError << "want beamIntegration type tag...\n";
     return TCL_ERROR;
   }
 
@@ -155,7 +165,7 @@ TclCommand_addBeamIntegration(ClientData clientData, Tcl_Interp *interp,
 
 
   if (builder->addTypedObject<BeamIntegrationRule>(iTag, rule) < 0) {
-    opserr << G3_ERROR_PROMPT << "could not add BeamIntegrationRule.";
+    opserr << OpenSees::PromptValueError << "could not add BeamIntegrationRule.";
     delete rule;
     return TCL_ERROR;
   }
@@ -191,7 +201,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
       tracker.consume(Argument::Tag);
 
     if (argc < 3) { // 3 = 9 - 6
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //           0       1
              << " Lobatto secTag? nIP?\n";
@@ -200,12 +210,12 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
 
     int secTag;
     if (Tcl_GetInt(interp, argv[0], &secTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTag\n";
+      opserr << OpenSees::PromptValueError << "invalid secTag\n";
       return TCL_ERROR;
     }
     int nIP;
     if (Tcl_GetInt(interp, argv[1], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
 
@@ -233,7 +243,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(type, "UserDefined") == 0) {
 
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //              0    1
              << "UserDefined nIP? secTag1? "
@@ -243,7 +253,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
 
     int nIP;
     if (Tcl_GetInt(interp, argv[0], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
 
@@ -256,15 +266,15 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
       int sec;
       double pt, wt;
       if (Tcl_GetInt(interp, argv[j], &sec) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid sec\n";
+        opserr << OpenSees::PromptValueError << "invalid sec\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + nIP], &pt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid pt\n";
+        opserr << OpenSees::PromptValueError << "invalid pt\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + 2 * nIP], &wt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid wt\n";
+        opserr << OpenSees::PromptValueError << "invalid wt\n";
         return TCL_ERROR;
       }
       sections[i] = sec;
@@ -284,7 +294,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
            strcmp(type, "HingeEndpoint") == 0) {
 
     if (argc < 6) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //        0        1    2        3    4
              << " type secTagI? lpI? secTagJ? lpJ? secTagE?\n";
@@ -295,23 +305,23 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     int secTagI, secTagJ, secTagE;
 
     if (Tcl_GetInt(interp, argv[0], &secTagI) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagI\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagI\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[1], &lpI) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid lpI\n";
+      opserr << OpenSees::PromptValueError << "invalid lpI\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[2], &secTagJ) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagJ\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagJ\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[3], &lpJ) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid lpJ\n";
+      opserr << OpenSees::PromptValueError << "invalid lpJ\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[4], &secTagE) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagE\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagE\n";
       return TCL_ERROR;
     }
 
@@ -362,7 +372,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(type, "UserHinge") == 0) {
 
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //             0        1
              << " UserHinge secTagE? npL? "
@@ -373,7 +383,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
 
     int secTagE;
     if (Tcl_GetInt(interp, argv[0], &secTagE) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagE\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagE\n";
       return TCL_ERROR;
     }
 
@@ -382,11 +392,11 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     int npL, npR;
 
     if (Tcl_GetInt(interp, argv[argStart], &npL) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid npL\n";
+      opserr << OpenSees::PromptValueError << "invalid npL\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[argStart + 3 * npL + 1], &npR) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid npR\n";
+      opserr << OpenSees::PromptValueError << "invalid npR\n";
       return TCL_ERROR;
     }
 
@@ -403,15 +413,15 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
       int sec;
       double pt, wt;
       if (Tcl_GetInt(interp, argv[j], &sec) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid sec\n";
+        opserr << OpenSees::PromptValueError << "invalid sec\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + npL], &pt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid pt\n";
+        opserr << OpenSees::PromptValueError << "invalid pt\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + 2 * npL], &wt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid wt\n";
+        opserr << OpenSees::PromptValueError << "invalid wt\n";
         return TCL_ERROR;
       }
       sections[i+1] = sec;
@@ -423,15 +433,15 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
       int sec;
       double pt, wt;
       if (Tcl_GetInt(interp, argv[j], &sec) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid sec\n";
+        opserr << OpenSees::PromptValueError << "invalid sec\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + npR], &pt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid pt\n";
+        opserr << OpenSees::PromptValueError << "invalid pt\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + 2 * npR], &wt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid wt\n";
+        opserr << OpenSees::PromptValueError << "invalid wt\n";
         return TCL_ERROR;
       }
       sections[i + npL] = sec;
@@ -452,7 +462,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(type, "DistHinge") == 0) {
 
     if (argc < 8) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //        0        1    2
              << " type distType nIP? secTagI? "
@@ -481,29 +491,29 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
 
     int nIP;
     if (Tcl_GetInt(interp, argv[1], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
     int secTagI, secTagJ, secTagE;
     if (Tcl_GetInt(interp, argv[2], &secTagI) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagI\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagI\n";
       return TCL_ERROR;
     }
     double lpI, lpJ;
     if (Tcl_GetDouble(interp, argv[3], &lpI) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid lpI\n";
+      opserr << OpenSees::PromptValueError << "invalid lpI\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[4], &secTagJ) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagJ\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagJ\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[5], &lpJ) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid lpJ\n";
+      opserr << OpenSees::PromptValueError << "invalid lpJ\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[6], &secTagE) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagE\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagE\n";
       return TCL_ERROR;
     }
 
@@ -532,7 +542,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(type, "RegularizedHinge") == 0) {
 
     if (argc < 10) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //        0        1    2 
              << " type distType nIP? secTagI? "
@@ -564,35 +574,35 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     }
 
     if (Tcl_GetInt(interp, argv[1], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[2], &secTagI) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagI\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagI\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[3], &lpI) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid lpI\n";
+      opserr << OpenSees::PromptValueError << "invalid lpI\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[4], &zetaI) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid zetaI\n";
+      opserr << OpenSees::PromptValueError << "invalid zetaI\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[5], &secTagJ) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagJ\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagJ\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[6], &lpJ) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid lpJ\n";
+      opserr << OpenSees::PromptValueError << "invalid lpJ\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[7], &zetaJ) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid zetaI\n";
+      opserr << OpenSees::PromptValueError << "invalid zetaI\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[8], &secTagE) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTagE\n";
+      opserr << OpenSees::PromptValueError << "invalid secTagE\n";
       return TCL_ERROR;
     }
 
@@ -622,7 +632,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(type, "FixedLocation") == 0) {
 
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //                 0    1
              << " FixedLocation nIP? secTag1? "
@@ -631,7 +641,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     }
 
     if (Tcl_GetInt(interp, argv[0], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
 
@@ -644,11 +654,11 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
       int sec;
       double pt;
       if (Tcl_GetInt(interp, argv[j], &sec) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid sec\n";
+        opserr << OpenSees::PromptValueError << "invalid sec\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + nIP], &pt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid pt\n";
+        opserr << OpenSees::PromptValueError << "invalid pt\n";
         return TCL_ERROR;
       }
       sections[i] = sec;
@@ -664,7 +674,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(type, "LowOrder") == 0) {
 
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //            0    1
              << " LowOrder nIP? secTag1? ... "
@@ -673,7 +683,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     }
 
     if (Tcl_GetInt(interp, argv[0], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
 
@@ -687,20 +697,20 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
       int sec;
       double pt, wt;
       if (Tcl_GetInt(interp, argv[j], &sec) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid sec\n";
+        opserr << OpenSees::PromptValueError << "invalid sec\n";
         return TCL_ERROR;
       }
       sections[i] = sec;
 
       if (Tcl_GetDouble(interp, argv[j + nIP], &pt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid pt\n";
+        opserr << OpenSees::PromptValueError << "invalid pt\n";
         return TCL_ERROR;
       }
       pts[i] = pt;
 
       if (j + 2 * nIP < argc) {
         if (Tcl_GetDouble(interp, argv[j + 2 * nIP], &wt) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid wt\n";
+          opserr << OpenSees::PromptValueError << "invalid wt\n";
           return TCL_ERROR;
         } else {
           wts(i) = wt;
@@ -718,7 +728,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(type, "MidDistance") == 0) {
 
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: "
              //               0    1
              << " MidDistance nIP? secTag1? "
@@ -727,7 +737,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     }
 
     if (Tcl_GetInt(interp, argv[0], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
 
@@ -740,11 +750,11 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
       int sec;
       double pt;
       if (Tcl_GetInt(interp, argv[j], &sec) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid sec\n";
+        opserr << OpenSees::PromptValueError << "invalid sec\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[j + nIP], &pt) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid pt\n";
+        opserr << OpenSees::PromptValueError << "invalid pt\n";
         return TCL_ERROR;
       }
       sections[i] = sec;
@@ -784,21 +794,21 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     int type, secTag;
 
     if (argc < 10) {
-      opserr << G3_ERROR_PROMPT << "insufficient arguments\n";
+      opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr << "Want: " << " GaussQ type? secTag? nIP?\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[0], &type) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid type\n";
+      opserr << OpenSees::PromptValueError << "invalid type\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[8], &secTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid secTag\n";
+      opserr << OpenSees::PromptValueError << "invalid secTag\n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[9], &nIP) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid nIP\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP\n";
       return TCL_ERROR;
     }
 
