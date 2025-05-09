@@ -35,6 +35,7 @@
 #include <NDMaterial.h>
 #include <Vector.h>
 #include <Matrix.h>
+#include <OPS_Stream.h>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -155,6 +156,11 @@ public:
 			if (m_fracture_energy_is_bounded && m_softening_begin < m_points.size())
 				return m_points[m_softening_begin].totalStrain();
 			return 0.0;
+		}
+
+		void Print(OPS_Stream& s, int flag) const {
+			s << "{";
+		    s << "}";
 		}
 
 	private:

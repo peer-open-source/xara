@@ -99,12 +99,14 @@ SectionTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
   // get the sectionID form command line
   // Need to set the data based on argc, otherwise it crashes when setting
   // "data(i-1) = strain"
-  VectorND<12> e{};
-  Vector data(e);
+  // VectorND<12> e{};
+  int order = theSection->getOrder();
+  Vector data(order);
   double strain;
-  for (int i = 1; i < argc; ++i) {
+  for (int i = 1; i < argc && i < order; ++i) {
     if (Tcl_GetDouble(interp, argv[i], &strain) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "could not read strain: strainSectionTest strain1? "
+      opserr << OpenSees::PromptValueError 
+             << "could not read strain: strainSectionTest strain1? "
                 "strain2? ... strainN?\n";
       return TCL_ERROR;
     }

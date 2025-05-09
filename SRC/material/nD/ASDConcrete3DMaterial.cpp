@@ -108,7 +108,7 @@ namespace {
 
 	/*
 	Taken from Eigen3 in Matrix class. We need it because we have to access eigenvectors.
-	#TODO: Should we extend it in Matrix class?
+	TODO: Should we extend it in Matrix class?
 	*/
 	int Eigen3(Vector& d, Matrix& v) {
 		if (v.noRows() != 3 || v.noCols() != 3 || d.Size() != 3)
@@ -372,7 +372,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete3DMaterial)
 	// some kudos
 	static bool first_done = false;
 	if (!first_done) {
-		opserr << "Using ASDConcrete3D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+		opslog << "Using ASDConcrete3D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
 		first_done = true;
 	}
 
@@ -764,18 +764,13 @@ void *OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete3DMaterial)
 	}
 
 	// create the material
-	NDMaterial* instance = new ASDConcrete3DMaterial(
+	return new ASDConcrete3DMaterial(
 		tag, 
 		E, v, rho, eta, Kc,
 		implex, implex_control, implex_error_tolerance, implex_time_redution_limit, implex_alpha,
 		tangent, auto_regularization, lch_ref,
 		HT, HC,
 		cdf, nct, ncc, smoothing_angle);
-	if (instance == nullptr) {
-		opserr << "nDMaterial ASDConcrete3D Error: failed to allocate a new material.\n";
-		return nullptr;
-	}
-	return instance;
 }
 
 int ASDConcrete3DMaterial::StressDecomposition::compute(const Vector& S, double cdf)
@@ -1608,7 +1603,6 @@ int ASDConcrete3DMaterial::setTrialStrain(const Vector& v)
 {
 	// return value
 	int retval = 0;
-
 	// get characteristic length and perform regularization
 	if (!regularization_done) {
 		if (ops_TheActiveElement)
@@ -1865,7 +1859,34 @@ int ASDConcrete3DMaterial::getOrder(void) const
 
 void ASDConcrete3DMaterial::Print(OPS_Stream &s, int flag)
 {
-	s << "ASDConcrete3D Material, tag: " << this->getTag() << "\n";
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+	  s << OPS_PRINT_JSON_MATE_INDENT << "{";
+	  s << "\"type\": \"ASDConcrete3DMaterial\", ";
+	  s << "\"name\": " << this->getTag() << ", ";
+	  s << "\"E\": " << E << ", ";
+	  s << "\"v\": " << v << ", ";
+	  s << "\"eta\": " << eta << ", ";
+	  s << "\"Kc\": " << Kc << ", ";
+	  s << "\"implex\": " << (implex ? "true" : "false") << ", ";
+	  s << "\"implex_control\": " << (implex_control ? "true" : "false") << ", ";
+	  s << "\"implex_error_tolerance\": " << implex_error_tolerance << ", ";
+	  s << "\"implex_time_reduction_limit\": " << implex_time_redution_limit << ", ";
+	  s << "\"implex_alpha\": " << implex_alpha << ", ";
+	  s << "\"tangent\": " << (tangent ? "true" : "false") << ", ";
+	  s << "\"hardening_law\": {\n";
+	  s << OPS_PRINT_JSON_MATE_INDENT << "  ";
+	  s << "\"tension\" : ";
+	  ht.Print(s, flag);
+	  s << ",\n";
+	  s << OPS_PRINT_JSON_MATE_INDENT << "  ";
+	  s << "\"compression\" : ";
+	  hc.Print(s, flag);
+	  s << "\n";
+	  s << OPS_PRINT_JSON_MATE_INDENT << "}";
+	  s << "}";
+	}
+	else 
+	  s << "ASDConcrete3D Material, tag: " << this->getTag() << "\n";
 }
 
 int ASDConcrete3DMaterial::sendSelf(int commitTag, Channel &theChannel)
