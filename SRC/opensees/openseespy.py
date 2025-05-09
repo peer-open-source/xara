@@ -645,7 +645,10 @@ def _as_str_arg(arg, name: str = None):
 
 
 # The global singleton, for backwards compatibility
-_openseespy = OpenSeesPy()
+try:
+    _openseespy = OpenSeesPy()
+except:
+    _openseespy = None
 
 # A list of symbol names that are importable
 # from this module. All of these are dynamically
