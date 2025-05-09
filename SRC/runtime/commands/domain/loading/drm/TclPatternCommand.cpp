@@ -67,7 +67,7 @@ TclPatternCommand(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // make sure at least one other argument to contain integrator
   if (argc < 4) {
-    opserr << G3_ERROR_PROMPT << "invalid command - want: pattern type ";
+    opserr << OpenSees::PromptValueError << "invalid command - want: pattern type ";
     opserr << " <type args> {list of load and sp constraints commands}\n";
     opserr
         << "           valid types: Plain, UniformExcitation, MultiSupport\n";
