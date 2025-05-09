@@ -17,18 +17,18 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.2 $
 // $Date: 2009-05-11 20:57:49 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/DistributedSparseGenColLinSOE.h,v $
-                                                                        
+
 #ifndef DistributedSparseGenColLinSOE_h
 #define DistributedSparseGenColLinSOE_h
 
-// Written: fmk 
+// Written: fmk
 // Description: This file contains the class definition for DistributedSparseGenColLinSOE
 // DistributedSparseGenColLinSOE is a subclass of LinearSOE. It uses the sparse column
-// storage scheme. It collects all contributions from the matrices and assembles them onto 
+// storage scheme. It collects all contributions from the matrices and assembles them onto
 // P0 (not really a distributed SOE .. but until i get a solver that will work with a distributed
 // col storage scheme this is what will have to stick with).
 //
@@ -40,47 +40,44 @@
 
 class DistributedSparseGenColLinSolver;
 
-class DistributedSparseGenColLinSOE : public SparseGenColLinSOE
-{
-  public:
-    DistributedSparseGenColLinSOE(SparseGenColLinSolver &theSolver);
-    DistributedSparseGenColLinSOE();
-    
-    ~DistributedSparseGenColLinSOE();
+class DistributedSparseGenColLinSOE : public SparseGenColLinSOE {
+public:
+  DistributedSparseGenColLinSOE(SparseGenColLinSolver& theSolver);
+  DistributedSparseGenColLinSOE();
 
-    // these methods need to be rewritten
-    int setSize(Graph &theGraph);
-    int addA(const Matrix &, const ID &, double fact = 1.0);
-    int addB(const Vector &, const ID &, double fact = 1.0);    
-    int setB(const Vector &, double fact = 1.0);            
-    const Vector &getB(void);
-    void zeroB(void);
-    int solve(void);
+  ~DistributedSparseGenColLinSOE();
+
+  // these methods need to be rewritten
+  int setSize(Graph& theGraph);
+  int addA(const Matrix&, const ID&, double fact = 1.0);
+  int addB(const Vector&, const ID&, double fact = 1.0);
+  int setB(const Vector&, double fact = 1.0);
+  const Vector& getB(void);
+  void zeroB(void);
+  int solve(void);
 
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
-    friend class SuperLU;    
-    friend class ThreadedSuperLU;        
-    friend class DistributedSuperLU;        
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+  friend class SuperLU;
+  friend class ThreadedSuperLU;
+  friend class DistributedSuperLU;
 
-    int setProcessID(int processTag);
-    int setChannels(int numChannels, Channel **theChannels);
+  int setProcessID(int processTag);
+  int setChannels(int numChannels, Channel** theChannels);
 
-  protected:
-    
-  private:
-    int processID;
-    int numChannels;
-    Channel **theChannels;
-    ID **localCol;
+protected:
+private:
+  int processID;
+  int numChannels;
+  Channel** theChannels;
+  ID** localCol;
 
-    double *workArea;
-    int sizeWork;
-    double *myB;
-    Vector *myVectB;
+  double* workArea;
+  int sizeWork;
+  double* myB;
+  Vector* myVectB;
 };
 
 
 #endif
-
