@@ -978,7 +978,6 @@ CubicFrame3d::getResistingForce()
   // Loop over the integration points
   for (int i = 0; i < numSections; i++) {
 
-
     double xi6  = 6.0 * xi[i];
     double phiz = phizs[i];
     double phiy = phiys[i];
@@ -1025,7 +1024,8 @@ CubicFrame3d::getResistingForce()
   Vector p0Vec(p0);
   P = theCoordTransf->getGlobalResistingForce(q, p0Vec);
 
-  // Subtract other external nodal loads ... P_res = P_int - P_ext
+  // Subtract other external nodal loads
+  // P_res = P_int - P_ext
   if (density != 0)
     P.addVector(1.0, Q, -1.0);
 
