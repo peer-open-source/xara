@@ -231,6 +231,7 @@ const Matrix&
 FourNodeQuad::getTangentStiff()
 {
     // See https://portwooddigital.com/2022/09/11/unrolling-the-four-node-quad/
+    
     // for a discussion of the following code.
     K.Zero();
 
@@ -272,6 +273,7 @@ FourNodeQuad::getTangentStiff()
           K(ia,ib+1)   += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
           K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
           K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+
           //              matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
           //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
           //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];

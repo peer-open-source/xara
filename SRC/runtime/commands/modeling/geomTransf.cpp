@@ -37,7 +37,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
-    opserr << G3_ERROR_PROMPT << "insufficient number of arguments\n";
+    opserr << OpenSees::PromptValueError << "insufficient number of arguments\n";
     return TCL_ERROR;
   }
 
@@ -49,7 +49,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
   int tag;
   const char *name = argv[1];
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT 
+    opserr << OpenSees::PromptValueError 
            << "invalid tag\n";
     return TCL_ERROR;
   }
@@ -67,7 +67,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       for (int i = 0; i < ndm; ++i) {
         if (argi == argc ||
             Tcl_GetDouble(interp, argv[argi++], &transform.offsets[1][i]) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid offset at end I\n";
+          opserr << OpenSees::PromptValueError << "invalid offset at end I\n";
           return TCL_ERROR;
         }
       }
@@ -76,7 +76,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       for (int i = 0; i < ndm; ++i) {
         if (argi == argc ||
             Tcl_GetDouble(interp, argv[argi++], &transform.offsets[2][i]) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid offset at end J\n";
+          opserr << OpenSees::PromptValueError << "invalid offset at end J\n";
           return TCL_ERROR;
         }
       }
@@ -86,13 +86,13 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       // -orient {x y z}
       argi++;
       if (parsed_xz) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "orientation already provided\n";
         return TCL_ERROR;
       }
 
       if (argi == argc) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "missing orientation vector\n";
         return TCL_ERROR;
       }
@@ -102,13 +102,13 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       Tcl_SplitList(interp, argv[argi], &xznum, &xzarg);
       if (xznum != 3) {
         Tcl_Free((char *)xzarg);
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "invalid orientation vector\n";
         return TCL_ERROR;
       }
       for (int i=0; i<3; ++i)
         if (Tcl_GetDouble(interp, xzarg[i], &transform.vz[i]) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "failed  to parse vecxz\n";
+          opserr << OpenSees::PromptValueError << "failed  to parse vecxz\n";
           return TCL_ERROR;
         }
       
@@ -130,7 +130,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       // -offset {1 {x y z}; 2 {x y z}}
       argi++;
       if (argi == argc) {
-        opserr << G3_ERROR_PROMPT << "missing offset block.\n";
+        opserr << OpenSees::PromptValueError << "missing offset block.\n";
         return TCL_ERROR;
       }
       constexpr static const char * const offset_nodes[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
@@ -139,23 +139,23 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
         FrameTransformBuilder* transform = static_cast<FrameTransformBuilder*>(cd);
         assert(transform != nullptr);
         if (oargc < 2) {
-          opserr << G3_ERROR_PROMPT 
+          opserr << OpenSees::PromptValueError 
                  << "insufficient number of offset arguments\n";
           return TCL_ERROR;
         }
         int offset_tag;
         if (Tcl_GetInt(interp, oargv[0], &offset_tag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT 
+          opserr << OpenSees::PromptValueError 
                  << "invalid offset tag\n";
           return TCL_ERROR;
         }
         if (offset_tag < 1 || offset_tag > MAX_OFFSETS) {
-          opserr << G3_ERROR_PROMPT 
+          opserr << OpenSees::PromptValueError 
                  << "invalid offset tag\n";
           return TCL_ERROR;
         }
         if (oargc < 2) {
-          opserr << G3_ERROR_PROMPT 
+          opserr << OpenSees::PromptValueError 
                  << "missing offset vector\n";
           return TCL_ERROR;
         }
@@ -173,7 +173,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
           if (Tcl_GetDouble(interp, xzarg[i], &transform->offsets[offset_tag][i]) != TCL_OK) {
             if (oargc == 2)
               Tcl_Free((char *)xzarg);
-            opserr << G3_ERROR_PROMPT 
+            opserr << OpenSees::PromptValueError 
                    << "failed to parse offset vector\n";
             return TCL_ERROR;
           }
@@ -186,7 +186,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       }
 
       if (Tcl_Eval(interp, argv[argi]) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "failed to parse offset block\n";
         return TCL_ERROR;
       } else {
@@ -208,7 +208,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
   // Ensure orientation was provided
   if (!parsed_xz) {
     if (argxz == 0 || argxz >= argc) {
-      opserr << G3_ERROR_PROMPT << "missing orientation vector\n";
+      opserr << OpenSees::PromptValueError << "missing orientation vector\n";
       return TCL_ERROR;
     }
     const char ** xzarg;
@@ -218,7 +218,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       for (int i=0; i<3; ++i)
           if (Tcl_GetDouble(interp, xzarg[i], &transform.vz[i]) != TCL_OK) {
             Tcl_Free((char *)xzarg);
-            opserr << G3_ERROR_PROMPT 
+            opserr << OpenSees::PromptValueError 
                    << "Failed to parse vectxz\n";
             return TCL_ERROR;
           }
@@ -230,13 +230,13 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
 
   if (!parsed_xz) {
     if (argxz+3 > argc) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "missing orientation vector\n";
       return TCL_ERROR;
     }
     for (int i=0; i<3; i++)
       if (Tcl_GetDouble(interp, argv[argxz++], &transform.vz[i]) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "invalid vecxz component\n";
         return TCL_ERROR;
       }
@@ -267,14 +267,14 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
-    opserr << G3_ERROR_PROMPT 
+    opserr << OpenSees::PromptValueError 
            << "insufficient number of arguments\n";
     return TCL_ERROR;
   }
 
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT 
+    opserr << OpenSees::PromptValueError 
            << "invalid tag"
            << "\n";
     return TCL_ERROR;
@@ -286,7 +286,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
   if (ndm == 3 && !getenv("CRD")) {
     auto tb = builder->getTypedObject<FrameTransformBuilder>(tag);
     if (tb == nullptr) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "transformation not found with tag " << tag 
              << "\n";
       return TCL_ERROR;
@@ -312,7 +312,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int i = 0; i < 2; ++i) {
           if (argi == argc ||
               Tcl_GetDouble(interp, argv[argi++], &jntOffsetI(i)) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT 
+            opserr << OpenSees::PromptValueError 
                    << "invalid jntOffset value"
                    << "\n";
             return TCL_ERROR;
@@ -322,7 +322,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int i = 0; i < 2; ++i) {
           if (argi == argc ||
               Tcl_GetDouble(interp, argv[argi++], &jntOffsetJ(i)) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT 
+            opserr << OpenSees::PromptValueError 
                    << "invalid jntOffset value"
                    << "\n";
             return TCL_ERROR;
@@ -331,7 +331,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
       }
 
       else {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "unexpected argument " << argv[argi] 
                << "\n";
         // return TCL_ERROR;
@@ -363,7 +363,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
           new CorotCrdTransfWarping2d(tag, jntOffsetI, jntOffsetJ);
 
     else {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "invalid Type: " << argv[1] << "\n";
       return TCL_ERROR;
     }
@@ -378,7 +378,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     Vector jntOffsetI(3), jntOffsetJ(3); // joint offsets in global coordinates
 
     if (argc < 6) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "insufficient arguments"
              << "\n";
       return TCL_ERROR;
@@ -386,7 +386,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
     int argi = 2;
     if (Tcl_GetInt(interp, argv[argi++], &tag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid tag\n";
+      opserr << OpenSees::PromptValueError << "invalid tag\n";
       return TCL_ERROR;
     }
 
@@ -399,7 +399,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
       if (xznum == 3) {
         for (int i=0; i<3; ++i)
            if (Tcl_GetDouble(interp, xzarg[i], &vecxzPlane(i)) != TCL_OK) {
-             opserr << G3_ERROR_PROMPT 
+             opserr << OpenSees::PromptValueError 
                     << "Failed  to parse vectxz\n";
              return TCL_ERROR;
            }
@@ -411,19 +411,19 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
     if (!parsed_xz) {
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(0)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "invalid vecxzPlaneX\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(1)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "invalid vecxzPlaneY\n";
         return TCL_ERROR;
       }
 
       if (Tcl_GetDouble(interp, argv[argi++], &vecxzPlane(2)) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT 
+        opserr << OpenSees::PromptValueError 
                << "invalid vecxzPlaneZ\n";
         return TCL_ERROR;
       }
@@ -439,7 +439,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int i = 0; i < 3; ++i) {
           if (argi == argc ||
               Tcl_GetDouble(interp, argv[argi++], &jntOffsetI(i)) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "invalid jntOffset\n";
+            opserr << OpenSees::PromptValueError << "invalid jntOffset\n";
             return TCL_ERROR;
           }
         }
@@ -447,12 +447,12 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int i = 0; i < 3; ++i) {
           if (argi == argc ||
               Tcl_GetDouble(interp, argv[argi++], &jntOffsetJ(i)) != TCL_OK) {
-            opserr << G3_ERROR_PROMPT << "invalid jntOffset\n";
+            opserr << OpenSees::PromptValueError << "invalid jntOffset\n";
             return TCL_ERROR;
           }
         }
       } else {
-        opserr << G3_ERROR_PROMPT << "unexpected argument: " << argv[argi] << "\n";
+        opserr << OpenSees::PromptValueError << "unexpected argument: " << argv[argi] << "\n";
         return TCL_ERROR;
       }
     }
@@ -463,47 +463,36 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     FrameTransform3d *crdTransf3d=nullptr;
 
     if (strcmp(argv[1], "Linear") == 0)
-      // if (!getenv("CRD"))
-      //   crdTransf3d = new LinearFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      // else
         crdTransf3d = new LinearCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else if (strcmp(argv[1], "PDelta") == 0 ||
              strcmp(argv[1], "LinearWithPDelta") == 0)
-      // if (!getenv("CRD"))
-      //   crdTransf3d = new PDeltaFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      // else
         crdTransf3d = new PDeltaCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else if (strcmp(argv[1], "Corotational") == 0)
-      // if (getenv("CRD03")) {
-      //   crdTransf3d = new CorotFrameTransf3d03(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-      // }
-      // else
-      //   crdTransf3d = new CorotFrameTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
-//    else
       crdTransf3d = new CorotCrdTransf3d(tag, vecxzPlane, jntOffsetI, jntOffsetJ);
 
     else {
-      opserr << G3_ERROR_PROMPT << "invalid Type\n";
+      opserr << OpenSees::PromptValueError << "invalid Type\n";
       return TCL_ERROR;
     }
 
-
     if (crdTransf3d == nullptr) {
-      opserr << G3_ERROR_PROMPT << "Failed to create transform\n";
+      opserr << OpenSees::PromptValueError << "Failed to create transform\n";
       return TCL_ERROR;
     }
 
     // add the transformation to the modelBuilder
     if (builder->addTaggedObject<FrameTransform3d>(*crdTransf3d) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "Failed to add transformation to model\n";
       return TCL_ERROR;
     }
 
-  } else {
-    opserr << G3_ERROR_PROMPT 
+  }
+
+  else {
+    opserr << OpenSees::PromptValueError 
            << "ndm = " << ndm << " and ndf = " << ndf
            << " is incompatible with available frame elements\n";
     return TCL_ERROR;

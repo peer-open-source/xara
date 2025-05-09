@@ -42,7 +42,7 @@ TclCommand_useCrossSection(ClientData clientData, Tcl_Interp *interp, int argc, 
     ((BasicModelBuilder*)clientData)->getTypedObject<FrameSection>(std::atoi(argv[2]));
 
   if (theSection == nullptr) {
-    opserr << G3_ERROR_PROMPT << "no section found with tag '" << argv[2] << "'\n";
+    opserr << OpenSees::PromptValueError << "no section found with tag '" << argv[2] << "'\n";
     return TCL_ERROR;
   } else {
     // theSection = theSection->getCopy();
@@ -92,19 +92,21 @@ SectionTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
 
   // check number of arguments in command line
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "bad command - want: strainSectionTest strain?\n";
+    opserr << OpenSees::PromptValueError << "bad command - want: strainSectionTest strain?\n";
     return TCL_ERROR;
   }
 
   // get the sectionID form command line
   // Need to set the data based on argc, otherwise it crashes when setting
   // "data(i-1) = strain"
-  VectorND<12> e{};
-  Vector data(e);
+  // VectorND<12> e{};
+  int order = theSection->getOrder();
+  Vector data(order);
   double strain;
-  for (int i = 1; i < argc; ++i) {
+  for (int i = 1; i < argc && i < order; ++i) {
     if (Tcl_GetDouble(interp, argv[i], &strain) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "could not read strain: strainSectionTest strain1? "
+      opserr << OpenSees::PromptValueError 
+             << "could not read strain: strainSectionTest strain1? "
                 "strain2? ... strainN?\n";
       return TCL_ERROR;
     }
@@ -165,13 +167,13 @@ SectionTest_getResponseSection(ClientData clientData, Tcl_Interp *interp,
       theSection->setResponse(argv + 1, argc - 1, dummy);
 
   if (theResponse == nullptr) {
-    opserr << G3_ERROR_PROMPT << "Response returned a null pointer\n";
+    opserr << OpenSees::PromptValueError << "Response returned a null pointer\n";
     return TCL_ERROR;
   }
 
   if (theResponse->getResponse() < 0) {
     delete theResponse;
-    opserr << G3_ERROR_PROMPT << "Failed to get response\n";
+    opserr << OpenSees::PromptValueError << "Failed to get response\n";
     return TCL_ERROR;
   }
 

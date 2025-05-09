@@ -245,7 +245,6 @@ DispBeamColumn2d::update()
   double L = crdTransf->getInitialLength();
   double oneOverL = 1.0/L;
 
-  //const Matrix &pts = quadRule.getIntegrPointCoords(numSections);
   double xi[maxNumSections];
   beamInt->getSectionLocations(numSections, L, xi);
 

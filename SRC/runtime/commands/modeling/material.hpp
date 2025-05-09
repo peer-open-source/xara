@@ -140,7 +140,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
   }
 
   if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "Failed to add material to the model builder.\n";
+    opserr << OpenSees::PromptValueError << "Failed to add material to the model builder.\n";
     delete theMaterial;
     return TCL_ERROR;
   }

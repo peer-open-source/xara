@@ -91,7 +91,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
 
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "need to specify an analysis type (Static, Transient)\n";
+    opserr << OpenSees::PromptValueError << "need to specify an analysis type (Static, Transient)\n";
     return TCL_ERROR;
   }
 
@@ -99,7 +99,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (strcmp(argv[argi], "-linear") == 0) {
     if (argc < 3) {
-      opserr << G3_ERROR_PROMPT << "need to specify an analysis type (Static, Transient)\n";
+      opserr << OpenSees::PromptValueError << "need to specify an analysis type (Static, Transient)\n";
       return TCL_ERROR;
     }
     Tcl_Eval(interp, "algorithm Linear\n"
@@ -123,7 +123,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
 
   } else {
-    opserr << G3_ERROR_PROMPT << "Analysis type '" << argv[1]
+    opserr << OpenSees::PromptValueError << "Analysis type '" << argv[1]
       << "' does not exists (Static or Transient only). \n";
     return TCL_ERROR;
   }
@@ -150,7 +150,7 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, int argc,
   for (int i=2; i<argc; i++) {
     if (strcmp(argv[i], "-operation") == 0) {
       if (argc < i+2) {
-        opserr << G3_ERROR_PROMPT << "operation key requires argument\n";
+        opserr << OpenSees::PromptValueError << "operation key requires argument\n";
         return TCL_ERROR;
       }
       i++;
@@ -170,7 +170,7 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, int argc,
     case BasicAnalysisBuilder::STATIC_ANALYSIS: {
       int numIncr;
       if (argc < 2) {
-        opserr << G3_ERROR_PROMPT << "static analysis: analysis numIncr?\n";
+        opserr << OpenSees::PromptValueError << "static analysis: analysis numIncr?\n";
         return TCL_ERROR;
       }
 
@@ -184,7 +184,7 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, int argc,
       double dT;
       int numIncr;
       if (argc < 3) {
-        opserr << G3_ERROR_PROMPT << "transient analysis: analysis numIncr? deltaT?\n";
+        opserr << OpenSees::PromptValueError << "transient analysis: analysis numIncr? deltaT?\n";
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[1], &numIncr) != TCL_OK)
@@ -210,7 +210,7 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, int argc,
       break;
     }
     default:
-      opserr << G3_ERROR_PROMPT << "No Analysis type has been specified \n";
+      opserr << OpenSees::PromptValueError << "No Analysis type has been specified \n";
       return TCL_ERROR;
   }
 
@@ -249,7 +249,7 @@ eigenAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // make sure at least one other argument to contain type of system
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "eigen <type> numModes?\n";
+    opserr << OpenSees::PromptValueError << "eigen <type> numModes?\n";
     return TCL_ERROR;
   }
 
@@ -307,7 +307,7 @@ eigenAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // check argv[loc] for number of modes
   if ((Tcl_GetInt(interp, argv[loc], &numEigen) != TCL_OK) || numEigen < 0) {
-    opserr << G3_ERROR_PROMPT << "eigen numModes?  - invalid numModes\n";
+    opserr << OpenSees::PromptValueError << "eigen numModes?  - invalid numModes\n";
     return TCL_ERROR;
   }
 
@@ -375,7 +375,7 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (argc < 2) {
     opserr
-        << G3_ERROR_PROMPT << argv[0] << " ?factor - not enough arguments to command\n";
+        << OpenSees::PromptValueError << argv[0] << " ?factor - not enough arguments to command\n";
     return TCL_ERROR;
   }
 
@@ -406,7 +406,8 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (numModes != 1 && numModes != numEigen) {
     // TODO: Just call eigen again?
-    opserr << G3_ERROR_PROMPT << "modalDampingQ - same number of damping factors as modes must be "
+    opserr << OpenSees::PromptValueError 
+           << "modalDampingQ - same number of damping factors as modes must be "
               "specified\n";
 //  opserr << "                    - same damping ratio will be applied to all\n";
     return TCL_ERROR;
@@ -420,7 +421,7 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, int argc,
     // read in all factors one at a time
     for (int i = 0; i < numEigen; ++i) {
       if (Tcl_GetDouble(interp, argv[1 + i], &factor) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << argv[0] << " - could not read factor at position "
+        opserr << OpenSees::PromptValueError << argv[0] << " - could not read factor at position "
                << i << "\n";
         return TCL_ERROR;
       }
@@ -430,7 +431,7 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, int argc,
   } else {
     //  read in one & set all factors to that value
     if (Tcl_GetDouble(interp, argv[1], &factor) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT 
+      opserr << OpenSees::PromptValueError 
              << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
                 "read betaK? \n";
       return TCL_ERROR;
@@ -495,7 +496,7 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, int argc,
   // if 'print <filename> Algorithm flag' get the flag
   int flag;
   if (Tcl_GetInt(interp, argv[eleArg], &flag) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "print algorithm failed to get integer flag: \n";
+    opserr << OpenSees::PromptValueError << "print algorithm failed to get integer flag: \n";
     opserr << argv[eleArg] << endln;
     return TCL_ERROR;
   }
@@ -559,7 +560,7 @@ printA(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const ar
     } else if ((strcmp(argv[currentArg], "-m") == 0)) {
       currentArg++;
       if (Tcl_GetDouble(interp, argv[currentArg], &m) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read float following flag -m\n";
+        opserr << OpenSees::PromptValueError << "failed to read float following flag -m\n";
         return TCL_ERROR;
       }
       do_mck = true;
@@ -567,7 +568,7 @@ printA(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const ar
     } else if ((strcmp(argv[currentArg], "-c") == 0)) {
       currentArg++;
       if (Tcl_GetDouble(interp, argv[currentArg], &c) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read float following flag -c\n";
+        opserr << OpenSees::PromptValueError << "failed to read float following flag -c\n";
         return TCL_ERROR;
       }
       do_mck = true;
@@ -575,7 +576,7 @@ printA(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const ar
     } else if ((strcmp(argv[currentArg], "-k") == 0)) {
       currentArg++;
       if (Tcl_GetDouble(interp, argv[currentArg], &k) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "failed to read float following flag -k\n";
+        opserr << OpenSees::PromptValueError << "failed to read float following flag -k\n";
         return TCL_ERROR;
       }
       do_mck = true;
@@ -768,7 +769,7 @@ specifyConstraintHandler(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // make sure at least one other argument to contain type name
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "need to specify a constraint type \n";
+    opserr << OpenSees::PromptValueError << "need to specify a constraint type \n";
     return TCL_ERROR;
   }
 
@@ -807,7 +808,7 @@ specifyConstraintHandler(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   else {
-    opserr << G3_ERROR_PROMPT << "ConstraintHandler type '" << argv[1]
+    opserr << OpenSees::PromptValueError << "ConstraintHandler type '" << argv[1]
       << "' does not exists \n\t(Plain, Penalty, Lagrange, Transformation) only\n";
     return TCL_ERROR;
   }

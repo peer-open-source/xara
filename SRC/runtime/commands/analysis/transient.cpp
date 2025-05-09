@@ -19,7 +19,7 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int a
 {
 
   if (argc < 4) {
-    opserr << G3_ERROR_PROMPT << " incorrect number of args want Newmark $gamma $beta "
+    opserr << OpenSees::PromptValueError << " incorrect number of args want Newmark $gamma $beta "
               "<-form $typeUnknown>\n";
     opserr << "        got ";
     for (int i=0; i<argc; i++)
@@ -48,7 +48,7 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int a
     if ((strcmp(argv[argi], "-form") == 0) ||
         (strcmp(argv[argi], "-solve") == 0)) {
       if (argi == argc-1) {
-        opserr << G3_ERROR_PROMPT << "form option requires an argument\n";
+        opserr << OpenSees::PromptValueError << "form option requires an argument\n";
         return nullptr;
       } else {
         nextString = argv[++argi];
@@ -62,13 +62,13 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int a
       else if ((nextString[0] == 'A') || (nextString[0] == 'a'))
         dispFlag = 3;
       else {
-        opserr << G3_ERROR_PROMPT << "invalid argument for parameter 'form'\n";
+        opserr << OpenSees::PromptValueError << "invalid argument for parameter 'form'\n";
         return nullptr;
       }
     }
     else if ((strcmp(argv[argi], "-init") == 0)) {
       if (argi == argc-1) {
-        opserr << G3_ERROR_PROMPT << "init option requires an argument\n";
+        opserr << OpenSees::PromptValueError << "init option requires an argument\n";
         return nullptr;
       } else {
         nextString = argv[++argi];
@@ -81,20 +81,20 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int a
       else if ((nextString[0] == 'A') || (nextString[0] == 'a'))
         initFlag = 3;
       else {
-        opserr << G3_ERROR_PROMPT << "invalid argument for parameter 'init'\n";
+        opserr << OpenSees::PromptValueError << "invalid argument for parameter 'init'\n";
         return nullptr;
       }
     }
     else if ((strcmp(argv[argi], "-alpha") == 0)) {
       if (argi == argc-1) {
-        opserr << G3_ERROR_PROMPT << "alpha option requires an argument\n";
+        opserr << OpenSees::PromptValueError << "alpha option requires an argument\n";
         return nullptr;
       } else {
         nextString = argv[++argi];
       }
       useGeneralized = true;
       if (Tcl_GetDouble(interp, argv[argi], &alphaF) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid arg at position '" << argi << "\n";
+        opserr << OpenSees::PromptValueError << "invalid arg at position '" << argi << "\n";
         return nullptr;
       }
     }
@@ -110,7 +110,7 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int a
       gotGamma = true;
 
       if (Tcl_GetDouble(interp, argv[argi], &gamma) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid value for gamma. Expected a number ";
+        opserr << OpenSees::PromptValueError << "invalid value for gamma. Expected a number ";
         opserr << "but got '" << argv[2] << "'.\n";
         return nullptr;
       }
@@ -124,25 +124,25 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int a
       gotBeta = true;
 
       if (Tcl_GetDouble(interp, argv[argi], &beta) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "invalid value for beta. Expected a number ";
+        opserr << OpenSees::PromptValueError << "invalid value for beta. Expected a number ";
         opserr << "but got '" << argv[argi] << "'.\n";
         return nullptr;
       }
     }
     else {
-      opserr << G3_ERROR_PROMPT << "unrecognized argument " << nextString << "\n";
+      opserr << OpenSees::PromptValueError << "unrecognized argument " << nextString << "\n";
       return nullptr;
     }
   }
 
   // Check that all required arguments were supplied
   if (!gotGamma) { 
-    opserr << G3_ERROR_PROMPT << "missing required positional argument gamma\n";
+    opserr << OpenSees::PromptValueError << "missing required positional argument gamma\n";
     return nullptr;
   }
 
   if (!gotBeta) { 
-    opserr << G3_ERROR_PROMPT << "missing required positional argument beta\n";
+    opserr << OpenSees::PromptValueError << "missing required positional argument beta\n";
     return nullptr;
   }
 

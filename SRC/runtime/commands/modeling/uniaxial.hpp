@@ -155,6 +155,7 @@ extern Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
 // Fedeas
 extern Tcl_CmdProc TclCommand_newFedeasSteel;
 extern Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
+extern Tcl_CmdProc TclCommand_newFedeasConcrete;
 // Wrapper
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
 extern Tcl_CmdProc TclCommand_newFatigueMaterial;
@@ -192,7 +193,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
   UniaxialMaterial* theMaterial = (UniaxialMaterial*)fn( rt, argc, argv );
 
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "Failed to add UniaxialMaterial to the model builder.\n";
+    opserr << OpenSees::PromptValueError << "Failed to add UniaxialMaterial to the model builder.\n";
     delete theMaterial;
     return TCL_ERROR;
   }
@@ -208,7 +209,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const a
   UniaxialMaterial* theMaterial = fn( rt, argc, argv );
 
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "Could not add uniaxialMaterial to the model builder.\n";
+    opserr << OpenSees::PromptValueError << "Could not add uniaxialMaterial to the model builder.\n";
     delete theMaterial;
     return TCL_ERROR;
   }
@@ -262,7 +263,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"SteelZ01",               dispatch<OPS_SteelZ01Material>          },
 
 // Concretes
-    {"Concrete01",             dispatch<OPS_Concrete01>                },
+    {"Concrete01",             dispatch<TclCommand_newFedeasConcrete>  },
     {"Concrete02",             dispatch<OPS_Concrete02>                },
     {"Concrete02IS",           dispatch<OPS_Concrete02IS>              },
     {"ConcreteCM",             dispatch<OPS_ConcreteCM>                },

@@ -40,34 +40,34 @@ TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
   int ndf = builder->getNDF();
 
   if (ndm < 2) {
-    opserr << G3_ERROR_PROMPT
+    opserr << OpenSees::PromptValueError
            << "model dimension (ndm) must be at leat 2 " << "\n";
     return TCL_ERROR;
   }
 
   if (argc < 8) {
-    opserr << G3_ERROR_PROMPT << "incorrect number of args, expected:"
+    opserr << OpenSees::PromptValueError << "incorrect number of args, expected:"
       "\n\tblock2D numX? numY? startNode? startEle? eleType? eleArgs?"; 
     return TCL_ERROR;
   }
   int numX, numY, startNodeNum, startEleNum;
   if (Tcl_GetInt(interp, argv[1], &numX) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid numX (" << argv[1] << "), expected:\n\t"
+    opserr << OpenSees::PromptValueError << "invalid numX (" << argv[1] << "), expected:\n\t"
       << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &numY) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
+    opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
     opserr << " : invalid numY: " << argv[2] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3], &startNodeNum) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
+    opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
     opserr << " : invalid startNode: " << argv[3] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[4], &startEleNum) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
+    opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
     opserr << " : invalid startEle: " << argv[4] << "\n";
     return TCL_ERROR;
   }
@@ -84,19 +84,19 @@ TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
   if (argc == 10) {
     if (strcmp(argv[7],"-numEleNodes") == 0)
       if (Tcl_GetInt(interp, argv[8], &numNodes) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType eleArgs?";
+        opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType eleArgs?";
         opserr << " -numEleNodes numNodes?: invalid numNodes: " << argv[8] << "\n"; 
         return TCL_ERROR;
       }
     if (numNodes != 4 && numNodes != 9) {
-      opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType? eleArgs? ";
+      opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs? ";
       opserr << "-numEleNodes numNodes?: invalid numNodes: " << argv[8] << " 4 or 9 only\n";
       return TCL_ERROR;
     }
 
     if (numNodes == 9) {
       if (((numX % 2) != 0) || ((numY % 2) != 0)) {
-        opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType? eleArgs? ";
+        opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs? ";
         opserr << "numX and numY must both be even when using -numEleNodes 9\n";
         return TCL_ERROR;
       }
@@ -118,26 +118,26 @@ TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
     int nodeTag;
     double value;
     if ((count + ndm + 1) >  argcNodes) {
-      opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
+      opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
       opserr << " : invalid number of node args: " << argv[7] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argvNodes[count], &nodeTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
+      opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
       opserr << " : invalid node tag: " << argvNodes[count] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     if (nodeTag < 1 || nodeTag > 9) {
-      opserr << G3_ERROR_PROMPT
+      opserr << OpenSees::PromptValueError
              << " : invalid node tag out of bounds [1,9]: " << argvNodes[count] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     for (int i=0; i<ndm; ++i) {
       if (Tcl_GetDouble(interp, argvNodes[count+1+i], &value) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT
+        opserr << OpenSees::PromptValueError
                << " : invalid node coordinate for node: " << argvNodes[count] << "\n";
         Tcl_Free((char *)argvNodes); return TCL_ERROR;
       }
@@ -186,7 +186,7 @@ TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
       }
 
       if (theTclDomain->addNode(theNode) == false) {
-        opserr << G3_ERROR_PROMPT << "failed to add node to the domain\n";
+        opserr << OpenSees::PromptValueError << "failed to add node to the domain\n";
         opserr << "node: " << nodeID << "\n";
         delete theNode;
         return TCL_ERROR;
@@ -254,32 +254,32 @@ TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
   int ndf = builder->getNDF();
 
   if (ndm < 3) {
-    opserr << G3_ERROR_PROMPT << "block3D numX? numY? startNode? startEle? eleType? eleArgs?";
+    opserr << OpenSees::PromptValueError << "block3D numX? numY? startNode? startEle? eleType? eleArgs?";
     opserr << " : model dimension (ndm) must be at leat 2 " << "\n";
     return TCL_ERROR;
   }
 
   int numX, numY, numZ, startNodeNum, startEleNum;
   if (Tcl_GetInt(interp, argv[1], &numX) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid numX: " << argv[1] << "\n";
+    opserr << OpenSees::PromptValueError << "invalid numX: " << argv[1] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &numY) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid numY: " << argv[2] << "\n";
+    opserr << OpenSees::PromptValueError << "invalid numY: " << argv[2] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3], &numZ) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
+    opserr << OpenSees::PromptValueError << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
     opserr << " : invalid numZ: " << argv[3] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[4], &startNodeNum) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
+    opserr << OpenSees::PromptValueError << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
     opserr << " : invalid startNode: " << argv[4] << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[5], &startEleNum) != TCL_OK) {
-    opserr << G3_ERROR_PROMPT << "invalid startEle: " << argv[5] << "\n";
+    opserr << OpenSees::PromptValueError << "invalid startEle: " << argv[5] << "\n";
     return TCL_ERROR;
   }
 
@@ -299,25 +299,25 @@ TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
   int count = 0;
   while (count < argcNodes) {
     if ((count + ndm + 1) > argcNodes) {
-      opserr << G3_ERROR_PROMPT << "invalid number of node args: " << argv[8] << "\n";
+      opserr << OpenSees::PromptValueError << "invalid number of node args: " << argv[8] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     int nodeTag;
     double value;
     if (Tcl_GetInt(interp, argvNodes[count], &nodeTag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "invalid node id in node args: " << argvNodes[count] << "\n";
+      opserr << OpenSees::PromptValueError << "invalid node id in node args: " << argvNodes[count] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     if (nodeTag < 1 || nodeTag > 27) {
-      opserr << G3_ERROR_PROMPT << "node tag out of bounds [1, 27]: " << argvNodes[count] << "\n";
+      opserr << OpenSees::PromptValueError << "node tag out of bounds [1, 27]: " << argvNodes[count] << "\n";
       Tcl_Free((char *)argvNodes);
       return TCL_ERROR;
     }
     for (int i=0; i<ndm; ++i) {
       if (Tcl_GetDouble(interp, argvNodes[count+1+i], &value) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
+        opserr << OpenSees::PromptValueError << "block3D numX? numY? numZ? startNode? startEle? eleType? eleArgs?";
         opserr << " : invalid coordinate in node args: " << argvNodes[count] << "\n";
         Tcl_Free((char *)argvNodes);
         return TCL_ERROR;
@@ -361,7 +361,7 @@ TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
           theNode = new Node(nodeID,ndf,nodeCoords(0),nodeCoords(1),nodeCoords(2));
 
         if (theTclDomain->addNode(theNode) == false) {
-          opserr << G3_ERROR_PROMPT << "failed to add node to the domain\n";
+          opserr << OpenSees::PromptValueError << "failed to add node to the domain\n";
           opserr << "node: " << nodeID << "\n";
           delete theNode;
           return TCL_ERROR;
@@ -424,7 +424,7 @@ TclCommand_doBlock(ClientData clientData, Tcl_Interp *interp, int argc,
   int ndm = builder->getNDM();
 
   if (argc < 1) {
-    opserr << G3_ERROR_PROMPT << "block <type> {args}\n";
+    opserr << OpenSees::PromptValueError << "block <type> {args}\n";
     return TCL_ERROR;
   }
 

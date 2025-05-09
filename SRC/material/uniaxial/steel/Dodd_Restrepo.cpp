@@ -18,12 +18,12 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
- // Written: fmk
- // Created: 10/2011
- //
- // Description: This file contains the class definition for 
- // Dodd_Restrepo. Dodd_Restrepo is a c++ wrapper to the steel material
- // found in DoddRestrepo.f that was written by L.L. Dodd and J. Restrepo  1991
+// Written: fmk
+// Created: 10/2011
+//
+// Description: This file contains the class definition for 
+// Dodd_Restrepo. Dodd_Restrepo is a c++ wrapper to the steel material
+// found in DoddRestrepo.f that was written by L.L. Dodd and J. Restrepo  1991
 
 #include <elementAPI.h>
 
@@ -179,7 +179,7 @@ Dodd_Restrepo::Dodd_Restrepo(int tag,
 }
 
 UniaxialMaterial *
-Dodd_Restrepo::getCopy(void)
+Dodd_Restrepo::getCopy()
 {
   return new Dodd_Restrepo(this->getTag(), Fy, Fsu, ESH, ESU, Youngs, ESHI, FSHI, OmegaFac, Conv);
 }
@@ -188,7 +188,7 @@ Dodd_Restrepo::getCopy(void)
 
 #define steel_ STEEL
 
-extern "C" int  steel_ (double *Es, double *EpsLast, double *FpsLast, double *YpTanLast, 
+extern "C" int  steel_(double *Es, double *EpsLast, double *FpsLast, double *YpTanLast, 
 		       double *EpsOld, double *Fy, double *Epy, double * EpSH, double *Epsu, 
 		       double *Fpsu, double *Youngs, double *SHPower, double *Epr, double *Fpr, 
 		       double *Epa, double *Fpa, double *Epo, double *EpoMax, double *EpsuSh, 
@@ -196,12 +196,9 @@ extern "C" int  steel_ (double *Es, double *EpsLast, double *FpsLast, double *Yp
 		       double *FprM, double *EpaM, double *FpaM, double *YpTanM, double *PowerM, 
 		       double * Eps, double *Fps, double *Fs, double *YpTan, double *YTan, double *OmegFac);
 
-// Add more declarations as needed
-
-
 #else
 
-extern "C" int  steel_ (double *Es, double *EpsLast, double *FpsLast, double *YpTanLast, 
+extern "C" int  steel_(double *Es, double *EpsLast, double *FpsLast, double *YpTanLast, 
 			   double *EpsOld, double *Fy, double *Epy, double * EpSH, double *Epsu, 
 			   double *Fpsu, double *Youngs, double *SHPower, double *Epr, double *Fpr, 
 			   double *Epa, double *Fpa, double *Epo, double *EpoMax, double *EpsuSh, 
@@ -343,31 +340,31 @@ Dodd_Restrepo::setTrial(double strain, double &stress, double &stiff, double str
 }
 
 double
-Dodd_Restrepo::getStrain(void)
+Dodd_Restrepo::getStrain()
 {
   return tStrain;
 }
 
 double
-Dodd_Restrepo::getStress(void)
+Dodd_Restrepo::getStress()
 {
   return tStress;
 }
 
 double
-Dodd_Restrepo::getTangent(void)
+Dodd_Restrepo::getTangent()
 {
   return tTangent;
 }
 
 double
-Dodd_Restrepo::getInitialTangent(void)
+Dodd_Restrepo::getInitialTangent()
 {
   return Youngs;
 }
 
 int
-Dodd_Restrepo::commitState(void)
+Dodd_Restrepo::commitState()
 {
   if (cStrain != tStrain) {
     EpsOld    = EpsLast;
@@ -402,7 +399,7 @@ Dodd_Restrepo::commitState(void)
 }
 
 int
-Dodd_Restrepo::revertToLastCommit(void)
+Dodd_Restrepo::revertToLastCommit()
 {
   tStrain = cStrain;
   tStress = cStress;
@@ -412,7 +409,7 @@ Dodd_Restrepo::revertToLastCommit(void)
 }
 
 int
-Dodd_Restrepo::revertToStart(void)
+Dodd_Restrepo::revertToStart()
 {
   double C1       ; // Temporary constant
   double EpSHI    ; // Intermediate strain hardening curve natural strain
@@ -499,8 +496,23 @@ Dodd_Restrepo::recvSelf(int commitTag, Channel &theChannel,
 void
 Dodd_Restrepo::Print(OPS_Stream &s, int flag)
 {
-  s << "Dodd_Restrepo: " << this->getTag() << endln;
-  s << "tStrain: " << tStrain << "  tStress: " << tStress << " tTangent: " << tTangent << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"Dodd_Restrepo\", ";
+    s << "\"tag\": " << this->getTag() << ", ";
+    s << "\"type\": \"Dodd_Restrepo\", ";
+    s << "\"Fy\": "  << Fy << ", ";
+    s << "\"Fsu\": " << Fsu << ", ";
+    s << "\"Esh\": " << ESH << ", ";
+    s << "\"Esu\": " << ESU << ", ";
+    s << "\"E\": "    << Youngs << ", ";
+    s << "\"Eshi\": " << ESHI << ", ";
+    s << "\"Fshi\": " << FSHI;
+    s << "}";
+  } else {
+    s << "Dodd_Restrepo: " << this->getTag() << endln;
+    s << "tStrain: " << tStrain << "  tStress: " << tStress << " tTangent: " << tTangent << endln;
+  }
 }
 
 

@@ -230,13 +230,13 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
       int yargc;
       TCL_Char ** yargv;
       if (Tcl_SplitList(interp, argv[argi+1], &yargc, &yargv) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "could not split list\n";
+        opserr << OpenSees::PromptValueError << "could not split list\n";
         return TCL_ERROR;
       }
       Vector3D vertical;
       for (int j=0; j<3; j++)
         if (Tcl_GetDouble(interp, yargv[j], &vertical[j]) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "could not read vector\n";
+          opserr << OpenSees::PromptValueError << "could not read vector\n";
           return TCL_ERROR;
         }
       theTrans3d = new BasicFrameTransf3d(new LinearFrameTransf<2,6>(0, vertical));

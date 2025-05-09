@@ -13,7 +13,6 @@
 // Written: rms, mhs, cmp
 // Created: 07/99
 //
-//
 #include <set>
 #include <assert.h>
 #include <string.h>
@@ -418,11 +417,17 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
   // Create 2d section
   if (ndm == 2) {
     if (options.isND) {
-      if (options.isWarping) {
+      if (options.isNew) {
+        auto sec = new FrameSolidSection3d(secTag, 30);
+        sbuilder = new FiberSectionBuilder<2, NDMaterial, FrameSolidSection3d>(*builder, *sec);
+        section = sec;
+      }
+      else if (options.isWarping) {
         auto sec = new NDFiberSectionWarping2d(secTag, 30, alpha);
         sbuilder = new FiberSectionBuilder<2, NDMaterial, NDFiberSectionWarping2d>(*builder, *sec);
         section = sec;
-      } else {
+      }
+      else {
         auto sec = new NDFiberSection2d(secTag, options.computeCentroid);
         sbuilder = new FiberSectionBuilder<2, NDMaterial, NDFiberSection2d>(*builder, *sec);
         section = sec;
@@ -439,6 +444,7 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
       }
     }
   }
+
   else if (ndm == 3) {
 
     if (options.isND) {
@@ -455,26 +461,37 @@ initSectionCommands(ClientData clientData, Tcl_Interp *interp,
       }
     } else {
 
-      assert(theTorsion != nullptr);
 
       if (options.isThermal) {
+        if (theTorsion == nullptr) {
+          opserr << OpenSees::PromptValueError 
+                 << "FiberThermal section requires torsion\n";
+          return TCL_ERROR;
+        }
         auto sec = new FiberSection3dThermal(secTag, 30, *theTorsion,
                                              options.computeCentroid);
         sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FiberSection3dThermal>(*builder, *sec);
         section = sec;
 
-      } else if (options.isAsym) {
+      }
+      else if (options.isAsym) {
         auto sec = new FiberSectionAsym3d(secTag, 30, theTorsion, Ys, Zs);
         sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FiberSectionAsym3d>(*builder, *sec);
         section = sec;
 
-      } else {
+      }
+      else {
         if (options.isNew) {
           auto sec = new FrameFiberSection3d(secTag, 30,  theTorsion, options.computeCentroid, 
                                              options.density, options.use_density);
           sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FrameFiberSection3d>(*builder, *sec);
           section = sec;
         } else {
+          if (theTorsion == nullptr) {
+            opserr << OpenSees::PromptValueError 
+                  << "FiberThermal section requires torsion\n";
+            return TCL_ERROR;
+          }
           auto sec = new FiberSection3d(secTag, 30, *theTorsion, options.computeCentroid);
           sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FiberSection3d>(*builder, *sec);
           section = sec;
@@ -536,8 +553,9 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int secTag;
   if (Tcl_GetInt(interp, argv[2], &secTag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "bad command - want: \nsection fiberSec secTag { "
-              "\n\tpatch <patch arguments> \n\tlayer <layer arguments> \n}\n";
+    opserr << OpenSees::PromptValueError 
+           << "failed to parse section tag \"" << argv[2] << "\""
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -652,14 +670,14 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
     }
   }
 
-  if (torsion == nullptr && ndm == 3 && !options.isND) {
+  if (torsion == nullptr && ndm == 3 && !options.isNew) {
     opserr << OpenSees::PromptValueError
-           << "- no torsion specified for 3D fiber section, use -GJ or "
+           << "missing required torsion for 3D fiber section, use -GJ or "
               "-torsion\n";
     return TCL_ERROR;
   }
 
-  // initialize  the fiber section (for building)                 // TODO, pass alpha
+  // initialize  the fiber section (for building)            // TODO, pass alpha
   if (initSectionCommands(clientData, interp, secTag, torsion, Ys, Zs, 1.0, options) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "error constructing the section\n";
     return TCL_ERROR;

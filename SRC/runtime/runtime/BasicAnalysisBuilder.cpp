@@ -190,7 +190,7 @@ BasicAnalysisBuilder::initialize(void)
   if (stamp != domainStamp) {
     domainStamp = stamp;
     if (this->domainChanged() < 0) {
-      opserr << G3_ERROR_PROMPT << "initialize - domainChanged() failed\n";
+      opserr << OpenSees::PromptValueError << "initialize - domainChanged() failed\n";
       return -1;
     }
   }
@@ -322,7 +322,7 @@ BasicAnalysisBuilder::analyze(int num_steps, double size_steps, int flag)
     }
 
     default:
-      opserr << G3_ERROR_PROMPT << "No Analysis type has been specified \n";
+      opserr << OpenSees::PromptValueError << "No Analysis type has been specified \n";
       return -1;
   }
 
