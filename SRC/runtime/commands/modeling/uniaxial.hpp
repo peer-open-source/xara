@@ -155,6 +155,7 @@ extern Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
 // Fedeas
 extern Tcl_CmdProc TclCommand_newFedeasSteel;
 extern Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
+extern Tcl_CmdProc TclCommand_newFedeasConcrete;
 // Wrapper
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
 extern Tcl_CmdProc TclCommand_newFatigueMaterial;
@@ -262,7 +263,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"SteelZ01",               dispatch<OPS_SteelZ01Material>          },
 
 // Concretes
-    {"Concrete01",             dispatch<OPS_Concrete01>                },
+    {"Concrete01",             dispatch<TclCommand_newFedeasConcrete>  },
     {"Concrete02",             dispatch<OPS_Concrete02>                },
     {"Concrete02IS",           dispatch<OPS_Concrete02IS>              },
     {"ConcreteCM",             dispatch<OPS_ConcreteCM>                },

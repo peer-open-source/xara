@@ -39,6 +39,7 @@
 #include <ElementResponse.h>
 
 #include <math.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -55,7 +56,7 @@ ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2,
  :Element(tag, ELE_TAG_ZeroLengthSection),
   connectedExternalNodes(2),
   dimension(dim), numDOF(0), 
-  transformation(3,3), useRayleighDamping(doRayleigh),A(0), v(0), K(0), P(0),
+  transformation(3,3), useRayleighDamping(doRayleigh), A(0), v(0), K(0), P(0),
   theSection(0), order(0)
 {
 	// Obtain copy of section model
@@ -92,25 +93,25 @@ ZeroLengthSection::~ZeroLengthSection()
 }
 
 int
-ZeroLengthSection::getNumExternalNodes(void) const
+ZeroLengthSection::getNumExternalNodes() const
 {
     return 2;
 }
 
 const ID &
-ZeroLengthSection::getExternalNodes(void) 
+ZeroLengthSection::getExternalNodes() 
 {
     return connectedExternalNodes;
 }
 
 Node **
-ZeroLengthSection::getNodePtrs(void) 
+ZeroLengthSection::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-ZeroLengthSection::getNumDOF(void) 
+ZeroLengthSection::getNumDOF() 
 {
     return numDOF;
 }
@@ -272,7 +273,7 @@ ZeroLengthSection::getDamp()
 
 
 const Matrix &
-ZeroLengthSection::getInitialStiff(void)
+ZeroLengthSection::getInitialStiff()
 {
   // Get section tangent stiffness, the element basic stiffness
   const Matrix &kb = theSection->getInitialTangent();
@@ -284,7 +285,7 @@ ZeroLengthSection::getInitialStiff(void)
 }
 
 void 
-ZeroLengthSection::zeroLoad(void)
+ZeroLengthSection::zeroLoad()
 {
 	// does nothing now
 }
@@ -598,24 +599,19 @@ ZeroLengthSection::getResponse(int responseID, Information &eleInfo)
 
 // Private methods
 
-
 // Establish the external nodes and set up the transformation matrix
 // for orientation
 void
 ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
 { 
     // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2) {
-    opserr << "ZeroLengthSection::setUp -- failed to create an ID of correct size\n";
-    exit(-1);
-  }
+    assert(connectedExternalNodes.Size() == 2);
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
-    
-	int i;
-    for (i=0; i<2; i++)
-      theNodes[i] = 0;
+
+    for (int i=0; i<2; i++)
+      theNodes[i] = nullptr;
 
     // check that vectors for orientation are correct size
     if ( x.Size() != 3 || yp.Size() != 3 )
@@ -643,9 +639,10 @@ ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
     // check valid x and y vectors, i.e. not parallel and of zero length
     if (xn == 0 || yn == 0 || zn == 0)
       opserr << "ZeroLengthSection::setUp -- invalid vectors to constructor\n";
-    
+
+
     // create transformation matrix of direction cosines
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
 		transformation(0,i) = x(i)/xn;
 		transformation(1,i) = y(i)/yn;
 		transformation(2,i) = z(i)/zn;
@@ -654,7 +651,7 @@ ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
 
 // Set basic deformation-displacement transformation matrix for section
 void 
-ZeroLengthSection::setTransformation(void)
+ZeroLengthSection::setTransformation()
 {
 	// Allocate transformation matrix
 	if (A != 0)
@@ -662,12 +659,8 @@ ZeroLengthSection::setTransformation(void)
 
 	A = new Matrix(order, numDOF);
 
-	if (A == 0)
-	  opserr << "ZeroLengthSection::setTransformation -- failed to allocate transformation Matrix\n";
-			
-
 	// Allocate section deformation vector
-	if (v != 0)
+	if (v != nullptr)
 		delete v;
 
 	v = new Vector(order);
@@ -732,6 +725,7 @@ ZeroLengthSection::setTransformation(void)
 				tran(i,11) = transformation(1,2);
 			}
 			break;
+
 		case SECTION_RESPONSE_VZ:
 			if (numDOF == 12) {
 				tran(i,6) = transformation(2,0);
@@ -739,6 +733,7 @@ ZeroLengthSection::setTransformation(void)
 				tran(i,8) = transformation(2,2);
 			}
 			break;
+
 		case SECTION_RESPONSE_T:
 			if (numDOF == 12) {
 				tran(i,9) = transformation(0,0);
@@ -757,7 +752,7 @@ ZeroLengthSection::setTransformation(void)
 }
 		     
 void
-ZeroLengthSection::computeSectionDefs(void)
+ZeroLengthSection::computeSectionDefs()
 {
 	// Get nodal displacements
 	const Vector &u1 = theNodes[0]->getTrialDisp();

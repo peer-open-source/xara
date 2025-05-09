@@ -64,10 +64,6 @@ int TclCommand_usePlaneStress(ClientData clientData, Tcl_Interp *interp, int arg
 
 
 
-
-
-
-
   Tcl_DeleteCommand(interp, "setMaterial");
   Tcl_DeleteCommand(interp, "setStrain");
   Tcl_DeleteCommand(interp, "getStress");

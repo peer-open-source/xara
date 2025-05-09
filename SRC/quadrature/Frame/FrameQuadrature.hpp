@@ -29,6 +29,7 @@ class FrameQuadrature : public BeamIntegration
             wt[i.value] = T::wts[i.value]*0.5;
         });
     }
+
     int sendSelf(int cTag, Channel &) {return 0;}
     int recvSelf(int cTag, Channel &, FEM_ObjectBroker &) {return 0;}
 

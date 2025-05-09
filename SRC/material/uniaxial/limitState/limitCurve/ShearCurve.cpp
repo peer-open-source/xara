@@ -285,10 +285,6 @@ ShearCurve::checkElementState(double springForce)
 		// get displacements
 		const Vector &dispI = nodeI->getTrialDisp();
 		const Vector &dispJ = nodeJ->getTrialDisp();
-
-//opserr << "Drift ndI: " << dispI(dof) << endln;
-//opserr << "Drift ndJ: " << dispJ(dof) << endln;
-
 		
 		// calc drift
 		double dx = fabs(dispJ(dof)-dispI(dof));
