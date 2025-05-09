@@ -97,8 +97,8 @@ ThreadedSuperLU::solve(void)
     }
 
     // first copy B into X
-    double *Xptr = theSOE->X;
-    double *Bptr = theSOE->B;
+    double *Xptr = &theSOE->X[0];
+    double *Bptr = &theSOE->B[0];
     for (int i=0; i<n; i++)
 	*(Xptr++) = *(Bptr++);
 

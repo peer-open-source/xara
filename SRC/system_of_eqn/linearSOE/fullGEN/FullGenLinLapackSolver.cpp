@@ -71,7 +71,7 @@ FullGenLinLapackSolver::getDeterminant()
 
 
 int
-FullGenLinLapackSolver::solve(void)
+FullGenLinLapackSolver::solve()
 {
     assert(theSOE != nullptr);
     
@@ -83,21 +83,20 @@ FullGenLinLapackSolver::solve(void)
     
     // check iPiv is large enough
     assert(!(sizeIpiv < n));
-    //  opserr << " iPiv not large enough - has setSize() been called?\n";
      
     int ldA = n;
     int nrhs = 1;
     int ldB = n;
     int info;
     double *Aptr = theSOE->A;
-    double *Xptr = theSOE->X;
-    double *Bptr = theSOE->B;
+    double *Xptr = &theSOE->X[0];
+    double *Bptr = &theSOE->B[0];
     int *iPIV = iPiv;
     
     // first copy B into X
     for (int i=0; i<n; i++)
      *(Xptr++) = *(Bptr++);
-    Xptr = theSOE->X;
+    Xptr = &theSOE->X[0];
 
     //
     // now solve AX = Y
@@ -115,12 +114,12 @@ FullGenLinLapackSolver::solve(void)
     // check if successful
     if (info != 0) {
       if (info > 0) {
-     // opserr << "WARNING FullGenLinLapackSolver::solve() -";
-     // opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
-     return -info+1;
+        // opserr << "WARNING FullGenLinLapackSolver::solve() -";
+        // opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
+        return -info+1;
       } else {
-     // opserr << "WARNING FullGenLinLapackSolver::solve() - OpenSees code error\n";
-     return info;
+        // opserr << "WARNING FullGenLinLapackSolver::solve() - OpenSees code error\n";
+        return info;
       }      
     }
 

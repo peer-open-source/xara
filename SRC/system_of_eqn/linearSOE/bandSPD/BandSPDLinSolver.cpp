@@ -34,7 +34,7 @@
 
 BandSPDLinSolver::BandSPDLinSolver(int theClassTag)    
 :LinearSOESolver(theClassTag),
- theSOE(0)
+ theSOE(nullptr)
 {
 
 }    

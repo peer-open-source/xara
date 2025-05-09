@@ -279,8 +279,6 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
   if (size > Bsize) { // we have to get another space for A
     
     // delete the old
-    if (B != 0) delete [] B;
-    if (X != 0) delete [] X;
     if (myB != 0) delete [] myB;
     
     // create the new	

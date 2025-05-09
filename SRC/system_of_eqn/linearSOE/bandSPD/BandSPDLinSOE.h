@@ -42,8 +42,6 @@
 
 class BandSPDLinSolver;
 
-
-
 class BandSPDLinSOE : public LinearSOE
 {
   public:
@@ -54,7 +52,7 @@ class BandSPDLinSOE : public LinearSOE
 
     virtual ~BandSPDLinSOE();
 
-    virtual int getNumEqn(void) const;
+    virtual int getNumEqn() const;
     virtual int setSize(Graph &theGraph);
 
     virtual int addA(const Matrix &, const ID &, double fact = 1.0);
@@ -63,12 +61,12 @@ class BandSPDLinSOE : public LinearSOE
     virtual int addB(const Vector &, const ID &, double fact = 1.0);    
     virtual int setB(const Vector &, double fact = 1.0);        
     
-    virtual void zeroA(void);
-    virtual void zeroB(void);
+    virtual void zeroA();
+    virtual void zeroB();
     
-    virtual const Vector &getX(void);
-    virtual const Vector &getB(void);    
-    virtual double normRHS(void);
+    virtual const Vector &getX();
+    virtual const Vector &getB();    
+    virtual double normRHS();
 
     virtual void setX(int loc, double value);    
     virtual void setX(const Vector &x);    
@@ -83,10 +81,9 @@ class BandSPDLinSOE : public LinearSOE
     
   protected:
     int size, half_band;    
-    double *A, *B, *X;
-    Vector *vectX;
-    Vector *vectB;    
-    int Asize, Bsize;
+    double *A;
+    Vector B, X; 
+    int Asize;
     int aFactored;
     bool factored;
     

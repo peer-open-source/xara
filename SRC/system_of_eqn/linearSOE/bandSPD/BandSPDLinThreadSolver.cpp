@@ -101,28 +101,30 @@ void *BandSPDLinThreadSolver_Worker(void *arg);
 
 
 int
-BandSPDLinThreadSolver::solve(void)
+BandSPDLinThreadSolver::solve()
 {
     if (theSOE == 0) {
-	opserr << "BandSPDLinThreadSolver::solve(void)- ";
-	opserr << " No LinearSOE object has been set\n";
-	return -1;
+      opserr << "BandSPDLinThreadSolver::solve(void)- ";
+      opserr << " No LinearSOE object has been set\n";
+      return -1;
     }
 
     int n = theSOE->size;
+    if (n == 0)
+      return 0;
     int kd = theSOE->half_band -1;
     int ldA = kd +1;
     int nrhs = 1;
     int ldB = n;
     int info;
     double *Aptr = theSOE->A;
-    double *Xptr = theSOE->X;
-    double *Bptr = theSOE->B;
+    double *Xptr = &theSOE->X[0];
+    double *Bptr = &theSOE->B[0];
 
     // first copy B into X
     for (int i=0; i<n; i++)
-	*(Xptr++) = *(Bptr++);
-    Xptr = theSOE->X;
+      *(Xptr++) = *(Bptr++);
+    Xptr = &theSOE->X[0];
 
     // now solve AX = Y
     if (theSOE->factored == false) {

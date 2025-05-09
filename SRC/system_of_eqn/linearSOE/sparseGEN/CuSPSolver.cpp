@@ -143,8 +143,8 @@ int CuSPSolver::solve(void)
   n = theSOE->size;
   nnz = theSOE->nnz;
   
-  double *Xptr = theSOE->X;
-  double *Bptr = theSOE->B;
+  double *Xptr = &theSOE->X[0];
+  double *Bptr = &theSOE->B[0];
   double *Aptr = theSOE->A;
   
   

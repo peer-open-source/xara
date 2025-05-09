@@ -72,8 +72,8 @@ DiagonalDirectSolver::solve(void)
   
   // set some pointers
   double *Aptr = theSOE->A;
-  double *Bptr = theSOE->B;
-  double *Xptr = theSOE->X;
+  double *Bptr = &theSOE->B[0];
+  double *Xptr = &theSOE->X[0];
   int size = theSOE->size;
 
   if (theSOE->isAfactored == false)  {

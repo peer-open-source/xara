@@ -131,8 +131,8 @@ ProfileSPDLinDirectSkypackSolver::solve(void)
 
     // set some pointers
     double *A = theSOE->A;
-    double *B = theSOE->B;
-    double *X = theSOE->X;
+    double *B = &theSOE->B[0];
+    double *X = &theSOE->X[0];
     int *iDiagLoc = theSOE->iDiagLoc;
     int theSize = theSOE->size;
     // copy B into X
@@ -179,7 +179,7 @@ ProfileSPDLinDirectSkypackSolver::solve(void)
     int fileFD = 0;
     int INFO;
     A = theSOE->A;
-    X = theSOE->X;
+    X = &theSOE->X[0];
     int *BLOCK = &block[0];
     iDiagLoc = theSOE->iDiagLoc;
     

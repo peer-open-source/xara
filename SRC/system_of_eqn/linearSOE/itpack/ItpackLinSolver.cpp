@@ -296,7 +296,7 @@ ItpackLinSolver::solve(void)
   iparm[4] = 1;
 
   double *aPtr = theSOE->A;
-  double *xPtr = theSOE->X;
+  double *xPtr = &theSOE->X[0];
   double *bPtr = theSOE->B;
 
   int *iaPtr = IA;

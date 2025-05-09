@@ -17,12 +17,12 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.2 $
 // $Date: 2006-10-02 20:23:22 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/DistributedSparseGenRowLinSOE.cpp,v $
-                                                                        
-// Written: fmk 
+
+// Written: fmk
 // Created: 04/05
 //
 // Description: This file contains the implementation for DistributedSparseGenRowLinSOE
@@ -39,41 +39,65 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-DistributedSparseGenRowLinSOE::DistributedSparseGenRowLinSOE(DistributedSparseGenRowLinSolver &the_Solver)
-:LinearSOE(the_Solver, LinSOE_TAGS_DistributedSparseGenRowLinSOE),
- n(0), nnz(0), A(0), B(0), X(0), colA(0), rowStartA(0),
- vectX(0), vectB(0),
- Asize(0), Bsize(0),
- factored(false),
- numP(0), rank(-1), startRow(-1), endRow(-1), numRows(0),
- rows(0), otherProcessesRows(0), otherProcessesRowStart(0)
+DistributedSparseGenRowLinSOE::DistributedSparseGenRowLinSOE(
+    DistributedSparseGenRowLinSolver& the_Solver)
+ : LinearSOE(the_Solver, LinSOE_TAGS_DistributedSparseGenRowLinSOE),
+   n(0),
+   nnz(0),
+   A(0),
+   B(0),
+   X(0),
+   colA(0),
+   rowStartA(0),
+   vectX(0),
+   vectB(0),
+   Asize(0),
+   Bsize(0),
+   factored(false),
+   numP(0),
+   rank(-1),
+   startRow(-1),
+   endRow(-1),
+   numRows(0),
+   rows(0),
+   otherProcessesRows(0),
+   otherProcessesRowStart(0)
 {
-    the_Solver.setLinearSOE(*this);
+  the_Solver.setLinearSOE(*this);
 }
 
 
 DistributedSparseGenRowLinSOE::~DistributedSparseGenRowLinSOE()
 {
-    if (A != 0) delete [] A;
-    if (B != 0) delete [] B;
-    if (X != 0) delete [] X;
-    if (rowStartA != 0) delete [] rowStartA;
-    if (colA != 0) delete []colA;
-    if (vectX != 0) delete vectX;    
-    if (vectB != 0) delete vectB;        
-    if (otherProcessesRows != 0) delete [] otherProcessesRows;
-    if (otherProcessesRowStart != 0) delete [] otherProcessesRowStart;
+  if (A != 0)
+    delete[] A;
+  if (B != 0)
+    delete[] B;
+  if (X != 0)
+    delete[] X;
+  if (rowStartA != 0)
+    delete[] rowStartA;
+  if (colA != 0)
+    delete[] colA;
+  if (vectX != 0)
+    delete vectX;
+  if (vectB != 0)
+    delete vectB;
+  if (otherProcessesRows != 0)
+    delete[] otherProcessesRows;
+  if (otherProcessesRowStart != 0)
+    delete[] otherProcessesRowStart;
 }
 
 
 int
 DistributedSparseGenRowLinSOE::getNumEqn(void) const
 {
-    return n;
+  return n;
 }
 
-int 
-DistributedSparseGenRowLinSOE::setSize(Graph &theGraph)
+int
+DistributedSparseGenRowLinSOE::setSize(Graph& theGraph)
 {
   int result = 0;
   /*
@@ -487,208 +511,210 @@ DistributedSparseGenRowLinSOE::setSize(Graph &theGraph)
 	return solverOK;
     }    
   */
-    return result;
+  return result;
 }
 
-int 
-DistributedSparseGenRowLinSOE::addA(const Matrix &m, const ID &id, double fact)
+int
+DistributedSparseGenRowLinSOE::addA(const Matrix& m, const ID& id, double fact)
 {
-    // check for a quick return 
-    if (fact == 0.0)  
-	return 0;
+  // check for a quick return
+  if (fact == 0.0)
+    return 0;
 
-    int idSize = id.Size();
-    
-    // check that m and id are of similar n
-    if (idSize != m.noRows() && idSize != m.noCols()) {
-	opserr << "DistributedSparseGenRowLinSOE::addA() ";
-	opserr << " - Matrix and ID not of similar ns\n";
-	return -1;
+  int idSize = id.Size();
+
+  // check that m and id are of similar n
+  if (idSize != m.noRows() && idSize != m.noCols()) {
+    opserr << "DistributedSparseGenRowLinSOE::addA() ";
+    opserr << " - Matrix and ID not of similar ns\n";
+    return -1;
+  }
+
+  for (int i = 0; i < idSize; i++) {
+    int row = id(i);
+    if (row < n && row >= 0) {
+      int localRow = rows.getLocation(row);
+      if (localRow == -1)
+        opserr << "DistributedSparseGenRowLinSOE::addA() - you goofed\n";
+      int startRowLoc = rowStartA[localRow];
+      int endRowLoc   = rowStartA[localRow + 1];
+      for (int j = 0; j < idSize; j++) {
+        int col = id(j);
+        if ((col < n) && (col >= 0)) {
+          // find place in A using colA
+          for (int k = startRowLoc; k < endRowLoc; k++)
+            if (colA[k] == col) {
+              A[k] += m(i, j) * fact;
+              k = endRowLoc;
+            }
+        }
+      } // for j
     }
-    
-    for (int i=0; i<idSize; i++) {
-      int row = id(i);
-      if (row < n && row >= 0) {
-	int localRow = rows.getLocation(row);
-	if (localRow == -1) 
-	  opserr << "DistributedSparseGenRowLinSOE::addA() - you goofed\n";
-	int startRowLoc = rowStartA[localRow];
-	int endRowLoc = rowStartA[localRow+1];
-	for (int j=0; j<idSize; j++) {
-	  int col = id(j);
-	  if ((col < n) && (col >= 0)) {
-	    // find place in A using colA
-	    for (int k=startRowLoc; k<endRowLoc; k++)
-	      if (colA[k] == col) {
-		A[k] += m(i,j) * fact;
-		k = endRowLoc;
-	      }
-	  }
-	}  // for j		
-      } 
-    }  // for i
+  } // for i
 
-    return 0;
-}
-
-    
-int 
-DistributedSparseGenRowLinSOE::addB(const Vector &v, const ID &id, double fact)
-{
-    // check for a quick return 
-    if (fact == 0.0)  return 0;
-
-    int idSize = id.Size();    
-    // check that m and id are of similar n
-    if (idSize != v.Size() ) {
-	opserr << "DistributedSparseGenRowLinSOE::addB() ";
-	opserr << " - Vector and ID not of similar ns\n";
-	return -1;
-    }    
-
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos < n && pos >= 0)
-		B[pos] += v(i);
-	}
-    } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <n && pos >= 0)
-		B[pos] -= v(i);
-	}
-    } else {
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <n && pos >= 0)
-		B[pos] += v(i) * fact;
-	}
-    }	
-
-    return 0;
+  return 0;
 }
 
 
 int
-DistributedSparseGenRowLinSOE::setB(const Vector &v, double fact)
+DistributedSparseGenRowLinSOE::addB(const Vector& v, const ID& id, double fact)
 {
-    // check for a quick return 
-    if (fact == 0.0)  return 0;
-
-
-    if (v.Size() != n) {
-	opserr << "WARNING BandGenLinSOE::setB() -";
-	opserr << " incompatible ns " << n << " and " << v.Size() << endln;
-	return -1;
-    }
-    
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<n; i++) {
-	    B[i] = v(i);
-	}
-    } else if (fact == -1.0) {
-	for (int i=0; i<n; i++) {
-	    B[i] = -v(i);
-	}
-    } else {
-	for (int i=0; i<n; i++) {
-	    B[i] = v(i) * fact;
-	}
-    }	
+  // check for a quick return
+  if (fact == 0.0)
     return 0;
+
+  int idSize = id.Size();
+  // check that m and id are of similar n
+  if (idSize != v.Size()) {
+    opserr << "DistributedSparseGenRowLinSOE::addB() ";
+    opserr << " - Vector and ID not of similar ns\n";
+    return -1;
+  }
+
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i = 0; i < idSize; i++) {
+      int pos = id(i);
+      if (pos < n && pos >= 0)
+        B[pos] += v(i);
+    }
+  } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
+    for (int i = 0; i < idSize; i++) {
+      int pos = id(i);
+      if (pos < n && pos >= 0)
+        B[pos] -= v(i);
+    }
+  } else {
+    for (int i = 0; i < idSize; i++) {
+      int pos = id(i);
+      if (pos < n && pos >= 0)
+        B[pos] += v(i) * fact;
+    }
+  }
+
+  return 0;
 }
 
-void 
+
+int
+DistributedSparseGenRowLinSOE::setB(const Vector& v, double fact)
+{
+  // check for a quick return
+  if (fact == 0.0)
+    return 0;
+
+
+  if (v.Size() != n) {
+    opserr << "WARNING BandGenLinSOE::setB() -";
+    opserr << " incompatible ns " << n << " and " << v.Size() << endln;
+    return -1;
+  }
+
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i = 0; i < n; i++) {
+      B[i] = v(i);
+    }
+  } else if (fact == -1.0) {
+    for (int i = 0; i < n; i++) {
+      B[i] = -v(i);
+    }
+  } else {
+    for (int i = 0; i < n; i++) {
+      B[i] = v(i) * fact;
+    }
+  }
+  return 0;
+}
+
+void
 DistributedSparseGenRowLinSOE::zeroA(void)
 {
-    double *Aptr = A;
-    for (int i=0; i<Asize; i++)
-	*Aptr++ = 0;
+  double* Aptr = A;
+  for (int i = 0; i < Asize; i++)
+    *Aptr++ = 0;
 
-    factored = false;
+  factored = false;
 }
-	
-void 
+
+void
 DistributedSparseGenRowLinSOE::zeroB(void)
 {
-    double *Bptr = B;
-    for (int i=0; i<n; i++)
-	*Bptr++ = 0;
+  double* Bptr = B;
+  for (int i = 0; i < n; i++)
+    *Bptr++ = 0;
 }
 
-void 
+void
 DistributedSparseGenRowLinSOE::setX(int loc, double value)
 {
-    if (loc < n && loc >=0)
-	X[loc] = value;
+  if (loc < n && loc >= 0)
+    X[loc] = value;
 }
 
-void 
-DistributedSparseGenRowLinSOE::setX(const Vector &x)
+void
+DistributedSparseGenRowLinSOE::setX(const Vector& x)
 {
   if (x.Size() == n && vectX != 0)
     *vectX = x;
 }
 
-const Vector &
+const Vector&
 DistributedSparseGenRowLinSOE::getX(void)
 {
-    if (vectX == 0) {
-	opserr << "FATAL DistributedSparseGenRowLinSOE::getX - vectX == 0";
-	exit(-1);
-    }
-    return *vectX;
+  if (vectX == 0) {
+    opserr << "FATAL DistributedSparseGenRowLinSOE::getX - vectX == 0";
+    exit(-1);
+  }
+  return *vectX;
 }
 
-const Vector &
+const Vector&
 DistributedSparseGenRowLinSOE::getB(void)
 {
-    if (vectB == 0) {
-	opserr << "FATAL DistributedSparseGenRowLinSOE::getB - vectB == 0";
-	exit(-1);
-    }        
-    return *vectB;
+  if (vectB == 0) {
+    opserr << "FATAL DistributedSparseGenRowLinSOE::getB - vectB == 0";
+    exit(-1);
+  }
+  return *vectB;
 }
 
-double 
+double
 DistributedSparseGenRowLinSOE::normRHS(void)
 {
-    double norm =0.0;
-    for (int i=0; i<n; i++) {
-	double Yi = B[i];
-	norm += Yi*Yi;
-    }
-    return sqrt(norm);
-    
-}    
+  double norm = 0.0;
+  for (int i = 0; i < n; i++) {
+    double Yi = B[i];
+    norm += Yi * Yi;
+  }
+  return sqrt(norm);
+}
 
 
 int
-DistributedSparseGenRowLinSOE::setDistributedSparseGenRowSolver(DistributedSparseGenRowLinSolver &newSolver)
+DistributedSparseGenRowLinSOE::setDistributedSparseGenRowSolver(
+    DistributedSparseGenRowLinSolver& newSolver)
 {
-    newSolver.setLinearSOE(*this);
-    
-    if (n != 0) {
-	int solverOK = newSolver.setSize();
-	if (solverOK < 0) {
-	    opserr << "WARNING:DistributedSparseGenRowLinSOE::setSolver :";
-	    opserr << "the new solver could not setSeize() - staying with old\n";
-	    return -1;
-	}
+  newSolver.setLinearSOE(*this);
+
+  if (n != 0) {
+    int solverOK = newSolver.setSize();
+    if (solverOK < 0) {
+      opserr << "WARNING:DistributedSparseGenRowLinSOE::setSolver :";
+      opserr << "the new solver could not setSeize() - staying with old\n";
+      return -1;
     }
-    
-    return this->LinearSOE::setSolver(newSolver);
+  }
+
+  return this->LinearSOE::setSolver(newSolver);
 }
 
 
-int 
-DistributedSparseGenRowLinSOE::sendSelf(int cTag, Channel &theChannel)
+int
+DistributedSparseGenRowLinSOE::sendSelf(int cTag, Channel& theChannel)
 {
-  processID = 0;
-  int sendID =0;
+  processID  = 0;
+  int sendID = 0;
 
-  // if P0 check if already sent. If already sent use old processID; if not allocate a new process 
+  // if P0 check if already sent. If already sent use old processID; if not allocate a new process
   // id for remote part of object, enlarge channel * to hold a channel * for this remote object.
 
   // if not P0, send current processID
@@ -697,87 +723,84 @@ DistributedSparseGenRowLinSOE::sendSelf(int cTag, Channel &theChannel)
 
     // check if already using this object
     bool found = false;
-    for (int i=0; i<numChannels; i++)
+    for (int i = 0; i < numChannels; i++)
       if (theChannels[i] == &theChannel) {
-	sendID = i+1;
-	found = true;
+        sendID = i + 1;
+        found  = true;
       }
 
     // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
     if (found == false) {
-      int nextNumChannels = numChannels + 1;
-      Channel **nextChannels = new Channel *[nextNumChannels];
+      int nextNumChannels    = numChannels + 1;
+      Channel** nextChannels = new Channel*[nextNumChannels];
       if (nextNumChannels == 0) {
-	opserr << "DistributedBandGenLinSOE::sendSelf() - failed to allocate channel array of size: " << 
-	  nextNumChannels << endln;
-	return -1;
+        opserr
+            << "DistributedBandGenLinSOE::sendSelf() - failed to allocate channel array of size: "
+            << nextNumChannels << endln;
+        return -1;
       }
-      for (int i=0; i<numChannels; i++)
-	nextChannels[i] = theChannels[i];
+      for (int i = 0; i < numChannels; i++)
+        nextChannels[i] = theChannels[i];
       nextChannels[numChannels] = &theChannel;
-      numChannels = nextNumChannels;
-      
+      numChannels               = nextNumChannels;
+
       if (theChannels != 0)
-	delete [] theChannels;
-      
+        delete[] theChannels;
+
       theChannels = nextChannels;
-      
-  if (localCol != 0)
-	delete [] localCol;
-      localCol = new ID *[numChannels];
+
+      if (localCol != 0)
+        delete[] localCol;
+      localCol = new ID*[numChannels];
       if (localCol == 0) {
-	opserr << "DistributedBandGenLinSOE::sendSelf() - failed to allocate id array of size: " << 
-	  nextNumChannels << endln;
-	return -1;
+        opserr << "DistributedBandGenLinSOE::sendSelf() - failed to allocate id array of size: "
+               << nextNumChannels << endln;
+        return -1;
       }
-      for (int i=0; i<numChannels; i++)
-	localCol[i] = 0;    
+      for (int i = 0; i < numChannels; i++)
+        localCol[i] = 0;
 
       // allocate new processID for remote object
       sendID = numChannels;
     }
 
-  } else 
+  } else
     sendID = processID;
 
   return 0;
 }
 
 
-int 
-DistributedSparseGenRowLinSOE::recvSelf(int cTag, Channel &theChannel, 
-		   FEM_ObjectBroker &theBroker)
+int
+DistributedSparseGenRowLinSOE::recvSelf(int cTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
-  numChannels = 1;
-  theChannels = new Channel *[1];
+  numChannels    = 1;
+  theChannels    = new Channel*[1];
   theChannels[0] = &theChannel;
 
-  localCol = new ID *[numChannels];
-  for (int i=0; i<numChannels; i++)
+  localCol = new ID*[numChannels];
+  for (int i = 0; i < numChannels; i++)
     localCol[i] = 0;
 
   return 0;
 }
 
 int
-DistributedSparseGenRowLinSOE::setChannels(int nChannels, Channel **theC)
+DistributedSparseGenRowLinSOE::setChannels(int nChannels, Channel** theC)
 {
   numChannels = nChannels;
 
   if (theChannels != 0)
-    delete [] theChannels;
+    delete[] theChannels;
 
-  theChannels = new Channel *[numChannels];
-  for (int i=0; i<numChannels; i++)
+  theChannels = new Channel*[numChannels];
+  for (int i = 0; i < numChannels; i++)
     theChannels[i] = theC[i];
 
 
-  localCol = new ID *[nChannels];
-  for (int i=0; i<numChannels; i++)
+  localCol = new ID*[nChannels];
+  for (int i = 0; i < numChannels; i++)
     localCol[i] = 0;
 
   return 0;
 }
-
-
-

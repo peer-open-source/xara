@@ -32,10 +32,10 @@ void* OPS_SymSparseLinSolver()
     int lSparse = 1;
     int numdata = 1;
     if (OPS_GetNumRemainingInputArgs() > 0) {
-	if (OPS_GetIntInput(&numdata, &lSparse) < 0) {
-	    opserr << "WARNING SparseSPD failed to read lSparse\n";
-	    return 0;
-	}
+        if (OPS_GetIntInput(&numdata, &lSparse) < 0) {
+            opserr << "WARNING SparseSPD failed to read lSparse\n";
+            return 0;
+        }
     }
 
     SymSparseLinSolver *theSolver = new SymSparseLinSolver();
@@ -64,12 +64,12 @@ extern "C" void pfsslv(int neqns, double *diag, double **penv, int nblks,
 */
 
 int
-SymSparseLinSolver::solve(void)
+SymSparseLinSolver::solve()
 { 
     if (theSOE == 0) {
-	opserr << "WARNING SymSparseLinSolver::solve(void)- ";
-	opserr << " No LinearSOE object has been set\n";
-	return -1;
+        opserr << "WARNING SymSparseLinSolver::solve(void)- ";
+        opserr << " No LinearSOE object has been set\n";
+        return -1;
     }
 
     int      nblks = theSOE->nblks;
@@ -85,26 +85,25 @@ SymSparseLinSolver::solve(void)
 
     // check for quick return
     if (neq == 0)
-	return 0;
+        return 0;
 
     // first copy B into X
 
     for (int i=0; i<neq; i++) {
         theSOE->X[i] = theSOE->B[i];
     }
-    double *Xptr = theSOE->X;
+    double *Xptr = &theSOE->X[0];
 
     if (theSOE->factored == false) {
 
-        //factor the matrix
-        //call the "C" function to do the numerical factorization.
-        int factor;
-	factor = pfsfct(neq, diag, penv, nblks, xblk, begblk, first, rowblks);
-	if (factor > 0) {
-	    opserr << "In SymSparseLinSolver: error in factorization.\n";
-	    return -1;
-	}
-	theSOE->factored = true;
+        // factor the matrix
+        // call the "C" function to do the numerical factorization.
+        int factor = pfsfct(neq, diag, penv, nblks, xblk, begblk, first, rowblks);
+        if (factor > 0) {
+            opserr << "In SymSparseLinSolver: error in factorization.\n";
+            return -1;
+        }
+        theSOE->factored = true;
     }
 
     // do forward and backward substitution.
