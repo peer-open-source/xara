@@ -92,7 +92,7 @@ SymSparseLinSolver::solve()
     for (int i=0; i<neq; i++) {
         theSOE->X[i] = theSOE->B[i];
     }
-    double *Xptr = theSOE->X;
+    double *Xptr = &theSOE->X[0];
 
     if (theSOE->factored == false) {
 

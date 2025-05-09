@@ -174,8 +174,8 @@ SuperLU::solve()
     */
 
     // first copy B into X
-    double *Xptr = theSOE->X;
-    double *Bptr = theSOE->B;
+    double *Xptr = &theSOE->X[0];
+    double *Bptr = &theSOE->B[0];
     for (int i=0; i<n; i++)
       *(Xptr++) = *(Bptr++);
 
@@ -270,7 +270,7 @@ SuperLU::setSize()
       sp_preorder(&options, &A, perm_c, etree, &AC);
 
       // create the rhs SuperMatrix B 
-      dCreate_Dense_Matrix(&B, n, 1, theSOE->X, n, SLU_DN, SLU_D, SLU_GE);
+      dCreate_Dense_Matrix(&B, n, 1, &theSOE->X[0], n, SLU_DN, SLU_D, SLU_GE);
 	
       // set the refact variable to 'N' after first factorization with new size 
       // can set to 'Y'.

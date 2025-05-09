@@ -53,8 +53,6 @@ SparseGenColLinSOE::SparseGenColLinSOE(SparseGenColLinSolver& the_Solver)
    X(0),
    rowA(0),
    colStartA(0),
-   vectX(0),
-   vectB(0),
    Asize(0),
    Bsize(0),
    factored(false)
@@ -72,8 +70,6 @@ SparseGenColLinSOE::SparseGenColLinSOE()
    X(0),
    rowA(0),
    colStartA(0),
-   vectX(0),
-   vectB(0),
    Asize(0),
    Bsize(0),
    factored(false)
@@ -89,8 +85,6 @@ SparseGenColLinSOE::SparseGenColLinSOE(int classTag)
    X(0),
    rowA(0),
    colStartA(0),
-   vectX(0),
-   vectB(0),
    Asize(0),
    Bsize(0),
    factored(false)
@@ -107,8 +101,6 @@ SparseGenColLinSOE::SparseGenColLinSOE(SparseGenColLinSolver& the_Solver, int cl
    X(0),
    rowA(0),
    colStartA(0),
-   vectX(0),
-   vectB(0),
    Asize(0),
    Bsize(0),
    factored(false)
@@ -123,12 +115,10 @@ SparseGenColLinSOE::SparseGenColLinSOE(int N, int NNZ, int* ColStartA, int* RowA
    size(N),
    nnz(NNZ),
    A(0),
-   B(0),
-   X(0),
+   B(N),
+   X(N),
    rowA(RowA),
    colStartA(ColStartA),
-   vectX(0),
-   vectB(0),
    Asize(0),
    Bsize(0),
    factored(false)
@@ -137,19 +127,8 @@ SparseGenColLinSOE::SparseGenColLinSOE(int N, int NNZ, int* ColStartA, int* RowA
   A = new double[NNZ]{};
 
   Asize = NNZ;
-
-  B = new double[size]{};
-  X = new double[size]{};
-
   Bsize = size;
-  // zero the vectors
-  for (int j = 0; j < size; j++) {
-    B[j] = 0;
-    X[j] = 0;
-  }
 
-  vectX = new Vector(X, size);
-  vectB = new Vector(B, size);
 
   the_Solver.setLinearSOE(*this);
 
@@ -165,18 +144,10 @@ SparseGenColLinSOE::~SparseGenColLinSOE()
 {
   if (A != 0)
     delete[] A;
-  if (B != 0)
-    delete[] B;
-  if (X != 0)
-    delete[] X;
   if (colStartA != 0)
     delete[] colStartA;
   if (rowA != 0)
     delete[] rowA;
-  if (vectX != 0)
-    delete vectX;
-  if (vectB != 0)
-    delete vectB;
 }
 
 
@@ -217,35 +188,18 @@ SparseGenColLinSOE::setSize(Graph& theGraph)
   }
 
   factored = false;
+  B.resize(size);
+  B.Zero();
+  X.resize(size);
+  X.Zero();
 
   if (size > Bsize) { // we have to get space for the vectors
 
-    // delete the old
-    if (B != 0)
-      delete[] B;
-    if (X != 0)
-      delete[] X;
     if (colStartA != 0)
       delete[] colStartA;
-
-    // create the new
-    B         = new double[size]{};
-    X         = new double[size]{};
     colStartA = new int[size + 1];
 
     Bsize = size;
-  }
-
-  // create new Vectors objects
-  if (size != oldSize) {
-    if (vectX != 0)
-      delete vectX;
-
-    if (vectB != 0)
-      delete vectB;
-
-    vectX = new Vector(X, size);
-    vectB = new Vector(B, size);
   }
 
   // fill in colStartA and rowA
@@ -300,8 +254,6 @@ SparseGenColLinSOE::setSize(Graph& theGraph)
   LinearSOESolver* the_Solver = this->getSolver();
   int solverOK                = the_Solver->setSize();
   if (solverOK < 0) {
-    // opserr << "WARNING:SparseGenColLinSOE::setSize :";
-    // opserr << " solver failed setSize()\n";
     return solverOK;
   }
 
@@ -376,23 +328,24 @@ SparseGenColLinSOE::addB(const Vector& v, const ID& id, double fact)
 
   int idSize = id.Size();
 
+  double* b = &B[0];
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i = 0; i < idSize; i++) {
       int pos = id(i);
       if (pos < size && pos >= 0)
-        B[pos] += v(i);
+        b[pos] += v(i);
     }
   } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i = 0; i < idSize; i++) {
       int pos = id(i);
       if (pos < size && pos >= 0)
-        B[pos] -= v(i);
+        b[pos] -= v(i);
     }
   } else {
     for (int i = 0; i < idSize; i++) {
       int pos = id(i);
       if (pos < size && pos >= 0)
-        B[pos] += v(i) * fact;
+        b[pos] += v(i) * fact;
     }
   }
 
@@ -409,24 +362,25 @@ SparseGenColLinSOE::setB(const Vector& v, double fact)
   if (fact == 0.0)
     return 0;
 
+  double* b = &B[0];
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i = 0; i < size; i++) {
-      B[i] = v(i);
+      b[i] = v(i);
     }
   } else if (fact == -1.0) {
     for (int i = 0; i < size; i++) {
-      B[i] = -v(i);
+      b[i] = -v(i);
     }
   } else {
     for (int i = 0; i < size; i++) {
-      B[i] = v(i) * fact;
+      b[i] = v(i) * fact;
     }
   }
   return 0;
 }
 
 void
-SparseGenColLinSOE::zeroA(void)
+SparseGenColLinSOE::zeroA()
 {
   double* Aptr = A;
   for (int i = 0; i < Asize; i++)
@@ -436,11 +390,9 @@ SparseGenColLinSOE::zeroA(void)
 }
 
 void
-SparseGenColLinSOE::zeroB(void)
+SparseGenColLinSOE::zeroB()
 {
-  double* Bptr = B;
-  for (int i = 0; i < size; i++)
-    *Bptr++ = 0;
+  B.Zero();
 }
 
 void
@@ -453,26 +405,24 @@ SparseGenColLinSOE::setX(int loc, double value)
 void
 SparseGenColLinSOE::setX(const Vector& x)
 {
-  if (x.Size() == size && vectX != 0)
-    *vectX = x;
+  if (x.Size() == size)
+    X = x;
 }
 
 const Vector&
-SparseGenColLinSOE::getX(void)
+SparseGenColLinSOE::getX()
 {
-  assert(vectX != nullptr);
-  return *vectX;
+  return X;
 }
 
 const Vector&
-SparseGenColLinSOE::getB(void)
+SparseGenColLinSOE::getB()
 {
-  assert(vectB != nullptr);
-  return *vectB;
+  return B;
 }
 
 double
-SparseGenColLinSOE::normRHS(void)
+SparseGenColLinSOE::normRHS()
 {
   double norm = 0.0;
   for (int i = 0; i < size; i++) {
