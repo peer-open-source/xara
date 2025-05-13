@@ -78,13 +78,13 @@ public:
 		int compute(const Vector& S, double cdf);
 		void recompose(const Vector& S, Vector& Sv) const;
 		void recompose(Vector& Sv) const;
-		Vector Si = Vector(3); // principal stressess 0>1>2
-		Matrix V = Matrix(3, 3); // principal directions in columns
+		Vector Si = Vector(3);    // principal stressess 0>1>2
+		Matrix V  = Matrix(3, 3); // principal directions in columns
 		Matrix PT = Matrix(6, 6); // tensile projector
 		Matrix PC = Matrix(6, 6); // compressive projector
-		Vector ST = Vector(6); // tensile stress
-		Vector SC = Vector(6); // compressive stress
-		double R = 0.0;
+		Vector ST = Vector(6);    // tensile stress
+		Vector SC = Vector(6);    // compressive stress
+		double R  = 0.0;
 	};
 
 	// A point in the hardening law
@@ -96,12 +96,12 @@ public:
 		HardeningLawPoint() = default;
 		HardeningLawPoint(double _x, double _y, double _d, double _q)
 			: x(_x), y(_y), d(_d), q(_q) {}
-		inline double totalStrain()const { return x; }
+		inline double totalStrain() const { return x; }
 		inline double plasticStrain(double E)const { return x - q / E; }
-		inline double stress()const { return y; }
+		inline double stress() const { return y; }
 		inline double effectiveStress()const { return q; }
 		inline double elasticStress(double E) const { return E * x; }
-		inline double crackingDamage()const { return d; }
+		inline double crackingDamage() const { return d; }
 	};
 
 	// The Hardening Law Type
@@ -305,7 +305,7 @@ public:
 	~ASDConcrete3DMaterial();
 
 	// info
-	const char* getClassType(void) const { return "ASDConcrete3DMaterial"; };
+	const char* getClassType(void) const { return "ASDConcrete3DMaterial"; }
 
 	// density
 	double getRho(void);
@@ -394,10 +394,12 @@ private:
 	bool regularization_done = false;
 	double lch = 1.0; // the parent-element's characteristic length
 	double lch_ref = 1.0; // the reference characteristic length (i.e. the size the specific-fracture-energy in the hardening-law is referred to)
+	
 	// The hardening law for the tensile response
 	HardeningLaw ht;
 	// The hardening law for the compressive response
 	HardeningLaw hc;
+
 	// Compression/Tension peak ratio
 	double fcft_ratio = 10;
 	// cross-damage factor

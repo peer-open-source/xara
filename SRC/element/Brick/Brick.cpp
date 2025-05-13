@@ -38,12 +38,12 @@
 #include <ElementResponse.h>
 #include <Parameter.h>
 #include <ElementalLoad.h>
-
+#include <isoparametric.tpp>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
 
-
+using namespace OpenSees;
 //static data
 double  Brick::xl[3][8] ;
 
@@ -82,16 +82,16 @@ Brick::Brick()
 
 
 Brick::Brick(int tag, 
-	     int node1,
-	     int node2,
-	     int node3,
-	     int node4,
-	     int node5,
-	     int node6,
-	     int node7,
-	     int node8,
-	     NDMaterial &theMaterial,
-	     double b1, double b2, double b3)
+            int node1,
+            int node2,
+            int node3,
+            int node4,
+            int node5,
+            int node6,
+            int node7,
+            int node8,
+            NDMaterial &theMaterial,
+            double b1, double b2, double b3)
   : Element(tag, ELE_TAG_Brick),
    connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
 {
@@ -169,7 +169,7 @@ Brick::getNodePtrs()
 
 
 int
-Brick::getNumDOF( ) 
+Brick::getNumDOF() 
 {
   return 24 ;
 }
@@ -351,11 +351,8 @@ Brick::getInitialStiff( )
   //---------B-matrices------------------------------------
 
   static Matrix BJ(nstress,ndf) ;      // B matrix node J
-
   static Matrix BJtran(ndf,nstress) ;
-
   static Matrix BK(nstress,ndf) ;      // B matrix node k
-
   static Matrix BJtranD(ndf,nstress) ;
 
   //-------------------------------------------------------
@@ -732,10 +729,9 @@ Brick::update()
   static constexpr int nShape = 4 ;
 
   
-  static double dvol[numberGauss] ; //volume element
-  static double gaussPoint[ndm];
+  double dvol[numberGauss] ; //volume element
   static Vector strain(nstress);
-  static double Shape[nShape][numberNodes][numberGauss] ; //all the shape functions
+  double Shape[nShape][numberNodes][numberGauss] ; //all the shape functions
 
   //---------B-matrices------------------------------------
 
@@ -750,7 +746,7 @@ Brick::update()
   //compute basis vectors and local nodal coordinates
   computeBasis();
 
-  //gauss loop to compute and save shape functions 
+  // gauss loop to compute and save shape functions 
 
   int count = 0 ;
   double volume = 0.0 ;
@@ -759,9 +755,7 @@ Brick::update()
     for (int j = 0; j < 2; j++ ) {
       for (int k = 0; k < 2; k++ ) {
 
-        gaussPoint[0] = sg[i] ;        
-        gaussPoint[1] = sg[j] ;        
-        gaussPoint[2] = sg[k] ;
+        double gaussPoint[NDM] {sg[i], sg[j], sg[k]};
 
         //get shape functions
         double xsj;
@@ -773,7 +767,6 @@ Brick::update()
           for (int q = 0; q < numberNodes; q++ )
             Shape[p][q][count] = shp[p][q] ;
         }
-
 
         //volume element to also be saved
         dvol[count] = wg[count] * xsj ;  
@@ -853,15 +846,13 @@ Brick::formResidAndTangent( int tang_flag )
 
   //strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31 
 
-  static const int ndm = 3 ;
-  static const int ndf = 3 ; 
-  static const int nstress = 6 ;
+  static constexpr int ndm = 3 ;
+  static constexpr int ndf = 3 ; 
+  static constexpr int nstress = 6 ;
+  static constexpr int numberNodes = 8 ;
+  static constexpr int numberGauss = 8 ;
+  static constexpr int nShape = 4 ;
 
-  static const int numberNodes = 8 ;
-  static const int numberGauss = 8 ;
-  static const int nShape = 4 ;
-
-  int i, j, k, p, q ;
 
 
   static double dvol[numberGauss] ; //volume element
@@ -891,11 +882,11 @@ Brick::formResidAndTangent( int tang_flag )
   //compute basis vectors and local nodal coordinates
   computeBasis();
 
-  //gauss loop to compute and save shape functions 
+  // gauss loop to compute and save shape functions 
 
   int count = 0 ;
 
-  // double volume = 0.0 ;
+  int i, j, k, p, q ;
 
   for (int i = 0; i < 2; i++ ) {
     for (int j = 0; j < 2; j++ ) {
@@ -905,10 +896,10 @@ Brick::formResidAndTangent( int tang_flag )
         // Evaluate shape functions
         double xsj ;  // determinant jacaobian matrix
 
-        double xi[ndm]  = {sg[i], sg[j], sg[k]} ;
+        const double xi[ndm]  = {sg[i], sg[j], sg[k]} ;
         shp3d( xi, xsj, shp, xl ) ;
 
-        //save shape functions
+        // save shape functions
         for ( p = 0; p < nShape; p++ ) {
           for ( q = 0; q < numberNodes; q++ )
             Shape[p][q][count] = shp[p][q] ;
@@ -917,7 +908,6 @@ Brick::formResidAndTangent( int tang_flag )
         //volume element to also be saved
         dvol[count] = wg[count] * xsj ;  
 
-        //volume += dvol[count] ;
         count++ ;
       }
     }
@@ -1085,24 +1075,6 @@ Brick::computeB( int node, const double shp[4][8] )
 
   return B ;
 
-}
-
-//***********************************************************************
-
-Matrix
-Brick::transpose( int dim1, int dim2, const Matrix &M ) 
-{
-  int i ;
-  int j ;
-
-  Matrix Mtran( dim2, dim1 ) ;
-
-  for ( i = 0; i < dim1; i++ ) {
-     for ( j = 0; j < dim2; j++ ) 
-         Mtran(j,i) = M(i,j) ;
-  } // end for i
-
-  return Mtran ;
 }
 
 //**********************************************************************
@@ -1322,14 +1294,16 @@ Brick::setResponse(const char **argv, int argc, OPS_Stream &output)
     }
 
 
-  } else if (strcmp(argv[0],"stresses") ==0) {
+  }
+  
+  else if (strcmp(argv[0],"stresses") ==0) {
 
     for (int i=0; i<8; i++) {
       output.tag("GaussPoint");
       output.attr("number",i+1);
       output.tag("NdMaterialOutput");
       output.attr("classType", materialPointers[i]->getClassTag());
-      output.attr("tag", materialPointers[i]->getTag());
+      output.attr("tag",       materialPointers[i]->getTag());
 
       output.tag("ResponseType","sigma11");
       output.tag("ResponseType","sigma22");
@@ -1343,7 +1317,9 @@ Brick::setResponse(const char **argv, int argc, OPS_Stream &output)
     }
     theResponse =  new ElementResponse(this, 3, Vector(48));
 
-  } else if (strcmp(argv[0],"strains") ==0) {
+  }
+  
+  else if (strcmp(argv[0],"strains") ==0) {
 
     for (int i=0; i<8; i++) {
       output.tag("GaussPoint");
@@ -1365,7 +1341,18 @@ Brick::setResponse(const char **argv, int argc, OPS_Stream &output)
     theResponse =  new ElementResponse(this, 4, Vector(48));
   }
 
-  
+  else if (strcmp(argv[0], "stressAtNodes") == 0) {
+    theResponse = new ElementResponse(this, 11, Vector(NST*NEN));
+  }
+
+  else if (strcmp(argv[0], "shape") == 0) {
+    output.tag("Shape");
+    output.attr("number", 1);
+    output.attr("type", "Brick");
+    output.attr("tag", this->getTag());
+    theResponse = new ElementResponse(this, 500 + atoi(argv[1])*10 + atoi(argv[2]), Vector(8));
+  }
+
   output.endTag(); // ElementOutput
   return theResponse;
 }
@@ -1398,7 +1385,8 @@ Brick::getResponse(int responseID, Information &eleInfo)
     }
     return eleInfo.setVector(stresses);
 
-  } else if (responseID == 4) {
+  } 
+  else if (responseID == 4) {
     
     // Loop over the integration points
     int cnt = 0;
@@ -1415,6 +1403,27 @@ Brick::getResponse(int responseID, Information &eleInfo)
     }
     return eleInfo.setVector(stresses);
   }
+
+  else if (responseID == 11) {
+    constexpr OpenSees::MatrixND<8,8> We {{
+      { 2.549038105676660, -0.683012701892219,  0.183012701892219, -0.683012701892219, -0.683012701892219, 0.183012701892219, -0.049038105676658, 0.183012701892219}, 
+      {-0.683012701892219,  2.549038105676660, -0.683012701892219,  0.183012701892219, 0.183012701892219, -0.683012701892219, 0.183012701892219, -0.049038105676658}, 
+      { 0.183012701892219, -0.683012701892219,  2.549038105676660, -0.683012701892219, -0.049038105676658, 0.183012701892219, -0.683012701892219, 0.183012701892219}, 
+      {-0.683012701892219,  0.183012701892219, -0.683012701892219,  2.549038105676660, 0.183012701892219, -0.049038105676658, 0.183012701892219, -0.683012701892219}, 
+      {-0.683012701892219,  0.183012701892219, -0.049038105676658,  0.183012701892219, 2.54903810567666, -0.683012701892219, 0.183012701892219, -0.683012701892219}, 
+      { 0.183012701892219, -0.683012701892219,  0.183012701892219, -0.049038105676658, -0.683012701892219, 2.54903810567666, -0.683012701892219, 0.183012701892219}, 
+      {-0.049038105676658,  0.183012701892219, -0.683012701892219,  0.183012701892219, 0.183012701892219, -0.683012701892219, 2.54903810567666, -0.683012701892219}, 
+      { 0.183012701892219, -0.049038105676658,  0.183012701892219, -0.683012701892219, -0.683012701892219, 0.183012701892219, -0.683012701892219, 2.54903810567666}
+    }};
+
+    static VectorND<NST*NEN> stressAtNodes;
+    static Vector output(stressAtNodes);
+
+    stressAtNodes.zero();
+    OpenSees::StressExtrapolation<NEN,NIP,NST>(materialPointers, We, stressAtNodes);
+    return eleInfo.setVector(output);
+  }
+
 
   else
     return -1;

@@ -46,7 +46,8 @@ using std::ostream;
 
 class ErrorHandler {
   public:
-    ErrorHandler();
+  
+  ErrorHandler();
 	virtual ~ErrorHandler();
 
 	virtual void warning(const char *, ...) =0;

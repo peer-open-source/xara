@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2006-08-04 18:18:37 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticIsotropicPlaneStress2D.h,v $
-
+//
 #ifndef PlasticDamageConcrete3d_h
 #define PlasticDamageConcrete3d_h
 
@@ -42,41 +38,40 @@ class PlasticDamageConcrete3d : public NDMaterial
 {
   public:
   PlasticDamageConcrete3d(int tag, 
-			  double E, 
-			  double nu, 
-			  double ft,
-			  double fc, 
-			  double beta = 0.6, 
-			  double Ap = 0.5, 
-			  double An = 2.0, 
-			  double Bn = 0.75);
+                          double E, 
+                          double nu, 
+                          double ft,
+                          double fc, 
+                          double beta = 0.6, 
+                          double Ap = 0.5, 
+                          double An = 2.0, 
+                          double Bn = 0.75);
     PlasticDamageConcrete3d();
     ~PlasticDamageConcrete3d();
 
-    const char *getClassType(void) const {return "PlasticDamageConcrete3d";};
+    const char *getClassType() const {return "PlasticDamageConcrete3d";}
 
     int setTrialStrain (const Vector &v);
     int setTrialStrain (const Vector &v, const Vector &r);
     int setTrialStrainIncr (const Vector &v);
     int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+    const Matrix &getTangent();
+    const Matrix &getInitialTangent();
     
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
+    const Vector &getStress();
+    const Vector &getStrain();
     
-    int commitState (void);
-    int revertToLastCommit (void);
-    int revertToStart (void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
     NDMaterial*getCopy(const char *type);
-    NDMaterial *getCopy (void);
-    const char *getType (void) const;
-    int getOrder (void) const;
+    NDMaterial *getCopy();
+    const char *getType() const;
+    int getOrder() const;
 
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     void Print(OPS_Stream &s, int flag =0);       
 
   protected:

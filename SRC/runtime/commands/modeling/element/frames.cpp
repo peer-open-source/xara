@@ -138,8 +138,6 @@ CreateFrame(BasicModelBuilder& builder,
         options.shear_flag = 1;
   }
 
-
-
   // Finalize the coordinate transform
   Transform* theTransf = builder.getTypedObject<Transform>(transfTag);
   if (theTransf == nullptr) {
@@ -173,6 +171,7 @@ CreateFrame(BasicModelBuilder& builder,
 
     else if (strcmp(name, "dispBeamColumnThermal") == 0)
       theElement = new DispBeamColumn2dThermal(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
+
 
     else if (strcmp(name, "dispBeamColumnWithSensitivity") == 0)
       theElement = new DispBeamColumn2d(tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
@@ -261,11 +260,14 @@ CreateFrame(BasicModelBuilder& builder,
               });
           } else {
             if (!options.shear_flag) {
-              theElement = new ForceFrame3d<20, 4>(tag, nodes, sections,
-                                            beamIntegr, *theTransf,
-                                            mass, options.mass_flag, use_mass,
-                                            max_iter, tol
-                                            );
+              static_loop<2,30>([&](auto nip) constexpr {
+                if (nip.value == sections.size())
+                  theElement = new ForceFrame3d<nip.value, 4>(tag, nodes, sections,
+                                                beamIntegr, *theTransf,
+                                                mass, options.mass_flag, use_mass,
+                                                max_iter, tol
+                                                );
+                });
             }
             else
               theElement = new ForceFrame3d<20, 6>(tag, nodes, sections,
@@ -732,7 +734,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       }
     }
   }
-
 
   //
   // II Parse Positional Arguments

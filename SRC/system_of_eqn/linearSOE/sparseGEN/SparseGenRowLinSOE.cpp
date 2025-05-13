@@ -386,6 +386,7 @@ SparseGenRowLinSOE::zeroB(void)
 	*Bptr++ = 0;
 }
 
+#if 0
 void 
 SparseGenRowLinSOE::setX(int loc, double value)
 {
@@ -399,6 +400,7 @@ SparseGenRowLinSOE::setX(const Vector &x)
   if (x.Size() == size && vectX != 0)
     *vectX = x;
 }
+#endif
 
 const Vector &
 SparseGenRowLinSOE::getX(void)
@@ -421,7 +423,7 @@ SparseGenRowLinSOE::getB(void)
 }
 
 double 
-SparseGenRowLinSOE::normRHS(void)
+SparseGenRowLinSOE::normRHS()
 {
     double norm =0.0;
     for (int i=0; i<size; i++) {
@@ -432,23 +434,24 @@ SparseGenRowLinSOE::normRHS(void)
     
 }    
 
-
+#if 0
 int
 SparseGenRowLinSOE::setSparseGenRowSolver(SparseGenRowLinSolver &newSolver)
 {
     newSolver.setLinearSOE(*this);
     
     if (size != 0) {
-	int solverOK = newSolver.setSize();
-	if (solverOK < 0) {
-	    opserr << "WARNING:SparseGenRowLinSOE::setSolver :";
-	    opserr << "the new solver could not setSeize() - staying with old\n";
-	    return -1;
-	}
+      int solverOK = newSolver.setSize();
+      if (solverOK < 0) {
+          opserr << "WARNING:SparseGenRowLinSOE::setSolver :";
+          opserr << "the new solver could not setSeize() - staying with old\n";
+          return -1;
+      }
     }
     
     return this->LinearSOE::setSolver(newSolver);
 }
+#endif
 
 
 int 

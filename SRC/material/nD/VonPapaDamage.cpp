@@ -48,7 +48,6 @@
 //
 //  set eta := 0 for rate independent case
 //
-
 #include <VonPapaDamage.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -170,8 +169,6 @@ void* OPS_VonPapaDamage(void)
 
 
 
-
-//null constructor
 VonPapaDamage ::  VonPapaDamage( ) :
   NDMaterial(0, ND_TAG_VonPapaDamage),
   strain_vec(3),
@@ -529,24 +526,17 @@ VonPapaDamage::commitState( )
 
 
 
-
-  double aa;
-  double bb;
-  double cc;
-  double proot;
-
   // D11 = fiber = df
   // D22 = matrix = dm
   // D12 = shear = ds
 
   // Begin to compute the updated damage variables in tension and in compression (fiber/matrix) and shear
 
-  aa = 1.0 / (Xt * Xc) * pow( stress(0) / (1.0 - D11), 2.0 );
-  bb = (1.0 / Xt - 1.0 / Xc) * (stress(0) / (1.0 - D11));
-  cc = (1.0 / Yt - 1.0 / Yc) * (stress(1) / (1.0 - D22)) + 1.0 / (Yt * Yc) * pow(stress(1) / (1.0 - D22), 2.0) + 1.0 / pow(S, 2.0) * pow( stress(2) / (1.0 - D12), 2.0) - 1.0;
+  double aa = 1.0 / (Xt * Xc) * pow( stress(0) / (1.0 - D11), 2.0 );
+  double bb = (1.0 / Xt - 1.0 / Xc) * (stress(0) / (1.0 - D11));
+  double cc = (1.0 / Yt - 1.0 / Yc) * (stress(1) / (1.0 - D22)) + 1.0 / (Yt * Yc) * pow(stress(1) / (1.0 - D22), 2.0) + 1.0 / pow(S, 2.0) * pow( stress(2) / (1.0 - D12), 2.0) - 1.0;
 
-  proot = proot_quadraticequ(aa, bb, cc);
-  // opserr << "proot = " << proot << endln;
+  double proot = proot_quadraticequ(aa, bb, cc);
 
   if (stress(0) > deltaSigma1_t)
   {
@@ -562,9 +552,6 @@ VonPapaDamage::commitState( )
       bigSigma1t_1D = 1.0;
     }
     bigSigma1t = bigSigma1t_2D / (1.0 + bigSigma1t_2D - bigSigma1t_1D);
-    // opserr << "bigSigma1t_1D = " << bigSigma1t_1D << endln;
-    // opserr << "bigSigma1t_2D = " << bigSigma1t_2D << endln;
-    // opserr << "bigSigma1t = " << bigSigma1t << endln << endln;
   }
 
   if (stress(0) < deltaSigma1_c)
@@ -581,19 +568,8 @@ VonPapaDamage::commitState( )
       bigSigma1c_1D = 1.0;
     }
     bigSigma1c = bigSigma1c_2D / (1.0 + bigSigma1c_2D - bigSigma1c_1D);
-    // opserr << "bigSigma1c_1D = " << bigSigma1c_1D << endln;
-    // opserr << "bigSigma1c_2D = " << bigSigma1c_2D << endln;
-    // opserr << "bigSigma1c = " << bigSigma1c << endln << endln;
   }
 
-  // opserr << "bigSigma1t_1D = " << bigSigma1t_1D << endln;
-  // opserr << "bigSigma1c_1D = " << bigSigma1c_1D << endln;
-  // opserr << "bigSigma1t_2D = " << bigSigma1t_2D << endln;
-  // opserr << "bigSigma1c_2D = " << bigSigma1c_2D << endln;
-
-
-  // opserr << "bigSigma1t = " << bigSigma1t << endln;
-  // opserr << "bigSigma1c = " << bigSigma1c << endln;
 
   aa = 1.0 / (Yt * Yc) * pow(stress(1) / (1.0 - D22), 2.0);
   bb = (1.0 / Yt - 1.0 / Yc) * (stress(1) / (1.0 - D22));
@@ -633,16 +609,6 @@ VonPapaDamage::commitState( )
     bigSigma2c = bigSigma2c_2D / (1.0 + bigSigma2c_2D - bigSigma2c_1D);
   }
 
-
-
-
-  // opserr << "bigSigma2t_1D = " << bigSigma2t_1D << endln;
-  // opserr << "bigSigma2c_1D = " << bigSigma2c_1D << endln;
-  // opserr << "bigSigma2t_2D = " << bigSigma2t_2D << endln;
-  // opserr << "bigSigma2c_2D = " << bigSigma2c_2D << endln;
-
-  // opserr << "bigSigma2t = " << bigSigma2t << endln;
-  // opserr << "bigSigma2c = " << bigSigma2c << endln;
 
   aa = 1.0 / pow(S, 2) * pow(stress(2) / (1.0 - D12), 2.0);
   bb = 0.0;
@@ -690,31 +656,12 @@ VonPapaDamage::commitState( )
   if (bigSigma12t >= 1.0) bigSigma12t = 0.999;
   if (bigSigma12c >= 1.0) bigSigma12c = 0.999;
 
-  // opserr << "bigSigma12t_1D = " << bigSigma12t_1D << endln;
-  // opserr << "bigSigma12c_1D = " << bigSigma12c_1D << endln;
-  // opserr << "bigSigma12t_2D = " << bigSigma12t_2D << endln;
-  // opserr << "bigSigma12c_2D = " << bigSigma12c_2D << endln;
-
-  // opserr << "bigSigma12t = " << bigSigma12t << endln;
-  // opserr << "bigSigm12c = " << bigSigma12c << endln << endln;
-
-  // opserr << "bigSigma1t = " << bigSigma1t << endln;
-  // opserr << "bigSigma1c = " << bigSigma1c << endln;
-  // opserr << "bigSigma2t = " << bigSigma2t << endln;
-  // opserr << "bigSigma2c = " << bigSigma2c << endln;
-  // opserr << "bigSigma12t = " <<  bigSigma12t << endln;
-  // opserr << "bigSigma12c = " <<  bigSigma12c << endln;
-
-
-
-
   return 0;
 }
 
 int
-VonPapaDamage::revertToLastCommit( ) {
-
-
+VonPapaDamage::revertToLastCommit( ) 
+{
   return 0;
 }
 

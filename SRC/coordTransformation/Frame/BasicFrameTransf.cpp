@@ -20,6 +20,7 @@ BasicFrameTransf3d::BasicFrameTransf3d(FrameTransform<2,6> *t)
 : FrameTransform3d(t->getTag(), 0),
   t(*t)
 {
+
 }
 
 BasicFrameTransf3d::~BasicFrameTransf3d()

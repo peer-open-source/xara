@@ -7,7 +7,7 @@
 //
 //                 stress         |          strain
 //          1   2   3   4   5   6 |  
-//         xx  yy  zz  xy  yz  zx |  11  22  33  12  23  31
+//         xx  yy  zz  xy  yz  xz |  11  22  33  12  23  31
 //    PSn:  1   2       3         |   1   2   0   3   0   0
 //    PSe:  1   2   0   3   -   ? |   1   2  [1]  3  [2] [3]
 //    PF :  1   2   -   3   4   5 |   1   2  [1]  3   4   5
@@ -30,6 +30,7 @@
 // PlaneStress strain order       = 11, 22, 12, 33, 23, 31
 // BeamFiber   strain order       = 11, 12, 31, 22, 33, 23
 // PlateFiber strain order        = 11, 22, 12, 23, 31, 33
+//                                   0   1   2   3   4   5
 
 // Platefiber: 22, 33, 13, and 23 are condensed out.
 

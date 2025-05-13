@@ -21,7 +21,7 @@
 // $Revision: 1.19 $
 // $Date: 2007/11/30 23:34:33 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/Concrete01.cpp,v $
-                                                                        
+//
 // Written: Murat  
 // Created: 03/08
 //

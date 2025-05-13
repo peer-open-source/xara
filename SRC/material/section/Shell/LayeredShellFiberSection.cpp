@@ -242,11 +242,11 @@ LayeredShellFiberSection ::setTrialSectionDeformation(const Vector& strainResult
 
     double z = (0.5 * h) * sg[i];
 
-    strain(0) = strainResultant(0) - z * strainResultant(3);
-    strain(1) = strainResultant(1) - z * strainResultant(4);
-    strain(2) = strainResultant(2) - z * strainResultant(5);
-    strain(3) = strainResultant(6);
-    strain(4) = strainResultant(7);
+    strain(0) /*    */  = strainResultant(0) - z * strainResultant(3);
+    strain(1) /*    */  = strainResultant(1) - z * strainResultant(4);
+    strain(2) /* xy */  = strainResultant(2) - z * strainResultant(5);
+    strain(3) /* yz */  = strainResultant(6); // gamma_y?
+    strain(4) /* xz */  = strainResultant(7); // gamma_x?
 
     success += theFibers[i]->setTrialStrain(strain);
 
@@ -285,26 +285,22 @@ LayeredShellFiberSection::getStressResultant()
 
     stress = theFibers[i]->getStress();
 
-    //membrane
+    // membrane
     stressResultant(0) += stress(0) * weight;
-
     stressResultant(1) += stress(1) * weight;
-
     stressResultant(2) += stress(2) * weight;
 
-    //bending moments
+    // bending moments
     stressResultant(3) += (z * stress(0)) * weight;
-
-    stressResultant(4) += (z * stress(1)) * weight;
-
+    stressResultant(4) += (z * stress(1)) * weight; //
     stressResultant(5) += (z * stress(2)) * weight;
 
-    //shear
+    // shear
     stressResultant(6) += stress(3) * weight;
 
     stressResultant(7) += stress(4) * weight;
 
-  } //end for i
+  }
 
   return this->stressResultant;
 }

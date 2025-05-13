@@ -116,29 +116,30 @@ class BbarBrick : public Element {
     int updateParameter(int parameterID, Information &info);
 
   private : 
-
+    constexpr static int NEN = 8; // number of element nodes
+    constexpr static int NST = 6; // number of stress components
+    constexpr static int NIP = 8; // number of integration points
     //static data
     static Matrix stiff ;
     static Vector resid ;
     static Matrix mass ;
     static Matrix damping ;
 
-    //quadrature data
+    // quadrature data
     static const double root3 ;
     static const double one_over_root3 ;    
     static const double sg[2] ;
     static const double wg[8] ;
 
   
-    //node information
+    // node information
     ID connectedExternalNodes ;  //four node numbers
     Node *nodePointers[8] ;      //pointers to four nodes
 
 
-    //material information
-    NDMaterial *materialPointers[8] ; //pointers to eight materials
+    NDMaterial *materialPointers[NIP] ; //pointers to eight materials
 					  
-    //local nodal coordinates, three coordinates for each of four nodes
+    // local nodal coordinates, three coordinates for each of four nodes
     //    static double xl[3][8] ; 
     static double xl[][8] ; 
 

@@ -38,8 +38,8 @@ Graph::Graph()
   :myVertices(0), theVertexIter(0), numEdge(0), nextFreeTag(START_VERTEX_NUM),
   vertices()
 {
-    myVertices = new MapOfTaggedObjects();
-    theVertexIter = new VertexIter(myVertices);
+  myVertices = new MapOfTaggedObjects();
+  theVertexIter = new VertexIter(myVertices);
 }
 
 
@@ -47,8 +47,8 @@ Graph::Graph(int numVertices)
   :myVertices(0), theVertexIter(0), numEdge(0), nextFreeTag(START_VERTEX_NUM),
   vertices()
 {
-    myVertices = new MapOfTaggedObjects();
-    theVertexIter = new VertexIter(myVertices);
+  myVertices = new MapOfTaggedObjects();
+  theVertexIter = new VertexIter(myVertices);
 }
 
 
@@ -256,7 +256,7 @@ Graph::addEdgeFast(int vertexTag, int otherVertexTag)
 			opserr << " added to " << otherVertexTag;
 			opserr << " adjacency - but already there in otherVertexTag!.\n";
 			opserr << *this; 
-                        exit(0);
+      exit(0);
 			return -2;
 		}
 	} else {
@@ -264,7 +264,7 @@ Graph::addEdgeFast(int vertexTag, int otherVertexTag)
 			opserr << " added to " << otherVertexTag;
 			opserr << " adjacency - but not vica versa!.\n";
 			opserr << *this; 
-                        exit(0);
+      exit(0);
 			return -2;
 	}
     return result;
@@ -273,36 +273,36 @@ Graph::addEdgeFast(int vertexTag, int otherVertexTag)
 Vertex *
 Graph::getVertexPtr(int vertexTag)
 {
-    TaggedObject *res = myVertices->getComponentPtr(vertexTag);
-    if (res == 0) return 0;
-    Vertex *result = (Vertex *)res;
-    return result;
+  TaggedObject *res = myVertices->getComponentPtr(vertexTag);
+  if (res == 0) return 0;
+  Vertex *result = (Vertex *)res;
+  return result;
 }
 
 
 VertexIter &
-Graph::getVertices(void) 
+Graph::getVertices() 
 {
-    // reset the iter and then return it
-    theVertexIter->reset();
-    return *theVertexIter;
+  // reset the iter and then return it
+  theVertexIter->reset();
+  return *theVertexIter;
 }
 
 
 int 
-Graph::getNumVertex(void) const
+Graph::getNumVertex() const
 {
-    return myVertices->getNumComponents();
+  return myVertices->getNumComponents();
 }
 
 int 
-Graph::getNumEdge(void) const
+Graph::getNumEdge() const
 {
-    return numEdge;
+  return numEdge;
 }
 
 int 
-Graph::getFreeTag(void) 
+Graph::getFreeTag() 
 {
   return nextFreeTag;
 }
