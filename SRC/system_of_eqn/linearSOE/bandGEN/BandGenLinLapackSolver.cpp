@@ -115,8 +115,8 @@ BandGenLinLapackSolver::solve(void)
     int ldB = n;
     int info;
     double *Aptr = theSOE->A;
-    double *Xptr = theSOE->X;
-    double *Bptr = theSOE->B;
+    double *Xptr = &theSOE->X[0];
+    double *Bptr = &theSOE->B[0];
     int    *iPIV = iPiv;
 
     // first copy B into X

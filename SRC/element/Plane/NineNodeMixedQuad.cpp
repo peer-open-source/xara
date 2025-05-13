@@ -6,7 +6,7 @@
 //
 // Ed "C++" Love
 //
-// Mixed Presssure/Volume Nine Node Quadrilateral
+// Mixed 3-field Presssure/Volume Nine Node Quadrilateral
 // Plane Strain (NOT PLANE STRESS)
 //
 // Q2/P1 ??
@@ -272,21 +272,13 @@ NineNodeMixedQuad::getInitialStiff( )
   static Vector strain(nstress) ;  //strain
 
   static double shp[nShape][numberNodes] ;  //shape functions at a gauss point
-
   static double Shape[nShape][numberNodes][numberGauss] ; //all the shape functions
-
   static double shpBar[nShape][numberNodes][nMixed] ; //mean value of shape functions
-
   static double rightHandSide[nShape][numberNodes][nMixed] ;
-
   static Vector residJ(ndf) ; //nodeJ residual 
-
   static Matrix stiffJK(ndf,ndf) ; //nodeJK stiffness 
-
   static Vector stress(nstress) ;  //stress
-
   static Matrix dd(nstress,nstress) ;  //material tangent
-
   static double interp[nMixed] ;
 
   static Matrix Proj(3,3) ;   //projection matrix 
@@ -337,7 +329,7 @@ NineNodeMixedQuad::getInitialStiff( )
       gaussPoint[1] = sg[j] ;        
 
 
-      //save gauss point locations
+      // save gauss point locations
       natCoorArray[0][count] = gaussPoint[0] ;
       natCoorArray[1][count] = gaussPoint[1] ;
 
@@ -388,8 +380,8 @@ NineNodeMixedQuad::getInitialStiff( )
   
 
 
-  //invert projection matrix
-  //int Solve(const Matrix &M, Matrix &res) const;
+  // invert projection matrix
+  // int Solve(const Matrix &M, Matrix &res) const;
   Proj.Solve( Iden, ProjInv ) ;
   
   //mean value of shape functions
@@ -826,8 +818,7 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
         }//end for r
 
         volume += dvol[count] ;
-        
-        
+
         //add to mean shape functions
         for ( p=0; p<nShape; p++ ) {
           for ( q=0; q<numberNodes; q++ ) {
@@ -863,7 +854,7 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
   }//end for p
 
 
-  //gauss loop 
+  // gauss loop 
   for ( i=0; i<numberGauss; i++ ) {
     
     //extract gauss point location
@@ -874,7 +865,7 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
     for ( p=0; p<nShape; p++ ) {
        for ( q=0; q<numberNodes; q++ )
           shp[p][q]  = Shape[p][q][i] ;
-    } // end for p
+    }
 
 
     //zero the strains
@@ -905,13 +896,13 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
     stress = materialPointers[i]->getStress( ) ;
 
 
-    //multiply by volume element
+    // multiply by volume element
     stress  *= dvol[i] ;
 
     if ( tang_flag == 1 ) {
       dd = materialPointers[i]->getTangent( ) ;
       dd *= dvol[i] ;
-    } //end if tang_flag
+    }
 
 
     //residual and tangent calculations node loops
@@ -921,19 +912,19 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
 
       BJ = computeBbar( j, gaussPoint, shp, shpBar ) ;
    
-      //transpose 
+      // transpose 
       //BJtran = transpose( nstress, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
         for (q=0; q<nstress; q++) 
           BJtran(p,q) = BJ(q,p) ;
-      }//end for p
+      }
 
 
-      //residual
-      //residJ = BJtran * stress ;
+      // residual
+      // residJ = BJtran * stress ;
       residJ.addMatrixVector(0.0,  BJtran,stress,1.0);
 
-      //residual 
+      // residual 
       for ( p=0; p<ndf; p++ )
         resid( jj + p ) += residJ(p)  ;
 
@@ -947,15 +938,14 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
          for ( k=0; k<numberNodes; k++ ) {
 
             BK = computeBbar( k, gaussPoint, shp, shpBar ) ;
-  
- 
+
             //stiffJK =  BJtranD * BK  ;
             stiffJK.addMatrixProduct(0.0,  BJtranD,BK,1.0) ;
 
             for ( p=0; p<ndf; p++ )  {
                for ( q=0; q<ndf; q++ )
                   stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-            } //end for p
+            }
 
             kk += ndf ;
          }//end for k loop
@@ -1065,15 +1055,13 @@ NineNodeMixedQuad::computeBbar( int node,
   c1 = 0.0 ;
 
   for (i=0; i<3; i++) {
-
     c0 += ( shpBar[0][node][i] * interp[i] ) ; 
     c1 += ( shpBar[1][node][i] * interp[i] ) ; 
+  }
 
-  }//end for i
-
-  //standard displacement formulation
-  //c0 = shp[0][node] ;
-  //c1 = shp[1][node] ;
+  // standard displacement formulation
+  // c0 = shp[0][node] ;
+  // c1 = shp[1][node] ;
 
   BbarVol[0][0] = c0 ;
   BbarVol[0][1] = c1 ;
@@ -1085,17 +1073,15 @@ NineNodeMixedQuad::computeBbar( int node,
   BbarVol[2][1] = c1 ;
 
 
-  //extensional terms
+  // extensional terms
   for ( i=0; i<3; i++ ){
     for ( j=0; j<2; j++ ) 
       Bbar(i,j) = one3*( Bdev[i][j] + BbarVol[i][j] ) ;
-  }//end for i
-
+  }
 
   //shear terms
   Bbar(3,0) = shp[1][node] ;
   Bbar(3,1) = shp[0][node] ;
-
 
   return Bbar ;
 }
