@@ -17,13 +17,13 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.8 $
 // $Date: 2009-05-11 20:57:49 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/SparseGenColLinSOE.cpp,v $
-                                                                        
-                                                                        
-// Written: fmk 
+
+
+// Written: fmk
 // Created: 04/98
 // Revision: A
 //
@@ -44,426 +44,421 @@
 #include <iostream>
 using std::nothrow;
 
-SparseGenColLinSOE::SparseGenColLinSOE(SparseGenColLinSolver &the_Solver)
-:LinearSOE(the_Solver, LinSOE_TAGS_SparseGenColLinSOE),
- size(0), nnz(0), A(0), B(0), X(0), rowA(0), colStartA(0),
- vectX(0), vectB(0),
- Asize(0), Bsize(0),
- factored(false)
+SparseGenColLinSOE::SparseGenColLinSOE(SparseGenColLinSolver& the_Solver)
+ : LinearSOE(the_Solver, LinSOE_TAGS_SparseGenColLinSOE),
+   size(0),
+   nnz(0),
+   A(0),
+   B(0),
+   X(0),
+   rowA(0),
+   colStartA(0),
+   Asize(0),
+   Bsize(0),
+   factored(false)
 {
-    the_Solver.setLinearSOE(*this);
+  the_Solver.setLinearSOE(*this);
 }
 
 
 SparseGenColLinSOE::SparseGenColLinSOE()
-:LinearSOE(LinSOE_TAGS_SparseGenColLinSOE),
- size(0), nnz(0), A(0), B(0), X(0), rowA(0), colStartA(0),
- vectX(0), vectB(0),
- Asize(0), Bsize(0),
- factored(false)
+ : LinearSOE(LinSOE_TAGS_SparseGenColLinSOE),
+   size(0),
+   nnz(0),
+   A(0),
+   B(0),
+   X(0),
+   rowA(0),
+   colStartA(0),
+   Asize(0),
+   Bsize(0),
+   factored(false)
 {
-
 }
 
 SparseGenColLinSOE::SparseGenColLinSOE(int classTag)
-:LinearSOE(classTag),
- size(0), nnz(0), A(0), B(0), X(0), rowA(0), colStartA(0),
- vectX(0), vectB(0),
- Asize(0), Bsize(0),
- factored(false)
+ : LinearSOE(classTag),
+   size(0),
+   nnz(0),
+   A(0),
+   B(0),
+   X(0),
+   rowA(0),
+   colStartA(0),
+   Asize(0),
+   Bsize(0),
+   factored(false)
 {
-
 }
 
 
-SparseGenColLinSOE::SparseGenColLinSOE(SparseGenColLinSolver &the_Solver, int classTag)
-  :LinearSOE(the_Solver, classTag),
-   size(0), nnz(0), A(0), B(0), X(0), rowA(0), colStartA(0),
-   vectX(0), vectB(0),
-   Asize(0), Bsize(0),
+SparseGenColLinSOE::SparseGenColLinSOE(SparseGenColLinSolver& the_Solver, int classTag)
+ : LinearSOE(the_Solver, classTag),
+   size(0),
+   nnz(0),
+   A(0),
+   B(0),
+   X(0),
+   rowA(0),
+   colStartA(0),
+   Asize(0),
+   Bsize(0),
    factored(false)
 {
   //    the_Solver.setLinearSOE(*this);
 }
 
 
-SparseGenColLinSOE::SparseGenColLinSOE(int N, int NNZ, int *ColStartA, int *RowA,
-                                 SparseGenColLinSolver &the_Solver)
-:LinearSOE(the_Solver, LinSOE_TAGS_SparseGenColLinSOE),
- size(N), nnz(NNZ), A(0), B(0), X(0), 
- rowA(RowA), colStartA(ColStartA), 
- vectX(0), vectB(0),
- Asize(0), Bsize(0),
- factored(false)
+SparseGenColLinSOE::SparseGenColLinSOE(int N, int NNZ, int* ColStartA, int* RowA,
+                                       SparseGenColLinSolver& the_Solver)
+ : LinearSOE(the_Solver, LinSOE_TAGS_SparseGenColLinSOE),
+   size(N),
+   nnz(NNZ),
+   A(0),
+   B(N),
+   X(N),
+   rowA(RowA),
+   colStartA(ColStartA),
+   Asize(0),
+   Bsize(0),
+   factored(false)
 {
 
-    A = new double[NNZ]{};
+  A = new double[NNZ]{};
 
-    Asize = NNZ;
+  Asize = NNZ;
+  Bsize = size;
 
-    B = new  double[size]{};
-    X = new  double[size]{};
-    
-    Bsize = size;
-    // zero the vectors
-    for (int j=0; j<size; j++) {
-        B[j] = 0;
-        X[j] = 0;
-    }
 
-    vectX = new Vector(X,size);
-    vectB = new Vector(B,size);    
-    
-    the_Solver.setLinearSOE(*this);
-    
-    // invoke setSize() on the Solver        
-    if (the_Solver.setSize() < 0) {
-        // opserr << "WARNING :SparseGenColLinSOE::SparseGenColLinSOE :";
-        // opserr << " solver failed setSize() in constructor\n";
-    }    
+  the_Solver.setLinearSOE(*this);
+
+  // invoke setSize() on the Solver
+  if (the_Solver.setSize() < 0) {
+    // opserr << "WARNING :SparseGenColLinSOE::SparseGenColLinSOE :";
+    // opserr << " solver failed setSize() in constructor\n";
+  }
 }
 
-    
+
 SparseGenColLinSOE::~SparseGenColLinSOE()
 {
-    if (A != 0) delete [] A;
-    if (B != 0) delete [] B;
-    if (X != 0) delete [] X;
-    if (colStartA != 0) delete [] colStartA;
-    if (rowA != 0) delete []rowA;
-    if (vectX != 0) delete vectX;    
-    if (vectB != 0) delete vectB;        
+  if (A != 0)
+    delete[] A;
+  if (colStartA != 0)
+    delete[] colStartA;
+  if (rowA != 0)
+    delete[] rowA;
 }
 
 
 int
 SparseGenColLinSOE::getNumEqn(void) const
 {
-    return size;
+  return size;
 }
 
-int 
-SparseGenColLinSOE::setSize(Graph &theGraph)
+int
+SparseGenColLinSOE::setSize(Graph& theGraph)
 {
 
-    int result = 0;
-    int oldSize = size;
-    size = theGraph.getNumVertex();
+  int result  = 0;
+  int oldSize = size;
+  size        = theGraph.getNumVertex();
 
-    // fist itearte through the vertices of the graph to get nnz
-    Vertex *theVertex;
-    int newNNZ = 0;
-    VertexIter &theVertices = theGraph.getVertices();
-    while ((theVertex = theVertices()) != 0) {
-        const ID &theAdjacency = theVertex->getAdjacency();
-        newNNZ += theAdjacency.Size() +1; // the +1 is for the diag entry
-    }
-    nnz = newNNZ;
+  // fist itearte through the vertices of the graph to get nnz
+  Vertex* theVertex;
+  int newNNZ              = 0;
+  VertexIter& theVertices = theGraph.getVertices();
+  while ((theVertex = theVertices()) != 0) {
+    const ID& theAdjacency = theVertex->getAdjacency();
+    newNNZ += theAdjacency.Size() + 1; // the +1 is for the diag entry
+  }
+  nnz = newNNZ;
 
-    if (newNNZ > Asize) { // we have to get more space for A and rowA
-        if (A != 0) 
-            delete [] A;
-        if (rowA != 0)
-            delete [] rowA;
-        
-        A = new double[newNNZ]{};
-        rowA = new int[newNNZ];
+  if (newNNZ > Asize) { // we have to get more space for A and rowA
+    if (A != 0)
+      delete[] A;
+    if (rowA != 0)
+      delete[] rowA;
 
-        Asize = newNNZ;
-    }
+    A    = new double[newNNZ]{};
+    rowA = new int[newNNZ];
 
-    factored = false;
-    
-    if (size > Bsize) { // we have to get space for the vectors
-        
-        // delete the old        
-        if (B != 0) delete [] B;
-        if (X != 0) delete [] X;
-        if (colStartA != 0) delete [] colStartA;
+    Asize = newNNZ;
+  }
 
-        // create the new
-        B = new double[size]{};
-        X = new double[size]{};
-        colStartA = new int[size+1]; 
-        
-        Bsize = size;
-    }
+  factored = false;
+  B.resize(size);
+  B.Zero();
+  X.resize(size);
+  X.Zero();
 
-    // create new Vectors objects
-    if (size != oldSize) {
-        if (vectX != 0)
-            delete vectX;
+  if (size > Bsize) { // we have to get space for the vectors
 
-        if (vectB != 0)
-            delete vectB;
-        
-        vectX = new Vector(X,size);
-        vectB = new Vector(B,size);        
-    }
+    if (colStartA != 0)
+      delete[] colStartA;
+    colStartA = new int[size + 1];
 
-    // fill in colStartA and rowA
-    if (size != 0) {
-      colStartA[0] = 0;
-      int startLoc = 0;
-      int lastLoc = 0;
-      for (int a=0; a<size; a++) {
+    Bsize = size;
+  }
 
-        theVertex = theGraph.getVertexPtr(a);
-        if (theVertex == 0) {
-          // opserr << "WARNING:SparseGenColLinSOE::setSize :";
-          // opserr << " vertex " << a << " not in graph! - size set to 0\n";
-          size = 0;
-          return -1;
-        }
+  // fill in colStartA and rowA
+  if (size != 0) {
+    colStartA[0] = 0;
+    int startLoc = 0;
+    int lastLoc  = 0;
+    for (int a = 0; a < size; a++) {
 
-        rowA[lastLoc++] = theVertex->getTag(); // place diag in first
-        const ID &theAdjacency = theVertex->getAdjacency();
-        int idSize = theAdjacency.Size();
-        
-        // now we have to place the entries in the ID into order in rowA
-        for (int i=0; i<idSize; i++) {
-
-          int row = theAdjacency(i);
-          bool foundPlace = false;
-          // find a place in rowA for current col
-          for (int j=startLoc; j<lastLoc; j++)
-            if (rowA[j] > row) { 
-              // move the entries already there one further on
-              // and place col in current location
-              for (int k=lastLoc; k>j; k--)
-                
-                rowA[k] = rowA[k-1];
-              rowA[j] = row;
-              foundPlace = true;
-              j = lastLoc;
-            }
-          if (foundPlace == false) // put in at the end
-            rowA[lastLoc] = row;
-
-          lastLoc++;
-        }
-        colStartA[a+1] = lastLoc;;            
-        startLoc = lastLoc;
-      }
-    }
-
-    
-    // invoke setSize() on the Solver    
-    LinearSOESolver *the_Solver = this->getSolver();
-    int solverOK = the_Solver->setSize();
-    if (solverOK < 0) {
+      theVertex = theGraph.getVertexPtr(a);
+      if (theVertex == 0) {
         // opserr << "WARNING:SparseGenColLinSOE::setSize :";
-        // opserr << " solver failed setSize()\n";
-        return solverOK;
-    }    
+        // opserr << " vertex " << a << " not in graph! - size set to 0\n";
+        size = 0;
+        return -1;
+      }
 
-    return result;
-}
+      rowA[lastLoc++]        = theVertex->getTag(); // place diag in first
+      const ID& theAdjacency = theVertex->getAdjacency();
+      int idSize             = theAdjacency.Size();
 
-int 
-SparseGenColLinSOE::addA(const Matrix &m, const ID &id, double fact)
-{
-    
-    // check that m and id are of similar size
-    assert(id.Size() == m.noRows() && id.Size() == m.noCols());
+      // now we have to place the entries in the ID into order in rowA
+      for (int i = 0; i < idSize; i++) {
 
-    // check for a quick return 
-    if (fact == 0.0)  
-        return 0;
+        int row         = theAdjacency(i);
+        bool foundPlace = false;
+        // find a place in rowA for current col
+        for (int j = startLoc; j < lastLoc; j++)
+          if (rowA[j] > row) {
+            // move the entries already there one further on
+            // and place col in current location
+            for (int k = lastLoc; k > j; k--)
 
-    int idSize = id.Size();
- 
-    if (fact == 1.0) { // do not need to multiply 
-      for (int i=0; i<idSize; i++) {
-        int col = id(i);
-        if (col < size && col >= 0) {
-          int startColLoc = colStartA[col];
-          int endColLoc = colStartA[col+1];
-          for (int j=0; j<idSize; j++) {
-            int row = id(j);
-            if (row <size && row >= 0) {
-              // find place in A using rowA
-              for (int k=startColLoc; k<endColLoc; k++)
-                if (rowA[k] == row) {
-                  A[k] += m(j,i);
-                  k = endColLoc;
-                }
-            }
-          }  // for j                
-        } 
-      }  // for i
-    } else {
-      for (int i=0; i<idSize; i++) {
-        int col = id(i);
-        if (col < size && col >= 0) {
-          int startColLoc = colStartA[col];
-          int endColLoc = colStartA[col+1];
-          for (int j=0; j<idSize; j++) {
-            int row = id(j);
-            if (row <size && row >= 0) {
-              // find place in A using rowA
-              for (int k=startColLoc; k<endColLoc; k++)
-                if (rowA[k] == row) {
-                  A[k] += fact * m(j,i);
-                  k = endColLoc;
-                }
-            }
-          }  // for j                
-        } 
-      }  // for i
+              rowA[k] = rowA[k - 1];
+            rowA[j]    = row;
+            foundPlace = true;
+            j          = lastLoc;
+          }
+        if (foundPlace == false) // put in at the end
+          rowA[lastLoc] = row;
+
+        lastLoc++;
+      }
+      colStartA[a + 1] = lastLoc;
+      ;
+      startLoc = lastLoc;
     }
-    return 0;
+  }
+
+
+  // invoke setSize() on the Solver
+  LinearSOESolver* the_Solver = this->getSolver();
+  int solverOK                = the_Solver->setSize();
+  if (solverOK < 0) {
+    return solverOK;
+  }
+
+  return result;
 }
 
-    
-int 
-SparseGenColLinSOE::addB(const Vector &v, const ID &id, double fact)
+int
+SparseGenColLinSOE::addA(const Matrix& m, const ID& id, double fact)
 {
-    // check that m and id are of similar size
-    assert(id.Size() == v.Size() );
 
-    // check for a quick return 
-    if (fact == 0.0)
-      return 0;
+  // check that m and id are of similar size
+  assert(id.Size() == m.noRows() && id.Size() == m.noCols());
 
-    int idSize = id.Size();    
-
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-        for (int i=0; i<idSize; i++) {
-            int pos = id(i);
-            if (pos <size && pos >= 0)
-                B[pos] += v(i);
-        }
-    } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
-        for (int i=0; i<idSize; i++) {
-            int pos = id(i);
-            if (pos <size && pos >= 0)
-                B[pos] -= v(i);
-        }
-    } else {
-        for (int i=0; i<idSize; i++) {
-            int pos = id(i);
-            if (pos <size && pos >= 0)
-                B[pos] += v(i) * fact;
-        }
-    }        
-
+  // check for a quick return
+  if (fact == 0.0)
     return 0;
+
+  int idSize = id.Size();
+
+  if (fact == 1.0) { // do not need to multiply
+    for (int i = 0; i < idSize; i++) {
+      int col = id(i);
+      if (col < size && col >= 0) {
+        int startColLoc = colStartA[col];
+        int endColLoc   = colStartA[col + 1];
+        for (int j = 0; j < idSize; j++) {
+          int row = id(j);
+          if (row < size && row >= 0) {
+            // find place in A using rowA
+            for (int k = startColLoc; k < endColLoc; k++)
+              if (rowA[k] == row) {
+                A[k] += m(j, i);
+                k = endColLoc;
+              }
+          }
+        } // for j
+      }
+    } // for i
+  } else {
+    for (int i = 0; i < idSize; i++) {
+      int col = id(i);
+      if (col < size && col >= 0) {
+        int startColLoc = colStartA[col];
+        int endColLoc   = colStartA[col + 1];
+        for (int j = 0; j < idSize; j++) {
+          int row = id(j);
+          if (row < size && row >= 0) {
+            // find place in A using rowA
+            for (int k = startColLoc; k < endColLoc; k++)
+              if (rowA[k] == row) {
+                A[k] += fact * m(j, i);
+                k = endColLoc;
+              }
+          }
+        } // for j
+      }
+    } // for i
+  }
+  return 0;
 }
 
 
 int
-SparseGenColLinSOE::setB(const Vector &v, double fact)
+SparseGenColLinSOE::addB(const Vector& v, const ID& id, double fact)
 {
-    assert(v.Size() == size);
+  // check that m and id are of similar size
+  assert(id.Size() == v.Size());
 
-    // check for a quick return 
-    if (fact == 0.0)
-      return 0;
-
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-        for (int i=0; i<size; i++) {
-            B[i] = v(i);
-        }
-    } else if (fact == -1.0) {
-        for (int i=0; i<size; i++) {
-            B[i] = -v(i);
-        }
-    } else {
-        for (int i=0; i<size; i++) {
-            B[i] = v(i) * fact;
-        }
-    }        
+  // check for a quick return
+  if (fact == 0.0)
     return 0;
+
+  int idSize = id.Size();
+
+  double* b = &B[0];
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i = 0; i < idSize; i++) {
+      int pos = id(i);
+      if (pos < size && pos >= 0)
+        b[pos] += v(i);
+    }
+  } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
+    for (int i = 0; i < idSize; i++) {
+      int pos = id(i);
+      if (pos < size && pos >= 0)
+        b[pos] -= v(i);
+    }
+  } else {
+    for (int i = 0; i < idSize; i++) {
+      int pos = id(i);
+      if (pos < size && pos >= 0)
+        b[pos] += v(i) * fact;
+    }
+  }
+
+  return 0;
 }
 
-void 
-SparseGenColLinSOE::zeroA(void)
+
+int
+SparseGenColLinSOE::setB(const Vector& v, double fact)
 {
-    double *Aptr = A;
-    for (int i=0; i<Asize; i++)
-        *Aptr++ = 0;
+  assert(v.Size() == size);
 
-    factored = false;
+  // check for a quick return
+  if (fact == 0.0)
+    return 0;
+
+  double* b = &B[0];
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i = 0; i < size; i++) {
+      b[i] = v(i);
+    }
+  } else if (fact == -1.0) {
+    for (int i = 0; i < size; i++) {
+      b[i] = -v(i);
+    }
+  } else {
+    for (int i = 0; i < size; i++) {
+      b[i] = v(i) * fact;
+    }
+  }
+  return 0;
 }
-        
-void 
-SparseGenColLinSOE::zeroB(void)
+
+void
+SparseGenColLinSOE::zeroA()
 {
-    double *Bptr = B;
-    for (int i=0; i<size; i++)
-        *Bptr++ = 0;
+  double* Aptr = A;
+  for (int i = 0; i < Asize; i++)
+    *Aptr++ = 0;
+
+  factored = false;
 }
 
-void 
+void
+SparseGenColLinSOE::zeroB()
+{
+  B.Zero();
+}
+
+void
 SparseGenColLinSOE::setX(int loc, double value)
 {
-    if (loc < size && loc >=0)
-        X[loc] = value;
+  if (loc < size && loc >= 0)
+    X[loc] = value;
 }
 
-void 
-SparseGenColLinSOE::setX(const Vector &x)
+void
+SparseGenColLinSOE::setX(const Vector& x)
 {
-  if (x.Size() == size && vectX != 0)
-    *vectX = x;
+  if (x.Size() == size)
+    X = x;
 }
 
-const Vector &
-SparseGenColLinSOE::getX(void)
+const Vector&
+SparseGenColLinSOE::getX()
 {
-  assert(vectX != nullptr);
-  return *vectX;
+  return X;
 }
 
-const Vector &
-SparseGenColLinSOE::getB(void)
+const Vector&
+SparseGenColLinSOE::getB()
 {
-  assert(vectB != nullptr);
-  return *vectB;
+  return B;
 }
 
-double 
-SparseGenColLinSOE::normRHS(void)
+double
+SparseGenColLinSOE::normRHS()
 {
-    double norm =0.0;
-    for (int i=0; i<size; i++) {
-        double Yi = B[i];
-        norm += Yi*Yi;
-    }
-    return sqrt(norm);
-    
-}    
+  double norm = 0.0;
+  for (int i = 0; i < size; i++) {
+    double Yi = B[i];
+    norm += Yi * Yi;
+  }
+  return sqrt(norm);
+}
 
 
 int
-SparseGenColLinSOE::setSparseGenColSolver(SparseGenColLinSolver &newSolver)
+SparseGenColLinSOE::setSparseGenColSolver(SparseGenColLinSolver& newSolver)
 {
-    newSolver.setLinearSOE(*this);
-    
-    if (size != 0) {
-        int solverOK = newSolver.setSize();
-        if (solverOK < 0) {
-            // opserr << "WARNING:SparseGenColLinSOE::setSolver :";
-            // opserr << "the new solver could not setSeize() - staying with old\n";
-            return -1;
-        }
+  newSolver.setLinearSOE(*this);
+
+  if (size != 0) {
+    int solverOK = newSolver.setSize();
+    if (solverOK < 0) {
+      // opserr << "WARNING:SparseGenColLinSOE::setSolver :";
+      // opserr << "the new solver could not setSeize() - staying with old\n";
+      return -1;
     }
-    
-    return this->LinearSOE::setSolver(newSolver);
+  }
+
+  return this->LinearSOE::setSolver(newSolver);
 }
 
 
-int 
-SparseGenColLinSOE::sendSelf(int cTag, Channel &theChannel)
+int
+SparseGenColLinSOE::sendSelf(int cTag, Channel& theChannel)
 {
-    return 0;
+  return 0;
 }
 
-int 
-SparseGenColLinSOE::recvSelf(int cTag, Channel &theChannel, 
-                             FEM_ObjectBroker &theBroker)  
+int
+SparseGenColLinSOE::recvSelf(int cTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
-    return 0;
+  return 0;
 }
-

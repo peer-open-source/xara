@@ -46,7 +46,7 @@ class BandSPDLinSolver : public LinearSOESolver
     BandSPDLinSolver(int classTag);    
     virtual ~BandSPDLinSolver();
 
-    virtual int solve(void) = 0;
+    virtual int solve() = 0;
     virtual int setLinearSOE(BandSPDLinSOE &theSOE);
     
   protected:
