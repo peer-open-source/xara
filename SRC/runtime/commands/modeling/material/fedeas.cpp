@@ -217,7 +217,8 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
   //
   //
   if (fpcu > 0.0) {
-    opswrn << OpenSees::SignalWarning <<  "Fcu should be negative\n";
+    fpcu *= -1;
+    // opswrn << OpenSees::SignalWarning <<  "Fcu should be negative\n";
   }
 
   //
