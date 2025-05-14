@@ -30,7 +30,7 @@
 
 
 template <typename Positions>
-int
+static int
 FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
                   int argc, TCL_Char ** const argv)
 {
@@ -51,7 +51,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
   }
 
   for (int i=2; i<argc; i++) {
-    if (strcmp(argv[i], "-fpc") == 0) {
+    if ((strcmp(argv[i], "-fpc") == 0) || (strcmp(argv[i], "-Fc") == 0)) {
       if (++i >= argc) {
         opserr << "Missing value for option " << argv[i-1] << "\n";
         return TCL_ERROR;
@@ -115,7 +115,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
       
       case Positions::fpc:
         if (Tcl_GetDouble(interp, argv[i], &fpc) != TCL_OK) {
-          opserr << "Invalid value for Fpc " << argv[i] << "\n";
+          opserr << "Invalid value for Fc " << argv[i] << "\n";
           return TCL_ERROR;
         }
         tracker.consume(Positions::fpc);
@@ -184,7 +184,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
           opserr << "epsc0 ";
           break;
         case Positions::fpcu:
-          opserr << "fpcu ";
+          opserr << "Fcu ";
           break;
         case Positions::epscu:
           opserr << "epscu ";
@@ -213,6 +213,12 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
+  //
+  //
+  //
+  if (fpcu > 0.0) {
+    opswrn << OpenSees::SignalWarning <<  "Fcu should be negative\n";
+  }
 
   //
   //
@@ -236,6 +242,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
 
   return builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
+
 
 template <typename Positions>
 static int
