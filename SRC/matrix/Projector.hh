@@ -63,6 +63,8 @@ namespace OpenSees {
         {0, 0, 0,  0, 0, 0},
     }};
 
+    static constexpr VectorND<6> ivol {{1, 1, 1, 0, 0, 0}};
+
     // 4th order Deviatoric Tensor
     //
     // Note:  this is the contravariant form!
@@ -77,11 +79,11 @@ namespace OpenSees {
         {     0.,      0.,      0.,   0 ,  0 , 0.5}
     }};
 
-    // 4th order contravariant deviatoric tensor
+    // 4th order contravariant deviatoric tensor (Id)
     static constexpr MatrixND<6,6> IIdevCon = IIcon - 1./3.*IIvol;
     // 4th order covariant deviatoric tensor
     static constexpr MatrixND<6,6> IIdevCo  = IIco  - 1./3.*IIvol;
-    // 4th order mixed variant deviatoric tensor
+    // 4th order mixed variant deviatoric tensor (Idp)
     static constexpr MatrixND<6,6> IIdevMix = IImix - 1./3.*IIvol;
 
 }
