@@ -23,20 +23,22 @@
 //
 #include "FariaPlasticDamage3d.h"
 #include <Channel.h>
+#include <MatrixND.h>
 #include <cmath>
+#include <Projector.hh>
 #include <elementAPI.h>
 
-static Vector Iv6(6); 
-static Matrix Ivp(6,6); 
-static Matrix Idp(6,6); 
-static Matrix I(6,6);
-static Matrix Id(6,6);
+#define MND
+using namespace OpenSees;
+// static Matrix Idp(6,6); 
+// static Matrix I(6,6);
+// static Matrix Id(6,6);
 
 
 void * OPS_ADD_RUNTIME_VPV(OPS_NewPlasticDamageConcrete3d)
 {
   NDMaterial *theMaterial = 0;
-  
+
   int numArgs = OPS_GetNumRemainingInputArgs();
   
   if (numArgs < 5 || numArgs > 9) {
@@ -46,10 +48,10 @@ void * OPS_ADD_RUNTIME_VPV(OPS_NewPlasticDamageConcrete3d)
   
   int iData[1];
   double dData[8];
-  dData[4] = 0.6;
-  dData[5] = 0.5;
-  dData[6] = 2.0;
-  dData[7] = 0.75;
+  dData[4] = 0.6;  // beta
+  dData[5] = 0.5;  // Ap
+  dData[6] = 2.0;  // An
+  dData[7] = 0.75; // Bn
   
   int numData = 1;
   if (OPS_GetInt(&numData, iData) != 0) {
@@ -81,52 +83,27 @@ PlasticDamageConcrete3d::PlasticDamageConcrete3d(int tag,
                                                   double _An, 
                                                   double _Bn)
   :NDMaterial(tag,ND_TAG_PlasticDamageConcrete3d),
- E(E), nu(nu), ft(_ft), fc(_fc), beta(_beta), Ap(_Ap), An(_An), Bn(_Bn),
- eps(6), sig(6), sige(6), eps_p(6), sigeP(6),
- epsCommit(6), sigCommit(6), sigeCommit(6), eps_pCommit(6), sigePCommit(6),
- Ce(6,6), C(6,6), Ccommit(6,6)
+ E(E), nu(nu), ft(_ft), fc(_fc), beta(_beta), Ap(_Ap), An(_An), Bn(_Bn)
+ // eps(6), sig(6), sige(6), eps_p(6), sigeP(6),
+ //epsCommit(6), sigCommit(6), sigeCommit(6), eps_pCommit(6) //, sigePCommit(6)
+// , Ce(6,6), C(6,6), Ccommit(6,6)
 {
-  eps.Zero();
-  sig.Zero();
-  sige.Zero();
-  eps_p.Zero();
-  sigeP.Zero();
-  Ce.Zero();
+  eps.zero();
+  sig.zero();
+  sige.zero();
+  eps_p.zero();
+  // Ce.zero();
 
   // additional material parameters
-  double G  = E/2/(1+nu);       // shear modulus
-  double K  = E/3/(1-2*nu);     // bulk  modulus
+  double G  = E/2./(1+nu);       // shear modulus
+  double K  = E/3./(1-2*nu);     // bulk  modulus
 
-  Iv6.Zero(); Iv6(0)=1.;Iv6(1)=1.;Iv6(2)=1.;
-
-  Ivp.Zero();
-  for (int i=0; i<3; i++) 
-    for (int j=0; j<3; j++)
-      Ivp(i,j)=1.;
-
-  Idp.Zero(); 
-  I.Zero(); 
-  Id.Zero(); 
-  for (int i=0; i<6; i++) {
-    Idp(i,i) = 1.;
-    if (i<3) {
-      I(i,i) = 1.0;
-      Id(i,i) = 1.0;
-    } else {
-      I(i,i) = 0.5;
-      Id(i,i) = 0.5;
-    }
-  }
-  for (int i=0; i<3; i++) 
-    for (int j=0; j<3; j++) {
-      Id(i,j)=Idp(i,j)-1/3.;
-      Idp(i,j) = Id(i,j);
-    }
-
-  Ce.addMatrix(0.0, Ivp, K);
-  Ce.addMatrix(1.0,  Id, 2.*G);
+  Ce.zero();
+  Ce.addMatrix(IIvol, K);
+  Ce.addMatrix(IIdevCon, 2.*G);
   
   C = Ce;
+  // Ccommit.zero();
   
   double f2c = 1.16*fc;
   double k = sqrt(2.0)*(f2c - fc)/(2.*f2c - fc);
@@ -144,10 +121,10 @@ PlasticDamageConcrete3d::PlasticDamageConcrete3d(int tag,
 }
 
 PlasticDamageConcrete3d::PlasticDamageConcrete3d()
-  :NDMaterial (0, ND_TAG_PlasticDamageConcrete3d),
-   eps(6), sig(6), sige(6), eps_p(6), sigeP(6),
-   epsCommit(6), sigCommit(6), sigeCommit(6), eps_pCommit(6), sigePCommit(6),
-   Ce(6,6), C(6,6), Ccommit(6,6)
+  :NDMaterial (0, ND_TAG_PlasticDamageConcrete3d)
+  //  eps(6), sig(6), sige(6), eps_p(6), sigeP(6),
+  //  epsCommit(6), sigCommit(6), sigeCommit(6), eps_pCommit(6)//, sigePCommit(6)
+  //  Ce(6,6), C(6,6), Ccommit(6,6)
 {
 
 }
@@ -195,19 +172,28 @@ Qpos = diag((1+sign(sig))/2);
 Qneg = eye(6) - Qpos;
 end
 */
+template <typename T> static inline int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+template <typename V6, typename M6>
 static inline void
-StrsDecA(const Vector &sig, Vector &sigpos, Vector &signeg, Matrix &Qpos, Matrix &Qneg)
+StrsDecA(const Vector &sig, V6 &sigpos, V6 &signeg, 
+                            M6 &Qpos,   M6 &Qneg)
 {
-
-  Qneg.Zero();
-  Qpos.Zero();
+  for (int i=0; i<6; i++) {
+    sigpos(i) = (sig(i) + std::fabs(sig(i))) / 2.;
+    signeg(i) = sig(i) - sigpos(i);
+    Qpos(i,i) = (1. + sgn(sig(i))) / 2.;
+    Qneg(i,i) = 1. - Qpos(i,i);
+  }
+  return;
   for (int i=0; i<6; i++) {
     if (sig(i) > 1e-8) {
       sigpos(i) = sig(i);
       signeg(i) = 0.;
       Qpos(i,i) = 1;
       Qneg(i,i) = 0;
-    } else if (sig(i)  < -1.e-8){
+    } else if (sig(i)  < -1.e-8) {
       sigpos(i) = 0.;
       signeg(i) = sig(i);
       Qpos(i,i) = 0;
@@ -232,18 +218,18 @@ int
 PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
 {
 
-  double f2c = 1.16*fc;
+  double f2c = 1.16*fc; // f2c: biaxial compressive strength
   double k = sqrt(2.0)*(f2c - fc)/(2.*f2c - fc);
   // initial damage threshold
   double rp0 = ft/sqrt(E);
   double rn0 = sqrt((-k+sqrt(2.0))*fc/sqrt(3.0));
 
-  double tol = 1.0e-5;
-  
+  constexpr static double tol = 1.0e-5;
+
   // retrieve history variables
   eps_p = eps_pCommit;
-  sigeP = sigePCommit;
-  sigeP = sigeCommit;
+  // sigeP = sigePCommit;
+  VectorND<6> sigeP = sigeCommit;
   rp = rpCommit;
   rn = rnCommit;
   dp = dpCommit;
@@ -252,25 +238,31 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
   // current strain
   eps = strain;
 
-  static Vector Depse_tr(6);
-  static Vector Deps(6);
+  // static VectorND<6> Depse_tr; // (6);
+  // static VectorND<6> Deps; // (6);
   // incremental strain
-  Depse_tr = eps - eps_p;
-  Deps = eps - epsCommit;
+  VectorND<6> Depse_tr = eps - eps_p;
+  VectorND<6> Deps = eps - epsCommit;
 
   //
   // PLASTIC part
   //
 
   // elastic trial stress
-  static Vector sige_tr(6);
-  sige_tr = sigeP + Ce*Deps;
+  // static VectorND<6> sige_tr;//(6);
+  VectorND<6> sige_tr  = sigeCommit;
+  sige_tr += Ce*Deps;
 
   // decomposition of trial stress tensor
-  static Vector sigpos(6);
-  static Vector signeg(6);
-  static Matrix Qpos(6,6);
-  static Matrix Qneg(6,6);
+  VectorND<6> sigpos{}; // (6);
+  VectorND<6> signeg{}; // (6);
+#ifdef MND
+  MatrixND<6,6> Qpos{}, Qneg{};
+#else 
+  Matrix Qpos(6,6), Qneg(6,6);
+  Qpos.Zero();
+  Qneg.Zero();
+#endif
   StrsDecA(sige_tr, sigpos, signeg, Qpos, Qneg);
 
   // compute stress invariants of the negative stress tensor
@@ -279,11 +271,11 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
 
 
   // check tauneg
-  double taun = sqrt(sqrt(3.0)*(k*sigoct + tauoct)); // negative equivalent stress
+  double taun = std::sqrt(std::sqrt(3.0)*(k*sigoct + tauoct)); // negative equivalent stress
 
   // Correction
   
-  static Matrix Cbar(6,6);
+  MatrixND<6,6> Cbar{};
   if ((taun - rn) <= (tol*rn0)) { // elastic state, accept trial response
     sige = sige_tr;                                                    
     Cbar = Ce;                                                          
@@ -293,15 +285,15 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
     double nrm = sqrt(pow(sige_tr(0),2) + pow(sige_tr(1),2) + pow(sige_tr(2),2) 
                + 2*pow(sige_tr(3),2) + 2*pow(sige_tr(4),2) + 2*pow(sige_tr(5),2));
 
-    static Vector L_tr(6);
-    static Vector L_tr_temp(6);
-    L_tr = sige_tr; L_tr/=nrm;    // normalized trial effective stress
+    // static Vector L_tr(6);
+    VectorND<6> L_tr = sige_tr; 
+    L_tr/=nrm;    // normalized trial effective stress
 
     //  Deps_p = beta*E*(L_tr'*Deps)*Depse_tr/nrm;     // plastic strain increment
-    double L_trDotDeps = L_tr ^ Deps;
+    double L_trDotDeps = L_tr.dot(Deps);
 
-    static Vector Deps_p(6);
-    Deps_p = Depse_tr;
+    // static Vector Deps_p(6);
+    VectorND<6> Deps_p = Depse_tr;
     Deps_p *= beta*E*L_trDotDeps/nrm;
 
     double lam  = 1 - beta*E/nrm * L_trDotDeps;      //  scale factor
@@ -323,6 +315,7 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
     else {
       eps_p  = eps_p + Deps_p;                          //  update plastic strain
 
+      VectorND<6> L_tr_temp{}; // (6);
       // tangent in effective space, Cbar
       //  L_tr_temp = [L_tr(1:3); 2*L_tr(4:6)];
       for (int i=0; i<3; i++) 
@@ -330,18 +323,22 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
       for (int i=3; i<6; i++)
         L_tr_temp(i) = 2*L_tr(i);
 
-      double Dlam_Dnrm = 2*beta*E/pow(nrm,3)*(sige_tr^Deps);
+      double Dlam_Dnrm = 2*beta*E/pow(nrm,3)*sige_tr.dot(Deps);
 
-      static Vector Dnrm_Dsig(6);
-      static Vector Dlam_Dsig(6);
-      Dnrm_Dsig = L_tr_temp;
-      Dlam_Dsig = Deps; Dlam_Dsig *= -beta*E/(nrm*nrm); // Dlam_Dsig = -beta*E/(nrm*nrm)*Deps;
-      static Vector Dlam_Deps(6);
-      Dlam_Deps = L_tr; Dlam_Deps *= -beta*E/nrm;       // Dlam_Deps = -beta*E/nrm*L_tr;
+      // static VectorND<6> Dnrm_Dsig; // (6);
+      // static VectorND<6> Dlam_Dsig; // (6);
+      VectorND<6> Dnrm_Dsig = L_tr_temp;
+      VectorND<6> Dlam_Dsig = Deps; 
+      Dlam_Dsig *= -beta*E/(nrm*nrm); // Dlam_Dsig = -beta*E/(nrm*nrm)*Deps;
+      // static Vector Dlam_Deps(6);
+      VectorND<6> Dlam_Deps = L_tr;
+      Dlam_Deps *= -beta*E/nrm;       // Dlam_Deps = -beta*E/nrm*L_tr;
       // Dlam_Deps = Dlam_Dnrm * Ce * Dnrm_Dsig + Ce*Dlam_Dsig + Dlam_Deps; 
-      Dlam_Deps = Dlam_Deps + Dlam_Dnrm * (Ce * Dnrm_Dsig) + Ce*Dlam_Dsig;
+      Dlam_Deps += Dlam_Dnrm * (Ce * Dnrm_Dsig);
+      Dlam_Deps.addMatrixVector(1.0, Ce, Dlam_Dsig, 1.0);
 
-      Cbar = lam*Ce + sige_tr % Dlam_Deps;
+      Cbar.addMatrix(Ce, lam);
+      Cbar.addTensorProduct(sige_tr, Dlam_Deps, 1.0);
     }
   }
 
@@ -349,14 +346,15 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
   //
   // DAMAGE part
   //
-
+  Qpos.zero();
+  Qneg.zero();
   // decompose into positive and negative effective stress tensor
   StrsDecA(sige, sigpos, signeg, Qpos, Qneg);    // decompose the effective stress  
 
   // calculate equivalent stresses
-  static Vector tmp(6);
-  Ce.Solve(sigpos, tmp);
-  double taup = sqrt(sigpos^tmp);                // positive equivalent stress
+  VectorND<6> tmp;
+  Ce.solve(sigpos, tmp);
+  double taup = sqrt(tmp.dot(sigpos));                // positive equivalent stress
 
   StrsInvar(signeg, sigoct, tauoct);             // find octahedral stresses
   taun = sqrt((sqrt(3.)*(k*sigoct + tauoct)));   // negative equivalent stress
@@ -381,7 +379,7 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
   }
 
   // negative damage
-  double Ddn_Drn;
+  double Ddn_Drn = 0;
   if (taun - rn <= tol*rn0) {                    // no negative damage
     Ddn_Drn = 0;
   }  else {                                      // negative damage evolves
@@ -401,13 +399,16 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
   //
   // TANGENT
   //
-  static Matrix Dsigpos_Deps(6,6);
-  static Matrix Dsigneg_Deps(6,6);
+#ifdef MND
+  MatrixND<6,6> Dsigpos_Deps{}, Dsigneg_Deps{};
+#else
+  static Matrix Dsigpos_Deps(6,6), Dsigneg_Deps(6,6);
+#endif
   Dsigpos_Deps = Qpos*Cbar;
   Dsigneg_Deps = Qneg*Cbar;
   
-  static Vector s(6);
-  s = Idp*signeg;            // deviatoric stress
+  // static Vector s(6);
+  VectorND<6> s = IIdevMix*signeg;            // deviatoric stress
 
 
   // norm of deviatoric stress
@@ -415,52 +416,55 @@ PlasticDamageConcrete3d::setTrialStrain(const Vector &strain)
                     2*pow(s(3),2) + 2*pow(s(4),2) + 2*pow(s(5),2));
 
 
-  static Vector n(6);
+  static VectorND<6> n = s; // (6);
   if (nrms <= tol) 
-    n.Zero(); 
+    n.zero(); 
   else {
-    n = s; n/=nrms;
+    n/=nrms;
   }
 
-  static Vector Dtaup_Dsigpos(6);
-  static Vector Dtaun_Dsigneg(6);
+  VectorND<6> Dtaup_Dsigpos;
+  VectorND<6> Dtaun_Dsigneg;
 
   if (taup <= tol) {
-    Dtaup_Dsigpos.Zero();   //  Dtaup_Dsigpos = zeros(6,1); 
+    Dtaup_Dsigpos.zero();   //  Dtaup_Dsigpos = zeros(6,1); 
   }
   else  {
-    Ce.Solve(sigpos, tmp);  //  Dtaup_Dsigpos = (Ce\sigpos)/taup; end
-    Dtaup_Dsigpos = tmp; Dtaup_Dsigpos/=taup;
+    Ce.solve(sigpos, Dtaup_Dsigpos);  //  Dtaup_Dsigpos = (Ce\sigpos)/taup; end
+    Dtaup_Dsigpos/=taup;
   }
 
   if (taun <= tol) {
-    Dtaun_Dsigneg.Zero();
+    Dtaun_Dsigneg.zero();
   }
   else {
     double Dtaun_Dsigoct = pow(3,0.25) * k/2./sqrt(k*sigoct + tauoct);
     double Dtaun_Dtauoct = pow(3,0.25) / 2./sqrt(k*sigoct + tauoct);
-    static Vector Dsigoct_Dsigneg(6);
-    Dsigoct_Dsigneg = Iv6;
+    // static Vector Dsigoct_Dsigneg(6);
+    VectorND<6> Dsigoct_Dsigneg = OpenSees::ivol;
     Dsigoct_Dsigneg /= 3.;
-    static Vector Dtauoct_Dsigneg(6);
-    Dtauoct_Dsigneg = n; Dtauoct_Dsigneg /= sqrt(3.0);
+    // static Vector Dtauoct_Dsigneg(6);
+    VectorND<6> Dtauoct_Dsigneg = n; Dtauoct_Dsigneg /= sqrt(3.0);
     Dtaun_Dsigneg = Dtaun_Dsigoct * Dsigoct_Dsigneg + Dtaun_Dtauoct * Dtauoct_Dsigneg;
   }
 
-  static Vector Dnrm_Deps(6);
-  static Vector Ddp_Deps(6);
-  static Vector Ddn_Deps(6);
+  // static Vector Dnrm_Deps(6);
+  // static Vector Ddp_Deps(6);
+  // static Vector Ddn_Deps(6);
   // Ddp_Deps = Ddp_Drp * Dsigpos_Deps' * Dtaup_Dsigpos;
-  Ddp_Deps = Dsigpos_Deps ^ Dtaup_Dsigpos;
+  VectorND<6> Ddp_Deps = Dsigpos_Deps ^ Dtaup_Dsigpos;
   Ddp_Deps *= Ddp_Drp; 
 
-  Ddn_Deps = Dsigneg_Deps ^ Dtaun_Dsigneg;
+  VectorND<6> Ddn_Deps = Dsigneg_Deps ^ Dtaun_Dsigneg;
   Ddn_Deps *= Ddn_Drn;
   
-  C = (1-dp)*Dsigpos_Deps 
-    + (1-dn)*Dsigneg_Deps 
-    - sigpos % Ddp_Deps 
-    - signeg % Ddn_Deps;  
+  C.zero();
+  C.addMatrix(Dsigpos_Deps , (1-dp));
+  C.addMatrix(Dsigneg_Deps , (1-dn));
+  C.addTensorProduct(sigpos, Ddp_Deps, -1.0);
+  C.addTensorProduct(signeg, Ddn_Deps, -1.0);
+    // - (sigpos % Ddp_Deps) 
+    // - (signeg % Ddn_Deps);  
 
   return 0;
 }
@@ -484,46 +488,52 @@ PlasticDamageConcrete3d::setTrialStrainIncr(const Vector &strain, const Vector &
 const Matrix&
 PlasticDamageConcrete3d::getTangent()
 {
-  return C;
+  static Matrix Wrapper(C);
+  return Wrapper;
 }
 
 const Matrix&
 PlasticDamageConcrete3d::getInitialTangent()
 {
-  return Ce;
+  static Matrix Wrapper(Ce);
+  return Wrapper;
 }
 
 const Vector&
 PlasticDamageConcrete3d::getStress()
 {
-  return sig;
+  static Vector wrapper(sig);
+  return wrapper;
 }
 
 const Vector&
 PlasticDamageConcrete3d::getStrain()
 {
-  return eps;
+  static Vector wrapper(eps);
+  return wrapper;
 }
 
 int
 PlasticDamageConcrete3d::commitState()
 {
-  rpCommit = rp;
-  rnCommit = rn;
-  dpCommit = dp;
-  dnCommit = dn;
-  epsCommit = eps;
-  sigCommit = sig;
-  sigeCommit = sige;
+  rpCommit    = rp;
+  rnCommit    = rn;
+  dpCommit    = dp;
+  dnCommit    = dn;
+  epsCommit   = eps;
+  sigCommit   = sig;
+  sigeCommit  = sige;
   eps_pCommit = eps_p;
-  sigePCommit = sige;
+  // sigePCommit = sige;
+  sigeCommit = sige;
+  Ccommit = C;
   return 0;
 }
 
 int
 PlasticDamageConcrete3d::revertToLastCommit()
 {
-  C = Ccommit;
+  C  = Ccommit;
   rp = rpCommit;
   rn = rnCommit;
   dp = dpCommit;
@@ -532,20 +542,23 @@ PlasticDamageConcrete3d::revertToLastCommit()
   sig = sigCommit;
   sige = sigeCommit;
   eps_p = eps_pCommit;
-  sigeP = sigePCommit;
+  // sigeP = sigeCommit;
   return 0;
 }
 
 int
 PlasticDamageConcrete3d::revertToStart()
 {
-  eps.Zero();
-  sig.Zero();
-  sige.Zero();
-  eps_p.Zero();
-  sigeP.Zero();
-  Ce.Zero();
-
+  eps.zero();
+  sig.zero();
+  sige.zero();
+  eps_p.zero();
+  // sigeP.zero();
+  double G  = E/2./(1+nu);       // shear modulus
+  double K  = E/3./(1-2*nu);     // bulk  modulus
+  Ce.zero();
+  Ce.addMatrix(IIvol, K);
+  Ce.addMatrix(IIdevCon, 2.*G);
   return 0;
 }
 
@@ -630,9 +643,6 @@ PlasticDamageConcrete3d::Print(OPS_Stream &s, int flag) {
     s << "}";
   }
   else {
-    opserr << "PlasticDamageConcrete3d: " << this->getTag();
-    opserr << "strain: " << eps;
-    opserr << "strain: " << sig;
-    opserr << "tangent: " << C;
+    opserr << "PlasticDamageConcrete3d: " << this->getTag() << "\n";
   }
 }       

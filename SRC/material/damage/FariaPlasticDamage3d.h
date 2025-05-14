@@ -31,6 +31,7 @@
 #include <ElasticIsotropicMaterial.h>
 
 #include <Matrix.h>
+#include <MatrixND.h>
 #include <Vector.h>
 #include <ID.h>
 
@@ -93,11 +94,11 @@ class PlasticDamageConcrete3d : public NDMaterial
     double dp;    // positive damage variable
     double dn;    // negative damage variable
 
-    Vector eps;   // strain
-    Vector sig;   // stress
-    Vector sige;  // effective stress
-    Vector eps_p; // plastic strain
-    Vector sigeP; // effective stress
+    OpenSees::VectorND<6> eps;   // strain
+    OpenSees::VectorND<6> sig;   // stress
+    OpenSees::VectorND<6> sige;  // effective stress
+    OpenSees::VectorND<6> eps_p; // plastic strain
+    // OpenSees::VectorND<6> sigeP; // effective stress
 
     // committed state variables
     double rpCommit; 
@@ -105,16 +106,14 @@ class PlasticDamageConcrete3d : public NDMaterial
     double dpCommit; 
     double dnCommit; 
 
-    Vector epsCommit;
-    Vector sigCommit;
-    Vector sigeCommit;  
-    Vector eps_pCommit; 
-    Vector sigePCommit; 
+    OpenSees::VectorND<6> epsCommit;
+    OpenSees::VectorND<6> sigCommit;
+    OpenSees::VectorND<6> sigeCommit;  
+    OpenSees::VectorND<6> eps_pCommit; 
+    // Vector sigePCommit;
 
     // tangent matrices
-    Matrix Ce; 
-    Matrix C; 
-    Matrix Ccommit; 
+    OpenSees::MatrixND<6,6> Ce, C, Ccommit; 
 };
 
 #endif
