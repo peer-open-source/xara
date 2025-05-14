@@ -1,3 +1,9 @@
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once
 #include "AnsiColors.h"
 #include <OPS_Stream.h>
@@ -11,19 +17,20 @@ extern OPS_Stream *opserrPtr;
 extern OPS_Stream *opswrnPtr;
 extern OPS_Stream *opsdbgPtr;
 extern const char *G3_WARN_PROMPT;
-extern const char *G3_ERROR_PROMPT;
+// extern const char *G3_ERROR_PROMPT;
 extern const char *G3_DEBUG_PROMPT;
 
 namespace OpenSees {
 // NOTE: These are defined in logging.cpp
 
-// maybe change "Prompt" to "Signal"
-extern const char * SignalMessageEnd;
-extern const char * PromptParseError;
-extern const char * PromptValueError;
-extern const char * PromptAnalysisFailure;
-extern const char * PromptAnalysisSuccess;
-extern const char * PromptAnalysisIterate;
+  // maybe change "Prompt" to "Signal"
+  extern const char * SignalMessageEnd;
+  extern const char * PromptParseError;
+  extern const char * PromptValueError;
+  extern const char * SignalWarning;
+  extern const char * PromptAnalysisFailure;
+  extern const char * PromptAnalysisSuccess;
+  extern const char * PromptAnalysisIterate;
 };
 
 
