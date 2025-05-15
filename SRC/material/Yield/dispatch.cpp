@@ -1,3 +1,9 @@
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
 #include <tcl.h>
 #include "YieldSurface_BC.h"
 #include <BasicModelBuilder.h>
