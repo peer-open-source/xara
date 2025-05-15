@@ -45,7 +45,8 @@ namespace Internal {
 //  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
 //
 template <typename MatA, typename MatU, typename MatV>
-void matrix_exp_pade3(const MatA& A, MatU& U, MatV& V) {
+void
+matrix_exp_pade3(const MatA& A, MatU& U, MatV& V) {
   const double b[] = {120.L, 60.L, 12.L, 1.L};
   const MatA A2 = A * A;
   MatA tmp = b[3] * A2;
@@ -61,7 +62,8 @@ void matrix_exp_pade3(const MatA& A, MatU& U, MatV& V) {
 //  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
 // 
 template <typename MatA, typename MatU, typename MatV>
-void matrix_exp_pade5(const MatA& A, MatU& U, MatV& V) {
+void
+matrix_exp_pade5(const MatA& A, MatU& U, MatV& V) {
   const double b[] = {30240.L, 15120.L, 3360.L, 420.L, 30.L, 1.L};
   const MatA A2 = A * A;
   const MatA A4 = A2 * A2;
@@ -78,7 +80,8 @@ void matrix_exp_pade5(const MatA& A, MatU& U, MatV& V) {
 //  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
 // 
 template <typename MatA, typename MatU, typename MatV>
-void matrix_exp_pade7(const MatA& A, MatU& U, MatV& V) {
+void
+matrix_exp_pade7(const MatA& A, MatU& U, MatV& V) {
   const double b[] = {17297280.L, 8648640.L, 1995840.L, 277200.L, 25200.L, 1512.L, 56.L, 1.L};
   const MatA A2 = A  * A;
   const MatA A4 = A2 * A2;
