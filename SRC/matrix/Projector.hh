@@ -1,7 +1,9 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
 //
+//===----------------------------------------------------------------------===//
+//                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
 #include <MatrixND.h>
@@ -85,5 +87,4 @@ namespace OpenSees {
     static constexpr MatrixND<6,6> IIdevCo  = IIco  - 1./3.*IIvol;
     // 4th order mixed variant deviatoric tensor (Idp)
     static constexpr MatrixND<6,6> IIdevMix = IImix - 1./3.*IIvol;
-
 }
