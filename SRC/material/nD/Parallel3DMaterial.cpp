@@ -392,7 +392,8 @@ Parallel3DMaterial::Print(OPS_Stream &s, int flag)
 	}
 }
 
-int Parallel3DMaterial::sendSelf(int commitTag, Channel &theChannel)
+int
+Parallel3DMaterial::sendSelf(int commitTag, Channel &theChannel)
 {
 	int num_mat = static_cast<int>(m_materials.size());
 
