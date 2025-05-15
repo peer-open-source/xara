@@ -29,7 +29,7 @@
 
 #include <Response.h>
 
-Response::Response(void)
+Response::Response()
  :myInfo()
 {
 
@@ -89,7 +89,7 @@ Response::Print(ofstream &s, int flag)
 }
 
 Information &
-Response::getInformation(void)
+Response::getInformation()
 {
   return myInfo;
 }
