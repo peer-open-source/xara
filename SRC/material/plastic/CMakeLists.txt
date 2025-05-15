@@ -11,6 +11,8 @@ target_sources(OPS_Material
     J2ThreeDimensional.cpp
     J2BeamFiber2d.cpp
     J2BeamFiber3d.cpp
+    J2PlateFiber.cpp
+    J2PlateFibre.cpp
     UVCmultiaxial.cpp
     UVCplanestress.cpp
     SimplifiedJ2.cpp

@@ -48,11 +48,8 @@
 //#include <iostream>
 //#include <fstream>
 //#include <iomanip>
-//using namespace std;
 
-//extern StaticAnalysis *theStaticAnalysis;
 
-// constructor:
 URDDampingbeta::URDDampingbeta(int tag, int nfreq, Vector *tmpomegac, Vector *tmpbeta, double t1, double t2, TimeSeries *f):
 Damping(tag, DMP_TAG_URDDampingbeta),
 nComp(0), nFilter(nfreq),

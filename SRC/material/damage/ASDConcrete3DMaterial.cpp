@@ -21,13 +21,12 @@
 // $Revision: 1.4 $
 // $Date: 2020-04-19 23:01:25 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ASDConcrete3DMaterial.h,v $
-
+//
 // Massimo Petracca, Guido Camata - ASDEA Software, Italy
 //
 // A Simple and robust plastic-damage model for concrete and masonry
 //
-
-#include <ASDConcrete3DMaterial.h>
+#include "ASDConcrete3DMaterial.h"
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <OPS_Globals.h>
@@ -108,7 +107,7 @@ namespace {
 
 	/*
 	Taken from Eigen3 in Matrix class. We need it because we have to access eigenvectors.
-	#TODO: Should we extend it in Matrix class?
+	TODO: Should we extend it in Matrix class?
 	*/
 	int Eigen3(Vector& d, Matrix& v) {
 		if (v.noRows() != 3 || v.noCols() != 3 || d.Size() != 3)
@@ -218,20 +217,20 @@ namespace {
 				else
 					a(i) = 0.0;
 
-			}  // end for i
+			}
 
 			//.... update the diagonal terms
 			for (i = 0; i < 3; i++) {
 				b(i) = b(i) + z(i);
 				d(i) = b(i);
 				z(i) = 0.0;
-			} // end for i
+			}
 
 			its += 1;
 
 			sm = fabs(a(0)) + fabs(a(1)) + fabs(a(2));
 
-		} //end while sm
+		}
 		
 		// sort in descending order (unrolled bubble sort)
 		auto sortij = [&d, &v](int i, int j) {
@@ -372,7 +371,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete3DMaterial)
 	// some kudos
 	static bool first_done = false;
 	if (!first_done) {
-		opserr << "Using ASDConcrete3D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+		opslog << "Using ASDConcrete3D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
 		first_done = true;
 	}
 
@@ -764,18 +763,13 @@ void *OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete3DMaterial)
 	}
 
 	// create the material
-	NDMaterial* instance = new ASDConcrete3DMaterial(
+	return new ASDConcrete3DMaterial(
 		tag, 
 		E, v, rho, eta, Kc,
 		implex, implex_control, implex_error_tolerance, implex_time_redution_limit, implex_alpha,
 		tangent, auto_regularization, lch_ref,
 		HT, HC,
 		cdf, nct, ncc, smoothing_angle);
-	if (instance == nullptr) {
-		opserr << "nDMaterial ASDConcrete3D Error: failed to allocate a new material.\n";
-		return nullptr;
-	}
-	return instance;
 }
 
 int ASDConcrete3DMaterial::StressDecomposition::compute(const Vector& S, double cdf)
@@ -851,6 +845,7 @@ int ASDConcrete3DMaterial::StressDecomposition::compute(const Vector& S, double 
 	return 0;
 }
 
+
 void ASDConcrete3DMaterial::StressDecomposition::recompose(const Vector& S, Vector& Sv) const
 {
 	Sv(0) = S(0) * std::pow(V(0, 0), 2) + S(1) * std::pow(V(0, 1), 2) + S(2) * std::pow(V(0, 2), 2);
@@ -865,6 +860,7 @@ void ASDConcrete3DMaterial::StressDecomposition::recompose(Vector& Sv) const
 {
 	recompose(Si, Sv);
 }
+
 
 ASDConcrete3DMaterial::HardeningLaw::HardeningLaw(
 	int tag, HardeningLawType type,
@@ -944,7 +940,8 @@ ASDConcrete3DMaterial::HardeningLaw::HardeningLaw(
 	HardeningLawStorage::instance().store(*this);
 }
 
-void ASDConcrete3DMaterial::HardeningLaw::regularize(double lch, double lch_ref)
+void
+ASDConcrete3DMaterial::HardeningLaw::regularize(double lch, double lch_ref)
 {
 	// quick return if not valid
 	if (!m_valid)
@@ -1000,14 +997,18 @@ void ASDConcrete3DMaterial::HardeningLaw::regularize(double lch, double lch_ref)
 	adjust();
 }
 
-void ASDConcrete3DMaterial::HardeningLaw::deRegularize()
+
+void
+ASDConcrete3DMaterial::HardeningLaw::deRegularize()
 {
 	auto source = HardeningLawStorage::instance().recover(m_tag, m_type);
 	if (source)
 		*this = *source;
 }
 
-ASDConcrete3DMaterial::HardeningLawPoint ASDConcrete3DMaterial::HardeningLaw::evaluateAt(double x) const
+
+ASDConcrete3DMaterial::HardeningLawPoint
+ASDConcrete3DMaterial::HardeningLaw::evaluateAt(double x) const
 {
 	// quick return
 	if (!m_valid)
@@ -1053,7 +1054,8 @@ ASDConcrete3DMaterial::HardeningLawPoint ASDConcrete3DMaterial::HardeningLaw::ev
 	return HardeningLawPoint(x, y, d, q);
 }
 
-double ASDConcrete3DMaterial::HardeningLaw::computeMaxStress() const
+double 
+ASDConcrete3DMaterial::HardeningLaw::computeMaxStress() const
 {
 	double smax = 0.0;
 	for (const auto& p : m_points) {
@@ -1062,7 +1064,8 @@ double ASDConcrete3DMaterial::HardeningLaw::computeMaxStress() const
 	return smax;
 }
 
-int ASDConcrete3DMaterial::HardeningLaw::serializationDataSize() const
+int 
+ASDConcrete3DMaterial::HardeningLaw::serializationDataSize() const
 {
 	// number of points (variable, 4 components each)
 	int np = static_cast<int>(m_points.size());
@@ -1072,7 +1075,8 @@ int ASDConcrete3DMaterial::HardeningLaw::serializationDataSize() const
 	return (nn + np * 4) * 2;
 }
 
-void ASDConcrete3DMaterial::HardeningLaw::serialize(Vector& data, int& pos)
+void 
+ASDConcrete3DMaterial::HardeningLaw::serialize(Vector& data, int& pos)
 {
 	// internal
 	auto lam = [&data, &pos] (HardeningLaw & x) {
@@ -1101,7 +1105,8 @@ void ASDConcrete3DMaterial::HardeningLaw::serialize(Vector& data, int& pos)
 	lam(original);
 }
 
-void ASDConcrete3DMaterial::HardeningLaw::deserialize(Vector& data, int& pos)
+void 
+ASDConcrete3DMaterial::HardeningLaw::deserialize(Vector& data, int& pos)
 {
 	// internal
 	auto lam = [&data, &pos](HardeningLaw& x) {
@@ -1131,7 +1136,8 @@ void ASDConcrete3DMaterial::HardeningLaw::deserialize(Vector& data, int& pos)
 	HardeningLawStorage::instance().store(original);
 }
 
-void ASDConcrete3DMaterial::HardeningLaw::adjust()
+void 
+ASDConcrete3DMaterial::HardeningLaw::adjust()
 {
 	// quick return
 	if (!m_valid)
@@ -1180,7 +1186,8 @@ void ASDConcrete3DMaterial::HardeningLaw::adjust()
 	}
 }
 
-void ASDConcrete3DMaterial::HardeningLaw::computeFractureEnergy()
+void 
+ASDConcrete3DMaterial::HardeningLaw::computeFractureEnergy()
 {
 	// initialize as un-bounded
 	m_fracture_energy = 0.0;
@@ -1254,13 +1261,15 @@ void ASDConcrete3DMaterial::HardeningLaw::computeFractureEnergy()
 	m_softening_end = pos2;
 }
 
-ASDConcrete3DMaterial::HardeningLawStorage& ASDConcrete3DMaterial::HardeningLawStorage::instance()
+ASDConcrete3DMaterial::HardeningLawStorage& 
+ASDConcrete3DMaterial::HardeningLawStorage::instance()
 {
 	static HardeningLawStorage _instance;
 	return _instance;
 }
 
-void ASDConcrete3DMaterial::HardeningLawStorage::store(const HardeningLaw& hl)
+void 
+ASDConcrete3DMaterial::HardeningLawStorage::store(const HardeningLaw& hl)
 {
 	if (hl.type() == HardeningLawType::Tension) {
 		auto& item = m_tension[hl.tag()];
@@ -1274,7 +1283,8 @@ void ASDConcrete3DMaterial::HardeningLawStorage::store(const HardeningLaw& hl)
 	}
 }
 
-ASDConcrete3DMaterial::HardeningLawStorage::PointerType ASDConcrete3DMaterial::HardeningLawStorage::recover(int tag, HardeningLawType type)
+ASDConcrete3DMaterial::HardeningLawStorage::PointerType 
+ASDConcrete3DMaterial::HardeningLawStorage::recover(int tag, HardeningLawType type)
 {
 	if (type == HardeningLawType::Tension) {
 		auto it = m_tension.find(tag);
@@ -1289,13 +1299,15 @@ ASDConcrete3DMaterial::HardeningLawStorage::PointerType ASDConcrete3DMaterial::H
 	return nullptr;
 }
 
-ASDConcrete3DMaterial::CrackPlanesStorage& ASDConcrete3DMaterial::CrackPlanesStorage::instance()
+ASDConcrete3DMaterial::CrackPlanesStorage& 
+ASDConcrete3DMaterial::CrackPlanesStorage::instance()
 {
 	static CrackPlanesStorage _instance;
 	return _instance;
 }
 
-ASDConcrete3DMaterial::CrackPlanesStorage::Vector3ListPointer ASDConcrete3DMaterial::CrackPlanesStorage::get(int n90)
+ASDConcrete3DMaterial::CrackPlanesStorage::Vector3ListPointer 
+ASDConcrete3DMaterial::CrackPlanesStorage::get(int n90)
 {
 	// return nullptr for 0
 	if (n90 < 1)
@@ -1433,7 +1445,8 @@ std::size_t ASDConcrete3DMaterial::CrackPlanes::getClosestNormal(const Vector3& 
 	return loc;
 }
 
-std::vector<int> ASDConcrete3DMaterial::CrackPlanes::getMax3Normals(double smooth_angle) const
+std::vector<int> 
+ASDConcrete3DMaterial::CrackPlanes::getMax3Normals(double smooth_angle) const
 {
 	std::vector<int> out;
 	if (m_normals) {
@@ -1493,6 +1506,7 @@ std::vector<int> ASDConcrete3DMaterial::CrackPlanes::getMax3Normals(double smoot
 	}
 	return out;
 }
+
 
 int ASDConcrete3DMaterial::CrackPlanes::serializationDataSize() const
 {
@@ -1599,7 +1613,7 @@ ASDConcrete3DMaterial::~ASDConcrete3DMaterial()
 { 
 }
 
-double ASDConcrete3DMaterial::getRho(void)
+double ASDConcrete3DMaterial::getRho()
 {
 	return rho;
 }
@@ -1608,7 +1622,6 @@ int ASDConcrete3DMaterial::setTrialStrain(const Vector& v)
 {
 	// return value
 	int retval = 0;
-
 	// get characteristic length and perform regularization
 	if (!regularization_done) {
 		if (ops_TheActiveElement)
@@ -1715,22 +1728,22 @@ int ASDConcrete3DMaterial::setTrialStrainIncr(const Vector& v, const Vector& /*r
 	return setTrialStrainIncr(v);
 }
 
-const Vector &ASDConcrete3DMaterial::getStrain(void)
+const Vector &ASDConcrete3DMaterial::getStrain()
 {
 	return strain;
 }
 
-const Vector &ASDConcrete3DMaterial::getStress(void)
+const Vector &ASDConcrete3DMaterial::getStress()
 {
 	return stress;
 }
 
-const Matrix &ASDConcrete3DMaterial::getTangent(void)
+const Matrix &ASDConcrete3DMaterial::getTangent()
 {
 	return C;
 }
 
-const Matrix &ASDConcrete3DMaterial::getInitialTangent(void)
+const Matrix &ASDConcrete3DMaterial::getInitialTangent()
 {
 	static Matrix D(6, 6);
 	D.Zero();
@@ -1777,7 +1790,7 @@ int ASDConcrete3DMaterial::commitState(void)
 	return 0;
 }
 
-int ASDConcrete3DMaterial::revertToLastCommit(void)
+int ASDConcrete3DMaterial::revertToLastCommit()
 {
 	// restore converged values
 	svt = svt_commit;
@@ -1792,7 +1805,7 @@ int ASDConcrete3DMaterial::revertToLastCommit(void)
 	return 0;
 }
 
-int ASDConcrete3DMaterial::revertToStart(void)
+int ASDConcrete3DMaterial::revertToStart()
 {
 	// State variables
 	svt.reset();
@@ -1840,32 +1853,64 @@ int ASDConcrete3DMaterial::revertToStart(void)
 	return 0;
 }
 
-NDMaterial * ASDConcrete3DMaterial::getCopy(void)
+NDMaterial * 
+ASDConcrete3DMaterial::getCopy()
 {
 	// we can safely use the default copy-constructor according to the member variables we're using
 	return new ASDConcrete3DMaterial(*this);
 }
 
-NDMaterial* ASDConcrete3DMaterial::getCopy(const char* code)
+NDMaterial* 
+ASDConcrete3DMaterial::getCopy(const char* code)
 {
 	if (strcmp(code, "ThreeDimensional") == 0)
 		return getCopy();
 	return NDMaterial::getCopy(code);
 }
 
-const char* ASDConcrete3DMaterial::getType(void) const
+const char* 
+ASDConcrete3DMaterial::getType() const
 {
 	return "ThreeDimensional";
 }
 
-int ASDConcrete3DMaterial::getOrder(void) const
+int
+ASDConcrete3DMaterial::getOrder() const
 {
 	return 6;
 }
 
-void ASDConcrete3DMaterial::Print(OPS_Stream &s, int flag)
+void
+ASDConcrete3DMaterial::Print(OPS_Stream &s, int flag)
 {
-	s << "ASDConcrete3D Material, tag: " << this->getTag() << "\n";
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+	  s << OPS_PRINT_JSON_MATE_INDENT << "{";
+	  s << "\"type\": \"ASDConcrete3DMaterial\", ";
+	  s << "\"name\": " << this->getTag() << ", ";
+	  s << "\"E\": " << E << ", ";
+	  s << "\"v\": " << v << ", ";
+	  s << "\"eta\": " << eta << ", ";
+	  s << "\"Kc\": " << Kc << ", ";
+	  s << "\"implex\": " << (implex ? "true" : "false") << ", ";
+	  s << "\"implex_control\": " << (implex_control ? "true" : "false") << ", ";
+	  s << "\"implex_error_tolerance\": " << implex_error_tolerance << ", ";
+	  s << "\"implex_time_reduction_limit\": " << implex_time_redution_limit << ", ";
+	  s << "\"implex_alpha\": " << implex_alpha << ", ";
+	  s << "\"tangent\": " << (tangent ? "true" : "false") << ", ";
+	  s << "\"hardening_law\": {\n";
+	  s << OPS_PRINT_JSON_MATE_INDENT << "  ";
+	  s << "\"tension\" : ";
+	  ht.Print(s, flag);
+	  s << ",\n";
+	  s << OPS_PRINT_JSON_MATE_INDENT << "  ";
+	  s << "\"compression\" : ";
+	  hc.Print(s, flag);
+	  s << "\n";
+	  s << OPS_PRINT_JSON_MATE_INDENT << "}";
+	  s << "}";
+	}
+	else 
+	  s << "ASDConcrete3D Material, tag: " << this->getTag() << "\n";
 }
 
 int ASDConcrete3DMaterial::sendSelf(int commitTag, Channel &theChannel)
@@ -2319,7 +2364,8 @@ int ASDConcrete3DMaterial::getResponse(int responseID, Information& matInformati
 	return NDMaterial::getResponse(responseID, matInformation);
 }
 
-int ASDConcrete3DMaterial::compute(bool do_implex, bool do_tangent)
+int 
+ASDConcrete3DMaterial::compute(bool do_implex, bool do_tangent)
 {
 	// get committed variables
 	svt = svt_commit;
@@ -2397,6 +2443,7 @@ int ASDConcrete3DMaterial::compute(bool do_implex, bool do_tangent)
 		pt = ht.evaluateAt(svt.getCurrentEquivalentStrain());
 		pc = hc.evaluateAt(svc.getCurrentEquivalentStrain());
 	}
+
 	else {
 		// compute trial strain measures (implicit)
 		double xt_trial = equivalentTensileStrainMeasure(D.Si(0), D.Si(1), D.Si(2)) + xt_pl;
@@ -2480,7 +2527,8 @@ int ASDConcrete3DMaterial::compute(bool do_implex, bool do_tangent)
 	return 0;
 }
 
-double ASDConcrete3DMaterial::lublinerCriterion(double s1, double s2, double s3, double ft, double fc, double k1, double scale) const
+double 
+ASDConcrete3DMaterial::lublinerCriterion(double s1, double s2, double s3, double ft, double fc, double k1, double scale) const
 {
 	double fb = 1.16 * fc;
 	double gamma = 3.0 * (1.0 - Kc) / (2.0 * Kc - 1.0);
@@ -2496,7 +2544,8 @@ double ASDConcrete3DMaterial::lublinerCriterion(double s1, double s2, double s3,
 	return (1.0 / (1.0 - alpha) * (alpha * I1 + std::sqrt(3.0 * J2) + k1 * beta * smax - gamma * smin)) * scale;
 }
 
-double ASDConcrete3DMaterial::equivalentTensileStrainMeasure(double s1, double s2, double s3) const
+double
+ASDConcrete3DMaterial::equivalentTensileStrainMeasure(double s1, double s2, double s3) const
 {
 	// skip if maximum principal stress is not strictly positive
 	if (s1 < ht.stressTolerance())
@@ -2547,7 +2596,8 @@ Vector ASDConcrete3DMaterial::getHardeningLawVector(HardeningLawType ltype, Hard
 	return r;
 }
 
-const Vector& ASDConcrete3DMaterial::getMaxStrainMeasure() const
+const Vector& 
+ASDConcrete3DMaterial::getMaxStrainMeasure() const
 {
 	static Vector d(2);
 	double xt_max = 0.0;
@@ -2561,7 +2611,8 @@ const Vector& ASDConcrete3DMaterial::getMaxStrainMeasure() const
 	return d;
 }
 
-const Vector& ASDConcrete3DMaterial::getAvgStrainMeasure() const
+const Vector& 
+ASDConcrete3DMaterial::getAvgStrainMeasure() const
 {
 	static Vector d(2);
 	double xt = 0.0;
@@ -2581,7 +2632,8 @@ const Vector& ASDConcrete3DMaterial::getAvgStrainMeasure() const
 	return d;
 }
 
-const Vector& ASDConcrete3DMaterial::getMaxDamage() const
+const Vector& 
+ASDConcrete3DMaterial::getMaxDamage() const
 {
 	static Vector d(2);
 	const Vector& x = getMaxStrainMeasure();
@@ -2590,7 +2642,8 @@ const Vector& ASDConcrete3DMaterial::getMaxDamage() const
 	return d;
 }
 
-const Vector& ASDConcrete3DMaterial::getAvgDamage() const
+const Vector& 
+ASDConcrete3DMaterial::getAvgDamage() const
 {
 	static Vector d(2);
 	const Vector& x = getAvgStrainMeasure();
@@ -2599,7 +2652,8 @@ const Vector& ASDConcrete3DMaterial::getAvgDamage() const
 	return d;
 }
 
-const Vector& ASDConcrete3DMaterial::getMaxEquivalentPlasticStrain() const
+const Vector& 
+ASDConcrete3DMaterial::getMaxEquivalentPlasticStrain() const
 {
 	static Vector d(2);
 	const Vector& x = getMaxStrainMeasure();
@@ -2608,7 +2662,8 @@ const Vector& ASDConcrete3DMaterial::getMaxEquivalentPlasticStrain() const
 	return d;
 }
 
-const Vector& ASDConcrete3DMaterial::getAvgEquivalentPlasticStrain() const
+const Vector& 
+ASDConcrete3DMaterial::getAvgEquivalentPlasticStrain() const
 {
 	static Vector d(2);
 	const Vector& x = getAvgStrainMeasure();
@@ -2665,7 +2720,8 @@ const Vector& ASDConcrete3DMaterial::getAvgCrushWidth() const
 	return d;
 }
 
-const Vector& ASDConcrete3DMaterial::getCrackPattern() const
+const Vector& 
+ASDConcrete3DMaterial::getCrackPattern() const
 {
 	static Vector d(9);
 	d.Zero();

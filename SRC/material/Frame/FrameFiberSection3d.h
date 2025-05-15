@@ -64,8 +64,7 @@ class FrameFiberSection3d : public FrameSection
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &info);
 
-    int addFiber(UniaxialMaterial &theMat, const double area, const double y, const double z);
-//  int setField(const char**, int, double);
+    int addFiber(UniaxialMaterial &theMat, double area, double y, double z=0.0);
 
     int setParameter(const char **argv, int argc, Parameter &param);
 

@@ -8,12 +8,11 @@
 // Plane Strain (NOT PLANE STRESS)
 // 
 // Q1/P0 Mixed three-field formulation (Bbar implementation)
-// Equivalent to the mean dilation formulation.
+// Equivalent to the mean dilation formulation of Nagtegaal, Parks and Rice (1974)?
 //
 // Ed "C++" Love
 //
 #include <string.h>
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -209,11 +208,7 @@ ConstantPressureVolumeQuad :: update( )
   double xsj ;  // determinant jacaobian matrix 
 
   static Matrix sx(2,2) ; // inverse jacobian matrix 
-
-  double theta = 0.0 ; //average volume change (trace of strain) 
-
   static Vector strain(4) ; //strain in vector form 
-
   static Vector one(4) ; //rank 2 identity as a vector
 
   //one vector
@@ -264,7 +259,7 @@ ConstantPressureVolumeQuad :: update( )
 
 
   // compute theta
-  theta = 0.0 ;
+  double theta = 0.0 ;
   for (int i = 0; i < 4; i++ ) {
 
     strain.Zero( ) ;
@@ -305,10 +300,10 @@ ConstantPressureVolumeQuad :: update( )
 
     double trace = strain(0) + strain(1) + strain(2) ;
 
-    //strain -= (one3*trace)*one ;
+    // strain -= (one3*trace)*one ;
     strain.addVector(1.0,  one, -one3*trace ) ;
 
-    //strain += (one3*theta)*one ;
+    // strain += (one3*theta)*one ;
     strain.addVector(1.0,  one, one3*theta ) ;
 
     success += materialPointers[i]->setTrialStrain( strain );

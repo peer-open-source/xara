@@ -118,9 +118,9 @@ DistributedSuperLU::~DistributedSuperLU()
 }
 
 int
-DistributedSuperLU::solve(void)
+DistributedSuperLU::solve()
 {
-  if (theSOE == 0) {
+  if (theSOE == nullptr) {
     opserr << "WARNING DistributedSuperLU::solve(void)- ";
     opserr << " No LinearSOE object has been set\n";
     return -1;
@@ -165,8 +165,8 @@ DistributedSuperLU::solve(void)
     static double berr[1];
 
     // first copy B into X
-    double *Xptr = theSOE->X;
-    double *Bptr = theSOE->B;
+    double *Xptr = &theSOE->X[0];
+    double *Bptr = &theSOE->B[0];
 
     for (int i=0; i<n; i++)
       *(Xptr++) = *(Bptr++);

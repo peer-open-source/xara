@@ -598,8 +598,15 @@ TimoshenkoSection3d::Print(OPS_Stream &s, int flag)
       s << -matData[loc] << " "  << matData[loc+1] << " "  << matData[loc+2] << " " ;
       s << theMaterials[i]->getStress() << " "  << theMaterials[i]->getStrain() << "\n";
       loc += 3;
-    } 
-  } else {
+    }
+  }
+  
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{}";
+    return;
+  }
+
+  else {
     s << "\nTimoshenkoSection3d, tag: " << this->getTag() << "\n";
     s << "\tSection code: " << code;
     s << "\tNumber of Fibers: " << numFibers << endln;

@@ -34,7 +34,7 @@ class FrameSolidSection3d : public FrameSection
     FrameSolidSection3d(int tag, int numFibers);
     ~FrameSolidSection3d();
 
-    int addFiber(NDMaterial&, double area, double y, double z);
+    int addFiber(NDMaterial&, double area, double y, double z=0.0);
 
     // Element
     const char *getClassType() const {

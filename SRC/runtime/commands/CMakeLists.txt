@@ -40,6 +40,7 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/material/wrapper.cpp"
     "modeling/material/plastic.cpp"
     "modeling/material/elastic.cpp"
+    "modeling/material/concrete.cpp"
     "modeling/material/isotropy.cpp"
 
 

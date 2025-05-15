@@ -1,15 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Description: This file contains the function invoked when the user invokes
 // the uniaxialMaterial command in the interpreter.
+//===----------------------------------------------------------------------===//
 //
 // Written: fmk, MHS
 // Created: 07/99
-//
 //
 #include <unordered_map>
 #include <tcl.h>
@@ -136,17 +137,11 @@ typedef struct uniaxialPackageCommand {
 static UniaxialPackageCommand *theUniaxialPackageCommands = NULL;
 
 
-// external functions
-
 UniaxialMaterial *TclBasicBuilder_addDrainMaterial(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv);
-
 UniaxialMaterial *TclBasicBuilder_addSnapMaterial(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv);
-
 UniaxialMaterial *TclBasicBuilder_addPyTzQzMaterial(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv, Domain *);
-
 UniaxialMaterial *TclBasicBuilder_FRPCnfinedConcrete(ClientData, Tcl_Interp *, int argc, TCL_Char ** const argv, Domain *);
-
-UniaxialMaterial *TclBasicBuilder_addDegradingMaterial(ClientData, Tcl_Interp *, int, TCL_Char **);
+UniaxialMaterial *TclBasicBuilder_adDegradingMaterial(ClientData, Tcl_Interp *, int, TCL_Char **);
 
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp, int cArg, int mArg, TCL_Char ** const argv, Domain *domain);
 
@@ -174,15 +169,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   if (strcmp(argv[1], "Elastic") == 0) {
       return TCL_ERROR;
 
-
-#if 0
-  } else if (strcmp(argv[1],"HoehlerStanton") == 0) {
-    void *theMat = OPS_HoehlerStanton(rt, argc, argv);
-    if (theMat != 0)
-      theMaterial = (UniaxialMaterial *)theMat;
-    else
-      return TCL_ERROR;
-#endif
 
   } else if ((strcmp(argv[1], "BilinearOilDamper") == 0)) {
     void *theMat = OPS_BilinearOilDamper(rt, argc, argv);
@@ -2074,7 +2060,7 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
         TclBasicBuilder_addDegradingMaterial(clientData, interp, argc, argv);
 #endif
 
-  if (theMaterial == 0) {
+  if (theMaterial == nullptr) {
     //
     // maybe element in a class package already loaded
     //  loop through linked list of loaded functions comparing names & if find

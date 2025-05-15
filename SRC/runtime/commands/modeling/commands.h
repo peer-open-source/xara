@@ -41,6 +41,10 @@ extern Tcl_CmdProc  TclCommand_addReinfLayer;
 // extern Tcl_CmdProc  TclCommand_addRemoFiber;
 extern Tcl_CmdProc  TclCommand_addFiber;
 extern Tcl_CmdProc  TclCommand_addHFiber;
+//
+extern Tcl_CmdProc  TclCommand_addYS_PlasticMaterial;
+extern Tcl_CmdProc  TclCommand_addYS_EvolutionModel;
+extern Tcl_CmdProc  TclCommand_addYieldSurface_BC;
 
 // Constraints
 extern Tcl_CmdProc TclCommand_addMP;
@@ -160,13 +164,13 @@ struct char_cmd {
   {          "backbone",   TclCommand_addHystereticBackbone},
 
   {"frictionModel",        TclCommand_addFrictionModel},
-
   {"cyclicModel",          TclCommand_addCyclicModel},
   {"damageModel",          TclCommand_addDamageModel},
-#if 0
-  {"yieldSurface_BC",      TclCommand_addYieldSurface_BC},
   {"ysEvolutionModel",     TclCommand_addYS_EvolutionModel},
+  {"yieldSurface_BC",      TclCommand_addYieldSurface_BC},
   {"plasticMaterial",      TclCommand_addYS_PlasticMaterial},
+
+#if 0
   {"limitCurve",           TclCommand_addLimitCurve},
   {"stiffnessDegradation", TclCommand_addStiffnessDegradation},
   {"unloadingRule",        TclCommand_addUnloadingRule},

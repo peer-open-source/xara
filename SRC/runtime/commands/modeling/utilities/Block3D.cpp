@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Description: This file contains the implementation of Block3D.
 //
 // Written: Ed Love

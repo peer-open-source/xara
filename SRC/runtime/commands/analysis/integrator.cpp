@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Description: This file implements selection of an integrator object.
 //
 #include <G3_Logging.h>
@@ -502,35 +503,6 @@ G3Parse_newDisplacementControlIntegrator(ClientData clientData, Tcl_Interp *inte
 #endif
 }
 
-#if 0
-StaticIntegrator*
-G3Parse_newStagedLoadControlIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
-{
-    double dLambda;
-    double minIncr, maxIncr;
-    int numIter;
-    if (argc < 3) {
-      opserr << "WARNING incorrect # args - integrator StagedLoadControl dlam "
-                "<Jd dlamMin dlamMax>\n";
-      return nullptr;
-    }
-    if (Tcl_GetDouble(interp, argv[2], &dLambda) != TCL_OK)
-      return nullptr;
-    if (argc > 5) {
-      if (Tcl_GetInt(interp, argv[3], &numIter) != TCL_OK)
-        return nullptr;
-      if (Tcl_GetDouble(interp, argv[4], &minIncr) != TCL_OK)
-        return nullptr;
-      if (Tcl_GetDouble(interp, argv[5], &maxIncr) != TCL_OK)
-        return nullptr;
-    } else {
-      minIncr = dLambda;
-      maxIncr = dLambda;
-      numIter = 1;
-    }
-    return  new StagedLoadControl(dLambda, numIter, minIncr, maxIncr);
-}
-#endif
 
 
 #ifdef _PARALLEL_INTERPRETERS

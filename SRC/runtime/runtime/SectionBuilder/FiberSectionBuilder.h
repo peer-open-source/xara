@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Written: cmp
 //
 #ifndef FiberSectionBuilder_h 
@@ -96,21 +97,27 @@ public:
 
   int addFiber(int tag, int mat, double area, const Vector& cPos) 
   {
+    if (area <= 0.0) {
+      opserr << OpenSees::PromptValueError
+             << "fiber area <= 0.0 for fiber " << tag << "\n";
+      return -1;
+    }
 
-      MatT * theMaterial = builder.getTypedObject<MatT>(mat);
-      if (theMaterial == nullptr) {
-        opserr << "no material with tag " << mat << " for fiber " << tag << "\n";
-        return -1;
-      }
+    MatT * theMaterial = builder.getTypedObject<MatT>(mat);
+    if (theMaterial == nullptr) {
+      opserr << OpenSees::PromptValueError
+             << "no material with tag " << mat << " for fiber " << tag << "\n";
+      return -1;
+    }
 
-      int id = -1;
-      if constexpr (ndm==2) {
-          id = section.addFiber(*theMaterial, area, cPos(0));
-
-      } else {
-          id = section.addFiber(*theMaterial, area, cPos(0), cPos(1));
-      }
-      return id;
+    int id = -1;
+    if constexpr (ndm==2) {
+        id = section.addFiber(*theMaterial, area, cPos(0));
+    } 
+    else {
+        id = section.addFiber(*theMaterial, area, cPos(0), cPos(1));
+    }
+    return id;
   }
 
 private:
@@ -123,7 +130,7 @@ FiberSectionBuilder<2, UniaxialMaterial, FiberSection2dInt>::addHFiber(int tag, 
 
   UniaxialMaterial * theMaterial = builder.getTypedObject<UniaxialMaterial>(mat);
   if (theMaterial == nullptr) {
-    opserr << G3_ERROR_PROMPT << "no material with tag " << mat << " for fiber " << tag << "\n";
+    opserr << OpenSees::PromptValueError << "no material with tag " << mat << " for fiber " << tag << "\n";
     return -1;
   }
 
@@ -133,7 +140,7 @@ FiberSectionBuilder<2, UniaxialMaterial, FiberSection2dInt>::addHFiber(int tag, 
 
 template <int ndm, class MatT, class SecT> int
 FiberSectionBuilder<ndm, MatT, SecT>::addHFiber(int tag, int mat, double area, const Vector& cPos) {
-  opserr << G3_ERROR_PROMPT << "section does not support H fibers\n";
+  opserr << OpenSees::PromptValueError << "section does not support H fibers\n";
   return -1;
 }
 

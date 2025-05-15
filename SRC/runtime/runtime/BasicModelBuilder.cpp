@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // A BasicModelBuilder stores intermediate "reference" objects like
 // materials and sections that are used
 // to construct other objects like elements.

@@ -290,6 +290,119 @@ DispBeamColumn3d::update()
   return 0;
 }
 
+
+const Vector&
+DispBeamColumn3d::getResistingForce()
+{
+  double L = crdTransf->getInitialLength();
+
+  double xi[maxNumSections];
+  beamInt->getSectionLocations(numSections, L, xi);
+  double wt[maxNumSections];
+  beamInt->getSectionWeights(numSections, L, wt);
+
+  // Zero for integration
+  q.Zero();
+  
+  // Loop over the integration points
+  for (int i = 0; i < numSections; i++) {
+    
+    int order = theSections[i]->getOrder();
+    const ID &code = theSections[i]->getType();
+
+    double xi6 = 6.0*xi[i];
+    
+    // Get section stress resultant
+    const Vector &s = theSections[i]->getStressResultant();
+    
+    // Perform numerical integration on internal force
+    //q.addMatrixTransposeVector(1.0, *B, s, wts(i));
+    
+    double si;
+    for (int j = 0; j < order; j++) {
+      si = s(j)*wt[i];
+      switch(code(j)) {
+      case SECTION_RESPONSE_P:
+        q(0) += si;
+        break;
+            case SECTION_RESPONSE_MZ:
+        q(1) += (xi6-4.0)*si; q(2) += (xi6-2.0)*si;
+        break;
+            case SECTION_RESPONSE_MY:
+        q(3) += (xi6-4.0)*si; q(4) += (xi6-2.0)*si;
+        break;
+            case SECTION_RESPONSE_T:
+        q(5) += si;
+        break;
+            default:
+        break;
+      }
+    }
+    
+  }
+  
+  q(0) += q0[0];
+  q(1) += q0[1];
+  q(2) += q0[2];
+  q(3) += q0[3];
+  q(4) += q0[4];
+
+  // Transform forces
+  Vector p0Vec(p0, 5);
+  P = crdTransf->getGlobalResistingForce(q, p0Vec);
+
+  // Subtract other external nodal loads ... P_res = P_int - P_ext
+  if (rho != 0)
+    P.addVector(1.0, Q, -1.0);
+
+  return P;
+}
+
+
+const Vector&
+DispBeamColumn3d::getResistingForceIncInertia()
+{
+  P = this->getResistingForce();
+  
+  if (rho != 0.0) {
+    const Vector &accel1 = theNodes[0]->getTrialAccel();
+    const Vector &accel2 = theNodes[1]->getTrialAccel();
+    
+  if (cMass == 0)  {
+    // take advantage of lumped mass matrix
+    double L = crdTransf->getInitialLength();
+    double m = 0.5*rho*L;
+  
+    P(0) += m*accel1(0);
+    P(1) += m*accel1(1);
+    P(2) += m*accel1(2);
+    P(6) += m*accel2(0);
+    P(7) += m*accel2(1);
+    P(8) += m*accel2(2);
+  } else  {
+    // use matrix vector multip. for consistent mass matrix
+    static Vector accel(12);
+    for (int i=0; i<6; i++)  {
+      accel(i)   = accel1(i);
+      accel(i+6) = accel2(i);
+    }
+    P.addMatrixVector(1.0, this->getMass(), accel, 1.0);
+  }
+    
+    // add the damping forces if rayleigh damping
+    if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+      P.addVector(1.0, this->getRayleighDampingForces(), 1.0);
+
+  } else {
+
+    // add the damping forces if rayleigh damping
+    if (betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+      P.addVector(1.0, this->getRayleighDampingForces(), 1.0);
+  }
+  
+  return P;
+}
+
 const Matrix&
 DispBeamColumn3d::getTangentStiff()
 {
@@ -722,65 +835,6 @@ DispBeamColumn3d::addInertiaLoadToUnbalance(const Vector &accel)
   }
   
   return 0;
-}
-
-const Vector&
-DispBeamColumn3d::getResistingForce()
-{
-
-  // Transform forces
-  Vector p0Vec(p0, 5);
-  P = crdTransf->getGlobalResistingForce(q, p0Vec);
-
-  // Subtract other external nodal loads ... P_res = P_int - P_ext
-  if (rho != 0)
-    P.addVector(1.0, Q, -1.0);
-  
-  return P;
-}
-
-const Vector&
-DispBeamColumn3d::getResistingForceIncInertia()
-{
-  P = this->getResistingForce();
-  
-  if (rho != 0.0) {
-    const Vector &accel1 = theNodes[0]->getTrialAccel();
-    const Vector &accel2 = theNodes[1]->getTrialAccel();
-    
-  if (cMass == 0)  {
-    // take advantage of lumped mass matrix
-    double L = crdTransf->getInitialLength();
-    double m = 0.5*rho*L;
-  
-    P(0) += m*accel1(0);
-    P(1) += m*accel1(1);
-    P(2) += m*accel1(2);
-    P(6) += m*accel2(0);
-    P(7) += m*accel2(1);
-    P(8) += m*accel2(2);
-  } else  {
-    // use matrix vector multip. for consistent mass matrix
-    static Vector accel(12);
-    for (int i=0; i<6; i++)  {
-      accel(i)   = accel1(i);
-      accel(i+6) = accel2(i);
-    }
-    P.addMatrixVector(1.0, this->getMass(), accel, 1.0);
-  }
-    
-    // add the damping forces if rayleigh damping
-    if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-      P.addVector(1.0, this->getRayleighDampingForces(), 1.0);
-
-  } else {
-
-    // add the damping forces if rayleigh damping
-    if (betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-      P.addVector(1.0, this->getRayleighDampingForces(), 1.0);
-  }
-  
-  return P;
 }
 
 int

@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-// 
+//                              https://xara.so
+//===----------------------------------------------------------------------===// 
 // Description: This file implements the selection of a convergence test.
 //
 #include <tcl.h>

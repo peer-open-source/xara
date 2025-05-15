@@ -417,7 +417,7 @@ DispBeamColumnWarping3d::update()
            - ddNf3 * v(4) 
            - ddNv2 * v(7);
 
-    e(4) =    Nf1*v(0)                     // B ?
+    e(4) =    Nf1*v(0)                   // B ?
            + dNf3*v(4)
            + dNv1*v(3)
            + dNv2*v(7);

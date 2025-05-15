@@ -49,7 +49,7 @@
 #include <Channel.h>
 #include <Information.h>
 #include <Parameter.h>
-
+#include <Logging.h>
 #include <OPS_Globals.h>
 #include <elementAPI.h>
 
@@ -62,7 +62,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_HystereticSMMaterial)
 
     if (numHystereticSMMaterials == 0) {
         numHystereticSMMaterials++;
-        OPS_Error("HystereticSM: multi-point envelope + DCR recorders  - Code by Silvia Mazzoni, 2023 (silviamazzoni@yahoo.com) \n", 1);
+        opslog << "HystereticSM: multi-point envelope + DCR recorders  - Code by Silvia Mazzoni, 2023 (silviamazzoni@yahoo.com) \n";
     }
 
     // Pointer to a uniaxial material that will be returned

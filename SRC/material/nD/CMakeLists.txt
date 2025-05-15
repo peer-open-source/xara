@@ -7,19 +7,15 @@
 target_sources(OPS_Material
   PRIVATE
     NDMaterial.cpp
-    PlasticDamageConcrete3d.cpp
     LinearCap.cpp
     FSAM.cpp
     AcousticMedium.cpp
-    ASDConcrete3DMaterial.cpp
 #   ElasticPlaneStress.cpp
     VonPapaDamage.cpp
     ElasticOrthotropicMaterial.cpp
     ElasticOrthotropicPlaneStress.cpp
 
     J2AxiSymm.cpp
-    J2PlateFiber.cpp
-    J2PlateFibre.cpp
 
     CycLiqCP.cpp
     CycLiqCP3D.cpp
@@ -39,16 +35,13 @@ target_sources(OPS_Material
     OrthotropicMaterial.cpp
     Series3DMaterial.cpp
     Parallel3DMaterial.cpp
-  
     PressureDependentElastic3D.cpp
 
   PUBLIC
     NDMaterial.h
-    PlasticDamageConcrete3d.h
     LinearCap.h
     FSAM.h
     AcousticMedium.h
-    ASDConcrete3DMaterial.h
     ElasticOrthotropicMaterial.h
     ElasticOrthotropicPlaneStress.h
 #   ElasticPlaneStress.h
@@ -56,8 +49,6 @@ target_sources(OPS_Material
     PressureDependentElastic3D.h
 
     J2AxiSymm.h
-    J2PlateFiber.h
-    J2PlateFibre.h
 
     CycLiqCP.h
     CycLiqCP3D.h

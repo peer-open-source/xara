@@ -24,6 +24,8 @@
 #include <FEM_ObjectBroker.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
+#include <isoparametric.tpp>
+
 using namespace OpenSees;
 
 
@@ -51,15 +53,8 @@ FourNodeQuad::FourNodeQuad(int tag,
     b[1] = b2;
 
     for (int i = 0; i < NIP; i++) {
-
       // Get copies of the material model for each integration point
       theMaterial[i] = m.getCopy();
-                        
-      // Check allocation
-      if (theMaterial[i] == nullptr) {
-        opserr << "FourNodeQuad::FourNodeQuad -- failed to get a copy of material model\n";
-        return;
-      }
     }
 
     for (int i=0; i<NEN; i++) {
@@ -231,6 +226,7 @@ const Matrix&
 FourNodeQuad::getTangentStiff()
 {
     // See https://portwooddigital.com/2022/09/11/unrolling-the-four-node-quad/
+    
     // for a discussion of the following code.
     K.Zero();
 
@@ -272,6 +268,7 @@ FourNodeQuad::getTangentStiff()
           K(ia,ib+1)   += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
           K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
           K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+
           //              matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
           //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
           //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
@@ -994,13 +991,13 @@ FourNodeQuad::getResponse(int responseID, Information &eleInfo)
     // stressAtNodes
 
     // extrapolate stress from Gauss points to element nodes
-    static Vector stressGP(12);      // 3*nip
-    static Vector stressAtNodes(12); // 3*nnodes
+    static Vector stressGP(NST*NIP);   
+    static Vector stressAtNodes(3*NEN);
     stressAtNodes.Zero();
     int cnt = 0;
 
     // first get stress components (xx, yy, xy) at Gauss points
-    for (int i = 0; i < 4; i++) { // nip
+    for (int i = 0; i < NIP; i++) { // nip
       // Get material stress response
       const Vector &sigma = theMaterial[i]->getStress();
       stressGP(cnt+0) = sigma(0);
@@ -1010,18 +1007,17 @@ FourNodeQuad::getResponse(int responseID, Information &eleInfo)
     }
 
     // [nnodes][nip]
-    constexpr double We[4][4] = {{1.8660254037844386, -0.5, 0.1339745962155614, -0.5},
-                                 {-0.5, 1.8660254037844386, -0.5, 0.1339745962155614},
-                                 {0.1339745962155614, -0.5, 1.8660254037844386, -0.5},
-                                 {-0.5, 0.1339745962155614, -0.5, 1.8660254037844386}};
+    constexpr double We[4][NIP] = {{1.8660254037844386, -0.5, 0.1339745962155614, -0.5},
+                                   {-0.5, 1.8660254037844386, -0.5, 0.1339745962155614},
+                                   {0.1339745962155614, -0.5, 1.8660254037844386, -0.5},
+                                   {-0.5, 0.1339745962155614, -0.5, 1.8660254037844386}};
 
-    int l;
-    for (int i = 0; i < 4; i++) { // nnodes
-      for (int k = 0; k < 3; k++) { // number of stress components
-            int p = 3*i + k;
-            for (int j = 0; j < 4; j++) { // nip
-              l = 3*j + k;
-              stressAtNodes(p) += We[i][j] * stressGP(l);
+
+    for (int i = 0; i < NEN; i++) { // nnodes
+      for (int k = 0; k < NST; k++) { // number of stress components
+            int p = NST*i + k;
+            for (int j = 0; j < NIP; j++) { // nip
+              stressAtNodes(p) += We[i][j] * stressGP(NST*j + k);
             }
       }
     }

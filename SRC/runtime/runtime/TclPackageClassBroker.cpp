@@ -1,14 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Purpose: This file contains the class definition for TclPackageClassBroker.
 // TclPackageClassBroker is is an object broker class that is meant to become
 // a threadsafe replacement for the BrokerAllClasses class.
 // All methods are virtual to allow for subclasses; which can be
 // used by programmers when introducing new subclasses of the main objects.
+//===----------------------------------------------------------------------===//
 //
 #ifdef _PARALLEL_PROCESSING
 #  include <mpi.h>
@@ -1925,10 +1927,7 @@ TclPackageClassBroker::getNewTransientIntegrator(int classTag)
 
   case INTEGRATOR_TAGS_Newmark:
     return new Newmark();
-#if 0
-  case INTEGRATOR_TAGS_StagedNewmark:
-    return new StagedNewmark();
-#endif
+
   case INTEGRATOR_TAGS_NewmarkExplicit:
     return new NewmarkExplicit();
 
@@ -1940,10 +1939,7 @@ TclPackageClassBroker::getNewTransientIntegrator(int classTag)
 
   case INTEGRATOR_TAGS_NewmarkHSIncrReduct:
     return new NewmarkHSIncrReduct();
-#if 0
-  case INTEGRATOR_TAGS_PFEMIntegrator:
-    return new PFEMIntegrator();
-#endif
+
   case INTEGRATOR_TAGS_TRBDF2:
     return new TRBDF2();
 

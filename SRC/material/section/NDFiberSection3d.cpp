@@ -1060,31 +1060,31 @@ NDFiberSection3d::setResponse(const char **argv, int argc,
       int j;
       // Find first fiber with specified material tag
       for (j = 0; j < numFibers; j++) {
-	if (matTag == theMaterials[j]->getTag()) {
-	  ySearch = matData[3*j];
-	  zSearch = matData[3*j+1];
+        if (matTag == theMaterials[j]->getTag()) {
+          ySearch = matData[3*j];
+          zSearch = matData[3*j+1];
 
-	  dy = ySearch-yCoord;
-	  dz = zSearch-zCoord;
-	  closestDist = dy*dy + dz*dz;
-	  key = j;
-	  break;
-	}
+          dy = ySearch-yCoord;
+          dz = zSearch-zCoord;
+          closestDist = dy*dy + dz*dz;
+          key = j;
+          break;
+        }
       }
       // Search the remaining fibers
       for ( ; j < numFibers; j++) {
-	if (matTag == theMaterials[j]->getTag()) {
-	  ySearch = matData[3*j];
-	  zSearch = matData[3*j+1];
+        if (matTag == theMaterials[j]->getTag()) {
+          ySearch = matData[3*j];
+          zSearch = matData[3*j+1];
 
-	  dy = ySearch-yCoord;
-	  dz = zSearch-zCoord;
-	  distance = dy*dy + dz*dz;
-	  if (distance < closestDist) {
-	    closestDist = distance;
-	    key = j;
-	  }
-	}
+          dy = ySearch-yCoord;
+          dz = zSearch-zCoord;
+          distance = dy*dy + dz*dz;
+          if (distance < closestDist) {
+            closestDist = distance;
+            key = j;
+          }
+        }
       }
       passarg = 4;
     }
@@ -1105,15 +1105,15 @@ NDFiberSection3d::setResponse(const char **argv, int argc,
       closestDist = dy*dy + dz*dz;
       key = 0;
       for (int j = 1; j < numFibers; j++) {
-	ySearch = matData[3*j];
-	zSearch = matData[3*j+1];
-	dy = ySearch-yCoord;
-	dz = zSearch-zCoord;
-	distance = dy*dy + dz*dz;
-	if (distance < closestDist) {
-	  closestDist = distance;
-	  key = j;
-	}
+        ySearch = matData[3*j];
+        zSearch = matData[3*j+1];
+        dy = ySearch-yCoord;
+        dz = zSearch-zCoord;
+        distance = dy*dy + dz*dz;
+        if (distance < closestDist) {
+          closestDist = distance;
+          key = j;
+        }
       }
       passarg = 3;
     }

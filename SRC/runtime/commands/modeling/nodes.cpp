@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-// 
+//                              https://xara.so
+//===----------------------------------------------------------------------===// 
 // Description: This file implements commands that configure Node objects
 // for an analysis.
 //
@@ -39,9 +40,10 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   int ndf = builder->getNDF();
 
   // make sure corect number of arguments on command line
-  if (argc < 2 + ndm) {
-    opserr << OpenSees::PromptValueError << "insufficient arguments, expected:\n";
-    opserr << "      node nodeTag? [ndm coordinates?] <-mass [ndf values?]>\n";
+  if (argc < 2 + 1) { // ndm) {
+    opserr << OpenSees::PromptValueError 
+           << "insufficient arguments"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -56,47 +58,33 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // read in the coordinates and create the node
-  double xLoc, yLoc, zLoc;
-  if (ndm == 1) {
+  double xLoc=0, yLoc=0, zLoc=0;
+  if (ndm >= 1 && argc >= 3) {
     // create a node in 1d space
     if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid coordinate\n";
+      opserr << OpenSees::PromptValueError 
+             << "invalid coordinate " << argv[2] 
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   }
 
-  else if (ndm == 2) {
-    // create a node in 2d space
-    if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid 1st coordinate\n";
-      opserr << "node: " << nodeId << "\n";
-      return TCL_ERROR;
-    }
+  if (ndm >= 2 && argc >= 4) {
     if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid 2nd coordinate\n";
-      opserr << "node: " << nodeId << "\n";
+      opserr << OpenSees::PromptValueError 
+             << "invalid 2nd coordinate " << argv[3]
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   }
 
-  else if (ndm == 3) {
-    // create a node in 3d space
-    if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid 1st coordinate\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid 2nd coordinate\n";
-      return TCL_ERROR;
-    }
+  if (ndm >= 3 && argc >= 5) {
     if (Tcl_GetDouble(interp, argv[4], &zLoc) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid 3rd coordinate\n";
+      opserr << OpenSees::PromptValueError 
+             << "invalid 3rd coordinate " << argv[4]
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
-
-  } else {
-    opserr << OpenSees::PromptValueError << "unsupported model dimension\n";
-    return TCL_ERROR;
   }
 
   // check for -ndf override option

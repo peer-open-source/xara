@@ -134,13 +134,11 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
     nen = it->second;
 
   int argi = 3;
-  bool multi_node = false;
   std::vector<int> multi_nodes;
   {
     int list_argc;
     TCL_Char **list_argv;
     if (Tcl_SplitList(interp, argv[argi], &list_argc, &list_argv) == TCL_OK && list_argc >= 2) {
-      multi_node = true;
       for (int i = 0; i < list_argc; ++i) {
         int node;
         if (Tcl_GetInt(interp, list_argv[i], &node) != TCL_OK) {
@@ -183,7 +181,6 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
 
 
 
-  int argStart = 2;
   int mat_tag;
   NDMaterial *nd_mat = nullptr;
   double thickness = 1.0;

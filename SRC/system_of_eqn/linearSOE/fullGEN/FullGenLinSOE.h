@@ -64,11 +64,11 @@ class FullGenLinSOE : public LinearSOE
     
     int formAp(const Vector &p, Vector &Ap);
 
-    const Vector &getX(void);
-    const Vector &getB(void);    
-    const Matrix *getA(void);
+    const Vector &getX();
+    const Vector &getB();    
+    const Matrix *getA();
 
-    double normRHS(void);
+    double normRHS();
 
     void setX(int loc, double value);        
     void setX(const Vector &x);        
@@ -84,9 +84,8 @@ class FullGenLinSOE : public LinearSOE
     
   private:
     int size;    
-    double *A, *B, *X;
-    Vector *vectX;
-    Vector *vectB;    
+    double *A;
+    Vector B, X;  
     Matrix *matA;
     int Asize, Bsize;
     bool factored;
