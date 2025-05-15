@@ -74,17 +74,6 @@ public:
 	  friend class CuSPSolver;
 #endif
 
-  void setX(int loc, double value);
-  void setX(const Vector& x);
-  int setSparseGenRowSolver(SparseGenRowLinSolver& newSolver);
-
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
-  friend class PetscSparseSeqSolver;
-  friend class CulaSparseSolverS4;
-  friend class CulaSparseSolverS5;
-  friend class CuSPSolver;
-
 protected:
 private:
   int size;  // order of A
