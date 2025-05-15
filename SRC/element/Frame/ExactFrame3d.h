@@ -36,7 +36,6 @@ public:
   ExactFrame3d(int tag, std::array<int,nen>& nodes,
                FrameSection *section[nen-1], 
                FrameTransform3d& transf
-//             int mass_type
   );
 
   ~ExactFrame3d();
