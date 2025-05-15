@@ -31,6 +31,7 @@
 #include <Matrix3D.h>
 #include <Rotations.hpp>
 #include "Orient/CrisfieldTransform.h"
+
 using namespace OpenSees;
 
 template <int nn, int ndf>
@@ -618,6 +619,7 @@ SouzaFrameTransf<nn,ndf>::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl
       &rJ1 = rJ[1], // .rotate(E1), 
       &rJ2 = rJ[2], // .rotate(E2), 
       &rJ3 = rJ[3]; // .rotate(E3);
+
     // NOTE[cmp]
     // SouzaFrameTransf::compTransfMatrixBasicGlobal must be 
     // called first to set Lr1, Lr2 and T

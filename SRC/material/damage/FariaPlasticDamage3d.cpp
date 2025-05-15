@@ -13,7 +13,6 @@
 #include <MatrixND.h>
 #include <cmath>
 #include <Projector.hh>
-// #include <concrete/StrsDec.cpp>
 
 #define MND
 using namespace OpenSees;
@@ -74,7 +73,10 @@ StrsInvar(const VectorND<6> &sig, double &sigoct, double &tauoct)
 template <typename T> static inline int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
+
 #if 1
+#include <concrete/StrsDec.cpp>
+#else
 static inline void
 StrsDecA(const Vector &sig, VectorND<6> &sigpos, //VectorND<6> &signeg, 
                             MatrixND<6,6> *Qpos) //,   MatrixND<6,6> *Qneg)
@@ -143,9 +145,9 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   double k = std::sqrt(2.0)*(F2c - Fc)/(2.*F2c - Fc);
   // initial damage threshold
   double rp0 = ft/sqrt(E);
-  double rn0 = sqrt((-k+sqrt(2.0))*Fc/sqrt(3.0));
+  double rn0 = sqrt((-k + sqrt(2.0))*Fc/sqrt(3.0));
 
-  constexpr static double tol = 1e-5;
+  constexpr static double toln = 1e-10, tolp = 1e-5;
 
   // retrieve history variables
   eps_p = eps_pCommit;
@@ -187,11 +189,10 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   // double taun = std::sqrt(std::sqrt(3.0)*(k*sigoct + tauoct)); // negative equivalent stress
 
   MatrixND<6,6> Cbar{};
-  if (negative_surface(signeg, rn, k) <= (tol*rn0)) {
+  if (negative_surface(signeg, rn, k) <= (toln*rn0)) {
     // elastic state, accept trial response
     sige = sige_tr;                                                    
-    Cbar = Ce;
-    // opserr << "Elastic state, accept trial response" << endln;                                                    
+    Cbar = Ce;                                              
   }
   else {
     // Correction
@@ -220,11 +221,10 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
     // StrsInvar(signeg, sigoct, tauoct);                  //  find octahedral stresses
     // taun = sqrt(sqrt(3.0)*(k*sigoct + tauoct));         //  negative equivalent stress
     // taun - rn
-    if ((negative_surface(signeg, rn, k) <= tol*rn0) || (L_trDotDeps <= 0.0)) {
+    if ((negative_surface(signeg, rn, k) <= toln*rn0) || (L_trDotDeps <= 0.0)) {
       //  no damage or sige and eps in different direction
       sige = sige_tr;
       Cbar = Ce;
-      opserr << "No damage or sige and eps in different direction" << endln;
     }
 
     else {
@@ -267,27 +267,29 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   signeg -= sigpos;                 // signeg = sige - sigpos
   Qneg   -= Qpos;
 
-  // calculate equivalent stresses
-  VectorND<6> tmp{}; //  = Se*sigpos; // {}
-  Ce.solve(sigpos, tmp);
-  double taup = std::sqrt(tmp.dot(sigpos));      // positive equivalent stress
-
-  double Ddp_Drp = 0.;
-
   // positive damage
-  if ((taup - rp) <= (tol*rp0)) {                // no positive damage
-    Ddp_Drp = 0;
-  }
-  else {                                         // positive damage evolves
-    rp = taup;                                   // update rp = max(taup, rp)
-    dp = 1. - rp0/rp * std::exp(Ap*(1. - rp/rp0));
+  double taup,Ddp_Drp = 0.;
+  {
+  // calculate equivalent stresses
+    VectorND<6> tmp{}; //  = Se*sigpos; // {}
+    Ce.solve(sigpos, tmp);
+    taup = std::sqrt(tmp.dot(sigpos));      // positive equivalent stress
 
-    Ddp_Drp =  (Ap*rp + rp0)/(rp*rp) * std::exp(Ap*(1 - rp/rp0));               
-    dp = dp*(1-tol);                             // cap the damage variable 
-    Ddp_Drp = Ddp_Drp*(1-tol);        
-    if (dp > 1.-tol) {
-      dp = 1.- tol; 
+
+    if ((taup - rp) <= (tolp*rp0)) {               // no positive damage
       Ddp_Drp = 0;
+    }
+    else {                                         // positive damage evolves
+      rp = taup;                                   // update rp = max(taup, rp)
+      dp = 1. - rp0/rp * std::exp(Ap*(1. - rp/rp0));
+
+      Ddp_Drp =  (Ap*rp + rp0)/(rp*rp) * std::exp(Ap*(1. - rp/rp0));               
+      dp = dp*(1-tolp);                             // cap the damage variable 
+      Ddp_Drp = Ddp_Drp*(1.-tolp);
+      if (dp > 1.-tolp) {
+        dp = 1.- tolp; 
+        Ddp_Drp = 0;
+      }
     }
   }
 
@@ -295,21 +297,23 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   // double sigoct, tauoct;
   // StrsInvar(signeg, sigoct, tauoct);             // find octahedral stresses
   // double taun = sqrt((sqrt(3.)*(k*sigoct + tauoct)));   // negative equivalent stress
-  double gn = negative_surface(signeg, rn, k); // negative equivalent stress
   double Ddn_Drn = 0;
-  if (gn <= tol*rn0) {                    // no negative damage
-    Ddn_Drn = 0;
-  }
-  else {                                  // negative damage evolves
-    // rn = taun;                         // update rn
-    rn += gn;
-    dn = 1 - rn0/rn*(1-An) - An*exp(Bn*(1. - rn/rn0));
-    Ddn_Drn = rn0/(rn*rn)*(1-An) + An*Bn/rn0*exp(Bn*(1. - rn/rn0));
-    dn = dn*(1-tol);                             // cap the damage variable
-    Ddn_Drn = Ddn_Drn*(1-tol);
-    if (dn > 1-tol) {
-      dn = 1- tol;
+  double gn = negative_surface(signeg, rn, k); // negative equivalent stress
+  {
+    if (gn <= toln*rn0) {                    // no negative damage
       Ddn_Drn = 0;
+    }
+    else {                                  // negative damage evolves
+      // rn = taun;                         // update rn
+      rn += gn;
+      dn = 1 - rn0/rn*(1-An) - An*std::exp(Bn*(1. - rn/rn0));
+      Ddn_Drn = rn0/(rn*rn)*(1-An) + An*Bn/rn0*exp(Bn*(1. - rn/rn0));
+      dn = dn*(1.-toln);                     // cap the damage variable
+      Ddn_Drn = Ddn_Drn*(1.-toln);
+      if (dn > 1.-toln) {
+        dn = 1.- toln;
+        Ddn_Drn = 0;
+      }
     }
   }
 
@@ -321,59 +325,64 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   // TANGENT
   //
   {
-    MatrixND<6,6> Dsigpos_Deps = Qpos*Cbar;
-    MatrixND<6,6> Dsigneg_Deps = Qneg*Cbar;
-    VectorND<6> s = IIdevMix*signeg;            // deviatoric stress
-
-    // norm of deviatoric stress
-    double nrms = sqrt( pow(s(0),2) + pow(s(1),2) + pow(s(2),2) +  
-                      2*pow(s(3),2) + 2*pow(s(4),2) + 2*pow(s(5),2));
-
-    VectorND<6> n = s;
-    if (nrms <= tol) 
-      n.zero(); 
-    else {
-      n/=nrms;
-    }
-
-    VectorND<6> Dtaup_Dsigpos{};
-    if (taup <= tol) {
-      Dtaup_Dsigpos.zero();
-    }
-    else  {
-      // Dtaup_Dsigpos = Se*sigpos;
-      Ce.solve(sigpos, Dtaup_Dsigpos);
-      Dtaup_Dsigpos/=taup;
-    }
-
-    VectorND<6> Dtaun_Dsigneg{};
-    if (gn <= tol) {
-      Dtaun_Dsigneg.zero();
-    }
-    else {
-      double sigoct, tauoct;
-      StrsInvar(signeg, sigoct, tauoct);             // find octahedral stresses
-      double taun = sqrt((sqrt(3.)*(k*sigoct + tauoct)));   // negative equivalent stress
-
-      double Dtaun_Dsigoct = pow(3,0.25) * k/2./sqrt(k*sigoct + tauoct);
-      double Dtaun_Dtauoct = pow(3,0.25) / 2./sqrt(k*sigoct + tauoct);
-      Dtaun_Dsigneg.addVector(0.0, ivol, 1./3.0*Dtaun_Dsigoct); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
-      Dtaun_Dsigneg.addVector(1.0,    n, Dtaun_Dtauoct/std::sqrt(3.0)); // += Dtaun_Dtauoct * Dtauoct_Dsigneg
-    }
-
-
-    // Ddp_Deps = Ddp_Drp * Dsigpos_Deps' * Dtaup_Dsigpos;
-    VectorND<6> Ddp_Deps = Dsigpos_Deps ^ Dtaup_Dsigpos;
-    Ddp_Deps *= Ddp_Drp; 
-
-    VectorND<6> Ddn_Deps = Dsigneg_Deps ^ Dtaun_Dsigneg;
-    Ddn_Deps *= Ddn_Drn;
-    
     C.zero();
-    C.addMatrix(Dsigpos_Deps , (1-dp));
-    C.addMatrix(Dsigneg_Deps , (1-dn));
-    C.addTensorProduct(sigpos, Ddp_Deps, -1.0);
-    C.addTensorProduct(signeg, Ddn_Deps, -1.0);
+    // Negative part
+    {
+      MatrixND<6,6> Dsigneg_Deps = Qneg*Cbar;
+      VectorND<6> s = IIdevMix*signeg;            // deviatoric stress
+
+      // norm of deviatoric stress
+      double nrms = sqrt( pow(s(0),2) + pow(s(1),2) + pow(s(2),2) +  
+                        2*pow(s(3),2) + 2*pow(s(4),2) + 2*pow(s(5),2));
+
+      VectorND<6> n = s;
+      if (nrms <= 1e-8) //toln) 
+        n.zero(); 
+      else {
+        n/=nrms;
+      }
+
+      VectorND<6> Dtaun_Dsigneg{};
+      if (gn <= toln) {
+        Dtaun_Dsigneg.zero();
+      }
+      else {
+        double sigoct, tauoct;
+        StrsInvar(signeg, sigoct, tauoct);             // find octahedral stresses
+        double taun = sqrt((sqrt(3.)*(k*sigoct + tauoct)));   // negative equivalent stress
+
+        double Dtaun_Dsigoct = pow(3,0.25) * k/2./sqrt(k*sigoct + tauoct);
+        double Dtaun_Dtauoct = pow(3,0.25) / 2./sqrt(k*sigoct + tauoct);
+        Dtaun_Dsigneg.addVector(0.0, ivol, 1./3.0*Dtaun_Dsigoct); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
+        Dtaun_Dsigneg.addVector(1.0,    n, Dtaun_Dtauoct/std::sqrt(3.0)); // += Dtaun_Dtauoct * Dtauoct_Dsigneg
+      }
+
+      VectorND<6> Ddn_Deps = Dsigneg_Deps ^ Dtaun_Dsigneg;
+      Ddn_Deps *= Ddn_Drn;
+      C.addMatrix(Dsigneg_Deps , (1-dn));
+      C.addTensorProduct(signeg, Ddn_Deps, -1.0);
+    }
+
+    // Positive part
+    {
+      MatrixND<6,6> Dsigpos_Deps = Qpos*Cbar;
+      VectorND<6> Dtaup_Dsigpos{};
+      if (taup <= tolp) {
+        Dtaup_Dsigpos.zero();
+      }
+      else  {
+        // Dtaup_Dsigpos = Se*sigpos;
+        Ce.solve(sigpos, Dtaup_Dsigpos);
+        Dtaup_Dsigpos/=taup;
+      }
+
+      // Ddp_Deps = Ddp_Drp * Dsigpos_Deps' * Dtaup_Dsigpos;
+      VectorND<6> Ddp_Deps = Dsigpos_Deps ^ Dtaup_Dsigpos;
+      Ddp_Deps *= Ddp_Drp; 
+
+      C.addMatrix(Dsigpos_Deps , (1-dp));
+      C.addTensorProduct(sigpos, Ddp_Deps, -1.0);
+    }
   }
   return 0;
 }
@@ -484,6 +493,7 @@ FariaPlasticDamage3d::revertToStart()
   Ce.zero();
   Ce.addMatrix(IIvol, K);
   Ce.addMatrix(IIdevCon, 2.*G);
+  // Ce.addMatrix(IIdevMix, 2*G);
 
   C = Ce;
 

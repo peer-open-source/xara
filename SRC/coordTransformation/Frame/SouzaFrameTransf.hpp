@@ -118,14 +118,14 @@ private:
     double *nodeIInitialDisp, *nodeJInitialDisp;
     bool  initialDispChecked;                    
 
-    double L;                        // initial element length
-    double Ln;                       // current element length (at trial state)
+    double L;                       // initial element length
+    double Ln;                      // current element length (at trial state)
 
-    Versor Q_past[nn];                // commited rotations
-    Versor Q_pres[nn];                // trial rotations
+    Versor Q_past[nn];              // commited rotations
+    Versor Q_pres[nn];              // trial rotations
 
-    Vector3D alphaI;                 // last trial rotations end i
-    Vector3D alphaJ;                 // last trial rotatations end j
+    Vector3D alphaI;                // last trial rotations end i
+    Vector3D alphaJ;                // last trial rotatations end j
 
     VectorND<n> ul;                 // local displacements (size=7)
     Vector3D    vr[nn];             //

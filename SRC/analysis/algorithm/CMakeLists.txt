@@ -14,4 +14,4 @@ target_sources(OPS_Analysis
 
 add_subdirectory(domainDecompAlgo)
 add_subdirectory(equiSolnAlgo)
-add_subdirectory(eigenAlgo)
+# add_subdirectory(eigenAlgo)
