@@ -22,7 +22,6 @@
 //
 // Implementation of a corotational coordinate transformation 3-node shells
 //
-
 #ifndef ASDShellT3CorotationalTransformation_h
 #define ASDShellT3CorotationalTransformation_h
 #include <Vector3D.h>
@@ -61,15 +60,10 @@ class ASDShellT3CorotationalTransformation : public ASDShellT3Transformation
 {
 
 public:
-
     typedef Vector3D Vector3Type;
-
     typedef ASDQuaternion<double> QuaternionType;
-
     typedef Vector VectorType;
-
     typedef Matrix MatrixType;
-
     typedef std::array<Node*, 3> NodeContainerType;
 
 public:
@@ -381,7 +375,6 @@ public:
     {
         if ((v.Size() - pos) < internalDataSize()) {
             opserr << "ASDShellT3CorotationalTransformation - failed to save internal data: vector too small\n";
-            exit(-1);
         }
 
         // 18 -> initial displacement +
@@ -418,7 +411,6 @@ public:
     {
         if ((v.Size() - pos) < internalDataSize()) {
             opserr << "ASDShellT3CorotationalTransformation - failed to restore internal data: vector too small\n";
-            exit(-1);
         }
         
         // 18 -> initial displacement +
