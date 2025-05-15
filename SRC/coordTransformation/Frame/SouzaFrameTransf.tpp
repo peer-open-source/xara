@@ -253,6 +253,7 @@ SouzaFrameTransf<nn,ndf>::getNodePosition(int tag)
   for (int i=0; i<3; i++)
     u[i] = ul[tag*ndf+i];
   return u;
+
   // Vector3D v;
   // const Vector& u = nodes[tag]->getTrialDisp();
   // for (int i=0; i<3; i++)
@@ -587,6 +588,7 @@ SouzaFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const Vector
 
   return K;
 }
+
 
 //
 // Add geometric part of the transformation tangent

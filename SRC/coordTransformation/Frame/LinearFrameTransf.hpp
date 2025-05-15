@@ -26,7 +26,7 @@ class LinearFrameTransf: public FrameTransform<nn,ndf>
 public:
     constexpr static int n = nn*ndf;
 
-    LinearFrameTransf(int tag, 
+    LinearFrameTransf(int tag,
                       const Vector3D &vecxz,
                       const std::array<Vector3D, nn> *offset=nullptr,
                       int offset_flags = 0);
