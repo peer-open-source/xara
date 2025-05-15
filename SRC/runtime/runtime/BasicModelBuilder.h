@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Description: This file contains the class definition for
 // BasicModelBuilder. A BasicModelBuilder aims to be a threadsafe
 // alternative to the TclBasicBuilder class. This class adds the commands to
