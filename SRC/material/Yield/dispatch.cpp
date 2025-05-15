@@ -13,7 +13,7 @@
 
 
 int
-TclBasicBuilderYieldSurface_BCCommand(ClientData clientData, Tcl_Interp *interp,
+TclCommand_addYieldSurface_BC(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
   int tag;
@@ -878,7 +878,7 @@ TclCombinedIsoKin2D02Command(ClientData clientData, Tcl_Interp *interp, int argc
 }
 
 int
-TclBasicBuilderYS_EvolutionModelCommand(ClientData clientData,
+TclCommand_addYS_EvolutionModel(ClientData clientData,
                                         Tcl_Interp *interp, int argc,
                                         TCL_Char ** const argv)
 {
@@ -1108,7 +1108,7 @@ TclNullPlasticMaterialCommand(ClientData clientData, Tcl_Interp *interp,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int
-TclBasicBuilderPlasticMaterialCommand(ClientData clientData, Tcl_Interp *interp,
+TclCommand_addYS_PlasticMaterial(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
 
