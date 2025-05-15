@@ -1,56 +1,39 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
 //
-#ifndef PlasticDamageConcrete3d_h
-#define PlasticDamageConcrete3d_h
-
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
+//
+//
+#pragma once
+//
 // Written: Thanh Do
 // Created: 07/16
 //
-// Description: 
-//
-// What: "@(#) ElasticIsotropicThreeDimesnional.h, revA"
-
-#include <ElasticIsotropicMaterial.h>
-
-#include <Matrix.h>
+#include <NDMaterial.h>
 #include <MatrixND.h>
-#include <Vector.h>
 #include <ID.h>
+class Vector;
+class Matrix;
+class Channel;
 
-class PlasticDamageConcrete3d : public NDMaterial
+class FariaPlasticDamage3d : public NDMaterial
 {
   public:
-  PlasticDamageConcrete3d(int tag, 
-                          double E, 
-                          double nu, 
-                          double ft,
-                          double fc, 
-                          double beta = 0.6, 
-                          double Ap = 0.5, 
-                          double An = 2.0, 
-                          double Bn = 0.75);
-    PlasticDamageConcrete3d();
-    ~PlasticDamageConcrete3d();
+  FariaPlasticDamage3d(int tag, 
+                        double E, 
+                        double nu, 
+                        double ft,
+                        double fc, 
+                        double beta, 
+                        double Ap, 
+                        double An, 
+                        double Bn,
+                        double density);
+    FariaPlasticDamage3d();
+    ~FariaPlasticDamage3d();
 
-    const char *getClassType() const {return "PlasticDamageConcrete3d";}
+    const char *getClassType() const {return "FariaPlasticDamage";}
 
     int setTrialStrain (const Vector &v);
     int setTrialStrain (const Vector &v, const Vector &r);
@@ -66,14 +49,14 @@ class PlasticDamageConcrete3d : public NDMaterial
     int revertToLastCommit();
     int revertToStart();
 
-    NDMaterial*getCopy(const char *type);
+    NDMaterial *getCopy(const char *type);
     NDMaterial *getCopy();
     const char *getType() const;
     int getOrder() const;
 
     int sendSelf(int commitTag, Channel &);  
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
-    void Print(OPS_Stream &s, int flag =0);       
+    void Print(OPS_Stream &s, int flag);       
 
   protected:
 
@@ -82,7 +65,7 @@ class PlasticDamageConcrete3d : public NDMaterial
     double E;     // elastic modulus
     double nu;    // Poisson ratio 
     double ft;    // tensile yield strength
-    double fc;    // compressive yield strength
+    double Fc;    // compressive yield strength
     double beta;  // plastic deformation rate
     double Ap;    // damage parameter
     double An;    // damage parameter
@@ -98,7 +81,6 @@ class PlasticDamageConcrete3d : public NDMaterial
     OpenSees::VectorND<6> sig;   // stress
     OpenSees::VectorND<6> sige;  // effective stress
     OpenSees::VectorND<6> eps_p; // plastic strain
-    // OpenSees::VectorND<6> sigeP; // effective stress
 
     // committed state variables
     double rpCommit; 
@@ -109,11 +91,13 @@ class PlasticDamageConcrete3d : public NDMaterial
     OpenSees::VectorND<6> epsCommit;
     OpenSees::VectorND<6> sigCommit;
     OpenSees::VectorND<6> sigeCommit;  
-    OpenSees::VectorND<6> eps_pCommit; 
-    // Vector sigePCommit;
+    OpenSees::VectorND<6> eps_pCommit;
 
     // tangent matrices
     OpenSees::MatrixND<6,6> Ce, C, Ccommit; 
+    Matrix retTangent, retInitialTangent;
+    Vector retStress, retStrain;
+
+    double density;
 };
 
-#endif
