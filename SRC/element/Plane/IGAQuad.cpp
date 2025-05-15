@@ -266,7 +266,7 @@ IGAQuad::getExternalNodes()
 
 
 Node **
-IGAQuad::getNodePtrs(void) 
+IGAQuad::getNodePtrs() 
 {
   return theNodes;
 }
@@ -603,30 +603,29 @@ IGAQuad::zeroLoad(void)
 int 
 IGAQuad::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-        // Added option for applying body forces in load pattern: C.McGann, U.Washington
-        int type;
-        const Vector &data = theLoad->getData(type, loadFactor);
+    // Added option for applying body forces in load pattern: C.McGann, U.Washington
+    int type;
+    const Vector &data = theLoad->getData(type, loadFactor);
 
-        if (type == LOAD_TAG_SelfWeight) {
-                applyLoad = 1;
-                appliedB[0] += loadFactor*data(0)*b[0];
-                appliedB[1] += loadFactor*data(1)*b[1];
-                return 0;
-        } else {
-                opserr << "IGAQuad::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
-                return -1;
-        } 
-
+    if (type == LOAD_TAG_SelfWeight) {
+        applyLoad = 1;
+        appliedB[0] += loadFactor*data(0)*b[0];
+        appliedB[1] += loadFactor*data(1)*b[1];
+        return 0;
+    } else {
+        opserr << "IGAQuad::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
         return -1;
+    } 
+
+    return -1;
 }
 
 int 
 IGAQuad::addInertiaLoadToUnbalance(const Vector &accel)
 {
-  int i;
   static double rhoi[4];
   double sum = 0.0;
-  for (i = 0; i < numCPs; i++) {
+  for (int i = 0; i < numCPs; i++) {
     rhoi[i] = theMaterial[i]->getRho();
     sum += rhoi[i];
   }
@@ -636,7 +635,7 @@ IGAQuad::addInertiaLoadToUnbalance(const Vector &accel)
   
   // Get R * accel from the nodes
   static Vector ra(ndof);
-  for (i = 1; i <= numCPs; i++) {
+  for (int i = 1; i <= numCPs; i++) {
       const Vector& Raccel_temp = theNodes[i - 1]->getRV(accel);
       ra[i - 1] = Raccel_temp(0);
       ra[2 * i - 1] = Raccel_temp(1);
@@ -668,7 +667,7 @@ IGAQuad::addInertiaLoadToUnbalance(const Vector &accel)
   
   // Want to add ( - fact * M R * accel ) to unbalance
   // Take advantage of lumped mass matrix
-  for (i = 0; i < ndof; i++)
+  for (int i = 0; i < ndof; i++)
     Q(i) += -K(i,i)*ra[i];
   
   return 0;
@@ -679,9 +678,9 @@ IGAQuad::addInertiaLoadToUnbalance(const Vector &accel)
 const Vector&
 IGAQuad::getResistingForce()
 {
-        P.Zero();
+    P.Zero();
 
-        double dvol;
+    double dvol;
     Vector DataJ(2);//J1,J2 for IGA
 
 
