@@ -124,16 +124,32 @@ class Brick : public Element {
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
 
-  private : 
+  private :
+
+    //
+    // private methods
+    //
+
+    void formInertiaTerms( int tangFlag ) ;
+    void formResidAndTangent( int tang_flag ) ;
+    void computeBasis();
+    const Matrix& computeB( int node, const double shp[4][8] ) ;
+  
+
     //
     // private attributes
     //
+    constexpr static int NEN = 8,  // number of element nodes
+                         NDM = 3,  // Spatial dimensions
+                         NDF = 3,  // number of element dof
+                         NIP = 8,  // number of integration points
+                         NST = 6;  // number of stress components
 
-    ID connectedExternalNodes ;  //four node numbers
+    ID connectedExternalNodes ;  // four node tags
     std::array<Node *, 8> theNodes;      //pointers to eight nodes
 
-    //material information
-    NDMaterial *materialPointers[8]; //pointers to eight materials
+    // material information
+    NDMaterial *materialPointers[NIP]; //pointers to eight materials
 
     double b[3];		// Body forces
     double appliedB[3];		// Body forces applied with load
@@ -155,31 +171,12 @@ class Brick : public Element {
     static const double root3 ;
     static const double one_over_root3 ;    
     static const double sg[2] ;
-    static const double wg[8] ;
+    static const double wg[NIP] ;
   
     //local nodal coordinates, three coordinates for each of four nodes
-    static double xl[3][8] ; 
+    static double xl[3][8]; 
 
-    //
-    // private methods
-    //
-
-    //inertia terms
-    void formInertiaTerms( int tangFlag ) ;
-
-    //form residual and tangent					  
-    void formResidAndTangent( int tang_flag ) ;
-
-    //compute coordinate system
-    void computeBasis( ) ;
-
-    //compute B matrix
-    const Matrix& computeB( int node, const double shp[4][8] ) ;
-  
-    //Matrix transpose
-    Matrix transpose( int dim1, int dim2, const Matrix &M ) ;
-
-} ; 
+}; 
 
 #endif
 

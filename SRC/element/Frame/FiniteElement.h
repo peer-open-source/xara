@@ -16,7 +16,6 @@ using namespace OpenSees;
 
 #include <State.h>
 
-
 template <int nen, int ndm, int ndf>
 class FiniteElement : public Element {
 public:
@@ -40,7 +39,6 @@ public:
          }
      }
 
-//  ~FiniteElement();
 
     // For Element
     virtual const ID& getExternalNodes() final {
@@ -83,34 +81,6 @@ public:
 //        return;
     }
 
-//  virtual const Vector &getResistingForce();
-//  virtual const Vector &getResistingForceIncInertia();
-//  virtual const Matrix &getTangentStiff();
-//  virtual const Matrix &getInitialStiff();
-//  virtual const Matrix &getMass();    
-
-//  //
-//  // Implemented by Children   
-//  //
-//  int  commitState();
-//  int  revertToLastCommit();
-//  int  revertToStart();
-//  void update();
-
-//  void zeroLoad();
-//  const char *getClassType() const;
-//  int addLoad(ElementalLoad *theLoad, double loadFactor);
-
-//  const Vector &getResistingForce();
-//  const Vector &getResistingForceIncInertia();            
-
-//  int sendSelf(int commit, Channel &theChan);
-//  int recvSelf(int commit, Channel &theChan, FEM_ObjectBroker &theBroker);
-
-//  void Print(OPS_Stream &s, int flag =0);
-
-//  Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-//  int getResponse(int responseID, Information &eleInfo);
 
 protected:
 
@@ -128,7 +98,7 @@ protected:
 #endif
 
 // TODO: Rename setNodes to setReference
-    virtual                       int setNodes() = 0;
+    virtual int setNodes() = 0;
 
     // Supplied for children
     inline int setState(State state) {

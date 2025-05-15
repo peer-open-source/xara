@@ -378,10 +378,17 @@ MultiLinear::recvSelf(int cTag, Channel& theChannel,
 void
 MultiLinear::Print(OPS_Stream& s, int flag)
 {
-    s << "MultiLinear tag: " << this->getTag() << endln;
-    s << "  stress: " << tStress << " tangent: " << tTangent << endln;
-    s << "tSlope: " << tSlope << "numSlope: " << numSlope << endln;
-    s << data;
+    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
+        s << "\"type\": \"MultiLinear\", ";
+        s << "\"tag\": " << this->getTag();
+        s << "}";
+    } else {
+        s << "MultiLinear tag: " << this->getTag() << endln;
+        s << "  stress: " << tStress << " tangent: " << tTangent << endln;
+        s << "tSlope: " << tSlope << "numSlope: " << numSlope << endln;
+        s << data;
+    }
 }
 
 // AddingSensitivity:BEGIN ///////////////////////////////////

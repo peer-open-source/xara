@@ -1,11 +1,13 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Description: This file contains the function invoked when the user invokes
 // the section command in the interpreter.
+//===----------------------------------------------------------------------===//
 //
 // Membrane      nxx nyy nxy
 // MembranePlate nxx nyy nxy mxx myy mxy vxz vyz
@@ -1086,8 +1088,9 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  double yLoc, zLoc, area;
+  double yLoc, zLoc=0, area;
   int matTag;
+  bool warn_2d_z = false;
   static constexpr int WarpModeCount = 3;
   double warp[WarpModeCount][3]{};
   int warp_arg = -1;
@@ -1102,6 +1105,10 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       warp_arg = i+1;
       i++;
+    }
+    else if (strcmp(argv[i], "-warn-2d-z") == 0) {
+        warn_2d_z = true;
+        i++;
     }
     else if (strcmp(argv[i], "-material") == 0) {
       if (argc == ++i || Tcl_GetInt(interp, argv[i], &matTag) != TCL_OK) {
@@ -1172,6 +1179,11 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
     }
   }
 
+  if (builder->getNDM() == 2) {
+    if (warn_2d_z && zLoc != 0.0) {
+      opswrn << OpenSees::SignalWarning << "z coordinate ignored in 2D\n";
+    }
+  }
   if (tracker.current() != Position::End) {
     opserr << OpenSees::PromptValueError << "missing required arguments: ";
     while (tracker.current() != Position::End) {

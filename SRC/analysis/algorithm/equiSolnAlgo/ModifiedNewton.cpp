@@ -68,10 +68,9 @@ OPS_ADD_RUNTIME_VPV(OPS_ModifiedNewton)
     }
 
     return new ModifiedNewton(formTangent, iFactor, cFactor);
-
 }
 
-// Constructor
+
 ModifiedNewton::ModifiedNewton(int theTangentToUse, double iFact, double cFact)
 :EquiSolnAlgo(EquiALGORITHM_TAGS_ModifiedNewton),
  tangent(theTangentToUse), iFactor(iFact), cFactor(cFact)
@@ -87,7 +86,7 @@ ModifiedNewton::ModifiedNewton(ConvergenceTest &theT, int theTangentToUse, doubl
 
 }
 
-// Destructor
+
 ModifiedNewton::~ModifiedNewton()
 {
 
@@ -95,7 +94,7 @@ ModifiedNewton::~ModifiedNewton()
 
 
 int 
-ModifiedNewton::solveCurrentStep(void)
+ModifiedNewton::solveCurrentStep()
 {
     // set up some pointers and check they are valid
     // NOTE this could be taken away if we set Ptrs as protecetd in superclass
@@ -188,7 +187,7 @@ ModifiedNewton::Print(OPS_Stream &s, int flag)
 }
 
 int
-ModifiedNewton::getNumIterations(void)
+ModifiedNewton::getNumIterations()
 {
   return numIterations;
 }

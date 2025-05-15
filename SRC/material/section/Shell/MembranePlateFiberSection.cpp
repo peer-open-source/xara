@@ -132,8 +132,7 @@ MembranePlateFiberSection::revertToStart()
 {
   int success = 0;
 
-  int i;
-  for (i = 0; i < numFibers; i++)
+  for (int i = 0; i < numFibers; i++)
     success += theFibers[i]->revertToStart();
 
   return success;
@@ -155,7 +154,7 @@ MembranePlateFiberSection::getRho()
   return rhoH;
 }
 
-
+ 
 int
 MembranePlateFiberSection::setTrialSectionDeformation(const Vector& strainResultant_from_element)
 {

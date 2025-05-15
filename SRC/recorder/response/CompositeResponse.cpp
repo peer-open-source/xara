@@ -32,7 +32,7 @@
 #include <Vector.h>
 #include <ID.h>
 
-CompositeResponse::CompositeResponse(void)
+CompositeResponse::CompositeResponse()
   :Response(), theResponses(0), numResponses(0)
 {
 
@@ -129,7 +129,7 @@ CompositeResponse::addResponse(Response *nextResponse)
 
 
 int 
-CompositeResponse::getResponse(void)
+CompositeResponse::getResponse()
 {
   int res = 0;
 
@@ -146,22 +146,22 @@ CompositeResponse::getResponse(void)
 
     if (otherType.theType == DoubleType || otherType.theType == VectorType) {
       if (otherType.theType == DoubleType)
-	(*myInfo.theVector)(currentLoc++) = otherType.theDouble;
+        (*myInfo.theVector)(currentLoc++) = otherType.theDouble;
       else {
-	int otherSize = otherType.theVector->Size();
-	for (int i=0; i<otherSize; i++, currentLoc++) 
-	  (*myInfo.theVector)(currentLoc) = (*otherType.theVector)(i);
+        int otherSize = otherType.theVector->Size();
+        for (int i=0; i<otherSize; i++, currentLoc++) 
+          (*myInfo.theVector)(currentLoc) = (*otherType.theVector)(i);
       }
     } else if (otherType.theType == IntType || otherType.theType == IdType) {
       if (otherType.theType == IntType) {
-	(*myInfo.theID)(currentLoc++) = otherType.theInt;
+        (*myInfo.theID)(currentLoc++) = otherType.theInt;
       }
       else {
-	int otherSize = otherType.theID->Size();
-	for (int i=0; i<otherSize; i++, currentLoc++) 
-	  (*myInfo.theID)(currentLoc) = (*otherType.theID)(i);
-      }    
-    }    
+        int otherSize = otherType.theID->Size();
+        for (int i=0; i<otherSize; i++, currentLoc++) 
+          (*myInfo.theID)(currentLoc) = (*otherType.theID)(i);
+      }
+    }
   }
   
   return res;

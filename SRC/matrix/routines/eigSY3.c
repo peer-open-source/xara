@@ -17,27 +17,27 @@
 
 static inline double 
 hypot2(double x, double y) {
-    return sqrt(x*x+y*y);
+    return sqrt(x*x + y*y);
 }
 
 // Symmetric Householder reduction to tridiagonal form.
 
-static void tred2(double V[n][n], double d[n], double e[n]) {
+static void 
+tred2(double V[n][n], double d[n], double e[n]) {
 
     //  This is derived from the Algol procedures tred2 by
     //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
     //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
     //  Fortran subroutine in EISPACK.
 
-
     int i, j, k;
-    for (j = 0; j < n; j++) {
-        d[j] = V[n-1][j];
+    for (int j = 0; j < n; j++) {
+      d[j] = V[n-1][j];
     }
 
     // Householder reduction to tridiagonal form.
 
-    for (i = n-1; i > 0; i--) {
+    for (int i = n-1; i > 0; i--) {
 
         // Scale to avoid under/overflow.
 
@@ -53,8 +53,8 @@ static void tred2(double V[n][n], double d[n], double e[n]) {
                 V[i][j] = 0.0;
                 V[j][i] = 0.0;
             }
-        } else {
-
+        }
+        else {
             // Generate Householder vector.
 
             for (k = 0; k < i; k++) {
@@ -109,7 +109,7 @@ static void tred2(double V[n][n], double d[n], double e[n]) {
 
     // Accumulate transformations.
 
-    for (i = 0; i < n-1; i++) {
+    for (int i = 0; i < n-1; i++) {
         V[n-1][i] = V[i][i];
         V[i][i] = 1.0;
         double h = d[i+1];
@@ -131,7 +131,7 @@ static void tred2(double V[n][n], double d[n], double e[n]) {
             V[k][i+1] = 0.0;
         }
     }
-    for (j = 0; j < n; j++) {
+    for (int j = 0; j < n; j++) {
         d[j] = V[n-1][j];
         V[n-1][j] = 0.0;
     }
@@ -141,7 +141,8 @@ static void tred2(double V[n][n], double d[n], double e[n]) {
 
 // Symmetric tridiagonal QL algorithm.
 
-static void tql2(double V[n][n], double d[n], double e[n]) {
+static void
+tql2(double V[n][n], double d[n], double e[n]) {
 
     //  This is derived from the Algol procedures tql2, by
     //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
@@ -176,60 +177,60 @@ static void tql2(double V[n][n], double d[n], double e[n]) {
         if (m > l) {
             int iter = 0;
             do {
-                iter = iter + 1;  // (Could check iteration count here.)
+              iter = iter + 1;  // (Could check iteration count here.)
 
-                // Compute implicit shift
+              // Compute implicit shift
 
-                double g = d[l];
-                double p = (d[l+1] - g) / (2.0 * e[l]);
-                double r = hypot2(p,1.0);
-                if (p < 0) {
-                    r = -r;
-                }
-                d[l] = e[l] / (p + r);
-                d[l+1] = e[l] * (p + r);
-                double dl1 = d[l+1];
-                double h = g - d[l];
-                for (i = l+2; i < n; i++) {
-                    d[i] -= h;
-                }
-                f = f + h;
+              double g = d[l];
+              double p = (d[l+1] - g) / (2.0 * e[l]);
+              double r = hypot2(p,1.0);
+              if (p < 0) {
+                  r = -r;
+              }
+              d[l] = e[l] / (p + r);
+              d[l+1] = e[l] * (p + r);
+              double dl1 = d[l+1];
+              double h = g - d[l];
+              for (i = l+2; i < n; i++) {
+                  d[i] -= h;
+              }
+              f = f + h;
 
-                // Implicit QL transformation.
+              // Implicit QL transformation.
 
-                p = d[m];
-                double c = 1.0;
-                double c2 = c;
-                double c3 = c;
-                double el1 = e[l+1];
-                double s = 0.0;
-                double s2 = 0.0;
-                for (i = m-1; i >= l; i--) {
-                    c3 = c2;
-                    c2 = c;
-                    s2 = s;
-                    g = c * e[i];
-                    h = c * p;
-                    r = hypot2(p,e[i]);
-                    e[i+1] = s * r;
-                    s = e[i] / r;
-                    c = p / r;
-                    p = c * d[i] - s * g;
-                    d[i+1] = h + s * (c * g + s * d[i]);
+              p = d[m];
+              double c = 1.0;
+              double c2 = c;
+              double c3 = c;
+              double el1 = e[l+1];
+              double s = 0.0;
+              double s2 = 0.0;
+              for (i = m-1; i >= l; i--) {
+                  c3 = c2;
+                  c2 = c;
+                  s2 = s;
+                  g = c * e[i];
+                  h = c * p;
+                  r = hypot2(p,e[i]);
+                  e[i+1] = s * r;
+                  s = e[i] / r;
+                  c = p / r;
+                  p = c * d[i] - s * g;
+                  d[i+1] = h + s * (c * g + s * d[i]);
 
-                    // Accumulate transformation.
+                  // Accumulate transformation.
 
-                    for (k = 0; k < n; k++) {
-                        h = V[k][i+1];
-                        V[k][i+1] = s * V[k][i] + c * h;
-                        V[k][i] = c * V[k][i] - s * h;
-                    }
-                }
-                p = -s * s2 * c3 * el1 * e[l] / dl1;
-                e[l] = s * p;
-                d[l] = c * p;
+                  for (k = 0; k < n; k++) {
+                      h = V[k][i+1];
+                      V[k][i+1] = s * V[k][i] + c * h;
+                      V[k][i] = c * V[k][i] - s * h;
+                  }
+              }
+              p = -s * s2 * c3 * el1 * e[l] / dl1;
+              e[l] = s * p;
+              d[l] = c * p;
 
-                // Check for convergence.
+              // Check for convergence.
 
             } while (fabs(e[l]) > eps*tst1);
         }
@@ -260,7 +261,8 @@ static void tql2(double V[n][n], double d[n], double e[n]) {
     }
 }
 
-void cmx_eigSY3(double A[n][n], double V[n][n], double d[n]) {
+void
+cmx_eigSY3(double A[n][n], double V[n][n], double d[n]) {
 
   double e[n];
   for (int i = 0; i < n; i++) {
@@ -277,9 +279,8 @@ void cmx_eigSY3(double A[n][n], double V[n][n], double d[n]) {
 void
 cmx_eig3v2(double A[n][n], double EE[n][n], double V[n][n], double d[n])
 {
-  double supp, supp1; //Tesser
   double e[n];
-  double Vn[n][n], Dn[n][n], prod[n][n], U[n]; //Tesser
+  double Vn[n][n], Dn[n][n], prod[n][n], U[n]; // Tesser
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
       V[i][j] = A[i][j];
@@ -290,13 +291,14 @@ cmx_eig3v2(double A[n][n], double EE[n][n], double V[n][n], double d[n])
   // Diagonalize
   tql2(V, d, e);
 
-  //Tesser start
+  // Tesser start
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++)
       V[j][i] = V[j][i] /
                 sqrt(V[0][i]*V[0][i] + V[1][i]*V[1][i] + V[2][i]*V[2][i]);
   }
 
+  double supp, supp1; // Tesser
   for (int i = 0; i < n; i++) {
     supp = 0.0;
     for (int j = 0; j < n; j++) {

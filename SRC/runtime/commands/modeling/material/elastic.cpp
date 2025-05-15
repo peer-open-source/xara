@@ -299,6 +299,7 @@ enum class MaterialSymmetry {
 };
 
 
+#if 0
 int
 TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int argc, const char**const argv)
 {
@@ -413,4 +414,5 @@ TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int 
     // theMaterial = new ElasticCrossAnisotropic(tag, Eh, Ev, nuhv, nuhh, Ghv, rho);
   }
 }
+#endif
 

@@ -168,7 +168,7 @@ FrameSolidSection3d::addFiber(NDMaterial& theMat,
 }
 
 
-// destructor:
+
 FrameSolidSection3d::~FrameSolidSection3d()
 {
   for (auto material : materials) {
@@ -546,7 +546,7 @@ FrameSolidSection3d::setResponse(const char **argv, int argc,
     int key = fibers->size();
     int passarg = 2;
     
-    if (argc <= 3) {      // fiber number was input directly
+    if (argc <= 3) { // fiber number was input directly
       key = atoi(argv[1]);
     }
 

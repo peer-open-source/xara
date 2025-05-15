@@ -25,7 +25,7 @@
 #ifndef _eleAPI
 #define _eleAPI
 
-#define OPS_Error ops_error_
+// #define OPS_Error ops_error_
 #define OPS_GetIntInput ops_getintinput_
 #define OPS_GetDoubleInput ops_getdoubleinput_
 #define OPS_SetDoubleListsOutput ops_setdoublelistsoutput_
@@ -82,7 +82,6 @@ extern "C" int  OPS_SetDoubleDictListOutput(std::map<const char*, std::vector<do
 extern NDMaterial* OPS_GetNDMaterial(int matTag);
 extern SectionForceDeformation* OPS_GetSectionForceDeformation(int secTag);
 extern CrdTransf* OPS_GetCrdTransf(int crdTag);
-// extern FrictionModel* OPS_GetFrictionModel(int frnTag);
 
 extern FE_Datastore* OPS_GetFEDatastore();
 
@@ -94,7 +93,7 @@ extern "C" {
 
 int         OPS_GetNDM();
 int         OPS_GetNDF();
-int         OPS_Error(const char* errorMessage, int length);
+// int         OPS_Error(const char* errorMessage, int length);
 int         OPS_GetNumRemainingInputArgs();
 int         OPS_ResetCurrentInputArg(int cArg);
 int         OPS_GetIntInput(int* numData, int* data);
@@ -106,12 +105,6 @@ const char* OPS_GetStringFromAll(char* buffer, int len); // does a strcpy
 int         OPS_SetString(const char* str);
 int         OPS_GetStringCopy(char** cArray); // returns a new copy
 const char* OPS_GetInterpPWD();
-
-//
-// extern "C" int       OPS_ResetInput(ClientData clientData, Tcl_Interp * interp, int cArg, int mArg, TCL_Char * *argv, Domain * domain, TclModelBuilder * builder);
-// extern "C" int       OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp * interp, int cArg, int mArg, TCL_Char * *argv, Domain * domain);
-// extern "C" int       OPS_GetString(char *cArray, int sizeArray); // does a strcpy
-
 
 #ifdef __cplusplus
 }

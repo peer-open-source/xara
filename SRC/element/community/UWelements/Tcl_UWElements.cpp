@@ -1154,7 +1154,6 @@ TclDispatch_PileToe3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
 
   if (num_PileToe3D == 0) {
     num_PileToe3D++;
-    // OPS_Error("PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein,
     // U.Washington\n", 1);
     opslog << "PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, "
               "U.Washington\n";

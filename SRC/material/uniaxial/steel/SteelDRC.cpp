@@ -41,7 +41,6 @@
 #include <float.h>
 
 
-//OPS_Export void *
 void * OPS_ADD_RUNTIME_VPV(OPS_SteelDRC)
 {
 	// Pointer to a uniaxial material that will be returned
@@ -53,7 +52,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SteelDRC)
 		opserr << "WARNING insufficient arguments\n";
 		opserr << "uniaxialMaterial SteelDRC ";
 		opserr << "tag? Es? fy? eu? fu? esh?";
-		opserr << "<-P?><-shPoint?><-omegaFac?><-bausch?><-stiffness?>\n";
+		opserr << "<-P?> <-shPoint?> <-omegaFac?> <-bausch?> <-stiffness?>\n";
 		return 0;
 	}
 	int tag;

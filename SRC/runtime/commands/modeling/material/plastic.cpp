@@ -14,9 +14,10 @@
 #include <Parsing.h>
 #include <ArgumentTracker.h>
 #include <BasicModelBuilder.h>
-#include <HardeningMaterial.h>
 
 #include "isotropy.h"
+
+#include <HardeningMaterial.h>
 #include <SimplifiedJ2.h>
 #include <PlaneStressSimplifiedJ2.h>
 #include <J2Plasticity.h>
@@ -645,6 +646,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   }
   return TCL_ERROR;
 }
+
 
 int
 TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,

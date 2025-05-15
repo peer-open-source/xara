@@ -106,89 +106,6 @@ FrameFiberSection3d::~FrameFiberSection3d()
 }
 
 
-double
-FrameFiberSection3d::getEnergy() const
-{
-    double energy = 0;
-    for (int i = 0; i < numFibers; i++) {
-        double A = matData[3 * i + 2];
-        energy += A * theMaterials[i]->getEnergy();
-    }
-    return energy;
-}
-
-int
-FrameFiberSection3d::getIntegral(Field field, State state, double& value) const
-{
-  value = 0.0;
-
-  switch (field) {
-    case Field::Unit:
-      for (int i=0; i<numFibers; i++) {
-        const double A  = matData[3*i+2];
-        value += A;
-      }
-      return 0;
-
-    case Field::Density:
-      // First check if density has been specified for the section
-      if (this->FrameSection::getIntegral(field, state, value) == 0) 
-        return 0;
-
-      for (int i=0; i<numFibers; i++) {
-        double density;
-        const double A  = matData[3*i+2];
-        if (theMaterials[i]->getRho() != 0)
-          value += A*density;
-        else
-          return -1;
-      }
-      return 0;
-
-    case Field::UnitY: // TODO: Centroid
-      for (int i=0; i<numFibers; i++) {
-        const double A  = matData[3*i+2];
-        const double y  = matData[3*i] - yBar;
-        value += A*y;
-      }
-      return 0;
-
-    case Field::UnitZ: // TODO: Centroid
-      for (int i=0; i<numFibers; i++) {
-        const double A  = matData[3*i+2];
-        const double z  = matData[3*i+1] - zBar;
-        value += A*z;
-      }
-      return 0;
-
-
-
-    case Field::UnitYY:
-    case Field::UnitCentroidYY:
-      for (int i=0; i<numFibers; i++) {
-        const double A  = matData[3*i+2];
-        const double y  = matData[3*i]
-                        - yBar*(Field::UnitCentroidYY == field);
-        value += A*y*y;
-      }
-      return 0;
-
-    case Field::UnitZZ:
-    case Field::UnitCentroidZZ:
-      for (int i=0; i<numFibers; i++) {
-        const double A  = matData[3*i+2];
-        const double z  = matData[3*i+1] 
-                        - zBar*(Field::UnitCentroidZZ == field);
-        value += A*z*z;
-      }
-
-    default:
-      return -1;
-  }
-  return -1;
-}
-
-
 int
 FrameFiberSection3d::addFiber(UniaxialMaterial &theMat, 
                               double Area, double yLoc, double zLoc)
@@ -532,6 +449,88 @@ FrameFiberSection3d::revertToStart()
     err += theTorsion->revertToStart();
 
   return err;
+}
+
+double
+FrameFiberSection3d::getEnergy() const
+{
+    double energy = 0;
+    for (int i = 0; i < numFibers; i++) {
+        double A = matData[3 * i + 2];
+        energy += A * theMaterials[i]->getEnergy();
+    }
+    return energy;
+}
+
+int
+FrameFiberSection3d::getIntegral(Field field, State state, double& value) const
+{
+  value = 0.0;
+
+  switch (field) {
+    case Field::Unit:
+      for (int i=0; i<numFibers; i++) {
+        const double A  = matData[3*i+2];
+        value += A;
+      }
+      return 0;
+
+    case Field::Density:
+      // First check if density has been specified for the section
+      if (this->FrameSection::getIntegral(field, state, value) == 0) 
+        return 0;
+
+      for (int i=0; i<numFibers; i++) {
+        double density;
+        const double A  = matData[3*i+2];
+        if (theMaterials[i]->getRho() != 0)
+          value += A*density;
+        else
+          return -1;
+      }
+      return 0;
+
+    case Field::UnitY: // TODO: Centroid
+      for (int i=0; i<numFibers; i++) {
+        const double A  = matData[3*i+2];
+        const double y  = matData[3*i] - yBar;
+        value += A*y;
+      }
+      return 0;
+
+    case Field::UnitZ: // TODO: Centroid
+      for (int i=0; i<numFibers; i++) {
+        const double A  = matData[3*i+2];
+        const double z  = matData[3*i+1] - zBar;
+        value += A*z;
+      }
+      return 0;
+
+
+
+    case Field::UnitYY:
+    case Field::UnitCentroidYY:
+      for (int i=0; i<numFibers; i++) {
+        const double A  = matData[3*i+2];
+        const double y  = matData[3*i]
+                        - yBar*(Field::UnitCentroidYY == field);
+        value += A*y*y;
+      }
+      return 0;
+
+    case Field::UnitZZ:
+    case Field::UnitCentroidZZ:
+      for (int i=0; i<numFibers; i++) {
+        const double A  = matData[3*i+2];
+        const double z  = matData[3*i+1] 
+                        - zBar*(Field::UnitCentroidZZ == field);
+        value += A*z*z;
+      }
+
+    default:
+      return -1;
+  }
+  return -1;
 }
 
 int

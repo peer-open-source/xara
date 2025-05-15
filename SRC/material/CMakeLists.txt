@@ -39,6 +39,7 @@ target_include_directories(OPS_Material
 
 add_subdirectory(Frame)
 #add_subdirectory(Shell)
+add_subdirectory(damage)
 add_subdirectory(uniaxial)
 add_subdirectory(section)
 add_subdirectory(elastic)

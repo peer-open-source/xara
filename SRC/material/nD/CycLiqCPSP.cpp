@@ -63,7 +63,6 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CycLiqCPSPMaterial)
 {
   if (numCycLiqCPSPMaterials == 0) {
     numCycLiqCPSPMaterials=1;
-    //OPS_Error("\nCycLiqCPSP - Written: Rui Wang, Jian-Min Zhang, Gang Wang\nPlease refer to: Wang R., Zhang J.M., Wang G., 2014. A unified plasticity model for large post-liquefaction shear deformation of sand. Computers and Geotechnics. 59, 54-66.\n", 1);
     opslog<<"\nCycLiqCPSP - Written: Rui Wang, Jian-Min Zhang, Gang Wang\nPlease refer to: Wang R., Zhang J.M., Wang G., 2014. A unified plasticity model for large post-liquefaction shear deformation of sand. Computers and Geotechnics. 59, 54-66.\n";
   }
 
@@ -111,14 +110,14 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CycLiqCPSPMaterial)
 }
 
 
-//static vectors and matrices
+// static vectors and matrices
 Vector CycLiqCPSP :: strain_vec(6) ;
 Vector CycLiqCPSP :: stress_vec(6) ;
 Matrix CycLiqCPSP :: tangent_matrix(6,6) ;
 Matrix CycLiqCPSP :: I(6,6);
 
 
-//zero internal variables
+// zero internal variables
 void CycLiqCPSP :: zero ( ) 
 {
   strain_n.Zero();

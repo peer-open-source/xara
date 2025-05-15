@@ -70,23 +70,25 @@ ErrorHandler::outputMessage(ostream &theStream, const char *msg, va_list args)
     if (msg[pos] != '%') {
       dataChar = msg[pos];
       theStream << dataChar;
-    } else {
+    }
+
+    else {
       pos++;
       switch(msg[pos]) {
       case 'd':
-	dataInt = va_arg(args,int);
-	theStream << dataInt;
-	break;
+        dataInt = va_arg(args,int);
+        theStream << dataInt;
+        break;
 	
       case 'f':
-	dataDouble = va_arg(args,double);
-	theStream << dataDouble;
-	break;	
+        dataDouble = va_arg(args,double);
+        theStream << dataDouble;
+        break;	
 
       case 's':
-	dataString = va_arg(args,char *);
-	theStream << dataString;
-	break;	
+        dataString = va_arg(args,char *);
+        theStream << dataString;
+        break;	
 
       default:
 	;

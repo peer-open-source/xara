@@ -40,8 +40,8 @@
 
 BandSPDLinSOE::BandSPDLinSOE(BandSPDLinSolver &the_Solver)
 :LinearSOE(the_Solver, LinSOE_TAGS_BandSPDLinSOE),
- size(0), half_band(0), A(0), B(0), X(0), vectX(0), vectB(0),
- Asize(0), Bsize(0),
+ size(0), half_band(0), A(nullptr), B(0), X(0), 
+ Asize(0),
  factored(false)
 {
     the_Solver.setLinearSOE(*this);
@@ -50,8 +50,8 @@ BandSPDLinSOE::BandSPDLinSOE(BandSPDLinSolver &the_Solver)
 
 BandSPDLinSOE::BandSPDLinSOE(BandSPDLinSolver &the_Solver, int classTag)
 :LinearSOE(the_Solver, classTag),
- size(0), half_band(0), A(0), B(0), X(0), vectX(0), vectB(0),
- Asize(0), Bsize(0),
+ size(0), half_band(0), A(0), B(0), X(0),
+ Asize(0),
  factored(false)
 {
 
@@ -60,8 +60,8 @@ BandSPDLinSOE::BandSPDLinSOE(BandSPDLinSolver &the_Solver, int classTag)
 
 BandSPDLinSOE::BandSPDLinSOE(int classTag)
 :LinearSOE(classTag),
- size(0), half_band(0), A(0), B(0), X(0), vectX(0), vectB(0),
- Asize(0), Bsize(0),
+ size(0), half_band(0), A(0), B(0), X(0),
+ Asize(0),
  factored(false)
 {
 
@@ -71,8 +71,8 @@ BandSPDLinSOE::BandSPDLinSOE(int classTag)
 BandSPDLinSOE::BandSPDLinSOE(int N, int numSuper,
                              BandSPDLinSolver &the_Solver)
 :LinearSOE(the_Solver, LinSOE_TAGS_BandSPDLinSOE),
- size(0), half_band(0), A(0), B(0), X(0), vectX(0), vectB(0),
- Asize(0), Bsize(0),
+ size(0), half_band(0), A(nullptr), B(N), X(N),
+ Asize(0),
  factored(false)
 {
     size = N;
@@ -85,11 +85,8 @@ BandSPDLinSOE::BandSPDLinSOE(int N, int numSuper,
     for (int j=0; j<Asize; j++)
         A[j] = 0;
 
-    B = new double[size]{};
-    X = new double[size]{};
-
-    vectX = new Vector(X,size);
-    vectB = new Vector(B,size);    
+    B.Zero();
+    X.Zero(); 
 
     the_Solver.setLinearSOE(*this);    
     
@@ -103,16 +100,13 @@ BandSPDLinSOE::BandSPDLinSOE(int N, int numSuper,
     
 BandSPDLinSOE::~BandSPDLinSOE()
 {
-    if (A != 0) delete [] A;
-    if (B != 0) delete [] B;
-    if (X != 0) delete [] X;
-    if (vectX != 0) delete vectX;    
-    if (vectB != 0) delete vectB;        
+    if (A != nullptr)
+      delete [] A;   
 }
 
 
 int 
-BandSPDLinSOE::getNumEqn(void) const
+BandSPDLinSOE::getNumEqn() const
 {
     return size;
 }
@@ -155,43 +149,16 @@ BandSPDLinSOE::setSize(Graph &theGraph)
         
     factored = false;
     
-    if (size > Bsize) { // we have to get another space for A
-        
-        // delete the old        
-        if (B != 0) delete [] B;
-        if (X != 0) delete [] X;
-
-        // create the new
-        B = new double[size]{};
-        X = new double[size]{};
-    }
-
-    // zero the vectors
-    for (int j=0; j<size; j++) {
-	B[j] = 0;
-	X[j] = 0;
-    }
-
-    if (size != oldSize) {
-
-        if (vectX != 0)
-            delete vectX;
-        if (vectB != 0)
-            delete vectB;
-
-        vectX = new Vector(X,size);
-        vectB = new Vector(B,size);
-
-        if (size > Bsize)
-            Bsize = size;
-    }
+    
+    X.resize(size);
+    X.Zero();
+    B.resize(size);
+    B.Zero();
     
     // invoke setSize() on the Solver
     LinearSOESolver *the_Solver = this->getSolver();
     int solverOK = the_Solver->setSize();
     if (solverOK < 0) {
-        // opserr << "WARNING:BandSPDLinSOE::setSize :";
-        // opserr << " solver failed setSize()\n";
         return solverOK;
     }    
 
@@ -222,9 +189,9 @@ BandSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
                          double *APtr = coliiPtr + (row-col);
                          *APtr += m(j,i);
                      }
-                }  // for j
+                }
             } 
-        }  // for i
+        }
     } else {
         for (int i=0; i<idSize; i++) {
             int col = id(i);
@@ -238,9 +205,9 @@ BandSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
                          double *APtr = coliiPtr + (row-col);
                          *APtr += m(j,i)*fact;
                      }
-                }  // for j
+                }
             } 
-        }  // for i
+        }
     }
     return 0;
 }
@@ -346,7 +313,7 @@ BandSPDLinSOE::setB(const Vector &v, double fact)
 }
 
 void 
-BandSPDLinSOE::zeroA(void)
+BandSPDLinSOE::zeroA()
 {
     double *Aptr = A;
     int theSize = Asize; 
@@ -357,11 +324,9 @@ BandSPDLinSOE::zeroA(void)
 }
         
 void 
-BandSPDLinSOE::zeroB(void)
+BandSPDLinSOE::zeroB()
 {
-    double *Bptr = B;
-    for (int i=0; i<size; i++)
-        *Bptr++ = 0;
+    B.Zero();
 }
 
 
@@ -375,29 +340,27 @@ BandSPDLinSOE::setX(int loc, double value)
 void 
 BandSPDLinSOE::setX(const Vector &x)
 {
-    if (x.Size() == size && vectX != 0)
-      *vectX = x;
+    if (x.Size() == size)
+      X = x;
 }
-
-
 
 
 const Vector &
-BandSPDLinSOE::getX(void)
+BandSPDLinSOE::getX()
 {
-  assert(vectX != nullptr);
-  return *vectX;
+  return X;
 }
 
+
 const Vector &
-BandSPDLinSOE::getB(void)
+BandSPDLinSOE::getB()
 {
-  assert(vectB != nullptr);
-  return *vectB;
+  return B;
 }
+
 
 double 
-BandSPDLinSOE::normRHS(void)
+BandSPDLinSOE::normRHS()
 {
     double norm =0.0;
     for (int i=0; i<size; i++) {

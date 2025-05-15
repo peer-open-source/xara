@@ -114,6 +114,7 @@ class FourNodeQuad : public Element,
     constexpr static int NEN = 4;    // number of nodes
     constexpr static int NDF = 2;    // number of DOFs per node
     constexpr static int NIP = 4;    // number of integration points
+    constexpr static int NST = 3;    // number of stress components
 
     //
     // private member functions 

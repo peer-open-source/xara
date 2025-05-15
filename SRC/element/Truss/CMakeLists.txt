@@ -26,7 +26,6 @@ target_sources(OPS_Element
 )
 
 # These elements include specific material headers
-#add_library(OPS_ConcreteTruss OBJECT)
 target_include_directories(OPS_Element PUBLIC "${OPS_SRC_DIR}/material/uniaxial/concrete")
 target_sources(OPS_Element
   PRIVATE

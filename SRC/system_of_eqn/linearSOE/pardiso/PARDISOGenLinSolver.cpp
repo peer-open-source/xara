@@ -10,8 +10,7 @@
 // solver. The user can choose three different ordering schema.
 //
 // What: "@(#) PARDISOGenLinSolver.cpp, revA"
-
-
+//
 
 #include <PARDISOGenLinSolver.h>
 #include <PARDISOGenLinSOE.h>
@@ -38,7 +37,7 @@ PARDISOGenLinSolver::~PARDISOGenLinSolver()
 
 
 int
-PARDISOGenLinSolver::solve(void)
+PARDISOGenLinSolver::solve()
 { 
     if (theSOE == 0) {
   opserr << "WARNING PARDISOLinSolver::solve(void)- ";
@@ -220,8 +219,8 @@ PARDISOGenLinSolver::solve(void)
 int
 PARDISOGenLinSolver::setSize()
 {
-    // nothing to do
-    return 0;
+  // nothing to do
+  return 0;
 }
 
 
@@ -236,8 +235,8 @@ PARDISOGenLinSolver::setLinearSOE(PARDISOGenLinSOE &theLinearSOE)
 int
 PARDISOGenLinSolver::sendSelf(int cTAg, Channel &theChannel)
 {
-    // doing nothing
-    return 0;
+  // doing nothing
+  return 0;
 }
 
 

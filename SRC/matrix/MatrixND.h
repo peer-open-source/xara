@@ -76,7 +76,7 @@ struct MatrixND {
   template <class MatT>
     void addMatrix(const MatT& A, const double scale);
 
-  template <class VecA, class VecB>  MatrixND<NR,NC,T>& 
+  template <class VecA, class VecB>  constexpr MatrixND<NR,NC,T>& 
     addTensorProduct(const VecA& V, const VecB& W, const double scale);
 
   template <class MatT, int nk> void 
@@ -658,7 +658,8 @@ void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
 }
 
 template <index_t nr, index_t nc, typename T> 
-template <class VecA, class VecB> inline
+template <class VecA, class VecB> 
+constexpr inline
 MatrixND<nr, nc, T>&
 MatrixND<nr, nc, T>::addTensorProduct(const VecA& a, const VecB& b, const double scale)
 {

@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Description: This file contains the function invoked when the user 
 // invokes the nDMaterial command in the interpreter.
 //
@@ -1100,33 +1101,26 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &fcu) != TCL_OK) {
       opserr << "WARNING invalid fcu\n";
-      opserr << "nDMaterial ConcreteMcftNonLinearNonLinear5: fcu" << tag
-             << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &ecu) != TCL_OK) {
       opserr << "WARNING invalid ecu\n";
-      opserr << "nDMaterial ConcreteMcftNonLinearNonLinear5: ecu" << tag
-             << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &Ec) != TCL_OK) {
       opserr << "WARNING invalid Ec\n";
-      opserr << "nDMaterial ConcreteMcftNonlinear7: Ec" << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &fcr) != TCL_OK) {
       opserr << "WARNING invalid fcr\n";
-      opserr << "nDMaterial ConcreteMcftNonlinear7: fcr" << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &Esv) != TCL_OK) {
       opserr << "WARNING invalid Esv\n";
-      opserr << "nDMaterial ConcreteMcftNonlinear7: Esv" << tag << "\n";
       return TCL_ERROR;
     }
 

@@ -39,6 +39,103 @@
 #include <BasicModelBuilder.h>
 #include <TwoNodeLink.h>
 #include <TwoNodeLinkSection.h>
+#include <VectorND.h>
+
+using OpenSees::VectorND;
+
+template <int ndm>
+int
+SetupLink(const VectorND<ndm> &xi, const VectorND<ndm>& xj,
+          const VectorND<ndm>& x, const VectorND<ndm>& y,
+          const ID &direction, const ID &dir,
+          Matrix &trans, double &L, bool onP0)
+{
+#if 0
+  const Vector &end1Crd = theNodes[0]->getCrds();
+  const Vector &end2Crd = theNodes[1]->getCrds();	
+  Vector xp = end2Crd - end1Crd;
+  L = xp.Norm();
+
+  // setup x and y orientation vectors
+  if (L > DBL_EPSILON)  {
+      if (x.Size() == 0)  {
+          x.resize(3);
+          x.Zero();
+          x(0) = xp(0);
+          if (xp.Size() > 1)
+              x(1) = xp(1);
+          if (xp.Size() > 2)
+              x(2) = xp(2);
+
+      } else if (onP0)  {
+          opserr << "WARNING TwoNodeLink::setUp() - " 
+              << "element: " << this->getTag() << endln
+              << "ignoring nodes and using specified "
+              << "local x vector to determine orientation\n";
+      }
+      if (y.Size() == 0)  {
+          y.resize(3);
+          y.Zero();
+          y(0) = -xp(1);
+          if (xp.Size() > 1)
+              y(1) = xp(0);
+          if (xp.Size() > 2)
+              opserr << "WARNING TwoNodeLink::setUp() - " 
+                  << "element: " << this->getTag() << endln
+                  << "no local y vector specified\n";
+      }
+  } else  {
+      if (x.Size() == 0)  {
+          x.resize(3);
+          x(0) = 1.0; x(1) = 0.0; x(2) = 0.0;
+      }
+      if (y.Size() == 0)  {
+          y.resize(3);
+          y(0) = 0.0; y(1) = 1.0; y(2) = 0.0;
+      }
+  }
+
+  // check that vectors for orientation are of correct size
+  if (x.Size() != 3 || y.Size() != 3)  {
+      opserr << "TwoNodeLink::setUp() - "
+          << "element: " << this->getTag() << endln
+          << "incorrect dimension of orientation vectors\n";
+      exit(-1);
+  }
+
+  // establish orientation of element for the transformation matrix
+  // z = x cross yp
+  static Vector z(3);
+  z(0) = x(1)*y(2) - x(2)*y(1);
+  z(1) = x(2)*y(0) - x(0)*y(2);
+  z(2) = x(0)*y(1) - x(1)*y(0);
+
+  // y = z cross x
+  y(0) = z(1)*x(2) - z(2)*x(1);
+  y(1) = z(2)*x(0) - z(0)*x(2);
+  y(2) = z(0)*x(1) - z(1)*x(0);
+
+  // compute length(norm) of vectors
+  double xn = x.Norm();
+  double yn = y.Norm();
+  double zn = z.Norm();
+
+  // check valid x and y vectors, i.e. not parallel and of zero length
+  if (xn == 0 || yn == 0 || zn == 0)  {
+      opserr << "TwoNodeLink::setUp() - "
+          << "element: " << this->getTag() << endln
+          << "invalid orientation vectors\n";
+      exit(-1);
+  }
+
+  // create transformation matrix of direction cosines
+  for (int i=0; i<3; i++)  {
+      trans(0,i) = x(i)/xn;
+      trans(1,i) = y(i)/yn;
+      trans(2,i) = z(i)/zn;
+  }
+#endif
+}
 
 
 int
@@ -414,11 +511,11 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
 
       else if (strcmp(argv[i], "-mass") == 0) {
         if (argc < i + 2) {
-          opserr << G3_ERROR_PROMPT << "not enough arguments, expected -mass $mass\n";
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -mass $mass\n";
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "invalid mass\n";
+          opserr << OpenSees::PromptValueError << "invalid mass\n";
           return TCL_ERROR;
         }
         i += 1;

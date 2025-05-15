@@ -30,13 +30,13 @@ void shap3dv(double *R, int *NP, double Q[27][4]){
 //
 // Local Node Pattern for Three-Dimensional Elements:
 //
-// * Nodes 1 - 4 Lower surface, counterclockwise
-// * Nodes 5 - 8 Upper surface, counterclockwise
-// * Nodes 9 - 12 Midsides of edges 1-2, 2-3, 3-4, 4-1
+// * Nodes  1 -  4 Lower surface, counterclockwise
+// * Nodes  5 -  8 Upper surface, counterclockwise
+// * Nodes  9 - 12 Midsides of edges 1-2, 2-3, 3-4, 4-1
 // * Nodes 13 - 16 Midsides of edges 5-6, 6-7, 7-8, 8-5
 // * Nodes 17 - 20 Midsides of edges 1-5, 2-6, 3-7, 4-8
 // * Nodes 21 - 26 Mid-face nodes on +r, +s, +t, -r, -s, -t
-// * Node 27 Centroid node
+// * Node       27 Centroid node
 //
     double G[3][3], D[3][3], C;
 

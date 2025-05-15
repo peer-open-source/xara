@@ -37,11 +37,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-void* OPS_SProfileSPDLinSolver()
-{
-    SProfileSPDLinSolver *theSolver = new SProfileSPDLinSolver(); 	
-    return new SProfileSPDLinSOE(*theSolver); 
-}
 
 SProfileSPDLinSolver::SProfileSPDLinSolver(double tol)
 :LinearSOESolver(SOLVER_TAGS_SProfileSPDLinSolver),
@@ -100,7 +95,7 @@ SProfileSPDLinSolver::setSize(void)
 
 
 int 
-SProfileSPDLinSolver::solve(void)
+SProfileSPDLinSolver::solve()
 {
     assert(theSOE != nullptr);
 
@@ -109,8 +104,8 @@ SProfileSPDLinSolver::solve(void)
 	return 0;
 
     // set some pointers
-    float *B = theSOE->B;
-    float *X = theSOE->X;
+    float *B = &theSOE->B[0];
+    float *X = &theSOE->X[0];
     double *doubleB = theSOE->doubleB;
     double *doubleX = theSOE->doubleX;
     int theSize = theSOE->size;

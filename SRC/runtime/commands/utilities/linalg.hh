@@ -20,6 +20,7 @@ proc verify {cmd {value ""} {reference ""} {tolerance 1e-12} {about ""}} {
         puts  "   \033\[32mPASS\033\[0m  "; # "$value   $reference $about"
         }
     } else {
+     # value or  "about"
     puts "$value"
     }
 }

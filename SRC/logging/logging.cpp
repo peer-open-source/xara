@@ -48,6 +48,7 @@ namespace Internal {
   const char * SignalMessageEnd      = "\n";
   const char * PromptParseError      = Internal::ErrorPromptNoColor;
   const char * PromptValueError      = PromptParseError;
+  const char * SignalWarning         = Internal::WarnPromptNoColor;
 
   const char * PromptDomainFailure   = Internal::AnalysisFailureNoColor;
   const char * PromptAnalysisFailure = Internal::AnalysisFailureNoColor;
@@ -83,7 +84,8 @@ int G3_SetStreamColor(G3_Runtime* rt, int strm, int flag)
 {
   if (flag == 1) {
     G3_WARN_PROMPT                  = OpenSees::Internal::WarnPromptColor;
-    G3_ERROR_PROMPT                 = OpenSees::Internal::ErrorPromptColor;
+    OpenSees::SignalWarning         = OpenSees::Internal::WarnPromptColor;
+    // G3_ERROR_PROMPT                 = OpenSees::Internal::ErrorPromptColor;
     G3_DEBUG_PROMPT                 = OpenSees::Internal::DebugPromptColor;
     OpenSees::PromptParseError      = OpenSees::Internal::ErrorPromptColor;
     OpenSees::PromptValueError      = OpenSees::Internal::ErrorPromptColor;
@@ -93,7 +95,8 @@ int G3_SetStreamColor(G3_Runtime* rt, int strm, int flag)
 
   } else if (flag == 0) {
     G3_WARN_PROMPT             = OpenSees::Internal::WarnPromptNoColor;
-    G3_ERROR_PROMPT            = OpenSees::Internal::ErrorPromptNoColor;
+    OpenSees::SignalWarning    = OpenSees::Internal::WarnPromptNoColor;
+    // G3_ERROR_PROMPT            = OpenSees::Internal::ErrorPromptNoColor;
     G3_DEBUG_PROMPT            = OpenSees::Internal::DebugPromptNoColor;
     OpenSees::PromptParseError = OpenSees::Internal::ErrorPromptNoColor;
     OpenSees::PromptAnalysisFailure = OpenSees::Internal::AnalysisFailureNoColor;
@@ -105,7 +108,7 @@ int G3_SetStreamColor(G3_Runtime* rt, int strm, int flag)
 }
 
 
-
+#if 0
 int
 G3_Raise(G3_Runtime *rt, const char *msg, ...)
 {
@@ -154,3 +157,4 @@ G3_Raise(G3_Runtime *rt, const char *msg, ...)
 
     return TCL_ERROR;
 }
+#endif

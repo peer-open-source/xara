@@ -91,7 +91,7 @@ OPS_ADD_RUNTIME_VPV(OPS_NewtonRaphsonAlgorithm)
 }
 #endif 
 
-// Constructor
+
 NewtonRaphson::NewtonRaphson(int theTangentToUse, double iFact, double cFact)
 :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonRaphson),
  tangent(theTangentToUse), iFactor(iFact), cFactor(cFact)
@@ -114,7 +114,7 @@ NewtonRaphson::NewtonRaphson(ConvergenceTest &theT, int theTangentToUse, double 
 
 }
 
-// Destructor
+
 NewtonRaphson::~NewtonRaphson()
 {
   
@@ -151,9 +151,9 @@ NewtonRaphson::solveCurrentStep()
     // at least the call to start. Its prbably good to pass
     // theTest as an argument to solveCurrentStep.
     theTest->setEquiSolnAlgo(*this);
-    if (theTest->start() < 0) {
+    if (theTest->start() < 0)
       return SolutionAlgorithm::BadTestStart;
-    }
+
 
     int result = ConvergenceTest::Continue;
 

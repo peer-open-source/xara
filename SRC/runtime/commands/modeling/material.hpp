@@ -7,7 +7,7 @@
 //
 //                 stress         |          strain
 //          1   2   3   4   5   6 |  
-//         xx  yy  zz  xy  yz  zx |  11  22  33  12  23  31
+//         xx  yy  zz  xy  yz  xz |  11  22  33  12  23  31
 //    PSn:  1   2       3         |   1   2   0   3   0   0
 //    PSe:  1   2   0   3   -   ? |   1   2  [1]  3  [2] [3]
 //    PF :  1   2   -   3   4   5 |   1   2  [1]  3   4   5
@@ -30,6 +30,7 @@
 // PlaneStress strain order       = 11, 22, 12, 33, 23, 31
 // BeamFiber   strain order       = 11, 12, 31, 22, 33, 23
 // PlateFiber strain order        = 11, 22, 12, 23, 31, 33
+//                                   0   1   2   3   4   5
 
 // Platefiber: 22, 33, 13, and 23 are condensed out.
 
@@ -55,6 +56,7 @@ extern Tcl_CmdProc TclCommand_addPlaneWrapper;
 extern Tcl_CmdProc TclCommand_newJ2Material;
 extern Tcl_CmdProc TclCommand_newJ2Simplified;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
+extern Tcl_CmdProc TclCommand_newConcreteMaterial;
 extern Tcl_CmdProc TclCommand_newElasticMaterial;
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
 extern Tcl_CmdProc TclCommand_newPlateRebar;
@@ -77,7 +79,6 @@ extern OPS_Routine OPS_FAFourSteelPCPlaneStressMaterial;
 extern OPS_Routine OPS_RAFourSteelPCPlaneStressMaterial;
 // extern OPS_Routine OPS_MaterialCMM;
 // extern OPS_Routine OPS_NewMaterialCMM;
-extern OPS_Routine OPS_NewPlasticDamageConcrete3d;
 extern OPS_Routine OPS_NewPlasticDamageConcretePlaneStress;
 extern OPS_Routine OPS_ElasticIsotropicMaterial;
 extern OPS_Routine OPS_IncrementalElasticIsotropicThreeDimensional;
@@ -231,7 +232,8 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
   {"ReinforcedConcretePlaneStress",    dispatch<OPS_ReinforcedConcretePlaneStressMaterial>},
   {"PlaneStressLayeredMaterial",       dispatch<OPS_PlaneStressLayeredMaterial>},
   {"ASDConcrete3D",                    dispatch<OPS_ASDConcrete3DMaterial>},
-  {"PlasticDamageConcrete",            dispatch<OPS_NewPlasticDamageConcrete3d>},
+  {"PlasticDamageConcrete",            dispatch<TclCommand_newConcreteMaterial>},
+  {"FariaPlasticDamage",               dispatch<TclCommand_newConcreteMaterial>},
   {"PlasticDamageConcretePlaneStress", dispatch<OPS_NewPlasticDamageConcretePlaneStress>},
 };
 

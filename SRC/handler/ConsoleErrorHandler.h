@@ -21,8 +21,7 @@
 // $Revision: 1.2 $
 // $Date: 2003-02-14 23:01:24 $
 // $Source: /usr/local/cvs/OpenSees/SRC/handler/ConsoleErrorHandler.h,v $
-                                                                        
-                                                                        
+
 #ifndef ConsoleErrorHandler_h
 #define ConsoleErrorHandler_h
 

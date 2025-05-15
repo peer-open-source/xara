@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 //
 #include <map>
 #include <vector>
@@ -71,20 +72,6 @@ OPS_ResetCurrentInputArg(int cArg)
 
   return 0;
 }
-
-
-// extern "C"
-#if 0
-int
-OPS_ResetInput(ClientData clientData, Tcl_Interp *interp, int cArg, int mArg,
-               TCL_Char ** const argv, void*, void*)
-{
-  currentArgv = argv;
-  currentArg = cArg;
-  maxArg = mArg;
-  return 0;
-}
-#endif
 
 
 extern "C" int
@@ -395,7 +382,8 @@ G3_getUniaxialMaterialInstance(G3_Runtime *rt, int tag)
   return builder->getTypedObject<UniaxialMaterial>(tag);
 }
 
-int G3_addUniaxialMaterial(G3_Runtime *rt, UniaxialMaterial *mat) {
+int 
+G3_addUniaxialMaterial(G3_Runtime *rt, UniaxialMaterial *mat) {
   BasicModelBuilder* builder = G3_getSafeBuilder(rt);
   assert(builder != nullptr);
   assert(mat != nullptr);
@@ -445,87 +433,3 @@ OPS_GetFEDatastore() {return theDatabase;}
 
 const char *
 OPS_GetInterpPWD() {return getInterpPWD(theInterp);}
-
-#if 0 && !defined(OPS_USE_RUNTIME)
-
-modelState theModelState;
-
-UniaxialMaterial *
-OPS_GetUniaxialMaterial(int matTag)
-{
-  return OPS_getUniaxialMaterial(matTag);
-}
-
-Domain *
-OPS_GetDomain(void) {return theDomain;}
-
-AnalysisModel **
-OPS_GetAnalysisModel(void){return &theAnalysisModel;}
-
-CrdTransf *
-OPS_GetCrdTransf(int crdTag) {return OPS_getCrdTransf(crdTag);}
-
-StaticIntegrator **
-OPS_GetStaticIntegrator(void) {return &theStaticIntegrator;}
-
-TransientIntegrator **
-OPS_GetTransientIntegrator(void) {return &theTransientIntegrator;}
-
-ConstraintHandler **
-OPS_GetHandler(void) {return &theHandler;}
-
-DOF_Numberer **
-OPS_GetNumberer(void) {return &theGlobalNumberer;}
-
-extern "C" int
-OPS_InvokeMaterialDirectly2(matObject *theMat, modelState *model,
-                            double *strain, double *stress, double *tang,
-                            int *isw)
-{
-  int error = 0;
-  if (theMat != nullptr)
-    theMat->matFunctPtr(theMat, model, strain, tang, stress, isw, &error);
-  else
-    error = -1;
-
-  return error;
-}
-static void
-OPS_InvokeMaterialObject(struct matObject *theMat, modelState *theModel,
-                         double *strain, double *tang, double *stress, int *isw,
-                         int *result)
-{
-  int matType = (int)theMat->theParam[0];
-
-  if (matType == 1) {
-    //  UniaxialMaterial *theMaterial = theUniaxialMaterials[matCount];
-    UniaxialMaterial *theMaterial = (UniaxialMaterial *)theMat->matObjectPtr;
-    if (theMaterial == 0) {
-      *result = -1;
-      return;
-    }
-
-    if (*isw == ISW_COMMIT) {
-      *result = theMaterial->commitState();
-      return;
-    } else if (*isw == ISW_REVERT) {
-      *result = theMaterial->revertToLastCommit();
-      return;
-    } else if (*isw == ISW_REVERT_TO_START) {
-      *result = theMaterial->revertToStart();
-      return;
-    } else if (*isw == ISW_FORM_TANG_AND_RESID) {
-      double matStress = 0.0;
-      double matTangent = 0.0;
-      int res = theMaterial->setTrial(strain[0], matStress, matTangent);
-      stress[0] = matStress;
-      tang[0] = matTangent;
-      *result = res;
-      return;
-    }
-  }
-
-  return;
-}
-
-#endif

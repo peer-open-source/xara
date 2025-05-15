@@ -61,8 +61,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SimpleContact3D)
 {
   if (num_SimpleContact3D == 0) {
     num_SimpleContact3D++;
-    //OPS_Error("SimpleContact3D element - Written: K.Petek, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n", 1);
-    opslog<<"SimpleContact3D element - Written: K.Petek, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog << "SimpleContact3D element - Written: K.Petek, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
 
   // Pointer to a uniaxial material that will be returned
