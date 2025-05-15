@@ -32,13 +32,9 @@ class ASDShellQ4Transformation
 public:
 
     typedef Vector3D Vector3Type;
-
     typedef ASDQuaternion<double> QuaternionType;
-
     typedef Vector VectorType;
-
     typedef Matrix MatrixType;
-
     typedef std::array<Node*, 4> NodeContainerType;
 
 public:
