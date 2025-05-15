@@ -54,7 +54,7 @@ Linear::~Linear()
 // Perform the linear solution algorithm.
 
 int 
-Linear::solveCurrentStep(void)
+Linear::solveCurrentStep()
 {
     // set up some pointers and check they are valid
     // NOTE this could be taken away if we set Ptrs as protecetd in superclass
