@@ -1,12 +1,13 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation    
+//
+//===----------------------------------------------------------------------===//
 //
 // Description: This file implements the GenericResponse template which
 // creates Response classes from objects implementing getResponse().
 //
-// Written: CMP 
+// Written: cmp
 // Created: March 2024
 //
 #ifndef GenericResponse_h
@@ -37,20 +38,12 @@ class GenericResponse : public Response
   GenericResponse(T *obj, int id, const Matrix &val) : Response(val), theObject(*obj), responseID(id) {};
 
   ~GenericResponse() {};
-  
+
   int
   getResponse() 
   {
     return theObject.getResponse(responseID, myInfo);
   }
-
-#if 0
-  int
-  getResponseSensitivity(int gradNumber)
-  {
-    return theObject.getResponseSensitivity(responseID, gradNumber, myInfo);
-  }
-#endif
 
 protected:
   T & theObject;
