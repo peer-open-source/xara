@@ -83,8 +83,5 @@ class DamageModel :  public TaggedObject, public MovableObject
 
 };
 
-extern bool OPS_addDamageModel(DamageModel *newComponent);
-extern DamageModel *OPS_getDamageModel(int tag);
-extern void OPS_clearAllDamageModel(void);
 
 #endif

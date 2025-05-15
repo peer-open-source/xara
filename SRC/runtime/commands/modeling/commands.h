@@ -70,6 +70,7 @@ extern Tcl_CmdProc  TclCommand_updateMaterialStage;
 
 // UpdatedLagrange
 Tcl_CmdProc TclCommand_addCyclicModel;
+Tcl_CmdProc TclCommand_addDamageModel;
 
 Tcl_CmdProc TclCommand_addParameter;
 Tcl_CmdProc TclCommand_mesh;
@@ -164,14 +165,13 @@ struct char_cmd {
 
   {"frictionModel",        TclCommand_addFrictionModel},
   {"cyclicModel",          TclCommand_addCyclicModel},
-  
+  {"damageModel",          TclCommand_addDamageModel},
   {"ysEvolutionModel",     TclCommand_addYS_EvolutionModel},
   {"yieldSurface_BC",      TclCommand_addYieldSurface_BC},
   {"plasticMaterial",      TclCommand_addYS_PlasticMaterial},
 
 #if 0
   {"limitCurve",           TclCommand_addLimitCurve},
-  {"damageModel",          TclCommand_addDamageModel},
   {"stiffnessDegradation", TclCommand_addStiffnessDegradation},
   {"unloadingRule",        TclCommand_addUnloadingRule},
   {"strengthDegradation",  TclCommand_addStrengthDegradation},
