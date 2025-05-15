@@ -66,8 +66,10 @@ namespace Series3DUtils {
 	public:
 		bool factorize(const Matrix& M) {
 			int n = M.noRows();
+
 			if (n == 0 || n != M.noCols())
 				return false;
+
 			A.resize(static_cast<std::size_t>(n * n));
 			for (int i = 0; i < n; ++i)
 				for (int j = 0; j < n; ++j)
@@ -81,6 +83,7 @@ namespace Series3DUtils {
 #endif
 			return (info == 0);
 		}
+
 		bool solve(const Vector& B, Vector& X) {
 			int n = B.Size();
 			if (n == 0 || n != static_cast<int>(IPIV.size()))
@@ -298,7 +301,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_Series3DMaterial)
 	}
 	else {
 		if (weights.size() != materials.size()) {
-			opserr << "nDMaterial Series3D Error: the number of materials (" << 
+			opserr << "Series3D Error: the number of materials (" << 
 				static_cast<int>(materials.size()) << ") must be equal to the number of weights (" <<
 				static_cast<int>(weights.size()) << ").\n";
 			return nullptr;
@@ -529,26 +532,55 @@ NDMaterial* Series3DMaterial::getCopy(void)
 	return theCopy;
 }
 
-NDMaterial* Series3DMaterial::getCopy(const char* code)
+NDMaterial* 
+Series3DMaterial::getCopy(const char* code)
 {
 	if (strcmp(code, "ThreeDimensional") == 0)
 		return getCopy();
 	return NDMaterial::getCopy(code);
 }
 
-const char* Series3DMaterial::getType(void) const
+const char* 
+Series3DMaterial::getType(void) const
 {
 	return "ThreeDimensional";
 }
 
-int Series3DMaterial::getOrder(void) const
+int 
+Series3DMaterial::getOrder(void) const
 {
 	return 6;
 }
 
-void Series3DMaterial::Print(OPS_Stream &s, int flag)
+void 
+Series3DMaterial::Print(OPS_Stream &s, int flag)
 {
-	s << "Series3D Material, tag: " << this->getTag() << "\n";
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"Series3DMaterial\", ";
+		s << "\"materials\": [";
+		for (std::size_t i = 0; i < m_materials.size(); ++i) {
+			if (i > 0)
+				s << ", ";
+			s << m_materials[i]->getTag();
+		}
+		s << "], ";
+		s << "\"weights\": [";
+		for (std::size_t i = 0; i < m_weights.size(); ++i) {
+			if (i > 0)
+				s << ", ";
+			s << m_weights[i];
+		}
+		s << "], ";
+		s << "\"maxIter\": " << m_max_iter << ", ";
+		s << "\"relTol\": " << m_rel_tol << ", ";
+		s << "\"absTol\": " << m_abs_tol; 
+		s << "}";
+	}
+	else {
+		s << "Series3D Material, tag: " << this->getTag() << "\n";
+	}
 }
 
 int Series3DMaterial::sendSelf(int commitTag, Channel &theChannel)
