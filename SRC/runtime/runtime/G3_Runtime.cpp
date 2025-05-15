@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 // written: cmp
 //
+#if 0
 #include <string>
 #include <vector>
 #include "G3_Runtime.h"
@@ -53,3 +54,4 @@ T* G3Object_newParsed(G3_Runtime *rt, G3_Char* command, std::vector<std::string>
     return (*fn)(rt, cstrs.size(), cstrs.data());
 }
 
+#endif
