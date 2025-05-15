@@ -183,18 +183,23 @@ NormalizedPeak::setTrial (const Vector &trialVector )
       TrialScalar = TrialVector(0);
       break;
     case PlasticDefo:
-      if ( TrialVector(2) != 0.0 )
-	{ TrialScalar = TrialVector(0) - TrialVector(1)/TrialVector(2); }
-      else { TrialScalar = TrialVector(0); }
+      if ( TrialVector(2) != 0.0 ) {
+        TrialScalar = TrialVector(0) - TrialVector(1)/TrialVector(2);
+      }
+      else {
+        TrialScalar = TrialVector(0);
+      }
       break;
     case TotalEnergy:
       TrialScalar = CommitScalar + 0.5*( TrialVector(1) + CommitVector(1) )*( TrialVector(0) - CommitVector(0) );
       break;
     case PlasticEnergy:
       if ( TrialVector(2) > 0.0 )
-	TrialScalar = CommitScalar + 0.5*( TrialVector(1) + CommitVector(1) )*( TrialVector(0) - CommitVector(0) )
-	  - 0.5* TrialVector(1) * TrialVector(1) / TrialVector(2);
+        TrialScalar = CommitScalar + 0.5*( TrialVector(1) + CommitVector(1) )*( TrialVector(0) - CommitVector(0) )
+          - 0.5* TrialVector(1) * TrialVector(1) / TrialVector(2);
       break;
+    case NotSpecified:
+      return -1;
     }
   
   // Now calculate damage
