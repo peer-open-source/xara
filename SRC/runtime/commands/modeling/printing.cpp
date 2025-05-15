@@ -1,9 +1,10 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Description: Commands that are used to print out the domain
 //
 // Author: cmp
@@ -50,6 +51,9 @@
 #include <Node.h>
 #include <NodeIter.h>
 
+#include <LoadPattern.h>
+#include <LoadPatternIter.h>
+
 #include <FrameTransform.h>
 
 int printElement(ClientData clientData, Tcl_Interp *interp, int argc,
@@ -65,7 +69,8 @@ int printAlgorithm(ClientData clientData, Tcl_Interp *interp, int argc,
                    TCL_Char ** const argv, OPS_Stream &output);
 
 
-int TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
+int
+TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
              TCL_Char** const argv)
 {
 
@@ -81,7 +86,7 @@ int TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
   MovableObject* theObject = nullptr;
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) < 0) {
-    opserr << G3_ERROR_PROMPT << "classType objectType tag? - unable to read tag" << "\n";
+    opserr << OpenSees::PromptValueError << "classType objectType tag? - unable to read tag" << "\n";
     return TCL_ERROR;
   }
 
@@ -95,7 +100,7 @@ int TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
     theObject = builder->getTypedObject<Damping>(tag);
 #endif
   else {
-    opserr << G3_ERROR_PROMPT << "classType - " << type.c_str() << " not yet supported" << "\n";
+    opserr << OpenSees::PromptValueError << "classType - " << type.c_str() << " not yet supported" << "\n";
     return TCL_ERROR;
   }
 
@@ -152,6 +157,7 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
       }
       s << "\n" << tab << tab << "]";
     }
+    //
     s << ",\n";
     //
     {
@@ -159,6 +165,7 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
       builder->printRegistry<NDMaterial>(s, flag);
       s << "\n" << tab << tab << "]";
     }
+    //
     s << ",\n";
     //
     {
@@ -180,9 +187,26 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
       }
       s << "\n" << tab << tab << "]";
     }
-
+    //
     s << ",\n";
+    //
+    {
+      s << tab << tab << "\"patterns\": [\n";
+      LoadPatternIter &patterns = theDomain->getLoadPatterns();
+      LoadPattern *p;
+      bool first_mp = true;
+      while ((p = patterns()) != nullptr) {
+        if (!first_mp)
+          s << ",\n";
 
+        p->Print(s, flag);
+        first_mp = false;
+      }
+      s << "\n" << tab << tab << "]";
+    }
+    //
+    s << ",\n";
+    //
     {
       s << tab << tab << "\"parameters\": [\n";
       ParameterIter &params = theDomain->getParameters();
@@ -197,15 +221,14 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
       }
       s << "\n" << tab << tab << "]\n";
     }
-
+    //
     s << "\n";
     //
+    //
     s << tab << "},\n";
-
     //
     //
     s << tab << "\"geometry\": {\n";
-
     int numPrinted = 0;
     int numToPrint = theDomain->getNumNodes();
     NodeIter &theNodess = theDomain->getNodes();
@@ -217,9 +240,10 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
       if (numPrinted < numToPrint)
         s << ",\n";
     }
-    s << "\n" << tab << tab << "],\n";
-
-
+    s << "\n" << tab << tab << "]";
+    //
+    s << ",\n";
+    //
     {
       s << tab << tab << "\"elements\": [\n";
       Element *theEle;
@@ -234,9 +258,9 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
       }
       s << "\n" << tab << tab << "]";
     }
-
+    //
     s << ",\n";
-
+    //
     {
       s << tab << tab << "\"constraints\": [\n";
       MP_ConstraintIter &theMPs = theDomain->getMPs();
@@ -245,7 +269,6 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
       while ((theMP = theMPs()) != nullptr) {
         if (!first_mp)
           s << ",\n";
-
         theMP->Print(s, flag);
         first_mp = false;
       }
@@ -259,7 +282,6 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
         theSP->Print(s, flag);
         first_sp = false;
       }
-
       s << "\n" << tab << tab << "]";
     }
 
@@ -355,13 +377,13 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
     else if ((strcmp(argv[currentArg], "-material") == 0)) {
       currentArg++;
       if (currentArg == argc) {
-        opserr << G3_ERROR_PROMPT << "print -material <tag> .. - no tag specified\n";
+        opserr << OpenSees::PromptValueError << "print -material <tag> .. - no tag specified\n";
         return TCL_ERROR;
       }
       for (int i = currentArg; i < argc; i++) {
         int tag;
         if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
-          opserr << G3_ERROR_PROMPT << "print -material failed to get integer tag: " << argv[i]
+          opserr << OpenSees::PromptValueError << "print -material failed to get integer tag: " << argv[i]
                  << "\n";
           return TCL_ERROR;
         }
@@ -399,7 +421,7 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
         res = printAlgorithm(info.clientData, interp, argc - currentArg,
                              argv + currentArg, *output);
       } else {
-        opserr << G3_ERROR_PROMPT << "Cannot print algorithm\n";
+        opserr << OpenSees::PromptValueError << "Cannot print algorithm\n";
       }
       done = true;
     }
@@ -479,11 +501,11 @@ printElement(ClientData clientData, Tcl_Interp *interp, int argc,
   if ((strcmp(argv[0], "flag") == 0) ||
       (strcmp(argv[0], "-flag")) == 0) { // get the specified flag
     if (argc < 2) {
-      opserr << G3_ERROR_PROMPT << "print <filename> ele <flag int> no int specified \n";
+      opserr << OpenSees::PromptValueError << "print <filename> ele <flag int> no int specified \n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[1], &flag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "print ele failed to get integer flag: \n";
+      opserr << OpenSees::PromptValueError << "print ele failed to get integer flag: \n";
       opserr << argv[eleArg] << endln;
       return TCL_ERROR;
     }
@@ -506,7 +528,7 @@ printElement(ClientData clientData, Tcl_Interp *interp, int argc,
     for (int i = 0; i < numEle; ++i) {
       int eleTag;
       if (Tcl_GetInt(interp, argv[i + eleArg], &eleTag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "print -ele failed to get integer: " << argv[i]
+        opserr << OpenSees::PromptValueError << "print -ele failed to get integer: " << argv[i]
                << endln;
         return TCL_ERROR;
       }
@@ -549,11 +571,11 @@ printNode(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
   if ((strcmp(argv[0], "flag") == 0) || (strcmp(argv[0], "-flag") == 0)) {
     // get the specified flag
     if (argc <= nodeArg) {
-      opserr << G3_ERROR_PROMPT << "print <filename> node <flag int> no int specified \n";
+      opserr << OpenSees::PromptValueError << "print <filename> node <flag int> no int specified \n";
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[1], &flag) != TCL_OK) {
-      opserr << G3_ERROR_PROMPT << "print node failed to get integer flag: \n";
+      opserr << OpenSees::PromptValueError << "print node failed to get integer flag: \n";
       opserr << argv[nodeArg] << endln;
       return TCL_ERROR;
     }
@@ -577,7 +599,7 @@ printNode(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
     for (int i = 0; i < numNodes; ++i) {
       int nodeTag;
       if (Tcl_GetInt(interp, argv[nodeArg], &nodeTag) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "print node failed to get integer: " << argv[nodeArg]
+        opserr << OpenSees::PromptValueError << "print node failed to get integer: " << argv[nodeArg]
                << "\n";
         return TCL_ERROR;
       }
@@ -627,7 +649,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
   FileStream outputFile;
 
   if (argc < 2) {
-    opserr << G3_ERROR_PROMPT << "printGID fileName? - no filename supplied\n";
+    opserr << OpenSees::PromptValueError << "printGID fileName? - no filename supplied\n";
     return TCL_ERROR;
   }
   openMode mode = openMode::OVERWRITE;
@@ -640,12 +662,12 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
 
       eleRange = 1;
       if (Tcl_GetInt(interp, argv[i + 1], &startEle) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "print node failed to get integer: " << argv[i + 1]
+        opserr << OpenSees::PromptValueError << "print node failed to get integer: " << argv[i + 1]
                << "\n";
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[i + 2], &endEle) != TCL_OK) {
-        opserr << G3_ERROR_PROMPT << "print node failed to get integer: " << argv[i + 2]
+        opserr << OpenSees::PromptValueError << "print node failed to get integer: " << argv[i + 2]
                << "\n";
         return TCL_ERROR;
       }
@@ -654,7 +676,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (outputFile.setFile(argv[1], mode) < 0) {
-    opserr << G3_ERROR_PROMPT << "printGID " << argv[1] << " failed to set the file\n";
+    opserr << OpenSees::PromptValueError << "printGID " << argv[1] << " failed to set the file\n";
     return TCL_ERROR;
   }
 
