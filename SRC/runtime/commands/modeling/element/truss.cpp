@@ -188,6 +188,23 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
         }
         tracker.increment();
         break;
+      
+      case Positions::iNode:
+        if (Tcl_GetInt(interp, argv[i], &nodes[0]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "failed to read integer node tag\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::jNode:
+        if (Tcl_GetInt(interp, argv[i], &nodes[1]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "failed to read integer node tag\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
 
       case Positions::Material: {
         int mat;
@@ -204,6 +221,40 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
         break;
       }
 
+      case Positions::Density:
+        if (Tcl_GetDouble(interp, argv[i], &rho) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "failed to read density\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+
+      case Positions::MassFlag:
+        if (Tcl_GetInt(interp, argv[i], &cMass) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "failed to read mass flag\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::RayleighFlag:
+        if (Tcl_GetInt(interp, argv[i], &doRayleigh) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "failed to read rayleigh flag\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::UseInitialDisp:
+        if (Tcl_GetInt(interp, argv[i], &doRayleigh) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "failed to read initial disp flag\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      
       case Positions::Area:
         if (Tcl_GetDouble(interp, argv[i], &area) != TCL_OK) {
           opserr << OpenSees::PromptValueError

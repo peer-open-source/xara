@@ -824,4 +824,7 @@ TclCommand_CreateHingeStencil(ClientData clientData, Tcl_Interp *interp,
     opserr << "Unknown integration type: " << type << "\n";
     return TCL_ERROR;
   }
+
+  // TODO: add beamIntegr to builder?
+  return TCL_ERROR;
 }
