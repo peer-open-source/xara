@@ -74,7 +74,7 @@ template <typename T> static inline int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-#if 1
+#if 0
 #include <concrete/StrsDec.cpp>
 #else
 static inline void
