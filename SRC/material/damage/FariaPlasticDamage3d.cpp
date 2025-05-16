@@ -70,7 +70,7 @@ StrsInvar(const VectorND<6> &sig, double &sigoct, double &tauoct)
 //
 // Stress decomposition function: algebraic approach
 //
-#if 1
+#if 0
 #include <concrete/StrsDec.cpp>
 #else
 template <typename T> static inline int sgn(T val) {
