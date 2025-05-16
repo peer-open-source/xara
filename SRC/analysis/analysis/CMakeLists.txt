@@ -6,21 +6,17 @@
 #==============================================================================
 target_sources(OPS_Analysis
     PRIVATE
-      Analysis.cpp 
-      EigenAnalysis.cpp
+      Analysis.cpp
       ResponseSpectrumAnalysis.cpp
 
       DomainDecompositionAnalysis.cpp
       StaticDomainDecompositionAnalysis.cpp 
       TransientDomainDecompositionAnalysis.cpp 
     PUBLIC
-      Analysis.h 
-      EigenAnalysis.h
+      Analysis.h
       ResponseSpectrumAnalysis.h
 
       DomainDecompositionAnalysis.h
       StaticDomainDecompositionAnalysis.h 
       TransientDomainDecompositionAnalysis.h 
 )
-
-#add_subdirectory(analysis)

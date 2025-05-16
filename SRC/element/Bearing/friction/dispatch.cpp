@@ -1664,7 +1664,6 @@ TclCommand_addFrictionModel(ClientData clientData, Tcl_Interp *interp,
                             int argc, TCL_Char ** const argv)
 {
   BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
-  G3_Runtime *rt = G3_getRuntime(interp);
 
     // make sure there is a minimum number of arguments
     if (argc < 3)  {

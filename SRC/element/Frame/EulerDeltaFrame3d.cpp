@@ -381,7 +381,6 @@ EulerDeltaFrame3d::getTangentStiff()
 //q[3] += q0[3];
 //q[4] += q0[4];
 
-
   static Matrix wrapper(kb);
 
   return wrapper;
@@ -447,7 +446,6 @@ EulerDeltaFrame3d::Print(OPS_Stream &s, int flag)
     s << "\nEulerDeltaFrame3d, element id:  " 
       << this->getTag() << "\n";
     s << "\tConnected external nodes:  " << node_tags;
-    s << "\tCoordTransf: " << theCoordTransf->getTag() << "\n";
     s << "\tmass density:  " << density 
       << ", mass_flag: " << mass_flag << "\n";
 

@@ -278,17 +278,17 @@ int Parallel3DMaterial::setTrialStrain(const Vector& v, const Vector& r)
 	return result;
 }
 
-const Vector &Parallel3DMaterial::getStrain(void)
+const Vector &Parallel3DMaterial::getStrain()
 {
 	return m_strain;
 }
 
-const Vector &Parallel3DMaterial::getStress(void)
+const Vector &Parallel3DMaterial::getStress()
 {
 	return m_stress;
 }
 
-const Matrix &Parallel3DMaterial::getTangent(void)
+const Matrix &Parallel3DMaterial::getTangent()
 {
 	return m_tangent;
 }
@@ -371,12 +371,29 @@ int Parallel3DMaterial::getOrder(void) const
 	return 6;
 }
 
-void Parallel3DMaterial::Print(OPS_Stream &s, int flag)
+void
+Parallel3DMaterial::Print(OPS_Stream &s, int flag)
 {
-	s << "Parallel3D Material, tag: " << this->getTag() << "\n";
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\", ";
+		s << "\"materials\": [";
+		for (std::size_t i = 0; i < m_materials.size(); ++i) {
+			if (i > 0)
+				s << ", ";
+			s << m_materials[i]->getTag();
+		}
+		s << "]";
+		s << "}";
+	}
+	else {
+		s << "Parallel3D Material, tag: " << this->getTag() << "\n";
+	}
 }
 
-int Parallel3DMaterial::sendSelf(int commitTag, Channel &theChannel)
+int
+Parallel3DMaterial::sendSelf(int commitTag, Channel &theChannel)
 {
 	int num_mat = static_cast<int>(m_materials.size());
 

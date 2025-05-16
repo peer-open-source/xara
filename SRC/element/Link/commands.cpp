@@ -135,6 +135,7 @@ SetupLink(const VectorND<ndm> &xi, const VectorND<ndm>& xj,
       trans(2,i) = z(i)/zn;
   }
 #endif
+  return 0;
 }
 
 
