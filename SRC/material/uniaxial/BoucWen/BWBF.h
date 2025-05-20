@@ -6,7 +6,10 @@
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
-
+//
+// Written: cmp
+// Created: May 2025
+//
 #ifndef BWBF_h
 #define BWBF_h
 
@@ -26,6 +29,102 @@ signum(double value)
 class BWBF : public UniaxialMaterial
 {
   public:
+
+    BWBF(int tag, 
+        double E,
+        double Fy,
+        double alpha,
+        double n,
+        double beta,
+        //
+        double delta_a,
+        double delta_v,
+        double delta_n,
+        //
+        double pinch_slope,
+        double pinch_slip,
+        double pinch_start,
+        double pinch_rate,
+        double pinch_size,
+        double pinch_lamda,
+        //
+        double tolerance,
+        int maxNumIter);
+    ~BWBF();
+
+    const char *getClassType() const {return "BWBF";}
+
+    UniaxialMaterial *getCopy();
+
+    int setTrialStrain(double strain, double strainRate = 0.0);
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();
+
+    double getStrain();          
+    double getStress();
+    double getTangent();
+    double getInitialTangent();
+
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
+    void Print(OPS_Stream &s, int flag);
+
+
+    int setParameter (const char **argv, int argc, Parameter &);
+    int updateParameter          (int parameterID, Information &);
+    int activateParameter        (int parameterID);
+    // double getStressSensitivity     (int gradIndex, bool conditional);
+    // double getStrainSensitivity     (int gradIndex);
+    // double getTangentSensitivity    (int gradIndex);
+    // double getDampTangentSensitivity(int gradIndex);
+    // double getRhoSensitivity        (int gradIndex);
+    // int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
+    // double  getInitialTangentSensitivity(int gradIndex);
+
+  private:
+    
+    double wen(double z, double Psi, double A, double nu) {
+      return (A - pow(fabs(z),n)*Psi*nu)*Ko/Fy;
+    }
+
+    double dwen(double z, double Psi, double A, double nu, 
+                double dz, double dA, double dnu) {
+      double pow1 = (z==0.0)? 0.0 : pow(fabs(z), (n-1));
+      return (dA
+             -n*pow1*signum(z)*Psi*nu*dz
+             - std::pow(std::fabs(z), n)*Psi*dnu)*Ko/Fy;
+    }
+
+    // Material parameters
+    double Ko;
+    double Fy;
+    double alpha;
+    double n;
+    double gamma;
+    double beta;
+    double Ao;
+
+    double delta_a, delta_v, delta_n;
+
+    
+    // History variables (trial and committed)
+    struct {
+      double strain;
+      double energy;
+      double tangent;
+      double z;
+    } pres, past;
+    // double Tz, Cz;
+    // double Te, Ce;
+
+    // Other variables
+    double Tstress, Ttangent;
+    
+    double tolerance;
+    int maxNumIter;
+
+    int parameterID;
 
 
     struct Pinch {
@@ -89,101 +188,13 @@ class BWBF : public UniaxialMaterial
       double psi;
       double delta_psi;
       double lamda;
+
     private:
       struct {
         double u,e,z, sgn;
         double zeta_1, zeta_2;
       } pres;
     } pinch;
-
-    BWBF(int tag, 
-        double E,
-        double Fy,
-        double alpha,
-        double n,
-        double beta,
-        double delta_a,
-        double delta_v,
-        double delta_n,
-        //
-        double pinch_slope,
-        double pinch_slip,
-        double pinch_start,
-        double pinch_rate,
-        double pinch_size,
-        double pinch_lamda,
-        double tolerance,
-        int maxNumIter);
-    ~BWBF();
-
-    const char *getClassType() const {return "BWBF";}
-
-    UniaxialMaterial *getCopy();
-
-    int setTrialStrain(double strain, double strainRate = 0.0);
-    int commitState();
-    int revertToLastCommit();    
-    int revertToStart();
-
-    double getStrain();          
-    double getStress();
-    double getTangent();
-    double getInitialTangent();
-
-    int sendSelf(int commitTag, Channel &);  
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
-    void Print(OPS_Stream &s, int flag);
-
-
-    int setParameter (const char **argv, int argc, Parameter &param);
-    int updateParameter          (int parameterID, Information &info);
-    int    activateParameter        (int parameterID);
-    // double getStressSensitivity     (int gradIndex, bool conditional);
-    // double getStrainSensitivity     (int gradIndex);
-    // double getTangentSensitivity    (int gradIndex);
-    // double getDampTangentSensitivity(int gradIndex);
-    // double getRhoSensitivity        (int gradIndex);
-    // int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
-    // double  getInitialTangentSensitivity(int gradIndex);
-
-  private:
-    
-    double wen(double z, double Psi, double A, double nu) {
-      return (A - pow(fabs(z),n)*Psi*nu)*Ko/Fy;
-    }
-    double dwen(double z, double Psi, double A, double nu, 
-                double dz, double dA, double dnu) {
-      double pow1 = (z==0.0)? 0.0 : pow(fabs(z), (n-1));
-      return (dA
-             -n*pow1*signum(z)*Psi*nu*dz
-             - std::pow(std::fabs(z), n)*Psi*dnu)*Ko/Fy;
-    }
-
-    // Material parameters
-    double Ko;
-    double Fy;
-    double alpha;
-    double n;
-    double gamma;
-    double beta;
-    double Ao;
-
-    double delta_a, delta_v, delta_n;
-
-    
-    // History variables (trial and committed)
-    double Tstrain, Cstrain;
-    double Tz, Cz;
-    double Te, Ce;
-
-
-    // Other variables
-    double Tstress, Ttangent;
-    
-    double tolerance;
-    int maxNumIter;
-
-    int parameterID;
 };
 
 
