@@ -12,7 +12,8 @@
 //
 // References
 //
-// - Prof. Haukaas' notes: https://civil-terje.sites.olt.ubc.ca/files/2023/03/Bouc-Wen-Material-Model.pdf
+// - Prof. Haukaas' notes
+//   https://civil-terje.sites.olt.ubc.ca/files/2023/03/Bouc-Wen-Material-Model.pdf
 //
 // Written: cmp
 // Created: May 2025
@@ -69,48 +70,48 @@ int
 BWBF::setTrialStrain(double strain, double strainRate)
 {
 
-  Tstrain = strain;
-  const double dStrain = Tstrain - Cstrain;
+  pres.strain = strain;
+  const double dStrain = pres.strain - past.strain;
   const double sgn  = signum(dStrain);
 
-  double W, a, h, u, az, hz, ue;
-  double Ae, nu, eta;
-  double Dz = 0;
-
   // Newton-Raphson scheme to solve for z(strain)
-  Tz = Cz; // 0.01;
+  double z = past.z; // 0.01;
   int count = 0;
-  double g;
+  
+  double W, a, h, u, az, hz, ue, e;
+  double Ae, nu, eta;
+  double g,  Dz = 0;
   do {
-    Tz -= Dz;
+    z -= Dz;
 
-    Te  =  Ce + (1.0-alpha)*(Ko/Fy)*Tz*dStrain;
-    Ae  =  Ao - delta_a * Te;
-    nu  = 1.0 + delta_v * Te;
-    eta = 1.0 + delta_n * Te;
+    e   =  past.energy + (1.0-alpha)*(Ko/Fy)*z*dStrain;
+    Ae  =  Ao - delta_a * e;
+    nu  = 1.0 + delta_v * e;
+    eta = 1.0 + delta_n * e;
 
-    double Psi = gamma + beta*signum(dStrain*Tz);
-    W = wen(Tz, Psi, Ae, nu);
+    double Psi = gamma + beta*signum(dStrain*z);
+    W = wen(z, Psi, Ae, nu);
     a = W/eta;
-    h = pinch.update(sgn, Tz, Te, u);
+    h = pinch.update(sgn, z, e, u);
     u = std::pow(Ae/(nu*(beta + gamma)), 1./n);
     
     double ve = delta_v;
     ue = -(beta + gamma)/n*std::pow(Ae/(nu*(beta + gamma)), 1+1./n)*ve;
 
-    // double hz, az;
+    // set hz, az;
     {
       double ez   = (1.0 - alpha)*(Ko/Fy)*dStrain;
       double vz   =   delta_v * ez;
       double nz   =   delta_n * ez;
       double Az   = - delta_a * ez;
-      double pow1 = (Tz==0.0) ? 0.0 : std::pow(std::fabs(Tz), (n-1));
-      double Wz = dwen(Tz, Psi, Ae, nu, 1, Az, vz);
+      double pow1 = (z==0.0) ? 0.0 : std::pow(std::fabs(z), (n-1));
+      double Wz = dwen(z, Psi, Ae, nu, 1, Az, vz);
       hz = pinch.tangent(ez,ue,1);
       az = (Wz*eta - W*nz)/(eta*eta);
     }
 
-    g = (Tz - Cz) - (h*a)*dStrain;
+    // Newton-Raphson objective function
+    g = (z - past.z) - (h*a)*dStrain;
 
     double gz = 1.0 - (az*h + a*hz)*dStrain;
 
@@ -135,36 +136,40 @@ BWBF::setTrialStrain(double strain, double strainRate)
   } while ( ( std::fabs(g) > tolerance ) && count<maxNumIter);
 
 
+  pres.z = z;
+  pres.energy = e;
   //
   // Compute stress
   //
-  Tstress = alpha*Ko*Tstrain + (1-alpha)*Fy*Tz;
+  Tstress = alpha*Ko*pres.strain + (1-alpha)*Fy*z;
 
+  //
   // Compute tangent
+  //
   double dzdx;
-  if (Tz == 0.0) 
+  if (z == 0.0) 
     dzdx = Ko/Fy;
   else {
-      double Psi = gamma + beta*signum(dStrain*Tz);
+    double Psi = gamma + beta*signum(dStrain*pres.z);
 
-      double ax, hx;
-      {
-        double ex = (1-alpha)*(Ko/Fy)*Tz; // b1
-        double vx =  delta_v * ex;
-        double Ax = -delta_a * ex;
-        double wx = dwen(Tz, Psi, Ae, nu,  0, Ax, vx);
-        double nx = delta_n * ex;
-        ax = (eta*wx - W*nx)/(eta*eta);
-        hx = pinch.tangent(ex,ue,0);
-      }
+    double ax, hx;
+    {
+      double ex = (1-alpha)*(Ko/Fy)*pres.z; // b1
+      double vx =  delta_v * ex;
+      double Ax = -delta_a * ex;
+      double wx = dwen(z, Psi, Ae, nu,  0, Ax, vx);
+      double nx = delta_n * ex;
+      ax = (eta*wx - W*nx)/(eta*eta);
+      hx = pinch.tangent(ex,ue,0);
+    }
 
-      double f  = h*a;
-      double fx = hx*a + h*ax;
-      double fz = az*h + a*hz;
+    double f  = h*a;
+    double fx = hx*a + h*ax;
+    double fz = az*h + a*hz;
 
-      dzdx = (f + fx*dStrain)/(1.0 - fz*dStrain);
+    dzdx = (f + fx*dStrain)/(1.0 - fz*dStrain);
   }
-  Ttangent = alpha*Ko + (1-alpha)*Fy*dzdx;
+  pres.tangent = alpha*Ko + (1-alpha)*Fy*dzdx;
 
   return 0;
 }
@@ -185,23 +190,20 @@ BWBF::getInitialTangent()
 double 
 BWBF::getTangent()
 {
-  return Ttangent;
+  return pres.tangent;
 }
 
 double 
 BWBF::getStrain()
 {
-  return Tstrain;
+  return pres.strain;
 }
 
 int 
 BWBF::commitState()
 {
   // Commit trial history variables
-  Cstrain = Tstrain;
-  Cz = Tz;
-  Ce = Te;
-
+  past = pres;
   return 0;
 }
 
@@ -214,15 +216,16 @@ BWBF::revertToLastCommit()
 int 
 BWBF::revertToStart()
 {
-  Tstrain = 0.0;
-  Cstrain = 0.0;
-  Tz = 0.01;
-  Cz = 0.0;
-  Te = 0.0;
-  Ce = 0.0;
+  past.z = 0.0;
+  past.energy = 0.0;
+  past.tangent = Ko;
+  pres.strain = 0.0;
+  past.strain = 0.0;
+  pres.z = 0.01;
+  pres.energy = 0.0;
   //
   Tstress = 0.0;
-  Ttangent = alpha*Ko + (1-alpha)*(Ko/Fy)*Ao;
+  pres.tangent = alpha*Ko + (1-alpha)*(Ko/Fy)*Ao;
 
   return 0;
 }
@@ -235,17 +238,9 @@ BWBF::getCopy()
             beta, 
             delta_a, delta_v, delta_n,
             0,0,0,0,0,0,
-            tolerance,maxNumIter);
+            tolerance, maxNumIter);
       
-  theCopy->Tstrain = Tstrain;
-  theCopy->Cstrain = Cstrain;
-  theCopy->Tz = Tz;
-  theCopy->Cz = Cz;
-  theCopy->Te = Te;
-  theCopy->Ce = Ce;
-  theCopy->pinch = pinch;
-  theCopy->Tstress = Tstress;
-  theCopy->Ttangent = Ttangent;
+  (*theCopy) = (*this);
 
   return theCopy;
 }
@@ -336,13 +331,13 @@ BWBF::activateParameter(int p)
 }
 
 int 
-BWBF::sendSelf(int cTag, Channel &theChannel)
+BWBF::sendSelf(int cTag, Channel &)
 {
   return -1;
 }
 
 int 
-BWBF::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+BWBF::recvSelf(int cTag, Channel &, FEM_ObjectBroker &)
 {
   return -1;
 }
