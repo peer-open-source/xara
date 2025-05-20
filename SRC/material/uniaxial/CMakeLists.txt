@@ -89,7 +89,6 @@ target_sources(OPS_Material
       HystereticMaterial.cpp
       HystereticPoly.cpp
       ImpactMaterial.cpp
-      Maxwell.cpp                      # Uses ops_Dt
       MinMaxMaterial.cpp
       ModIMKPeakOriented.cpp
       ModIMKPeakOriented02.cpp
@@ -109,8 +108,6 @@ target_sources(OPS_Material
       SLModel.cpp
       TensionOnlyMaterial.cpp
       UniaxialJ2Plasticity.cpp
-      ViscousDamper.cpp
-      ViscousMaterial.cpp
       ViscoelasticGap.cpp
       # WrapperUniaxialMaterial.cpp
       pyUCLA.cpp
@@ -157,6 +154,7 @@ add_subdirectory(bearing)
 add_subdirectory(limitState)
 add_subdirectory(concrete)
 add_subdirectory(steel)
+add_subdirectory(viscous)
 
 add_subdirectory(PY)
 add_subdirectory(snap)
