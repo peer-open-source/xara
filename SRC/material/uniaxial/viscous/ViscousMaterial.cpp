@@ -30,8 +30,7 @@
 // ViscousMaterial. 
 
 #include <math.h>
-
-#include <ViscousMaterial.h>
+#include "ViscousMaterial.h"
 #include <Vector.h>
 #include <Channel.h>
 #include <Information.h>
