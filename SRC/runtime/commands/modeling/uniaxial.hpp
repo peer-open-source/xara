@@ -17,6 +17,13 @@
 #include <runtimeAPI.h>
 #include <UniaxialMaterial.h>
 
+// Viscous
+extern OPS_Routine OPS_Maxwell;
+extern OPS_Routine OPS_ViscousDamper;
+extern OPS_Routine OPS_ViscousMaterial;
+extern OPS_Routine OPS_ViscoelasticGap;
+extern OPS_Routine OPS_DamperMaterial;
+
 extern OPS_Routine OPS_ASD_SMA_3K;
 extern OPS_Routine OPS_ASDConcrete1DMaterial;
 extern OPS_Routine OPS_APDFMD;
@@ -26,13 +33,12 @@ extern OPS_Routine OPS_Bilin02;
 extern OPS_Routine OPS_Bilin;
 extern OPS_Routine OPS_BilinearOilDamper;
 extern OPS_Routine OPS_Bond_SP01;
-extern OPS_Routine OPS_BoucWenOriginal;
 extern OPS_Routine OPS_CFSSSWP;
 extern OPS_Routine OPS_CFSWSWP;
 extern OPS_Routine OPS_CableMaterial;
 extern OPS_Routine OPS_Cast;
 extern OPS_Routine OPS_CreepMaterial;
-
+// Concrete
 extern OPS_Routine OPS_Concrete01;
 extern OPS_Routine OPS_Concrete02;
 extern OPS_Routine OPS_Concrete02IS;
@@ -43,10 +49,8 @@ extern OPS_Routine OPS_ConcreteECThermal;
 extern OPS_Routine OPS_ConcreteL01Material;
 extern OPS_Routine OPS_ConcreteSakaiKawashima;
 extern OPS_Routine OPS_ConcreteZ01Material;
-
 extern OPS_Routine OPS_ConfinedConcrete01Material;
-extern OPS_Routine OPS_DamperMaterial;
-extern OPS_Routine OPS_DegradingPinchedBW;
+
 extern OPS_Routine OPS_DoddRestr;
 extern OPS_Routine OPS_Dodd_Restrepo;
 extern OPS_Routine OPS_EPPGapMaterial;
@@ -76,7 +80,6 @@ extern OPS_Routine OPS_JankowskiImpact;
 extern OPS_Routine OPS_ImpactMaterial;
 extern OPS_Routine OPS_Masonry;
 extern OPS_Routine OPS_Masonryt;
-extern OPS_Routine OPS_Maxwell;
 extern OPS_Routine OPS_MinMaxMaterial;
 extern OPS_Routine OPS_ModIMKPeakOriented02;
 extern OPS_Routine OPS_ModIMKPeakOriented;
@@ -98,12 +101,16 @@ extern OPS_Routine OPS_SLModel;
 extern OPS_Routine OPS_SMAMaterial;
 extern OPS_Routine OPS_SPSW02;           // SAJalali
 extern OPS_Routine OPS_SimpleFractureMaterial;
+
 extern OPS_Routine OPS_StainlessECThermal;
 extern OPS_Routine OPS_SteelBRB;
 extern OPS_Routine OPS_SteelECThermal;
 extern OPS_Routine OPS_SteelFractureDI; // galvisf
 extern OPS_Routine OPS_SteelMPF;
 extern OPS_Routine OPS_SteelZ01Material;
+extern OPS_Routine OPS_Steel02Fatigue;
+extern OPS_Routine OPS_Steel4;
+
 extern OPS_Routine OPS_TDConcrete;       // ntosic
 extern OPS_Routine OPS_TDConcreteEXP;    // ntosic
 extern OPS_Routine OPS_TDConcreteMC10;   // ntosic
@@ -112,15 +119,8 @@ extern OPS_Routine OPS_TendonL01Material;
 extern OPS_Routine OPS_Trilinwp2;
 extern OPS_Routine OPS_Trilinwp;
 extern OPS_Routine OPS_UVCuniaxial;
-extern OPS_Routine OPS_ViscousDamper;
-extern OPS_Routine OPS_ViscousMaterial;
-extern OPS_Routine OPS_ViscoelasticGap;
 extern OPS_Routine OPS_pyUCLA;
 
-// extern OPS_Routine OPS_Steel01Thermal;
-extern OPS_Routine OPS_Steel02Fatigue;
-// extern OPS_Routine OPS_Steel02Thermal;
-extern OPS_Routine OPS_Steel4;
 
 extern void *OPS_ConcretewBeta();
 
@@ -171,9 +171,10 @@ Tcl_CmdProc TclCommand_newUniaxialConcrete04;
 Tcl_CmdProc TclCommand_newUniaxialConcrete06;
 Tcl_CmdProc TclCommand_newUniaxialConcrete07;
 // Bouc-Wen
-extern OPS_Routine OPS_BWBN;
+extern Tcl_CmdProc TclCommand_newBoucWen;
 extern Tcl_CmdProc TclCommand_newUniaxialBoucWen;
 extern Tcl_CmdProc TclCommand_newBoucWenMG;
+extern OPS_Routine OPS_DegradingPinchedBW;
 // Abutment
 Tcl_CmdProc TclCommand_HyperbolicGapMaterial;
 // Other
@@ -236,6 +237,15 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"Hardening",                dispatch<TclCommand_newPlasticMaterial>      },
     {"Hardening2",               dispatch<TclCommand_newPlasticMaterial>      },
 //
+// Bouc
+//
+    {"BWBF",                   dispatch<TclCommand_newBoucWen>         },
+    {"BWBN",                   dispatch<TclCommand_newBoucWen>         },
+    {"BoucWenOriginal",        dispatch<TclCommand_newBoucWen>         },
+    {"BoucWen",                dispatch<TclCommand_newUniaxialBoucWen> },
+    {"BoucWenMG",              dispatch<TclCommand_newBoucWenMG>       },
+    {"DegradingPinchedBW",     dispatch<OPS_DegradingPinchedBW>        },
+//
 // Steel
 //
     {"Steel",                  dispatch<TclCommand_newPlasticMaterial>},
@@ -265,6 +275,10 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 // Concretes
     {"Concrete01",             dispatch<TclCommand_newFedeasConcrete>  },
     {"Concrete02",             dispatch<OPS_Concrete02>                },
+    {"Concrete04",             dispatch<TclCommand_newUniaxialConcrete04> },
+    {"Concrete06",             dispatch<TclCommand_newUniaxialConcrete06> },
+    {"Concrete07",             dispatch<TclCommand_newUniaxialConcrete07> },
+
     {"Concrete02IS",           dispatch<OPS_Concrete02IS>              },
     {"ConcreteCM",             dispatch<OPS_ConcreteCM>                },
     {"ConfinedConcrete01",     dispatch<OPS_ConfinedConcrete01Material>},
@@ -273,9 +287,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"ConcreteZ01Material",    dispatch<OPS_ConcreteZ01Material>       },
     {"ConcreteZ01",            dispatch<OPS_ConcreteZ01Material>       },
 
-    {"Concrete04",           dispatch<TclCommand_newUniaxialConcrete04> },
-    {"Concrete06",           dispatch<TclCommand_newUniaxialConcrete06> },
-    {"Concrete07",           dispatch<TclCommand_newUniaxialConcrete07> },
+
 #if 0
     { "ConcretewBeta",       dispatch<OPS_ConcretewBeta>    }
 #endif
@@ -287,14 +299,6 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"ViscousDamper",          dispatch<OPS_ViscousDamper>             },
     {"DamperMaterial",         dispatch<OPS_DamperMaterial>            },
     {"BilinearOilDamper",      dispatch<OPS_BilinearOilDamper>         },
-//
-// Bouc
-//
-    {"BoucWen",                dispatch<TclCommand_newUniaxialBoucWen> },
-    {"BoucWenMG",              dispatch<TclCommand_newBoucWenMG>       },
-    {"BWBN",                   dispatch<OPS_BWBN>                      },
-    {"BoucWenOriginal",        dispatch<OPS_BoucWenOriginal>           },
-    {"DegradingPinchedBW",     dispatch<OPS_DegradingPinchedBW>        },
 //
 // Multilinear
 //
