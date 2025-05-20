@@ -25,16 +25,14 @@
 //
 // Written by Terje Haukaas (haukaas@ce.berkeley.edu) 
 //
-
 #include "BoucWenMaterial.h"
 #include <Vector.h>
 #include <Channel.h>
-#include <math.h>
+#include <cmath>
 #include <Matrix.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <string.h>
-#include <elementAPI.h>
 
 static inline double 
 signum(double value)
@@ -43,52 +41,6 @@ signum(double value)
     return 1.0;
   else
     return -1.0;
-}
-
-void * OPS_ADD_RUNTIME_VPV(OPS_BoucWenMaterial)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 10) {
-    opserr << "WARNING: Insufficient arguments\n";
-    opserr << "Want: uniaxialMaterial BoucWen tag? alpha? ko? n? gamma?" << endln 
-           << " beta? Ao? deltaA? deltaNu? deltaEta?" << endln;
-    return 0;
-    }
-
-    int tag;
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata,&tag) < 0) {
-    opserr << "WARNING invalid tag\n";
-    return 0;
-    }
-
-    double data[10] = {0,0,0,0,0,0,0,0,0,1.0e-8};
-    numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata > 10) {
-    numdata = 10;
-    }
-    if (OPS_GetDoubleInput(&numdata,data)) {
-    opserr << "WARNING invalid double inputs\n";
-    return 0;
-    }
-
-    int maxNumIter = 20;
-    numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata > 0) {
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata,&maxNumIter) < 0) {
-        opserr << "WARNING invalid int inputs\n";
-        return 0;
-    }
-    }
-
-    UniaxialMaterial* mat = new BoucWenMaterial(tag,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],maxNumIter);
-    if (mat == 0) {
-    opserr << "WARNING: failed to create Boucwenmaterial material\n";
-    return 0;
-    }
-
-    return mat;
 }
 
 BoucWenMaterial::BoucWenMaterial(int tag, 
@@ -124,7 +76,7 @@ BoucWenMaterial::BoucWenMaterial()
 BoucWenMaterial::~BoucWenMaterial()
 {
     if (SHVs != 0) 
-            delete SHVs;
+        delete SHVs;
 }
 
 
@@ -141,22 +93,23 @@ BoucWenMaterial::setTrialStrain(double strain, double strainRate)
     double startPoint = 0.01;
     Tz = startPoint;
     double Tzold = startPoint;
-    double Tznew = 1.0;  
+    double Tznew = 1.0;
     while ( ( fabs(Tzold-Tznew) > tolerance ) && count<maxNumIter) {
 
-        double Te   = Ce + (1-alpha)*ko*dStrain*Tz;
-        double TA   = Ao - deltaA*Te;
+        double Te   =  Ce + (1-alpha)*ko*dStrain*Tz;
+        double TA   =  Ao - deltaA*Te;
         double Tnu  = 1.0 + deltaNu*Te;
         double Teta = 1.0 + deltaEta*Te;
+
         double Psi  = gamma + beta*signum(dStrain*Tz);
         double Phi  = TA - pow(fabs(Tz),n)*Psi*Tnu;
-        double f = Tz - Cz - Phi/Teta*dStrain;
+        double f = (Tz - Cz) - Phi/Teta*dStrain;
 
 
         // Evaluate function derivative f' (underscore:=prime)
-        double Te_ = (1.0-alpha)*ko*dStrain;
-        double TA_ = -deltaA*Te_;
-        double Tnu_ = deltaNu*Te_;
+        double Te_   = (1.0-alpha)*ko*dStrain;
+        double TA_   = -deltaA*Te_;
+        double Tnu_  =  deltaNu*Te_;
         double Teta_ = deltaEta*Te_;
         double pow1;
         double pow2;
@@ -165,8 +118,8 @@ BoucWenMaterial::setTrialStrain(double strain, double strainRate)
             pow2 = 0.0;
         }
         else {
-            pow1 = pow(fabs(Tz),(n-1));
-            pow2 = pow(fabs(Tz),n);
+            pow1 = std::pow(std::fabs(Tz), (n-1));
+            pow2 = std::pow(std::fabs(Tz), n);
         }
         double sign = signum(Tz);
         double Phi_ = TA_ - n*pow1*sign*Psi*Tnu - pow2*Psi*Tnu_;
@@ -208,19 +161,24 @@ BoucWenMaterial::setTrialStrain(double strain, double strainRate)
 
         // Compute tangent
         if (Tz != 0.0) {
+            double sgnz = signum(Tz);
             Psi = gamma + beta*signum(dStrain*Tz);
-            Phi = TA - pow(fabs(Tz),n)*Psi*Tnu;
+            Phi = TA - pow(fabs(Tz), n)*Psi*Tnu;
+
             double b1  = (1-alpha)*ko*Tz;
             double b2  = (1-alpha)*ko*dStrain;
             double b3  = dStrain/Teta;
-            double b4  = -b3*deltaA*b1 - b3*pow(fabs(Tz),n)*Psi*deltaNu*b1 
-                       - Phi/(Teta*Teta)*dStrain*deltaEta*b1 + Phi/Teta;
-            double b5  = 1.0 + b3*deltaA*b2 + b3*n*pow(fabs(Tz),(n-1))*signum(Tz)*Psi*Tnu
+            double b4  =                        - b3*deltaA*b1 
+                           - b3*pow(fabs(Tz),n)*Psi*deltaNu*b1 
+                         - Phi/(Teta*Teta)*dStrain*deltaEta*b1 
+                         + Phi/Teta;
+            double b5  = 1.0 + b3*deltaA*b2 + b3*n*pow(fabs(Tz),(n-1))*sgnz*Psi*Tnu
                        + b3*pow(fabs(Tz),n)*Psi*deltaNu*b2
                        + Phi/(Teta*Teta)*dStrain*deltaEta*b2;
             double DzDeps = b4/b5;
             Ttangent = alpha*ko + (1-alpha)*ko*DzDeps;
-        } else {
+        }
+        else {
             Ttangent = alpha*ko + (1-alpha)*ko;
         }
 
@@ -384,11 +342,11 @@ void
 BoucWenMaterial::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"alpha\": " << alpha << ", ";
-    s << "\"ko\": " << ko << ", ";
+    s << "\"E\": " << ko << ", ";
     s << "\"n\": " << n << ", ";
     s << "\"gamma\": " << gamma << ", ";
     s << "\"beta\": " << beta << ", ";

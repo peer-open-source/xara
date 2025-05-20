@@ -35,6 +35,7 @@
 #include <Parameter.h>
 #include <string.h>
 
+#if 0
 #include <elementAPI.h>
 #include <OPS_Globals.h>
 
@@ -54,7 +55,17 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BoucWenOriginal)
         return 0;
     }
     
-    double data[9] = { 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 0.5, 0.5, 1.0E-8 };
+    double data[9] = { 
+        0.0,   // E
+        0.0,   // Fy
+        0.0,   // alphaL
+        0.0,   // alphaNL
+        2.0,   // mu
+        1.0,   // n
+        0.5,   // beta
+        0.5,   // gamma
+        1.0E-8 // tolerance
+    };
     numdata = OPS_GetNumRemainingInputArgs();
     if (numdata > 9) {
         numdata = 9;
@@ -76,13 +87,10 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BoucWenOriginal)
     
     UniaxialMaterial* mat = new BoucWenOriginal(tag, data[0], data[1], data[2],
         data[3], data[4], data[5], data[6], data[7], data[8], maxIter);
-    if (mat == 0) {
-        opserr << "WARNING: failed to create BoucWenOriginal material\n";
-        return 0;
-    }
     
     return mat;
 }
+#endif
 
 static inline double 
 signum(double x)
@@ -129,38 +137,41 @@ BoucWenOriginal::~BoucWenOriginal()
 }
 
 
-int BoucWenOriginal::setTrialStrain(double strain, double strainRate)
+int
+BoucWenOriginal::setTrialStrain(double strain, double strainRate)
 {
+    // initialize stiffnesses
+    const double k2 = alphaL*Ei;
+    const double k3 = alphaNL*Ei;
+    const double k0 = Ei - k2;
+
+    // yield strain
+    const double epsy = fy / Ei;
+
+    // yield force of hysteretic component
+    const double qd = fy - k2*epsy - k3*std::pow(epsy, mu);
+
     eps = strain;
     double delta_eps = eps - epsC;
-    if (fabs(delta_eps) > 0.0) {
-        
-        // initialize stiffnesses
-        double k2 = alphaL*Ei;
-        double k3 = alphaNL*Ei;
-        double k0 = Ei - k2;
 
-        // get yield strain
-        double epsy = fy / Ei;
-
-        // get yield force of hysteretic component
-        double qd = fy - k2*epsy - k3*pow(epsy, mu);
+    if (std::fabs(delta_eps) > 0.0) {
         
         // calculate hysteretic evolution parameter z using Newton-Raphson
         int iter = 0;
         double delta_z;
         do {
-            double zAbs = fabs(z);
+            double zAbs = std::fabs(z);
             if (zAbs == 0.0)    // check because of negative exponents
                 zAbs = DBL_EPSILON;
-            double tmp1 = gamma + beta*signum(z*delta_eps);
-            
+
+            double Psi = gamma + beta*signum(z*delta_eps);
+            double Phi = 1.0 - std::pow(zAbs, eta)*Psi;
             // function and derivative
-            double f = z - zC - delta_eps / epsy*(1.0 - pow(zAbs, eta)*tmp1);
-            double Df = 1.0 + delta_eps / epsy*eta*pow(zAbs, eta - 1.0)*signum(z)*tmp1;
+            double f = (z - zC) - Phi / epsy * delta_eps;
+            double Df = 1.0 + eta*std::pow(zAbs, eta-1.0)*signum(z)*(Psi/epsy)*delta_eps;
             
-            // issue warning if derivative Df is zero
-            if (fabs(Df) <= DBL_EPSILON) {
+
+            if (std::fabs(Df) <= DBL_EPSILON) {
                 opserr << "WARNING: BoucWenOriginal::setTrialStrain() - "
                     << "zero derivative in Newton-Raphson scheme for "
                     << "hysteretic evolution parameter z.\n";
@@ -177,12 +188,12 @@ int BoucWenOriginal::setTrialStrain(double strain, double strainRate)
         if (iter >= maxIter) {
             opserr << "WARNING: BoucWenOriginal::setTrialStrain() - "
                 << "did not find the hysteretic evolution parameter z after "
-                << iter << " iterations and norm: " << fabs(delta_z) << endln;
+                << iter << " iterations and norm: " << fabs(delta_z) << "\n";
             return -2;
         }
         
         // get derivative of hysteretic evolution parameter * epsy
-        double dzdeps = 1.0 - pow(fabs(z), eta)*(gamma + beta*signum(z*delta_eps));
+        double dzdeps = 1.0 - std::pow(fabs(z), eta)*(gamma + beta*signum(z*delta_eps));
         // set stress
         sig = qd*z + k2*eps + k3*signum(eps)*pow(fabs(eps), mu);
         // set tangent stiffness
@@ -350,11 +361,11 @@ void BoucWenOriginal::Print(OPS_Stream &s, int flag)
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
         s << "\"name\": \"" << this->getTag() << "\", ";
         s << "\"type\": \"BoucWenOriginal\", ";
         s << "\"E\": " << Ei << ", ";
-        s << "\"fy\": " << fy << ", ";
+        s << "\"Fy\": " << fy << ", ";
         s << "\"alphaL\": " << alphaL << ", ";
         s << "\"alphaNL\": " << alphaNL << ", ";
         s << "\"mu\": " << mu << ", ";
