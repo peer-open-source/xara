@@ -239,23 +239,28 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
       return nullptr;
     }
 
-    if (strcmp(argv[1], "NormUnbalance") == 0)
+    if ((strcmp(argv[1], "Residual") == 0) || (strcmp(argv[1], "NormUnbalance") == 0))
       return  new CTestNormUnbalance(tol, numIter, flag, normType,
                                      maxIncr, maxTol);
 
-    else if (strcmp(argv[1], "NormDispIncr") == 0)
+    else if ((strcmp(argv[1], "Correction")) || (strcmp(argv[1], "NormDispIncr") == 0))
       return new CTestNormDispIncr(tol, numIter, flag, normType, maxTol);
 
-    else if (strcmp(argv[1], "NormDispAndUnbalance") == 0)
-      return new NormDispAndUnbalance(tol, tol2, numIter, flag,
-                                            normType, maxIncr);
+    else if ((strcmp(argv[1], "EnergyIncr") == 0) || 
+             (strcmp(argv[1], "Energy") == 0))
+      theNewTest = new CTestEnergyIncr(tol, numIter, flag, normType, maxTol);
+
+    else if ((strcmp(argv[1], "Energy") == 0) || (strcmp(argv[1], "EnergyIncr") == 0))
+      theNewTest = new CTestEnergyIncr(tol, numIter, flag, normType, maxTol);
+
+    else if ((strcmp(argv[1], "Residual&Correction") == 0) || 
+             (strcmp(argv[1], "Correction&Residual") == 0) || 
+             (strcmp(argv[1], "NormDispAndUnbalance") == 0))
+      return new NormDispAndUnbalance(tol, tol2, numIter, flag, normType, maxIncr);
 
     else if (strcmp(argv[1], "NormDispOrUnbalance") == 0)
       return new NormDispOrUnbalance(tol, tol2, numIter, flag,
                                            normType, maxIncr);
-
-    else if (strcmp(argv[1], "EnergyIncr") == 0)
-      theNewTest = new CTestEnergyIncr(tol, numIter, flag, normType, maxTol);
 
     else if (strcmp(argv[1], "RelativeNormUnbalance") == 0)
       return new CTestRelativeNormUnbalance(tol, numIter, flag, normType);
