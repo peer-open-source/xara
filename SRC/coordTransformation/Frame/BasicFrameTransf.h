@@ -19,10 +19,12 @@
 #include <Matrix.h>
 
 namespace OpenSees {
+
+template<int ndf=6>
 class BasicFrameTransf3d: public FrameTransform3d
 {
 public:
-    BasicFrameTransf3d(FrameTransform<2,6> *t);
+    BasicFrameTransf3d(FrameTransform<2,ndf> *t);
 
     ~BasicFrameTransf3d();
 
@@ -43,12 +45,6 @@ public:
     virtual const Vector &getBasicIncrDisp() override final;
     virtual const Vector &getBasicIncrDeltaDisp() override final;
     virtual const Vector &getBasicTrialVel() override final;
-
-    virtual VectorND<12>    pushResponse(VectorND<12>&pl) override final;
-    virtual VectorND<12>    pushConstant(const VectorND<12>&pl) const override final;
-
-    virtual MatrixND<12,12> pushResponse(MatrixND<12,12>& kl, const VectorND<12>& pl) override final;
-    virtual MatrixND<12,12> pushConstant(const MatrixND<12,12>& kl) override final;
 
     virtual const Vector &getGlobalResistingForce(const Vector &basicForce, const Vector &p0) final;
     virtual const Matrix &getGlobalStiffMatrix(const Matrix &basicStiff, const Vector &basicForce) final;
@@ -81,12 +77,13 @@ public:
     // TaggedObject
     void Print(OPS_Stream &s, int flag = 0);
 
+
+    FrameTransform<2,ndf> &t;
 protected:
 private:
-    FrameTransform<2,6> &t;
 
     constexpr static int NBV = 6;
-    constexpr static int NDF = 6;
+    constexpr static int NDF = ndf;
     enum : int {
         inx = -12, //  0
         iny = -12, //  1
@@ -110,5 +107,6 @@ private:
 
 };
 } // namespace OpenSees
+#include "BasicFrameTransf.tpp"
 #endif
 

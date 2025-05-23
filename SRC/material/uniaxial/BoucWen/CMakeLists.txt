@@ -10,6 +10,7 @@ target_sources(OPS_Runtime PRIVATE dispatch.cpp)
 target_sources(OPS_Material PRIVATE
   BoucWenMaterial.cpp
   BWBN.cpp
+  BWBF.cpp
   DegradingPinchedBW.cpp
   BoucWenOriginal.cpp
   BoucWenInfill.cpp

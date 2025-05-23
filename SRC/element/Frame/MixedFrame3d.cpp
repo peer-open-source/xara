@@ -240,7 +240,7 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
 //}
 }
 
-// constructor:
+
 // invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
 // CONSTRUCTOR FOR PARALLEL PROCESSING
 MixedFrame3d::MixedFrame3d()
@@ -320,6 +320,15 @@ MixedFrame3d::MixedFrame3d()
 
   if (transformNaturalCoords(1, 1) != 1) {
     // if transformNaturalCoords hasn't been set yet then set it
+    static constexpr MatrixND<6,6> T {{
+    // 0  1  2  3  4  5
+      {1, 0, 0, 0, 0, 0},
+      {0, 1, 0, 0, 0, 0},
+      {0, 0, 0, 1, 0, 0},
+      {0, 0,-1, 0, 0, 0},
+      {0, 0, 0, 0, 1, 0},
+      {0, 0, 0, 0, 0, 1}
+    }};
     transformNaturalCoords.Zero();
     transformNaturalCoords(0, 0) = 1;
     transformNaturalCoords(1, 1) = 1;
@@ -401,6 +410,12 @@ int
 MixedFrame3d::setNodes() // (Domain* theDomain)
 {
 
+  if (crdTransf->initialize(theNodes[0], theNodes[1]) != 0) {
+      opserr << "BasicFrame3d::setDomain  tag: " 
+            << this->getTag()
+            << " -- Error initializing coordinate transformation\n";
+      return -1;
+  }
 
   // call the DomainComponent class method
 //this->DomainComponent::setDomain(theDomain);
@@ -500,10 +515,9 @@ int
 MixedFrame3d::revertToStart()
 {
   int err;
-  int i, j, k; // for loops
-  i = 0;
 
   // revert the sections state to start
+  int i = 0;
   do {
     err = sections[i++]->revertToStart();
   } while (err == 0 && i < numSections);
@@ -530,8 +544,8 @@ MixedFrame3d::revertToStart()
     nd1[i]    = this->getNd1(i, myZeros, L0, geom_flag);
     nd2[i]    = this->getNd2(i, 0, L0);
 
-    for (j = 0; j < NDM_SECTION; j++) {
-      for (k = 0; k < NDM_NATURAL; k++) {
+    for (int j = 0; j < NDM_SECTION; j++) {
+      for (int k = 0; k < NDM_NATURAL; k++) {
         nd1T[i](k, j) = nd1[i](j, k);
         nd2T[i](k, j) = nd2[i](j, k);
       }
@@ -556,21 +570,14 @@ MixedFrame3d::revertToStart()
   }
 
   // Compute the following matrices: G, G2, H, H12, H22, Md, Kg
-  Matrix G(NDM_NATURAL, NDM_NATURAL);
-  Matrix G2(NDM_NATURAL, NDM_NATURAL);
-  Matrix H(NDM_NATURAL, NDM_NATURAL);
-  MatrixND<NDM_NATURAL, NDM_NATURAL> H12;
-  Matrix H22(NDM_NATURAL, NDM_NATURAL);
-  Matrix Md(NDM_NATURAL, NDM_NATURAL);
-  Matrix Kg(NDM_NATURAL, NDM_NATURAL);
+  MatrixND<NDM_NATURAL, NDM_NATURAL> G{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> G2{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> H{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> H12{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> H22{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> Md{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> Kg{};
 
-  G.Zero();
-  G2.Zero();
-  H.Zero();
-  H12.zero();
-  H22.Zero();
-  Md.Zero();
-  Kg.Zero();
   for (int i = 0; i < numSections; i++) {
     G   += L0 * wt[i] * nd1T[i] * nldhat[i];
     G2  += L0 * wt[i] * nd2T[i] * nldhat[i];
@@ -578,13 +585,13 @@ MixedFrame3d::revertToStart()
     H12 += L0 * wt[i] * nd1T[i] * fs_trial[i] * nd2[i];
     H22 += L0 * wt[i] * nd2T[i] * fs_trial[i] * nd2[i];
     // Md is zero since deformations are zero
-    Kg = Kg + L0 * wt[i] * this->getKg(i, 0.0, L0);
+    Kg.addMatrix(this->getKg(i, 0.0, L0),  L0 * wt[i]);
   }
 
   // Compute the inverse of the H matrix
   {
-    Matrix hinv(Hinv);
-    H.Invert(hinv);
+    // Matrix hinv(Hinv);
+    H.invert(Hinv);
     commitedHinv = Hinv;
   }
 
@@ -594,8 +601,8 @@ MixedFrame3d::revertToStart()
   commitedGMH = GMH;
 
   // Compute the transposes of the following matrices: G2, GMH
-  Matrix G2T(NDM_NATURAL, NDM_NATURAL);
-  Matrix GMHT(NDM_NATURAL, NDM_NATURAL);
+  MatrixND<NDM_NATURAL, NDM_NATURAL> G2T;
+  MatrixND<NDM_NATURAL, NDM_NATURAL> GMHT;
   for (int i = 0; i < NDM_NATURAL; i++) {
     for (int j = 0; j < NDM_NATURAL; j++) {
       G2T(i, j)  = G2(j, i);
@@ -604,8 +611,8 @@ MixedFrame3d::revertToStart()
   }
 
   // Compute the stiffness matrix without the torsion term
-  Matrix K_temp_noT(NDM_NATURAL, NDM_NATURAL);
-  K_temp_noT = (Kg + G2 + G2T - H22) + GMHT * Hinv * GMH;
+  MatrixND<NDM_NATURAL, NDM_NATURAL> 
+    K_temp_noT = (Kg + G2 + G2T - H22) + GMHT * Hinv * GMH;
   //K_temp_noT = ( Kg ) + GMHT * Hinv * GMH; // Omit P-small delta
 
   // Add in the torsional stiffness term
@@ -773,15 +780,14 @@ MixedFrame3d::update()
 
   }
 
-  // Compute the following matrices: V, V2, G, G2, H, H12, H22, Md, Kg
-  VectorND<NDM_NATURAL> V2;
-  MatrixND<NDM_NATURAL, NDM_NATURAL> G;
-  MatrixND<NDM_NATURAL, NDM_NATURAL> G2;
-  MatrixND<NDM_NATURAL, NDM_NATURAL> H;
-  MatrixND<NDM_NATURAL, NDM_NATURAL> H12;
-  MatrixND<NDM_NATURAL, NDM_NATURAL> H22;
-  MatrixND<NDM_NATURAL, NDM_NATURAL> Md;
-  MatrixND<NDM_NATURAL, NDM_NATURAL> Kg;
+  VectorND<NDM_NATURAL> V2{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> G{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> G2{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> H{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> H12{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> H22{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> Md{};
+  MatrixND<NDM_NATURAL, NDM_NATURAL> Kg{};
 
   V.Zero();
   V2.zero();
@@ -1329,7 +1335,7 @@ MixedFrame3d::Print(OPS_Stream& s, int flag)
     s << "\"integration\": ";
     beamIntegr->Print(s, flag);
     s << ", \"massperlength\": " << rho << ", ";
-    s << "\"crdTransformation\": \"" << crdTransf->getTag() << "\"";
+    s << "\"transform\": \"" << crdTransf->getTag() << "\"";
     if (!damp_flag)
       s << ", \"damp_flag\": false";
     if (geom_flag == Geometry::Linear)

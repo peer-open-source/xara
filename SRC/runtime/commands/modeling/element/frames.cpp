@@ -1,7 +1,9 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
 //
+//===----------------------------------------------------------------------===//
+//                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
 // Written: cmp, mhs, rms, fmk
@@ -211,21 +213,18 @@ CreateFrame(BasicModelBuilder& builder,
       if (strstr(name, "Exact") == nullptr) {
         std::array<int, 2> nodes {nodev[0], nodev[1]};
 
-#ifdef NEW_TRANSFORM
-        FrameTransform<2,6> *tran = nullptr;
-        if (FrameTransformBuilder* tb; (tb = builder.getTypedObject<FrameTransformBuilder>(transfTag))) {
-          tran = tb->template create<2,6>();
-        }
-        else {
+        FrameTransformBuilder* tb = builder.getTypedObject<FrameTransformBuilder>(transfTag);
+
+        if (!tb) {
           opserr << OpenSees::PromptValueError << "invalid transform\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return nullptr;
         }
-#endif
+
+
         if (strcmp(name, "CubicFrame") == 0) {
 
           theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
-                                        beamIntegr, *theTransf, 
+                                        beamIntegr, *tb, 
                                         mass, options.mass_flag);
         } 
 
@@ -242,7 +241,7 @@ CreateFrame(BasicModelBuilder& builder,
               static_loop<2,6>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 4>(tag, nodes, sections,
-                                                beamIntegr, *theTransf, 
+                                                beamIntegr, *tb, 
                                                 mass, options.mass_flag, use_mass,
                                                 max_iter, tol,
                                                 options.shear_flag
@@ -252,29 +251,39 @@ CreateFrame(BasicModelBuilder& builder,
               static_loop<2,6>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 6>(tag, nodes, sections,
-                                                beamIntegr, *theTransf, 
+                                                beamIntegr, *tb, 
                                                 mass, options.mass_flag, use_mass,
                                                 max_iter, tol,
                                                 options.shear_flag
                                                 );
               });
           } else {
-            if (!options.shear_flag) {
-              static_loop<2,30>([&](auto nip) constexpr {
-                if (nip.value == sections.size())
-                  theElement = new ForceFrame3d<nip.value, 4>(tag, nodes, sections,
-                                                beamIntegr, *theTransf,
+            int ndf = builder.getNDF();
+
+            static_loop<0, 3>([&](auto nwm) constexpr {
+              if (nwm.value + 6 == ndf) {
+                // Create the transform
+#if 0 || defined(NEW_TRANSFORM)
+                FrameTransform<2,6+nwm.value> *tran = tb->template create<2,6+nwm.value>();
+#endif
+                if (!options.shear_flag) {
+                  static_loop<2,30>([&](auto nip) constexpr {
+                    if (nip.value == sections.size())
+                      theElement = new ForceFrame3d<nip.value, 4, nwm.value>(tag, nodes, sections,
+                                                    beamIntegr, *tb,
+                                                    mass, options.mass_flag, use_mass,
+                                                    max_iter, tol
+                                                    );
+                    });
+                }
+                else
+                  theElement = new ForceFrame3d<20, 6+nwm.value*2, nwm.value>(tag, nodes, sections,
+                                                beamIntegr, *tb,
                                                 mass, options.mass_flag, use_mass,
                                                 max_iter, tol
                                                 );
-                });
-            }
-            else
-              theElement = new ForceFrame3d<20, 6>(tag, nodes, sections,
-                                            beamIntegr, *theTransf,
-                                            mass, options.mass_flag, use_mass,
-                                            max_iter, tol
-                                            );
+              }
+            });
           }
         }
       }
@@ -903,7 +912,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   options.use_mass = use_mass;
   {
     Element *theElement = ndm == 2 
-                        ? CreateFrame<2, FrameTransform2d, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
+                        ? CreateFrame<2, CrdTransf, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
                                                               section_tags, *beamIntegr, mass, max_iter, tol, options)
                         : CreateFrame<3, FrameTransform3d, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
                                                                         section_tags, *beamIntegr, mass, max_iter, tol, options);
@@ -1077,7 +1086,7 @@ TclBasicBuilder_addBeamWithHinges(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
 
 
-    FrameTransform2d *theTransf = builder->getTypedObject<FrameTransform2d>(transfTag);
+    CrdTransf *theTransf = builder->getTypedObject<CrdTransf>(transfTag);
     if (theTransf == nullptr)
       return TCL_ERROR;
 

@@ -14,26 +14,26 @@
 #include <Vector.h>
 #include <Channel.h>
 #include <FrameSection.h>
-#include <FrameTransform.h>
+#include <BasicFrameTransf.h>
 
 class Response;
 class ElementalLoad;
 class BeamIntegration;
+class FrameTransformBuilder;
 
 template<int NIP, int nsr>
-class ForceDeltaFrame3d : public BasicFrame3d {
+class ForceDeltaFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
+{
 public:
   ForceDeltaFrame3d(int tag, 
                std::array<int,2>& nodes,
                std::vector<FrameSection*>& sec,
                BeamIntegration&  stencil,
-               FrameTransform3d& coordTransf, 
+               FrameTransformBuilder &, 
                double rho, int mass_type, bool use_mass,
                int num_iter, double tolerance,
-               bool includeShear
+               bool shear_flag
   );
-
-  ForceDeltaFrame3d();
 
   ~ForceDeltaFrame3d();
 
@@ -51,15 +51,19 @@ public:
   //const Matrix &getMass();
   virtual const Matrix &getTangentStiff() final;
 
-  //void zeroLoad();
+  void zeroLoad() {
+    this->BasicFrame3d::zeroLoad();
+    this->FiniteElement<2, 3, 6>::zeroLoad();
+  }
   //int addLoad(ElementalLoad *theLoad, double loadFactor);
   //int addInertiaLoadToUnbalance(const Vector &accel);
 
   const Vector &getResistingForce();
 //const Vector &getResistingForceIncInertia();
 
-  int sendSelf(int cTag, Channel&);
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&);
+  virtual const Matrix &getInitialStiff() {
+      return basic_system->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
+  }
 
   void Print(OPS_Stream& s, int flag = 0);
 
@@ -78,6 +82,9 @@ public:
   const Matrix& getMassSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
 
+
+  int sendSelf(int cTag, Channel&);
+  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&);
 
 protected:
   virtual VectorND<6>&   getBasicForce();
@@ -172,6 +179,8 @@ private:
   BeamIntegration*        stencil;
 
   Matrix* Ki;
+
+  BasicFrameTransf3d<ndf> *basic_system;
 
   int parameterID;
 };

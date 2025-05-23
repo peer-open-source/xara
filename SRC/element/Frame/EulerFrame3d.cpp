@@ -30,34 +30,28 @@
 #include <math.h>
 #include <string.h>
 
+#include <BasicFrameTransf.h>
+#include <runtime/commands/modeling/transform/FrameTransformBuilder.hpp>
+
 #define ELE_TAG_EulerFrame3d 0 // TODO
 
 using OpenSees::MatrixND;
 using OpenSees::VectorND;
 
 
-EulerFrame3d::EulerFrame3d()
- : BasicFrame3d(0, ELE_TAG_EulerFrame3d),
-   numSections(0),
-   stencil(nullptr),
-   density(0.0), mass_flag(0), use_density(false),
-   mass_initialized(false)
-{
-  q.zero();
-}
-
 EulerFrame3d::EulerFrame3d(int tag, std::array<int,2>& nodes,
                            int numSec, FrameSection **s,
                            BeamIntegration &bi,
-                           FrameTransform3d &coordTransf, double r, int cm)
- : BasicFrame3d(tag, ELE_TAG_EulerFrame3d, nodes, coordTransf),
+                           FrameTransformBuilder& tb,
+                           double r, int cm)
+ : FiniteElement<2, 3, 6>(tag, ELE_TAG_EulerFrame3d, nodes),
+   basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
    numSections(numSec),
    stencil(nullptr),
    density(r), mass_flag(cm), use_density(true),
    mass_initialized(false)
 {
   q.zero();
-
   for (int i = 0; i < numSec; i++) {    
     // Get copies of the material for each integration point
     points.push_back({
@@ -79,6 +73,9 @@ EulerFrame3d::~EulerFrame3d()
   
   if (stencil != nullptr)
     delete stencil;
+
+  if (basic_system != nullptr)
+    delete basic_system;
 }
 
 int
@@ -96,7 +93,7 @@ EulerFrame3d::commitState()
   }
 
   // Commit the transformation
-  if ((status = theCoordTransf->commitState()) != 0)
+  if ((status = basic_system->commitState()) != 0)
     return status;
 
   return status;
@@ -114,7 +111,7 @@ EulerFrame3d::revertToLastCommit()
   }
 
   // Revert the transformation to last commit
-  if (theCoordTransf->revertToLastCommit() != 0)
+  if (basic_system->revertToLastCommit() != 0)
     return -2;
 
   return 0;
@@ -130,19 +127,29 @@ EulerFrame3d::revertToStart()
   }
 
   // Revert the transformation to start
-  if (theCoordTransf->revertToStart() != 0)
+  if (basic_system->revertToStart() != 0)
     return -2;
 
   return 0;
 }
 
+
 int
 EulerFrame3d::setNodes()
 {
   // call the parent class method
-  int status = this->BasicFrame3d::setNodes();
+  int status = 0;
 
-  double L = theCoordTransf->getInitialLength();
+  if (basic_system->initialize(theNodes[0], theNodes[1]) != 0) {
+      opserr << "BasicFrame3d::setDomain  tag: " 
+            << this->getTag()
+            << " -- Error initializing coordinate transformation\n";
+      return -1;
+  }
+
+  double L = basic_system->getInitialLength();
+
+  this->BasicFrame3d::setLength(L);
 
   if (L == 0.0)
     return -1;
@@ -231,16 +238,16 @@ int
 EulerFrame3d::update()
 {
   // Note that setNodes must be called prior to calling this
-  // so that theCoordTransf, xi and wt are initialized
+  // so that basic_system, xi and wt are initialized
   int err = 0;
 
   // Update the transformation
-  theCoordTransf->update();
+  basic_system->update();
 
-  double jsx = 1.0/theCoordTransf->getInitialLength();
+  double jsx = 1.0/basic_system->getInitialLength();
   
   // Get basic deformations
-  const Vector &v = theCoordTransf->getBasicTrialDisp();
+  const Vector &v = basic_system->getBasicTrialDisp();
   
   //
   // Gauss points
@@ -279,7 +286,7 @@ EulerFrame3d::getResistingForce()
   double q4 = q[4];
   double q5 = q[5];
 
-  double oneOverL = 1.0 / theCoordTransf->getInitialLength();
+  double oneOverL = 1.0 / basic_system->getInitialLength();
 
   thread_local VectorND<12> pl;
   pl[0]  = -q0;                    // Ni
@@ -306,9 +313,9 @@ EulerFrame3d::getResistingForce()
   thread_local VectorND<12> pg;
   thread_local Vector wrapper(pg);
 //    const Vector p0Vec(p0);
-//    P = theCoordTransf->getGlobalResistingForce(q, p0Vec);
-  pg  = theCoordTransf->pushResponse(pl);
-  pg += theCoordTransf->pushConstant(pf);
+//    P = basic_system->getGlobalResistingForce(q, p0Vec);
+  pg  = basic_system->t.pushResponse(pl);
+  pg += basic_system->t.pushConstant(pf);
 
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)
@@ -316,6 +323,7 @@ EulerFrame3d::getResistingForce()
 
   return wrapper;
 }
+
 
 MatrixND<6,6>&
 EulerFrame3d::getBasicTangent(State state, int rate)
@@ -325,7 +333,7 @@ EulerFrame3d::getBasicTangent(State state, int rate)
   kb.zero();
   q.zero();
   
-  double L = theCoordTransf->getInitialLength();
+  double L = basic_system->getInitialLength();
   double jsx = 1.0/L;
 
   //
@@ -395,262 +403,34 @@ EulerFrame3d::getBasicTangent(State state, int rate)
 }
 
 
+const Matrix &
+EulerFrame3d::getTangentStiff()
+{
+
+  VectorND<6>   q  = this->getBasicForce();
+  MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
+
+  return basic_system->getGlobalStiffMatrix(Matrix(kb), Vector(q));
+}
+
+
+const Matrix &
+EulerFrame3d::getInitialStiff()
+{
+  return basic_system->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
+}
+
 int
 EulerFrame3d::sendSelf(int commitTag, Channel &theChannel)
 {
-  // Place the integer data into an ID
-
-  int dbTag = this->getDbTag();
-  int loc = 0;
-  
-  static Vector data(14);
-  data(0) = this->getTag();
-  data(1) = connectedExternalNodes(0);
-  data(2) = connectedExternalNodes(1);
-  data(3) = numSections;
-  data(4) = theCoordTransf->getClassTag();
-  int crdTransfDbTag  = theCoordTransf->getDbTag();
-  if (crdTransfDbTag  == 0) {
-    crdTransfDbTag = theChannel.getDbTag();
-    if (crdTransfDbTag  != 0) 
-      theCoordTransf->setDbTag(crdTransfDbTag);
-  }
-  data(5) = crdTransfDbTag;
-  data(6) = stencil->getClassTag();
-  int beamIntDbTag  = stencil->getDbTag();
-  if (beamIntDbTag  == 0) {
-    beamIntDbTag = theChannel.getDbTag();
-    if (beamIntDbTag  != 0) 
-      stencil->setDbTag(beamIntDbTag);
-  }
-
-  data( 7) = beamIntDbTag;
-  data( 8) = density;
-  data( 9) = mass_flag;
-  data(10) = alphaM;
-  data(11) = betaK;
-  data(12) = betaK0;
-  data(13) = betaKc;
-  
-  if (theChannel.sendVector(dbTag, commitTag, data) < 0) {
-    opserr << "EulerFrame3d::sendSelf() - failed to send data Vector\n";
-     return -1;
-  }    
-  
-  // Send the coordinate transformation
-  if (theCoordTransf->sendSelf(commitTag, theChannel) < 0) {
-     opserr << "EulerFrame3d::sendSelf() - failed to send crdTranf\n";
-     return -1;
-  }      
-
-  // Send the beam integration
-  if (stencil->sendSelf(commitTag, theChannel) < 0) {
-    opserr << "EulerFrame3d::sendSelf() - failed to send beamInt\n";
-    return -1;
-  }      
-  
-  //
-  // Send an ID for the sections containing each sections dbTag and classTag
-  // if section ha no dbTag get one and assign it
-  //
-
-  const int numSections = points.size();
-  ID idSections(2 * numSections);
-  loc = 0;
-  for (int i = 0; i < numSections; i++) {
-    int sectClassTag = points[i].material->getClassTag();
-    int sectDbTag    = points[i].material->getDbTag();
-    if (sectDbTag == 0) {
-      sectDbTag = theChannel.getDbTag();
-      points[i].material->setDbTag(sectDbTag);
-    }
-
-    idSections(loc)     = sectClassTag;
-    idSections(loc + 1) = sectDbTag;
-    loc += 2;
-  }
-
-  if (theChannel.sendID(dbTag, commitTag, idSections) < 0)  {
-    opserr << "EulerFrame3d::sendSelf() - failed to send ID data\n";
-    return -1;
-  }    
-
-  //
-  // Send the sections
-  // 
-  for (int j = 0; j < numSections; j++) {
-    if (points[j].material->sendSelf(commitTag, theChannel) < 0) {
-      opserr << "ForceFrame3d::sendSelf() - section " << j << "failed to send itself\n";
-      return -1;
-    }
-  }
-
-  return 0;
+  return -1;
 }
 
 int
 EulerFrame3d::recvSelf(int commitTag, Channel &theChannel,
                                                 FEM_ObjectBroker &theBroker)
 {
-  //
-  // receive the integer data containing tag, numSections and coord transformation info
-  //
-  int dbTag = this->getDbTag();
-
-  static Vector data(14);
-
-  if (theChannel.recvVector(dbTag, commitTag, data) < 0)  {
-    opserr << "EulerFrame3d::recvSelf() - failed to recv data Vector\n";
-    return -1;
-  }
-  
-  this->setTag((int)data(0));
-  connectedExternalNodes(0) = (int)data(1);
-  connectedExternalNodes(1) = (int)data(2);
-  int nSect = (int)data(3);
-  int crdTransfClassTag = (int)data(4);
-  int crdTransfDbTag = (int)data(5);
-  
-  int beamIntClassTag = (int)data(6);
-  int beamIntDbTag = (int)data(7);
-  
-  density = data(8);
-  mass_flag = (int)data(9);
-  
-  alphaM = data(10);
-  betaK = data(11);
-  betaK0 = data(12);
-  betaKc = data(13);
-  
-  // Create a new CrdTransf if needed
-  if (theCoordTransf == 0 || theCoordTransf->getClassTag() != crdTransfClassTag) {
-      if (theCoordTransf != nullptr)
-          delete theCoordTransf;
-
-    // TODO(cmp) - add FrameTransform to ObjBroker
-      theCoordTransf = nullptr; // theBroker.getNewFrameTransform3d(crdTransfClassTag);
-
-      if (theCoordTransf == nullptr) {
-        opserr << "EulerFrame3d::recvSelf() - " <<
-          "failed to obtain a CrdTrans object with classTag" <<
-          crdTransfClassTag << "\n";
-        return -2;          
-      }
-  }
-
-  theCoordTransf->setDbTag(crdTransfDbTag);
-
-  // invoke recvSelf on the crdTransf object
-  if (theCoordTransf->recvSelf(commitTag, theChannel, theBroker) < 0) {
-    opserr << "EulerFrame3d::sendSelf() - failed to recv crdTranf\n";
-    return -3;
-  }      
-
-  // create a new beamInt object if one needed
-  if (stencil == 0 || stencil->getClassTag() != beamIntClassTag) {
-      if (stencil != 0)
-          delete stencil;
-
-      stencil = theBroker.getNewBeamIntegration(beamIntClassTag);
-
-      if (stencil == 0) {
-        opserr << "EulerFrame3d::recvSelf() - failed to obtain the beam integration object with classTag" <<
-          beamIntClassTag << "\n";
-        return -1;
-      }
-  }
-
-  stencil->setDbTag(beamIntDbTag);
-
-  // invoke recvSelf on the beamInt object
-  if (stencil->recvSelf(commitTag, theChannel, theBroker) < 0)  
-  {
-     opserr << "EulerFrame3d::sendSelf() - failed to recv beam integration\n";
-     return -3;
-  }      
-  
-  //
-  // recv an ID for the sections containing each sections dbTag and classTag
-  //
-
-  ID idSections(2*nSect);
-  int loc = 0;
-
-  if (theChannel.recvID(dbTag, commitTag, idSections) < 0)  {
-    opserr << "EulerFrame3d::recvSelf() - failed to recv ID data\n";
-    return -1;
-  }    
-
-  //
-  // now receive the sections
-  //
-  
-  if (numSections != nSect) {
-
-    //
-    // we do not have correct number of sections, must delete the old and create
-    // new ones before can recvSelf on the sections
-    //
-
-    // create a section and recvSelf on it
-    numSections = nSect;
-    loc = 0;
-    
-    for (int i=0; i<numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag = idSections(loc+1);
-      loc += 2;
-      // TODO(cmp) add FrameSection to broker
-//    sections[i] = theBroker.getNewSection(sectClassTag);
-//    if (sections[i] == 0) {
-//      opserr << "EulerFrame3d::recvSelf() - Broker could not create Section of class type" <<
-//        sectClassTag << "\n";
-//      return -1;
-//    }
-      points[i].material->setDbTag(sectDbTag);
-      if (points[i].material->recvSelf(commitTag, theChannel, theBroker) < 0) {
-        opserr << "EulerFrame3d::recvSelf() - section " <<
-          i << " failed to recv itself\n";
-        return -1;
-      }     
-    }
-
-  } else {
-
-    // 
-    // for each existing section, check it is of correct type
-    // (if not delete old & create a new one) then recvSelf on it
-    //
-    loc = 0;
-    for (int i=0; i<numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag = idSections(loc+1);
-      loc += 2;
-
-      // check of correct type
-      if (points[i].material->getClassTag() !=  sectClassTag) {
-        // delete the old section[i] and create a new one
-//      delete sections[i];
-//    // TODO(cmp) add FrameSection to broker
-//      sections[i] = theBroker.getNewSection(sectClassTag);
-//      if (sections[i] == 0) {
-//        opserr << "EulerFrame3d::recvSelf() - Broker could not create Section of class type" <<
-//          sectClassTag << "\n";
-//        return -1;
-//      }
-      }
-
-      // recvSelf on it
-      points[i].material->setDbTag(sectDbTag);
-      if (points[i].material->recvSelf(commitTag, theChannel, theBroker) < 0) {
-        opserr << "EulerFrame3d::recvSelf() - section " << 
-          i << "failed to recv itself\n";
-        return -1;
-      }     
-    }
-  }
-
-  return 0;
+  return -1;
 }
 
 void
@@ -675,7 +455,7 @@ EulerFrame3d::Print(OPS_Stream &s, int flag)
       s << ", ";
 
       // Transform
-      s << "\"transform\": " << theCoordTransf->getTag();
+      s << "\"transform\": " << basic_system->getTag();
       s << ", ";
 
       //
@@ -692,11 +472,11 @@ EulerFrame3d::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_CURRENTSTATE) {
         s << "\nEulerFrame3d, element id:  " << this->getTag() << "\n";
         s << "\tConnected external nodes:  " << connectedExternalNodes;
-        s << "\tCoordTransf: " << theCoordTransf->getTag() << "\n";
+        s << "\tCoordTransf: " << basic_system->getTag() << "\n";
         s << "\tmass density:  " << density << ", mass_flag: " << mass_flag << "\n";
 
         double N, Mz1, Mz2, Vy, My1, My2, Vz, T;
-        double L = theCoordTransf->getInitialLength();
+        double L = basic_system->getInitialLength();
         double jsx = 1.0 / L;
 
         N = q[0];
@@ -758,7 +538,7 @@ EulerFrame3d::getMass()
     } else {
         // consistent (cubic, prismatic) mass matrix
 
-        double L  = theCoordTransf->getInitialLength();
+        double L  = basic_system->getInitialLength();
         double m  = total_mass/420.0;
         double mx = twist_mass;
         thread_local MatrixND<12,12> ml{0};
@@ -788,7 +568,7 @@ EulerFrame3d::getMass()
         ml( 5, 7) = ml( 7, 5) = -ml(1,11);
 
         // transform local mass matrix to global system
-        return theCoordTransf->getGlobalMatrixFromLocal(ml);
+        return basic_system->getGlobalMatrixFromLocal(ml);
     }
 }
 
@@ -900,7 +680,7 @@ EulerFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
       if (argc > 2 && (this->setNodes() == 0)) {
 
         float sectionLoc = atof(argv[1]);
-        double L = theCoordTransf->getInitialLength();
+        double L = basic_system->getInitialLength();
 
         sectionLoc /= L;
         
@@ -927,7 +707,7 @@ EulerFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
       if (argc > 1 && (this->setNodes() == 0)) {
         
         int sectionNum = atoi(argv[1]);
-        double L = theCoordTransf->getInitialLength();
+        double L = basic_system->getInitialLength();
 
         if (sectionNum > 0 && sectionNum <= numSections && argc > 2) {
 
@@ -973,7 +753,7 @@ EulerFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
     }
 
     if (theResponse == nullptr)
-      theResponse = theCoordTransf->setResponse(argv, argc, output);
+      theResponse = basic_system->setResponse(argv, argc, output);
 
   output.endTag();
   return theResponse;
@@ -991,7 +771,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
     
   else if (responseID == 2) {
     double V, M1, M2, T;
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
     static Vector P(12);
 
     // Axial
@@ -1027,7 +807,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
 
   // Chord rotation
   else if (responseID == 3)
-    return info.setVector(theCoordTransf->getBasicTrialDisp());
+    return info.setVector(basic_system->getBasicTrialDisp());
 
   // Plastic rotation
   else if (responseID == 4) {
@@ -1035,7 +815,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
     static Vector ve(6);
     auto kb = this->getBasicTangent(State::Init, 0);
     kb.solve(q, ve);
-    vp = theCoordTransf->getBasicTrialDisp();
+    vp = basic_system->getBasicTrialDisp();
     vp -= ve;
     return info.setVector(vp);
   }
@@ -1045,7 +825,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
     if (this->setState(State::Init) != 0)
       return -1;
 
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
     Vector locs(points.size());
     for (int i = 0; i < numSections; i++)
       locs[i] = wt[i]*L;
@@ -1054,7 +834,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
 
   else if (responseID == 11) {
     if (this->setState(State::Init) == 0) {
-      double L = theCoordTransf->getInitialLength();
+      double L = basic_system->getInitialLength();
       Vector weights(numSections);
       for (int i = 0; i < numSections; i++)
         weights(i) = wt[i]*L;
@@ -1072,7 +852,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
   //by SAJalali
   else if (responseID == 13) {
     if (this->setState(State::Init) == 0) {
-      double L = theCoordTransf->getInitialLength();
+      double L = basic_system->getInitialLength();
       double energy = 0;
       for (int i = 0; i < numSections; i++)
           energy += points[i].material->getEnergy()*xi[i] * L;
@@ -1092,7 +872,7 @@ int
 EulerFrame3d::setParameter(const char **argv, int argc, Parameter &param)
 {
 
-  int status = this->BasicFrame3d::setParameter(argv, argc, param);
+  int status = this->FiniteElement<2,3,6>::setParameter(argv, argc, param);
   if (status != -1)
     return status;
 
@@ -1104,7 +884,7 @@ EulerFrame3d::setParameter(const char **argv, int argc, Parameter &param)
         return -1;
       
       float sectionLoc = atof(argv[1]);
-      double L = theCoordTransf->getInitialLength();
+      double L = basic_system->getInitialLength();
       
       sectionLoc /= L;
 
@@ -1217,13 +997,13 @@ EulerFrame3d::getBasicForceGrad(int gradNumber)
     }
   }
 
-  if (theCoordTransf->isShapeSensitivity()) { 
+  if (basic_system->isShapeSensitivity()) { 
  
     MatrixND<6,6> &Kb = getBasicTangent(State::Pres, 0);
-    double L   = theCoordTransf->getInitialLength();
+    double L   = basic_system->getInitialLength();
     
-    const Vector &A_u = theCoordTransf->getBasicTrialDisp();
-    double dLdh = theCoordTransf->getLengthGrad();
+    const Vector &A_u = basic_system->getBasicTrialDisp();
+    double dLdh = basic_system->getLengthGrad();
     double d1overLdh = -dLdh/(L*L);
 
     // a^T k_s dadh v
@@ -1244,23 +1024,23 @@ EulerFrame3d::getResistingForceSensitivity(int gradNumber)
 
   VectorND<6> dqdh = this->getBasicForceGrad(gradNumber);
 
-  double jsx = 1.0/theCoordTransf->getInitialLength();
+  double jsx = 1.0/basic_system->getInitialLength();
 
   // TODO: No distributed loads
   static Vector dp0dh(6);   
 
-  if (theCoordTransf->isShapeSensitivity()) {
+  if (basic_system->isShapeSensitivity()) {
     // k dAdh u
-    const Vector &dAdh_u = theCoordTransf->getBasicDisplFixedGrad();
+    const Vector &dAdh_u = basic_system->getBasicDisplFixedGrad();
     dqdh.addMatrixVector(1.0, kb, dAdh_u, jsx);
 
     // dAdh^T q
-    P = theCoordTransf->getGlobalResistingForceShapeSensitivity(q, dp0dh, gradNumber);
+    P = basic_system->getGlobalResistingForceShapeSensitivity(q, dp0dh, gradNumber);
   }
 
 
   // A^T (dqdh + k dAdh u)
-  P += theCoordTransf->getGlobalResistingForce(dqdh, dp0dh);
+  P += basic_system->getGlobalResistingForce(dqdh, dp0dh);
   
   return P;
 }
@@ -1270,15 +1050,15 @@ int
 EulerFrame3d::commitSensitivity(int gradNumber, int numGrads)
 {
   // Get basic deformation and sensitivities
-  const Vector &v = theCoordTransf->getBasicTrialDisp();
+  const Vector &v = basic_system->getBasicTrialDisp();
   
   static Vector dvdh(6);
-  dvdh = theCoordTransf->getBasicDisplTotalGrad(gradNumber);
+  dvdh = basic_system->getBasicDisplTotalGrad(gradNumber);
   
-  double L = theCoordTransf->getInitialLength();
+  double L = basic_system->getInitialLength();
   double jsx = 1.0/L;
 
-  double d1oLdh = theCoordTransf->getd1overLdh();
+  double d1oLdh = basic_system->getd1overLdh();
   
   // Loop over the integration points
   for (int i = 0; i < numSections; i++) {

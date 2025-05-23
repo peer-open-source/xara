@@ -20,7 +20,7 @@
 #include <UniaxialMaterial.h>
 #include <BasicModelBuilder.h>
 // Elements
-#include <Truss.h>
+// #include <Truss.h>
 #include <TrussSection.h>
 #include <CorotTruss.h>
 #include <CorotTrussSection.h>
@@ -37,8 +37,8 @@
 
 //
 //  element Truss        $tag $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag> <-useInitialDisp $flag>
-//  element Truss        $tag $iNode $jNode $sectTag   <-rho $rho> <-cMass $flag> <-doRayleigh $flag>
-//  element TrussSection $tag $iNode $jNode $sectTag   <-rho $rho> <-cMass $flag> <-doRayleigh $flag>
+//  element Truss        $tag $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>
+//  element TrussSection $tag $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>
 //
 
 
@@ -324,7 +324,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
              << "missing required argument material\n";
       return TCL_ERROR;
     }
-    
+
     auto fiber_section = new FrameFiberSection3d(0, 1, nullptr, true, 0.0, 0);
     fiber_section->addFiber(*material, area, 0, 0);
     section = fiber_section;

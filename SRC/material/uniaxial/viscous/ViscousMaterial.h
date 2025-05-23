@@ -43,7 +43,7 @@ class ViscousMaterial : public UniaxialMaterial
     ViscousMaterial(); 
     ~ViscousMaterial();
 
-    const char *getClassType(void) const {return "ViscousMaterial";};
+    const char *getClassType(void) const {return "ViscousMaterial";}
 
     int setTrialStrain(double velocity, double strainRate = 0.0); 
     double getStrain(void); 
@@ -62,8 +62,7 @@ class ViscousMaterial : public UniaxialMaterial
     UniaxialMaterial *getCopy(void);
     
     int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
     
     void Print(OPS_Stream &s, int flag =0);
 

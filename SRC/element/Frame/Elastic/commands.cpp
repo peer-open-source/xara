@@ -10,7 +10,6 @@
 // Written: fmk,cmp
 // Created: 07/99
 //
-#if 1
 #include <array>
 #include <vector>
 #include <stdlib.h>
@@ -32,7 +31,7 @@
 #include <FrameSection.h>
 
 #include <BasicModelBuilder.h>
-#endif
+#include <transform/FrameTransformBuilder.hpp>
 //
 // element NAME 
 //    $tag $iNode $jNode
@@ -53,7 +52,6 @@
 // For two- and three-dimensional problems:
 //   element elasticBeamColumn $eleTag $iNode $jNode $secTag $transfTag <-mass $massDens> <-cMass>
 //
-
 
 template <typename Position, typename Section>
 int
@@ -96,7 +94,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 
-  FrameTransform2d *theTrans2d = nullptr;
+  CrdTransf *theTrans2d = nullptr;
   FrameTransform3d *theTrans3d = nullptr;
   Section* theSection     = nullptr;
 
@@ -206,7 +204,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
         return TCL_ERROR;
       }
       if (ndm == 2) {
-        theTrans2d = builder->getTypedObject<FrameTransform2d>(transform);
+        theTrans2d = builder->getTypedObject<CrdTransf>(transform);
         if (theTrans2d == nullptr)
           return TCL_ERROR;
       }
@@ -372,7 +370,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
       // Check that the builder has a transform with tag; error will be
       // printed from builder
       if (ndm == 2) {
-        theTrans2d = builder->getTypedObject<FrameTransform2d>(transTag);
+        theTrans2d = builder->getTypedObject<CrdTransf>(transTag);
         if (theTrans2d == nullptr)
           return TCL_ERROR;
       }
@@ -451,7 +449,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
           }
 
           if (ndm == 2) {
-            theTrans2d = builder->getTypedObject<FrameTransform2d>(transTag);
+            theTrans2d = builder->getTypedObject<CrdTransf>(transTag);
             if (theTrans2d == nullptr)
               return TCL_ERROR;
           }
@@ -556,26 +554,33 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
                                   options.relz_flag);
     }
 
-  } else {
+  }
+  else {
     // ndm == 3
 
     //
     // Some final validation
     //
-    // check space frame problem has 6 dof per node
+    // check space frame problem has at least 6 dof per node
     if ((ndf != 6 && !options.warp_flag) || (ndf != 7 && options.warp_flag)) {
       opserr << OpenSees::PromptValueError << "invalid ndof: " << ndf;
       opserr << ", for 3d problem  need 6\n";
       return TCL_ERROR;
     }
 
+    FrameTransformBuilder* tb = builder->getTypedObject<FrameTransformBuilder>(transTag);
+
+    if (!tb) {
+      opserr << OpenSees::PromptValueError << "invalid transform\n";
+      return TCL_ERROR;
+    }
 
     if (theSection != nullptr) {
       // now create the beam and add it to the Domain
 
       std::array<int, 2> nodes {iNode, jNode};
       theBeam = new PrismFrame3d(tag, nodes, 
-                                 *theSection, *theTrans3d, 
+                                 *theSection, *tb, 
                                  mass,
                                  options.mass_type,
                                  use_mass,
@@ -583,15 +588,16 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
                                  options.rely_flag,
                                  options.geom_flag,
                                  options.shear_flag);
-
-    } else {
+    }
+    else {
       if (strcmp(argv[1], "PrismFrame") == 0) {
         std::array<int, 2> nodes {iNode, jNode};
         theBeam = new PrismFrame3d(tag, 
                                    nodes,
                                    beam_data.A, beam_data.E, beam_data.G, 
                                    beam_data.J, beam_data.Iy, beam_data.Iz,
-                                   *theTrans3d, mass,
+                                   *tb, 
+                                   mass,
                                    options.mass_type,
                                    options.relz_flag, 
                                    options.rely_flag,

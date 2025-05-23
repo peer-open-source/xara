@@ -86,18 +86,6 @@ private:
     // compute the transformation matrix
     void compTransfMatrixBasicGlobal(const Versor&, const Versor* Q);
 
-    template<typename VecL, typename VecB>
-    void
-    LocalToBasic(const VecL& ul, VecB& ub)
-    {
-      ub[0] =  ul[jnx] - ul[inx];
-      ub[1] =  ul[imz];
-      ub[2] =  ul[jmz];
-      ub[3] =  ul[imy];
-      ub[4] =  ul[jmy];
-      ub[5] =  ul[jmx] - ul[imx];
-    }
-
     enum {
       inx= 0, // axial
       iny= 1, // Vy
@@ -130,14 +118,14 @@ private:
     double *nodeIInitialDisp, *nodeJInitialDisp;
     bool  initialDispChecked;                    
 
-    double L;                        // initial element length
-    double Ln;                       // current element length (at trial state)
+    double L;                       // initial element length
+    double Ln;                      // current element length (at trial state)
 
-    Versor Q_past[nn];                // commited rotations
-    Versor Q_pres[nn];                // trial rotations
+    Versor Q_past[nn];              // commited rotations
+    Versor Q_pres[nn];              // trial rotations
 
-    Vector3D alphaI;                 // last trial rotations end i
-    Vector3D alphaJ;                 // last trial rotatations end j
+    Vector3D alphaI;                // last trial rotations end i
+    Vector3D alphaJ;                // last trial rotatations end j
 
     VectorND<n> ul;                 // local displacements (size=7)
     Vector3D    vr[nn];             //

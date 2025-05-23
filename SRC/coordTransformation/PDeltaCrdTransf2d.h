@@ -36,7 +36,7 @@
 #include <Vector.h>
 #include <Matrix.h>
 
-class PDeltaCrdTransf2d: public FrameTransform2d
+class PDeltaCrdTransf2d: public CrdTransf
 {
 public:
     PDeltaCrdTransf2d(int tag);

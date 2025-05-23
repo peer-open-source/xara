@@ -46,7 +46,7 @@
 
 #include <math.h>
 #include <elementAPI.h>
-#include <ViscousDamper.h>
+#include "ViscousDamper.h"
 #include <Vector.h>
 #include <Channel.h>
 #include <OPS_Globals.h>
@@ -59,7 +59,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousDamper)
 {
   if (numViscousDamperMaterials == 0) {
     numViscousDamperMaterials++;
-    opserr << "ViscousDamper Model by Sarven Akcelyan and Dimitrios G. Lignos, PhD, McGill University\n";
+    opslog << "ViscousDamper Model by Sarven Akcelyan and Dimitrios G. Lignos, PhD, McGill University\n";
   }
   
   // Pointer to a uniaxial material that will be returned
@@ -192,9 +192,9 @@ ViscousDamper::setTrialStrain(double strain, double strainRate)
       stot = stot+s;
     } else {
       if (s > smin) {
-	s=0.5*s; // step gets smaller -now try this step again.
+        s=0.5*s; // step gets smaller -now try this step again.
       } else {
-	s=smin;
+        s=smin;
       }
     }
     

@@ -29,7 +29,7 @@
 // uniaxial material class. BoucWenOriginal is based on the original Bouc-Wen
 // hysteretic material model without strength degradation and without pinching
 // effects.
-
+//
 #include <UniaxialMaterial.h>
 #include <Matrix.h>
 
@@ -50,11 +50,10 @@ public:
         int maxIter = 25);
     BoucWenOriginal();
 
-    // destructor
     ~BoucWenOriginal();
 
     // method to get class type
-    const char *getClassType(void) const {return "BoucWenOriginal";};
+    const char *getClassType(void) const {return "BoucWenOriginal";}
 
     // public methods to set the state of the material
     int setTrialStrain(double strain, double strainRate = 0.0);

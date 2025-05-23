@@ -32,7 +32,7 @@
 #include <Vector.h>
 #include <Matrix.h>
 
-class CorotCrdTransf2d: public FrameTransform2d
+class CorotCrdTransf2d: public CrdTransf
 {
 public:
     CorotCrdTransf2d(int tag, const Vector &rigJntOffsetI, const Vector &rigJntOffsetJ);

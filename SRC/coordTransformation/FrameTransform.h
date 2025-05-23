@@ -102,7 +102,8 @@ public:
   virtual double getLengthGrad() {return 0.0;}
   virtual double getd1overLdh() {return 0.0;}
 
-  static int Orient(const Vector3D& dx, const Vector3D& vz, Matrix3D &R) {
+  static int
+  Orient(const Vector3D& dx, const Vector3D& vz, Matrix3D &R) {
 
     // calculate the element local x axis components wrt to the global coordinates
 
@@ -127,18 +128,9 @@ public:
     }
     return 0;
   }
-  
 };
 
 #include "FrameTransform.tpp"
-
-//
-// 2D
-//
-class FrameTransform2d : public CrdTransf {
-  public:
-  FrameTransform2d(int tag, int classTag) : CrdTransf(tag, classTag) {};
-};
 
 //
 // 3D
@@ -156,27 +148,6 @@ public:
     return getCopy();
   }
 
-  //
-  //
-  //
-
-  virtual VectorND<12>    pushResponse(VectorND<12>&pl) {
-    static VectorND<12> empty{};
-    return empty;
-  }
-
-  virtual VectorND<12>    pushConstant(const VectorND<12>&pl) const {
-    static VectorND<12> empty{};
-    return empty;
-  }
-  virtual MatrixND<12,12> pushResponse(MatrixND<12,12>& kl, const VectorND<12>& pl) {
-    static MatrixND<12,12> empty{};
-    return empty;
-  }
-  virtual MatrixND<12,12> pushConstant(const MatrixND<12,12>& kl) {
-    static MatrixND<12,12> empty{};
-    return empty;
-  }
 };
 
 #endif // include guard

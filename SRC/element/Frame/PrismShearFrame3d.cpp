@@ -4,7 +4,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Prismatic Timoshenko frame with optional P-Delta (NOT P-delta); weird
+// Prismatic Timoshenko frame with optional P-Delta (NOT P-delta ?); weird
 //
 // element ElasticTimoshenkoBeam3d 
 //         tag, iNode, jNode 
@@ -28,7 +28,6 @@
 //      By:     Pearl Ranchal (ranchal@berkeley.edu)
 //      Notes:  In setUp(), get element length from theCoordTransf instead of computing from nodal coordinates.
 //
-
 #include <ElasticTimoshenkoBeam3d.h>
 
 #include <Domain.h>

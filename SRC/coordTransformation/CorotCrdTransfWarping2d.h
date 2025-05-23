@@ -33,7 +33,7 @@
 #include <Vector.h>
 #include <Matrix.h>
 
-class CorotCrdTransfWarping2d: public FrameTransform2d
+class CorotCrdTransfWarping2d: public CrdTransf
 {
 public:
     CorotCrdTransfWarping2d(int tag, const Vector &rigJntOffsetI, const Vector &rigJntOffsetJ);

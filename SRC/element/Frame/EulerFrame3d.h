@@ -18,17 +18,20 @@ class Node;
 class FrameTransform3d;
 class BeamIntegration;
 class Response;
+class FrameTransformBuilder;
 
-class EulerFrame3d : public BasicFrame3d
+#include <BasicFrameTransf.h>
+
+class EulerFrame3d : public BasicFrame3d,
+                     public FiniteElement<2, 3, 6>
 {
   public:
     EulerFrame3d(int tag, std::array<int,2>& nodes,
                  int numSections, FrameSection **s,
                  BeamIntegration &bi, 
-                 FrameTransform3d &coordTransf,
+                 FrameTransformBuilder& tb,
                  double rho, int mass_flag
     );
-    EulerFrame3d();
     ~EulerFrame3d();
 
     const char *getClassType() const {return "EulerFrame3d";}
@@ -44,11 +47,17 @@ class EulerFrame3d : public BasicFrame3d
     int update();
     virtual const Vector &getResistingForce() final;
     virtual const Matrix &getMass() final;
-//  const Matrix &getTangentStiff();
-//  const Matrix &getInitialStiff();
+    virtual const Matrix &getTangentStiff() final;
+    virtual const Matrix &getInitialStiff() final;
 
-//  void zeroLoad();
-//  int addLoad(ElementalLoad *theLoad, double loadFactor);
+    void zeroLoad() {
+      this->BasicFrame3d::zeroLoad();
+      this->FiniteElement<2, 3, 6>::zeroLoad();
+    }
+    
+    virtual int   addLoad(ElementalLoad *theLoad, double loadFactor) final {
+      return this->BasicFrame3d::addLoad(theLoad, loadFactor);
+    }
 //  int addInertiaLoadToUnbalance(const Vector &accel);
 //  const Vector &getResistingForceIncInertia();
 
@@ -74,6 +83,8 @@ class EulerFrame3d : public BasicFrame3d
 
 
     virtual int getIntegral(Field field, State state, double& total);
+
+
 protected:
     // For BasicFrame3d
     virtual  OpenSees::VectorND<6>&   getBasicForce() final;
@@ -90,6 +101,7 @@ private:
         nen = 2,              // number of element nodes
         ndm = 3,              // dimension of the problem (3D)
         nq  = 6,              // number of element dof's in the basic system; N,My,Mz
+        NDF = 6,
         maxNumSections = 20;
   constexpr static int max_nip = 20;
 
@@ -129,6 +141,7 @@ private:
       FrameStress::My,
       FrameStress::T,
     };
+    BasicFrameTransf3d<NDF> *basic_system;
 };
 
 #endif

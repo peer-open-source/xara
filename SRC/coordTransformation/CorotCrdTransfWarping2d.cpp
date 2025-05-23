@@ -59,7 +59,7 @@ Matrix CorotCrdTransfWarping2d::kg(8, 8);
 CorotCrdTransfWarping2d::CorotCrdTransfWarping2d(int tag,
                                                  const Vector &rigJntOffsetI,
                                                  const Vector &rigJntOffsetJ)
-    : FrameTransform2d(tag, CRDTR_TAG_CorotCrdTransfWarping2d), nodeIOffset(2),
+    : CrdTransf(tag, CRDTR_TAG_CorotCrdTransfWarping2d), nodeIOffset(2),
       nodeJOffset(2), cosTheta(0), sinTheta(0), cosAlpha(0), sinAlpha(0),
       nodeIPtr(0), nodeJPtr(0), L(0), Ln(0), ub(5), ubcommit(5), ubpr(5),
       nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)
@@ -92,7 +92,7 @@ CorotCrdTransfWarping2d::CorotCrdTransfWarping2d(int tag,
 // constructor:
 // invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
 CorotCrdTransfWarping2d::CorotCrdTransfWarping2d()
-    : FrameTransform2d(0, CRDTR_TAG_CorotCrdTransfWarping2d), nodeIOffset(2),
+    : CrdTransf(0, CRDTR_TAG_CorotCrdTransfWarping2d), nodeIOffset(2),
       nodeJOffset(2), cosTheta(0), sinTheta(0), cosAlpha(0), sinAlpha(0),
       nodeIPtr(0), nodeJPtr(0), L(0), Ln(0), ub(5), ubcommit(5), ubpr(5),
       nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)

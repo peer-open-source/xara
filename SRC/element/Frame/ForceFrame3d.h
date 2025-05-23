@@ -14,23 +14,26 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 #include <FrameSection.h>
+#include <BasicFrameTransf.h>
 
 class Matrix;
 class Channel;
 class Response;
 class ElementalLoad;
 class BeamIntegration;
+class FrameTransformBuilder;
 
 using namespace OpenSees;
 
 template <int NIP, int nsr, int nwm=0>
-class ForceFrame3d: public BasicFrame3d
+class ForceFrame3d: public BasicFrame3d, 
+                    public FiniteElement<2, 3, 6+nwm>
 {
  public:
   ForceFrame3d(int tag, std::array<int,2>& nodes,
                std::vector<FrameSection*>& sections,
-               BeamIntegration &beamIntegr,
-               FrameTransform3d &coordTransf, 
+               BeamIntegration &,
+               FrameTransformBuilder &, 
                double density, int mass_flag, bool use_density,
                int max_iter, double tolerance
   );
@@ -53,9 +56,16 @@ class ForceFrame3d: public BasicFrame3d
   const Matrix &getInitialStiff() final;
   const Vector &getResistingForce();
 
+  void zeroLoad() {
+    this->BasicFrame3d::zeroLoad();
+    this->FiniteElement<2, 3, NDF>::zeroLoad();
+  }
+  
+  virtual int   addLoad(ElementalLoad *theLoad, double loadFactor) final {
+    return this->BasicFrame3d::addLoad(theLoad, loadFactor);
+  }
+
   /*
-  void zeroLoad();	
-  int addLoad(ElementalLoad *theLoad, double loadFactor);
   const Vector &getResistingForceIncInertia();
   int addInertiaLoadToUnbalance(const Vector &accel); 
   */
@@ -87,22 +97,18 @@ class ForceFrame3d: public BasicFrame3d
   
  protected:
 
-  // For BasicFrame3d
-  virtual VectorND<6>&   getBasicForce();
-  virtual MatrixND<6,6>& getBasicTangent(State state, int rate);
-
-  private:
   
  private:
   //
   // Constexpr
   //
   constexpr static int 
-        NDF = 6,
+        NDF = 6+nwm,
         ndm = 3,        // dimension of the problem (3D)
         NEN = 2,        // number of element nodes
-        NBV = 6,        // number of element dof's in the basic system
+        NBV = 6+nwm*2,  // number of element DOFs in the basic system
         max_subdivision= 10;
+  constexpr static int NNW = 6; // number of non-warping basic DOFs
 
   static constexpr FrameStressLayout scheme = {
     FrameStress::N,
@@ -111,6 +117,8 @@ class ForceFrame3d: public BasicFrame3d
     FrameStress::Mz,
     FrameStress::Vy,
     FrameStress::Vz,
+    FrameStress::Bimoment,
+    FrameStress::Bishear
   };
   enum : int {
     inx = -12, //  0
@@ -119,18 +127,31 @@ class ForceFrame3d: public BasicFrame3d
     imx = -12, //  3
     imy =   3, //  4
     imz =   1, //  5
+    iwx =   6, //
     jnx =   0, //  6
     jny = -12, //  7
     jnz = -12, //  8
     jmx =   5, //  9
     jmy =   4, // 10
     jmz =   2, // 11
+    jwx =   7,
   };
-  constexpr static int iq[] = {
-    // jnx, imz, jmz, imy, jmy, imx
-    inx, iny, inz, imx, imy, imz,
-    jnx, jny, jnz, jmx, jmy, jmz
-  };
+
+  static constexpr std::array<int, NDF*2> make_iq() {
+    if constexpr (nwm) {
+      return {
+        inx, iny, inz, imx, imy, imz, iwx,
+        jnx, jny, jnz, jmx, jmy, jmz, jwx
+      };
+    } else {
+      return {
+        inx, iny, inz, imx, imy, imz,
+        jnx, jny, jnz, jmx, jmy, jmz
+      };
+    }
+  }
+
+  static constexpr auto iq = make_iq();
 
   enum Respond: int {
     GlobalForce = 1,
@@ -153,7 +174,7 @@ class ForceFrame3d: public BasicFrame3d
 
   // Sensitivity
   int parameterID;
-  VectorND<NBV> getBasicForceGrad(int gradNumber);
+  VectorND<6+nwm*2> getBasicForceGrad(int gradNumber);
   const Matrix &computedfedh(int gradNumber);
   void getStressGrad(VectorND<nsr> &dspdh, int isec, int gradNumber);
 
@@ -176,13 +197,13 @@ class ForceFrame3d: public BasicFrame3d
   double tol;	                   // tolerance for relative energy norm for local iterations
 
   // Element state
-  MatrixND<12,12> tangent;
-  VectorND<12>    residual,
+  MatrixND<2*NDF,2*NDF> tangent;
+  VectorND<2*NDF>    residual,
                   inertia;
 
-  MatrixND<6,6> K_pres,          // stiffness matrix in the basic system 
+  MatrixND<NBV,NBV> K_pres,          // stiffness matrix in the basic system 
                 K_save;          // committed stiffness matrix in the basic system
-  VectorND<6>   q_pres,          // element resisting forces in the basic system
+  VectorND<NBV> q_pres,          // element resisting forces in the basic system
                 q_save;          // committed element end forces in the basic system
   
   int    state_flag;             // indicate if the element has been initialized
@@ -205,9 +226,7 @@ class ForceFrame3d: public BasicFrame3d
   std::vector<GaussPoint> points;
   BeamIntegration*        stencil;
 
-#ifdef NEW_TRANSFORM
-  FrameTransform3d* theCoordTransf;
-#endif
+  BasicFrameTransf3d<NDF> *basic_system;
   Matrix *Ki;
 };
 

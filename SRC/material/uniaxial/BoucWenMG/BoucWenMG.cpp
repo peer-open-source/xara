@@ -183,7 +183,7 @@ BoucWenMG::setTrialStrain(double tstrain)
 
             double A_z = - (eta1 * std::copysign(1.0, Tz * dStrain) + eta2) * n * 
                         std::pow(std::fabs(Tz / stressSig), n - 1) * std::copysign(1.0, Tz / stressSig);
-            double B_z = - (Tz - stressBar * std::copysign(1.0, dStrain)) * B / (stressSig * stressSig);
+            double B_z  = - (Tz - stressBar * std::copysign(1.0, dStrain)) * B / (stressSig * stressSig);
             double ks_z = - (std::sqrt(2.0 * M_PI) * stressSig / s) * (B * B) * B_z;
             double kh_z = (rk - alpha) * k0 * A_z;
             double kr_z = (kh_z * ks * ks + ks_z * kh * kh) / (kh + ks) / (kh + ks);
@@ -217,8 +217,8 @@ BoucWenMG::setTrialStrain(double tstrain)
 
     // Compute normalized stress and elastic/plastic stress
     double tStress = k * dStrain + cStress; // This is still a normalized stress value
-    stressEl = stressEl + kEl * dStrain;   // Elastic normalized stress
-    stressSt = tStress - stressEl;         // Elastic-plastic stress
+    stressEl = stressEl + kEl * dStrain;    // Elastic normalized stress
+    stressSt = tStress - stressEl;          // Elastic-plastic stress
 
     // How to go back to regime 0?
     if (regime == 2) {

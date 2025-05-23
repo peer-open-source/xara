@@ -102,6 +102,112 @@ Tcl_CmdProc TclCommand_ShellSection;
 SectionForceDeformation *
 TclBasicBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv);
 
+
+#include <set>
+#include <ArgumentTracker.h>
+#include <UniaxialMaterial.h>
+int
+TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
+                              int argc, TCL_Char ** const argv)
+{
+
+  enum class Positions {
+    Tag, MaterialTag, Area,
+    EndRequired, End
+  };
+  
+  ArgumentTracker<Positions> tracker;
+  std::set<int> positional;
+  int tag;
+  int matTag;
+  double area;
+
+  for (int i=2; i<argc; i++) {
+    if (strcmp(argv[i], "-material") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetInt(interp, argv[i], &matTag) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::MaterialTag);
+    }
+    else if (strcmp(argv[i], "-area") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &area) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Area);
+    }
+    else
+      positional.insert(i);
+  }
+
+  //
+  // Positional arguments
+  //
+  for (int i: positional) {
+    if (tracker.current() == Positions::EndRequired)
+      tracker.increment();
+
+    switch (tracker.current()) {
+      case Positions::Tag :
+        if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
+          opserr << "Invalid tag " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.consume(Positions::Tag);
+        break;
+
+      case Positions::MaterialTag:
+        if (Tcl_GetInt(interp, argv[i], &matTag) != TCL_OK) {
+          opserr << "Invalid value for material tag " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.consume(Positions::MaterialTag);
+        break;
+
+      case Positions::Area:
+        if (Tcl_GetDouble(interp, argv[i], &area) != TCL_OK) {
+          opserr << "Invalid value for area " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.consume(Positions::Area);
+        break;
+    }
+  }
+
+  //
+  if (tracker.current() < Positions::EndRequired) {
+    opserr << "Missing required arguments: ";
+    if (tracker.contains(Positions::Tag))
+      opserr << "tag ";
+    if (tracker.contains(Positions::MaterialTag))
+      opserr << "material ";
+    if (tracker.contains(Positions::Area))
+      opserr << "area ";
+    opserr << "\n";
+    return TCL_ERROR;
+  }
+
+  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+
+  UniaxialMaterial *material = builder->getTypedObject<UniaxialMaterial>(matTag);
+  if (material == nullptr) {
+    return TCL_ERROR;
+  }
+  auto fiber_section = new FrameFiberSection3d(tag, 1, nullptr, true, 0.0, 0);
+  fiber_section->addFiber(*material, area, 0.0, 0.0);
+  return builder->addTaggedObject<FrameSection>(*fiber_section);
+}
+
+
 int
 TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
@@ -144,6 +250,15 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
       strcmp(argv[1], "fiberSecAsym") == 0)
 
     return TclCommand_addFiberSection(clientData, interp, argc, argv);
+
+
+  else if (strcmp(argv[1], "Truss") == 0 ||
+           strcmp(argv[1], "TrussSection") == 0 ||
+           strcmp(argv[1], "TrussSection2d") == 0 ||
+           strcmp(argv[1], "TrussSection3d") == 0) {
+    return TclCommand_addTrussSection(clientData, interp, argc, argv);
+  }
+
 
 
   else if (strcmp(argv[1], "FiberInt") == 0) {

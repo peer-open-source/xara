@@ -336,7 +336,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
         opserr << OpenSees::PromptValueError 
                << "unexpected argument " << argv[argi] 
                << "\n";
-        // return TCL_ERROR;
+        return TCL_ERROR;
       }
     }
 
@@ -344,7 +344,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     // construct the transformation
     //
 
-    FrameTransform2d *crdTransf2d = nullptr;
+    CrdTransf *crdTransf2d = nullptr;
 
     if (strcmp(argv[1], "Linear") == 0)
         crdTransf2d = new LinearCrdTransf2d(tag, jntOffsetI, jntOffsetJ);
@@ -371,13 +371,15 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
     }
 
     //
-    if (builder->addTaggedObject<FrameTransform2d>(*crdTransf2d) != TCL_OK)
+    if (builder->addTaggedObject<CrdTransf>(*crdTransf2d) != TCL_OK)
       return TCL_ERROR;
   }
 
   else if (ndm == 3 && ndf >= 6) {
-    Vector vecxzPlane(3);                // vector that defines local xz plane
-    Vector jntOffsetI(3), jntOffsetJ(3); // joint offsets in global coordinates
+    // vector that defines local xz plane
+    Vector vecxzPlane(3);
+    // joint offsets in global coordinates
+    Vector jntOffsetI(3), jntOffsetJ(3);
 
     if (argc < 6) {
       opserr << OpenSees::PromptValueError 

@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <Domain.h>
-#include <FrameTransform.h>
+#include <CrdTransf.h>
 
 #include "DispBeamColumn2dInt.h"
 #include <runtimeAPI.h>
@@ -142,7 +142,7 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
 
   if (ndm == 2) {
 
-    FrameTransform2d *theTransf = builder->getTypedObject<FrameTransform2d>(transfTag);
+    CrdTransf *theTransf = builder->getTypedObject<CrdTransf>(transfTag);
     if (theTransf == nullptr) {
       delete[] sections;
       return TCL_ERROR;

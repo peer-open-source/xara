@@ -245,6 +245,13 @@ EulerDeltaFrame3d::update()
 int
 EulerDeltaFrame3d::setNodes()
 {
+  if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
+      opserr << "BasicFrame3d::setDomain  tag: " 
+            << this->getTag()
+            << " -- Error initializing coordinate transformation\n";
+      return -1;
+  }
+
   double L  = theCoordTransf->getInitialLength();
   beamInt->getSectionLocations(numSections, L, xi);
   beamInt->getSectionWeights(numSections, L, wt);
@@ -381,7 +388,6 @@ EulerDeltaFrame3d::getTangentStiff()
 //q[3] += q0[3];
 //q[4] += q0[4];
 
-
   static Matrix wrapper(kb);
 
   return wrapper;
@@ -447,7 +453,6 @@ EulerDeltaFrame3d::Print(OPS_Stream &s, int flag)
     s << "\nEulerDeltaFrame3d, element id:  " 
       << this->getTag() << "\n";
     s << "\tConnected external nodes:  " << node_tags;
-    s << "\tCoordTransf: " << theCoordTransf->getTag() << "\n";
     s << "\tmass density:  " << density 
       << ", mass_flag: " << mass_flag << "\n";
 

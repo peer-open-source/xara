@@ -42,6 +42,7 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/material/elastic.cpp"
     "modeling/material/concrete.cpp"
     "modeling/material/isotropy.cpp"
+    "modeling/material/boucwen.cpp"
 
 
     "modeling/printing.cpp"

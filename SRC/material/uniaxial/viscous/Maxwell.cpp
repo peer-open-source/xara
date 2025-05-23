@@ -27,7 +27,7 @@
 #include <math.h>
 
 #include <elementAPI.h>
-#include <Maxwell.h>
+#include "Maxwell.h"
 #include <Vector.h>
 #include <Channel.h>
 #include <string.h>
@@ -40,7 +40,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Maxwell)
 {
   if (numMaxwellMaterials == 0) {
     numMaxwellMaterials++;
-    opserr << "Maxwell Model - D.Lignos, McGill University\n";
+    opslog << "Maxwell Model - D.Lignos, McGill University\n";
   }
   
   // Pointer to a uniaxial material that will be returned
@@ -318,13 +318,14 @@ void
 Maxwell::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"K\": " << K << ", ";	
     s << "\"C\": " << C << ", ";
     s << "\"Alpha\": " << Alpha << ", ";
-    s << "\"Length\": " << L << "}";
+    s << "\"Length\": " << L;
+    s << "}";
   } else {
     s << "Maxwell tag: " << this->getTag() << endln;
     s << "  K: " << K << endln;	
