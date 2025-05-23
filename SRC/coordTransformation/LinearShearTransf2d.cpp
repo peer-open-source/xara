@@ -26,7 +26,7 @@ Matrix LinearShearTransf2d::kg(6,6);
 
 // constructor:
 LinearShearTransf2d::LinearShearTransf2d(int tag):
-  FrameTransform2d(tag, CRDTR_TAG_LinearShearTransf2d),
+  CrdTransf(tag, CRDTR_TAG_LinearShearTransf2d),
   nodeIPtr(0), nodeJPtr(0),
   nodeIOffset(0), nodeJOffset(0),
   cosTheta(0), sinTheta(0), L(0)
@@ -38,7 +38,7 @@ LinearShearTransf2d::LinearShearTransf2d(int tag):
 LinearShearTransf2d::LinearShearTransf2d(int tag,
                      const Vector &rigJntOffset1,
                      const Vector &rigJntOffset2):
-  FrameTransform2d(tag, CRDTR_TAG_LinearShearTransf2d),
+  CrdTransf(tag, CRDTR_TAG_LinearShearTransf2d),
   nodeIPtr(0), nodeJPtr(0),
   nodeIOffset(0), nodeJOffset(0),
   cosTheta(0), sinTheta(0), L(0)
@@ -72,7 +72,7 @@ LinearShearTransf2d::LinearShearTransf2d(int tag,
 // constructor:
 // invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
 LinearShearTransf2d::LinearShearTransf2d():
-  FrameTransform2d(0, CRDTR_TAG_LinearShearTransf2d),
+  CrdTransf(0, CRDTR_TAG_LinearShearTransf2d),
   nodeIPtr(0), nodeJPtr(0),
   nodeIOffset(0), nodeJOffset(0),
   cosTheta(0), sinTheta(0), L(0)

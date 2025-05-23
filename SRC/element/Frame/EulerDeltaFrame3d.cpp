@@ -245,6 +245,13 @@ EulerDeltaFrame3d::update()
 int
 EulerDeltaFrame3d::setNodes()
 {
+  if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
+      opserr << "BasicFrame3d::setDomain  tag: " 
+            << this->getTag()
+            << " -- Error initializing coordinate transformation\n";
+      return -1;
+  }
+
   double L  = theCoordTransf->getInitialLength();
   beamInt->getSectionLocations(numSections, L, xi);
   beamInt->getSectionWeights(numSections, L, wt);

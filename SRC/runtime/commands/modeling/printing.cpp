@@ -177,7 +177,7 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
     //
     s << tab << tab << "\"crdTransformations\": [\n";
     {
-      int n = builder->printRegistry<FrameTransform2d>(s, flag);
+      int n = builder->printRegistry<CrdTransf>(s, flag);
 
       DummyStream dummy;
       if (builder->printRegistry<FrameTransform3d>(dummy, flag) > 0) {

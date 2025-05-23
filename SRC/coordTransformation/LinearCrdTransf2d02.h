@@ -34,7 +34,7 @@
 #include <Matrix.h>
 
 
-class LinearCrdTransf2d02: public FrameTransform2d
+class LinearCrdTransf2d02: public CrdTransf
 {
 public:
     LinearCrdTransf2d02();

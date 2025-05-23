@@ -46,7 +46,7 @@ Matrix LinearCrdTransf2dInt::kg(6,6);
 
 // constructor:
 LinearCrdTransf2dInt::LinearCrdTransf2dInt(int tag):
-  FrameTransform2d(tag, CRDTR_TAG_LinearCrdTransf2dInt),
+  CrdTransf(tag, CRDTR_TAG_LinearCrdTransf2dInt),
   nodeIPtr(0), nodeJPtr(0),
   nodeIOffset(0), nodeJOffset(0),
   cosTheta(0), sinTheta(0), L(0)
@@ -58,7 +58,7 @@ LinearCrdTransf2dInt::LinearCrdTransf2dInt(int tag):
 LinearCrdTransf2dInt::LinearCrdTransf2dInt(int tag,
 				     const Vector &rigJntOffset1,
 				     const Vector &rigJntOffset2):
-  FrameTransform2d(tag, CRDTR_TAG_LinearCrdTransf2dInt),
+  CrdTransf(tag, CRDTR_TAG_LinearCrdTransf2dInt),
   nodeIPtr(0), nodeJPtr(0),
   nodeIOffset(0), nodeJOffset(0),
   cosTheta(0), sinTheta(0), L(0)
@@ -92,7 +92,7 @@ LinearCrdTransf2dInt::LinearCrdTransf2dInt(int tag,
 // constructor:
 // invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
 LinearCrdTransf2dInt::LinearCrdTransf2dInt():
-  FrameTransform2d(0, CRDTR_TAG_LinearCrdTransf2dInt),
+  CrdTransf(0, CRDTR_TAG_LinearCrdTransf2dInt),
   nodeIPtr(0), nodeJPtr(0),
   nodeIOffset(0), nodeJOffset(0),
   cosTheta(0), sinTheta(0), L(0)

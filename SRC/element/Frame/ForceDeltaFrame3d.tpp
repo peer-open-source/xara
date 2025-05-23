@@ -61,6 +61,9 @@
 #include <BeamIntegration.h>
 #include <CompositeResponse.h>
 #include <ElementalLoad.h>
+#include <BasicFrameTransf.h>
+#include <runtime/commands/modeling/transform/FrameTransformBuilder.hpp>
+
 
 
 template<int n, typename MatT>
@@ -103,37 +106,20 @@ void getHgp(double xi[], MatT& H)
 }
 
 
-// invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
-template<int NIP, int nsr>
-ForceDeltaFrame3d<NIP,nsr>::ForceDeltaFrame3d()
- : BasicFrame3d(0, ELE_TAG_ForceDeltaFrame3d),
-   stencil(nullptr),
-   shear_flag(false),
-   density(0.0), mass_flag(0), use_density(false),
-   max_iter(0),
-   tol(0.0),
-   state_flag(0),
-   Ki(0),
-   parameterID(0)
-{
-  K_past.zero();
-  q_past.zero();
-  K_pres.zero();
-  q_pres.zero();
-}
-
-
 template<int NIP, int nsr>
 ForceDeltaFrame3d<NIP,nsr>::ForceDeltaFrame3d(int tag, 
                            std::array<int,2>& nodes,
                            std::vector<FrameSection*>& sections,
                            BeamIntegration& bi, 
-                           FrameTransform3d& coordTransf,
+                           FrameTransformBuilder &tb, 
                            double dens, int mass_type, bool use_mass,
                            int maxNumIters, double tolerance,
                            bool includeShear
   )
- : BasicFrame3d(tag, ELE_TAG_ForceDeltaFrame3d, nodes, coordTransf),
+ : 
+   FiniteElement<2, 3, 6> (tag, ELE_TAG_ForceDeltaFrame3d, nodes),
+   BasicFrame3d(),
+   basic_system(new BasicFrameTransf3d<ndf>(tb.template create<2,ndf>())),
    stencil(nullptr),
    state_flag(0),
    Ki(nullptr),
@@ -166,15 +152,25 @@ ForceDeltaFrame3d<NIP,nsr>::~ForceDeltaFrame3d()
 
   if (Ki != nullptr)
     delete Ki;
+
+  if (basic_system != nullptr)
+    delete basic_system;
 }
 
 template<int NIP, int nsr>
 int
 ForceDeltaFrame3d<NIP,nsr>::setNodes()
 {
-  this->BasicFrame3d::setNodes();
 
-  double L = theCoordTransf->getInitialLength();
+  if (basic_system->initialize(theNodes[0], theNodes[1]) != 0) {
+      opserr << "BasicFrame3d::setDomain  tag: " 
+            << this->getTag()
+            << " -- Error initializing coordinate transformation\n";
+      return -1;
+  }
+
+  double L = basic_system->getInitialLength();
+  this->BasicFrame3d::setLength(L);
 
   int numSections = points.size();
 //double *xi = new double[numSections];
@@ -213,7 +209,7 @@ ForceDeltaFrame3d<NIP,nsr>::commitState()
   } 
 
   // commit the transformation between coord. systems
-  if ((err = theCoordTransf->commitState()) != 0)
+  if ((err = basic_system->commitState()) != 0)
     return err;
 
   // commit the element variables state
@@ -246,7 +242,7 @@ ForceDeltaFrame3d<NIP,nsr>::revertToLastCommit()
 
 
   // Revert the transformation to last commit
-  if (theCoordTransf->revertToLastCommit() != 0)
+  if (basic_system->revertToLastCommit() != 0)
     return -2;
 
   // revert the element state to last commit
@@ -263,7 +259,7 @@ int
 ForceDeltaFrame3d<NIP,nsr>::revertToStart()
 {
   // Revert the transformation to start
-  if (theCoordTransf->revertToStart() != 0)
+  if (basic_system->revertToStart() != 0)
     return -2;
 
   // Loop over the integration points and revert states to start
@@ -319,13 +315,13 @@ ForceDeltaFrame3d<NIP,nsr>::update()
     this->revertToLastCommit();
 
   // update the transformation
-  theCoordTransf->update();
+  basic_system->update();
 
   // get basic displacements and increments
-  const Vector& v = theCoordTransf->getBasicTrialDisp();
+  const Vector& v = basic_system->getBasicTrialDisp();
 
   THREAD_LOCAL VectorND<nq> dv;
-  dv = theCoordTransf->getBasicIncrDeltaDisp();
+  dv = basic_system->getBasicIncrDeltaDisp();
 
   if (state_flag != 0 && dv.norm() <= DBL_EPSILON && eleLoads.size() == 0)
     return 0;
@@ -334,7 +330,7 @@ ForceDeltaFrame3d<NIP,nsr>::update()
   Dv = v;
   Dv -= dv;
 
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
 
@@ -920,7 +916,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   static VectorND<12> pg;
   static Vector wrapper(pg);
 
-  pg  = theCoordTransf->pushResponse(pl);
+  pg  = basic_system->t.pushResponse(pl);
 
   // Add loading
   double p0[5]{};
@@ -935,7 +931,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   pf[2] = p0[3];
   pf[8] = p0[4];
 
-  pg += theCoordTransf->pushConstant(pf);
+  pg += basic_system->t.pushConstant(pf);
 
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
@@ -991,7 +987,7 @@ ForceDeltaFrame3d<NIP,nsr>::getTangentStiff()
 
   static MatrixND<12,12> Kg;
   static Matrix Wrapper(Kg);
-  Kg = theCoordTransf->pushResponse(kl, pl);
+  Kg = basic_system->t.pushResponse(kl, pl);
   return Wrapper;
 }
 
@@ -1002,7 +998,7 @@ void
 ForceDeltaFrame3d<NIP,nsr>::computew(Vector& w, Vector& wp, double xi[], const Vector& kappa, const Vector& gamma)
 {
   constexpr static int numSections = NIP;
-  double L = theCoordTransf->getInitialLength();
+  double L = basic_system->getInitialLength();
 
 
   MatrixND<NIP, NIP> Ginv;
@@ -1047,7 +1043,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdq(Matrix& dwidq,
                                const Matrix& lskp, const Matrix& lsgp)
 {
   constexpr static int nip = NIP;
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
   Matrix A(2 * nip, 2 * nip);
@@ -1167,7 +1163,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwzdq(Matrix& dwzidq,
                            const Matrix& lsgp) const
 {
   constexpr static int numSections = NIP;
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
   Matrix A(2 * numSections, 2 * numSections);
@@ -1285,7 +1281,7 @@ void
 ForceDeltaFrame3d<NIP,nsr>::computeSectionForces(VectorND<nsr>& sp, int isec)
 {
 
-  double L = theCoordTransf->getInitialLength();
+  double L = basic_system->getInitialLength();
 
 //double xi[NIP];
 //stencil->getSectionLocations(numSections, L, xi);
@@ -1456,8 +1452,8 @@ ForceDeltaFrame3d<NIP,nsr>::getStressGrad(VectorND<nsr>& dspdh, int isec, int ig
   // int numSections = points.size();
   constexpr static int numSections = NIP;
 
-  double L    = theCoordTransf->getInitialLength();
-  double dLdh = theCoordTransf->getLengthGrad();
+  double L    = basic_system->getInitialLength();
+  double dLdh = basic_system->getLengthGrad();
 
   double xi[NIP];
   stencil->getSectionLocations(numSections, L, xi);
@@ -1618,7 +1614,7 @@ ForceDeltaFrame3d<NIP,nsr>::getInitialFlexibility(Matrix& fe)
   constexpr static int numSections = NIP;
   fe.Zero();
 
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
   double xi[NIP];
@@ -1736,7 +1732,7 @@ ForceDeltaFrame3d<NIP,nsr>::getInitialDeformations(Vector& v0)
   if (eleLoads.size() < 1)
     return 0;
 
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
   double xi[NIP];
@@ -1800,7 +1796,7 @@ template<int NIP, int nsr>
 void
 ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector& q)
 {
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
   double xi[NIP];
@@ -1833,7 +1829,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
   Matrix lsgp(NIP, NIP);
   lsgp.addMatrixProduct(0.0, Hgp, Ginv, 1.0);
 
-  double dLdh = theCoordTransf->getLengthGrad();
+  double dLdh = basic_system->getLengthGrad();
   double dxidh[NIP];
   stencil->getLocationsDeriv(NIP, L, dLdh, dxidh);
 
@@ -2022,9 +2018,9 @@ ForceDeltaFrame3d<NIP,nsr>::compSectionDisplacements(Vector sectionCoords[], Vec
   constexpr static int numSections = NIP;
   // get basic displacements and increments
   static Vector ub(nq);
-  ub = theCoordTransf->getBasicTrialDisp();
+  ub = basic_system->getBasicTrialDisp();
 
-  double L = theCoordTransf->getInitialLength();
+  double L = basic_system->getInitialLength();
 
   // get integration point positions and weights
   static double xi_pts[NIP];
@@ -2076,14 +2072,14 @@ ForceDeltaFrame3d<NIP,nsr>::compSectionDisplacements(Vector sectionCoords[], Vec
     xl(1) = 0;
 
     // get section global coordinates
-    sectionCoords[i] = theCoordTransf->getPointGlobalCoordFromLocal(xl);
+    sectionCoords[i] = basic_system->getPointGlobalCoordFromLocal(xl);
 
     // compute section displacements
     uxb(0) = xi * ub(0); // consider linear variation for axial displacement. CHANGE LATER!!!!!!!!!!
     uxb(1) = w(i);
 
     // get section displacements in global system
-    sectionDispls[i] = theCoordTransf->getPointGlobalDisplFromBasic(xi, uxb);
+    sectionDispls[i] = basic_system->getPointGlobalDisplFromBasic(xi, uxb);
   }
   return;
 }
@@ -2118,7 +2114,7 @@ ForceDeltaFrame3d<NIP,nsr>::Print(OPS_Stream& s, int flag)
     s << points[numSections - 1].material->getTag() << "]";
     s << ", ";
 
-    s << "\"crdTransformation\": " << theCoordTransf->getTag();
+    s << "\"crdTransformation\": " << basic_system->getTag();
     s << ", ";
 
     s << "\"integration\": ";
@@ -2303,7 +2299,7 @@ ForceDeltaFrame3d<NIP,nsr>::setResponse(const char** argv, int argc, OPS_Stream&
       float sectionLoc = atof(argv[1]);
 
       double xi[NIP];
-      double L = theCoordTransf->getInitialLength();
+      double L = basic_system->getInitialLength();
       stencil->getSectionLocations(numSections, L, xi);
 
       sectionLoc /= L;
@@ -2342,7 +2338,7 @@ ForceDeltaFrame3d<NIP,nsr>::setResponse(const char** argv, int argc, OPS_Stream&
 
       if (sectionNum > 0 && sectionNum <= numSections && argc > 2) {
         FrameSection* section = points[sectionNum - 1].material;
-        double L = theCoordTransf->getInitialLength();
+        double L = basic_system->getInitialLength();
         stencil->getSectionLocations(numSections, L, xi);
 
         output.tag("GaussPointOutput");
@@ -2364,7 +2360,7 @@ ForceDeltaFrame3d<NIP,nsr>::setResponse(const char** argv, int argc, OPS_Stream&
 
         CompositeResponse* theCResponse = new CompositeResponse();
         int numResponse                 = 0;
-        double L = theCoordTransf->getInitialLength();
+        double L = basic_system->getInitialLength();
         stencil->getSectionLocations(numSections, L, xi);
 
         for (int i = 0; i < NIP; i++) {
@@ -2391,7 +2387,7 @@ ForceDeltaFrame3d<NIP,nsr>::setResponse(const char** argv, int argc, OPS_Stream&
   }
 
   if (theResponse == nullptr)
-    theResponse = theCoordTransf->setResponse(argv, argc, output);
+    theResponse = basic_system->setResponse(argv, argc, output);
 
   output.endTag(); // ElementOutput
 
@@ -2431,7 +2427,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
     double M2     = q_pres[2];
     v_resp(5)  = M1;
     v_resp(11) = M2;
-    double L      = theCoordTransf->getInitialLength();
+    double L      = basic_system->getInitialLength();
     double V      = (M1 + M2) / L;
     v_resp(1)  =  V + p0[1];
     v_resp(7)  = -V + p0[2];
@@ -2456,7 +2452,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
 
   // Chord rotation
   else if (responseID == 3) {
-    vp = theCoordTransf->getBasicTrialDisp();
+    vp = basic_system->getBasicTrialDisp();
     return info.setVector(vp);
   }
 
@@ -2464,7 +2460,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
   else if (responseID == 4) {
     static Matrix fe(6, 6);
     this->getInitialFlexibility(fe);
-    vp = theCoordTransf->getBasicTrialDisp();
+    vp = basic_system->getBasicTrialDisp();
     vp.addMatrixVector(1.0, fe, q_pres, -1.0);
     static Vector v0(6);
     this->getInitialDeformations(v0);
@@ -2477,7 +2473,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
     double LI = 0.0;
 
     if (fabs(q_pres[1] + q_pres[2]) > DBL_EPSILON) {
-      double L = theCoordTransf->getInitialLength();
+      double L = basic_system->getInitialLength();
 
       LI = q_pres[1] / (q_pres[1] + q_pres[2]) * L;
     }
@@ -2490,7 +2486,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
     double d2 = 0.0;
     double d3 = 0.0;
 
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
 
     // Location of inflection point from node I
     double LI = 0.0;
@@ -2557,7 +2553,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
     if (this->setState(State::Init) != 0)
       return -1;
 
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
 
     Vector locs(NIP);
     for (int i = 0; i < NIP; i++)
@@ -2571,7 +2567,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
     if (this->setState(State::Init) != 0)
       return -1;
 
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
 
     Vector weights(NIP);
     for (int i = 0; i < NIP; i++)
@@ -2588,7 +2584,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
   }
 
   else if (responseID == 111) {
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
     double pts[NIP];
     stencil->getSectionLocations(NIP, L, pts);
     // CBDI influence matrix
@@ -2615,12 +2611,12 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
     static Vector uxb(3);
     static Vector uxg(3);
     Matrix disps(NIP, 3);
-    vp = theCoordTransf->getBasicTrialDisp();
+    vp = basic_system->getBasicTrialDisp();
     for (int i = 0; i < NIP; i++) {
       uxb(0)      = pts[i] * vp(0); // linear shape function
       uxb(1)      = dispsy(i);
       uxb(2)      = dispsz(i);
-      uxg         = theCoordTransf->getPointGlobalDisplFromBasic(pts[i], uxb);
+      uxg         = basic_system->getPointGlobalDisplFromBasic(pts[i], uxb);
       disps(i, 0) = uxg(0);
       disps(i, 1) = uxg(1);
       disps(i, 2) = uxg(2);
@@ -2629,7 +2625,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
   }
 
   else if (responseID == 112) {
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
     double ipts[NIP];
     stencil->getSectionLocations(NIP, L, ipts);
     // CBDI influence matrix
@@ -2658,12 +2654,12 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
     static Vector uxb(3);
     static Vector uxg(3);
     Matrix disps(20, 3);
-    vp = theCoordTransf->getBasicTrialDisp();
+    vp = basic_system->getBasicTrialDisp();
     for (int i = 0; i < 20; i++) {
       uxb(0)      = pts[i] * vp(0); // linear shape function
       uxb(1)      = dispsy(i);
       uxb(2)      = dispsz(i);
-      uxg         = theCoordTransf->getPointGlobalDisplFromBasic(pts[i], uxb);
+      uxg         = basic_system->getPointGlobalDisplFromBasic(pts[i], uxb);
       disps(i, 0) = uxg(0);
       disps(i, 1) = uxg(1);
       disps(i, 2) = uxg(2);
@@ -2680,7 +2676,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, In
 {
   // Basic deformation sensitivity
   if (responseID == 3) {
-    const Vector& dvdh = theCoordTransf->getBasicDisplTotalGrad(igrad);
+    const Vector& dvdh = basic_system->getBasicDisplTotalGrad(igrad);
     return info.setVector(dvdh);
   }
 
@@ -2688,7 +2684,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, In
   else if (responseID == 7) {
     static Vector dqdh(6);
 
-    const Vector& dvdh = theCoordTransf->getBasicDisplTotalGrad(igrad);
+    const Vector& dvdh = basic_system->getBasicDisplTotalGrad(igrad);
 
     dqdh.addMatrixVector(0.0, K_pres, dvdh, 1.0);
 
@@ -2711,13 +2707,13 @@ ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, In
     }
 
     static Vector dqdh(nq);
-    const Vector& dvdh = theCoordTransf->getBasicDisplTotalGrad(igrad);
+    const Vector& dvdh = basic_system->getBasicDisplTotalGrad(igrad);
 
     dqdh.addMatrixVector(0.0, K_pres, dvdh, 1.0);
 
     dqdh.addVector(1.0, this->getBasicForceGrad(igrad), 1.0);
 
-    double L        = theCoordTransf->getInitialLength();
+    double L        = basic_system->getInitialLength();
     double oneOverL = 1.0 / L;
     double pts[NIP];
     stencil->getSectionLocations(NIP, L, pts);
@@ -2800,8 +2796,8 @@ ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, In
       }
     }
 
-    double dLdh   = theCoordTransf->getLengthGrad();
-    double d1oLdh = theCoordTransf->getd1overLdh();
+    double dLdh   = basic_system->getLengthGrad();
+    double d1oLdh = basic_system->getd1overLdh();
 
     double dptsdh[NIP];
     stencil->getLocationsDeriv(numSections, L, dLdh, dptsdh);
@@ -2839,7 +2835,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, In
   else if (responseID == 4) {
     static Vector dvpdh(6);
 
-    const Vector& dvdh = theCoordTransf->getBasicDisplTotalGrad(igrad);
+    const Vector& dvdh = basic_system->getBasicDisplTotalGrad(igrad);
 
     dvpdh = dvdh;
 
@@ -2885,7 +2881,7 @@ ForceDeltaFrame3d<NIP,nsr>::setParameter(const char** argv, int argc, Parameter&
       float sectionLoc = atof(argv[1]);
 
       double xi[NIP];
-      double L = theCoordTransf->getInitialLength();
+      double L = basic_system->getInitialLength();
       stencil->getSectionLocations(numSections, L, xi);
 
       sectionLoc /= L;
@@ -3005,22 +3001,22 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForceSensitivity(int igrad)
   dp0dh[3] = 0.0;
   dp0dh[4] = 0.0;
   dp0dh[5] = 0.0;
-  this->addReactionGrad(dp0dh, igrad);
+  this->addReactionGrad(dp0dh, igrad, basic_system->getLengthGrad());
   Vector dp0dhVec(dp0dh, 3);
 
   static Vector P(12);
   P.Zero();
 
-  if (theCoordTransf->isShapeSensitivity()) {
+  if (basic_system->isShapeSensitivity()) {
     // dAdh^T q
-    P = theCoordTransf->getGlobalResistingForceShapeSensitivity(q_pres, dp0dhVec, igrad);
+    P = basic_system->getGlobalResistingForceShapeSensitivity(q_pres, dp0dhVec, igrad);
     // k dAdh u
-    const Vector& dAdh_u = theCoordTransf->getBasicDisplFixedGrad();
+    const Vector& dAdh_u = basic_system->getBasicDisplFixedGrad();
     dqdh.addMatrixVector(1.0, K_pres, dAdh_u, 1.0);
   }
 
   // A^T (dqdh + k dAdh u)
-  P += theCoordTransf->getGlobalResistingForce(dqdh, dp0dhVec);
+  P += basic_system->getGlobalResistingForce(dqdh, dp0dhVec);
 
   return P;
 }
@@ -3032,7 +3028,7 @@ ForceDeltaFrame3d<NIP,nsr>::commitSensitivity(int igrad, int numGrads)
   int err = 0;
   int numSections = points.size();
 
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
   double pts[NIP];
@@ -3041,18 +3037,18 @@ ForceDeltaFrame3d<NIP,nsr>::commitSensitivity(int igrad, int numGrads)
   double wts[NIP];
   stencil->getSectionWeights(numSections, L, wts);
 
-  double dLdh = theCoordTransf->getLengthGrad();
+  double dLdh = basic_system->getLengthGrad();
 
   double dptsdh[NIP];
   stencil->getLocationsDeriv(numSections, L, dLdh, dptsdh);
 
-  double d1oLdh = theCoordTransf->getd1overLdh();
+  double d1oLdh = basic_system->getd1overLdh();
 
   static Vector dqdh(3);
   dqdh = this->getBasicForceGrad(igrad);
 
   // dvdh = A dudh + dAdh u
-  const Vector& dvdh = theCoordTransf->getBasicDisplTotalGrad(igrad);
+  const Vector& dvdh = basic_system->getBasicDisplTotalGrad(igrad);
   dqdh.addMatrixVector(1.0, K_pres, dvdh, 1.0);
 
   bool isGamma = false;
@@ -3174,7 +3170,7 @@ ForceDeltaFrame3d<NIP,nsr>::getBasicForceGrad(int igrad)
 {
   int numSections = points.size();
 
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
   double pts[NIP];
@@ -3183,7 +3179,7 @@ ForceDeltaFrame3d<NIP,nsr>::getBasicForceGrad(int igrad)
   double wts[NIP];
   stencil->getSectionWeights(NIP, L, wts);
 
-  double dLdh = theCoordTransf->getLengthGrad();
+  double dLdh = basic_system->getLengthGrad();
 
   double dptsdh[NIP];
   stencil->getLocationsDeriv(NIP, L, dLdh, dptsdh);
@@ -3191,7 +3187,7 @@ ForceDeltaFrame3d<NIP,nsr>::getBasicForceGrad(int igrad)
   double dwtsdh[NIP];
   stencil->getWeightsDeriv(NIP, L, dLdh, dwtsdh);
 
-  double d1oLdh = theCoordTransf->getd1overLdh();
+  double d1oLdh = basic_system->getd1overLdh();
 
   static Vector dvdh(nq);
   dvdh.Zero();
@@ -3332,11 +3328,11 @@ ForceDeltaFrame3d<NIP,nsr>::computedfedh(int igrad)
   int numSections = points.size();
 
 
-  double L        = theCoordTransf->getInitialLength();
+  double L        = basic_system->getInitialLength();
   double oneOverL = 1.0 / L;
 
-  double dLdh   = theCoordTransf->getLengthGrad();
-//double d1oLdh = theCoordTransf->getd1overLdh();
+  double dLdh   = basic_system->getLengthGrad();
+//double d1oLdh = basic_system->getd1overLdh();
 
   double xi[NIP];
   stencil->getSectionLocations(numSections, L, xi);
@@ -3462,12 +3458,12 @@ ForceDeltaFrame3d<NIP,nsr>::sendSelf(int commitTag, Channel& theChannel)
   idData(4) = max_iter;
   idData(5) = state_flag;
 
-  idData(6)          = theCoordTransf->getClassTag();
-  int crdTransfDbTag = theCoordTransf->getDbTag();
+  idData(6)          = basic_system->getClassTag();
+  int crdTransfDbTag = basic_system->getDbTag();
   if (crdTransfDbTag == 0) {
     crdTransfDbTag = theChannel.getDbTag();
     if (crdTransfDbTag != 0)
-      theCoordTransf->setDbTag(crdTransfDbTag);
+      basic_system->setDbTag(crdTransfDbTag);
   }
   idData(7) = crdTransfDbTag;
 
@@ -3486,7 +3482,7 @@ ForceDeltaFrame3d<NIP,nsr>::sendSelf(int commitTag, Channel& theChannel)
   }
 
   // send the coordinate transformation
-  if (theCoordTransf->sendSelf(commitTag, theChannel) < 0) {
+  if (basic_system->sendSelf(commitTag, theChannel) < 0) {
     opserr << "ForceDeltaFrame3d::sendSelf() - failed to send crdTrans\n";
     return -1;
   }
@@ -3607,7 +3603,7 @@ ForceDeltaFrame3d<NIP,nsr>::recvSelf(int commitTag, Channel& theChannel, FEM_Obj
   int stencilDbTag    = idData(9);
 
   // create a new crdTransf object if one needed
-  if (theCoordTransf == 0 || theCoordTransf->getClassTag() != crdTransfClassTag) {
+  if (theCoordTransf == 0 || basic_system->getClassTag() != crdTransfClassTag) {
     if (theCoordTransf != 0)
       delete theCoordTransf;
 
@@ -3621,10 +3617,10 @@ ForceDeltaFrame3d<NIP,nsr>::recvSelf(int commitTag, Channel& theChannel, FEM_Obj
     }
   }
 
-  theCoordTransf->setDbTag(crdTransfDbTag);
+  basic_system->setDbTag(crdTransfDbTag);
 
   // invoke recvSelf on the coordTransf object
-  if (theCoordTransf->recvSelf(commitTag, theChannel, theBroker) < 0) {
+  if (basic_system->recvSelf(commitTag, theChannel, theBroker) < 0) {
     opserr << "ForceDeltaFrame3d::sendSelf() - failed to recv crdTranf\n";
 
     return -3;
@@ -3846,7 +3842,7 @@ ForceDeltaFrame3d<NIP,nsr>::addInertiaLoadToUnbalance(const Vector &accel)
   const Vector &Raccel1 = theNodes[0]->getRV(accel);
   const Vector &Raccel2 = theNodes[1]->getRV(accel);    
 
-  double L = theCoordTransf->getInitialLength();
+  double L = basic_system->getInitialLength();
   double m = 0.5*density*L;
 
   // Should be done through p0[0]
@@ -3874,7 +3870,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForceIncInertia()
     const Vector &accel1 = theNodes[0]->getTrialAccel();
     const Vector &accel2 = theNodes[1]->getTrialAccel();
     
-    double L = theCoordTransf->getInitialLength();
+    double L = basic_system->getInitialLength();
     double m = 0.5*density*L;
     
     theVector(0) += m*accel1(0);
@@ -3910,7 +3906,7 @@ ForceDeltaFrame3d<NIP,nsr>::getInitialStiff()
 
   static Matrix kvInit(nq, nq);
   f.Invert(kvInit);
-  Ki = new Matrix(theCoordTransf->getInitialGlobalStiffMatrix(kvInit));
+  Ki = new Matrix(basic_system->getInitialGlobalStiffMatrix(kvInit));
 
   return *Ki;
 }
@@ -3919,7 +3915,7 @@ template<int NIP, int nsr>
 const Matrix &
 ForceDeltaFrame3d<NIP,nsr>::getTangentStiff()
 {
-  return theCoordTransf->getGlobalStiffMatrix(K_pres, q_pres);
+  return basic_system->getGlobalStiffMatrix(K_pres, q_pres);
 }
 
 #endif

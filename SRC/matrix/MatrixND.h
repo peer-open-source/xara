@@ -451,21 +451,6 @@ struct MatrixND {
     mat *= scalar;
     return mat;
   }
-  
-  // template <index_t J>
-  // inline constexpr friend MatrixND<NR, NC>
-  // operator*(const MatrixND<NR, J> &left, const MatrixND<J, NC> &right) {
-  //   MatrixND<NR, NC> prod;
-  //   for (index_t i = 0; i < NR; ++i) {
-  //     for (index_t j = 0; j < NC; ++j) {
-  //       prod(i, j) = 0.0;
-  //       for (index_t k = 0; k < J; ++k) {
-  //         prod(i, j) += left(i,k) * right(k,j);
-  //       }
-  //     }
-  //   }
-  //   return prod;
-  // }
 
   template <index_t J>
   inline constexpr friend MatrixND<NR, J>
@@ -573,17 +558,6 @@ struct MatrixND {
   }
 }; // class MatrixND
 
-#if 0
-template<int n>
-inline int
-MatrixND<n,n>::invert(MatrixND<n,n>& M) const
-//requires(n > 6)
-{
-  const Matrix A(*this);
-  Matrix B(M);
-  return A.Invert(B);
-}
-#endif
 
 template <index_t nr, index_t nc, typename T>
 template<typename F> inline void
@@ -604,14 +578,15 @@ MatrixND<nr, nc, T>::map(F func, MatrixND<nr,nc,T>& destination)
       destination(i,j) = func((*this)(i,j));
 }
 
+
 // template<> inline int
 template <index_t nr, index_t nc, typename T> inline int
 MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 {
   static_assert(nr == nc, "Matrix must be square");
-  static_assert(nr > 1 && nr < 7, "Matrix must be 2x2, 3x3, 4x4, 5x5, or 6x6");
+  static_assert(nr > 1 && nr < 7, "Matrix must be between 2x2 and 6x6");
 
-  int status;
+  int status = -1;
   if constexpr (nr == 2) {
     cmx_inv2(&this->values[0][0], &M.values[0][0], &status);
     return status;
@@ -628,12 +603,9 @@ MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
     cmx_inv5(&this->values[0][0], &M.values[0][0], &status);
     return status;
   }
-  switch (nr) {
-    case 6:
-      cmx_inv6(&this->values[0][0], &M.values[0][0], &status);
-      break;
-    default:
-      return -1;
+  if constexpr (nr == 6) {
+    cmx_inv6(&this->values[0][0], &M.values[0][0], &status);
+    return status;
   }
   return status;
 }

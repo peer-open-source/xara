@@ -1,4 +1,6 @@
 #pragma once
+class FrameSection;
+
 // GaussPoint:
 //   shape[2][nen]
 //
@@ -36,7 +38,7 @@ addTaperMass(MatT Mass, double factor,
   return -1;
 }
 
-template <typename ElemType, typename MatT>
+template <typename ElemType, typename MatT, int ndf>
 int
 addPrismMass(MatT Mass, double factor, FrameSection& section, double length)
 {
@@ -49,9 +51,12 @@ addPrismMass(MatT Mass, double factor, FrameSection& section, double length)
 
   // McCalley-Archer consistent mass matrix
   double L, A, Iy, Iz, Jx, phiY, phiZ;
+
+
   MatrixND<12,12> mlTrn, 
                   mlRot, 
                   ml;
+
   mlTrn.zero(); mlRot.zero(); ml.zero();
 
   double c1x = total_mass/210.0;

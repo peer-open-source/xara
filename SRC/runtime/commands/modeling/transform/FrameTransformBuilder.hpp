@@ -45,12 +45,14 @@ public:
       int tag = this->getTag();
       if (strstr(name, "Linear") != nullptr)
         return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
-      else if (strstr(name, "Corot") != nullptr)
-        return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+      else if (strstr(name, "Corot") != nullptr) {
+        if constexpr (ndf == 6)
+          return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+      }
       else if (strstr(name, "PDelta") != nullptr)
         return new PDeltaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
-      else
-        return nullptr;
+
+      return nullptr;
     }
 
     virtual void 

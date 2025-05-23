@@ -7,6 +7,7 @@
 #pragma once
 #include <State.h>
 #include <Field.h>
+#include <Cholesky.tpp>
 #include <material/section/SectionForceDeformation.h>
 
 // TODO: Maybe make this public under ElasticFrameSection
@@ -295,7 +296,7 @@ FrameSection::getFlexibility(State state)
   OpenSees::MatrixND<n,n,double> K = getTangent<n,scheme>(state);
   // TODO: clean this up, validate
   OpenSees::MatrixND<n,n,double> F;
-  K.invert(F);
+  Cholesky<n>(K).invert(F);
   return F;
 
   OpenSees::MatrixND<n,n,double> Fout;

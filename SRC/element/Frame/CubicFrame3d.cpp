@@ -319,6 +319,7 @@ CubicFrame3d::update()
   return err;
 }
 
+
 const Matrix&
 CubicFrame3d::getTangentStiff()
 {

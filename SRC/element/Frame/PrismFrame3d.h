@@ -16,21 +16,23 @@
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <Frame/BasicFrame3d.h>
+#include <BasicFrameTransf.h>
 
 class Channel;
 class Information;
-class FrameTransform3d;
+class FrameTransformBuilder;
 class Response;
 class FrameSection;
 
-class PrismFrame3d : public BasicFrame3d
+
+class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
 {
   public:
     PrismFrame3d(int tag, 
                  std::array<int, 2>& nodes,
                  double A, double E, double G, 
 		             double Jx, double Iy, double Iz,
-                 FrameTransform3d &theTransf,
+                 FrameTransformBuilder&,
                  double density, int mass_flag,
 		             int releasez, int releasey,
                  int geom);
@@ -38,21 +40,31 @@ class PrismFrame3d : public BasicFrame3d
     PrismFrame3d(int tag,
                  std::array<int,2>& nodes,
                  FrameSection &section, 
-		             FrameTransform3d &theTransf,
+                 FrameTransformBuilder&,
                  double density, int mass_flag, bool use_mass,
 		             int releasez, int releasey,
                  int geom,
                  int shear_flag);
-
-    PrismFrame3d();
-
-//  ~PrismFrame3d();
+    
+    ~PrismFrame3d() {
+      if (basic_system != nullptr) {
+        delete basic_system;
+        basic_system = nullptr;
+      }
+    }
 
     const char *getClassType() const {
       return "PrismFrame3d";
     }
 
-    // void zeroLoad();	
+    virtual void zeroLoad() {
+      this->BasicFrame3d::zeroLoad();
+      this->FiniteElement<2, 3, 6>::zeroLoad();
+    }
+    
+    virtual int addLoad(ElementalLoad *theLoad, double loadFactor) final {
+      return this->BasicFrame3d::addLoad(theLoad, loadFactor);
+    }
 /*
 //  int addLoad(ElementalLoad *theLoad, double loadFactor);
 //  int addInertiaLoadToUnbalance(const Vector &accel);
@@ -62,6 +74,8 @@ class PrismFrame3d : public BasicFrame3d
     int commitState();
     int revertToLastCommit();        
     int revertToStart();
+    virtual const Matrix &getTangentStiff() final;
+    virtual const Matrix &getInitialStiff();
     virtual const Vector &getResistingForce() final;
     virtual const Matrix &getMass() final;
 
@@ -95,7 +109,8 @@ class PrismFrame3d : public BasicFrame3d
 
   private:
     constexpr static int NEN = 2;
-    constexpr static int NBV = 6;
+    constexpr static int NBV = 6,
+                         NDF = 6;
     struct Param {
       enum {E, G, A, Ay, Az, Iy, Iz, J, HingeY, HingeZ, Rho};
     };
@@ -140,6 +155,7 @@ class PrismFrame3d : public BasicFrame3d
     OpenSees::VectorND<6>   q;
     // Matrix K;
     // Vector P;
+    BasicFrameTransf3d<NDF> *basic_system;
 };
 
 #endif

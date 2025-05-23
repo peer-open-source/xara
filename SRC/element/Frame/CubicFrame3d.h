@@ -21,6 +21,7 @@ class FrameTransform3d;
 class BeamIntegration;
 class Response;
 using namespace OpenSees;
+
 namespace OpenSees {
 class CubicFrame3d : public Element {
 public:

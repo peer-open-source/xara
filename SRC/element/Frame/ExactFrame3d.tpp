@@ -108,33 +108,36 @@ B_nat(MatrixND<6+2*nwm,6+nwm> &B, double shape[2][nen], const Vector3D& dx, int 
 
 
 template<std::size_t nen, int nwm>
-ExactFrame3d<nen,nwm>::ExactFrame3d(int tag, 
-                                    std::array<int,nen>& nodes, 
-                                    FrameSection *section[nen-1],
-                                    FrameTransform3d& transf)
-    : FiniteElement<nen,ndm,ndf>(tag, 0, nodes),
-      transform(&transf),
-      logarithm(Logarithm::None),
-      stencil(nullptr)
+ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
+                                     std::array<int, nen>& nodes,
+                                     FrameSection* section[nen - 1],
+                                     FrameTransform3d& transform)
+ : FiniteElement<nen, ndm, ndf>(tag, 0, nodes),
+   xn{0},
+   jxs(0),
+   R0(),
+   transform(&transform),
+   logarithm(Logarithm::None),
+   stencil(nullptr),
+   parameterID(0)
 {
-//  double wt[nip];
-//  double xi[nip];
-//  beamIntegr->getSectionLocations(numSections, L, xi);
-//  beamIntegr->getSectionWeights(numSections, L, wt);
+  //  double wt[nip];
+  //  double xi[nip];
+  //  beamIntegr->getSectionLocations(numSections, L, xi);
+  //  beamIntegr->getSectionWeights(numSections, L, wt);
 
-    p.zero();
-    K.zero();
+  p.zero();
+  K.zero();
 
-    for (int i=0; i<nip; i++) {
-      pres[i].point  = 0.0;
-      pres[i].weight = 0.0;
-      pres[i].material=section[i]->getFrameCopy(scheme);
-    }
-
+  for (int i = 0; i < nip; i++) {
+    pres[i].point    = 0.0;
+    pres[i].weight   = 0.0;
+    pres[i].material = section[i]->getFrameCopy(scheme);
+  }
 }
 
 
-template<std::size_t nen, int nwm>
+template <std::size_t nen, int nwm>
 ExactFrame3d<nen,nwm>::~ExactFrame3d()
 {
   for (GaussPoint& point : pres)
@@ -593,7 +596,7 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
       theResponse = new ElementResponse(this, 111, Matrix(pres.size(), 3));
   }
 
-  else if (strstr(argv[0], "section") != 0) {
+  else if (strstr(argv[0], "section") != nullptr) {
 
     if (argc > 1) {
 
@@ -670,7 +673,7 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
   }
 
 
-  // NOTE: This is will never be called with Respond::GlobalForce;
+  // NOTE: This will never be called with Respond::GlobalForce;
   // it gets intercepted by Domain::getElementResponse
   if (responseID == Respond::GlobalForce)
     return info.setVector(this->getResistingForce());
@@ -792,7 +795,7 @@ ExactFrame3d<nen,nwm>::setParameter(const char** argv, int argc, Parameter& para
 
 
   // Section response
-  if (strstr(argv[0], "sectionX") != 0) {
+  if (strstr(argv[0], "sectionX") != nullptr) {
     if (argc > 2) {
       float sectionLoc = atof(argv[1]);
 
@@ -817,7 +820,7 @@ ExactFrame3d<nen,nwm>::setParameter(const char** argv, int argc, Parameter& para
   }
 
   // If the parameter belongs to a particular section or lower
-  if (strstr(argv[0], "section") != 0) {
+  if (strstr(argv[0], "section") != nullptr) {
 
     if (argc < 3)
       return -1;
@@ -833,7 +836,7 @@ ExactFrame3d<nen,nwm>::setParameter(const char** argv, int argc, Parameter& para
   }
 
   // If the parameter belongs to all sections or lower
-  if (strstr(argv[0], "allSections") != 0) {
+  if (strstr(argv[0], "allSections") != nullptr) {
 
     if (argc < 2)
       return -1;

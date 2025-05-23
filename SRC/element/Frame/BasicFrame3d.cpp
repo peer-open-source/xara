@@ -11,197 +11,6 @@
 
 using OpenSees::VectorND;
 
-BasicFrame3d::~BasicFrame3d()
-{
-  if (theCoordTransf)
-    delete theCoordTransf;
-}
-
-int
-BasicFrame3d::update()
-{
-  return 0;
-}
-
-
-int
-BasicFrame3d::setNodes()
-{
-  if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
-      opserr << "BasicFrame3d::setDomain  tag: " 
-             << this->getTag()
-             << " -- Error initializing coordinate transformation\n";
-      return -1;
-  }
-
-  return 0;
-}
-
-
-const Matrix &
-BasicFrame3d::getTangentStiff()
-{
-
-  VectorND<6>   q  = this->getBasicForce();
-  MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
-
-  return theCoordTransf->getGlobalStiffMatrix(Matrix(kb), Vector(q));
-}
-
-
-int
-BasicFrame3d::addInertiaLoadToUnbalance(const Vector &accel)
-{
-  if (total_mass == 0.0)
-    return 0;
-
-  // get R * accel from the nodes
-  const Vector &Raccel1 = theNodes[0]->getRV(accel);
-  const Vector &Raccel2 = theNodes[1]->getRV(accel);
-
-  if (6 != Raccel1.Size() || 6 != Raccel2.Size()) {
-    opserr << "BasicFrame3d::addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
-    return -1;
-  }
-
-  // add ( - fact * M R * accel ) to unbalance
-  if (cMass == 0) {
-    // take advantage of lumped mass matrix
-    double m = 0.5*total_mass;
-
-    p_iner[0] -= m * Raccel1(0);
-    p_iner[1] -= m * Raccel1(1);
-    p_iner[2] -= m * Raccel1(2);
-    
-    p_iner[6] -= m * Raccel2(0);
-    p_iner[7] -= m * Raccel2(1);
-    p_iner[8] -= m * Raccel2(2);
-
-  } else  {
-    // TODO: Move this to FiniteElement::getAcceleration() ?
-
-    // use matrix vector multip. for consistent mass matrix
-    static VectorND<12> Raccel;
-    for (int i=0; i<6; i++)  {
-      Raccel[i]   = Raccel1[i];
-      Raccel[i+6] = Raccel2[i];
-    }
-    p_iner.addMatrixVector(1.0, this->getMass(), Raccel, -1.0);
-  }
-
-  return 0;
-}
-
-const Vector &
-BasicFrame3d::getResistingForceIncInertia()
-{
-  static VectorND<12> P_{0.0};
-  static Vector P(P_);
-  P = this->getResistingForce(); 
-  
-  // add the damping forces if rayleigh damping
-  if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-    P.addVector(1.0, this->getRayleighDampingForces(), 1.0);
-
-
-  if (total_mass == 0.0)
-    return P;
-
-  // add inertia forces from element mass
-  const Vector &accel1 = theNodes[0]->getTrialAccel();
-  const Vector &accel2 = theNodes[1]->getTrialAccel();    
-    
-  if (cMass == 0)  {
-    // take advantage of lumped mass matrix
-    double m = 0.5*total_mass;
-
-    P(0) += m * accel1(0);
-    P(1) += m * accel1(1);
-    P(2) += m * accel1(2);
-
-    P(6) += m * accel2(0);
-    P(7) += m * accel2(1);
-    P(8) += m * accel2(2);
-
-  } else  {
-    // use matrix vector multip. for consistent mass matrix
-    static Vector accel(12);
-    for (int i=0; i<6; i++)  {
-      accel(i)   = accel1(i);
-      accel(i+6) = accel2(i);
-    }
-    P.addMatrixVector(1.0, this->getMass(), accel, 1.0);
-  }
-  
-  return P;
-}
-
-const Matrix &
-BasicFrame3d::getInitialStiff()
-{
-  return theCoordTransf->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
-}
-
-const Matrix &
-BasicFrame3d::getMass()
-{
-    if (total_mass == 0.0) {
-
-        thread_local MatrixND<12,12> M{0.0};
-        thread_local Matrix Wrapper{M};
-        return Wrapper;
-
-    } else if (cMass == 0)  {
-
-        thread_local MatrixND<12,12> M{0.0};
-        thread_local Matrix Wrapper{M};
-        // lumped mass matrix
-        double m = 0.5*total_mass;
-        M(0,0) = m;
-        M(1,1) = m;
-        M(2,2) = m;
-        M(6,6) = m;
-        M(7,7) = m;
-        M(8,8) = m;
-        return Wrapper;
-
-    } else {
-      // consistent (cubic) mass matrix
-
-      // get initial element length
-      double L  = theCoordTransf->getInitialLength();
-      double m  = total_mass/420.0;
-      double mx = twist_mass;
-      static MatrixND<12,12> ml{0};
-      ml(0,0) = ml(6,6) = m*140.0;
-      ml(0,6) = ml(6,0) = m*70.0;
-
-      ml(3,3) = ml(9,9) = mx/3.0; // Twisting
-      ml(3,9) = ml(9,3) = mx/6.0;
-
-      ml( 2, 2) = ml( 8, 8) =  m*156.0;
-      ml( 2, 8) = ml( 8, 2) =  m*54.0;
-      ml( 4, 4) = ml(10,10) =  m*4.0*L*L;
-      ml( 4,10) = ml(10, 4) = -m*3.0*L*L;
-      ml( 2, 4) = ml( 4, 2) = -m*22.0*L;
-      ml( 8,10) = ml(10, 8) = -ml(2,4);
-      ml( 2,10) = ml(10, 2) =  m*13.0*L;
-      ml( 4, 8) = ml( 8, 4) = -ml(2,10);
-
-      ml( 1, 1) = ml( 7, 7) =  m*156.0;
-      ml( 1, 7) = ml( 7, 1) =  m*54.0;
-      ml( 5, 5) = ml(11,11) =  m*4.0*L*L;
-      ml( 5,11) = ml(11, 5) = -m*3.0*L*L;
-      ml( 1, 5) = ml( 5, 1) =  m*22.0*L;
-      ml( 7,11) = ml(11, 7) = -ml(1,5);
-      ml( 1,11) = ml(11, 1) = -m*13.0*L;
-      ml( 5, 7) = ml( 7, 5) = -ml(1,11);
-
-      // transform local mass matrix to global system
-      return theCoordTransf->getGlobalMatrixFromLocal(ml);
-    }
-}
-
 void
 BasicFrame3d::zeroLoad()
 {
@@ -211,8 +20,6 @@ BasicFrame3d::zeroLoad()
   wx = 0.0;
   wy = 0.0;
   wz = 0.0;
-  // return BasicFrame3d::zeroLoad();
-  p_iner.Zero();
   eleLoads.clear();
   return;
 }
@@ -230,7 +37,6 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
   // otherwise just set the load factor
   //
 
-
   //
   // a. Store the load for computeReactions()
   //
@@ -241,7 +47,7 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
   //
   int type;
   const Vector &data = theLoad->getData(type, loadFactor);
-  double L = theCoordTransf->getInitialLength();
+  // double L = theCoordTransf->getInitialLength();
 
   // if (type == LOAD_TAG_FrameLoad && loadFactor == 1.0)
   //   frame_loads.push_back((FrameLoad*)theLoad);
@@ -374,100 +180,20 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
   }
 
   else {
-    opserr << "BasicFrame3d::addLoad()  -- load type unknown for element with tag: " << this->getTag() << "\n";
+    opserr << "BasicFrame3d::addLoad -- load type unknown\n";
     return -1;
   }
 
   return 0;
 }
 
-const Matrix &
-BasicFrame3d::getMassSensitivity(int gradNumber)
-{
-  // From DispBeamColumn
-  static MatrixND<12,12> M_;
-  static Matrix M(M_);
-  M.Zero();
-  
-  if (total_mass == 0.0 || parameterID != 1)
-    return M;
-  
-  double L = theCoordTransf->getInitialLength();
-  if (cMass == 0)  {
-    // lumped mass matrix
-    //double m = 0.5*rho*L;
-    double m = 0.5*L;
-    M(0,0) = M(1,1) = M(2,2) = M(6,6) = M(7,7) = M(8,8) = m;
-  }
 
-  else {
-    // consistent mass matrix
-    static Matrix ml(12,12);
-    //double m = rho*L/420.0;
-    double m = L/420.0;
-    ml(0,0) = ml(6,6) = m*140.0;
-    ml(0,6) = ml(6,0) = m*70.0;
-    //ml(3,3) = ml(9,9) = m*(Jx/A)*140.0;  // TODO: CURRENTLY NO TORSIONAL MASS 
-    //ml(3,9) = ml(9,3) = m*(Jx/A)*70.0;   // TODO: CURRENTLY NO TORSIONAL MASS
-    
-    ml(2, 2) = ml( 8, 8) =  m*156.0;
-    ml(2, 8) = ml( 8, 2) =  m*54.0;
-    ml(4, 4) = ml(10,10) =  m*4.0*L*L;
-    ml(4,10) = ml(10, 4) = -m*3.0*L*L;
-    ml(2, 4) = ml( 4, 2) = -m*22.0*L;
-    ml(8,10) = ml(10, 8) = -ml(2,4);
-    ml(2,10) = ml(10, 2) =  m*13.0*L;
-    ml(4, 8) = ml( 8, 4) = -ml(2,10);
-    
-    ml(1, 1) = ml(7,7) = m*156.0;
-    ml(1, 7) = ml(7,1) = m*54.0;
-    ml(5, 5) = ml(11,11) = m*4.0*L*L;
-    ml(5,11) = ml(11,5) = -m*3.0*L*L;
-    ml(1, 5) = ml(5,1) = m*22.0*L;
-    ml(7,11) = ml(11,7) = -ml(1,5);
-    ml(1,11) = ml(11,1) = -m*13.0*L;
-    ml(5, 7) = ml(7,5) = -ml(1,11);
-    
-    // transform local mass matrix to global system
-    M = theCoordTransf->getGlobalMatrixFromLocal(ml);
-  }
-  
-  return M;
-}
-
-int
-BasicFrame3d::setParameter(const char **argv, int argc, Parameter &param)
-{
-  if (argc < 1)
-    return -1;
-
-  // don't do anything if MaterialStageParameter calls this element
-  if (strcmp(argv[0],"updateMaterialStage") == 0) {
-    return -1;
-  }
-
-  return -1;
-}
-
-int
-BasicFrame3d::updateParameter(int paramID, Information &info)
-{
-  return -1;
-}
-
-int
-BasicFrame3d::activateParameter(int passedParameterID)
-{
-  parameterID = passedParameterID; 
-  return 0;
-}
 
 
 void
 //BasicFrame3d::computeReactions(VectorND<6>& p0)
 BasicFrame3d::computeReactions(double* p0)
 {
-  double L = theCoordTransf->getInitialLength();
 
   for (auto[load, loadFactor] : eleLoads) {
 
@@ -536,16 +262,14 @@ BasicFrame3d::computeReactions(double* p0)
   }
 }
 
-void
-BasicFrame3d::addReactionGrad(double* dp0dh, int gradNumber)
-{
-  double L = theCoordTransf->getInitialLength();
 
-  double dLdh = theCoordTransf->getLengthGrad();
+void
+BasicFrame3d::addReactionGrad(double* dp0dh, int gradNumber, double dLdh)
+{
+
 
   for (auto[load, loadFactor] : eleLoads) {
 
-//  ElementalLoad& load = *eleLoads[i];
 
     int type;
     const Vector& data = load->getData(type, 1.0);

@@ -44,7 +44,7 @@ Matrix LinearCrdTransf2d::kg(6, 6);
 
 // constructor:
 LinearCrdTransf2d::LinearCrdTransf2d(int tag)
-    : FrameTransform2d(tag, CRDTR_TAG_LinearCrdTransf2d), nodeIPtr(0), nodeJPtr(0),
+    : CrdTransf(tag, CRDTR_TAG_LinearCrdTransf2d), nodeIPtr(0), nodeJPtr(0),
       nodeIOffset(0), nodeJOffset(0), cosTheta(0), sinTheta(0), L(0),
       nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)
 {
@@ -54,7 +54,7 @@ LinearCrdTransf2d::LinearCrdTransf2d(int tag)
 // constructor:
 LinearCrdTransf2d::LinearCrdTransf2d(int tag, const Vector &rigJntOffset1,
                                      const Vector &rigJntOffset2)
-    : FrameTransform2d(tag, CRDTR_TAG_LinearCrdTransf2d), nodeIPtr(0), nodeJPtr(0),
+    : CrdTransf(tag, CRDTR_TAG_LinearCrdTransf2d), nodeIPtr(0), nodeJPtr(0),
       nodeIOffset(0), nodeJOffset(0), cosTheta(0), sinTheta(0), L(0),
       nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)
 {
@@ -84,7 +84,7 @@ LinearCrdTransf2d::LinearCrdTransf2d(int tag, const Vector &rigJntOffset1,
 // constructor:
 // invoked by a FEM_ObjectBroker, recvSelf() needs to be invoked on this object.
 LinearCrdTransf2d::LinearCrdTransf2d()
-    : FrameTransform2d(0, CRDTR_TAG_LinearCrdTransf2d), nodeIPtr(0), nodeJPtr(0),
+    : CrdTransf(0, CRDTR_TAG_LinearCrdTransf2d), nodeIPtr(0), nodeJPtr(0),
       nodeIOffset(0), nodeJOffset(0), cosTheta(0), sinTheta(0), L(0),
       nodeIInitialDisp(0), nodeJInitialDisp(0), initialDispChecked(false)
 {
