@@ -15,6 +15,7 @@
 
 
 #include <UniaxialMaterial.h>
+#include <cmath>
 
 
 static inline double 
@@ -85,12 +86,12 @@ class BWBF : public UniaxialMaterial
   private:
     
     double wen(double z, double Psi, double A, double nu) {
-      return (A - pow(fabs(z),n)*Psi*nu)*Ko/Fy;
+      return (A - std::pow(std::fabs(z),n)*Psi*nu)*Ko/Fy;
     }
 
     double dwen(double z, double Psi, double A, double nu, 
                 double dz, double dA, double dnu) {
-      double pow1 = (z==0.0)? 0.0 : pow(fabs(z), (n-1));
+      double pow1 = (z==0.0)? 0.0 : std::pow(std::fabs(z), (n-1));
       return (dA
              -n*pow1*signum(z)*Psi*nu*dz
              - std::pow(std::fabs(z), n)*Psi*dnu)*Ko/Fy;
