@@ -33,7 +33,7 @@
 #include <Channel.h>
 #include <Information.h>
 
-#include <math.h>
+#include <cmath>
 
 
 

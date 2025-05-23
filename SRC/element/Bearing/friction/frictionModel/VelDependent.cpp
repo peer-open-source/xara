@@ -34,7 +34,7 @@
 #include <Information.h>
 #include <elementAPI.h>
 
-#include <math.h>
+#include <cmath>
 
 
 void * OPS_ADD_RUNTIME_VPV(OPS_VelDependent)
