@@ -28,14 +28,6 @@
 namespace OpenSees {
 
 
-#if 0
-double LagrangeQuad::matrixData[64];
-Matrix LagrangeQuad::K(matrixData, 8, 8);
-Vector LagrangeQuad::P(8);
-double LagrangeQuad::shp[3][4];
-#endif
-
-
 template <int NEN, bool enh>
 LagrangeQuad<NEN,enh>::LagrangeQuad(int tag, 
                                     const std::array<int, NEN>& nodes,
@@ -281,15 +273,8 @@ LagrangeQuad<NEN,enh>::getTangentStiff()
     const MatrixSD<3> D = theMaterial[i]->getTangent();
 
     // Perform numerical integration
-    //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
-    //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
-
-    // const double D00 = D(0, 0), D01 = D(0, 1), D02 = D(0, 2), D10 = D(1, 0), D11 = D(1, 1),
-    //              D12 = D(1, 2), D20 = D(2, 0), D21 = D(2, 1), D22 = D(2, 2);
-
-    //          for (int beta = 0, ib = 0, colIb =0, colIbP1 = 8;
-    //   beta < 4;
-    //   beta++, ib += 2, colIb += 16, colIbP1 += 16) {
+    //
+    // K = K + (B' * D * B) * intWt(i)*intWt(j) * detJ;
 
     for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia += 2) {
       for (int beta = 0, ib = 0; beta < 4; beta++, ib += 2) {
@@ -340,8 +325,9 @@ LagrangeQuad<NEN,enh>::getInitialStiff()
     MatrixSD<3> D = theMaterial[i]->getInitialTangent();
 
     // Perform numerical integration
-    //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
-    //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
+    //
+    // K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
+    //
     for (int beta = 0, ib = 0, colIb = 0, colIbP1 = 8; beta < 4;
          beta++, ib += 2, colIb += 16, colIbP1 += 16) {
 
@@ -371,6 +357,7 @@ const Matrix&
 LagrangeQuad<NEN,enh>::getMass()
 {
   static MatrixND<NEN*NDF, NEN*NDF> M;
+  static Matrix Wrapper(M);
   M.zero();
 
   static double rhoi[4];
@@ -384,7 +371,7 @@ LagrangeQuad<NEN,enh>::getMass()
   }
 
   if (sum == 0.0)
-    return M;
+    return Wrapper;
 
   // Compute a lumped mass matrix
   for (int i = 0; i < nip; i++) {
@@ -402,7 +389,6 @@ LagrangeQuad<NEN,enh>::getMass()
     }
   }
 
-  static Matrix Wrapper(M);
   return Wrapper;
 }
 
