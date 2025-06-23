@@ -1,5 +1,5 @@
 #include <tcl.h>
-
+#include <Parsing.h>
 #if defined(_PARALLEL_PROCESSING) || defined(_PARALLEL_INTERPRETERS)
 #  include <MumpsParallelSOE.h>
 #  include <MumpsParallelSolver.h>
@@ -10,10 +10,11 @@
 
 struct MumpsOptions {int icntl14, icntl7;};
 
-//struct MumpsOptions
+
 LinearSOE*
 TclDispatch_newMumpsLinearSOE(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {
+  LinearSOE* theSOE = nullptr;
   if (strcmp(argv[1], "Mumps") == 0) {
 
     int icntl14 = 20;
