@@ -1,13 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
+//
 //===----------------------------------------------------------------------===//
 //
-//         Please cite the following resource in any derivative works:
-//                 https://doi.org/10.5281/zenodo.10456866
+// Please cite the following resource in any derivative works:
+//
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
 //
@@ -66,15 +68,16 @@ public:
 
   virtual Vector3D  getNodePosition(int tag) =0;
   virtual Vector3D  getNodeRotationLogarithm(int tag) =0;
-  // virtual Versor         getNodeRotation(int tag);
-  // virtual Vector3D       getNodeRotationVariation(int tag);
-  // virtual VectorND<ndf>  getNodeRotationIncrement(int tag);
+#if 0
+  virtual Versor         getNodeRotation(int tag);
+  virtual Vector3D       getNodeRotationVariation(int tag);
+  virtual VectorND<ndf>  getNodeRotationIncrement(int tag);
 
-  // virtual VectorND<ndf>  getNodeLogarithm(int tag) =0;
-  // virtual VectorND<ndf>  getNodeVariation(int tag) =0;
-  // virtual VectorND<ndf>  getNodeVelocity(int tag);
-  // virtual VectorND<ndm>  getNodeLocation(int tag);
-
+  virtual VectorND<ndf>  getNodeLogarithm(int tag) =0;
+  virtual VectorND<ndf>  getNodeVariation(int tag) =0;
+  virtual VectorND<ndf>  getNodeVelocity(int tag);
+  virtual VectorND<ndm>  getNodeLocation(int tag);
+#endif
   virtual int initialize(std::array<Node*, nn>& nodes)=0;
   virtual int update() =0;
   virtual int commit() =0;

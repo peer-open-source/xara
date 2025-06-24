@@ -17,8 +17,8 @@
 #include <SouzaFrameTransf.hpp>
 #include <PDeltaFrameTransf3d.hpp>
 #include <EuclidFrameTransf.hpp>
-#include <Orient/CrisfieldTransform.h>
-#include <Orient/FrameBasis.h>
+#include <Isometry/CrisfieldTransform.h>
+#include <Isometry/FrameBasis.h>
 
 
 class FrameTransformBuilder : public TaggedObject {
@@ -61,7 +61,7 @@ public:
         return new PDeltaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
 
       else if (strcmp(name, "Isometric") == 0 || strstr(name, "Rigid") != nullptr)
-        return new EuclidFrameTransf<nn, ndf, RankineBasis<nn>> (tag, vz, offset_array, offset_flags);
+        return new EuclidFrameTransf<nn, ndf, RankineIsometry<nn>> (tag, vz, offset_array, offset_flags);
 
       return nullptr;
     }
