@@ -35,8 +35,6 @@
 #include <math.h>
 #include <assert.h>
 #include <array>
-// #include <stdexcept>
-// #include <functional>
 #include <Vector.h>
 #include <Matrix.h>
 #include "blasdecl.h"
