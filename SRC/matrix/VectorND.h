@@ -1,10 +1,11 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 //
-// 
 //  Objectives:
 //  - little to no overhead above C-style arrays
 //  - value semantics; objects do not decay to pointers;

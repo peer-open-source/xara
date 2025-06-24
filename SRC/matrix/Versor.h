@@ -6,6 +6,8 @@
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
+// Description: Versor implements a unit-normalized quaternion.
+//
 #pragma once
 #include <cmath>
 #include <VectorND.h>
