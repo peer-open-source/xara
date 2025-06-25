@@ -67,7 +67,7 @@ double ShellNLDKGT::tg[4];
 double ShellNLDKGT::qg[4];
 double ShellNLDKGT::wg[4];
 
-//null constructor
+
 ShellNLDKGT::ShellNLDKGT()
     : Element(0, ELE_TAG_ShellNLDKGT), connectedExternalNodes(3),
       CstrainGauss(32), TstrainGauss(32), load(0), Ki(0), nodePointers(), xl(),
@@ -105,7 +105,6 @@ ShellNLDKGT::ShellNLDKGT(int tag, int node1, int node2, int node3,
       CstrainGauss(32), TstrainGauss(32), load(0), Ki(0), nodePointers(), xl(),
       g1(), g2(), g3()
 {
-  int i;
   connectedExternalNodes(0) = node1;
   connectedExternalNodes(1) = node2;
   connectedExternalNodes(2) = node3;
@@ -142,7 +141,7 @@ ShellNLDKGT::ShellNLDKGT(int tag, int node1, int node2, int node3,
   wg[3] = wg2;
 }
 
-// destructor
+
 ShellNLDKGT::~ShellNLDKGT()
 {
   for (int i = 0; i < 4; i++) {
@@ -160,9 +159,10 @@ ShellNLDKGT::~ShellNLDKGT()
   if (Ki != nullptr)
     delete Ki;
 }
-//**************************************************************************
-//set domain
-void ShellNLDKGT::setDomain(Domain *theDomain)
+
+
+void
+ShellNLDKGT::setDomain(Domain *theDomain)
 {
   // node pointers
   for (int i = 0; i < 3; i++) {
@@ -190,15 +190,22 @@ void ShellNLDKGT::setDomain(Domain *theDomain)
 int ShellNLDKGT::getNumExternalNodes() const { return 3; }
 
 //return connected external nodes
-const ID &ShellNLDKGT::getExternalNodes() { return connectedExternalNodes; }
+const ID &
+ShellNLDKGT::getExternalNodes() { return connectedExternalNodes; }
 
-Node **ShellNLDKGT::getNodePtrs(void) { return nodePointers; }
+Node **
+ShellNLDKGT::getNodePtrs() { return nodePointers; }
 
-//return number of dofs
-int ShellNLDKGT::getNumDOF() { return 18; }
 
-//commit state
-int ShellNLDKGT::commitState()
+int 
+ShellNLDKGT::getNumDOF() 
+{
+  return 18;
+}
+
+
+int
+ShellNLDKGT::commitState()
 {
   int success = 0;
 
@@ -217,8 +224,9 @@ int ShellNLDKGT::commitState()
   return success;
 }
 
-//revert to last commit
-int ShellNLDKGT::revertToLastCommit()
+
+int
+ShellNLDKGT::revertToLastCommit()
 {
   int success = 0;
 
@@ -409,7 +417,8 @@ Response *ShellNLDKGT::setResponse(const char **argv, int argc,
   return theResponse;
 }
 
-int ShellNLDKGT::getResponse(int responseID, Information &eleInfo)
+int
+ShellNLDKGT::getResponse(int responseID, Information &eleInfo)
 {
   int cnt = 0;
 
@@ -463,19 +472,20 @@ int ShellNLDKGT::getResponse(int responseID, Information &eleInfo)
   //return 0;
 }
 
-//return stiffness matrix
-const Matrix &ShellNLDKGT::getTangentStiff()
+
+const Matrix &
+ShellNLDKGT::getTangentStiff()
 {
-  int tang_flag = 1; //get the tangent
+  int tang_flag = 1;
 
   //do tangent and residual here
   formResidAndTangent(tang_flag);
 
-  //opserr<<stiff<<endln;
   return stiff;
 }
 
-const Matrix &ShellNLDKGT::getInitialStiff()
+const Matrix &
+ShellNLDKGT::getInitialStiff()
 {
   if (Ki != 0)
     return *Ki;
@@ -1022,7 +1032,8 @@ void ShellNLDKGT::formInertiaTerms(int tangFlag)
 
 
 // form residual and tangent
-void ShellNLDKGT::formResidAndTangent(int tang_flag)
+void
+ShellNLDKGT::formResidAndTangent(int tang_flag)
 {
   //
   // six(6) nodal dof's ordered:
@@ -1197,19 +1208,19 @@ void ShellNLDKGT::formResidAndTangent(int tang_flag)
 
     Bshear.Zero();
 
-    //zero the strains
-    //add for geometric nonlinearity
+    // zero the strains
+    // add for geometric nonlinearity
     dstrain.Zero();
     dstrain_li.Zero();
     dstrain_nl.Zero();
 
-    //add for geometric nonlinearity
+    // add for geometric nonlinearity
     for (jlast = 0; jlast < nstress; jlast++) {
 
       Cstrain(jlast) = CstrainGauss(i * 8 + jlast);
     }
 
-    // j-node loop to compute strain
+    // node loop to compute strain
     for (int j = 0; j < numnodes; j++) {
 
       // compute B matrix
@@ -1220,7 +1231,7 @@ void ShellNLDKGT::formResidAndTangent(int tang_flag)
 
       BJ = assembleB(Bmembrane, Bbend, Bshear);
 
-      //save the B-matrix
+      // save the B-matrix
       for (p = 0; p < nstress; p++) {
         for (q = 0; q < ndf; q++) {
           saveB[p][q][j] = BJ(p, q);
@@ -1253,21 +1264,21 @@ void ShellNLDKGT::formResidAndTangent(int tang_flag)
       dispIncLocalBend(1) = dispIncLocal(3);
       dispIncLocalBend(2) = dispIncLocal(4);
 
-      //compute the strain - modified for geometric nonlinearity:dstrain_li(8)
-      //Note: transform the dof's order
+      // compute the strain - modified for geometric nonlinearity:dstrain_li(8)
+      // Note: transform the dof's order
       //BJP = BJ * P;
       BJP.addMatrixProduct(0.0, BJ, Pmat, 1.0);
-      //dstrain_li += (BJ*dispIncLocal);
+      // dstrain_li += (BJ*dispIncLocal);
       dstrain_li.addMatrixVector(1.0, BJP, dispIncLocal, 1.0);
 
-      //add for geometric nonlinearity: dstrain_nl(3)
-      //dstrain_nl += (BGJ*dulbend);
-      //note: dstrain should be BGJ * dispIncLocalBend sum from j=0 to j=3
+      // add for geometric nonlinearity: dstrain_nl(3)
+      // dstrain_nl += (BGJ*dulbend);
+      // note: dstrain should be BGJ * dispIncLocalBend sum from j=0 to j=3
       dstrain_nl += computeNLdstrain(BGJ, dispIncLocalBend);
 
     } // end j-node loop
 
-    //add for accelerate the convergence,but not zero in stability analysis problems.
+    // add for accelerate the convergence,but not zero in stability analysis problems.
     dstrain_nl.Zero(); 
     dstrain(0) = dstrain_li(0) + dstrain_nl(0);
     dstrain(1) = dstrain_li(1) + dstrain_nl(1);
@@ -1464,20 +1475,19 @@ void ShellNLDKGT::computeBasis()
   //local nodal coordinates in plane of shell
 
   int i;
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
 
     const Vector &coorI = nodePointers[i]->getCrds();
     xl[0][i]            = coorI ^ v1;
     xl[1][i]            = coorI ^ v2;
+  }
 
-  } //end for i
-
-  //basis vectors stored as array of doubles
-  for (i = 0; i < 3; i++) {
+  // basis vectors stored as array of doubles
+  for (int i = 0; i < 3; i++) {
     g1[i] = v1(i);
     g2[i] = v2(i);
     g3[i] = v3(i);
-  } //end for i
+  }
 }
 
 //start Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
@@ -1541,21 +1551,20 @@ void ShellNLDKGT::updateBasis()
   //local nodal coordinates in plane of shell
 
   int i;
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
 
     const Vector &coorI = nodePointers[i]->getCrds() +
                           nodePointers[i]->getDisp(); //modify by Lisha Wang
     xl[0][i] = coorI ^ v1;
     xl[1][i] = coorI ^ v2;
-
-  } //end for i
+  }
 
   //basis vectors stored as array of doubles
   for (i = 0; i < 3; i++) {
     g1[i] = v1(i);
     g2[i] = v2(i);
     g3[i] = v3(i);
-  } //end for i
+  }
 }
 //end Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
 
@@ -1563,7 +1572,8 @@ void ShellNLDKGT::updateBasis()
 //assemble a B matrix
 
 //shape function routine for four node quads
-const Matrix &ShellNLDKGT::assembleB(const Matrix &Bmembrane,
+const Matrix &
+ShellNLDKGT::assembleB(const Matrix &Bmembrane,
                                      const Matrix &Bbend, const Matrix &Bshear)
 {
   static Matrix B(8, 6);
@@ -1612,7 +1622,8 @@ const Matrix &ShellNLDKGT::assembleB(const Matrix &Bmembrane,
 //***********************************************************************
 //compute Bmembrane matrix
 
-const Matrix &ShellNLDKGT::computeBmembrane(int node, const double shp[3][3],
+const Matrix &
+ShellNLDKGT::computeBmembrane(int node, const double shp[3][3],
                                             const double shpDrill[4][3])
 {
   static Matrix Bmembrane(3, 3);
@@ -1640,11 +1651,10 @@ const Matrix &ShellNLDKGT::computeBmembrane(int node, const double shp[3][3],
 //***********************************************************************
 //compute Bbend matrix
 
-const Matrix &ShellNLDKGT::computeBbend(int node, const double shpBend[6][9])
+const Matrix &
+ShellNLDKGT::computeBbend(int node, const double shpBend[6][9])
 {
   static Matrix Bbend(3, 3);
-
-  int i, j, k;
 
   //----------Bbend Matrix in standard {1,2,3}mechanics notation------------------
   //
@@ -1654,9 +1664,9 @@ const Matrix &ShellNLDKGT::computeBbend(int node, const double shpBend[6][9])
   //               |  Hx[3*node],2  Hx[3*node + 1],2  Hx[3*node + 2],2  |
   //               |  + Hy[3*node],1 +Hy[3*node + 1],1 +Hy[3*node + 2],1|
   //------------------------------------------------------------------------------
-  i = 3 * node;
-  j = 3 * node + 1;
-  k = 3 * node + 2;
+  int i = 3 * node;
+  int j = 3 * node + 1;
+  int k = 3 * node + 2;
 
   Bbend.Zero();
 
@@ -1711,10 +1721,12 @@ const Matrix &ShellNLDKGT::computeBG(int node, const double shpBend[6][9])
 
   return BG;
 }
-//************************************************************************
+
+
 //compute the nonlinearity strain Increment associated with BG & bending
-const Vector &ShellNLDKGT::computeNLdstrain(const Matrix &BG,
-                                            const Vector &dispIncLocalBend)
+const Vector &
+ShellNLDKGT::computeNLdstrain(const Matrix &BG,
+                              const Vector &dispIncLocalBend)
 {
   static Vector dstrain_nl(3);
   static Vector strainInc(2);
@@ -1728,15 +1740,13 @@ const Vector &ShellNLDKGT::computeNLdstrain(const Matrix &BG,
   return dstrain_nl;
 }
 
-//************************************************************************
+
 //shape function routine for four node quads
-
-void ShellNLDKGT::shape2d(double ss, double tt, double qq, const double x[2][3],
-                          double shp[3][3], double &xsj, double sx[2][2])
-
+void 
+ShellNLDKGT::shape2d(double ss, double tt, double qq, const double x[2][3],
+                     double shp[3][3], double &xsj, double sx[2][2])
 {
 
-  int i;
 
   double a[3], b[3], c[3];
 
@@ -1776,8 +1786,7 @@ void ShellNLDKGT::shape2d(double ss, double tt, double qq, const double x[2][3],
   sx[0][1]    = -xs[0][1] * jinv;
   sx[1][0]    = -xs[1][0] * jinv;
 
-  for (i = 0; i < 3; i++) {
-
+  for (int i = 0; i < 3; i++) {
     shp[0][i] = b[i] / 2.0 / area;
     shp[1][i] = c[i] / 2.0 / area;
   }
@@ -1831,9 +1840,7 @@ void ShellNLDKGT::shapeDrill(double ss, double tt, double qq,
   return;
 }
 
-//*********************************************************************
-//shape function for bending plate
-
+// shape function for bending plate
 void ShellNLDKGT::shapeBend(double ss, double tt, double qq,
                             const double x[2][3], double sx[2][2],
                             double shpBend[6][9])
@@ -2021,7 +2028,8 @@ void ShellNLDKGT::shapeBend(double ss, double tt, double qq,
   return;
 }
 
-int ShellNLDKGT::sendSelf(int commitTag, Channel &theChannel)
+int
+ShellNLDKGT::sendSelf(int commitTag, Channel &theChannel)
 {
   int res = 0;
 

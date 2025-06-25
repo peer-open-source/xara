@@ -5,11 +5,15 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
+//
+// Description: A compile-time Cholesky factorization for small
+// symmetric positive-definite matrices.
+// cmp
+//
 #pragma once
 #include <array>
 #include <cmath>
 #include <cstddef>
-
 
 template<std::size_t N>
 class Cholesky {
