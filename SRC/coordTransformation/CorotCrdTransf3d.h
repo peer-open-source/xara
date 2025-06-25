@@ -31,7 +31,7 @@
 #ifndef CorotCrdTransf3d_h
 #define CorotCrdTransf3d_h
 
-#include <FrameTransform.h>
+#include <CrdTransf.h>
 #include <Vector.h>
 #include <Matrix.h>
 

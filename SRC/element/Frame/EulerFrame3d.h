@@ -17,7 +17,11 @@
 class Node;
 class BeamIntegration;
 class Response;
-class FrameTransformBuilder;
+namespace OpenSees {
+  class FrameTransformBuilder;
+}
+
+using namespace OpenSees;
 
 #include <BasicFrameTransf.h>
 

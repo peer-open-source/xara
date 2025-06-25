@@ -13,13 +13,13 @@
 #include <Vector3D.h>
 
 #include <FrameTransform.h>
-#include <LinearFrameTransf.hpp>
-#include <SouzaFrameTransf.hpp>
-#include <PDeltaFrameTransf3d.hpp>
-#include <EuclidFrameTransf.hpp>
-#include <Isometry/CrisfieldTransform.h>
-#include <Isometry/FrameBasis.h>
+#include <LinearFrameTransf.h>
+#include <SouzaFrameTransf.h>
+#include <PDeltaFrameTransf3d.h>
+#include <EuclidFrameTransf.h>
+#include <Isometry/RankineIsometry.h>
 
+namespace OpenSees {
 
 class FrameTransformBuilder : public TaggedObject {
 public:
@@ -68,22 +68,22 @@ public:
 
     virtual void 
     Print(OPS_Stream&s, int flag) {
-        if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-            s << OPS_PRINT_JSON_MATE_INDENT << "{";
-            s << "\"name\": " << this->getTag() << ", ";
-            s << "\"type\": \"" << name << "\"";
-            s << ", ";
-            s << "\"vz\": [" << vz[0] << ", " << vz[1] << ", " << vz[2] << "]";
-            if (offsets.size() > 0) {
-              s << ", \"offsets\": {";
-              for (auto it = offsets.begin(); it != offsets.end(); ++it) {
-                s << it->first << ": [" << it->second[0] << ", " << it->second[1] << ", " << it->second[2] << "]";
-                if (std::next(it) != offsets.end())
-                    s << ", ";
-              }
-            }
-            s << "}";
+      if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
+        s << "\"name\": " << this->getTag() << ", ";
+        s << "\"type\": \"" << name << "\"";
+        s << ", ";
+        s << "\"vz\": [" << vz[0] << ", " << vz[1] << ", " << vz[2] << "]";
+        if (offsets.size() > 0) {
+          s << ", \"offsets\": {";
+          for (auto it = offsets.begin(); it != offsets.end(); ++it) {
+            s << it->first << ": [" << it->second[0] << ", " << it->second[1] << ", " << it->second[2] << "]";
+            if (std::next(it) != offsets.end())
+                s << ", ";
+          }
         }
+        s << "}";
+      }
     }
 
     int ndm;
@@ -93,3 +93,4 @@ public:
     std::map<int, Vector3D> offsets;
     int offset_flags;
 };
+}

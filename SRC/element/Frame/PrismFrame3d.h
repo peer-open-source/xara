@@ -20,10 +20,12 @@
 
 class Channel;
 class Information;
-class FrameTransformBuilder;
 class Response;
 class FrameSection;
-
+namespace OpenSees {
+  class FrameTransformBuilder;
+}
+using namespace OpenSees;
 
 class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
 {
@@ -158,5 +160,6 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
     // Vector P;
     BasicFrameTransf3d<NDF> *basic_system;
 };
+
 
 #endif

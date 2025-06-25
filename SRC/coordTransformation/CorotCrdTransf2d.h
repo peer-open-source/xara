@@ -28,7 +28,7 @@
 #ifndef CorotCrdTransf2d_h
 #define CorotCrdTransf2d_h
 
-#include <FrameTransform.h>
+#include <CrdTransf.h>
 #include <Vector.h>
 #include <Matrix.h>
 

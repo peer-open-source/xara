@@ -31,12 +31,15 @@
 // Modified: 04/2005 Andreas Schellenberg (getBasicTrialVel, getBasicTrialAccel)
 //
 #include <Vector.h>
+#include <VectorND.h>
 #include <Matrix.h>
 #include <Node.h>
 #include <Channel.h>
 #include <Logging.h>
 #include <LinearCrdTransf3d.h>
 #include <TaggedObject.h>
+
+using namespace OpenSees;
 
 // initialize static variables
 Matrix LinearCrdTransf3d::Tlg(12, 12);

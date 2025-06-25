@@ -66,7 +66,7 @@
 #include <BasicFrameTransf.h>
 #include <runtime/commands/modeling/transform/FrameTransformBuilder.hpp>
 
-
+using namespace OpenSees;
 
 template<int n, typename MatT>
 void getHk(double xi[], MatT& H)

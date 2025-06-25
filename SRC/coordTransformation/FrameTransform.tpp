@@ -18,6 +18,8 @@
 #include "FrameTransform.h"
 #include <MatrixND.h>
 
+namespace OpenSees {
+
 template <int nen=2, int ndf=6>
 static VectorND<nen*ndf>
 pushLocal(const Vector& q, double L)
@@ -175,4 +177,5 @@ FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
     }
   }
   return Kg;
+}
 }

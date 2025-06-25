@@ -21,7 +21,9 @@ class Channel;
 class Response;
 class ElementalLoad;
 class BeamIntegration;
+namespace OpenSees {
 class FrameTransformBuilder;
+}
 
 using namespace OpenSees;
 

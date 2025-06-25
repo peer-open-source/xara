@@ -30,7 +30,7 @@
 #ifndef LinearCrdTransf2dInt_h
 #define LinearCrdTransf2dInt_h
 
-#include <FrameTransform.h>
+#include <CrdTransf.h>
 #include <Vector.h>
 #include <Matrix.h>
 

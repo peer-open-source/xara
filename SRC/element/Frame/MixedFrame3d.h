@@ -13,12 +13,13 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <Frame/FiniteElement.h>
-#include <FrameTransform.h>
+// #include <FrameTransform.h>
 #include <FrameSection.h>
 
 class Node;
 class Channel;
 class Response;
+class CrdTransf;
 class BeamIntegration;
 class FrameSection;
 

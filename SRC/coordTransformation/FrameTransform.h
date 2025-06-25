@@ -23,14 +23,18 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
-#include <CrdTransf.h>
+#include <TaggedObject.h>
+#include <CrdTransf.h> // TODO: remove this include
+// class CrdTransf;
 
 #define MAYBE_STATIC static
 
 using OpenSees::VectorND;
 using OpenSees::MatrixND;
 using OpenSees::Matrix3D;
-
+class Information;
+class Response;
+class Node;
 
 enum {
  CRDTR_TAG_CorotFrameTransfWarping3d,
@@ -50,9 +54,8 @@ enum {
   LogDefault       = 1<<6
 };
 
-//
-// Generalized 
-//
+namespace OpenSees {
+
 template <int nn, int ndf>
 class FrameTransform : public TaggedObject
 {
@@ -143,7 +146,7 @@ public:
 protected:
 
 };
-
+}
 #include "FrameTransform.tpp"
 
 #endif // include guard
