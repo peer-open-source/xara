@@ -25,6 +25,9 @@
 #include "Matrix3D.h"
 #include "Vector3D.h"
 using OpenSees::Matrix3D;
+#if 0
+using OpenSees::Versor;
+#endif
 
 
 #define cot(x) std::cos(x)/std::sin(x)

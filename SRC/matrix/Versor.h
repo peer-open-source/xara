@@ -12,6 +12,10 @@
 #include <cmath>
 #include <VectorND.h>
 
+#if 0
+namespace OpenSees {
+#endif
+
 struct Versor {
     Vector3D vector;
     double   scalar;
@@ -22,14 +26,16 @@ struct Versor {
         return u + 2.0 * vector.cross( scalar*u + vector.cross(u) );
     }
 
-    inline Versor conjugate() const {
+    inline Versor 
+    conjugate() const {
         Versor c;
         c.scalar = scalar; 
         c.vector = -1.0*vector;  // element-wise negation
         return c;
     }
 
-    inline Versor conj_mult(const Versor& other) const 
+    inline Versor 
+    conj_mult(const Versor& other) const 
     {
         // Equivalent to R_IJ = R_I.T @ R_J, 
         // i.e.  q_IJ = conj(q_I)*q_J.
@@ -39,14 +45,11 @@ struct Versor {
         return out;
     }
 
-    inline Versor mult_conj(const Versor& other) const 
+    inline Versor 
+    mult_conj(const Versor& other) const 
     {
         // Equivalent to R_IJ = R_I @ R_J^T, 
         // i.e.  q_IJ = q_I * conj(q_J).
-
-        // Versor out = *this;
-        // out *= other.conjugate();
-        // return out;
 
         Versor out;
         out.scalar = scalar * other.scalar + vector.dot(other.vector);
@@ -61,7 +64,7 @@ struct Versor {
     from_vector(const Vec3T  &theta)
     {
 
-        double t = 0.0; // theta.norm();
+        double t = 0.0;
         for (int i=0; i<3; i++)
             t += theta[i]*theta[i];
 
@@ -69,12 +72,12 @@ struct Versor {
 
         Versor q;
         if (t == 0)
-            q.vector.zero();
+          q.vector.zero();
 
         else {
-            const double factor = std::sin(t*0.5) / t;
-            for (int i = 0; i < 3; i++)
-                q.vector[i] = theta[i] * factor;
+          const double factor = std::sin(t*0.5) / t;
+          for (int i = 0; i < 3; i++)
+            q.vector[i] = theta[i] * factor;
         }
 
         q.scalar = std::cos(t*0.5);
@@ -83,7 +86,7 @@ struct Versor {
     }
 };
 
-#if 1
+
 inline Versor
 operator*(const Versor &qa, const Versor &qb)
 {
@@ -113,15 +116,6 @@ operator*(const Versor &qa, const Versor &qb)
     q12.scalar = qa3*qb3 - qaTqb;
     return q12;
 }
-#else
-inline Versor 
-operator* (const Versor& a, const Versor& b)
-{
-    return Versor{{
-        a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3],
-        a[0]*b[1] + a[1]*b[0] + a[2]*b[3] - a[3]*b[2],
-        a[0]*b[2] + a[2]*b[0] + a[3]*b[1] - a[1]*b[3],
-        a[0]*b[3] + a[3]*b[0] + a[1]*b[2] - a[2]*b[1]
-    }};
-}
+#if 0
+} //  namespace OpenSees
 #endif
