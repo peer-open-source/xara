@@ -6,6 +6,8 @@
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
+// Claudio Perez
+//
 #pragma once
 #include "MatrixND.h"
 #include "blasdecl.h"
@@ -13,7 +15,6 @@
 #include "routines/SY3.h"
 
 namespace OpenSees {
-
 
 template <index_t nr, index_t nc, typename T>
 void
@@ -29,8 +30,9 @@ MatrixND<nr, nc, T>::zero()
 
 template <index_t nr, index_t nc, typename T>
 constexpr MatrixND<nc, nr>
-MatrixND<nr, nc, T>::transpose() const {
-MatrixND<nc, nr> result = {};
+MatrixND<nr, nc, T>::transpose() const 
+{
+  MatrixND<nc, nr> result = {};
   for (index_t j = 0; j < nc; ++j) {
     for (index_t i = 0; i < nr; ++i) {
       result.values[i][j] = values[j][i];
@@ -100,6 +102,7 @@ MatrixND<nr, nc, T>::addDiagonal(const double diag)
   return *this;
 }
 
+
 template <index_t nr, index_t nc, typename T>
 template <class MatT> inline
 void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
@@ -109,11 +112,12 @@ void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
       (*this)(i,j) += A(i,j)*scale;
 }
 
+
 template <index_t nr, index_t nc, typename T> 
 template <class VecA, class VecB> 
 constexpr inline
 MatrixND<nr, nc, T>&
-MatrixND<nr, nc, T>::addTensorProduct(const VecA& a, const VecB& b, const double scale)
+MatrixND<nr, nc, T>::addTensorProduct(const VecA& a, const VecB& b, const double scale) noexcept
 {
   // Chrystal's bun order
   for (int j=0; j<nc; j++)
@@ -155,7 +159,7 @@ MatrixND<nr, nc, T>::addMatrixProduct(double scale_this, const MatrixND<nr, nk, 
   DGEMM("N", "N", &m, &n, &k, &scale, 
                               const_cast<double*>(&A(0,0)), &m,
                               const_cast<double*>(&B(0,0)), &k,
-                              &scale_this,   &(*this)(0,0),        &m);
+                              &scale_this,   &(*this)(0,0), &m);
   
 }
 
@@ -292,7 +296,6 @@ MatrixND<nr,nc,scalar_t>::addMatrixTripleProduct(double thisFact,
                            const MatrixND<nk,nl> &B, 
                            const MatrixND<nl,nc> &C, double otherFact)
 {
-
   if (otherFact == 0.0 && thisFact == 1.0)
     return 0;
 
@@ -369,8 +372,9 @@ MatrixND<NR,NC,T>::addSpinSquare(const VecT& v, const double scale)
 
 
 template<int NR, int NC, typename T>
-template<class VecT> inline
-void MatrixND<NR,NC,T>::addSpinProduct(const VecT& a, const VectorND<NR,T>& b, const double scale)
+template<class VecT> 
+inline void 
+MatrixND<NR,NC,T>::addSpinProduct(const VecT& a, const VectorND<NR,T>& b, const double scale)
   requires(NR == NC == 3)
 {
   // a^b^ = boa - a.b 1
@@ -381,8 +385,9 @@ void MatrixND<NR,NC,T>::addSpinProduct(const VecT& a, const VectorND<NR,T>& b, c
 }
 
 template<int NR, int NC, typename T>
-template<class VecT> inline
-void MatrixND<NR,NC,T>::addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, const double scale)
+template<class VecT>
+inline void 
+MatrixND<NR,NC,T>::addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, const double scale)
 {
   // this += s*A*[b^]
   // where b^ is the skew-symmetric representation of the three-vector b, s is a scalar,
