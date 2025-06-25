@@ -8,7 +8,8 @@
 //
 // Description: A compile-time Cholesky factorization for small
 // symmetric positive-definite matrices.
-// cmp
+//
+// Claudio Perez
 //
 #pragma once
 #include <array>

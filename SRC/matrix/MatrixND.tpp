@@ -1,4 +1,7 @@
 #include "MatrixND.h"
+#include "blasdecl.h"
+#include "routines/cmx.h"
+#include "routines/SY3.h"
 
 namespace OpenSees {
 

@@ -34,15 +34,16 @@ extern "C" {
               double* beta,
               double* Y, int* incY);
 // Level 3
-//void DGESV(int *N, int *NRHS, double *A, int *LDA, 
-//           int *iPiv, double *B, int *LDB, int *INFO);
+#if 0
+  void DGESV(int *N, int *NRHS, double *A, int *LDA, 
+            int *iPiv, double *B, int *LDB, int *INFO);
+  void DGETRS(char *TRANS, unsigned int sizeT,
+            int *N, int *NRHS, double *A, int *LDA, 
+            int *iPiv, double *B, int *LDB, int *INFO);
+#endif
 
   void DGETRF(int *M, int *N, double *A, int *LDA, 
               int *iPiv, int *INFO);
-
-//void DGETRS(char *TRANS, unsigned int sizeT,
-//            int *N, int *NRHS, double *A, int *LDA, 
-//            int *iPiv, double *B, int *LDB, int *INFO);
 
   void DGETRI(int *N, double *A, int *LDA, 
                      int *iPiv, double *Work, int *WORKL, int *INFO);
