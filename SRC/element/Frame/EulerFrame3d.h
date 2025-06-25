@@ -13,17 +13,13 @@
 #include <Vector.h>
 #include <Frame/BasicFrame3d.h>
 #include <FrameSection.h>
+#include <BasicFrameTransf.h>
 
 class Node;
 class BeamIntegration;
 class Response;
 namespace OpenSees {
   class FrameTransformBuilder;
-}
-
-using namespace OpenSees;
-
-#include <BasicFrameTransf.h>
 
 class EulerFrame3d : public BasicFrame3d,
                      public FiniteElement<2, 3, 6>
@@ -145,6 +141,6 @@ private:
     };
     BasicFrameTransf3d<NDF> *basic_system;
 };
-
+} // namespace OpenSees
 #endif
 
