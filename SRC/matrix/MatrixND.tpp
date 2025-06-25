@@ -2,6 +2,32 @@
 
 namespace OpenSees {
 
+
+template <index_t nr, index_t nc, typename T>
+void
+MatrixND<nr, nc, T>::zero()
+{
+    for (index_t j = 0; j < nr; ++j) {
+      for (index_t i = 0; i < nc; ++i) {
+        values[j][i] = 0.0;
+      }
+    }
+}
+
+
+template <index_t nr, index_t nc, typename T>
+constexpr MatrixND<nc, nr>
+MatrixND<nr, nc, T>::transpose() const {
+MatrixND<nc, nr> result = {};
+  for (index_t j = 0; j < nc; ++j) {
+    for (index_t i = 0; i < nr; ++i) {
+      result.values[i][j] = values[j][i];
+    }
+  }
+  return result;
+}
+
+
 template <index_t nr, index_t nc, typename T>
 template<typename F> inline void
 MatrixND<nr, nc, T>::map(F func) const
@@ -22,7 +48,6 @@ MatrixND<nr, nc, T>::map(F func, MatrixND<nr,nc,T>& destination)
 }
 
 
-// template<> inline int
 template <index_t nr, index_t nc, typename T> inline int
 MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 {
