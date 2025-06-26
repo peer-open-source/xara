@@ -45,13 +45,6 @@ This package may be used as a drop-in replacement for both `OpenSees.exe` and
 OpenSeesPy (see *Getting Started* below), and generally provides a substantial performance boost.
 
 
-
-> [!NOTE]
-> This package is independent of the [`openseespy`](https://pypi.org/project/openseespy)
-> library, which is documented in the OpenSees [documentation](https://opensees.github.io/OpenSeesDocumentation)
-> website. 
-
-
 ### Getting Started
 
 The `xara` package can be installed into a Python environment
