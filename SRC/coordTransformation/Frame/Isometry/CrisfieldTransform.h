@@ -1,17 +1,30 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
-//===----------------------------------------------------------------------===//
+//----------------------------------------------------------------------------//
 //
+//                                 FEDEASLab
+//       Finite Elements for Design Evaluation and Analysis of Structures
+//
+//----------------------------------------------------------------------------//
+//
+// Please cite the following resource in any derivative works:
+//
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
+//
+//===----------------------------------------------------------------------===//
+
 #pragma once
 #include <MatrixND.h>
 #include <Matrix3D.h>
 #include <Triad.h>
 #include <Vector3D.h>
 #include <Rotations.hpp>
+
+namespace OpenSees {
 
 class CrisfieldTransform {
 public:
@@ -91,7 +104,6 @@ public:
   {
     return e[0];
   }
-
   constexpr const Vector3D&
   getBasisE2() const noexcept
   {
@@ -268,7 +280,5 @@ private:
     Vector3D e[3];
     double Ln;
 
-    // Auxiliary
-//  Matrix3D A;
-//  MatrixND<12,3> Lr2, Lr3;   // auxiliary matrices
 };
+}

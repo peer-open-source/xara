@@ -16,7 +16,7 @@
 #ifndef CorotCrdTransf3d02_h
 #define CorotCrdTransf3d02_h
 
-#include "FrameTransform.h"
+#include "CrdTransf.h"
 #include <Vector.h>
 #include <Matrix.h>
 #include <Matrix3D.h>

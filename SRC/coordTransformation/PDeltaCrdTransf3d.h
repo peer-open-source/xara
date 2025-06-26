@@ -30,7 +30,7 @@
 #ifndef PDeltaCrdTransf3d_h
 #define PDeltaCrdTransf3d_h
 
-#include <FrameTransform.h>
+#include <CrdTransf.h>
 #include <Vector.h>
 #include <Matrix.h>
 

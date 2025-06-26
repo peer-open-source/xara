@@ -1,7 +1,9 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
+//===----------------------------------------------------------------------===//
+//                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
 // Claudio Perez
@@ -21,6 +23,5 @@ namespace OpenSees {
   static_assert(std::is_standard_layout<Matrix3D>::value, "Matrix3D is not standard layout.");
   static_assert(std::is_aggregate<Matrix3D>::value, "Matrix3D is not an aggregate type.");
 }
-
 
 #endif // Matrix3D_H

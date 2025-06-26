@@ -22,9 +22,9 @@ class CrdTransf;
 class BeamIntegration;
 class Response;
 class BasicFrame3d;
-using namespace OpenSees;
 
 namespace OpenSees {
+
 template <bool shear, int nwm>
 class CubicFrame3d : public Element {
 public:

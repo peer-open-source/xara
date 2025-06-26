@@ -59,6 +59,7 @@
 #include <string.h>
 #include <float.h>
 
+#include <CrdTransf.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <ForceBeamColumn3d.h>

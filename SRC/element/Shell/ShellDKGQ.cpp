@@ -1231,24 +1231,23 @@ void ShellDKGQ::updateBasis()
   //cross product for v3
   v3 = LovelyCrossProduct(v1, v2);
 
-  //local nodal coordinates in plane of shell
+  // local nodal coordinates in plane of shell
 
-  int i;
-  for (i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
 
     const Vector &coorI = nodePointers[i]->getCrds() +
                           nodePointers[i]->getDisp(); //modify by Lisha Wang
     xl[0][i] = coorI ^ v1;
     xl[1][i] = coorI ^ v2;
 
-  } //end for i
+  }
 
-  //basis vectors stored as array of doubles
-  for (i = 0; i < 3; i++) {
+  // basis vectors stored as array of doubles
+  for (int i = 0; i < 3; i++) {
     g1[i] = v1(i);
     g2[i] = v2(i);
     g3[i] = v3(i);
-  } //end for i
+  }
 }
 //end Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
 

@@ -19,7 +19,10 @@
 class Response;
 class ElementalLoad;
 class BeamIntegration;
+namespace OpenSees {
 class FrameTransformBuilder;
+}
+using namespace OpenSees;
 
 template<int NIP, int nsr>
 class ForceDeltaFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>

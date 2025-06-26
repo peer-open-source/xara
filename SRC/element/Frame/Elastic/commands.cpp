@@ -22,8 +22,6 @@
 #include <ArgumentTracker.h>
 
 #include <Domain.h>
-#include <BasicFrameTransf.h>
-#include <LinearFrameTransf.hpp>
 
 #include "ElasticBeam2d.h"
 #include "ElasticBeam3d.h"

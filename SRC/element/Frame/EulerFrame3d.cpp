@@ -35,8 +35,7 @@
 
 #define ELE_TAG_EulerFrame3d 0 // TODO
 
-using OpenSees::MatrixND;
-using OpenSees::VectorND;
+using namespace OpenSees;
 
 
 EulerFrame3d::EulerFrame3d(int tag, std::array<int,2>& nodes,
@@ -1099,4 +1098,3 @@ EulerFrame3d::commitSensitivity(int gradNumber, int numGrads)
   
   return 0;
 }
-

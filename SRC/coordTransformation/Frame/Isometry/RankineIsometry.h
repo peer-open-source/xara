@@ -1,50 +1,39 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
-//===----------------------------------------------------------------------===//
+//----------------------------------------------------------------------------//
 //
-#pragma once
-#include <Node.h>
-#include <Vector.h>
-#include <Matrix.h>
-#include <Versor.h>
-#include <VectorND.h>
+//                                 FEDEASLab
+//       Finite Elements for Design Evaluation and Analysis of Structures
+//
+//----------------------------------------------------------------------------//
+//
+// Please cite the following resource in any derivative works:
+//
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
+//
+//===----------------------------------------------------------------------===//
+#include <array>
 #include <Vector3D.h>
-#include <MatrixND.h>
 #include <Matrix3D.h>
+#include <MatrixND.h>
+#include "EuclidIsometry.h"
 
+class Node;
 #define TRIAD C2
+
 namespace OpenSees {
 
-class FrameBasis
-{
-public:
-  virtual int       initialize() =0;
-  virtual int       update() =0;
-
-  virtual double    getLength() const =0;
-  // x, \Lambda
-  virtual Matrix3D  getRotation() const =0;
-  virtual Vector3D  getPosition() =0;
-  // \psi
-  virtual Vector3D  getPositionVariation(int ndf, double* du) =0; 
-  virtual Vector3D  getRotationVariation(int ndf, double* du) =0;
-  virtual Matrix3D  getRotationDelta() =0;
-  //
-  virtual MatrixND<3,6> getRotationGradient(int node) =0;
-
-};
-
-
 template <int nn>
-class RankineBasis : public FrameBasis
+class RankineIsometry : public AlignedIsometry<nn>
 {
 public:
-  RankineBasis(std::array<Node*,nn>& nodes, const Vector3D& vecxz)
-  : nodes{nodes}, vz(vecxz), Xc{}, c{}, R{} {
+  RankineIsometry(std::array<Node*,nn>& nodes, const Vector3D& vecxz)
+  : nodes{nodes}, vz(vecxz), Xc{}, c{}, R{}
+  {
   }
 
   void
@@ -60,7 +49,6 @@ public:
 
     const Vector &XI = nodes[   0]->getCrds();
     const Vector &XJ = nodes[nn-1]->getCrds();
-  
 
     for (int i=0; i<3; i++)
       dX[i] = XJ[i] - XI[i];
@@ -75,7 +63,7 @@ public:
     const double ynorm = e2.norm();
 
     if (ynorm == 0.0)
-        return -1;
+      return -1;
 
     e2 /= ynorm;
 
@@ -98,8 +86,8 @@ public:
     return 0;
   }
 
-  virtual int
-  update() {
+  int
+  update() final {
 
     Vector3D e1 = dX;
     {
@@ -118,6 +106,7 @@ public:
           e1.addVector(1.0, (*offsets)[nn-1], -1.0);
           e1.addVector(1.0, nodes[nn-1]->getTrialRotation().rotate((*offsets)[nn-1]), 1.0);
         }
+
         // Calculate the deformed length
         Ln = e1.norm();
 
@@ -178,7 +167,6 @@ public:
 #else 
       Vector3D e2 = vz.cross(e1);
 #endif
-
     }
 
     Vector3D uc = nodes[ic]->getTrialDisp();
@@ -191,27 +179,6 @@ public:
     return 0;
   };
 
-  virtual double 
-  getLength() const override {
-    return Ln;
-  }
-
-
-  virtual Vector3D
-  getRotationVariation(int ndf, double* du) {
-    // psi_r = omega
-    Vector3D w{};
-    for (int i=0; i<nn; i++) {
-      // const Vector &du = nodes[i]->getIncrDeltaDisp();
-      auto Wi = this->getRotationGradient(i);
-      for (int j=0; j<3; j++)
-        for (int k=0; k<6; k++)
-          w[j] += Wi(j,k) * du[ndf*i + k];
-    }
-    return w;
-  }
-
-
   virtual MatrixND<3,6> 
   getRotationGradient(int node) {
     MatrixND<3,6> Gb{};
@@ -219,6 +186,7 @@ public:
     constexpr Vector3D axis{1, 0, 0};
     constexpr Matrix3D ix = Hat(axis);
     constexpr Matrix3D ioi = axis.bun(axis);
+
     Gb.template insert<0, 3>(ioi, 0.5);
     if (node == 0)
       Gb.template insert<0,0>(ix, -1/Ln);
@@ -229,12 +197,15 @@ public:
     return Gb;
   }
 
+  virtual double
+  getLength() const override {
+    return Ln;
+  }
 
   virtual Matrix3D
   getRotation() const override {
     return R[pres];
   }
-
 
   virtual Matrix3D 
   getRotationDelta() {
@@ -263,17 +234,17 @@ private:
   constexpr static int ic = 0; // std::floor(0.5*(nn+1));
   enum { pres, prev, init};
   double L, Ln;
-  double n   = 0,
-         n11 = 1,
-         n12 = 0,
-         n21 = 0,
-         n22 = 1;
   Vector3D vz, dX, Xc;
   Matrix3D R[3];
   Vector3D c[3];
   Matrix3D dR;
   std::array<Node*,nn>& nodes;
   std::array<Vector3D, nn>* offsets = nullptr; // offsets
-};
 
+  double n   = 0,
+         n11 = 1,
+         n12 = 0,
+         n21 = 0,
+         n22 = 1;
+};
 } // namespace OpenSees

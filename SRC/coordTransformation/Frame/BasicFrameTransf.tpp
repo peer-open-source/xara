@@ -1,11 +1,21 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
-//===----------------------------------------------------------------------===//
+//----------------------------------------------------------------------------//
 //
+//                                 FEDEASLab
+//       Finite Elements for Design Evaluation and Analysis of Structures
+//
+//----------------------------------------------------------------------------//
+//
+// Please cite the following resource in any derivative works:
+//
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
+//
+//===----------------------------------------------------------------------===//
 //
 #include <Vector.h>
 #include <Matrix.h>
@@ -14,8 +24,9 @@
 #include <Channel.h>
 #include <Logging.h>
 #include <BasicFrameTransf.h>
+#include "FrameTransform.h"
 
-using namespace OpenSees;
+namespace OpenSees {
 
 template<int ndf>
 BasicFrameTransf3d<ndf>::BasicFrameTransf3d(FrameTransform<2,ndf> *t)
@@ -202,7 +213,7 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
 
   MatrixND<2*NDF,2*NDF> kl;
   kl.zero();
-#ifndef DO_BASIC
+
   for (int i=0; i<NDF*2; i++) {
     int ii = std::abs(iq[i]);
     double c = 1.0;
@@ -222,7 +233,6 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
     kl(0*NDF+0, i) = kl(i, 0*NDF+0) = i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
     kl(0*NDF+3, i) = kl(i, 0*NDF+3) = i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   }
-#endif
 
   static MatrixND<2*NDF,2*NDF> Kg;
   static Matrix Wrapper(Kg);
@@ -412,4 +422,6 @@ BasicFrameTransf3d<ndf>::recvSelf(int cTag, Channel &,
                             FEM_ObjectBroker &theBroker)
 {
   return -1;
+}
+
 }

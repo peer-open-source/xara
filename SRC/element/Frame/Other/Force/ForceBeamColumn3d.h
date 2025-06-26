@@ -66,8 +66,9 @@ Journal of Structural Engineering, Approved for publication, February 2007.
 #include <Matrix.h>
 #include <Vector.h>
 #include <Channel.h>
-#include <FrameTransform.h>
+// #include <FrameTransform.h>
 
+class CrdTransf;
 class Response;
 class ElementalLoad;
 class BeamIntegration;

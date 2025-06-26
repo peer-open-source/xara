@@ -1,13 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
+//
 //===----------------------------------------------------------------------===//
 //
-//         Please cite the following resource in any derivative works:
-//                 https://doi.org/10.5281/zenodo.10456866
+// Please cite the following resource in any derivative works:
+//
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
 //
@@ -21,14 +23,18 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
-#include <CrdTransf.h>
+#include <TaggedObject.h>
+#include <CrdTransf.h> // TODO: remove this include
+// class CrdTransf;
 
 #define MAYBE_STATIC static
 
 using OpenSees::VectorND;
 using OpenSees::MatrixND;
 using OpenSees::Matrix3D;
-
+class Information;
+class Response;
+class Node;
 
 enum {
  CRDTR_TAG_CorotFrameTransfWarping3d,
@@ -48,9 +54,8 @@ enum {
   LogDefault       = 1<<6
 };
 
-//
-// Generalized 
-//
+namespace OpenSees {
+
 template <int nn, int ndf>
 class FrameTransform : public TaggedObject
 {
@@ -66,15 +71,16 @@ public:
 
   virtual Vector3D  getNodePosition(int tag) =0;
   virtual Vector3D  getNodeRotationLogarithm(int tag) =0;
-  // virtual Versor         getNodeRotation(int tag);
-  // virtual Vector3D       getNodeRotationVariation(int tag);
-  // virtual VectorND<ndf>  getNodeRotationIncrement(int tag);
+#if 0
+  virtual Versor         getNodeRotation(int tag);
+  virtual Vector3D       getNodeRotationVariation(int tag);
+  virtual VectorND<ndf>  getNodeRotationIncrement(int tag);
 
-  // virtual VectorND<ndf>  getNodeLogarithm(int tag) =0;
-  // virtual VectorND<ndf>  getNodeVariation(int tag) =0;
-  // virtual VectorND<ndf>  getNodeVelocity(int tag);
-  // virtual VectorND<ndm>  getNodeLocation(int tag);
-
+  virtual VectorND<ndf>  getNodeLogarithm(int tag) =0;
+  virtual VectorND<ndf>  getNodeVariation(int tag) =0;
+  virtual VectorND<ndf>  getNodeVelocity(int tag);
+  virtual VectorND<ndm>  getNodeLocation(int tag);
+#endif
   virtual int initialize(std::array<Node*, nn>& nodes)=0;
   virtual int update() =0;
   virtual int commit() =0;
@@ -140,7 +146,7 @@ public:
 protected:
 
 };
-
+}
 #include "FrameTransform.tpp"
 
 #endif // include guard

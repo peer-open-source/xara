@@ -1,10 +1,22 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
+//----------------------------------------------------------------------------//
+//
+//                                 FEDEASLab
+//       Finite Elements for Design Evaluation and Analysis of Structures
+//
+//----------------------------------------------------------------------------//
+//
+// Please cite the following resource in any derivative works:
+//
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
-//===----------------------------------------------------------------------===//
+
 //
 // Description: This file contains the implementation for the
 // LinearFrameTransf class. LinearFrameTransf is a linear
@@ -14,17 +26,17 @@
 // Adapted: Remo Magalhaes de Souza
 // Created: 04/2000
 //
+//
 #pragma once
 #include <Vector.h>
 #include <Matrix.h>
 #include <Matrix3D.h>
 #include <Node.h>
-#include <Channel.h>
 #include <Logging.h>
 #include <Rotations.hpp>
-#include <LinearFrameTransf.hpp>
+#include "LinearFrameTransf.h"
 
-using namespace OpenSees;
+namespace OpenSees {
 
 static inline MatrixND<3,3>
 FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj, 
@@ -333,7 +345,6 @@ template <int nn, int ndf>
 VectorND<nn*ndf>
 LinearFrameTransf<nn,ndf>::getStateVariation()
 {
-
   static VectorND<nn*ndf> ug;
   for (int i=0; i<nn; i++) {
     const Vector &ddu = nodes[i]->getIncrDeltaDisp();
@@ -678,3 +689,4 @@ LinearFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
   }
 }
 
+} // namespace OpenSees

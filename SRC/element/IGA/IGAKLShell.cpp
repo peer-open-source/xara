@@ -1810,7 +1810,8 @@ const Matrix&  IGAKLShell::getInitialStiff( )
 // }
 
 //return mass matrix
-const Matrix&  IGAKLShell::getMass( )
+const Matrix&
+IGAKLShell::getMass()
 {
   // opserr << "IGAKLShell::getMass - eleTag" << this->getTag() << " called! " << endln;
 

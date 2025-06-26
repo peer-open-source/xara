@@ -29,7 +29,7 @@
 #ifndef LinearCrdTransf3d_h
 #define LinearCrdTransf3d_h
 
-#include <FrameTransform.h>
+#include <CrdTransf.h>
 #include <Vector.h>
 #include <Matrix.h>
 

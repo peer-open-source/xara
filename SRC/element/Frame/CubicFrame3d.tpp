@@ -28,9 +28,10 @@
 #include <Parameter.h>
 #include <math.h>
 
-using namespace OpenSees;
 
 #define ELE_TAG_CubicFrame3d 0
+
+namespace OpenSees {
 
 template <bool shear, int nwm>
 CubicFrame3d<shear,nwm>::CubicFrame3d(int tag, 
@@ -1589,3 +1590,4 @@ CubicFrame3d<shear,nwm>::commitSensitivity(int gradNumber, int numGrads)
   return 0;
 }
 
+} // namespace OpenSees
