@@ -52,9 +52,10 @@ template <int nn, int ndf>
 class SouzaFrameTransf: public FrameTransform<nn,ndf>
 {
 public:
-  SouzaFrameTransf(int tag, const Vector3D &vecxz,
-                    const std::array<Vector3D, nn> *offset=nullptr,
-                    int offset_flags = 0);
+  SouzaFrameTransf(int tag, 
+                   const Vector3D &vecxz,
+                   const std::array<Vector3D, nn> *offset=nullptr,
+                   int offset_flags = 0);
 
   ~SouzaFrameTransf();
 

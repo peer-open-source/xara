@@ -52,15 +52,16 @@ public:
       int tag = this->getTag();
       if (strstr(name, "Linear") != nullptr)
         return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
-      
-      else if (strstr(name, "Corot") != nullptr) {
+
+      else if (strcmp(name, "Corotational") == 0) {
         if constexpr (ndf == 6)
           return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
       }
+
       else if (strstr(name, "PDelta") != nullptr)
         return new PDeltaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
 
-      else if (strcmp(name, "Isometric") == 0 || strstr(name, "Rigid") != nullptr)
+      else if (strcmp(name, "Corotational02") == 0 || strcmp(name, "Isometric") == 0 || strstr(name, "Rigid") != nullptr)
         return new EuclidFrameTransf<nn, ndf, RankineIsometry<nn>> (tag, vz, offset_array, offset_flags);
 
       return nullptr;

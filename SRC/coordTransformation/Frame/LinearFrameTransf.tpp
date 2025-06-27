@@ -131,12 +131,14 @@ LinearFrameTransf<nn,ndf>::~LinearFrameTransf()
       delete u_init[i];
 }
 
+
 template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::commit()
 {
   return 0;
 }
+
 
 template <int nn, int ndf>
 int
@@ -183,54 +185,42 @@ LinearFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
     initialDispChecked = true;
   }
 
-  int error;
-  // get element length and orientation
-  if ((error = this->computeElemtLengthAndOrient()))
-    return error;
+  {
+    const Vector &XI = nodes[   0]->getCrds();
+    const Vector &XJ = nodes[nn-1]->getCrds();
 
-  return 0;
-}
+    for (int i=0; i<3; i++) {
+      xi[i] = XI[i];
+      xj[i] = XJ[i];
+    }
+    
+    Vector3D dx = xj - xi;
+
+    if (offsets != nullptr) {
+      for (int i=0; i<3; i++)
+        dx(i) -= (*offsets)[   0][i];
+      for (int i=0; i<3; i++)
+        dx(i) += (*offsets)[nn-1][i];
+    }
 
 
-template <int nn, int ndf>
-int
-LinearFrameTransf<nn,ndf>::computeElemtLengthAndOrient()
-{
+    if (u_init[0] != 0) {
+      for (int i=0; i<3; i++)
+        dx(i) -= (*u_init[0])[i];
+    }
 
-  const Vector &XI = nodes[   0]->getCrds();
-  const Vector &XJ = nodes[nn-1]->getCrds();
+    if (u_init[nn-1] != 0) {
+      for (int i=0; i<3; i++)
+        dx(i) += (*u_init[nn-1])[i];
+    }
 
-  for (int i=0; i<3; i++) {
-    xi[i] = XI[i];
-    xj[i] = XJ[i];
+    L = dx.norm();
+
+    if (L == 0.0)
+      return -2;
+
+    return FrameTransform<nn,ndf>::Orient(dx, vz, R);
   }
-  
-  Vector3D dx = xj - xi;
-
-  if (offsets != nullptr) {
-    for (int i=0; i<3; i++)
-      dx(i) -= (*offsets)[   0][i];
-    for (int i=0; i<3; i++)
-      dx(i) += (*offsets)[nn-1][i];
-  }
-
-
-  if (u_init[0] != 0) {
-    for (int i=0; i<3; i++)
-      dx(i) -= (*u_init[0])[i];
-  }
-
-  if (u_init[nn-1] != 0) {
-    for (int i=0; i<3; i++)
-      dx(i) += (*u_init[nn-1])[i];
-  }
-
-  L = dx.norm();
-
-  if (L == 0.0)
-    return -2;
-
-  return FrameTransform<nn,ndf>::Orient(dx, vz, R);
 }
 
 
@@ -509,6 +499,7 @@ LinearFrameTransf<nn,ndf>::getLengthGrad()
 
   return 1/L*(xj - xi).dot(dxj - dxi);
 }
+
 
 template <int nn, int ndf>
 double

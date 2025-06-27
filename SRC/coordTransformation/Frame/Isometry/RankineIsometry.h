@@ -179,7 +179,7 @@ public:
     Vector3D X = nodes[ic]->getCrds();
     c[pres] = R[pres]^(X + uc);
     return 0;
-  };
+  }
 
   virtual MatrixND<3,6> 
   getRotationGradient(int node) {
