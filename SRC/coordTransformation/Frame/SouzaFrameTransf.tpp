@@ -9,6 +9,10 @@
 //
 //----------------------------------------------------------------------------//
 //
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//
+//===----------------------------------------------------------------------===//
+//
 // Please cite the following resource in any derivative works:
 //
 // [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations

@@ -2,12 +2,16 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
+//===----------------------------------------------------------------------===//
 //
 //                                 FEDEASLab
 //       Finite Elements for Design Evaluation and Analysis of Structures
 //
 //----------------------------------------------------------------------------//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//
+//===----------------------------------------------------------------------===//
 //
 // Please cite the following resource in any derivative works:
 //
@@ -69,8 +73,8 @@ public:
   int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const final;
   const std::array<Vector3D,nn> *getRigidOffsets() const final { return offsets; }
 
-  double getInitialLength();
-  double getDeformedLength();
+  double getInitialLength() final;
+  double getDeformedLength() final;
 
   VectorND<nn*ndf> getStateVariation() final;
   Vector3D getNodePosition(int tag) final;
@@ -81,9 +85,9 @@ public:
 
   // Sensitivity
   double getLengthGrad() final;
-  virtual const Vector &getBasicDisplTotalGrad(int grad);
-  virtual const Vector &getBasicDisplFixedGrad();
-  virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int gradNumber);
+  const Vector &getBasicDisplTotalGrad(int grad); //  final;
+  const Vector &getBasicDisplFixedGrad();
+  const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int gradNumber);
 
   // Tagged Object
   void Print(OPS_Stream &s, int flag = 0) final;
@@ -156,6 +160,8 @@ private:
   Matrix3D A;
   MatrixND<12,3> Lr2, Lr3;   // auxiliary matrices
 };
+
 } // namespace OpenSees
+
 #include "SouzaFrameTransf.tpp"
 #endif

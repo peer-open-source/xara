@@ -294,8 +294,7 @@ template<int ndf>
 CrdTransf *
 BasicFrameTransf3d<ndf>::getCopy3d()
 {
-  BasicFrameTransf3d *theCopy = new BasicFrameTransf3d(t.getCopy());
-  return theCopy;
+  return new BasicFrameTransf3d(t.getCopy());
 }
 
 

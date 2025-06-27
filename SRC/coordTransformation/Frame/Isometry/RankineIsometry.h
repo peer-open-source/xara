@@ -16,6 +16,8 @@
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
+
+#pragma once
 #include <array>
 #include <Vector3D.h>
 #include <Matrix3D.h>

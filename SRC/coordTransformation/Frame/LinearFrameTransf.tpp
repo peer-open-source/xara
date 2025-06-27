@@ -26,7 +26,6 @@
 // Adapted: Remo Magalhaes de Souza
 // Created: 04/2000
 //
-//
 #pragma once
 #include <Vector.h>
 #include <Matrix.h>
@@ -226,7 +225,6 @@ LinearFrameTransf<nn,ndf>::computeElemtLengthAndOrient()
       dx(i) += (*u_init[nn-1])[i];
   }
 
-  // calculate the element length
   L = dx.norm();
 
   if (L == 0.0)

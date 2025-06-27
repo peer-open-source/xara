@@ -93,4 +93,5 @@ public:
     std::map<int, Vector3D> offsets;
     int offset_flags;
 };
-}
+
+} // namespace OpenSees
