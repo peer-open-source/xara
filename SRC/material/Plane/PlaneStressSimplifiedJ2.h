@@ -71,7 +71,7 @@ class PlaneStressSimplifiedJ2 : public NDMaterial
   
   Response *setResponse (const char **argv, int argc, OPS_Stream &s);
   int getResponse (int responseID, Information &matInformation);
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &, int flag) final;
   
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int responseID, Information &eleInformation);	

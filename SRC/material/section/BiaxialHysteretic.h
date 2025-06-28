@@ -75,7 +75,7 @@ public:
     int recvSelf(int cTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &, int flag) final;
 
     // AddingSensitivity:BEGIN //////////////////////////////////////////
     int setParameter(const char **argv, int argc, Parameter &param);

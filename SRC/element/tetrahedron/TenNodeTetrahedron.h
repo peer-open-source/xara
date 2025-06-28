@@ -49,7 +49,6 @@ class TenNodeTetrahedron : public Element {
 
 public :
 
-    //null constructor
     TenNodeTetrahedron();
 
     //full constructor
@@ -75,61 +74,46 @@ public :
     //set domain
     void setDomain( Domain *theDomain ) ;
 
-    //get the number of external nodes
     int getNumExternalNodes( ) const ;
-
-    //return connected external nodes
     const ID &getExternalNodes( ) ;
-    Node **getNodePtrs(void);
+    Node **getNodePtrs() final;
 
-    //return number of dofs
-    int getNumDOF( ) ;
+    int getNumDOF( ) final;
 
-    //commit state
-    int commitState( ) ;
+    int update() final;
+    int commitState( ) final;
+    int revertToLastCommit( ) final;
 
-    //revert to last commit
-    int revertToLastCommit( ) ;
+    int revertToStart( ) final;
 
-        int revertToStart( ) ;
 
-    // update
-    int update(void);
-
-    //print out element data
-    void Print( OPS_Stream &s, int flag ) ;
-
-    //return stiffness matrix
-    const Matrix &getTangentStiff();
-    const Matrix &getInitialStiff();
-    const Matrix &getMass();
+    const Matrix &getTangentStiff() final;
+    const Matrix &getInitialStiff() final;
+    const Matrix &getMass() final;
 
     void zeroLoad( ) ;
-    int addLoad(ElementalLoad *theLoad, double loadFactor);
-    int addInertiaLoadToUnbalance(const Vector &accel);
+    int addLoad(ElementalLoad *theLoad, double loadFactor) final;
+    int addInertiaLoadToUnbalance(const Vector &accel) final;
 
-    //get residual
-    const Vector &getResistingForce( ) ;
-
-    //get residual with inertia terms
-    const Vector &getResistingForceIncInertia( ) ;
+    const Vector &getResistingForce( ) final;
+    const Vector &getResistingForceIncInertia( ) final;
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-                  &theBroker);
+    int sendSelf (int commitTag, Channel &) final;
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
 
 
     int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int updateParameter(int parameterID, Information &info) final;
 
-    //plotting
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes = 0, int numModes = 0);
     void onActivate();
     void onDeactivate();
+
+    // TaggedObject methods
+    void Print(OPS_Stream &s, int flag =0) final;
 
 private :
 

@@ -23,7 +23,7 @@
 //      element for general nonlinear analysis,
 //      Eng.Comput.,1,77-88,1984
 //
-// Written: Leopoldo Tesser, Diego A. Talledo, Véronique Le Corvec
+// Written: Leopoldo Tesser, Diego A. Talledo, Vï¿½ronique Le Corvec
 //
 #include <ID.h> 
 #include <Vector.h>
@@ -100,12 +100,10 @@ class ShellMITC4Thermal : public Element {
     Response* setResponse( const char **argv, int argc, OPS_Stream &output );
     int getResponse( int responseID, Information &eleInfo );
       
-    //plotting 
-	int displaySelf(Renderer &, int mode, float fact, const char **displayModes = 0, int numModes = 0);
 
   private : 
 
-    //static data
+    // static data
     static Matrix stiff ;
     static Vector resid ;
     static Matrix mass ;

@@ -222,8 +222,10 @@ CreateFrame(BasicModelBuilder& builder,
 
 
         if (strcmp(name, "EulerFrame") == 0) {
-            theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
-                                          beamIntegr, *tb, 
+            theElement = new EulerFrame3d(tag, nodes, nIP, 
+                                          sections.data(),
+                                          beamIntegr, 
+                                          *tb, 
                                           mass, options.mass_flag);
         }
 
@@ -567,11 +569,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
-  struct Options options;
-  options.mass_flag  =  0;
-  options.shear_flag = -1;
-  options.geom_flag  =  0;
-
   int max_iter = 10;
   double tol  = 1.0e-12;
   double mass = 0.0;
@@ -591,6 +588,10 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   // Defaults
   //
+  struct Options options;
+  options.mass_flag  =  0;
+  options.shear_flag = -1;
+  options.geom_flag  =  0;
   if (strcasecmp(argv[1], "elasticBeamColumn") == 0) {
     options.shear_flag = 0;
   }
@@ -908,7 +909,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     if (strstr(argv[1], "isp") == 0) {
       section_tags.resize(5, section_tags[0]);
     } else {
-      section_tags.resize(3, section_tags[0]);
+      section_tags.resize(5, section_tags[0]);
     }
   }
 

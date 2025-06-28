@@ -56,6 +56,8 @@ public:
       else if (strcmp(name, "Corotational") == 0) {
         if constexpr (ndf == 6)
           return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+        else 
+          return nullptr;
       }
 
       else if (strstr(name, "PDelta") != nullptr)

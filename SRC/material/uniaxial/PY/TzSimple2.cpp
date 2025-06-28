@@ -135,7 +135,7 @@ TzSimple2::~TzSimple2()
 void TzSimple2::getFarField(double z)
 {
 	TFar_z   = z;
-	TFar_tang= TFar_tang;
+	
 	TFar_t   = TFar_tang * TFar_z;
 
 	return;

@@ -42,7 +42,6 @@
 #include <ErrorHandler.h>
 #include <ShellMITC4Thermal.h>
 #include <R3vectors.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <NodalThermalAction.h>
 #include <ThermalActionWrapper.h>
@@ -2179,43 +2178,3 @@ int ShellMITC4Thermal::recvSelf(int commitTag, Channel &theChannel,
   return res;
 }
 //**************************************************************************
-
-int ShellMITC4Thermal::displaySelf(Renderer &theViewer, int displayMode,
-                                   float fact, const char **modes, int numMode)
-{
-  // get the end point display coords
-  static Vector v1(3);
-  static Vector v2(3);
-  static Vector v3(3);
-  static Vector v4(3);
-  nodePointers[0]->getDisplayCrds(v1, fact, displayMode);
-  nodePointers[1]->getDisplayCrds(v2, fact, displayMode);
-  nodePointers[2]->getDisplayCrds(v3, fact, displayMode);
-  nodePointers[3]->getDisplayCrds(v4, fact, displayMode);
-
-  // place values in coords matrix
-  static Matrix coords(4, 3);
-  for (int i = 0; i < 3; i++) {
-    coords(0, i) = v1(i);
-    coords(1, i) = v2(i);
-    coords(2, i) = v3(i);
-    coords(3, i) = v4(i);
-  }
-
-  // Display mode is positive:
-  // display mode = 0 -> plot no contour
-  // display mode = 1-8 -> plot 1-8 stress resultant
-  static Vector values(4);
-  if (displayMode < 8 && displayMode > 0) {
-    for (int i = 0; i < 4; i++) {
-      const Vector &stress = materialPointers[i]->getStressResultant();
-      values(i)            = stress(displayMode - 1);
-    }
-  } else {
-    for (int i = 0; i < 4; i++)
-      values(i) = 0.0;
-  }
-
-  // draw the polygon
-  return theViewer.drawPolygon(coords, values, this->getTag());
-}

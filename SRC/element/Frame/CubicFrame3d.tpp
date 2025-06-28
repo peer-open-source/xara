@@ -740,7 +740,8 @@ CubicFrame3d<shear,nwm>::getResistingForce()
         q(4) += 0.5 * phiy * L / (1 + phiy) * si;
         break;
       case FrameStress::T: q(5) += si; break;
-      default:                 break;
+      default:
+        break;
       }
     }
   }

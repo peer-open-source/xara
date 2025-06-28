@@ -83,7 +83,7 @@ class FourNodeQuadWithSensitivity : public Element
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 		  &theBroker);
     int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &, int flag) final;
 
     Response *setResponse(const char **argv, int argc,
 			  OPS_Stream &s);

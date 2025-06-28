@@ -48,7 +48,7 @@ class SecantAccelerator2: public Accelerator
   
   int getTangent(void) {return theTangent;}
 
-  void Print(OPS_Stream &s, int flag=0);
+  void Print(OPS_Stream &, int flag) final;
   
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, 

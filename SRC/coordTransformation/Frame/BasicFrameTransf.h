@@ -116,8 +116,8 @@ private:
   };
 
   constexpr static int iq[] = {
-      inx, iny, inz, imx, imy, imz,
-      jnx, jny, jnz, jmx, jmy, jmz
+    inx, iny, inz, imx, imy, imz,
+    jnx, jny, jnz, jmx, jmy, jmz
   };
 
 };

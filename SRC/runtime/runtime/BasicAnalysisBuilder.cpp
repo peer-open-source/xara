@@ -58,6 +58,7 @@ static std::unordered_map<int, std::string> AnalyzeFailedMessage {
    {SolutionAlgorithm::BadLinearSolve,  "Failed to solve system, tangent may be singular\n"},
 // {SolutionAlgorithm::TestFailed,      ""},// no output; information will have been printed by the test
    {SolutionAlgorithm::BadTestStart,    "Failed to initialize the convergence test\n"},
+   {SolutionAlgorithm::BadStepUpdate,   "Failed to update the model\n"}
 };
 
 BasicAnalysisBuilder::BasicAnalysisBuilder(Domain* domain)

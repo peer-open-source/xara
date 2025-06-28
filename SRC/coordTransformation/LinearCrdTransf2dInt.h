@@ -84,7 +84,7 @@ class LinearCrdTransf2dInt: public CrdTransf
   int sendSelf(int cTag, Channel &theChannel);
   int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &, int flag) final;
   
   // method used to rotate consistent mass matrix
   const Matrix &getGlobalMatrixFromLocal(const Matrix &local);
