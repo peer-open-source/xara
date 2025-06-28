@@ -58,6 +58,14 @@ class Matrix
 #endif
     ~Matrix();
 
+    // TODO: Implementing this will remove some unnecessary allocations,
+    // but first we need to straighten out MatrixND::solve.
+    //
+    // template <int n,int m> Matrix(OpenSees::MatrixND<n,m,double>& A)
+    //   : numRows(n), numCols(m), data(&A(0,0)), fromFree(1)
+    // {
+    // }
+
     // utility methods
     int setData(double *newData, int nRows, int nCols);
     template <int nr, int nc>

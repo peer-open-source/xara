@@ -49,7 +49,7 @@
   int    *Matrix::intWork    = nullptr;
 #endif
 
-//#define MATRIX_BLAS
+// #define MATRIX_BLAS
 //#define NO_WORK
 
 
@@ -253,50 +253,50 @@ Matrix::Assemble(const Matrix &V, const ID &rows, const ID &cols, double fact)
 int
 Matrix::Solve(const Vector &b, Vector &x)
 {
-    int n = numRows;
-    assert(numRows == numCols);
-    assert(numRows == x.Size());
-    assert(numRows == b.Size());
+  int n = numRows;
+  assert(numRows == numCols);
+  assert(numRows == x.Size());
+  assert(numRows == b.Size());
 
-    // check work area can hold all the data
-    if (dataSize > sizeDoubleWork) {
-      if (matrixWork != nullptr) {
-        delete [] matrixWork;
-        matrixWork = nullptr;
-      }
-      matrixWork = new double[dataSize];
-      sizeDoubleWork = dataSize;
+  // check work area can hold all the data
+  if (dataSize > sizeDoubleWork) {
+    if (matrixWork != nullptr) {
+      delete [] matrixWork;
+      matrixWork = nullptr;
     }
+    matrixWork = new double[dataSize];
+    sizeDoubleWork = dataSize;
+  }
 
-    // check work area can hold all the data
-    if (n > sizeIntWork) {
+  // check work area can hold all the data
+  if (n > sizeIntWork) {
 
-      if (intWork != nullptr) {
-        delete [] intWork;
-        intWork = nullptr;
-      }
-      intWork = new int[n];
-      sizeIntWork = n;  
+    if (intWork != nullptr) {
+      delete [] intWork;
+      intWork = nullptr;
     }
- 
-    // copy the data
-    for (int i=0; i<dataSize; i++)
-      matrixWork[i] = data[i];
+    intWork = new int[n];
+    sizeIntWork = n;  
+  }
 
-    // set x equal to b
-    x = b;
+  // copy the data
+  for (int i=0; i<dataSize; i++)
+    matrixWork[i] = data[i];
 
-    int nrhs = 1;
-    int ldA = n;
-    int ldB = n;
-    int info;
-    double *Aptr = matrixWork;
-    double *Xptr = x.theData;
-    int *iPIV = intWork;
+  // set x equal to b
+  x = b;
 
-    DGESV(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+  int nrhs = 1;
+  int ldA = n;
+  int ldB = n;
+  int info;
+  double *Aptr = matrixWork;
+  double *Xptr = x.theData;
+  int *iPIV = intWork;
 
-    return -abs(info);
+  DGESV(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+
+  return -abs(info);
 }
 
 int
@@ -596,72 +596,71 @@ Matrix::addMatrix(double factThis, const Matrix &other, double factOther)
 int
 Matrix::addMatrixTranspose(double factThis, const Matrix &other, double factOther)
 {
-    assert(other.numRows == numCols);
-    assert(other.numCols == numRows);
+  assert(other.numRows == numCols);
+  assert(other.numCols == numRows);
 
-    if (factThis == 1.0 && factOther == 0.0)
-      return 0;
-
-    if (factThis == 1.0) {
-
-        // want: this += other^T * factOther
-      if (factOther == 1.0) {
-        double *dataPtr = data;
-        for (int j=0; j<numCols; j++) {
-          for (int i=0; i<numRows; i++)
-                *dataPtr++ += (other.data)[j+i*numCols];
-        }
-      } else {
-          double *dataPtr = data;
-          for (int j=0; j<numCols; j++) {
-            for (int i=0; i<numRows; i++)
-                  *dataPtr++ += (other.data)[j+i*numCols] * factOther;
-          }
-        }
-      } 
-
-    else if (factThis == 0.0) {
-
-      // want: this = other^T * factOther
-      if (factOther == 1.0) {
-        double *dataPtr = data;
-        for (int j=0; j<numCols; j++) {
-          for (int i=0; i<numRows; i++)
-                *dataPtr++ = (other.data)[j+i*numCols];
-        }
-      } else {
-        double *dataPtr = data;
-        for (int j=0; j<numCols; j++) {
-          for (int i=0; i<numRows; i++)
-                *dataPtr++ = (other.data)[j+i*numCols] * factOther;
-        }
-      }
-    } 
-
-    else {
-
-      // want: this = this * thisFact + other^T * factOther
-      if (factOther == 1.0) {
-        double *dataPtr = data;
-        for (int j=0; j<numCols; j++) {
-          for (int i=0; i<numRows; i++) {
-            double value = *dataPtr * factThis + (other.data)[j+i*numCols];
-                *dataPtr++ = value;
-          }
-        }
-      } else {
-        double *dataPtr = data;
-        for (int j=0; j<numCols; j++) {
-          for (int i=0; i<numRows; i++) {
-                double value = *dataPtr * factThis + (other.data)[j+i*numCols] * factOther;
-                *dataPtr++ = value;
-          }
-        }
-      }
-    } 
-
-    // successfull
+  if (factThis == 1.0 && factOther == 0.0)
     return 0;
+
+  if (factThis == 1.0) {
+
+      // want: this += other^T * factOther
+    if (factOther == 1.0) {
+      double *dataPtr = data;
+      for (int j=0; j<numCols; j++) {
+        for (int i=0; i<numRows; i++)
+              *dataPtr++ += (other.data)[j+i*numCols];
+      }
+    } else {
+      double *dataPtr = data;
+      for (int j=0; j<numCols; j++) {
+        for (int i=0; i<numRows; i++)
+              *dataPtr++ += (other.data)[j+i*numCols] * factOther;
+      }
+    }
+  } 
+
+  else if (factThis == 0.0) {
+
+    // want: this = other^T * factOther
+    if (factOther == 1.0) {
+      double *dataPtr = data;
+      for (int j=0; j<numCols; j++) {
+        for (int i=0; i<numRows; i++)
+              *dataPtr++ = (other.data)[j+i*numCols];
+      }
+    } else {
+      double *dataPtr = data;
+      for (int j=0; j<numCols; j++) {
+        for (int i=0; i<numRows; i++)
+              *dataPtr++ = (other.data)[j+i*numCols] * factOther;
+      }
+    }
+  }
+
+  else {
+    // want: this = this * thisFact + other^T * factOther
+    if (factOther == 1.0) {
+      double *dataPtr = data;
+      for (int j=0; j<numCols; j++) {
+        for (int i=0; i<numRows; i++) {
+          double value = *dataPtr * factThis + (other.data)[j+i*numCols];
+              *dataPtr++ = value;
+        }
+      }
+    } else {
+      double *dataPtr = data;
+      for (int j=0; j<numCols; j++) {
+        for (int i=0; i<numRows; i++) {
+              double value = *dataPtr * factThis + (other.data)[j+i*numCols] * factOther;
+              *dataPtr++ = value;
+        }
+      }
+    }
+  } 
+
+  // successfull
+  return 0;
 }
 
 
@@ -671,81 +670,81 @@ Matrix::addMatrixProduct(double thisFact,
                          const Matrix &C, 
                          double otherFact)
 {
-    assert(B.numRows == numRows);
-    assert(C.numCols == numCols);
-    assert(B.numCols == C.numRows);
+  assert(B.numRows == numRows);
+  assert(C.numCols == numCols);
+  assert(B.numCols == C.numRows);
 
-    if (thisFact == 1.0 && otherFact == 0.0)
-      return 0;
+  if (thisFact == 1.0 && otherFact == 0.0)
+    return 0;
 
 #ifdef MATRIX_BLAS
-    else if (numRows >  6) {
-      int m = numRows,
-          n = C.numCols,
-          k = C.numRows;
-      DGEMM("N", "N", &m, &n, &k,&otherFact, B.data, &  m,
-                                             C.data, &  k,
-                                 &thisFact,    data, &  m);
-      return 0;
-    }
+  else if (numRows >  4) {
+    int m = numRows,
+        n = this->numCols,
+        k = C.numRows;
+    DGEMM("N", "N", &m, &n, &k, &otherFact, B.data, &  m,
+                                            C.data, &  k,
+                                &thisFact,    data, &  m);
+    return 0;
+  }
 #endif
 
-    // NOTE: looping as per blas3 dgemm_: j,k,i
-    else if (thisFact == 1.0) {
+  // NOTE: looping as per blas3 dgemm_: j,k,i
+  else if (thisFact == 1.0) {
 
-      // want: this += B * C  otherFact
-      int numColB = B.numCols;
-      double *ckjPtr  = &(C.data)[0];
-      for (int j=0; j<numCols; j++) {
-        double *aijPtrA = &data[j*numRows];
-        for (int k=0; k<numColB; k++) {
-          double tmp = *ckjPtr++ * otherFact;
-          double *aijPtr = aijPtrA;
-          double *bikPtr = &(B.data)[k*numRows];
-          for (int i=0; i<numRows; i++)
-            *aijPtr++ += *bikPtr++ * tmp;
-        }
+    // want: this += B * C  otherFact
+    int numColB = B.numCols;
+    double *ckjPtr  = &(C.data)[0];
+    for (int j=0; j<numCols; j++) {
+      double *aijPtrA = &data[j*numRows];
+      for (int k=0; k<numColB; k++) {
+        double tmp = *ckjPtr++ * otherFact;
+        double *aijPtr = aijPtrA;
+        double *bikPtr = &(B.data)[k*numRows];
+        for (int i=0; i<numRows; i++)
+          *aijPtr++ += *bikPtr++ * tmp;
       }
     }
+  }
 
-    else if (thisFact == 0.0) {
-      // want: this = B * C  otherFact
-      double *dataPtr = data;
-      for (int i=0; i<dataSize; i++)
-          *dataPtr++ = 0.0;
-      int numColB = B.numCols;
-      double *ckjPtr  = &(C.data)[0];
-      for (int j=0; j<numCols; j++) {
-        double *aijPtrA = &data[j*numRows];
-        for (int k=0; k<numColB; k++) {
-          double tmp = *ckjPtr++ * otherFact;
-          double *aijPtr = aijPtrA;
-          double *bikPtr = &(B.data)[k*numRows];
-          for (int i=0; i<numRows; i++)
-            *aijPtr++ += *bikPtr++ * tmp;
-        }
+  else if (thisFact == 0.0) {
+    // want: this = B * C  otherFact
+    double *dataPtr = data;
+    for (int i=0; i<dataSize; i++)
+        *dataPtr++ = 0.0;
+    int numColB = B.numCols;
+    double *ckjPtr  = &(C.data)[0];
+    for (int j=0; j<numCols; j++) {
+      double *aijPtrA = &data[j*numRows];
+      for (int k=0; k<numColB; k++) {
+        double tmp = *ckjPtr++ * otherFact;
+        double *aijPtr = aijPtrA;
+        double *bikPtr = &(B.data)[k*numRows];
+        for (int i=0; i<numRows; i++)
+          *aijPtr++ += *bikPtr++ * tmp;
       }
-    } 
+    }
+  } 
 
-    else {
-      // want: this = B * C  otherFact
-      double *dataPtr = data;
-      for (int i=0; i<dataSize; i++)
-          *dataPtr++ *= thisFact;
-      int numColB = B.numCols;
-      double *ckjPtr  = &(C.data)[0];
-      for (int j=0; j<numCols; j++) {
-        double *aijPtrA = &data[j*numRows];
-        for (int k=0; k<numColB; k++) {
-          double tmp = *ckjPtr++ * otherFact;
-          double *aijPtr = aijPtrA;
-          double *bikPtr = &(B.data)[k*numRows];
-          for (int i=0; i<numRows; i++)
-            *aijPtr++ += *bikPtr++ * tmp;
-        }
+  else {
+    // want: this = B * C  otherFact
+    double *dataPtr = data;
+    for (int i=0; i<dataSize; i++)
+        *dataPtr++ *= thisFact;
+    int numColB = B.numCols;
+    double *ckjPtr  = &(C.data)[0];
+    for (int j=0; j<numCols; j++) {
+      double *aijPtrA = &data[j*numRows];
+      for (int k=0; k<numColB; k++) {
+        double tmp = *ckjPtr++ * otherFact;
+        double *aijPtr = aijPtrA;
+        double *bikPtr = &(B.data)[k*numRows];
+        for (int i=0; i<numRows; i++)
+          *aijPtr++ += *bikPtr++ * tmp;
       }
-    } 
-    return 0;
+    }
+  } 
+  return 0;
 }
 
 int
@@ -764,7 +763,6 @@ Matrix::addMatrixTransposeProduct(double thisFact,
 #ifdef MATRIX_BLAS
   else if (numRows >  6) {
     int m = numRows,
-        // n = C.numCols,
         n = numCols,
         k = C.numRows;
     DGEMM("T", "N", &m, &n, &k,&otherFact, B.data, &  k,
@@ -1534,21 +1532,24 @@ Matrix::Output(OPS_Stream &s) const
 // friend stream functions for input and output
 //
 
-OPS_Stream &operator<<(OPS_Stream &s, const Matrix &V)
+OPS_Stream &
+operator<<(OPS_Stream &s, const Matrix &V)
 {
-    s << "\n";
-    V.Output(s);
-    s << "\n";        
-    return s;
+  s << "\n";
+  V.Output(s);
+  s << "\n";        
+  return s;
 }
 
 
-Matrix operator*(double a, const Matrix &V)
+Matrix 
+operator*(double a, const Matrix &V)
 {
   return V * a;
 }
 
-Vector Matrix::diagonal() const
+Vector 
+Matrix::diagonal() const
 {
   
   assert(numRows == numCols);
