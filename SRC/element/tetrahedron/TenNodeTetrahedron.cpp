@@ -1620,9 +1620,8 @@ TenNodeTetrahedron::setResponse(const char **argv, int argc, OPS_Stream &output)
 			theResponse =  materialPointers[pointNum - 1]->setResponse(&argv[2], argc - 2, output);
 			output.endTag(); // GaussPoint
 		}
-
-
 	}
+
 	else if (strcmp(argv[0], "stresses") == 0)
 	{
 		for (int i = 0; i < 4; i++)
