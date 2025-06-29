@@ -181,7 +181,6 @@ class Matrix
 
     // methods to read/write to/from the matrix
     void Output(OPS_Stream &s) const;
-    //    void Input(istream &s);
 
     friend OPS_Stream &operator<<(OPS_Stream &s, const Matrix &M);
     //    friend istream &operator>>(istream &s, Matrix &M);    
@@ -197,7 +196,6 @@ class Matrix
     friend class TCP_SocketNoDelay;
     friend class MPI_Channel;
     friend class MySqlDatastore;
-    friend class BerkeleyDbDatastore;
 
   protected:
 
