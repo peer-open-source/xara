@@ -79,12 +79,10 @@ public:
       R[init](i,2) = e3[i];
     }
 
-#if 1
     Xc = nodes[ic]->getCrds();
     c[init] = R[init]^(Xc);
-#endif
 
-    update();
+    this->update();
     return 0;
   }
 
@@ -126,7 +124,7 @@ public:
       constexpr static Vector3D D2 {0,1,0};
       const Vector3D E2 = R[init]*D2;
       Vector3D e2 = MatrixFromVersor(nodes[0]->getTrialRotation())*E2; //*R[init];
-      e2.addVector(0.5, MatrixFromVersor(nodes[1]->getTrialRotation())*E2, 0.5);
+      // e2.addVector(0.5, MatrixFromVersor(nodes[1]->getTrialRotation())*E2, 0.5);
       n = e2[0]/e2[1];
       Vector3D e3 = e1.cross(e2);
       e3 /= e3.norm();
@@ -138,7 +136,6 @@ public:
         R[pres](i,1) = e2[i];
         R[pres](i,2) = e3[i];
       }
-
 #elif 1 // TRIAD==C2
       Versor q0 = VersorFromMatrix(R[init]);
       Versor qI = nodes[0]->getTrialRotation()*q0;
@@ -160,9 +157,9 @@ public:
 
         R[pres] = ExpSO3(v)*Rbar;
 
-        Vector3D r1 { R[pres](0,0), R[pres](1,0), R[pres](2,0) };
-        Vector3D r2 { R[pres](0,1), R[pres](1,1), R[pres](2,1) };
-        Vector3D r3 { R[pres](0,2), R[pres](1,2), R[pres](2,2) };
+        // Vector3D r1 { R[pres](0,0), R[pres](1,0), R[pres](2,0) };
+        // Vector3D r2 { R[pres](0,1), R[pres](1,1), R[pres](2,1) };
+        // Vector3D r3 { R[pres](0,2), R[pres](1,2), R[pres](2,2) };
         // opserr << Vector(r1-e1);
         // R[pres] = Rbar^ExpSO3(v);
       }
@@ -187,15 +184,20 @@ public:
 
     constexpr Vector3D axis{1, 0, 0};
     constexpr Matrix3D ix = Hat(axis);
-    constexpr Matrix3D ioi = axis.bun(axis);
+    // constexpr Matrix3D ioi = axis.bun(axis);
 
-    Gb.template insert<0, 3>(ioi, 0.5);
-    if (node == 0)
-      Gb.template insert<0,0>(ix, -1/Ln);
-    else if (node == nn-1)
-      Gb.template insert<0,0>(ix,  1/Ln);
+    if (node == 0) {
+      Gb.template insert<0,0>( ix, -1.0/Ln);
+      // Gb.template insert<0,3>(ioi,  1.0-n);
+      Gb(0,3) =   1.0; // - n;
+      Gb(0,4) =    -n;
+      Gb(0,2) =  n/Ln;
+    }
+    else if (node == nn-1) {
+      Gb.template insert<0,0>( ix,   1.0/Ln);
+      Gb(0,2) = -n/Ln;
+    }
     
-    Gb(0,2) = (node == 0? 1.0 : -1.0)*n;
     return Gb;
   }
 

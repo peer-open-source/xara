@@ -55,6 +55,10 @@ class AlignedIsometry : public Isometry
 {
 public:
 
+  // virtual
+  // Matrix3D
+  // update(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) = 0;
+
   virtual Vector3D
   getRotationVariation(int ndf, double* du) {
     // psi_r = omega
