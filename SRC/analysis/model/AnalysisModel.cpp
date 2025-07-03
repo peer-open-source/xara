@@ -455,7 +455,7 @@ AnalysisModel::incrDisp(const Vector &disp)
     DOF_Group         *dofPtr;
 
     while ((dofPtr = theDOFGrps()) != nullptr)
-        dofPtr->incrNodeDisp(disp);
+      dofPtr->incrNodeDisp(disp);
 }
         
 void 
@@ -479,6 +479,48 @@ AnalysisModel::incrAccel(const Vector &accel)
 }        
 #endif
 
+int
+AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
+{
+
+  if (U.Size() != numEqn || Udot.Size() != numEqn || Udotdot.Size() != numEqn) {
+    return -1;
+  }
+
+  DOF_GrpIter &theDOFs = this->getDOFs();
+  DOF_Group *dofPtr;
+  while ((dofPtr = theDOFs()) != 0)  {
+      const ID &id = dofPtr->getID();
+      int idSize = id.Size();
+      
+      int i;
+      const Vector &disp = dofPtr->getCommittedDisp();
+      for (i=0; i < idSize; i++)  {
+          int loc = id(i);
+          if (loc >= 0)  {
+            U(loc) = disp(i);
+          }
+      }
+      
+      const Vector &vel = dofPtr->getCommittedVel();
+      for (i=0; i < idSize; i++)  {
+          int loc = id(i);
+          if (loc >= 0)  {
+            Udot(loc) = vel(i);
+          }
+      }
+      
+      const Vector &accel = dofPtr->getCommittedAccel();
+      for (i=0; i < idSize; i++)  {
+          int loc = id(i);
+          if (loc >= 0)  {
+            Udotdot(loc) = accel(i);
+          }
+      }
+  }
+
+  return 0;
+}
 
 void 
 AnalysisModel::setNumEigenvectors(int numEigenvectors)
@@ -534,11 +576,10 @@ AnalysisModel::applyLoadDomain(double pseudoTime)
 
 
 int
-AnalysisModel::updateDomain(void)
+AnalysisModel::updateDomain()
 {
     assert(myDomain != nullptr);
 
-    // invoke the method
     int res = myDomain->update();
 
     if (res == 0)

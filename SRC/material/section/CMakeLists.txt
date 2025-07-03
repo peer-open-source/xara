@@ -13,8 +13,8 @@ target_sources(OPS_Material
 #   ElasticBDShearSection2d.cpp
     ElasticSection2d.cpp
     ElasticSection3d.cpp
-    ElasticShearSection2d.cpp 
-#   ElasticShearSection3d.cpp
+    ElasticShearSection2d.cpp
+
 #   ElasticTubeSection3d.cpp
 #   ElasticWarpingShearSection2d.cpp
     Elliptical2.cpp
@@ -26,8 +26,6 @@ target_sources(OPS_Material
     FiberSectionWarping3d.cpp    
     FiberSectionAsym3d.cpp
     FiberSection3dThermal.cpp
-#   FiberSectionGJ.cpp
-#   FiberSectionGJThermal.cpp    
     # GenericSection1d.cpp
     Isolator2spring.cpp
     NDFiberSection2d.cpp
@@ -36,6 +34,10 @@ target_sources(OPS_Material
     ParallelSection.cpp
     SectionAggregator.cpp
     SectionForceDeformation.cpp
+    # Deprecated
+    ElasticShearSection3d.cpp
+#   FiberSectionGJ.cpp
+#   FiberSectionGJThermal.cpp
 #   TimoshenkoSection3d.cpp
   PUBLIC
     ASDCoupledHinge3D.h

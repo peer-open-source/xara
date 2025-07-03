@@ -34,68 +34,68 @@ Matrix ElasticShearSection3d::ks(6,6);
 ID ElasticShearSection3d::code(6);
 
 
-ElasticShearSection3d::ElasticShearSection3d(void)
+ElasticShearSection3d::ElasticShearSection3d()
 :FrameSection(0, SEC_TAG_ElasticShear3d),
  E(0.0), A(0.0), Iz(0.0), Iy(0.0), G(0.0), J(0.0),
  alphaY(0.0), alphaZ(0.0), e(6)
 {
   if (code(0) != SECTION_RESPONSE_P) {
-      code(0) = SECTION_RESPONSE_P;       // P is the first quantity
-      code(1) = SECTION_RESPONSE_MZ;      // Mz is the second
-      code(2) = SECTION_RESPONSE_VY;      // Vy is the third 
-      code(3) = SECTION_RESPONSE_MY;      // My is the fourth
-      code(4) = SECTION_RESPONSE_VZ;      // Vz is the fifth
-      code(5) = SECTION_RESPONSE_T;       // T is the sixth
+      code(0) = SECTION_RESPONSE_P; 
+      code(1) = SECTION_RESPONSE_MZ;
+      code(2) = SECTION_RESPONSE_VY;
+      code(3) = SECTION_RESPONSE_MY;
+      code(4) = SECTION_RESPONSE_VZ;
+      code(5) = SECTION_RESPONSE_T; 
   }
 }
 
 ElasticShearSection3d::ElasticShearSection3d
-(int tag, double E_in, double A_in, double Iz_in, double Iy_in,
- double G_in, double J_in, double alphaY_in, double alphaZ_in)
+(int tag, double E_in, double A_in, double Iz, double Iy_in,
+ double G, double J_in, double alphaY, double alphaZ)
 :FrameSection(tag, SEC_TAG_ElasticShear3d),
- E(E_in), A(A_in), Iz(Iz_in), Iy(Iy_in), G(G_in), J(J_in),
- alphaY(alphaY_in), alphaZ(alphaZ_in), e(6)
+ E(E_in), A(A_in), Iz(Iz), Iy(Iy_in), G(G), J(J_in),
+ alphaY(alphaY), alphaZ(alphaZ), e(6)
 {
-    if (E <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input E <= 0.0\n";
-    }
-    
-    if (A <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input A <= 0.0\n";
-    }
+  if (E <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input E <= 0.0\n";
+  }
+  
+  if (A <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input A <= 0.0\n";
+  }
 
-    if (Iz <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input Iz <= 0.0\n";
-    }
-    
-    if (Iy <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input Iy <= 0.0\n";
-    }
+  if (Iz <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input Iz <= 0.0\n";
+  }
+  
+  if (Iy <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input Iy <= 0.0\n";
+  }
 
-    if (G <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input G <= 0.0\n";
-    }
-    
-    if (J <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input J <= 0.0\n";
-    }
-    
-    if (alphaY <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input alphaY <= 0.0\n";
-    }
+  if (G <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input G <= 0.0\n";
+  }
+  
+  if (J <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input J <= 0.0\n";
+  }
+  
+  if (alphaY <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input alphaY <= 0.0\n";
+  }
 
-    if (alphaZ <= 0.0)  {
-      opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input alphaZ <= 0.0\n";
-    }
+  if (alphaZ <= 0.0)  {
+    opserr << "ElasticShearSection3d::ElasticShearSection3d -- Input alphaZ <= 0.0\n";
+  }
 
-    if (code(0) != SECTION_RESPONSE_P) {
-      code(0) = SECTION_RESPONSE_P;        // P is the first quantity
-      code(1) = SECTION_RESPONSE_MZ;        // Mz is the second
-      code(2) = SECTION_RESPONSE_VY;        // Vy is the third 
-      code(3) = SECTION_RESPONSE_MY;        // My is the fourth
-      code(4) = SECTION_RESPONSE_VZ;        // Vz is the fifth
-      code(5) = SECTION_RESPONSE_T;        // T is the sixth
-    }
+  if (code(0) != SECTION_RESPONSE_P) {
+    code(0) = SECTION_RESPONSE_P;         // P is the first quantity
+    code(1) = SECTION_RESPONSE_MZ;        // Mz is the second
+    code(2) = SECTION_RESPONSE_VY;        // Vy is the third 
+    code(3) = SECTION_RESPONSE_MY;        // My is the fourth
+    code(4) = SECTION_RESPONSE_VZ;        // Vz is the fifth
+    code(5) = SECTION_RESPONSE_T;         // T is the sixth
+  }
 }
 
 ElasticShearSection3d::~ElasticShearSection3d(void)
@@ -181,7 +181,7 @@ ElasticShearSection3d::getInitialTangent(void)
 }
 
 const Matrix &
-ElasticShearSection3d::getSectionFlexibility (void)
+ElasticShearSection3d::getSectionFlexibility(void)
 {
   ks(0,0) = 1.0/(E*A);
   ks(1,1) = 1.0/(E*Iz);

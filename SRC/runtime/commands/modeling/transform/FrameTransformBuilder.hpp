@@ -6,6 +6,8 @@
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
+// Written: Claudio M. Perez
+//
 #pragma once
 #include <map>
 #include <TaggedObject.h>
@@ -17,7 +19,9 @@
 #include <SouzaFrameTransf.h>
 #include <PDeltaFrameTransf3d.h>
 #include <EuclidFrameTransf.h>
-#include <Isometry/RankineIsometry.h>
+#include <Isometry/RankinIsometry.h>
+#include <Isometry/CrisfieldIsometry.h>
+#include <Isometry/BattiniIsometry.h>
 
 namespace OpenSees {
 
@@ -64,7 +68,14 @@ public:
         return new PDeltaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
 
       else if (strcmp(name, "Corotational02") == 0 || strcmp(name, "Isometric") == 0 || strstr(name, "Rigid") != nullptr)
-        return new EuclidFrameTransf<nn, ndf, RankineIsometry<nn>> (tag, vz, offset_array, offset_flags);
+      {
+        if (getenv("Battini"))
+          return new EuclidFrameTransf<nn, ndf, BattiniIsometry<nn>> (tag, vz, offset_array, offset_flags);
+        else if (getenv("Crisfield"))
+          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn>> (tag, vz, offset_array, offset_flags);
+        else
+          return new EuclidFrameTransf<nn, ndf, RankinIsometry<nn>> (tag, vz, offset_array, offset_flags);
+      }
 
       return nullptr;
     }

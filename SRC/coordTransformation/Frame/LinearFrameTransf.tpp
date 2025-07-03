@@ -404,7 +404,7 @@ LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
   // 1.2) Adjust force part
   for (int i=0; i<nn; i++) {
     pa.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)/L);
-    pa[i*ndf+3] += m[0]*(i? -1:1)*0.5;
+    pa[i*ndf+3] += m[0]*(i? -1.0:1.0)*0.5;
   }
 
   // 2) Rotate and do joint offsets
@@ -420,8 +420,8 @@ LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kb, const Vector
   MatrixND<nn*ndf,nn*ndf> A{};
   A.addDiagonal(1.0);
   constexpr Vector3D axis{1, 0, 0};
-  constexpr Matrix3D ix = Hat(axis);
-  constexpr Matrix3D ioi = axis.bun(axis);
+  constexpr Matrix3D ix  = Hat(Vector3D{1, 0, 0});
+  constexpr Matrix3D ioi = axis.bun(Vector3D{1, 0, 0});
 
   MatrixND<3,ndf> Gb{};
   Gb.template insert<0, 3>(ioi, 0.5);

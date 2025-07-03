@@ -4,11 +4,6 @@
 //                              https://xara.so
 //----------------------------------------------------------------------------//
 //
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
-//
-//----------------------------------------------------------------------------//
-//
 // Please cite the following resource in any derivative works:
 //
 // [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
@@ -23,7 +18,7 @@
 // abstraction of a linear transformation for a spatial frame
 // between the global and basic coordinate systems
 //
-// Adapted: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
+// Written: Claudio Perez
 //
 #ifndef LinearFrameTransf_hpp
 #define LinearFrameTransf_hpp

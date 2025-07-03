@@ -43,9 +43,9 @@ DOF_GroupGraph::DOF_GroupGraph(AnalysisModel &theModel)
     int numVertex = myModel.getNumDOF_Groups();
 
     if (numVertex == 0) {
-	opserr << "WARNING DOF_GroupGraph::DOF_GroupGraph";
-	opserr << "  - 0 vertices, has the Domain been populated?\n";
-	return;
+        opserr << "WARNING DOF_GroupGraph::DOF_GroupGraph";
+        opserr << "  - 0 vertices, has the Domain been populated?\n";
+        return;
     }	
 	
     DOF_Group *dofPtr;
@@ -56,11 +56,11 @@ DOF_GroupGraph::DOF_GroupGraph(AnalysisModel &theModel)
     DOF_GrpIter &dofIter2 = theModel.getDOFs();
     int count = START_VERTEX_NUM;
     while ((dofPtr = dofIter2()) != nullptr) {
-	int DOF_GroupTag = dofPtr->getTag();
-	int DOF_GroupNodeTag = dofPtr->getNodeTag();
-	int numDOF = dofPtr->getNumFreeDOF();
-	Vertex *vertexPtr = new Vertex(DOF_GroupTag, DOF_GroupNodeTag, 0, numDOF);	
-	this->addVertex(vertexPtr);
+        int DOF_GroupTag = dofPtr->getTag();
+        int DOF_GroupNodeTag = dofPtr->getNodeTag();
+        int numDOF = dofPtr->getNumFreeDOF();
+        Vertex *vertexPtr = new Vertex(DOF_GroupTag, DOF_GroupNodeTag, 0, numDOF);	
+        this->addVertex(vertexPtr);
     }
 
 
@@ -71,16 +71,16 @@ DOF_GroupGraph::DOF_GroupGraph(AnalysisModel &theModel)
     FE_EleIter &eleIter = myModel.getFEs();
 
     while((elePtr = eleIter()) != 0) {
-	const ID &id = elePtr->getDOFtags();
-	int size = id.Size();
-	for (int i=0; i<size; i++) {
-	    int dof1 = id(i);
-	    for (int j=0; j<size; j++) 
-		if (i != j) {
-		    int dof2 = id(j);
-		    this->addEdge(dof1,dof2);
-		}
-	}
+        const ID &id = elePtr->getDOFtags();
+        int size = id.Size();
+        for (int i=0; i<size; i++) {
+            int dof1 = id(i);
+            for (int j=0; j<size; j++) 
+                if (i != j) {
+                    int dof2 = id(j);
+                    this->addEdge(dof1,dof2);
+                }
+        }
     }
 }
 

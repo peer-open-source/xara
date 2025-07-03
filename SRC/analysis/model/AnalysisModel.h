@@ -51,17 +51,17 @@ class AnalysisModel: public MovableObject
   public:
     AnalysisModel();    
     AnalysisModel(int classTag);
-    AnalysisModel(TaggedObjectStorage &theDofStorage,
-		  TaggedObjectStorage &theFeStorage);
+    AnalysisModel(TaggedObjectStorage &, TaggedObjectStorage &);
 
-    VIRTUAL ~AnalysisModel();    
+    VIRTUAL ~AnalysisModel();
 
     // methods to populate/depopulate the AnalysisModel
     VIRTUAL bool addFE_Element(FE_Element *theFE_Ele);
     VIRTUAL bool addDOF_Group(DOF_Group *theDOF_Grp); // called by Handler
-    VIRTUAL void clearAll(void);
-    VIRTUAL void clearDOFGraph(void);                 // called by Numberer and Analysis
-    VIRTUAL void clearDOFGroupGraph(void); 
+    VIRTUAL void clearAll();
+    VIRTUAL void clearDOFGraph();                 // called by Numberer and Analysis
+    VIRTUAL void clearDOFGroupGraph();
+
     // methods to access the FE_Elements and DOF_Groups and their numbers
     VIRTUAL int getNumDOF_Groups(void) const;		
     VIRTUAL DOF_Group *getDOF_GroupPtr(int tag);	
@@ -70,9 +70,9 @@ class AnalysisModel: public MovableObject
 
     // method to access the connectivity for SysOfEqn to size itself
     VIRTUAL void   setNumEqn(int) ;	
-    VIRTUAL int    getNumEqn(void) const ; 
-    VIRTUAL Graph &getDOFGraph(void);
-    VIRTUAL Graph &getDOFGroupGraph(void);
+    VIRTUAL int    getNumEqn() const ; 
+    VIRTUAL Graph &getDOFGraph();
+    VIRTUAL Graph &getDOFGroupGraph();
     
     // methods to update the response quantities at the DOF_Groups,
     // which in turn set the new nodal trial response quantities.
@@ -84,7 +84,10 @@ class AnalysisModel: public MovableObject
     VIRTUAL void setAccel(const Vector &vel);            
 
     VIRTUAL void incrDisp(const Vector &disp);    
-    VIRTUAL void incrVel(const Vector &vel);        
+    VIRTUAL void incrVel(const Vector &vel);
+
+    int getState(Vector&, Vector&, Vector&, int flag); // cmp
+
 //  VIRTUAL void incrAccel(const Vector &vel);            
 
     // methods added to store the eigenvalues and vectors in the domain

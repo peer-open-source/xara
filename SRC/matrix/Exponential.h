@@ -213,9 +213,10 @@ ExpGLn(const MatrixType& arg)
   MatrixType denom =  V - U;
   // TODO: clean this up.
   MatrixType result;
-  Matrix rhs(result);
-  Matrix lhs(numer);
-  denom.solve(lhs, rhs);
+  // Matrix rhs(result);
+  // Matrix lhs(numer);
+  // denom.solve(lhs, rhs);
+  denom.solve(numer, result);
 
   // Undo scaling by repeated squaring
   for (int i = 0; i < squarings; i++)

@@ -270,38 +270,63 @@ struct MatrixND {
   }
 
 
-  int solve(const Vector &V, Vector &res) const
-    requires(NR == NC)
+  template<index_t n>
+  // requires (NR == NC) && (n == NR) && (n > 0)
+  int solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const
   {
+      static_assert(n == NR, "RHS row-count must match A.");
 
-    MatrixND<NR,NC> work = *this;
-    int pivot_ind[NR];
-    int nrhs = 1;
-    int nr = NR;
-    int nc = NC;
-    int info = 0;
-    res = V; // X will be overwritten with the solution
-    DGESV(&nr, &nrhs, &work.values[0][0], &nr, &pivot_ind[0], res.theData, &nc, &info);
-    return -abs(info);
+      MatrixND<NR,NC,T> work = *this;               // copy of A to be factorised
+      int ipiv[NR]{};
+
+      int n_eq  = NR;               // order of the system
+      int nrhs  = n;                // number of RHS columns
+      int lda   = NR;               // leading dim of A
+      int ldb   = NR;               // leading dim of X
+      int info  = 0;
+
+      X = M;                               // copy RHS, DGESV overwrites
+      DGESV(&n_eq, &nrhs,
+            work.values[0], &lda,
+            &ipiv[0],
+            X.values[0], &ldb,
+            &info);
+
+      return -std::abs(info);
   }
 
+  // int solve(const Vector &V, Vector &res) const
+  //   requires(NR == NC)
+  // {
 
-  int
-  solve(const Matrix &M, Matrix &res)
-  {
-    Matrix slver(*this);
-    return slver.Solve(M, res);
+  //   MatrixND<NR,NC> work = *this;
+  //   int pivot_ind[NR];
+  //   int nrhs = 1;
+  //   int nr = NR;
+  //   int nc = NC;
+  //   int info = 0;
+  //   res = V; // X will be overwritten with the solution
+  //   DGESV(&nr, &nrhs, &work.values[0][0], &nr, &pivot_ind[0], res.theData, &nc, &info);
+  //   return -abs(info);
+  // }
 
-    MatrixND<NR,NC> work = *this;
-    int pivot_ind[NR];
-    int nrhs = M.noCols();
-    int nr = NR;
-    int nc = NC;
-    int info = 0;
-    res = M; // M will be overwritten with the solution
-    DGESV(&nr, &nrhs, &work(0,0), &nr, &pivot_ind[0], &res(0,0), &nc, &info);
-    return -abs(info);
-  }
+
+  // int
+  // solve(const Matrix &M, Matrix &res)
+  // {
+  //   Matrix slver(*this);
+  //   return slver.Solve(M, res);
+
+  //   MatrixND<NR,NC> work = *this;
+  //   int pivot_ind[NR];
+  //   int nrhs = M.noCols();
+  //   int nr = NR;
+  //   int nc = NC;
+  //   int info = 0;
+  //   res = M; // M will be overwritten with the solution
+  //   DGESV(&nr, &nrhs, &work(0,0), &nr, &pivot_ind[0], &res(0,0), &nc, &info);
+  //   return -abs(info);
+  // }
  
 
   template <int row0, int row1, int col0, int col1>
@@ -330,9 +355,10 @@ struct MatrixND {
   insert(const MatrixND<nr, nc, double> &M, double fact) 
   {
  
-    [[maybe_unused]] int final_row = init_row + nr - 1;
-    [[maybe_unused]] int final_col = init_col + nc - 1; 
-    assert((init_row >= 0) && (final_row < NR) && (init_col >= 0) && (final_col < NC));
+    constexpr int final_row = init_row + nr - 1;
+    constexpr int final_col = init_col + nc - 1;
+    static_assert((init_row >= 0) && (final_row < NR) && (init_col >= 0) && (final_col < NC), 
+                  "MatrixND::insert: init_row, init_col, nr, nc out of bounds");
 
     for (int i=0; i<nc; i++) {
        int pos_Cols = init_col + i;

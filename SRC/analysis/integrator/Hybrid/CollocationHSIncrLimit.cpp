@@ -332,39 +332,7 @@ int CollocationHSIncrLimit::domainChanged()
         }
     }
     
-    // now go through and populate U, Udot and Udotdot by iterating through
-    // the DOF_Groups and getting the last committed velocity and accel
-    DOF_GrpIter &theDOFs = theModel->getDOFs();
-    DOF_Group *dofPtr;
-    while ((dofPtr = theDOFs()) != 0)  {
-        const ID &id = dofPtr->getID();
-        int idSize = id.Size();
-        
-        int i;
-        const Vector &disp = dofPtr->getCommittedDisp();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*U)(loc) = disp(i);
-            }
-        }
-        
-        const Vector &vel = dofPtr->getCommittedVel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udot)(loc) = vel(i);
-            }
-        }
-        
-        const Vector &accel = dofPtr->getCommittedAccel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udotdot)(loc) = accel(i);
-            }
-        }
-    }
+    this->getAnalysisModel()->getState(*U, *Udot, *Udotdot, 0);
     
     return 0;
 }

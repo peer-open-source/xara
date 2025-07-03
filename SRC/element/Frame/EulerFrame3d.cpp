@@ -165,8 +165,6 @@ EulerFrame3d::setNodes()
     points[i].point  = xi[i];
     points[i].weight = wt[i];
   }
-//delete[] xi;
-//delete[] wt;
 
 // NOTE(cmp) uncomment to match upstream behavior
   status += this->update();
@@ -317,6 +315,7 @@ EulerFrame3d::getResistingForce()
   static Vector wrapper(pg);
 //    const Vector p0Vec(p0);
 //    P = basic_system->getGlobalResistingForce(q, p0Vec);
+
   pg  = basic_system->t.pushResponse(pl);
   pg += basic_system->t.pushConstant(pf);
 
@@ -815,7 +814,7 @@ EulerFrame3d::getResponse(int responseID, Information &info)
   // Plastic rotation
   else if (responseID == 4) {
     static Vector vp(6);
-    static Vector ve(6);
+    static VectorND<6> ve;
     auto kb = this->stateDetermination(State::Init, 0);
     kb.solve(q, ve);
     vp = basic_system->getBasicTrialDisp();

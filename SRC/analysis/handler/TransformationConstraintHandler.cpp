@@ -483,7 +483,7 @@ TransformationConstraintHandler::enforceSPs(void)
 }
 
 int 
-TransformationConstraintHandler::doneNumberingDOF(void)
+TransformationConstraintHandler::doneNumberingDOF()
 {
     // iterate through the DOF_Groups telling them that their ID has now been set
     AnalysisModel *theModel1=this->getAnalysisModelPtr();

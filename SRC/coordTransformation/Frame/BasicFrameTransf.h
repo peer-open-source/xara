@@ -4,11 +4,6 @@
 //                              https://xara.so
 //----------------------------------------------------------------------------//
 //
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
-//
-//----------------------------------------------------------------------------//
-//
 // Please cite the following resource in any derivative works:
 //
 // [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
@@ -22,7 +17,8 @@
 // templates to reproduce the legacy CrdTransf classes that were derived
 // for elements in a "basic" coordinate system.
 //
-// cmp
+//
+// Written: Claudio M. Perez
 //
 #ifndef BasicFrameTransf3d_h
 #define BasicFrameTransf3d_h

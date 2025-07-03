@@ -341,44 +341,18 @@ int Newmark::domainChanged()
         dAn.Zero(); 
     }        
     
-    // now go through and populate U, Udot and Udotdot by iterating through
-    // the DOF_Groups and getting the last committed velocity and accel
+    myModel->getState(*U, *Udot, *Udotdot, 0);
+
+  
+      // The remaining get**Sensitivity methods cause seg faults with Lagrange constraint
+      // handler in dynamic (transient) analysis even when there is no sensitivity algorithm.
+      // However, I don't think these methods need to be called in domainChanged -- MHS
+#if 0
     DOF_GrpIter &theDOFs = myModel->getDOFs();
     DOF_Group *dofPtr;
     while ((dofPtr = theDOFs()) != 0)  {
       const ID &id = dofPtr->getID();
       int idSize = id.Size();
-
-      int i;
-      const Vector &disp = dofPtr->getCommittedDisp();  
-      for (i=0; i < idSize; i++)  {
-          int loc = id(i);
-          if (loc >= 0)  {
-              (*U)(loc) = disp(i);    
-          }
-      }
-
-      const Vector &vel = dofPtr->getCommittedVel();
-      for (i=0; i < idSize; i++)  {
-          int loc = id(i);
-          if (loc >= 0) {
-              (*Udot)(loc) = vel(i);
-          }
-      }
-      
-      const Vector &accel = dofPtr->getCommittedAccel();  
-      for (i=0; i < idSize; i++)  {
-          int loc = id(i);
-          if (loc >= 0) {
-              (*Udotdot)(loc) = accel(i);
-          }
-      }
-
-      // The remaining get**Sensitivity methods cause seg faults with Lagrange constraint
-      // handler in dynamic (transient) analysis even when there is no sensitivity algorithm.
-      // However, I don't think these methods need to be called in domainChanged -- MHS
-      continue;
-      
       const Vector &dispSens = dofPtr->getDispSensitivity(gradNumber);  
       for (i=0; i < idSize; i++) {
           int loc = id(i);
@@ -403,7 +377,7 @@ int Newmark::domainChanged()
           }
       }
     }    
-    
+#endif
     return 0;
 }
 

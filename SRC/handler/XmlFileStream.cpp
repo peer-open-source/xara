@@ -602,7 +602,7 @@ XmlFileStream::attr(const char *name, const char *value)
 
   //  if (sendSelfCount == 0) {
 
-    theFile << " " << name << "=\"" << value << "\"";
+  theFile << " " << name << "=\"" << value << "\"";
 
 #if 0
   } else {

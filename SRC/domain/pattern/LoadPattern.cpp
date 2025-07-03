@@ -149,7 +149,8 @@ void LoadPattern::setTimeSeries(TimeSeries *theTimeSeries)
   theSeries = theTimeSeries;
 }
 
-void LoadPattern::setDomain(Domain *theDomain)
+void
+LoadPattern::setDomain(Domain *theDomain)
 {
   // if subclass does not implement .. check for 0 pointer
   if (theNodalLoads != 0) {
@@ -172,7 +173,8 @@ void LoadPattern::setDomain(Domain *theDomain)
   this->theDomain = theDomain;
 }
 
-bool LoadPattern::addNodalLoad(NodalLoad *load)
+bool
+LoadPattern::addNodalLoad(NodalLoad *load)
 {
   Domain *theDomain = this->getDomain();
 
@@ -192,7 +194,8 @@ bool LoadPattern::addNodalLoad(NodalLoad *load)
   return result;
 }
 
-bool LoadPattern::addElementalLoad(ElementalLoad *load)
+bool
+LoadPattern::addElementalLoad(ElementalLoad *load)
 {
   Domain *theDomain = this->getDomain();
 
@@ -209,7 +212,8 @@ bool LoadPattern::addElementalLoad(ElementalLoad *load)
   return result;
 }
 
-bool LoadPattern::addSP_Constraint(SP_Constraint *theSp)
+bool
+LoadPattern::addSP_Constraint(SP_Constraint *theSp)
 {
   Domain *theDomain = this->getDomain();
 
@@ -243,7 +247,8 @@ SP_ConstraintIter &LoadPattern::getSPs()
   return *theSpIter;
 }
 
-void LoadPattern::clearAll(void)
+void
+LoadPattern::clearAll()
 {
   theElementalLoads->clearAll();
   theNodalLoads->clearAll();
@@ -303,14 +308,14 @@ LoadPattern::applyLoad(double pseudoTime)
     Load *nodLoad;
     NodalLoadIter &theNodalIter = this->getNodalLoads();
 
-    while ((nodLoad = theNodalIter()) != 0)
+    while ((nodLoad = theNodalIter()) != nullptr)
       nodLoad->applyLoad(loadFactor);
   }
 
   {
     Load *eleLoad;
     ElementalLoadIter &theElementalIter = this->getElementalLoads();
-    while ((eleLoad = theElementalIter()) != 0)
+    while ((eleLoad = theElementalIter()) != nullptr)
       eleLoad->applyLoad(loadFactor);
   }
 
@@ -324,7 +329,8 @@ void LoadPattern::setLoadConstant(void) { isConstant = true; }
 
 void LoadPattern::unsetLoadConstant(void) { isConstant = false; }
 
-double LoadPattern::getLoadFactor(void)
+double
+LoadPattern::getLoadFactor()
 {
   if (theSeries != nullptr)
     return loadFactor;

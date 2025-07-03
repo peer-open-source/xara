@@ -27,7 +27,6 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -362,7 +361,6 @@ int KRAlphaExplicit::formNodTangent(DOF_Group *theDof)
 
 int KRAlphaExplicit::domainChanged()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
     const Vector &x = theLinSOE->getX();
     int size = x.Size();
@@ -412,96 +410,9 @@ int KRAlphaExplicit::domainChanged()
         Ualphadot = new Vector(size);
         Ualphadotdot = new Vector(size);
         Utdothat = new Vector(size);
-        
-        // check we obtained the new
-        if (alpha1 == 0 || alpha1->noRows() != size || alpha1->noCols() != size ||
-            alpha3 == 0 || alpha3->noRows() != size || alpha3->noCols() != size ||
-            Mhat == 0 || Mhat->noRows() != size || Mhat->noCols() != size ||
-            Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            Ualpha == 0 || Ualpha->Size() != size ||
-            Ualphadot == 0 || Ualphadot->Size() != size ||
-            Ualphadotdot == 0 || Ualphadotdot->Size() != size ||
-            Utdothat == 0 || Utdothat->Size() != size)  {
-            
-            opserr << "WARNING KRAlphaExplicit::domainChanged() - ";
-            opserr << "ran out of memory\n";
-            
-            // delete the old
-            if (alpha1 != 0)
-                delete alpha1;
-            if (alpha3 != 0)
-                delete alpha3;
-            if (Mhat != 0)
-                delete Mhat;
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (Ualpha != 0)
-                delete Ualpha;
-            if (Ualphadot != 0)
-                delete Ualphadot;
-            if (Ualphadotdot != 0)
-                delete Ualphadotdot;
-            if (Utdothat != 0)
-                delete Utdothat;
-            
-            alpha1 = 0; alpha3 = 0; Mhat = 0;
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            Ualpha = 0; Ualphadot = 0; Ualphadotdot = 0;
-            Utdothat = 0;
-            
-            return -1;
-        }
     }
     
-    // now go through and populate U, Udot and Udotdot by iterating through
-    // the DOF_Groups and getting the last committed velocity and accel
-    DOF_GrpIter &theDOFs = theModel->getDOFs();
-    DOF_Group *dofPtr;
-    while ((dofPtr = theDOFs()) != 0)  {
-        const ID &id = dofPtr->getID();
-        int idSize = id.Size();
-        
-        int i;
-        const Vector &disp = dofPtr->getCommittedDisp();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*U)(loc) = disp(i);
-            }
-        }
-        
-        const Vector &vel = dofPtr->getCommittedVel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udot)(loc) = vel(i);
-            }
-        }
-        
-        const Vector &accel = dofPtr->getCommittedAccel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udotdot)(loc) = accel(i);
-            }
-        }
-    }
+    this->getAnalysisModel()->getState(*U, *Udot, *Udotdot, 0);
     
     // recalculate integration parameter matrices b/c domain changed
     initAlphaMatrices = 1;

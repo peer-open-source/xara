@@ -1518,13 +1518,15 @@ Matrix::operator-=(const Matrix &M)
 //
 
 void 
-Matrix::Output(OPS_Stream &s) const
+Matrix::Print(OPS_Stream &s, int flag) const
 {
+  if (flag == 0) {
     for (int i=0; i<noRows(); i++) {
-        for (int j=0; j<noCols(); j++)
-            s <<  (*this)(i,j) << " ";
-        s << "\n";
+      for (int j=0; j<noCols(); j++)
+          s <<  (*this)(i,j) << " ";
+      s << "\n";
     }
+  }
 }
 
 
@@ -1536,7 +1538,7 @@ OPS_Stream &
 operator<<(OPS_Stream &s, const Matrix &V)
 {
   s << "\n";
-  V.Output(s);
+  V.Print(s, 0);
   s << "\n";        
   return s;
 }

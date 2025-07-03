@@ -57,7 +57,7 @@ SingleDomAllSP_Iter::~SingleDomAllSP_Iter()
 
 
 void
-SingleDomAllSP_Iter::reset(void)
+SingleDomAllSP_Iter::reset()
 {
   theDomainSPs = &(theDomain->getSPs());
   theLoadPatterns = &(theDomain->getLoadPatterns());

@@ -42,8 +42,6 @@
 
 #include <FE_Element.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
-#include <DOF_GrpIter.h>
 #include <Matrix.h>
 #include <ID.h>
 #include <Node.h>
@@ -202,7 +200,7 @@ DomainDecompositionAnalysis::domainChanged()
         int nodeTag = theExtNodes(i);
         Node *nodePtr = theSubdomain->getNode(nodeTag);
         DOF_Group *dofGrpPtr = nodePtr->getDOF_GroupPtr();
-        if (dofGrpPtr != 0) {
+        if (dofGrpPtr != nullptr) {
             const ID theID = dofGrpPtr->getID();
             int size = theID.Size();
             for (int j=0; j<size; j++)

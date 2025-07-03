@@ -1,8 +1,8 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
-//
-//===----------------------------------------------------------------------===//
+//                                   xara
+//                              https://xara.so
+//----------------------------------------------------------------------------//
 //
 //
 #ifndef EulerFrame3d_h
@@ -18,6 +18,7 @@
 class Node;
 class BeamIntegration;
 class Response;
+
 namespace OpenSees {
   class FrameTransformBuilder;
 

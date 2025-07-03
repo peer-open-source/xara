@@ -89,7 +89,7 @@ protected:
     int gradNumber;
     int sensitivityFlag;
    // EquiSolnAlgo *theAlgorithm;
-    ReliabilityDomain *theDomain;
+    // ReliabilityDomain *theDomain;
     ////////////////////
 };
 

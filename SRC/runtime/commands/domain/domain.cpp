@@ -37,6 +37,8 @@
 
 #define MAX_NDF 6
 
+namespace OpenSees {
+namespace DomainCommands {
 int
 domainChange(ClientData clientData, Tcl_Interp *interp, int argc,
              Tcl_Obj *const *objv)
@@ -634,4 +636,5 @@ updateElementDomain(ClientData clientData, Tcl_Interp *interp, int argc,
 
   return 0;
 }
-
+}
+}

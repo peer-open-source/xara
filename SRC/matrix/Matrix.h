@@ -49,7 +49,7 @@ class Matrix
 {
   public:
     // constructors and destructor
-    Matrix();	
+    Matrix();
     Matrix(int nrows, int ncols);
     Matrix(double *data, int nrows, int ncols);    
     Matrix(const Matrix &M);
@@ -180,7 +180,6 @@ class Matrix
     Matrix &operator-=(const Matrix &M);
 
     // methods to read/write to/from the matrix
-    void Output(OPS_Stream &s) const;
 
     friend OPS_Stream &operator<<(OPS_Stream &s, const Matrix &M);
     //    friend istream &operator>>(istream &s, Matrix &M);    
@@ -200,6 +199,8 @@ class Matrix
   protected:
 
   private:
+    void Print(OPS_Stream &s, int flag) const;
+
     static double MATRIX_NOT_VALID_ENTRY;
 #ifdef NO_STATIC_WORK
     double *matrixWork = nullptr;

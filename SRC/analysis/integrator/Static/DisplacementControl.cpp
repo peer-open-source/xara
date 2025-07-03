@@ -58,7 +58,9 @@ DisplacementControl::DisplacementControl(int node, int dof,
                                          double increment, 
                                          Domain *domain,
                                          int numIncr,
-                                         double min, double max, int tang) 
+                                         double min, 
+                                         double max, 
+                                         int tang) 
 :StaticIntegrator(INTEGRATOR_TAGS_DisplacementControl),
    theNode(node), theDof(dof), theIncrement(increment), theDomain(domain),
    theDofID(-1),
@@ -80,7 +82,6 @@ DisplacementControl::DisplacementControl(int node, int dof,
       opserr << " numIncr set to 0, 1 assumed\n";
       specNumIncrStep = 1.0;
       numIncrLastStep = 1.0;
-           
    }
 
 }

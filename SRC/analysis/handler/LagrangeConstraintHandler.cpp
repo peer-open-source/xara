@@ -157,19 +157,18 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
     // add to the AnalysisModel
     SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
     while ((spPtr = theSPs()) != nullptr) {
-
         dofPtr = new LagrangeDOF_Group(numDofGrp++, *spPtr);
-	const ID &id = dofPtr->getID();
-	for (int j=0; j < id.Size(); j++) {
-	    dofPtr->setID(j,-2);
-	    countDOF++;
-	}
+        const ID &id = dofPtr->getID();
+        for (int j=0; j < id.Size(); j++) {
+            dofPtr->setID(j,-2);
+            countDOF++;
+        }
         // Add the DOF_Group to the model
-	theModel->addDOF_Group(dofPtr);    		
+        theModel->addDOF_Group(dofPtr);    		
 
-	// Create the FE
+        // Create the FE
         fePtr = new LagrangeSP_FE(numFeEle++, *theDomain, *spPtr, *dofPtr, alphaSP);
-	theModel->addFE_Element(fePtr);
+        theModel->addFE_Element(fePtr);
     }	    
 
     // create the LagrangeMP_FE for the MP_Constraints and 
@@ -179,18 +178,18 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
     while ((mpPtr = theMPs()) != nullptr) {
         dofPtr = new LagrangeDOF_Group(numDofGrp++, *mpPtr);
 
-	const ID &id = dofPtr->getID();
-	for (int j=0; j < id.Size(); j++) {
-	    dofPtr->setID(j,-2);
-	    countDOF++;
-	}
+        const ID &id = dofPtr->getID();
+        for (int j=0; j < id.Size(); j++) {
+            dofPtr->setID(j,-2);
+            countDOF++;
+        }
 
-	theModel->addDOF_Group(dofPtr);    	
+        theModel->addDOF_Group(dofPtr);    	
 
-	fePtr = new LagrangeMP_FE(numFeEle++, *theDomain, *mpPtr, *dofPtr, alphaMP);
+        fePtr = new LagrangeMP_FE(numFeEle++, *theDomain, *mpPtr, *dofPtr, alphaMP);
 
-	theModel->addFE_Element(fePtr);
-    }	        
+        theModel->addFE_Element(fePtr);
+    }
     
     theModel->setNumEqn(countDOF);
     
@@ -223,17 +222,17 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
 
 
 void 
-LagrangeConstraintHandler::clearAll(void)
+LagrangeConstraintHandler::clearAll()
 {
     // for the nodes reset the DOF_Group pointers to 0
     Domain *theDomain = this->getDomainPtr();
     if (theDomain == nullptr)
-	return;
+	    return;
 
     NodeIter &theNod = theDomain->getNodes();
     Node *nodPtr;
     while ((nodPtr = theNod()) != nullptr)
-	nodPtr->setDOF_GroupPtr(nullptr);
+	    nodPtr->setDOF_GroupPtr(nullptr);
 }    
 
 int

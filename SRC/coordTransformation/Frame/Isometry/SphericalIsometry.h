@@ -4,19 +4,26 @@
 //                              https://xara.so
 //----------------------------------------------------------------------------//
 //
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
-//
-//----------------------------------------------------------------------------//
-//
 // Please cite the following resource in any derivative works:
 //
-// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
-//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
-//     https://doi.org/10.1002/nme.7506
+// [1] Perez, C.M., and Filippou F.C.. (2024) 
+//     "On Nonlinear Geometric Transformations of Finite Elements" 
+//     Int. J. Numer. Meth. Engrg.; https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
 
+//
+// Written: Claudio M. Perez, 
+//          Filip C. Filippou
+//          University of California, Berkeley
+//
+// Developed with FEDEASLab [2].
+//
+// References:
+//
+// [2] Filippou, F.C. (1998)
+//     "FEDEASLab: Finite Elements for Design Evaluation and Analysis of Structures"
+//
 #pragma once
 #include <array>
 #include <Vector3D.h>

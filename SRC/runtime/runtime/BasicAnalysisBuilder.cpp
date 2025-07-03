@@ -1042,7 +1042,8 @@ BasicAnalysisBuilder::getStaticIntegrator()
 }
 
 TransientIntegrator*
-BasicAnalysisBuilder::getTransientIntegrator() {
+BasicAnalysisBuilder::getTransientIntegrator()
+{
 
   return theTransientIntegrator;
 }
@@ -1056,12 +1057,12 @@ BasicAnalysisBuilder::getConvergenceTest()
 int
 BasicAnalysisBuilder::formUnbalance()
 {
-    if (theStaticIntegrator != nullptr)
-      return theStaticIntegrator->formUnbalance();
+  if (theStaticIntegrator != nullptr)
+    return theStaticIntegrator->formUnbalance();
 
-    else if (theTransientIntegrator != nullptr)
-      return theTransientIntegrator->formUnbalance();
+  else if (theTransientIntegrator != nullptr)
+    return theTransientIntegrator->formUnbalance();
 
-    return -1;
+  return -1;
 }
 

@@ -32,7 +32,6 @@
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -297,7 +296,6 @@ int HHT_TP::formNodUnbalance(DOF_Group *theDof)
 
 int HHT_TP::domainChanged()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
     const Vector &x = theLinSOE->getX();
     int size = x.Size();
@@ -329,75 +327,9 @@ int HHT_TP::domainChanged()
         Udot = new Vector(size);
         Udotdot = new Vector(size);
         Put = new Vector(size);
-        
-        // check we obtained the new
-        if (Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            Put == 0 || Put->Size() != size)  {
-            
-            opserr << "HHT_TP::domainChanged() - ran out of memory\n";
-            
-            // delete the old
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (Put != 0)
-                delete Put;
-            
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            Put = 0;
-            
-            return -1;
-        }
     }
     
-    // now go through and populate U, Udot and Udotdot by iterating through
-    // the DOF_Groups and getting the last committed velocity and accel
-    DOF_GrpIter &theDOFs = theModel->getDOFs();
-    DOF_Group *dofPtr;
-    while ((dofPtr = theDOFs()) != 0)  {
-        const ID &id = dofPtr->getID();
-        int idSize = id.Size();
-        
-        int i;
-        const Vector &disp = dofPtr->getCommittedDisp();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*U)(loc) = disp(i);
-            }
-        }
-        
-        const Vector &vel = dofPtr->getCommittedVel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udot)(loc) = vel(i);
-            }
-        }
-        
-        const Vector &accel = dofPtr->getCommittedAccel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udotdot)(loc) = accel(i);
-            }
-        }
-    }
+    this->getAnalysisModel()->getState(*U, *Udot, *Udotdot, 0);
     
     // now get unbalance at last commit and store it
     // warning: this will use committed stiffness prop. damping
