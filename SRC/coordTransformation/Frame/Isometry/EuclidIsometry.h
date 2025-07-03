@@ -5,11 +5,6 @@
 //
 //----------------------------------------------------------------------------//
 //
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
-//
-//----------------------------------------------------------------------------//
-//
 // Please cite the following resource in any derivative works:
 //
 // [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
@@ -19,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Written: Claudio M. Perez, Filip C. Filippou
+// Written: Claudio M. Perez
 //
 #pragma once
 #include <Node.h>

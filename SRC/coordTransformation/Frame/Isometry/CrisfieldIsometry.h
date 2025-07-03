@@ -62,18 +62,16 @@ public:
     double Ln = this->getLength();
 
 #if 1
-    Matrix3D E{};
-    E.addDiagonal(1.0);
-
-    MatrixND<1,3> E3 {{{E(0,2)}, {E(1,2)},  {E(2,2)}}},
-                  E2 {{{E(0,1)}, {E(1,1)},  {E(2,1)}}};
+    static constexpr
+    MatrixND<1,3> E3 {{{0.0}, {0.0},  {1.0}}},
+                  E2 {{{0.0}, {1.0},  {0.0}}};
 
 
     const Matrix3D& Tr = this->getRotation();
     Triad r{Tr^Rbar};
-    Vector3D r1 = r[1], r2 = r[2], r3 = r[3];
+    Vector3D r1 = r[1], r3 = r[3];
 
-    // A = (1/Ln)*(I - e1*e1');
+
     Matrix3D A{};
     for (int i = 0; i < 3; i++)
       for (int j = 0; j < 3; j++)
@@ -91,7 +89,7 @@ public:
     MatrixND<3,12> de1{};
     de1.template insert<0,0>(A, -1.0);
     de1.template insert<0,6>(A,  1.0);
-  
+
     MatrixND<3,12> G{};
     G.template insert<0,0, 1,12>(E2*de3, -1.0);
     G.template insert<1,0, 1,12>(E3*de1, -1.0);

@@ -14,10 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Description: This file contains the class definition for
-// LinearFrameTransf.h. LinearFrameTransf provides the
-// abstraction of a linear transformation for a spatial frame
-// between the global and basic coordinate systems
+// Description: LinearFrameTransf implements a linearized euclidean transformation
+// for a spatial frame
 //
 // Written: Claudio Perez
 //
