@@ -2,6 +2,7 @@
 //
 //                                   xara
 //                              https://xara.so
+//
 //----------------------------------------------------------------------------//
 //
 // Please cite the following resource in any derivative works:

@@ -2,6 +2,7 @@
 //
 //                                   xara
 //                              https://xara.so
+//
 //----------------------------------------------------------------------------//
 //
 // The following resource should be cited in derivative works:
@@ -14,7 +15,10 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Written: Claudio M. Perez, Filip C. Filippou
+// Written: Claudio M. Perez, 
+//          Filip C. Filippou
+//          University of California, Berkeley
+//
 // Developed with FEDEASLab [2].
 //
 // References:

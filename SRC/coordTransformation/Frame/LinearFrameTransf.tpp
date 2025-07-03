@@ -273,7 +273,6 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
 
   constexpr static int N = nn * ndf;
 
-  // Initialize ul = ug
   VectorND<N> ul = ug;
 
   // (1)

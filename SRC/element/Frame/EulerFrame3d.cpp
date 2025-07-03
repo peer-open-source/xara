@@ -1,8 +1,8 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
-//
-//===----------------------------------------------------------------------===//
+//                                   xara
+//                              https://xara.so
+//----------------------------------------------------------------------------//
 //
 // Linearized Euler frame formulation with C1 displacement interpolation
 //

@@ -2,10 +2,6 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
-//
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
 //
 //----------------------------------------------------------------------------//
 //
@@ -20,6 +16,7 @@
 //
 // Written: Claudio M. Perez, 
 //          Filip C. Filippou
+//          University of California, Berkeley
 //
 // Developed with FEDEASLab [2].
 //

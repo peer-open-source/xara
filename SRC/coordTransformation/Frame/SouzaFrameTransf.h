@@ -2,6 +2,7 @@
 //
 //                                   xara
 //                              https://xara.so
+//
 //===----------------------------------------------------------------------===//
 //
 //        OpenSees - Open System for Earthquake Engineering Simulation
@@ -17,8 +18,7 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Description: This file contains the class definition for
-// SouzaFrameTransf. SouzaFrameTransf implements the formulation 
+// Description: SouzaFrameTransf implements the formulation 
 // of Crisfield (1990) with the objective of maintaining the
 // original "Corotational" implementation by Remo Magalhaes de Souza, within
 // the new framework proposed by Perez and Filippou (2024).
