@@ -264,7 +264,6 @@ int CollocationHSIncrLimit::formNodTangent(DOF_Group *theDof)
 
 int CollocationHSIncrLimit::domainChanged()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
     const Vector &x = theLinSOE->getX();
     int size = x.Size();
