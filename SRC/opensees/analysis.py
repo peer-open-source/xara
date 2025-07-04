@@ -1,3 +1,5 @@
+# This module is deprecated.
+#
 from . import tcl
 
 class Analysis:
@@ -71,22 +73,6 @@ class StaticAnalysis(Analysis):
 
 class DirectIntegrationAnalysis(Analysis):
     """
-    DirectIntegrationAnalysis(patterns=[
-        pattern.MultipleSupport(
-            components = [
-            #   node, dof,  history
-                ( 1,   1,   pattern.ResponseComponent(accel, displ, veloc)),
-                ( 2,   1,   pattern.ResponseComponent(accel, displ, veloc))
-            ]
-        ),
-
-        pattern.UniformAcceleration([
-        #    dof   history
-            ( 1,   pattern.ResponseComponent(accel, displ, veloc))
-          ]
-        )
-
-    ])
     """
 
     def __init__(self,
