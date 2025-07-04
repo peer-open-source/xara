@@ -36,12 +36,10 @@
 #include <OPS_Globals.h>
 #include <StandardStream.h>
 #include <mpi.h>
-#include <SimulationInformation.h>
 
 
 StandardStream sserr;
 OPS_Stream *opserrPtr = &sserr;
-SimulationInformation simulationInfo;
  
 double        ops_Dt = 0;
 Domain       *ops_TheActiveDomain = 0;
@@ -51,24 +49,26 @@ int main(int argc, char ** argv)
 {
   int ierr, rank, np;
   int soeType =0;  // 0 - unsymmetric, 1 - symmetric positive definite, 2 - symmetric
+  
   ierr = MPI_Init(&argc, &argv);
   ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   ierr = MPI_Comm_size(MPI_COMM_WORLD, &np);
 
   ID *myID = 0;
   FEM_ObjectBroker theBroker;
+;
 
-  MumpsParallelSolver *theSolver = new MumpsParallelSolver();
+  MumpsParallelSOE *theSOE = new MumpsParallelSOE(*new MumpsParallelSolver(), soeType);
 
-  MumpsParallelSOE *theSOE = new MumpsParallelSOE(*theSolver, soeType);
-
-    double numP = np * 1.0;
+  double numP = np * 1.0;
 
   if (rank == 0) {
     for (int i=1; i<np; i++) {
       MPI_Channel *theChannel = new MPI_Channel(i);
       theSOE->sendSelf(0, *theChannel);
     }
+
+
     myID = new ID(6);
     Graph graph;
     for (int i=0; i<6; i++) {
@@ -107,8 +107,8 @@ int main(int argc, char ** argv)
 
     for (int i=0; i<6; i++)
       for (int j=i+1; j<6; j++) {
-	graph.addEdge(i,j);
-	a(i,j) = a(j,i);
+        graph.addEdge(i,j);
+        a(i,j) = a(j,i);
       }
 
     theSOE->setSize(graph);
@@ -117,8 +117,8 @@ int main(int argc, char ** argv)
     theSOE->zeroB();
     theSOE->addA(a, *myID);
     theSOE->addB(b, *myID);
-
-  } else {
+  }
+  else {
 
     MPI_Channel *theChannel = new MPI_Channel(0);
     theSOE->recvSelf(0, *theChannel, theBroker);
@@ -143,10 +143,9 @@ int main(int argc, char ** argv)
 
     for (int i=0; i<3; i++)
       for (int j=i+1; j<3; j++) {
-	graph.addEdge(i,j);
-	a(i,j) = a(j,i);
+        graph.addEdge(i,j);
+        a(i,j) = a(j,i);
       }
-
 
     theSOE->setSize(graph);
 
@@ -156,6 +155,7 @@ int main(int argc, char ** argv)
     theSOE->addB(b, *myID);
 
   }
+
 
   Matrix a(6,6);
   a.Zero();
@@ -192,7 +192,7 @@ int main(int argc, char ** argv)
 
   theSOE->solve();
   x = theSOE->getX();
-  
+
   if (rank == np-1) {
     opserr << "A:\n";
     opserr << "B:\n" << b;
