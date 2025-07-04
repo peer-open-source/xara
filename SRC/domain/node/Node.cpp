@@ -38,6 +38,7 @@
 #include <string.h>
 #include <Information.h>
 #include <Parameter.h>
+#include <Rotations.hpp>
 
 // AddingSensitivity:BEGIN //////////////////////////
 #include <Domain.h>
@@ -283,7 +284,7 @@ Node::~Node()
     delete trialAccel;
 
   if (rotation != nullptr)
-    delete rotation;
+    delete[] rotation;
 
   if (incrDisp != 0)
     delete incrDisp;
@@ -444,24 +445,23 @@ Node::getIncrDeltaDisp()
 Versor
 Node::getTrialRotation()
 {
-  if (rotation == nullptr) {
-    if (this->getNumberDOF() < 6)
-      return Versor();
-    else
-      rotation = new Versor{{0.0, 0.0, 0.0}, 1.0};
+  if (rotation == nullptr) [[unlikely]] {
+    rotation = new Versor[2];
+    rotation[0] = Versor{{0.0, 0.0, 0.0}, 1.0};
+    rotation[1] = Versor{{0.0, 0.0, 0.0}, 1.0};
   }
 
-  return *rotation;
+  return rotation[1];
 }
 
 
 const Vector &
 Node::getTrialVel()
 {
-    if (trialVel == nullptr)
-      this->createVel();
+  if (trialVel == nullptr)
+    this->createVel();
 
-    return *trialVel;
+  return *trialVel;
 }
 
 
@@ -543,7 +543,7 @@ Node::incrTrialDisp(const Vector &incrDispl)
   assert(incrDispl.Size() == numberDOF);
 
   // create a copy if no trial exists and add committed
-  if (trialDisp == nullptr) {
+  if (trialDisp == nullptr) [[unlikely]] {
     this->createDisp();
     for (int i = 0; i<numberDOF; i++) {
       double incrDispI = incrDispl(i);
@@ -561,8 +561,13 @@ Node::incrTrialDisp(const Vector &incrDispl)
       disp[i+2*numberDOF] += incrDispI;
       disp[i+3*numberDOF]  = incrDispI;
   }
+
   if (rotation != nullptr && this->getNumberDOF() >= 6) {
-    (*rotation) = (*rotation) * Versor::from_vector(&disp[3+3*numberDOF]);
+    Vector3D theta;
+    for (int i = 0; i < 3; i++)
+      theta[i] = disp[3*numberDOF+3+i];
+    rotation[1] = VersorFromMatrix(ExpSO3(theta)*MatrixFromVersor(rotation[1]));
+    // (*rotation) = Versor::from_vector(&disp[3*numberDOF+3]) * (*rotation);
   }
 
   return 0;
@@ -572,18 +577,18 @@ Node::incrTrialDisp(const Vector &incrDispl)
 int
 Node::setTrialAccel(const Vector &newTrialAccel)
 {
-    // check vector arg is of correct size
-    assert(newTrialAccel.Size() == numberDOF);
+  // check vector arg is of correct size
+  assert(newTrialAccel.Size() == numberDOF);
 
-    // create a copy if no trial exists
-    if (trialAccel == 0)
-      this->createAccel();
+  // create a copy if no trial exists
+  if (trialAccel == 0)
+    this->createAccel();
 
-    // use vector assignment otherwise
-    for (int i=0; i<numberDOF; i++)
-      accel[i] = newTrialAccel(i);
+  // use vector assignment otherwise
+  for (int i=0; i<numberDOF; i++)
+    accel[i] = newTrialAccel(i);
 
-    return 0;
+  return 0;
 }
 
 
@@ -787,6 +792,9 @@ Node::commitState()
     accel[i+numberDOF] = accel[i];
   }
 
+  if (rotation != nullptr)
+    rotation[0] = rotation[1];
+
   return 0;
 }
 
@@ -815,6 +823,9 @@ Node::revertToLastCommit()
     for (int i=0 ; i<numberDOF; i++)
     accel[i] = accel[numberDOF+i];
   }
+
+  if (rotation != nullptr)
+    rotation[1] = rotation[0];
 
   // if we get here we are done
   return 0;
@@ -855,8 +866,11 @@ Node::revertToStart()
   if (accSensitivity != 0)
     accSensitivity->Zero();
 
-  if (rotation != nullptr)
-    *rotation = Versor{{0.0, 0.0, 0.0}, 1.0};
+  if (rotation != nullptr) {
+    rotation[0] = Versor{{0.0, 0.0, 0.0}, 1.0};
+    rotation[1] = rotation[0];
+  }
+
 
   return 0;
 }
