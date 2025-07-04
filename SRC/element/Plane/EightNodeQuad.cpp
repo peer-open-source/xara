@@ -36,7 +36,7 @@ double EightNodeQuad::shp[3][NEN];
 // double EightNodeQuad::wts[nip];
 
 EightNodeQuad::EightNodeQuad(int tag, 
-                           std::array<int,8>& nodes,
+                           const std::array<int,8>& nodes,
                            NDMaterial &m, 
                            double thickness,
                            double p, double r, 
