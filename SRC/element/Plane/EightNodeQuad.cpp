@@ -10,6 +10,7 @@
 // Created: Aug 2020
 //
 //
+#include <array>
 #include "EightNodeQuad.h"
 #include <Node.h>
 #include <NDMaterial.h>
