@@ -7,7 +7,9 @@
 #include <tcl.h>
 #include <string>
 #include <assert.h>
+#include <Logging.h>
 #include <Parsing.h>
+#include <BasicModelBuilder.h>
 
 #include <ENTMaterial.h>             // MHS
 #include <Elastic2Material.h>        // ZHY

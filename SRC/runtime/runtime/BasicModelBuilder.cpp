@@ -32,27 +32,28 @@
 
 #include <tcl.h> // For TCL_OK/ERROR
 
-//
-// CLASS CONSTRUCTOR & DESTRUCTOR
-//
+
 BasicModelBuilder::BasicModelBuilder(Domain &domain, Tcl_Interp *interp, 
                                      int NDM, int NDF)
-    : ndm(NDM), ndf(NDF), theInterp(interp),
-      section_builder_is_set(false),
-      theDomain(&domain),
-      tclEnclosingPattern(nullptr),
-      next_node_load(0)// , next_elem_load(0)
+  : ndm(NDM), ndf(NDF), theInterp(interp),
+    section_builder_is_set(false),
+    theDomain(&domain),
+    tclEnclosingPattern(nullptr),
+    next_node_load(0)
+    // , next_elem_load(0)
 {
-  static int ncmd = sizeof(tcl_char_cmds)/sizeof(char_cmd);
+  using namespace OpenSees;
+
+  static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0])); // CommandTableEntry);
 
   Tcl_CreateCommand(interp, "wipe", TclCommand_wipeModel, (ClientData)this, nullptr);
 
   for (int i = 0; i < ncmd; i++)
     Tcl_CreateCommand(interp, 
-        tcl_char_cmds[i].name, 
-        tcl_char_cmds[i].func, 
+        ModelBuilderCommands[i].name, 
+        ModelBuilderCommands[i].func, 
         (ClientData) this, nullptr);
- 
+
   tclEnclosingPattern = nullptr;
 
   Tcl_SetAssocData(interp, "OPS::theTclBuilder", NULL, (ClientData)this);
@@ -73,9 +74,11 @@ BasicModelBuilder::~BasicModelBuilder()
   theDomain = nullptr;
   tclEnclosingPattern = nullptr;
 
-  static int ncmd = sizeof(tcl_char_cmds)/sizeof(char_cmd);
+  using namespace OpenSees;
+
+  static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0]));
   for (int i = 0; i < ncmd; i++)
-    Tcl_DeleteCommand(theInterp, tcl_char_cmds[i].name);
+    Tcl_DeleteCommand(theInterp, ModelBuilderCommands[i].name);
 }
 
 
@@ -84,6 +87,7 @@ BasicModelBuilder::buildFE_Model()
 {
   return 0;
 }
+
 
 int
 BasicModelBuilder::getNDM() const

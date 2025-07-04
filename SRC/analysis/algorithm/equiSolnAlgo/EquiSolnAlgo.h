@@ -32,11 +32,12 @@
 // Revision: A 
 //
 #include <SolutionAlgorithm.h>
-#include <IncrementalIntegrator.h>
 #include <logging/Logging.h> // TODO
+#include <IncrementalIntegrator.h>
 class AnalysisModel;
 class LinearSOE;
 class ConvergenceTest;
+class IncrementalIntegrator;
 
 class EquiSolnAlgo: public SolutionAlgorithm
 {
@@ -57,8 +58,8 @@ class EquiSolnAlgo: public SolutionAlgorithm
 
     virtual void Print(OPS_Stream &s, int flag =0) =0;    
 
-    virtual int getNumFactorizations(void) {return 0;}
-    virtual int getNumIterations(void) {return 0;}
+    virtual int getNumFactorizations() {return 0;}
+    virtual int getNumIterations() {return 0;}
     virtual double getTotalTimeCPU(void)   {return 0.0;}
     virtual double getTotalTimeReal(void)  {return 0.0;}
     virtual double getSolveTimeCPU(void)   {return 0.0;}
@@ -76,9 +77,9 @@ class EquiSolnAlgo: public SolutionAlgorithm
     ConvergenceTest *theTest;
     
   private:
-    AnalysisModel           *theModel;
+    AnalysisModel         *theModel;
     IncrementalIntegrator *theIntegrator;
-    LinearSOE                   *theSysOfEqn;
+    LinearSOE             *theSysOfEqn;
 };
 
 #endif

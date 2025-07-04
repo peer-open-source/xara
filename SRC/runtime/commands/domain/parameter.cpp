@@ -8,6 +8,7 @@
 #include <tcl.h>
 #include <stdlib.h>
 #include <Logging.h>
+#include <Parsing.h>
 #include <assert.h>
 #include <string.h>
 #include <OPS_Stream.h>
@@ -40,7 +41,7 @@ extern ReliabilityDomain *theReliabilityDomain;
 
 //  parameter tag <specific parameter args>
 int
-TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                      TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -329,7 +330,7 @@ TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getParamTags(ClientData clientData, Tcl_Interp *interp, int argc,
+getParamTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -350,7 +351,7 @@ getParamTags(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-getParamValue(ClientData clientData, Tcl_Interp *interp, int argc,
+getParamValue(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -380,7 +381,7 @@ getParamValue(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   Domain *theDomain = (Domain*)clientData;

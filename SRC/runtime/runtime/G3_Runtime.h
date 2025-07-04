@@ -8,10 +8,10 @@
 //
 // written: cmp
 //
+#pragma once
 #include <stdio.h>
 #include <tcl.h>
-#include <runtimeAPI.h>
-
+// #include <runtimeAPI.h>
 
 class Domain;
 class BasicModelBuilder;
@@ -31,7 +31,6 @@ public:
 // MODEL BUILDING
   BasicModelBuilder *m_builder = nullptr;
   Domain            *m_domain  = nullptr;
-  bool            model_is_built=false;
 
 // ANALYSIS
   AnalysisModel  *m_analysis_model     = nullptr;

@@ -32,7 +32,8 @@
 
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
-#include <api/runtimeAPI.h>
+
+#include <api/elementAPI.h>
 
 static MapOfTaggedObjects theStiffnessDegradationObjects;
 

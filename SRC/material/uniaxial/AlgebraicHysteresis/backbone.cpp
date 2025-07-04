@@ -53,8 +53,6 @@ TclCommand_addHystereticBackbone(ClientData clientData,
     return TCL_ERROR;
   }
 
-
-
   // Pointer to a hysteretic backbone that will be added to the model builder
   HystereticBackbone *theBackbone = nullptr;
 
@@ -103,22 +101,22 @@ TclCommand_addHystereticBackbone(ClientData clientData,
     double pu, y50, n;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid hystereticBackbone ReeseSoftClay tag" << endln;
+      opserr << "WARNING invalid tag" << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[3], &pu) != TCL_OK) {
-      opserr << "WARNING invalid hystereticBackbone ReeseSoftClay pu" << endln;
+      opserr << "WARNING invalid pu" << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &y50) != TCL_OK) {
-      opserr << "WARNING invalid hystereticBackbone ReeseSoftClay y50" << endln;
+      opserr << "WARNING invalid y50" << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &n) != TCL_OK) {
-      opserr << "WARNING invalid hystereticBackbone ReeseSoftClay n" << endln;
+      opserr << "WARNING invalid n" << endln;
       return TCL_ERROR;
     }
 

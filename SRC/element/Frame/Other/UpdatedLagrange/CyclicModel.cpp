@@ -1,7 +1,6 @@
 #include "CyclicModel.h"
 #include <math.h>
 #include <MapOfTaggedObjects.h>
-#include <api/runtimeAPI.h>
 
 const int    CyclicModel::Loading(1);
 const int    CyclicModel::Unloading(2);
@@ -9,32 +8,6 @@ const int    CyclicModel::Crossover(3);
 const double CyclicModel::Tol(1e-10);
 const double CyclicModel::delK(0.85);
 
-
-static MapOfTaggedObjects theCyclicModelObjects;
-
-bool OPS_addCyclicModel(CyclicModel *newComponent)
-{
-    return theCyclicModelObjects.addComponent(newComponent);
-}
-
-CyclicModel *OPS_getCyclicModel(int tag)
-{
-
-  TaggedObject *theResult = theCyclicModelObjects.getComponentPtr(tag);
-  if(theResult == 0) {
-      opserr << "NDMaterial no found with tag: " << tag << "\n";
-      return 0;
-  }
-  CyclicModel *theobj = (CyclicModel *)theResult;
-
-  return theobj;
-}
-
-void
-OPS_ADD_RUNTIME_VXV(OPS_clearAllCyclicModel)
-{
-    theCyclicModelObjects.clearAll();
-}
 
 CyclicModel::CyclicModel(int tag, int clasTag)
 :TaggedObject(tag), MovableObject(clasTag),
@@ -64,13 +37,13 @@ CyclicModel::~CyclicModel()
 
 double CyclicModel::getFactor()
 {
-	if(cycFactor < 0.05)
-		cycFactor = 0.05;
-
-	if(state_curr == Unloading && state_hist == Loading)
-		cycFactor = resFactor;
-		
-	return cycFactor;
+  if(cycFactor < 0.05)
+  	cycFactor = 0.05;
+  
+  if(state_curr == Unloading && state_hist == Loading)
+  	cycFactor = resFactor;
+  	
+  return cycFactor;
 }
 
 void CyclicModel::update(double f, double d, bool yield)

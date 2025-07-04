@@ -294,7 +294,7 @@ ParallelNumberer::numberDOF(int lastDOF)
   DOF_GrpIter &tDOFs = theAModel->getDOFs();
 
   DOF_Group *dofPtr;
-  while ((dofPtr = tDOFs()) != 0) {
+  while ((dofPtr = tDOFs()) != nullptr) {
     const ID &theID = dofPtr->getID();
     int have4s = 0;
     for (int i=0; i<theID.Size(); i++)

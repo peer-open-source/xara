@@ -13,6 +13,7 @@
 #include <tcl.h>
 #include <assert.h>
 #include <string>
+#include <Parsing.h>
 #include <unordered_map>
 #include <runtimeAPI.h>
 #include <UniaxialMaterial.h>
@@ -86,7 +87,6 @@ extern OPS_Routine OPS_ModIMKPeakOriented;
 extern OPS_Routine OPS_ModIMKPinching;
 extern OPS_Routine OPS_ModIMKPinching02;
 extern OPS_Routine OPS_MultiLinear;
-extern OPS_Routine OPS_OOHystereticMaterial;
 extern OPS_Routine OPS_OriginCentered;
 extern OPS_Routine OPS_PinchingLimitState;
 extern OPS_Routine OPS_PinchingLimitStateMaterial;
@@ -120,18 +120,20 @@ extern OPS_Routine OPS_Trilinwp2;
 extern OPS_Routine OPS_Trilinwp;
 extern OPS_Routine OPS_UVCuniaxial;
 extern OPS_Routine OPS_pyUCLA;
-
-
 extern void *OPS_ConcretewBeta();
+
+extern Tcl_CmdProc Create_OOHystereticMaterial;
+
+
 
 #if 0
 const char** DeprecatedUniaxialMaterials {
-  "Bilin02", "This material is superceded by \"IMKBilin\" and \"HystereticSM\"",
-  "CFSSSWP", ""
-  "CFSWSWP", ""
-  "APDVFD",  ""
-  "APDMD",   ""
-  "APDFMD",  ""
+  {"Bilin02", "This material is superceded by \"IMKBilin\" and \"HystereticSM\""},
+  {"CFSSSWP", ""},
+  {"CFSWSWP", ""},
+  {"APDVFD",  ""},
+  {"APDMD",   ""},
+  {"APDFMD",  ""},
 };
 #endif
 
@@ -441,7 +443,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"ElasticPPGap",           dispatch<OPS_EPPGapMaterial>            },
 
 
-    {"OOHysteretic",           dispatch<OPS_OOHystereticMaterial>      },
+    {"OOHysteretic",           dispatch<Create_OOHystereticMaterial>   },
 
     {"Viscous",                dispatch<OPS_ViscousMaterial>           },
     {"ViscoelasticGap",        dispatch<OPS_ViscoelasticGap>           },

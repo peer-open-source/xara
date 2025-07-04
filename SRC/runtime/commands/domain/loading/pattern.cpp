@@ -27,11 +27,10 @@
 #include <tcl.h>
 #include <assert.h>
 #include <BasicModelBuilder.h>
-#include <runtimeAPI.h>
 
 #include <runtimeAPI.h>
 #include <Logging.h>
-
+#include <Parsing.h>
 #include <Domain.h>
 #include <LoadPattern.h>
 

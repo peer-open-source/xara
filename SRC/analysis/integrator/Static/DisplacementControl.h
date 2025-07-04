@@ -121,7 +121,7 @@ class DisplacementControl : public StaticIntegrator
       // adding sensitivity
 //    int gradNumber;
 //    int sensitivityFlag;
-      FE_Element *theEle;
+//    FE_Element *theEle;
 };
 
 #endif

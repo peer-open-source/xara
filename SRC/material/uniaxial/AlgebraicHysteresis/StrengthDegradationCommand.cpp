@@ -31,14 +31,6 @@ extern OPS_Routine OPS_ConstantStrengthDegradation;
 extern OPS_Routine OPS_ACIStrengthDegradation;
 extern OPS_Routine OPS_PetrangeliStrengthDegradation;
 
-static void
-printCommand(int argc, TCL_Char ** const argv)
-{
-  opserr << "Input command: ";
-  for (int i = 0; i < argc; i++)
-    opserr << argv[i] << " ";
-  opserr << endln;
-}
 
 int
 TclBasicBuilderStrengthDegradationCommand(ClientData clientData,
@@ -46,6 +38,7 @@ TclBasicBuilderStrengthDegradationCommand(ClientData clientData,
                                           TCL_Char ** const argv, Domain *theDomain)
 {
   G3_Runtime *rt = G3_getRuntime(interp);
+  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
 
   // Make sure there is a minimum number of arguments
   if (argc < 2) {
@@ -55,7 +48,7 @@ TclBasicBuilderStrengthDegradationCommand(ClientData clientData,
     return TCL_ERROR;
   }
 
-    OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theDomain);
+  OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theDomain);
 
   // Pointer to a strengthDegradation that will be added to the model builder
   StrengthDegradation *theState = 0;
@@ -64,7 +57,6 @@ TclBasicBuilderStrengthDegradationCommand(ClientData clientData,
   if (strcmp(argv[1], "Section") == 0) {
     if (argc < 7) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
       opserr << "Want: strengthDegradation Section tag? code e1? V2? e2? "
                 "<-yield ey?>"
              << endln;
@@ -181,17 +173,17 @@ TclBasicBuilderStrengthDegradationCommand(ClientData clientData,
 
   // Ensure we have created the Degradation, out of memory if got here and no
   // strengthDegradation
-  if (theState == 0) {
+  if (theState == nullptr) {
     opserr << "WARNING ran out of memory creating strengthDegradation\n";
     opserr << argv[1] << endln;
     return TCL_ERROR;
   }
 
   // Now add the material to the modelBuilder
-  if (OPS_addStrengthDegradation(theState) == false) {
+  if (builder->addTaggedObject<StrengthDegradation>(*theState) != TCL_OK) {
     opserr << "WARNING could not add strengthDegradation to the domain\n";
     opserr << *theState << endln;
-    delete theState; // Avoid memory leak
+    delete theState;
     return TCL_ERROR;
   }
 

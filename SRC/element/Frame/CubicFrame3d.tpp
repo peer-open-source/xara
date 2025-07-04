@@ -17,7 +17,6 @@
 #include <Vector.h>
 #include <ID.h>
 #include <Domain.h>
-#include <string.h>
 #include <Information.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -27,6 +26,7 @@
 #include <BeamIntegration.h>
 #include <Parameter.h>
 #include <math.h>
+#include <string.h>
 
 
 #define ELE_TAG_CubicFrame3d 0

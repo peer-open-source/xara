@@ -71,7 +71,7 @@ SingleDomAllSP_Iter::reset()
 
 
 SP_Constraint *
-SingleDomAllSP_Iter::operator()(void)
+SingleDomAllSP_Iter::operator()()
 {
   SP_Constraint *theRes = 0;
 

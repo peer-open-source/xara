@@ -11,8 +11,10 @@
 //
 // Written: fmk, cmp
 //
-#include <stdio.h>
-#include <stdlib.h>
+#include <Logging.h>
+#include <Parsing.h>
+// #include <stdio.h>
+// #include <stdlib.h>
 #include <string.h>
 #include <tcl.h>
 #include <Domain.h>
@@ -20,7 +22,7 @@
 #include <ID.h>
 
 int
-TclCommand_addMeshRegion(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addMeshRegion(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                  TCL_Char ** const argv)
 {
   Domain& theDomain = *static_cast<Domain*>(clientData);

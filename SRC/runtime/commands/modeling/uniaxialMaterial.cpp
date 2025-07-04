@@ -109,7 +109,6 @@ extern OPS_Routine OPS_ResilienceLow;
 extern OPS_Routine OPS_ViscousMaterial;
 extern OPS_Routine OPS_SteelMPF;   // K Kolozvari
 extern OPS_Routine OPS_Bond_SP01;  // K Kolozvari
-extern OPS_Routine OPS_OOHystereticMaterial;
 extern OPS_Routine OPS_ElasticPowerFunc;
 extern OPS_Routine OPS_UVCuniaxial;
 extern OPS_Routine OPS_DegradingPinchedBW;
@@ -433,16 +432,6 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
   else if (strcmp(argv[1], "Hysteretic") == 0) {
 
     void *theMat = OPS_HystereticMaterial(rt, argc, argv);
-    if (theMat != 0)
-      theMaterial = (UniaxialMaterial *)theMat;
-    else
-      return TCL_ERROR;
-
-  }
-
-  else if (strcmp(argv[1], "OOHysteretic") == 0) {
-
-    void *theMat = OPS_OOHystereticMaterial(rt, argc, argv);
     if (theMat != 0)
       theMaterial = (UniaxialMaterial *)theMat;
     else

@@ -392,7 +392,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   return TCL_OK;
 }
 
-
+#include <elementAPI.h>
 int
 TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int argc,
                                TCL_Char ** const argv)

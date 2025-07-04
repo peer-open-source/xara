@@ -5,7 +5,6 @@
 #include "YieldSurface_BC.h"
 #include <stdlib.h>
 #include <MapOfTaggedObjects.h>
-#include <api/runtimeAPI.h>
 #include <Logging.h>
 
 const int YieldSurface_BC::dFReturn(0);

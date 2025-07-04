@@ -8,7 +8,7 @@
 //
 // Please cite the following resource in any derivative works:
 //
-// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+// [1] Perez, C.M., and Filippou F.C. "On Nonlinear Geometric Transformations
 //     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
 //     https://doi.org/10.1002/nme.7506
 //
@@ -130,9 +130,17 @@ FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
       for (int k=0; k<2; k++) {
         for (int l=0; l<2; l++) {
           Matrix3D Kab {{
-            {Kg(i*ndf+3*k+0, j*ndf+3*l  ), Kg(i*ndf+3*k+1, j*ndf+3*l  ), Kg(i*ndf+3*k+2, j*ndf+3*l  )},
-            {Kg(i*ndf+3*k+0, j*ndf+3*l+1), Kg(i*ndf+3*k+1, j*ndf+3*l+1), Kg(i*ndf+3*k+2, j*ndf+3*l+1)},
-            {Kg(i*ndf+3*k+0, j*ndf+3*l+2), Kg(i*ndf+3*k+1, j*ndf+3*l+2), Kg(i*ndf+3*k+2, j*ndf+3*l+2)}
+            {Kg(i*ndf+3*k+0, j*ndf+3*l  ),
+                Kg(i*ndf+3*k+1, j*ndf+3*l  ),
+                Kg(i*ndf+3*k+2, j*ndf+3*l  )},
+
+            {Kg(i*ndf+3*k+0, j*ndf+3*l+1),
+                Kg(i*ndf+3*k+1, j*ndf+3*l+1),
+                Kg(i*ndf+3*k+2, j*ndf+3*l+1)},
+
+            {Kg(i*ndf+3*k+0, j*ndf+3*l+2),
+                Kg(i*ndf+3*k+1, j*ndf+3*l+2),
+                Kg(i*ndf+3*k+2, j*ndf+3*l+2)}
           }};
           Kab = Kab*RT;
           Kab = R*Kab;
@@ -177,5 +185,40 @@ FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
     }
   }
   return Kg;
+}
+
+template<int nn, int ndf>
+constexpr void
+FrameTransform<nn,ndf>::pushRotation(MatrixND<nn*ndf,nn*ndf>& Kg, const Matrix3D& R)
+{
+  //
+  // Do diag(R)*M*diag(R)'
+  //
+  const Matrix3D RT = R.transpose();
+  for (int i=0; i<nn; i++) {
+    for (int j=0; j<nn; j++) {
+      // Loop over 3x3 blocks for n and m
+      for (int k=0; k<2; k++) {
+        for (int l=0; l<2; l++) {
+          Matrix3D Kab {{
+            {Kg(i*ndf+3*k+0, j*ndf+3*l  ),
+                Kg(i*ndf+3*k+1, j*ndf+3*l  ),
+                Kg(i*ndf+3*k+2, j*ndf+3*l  )},
+
+            {Kg(i*ndf+3*k+0, j*ndf+3*l+1),
+                Kg(i*ndf+3*k+1, j*ndf+3*l+1),
+                Kg(i*ndf+3*k+2, j*ndf+3*l+1)},
+
+            {Kg(i*ndf+3*k+0, j*ndf+3*l+2),
+                Kg(i*ndf+3*k+1, j*ndf+3*l+2),
+                Kg(i*ndf+3*k+2, j*ndf+3*l+2)}
+          }};
+          Kab = Kab*RT;
+          Kab = R*Kab;
+          Kg.insert(Kab, i*ndf+3*k, j*ndf+3*l, 1.0);
+        }
+      }
+    }
+  }
 }
 }

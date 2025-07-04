@@ -33,7 +33,7 @@
 // Created: June 2001
 //
 #include <EquiSolnAlgo.h>
-#include <Vector.h>
+class Vector;
 
 class KrylovNewton: public EquiSolnAlgo
 {

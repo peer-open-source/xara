@@ -16,6 +16,8 @@
 #include <Logging.h>
 #include <BasicModelBuilder.h>
 
+#include <runtimeAPI.h>
+
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
 #include <MP_Constraint.h>
@@ -28,7 +30,7 @@
 
 
 int
-TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -123,7 +125,7 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, int argc,
 
 int
 TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
-                                   int argc, TCL_Char ** const argv)
+                                   Tcl_Size argc, TCL_Char ** const argv)
 {
   int ndf = argc - 2;
   if (strcmp(argv[argc-2],"-tol") == 0)
@@ -176,7 +178,7 @@ TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
 
 int
 TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
-                                   int argc, TCL_Char ** const argv)
+                                   Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
@@ -226,7 +228,7 @@ TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
 
 int
 TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
-                              int argc, TCL_Char ** const argv)
+                              Tcl_Size argc, TCL_Char ** const argv)
 {
 
   assert(clientData != nullptr);
@@ -278,10 +280,9 @@ TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
 
 
 int
-TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                       TCL_Char ** const argv)
 {
-//G3_Runtime *rt = G3_getRuntime(interp);
   assert(clientData != nullptr);
   BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
   Domain *theTclDomain = builder->getDomain();
@@ -419,7 +420,7 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, int argc,
 
 int
 TclCommand_addEqualDOF_MP(ClientData clientData, Tcl_Interp *interp,
-                                int argc, TCL_Char ** const argv)
+                                Tcl_Size argc, TCL_Char ** const argv)
 {
     BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
     Domain     *theTclDomain   = builder->getDomain();
@@ -490,7 +491,7 @@ TclCommand_addEqualDOF_MP(ClientData clientData, Tcl_Interp *interp,
 #if 0
 int
 TclCommand_addEqualDOF_MP_Mixed(ClientData clientData, Tcl_Interp *interp,
-                                int argc, TCL_Char ** const argv)
+                                Tcl_Size argc, TCL_Char ** const argv)
 {
         // Ensure the destructor has not been called
         BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
@@ -581,7 +582,7 @@ TclCommand_addEqualDOF_MP_Mixed(ClientData clientData, Tcl_Interp *interp,
 
 int
 TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
-                              int argc, TCL_Char ** const argv)
+                              Tcl_Size argc, TCL_Char ** const argv)
 {
   // TODO: Cleanup
   G3_Runtime* rt = G3_getRuntime(interp);

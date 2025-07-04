@@ -41,6 +41,7 @@
 #include <Vector.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
+#include <IncrementalIntegrator.h>
 #include <ConvergenceTest.h>
 #include <ID.h>
 

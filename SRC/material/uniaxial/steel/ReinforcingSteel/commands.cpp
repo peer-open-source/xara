@@ -26,7 +26,9 @@
                                                                        
 
 #include "ReinforcingSteel.h"   // Jon Mohle
-
+#include <runtimeAPI.h>
+#include <Logging.h>
+#include <Parsing.h>
 #include <Vector.h>
 #include <string.h>
 #include <InputAPI.h>

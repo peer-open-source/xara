@@ -10,6 +10,7 @@
 //
 #include <tcl.h>
 #include <Logging.h>
+#include <Parsing.h>
 #include <elementAPI.h>
 #include <classTags.h>
 //
@@ -209,7 +210,7 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 
 
 int
-getLoadFactor(ClientData clientData, Tcl_Interp *interp, int argc,
+getLoadFactor(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -245,7 +246,7 @@ getLoadFactor(ClientData clientData, Tcl_Interp *interp, int argc,
 
 // added by C.McGann, U.Washington
 int
-InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
+InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                      TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -296,7 +297,7 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-rayleighDamping(ClientData clientData, Tcl_Interp *interp, int argc,
+rayleighDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                 TCL_Char ** const argv)
 {
   //
@@ -341,7 +342,7 @@ rayleighDamping(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
+getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                     TCL_Char ** const argv)
 {
   //
@@ -403,7 +404,7 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getEleLoadTags(ClientData clientData, Tcl_Interp *interp, int argc,
+getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                TCL_Char ** const argv)
 {
   //
@@ -462,7 +463,7 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getEleLoadData(ClientData clientData, Tcl_Interp *interp, int argc,
+getEleLoadData(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                TCL_Char ** const argv)
 {
   // getLoadData <patternTag?>
@@ -532,7 +533,7 @@ getEleLoadData(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getEleTags(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+getEleTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   // NOTE: Maybe this can use a base class of ElementIter so we only need
   //       to work in terms of tagged object

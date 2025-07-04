@@ -32,6 +32,7 @@
 
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
+#if 0
 #include <api/runtimeAPI.h>
 
 static MapOfTaggedObjects theStrengthDegradationObjects;
@@ -58,6 +59,7 @@ OPS_ADD_RUNTIME_VXV(OPS_clearAllStrengthDegradation)
 {
   theStrengthDegradationObjects.clearAll();
 }
+#endif
 
 StrengthDegradation::StrengthDegradation(int tag, int classTag)
   :MaterialState(tag,classTag)

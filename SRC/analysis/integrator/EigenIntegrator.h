@@ -76,10 +76,9 @@ class EigenIntegrator : public Integrator
      
      virtual int getLastResponse(Vector &result, const ID &id);
 
-     virtual int sendSelf(int commitTag, Channel &theChannel);
-     virtual int recvSelf(int commitTag, Channel &theChannel,
-			  FEM_ObjectBroker &theBroker);     
-     virtual void Print(OPS_Stream &s, int flag = 0);
+     virtual int sendSelf(int commitTag, Channel &) override;
+     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;     
+     virtual void Print(OPS_Stream &s, int flag) override;
      
  protected:
      virtual EigenSOE *getEigenSOEPtr() const;

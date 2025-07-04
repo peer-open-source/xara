@@ -8,6 +8,7 @@
 //
 #include <tcl.h>
 #include <string.h>
+#include <Parsing.h>
 
 class Domain;
 
@@ -15,7 +16,7 @@ int G3_AddTclAnalysisAPI(Tcl_Interp *interp, Domain* domain);
 
 int
 TclObjCommand_pragma([[maybe_unused]] ClientData clientData, 
-                     Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
+                     Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[])
 {
   if (objc == 1)
     return TCL_OK;

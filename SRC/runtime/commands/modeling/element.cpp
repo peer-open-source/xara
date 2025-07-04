@@ -329,7 +329,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
            strcasecmp(argv[1], "DispBeamColumnNL") == 0 ||
            strcasecmp(argv[1], "DispBeamColumnThermal") == 0 ||
            strcasecmp(argv[1], "ElasticForceBeamColumn") == 0 ||
-           strcasecmp(argv[1], "NonlinearBeamColumn") == 0 ||
+           strcasecmp(argv[1], "nonlinearBeamColumn") == 0 ||
            strcasecmp(argv[1], "DispBeamColumnWithSensitivity") == 0) {
 
     return TclBasicBuilder_addForceBeamColumn(clientData, interp, argc, argv);

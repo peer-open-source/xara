@@ -17,7 +17,6 @@
 
 #include <tcl.h>
 #include <string.h>
-#include <runtimeAPI.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <BasicModelBuilder.h>

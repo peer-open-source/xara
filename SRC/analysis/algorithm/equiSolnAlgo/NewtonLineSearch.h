@@ -38,8 +38,8 @@
 #define NewtonLineSearch_h
 
 #include <EquiSolnAlgo.h>
-#include <Vector.h>
 #include <LineSearch.h>
+
 
 class NewtonLineSearch: public EquiSolnAlgo
 {

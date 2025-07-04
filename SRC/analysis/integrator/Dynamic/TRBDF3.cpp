@@ -39,13 +39,7 @@
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <api/runtimeAPI.h>
 
-void *
-OPS_ADD_RUNTIME_VPV(OPS_TRBDF3)
-{
-    return new TRBDF3();
-}
 
 TRBDF3::TRBDF3()
   : TransientIntegrator(INTEGRATOR_TAGS_TRBDF3),

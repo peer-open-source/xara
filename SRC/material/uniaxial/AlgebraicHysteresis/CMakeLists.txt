@@ -22,6 +22,7 @@ target_sources(OPS_Material
 )
 
 target_sources(OPS_Runtime PRIVATE
+    "command.cpp"
     "backbone.cpp"
     "StiffnessDegradationCommand.cpp"
     "StrengthDegradationCommand.cpp"

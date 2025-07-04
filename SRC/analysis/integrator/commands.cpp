@@ -10,6 +10,7 @@
 #include <Domain.h>
 #include <BasicAnalysisBuilder.h>
 #include <Dynamic/Houbolt.h>
+#include <elementAPI.h>
 
 #if 0
 int
