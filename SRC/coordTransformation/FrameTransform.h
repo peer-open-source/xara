@@ -18,14 +18,10 @@
 #ifndef FrameTransform_h
 #define FrameTransform_h
 
-#include <vector>
-#include <Versor.h>
 #include <VectorND.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
 #include <TaggedObject.h>
-#include <CrdTransf.h> // TODO: remove this include
-// class CrdTransf;
 
 #define MAYBE_STATIC static
 
@@ -84,6 +80,9 @@ public:
   virtual int initialize(std::array<Node*, nn>& nodes)=0;
   virtual int update() =0;
   virtual int commit() =0;
+  virtual int restart() {return 0;} // TODO
+  virtual int recover() {return 0;} // TODO
+
   virtual int revertToLastCommit() =0;
   virtual int revertToStart() =0;
 
@@ -92,7 +91,8 @@ public:
   virtual const std::array<Vector3D,nn> *getRigidOffsets() const =0;
 
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) =0;
-  virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl) =0;
+  virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl,
+                                               const VectorND<nn*ndf>& pl) =0;
 
   VectorND<nn*ndf>    pushConstant(const VectorND<nn*ndf>&pl);
   MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
@@ -144,6 +144,8 @@ public:
     return 0;
   }
 protected:
+  static inline constexpr void
+  pushRotation(MatrixND<nn*ndf,nn*ndf>& Kg, const Matrix3D& R);
 
 };
 }
