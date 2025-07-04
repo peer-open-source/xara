@@ -1,3 +1,7 @@
+import warnings
+warnings.warn("the section module is deprecated", DeprecationWarning,
+              stacklevel=2)
+
 from .section import (
       patch,
       FiberSection,

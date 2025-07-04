@@ -1,14 +1,13 @@
+
+import warnings
+warnings.warn("the section.shapes module is deprecated", DeprecationWarning,
+              stacklevel=2)
 from . import patch
 layer = patch.layer
+
 from opensees.section import FiberSection
 import numpy as np
 from numpy import pi, sin, cos
-
-def RegularPolygon():
-    pass
-
-def WideFlange():
-    pass
 
 
 def PolygonRing(n, extRad, intRad):
@@ -36,6 +35,7 @@ def PolygonRing(n, extRad, intRad):
               [   iR2*cos(sita2),    iR2*sin(sita2)],
             ]
         ))
+
     sect = FiberSection(shapes=collection)
     sect.extRad = extRad
     sect.intRad = intRad
