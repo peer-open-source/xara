@@ -19,8 +19,8 @@ VectorND<N,T>::assemble(const VectorND<nr> &v, double fact)
 {
   static_assert((ir >= 0) && ((ir + nr - 1) < N));
 
-    for (int j=0; j<nr; j++)
-      (*this)(ir + j) += v[j]*fact;
+  for (int j=0; j<nr; j++)
+    (*this)(ir + j) += v[j]*fact;
 }
 
 template <index_t N, typename T>
@@ -37,8 +37,8 @@ VectorND<N,T>::insert(const VectorND<nr> &v, double fact)
 {
   static_assert((ir >= 0) && ((ir + nr - 1) < N));
 
-    for (int j=0; j<nr; j++)
-      (*this)(ir + j) = v[j]*fact;
+  for (int j=0; j<nr; j++)
+    (*this)(ir + j) = v[j]*fact;
 }
 
 
@@ -120,7 +120,6 @@ VectorND<N,T>::addVector(const T thisFact, const Vector &other, const T otherFac
     }
   }
 
-  // successfull
   return 0;
 }
 
