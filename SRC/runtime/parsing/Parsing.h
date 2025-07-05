@@ -6,6 +6,7 @@
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
 #pragma once
+#include <string.h>
 #ifndef TCL_Char
 typedef const char TCL_Char;
 #endif
