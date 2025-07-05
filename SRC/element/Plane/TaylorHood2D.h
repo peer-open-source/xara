@@ -75,7 +75,7 @@ public:
     void setDomain(Domain *theDomain);
 
     // TaggedObject
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &, int flag) final;
     int displaySelf(Renderer &, int mode, float fact,
 		    const char **displayModes=0, int numModes=0);
 

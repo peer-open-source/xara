@@ -89,13 +89,13 @@ DOF_Graph::DOF_Graph(AnalysisModel &theModel)
     for (int i=0; i<size; i++) {
       int dofTag = id(i);
       if (dofTag >= START_EQN_NUM) {
-	Vertex *vertexPtr = this->getVertexPtr(dofTag);
-	if (vertexPtr == 0) {
-	  Vertex *vertexPtr = new Vertex(dofTag, dofTag);
-	  if (this->addVertex(vertexPtr, false) == false) {
-	    opserr << "WARNING DOF_Graph::DOF_Graph - error adding vertex\n";
-	  }
-	}
+        Vertex *vertexPtr = this->getVertexPtr(dofTag);
+        if (vertexPtr == 0) {
+          Vertex *vertexPtr = new Vertex(dofTag, dofTag);
+          if (this->addVertex(vertexPtr, false) == false) {
+            opserr << "WARNING DOF_Graph::DOF_Graph - error adding vertex\n";
+          }
+        }
       }
     }
   }

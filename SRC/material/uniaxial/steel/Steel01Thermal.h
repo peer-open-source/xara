@@ -63,7 +63,7 @@ class Steel01Thermal : public UniaxialMaterial
     int sendSelf(int commitTag, Channel &);  
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &, int flag) final;
 
     int getVariable(const char *variable, Information &);
     

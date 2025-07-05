@@ -2,11 +2,12 @@
 #include <tcl.h>
 #include "AxialSp.h"
 #include "AxialSpHD.h"
-#include <runtimeAPI.h>
+#include <Logging.h>
+#include <Parsing.h>
 #include <BasicModelBuilder.h>
 
 int
-TclCommand_AxialSp(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_AxialSp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                    TCL_Char ** const argv)
 {
   // arguments (necessary)

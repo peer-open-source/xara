@@ -10,6 +10,7 @@
 // Created: Aug 2020
 //
 //
+#include <array>
 #include "EightNodeQuad.h"
 #include <Node.h>
 #include <NDMaterial.h>
@@ -35,7 +36,7 @@ double EightNodeQuad::shp[3][NEN];
 // double EightNodeQuad::wts[nip];
 
 EightNodeQuad::EightNodeQuad(int tag, 
-                           std::array<int,8>& nodes,
+                           const std::array<int,8>& nodes,
                            NDMaterial &m, 
                            double thickness,
                            double p, double r, 

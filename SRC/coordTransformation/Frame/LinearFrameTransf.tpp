@@ -26,7 +26,6 @@
 // Adapted: Remo Magalhaes de Souza
 // Created: 04/2000
 //
-//
 #pragma once
 #include <Vector.h>
 #include <Matrix.h>
@@ -40,10 +39,11 @@ namespace OpenSees {
 
 static inline MatrixND<3,3>
 FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj, 
-                         const Vector3D& vz, int di, int dj, int dv)
+                         const Vector3D& vz,
+                         int di, int dj, int dv)
 {
   Vector3D v1  = xj - xi;
-  double L     = v1.norm();
+  const double L     = v1.norm();
   Vector3D e1  = v1/L;
 
   Vector3D v2  = vz.cross(e1);
@@ -132,12 +132,14 @@ LinearFrameTransf<nn,ndf>::~LinearFrameTransf()
       delete u_init[i];
 }
 
+
 template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::commit()
 {
   return 0;
 }
+
 
 template <int nn, int ndf>
 int
@@ -184,55 +186,42 @@ LinearFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
     initialDispChecked = true;
   }
 
-  int error;
-  // get element length and orientation
-  if ((error = this->computeElemtLengthAndOrient()))
-    return error;
+  {
+    const Vector &XI = nodes[   0]->getCrds();
+    const Vector &XJ = nodes[nn-1]->getCrds();
 
-  return 0;
-}
+    for (int i=0; i<3; i++) {
+      xi[i] = XI[i];
+      xj[i] = XJ[i];
+    }
+    
+    Vector3D dx = xj - xi;
+
+    if (offsets != nullptr) {
+      for (int i=0; i<3; i++)
+        dx(i) -= (*offsets)[   0][i];
+      for (int i=0; i<3; i++)
+        dx(i) += (*offsets)[nn-1][i];
+    }
 
 
-template <int nn, int ndf>
-int
-LinearFrameTransf<nn,ndf>::computeElemtLengthAndOrient()
-{
+    if (u_init[0] != 0) {
+      for (int i=0; i<3; i++)
+        dx(i) -= (*u_init[0])[i];
+    }
 
-  const Vector &XI = nodes[   0]->getCrds();
-  const Vector &XJ = nodes[nn-1]->getCrds();
+    if (u_init[nn-1] != 0) {
+      for (int i=0; i<3; i++)
+        dx(i) += (*u_init[nn-1])[i];
+    }
 
-  for (int i=0; i<3; i++) {
-    xi[i] = XI[i];
-    xj[i] = XJ[i];
+    L = dx.norm();
+
+    if (L == 0.0)
+      return -2;
+
+    return FrameTransform<nn,ndf>::Orient(dx, vz, R);
   }
-  
-  Vector3D dx = xj - xi;
-
-  if (offsets != nullptr) {
-    for (int i=0; i<3; i++)
-      dx(i) -= (*offsets)[   0][i];
-    for (int i=0; i<3; i++)
-      dx(i) += (*offsets)[nn-1][i];
-  }
-
-
-  if (u_init[0] != 0) {
-    for (int i=0; i<3; i++)
-      dx(i) -= (*u_init[0])[i];
-  }
-
-  if (u_init[nn-1] != 0) {
-    for (int i=0; i<3; i++)
-      dx(i) += (*u_init[nn-1])[i];
-  }
-
-  // calculate the element length
-  L = dx.norm();
-
-  if (L == 0.0)
-    return -2;
-
-  return FrameTransform<nn,ndf>::Orient(dx, vz, R);
 }
 
 
@@ -285,7 +274,6 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
 
   constexpr static int N = nn * ndf;
 
-  // Initialize ul = ug
   VectorND<N> ul = ug;
 
   // (1)
@@ -416,7 +404,7 @@ LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
   // 1.2) Adjust force part
   for (int i=0; i<nn; i++) {
     pa.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)/L);
-    pa[i*ndf+3] += m[0]*(i? -1:1)*0.5;
+    pa[i*ndf+3] += m[0]*(i? -1.0:1.0)*0.5;
   }
 
   // 2) Rotate and do joint offsets
@@ -432,8 +420,8 @@ LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kb, const Vector
   MatrixND<nn*ndf,nn*ndf> A{};
   A.addDiagonal(1.0);
   constexpr Vector3D axis{1, 0, 0};
-  constexpr Matrix3D ix = Hat(axis);
-  constexpr Matrix3D ioi = axis.bun(axis);
+  constexpr Matrix3D ix  = Hat(Vector3D{1, 0, 0});
+  constexpr Matrix3D ioi = axis.bun(Vector3D{1, 0, 0});
 
   MatrixND<3,ndf> Gb{};
   Gb.template insert<0, 3>(ioi, 0.5);
@@ -511,6 +499,7 @@ LinearFrameTransf<nn,ndf>::getLengthGrad()
 
   return 1/L*(xj - xi).dot(dxj - dxi);
 }
+
 
 template <int nn, int ndf>
 double

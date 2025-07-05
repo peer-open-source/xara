@@ -39,14 +39,12 @@ DegradingUniaxialWrapper::parseNew(Tcl_Interp* interp, void *cd, int argc,
   // Get wrapper tag
   if (Tcl_GetInt(interp, argv[2], &tags[0]) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial tag\n";
-    // printCommand(argc, argv);
     return nullptr;
   }
 
   // Get base tag
   if (Tcl_GetInt(interp, argv[3], &tags[1]) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial tag\n";
-    // printCommand(argc, argv);
     return nullptr;
   }
 
@@ -146,6 +144,7 @@ DegradingUniaxialWrapper::setTrialStrain(double strain, double temp,
         theMaterial->getStress(),
         theMaterial->getTangent(),
     };
+
     double outputs[2];
 
     this->degrade->call(degrade, 0, ISW_UPDATE, 0, 0, 3, inputs, 2, outputs, 0);

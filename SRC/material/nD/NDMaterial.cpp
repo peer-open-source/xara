@@ -45,7 +45,7 @@
 #include <BeamFiberMaterial2dPS.h>
 #include <PlateFiberMaterial.h>
 #include <string.h>
-#include <api/runtimeAPI.h>
+// #include <api/runtimeAPI.h>
 
 Matrix NDMaterial::errMatrix(1,1);
 Vector NDMaterial::errVector(1);

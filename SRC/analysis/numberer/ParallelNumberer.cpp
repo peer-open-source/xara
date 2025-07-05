@@ -294,7 +294,7 @@ ParallelNumberer::numberDOF(int lastDOF)
   DOF_GrpIter &tDOFs = theAModel->getDOFs();
 
   DOF_Group *dofPtr;
-  while ((dofPtr = tDOFs()) != 0) {
+  while ((dofPtr = tDOFs()) != nullptr) {
     const ID &theID = dofPtr->getID();
     int have4s = 0;
     for (int i=0; i<theID.Size(); i++)
@@ -308,22 +308,22 @@ ParallelNumberer::numberDOF(int lastDOF)
       MP_ConstraintIter &theMPs = theDomain->getMPs();
       MP_Constraint *mpPtr;
       while ((mpPtr = theMPs()) != 0 ) {
-	// note keep looping over all in case multiple constraints
-	// are used to constrain a node -- can't assume intelli user
-	if (mpPtr->getNodeConstrained() == nodeID) {
-	  int nodeRetained = mpPtr->getNodeRetained();
-	  Node *nodeRetainedPtr = theDomain->getNode(nodeRetained);
-	  DOF_Group *retainedDOF = nodeRetainedPtr->getDOF_GroupPtr();
-	  const ID&retainedDOFIDs = retainedDOF->getID();
-	  const ID&constrainedDOFs = mpPtr->getConstrainedDOFs();
-	  const ID&retainedDOFs = mpPtr->getRetainedDOFs();
-	  for (int i=0; i<constrainedDOFs.Size(); i++) {
-	    int dofC = constrainedDOFs(i);
-	    int dofR = retainedDOFs(i);
-	    int dofID = retainedDOFIDs(dofR);
-	    dofPtr->setID(dofC, dofID);
-	  }
-	}
+        // note keep looping over all in case multiple constraints
+        // are used to constrain a node -- can't assume intelli user
+        if (mpPtr->getNodeConstrained() == nodeID) {
+          int nodeRetained = mpPtr->getNodeRetained();
+          Node *nodeRetainedPtr = theDomain->getNode(nodeRetained);
+          DOF_Group *retainedDOF = nodeRetainedPtr->getDOF_GroupPtr();
+          const ID&retainedDOFIDs = retainedDOF->getID();
+          const ID&constrainedDOFs = mpPtr->getConstrainedDOFs();
+          const ID&retainedDOFs = mpPtr->getRetainedDOFs();
+          for (int i=0; i<constrainedDOFs.Size(); i++) {
+            int dofC = constrainedDOFs(i);
+            int dofR = retainedDOFs(i);
+            int dofID = retainedDOFIDs(dofR);
+            dofPtr->setID(dofC, dofID);
+          }
+        }
       }		
     }	
   }

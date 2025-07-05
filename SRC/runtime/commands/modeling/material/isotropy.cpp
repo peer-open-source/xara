@@ -5,6 +5,7 @@
 //===----------------------------------------------------------------------===//
 //
 #include "isotropy.h"
+#include <string.h>
 #include <cmath>
 #include <assert.h>
 #include <Logging.h>

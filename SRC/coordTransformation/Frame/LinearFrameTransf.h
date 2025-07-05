@@ -2,10 +2,6 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
-//
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
 //
 //----------------------------------------------------------------------------//
 //
@@ -18,12 +14,10 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Description: This file contains the class definition for
-// LinearFrameTransf.h. LinearFrameTransf provides the
-// abstraction of a linear transformation for a spatial frame
-// between the global and basic coordinate systems
+// Description: LinearFrameTransf implements a linearized euclidean transformation
+// for a spatial frame
 //
-// Adapted: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
+// Written: Claudio Perez
 //
 #ifndef LinearFrameTransf_hpp
 #define LinearFrameTransf_hpp
@@ -91,8 +85,6 @@ public:
   Vector3D getDelta() {return Du;}
           
 private:
-
-  int computeElemtLengthAndOrient();
 
   inline VectorND<nn*ndf> 
   pullConstant(const VectorND<nn*ndf>& ug, 

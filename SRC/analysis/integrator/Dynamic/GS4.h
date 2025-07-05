@@ -38,7 +38,7 @@ public:
     virtual int formEleResidual(FE_Element* theEle) final;
     virtual int formNodUnbalance(DOF_Group* theDof) final;
 
-    int domainChanged();    
+    int domainChanged();
     int newStep(double deltaT);
     int revertToLastStep();
     virtual int update(const Vector &deltaU);
@@ -48,10 +48,10 @@ public:
     const Vector &getVel();
 
     // MovableObject
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &) override;
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
     
-    void Print(OPS_Stream &s, int flag = 0);        
+    void Print(OPS_Stream &s, int flag) final;        
     
     // Sensitivity
     int revertToStart();

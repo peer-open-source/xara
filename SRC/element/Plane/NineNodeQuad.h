@@ -31,6 +31,7 @@
 # include <stdbool.h>
 #endif
 
+#include <array>
 #include <Element.h>
 #include <ID.h>
 #include <Matrix.h>
@@ -88,7 +89,7 @@ public:
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-  void Print(OPS_Stream &s, int flag = 0);
+  void Print(OPS_Stream &s, int flag);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 

@@ -39,16 +39,15 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
                            int rz, int ry,
                            int geom,
                            int shear_flag)
-
-  :FiniteElement<2, 3, 6> (tag, ELE_TAG_ElasticBeam3d, nodes), 
-   BasicFrame3d(),
-   basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
-   A(A), E(E), G(G), Jx(jx), 
-   Iy(iy), Iz(iz), Iyz(0),
-   mass_flag(cm), density(r),
-   releasez(rz), releasey(ry),
-   geom_flag(geom),
-   section_tag(-1)
+  : FiniteElement<2, 3, 6> (tag, ELE_TAG_ElasticBeam3d, nodes), 
+    BasicFrame3d(),
+    basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
+    A(A), E(E), G(G), Jx(jx), 
+    Iy(iy), Iz(iz), Iyz(0),
+    mass_flag(cm), density(r),
+    releasez(rz), releasey(ry),
+    geom_flag(geom),
+    section_tag(-1)
 {
   q.zero();
   ke.zero();
@@ -392,7 +391,6 @@ PrismFrame3d::getBasicForce()
 const Matrix &
 PrismFrame3d::getTangentStiff()
 {
-
   VectorND<6>   q  = this->getBasicForce();
   MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
 

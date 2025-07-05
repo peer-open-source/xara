@@ -30,7 +30,6 @@
 
 #include <packages.h>
 #include <runtimeAPI.h>
-#include <elementAPI.h>
 
 using namespace OpenSees;
 
@@ -179,6 +178,10 @@ TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
           return TCL_ERROR;
         }
         tracker.consume(Positions::Area);
+        break;
+
+      case Positions::EndRequired:
+      case Positions::End:
         break;
     }
   }

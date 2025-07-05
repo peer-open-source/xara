@@ -20,7 +20,6 @@
 #include <Vector.h>
 #include <VectorND.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -937,45 +936,6 @@ BBarFourNodeQuadUP::Print(OPS_Stream &s, int flag)
     s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
 }
 
-int
-BBarFourNodeQuadUP::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  // get the end point display coords
-  static Vector v1(3);
-  static Vector v2(3);
-  static Vector v3(3);
-  static Vector v4(3);
-  nd1Ptr->getDisplayCrds(v1, fact, displayMode);
-  nd2Ptr->getDisplayCrds(v2, fact, displayMode);
-  nd3Ptr->getDisplayCrds(v3, fact, displayMode);
-  nd4Ptr->getDisplayCrds(v4, fact, displayMode);
-
-  // place values in coords matrix
-  static Matrix coords(4, 3);
-  for (int i = 0; i < 3; i++) {
-    coords(0, i) = v1(i);
-    coords(1, i) = v2(i);
-    coords(2, i) = v3(i);
-    coords(3, i) = v4(i);
-  }
-
-  // set the quantity to be displayed at the nodes;
-  // if displayMode is 1 through 3 we will plot material stresses otherwise 0.0
-  static Vector values(4);
-  if (displayMode < 4 && displayMode > 0) {
-    for (int i = 0; i < 4; i++) {
-      const Vector& stress = theMaterial[i]->getStress();
-      values(i) = stress(displayMode - 1);
-    }
-  }
-  else {
-    for (int i = 0; i < 4; i++)
-      values(i) = 0.0;
-  }
-
-  // draw the polygon
-  return theViewer.drawPolygon(coords, values, this->getTag());
-}
 
 
 Response*

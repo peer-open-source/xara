@@ -60,7 +60,7 @@ class HarmonicSteadyState : public StaticIntegrator
     int recvSelf(int commitTag, Channel &theChannel,
 			 FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &, int flag) final;
 
     int formEleTangent(FE_Element *theEle);
 //  int formEleResidual(FE_Element *theEle);
@@ -89,7 +89,7 @@ protected:
     int gradNumber;
     int sensitivityFlag;
    // EquiSolnAlgo *theAlgorithm;
-    ReliabilityDomain *theDomain;
+    // ReliabilityDomain *theDomain;
     ////////////////////
 };
 

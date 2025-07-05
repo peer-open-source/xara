@@ -148,7 +148,7 @@ class PartitionedDomain: public Domain
     virtual double getNodeDisp(int nodeTag, int dof, int &errorFlag);
     virtual int setMass(const Matrix &mass, int nodeTag);
 
-    virtual int calculateNodalReactions(bool inclInertia);
+    virtual int calculateNodalReactions(int inclInertia);
 #if 0 
     virtual int activateElements(const ID& elementList);
     virtual int deactivateElements(const ID& elementList);

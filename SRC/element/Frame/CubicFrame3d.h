@@ -51,27 +51,26 @@ public:
   int getNumDOF();
   void setDomain(Domain*);
 
-  // Element: State
-  int commitState();
-  int revertToLastCommit();
-  int revertToStart();
+  int update() final;
+  int commitState() final;
+  int revertToLastCommit() final;
+  int revertToStart() final;
 
   // public methods to obtain stiffness, mass, damping and residual information
-  int update();
-  const Matrix& getTangentStiff();
-  const Matrix& getInitialStiff();
-  const Matrix& getMass();
+  const Matrix& getTangentStiff() final;
+  const Matrix& getInitialStiff() final;
+  const Matrix& getMass() final;
 
-  void zeroLoad();
-  int addLoad(ElementalLoad* theLoad, double loadFactor);
-  int addInertiaLoadToUnbalance(const Vector& accel);
+  void zeroLoad() final;
+  int addLoad(ElementalLoad* theLoad, double loadFactor) final;
+  int addInertiaLoadToUnbalance(const Vector& accel) final;
 
-  const Vector& getResistingForce();
-  const Vector& getResistingForceIncInertia();
+  const Vector& getResistingForce() final;
+  const Vector& getResistingForceIncInertia() final;
 
 
-  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
-  int getResponse(int responseID, Information& eleInfo);
+  Response* setResponse(const char** argv, int argc, OPS_Stream& s) final;
+  int getResponse(int responseID, Information& eleInfo) final;
 
   // Element: Parameters
   int setParameter(const char** argv, int argc, Parameter& param);
@@ -89,7 +88,7 @@ public:
   int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
   // TaggedObject
-  void Print(OPS_Stream& s, int flag = 0);
+  void Print(OPS_Stream& s, int flag) final;
 
 protected:
 
@@ -107,7 +106,7 @@ private:
 
   int numSections;
   FrameSection** theSections;       // the materials
-  CrdTransf* theCoordTransf; // coordinate transformation object
+  CrdTransf* theCoordTransf;
   BeamIntegration* beamInt;
 
   double xi[maxNumSections];

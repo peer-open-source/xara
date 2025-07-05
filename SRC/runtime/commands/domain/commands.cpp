@@ -10,6 +10,7 @@
 //
 #include <tcl.h>
 #include <Logging.h>
+#include <Parsing.h>
 #include <elementAPI.h>
 #include <classTags.h>
 //
@@ -84,6 +85,33 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 
   ClientData domain = (ClientData)the_domain;
 
+  {
+    using namespace OpenSees::DomainCommands;
+    // Domain
+    Tcl_CreateObjCommand(interp, "fixedNodes",          &fixedNodes,          domain, nullptr);
+    Tcl_CreateObjCommand(interp, "fixedDOFs",           &fixedDOFs,           domain, nullptr);
+    Tcl_CreateObjCommand(interp, "constrainedNodes",    &constrainedNodes,    domain, nullptr);
+    Tcl_CreateObjCommand(interp, "constrainedDOFs",     &constrainedDOFs,     domain, nullptr);
+    Tcl_CreateObjCommand(interp, "domainChange",        &domainChange,        domain, nullptr);
+    Tcl_CreateObjCommand(interp, "remove",              &removeObject,        domain, nullptr);
+    Tcl_CreateCommand(interp,    "retainedNodes",       &retainedNodes,       domain, nullptr);
+    Tcl_CreateCommand(interp,    "retainedDOFs",        &retainedDOFs,        domain, nullptr);
+    // Elements
+    Tcl_CreateCommand(interp, "localForce",          &localForce,    domain, nullptr);
+    Tcl_CreateCommand(interp, "eleType",             &eleType,       domain, nullptr);
+    Tcl_CreateCommand(interp, "eleNodes",            &eleNodes,            domain, nullptr);
+    Tcl_CreateCommand(interp, "getEleTags",          &getEleTags,          domain, nullptr);
+    Tcl_CreateCommand(interp, "getNumElements",      &getNumElements,      domain, nullptr);
+    Tcl_CreateCommand(interp, "getEleClassTags",     &getEleClassTags,     domain, nullptr);
+    Tcl_CreateCommand(interp, "eleForce",            &eleForce,            domain, nullptr);
+    Tcl_CreateCommand(interp, "eleResponse",         &eleResponse,         domain, nullptr);
+    Tcl_CreateCommand(interp, "eleDynamicalForce",   &eleDynamicalForce,   domain, nullptr);
+    Tcl_CreateCommand(interp, "updateElementDomain", &updateElementDomain, nullptr, nullptr);
+    // damping
+    Tcl_CreateCommand(interp, "setElementRayleighDampingFactors", &addElementRayleigh, domain, nullptr);
+    Tcl_CreateCommand(interp, "setElementRayleighFactors",        &addElementRayleigh, domain, nullptr);
+  }
+
   Tcl_CreateCommand(interp, "loadConst",           &TclCommand_setLoadConst,  domain, nullptr);
   Tcl_CreateCommand(interp, "recorder",            &TclAddRecorder,  domain,  nullptr);
   Tcl_CreateCommand(interp, "region",              &TclCommand_addMeshRegion, domain, nullptr);
@@ -96,21 +124,14 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 
   // DAMPING
   Tcl_CreateCommand(interp, "rayleigh",            &rayleighDamping, domain, nullptr);
-
-  Tcl_CreateCommand(interp, "setElementRayleighDampingFactors", &TclCommand_addElementRayleigh, domain, nullptr);
-  Tcl_CreateCommand(interp, "setElementRayleighFactors",        &TclCommand_addElementRayleigh, domain, nullptr);
+  
   Tcl_CreateCommand(interp, "getLoadFactor",       &getLoadFactor, domain, nullptr);
-  Tcl_CreateCommand(interp, "localForce",          &localForce,    domain, nullptr);
-  Tcl_CreateCommand(interp, "eleType",             &eleType,       domain, nullptr);
-  Tcl_CreateCommand(interp, "eleNodes",            &eleNodes,            domain, nullptr);
-  Tcl_CreateCommand(interp, "getEleTags",          &TclCommand_getEleTags, domain, nullptr);
+
+  //
   Tcl_CreateCommand(interp, "basicDeformation",    &basicDeformation,    domain, nullptr);
   Tcl_CreateCommand(interp, "basicForce",          &basicForce,          domain, nullptr);
   Tcl_CreateCommand(interp, "basicStiffness",      &basicStiffness,      domain, nullptr);
 
-  Tcl_CreateCommand(interp, "eleForce",            &eleForce,            domain, nullptr);
-  Tcl_CreateCommand(interp, "eleResponse",         &eleResponse,         domain, nullptr);
-  Tcl_CreateCommand(interp, "eleDynamicalForce",   &eleDynamicalForce,   domain, nullptr);
 
   Tcl_CreateCommand(interp, "nodeDOFs",            &nodeDOFs,            domain, nullptr);
   Tcl_CreateCommand(interp, "nodeCoord",           &nodeCoord,           domain, nullptr);
@@ -124,8 +145,8 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
   Tcl_CreateCommand(interp, "findNodeWithID",      &findID,              domain, nullptr);
   Tcl_CreateCommand(interp, "nodeUnbalance",       &nodeUnbalance,       domain, nullptr);
   Tcl_CreateCommand(interp, "nodeEigenvector",     &nodeEigenvector,     domain, nullptr);
-
   Tcl_CreateCommand(interp, "nodeReaction",        &nodeReaction,            domain, nullptr);
+
   Tcl_CreateCommand(interp, "reactions",           &calculateNodalReactions, domain, nullptr);
 
   Tcl_CreateCommand(interp, "setNodeVel",          &setNodeVel,              domain, nullptr);
@@ -133,9 +154,9 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
   Tcl_CreateCommand(interp, "setNodeAccel",        &setNodeAccel,            domain, nullptr);
   Tcl_CreateCommand(interp, "setNodeCoord",        &setNodeCoord,            domain, nullptr);
   Tcl_CreateCommand(interp, "nodeRotation",        &nodeRotation,            domain, nullptr);
-
-  Tcl_CreateCommand(interp, "getEleTags",          &getEleTags,              domain, nullptr);
   Tcl_CreateCommand(interp, "getNodeTags",         &getNodeTags,             domain, nullptr);
+
+
 
   Tcl_CreateCommand(interp, "getParamTags",        &getParamTags,            domain, nullptr);
   Tcl_CreateCommand(interp, "getParamValue",       &getParamValue,           domain, nullptr);
@@ -144,17 +165,7 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
   Tcl_CreateCommand(interp, "updateParameter",     &TclCommand_parameter,    domain, nullptr);
   Tcl_CreateCommand(interp, "setParameter",        &TclCommand_setParameter, domain, nullptr);
 
-  Tcl_CreateObjCommand(interp, "fixedNodes",          &fixedNodes,          domain, nullptr);
-  Tcl_CreateObjCommand(interp, "fixedDOFs",           &fixedDOFs,           domain, nullptr);
-  Tcl_CreateObjCommand(interp, "constrainedNodes",    &constrainedNodes,    domain, nullptr);
-  Tcl_CreateObjCommand(interp, "constrainedDOFs",     &constrainedDOFs,     domain, nullptr);
-  Tcl_CreateObjCommand(interp, "domainChange",        &domainChange,        domain, nullptr);
-  Tcl_CreateObjCommand(interp, "remove",              &removeObject,        domain, nullptr);
-  Tcl_CreateCommand(interp,    "retainedNodes",       &retainedNodes,       domain, nullptr);
-  Tcl_CreateCommand(interp,    "retainedDOFs",        &retainedDOFs,        domain, nullptr);
 
-  Tcl_CreateCommand(interp, "getNumElements",      &getNumElements,      domain, nullptr);
-  Tcl_CreateCommand(interp, "getEleClassTags",     &getEleClassTags,     domain, nullptr);
   Tcl_CreateCommand(interp, "getEleLoadTags",      &getEleLoadTags,      domain, nullptr);
   Tcl_CreateCommand(interp, "getEleLoadData",      &getEleLoadData,      domain, nullptr);
   Tcl_CreateCommand(interp, "getEleLoadClassTags", &getEleLoadClassTags, domain, nullptr);
@@ -171,8 +182,6 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 
   Tcl_CreateCommand(interp, "recorderValue",       &OPS_recorderValue,   domain, nullptr);
   Tcl_CreateCommand(interp, "record",              &TclCommand_record,   domain, nullptr);
-
-  Tcl_CreateCommand(interp, "updateElementDomain", &updateElementDomain, nullptr, nullptr);
 
   Tcl_CreateCommand(interp, "InitialStateAnalysis", &InitialStateAnalysis, nullptr, nullptr);
 
@@ -201,7 +210,7 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 
 
 int
-getLoadFactor(ClientData clientData, Tcl_Interp *interp, int argc,
+getLoadFactor(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -237,7 +246,7 @@ getLoadFactor(ClientData clientData, Tcl_Interp *interp, int argc,
 
 // added by C.McGann, U.Washington
 int
-InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
+InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                      TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -288,7 +297,7 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-rayleighDamping(ClientData clientData, Tcl_Interp *interp, int argc,
+rayleighDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                 TCL_Char ** const argv)
 {
   //
@@ -333,48 +342,7 @@ rayleighDamping(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-getEleClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
-                TCL_Char ** const argv)
-{
-  assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
-
-  if (argc == 1) {
-    Element *theEle;
-    ElementIter &eleIter = the_domain->getElements();
-
-    char buffer[20];
-
-    while ((theEle = eleIter()) != nullptr) {
-      sprintf(buffer, "%d ", theEle->getClassTag());
-      Tcl_AppendResult(interp, buffer, NULL);
-    }
-  } else if (argc == 2) {
-    int eleTag;
-
-    if (Tcl_GetInt(interp, argv[1], &eleTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "getParamValue -- could not read paramTag \n";
-      return TCL_ERROR;
-    }
-
-    Element *theEle = the_domain->getElement(eleTag);
-
-    char buffer[20];
-    sprintf(buffer, "%d ", theEle->getClassTag());
-    Tcl_AppendResult(interp, buffer, NULL);
-
-  } else {
-    opserr << OpenSees::PromptValueError 
-           << "want - getEleClassTags <eleTag?>\n" << endln;
-    return TCL_ERROR;
-  }
-
-  return TCL_OK;
-}
-
-int
-getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
+getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                     TCL_Char ** const argv)
 {
   //
@@ -436,7 +404,7 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getEleLoadTags(ClientData clientData, Tcl_Interp *interp, int argc,
+getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                TCL_Char ** const argv)
 {
   //
@@ -495,7 +463,7 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getEleLoadData(ClientData clientData, Tcl_Interp *interp, int argc,
+getEleLoadData(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                TCL_Char ** const argv)
 {
   // getLoadData <patternTag?>
@@ -565,7 +533,7 @@ getEleLoadData(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getEleTags(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+getEleTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   // NOTE: Maybe this can use a base class of ElementIter so we only need
   //       to work in terms of tagged object

@@ -132,19 +132,16 @@ TzSimple1::TzSimple1()
 }
 
 /////////////////////////////////////////////////////////////////////
-//	Default destructor
 TzSimple1::~TzSimple1()
 {
-    // Does nothing
+  // Does nothing
 }
 
 /////////////////////////////////////////////////////////////////////
 void TzSimple1::getFarField(double z)
 {
 	TFar_z   = z;
-	TFar_tang= TFar_tang;
 	TFar_t   = TFar_tang * TFar_z;
-
 	return;
 }
 
@@ -153,7 +150,8 @@ void TzSimple1::getNearField(double zlast, double dz, double dz_old)
 {
 	// Limit "dz" step size if it is oscillating and not shrinking.
 	//
-	if(dz*dz_old < 0.0 && fabs(dz/dz_old) > 0.5) dz = -dz_old/2.0;
+	if (dz*dz_old < 0.0 && fabs(dz/dz_old) > 0.5)
+    dz = -dz_old/2.0;
 
 	// Establish trial "z" and direction of loading (with dzTotal) for entire step.
 	//	
@@ -163,7 +161,7 @@ void TzSimple1::getNearField(double zlast, double dz, double dz_old)
 	
 	// Treat as elastic if dzTotal is below TZtolerance
 	//
-	if(fabs(dzTotal*TNF_tang/tult) < 10.0*TZtolerance) 
+	if (fabs(dzTotal*TNF_tang/tult) < 10.0*TZtolerance) 
 	{
 		TNF_t = TNF_t + dz*TNF_tang;
 		if(fabs(TNF_t) >=(1.0-TZtolerance)*tult) 

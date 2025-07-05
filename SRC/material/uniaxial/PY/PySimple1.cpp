@@ -166,7 +166,7 @@ void PySimple1::getGap(double ylast, double dy, double dy_old)
 void PySimple1::getFarField(double y)
 {
 	TFar_y   = y;
-	TFar_tang= TFar_tang;
+	
 	TFar_p   = TFar_tang * TFar_y;
 
 	return;

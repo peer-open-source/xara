@@ -22,7 +22,6 @@
 
 #include <SP_Constraint.h>
 
-#include <SingleDomAllSP_Iter.h>
 #include <NodeIter.h>
 #include <Vertex.h>
 #include <VertexIter.h>
@@ -53,7 +52,6 @@ Mesh3DSubdomain::Mesh3DSubdomain(Domain * inpDomain)
 //general constructor
 Mesh3DSubdomain::Mesh3DSubdomain() 
 {
-
   this->myDomain = NULL;
   this->myLastEle = 0;
   this->myLastNode = 0;

@@ -33,7 +33,6 @@
 
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
-#include <api/runtimeAPI.h>
 #include <GenericResponse.h>
 
 typedef GenericResponse<CrdTransf> CrdTransfResponse;
@@ -41,7 +40,8 @@ typedef GenericResponse<CrdTransf> CrdTransfResponse;
 static MapOfTaggedObjects theCrdTransfObjects;
 
 
-ID OPS_getAllCrdTransfTags() {
+ID
+OPS_getAllCrdTransfTags() {
 
     ID allCrdTransfTags(0);
       

@@ -72,7 +72,7 @@ class NineFourNodeQuadUP : public Element
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 		  &theBroker);
     int displaySelf(Renderer &theViewer, int displayMode, float fact);
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &, int flag) final;
 
     Response *setResponse(const char **argv, int argc);
     int getResponse(int responseID, Information &eleInformation);

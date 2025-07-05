@@ -18,8 +18,6 @@
 #include <vector>
 #include <utility>
 
-// using namespace OpenSees;
-
 class BasicFrame3d {
   constexpr static int ndm = 3;
 

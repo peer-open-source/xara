@@ -8,9 +8,10 @@
 #include <algorithm>
 
 // a simple structure for the sparse mass matrix
+
 struct SparseMatrix
 {
-// a triplet for the sparse mass matrix
+    // a triplet for the sparse mass matrix
     struct triplet_t {
         int i,j;
         double val;

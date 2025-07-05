@@ -27,18 +27,19 @@ using namespace OpenSees;
 #include <algorithm>
 #include <string>
 static
-std::string toLower( const std::string & s )
+std::string
+toLower( const std::string & s )
 {
-    std::string copy = s;
-    transform( copy.begin( ), copy.end( ), copy.begin( ), 
-        [](unsigned char c) { return std::tolower(c); });
-    return copy;
+  std::string copy = s;
+  transform( copy.begin( ), copy.end( ), copy.begin( ), 
+      [](unsigned char c) { return std::tolower(c); });
+  return copy;
 }
 
 static bool 
 equalsIgnoreCase( const std::string & lhs, const std::string & rhs )
 {
-    return toLower( lhs ) == toLower( rhs );
+  return toLower( lhs ) == toLower( rhs );
 }
 
 class CaseInsensitive
@@ -358,7 +359,7 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
   return TCL_OK;
 }
 
-
+#include <elementAPI.h>
 Element*
 TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {

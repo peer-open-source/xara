@@ -54,6 +54,7 @@
 #include <LoadPattern.h>
 #include <LoadPatternIter.h>
 
+#include <CrdTransf.h>
 #include <FrameTransform.h>
 
 int printElement(ClientData clientData, Tcl_Interp *interp, int argc,

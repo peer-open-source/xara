@@ -207,8 +207,8 @@ int AlphaOS_TP::newStep(double _deltaT)
     double time = theModel->getCurrentDomainTime();
     time += deltaT;
     if (theModel->updateDomain(time, deltaT) < 0)  {
-        opserr << "AlphaOS_TP::newStep() - failed to update the domain\n";
-        return -5;
+      opserr << "AlphaOS_TP::newStep() - failed to update the domain\n";
+      return -5;
     }
     
     return 0;
@@ -362,89 +362,21 @@ int AlphaOS_TP::domainChanged()
         Udotdot = new Vector(size);
         Upt = new Vector(size);
         Put = new Vector(size);
-        
-        // check we obtained the new
-        if (Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            Upt == 0 || Upt->Size() != size ||
-            Put == 0 || Put->Size() != size)  {
-            
-            opserr << "AlphaOS_TP::domainChanged() - ran out of memory\n";
-            
-            // delete the old
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot; 
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (Upt != 0)
-                delete Upt;
-            if (Put != 0)
-                delete Put;
-            
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            Upt = 0; Put = 0;
-            
-            return -1;
-        }
     }
     
-    // now go through and populate U, Udot and Udotdot by iterating through
-    // the DOF_Groups and getting the last committed velocity and accel
-    DOF_GrpIter &theDOFs = theModel->getDOFs();
-    DOF_Group *dofPtr;
-    while ((dofPtr = theDOFs()) != 0)  {
-        const ID &id = dofPtr->getID();
-        int idSize = id.Size();
-        
-        int i;
-        const Vector &disp = dofPtr->getCommittedDisp();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Upt)(loc) = disp(i);
-                (*U)(loc) = disp(i);
-            }
-        }
-        
-        const Vector &vel = dofPtr->getCommittedVel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udot)(loc) = vel(i);
-            }
-        }
-        
-        const Vector &accel = dofPtr->getCommittedAccel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udotdot)(loc) = accel(i);
-            }
-        }
-    }
+    theModel->getState(*U, *Udot, *Udotdot, 0);
+
+    *Upt = *U;
     
     // now get unbalance at last commit and store it
     // warning: this will use committed stiffness prop. damping
     // from current step instead of previous step
     alphaD = alphaR = alphaKU = alphaP = (1.0 - alpha);
     if (alpha < 1.0)  {
-        this->TransientIntegrator::formUnbalance();
-        (*Put) = theLinSOE->getB();
+      this->TransientIntegrator::formUnbalance();
+      (*Put) = theLinSOE->getB();
     } else {
-        Put->Zero();
+      Put->Zero();
     }
     
     return 0;

@@ -156,7 +156,7 @@ void QzSimple1::getGap(double zlast, double dz, double dz_old)
 void QzSimple1::getFarField(double z)
 {
 	TFar_z   = z;
-	TFar_tang= TFar_tang;
+	
 	TFar_Q   = TFar_tang * TFar_z;
 
 	return;

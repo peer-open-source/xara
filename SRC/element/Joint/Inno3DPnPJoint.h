@@ -165,7 +165,7 @@ class Inno3DPnPJoint : public Element
 	int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
     
     // print out element data
-    void Print(OPS_Stream &s, int flag =0);        
+    void Print(OPS_Stream &, int flag) final;        
     
     // implemented to print into file
     const char *getClassType(void) const {return "Inno3DPnPJoint";};

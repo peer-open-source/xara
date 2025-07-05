@@ -17,7 +17,6 @@
 #include <Vector.h>
 #include <ID.h>
 #include <Domain.h>
-#include <string.h>
 #include <Information.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -27,6 +26,7 @@
 #include <BeamIntegration.h>
 #include <Parameter.h>
 #include <math.h>
+#include <string.h>
 
 
 #define ELE_TAG_CubicFrame3d 0
@@ -740,7 +740,8 @@ CubicFrame3d<shear,nwm>::getResistingForce()
         q(4) += 0.5 * phiy * L / (1 + phiy) * si;
         break;
       case FrameStress::T: q(5) += si; break;
-      default:                 break;
+      default:
+        break;
       }
     }
   }

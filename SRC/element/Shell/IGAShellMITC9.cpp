@@ -20,7 +20,6 @@
 #include <ErrorHandler.h>
 #include <IGAShellMITC9.h>
 #include <R3vectors.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <Channel.h>
@@ -29,7 +28,7 @@
 
 
 
-//quadrature data
+// quadrature data
 const double  IGAShellMITC9::root3 = sqrt(3.0) ;
 const double  IGAShellMITC9::root3_over_root5 = root3 / sqrt(5.0) ;
 

@@ -43,11 +43,10 @@ class StandardEigenAlgo : public EigenAlgorithm
   
   virtual int solveCurrentStep(int numModes);
   
-  virtual int sendSelf(int commitTag, Channel &theChannel);
-  virtual int recvSelf(int commitTag, Channel &theChannel,
-		       FEM_ObjectBroker &theBroker);
+  virtual int sendSelf(int commitTag, Channel &);
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
   
-  virtual void Print(OPS_Stream &s, int flag = 0);
+  virtual void Print(OPS_Stream &s, int flag) override;
   
  protected:
   

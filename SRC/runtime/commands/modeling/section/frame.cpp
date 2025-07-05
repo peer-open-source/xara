@@ -16,6 +16,7 @@
 #include <ElasticLinearFrameSection3d.h>
 #include <ElasticSection3d.h>
 #include <ElasticShearSection2d.h>
+#include <ElasticShearSection3d.h>
 #include <ElasticSection2d.h>
 #include <SectionAggregator.h>
 
@@ -70,7 +71,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
     double mass=0.0;
     // All 3D elements have been refactored to select shear themselves, but
     // in 2D the element may check the section for shear.
-    bool use_shear = NDM == 3;
+    bool use_shear = false ; // NDM == 3;
 
     int i;
     for (i=2; i<argc; i++) {
@@ -319,6 +320,19 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
           }
         }
 
+        case Position::kz: {
+          double kz;
+          if (Tcl_GetDouble (interp, argv[i], &kz) != TCL_OK) {
+              opserr << OpenSees::PromptParseError << "invalid kz.\n";
+              return TCL_ERROR;
+          } else {
+            use_shear = true;
+            consts.Az = kz * consts.A;
+            tracker.increment();
+            break;
+          }
+        }
+
         case Position::EndRequired:
           // This will not be reached
           break;
@@ -357,6 +371,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
             break;
 
           case Position::ky:
+          case Position::kz:
           case Position::EndRequired:
           case Position::End:
             break;
@@ -409,9 +424,15 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
             mass, use_mass
         );
       }
-      else if (strcmp(argv[1], "Elastic") == 0)
-        theSection = new ElasticSection3d(tag, E, consts.A, consts.Iz, consts.Iy, G, J);
 
+      else if (strcmp(argv[1], "Elastic") == 0) {
+        if (use_shear)
+          theSection = new ElasticShearSection3d(tag, E, consts.A, consts.Iz, consts.Iy, G, J, 
+                                                 consts.A/consts.Ay, consts.A/consts.Az);
+        else
+          theSection = new ElasticSection3d(tag, E, consts.A, consts.Iz, consts.Iy, G, J);
+
+      }
       else       
         theSection = new ElasticLinearFrameSection3d(tag,
             E, G,
@@ -439,13 +460,13 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
 
   if (ndm==2) {
     enum class Position : int {
-      Tag, E, A, Iz, EndRequired, G, ky, End, Iy, J
+      Tag, E, A, Iz, EndRequired, G, ky, End, Iy, J, kz
     };
     return TclCommand_newElasticSectionTemplate<Position, 2>(clientData, interp, argc, argv);
 
   } else {
     enum class Position : int {
-      Tag, E, A, Iz, Iy, G, J, EndRequired, End, ky
+      Tag, E, A, Iz, Iy, G, J, EndRequired, ky, kz, End
     };
     return TclCommand_newElasticSectionTemplate<Position, 3>(clientData, interp, argc, argv);
   }

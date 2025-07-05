@@ -29,7 +29,6 @@
 #include <FE_EleIter.h>
 #include <Node.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <LoadPattern.h>
 #include <LoadPatternIter.h>
 #include <Domain.h>

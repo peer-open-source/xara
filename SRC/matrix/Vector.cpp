@@ -206,13 +206,17 @@ Vector::Normalize()
     return -1;
 
   length = 1.0/length;
-#ifdef VECTOR_BLAS
-  const int incx = 1;
-  dscal_(&sz, &length, theData, &incx);
-#else
+
+#if 0 && defined(VECTOR_BLAS)
+  if (sz > 32) {
+    const int incx = 1;
+    dscal_(&sz, &length, theData, &incx);
+    return 0;
+  }
+#endif
+
   for (int j=0; j<sz; j++)
     theData[j] *= length;
-#endif
   return 0;
 }
 
@@ -223,15 +227,17 @@ Vector::addVector(const Vector &other, double otherFact )
   assert(sz == other.sz);
 
   // check if quick return
-  if (otherFact == 0.0)
+  if (otherFact == 0.0) {
     return 0; 
-
-  else {
-#ifdef VECTOR_BLAS
+  }
+#if 0 && defined(VECTOR_BLAS)
+  else if (sz > 32) {
     const int incr = 1;
-    daxpy_(&sz, &otherFact, other.theData, &incr, theData, &incr);
+    DAXPY(&sz, &otherFact, other.theData, &incr, theData, &incr);
     return 0;
-#else
+  }
+#endif
+  else {
     // want: this += other * otherFact
     double *dataPtr = theData;
     double *otherDataPtr = other.theData;
@@ -244,12 +250,13 @@ Vector::addVector(const Vector &other, double otherFact )
     } else 
       for (int i=0; i<sz; i++) 
         *dataPtr++ += *otherDataPtr++ * otherFact;
-#endif
   }
 
   // successfull
   return 0;
 }
+
+
 int
 Vector::addVector(double thisFact, const Vector &other, double otherFact )
 {
@@ -261,9 +268,9 @@ Vector::addVector(double thisFact, const Vector &other, double otherFact )
     return 0; 
 
   else if (thisFact == 1.0) {
-#ifdef VECTOR_BLAS
+#if 0 && defined(VECTOR_BLAS)
     const int incr = 1;
-    daxpy_(&sz, &otherFact, other.theData, &incr, theData, &incr);
+    DAXPY(&sz, &otherFact, other.theData, &incr, theData, &incr);
     return 0;
 #else
     // want: this += other * otherFact
@@ -335,18 +342,19 @@ Vector::addMatrixVector(double thisFact, const Matrix &m, const Vector &v, doubl
   if (thisFact == 1.0 && otherFact == 0.0)
     return 0;
 
-#ifdef VECTOR_BLAS
-  else if (v.sz > 10) {
+#if 0 && defined(VECTOR_BLAS)
+  else if (v.sz > 16) {
     int incr = 1,
            i = m.numRows,
            n = m.numCols;
-    return
-      DGEMV("N", &i, &n,
-            &otherFact,
-            m.data, &i,
-            v.theData, &incr,
-            &thisFact,
-            theData,   &incr);
+          
+    DGEMV("N", &i, &n,
+          &otherFact,
+          m.data, &i,
+          v.theData, &incr,
+          &thisFact,
+          theData,   &incr);
+    return 0;
   }
 #endif
 
@@ -482,18 +490,18 @@ Vector::addMatrixTransposeVector(double thisFact,
   if (otherFact == 0.0 && thisFact == 1.0)
     return 0;
 
-#ifdef VECTOR_BLAS
+#if 0 && defined(VECTOR_BLAS)
   else if (v.sz > 10) {
     int incr = 1,
            i = m.numRows,
            n = m.numCols;
-    return
-      DGEMV("T", &i, &n,
-            &otherFact,
-            m.data, &i,
-            v.theData, &incr,
-            &thisFact,
-            theData,   &incr);
+    DGEMV("T", &i, &n,
+          &otherFact,
+          m.data, &i,
+          v.theData, &incr,
+          &thisFact,
+          theData,   &incr);
+    return 0;
   }
 #endif
 
@@ -788,7 +796,7 @@ Vector &Vector::operator-=(double fact)
 
 Vector &Vector::operator*=(double fact)
 {
-#ifdef VECTOR_BLAS
+#if 0 && defined(VECTOR_BLAS)
   const int incr = 1;
   dscal_(&sz, &fact, theData, &incr);
   return *this;

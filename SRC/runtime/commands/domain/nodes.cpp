@@ -18,6 +18,7 @@
 // Framework
 #include <tcl.h>
 #include <Logging.h>
+#include <Parsing.h>
 #include <ID.h>
 #include <Vector.h>
 #include <Matrix.h>
@@ -36,7 +37,7 @@ static int   resDataSize = 0;
 
 
 int
-getNodeTags(ClientData clientData, Tcl_Interp *interp, int argc,
+getNodeTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -55,7 +56,7 @@ getNodeTags(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-findID(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+findID(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *theDomain = (Domain*)clientData;
@@ -94,7 +95,7 @@ findID(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const ar
 }
 
 int
-setNodeCoord(ClientData clientData, Tcl_Interp *interp, int argc,
+setNodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   //
@@ -149,7 +150,7 @@ setNodeCoord(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeDisp(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+nodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *domain = (Domain*)clientData;
@@ -205,7 +206,7 @@ nodeDisp(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const 
 }
 
 int
-nodeMass(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;
@@ -247,7 +248,7 @@ nodeMass(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const 
 }
 
 int
-nodePressure(ClientData clientData, Tcl_Interp *interp, int argc,
+nodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -272,7 +273,7 @@ nodePressure(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeBounds(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+nodeBounds(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;
@@ -302,7 +303,7 @@ nodeBounds(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** cons
 }
 
 int
-nodeVel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+nodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;
@@ -361,7 +362,7 @@ nodeVel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const a
 }
 
 int
-setNodeVel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+setNodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;
@@ -418,7 +419,7 @@ setNodeVel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** cons
 }
 
 int
-setNodeDisp(ClientData clientData, Tcl_Interp *interp, int argc,
+setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -478,7 +479,7 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-setNodeAccel(ClientData clientData, Tcl_Interp *interp, int argc,
+setNodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -538,7 +539,7 @@ setNodeAccel(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeAccel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+nodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
 
@@ -590,7 +591,7 @@ nodeAccel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
 }
 
 int
-nodeUnbalance(ClientData clientData, Tcl_Interp *interp, int argc,
+nodeUnbalance(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -648,7 +649,7 @@ nodeUnbalance(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeRotation(ClientData clientData, Tcl_Interp *interp, int argc,
+nodeRotation(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -683,7 +684,7 @@ nodeRotation(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
+nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -746,7 +747,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeEigenvector(ClientData clientData, Tcl_Interp *interp, int argc,
+nodeEigenvector(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -820,7 +821,7 @@ nodeEigenvector(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-calculateNodalReactions(ClientData clientData, Tcl_Interp *interp, int argc,
+calculateNodalReactions(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                         TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -847,7 +848,7 @@ calculateNodalReactions(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeReaction(ClientData clientData, Tcl_Interp *interp, int argc,
+nodeReaction(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -904,7 +905,7 @@ nodeReaction(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-nodeCoord(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+nodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;
@@ -967,7 +968,7 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
 }
 
 int
-retainedNodes(ClientData clientData, Tcl_Interp *interp, int argc,
+retainedNodes(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -1013,7 +1014,7 @@ retainedNodes(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-nodeDOFs(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+nodeDOFs(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;

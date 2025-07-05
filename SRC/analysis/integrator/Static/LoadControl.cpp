@@ -101,23 +101,23 @@ LoadControl::newStep()
 int
 LoadControl::update(const Vector &deltaU)
 {
-    AnalysisModel *myModel = this->getAnalysisModel();
-    LinearSOE *theSOE = this->getLinearSOE();
-    if (myModel == nullptr || theSOE == nullptr)
-      return -10;
+  AnalysisModel *myModel = this->getAnalysisModel();
+  LinearSOE *theSOE = this->getLinearSOE();
+  if (myModel == nullptr || theSOE == nullptr)
+    return -10;
 
-    myModel->incrDisp(deltaU);
-    if (myModel->updateDomain() < 0) {
-      opserr << "LoadControl::update - model failed to update for new dU\n";
-      return -1;
-    }
+  myModel->incrDisp(deltaU);
+  if (myModel->updateDomain() < 0) {
+    opserr << "LoadControl::update - model failed to update for new dU\n";
+    return -1;
+  }
 
-    // Set deltaU for the convergence test
-    theSOE->setX(deltaU);
+  // Set deltaU for the convergence test
+  theSOE->setX(deltaU);
 
-    numIncrLastStep++;
+  numIncrLastStep++;
 
-    return 0;
+  return 0;
 }
 
 

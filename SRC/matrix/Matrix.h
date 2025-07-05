@@ -49,7 +49,7 @@ class Matrix
 {
   public:
     // constructors and destructor
-    Matrix();	
+    Matrix();
     Matrix(int nrows, int ncols);
     Matrix(double *data, int nrows, int ncols);    
     Matrix(const Matrix &M);
@@ -57,6 +57,14 @@ class Matrix
     Matrix( Matrix &&M);    
 #endif
     ~Matrix();
+
+    // TODO: Implementing this will remove some unnecessary allocations,
+    // but first we need to straighten out MatrixND::solve.
+    //
+    // template <int n,int m> Matrix(OpenSees::MatrixND<n,m,double>& A)
+    //   : numRows(n), numCols(m), data(&A(0,0)), fromFree(1)
+    // {
+    // }
 
     // utility methods
     int setData(double *newData, int nRows, int nCols);
@@ -172,8 +180,6 @@ class Matrix
     Matrix &operator-=(const Matrix &M);
 
     // methods to read/write to/from the matrix
-    void Output(OPS_Stream &s) const;
-    //    void Input(istream &s);
 
     friend OPS_Stream &operator<<(OPS_Stream &s, const Matrix &M);
     //    friend istream &operator>>(istream &s, Matrix &M);    
@@ -189,11 +195,12 @@ class Matrix
     friend class TCP_SocketNoDelay;
     friend class MPI_Channel;
     friend class MySqlDatastore;
-    friend class BerkeleyDbDatastore;
 
   protected:
 
   private:
+    void Print(OPS_Stream &s, int flag) const;
+
     static double MATRIX_NOT_VALID_ENTRY;
 #ifdef NO_STATIC_WORK
     double *matrixWork = nullptr;

@@ -2,12 +2,12 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
 //
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
+//===----------------------------------------------------------------------===//
 //
-//----------------------------------------------------------------------------//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//
+//===----------------------------------------------------------------------===//
 //
 // Please cite the following resource in any derivative works:
 //
@@ -18,15 +18,20 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Description: This file contains the class definition for
-// SouzaFrameTransf. SouzaFrameTransf implements the formulation 
+// Description: SouzaFrameTransf implements the formulation 
 // of Crisfield (1990) with the objective of maintaining the
 // original "Corotational" implementation by Remo Magalhaes de Souza, within
 // the new framework proposed by Perez and Filippou (2024).
 //
-// Written by : cmp, March 2024
+// Written: cmp
+// Created: March 2024
 //
-// Adapted from work by: Remo Magalhaes de Souza
+// Adapted from work by: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
+//
+// [2] Crisfield, M.A. (1990) "A consistent co-rotational formulation for
+//     non-linear, three-dimensional, beam-elements", Computer Methods in Applied
+//     Mechanics and Engineering, 81(2), pp. 131–150. Available at:
+//     https://doi.org/10.1016/0045-7825(90)90106-V.
 //
 #ifndef SouzaFrameTransf_hpp
 #define SouzaFrameTransf_hpp
@@ -38,7 +43,7 @@
 #include <Versor.h>
 #include <Matrix3D.h>
 #include <Vector3D.h>
-#include "Isometry/CrisfieldTransform.h"
+#include "Isometry/CrisfieldIsometry.h"
 
 struct Triad;
 
@@ -48,9 +53,10 @@ template <int nn, int ndf>
 class SouzaFrameTransf: public FrameTransform<nn,ndf>
 {
 public:
-  SouzaFrameTransf(int tag, const Vector3D &vecxz,
-                    const std::array<Vector3D, nn> *offset=nullptr,
-                    int offset_flags = 0);
+  SouzaFrameTransf(int tag, 
+                   const Vector3D &vecxz,
+                   const std::array<Vector3D, nn> *offset=nullptr,
+                   int offset_flags = 0);
 
   ~SouzaFrameTransf();
 
@@ -69,8 +75,8 @@ public:
   int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const final;
   const std::array<Vector3D,nn> *getRigidOffsets() const final { return offsets; }
 
-  double getInitialLength();
-  double getDeformedLength();
+  double getInitialLength() final;
+  double getDeformedLength() final;
 
   VectorND<nn*ndf> getStateVariation() final;
   Vector3D getNodePosition(int tag) final;
@@ -81,27 +87,23 @@ public:
 
   // Sensitivity
   double getLengthGrad() final;
-  virtual const Vector &getBasicDisplTotalGrad(int grad);
-  virtual const Vector &getBasicDisplFixedGrad();
-  virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int gradNumber);
+  const Vector &getBasicDisplTotalGrad(int grad); //  final;
+  const Vector &getBasicDisplFixedGrad();
+  const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int gradNumber);
 
   // Tagged Object
   void Print(OPS_Stream &s, int flag = 0) final;
 
 protected:
-  int addTangent(MatrixND<12,12>& M, const VectorND<12>& pl);
 
   VectorND<6> pushResponse(const VectorND<6>& pa, int a, int b);
-#if 0
-  // MatrixND<6,6> pushResponse(const MatrixND<6,6>& K, const VectorND<12>& pl, int a, int b);
-  // int addTangent(MatrixND<6,6>& K, const VectorND<6>& p, int a, int b, int c);
-#endif
 
 private:
   constexpr static int n = nn*ndf;
 
   // compute the transformation matrix
-  void compTransfMatrixBasicGlobal(const Versor&, const Versor*);
+  // void compute_tangent(const Matrix3D&, const Versor*);
+  int  addTangent(MatrixND<12,12>& M, const VectorND<12>& pl, const VectorND<12>&ul);
 
   enum {
     inx= 0, // axial
@@ -142,7 +144,7 @@ private:
   Vector3D alphaI;                // last trial rotations end i
   Vector3D alphaJ;                // last trial rotatations end j
 
-  VectorND<n> ul;                 // local displacements (size=7)
+  VectorND<n> ul;                 // local displacements
   Vector3D    vr[nn];             //
   VectorND<n> ulcommit;           // commited local displacements
   VectorND<n> ulpr;               // previous local displacements
@@ -150,12 +152,11 @@ private:
   OpenSees::MatrixND<n,n> T;     // transformation from local to global system
 
   OpenSees::Matrix3D R0;         // rotation from local to global coordinates
-  CrisfieldTransform crs;
+  CrisfieldIsometry<2> crs;
 
-  // Static workspace variables
-  Matrix3D A;
-  MatrixND<12,3> Lr2, Lr3;   // auxiliary matrices
 };
+
 } // namespace OpenSees
+
 #include "SouzaFrameTransf.tpp"
 #endif

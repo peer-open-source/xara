@@ -46,7 +46,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
-#include <map>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_FourNodeTetrahedron)
 {

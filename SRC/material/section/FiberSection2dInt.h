@@ -72,7 +72,7 @@ class FiberSection2dInt : public FrameSection
     int sendSelf(int cTag, Channel &theChannel);
     int recvSelf(int cTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &info);

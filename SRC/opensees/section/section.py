@@ -4,6 +4,10 @@ which represent force-deformation (or resultant stress-strain)
 relationships at beam-column and plate sample points.
 
 """
+
+import warnings
+warnings.warn("the section module is deprecated", DeprecationWarning,
+              stacklevel=2)
 from math import pi, sin, cos
 from opensees.library import LibCmd, Cmd, Component
 from opensees.library import uniaxial

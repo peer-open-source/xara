@@ -15,6 +15,7 @@
 #ifndef _bool_h
 #include <stdbool.h>
 #endif
+#include <array>
 
 #include <Element.h>
 #include <ID.h>
@@ -31,7 +32,7 @@ class EightNodeQuad : public Element,
 {
 public:
   EightNodeQuad(int tag, 
-               std::array<int,8> &nodes, 
+               const std::array<int,8> &nodes, 
                NDMaterial &m, 
                double t,
                double pressure = 0.0, double rho = 0.0, double b1 = 0.0,

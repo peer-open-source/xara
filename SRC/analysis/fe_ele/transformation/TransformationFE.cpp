@@ -18,7 +18,7 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Written: fmk 
+// Written: fmk
 // Created: 05/99
 //
 // Purpose: This file contains the code for implementing the methods
@@ -58,7 +58,7 @@ TransformationFE::TransformationFE(int tag, Element *ele)
 :FE_Element(tag, ele), theDOFs(0), numSPs(0), theSPs(0), modID(0), 
   modTangent(0), modResidual(0), numGroups(0), numTransformedDOF(0)
 {
-  // set number of original dof at ele
+    // set number of original dof at ele
     numOriginalDOF = ele->getNumDOF();
 
     // create the array of pointers to DOF_Groups
@@ -66,67 +66,61 @@ TransformationFE::TransformationFE(int tag, Element *ele)
     Domain *theDomain = ele->getDomain();
     int numNodes = nodes.Size();
     theDOFs = new DOF_Group *[numNodes];
-    if (theDOFs == 0) {
-	opserr << "FATAL TransformationFE::TransformationFE() - out of memory craeting ";
-	opserr << "array of size : " << numNodes << " for storage of DOF_Group\n";
-	exit(-1);
-    }
 
     numGroups = numNodes;
 
     // now fill the array of DOF_Group pointers
     for (int i=0; i<numNodes; i++) {
-	Node *theNode = theDomain->getNode(nodes(i));
-	if (theNode == 0) {
-	    opserr << "FATAL TransformationFE::TransformationFE() - no Node with tag: ";
-	    opserr << nodes(i) << " in the domain\n";;
-	    exit(-1);
-	}
-	DOF_Group *theDofGroup = theNode->getDOF_GroupPtr();
-	if (theDofGroup == 0) {
-	    opserr << "FATAL TransformationFE::TransformationFE() - no DOF_Group : ";
-	    opserr << " associated with node: " << nodes(i) << " in the domain\n";;
-	    exit(-1);
-	}	
-	theDOFs[i] = theDofGroup;
+      Node *theNode = theDomain->getNode(nodes(i));
+      if (theNode == 0) {
+          opserr << "FATAL TransformationFE::TransformationFE() - no Node with tag: ";
+          opserr << nodes(i) << " in the domain\n";;
+          exit(-1);
+      }
+      DOF_Group *theDofGroup = theNode->getDOF_GroupPtr();
+      if (theDofGroup == 0) {
+          opserr << "FATAL TransformationFE::TransformationFE() - no DOF_Group : ";
+          opserr << " associated with node: " << nodes(i) << " in the domain\n";;
+          exit(-1);
+      }	
+      theDOFs[i] = theDofGroup;
     }
 
     // see if theTransformation array is big enough
     // if not delete the old and create a new one
     if (numNodes > sizeTransformations) {
-	if (theTransformations != 0) 
-	    delete [] theTransformations;
-	
-	theTransformations = new Matrix *[numNodes];
-	if (theTransformations == 0) {
-	    opserr << "FATAL TransformationFE::TransformationFE() - out of memory ";
-	    opserr << "for array of pointers for Transformation matrices of size ";
-	    opserr << numNodes;
-	    exit(-1);
-	}		    
-	sizeTransformations = numNodes;
+      if (theTransformations != 0) 
+          delete [] theTransformations;
+      
+      theTransformations = new Matrix *[numNodes];
+      if (theTransformations == 0) {
+          opserr << "FATAL TransformationFE::TransformationFE() - out of memory ";
+          opserr << "for array of pointers for Transformation matrices of size ";
+          opserr << numNodes;
+          exit(-1);
+      }		    
+      sizeTransformations = numNodes;
     }	
 
     // if this is the first element of this type create the arrays for 
     // modified tangent and residual matrices
     if (numTransFE == 0) {
-
-	modMatrices = new Matrix *[MAX_NUM_DOF+1];
-	modVectors  = new Vector *[MAX_NUM_DOF+1];
-	dataBuffer = new double[MAX_NUM_DOF*MAX_NUM_DOF];
-	localKbuffer = new double[MAX_NUM_DOF*MAX_NUM_DOF];
-	dofData      = new int[MAX_NUM_DOF];
-	sizeBuffer = MAX_NUM_DOF*MAX_NUM_DOF;
-	
-	if (modMatrices == 0 || modVectors == 0 || dataBuffer == 0 ||
-	    localKbuffer == 0 || dofData == 0) {
-	    opserr << "TransformationFE::TransformationFE(Element *) ";
-	    opserr << " ran out of memory";	    
-	}
-	for (int i=0; i<MAX_NUM_DOF; i++) {
-	    modMatrices[i] = 0;
-	    modVectors[i] = 0;
-	}
+      modMatrices = new Matrix *[MAX_NUM_DOF+1];
+      modVectors  = new Vector *[MAX_NUM_DOF+1];
+      dataBuffer = new double[MAX_NUM_DOF*MAX_NUM_DOF];
+      localKbuffer = new double[MAX_NUM_DOF*MAX_NUM_DOF];
+      dofData      = new int[MAX_NUM_DOF];
+      sizeBuffer = MAX_NUM_DOF*MAX_NUM_DOF;
+      
+      if (modMatrices == 0 || modVectors == 0 || dataBuffer == 0 ||
+          localKbuffer == 0 || dofData == 0) {
+          opserr << "TransformationFE::TransformationFE(Element *) ";
+          opserr << " ran out of memory";	    
+      }
+      for (int i=0; i<MAX_NUM_DOF; i++) {
+          modMatrices[i] = 0;
+          modVectors[i] = 0;
+      }
     }
 
     // increment the number of transformations
@@ -134,154 +128,144 @@ TransformationFE::TransformationFE(int tag, Element *ele)
 }
 
 
-
-// ~TransformationFE();    
-//	destructor.
-
 TransformationFE::~TransformationFE()
 {
+  numTransFE--;
+  
+  if (theDOFs != 0)
+    delete [] theDOFs;
+  if (theSPs != 0)
+    delete [] theSPs;
 
-    numTransFE--;
-    
-    if (theDOFs != 0)
-	delete [] theDOFs;
-    if (theSPs != 0)
-	delete [] theSPs;
+  int numDOF = 0;    
+  if (modID != 0)
+    numDOF = modID->Size();
+  
+  if (modID != 0)
+    delete modID;
 
-    int numDOF = 0;    
-    if (modID != 0)
-	numDOF = modID->Size();
-    
-    if (modID != 0)
-	delete modID;
+  if (numDOF > MAX_NUM_DOF) {
+    // tangent and residual may have been  created specially
+    if (modTangent != 0) delete modTangent;
+    if (modResidual != 0) delete modResidual;
+  }
 
-    if (numDOF > MAX_NUM_DOF) {
-	// tangent and residual may have been  created specially
-	if (modTangent != 0) delete modTangent;
-	if (modResidual != 0) delete modResidual;
+  // if this is the last FE_Element, clean up the
+  // storage for the matrix and vector objects
+  if (numTransFE == 0) {
+    for (int i=0; i<MAX_NUM_DOF; i++) {
+        if (modVectors[i] != 0)
+      delete modVectors[i];
+        if (modMatrices[i] != 0)
+      delete modMatrices[i];
     }
-
-    // if this is the last FE_Element, clean up the
-    // storage for the matrix and vector objects
-    if (numTransFE == 0) {
-	for (int i=0; i<MAX_NUM_DOF; i++) {
-	    if (modVectors[i] != 0)
-		delete modVectors[i];
-	    if (modMatrices[i] != 0)
-		delete modMatrices[i];
-	}
-	delete [] modMatrices;
-	delete [] modVectors;
-	delete [] theTransformations;
-	delete [] dataBuffer;
-	delete [] localKbuffer;
-	delete [] dofData;
-	modMatrices = 0;
-	modVectors = 0;
-	theTransformations = 0;
-	dataBuffer = 0;
-	localKbuffer = 0;
-	dofData = 0;
-	sizeTransformations = 0;
-	sizeBuffer = 0;
-	transCounter = 0;
-    }
+    delete [] modMatrices;
+    delete [] modVectors;
+    delete [] theTransformations;
+    delete [] dataBuffer;
+    delete [] localKbuffer;
+    delete [] dofData;
+    modMatrices = 0;
+    modVectors = 0;
+    theTransformations = 0;
+    dataBuffer = 0;
+    localKbuffer = 0;
+    dofData = 0;
+    sizeTransformations = 0;
+    sizeBuffer = 0;
+    transCounter = 0;
+  }
 }    
 
 
 const ID &
 TransformationFE::getDOFtags(void) const 
 {
-    return this->FE_Element::getDOFtags();
+  return this->FE_Element::getDOFtags();
 }
 
 
 const ID &
 TransformationFE::getID(void) const
 {
-    // make sure that it exists
-    if (modID == 0) {
-	opserr << "FATAL TransformationFE::getID() called before setID()\n";
-	exit(-1);
-    }
-    return *modID;
+  // make sure that it exists
+  if (modID == 0) {
+    opserr << "FATAL TransformationFE::getID() called before setID()\n";
+    exit(-1);
+  }
+  return *modID;
 }
 
 
 int
-TransformationFE::setID(void)
+TransformationFE::setID()
 {
-    // determine number of DOF
-    numTransformedDOF = 0;
-    for (int ii=0; ii<numGroups; ii++) {
-	DOF_Group *dofPtr = theDOFs[ii];
-	numTransformedDOF += dofPtr->getNumDOF();
-    }
+  // determine number of DOF
+  numTransformedDOF = 0;
+  for (int ii=0; ii<numGroups; ii++) {
+    DOF_Group *dofPtr = theDOFs[ii];
+    numTransformedDOF += dofPtr->getNumDOF();
+  }
 
-    // create an ID to hold the array, cannot use existing as 
-    // may be different size
-    if (modID != 0)
-      delete modID;
-    modID = 0;
+  // create an ID to hold the array, cannot use existing as 
+  // may be different size
+  if (modID != 0)
+    delete modID;
 
-    modID = new ID(numTransformedDOF);
-    if (modID == 0 || modID->Size() == 0) {
-	opserr << "TransformationFE::setID() ";
-	opserr << " ran out of memory for ID of size :";
-	opserr << numTransformedDOF << endln;
-	exit(-1);
-    }
+  modID = 0;
 
-    // fill in the ID
-    int current = 0;
-    for (int i=0; i<numGroups; i++) {
-	DOF_Group *dofPtr = theDOFs[i];
-	const ID &theDOFid = dofPtr->getID();
+  modID = new ID(numTransformedDOF);
 
-	for (int j=0; j<theDOFid.Size(); j++)  
-	    if (current < numTransformedDOF)
-		(*modID)(current++) = theDOFid(j);
-	    else {
-		opserr << "WARNING TransformationFE::setID() - numDOF and";
-		opserr << " number of dof at the DOF_Groups\n";
-		return -3;
-	    }		
-    }
-    
-    // set the pointers to the modified tangent matrix and residual vector
-    if (numTransformedDOF <= MAX_NUM_DOF) {
-	// use class wide objects
-	if (modVectors[numTransformedDOF] == 0) {
-	    modVectors[numTransformedDOF] = new Vector(numTransformedDOF);
-	    modMatrices[numTransformedDOF] = new Matrix(numTransformedDOF,numTransformedDOF);
-	    modResidual = modVectors[numTransformedDOF];
-	    modTangent = modMatrices[numTransformedDOF];
-	    if (modResidual == 0 || modResidual->Size() != numTransformedDOF ||	
-		modTangent == 0 || modTangent->noCols() != numTransformedDOF)	{  
-		opserr << "TransformationFE::setID() ";
-		opserr << " ran out of memory for vector/Matrix of size :";
-		opserr << numTransformedDOF << endln;
-		exit(-1);
-	    }
-	} else {
-	    modResidual = modVectors[numTransformedDOF];
-	    modTangent = modMatrices[numTransformedDOF];
-	}
+  // fill in the ID
+  int current = 0;
+  for (int i=0; i<numGroups; i++) {
+    DOF_Group *dofPtr = theDOFs[i];
+    const ID &theDOFid = dofPtr->getID();
+
+    for (int j=0; j<theDOFid.Size(); j++)
+      if (current < numTransformedDOF)
+        (*modID)(current++) = theDOFid(j);
+      else {
+        opserr << "WARNING TransformationFE::setID() - numDOF and";
+        opserr << " number of dof at the DOF_Groups\n";
+        return -3;
+      }		
+  }
+  
+  // set the pointers to the modified tangent matrix and residual vector
+  if (numTransformedDOF <= MAX_NUM_DOF) {
+    // use class wide objects
+    if (modVectors[numTransformedDOF] == 0) {
+        modVectors[numTransformedDOF] = new Vector(numTransformedDOF);
+        modMatrices[numTransformedDOF] = new Matrix(numTransformedDOF,numTransformedDOF);
+        modResidual = modVectors[numTransformedDOF];
+        modTangent = modMatrices[numTransformedDOF];
+        if (modResidual == 0 || modResidual->Size() != numTransformedDOF ||	
+      modTangent == 0 || modTangent->noCols() != numTransformedDOF)	{  
+      opserr << "TransformationFE::setID() ";
+      opserr << " ran out of memory for vector/Matrix of size :";
+      opserr << numTransformedDOF << endln;
+      exit(-1);
+        }
     } else {
-	// create matrices and vectors for each object instance
-	modResidual = new Vector(numTransformedDOF);
-	modTangent = new Matrix(numTransformedDOF, numTransformedDOF);
-	if (modResidual == 0 || modResidual->Size() ==0 ||
-	    modTangent ==0 || modTangent->noRows() ==0) {
-	    
-	    opserr << "TransformationFE::setID() ";
-	    opserr << " ran out of memory for vector/Matrix of size :";
-	    opserr << numTransformedDOF << endln;
-	    exit(-1);
-	}
-    }     
+        modResidual = modVectors[numTransformedDOF];
+        modTangent = modMatrices[numTransformedDOF];
+    }
+  } else {
+    // create matrices and vectors for each object instance
+    modResidual = new Vector(numTransformedDOF);
+    modTangent = new Matrix(numTransformedDOF, numTransformedDOF);
+    if (modResidual == 0 || modResidual->Size() ==0 ||
+        modTangent ==0 || modTangent->noRows() ==0) {
+        
+        opserr << "TransformationFE::setID() ";
+        opserr << " ran out of memory for vector/Matrix of size :";
+        opserr << numTransformedDOF << endln;
+        exit(-1);
+    }
+  }     
 
-    return 0;
+  return 0;
 }
 
 const Matrix &
@@ -622,36 +606,36 @@ TransformationFE::getKi_Force(const Vector &accel, double fact)
       static Matrix localTtKT;
       
       if (Ti != 0 && Tj != 0) {
-	noRowsTransformed = Ti->noCols();
-	noColsTransformed = Tj->noCols();
-	// CHECK SIZE OF BUFFER
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	//localTtKT = (*Ti) ^ localK * (*Tj);
-	localTtKT.addMatrixTripleProduct(0.0, *Ti, localK, *Tj, 1.0);
+        noRowsTransformed = Ti->noCols();
+        noColsTransformed = Tj->noCols();
+        // CHECK SIZE OF BUFFER
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        //localTtKT = (*Ti) ^ localK * (*Tj);
+        localTtKT.addMatrixTripleProduct(0.0, *Ti, localK, *Tj, 1.0);
       } else if (Ti == 0 && Tj != 0) {
-	noRowsTransformed = numDOFi;
-	noColsTransformed = Tj->noCols();
-	// CHECK SIZE OF BUFFER
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	// localTtKT = localK * (*Tj);	       
-	localTtKT.addMatrixProduct(0.0, localK, *Tj, 1.0);
+        noRowsTransformed = numDOFi;
+        noColsTransformed = Tj->noCols();
+        // CHECK SIZE OF BUFFER
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        // localTtKT = localK * (*Tj);	       
+        localTtKT.addMatrixProduct(0.0, localK, *Tj, 1.0);
       } else if (Ti != 0 && Tj == 0) {
-	noRowsTransformed = Ti->noCols();
-	noColsTransformed = numDOFj;
-	// CHECK SIZE OF BUFFER
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	//localTtKT = (*Ti) ^ localK;
-	localTtKT.addMatrixTransposeProduct(0.0, *Ti, localK, 1.0);
+        noRowsTransformed = Ti->noCols();
+        noColsTransformed = numDOFj;
+        // CHECK SIZE OF BUFFER
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        //localTtKT = (*Ti) ^ localK;
+        localTtKT.addMatrixTransposeProduct(0.0, *Ti, localK, 1.0);
       } else {
-	noRowsTransformed = numDOFi;
-	noColsTransformed = numDOFj;
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	localTtKT = localK;
+        noRowsTransformed = numDOFi;
+        noColsTransformed = numDOFj;
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        localTtKT = localK;
       }
       // now copy into modTangent the T(i)^t K(i,j) T(j) product
       for (int c=0; c<noRowsTransformed; c++) 
-	for (int d=0; d<noColsTransformed; d++) 
-	  (*modTangent)(startRow+c, startCol+d) = localTtKT(c,d);
+        for (int d=0; d<noColsTransformed; d++) 
+          (*modTangent)(startRow+c, startCol+d) = localTtKT(c,d);
       
       startCol += noColsTransformed;
       noColsOriginal += numDOFj;

@@ -20,7 +20,7 @@ public:
 
 	virtual ~Kinematic2D02();
 //	virtual int  displaySelf(Renderer &theViewer, int displayMode, float fact);
-	virtual void Print(OPS_Stream &s, int flag =0);
+	virtual void Print(OPS_Stream &, int flag) final;
 	virtual YS_Evolution *getCopy(void);
 
 static NullPlasticMaterial nullMat;

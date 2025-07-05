@@ -1,8 +1,8 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
-//
-//===----------------------------------------------------------------------===//
+//                                   xara
+//                              https://xara.so
+//----------------------------------------------------------------------------//
 //
 //
 #ifndef EulerFrame3d_h
@@ -18,6 +18,7 @@
 class Node;
 class BeamIntegration;
 class Response;
+
 namespace OpenSees {
   class FrameTransformBuilder;
 
@@ -25,8 +26,10 @@ class EulerFrame3d : public BasicFrame3d,
                      public FiniteElement<2, 3, 6>
 {
   public:
-    EulerFrame3d(int tag, std::array<int,2>& nodes,
-                 int numSections, FrameSection **s,
+    EulerFrame3d(int tag, 
+                 std::array<int,2>& nodes,
+                 int numSections,
+                 FrameSection **s,
                  BeamIntegration &bi, 
                  FrameTransformBuilder& tb,
                  double rho, int mass_flag
@@ -42,18 +45,18 @@ class EulerFrame3d : public BasicFrame3d,
     int revertToStart();
 
     // public methods to obtain stiffness, mass, damping and residual information    
-    int update();
-    virtual const Vector &getResistingForce() final;
-    virtual const Matrix &getMass() final;
-    virtual const Matrix &getTangentStiff() final;
-    virtual const Matrix &getInitialStiff() final;
+    int update() final;
+    const Vector &getResistingForce() final;
+    const Matrix &getMass() final;
+    const Matrix &getTangentStiff() final;
+    const Matrix &getInitialStiff() final;
 
-    void zeroLoad() {
+    void zeroLoad() final {
       this->BasicFrame3d::zeroLoad();
       this->FiniteElement<2, 3, 6>::zeroLoad();
     }
     
-    virtual int   addLoad(ElementalLoad *theLoad, double loadFactor) final {
+    int addLoad(ElementalLoad *theLoad, double loadFactor) final {
       return this->BasicFrame3d::addLoad(theLoad, loadFactor);
     }
 //  int addInertiaLoadToUnbalance(const Vector &accel);
@@ -84,9 +87,6 @@ class EulerFrame3d : public BasicFrame3d,
 
 
 protected:
-    // Personal
-    virtual  OpenSees::VectorND<6>&   getBasicForce() final;
-    virtual  OpenSees::MatrixND<6,6>& getBasicTangent(State state, int rate) final;
     // For FiniteElement
     virtual int setNodes() final;
 
@@ -102,6 +102,9 @@ private:
         NDF = 6,
         maxNumSections = 20;
   constexpr static int max_nip = 20;
+
+  OpenSees::VectorND<6>&   getBasicForce();
+  OpenSees::MatrixND<6,6>& stateDetermination(State state, int rate);
 
   VectorND<nq> getBasicForceGrad(int index);
 

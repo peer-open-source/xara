@@ -34,7 +34,6 @@
 
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
-#include <api/runtimeAPI.h>
 
 
 DamageModel::DamageModel(int tag, int clasTag)
@@ -47,8 +46,6 @@ DamageModel::DamageModel(int tag, int clasTag)
 DamageModel::~DamageModel()
 {
   // does nothing
-
-
 }
 
 Response*

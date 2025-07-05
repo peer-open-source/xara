@@ -22,6 +22,10 @@ All patches have the following attributes:
 </dl>
 
 """
+
+import warnings
+warnings.warn("the patch module is deprecated", DeprecationWarning,
+              stacklevel=2)
 import sys
 import itertools
 from opensees.library.ast import *

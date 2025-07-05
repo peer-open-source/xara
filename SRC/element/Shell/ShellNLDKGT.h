@@ -37,71 +37,53 @@
 class ShellNLDKGT : public Element {
 
  public:
-  
-  // null constructor
   ShellNLDKGT( );
-  
-  // full constructor
+
   ShellNLDKGT(int tag, 
               int node1,
               int node2,
               int node3,
               SectionForceDeformation &theMaterial ) ;
-  
-  //destructor 
+
   virtual ~ShellNLDKGT( ) ;
 
   //set domain because frank is a dumb ass 
   void setDomain( Domain *theDomain ) ;
   
   //get the number of external nodes
-  int getNumExternalNodes( ) const ;
-    
-  //return connected external nodes
-  const ID &getExternalNodes( ) ;
-  Node **getNodePtrs( );
+  int getNumExternalNodes( ) const final;
+  const ID &getExternalNodes( ) final;
+  Node **getNodePtrs( ) final;
+  int getNumDOF( ) final;
 
-  //return number of dofs
-  int getNumDOF( ) ;
+  int commitState() final;
+  int revertToLastCommit() final;
+  int revertToStart() final;
 
-  //commit state
-  int commitState( ) ;
-  
-  //revert to last commit 
-  int revertToLastCommit( ) ;
-  
-  //revert to start 
-  int revertToStart( ) ;
-
-  //print out element data
-  void Print( OPS_Stream &s, int flag ) ;
+  // TaggedObject
+  void Print( OPS_Stream &s, int flag ) final;
   
   //return stiffness matrix 
-  const Matrix &getTangentStiff( ) ;
-  const Matrix &getInitialStiff( );
-  const Matrix &getMass( );
+  const Vector &getResistingForce( ) final;
+  const Vector &getResistingForceIncInertia( ) final;
+  const Matrix &getTangentStiff( ) final;
+  const Matrix &getInitialStiff( ) final;
+  const Matrix &getMass( ) final;
 
   // methods for applying loads
-  void zeroLoad( void );    
-  int addLoad( ElementalLoad *theLoad, double loadFactor );
-  int addInertiaLoadToUnbalance( const Vector &accel );
-
-  //get residual
-  const Vector &getResistingForce( ) ;
-  
-  //get residual with inertia terms
-  const Vector &getResistingForceIncInertia( ) ;
-
-  // public methods for element output
-  int sendSelf ( int commitTag, Channel &theChannel );
-  int recvSelf ( int commitTag, Channel &theChannel, FEM_ObjectBroker 
-                 &theBroker );
+  void zeroLoad( ) final;    
+  int addLoad( ElementalLoad *theLoad, double loadFactor ) final;
+  int addInertiaLoadToUnbalance( const Vector &accel ) final;
 
 
-  Response* setResponse( const char **argv, int argc, OPS_Stream &output );
-  int getResponse( int responseID, Information &eleInfo );
+  // MovableObject
+  int sendSelf ( int commitTag, Channel & ) final;
+  int recvSelf ( int commitTag, Channel &, FEM_ObjectBroker &) final;
 
-  int setParameter(const char **argv, int argc, Parameter &param);
+
+  Response* setResponse( const char **argv, int argc, OPS_Stream & ) final;
+  int getResponse( int responseID, Information & ) final;
+  int setParameter(const char **argv, int argc, Parameter &param) final;
 
 private : 
   constexpr static int nip = 4;
@@ -116,7 +98,7 @@ private :
   // Vector CstrainGauss,TstrainGauss;
   Vector CstrainGauss,TstrainGauss;  //modify for geometric nonlinearity
 
-  //quadrature data
+  // quadrature data
   static const double three ;
   static const double one_over_three ;
   static const double five;
@@ -146,19 +128,17 @@ private :
   double g2[3] ;
   double g3[3] ;
 
-  //compute local coordinates and basis
+  // compute local coordinates and basis
   void computeBasis( ) ;
 
   void updateBasis( ) ;
 //end Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
-      
-  //inertia terms
+
   void formInertiaTerms( int tangFlag ) ;
 
   //form residual and tangent                      
   void formResidAndTangent( int tang_flag ) ;
 
-  //assemble a B matrix 
   const Matrix& assembleB( const Matrix &Bmembrane,
                            const Matrix &Bbend, 
                            const Matrix &Bshear ) ;

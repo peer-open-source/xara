@@ -26,7 +26,8 @@ proc verify {cmd {value ""} {reference ""} {tolerance 1e-12} {about ""}} {
     puts "  $value"
     }
 }
-}
+
+}; # namespace OpenSees
 
 namespace import OpenSees::verify
 

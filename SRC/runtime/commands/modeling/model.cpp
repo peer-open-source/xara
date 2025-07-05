@@ -16,6 +16,7 @@
 
 #include <tcl.h>
 #include <Logging.h>
+#include <Parsing.h>
 #include <runtimeAPI.h>
 #include <Domain.h>
 #include <FE_Datastore.h>
@@ -271,7 +272,7 @@ TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
 // command invoked to build the model, i.e. to invoke buildFE_Model()
 // on the ModelBuilder
 int
-buildModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv[])
+buildModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char *argv[])
 {
   G3_Runtime *rt = G3_getRuntime(interp);
   BasicModelBuilder* builder = (BasicModelBuilder*)G3_getModelBuilder(rt);
@@ -283,7 +284,7 @@ buildModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv[]
     builtModel = true;
     return builder->buildFE_Model();
 
-  } else if (builder != 0 && builtModel == true) {
+  } else if (builder != nullptr && builtModel == true) {
     opserr << OpenSees::PromptValueError << "Model has already been built - not built again \n";
     return TCL_ERROR;
 

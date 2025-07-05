@@ -217,8 +217,8 @@ ShellNLDKGT::commitState()
   for (int i = 0; i < 4; i++)
     success += materialPointers[i]->commitState();
 
-  //add for geometric nonlinearity
-  //save the prev. step strain
+  // add for geometric nonlinearity
+  // save the prev. step strain
   CstrainGauss = TstrainGauss;
 
   return success;
@@ -748,10 +748,10 @@ ShellNLDKGT::getInitialStiff()
       strain(q) = Cstrain(q) + dstrain(q);
     }
 
-    //send the strain to the material
+    // send the strain to the material
     success = materialPointers[i]->setTrialSectionDeformation(strain);
 
-    //compute the stress
+    // compute the stress
     stress = materialPointers[i]->getStressResultant();
 
     //add for geometric nonlinearity
@@ -760,7 +760,7 @@ ShellNLDKGT::getInitialStiff()
     for (jnew = 0; jnew < nstress; jnew++) {
       TstrainGauss(i * 8 + jnew) = strain(jnew);
     }
-    //CstrainGauss = TstrainGauss;
+
     //add for geometric nonlinearity
     //from stress(0,1,2) to compute membraneForce at t
     membraneForce(0, 0) = stress(0);
@@ -912,21 +912,23 @@ int ShellNLDKGT::addInertiaLoadToUnbalance(const Vector &accel)
   return 0;
 }
 
-//get residual
-const Vector &ShellNLDKGT::getResistingForce()
+
+const Vector &
+ShellNLDKGT::getResistingForce()
 {
-  int tang_flag = 0; //don't get the tangent
+  int tang_flag = 0; // don't get the tangent
 
   formResidAndTangent(tang_flag);
 
   // subtract external loads
-  if (load != 0)
+  if (load != nullptr)
     resid -= *load;
   return resid;
 }
 
-//get residual with inertia terms
-const Vector &ShellNLDKGT::getResistingForceIncInertia()
+
+const Vector &
+ShellNLDKGT::getResistingForceIncInertia()
 {
   static Vector res(18);
   int tang_flag = 0; //don't get the tangent
@@ -953,7 +955,6 @@ const Vector &ShellNLDKGT::getResistingForceIncInertia()
 void ShellNLDKGT::formInertiaTerms(int tangFlag)
 
 {
-
   //translational mass only
   //rotational inertia terms are neglected
 

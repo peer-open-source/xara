@@ -24,7 +24,8 @@
 //
 #include <BasicModelBuilder.h>
 
-#include <runtimeAPI.h>
+#include <Logging.h>
+#include <Parsing.h>
 #include <Domain.h>
 #include <LoadPattern.h>
 #include <LinearSeries.h>
@@ -46,6 +47,7 @@
 #include <string.h>
 
 #include <SimulationInformation.h>
+
 extern SimulationInformation simulationInfo;
 extern const char *getInterpPWD(Tcl_Interp *interp); // interpreter.cpp
 

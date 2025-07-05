@@ -14,8 +14,11 @@
 #include <Vector.h>
 #include <G3_Logging.h>
 
+namespace OpenSees {
+namespace DomainCommands {
+
 int
-TclCommand_getEleTags(ClientData clientData, Tcl_Interp *interp, int argc,
+getEleTags(ClientData clientData, Tcl_Interp *interp, int argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -45,9 +48,8 @@ getNumElements(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 
-
 int
-TclCommand_addElementRayleigh(ClientData clientData, Tcl_Interp *interp,
+addElementRayleigh(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
 
@@ -434,3 +436,48 @@ eleType(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const a
   return TCL_OK;
 }
 
+
+int
+getEleClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
+                TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  Domain *the_domain = (Domain*)clientData;
+
+  if (argc == 1) {
+    Element *theEle;
+    ElementIter &eleIter = the_domain->getElements();
+
+    char buffer[20];
+
+    while ((theEle = eleIter()) != nullptr) {
+      sprintf(buffer, "%d ", theEle->getClassTag());
+      Tcl_AppendResult(interp, buffer, NULL);
+    }
+
+  } else if (argc == 2) {
+    int eleTag;
+
+    if (Tcl_GetInt(interp, argv[1], &eleTag) != TCL_OK) {
+      opserr << OpenSees::PromptValueError 
+             << "getParamValue -- could not read paramTag \n";
+      return TCL_ERROR;
+    }
+
+    Element *theEle = the_domain->getElement(eleTag);
+
+    char buffer[20];
+    sprintf(buffer, "%d ", theEle->getClassTag());
+    Tcl_AppendResult(interp, buffer, NULL);
+
+  } else {
+    opserr << OpenSees::PromptValueError 
+           << "want - getEleClassTags <eleTag?>\n" << endln;
+    return TCL_ERROR;
+  }
+
+  return TCL_OK;
+}
+
+} // namespace DomainCommands
+} // namespace OpenSees

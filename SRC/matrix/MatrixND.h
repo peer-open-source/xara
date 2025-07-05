@@ -30,8 +30,7 @@
 //
 // Claudio Perez
 //
-#ifndef MatrixND_H
-#define MatrixND_H
+#pragma once
 #include <math.h>
 #include <assert.h>
 #include <array>
@@ -56,7 +55,7 @@ requires(NR > 0 && NC > 0)
 struct MatrixND {
   double values[NC][NR];
 
-  //MatrixND<NR, NC, T>(const MatrixND<NR, NC, T>&) = default;
+  // MatrixND<NR, NC, T>(const MatrixND<NR, NC, T>&) = default;
 
   // Convert to regular Matrix class
   operator Matrix() { return Matrix(&values[0][0], NR, NC);}
@@ -70,6 +69,8 @@ struct MatrixND {
   }
 
   consteval void zero();
+
+  constexpr MatrixND<NC, NR> transpose() const;
 
   MatrixND<NR,NC,T>& addDiagonal(const double vol) requires(NR == NC);
 
@@ -117,6 +118,7 @@ struct MatrixND {
   int invert() {
     return Matrix(*this).Invert();
   }
+
 #if 0
 //template<class VecT>
 //void addSpinAtRow(const VecT& V, size_t row_index);
@@ -129,6 +131,7 @@ struct MatrixND {
 //template<class VecT>
 //void addSpinAtRow(const VecT& V, double mult, size_t vector_index, size_t matrix_row_index);
 #endif
+
   //
   // Indexing
   //
@@ -170,19 +173,6 @@ struct MatrixND {
     }
     return *this;
   }
-
-/*
-  constexpr MatrixND &
-  operator=(const MatrixND<NR,NC> &other)
-  {  
-    for (index_t j = 0; j < NC; ++j) {
-      for (index_t i = 0; i < NR; ++i) {
-        values[j][i] = other.values[j][i];
-      }
-    }
-    return *this;
-  }
-*/
 
   constexpr MatrixND &
   operator+=(const double value) {
@@ -253,18 +243,6 @@ struct MatrixND {
   //
   //
 
-  constexpr MatrixND<NC, NR>
-  transpose() const ;
-  // {
-  //   MatrixND<NC, NR> result = {};
-  //   for (index_t j = 0; j < NC; ++j) {
-  //     for (index_t i = 0; i < NR; ++i) {
-  //       result.values[i][j] = values[j][i];
-  //     }
-  //   }
-  //   return result;
-  // }
-
   constexpr T
   trace() const
   requires(NR == NC) 
@@ -276,12 +254,6 @@ struct MatrixND {
     return sum;
   }
 
-  // constexpr T
-  // determinant() const
-  // requires(NR == NC && NR == 2)
-  // {
-  //   return values[0][0] * values[1][1] - values[0][1] * values[1][0];
-  // }
 
   int solve(const VectorND<NR> &V, VectorND<NR> &res) const
     requires(NR == NC)
@@ -297,38 +269,64 @@ struct MatrixND {
     return -abs(info);
   }
 
-  int solve(const Vector &V, Vector &res) const
-    requires(NR == NC)
-  {
 
-    MatrixND<NR,NC> work = *this;
-    int pivot_ind[NR];
-    int nrhs = 1;
-    int nr = NR;
-    int nc = NC;
-    int info = 0;
-    res = V; // X will be overwritten with the solution
-    DGESV(&nr, &nrhs, &work.values[0][0], &nr, &pivot_ind[0], res.theData, &nc, &info);
-    return -abs(info);
+  template<index_t n>
+  // requires (NR == NC) && (n == NR) && (n > 0)
+  int solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const
+  {
+      static_assert(n == NR, "RHS row-count must match A.");
+
+      MatrixND<NR,NC,T> work = *this;               // copy of A to be factorised
+      int ipiv[NR]{};
+
+      int n_eq  = NR;               // order of the system
+      int nrhs  = n;                // number of RHS columns
+      int lda   = NR;               // leading dim of A
+      int ldb   = NR;               // leading dim of X
+      int info  = 0;
+
+      X = M;                               // copy RHS, DGESV overwrites
+      DGESV(&n_eq, &nrhs,
+            work.values[0], &lda,
+            &ipiv[0],
+            X.values[0], &ldb,
+            &info);
+
+      return -std::abs(info);
   }
 
-//template <typename MatrixType> 
-  int
-  solve(const Matrix &M, Matrix &res)
-  {
-    Matrix slver(*this);
-    return slver.Solve(M, res);
+  // int solve(const Vector &V, Vector &res) const
+  //   requires(NR == NC)
+  // {
 
-    MatrixND<NR,NC> work = *this;
-    int pivot_ind[NR];
-    int nrhs = M.noCols();
-    int nr = NR;
-    int nc = NC;
-    int info = 0;
-    res = M; // M will be overwritten with the solution
-    DGESV(&nr, &nrhs, &work(0,0), &nr, &pivot_ind[0], &res(0,0), &nc, &info);
-    return -abs(info);
-  }
+  //   MatrixND<NR,NC> work = *this;
+  //   int pivot_ind[NR];
+  //   int nrhs = 1;
+  //   int nr = NR;
+  //   int nc = NC;
+  //   int info = 0;
+  //   res = V; // X will be overwritten with the solution
+  //   DGESV(&nr, &nrhs, &work.values[0][0], &nr, &pivot_ind[0], res.theData, &nc, &info);
+  //   return -abs(info);
+  // }
+
+
+  // int
+  // solve(const Matrix &M, Matrix &res)
+  // {
+  //   Matrix slver(*this);
+  //   return slver.Solve(M, res);
+
+  //   MatrixND<NR,NC> work = *this;
+  //   int pivot_ind[NR];
+  //   int nrhs = M.noCols();
+  //   int nr = NR;
+  //   int nc = NC;
+  //   int info = 0;
+  //   res = M; // M will be overwritten with the solution
+  //   DGESV(&nr, &nrhs, &work(0,0), &nr, &pivot_ind[0], &res(0,0), &nc, &info);
+  //   return -abs(info);
+  // }
  
 
   template <int row0, int row1, int col0, int col1>
@@ -357,9 +355,10 @@ struct MatrixND {
   insert(const MatrixND<nr, nc, double> &M, double fact) 
   {
  
-    [[maybe_unused]] int final_row = init_row + nr - 1;
-    [[maybe_unused]] int final_col = init_col + nc - 1; 
-    assert((init_row >= 0) && (final_row < NR) && (init_col >= 0) && (final_col < NC));
+    constexpr int final_row = init_row + nr - 1;
+    constexpr int final_col = init_col + nc - 1;
+    static_assert((init_row >= 0) && (final_row < NR) && (init_col >= 0) && (final_col < NC), 
+                  "MatrixND::insert: init_row, init_col, nr, nc out of bounds");
 
     for (int i=0; i<nc; i++) {
        int pos_Cols = init_col + i;
@@ -404,51 +403,18 @@ struct MatrixND {
   }
 
   template <int nr> inline void
-  assemble(const VectorND<nr> &v, int init_row, int init_col, double fact) 
-  {
- 
-    [[maybe_unused]] int final_row = init_row + nr - 1;
-    assert((init_row >= 0) && (final_row < NR));
-
-    for (int j=0; j<nr; j++)
-       (*this)(init_row+j, init_col) += v(j)*fact;
-  }
+  assemble(const VectorND<nr> &v, int init_row, int init_col, double fact) noexcept;
   
-  template<int nr, int nc> void
-  assembleTranspose(const MatrixND<nr, nc, double> &M, int init_row, int init_col, double fact) 
-  { 
-    {
-      [[maybe_unused]] int final_row = init_row + nc - 1;
-      [[maybe_unused]] int final_col = init_col + nr - 1; 
-      assert((init_row >= 0) && (final_row < NR) && (init_col >= 0) && (final_col < NC));
-    }
-
-    for (int i=0; i<nr; i++) {
-       int pos_Cols = init_col + i;
-       for (int j=0; j<nc; j++) {
-          int pos_Rows = init_row + j; 
-          (*this)(pos_Rows,pos_Cols) += M(i,j)*fact;
-       }
-    }
-  }
+  template<int nr, int nc> inline void
+  assembleTranspose(const MatrixND<nr, nc, double> &M, int init_row, int init_col, double fact) noexcept;
 
   template<int nr> void
-  assembleTranspose(const VectorND<nr> &v, int init_row, int init_col, double scale)
-  { 
-    {
-      [[maybe_unused]] int final_col = init_col + nr - 1; 
-      assert((init_row >= 0) && (init_col >= 0) && (final_col < NC));
-    }
-
-    for (int i=0; i<nr; i++)
-      (*this)(init_row, init_col+i) += v(i)*scale;
-  }
+  assembleTranspose(const VectorND<nr> &v, int init_row, int init_col, double scale) noexcept;
 
 
 //
-// Notes on operators:
+// Operators
 //
-// - define friend operators inside class for use as header-only library
   friend constexpr MatrixND
   operator+(MatrixND left, const MatrixND &right) {
     left += right; 
@@ -477,9 +443,11 @@ struct MatrixND {
   inline constexpr friend MatrixND<NR, J>
   operator*(const MatrixND<NR, NC> &left, const MatrixND<NC, J> &right) {
     MatrixND<NR, J> prod;
-    if constexpr (0 && NR*NC > 16)
+#if 0
+    if constexpr (NR*NC > 16)
       prod.addMatrixProduct(0, left, right, 1);
     else
+#endif
       for (index_t i = 0; i < NR; ++i) {
         for (index_t j = 0; j < J; ++j) {
           prod(i, j) = 0.0;
@@ -488,6 +456,21 @@ struct MatrixND {
           }
         }
       }
+    return prod;
+  }
+
+  template <index_t J>
+  friend  MatrixND<NR, J>
+  operator*(const MatrixND<NR, NC> &left, const Matrix &right) {
+    MatrixND<NR, J> prod;
+    for (index_t i = 0; i < NR; ++i) {
+      for (index_t j = 0; j < J; ++j) {
+        prod(i, j) = 0.0;
+        for (index_t k = 0; k < NC; ++k) {
+          prod(i, j) += left(i,k) * right(k,j);
+        }
+      }
+    }
     return prod;
   }
 
@@ -509,7 +492,7 @@ struct MatrixND {
     return prod;
   }
 
-#if 1
+
   constexpr friend  VectorND<NR>
   operator*(const MatrixND<NR, NC> &left, const VectorND<NC> &right) {
     VectorND<NR> prod;
@@ -521,7 +504,6 @@ struct MatrixND {
     }
     return prod;
   }
-#endif
 
   friend  VectorND<NR>
   operator*(const MatrixND<NR, NC> &left, const Vector &right) {
@@ -535,22 +517,6 @@ struct MatrixND {
     return prod;
   }
 
-
-  template <index_t J>
-  friend  MatrixND<NR, J>
-  operator*(const MatrixND<NR, NC> &left, const Matrix &right) {
-    MatrixND<NR, J> prod;
-    for (index_t i = 0; i < NR; ++i) {
-      for (index_t j = 0; j < J; ++j) {
-        prod(i, j) = 0.0;
-        for (index_t k = 0; k < NC; ++k) {
-          prod(i, j) += left(i,k) * right(k,j);
-        }
-      }
-    }
-    return prod;
-  }
-
   friend constexpr MatrixND
   operator/(MatrixND mat, T scalar) {
     mat /= scalar; 
@@ -560,5 +526,3 @@ struct MatrixND {
 
 } // namespace OpenSees
 #include "MatrixND.tpp"
-#endif // MatrixND_H
-

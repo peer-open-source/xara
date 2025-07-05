@@ -186,36 +186,36 @@ Domain::Domain(TaggedObjectStorage &theNodesStorage,
  lastChannel(0),
  paramIndex(0), paramSize(0), numParameters(0)
 {
-    // check that the containers are empty
-    if (theElements->getNumComponents() != 0 ||
-        theNodes->getNumComponents() != 0 ||
-        theSPs->getNumComponents() != 0 ||
-        theMPs->getNumComponents() != 0 ||
-        theLoadPatterns->getNumComponents() != 0 ) {
+  // check that the containers are empty
+  if (theElements->getNumComponents() != 0 ||
+      theNodes->getNumComponents() != 0 ||
+      theSPs->getNumComponents() != 0 ||
+      theMPs->getNumComponents() != 0 ||
+      theLoadPatterns->getNumComponents() != 0 ) {
 
-        opserr << "Domain::Domain(&, & ...) - out of memory\n";
-    }
+      opserr << "Domain::Domain(&, & ...) - out of memory\n";
+  }
 
-    // init the arrays for storing the domain components
-    thePCs      = new MapOfTaggedObjects();
+  // init the arrays for storing the domain components
+  thePCs      = new MapOfTaggedObjects();
 
-    // init the iters    
-    theEleIter         = new SingleDomEleIter(theElements);    
-    theNodIter         = new SingleDomNodIter(theNodes);
-    theSP_Iter         = new SingleDomSP_Iter(theSPs);
-    thePC_Iter         = new SingleDomPC_Iter(thePCs);
-    theMP_Iter         = new SingleDomMP_Iter(theMPs);
-    theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
-    allSP_Iter         = new SingleDomAllSP_Iter(*this);
-    theParameters      = new MapOfTaggedObjects();    
-    theParamIter       = new SingleDomParamIter(theParameters);
- 
-    theBounds(0) = 0.0;
-    theBounds(1) = 0.0;
-    theBounds(2) = 0.0;
-    theBounds(3) = 0.0;
-    theBounds(4) = 0.0;
-    theBounds(5) = 0.0;
+  // init the iters    
+  theEleIter         = new SingleDomEleIter(theElements);    
+  theNodIter         = new SingleDomNodIter(theNodes);
+  theSP_Iter         = new SingleDomSP_Iter(theSPs);
+  thePC_Iter         = new SingleDomPC_Iter(thePCs);
+  theMP_Iter         = new SingleDomMP_Iter(theMPs);
+  theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
+  allSP_Iter         = new SingleDomAllSP_Iter(*this);
+  theParameters      = new MapOfTaggedObjects();    
+  theParamIter       = new SingleDomParamIter(theParameters);
+
+  theBounds(0) = 0.0;
+  theBounds(1) = 0.0;
+  theBounds(2) = 0.0;
+  theBounds(3) = 0.0;
+  theBounds(4) = 0.0;
+  theBounds(5) = 0.0;
 }    
 
 Domain::Domain(TaggedObjectStorage &theStorage)
@@ -232,34 +232,34 @@ Domain::Domain(TaggedObjectStorage &theStorage)
  lastChannel(0),
  paramIndex(0), paramSize(0), numParameters(0)
 {
-    // init the arrays for storing the domain components
-    theStorage.clearAll(); // clear the storage just in case populated
-    theElements     = &theStorage;
-    theNodes        = theStorage.getEmptyCopy();
-    theSPs          = theStorage.getEmptyCopy();
-    thePCs          = theStorage.getEmptyCopy();
-    theMPs          = theStorage.getEmptyCopy();
-    theLoadPatterns = theStorage.getEmptyCopy();    
-    theParameters   = theStorage.getEmptyCopy();    
+  // init the arrays for storing the domain components
+  theStorage.clearAll(); // clear the storage just in case populated
+  theElements     = &theStorage;
+  theNodes        = theStorage.getEmptyCopy();
+  theSPs          = theStorage.getEmptyCopy();
+  thePCs          = theStorage.getEmptyCopy();
+  theMPs          = theStorage.getEmptyCopy();
+  theLoadPatterns = theStorage.getEmptyCopy();    
+  theParameters   = theStorage.getEmptyCopy();    
 
-    // init the iters    
-    theEleIter         = new SingleDomEleIter(theElements);    
-    theNodIter         = new SingleDomNodIter(theNodes);
-    theSP_Iter         = new SingleDomSP_Iter(theSPs);
-    thePC_Iter         = new SingleDomPC_Iter(thePCs);
-    theMP_Iter         = new SingleDomMP_Iter(theMPs);
-    theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
-    allSP_Iter         = new SingleDomAllSP_Iter(*this);
-    theParamIter       = new SingleDomParamIter(theParameters);
+  // init the iters    
+  theEleIter         = new SingleDomEleIter(theElements);    
+  theNodIter         = new SingleDomNodIter(theNodes);
+  theSP_Iter         = new SingleDomSP_Iter(theSPs);
+  thePC_Iter         = new SingleDomPC_Iter(thePCs);
+  theMP_Iter         = new SingleDomMP_Iter(theMPs);
+  theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
+  allSP_Iter         = new SingleDomAllSP_Iter(*this);
+  theParamIter       = new SingleDomParamIter(theParameters);
 
-    theBounds(0) = 0.0;
-    theBounds(1) = 0.0;
-    theBounds(2) = 0.0;
-    theBounds(3) = 0.0;
-    theBounds(4) = 0.0;
-    theBounds(5) = 0.0;
+  theBounds(0) = 0.0;
+  theBounds(1) = 0.0;
+  theBounds(2) = 0.0;
+  theBounds(3) = 0.0;
+  theBounds(4) = 0.0;
+  theBounds(5) = 0.0;
 
-    dbEle =0; dbNod =0; dbSPs =0; dbPCs = 0; dbMPs =0; dbLPs = 0; dbParam = 0;
+  dbEle =0; dbNod =0; dbSPs =0; dbPCs = 0; dbMPs =0; dbLPs = 0; dbParam = 0;
 }
 
 
@@ -401,9 +401,6 @@ Domain::addElement(Element *element)
 }
 
 
-
-//	Method to add a Node to the model.
-//
 bool
 Domain::addNode(Node * node)
 {
@@ -477,48 +474,48 @@ bool
 Domain::addSP_Constraint(SP_Constraint *spConstraint)
 {
   //#ifdef _G3DEBUG    
-    // check the Node exists in the Domain
-    int nodeTag = spConstraint->getNodeTag();
-    int dof = spConstraint->getDOF_Number();
+  // check the Node exists in the Domain
+  int nodeTag = spConstraint->getNodeTag();
+  int dof = spConstraint->getDOF_Number();
 
-    Node *nodePtr = this->getNode(nodeTag);
-    if (nodePtr == 0) {
-      opserr << "Domain::addSP_Constraint - cannot add constraint, node with tag " <<
-      nodeTag << " does not exist in model\n";             
-      return false;
-    }
+  Node *nodePtr = this->getNode(nodeTag);
+  if (nodePtr == 0) {
+    opserr << "Domain::addSP_Constraint - cannot add constraint, node with tag " <<
+    nodeTag << " does not exist in model\n";             
+    return false;
+  }
 
-    // check that the DOF specified exists at the Node
-    int numDOF = nodePtr->getNumberDOF();
-    if (numDOF < dof) {
-      opserr << "Domain::addSP_Constraint - cannot add as node with tag " << 
-        nodeTag << " does not have associated constrained DOF\n"; 
-      return false;
-    }
-    // #endif
+  // check that the DOF specified exists at the Node
+  int numDOF = nodePtr->getNumberDOF();
+  if (numDOF < dof) {
+    opserr << "Domain::addSP_Constraint - cannot add as node with tag " << 
+      nodeTag << " does not have associated constrained DOF\n"; 
+    return false;
+  }
+  // #endif
 
-    // check if an existing SP_COnstraint exists for that dof at the node
-    bool found = false;
-    SP_ConstraintIter &theExistingSPs = this->getSPs();
-    SP_Constraint *theExistingSP = 0;
-    while ((found == false) && ((theExistingSP = theExistingSPs()) != nullptr)) {
-      int spNodeTag = theExistingSP->getNodeTag();
-      int spDof = theExistingSP->getDOF_Number();
-      if (nodeTag == spNodeTag && spDof == dof) {
-         found = true;
-      }
+  // check if an existing SP_COnstraint exists for that dof at the node
+  bool found = false;
+  SP_ConstraintIter &theExistingSPs = this->getSPs();
+  SP_Constraint *theExistingSP = 0;
+  while ((found == false) && ((theExistingSP = theExistingSPs()) != nullptr)) {
+    int spNodeTag = theExistingSP->getNodeTag();
+    int spDof = theExistingSP->getDOF_Number();
+    if (nodeTag == spNodeTag && spDof == dof) {
+        found = true;
     }
-    
-    if (found == true) {
-      opserr << "Domain::addSP_Constraint - cannot add as node already constrained in that dof by existing SP_Constraint\n";
-      spConstraint->Print(opserr);
-      return false;
-    }
+  }
+  
+  if (found == true) {
+    opserr << "Domain::addSP_Constraint - cannot add as node already constrained in that dof by existing SP_Constraint\n";
+    spConstraint->Print(opserr);
+    return false;
+  }
 
   // check that no other object with similar tag exists in model
   int tag = spConstraint->getTag();
   TaggedObject *other = theSPs->getComponentPtr(tag);
-  if (other != 0) {
+  if (other != nullptr) {
     opserr << "Domain::addSP_Constraint - cannot add as constraint with tag " << 
       tag << " already exists in model\n";             
     spConstraint->Print(opserr);
@@ -528,14 +525,13 @@ Domain::addSP_Constraint(SP_Constraint *spConstraint)
   
   bool result = theSPs->addComponent(spConstraint);
   if (result == false) {
-      opserr << "Domain::addSP_Constraint - cannot add constraint with tag "
-             << tag << " to the container\n";
-      return false;
+    opserr << "Domain::addSP_Constraint - cannot add constraint with tag "
+            << tag << " to the container\n";
+    return false;
   } 
 
   spConstraint->setDomain(this);
-  this->domainChange();  
-
+  this->domainChange();
   return true;
 }
 
@@ -901,7 +897,8 @@ Domain::addElementalLoad(ElementalLoad *load, int pattern)
 */
 
 void
-Domain::clearAll(void) {
+Domain::clearAll() 
+{
   // clear the loads and constraints from any load pattern
   LoadPatternIter &thePatterns = this->getLoadPatterns();
   LoadPattern *thePattern;
@@ -1039,8 +1036,8 @@ Domain::removeSP_Constraint(int theNode, int theDOF, int loadPatternTag)
       int nodeTag = theSP->getNodeTag();
       int dof = theSP->getDOF_Number();
       if (nodeTag == theNode && dof == theDOF) {
-	spTag = theSP->getTag();
-	found = true;
+        spTag = theSP->getTag();
+        found = true;
       }
     }
     
@@ -1050,12 +1047,12 @@ Domain::removeSP_Constraint(int theNode, int theDOF, int loadPatternTag)
     if (thePattern != nullptr) {
       SP_ConstraintIter &theSPs = thePattern->getSPs();
       while ((found == false) && ((theSP = theSPs()) != 0)) {
-	int nodeTag = theSP->getNodeTag();
-	int dof = theSP->getDOF_Number();
-	if (nodeTag == theNode && dof == theDOF) {
-	  spTag = theSP->getTag();
-	  found = true;
-	}
+        int nodeTag = theSP->getNodeTag();
+        int dof = theSP->getDOF_Number();
+        if (nodeTag == theNode && dof == theDOF) {
+          spTag = theSP->getTag();
+          found = true;
+        }
       }
     }
   }
@@ -1334,30 +1331,30 @@ Domain::getNodes()
 SP_ConstraintIter &
 Domain::getSPs()
 {
-    theSP_Iter->reset();
-    return *theSP_Iter;
+  theSP_Iter->reset();
+  return *theSP_Iter;
 }
 
 Pressure_ConstraintIter &
 Domain::getPCs()
 {
-    thePC_Iter->reset();
-    return *thePC_Iter;
+  thePC_Iter->reset();
+  return *thePC_Iter;
 }
 
 SP_ConstraintIter &
 Domain::getDomainAndLoadPatternSPs()
 {
-    allSP_Iter->reset();
-    return *allSP_Iter;
+  allSP_Iter->reset();
+  return *allSP_Iter;
 }
 
 
 MP_ConstraintIter &
 Domain::getMPs()
 {
-    theMP_Iter->reset();
-    return *theMP_Iter;
+  theMP_Iter->reset();
+  return *theMP_Iter;
 }
 
 
@@ -1400,12 +1397,13 @@ Domain::getNode(int tag)
   TaggedObject *mc = theNodes->getComponentPtr(tag);
 
   // if not there return 0 otherwise perform a cast and return that  
-  if (mc == 0) 
-      return 0;  
-  Node *result = (Node *)mc;
-  return result;
+  if (mc == nullptr) 
+    return nullptr;
+
+  return (Node *)mc;
 }
 
+#if 0
 SP_Constraint *
 Domain::getSP_Constraint(int tag) 
 {
@@ -1413,10 +1411,11 @@ Domain::getSP_Constraint(int tag)
 
   // if not there return 0 otherwise perform a cast and return that  
   if (mc == 0) 
-      return 0;
+    return nullptr;
   SP_Constraint *result = (SP_Constraint *)mc;
   return result;
 }
+#endif
 
 Pressure_Constraint *
 Domain::getPressure_Constraint(int tag) 
@@ -1518,32 +1517,32 @@ Domain::getCommitTag(void) const
 
 
 int 
-Domain::getNumElements(void) const
+Domain::getNumElements() const
 {
-    return theElements->getNumComponents();
+  return theElements->getNumComponents();
 }
 int 
-Domain::getNumNodes(void) const
+Domain::getNumNodes() const
 {
     return theNodes->getNumComponents();
 }
 
 int 
-Domain::getNumSPs(void) const
+Domain::getNumSPs() const
 {
-    return theSPs->getNumComponents();
+  return theSPs->getNumComponents();
 }
 
 int 
-Domain::getNumPCs(void) const
+Domain::getNumPCs() const
 {
-    return thePCs->getNumComponents();
+  return thePCs->getNumComponents();
 }
 
 int 
-Domain::getNumMPs(void) const
+Domain::getNumMPs() const
 {
-    return theMPs->getNumComponents();
+  return theMPs->getNumComponents();
 }
 
 int 
@@ -1756,7 +1755,7 @@ Domain::setCreep(int newCreep)
 }
 
 int
-Domain::getCreep(void) const
+Domain::getCreep() const
 {
   return ops_Creep;
 }
@@ -1791,8 +1790,9 @@ Domain::applyLoad(double scale)
   while((thePattern = thePatterns()) != nullptr)
     thePattern->applyLoad(scale);
 
+
   //
-  // finally loop over the MP_Constraints and SP_Constraints of the domain
+  // finally loop over the MP_Constraints and SP_Constraints
   //
 
   MP_ConstraintIter &theMPs = this->getMPs();
@@ -1835,7 +1835,7 @@ Domain::unsetLoadConstant()
 
 
 int
-Domain::initialize(void)
+Domain::initialize()
 {
   Element *elePtr;
   ElementIter &theElemIter = this->getElements();    
@@ -1985,7 +1985,7 @@ Domain::revertToStart(void)
 
 
 int
-Domain::update(void)
+Domain::update()
 {
   // set the global constants
   ops_Dt = dT;
@@ -2780,22 +2780,22 @@ Domain::sendSelf(int cTag, Channel &theChannel)
       int loc = 0;
     
       while ((theSP = theSPs()) != nullptr) {
-	spData(loc) = theSP->getClassTag();
-	int dbTag = theSP->getDbTag();
+        spData(loc) = theSP->getClassTag();
+        int dbTag = theSP->getDbTag();
 
-	if (dbTag == 0) {// go get a new tag and setDbTag in ele if this not 0 
-	  dbTag = theChannel.getDbTag();
-	  if (dbTag != 0)
-	    theSP->setDbTag(dbTag);
-	}
-	
-	spData(loc+1) = dbTag;
-	loc+=2;
+        if (dbTag == 0) {// go get a new tag and setDbTag in ele if this not 0 
+          dbTag = theChannel.getDbTag();
+          if (dbTag != 0)
+            theSP->setDbTag(dbTag);
+        }
+        
+        spData(loc+1) = dbTag;
+        loc+=2;
       }    
 
       if (theChannel.sendID(dbSPs, currentGeoTag, spData) < 0) {
-	opserr << "Domain::send - channel failed to send the SP_Constraint ID\n";
-	return -4;
+        opserr << "Domain::send - channel failed to send the SP_Constraint ID\n";
+        return -4;
       }
     }
 

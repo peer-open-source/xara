@@ -1,11 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//----------------------------------------------------------------------------//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//                https://opensees.berkeley.edu/copyright.html
 //
 //===----------------------------------------------------------------------===//
 //
 //         Please cite the following resource in any derivative works:
-//                 https://doi.org/10.5281/zenodo.10456866
+//                  https://doi.org/10.5281/zenodo.10456866
 //
 //===----------------------------------------------------------------------===//
 //
@@ -24,12 +29,15 @@
 //  Scott, M. H., P. Franchin, G. L. Fenves, and F. C. Filippou (2004).
 //    "Response Sensitivity for Nonlinear Beam-Column Elements."
 //    Journal of Structural Engineering, 130(9):1281-1288.
+//  
+//  Perez, C. M., F. C. Filippou, K. M. Mosalam (2025) Unpublished work on warping.
+//
 //
 // See also
 // ========
-//  Scott, M. H. and G. L. Fenves (2006). 
-//    "Plastic Hinge Integration Methods for Force-Based Beam-Column Elements." 
-//    Journal of Structural Engineering, 132(2):244-252.
+//   Scott, M. H. and G. L. Fenves (2006). 
+//     "Plastic Hinge Integration Methods for Force-Based Beam-Column Elements." 
+//     Journal of Structural Engineering, 132(2):244-252.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -38,7 +46,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// fcf, es, mhs, fmk, cmp
+// Authors: fcf, es, mhs, fmk, cmp
 //
 #include <cmath>
 #include <string.h>
@@ -465,14 +473,11 @@ ForceFrame3d<NIP,nsr,nwm>::update()
   if (state_flag != 0 && (dv.norm() <= DBL_EPSILON) && (eleLoads.size()==0))
     return 0;
 
-  THREAD_LOCAL VectorND<NBV> Dv;
+  THREAD_LOCAL VectorND<NBV> Dv{};
   {
     const Vector& v = basic_system->getBasicTrialDisp();
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<6; i++)
       Dv[i] = v[i] - dv[i];
-    }
-    // Dv  = v;
-    // Dv -= dv;
   }
   {
     Node** nodes = this->getNodePtrs();
@@ -485,8 +490,8 @@ ForceFrame3d<NIP,nsr,nwm>::update()
       }
     }
   }
-  THREAD_LOCAL VectorND<NBV> dvToDo,
-                             dv_trial;
+  THREAD_LOCAL VectorND<NBV> dvToDo{},
+                             dv_trial{};
 
   dvToDo  = dv;
   dv_trial = dvToDo;
@@ -552,6 +557,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           double xL = points[i].point;
           double xL1 = xL - 1.0;
           double wtL = points[i].weight * L;
+
           // Retrieve section flexibility, deformations, and forces from last iteration
           auto& Fs = Fs_trial[i];
           auto& sr = sr_trial[i];
@@ -719,7 +725,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
                   F(jmy, ii) += jsx * FsB(jj, ii);
                   break;
                 case FrameStress::T:
-                  F(jmx, ii) += 1.0 * FsB(jj, ii); //
+                  F(jmx, ii) += 1.0 * FsB(jj, ii);
                   break;
                 case FrameStress::My:
                   F(imy, ii) += xL1 * FsB(jj, ii);
@@ -904,7 +910,7 @@ template <int NIP, int nsr, int nwm>
 const Matrix &
 ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
 {
-  MatrixND<NBV,NBV> kb = K_pres; // TODO!!! = this->getBasicTangent(State::Pres, 0);
+  const MatrixND<NBV,NBV>& kb = K_pres;
 
   VectorND<NDF*2> pl{};
   pl[0*NDF+4]  =  q_pres[imy];
@@ -921,7 +927,6 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   //
   pl[0*NDF+0]  = -q_pres[jnx];      // Ni
   pl[0*NDF+3]  = -q_pres[jmx];      // Ti
-  
 
   MatrixND<2*NDF,2*NDF> kl;
   kl.zero();

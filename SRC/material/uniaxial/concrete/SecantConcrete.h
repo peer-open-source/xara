@@ -60,7 +60,7 @@ class SecantConcrete : public UniaxialMaterial
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);    
   
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &, int flag) final;
   
   int setParameter(const char **argv, int argc, Parameter &info);
   int updateParameter(int parameterID, Information &info);

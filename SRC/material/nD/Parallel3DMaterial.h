@@ -75,7 +75,8 @@ public:
 	NDMaterial* getCopy(const char* code);
 	const char* getType(void) const;
 	int getOrder(void) const;
-	void Print(OPS_Stream& s, int flag = 0);
+
+	void Print(OPS_Stream& s, int flag) final;
 
 	// send/recv self
 	int sendSelf(int commitTag, Channel& theChannel);

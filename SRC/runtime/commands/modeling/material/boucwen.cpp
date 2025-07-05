@@ -12,6 +12,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
+#include <BasicModelBuilder.h>
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -400,6 +401,13 @@ ParseBoucWen(ClientData clientData, Tcl_Interp *interp,
         tracker.consume(Positions::Mu);
         break;
       
+      case Positions::PinchRate:
+      case Positions::PinchSlip:
+      case Positions::PinchSize:
+      case Positions::PinchSlope:
+      case Positions::PinchStart:
+//    case Positions::PinchLambda:
+        break;
       //
       //
       case Positions::EndRequired:

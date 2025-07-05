@@ -41,7 +41,6 @@
 #include <ElementalLoad.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <runtimeAPI.h>
 #include <Renderer.h>
 
 #include <stdio.h>

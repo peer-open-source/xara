@@ -14,6 +14,7 @@
 #include <runtimeAPI.h>
 #include <G3_Runtime.h>
 #include <Logging.h>
+#include <Parsing.h>
 #include <Timer.h>
 #include "interpreter.h"
 
@@ -28,7 +29,7 @@ extern ProgressBar* progress_bar_ptr;
 const char *getInterpPWD(Tcl_Interp *interp);
 
 int TclObjCommand_pragma([[maybe_unused]] ClientData clientData, 
-                     Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+                     Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
 
 
 //
@@ -36,7 +37,7 @@ int TclObjCommand_pragma([[maybe_unused]] ClientData clientData,
 // https://wiki.tcl-lang.org/page/timers
 //
 static int
-startTimer(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+startTimer(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   if (theTimer == nullptr)
     theTimer = new Timer();
@@ -46,7 +47,7 @@ startTimer(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** cons
 }
 
 static int
-stopTimer(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+stopTimer(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   if (theTimer == nullptr)
     return TCL_OK;
@@ -57,7 +58,7 @@ stopTimer(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
 }
 
 static int
-timer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
+timer(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, TCL_Char** const argv)
 {
   if ((argc == 1) || (strcmp(argv[1], "start")==0)) {
     stopTimer(clientData, interp, argc, argv);
@@ -73,7 +74,7 @@ timer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv
 // revised puts command to send to stderr
 //
 static int
-OpenSees_putsCommand(ClientData dummy, Tcl_Interp *interp, int objc,
+OpenSees_putsCommand(ClientData dummy, Tcl_Interp *interp, Tcl_Size objc,
                      Tcl_Obj *const objv[])
 {
   // Tcl_Channel chan;           // The channel to puts on.
@@ -147,7 +148,7 @@ OpenSees_putsCommand(ClientData dummy, Tcl_Interp *interp, int objc,
 
 
 static int
-OPS_SetObjCmd(ClientData clientData, Tcl_Interp *interp, int objc,
+OPS_SetObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc,
               Tcl_Obj *const objv[])
 {
 
@@ -178,7 +179,7 @@ OPS_SetObjCmd(ClientData clientData, Tcl_Interp *interp, int objc,
 
 
 static int
-logFile(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+logFile(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   if (argc < 2) {
     opserr << "WARNING no filename supplied\n";
@@ -211,7 +212,7 @@ logFile(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const a
 }
 
 static int
-setPrecision(ClientData clientData, Tcl_Interp *interp, int argc,
+setPrecision(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
 
@@ -290,7 +291,7 @@ OPS_SourceCmd(ClientData dummy,      /* Not used. */
 }
 
 static int
-OpenSeesExit(ClientData clientData, Tcl_Interp *interp, int argc,
+OpenSeesExit(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   //  theDomain.clearAll();
@@ -324,7 +325,7 @@ OpenSeesExit(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 static int
-maxOpenFiles(ClientData clientData, Tcl_Interp *interp, int argc,
+maxOpenFiles(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   int maxOpenFiles;

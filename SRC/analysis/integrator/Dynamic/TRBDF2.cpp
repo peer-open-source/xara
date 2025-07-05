@@ -209,115 +209,47 @@ int TRBDF2::formNodTangent(DOF_Group *theDof)
 
 int TRBDF2::domainChanged()
 {
-    AnalysisModel *myModel = this->getAnalysisModel();
-    LinearSOE *theLinSOE = this->getLinearSOE();
-    const Vector &x = theLinSOE->getX();
-    int size = x.Size();
-    
-    // create the new Vector objects
-    if (Ut == 0 || Ut->Size() != size)  {
-        
-        // delete the old
-        if (Utm1 != 0)
-            delete Utm1;
-        if (Utm1dot != 0)
-            delete Utm1dot;
+  LinearSOE *theLinSOE = this->getLinearSOE();
+  const Vector &x = theLinSOE->getX();
+  int size = x.Size();
+  
+  // create the new Vector objects
+  if (Ut == 0 || Ut->Size() != size)  {
+      
+      // delete the old
+      if (Utm1 != 0)
+          delete Utm1;
+      if (Utm1dot != 0)
+          delete Utm1dot;
 
-        if (Ut != 0)
-            delete Ut;
-        if (Utdot != 0)
-            delete Utdot;
-        if (Utdotdot != 0)
-            delete Utdotdot;
+      if (Ut != 0)
+          delete Ut;
+      if (Utdot != 0)
+          delete Utdot;
+      if (Utdotdot != 0)
+          delete Utdotdot;
 
-        if (U != 0)
-            delete U;
-        if (Udot != 0)
-            delete Udot;
-        if (Udotdot != 0)
-            delete Udotdot;
-        
-        // create the new
-        Utm1 = new Vector(size);
-        Utm1dot = new Vector(size);
-        Ut = new Vector(size);
-        Utdot = new Vector(size);
-        Utdotdot = new Vector(size);
-        U = new Vector(size);
-        Udot = new Vector(size);
-        Udotdot = new Vector(size);
-        
-        // check we obtained the new
-        if (Utm1 == 0 || Utm1->Size() != size ||
-            Utm1dot == 0 || Utm1dot->Size() != size ||
-            Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size)  {
-            
-            // delete the old
-            if (Utm1 != 0)
-                delete Utm1;
-            if (Utm1dot != 0)
-                delete Utm1dot;
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-
-            Utm1 = 0; Utm1dot = 0;  
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-
-            return -1;
-        }
-    }        
-    
-    // now go through and populate U, Udot and Udotdot by iterating through
-    // the DOF_Groups and getting the last committed velocity and accel
-    DOF_GrpIter &theDOFs = myModel->getDOFs();
-    DOF_Group *dofPtr;
-    while ((dofPtr = theDOFs()) != 0)  {
-        const ID &id = dofPtr->getID();
-        int idSize = id.Size();
-        
-        int i;
-        const Vector &disp = dofPtr->getCommittedDisp();	
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*U)(loc) = disp(i);		
-            }
-        }
-        
-        const Vector &vel = dofPtr->getCommittedVel();
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udot)(loc) = vel(i);
-            }
-        }
-        
-        const Vector &accel = dofPtr->getCommittedAccel();	
-        for (i=0; i < idSize; i++)  {
-            int loc = id(i);
-            if (loc >= 0)  {
-                (*Udotdot)(loc) = accel(i);
-            }
-        }
-    }    
-    
-    return 0;
+      if (U != 0)
+          delete U;
+      if (Udot != 0)
+          delete Udot;
+      if (Udotdot != 0)
+          delete Udotdot;
+      
+      // create the new
+      Utm1 = new Vector(size);
+      Utm1dot = new Vector(size);
+      Ut = new Vector(size);
+      Utdot = new Vector(size);
+      Utdotdot = new Vector(size);
+      U = new Vector(size);
+      Udot = new Vector(size);
+      Udotdot = new Vector(size);
+  }        
+  
+  this->getAnalysisModel()->getState(*U, *Udot, *Udotdot, 0);    
+  
+  return 0;
 }
 
 

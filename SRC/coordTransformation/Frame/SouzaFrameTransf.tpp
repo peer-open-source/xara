@@ -4,10 +4,9 @@
 //                              https://xara.so
 //----------------------------------------------------------------------------//
 //
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
+//        OpenSees - Open System for Earthquake Engineering Simulation
 //
-//----------------------------------------------------------------------------//
+//===----------------------------------------------------------------------===//
 //
 // Please cite the following resource in any derivative works:
 //
@@ -18,15 +17,19 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Description: This file contains the implementation for the
-// SouzaFrameTransf class. SouzaFrameTransf is a Corotational
-// transformation for a spatial frame element between the global
-// and basic coordinate systems.
+// Description: SouzaFrameTransf implements a Corotational
+// transformation for a spatial frame element following the formulation
+// by Crisfield (1990).
 //
 // Written: Claudio Perez
 // Created: 05/2024
 //
 // Adapted from: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
+//
+// [2] Crisfield, M.A. (1990) "A consistent co-rotational formulation for
+//     non-linear, three-dimensional, beam-elements", Computer Methods in Applied
+//     Mechanics and Engineering, 81(2), pp. 131–150. Available at:
+//     https://doi.org/10.1016/0045-7825(90)90106-V.
 //
 #include <math.h>
 #include <Node.h>
@@ -41,7 +44,7 @@
 #include <MatrixND.h>
 #include <Matrix3D.h>
 #include <Rotations.hpp>
-#include "Isometry/CrisfieldTransform.h"
+#include "Isometry/CrisfieldIsometry.h"
 
 namespace OpenSees {
 
@@ -54,7 +57,8 @@ SouzaFrameTransf<nn,ndf>::SouzaFrameTransf(int tag, const Vector3D &vz,
     offsets{nullptr},
     L(0), Ln(0),
     nodeIInitialDisp(0), nodeJInitialDisp(0),
-    initialDispChecked(false)
+    initialDispChecked(false),
+    crs{vz}
 {
   alphaI.zero();
   alphaJ.zero();
@@ -178,7 +182,10 @@ SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
     }
   }
 
-  dX  = nodes[nn-1]->getCrds() - nodes[0]->getCrds();
+  crs.initialize(new_nodes);
+
+  dX  = nodes[nn-1]->getCrds();
+  dX -= nodes[   0]->getCrds();
 
   // Add initial displacements at nodes
   if (initialDispChecked == false) {
@@ -212,8 +219,8 @@ SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
   L = dx.norm();
 
   if (L == 0.0) {
-      opserr << "\nSouzaFrameTransf::computeElemtLengthAndOrien: 0 length\n";
-      return -2;
+    opserr << "\nSouzaFrameTransf::computeElemtLengthAndOrien: 0 length\n";
+    return -2;
   }
 
   //
@@ -244,6 +251,7 @@ SouzaFrameTransf<nn,ndf>::getStateVariation()
   return ul - ulpr;
 }
 
+
 template <int nn, int ndf>
 Vector3D
 SouzaFrameTransf<nn,ndf>::getNodePosition(int tag)
@@ -254,6 +262,7 @@ SouzaFrameTransf<nn,ndf>::getNodePosition(int tag)
   return u;
 }
 
+
 template <int nn, int ndf>
 Vector3D
 SouzaFrameTransf<nn,ndf>::getNodeRotationLogarithm(int tag)
@@ -261,192 +270,6 @@ SouzaFrameTransf<nn,ndf>::getNodeRotationLogarithm(int tag)
   return vr[tag];
 }
 
-template <int nn, int ndf>
-void inline
-SouzaFrameTransf<nn,ndf>::compTransfMatrixBasicGlobal(
-                                                const Versor& Qbar,
-                                                const Versor* Q_pres)
-{
-  // extract columns of rotation matrices
-  const Triad r {MatrixFromVersor(Qbar)},
-              rI{MatrixFromVersor(Q_pres[0])},
-              rJ{MatrixFromVersor(Q_pres[1])};
-  const Vector3D 
-    &e1  =  crs.getBasisE1(), // E[1],
-    &e2  =  crs.getBasisE2(), // E[2],
-    &e3  =  crs.getBasisE3(), // E[3],
-    &r1  =  r[1],
-    &r2  =  r[2],
-    &r3  =  r[3],
-    &rI1 = rI[1],
-    &rI2 = rI[2],
-    &rI3 = rI[3],
-    &rJ1 = rJ[1],
-    &rJ2 = rJ[2],
-    &rJ3 = rJ[3];
-
-  // Compute the transformation matrix from the basic to the
-  // global system
-  //   A = (1/Ln)*(I - e1*e1');
-  // Matrix3D A;
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      A(i,j) = (double(i==j) - e1[i]*e1[j])/Ln;
-
-  // This must be called up here
-  CrisfieldTransform::getLMatrix(A, e1, r1, r2, Lr2);
-  CrisfieldTransform::getLMatrix(A, e1, r1, r3, Lr3);
-
-  //               3 |             3            |     3    |           3              |
-  //   T1 = [      O', (-S(rI3)*e2 + S(rI2)*e3)',        O',                        O']'; imx
-  //   T2 = [(A*rI2)', (-S(rI2)*e1 + S(rI1)*e2)', -(A*rI2)',                        O']'; imz
-  //   T3 = [(A*rI3)', (-S(rI3)*e1 + S(rI1)*e3)', -(A*rI3)',                        O']'; imy
-  //
-  //   T4 = [      O',                        O',        O', ( S(rJ2)*e3 - S(rJ3)*e2 )']'; jmx
-  //   T5 = [(A*rJ2)',                        O', -(A*rJ2)', ( S(rJ1)*e2 - S(rJ2)*e1 )']'; jmz
-  //   T6 = [(A*rJ3)',                        O', -(A*rJ3)', ( S(rJ1)*e3 - S(rJ3)*e1 )']'; jmy
-
-  T.zero();
-
-  //   T1 = [      O', (-S(rI3)*e2 + S(rI2)*e3)',        O', O']';
-
-  // (-S(rI3)*e2 + S(rI2)*e3)
-  Vector3D Se  = rI2.cross(e3);
-  Se -= rI3.cross(e2);
-  for (int i = 0; i < 3; i++)
-    // T(jmx,i+3) =  -Se[i];
-    T(imx,i+3) =  Se[i];
-
-  //   T2 = [(A*rI2)', (-S(rI2)*e1 + S(rI1)*e2)', -(A*rI2)', O']';
-
-  Vector3D At = A*rI2;
-
-  // (-S(rI2)*e1 + S(rI1)*e2)'
-  Se  = rI1.cross(e2);
-  Se -= rI2.cross(e1);
-  for (int i = 0; i < 3; i++) {
-      T(imz,i  ) =  At[i];
-      T(imz,i+3) =  Se[i];
-      T(imz,i+6) = -At[i];
-  }
-
-  //   T3 = [(A*rI3)', (-S(rI3)*e1 + S(rI1)*e3)', -(A*rI3)', O']';
-
-  At = A*rI3;
-  
-  // -S(rI3)*e1 + S(rI1)*e3
-  Se  = rI1.cross(e3);
-  Se -= rI3.cross(e1);
-  for (int i = 0; i < 3; i++) {
-      T(imy,i  ) =  At[i]*-1;
-      T(imy,i+3) =  Se[i]*-1;
-      T(imy,i+6) = -At[i]*-1;
-  }
-
-  //   T4 = [      O', O',        O', (-S(rJ3)*e2 + S(rJ2)*e3)']';
-  Se  = rJ2.cross(e3);
-  Se -= rJ3.cross(e2);
-  for (int i = 0; i < 3; i++)
-    T(jmx, i+9) =  Se[i];   // S(rJ2)*e3 - S(rJ3)*e2
-
-  // T5 = [(A*rJ2)', O', -(A*rJ2)', (-S(rJ2)*e1 + S(rJ1)*e2)']';
-  At = A*rJ2;
-  Se  = rJ1.cross(e2); 
-  Se -= rJ2.cross(e1);
-  for (int i = 0; i < 3; i++) {
-      T(jmz, i  ) =  At[i];
-      T(jmz, i+6) = -At[i];
-      T(jmz, i+9) =  Se[i]; // (-S(rJ2)*e1 + S(rJ1)*e2)
-  }
-
-  // T6 = [(A*rJ3)', O', -(A*rJ3)', (-S(rJ3)*e1 + S(rJ1)*e3)']'
-  At  = A*rJ3;
-  Se  = rJ1.cross(e3);  // (-S(rJ3)*e1 + S(rJ1)*e3)
-  Se -= rJ3.cross(e1);
-  for (int i = 0; i < 3; i++) {
-      T(jmy,i  ) =  At[i]*-1;
-      T(jmy,i+6) = -At[i]*-1;
-      T(jmy,i+9) =  Se[i]*-1;
-  }
-
-  //
-  // Second part
-  //
-
-  // T(:,1) += Lr3*rI2 - Lr2*rI3;
-  // T(:,2) +=           Lr2*rI1; z
-  // T(:,3) += Lr3*rI1          ; y
-
-  // T(:,4) += Lr3*rJ2 - Lr2*rJ3;
-  // T(:,5) += Lr2*rJ1          ; z    // ?????? check sign
-  // T(:,6) += Lr3*rJ1          ; y    // ?????? check sign
-
-  // Bending Z
-  for (int i = 0; i < 12; i++) {
-    double T1i = 0;
-    for (int k=0; k<3; k++)
-      T1i += Lr2(i,k)*rI1[k];
-    T(imz,i) += T1i;
-  }
-
-  for (int i = 0; i < 12; i++) {
-    double T4i = 0;
-    for (int k=0; k<3; k++)
-      T4i += Lr2(i,k)*rJ1[k]; // Lr[i];
-    T(jmz,i) += T4i;
-  }
-
-  // Torsion
-  for (int i = 0; i < 12; i++) {
-    double T0i = 0;
-    for (int k=0; k<3; k++)
-      T0i += Lr3(i,k)*rI2[k] - Lr2(i,k)*rI3[k];
-    // T(jmx,i) += -T0i;
-    T(imx,i) += T0i;
-  }
-  for (int i = 0; i < 12; i++) {
-    double T3i = 0;
-    for (int k=0; k<3; k++)
-      T3i += Lr3(i,k)*rJ2[k] - Lr2(i,k)*rJ3[k];
-    T(jmx,i) += T3i;
-  }
-  // Bending Y
-  for (int i = 0; i < 12; i++) {
-    double T2i = 0;
-    for (int k=0; k<3; k++)
-      T2i += Lr3(i,k)*rI1[k]; // Lr[i];
-    T(imy,i) += T2i*-1; // TODO: Check
-  }
-  for (int i = 0; i < 12; i++) {
-    double T5i = 0;
-    for (int k=0; k<3; k++)
-      T5i += Lr3(i,k)*rJ1[k]; // Lr[i];
-    T(jmy,i) += T5i*-1; // TODO: Check
-  }
-
-  //
-  //
-  //
-  for (int node=0; node < 2; node++)
-    for (int j = 0; j < 3; j++) {
-      const double c = 0.5 / std::cos(ul[(node? jmx : imx) + j]);
-      for (int i = 0; i < 12; i++)
-        T((node? jmx : imx) + j, i) *= c;
-    }
-
-  // Axial
-  // T(:,7) = [-e1' O' e1' O']';
-  for (int i = 0; i < 3; i++) {
-      T(jnx,i  ) = -e1[i];
-      T(jnx,i+6) =  e1[i];
-  }
-
-  // Combine torsion
-  for (int i=0; i<12; i++) {
-    T(jmx,i) -= T(imx,i);
-    T(imx,i) = 0;
-  }
-}
 
 //
 // Set RI,RJ,Rbar, Ln, e and ul
@@ -463,6 +286,7 @@ SouzaFrameTransf<nn,ndf>::update()
   //
   // Update state
   //
+
   // 1.1 Relative translation
   Vector3D dx = dX;// dx = dX + dJI;
   {
@@ -494,15 +318,19 @@ SouzaFrameTransf<nn,ndf>::update()
     // Update the nodal rotations
     Q_pres[0] = VersorProduct(Q_pres[0],  Versor::from_vector(dAlphaI));
     Q_pres[1] = VersorProduct(Q_pres[1],  Versor::from_vector(dAlphaJ));
+    // Q_pres[0] = VersorFromMatrix(MatrixFromVersor(Q_pres[0]) *
+    //                              MatrixFromVersor(Versor::from_vector(dAlphaI)));
+    // Q_pres[1] = VersorFromMatrix(MatrixFromVersor(Q_pres[1]) *
+    //                              MatrixFromVersor(Versor::from_vector(dAlphaJ)));
   }
 
   //
   // 2) Form transformation
   //
 
-  crs.update(Q_pres[0], Q_pres[1], dx);
-  // Form the transformation tangent
-  this->compTransfMatrixBasicGlobal(crs.getReference(), Q_pres);
+  crs.update(MatrixFromVersor(Q_pres[0]), 
+             MatrixFromVersor(Q_pres[1]), 
+             dx, nodes);
 
   //
   // 3) Local deformations
@@ -525,8 +353,11 @@ SouzaFrameTransf<nn,ndf>::update()
 
   // Axial
   ul(inx) = 0;
-  ul(jnx) = Ln - L;
+  // ul(jnx) = Ln - L;
+  ul(jnx) = (dX + (dx-dX)*0.5).dot(dx-dX)*2.0/(Ln+L);
 
+  // Form the transformation tangent
+  T = crs.compute_tangent(ul);
   return 0;
 }
 
@@ -572,7 +403,7 @@ SouzaFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const Vector
   K.addMatrixTripleProduct(0.0, T, kl, 1.0);
 
   // Add geometric part kg
-  this->addTangent(K, pl);
+  this->addTangent(K, pl, ul);
 
   return K;
 }
@@ -588,237 +419,12 @@ SouzaFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const Vector
 //         ks3 + ks3' + ks4 + ks5;
 template <int nn, int ndf>
 int
-SouzaFrameTransf<nn,ndf>::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl)
-{    
-  const Triad r {MatrixFromVersor(crs.getReference())},
-              rI{MatrixFromVersor(Q_pres[0])},
-              rJ{MatrixFromVersor(Q_pres[1])};
-  const Vector3D 
-    &e1  =  crs.getBasisE1(), // E[1],
-    &e2  =  crs.getBasisE2(), // E[2],
-    &e3  =  crs.getBasisE3(), // E[3],
-    &r1  =  r[1], // .rotate(E1), 
-    &r2  =  r[2], // .rotate(E2), 
-    &r3  =  r[3], // .rotate(E3),
-    &rI1 = rI[1], // .rotate(E1), 
-    &rI2 = rI[2], // .rotate(E2), 
-    &rI3 = rI[3], // .rotate(E3),
-    &rJ1 = rJ[1], // .rotate(E1), 
-    &rJ2 = rJ[2], // .rotate(E2), 
-    &rJ3 = rJ[3]; // .rotate(E3);
+SouzaFrameTransf<nn,ndf>::addTangent(MatrixND<12,12>& kg,
+                                     const VectorND<12>& pl,
+                                     const VectorND<12>& ul)
+{
 
-  // NOTE[cmp]
-  // SouzaFrameTransf::compTransfMatrixBasicGlobal must be 
-  // called first to set Lr1, Lr2 and T
-
-  // Matrix3D A;
-  // for (int i = 0; i < 3; i++)
-  //   for (int j = 0; j < 3; j++)
-  //     A(i,j) = (double(i==j) - e1[i]*e1[j])/Ln;
-  // getLMatrix(A, e1, r1, r2, Lr2);
-  // getLMatrix(A, e1, r1, r3, Lr3);
-
-  //
-  // Ksigma1
-  //
-  {
-    const double N = -pl[0]; // Axial force
-    // a=0
-    kg.assemble(A, 0, 0,  N);
-    kg.assemble(A, 0, 6, -N);
-    // a=1
-    kg.assemble(A, 6, 0, -N);
-    kg.assemble(A, 6, 6,  N);
-  }
-
-  //
-  // Ksigma3
-  //
-  //  ks3 = [o kbar2  |  o kbar4];
-  //
-  //  where
-  //
-  //    kbar2 = -Lr2*(m(3)*S(rI3) + m(1)*S(rI1)) + Lr3*(m(3)*S(rI2) - m(2)*S(rI1)) ;
-  //
-  //    kbar4 =  Lr2*(m(3)*S(rJ3) - m(4)*S(rJ1)) - Lr3*(m(3)*S(rJ2) + m(5)*S(rJ1));
-  //
-  // or
-  //
-  //  ks3 = [o ka+kb  |  o kc+kd];
-  //      = [o ka     |  o kc] + [o kb  |  o kd];
-  //
-  //  where
-  //
-  //    ka = -Lr2*S(rI3)*m(3)  
-  //         +Lr2*S(rI1)*m(1);
-  //    kb =  Lr3*S(rI2)*m(3)  
-  //         -Lr3*S(rI1)*m(2);
-  //
-  //    kc =  Lr2*S(rJ3)*m(3)
-  //         -Lr2*S(rJ1)*m(4);
-  //    kd = -Lr3*S(rJ2)*m(3)  
-  //         +Lr3*S(rJ1)*m(5);
-
-  VectorND<6> m;
-  m[0] =  0.5*pl[imx]/std::cos(ul(imx));
-  m[2] = -0.5*pl[imy]/std::cos(ul(imy));
-  m[1] =  0.5*pl[imz]/std::cos(ul(imz));
-
-  m[3] =  0.5*pl[jmx]/std::cos(ul(jmx));
-  m[5] = -0.5*pl[jmy]/std::cos(ul(jmy));
-  m[4] =  0.5*pl[jmz]/std::cos(ul(jmz));
-
-
-  static Matrix3D Sm;
-  Sm.zero();
-  Sm.addSpin(rI3,  m[3]);
-  Sm.addSpin(rI1,  m[1]);
-  static MatrixND<12,3> kbar;
-  kbar.zero();
-  kbar.addMatrixProduct(Lr2, Sm, -1.0);
-
-  Sm.zero();
-  Sm.addSpin(rI2,  m[3]);
-  Sm.addSpin(rI1, -m[2]);
-  kbar.addMatrixProduct(Lr3, Sm,  1.0);
-
-  kg.assemble(kbar, 0, 3, 1.0);
-  kg.assembleTranspose(kbar, 3, 0, 1.0);
-
-  Sm.zero();
-  Sm.addSpin(rJ3,  m[3]);
-  Sm.addSpin(rJ1, -m[4]);
-  kbar.zero();
-  kbar.addMatrixProduct(Lr2, Sm, 1.0);
-
-  Sm.zero();
-  Sm.addSpin(rJ2, m[3]);
-  Sm.addSpin(rJ1, m[5]);
-  kbar.addMatrixProduct(Lr3, Sm,  -1.0);
-
-  kg.assemble(kbar, 0, 9, 1.0);
-  kg.assembleTranspose(kbar, 9, 0, 1.0);
-
-
-  //
-  // Ksigma4
-  //
-  {
-    Matrix3D ks33;
-    ks33.zero();
-    ks33.addSpinProduct(e2, rI3,  m[3]);
-    ks33.addSpinProduct(e3, rI2, -m[3]);
-    ks33.addSpinProduct(e2, rI1,  m[1]);
-    ks33.addSpinProduct(e1, rI2, -m[1]);
-    ks33.addSpinProduct(e3, rI1,  m[2]);
-    ks33.addSpinProduct(e1, rI3, -m[2]);
-    kg.assemble(ks33, 3, 3, 1.0);
-  }
-
-  //
-  // Ksigma4
-  //
-  {
-    Matrix3D ks33;
-    ks33.zero();
-    ks33.addSpinProduct(e2, rJ3, -m[3]);
-    ks33.addSpinProduct(e3, rJ2,  m[3]);
-    ks33.addSpinProduct(e2, rJ1,  m[4]);
-    ks33.addSpinProduct(e1, rJ2, -m[4]);
-    ks33.addSpinProduct(e3, rJ1,  m[5]);
-    ks33.addSpinProduct(e1, rJ3, -m[5]);
-
-    kg.assemble(ks33, 9, 9, 1.0);
-  }
-
-
-  //
-  // Ksigma5
-  //
-  //  Ks5 = [ Ks5_11   Ks5_12 | -Ks5_11   Ks5_14;
-  //          Ks5_12'    O    | -Ks5_12'   O;
-  //         -Ks5_11  -Ks5_12 |  Ks5_11  -Ks5_14;
-  //          Ks5_14t     O   | -Ks5_14'   O];
-  //
-  //
-  // v = (1/Ln)*(m(2)*rI2 + m(3)*rI3 + m(5)*rJ2 + m(6)*rJ3);
-  //   = 1/Ln * (m[1]*rI2 + m[2]*rI3)
-  //   + 1/Ln * (m[4]*rJ2 + m[5]*rJ3);
-  //   = vi + vj
-  //
-  {
-    Vector3D v;
-    v.addVector(0.0, rI2, m[1]);
-    v.addVector(1.0, rI3, m[2]);
-    v.addVector(1.0, rJ2, m[4]);
-    v.addVector(1.0, rJ3, m[5]);
-    v /= Ln;
-
-    // Ks5_11 = A*v*e1' + e1*v'*A + (e1'*v)*A;
-    //        = A*vi*e1' + e1*vi'*A + (e1'*vi)*A
-    //        + A*vj*e1' + e1*vj'*A + (e1'*vj)*A;
-    //
-    Matrix3D ks33;
-    ks33.zero();
-    ks33.addMatrix(A, e1.dot(v));
-
-    static Matrix3D m33;
-    m33.zero();
-    m33.addTensorProduct(v, e1, 1.0);
-
-    ks33.addMatrixProduct(A, m33, 1.0);
-
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        m33(i,j) = e1[i]*v[j];
-
-    ks33.addMatrixProduct(m33, A, 1.0);
-
-    kg.assemble(ks33, 0, 0,  1.0);
-    kg.assemble(ks33, 0, 6, -1.0);
-    kg.assemble(ks33, 6, 0, -1.0);
-    kg.assemble(ks33, 6, 6,  1.0);
-  }
-
-  // Ks5_12 = -(m(2)*A*S(rI2) + m(3)*A*S(rI3));
-
-  Matrix3D ks33;
-  ks33.zero();
-  ks33.addMatrixSpinProduct(A, rI2, -m[1]);
-  ks33.addMatrixSpinProduct(A, rI3, -m[2]);
-
-  kg.assemble(ks33, 0, 3,  1.0);
-  kg.assemble(ks33, 6, 3, -1.0);
-  kg.assembleTranspose(ks33, 3, 0,  1.0);
-  kg.assembleTranspose(ks33, 3, 6, -1.0);
-
-  //  Ks5_14 = -(m(5)*A*S(rJ2) + m(6)*A*S(rJ3));
-
-  ks33.zero();
-  ks33.addMatrixSpinProduct(A, rJ2, -m[4]);
-  ks33.addMatrixSpinProduct(A, rJ3, -m[5]);
-
-  kg.assemble(ks33, 0, 9,  1.0);
-  kg.assemble(ks33, 6, 9, -1.0);
-
-  kg.assembleTranspose(ks33, 9, 0,  1.0);
-  kg.assembleTranspose(ks33, 9, 6, -1.0);
-
-  // Ksigma -------------------------------
-  Vector3D rm = rI3;
-
-  rm.addVector(1.0, rJ3, -1.0);
-  kg.addMatrix(CrisfieldTransform::getKs2Matrix(A, e1, r1, Ln, r2, rm), m[3]);
-
-//  rm = rJ2;
-  rm.addVector(0.0, rJ2, -1.0);
-  rm.addVector(1.0, rI2, -1.0);
-  kg.addMatrix(CrisfieldTransform::getKs2Matrix(A, e1, r1, Ln, r3,  rm), m[3]);
-  kg.addMatrix(CrisfieldTransform::getKs2Matrix(A, e1, r1, Ln, r2, rI1), m[1]);
-  kg.addMatrix(CrisfieldTransform::getKs2Matrix(A, e1, r1, Ln, r3, rI1), m[2]);
-  //
-  kg.addMatrix(CrisfieldTransform::getKs2Matrix(A, e1, r1, Ln, r2, rJ1), m[4]);
-  kg.addMatrix(CrisfieldTransform::getKs2Matrix(A, e1, r1, Ln, r3, rJ1), m[5]);
+  crs.addTangent(kg, pl, ul);
 
   //
   //  T' * diag (M .* tan(thetal))*T
@@ -826,7 +432,10 @@ SouzaFrameTransf<nn,ndf>::addTangent(MatrixND<12,12>& kg, const VectorND<12>& pl
 
   for (int node=0; node<2; node++) {
     for (int k = 0; k < 3; k++) {
-      const double factor =  pl[6*node+3+k] * std::tan(ul[(node ? jmx : imx) + k]);
+      const double factor =  pl[(node ? jmx : imx) + k] // pl[6*node+3+k]
+                          * std::tan(ul[(node ? jmx : imx) + k]);
+
+
       for (int i = 0; i < 12; i++) {
         const double Tki = T((node ? jmx : imx) + k,i);
         for (int j = 0; j < 12; j++)
@@ -867,7 +476,7 @@ SouzaFrameTransf<nn,ndf>::getLengthGrad()
   if (dj != 0)
     dxj(dj-1) = 1.0;
 
-  return 1/L * dX.dot(dxj - dxi);
+  return 1.0/L * dX.dot(dxj - dxi);
 }
 
 template <int nn, int ndf>

@@ -305,7 +305,7 @@ ExactFrame3d<nen,nwm>::update()
 
     // TODO: choose 'R/L'
 //  pres[i].curvature = omega + TanSO3(theta, 'R')*dtheta;
-    pres[i].curvature = omega + dExpSO3(theta)*dtheta;
+    pres[i].curvature = omega + TExpSO3(theta)*dtheta;
 
     Vector3D gamma = (R^dx) - D;
     Vector3D kappa = R^pres[i].curvature;

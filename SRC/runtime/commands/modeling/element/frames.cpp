@@ -104,6 +104,29 @@ struct Options {
 extern BeamIntegration*     GetBeamIntegration(TCL_Char* type, int);
 extern BeamIntegrationRule* GetHingeStencil(int argc, TCL_Char ** const argv);
 
+static inline int
+CheckTransformation(Domain& domain, int iNode, int jNode, CrdTransf& transform)
+{
+  Node* ni = domain.getNode(iNode);
+  Node* nj = domain.getNode(jNode);
+  if (ni == nullptr || nj == nullptr) {
+    opserr << OpenSees::PromptValueError << "nodes not found with tags "
+           << iNode << " and " << jNode
+           << OpenSees::SignalMessageEnd;
+  }
+
+  if (transform.initialize(ni, nj) != 0) {
+    opserr << OpenSees::PromptValueError 
+           << "transformation with tag " << transform.getTag()
+           << " could not be initialized with nodes "
+           << iNode << " and " << jNode
+           << "; check orientation"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+  return TCL_OK;
+}
+
 
 template <int ndm, typename Transform, typename Section>
 static Element*
@@ -141,7 +164,7 @@ CreateFrame(BasicModelBuilder& builder,
   }
 
   // Finalize the coordinate transform
-  Transform* theTransf = builder.getTypedObject<Transform>(transfTag);
+  CrdTransf* theTransf = builder.getTypedObject<CrdTransf>(transfTag);
   if (theTransf == nullptr) {
     opserr << OpenSees::PromptValueError << "transformation not found with tag " << transfTag << "\n";
     return nullptr;
@@ -209,6 +232,10 @@ CreateFrame(BasicModelBuilder& builder,
     //
     // ndm == 3
     //
+
+    if (CheckTransformation(*builder.getDomain(), nodev[0], nodev[1], *theTransf) != TCL_OK)
+      return nullptr;
+
     if (strstr(name, "Frame") != nullptr) {
       if (strstr(name, "Exact") == nullptr) {
         std::array<int, 2> nodes {nodev[0], nodev[1]};
@@ -222,8 +249,10 @@ CreateFrame(BasicModelBuilder& builder,
 
 
         if (strcmp(name, "EulerFrame") == 0) {
-            theElement = new EulerFrame3d(tag, nodes, nIP, sections.data(),
-                                          beamIntegr, *tb, 
+            theElement = new EulerFrame3d(tag, nodes, nIP, 
+                                          sections.data(),
+                                          beamIntegr, 
+                                          *tb, 
                                           mass, options.mass_flag);
         }
 
@@ -567,11 +596,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
-  struct Options options;
-  options.mass_flag  =  0;
-  options.shear_flag = -1;
-  options.geom_flag  =  0;
-
   int max_iter = 10;
   double tol  = 1.0e-12;
   double mass = 0.0;
@@ -591,6 +615,10 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   // Defaults
   //
+  struct Options options;
+  options.mass_flag  =  0;
+  options.shear_flag = -1;
+  options.geom_flag  =  0;
   if (strcasecmp(argv[1], "elasticBeamColumn") == 0) {
     options.shear_flag = 0;
   }
@@ -908,7 +936,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     if (strstr(argv[1], "isp") == 0) {
       section_tags.resize(5, section_tags[0]);
     } else {
-      section_tags.resize(3, section_tags[0]);
+      section_tags.resize(5, section_tags[0]);
     }
   }
 

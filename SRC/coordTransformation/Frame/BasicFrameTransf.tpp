@@ -2,26 +2,20 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
-//
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
 //
 //----------------------------------------------------------------------------//
 //
 // Please cite the following resource in any derivative works:
 //
-// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+// [1] Perez, C.M., and Filippou F.C. "On Nonlinear Geometric Transformations
 //     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-//
+
 #include <Vector.h>
 #include <Matrix.h>
-#include <Matrix3D.h>
 #include <Node.h>
-#include <Channel.h>
 #include <Logging.h>
 #include <BasicFrameTransf.h>
 #include "FrameTransform.h"
@@ -216,7 +210,6 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
 
   for (int i=0; i<NDF*2; i++) {
     int ii = std::abs(iq[i]);
-    double c = 1.0;
     if (ii >= NBV)
       continue;
 
@@ -225,7 +218,7 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
       if (jj >= NBV)
         continue;
 
-      kl(i,j) = kb(ii, jj)*c;
+      kl(i,j) = kb(ii, jj);
     }
   }
 
@@ -294,8 +287,7 @@ template<int ndf>
 CrdTransf *
 BasicFrameTransf3d<ndf>::getCopy3d()
 {
-  BasicFrameTransf3d *theCopy = new BasicFrameTransf3d(t.getCopy());
-  return theCopy;
+  return new BasicFrameTransf3d(t.getCopy());
 }
 
 

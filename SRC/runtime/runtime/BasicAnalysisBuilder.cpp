@@ -58,6 +58,7 @@ static std::unordered_map<int, std::string> AnalyzeFailedMessage {
    {SolutionAlgorithm::BadLinearSolve,  "Failed to solve system, tangent may be singular\n"},
 // {SolutionAlgorithm::TestFailed,      ""},// no output; information will have been printed by the test
    {SolutionAlgorithm::BadTestStart,    "Failed to initialize the convergence test\n"},
+   {SolutionAlgorithm::BadStepUpdate,   "Failed to update the model\n"}
 };
 
 BasicAnalysisBuilder::BasicAnalysisBuilder(Domain* domain)
@@ -1041,7 +1042,8 @@ BasicAnalysisBuilder::getStaticIntegrator()
 }
 
 TransientIntegrator*
-BasicAnalysisBuilder::getTransientIntegrator() {
+BasicAnalysisBuilder::getTransientIntegrator()
+{
 
   return theTransientIntegrator;
 }
@@ -1055,12 +1057,12 @@ BasicAnalysisBuilder::getConvergenceTest()
 int
 BasicAnalysisBuilder::formUnbalance()
 {
-    if (theStaticIntegrator != nullptr)
-      return theStaticIntegrator->formUnbalance();
+  if (theStaticIntegrator != nullptr)
+    return theStaticIntegrator->formUnbalance();
 
-    else if (theTransientIntegrator != nullptr)
-      return theTransientIntegrator->formUnbalance();
+  else if (theTransientIntegrator != nullptr)
+    return theTransientIntegrator->formUnbalance();
 
-    return -1;
+  return -1;
 }
 

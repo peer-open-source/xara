@@ -56,15 +56,28 @@ pip install xara
 
 There are several ways to use the `xara` package:
 
-- To execute Tcl procedures from a Python script, just create an instance
-  of the `xara.Model` class and call its `eval()` method:
+- The standard way to use `xara` from Python is to create a `xara.Model`,
+  and invoke its methods:
   ```python
-  model = xara.Model()
-  model.eval("model Basic -ndm 2")
-  model.eval("print -json")
+  model = xara.Model(ndm=2, ndf=2) # Create a 2D model with 2 DOFs per node
+  model.node(1, 2.0, 3.0)
+  ...
+  ```
+  Most of the functions from the OpenSeesPy library can be invoked directly
+  as methods of a `xara.Model` without any changes in syntax, although it is
+  generally encouraged to use the safer variants supported by `xara`. For
+  example:
+  ```python
+  # BAD
+  model.pattern("Plain", 1, "Linear")
+  model.load(1, 2.0, 3.0)
+  # GOOD
+  model.pattern("Plain", 1, "Linear")
+  model.load(1, 2.0, 3.0, pattern=1)
   ```
 
-- To start an interactive interpreter run the shell command:
+
+- To start an interactive Tcl interpreter run the shell command:
 
   ```bash
   python -m opensees
@@ -73,6 +86,15 @@ There are several ways to use the `xara` package:
   ```tcl
   opensees > exit
   ```
+
+- To execute Tcl procedures programmatically from Python, create an instance
+  of the `xara.Model` class and call its `eval()` method to evaluate Tcl code:
+  ```python
+  model = xara.Model()
+  model.eval("model Basic -ndm 2")
+  model.eval("print -json")
+  ```
+
 
 - The `xara` package exposes a compatibility layer that exactly reproduces
   the *OpenSeesPy* functions, but does so without mandating a single

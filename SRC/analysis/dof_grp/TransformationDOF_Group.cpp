@@ -69,7 +69,7 @@ TransformationDOF_Group::TransformationDOF_Group(int tag, Node *node,
     // create space for the SP_Constraint array
     theSPs = new SP_Constraint *[numNodalDOF];
     for (int ii=0; ii<numNodalDOF; ii++) 
-	theSPs[ii] = 0;
+      theSPs[ii] = 0;
 
     /***********************
     // set the SP_Constraint corresponding to the dof in modID
@@ -196,7 +196,7 @@ TransformationDOF_Group::TransformationDOF_Group(int tag,
     // create space for the SP_Constraint array
     theSPs = new SP_Constraint *[modNumDOF];
     for (int i=0; i<modNumDOF; i++) 
-	theSPs[i] = 0;
+      theSPs[i] = nullptr;
 
     // set the SP_Constraint corresponding to the dof in myID
     Domain *theDomain=node->getDomain();
@@ -204,18 +204,18 @@ TransformationDOF_Group::TransformationDOF_Group(int tag,
     SP_ConstraintIter &theSPIter = theDomain->getSPs();
     SP_Constraint *sp;
     while ((sp = theSPIter()) != 0) {
-	if (sp->getNodeTag() == nodeTag) {
-	    int dof = sp->getDOF_Number();
-	    theSPs[dof] = sp;
-	}
+      if (sp->getNodeTag() == nodeTag) {
+          int dof = sp->getDOF_Number();
+          theSPs[dof] = sp;
+      }
     }    
     
     // if this is the first TransformationDOF_Group we now
     // create the arrays used to store pointers to class wide
     // matrix and vector objects used to return modTangent and residual
     if (numTransDOFs == 0) {
-	modMatrices = new Matrix *[MAX_NUM_DOF+1];
-	modVectors  = new Vector *[MAX_NUM_DOF+1];
+      modMatrices = new Matrix *[MAX_NUM_DOF+1];
+      modVectors  = new Vector *[MAX_NUM_DOF+1];
 	
 	if (modMatrices == 0 || modVectors == 0) {
 	    opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";

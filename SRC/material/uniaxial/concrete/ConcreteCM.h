@@ -78,7 +78,7 @@ public:
 		OPS_Stream &theOutputStream);
 	int getResponse (int responseID, Information &matInformation);   
 
-	void Print(OPS_Stream &s, int flag =0);
+	void Print(OPS_Stream &, int flag) final;
 
 	// AddingSensitivity:BEGIN //////////////////////////////////////////
 	int    setParameter             (const char **argv, int argc, Information &info);

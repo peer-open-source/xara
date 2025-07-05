@@ -138,7 +138,7 @@ class Domain
     
     virtual  Element       *getElement(int tag);
     virtual  Node          *getNode(int tag);
-    virtual  SP_Constraint *getSP_Constraint(int tag);    
+    // virtual  SP_Constraint *getSP_Constraint(int tag);
     virtual  Pressure_Constraint *getPressure_Constraint(int tag);    
     virtual  MP_Constraint *getMP_Constraint(int tag);    
     virtual  LoadPattern   *getLoadPattern(int tag);        

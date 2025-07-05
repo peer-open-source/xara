@@ -7,7 +7,6 @@
 
 target_sources(OPS_Runtime
     PRIVATE
-      G3_Runtime.cpp
       BasicAnalysisBuilder.cpp
       BasicModelBuilder.cpp
       TclPackageClassBroker.cpp

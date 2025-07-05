@@ -2,10 +2,6 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
-//
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
 //
 //----------------------------------------------------------------------------//
 //
@@ -18,12 +14,14 @@
 //===----------------------------------------------------------------------===//
 
 //
-// Description: This file contains the class definition for
-// EuclidFrameTransf.h. EuclidFrameTransf provides the
-// abstraction of a linear transformation for a spatial frame
-// between the global and basic coordinate systems
+// Description: This file contains the implementation for the 
+// EuclidFrameTransf class. EuclidFrameTransf is a euclidean transformation 
+// of 3D space.
+// When used with the RankinIsometry, it furnishes an improved corotational
+// transformation for 3D frames.
 //
-// Written: cmp
+//
+// Written: Claudio M. Perez
 // Created: 04/2025
 //
 #ifndef EuclidFrameTransf_hpp
@@ -36,7 +34,7 @@
 
 namespace OpenSees {
 
-template <int nn, int ndf, typename BasisT>
+template <int nn, int ndf, typename IsoT>
 class EuclidFrameTransf: public FrameTransform<nn,ndf>
 {
 public:
@@ -90,30 +88,27 @@ public:
 
 private:
 
+  Vector3D getNodeLocation(int tag);
+
   inline MatrixND<nn*ndf,nn*ndf> 
   getProjection() {
 
     MatrixND<nn*ndf,nn*ndf> A{};
     A.addDiagonal(1.0);
 
-    // double L = basis.getLength();
-    constexpr Vector3D axis{1, 0, 0};
-    constexpr Matrix3D ix = Hat(axis);
     MatrixND<3,ndf> Gb{};
     for (int a = 0; a<nn; a++) {
       for (int b = 0; b<nn; b++) {
         
         Gb.template insert<0,0>(basis.getRotationGradient(b), 1.0);
-        // TODO(nn>2): Interpolate coordinate?
-        A.assemble(ix*Gb, a*ndf  , b*ndf,  double(a)/double(nn-1)*L);
+        Matrix3D Xa = Hat(this->getNodeLocation(a));
+        A.assemble(Xa*Gb, a*ndf  , b*ndf,  1.0);
         A.assemble(   Gb, a*ndf+3, b*ndf, -1.0);
       }
     }
 
     return A;
   }
-
-  int computeElemtLengthAndOrient();
 
   template<const Vector& (Node::*Getter)()>
   const Vector3D
@@ -147,8 +142,9 @@ private:
   Matrix3D R0;
   Vector3D xi, xj, vz;
   double L;           // undeformed element length
+  double Ln;          // deformed element length
 
-  BasisT basis;
+  IsoT basis;
 };
 
 } // namespace OpenSees

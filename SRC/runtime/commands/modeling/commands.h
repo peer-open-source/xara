@@ -92,10 +92,11 @@ Tcl_CmdProc TclCommand_classType;
 
 Tcl_CmdProc TclCommand_addMaterial;
 
-struct char_cmd {
+namespace OpenSees {
+struct CommandTableEntry {
   const char* name;
   Tcl_CmdProc*  func;
-}  const tcl_char_cmds[] =  {
+}  constexpr ModelBuilderCommands[] =  {
   {"build",                buildModel},
 
   {"getNDM",               TclCommand_getNDM},
@@ -191,6 +192,7 @@ struct char_cmd {
 #endif
 
 };
+} // namespace OpenSees
 
 Tcl_CmdProc TclCommand_Package;
 

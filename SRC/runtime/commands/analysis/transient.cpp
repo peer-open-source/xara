@@ -7,19 +7,22 @@
 // Written: cmp and cc
 //
 #include <tcl.h>
-#include <runtimeAPI.h>
-#include <G3_Logging.h>
+#include <string.h>
+#include <Parsing.h>
+#include <Logging.h>
 
 #include <Newmark1.h>
 #include <Newmark.h>
 #include <GeneralizedNewmark.h>
 
 TransientIntegrator*
-TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
+TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, 
+                                Tcl_Size argc, G3_Char ** const argv)
 {
 
   if (argc < 4) {
-    opserr << OpenSees::PromptValueError << " incorrect number of args want Newmark $gamma $beta "
+    opserr << OpenSees::PromptValueError 
+           << " incorrect number of args want Newmark $gamma $beta "
               "<-form $typeUnknown>\n";
     opserr << "        got ";
     for (int i=0; i<argc; i++)
@@ -62,10 +65,12 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, int a
       else if ((nextString[0] == 'A') || (nextString[0] == 'a'))
         dispFlag = 3;
       else {
-        opserr << OpenSees::PromptValueError << "invalid argument for parameter 'form'\n";
+        opserr << OpenSees::PromptValueError 
+               << "invalid argument for parameter 'form'\n";
         return nullptr;
       }
     }
+
     else if ((strcmp(argv[argi], "-init") == 0)) {
       if (argi == argc-1) {
         opserr << OpenSees::PromptValueError << "init option requires an argument\n";

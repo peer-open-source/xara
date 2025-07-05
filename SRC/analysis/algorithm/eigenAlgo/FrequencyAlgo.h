@@ -55,7 +55,7 @@ class FrequencyAlgo : public EigenAlgorithm
      virtual int recvSelf(int commitTag, Channel &theChannel,
 			  FEM_ObjectBroker &theBroker);
      
-     virtual void Print(OPS_Stream &s, int flag = 0);
+     virtual void Print(OPS_Stream &s, int flag);
   
   protected:
   

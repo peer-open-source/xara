@@ -538,15 +538,14 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
       ID &nodePartitions = theNodeLocation->nodePartitions;
       int numPartitions = theNodeLocation->numPartitions;
       for (int i=0; i<numPartitions; i++) {
-	int partition = nodePartitions(i);	  
-	if (partition != mainPartition) {      
-	  if (numPartitions == 1) {
-	    Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition);
-	    theLoadPattern->removeNodalLoad(theNodalLoad->getTag());
-	    if ((theSubdomain->addNodalLoad(theNodalLoad, loadPatternTag)) != true)
-	      opserr << "DomainPartitioner::partition() - failed to add Nodal Load\n";
-	  }
-	}
+        int partition = nodePartitions(i);	  
+        if (partition != mainPartition) {      
+          if (numPartitions == 1) {
+            Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition);
+            theLoadPattern->removeNodalLoad(theNodalLoad->getTag());
+            if ((theSubdomain->addNodalLoad(theNodalLoad, loadPatternTag)) != true)
+          }
+        }
       }      
     }
 
@@ -558,25 +557,25 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
       
       TaggedObject *theTaggedObject = theNodeLocations->getComponentPtr(nodeTag);
       if (theTaggedObject == 0) {
-	opserr << "DomainPartitioner::partition(int numParts)";
-	opserr << " - failed to find NodeLocation in Map for Node: " << nodeTag << " -- A BUG!!\n";
-	numPartitions = 0;
-	return -1;	
+        opserr << "DomainPartitioner::partition(int numParts)";
+        opserr << " - failed to find NodeLocation in Map for Node: " << nodeTag << " -- A BUG!!\n";
+        numPartitions = 0;
+        return -1;	
       }
       
       NodeLocations *theNodeLocation = (NodeLocations *)theTaggedObject;
       ID &nodePartitions = theNodeLocation->nodePartitions;
       int numPartitions = theNodeLocation->numPartitions;
       for (int i=0; i<numPartitions; i++) {
-	int partition = nodePartitions(i);	  
-	if (partition != mainPartition) {      
-	  Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition); 
-	  if (numPartitions == 1) 
-	    theLoadPattern->removeSP_Constraint(spPtr->getTag());
-	  int res = theSubdomain->addSP_Constraint(spPtr, loadPatternTag);
-	  if (res < 0)
-	    opserr << "DomainPartitioner::partition() - failed to add SP Constraint\n";
-	}
+        int partition = nodePartitions(i);	  
+        if (partition != mainPartition) {      
+          Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition); 
+          if (numPartitions == 1) 
+            theLoadPattern->removeSP_Constraint(spPtr->getTag());
+          int res = theSubdomain->addSP_Constraint(spPtr, loadPatternTag);
+          if (res < 0)
+            opserr << "DomainPartitioner::partition() - failed to add SP Constraint\n";
+        }
       }    
     }  
 
@@ -589,14 +588,14 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
       Subdomain *theSub;
       bool added = false;
       while (((theSub = theSubdomains()) != 0) && (added == false)) {
-	bool res = theSub->hasElement(loadEleTag);
-	if (res == true) {
-	  theLoadPattern->removeElementalLoad(theLoad->getTag());
-	  theSub->addElementalLoad(theLoad, loadPatternTag);
-	  if (res < 0)
-	    opserr << "DomainPartitioner::partition() - failed to add ElementalLoad\n";
-	  added = true;
-	}
+        bool res = theSub->hasElement(loadEleTag);
+        if (res == true) {
+          theLoadPattern->removeElementalLoad(theLoad->getTag());
+          theSub->addElementalLoad(theLoad, loadPatternTag);
+          if (res < 0)
+            opserr << "DomainPartitioner::partition() - failed to add ElementalLoad\n";
+          added = true;
+        }
       }   
     }
   }
@@ -624,13 +623,13 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
       int partition = nodePartitions(i);	  
 
       if (partition != mainPartition) {      
-	Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition); 
-	if (numPartitions == 1) {
-	  myDomain->removeSP_Constraint(spPtr->getTag());
-	}
-	int res = theSubdomain->addSP_Constraint(spPtr);
-	if (res < 0)
-	  opserr << "DomainPartitioner::partition() - failed to add SP Constraint\n";
+        Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition); 
+        if (numPartitions == 1) {
+          myDomain->removeSP_Constraint(spPtr->getTag());
+        }
+        int res = theSubdomain->addSP_Constraint(spPtr);
+        if (res < 0)
+          opserr << "DomainPartitioner::partition() - failed to add SP Constraint\n";
       }
     }    
   }  
@@ -711,9 +710,9 @@ DomainPartitioner::balance(Graph &theWeightedPGraph)
 
     // check that the object did the partitioning
     if (partitionFlag == false) {
-  opserr << "DomainPartitioner::balance(const Vector &load)";
-  opserr << " - not partitioned or DomainPartitioner did not partition\n";
-  return -1;
+      opserr << "DomainPartitioner::balance(const Vector &load)";
+      opserr << " - not partitioned or DomainPartitioner did not partition\n";
+      return -1;
     }
 
 
@@ -759,7 +758,7 @@ DomainPartitioner::balance(Graph &theWeightedPGraph)
 int 
 DomainPartitioner::getNumPartitions(void) const
 {
-    return numPartitions;
+  return numPartitions;
 }
 
 

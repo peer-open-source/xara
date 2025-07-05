@@ -11,6 +11,7 @@
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
+#include <BasicModelBuilder.h>
 #include <ArgumentTracker.h>
 #include <string.h>
 

@@ -36,7 +36,6 @@ typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
 #include <string.h>
 
 #include <TaggedObject.h>
-#include <api/runtimeAPI.h>
 
 
 SectionForceDeformation::SectionForceDeformation(int tag, int classTag)

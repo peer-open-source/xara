@@ -21,15 +21,9 @@ Tcl_CmdProc nodeRotation;
 // domain/region.cpp
 Tcl_CmdProc TclCommand_addMeshRegion;
 
+// domain/recorder.cpp
+Tcl_CmdProc OPS_recorderValue;
 
-// domain/element.cpp
-Tcl_CmdProc TclCommand_addElementRayleigh;
-Tcl_CmdProc TclCommand_getEleTags;
-Tcl_CmdProc getNumElements;
-Tcl_CmdProc getEleClassTags;
-Tcl_CmdProc getEleLoadClassTags;
-Tcl_CmdProc getEleLoadTags;
-Tcl_CmdProc getEleLoadData;
 
 // domain/section.cpp
 Tcl_CmdProc sectionForce;
@@ -41,74 +35,32 @@ Tcl_CmdProc sectionWeight;
 Tcl_CmdProc sectionTag;
 Tcl_CmdProc sectionDisplacement;
 
-Tcl_CmdProc setLoadConst;
 
-Tcl_CmdProc setCreep;
+namespace OpenSees {
+namespace DomainCommands {
+  // domain.cpp
+  Tcl_ObjCmdProc removeObject;
+  Tcl_ObjCmdProc fixedNodes;
+  Tcl_ObjCmdProc constrainedNodes;
+  Tcl_ObjCmdProc fixedDOFs;
+  Tcl_ObjCmdProc constrainedDOFs;
+  Tcl_ObjCmdProc domainChange;
+  Tcl_CmdProc    retainedDOFs;
+  Tcl_CmdProc    updateElementDomain;
 
-Tcl_CmdProc getLoadFactor;
-
-Tcl_CmdProc printModelGID;
-
-Tcl_CmdProc TclAddRecorder;
-
-Tcl_CmdProc addAlgoRecorder;
-
-Tcl_CmdProc addDatabase;
-
-Tcl_CmdProc playbackRecorders;
-
-Tcl_CmdProc playbackAlgorithmRecorders;
-
-Tcl_CmdProc groundExcitation;
-
-
-Tcl_CmdProc eleForce;
-
-Tcl_CmdProc localForce;
-
-Tcl_CmdProc eleDynamicalForce;
-
-Tcl_CmdProc eleResponse;
-
-Tcl_CmdProc findID;
-
-
-
-Tcl_CmdProc eleType;
-
-Tcl_CmdProc eleNodes;
-
-Tcl_CmdProc getEleTags;
-
-//
-Tcl_CmdProc nodeBounds;
-
-Tcl_CmdProc nodeVel;
-
-Tcl_CmdProc setNodeVel;
-
-Tcl_CmdProc setNodeDisp;
-
-Tcl_CmdProc setNodeAccel;
-
-Tcl_CmdProc nodeAccel;
-
-Tcl_CmdProc nodeResponse;
-
-Tcl_CmdProc calculateNodalReactions;
-
-Tcl_CmdProc getNodeTags;
-Tcl_CmdProc retainedNodes;
-
-// domain.cpp
-Tcl_ObjCmdProc removeObject;
-Tcl_ObjCmdProc fixedNodes;
-Tcl_ObjCmdProc constrainedNodes;
-Tcl_ObjCmdProc fixedDOFs;
-Tcl_ObjCmdProc constrainedDOFs;
-Tcl_ObjCmdProc domainChange;
-Tcl_CmdProc retainedDOFs;
-Tcl_CmdProc updateElementDomain;
+  // domain/element.cpp
+  Tcl_CmdProc addElementRayleigh;
+  Tcl_CmdProc getEleTags;
+  Tcl_CmdProc getNumElements;
+  Tcl_CmdProc getEleClassTags;
+  Tcl_CmdProc eleNodes;
+  Tcl_CmdProc eleType;
+  Tcl_CmdProc eleForce;
+  Tcl_CmdProc localForce;
+  Tcl_CmdProc eleDynamicalForce;
+  Tcl_CmdProc eleResponse;
+}
+}
 
 // parameter.cpp
 Tcl_CmdProc getParamTags;
@@ -152,6 +104,54 @@ Tcl_CmdProc basicStiffness;
 // added: Chris McGann, U.Washington for initial state analysis of nDMaterials
 Tcl_CmdProc InitialStateAnalysis;
 
-// domain/recorder.cpp
-Tcl_CmdProc OPS_recorderValue;
 
+
+Tcl_CmdProc setLoadConst;
+
+Tcl_CmdProc setCreep;
+
+Tcl_CmdProc getLoadFactor;
+
+Tcl_CmdProc printModelGID;
+
+Tcl_CmdProc TclAddRecorder;
+
+Tcl_CmdProc addAlgoRecorder;
+
+Tcl_CmdProc addDatabase;
+
+Tcl_CmdProc playbackRecorders;
+
+Tcl_CmdProc playbackAlgorithmRecorders;
+
+Tcl_CmdProc groundExcitation;
+
+
+Tcl_CmdProc getEleLoadData;
+Tcl_CmdProc getEleLoadClassTags;
+Tcl_CmdProc getEleLoadTags;
+
+
+Tcl_CmdProc findID;
+
+
+
+//
+Tcl_CmdProc nodeBounds;
+
+Tcl_CmdProc nodeVel;
+
+Tcl_CmdProc setNodeVel;
+
+Tcl_CmdProc setNodeDisp;
+
+Tcl_CmdProc setNodeAccel;
+
+Tcl_CmdProc nodeAccel;
+
+Tcl_CmdProc nodeResponse;
+
+Tcl_CmdProc calculateNodalReactions;
+
+Tcl_CmdProc getNodeTags;
+Tcl_CmdProc retainedNodes;

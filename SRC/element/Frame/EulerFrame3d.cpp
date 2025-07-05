@@ -1,12 +1,14 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
-//
-//===----------------------------------------------------------------------===//
+//                                   xara
+//                              https://xara.so
+//----------------------------------------------------------------------------//
 //
 // Linearized Euler frame formulation with C1 displacement interpolation
 //
 // Adapted from DispBeamColumn3d?
+//
+// TODO: Get rid of q; its only really useful for the force formulation.
 //
 #include <EulerFrame3d.h>
 #include <Node.h>
@@ -45,6 +47,7 @@ EulerFrame3d::EulerFrame3d(int tag, std::array<int,2>& nodes,
                            double r, 
                            int cm)
  : FiniteElement<2, 3, 6>(tag, ELE_TAG_EulerFrame3d, nodes),
+   BasicFrame3d(),
    basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
    numSections(numSec),
    stencil(nullptr),
@@ -80,6 +83,7 @@ EulerFrame3d::~EulerFrame3d()
     delete basic_system;
 }
 
+
 int
 EulerFrame3d::commitState()
 {
@@ -100,6 +104,7 @@ EulerFrame3d::commitState()
 
   return status;
 }
+
 
 int
 EulerFrame3d::revertToLastCommit()
@@ -154,20 +159,16 @@ EulerFrame3d::setNodes()
     return -1;
 
   int numSections = points.size();
-//double *xi = new double[numSections];
-//double *wt = new double[numSections];
   stencil->getSectionLocations(numSections, L, xi);
   stencil->getSectionWeights(numSections, L, wt);
   for (int i=0; i<numSections; i++) {
     points[i].point  = xi[i];
     points[i].weight = wt[i];
   }
-//delete[] xi;
-//delete[] wt;
 
 // NOTE(cmp) uncomment to match upstream behavior
-//status += this->update();
-//status += this->setState(State::Pres);
+  status += this->update();
+  status += this->setState(State::Pres);
   return status;
 }
 
@@ -244,8 +245,7 @@ EulerFrame3d::update()
   basic_system->update();
 
   double jsx = 1.0/basic_system->getInitialLength();
-  
-  // Get basic deformations
+
   const Vector &v = basic_system->getBasicTrialDisp();
   
   //
@@ -278,7 +278,7 @@ EulerFrame3d::getBasicForce()
 const Vector &
 EulerFrame3d::getResistingForce()
 {
-  this->getBasicTangent(State::Pres, 0);
+  this->stateDetermination(State::Pres, 0);
 
   double q0 = q[0];
   double q1 = q[1];
@@ -289,16 +289,16 @@ EulerFrame3d::getResistingForce()
 
   double oneOverL = 1.0 / basic_system->getInitialLength();
 
-  thread_local VectorND<12> pl;
+  thread_local VectorND<12> pl{};
   pl[0]  = -q0;                    // Ni
-  pl[1]  =  oneOverL * (q1 + q2);  // Viy
-  pl[2]  = -oneOverL * (q3 + q4);  // Viz
+  // pl[1]  =  oneOverL * (q1 + q2);  // Viy
+  // pl[2]  = -oneOverL * (q3 + q4);  // Viz
   pl[3]  = -q5;                    // Ti
   pl[4]  =  q3;
   pl[5]  =  q1;
   pl[6]  =  q0;                    // Nj
-  pl[7]  = -pl[1];                 // Vjy
-  pl[8]  = -pl[2];                 // Vjz
+  // pl[7]  = -pl[1];                 // Vjy
+  // pl[8]  = -pl[2];                 // Vjz
   pl[9]  = q5;                     // Tj
   pl[10] = q4;
   pl[11] = q2;
@@ -311,10 +311,11 @@ EulerFrame3d::getResistingForce()
   pf[8] = p0[4];
 
 
-  thread_local VectorND<12> pg;
-  thread_local Vector wrapper(pg);
+  static VectorND<12> pg;
+  static Vector wrapper(pg);
 //    const Vector p0Vec(p0);
 //    P = basic_system->getGlobalResistingForce(q, p0Vec);
+
   pg  = basic_system->t.pushResponse(pl);
   pg += basic_system->t.pushConstant(pf);
 
@@ -327,7 +328,7 @@ EulerFrame3d::getResistingForce()
 
 
 MatrixND<6,6>&
-EulerFrame3d::getBasicTangent(State state, int rate)
+EulerFrame3d::stateDetermination(State state, int rate)
 {
 
   // Zero for integral
@@ -343,19 +344,19 @@ EulerFrame3d::getBasicTangent(State state, int rate)
   for (int i = 0; i < numSections; i++) {
     GaussPoint& point = points[i];
 
-    MatrixND<4,6> ka;
+    MatrixND<nsr,6> ka{};
     ka.zero();
 
     double xi6 = 6.0*point.point;
 
-    /*  */ const MatrixND<nsr,nsr> ks = 
+    /* const */  MatrixND<nsr,nsr> ks = 
       point.material->getTangent<nsr,scheme>(state);
                
     // Perform numerical integration
     // kb.addMatrixTripleProduct(1.0, *B, ks, wts(i)/L);
     double wti = points[i].weight*jsx;
 
-    for (int k = 0; k < 4; k++) {
+    for (int k = 0; k < nsr; k++) {
       // N
       ka(k,0) += ks(k,0)*wti;
       // Mz
@@ -370,7 +371,9 @@ EulerFrame3d::getBasicTangent(State state, int rate)
       ka(k,5) += ks(k,3)*wti;
     }
 
-    // Beam terms
+    // opserr << "ka[" << i << "] = " << Matrix(ka);
+
+    //
     for (int k = 0; k < 6; k++) {
       // N
       kb(0,k) += ka(0,k);
@@ -390,10 +393,10 @@ EulerFrame3d::getBasicTangent(State state, int rate)
       const VectorND<nsr> s = point.material->getResultant<nsr,scheme>();
       // q.addMatrixTransposeVector(1.0, *B, s, wts(i));
       q[0] += s[0]*wt[i];
-      q[1] += (xi6-4.0)*s[1]*wt[i];
-      q[2] += (xi6-2.0)*s[1]*wt[i];
-      q[3] += (xi6-4.0)*s[2]*wt[i];
-      q[4] += (xi6-2.0)*s[2]*wt[i];
+      q[1] += (xi6-4.0)*s[1]*wt[i]; // Mzi
+      q[2] += (xi6-2.0)*s[1]*wt[i]; // Mzj
+      q[3] += (xi6-4.0)*s[2]*wt[i]; // Myi
+      q[4] += (xi6-2.0)*s[2]*wt[i]; // Myj
       q[5] += s[3]*wt[i];
     }  
   }
@@ -407,7 +410,7 @@ EulerFrame3d::getBasicTangent(State state, int rate)
 const Matrix &
 EulerFrame3d::getTangentStiff()
 {
-  MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
+  MatrixND<6,6> kb = this->stateDetermination(State::Pres, 0);
   VectorND<6>   q  = this->getBasicForce();
 
   return basic_system->getGlobalStiffMatrix(Matrix(kb), Vector(q));
@@ -417,7 +420,7 @@ EulerFrame3d::getTangentStiff()
 const Matrix &
 EulerFrame3d::getInitialStiff()
 {
-  return basic_system->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
+  return basic_system->getInitialGlobalStiffMatrix(this->stateDetermination(State::Init, 0));
 }
 
 int
@@ -811,8 +814,8 @@ EulerFrame3d::getResponse(int responseID, Information &info)
   // Plastic rotation
   else if (responseID == 4) {
     static Vector vp(6);
-    static Vector ve(6);
-    auto kb = this->getBasicTangent(State::Init, 0);
+    static VectorND<6> ve;
+    auto kb = this->stateDetermination(State::Init, 0);
     kb.solve(q, ve);
     vp = basic_system->getBasicTrialDisp();
     vp -= ve;
@@ -998,7 +1001,7 @@ EulerFrame3d::getBasicForceGrad(int gradNumber)
 
   if (basic_system->isShapeSensitivity()) { 
  
-    MatrixND<6,6> &Kb = getBasicTangent(State::Pres, 0);
+    MatrixND<6,6> &Kb = stateDetermination(State::Pres, 0);
     double L   = basic_system->getInitialLength();
     
     const Vector &A_u = basic_system->getBasicTrialDisp();

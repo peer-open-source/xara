@@ -68,18 +68,18 @@ public:
     int formNodUnbalance(DOF_Group *theDof);
     
     // methods to update the domain
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &aiPlusOne);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
+    const Vector &getVel();
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag) final;
     
 protected:
     

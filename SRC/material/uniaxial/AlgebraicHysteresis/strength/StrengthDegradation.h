@@ -60,7 +60,7 @@ class StrengthDegradation : public MaterialState
 
 };
 
-extern bool OPS_addStrengthDegradation(StrengthDegradation *newComponent);
+// extern bool OPS_addStrengthDegradation(StrengthDegradation *newComponent);
 extern StrengthDegradation *OPS_getStrengthDegradation(int tag);
 extern void OPS_clearAllStrengthDegradation(void);
 

@@ -143,7 +143,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL
       return TCL_ERROR;
     }
 
-    int tag, nLayers, matTag;
+    int tag, nLayers; // , matTag;
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid section tag" << "\n";
       return TCL_ERROR;

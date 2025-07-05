@@ -328,7 +328,7 @@ void SteelECThermal::determineTrialState (double dStrain)
       
 	if(Tloading == 1)
 	{
-	  Tstress = Tstress;
+	  ; // Tstress = Tstress;
 	}
 	else if(Tloading ==-1)
 	{
