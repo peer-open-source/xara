@@ -24,6 +24,7 @@
 //
 // Description: This file contains the class definition for NineNodeQuad.
 //
+#include <array>
 #include "NineNodeQuad.h"
 #include <Node.h>
 #include <NDMaterial.h>
