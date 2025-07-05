@@ -46,7 +46,7 @@ dependencies = [
     "shps >= 0.0.14", # Shape functions and quadrature
     "numpy < 1.20.0; python_version<'3.8'",
     "numpy ; python_version>='3.8'",
-    "tcinter>=1.0; platform_python_implementation=='PyPy' or sys_platform=='emscripten'"
+    "tcinter>=1.0; platform_python_implementation=='PyPy' or sys_platform=='emscripten'",
 
 # Full-featured REPL
     "pyparsing",
