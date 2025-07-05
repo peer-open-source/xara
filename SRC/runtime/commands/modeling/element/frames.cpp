@@ -104,7 +104,7 @@ struct Options {
 extern BeamIntegration*     GetBeamIntegration(TCL_Char* type, int);
 extern BeamIntegrationRule* GetHingeStencil(int argc, TCL_Char ** const argv);
 
-int
+static inline int
 CheckTransformation(Domain& domain, int iNode, int jNode, CrdTransf& transform)
 {
   Node* ni = domain.getNode(iNode);

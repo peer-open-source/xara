@@ -53,6 +53,31 @@
 //   element elasticBeamColumn $eleTag $iNode $jNode $secTag $transfTag <-mass $massDens> <-cMass>
 //
 
+
+static inline int
+CheckTransformation(Domain& domain, int iNode, int jNode, CrdTransf& transform)
+{
+  Node* ni = domain.getNode(iNode);
+  Node* nj = domain.getNode(jNode);
+  if (ni == nullptr || nj == nullptr) {
+    opserr << OpenSees::PromptValueError << "nodes not found with tags "
+           << iNode << " and " << jNode
+           << OpenSees::SignalMessageEnd;
+  }
+
+  if (transform.initialize(ni, nj) != 0) {
+    opserr << OpenSees::PromptValueError 
+           << "transformation with tag " << transform.getTag()
+           << " could not be initialized with nodes "
+           << iNode << " and " << jNode
+           << "; check orientation"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+  return TCL_OK;
+}
+
+
 template <typename Position, typename Section>
 int
 Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
@@ -567,6 +592,9 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
 
     theTrans3d = builder->getTypedObject<CrdTransf>(transTag);
     if (theTrans3d == nullptr)
+      return TCL_ERROR;
+
+    if (CheckTransformation(*builder->getDomain(), iNode, jNode, *theTrans3d) != TCL_OK)
       return TCL_ERROR;
 
     FrameTransformBuilder* tb = builder->getTypedObject<FrameTransformBuilder>(transTag);
