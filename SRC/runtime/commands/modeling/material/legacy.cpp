@@ -5,7 +5,7 @@
 //===----------------------------------------------------------------------===//
 //
 #include <tcl.h>
-#include <string>
+#include <string.h>
 #include <assert.h>
 #include <Logging.h>
 #include <Parsing.h>
