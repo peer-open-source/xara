@@ -184,7 +184,7 @@ VectorND<N,T>::addVector(const T thisFact, const VectorND<N> &other, const T oth
   return 0;
 }
 
-#ifdef VECTOR_BLAS
+
 template <index_t N, typename T>
 template <int NC>
 inline int
@@ -239,7 +239,7 @@ VectorND<N,T>::addMatrixTransposeVector(double thisFact, const MatrixND<NR, N, d
     return 0;
   } 
 }
-#endif // VECTOR_BLAS
+
 
 template <index_t N, typename T>
 inline int
