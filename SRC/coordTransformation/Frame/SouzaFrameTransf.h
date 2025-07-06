@@ -152,7 +152,7 @@ private:
   OpenSees::MatrixND<n,n> T;     // transformation from local to global system
 
   OpenSees::Matrix3D R0;         // rotation from local to global coordinates
-  CrisfieldIsometry<2> crs;
+  CrisfieldIsometry<2,false> crs;
 
 };
 

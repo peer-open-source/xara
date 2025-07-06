@@ -31,7 +31,7 @@
 #include <Accelerator.h>
 
 Accelerator::Accelerator(int classTag)
-:MovableObject(classTag)
+: MovableObject(classTag)
 {
 
 }
@@ -42,7 +42,8 @@ Accelerator::~Accelerator()
 }
 
 int
-Accelerator::updateTangent(IncrementalIntegrator &theIntegrator)
+Accelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
+  factored = false;
   return 0;
 }

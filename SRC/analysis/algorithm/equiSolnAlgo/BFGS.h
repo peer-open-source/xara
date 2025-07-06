@@ -35,38 +35,30 @@ class BFGS: public EquiSolnAlgo
 {
   public:
 
-    BFGS(int tangent = CURRENT_TANGENT, int n = 10);    
-    // BFGS(ConvergenceTest &theTest, int tangent = CURRENT_TANGENT, int n = 10);
+    BFGS(IncrementalIntegrator::TangentFlagType tangent = CURRENT_TANGENT, int n = 10);
     ~BFGS();
 
-    int solveCurrentStep(void);    
-
-    void setLinks(AnalysisModel &theModel, 
-                  IncrementalIntegrator &theIntegrator,
-                  LinearSOE &theSOE,
-                  ConvergenceTest *theTest);
-
-    int setConvergenceTest(ConvergenceTest *theNewTest);
-    ConvergenceTest *getConvergenceTest(void);     
+    int solveCurrentStep() final;
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-                         FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &) final;
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
 
-    void Print(OPS_Stream &s, int flag =0);    
+    void Print(OPS_Stream &, int flag) final;    
     
   protected:
     
   private:
-    ConvergenceTest *localTest;
-    int tangent;
+    void BFGSUpdate(IncrementalIntegrator *theIntegrator,
+                    LinearSOE *theSOE,
+                    Vector &du, 
+                    Vector &b, 
+                    int count);
 
+    IncrementalIntegrator::TangentFlagType tangent;
     int numberLoops;
 
     Vector **s;  // displacement increments
-
     Vector **z;  
-
     Vector *residOld;  // residuals
     Vector *residNew;
 
@@ -79,12 +71,6 @@ class BFGS: public EquiSolnAlgo
     double *rdotz;
 
     double *sdotr;
-
-    void BFGSUpdate(IncrementalIntegrator *theIntegrator,
-                    LinearSOE *theSOE,
-                    Vector &du, 
-                    Vector &b, 
-                    int count);
   
 };
 

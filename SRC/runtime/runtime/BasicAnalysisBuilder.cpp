@@ -102,16 +102,16 @@ BasicAnalysisBuilder::wipe()
       theStaticIntegrator = nullptr;
   }
   if ((theTransientIntegrator != nullptr) && freeTI) {
-      delete theTransientIntegrator;
-      theTransientIntegrator = nullptr;
+    delete theTransientIntegrator;
+    theTransientIntegrator = nullptr;
   }
   if ((theSOE != nullptr) && freeSOE) {
-      delete theSOE;
-      theSOE = nullptr;
+    delete theSOE;
+    theSOE = nullptr;
   }
   if (theNumberer != nullptr) {
-      delete theNumberer;
-      theNumberer = nullptr;
+    delete theNumberer;
+    theNumberer = nullptr;
   }
   if (theHandler != nullptr) {
       delete theHandler;
@@ -130,6 +130,7 @@ BasicAnalysisBuilder::wipe()
     theAnalysisModel = new AnalysisModel();
   }
 }
+
 
 void
 BasicAnalysisBuilder::setLinks(CurrentAnalysis flag)
@@ -169,7 +170,6 @@ BasicAnalysisBuilder::setLinks(CurrentAnalysis flag)
     break;
 
   case STATIC_ANALYSIS:
-    // opserr << "setLinks(STATIC)\n";
     if (theDomain && theAnalysisModel && theStaticIntegrator && theHandler)
       theHandler->setLinks(*theDomain, *theAnalysisModel, *theStaticIntegrator);
 
@@ -185,7 +185,7 @@ BasicAnalysisBuilder::setLinks(CurrentAnalysis flag)
 }
 
 int
-BasicAnalysisBuilder::initialize(void)
+BasicAnalysisBuilder::initialize()
 {
   // check if domain has undergone change
   int stamp = theDomain->hasDomainChanged();
@@ -203,17 +203,19 @@ BasicAnalysisBuilder::initialize(void)
 
     case STATIC_ANALYSIS:
       if (theStaticIntegrator->initialize() < 0) {
-          opserr << G3_WARN_PROMPT << "integrator initialize() failed\n";
-          return -2;
-      } else
+        opserr << G3_WARN_PROMPT << "integrator initialize() failed\n";
+        return -2;
+      }
+      else
         theStaticIntegrator->commit();
       break;
 
     case TRANSIENT_ANALYSIS:
       if (theTransientIntegrator->initialize() < 0) {
-          opserr << "integrator initialize() failed\n";
-          return -2;
-      } else
+        opserr << "integrator initialize() failed\n";
+        return -2;
+      }
+      else
         theTransientIntegrator->commit();
       break;
   }
@@ -223,7 +225,7 @@ BasicAnalysisBuilder::initialize(void)
 }
 
 int
-BasicAnalysisBuilder::domainChanged(void)
+BasicAnalysisBuilder::domainChanged()
 {
   Domain *domain = this->getDomain();
   int stamp = domain->hasDomainChanged();
@@ -242,6 +244,7 @@ BasicAnalysisBuilder::domainChanged(void)
       opserr << "BasicAnalysisBuilder::domainChange() - ConstraintHandler::handle() failed\n";
       return -1;
     }
+
     // Invoke number() on the numberer which causes
     // equation numbers to be assigned to all the DOFs in the
     // AnalysisModel.
@@ -279,23 +282,22 @@ BasicAnalysisBuilder::domainChanged(void)
   // finally invoke domainChanged on the Integrator and Algorithm
   // informing them that the model has changed
   switch (this->CurrentAnalysisFlag) {
+    case STATIC_ANALYSIS:
+      if (theStaticIntegrator->domainChanged() < 0) {
+        opserr << "BasicAnalysisBuilder::domainChange - Integrator::domainChanged() failed\n";
+        return -4;
+      }
+      break;
 
-  case STATIC_ANALYSIS:
-    if (theStaticIntegrator->domainChanged() < 0) {
-      opserr << "BasicAnalysisBuilder::domainChange - Integrator::domainChanged() failed\n";
-      return -4;
-    }
-    break;
+    case TRANSIENT_ANALYSIS:
 
-  case TRANSIENT_ANALYSIS:
-
-    if (theTransientIntegrator->domainChanged() < 0) {
-      opserr << "BasicAnalysisBuilder: Integrator failed in domainChanged()\n";
-      return -4;
-    }
-    break;
-  default:
-    break;
+      if (theTransientIntegrator->domainChanged() < 0) {
+        opserr << "BasicAnalysisBuilder: Integrator failed in domainChanged()\n";
+        return -4;
+      }
+      break;
+    default:
+      break;
   }
 
 //  if (theAlgorithm && theAlgorithm->domainChanged() < 0) {
@@ -697,7 +699,6 @@ BasicAnalysisBuilder::set(LinearSOE* obj, bool free)
   if (theEigenSOE != nullptr)
     theEigenSOE->setLinearSOE(*theSOE);
 
-
   domainStamp = 0;
 }
 
@@ -775,7 +776,6 @@ BasicAnalysisBuilder::set(EigenSOE &theNewSOE)
 
     domainStamp = 0;
   }
-
 }
 
 void
@@ -801,7 +801,7 @@ BasicAnalysisBuilder::fillDefaults(BasicAnalysisBuilder::CurrentAnalysis flag)
     theTest = new CTestNormUnbalance(1.0e-6, 25, ConvergenceTest::PrintFailure);
 
   if (theAlgorithm == nullptr)
-    theAlgorithm = new NewtonRaphson(*theTest);
+    theAlgorithm = new NewtonRaphson(CURRENT_TANGENT, CURRENT_TANGENT, 0.0, 1.0);
 
 
   if (theHandler == nullptr) {
@@ -818,8 +818,7 @@ BasicAnalysisBuilder::fillDefaults(BasicAnalysisBuilder::CurrentAnalysis flag)
 
   if (theSOE == nullptr)
     // TODO: CHANGE TO MORE GENERAL SOE
-      theSOE = new ProfileSPDLinSOE(*(new ProfileSPDLinDirectSolver()));
-
+    theSOE = new ProfileSPDLinSOE(*(new ProfileSPDLinDirectSolver()));
 }
 
 
@@ -849,11 +848,11 @@ BasicAnalysisBuilder::setTransientAnalysis()
 int
 BasicAnalysisBuilder::newTransientAnalysis()
 {
-    assert(theDomain != nullptr);
+  assert(theDomain != nullptr);
 
-    this->fillDefaults(TRANSIENT_ANALYSIS);
+  this->fillDefaults(TRANSIENT_ANALYSIS);
 
-    return 1;
+  return 1;
 }
 
 
@@ -865,7 +864,6 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
   if (theHandler == nullptr)
     theHandler = new TransformationConstraintHandler();
 
-  // this->CurrentAnalysisFlag = TRANSIENT_ANALYSIS;
   if (this->CurrentAnalysisFlag == EMPTY_ANALYSIS)
     this->CurrentAnalysisFlag = TRANSIENT_ANALYSIS;
 
@@ -1004,8 +1002,8 @@ BasicAnalysisBuilder::eigen(int numMode, bool generalized, bool findSmallest)
   // Solve for the eigen values & vectors
   //
   if (theEigenSOE->solve(numMode, generalized, findSmallest) < 0) {
-      opserr << G3_WARN_PROMPT << "EigenSOE failed in solve()\n";
-      return -4;
+    opserr << G3_WARN_PROMPT << "EigenSOE failed in solve()\n";
+    return -4;
   }
 
   //

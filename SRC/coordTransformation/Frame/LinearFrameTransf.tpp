@@ -28,7 +28,9 @@
 //
 #pragma once
 #include <Vector.h>
+#include <Versor.h>
 #include <Matrix.h>
+#include <Vector3D.h>
 #include <Matrix3D.h>
 #include <Node.h>
 #include <Logging.h>

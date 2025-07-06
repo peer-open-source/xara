@@ -43,7 +43,7 @@ class PeriodicAccelerator: public Accelerator
   int newStep(LinearSOE &theSOE);
   int accelerate(Vector &v, LinearSOE &theSOE, 
 		 IncrementalIntegrator &theIntegrator);
-  int updateTangent(IncrementalIntegrator &theIntegrator);
+  int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   bool updateTangent(void);
 
   int getTangent(void) {return theTangent;}

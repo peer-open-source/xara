@@ -44,6 +44,7 @@
 #include <VectorND.h>
 
 #include "for_int.tpp"
+#include <CrdTransf.h>
 #include <FrameSection.h>
 #include <FrameTransform.h>
 #include <Logging.h>
@@ -395,7 +396,7 @@ ExactFrame3d<nen,nwm>::update()
         Vector3D v{};
         for (unsigned i=0; i<nen; i++)
           v += shp[0][i]*theNodes[i]->getTrialDisp();
-        q = VersorFromMatrix(R0*ExpSO3(v));
+        q = Versor::from_matrix(R0*ExpSO3(v));
       }
       Matrix3D R  = MatrixFromVersor(q);
       const double w = wp;

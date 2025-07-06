@@ -562,12 +562,15 @@ Node::incrTrialDisp(const Vector &incrDispl)
       disp[i+3*numberDOF]  = incrDispI;
   }
 
-  if (rotation != nullptr && this->getNumberDOF() >= 6) {
-    Vector3D theta;
-    for (int i = 0; i < 3; i++)
-      theta[i] = disp[3*numberDOF+3+i];
-    rotation[1] = VersorFromMatrix(ExpSO3(theta)*MatrixFromVersor(rotation[1]));
-    // (*rotation) = Versor::from_vector(&disp[3*numberDOF+3]) * (*rotation);
+  if (rotation != nullptr && this->getNumberDOF() >= 6) [[likely]] {
+    // Vector3D theta;
+    // for (int i = 0; i < 3; i++)
+    //   theta[i] = disp[3*numberDOF+3+i];
+    // Matrix3D R = ExpSO3(theta)*MatrixFromVersor(rotation[1]);
+    // rotation[1] = Versor::from_matrix(R);
+
+    rotation[1] = Versor::from_vector(&disp[3*numberDOF+3]) * rotation[1];
+    rotation[1].normalize();
   }
 
   return 0;
@@ -747,25 +750,25 @@ Node::getUnbalancedLoad()
 const Vector &
 Node::getUnbalancedLoadIncInertia()
 {
-    // make sure it was created before we return it
-    if (unbalLoadWithInertia == nullptr) {
-      unbalLoadWithInertia = new Vector(this->getUnbalancedLoad());
+  // make sure it was created before we return it
+  if (unbalLoadWithInertia == nullptr) {
+    unbalLoadWithInertia = new Vector(this->getUnbalancedLoad());
 
-    } else
-      (*unbalLoadWithInertia) = this->getUnbalancedLoad();
+  } else
+    (*unbalLoadWithInertia) = this->getUnbalancedLoad();
 
-    if (mass != nullptr) {
+  if (mass != nullptr) {
 
-      const Vector &theAccel = this->getTrialAccel(); // in case accel not created
-      unbalLoadWithInertia->addMatrixVector(1.0, *mass, theAccel, -1.0);
+    const Vector &theAccel = this->getTrialAccel(); // in case accel not created
+    unbalLoadWithInertia->addMatrixVector(1.0, *mass, theAccel, -1.0);
 
-      if (alphaM != 0.0) {
-      const Vector &theVel = this->getTrialVel(); // in case vel not created
-      unbalLoadWithInertia->addMatrixVector(1.0, *mass, theVel, -alphaM);
-      }
+    if (alphaM != 0.0) {
+    const Vector &theVel = this->getTrialVel(); // in case vel not created
+    unbalLoadWithInertia->addMatrixVector(1.0, *mass, theVel, -alphaM);
     }
+  }
 
-    return *unbalLoadWithInertia;
+  return *unbalLoadWithInertia;
 }
 
 int

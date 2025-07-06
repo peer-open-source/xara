@@ -46,32 +46,34 @@ class EquiSolnAlgo: public SolutionAlgorithm
     virtual ~EquiSolnAlgo();
 
     // public functions defined for subclasses
-    virtual void setLinks(AnalysisModel &theModel, 
-                  IncrementalIntegrator &theIntegrator,
-                  LinearSOE &theSOE,
-                  ConvergenceTest *theTest);
-    
-    // virtual functions
-    virtual int solveCurrentStep(void) =0;
-    virtual int setConvergenceTest(ConvergenceTest *theNewTest);    
-    virtual ConvergenceTest *getConvergenceTest(void);     
+    virtual void 
+    setLinks(AnalysisModel &, 
+              IncrementalIntegrator &,
+              LinearSOE &,
+              ConvergenceTest *) final;
 
-    virtual void Print(OPS_Stream &s, int flag =0) =0;    
+    virtual int solveCurrentStep() =0;
 
-    virtual int getNumFactorizations() {return 0;}
-    virtual int getNumIterations() {return 0;}
-    virtual double getTotalTimeCPU(void)   {return 0.0;}
-    virtual double getTotalTimeReal(void)  {return 0.0;}
-    virtual double getSolveTimeCPU(void)   {return 0.0;}
-    virtual double getSolveTimeReal(void)  {return 0.0;}
-    virtual double getAccelTimeCPU(void)   {return 0.0;}
-    virtual double getAccelTimeReal(void)  {return 0.0;}
+    virtual int setConvergenceTest(ConvergenceTest *theNewTest) final;    
+    virtual ConvergenceTest *getConvergenceTest() final;     
+
+
+    virtual void Print(OPS_Stream &, int flag) =0;    
+
+    virtual int    getNumFactorizations() {return 0;}
+    virtual int    getNumIterations() {return 0;}
+    virtual double getTotalTimeCPU()   {return 0.0;}
+    virtual double getTotalTimeReal()  {return 0.0;}
+    virtual double getSolveTimeCPU()   {return 0.0;}
+    virtual double getSolveTimeReal()  {return 0.0;}
+    virtual double getAccelTimeCPU()   {return 0.0;}
+    virtual double getAccelTimeReal()  {return 0.0;}
  
     // the following are not protected as convergence test
     // may need access to them
     AnalysisModel           *getAnalysisModelPtr() const;
     IncrementalIntegrator   *getIncrementalIntegratorPtr() const;
-    LinearSOE                    *getLinearSOEptr() const;
+    LinearSOE               *getLinearSOEptr() const;
 
   protected:
     ConvergenceTest *theTest;

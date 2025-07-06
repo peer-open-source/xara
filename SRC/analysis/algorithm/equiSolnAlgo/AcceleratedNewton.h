@@ -41,17 +41,13 @@ class Accelerator;
 class AcceleratedNewton: public EquiSolnAlgo
 {
  public:
-  AcceleratedNewton(int tangent = CURRENT_TANGENT);
-  AcceleratedNewton(ConvergenceTest &theTest, Accelerator *theAccel,
-		    int tangent = CURRENT_TANGENT);
+  AcceleratedNewton(Accelerator *theAccel, int tangent);
   ~AcceleratedNewton();
   
-  int solveCurrentStep(void);    
-  int setConvergenceTest(ConvergenceTest *theNewTest);
-  ConvergenceTest *getTest(void);     
+  int solveCurrentStep(); 
   
-  int getNumFactorizations(void) {return numFactorizations;}
-  int getNumIterations(void) {return numIterations;}
+  int getNumFactorizations() {return numFactorizations;}
+  int getNumIterations() {return numIterations;}
   //double getTotalTimeCPU(void)   {return totalTimeCPU;}
   //double getTotalTimeReal(void)  {return totalTimeReal;}
   //double getSolveTimeCPU(void)   {return solveTimeCPU;}
@@ -59,15 +55,13 @@ class AcceleratedNewton: public EquiSolnAlgo
   //double getAccelTimeCPU(void)   {return accelTimeCPU;}
   //double getAccelTimeReal(void)  {return accelTimeReal;}
   
-  virtual int sendSelf(int commitTag, Channel &theChannel);
-  virtual int recvSelf(int commitTag, Channel &theChannel, 
-		       FEM_ObjectBroker &theBroker);
+  virtual int sendSelf(int commitTag, Channel &);
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
   void Print(OPS_Stream &, int flag) final;    
   
  protected:
   
  private:
-  ConvergenceTest *theTest;
   int tangent;
   
   Accelerator *theAccelerator;
@@ -77,20 +71,6 @@ class AcceleratedNewton: public EquiSolnAlgo
   
   int numFactorizations;
   int numIterations;
-
-  //Timer totalTimer;
-  //double totalTimeReal;
-  //double totalTimeCPU;
-
-  //Timer solveTimer;
-  //double solveTimeReal;
-  //double solveTimeCPU;
-
-  //Timer accelTimer;
-  //double accelTimeReal;
-  //double accelTimeCPU;
-
-  bool firstTangent;
 };
 
 #endif

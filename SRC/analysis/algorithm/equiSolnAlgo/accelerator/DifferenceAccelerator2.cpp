@@ -237,14 +237,14 @@ DifferenceAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-DifferenceAccelerator2::updateTangent(IncrementalIntegrator &theIntegrator)
+DifferenceAccelerator2::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
+  factored = false;
   if (dimension > maxDimension) {
     dimension = 0;
     if (theTangent != NO_TANGENT) {
-      //opserr << "DifferenceAccelerator2::updateTangent() tangent formed" << "\n";
-      theIntegrator.formTangent(theTangent);
-      return 1;
+      factored = true;
+      return theIntegrator.formTangent(theTangent);
     }
     else
       return 0;

@@ -124,7 +124,7 @@ int
 SouzaFrameTransf<nn,ndf>::revertToStart()
 {
   ul.zero();
-  Q_pres[0] = VersorFromMatrix(R0);
+  Q_pres[0] = Versor::from_matrix(R0);
   for (int i=1; i<nn; i++)
     Q_pres[i] = Q_pres[0];
 
@@ -231,7 +231,7 @@ SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
     return error;
 
   // Compute initial pseudo-vectors for nodal triads
-  Q_pres[0] = Q_pres[1] = VersorFromMatrix(R0);
+  Q_pres[0] = Q_pres[1] = Versor::from_matrix(R0);
 
   ul.zero();
   ulpr.zero();
@@ -315,13 +315,9 @@ SouzaFrameTransf<nn,ndf>::update()
       alphaJ[k]  =  dispJ(k+3);
     }
 
-    // Update the nodal rotations
-    Q_pres[0] = VersorProduct(Q_pres[0],  Versor::from_vector(dAlphaI));
-    Q_pres[1] = VersorProduct(Q_pres[1],  Versor::from_vector(dAlphaJ));
-    // Q_pres[0] = VersorFromMatrix(MatrixFromVersor(Q_pres[0]) *
-    //                              MatrixFromVersor(Versor::from_vector(dAlphaI)));
-    // Q_pres[1] = VersorFromMatrix(MatrixFromVersor(Q_pres[1]) *
-    //                              MatrixFromVersor(Versor::from_vector(dAlphaJ)));
+    // Update the nodal rotations; Note the Hamilton product is assumed!
+    Q_pres[0] = Versor::from_vector(dAlphaI)*Q_pres[0];
+    Q_pres[1] = Versor::from_vector(dAlphaJ)*Q_pres[1];
   }
 
   //

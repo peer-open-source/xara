@@ -54,6 +54,8 @@ enum TangentFlag {
 class IncrementalIntegrator : public Integrator
 {
   public:
+    typedef int TangentFlagType; 
+
     IncrementalIntegrator(int classTag);
     virtual ~IncrementalIntegrator();
 

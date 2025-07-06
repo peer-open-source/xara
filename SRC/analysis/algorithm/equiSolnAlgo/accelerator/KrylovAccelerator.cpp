@@ -273,14 +273,6 @@ KrylovAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
 
       //cFile << cj << ' ';
     }
-
-    //cFile << endln;
-
-    //wFile << "dim: " << dimension << endln;
-    //wFile << w << endln;
-
-    //qFile << "dim: " << dimension << endln;
-    //qFile << q << endln;
   }
 
   // Put accelerated vector into storage for next iteration
@@ -295,14 +287,14 @@ KrylovAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-KrylovAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
+KrylovAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
+  factored = false;
   if (dimension > maxDimension) {
     dimension = 0;
     if (theTangent != NO_TANGENT) {
-      //opserr << "KrylovAccelerator::updateTangent() tangent formed" << endln;
-      theIntegrator.formTangent(theTangent);
-      return 1;
+      factored = true;
+      return theIntegrator.formTangent(theTangent);
     }
     else
       return 0;

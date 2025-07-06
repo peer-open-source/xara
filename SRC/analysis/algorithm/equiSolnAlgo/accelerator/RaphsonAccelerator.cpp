@@ -37,8 +37,10 @@
 #include <ID.h>
 #include <Channel.h>
 
-RaphsonAccelerator::RaphsonAccelerator(int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Raphson), theTangent(tangent), totalIter(0)
+RaphsonAccelerator::RaphsonAccelerator(int tangent, double iFactor, double cFactor)
+  :Accelerator(ACCELERATOR_TAGS_Raphson), 
+   theTangent(tangent), totalIter(0),
+   iFactor(iFactor), cFactor(cFactor)
 {
 
 }
@@ -57,8 +59,7 @@ RaphsonAccelerator::newStep(LinearSOE &theSOE)
 }
 
 int
-RaphsonAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
-			       IncrementalIntegrator &theIntegrator)
+RaphsonAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE, IncrementalIntegrator &theIntegrator)
 {
   totalIter++;
 
@@ -66,7 +67,7 @@ RaphsonAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-RaphsonAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
+RaphsonAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& updated)
 {
   /*
   if (theTangent == NO_TANGENT)
@@ -87,25 +88,16 @@ RaphsonAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
   }
   */
 
-  switch (theTangent) {
-  case CURRENT_TANGENT:
-    theIntegrator.formTangent(CURRENT_TANGENT);
-    return 1;
-    break;
-  case INITIAL_TANGENT:
-    theIntegrator.formTangent(INITIAL_TANGENT);
-    return 0;
-    break;
-  default:
-    return 0;
-    break;
-  }
+  updated = false;
+  if (theTangent== CURRENT_TANGENT)
+    updated = true;
+  return theIntegrator.formTangent(theTangent, iFactor, cFactor);
 }
 
 void
 RaphsonAccelerator::Print(OPS_Stream &s, int flag)
 {
-  s << "RaphsonAccelerator" << endln;
+  s << "RaphsonAccelerator\n";
 }
 
 int

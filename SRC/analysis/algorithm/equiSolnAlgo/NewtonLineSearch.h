@@ -45,24 +45,19 @@ class NewtonLineSearch: public EquiSolnAlgo
 {
   public:
     NewtonLineSearch( );    
-    NewtonLineSearch(ConvergenceTest &theTest, LineSearch *theLineSearch);
+    NewtonLineSearch(LineSearch *theLineSearch);
     ~NewtonLineSearch( );
 
-    int solveCurrentStep(void);    
-    int setConvergenceTest(ConvergenceTest *theNewTest);
-    ConvergenceTest *getConvergenceTest(void);     
+    int solveCurrentStep();
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     void Print(OPS_Stream &, int flag) final;    
     
   protected:
     
   private:
-    ConvergenceTest *theTest;
-    ConvergenceTest *theOtherTest;
     LineSearch *theLineSearch;
 };
 
