@@ -125,14 +125,15 @@ SecantAccelerator1::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-SecantAccelerator1::updateTangent(IncrementalIntegrator &theIntegrator)
+SecantAccelerator1::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
+  factored = false;
   if (iteration > maxIterations) {
     //opserr << "SecantAccelerator1::updateTangent() tangent formed" << "\n";
     iteration = 0;
     if (theTangent != NO_TANGENT) {
-      theIntegrator.formTangent(theTangent);
-      return 1;
+      factored = true;
+      return theIntegrator.formTangent(theTangent);
     }
     else
       return 0;

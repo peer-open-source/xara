@@ -39,7 +39,10 @@
 
 EquiSolnAlgo::EquiSolnAlgo(int clasTag)
 :SolutionAlgorithm(clasTag),
- theModel(0), theIntegrator(0), theSysOfEqn(0), theTest(0)
+ theModel(0),
+ theIntegrator(nullptr), 
+ theSysOfEqn(nullptr), 
+ theTest(nullptr)
 {
 
 }
@@ -55,12 +58,12 @@ EquiSolnAlgo::setLinks(AnalysisModel &theNewModel,
                        LinearSOE &theSOE,
                        ConvergenceTest *theConvergenceTest)
 {
-    theModel = &theNewModel;
-    theIntegrator = &theNewIntegrator;
-    theSysOfEqn = &theSOE;
-    theTest = theConvergenceTest;
+  theModel = &theNewModel;
+  theIntegrator = &theNewIntegrator;
+  theSysOfEqn = &theSOE;
+  theTest = theConvergenceTest;
 
-    this->setConvergenceTest(theConvergenceTest);
+  this->setConvergenceTest(theConvergenceTest);
 }
 
 
@@ -78,20 +81,17 @@ EquiSolnAlgo::getConvergenceTest()
 }
 
 
-
-
 AnalysisModel *
 EquiSolnAlgo::getAnalysisModelPtr() const
 {
-    return theModel;
+  return theModel;
 }
-
 
 
 IncrementalIntegrator *
 EquiSolnAlgo::getIncrementalIntegratorPtr() const
 {
-    return theIntegrator;
+  return theIntegrator;
 }
 
 
@@ -99,5 +99,5 @@ EquiSolnAlgo::getIncrementalIntegratorPtr() const
 LinearSOE *
 EquiSolnAlgo::getLinearSOEptr() const
 {
-    return theSysOfEqn;
+  return theSysOfEqn;
 }

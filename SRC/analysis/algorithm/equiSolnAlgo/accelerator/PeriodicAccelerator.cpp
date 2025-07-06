@@ -72,7 +72,7 @@ PeriodicAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-PeriodicAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
+PeriodicAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
   /*
   if (theTangent == NO_TANGENT)
@@ -100,7 +100,7 @@ PeriodicAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
       return 0;
   }
   */
-
+  factored = false;
   if (iteration < maxIter)
     return 0;
 

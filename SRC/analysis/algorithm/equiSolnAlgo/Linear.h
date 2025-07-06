@@ -49,7 +49,6 @@ class Linear: public EquiSolnAlgo
     ~Linear();
 
     int solveCurrentStep(void);
-    int setConvergenceTest(ConvergenceTest *theNewTest);
     
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, 

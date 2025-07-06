@@ -49,16 +49,12 @@ class Accelerator : public MovableObject
   virtual int newStep(LinearSOE &theSOE) = 0;
   virtual int accelerate(Vector &v, LinearSOE &theSOE, 
                          IncrementalIntegrator &theIntegrator) = 0;
-  virtual int updateTangent(IncrementalIntegrator &theIntegrator);
+  virtual int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   virtual bool updateTangent(void) {return false;}
 
   virtual int getTangent(void) {return NO_TANGENT;}
 
   virtual void Print(OPS_Stream &s, int flag=0) = 0;
-  
- protected:
-    
- private:
   
 };
 

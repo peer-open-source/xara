@@ -40,7 +40,19 @@ class _Elements:
                 *args
                ) -> int: ...
 
+class _Algorithm:
+    
+    def algorithm(self, type: str, *args, **kwargs) -> int:
+        """
+        Create an algorithm of the specified type.
+        """
 
+    def algorithm(self, 
+                  type: Literal["NewtonLineSearch"],
+                  tol=0.8) -> int:
+        """
+        Create a specific algorithm for the analysis.
+        """
 
-class Model(_Elements):
+class Model(_Elements,_Algorithm):
     pass

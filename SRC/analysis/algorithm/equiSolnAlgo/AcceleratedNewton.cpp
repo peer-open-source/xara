@@ -43,54 +43,31 @@
 
 #include <fstream>
 
-// Constructor
-AcceleratedNewton::AcceleratedNewton(int theTangentToUse)
-  :EquiSolnAlgo(EquiALGORITHM_TAGS_AcceleratedNewton),
-   theTest(0), tangent(theTangentToUse),
-   theAccelerator(0), vAccel(0), 
-   numFactorizations(0), numIterations(0)
-//   totalTimer(), totalTimeReal(0.0), totalTimeCPU(0.0),
-//   solveTimer(), solveTimeReal(0.0), solveTimeCPU(0.0),
-//   accelTimer(), accelTimeReal(0.0), accelTimeCPU(0.0)
-{
 
-}
 
-AcceleratedNewton::AcceleratedNewton(ConvergenceTest &theT,
-                                     Accelerator *theAccel,
-                                     int theTangentToUse)
-  :EquiSolnAlgo(EquiALGORITHM_TAGS_AcceleratedNewton),
-   theTest(&theT), tangent(theTangentToUse),
-   theAccelerator(theAccel), vAccel(0), 
-   numFactorizations(0), numIterations(0)
-//   totalTimer(), totalTimeReal(0.0), totalTimeCPU(0.0),
-//   solveTimer(), solveTimeReal(0.0), solveTimeCPU(0.0),
-//   accelTimer(), accelTimeReal(0.0), accelTimeCPU(0.0)
+AcceleratedNewton::AcceleratedNewton(Accelerator *theAccel,
+                                     int incr_tangent)
+  : EquiSolnAlgo(EquiALGORITHM_TAGS_AcceleratedNewton),
+    tangent(incr_tangent),
+    theAccelerator(theAccel), vAccel(0), 
+    numFactorizations(0), numIterations(0)
 {
  
 }
 
-// Destructor
+
 AcceleratedNewton::~AcceleratedNewton()
 {
-  if (theAccelerator != 0)
+  if (theAccelerator != nullptr)
     delete theAccelerator;
 
   if (vAccel != 0)
     delete vAccel;
-
-  //opserr << "AcceleratedNewton::~AcceleratedNewton " << numFactorizations << endln;
 }
 
-int
-AcceleratedNewton::setConvergenceTest(ConvergenceTest *newTest)
-{
-  theTest = newTest;
-  return 0;
-}
 
 int 
-AcceleratedNewton::solveCurrentStep(void)
+AcceleratedNewton::solveCurrentStep()
 {
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
@@ -103,12 +80,12 @@ AcceleratedNewton::solveCurrentStep(void)
     return -5;
   }        
 
-  if (theAccelerator != 0)
+  if (theAccelerator != nullptr)
     theAccelerator->newStep(*theSOE);
 
   int numEqns = theSOE->getNumEqn();
 
-  if (vAccel == 0)
+  if (vAccel == nullptr)
     vAccel = new Vector(numEqns);
 
   if (vAccel->Size() != numEqns) {
@@ -116,19 +93,12 @@ AcceleratedNewton::solveCurrentStep(void)
     vAccel = new Vector(numEqns);
   }
 
-  if (vAccel == 0) {
-    opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-    opserr << " could not allocate correction vector vAccel\n";
-    return -6;
-  }
-
-  //totalTimer.start();
-
+  //
+  // 1. Form unbalance
+  //
   // Evaluate system residual R(y_0)
   if (theIntegrator->formUnbalance() < 0) {
-    opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-    opserr << "the Integrator failed in formUnbalance()\n";        
-    return -2;
+    return SolutionAlgorithm::BadFormResidual;
   }
 
   // Evaluate system Jacobian J = R'(y)|y_0
@@ -137,105 +107,83 @@ AcceleratedNewton::solveCurrentStep(void)
     opserr << "the Integrator failed in formTangent()\n";
     return -1;
   }
-  
   // Count factorization of the first tangent
   numFactorizations++;
   
   // set itself as the ConvergenceTest objects EquiSolnAlgo
   theTest->setEquiSolnAlgo(*this);
   if (theTest->start() < 0) {
-    opserr << "AcceleratedNewton::solveCurrentStep() - ";
-    opserr << "the ConvergenceTest object failed in start()\n";
-    return -3;
+    return SolutionAlgorithm::BadTestStart;
   }
   
   // Loop counter
   int k = 1;
 
-  int result = -1;
+  int result = ConvergenceTest::Continue;
+
+  numIterations = 0;
 
   do {
 
-    //solveTimer.start();
     // Solve for displacement increment
-    if (theSOE->solve() < 0) {
-      opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-      opserr << "the LinearSysOfEqn failed in solve()\n";        
-      return -3;
-    }
-//    solveTimer.pause();
-//    solveTimeReal += solveTimer.getReal();
-//    solveTimeCPU  += solveTimer.getCPU();
+    if (theSOE->solve() < 0) 
+      return SolutionAlgorithm::BadLinearSolve;
 
     // Get the modified Newton increment
     *vAccel = theSOE->getX();
 
     // Accelerate the displacement increment
-    if (theAccelerator != 0) {
-
-//      accelTimer.start();
+    if (theAccelerator != nullptr) {
       if (theAccelerator->accelerate(*vAccel, *theSOE, *theIntegrator) < 0) {
         opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
         opserr << "the Accelerator failed in accelerate()\n";
         return -1;
       }
-//      accelTimer.pause();
-//      accelTimeReal += accelTimer.getReal();
-//      accelTimeCPU  += accelTimer.getCPU();
     }
 
     // Update system with accelerated displacement increment v_{k+1}
     if (theIntegrator->update(*vAccel) < 0) {
       opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-      opserr << "the Integrator failed in update()\n";        
+      opserr << "the Integrator failed in update()\n";
       return -4;
     }        
 
     // Evaluate residual
-    if (theIntegrator->formUnbalance() < 0) {
-      opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-      opserr << "the Integrator failed in formUnbalance()\n";        
-      return -2;
-    }
+    if (theIntegrator->formUnbalance() < 0) 
+      return SolutionAlgorithm::BadFormResidual;
 
     numIterations++;
 
     // Check convergence criteria
     result = theTest->test();
 
-    if (result == -1) {
+    if (result == ConvergenceTest::Continue) {
       // Let the accelerator update the tangent if needed
-      if (theAccelerator != 0) {
-        int ret = theAccelerator->updateTangent(*theIntegrator);
+      if (theAccelerator != nullptr) {
+        bool did_update = false;
+        int ret = theAccelerator->updateTangent(*theIntegrator, did_update);
         if (ret < 0) {
           opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
           opserr << "the Accelerator failed in updateTangent()\n";
           return -1;
         }
-        if (ret > 0)
+        if (did_update)
           numFactorizations++;
       }
     }
     this->record(k++);
 
-  }  while (result == ConvergenceTest::Continue);
+  } while (result == ConvergenceTest::Continue);
  
-  if (result == ConvergenceTest::Failure) {
-    // opserr << "AcceleratedNewton::solveCurrentStep() - ";
-    // opserr << "The ConvergenceTest object failed in test()\n";
-    return -3;
-  }
+
+  if (result == ConvergenceTest::Failure) 
+    return SolutionAlgorithm::TestFailed;
   
   // note - if positive result we are returning what the convergence
   // test returned which should be the number of iterations
   return result;
 }
 
-ConvergenceTest *
-AcceleratedNewton::getTest(void)
-{
-  return theTest;
-}
 
 int
 AcceleratedNewton::sendSelf(int cTag, Channel &theChannel)

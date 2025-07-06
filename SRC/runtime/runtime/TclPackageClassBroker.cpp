@@ -400,12 +400,8 @@ using namespace OpenSees::Hash::literals;
 #include "NewtonRaphson.h"
 #include "Broyden.h"
 #include "NewtonLineSearch.h"
-#include "KrylovNewton.h"
-#include "AcceleratedNewton.h"
 #include "ModifiedNewton.h"
 
-#include "accelerator/KrylovAccelerator.h"
-#include "accelerator/RaphsonAccelerator.h"
 
 #include "BisectionLineSearch.h"
 #include "InitialInterpolatedLineSearch.h"
@@ -1737,12 +1733,6 @@ TclPackageClassBroker::getNewEquiSolnAlgo(int classTag)
   case EquiALGORITHM_TAGS_NewtonLineSearch:
     return new NewtonLineSearch();
 
-  case EquiALGORITHM_TAGS_KrylovNewton:
-    return new KrylovNewton();
-
-  case EquiALGORITHM_TAGS_AcceleratedNewton:
-    return new AcceleratedNewton();
-
   case EquiALGORITHM_TAGS_ModifiedNewton:
     return new ModifiedNewton(CURRENT_TANGENT);
 
@@ -1761,12 +1751,6 @@ Accelerator *
 TclPackageClassBroker::getAccelerator(int classTag)
 {
   switch (classTag) {
-
-  case ACCELERATOR_TAGS_Krylov:
-    return new KrylovAccelerator;
-  case ACCELERATOR_TAGS_Raphson:
-    return new RaphsonAccelerator;
-
   default:
     opserr << "TclPackageClassBroker::getAccelerator - ";
     opserr << " - no EquiSolnAlgo type exists for class tag ";

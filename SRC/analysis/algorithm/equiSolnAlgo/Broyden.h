@@ -47,52 +47,36 @@ class Broyden: public EquiSolnAlgo
 {
   public:
 
-    Broyden(int tangent = CURRENT_TANGENT, int n = 10 );    
-    Broyden(ConvergenceTest &theTest, int tangent = CURRENT_TANGENT, int n = 10 );
+    Broyden(int tangent = CURRENT_TANGENT, int n = 10 );
 
     ~Broyden();
 
-    int solveCurrentStep(void);    
-
-    void setLinks(AnalysisModel &theModel, 
-                  IncrementalIntegrator &theIntegrator,
-                  LinearSOE &theSOE,
-                  ConvergenceTest *theTest);
-
-    int setConvergenceTest(ConvergenceTest *theNewTest);
-    ConvergenceTest *getConvergenceTest(void);     
+    int solveCurrentStep() final;
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-                         FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &) final;
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
 
     void Print(OPS_Stream &, int flag) final;    
     
   protected:
     
   private:
-    int tangent ;
+    void BroydenUpdate( IncrementalIntegrator *theIntegrator,
+                        LinearSOE *theSOE,
+                        Vector &du, 
+                        int count ) ;  
 
-    int numberLoops ; //number of Broyden iterations
+    IncrementalIntegrator::TangentFlagType tangent;
+    int numberLoops ; // number of Broyden iterations
 
-    Vector **s ;  //displacement increments
-
-    Vector **z ;  
-
+    Vector **s ;  // displacement increments
+    Vector **z ;
     Vector *residOld ;  //residuals
     Vector *residNew ;
 
     Vector *du ; //displacement increment
 
     Vector *temp ; //temporary vector
-
-    void BroydenUpdate( IncrementalIntegrator *theIntegrator,
-                        LinearSOE *theSOE,
-                        Vector &du, 
-                        int count ) ;
-
-    ConvergenceTest *localTest;
-  
 };
 
 #endif

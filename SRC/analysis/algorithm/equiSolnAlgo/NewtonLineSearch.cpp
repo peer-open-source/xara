@@ -37,44 +37,28 @@
 
 
 
-NewtonLineSearch::NewtonLineSearch( )
+NewtonLineSearch::NewtonLineSearch()
 :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonLineSearch),
- theTest(0), theOtherTest(0), theLineSearch(0)
+ theLineSearch(0)
 {
 
 }
 
 
 
-NewtonLineSearch::NewtonLineSearch( ConvergenceTest &theT, 
-                                   LineSearch *theSearch) 
+NewtonLineSearch::NewtonLineSearch(LineSearch *theSearch) 
 :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonLineSearch),
- theTest(&theT), theLineSearch(theSearch)
+ theLineSearch(theSearch)
 {
-  theOtherTest = theTest->getCopy(10);
-  theOtherTest->setEquiSolnAlgo(*this);
+
 }
 
 
 
 NewtonLineSearch::~NewtonLineSearch()
 {
-  if (theOtherTest != 0)
-    delete theOtherTest;
-
-  if (theLineSearch != 0)
+  if (theLineSearch != nullptr)
     delete theLineSearch;
-}
-
-int
-NewtonLineSearch::setConvergenceTest(ConvergenceTest *newTest)
-{
-    theTest = newTest;
-    if (theOtherTest != 0)
-      delete theOtherTest;
-    theOtherTest = theTest->getCopy(10);
-    theOtherTest->setEquiSolnAlgo(*this);
-    return 0;
 }
 
 
@@ -88,10 +72,10 @@ NewtonLineSearch::solveCurrentStep()
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
   if ((theAnaModel == 0) || (theIntegrator == 0) || (theSOE == 0)
-      || (theTest == 0)){
-      opserr << "WARNING NewtonLineSearch::solveCurrentStep() - setLinks() has";
-      opserr << " not been called - or no ConvergenceTest has been set\n";
-      return -5;
+    || (theTest == 0)){
+    opserr << "WARNING NewtonLineSearch::solveCurrentStep() - setLinks() has";
+    opserr << " not been called - or no ConvergenceTest has been set\n";
+    return -5;
   }        
 
   theLineSearch->newStep(*theSOE);
@@ -100,9 +84,13 @@ NewtonLineSearch::solveCurrentStep()
   theTest->setEquiSolnAlgo(*this);
   if (theTest->start() < 0) {
     opserr << "NewtonLineSearch::solveCurrentStep() -";
-    opserr << "the ConvergenceTest object failed in start()\n";
+    opserr << "the ConvergenceTest failed in start()\n";
     return -3;
   }
+
+  ConvergenceTest *theOtherTest = nullptr;
+  theOtherTest = theTest->getCopy(10);
+  theOtherTest->setEquiSolnAlgo(*this);
 
   if (theIntegrator->formUnbalance() < 0) 
     return SolutionAlgorithm::BadFormResidual;
@@ -126,7 +114,7 @@ NewtonLineSearch::solveCurrentStep()
       const Vector &dx0 = theSOE->getX() ;
 
       // initial value of s
-      double s0 = - (dx0 ^ Resid0) ; 
+      double s0 = - (dx0 ^ Resid0); 
 
       if (theIntegrator->update(theSOE->getX()) < 0)     
         return SolutionAlgorithm::BadStepUpdate;
@@ -146,12 +134,12 @@ NewtonLineSearch::solveCurrentStep()
         // new value of s 
         double s = - ( dx0 ^ Resid ) ;
         
-        if (theLineSearch != 0)
+        if (theLineSearch != nullptr)
           theLineSearch->search(s0, s, *theSOE, *theIntegrator);
       }
 
       this->record(0);
-        
+
       result = theTest->test();
 
   }  while (result == ConvergenceTest::Continue);
@@ -163,12 +151,6 @@ NewtonLineSearch::solveCurrentStep()
   // note - if positive result we are returning what the convergence test returned
   // which should be the number of iterations
   return result;
-}
-
-ConvergenceTest *
-NewtonLineSearch::getConvergenceTest()
-{
-  return theTest;
 }
 
 
@@ -215,8 +197,8 @@ NewtonLineSearch::recvSelf(int cTag,
   }
 
   if (theLineSearch->recvSelf(cTag, theChannel, theBroker) < 0) {
-      opserr << "NewtonLineSearch::recvSelf(int cTag, Channel &theChannel) - failed to recv the LineSerach object\n";
-      return -1;
+    opserr << "NewtonLineSearch::recvSelf(int cTag, Channel &theChannel) - failed to recv the LineSerach object\n";
+    return -1;
   }
 
   return 0;

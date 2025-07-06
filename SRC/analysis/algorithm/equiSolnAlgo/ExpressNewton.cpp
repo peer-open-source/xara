@@ -74,7 +74,7 @@ OPS_ADD_RUNTIME_VPV(OPS_ExpressNewton)
     }
   }
     
-    return new ExpressNewton(nIter,kMultiplier,formTangent,factorOnce);
+  return new ExpressNewton(nIter,kMultiplier,formTangent,factorOnce);
 }
 
 // Constructor
@@ -98,60 +98,55 @@ ExpressNewton::~ExpressNewton()
 }
 
 int 
-ExpressNewton::solveCurrentStep(void)
+ExpressNewton::solveCurrentStep()
 {
-    // set up some pointers and check they are valid
-    // NOTE this could be taken away if we set Ptrs as protecetd in superclass
+  // set up some pointers and check they are valid
+  // NOTE this could be taken away if we set Ptrs as protecetd in superclass
 
-    AnalysisModel *theAnalysisModel = this->getAnalysisModelPtr(); 
-    LinearSOE  *theSOE = this->getLinearSOEptr();
-    IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
+  AnalysisModel *theAnalysisModel = this->getAnalysisModelPtr(); 
+  LinearSOE  *theSOE = this->getLinearSOEptr();
+  IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
 
-    if ((theAnalysisModel == 0) || (theIntegrator ==0 ) || (theSOE == 0)){
-        opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-        opserr << "setLinks() has not been called.\n";
-        return -5;
+  if ((theAnalysisModel == 0) || (theIntegrator ==0 ) || (theSOE == 0)){
+      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
+      opserr << "setLinks() has not been called.\n";
+      return -5;
+  }
+
+  if (factorOnce != 2) {
+    if (theIntegrator->formTangent(HALL_TANGENT, kMultiplier1, kMultiplier2) < 0) {
+      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
+      opserr << "the Integrator failed in formTangent()\n";
+      return -1;
     }
+    if (factorOnce == 1)
+      factorOnce = 2;
+  }
 
-        if (factorOnce != 2) {
-                if (theIntegrator->formTangent(HALL_TANGENT, kMultiplier1, kMultiplier2) < 0) {
-                  opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-                  opserr << "the Integrator failed in formTangent()\n";
-                  return -1;
-                }
-                if (factorOnce == 1)
-                        factorOnce = 2;
-    }
+  for (int iter = 0; iter <nIter; ++iter)
+  {
+  if (theIntegrator->formUnbalance() < 0) {
+      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
+      opserr << "the Integrator failed in formUnbalance()\n";        
+      return -2;
+  }
 
-    for (int iter = 0; iter <nIter; ++iter)
-    {
-    if (theIntegrator->formUnbalance() < 0) {
-        opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-        opserr << "the Integrator failed in formUnbalance()\n";        
-        return -2;
-    }
+  if (theSOE->solve() < 0) {
+      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
+      opserr << "the LinearSOE failed in solve()\n";        
+      return -3;
+  }
 
-    if (theSOE->solve() < 0) {
-        opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-        opserr << "the LinearSOE failed in solve()\n";        
-        return -3;
-    }
+  if (theIntegrator->update(theSOE->getX()) < 0) {
+      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
+      opserr << "the Integrator failed in update()\n";        
+      return -4;
+  }
+  }
 
-    if (theIntegrator->update(theSOE->getX()) < 0) {
-        opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-        opserr << "the Integrator failed in update()\n";        
-        return -4;
-    }
-    }
-
-    return 0;
-}
-
-int
-ExpressNewton::setConvergenceTest(ConvergenceTest *theNewTest)
-{
   return 0;
 }
+
 
 int
 ExpressNewton::sendSelf(int cTag, Channel &theChannel)
@@ -162,8 +157,6 @@ ExpressNewton::sendSelf(int cTag, Channel &theChannel)
   data(1) = kMultiplier2;
   data(2) = factorOnce;
   return theChannel.sendVector(this->getDbTag(), cTag, data);
-
-
 }
 
 int
@@ -182,5 +175,5 @@ ExpressNewton::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBrok
 void
 ExpressNewton::Print(OPS_Stream &s, int flag)
 {
-    s << "\t ExpressNewton algorithm";
+  s << "\t ExpressNewton algorithm";
 }

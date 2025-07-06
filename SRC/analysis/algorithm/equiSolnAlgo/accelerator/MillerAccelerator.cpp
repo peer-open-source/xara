@@ -143,7 +143,7 @@ MillerAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-MillerAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
+MillerAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
   /*
   if (dimension >= maxDimension) {
@@ -160,7 +160,7 @@ MillerAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
   else
     return 0;
   */
-
+  factored = false;
   if (dimension < maxDimension)
     return 0;
 
@@ -168,13 +168,13 @@ MillerAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
   case CURRENT_TANGENT:
     iteration = 1;
     dimension = 0;
-    theIntegrator.formTangent(CURRENT_TANGENT);
-    return 1;
+    factored = true;
+    return theIntegrator.formTangent(CURRENT_TANGENT);
     break;
   case INITIAL_TANGENT:
     dimension = 0;
-    theIntegrator.formTangent(INITIAL_TANGENT);
-    return 0;
+    factored = false;
+    return theIntegrator.formTangent(INITIAL_TANGENT);
     break;
   case NO_TANGENT:
     dimension = 0;
@@ -183,6 +183,7 @@ MillerAccelerator::updateTangent(IncrementalIntegrator &theIntegrator)
   default:
     return 0;
   }
+  return 0;
 }
 
 bool
