@@ -44,7 +44,7 @@ class Node;
 
 namespace OpenSees {
 
-template <int nn>
+template <int nn, bool orthogonal>
 class CrisfieldIsometry : public AlignedIsometry<nn> {
 public:
   CrisfieldIsometry(const Vector3D& vecxz)
@@ -76,7 +76,7 @@ public:
         A(i,j) = (double(i==j) - e1[i]*e1[j])/Ln;
 
 
-    #if 0
+    #if 1
     auto de3 = this->getLMatrix(r3, r1, e1, A).transpose();
     #else
     auto de3 = this->getBasisVariation(r3, r1, e1, v, A);
@@ -129,9 +129,11 @@ public:
     }
 
     {
-      const Versor qI = VersorFromMatrix(RI);
-      const Versor qJ = VersorFromMatrix(RJ);
-      Vector3D gw = CayleyFromVersor(qJ.mult_conj(qI));
+      const Versor qI = Versor::from_matrix(RI);
+      const Versor qJ = Versor::from_matrix(RJ);
+      Versor qij = qJ.mult_conj(qI);
+      qij.normalize();
+      Vector3D gw = CayleyFromVersor(qij);
 
       gw *= 0.5;
 
@@ -151,7 +153,7 @@ public:
     //
 
     Matrix3D E;
-#if 1
+#if 0
     {
       constexpr double ktol = 50.0*std::numeric_limits<double>::epsilon();
       Vector3D r1 { Rbar(0,0), Rbar(1,0), Rbar(2,0) };

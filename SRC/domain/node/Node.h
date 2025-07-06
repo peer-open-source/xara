@@ -45,7 +45,10 @@
 
 class Vector;
 class Matrix;
+namespace OpenSees {
 struct Versor;
+}
+using OpenSees::Versor;
 class Channel;
 class DOF_Group;
 class NodalThermalAction; //L.Jiang [ SIF ]
