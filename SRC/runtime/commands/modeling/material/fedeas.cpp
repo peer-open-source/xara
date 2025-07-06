@@ -596,6 +596,7 @@ TclCommand_newFedeasSteel(ClientData clientData, Tcl_Interp *interp,
 {
 
   if (strcmp(argv[1], "Steel01") == 0 ||
+      strcmp(argv[1], "Steel01Thermal") == 0 ||
       strcmp(argv[1], "Steel1") == 0) {
 
     // uniaxialMaterial Steel01 tag? fy? E? b? <a1? a2? a3? a4?>
