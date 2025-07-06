@@ -750,25 +750,25 @@ Node::getUnbalancedLoad()
 const Vector &
 Node::getUnbalancedLoadIncInertia()
 {
-    // make sure it was created before we return it
-    if (unbalLoadWithInertia == nullptr) {
-      unbalLoadWithInertia = new Vector(this->getUnbalancedLoad());
+  // make sure it was created before we return it
+  if (unbalLoadWithInertia == nullptr) {
+    unbalLoadWithInertia = new Vector(this->getUnbalancedLoad());
 
-    } else
-      (*unbalLoadWithInertia) = this->getUnbalancedLoad();
+  } else
+    (*unbalLoadWithInertia) = this->getUnbalancedLoad();
 
-    if (mass != nullptr) {
+  if (mass != nullptr) {
 
-      const Vector &theAccel = this->getTrialAccel(); // in case accel not created
-      unbalLoadWithInertia->addMatrixVector(1.0, *mass, theAccel, -1.0);
+    const Vector &theAccel = this->getTrialAccel(); // in case accel not created
+    unbalLoadWithInertia->addMatrixVector(1.0, *mass, theAccel, -1.0);
 
-      if (alphaM != 0.0) {
-      const Vector &theVel = this->getTrialVel(); // in case vel not created
-      unbalLoadWithInertia->addMatrixVector(1.0, *mass, theVel, -alphaM);
-      }
+    if (alphaM != 0.0) {
+    const Vector &theVel = this->getTrialVel(); // in case vel not created
+    unbalLoadWithInertia->addMatrixVector(1.0, *mass, theVel, -alphaM);
     }
+  }
 
-    return *unbalLoadWithInertia;
+  return *unbalLoadWithInertia;
 }
 
 int

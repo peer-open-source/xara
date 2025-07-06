@@ -45,15 +45,13 @@
 
 class Vector;
 class Matrix;
-namespace OpenSees {
-struct Versor;
-}
-using OpenSees::Versor;
 class Channel;
 class DOF_Group;
 class NodalThermalAction; //L.Jiang [ SIF ]
 class Domain;
 class Element;
+namespace OpenSees {struct Versor;}
+using OpenSees::Versor;
 
 class Node :
 #if 0

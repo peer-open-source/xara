@@ -87,6 +87,17 @@ struct Versor {
                     - vector.cross(other.vector);
     return out;
   }
+
+
+  // Unary plus
+  Versor operator+() const {
+    return *this;
+  }
+
+  // Unary minus.
+  Versor operator-() const {
+    return {{-vector[0], -vector[1], -vector[2]}, -scalar};
+  }
 };
 
 static_assert(std::is_trivially_copyable<Versor>::value, "Versor must be trivially copyable");
@@ -124,7 +135,7 @@ Versor::from_matrix(const Matrix3D &R)
         int j = (i+1)%3;
         int k = (i+2)%3;
 
-        q.vector[i] = std::sqrt(a*0.5 + (1.0 - trR)/4.0);
+        q.vector[i] = std::sqrt(std::max(a*0.5 + (1.0 - trR)/4.0, 0.0));
         q.scalar    = (R(k,j) - R(j,k))/(4.0*q.vector[i]);
         q.vector[j] = (R(j,i) + R(i,j))/(4.0*q.vector[i]);
         q.vector[k] = (R(k,i) + R(i,k))/(4.0*q.vector[i]);
@@ -147,7 +158,7 @@ Versor::from_vector(const Vec3T  &theta)
   double sc, cs;
   if (angle2 < 1e-12) {
     sc = 0.5 - angle2 / 48.0; // + angle2*angle2 / 3840.0 - angle2*angle2*angle2 / 362880.0;
-    cs = 1.0 - angle2 / 8.0; // + angle2*angle2 / 384.0 - angle2*angle2*angle2 / 40320.0;
+    cs = 1.0 - angle2 /  8.0; // + angle2*angle2 / 384.0 - angle2*angle2*angle2 / 40320.0;
   }
   else {
     sc = std::sin(angle*0.5) / angle;
@@ -156,6 +167,7 @@ Versor::from_vector(const Vec3T  &theta)
 
   for (int i = 0; i < 3; i++)
     q.vector[i] = theta[i] * sc;
+
   q.scalar = cs;
   return q;
 }

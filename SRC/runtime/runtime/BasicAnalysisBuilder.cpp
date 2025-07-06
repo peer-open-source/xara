@@ -848,11 +848,11 @@ BasicAnalysisBuilder::setTransientAnalysis()
 int
 BasicAnalysisBuilder::newTransientAnalysis()
 {
-    assert(theDomain != nullptr);
+  assert(theDomain != nullptr);
 
-    this->fillDefaults(TRANSIENT_ANALYSIS);
+  this->fillDefaults(TRANSIENT_ANALYSIS);
 
-    return 1;
+  return 1;
 }
 
 
@@ -864,7 +864,6 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
   if (theHandler == nullptr)
     theHandler = new TransformationConstraintHandler();
 
-  // this->CurrentAnalysisFlag = TRANSIENT_ANALYSIS;
   if (this->CurrentAnalysisFlag == EMPTY_ANALYSIS)
     this->CurrentAnalysisFlag = TRANSIENT_ANALYSIS;
 
@@ -1003,8 +1002,8 @@ BasicAnalysisBuilder::eigen(int numMode, bool generalized, bool findSmallest)
   // Solve for the eigen values & vectors
   //
   if (theEigenSOE->solve(numMode, generalized, findSmallest) < 0) {
-      opserr << G3_WARN_PROMPT << "EigenSOE failed in solve()\n";
-      return -4;
+    opserr << G3_WARN_PROMPT << "EigenSOE failed in solve()\n";
+    return -4;
   }
 
   //
