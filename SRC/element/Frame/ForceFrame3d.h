@@ -113,19 +113,6 @@ class ForceFrame3d: public BasicFrame3d,
 
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 
-  static constexpr std::array<int, NDF*2> make_iq() {
-    if constexpr (nwm) {
-      return {
-        inx, iny, inz, imx, imy, imz, iwx,
-        jnx, jny, jnz, jmx, jmy, jmz, jwx
-      };
-    } else {
-      return {
-        inx, iny, inz, imx, imy, imz,
-        jnx, jny, jnz, jmx, jmy, jmz
-      };
-    }
-  }
 
   static constexpr FrameStressLayout scheme = {
     FrameStress::N,
@@ -156,6 +143,19 @@ class ForceFrame3d: public BasicFrame3d,
   };
 
 
+  static constexpr std::array<int, NDF*2> make_iq() {
+    if constexpr (nwm) {
+      return {
+        inx, iny, inz, imx, imy, imz, iwx,
+        jnx, jny, jnz, jmx, jmy, jmz, jwx
+      };
+    } else {
+      return {
+        inx, iny, inz, imx, imy, imz,
+        jnx, jny, jnz, jmx, jmy, jmz
+      };
+    }
+  }
   static constexpr auto iq = make_iq();
 
   enum Respond: int {

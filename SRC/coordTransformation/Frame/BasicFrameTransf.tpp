@@ -195,17 +195,23 @@ template<int ndf>
 const Matrix &
 BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_pres)
 {
+  static constexpr int nwm = ndf - 6; // Number of warping DOFs
 
   VectorND<NDF*2> pl{};
-  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
-  pl[0*NDF+3]  = -q_pres[jmx];      // Ti
   pl[0*NDF+4]  =  q_pres[imy];
   pl[0*NDF+5]  =  q_pres[imz];
   pl[1*NDF+0]  =  q_pres[jnx];      // Nj
   pl[1*NDF+3]  =  q_pres[jmx];      // Tj
   pl[1*NDF+4]  =  q_pres[jmy];
   pl[1*NDF+5]  =  q_pres[jmz];
-  
+  for (int i=0; i<nwm; i++) {
+    // TODO
+    pl[0*NDF+6+i] = -q_pres[6+i];
+    pl[1*NDF+6+i] =  q_pres[6+i];
+  }
+  //
+  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
+  pl[0*NDF+3]  = -q_pres[jmx];      // Ti
 
   static MatrixND<2*NDF,2*NDF> kl;
   kl.zero();
@@ -214,7 +220,6 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
     int ii = std::abs(iq[i]);
     if (ii >= NBV)
       continue;
-
     for (int j=0; j<NDF*2; j++) {
       int jj = std::abs(iq[j]);
       if (jj >= NBV)
@@ -225,9 +230,10 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
   }
 
   for (int i = 0; i < 2*NDF; i++) {
-    kl(0*NDF+0, i) = kl(i, 0*NDF+0) = i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
-    kl(0*NDF+3, i) = kl(i, 0*NDF+3) = i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
+    kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
+    kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   }
+
 #if 0
   static MatrixND<2*NDF,2*NDF> Kg;
   static Matrix Wrapper(Kg);
