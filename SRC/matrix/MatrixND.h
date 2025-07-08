@@ -41,38 +41,37 @@
 #include "Vector.h"
 #include "routines/SY3.h"
 
-#if __cplusplus < 202000L
-#  define consteval
-#  define requires(X)
-#endif
 
 #define G23_STACK_MAX 10
 
 namespace OpenSees {
 
 template <index_t NR, index_t NC, typename T=double>
-requires(NR > 0 && NC > 0)
-struct MatrixND {
+struct alignas(64) MatrixND {
   double values[NC][NR];
+  // std::array<T, NR*NC> values;
 
-  // MatrixND<NR, NC, T>(const MatrixND<NR, NC, T>&) = default;
 
   // Convert to regular Matrix class
-  operator Matrix() { return Matrix(&values[0][0], NR, NC);}
+  operator Matrix() { return Matrix(&(*this)(0,0), NR, NC);}
 
-  operator const Matrix() const { return Matrix(&values[0][0], NR, NC);}
+  operator const Matrix() const { return Matrix(&(*this)(0,0), NR, NC);}
 
-  int symeig(VectorND<NR>& vals) requires(NR == NC == 3) {
+  int
+  symeig(VectorND<NR>& vals)
+  {
+    static_assert(NR == 3 && NC == 3);
     double work[3][3];
     cmx_eigSY3(values, work, vals.values);
     return 0;
   }
 
-  consteval void zero();
+  constexpr void zero() noexcept;
+  constexpr double determinant() const ;
 
   constexpr MatrixND<NC, NR> transpose() const;
 
-  MatrixND<NR,NC,T>& addDiagonal(const double vol) requires(NR == NC);
+  MatrixND<NR,NC,T>& addDiagonal(const double vol) ;
 
   template <class MatT>
     void addMatrix(const MatT& A, const double scale);
@@ -111,13 +110,12 @@ struct MatrixND {
   template<class VecT> MatrixND<NR,NC,T>& addSpin(const VecT& V, double scale);
   template<class VecT> MatrixND<NR,NC,T>& addSpinSquare(const VecT& V, double scale);
   template<class VecT> void addSpinProduct(const VecT& a, const VectorND<NR,T>& b, double scale);
-  template<class VecT> void addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, double scale);
-  template<class MatT> void addSpinMatrixProduct(const VectorND<NR,T>& a, const MatT& B, double scale);
+  template<class VecT> inline constexpr void 
+    addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, double scale) noexcept;
+  template<class MatT> inline constexpr void 
+    addSpinMatrixProduct(const VectorND<NR,T>& a, const MatT& B, double scale) noexcept;
 
   int invert(MatrixND<NR, NC, T> &) const;
-  int invert() {
-    return Matrix(*this).Invert();
-  }
 
 #if 0
 //template<class VecT>
@@ -135,32 +133,23 @@ struct MatrixND {
   //
   // Indexing
   //
-  constexpr std::array<T, NC> &
-  operator[](index_t index) 
-  {
-    return values[index];
-  }
-
-  constexpr const std::array<T, NC> &
-  operator[](index_t index) const 
-  {
-    return values[index];
-  }
-  
   // (i,j) indexing
   constexpr T &
-  operator()(index_t index_r, index_t index_c) {
+  operator()(index_t index_r, index_t index_c) noexcept {
     assert(index_r >= 0 && index_c >= 0);
     assert(index_r < NR && index_c < NC);
     return values[index_c][index_r];
   }
 
   inline constexpr const T & 
-  operator()(index_t index_r, index_t index_c) const {
+  operator()(index_t index_r, index_t index_c) const noexcept {
     assert(index_r >= 0 && index_c >= 0);
     assert(index_r < NR && index_c < NC);
     return values[index_c][index_r];
   }
+  // constexpr       T& operator()(int i, int j)       noexcept { return values[j*NR + i]; }
+  // constexpr const T& operator()(int i, int j) const noexcept { return values[j*NR + i]; }
+
 
 
   constexpr MatrixND &
@@ -168,7 +157,7 @@ struct MatrixND {
   {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
-        values[j][i] = other(i,j);
+        (*this)(i,j) = other(i,j);
       }
     }
     return *this;
@@ -178,7 +167,7 @@ struct MatrixND {
   operator+=(const double value) {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
-        values[j][i] += value;
+        (*this)(i,j) += value;
       }
     }
     return *this;
@@ -188,7 +177,7 @@ struct MatrixND {
   operator+=(const MatrixND &other) {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
-        values[j][i] += other.values[j][i];
+        (*this)(i,j) += other(i,j);
       }
     }
     return *this;
@@ -199,7 +188,7 @@ struct MatrixND {
   {
     for (index_t j = 0; j < NC; ++j)
       for (index_t i = 0; i < NR; ++i)
-        values[j][i] -= other.values[j][i];
+        (*this)(i,j) -= other(i,j);
 
     return *this;
   }
@@ -209,7 +198,7 @@ struct MatrixND {
   {
     for (index_t j = 0; j < NC; ++j)
       for (index_t i = 0; i < NR; ++i)
-        values[j][i] *= scalar;
+        (*this)(i,j) *= scalar;
 
     return *this;
   }
@@ -219,7 +208,7 @@ struct MatrixND {
   {
     for (index_t j = 0; j < NC; ++j)
       for (index_t i = 0; i < NR; ++i)
-        values[j][i] /= scalar;
+        (*this)(i,j) /= scalar;
 
     return *this;
   }
@@ -229,7 +218,7 @@ struct MatrixND {
   {
       VectorND<NC> result;
 
-      const double *dataPtr = &values[0][0];
+      const double *dataPtr = &(*this)(0,0);
       for (int i=0; i<NC; i++) {
         result[i] = 0.0;
         for (int j=0; j<NR; j++)
@@ -245,19 +234,21 @@ struct MatrixND {
 
   constexpr T
   trace() const
-  requires(NR == NC) 
   {
+    static_assert(NR == NC);
     T sum = 0.0;
     for (index_t i = 0; i < NR; ++i) {
-      sum += values[i][i];
+      sum += (*this)(i,i);
     }
     return sum;
   }
 
 
   int solve(const VectorND<NR> &V, VectorND<NR> &res) const
-    requires(NR == NC)
   {
+    static_assert(NR == NC);
+
+
     MatrixND<NR,NC> work = *this;
     int pivot_ind[NR];
     int nrhs = 1;
@@ -265,34 +256,34 @@ struct MatrixND {
     int nc = NC;
     int info = 0;
     res = V; // X will be overwritten with the solution
-    DGESV(&nr, &nrhs, &work.values[0][0], &nr, pivot_ind, res.values, &nc, &info);
+    DGESV(&nr, &nrhs, &work(0,0), &nr, pivot_ind, res.values, &nc, &info);
     return -abs(info);
   }
 
 
   template<index_t n>
-  // requires (NR == NC) && (n == NR) && (n > 0)
   int solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const
   {
-      static_assert(n == NR, "RHS row-count must match A.");
+    static_assert(NR == NC, "Matrix must be square.");
+    static_assert(n == NR, "RHS row-count must match A.");
 
-      MatrixND<NR,NC,T> work = *this;               // copy of A to be factorised
-      int ipiv[NR]{};
+    MatrixND<NR,NC,T> work = *this;               // copy of A to be factorised
+    int ipiv[NR]{};
 
-      int n_eq  = NR;               // order of the system
-      int nrhs  = n;                // number of RHS columns
-      int lda   = NR;               // leading dim of A
-      int ldb   = NR;               // leading dim of X
-      int info  = 0;
+    int n_eq  = NR;               // order of the system
+    int nrhs  = n;                // number of RHS columns
+    int lda   = NR;               // leading dim of A
+    int ldb   = NR;               // leading dim of X
+    int info  = 0;
 
-      X = M;                               // copy RHS, DGESV overwrites
-      DGESV(&n_eq, &nrhs,
-            work.values[0], &lda,
-            &ipiv[0],
-            X.values[0], &ldb,
-            &info);
+    X = M;                               // copy RHS, DGESV overwrites
+    DGESV(&n_eq, &nrhs,
+          &work(0,0), &lda,
+          &ipiv[0],
+          &X(0,0), &ldb,
+          &info);
 
-      return -std::abs(info);
+    return -std::abs(info);
   }
 
   // int solve(const Vector &V, Vector &res) const
@@ -351,7 +342,8 @@ struct MatrixND {
     return m;
   }
 
-  template <int init_row, int init_col, int nr, int nc> inline void
+  template <int init_row, int init_col, int nr, int nc> 
+  inline constexpr void
   insert(const MatrixND<nr, nc, double> &M, double fact) 
   {
  
@@ -369,7 +361,8 @@ struct MatrixND {
     }
   }
 
-  template <int nr, int nc> inline void
+  template <int nr, int nc> 
+  inline constexpr void
   insert(const MatrixND<nr, nc, double> &M, int init_row, int init_col, double fact) 
   {
  
@@ -443,11 +436,9 @@ struct MatrixND {
   inline constexpr friend MatrixND<NR, J>
   operator*(const MatrixND<NR, NC> &left, const MatrixND<NC, J> &right) {
     MatrixND<NR, J> prod;
-#if 0
     if constexpr (NR*NC > 16)
       prod.addMatrixProduct(0, left, right, 1);
     else
-#endif
       for (index_t i = 0; i < NR; ++i) {
         for (index_t j = 0; j < J; ++j) {
           prod(i, j) = 0.0;
@@ -474,25 +465,7 @@ struct MatrixND {
     return prod;
   }
 
-  template <index_t K>
-  inline constexpr friend MatrixND<NC,K>
-  operator^(const MatrixND<NR, NC> &left, const MatrixND<NR, K> &right) {
-    MatrixND<NC, K> prod;
-    if constexpr (0 && NR*NC > 16)
-      prod.addMatrixTransposeProduct(0.0, left, right, 1.0);
-    else
-      for (index_t i = 0; i < NC; ++i) {
-        for (index_t j = 0; j < K; ++j) {
-          prod(i, j) = 0.0;
-          for (index_t k = 0; k < NR; ++k) {
-            prod(i, j) += left(k,i) * right(k,j);
-          }
-        }
-      }
-    return prod;
-  }
-
-
+  // Matrix*Vector
   constexpr friend  VectorND<NR>
   operator*(const MatrixND<NR, NC> &left, const VectorND<NC> &right) {
     VectorND<NR> prod;
@@ -513,6 +486,26 @@ struct MatrixND {
         for (index_t k = 0; k < NC; ++k) {
           prod[i] += left(i,k) * right(k);
         }
+    }
+    return prod;
+  }
+
+
+  template <index_t K>
+  inline constexpr friend MatrixND<NC,K>
+  operator^(const MatrixND<NR, NC> &left, const MatrixND<NR, K> &right) {
+    MatrixND<NC, K> prod;
+    if constexpr (NR*NC > 16)
+      prod.addMatrixTransposeProduct(0.0, left, right, 1.0);
+    else {
+      for (index_t i = 0; i < NC; ++i) {
+        for (index_t j = 0; j < K; ++j) {
+          prod(i, j) = 0.0;
+          for (index_t k = 0; k < NR; ++k) {
+            prod(i, j) += left(k,i) * right(k,j);
+          }
+        }
+      }
     }
     return prod;
   }
