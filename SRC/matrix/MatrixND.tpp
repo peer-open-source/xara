@@ -141,7 +141,6 @@ template <index_t nr, index_t nc, typename T> inline int
 MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 {
   static_assert(nr == nc, "Matrix must be square");
-  // static_assert(nr > 1 && nr < 7, "Matrix must be between 2x2 and 6x6");
 
   int status = -1;
   if constexpr (nr == 2) {
@@ -183,6 +182,7 @@ MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
         &M(0,0), 
         &n, 
         &info);
+
   if (info != 0)
     status = -std::abs(info);
   return status;

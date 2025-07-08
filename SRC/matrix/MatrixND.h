@@ -34,7 +34,6 @@
 #include <math.h>
 #include <assert.h>
 #include <array>
-#include <stdexcept>
 
 #include "VectorND.h"
 #include "Matrix.h"
