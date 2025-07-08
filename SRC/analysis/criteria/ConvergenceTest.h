@@ -57,7 +57,6 @@ class ConvergenceTest: public MovableObject
       //       print current iterations dx and du vectors (see commit 9cd8104)
     };
 
-    // constructors and destructor
     ConvergenceTest(int classTag);
     virtual ~ConvergenceTest();
 
