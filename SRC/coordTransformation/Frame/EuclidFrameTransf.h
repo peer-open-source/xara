@@ -48,7 +48,7 @@ public:
 
   ~EuclidFrameTransf();
 
-  using Operation = FrameTransform<nn,ndf>::Operation;
+  using Operation = typename FrameTransform<nn,ndf>::Operation;
 
   const char *getClassType() const {return "EuclidFrameTransf";}
   

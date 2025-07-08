@@ -60,7 +60,7 @@ public:
   VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final;
   MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl) final;
 #else
-  using Operation = FrameTransform<nn,ndf>::Operation;
+  using Operation = typename FrameTransform<nn,ndf>::Operation;
   int push(VectorND<nn*ndf>&pl, Operation) final;
   int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
 #endif 

@@ -957,7 +957,7 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   ALWAYS_STATIC Matrix Wrapper(Kg);
   Kg = basic_system->t.pushResponse(kl, pl);
 #else
-  using Operation = FrameTransform<2,NDF>::Operation;
+  using Operation = typename FrameTransform<2,NDF>::Operation;
   static Matrix Wrapper(kl);
   basic_system->t.push(kl, pl, Operation::Total);
 #endif

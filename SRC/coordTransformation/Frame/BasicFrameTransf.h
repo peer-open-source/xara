@@ -96,7 +96,7 @@ public:
   LinearFrameTransf<2,ndf> linear;
 
 private:
-  using Operation = FrameTransform<2,ndf>::Operation;
+  using Operation = typename FrameTransform<2,ndf>::Operation;
   constexpr static int NBV = 6;
   constexpr static int NDF = ndf;
   enum : int {

@@ -285,7 +285,6 @@ MatrixND<nr, nc, T>::addMatrixTransposeProduct(double thisFact,
 
   if (thisFact == 1.0) {
     double *aijPtr = &values[0][0];
-#pragma GCC unroll
     for (int j=0; j<nc; j++) {
       for (int i=0; i<nr; i++) {
         const double *bkiPtr  = &(&B(0,0))[i*nk];
