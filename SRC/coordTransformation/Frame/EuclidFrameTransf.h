@@ -133,7 +133,7 @@ private:
 
   std::array<Node*, nn> nodes;
   std::array<AxisAngle, nn> ur; // rotation vector
-  std::array<Vector3D, nn> ux; // displacement vector
+  // std::array<Vector3D,  nn> ux; // displacement vector
 
   std::array<Vector3D, nn> *offsets;
   int offset_flags;

@@ -69,9 +69,9 @@ struct alignas(64) MatrixND {
   constexpr void zero() noexcept;
   constexpr double determinant() const ;
 
-  constexpr MatrixND<NC, NR> transpose() const;
+  constexpr MatrixND<NC, NR> transpose() const noexcept;
 
-  MatrixND<NR,NC,T>& addDiagonal(const double vol) ;
+  constexpr MatrixND<NR,NC,T>& addDiagonal(const double vol) noexcept;
 
   template <class MatT>
     void addMatrix(const MatT& A, const double scale);
@@ -106,13 +106,13 @@ struct alignas(64) MatrixND {
   template <typename F> void map(F func) const;
   template <typename F> void map(F func, MatrixND<NR,NC,T>& destination);
 
-  template<class VecT> MatrixND<NR,NC,T>& addSpin(const VecT& V);
-  template<class VecT> MatrixND<NR,NC,T>& addSpin(const VecT& V, double scale);
-  template<class VecT> MatrixND<NR,NC,T>& addSpinSquare(const VecT& V, double scale);
-  template<class VecT> void addSpinProduct(const VecT& a, const VectorND<NR,T>& b, double scale);
-  template<class VecT> inline constexpr void 
+  template<class VecT> constexpr MatrixND<NR,NC,T>& addSpin(const VecT& V) noexcept;
+  template<class VecT> constexpr MatrixND<NR,NC,T>& addSpin(const VecT& V, double scale) noexcept;
+  template<class VecT> constexpr MatrixND<NR,NC,T>& addSpinSquare(const VecT& V, double scale) noexcept;
+  template<class VecT> constexpr void addSpinProduct(const VecT& a, const VectorND<NR,T>& b, double scale) noexcept;
+  template<class VecT> constexpr void 
     addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, double scale) noexcept;
-  template<class MatT> inline constexpr void 
+  template<class MatT> constexpr void 
     addSpinMatrixProduct(const VectorND<NR,T>& a, const MatT& B, double scale) noexcept;
 
   int invert(MatrixND<NR, NC, T> &) const;
@@ -153,7 +153,7 @@ struct alignas(64) MatrixND {
 
 
   constexpr MatrixND &
-  operator=(const Matrix &other)
+  operator=(const Matrix &other) noexcept
   {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
@@ -164,7 +164,7 @@ struct alignas(64) MatrixND {
   }
 
   constexpr MatrixND &
-  operator+=(const double value) {
+  operator+=(const double value) noexcept {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
         (*this)(i,j) += value;
@@ -174,7 +174,7 @@ struct alignas(64) MatrixND {
   }
 
   constexpr MatrixND &
-  operator+=(const MatrixND &other) {
+  operator+=(const MatrixND &other) noexcept {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
         (*this)(i,j) += other(i,j);
@@ -194,7 +194,7 @@ struct alignas(64) MatrixND {
   }
 
   inline constexpr MatrixND &
-  operator*=(T const scalar) 
+  operator*=(T const scalar) noexcept
   {
     for (index_t j = 0; j < NC; ++j)
       for (index_t i = 0; i < NR; ++i)
@@ -204,7 +204,7 @@ struct alignas(64) MatrixND {
   }
 
   inline constexpr MatrixND &
-  operator/=(T const scalar) 
+  operator/=(T const scalar) noexcept
   {
     for (index_t j = 0; j < NC; ++j)
       for (index_t i = 0; i < NR; ++i)
@@ -214,7 +214,7 @@ struct alignas(64) MatrixND {
   }
 
   inline constexpr VectorND<NC>
-  operator^(const VectorND<NR> &V) const
+  operator^(const VectorND<NR> &V) const noexcept
   {
       VectorND<NC> result;
 
@@ -244,10 +244,10 @@ struct alignas(64) MatrixND {
   }
 
 
-  int solve(const VectorND<NR> &V, VectorND<NR> &res) const
+  int
+  solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept
   {
     static_assert(NR == NC);
-
 
     MatrixND<NR,NC> work = *this;
     int pivot_ind[NR];
@@ -262,7 +262,7 @@ struct alignas(64) MatrixND {
 
 
   template<index_t n>
-  int solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const
+  int solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const noexcept
   {
     static_assert(NR == NC, "Matrix must be square.");
     static_assert(n == NR, "RHS row-count must match A.");
@@ -322,7 +322,7 @@ struct alignas(64) MatrixND {
 
   template <int row0, int row1, int col0, int col1>
   inline MatrixND<row1-row0,col1-col0>
-  extract() const
+  extract() const noexcept
   {
     MatrixND<row1-row0,col1-col0> m;
     for (int i=0; i<row1-row0; i++)
@@ -333,7 +333,7 @@ struct alignas(64) MatrixND {
 
   template<int er, int ec>
   inline MatrixND<er,ec>
-  extract(int row0, int col0) const
+  extract(int row0, int col0) const noexcept
   {
     MatrixND<er,ec> m;
     for (int i=0; i<er; i++)
@@ -344,7 +344,7 @@ struct alignas(64) MatrixND {
 
   template <int init_row, int init_col, int nr, int nc> 
   inline constexpr void
-  insert(const MatrixND<nr, nc, double> &M, double fact) 
+  insert(const MatrixND<nr, nc, double> &M, double fact) noexcept
   {
  
     constexpr int final_row = init_row + nr - 1;
@@ -363,7 +363,7 @@ struct alignas(64) MatrixND {
 
   template <int nr, int nc> 
   inline constexpr void
-  insert(const MatrixND<nr, nc, double> &M, int init_row, int init_col, double fact) 
+  insert(const MatrixND<nr, nc, double> &M, int init_row, int init_col, double fact) noexcept
   {
  
     [[maybe_unused]] int final_row = init_row + nr - 1;
@@ -379,8 +379,9 @@ struct alignas(64) MatrixND {
     }
   }
 
-  template <int nr, int nc> inline void
-  assemble(const MatrixND<nr, nc, double> &M, int init_row, int init_col, double fact) 
+  template <int nr, int nc> 
+  constexpr inline void
+  assemble(const MatrixND<nr, nc, double> &M, int init_row, int init_col, double fact) noexcept
   {
  
     [[maybe_unused]] int final_row = init_row + nr - 1;

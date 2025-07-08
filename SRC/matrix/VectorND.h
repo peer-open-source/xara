@@ -112,7 +112,7 @@ struct VectorND {
       item = 0.0;
   }
 
-  template<typename VecT> inline
+  template<typename VecT>
   constexpr T
   dot(const VecT &other) const noexcept {
     T sum = 0.0;
@@ -125,7 +125,7 @@ struct VectorND {
   // Tensor product, also known as the "bun" product
   template <int nc>
   constexpr inline MatrixND<N,nc,double>
-  bun(const VectorND<nc> &other) const {
+  bun(const VectorND<nc> &other) const noexcept {
     if constexpr (N == 3 && nc == 3)
       return MatrixND<N,nc,double> {{
         {values[0]*other[0], values[1]*other[0], values[2]*other[0]},
@@ -145,8 +145,8 @@ struct VectorND {
   }
 
   // Return the cross product this vector with another vector, b.
-  template <class VecB, class VecC> inline constexpr
-  void 
+  template <class VecB, class VecC>
+  constexpr void 
   cross(const VecB& b, VecC& c) const noexcept {
     static_assert(N == 3, "Cross product is only defined for 3D vectors.");
     c[0] = values[1] * b[2] - values[2] * b[1];
@@ -156,8 +156,8 @@ struct VectorND {
   }
 
 
-  template <class Vec3T> inline constexpr
-  VectorND<N> 
+  template <class Vec3T>
+  constexpr VectorND<N> 
   cross(const Vec3T& b) const noexcept {
     static_assert(N == 3, "Cross product is only defined for 3D vectors.");
     // Return a new vector that is the cross product of this vector and b.
@@ -187,17 +187,19 @@ struct VectorND {
 
   //
   inline constexpr T&
-  operator[](index_t index) {
+  operator[](index_t index) noexcept {
+    assert(index >= 0 && index < N);
     return values[index];
   }
 
   inline constexpr const T&
-  operator[](index_t index) const {
+  operator[](index_t index) const noexcept {
+    assert(index >= 0 && index < N);
     return values[index];
   }
 
   inline constexpr T&
-  operator()(index_t index) {
+  operator()(index_t index) noexcept {
     return values[index];
   }
 
@@ -215,7 +217,7 @@ struct VectorND {
 
   inline
   VectorND<N> &
-  operator/=(const double &right) {
+  operator/=(const double &right) noexcept {
     for (index_t i=0; i< N; i++)
       values[i] /= right;
     return *this;
@@ -223,7 +225,7 @@ struct VectorND {
 
   inline
   VectorND<N>  
-  operator/(const double &right) const {
+  operator/(const double &right) const noexcept {
     VectorND<N> res(*this);
     res /= right;
     return res;
@@ -253,9 +255,9 @@ struct VectorND {
     return *this;
   }
 
-  inline
+  constexpr inline
   VectorND<N> &
-  operator+=(const Vector &right) {
+  operator+=(const Vector &right) noexcept {
     assert(right.Size() == N);
     for (int i=0; i< N; i++)
       values[i] += right[i];
@@ -291,8 +293,8 @@ struct VectorND {
 #include "VectorND.tpp"
 
 template<int N>
-inline OpenSees::VectorND<N>
-operator * (double a, const OpenSees::VectorND<N>& b) {
+constexpr inline OpenSees::VectorND<N>
+operator * (double a, const OpenSees::VectorND<N>& b) noexcept {
   return b * a;
 }
 

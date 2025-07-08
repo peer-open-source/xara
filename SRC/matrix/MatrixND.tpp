@@ -55,7 +55,7 @@ MatrixND<nr, nc, T>::determinant() const
 
 template <index_t nr, index_t nc, typename T>
 constexpr MatrixND<nc, nr>
-MatrixND<nr, nc, T>::transpose() const 
+MatrixND<nr, nc, T>::transpose() const noexcept
 {
   MatrixND<nc, nr> result = {};
   for (index_t j = 0; j < nc; ++j) {
@@ -188,9 +188,9 @@ MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
   return status;
 }
 
-template <index_t nr, index_t nc, typename T> inline
-MatrixND<nr, nc, T>& 
-MatrixND<nr, nc, T>::addDiagonal(const double diag)
+template <index_t nr, index_t nc, typename T>
+constexpr MatrixND<nr, nc, T>& 
+MatrixND<nr, nc, T>::addDiagonal(const double diag) noexcept
 {
   for (int i=0; i<nr; i++)
     (*this)(i,i) += diag;
@@ -373,8 +373,8 @@ MatrixND<nr,nc,scalar_t>::addMatrixTripleProduct(double thisFact,
 
 template<int NR, int NC, typename T>
 template<class VecT>
-inline MatrixND<NR,NC,T>& 
-MatrixND<NR,NC,T>::addSpin(const VecT& v)
+constexpr MatrixND<NR,NC,T>& 
+MatrixND<NR,NC,T>::addSpin(const VecT& v) noexcept
 {
   static_assert(NR == 3 && NC == 3, "addSpin requires a 3x3 matrix");
 
@@ -392,8 +392,8 @@ MatrixND<NR,NC,T>::addSpin(const VecT& v)
 
 template<int NR, int NC, typename T>
 template<class VecT>
-inline MatrixND<NR,NC,T>&
-MatrixND<NR,NC,T>::addSpin(const VecT& v, double mult)
+constexpr MatrixND<NR,NC,T>&
+MatrixND<NR,NC,T>::addSpin(const VecT& v, double mult) noexcept
 {
    const double v0 = mult*v[0],
                 v1 = mult*v[1],
@@ -407,11 +407,12 @@ MatrixND<NR,NC,T>::addSpin(const VecT& v, double mult)
 
 
 template<int NR, int NC, typename T>
-template <class VecT> inline
+template <class VecT> 
+constexpr
 MatrixND<NR,NC,T>& 
-MatrixND<NR,NC,T>::addSpinSquare(const VecT& v, const double scale)
-  //requires(NR == NC == 3)
+MatrixND<NR,NC,T>::addSpinSquare(const VecT& v, const double scale) noexcept
 {
+  static_assert(NR == 3 && NC == 3, "addSpinSquare requires a 3x3 matrix");
   const double v1 = v[0],
                v2 = v[1],
                v3 = v[2];
@@ -432,20 +433,20 @@ MatrixND<NR,NC,T>::addSpinSquare(const VecT& v, const double scale)
 
 template<int NR, int NC, typename T>
 template<class VecT> 
-inline void 
-MatrixND<NR,NC,T>::addSpinProduct(const VecT& a, const VectorND<NR,T>& b, const double scale)
-  //requires(NR == NC == 3)
+constexpr void 
+MatrixND<NR,NC,T>::addSpinProduct(const VecT& a, const VectorND<NR,T>& b, const double scale) noexcept
 {
   // a^b^ = boa - a.b 1
   // where 'o' denotes the tensor product and '.' the dot product
   //
+  static_assert(NR == 3 && NC == 3, "Matrix must be 3x3");
   this->addTensorProduct(b, a, scale);
   this->addDiagonal(-b.dot(a)*scale);
 }
 
 template<int NR, int NC, typename T>
 template<class VecT>
-inline constexpr void 
+constexpr void 
 MatrixND<NR,NC,T>::addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, const double scale) noexcept
 {
   // this += s*A*[b^]
@@ -464,8 +465,9 @@ MatrixND<NR,NC,T>::addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& 
 }
 
 template<int NR, int NC, typename T>
-template<class MatT> inline constexpr
-void MatrixND<NR,NC,T>::addSpinMatrixProduct(const VectorND<NR,T>& a, const MatT& B, const double scale) noexcept
+template<class MatT>
+constexpr void 
+MatrixND<NR,NC,T>::addSpinMatrixProduct(const VectorND<NR,T>& a, const MatT& B, const double scale) noexcept
 {
   static_assert(NR == 3 && NC == 3, "Matrix must be 3x3");
   // this += s*[a^]*B
