@@ -13,7 +13,7 @@
 #include <Vector.h> // TODO: this is just for debugging
 #include <VectorND.h>
 #include <Matrix3D.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 #include <FiniteElement.h>
 #include <ElementalLoad.h>
 #include <LoadPattern.h>

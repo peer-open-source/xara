@@ -12,13 +12,12 @@ set_property(TARGET OpenSeesRT PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 target_compile_options(OPS_Runtime PRIVATE
 # "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wextra>"
-  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
 # "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wpedantic>"
+  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
   "$<$<CXX_COMPILER_ID:MSVC>:/W4>"
 )
 
-target_include_directories(OPS_Runtime PUBLIC 
-  ./api/
+target_include_directories(OPS_Runtime PUBLIC
   ${OPS_SRC_DIR}/runtime/commands
   ${OPS_SRC_DIR}/runtime/parsing/
   ${OPS_SRC_DIR}/runtime/commands/modeling
@@ -55,16 +54,6 @@ target_link_libraries(OpenSeesRT
 	OPS_Algorithm 
 	${TCL_STUB_LIBRARY}
 )
-
-#
-# Python
-#
-find_package(Python COMPONENTS Interpreter Development)
-find_package(pybind11 CONFIG)
-if (${pybind11_FOUND} AND NOT DEFINED NoOpenSeesPyRT)
-  message(" :: Configuring Pyton extension")
-  add_subdirectory(python)
-endif()
 
 
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/packages/UCSD_CompGeoMech/CMakeLists.txt)

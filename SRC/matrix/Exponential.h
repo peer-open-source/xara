@@ -227,7 +227,7 @@ ExpGLn(const MatrixType& arg)
 
 } // end namespace OpenSees
 
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 
 static inline int
 test_expm()

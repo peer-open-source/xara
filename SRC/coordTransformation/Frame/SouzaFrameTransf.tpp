@@ -42,7 +42,7 @@
 #include <Vector3D.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 #include "Isometry/CrisfieldIsometry.h"
 
 namespace OpenSees {

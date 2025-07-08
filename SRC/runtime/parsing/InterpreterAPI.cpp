@@ -161,31 +161,31 @@ OPS_GetStringCopy(char **arrayData)
 extern "C"
 int OPS_GetDoubleListInput(int* size, Vector* data)
 {
-    TCL_Char** strings;
+  TCL_Char** strings;
 
-    if (Tcl_SplitList(theInterp, currentArgv[currentArg],
-        size, &strings) != TCL_OK) {
-        opserr << "ERROR problem splitting list " << currentArgv[currentArg] << " \n";
-        return -1;
-    }
+  if (Tcl_SplitList(theInterp, currentArgv[currentArg],
+      size, &strings) != TCL_OK) {
+      opserr << "ERROR problem splitting list " << currentArgv[currentArg] << " \n";
+      return -1;
+  }
 
-    data->resize(*size);
-    for (int i = 0; i < *size; i++) {
-        double value;
-        if (Tcl_GetDouble(theInterp, strings[i], &value) != TCL_OK) {
-            opserr << "ERROR problem reading data value " << strings[i] << " \n";
-            // free up the array of strings .. see tcl man pages as to why
-            Tcl_Free((char*)strings);
-            return -1;
-        }
-        (*data)(i) = value;
-    }
-    // free up the array of strings .. see tcl man pages as to why
-    Tcl_Free((char*)strings);
+  data->resize(*size);
+  for (int i = 0; i < *size; i++) {
+      double value;
+      if (Tcl_GetDouble(theInterp, strings[i], &value) != TCL_OK) {
+          opserr << "ERROR problem reading data value " << strings[i] << " \n";
+          // free up the array of strings .. see tcl man pages as to why
+          Tcl_Free((char*)strings);
+          return -1;
+      }
+      (*data)(i) = value;
+  }
+  // free up the array of strings .. see tcl man pages as to why
+  Tcl_Free((char*)strings);
 
-    currentArg++;
+  currentArg++;
 
-    return 0;
+  return 0;
 }
 
 extern "C"

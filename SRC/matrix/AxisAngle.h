@@ -3,7 +3,7 @@
 #include "VectorND.h"
 #include "MatrixND.h"
 #include "Matrix3D.h"
-#include "Rotations.hpp"
+#include "GroupSO3.h"
 
 namespace {
 

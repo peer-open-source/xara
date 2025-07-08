@@ -112,7 +112,7 @@ BasicFrameTransf3d<ndf>::getBasicTrialDisp()
   static Vector wrapper(ub);
   Vector3D wi = t.getNodeRotationLogarithm(0),
            wj = t.getNodeRotationLogarithm(1);
-  ub[0] = t.getNodePosition(1)[0];
+  ub[0] = t.getDeformedLength() - t.getInitialLength(); // t.getNodePosition(1)[0];
   ub[1] = wi[2];
   ub[2] = wj[2];
   ub[3] = wi[1];

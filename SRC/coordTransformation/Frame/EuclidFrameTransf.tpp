@@ -25,7 +25,7 @@
 #include <Node.h>
 #include <Logging.h>
 #include <AxisAngle.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 #include "EuclidFrameTransf.h"
 
 namespace OpenSees {

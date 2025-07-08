@@ -33,7 +33,7 @@
 #include <Matrix3D.h>
 #include <Node.h>
 #include <Logging.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 #include "LinearFrameTransf.h"
 
 namespace OpenSees {

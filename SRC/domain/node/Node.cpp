@@ -38,7 +38,7 @@
 #include <string.h>
 #include <Information.h>
 #include <Parameter.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 
 // AddingSensitivity:BEGIN //////////////////////////
 #include <Domain.h>

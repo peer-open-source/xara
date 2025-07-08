@@ -36,7 +36,7 @@
 #include <cmath>
 #include <MatrixND.h>
 #include <Matrix3D.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 #include "EuclidIsometry.h"
 
 class Node;
@@ -71,80 +71,12 @@ public:
 
   }
 
-  MatrixND<12,12>
-  getRotationJacobian(const VectorND<12>&pl) final {
-    MatrixND<12,12> dG{};
-
-    return dG;
-  }
-
-  // MatrixND<3,6> getRotationGradient(int node) final;
-
-  MatrixND<3,6> 
-  getRotationGradient(int node) final {
-    constexpr static Vector3D e1{1, 0, 0};
-
-    double Ln = this->getLength();
-
-#if 1
-    static constexpr
-    MatrixND<1,3> E3 {{0.0, 0.0, 1.0}},
-                  E2 {{0.0, 1.0, 0.0}};
-
-
-    const Matrix3D& Tr = this->getRotation();
-    Triad r{Tr^Rbar};
-    Vector3D r1 = r[1], r3 = r[3];
-
-
-    Matrix3D A{};
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        A(i,j) = (double(i==j) - e1[i]*e1[j])/Ln;
-
-    MatrixND<3,12> de3;
-    if constexpr (!orthogonal)
-      de3 = this->getLMatrix(r3, r1, e1, A).transpose();
-    else
-      de3 = this->getBasisVariation(r3, r1, e1, v, A);
-
-
-    MatrixND<3,12> de1{};
-    de1.template insert<0,0>(A, -1.0);
-    de1.template insert<0,6>(A,  1.0);
-
-    MatrixND<3,12> G{};
-    G.template insert<0,0, 1,12>(E2*de3, -1.0);
-    G.template insert<1,0, 1,12>(E3*de1, -1.0);
-    G.template insert<2,0, 1,12>(E2*de1,  1.0);
-
-    if (node == 0)
-      return G.template extract<0,3,  0, 6>();
-    else if (node == nn-1)
-      return G.template extract<0,3,  6,12>();
-    else
-      return MatrixND<3,6>{};
-
-#else
-    MatrixND<3,6> Gb{};
-    constexpr Matrix3D ix = Hat(e1);
-
-    if (node == 0) {
-      Gb.template insert<0,0>( ix, -1.0/Ln);
-      Gb(0,3) =   0.5;
-    }
-    else if (node == nn-1) {
-      Gb.template insert<0,0>( ix,   1.0/Ln);
-      Gb(0,3) =  0.5;
-    }
-    return Gb;
-#endif
-  }
-
   Matrix3D
   update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx)
   {
-    Ln = dx.norm();
+    // Ln = dx.norm();
+    this->AlignedIsometry<nn>::Ln = dx.norm();
+    double Ln = this->getLength();
     {
       const Triad TrI{RI}, TrJ{RJ};
       rI[0] = TrI[1];
@@ -179,6 +111,8 @@ public:
     //
     // Compute the base vectors e2, e3
     //
+    // 'rotate' the mean rotation matrix Rbar on to e1 to
+    // obtain e2 and e3 
 
     Matrix3D E;
     if constexpr (orthogonal)
@@ -191,7 +125,11 @@ public:
 
       if (std::fabs(dot - 1.0) < ktol) {                         // Rbar already aligned
         v.zero();
-        E = Rbar;
+        for (int i=0; i<3; i++) {
+          E(i,0) = e[0][i];
+          E(i,1) = Rbar(i,1);
+          E(i,2) = Rbar(i,2);
+        }
       }
       else if (std::fabs(dot + 1.0) < ktol) {                    // opposite direction
         // choose any axis with numerical separation from r1
@@ -199,13 +137,14 @@ public:
         if (v.dot(v) < ktol)
           v = r1.cross(Vector3D{0.0, 1.0, 0.0});
         v *= M_PI / v.norm();
+        E = ExpSO3(v)*Rbar;
       }
       else {                                                     // general case
         v     = r1.cross(e[0]);
         double angle = std::atan2(v.norm(), dot);
         v    *= angle / v.norm();
+        E = ExpSO3(v)*Rbar;
       }
-      E = ExpSO3(v)*Rbar;
 
       for (int i = 0; i < 3; i++)
         for (int j = 0; j < 3; j++)
@@ -215,8 +154,7 @@ public:
     {
       // Not working with frame-1007?
       //
-      // 'rotate' the mean rotation matrix Rbar on to e1 to
-      // obtain e2 and e3 (using the 'mid-point' procedure)
+      // Use the 'mid-point' procedure
 
       // e2 = r2 - (e1 + r1)*((r2^e1)*0.5);
   
@@ -253,6 +191,74 @@ public:
     Lr3 = this->getLMatrix(r3, r1, e[0], A);
 
     return E;
+  }
+
+  MatrixND<12,12>
+  getRotationJacobian(const VectorND<12>&pl) final {
+    MatrixND<12,12> dG{};
+
+    return dG;
+  }
+
+  // MatrixND<3,6> getRotationGradient(int node) final;
+
+  MatrixND<3,6> 
+  getRotationGradient(int node) final {
+    constexpr static Vector3D e1{1, 0, 0};
+
+    double Ln = this->getLength();
+
+#if 1
+    static constexpr
+    MatrixND<1,3> E3 {{0.0, 0.0, 1.0}},
+                  E2 {{0.0, 1.0, 0.0}};
+
+    const Matrix3D& Tr = this->getRotation();
+    Triad r{Tr^Rbar};
+    Vector3D r1 = r[1], r3 = r[3];
+
+
+    Matrix3D A{};
+    for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
+        A(i,j) = (double(i==j) - e1[i]*e1[j])/Ln;
+
+    MatrixND<3,12> de3;
+    if constexpr (!orthogonal)
+      de3 = this->getLMatrix(r3, r1, e1, A).transpose();
+    else
+      de3 = this->getBasisVariation(r3, r1, e1, v, A);
+
+    MatrixND<3,12> de1{};
+    de1.template insert<0,0>(A, -1.0);
+    de1.template insert<0,6>(A,  1.0);
+
+    MatrixND<3,12> G{};
+    G.template insert<0,0, 1,12>(E2*de3, -1.0);
+    G.template insert<1,0, 1,12>(E3*de1, -1.0);
+    G.template insert<2,0, 1,12>(E2*de1,  1.0);
+
+    if (node == 0)
+      return G.template extract<0,3,  0, 6>();
+    else if (node == nn-1)
+      return G.template extract<0,3,  6,12>();
+    else
+      return MatrixND<3,6>{};
+
+#else
+    MatrixND<3,6> Gb{};
+    constexpr Matrix3D ix = Hat(e1);
+
+    if (node == 0) {
+      Gb.template insert<0,0>( ix, -1.0/Ln);
+      Gb(0,3) =   0.5;
+    }
+    else if (node == nn-1) {
+      Gb.template insert<0,0>( ix,   1.0/Ln);
+      Gb(0,3) =  0.5;
+    }
+    return Gb;
+#endif
   }
 
   //
@@ -410,12 +416,6 @@ public:
         T(jnx,i  ) = -e1[i];
         T(jnx,i+6) =  e1[i];
     }
-
-    // // Combine torsion
-    // for (int i=0; i<12; i++) {
-    //   T(jmx,i) -= T(imx,i);
-    //   T(imx,i) = 0;
-    // }
 
     return T;
   }
@@ -740,7 +740,7 @@ private:
   {
     const Vector3D &e1 = e[0];
 
-    // const double Ln = this->getLength();
+    const double Ln = this->getLength();
 
     //  Ksigma2 = [ K11   K12 -K11   K12
     //              K12'  K22 -K12'  K22
@@ -868,6 +868,6 @@ private:
   Vector3D r1, r2, r3;
   Vector3D e[3], rI[3], rJ[3];
   MatrixND<12,3> Lr2, Lr3;
-  double Ln;
+  // double Ln;
 };
 }
