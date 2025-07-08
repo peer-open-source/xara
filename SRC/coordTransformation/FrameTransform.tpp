@@ -75,9 +75,9 @@ FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl)
 
   // (A) First pass: just do the direct transformations
   for (int i=0; i<nn; i++) {
-      const int base = i * ndf;
-      pg.insert(base,   R*Vector3D{pg[base  ], pg[base+1], pg[base+2]}, 1.0);
-      pg.insert(base+3, R*Vector3D{pg[base+3], pg[base+4], pg[base+5]}, 1.0);
+    const int base = i * ndf;
+    pg.insert(base,   R*Vector3D{pg[base  ], pg[base+1], pg[base+2]}, 1.0);
+    pg.insert(base+3, R*Vector3D{pg[base+3], pg[base+4], pg[base+5]}, 1.0);
   }
 
   // (B) Second pass: add offset cross product ( r x F ) into the
@@ -202,17 +202,17 @@ FrameTransform<nn,ndf>::pushRotation(MatrixND<nn*ndf,nn*ndf>& Kg, const Matrix3D
       for (int k=0; k<2; k++) {
         for (int l=0; l<2; l++) {
           Matrix3D Kab {{
-            {Kg(i*ndf+3*k+0, j*ndf+3*l  ),
-                Kg(i*ndf+3*k+1, j*ndf+3*l  ),
-                Kg(i*ndf+3*k+2, j*ndf+3*l  )},
+            Kg(i*ndf+3*k+0, j*ndf+3*l  ),
+            Kg(i*ndf+3*k+1, j*ndf+3*l  ),
+            Kg(i*ndf+3*k+2, j*ndf+3*l  ),
 
-            {Kg(i*ndf+3*k+0, j*ndf+3*l+1),
-                Kg(i*ndf+3*k+1, j*ndf+3*l+1),
-                Kg(i*ndf+3*k+2, j*ndf+3*l+1)},
+            Kg(i*ndf+3*k+0, j*ndf+3*l+1),
+            Kg(i*ndf+3*k+1, j*ndf+3*l+1),
+            Kg(i*ndf+3*k+2, j*ndf+3*l+1),
 
-            {Kg(i*ndf+3*k+0, j*ndf+3*l+2),
-                Kg(i*ndf+3*k+1, j*ndf+3*l+2),
-                Kg(i*ndf+3*k+2, j*ndf+3*l+2)}
+            Kg(i*ndf+3*k+0, j*ndf+3*l+2),
+            Kg(i*ndf+3*k+1, j*ndf+3*l+2),
+            Kg(i*ndf+3*k+2, j*ndf+3*l+2)
           }};
           Kab = Kab*RT;
           Kab = R*Kab;
