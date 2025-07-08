@@ -34,23 +34,23 @@ struct Versor {
 
   inline void 
   normalize() {
-    static constexpr double eps = 1e-12; // tolerance for numerical errors
-    // 1. squared norm
+    static constexpr double eps = 1e-12;
+
     double n2 = scalar*scalar + vector.dot(vector);
 
-    // 2. bad numbers -> reset to identity
+    // bad numbers; reset to identity
     if (!std::isfinite(n2) || n2 < eps) {
       scalar    = 1.0;
       vector[0] = vector[1] = vector[2] = 0.0;
       return;
     }
 
-    // 3. already close enough to unit? (cheap exit)
+    // already close enough to unit
     constexpr double tol = 1e-6; 
     if (std::abs(n2 - 1.0) < tol)
       return;
 
-    // 4. normalize
+    // normalize
     double inv_n = 1.0 / std::sqrt(n2);
     scalar      *= inv_n;
     vector[0]   *= inv_n;
