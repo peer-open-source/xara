@@ -204,7 +204,8 @@ int CTestEnergyIncr::start(void)
 }
 
 
-int CTestEnergyIncr::getNumTests(void)
+int
+CTestEnergyIncr::getNumTests(void)
 {
     return currentIter;
 }

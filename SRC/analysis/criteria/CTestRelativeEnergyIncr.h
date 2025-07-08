@@ -43,8 +43,9 @@ public:
     CTestRelativeEnergyIncr();
     CTestRelativeEnergyIncr(double tol, int maxNumIter, int printFlag, int normType=2);
 
-    // destructor
     ~CTestRelativeEnergyIncr();
+
+    const char* getClassType() const override { return "RelativeEnergyIncr"; }
 
     ConvergenceTest *getCopy(int iterations);
 

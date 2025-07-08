@@ -39,20 +39,20 @@ class LinearSOE;
 class CTestEnergyIncr: public ConvergenceTest
 {
 public:
-    // constructors
     CTestEnergyIncr();
     CTestEnergyIncr(double tol, int maxNumIter, int printFlag, int normType =2, double maxTol = OPS_MAXTOL);
 
-    // destructor
     ~CTestEnergyIncr();
+
+    const char* getClassType() const override { return "EnergyIncr"; }
 
     ConvergenceTest *getCopy(int iterations);
 
     void setTolerance(double newTol);
     int setEquiSolnAlgo(EquiSolnAlgo &theAlgo);
 
-    int test(void);
-    int start(void);
+    int test();
+    int start();
 
     int getNumTests(void);
     int getMaxNumTests(void);

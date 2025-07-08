@@ -36,13 +36,31 @@
 #include <cmath>
 #include <MatrixND.h>
 #include <Matrix3D.h>
-#include <Triad.h>
 #include <Rotations.hpp>
 #include "EuclidIsometry.h"
 
 class Node;
 
 namespace OpenSees {
+
+namespace {
+struct Triad {
+
+  Triad(const OpenSees::Matrix3D &E)
+    : e{{E(0,0),E(1,0),E(2,0)}, // e1
+        {E(0,1),E(1,1),E(2,1)}, // e2
+        {E(0,2),E(1,2),E(2,2)}} // e3
+  {  
+  }
+
+  constexpr inline
+  const Vector3D& operator[](int i) const {
+    return e[i-1];
+  }
+
+  const Vector3D e[3];
+};
+}
 
 template <int nn, bool orthogonal>
 class CrisfieldIsometry : public AlignedIsometry<nn> {
@@ -53,6 +71,15 @@ public:
 
   }
 
+  MatrixND<12,12>
+  getRotationJacobian(const VectorND<12>&pl) final {
+    MatrixND<12,12> dG{};
+
+    return dG;
+  }
+
+  // MatrixND<3,6> getRotationGradient(int node) final;
+
   MatrixND<3,6> 
   getRotationGradient(int node) final {
     constexpr static Vector3D e1{1, 0, 0};
@@ -61,8 +88,8 @@ public:
 
 #if 1
     static constexpr
-    MatrixND<1,3> E3 {{{0.0}, {0.0},  {1.0}}},
-                  E2 {{{0.0}, {1.0},  {0.0}}};
+    MatrixND<1,3> E3 {{0.0, 0.0, 1.0}},
+                  E2 {{0.0, 1.0, 0.0}};
 
 
     const Matrix3D& Tr = this->getRotation();
@@ -129,10 +156,11 @@ public:
     }
 
     {
-      const Versor qI = Versor::from_matrix(RI);
-      const Versor qJ = Versor::from_matrix(RJ);
-      Versor qij = qJ.mult_conj(qI);
-      qij.normalize();
+      // const Versor qI = Versor::from_matrix(RI);
+      // const Versor qJ = Versor::from_matrix(RJ);
+      // Versor qij = qJ.mult_conj(qI);
+      // qij.normalize();
+      Versor qij = Versor::from_matrix(RJ*RI.transpose());
       Vector3D gw = CayleyFromVersor(qij);
 
       gw *= 0.5;
@@ -155,16 +183,15 @@ public:
     Matrix3D E;
     if constexpr (orthogonal)
     {
-      constexpr double ktol = 50.0*std::numeric_limits<double>::epsilon();
+      constexpr double ktol = 1.0*std::numeric_limits<double>::epsilon();
       Vector3D r1 { Rbar(0,0), Rbar(1,0), Rbar(2,0) };
 
       // Clamp to avoid NaNs from acos
-      // double dot = std::clamp(r1.dot(e[0]), -1.0, 1.0);
       double dot = std::max(-1.0, std::min(1.0, r1.dot(e[0])));
 
       if (std::fabs(dot - 1.0) < ktol) {                         // Rbar already aligned
-          v.zero();
-          E = Rbar;
+        v.zero();
+        E = Rbar;
       }
       else if (std::fabs(dot + 1.0) < ktol) {                    // opposite direction
         // choose any axis with numerical separation from r1
@@ -258,7 +285,6 @@ public:
     Vector3D Se  = rI2.cross(e3);
     Se -= rI3.cross(e2);
     for (int i = 0; i < 3; i++)
-      // T(jmx,i+3) =  -Se[i];
       T(imx,i+3) =  Se[i];
 
     //   T2 = [(A*rI2)', (-S(rI2)*e1 + S(rI1)*e2)', -(A*rI2)', O']';
@@ -385,11 +411,11 @@ public:
         T(jnx,i+6) =  e1[i];
     }
 
-    // Combine torsion
-    for (int i=0; i<12; i++) {
-      T(jmx,i) -= T(imx,i);
-      T(imx,i) = 0;
-    }
+    // // Combine torsion
+    // for (int i=0; i<12; i++) {
+    //   T(jmx,i) -= T(imx,i);
+    //   T(imx,i) = 0;
+    // }
 
     return T;
   }
@@ -459,9 +485,6 @@ public:
       kg.assemble(ks33, 3, 3, 1.0);
     }
 
-    //
-    // Ksigma4
-    //
     {
       Matrix3D ks99;
       ks99.zero();

@@ -62,7 +62,7 @@ VectorND<N,T>::extract(int a) noexcept
   return v;
 }
 
-
+#ifdef XARA_VECTOR_FRIENDS
 template <index_t N, typename T>
 int
 VectorND<N,T>::addVector(const T thisFact, const Vector &other, const T otherFact) noexcept
@@ -122,7 +122,7 @@ VectorND<N,T>::addVector(const T thisFact, const Vector &other, const T otherFac
 
   return 0;
 }
-
+#endif // XARA_VECTOR_FRIENDS
 
 template <index_t N, typename T>
 int

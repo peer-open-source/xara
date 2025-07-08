@@ -43,8 +43,9 @@ public:
     CTestNormUnbalance();
     CTestNormUnbalance(double tol, int maxNumIter, int printFlag, int normType=2, int maxincr=-1, double maxTol = OPS_MAXTOL);
 
-    // destructor
     ~CTestNormUnbalance();
+
+    const char* getClassType() const override { return "NormUnbalance"; }
 
     ConvergenceTest  *getCopy(int interations);
 

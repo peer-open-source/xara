@@ -24,7 +24,6 @@
 // and basic coordinate systems
 //
 // Adapted: Remo Magalhaes de Souza
-// Created: 04/2000
 //
 #pragma once
 #include <Vector.h>
@@ -384,8 +383,9 @@ LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 // Push
 //
 template <int nn, int ndf>
-VectorND<nn*ndf>
-LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
+// VectorND<nn*ndf>
+int
+LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
 {
   VectorND<nn*ndf> pa = p;
   constexpr Vector3D iv{1, 0, 0};
@@ -410,13 +410,16 @@ LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
   }
 
   // 2) Rotate and do joint offsets
-  auto pg = this->FrameTransform<nn,ndf>::pushConstant(pa);
-  return pg;
+  p = this->FrameTransform<nn,ndf>::pushConstant(pa);
+  return 0;
 }
 
 template <int nn, int ndf>
-MatrixND<nn*ndf,nn*ndf>
-LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kb, const VectorND<nn*ndf>&)
+// MatrixND<nn*ndf,nn*ndf>
+int
+LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb, 
+                                const VectorND<nn*ndf>&, 
+                                Operation op)
 {
 
   MatrixND<nn*ndf,nn*ndf> A{};
@@ -440,9 +443,17 @@ LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kb, const Vector
     }
   }
 
+#if 0
   MatrixND<nn*ndf,nn*ndf> kl;
   kl.addMatrixTripleProduct(0, A, kb, 1);
-  return this->FrameTransform<nn,ndf>::pushConstant(kl);
+  this->FrameTransform<nn,ndf>::pushConstant(kl);
+#else 
+  MatrixND<nn*ndf,nn*ndf> kl;;
+  kl.addMatrixTripleProduct(0, A, kb, 1);
+  kb = this->FrameTransform<nn,ndf>::pushConstant(kl);
+  // this->pushRotation(kb, R);
+  return 0;
+#endif
 }
 
 

@@ -103,7 +103,7 @@ public:
   int getResponse(int responseID, Information& info);
 
 private:
-  enum { numFibers = 5 };
+  constexpr static int numFibers = 5;
 
   //quadrature data
   static const double sg[numFibers];

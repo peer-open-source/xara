@@ -26,6 +26,7 @@
 
 #include <CrdTransf.h>
 #include <FrameTransform.h>
+#include <LinearFrameTransf.h>
 class Vector;
 class Matrix;
 
@@ -92,8 +93,10 @@ public:
 
 
   FrameTransform<2,ndf> &t;
+  LinearFrameTransf<2,ndf> linear;
 
 private:
+  using Operation = FrameTransform<2,ndf>::Operation;
   constexpr static int NBV = 6;
   constexpr static int NDF = ndf;
   enum : int {

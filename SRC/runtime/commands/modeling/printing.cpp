@@ -55,7 +55,6 @@
 #include <LoadPatternIter.h>
 
 #include <CrdTransf.h>
-#include <FrameTransform.h>
 
 int printElement(ClientData clientData, Tcl_Interp *interp, int argc,
                  TCL_Char ** const argv, OPS_Stream &output);
@@ -639,7 +638,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
   bool hasLinear = false;
   bool hasTri3  = false;
   bool hasQuad4 = false;
-  bool hasQuad8 = false;
+//bool hasQuad8 = false;
   bool hasQuad9 = false;
   bool hasBrick = false;
   int startEle = 1;
@@ -705,7 +704,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       if (strcmp(theElement->getClassType(), "Brick") == 0) {
         hasBrick = true;
       } else {
-        hasQuad8 = true;
+        ;// hasQuad8 = true;
       }
     }
   }

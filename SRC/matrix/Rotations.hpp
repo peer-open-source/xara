@@ -5,7 +5,7 @@
 //
 //----------------------------------------------------------------------------//
 //
-// Please cite the following resource in any derivative works:
+// The following resource should be cited in derivative works:
 //
 // [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
 //     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
@@ -60,6 +60,7 @@ static constexpr Matrix3D Eye3 {{
 }};
 
 
+
 static inline constexpr Vector3D
 Vee(const Matrix3D &X) noexcept
 {
@@ -77,6 +78,7 @@ Hat(const Vec3Type &u) noexcept
                     {-u[2],   0  ,  u[0]},
                     { u[1], -u[0],   0  }}};
 }
+
 
 static inline double
 GibSO3(const Vector3D &vec, double *a, double *b=nullptr, double *c=nullptr) noexcept
@@ -668,33 +670,3 @@ ddLogSO3(const Vector3D& u, const Vector3D& p)
 
   return dH*dLogSO3(th);
 }
-
-#if 0
-
-class Align {
-public:
-  Align(Vector3D& original, Vector3D& target)
-  : original(original), target(target)
-  {
-  }
-
-  // Align a vector to another vector using the exponential map
-  static Vector3D
-  rot(const Vector3D &v, const Vector3D &target)
-  {
-    // e3 = r3 - (e1 + r1)*((r3^e1)*0.5);
-    // e2 = r2 - (e1 + r1)*((r2^e1)*0.5);
-    Vector3D axis = v.cross(target);
-    double angle = std::acos(v.dot(target)/(v.norm()*target.norm()));
-
-    if (angle < 1e-10) return v;
-
-    return ExpSO3(axis*angle)*v;
-  }
-
-  private:
-  Vector3D original;
-  Vector3D target;
-};
-
-#endif

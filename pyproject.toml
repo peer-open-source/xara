@@ -1,6 +1,6 @@
 [project]
 name = "opensees"
-version = "0.1.21"
+version = "0.1.22"
 
 readme = "about/README.pypi.md"
 
@@ -49,9 +49,9 @@ dependencies = [
     "tcinter>=1.0; platform_python_implementation=='PyPy' or sys_platform=='emscripten'",
 
 # Full-featured REPL
-    "pyparsing",
+#   "pyparsing",
     "prompt_toolkit",
-    "pygments",
+#   "pygments",
     "platformdirs"
 ]
 

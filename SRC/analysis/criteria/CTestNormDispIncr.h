@@ -43,8 +43,9 @@ public:
     CTestNormDispIncr();
     CTestNormDispIncr(double tol, int maxNumIter, int printFlag, int normType=2, double maxTol = OPS_MAXTOL);
 
-    // destructor
     ~CTestNormDispIncr();
+
+    const char* getClassType() const override { return "NormDispIncr"; }
 
     ConvergenceTest *getCopy(int iterations);
 
