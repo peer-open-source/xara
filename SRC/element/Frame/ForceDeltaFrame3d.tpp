@@ -904,7 +904,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   double q4 = q_pres[4];
   double q5 = q_pres[5];
 
-  VectorND<12> pl{};
+  static VectorND<12> pl{};
   pl[0]  = -q_pres[0];             // Ni
   pl[3]  = -q5;                    // Ti
   pl[4]  =  q3;
@@ -913,13 +913,16 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   pl[9]  = q5;                     // Tj
   pl[10] = q4;
   pl[11] = q2;
-
+#if 0
   // Push to global system
   static VectorND<12> pg;
   static Vector wrapper(pg);
 
   pg  = basic_system->t.pushResponse(pl);
-
+#else
+  static Vector wrapper(pl);
+  basic_system->t.pushResponse(pl);
+#endif
   // Add loading
   double p0[5]{};
   if (eleLoads.size() > 0) // (eleLoads.size() > 0)
@@ -932,9 +935,12 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   pf[7] = p0[2];
   pf[2] = p0[3];
   pf[8] = p0[4];
-
-  pg += basic_system->t.pushConstant(pf);
-
+#if 0
+  pg += basic_system->linear.pushResponse(pf);
+#else 
+  basic_system->linear.pushResponse(pf);
+  pl += pf;
+#endif
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
 
@@ -946,7 +952,6 @@ const Matrix &
 ForceDeltaFrame3d<NIP,nsr>::getTangentStiff()
 {
   MatrixND<nq,nq> kb = this->getBasicTangent(State::Pres, 0);
-
 
   THREAD_LOCAL VectorND<12> pl;
   pl[0]  = -q_pres[0];                    // Ni

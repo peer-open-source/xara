@@ -8,14 +8,8 @@
 // NOTE: This doesnt really need access to the model builder, it would
 // work with just the domain
 //
-#ifdef _TCL85
-#  define TCL_Char const char
-#elif _TCL84
-#  define TCL_Char const char
-#else
-#  define TCL_Char char
-#endif
 #include <tcl.h>
+#include <Parsing.h>
 #include <assert.h>
 #include <Domain.h>
 #include <Matrix.h>
@@ -31,8 +25,10 @@
 using OpenSees::MatrixND;
 
 int
-TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
-                          TCL_Char ** const argv)
+TclCommand_doBlock2D(ClientData clientData, 
+                     Tcl_Interp *interp, 
+                     Tcl_Size argc,
+                     TCL_Char ** const argv)
 { 
   assert(clientData != nullptr);
   BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
@@ -42,19 +38,22 @@ TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (ndm < 2) {
     opserr << OpenSees::PromptValueError
-           << "model dimension (ndm) must be at leat 2 " << "\n";
+           << "model dimension (ndm) must be at leat 2 " 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (argc < 8) {
     opserr << OpenSees::PromptValueError << "incorrect number of args, expected:"
-      "\n\tblock2D numX? numY? startNode? startEle? eleType? eleArgs?"; 
+      "\n\tblock2D numX? numY? startNode? startEle? eleType? eleArgs?"
+      << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   int numX, numY, startNodeNum, startEleNum;
   if (Tcl_GetInt(interp, argv[1], &numX) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid numX (" << argv[1] << "), expected:\n\t"
-      << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
+    opserr << OpenSees::PromptValueError
+           << "invalid numX (" << argv[1] << ")"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &numY) != TCL_OK) {
@@ -150,7 +149,7 @@ TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
   Tcl_Free((char *)argvNodes);
 
-  Block2D  theBlock(numX, numY, haveNode, Coordinates, numNodes);
+  Block2D theBlock(numX, numY, haveNode, Coordinates, numNodes);
 
   // create the nodes: (numX+1)*(numY+1) nodes to be created
   int nodeID = startNodeNum;
@@ -243,8 +242,8 @@ TclCommand_doBlock2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, int argc,
-                          TCL_Char ** const argv)
+TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+                      TCL_Char ** const argv)
 {
   // block3D numX? numY? startNode? startEle? eleType? eleArgs?
   //

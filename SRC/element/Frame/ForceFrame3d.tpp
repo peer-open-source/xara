@@ -357,41 +357,41 @@ ForceFrame3d<NIP,nsr,nwm>::getMass()
   }
 
   else {
-      // consistent (cubic, prismatic) mass matrix
+    // consistent (cubic, prismatic) mass matrix
 
-      double L  = basic_system->getInitialLength();
-      double m  = total_mass/420.0;
-      double mx = twist_mass;
-      ALWAYS_STATIC MatrixND<2*NDF,2*NDF> ml{};
-      ALWAYS_STATIC Matrix mg{ml};
+    double L  = basic_system->getInitialLength();
+    double m  = total_mass/420.0;
+    double mx = twist_mass;
+    ALWAYS_STATIC MatrixND<2*NDF,2*NDF> ml{};
+    ALWAYS_STATIC Matrix mg{ml};
 
-      ml(0,0) = ml(6,6) = m*140.0;
-      ml(0,6) = ml(6,0) = m*70.0;
+    ml(0,0) = ml(6,6) = m*140.0;
+    ml(0,6) = ml(6,0) = m*70.0;
 
-      ml(3,3) = ml(9,9) = mx/3.0; // Twisting
-      ml(3,9) = ml(9,3) = mx/6.0;
+    ml(3,3) = ml(9,9) = mx/3.0; // Twisting
+    ml(3,9) = ml(9,3) = mx/6.0;
 
-      ml( 2, 2) = ml( 8, 8) =  m*156.0;
-      ml( 2, 8) = ml( 8, 2) =  m*54.0;
-      ml( 4, 4) = ml(10,10) =  m*4.0*L*L;
-      ml( 4,10) = ml(10, 4) = -m*3.0*L*L;
-      ml( 2, 4) = ml( 4, 2) = -m*22.0*L;
-      ml( 8,10) = ml(10, 8) = -ml( 2, 4);
-      ml( 2,10) = ml(10, 2) =  m*13.0*L;
-      ml( 4, 8) = ml( 8, 4) = -ml( 2,10);
+    ml( 2, 2) = ml( 8, 8) =  m*156.0;
+    ml( 2, 8) = ml( 8, 2) =  m*54.0;
+    ml( 4, 4) = ml(10,10) =  m*4.0*L*L;
+    ml( 4,10) = ml(10, 4) = -m*3.0*L*L;
+    ml( 2, 4) = ml( 4, 2) = -m*22.0*L;
+    ml( 8,10) = ml(10, 8) = -ml( 2, 4);
+    ml( 2,10) = ml(10, 2) =  m*13.0*L;
+    ml( 4, 8) = ml( 8, 4) = -ml( 2,10);
 
-      ml( 1, 1) = ml( 7, 7) =  m*156.0;
-      ml( 1, 7) = ml( 7, 1) =  m*54.0;
-      ml( 5, 5) = ml(11,11) =  m*4.0*L*L;
-      ml( 5,11) = ml(11, 5) = -m*3.0*L*L;
-      ml( 1, 5) = ml( 5, 1) =  m*22.0*L;
-      ml( 7,11) = ml(11, 7) = -ml(1,5);
-      ml( 1,11) = ml(11, 1) = -m*13.0*L;
-      ml( 5, 7) = ml( 7, 5) = -ml(1,11);
+    ml( 1, 1) = ml( 7, 7) =  m*156.0;
+    ml( 1, 7) = ml( 7, 1) =  m*54.0;
+    ml( 5, 5) = ml(11,11) =  m*4.0*L*L;
+    ml( 5,11) = ml(11, 5) = -m*3.0*L*L;
+    ml( 1, 5) = ml( 5, 1) =  m*22.0*L;
+    ml( 7,11) = ml(11, 7) = -ml(1,5);
+    ml( 1,11) = ml(11, 1) = -m*13.0*L;
+    ml( 5, 7) = ml( 7, 5) = -ml(1,11);
 
-      // transform local mass matrix to global system
-      ml = basic_system->t.pushConstant(ml);
-      return mg;
+    // transform local mass matrix to global system
+    // ml = basic_system->t.pushConstant(ml);
+    return basic_system->getGlobalMatrixFromLocal(mg);
   }
 }
 
@@ -816,17 +816,17 @@ ForceFrame3d<NIP,nsr,nwm>::update()
         //
 
         if (Cholesky<NBV>(F).invert(K_trial) < 0) [[unlikely]] {
-          if constexpr (NBV < 7) {
+          // if constexpr (NBV < 7) {
             if (F.invert(K_trial) < 0)
               return -1;
-          }
-          if constexpr (NBV >= 7) {
-            K_trial = F;
-            if (K_trial.invert() < 0) {
-              opserr << "ForceFrame3d: Failed to invert flexibility\n";
-              return -1;
-            }
-          }
+          // }
+          // if constexpr (NBV >= 7) {
+          //   K_trial = F;
+          //   if (K_trial.invert() < 0) {
+          //     opserr << "ForceFrame3d: Failed to invert flexibility\n";
+          //     return -1;
+          //   }
+          // }
         }
 
         VectorND<NBV> dqe = K_trial * dv;
@@ -928,14 +928,13 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   pl[0*NDF+0]  = -q_pres[jnx];      // Ni
   pl[0*NDF+3]  = -q_pres[jmx];      // Ti
 
-  MatrixND<2*NDF,2*NDF> kl;
+  static MatrixND<2*NDF,2*NDF> kl;
   kl.zero();
 
   for (int i=0; i<NDF*2; i++) {
     int ii = std::abs(iq[i]);
     if (ii >= NBV)
       continue;
-    // pl[i] = q_pres[ii];
     for (int j=0; j<NDF*2; j++) {
       int jj = std::abs(iq[j]);
       if (jj >= NBV)
@@ -953,12 +952,15 @@ ForceFrame3d<NIP,nsr,nwm>::getTangentStiff()
   }
 
 
-
+#if 0
   ALWAYS_STATIC MatrixND<2*NDF,2*NDF> Kg;
   ALWAYS_STATIC Matrix Wrapper(Kg);
-
   Kg = basic_system->t.pushResponse(kl, pl);
-
+#else
+  using Operation = FrameTransform<2,NDF>::Operation;
+  static Matrix Wrapper(kl);
+  basic_system->t.push(kl, pl, Operation::Total);
+#endif
   return Wrapper;
 }
 
@@ -2703,7 +2705,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
   thread_local Vector wrapper(pg);
 
   pg  = basic_system->t.pushResponse(pl);
-  pg += basic_system->t.pushConstant(pf);
+  pg += basic_system->linear.pushResponse(pf);
 
   if (total_mass != 0.0)
     wrapper.addVector(1.0, this->FiniteElement<2,3,6+nwm>::p_iner, -1.0);

@@ -15,7 +15,7 @@
 #include <Matrix.h>
 #include <Logging.h>
 
-static double
+static double constexpr
 delta(int i,int j) {
     if (i==j) return 1.0;
     else return 0.0;
@@ -24,7 +24,8 @@ delta(int i,int j) {
 
 Vector T2Vector::engrgStrain(6);
 
-double operator && (const Vector & a, const Vector & b)
+double 
+operator && (const Vector & a, const Vector & b)
 {
   assert(a.Size() ==6 && b.Size() ==6);
 

@@ -25,7 +25,8 @@ namespace OpenSees {
 template<int ndf>
 BasicFrameTransf3d<ndf>::BasicFrameTransf3d(FrameTransform<2,ndf> *t)
 : CrdTransf(t->getTag(), 0),
-  t(*t)
+  t(*t),
+  linear(t->getTag(), t->getNormalVector(), t->getRigidOffsets())
 {
 
 }
@@ -70,6 +71,7 @@ int
 BasicFrameTransf3d<ndf>::initialize(Node *i, Node *j)
 {
   std::array<Node*, 2> nodes = {i, j};
+  linear.initialize(nodes);
   return t.initialize(nodes);
 }
 
@@ -184,7 +186,7 @@ BasicFrameTransf3d<ndf>::getGlobalResistingForce(const Vector &q_pres, const Vec
   static Vector wrapper(pg);
 
   pg  = t.pushResponse(pl);
-  pg += t.pushConstant(pf);
+  pg += linear.pushResponse(pf);
   return wrapper;
 }
 
@@ -205,7 +207,7 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
   pl[1*NDF+5]  =  q_pres[jmz];
   
 
-  MatrixND<2*NDF,2*NDF> kl;
+  static MatrixND<2*NDF,2*NDF> kl;
   kl.zero();
 
   for (int i=0; i<NDF*2; i++) {
@@ -226,11 +228,16 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
     kl(0*NDF+0, i) = kl(i, 0*NDF+0) = i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
     kl(0*NDF+3, i) = kl(i, 0*NDF+3) = i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   }
-
+#if 0
   static MatrixND<2*NDF,2*NDF> Kg;
   static Matrix Wrapper(Kg);
 
   Kg = t.pushResponse(kl, pl);
+#else 
+  static Matrix Wrapper(kl);
+  t.push(kl, pl, Operation::Total);
+#endif
+
 
   return Wrapper;
 }
@@ -276,8 +283,9 @@ BasicFrameTransf3d<ndf>::getInitialGlobalStiffMatrix(const Matrix &KB)
 
   static MatrixND<ndf*2,ndf*2> kg;
   static Matrix M(kg);
+  static constexpr VectorND<ndf*2> p0{};
 
-  kg = t.pushConstant(kl);
+  kg = linear.pushResponse(kl, p0);
 
   return M;
 }
@@ -300,8 +308,9 @@ BasicFrameTransf3d<ndf>::getGlobalMatrixFromLocal(const Matrix &M)
   //
   static MatrixND<ndf*2,ndf*2> Kout;
   static Matrix wrapper(Kout);
+  static constexpr VectorND<ndf*2> p0{};
   wrapper = M;
-  MatrixND<ndf*2,ndf*2> Kg = t.pushConstant(Kout);
+  MatrixND<ndf*2,ndf*2> Kg = linear.pushResponse(Kout, p0);
   Kout = Kg;
   return wrapper;
 }

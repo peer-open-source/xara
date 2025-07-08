@@ -56,14 +56,20 @@ template <int nn, int ndf>
 class FrameTransform : public TaggedObject
 {
 public:
-  constexpr static int ndm = 3;
+  explicit FrameTransform(int tag) : TaggedObject(tag) {}
 
-public:
-  FrameTransform(int tag) : TaggedObject(tag) {}
+  enum class Operation {
+    Total = 0,
+    Logarithm   = 1<<0,
+    LocalOffset = 1<<1,
+    Isometry    = 1<<2,
+    Rotation,
+    GlobalOffset,
+    Exponential
+  };
 
   virtual FrameTransform<nn,ndf> *getCopy() const =0;
 
-  virtual VectorND<nn*ndf> getStateVariation() =0;
 
   virtual Vector3D  getNodePosition(int tag) =0;
   virtual Vector3D  getNodeRotationLogarithm(int tag) =0;
@@ -86,23 +92,41 @@ public:
   virtual int revertToLastCommit() =0;
   virtual int revertToStart() =0;
 
+  virtual VectorND<nn*ndf> getStateVariation() =0; // pull
+#if 1
+  virtual int push(VectorND<nn*ndf>&pl, Operation=0) =0;
+  virtual int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation=0) =0;
+#endif
+
+  virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final {
+    VectorND<nn*ndf> pg{pl};
+    push(pg, Operation::Total);
+    return pg;
+  }
+
+  virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl,
+                                               const VectorND<nn*ndf>& pl) final {
+    MatrixND<nn*ndf,nn*ndf> kg{kl};
+    push(kg, pl, Operation::Total);
+    return kg;              
+  }
+
   virtual double getInitialLength() =0;
   virtual double getDeformedLength() =0;
   virtual const std::array<Vector3D,nn> *getRigidOffsets() const =0;
 
-  virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) =0;
-  virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl,
-                                               const VectorND<nn*ndf>& pl) =0;
-
-  VectorND<nn*ndf>    pushConstant(const VectorND<nn*ndf>&pl);
-  MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
-
   //
   virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const =0;
 
+  Vector3D getNormalVector() const {
+    Vector3D x, y, z;
+    if (getLocalAxes(x, y, z) < 0)
+      return Vector3D{{0.0, 0.0, 1.0}};
+    return z;
+  }
+
   // Recorders
-  virtual Response *setResponse(const char **argv, int argc, 
-                                OPS_Stream &theHandler) {
+  virtual Response *setResponse(const char **argv, int argc, OPS_Stream &) {
     return nullptr;
   }
   virtual int getResponse(int responseID, Information &) {
@@ -116,6 +140,15 @@ public:
   virtual bool   isShapeSensitivity() {return false;}
   virtual double getLengthGrad() {return 0.0;}
   virtual double getd1overLdh() {return 0.0;}
+
+
+protected:
+  constexpr static int ndm = 3;
+  static inline constexpr void
+  pushRotation(MatrixND<nn*ndf,nn*ndf>& Kg, const Matrix3D& R);
+
+  static inline constexpr void
+  pushOffsets(MatrixND<nn*ndf,nn*ndf>& Kg, const std::array<Vector3D,nn>& offsets);
 
   static int
   Orient(const Vector3D& dx, const Vector3D& vz, Matrix3D &R) {
@@ -143,9 +176,9 @@ public:
     }
     return 0;
   }
-protected:
-  static inline constexpr void
-  pushRotation(MatrixND<nn*ndf,nn*ndf>& Kg, const Matrix3D& R);
+
+  VectorND<nn*ndf>    pushConstant(const VectorND<nn*ndf>&pl);
+  MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
 
 };
 }
