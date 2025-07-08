@@ -58,16 +58,16 @@ NosbProj<ndim, maxfam>::init_shape()
     // Integrate K
     // note that Kinv is invariant in this formulation, but may not be in general
     Kinv.zero();
-
+    MatrixND<ndim, ndim> K{};
     for (int i = 0; i < numfam; i++)
     {
         const VectorND<ndim> xi = neigh[i]->coord - center->coord;
-        Kinv.addTensorProduct(xi, xi, omega[i] * center->vol[i]);
-        // Kinv += omega[i] * xi.bun(xi) * center->vol[i];
+        K.addTensorProduct(xi, xi, omega[i] * center->vol[i]);
+        // K += omega[i] * xi.bun(xi) * center->vol[i];
     }
 
     // Invert K
-    Kinv.invert();
+    K.invert(Kinv);
 }
 
 template <int ndim, int maxfam>
