@@ -42,7 +42,7 @@ int
 MatrixND<nr,nc,T>::symeig(VectorND<nr>& vals)
 {
   static_assert(nr == nc, "Matrix must be square");
-  static_assert(rc == 3 && nc == 3);
+  static_assert(nr == 3 && nc == 3);
   double work[3][3];
   cmx_eigSY3(values, work, vals.values);
   return 0;
