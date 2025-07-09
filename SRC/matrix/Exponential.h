@@ -9,6 +9,7 @@
 // Matrix exponential
 //
 // References:
+//
 //   N. J. Higham, The scaling and squaring method for the matrix
 //      exponential revisited. SIAM J. Matrix Anal. Appl., 26(4), (2005),
 //      pp. 1179-1193.
