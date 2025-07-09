@@ -10,6 +10,7 @@
 //
 #pragma once
 #include "MatrixND.h"
+
 #include "blasdecl.h"
 #include "routines/cmx.h"
 #include "routines/SY3.h"
@@ -33,6 +34,18 @@ MatrixND<nr, nc, T>::zero() noexcept
 #else 
   values.fill(T{});
 #endif
+}
+
+
+template <index_t nr, index_t nc, typename T>
+int
+MatrixND<nr,nc,T>::symeig(VectorND<nr>& vals)
+{
+  static_assert(nr == nc, "Matrix must be square");
+  static_assert(rc == 3 && nc == 3);
+  double work[3][3];
+  cmx_eigSY3(values, work, vals.values);
+  return 0;
 }
 
 #if 0

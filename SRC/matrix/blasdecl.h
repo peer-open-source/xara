@@ -26,6 +26,8 @@
 # define  DPBTRS dpbtrs_
 #endif
 extern "C" {
+  // Level 1
+  // x = alpha * x + beta * y
   void DAXPY (int*, double*, double*, const int*, double*, const int*);
   void DSCAL (int*, double*, double*, const int*);
   void DGEMV (const char* trans, int* M, int* N,

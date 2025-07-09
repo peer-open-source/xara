@@ -96,8 +96,8 @@ G3_SysOfEqnSpecifier specify_SparseSPD;
 G3_SysOfEqnSpecifier specifySparseGen;
 TclDispatch<LinearSOE*> TclDispatch_newMumpsLinearSOE;
 // TclDispatch<LinearSOE*> TclDispatch_newUmfpackLinearSOE;
-LinearSOE* TclDispatch_newUmfpackLinearSOE(ClientData, Tcl_Interp*, int, const char** const);
-LinearSOE* TclDispatch_newItpackLinearSOE(ClientData, Tcl_Interp*, int, const char** const);
+LinearSOE* TclDispatch_newUmfpackLinearSOE(ClientData, Tcl_Interp*, Tcl_Size, const char** const);
+LinearSOE* TclDispatch_newItpackLinearSOE(ClientData, Tcl_Interp*, Tcl_Size, const char** const);
 
 // Helpers to automatically create constructors for systems/solvers 
 // that do not take arguments when they are constructed.
