@@ -150,6 +150,7 @@ class _Surface:
 #                  find_node(exterior_coords[i]))
 #       yield (find_node(exterior_coords[-1]),
 #              find_node(exterior_coords[ 0]))
+
         nen = self.order + 1
         for i,edge in enumerate(nat_exterior):
 #           print(len(edge), self.split[i%2])
@@ -216,7 +217,7 @@ class OpenSeesPy:
             try:    return list(map(json.loads, parts))
             except: return ret
 
-        elif proc_name in {"eigen", "nodeDisp", "nodeReaction", "nodeUnbalance", "nodeResponse"}:
+        elif proc_name in {"eigen"}:
             # "eigen" should always return a list
             return [float(ret)]
 
