@@ -59,13 +59,8 @@ DiagonalSOE::DiagonalSOE(int N, DiagonalSolver &the_Solver)
     vectB = new Vector(B,size);
 
   }
-  the_Solver.setLinearSOE(*this);        
-  
-  int solverOK = the_Solver.setSize();
-  // if (solverOK < 0) {
-  //   opserr << "WARNING DiagonalSOE::DiagonalSOE :";
-  //   opserr << " solver failed setSize() in constructor\n";
-  // }
+  the_Solver.setLinearSOE(*this);
+  the_Solver.setSize();
 }
 
     
@@ -121,11 +116,8 @@ DiagonalSOE::setSize(Graph &theGraph)
   // invoke setSize() on the Solver
   LinearSOESolver *the_Solver = this->getSolver();
   int solverOK = the_Solver->setSize();
-  if (solverOK < 0) {
-    // opserr << "WARNING DiagonalSOE::setSize :";
-    // opserr << " solver failed setSize()\n";
+  if (solverOK < 0)
     return solverOK;
-  }    
   
   return result;
 }
