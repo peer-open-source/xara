@@ -324,12 +324,12 @@ MixedFrame3d::MixedFrame3d()
     // if transformNaturalCoords hasn't been set yet then set it
     static constexpr MatrixND<6,6> T {{
     // 0  1  2  3  4  5
-      {1, 0, 0, 0, 0, 0},
-      {0, 1, 0, 0, 0, 0},
-      {0, 0, 0, 1, 0, 0},
-      {0, 0,-1, 0, 0, 0},
-      {0, 0, 0, 0, 1, 0},
-      {0, 0, 0, 0, 0, 1}
+       1, 0, 0, 0, 0, 0 ,
+       0, 1, 0, 0, 0, 0 ,
+       0, 0, 0, 1, 0, 0 ,
+       0, 0,-1, 0, 0, 0 ,
+       0, 0, 0, 0, 1, 0 ,
+       0, 0, 0, 0, 0, 1 
     }};
     transformNaturalCoords.Zero();
     transformNaturalCoords(0, 0) = 1;
