@@ -277,19 +277,18 @@ PrismFrame3d::update()
             Y(i, i+2) = L;
 
           MatrixND<2,2> Km {{
-                           {E*Iy,  E*Iyz},
-                           {E*Iyz, E*Iz }
+                            E*Iy,  E*Iyz ,
+                            E*Iyz, E*Iz  
                            }};
 
-          MatrixND<2,2> Dx {{
-                           { 0,  -1},
-                           { 1,   0}}};
+          MatrixND<2,2> Dx {{0,  -1 ,
+                             1,   0 }};
 
           MatrixND<2,2> Phi{0};
           if (G*Ay != 0 && G*Az != 0) {
-            Phi = {{
-              {  1/(G*Ay),      0      },
-              {        0 ,     1/(G*Az)}}};
+
+            Phi = {{ 1/(G*Ay),      0       ,
+                           0 ,     1/(G*Az) }};
           } 
 
           MatrixND<2,2> Ak = Dx;
@@ -365,12 +364,12 @@ PrismFrame3d::update()
 
           MatrixND<4,4> Kb = Kc*Fci;
 
-          ke = {{{E*A/L,      0  ,       0  ,        0   ,     0   ,     0  },
-                 {   0 , -Kb(1,1),  -Kb(1,3),    -Kb(1,0), -Kb(1,2),     0  },  // i theta_z
-                 {   0 ,  Kb(3,1),   Kb(3,3),     Kb(3,0),  Kb(3,2),     0  },  // j
-                 {   0 , -Kb(0,1),  -Kb(0,3),    -Kb(0,0), -Kb(0,2),     0  },  // i theta_y
-                 {   0 ,  Kb(2,1),   Kb(2,3),     Kb(2,0),  Kb(2,2),     0  },
-                 {   0,       0  ,       0  ,        0   ,     0   ,  G*Jx/L}}};
+          ke = {{ E*A/L,      0  ,       0  ,        0   ,     0   ,     0   ,
+                     0 , -Kb(1,1),  -Kb(1,3),    -Kb(1,0), -Kb(1,2),     0   ,  // i theta_z
+                     0 ,  Kb(3,1),   Kb(3,3),     Kb(3,0),  Kb(3,2),     0   ,  // j
+                     0 , -Kb(0,1),  -Kb(0,3),    -Kb(0,0), -Kb(0,2),     0   ,  // i theta_y
+                     0 ,  Kb(2,1),   Kb(2,3),     Kb(2,0),  Kb(2,2),     0   ,
+                     0,       0  ,       0  ,        0   ,     0   ,  G*Jx/L }};
         }
         break;
     }
@@ -436,13 +435,19 @@ PrismFrame3d::getResistingForce()
   pf[7] = p0[2];
   pf[2] = p0[3];
   pf[8] = p0[4];
-
+#if 0
   static VectorND<12> pg;
   static Vector wrapper(pg);
 
   pg  = basic_system->t.pushResponse(pl);
   pg += basic_system->linear.pushResponse(pf);
-
+#else
+  using Operation = typename FrameTransform<2,6>::Operation;
+  static Vector wrapper(pl);
+  basic_system->t.push(pl, Operation::Total);
+  basic_system->linear.push(pf, Operation::Total);
+  pl += pf;
+#endif
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)
     wrapper.addVector(1.0, p_iner, -1.0);
@@ -462,27 +467,28 @@ PrismFrame3d::getMass()
 {
     if (total_mass == 0.0) {
 
-        thread_local MatrixND<12,12> M;
-        M.zero();
-        thread_local Matrix Wrapper{M};
-        return Wrapper;
+      thread_local MatrixND<12,12> M;
+      M.zero();
+      thread_local Matrix Wrapper{M};
+      return Wrapper;
 
     } else if (mass_flag == 0)  {
-        // Lumped mass matrix
+      // Lumped mass matrix
 
-        thread_local MatrixND<12,12> M;
-        M.zero();
-        thread_local Matrix Wrapper{M};
-        double m = 0.5*total_mass;
-        M(0,0) = m;
-        M(1,1) = m;
-        M(2,2) = m;
-        M(6,6) = m;
-        M(7,7) = m;
-        M(8,8) = m;
-        return Wrapper;
+      thread_local MatrixND<12,12> M;
+      M.zero();
+      thread_local Matrix Wrapper{M};
+      double m = 0.5*total_mass;
+      M(0,0) = m;
+      M(1,1) = m;
+      M(2,2) = m;
+      M(6,6) = m;
+      M(7,7) = m;
+      M(8,8) = m;
+      return Wrapper;
 
     } else {
+
       // Consistent (cubic, prismatic) mass matrix
 
       if (!shear_flag) {

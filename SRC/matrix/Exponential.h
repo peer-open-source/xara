@@ -241,9 +241,9 @@ test_expm()
   double cs = std::cos(x[2]),
          sn = std::sin(x[2]);
 
-  MatrixND<3,3> A = {{{cs, -sn, 0},
-                      {sn,  cs, 0},
-                      { 0,   0, 1}}};
+  MatrixND<3,3> A = {{ cs, -sn, 0 ,
+                       sn,  cs, 0 ,
+                        0,   0, 1 }};
 
   opserr << Matrix(A) ;
   opserr << Matrix(B) ;

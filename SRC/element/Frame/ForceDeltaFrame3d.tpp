@@ -925,7 +925,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
 #endif
   // Add loading
   double p0[5]{};
-  if (eleLoads.size() > 0) // (eleLoads.size() > 0)
+  if (eleLoads.size() > 0)
     this->computeReactions(p0);
 
   static VectorND<12> pf;
