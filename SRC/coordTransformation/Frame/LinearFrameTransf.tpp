@@ -246,7 +246,7 @@ template <int nn, int ndf>
 double
 LinearFrameTransf<nn,ndf>::getDeformedLength()
 {
-  return L;
+  return L+Du[0];
 }
 
 
@@ -331,7 +331,7 @@ template <int nn, int ndf>
 VectorND<nn*ndf>
 LinearFrameTransf<nn,ndf>::getStateVariation()
 {
-  static VectorND<nn*ndf> ug;
+  VectorND<nn*ndf> ug;
   for (int i=0; i<nn; i++) {
     const Vector &ddu = nodes[i]->getIncrDeltaDisp();
     for (int j = 0; j < ndf; j++) {
@@ -355,6 +355,7 @@ LinearFrameTransf<nn,ndf>::getNodePosition(int node)
   // TODO(nn>2)
   return v;
 }
+
 
 template <int nn, int ndf>
 Vector3D
@@ -412,7 +413,6 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
 }
 
 template <int nn, int ndf>
-// MatrixND<nn*ndf,nn*ndf>
 int
 LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb, 
                                 const VectorND<nn*ndf>&, 
@@ -445,7 +445,7 @@ LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb,
   kl.addMatrixTripleProduct(0, A, kb, 1);
   this->FrameTransform<nn,ndf>::pushConstant(kl);
 #else 
-  MatrixND<nn*ndf,nn*ndf> kl;;
+  MatrixND<nn*ndf,nn*ndf> kl;
   kl.addMatrixTripleProduct(0, A, kb, 1);
   kb = this->FrameTransform<nn,ndf>::pushConstant(kl);
   // this->pushRotation(kb, R);
@@ -463,7 +463,6 @@ LinearFrameTransf<nn,ndf>::getCopy() const
   xz(0) = R(0,2);
   xz(1) = R(1,2);
   xz(2) = R(2,2);
-
 
   LinearFrameTransf *theCopy = new LinearFrameTransf<nn,ndf>(this->getTag(), xz, offsets);
 
