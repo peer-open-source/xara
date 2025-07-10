@@ -2,10 +2,6 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
-//
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
 //
 //----------------------------------------------------------------------------//
 //
@@ -23,6 +19,7 @@
 // transformation for a space frame between the global
 // and basic coordinate systems
 //
+// Written: Claudio M. Perez
 // Adapted: Remo Magalhaes de Souza
 //
 #pragma once
