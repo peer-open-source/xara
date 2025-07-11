@@ -12,7 +12,7 @@
 // Written: cmp 2024
 //
 #include <Frame/BasicFrame3d.h>
-#include "PrismFrame3d.h"
+#include "PrismFrame3d02.h"
 #include <Domain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -31,7 +31,7 @@
 #include <runtime/commands/modeling/transform/FrameTransformBuilder.hpp>
 
 
-PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
+PrismFrame3d02::PrismFrame3d02(int tag, std::array<int, 2>& nodes,
                            double  A, double  E, double  G, 
                            double jx, double iy, double iz,
                            FrameTransformBuilder& tb,
@@ -47,7 +47,8 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
     mass_flag(cm), density(r),
     releasez(rz), releasey(ry),
     geom_flag(geom),
-    section_tag(-1)
+    section_tag(-1),
+    q_send(q)
 {
   q.zero();
   ke.zero();
@@ -56,7 +57,7 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
 }
 
 
-PrismFrame3d::PrismFrame3d(int tag, 
+PrismFrame3d02::PrismFrame3d02(int tag, 
                            std::array<int,2>& nodes,
                            FrameSection &section,  
                            FrameTransformBuilder& tb,
@@ -70,12 +71,10 @@ PrismFrame3d::PrismFrame3d(int tag,
     basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
     mass_flag(cMass), density(density),
     releasez(rz), releasey(ry),
-    geom_flag(geom)
+    geom_flag(geom),
+    q_send(q)
 {
   q.zero();
-  ke.zero();
-  kg.zero();
-  km.zero();
 
   // 1) Get Area properties
   section_tag = section.getTag();
@@ -130,7 +129,7 @@ PrismFrame3d::PrismFrame3d(int tag,
 }
 
 int
-PrismFrame3d::setNodes()
+PrismFrame3d02::setNodes()
 {
 
   
@@ -143,13 +142,11 @@ PrismFrame3d::setNodes()
   this->BasicFrame3d::setLength(L);
 
   if (L == 0.0) {
-    opserr << "PrismFrame3d::setDomain  tag: " << this->getTag() << " -- Element has zero length\n";
+    opserr << "PrismFrame3d02::setDomain  tag: " << this->getTag() << " -- Element has zero length\n";
     total_mass = 0;
     twist_mass = 0;
     phiY = 0;
     phiZ = 0;
-
-    formBasicStiffness(km);
     return -1;
   }
 
@@ -162,7 +159,6 @@ PrismFrame3d::setNodes()
   else
     phiZ = 0.0;
   //
-  formBasicStiffness(km);
 
   total_mass = density*L; 
   twist_mass = (density/A)*Jx*L;
@@ -170,48 +166,12 @@ PrismFrame3d::setNodes()
   return 0;
 }
 
-
-inline void
-PrismFrame3d::formBasicStiffness(OpenSees::MatrixND<6,6>& kb) const
-{    
-    kb.zero();
-    kb(0,0) = E*A/L;
-    kb(5,5) = G*Jx/L;
-    if (releasez == 0) {
-//    kb(1,1) = kb(2,2) = 4.0*E*Iz/L;  // iz-iz and jz-jz
-      kb(1,1) = kb(2,2) = E*Iz*(4+phiY)/(L*(1+phiY));
-      kb(1,3) = kb(3,1) = 4.0*E*Iyz/L; // iz-iy and iy-iz
-//    kb(1,2) = kb(2,1) = 2.0*E*Iz/L;  // iz-jz and jz-iz
-      kb(2,1) = kb(1,2) = E*Iz*(2-phiY)/(L*(1+phiY));
-      kb(1,4) = kb(4,1) = 2.0*E*Iyz/L; // iz-jy and jy-iz
-    }
-
-    if (releasez == 1)   // release I; TODO: shear correction
-      kb(2,2) = 3.0*E*Iz/L;
-
-    if (releasez == 2)   // release J; TODO: shear correction
-      kb(1,1) = 3.0*E*Iz/L;
-
-    if (releasey == 0) {
-      // kb(3,3) = kb(4,4) = 4.0*E*Iy/L;
-      // kb(4,3) = kb(3,4) = 2.0*E*Iy/L;
-      kb(3,3) = kb(4,4) = E*Iy*(4.0 + phiZ)/(L*(1+phiZ));
-      kb(4,3) = kb(3,4) = E*Iy*(2.0 - phiZ)/(L*(1+phiZ));
-    }
-    if (releasey == 1)   // release I
-      kb(4,4) = 3.0*E*Iy/L;
-
-    if (releasey == 2)   // release J
-      kb(3,3) = 3.0*E*Iy/L;
-}
-
-
 int
-PrismFrame3d::commitState()
+PrismFrame3d02::commitState()
 {
   int retVal = 0;
   if ((retVal = this->Element::commitState()) != 0) {
-    opserr << "PrismFrame3d::commitState () - failed in base class";
+    opserr << "PrismFrame3d02::commitState () - failed in base class";
   }    
   retVal += basic_system->commitState();
   return retVal;
@@ -219,14 +179,14 @@ PrismFrame3d::commitState()
 
 
 int
-PrismFrame3d::revertToLastCommit()
+PrismFrame3d02::revertToLastCommit()
 {
   return basic_system->revertToLastCommit();
 }
 
 
 int
-PrismFrame3d::revertToStart()
+PrismFrame3d02::revertToStart()
 {
   q.zero();
   return basic_system->revertToStart();
@@ -234,262 +194,92 @@ PrismFrame3d::revertToStart()
 
 
 int
-PrismFrame3d::update()
+PrismFrame3d02::update()
 {
-  int ok = basic_system->update();
-
-  const Vector &v = basic_system->getBasicTrialDisp();
-  
-
-  // Form the axial force
-  double N = E*A/L*v[0];
-  double T = G*Jx/L*v[3];
-
-  if (std::fabs(N) < 1e-8)
-    ke = km;
-
-  else
-    switch (geom_flag) {
-      case 0:
-        ke = km;
-        break;
-
-      case 1:
-        kg.zero();
-        kg(1,1) = kg(2,2) =  4.0*N*L/30.0;
-        kg(1,2) = kg(2,1) = -1.0*N*L/30.0;
-        ke = km + kg;
-        break;
-
-      case 2:
-        {
-          // Y is composed of 2x2 blocks:
-          //
-          // Y = [O  I     O    O 
-          //      O  O     I    O
-          //      O  O     O    I
-          //      O  O  -ks\P   O];
-          //
-          MatrixND<8,8> Y;
-          Y.zero();
-
-          for (int i=0; i<6; i++)
-            Y(i, i+2) = L;
-
-          MatrixND<2,2> Km {{
-                            E*Iy,  E*Iyz ,
-                            E*Iyz, E*Iz  
-                           }};
-
-          MatrixND<2,2> Dx {{0,  -1 ,
-                             1,   0 }};
-
-          MatrixND<2,2> Phi{0};
-          if (G*Ay != 0 && G*Az != 0) {
-
-            Phi = {{ 1/(G*Ay),      0       ,
-                           0 ,     1/(G*Az) }};
-          } 
-
-          MatrixND<2,2> Ak = Dx;
-          Ak.addMatrix(Dx*Phi,  N);
-          MatrixND<2,2> C  = Dx*Km*Ak;
-          {
-            MatrixND<2,2> Ci;
-            C.invert(Ci);
-            Y.assemble(Ci, 6, 4, -L*N);
-            Y.assemble(Ci, 6, 6, -L*T);
-          }
-
-          const MatrixND<8,8> eY  = ExpGLn(Y);
-
-          MatrixND<2,2> B3, B4;
-          {
-            MatrixND<2,2> E12 = eY.extract<0,2,  2,4>();
-            MatrixND<2,2> E13 = eY.extract<0,2,  4,6>();
-            MatrixND<2,2> E14 = eY.extract<0,2,  6,8>();
-            // E12.invert();
-            MatrixND<2,2> E12_Inv;
-            E12.invert(E12_Inv);
-
-            B3 = E12_Inv*E13,
-            B4 = E12_Inv*E14;
-
-            B3 *= -1;
-            B4 *= -1;
-          }
-
-          MatrixND<4,4> Fci{};
-          {
-            MatrixND<2,2> O{};
-            MatrixND<2,2> I{};
-            I.addDiagonal(1.0);
-            MatrixND<2,2> E22 = eY.extract<2,4,  2,4>();
-            MatrixND<2,2> E23 = eY.extract<2,4,  4,6>();
-            MatrixND<2,2> E24 = eY.extract<2,4,  6,8>();
-            MatrixND<2,2> E42 = eY.extract<6,8,  2,4>();
-            MatrixND<2,2> E43 = eY.extract<6,8,  4,6>();
-            MatrixND<2,2> E44 = eY.extract<6,8,  6,8>();
-            MatrixND<8,4> Fa{};
-            Fa.assemble(B3,         0, 0, 1);
-            Fa.assemble(B4,         0, 2, 1);
-            Fa.assemble( O,         2, 0, 1);
-            Fa.assemble( I,         2, 2, 1);
-            Fa.assemble(E22*B3+E23, 4, 0, 1);
-            Fa.assemble(E22*B4+E24, 4, 2, 1);
-            Fa.assemble(E42*B3+E43, 6, 0, 1);
-            Fa.assemble(E42*B4+E44, 6, 2, 1);
-            MatrixND<4,8> Fb{};
-            Fb.assemble(Dx,              0, 0, 1);
-            Fb.assemble(Dx*Phi*Dx*Km*Ak, 0, 2,-1);
-            Fb.assemble(Dx,              2, 4, 1);
-            Fb.assemble(Dx*Phi*Dx*Km*Ak, 2, 6,-1);
-            (Fb*Fa).invert(Fci);
-          }
-
-          MatrixND<4,4> Kc{};
-          {
-
-            MatrixND<2,2> E32 = eY.extract<4,6,  2,4>();
-            MatrixND<2,2> E33 = eY.extract<4,6,  4,6>();
-            MatrixND<2,2> E34 = eY.extract<4,6,  6,8>();
-
-            MatrixND<2,2> DxC = Dx*C;
-            DxC *= -1;
-
-            Kc.assemble(DxC,              0, 0, 1);
-            Kc.assemble(DxC*(E32*B3+E33), 2, 0, 1);
-            Kc.assemble(DxC*(E32*B4+E34), 2, 2, 1);
-          }
-
-          MatrixND<4,4> Kb = Kc*Fci;
-
-          ke = {{ E*A/L,      0  ,       0  ,        0   ,     0   ,     0   ,
-                     0 , -Kb(1,1),  -Kb(1,3),    -Kb(1,0), -Kb(1,2),     0   ,  // i theta_z
-                     0 ,  Kb(3,1),   Kb(3,3),     Kb(3,0),  Kb(3,2),     0   ,  // j
-                     0 , -Kb(0,1),  -Kb(0,3),    -Kb(0,0), -Kb(0,2),     0   ,  // i theta_y
-                     0 ,  Kb(2,1),   Kb(2,3),     Kb(2,0),  Kb(2,2),     0   ,
-                     0,       0  ,       0  ,        0   ,     0   ,  G*Jx/L }};
-        }
-        break;
-    }
-
-  q  = ke*v;
-
-  q += this->BasicFrame3d::q0;
-
-  return ok;
+  return basic_system->update();
 }
 
-
-OpenSees::VectorND<6>&
-PrismFrame3d::getBasicForce()
-{
-  return q;
-}
 
 
 const Matrix &
-PrismFrame3d::getTangentStiff()
+PrismFrame3d02::getTangentStiff()
 {
-  VectorND<6>   q  = this->getBasicForce();
-  MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
+  thread_local MatrixND<12,12> kb;
+  thread_local Matrix wrapper(kb);
 
-  return basic_system->getGlobalStiffMatrix(Matrix(kb), Vector(q));
+  kb = this->getBasicTangent(State::Pres, 0);
+
+  using Operation = typename FrameTransform<2,6>::Operation;
+
+  basic_system->t.push(kb, q, Operation::Total);
+
+  return wrapper;
 }
 
 const Matrix &
-PrismFrame3d::getInitialStiff()
+PrismFrame3d02::getInitialStiff()
 {
   return basic_system->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
 }
 
 const Vector &
-PrismFrame3d::getResistingForce()
+PrismFrame3d02::getResistingForce()
 {
-  double q1 = q[1];
-  double q2 = q[2];
-  double q3 = q[3];
-  double q4 = q[4];
-  double q5 = q[5];
 
-  static VectorND<12> pl;
-  pl.zero();
-  pl[0]  = -q[0];           // Ni
-#if 0
-  pl[1]  =  (q1 + q2)/L;  // Viy
-  pl[2]  = -(q3 + q4)/L;  // Viz
-  pl[7]  = -pl[1];        // Vjy
-  pl[8]  = -pl[2];        // Vjz
-#endif
-  pl[3]  = -q5;           // Ti
-  pl[4]  =  q3;
-  pl[5]  =  q1;
-  pl[6]  =  q[0];           // Nj
-  pl[9]  = q5;            // Tj
-  pl[10] = q4;
-  pl[11] = q2;
+  VectorND<12> du = basic_system->t.getStateVariation();
+  q += this->getBasicTangent(State::Pres, 0)*du;
 
-  VectorND<12> pf{0.0};
-  pf[0] = p0[0];
-  pf[1] = p0[1];
-  pf[7] = p0[2];
-  pf[2] = p0[3];
-  pf[8] = p0[4];
-#if 0
-  static VectorND<12> pg;
-  static Vector wrapper(pg);
+  basic_system->t.push(q);
 
-  pg  = basic_system->t.pushResponse(pl);
-  pg += basic_system->linear.pushResponse(pf);
-#else
-  using Operation = typename FrameTransform<2,6>::Operation;
-  static Vector wrapper(pl);
-  basic_system->t.push(pl, Operation::Total);
-  basic_system->linear.push(pf, Operation::Total);
-  pl += pf;
-#endif
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)
-    wrapper.addVector(1.0, p_iner, -1.0);
+    q_send.addVector(1.0, p_iner, -1.0);
 
-  return wrapper;
+  return q_send;
+
 }
 
-OpenSees::MatrixND<6,6>&
-PrismFrame3d::getBasicTangent(State flag, int rate)
+OpenSees::MatrixND<12,12>
+PrismFrame3d02::getBasicTangent(State flag, int rate)
 {
-  return ke;
+  const double EA = E*A;
+  const double EIy = E*Iy;
+  const double EIz = E*Iz;
+  return MatrixND<12,12>{{
+    EA/L,        0,      0,     0, 0, 0, -EA/L, 0, 0, 0, 0, 0,
+       0,        0, 12*EIy/L/L, 0, 0, 6*EIy/L, 0, 0, -12*EIy/L/L, 0, 0, 6*EIy/L,
+       0,        0,      0,     12*EIz/L/L, 0, -6*EIz/L, 0, 0, 0, -12*EIz/L/L, 0, -6*EIz/L,
+       0, -6*EIz/L,      0,     0, 0, 0, 0, 6*EIz/L, 0, 0,
+  }};
 }
 
 
 const Matrix &
-PrismFrame3d::getMass()
+PrismFrame3d02::getMass()
 {
     if (total_mass == 0.0) {
 
-      thread_local MatrixND<12,12> M;
-      M.zero();
-      thread_local Matrix Wrapper{M};
-      return Wrapper;
+        thread_local MatrixND<12,12> M;
+        M.zero();
+        thread_local Matrix Wrapper{M};
+        return Wrapper;
 
     } else if (mass_flag == 0)  {
-      // Lumped mass matrix
+        // Lumped mass matrix
 
-      thread_local MatrixND<12,12> M;
-      M.zero();
-      thread_local Matrix Wrapper{M};
-      double m = 0.5*total_mass;
-      M(0,0) = m;
-      M(1,1) = m;
-      M(2,2) = m;
-      M(6,6) = m;
-      M(7,7) = m;
-      M(8,8) = m;
-      return Wrapper;
+        thread_local MatrixND<12,12> M;
+        M.zero();
+        thread_local Matrix Wrapper{M};
+        double m = 0.5*total_mass;
+        M(0,0) = m;
+        M(1,1) = m;
+        M(2,2) = m;
+        M(6,6) = m;
+        M(7,7) = m;
+        M(8,8) = m;
+        return Wrapper;
 
     } else {
-
       // Consistent (cubic, prismatic) mass matrix
 
       if (!shear_flag) {
@@ -579,19 +369,19 @@ PrismFrame3d::getMass()
 
 
 int
-PrismFrame3d::sendSelf(int cTag, Channel &theChannel)
+PrismFrame3d02::sendSelf(int cTag, Channel &theChannel)
 {
   return -1;
 }
 
 int
-PrismFrame3d::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+PrismFrame3d02::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
   return -1;
 }
 
 void
-PrismFrame3d::Print(OPS_Stream &s, int flag)
+PrismFrame3d02::Print(OPS_Stream &s, int flag)
 {
   const ID& node_tags = this->getExternalNodes();
 
@@ -647,7 +437,7 @@ PrismFrame3d::Print(OPS_Stream &s, int flag)
 
         basic_system->getLocalAxes(xAxis, yAxis, zAxis);
 
-        s << "#PrismFrame3d\n";
+        s << "#PrismFrame3d02\n";
         s << "#LocalAxis " << xAxis(0) << " " << xAxis(1) << " " << xAxis(2);
         s << " " << yAxis(0) << " " << yAxis(1) << " " << yAxis(2) << " ";
         s << zAxis(0) << " " << zAxis(1) << " " << zAxis(2) << "\n";
@@ -667,7 +457,7 @@ PrismFrame3d::Print(OPS_Stream &s, int flag)
     }
     
     if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << "\n  PrismFrame3d: " << this->getTag() << "\n";
+        s << "\n  PrismFrame3d02: " << this->getTag() << "\n";
         s << "\tConnected Nodes: " << connectedExternalNodes;
         s << "\tCoordTransf: " << basic_system->getTag() << "\n";
         s << "\tmass density:  " << total_mass/L << ", mass_type: " << mass_flag << "\n";
@@ -679,7 +469,7 @@ PrismFrame3d::Print(OPS_Stream &s, int flag)
 
 
 Response*
-PrismFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
+PrismFrame3d02::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
 
   Response *theResponse = nullptr;
@@ -781,7 +571,7 @@ PrismFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 }
 
 int
-PrismFrame3d::getResponse(int responseID, Information &info)
+PrismFrame3d02::getResponse(int responseID, Information &info)
 {
   double L = basic_system->getInitialLength();
   double oneOverL = 1.0/L;
@@ -857,7 +647,7 @@ PrismFrame3d::getResponse(int responseID, Information &info)
 
 
 const Vector&
-PrismFrame3d::getResistingForceSensitivity(int gradNumber)
+PrismFrame3d02::getResistingForceSensitivity(int gradNumber)
 {
   static Vector P(12);
   P.Zero();
@@ -893,7 +683,7 @@ PrismFrame3d::getResistingForceSensitivity(int gradNumber)
 }
 
 int
-PrismFrame3d::getResponseSensitivity(int responseID, int gradNumber, Information& info)
+PrismFrame3d02::getResponseSensitivity(int responseID, int gradNumber, Information& info)
 {
   // Basic deformation sensitivity
   if (responseID == 3) {
@@ -920,7 +710,7 @@ PrismFrame3d::getResponseSensitivity(int responseID, int gradNumber, Information
 
 
 int
-PrismFrame3d::setParameter(const char **argv, int argc, Parameter &param)
+PrismFrame3d02::setParameter(const char **argv, int argc, Parameter &param)
 {
 
   int status = this->FiniteElement<2,3,6>::setParameter(argv, argc, param);
@@ -989,7 +779,7 @@ PrismFrame3d::setParameter(const char **argv, int argc, Parameter &param)
 }
 
 int
-PrismFrame3d::updateParameter(int param, Information &info)
+PrismFrame3d02::updateParameter(int param, Information &info)
 {
     int status = this->FiniteElement<2,3,6>::updateParameter(param, info);
     if (status != -1)
@@ -1042,8 +832,8 @@ PrismFrame3d::updateParameter(int param, Information &info)
 }
 
 
-VectorND<6>
-PrismFrame3d::getBasicForceGrad(int gradNumber)
+VectorND<12>
+PrismFrame3d02::getBasicForceGrad(int gradNumber)
 {
 
   double L   = basic_system->getInitialLength();

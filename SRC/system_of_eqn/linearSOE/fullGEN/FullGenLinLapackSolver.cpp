@@ -27,7 +27,7 @@
 //
 #include <math.h>
 #include <assert.h>
-#include <blasdecl.h>
+#include <routines/xblas.h>
 #include <FullGenLinLapackSolver.h>
 #include <FullGenLinSOE.h>
 #include <Matrix.h>

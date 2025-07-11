@@ -28,7 +28,7 @@
 #include "Vector.h"
 #include "Vector3D.h"
 #include "routines/cmx.h"
-#include "blasdecl.h"
+#include "routines/xblas.h"
 #include "ID.h"
 
 #include <stdlib.h>

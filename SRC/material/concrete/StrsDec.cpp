@@ -36,136 +36,135 @@ EigSY3v0(M3& v, V3& d)
   //
   //---------------------------------------------------------------eig3==
 
-    int     i, j, k;
-    double  g, h, aij, thresh, t, c, s, tau;
+  double  g, h, aij, c, s, tau;
 
-    static const double tol = 1.0e-08;
+  static constexpr double tol = 1.0e-08;
 
-    //.... move array into one-d arrays
-    double a[3];
-    a[0] = v(0, 1);
-    a[1] = v(1, 2);
-    a[2] = v(2, 0);
+  //.... move array into one-d arrays
+  double a[3];
+  a[0] = v(0, 1);
+  a[1] = v(1, 2);
+  a[2] = v(2, 0);
 
-    double b[3], z[3];
+  double b[3], z[3]{};
+  for (int i = 0; i < 3; i++) {
+    d[i] = v(i, i);
+    b[i] = v(i, i);
+
+    for (int j = 0; j < 3; j++)
+      v(i, j) = 0.0;
+
+    v(i, i) = 1.0;
+  }
+
+  int rot = 0;
+  int its = 0;
+
+  double sm = fabs(a[0]) + fabs(a[1]) + fabs(a[2]);
+
+  while (sm > tol) {
+    //.... set convergence test and threshold
+
+    double thresh;
+    if (its < 3)
+      thresh = 0.011 * sm;
+    else
+      thresh = 0.0;
+
+    //.... perform sweeps for rotations
     for (int i = 0; i < 3; i++) {
-        d[i] = v(i, i);
-        b[i] = v(i, i);
-        z[i] = 0.0;
 
-        for (int j = 0; j < 3; j++)
-            v(i, j) = 0.0;
+      int j = (i + 1) % 3;
+      int k = (j + 1) % 3;
 
-        v(i, i) = 1.0;
-    }
+      aij = a[i];
 
-    int rot = 0;
-    int its = 0;
+      g = 100.0 * fabs(aij);
 
-    double sm = fabs(a[0]) + fabs(a[1]) + fabs(a[2]);
+      if (fabs(d(i)) + g != fabs(d(i)) ||
+          fabs(d(j)) + g != fabs(d(j))) {
 
-    while (sm > tol) {
-        //.... set convergence test and threshold
-        if (its < 3)
-            thresh = 0.011 * sm;
-        else
-            thresh = 0.0;
+        if (fabs(aij) > thresh) {
 
-        //.... perform sweeps for rotations
-        for (int i = 0; i < 3; i++) {
+          a[i] = 0.0;
+          h = d[j] - d[i];
 
-            j = (i + 1) % 3;
-            k = (j + 1) % 3;
-
-            aij = a[i];
-
-            g = 100.0 * fabs(aij);
-
-            if (fabs(d(i)) + g != fabs(d(i)) ||
-                fabs(d(j)) + g != fabs(d(j))) {
-
-                if (fabs(aij) > thresh) {
-
-                    a[i] = 0.0;
-                    h = d[j] - d[i];
-
-                    if (fabs(h) + g == fabs(h))
-                        t = aij / h;
-                    else {
-                        //t = 2.0 * sign(h/aij) / ( fabs(h/aij) + sqrt(4.0+(h*h/aij/aij)));
-                        double hDIVaij = h / aij;
-                        if (hDIVaij > 0.0)
-                            t = 2.0 / (hDIVaij + sqrt(4.0 + (hDIVaij * hDIVaij)));
-                        else
-                            t = -2.0 / (-hDIVaij + sqrt(4.0 + (hDIVaij * hDIVaij)));
-                    }
-
-                    //.... set rotation parameters
-
-                    c = 1.0 / sqrt(1.0 + t * t);
-                    s = t * c;
-                    tau = s / (1.0 + c);
-
-                    //.... rotate diagonal terms
-
-                    h = t * aij;
-                    z[i] = z[i] - h;
-                    z[j] = z[j] + h;
-                    d[i] = d[i] - h;
-                    d[j] = d[j] + h;
-
-                    //.... rotate off-diagonal terms
-
-                    h = a[j];
-                    g = a[k];
-                    a[j] = h + s * (g - h * tau);
-                    a[k] = g - s * (h + g * tau);
-
-                    //.... rotate eigenvectors
-
-                    for (int k = 0; k < 3; k++) {
-                        g = v(k, i);
-                        h = v(k, j);
-                        v(k, i) = g - s * (h + g * tau);
-                        v(k, j) = h + s * (g - h * tau);
-                    }
-
-                    rot = rot + 1;
-
-                } // end if fabs > thresh 
-            }
+          double t;
+          if (fabs(h) + g == fabs(h))
+            t = aij / h;
+          else {
+            //t = 2.0 * sign(h/aij) / ( fabs(h/aij) + sqrt(4.0+(h*h/aij/aij)));
+            double hDIVaij = h / aij;
+            if (hDIVaij > 0.0)
+              t = 2.0 / (hDIVaij + sqrt(4.0 + (hDIVaij * hDIVaij)));
             else
-                a[i] = 0.0;
+              t = -2.0 / (-hDIVaij + sqrt(4.0 + (hDIVaij * hDIVaij)));
+          }
 
-        }
+          //.... set rotation parameters
 
-        //.... update the diagonal terms
-        for (i = 0; i < 3; i++) {
-            b[i] = b[i] + z[i];
-            d[i] = b[i];
-            z[i] = 0.0;
-        }
+          c = 1.0 / sqrt(1.0 + t * t);
+          s = t * c;
+          tau = s / (1.0 + c);
 
-        its += 1;
+          //.... rotate diagonal terms
 
-        sm = std::fabs(a[0]) + std::fabs(a[1]) + std::fabs(a[2]);
+          h = t * aij;
+          z[i] = z[i] - h;
+          z[j] = z[j] + h;
+          d[i] = d[i] - h;
+          d[j] = d[j] + h;
 
+          //.... rotate off-diagonal terms
+
+          h = a[j];
+          g = a[k];
+          a[j] = h + s * (g - h * tau);
+          a[k] = g - s * (h + g * tau);
+
+          //.... rotate eigenvectors
+
+          for (int k = 0; k < 3; k++) {
+            g = v(k, i);
+            h = v(k, j);
+            v(k, i) = g - s * (h + g * tau);
+            v(k, j) = h + s * (g - h * tau);
+          }
+
+          rot = rot + 1;
+
+        } // end if fabs > thresh 
+      }
+      else
+        a[i] = 0.0;
     }
 
-    // sort in descending order (unrolled bubble sort)
-    auto sortij = [&d, &v](int i, int j) {
-        if (d[i] < d[j]) {
-            std::swap(d(i), d(j));
-            for (int k = 0; k < 3; ++k)
-                std::swap(v(k, i), v(k, j));
-        }
-    };
-    sortij(0, 1);
-    sortij(1, 2);
-    sortij(0, 1);
+    //.... update the diagonal terms
+    for (int i = 0; i < 3; i++) {
+      b[i] = b[i] + z[i];
+      d[i] = b[i];
+      z[i] = 0.0;
+    }
 
-    // done
-    return 0;
+    its += 1;
+
+    sm = std::fabs(a[0]) + std::fabs(a[1]) + std::fabs(a[2]);
+  }
+
+  // sort in descending order (unrolled bubble sort)
+  auto sortij = [&d, &v](int i, int j) {
+      if (d[i] < d[j]) {
+          std::swap(d(i), d(j));
+          for (int k = 0; k < 3; ++k)
+              std::swap(v(k, i), v(k, j));
+      }
+  };
+  sortij(0, 1);
+  sortij(1, 2);
+  sortij(0, 1);
+
+  // done
+  return 0;
 }
 
 
@@ -241,7 +240,7 @@ StrsDecA(const VectorND<6> &sig,
     // find eigenvalues sigI and eigenvectors n
     VectorND<3> sigI;
     if (EigSY3v0(sigM, sigI) < 0)
-        return -1;
+      return -1;
 
     // eigenvectors are n = [n1 n2 n3]
     VectorND<3> n1, n2, n3;
@@ -308,8 +307,8 @@ StrsDecA(const VectorND<6> &sig,
         addVoightTensorProduct(Ppos, n3,n2,  n3,n2,  0.25*2*term23); // 3232
 
         for (int i=0; i<6; i++)
-           for (int j=3; j<6; j++)
-               Ppos(i,j) = 2*Ppos(i,j); // 0.5*Ppos(i,j) + 0.5*Ppos(j,i);
+          for (int j=3; j<6; j++)
+            Ppos(i,j) = 2*Ppos(i,j); // 0.5*Ppos(i,j) + 0.5*Ppos(j,i);
     }
     return 0;
     // Qpos = Ppos + 2*(term12*(p12*p12') + term13*(p13*p13') + term23*(p23*p23'));

@@ -1,16 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
+//
 //===----------------------------------------------------------------------===//
 //
 // Description: This file implements selection of an integrator.
 //
-#include <G3_Logging.h>
-#include <assert.h>
 #include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
+#include <assert.h>
 #include <runtimeAPI.h>
 #include <Domain.h>
 #include <Node.h>
@@ -317,7 +317,8 @@ G3Parse_newEQPathIntegrator(ClientData clientData, Tcl_Interp *interp, int argc,
 
 #include <ArcLength.h>
 StaticIntegrator *
-G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp, 
+                               Tcl_Size argc, TCL_Char ** const argv)
 {
   double arcLength;
   double alpha   = 1.0;
@@ -358,9 +359,11 @@ G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp, int ar
       if (++i < argc && strcmp(argv[i], "point")==0) {
         reference = ReferencePattern::Point;
       }
-    } else if (!got_alpha) {
+    }
+    else if (!got_alpha) {
       if (Tcl_GetDouble(interp, argv[i], &alpha) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "failed to read alpha, got " << argv[i] << "\n";
+        opserr << OpenSees::PromptValueError 
+               << "failed to read alpha, got " << argv[i] << "\n";
         return nullptr;
       }
       got_alpha = true;

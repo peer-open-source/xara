@@ -441,9 +441,9 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 {
   constexpr static double TOL_SUBDIV = DBL_EPSILON;
 
-  THREAD_LOCAL VectorND<nsr>     es_trial[NIP]; //  strain
-  THREAD_LOCAL VectorND<nsr>     sr_trial[NIP]; //  stress resultant
-  THREAD_LOCAL MatrixND<nsr,nsr> Fs_trial[NIP]; //  flexibility
+  static VectorND<nsr>     es_trial[NIP]; //  strain
+  static VectorND<nsr>     sr_trial[NIP]; //  stress resultant
+  static MatrixND<nsr,nsr> Fs_trial[NIP]; //  flexibility
 
 
   // If we have completed a recvSelf() do a revertToLastCommit()
@@ -459,7 +459,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
   double L   = basic_system->getInitialLength();
   double jsx = 1.0 / L;
 
-  THREAD_LOCAL VectorND<NBV> dv;
+  VectorND<NBV> dv;
   {
     const Vector& dvb = basic_system->getBasicIncrDeltaDisp();
     for (int i=0; i<6; i++) {
@@ -473,7 +473,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
   if (state_flag != 0 && (dv.norm() <= DBL_EPSILON) && (eleLoads.size()==0))
     return 0;
 
-  THREAD_LOCAL VectorND<NBV> Dv{};
+  VectorND<NBV> Dv{};
   {
     const Vector& v = basic_system->getBasicTrialDisp();
     for (int i=0; i<6; i++)
@@ -490,8 +490,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
       }
     }
   }
-  THREAD_LOCAL VectorND<NBV> dvToDo{},
-                             dv_trial{};
+  VectorND<NBV> dvToDo{}, dv_trial{};
 
   dvToDo  = dv;
   dv_trial = dvToDo;
@@ -539,16 +538,16 @@ ForceFrame3d<NIP,nsr,nwm>::update()
         continue;
 
       VectorND<NBV>      q_trial = q_pres;
-      MatrixND<NBV, NBV> K_trial = K_pres;
+      // MatrixND<NBV, NBV> K_trial = K_pres;
 
       q_trial += K_pres*dv;
 
       for (int j = 0; j < numIters; j++) {
 
-        THREAD_LOCAL VectorND<NBV> vr;       // element residual deformations
-        THREAD_LOCAL MatrixND<NBV, NBV> F;   // element flexibility matrix
-        F.zero();
-        vr.zero();
+        VectorND<NBV> vr{};       // element residual deformations
+        MatrixND<NBV, NBV> F{};   // element flexibility matrix
+        // F.zero();
+        // vr.zero();
 
         //
         // Gauss Loop
@@ -571,8 +570,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           // Interpolation of q_trial
           //    b*q_trial
           //
-          VectorND<nsr> si;
-          si.zero();
+          VectorND<nsr> si{};
           for (int ii=0; ii<nsr; ii++) {
             switch (scheme[ii]) {
               case FrameStress::N:
@@ -804,7 +802,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
 
         // dv = Dv + dv_trial  - vr
-        dv = Dv;
+        dv  = Dv;
         dv += dv_trial;
         dv -= vr;
 
@@ -814,22 +812,18 @@ ForceFrame3d<NIP,nsr,nwm>::update()
         //    K_trial  = inv(F)
         //    q_trial += K * (Dv + dv_trial - vr)
         //
+        const Cholesky<NBV> cholF(F);
+        // if (cholF.invert(K_trial) < 0) [[unlikely]] {
+        //   if (F.invert(K_trial) < 0)
+        //     return -1;
+        // }
 
-        if (Cholesky<NBV>(F).invert(K_trial) < 0) [[unlikely]] {
-          // if constexpr (NBV < 7) {
-            if (F.invert(K_trial) < 0)
-              return -1;
-          // }
-          // if constexpr (NBV >= 7) {
-          //   K_trial = F;
-          //   if (K_trial.invert() < 0) {
-          //     opserr << "ForceFrame3d: Failed to invert flexibility\n";
-          //     return -1;
-          //   }
-          // }
+        // VectorND<NBV> dqe = K_trial * dv;
+        VectorND<NBV> dqe;
+        if (cholF.solve(&dv[0], &dqe[0]) < 0) [[unlikely]] {
+          if (F.solve(dv, dqe) < 0)
+            return -1;
         }
-
-        VectorND<NBV> dqe = K_trial * dv;
 
         dW = dqe.dot(dv);
         if (dW0 == 0.0)
@@ -860,7 +854,12 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           }
 
           // set K_pres, es and q_pres values
-          K_pres = K_trial;
+          // K_pres = K_trial;
+
+          if (cholF.invert(K_pres) < 0) [[unlikely]] {
+            if (F.invert(K_pres) < 0)
+              return -1;
+          }
           q_pres = q_trial;
 
           for (int k = 0; k < nip; k++) {
@@ -890,7 +889,7 @@ iterations_completed:
   } // while (converged == false)
 
 
-  if (converged == false) {
+  if (converged == false) [[unlikely]] {
     opserr << "WARNING - ForceFrame3d failed internal state determination ";
     opserr << "for element " 
            << this->getTag() 
@@ -2700,12 +2699,19 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
   pf[0*NDF + 2] = p0[3];
   pf[1*NDF + 1] = p0[2];
   pf[1*NDF + 2] = p0[4];
-
+#if 0
   thread_local VectorND<NDF*2> pg;
   thread_local Vector wrapper(pg);
 
   pg  = basic_system->t.pushResponse(pl);
   pg += basic_system->linear.pushResponse(pf);
+#else
+  using Operation = typename FrameTransform<2,NDF>::Operation;
+  thread_local Vector wrapper(pl);
+  basic_system->t.push(pl, Operation::Total);
+  basic_system->linear.push(pf, Operation::Total);
+  pl += pf;
+#endif
 
   if (total_mass != 0.0)
     wrapper.addVector(1.0, this->FiniteElement<2,3,6+nwm>::p_iner, -1.0);

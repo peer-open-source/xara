@@ -25,6 +25,7 @@
 # define  DPBSV  dpbsv_
 # define  DPBTRS dpbtrs_
 #endif
+
 extern "C" {
   // Level 1
   // x = alpha * x + beta * y

@@ -92,6 +92,7 @@ public:
   virtual int revertToLastCommit() =0;
   virtual int revertToStart() =0;
 
+//virtual VectorND<nn*ndf> getStateLogarithm() =0; //
   virtual VectorND<nn*ndf> getStateVariation() =0; // pull
 #if 1
   virtual int push(VectorND<nn*ndf>&pl, Operation=0) =0;
