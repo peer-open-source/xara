@@ -109,7 +109,7 @@ class ForceFrame3d: public BasicFrame3d,
         ndm = 3,        // dimension of the problem (3D)
         NEN = 2,        // number of element nodes
         NBV = 6+nwm*2,  // number of element DOFs in the basic system
-        max_subdivision= 10;
+        max_subdivision= 3;
 
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 
@@ -202,12 +202,12 @@ class ForceFrame3d: public BasicFrame3d,
   double tol;	                   // tolerance for relative energy norm for local iterations
 
   // Element state
-  MatrixND<2*NDF,2*NDF> tangent;
-  VectorND<2*NDF>    residual,
-                  inertia;
+  // MatrixND<2*NDF,2*NDF> tangent;
+  // VectorND<2*NDF>       residual,
+  //                       inertia;
 
   MatrixND<NBV,NBV> K_pres,          // stiffness matrix in the basic system 
-                K_save;          // committed stiffness matrix in the basic system
+                    K_save;          // committed stiffness matrix in the basic system
   VectorND<NBV> q_pres,          // element resisting forces in the basic system
                 q_save;          // committed element end forces in the basic system
   

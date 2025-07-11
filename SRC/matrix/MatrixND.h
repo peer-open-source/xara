@@ -74,7 +74,7 @@ struct alignas(64) MatrixND {
 
   operator const Matrix() const { return Matrix(&(*this)(0,0), NR, NC);}
 
-  int symeig(VectorND<NR>& vals);
+  // int symeig(VectorND<NR>& vals);
 
   constexpr void zero() noexcept;
 

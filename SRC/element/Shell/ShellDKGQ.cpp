@@ -1127,7 +1127,7 @@ void ShellDKGQ::computeBasis()
   double length = v1.Norm();
   v1 /= length;
 
-  //Gram-Schmidt process for v2
+  // Gram-Schmidt process for v2
 
   double alpha = v2 ^ v1;
 
@@ -1152,14 +1152,14 @@ void ShellDKGQ::computeBasis()
     xl[0][i]            = coorI ^ v1;
     xl[1][i]            = coorI ^ v2;
 
-  } //end for i
+  }
 
-  //basis vectors stored as array of doubles
+  // basis vectors stored as array of doubles
   for (i = 0; i < 3; i++) {
     g1[i] = v1(i);
     g2[i] = v2(i);
     g3[i] = v3(i);
-  } //end for i
+  }
 }
 
 //start Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)

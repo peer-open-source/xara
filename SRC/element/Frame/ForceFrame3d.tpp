@@ -819,8 +819,9 @@ ForceFrame3d<NIP,nsr,nwm>::update()
         // }
 
         // VectorND<NBV> dqe = K_trial * dv;
-        VectorND<NBV> dqe;
+        VectorND<NBV> dqe{};
         if (cholF.solve(&dv[0], &dqe[0]) < 0) [[unlikely]] {
+          opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
           if (F.solve(dv, dqe) < 0)
             return -1;
         }
@@ -1412,7 +1413,7 @@ ForceFrame3d<NIP,nsr,nwm>::getInitialDeformations(Vector& v0)
     double xL1 = xL - 1.0;
     double wtL = points[i].weight * L;
 
-    THREAD_LOCAL VectorND<nsr> sp;
+    VectorND<nsr> sp;
     sp.zero();
 
     this->addLoadAtSection(sp, points[i].point*L);
@@ -2679,7 +2680,8 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
   if (eleLoads.size() > 0)
     this->computeReactions(p0);
 
-  VectorND<NDF*2> pl{};
+  thread_local VectorND<NDF*2> pl;
+  pl.zero();
   for (int i=0; i<NDF*2; i++) {
     int ii = std::abs(iq[i]);
     if (ii >= NBV)
@@ -2692,7 +2694,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
 
 
   //
-  thread_local VectorND<NDF*2> pf;
+  VectorND<NDF*2> pf;
   pf.zero();
   pf[0*NDF + 0] = p0[0];
   pf[0*NDF + 1] = p0[1];
