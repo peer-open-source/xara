@@ -253,16 +253,14 @@ ExactFrame3d<nen,nwm>::update()
 
   // Form displaced node locations xyz
   VectorND<ndm> xyz[nen];
-  if constexpr (nwm) {
-    double uwarp[nen][nwm]{};
-    for (unsigned i=0; i < nen; i++) {
-      const Vector& xi = theNodes[i]->getCrds();
-      const Vector& ui = theNodes[i]->getTrialDisp();
-      for (int j=0; j<ndm; j++)
-        xyz[i][j] = xi[j] + ui[j];
-      for (int j=0; j<nwm; j++)
-        uwarp[i][j] = ui[6+j];
-    }
+  std::array<std::array<double,nen>,nwm> uwarp{};
+  for (unsigned i=0; i < nen; i++) {
+    const Vector& xi = theNodes[i]->getCrds();
+    const Vector& ui = theNodes[i]->getTrialDisp();
+    for (int j=0; j<ndm; j++)
+      xyz[i][j] = xi[j] + ui[j];
+    for (int j=0; j<nwm; j++)
+      uwarp[i][j] = ui[6+j];
   }
 
   //
@@ -287,15 +285,13 @@ ExactFrame3d<nen,nwm>::update()
         dtheta[l] += pres[i].shape[1][j]*ddu[j][l+3];
     }
 
-    if constexpr (nwm) {
-      double warp[nwm]{};
-      double dwarp[nwm]{};
+    std::array<double,nwm> warp{};
+    std::array<double,nwm> dwarp{};
 
-      for (int k=0; k<nwm; k++) {
-        for (unsigned j=0; j < nen; j++) {
-          warp[k]  += pres[i].shape[0][j]*uwarp[j][k];
-          dwarp[k] += pres[i].shape[1][j]*uwarp[j][k];
-        }
+    for (int k=0; k<nwm; k++) {
+      for (unsigned j=0; j < nen; j++) {
+        warp[k]  += pres[i].shape[0][j]*uwarp[j][k];
+        dwarp[k] += pres[i].shape[1][j]*uwarp[j][k];
       }
     }
 
@@ -405,6 +401,25 @@ ExactFrame3d<nen,nwm>::update()
       Matrix3D R  = MatrixFromVersor(q);
       const double w = wp;
       const double xc = xp;
+      // for_int<nen>([&](auto i_) {
+      //     constexpr int i = decltype(i_)::value;
+      //     load->addLoadAtPoint<i, nen, ndf>(p, xc, w * shp[0][i], R0, R);
+
+      //     for_int<nen>([&](auto j_) {
+      //         constexpr int j = decltype(j_)::value;
+      //         load->addTangAtPoint<i, j, nen, ndf>(K, xc, w * shp[0][i] * shp[0][j], R0, R);
+      //     });
+      // });
+      // for_int<nen>([&]<auto I>() constexpr {
+      //   constexpr int i = I;
+      //   load->addLoadAtPoint<I, nen, ndf>(p, xc, w * shp[0][i], R0, R);
+
+      //   for_int<nen>([&]<auto J>() constexpr {
+      //       constexpr int j = J;
+      //       load->addTangAtPoint<I, J, nen, ndf>(K, xc, w * shp[0][i] * shp[0][j], R0, R);
+      //   });
+      // });
+#ifndef _MSC_VER
       for_int<nen>([&](auto i_) constexpr {
         constexpr int i = i_.value;
         load->addLoadAtPoint<i,nen,ndf>(p, xc, w*shp[0][i], R0, R);
@@ -413,6 +428,7 @@ ExactFrame3d<nen,nwm>::update()
           load->addTangAtPoint<i,j,nen,ndf>(K, xc, w*shp[0][i]*shp[0][j], R0, R);
         });
       });
+#endif
     }
   }
   return OpenSees::Flag::Success;

@@ -31,21 +31,22 @@
 #include <Matrix.h>
 #include <string.h>
 #include <TclModelBuilder.h>
+#include <Parsing.h>
 
 #include <UniformDamping.h>
 #include <SecStifDamping.h>
 #include <URDDamping.h>
 #include <URDDampingbeta.h>
 
-static Domain *theTclModelBuilderDomain = 0;
-static TclModelBuilder *theTclModelBuilder = 0;
+static Domain *theTclModelBuilderDomain = nullptr;
+static TclModelBuilder *theTclModelBuilder = nullptr;
 
 // 
 // to create a coordinate transformation 
 //
 int
 TclCommand_addDamping(ClientData clientData, Tcl_Interp *interp,
-			 int argc, TCL_Char **argv,
+			 Tcl_Size argc, TCL_Char **argv,
 			 Domain *theDomain,
 			 TclModelBuilder *theBuilder)
   

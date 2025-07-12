@@ -290,46 +290,48 @@ MatrixND<nr, nc, T>::addMatrixTransposeProduct(double thisFact,
     return;
   }
 
-  if (thisFact == 1.0) {
-    double *aijPtr =this->data();
-    for (int j=0; j<nc; j++) {
-      for (int i=0; i<nr; i++) {
-        const double *bkiPtr  = &(&B(0,0))[i*nk];
-        const double *cjkPtr  = &(&C(0,0))[j*nk];
-        double sum = 0.0;
-        for (int k=0; k<nk; k++) {
-          sum += *bkiPtr++ * *cjkPtr++;
+  else {
+    if (thisFact == 1.0) {
+      double *aijPtr =this->data();
+      for (int j=0; j<nc; j++) {
+        for (int i=0; i<nr; i++) {
+          const double *bkiPtr  = &(&B(0,0))[i*nk];
+          const double *cjkPtr  = &(&C(0,0))[j*nk];
+          double sum = 0.0;
+          for (int k=0; k<nk; k++) {
+            sum += *bkiPtr++ * *cjkPtr++;
+          }
+          *aijPtr++ += sum * otherFact;
         }
-        *aijPtr++ += sum * otherFact;
-      }
-    } 
-  } else if (thisFact == 0.0) {
-    double *aijPtr =this->data();
-    for (int j=0; j<nc; j++) {
-      for (int i=0; i<nr; i++) {
-        const double *bkiPtr  = &(&B(0,0))[i*nk];
-        const double *cjkPtr  = &(&C(0,0))[j*nk];
-        double sum = 0.0;
-        for (int k=0; k<nk; k++) {
-          sum += *bkiPtr++ * *cjkPtr++;
+      } 
+    } else if (thisFact == 0.0) {
+      double *aijPtr =this->data();
+      for (int j=0; j<nc; j++) {
+        for (int i=0; i<nr; i++) {
+          const double *bkiPtr  = &(&B(0,0))[i*nk];
+          const double *cjkPtr  = &(&C(0,0))[j*nk];
+          double sum = 0.0;
+          for (int k=0; k<nk; k++) {
+            sum += *bkiPtr++ * *cjkPtr++;
+          }
+          *aijPtr++ = sum * otherFact;
         }
-        *aijPtr++ = sum * otherFact;
-      }
-    } 
-  } else {
-    double *aijPtr =this->data();
-    for (int j=0; j<nc; j++) {
-      for (int i=0; i<nr; i++) {
-        const double *bkiPtr  = &(&B(0,0))[i*nk];
-        const double *cjkPtr  = &(&C(0,0))[j*nk];
-        double sum = 0.0;
-        for (int k=0; k<nk; k++) {
-          sum += *bkiPtr++ * *cjkPtr++;
+      } 
+    } else {
+      double *aijPtr =this->data();
+      for (int j=0; j<nc; j++) {
+        for (int i=0; i<nr; i++) {
+          const double *bkiPtr  = &(&B(0,0))[i*nk];
+          const double *cjkPtr  = &(&C(0,0))[j*nk];
+          double sum = 0.0;
+          for (int k=0; k<nk; k++) {
+            sum += *bkiPtr++ * *cjkPtr++;
+          }
+          *aijPtr = *aijPtr * thisFact + sum * otherFact;
+          aijPtr++;
         }
-        *aijPtr = *aijPtr * thisFact + sum * otherFact;
-        aijPtr++;
-      }
-    } 
+      } 
+    }
   }
 }
 

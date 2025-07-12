@@ -27,7 +27,7 @@
 #include <tcl.h>
 
 int
-TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
 //
 // Written: MD

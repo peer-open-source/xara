@@ -224,7 +224,7 @@ isotropic_convert(int flag1, double in1,
 
 
 int
-TclCommand_setIsotropicParameters(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+TclCommand_setIsotropicParameters(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   // We expect the syntax:
   //    material Isotropic $tag <options>

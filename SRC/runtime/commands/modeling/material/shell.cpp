@@ -14,6 +14,7 @@
 #include <tcl.h>
 #include <string.h>
 
+#include <Parsing.h>
 #include <Logging.h>
 #include <BasicModelBuilder.h>
 #include <PlateFiberMaterial.h>
@@ -88,7 +89,8 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
 
 
 int
-TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv)
+TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp, 
+                        Tcl_Size argc, TCL_Char** const argv)
 {
   // Pointer to a section that will be added to the model builder
   SectionForceDeformation* theSection = nullptr;

@@ -17,7 +17,9 @@ target_compile_options(OPS_Runtime PRIVATE
 # "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wextra>"
 # "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wpedantic>"
   "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
-  "$<$<CXX_COMPILER_ID:MSVC>:/W4>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/W3>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/bigobj>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/wd4100>"
 )
 
 target_include_directories(OPS_Runtime PUBLIC
