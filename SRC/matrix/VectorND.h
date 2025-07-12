@@ -28,7 +28,7 @@
 //
 #ifndef VectorND_H
 #define VectorND_H
-#include <math.h>
+#include <cmath>
 #include <assert.h>
 #include <Vector.h>
 #include <Matrix.h>
