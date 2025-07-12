@@ -122,11 +122,6 @@ ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
    stencil(nullptr),
    parameterID(0)
 {
-  //  double wt[nip];
-  //  double xi[nip];
-  //  beamIntegr->getSectionLocations(numSections, L, xi);
-  //  beamIntegr->getSectionWeights(numSections, L, wt);
-
   p.zero();
   K.zero();
 
@@ -253,7 +248,7 @@ ExactFrame3d<nen,nwm>::update()
 
   // Form displaced node locations xyz
   VectorND<ndm> xyz[nen];
-  std::array<std::array<double,nen>,nwm> uwarp{};
+  std::array<std::array<double,nwm>,nen> uwarp{};
   for (unsigned i=0; i < nen; i++) {
     const Vector& xi = theNodes[i]->getCrds();
     const Vector& ui = theNodes[i]->getTrialDisp();
