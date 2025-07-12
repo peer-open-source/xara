@@ -44,8 +44,9 @@ public:
     CTestRelativeNormDispIncr();
     CTestRelativeNormDispIncr(double tol, int maxNumIter, int printFlag, int normType=2);
 
-    // destructor
     ~CTestRelativeNormDispIncr();
+
+    const char* getClassType() const override { return "RelativeNormDispIncr"; }
 
     ConvergenceTest *getCopy(int iterations);
 

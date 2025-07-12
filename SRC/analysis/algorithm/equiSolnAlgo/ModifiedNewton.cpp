@@ -36,54 +36,12 @@
 #include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
 
-#include <elementAPI.h>
-void *
-OPS_ADD_RUNTIME_VPV(OPS_ModifiedNewton)
-{
-    int formTangent = CURRENT_TANGENT;
-    double iFactor = 0;
-    double cFactor = 1;
-
-    if (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* type = OPS_GetString();
-      if (strcmp(type,"-secant") == 0) {
-        formTangent = CURRENT_SECANT;
-      } else if (strcmp(type,"-initial") == 0) {
-        formTangent = INITIAL_TANGENT;
-      } else if(strcmp(type,"-hall")==0 || strcmp(type,"-Hall")==0) {
-        formTangent = HALL_TANGENT;
-        iFactor = 0.1;
-        cFactor = 0.9;
-        if (OPS_GetNumRemainingInputArgs() == 2) {
-          double data[2];
-          int numData = 2;
-          if(OPS_GetDoubleInput(&numData,&data[0]) < 0) {
-            opserr << "WARNING invalid data reading 2 hall factors\n";
-            return 0;
-          }
-          iFactor = data[0];
-          cFactor = data[1];
-        }
-      }
-    }
-
-    return new ModifiedNewton(formTangent, iFactor, cFactor);
-}
-
 
 ModifiedNewton::ModifiedNewton(int theTangentToUse, double iFact, double cFact)
 :EquiSolnAlgo(EquiALGORITHM_TAGS_ModifiedNewton),
  tangent(theTangentToUse), iFactor(iFact), cFactor(cFact)
 {
   
-}
-
-
-ModifiedNewton::ModifiedNewton(ConvergenceTest &theT, int theTangentToUse, double iFact, double cFact)
-:EquiSolnAlgo(EquiALGORITHM_TAGS_ModifiedNewton),
- tangent(theTangentToUse), iFactor(iFact), cFactor(cFact)
-{
-
 }
 
 

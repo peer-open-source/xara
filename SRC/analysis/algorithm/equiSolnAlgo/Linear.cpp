@@ -56,47 +56,42 @@ Linear::~Linear()
 int 
 Linear::solveCurrentStep()
 {
-    // set up some pointers and check they are valid
-    // NOTE this could be taken away if we set Ptrs as protecetd in superclass
+  // set up some pointers and check they are valid
+  // NOTE this could be taken away if we set Ptrs as protecetd in superclass
 
-    AnalysisModel *theAnalysisModel = this->getAnalysisModelPtr(); 
-    LinearSOE  *theSOE = this->getLinearSOEptr();
-    IncrementalIntegrator  *theIncIntegrator = this->getIncrementalIntegratorPtr(); 
+  AnalysisModel *theAnalysisModel = this->getAnalysisModelPtr(); 
+  LinearSOE  *theSOE = this->getLinearSOEptr();
+  IncrementalIntegrator  *theIncIntegrator = this->getIncrementalIntegratorPtr(); 
 
-    if ((theAnalysisModel == 0) || (theIncIntegrator ==0 ) || (theSOE == 0)){
-        opserr << "WARNING Linear::solveCurrentStep() -";
-        opserr << "setLinks() has not been called.\n";
-        return SolutionAlgorithm::BadAlgorithm;
-    }
+  if ((theAnalysisModel == 0) || (theIncIntegrator ==0 ) || (theSOE == 0)){
+      opserr << "WARNING Linear::solveCurrentStep() -";
+      opserr << "setLinks() has not been called.\n";
+      return SolutionAlgorithm::BadAlgorithm;
+  }
 
-    if (factorOnce != 2) {
-       if (theIncIntegrator->formTangent(incrTangent) < 0)
-         return SolutionAlgorithm::BadFormTangent;
+  if (factorOnce != 2) {
+      if (theIncIntegrator->formTangent(incrTangent) < 0)
+        return SolutionAlgorithm::BadFormTangent;
 
-       if (factorOnce == 1)
-           factorOnce = 2;
-    }
+      if (factorOnce == 1)
+          factorOnce = 2;
+  }
 
-    
-    if (theIncIntegrator->formUnbalance() < 0)
-        return SolutionAlgorithm::BadFormResidual;
-
-
-    if (theSOE->solve() < 0)
-        return SolutionAlgorithm::BadLinearSolve;
+  
+  if (theIncIntegrator->formUnbalance() < 0)
+      return SolutionAlgorithm::BadFormResidual;
 
 
-    if (theIncIntegrator->update(theSOE->getX()) < 0)
-        return SolutionAlgorithm::BadStepUpdate;
+  if (theSOE->solve() < 0)
+      return SolutionAlgorithm::BadLinearSolve;
 
-    return 0;
-}
 
-int
-Linear::setConvergenceTest(ConvergenceTest *theNewTest)
-{
+  if (theIncIntegrator->update(theSOE->getX()) < 0)
+      return SolutionAlgorithm::BadStepUpdate;
+
   return 0;
 }
+
 
 int
 Linear::sendSelf(int cTag, Channel &theChannel)

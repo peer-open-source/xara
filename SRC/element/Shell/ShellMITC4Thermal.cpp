@@ -35,6 +35,7 @@
 #include <Vector3D.h>
 #include <Matrix.h>
 #include <Matrix3D.h>
+#include <eigen/SymEigDirect3D.h>
 #include <Element.h>
 #include <Node.h>
 #include <SectionForceDeformation.h>
@@ -167,7 +168,7 @@ ShellMITC4Thermal::~ShellMITC4Thermal()
 //set domain
 void ShellMITC4Thermal::setDomain(Domain *theDomain)
 {
-  Vector3D eig;
+  // Vector3D eig;
   Matrix3D ddMembrane;
 
   //node pointers
@@ -197,10 +198,21 @@ void ShellMITC4Thermal::setDomain(Domain *theDomain)
   }
 
   //eigenvalues of ddMembrane
-  ddMembrane.symeig(eig);
+  // ddMembrane.symeig(eig);
 
-  //set ktt
-  Ktt = min(eig(2), min(eig(0), eig(1)));
+  // //set ktt
+  // Ktt = min(eig(2), min(eig(0), eig(1)));
+
+
+  SymEigDirect3D<double,-1> eigen;
+  std::array<Vector3D,3> eigvec;
+  Vector3D eigval;
+  eigen(ddMembrane(0, 0), ddMembrane(0, 1), ddMembrane(0, 2),
+        ddMembrane(1, 1), ddMembrane(1, 2), ddMembrane(2, 2),
+        eigval, eigvec);
+
+  // set ktt
+  Ktt = eigval[2];
 
   //basis vectors and local coordinates
   computeBasis();

@@ -277,14 +277,14 @@ KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-KrylovAccelerator2::updateTangent(IncrementalIntegrator &theIntegrator)
+KrylovAccelerator2::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
+  factored = false;
   if (dimension > maxDimension) {
     dimension = 0;
     if (theTangent != NO_TANGENT) {
-      //opserr << "KrylovAccelerator2::updateTangent() tangent formed" << endln;
-      theIntegrator.formTangent(theTangent);
-      return 1;
+      factored = true;
+      return theIntegrator.formTangent(theTangent);
     }
     else
       return 0;

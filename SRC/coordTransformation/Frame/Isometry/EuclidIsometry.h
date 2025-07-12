@@ -35,7 +35,8 @@ public:
   virtual int initialize(std::array<Node*,nn>& nodes) =0;
   virtual int update(std::array<Node*,nn>& nodes) =0;
 
-  virtual int update(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx, 
+  virtual int update(const Matrix3D& RI, 
+                     const Matrix3D& RJ, const Vector3D& dx, 
                      std::array<Node*,nn>& nodes) =0;
 
   virtual double    getLength() const =0;
@@ -167,58 +168,8 @@ public:
     return 0;
   }
 
-
-  // int
-  // update(std::array<Node*,nn>& nodes) final
-  // {
-  //   Matrix3D RI = MatrixFromVersor(nodes[0]->getTrialRotation());
-  //   Matrix3D RJ = MatrixFromVersor(nodes[nn-1]->getTrialRotation());
-
-  //   Vector3D dx = dX;
-  //   //
-  //   // Update position
-  //   //
-  //   {
-  //     const Vector& uI = nodes[   0]->getTrialDisp();
-  //     const Vector& uJ = nodes[nn-1]->getTrialDisp();
-  //     for (int k = 0; k < 3; k++)
-  //       dx[k] += uJ(k) - uI(k);
-
-  //     if (offsets != nullptr) [[unlikely]] {
-  //       dx.addVector(1.0, (*offsets)[   0],  1.0);
-  //       dx.addVector(1.0, RI*((*offsets)[0]), -1.0);
-  //       dx.addVector(1.0, (*offsets)[nn-1], -1.0);
-  //       dx.addVector(1.0, RJ*((*offsets)[nn-1]), 1.0);
-  //     }
-  //   }
-
-  //   // Calculate the deformed length
-  //   Ln = dx.norm();
-
-  //   if (Ln == 0.0) [[unlikely]] {
-  //     opserr << "\nSouzaFrameTransf: deformed length is 0.0\n";
-  //     return -2;
-  //   }
-
-  //   //
-  //   //
-  //   //
-  //   R[pres] = this->update_basis(RI, RJ, dx);
-    
-  //   //
-  //   //
-  //   //
-  //   Vector3D uc = nodes[ic]->getTrialDisp();
-  //   if (offsets != nullptr) {
-  //     uc.addVector(1.0, (*offsets)[ic], -1.0);
-  //     uc.addVector(1.0, nodes[ic]->getTrialRotation().rotate((*offsets)[ic]), 1.0);
-  //   }
-  //   c[pres] = R[pres]^(Xc + uc);
-  //   return 0;
-  // }
-
   virtual Vector3D
-  getRotationVariation(int ndf, double* du) {
+  getRotationVariation(int ndf, double* du) final {
     // psi_r = omega
     Vector3D w{};
     for (int i=0; i<nn; i++) {
@@ -273,13 +224,12 @@ public:
 
 protected:
   constexpr static int ic = 0; // std::floor(0.5*(nn+1));
-  enum { pres, prev, init};
+  enum {pres, init};
   double L, Ln;
   Vector3D vz, dX, Xc;
-  Matrix3D R[3];
-  Vector3D c[3];
+  Matrix3D R[2];
+  Vector3D c[2];
   Matrix3D dR;
-  // std::array<Node*,nn>& nodes;
   std::array<Vector3D, nn>* offsets = nullptr; // offsets
 };
 

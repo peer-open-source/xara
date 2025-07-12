@@ -406,7 +406,7 @@ ParseBoucWen(ClientData clientData, Tcl_Interp *interp,
       case Positions::PinchSize:
       case Positions::PinchSlope:
       case Positions::PinchStart:
-//    case Positions::PinchLambda:
+      case Positions::PinchLamda:
         break;
       //
       //

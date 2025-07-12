@@ -243,9 +243,9 @@ PrismFrame2d::formBasicStiffness(OpenSees::MatrixND<3,3>& kb) const
                  (double)(release&0b010)};
 
   MatrixND<3,3> ah {{
-    {1-r[0],        0,                  0          },
-    {  0   ,      1-r[1],       -0.5*(1-r[2])*r[1] },
-    {  0   ,-0.5*(1-r[1])*r[2],       1-r[2]       }}};
+     1-r[0],        0,                  0           ,
+       0   ,      1-r[1],       -0.5*(1-r[2])*r[1]  ,
+       0   ,-0.5*(1-r[1])*r[2],       1-r[2]        }};
 }
 
 int

@@ -27,7 +27,7 @@
 #include <math.h>
 #include <BandSPDLinLapackSolver.h>
 #include <BandSPDLinSOE.h>
-#include <blasdecl.h>
+#include <routines/xblas.h>
 
 
 BandSPDLinLapackSolver::BandSPDLinLapackSolver()

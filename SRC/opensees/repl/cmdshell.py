@@ -1,6 +1,7 @@
 import cmd
 import opensees.tcl
 
+PROMPT = "opensees \N{WHITE PARALLELOGRAM} "
 class TclShell(cmd.Cmd):
 #   intro = """\
 

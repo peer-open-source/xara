@@ -283,7 +283,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_IGASurfacePatch)
 }
 
 int
-TclCommand_IGA(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+TclCommand_IGA(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   G3_Runtime *rt = G3_getRuntime(interp);
 

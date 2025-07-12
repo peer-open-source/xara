@@ -6,24 +6,26 @@ import opensees.tcl
 
 import platformdirs
 from prompt_toolkit import prompt
-from prompt_toolkit.styles import Style
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 
-from prompt_toolkit.lexers import PygmentsLexer
-from prompt_toolkit.styles.pygments import style_from_pygments_cls
-from pygments.lexers.tcl import TclLexer
-import pygments.styles
-from pygments.styles import get_style_by_name
+
 
 from .unix import file_util_commands
 
 try:
-    style = style_from_pygments_cls(get_style_by_name('pastie'))
+    from prompt_toolkit.lexers import PygmentsLexer
+    from prompt_toolkit.styles.pygments import style_from_pygments_cls
+    from pygments.lexers.tcl import TclLexer
+    import pygments.styles
+    from pygments.styles import get_style_by_name
+    _STYLE = style_from_pygments_cls(get_style_by_name('pastie'))
     # style = style_from_pygments_cls(get_style_by_name('nord'))
+    _LEXER = PygmentsLexer(TclLexer)
 except:
-    style = None
+    _STYLE = None
+    _LEXER = None
 
 
 _banner = """\033[1m\
@@ -31,6 +33,12 @@ _banner = """\033[1m\
                  └─┘├─┘└──┘ │ ─┘  └──└───┘
  ───────────────────┘Berkeley, California ──────────────────────
                          © UC Regents
+\033[0m"""
+
+_banner = """\033[1m
+                  ╲╱  ─┐ ┌─  ─┐
+                  ╱╲ └─└ ╵  └─└
+ ─────────────────── xara.so ─────────────────────────
 \033[0m"""
 
 if os.name == "nt" and "PSModulePath" not in os.environ:
@@ -84,7 +92,7 @@ class OpenSeesREPL:
     """
     Create an OpenSees read-eval-print loop (REPL).
     """
-    prompt = "opensees \N{WHITE PARALLELOGRAM} "
+    prompt = "xara \N{WHITE PARALLELOGRAM} "
 
     def __init__(self, interp=None, banner=True):
 
@@ -116,7 +124,7 @@ class OpenSeesREPL:
 
 
         interp = self.interp
-        lexer  = PygmentsLexer(TclLexer)
+        lexer  = _LEXER
 
         print(_banner)
 
@@ -132,7 +140,7 @@ class OpenSeesREPL:
 
             inputs = nested_prompt(self.session, [('class:prompt',prompt)],
                         vi_mode=use_vi,
-                        style=style,
+                        style=_STYLE,
                         lexer=lexer,
                         completer = NestedCompleter.from_nested_dict(completions),
                         complete_while_typing=False

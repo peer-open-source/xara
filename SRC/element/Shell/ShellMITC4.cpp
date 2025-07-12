@@ -39,6 +39,7 @@
 #include <Matrix.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
+#include <eigen/SymEigDirect3D.h>
 
 #include <Element.h>
 #include <Node.h>
@@ -128,7 +129,6 @@ ShellMITC4::~ShellMITC4()
 
 void ShellMITC4::setDomain(Domain *theDomain)
 {
-  Vector3D eig;
   Matrix3D ddMembrane;
 
   // node pointers
@@ -159,10 +159,16 @@ void ShellMITC4::setDomain(Domain *theDomain)
   }
 
   // eigenvalues of ddMembrane
-  ddMembrane.symeig(eig);
+  // ddMembrane.symeig(eig);
+  SymEigDirect3D<double,-1> eigen;
+  std::array<Vector3D,3> eigvec;
+  Vector3D eigval;
+  eigen(ddMembrane(0, 0), ddMembrane(0, 1), ddMembrane(0, 2),
+        ddMembrane(1, 1), ddMembrane(1, 2), ddMembrane(2, 2),
+        eigval, eigvec);
 
   // set ktt
-  Ktt = min(eig(2), min(eig(0), eig(1)));
+  Ktt = eigval[2];
 
   // basis vectors and local coordinates
   computeBasis();
@@ -1005,18 +1011,18 @@ ShellMITC4::formResidAndTangent(int tang_flag)
   Rot(1, 1) =  cos(alph);
 
   const MatrixND<4, 12> G = {{ // NOTE: initialization is transposed
-   {     -0.50,        -0.50,          0.00,          0.00},
-   {-dy41*0.25, -dy21 * 0.25,          0.00,          0.00},
-   { dx41*0.25,  dx21 * 0.25,          0.00,          0.00},
-   {      0.00,         0.50,         -0.5 ,          0.00},
-   {      0.00, -dy21 * 0.25,  -dy32 * 0.25,          0.00},
-   {      0.00,  dx21 * 0.25,   dx32 * 0.25,          0.00},
-   {      0.00,         0.00,          0.5 ,          0.5 },
-   {      0.00,         0.00,  -dy32 * 0.25,  -dy34 * 0.25},
-   {      0.00,         0.00,   dx32 * 0.25,   dx34 * 0.25},
-   {      0.50,         0.00,          0.00,         -0.5 },
-   {-dy41*0.25,         0.00,          0.00,  -dy34 * 0.25},
-   { dx41*0.25,         0.00,          0.00,   dx34 * 0.25}}};
+         -0.50,        -0.50,          0.00,          0.00 ,
+    -dy41*0.25, -dy21 * 0.25,          0.00,          0.00 ,
+     dx41*0.25,  dx21 * 0.25,          0.00,          0.00 ,
+          0.00,         0.50,         -0.5 ,          0.00 ,
+          0.00, -dy21 * 0.25,  -dy32 * 0.25,          0.00 ,
+          0.00,  dx21 * 0.25,   dx32 * 0.25,          0.00 ,
+          0.00,         0.00,          0.5 ,          0.5  ,
+          0.00,         0.00,  -dy32 * 0.25,  -dy34 * 0.25 ,
+          0.00,         0.00,   dx32 * 0.25,   dx34 * 0.25 ,
+          0.50,         0.00,          0.00,         -0.5  ,
+    -dy41*0.25,         0.00,          0.00,  -dy34 * 0.25 ,
+     dx41*0.25,         0.00,          0.00,   dx34 * 0.25 }};
 
   MatrixND<2, 4> Ms;
   Ms.zero();

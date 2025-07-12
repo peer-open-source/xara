@@ -449,10 +449,12 @@ PlateFiberMaterialThermal::sendSelf(int commitTag, Channel& theChannel)
 
   // now send the materials data
   res = theMaterial->sendSelf(commitTag, theChannel);
-  if (res < 0)
+  if (res < 0) {
     // opserr << "PlateFiberMaterialThermal::sendSelf() - failed to send vector material\n";
-
     return res;
+  }
+
+  return res;
 }
 
 int
@@ -497,8 +499,10 @@ PlateFiberMaterialThermal::recvSelf(int commitTag, Channel& theChannel, FEM_Obje
 
   // now receive the associated materials data
   res = theMaterial->recvSelf(commitTag, theChannel, theBroker);
-  if (res < 0)
+  if (res < 0) {
     // opserr << "PlateFiberMaterialThermal::sendSelf() - failed to send vector material\n";
-
     return res;
+  }
+  return res;
 }
+

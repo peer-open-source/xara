@@ -43,8 +43,9 @@ public:
     CTestFixedNumIter();
     CTestFixedNumIter(int maxNumIter, int printFlag, int normType=2);
 
-    // destructor
     ~CTestFixedNumIter();
+
+    const char* getClassType() const override { return "FixedNumIter"; }
 
     ConvergenceTest *getCopy(int iterations);
 

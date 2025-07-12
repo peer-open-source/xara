@@ -57,8 +57,10 @@ public:
   Vector3D getNodeRotationLogarithm(int tag) final;
   const std::array<Vector3D,nn> *getRigidOffsets() const final { return linear.getRigidOffsets();}
 
-  VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final;
-  MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl) final;
+  using Operation = typename FrameTransform<nn,ndf>::Operation;
+  int push(VectorND<nn*ndf>&pl, Operation) final;
+  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
+
 
   FrameTransform<nn,ndf> *getCopy() const final;
 
@@ -68,7 +70,7 @@ public:
   double getLengthGrad() final;
 
   // Tagged Object
-  void Print(OPS_Stream &s, int flag = 0) final;
+  void Print(OPS_Stream &s, int flag) final;
 
 private:
   int offset_flags;

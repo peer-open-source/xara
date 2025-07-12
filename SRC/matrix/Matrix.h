@@ -61,7 +61,8 @@ class Matrix
     // TODO: Implementing this will remove some unnecessary allocations,
     // but first we need to straighten out MatrixND::solve.
     //
-    // template <int n,int m> Matrix(OpenSees::MatrixND<n,m,double>& A)
+    // template <int n,int m> [[deprecated]]
+    // Matrix(OpenSees::MatrixND<n,m,double>& A)
     //   : numRows(n), numCols(m), data(&A(0,0)), fromFree(1)
     // {
     // }
@@ -74,7 +75,7 @@ class Matrix
         delete[] data;
 
       fromFree = 1; // Cannot delete data
-      data = &M.values[0][0];
+      data = M.data();
       numRows = nr;
       numCols = nc;
       dataSize= nr*nc;

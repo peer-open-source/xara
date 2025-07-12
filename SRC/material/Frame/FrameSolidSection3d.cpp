@@ -250,15 +250,15 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
 
     // NOTE: Matrix 3D is column major so these are transposed.
     const Matrix3D iow{{
-      {w[0][0],     0.0,     0.0},
-      {w[1][0],     0.0,     0.0},
-      {w[2][0],     0.0,     0.0}
+      w[0][0],     0.0,     0.0,
+      w[1][0],     0.0,     0.0,
+      w[2][0],     0.0,     0.0
     }};
 
     const Matrix3D iodw{{
-      {    0.0, w[0][1], w[0][2]},
-      {    0.0, w[1][1], w[1][2]},
-      {    0.0, w[2][1], w[2][2]}
+          0.0, w[0][1], w[0][2],
+          0.0, w[1][1], w[1][2],
+          0.0, w[2][1], w[2][2]
     }};
 
 
@@ -287,9 +287,9 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     const Vector &stress  = theMat.getStress();
 
     if (wagner && e_trial != nullptr) {
-      Matrix3D ioi {{{1, 0, 0},
-                     {0, 0, 0},
-                     {0, 0, 0}}};
+      constexpr Matrix3D ioi {{ 1, 0, 0 ,
+                                0, 0, 0 ,
+                                0, 0, 0 }};
        Matrix3D ioiC = ioi*C;
        K.mn.addMatrix(ioiC, tr2);
        //

@@ -19,8 +19,6 @@ target_sources(OPS_Algorithm
       NewtonLineSearch.cpp 
       Broyden.cpp 
       BFGS.cpp
-      KrylovNewton.cpp 
-      PeriodicNewton.cpp
       AcceleratedNewton.cpp
       NewtonHallM.cpp
     PUBLIC
@@ -32,8 +30,6 @@ target_sources(OPS_Algorithm
       NewtonLineSearch.h 
       Broyden.h 
       BFGS.h
-      KrylovNewton.h 
-      PeriodicNewton.h 
       AcceleratedNewton.h
       NewtonHallM.h
 )

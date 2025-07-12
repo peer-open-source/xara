@@ -6,9 +6,8 @@
 #===----------------------------------------------------------------------===#
 #
 """
-This module implements the OpenSeesPy interface.
-Imports can be performed exactly as one would
-from openseespy, for example:
+This module implements the OpenSeesPy interface. Imports can be performed 
+exactly as one would from openseespy, for example:
 
 >>> import opensees.openseespy as ops
 
@@ -76,6 +75,44 @@ def _split_iter(source, sep=None, regex=False):
             yield source[start:idx]
             start = idx + sepsize
 
+
+def _obj_to_tcl(arg, name: str = None):
+    """
+    Convert arg to a string that represents
+    Tcl semantics.
+    """
+    import numpy as np
+    if isinstance(arg, (list,np.ndarray)):
+        return f"{{{' '.join(_obj_to_tcl(a) for a in arg)}}}"
+
+    elif isinstance(arg, tuple):
+        return " ".join(map(str, arg))
+
+    # parse commands like `section Fiber {...}`
+    elif isinstance(arg, dict):
+        return "{\n" + "\n".join([
+          f"{cmd} " + " ".join(_obj_to_tcl(a) for a in val)
+              for cmd, val in arg.items()
+        ]) + "}"
+
+    else:
+        return str(arg)
+
+def _args_to_cmds(proc_name: str, *args, _final=None, **kwds):
+
+    tcl_args = (_obj_to_tcl(i) for i in args)
+    tcl_kwds = (
+        (f"-{key.replace('_','-')}" if val else "") if isinstance(val, bool)
+        else f"-{key} " + _obj_to_tcl(val)
+            for key, val in kwds.items()
+    )
+    cmd = f"{proc_name} {' '.join(tcl_args)} {' '.join(tcl_kwds)}"
+
+    if _final is not None:
+        cmd += _obj_to_tcl(_final)
+    return cmd
+
+
 class _Surface:
     def __init__(self, nodes, cells, child, points, split):
         import shps.child
@@ -100,12 +137,6 @@ class _Surface:
               [ ( x,  1)  for x in reversed(np.linspace(-1, 1, nx+1)[:])],
               [ (-1,  y)  for y in reversed(np.linspace(-1, 1, ny+1)[:])],
         ]
-#       nat_exterior = [
-#            *[ ( x, -1)  for x in np.linspace(-1, 1, nx+1)[:-1]],
-#            *[ ( 1,  y)  for y in np.linspace(-1, 1, ny+1)[:-1]],
-#            *[ ( x,  1)  for x in reversed(np.linspace(-1, 1, nx+1)[1:])],
-#            *[ (-1,  y)  for y in reversed(np.linspace(-1, 1, ny+1)[1:])],
-#       ]
 
         def find_node(coord):
             for tag, xyz in self.nodes.items():
@@ -119,16 +150,12 @@ class _Surface:
 #                  find_node(exterior_coords[i]))
 #       yield (find_node(exterior_coords[-1]),
 #              find_node(exterior_coords[ 0]))
+
         nen = self.order + 1
         for i,edge in enumerate(nat_exterior):
 #           print(len(edge), self.split[i%2])
             for j in range(self.split[i%2]):
                 yield tuple(find_node(self.outline.coord(xn)) for xn in edge[j*(nen-1):j*(nen-1)+nen])
-
-
-
-    def __getitem__(self, item):
-        pass
 
 
 class OpenSeesPy:
@@ -152,33 +179,30 @@ class OpenSeesPy:
 
         self._mesh = {"line": {}, "quad": {}}
 
+
         # Enable OpenSeesPy command behaviors
         self.eval("pragma openseespy")
 
-    def _invoke_proc(self, proc_name: str, *args, _final=None, _return_string=False, **kwds)->str:
+
+    def _invoke_proc(self, proc_name: str, *args, _final=None, _return_string=False, **kwds)->object:
         """
         Invoke the Interpreter's eval method, calling
         a procedure named `proc_name` with arguments
         from args and kwds, after converting Python semantics
-        to Tcl semantics (via _as_str_arg).
+        to Tcl semantics (via _obj_to_tcl).
 
         For example, key-word arguments contained in the `kwds`
         dict are converted to a sequence of "-key" and "value"
         strings.
+
         """
+        cmd = _args_to_cmds(proc_name, *args, _final=_final, **kwds)
 
-        tcl_args = (_as_str_arg(i) for i in args)
-        tcl_kwds = (
-          (f"-{key.replace('_','-')}" if val else "") if isinstance(val, bool)
-          else f"-{key} " + _as_str_arg(val)
-              for key, val in kwds.items()
-        )
-        cmd = f"{proc_name} {' '.join(tcl_args)} {' '.join(tcl_kwds)}"
-
-        if _final is not None:
-            cmd += _as_str_arg(_final)
-
+        #
+        #
         ret = self.eval(cmd)
+        #
+        #
 
         if ret is None or ret == "":
             return None
@@ -190,11 +214,10 @@ class OpenSeesPy:
         # Use json parse to cast return values from string. 
         # This is faster than the standard ast module.
         if len(parts) > 1:
-            try:    return list(map(json.loads, parts)) #json.loads("[" + ",".join(parts) + "]")
-#           try:    return json.loads("[" + ",".join(parts) + "]")
+            try:    return list(map(json.loads, parts))
             except: return ret
 
-        elif proc_name == "eigen":
+        elif proc_name in {"eigen"}:
             # "eigen" should always return a list
             return [float(ret)]
 
@@ -202,16 +225,19 @@ class OpenSeesPy:
             try:    return json.loads(ret)
             except: return ret
 
+
     def echo(self, *args):
         print(*args)
         for arg in args:
             self.eval(f'puts "{arg}"')
+
 
     def eval(self, cmd: str) -> str:
         "Evaluate a Tcl command"
         if self._echo is not None:
             print(cmd, file=self._echo)
         return self._interp.eval(cmd)
+
 
     def block3D(self, *args, **kwds):
         if isinstance(args[6], list) or isinstance(args[7], dict):
@@ -428,6 +454,17 @@ class Model:
     def eval(self, *args, **kwds):
         return self._openseespy.eval(*args, **kwds)
 
+
+    def _call(self, proc_name: str, *args, **kwds):
+        """
+        EXPERIMENTAL (2025-07-04)
+        """
+        if self._openseespy._echo is not None:
+            print(_args_to_cmds(proc_name, *args, **kwds), file=self._openseespy._echo)
+
+        return self._openseespy._interp.call(proc_name, *args, **kwds)
+
+
     def export(self, *args, **kwds):
         return self._openseespy._interp.export(*args, **kwds)
 
@@ -526,7 +563,6 @@ class Model:
         """
         # anchor
         # normal
-        import numpy as np
         import shps.plane, shps.block
 
         add_node    = partial(self._openseespy._invoke_proc, "node")
@@ -594,7 +630,7 @@ class Model:
 
 #       anchor_point = np.array([*nodes[anchor_point], 0.0])
         for tag, coord in nodes.items():
-            add_node(tag, *coord) #*np.array(coord)-anchor_coord)
+            add_node(tag, *coord)
 
         if isinstance(args, dict):
             ekwds = args
@@ -618,29 +654,6 @@ class Model:
             return getattr(self._openseespy, name)
         else:
             return self._openseespy._partial(self._openseespy._invoke_proc, name)
-
-
-def _as_str_arg(arg, name: str = None):
-    """
-    Convert arg to a string that represents
-    Tcl semantics.
-    """
-    import numpy as np
-    if isinstance(arg, (list,np.ndarray)):
-        return f"{{{' '.join(_as_str_arg(a) for a in arg)}}}"
-
-    elif isinstance(arg, tuple):
-        return " ".join(map(str, arg))
-
-    # parse commands like `section Fiber {...}`
-    elif isinstance(arg, dict):
-        return "{\n" + "\n".join([
-          f"{cmd} " + " ".join(_as_str_arg(a) for a in val)
-              for cmd, val in arg.items()
-        ]) + "}"
-
-    else:
-        return str(arg)
 
 
 

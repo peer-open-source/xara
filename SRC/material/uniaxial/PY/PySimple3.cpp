@@ -546,16 +546,16 @@ PySimple3::setTrialStrain (double y, double yRate)
 		}
 	      else
 		{
-		  if(sign(R2) != sign(R4))
+		  if (sign(R2) != sign(R4))
 		    {
 		      pn1_a = pn1_4;
-		      pn1_b = pn1_b;
+//      pn1_b = pn1_b;
 		      R1 = R4;
-		      R2 = R2;
+//      R2 = R2;
 		    }
 		  else
 		    {
-		      //printf ("none of the Ridder's values had opposite signs-- error! \n");*/
+		      //printf ("none of the Ridder's values had opposite signs-- error! \n");
 		    }
 		}
 	    }
@@ -708,8 +708,8 @@ PySimple3::revertToLastCommit(void)
   Tyin = Cyin;
   Tpalpha = Cpalpha;
   Ttangent = Ctangent;
-  dyLast = dyLast;
-  dyELast = dyELast;
+//dyLast = dyLast;
+//dyELast = dyELast;
   TyeTotal = CyeTotal;
   tstep1 = CtstepLast;
   TLastYieldDir = CLastYieldDir;

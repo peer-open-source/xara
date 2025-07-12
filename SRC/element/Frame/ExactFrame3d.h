@@ -18,7 +18,7 @@
 #include <FrameSection.h>
 #include <FrameTransform.h>
 #include <Frame/FiniteElement.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 
 namespace OpenSees {
 

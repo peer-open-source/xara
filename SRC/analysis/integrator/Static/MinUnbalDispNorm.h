@@ -126,8 +126,6 @@ class MinUnbalDispNorm : public StaticIntegrator
     // adding sensitivity
     int gradNumber;
     int sensitivityFlag;
-    FE_Element *theEle;
-
 };
 
 #endif

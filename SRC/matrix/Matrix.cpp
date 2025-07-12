@@ -28,7 +28,7 @@
 #include "Vector.h"
 #include "Vector3D.h"
 #include "routines/cmx.h"
-#include "blasdecl.h"
+#include "routines/xblas.h"
 #include "ID.h"
 
 #include <stdlib.h>
@@ -50,6 +50,7 @@
 #endif
 
 // #define MATRIX_BLAS
+// #define MATRIX_BRANCHING
 //#define NO_WORK
 
 
@@ -507,9 +508,9 @@ Matrix::addMatrix(const Matrix &other, double factOther)
     assert(other.numRows == numRows);
     assert(other.numCols == numCols);
 
+#ifdef MATRIX_BRANCHING
     if (factOther == 0.0)
       return 0;
-
 
     // want: this += other * factOther
     if (factOther == 1.0) {
@@ -517,7 +518,9 @@ Matrix::addMatrix(const Matrix &other, double factOther)
       double *otherDataPtr = other.data;                    
       for (int i=0; i<dataSize; i++)
         *dataPtr++ += *otherDataPtr++;
-    } else {
+    } else 
+#endif
+    {
       double *dataPtr = data;
       double *otherDataPtr = other.data;                    
       for (int i=0; i<dataSize; i++)
@@ -534,12 +537,9 @@ Matrix::addMatrix(double factThis, const Matrix &other, double factOther)
 {
     assert(other.numRows == numRows);
     assert(other.numCols == numCols);
-
+#ifdef MATRIX_BRANCHING
     if (factThis == 1.0 && factOther == 0.0)
       return 0;
-
-    if (other.data == nullptr)
-      throw std::runtime_error("error");
 
     if (factThis == 1.0) {
       // want: this += other * factOther
@@ -569,7 +569,9 @@ Matrix::addMatrix(double factThis, const Matrix &other, double factOther)
           *dataPtr++ = *otherDataPtr++ * factOther;
       }
     }
-    else {
+    else 
+#endif
+    {
       // want: this = this * thisFact + other * factOther
       if (factOther == 1.0) {
         double *dataPtr = data;
@@ -598,7 +600,7 @@ Matrix::addMatrixTranspose(double factThis, const Matrix &other, double factOthe
 {
   assert(other.numRows == numCols);
   assert(other.numCols == numRows);
-
+#ifdef MATRIX_BRANCHING
   if (factThis == 1.0 && factOther == 0.0)
     return 0;
 
@@ -637,8 +639,9 @@ Matrix::addMatrixTranspose(double factThis, const Matrix &other, double factOthe
       }
     }
   }
-
-  else {
+  else 
+#endif
+  {
     // want: this = this * thisFact + other^T * factOther
     if (factOther == 1.0) {
       double *dataPtr = data;
@@ -674,11 +677,9 @@ Matrix::addMatrixProduct(double thisFact,
   assert(C.numCols == numCols);
   assert(B.numCols == C.numRows);
 
-  if (thisFact == 1.0 && otherFact == 0.0)
-    return 0;
 
 #ifdef MATRIX_BLAS
-  else if (numRows >  4) {
+  if (numRows >  4) {
     int m = numRows,
         n = this->numCols,
         k = C.numRows;
@@ -688,6 +689,10 @@ Matrix::addMatrixProduct(double thisFact,
     return 0;
   }
 #endif
+
+#ifdef MATRIX_BRANCHING
+  if (thisFact == 1.0 && otherFact == 0.0)
+    return 0;
 
   // NOTE: looping as per blas3 dgemm_: j,k,i
   else if (thisFact == 1.0) {
@@ -725,8 +730,9 @@ Matrix::addMatrixProduct(double thisFact,
       }
     }
   } 
-
-  else {
+  else 
+#endif
+  {
     // want: this = B * C  otherFact
     double *dataPtr = data;
     for (int i=0; i<dataSize; i++)

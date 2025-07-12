@@ -9,6 +9,7 @@
 // Matrix exponential
 //
 // References:
+//
 //   N. J. Higham, The scaling and squaring method for the matrix
 //      exponential revisited. SIAM J. Matrix Anal. Appl., 26(4), (2005),
 //      pp. 1179-1193.
@@ -227,7 +228,7 @@ ExpGLn(const MatrixType& arg)
 
 } // end namespace OpenSees
 
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 
 static inline int
 test_expm()
@@ -240,9 +241,9 @@ test_expm()
   double cs = std::cos(x[2]),
          sn = std::sin(x[2]);
 
-  MatrixND<3,3> A = {{{cs, -sn, 0},
-                      {sn,  cs, 0},
-                      { 0,   0, 1}}};
+  MatrixND<3,3> A = {{ cs, -sn, 0 ,
+                       sn,  cs, 0 ,
+                        0,   0, 1 }};
 
   opserr << Matrix(A) ;
   opserr << Matrix(B) ;

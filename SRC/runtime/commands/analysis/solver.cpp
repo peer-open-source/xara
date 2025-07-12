@@ -115,7 +115,8 @@ specifySysOfEqnTable(ClientData clientData, Tcl_Interp *interp, int argc, G3_Cha
 }
 
 LinearSOE*
-G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
+G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
+                     G3_Char ** const argv)
 {
   G3_Runtime* rt = G3_getRuntime(interp); 
 
@@ -129,7 +130,13 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, int argc, G3_Cha
   if (ctor != soe_table.end()) {
     return ctor->second.ss(rt, argc, argv);
 
-  } else if (strcasecmp(argv[1], "Umfpack")==0) {
+  }
+#ifdef XARA_USE_MUMPS
+  else if (strcasecmp(argv[1], "mumps") == 0) {
+    return TclDispatch_newMumpsLinearSOE(clientData, interp, argc, argv);
+  }
+#endif
+  else if (strcasecmp(argv[1], "Umfpack")==0) {
     // TODO: if "umfpack" is in solver.hpp, this wont be reached
     return TclDispatch_newUmfpackLinearSOE(clientData, interp, argc, argv);
   } 

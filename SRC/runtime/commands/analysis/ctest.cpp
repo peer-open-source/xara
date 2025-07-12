@@ -76,7 +76,8 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
   }
 
   if ((strcmp(argv[1], "NormDispAndUnbalance") == 0) ||
-      (strcmp(argv[1], "NormDispOrUnbalance") == 0)) {
+      (strcmp(argv[1], "NormDispOrUnbalance") == 0)) 
+    {
     if (argc == 5) {
       if (Tcl_GetDouble(interp, argv[2], &tol) != TCL_OK)
         return nullptr;
@@ -119,8 +120,8 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
       if (Tcl_GetInt(interp, argv[7], &maxIncr) != TCL_OK)
         return nullptr;
     }
-
-  } else if (strcmp(argv[1], "FixedNumIter") == 0) {
+  } 
+  else if (strcmp(argv[1], "FixedNumIter") == 0) {
     // test FixedNumIter $iter <$pFlag> <$nType>
     if (argc == 3) {
       if (Tcl_GetInt(interp, argv[2], &numIter) != TCL_OK)
@@ -147,8 +148,8 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
       if (Tcl_GetDouble(interp, argv[5], &maxTol) != TCL_OK)
         return nullptr;
     }
-
-  } else {
+  }
+  else {
     //
     // All others
     //
@@ -223,15 +224,16 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
       break;
   }
 
-  ConvergenceTest *theNewTest = nullptr;
 
   if (numIter == 0) {
     opserr << OpenSees::PromptValueError << "no numIter specified in test command\n";
     return nullptr;
   }
 
+
+  // ConvergenceTest *theNewTest = nullptr;
   if (strcmp(argv[1], "FixedNumIter") == 0)
-    theNewTest = new CTestFixedNumIter(numIter, flag, normType);
+    return new CTestFixedNumIter(numIter, flag, normType);
 
   else {
     if (tol == 0.0) {
@@ -243,15 +245,13 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
       return  new CTestNormUnbalance(tol, numIter, flag, normType,
                                      maxIncr, maxTol);
 
-    else if ((strcmp(argv[1], "Correction")) || (strcmp(argv[1], "NormDispIncr") == 0))
+    else if ((strcmp(argv[1], "Correction") == 0) || (strcmp(argv[1], "NormDispIncr") == 0))
       return new CTestNormDispIncr(tol, numIter, flag, normType, maxTol);
 
     else if ((strcmp(argv[1], "EnergyIncr") == 0) || 
              (strcmp(argv[1], "Energy") == 0))
-      theNewTest = new CTestEnergyIncr(tol, numIter, flag, normType, maxTol);
+      return new CTestEnergyIncr(tol, numIter, flag, normType, maxTol);
 
-    else if ((strcmp(argv[1], "Energy") == 0) || (strcmp(argv[1], "EnergyIncr") == 0))
-      theNewTest = new CTestEnergyIncr(tol, numIter, flag, normType, maxTol);
 
     else if ((strcmp(argv[1], "Residual&Correction") == 0) || 
              (strcmp(argv[1], "Correction&Residual") == 0) || 
@@ -279,7 +279,8 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
       return nullptr;
     }
   }
-  return theNewTest;
+
+  return nullptr;
 }
 
 int

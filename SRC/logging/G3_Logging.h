@@ -1,8 +1,9 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
-//===----------------------------------------------------------------------===//
+//----------------------------------------------------------------------------//
 //
 #pragma once
 #include "AnsiColors.h"
@@ -27,6 +28,7 @@ namespace OpenSees {
   extern const char * SignalMessageEnd;
   extern const char * PromptParseError;
   extern const char * PromptValueError;
+  extern const char * PromptModelError;
   extern const char * SignalWarning;
   extern const char * PromptAnalysisFailure;
   extern const char * PromptAnalysisSuccess;

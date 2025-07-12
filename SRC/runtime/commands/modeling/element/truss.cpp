@@ -351,8 +351,10 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-TclCommand_addTruss(ClientData clientData, Tcl_Interp *interp,  int argc, 
-                         TCL_Char **argv)
+TclCommand_addTruss(ClientData clientData, 
+                    Tcl_Interp *interp,  
+                    Tcl_Size argc, 
+                    TCL_Char ** const argv)
 {
 
   if (strstr(argv[1], "ection") != nullptr || 

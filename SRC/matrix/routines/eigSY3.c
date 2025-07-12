@@ -23,120 +23,120 @@ hypot2(double x, double y) {
 // Symmetric Householder reduction to tridiagonal form.
 
 static void 
-tred2(double V[n][n], double d[n], double e[n]) {
+tred2(double** V, double* d, double* e) 
+{
+  //  This is derived from the Algol procedures tred2 by
+  //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
+  //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
+  //  Fortran subroutine in EISPACK.
 
-    //  This is derived from the Algol procedures tred2 by
-    //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
-    //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
-    //  Fortran subroutine in EISPACK.
+  int i, j, k;
+  for (int j = 0; j < n; j++) {
+    d[j] = V[n-1][j];
+  }
 
-    int i, j, k;
-    for (int j = 0; j < n; j++) {
-      d[j] = V[n-1][j];
-    }
+  // Householder reduction to tridiagonal form.
 
-    // Householder reduction to tridiagonal form.
+  for (int i = n-1; i > 0; i--) {
 
-    for (int i = n-1; i > 0; i--) {
+      // Scale to avoid under/overflow.
 
-        // Scale to avoid under/overflow.
+      double scale = 0.0;
+      double h = 0.0;
+      for (k = 0; k < i; k++) {
+          scale = scale + fabs(d[k]);
+      }
+      if (scale == 0.0) {
+        e[i] = d[i-1];
+        for (j = 0; j < i; j++) {
+          d[j] = V[i-1][j];
+          V[i][j] = 0.0;
+          V[j][i] = 0.0;
+        }
+      }
+      else {
+        // Generate Householder vector.
 
-        double scale = 0.0;
-        double h = 0.0;
         for (k = 0; k < i; k++) {
-            scale = scale + fabs(d[k]);
+          d[k] /= scale;
+          h += d[k] * d[k];
         }
-        if (scale == 0.0) {
-            e[i] = d[i-1];
-            for (j = 0; j < i; j++) {
-                d[j] = V[i-1][j];
-                V[i][j] = 0.0;
-                V[j][i] = 0.0;
-            }
+        double f = d[i-1];
+        double g = sqrt(h);
+        if (f > 0) {
+            g = -g;
         }
-        else {
-            // Generate Householder vector.
-
-            for (k = 0; k < i; k++) {
-                d[k] /= scale;
-                h += d[k] * d[k];
-            }
-            double f = d[i-1];
-            double g = sqrt(h);
-            if (f > 0) {
-                g = -g;
-            }
-            e[i] = scale * g;
-            h = h - f * g;
-            d[i-1] = f - g;
-            for (j = 0; j < i; j++) {
-                e[j] = 0.0;
-            }
-
-            // Apply similarity transformation to remaining columns.
-
-            for (j = 0; j < i; j++) {
-                f = d[j];
-                V[j][i] = f;
-                g = e[j] + V[j][j] * f;
-                for (k = j+1; k <= i-1; k++) {
-                    g += V[k][j] * d[k];
-                    e[k] += V[k][j] * f;
-                }
-                e[j] = g;
-            }
-            f = 0.0;
-            for (j = 0; j < i; j++) {
-                e[j] /= h;
-                f += e[j] * d[j];
-            }
-            double hh = f / (h + h);
-            for (j = 0; j < i; j++) {
-                e[j] -= hh * d[j];
-            }
-            for (j = 0; j < i; j++) {
-                f = d[j];
-                g = e[j];
-                for (k = j; k <= i-1; k++) {
-                    V[k][j] -= (f * e[k] + g * d[k]);
-                }
-                d[j] = V[i-1][j];
-                V[i][j] = 0.0;
-            }
+        e[i] = scale * g;
+        h = h - f * g;
+        d[i-1] = f - g;
+        for (j = 0; j < i; j++) {
+          e[j] = 0.0;
         }
-        d[i] = h;
-    }
 
-    // Accumulate transformations.
+        // Apply similarity transformation to remaining columns.
 
-    for (int i = 0; i < n-1; i++) {
-        V[n-1][i] = V[i][i];
-        V[i][i] = 1.0;
-        double h = d[i+1];
-        if (h != 0.0) {
-            for (k = 0; k <= i; k++) {
-                d[k] = V[k][i+1] / h;
-            }
-            for (j = 0; j <= i; j++) {
-                double g = 0.0;
-                for (k = 0; k <= i; k++) {
-                    g += V[k][i+1] * V[k][j];
-                }
-                for (k = 0; k <= i; k++) {
-                    V[k][j] -= g * d[k];
-                }
-            }
+        for (j = 0; j < i; j++) {
+          f = d[j];
+          V[j][i] = f;
+          g = e[j] + V[j][j] * f;
+          for (k = j+1; k <= i-1; k++) {
+            g += V[k][j] * d[k];
+            e[k] += V[k][j] * f;
+          }
+          e[j] = g;
         }
-        for (k = 0; k <= i; k++) {
-            V[k][i+1] = 0.0;
+        f = 0.0;
+        for (j = 0; j < i; j++) {
+          e[j] /= h;
+          f += e[j] * d[j];
         }
-    }
-    for (int j = 0; j < n; j++) {
-        d[j] = V[n-1][j];
-        V[n-1][j] = 0.0;
-    }
-    V[n-1][n-1] = 1.0;
-    e[0] = 0.0;
+        double hh = f / (h + h);
+        for (j = 0; j < i; j++) {
+            e[j] -= hh * d[j];
+        }
+        for (j = 0; j < i; j++) {
+          f = d[j];
+          g = e[j];
+          for (k = j; k <= i-1; k++) {
+            V[k][j] -= (f * e[k] + g * d[k]);
+          }
+          d[j] = V[i-1][j];
+          V[i][j] = 0.0;
+        }
+      }
+      d[i] = h;
+  }
+
+  // Accumulate transformations.
+
+  for (int i = 0; i < n-1; i++) {
+      V[n-1][i] = V[i][i];
+      V[i][i] = 1.0;
+      double h = d[i+1];
+      if (h != 0.0) {
+          for (k = 0; k <= i; k++) {
+              d[k] = V[k][i+1] / h;
+          }
+          for (j = 0; j <= i; j++) {
+              double g = 0.0;
+              for (k = 0; k <= i; k++) {
+                  g += V[k][i+1] * V[k][j];
+              }
+              for (k = 0; k <= i; k++) {
+                  V[k][j] -= g * d[k];
+              }
+          }
+      }
+      for (k = 0; k <= i; k++) {
+          V[k][i+1] = 0.0;
+      }
+  }
+  for (int j = 0; j < n; j++) {
+      d[j] = V[n-1][j];
+      V[n-1][j] = 0.0;
+  }
+  V[n-1][n-1] = 1.0;
+  e[0] = 0.0;
 } 
 
 // Symmetric tridiagonal QL algorithm.
@@ -175,64 +175,64 @@ tql2(double V[n][n], double d[n], double e[n]) {
         // otherwise, iterate.
 
         if (m > l) {
-            int iter = 0;
-            do {
-              iter = iter + 1;  // (Could check iteration count here.)
+          int iter = 0;
+          do {
+            iter = iter + 1;  // (Could check iteration count here.)
 
-              // Compute implicit shift
+            // Compute implicit shift
 
-              double g = d[l];
-              double p = (d[l+1] - g) / (2.0 * e[l]);
-              double r = hypot2(p,1.0);
-              if (p < 0) {
-                  r = -r;
+            double g = d[l];
+            double p = (d[l+1] - g) / (2.0 * e[l]);
+            double r = hypot2(p,1.0);
+            if (p < 0) {
+                r = -r;
+            }
+            d[l] = e[l] / (p + r);
+            d[l+1] = e[l] * (p + r);
+            double dl1 = d[l+1];
+            double h = g - d[l];
+            for (i = l+2; i < n; i++) {
+                d[i] -= h;
+            }
+            f = f + h;
+
+            // Implicit QL transformation.
+
+            p = d[m];
+            double c = 1.0;
+            double c2 = c;
+            double c3 = c;
+            double el1 = e[l+1];
+            double s = 0.0;
+            double s2 = 0.0;
+            for (i = m-1; i >= l; i--) {
+              c3 = c2;
+              c2 = c;
+              s2 = s;
+              g = c * e[i];
+              h = c * p;
+              r = hypot2(p,e[i]);
+              e[i+1] = s * r;
+              s = e[i] / r;
+              c = p / r;
+              p = c * d[i] - s * g;
+              d[i+1] = h + s * (c * g + s * d[i]);
+
+              // Accumulate transformation.
+
+              for (k = 0; k < n; k++) {
+                  h = V[k][i+1];
+                  V[k][i+1] = s * V[k][i] + c * h;
+                  V[k][i] = c * V[k][i] - s * h;
               }
-              d[l] = e[l] / (p + r);
-              d[l+1] = e[l] * (p + r);
-              double dl1 = d[l+1];
-              double h = g - d[l];
-              for (i = l+2; i < n; i++) {
-                  d[i] -= h;
-              }
-              f = f + h;
+            }
+            p = -s * s2 * c3 * el1 * e[l] / dl1;
+            e[l] = s * p;
+            d[l] = c * p;
 
-              // Implicit QL transformation.
+            // Check for convergence.
 
-              p = d[m];
-              double c = 1.0;
-              double c2 = c;
-              double c3 = c;
-              double el1 = e[l+1];
-              double s = 0.0;
-              double s2 = 0.0;
-              for (i = m-1; i >= l; i--) {
-                  c3 = c2;
-                  c2 = c;
-                  s2 = s;
-                  g = c * e[i];
-                  h = c * p;
-                  r = hypot2(p,e[i]);
-                  e[i+1] = s * r;
-                  s = e[i] / r;
-                  c = p / r;
-                  p = c * d[i] - s * g;
-                  d[i+1] = h + s * (c * g + s * d[i]);
-
-                  // Accumulate transformation.
-
-                  for (k = 0; k < n; k++) {
-                      h = V[k][i+1];
-                      V[k][i+1] = s * V[k][i] + c * h;
-                      V[k][i] = c * V[k][i] - s * h;
-                  }
-              }
-              p = -s * s2 * c3 * el1 * e[l] / dl1;
-              e[l] = s * p;
-              d[l] = c * p;
-
-              // Check for convergence.
-
-            } while (fabs(e[l]) > eps*tst1);
+          } while (fabs(e[l]) > eps*tst1);
         }
         d[l] = d[l] + f;
         e[l] = 0.0;

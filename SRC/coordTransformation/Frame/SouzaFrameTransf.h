@@ -45,7 +45,6 @@
 #include <Vector3D.h>
 #include "Isometry/CrisfieldIsometry.h"
 
-struct Triad;
 
 namespace OpenSees {
 
@@ -82,8 +81,9 @@ public:
   Vector3D getNodePosition(int tag) final;
   Vector3D getNodeRotationLogarithm(int tag) final;
 
-  VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final;
-  MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl) final;
+  using Operation = typename FrameTransform<nn,ndf>::Operation;
+  int push(VectorND<nn*ndf>&pl, Operation) final;
+  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
 
   // Sensitivity
   double getLengthGrad() final;
@@ -92,11 +92,7 @@ public:
   const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int gradNumber);
 
   // Tagged Object
-  void Print(OPS_Stream &s, int flag = 0) final;
-
-protected:
-
-  VectorND<6> pushResponse(const VectorND<6>& pa, int a, int b);
+  void Print(OPS_Stream &s, int flag) final;
 
 private:
   constexpr static int n = nn*ndf;
@@ -152,7 +148,7 @@ private:
   OpenSees::MatrixND<n,n> T;     // transformation from local to global system
 
   OpenSees::Matrix3D R0;         // rotation from local to global coordinates
-  CrisfieldIsometry<2> crs;
+  CrisfieldIsometry<2,false> crs;
 
 };
 

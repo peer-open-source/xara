@@ -28,7 +28,7 @@
 //
 #include <math.h>
 #include <assert.h>
-#include <blasdecl.h>
+#include <routines/xblas.h>
 #include <BandGenLinLapackSolver.h>
 #include <BandGenLinSOE.h>
 

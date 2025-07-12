@@ -5,9 +5,9 @@
 template <int ndm, int ndf>
 class NodeND: public Node {
   public:
-  NodeND(int tag, double crd)                            requires(ndm == 1): Node(tag, ndf) { createDisp();}
-  NodeND(int tag, double crd1, double crd2)              requires(ndm == 2): Node(tag, ndf) { createDisp();}
-  NodeND(int tag, double crd1, double crd2, double crd3) requires(ndm == 3): Node(tag, ndf) { createDisp();}
+  NodeND(int tag, double crd)                           : Node(tag, ndf) {static_assert(ndm == 1); createDisp();}
+  NodeND(int tag, double crd1, double crd2)             : Node(tag, ndf) {static_assert(ndm == 2); createDisp();}
+  NodeND(int tag, double crd1, double crd2, double crd3): Node(tag, ndf) {static_assert(ndm == 3); createDisp();}
 
 
   virtual int setTrialDisp  (double value, int dof) final {

@@ -11,8 +11,8 @@ import setuptools
 
 #--------------------------------------------------
 
-version    = "0.1.20"
-build_type = os.environ.get("OPENSEESRT_BUILD", "local")
+version    = "0.1.22"
+build_type = os.environ.get("OPENSEESRT_BUILD", "release")
 
 #--------------------------------------------------
 
@@ -59,44 +59,39 @@ else:
     ]
 
 
-try:
-    assert False
-    assert os.name != "nt"
-    import pybind11
-    OpenSeesPyRT_Target = ["--target", "OpenSeesPyRT"]
-    OpenSeesPyRT_Config = [
-        f"-Dpybind11_DIR:FILEPATH={pybind11.get_cmake_dir()}",
-        f"-DPYTHON_EXECUTABLE:FILEPATH={sys.executable}"
-    ]
-
-except (AssertionError,ImportError):
-    OpenSeesPyRT_Config = ["-DNoOpenSeesPyRT=True"]
-    OpenSeesPyRT_Target = []
+OpenSeesPyRT_Config = []
+OpenSeesPyRT_Target = []
 
 
 if use_conan:
-    EnvArgs + ["-DCMAKE_TOOLCHAIN_FILE=conan/conan_toolchain.cmake"]
+#   EnvArgs + ["-DCMAKE_TOOLCHAIN_FILE=conan/conan_toolchain.cmake"]
+    EnvArgs += [f'-DCMAKE_TOOLCHAIN_FILE={str(Path(".").absolute()/"build"/"generators"/"conan_toolchain.cmake")}'] #conan/conan_toolchain.cmake"]
 
-
-class BuildOpenSeesRT(amoeba.BuildExtension):
-    def build_extension(self, ext):
+class CMakeCommand(amoeba.CMakeCommand):
+    
+    def configure_extension(self, ext):
         # Ensure Conan dependencies are installed using Conan 2.0 commands
         if use_conan:
             self.run_conan(ext)
 
-        super().build_extension(ext)
-
+        super().configure_extension(ext)
     def run_conan(self, ext):
         toolchain = str(Path(".").absolute()/"build"/"generators"/"conan_toolchain.cmake")
         ext.cmake_configure_options.append(
                 f"-DCMAKE_TOOLCHAIN_FILE={toolchain}"
         )
 
+        print("RUNNING CONAN")
+
         # Create the Conan profile and run the Conan install command
         subprocess.run([
             "conan", "install", ".",
             "--build=missing",
         ])
+
+class BuildOpenSeesRT(amoeba.BuildExtension):
+
+    pass
 
 
 # BuildOpenSeesRT = amoeba.BuildExtension
@@ -108,7 +103,7 @@ if __name__ == "__main__":
        ] if os.name == "nt" else [],
        cmdclass = {
             "build_ext": BuildOpenSeesRT, # amoeba.BuildExtension,
-            "cmake": amoeba.CMakeCommand
+            "cmake": CMakeCommand
        } if build_type != "no-build" else {},
        ext_modules = [
            amoeba.CMakeExtension(

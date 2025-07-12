@@ -37,13 +37,13 @@
 class RaphsonAccelerator: public Accelerator
 {
  public:
-  RaphsonAccelerator(int tangent = CURRENT_TANGENT);
+  RaphsonAccelerator(int tangent, double iFactor, double cFactor);
   virtual ~RaphsonAccelerator();
   
   int newStep(LinearSOE &theSOE);
   int accelerate(Vector &v, LinearSOE &theSOE, 
 		 IncrementalIntegrator &theIntegrator);
-  int updateTangent(IncrementalIntegrator &theIntegrator);
+  int updateTangent(IncrementalIntegrator &theIntegrator, bool& updated);
   bool updateTangent(void) {return true;}
 
   int getTangent(void) {return theTangent;}
@@ -59,6 +59,8 @@ class RaphsonAccelerator: public Accelerator
  private:
   // Flag indicating which tangent to form
   int theTangent;
+  double iFactor;  // Initial factor
+  double cFactor;  // Current factor
 
   // Total number of iterations for the time step
   int totalIter;

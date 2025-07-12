@@ -31,7 +31,7 @@
 
 #include <math.h>
 #include <assert.h>
-#include "blasdecl.h"
+#include "routines/xblas.h"
 
 #if 0
 #define VECTOR_BLAS

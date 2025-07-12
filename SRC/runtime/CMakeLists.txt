@@ -6,19 +6,23 @@
 #==============================================================================
 
 add_library(OpenSeesRT SHARED)
+add_library(OpenSeesRT_Static STATIC)
+
 target_sources(OpenSeesRT PRIVATE "OpenSeesRT.cpp")
+target_sources(OpenSeesRT_Static PRIVATE "OpenSeesRT.cpp")
 target_compile_definitions(OpenSeesRT PUBLIC USE_TCL_STUBS _TCL85)
 set_property(TARGET OpenSeesRT PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 target_compile_options(OPS_Runtime PRIVATE
 # "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wextra>"
-  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
 # "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wpedantic>"
-  "$<$<CXX_COMPILER_ID:MSVC>:/W4>"
+  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/W3>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/bigobj>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/wd4100>"
 )
 
-target_include_directories(OPS_Runtime PUBLIC 
-  ./api/
+target_include_directories(OPS_Runtime PUBLIC
   ${OPS_SRC_DIR}/runtime/commands
   ${OPS_SRC_DIR}/runtime/parsing/
   ${OPS_SRC_DIR}/runtime/commands/modeling
@@ -49,23 +53,19 @@ if (${TCL_INCLUDE_PATH})
 endif()
 
 target_link_libraries(OpenSeesRT 
-	PRIVATE 
-	OPS_Runtime 
-	OPS_Renderer 
-	OPS_Algorithm 
-	${TCL_STUB_LIBRARY}
+  PRIVATE 
+  OPS_Runtime 
+  OPS_Renderer 
+  OPS_Algorithm 
+  ${TCL_STUB_LIBRARY}
 )
 
-#
-# Python
-#
-find_package(Python COMPONENTS Interpreter Development)
-find_package(pybind11 CONFIG)
-if (${pybind11_FOUND} AND NOT DEFINED NoOpenSeesPyRT)
-  message(" :: Configuring Pyton extension")
-  add_subdirectory(python)
-endif()
-
+target_link_libraries(OpenSeesRT_Static
+  PUBLIC 
+  OPS_Runtime 
+  OPS_Renderer 
+  OPS_Algorithm
+)
 
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/packages/UCSD_CompGeoMech/CMakeLists.txt)
   add_subdirectory(packages/UCSD_CompGeoMech)

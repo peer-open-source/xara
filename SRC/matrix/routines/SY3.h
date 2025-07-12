@@ -12,6 +12,7 @@ extern "C" {
 
 int cmx_eigSY3(double A[3][3], double V[3][3], double d[3]);
 
+// int cmx_eigSY3(double** A /*[3][3]*/, double** V /*[3][3]*/, double* d /*[3]*/);
 int cmx_eigSY3v2(double A[3][3], double EE[3][3], double V[3][3], double d[3]);
 
 #ifdef __cplusplus

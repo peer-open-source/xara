@@ -44,12 +44,10 @@ class ExpressNewton: public EquiSolnAlgo
     ExpressNewton(int nIter, double kMultiplier, int tagent, int factorOnce);
     ~ExpressNewton();
 
-    int solveCurrentStep(void);
-    int setConvergenceTest(ConvergenceTest *theNewTest);
+    int solveCurrentStep() override;
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-                         FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
     void Print(OPS_Stream &, int flag) final;    
     

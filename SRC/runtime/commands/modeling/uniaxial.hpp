@@ -338,9 +338,9 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
   
 // Other
 
-    {"GNG",                      dispatch<OPS_GNGMaterial>                    },
-    {"Bond_SP01",              dispatch<OPS_Bond_SP01>                 },
-    {"Bond",                   dispatch<OPS_Bond_SP01>                 },
+    {"GNG",                  dispatch<OPS_GNGMaterial>                 },
+    {"Bond_SP01",            dispatch<OPS_Bond_SP01>                 },
+    {"Bond",                 dispatch<OPS_Bond_SP01>                 },
     {"APDFMD",               dispatch<OPS_APDFMD> },
     {"APDMD",                dispatch<OPS_APDMD> },
     {"APDVFD",               dispatch<OPS_APDVFD> },
@@ -477,7 +477,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"TDConcreteMC10",         dispatch<OPS_TDConcreteMC10>            },
     {"TDConcreteMC10NL",       dispatch<OPS_TDConcreteMC10NL>          },
 
-    {"Pinching4",             TclDispatch_newUniaxialPinching4         },
+    {"Pinching4",              TclDispatch_newUniaxialPinching4        },
 
 // Legacy
     {"Elastic2",               TclDispatch_LegacyUniaxials             },

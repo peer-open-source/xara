@@ -148,7 +148,7 @@ SecantAccelerator3::accelerate(Vector &vStar, LinearSOE &theSOE,
 }
 
 int
-SecantAccelerator3::updateTangent(IncrementalIntegrator &theIntegrator)
+SecantAccelerator3::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
   if (iteration < maxIterations)
     return 0;

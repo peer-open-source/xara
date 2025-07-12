@@ -204,8 +204,8 @@ void CFSSSWP :: lateralShearStrength(void)
             stress2p=0.85*stress3p;
             Dy=(stress2p/ke);
             strain2p=(stress2p*(strain3p+Dy-2*strain4p-strain1p)+stress3p*strain4p+stress4p*(strain4p-strain3p))/(0.6*stress3p);
-            stress1p=stress1p; stress2p=stress2p; stress3p=stress3p; stress4p=stress4p; 
-            strain1p=strain1p; strain2p=strain2p; strain3p=strain3p; strain4p=strain4p; 
+//          stress1p=stress1p; stress2p=stress2p; stress3p=stress3p; stress4p=stress4p; 
+//          strain1p=strain1p; strain2p=strain2p; strain3p=strain3p; strain4p=strain4p; 
             strain1n = -strain1p; stress1n = -stress1p; strain2n = -strain2p; stress2n = -stress2p;
             strain3n = -strain3p; stress3n = -stress3p; strain4n = -strain4p; stress4n = -stress4p;
             envlpPosStress.Zero(); envlpPosStrain.Zero(); envlpNegStress.Zero(); envlpNegStrain.Zero(); 

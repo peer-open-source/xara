@@ -284,10 +284,12 @@ PrismDeltaFrame3d::update()
             MatrixND<2,2> E12 = eY.extract<0,2,  2,4>();
             MatrixND<2,2> E13 = eY.extract<0,2,  4,6>();
             MatrixND<2,2> E14 = eY.extract<0,2,  6,8>();
-            E12.invert();
 
-            B3 = E12*E13,
-            B4 = E12*E14;
+            MatrixND<2,2> E12_Inv;
+            E12.invert(E12_Inv);
+
+            B3 = E12_Inv*E13,
+            B4 = E12_Inv*E14;
 
             B3 *= -1;
             B4 *= -1;

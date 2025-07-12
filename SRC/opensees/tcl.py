@@ -163,21 +163,22 @@ class Interpreter:
         if model is not None:
             self.send(model)
 
-        atexit.register(self.cleanup) #lambda : self.eval("wipe") if hasattr(self, "_tcl") else None)
+        atexit.register(self.cleanup)
 
     def cleanup(self):
         if hasattr(self, "_tcl"):
-            self.eval("wipe")
+            self.eval("wipe;")
 
 
     def __del__(self):
         self.cleanup()
 
-    def eval(self, string):
+    def eval(self, string)->str:
         try:
             return self._tcl.tk.eval(string)
 
         except tkinter._tkinter.TclError as e:
+
             err = self._tcl.getvar("errorInfo")
             if self._err_file is not None:
                 if err.count("\n") > 2:
@@ -294,7 +295,7 @@ class ModelRuntime:
         """
         self._interp.eval(f"model basic -ndm {ndm} -ndf {ndf}")
 
-    def eval(self, cmd: str):
+    def eval(self, cmd: str)->str:
         return self._interp.eval(cmd)
 
     def lift(self, type: str, tag: int=None):

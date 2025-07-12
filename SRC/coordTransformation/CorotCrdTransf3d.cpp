@@ -1488,7 +1488,7 @@ CorotCrdTransf3d::getQuaternionFromPseudoRotVector(const Vector &theta) const
 const Vector &
 CorotCrdTransf3d::quaternionProduct(const Vector &q1, const Vector &q2) const
 {
-
+  // NOTE: This is the JPL quaternion product!!
   static Vector q12(4);
   int i;
   double q1Tq2 = 0;       // dot product

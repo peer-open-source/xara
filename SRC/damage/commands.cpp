@@ -27,7 +27,8 @@
 
 
 int
-TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp, 
+                          Tcl_Size argc, TCL_Char ** const argv)
 				   
 {
   

@@ -2,10 +2,6 @@
 //
 //                                   xara
 //                              https://xara.so
-//----------------------------------------------------------------------------//
-//
-//                                 FEDEASLab
-//       Finite Elements for Design Evaluation and Analysis of Structures
 //
 //----------------------------------------------------------------------------//
 //
@@ -23,16 +19,18 @@
 // transformation for a space frame between the global
 // and basic coordinate systems
 //
+// Written: Claudio M. Perez
 // Adapted: Remo Magalhaes de Souza
-// Created: 04/2000
 //
 #pragma once
 #include <Vector.h>
+#include <Versor.h>
 #include <Matrix.h>
+#include <Vector3D.h>
 #include <Matrix3D.h>
 #include <Node.h>
 #include <Logging.h>
-#include <Rotations.hpp>
+#include <GroupSO3.h>
 #include "LinearFrameTransf.h"
 
 namespace OpenSees {
@@ -248,7 +246,7 @@ template <int nn, int ndf>
 double
 LinearFrameTransf<nn,ndf>::getDeformedLength()
 {
-  return L;
+  return L+Du[0];
 }
 
 
@@ -333,7 +331,7 @@ template <int nn, int ndf>
 VectorND<nn*ndf>
 LinearFrameTransf<nn,ndf>::getStateVariation()
 {
-  static VectorND<nn*ndf> ug;
+  VectorND<nn*ndf> ug;
   for (int i=0; i<nn; i++) {
     const Vector &ddu = nodes[i]->getIncrDeltaDisp();
     for (int j = 0; j < ndf; j++) {
@@ -357,6 +355,7 @@ LinearFrameTransf<nn,ndf>::getNodePosition(int node)
   // TODO(nn>2)
   return v;
 }
+
 
 template <int nn, int ndf>
 Vector3D
@@ -382,8 +381,9 @@ LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 // Push
 //
 template <int nn, int ndf>
-VectorND<nn*ndf>
-LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
+// VectorND<nn*ndf>
+int
+LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
 {
   VectorND<nn*ndf> pa = p;
   constexpr Vector3D iv{1, 0, 0};
@@ -408,13 +408,15 @@ LinearFrameTransf<nn,ndf>::pushResponse(VectorND<nn*ndf>&p)
   }
 
   // 2) Rotate and do joint offsets
-  auto pg = this->FrameTransform<nn,ndf>::pushConstant(pa);
-  return pg;
+  p = this->FrameTransform<nn,ndf>::pushConstant(pa);
+  return 0;
 }
 
 template <int nn, int ndf>
-MatrixND<nn*ndf,nn*ndf>
-LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kb, const VectorND<nn*ndf>&)
+int
+LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb, 
+                                const VectorND<nn*ndf>&, 
+                                Operation op)
 {
 
   MatrixND<nn*ndf,nn*ndf> A{};
@@ -438,9 +440,12 @@ LinearFrameTransf<nn,ndf>::pushResponse(MatrixND<nn*ndf,nn*ndf>&kb, const Vector
     }
   }
 
+
   MatrixND<nn*ndf,nn*ndf> kl;
   kl.addMatrixTripleProduct(0, A, kb, 1);
-  return this->FrameTransform<nn,ndf>::pushConstant(kl);
+  kb = this->FrameTransform<nn,ndf>::pushConstant(kl);
+  // this->pushRotation(kb, R);
+  return 0;
 }
 
 
@@ -453,7 +458,6 @@ LinearFrameTransf<nn,ndf>::getCopy() const
   xz(0) = R(0,2);
   xz(1) = R(1,2);
   xz(2) = R(2,2);
-
 
   LinearFrameTransf *theCopy = new LinearFrameTransf<nn,ndf>(this->getTag(), xz, offsets);
 
