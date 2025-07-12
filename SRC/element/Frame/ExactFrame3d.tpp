@@ -253,14 +253,16 @@ ExactFrame3d<nen,nwm>::update()
 
   // Form displaced node locations xyz
   VectorND<ndm> xyz[nen];
-  double uwarp[nen][nwm]{};
-  for (unsigned i=0; i < nen; i++) {
-    const Vector& xi = theNodes[i]->getCrds();
-    const Vector& ui = theNodes[i]->getTrialDisp();
-    for (int j=0; j<ndm; j++)
-      xyz[i][j] = xi[j] + ui[j];
-    for (int j=0; j<nwm; j++)
-      uwarp[i][j] = ui[6+j];
+  if constexpr (nwm) {
+    double uwarp[nen][nwm]{};
+    for (unsigned i=0; i < nen; i++) {
+      const Vector& xi = theNodes[i]->getCrds();
+      const Vector& ui = theNodes[i]->getTrialDisp();
+      for (int j=0; j<ndm; j++)
+        xyz[i][j] = xi[j] + ui[j];
+      for (int j=0; j<nwm; j++)
+        uwarp[i][j] = ui[6+j];
+    }
   }
 
   //
@@ -285,13 +287,15 @@ ExactFrame3d<nen,nwm>::update()
         dtheta[l] += pres[i].shape[1][j]*ddu[j][l+3];
     }
 
-    double warp[nwm]{};
-    double dwarp[nwm]{};
+    if constexpr (nwm) {
+      double warp[nwm]{};
+      double dwarp[nwm]{};
 
-    for (int k=0; k<nwm; k++) {
-      for (unsigned j=0; j < nen; j++) {
-        warp[k]  += pres[i].shape[0][j]*uwarp[j][k];
-        dwarp[k] += pres[i].shape[1][j]*uwarp[j][k];
+      for (int k=0; k<nwm; k++) {
+        for (unsigned j=0; j < nen; j++) {
+          warp[k]  += pres[i].shape[0][j]*uwarp[j][k];
+          dwarp[k] += pres[i].shape[1][j]*uwarp[j][k];
+        }
       }
     }
 
