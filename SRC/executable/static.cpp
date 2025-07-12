@@ -27,6 +27,11 @@ extern "C" {
  EXTERN int  TclObjCommandComplete _ANSI_ARGS_((Tcl_Obj *cmdPtr));
 }
 
+extern "C" int 
+#ifdef _WIN32
+__declspec(dllexport)
+#endif
+Openseesrt_Init(Tcl_Interp *interp);
 
 # undef TCL_STORAGE_CLASS
 # define TCL_STORAGE_CLASS DLLEXPORT
@@ -38,6 +43,9 @@ extern "C" {
  * linked into the application.
  */
 // #ifdef _TCL85
+// int (*tclDummyLinkVarPtr)(Tcl_Interp *interp, const char *a,
+//                                 char *b, int c) = Tcl_LinkVar;
+// #elif _TCL84
 // int (*tclDummyLinkVarPtr)(Tcl_Interp *interp, const char *a,
 //                                 char *b, int c) = Tcl_LinkVar;
 // #else
@@ -58,31 +66,6 @@ extern "C" {
 extern "C" int          isatty _ANSI_ARGS_((int fd));
 //extern "C" char * strcpy _ANSI_ARGS_((char *dst, CONST char *src)) throw();
 #endif
-
-static int 
-LoadOpenSeesRT(Tcl_Interp* interp)
-{
-  char* path = getenv("OPENSEESRT_LIB");
-  if (path) {
-    std::string path_string{path};
-    std::string statement = std::string("import ") + path_string;
-    int status = Tcl_Eval(interp, statement.c_str());
-
-    if (status == TCL_OK) {
-      // Library was loaded, now set variable in interpreter
-      Tcl_Eval(interp, (
-            std::string("set OPENSEESRT_LIB ") + path_string
-            ).c_str()
-      );
-      return status;
-    }
-  } else {
-    return TCL_ERROR;
-  }
-
-  return TCL_OK;
-}
-
 
 static char *tclStartupScriptFileName = NULL;
 
@@ -123,10 +106,9 @@ main(int argc, char **argv)
     int code, gotPartial, tty, length;
     int exitCode = 0;
     Tcl_Channel inChannel, outChannel, errChannel;
-    Tcl_Interp *interp;
     Tcl_DString argString;
 
-    interp = Tcl_CreateInterp();
+    Tcl_Interp *interp = Tcl_CreateInterp();
     if (Tcl_InitStubs(interp, "8.5-10", 0) == NULL) {
         fprintf(stderr, "Tcl_InitStubs failed: %s\n", Tcl_GetStringResult(interp));
         exit(1);
@@ -162,11 +144,11 @@ main(int argc, char **argv)
      */
     tclStartupScriptFileName = argv[1];
     if (tclStartupScriptFileName == NULL) {
-          if ((argc > 1) && (argv[1][0] != '-')) {
-              tclStartupScriptFileName = argv[1];
-              argc--;
-              argv++;
-          }
+      if ((argc > 1) && (argv[1][0] != '-')) {
+        tclStartupScriptFileName = argv[1];
+        argc--;
+        argv++;
+      }
     }
 
     args = Tcl_Merge(argc-1, argv+1);
@@ -202,22 +184,10 @@ main(int argc, char **argv)
     //
     // Load the OpenSeesRT library
     //
-    if (LoadOpenSeesRT(interp) != TCL_OK) {
+    if (Openseesrt_Init(interp) != TCL_OK) {
         fprintf(stderr, "Error loading OpenSeesRT library: %s\n",
                 Tcl_GetStringResult(interp));
     }
-
-//
-//  if ((*appInitProc)(interp) != TCL_OK) {
-//      errChannel = Tcl_GetStdChannel(TCL_STDERR);
-//      if (errChannel) {
-//          Tcl_WriteChars(errChannel,
-//                    "application-specific initialization failed: ", -1);
-//          Tcl_WriteObj(errChannel, Tcl_GetObjResult(interp));
-//          Tcl_WriteChars(errChannel, "\n", 1);
-//      }
-//  }
-//
 
     /*
      * If a script file was specified then just source that file

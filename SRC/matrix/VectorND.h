@@ -71,7 +71,8 @@ struct VectorND {
   int
   addVector(const T thisFact, const VectorND<N> &other, const T otherFact) noexcept;
 
-  VectorND<N> &addCross(const VectorND<N>& a, const VectorND<N> &b, double fact = 1.0) {
+  inline VectorND<N> &
+  addCrossProduct(const VectorND<N>& a, const VectorND<N> &b, double fact = 1.0) noexcept {
     static_assert(N == 3);
     values[0] += fact * (a.values[1] * b.values[2] - a.values[2] * b.values[1]);
     values[1] += fact * (a.values[2] * b.values[0] - a.values[0] * b.values[2]);

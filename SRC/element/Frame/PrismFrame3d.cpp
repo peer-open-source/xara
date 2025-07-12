@@ -392,10 +392,11 @@ PrismFrame3d::getBasicForce()
 const Matrix &
 PrismFrame3d::getTangentStiff()
 {
-  VectorND<6>   q  = this->getBasicForce();
-  MatrixND<6,6> kb = this->getBasicTangent(State::Pres, 0);
+  Vector qw(&q[0], 6);
 
-  return basic_system->getGlobalStiffMatrix(Matrix(kb), Vector(q));
+  Matrix kw(&ke(0,0),6,6);
+
+  return basic_system->getGlobalStiffMatrix(kw, qw);
 }
 
 const Matrix &

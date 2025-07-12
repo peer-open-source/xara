@@ -6,7 +6,10 @@
 #==============================================================================
 
 add_library(OpenSeesRT SHARED)
+add_library(OpenSeesRT_Static STATIC)
+
 target_sources(OpenSeesRT PRIVATE "OpenSeesRT.cpp")
+target_sources(OpenSeesRT_Static PRIVATE "OpenSeesRT.cpp")
 target_compile_definitions(OpenSeesRT PUBLIC USE_TCL_STUBS _TCL85)
 set_property(TARGET OpenSeesRT PROPERTY POSITION_INDEPENDENT_CODE 1)
 
@@ -48,13 +51,19 @@ if (${TCL_INCLUDE_PATH})
 endif()
 
 target_link_libraries(OpenSeesRT 
-	PRIVATE 
-	OPS_Runtime 
-	OPS_Renderer 
-	OPS_Algorithm 
-	${TCL_STUB_LIBRARY}
+  PRIVATE 
+  OPS_Runtime 
+  OPS_Renderer 
+  OPS_Algorithm 
+  ${TCL_STUB_LIBRARY}
 )
 
+target_link_libraries(OpenSeesRT_Static
+  PUBLIC 
+  OPS_Runtime 
+  OPS_Renderer 
+  OPS_Algorithm
+)
 
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/packages/UCSD_CompGeoMech/CMakeLists.txt)
   add_subdirectory(packages/UCSD_CompGeoMech)
