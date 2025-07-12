@@ -30,6 +30,7 @@
 [![Latest PyPI version](https://img.shields.io/pypi/v/xara?logo=pypi)](https://pypi.python.org/pypi/xara)
 [![](https://img.shields.io/conda/v/opensees/opensees?color=%23660505)](https://anaconda.org/opensees/opensees)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/opensees)](https://pypi.org/project/opensees)
+[![Mentioned in Awesome Finite Element Method](https://awesome.re/mentioned-badge.svg)](https://github.com/tkoyama010/awesome-finite-elements)
 
 </div>
 
