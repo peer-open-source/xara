@@ -546,8 +546,6 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
         VectorND<NBV> vr{};       // element residual deformations
         MatrixND<NBV, NBV> F{};   // element flexibility matrix
-        // F.zero();
-        // vr.zero();
 
         //
         // Gauss Loop

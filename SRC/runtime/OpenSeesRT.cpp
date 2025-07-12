@@ -13,7 +13,7 @@
 #endif
 //
 #include <runtimeAPI.h>
-#include "G3_Runtime.h"
+#include "runtime/G3_Runtime.h"
 #include <logging/G3_Logging.h>
 #include <handler/OPS_Stream.h>
 #include <StandardStream.h>
