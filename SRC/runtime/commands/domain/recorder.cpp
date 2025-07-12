@@ -1785,7 +1785,8 @@ createNodeRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
     }
 
     else if (pos < argc) {
-      opserr << "WARNING Unknown argument " << argv[pos] << "\n";
+      opserr << "WARNING Unknown argument " << argv[pos] << " at index " << pos << "\n";
+      return TCL_ERROR;
     }
   } // while (pos < argc)
 
