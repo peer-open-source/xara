@@ -160,40 +160,48 @@ int
 nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *domain = (Domain*)clientData;
+  Domain *domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
-    opserr << "WARNING want - nodeDisp nodeTag? <dof?>\n";
+    opserr << OpenSees::PromptValueError
+           << "Insufficient arguments"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   int tag;
-  int dof = -1;
-
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << "WARNING could not read nodeTag? \n";
+    opserr << OpenSees::PromptValueError
+           << "Failed to read nodeTag"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
+  int dof = -1;
   if (argc > 2) {
     if (Tcl_GetInt(interp, argv[2], &dof) != TCL_OK) {
-      opserr << "WARNING nodeDisp nodeTag? dof? - could not read dof? \n";
+      opserr << OpenSees::PromptValueError
+             << "Failed to read dof"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   }
 
   dof--;
 
-  const Vector *nodalResponse = domain->getNodeResponse(tag, Response);
+  const Vector *response = domain->getNodeResponse(tag, Response);
 
-  if (nodalResponse == nullptr)
-    // TODO: add error message
+  if (response == nullptr) {
+    opserr << OpenSees::PromptValueError
+           << "Node " << tag << " does not have a response of type "
+           << argv[1]
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
+  }
 
-  int size = nodalResponse->Size();
+  Tcl_Size size = response->Size();
 
   if (dof >= 0) {
-
     if (dof >= size) {
       opserr << OpenSees::PromptValueError 
              << "dofTag too large"
@@ -201,14 +209,14 @@ nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, T
       return TCL_ERROR;
     }
 
-    Tcl_SetObjResult(interp, Tcl_NewDoubleObj((*nodalResponse)(dof)));
+    Tcl_SetObjResult(interp, Tcl_NewDoubleObj((*response)(dof)));
+  }
+  else {
+    Tcl_Obj* list = Tcl_NewListObj(size, nullptr);
+    for (int i = 0; i < size; ++i)
+      Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj((*response)(i)));
 
-  } else {
-    char buffer[40];
-    for (int i = 0; i < size; ++i) {
-      sprintf(buffer, "%35.20f", (*nodalResponse)(i));
-      Tcl_AppendResult(interp, buffer, NULL);
-    }
+    Tcl_SetObjResult(interp, list);
   }
 
   return TCL_OK;
