@@ -95,11 +95,13 @@ LinearFrameTransf<nn,ndf>::LinearFrameTransf(int tag,
                                              const std::array<Vector3D, nn> *offset,
                                              int offset_flags)
   : FrameTransform<nn,ndf>(tag),
-    Du{0},
-    L(0),
+    Du{},
+    ur{},
+    L(0.0),
     offsets{nullptr},
     offset_flags(offset_flags),
-    u_init{nullptr}, initialDispChecked(false)
+    u_init{nullptr}, 
+    initialDispChecked(false)
 {
   R.zero();
 
@@ -258,21 +260,34 @@ template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::update()
 {
-  Du = this->pullPosition<&Node::getTrialDisp>(nn-1) - this->pullPosition<&Node::getTrialDisp>(0);
+  constexpr Vector3D iv{1, 0, 0};
+
+  Du  = this->pullPosition<&Node::getTrialDisp>(nn-1);
+  Du -= this->pullPosition<&Node::getTrialDisp>(0);
+
+  for (int node =0 ; node < nn; node++) {
+    const Vector& u = nodes[node]->getTrialDisp();
+    for (int i=0; i<3; i++) {
+      ur[node][i] = 0;
+      for (int j=0; j<3; j++)
+        ur[node][i] += R(j,i) * u[3+j];
+    }
+
+    ur[node].addCrossProduct(iv, Du, -1.0/L);
+  }
   return 0;
 }
 
+
 template <int nn, int ndf>
-VectorND<nn*ndf> 
-LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug, 
+int
+LinearFrameTransf<nn,ndf>::pull(VectorND<nn*ndf>& ul, 
              const Matrix3D& R, 
              const std::array<Vector3D, nn> *offset,
              int offset_flags) 
 {
 
-  constexpr static int N = nn * ndf;
-
-  VectorND<N> ul = ug;
+  // VectorND<nn * ndf> ul = ug;
 
   // (1)
   // Do ui -= ri x wi
@@ -324,7 +339,8 @@ LinearFrameTransf<nn,ndf>::pullConstant(const VectorND<nn*ndf>& ug,
     ul.assemble(i*ndf+3, ixDu, -1.0/L);
   }
 
-  return ul;
+  // return ul;
+  return 0;
 }
 
 template <int nn, int ndf>
@@ -338,19 +354,19 @@ LinearFrameTransf<nn,ndf>::getStateVariation()
       ug[i*ndf+j] = ddu(j);
     }
   }
-  return LinearFrameTransf<nn,ndf>::pullConstant(ug, R, offsets, offset_flags);
+  // return LinearFrameTransf<nn,ndf>::pull(ug, R, offsets, offset_flags);
+  LinearFrameTransf<nn,ndf>::pull(ug, R, offsets, offset_flags);
+  return ug;
 }
+
 
 template <int nn, int ndf>
 Vector3D
 LinearFrameTransf<nn,ndf>::getNodePosition(int node)
 {
   Vector3D v{};
-  if (node == 0) {
-    return v;
-  } else if (node == nn-1) {
+  if (node == nn-1) {
     v[0] = Du[0];
-    return v;
   }
   // TODO(nn>2)
   return v;
@@ -361,19 +377,7 @@ template <int nn, int ndf>
 Vector3D
 LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 {
-  constexpr Vector3D iv{1, 0, 0};
-  constexpr Matrix3D ix = Hat(iv);
-
-  Vector3D w;
-  const Vector& u = nodes[node]->getTrialDisp();
-  for (int i=0; i<3; i++) {
-    w[i] = u[3+i];
-  }
-
-  w = R^w;
-
-  w.addMatrixVector(1, ix, Du, -1.0/L);
-  return w;
+  return ur[node];
 }
 
 
@@ -381,13 +385,11 @@ LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 // Push
 //
 template <int nn, int ndf>
-// VectorND<nn*ndf>
 int
 LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
 {
   VectorND<nn*ndf> pa = p;
   constexpr Vector3D iv{1, 0, 0};
-  constexpr Matrix3D ix = Hat(iv);
 
   // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
   Vector3D m{};
@@ -399,7 +401,7 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
     const Vector3D n = Vector3D{p[i*ndf+0], p[i*ndf+1], p[i*ndf+2]};
     m.addVector(1, iv.cross(n), double(i)/double(nn-1)*L);
   }
-  const Vector3D ixm = ix*m;
+  const Vector3D ixm = iv.cross(m);
 
   // 1.2) Adjust force part
   for (int i=0; i<nn; i++) {
@@ -419,32 +421,48 @@ LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb,
                                 Operation op)
 {
 
-  MatrixND<nn*ndf,nn*ndf> A{};
-  A.addDiagonal(1.0);
-  constexpr Vector3D axis{1, 0, 0};
-  constexpr Matrix3D ix  = Hat(Vector3D{1, 0, 0});
-  constexpr Matrix3D ioi = axis.bun(Vector3D{1, 0, 0});
+  static constexpr Vector3D axis{1, 0, 0};
+  static constexpr Matrix3D ix  = Hat(Vector3D{1, 0, 0});
+  static constexpr Matrix3D ioi = axis.bun(Vector3D{1, 0, 0});
+  const Matrix3D RT = R.transpose();
+  const Matrix3D ixRT = ix*RT;
 
-  MatrixND<3,ndf> Gb{};
-  Gb.template insert<0, 3>(ioi, 0.5);
-  for (int a = 0; a<nn; a++) {
-    for (int b = 0; b<nn; b++) {
-      // TODO(nn>2): Interpolate coordinate
-      if (b == 0)
-        Gb.template insert<0,0>(ix, -1/L);
-      else if (b == nn-1)
-        Gb.template insert<0,0>(ix,  1/L);
-      // TODO(nn>2): Interpolate coordinate
-      A.assemble(ix*Gb, a*ndf  , b*ndf,  double(a)/double(nn-1)*L);
-      A.assemble(   Gb, a*ndf+3, b*ndf, -1.0);
-    }
+  MatrixND<nn*ndf,nn*ndf> A{};
+  if constexpr (ndf > 6)
+    A.addDiagonal(1.0);
+
+  {
+    MatrixND<3,ndf> Gb{};
+    Gb.template insert<0, 3>(ioi*RT, 0.5);
+    Repeat<nn> ([&](auto a_) {
+      constexpr static int a = a_.value;
+    // for (int a = 0; a<nn; a++) {
+      A.template insert<a*ndf  , a*ndf  >(RT);
+      A.template insert<a*ndf+3, a*ndf+3>(RT);
+      Repeat<nn> ([&](auto b_) {
+        constexpr static int b = b_.value;
+      // for (int b = 0; b<nn; b++) {
+
+        // TODO(nn>2): Interpolate coordinate
+        if constexpr (b == 0)
+          Gb.template insert<0,0>(ixRT, -1/L);
+        else if constexpr (b == nn-1)
+          Gb.template insert<0,0>(ixRT,  1/L);
+
+        // TODO(nn>2): Interpolate coordinate
+        A.assemble(ix*Gb, a*ndf  , b*ndf,  double(a)/double(nn-1)*L);
+        A.assemble(   Gb, a*ndf+3, b*ndf, -1.0);
+      });
+    });
   }
 
-
-  MatrixND<nn*ndf,nn*ndf> kl;
-  kl.addMatrixTripleProduct(0, A, kb, 1);
-  kb = this->FrameTransform<nn,ndf>::pushConstant(kl);
-  // this->pushRotation(kb, R);
+  // MatrixND<nn*ndf,nn*ndf> kl = kb;
+  // kb.addMatrixTripleProduct(0, A, kl, 1);
+  const MatrixND<nn*ndf,nn*ndf> KA = kb*A;
+  kb.addMatrixTransposeProduct(0.0, A, KA, 1.0);
+  if (offsets != nullptr) [[unlikely]] {
+    this->pushOffsets(kb, *offsets);
+  }
   return 0;
 }
 

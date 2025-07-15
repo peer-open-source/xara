@@ -132,6 +132,13 @@ EuclidFrameTransf<nn,ndf,IsoT>::initialize(std::array<Node*, nn>& new_nodes)
 }
 
 
+template <int nn, int ndf, typename IsoT>
+FrameTransform<nn,ndf> *
+EuclidFrameTransf<nn,ndf,IsoT>::getCopy() const
+{
+  return new EuclidFrameTransf<nn,ndf,IsoT>(this->getTag(), vz, offsets);
+}
+
 
 template <int nn, int ndf, typename IsoT>
 int
@@ -208,7 +215,6 @@ EuclidFrameTransf<nn,ndf,IsoT>::getNodePosition(int node)
   Vector3D u = this->pullPosition<&Node::getTrialDisp>(node);
   u -= basis.getPosition();
   u += basis.getRotationDelta()^(nodes[node]->getCrds());
-
   return u;
 }
 
@@ -349,9 +355,9 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
                                      const VectorND<nn*ndf>& pb, 
                                      Operation op)
 {
-  MatrixND<nn*ndf,nn*ndf> Kb = kb;
   VectorND<nn*ndf> p = pb;
 
+  MatrixND<nn*ndf,nn*ndf> Kb = kb;
   if (1) {//!(offset_flags & LogIter)) {
     for (int i=0; i<nn; i++) {
       Vector3D m{pb[i*ndf+3], pb[i*ndf+4], pb[i*ndf+5]};
@@ -387,7 +393,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
     }
   }
 
-  // Kb = kb;
+  // Kl = A ^ k * A
 
   MatrixND<nn*ndf,nn*ndf>& Kl = kb;
   const MatrixND<nn*ndf,nn*ndf> A = getProjection();
@@ -395,10 +401,8 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
 
 
   const VectorND<nn*ndf> Ap = A^p;
-#if 0
-  p = A^p;
 
-#else
+  // Kl += Kw * A
   Kb.zero();
   VectorND<12> qwx{};
   for (int i=0; i<nn; i++)
@@ -416,11 +420,9 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
     Kb.assemble(Kw.template extract<6,12,  6,12>(), ndf, ndf, 1.0);
     Kl.addMatrixProduct(Kb, A, 1.0);
   }
-  // p = A^p;
-#endif
 
   //
-  // Kl += -W'*Pn'*A
+  // Kl += -W'*Pn'*A  - Pnm * W
   //
   Kb.zero();
   for (int j=0; j<nn; j++) {
@@ -440,13 +442,6 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
   return 0;
 }
 
-
-template <int nn, int ndf, typename IsoT>
-FrameTransform<nn,ndf> *
-EuclidFrameTransf<nn,ndf,IsoT>::getCopy() const
-{
-  return new EuclidFrameTransf<nn,ndf,IsoT>(this->getTag(), vz, offsets);
-}
 
 
 //
