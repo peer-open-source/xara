@@ -1,7 +1,9 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
 //
+//===----------------------------------------------------------------------===//
+//                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
 // Description: This file contains the implementation of the GeneralizedNewmark class.
@@ -389,8 +391,7 @@ GeneralizedNewmark::update(const Vector &deltaX)
     // update the response at the DOFs
     theModel->setResponse(*Ua,*Va,*Aa);
     if (theModel->updateDomain() < 0)  {
-        opserr << "GeneralizedNewmark::update - failed to update the domain\n";
-        return -4;
+      return -4;
     }
     
     return 0;
