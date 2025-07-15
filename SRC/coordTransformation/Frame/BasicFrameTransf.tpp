@@ -19,6 +19,7 @@
 #include <Logging.h>
 #include <BasicFrameTransf.h>
 #include "FrameTransform.h"
+#include <utility/Unroll.h>
 
 namespace OpenSees {
 
@@ -41,7 +42,6 @@ template<int ndf>
 int
 BasicFrameTransf3d<ndf>::commitState()
 {
-  // linear.commit();
   return t.commit();
 }
 
@@ -49,7 +49,6 @@ template<int ndf>
 int
 BasicFrameTransf3d<ndf>::revertToLastCommit()
 {
-  // linear.revertToLastCommit();
   return t.revertToLastCommit();
 }
 
@@ -57,7 +56,6 @@ template<int ndf>
 int
 BasicFrameTransf3d<ndf>::revertToStart()
 {
-  // linear.revertToStart();
   return t.revertToStart();
 }
 
@@ -65,7 +63,6 @@ template<int ndf>
 int
 BasicFrameTransf3d<ndf>::update()
 {
-  // linear.update();
   return t.update();
 }
 
@@ -129,7 +126,7 @@ template<int ndf>
 const Vector &
 BasicFrameTransf3d<ndf>::getBasicIncrDeltaDisp()
 {
-  static VectorND<6> ub;
+  static VectorND<6> ub{};
   static Vector wrapper(ub);
   VectorND<ndf*2> ul = t.getStateVariation();
   ub[0] =  ul[1*ndf+0]; // Nj
@@ -170,35 +167,48 @@ BasicFrameTransf3d<ndf>::getGlobalResistingForce(const Vector &q_pres, const Vec
   
   static constexpr int nwm = ndf - 6; // Number of warping DOFs
 
+  static constexpr double c = 1.0;
+
   static VectorND<NDF*2> pl{};
+  static Vector wrapper(pl); // to return reference
   pl.zero();
+  pl[0*NDF+0]  = -q_pres[jnx] + p0[0]*c; // Ni
+  pl[0*NDF+1]  =  p0[1]*c;               //
+  pl[0*NDF+2]  =  p0[3]*c;               //
+  pl[0*NDF+3]  = -q_pres[jmx];           // Ti
   pl[0*NDF+4]  =  q_pres[imy];
   pl[0*NDF+5]  =  q_pres[imz];
-  pl[1*NDF+0]  =  q_pres[jnx];      // Nj
-  pl[1*NDF+3]  =  q_pres[jmx];      // Tj
+  pl[1*NDF+0]  =  q_pres[jnx];           // Nj
+  pl[1*NDF+1]  =  p0[2]*c;
+  pl[1*NDF+2]  =  p0[4]*c;
+  pl[1*NDF+3]  =  q_pres[jmx];           // Tj
   pl[1*NDF+4]  =  q_pres[jmy];
   pl[1*NDF+5]  =  q_pres[jmz];
-  for (int i=0; i<nwm; i++) {
-    // TODO
-    pl[0*NDF+6+i] = -q_pres[6+i];
-    pl[1*NDF+6+i] =  q_pres[6+i];
-  }
+
+  if constexpr (nwm > 0) // Warping DOFs
+    for (int i=0; i<nwm; i++) {
+      // TODO
+      pl[0*NDF+6+i] = -q_pres[6+i];
+      pl[1*NDF+6+i] =  q_pres[6+i];
+    }
   //
-  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
-  pl[0*NDF+3]  = -q_pres[jmx];      // Ti
 
-  static VectorND<NDF*2> pf;
-  pf.zero();
-  pf[0*NDF + 0] = p0[0];
-  pf[0*NDF + 1] = p0[1];
-  pf[0*NDF + 2] = p0[3];
-  pf[1*NDF + 1] = p0[2];
-  pf[1*NDF + 2] = p0[4];
-
-  static Vector wrapper(pl);
   t.push(pl, Operation::Total);
-  linear.push(pf, Operation::Total);
-  pl += pf;
+
+#if 0
+  if (p0.Norm() > 0.0) [[unlikely]] {
+    // Add the external nodal loads
+
+    VectorND<NDF*2> pf{};
+    pf[0*NDF + 0] = p0[0];
+    pf[0*NDF + 1] = p0[1];
+    pf[0*NDF + 2] = p0[3];
+    pf[1*NDF + 1] = p0[2];
+    pf[1*NDF + 2] = p0[4];
+    linear.push(pf, Operation::Total);
+    pl += pf;
+  }
+#endif
 
   return wrapper;
 }
@@ -218,20 +228,22 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
   pl[1*NDF+3]  =  q_pres[jmx];      // Tj
   pl[1*NDF+4]  =  q_pres[jmy];
   pl[1*NDF+5]  =  q_pres[jmz];
-  for (int i=0; i<nwm; i++) {
-    // TODO
-    pl[0*NDF+6+i] = -q_pres[6+i];
-    pl[1*NDF+6+i] =  q_pres[6+i];
-  }
   //
   pl[0*NDF+0]  = -q_pres[jnx];      // Ni
   pl[0*NDF+3]  = -q_pres[jmx];      // Ti
 
+  if constexpr (nwm > 0) // Warping DOFs
+    for (int i=0; i<nwm; i++) {
+      // TODO
+      pl[0*NDF+6+i] = -q_pres[6+i];
+      pl[1*NDF+6+i] =  q_pres[6+i];
+    }
+
   //
   static MatrixND<2*NDF,2*NDF> kl;
   static Matrix Wrapper(kl);
+#if 0
   kl.zero();
-
   for (int i=0; i<NDF*2; i++) {
     int ii = std::abs(iq[i]);
     if (ii >= NBV)
@@ -249,7 +261,58 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
     kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
     kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   }
+#elif 0
+  kl.zero();
+  Repeat<NDF*2> ([&](auto i_) {
+    constexpr static int i = i_.value;
+    constexpr int ii = iq[i] >= 0 ? iq[i] : -iq[i];
+    if constexpr (ii >= NBV) {
+      return;
+    }
 
+    Repeat<NDF*2> ([&](auto j_) {
+    constexpr static int j = j_.value;
+    // for (int j=0; j<NDF*2; j++) {
+      constexpr int jj = iq[j] >= 0 ? iq[j] : -iq[j];
+      if constexpr (jj >= NBV)
+        return;
+
+      kl(i,j) = kb(ii, jj);
+    });
+  });
+
+  Repeat<NDF*2> ([&](auto i_) {
+    constexpr static int i = i_.value;
+    kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
+    kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
+  });
+#else
+
+  Repeat<NDF*2> ([&](auto j_) {
+  constexpr static int j = j_.value;
+  // for (int j=0; j<NDF*2; j++) {
+    constexpr int jj = iq[j] >= 0 ? iq[j] : -iq[j];
+    // if constexpr (jj >= NBV)
+    //   return;
+
+    Repeat<NDF*2> ([&](auto i_) {
+      constexpr static int i = i_.value;
+      constexpr int ii = iq[i] >= 0 ? iq[i] : -iq[i];
+      if constexpr (ii >= NBV || jj >= NBV) {
+        kl(i,j) = 0.0;
+        return;
+      }
+
+      kl(i,j) = kb(ii, jj);
+    });
+  });
+
+  Repeat<NDF*2> ([&](auto i_) {
+    constexpr static int i = i_.value;
+    kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
+    kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
+  });
+#endif
   t.push(kl, pl, Operation::Total);
 
   return Wrapper;
