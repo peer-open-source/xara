@@ -9,7 +9,7 @@
 // Please cite the following resource in any derivative works:
 //
 // [1] Perez, C.M., and Filippou F.C. "On Nonlinear Geometric Transformations
-//     ofj Finite Elements" Int. J. Numer. Meth. Engrg. 2024;
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024;
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
@@ -127,37 +127,6 @@ FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
   const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
   if (offset) [[unlikely]] {
     this->pushOffsets(Kg, *offset);
-    // const std::array<Vector3D, nn>& offsets = *offset;
-    // for (int i=0; i<nn; i++) {
-    //   for (int j=0; j<nn; j++) {
-    //     {
-    //       Matrix3D KmnW{};
-    //       KmnW.addMatrixSpinProduct(Kg.template extract<3,3>(i*ndf+3, j*ndf), offsets[j], -1.0);
-    //       Kg.assemble(KmnW, i*ndf+3, j*ndf+3, 1.0);
-    //     }
-    //     {
-    //       Matrix3D WKnm{};
-    //       WKnm.addSpinMatrixProduct(offsets[i], Kg.template extract<3,3>(i*ndf, j*ndf+3), 1.0);
-    //       Kg.assemble(WKnm, i*ndf+3, j*ndf+3, 1.0);
-    //     }
-    //     {
-    //       Matrix3D WKnn{};
-    //       {
-    //         Matrix3D Knn = Kg.template extract<3,3>(i*ndf, j*ndf);
-    //         {
-    //           Matrix3D KnnW{};
-    //           KnnW.addMatrixSpinProduct(Knn, offsets[j], -1.0);
-    //           Kg.assemble(KnnW, i*ndf, j*ndf+3, 1.0);
-    //         }
-    //         WKnn.addSpinMatrixProduct(offsets[i], Knn, 1.0);
-    //         Kg.assemble(WKnn, i*ndf+3, j*ndf, 1.0);
-    //       }
-    //       Matrix3D WKmmW{};
-    //       WKmmW.addMatrixSpinProduct(WKnn, offsets[j], -1.0);
-    //       Kg.assemble(WKmmW, i*ndf+3, j*ndf+3, 1.0);
-    //     }
-    //   }
-    // }
   }
   return Kg;
 }
