@@ -23,7 +23,6 @@
 #include <Domain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <math.h>
@@ -424,15 +423,16 @@ void UpdatedLagrangianBeam2D::zeroLoad(void)
     load.Zero();
 }
 
-int UpdatedLagrangianBeam2D::addLoad(const Vector &moreLoad)
+int 
+UpdatedLagrangianBeam2D::addLoadVector(const Vector &moreLoad)
 {
-    if (moreLoad.Size() != numDof) {
-	opserr << "WARNING (W_C_80) - UpdatedLagrangianBeam2D::addLoad(..) [" << getTag() << "]\n";
-	opserr << "vector not of correct size\n";
-	return -1;
-    }
-    load += moreLoad;
-    return 0;
+  if (moreLoad.Size() != numDof) {
+    opserr << "WARNING (W_C_80) - UpdatedLagrangianBeam2D::addLoad(..) [" << getTag() << "]\n";
+    opserr << "vector not of correct size\n";
+    return -1;
+  }
+  load += moreLoad;
+  return 0;
 }
 
 void UpdatedLagrangianBeam2D::getTrialLocalForce(Vector &lforce)
@@ -776,50 +776,6 @@ void UpdatedLagrangianBeam2D::getConvLocalDisp(Vector &lDisp)
 }
 
 
-//////////////////////////////////////////////////////////////////////
-// methods for display/recorders... may be overridden if required
-//////////////////////////////////////////////////////////////////////
-
-int UpdatedLagrangianBeam2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // first determine the two end points of the element based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 2 3d vectors v1 and v2
-
-    const Vector &end1Crd = end1Ptr->getCrds();
-    const Vector &end2Crd = end2Ptr->getCrds();	
-    const Vector &end1Disp = end1Ptr->getDisp();
-    const Vector &end2Disp = end2Ptr->getDisp();    
-    Vector rgb(3);
-	rgb(0) = 0; rgb(1) = 0; rgb(2) = 1;
-
-	Vector v1(3);
-    Vector v2(3);
-
-    for (int i=0; i<2; i++) {
-	v1(i) = end1Crd(i)+end1Disp(i)*fact;
-	v2(i) = end2Crd(i)+end2Disp(i)*fact;    	
-    }	
-	v1(2) = 0;
-	//v1(2) = end1Disp(2)*fact;
-	v2(2) = 0;
-	//v2(2) = end2Disp(2)*fact;
-	
-	//opserr << v1 << v2;
-	if (displayMode == 1) theViewer.drawLine(v1, v2, rgb, rgb);	
-	// cout << "line drawn << " << getTag() << endln;
-	// cin.get();
-	return 0;
-    
-    if (displayMode == 2) // axial force
-	return theViewer.drawLine(v1, v2, eleForce(0), eleForce(3));
-    else if (displayMode == 3) // shear forces
-	return theViewer.drawLine(v1, v2, eleForce(1), eleForce(4));
-    else if (displayMode == 4) // bending moments
-	return theViewer.drawLine(v1, v2, eleForce(2), eleForce(5));
-	
-	return 0;
-}
 
 Response* 
 UpdatedLagrangianBeam2D::setResponse(const char **argv, int argc, OPS_Stream&)

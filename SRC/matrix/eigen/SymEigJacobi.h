@@ -1,3 +1,8 @@
+
+// see also
+//
+// https://sepwww.stanford.edu/oldsep/cliner/files/suhelp/symmeigen.txt
+//
 #include <VectorND.h>
 #include <MatrixND.h>
 

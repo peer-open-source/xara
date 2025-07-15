@@ -447,8 +447,10 @@ PrismFrame3d::getResistingForce()
   using Operation = typename FrameTransform<2,6>::Operation;
   static Vector wrapper(pl);
   basic_system->t.push(pl, Operation::Total);
-  basic_system->linear.push(pf, Operation::Total);
-  pl += pf;
+  if (pf.norm() > 0.0) [[unlikely]] {
+    basic_system->linear.push(pf, Operation::Total);
+    pl += pf;
+  }
 #endif
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)

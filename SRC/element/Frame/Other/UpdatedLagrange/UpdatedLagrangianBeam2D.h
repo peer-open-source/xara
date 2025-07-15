@@ -33,8 +33,6 @@
 #ifndef UpdatedLagrangianElement2D
 #define UpdatedLagrangianElement2D
 
-
-#include <stdbool.h>
 #include <Node.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -61,7 +59,7 @@ public:
   // (see ~/OpenSees/SRC/element/Element.h)
   //////////////////////////////////////////////////////////////////////
  public:
-  virtual int update(void);
+  int update() override;
   // void	setEndRelease(ID &g);
   
   // methods dealing with nodes and number of external dof
@@ -83,21 +81,17 @@ public:
   
   // methods for returning and applying loads
   virtual Vector &getUVLoadVector(double q1, double q2);
-  void	zeroLoad(void);
-  int		addLoad(const Vector &load);
-  int     addLoad(ElementalLoad *theLoad, double loadFactor)
+  void	zeroLoad() override;
+  int		addLoadVector(const Vector &load);
+  int   addLoad(ElementalLoad *theLoad, double loadFactor) override { return -1;}
+  int     addInertiaLoadToUnbalance(const Vector &accel) override
     { return -1;}
-  int     addInertiaLoadToUnbalance(const Vector &accel)
-    { return -1;}
   
-  virtual const Vector &getResistingForce(void);
-  const	Vector &getResistingForceIncInertia(void);
-  
-  // method for graphics
-  int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-  
-  virtual Response *setResponse(const char **argv, int argc, OPS_Stream&);
-  virtual int getResponse(int responseID, Information &eleInformation);
+  const Vector &getResistingForce() override;
+  const	Vector &getResistingForceIncInertia() override;
+
+  Response *setResponse(const char **argv, int argc, OPS_Stream&) override;
+  int getResponse(int responseID, Information &eleInformation) override;
   
  protected:
   

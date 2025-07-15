@@ -22,7 +22,7 @@ struct Versor {
   double   scalar;
 
   template<typename Vec3T>
-  static inline Versor from_vector(const Vec3T  &);
+  static inline Versor from_vector(const Vec3T  &) noexcept;
 
   static inline Versor from_matrix(const Matrix3D  &);
 
@@ -146,7 +146,7 @@ Versor::from_matrix(const Matrix3D &R)
 
 template<typename Vec3T>
 inline Versor
-Versor::from_vector(const Vec3T  &theta)
+Versor::from_vector(const Vec3T  &theta) noexcept
 {
   double angle2 = 0.0;
   for (int i=0; i<3; i++)
@@ -172,14 +172,13 @@ Versor::from_vector(const Vec3T  &theta)
   return q;
 }
 
-
 } //  namespace OpenSees
 
-inline OpenSees::Versor
-operator*(const OpenSees::Versor &qa, const OpenSees::Versor &qb)
+inline constexpr OpenSees::Versor
+operator*(const OpenSees::Versor &qa, const OpenSees::Versor &qb) noexcept
 {
-  OpenSees::Versor q12;
-  q12.scalar = qa.scalar * qb.scalar - qa.vector.dot(qb.vector);
-  q12.vector = (qb.vector * qa.scalar) + (qa.vector * qb.scalar) + qa.vector.cross(qb.vector);
-  return q12;
+  return OpenSees::Versor{
+    (qb.vector * qa.scalar) + (qa.vector * qb.scalar) + qa.vector.cross(qb.vector), // vector
+    qa.scalar * qb.scalar - qa.vector.dot(qb.vector) // scalar
+  };
 }
