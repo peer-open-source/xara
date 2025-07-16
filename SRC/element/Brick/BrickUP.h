@@ -40,7 +40,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 
 #include <ID.h>
 #include <Vector.h>
@@ -126,9 +126,6 @@ class BrickUP : public Element {
 
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
-
-    //plotting
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
 
 
     // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial stresses.
