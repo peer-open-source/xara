@@ -30,35 +30,34 @@ class FariaPlasticDamage3d : public NDMaterial
                         double An, 
                         double Bn,
                         double density);
-    FariaPlasticDamage3d();
-    ~FariaPlasticDamage3d();
+  FariaPlasticDamage3d();
+  ~FariaPlasticDamage3d();
 
-    const char *getClassType() const {return "FariaPlasticDamage";}
+  const char *getClassType() const override {return "FariaPlasticDamage";}
 
-    int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
-    int setTrialStrainIncr (const Vector &v);
-    int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent();
-    const Matrix &getInitialTangent();
-    
-    const Vector &getStress();
-    const Vector &getStrain();
-    
-    int commitState();
-    int revertToLastCommit();
-    int revertToStart();
+  int setTrialStrain (const Vector &v);
+  int setTrialStrain (const Vector &v, const Vector &r);
+  int setTrialStrainIncr (const Vector &v);
+  int setTrialStrainIncr (const Vector &v, const Vector &r);
+  const Matrix &getTangent();
+  const Matrix &getInitialTangent();
+  
+  const Vector &getStress();
+  const Vector &getStrain();
+  
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
 
-    NDMaterial *getCopy(const char *type);
-    NDMaterial *getCopy();
-    const char *getType() const;
-    int getOrder() const;
+  NDMaterial *getCopy(const char *type);
+  NDMaterial *getCopy();
+  const char *getType() const;
+  int getOrder() const;
 
-    int sendSelf(int commitTag, Channel &);  
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
-    void Print(OPS_Stream &s, int flag);       
+  int sendSelf(int commitTag, Channel &) override;  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
+  void Print(OPS_Stream &s, int flag) override;       
 
-  protected:
 
   private:
     // parameters

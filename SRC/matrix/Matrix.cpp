@@ -50,7 +50,7 @@
 #endif
 
 // #define MATRIX_BLAS
-// #define MATRIX_BRANCHING
+#define MATRIX_BRANCHING
 //#define NO_WORK
 
 
@@ -362,68 +362,68 @@ int
 Matrix::Solve(const Matrix &b, Matrix &x) // const
 {
 
-    int n = numRows;
-    int nrhs = x.numCols;
-    assert(numRows == numCols);
-    assert(n == x.numRows);
-    assert(n == b.numRows);
-    assert(x.numCols == b.numCols);
+  int n = numRows;
+  int nrhs = x.numCols;
+  assert(numRows == numCols);
+  assert(n == x.numRows);
+  assert(n == b.numRows);
+  assert(x.numCols == b.numCols);
 
-    // check work area can hold all the data
-    if (dataSize > sizeDoubleWork) {
-      if (matrixWork != 0) {
-        delete [] matrixWork;
-        matrixWork = 0;
-      }
-      matrixWork = new double[dataSize];
-      sizeDoubleWork = dataSize;
+  // check work area can hold all the data
+  if (dataSize > sizeDoubleWork) {
+    if (matrixWork != 0) {
+      delete [] matrixWork;
+      matrixWork = 0;
     }
-    if (n > sizeIntWork) {
-      if (intWork != nullptr) {
-        delete [] intWork;
-        intWork = 0;
-      }
-      intWork = new int[n];
-      sizeIntWork = n;
+    matrixWork = new double[dataSize];
+    sizeDoubleWork = dataSize;
+  }
+  if (n > sizeIntWork) {
+    if (intWork != nullptr) {
+      delete [] intWork;
+      intWork = 0;
     }
+    intWork = new int[n];
+    sizeIntWork = n;
+  }
 
-    // copy the data
-    int i;
-    for (i=0; i<dataSize; i++)
-      matrixWork[i] = data[i];
+  // copy the data
+  int i;
+  for (i=0; i<dataSize; i++)
+    matrixWork[i] = data[i];
 
-    x = b;
+  x = b;
 
-    int ldA = n;
-    int ldB = n;
-    int info;
-    double *Aptr = matrixWork;
-    double *Xptr = x.data;
-    
-    int *iPIV = intWork;
-    
-    info = -1;
+  int ldA = n;
+  int ldB = n;
+  int info;
+  double *Aptr = matrixWork;
+  double *Xptr = x.data;
+  
+  int *iPIV = intWork;
+  
+  info = -1;
 
 #ifdef _WIN32
-    DGESV(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+  DGESV(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
 #else
-    dgesv_(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+  dgesv_(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
 
-    /*
-    // further correction if required
-    double Bptr[n*n];
-    for (int i=0; i<n*n; i++) Bptr[i] = b.data[i];
-    double *origData = data;
-    double Ferr[n];
-    double Berr[n];
-    double newWork[3*n];
-    int newIwork[n];
-    
-    dgerfs_("N",&n,&n,origData,&ldA,Aptr,&n,iPIV,Bptr,&ldB,Xptr,&ldB,
-            Ferr, Berr, newWork, newIwork, &info);
-    */
+  /*
+  // further correction if required
+  double Bptr[n*n];
+  for (int i=0; i<n*n; i++) Bptr[i] = b.data[i];
+  double *origData = data;
+  double Ferr[n];
+  double Berr[n];
+  double newWork[3*n];
+  int newIwork[n];
+  
+  dgerfs_("N",&n,&n,origData,&ldA,Aptr,&n,iPIV,Bptr,&ldB,Xptr,&ldB,
+          Ferr, Berr, newWork, newIwork, &info);
+  */
 #endif
-    return -abs(info);
+  return -abs(info);
 }
 
 int
@@ -679,7 +679,7 @@ Matrix::addMatrixProduct(double thisFact,
 
 
 #ifdef MATRIX_BLAS
-  if (numRows >  4) {
+  if (numRows >  6) {
     int m = numRows,
         n = this->numCols,
         k = C.numRows;
@@ -887,6 +887,7 @@ Matrix::addMatrixTripleProduct(double thisFact,
 
   // now form T' * matrixWork
   // NOTE: looping as per blas3 DGEMM : j,i,k
+#ifdef MATRIX_BRANCHING
   if (thisFact == 1.0) {
     double *dataPtr = &data[0];
     for (int j=0; j< numCols; j++) {
@@ -914,7 +915,9 @@ Matrix::addMatrixTripleProduct(double thisFact,
       }
     }
 
-  } else {
+  } else
+#endif
+  {
     double *dataPtr = &data[0];
     for (int j=0; j< numCols; j++) {
       double *workkjPtrA = &matrixWork[j*dimB];
@@ -1371,14 +1374,14 @@ Matrix::operator/(double fact) const
 Vector
 Matrix::operator*(const Vector3D &V) const
 {
-    Vector result(numRows);
+  Vector result(numRows);
 
-    double *dataPtr = data;
-    for (int i=0; i<numCols; i++)
-      for (int j=0; j<numRows; j++)
-        result(j) += *dataPtr++ * V[i];
+  double *dataPtr = data;
+  for (int i=0; i<numCols; i++)
+    for (int j=0; j<numRows; j++)
+      result(j) += *dataPtr++ * V[i];
 
-    return result;
+  return result;
 }
 
 Vector

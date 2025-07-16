@@ -89,8 +89,8 @@ public:
           
 private:
 
-  inline VectorND<nn*ndf> 
-  pullConstant(const VectorND<nn*ndf>& ug, 
+  inline int // VectorND<nn*ndf> 
+  pull(VectorND<nn*ndf>& ug, 
               const Matrix3D& R, 
               const std::array<Vector3D, nn> *offset = nullptr,
               int offset_flags = 0);
@@ -119,7 +119,7 @@ private:
   }
 
   std::array<Node*, nn> nodes;
-  Vector3D Du;
+  Vector3D Du, ur[nn];
 
   std::array<Vector3D, nn> *offsets;
   int offset_flags;

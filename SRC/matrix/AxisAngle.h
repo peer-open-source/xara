@@ -29,7 +29,7 @@ public:
   explicit
   AxisAngle(const Vector3D& v)
    : angle(v.norm()),
-     vector(v) //Utility::RescaleVector(v, angle))
+     vector(v)
   {
     Utility::dLogConst(angle, eta, mu);
   }

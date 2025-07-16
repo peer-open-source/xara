@@ -127,36 +127,36 @@ StrsDecA(const VectorND<6> &sig,
 
 
   if (Qpos != nullptr) {    
-      MatrixND<6,6>& Ppos = *Qpos;
-      Ppos.zero();
+    MatrixND<6,6>& Ppos = *Qpos;
+    Ppos.zero();
 
-      // Ppos : positive projection operator;
-      addVoightTensorProduct(Ppos, n1,n1,  n1,n1,  H1);
-      addVoightTensorProduct(Ppos, n2,n2,  n2,n2,  H2);
-      addVoightTensorProduct(Ppos, n3,n3,  n3,n3,  H3);
+    // Ppos : positive projection operator;
+    addVoightTensorProduct(Ppos, n1,n1,  n1,n1,  H1);
+    addVoightTensorProduct(Ppos, n2,n2,  n2,n2,  H2);
+    addVoightTensorProduct(Ppos, n3,n3,  n3,n3,  H3);
 
-      // p12(x)p12
-      double term12 = (fabs(sigI[0] - sigI[1]) <= 1e-16) ? H1 : (M1 - M2)/(sigI[0] - sigI[1]);
-      addVoightTensorProduct(Ppos, n1,n2,  n1,n2,  0.25*2*term12); // 1212
-      addVoightTensorProduct(Ppos, n1,n2,  n2,n1,  0.25*2*term12); // 1221
-      addVoightTensorProduct(Ppos, n2,n1,  n1,n2,  0.25*2*term12); // 2112
-      addVoightTensorProduct(Ppos, n2,n1,  n2,n1,  0.25*2*term12); // 2121
-      // p13(x)p13
-      double term13 = (fabs(sigI[0] - sigI[2]) <= 1e-16) ? H1 : (M1 - M3)/(sigI[0] - sigI[2]);
-      addVoightTensorProduct(Ppos, n1,n3,  n1,n3,  0.25*2*term13); // 1313
-      addVoightTensorProduct(Ppos, n1,n3,  n3,n1,  0.25*2*term13); // 1321
-      addVoightTensorProduct(Ppos, n3,n1,  n1,n3,  0.25*2*term13); // 3113
-      addVoightTensorProduct(Ppos, n3,n1,  n3,n1,  0.25*2*term13); // 3121
-      // p23(x)p23
-      double term23 = (fabs(sigI[1] - sigI[2]) <= 1e-16) ? H2 : (M2 - M3)/(sigI[1] - sigI[2]);
-      addVoightTensorProduct(Ppos, n2,n3,  n2,n3,  0.25*2*term23); // 2323
-      addVoightTensorProduct(Ppos, n2,n3,  n3,n2,  0.25*2*term23); // 2332
-      addVoightTensorProduct(Ppos, n3,n2,  n2,n3,  0.25*2*term23); // 3223
-      addVoightTensorProduct(Ppos, n3,n2,  n3,n2,  0.25*2*term23); // 3232
+    // p12(x)p12
+    double term12 = (fabs(sigI[0] - sigI[1]) <= 1e-16) ? H1 : (M1 - M2)/(sigI[0] - sigI[1]);
+    addVoightTensorProduct(Ppos, n1,n2,  n1,n2,  0.25*2*term12); // 1212
+    addVoightTensorProduct(Ppos, n1,n2,  n2,n1,  0.25*2*term12); // 1221
+    addVoightTensorProduct(Ppos, n2,n1,  n1,n2,  0.25*2*term12); // 2112
+    addVoightTensorProduct(Ppos, n2,n1,  n2,n1,  0.25*2*term12); // 2121
+    // p13(x)p13
+    double term13 = (fabs(sigI[0] - sigI[2]) <= 1e-16) ? H1 : (M1 - M3)/(sigI[0] - sigI[2]);
+    addVoightTensorProduct(Ppos, n1,n3,  n1,n3,  0.25*2*term13); // 1313
+    addVoightTensorProduct(Ppos, n1,n3,  n3,n1,  0.25*2*term13); // 1321
+    addVoightTensorProduct(Ppos, n3,n1,  n1,n3,  0.25*2*term13); // 3113
+    addVoightTensorProduct(Ppos, n3,n1,  n3,n1,  0.25*2*term13); // 3121
+    // p23(x)p23
+    double term23 = (fabs(sigI[1] - sigI[2]) <= 1e-16) ? H2 : (M2 - M3)/(sigI[1] - sigI[2]);
+    addVoightTensorProduct(Ppos, n2,n3,  n2,n3,  0.25*2*term23); // 2323
+    addVoightTensorProduct(Ppos, n2,n3,  n3,n2,  0.25*2*term23); // 2332
+    addVoightTensorProduct(Ppos, n3,n2,  n2,n3,  0.25*2*term23); // 3223
+    addVoightTensorProduct(Ppos, n3,n2,  n3,n2,  0.25*2*term23); // 3232
 
-      for (int i=0; i<6; i++)
-        for (int j=3; j<6; j++)
-          Ppos(i,j) = 2*Ppos(i,j); // 0.5*Ppos(i,j) + 0.5*Ppos(j,i);
+    for (int i=0; i<6; i++)
+      for (int j=3; j<6; j++)
+        Ppos(i,j) = 2*Ppos(i,j); // 0.5*Ppos(i,j) + 0.5*Ppos(j,i);
   }
   return 0;
   // Qpos = Ppos + 2*(term12*(p12*p12') + term13*(p13*p13') + term23*(p23*p23'));

@@ -496,8 +496,15 @@ FileStream::operator<<(double n)
   if (fileOpen == 0)
     this->open();
 
-  if (fileOpen != 0)
-    theFile << n;
+  if (fileOpen != 0){
+    if (std::isnan(n)) {
+      theFile << "NaN";
+    } else if (std::isinf(n)) {
+      theFile << "Inf";
+    } else {
+      theFile << n;
+    }
+  }
 
   return *this;
 }
