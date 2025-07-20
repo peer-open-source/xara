@@ -274,7 +274,8 @@ void Concrete07::calculateStressTransition(double& fc, double& Et, double ec, do
 }
 
 
-void Concrete07::calculate13Stress(double &fc, double &Et, double ec, double eI, double eF, double fF, double EF)
+void
+Concrete07::calculate13Stress(double &fc, double &Et, double ec, double eI, double eF, double fF, double EF)
 {
 	double A;				// Equation parameter
 	double R(0);			// Equation Parameter
@@ -313,7 +314,9 @@ void Concrete07::calculate13Stress(double &fc, double &Et, double ec, double eI,
 
 	return;
 }
-void Concrete07::envelope(double x, double& fc, double& Et, int flag)
+
+void
+Concrete07::envelope(double x, double& fc, double& Et, int flag)
 {
 	double y,z;
 	
@@ -377,7 +380,8 @@ void Concrete07::envelope(double x, double& fc, double& Et, int flag)
 	return;
 }
 
-void Concrete07::determineTrialState(double dStrain)
+void
+Concrete07::determineTrialState(double dStrain)
 {
 	double eunn;			// unloading strain from the compression envelope
 	double funn;			// unloading stress from the compression envelope 
