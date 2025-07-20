@@ -332,6 +332,29 @@ Vector::addVector(double thisFact, const Vector &other, double otherFact )
 
 
 int
+Vector::addMatrixVector(const Matrix &m, const Vector &v, double otherFact )
+{
+  // check the sizes are compatable
+  assert(sz == m.noRows());
+  assert(m.noCols() == v.sz);
+
+  // want: this += m * v * otherFact
+  {
+    int otherSize = v.sz;
+    double *matrixDataPtr = m.data;
+    double *otherDataPtr = v.theData;
+    for (int i=0; i<otherSize; i++) {
+      double otherData = *otherDataPtr++ * otherFact;
+      for (int j=0; j<sz; j++)
+        theData[j] += *matrixDataPtr++ * otherData;
+    }
+  }
+
+  return 0;
+}
+
+
+int
 Vector::addMatrixVector(double thisFact, const Matrix &m, const Vector &v, double otherFact )
 {
   // check the sizes are compatable
@@ -465,8 +488,6 @@ Vector::addMatrixVector(double thisFact, const Matrix &m, const Vector &v, doubl
       }
     }
   }
-  
-  // successfull
   return 0;
 }
 

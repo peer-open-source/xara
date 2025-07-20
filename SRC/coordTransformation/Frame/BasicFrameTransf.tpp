@@ -122,20 +122,28 @@ BasicFrameTransf3d<ndf>::getBasicTrialDisp()
   return wrapper;
 }
 
+namespace {
+  template<int ndf>
+  const Vector&
+  ShapeBasic(const VectorND<2*ndf>& ul)
+  {
+    static VectorND<6+(ndf-6)*2> ub;
+    static Vector wrapper(ub);
+    ub[0] = ul[1*ndf+0]; // Nj
+    ub[1] = ul[0*ndf+5];
+    ub[2] = ul[1*ndf+5];
+    ub[3] = ul[0*ndf+4];
+    ub[4] = ul[1*ndf+4];
+    ub[5] = ul[1*ndf+3] - ul[0*ndf+3];
+    return wrapper;
+  }
+}
+
 template<int ndf>
 const Vector &
 BasicFrameTransf3d<ndf>::getBasicIncrDeltaDisp()
 {
-  static VectorND<6> ub{};
-  static Vector wrapper(ub);
-  VectorND<ndf*2> ul = t.getStateVariation();
-  ub[0] =  ul[1*ndf+0]; // Nj
-  ub[1] =  ul[0*ndf+5];
-  ub[2] =  ul[1*ndf+5];
-  ub[3] =  ul[0*ndf+4];
-  ub[4] =  ul[1*ndf+4];
-  ub[5] =  ul[1*ndf+3] - ul[0*ndf+3];
-  return wrapper;
+  return ShapeBasic<ndf>(t.getStateVariation());
 }
 
 template<int ndf>
@@ -448,15 +456,45 @@ BasicFrameTransf3d<ndf>::getd1overLdh()
 
 template<int ndf>
 const Vector &
-BasicFrameTransf3d<ndf>::getGlobalResistingForceShapeSensitivity(const Vector &pb,
+BasicFrameTransf3d<ndf>::getGlobalResistingForceShapeSensitivity(const Vector &q_pres,
                                                            const Vector &p0,
                                                            int gradNumber)
 {
   // return t.getGlobalResistingForceShapeSensitivity(pb, p0, gradNumber);
 
-  static VectorND<6> dub;
-  static Vector wrapper(dub);
-  opserr << "WARNING unimplemented method\n";
+  static constexpr int nwm = ndf - 6; // Number of warping DOFs
+
+  static constexpr double c = 1.0;
+
+  static VectorND<NDF*2> pl{};
+  pl.zero();
+  pl[0*NDF+0]  = -q_pres[jnx] + p0[0]*c; // Ni
+  pl[0*NDF+1]  =  p0[1]*c;               //
+  pl[0*NDF+2]  =  p0[3]*c;               //
+  pl[0*NDF+3]  = -q_pres[jmx];           // Ti
+  pl[0*NDF+4]  =  q_pres[imy];
+  pl[0*NDF+5]  =  q_pres[imz];
+  pl[1*NDF+0]  =  q_pres[jnx];           // Nj
+  pl[1*NDF+1]  =  p0[2]*c;
+  pl[1*NDF+2]  =  p0[4]*c;
+  pl[1*NDF+3]  =  q_pres[jmx];           // Tj
+  pl[1*NDF+4]  =  q_pres[jmy];
+  pl[1*NDF+5]  =  q_pres[jmz];
+
+  if constexpr (nwm > 0) // Warping DOFs
+    for (int i=0; i<nwm; i++) {
+      // TODO
+      pl[0*NDF+6+i] = -q_pres[6+i];
+      pl[1*NDF+6+i] =  q_pres[6+i];
+    }
+  //
+  
+  static VectorND<2*ndf> dp;
+  static Vector wrapper(dp); // to return reference
+  dp.zero();
+
+  t.pushGrad(dp, pl);
+
   return wrapper;
 }
 
@@ -465,20 +503,18 @@ template<int ndf>
 const Vector &
 BasicFrameTransf3d<ndf>::getBasicDisplFixedGrad()
 {
-  static VectorND<6> dub;
-  static Vector wrapper(dub);
-  opserr << "WARNING unimplemented method\n";
-  return wrapper;
+  static VectorND<2*ndf> du;
+  t.pullFixedGrad(du);
+  return ShapeBasic<ndf>(du);
 }
 
 template<int ndf>
 const Vector &
 BasicFrameTransf3d<ndf>::getBasicDisplTotalGrad(int gradNumber)
 {
-  static VectorND<6> dub;
-  static Vector wrapper(dub);
-  opserr << "WARNING unimplemented method\n";
-  return wrapper;
+  static VectorND<2*ndf> du;
+  t.pullTotalGrad(du, gradNumber);
+  return ShapeBasic<ndf>(du);
 }
 
 

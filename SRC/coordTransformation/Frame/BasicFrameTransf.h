@@ -85,7 +85,7 @@ public:
   int sendSelf(int tag, Channel &) final;
   int recvSelf(int tag, Channel &, FEM_ObjectBroker &) final;
   const char *getClassType() const final {
-      return "BasicFrameTransf3d";
+    return "BasicFrameTransf3d";
   }
     
   // TaggedObject

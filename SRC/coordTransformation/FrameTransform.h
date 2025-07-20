@@ -59,7 +59,7 @@ public:
   explicit FrameTransform(int tag) : TaggedObject(tag) {}
 
   enum class Operation {
-    Total = 0,
+    Total       =    0,
     Logarithm   = 1<<0,
     LocalOffset = 1<<1,
     Isometry    = 1<<2,
@@ -138,6 +138,10 @@ public:
   // virtual const Vector &getBasicDisplTotalGrad(int grad)=0;
   // virtual const Vector &getBasicDisplFixedGrad()=0;
   // virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int grad)=0;
+
+  virtual void   pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl) {}
+  virtual void   pullFixedGrad(VectorND<nn*ndf>&) {}
+  virtual void   pullTotalGrad(VectorND<nn*ndf>&, int) {}
   virtual bool   isShapeSensitivity() {return false;}
   virtual double getLengthGrad() {return 0.0;}
   virtual double getd1overLdh() {return 0.0;}

@@ -451,6 +451,10 @@ class Model:
         if len(args) > 0 or len(kwds) > 0:
             self._openseespy._invoke_proc("model", *args, **kwds)
 
+        self._parameters = {
+            
+        }
+
     def eval(self, *args, **kwds):
         return self._openseespy.eval(*args, **kwds)
 
@@ -536,6 +540,13 @@ class Model:
             del tangent_string
             gc.collect()
         return A; #.reshape([int(np.sqrt(len(A)))]*2)
+
+    def symbols(self, **kwds):
+        symbols = []
+        for k,v in kwds.items():
+            self.eval(f"set {k} {v}")
+            symbols.append((f"-{k}", f"${k}"))
+        return symbols
 
     def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
         """

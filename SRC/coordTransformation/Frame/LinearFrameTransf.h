@@ -74,10 +74,10 @@ public:
 
   // Sensitivity
   //
-  const Vector & getBasicDisplFixedGrad();
-  const Vector & getBasicDisplTotalGrad(int gradNumber);
-  const Vector &getGlobalResistingForceShapeSensitivity (const Vector &basicForce, const Vector &p0, int grad);
-  bool isShapeSensitivity() final;
+  void   pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl) override;
+  void   pullFixedGrad(VectorND<nn*ndf>&) override;
+  void   pullTotalGrad(VectorND<nn*ndf>&, int) override;
+  bool   isShapeSensitivity() final;
   double getLengthGrad() final;
   double getd1overLdh() final;
 

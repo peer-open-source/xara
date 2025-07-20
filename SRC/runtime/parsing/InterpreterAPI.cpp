@@ -433,3 +433,53 @@ OPS_GetFEDatastore() {return theDatabase;}
 
 const char *
 OPS_GetInterpPWD() {return getInterpPWD(theInterp);}
+
+
+namespace OpenSees {
+  namespace Parsing {
+
+    int
+    GetDoubleParam(Tcl_Interp *interp, Domain& domain, const char* arg, double* value, Parameter* &param)
+    {
+      if (Tcl_GetDouble(interp, arg, value) == TCL_OK)
+        return TCL_OK;
+
+      // something like "parameter tag value"
+      int tag, argc;
+      const char **argv;
+      if (Tcl_SplitList(interp, arg, &argc, &argv) != TCL_OK)
+        return TCL_ERROR;
+
+      if (argc != 3) {
+        Tcl_Free((char*)argv);
+        return TCL_ERROR;
+      }
+
+      if (strcmp(argv[0], "Parameter") != 0) {
+        Tcl_Free((char*)argv);
+        return TCL_ERROR;
+      }
+      
+      if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
+        Tcl_Free((char*)argv);
+        return TCL_ERROR;
+      }
+
+      if (Tcl_GetDouble(interp, argv[2], value) != TCL_OK) {
+        Tcl_Free((char*)argv);
+        return TCL_ERROR;
+      }
+
+      Tcl_Free((char*)argv);
+
+      param = domain.getParameter(tag);
+      
+      if (param == nullptr) {
+        opserr << OpenSees::PromptValueError << "parameter with tag " << tag << " not found\n";
+        return TCL_ERROR;
+      }
+
+      return TCL_OK;
+    }
+  }
+}

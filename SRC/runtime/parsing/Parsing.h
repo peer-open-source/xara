@@ -22,3 +22,11 @@ typedef const char G3_Char;
 typedef int Tcl_Size;
 #define TCL_SIZE_MAX INT_MAX
 #endif
+
+class Parameter;
+namespace OpenSees {
+namespace Parsing {
+int
+GetDoubleParam(Tcl_Interp *, Domain& , const char* arg, double* value, Parameter*&);
+}
+}

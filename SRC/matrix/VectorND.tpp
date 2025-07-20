@@ -13,6 +13,17 @@
 
 namespace OpenSees {
 
+
+template <index_t N, typename T>
+inline constexpr T
+VectorND<N,T>::sum() const noexcept
+{
+  T sum = 0.0;
+  for (index_t i = 0; i < N; ++i)
+    sum += values[i];
+  return sum;
+}
+
 template <index_t N, typename T>
 template <int ir, int nr> inline void
 VectorND<N,T>::assemble(const VectorND<nr> &v, double fact)
@@ -60,6 +71,45 @@ VectorND<N,T>::extract(int a) noexcept
   for (int i=0; i<nr; i++)
     v[i] = (*this)[a+i];
   return v;
+}
+
+
+template <index_t N, typename T>
+template <int NC>
+inline void
+VectorND<N,T>::addMatrixVector(const MatrixND<N, NC, double> &m, const VectorND<NC>& v, double otherFact) noexcept
+{
+  // want: this += m * v * otherFact
+
+  const double *matrixDataPtr = m.data();
+  const double *otherDataPtr = &v[0];
+  for (int i=0; i<NC; i++) {
+    double otherData = *otherDataPtr++ * otherFact;
+    for (int j=0; j<N; j++)
+      values[j] += *matrixDataPtr++ * otherData;
+  }
+}
+
+
+template <index_t N, typename T>
+template <int NC>
+inline void
+VectorND<N,T>::addMatrixVector(double thisFact, const MatrixND<N, NC, double> &m, const VectorND<NC>& v, double otherFact) noexcept
+{
+  // want: this = this * thisFact + m * v * otherFact
+  if (thisFact == 0.0)
+    this->zero();
+  else
+    for (int i=0; i<N; i++)
+      values[i] *= thisFact;
+
+  const double *matrixDataPtr = m.data();
+  const double *otherDataPtr = &v[0];
+  for (int i=0; i<NC; i++) {
+    double otherData = *otherDataPtr++ * otherFact;
+    for (int j=0; j<N; j++)
+      values[j] += *matrixDataPtr++ * otherData;
+  }
 }
 
 #ifdef XARA_VECTOR_FRIENDS

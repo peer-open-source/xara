@@ -32,6 +32,7 @@ class ElasticLinearFrameSection3d : public FrameSection
   );
 
   ElasticLinearFrameSection3d();
+public:
   ~ElasticLinearFrameSection3d();
 
   const char *getClassType() const {
@@ -70,28 +71,17 @@ class ElasticLinearFrameSection3d : public FrameSection
                                               bool conditional);
   const Matrix& getInitialTangentSensitivity(int gradIndex);
 
- protected:
   
  private:
-  struct Tangent {
-     OpenSees::MatrixND<3,3> nn,         nw, nv, 
-                                 mn, mm, mw, mv, 
-                                         ww,
-                                             vv;
-     void zero() {
-            nn.zero();            nw.zero(); nv.zero();
-            mn.zero(); mm.zero(); mw.zero(); mv.zero();
-                                  ww.zero();
-                                             vv.zero();
-     }
-  } K_pres;
 
   void getConstants(FrameSectionConstants& consts) const; 
 
-  double E, G;
 
   constexpr static int nr = 12;
 
+  ElasticLinearFrameSection3d(std::shared_ptr<OpenSees::MatrixND<nr,nr>> Ks);
+
+  double E, G;
   Vector  v;
   Matrix  M,         // Generic matrix for returning Ks or Fs (nr x nr)
          *Ksen;      // Tangent sensitivity (nr x nr)
@@ -105,6 +95,20 @@ class ElasticLinearFrameSection3d : public FrameSection
 
   static ID layout;
   std::array<double, 2> centroid;
+
+
+//   struct Tangent {
+//      OpenSees::MatrixND<3,3> nn,         nw, nv, 
+//                                  mn, mm, mw, mv, 
+//                                          ww,
+//                                              vv;
+//      void zero() {
+//             nn.zero();            nw.zero(); nv.zero();
+//             mn.zero(); mm.zero(); mw.zero(); mv.zero();
+//                                   ww.zero();
+//                                              vv.zero();
+//      }
+//   } K_pres;
 };
 
 #endif

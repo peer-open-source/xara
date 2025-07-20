@@ -132,7 +132,6 @@ private:
   VectorND<6> getBasicForceGrad(int gradNumber);
   const Matrix& computedfedh(int gradNumber);
   void computedwdh(double dwidh[], int gradNumber, const Vector& q);
-//void addReactionGrad(double* dp0dh, int gradNumber);
   void getStressGrad(VectorND<nsr>& dspdh, int isec, int gradNumber);
 
   // Reactions of basic system due to element loads

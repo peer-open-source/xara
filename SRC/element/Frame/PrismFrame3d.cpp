@@ -886,7 +886,8 @@ PrismFrame3d::getResistingForceSensitivity(int gradNumber)
                          basic_system->getBasicDisplFixedGrad(), 1.0);
 
     // dAdh^T q
-    P = basic_system->getGlobalResistingForceShapeSensitivity(this->getBasicForce(), dp0dhVec, gradNumber);
+    P = basic_system->getGlobalResistingForceShapeSensitivity(this->getBasicForce(), 
+                                                              dp0dhVec, gradNumber);
   }
 
   // A^T (dqdh + k dAdh u)
