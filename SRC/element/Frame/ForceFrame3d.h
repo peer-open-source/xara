@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//----------------------------------------------------------------------------//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//                https://opensees.berkeley.edu/copyright.html
 //
 //===----------------------------------------------------------------------===//
 //
@@ -97,9 +103,7 @@ class ForceFrame3d: public BasicFrame3d,
   // TaggedObject
   void Print(OPS_Stream &s, int flag =0);    
   
- protected:
 
-  
  private:
   //
   // Constexpr
