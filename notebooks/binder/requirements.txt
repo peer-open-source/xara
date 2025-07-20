@@ -1,6 +1,0 @@
-imageio[ffmpeg]
-opensees
-sees
-mdof
-SciencePlots
-
