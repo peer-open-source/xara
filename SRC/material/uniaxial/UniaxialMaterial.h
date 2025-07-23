@@ -45,8 +45,7 @@ class Response;
 
 class SectionForceDeformation;
 
-class UniaxialMaterial : // public Material
-      public TaggedObject, public MovableObject
+class UniaxialMaterial :  public TaggedObject, public MovableObject
 {
   public:
     UniaxialMaterial(int tag, int classTag);    
@@ -90,8 +89,7 @@ class UniaxialMaterial : // public Material
     virtual double getDampTangentSensitivity(int gradIndex);
     virtual double getRhoSensitivity        (int gradIndex);
     virtual int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
-    virtual int getResponseSensitivity(int responseID, int gradIndex,
-				       Information &info);
+    virtual int    getResponseSensitivity(int responseID, int gradIndex,  Information &info);
     // AddingSensitivity:END ///////////////////////////////////////////
 	  // by SAJalali
     virtual double getEnergy() { return 0; }

@@ -271,11 +271,8 @@ ForceFrame3d<NIP,nsr,nwm>::revertToLastCommit()
 
   }
 
-
   if (basic_system->revertToLastCommit() != 0)
     return -2;
-
-
 
   q_pres = q_save;
   K_pres = K_save;

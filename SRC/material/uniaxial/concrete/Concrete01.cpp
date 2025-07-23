@@ -17,20 +17,23 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.22 $
-// $Date: 2008-08-26 16:23:47 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/Concrete01.cpp,v $
-                                                                        
-// Written: MHS 
-// Created: 06/99
-// Revision: A
+//
 //
 // Description: This file contains the class implementation for 
 // Concrete01. 
 //
-// What: "@(#) Concrete01.C, revA"
-
+// Sensitivity:
+//
+//   Scott, Michael H., Paolo Franchin, Gregory L. Fenves, and Filip C. Filippou. 
+//     “Response Sensitivity for Nonlinear Beam–Column Elements.” 
+//     Journal of Structural Engineering 130, no. 9 (2004): 1281–88. 
+//     https://doi.org/10.1061/(asce)0733-9445(2004)130:9(1281).
+//
+//
+// Written: MHS
+// Created: 06/99
+// Revision: A
+//
 
 #include <Concrete01.h>
 #include <Vector.h>
@@ -46,7 +49,8 @@
 #include <elementAPI.h>
 #include <OPS_Globals.h>
 
-void * OPS_ADD_RUNTIME_VPV(OPS_Concrete01)
+void * 
+OPS_ADD_RUNTIME_VPV(OPS_Concrete01)
 {
   // Pointer to a uniaxial material that will be returned
   UniaxialMaterial *theMaterial = 0;
@@ -63,7 +67,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Concrete01)
   numData = OPS_GetNumRemainingInputArgs();
 
   if (numData != 4) {
-    opserr << "Invalid #args, want: uniaxialMaterial Concrete01 " << iData[0] << "fpc? epsc0? fpcu? epscu?\n";
+    opserr << "Invalid #args, want: uniaxialMaterial Concrete01 " 
+           << iData[0] << "fpc? epsc0? fpcu? epscu?\n";
     return 0;
   }
 
@@ -553,17 +558,20 @@ void Concrete01::Print (OPS_Stream& s, int flag)
     s << "  epsc0: " << epsc0 << endln;
     s << "  fpcu: " << fpcu << endln;
     s << "  epscu: " << epscu << endln;
+    return;
   }
   
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-	s << "\"name\": \"" << this->getTag() << "\", ";
-	s << "\"type\": \"Concrete01\", ";
-	s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
-	s << "\"fc\": " << fpc << ", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"Concrete01\", ";
+    s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
+    s << "\"fc\": " << fpc << ", ";
     s << "\"epsc\": " << epsc0 << ", ";
     s << "\"fcu\": " << fpcu << ", ";
-    s << "\"epscu\": " << epscu << "}";
+    s << "\"epscu\": " << epscu;
+    s << "}";
+    return;
   }
 }
 
@@ -666,6 +674,7 @@ Concrete01::getStressSensitivity(int gradIndex, bool conditional)
 	double CendStrainSensitivity = 0.0;
 	double CstressSensitivity = 0.0;
 	double CstrainSensitivity = 0.0;
+
 	if (SHVs != 0) {
 		CminStrainSensitivity   = (*SHVs)(0,gradIndex);
 		CunloadSlopeSensitivity = (*SHVs)(1,gradIndex);
@@ -703,7 +712,7 @@ Concrete01::getStressSensitivity(int gradIndex, bool conditional)
 
 		if (Tstrain < CminStrain) {			// loading along the backbone curve
 
-			if (Tstrain > epsc0) {			//on the parabola
+			if (Tstrain > epsc0) {			// on the parabola
 				
 				TstressSensitivity = fpcSensitivity*(2.0*Tstrain/epsc0-(Tstrain/epsc0)*(Tstrain/epsc0))
 					      + fpc*( (2.0*TstrainSensitivity*epsc0-2.0*Tstrain*epsc0Sensitivity)/(epsc0*epsc0) 
@@ -1001,15 +1010,6 @@ Concrete01::commitSensitivity(double TstrainSensitivity, int gradIndex, int numG
 
 
 
-
-
-
-
-
-
-
-
-
 /* THE OLD METHODS:
 double
 Concrete01::getStressSensitivity(int gradIndex, bool conditional)
@@ -1093,6 +1093,7 @@ Concrete01::commitSensitivity(double TstrainSensitivity, int gradIndex, int numG
 }
 */
 // AddingSensitivity:END /////////////////////////////////////////////
+
 
 int
 Concrete01::getVariable(const char *varName, Information &theInfo)

@@ -19,7 +19,7 @@
 #include <MatrixND.h>
 
 namespace OpenSees {
-
+#if 0
 template <int nen=2, int ndf=6>
 static VectorND<nen*ndf>
 pushLocal(const Vector& q, double L)
@@ -51,7 +51,7 @@ pushLocal(const Vector& q, double L)
 
   return pl;
 }
-
+#endif
 
 template <int nn, int ndf>
 VectorND<nn*ndf> 

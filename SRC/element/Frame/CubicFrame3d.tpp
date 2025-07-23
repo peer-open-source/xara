@@ -1341,12 +1341,11 @@ CubicFrame3d<shear,nwm>::getResistingForceSensitivity(int gradNumber)
     double wti  = wt[i];
 
     // Get section stress resultant gradient
-    const Vector& dsdh = theSections[i]->getStressResultantSensitivity(gradNumber, true);
+    const VectorND<nsr> ds = theSections[i]->getResultantGradient<nsr,scheme>(gradNumber, true);
 
     // Perform numerical integration on internal force gradient
-    double sensi;
     for (int j = 0; j < nsr; j++) {
-      sensi = dsdh(j) * wti;
+      double sensi = ds(j) * wti;
       switch (scheme[j]) {
       case FrameStress::N:
         dqdh(0) += sensi;
@@ -1467,21 +1466,6 @@ CubicFrame3d<shear,nwm>::getResistingForceSensitivity(int gradNumber)
             kbmine(0, k) += ka(j, k);
           }
           break;
-
-        case FrameStress::Mz:
-          for (int k = 0; k < 6; k++) {
-            double tmp = ka(j, k);
-            kbmine(1, k) += 1.0 / (1 + phiz) * (xi6 - 4.0 - phiz) * tmp;
-            kbmine(2, k) += 1.0 / (1 + phiz) * (xi6 - 2.0 + phiz) * tmp;
-          }
-          break;
-        case SECTION_RESPONSE_MY:
-          for (int k = 0; k < 6; k++) {
-            tmp = ka(j, k);
-            kbmine(3, k) += 1.0 / (1 + phiy) * (xi6 - 4.0 - phiy) * tmp;
-            kbmine(4, k) += 1.0 / (1 + phiy) * (xi6 - 2.0 + phiy) * tmp;
-          }
-          break;
         case FrameStress::Vy:
           for (int k = 0; k < 6; k++) {
             tmp = ka(j, k);
@@ -1494,6 +1478,21 @@ CubicFrame3d<shear,nwm>::getResistingForceSensitivity(int gradNumber)
             tmp = ka(j, k);
             kbmine(3, k) += 0.5 * phiy * L / (1 + phiy) * tmp;
             kbmine(4, k) += 0.5 * phiy * L / (1 + phiy) * tmp;
+          }
+          break;
+
+        case SECTION_RESPONSE_MY:
+          for (int k = 0; k < 6; k++) {
+            tmp = ka(j, k);
+            kbmine(3, k) += 1.0 / (1 + phiy) * (xi6 - 4.0 - phiy) * tmp;
+            kbmine(4, k) += 1.0 / (1 + phiy) * (xi6 - 2.0 + phiy) * tmp;
+          }
+          break;
+        case FrameStress::Mz:
+          for (int k = 0; k < 6; k++) {
+            double tmp = ka(j, k);
+            kbmine(1, k) += 1.0 / (1 + phiz) * (xi6 - 4.0 - phiz) * tmp;
+            kbmine(2, k) += 1.0 / (1 + phiz) * (xi6 - 2.0 + phiz) * tmp;
           }
           break;
         case FrameStress::T:
@@ -1511,7 +1510,6 @@ CubicFrame3d<shear,nwm>::getResistingForceSensitivity(int gradNumber)
     double d1overLdh  = -dLdh / (L * L);
     // a^T k_s dadh v
     dqdh.addMatrixVector(1.0, kbmine, A_u, d1overLdh);
-
 
 
     // k dAdh u

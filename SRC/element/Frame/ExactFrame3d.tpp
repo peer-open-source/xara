@@ -233,7 +233,7 @@ template<std::size_t nen, int nwm>
 int
 ExactFrame3d<nen,nwm>::update()
 {
-  const Vector3D D {1, 0, 0};
+  constexpr static Vector3D D {1, 0, 0};
   auto& theNodes = this->FiniteElement<nen,3,ndf>::theNodes;
 
   //
@@ -470,6 +470,76 @@ ExactFrame3d<nen,nwm>::getMass()
   return wrapper;
 }
 
+template<std::size_t nen, int nwm>
+const Vector &
+ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
+{
+  static VectorND<ndf*nen> dp;
+  static Vector wrapper(dp);
+  dp.zero();
+
+  constexpr static Vector3D D {1, 0, 0};
+  auto& theNodes = this->FiniteElement<nen,3,ndf>::theNodes;
+
+  // Form displaced node locations xyz
+  VectorND<ndm> xyz[nen];
+  for (unsigned i=0; i < nen; i++) {
+    const Vector& xi = theNodes[i]->getCrds();
+    const Vector& ui = theNodes[i]->getTrialDisp();
+    for (int j=0; j<ndm; j++)
+      xyz[i][j] = xi[j] + ui[j];
+  }
+
+  for (int i=0; i<nip; i++) {
+    //
+    // Interpolate
+    //
+    Vector3D dx {0.0};
+
+    for (unsigned j=0; j < nen; j++) {
+      for (int l=0; l<3; l++)
+        dx[l] += pres[i].shape[1][j]*xyz[j][l];
+    }
+
+    //
+    //
+
+    FrameSection& section = *pres[i].material;
+
+    VectorND<nsr> s = section.getResultantGradient<nsr,scheme>(grad, true);
+
+    //
+    // A = diag(R, R);
+    // Note that this is transposed
+    const Matrix3D& R = pres[i].rotation;
+
+    MatrixND<nsr,nsr> A {{
+      R(0,0), R(1,0), R(2,0), 0, 0, 0,
+      R(0,1), R(1,1), R(2,1), 0, 0, 0,
+      R(0,2), R(1,2), R(2,2), 0, 0, 0,
+      0, 0, 0, R(0,0), R(1,0), R(2,0),
+      0, 0, 0, R(0,1), R(1,1), R(2,1),
+      0, 0, 0, R(0,2), R(1,2), R(2,2),
+    }};
+    for (int j=0; j<2*nwm; j++)
+      A(6+j,6+j) = 1.0;
+
+    MatrixND<nsr,ndf> B[nen];
+    for (unsigned j=0; j<nen; j++) {
+      MatrixND<nsr,ndf> Bj;
+      Bj.zero();
+      B_nat<nen,nwm>(Bj,  pres[i].shape, dx, j);
+      B[j] = A^Bj;
+
+      // p += B s w
+      VectorND<ndf> pj = B[j]^s;
+      for (int l=0; l<ndf; l++)
+        dp[j*ndf+l] += pres[i].weight * pj[l];
+    }
+  } // Main Gauss loop
+
+  return wrapper;
+}
 
 template<std::size_t nen, int nwm>
 int
@@ -882,9 +952,9 @@ ExactFrame3d<nen,nwm>::setParameter(const char** argv, int argc, Parameter& para
       result = ok;
   }
 
-  int ok = stencil->setParameter(argv, argc, param);
-  if (ok != -1)
-    result = ok;
+  // int ok = stencil->setParameter(argv, argc, param);
+  // if (ok != -1)
+  //   result = ok;
 
   return result;
 }

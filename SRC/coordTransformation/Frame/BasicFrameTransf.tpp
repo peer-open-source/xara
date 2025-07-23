@@ -23,6 +23,24 @@
 
 namespace OpenSees {
 
+namespace {
+  template<int ndf>
+  const Vector&
+  ShapeBasic(const VectorND<2*ndf>& ul)
+  {
+    static VectorND<6+(ndf-6)*2> ub;
+    static Vector wrapper(ub);
+    ub[0] = ul[1*ndf+0]; // Nj
+    ub[1] = ul[0*ndf+5];
+    ub[2] = ul[1*ndf+5];
+    ub[3] = ul[0*ndf+4];
+    ub[4] = ul[1*ndf+4];
+    ub[5] = ul[1*ndf+3] - ul[0*ndf+3];
+    return wrapper;
+  }
+}
+
+
 template<int ndf>
 BasicFrameTransf3d<ndf>::BasicFrameTransf3d(FrameTransform<2,ndf> *t)
 : CrdTransf(t->getTag(), 0),
@@ -122,22 +140,6 @@ BasicFrameTransf3d<ndf>::getBasicTrialDisp()
   return wrapper;
 }
 
-namespace {
-  template<int ndf>
-  const Vector&
-  ShapeBasic(const VectorND<2*ndf>& ul)
-  {
-    static VectorND<6+(ndf-6)*2> ub;
-    static Vector wrapper(ub);
-    ub[0] = ul[1*ndf+0]; // Nj
-    ub[1] = ul[0*ndf+5];
-    ub[2] = ul[1*ndf+5];
-    ub[3] = ul[0*ndf+4];
-    ub[4] = ul[1*ndf+4];
-    ub[5] = ul[1*ndf+3] - ul[0*ndf+3];
-    return wrapper;
-  }
-}
 
 template<int ndf>
 const Vector &
@@ -334,6 +336,7 @@ BasicFrameTransf3d<ndf>::getInitialGlobalStiffMatrix(const Matrix &KB)
   static double kb[6][6];     // Basic stiffness
 
   static MatrixND<2*ndf,2*ndf> kl;  // Local stiffness
+
   double tmp[6][12]{};
 
   for (int i = 0; i < 6; i++)

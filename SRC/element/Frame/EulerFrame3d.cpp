@@ -961,24 +961,21 @@ EulerFrame3d::getBasicForceGrad(int gradNumber)
   //
   // See Haukaas and Scott (2006)
   //
-  VectorND<6> dqdh;
-  dqdh.zero();
+  VectorND<6> dqdh{};
   
   // Perform numerical integration
   for (int i = 0; i < numSections; i++) {
-
-    int order = points[i].material->getOrder();
-    const ID &code = points[i].material->getType();
     
     double xi6 = 6.0*xi[i];
     double wti = wt[i];
     
     // Get section stress resultant gradient
-    const Vector &dsdh = points[i].material->getStressResultantSensitivity(gradNumber, true);
+    const VectorND<nsr> ds
+      = points[i].material->template getResultantGradient<nsr,scheme>(gradNumber, true);
     
-    for (int j = 0; j < order; j++) {
-      double sensi = dsdh[j]*wti;
-      switch(code(j)) {
+    for (int j = 0; j < nsr; j++) {
+      double sensi = ds[j]*wti;
+      switch(scheme[j]) {
       case SECTION_RESPONSE_P:
         dqdh(0) += sensi; 
         break;
@@ -987,8 +984,8 @@ EulerFrame3d::getBasicForceGrad(int gradNumber)
         dqdh(2) += (xi6-2.0)*sensi; 
         break;
       case SECTION_RESPONSE_MY:
-        dqdh(3) += (xi6-4.0)*sensi; 
-        dqdh(4) += (xi6-2.0)*sensi; 
+        dqdh(3) += (xi6-4.0)*sensi;
+        dqdh(4) += (xi6-2.0)*sensi;
         break;
       case SECTION_RESPONSE_T:
         dqdh(5) += sensi; 
@@ -998,6 +995,7 @@ EulerFrame3d::getBasicForceGrad(int gradNumber)
       }
     }
   }
+
 
   if (basic_system->isShapeSensitivity()) { 
  

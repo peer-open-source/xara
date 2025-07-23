@@ -75,7 +75,8 @@ public:
   //
   const Vector & getBasicDisplFixedGrad() final;
   const Vector & getBasicDisplTotalGrad(int grad) final;
-  const Vector &getGlobalResistingForceShapeSensitivity(const Vector &basicForce, const Vector &p0, int grad) final;
+  const Vector &getGlobalResistingForceShapeSensitivity(const Vector &basicForce,
+                                                        const Vector &p0, int grad) final;
   bool isShapeSensitivity() final;
   double getLengthGrad() final;
   double getd1overLdh() final;

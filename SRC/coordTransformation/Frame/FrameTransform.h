@@ -97,8 +97,8 @@ public:
 #if 1
   virtual int push(VectorND<nn*ndf>&pl, Operation=0) =0;
   virtual int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation=0) =0;
-#endif
-
+#endif 
+#if 1
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final {
     VectorND<nn*ndf> pg{pl};
     push(pg, Operation::Total);
@@ -111,7 +111,7 @@ public:
     push(kg, pl, Operation::Total);
     return kg;              
   }
-
+#endif
   virtual double getInitialLength() =0;
   virtual double getDeformedLength() =0;
   virtual const std::array<Vector3D,nn> *getRigidOffsets() const =0;
