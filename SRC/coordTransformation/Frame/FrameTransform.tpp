@@ -17,41 +17,9 @@
 #pragma once
 #include "FrameTransform.h"
 #include <MatrixND.h>
+#include <Vector3D.h>
 
 namespace OpenSees {
-#if 0
-template <int nen=2, int ndf=6>
-static VectorND<nen*ndf>
-pushLocal(const Vector& q, double L)
-{
-  
-  VectorND<12> pl;
-
-  double q0 = q(0);
-  double q1 = q(1);
-  double q2 = q(2);
-  double q3 = q(3);
-  double q4 = q(4);
-  double q5 = q(5);
-
-  double oneOverL = 1.0 / L;
-
-  pl[0]  = -q0;                    // Ni
-  pl[1]  =  oneOverL * (q1 + q2);  // Viy
-  pl[2]  = -oneOverL * (q3 + q4);  // Viz
-  pl[3]  = -q5;                    // Ti
-  pl[4]  =  q3; 
-  pl[5]  =  q1;                    // Mzi
-  pl[6]  =  q0;                    // Nj
-  pl[7]  = -pl[1];                 // Vjy
-  pl[8]  = -pl[2];                 // Vjz
-  pl[9]  =  q5;                    // Tj
-  pl[10] =  q4;
-  pl[11] =  q2;                    // Mzj
-
-  return pl;
-}
-#endif
 
 template <int nn, int ndf>
 VectorND<nn*ndf> 

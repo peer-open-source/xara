@@ -1,9 +1,17 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 #include <tcl.h>
 #include <set>
 #include <assert.h>
@@ -74,6 +82,7 @@ NodeCounts = {
   {"ShellDKGQ",          4},
   {"ShellNLDKGQ",        4},
   {"ShellDKGT",          3},
+  // {"ASDShellT3",         3}, // TODO
   {"ShellNLDKGT",        3},
   {"ShellANDeS",         4},
   {"ShellMITC4Thermal",  4},

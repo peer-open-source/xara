@@ -20,7 +20,6 @@
 // and basic coordinate systems
 //
 // Written: Claudio M. Perez
-// Adapted: Remo Magalhaes de Souza
 //
 #pragma once
 #include <Vector.h>

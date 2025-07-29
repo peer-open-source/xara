@@ -87,7 +87,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticMaterial)
   }
 
   // Parsing was successful, allocate the material
-  theMaterial = new ElasticMaterial(iData[0], dData[0], dData[1], dData[2]);
+  theMaterial = new ElasticMaterial(iData[0], dData[0], dData[1], dData[2], 0.0);
   if (theMaterial == 0) {
     opserr << "WARNING could not create uniaxialMaterial of type ElasticMaterial\n";
     return 0;
