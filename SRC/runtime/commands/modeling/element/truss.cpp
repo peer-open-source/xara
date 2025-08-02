@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -20,7 +29,6 @@
 #include <UniaxialMaterial.h>
 #include <BasicModelBuilder.h>
 // Elements
-// #include <Truss.h>
 #include <TrussSection.h>
 #include <CorotTruss.h>
 #include <CorotTrussSection.h>
@@ -53,7 +61,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
   // 1. Collect nodes
   // 2. Parse out keywords
   // 3. Parse remaining positional arguments.
-  //
+
   ArgumentTracker<Positions> tracker;
   std::set<int> positional;
 
@@ -96,7 +104,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
 
   //
   // 2. Keywords 
-  //    -rho <rho> <-cMass <flag> <-doRayleigh <flag> <-useInitialDisp <flag>
+  //
   for (int i=node_end; i<argc; i++) {
     if (strcmp(argv[i], "-rho") == 0) {
       if (argc == ++i || Tcl_GetDouble(interp, argv[i], &rho) != TCL_OK) {
@@ -106,6 +114,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       tracker.consume(Positions::Density);
     }
+
     else if (strcmp(argv[i], "-section") == 0) {
       int sec;
       if (argc == ++i || Tcl_GetInt(interp, argv[i], &sec) != TCL_OK) {
@@ -116,6 +125,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
       section = builder->getTypedObject<FrameSection>(sec);
       if (section == nullptr)
         return TCL_ERROR;
+
       tracker.consume(Positions::Section);
       tracker.consume(Positions::Area);
       tracker.consume(Positions::Material);
@@ -134,7 +144,8 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
         return TCL_ERROR;
       tracker.consume(Positions::Material);
     }
-    else if (strcmp(argv[i], "-A") == 0) {
+    else if ((strcmp(argv[i], "-A") == 0) ||
+             (strcmp(argv[i], "-area") == 0)) {
       if (argc == ++i || Tcl_GetDouble(interp, argv[i], &area) != TCL_OK) {
         opserr << OpenSees::PromptValueError
                << "failed to read area\n";

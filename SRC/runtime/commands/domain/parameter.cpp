@@ -12,7 +12,6 @@
 #include <assert.h>
 #include <string.h>
 #include <OPS_Stream.h>
-#include <G3_Logging.h>
 #include <Domain.h>
 #include <MovableObject.h>
 #include <Element.h>

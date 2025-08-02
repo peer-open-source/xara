@@ -21,7 +21,12 @@ target_sources(OPS_ElementFortran
         gaussq.f
         d1mach.f
 )
-
+if (APPLE) 
+  target_link_options(OPS_ElementFortran
+    PRIVATE
+    $<$<LINK_LANGUAGE:Fortran>:-Wl,-no_compact_unwind>
+  )
+endif()
 target_link_libraries(OPS_Element PRIVATE OPS_Quadrature)
 
 add_subdirectory(Frame)

@@ -396,6 +396,8 @@ Init_OpenSees(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "wipe",                TclCommand_wipeModel,      nullptr, nullptr);
   Tcl_CreateCommand(interp, "_clearAnalysis",      TclCommand_clearAnalysis,  nullptr, nullptr);
 
+  
+
   Tcl_CreateObjCommand(interp, "pset",             OPS_SetObjCmd, nullptr, nullptr);
   Tcl_CreateObjCommand(interp, "source",           OPS_SourceCmd, nullptr, nullptr);
   Tcl_CreateObjCommand(interp, "pragma",           TclObjCommand_pragma, nullptr, nullptr);

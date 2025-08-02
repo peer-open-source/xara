@@ -5,6 +5,7 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
+// 
 // Description: This file implements commands for interacting with nodes
 // in the domain.
 //
@@ -37,7 +38,9 @@ static int   resDataSize = 0;
 
 
 int
-getNodeTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+getNodeTags(ClientData clientData,
+            Tcl_Interp *interp, 
+            Tcl_Size argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -45,12 +48,13 @@ getNodeTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   NodeIter &nodeIter = the_domain->getNodes();
 
+  Tcl_Obj* result = Tcl_NewListObj(the_domain->getNumNodes(), nullptr);
+
   Node *node;
-  char buffer[20];
-  while ((node = nodeIter()) != nullptr) {
-    sprintf(buffer, "%d ", node->getTag());
-    Tcl_AppendResult(interp, buffer, NULL);
-  }
+  while ((node = nodeIter()) != nullptr)
+    Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(node->getTag()));
+
+  Tcl_SetObjResult(interp, result);
 
   return TCL_OK;
 }
@@ -123,8 +127,9 @@ setNodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   double value;
 
   if (Tcl_GetInt(interp, argv[2], &dim) != TCL_OK) {
-    opserr
-        << "WARNING setNodeCoord nodeTag? dim? value? - could not read dim? \n";
+    opserr << OpenSees::PromptValueError
+           << "could not read dim"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[3], &value) != TCL_OK) {
@@ -136,12 +141,15 @@ setNodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   Node *theNode = domain->getNode(tag);
 
   if (theNode == nullptr) {
-    // TODO: add error message
+    opserr << OpenSees::PromptValueError 
+           << "Unable to find node with tag '" << tag << "'"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   //
   // TODO: Check dimensions
+  //
 
   Vector coords(theNode->getCrds());
   coords(dim - 1) = value;
@@ -1045,7 +1053,9 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** 
              strcmp(argv[2], "3") == 0)
       dim = 2;
     else {
-      opserr << OpenSees::PromptValueError << "" << "nodeCoord nodeTag? dim? - could not read dim? \n";
+      opserr << OpenSees::PromptValueError 
+             << "could not read dim"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   }
@@ -1053,7 +1063,9 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** 
   Node *theNode = the_domain->getNode(tag);
 
   if (theNode == nullptr) {
-    opserr << OpenSees::PromptValueError << "Unable to retrieve node with tag '" << tag << "'\n";
+    opserr << OpenSees::PromptValueError 
+           << "Unable to find node with tag '" << tag << "'"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

@@ -75,6 +75,7 @@ target_sources(OPS_Runtime PRIVATE
 
 add_subdirectory(domain)
 add_subdirectory(parallel)
+add_subdirectory(analysis/modal)
 
 target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR}/modeling)

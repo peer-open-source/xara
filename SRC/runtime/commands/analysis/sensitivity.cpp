@@ -100,22 +100,22 @@ TclCommand_sensitivityAlgorithm(ClientData clientData, Tcl_Interp* interp, int a
     Integrator* theIntegrator = nullptr;
 
     if (builder->getStaticIntegrator() != nullptr) {
-        theIntegrator = builder->getStaticIntegrator();
+      theIntegrator = builder->getStaticIntegrator();
 
     } else if(builder->getTransientIntegrator() != nullptr) {
-        theIntegrator = builder->getTransientIntegrator();
+      theIntegrator = builder->getTransientIntegrator();
     }
 
 
     if (argc < 2) {
-        opserr << "ERROR: Wrong number of parameters to sensitivity algorithm." << "\n";
-        return TCL_ERROR;
+      opserr << "ERROR: Wrong number of parameters to sensitivity algorithm." << "\n";
+      return TCL_ERROR;
     }
 
     if (theIntegrator == nullptr) {
-        opserr << "The integrator needs to be instantiated before " << "\n"
-               << " setting  sensitivity algorithm." << "\n";
-        return -1;
+      opserr << "The integrator needs to be instantiated before " << "\n"
+              << " setting  sensitivity algorithm." << "\n";
+      return -1;
     }
 
 
