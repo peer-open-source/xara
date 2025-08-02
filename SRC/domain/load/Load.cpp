@@ -64,14 +64,6 @@ Load::setDomain(Domain *model)
 Domain *
 Load::getDomain(void) const
 {
-    // returns the current pointer
-    return theDomain;
+  // returns the current pointer
+  return theDomain;
 }
-
-#if 0
-int 
-Load::displaySelf(Renderer &theViewer, int mode, float fact, const char **displayModes, int numModes)
-{
-  return 0;
-}
-#endif
