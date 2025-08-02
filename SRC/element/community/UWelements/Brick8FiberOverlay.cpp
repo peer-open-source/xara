@@ -30,7 +30,6 @@
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Parameter.h>
@@ -570,63 +569,6 @@ Brick8FiberOverlay::getResponse(int responseID, Information &eleInfo)
   }
 }
 
-int
-Brick8FiberOverlay::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{	
-	int dimension = 3;
-    static Vector v1(3);
-    static Vector v2(3);
-
-    if (displayMode == 1 || displayMode == 2) {
-      const Vector &end1Disp = theNodes[0]->getDisp();
-      const Vector &end2Disp = theNodes[3]->getDisp();    
-	 
-	 for (int i=0; i<dimension; i++) {
-	    v1(i) = Qfi(i)+end1Disp(i)*fact;
-	    v2(i) = Qfj(i)+end2Disp(i)*fact;    
-	}
-	
-	// compute the strain and axial force in the member
-	double avStrain = 0, avAxForce = 0;
-	if (Lf == 0.0) {
-	    avStrain = 0.0;
-	    avAxForce = 0.0;
-	} else {
-		for(int i = 0; i < 2; i++){
-			strain = this->computeCurrentStrain(pts[i][0], pts[i][1], pts[i][2]);
-			theMaterial[i]->setTrialStrain(strain);
-			avStrain += strain;
-			avAxForce += Af * theMaterial[i]->getStress();
-		}
-		avAxForce *= 0.5; 
-		avStrain *= 0.5;
-	}
-    
-	if (displayMode == 2) // use the strain as the drawing measure
-	  return theViewer.drawLine(v1, v2, (float)avStrain, (float)avStrain);	
-	else { // otherwise use the axial force as measure
-	  return theViewer.drawLine(v1,v2, (float)avAxForce, (float)avAxForce);
-	}
-    } else if (displayMode < 0) {
-      int mode = displayMode  *  -1;
-      const Matrix &eigen1 = theNodes[0]->getEigenvectors();
-      const Matrix &eigen2 = theNodes[1]->getEigenvectors();
-      if (eigen1.noCols() >= mode) {
-	for (int i = 0; i < dimension; i++) {
-	  v1(i) = Qfi(i) + eigen1(i,mode-1)*fact;
-	  v2(i) = Qfj(i) + eigen2(i,mode-1)*fact;    
-	}    
-      } else {
-	for (int i = 0; i < dimension; i++) {
-	  v1(i) = Qfi(i);
-	  v2(i) = Qfj(i);
-	}    
-      }
-      return theViewer.drawLine(v1, v2, 1.0, 1.0);	
-    }
-    return 0;
-    return 0;
-}
 
 // // database & parallel ////////////////////////////////////////////////////////////////////////
 int
