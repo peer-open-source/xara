@@ -196,7 +196,16 @@ class OpenSeesPy:
         strings.
 
         """
+        comment = ""
+        if "comment" in kwds:
+            comment = kwds.pop("comment")
+            if isinstance(comment, str):
+                comment = f"; # {comment}"
+            else:
+                raise TypeError(f"Invalid type for comment: {type(comment)}")
+
         cmd = _args_to_cmds(proc_name, *args, _final=_final, **kwds)
+        cmd += comment
 
         #
         #
