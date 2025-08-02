@@ -8,8 +8,8 @@
 target_sources(OPS_Element
   PRIVATE
     # Truss.cpp
-    TrussSection.cpp
     # CorotTruss.cpp
+    TrussSection.cpp
     CorotTrussSection.cpp
   PUBLIC
     # Truss.h

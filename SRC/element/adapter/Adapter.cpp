@@ -763,35 +763,16 @@ int Adapter::recvSelf(int commitTag, Channel &rChannel,
 }
 
 
-int Adapter::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
+
+
+void 
+Adapter::Print(OPS_Stream &s, int flag)
 {
-    int rValue = 0;
-    
-    if (numExternalNodes > 1)  {
-        for (int i = 0; i < numExternalNodes - 1; i++) {
-            static Vector v1(3);
-            static Vector v2(3);
-
-            theNodes[i]->getDisplayCrds(v1, fact, displayMode);
-            theNodes[i + 1]->getDisplayCrds(v2, fact, displayMode);
-
-            rValue += theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag(), 0);
-        }
-    }
-    
-    return rValue;
-}
-
-
-void Adapter::Print(OPS_Stream &s, int flag)
-{
-    int i;
     if (flag == OPS_PRINT_CURRENTSTATE) {
         // print everything
         s << "Element: " << this->getTag() << endln;
         s << "  type: Adapter";
-        for (i=0; i<numExternalNodes; i++ )
+        for (int i=0; i<numExternalNodes; i++ )
             s << ", Node" << i+1 << ": " << connectedExternalNodes(i);
         s << endln;
         s << "  kb: " << kb << endln;
@@ -808,7 +789,7 @@ void Adapter::Print(OPS_Stream &s, int flag)
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"Adapter\", ";
         s << "\"nodes\": [";
-        for (i = 0; i < numExternalNodes - 1; i++)
+        for (int i = 0; i < numExternalNodes - 1; i++)
             s << connectedExternalNodes(i) << ", ";
         s << connectedExternalNodes(numExternalNodes) << "], ";
         s << "\"kb\": [" << kb << "], ";
