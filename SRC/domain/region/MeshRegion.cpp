@@ -339,7 +339,7 @@ MeshRegion::setRayleighDampingFactors(double alpham, double betak, double betak0
 
   // now set the damping factors at the nodes & elements
   Domain *theDomain = this->getDomain();
-  if (theDomain == 0) {
+  if (theDomain == nullptr) {
     opserr << "MeshRegion::setRayleighDampingFactors() - no domain yet set\n";
     return -1;
   }
