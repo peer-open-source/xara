@@ -323,10 +323,6 @@ FourNodeQuad3d::setDomain(Domain *theDomain)
   
   if (sum != 2) {
     opserr << "DIRNS: " << dirns[0] << " " << dirns[1] << " " << dirns[2];
-    theNodes[0]->Print(opserr);
-    theNodes[1]->Print(opserr);
-    theNodes[2]->Print(opserr);
-    theNodes[3]->Print(opserr);
     opserr << "FATAL ERROR FourNodeQuad3d (tag: " << this->getTag() << " ) needs four nodes to be in x-y, y-z, or x-z plane\n";
     exit(-1);
   }
