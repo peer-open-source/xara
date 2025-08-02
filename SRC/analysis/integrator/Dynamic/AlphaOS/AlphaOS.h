@@ -49,8 +49,7 @@ public:
         bool updElemDisp = false);
     AlphaOS(double alpha, double beta, double gamma,
         bool updElemDisp = false);
-    
-    // destructor
+
     ~AlphaOS();
     
     // methods which define what the FE_Element and DOF_Groups add

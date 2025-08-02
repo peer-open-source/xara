@@ -448,7 +448,8 @@ int AlphaOSGeneralized_TP::domainChanged()
 }
 
 
-int AlphaOSGeneralized_TP::update(const Vector &deltaU)
+int
+AlphaOSGeneralized_TP::update(const Vector &deltaU)
 {
     updateCount++;
     if (updateCount > 1)  {

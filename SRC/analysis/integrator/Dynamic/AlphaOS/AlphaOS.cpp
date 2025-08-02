@@ -518,7 +518,8 @@ void AlphaOS::Print(OPS_Stream &s, int flag)
 }
 
 
-int AlphaOS::formElementResidual(void)
+int
+AlphaOS::formElementResidual()
 {
     // calculate Residual Force
     AnalysisModel *theModel = this->getAnalysisModel();
@@ -535,13 +536,13 @@ int AlphaOS::formElementResidual(void)
         }
         if (alpha < 1.0)  {
             if (statusFlag == CURRENT_TANGENT)  {
-                if (theSOE->addB(elePtr->getK_Force(*Ut-*Upt), elePtr->getID(), alpha-1.0) < 0)  {
+                if (theSOE->addB(elePtr->getK_Force(*Ut - *Upt), elePtr->getID(), alpha-1.0) < 0)  {
                     opserr << "WARNING AlphaOS::formElementResidual() -";
                     opserr << " failed in addB for ID " << elePtr->getID();
                     return -2;
                 }
             } else if (statusFlag == INITIAL_TANGENT)  {
-                if (theSOE->addB(elePtr->getKi_Force(*Ut-*Upt), elePtr->getID(), alpha-1.0) < 0)  {
+                if (theSOE->addB(elePtr->getKi_Force(*Ut - *Upt), elePtr->getID(), alpha-1.0) < 0)  {
                     opserr << "WARNING AlphaOS::formElementResidual() -";
                     opserr << " failed in addB for ID " << elePtr->getID();
                     return -2;
