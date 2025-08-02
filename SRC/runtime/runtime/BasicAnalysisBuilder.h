@@ -86,6 +86,8 @@ public:
     EquiSolnAlgo*        getAlgorithm();
     StaticIntegrator*    getStaticIntegrator();
     TransientIntegrator* getTransientIntegrator();
+
+    // for getCTestIter command
     ConvergenceTest*     getConvergenceTest();
 
     int domainChanged();
