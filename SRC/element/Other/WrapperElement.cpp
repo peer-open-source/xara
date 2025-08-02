@@ -29,7 +29,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -210,7 +209,7 @@ WrapperElement::getTangentStiff(void)
 }
 
 const Matrix &
-WrapperElement::getMass(void)
+WrapperElement::getMass()
 {
     // get the current load factor
     Domain *theDomain=this->getDomain();
@@ -255,37 +254,31 @@ WrapperElement::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &t
   return -1;
 }
 
-int
-WrapperElement::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-    return 0;
-}
-
 
 void
 WrapperElement::Print(OPS_Stream &s, int flag)
 {
-  s << "WrapperElement tag: " << this->getTag() << " Nodes: " << this->getExternalNodes();
+  s << "{}";
 }
 
 int
 WrapperElement::update()
 {
-    // get the current load factor
-    Domain *theDomain=this->getDomain();
-    double time = theDomain->getCurrentTime();
-    double dt = committedTime - time;
+  // get the current load factor
+  Domain *theDomain=this->getDomain();
+  double time = theDomain->getCurrentTime();
+  double dt = committedTime - time;
 
-    theModelState.time = time;
-    theModelState.dt = dt;
-    // zero the matrix
-    int error = 0;
-    int isw = ISW_FORM_TANG_AND_RESID;
-    theEle->eleFunctPtr(theEle, &theModelState, K , R, &isw, &error);
-    
-    Rvector.setData(R, theEle->nDOF);
+  theModelState.time = time;
+  theModelState.dt = dt;
+  // zero the matrix
+  int error = 0;
+  int isw = ISW_FORM_TANG_AND_RESID;
+  theEle->eleFunctPtr(theEle, &theModelState, K , R, &isw, &error);
+  
+  Rvector.setData(R, theEle->nDOF);
 
-    return error;
+  return error;
 }
 
 const Matrix &

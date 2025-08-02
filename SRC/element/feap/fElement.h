@@ -76,7 +76,7 @@ class fElement : public Element
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, 
                          FEM_ObjectBroker &theBroker);
-    virtual int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
+    
     virtual void Print(OPS_Stream &s, int flag =0);    
 
   protected:

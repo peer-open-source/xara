@@ -32,10 +32,6 @@ class InelasticYS2DGNL : public UpdatedLagrangianBeam2D
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   //    void createView(char *title, WindowManager *theWM, char displaytype);
 
-#ifdef _GRAPHICS
-  virtual int displaySelf(Renderer &theViewer, int displayMode, float fact);
-  void createView(char *title, double scale, int x, int y, int cx, int cy, char displaytype = 'l');
-#endif
 
 	virtual Response *setResponse(const char **argv, int argc, OPS_Stream&);
 	virtual int getResponse(int responseID, Information &eleInformation);
