@@ -58,7 +58,7 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <CircPatch.h>
 #include <StraightReinfLayer.h>
 #include <CircReinfLayer.h>
-#include <SectionBuilder/FiberSectionBuilder.h>
+#include <FiberSectionBuilder.h>
 
 //
 #include <Bidirectional.h>
