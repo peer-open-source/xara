@@ -4,15 +4,16 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
+
 target_sources(OPS_Analysis
     PRIVATE
-      AnalysisModel.cpp
-      FE_EleIter.cpp
-      DOF_GrpIter.cpp
+      DOF_Numberer.cpp
+      PlainNumberer.cpp
+      ParallelNumberer.cpp
     PUBLIC
-      AnalysisModel.h
-      FE_EleIter.h
-      DOF_GrpIter.h
+      DOF_Numberer.h
+      PlainNumberer.h
+      ParallelNumberer.h
 )
-add_subdirectory(numberer)
+
 #target_include_directories(OPS_Analysis PUBLIC ${CMAKE_CURRENT_LIST_DIR})

@@ -24,7 +24,7 @@
 // Revision: A
 //
 #include <assert.h>
-#include <ParallelNumberer.h>
+#include "ParallelNumberer.h"
 #include <AnalysisModel.h>
 
 #include <Domain.h>

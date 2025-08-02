@@ -34,25 +34,25 @@
 
 
 GS4::GS4(double gamma,  double beta, 
-                                       double alphaF, double alphaM,
-                                       int uFlag, int iFlag, bool aFlag)
-    : TransientIntegrator(0),
-      gamma(gamma), beta(beta), 
-      alphaF(1.0), alphaM(1.0), 
-      unknown(uFlag), unknown_initialize(iFlag),
-      step(0),
-      dt(0.0),
-      cu(0.0), cv(0.0), ca(0.0), 
-      Uo(nullptr), Vo(nullptr), Ao(nullptr),
-      Ua(nullptr), Va(nullptr), Aa(nullptr),
-      Un(nullptr), Vn(nullptr), An(nullptr),
-      determiningMass(false),
-      isSensitivityResidual(0), gradNumber(0), 
-      dAa(0),
-      dVa(0), 
-      assemblyFlag(aFlag), 
-      independentRHS(),
-      dUn(), dVn(), dAn()
+          double alphaF, double alphaM,
+          int uFlag, int iFlag, bool aFlag)
+  : TransientIntegrator(0),
+    gamma(gamma), beta(beta), 
+    alphaF(1.0), alphaM(1.0), 
+    unknown(uFlag), unknown_initialize(iFlag),
+    step(0),
+    dt(0.0),
+    cu(0.0), cv(0.0), ca(0.0), 
+    Uo(nullptr), Vo(nullptr), Ao(nullptr),
+    Ua(nullptr), Va(nullptr), Aa(nullptr),
+    Un(nullptr), Vn(nullptr), An(nullptr),
+    determiningMass(false),
+    isSensitivityResidual(0), gradNumber(0), 
+    dAa(0),
+    dVa(0), 
+    assemblyFlag(aFlag), 
+    independentRHS(),
+    dUn(), dVn(), dAn()
 {
 
 }
@@ -60,32 +60,31 @@ GS4::GS4(double gamma,  double beta,
 
 GS4::~GS4()
 {
-    // clean up the memory created
-    if (Uo != nullptr)
-        delete Uo;
-    if (Vo != nullptr)
-        delete Vo;
-    if (Ao != nullptr)
-        delete Ao;
-    if (Ua != nullptr)
-        delete Ua;
-    if (Va != nullptr)
-        delete Va;
-    if (Aa != nullptr)
-        delete Aa;
-    if (Un != nullptr)
-        delete Un;
-    if (Vn != nullptr)
-        delete Vn;
-    if (An != nullptr)
-        delete An;
+  if (Uo != nullptr)
+      delete Uo;
+  if (Vo != nullptr)
+      delete Vo;
+  if (Ao != nullptr)
+      delete Ao;
+  if (Ua != nullptr)
+      delete Ua;
+  if (Va != nullptr)
+      delete Va;
+  if (Aa != nullptr)
+      delete Aa;
+  if (Un != nullptr)
+      delete Un;
+  if (Vn != nullptr)
+      delete Vn;
+  if (An != nullptr)
+      delete An;
 
-    // clean up sensitivity
-    if (dAa != nullptr)
-      delete dAa;
-    
-    if (dVa != nullptr)
-      delete dVa;
+  // clean up sensitivity
+  if (dAa != nullptr)
+    delete dAa;
+  
+  if (dVa != nullptr)
+    delete dVa;
 }
 
 
@@ -99,8 +98,7 @@ GS4::newStep(double deltaT)
     }
     
     if (Un == nullptr)
-      throw std::invalid_argument("domainChange failed or not called");
-      // return -3;
+      return -3;
 
     // mark step as bootstrap or not
     if (deltaT != dt)
@@ -324,7 +322,7 @@ GS4::newStep(double deltaT)
     double time = theModel->getCurrentDomainTime();
     time += alphaF*deltaT;
     if (theModel->updateDomain(time, deltaT) < 0)  {
-        opserr << "GS4::newStep() - failed to update the domain\n";
+        opserr << "GS4::newStep - failed to update\n";
         return -4;
     }
 
@@ -335,34 +333,28 @@ GS4::newStep(double deltaT)
 int
 GS4::update(const Vector &deltaX)
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
-    if (theModel == nullptr)  {
-        opserr << "WARNING GS4::update() - no AnalysisModel set\n";
-        return -1;
-    }
-    
-    // Check domainChanged() has been called, i.e. Ut is not null
-    if (Uo == nullptr)  {
-        opserr << "WARNING GS4::update() - domainChange() failed or not called\n";
-        return -2;
-    }  
+  AnalysisModel *theModel = this->getAnalysisModel();
+  assert(theModel != nullptr);
+  
+  // Check domainChanged() has been called, i.e. Ut is not null
+  assert(Uo != nullptr);
 
-    // check deltaX is of correct size
-    if (deltaX.Size() != Un->Size())  {
-        opserr << "WARNING GS4::update() - Vectors of incompatible size ";
-        opserr << " expecting " << Un->Size() << " obtained " << deltaX.Size() << endln;
-        return -3;
-    }
-    
-    //  determine the response at t+deltaT
-    Un->addVector(1.0, deltaX, cu);
-    Vn->addVector(1.0, deltaX, cv);
-    An->addVector(1.0, deltaX, ca);
+  // check deltaX is of correct size
+  if (deltaX.Size() != Un->Size())  {
+      opserr << "WARNING GS4::update() - Vectors of incompatible size ";
+      opserr << " expecting " << Un->Size() << " obtained " << deltaX.Size() << endln;
+      return -3;
+  }
+  
+  //  determine the response at t+deltaT
+  Un->addVector(1.0, deltaX, cu);
+  Vn->addVector(1.0, deltaX, cv);
+  An->addVector(1.0, deltaX, ca);
 
-    // determine state at t + alpha*deltaT
-    Ua->addVector(1.0, deltaX, alphaF*cu);
-    Va->addVector(1.0, deltaX, alphaF*cv);
-    Aa->addVector(1.0, deltaX, alphaM*ca);
+  // determine state at t + alpha*deltaT
+  Ua->addVector(1.0, deltaX, alphaF*cu);
+  Va->addVector(1.0, deltaX, alphaF*cv);
+  Aa->addVector(1.0, deltaX, alphaM*ca);
 
 //  (*Ua) = *Uo;
 //  Ua->addVector((1.0-alphaF), *Un, alphaF);
@@ -373,14 +365,14 @@ GS4::update(const Vector &deltaX)
 //  (*Aa) = *Ao;
 //  Aa->addVector((1.0-alphaM), *An, alphaM);
 
-    // update the response at the DOFs
-    theModel->setResponse(*Ua,*Va,*Aa);
-    if (theModel->updateDomain() < 0)  {
-        opserr << "GS4::update - failed to update the domain\n";
-        return -4;
-    }
-    
-    return 0;
+  // update the response at the DOFs
+  theModel->setResponse(*Ua,*Va,*Aa);
+  if (theModel->updateDomain() < 0)  {
+      opserr << "GS4::update - failed to update the domain\n";
+      return -4;
+  }
+  
+  return 0;
 }    
 
 
@@ -564,62 +556,6 @@ GS4::domainChanged()
 
 
 int
-GS4::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(3);
-    data(0) = gamma;
-    data(1) = beta;
-    data(2) = unknown;
-
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING GS4::sendSelf() - could not send data\n";
-        return -1;
-    }
-
-    return 0;
-}
-
-
-int
-GS4::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(3);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING GS4::recvSelf() - could not receive data\n";
-        gamma = 0.5;
-        beta = 0.25; 
-        return -1;
-    }
-    
-    gamma  = data(0);
-    beta   = data(1);
-    unknown  = data(2);
-
-    return 0;
-}
-
-
-void
-GS4::Print(OPS_Stream &s, int flag)
-{
-  if (flag == OPS_PRINT_PRINTMODEL_JSON)
-    return;
-
-  AnalysisModel *theModel = this->getAnalysisModel();
-  if (theModel != nullptr) {
-      double currentTime = theModel->getCurrentDomainTime();
-      s << "\t GS4 - currentTime: " << currentTime;
-  }
-
-  s << "\t gamma: " << gamma << "  beta: " << beta << "\n";
-  s << "\t alphaF: " << alphaF << "  alphaM: " << alphaM << "\n";
-  s << "\t unknown: " << unknown << "  initialization: " << unknown_initialize << "\n";
-}
-
-
-
-int
 GS4::revertToStart()
 {
   if (Uo != nullptr) 
@@ -778,53 +714,55 @@ GS4::formNodUnbalance(DOF_Group *theDof)
 int 
 GS4::formSensitivityRHS(int grad)
 {
-    // Set a couple of data members
-    isSensitivityResidual = true;
-    gradNumber = grad;
+  // Set a couple of data members
+  isSensitivityResidual = true;
+  gradNumber = grad;
 
-    LinearSOE *theSOE = this->getLinearSOE();
+  LinearSOE *theSOE = this->getLinearSOE();
+  AnalysisModel *theModel = this->getAnalysisModel();
 
-    // Possibly set the independent part of the RHS
-    if (assemblyFlag != 0)
-      theSOE->setB(independentRHS);
+  // Set the independent part of the RHS
+  if (assemblyFlag != 0)
+    theSOE->setB(independentRHS);
 
-    // Get the analysis model
-    AnalysisModel *theModel = this->getAnalysisModel();
 
-    //
-    // Randomness in external load (including randomness in time series)
-    //
-
+  //
+  // Randomness in external load (including randomness in time series)
+  //
+  {
     Domain *theDomain = theModel->getDomainPtr();
 
-    // Loop through nodes to zero the unbalaced load
+    // 1) Zero the unbalaced load
     NodeIter &theNodeIter = theDomain->getNodes();
     while (Node *node; (node = theNodeIter()) != nullptr)
       node->zeroUnbalancedLoad();
 
-    // Loop through load patterns to add external load sensitivity
+    // 2) Add external load sensitivity
     LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
     while (LoadPattern *pattern; (pattern = thePatterns()) != nullptr)
       pattern->applyLoadSensitivity(theDomain->getCurrentTime());
+  }
 
 
-    // Randomness in element/material contributions
-    // Loop through FE elements
-    FE_EleIter &theEles = theModel->getFEs();    
-    while (FE_Element *elem; (elem = theEles()) != nullptr)
-      theSOE->addB( elem->getResidual(this), elem->getID() );
+  // 3)
+
+  // element/material contributions
+  FE_EleIter &theEles = theModel->getFEs();    
+  while (FE_Element *elem; (elem = theEles()) != nullptr)
+    theSOE->addB(elem->getResidual(this), elem->getID());
 
 
-    // Loop through DOF groups (IT IS IMPORTANT THAT THIS IS DONE LAST!)
-    DOF_Group *group;
-    DOF_GrpIter &theDOFs = theModel->getDOFs();
-    while ((group = theDOFs()) != nullptr)
-      theSOE->addB(  group->getUnbalance(this),  group->getID()  );
+  // Loop through DOF groups (IT IS IMPORTANT THAT THIS IS DONE LAST!)
+  DOF_Group *group;
+  DOF_GrpIter &theDOFs = theModel->getDOFs();
+  while ((group = theDOFs()) != nullptr)
+    theSOE->addB(group->getUnbalance(this),  group->getID());
 
-    // Reset the sensitivity flag
-    isSensitivityResidual = false;
 
-    return 0;
+  // Reset the sensitivity flag
+  isSensitivityResidual = false;
+
+  return 0;
 }
 
 int 
@@ -963,7 +901,6 @@ GS4::getCFactor()
 int 
 GS4::computeSensitivities()
 {
-
   LinearSOE *theSOE = this->getLinearSOE();
 
   // Zero out the old right-hand side of the SOE
@@ -973,18 +910,16 @@ GS4::computeSensitivities()
   this->formIndependentSensitivityRHS();
   AnalysisModel *theModel = this->getAnalysisModel();  //Abbas 
   Domain *theDomain=theModel->getDomainPtr();//Abbas
-  ParameterIter &paramIter = theDomain->getParameters();
 
-  Parameter *theParam;
   // De-activate all parameters
+  Parameter *theParam;
+  ParameterIter &paramIter = theDomain->getParameters();
   while ((theParam = paramIter()) != nullptr)
     theParam->activate(false);
   
-  // Now, compute sensitivity wrt each parameter
-  int numGrads = theDomain->getNumParameters();
-
+  // Compute sensitivity wrt each parameter
+  const int numGrads = theDomain->getNumParameters();
   paramIter = theDomain->getParameters();
-  
   while ((theParam = paramIter()) != nullptr) {
     
     // Activate this parameter
@@ -1014,5 +949,61 @@ GS4::computeSensitivities()
   }
   
   return 0;
+}
+
+
+
+int
+GS4::sendSelf(int cTag, Channel &theChannel)
+{
+  Vector data(3);
+  data(0) = gamma;
+  data(1) = beta;
+  data(2) = unknown;
+
+  
+  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
+    opserr << "WARNING GS4::sendSelf() - could not send data\n";
+    return -1;
+  }
+
+  return 0;
+}
+
+
+int
+GS4::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+{
+  Vector data(3);
+  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
+    opserr << "WARNING GS4::recvSelf() - could not receive data\n";
+    gamma = 0.5;
+    beta = 0.25; 
+    return -1;
+  }
+  
+  gamma  = data(0);
+  beta   = data(1);
+  unknown  = data(2);
+
+  return 0;
+}
+
+
+void
+GS4::Print(OPS_Stream &s, int flag)
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON)
+    return;
+
+  AnalysisModel *theModel = this->getAnalysisModel();
+  if (theModel != nullptr) {
+      double currentTime = theModel->getCurrentDomainTime();
+      s << "\t GS4 - currentTime: " << currentTime;
+  }
+
+  s << "\t gamma: " << gamma << "  beta: " << beta << "\n";
+  s << "\t alphaF: " << alphaF << "  alphaM: " << alphaM << "\n";
+  s << "\t unknown: " << unknown << "  initialization: " << unknown_initialize << "\n";
 }
 

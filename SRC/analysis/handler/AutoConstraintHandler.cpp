@@ -46,7 +46,6 @@
 #include <SP_Constraint.h>
 #include <MP_ConstraintIter.h>
 #include <MP_Constraint.h>
-#include <Integrator.h>
 #include <ID.h>
 #include <Subdomain.h>
 #include <Channel.h>
@@ -252,12 +251,6 @@ AutoConstraintHandler::handle(const ID* nodesLast)
 	// first check links exist to a Domain and an AnalysisModel object
 	Domain* theDomain = this->getDomainPtr();
 	AnalysisModel* theModel = this->getAnalysisModelPtr();
-	Integrator* theIntegrator = this->getIntegratorPtr();
-	if ((theDomain == 0) || (theModel == 0) || (theIntegrator == 0)) {
-		opserr << "WARNING AutoConstraintHandler::handle() - ";
-		opserr << " setLinks() has not been called\n";
-		return -1;
-	}
 
 	// create a multimap (key = NodeID, value = SP_Constraint).
 	// multimap allows for duplicate keys because we may have multiple SP

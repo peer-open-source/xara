@@ -6,10 +6,7 @@
 #==============================================================================
 target_sources(OPS_Analysis
     PRIVATE
-        AlphaOS.cpp
-        AlphaOSGeneralized.cpp
-        AlphaOSGeneralized_TP.cpp
-        AlphaOS_TP.cpp
+
         BackwardEuler.cpp
         CentralDifferenceAlternative.cpp
         CentralDifference.cpp
@@ -33,15 +30,10 @@ target_sources(OPS_Analysis
         GeneralizedNewmark.cpp
         NewmarkExplicit.cpp
         ParkLMS3.cpp
-#       PFEMIntegrator.cpp
         TRBDF2.cpp
         TRBDF3.cpp
         WilsonTheta.cpp
     PUBLIC
-        AlphaOSGeneralized.h
-        AlphaOSGeneralized_TP.h
-        AlphaOS.h
-        AlphaOS_TP.h
         BackwardEuler.h
         CentralDifferenceAlternative.h
         CentralDifference.h

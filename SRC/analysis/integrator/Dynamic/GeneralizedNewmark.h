@@ -56,15 +56,17 @@ public:
     
     // Sensitivity
     int revertToStart();
-    int formSensitivityRHS(int gradNum);
-    int formIndependentSensitivityRHS();
     int saveSensitivity   (const Vector &v, int gradNum, int numGrads);
     int commitSensitivity (int gradNum, int numGrads);  
     int computeSensitivities();
 
+
 protected:
 
 private:
+    int formSensitivityRHS(int gradNum);
+    int formIndependentSensitivityRHS();
+
     enum Unknown {
       Displacement=1,
       Velocity=2,

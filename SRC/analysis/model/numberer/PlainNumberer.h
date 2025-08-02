@@ -42,7 +42,7 @@
 
 #define START_EQN_NUMBER 0
 
-#include <DOF_Numberer.h>
+#include "DOF_Numberer.h"
 
 class PlainNumberer: public DOF_Numberer
 {

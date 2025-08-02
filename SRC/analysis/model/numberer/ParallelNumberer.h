@@ -40,7 +40,7 @@
 
 class Graph;
 
-#include <DOF_Numberer.h>
+#include "DOF_Numberer.h"
 
 class ParallelNumberer: public DOF_Numberer
 {

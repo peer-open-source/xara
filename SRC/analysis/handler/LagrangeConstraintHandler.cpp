@@ -40,7 +40,6 @@
 #include <SP_Constraint.h>
 #include <MP_ConstraintIter.h>
 #include <MP_Constraint.h>
-#include <Integrator.h>
 #include <ID.h>
 #include <Subdomain.h>
 #include <Channel.h>
@@ -48,21 +47,7 @@
 #include <LagrangeDOF_Group.h>
 #include <LagrangeSP_FE.h>
 #include <LagrangeMP_FE.h>
-#include <elementAPI.h>
 
-void *
-OPS_ADD_RUNTIME_VPV(OPS_LagrangeConstraintHandler)
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    double data[2] = {1,1};
-    if(numData > 2) numData = 2;
-    if(numData > 0) {
-	if(OPS_GetDoubleInput(&numData, &data[0]) < 0) return 0;
-    }
-
-    return new LagrangeConstraintHandler(data[0], data[1]);
-
-}
 
 LagrangeConstraintHandler::LagrangeConstraintHandler(double sp, double mp)
 :ConstraintHandler(HANDLER_TAG_LagrangeConstraintHandler),
@@ -82,15 +67,8 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
     // first check links exist to a Domain and an AnalysisModel object
     Domain *theDomain = this->getDomainPtr();
     AnalysisModel *theModel = this->getAnalysisModelPtr();
-    Integrator *theIntegrator = this->getIntegratorPtr();    
-    
-    if ((theDomain == 0) || (theModel == 0) || (theIntegrator == 0)) {
-	opserr << "WARNING LagrangeConstraintHandler::handle() - ";
-	opserr << " setLinks() has not been called\n";
-	return -1;
-    }
 
-    // get number ofelements and nodes in the domain 
+    // get number of elements and nodes in the domain 
     // and init the theFEs and theDOFs arrays
 
     int numConstraints = 0;
@@ -101,7 +79,7 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
 
     numConstraints += theDomain->getNumMPs();
 
-    //create a DOF_Group for each Node and add it to the AnalysisModel.
+    // create a DOF_Group for each Node and add it to the AnalysisModel.
     //    : must of course set the initial IDs
     NodeIter &theNod = theDomain->getNodes();
     Node *nodPtr;
@@ -112,18 +90,18 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
     int count3 = 0;
     int countDOF =0;
     while ((nodPtr = theNod()) != nullptr) {
-	dofPtr = new DOF_Group(numDofGrp++, nodPtr);
+      dofPtr = new DOF_Group(numDofGrp++, nodPtr);
 
-	// initially set all the ID value to -2
-	
-	const ID &id = dofPtr->getID();
-	for (int j=0; j < id.Size(); j++) {
-	    dofPtr->setID(j,-2);
-	    countDOF++;
-	}
+      // initially set all the ID value to -2
+      
+      const ID &id = dofPtr->getID();
+      for (int j=0; j < id.Size(); j++) {
+          dofPtr->setID(j,-2);
+          countDOF++;
+      }
 
-	nodPtr->setDOF_GroupPtr(dofPtr);
-	theModel->addDOF_Group(dofPtr);
+      nodPtr->setDOF_GroupPtr(dofPtr);
+      theModel->addDOF_Group(dofPtr);
     }
 
     // create the FE_Elements for the Elements and add to the AnalysisModel
@@ -138,18 +116,17 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
       // do independent analysis .. then subdomain part of this analysis so create
       // an FE_element & set subdomain to point to it.
       if (elePtr->isSubdomain() == true) {
-	Subdomain *theSub = (Subdomain *)elePtr;
-	if (theSub->doesIndependentAnalysis() == false) {
-          fePtr = new FE_Element(numFeEle++, elePtr);
-	  theModel->addFE_Element(fePtr);
-	  theSub->setFE_ElementPtr(fePtr);
-	}
+        Subdomain *theSub = (Subdomain *)elePtr;
+        if (theSub->doesIndependentAnalysis() == false) {
+            fePtr = new FE_Element(numFeEle++, elePtr);
+        theModel->addFE_Element(fePtr);
+        theSub->setFE_ElementPtr(fePtr);
+        }
 
       } else {
-
-	// just a regular element .. create an FE_Element for it & add to AnalysisModel
-	fePtr = new FE_Element(numFeEle++, elePtr);	
-	theModel->addFE_Element(fePtr);
+        // just a regular element .. create an FE_Element for it & add to AnalysisModel
+        fePtr = new FE_Element(numFeEle++, elePtr);	
+        theModel->addFE_Element(fePtr);
       }
     }
 
@@ -192,30 +169,30 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
     }
     
     theModel->setNumEqn(countDOF);
-    
+
     // set the number of eqn in the model
     // now see if we have to set any of the dof's to -3
     //    int numLast = 0;
     if (nodesLast != 0) 
-	for (int i=0; i<nodesLast->Size(); i++) {
-	    int nodeID = (*nodesLast)(i);
-	    Node *nodPtr = theDomain->getNode(nodeID);
-	    if (nodPtr != 0) {
-		dofPtr = nodPtr->getDOF_GroupPtr();
-		
-		const ID &id = dofPtr->getID();
-		// set all the dof values to -3
-		for (int j=0; j < id.Size(); j++) 
-		    if (id(j) == -2) {
-			dofPtr->setID(j,-3);
-			count3++;
-		    } else {
-			opserr << "WARNING LagrangeConstraintHandler::handle() ";
-			opserr << " - boundary sp constraint in subdomain";
-			opserr << " this should not be - results suspect \n";
-		    }
-	    }
-	}
+      for (int i=0; i<nodesLast->Size(); i++) {
+          int nodeID = (*nodesLast)(i);
+          Node *nodPtr = theDomain->getNode(nodeID);
+          if (nodPtr != 0) {
+        dofPtr = nodPtr->getDOF_GroupPtr();
+        
+        const ID &id = dofPtr->getID();
+        // set all the dof values to -3
+        for (int j=0; j < id.Size(); j++) 
+            if (id(j) == -2) {
+          dofPtr->setID(j,-3);
+          count3++;
+            } else {
+          opserr << "WARNING LagrangeConstraintHandler::handle() ";
+          opserr << " - boundary sp constraint in subdomain";
+          opserr << " this should not be - results suspect \n";
+            }
+          }
+      }
 
     return count3;
 }

@@ -32,7 +32,7 @@
 //
 // What: "@(#) PlainNumberer.C, revA"
 #include <assert.h>
-#include <PlainNumberer.h>
+#include "PlainNumberer.h"
 #include <AnalysisModel.h>
 
 #include <DOF_Group.h>
@@ -65,11 +65,9 @@ PlainNumberer::~PlainNumberer()
 }
 
 
-// int numberDOF(void)
 //	Method to number the unnumbered DOFs in the DOF Groups. It does so
 //	on a first come fist serve basis, first assigning all DOFs with a -2
 //	a number, then all DOFs with a -3 a number.
-
 int
 PlainNumberer::numberDOF(int lastDOF)
 {
@@ -84,8 +82,8 @@ PlainNumberer::numberDOF(int lastDOF)
     assert(theModel != nullptr && theDomain != nullptr);
     
     if (lastDOF != -1) {
-	opserr << "WARNING PlainNumberer::numberDOF(int lastDOF):";
-	opserr << " does not use the lastDOF as requested\n";
+		opserr << "WARNING PlainNumberer::numberDOF(int lastDOF):";
+		opserr << " does not use the lastDOF as requested\n";
     }
     
     // iterate through  the DOFs first time setting -2 values
@@ -99,7 +97,7 @@ PlainNumberer::numberDOF(int lastDOF)
 	      dofPtr->setID(i,eqnNumber++);
     }
 
-    // iterate through  the DOFs second time setting -3 values
+    // iterate through the DOFs second time setting -3 values
     DOF_GrpIter &moreDOFs = theModel->getDOFs();
     
     while ((dofPtr = moreDOFs()) != 0) {
@@ -113,6 +111,7 @@ PlainNumberer::numberDOF(int lastDOF)
     while ((dofPtr = tDOFs()) != 0) {
     	const ID &theID = dofPtr->getID();
     	bool have4s = false;
+
 	for (int i=0; i<theID.Size(); i++)
 	    if (theID(i) == -4) 
               have4s = true;
@@ -142,7 +141,7 @@ PlainNumberer::numberDOF(int lastDOF)
 	    			}
 	    		}
 		}		
-	}	
+	}
     }
 
     eqnNumber--;

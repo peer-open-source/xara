@@ -38,7 +38,6 @@
 #include <SP_Constraint.h>
 #include <MP_ConstraintIter.h>
 #include <MP_Constraint.h>
-#include <Integrator.h>
 #include <ID.h>
 #include <Subdomain.h>
 #include <Channel.h>
@@ -62,26 +61,19 @@ PlainHandler::handle(const ID *nodesLast)
     // first check links exist to a Domain and an AnalysisModel object
     Domain *theDomain = this->getDomainPtr();
     AnalysisModel *theModel = this->getAnalysisModelPtr();
-    Integrator *theIntegrator = this->getIntegratorPtr();    
-    
-    if ((theDomain == 0) || (theModel == 0) || (theIntegrator == 0)) {
-	opserr << "WARNING PlainHandler::handle() - ";
-	opserr << " setLinks() has not been called\n";
-	return -1;
-    }
 
     // get all SPs
     std::multimap<int,SP_Constraint*> allSPs;
     SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
     SP_Constraint *theSP; 
     while ((theSP = theSPs()) != nullptr) {
-	if (theSP->isHomogeneous() == false) {
-	    opserr << "WARNING PlainHandler::handle() - ";
-	    opserr << " non-homogeneos constraint";
-	    opserr << " for node " << theSP->getNodeTag();
-	    opserr << " homogeneous constraint assumed\n";
-	}
-	allSPs.insert(std::make_pair(theSP->getNodeTag(),theSP));
+      if (theSP->isHomogeneous() == false) {
+          opserr << "WARNING PlainHandler::handle() - ";
+          opserr << " non-homogeneos constraint";
+          opserr << " for node " << theSP->getNodeTag();
+          opserr << " homogeneous constraint assumed\n";
+      }
+      allSPs.insert(std::make_pair(theSP->getNodeTag(),theSP));
     }
 
     // initialise the DOF_Groups and add them to the AnalysisModel.
