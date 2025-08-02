@@ -11,12 +11,7 @@
 #include <runtimeAPI.h>
 
 OPS_Routine OPS_Newmark;
-OPS_Routine OPS_StagedNewmark;
 OPS_Routine OPS_GimmeMCK;
-OPS_Routine OPS_AlphaOS;
-OPS_Routine OPS_AlphaOS_TP;
-OPS_Routine OPS_AlphaOSGeneralized;
-OPS_Routine OPS_AlphaOSGeneralized_TP;
 OPS_Routine OPS_Collocation;
 OPS_Routine OPS_CollocationHSFixedNumIter;
 OPS_Routine OPS_CollocationHSIncrLimit;
@@ -163,14 +158,6 @@ TransientIntegratorLibrary = {
   {"KRAlphaExplicit",             dispatch<TransientIntegrator, OPS_KRAlphaExplicit>},
 
   {"KRAlphaExplicit_TP",          dispatch<TransientIntegrator, OPS_KRAlphaExplicit_TP>},
-
-  {"AlphaOS",                     dispatch<TransientIntegrator, OPS_AlphaOS>},
-
-  {"AlphaOS_TP",                  dispatch<TransientIntegrator, OPS_AlphaOS_TP>},
-
-  {"AlphaOSGeneralized",          dispatch<TransientIntegrator, OPS_AlphaOSGeneralized>},
-
-  {"AlphaOSGeneralized_TP",       dispatch<TransientIntegrator, OPS_AlphaOSGeneralized_TP>},
 
   {"Collocation",                 dispatch<TransientIntegrator, OPS_Collocation>},
 

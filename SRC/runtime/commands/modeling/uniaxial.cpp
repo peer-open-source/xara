@@ -5,13 +5,14 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
+//
 // Description: This file contains the function invoked when the user invokes
 // the uniaxialMaterial command in the interpreter.
 //
 // Written: fmk, MHS, cmp
 // Created: 07/99
 //
-#include <G3_Logging.h>
+#include <Logging.h>
 #include <iostream>
 #include <BasicModelBuilder.h>
 #include "uniaxial.hpp"
