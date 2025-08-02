@@ -29,7 +29,6 @@
 // Created: Sun Sept 15 15:06:47: 1996 
 //
 #include <Linear.h>
-#include <AnalysisModel.h>
 #include <LinearSOE.h>
 #include <Vector.h>
 #include <Channel.h>
@@ -59,13 +58,10 @@ Linear::solveCurrentStep()
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
 
-  AnalysisModel *theAnalysisModel = this->getAnalysisModelPtr(); 
   LinearSOE  *theSOE = this->getLinearSOEptr();
   IncrementalIntegrator  *theIncIntegrator = this->getIncrementalIntegratorPtr(); 
 
-  if ((theAnalysisModel == 0) || (theIncIntegrator ==0 ) || (theSOE == 0)){
-      opserr << "WARNING Linear::solveCurrentStep() -";
-      opserr << "setLinks() has not been called.\n";
+  if ((theIncIntegrator ==0 ) || (theSOE == 0)) {
       return SolutionAlgorithm::BadAlgorithm;
   }
 

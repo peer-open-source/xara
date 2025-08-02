@@ -28,7 +28,6 @@
 // Created: 11/96 
 //
 #include <ModifiedNewton.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <ID.h>
@@ -56,22 +55,16 @@ ModifiedNewton::solveCurrentStep()
 {
     // set up some pointers and check they are valid
     // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-    AnalysisModel       *theAnalysisModel = this->getAnalysisModelPtr();
     IncrementalIntegrator *theIncIntegratorr = this->getIncrementalIntegratorPtr();
     LinearSOE                *theSOE = this->getLinearSOEptr();
 
-    if ((theAnalysisModel == nullptr) 
-        || (theIncIntegratorr == nullptr) 
+    if ((theIncIntegratorr == nullptr) 
         || (theSOE == nullptr)
         || (theTest == nullptr)) {
-      opserr << "WARNING ModifiedNewton::solveCurrentStep() - setLinks() has";
-      opserr << " not been called - or no ConvergenceTest has been set\n";
       return SolutionAlgorithm::BadAlgorithm;
     }
 
-    if (theIncIntegratorr->formUnbalance() < 0) {
-      opserr << "WARNING ModifiedNewton::solveCurrentStep() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIncIntegratorr->formUnbalance() < 0) {    
       return SolutionAlgorithm::BadFormResidual;
     }        
 

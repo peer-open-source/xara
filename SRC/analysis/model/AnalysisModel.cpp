@@ -50,9 +50,7 @@
 #define START_EQN_NUM 0
 #define START_VERTEX_NUM 0
 
-//  AnalysisModel();
-//        constructor
-
+# if 0
 AnalysisModel::AnalysisModel(int theClassTag)
 :MovableObject(theClassTag),
  myDomain(0), myHandler(0),
@@ -65,20 +63,7 @@ AnalysisModel::AnalysisModel(int theClassTag)
     theDOFiter = new DOF_GrpIter(theDOFs);
 
     // for subclasses to use - they provide own container stuff
-} 
-
-AnalysisModel::AnalysisModel()
-:MovableObject(AnaMODEL_TAGS_AnalysisModel),
- myDomain(0), myHandler(0),
- myDOFGraph(0), myGroupGraph(0),
- numFE_Ele(0), numDOF_Grp(0), numEqn(0)
-{
-  theFEs     = new ArrayOfTaggedObjects(256);
-  theDOFs    = new ArrayOfTaggedObjects(256);
-  theFEiter  = new FE_EleIter(theFEs);
-  theDOFiter = new DOF_GrpIter(theDOFs);
-} 
-
+}
 
 AnalysisModel::AnalysisModel(TaggedObjectStorage &theFes, TaggedObjectStorage &theDofs)
 :MovableObject(AnaMODEL_TAGS_AnalysisModel),
@@ -90,10 +75,24 @@ AnalysisModel::AnalysisModel(TaggedObjectStorage &theFes, TaggedObjectStorage &t
   theDOFs    = &theDofs;
   theFEiter  = new FE_EleIter(theFEs);
   theDOFiter = new DOF_GrpIter(theDOFs);
+}
+#endif
+
+
+AnalysisModel::AnalysisModel()
+: MovableObject(AnaMODEL_TAGS_AnalysisModel),
+  myDomain(0), myHandler(0),
+  myDOFGraph(0), myGroupGraph(0),
+  numFE_Ele(0), numDOF_Grp(0), numEqn(0)
+{
+  theFEs     = new ArrayOfTaggedObjects(256);
+  theDOFs    = new ArrayOfTaggedObjects(256);
+  theFEiter  = new FE_EleIter(theFEs);
+  theDOFiter = new DOF_GrpIter(theDOFs);
 } 
 
 
-// ~AnalysisModel();    
+
 AnalysisModel::~AnalysisModel()
 {
   if (theFEs != 0) {
@@ -124,13 +123,10 @@ AnalysisModel::~AnalysisModel()
 void
 AnalysisModel::setLinks(Domain &theDomain, ConstraintHandler &theHandler)
 {
-    myDomain  = &theDomain;
-    myHandler = &theHandler;
+  myDomain  = &theDomain;
+  myHandler = &theHandler;
 }
 
-
-// void addFE_Element(FE_Element *);
-//        Method to add an element to the model.
 
 bool
 AnalysisModel::addFE_Element(FE_Element *theElement)
@@ -154,6 +150,7 @@ AnalysisModel::addFE_Element(FE_Element *theElement)
     theElement->setAnalysisModel(*this);
     numFE_Ele++;
     return true;  // o.k.
+
   } else
     return false;
 
@@ -163,14 +160,9 @@ AnalysisModel::addFE_Element(FE_Element *theElement)
 
 
 
-
-// void addDOF_Group(DOF_Group *);
-//        Method to add an element to the model.
-
 bool
 AnalysisModel::addDOF_Group(DOF_Group *theGroup)
 {
-
   // check we don't add a null pointer or this is a subclass trying
   // to use a method it shouldn't be using
   if (theGroup == 0 || theDOFs == 0)
@@ -189,34 +181,34 @@ AnalysisModel::addDOF_Group(DOF_Group *theGroup)
   bool result = theDOFs->addComponent(theGroup);
   if (result == true) {
     numDOF_Grp++;
-    return true;  // o.k.
+    return true; // o.k.
   } else
     return false;
 }
 
 void
-AnalysisModel::clearAll(void) 
+AnalysisModel::clearAll() 
 {
-    // if the graphs have been constructed delete them
-    if (myDOFGraph != 0)
-        delete myDOFGraph;
+  // if the graphs have been constructed delete them
+  if (myDOFGraph != 0)
+    delete myDOFGraph;
 
-    if (myGroupGraph != 0)
-        delete myGroupGraph;    
+  if (myGroupGraph != 0)
+    delete myGroupGraph;    
 
-    theFEs->clearAll();
-    theDOFs->clearAll();
+  theFEs->clearAll();
+  theDOFs->clearAll();
 
-    myDOFGraph = 0;
-    myGroupGraph = 0;
-    
-    numFE_Ele =0;
-    numDOF_Grp = 0;
-    numEqn = 0;    
+  myDOFGraph = 0;
+  myGroupGraph = 0;
+  
+  numFE_Ele =0;
+  numDOF_Grp = 0;
+  numEqn = 0;    
 }
 
 void
-AnalysisModel::clearDOFGraph(void) 
+AnalysisModel::clearDOFGraph() 
 {
   if (myDOFGraph != nullptr)
     delete myDOFGraph;
@@ -525,10 +517,10 @@ AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
 void 
 AnalysisModel::setNumEigenvectors(int numEigenvectors)
 {
-    Node *theNode;
-    NodeIter &theNodes = myDomain->getNodes();
-    while ((theNode = theNodes()) != 0)
-        theNode->setNumEigenvectors(numEigenvectors);
+  Node *theNode;
+  NodeIter &theNodes = myDomain->getNodes();
+  while ((theNode = theNodes()) != 0)
+      theNode->setNumEigenvectors(numEigenvectors);
 }
 
 void 
@@ -537,8 +529,9 @@ AnalysisModel::setEigenvalues(const Vector &eigenvalues)
     myDomain->setEigenvalues(eigenvalues);
 }        
 
+
 const Vector &
-AnalysisModel::getEigenvalues(void)
+AnalysisModel::getEigenvalues()
 {
   return myDomain->getEigenvalues();
 }        
@@ -546,12 +539,14 @@ AnalysisModel::getEigenvalues(void)
 
 
 const Vector *
-AnalysisModel::getModalDampingFactors(void){
+AnalysisModel::getModalDampingFactors()
+{
   return myDomain->getModalDampingFactors();
 }
 
+
 bool 
-AnalysisModel::inclModalDampingMatrix(void)
+AnalysisModel::inclModalDampingMatrix()
 {
   return myDomain->inclModalDampingMatrix();
 }
@@ -566,26 +561,27 @@ AnalysisModel::setEigenvector(int mode, const Vector &eigenvalue)
         dofPtr->setEigenvector(mode, eigenvalue);        
 }        
 
+
 void 
 AnalysisModel::applyLoadDomain(double pseudoTime)
 {
-    assert(myDomain != nullptr);
-    myDomain->applyLoad(pseudoTime);
-    myHandler->applyLoad();
+  assert(myDomain != nullptr);
+  myDomain->applyLoad(pseudoTime);
+  myHandler->applyLoad();
 }
 
 
 int
 AnalysisModel::updateDomain()
 {
-    assert(myDomain != nullptr);
+  assert(myDomain != nullptr);
 
-    int res = myDomain->update();
+  int res = myDomain->update();
 
-    if (res == 0)
-      return myHandler->update();
+  if (res == 0)
+    return myHandler->update();
 
-    return res;
+  return res;
 }
 
 
@@ -615,30 +611,11 @@ AnalysisModel::analysisStep(double dT)
   return myDomain->analysisStep(dT);
 }
 
-int
-AnalysisModel::eigenAnalysis(int numMode, bool generalized, bool findSmallest)
-{
-    // check to see there is a Domain linked to the Model
-
-    if (myDomain == nullptr) {
-        opserr << "WARNING: AnalysisModel::newStep. No Domain linked.\n";
-        return -1;
-    }
-
-    // invoke the method
-    return myDomain->eigenAnalysis(numMode, generalized, findSmallest);
-}
-
-
 
 int
 AnalysisModel::commitDomain()
 {
-  // check to see there is a Domain linked to the Model
-  if (myDomain == nullptr) {
-    opserr << "WARNING: AnalysisModel::commitDomain. No Domain linked.\n";
-    return -1;
-  }
+  assert(myDomain != nullptr);
 
   // commit the domain state
   if (myDomain->commit() < 0) {
@@ -649,52 +626,44 @@ AnalysisModel::commitDomain()
   return OpenSees::Flag::Success;
 }
 
+# if 0
+int
+AnalysisModel::eigenAnalysis(int numMode, bool generalized, bool findSmallest)
+{
+  assert(myDomain != nullptr);
+  // invoke the method
+  return myDomain->eigenAnalysis(numMode, generalized, findSmallest);
+}
+
 int
 AnalysisModel::revertDomainToLastCommit()
 {
-    // check to see there is a Domain linked to the Model
+  assert(myDomain != nullptr);
 
-    if (myDomain == nullptr) {
-      opserr << "WARNING: AnalysisModel::revertDomainToLastCommit.";
-      opserr << " No Domain linked.\n";
-      return -1;
-    }
-
-    // invoke the method
-    if (myDomain->revertToLastCommit() < 0) {
-      opserr << "WARNING: AnalysisModel::revertDomainToLastCommit.";
-      opserr << " Domain::revertToLastCommit() failed.\n";
-      return -2;
-    }
-    return OpenSees::Flag::Success;
+  // invoke the method
+  if (myDomain->revertToLastCommit() < 0) {
+    opserr << "WARNING: AnalysisModel::revertDomainToLastCommit.";
+    opserr << " Domain::revertToLastCommit() failed.\n";
+    return -2;
+  }
+  return OpenSees::Flag::Success;
 }
+#endif
+
 
 double
-AnalysisModel::getCurrentDomainTime(void)
+AnalysisModel::getCurrentDomainTime()
 {
-    // check to see there is a Domain linked to the Model
-
-    if (myDomain == nullptr) {
-      opserr << "WARNING: AnalysisModel::getCurrentDomainTime.";
-      opserr << " No Domain linked.\n";
-      return 0.0;
-    }
-
-    // invoke the method
-    return myDomain->getCurrentTime();
+  assert(myDomain != nullptr);
+  return myDomain->getCurrentTime();
 }
 
 
 void
 AnalysisModel::setCurrentDomainTime(double newTime)
 {
-    if (myDomain == nullptr) {
-      opserr << "WARNING: AnalysisModel::getCurrentDomainTime.";
-      opserr << " No Domain linked.\n";
-    }
-
-    // invoke the method
-    myDomain->setCurrentTime(newTime);
+  assert(myDomain != nullptr);
+  myDomain->setCurrentTime(newTime);
 }
 
 
@@ -702,36 +671,30 @@ AnalysisModel::setCurrentDomainTime(double newTime)
 void
 AnalysisModel::setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc)
 {
-    if (myDomain == nullptr) {
-      opserr << "WARNING: AnalysisModel::getCurrentDomainTime.";
-      opserr << " No Domain linked.\n";
-    }
-
-    // invoke the method
-    myDomain->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
+  assert(myDomain != nullptr);
+  myDomain->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
 }
 
 
 
 
 Domain *
-AnalysisModel::getDomainPtr(void) const
+AnalysisModel::getDomainPtr() const
 {
-    return myDomain;
+  return myDomain;
 }
 
 
 int
 AnalysisModel::sendSelf(int cTag, Channel &theChannel)
 {
-    return OpenSees::Flag::Success;
+  return OpenSees::Flag::Success;
 }
 
 
 int
-AnalysisModel::recvSelf(int cTag, Channel &theChannel, 
-                        FEM_ObjectBroker &theBroker) 
+AnalysisModel::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker) 
 {
-    return OpenSees::Flag::Success;
+  return OpenSees::Flag::Success;
 }
 

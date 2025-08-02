@@ -25,7 +25,6 @@
 // Created: 04/01
 //
 #include <Broyden.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -34,40 +33,6 @@
 #include <ID.h>
 #include <math.h>
 
-#if 0
-#include <elementAPI.h>
-
-
-void *
-OPS_ADD_RUNTIME_VPV(OPS_Broyden)
-{
-  int formTangent = CURRENT_TANGENT;
-  int count = -1;
-
-  while (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* flag = OPS_GetString();
-      
-      if (strcmp(flag,"-secant") == 0) {
-          formTangent = CURRENT_SECANT;
-          
-      } else if (strcmp(flag,"-initial") == 0) {
-          formTangent = INITIAL_TANGENT;
-          
-      } else if (strcmp(flag,"-count") == 0 && OPS_GetNumRemainingInputArgs()>0) {
-          int numdata = 1;
-          if (OPS_GetIntInput(&numdata, &count) < 0) {
-              opserr << "WARNING Broyden failed to read count\n";
-              return 0;
-          }
-      }
-  }
-
-  if (count == -1)
-    return new Broyden(formTangent); 
-  else
-    return new Broyden(formTangent, count); 
-}
-#endif
 #if 0
 //Constructor
 Broyden::Broyden(ConvergenceTest &theT, int theTangentToUse, int n)
@@ -151,15 +116,13 @@ Broyden::solveCurrentStep()
 {
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-  AnalysisModel   *theAnaModel = this->getAnalysisModelPtr();
 
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
 
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
 
-  if ((theAnaModel == nullptr) 
-      || (theIntegrator == nullptr) 
+  if ((theIntegrator == nullptr) 
       || (theSOE == nullptr)
       || (theTest == nullptr)) {
       opserr << "WARNING Broyden::solveCurrentStep() - setLinks() has";

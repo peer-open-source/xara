@@ -30,8 +30,8 @@
 // Revision: A
 //
 // Description: This file contains the class definition for 
-// SubdomainAnalysis. SubdomainAnalysis is a subclass 
-// of AnalysisAnalysis, it is used when performing a domain decomposition
+// SubdomainAnalysis. 
+// SubdomainAnalysis is used when performing a domain decomposition
 // analysis. It provides methods which can be invoked by a subdomain to
 // perform the numerical computations required.
 //

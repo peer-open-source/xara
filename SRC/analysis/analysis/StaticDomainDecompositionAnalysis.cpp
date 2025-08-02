@@ -25,22 +25,16 @@
 #include <StaticDomainDecompositionAnalysis.h>
 #include <EquiSolnAlgo.h>
 #include <AnalysisModel.h>
+#include <numberer/DOF_Numberer.h>
 #include <LinearSOE.h>
 #include <EigenSOE.h>
 #include <LinearSOESolver.h>
-#include <DOF_Numberer.h>
 #include <ConstraintHandler.h>
 #include <StaticIntegrator.h>
 #include <ConvergenceTest.h>
 #include <Subdomain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-
-// AddingSensitivity:BEGIN //////////////////////////////////
-#ifdef _RELIABILITY
-#include <SensitivityAlgorithm.h>
-#endif
-// AddingSensitivity:END ////////////////////////////////////
 
 #include <FE_Element.h>
 #include <DOF_Group.h>
@@ -91,11 +85,10 @@ StaticDomainDecompositionAnalysis::StaticDomainDecompositionAnalysis(Subdomain &
   if (setLinks == true) {
     // set up the links needed by the elements in the aggregation
     theAnalysisModel->setLinks(the_Domain, theHandler);
-    theConstraintHandler->setLinks(the_Domain, theModel, theStaticIntegrator);
+    theConstraintHandler->setLinks(the_Domain, theModel);
     theDOF_Numberer->setLinks(theModel);
     theIntegrator->setLinks(theModel, theLinSOE, theTest);
-    theAlgorithm->setLinks(theModel, theStaticIntegrator, theLinSOE, theTest);
-    theSOE->setLinks(*theAnalysisModel);
+    theAlgorithm->setLinks(theStaticIntegrator, theLinSOE, theTest);
   }
 }    
 
@@ -272,9 +265,9 @@ StaticDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool fin
       elePtr->zeroTangent();
       elePtr->addKtToTang(1.0);
       if (theEigenSOE->addA(elePtr->getTangent(0), elePtr->getID()) < 0) {
-	opserr << "WARNING StaticAnalysis::eigen() -";
-	opserr << " failed in addA for ID " << elePtr->getID();	    
-	result = -2;
+        opserr << "WARNING StaticAnalysis::eigen() -";
+        opserr << " failed in addA for ID " << elePtr->getID();	    
+        result = -2;
       }
     }
 
@@ -285,25 +278,25 @@ StaticDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool fin
     if (generalized == true) {
       FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
       while((elePtr = theEles2()) != 0) {     
-	elePtr->zeroTangent();
-	elePtr->addMtoTang(1.0);
-	if (theEigenSOE->addM(elePtr->getTangent(0), elePtr->getID()) < 0) {
-	  opserr << "WARNING StaticAnalysis::eigen() -";
-	  opserr << " failed in addA for ID " << elePtr->getID();	    
-	  result = -2;
-	}
+        elePtr->zeroTangent();
+        elePtr->addMtoTang(1.0);
+        if (theEigenSOE->addM(elePtr->getTangent(0), elePtr->getID()) < 0) {
+          opserr << "WARNING StaticAnalysis::eigen() -";
+          opserr << " failed in addA for ID " << elePtr->getID();	    
+          result = -2;
+        }
       }
       
       DOF_Group *dofPtr;
       DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();    
       while((dofPtr = theDofs()) != 0) {
-	dofPtr->zeroTangent();
-	dofPtr->addMtoTang(1.0);
-	if (theEigenSOE->addM(dofPtr->getTangent(0),dofPtr->getID()) < 0) {
-	  opserr << "WARNING StaticAnalysis::eigen() -";
-	  opserr << " failed in addM for ID " << dofPtr->getID();	    
-	  result = -3;
-	}
+        dofPtr->zeroTangent();
+        dofPtr->addMtoTang(1.0);
+        if (theEigenSOE->addM(dofPtr->getTangent(0),dofPtr->getID()) < 0) {
+          opserr << "WARNING StaticAnalysis::eigen() -";
+          opserr << " failed in addM for ID " << dofPtr->getID();	    
+          result = -3;
+        }
       }
     }
     
@@ -656,11 +649,10 @@ StaticDomainDecompositionAnalysis::recvSelf(int commitTag, Channel &theChannel,
 
   // set up the links needed by the elements in the aggregation
   theAnalysisModel->setLinks(*the_Domain, *theConstraintHandler);
-  theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel, *theIntegrator);
+  theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel);
   theDOF_Numberer->setLinks(*theAnalysisModel);
   theIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
-  theAlgorithm->setLinks(*theAnalysisModel, *theIntegrator, *theSOE, theTest);
-
+  theAlgorithm->setLinks(*theIntegrator, *theSOE, theTest);
   return 0;
 }
 
@@ -675,10 +667,8 @@ StaticDomainDecompositionAnalysis::setAlgorithm(EquiSolnAlgo &theNewAlgorithm)
   theAlgorithm = &theNewAlgorithm;
 
   if (theAnalysisModel != 0 && theIntegrator != 0 && theSOE != 0)
-    theAlgorithm->setLinks(*theAnalysisModel, *theIntegrator, *theSOE, theTest);
+    theAlgorithm->setLinks(*theIntegrator, *theSOE, theTest);
 
-  if (theTest != 0)
-    theAlgorithm->setConvergenceTest(theTest);
 
   // invoke domainChanged() either indirectly or directly
   // domainStamp = 0;
@@ -701,8 +691,8 @@ StaticDomainDecompositionAnalysis::setIntegrator(IncrementalIntegrator &theNewIn
   theIntegrator = (StaticIntegrator *)(&theNewIntegrator);
   if (theIntegrator != 0 && theConstraintHandler != 0 && theAlgorithm != 0 && theAnalysisModel != 0 && theSOE != 0) {
     theIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
-    theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel, *theIntegrator);
-    theAlgorithm->setLinks(*theAnalysisModel, *theIntegrator, *theSOE, theTest);
+    theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel);
+    theAlgorithm->setLinks(*theIntegrator, *theSOE, theTest);
   }
 
   // cause domainChanged to be invoked on next analyze
@@ -719,25 +709,24 @@ StaticDomainDecompositionAnalysis::setIntegrator(IncrementalIntegrator &theNewIn
 int 
 StaticDomainDecompositionAnalysis::setLinearSOE(LinearSOE &theNewSOE)
 {
-    // invoke the destructor on the old one
-    if (theSOE != 0)
-      delete theSOE;
+  // invoke the destructor on the old one
+  if (theSOE != 0)
+    delete theSOE;
 
-    // set the links needed by the other objects in the aggregation
-    theSOE = &theNewSOE;
-    if (theIntegrator != 0 && theAlgorithm != 0 && theAnalysisModel != 0 && theSOE != 0) {
-      theIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
-      theAlgorithm->setLinks(*theAnalysisModel, *theIntegrator, *theSOE, theTest);
-      theSOE->setLinks(*theAnalysisModel);
-    }
+  // set the links needed by the other objects in the aggregation
+  theSOE = &theNewSOE;
+  if (theIntegrator != 0 && theAlgorithm != 0 && theAnalysisModel != 0 && theSOE != 0) {
+    theIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
+    theAlgorithm->setLinks(*theIntegrator, *theSOE, theTest);
+  }
 
-    if (theEigenSOE != 0) 
-      theEigenSOE->setLinearSOE(*theSOE);
-    
-    // cause domainChanged to be invoked on next analyze
-    domainStamp = 0;
+  if (theEigenSOE != 0) 
+    theEigenSOE->setLinearSOE(*theSOE);
+  
+  // cause domainChanged to be invoked on next analyze
+  domainStamp = 0;
 
-    return 0;
+  return 0;
 }
 
 

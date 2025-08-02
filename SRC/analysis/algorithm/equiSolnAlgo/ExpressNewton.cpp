@@ -36,7 +36,6 @@
 // What: "@(#)ExpressNewton.h, revA"
 
 #include <ExpressNewton.h>
-#include <AnalysisModel.h>
 #include <LinearSOE.h>
 #include <Vector.h>
 #include <Channel.h>
@@ -103,11 +102,10 @@ ExpressNewton::solveCurrentStep()
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
 
-  AnalysisModel *theAnalysisModel = this->getAnalysisModelPtr(); 
   LinearSOE  *theSOE = this->getLinearSOEptr();
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
 
-  if ((theAnalysisModel == 0) || (theIntegrator ==0 ) || (theSOE == 0)){
+  if ((theIntegrator ==0 ) || (theSOE == 0)){
       opserr << "WARNING ExpressNewton::solveCurrentStep() -";
       opserr << "setLinks() has not been called.\n";
       return -5;

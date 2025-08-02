@@ -24,7 +24,6 @@
 // NewtonHallM. 
 
 #include <NewtonHallM.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -109,25 +108,19 @@ NewtonHallM::~NewtonHallM()
 
 
 int 
-NewtonHallM::solveCurrentStep(void)
+NewtonHallM::solveCurrentStep()
 {
     // set up some pointers and check they are valid
     // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-    AnalysisModel   *theAnaModel = this->getAnalysisModelPtr();
     IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
     //IncrementalIntegrator *theIntegratorSens=this->getIncrementalIntegratorPtr();//Abbas
     LinearSOE  *theSOE = this->getLinearSOEptr();
 
-    if ((theAnaModel == 0) || (theIntegrator == 0) || (theSOE == 0)
-        || (theTest == 0)){
-        opserr << "WARNING NewtonHallM::solveCurrentStep() - setLinks() has";
-        opserr << " not been called - or no ConvergenceTest has been set\n";
+    if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)){
         return -5;
     }        
 
-    if (theIntegrator->formUnbalance() < 0) {
-      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIntegrator->formUnbalance() < 0) {      
       return -2;
     }            
 

@@ -7,14 +7,12 @@
 target_sources(OPS_Analysis
     PRIVATE
       Analysis.cpp
-      ResponseSpectrumAnalysis.cpp
 
       DomainDecompositionAnalysis.cpp
       StaticDomainDecompositionAnalysis.cpp 
       TransientDomainDecompositionAnalysis.cpp 
     PUBLIC
       Analysis.h
-      ResponseSpectrumAnalysis.h
 
       DomainDecompositionAnalysis.h
       StaticDomainDecompositionAnalysis.h 

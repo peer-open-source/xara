@@ -32,14 +32,12 @@
 // equilibrium of a finite element model.  
 //
 #include <EquiSolnAlgo.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <ConvergenceTest.h>
 
 EquiSolnAlgo::EquiSolnAlgo(int clasTag)
 :SolutionAlgorithm(clasTag),
- theModel(0),
  theIntegrator(nullptr), 
  theSysOfEqn(nullptr), 
  theTest(nullptr)
@@ -53,12 +51,10 @@ EquiSolnAlgo::~EquiSolnAlgo()
 }
 
 void 
-EquiSolnAlgo::setLinks(AnalysisModel &theNewModel, 
-                       IncrementalIntegrator &theNewIntegrator,
+EquiSolnAlgo::setLinks(IncrementalIntegrator &theNewIntegrator,
                        LinearSOE &theSOE,
                        ConvergenceTest *theConvergenceTest)
 {
-  theModel = &theNewModel;
   theIntegrator = &theNewIntegrator;
   theSysOfEqn = &theSOE;
   theTest = theConvergenceTest;
@@ -81,11 +77,11 @@ EquiSolnAlgo::getConvergenceTest()
 }
 
 
-AnalysisModel *
-EquiSolnAlgo::getAnalysisModelPtr() const
-{
-  return theModel;
-}
+// AnalysisModel *
+// EquiSolnAlgo::getAnalysisModelPtr() const
+// {
+//   return theModel;
+// }
 
 
 IncrementalIntegrator *
