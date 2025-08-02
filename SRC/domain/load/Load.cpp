@@ -30,15 +30,15 @@
 
 
 Load::Load(int tag, int clasTag)
-:TaggedObject(tag), MovableObject(clasTag), loadPatternTag(-1)
+: TaggedObject(tag), MovableObject(clasTag), loadPatternTag(-1)
 {
-    // does nothing
+  // does nothing
 }
 
 
 Load::~Load()
 {
-    // does nothing
+  // does nothing
 }
 
 void
@@ -56,14 +56,13 @@ Load::getLoadPatternTag(void) const
 void
 Load::setDomain(Domain *model)
 {
-    // sets the pointer 
-    theDomain = model;
+  // sets the pointer 
+  theDomain = model;
 }
 
 
 Domain *
-Load::getDomain(void) const
+Load::getDomain() const
 {
-  // returns the current pointer
   return theDomain;
 }

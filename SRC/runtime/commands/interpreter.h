@@ -15,7 +15,8 @@ Tcl_CmdProc Tcl_Peri;
 
 struct char_cmd {
   const char* name; Tcl_CmdProc*  func;
-}  const InterpreterCommands[] =  {
+}
+const InterpreterCommands[] =  {
 
   {"peri",                 Tcl_Peri},
 

@@ -25,7 +25,9 @@ class PlaneSection: public TaggedObject {
   public:
 
     PlaneSection(int tag, MatT& material, double thickness) 
-    : TaggedObject(tag), material(&material), thickness(thickness) 
+    : TaggedObject(tag)
+    , material(&material)
+    , thickness(thickness) 
     {
     }
 

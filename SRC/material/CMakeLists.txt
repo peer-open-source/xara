@@ -6,7 +6,6 @@
 #==============================================================================
 
 target_link_libraries(OPS_Material PRIVATE OPS_Domain OPS_Logging)
-target_sources(OPS_Runtime PRIVATE commands.cpp)
 
 
 target_include_directories(OPS_Material

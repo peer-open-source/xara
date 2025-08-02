@@ -5,6 +5,7 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
+//
 // Description: This file contains the function invoked when the user 
 // invokes the nDMaterial command in the interpreter.
 //
@@ -77,20 +78,22 @@ static NDMaterialPackageCommand *theNDMaterialPackageCommands = nullptr;
 
 int
 TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
-                                 int argc, TCL_Char ** const argv)
+                          Tcl_Size argc, TCL_Char ** const argv)
 {
   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
 
-  // Make sure there is a minimum number of arguments
-  if (argc < 3) {
-    opserr << "WARNING insufficient number of ND material arguments\n";
-    opserr << "Want: nDMaterial type? tag? <specific material args>" << "\n";
+
+  if (argc < 2) {
+    opserr << OpenSees::PromptValueError
+           << "missing argument type"
+           << "\n";
     return TCL_ERROR;
   }
 
+
   {
-    auto tcl_cmd = material_dispatch2.find(std::string(argv[1]));
-    if (tcl_cmd != material_dispatch2.end()) {
+    auto tcl_cmd = OpenSees::MaterialLibrary.find(std::string(argv[1]));
+    if (tcl_cmd != OpenSees::MaterialLibrary.end()) {
       return (*tcl_cmd->second)(clientData, interp, argc, &argv[0]);
     }
   }
@@ -101,8 +104,14 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
   // Pointer to an ND material that will be added to the model builder
   NDMaterial *theMaterial = nullptr;
 
-  auto tcl_cmd = material_dispatch.find(std::string(argv[1]));
-  if (tcl_cmd != material_dispatch.end()) {
+  if (argc < 3) {
+    opserr << OpenSees::PromptValueError
+           << "missing argument tag"
+           << "\n";
+    return TCL_ERROR;
+  }
+  auto tcl_cmd = OpenSees::OldMaterialCommands.find(std::string(argv[1]));
+  if (tcl_cmd != OpenSees::OldMaterialCommands.end()) {
     void* theMat = (*tcl_cmd->second)(rt, argc, &argv[0]);
     if (theMat != nullptr)
       theMaterial = (NDMaterial *)theMat;
@@ -133,80 +142,65 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
       opserr << "WARNING invalid E\n";
-      opserr << "nDMaterial PressureDependentElastic3D: E" << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &v) != TCL_OK) {
       opserr << "WARNING invalid v\n";
-      opserr << "nDMaterial PressureDependentElastic3D: v" << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &rho) != TCL_OK) {
-      opserr << "WARNING invalid v\n";
-      opserr << "nDMaterial PressureDependentElastic3D: rho" << tag << "\n";
+      opserr << "WARNING invalid rho\n";
       return TCL_ERROR;
     }
 
     if (argc == 6) {
       theMaterial = new PressureDependentElastic3D(tag, E, v, rho);
-      // opserr << "nDMaterial PressureDependentElastic3D: expp =" << expp <<
-      // "\n";
     }
 
     else if (argc == 7) {
       // get the exponent of the pressure sensitive elastic material)
       if (Tcl_GetDouble(interp, argv[6], &expp) != TCL_OK) {
-        opserr << "WARNING invalid v\n";
-        opserr << "nDMaterial PressureDependentElastic3D: " << tag << "\n";
+        opserr << "WARNING invalid expp\n";
         return TCL_ERROR;
       }
       theMaterial = new PressureDependentElastic3D(tag, E, v, rho, expp);
-      // opserr << "nDMaterial PressureDependentElastic3D: expp =" << expp <<
-      // "\n";
     }
 
     else if (argc == 8) {
       // get the exponent pressure of the pressure sensitive elastic material)
       if (Tcl_GetDouble(interp, argv[6], &expp) != TCL_OK) {
-        opserr << "WARNING invalid v\n";
-        opserr << "nDMaterial PressureDependentElastic3D: expp" << tag << "\n";
+        opserr << "WARNING invalid expp\n";
         return TCL_ERROR;
       }
       // get the reference pressure of the pressure sensitive elastic material)
       if (Tcl_GetDouble(interp, argv[7], &prp) != TCL_OK) {
-        opserr << "WARNING invalid v\n";
-        opserr << "nDMaterial PressureDependentElastic3D: prp " << tag << "\n";
+        opserr << "WARNING invalid prp\n";
         return TCL_ERROR;
       }
-      // opserr << "nDMaterial ElasticIsotropic3D: prp =" << prp << "\n";
       theMaterial = new PressureDependentElastic3D(tag, E, v, rho, expp, prp);
     }
 
     else if (argc >= 9) {
       // get the exponent of the pressure sensitive elastic material)
       if (Tcl_GetDouble(interp, argv[6], &expp) != TCL_OK) {
-        opserr << "WARNING invalid v\n";
-        opserr << "nDMaterial PressureDependentElastic3D: expp" << tag << "\n";
+        opserr << "WARNING invalid expp\n";
         return TCL_ERROR;
       }
       // get the reference pressure of the pressure sensitive elastic material)
       if (Tcl_GetDouble(interp, argv[7], &prp) != TCL_OK) {
-        opserr << "WARNING invalid v\n";
-        opserr << "nDMaterial PressureDependentElastic3D: prp" << tag << "\n";
+        opserr << "WARNING invalid prp\n";
         return TCL_ERROR;
       }
       // get the cutoff pressure po of the pressure sensitive elastic material)
       if (Tcl_GetDouble(interp, argv[8], &pop) != TCL_OK) {
-        opserr << "WARNING invalid v\n";
-        opserr << "nDMaterial PressureDependentElastic3D: pop" << tag << "\n";
+        opserr << "WARNING invalid pop\n";
         return TCL_ERROR;
       }
       theMaterial =
           new PressureDependentElastic3D(tag, E, v, rho, expp, prp, pop);
     }
-
   }
 
 
@@ -925,8 +919,7 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
         opserr << "WARNING invalid CapPlasticity tol" << "\n";
         return TCL_ERROR;
       }
-
-    } // end if
+    }
 
     theMaterial = new CapPlasticity(tag, G, K, rho, X, D, W, R, lambda, theta,
                                     beta, alpha, T, ndm, tol);
@@ -1276,7 +1269,7 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
   }
 
   if (theMaterial == nullptr) {
-    opserr << "WARNING could not create nDMaterial: " << argv[1];
+    opserr << "WARNING could not create nDMaterial " << argv[1];
     return TCL_ERROR;
   }
 

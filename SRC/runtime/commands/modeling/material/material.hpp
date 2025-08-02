@@ -1,8 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 //
 //
 //                 stress         |          strain
@@ -50,6 +60,7 @@
 #include <Parsing.h>
 #include <unordered_map>
 #include <elementAPI.h>
+#include <runtimeAPI.h>
 #include <NDMaterial.h>
 
 extern Tcl_CmdProc TclCommand_addPlaneWrapper;
@@ -156,7 +167,8 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
   return fn( clientData, interp, argc, argv );
 }
 
-static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
+namespace OpenSees {
+static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
 //
 // Elastic 
 //
@@ -237,7 +249,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> material_dispatch2 = {
   {"PlasticDamageConcretePlaneStress", dispatch<OPS_NewPlasticDamageConcretePlaneStress>},
 };
 
-static std::unordered_map<std::string, OPS_Routine*> material_dispatch = {
+static std::unordered_map<std::string, OPS_Routine*> OldMaterialCommands = {
 #ifdef OPS_USE_ASDPlasticMaterials
   {"ASDPlasticMaterial",            OPS_AllASDPlasticMaterials},
 #endif
@@ -276,4 +288,4 @@ static std::unordered_map<std::string, OPS_Routine*> material_dispatch = {
   {"SmearedSteelDoubleLayer",       OPS_SmearedSteelDoubleLayerT2DMaterial01},
   {"SAniSandMS",                    OPS_SAniSandMSMaterial},
 };
-
+} // namespace OpenSees
