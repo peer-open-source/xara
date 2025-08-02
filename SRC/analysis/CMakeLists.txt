@@ -6,7 +6,6 @@
 #==============================================================================
 
 add_subdirectory(algorithm)
-add_subdirectory(numberer)
 add_subdirectory(dof_grp)
 add_subdirectory(fe_ele)
 add_subdirectory(handler)
