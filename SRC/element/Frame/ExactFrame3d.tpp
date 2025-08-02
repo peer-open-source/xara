@@ -478,7 +478,6 @@ ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
   static Vector wrapper(dp);
   dp.zero();
 
-  constexpr static Vector3D D {1, 0, 0};
   auto& theNodes = this->FiniteElement<nen,3,ndf>::theNodes;
 
   // Form displaced node locations xyz
