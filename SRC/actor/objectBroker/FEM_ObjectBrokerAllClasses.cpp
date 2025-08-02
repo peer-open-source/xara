@@ -2567,18 +2567,7 @@ FEM_ObjectBrokerAllClasses::getNewNumberer(int classTag)
 AnalysisModel       *
 FEM_ObjectBrokerAllClasses::getNewAnalysisModel(int classTag)
 {
-    switch(classTag) {
-	case AnaMODEL_TAGS_AnalysisModel:  
-	     return new AnalysisModel();
-	     
-	     
-	default:
-	     opserr << "FEM_ObjectBrokerAllClasses::getNewAnalysisModel - ";
-	     opserr << " - no AnalysisModel type exists for class tag ";
-	     opserr << classTag << endln;
-	     return 0;
-	     
-	 }        
+  return nullptr; 
 }
 
 
