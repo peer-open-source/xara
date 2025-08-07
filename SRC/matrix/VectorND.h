@@ -290,7 +290,7 @@ struct VectorND {
   }
 
   template <class VecT>
-  VectorND<N> operator+(const VecT &right) const noexcept {
+  constexpr VectorND<N> operator+(const VecT &right) const noexcept {
     VectorND<N> res {*this};
     res += right;
     return res;
