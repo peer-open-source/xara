@@ -40,12 +40,11 @@ public:
   
   int	 displaySelf(Renderer &theViewer, int displayMode, float fact) { return 0;}
 
-  virtual int sendSelf(int commitTag, Channel &theChannel){return -1;}
-  virtual int recvSelf(int commitTag, Channel &theChannel,
-                         FEM_ObjectBroker &theBroker){return -1;}
-  /** No descriptions */
+  virtual int sendSelf(int commitTag, Channel &) override {return -1;}
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override {return -1;}
+
   int revertToLastCommit();
-  int commitState(int status);
+  int commitState() override;
   double getTrialPlasticStrains(int dof);
   double getCommitPlasticStrains(int dof);
 
