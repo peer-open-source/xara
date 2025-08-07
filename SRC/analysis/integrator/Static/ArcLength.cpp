@@ -79,31 +79,31 @@ ArcLength::~ArcLength()
 {
     // delete any vector object created
     if (deltaUhat != 0)
-       delete deltaUhat;
+      delete deltaUhat;
     if (deltaU != 0)
-       delete deltaU;
+      delete deltaU;
     if (deltaUstep != 0)
-       delete deltaUstep;
+      delete deltaUstep;
     if (deltaUstep2 !=0)
-       delete deltaUstep2;
+      delete deltaUstep2;
     if (deltaUbar != 0)
-       delete deltaUbar;
+      delete deltaUbar;
     if (phat != 0)
-       delete phat;
+      delete phat;
     if(dUhatdh !=0)
-       delete dUhatdh;
+      delete dUhatdh;
     if(dphatdh !=0)
-       delete dphatdh;
+      delete dphatdh;
     if(dLAMBDAdh !=0)
-       delete dLAMBDAdh;
-    if(dUIJdh !=0)
+      delete dLAMBDAdh;
+    if (dUIJdh !=0)
       delete dUIJdh;
-    if(dDeltaUstepdh !=0)
-       delete dDeltaUstepdh;
-    if(Residual !=0)
-       delete Residual;
-    if(sensU !=0)
-       delete sensU;
+    if (dDeltaUstepdh !=0)
+      delete dDeltaUstepdh;
+    if (Residual !=0)
+      delete Residual;
+    if (sensU !=0)
+      delete sensU;
 }
 
 int
@@ -171,12 +171,12 @@ ArcLength::newStep()
       Parameter *theParam;
 
       // De-activate all parameters
+      while ((theParam = paramIter()) != nullptr)
+        theParam->activate(false);
 
       // Now, compute sensitivity wrt each parameter
       // int numGrads = theDomain->getNumParameters();
 
-      while ((theParam = paramIter()) != nullptr)
-        theParam->activate(false);
 
       paramIter = theDomain->getParameters();
       while ((theParam = paramIter()) != nullptr) {
@@ -478,6 +478,8 @@ ArcLength::Print(OPS_Stream &s, int flag)
 
 // Added by Abbas
 // obtain the derivative of the tangent displacement (dUhatdh)
+//
+//
 void
 ArcLength::formTangDispSensitivity(int gradNumber)
 {
@@ -493,11 +495,10 @@ ArcLength::formTangDispSensitivity(int gradNumber)
    if (theLinSOE->solve()<0)
      opserr << "SOE failed to obtained dUhatdh ";
 
-   (*dUhatdh)=theLinSOE->getX();
+   (*dUhatdh) = theLinSOE->getX();
 
    // if the parameter is a load parameter.
-
-   // Loop through the loadPatterns and add the dPext/dh contributions
+   // add the dPext/dh contributions
 
    static Vector oneDimVectorWithOne(1);
    oneDimVectorWithOne(0) = 1.0;
@@ -511,22 +512,22 @@ ArcLength::formTangDispSensitivity(int gradNumber)
       const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
       int sizeRandomLoads = randomLoads.Size();
       if (sizeRandomLoads == 1) {
-	 // No random loads in this load pattern
+	   // No random loads in this load pattern
       }
       else {
-	 // Random loads: add contributions to the 'B' vector
-	 int numRandomLoads = (int)(sizeRandomLoads/2);
-	 for (int i=0; i<numRandomLoads*2; i=i+2) {
-	    int nodeNumber = (int)randomLoads(i);
-	    int dofNumber = (int)randomLoads(i+1);
-	    Node *aNode = theDomain->getNode(nodeNumber);
-	    DOF_Group *aDofGroup = aNode->getDOF_GroupPtr();
-	    const ID &anID = aDofGroup->getID();
-	    int relevantID = anID(dofNumber-1);
-	    oneDimID(0) = relevantID;
-	    theLinSOE->addB(oneDimVectorWithOne, oneDimID);
-	    (*dphatdh)=theLinSOE->getB();
-	 }
+         // Random loads: add contributions to the 'B' vector
+         int numRandomLoads = (int)(sizeRandomLoads/2);
+         for (int i=0; i<numRandomLoads*2; i=i+2) {
+            int nodeNumber = (int)randomLoads(i);
+            int dofNumber = (int)randomLoads(i+1);
+            Node *aNode = theDomain->getNode(nodeNumber);
+            DOF_Group *aDofGroup = aNode->getDOF_GroupPtr();
+            const ID &anID = aDofGroup->getID();
+            int relevantID = anID(dofNumber-1);
+            oneDimID(0) = relevantID;
+            theLinSOE->addB(oneDimVectorWithOne, oneDimID);
+            (*dphatdh)=theLinSOE->getB();
+         }
       }
    }
 
@@ -818,10 +819,11 @@ ArcLength::computeSensitivities()
   while ((theParam = paramIter()) != nullptr)
      theParam->activate(false);
 
-  // Now, compute sensitivity wrt each parameter
+  // Compute sensitivity wrt each parameter
   int  numGrads = theDomain->getNumParameters();
   paramIter = theDomain->getParameters();
   while ((theParam = paramIter()) != nullptr) {
+
      // Activate this parameter
      theParam->activate(true);
 
@@ -832,13 +834,12 @@ ArcLength::computeSensitivities()
      int gradIndex = theParam->getGradIndex();
     
      // Form the RHS
-
      this->formTangDispSensitivity(gradIndex);
      this->formSensitivityRHS(gradIndex);
 
      this->formTangent();
      theSOE->solve();
-     *dUIJdh=theSOE->getX();// sensitivity of the residual displacement
+     *dUIJdh = theSOE->getX();// sensitivity of the residual displacement
 
 
     // this->formTangDispSensitivity(gradIndex);

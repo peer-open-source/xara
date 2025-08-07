@@ -59,15 +59,14 @@ class DomainDecompAlgo: public SolutionAlgorithm
     // public functions defined for subclasses
     int solveCurrentStep(void);
 
-    void setLinks(AnalysisModel         &theModel, 
+    void setLinks(
 		  IncrementalIntegrator &theIntegrator,
 		  LinearSOE             &theSOE,
 		  DomainSolver          &theSolver,		     
 		  Subdomain             &theSubdomain);	
 
-    int sendSelf(int cTag, Channel &theChannel);
-    int recvSelf(int cTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int cTag, Channel &);
+    int recvSelf(int cTag, Channel &, FEM_ObjectBroker &);
     
   protected:
     

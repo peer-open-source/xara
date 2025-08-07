@@ -33,7 +33,7 @@ bool builtModel = false;
 
 FE_Datastore *theDatabase = nullptr;
 
-extern int G3_AddTclAnalysisAPI(Tcl_Interp *, Domain*);
+extern int G3_AddTclAnalysisAPI(Tcl_Interp *, BasicModelBuilder&);
 extern int G3_AddTclDomainCommands(Tcl_Interp *, Domain*);
 
 
@@ -58,12 +58,6 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     Tcl_CreateCommand(interp, "model", &TclCommand_specifyModel, theNewDomain, nullptr);
 
     G3_AddTclDomainCommands(interp, theNewDomain);
-
-    const char* analysis_option;
-    if (!(analysis_option = Tcl_GetVar(interp,"opensees::pragma::analysis",TCL_GLOBAL_ONLY)) ||
-         (strcmp(analysis_option, "off") != 0)) {
-      G3_AddTclAnalysisAPI(interp, theNewDomain);
-    }
   }
 
 
@@ -165,6 +159,12 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     // create the model builder
     theNewBuilder = new BasicModelBuilder(*theNewDomain, interp, ndm, ndf);
     G3_setModelBuilder(rt, theNewBuilder);
+
+    const char* analysis_option;
+    if (!(analysis_option = Tcl_GetVar(interp,"opensees::pragma::analysis",TCL_GLOBAL_ONLY)) ||
+         (strcmp(analysis_option, "off") != 0)) {
+      G3_AddTclAnalysisAPI(interp, *theNewBuilder);
+    }
   }
 
 #if 0
@@ -228,7 +228,9 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 #endif
 
   else {
-    opserr << OpenSees::PromptValueError << "unknown model builder type '" << argv[1] << "' not supported\n";
+    opserr << OpenSees::PromptValueError 
+           << "unknown model builder type '" << argv[1] << "' not supported"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

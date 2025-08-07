@@ -74,12 +74,12 @@ static Tcl_CmdProc TclCommand_newNewtonLineSearch;
 
 namespace  OpenSees {
 std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
-  {"Linear",           TclCommand_newLinearAlgorithm},
+  {"Linear",            TclCommand_newLinearAlgorithm},
 
-  {"Newton",           TclCommand_newNewtonRaphson},
-  {"ModifiedNewton",   TclCommand_newNewtonRaphson},
-  {"NewtonHall",       TclCommand_newNewtonHallM},
-  {"NewtonLineSearch", TclCommand_newNewtonLineSearch},
+  {"Newton",            TclCommand_newNewtonRaphson},
+  {"ModifiedNewton",    TclCommand_newNewtonRaphson},
+  {"NewtonHall",        TclCommand_newNewtonHallM},
+  {"NewtonLineSearch",  TclCommand_newNewtonLineSearch},
 
   {"SecantNewton",      TclCommand_newAcceleratedNewton},
   {"MillerAccelerator", TclCommand_newAcceleratedNewton},
@@ -155,7 +155,8 @@ G3Parse_newEquiSolnAlgo(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
   }
 
   else {
-    opserr << OpenSees::PromptValueError << "Unknown algorithm type '" << argv[1] << "'\n";
+    opserr << OpenSees::PromptValueError
+           << "Unknown algorithm type '" << argv[1] << "'\n";
     return nullptr;
   }
 
@@ -754,7 +755,7 @@ printAlgorithm(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
-  EquiSolnAlgo* theAlgorithm = builder->getAlgorithm();
+  const EquiSolnAlgo* theAlgorithm = builder->getAlgorithm();
 
   int eleArg = 0;
   if (theAlgorithm == nullptr) {
@@ -784,7 +785,7 @@ TclCommand_accelCPU(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TC
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
-  EquiSolnAlgo* algo = builder->getAlgorithm();
+  const EquiSolnAlgo* algo = builder->getAlgorithm();
 
   if (algo == nullptr)
     return TCL_ERROR;
@@ -800,7 +801,7 @@ TclCommand_numFact(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
-  EquiSolnAlgo* algo = builder->getAlgorithm();
+  const EquiSolnAlgo* algo = builder->getAlgorithm();
 
   if (algo == nullptr)
     return TCL_ERROR;
@@ -850,7 +851,7 @@ int
 TclCommand_totalCPU(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
+  const EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
 
   if (algo == nullptr)
     return TCL_ERROR;
@@ -864,7 +865,7 @@ int
 TclCommand_solveCPU(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
+  const EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
 
 
   if (algo == nullptr)
@@ -880,7 +881,7 @@ int
 TclCommand_numIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
+  const EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
 
   if (algo == nullptr)
     return TCL_ERROR;

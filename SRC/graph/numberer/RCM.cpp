@@ -35,7 +35,7 @@
 #include <FEM_ObjectBroker.h>
 #include <Logging.h>
 
-// Constructor
+
 RCM::RCM(bool gps)
 :GraphNumberer(GraphNUMBERER_TAG_RCM),
  numVertex(-1), theRefResult(0), GPS(gps)
@@ -43,7 +43,6 @@ RCM::RCM(bool gps)
 
 }
 
-// Destructor
 RCM::~RCM()
 {
     if (theRefResult != 0)

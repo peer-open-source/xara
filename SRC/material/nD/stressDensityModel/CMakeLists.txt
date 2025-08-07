@@ -28,5 +28,13 @@ target_sources(OPS_MaterialFortran
     MODULE_ALL_INTERFACES_2D.f90
 )
 
+if (APPLE) 
+  target_link_options(OPS_MaterialFortran
+    PUBLIC
+    -Wl,-no_compact_unwind>
+  )
+endif()
+
+
 target_include_directories(OPS_Material PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 

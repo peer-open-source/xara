@@ -27,7 +27,6 @@
 // What: "@(#)NewtonLineSearch.h, revA"
 
 #include <NewtonLineSearch.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -67,11 +66,10 @@ NewtonLineSearch::solveCurrentStep()
 {
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-  AnalysisModel   *theAnaModel = this->getAnalysisModelPtr();
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
-  if ((theAnaModel == 0) || (theIntegrator == 0) || (theSOE == 0)
+  if ((theIntegrator == 0) || (theSOE == 0)
     || (theTest == 0)){
     opserr << "WARNING NewtonLineSearch::solveCurrentStep() - setLinks() has";
     opserr << " not been called - or no ConvergenceTest has been set\n";
@@ -207,7 +205,7 @@ NewtonLineSearch::recvSelf(int cTag,
 
 
 void
-NewtonLineSearch::Print(OPS_Stream &s, int flag)
+NewtonLineSearch::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) 
     s << "NewtonLineSearch\n";

@@ -1,7 +1,9 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
 //
+//===----------------------------------------------------------------------===//
+//                              https://xara.so
 //===----------------------------------------------------------------------===//
 //
 // Description: This file contains the implementation of the GeneralizedNewmark class.
@@ -389,8 +391,7 @@ GeneralizedNewmark::update(const Vector &deltaX)
     // update the response at the DOFs
     theModel->setResponse(*Ua,*Va,*Aa);
     if (theModel->updateDomain() < 0)  {
-        opserr << "GeneralizedNewmark::update - failed to update the domain\n";
-        return -4;
+      return -4;
     }
     
     return 0;
@@ -619,7 +620,6 @@ GeneralizedNewmark::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON)
     return;
 
-
   AnalysisModel *theModel = this->getAnalysisModel();
   if (theModel != nullptr) {
       double currentTime = theModel->getCurrentDomainTime();
@@ -799,59 +799,59 @@ GeneralizedNewmark::formNodUnbalance(DOF_Group *theDof)
 int 
 GeneralizedNewmark::formSensitivityRHS(int passedGradNumber)
 {
-    // Set a couple of data members
-    sensitivityFlag = 1;
-    gradNumber = passedGradNumber;
+  // Set a couple of data members
+  sensitivityFlag = 1;
+  gradNumber = passedGradNumber;
 
 
-    LinearSOE *theSOE = this->getLinearSOE();
+  LinearSOE *theSOE = this->getLinearSOE();
 
-    // Possibly set the independent part of the RHS
-    if (assemblyFlag != 0)
-      theSOE->setB(independentRHS);
+  // Possibly set the independent part of the RHS
+  if (assemblyFlag != 0)
+    theSOE->setB(independentRHS);
 
-    // Get the analysis model
-    AnalysisModel *theModel = this->getAnalysisModel();
+  // Get the analysis model
+  AnalysisModel *theModel = this->getAnalysisModel();
 
-    //
-    // Randomness in external load (including randomness in time series)
-    //
+  //
+  // Randomness in external load (including randomness in time series)
+  //
 
-    Domain *theDomain = theModel->getDomainPtr();
+  Domain *theDomain = theModel->getDomainPtr();
 
-    // Loop through nodes to zero the unbalaced load
-    Node *nodePtr;
-    NodeIter &theNodeIter = theDomain->getNodes();
-    while ((nodePtr = theNodeIter()) != nullptr)
-      nodePtr->zeroUnbalancedLoad();
+  // Loop through nodes to zero the unbalaced load
+  Node *nodePtr;
+  NodeIter &theNodeIter = theDomain->getNodes();
+  while ((nodePtr = theNodeIter()) != nullptr)
+    nodePtr->zeroUnbalancedLoad();
 
-    // Loop through load patterns to add external load sensitivity
-    LoadPattern *loadPatternPtr;
-    LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
+  // Loop through load patterns to add external load sensitivity
+  LoadPattern *loadPatternPtr;
+  LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
 
-    while ((loadPatternPtr = thePatterns()) != nullptr)
-      loadPatternPtr->applyLoadSensitivity(theDomain->getCurrentTime());
+  while ((loadPatternPtr = thePatterns()) != nullptr)
+    loadPatternPtr->applyLoadSensitivity(theDomain->getCurrentTime());
 
 
-    // Randomness in element/material contributions
-    // Loop through FE elements
-    FE_Element *elePtr;
-    FE_EleIter &theEles = theModel->getFEs();    
-    while ((elePtr = theEles()) != nullptr) {
-      theSOE->addB(  elePtr->getResidual(this),  elePtr->getID()  );
-    }
+  // Randomness in element/material contributions
+  // Loop through FE elements
+  FE_Element *elePtr;
+  FE_EleIter &theEles = theModel->getFEs();    
+  while ((elePtr = theEles()) != nullptr) {
+    theSOE->addB(  elePtr->getResidual(this),  elePtr->getID()  );
+  }
 
-    // Loop through DOF groups (IT IS IMPORTANT THAT THIS IS DONE LAST!)
-    DOF_Group *dofPtr;
-    DOF_GrpIter &theDOFs = theModel->getDOFs();
-    while ((dofPtr = theDOFs()) != nullptr) {
-      theSOE->addB(  dofPtr->getUnbalance(this),  dofPtr->getID()  );
-    }
+  // Loop through DOF groups (IT IS IMPORTANT THAT THIS IS DONE LAST!)
+  DOF_Group *dofPtr;
+  DOF_GrpIter &theDOFs = theModel->getDOFs();
+  while ((dofPtr = theDOFs()) != nullptr) {
+    theSOE->addB(  dofPtr->getUnbalance(this),  dofPtr->getID()  );
+  }
 
-    // Reset the sensitivity flag
-    sensitivityFlag = 0;
+  // Reset the sensitivity flag
+  sensitivityFlag = 0;
 
-    return 0;
+  return 0;
 }
 
 int 
@@ -863,9 +863,6 @@ GeneralizedNewmark::formIndependentSensitivityRHS()
 
   // Get pointer to the SOE
   LinearSOE *theSOE = this->getLinearSOEPtr();
-
-  // Get the analysis model
-  AnalysisModel *theModel = this->getAnalysisModelPtr();
 
   
   // Loop through FE elements

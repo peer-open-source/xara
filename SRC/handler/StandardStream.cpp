@@ -27,6 +27,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cmath>
 #include <string.h>
 
 #define OPS_CONSOLE std::cout
@@ -390,8 +391,15 @@ StandardStream::operator<<(double n)
   if (echoApplication == true)
     OPS_CONSOLE << n;
 
-  if (fileOpen != 0)
-    theFile << n;
+  if (fileOpen != 0) {
+    if (std::isnan(n)) {
+      theFile << "NaN";
+    } else if (std::isinf(n)) {
+      theFile << "Inf";
+    } else {
+      theFile << n;
+    }
+  }
 
  return *this;
 }

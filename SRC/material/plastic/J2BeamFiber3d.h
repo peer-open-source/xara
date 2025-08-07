@@ -48,6 +48,8 @@ public:
   J2BeamFiber3d();
   ~J2BeamFiber3d();
 
+  const char* getClassType() const override { return "J2BeamFiber3d"; }
+
   int setTrialStrain(const Vector& v);
   int setTrialStrain(const Vector& v, const Vector& r);
   int setTrialStrainIncr(const Vector& v);

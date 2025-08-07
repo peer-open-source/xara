@@ -24,7 +24,6 @@
 // NewtonHallM. 
 
 #include <NewtonHallM.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -32,9 +31,10 @@
 #include <ConvergenceTest.h>
 #include <ID.h>
 
-#include <elementAPI.h>
 #include <math.h>
 
+#if 1
+#include <elementAPI.h>
 void *
 OPS_ADD_RUNTIME_VPV(OPS_NewtonHallM)
 {
@@ -83,8 +83,8 @@ OPS_ADD_RUNTIME_VPV(OPS_NewtonHallM)
     }
 
   return new NewtonHallM(iFactor, method, alpha, c);
-
 }
+#endif 
 
 // Constructor
 NewtonHallM::NewtonHallM(double initFactor, int mthd, double alphaFact, double cFact)
@@ -109,25 +109,19 @@ NewtonHallM::~NewtonHallM()
 
 
 int 
-NewtonHallM::solveCurrentStep(void)
+NewtonHallM::solveCurrentStep()
 {
     // set up some pointers and check they are valid
     // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-    AnalysisModel   *theAnaModel = this->getAnalysisModelPtr();
     IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
     //IncrementalIntegrator *theIntegratorSens=this->getIncrementalIntegratorPtr();//Abbas
     LinearSOE  *theSOE = this->getLinearSOEptr();
 
-    if ((theAnaModel == 0) || (theIntegrator == 0) || (theSOE == 0)
-        || (theTest == 0)){
-        opserr << "WARNING NewtonHallM::solveCurrentStep() - setLinks() has";
-        opserr << " not been called - or no ConvergenceTest has been set\n";
+    if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)){
         return -5;
     }        
 
-    if (theIntegrator->formUnbalance() < 0) {
-      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIntegrator->formUnbalance() < 0) {      
       return -2;
     }            
 
@@ -228,20 +222,20 @@ NewtonHallM::recvSelf(int cTag,
 
 
 void
-NewtonHallM::Print(OPS_Stream &s, int flag)
+NewtonHallM::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
-    s << "NewtonHallM" << endln;
+    s << "NewtonHallM" << "\n";
     if (method == 0)
-      s << "  -exp method with alpha = " << alpha << endln;
+      s << "  -exp method with alpha = " << alpha << "\n";
     else
-      s << "  -sigmoid method with alpha: " << alpha << " c: " << c << endln;
+      s << "  -sigmoid method with alpha: " << alpha << " c: " << c << "\n";
   }
 }
 
 
 int
-NewtonHallM::getNumIterations(void)
+NewtonHallM::getNumIterations() const
 {
   return numIterations;
 }

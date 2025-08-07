@@ -43,7 +43,7 @@ class ElementParameter : public Parameter
   
   int addComponent(int, const char **argv, int argc);  
 
-  void setDomain(Domain *theDomain);
+  void setDomain(Domain *);
 
   virtual int sendSelf(int commitTag, Channel &theChannel);  
   virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);

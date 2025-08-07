@@ -22,7 +22,6 @@
 // Created: 06/01
 //
 #include <BFGS.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -109,16 +108,13 @@ BFGS::solveCurrentStep()
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
 
-  AnalysisModel   *theAnaModel = this->getAnalysisModelPtr();
 
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
 
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
-  if ((theAnaModel == 0) || (theIntegrator == 0) || (theSOE == 0)
+  if ((theIntegrator == 0) || (theSOE == 0)
       || (theTest == 0)){
-      opserr << "WARNING BFGS::solveCurrentStep() - setLinks() has";
-      opserr << " not been called - or no ConvergenceTest has been set\n";
       return SolutionAlgorithm::BadAlgorithm;
   }        
 
@@ -398,10 +394,10 @@ BFGS::recvSelf(int cTag,
 
 
 void
-BFGS::Print(OPS_Stream &s, int flag)
+BFGS::Print(OPS_Stream &s, int flag) const
 {
-    if (flag == 0) {
-      s << "BFGS" << endln;
-      s << "  Number of Iterations = " << numberLoops << endln;
-    }
+  if (flag == 0) {
+    s << "BFGS" << endln;
+    s << "  Number of Iterations = " << numberLoops << endln;
+  }
 }

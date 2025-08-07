@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//----------------------------------------------------------------------------//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//                https://opensees.berkeley.edu/copyright.html
 //
 //===----------------------------------------------------------------------===//
 //
@@ -82,8 +88,6 @@ class ForceFrame3d: public BasicFrame3d,
 
   // Element: Sensitivity
   const Vector &getResistingForceSensitivity(int gradNumber);
-  const Matrix &getKiSensitivity(int gradNumber);
-  const Matrix &getMassSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
   int getResponseSensitivity(int responseID, int gradNumber, Information &);
 
@@ -97,9 +101,7 @@ class ForceFrame3d: public BasicFrame3d,
   // TaggedObject
   void Print(OPS_Stream &s, int flag =0);    
   
- protected:
 
-  
  private:
   //
   // Constexpr
@@ -180,7 +182,7 @@ class ForceFrame3d: public BasicFrame3d,
   // Sensitivity
   int parameterID;
   VectorND<6+nwm*2> getBasicForceGrad(int gradNumber);
-  const Matrix &computedfedh(int gradNumber);
+  MatrixND<6+2*nwm,6+2*nwm> computedfedh(int gradNumber);
   void getStressGrad(VectorND<nsr> &dspdh, int isec, int gradNumber);
 
   //
@@ -206,8 +208,8 @@ class ForceFrame3d: public BasicFrame3d,
   // VectorND<2*NDF>       residual,
   //                       inertia;
 
-  MatrixND<NBV,NBV> K_pres,          // stiffness matrix in the basic system 
-                    K_save;          // committed stiffness matrix in the basic system
+  MatrixND<NBV,NBV> K_pres,      // stiffness matrix in the basic system 
+                    K_save;      // committed stiffness matrix in the basic system
   VectorND<NBV> q_pres,          // element resisting forces in the basic system
                 q_save;          // committed element end forces in the basic system
   

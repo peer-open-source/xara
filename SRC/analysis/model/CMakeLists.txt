@@ -14,5 +14,5 @@ target_sources(OPS_Analysis
       FE_EleIter.h
       DOF_GrpIter.h
 )
-
+add_subdirectory(numberer)
 #target_include_directories(OPS_Analysis PUBLIC ${CMAKE_CURRENT_LIST_DIR})

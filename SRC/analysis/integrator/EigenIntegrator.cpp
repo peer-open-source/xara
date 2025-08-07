@@ -44,7 +44,7 @@
 #include <DOF_GrpIter.h>
 
 EigenIntegrator::EigenIntegrator()
-  :Integrator(EigenINTEGRATOR_TAGS_Eigen),
+  : MovableObject(EigenINTEGRATOR_TAGS_Eigen),
    theSOE(0), theAnalysisModel(0)
 {
 
@@ -58,8 +58,8 @@ EigenIntegrator::~EigenIntegrator()
 void
 EigenIntegrator::setLinks(AnalysisModel &theModel, EigenSOE &theSysOE)
 {
-    theAnalysisModel = &theModel;
-    theSOE = &theSysOE;
+  theAnalysisModel = &theModel;
+  theSOE = &theSysOE;
 }
 
 int 
@@ -80,34 +80,34 @@ EigenIntegrator::formNodTangent(DOF_Group *theDof)
 int 
 EigenIntegrator::formEleResidual(FE_Element *theEle)
 {
-    return 0;
+  return 0;
 }
 
 int 
 EigenIntegrator::formNodUnbalance(DOF_Group *theDof)
 {
-    return 0;
+  return 0;
 }
 
 int 
 EigenIntegrator::newStep()
 {
-    return 0;
+  return 0;
 }
 
 int 
 EigenIntegrator::getLastResponse(Vector &result, const ID &id)
 {
-    return 0;
+  return 0;
 }
 
 int
 EigenIntegrator::formK()
 {
     if (theAnalysisModel == 0 || theSOE == 0) {
-	opserr << "WARNING EigenIntegrator::formK -";
-	opserr << " no AnalysisModel or EigenSOE has been set\n";
-	return -1;
+        opserr << "WARNING EigenIntegrator::formK -";
+        opserr << " no AnalysisModel or EigenSOE has been set\n";
+        return -1;
     }
     
     // the loops to form and add the tangents are broken into two for 
@@ -128,12 +128,11 @@ EigenIntegrator::formK()
     int result = 0;
     FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
     while((elePtr = theEles2()) != 0) {
-      
         if (theSOE->addA(elePtr->getTangent(this), elePtr->getID()) < 0) {
-	    opserr << "WARNING EigenIntegrator::formK -";
-	    opserr << " failed in addA for ID " << elePtr->getID();	    
-	    result = -2;
-	}
+            opserr << "WARNING EigenIntegrator::formK -";
+            opserr << " failed in addA for ID " << elePtr->getID();	    
+            result = -2;
+        }
     }
 
     return result;    

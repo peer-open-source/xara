@@ -68,7 +68,6 @@
 #include <FE_Datastore.h>
 #include <FEM_ObjectBroker.h>
 
-#include <DomainModalProperties.h>
 
 //
 // global variables
@@ -89,7 +88,7 @@ Domain::Domain()
  theRegions(0), numRegions(0), commitTag(0), 
  initBounds(true), resetBounds(false), theBounds(6), 
  theEigenvalues(0), theEigenvalueSetTime(0), 
- theModalProperties(0), theModalDampingFactors(0), inclModalMatrix(false),
+ theModalDampingFactors(0), inclModalMatrix(false),
  lastChannel(0),
  paramIndex(0), paramSize(0), numParameters(0)
 {
@@ -131,7 +130,6 @@ Domain::Domain(int numNodes, int numElements, int numSPs, int numMPs,
  theElementGraph(nullptr),
  theRegions(0), numRegions(0), commitTag(0), initBounds(true), resetBounds(false),
  theBounds(6), theEigenvalues(0), theEigenvalueSetTime(0), 
- theModalProperties(0),
  theModalDampingFactors(0), inclModalMatrix(false),
  lastChannel(0), paramIndex(0), paramSize(0), numParameters(0)
 {
@@ -182,7 +180,7 @@ Domain::Domain(TaggedObjectStorage &theNodesStorage,
  theRegions(nullptr), numRegions(0), commitTag(0),
  initBounds(true), resetBounds(false),
  theBounds(6), theEigenvalues(nullptr), theEigenvalueSetTime(0), 
- theModalProperties(nullptr), theModalDampingFactors(nullptr), inclModalMatrix(false),
+ theModalDampingFactors(nullptr), inclModalMatrix(false),
  lastChannel(0),
  paramIndex(0), paramSize(0), numParameters(0)
 {
@@ -226,8 +224,7 @@ Domain::Domain(TaggedObjectStorage &theStorage)
  eleGraphBuiltFlag(false), nodeGraphBuiltFlag(false), theNodeGraph(nullptr), 
  theElementGraph(nullptr), 
  theRegions(0), numRegions(0), commitTag(0),initBounds(true), resetBounds(false),
- theBounds(6), theEigenvalues(0), theEigenvalueSetTime(0), 
- theModalProperties(0),
+ theBounds(6), theEigenvalues(0), theEigenvalueSetTime(0),
  theModalDampingFactors(0), inclModalMatrix(false),
  lastChannel(0),
  paramIndex(0), paramSize(0), numParameters(0)
@@ -326,9 +323,6 @@ Domain::~Domain()
 
   if (theEigenvalues != nullptr)
     delete theEigenvalues;
-
-  if (theModalProperties != nullptr)
-    delete theModalProperties;
 
   if (theLoadPatternIter != nullptr)
     delete theLoadPatternIter;
@@ -1766,6 +1760,7 @@ Domain::applyLoad(double scale)
   // set the current pseudo time in the domain to be newTime
   currentTime = scale;
   dT = currentTime - committedTime;
+  ops_Dt = dT;
 
   //
   // first zero all loads
@@ -1802,11 +1797,9 @@ Domain::applyLoad(double scale)
 
   SP_ConstraintIter &theSPs = this->getSPs();
   SP_Constraint *theSP;
-  while ((theSP = theSPs()) != nullptr) {
+  while ((theSP = theSPs()) != nullptr)
     theSP->applyConstraint(scale);
-  }
 
-  ops_Dt = dT;
 }
 
 
@@ -1839,7 +1832,7 @@ Domain::initialize()
 {
   Element *elePtr;
   ElementIter &theElemIter = this->getElements();    
-  while ((elePtr = theElemIter()) != nullptr) 
+  while ((elePtr = theElemIter()) != nullptr) {
     // lvalue needed here for M$ VC++ compiler -- MHS
 	// and either the  VS2011 or intel compiler does not like it!
 #ifndef _VS2011
@@ -1848,6 +1841,7 @@ Domain::initialize()
 #else
     elePtr->getInitialStiff();
 #endif
+  }
 
 
   return 0;
@@ -2109,35 +2103,6 @@ Domain::getTimeEigenvaluesSet()
   return theEigenvalueSetTime;
 }
 
-void Domain::setModalProperties(const DomainModalProperties& dmp)
-{
-  if (theModalProperties) {
-    *theModalProperties = dmp;
-  }
-  else {
-    theModalProperties = new DomainModalProperties(dmp);
-  }
-}
-
-void Domain::unsetModalProperties(void)
-{
-  if (theModalProperties) {
-      delete theModalProperties;
-      theModalProperties = nullptr;
-  }
-}
-
-int Domain::getModalProperties(DomainModalProperties &dmp) const
-{
-  if (theModalProperties == nullptr) {
-    opserr << "Domain::getModalProperties - DomainModalProperties were never set" << endln;
-    return -1;
-  }
-  else {
-    dmp = *theModalProperties;
-    return 0;
-  }
-}
 
 int
 Domain::setModalDampingFactors(Vector *theValues, bool inclMatrix)

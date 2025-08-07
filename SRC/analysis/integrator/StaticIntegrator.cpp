@@ -29,16 +29,18 @@
 //
 #include <StaticIntegrator.h>
 #include <LinearSOE.h>
+#include <AnalysisModel.h>
 
 #include <DOF_Group.h>
 #include <FE_Element.h>
 #include <FE_EleIter.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 
 StaticIntegrator::StaticIntegrator(int clasTag)
  : IncrementalIntegrator(clasTag)
 {
+  // perhaps this should go in the constructor for StaticIntegrator;
+  // The children should declare it
   this->setResidualType(ResidualType::StaticUnbalance);
 }
 
@@ -52,29 +54,18 @@ StaticIntegrator::formUnbalance()
 {
   LinearSOE* theLinSOE = this->getLinearSOE();
 
-  if (theLinSOE == nullptr) {
-      opserr << "WARNING IncrementalIntegrator::formUnbalance -";
-      opserr << " no LinearSOE has been set\n";
-      return -1;
-  }
+  if (theLinSOE == nullptr)
+    return -1;
   
   theLinSOE->zeroB();
 
-  if (this->formElementResidual() < 0) {
-      opserr << "WARNING IncrementalIntegrator::formUnbalance ";
-      opserr << " - this->formElementResidual failed\n";
-      return -1;
-  }
-  
-  if (this->formNodalUnbalance() < 0) {
-      opserr << "WARNING IncrementalIntegrator::formUnbalance ";
-      opserr << " - this->formNodalUnbalance failed\n";
-      return -2;
-  }    
+  if (this->getAnalysisModel()->formVector(*this, *theLinSOE) < 0)
+    return -1;
 
   return 0;
 }
-    
+
+
 
 int
 StaticIntegrator::formEleTangent(FE_Element *theEle)
@@ -99,17 +90,15 @@ StaticIntegrator::formEleTangent(FE_Element *theEle)
 int
 StaticIntegrator::formEleResidual(FE_Element *theEle)
 {
+  theEle->zeroResidual();
   switch (this->getResidualType()) {
     case ResidualType::StaticUnbalance:
-      theEle->zeroResidual();
       theEle->addRtoResidual();
       break;
     case ResidualType::StaticSensitivity:
-      theEle->zeroResidual();
       theEle->addResistingForceSensitivity(this->getGradIndex());
       break;
     case ResidualType::TransientUnbalance:
-      theEle->zeroResidual();
       theEle->addRIncInertiaToResidual();
       break;
   }
@@ -119,10 +108,10 @@ StaticIntegrator::formEleResidual(FE_Element *theEle)
 int
 StaticIntegrator::formNodTangent(DOF_Group *theDof)
 {
-  // should never be called
-  opserr << "StaticIntegrator::formNodTangent() -";
-  opserr << " this method should never have been called!\n";
-  return -1;
+  // For most static analysis, nodes dont contribute to tangent.
+  theDof->zeroTangent();
+//theDof->addKtoTang(1.0);
+  return 0;
 }    
 
 int
@@ -133,20 +122,3 @@ StaticIntegrator::formNodUnbalance(DOF_Group *theDof)
   theDof->addPtoUnbalance();
   return 0;
 }    
-
-
-int
-StaticIntegrator::formEleTangentSensitivity(FE_Element *theEle, int gradNumber)
-{
- 
-  if (statusFlag == CURRENT_TANGENT) {
-    theEle->zeroTangent();
-
-  } else if (statusFlag == INITIAL_TANGENT) {
-    theEle->zeroTangent();
-    theEle->addKiToTang();
-  } 
-  
-  return 0;
-}    
-

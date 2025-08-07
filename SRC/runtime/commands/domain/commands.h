@@ -36,6 +36,7 @@ Tcl_CmdProc sectionTag;
 Tcl_CmdProc sectionDisplacement;
 
 
+
 namespace OpenSees {
 namespace DomainCommands {
   // domain.cpp
@@ -59,6 +60,9 @@ namespace DomainCommands {
   Tcl_CmdProc localForce;
   Tcl_CmdProc eleDynamicalForce;
   Tcl_CmdProc eleResponse;
+
+  // modal.cpp
+  Tcl_CmdProc modalProperties;
 }
 }
 

@@ -31,7 +31,6 @@
 //
 #include <AcceleratedNewton.h>
 #include <Accelerator.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -71,12 +70,10 @@ AcceleratedNewton::solveCurrentStep()
 {
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-  AnalysisModel *theAnaModel = this->getAnalysisModelPtr();
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE *theSOE = this->getLinearSOEptr();
   
-  if ((theAnaModel == 0) || (theIntegrator == 0) || (theSOE == 0)
-      || (theTest == 0)){
+  if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)){
     return -5;
   }        
 
@@ -250,7 +247,7 @@ AcceleratedNewton::recvSelf(int cTag, Channel &theChannel,
 }
 
 void
-AcceleratedNewton::Print(OPS_Stream &s, int flag)
+AcceleratedNewton::Print(OPS_Stream &s, int flag) const
 {
   s << "AcceleratedNewton" << endln;
   LinearSOE *theSOE = this->getLinearSOEptr();

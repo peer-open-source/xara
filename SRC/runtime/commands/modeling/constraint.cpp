@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 #include <tcl.h>
@@ -150,8 +157,7 @@ TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
   ID fixity(ndf);
   for (int i=0; i<ndf; ++i) {
     if (Tcl_GetInt(interp, argv[2+i], &fixity(i)) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid fixity " << i+1 << " - fixX " << xLoc;
-      opserr << " " << ndf << " fixities\n";
+      opserr << OpenSees::PromptValueError << "invalid fixity " << i+1 << "\n";
       return TCL_ERROR;
     }
   }
@@ -162,7 +168,9 @@ TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
   if (argc >= (4 + ndf)) {
     if (strcmp(argv[2+ndf],"-tol") == 0)
     if (Tcl_GetDouble(interp, argv[3+ndf], &tol) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid tol specified - fixX " << xLoc << endln;
+      opserr << OpenSees::PromptValueError 
+             << "invalid tol specified - fixX " << xLoc 
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   }
@@ -216,7 +224,7 @@ TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
   if (argc >= (4 + ndf)) {
     if (strcmp(argv[2+ndf],"-tol") == 0)
       if (Tcl_GetDouble(interp, argv[3+ndf], &tol) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid tol specified - fixY " << yLoc << endln;
+        opserr << OpenSees::PromptValueError << "invalid tol specified - fixY " << yLoc << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
   }
@@ -267,7 +275,9 @@ TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
   if (argc >= (4 + ndf)) {
     if (strcmp(argv[2+ndf],"-tol") == 0)
       if (Tcl_GetDouble(interp, argv[3+ndf], &tol) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid tol specified - fixZ " << zLoc << endln;
+        opserr << OpenSees::PromptValueError 
+               << "invalid tol specified - fixZ " << zLoc 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
   }
@@ -289,15 +299,17 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   if (argc > 1 && (strcmp(argv[1], "remove") == 0)) {
     if (argc < 3) {
-      opserr << OpenSees::PromptValueError << "want - remove sp spTag? -or- remove "
+      opserr << OpenSees::PromptValueError 
+             << "want - remove sp spTag? -or- remove "
                 "sp nodeTag? dofTag? <patternTag?>\n";
       return TCL_ERROR;
     }
     int tag;
     if (argc == 3) {
       if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "remove sp tag? failed to read tag: " << argv[2]
-               << endln;
+        opserr << OpenSees::PromptValueError 
+               << "remove sp tag? failed to read tag: " << argv[2]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       SP_Constraint *theSPconstraint = theTclDomain->removeSP_Constraint(tag);
@@ -310,19 +322,19 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
       if (Tcl_GetInt(interp, argv[2], &nodeTag) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "remove sp tag? failed to read node tag: " << argv[2]
-               << endln;
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[3], &dofTag) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "remove sp tag? failed to read dof tag: " << argv[3]
-               << endln;
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
       if (argc == 5) {
         if (Tcl_GetInt(interp, argv[4], &patternTag) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "remove sp tag? failed to read pattern tag: "
-                 << argv[4] << endln;
+                 << argv[4] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
       }

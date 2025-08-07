@@ -44,24 +44,23 @@ FourNodeQuad::FourNodeQuad(int tag,
    connectedExternalNodes(4), 
    Q(8), pressureLoad(8), thickness(thickness), 
    applyLoad(0),
-   pressure(pressure), 
+   pressure(pressure),
    rho(rho), 
    Ki(nullptr)
 {
-    // Body forces
-    b[0] = b1;
-    b[1] = b2;
+  // Body forces
+  b[0] = b1;
+  b[1] = b2;
 
-    for (int i = 0; i < NIP; i++) {
-      // Get copies of the material model for each integration point
-      theMaterial[i] = m.getCopy();
-    }
+  for (int i = 0; i < NIP; i++) {
+    // Get copies of the material model for each integration point
+    theMaterial[i] = m.getCopy();
+  }
 
-    for (int i=0; i<NEN; i++) {
-      connectedExternalNodes(i) = nodes[i];
-      theNodes[i] = nullptr;
-    }
-
+  for (int i=0; i<NEN; i++) {
+    connectedExternalNodes(i) = nodes[i];
+    theNodes[i] = nullptr;
+  }
 }
 
 
@@ -85,6 +84,7 @@ FourNodeQuad::~FourNodeQuad()
   if (Ki != 0)
     delete Ki;
 }
+
 
 int
 FourNodeQuad::getNumExternalNodes() const
@@ -147,18 +147,18 @@ FourNodeQuad::setDomain(Domain *theDomain)
 int
 FourNodeQuad::commitState()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // call element commitState to do any base class stuff
-    if ((retVal = this->Element::commitState()) != 0) {
-      opserr << "FourNodeQuad::commitState () - failed in base class";
-    }    
+  // call element commitState to do any base class stuff
+  if ((retVal = this->Element::commitState()) != 0) {
+    opserr << "FourNodeQuad::commitState () - failed in base class";
+  }    
 
-    // Loop over the integration points and commit the material states
-    for (int i = 0; i < NIP; i++)
-      retVal += theMaterial[i]->commitState();
+  // Loop over the integration points and commit the material states
+  for (int i = 0; i < NIP; i++)
+    retVal += theMaterial[i]->commitState();
 
-    return retVal;
+  return retVal;
 }
 
 int
@@ -222,62 +222,63 @@ FourNodeQuad::update()
     return ret;
 }
 
+
 const Matrix&
 FourNodeQuad::getTangentStiff()
 {
-    // See https://portwooddigital.com/2022/09/11/unrolling-the-four-node-quad/
+  // See https://portwooddigital.com/2022/09/11/unrolling-the-four-node-quad/
+  
+  // for a discussion of the following code.
+  K.Zero();
+
+  // Loop over the integration points
+  for (int i = 0; i < nip; i++) {
+
+    // Determine Jacobian for this integration point
+    double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+    dvol *= (thickness*wts[i]);
     
-    // for a discussion of the following code.
-    K.Zero();
+    // Get the material tangent
+    const Matrix &D = theMaterial[i]->getTangent();
 
-    // Loop over the integration points
-    for (int i = 0; i < nip; i++) {
+    // Perform numerical integration
+    //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
+    //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
+    
+    const double D00 = D(0,0),  D01 = D(0,1),  D02 = D(0,2),
+                 D10 = D(1,0),  D11 = D(1,1),  D12 = D(1,2),
+                 D20 = D(2,0),  D21 = D(2,1),  D22 = D(2,2);
 
-      // Determine Jacobian for this integration point
-      double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
-      dvol *= (thickness*wts[i]);
-      
-      // Get the material tangent
-      const Matrix &D = theMaterial[i]->getTangent();
+    //          for (int beta = 0, ib = 0, colIb =0, colIbP1 = 8; 
+    //   beta < 4; 
+    //   beta++, ib += 2, colIb += 16, colIbP1 += 16) {
 
-      // Perform numerical integration
-      //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
-      //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
-      
-      const double D00 = D(0,0),  D01 = D(0,1),  D02 = D(0,2),
-                   D10 = D(1,0),  D11 = D(1,1),  D12 = D(1,2),
-                   D20 = D(2,0),  D21 = D(2,1),  D22 = D(2,2);
+    double DB[3][2];
+    for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia += 2) {
+      for (int beta = 0, ib = 0; beta < 4; beta++, ib += 2) {
+        
+        DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
+        DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
+        DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
+        DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
+        DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
+        DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
+        
 
-      //          for (int beta = 0, ib = 0, colIb =0, colIbP1 = 8; 
-      //   beta < 4; 
-      //   beta++, ib += 2, colIb += 16, colIbP1 += 16) {
+        K(ia,ib)     += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        K(ia,ib+1)   += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
 
-      double DB[3][2];
-      for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia += 2) {
-        for (int beta = 0, ib = 0; beta < 4; beta++, ib += 2) {
-          
-          DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
-          DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
-          DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
-          DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
-          DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
-          DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
-          
-
-          K(ia,ib)     += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-          K(ia,ib+1)   += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-          K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-          K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
-
-          //              matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-          //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-          //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-          //matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];          
-        }
+        //              matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        //matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];          
       }
     }
-    
-    return K;
+  }
+  
+  return K;
 }
 
 int

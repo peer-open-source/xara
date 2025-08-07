@@ -177,7 +177,7 @@ SecantAccelerator2::updateTangent(IncrementalIntegrator &theIntegrator, bool& fa
 }
 
 void
-SecantAccelerator2::Print(OPS_Stream &s, int flag)
+SecantAccelerator2::Print(OPS_Stream &s, int flag) const
 {
   s << "SecantAccelerator2" << "\n";
   s << "\tIterations till reform tangent: " << maxIterations << "\n";

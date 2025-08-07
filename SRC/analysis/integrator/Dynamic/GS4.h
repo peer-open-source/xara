@@ -30,36 +30,48 @@ public:
         bool aflag=false);
 
     ~GS4();
-    
+
+    //
+    // Integrator
+    //
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
-    virtual int formEleTangent(FE_Element *theEle)  final;
-    virtual int formNodTangent(DOF_Group *theDof)   final;
-    virtual int formEleResidual(FE_Element* theEle) final;
-    virtual int formNodUnbalance(DOF_Group* theDof) final;
+    int formEleTangent(FE_Element *theEle)  final;
+    int formNodTangent(DOF_Group *theDof)   final;
+    int formEleResidual(FE_Element* theEle) final;
+    int formNodUnbalance(DOF_Group* theDof) final;
 
-    int domainChanged();
-    int newStep(double deltaT);
-    int revertToLastStep();
-    virtual int update(const Vector &deltaU);
+    //
+    // IncrementalIntegrator
+    //
+
+    // Sensitivity
+    int formSensitivityRHS(int gradNum);
+    int updateGradient   (const Vector &v, int gradNum, int numGrads);
+    int commitGradient (int gradNum, int numGrads);
+    int computeSensitivities();
+
+    //
+    // TransientIntegrator
+    //
+    int newStep(double deltaT) final;
+    //
+    int domainChanged() final;
+    //
+    // IncrementalIntegrator
+    //
+    int revertToLastStep() final;
+    int revertToStart();
+    int update(const Vector &deltaU) final;
 
     double getCFactor();
-
     const Vector &getVel();
 
     // MovableObject
-    virtual int sendSelf(int commitTag, Channel &) override;
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
     
-    void Print(OPS_Stream &s, int flag) final;        
-    
-    // Sensitivity
-    int revertToStart();
-    int formSensitivityRHS(int gradNum);
-    int formIndependentSensitivityRHS();
-    int saveSensitivity   (const Vector &v, int gradNum, int numGrads);
-    int commitSensitivity (int gradNum, int numGrads);  
-    int computeSensitivities();
+    void Print(OPS_Stream &s, int flag) final;
 
 protected:
 
@@ -91,8 +103,5 @@ private:
     Vector *dAa;
     Vector *dVa;
     int assemblyFlag;
-    Vector independentRHS;
     Vector dUn, dVn, dAn;
 };
-
-#endif

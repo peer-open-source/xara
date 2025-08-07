@@ -692,10 +692,8 @@ Newmark::formSensitivityRHS(int passedGradNumber)
     // Loop through load patterns to add external load sensitivity
     LoadPattern *loadPatternPtr;
     LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
-    double time;
     while((loadPatternPtr = thePatterns()) != 0) {
-      time = theDomain->getCurrentTime();
-      loadPatternPtr->applyLoadSensitivity(time);
+      loadPatternPtr->applyLoadSensitivity(theDomain->getCurrentTime());
     }
 
     // Randomness in element/material contributions

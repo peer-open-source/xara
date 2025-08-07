@@ -36,12 +36,12 @@
 GraphNumberer::GraphNumberer(int cTag)
 :MovableObject(cTag)
 {
-    // does nothing
+  // does nothing
 }
     
 GraphNumberer::~GraphNumberer()
 {
-    // does nothing
+  // does nothing
 }
 
 

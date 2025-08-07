@@ -25,7 +25,6 @@
 #include <DOF_Group.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
-#include <Integrator.h>
 
 extern "C" {
   #include <FeStructs.h>
@@ -348,7 +347,6 @@ SymArpackSolver::myMv(int n, double *v, double *result)
     }
 
     // loop over the DOF_Groups
-    // Integrator *theIntegrator = 0;
     DOF_Group *dofPtr;
     DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();
     while ((dofPtr = theDofs()) != 0) {

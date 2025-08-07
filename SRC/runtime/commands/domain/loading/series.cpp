@@ -117,12 +117,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       endMarker++;
     }
 
-    theSeries = new ConstantSeries(cFactor);            
-    
-
-//  void *theResult = OPS_ConstantSeries(rt, argc, argv);
-//  if (theResult != nullptr)
-//    theSeries = (TimeSeries *)theResult;
+    theSeries = new ConstantSeries(cFactor);
   }
 
   else if (strcmp(argv[0],"Trig") == 0 || 
@@ -763,110 +758,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     }
   }
 #endif
-
-#ifdef _RELIABILITY
-
-  else if (strcmp(argv[0], "DiscretizedRandomProcess") == 0) {
-
-    double mean, maxStdv;
-    ModulatingFunction *theModFunc;
-
-    if (Tcl_GetDouble(interp, argv[1], &mean) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid input: random process mean \n";
-      return 0;
-    }
-
-    if (Tcl_GetDouble(interp, argv[2], &maxStdv) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid input: random process max stdv \n";
-      return 0;
-    }
-
-    // Number of modulating functions
-    int argsBeforeModList = 3;
-    int numModFuncs = argc - argsBeforeModList;
-
-    // Create an array to hold pointers to modulating functions
-    ModulatingFunction **theModFUNCS = new ModulatingFunction *[numModFuncs];
-
-    // For each modulating function, get the tag and ensure it exists
-    int tagI;
-    for (int i = 0; i < numModFuncs; ++i) {
-      if (Tcl_GetInt(interp, argv[i + argsBeforeModList], &tagI) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid modulating function tag. " << "\n";
-        return 0;
-      }
-
-      theModFunc = 0;
-      theModFunc = theReliabilityDomain->getModulatingFunction(tagI);
-
-      if (theModFunc == 0) {
-        opserr << OpenSees::PromptValueError << "modulating function number "
-               << argv[i + argsBeforeModList] << "does not exist...\n";
-        delete[] theModFUNCS;
-        return 0;
-      } else {
-        theModFUNCS[i] = theModFunc;
-      }
-    }
-
-    // Parsing was successful, create the random process series object
-    theSeries = new DiscretizedRandomProcessSeries(0, numModFuncs, theModFUNCS,
-                                                   mean, maxStdv);
-  }
-
-  else if (strcmp(argv[0], "SimulatedRandomProcess") == 0) {
-
-    int spectrumTag, numFreqIntervals;
-    double mean;
-
-    if (Tcl_GetInt(interp, argv[1], &spectrumTag) != TCL_OK) {
-      opserr << "WARNING invalid input to SimulatedRandomProcess: spectrumTag"
-             << "\n";
-      return 0;
-    }
-
-    if (Tcl_GetDouble(interp, argv[2], &mean) != TCL_OK) {
-      opserr << "WARNING invalid input to SimulatedRandomProcess: mean"
-             << "\n";
-      return 0;
-    }
-
-    if (Tcl_GetInt(interp, argv[3], &numFreqIntervals) != TCL_OK) {
-      opserr
-          << "WARNING invalid input to SimulatedRandomProcess: numFreqIntervals"
-          << "\n";
-      return 0;
-    }
-
-    // Check that the random number generator exists
-    if (theRandomNumberGenerator == 0) {
-      opserr << "WARNING: A random number generator must be instantiated "
-                "before SimulatedRandomProcess."
-             << "\n";
-      return 0;
-    }
-
-    // Check that the spectrum exists
-    Spectrum *theSpectrum = 0;
-    theSpectrum = theReliabilityDomain->getSpectrum(spectrumTag);
-    if (theSpectrum == 0) {
-      opserr << "WARNING: Could not find the spectrum for the "
-                "SimulatedRandomProcess."
-             << "\n";
-      return 0;
-    }
-
-    // Parsing was successful, create the random process series object
-    theSeries = new SimulatedRandomProcessSeries(
-        0, theRandomNumberGenerator, theSpectrum, numFreqIntervals, mean);
-  }
-
-#endif
-
   else {
-    for (int i = 0; i < argc; ++i)
-      opserr << argv[i] << ' ';
-    opserr << "\n";
     // type unknown
     opserr << "WARNING unknown Series type " << argv[0] << " - ";
     opserr << " valid types: Linear, Rectangular, Path, Constant, Trig, Sine\n";

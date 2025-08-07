@@ -88,14 +88,14 @@ LinearSOE::setSolver(LinearSOESolver &newSolver)
 LinearSOESolver *
 LinearSOE::getSolver(void)
 {
-    return theSolver;
+  return theSolver;
 }
 
 int 
 LinearSOE::setLinks(AnalysisModel &theModel)
 {
-    this->theModel = &theModel;
-    return 0;
+  this->theModel = &theModel;
+  return 0;
 }
 
 

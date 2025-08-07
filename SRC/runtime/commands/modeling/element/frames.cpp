@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Written: cmp, mhs, rms, fmk
@@ -135,6 +142,7 @@ CheckTransformation(Domain& domain, int iNode, int jNode, CrdTransf& transform)
   }
   return TCL_OK;
 }
+
 
 
 template <int ndm, typename Transform, typename Section>

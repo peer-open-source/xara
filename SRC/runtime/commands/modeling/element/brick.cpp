@@ -88,6 +88,7 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
+
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
   if (theMaterial == nullptr)
     return TCL_ERROR;

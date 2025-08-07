@@ -60,15 +60,16 @@ public:
           break;
       case Lagrange:
       case Heaviside:
-        gauss = {{0.0, 0.2777777777777778},
-                {0.2777777777777778, 0.4444444444444444},
-                {0.7222222222222222, 0.4444444444444444},
-                {1.0, 0.2777777777777778}};
-        if (shape == Heaviside)
-          for (unsigned i=0; i<gauss.size(); i++) {
-              gauss[i][0] = r[0][0] + (1.0 - r[0][0]) * gauss[i][0];
-              gauss[i][1] *= (1 - r[0][0]);
-          }
+        // gauss = {{0.0, 0.2777777777777778},
+        //         {0.2777777777777778, 0.4444444444444444},
+        //         {0.7222222222222222, 0.4444444444444444},
+        //         {1.0, 0.2777777777777778}};
+
+        // 4-point Gauss-Legendre quadrature on [0, 1]
+        gauss = {{0.069431844, 0.173927423},
+                 {0.330009478, 0.326072577},
+                 {0.669990522, 0.326072577},
+                 {0.930568156, 0.173927423}};
         break;
     }
   }
@@ -107,13 +108,13 @@ public:
     return 0;
   }
 
-  virtual int
-  recvSelf(int commitTag, Channel& , FEM_ObjectBroker& ) final
+  int
+  recvSelf(int commitTag, Channel& , FEM_ObjectBroker&) final
   {
     return -1;
   }
 
-  virtual int
+  int
   sendSelf(int commitTag, Channel& ) final
   {
     return -1;
@@ -124,7 +125,7 @@ public:
     return gauss;
   }
 
-  virtual void applyLoad(double loadFactor) final {
+  void applyLoad(double loadFactor) final {
     for (auto e: elements)
       e->update();
   }
@@ -146,14 +147,14 @@ public:
 
 
 public:
-  template <int i, int nn, int n>
-  void addLoadAtPoint(VectorND<nn*n>& pe, 
-                      double x, double w,
+  template <int i, int nn, int ndf>
+  void addLoadAtPoint(VectorND<nn*ndf>& pe, 
+                      double x, double w, double jxs,
                       const Matrix3D& R0,
                       const Matrix3D& R) const
   {   
     if (w == 0.0)
-        return;
+      return;
 
     for (unsigned q = 0; q < r.size(); q++) {
       Vector3D px,mx,rx;
@@ -161,44 +162,45 @@ public:
       rx[0] = 0.0;
       rx = R*(R0*rx);
       switch (basis) {
-          case Embedding:
-              px = p[q];
-              mx = m[q] + rx.cross(px);
-              break;
-          case Reference:
-              px = R0 * p[q];
-              mx = R0 * m[q] + rx.cross(px);
-              break;
-          case Director:
-              px = R * p[q];
-              mx = R * m[q] + rx.cross(px);
-              break;
+        case Embedding:
+            px = p[q];
+            mx = m[q] + rx.cross(px);
+            break;
+        case Reference:
+            px = R0 * p[q];
+            mx = R0 * m[q] + rx.cross(px);
+            break;
+        case Director:
+            px = R * p[q];
+            mx = R * m[q] + rx.cross(px);
+            break;
       }
 
       double scale = -w*pattern.getLoadFactor();
       switch (shape) {
-          case Dirac:
-              if (fabs(x - r[q][0]) > 1.0e-6)
-                  scale *= 0.0;
-              break;
-          case Heaviside:
-              if (x < r[q][0])
-                  scale *= 0.0;
-              break;
-          case Lagrange:
-              for (unsigned s=0; s<r.size(); s++)
-                if (s != q)
-                  scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
-              break;
+        case Dirac:
+            scale /= jxs;
+            if (std::fabs(x - r[q][0]) > 1.0e-6)
+              scale *= 0.0;
+            break;
+        case Heaviside:
+            if (x < r[q][0])
+              scale *= 0.0;
+            break;
+        case Lagrange:
+            for (unsigned s=0; s<r.size(); s++)
+              if (s != q)
+                scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
+            break;
       }
-      pe.template assemble<  i*n>(px, scale);
-      pe.template assemble<3+i*n>(mx, scale);
+      pe.template assemble<  i*ndf>(px, scale);
+      pe.template assemble<3+i*ndf>(mx, scale);
     }
   }
 
   template <int i, int j, int nn, int n>
   void addTangAtPoint(MatrixND<nn*n,nn*n>& K, 
-                      double x, double w,
+                      double x, double w, double jxs,
                       const Matrix3D& R0,
                       const Matrix3D& R) const
   {
@@ -231,7 +233,8 @@ public:
         double scale = -w*pattern.getLoadFactor();
         switch (shape) {
             case Dirac:
-                if (fabs(x - r[q][0]) > 1.0e-6)
+                scale /= jxs;
+                if (std::fabs(x - r[q][0]) > 1.0e-6)
                     scale *= 0.0;
                 break;
             case Heaviside:
@@ -256,38 +259,60 @@ public:
       }
   }
 
-  template <int n, const FrameStressLayout& scheme>
-  void addBasicSolution(VectorND<n>&    s, double x, double L)
+  template <int nsr, const FrameStressLayout& scheme>
+  void addBasicSolution(VectorND<nsr>&    s, double x, double L, 
+                        const Matrix3D& R0, const Matrix3D& R) const
   // add particular solution for basic equations
   {
+
+    VectorND<3> nm{};
+    {
+      Vector3D rx = r[0];
+      rx[0] = 0.0;
+      rx = R*(R0*rx);
+      switch (basis) {
+        case Embedding:
+          nm = R^p[0]; // + rx.cross(m[0]);
+          break;
+        case Reference:
+          nm = R^(R0^p[0]);
+          break;
+        case Director:
+          nm = p[0];
+          break;
+      }
+    }
+
     double scale = pattern.getLoadFactor();
 
     switch (shape) {
-      case LOAD_TAG_Beam3dUniformLoad: {
-          double wa = p[0][2] * scale; // Axial
-          double wy = p[0][0] * scale; // Transverse
-          double wz = p[0][1] * scale; // Transverse
+      case Heaviside: {
+        double wa = nm[0]*scale; // Axial
+        double wy = nm[1]*scale; // Transverse
+        double wz = nm[2]*scale; // Transverse
 
-          for (int i = 0; i < n; i++) {
+        for (int i = 0; i < nsr; i++) {
           switch (scheme[i]) {
-          case SECTION_RESPONSE_P:  s[i] +=  wa * (L - x); break;
-          case SECTION_RESPONSE_VY: s[i] +=  wy * (x - 0.5 * L); break;
-          case SECTION_RESPONSE_VZ: s[i] += -wz * (x - 0.5 * L); break;
-          case SECTION_RESPONSE_MY: s[i] +=  wz * 0.5 * x * (L - x); break;
-          case SECTION_RESPONSE_MZ: s[i] +=  wy * 0.5 * x * (x - L); break;
-          default:                  break;
+          case FrameStress::N:  s[i] +=  wa * (L - x); break;
+          case FrameStress::Vy: s[i] +=  wy * (x - 0.5 * L); break;
+          case FrameStress::Vz: s[i] += -wz * (x - 0.5 * L); break;
+
+          case FrameStress::My: s[i] += -wz * 0.5 * x * (x - L); break;
+          case FrameStress::Mz: s[i] +=  wy * 0.5 * x * (x - L); break;
+          default:
+            break;
           }
-          }
-          break;
+        }
+        break;
       }
-      case LOAD_TAG_Beam3dPointLoad: {
-        double N      = p[0][2] * scale;
-        double Py     = p[0][0] * scale;
-        double Pz     = p[0][1] * scale;
+      case Dirac: {
+        double N      = nm[0]*scale;
+        double Py     = nm[1]*scale;
+        double Pz     = nm[2]*scale;
         double aOverL = r[0][0];
 
         if (aOverL < 0.0 || aOverL > 1.0)
-            break;
+          break;
 
         double a = aOverL * L;
 
@@ -297,22 +322,22 @@ public:
         double Vzi = Pz * (1.0 - a/L);
         double Vzj = Pz * aOverL;
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < nsr; i++) {
           if (x <= a) {
             switch (scheme[i]) {
-            case SECTION_RESPONSE_P:  s[i] +=       N; break;
-            case SECTION_RESPONSE_VY: s[i] -=     Vyi; break;
-            case SECTION_RESPONSE_VZ: s[i] -=     Vzi; break;
-            case SECTION_RESPONSE_MY: s[i] += x * Vzi; break;
-            case SECTION_RESPONSE_MZ: s[i] -= x * Vyi; break;
+            case FrameStress::N:  s[i] +=       N; break;
+            case FrameStress::Vy: s[i] -=     Vyi; break;
+            case FrameStress::Vz: s[i] -=     Vzi; break;
+            case FrameStress::My: s[i] += x * Vzi; break;
+            case FrameStress::Mz: s[i] -= x * Vyi; break;
             default:                  break;
             }
           } else {
             switch (scheme[i]) {
-            case SECTION_RESPONSE_VY: s[i] +=           Vyj; break;
-            case SECTION_RESPONSE_VZ: s[i] +=           Vzj; break;
-            case SECTION_RESPONSE_MY: s[i] += (L - x) * Vzj; break;
-            case SECTION_RESPONSE_MZ: s[i] -= (L - x) * Vyj; break;
+            case FrameStress::Vy: s[i] +=           Vyj; break;
+            case FrameStress::Vz: s[i] +=           Vzj; break;
+            case FrameStress::My: s[i] += (L - x) * Vzj; break;
+            case FrameStress::Mz: s[i] -= (L - x) * Vyj; break;
             default:                  break;
             }
           }
@@ -322,6 +347,93 @@ public:
     }
   }
 
+  void addLinearSolution(double*p0, double L, const Matrix3D& R0, const Matrix3D& R) {
+
+    double scale = pattern.getLoadFactor();
+    Vector3D n{};
+    switch (basis) {
+      case Embedding:
+        n = R^p[0];
+        break;
+      case Reference:
+        n = R^(R0^p[0]);
+        break;
+      case Director:
+        n = p[0];
+        break;
+    }
+
+    if (shape == Heaviside) {
+      double wa = n[0] * scale; // Axial
+      double wy = n[1] * scale; // Transverse
+      double wz = n[2] * scale; // Transverse
+
+      // p0[0] -= wa * L; // Axial load
+      // double V = 0.5 * wy * L;
+      // p0[1] -= V;
+      // p0[2] -= V;
+      // V = 0.5 * wz * L;
+      // p0[3] -= V;
+      // p0[4] -= V;
+      double P  =     wa*L;
+      double Vy = 0.5*wy*L;
+      double Vz = 0.5*wz*L;
+
+      // Reactions in basic system (projections on linear shape functions)
+      p0[0] -=  P;
+      p0[1] -= Vy;
+      p0[2] -= Vy;
+      p0[3] -= Vz;
+      p0[4] -= Vz;
+    }
+    #if 0
+    else if (shape == LOAD_TAG_Beam3dPartialUniformLoad) {
+      double wy  = p[0](1) * scale;  // Transverse Y at start
+      double wz  = p[0](2) * scale;  // Transverse Z at start
+      double wa  = p[0](0) * scale;  // Axial at start
+      double a   = data(3) * L;
+      double b   = data(4) * L;
+      double wyb = data(5) * scale;  // Transverse Y at end
+      double wzb = data(6) * scale;  // Transverse Z at end
+      double wab = data(7) * scale;  // Axial at end
+      p0[0] -= wa * (b - a) + 0.5 * (wab - wa) * (b - a);
+      double c = a + 0.5 * (b - a);
+      double Fy = wy * (b - a); // resultant transverse load Y (uniform part)
+      p0[1] -= Fy * (1 - c / L);
+      p0[2] -= Fy * c / L;
+      double Fz = wz * (b - a); // resultant transverse load Z (uniform part)
+      p0[3] -= Fz * (1 - c / L);
+      p0[4] -= Fz * c / L;
+      c = a + 2.0 / 3.0 * (b - a);
+      Fy = 0.5 * (wyb - wy) * (b - a); // resultant transverse load Y (triang. part)
+      p0[1] -= Fy * (1 - c / L);
+      p0[2] -= Fy * c / L;
+      Fz = 0.5 * (wzb - wz) * (b - a); // resultant transverse load Z (triang. part)
+      p0[3] -= Fz * (1 - c / L);
+      p0[4] -= Fz * c / L;
+    }
+    #endif
+
+    else if (shape == Dirac) {
+      double N      = p[0](0) * scale;
+      double Py     = p[0](1) * scale;
+      double Pz     = p[0](2) * scale;
+      double aOverL = r[0][0];
+
+      if (aOverL < 0.0 || aOverL > 1.0)
+        return;
+
+      double V1 = Py * (1.0 - aOverL);
+      double V2 = Py * aOverL;
+      p0[0] -= N;
+      p0[1] -= V1;
+      p0[2] -= V2;
+      V1 = Pz * (1.0 - aOverL);
+      V2 = Pz * aOverL;
+      p0[3] -= V1;
+      p0[4] -= V2;
+    }
+  }
 private:
   Vector3D getForce(double x,
                     const Matrix3D& R0,

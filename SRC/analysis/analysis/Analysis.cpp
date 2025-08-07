@@ -50,7 +50,7 @@ Analysis::~Analysis()
 }
 
 Domain *
-Analysis::getDomainPtr(void)
+Analysis::getDomainPtr()
 {
     return theDomain;
 }

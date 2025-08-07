@@ -86,9 +86,8 @@ class StaticDomainDecompositionAnalysis: public DomainDecompositionAnalysis
     int setConvergenceTest(ConvergenceTest &theTest);
 
     // methods to send/receive
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
   protected: 
     

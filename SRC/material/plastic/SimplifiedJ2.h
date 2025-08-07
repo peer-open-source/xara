@@ -33,12 +33,13 @@ public:
   virtual ~SimplifiedJ2();
 
   const char*
-  getClassType(void) const
+  getClassType() const override
   {
     return "SimplifiedJ2";
   }
+
   const char*
-  getType(void) const
+  getType() const override
   {
     return "ThreeDimensional";
   }

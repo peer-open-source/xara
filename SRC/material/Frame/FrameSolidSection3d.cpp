@@ -245,6 +245,9 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
                             ? theMat.getTangent()
                             : theMat.getInitialTangent();
 
+    // opserr << theMat.getClassType() << "\n";
+    // opserr << tangent;
+
     Matrix3D C{};
     C.addMatrix(tangent, fiber.area);
 

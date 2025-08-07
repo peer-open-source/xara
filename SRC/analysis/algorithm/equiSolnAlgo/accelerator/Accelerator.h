@@ -52,9 +52,9 @@ class Accelerator : public MovableObject
   virtual int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   virtual bool updateTangent(void) {return false;}
 
-  virtual int getTangent(void) {return NO_TANGENT;}
+  virtual int getTangent() {return NO_TANGENT;}
 
-  virtual void Print(OPS_Stream &s, int flag=0) = 0;
+  virtual void Print(OPS_Stream &s, int flag=0) const = 0;
   
 };
 

@@ -490,18 +490,36 @@ int Concrete06::recvSelf (int commitTag, Channel& theChannel,
    return res;
 }
 
-void Concrete06::Print (OPS_Stream& s, int flag)
+void
+Concrete06::Print(OPS_Stream& s, int flag)
 {
-   s << "Concrete06, tag: " << this->getTag() << endln;
-   s << "  fc: " << fc << endln;
-   s << "  eo: " << eo << endln;
-   s << "  r: " << r << endln;
-   s << "  k: " << k  << endln;
-   s << "  ecr : " << ecr   << endln;
-   s << "  fcr : " << fcr   << endln;
-   s << "  b: " << b  << endln;
-   s << "  alphaC: " << alphaC  << endln;
-   s << "  alphaT: " << alphaT  << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+	s << OPS_PRINT_JSON_MATE_INDENT << "{";
+	s << "\"type\": \"" << this->getClassType() << "\", ";
+	s << "\"tag\": " << this->getTag() << ", ";
+	s << "\"fc\": " << fc << ", ";
+	s << "\"eo\": " << eo << ", ";
+	s << "\"r\": " << r << ", ";
+	s << "\"k\": " << k << ", ";
+	s << "\"ecr\": " << ecr << ", ";
+	s << "\"fcr\": " << fcr << ", ";
+	s << "\"b\": " << b << ", ";
+	s << "\"alphaC\": " << alphaC << ", ";
+	s << "\"alphaT\": " << alphaT;
+	s << "}";
+  }
+  else {
+    s << "Concrete06, tag: " << this->getTag() << endln;
+    s << "  fc: " << fc << endln;
+    s << "  eo: " << eo << endln;
+    s << "  r: " << r << endln;
+    s << "  k: " << k  << endln;
+    s << "  ecr : " << ecr   << endln;
+    s << "  fcr : " << fcr   << endln;
+    s << "  b: " << b  << endln;
+    s << "  alphaC: " << alphaC  << endln;
+    s << "  alphaT: " << alphaT  << endln;
+  }
 
 }
 

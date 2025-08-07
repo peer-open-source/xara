@@ -79,7 +79,7 @@ NDMaterial::getCopy(const char *type)
     return clone;
   }
   else if (strcmp(type,"BeamFiber") == 0 ||
-	   strcmp(type,"TimoshenkoFiber") == 0) {
+	         strcmp(type,"TimoshenkoFiber") == 0) {
     NDMaterial *copy = this->getCopy("ThreeDimensional");
     BeamFiberMaterial *clone = new BeamFiberMaterial(this->getTag(),*copy);
     delete copy;

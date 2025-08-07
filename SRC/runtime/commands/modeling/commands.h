@@ -96,7 +96,8 @@ namespace OpenSees {
 struct CommandTableEntry {
   const char* name;
   Tcl_CmdProc*  func;
-}  constexpr ModelBuilderCommands[] =  {
+}
+constexpr ModelBuilderCommands[] =  {
   {"build",                buildModel},
 
   {"getNDM",               TclCommand_getNDM},
@@ -114,7 +115,7 @@ struct CommandTableEntry {
   {"fixY",                 TclCommand_addHomogeneousBC_Y},
   {"fixZ",                 TclCommand_addHomogeneousBC_Z},
 
-// //
+// 
   {"with",                 TclCommand_invoke},
   {"invoke",               TclCommand_invoke},
 // Materials & sections

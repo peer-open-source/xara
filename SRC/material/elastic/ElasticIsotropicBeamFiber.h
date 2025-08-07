@@ -41,6 +41,9 @@ class ElasticIsotropicBeamFiber : public ElasticIsotropicMaterial
     ElasticIsotropicBeamFiber (int tag, double E, double nu, double rho);
     ElasticIsotropicBeamFiber ();
     ~ElasticIsotropicBeamFiber ();
+    const char *getClassType() const override {
+      return "ElasticIsotropic<BeamFiber>";
+    }
 
     int setTrialStrain (const Vector &v);
     int setTrialStrain (const Vector &v, const Vector &r);

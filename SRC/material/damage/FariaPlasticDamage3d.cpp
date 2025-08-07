@@ -67,10 +67,11 @@ StrsInvar(const VectorND<6> &sig, double &sigoct, double &tauoct)
   tauoct = std::sqrt(2./3.*J2);  
 }
 
+
 //
 // Stress decomposition function: algebraic approach
 //
-#if 0
+#if 1
 #include <concrete/StrsDec.cpp>
 #else
 template <typename T> static inline int sgn(T val) {
@@ -127,51 +128,53 @@ StrsDecA(const Vector &sig, VectorND<6> &sigpos, //VectorND<6> &signeg,
 
 
 // Compute dn = 1 - (rn0/rn)*(1-An) - An*exp(Bn*(1 - rn/rn0))
-double
-negative_damage(double rn0, double rn, double An, double Bn) {
-    // 1) Compute alpha = rn0/rn
-    double alpha = rn0 / rn;
+static double
+negative_damage(double rn0, double rn, double An, double Bn)
+{
+  // 1) Compute alpha = rn0/rn
+  double alpha = rn0 / rn;
 
-    // 2) Compute x = Bn * (1 - rn/rn0) without cancellation
-    double inv_alpha = 1.0 / alpha;
-    double x = Bn * (1.0 - inv_alpha);
+  // 2) Compute x = Bn * (1 - rn/rn0) without cancellation
+  double inv_alpha = 1.0 / alpha;
+  double x = Bn * (1.0 - inv_alpha);
 
-    double exm1 = std::expm1(x);
+  double exm1 = std::expm1(x);
 
-    // 4) Combine terms. Use fma to reduce rounding:
-    //    term1 = (1 - alpha)*(1 - An)
-    double term1 = std::fma(-(1.0 - An), alpha, (1.0 - An));  
-    //    which is = (1 - An) - alpha*(1 - An)
-    //
-    double term2 = An * exm1;
+  // 4) Combine terms. Use fma to reduce rounding:
+  //    term1 = (1 - alpha)*(1 - An)
+  double term1 = std::fma(-(1.0 - An), alpha, (1.0 - An));  
+  //    which is = (1 - An) - alpha*(1 - An)
+  //
+  double term2 = An * exm1;
 
-    // 5) dn = term1 - term2
-    double dn = std::fma(-An, exm1, term1);
-    return dn;
+  // 5) dn = term1 - term2
+  double dn = std::fma(-An, exm1, term1);
+  return dn;
 }
 
 // Compute dp = 1 - (rp0/rp)*exp(Ap*(1 - rp/rp0))
 // with improved precision when rp ≈ rp0
-double
-positive_damage(double rp0, double rp, double Ap) {
-    // 1) alpha = rp0 / rp
-    double alpha = rp0 / rp;
+static double
+positive_damage(double rp0, double rp, double Ap)
+{
+  // 1) alpha = rp0 / rp
+  double alpha = rp0 / rp;
 
-    // 2) x = Ap * (1 - rp/rp0) = Ap * (1 - 1/alpha)
-    double inv_alpha = 1.0 / alpha;
-    double x = Ap * (1.0 - inv_alpha);
+  // 2) x = Ap * (1 - rp/rp0) = Ap * (1 - 1/alpha)
+  double inv_alpha = 1.0 / alpha;
+  double x = Ap * (1.0 - inv_alpha);
 
-    // 3) exm1 = exp(x) - 1 computed accurately
-    double exm1 = std::expm1(x);
+  // 3) exm1 = exp(x) - 1 computed accurately
+  double exm1 = std::expm1(x);
 
-    // 4)
-    double term1 = 1.0 - alpha;
+  // 4)
+  double term1 = 1.0 - alpha;
 
-    // 5) dp = term1 - alpha * exm1
-    //    use fma to compute -(alpha * exm1) + term1 in one rounding
-    double dp = std::fma(-alpha, exm1, term1);
+  // 5) dp = term1 - alpha * exm1
+  //    use fma to compute -(alpha * exm1) + term1 in one rounding
+  double dp = std::fma(-alpha, exm1, term1);
 
-    return dp;
+  return dp;
 }
 
 static double

@@ -1,5 +1,18 @@
-#ifndef ISOTROPIC_UTILITIES_H
-#define ISOTROPIC_UTILITIES_H
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+#pragma once
 #include <set>
 #include <tcl.h>
 #include <Parsing.h>
@@ -35,7 +48,7 @@ struct IsotropicParse {
 //
 
 int
-TclCommand_setIsotropicParameters(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
+TclCommand_setIsotropicParameters(ClientData, Tcl_Interp *, Tcl_Size argc, TCL_Char **argv);
 
 int isotropic_convert(int flag1, double in1,
                          int flag2, double in2,
@@ -43,5 +56,3 @@ int isotropic_convert(int flag1, double in1,
                          double & out);
 
 int isotropic_constants(int flag1, double in1, int flag2, double in2, IsotropicConstants &iso);
-#endif
-

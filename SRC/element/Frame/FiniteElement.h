@@ -205,7 +205,7 @@ public:
     const Matrix &getMassSensitivity(int gradNumber)
     {
       // From DispBeamColumn
-      static MatrixND<12,12> M_;
+      static MatrixND<12,12> M_{};
       static Matrix M(M_);
       M.Zero();
 

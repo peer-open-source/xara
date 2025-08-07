@@ -387,14 +387,8 @@ using namespace OpenSees::Hash::literals;
 #include "LagrangeConstraintHandler.h"
 #include "TransformationConstraintHandler.h"
 
-// dof numberer header files
-#include "DOF_Numberer.h"
-#include "PlainNumberer.h"
 
-// analysis model header files
-#include "AnalysisModel.h"
-
-// equi soln algo header files
+// equi soln algo
 #include "EquiSolnAlgo.h"
 #include "Linear.h"
 #include "NewtonRaphson.h"
@@ -418,13 +412,8 @@ using namespace OpenSees::Hash::literals;
 #include "DistributedDisplacementControl.h"
 #endif
 #include "LoadControl.h"
-// #include "StagedLoadControl.h"
 
 #include "TransientIntegrator.h"
-#include "AlphaOS.h"
-#include "AlphaOS_TP.h"
-#include "AlphaOSGeneralized.h"
-#include "AlphaOSGeneralized_TP.h"
 #include "CentralDifference.h"
 #include "CentralDifferenceAlternative.h"
 #include "CentralDifferenceNoDamping.h"
@@ -449,7 +438,6 @@ using namespace OpenSees::Hash::literals;
 #include "KRAlphaExplicit.h"
 #include "KRAlphaExplicit_TP.h"
 #include "Newmark.h"
-// #include "StagedNewmark.h"
 #include "NewmarkExplicit.h"
 #include "NewmarkHSFixedNumIter.h"
 #include "NewmarkHSIncrLimit.h"
@@ -1685,39 +1673,13 @@ TclPackageClassBroker::getNewConstraintHandler(int classTag)
 DOF_Numberer *
 TclPackageClassBroker::getNewNumberer(int classTag)
 {
-  switch (classTag) {
-  case NUMBERER_TAG_DOF_Numberer:
-    return new DOF_Numberer();
-
-  case NUMBERER_TAG_PlainNumberer:
-    return new PlainNumberer();
-
-#ifdef _PARALLEL_PROCESSING
-  case NUMBERER_TAG_ParallelNumberer:
-    return new ParallelNumberer();
-#endif
-
-  default:
-    opserr << "TclPackageClassBroker::getNewConstraintHandler - ";
-    opserr << " - no ConstraintHandler type exists for class tag ";
-    opserr << classTag << endln;
-    return 0;
-  }
+  return nullptr;
 }
 
 AnalysisModel *
 TclPackageClassBroker::getNewAnalysisModel(int classTag)
 {
-  switch (classTag) {
-  case AnaMODEL_TAGS_AnalysisModel:
-    return new AnalysisModel();
-
-  default:
-    opserr << "TclPackageClassBroker::getNewAnalysisModel - ";
-    opserr << " - no AnalysisModel type exists for class tag ";
-    opserr << classTag << endln;
-    return 0;
-  }
+  return nullptr;
 }
 
 EquiSolnAlgo *
@@ -1828,17 +1790,14 @@ TransientIntegrator *
 TclPackageClassBroker::getNewTransientIntegrator(int classTag)
 {
   switch (classTag) {
-  case INTEGRATOR_TAGS_AlphaOS:
-    return new AlphaOS();
-
-  case INTEGRATOR_TAGS_AlphaOS_TP:
-    return new AlphaOS_TP();
-
-  case INTEGRATOR_TAGS_AlphaOSGeneralized:
-    return new AlphaOSGeneralized();
-
-  case INTEGRATOR_TAGS_AlphaOSGeneralized_TP:
-    return new AlphaOSGeneralized_TP();
+  // case INTEGRATOR_TAGS_AlphaOS:
+  //   return new AlphaOS();
+  // case INTEGRATOR_TAGS_AlphaOS_TP:
+  //   return new AlphaOS_TP();
+  // case INTEGRATOR_TAGS_AlphaOSGeneralized:
+  //   return new AlphaOSGeneralized();
+  // case INTEGRATOR_TAGS_AlphaOSGeneralized_TP:
+  //   return new AlphaOSGeneralized_TP();
 
   case INTEGRATOR_TAGS_CentralDifference:
     return new CentralDifference(); // must recvSelf

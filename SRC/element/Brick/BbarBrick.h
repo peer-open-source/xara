@@ -29,11 +29,12 @@
 
 #include <stdio.h> 
 #include <stdlib.h> 
-#include <math.h> 
+#include <cmath> 
 
 #include <ID.h> 
 #include <Vector.h>
 #include <Matrix.h>
+#include <MatrixND.h>
 #include <Element.h>
 #include <Node.h>
 #include <NDMaterial.h>
@@ -58,11 +59,9 @@ class BbarBrick : public Element {
 			NDMaterial &theMaterial, 
 			double b1 = 0.0, double b2 = 0.0, double b3 = 0.0 ) ;
 
-    //destructor 
     virtual ~BbarBrick( ) ;
 
-    const char *getClassType(void) const {return "BbarBrick";};
-    static constexpr const char* class_name = "BbarBrick";
+    const char *getClassType(void) const {return "BbarBrick";}
 
     //set domain 
     void setDomain( Domain *theDomain ) ;
@@ -72,24 +71,15 @@ class BbarBrick : public Element {
  
     //return connected external nodes
     const ID &getExternalNodes( ) ;
-    Node **getNodePtrs(void);
-
-    //return number of dofs
+    Node **getNodePtrs();
     int getNumDOF( ) ;
 
-    //commit state
+    
     int commitState( ) ;
-    
-    //revert to last commit 
     int revertToLastCommit( ) ;
-    
-    //revert to start 
     int revertToStart( ) ;
 
-    //print out element data
-    void Print( OPS_Stream &s, int flag ) ;
 	
-    //return stiffness matrix 
     const Matrix &getTangentStiff( ) ;
     const Matrix &getInitialStiff( ) ;
     const Matrix &getMass( ) ;
@@ -98,22 +88,20 @@ class BbarBrick : public Element {
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    //get residual
-    const Vector &getResistingForce( ) ;
-    
-    //get residual with inertia terms
-    const Vector &getResistingForceIncInertia( ) ;
+    const Vector &getResistingForce() override;
+    const Vector &getResistingForceIncInertia() override;
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
+    int sendSelf (int commitTag, Channel &) override;
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &) override;
       
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
 
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
+
+    void Print( OPS_Stream &s, int flag ) override;
 
   private : 
     constexpr static int NEN = 8; // number of element nodes
@@ -139,9 +127,8 @@ class BbarBrick : public Element {
 
     NDMaterial *materialPointers[NIP] ; //pointers to eight materials
 					  
-    // local nodal coordinates, three coordinates for each of four nodes
-    //    static double xl[3][8] ; 
-    static double xl[][8] ; 
+  // local nodal coordinates, three coordinates for each node
+  double xl[3][8] ; 
 
 	double b[3];		// Body forces
 	
@@ -157,8 +144,7 @@ class BbarBrick : public Element {
     //compute coordinate system
     void computeBasis( ) ;
 
-    //compute Bbar matrix
-    const Matrix& computeBbar( int node, 
+    OpenSees::MatrixND<6,3> computeBbar( int node, 
 			       const double shp[4][8], 
 			       const double shpBar[4][8] ) ;
   

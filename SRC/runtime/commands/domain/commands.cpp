@@ -5,6 +5,7 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
+//
 // Description: This file contains the functions that will be called by
 // the interpreter when the appropriate command name is specified.
 //
@@ -48,7 +49,6 @@
 // Analysis
 #include <AnalysisModel.h>
 #include <EquiSolnAlgo.h>
-#include <Integrator.h>
 #include <StaticIntegrator.h>
 #include <LinearSOE.h>
 #include <EigenSOE.h>
@@ -110,6 +110,8 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
     // damping
     Tcl_CreateCommand(interp, "setElementRayleighDampingFactors", &addElementRayleigh, domain, nullptr);
     Tcl_CreateCommand(interp, "setElementRayleighFactors",        &addElementRayleigh, domain, nullptr);
+    // Modal
+    Tcl_CreateCommand(interp, "modalProperties",     &modalProperties, domain, nullptr);
   }
 
   Tcl_CreateCommand(interp, "loadConst",           &TclCommand_setLoadConst,  domain, nullptr);
@@ -189,7 +191,6 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
   // sensitivity
   Tcl_CreateCommand(interp, "computeGradients",      &computeGradients, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
   Tcl_CreateCommand(interp, "sensitivityAlgorithm",  &TclCommand_sensitivityAlgorithm, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
-//Tcl_CreateCommand(interp, "sensitivityIntegrator", &sensitivityIntegrator, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
   Tcl_CreateCommand(interp, "sensNodeDisp",          &sensNodeDisp, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
 //Tcl_CreateCommand(interp, "sensLambda",            &sensLambda, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL); // Abbas
   Tcl_CreateCommand(interp, "sensNodeVel",           &sensNodeVel, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
@@ -417,17 +418,22 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     LoadPattern *thePattern;
     LoadPatternIter &thePatterns = the_domain->getLoadPatterns();
 
-    char buffer[20];
+    // char buffer[20];
+
+    Tcl_Obj *result = Tcl_NewListObj(0, nullptr);
 
     while ((thePattern = thePatterns()) != nullptr) {
       ElementalLoadIter theEleLoads = thePattern->getElementalLoads();
       ElementalLoad *theLoad;
 
       while ((theLoad = theEleLoads()) != nullptr) {
-        sprintf(buffer, "%d ", theLoad->getElementTag());
-        Tcl_AppendResult(interp, buffer, NULL);
+        Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(theLoad->getElementTag()));
+        // sprintf(buffer, "%d ", theLoad->getElementTag());
+        // Tcl_AppendResult(interp, buffer, NULL);
       }
     }
+
+    Tcl_SetObjResult(interp, result);
 
   } else if (argc == 2) {
     int patternTag;
@@ -525,31 +531,10 @@ getEleLoadData(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     }
 
   } else {
-    opserr << OpenSees::PromptValueError << "want - getEleLoadTags <patternTag?>\n" << endln;
+    opserr << OpenSees::PromptValueError 
+           << "want - getEleLoadTags <patternTag?>" << endln;
     return TCL_ERROR;
   }
 
   return TCL_OK;
 }
-
-int
-getEleTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
-{
-  // NOTE: Maybe this can use a base class of ElementIter so we only need
-  //       to work in terms of tagged object
-  assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
-
-  Element *theEle;
-  ElementIter &eleIter = the_domain->getElements();
-
-  char buffer[20];
-
-  while ((theEle = eleIter()) != nullptr) {
-    sprintf(buffer, "%d ", theEle->getTag());
-    Tcl_AppendResult(interp, buffer, NULL);
-  }
-
-  return TCL_OK;
-}
-

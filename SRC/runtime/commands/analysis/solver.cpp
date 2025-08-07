@@ -16,10 +16,10 @@
 #else
 #  include <strings.h>
 #endif
-// #define strcmp strcasecmp
 
 #include <tcl.h>
-#include <G3_Logging.h>
+#include <Logging.h>
+#include <Parsing.h>
 #include <runtimeAPI.h>
 // #include "analysis.h"
 #include "solver.hpp"

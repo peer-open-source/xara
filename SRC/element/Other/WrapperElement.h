@@ -65,9 +65,7 @@ class WrapperElement : public Element
   
   // public methods for output
   virtual int sendSelf(int commitTag, Channel &theChannel);
-  virtual int recvSelf(int commitTag, Channel &theChannel, 
-		       FEM_ObjectBroker &theBroker);
-  virtual int displaySelf(Renderer &theViewer, int displayMode, float fact);    
+  virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   virtual void Print(OPS_Stream &s, int flag =0);    
   
  protected:

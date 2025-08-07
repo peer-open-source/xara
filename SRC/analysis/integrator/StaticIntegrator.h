@@ -45,39 +45,40 @@ enum class ReferencePattern {
 
 class StaticIntegrator : public IncrementalIntegrator
 {
-  public:
-    StaticIntegrator(int classTag);    
+public:
+  StaticIntegrator(int classTag);    
 
-    virtual ~StaticIntegrator();
+  virtual ~StaticIntegrator();
 
-    virtual int newStep() = 0;
+  // StaticIntegrator Interface
+  virtual int newStep() = 0;
 
-    // methods which define what the FE_Element and DOF_Groups add
-    // to the system of equation object.
-    virtual int formUnbalance() final;
-    virtual int formEleTangent(FE_Element *theEle);
-    virtual int formEleResidual(FE_Element *theEle)   final;
-    virtual int formNodTangent(DOF_Group *theDof)     final;
-    virtual int formNodUnbalance(DOF_Group *theDof)   final;    
-    virtual int formEleTangentSensitivity(FE_Element *theEle,int gradNumber); 
 
-  protected:
-    enum class ResidualType {
-      StaticUnbalance,
-      StaticSensitivity,
-      TransientUnbalance,
-//    TransientSensitivity
-    };
-    void setResidualType(ResidualType tag) {residualType = tag;}
-    ResidualType  getResidualType() { return residualType;}
+  // Integrator interface
+  int formUnbalance() final;
+  int formEleTangent(FE_Element *) override;
+  int formEleResidual(FE_Element *)   final;
+  int formNodTangent(DOF_Group *)     final;
+  int formNodUnbalance(DOF_Group *)   final;
 
-    void setGradIndex(int index) {gradIndex = index;}
-    int  getGradIndex() { return gradIndex;}
 
- 
-  private:
-    ResidualType residualType;
-    int gradIndex;
+protected:
+  enum class ResidualType {
+    StaticUnbalance,
+    StaticSensitivity,
+    TransientUnbalance,
+//  TransientSensitivity
+  };
+  void setResidualType(ResidualType tag) {residualType = tag;}
+  ResidualType  getResidualType() { return residualType;}
+
+  void setGradIndex(int index) {gradIndex = index;}
+  int  getGradIndex() { return gradIndex;}
+
+
+private:
+  ResidualType residualType;
+  int gradIndex;
 };
 
 #endif

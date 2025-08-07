@@ -196,7 +196,16 @@ class OpenSeesPy:
         strings.
 
         """
+        comment = ""
+        if "comment" in kwds:
+            comment = kwds.pop("comment")
+            if isinstance(comment, str):
+                comment = f"; # {comment}"
+            else:
+                raise TypeError(f"Invalid type for comment: {type(comment)}")
+
         cmd = _args_to_cmds(proc_name, *args, _final=_final, **kwds)
+        cmd += comment
 
         #
         #
@@ -451,6 +460,13 @@ class Model:
         if len(args) > 0 or len(kwds) > 0:
             self._openseespy._invoke_proc("model", *args, **kwds)
 
+        self._parameters = {
+            
+        }
+
+        # Aug 2025, for xara._analysis
+        self._patterns = {}
+
     def eval(self, *args, **kwds):
         return self._openseespy.eval(*args, **kwds)
 
@@ -536,6 +552,13 @@ class Model:
             del tangent_string
             gc.collect()
         return A; #.reshape([int(np.sqrt(len(A)))]*2)
+
+    def symbols(self, **kwds):
+        symbols = []
+        for k,v in kwds.items():
+            self.eval(f"set {k} {v}")
+            symbols.append((f"-{k}", f"${k}"))
+        return symbols
 
     def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
         """

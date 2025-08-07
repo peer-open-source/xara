@@ -42,7 +42,9 @@ namespace OpenSees {
   template<int n, typename T> struct VectorND;
   template<int, int, typename T> struct MatrixND;
 };
-// struct Vector3D;
+
+// #define NO_STATIC_WORK
+
 using Vector3D = OpenSees::VectorND<3,double>;
 
 class Matrix
@@ -308,15 +310,15 @@ Matrix::Assemble(const OpenSees::MatrixND<nr,nc,double> &M, int init_row, int in
 template< class TVec>
 inline void Matrix::addSpinAtRow(const TVec& V, size_t row_index)
 {
-    size_t i0 = row_index;
-    size_t i1 = 1 + row_index;
-    size_t i2 = 2 + row_index;
-    double v0 = V(i0);
-    double v1 = V(i1);
-    double v2 = V(i2);
-                              (*this)(i0, 1) += -v2;     (*this)(i0, 2) +=  v1;
-    (*this)(i1, 0) +=  v2;                               (*this)(i1, 2) += -v0;
-    (*this)(i2, 0) += -v1;    (*this)(i2, 1) +=  v0;                          ;
+  size_t i0 = row_index;
+  size_t i1 = 1 + row_index;
+  size_t i2 = 2 + row_index;
+  double v0 = V(i0);
+  double v1 = V(i1);
+  double v2 = V(i2);
+                            (*this)(i0, 1) += -v2;     (*this)(i0, 2) +=  v1;
+  (*this)(i1, 0) +=  v2;                               (*this)(i1, 2) += -v0;
+  (*this)(i2, 0) += -v1;    (*this)(i2, 1) +=  v0;                          ;
 }
 
 /**

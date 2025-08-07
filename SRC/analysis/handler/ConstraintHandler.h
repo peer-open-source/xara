@@ -53,23 +53,21 @@ class ConstraintHandler : public MovableObject
     ConstraintHandler(int classTag);
     virtual ~ConstraintHandler();
 
-    void setLinks(Domain &theDomain, 
-		  AnalysisModel &theModel,
-		  Integrator &theIntegrator);
+    void setLinks(Domain &, AnalysisModel &);
 
     // pure virtual functions
     virtual int handle(const ID *nodesNumberedLast =0) =0;
     virtual int update(void);
     virtual int applyLoad(void);
     virtual int doneNumberingDOF(void);
-    virtual void clearAll(void) =0;    
+    virtual void clearAll() =0;    
 
   protected:
-    Domain *getDomainPtr(void) const;
-    AnalysisModel *getAnalysisModelPtr(void) const;
-    Integrator *getIntegratorPtr(void) const;
+    Domain *getDomainPtr() const;
+    AnalysisModel *getAnalysisModelPtr() const;
     
   private:
+    Integrator *getIntegratorPtr() const;
     Domain *theDomainPtr;
     AnalysisModel *theAnalysisModelPtr;
     Integrator *theIntegratorPtr;

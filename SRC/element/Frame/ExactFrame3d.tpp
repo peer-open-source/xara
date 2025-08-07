@@ -122,11 +122,6 @@ ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
    stencil(nullptr),
    parameterID(0)
 {
-  //  double wt[nip];
-  //  double xi[nip];
-  //  beamIntegr->getSectionLocations(numSections, L, xi);
-  //  beamIntegr->getSectionWeights(numSections, L, wt);
-
   p.zero();
   K.zero();
 
@@ -238,7 +233,7 @@ template<std::size_t nen, int nwm>
 int
 ExactFrame3d<nen,nwm>::update()
 {
-  const Vector3D D {1, 0, 0};
+  constexpr static Vector3D D {1, 0, 0};
   auto& theNodes = this->FiniteElement<nen,3,ndf>::theNodes;
 
   //
@@ -253,7 +248,7 @@ ExactFrame3d<nen,nwm>::update()
 
   // Form displaced node locations xyz
   VectorND<ndm> xyz[nen];
-  std::array<std::array<double,nen>,nwm> uwarp{};
+  std::array<std::array<double,nwm>,nen> uwarp{};
   for (unsigned i=0; i < nen; i++) {
     const Vector& xi = theNodes[i]->getCrds();
     const Vector& ui = theNodes[i]->getTrialDisp();
@@ -381,9 +376,11 @@ ExactFrame3d<nen,nwm>::update()
     }
   } // Main Gauss loop
 
-
   for (FrameLoad* load : frame_loads) {
     for (auto [xp, wp] : load->quadrature()) {
+      const double w  = wp*jxs;
+      const double xc = xp;
+
       double shp[2][nen];
       lagrange<nen>(xp*jxs, xn, shp);
       Versor q;
@@ -392,40 +389,17 @@ ExactFrame3d<nen,nwm>::update()
       else if (xp == 1.0)
         q = theNodes[nen-1]->getTrialRotation();
       else {
-        // TODO: this is not tested
-        Vector3D v{};
-        for (unsigned i=0; i<nen; i++)
-          v += shp[0][i]*theNodes[i]->getTrialDisp();
-        q = Versor::from_matrix(R0*ExpSO3(v));
+        q = theNodes[0]->getTrialRotation().slerp(
+          theNodes[nen-1]->getTrialRotation(), xp);
       }
       Matrix3D R  = MatrixFromVersor(q);
-      const double w = wp;
-      const double xc = xp;
-      // for_int<nen>([&](auto i_) {
-      //     constexpr int i = decltype(i_)::value;
-      //     load->addLoadAtPoint<i, nen, ndf>(p, xc, w * shp[0][i], R0, R);
-
-      //     for_int<nen>([&](auto j_) {
-      //         constexpr int j = decltype(j_)::value;
-      //         load->addTangAtPoint<i, j, nen, ndf>(K, xc, w * shp[0][i] * shp[0][j], R0, R);
-      //     });
-      // });
-      // for_int<nen>([&]<auto I>() constexpr {
-      //   constexpr int i = I;
-      //   load->addLoadAtPoint<I, nen, ndf>(p, xc, w * shp[0][i], R0, R);
-
-      //   for_int<nen>([&]<auto J>() constexpr {
-      //       constexpr int j = J;
-      //       load->addTangAtPoint<I, J, nen, ndf>(K, xc, w * shp[0][i] * shp[0][j], R0, R);
-      //   });
-      // });
 #ifndef _MSC_VER
       for_int<nen>([&](auto i_) constexpr {
         constexpr int i = i_.value;
-        load->addLoadAtPoint<i,nen,ndf>(p, xc, w*shp[0][i], R0, R);
+        load->addLoadAtPoint<i,nen,ndf>(p, xc, w*shp[0][i], jxs, R0, R);
         for_int<nen>([&](auto j_) constexpr {
           constexpr int j = j_.value;
-          load->addTangAtPoint<i,j,nen,ndf>(K, xc, w*shp[0][i]*shp[0][j], R0, R);
+          load->addTangAtPoint<i,j,nen,ndf>(K, xc, w*shp[0][i]*shp[0][j], jxs, R0, R);
         });
       });
 #endif
@@ -475,6 +449,75 @@ ExactFrame3d<nen,nwm>::getMass()
   return wrapper;
 }
 
+template<std::size_t nen, int nwm>
+const Vector &
+ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
+{
+  static VectorND<ndf*nen> dp;
+  static Vector wrapper(dp);
+  dp.zero();
+
+  auto& theNodes = this->FiniteElement<nen,3,ndf>::theNodes;
+
+  // Form displaced node locations xyz
+  VectorND<ndm> xyz[nen];
+  for (unsigned i=0; i < nen; i++) {
+    const Vector& xi = theNodes[i]->getCrds();
+    const Vector& ui = theNodes[i]->getTrialDisp();
+    for (int j=0; j<ndm; j++)
+      xyz[i][j] = xi[j] + ui[j];
+  }
+
+  for (int i=0; i<nip; i++) {
+    //
+    // Interpolate
+    //
+    Vector3D dx {0.0};
+
+    for (unsigned j=0; j < nen; j++) {
+      for (int l=0; l<3; l++)
+        dx[l] += pres[i].shape[1][j]*xyz[j][l];
+    }
+
+    //
+    //
+
+    FrameSection& section = *pres[i].material;
+
+    VectorND<nsr> s = section.getResultantGradient<nsr,scheme>(grad, true);
+
+    //
+    // A = diag(R, R);
+    // Note that this is transposed
+    const Matrix3D& R = pres[i].rotation;
+
+    MatrixND<nsr,nsr> A {{
+      R(0,0), R(1,0), R(2,0), 0, 0, 0,
+      R(0,1), R(1,1), R(2,1), 0, 0, 0,
+      R(0,2), R(1,2), R(2,2), 0, 0, 0,
+      0, 0, 0, R(0,0), R(1,0), R(2,0),
+      0, 0, 0, R(0,1), R(1,1), R(2,1),
+      0, 0, 0, R(0,2), R(1,2), R(2,2),
+    }};
+    for (int j=0; j<2*nwm; j++)
+      A(6+j,6+j) = 1.0;
+
+    MatrixND<nsr,ndf> B[nen];
+    for (unsigned j=0; j<nen; j++) {
+      MatrixND<nsr,ndf> Bj;
+      Bj.zero();
+      B_nat<nen,nwm>(Bj,  pres[i].shape, dx, j);
+      B[j] = A^Bj;
+
+      // p += B s w
+      VectorND<ndf> pj = B[j]^s;
+      for (int l=0; l<ndf; l++)
+        dp[j*ndf+l] += pres[i].weight * pj[l];
+    }
+  } // Main Gauss loop
+
+  return wrapper;
+}
 
 template<std::size_t nen, int nwm>
 int
@@ -887,9 +930,9 @@ ExactFrame3d<nen,nwm>::setParameter(const char** argv, int argc, Parameter& para
       result = ok;
   }
 
-  int ok = stencil->setParameter(argv, argc, param);
-  if (ok != -1)
-    result = ok;
+  // int ok = stencil->setParameter(argv, argc, param);
+  // if (ok != -1)
+  //   result = ok;
 
   return result;
 }

@@ -27,7 +27,7 @@
 #include <J2BeamFiber3d.h>
 #include <Channel.h>
 #include <string.h>
-#include <math.h>
+#include <cmath>
 #include <float.h>
 #include <MatrixND.h>
 #include <VectorND.h>
@@ -128,7 +128,7 @@ J2BeamFiber3d::getTangent()
 
   static constexpr double one3 = 1.0 / 3;
   static constexpr double two3 = 2.0 * one3;
-  static const double root23   = std::sqrt(two3);
+  static const double root23   = std::sqrt(2.0/3.0);
 
   double two3Hkin = two3 * Hkin;
 
@@ -139,7 +139,9 @@ J2BeamFiber3d::getTangent()
   xsi[1] = sig[1] - one3 * Hkin * epsPn[1];
   xsi[2] = sig[2] - one3 * Hkin * epsPn[2];
 
-  double q = sqrt(2. / 3. * xsi[0] * xsi[0] + 2. * xsi[1] * xsi[1] + 2. * xsi[2] * xsi[2]);
+  double q = std::sqrt( 2.0/3.0 * xsi[0]*xsi[0]
+                      + 2.0*xsi[1] * xsi[1]
+                      + 2.0*xsi[2] * xsi[2]);
   double F = q - root23 * (sigmaY + Hiso * alphan);
 
   if (F < -100 * DBL_EPSILON) {
@@ -162,8 +164,8 @@ J2BeamFiber3d::getTangent()
     VectorND<4> R{0.0, 0.0, 0.0, F};
     VectorND<4> x{xsi[0], xsi[1], xsi[2], dg};
 
-    MatrixND<4, 4> J;
-    VectorND<4> dx;
+    MatrixND<4, 4> J{};
+    VectorND<4> dx{};
 
     int iter                    = 0;
     int maxIter                 = 25;

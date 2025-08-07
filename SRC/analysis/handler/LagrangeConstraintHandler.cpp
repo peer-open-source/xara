@@ -40,7 +40,6 @@
 #include <SP_Constraint.h>
 #include <MP_ConstraintIter.h>
 #include <MP_Constraint.h>
-#include <Integrator.h>
 #include <ID.h>
 #include <Subdomain.h>
 #include <Channel.h>
@@ -48,21 +47,7 @@
 #include <LagrangeDOF_Group.h>
 #include <LagrangeSP_FE.h>
 #include <LagrangeMP_FE.h>
-#include <elementAPI.h>
 
-void *
-OPS_ADD_RUNTIME_VPV(OPS_LagrangeConstraintHandler)
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    double data[2] = {1,1};
-    if(numData > 2) numData = 2;
-    if(numData > 0) {
-	if(OPS_GetDoubleInput(&numData, &data[0]) < 0) return 0;
-    }
-
-    return new LagrangeConstraintHandler(data[0], data[1]);
-
-}
 
 LagrangeConstraintHandler::LagrangeConstraintHandler(double sp, double mp)
 :ConstraintHandler(HANDLER_TAG_LagrangeConstraintHandler),
@@ -79,145 +64,137 @@ LagrangeConstraintHandler::~LagrangeConstraintHandler()
 int
 LagrangeConstraintHandler::handle(const ID *nodesLast)
 {
-    // first check links exist to a Domain and an AnalysisModel object
-    Domain *theDomain = this->getDomainPtr();
-    AnalysisModel *theModel = this->getAnalysisModelPtr();
-    Integrator *theIntegrator = this->getIntegratorPtr();    
+  // first check links exist to a Domain and an AnalysisModel object
+  Domain *theDomain = this->getDomainPtr();
+  AnalysisModel *theModel = this->getAnalysisModelPtr();
+
+  // get number of elements and nodes in the domain 
+  // and init the theFEs and theDOFs arrays
+
+  int numConstraints = 0;
+  SP_ConstraintIter &theSPss = theDomain->getDomainAndLoadPatternSPs();
+  SP_Constraint *spPtr;
+  while ((spPtr = theSPss()) != nullptr)
+    numConstraints++;
+
+  numConstraints += theDomain->getNumMPs();
+
+  // create a DOF_Group for each Node and add it to the AnalysisModel.
+  //    : must of course set the initial IDs
+  NodeIter &theNod = theDomain->getNodes();
+  Node *nodPtr;
+  MP_Constraint *mpPtr;    
+  DOF_Group *dofPtr;
+  
+  int numDofGrp = 0;
+  int count3 = 0;
+  int countDOF =0;
+  while ((nodPtr = theNod()) != nullptr) {
+    dofPtr = new DOF_Group(numDofGrp++, nodPtr);
+
+    // initially set all the ID value to -2
     
-    if ((theDomain == 0) || (theModel == 0) || (theIntegrator == 0)) {
-	opserr << "WARNING LagrangeConstraintHandler::handle() - ";
-	opserr << " setLinks() has not been called\n";
-	return -1;
+    const ID &id = dofPtr->getID();
+    for (int j=0; j < id.Size(); j++) {
+        dofPtr->setID(j,-2);
+        countDOF++;
     }
 
-    // get number ofelements and nodes in the domain 
-    // and init the theFEs and theDOFs arrays
+    nodPtr->setDOF_GroupPtr(dofPtr);
+    theModel->addDOF_Group(dofPtr);
+  }
 
-    int numConstraints = 0;
-    SP_ConstraintIter &theSPss = theDomain->getDomainAndLoadPatternSPs();
-    SP_Constraint *spPtr;
-    while ((spPtr = theSPss()) != nullptr)
-      numConstraints++;
+  // create the FE_Elements for the Elements and add to the AnalysisModel
+  ElementIter &theEle = theDomain->getElements();
+  Element *elePtr;
 
-    numConstraints += theDomain->getNumMPs();
+  int numFeEle = 0;
+  FE_Element *fePtr;
+  while ((elePtr = theEle()) != nullptr) {
 
-    //create a DOF_Group for each Node and add it to the AnalysisModel.
-    //    : must of course set the initial IDs
-    NodeIter &theNod = theDomain->getNodes();
-    Node *nodPtr;
-    MP_Constraint *mpPtr;    
-    DOF_Group *dofPtr;
-    
-    int numDofGrp = 0;
-    int count3 = 0;
-    int countDOF =0;
-    while ((nodPtr = theNod()) != nullptr) {
-	dofPtr = new DOF_Group(numDofGrp++, nodPtr);
-
-	// initially set all the ID value to -2
-	
-	const ID &id = dofPtr->getID();
-	for (int j=0; j < id.Size(); j++) {
-	    dofPtr->setID(j,-2);
-	    countDOF++;
-	}
-
-	nodPtr->setDOF_GroupPtr(dofPtr);
-	theModel->addDOF_Group(dofPtr);
-    }
-
-    // create the FE_Elements for the Elements and add to the AnalysisModel
-    ElementIter &theEle = theDomain->getElements();
-    Element *elePtr;
-
-    int numFeEle = 0;
-    FE_Element *fePtr;
-    while ((elePtr = theEle()) != nullptr) {
-
-      // only create an FE_Element for a subdomain element if it does not
-      // do independent analysis .. then subdomain part of this analysis so create
-      // an FE_element & set subdomain to point to it.
-      if (elePtr->isSubdomain() == true) {
-	Subdomain *theSub = (Subdomain *)elePtr;
-	if (theSub->doesIndependentAnalysis() == false) {
+    // only create an FE_Element for a subdomain element if it does not
+    // do independent analysis .. then subdomain part of this analysis so create
+    // an FE_element & set subdomain to point to it.
+    if (elePtr->isSubdomain() == true) {
+      Subdomain *theSub = (Subdomain *)elePtr;
+      if (theSub->doesIndependentAnalysis() == false) {
           fePtr = new FE_Element(numFeEle++, elePtr);
-	  theModel->addFE_Element(fePtr);
-	  theSub->setFE_ElementPtr(fePtr);
-	}
+      theModel->addFE_Element(fePtr);
+      theSub->setFE_ElementPtr(fePtr);
+      }
 
-      } else {
+    } else {
+      // just a regular element .. create an FE_Element for it & add to AnalysisModel
+      fePtr = new FE_Element(numFeEle++, elePtr);	
+      theModel->addFE_Element(fePtr);
+    }
+  }
 
-	// just a regular element .. create an FE_Element for it & add to AnalysisModel
-	fePtr = new FE_Element(numFeEle++, elePtr);	
-	theModel->addFE_Element(fePtr);
+  // create the LagrangeSP_FE for the SP_Constraints and 
+  // add to the AnalysisModel
+  SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
+  while ((spPtr = theSPs()) != nullptr) {
+      dofPtr = new LagrangeDOF_Group(numDofGrp++, *spPtr);
+      const ID &id = dofPtr->getID();
+      for (int j=0; j < id.Size(); j++) {
+          dofPtr->setID(j,-2);
+          countDOF++;
+      }
+      // Add the DOF_Group to the model
+      theModel->addDOF_Group(dofPtr);    		
+
+      // Create the FE
+      fePtr = new LagrangeSP_FE(numFeEle++, *theDomain, *spPtr, *dofPtr, alphaSP);
+      theModel->addFE_Element(fePtr);
+  }	    
+
+  // create the LagrangeMP_FE for the MP_Constraints and 
+  // add to the AnalysisModel    
+
+  MP_ConstraintIter &theMPs = theDomain->getMPs();
+  while ((mpPtr = theMPs()) != nullptr) {
+      dofPtr = new LagrangeDOF_Group(numDofGrp++, *mpPtr);
+
+      const ID &id = dofPtr->getID();
+      for (int j=0; j < id.Size(); j++) {
+          dofPtr->setID(j,-2);
+          countDOF++;
+      }
+
+      theModel->addDOF_Group(dofPtr);    	
+
+      fePtr = new LagrangeMP_FE(numFeEle++, *theDomain, *mpPtr, *dofPtr, alphaMP);
+
+      theModel->addFE_Element(fePtr);
+  }
+  
+  theModel->setNumEqn(countDOF);
+
+  // set the number of eqn in the model
+  // now see if we have to set any of the dof's to -3
+  //    int numLast = 0;
+  if (nodesLast != 0) 
+    for (int i=0; i<nodesLast->Size(); i++) {
+        int nodeID = (*nodesLast)(i);
+        Node *nodPtr = theDomain->getNode(nodeID);
+        if (nodPtr != 0) {
+      dofPtr = nodPtr->getDOF_GroupPtr();
+      
+      const ID &id = dofPtr->getID();
+      // set all the dof values to -3
+      for (int j=0; j < id.Size(); j++) 
+        if (id(j) == -2) {
+          dofPtr->setID(j,-3);
+          count3++;
+        } else {
+          opserr << "WARNING LagrangeConstraintHandler::handle() ";
+          opserr << " - boundary sp constraint in subdomain";
+          opserr << " this should not be - results suspect \n";
+        }
       }
     }
 
-    // create the LagrangeSP_FE for the SP_Constraints and 
-    // add to the AnalysisModel
-    SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
-    while ((spPtr = theSPs()) != nullptr) {
-        dofPtr = new LagrangeDOF_Group(numDofGrp++, *spPtr);
-        const ID &id = dofPtr->getID();
-        for (int j=0; j < id.Size(); j++) {
-            dofPtr->setID(j,-2);
-            countDOF++;
-        }
-        // Add the DOF_Group to the model
-        theModel->addDOF_Group(dofPtr);    		
-
-        // Create the FE
-        fePtr = new LagrangeSP_FE(numFeEle++, *theDomain, *spPtr, *dofPtr, alphaSP);
-        theModel->addFE_Element(fePtr);
-    }	    
-
-    // create the LagrangeMP_FE for the MP_Constraints and 
-    // add to the AnalysisModel    
-
-    MP_ConstraintIter &theMPs = theDomain->getMPs();
-    while ((mpPtr = theMPs()) != nullptr) {
-        dofPtr = new LagrangeDOF_Group(numDofGrp++, *mpPtr);
-
-        const ID &id = dofPtr->getID();
-        for (int j=0; j < id.Size(); j++) {
-            dofPtr->setID(j,-2);
-            countDOF++;
-        }
-
-        theModel->addDOF_Group(dofPtr);    	
-
-        fePtr = new LagrangeMP_FE(numFeEle++, *theDomain, *mpPtr, *dofPtr, alphaMP);
-
-        theModel->addFE_Element(fePtr);
-    }
-    
-    theModel->setNumEqn(countDOF);
-    
-    // set the number of eqn in the model
-    // now see if we have to set any of the dof's to -3
-    //    int numLast = 0;
-    if (nodesLast != 0) 
-	for (int i=0; i<nodesLast->Size(); i++) {
-	    int nodeID = (*nodesLast)(i);
-	    Node *nodPtr = theDomain->getNode(nodeID);
-	    if (nodPtr != 0) {
-		dofPtr = nodPtr->getDOF_GroupPtr();
-		
-		const ID &id = dofPtr->getID();
-		// set all the dof values to -3
-		for (int j=0; j < id.Size(); j++) 
-		    if (id(j) == -2) {
-			dofPtr->setID(j,-3);
-			count3++;
-		    } else {
-			opserr << "WARNING LagrangeConstraintHandler::handle() ";
-			opserr << " - boundary sp constraint in subdomain";
-			opserr << " this should not be - results suspect \n";
-		    }
-	    }
-	}
-
-    return count3;
+  return count3;
 }
 
 

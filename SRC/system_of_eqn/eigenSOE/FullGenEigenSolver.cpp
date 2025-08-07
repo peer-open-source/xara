@@ -34,7 +34,6 @@
 #include <DOF_Group.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
-#include <Integrator.h>
 
 
 #ifdef _WIN32

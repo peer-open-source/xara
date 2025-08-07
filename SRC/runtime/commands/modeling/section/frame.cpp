@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -8,6 +17,8 @@
 // 
 #include <tcl.h>
 #include <string.h>
+#include <Domain.h>
+#include <Parameter.h>
 #include <ArgumentTracker.h>
 #include <Parsing.h>
 #include <Logging.h>
@@ -51,8 +62,14 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
     BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
     FrameSectionConstants consts {};
 
+    Domain& domain = *builder->getDomain();
+
     ArgumentTracker<Position> tracker;
     std::set<int> positional;
+
+    using namespace OpenSees::Parsing;
+    
+    Parameter* parameters[int(Position::Max)] = {};
 
     bool construct_full = false;
 
@@ -69,6 +86,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
 
     bool use_mass = false;
     double mass=0.0;
+
     // All 3D elements have been refactored to select shear themselves, but
     // in 2D the element may check the section for shear.
     bool use_shear = false ; // NDM == 3;
@@ -85,7 +103,12 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
       }
       else if ((strcmp(argv[i], "-youngs-modulus") == 0) ||
                (strcmp(argv[i], "-E") == 0)) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &E) != TCL_OK || E <= 0.0) {
+        if (argc == ++i) {
+          opserr << OpenSees::PromptParseError << "invalid Young's modulus.\n";
+          return TCL_ERROR;
+        }
+        if (GetDoubleParam(interp, domain, argv[i], &E, parameters[int(Position::E)]) != TCL_OK ||
+            E <= 0.0) {
           opserr << OpenSees::PromptParseError << "invalid Young's modulus.\n";
           return TCL_ERROR;
         }
@@ -93,18 +116,34 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
       }
       else if ((strcmp(argv[i], "-shear-modulus") == 0) ||
                (strcmp(argv[i], "-G") == 0)) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &G) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid shear modulus.\n";
+
+        if (argc == ++i) {
+          opserr << OpenSees::PromptParseError 
+                 << "invalid shear modulus."
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        if (GetDoubleParam(interp, domain, argv[i], &G, parameters[int(Position::G)]) != TCL_OK ||
+            G <= 0.0) {
+          opserr << OpenSees::PromptParseError 
+                 << "invalid shear modulus."
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Position::G);
+
       }
       //
       // Section constants
       //
       else if ((strcmp(argv[i], "-area") == 0) ||
                (strcmp(argv[i], "-A") == 0)) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.A) != TCL_OK) {
+        if (argc == ++i) {
+          opserr << OpenSees::PromptParseError << "invalid area.\n";
+          return TCL_ERROR;
+        }
+        if ((GetDoubleParam(interp, domain, argv[i], &consts.A, parameters[int(Position::A)]) != TCL_OK) ||
+            consts.A <= 0.0) {
           opserr << OpenSees::PromptParseError << "invalid area.\n";
           return TCL_ERROR;
         }
@@ -133,7 +172,12 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
       else if ((strcmp(argv[i], "-inertia") == 0) ||
                (strcmp(argv[i], "-I") == 0) ||
                (strcmp(argv[i], "-Iz") == 0)) {
-        if (argc == ++i || (Tcl_GetDouble(interp, argv[i], &consts.Iz) != TCL_OK)) {
+        if (argc == ++i) {
+          opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
+          return TCL_ERROR;
+        }
+        if ((GetDoubleParam(interp, domain, argv[i], &consts.Iz, parameters[int(Position::Iz)]) != TCL_OK) ||
+            consts.Iz < 0) {
           opserr << OpenSees::PromptParseError << "invalid inertia Iz\n";
           return TCL_ERROR;
         }
@@ -142,8 +186,12 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
 
       else if ((strcmp(argv[i], "-inertia-y") == 0) ||
                (strcmp(argv[i], "-Iy") == 0)) {
-        if (argc == ++i || 
-            (Tcl_GetDouble (interp, argv[i], &consts.Iy) != TCL_OK)) {
+        if (argc == ++i) {
+          opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
+          return TCL_ERROR;
+        }
+        if (GetDoubleParam(interp, domain, argv[i], &consts.Iy, 
+                           parameters[int(Position::Iy)]) != TCL_OK) {
           opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
           return TCL_ERROR;
         }
@@ -272,17 +320,24 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
           }
 
         case Position::Iz:
-          if (Tcl_GetDouble (interp, argv[i], &consts.Iz) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid Iz.\n";
+          if ((GetDoubleParam(interp, domain, argv[i], &consts.Iz, parameters[int(Position::Iz)]) != TCL_OK) || 
+              consts.Iz < 0) {
+              opserr << OpenSees::PromptParseError 
+                     << "invalid Iz"
+                     << OpenSees::SignalMessageEnd;
               return TCL_ERROR;
-          } else {
+          }
+          else {
             tracker.increment();
             break;
           }
 
         case Position::Iy:
-          if (Tcl_GetDouble (interp, argv[i], &consts.Iy) != TCL_OK || consts.Iy < 0) {
-              opserr << OpenSees::PromptParseError << "invalid Iy.\n";
+          if ((GetDoubleParam(interp, domain, argv[i], &consts.Iy, parameters[int(Position::Iy)]) != TCL_OK) || 
+               consts.Iy < 0) {
+              opserr << OpenSees::PromptParseError 
+                     << "invalid Iy"
+                     << OpenSees::SignalMessageEnd;
               return TCL_ERROR;
           } else {
             tracker.increment();
@@ -290,13 +345,15 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
           }
 
         case Position::G:
-          if (Tcl_GetDouble (interp, argv[i], &G) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid G.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+          if ((GetDoubleParam(interp, domain, argv[i], &G, parameters[int(Position::G)]) != TCL_OK) || 
+                G <= 0.0) {
+            opserr << OpenSees::PromptParseError 
+                    << "invalid G"
+                    << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
 
         case Position::J:
           if (Tcl_GetDouble (interp, argv[i], &J) != TCL_OK) {
@@ -338,6 +395,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
           break;
 
         case Position::End:
+        default:
           opserr << OpenSees::PromptParseError << "unexpected argument " << argv[i] << ".\n";
           return TCL_ERROR;
       }
@@ -374,6 +432,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
           case Position::kz:
           case Position::EndRequired:
           case Position::End:
+          default:
             break;
         }
 
@@ -460,13 +519,13 @@ TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
 
   if (ndm==2) {
     enum class Position : int {
-      Tag, E, A, Iz, EndRequired, G, ky, End, Iy, J, kz
+      Tag, E, A, Iz, EndRequired, G, ky, End, Iy, J, kz, Max
     };
     return TclCommand_newElasticSectionTemplate<Position, 2>(clientData, interp, argc, argv);
 
   } else {
     enum class Position : int {
-      Tag, E, A, Iz, Iy, G, J, EndRequired, ky, kz, End
+      Tag, E, A, Iz, Iy, G, J, EndRequired, ky, kz, End, Max
     };
     return TclCommand_newElasticSectionTemplate<Position, 3>(clientData, interp, argc, argv);
   }

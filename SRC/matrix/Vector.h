@@ -88,6 +88,7 @@ class Vector
     
     int addVector(const Vector &other, double factOther);
     int addVector(double factThis, const Vector &other, double factOther);
+    int addMatrixVector(const Matrix &m, const Vector &v, double factOther); 
     int addMatrixVector(double factThis, const Matrix &m, const Vector &v, double factOther); 
     int addMatrixTransposeVector(double factThis, const Matrix &m, const Vector &v, double factOther);
 

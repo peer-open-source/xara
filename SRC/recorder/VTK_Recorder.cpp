@@ -613,12 +613,12 @@ VTK_Recorder::vtu()
   theFileVTU<<"\n</DataArray>\n";
 
   // types
-  theFileVTU<<"<DataArray type=\"Int64\" Name=\"types\" format=\"ascii\">\n";
+  theFileVTU << "<DataArray type=\"Int64\" Name=\"types\" format=\"ascii\">\n";
   for (auto i : theEleVtkTags)
     theFileVTU << i << " ";
-  theFileVTU<<"\n</DataArray>\n";
+  theFileVTU << "\n</DataArray>\n";
 
-  theFileVTU<<"</Cells>\n";
+  theFileVTU << "</Cells>\n";
 
   this->indent();
   /*

@@ -327,9 +327,9 @@ J2Plasticity::plastic_integrator()
 
     dev_stress = (2.0 * shear) * (dev_strain - epsilon_p_nplus1);
 
-    //compute the terms for plastic part of tangent
+    // compute the terms for plastic part of tangent
 
-    double theta = (2.0 * shear) + 2. / 3. * qprime(xi_nplus1);
+    double theta = (2.0 * shear) + 2./3. * qprime(xi_nplus1);
 
     if (eta > 0.0 && dt > 0.0)
       theta += (eta / dt);

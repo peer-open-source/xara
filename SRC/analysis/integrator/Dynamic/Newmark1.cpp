@@ -118,12 +118,6 @@ Newmark1::~Newmark1()
 
 
 int
-Newmark1::initialize(void)
-{
-  return 0;
-}
-
-int
 Newmark1::newStep(double deltaT)
 {
 
@@ -249,32 +243,6 @@ Newmark1::domainChanged()
     U = new Vector(size);
     Udot = new Vector(size);
     Udotdot = new Vector(size);
-
-    // cheack we obtained the new
-    if (Up == 0 || Up->Size() != size ||
-	Updot == 0 || Updot->Size() != size ||
-	U == 0 || U->Size() != size ||
-	Udot == 0 || Udot->Size() != size ||
-	Udotdot == 0 || Udotdot->Size() != size) {
-      
-      opserr << "Newmark1::domainChanged - ran out of memory\n";
-
-      // delete the old
-      if (Up != 0)
-	delete Up;
-      if (Updot != 0)
-	delete Updot;
-      if (U != 0)
-	delete U;
-      if (Udot != 0)
-	delete Udot;
-      if (Udotdot != 0)
-	delete Udotdot;
-
-      Up = 0; Updot = 0; 
-      U = 0; Udot = 0; Udotdot = 0;
-      return -1;
-    }
   }        
     
   // now go through and populate U, Udot and Udotdot by iterating through

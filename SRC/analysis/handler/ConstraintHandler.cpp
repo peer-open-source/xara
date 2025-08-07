@@ -33,7 +33,6 @@
 #include <ConstraintHandler.h>
 #include <Domain.h>
 #include <AnalysisModel.h>
-#include <Integrator.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
 
@@ -41,6 +40,7 @@ ConstraintHandler::ConstraintHandler(int clasTag)
 :MovableObject(clasTag),
  theDomainPtr(0),theAnalysisModelPtr(0),theIntegratorPtr(0)
 {
+
 }
 
 
@@ -49,57 +49,58 @@ ConstraintHandler::~ConstraintHandler()
     
 }
 
+
 int
-ConstraintHandler::doneNumberingDOF(void)
+ConstraintHandler::doneNumberingDOF()
 {
   // iterate through the FE_Element getting them to set their IDs
   FE_EleIter &theEle = theAnalysisModelPtr->getFEs();
   FE_Element *elePtr;
-  while ((elePtr = theEle()) != 0)
+  while ((elePtr = theEle()) != nullptr)
     elePtr->setID();
   return 0;
 }
 
+
 void 
-ConstraintHandler::setLinks(Domain &theDomain, 
-			    AnalysisModel &theModel,
-			    Integrator &theIntegrator)
+ConstraintHandler::setLinks(Domain &theDomain, AnalysisModel &theModel)
+			    // Integrator &theIntegrator)
 {
-    theDomainPtr = &theDomain;
-    theAnalysisModelPtr = &theModel;
-    theIntegratorPtr = &theIntegrator;
+  theDomainPtr = &theDomain;
+  theAnalysisModelPtr = &theModel;
+  // theIntegratorPtr = &theIntegrator;
 }
 	
 
 int
-ConstraintHandler::update(void)
+ConstraintHandler::update()
 {
   return 0;
 }
 
 int
-ConstraintHandler::applyLoad(void)
+ConstraintHandler::applyLoad()
 {
   return 0;
 }
 
 
 Domain *
-ConstraintHandler::getDomainPtr(void) const
+ConstraintHandler::getDomainPtr() const
 {
-    return theDomainPtr;
+  return theDomainPtr;
 }
 
 AnalysisModel *
-ConstraintHandler::getAnalysisModelPtr(void) const
+ConstraintHandler::getAnalysisModelPtr() const
 {
-    return theAnalysisModelPtr;
+  return theAnalysisModelPtr;
 }
 
 Integrator *
-ConstraintHandler::getIntegratorPtr(void) const
+ConstraintHandler::getIntegratorPtr() const
 {
-    return theIntegratorPtr;
+  return theIntegratorPtr;
 }
 
 

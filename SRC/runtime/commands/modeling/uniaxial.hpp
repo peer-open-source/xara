@@ -56,7 +56,6 @@ extern OPS_Routine OPS_DoddRestr;
 extern OPS_Routine OPS_Dodd_Restrepo;
 extern OPS_Routine OPS_EPPGapMaterial;
 extern OPS_Routine OPS_ElasticBilin;
-extern OPS_Routine OPS_ElasticMaterial;
 extern OPS_Routine OPS_ElasticMaterialThermal;
 extern OPS_Routine OPS_ElasticMultiLinear;
 extern OPS_Routine OPS_ElasticPPMaterial;
@@ -151,6 +150,8 @@ std::unordered_map<std::string, G3_TclUniaxialPackage *> tcl_uniaxial_package_ta
 };
 
 
+// Elastic
+extern Tcl_CmdProc TclCommand_newElasticUniaxialMaterial;
 // Plastic
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 extern Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
@@ -229,7 +230,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
 
 std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
-    {"Elastic",                  dispatch<OPS_ElasticMaterial>                },
+    {"Elastic",                  dispatch<TclCommand_newElasticUniaxialMaterial>},
 //
 // Plasticity
 //

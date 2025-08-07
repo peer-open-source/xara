@@ -136,7 +136,7 @@ PeriodicAccelerator::updateTangent(void)
 }
 
 void
-PeriodicAccelerator::Print(OPS_Stream &s, int flag)
+PeriodicAccelerator::Print(OPS_Stream &s, int flag) const
 {
   s << "PeriodicAccelerator" << endln;
   s << "\tIterations till restart: " << maxIter << endln;

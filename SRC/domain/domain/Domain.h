@@ -70,20 +70,18 @@ class FEM_ObjectBroker;
 
 class TaggedObjectStorage;
 
-class DomainModalProperties;
 
 class Domain
 {
   public:
     Domain();
-    Domain(int numNodes, int numElements, int numSPs, int numMPs,
-	   int numLoadPatterns);
+    Domain(int numNodes, int numElements, int numSPs, int numMPs, int numLoadPatterns);
 
     Domain(TaggedObjectStorage &theNodesStorage,
-	   TaggedObjectStorage &theElementsStorage,
-	   TaggedObjectStorage &theMPsStorage,
-	   TaggedObjectStorage &theSPsStorage,
-	   TaggedObjectStorage &theLoadPatternsStorage);
+          TaggedObjectStorage &theElementsStorage,
+          TaggedObjectStorage &theMPsStorage,
+          TaggedObjectStorage &theSPsStorage,
+          TaggedObjectStorage &theLoadPatternsStorage);
 
     Domain(TaggedObjectStorage &theStorageType);
     
@@ -95,35 +93,39 @@ class Domain
     virtual  bool addSP_Constraint(SP_Constraint *);
     virtual  bool addPressure_Constraint(Pressure_Constraint *);
     virtual  int  addSP_Constraint(int axisDirn, 
-				   double axisValue, 
-				   const ID &fixityCodes, 
-				   double tol=1e-10);
-    virtual  bool addMP_Constraint(MP_Constraint *); 
-    virtual  bool addLoadPattern(LoadPattern *);            
+                                    double axisValue, 
+                                    const ID &fixityCodes, 
+                                    double tol=1e-10);
+    virtual  bool addMP_Constraint(MP_Constraint *);         
     virtual  bool addParameter(Parameter *);            
     
-    // methods to add components to a LoadPattern object
-    virtual  bool addSP_Constraint(SP_Constraint *, int loadPatternTag); 
-    virtual  bool addNodalLoad(NodalLoad *, int loadPatternTag);
-    virtual  bool addElementalLoad(ElementalLoad *, int loadPatternTag);
     
     // methods to remove the components 
     virtual void clearAll(void);	
     virtual Element       *removeElement(int tag);
-    virtual Node          *removeNode(int tag);    
+    virtual Node          *removeNode(int tag);
     virtual SP_Constraint *removeSP_Constraint(int tag);
     virtual Pressure_Constraint *removePressure_Constraint(int tag);
     virtual MP_Constraint *removeMP_Constraint(int tag);
 
     virtual int removeMP_Constraints(int constrainedNodeTag);
-    virtual int removeSP_Constraint(int nodeTag, int dof, int loadPatternTag);
 
-    virtual LoadPattern   *removeLoadPattern(int tag);
     virtual Parameter     *removeParameter(int tag);
 
-    virtual NodalLoad     *removeNodalLoad(int tag, int loadPattern);
-    virtual ElementalLoad *removeElementalLoad(int tag, int loadPattern);
-    virtual SP_Constraint *removeSP_Constraint(int tag, int loadPattern);
+    // LoadPatterns
+    virtual  bool addLoadPattern(LoadPattern *);
+    virtual  LoadPattern   *removeLoadPattern(int tag);
+    virtual  bool addSP_Constraint(SP_Constraint *, int loadPatternTag); 
+    virtual  bool addNodalLoad(NodalLoad *,         int loadPatternTag);
+    virtual  bool addElementalLoad(ElementalLoad *, int loadPatternTag);
+    virtual  NodalLoad     *removeNodalLoad(int tag, int loadPattern);
+    virtual  ElementalLoad *removeElementalLoad(int tag, int loadPattern);
+    virtual  SP_Constraint *removeSP_Constraint(int tag, int loadPattern);
+    virtual  int removeSP_Constraint(int nodeTag, int dof, int loadPatternTag);
+    virtual  LoadPatternIter   &getLoadPatterns();
+    virtual  SP_ConstraintIter &getDomainAndLoadPatternSPs();
+    virtual  void setLoadConstant();
+    virtual  void unsetLoadConstant();
 
     
     // methods to access the components of a domain
@@ -132,8 +134,6 @@ class Domain
     virtual  SP_ConstraintIter &getSPs();
     virtual  Pressure_ConstraintIter &getPCs();
     virtual  MP_ConstraintIter &getMPs();
-    virtual  LoadPatternIter   &getLoadPatterns();
-    virtual  SP_ConstraintIter &getDomainAndLoadPatternSPs();
     virtual  ParameterIter     &getParameters();
     
     virtual  Element       *getElement(int tag);
@@ -148,15 +148,15 @@ class Domain
     virtual int getParameterIndex(int tag);
 
     // methods to query the state of the domain
-    virtual double  getCurrentTime(void) const;
-    virtual double  getDT(void) const;
-    virtual int getCreep(void) const;
-    virtual int getCommitTag(void) const;    	
-    virtual int getNumElements(void) const;
-    virtual int getNumNodes(void) const;
-    virtual int getNumSPs(void) const;
-    virtual int getNumPCs(void) const;
-    virtual int getNumMPs(void) const;
+    virtual double  getCurrentTime() const;
+    virtual double  getDT() const;
+    virtual int getCreep() const;
+    virtual int getCommitTag() const;    	
+    virtual int getNumElements() const;
+    virtual int getNumNodes() const;
+    virtual int getNumSPs() const;
+    virtual int getNumPCs() const;
+    virtual int getNumMPs() const;
     virtual int getNumLoadPatterns(void) const;            
     virtual int getNumParameters(void) const;            
     virtual const Vector &getPhysicalBounds(void); 
@@ -173,17 +173,15 @@ class Domain
     virtual  void setCommitTag(int newTag);    	
     virtual  void setCurrentTime(double newTime);
     virtual  void setCommittedTime(double newTime);
-    virtual void setCreep(int newCreep);
+    virtual  void setCreep(int newCreep);
     virtual  void applyLoad(double pseudoTime);
-    virtual  void setLoadConstant(void);
-    virtual void  unsetLoadConstant(void);
     virtual  int  initialize(void);    
     virtual  int  setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc);
 
-    virtual  int  commit(void);
-    virtual  int  revertToLastCommit(void);
-    virtual  int  revertToStart(void);    
-    virtual  int  update(void);
+    virtual  int  commit();
+    virtual  int  revertToLastCommit();
+    virtual  int  revertToStart();    
+    virtual  int  update();
     virtual  int  update(double newTime, double dT);
     virtual  int  updateParameter(int tag, int value);
     virtual  int  updateParameter(int tag, double value);    
@@ -191,43 +189,42 @@ class Domain
     virtual  int  analysisStep(double dT);
     virtual  int  eigenAnalysis(int numMode, bool generalized, bool findSmallest);
     
-    // methods for eigenvalue analysis
+    // Eigenvalue analysis
     virtual int setEigenvalues(const Vector &theEigenvalues);
-    virtual const Vector &getEigenvalues(void);
-    virtual double getTimeEigenvaluesSet(void);
-    void setModalProperties(const DomainModalProperties& dmp);
-    void unsetModalProperties(void);
-    int getModalProperties(DomainModalProperties & dmp) const;
+    virtual const Vector &getEigenvalues();
+    virtual double getTimeEigenvaluesSet();
+
     int setModalDampingFactors(Vector *, bool inclModalMatrix = false);
     const Vector *getModalDampingFactors(void);
     bool inclModalDampingMatrix(void);
     
     // methods for other objects to determine if model has changed
-    virtual int hasDomainChanged(void);
-    virtual bool getDomainChangeFlag(void);
-    virtual void domainChange(void);
+    virtual int hasDomainChanged();
+    virtual bool getDomainChangeFlag();
+    virtual void domainChange();
     virtual void setDomainChangeStamp(int newStamp);
 
-
-    // methods for output
-    virtual int  addRecorder(Recorder &theRecorder);    	
-    virtual int  removeRecorders(void);
-    virtual int  removeRecorder(int tag);
-    virtual int  record(bool fromAnalysis=true);
-    virtual int flushRecorders();
-
+    // Regions
     virtual int  addRegion(MeshRegion &theRegion);    	
     virtual MeshRegion *getRegion(int region);    	
     virtual void getRegionTags(ID& rtags) const;
+
+
+    // methods for output
+    virtual int  addRecorder(Recorder &theRecorder);
+    Recorder* getRecorder(int tag);	
+    virtual int  removeRecorders();
+    virtual int  removeRecorder(int tag);
+    virtual int  record(bool fromAnalysis=true);
+    virtual int  flushRecorders();
 
     virtual void Print(OPS_Stream &s, int flag =0);
     virtual void Print(OPS_Stream &s, ID *nodeTags, ID *eleTags, int flag =0);
 
     friend OPS_Stream &operator<<(OPS_Stream &s, Domain &M);    
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);  
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);    
+    virtual int sendSelf(int commitTag, Channel &);  
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
 
     // nodal methods required in domain interface for parallel interprter
     virtual double getNodeDisp(int nodeTag, int dof, int &errorFlag);
@@ -235,7 +232,6 @@ class Domain
 
     virtual int calculateNodalReactions(int flag);
     
-    Recorder* getRecorder(int tag);
 
 #if 0
     virtual int activateElements(const ID& elementList);
@@ -248,6 +244,7 @@ class Domain
 
     Recorder **theRecorders;
     int numRecorders;    
+
 
   private:
     double currentTime;               // current pseudo time
@@ -293,7 +290,6 @@ class Domain
     
     Vector *theEigenvalues;
     double theEigenvalueSetTime;
-    DomainModalProperties* theModalProperties;
     Vector *theModalDampingFactors;
     bool inclModalMatrix;
 

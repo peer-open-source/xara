@@ -307,9 +307,6 @@ ForceDeltaFrame3d<NIP,nsr>::update()
 {
   constexpr static int nip = NIP;
 
-  VectorND<nsr>     es_trial[NIP]; //  strain
-  VectorND<nsr>     sr_trial[NIP]; //  stress resultant
-  MatrixND<nsr,nsr> Fs_trial[NIP]; //  flexibility
 
   // if have completed a recvSelf() - do a revertToLastCommit
   // to get sr, etc. set correctly
@@ -336,14 +333,14 @@ ForceDeltaFrame3d<NIP,nsr>::update()
   double oneOverL = 1.0 / L;
 
 
-  static VectorND<nq>    dv_trial;
-  static VectorND<nq>    q_trial;
-  static MatrixND<nq,nq> K_trial;
-  
-  dv_trial = dv;
-  q_trial  = q_pres;
-  K_trial  = K_pres;
+  VectorND<nq>    dv_trial = dv;
+  VectorND<nq>    q_trial = q_pres;
+  MatrixND<nq,nq> K_trial = K_pres;
 
+
+  VectorND<nsr>     es_trial[NIP]; //  strain
+  VectorND<nsr>     sr_trial[NIP]; //  stress resultant
+  MatrixND<nsr,nsr> Fs_trial[NIP]; //  flexibility
   for (int i = 0; i < nip; i++) {
     es_trial[i] = points[i].es;
     Fs_trial[i] = points[i].Fs;
@@ -1809,7 +1806,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
   double xi[NIP];
   stencil->getSectionLocations(NIP, L, xi);
 
-  MatrixND<NIP,NIP> Ginv;
+  MatrixND<NIP,NIP> Ginv{};
   vandermonde_inverse<NIP>(NIP, xi, Ginv);
 
   Matrix Hk(NIP, NIP);

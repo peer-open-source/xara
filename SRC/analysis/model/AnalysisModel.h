@@ -33,7 +33,6 @@
 #define AnalysisModel_h
 
 #include <MovableObject.h>
-#define VIRTUAL
 
 class TaggedObjectStorage;
 class Domain;
@@ -45,90 +44,93 @@ class DOF_Group;
 class Vector;
 class FEM_ObjectBroker;
 class ConstraintHandler;
+class Integrator;
+class LinearSOE;
 
 class AnalysisModel: public MovableObject
 {
   public:
-    AnalysisModel();    
-    AnalysisModel(int classTag);
-    AnalysisModel(TaggedObjectStorage &, TaggedObjectStorage &);
+    AnalysisModel();
+    ~AnalysisModel();
+    void setLinks(Domain &, ConstraintHandler &);
 
-    VIRTUAL ~AnalysisModel();
+    // called by Handler
+    bool addFE_Element(FE_Element *theFE_Ele);
+    bool addDOF_Group(DOF_Group *theDOF_Grp);
+    void clearAll();
+    void clearDOFGraph();                 // called by Numberer and Analysis
+    void clearDOFGroupGraph();
+    int  getNumDOF_Groups() const;		
+    DOF_Group *getDOF_GroupPtr(int tag);	
+    FE_EleIter &getFEs();
+    DOF_GrpIter &getDOFs();
+    void   setNumEqn(int);
 
-    // methods to populate/depopulate the AnalysisModel
-    VIRTUAL bool addFE_Element(FE_Element *theFE_Ele);
-    VIRTUAL bool addDOF_Group(DOF_Group *theDOF_Grp); // called by Handler
-    VIRTUAL void clearAll();
-    VIRTUAL void clearDOFGraph();                 // called by Numberer and Analysis
-    VIRTUAL void clearDOFGroupGraph();
+    // Access the connectivity for SysOfEqn to size itself
+    int    getNumEqn() const; 
+    Graph &getDOFGraph();
+    Graph &getDOFGroupGraph();
 
-    // methods to access the FE_Elements and DOF_Groups and their numbers
-    VIRTUAL int getNumDOF_Groups(void) const;		
-    VIRTUAL DOF_Group *getDOF_GroupPtr(int tag);	
-    VIRTUAL FE_EleIter &getFEs();
-    VIRTUAL DOF_GrpIter &getDOFs();
 
-    // method to access the connectivity for SysOfEqn to size itself
-    VIRTUAL void   setNumEqn(int) ;	
-    VIRTUAL int    getNumEqn() const ; 
-    VIRTUAL Graph &getDOFGraph();
-    VIRTUAL Graph &getDOFGroupGraph();
-    
-    // methods to update the response quantities at the DOF_Groups,
-    // which in turn set the new nodal trial response quantities.
-    VIRTUAL void setResponse(const Vector &disp, 
-			     const Vector &vel, 
-			     const Vector &accel);
-    VIRTUAL void setDisp(const Vector &disp);
-    VIRTUAL void setVel(const Vector &vel);
-    VIRTUAL void setAccel(const Vector &vel);            
-
-    VIRTUAL void incrDisp(const Vector &disp);    
-    VIRTUAL void incrVel(const Vector &vel);
+    // Update the nodal trial response quantities.
+    void setResponse(const Vector &disp, const Vector &vel, const Vector &accel);
+    void setDisp(const Vector &disp);
+    void setVel(const Vector &vel);
+    void setAccel(const Vector &vel);
+    void incrDisp(const Vector &disp);    
+    void incrVel(const Vector &vel);
+//  void incrAccel(const Vector &vel);
 
     int getState(Vector&, Vector&, Vector&, int flag); // cmp
 
-//  VIRTUAL void incrAccel(const Vector &vel);            
+    int formVector(Integrator&, LinearSOE&);
+    int formMatrix(Integrator&,  LinearSOE&);
 
-    // methods added to store the eigenvalues and vectors in the domain
-    VIRTUAL void setNumEigenvectors(int numEigenvectors);
-    VIRTUAL void setEigenvector(int mode, const Vector &);
-    VIRTUAL void setEigenvalues(const Vector &);    
-    VIRTUAL const Vector &getEigenvalues(void);    
-    const Vector *getModalDampingFactors(void);
-    bool inclModalDampingMatrix(void);
-    
-    // methods which trigger operations in the Domain
-    VIRTUAL void setLinks(Domain &theDomain, ConstraintHandler &theHandler);
-	
-    VIRTUAL void   applyLoadDomain(double newTime);
-    VIRTUAL int    updateDomain(void);
-    VIRTUAL int    updateDomain(double newTime, double dT);
-    VIRTUAL int    analysisStep(double dT =0.0);
-    VIRTUAL int    eigenAnalysis(int numMode, bool generalized, bool findSmallest);
-    VIRTUAL int    commitDomain(void);
-    VIRTUAL int    revertDomainToLastCommit(void);
-    VIRTUAL double getCurrentDomainTime(void);
-    VIRTUAL void   setCurrentDomainTime(double newTime);    
-    VIRTUAL void   setRayleighDampingFactors(double alphaM, double betaK, double betaKi, double betaKc);    
-    
+
+    void setStateGradient(const Vector &du, const Vector &dv, const Vector &da, int grad, int ngrad);
+    void getStateGradient(Vector &du, Vector &dv, Vector &da, int grad);
+    int  commitGradient(int gradNum, int numGrads);
+
+    // Useful methods
+    void   applyLoadDomain(double time);
+    int    applyLoadGradient();
+    int    updateDomain();
+    int    updateDomain(double newTime, double dT);
+
+    // Simple wrappers for the Domain methods; remove these!
+    int    commitDomain();
+    int    analysisStep(double dT =0.0);
+    double getCurrentDomainTime();
+    void   setCurrentDomainTime(double newTime);
+    void   setRayleighDampingFactors(double alphaM, double betaK, double betaKi, double betaKc);
+    const Vector &getEigenvalues();
+
     // Parallel
-    VIRTUAL int sendSelf(int commitTag, Channel &theChannel);
-    VIRTUAL int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    Domain *getDomainPtr(void) const;
-
-  protected:
-
+    Domain *getDomainPtr() const;
     
+
+    // Store the eigenvalues and vectors in the domain
+    void setNumEigenvectors(int numEigenvectors);
+    void setEigenvector(int mode, const Vector &);
+    void setEigenvalues(const Vector &);
+    const Vector *getModalDampingFactors();
+    bool inclModalDampingMatrix();
+
   private:
+    int addModalDampingForce(LinearSOE *);
+    int setupModal(LinearSOE*, const Vector *modalDampingValues);
+    int doMv(const Vector &v, Vector &res);
+    int getTrialVel(Vector &v);
+  
     Domain *myDomain;
     ConstraintHandler *myHandler;
 
     Graph *myDOFGraph;
-    Graph *myGroupGraph;    
-    
+    Graph *myGroupGraph;   
+
     int numFE_Ele;             // number of FE_Elements objects added
     int numDOF_Grp;            // number of DOF_Group objects added
     int numEqn;                // numEqn set by the ConstraintHandler typically
@@ -137,7 +139,15 @@ class AnalysisModel: public MovableObject
     TaggedObjectStorage  *theDOFs;
     
     FE_EleIter    *theFEiter;     
-    DOF_GrpIter   *theDOFiter;    
+    DOF_GrpIter   *theDOFiter;
+
+
+    double   *eigenVectors;
+    Vector   *eigenValues;
+    Vector   *dampingForces;
+    bool      isDiagonal;
+    double   *diagMass;
+    Vector   *work_vector;
 };
 
 #endif

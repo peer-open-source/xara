@@ -33,7 +33,8 @@ public:
     LogRight
   };
 
-  ExactFrame3d(int tag, std::array<int,nen>& nodes,
+  ExactFrame3d(int tag,
+               std::array<int,nen>& nodes,
                FrameSection *section[nen-1], 
                CrdTransf& transf
   );
@@ -72,9 +73,11 @@ public:
   }
 
   // Element: Parameters
-  virtual int setParameter(const char **argv, int argc, Parameter &);
-  virtual int updateParameter(int parameterID, Information &);
-  virtual int activateParameter(int parameterID);
+  int setParameter(const char **argv, int argc, Parameter &) final;
+  int updateParameter(int parameterID, Information &) final;
+  int activateParameter(int parameterID) final;
+  // Element: Sensitivity
+  const Vector& getResistingForceSensitivity(int grad) final;
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
   virtual int getResponse(int responseID, Information &) final;

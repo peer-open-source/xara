@@ -274,7 +274,8 @@ void Concrete07::calculateStressTransition(double& fc, double& Et, double ec, do
 }
 
 
-void Concrete07::calculate13Stress(double &fc, double &Et, double ec, double eI, double eF, double fF, double EF)
+void
+Concrete07::calculate13Stress(double &fc, double &Et, double ec, double eI, double eF, double fF, double EF)
 {
 	double A;				// Equation parameter
 	double R(0);			// Equation Parameter
@@ -313,7 +314,9 @@ void Concrete07::calculate13Stress(double &fc, double &Et, double ec, double eI,
 
 	return;
 }
-void Concrete07::envelope(double x, double& fc, double& Et, int flag)
+
+void
+Concrete07::envelope(double x, double& fc, double& Et, int flag)
 {
 	double y,z;
 	
@@ -377,7 +380,8 @@ void Concrete07::envelope(double x, double& fc, double& Et, int flag)
 	return;
 }
 
-void Concrete07::determineTrialState(double dStrain)
+void
+Concrete07::determineTrialState(double dStrain)
 {
 	double eunn;			// unloading strain from the compression envelope
 	double funn;			// unloading stress from the compression envelope 
@@ -1892,13 +1896,31 @@ int Concrete07::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& t
 
 void Concrete07::Print(OPS_Stream &s, int flag)
 {
-	s << "Concrete07, tag: " << this->getTag() << endln;
-	s << "  fpc: " << fpc << endln;
-	s << "  epsc0: " << epsc0 << endln;
-	s << "  fpt: " << fpt << endln;
-	s << "  epst0: " << epst0 << endln;
-	s << "  xsp: " << xsp << endln;
-	s << "  xcrk: " << xcrk << endln;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << TaggedObject::JsonPropertyIndent << "{";
+		s << "\"type\": \"Concrete07\", ";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"fpc\": " << fpc << ", ";
+		s << "\"epsc0\": " << epsc0 << ", ";
+		s << "\"Ec\": " << Ec << ", ";
+		s << "\"fpt\": " << fpt << ", ";
+		s << "\"epst0\": " << epst0 << ", ";
+		s << "\"xcrp\": " << xcrp << ", ";
+		s << "\"xcrn\": " << xcrn << ", ";
+		s << "\"xsp\": " << xsp << ", ";
+		s << "\"xcrk\": " << xcrk;
+		s << "}";
+		return;
+	}
+	else {
+		s << "Concrete07, tag: " << this->getTag() << endln;
+		s << "  fpc: " << fpc << endln;
+		s << "  epsc0: " << epsc0 << endln;
+		s << "  fpt: " << fpt << endln;
+		s << "  epst0: " << epst0 << endln;
+		s << "  xsp: " << xsp << endln;
+		s << "  xcrk: " << xcrk << endln;
+	}
 
 	return;
 }

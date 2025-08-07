@@ -39,7 +39,6 @@
 // What: "@(#)DomainDecompAlgo.h, revA"
 
 #include <DomainDecompAlgo.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <DomainSolver.h>
@@ -85,13 +84,13 @@ DomainDecompAlgo::solveCurrentStep(void)
 }
 
 void 
-DomainDecompAlgo::setLinks(AnalysisModel &theAnaModel, 
+DomainDecompAlgo::setLinks(
 				  IncrementalIntegrator &theInteg,
 				  LinearSOE &theSOE,
 				  DomainSolver &theDomainSolver,
 				  Subdomain &theSub)
 {
-    theModel = &theAnaModel;
+    // theModel = &theAnaModel;
     theIntegrator = &theInteg;
     theLinearSOE = &theSOE;
     theSolver = &theDomainSolver;

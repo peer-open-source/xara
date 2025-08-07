@@ -14,8 +14,6 @@ static Tcl_CmdProc wipeAnalysis;
 //
 static Tcl_CmdProc specifyAnalysis;
 static Tcl_CmdProc eigenAnalysis;
-static Tcl_CmdProc modalProperties;
-static Tcl_CmdProc responseSpectrum;
 static Tcl_CmdProc printA;
 static Tcl_CmdProc printB;
 static Tcl_CmdProc initializeAnalysis;
@@ -68,10 +66,8 @@ struct char_cmd {
 
     {"analyze",             &analyzeModel},
     {"initialize",          &initializeAnalysis},
-    {"modalProperties",     &modalProperties},
     {"modalDamping",        &modalDamping},
     {"modalDampingQ",       &modalDamping},
-    {"responseSpectrum",    &responseSpectrum},
     {"printA",              &printA},
     {"printB",              &printB},
     {"reset",               &resetModel},

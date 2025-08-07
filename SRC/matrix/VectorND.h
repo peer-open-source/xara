@@ -80,6 +80,14 @@ struct VectorND {
     return *this;
   }
 
+  template <int NC>
+  inline void
+  addMatrixVector(const MatrixND<N, NC, double> &m, const VectorND<NC>& v, double otherFact) noexcept;
+
+  template <int NC>
+  inline void
+  addMatrixVector(double thisFact, const MatrixND<N, NC, double> &m, const VectorND<NC>& v, double otherFact) noexcept;
+
 #ifdef XARA_VECTOR_FRIENDS
   template <int NC>
   inline int
@@ -114,6 +122,8 @@ struct VectorND {
       item = 0.0;
   }
 
+  inline constexpr T sum() const noexcept;
+
   template<typename VecT>
   constexpr T
   dot(const VecT &other) const noexcept {
@@ -144,6 +154,19 @@ struct VectorND {
 
       return prod;
     }
+  }
+
+  template <int nc>
+  constexpr inline MatrixND<N,nc,double>
+  bun(const VectorND<nc> &other, double scale) const noexcept {
+
+    MatrixND<N,nc,double> prod;
+
+    for (index_t j = 0; j < nc; ++j)
+      for (index_t i = 0; i < this->size(); ++i)
+        prod(i,j) = values[i] * other.values[j] * scale;
+
+    return prod;
   }
 
   // Return the cross product this vector with another vector, b.
@@ -267,7 +290,7 @@ struct VectorND {
   }
 
   template <class VecT>
-  VectorND<N> operator+(const VecT &right) const noexcept {
+  constexpr VectorND<N> operator+(const VecT &right) const noexcept {
     VectorND<N> res {*this};
     res += right;
     return res;

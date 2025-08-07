@@ -43,12 +43,12 @@ class ModifiedNewton: public EquiSolnAlgo
   ~ModifiedNewton();
 
     int solveCurrentStep();    
-    int getNumIterations();
+    int getNumIterations() const override;
 
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &, int flag) final;    
+    void Print(OPS_Stream &, int flag) const final;    
     
   protected:
     

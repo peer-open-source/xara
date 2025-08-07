@@ -9,11 +9,6 @@
 #include <map>
 #include <set>
 
-
-using namespace std;
-
-//class Element;
-
 class DRMBoundaryLayerDecorator
 {
 

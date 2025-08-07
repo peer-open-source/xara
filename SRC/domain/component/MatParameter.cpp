@@ -40,10 +40,6 @@ MatParameter::MatParameter(int theTag, int materialTag, const char *materialPara
 {
   if (materialParameterName != 0) {
     theParameterName = new char[strlen(materialParameterName) +1];
-    if (theParameterName == 0) {
-      opserr << "MatParameter::MatParameter - out of memory for parameter: ";
-      opserr << materialParameterName << endln;
-    }
     strcpy(theParameterName, materialParameterName);
   }
 }
@@ -84,9 +80,9 @@ MatParameter::setDomain(Domain *theDomain)
 
   // note because of the way this parameter is updated only need to find one in the domain
   while ((theEle = theEles()) != 0) {
-      int result = theEle->setParameter(theString, 2, *this);
-      if (result != -1)
-	theResult = result;
+    int result = theEle->setParameter(theString, 2, *this);
+    if (result != -1)
+      theResult = result;
   }
 	
   if (theResult == -1) 

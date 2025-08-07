@@ -254,7 +254,7 @@ DifferenceAccelerator2::updateTangent(IncrementalIntegrator &theIntegrator, bool
 }
 
 void
-DifferenceAccelerator2::Print(OPS_Stream &s, int flag)
+DifferenceAccelerator2::Print(OPS_Stream &s, int flag) const
 {
   s << "DifferenceAccelerator2" << "\n";
   s << "\tMax subspace dimension: " << maxDimension << "\n";

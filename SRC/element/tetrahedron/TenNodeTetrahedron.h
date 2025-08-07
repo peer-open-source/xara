@@ -118,12 +118,12 @@ public :
 private :
 
   //Number of Gauss-points
-  constexpr static int NEN = 10;
-  enum {NumGaussPoints=4};
-  enum {NumNodes=10};
-  enum {NumDOFsPerNode=3};
-  enum {NumStressComponents=6};
-  enum {NumDOFsTotal=NumNodes*NumDOFsPerNode};
+  constexpr static int NEN = 10,
+        NumGaussPoints=4,
+        NumNodes=10,
+        NumDOFsPerNode=3,
+        NumStressComponents=6;
+  constexpr static int NumDOFsTotal = NumNodes*NumDOFsPerNode;
   
     // Routine to compute shape functions and their derivatives. These get stored as follows. 
     // for node n:
@@ -135,7 +135,7 @@ private :
         const double zeta[4],  // Tetrahedral coordinates  (input)
         double &xsj,         // Jacobian determinant (output)
         double shp[4][NumNodes], // Shape function and derivatives values at the tetrahedral coordinates (output) 
-        const double xl[3][NumNodes]   ); // Node coordinates (input)
+        const double xl[3][NumNodes]); // Node coordinates (input)
 
     //
     // private attributes
@@ -162,7 +162,7 @@ private :
     static Vector resid ;
     static Matrix mass ;
     static Matrix damping ;
-  static Matrix B;
+    static Matrix B;
   
     //quadrature data
     static const double root3 ;
@@ -179,20 +179,18 @@ private :
     // private methods
     //
 
-    //inertia terms
+    // inertia terms
     void formInertiaTerms( int tangFlag ) ;
 
-    //form residual and tangent
+    // form residual and tangent
     void formResidAndTangent( int tang_flag ) ;
 
-    //compute coordinate system
+    // compute coordinate system
     void computeBasis( ) ;
 
-    //compute B matrix
+    // compute B matrix
     const Matrix& computeB( int node, const double shp[4][NumNodes] ) ;
 
-    //Matrix transpose
-    Matrix transpose( int dim1, int dim2, const Matrix &M ) ;
     Vector initDisp[NumNodes];
 
     int do_update;

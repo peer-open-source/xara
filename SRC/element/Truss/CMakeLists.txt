@@ -7,14 +7,10 @@
 
 target_sources(OPS_Element
   PRIVATE
-    # Truss.cpp
     TrussSection.cpp
-    # CorotTruss.cpp
     CorotTrussSection.cpp
   PUBLIC
-    # Truss.h
     TrussSection.h
-    # CorotTruss.h
     CorotTrussSection.h
 )
 

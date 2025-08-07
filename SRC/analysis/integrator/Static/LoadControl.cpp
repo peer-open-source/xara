@@ -171,12 +171,6 @@ LoadControl::recvSelf(int cTag,
 
 
 int
-LoadControl::formIndependentSensitivityRHS()
-{
-  return 0;
-}
-
-int
 LoadControl::formSensitivityRHS(int grad)
 {
   // Set a couple of data members
@@ -190,14 +184,18 @@ LoadControl::formSensitivityRHS(int grad)
   AnalysisModel* theAnalysisModel = this->getAnalysisModel();
   LinearSOE* theSOE = this->getLinearSOE();
 
-  // Loop through elements
+  //
+  // add residual
+  //
   FE_Element *elePtr;
-  FE_EleIter &theEles = theAnalysisModel->getFEs();   
+  FE_EleIter &theEles = theAnalysisModel->getFEs();
   while((elePtr = theEles()) != nullptr) {
-    theSOE->addB(  elePtr->getResidual(this),  elePtr->getID()  );
+    theSOE->addB(  elePtr->getResidual(this),  elePtr->getID() );
   }
 
-  // Loop through the loadPatterns and add the dPext/dh contributions
+  //
+  // add dPext/dh contributions
+  //
   static Vector oneDimVectorWithOne(1);
   oneDimVectorWithOne(0) = 1.0;
   static ID oneDimID(1);
@@ -207,25 +205,24 @@ LoadControl::formSensitivityRHS(int grad)
   LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
 
   while ((loadPatternPtr = thePatterns()) != nullptr) {
-      const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(grad);
-      int sizeRandomLoads = randomLoads.Size();
-      if (sizeRandomLoads == 1) {
-          // No random loads in this load pattern
-      }
-      else {
-          // Random loads: add contributions to the 'B' vector
-          int numRandomLoads = (int)(sizeRandomLoads/2);
-          for (int i=0; i<numRandomLoads*2; i=i+2) {
-              int nodeNumber = (int)randomLoads(i);
-              int dofNumber = (int)randomLoads(i+1);
-              Node* aNode = theDomain->getNode(nodeNumber);
-              DOF_Group* aDofGroup = aNode->getDOF_GroupPtr();
-              const ID &anID = aDofGroup->getID();
-              int relevantID = anID(dofNumber-1);
-              oneDimID(0) = relevantID;
-              theSOE->addB(oneDimVectorWithOne, oneDimID);
-          }
-      }
+    const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(grad);
+    int sizeRandomLoads = randomLoads.Size();
+    if (sizeRandomLoads == 1) {
+      ;  // No random loads in this load pattern
+    }
+    else {
+        int numRandomLoads = (int)(sizeRandomLoads/2);
+        for (int i=0; i<numRandomLoads*2; i=i+2) {
+            int nodeNumber = (int)randomLoads(i);
+            int dofNumber = (int)randomLoads(i+1);
+            Node* aNode = theDomain->getNode(nodeNumber);
+            DOF_Group* aDofGroup = aNode->getDOF_GroupPtr();
+            const ID &anID = aDofGroup->getID();
+            int relevantID = anID(dofNumber-1);
+            oneDimID(0) = relevantID;
+            theSOE->addB(oneDimVectorWithOne, oneDimID);
+        }
+    }
   }
 
   // reset residual type
@@ -235,33 +232,25 @@ LoadControl::formSensitivityRHS(int grad)
 }
 
 int
-LoadControl::saveSensitivity(const Vector &v, int gradNum, int numGrads)
+LoadControl::updateGradient(const Vector &v, int gradNum, int numGrads)
 {
-    // get model
-    AnalysisModel* theAnalysisModel = this->getAnalysisModel();
-    
-    DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
-    DOF_Group   *dofPtr;
-    
-    while ( (dofPtr = theDOFGrps() ) != nullptr)
-        dofPtr->saveDispSensitivity(v,gradNum,numGrads); 
-    
-    return 0;
+  // get model
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+  
+  DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
+
+  DOF_Group   *dofPtr;
+  
+  while ( (dofPtr = theDOFGrps() ) != nullptr)
+    dofPtr->saveDispSensitivity(v,gradNum,numGrads); 
+  
+  return 0;
 }
 
 int 
 LoadControl::commitSensitivity(int gradNum, int numGrads)
 {
-    // get model
-    AnalysisModel* theAnalysisModel = this->getAnalysisModel();
-    
-    // Loop through the FE_Elements and set unconditional sensitivities
-    FE_Element *elePtr;
-    FE_EleIter &theEles = theAnalysisModel->getFEs();    
-    while((elePtr = theEles()) != nullptr)
-        elePtr->commitSensitivity(gradNum, numGrads);
-    
-    return 0;
+  return 0;
 }
 
 // false for LC and true for DC
@@ -276,54 +265,51 @@ int
 LoadControl::computeSensitivities()
 {
   LinearSOE *theSOE = this->getLinearSOE();
-      AnalysisModel *theModel = this->getAnalysisModel();
-      Domain *theDomain=theModel->getDomainPtr();
+  AnalysisModel *theModel = this->getAnalysisModel();
 
+  // Zero out the old right-hand side of the SOE
+  theSOE->zeroB();
 
-      // Zero out the old right-hand side of the SOE
-      theSOE->zeroB();
+  Domain *theDomain=theModel->getDomainPtr();
+  ParameterIter &paramIter = theDomain->getParameters();      
+  Parameter *theParam;
+  // De-activate all parameters
+  while ((theParam = paramIter()) != nullptr)
+    theParam->activate(false);
 
-      // Form the part of the RHS which are indepent of parameter
-      this->formIndependentSensitivityRHS();
+  // compute sensitivity wrt each parameter
+  int numGrads = theDomain->getNumParameters();
+  paramIter = theDomain->getParameters();      
+  while ((theParam = paramIter()) != nullptr) {
 
-      ParameterIter &paramIter = theDomain->getParameters();      
-      Parameter *theParam;
-      // De-activate all parameters
-      while ((theParam = paramIter()) != nullptr)
-        theParam->activate(false);
+    // Activate this parameter
+    theParam->activate(true);
+
+    // Zero the RHS vector
+    theSOE->zeroB();
+
+    // Get the grad index for this parameter
+    int gradIndex = theParam->getGradIndex();
+
+    // Form the RHS
+    this->formSensitivityRHS(gradIndex);
       
-      // compute sensitivity wrt each parameter
-      int numGrads = theDomain->getNumParameters();
-      paramIter = theDomain->getParameters();      
-      while ((theParam = paramIter()) != nullptr) {
+    // Solve for displacement sensitivity
+    
+    theSOE->solve();
 
-        // Activate this parameter
-        theParam->activate(true);
+    // Save sensitivity to nodes
+    this->updateGradient( theSOE->getX(), gradIndex, numGrads);
+    
+    // Commit unconditional history variables (also for elastic problems; strain sens may be needed anyway)
+    theModel->commitGradient(gradIndex, numGrads);
+    this->commitSensitivity(gradIndex, numGrads);
+    
+    // De-activate this parameter for next sensitivity calc
+    theParam->activate(false);
+  }
 
-        // Zero the RHS vector
-        theSOE->zeroB();
-
-        // Get the grad index for this parameter
-        int gradIndex = theParam->getGradIndex();
-
-        // Form the RHS
-        this->formSensitivityRHS(gradIndex);
-         
-        // Solve for displacement sensitivity
-       
-        theSOE->solve();
-
-        // Save sensitivity to nodes
-        this->saveSensitivity( theSOE->getX(), gradIndex, numGrads);
-       
-        // Commit unconditional history variables (also for elastic problems; strain sens may be needed anyway)
-        this->commitSensitivity(gradIndex, numGrads);
-        
-        // De-activate this parameter for next sensitivity calc
-        theParam->activate(false);
-      }
-
-      return 0;
+  return 0;
 }
 
 

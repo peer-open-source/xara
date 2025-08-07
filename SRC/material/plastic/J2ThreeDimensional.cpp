@@ -82,14 +82,12 @@ J2ThreeDimensional ::J2ThreeDimensional(int tag,
 }
 
 
-//elastic constructor
 J2ThreeDimensional ::J2ThreeDimensional(int tag, double K, double G)
  : J2Plasticity(tag, ND_TAG_J2ThreeDimensional, K, G)
 {
 }
 
 
-//destructor
 J2ThreeDimensional ::~J2ThreeDimensional() {}
 
 

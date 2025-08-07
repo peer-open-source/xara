@@ -108,7 +108,9 @@ public:
     return -1;
   }
 
+  //
   // New response API
+  //
   template <int n, const FrameStressLayout& scheme>
   int setTrialState(const OpenSees::VectorND<n>& e);
 
@@ -123,6 +125,27 @@ public:
     int m = this->getOrder();
 
     const Vector& s = this->getStressResultant();
+    for (int i=0; i<n; i++) {
+      sout[i] = 0.0;
+      for (int j=0; j<m; j++)
+        if (layout(j) == scheme[i])
+          sout[i] = s(j);
+    }
+
+    return sout;
+  }
+
+  template <int n, const FrameStressLayout& scheme>
+  OpenSees::VectorND<n> 
+  getResultantGradient(int grad, bool conditional) {
+
+    OpenSees::VectorND<n> sout;
+
+    const ID& layout = this->getType();
+
+    int m = this->getOrder();
+
+    const Vector& s = this->getStressResultantSensitivity(grad, conditional);
     for (int i=0; i<n; i++) {
       sout[i] = 0.0;
       for (int j=0; j<m; j++)
@@ -261,7 +284,8 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) {
   // optimized out by the compiler, however this might be 
   // optimistic
   //
-  if constexpr (l.v[0] == -1) {
+  if constexpr (l.v[0] == -1) 
+  {
     for (int j=0; j<m; j++)
       switch (layout(j)) {
         case FrameStress::Bishear:

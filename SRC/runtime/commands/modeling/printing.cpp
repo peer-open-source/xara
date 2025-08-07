@@ -18,7 +18,7 @@
 #endif
 #include <assert.h>
 #include <tcl.h>
-#include <G3_Logging.h>
+#include <Logging.h>
 #include <FileStream.h>
 #include <DummyStream.h>
 

@@ -305,7 +305,7 @@ KrylovAccelerator2::updateTangent(void)
 }
 
 void
-KrylovAccelerator2::Print(OPS_Stream &s, int flag)
+KrylovAccelerator2::Print(OPS_Stream &s, int flag) const
 {
   s << "KrylovAccelerator2" << endln;
   s << "\tMax subspace dimension: " << maxDimension << endln;
