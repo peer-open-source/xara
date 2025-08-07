@@ -27,6 +27,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cmath.h>
 #include <string.h>
 
 #define OPS_CONSOLE std::cout
