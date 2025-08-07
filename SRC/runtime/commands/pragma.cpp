@@ -12,8 +12,6 @@
 
 class Domain;
 
-int G3_AddTclAnalysisAPI(Tcl_Interp *interp, Domain* domain);
-
 int
 TclObjCommand_pragma([[maybe_unused]] ClientData clientData, 
                      Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[])

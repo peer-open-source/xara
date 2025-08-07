@@ -64,9 +64,9 @@ Tcl_CmdProc responseSpectrumAnalysis;
 // Add commands to the interpreter that take the AnalysisBuilder as clientData.
 //
 int
-G3_AddTclAnalysisAPI(Tcl_Interp *interp, Domain* domain)
+G3_AddTclAnalysisAPI(Tcl_Interp *interp, BasicModelBuilder& context)
 {
-  BasicAnalysisBuilder *builder = new BasicAnalysisBuilder(domain);
+  BasicAnalysisBuilder *builder = new BasicAnalysisBuilder(context);
   Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, builder, nullptr);
   Tcl_CreateCommand(interp, "_clearAnalysis", &TclCommand_clearAnalysis, builder, nullptr);
 
