@@ -90,7 +90,7 @@ class SoilFootingSection2d: public SectionForceDeformation
       double Kv, Kh, Kt;
       double M;
 
-      double h, hCurr, hPrev, dhCurr, dVtemp;
+      double h, hPrev, dhCurr, dVtemp;
 
       // info about section force, disp, and stiffness
       Vector e, eCommit, deModel;
@@ -122,7 +122,7 @@ class SoilFootingSection2d: public SectionForceDeformation
       // bounding surface parameters
       double a, b, ccc, d, eee, f;
       double A, B;
-      double Fv, Fh, Fm;
+      double Fv;//, Fh, Fm;
       double alpha, beta, pult;
       double tolerance;
       double soilFree;
