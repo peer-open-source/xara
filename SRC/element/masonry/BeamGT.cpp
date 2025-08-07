@@ -32,7 +32,6 @@
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <math.h>
