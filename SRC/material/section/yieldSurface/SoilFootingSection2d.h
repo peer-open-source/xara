@@ -90,7 +90,7 @@ class SoilFootingSection2d: public SectionForceDeformation
       double Kv, Kh, Kt;
       double M;
 
-      double h, hPrev, dhCurr, dVtemp;
+      double h, hCurr, hPrev, dVtemp;
 
       // info about section force, disp, and stiffness
       Vector e, eCommit, deModel;
