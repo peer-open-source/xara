@@ -29,6 +29,7 @@
 // Revision: A
 //
 #include <assert.h>
+#include <cmath>
 
 #include <ArrayOfTaggedObjects.h>
 #include <AnalysisModel.h>
@@ -697,7 +698,7 @@ AnalysisModel::addModalDampingForce(LinearSOE* theSOE)
     double eigenvalue = (*eigenValues)(i);
     double modalDampingValue = (*modalDampingValues)(i);
     if (eigenvalue > 0 && modalDampingValue != 0.0) {
-      double wn = sqrt(eigenvalue);
+      double wn = std::sqrt(eigenvalue);
 
       double *eigenVectorI = &eigenVectors[numDOF*i];
       double beta = 0.0;
