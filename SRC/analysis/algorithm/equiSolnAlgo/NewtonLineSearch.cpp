@@ -205,7 +205,7 @@ NewtonLineSearch::recvSelf(int cTag,
 
 
 void
-NewtonLineSearch::Print(OPS_Stream &s, int flag)
+NewtonLineSearch::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) 
     s << "NewtonLineSearch\n";

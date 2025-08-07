@@ -37,6 +37,19 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
   // otherwise just set the load factor
   //
 
+  if (theLoad->getClassTag() == LOAD_TAG_FrameLoad) {
+
+    if (loadFactor == 0.0)
+      frame_loads.erase((FrameLoad*)theLoad);
+
+    else if (loadFactor == 1.0) {
+      FrameLoad* frame_load = (FrameLoad*)theLoad;
+      if (!frame_load->conservative())
+        frame_loads.insert(frame_load);
+    }
+    return 0;
+  }
+
   //
   // a. Store the load for computeReactions()
   //
@@ -49,13 +62,6 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
   const Vector &data = theLoad->getData(type, loadFactor);
   // double L = theCoordTransf->getInitialLength();
 
-  // if (type == LOAD_TAG_FrameLoad && loadFactor == 1.0)
-  //   frame_loads.push_back((FrameLoad*)theLoad);
-
-  // else if (type == LOAD_TAG_FrameLoad && loadFactor == 1.0)
-  //     frame_loads.push_back((FrameLoad*)theLoad);
-
-  // else 
   if (type == LOAD_TAG_Beam3dUniformLoad) {
     double wy = data(0)*loadFactor;  // Transverse
     double wz = data(1)*loadFactor;  // Transverse
@@ -65,7 +71,7 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
     this->wy += wy;
     this->wz += wz;
     
-    double P  =     wx*L;
+    double P  =     wx*L; // +/- 
     double Vy = 0.5*wy*L;
     double Vz = 0.5*wz*L;
 
@@ -121,6 +127,7 @@ BasicFrame3d::addLoad(ElementalLoad *theLoad, double loadFactor)
     p0[2] -= V2;
     p0[3] = Pz*(1.0-a/L); // V1
     p0[4] = Pz*a/L; // V2
+
 
     // Fixed end forces in basic system
     double L2 = 1.0/(L*L);
@@ -205,7 +212,7 @@ BasicFrame3d::computeReactions(double* p0)
       double wz = data[1] * loadFactor; // Transverse
       double wa = data[2] * loadFactor; // Axial
 
-      p0[0] -= wa * L;
+      p0[0] -= wa * L; // Axial load
       double V = 0.5 * wy * L;
       p0[1] -= V;
       p0[2] -= V;

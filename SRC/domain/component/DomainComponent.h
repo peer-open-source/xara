@@ -48,20 +48,18 @@ class Renderer;
 
 class DomainComponent: public TaggedObject, public MovableObject
 {
-  public:
-    virtual ~DomainComponent();
+public:
+  virtual ~DomainComponent();
 
-    virtual void setDomain(Domain *theDomain);
-    virtual Domain *getDomain(void) const final;
+  virtual void setDomain(Domain *);
+  virtual Domain *getDomain() const final;
 
-    // Method for visualisation, default does nothing
-    virtual int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
 
-  protected:
-    DomainComponent(int tag, int classTag);
-    
-  private:    
-    Domain *theDomain; // a pointer to the enclosing Domain object
+protected:
+  DomainComponent(int tag, int classTag);
+  
+private:    
+  Domain *theDomain; // a pointer to the enclosing Domain object
 };
 
 #endif

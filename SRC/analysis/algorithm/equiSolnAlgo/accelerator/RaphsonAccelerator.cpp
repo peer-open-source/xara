@@ -95,7 +95,7 @@ RaphsonAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& up
 }
 
 void
-RaphsonAccelerator::Print(OPS_Stream &s, int flag)
+RaphsonAccelerator::Print(OPS_Stream &s, int flag) const
 {
   s << "RaphsonAccelerator\n";
 }

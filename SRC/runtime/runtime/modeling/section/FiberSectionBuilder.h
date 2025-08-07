@@ -95,7 +95,8 @@ public:
     return 0;
   }
 
-  int addFiber(int tag, int mat, double area, const Vector& cPos) 
+  int
+  addFiber(int tag, int mat, double area, const Vector& cPos) 
   {
     if (area <= 0.0) {
       opserr << OpenSees::PromptValueError
@@ -130,7 +131,8 @@ FiberSectionBuilder<2, UniaxialMaterial, FiberSection2dInt>::addHFiber(int tag, 
 
   UniaxialMaterial * theMaterial = builder.getTypedObject<UniaxialMaterial>(mat);
   if (theMaterial == nullptr) {
-    opserr << OpenSees::PromptValueError << "no material with tag " << mat << " for fiber " << tag << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "no material with tag " << mat << " for fiber " << tag << "\n";
     return -1;
   }
 

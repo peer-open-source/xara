@@ -6,7 +6,7 @@
 #==============================================================================
 target_sources(OPS_Analysis
     PRIVATE
-
+        GS4.cpp
         BackwardEuler.cpp
         CentralDifferenceAlternative.cpp
         CentralDifference.cpp

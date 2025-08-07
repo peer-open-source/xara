@@ -375,25 +375,25 @@ EnvelopeNodeRecorder::record(int commitTag, double timeStamp)
 	}
 
       } else if (dataFlag == NodeData::EigenVector) {
-	int mode = dataIndex;
-	int column = mode - 1;
-	const Matrix &theEigenvectors = theNode->getEigenvectors();
-	if (theEigenvectors.noCols() > column) {
-	  int noRows = theEigenvectors.noRows();
-	  for (int j=0; j<numDOF; j++) {
-	    int dof = (*theDofs)(j);
-	    if (noRows > dof) {
-	      (*currentData)(cnt) = theEigenvectors(dof,column);
-	    } else 
-	      (*currentData)(cnt) = 0.0;
-	    cnt++;		
-	  }
-	} else {
-	  for (int j=0; j<numDOF; j++) {
-	    (*currentData)(cnt) = 0.0;
-	    cnt++;		
-	  }
-	}
+        int mode = dataIndex;
+        int column = mode - 1;
+        const Matrix &theEigenvectors = theNode->getEigenvectors();
+        if (theEigenvectors.noCols() > column) {
+          int noRows = theEigenvectors.noRows();
+          for (int j=0; j<numDOF; j++) {
+            int dof = (*theDofs)(j);
+            if (noRows > dof) {
+              (*currentData)(cnt) = theEigenvectors(dof,column);
+            } else 
+              (*currentData)(cnt) = 0.0;
+            cnt++;		
+          }
+        } else {
+          for (int j=0; j<numDOF; j++) {
+            (*currentData)(cnt) = 0.0;
+            cnt++;		
+          }
+        }
       }
     }
   }

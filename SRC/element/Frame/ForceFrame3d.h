@@ -88,8 +88,6 @@ class ForceFrame3d: public BasicFrame3d,
 
   // Element: Sensitivity
   const Vector &getResistingForceSensitivity(int gradNumber);
-  const Matrix &getKiSensitivity(int gradNumber);
-  const Matrix &getMassSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
   int getResponseSensitivity(int responseID, int gradNumber, Information &);
 

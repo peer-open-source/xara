@@ -1341,7 +1341,7 @@ CubicFrame3d<shear,nwm>::getResistingForceSensitivity(int gradNumber)
     double wti  = wt[i];
 
     // Get section stress resultant gradient
-    const VectorND<nsr> ds = theSections[i]->getResultantGradient<nsr,scheme>(gradNumber, true);
+    const VectorND<nsr> ds = theSections[i]->template getResultantGradient<nsr,scheme>(gradNumber, true);
 
     // Perform numerical integration on internal force gradient
     for (int j = 0; j < nsr; j++) {

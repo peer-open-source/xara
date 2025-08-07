@@ -350,9 +350,8 @@ EQPath::update(const Vector &dU)
 		   ElementIter &theElemIter = theDomain->getElements();    
 		   while ((elePtr = theElemIter()) != 0)
 		   {
-                         // cmp: removed to silence unused variable warning
-                         // Node **nodes=elePtr->getNodePtrs();
-			   
+			// cmp: removed to silence unused variable warning
+			// Node **nodes=elePtr->getNodePtrs();
 		   }
 	   }
 	   else {

@@ -130,15 +130,15 @@ ModifiedNewton::recvSelf(int cTag,
 }
 
 void
-ModifiedNewton::Print(OPS_Stream &s, int flag)
+ModifiedNewton::Print(OPS_Stream &s, int flag) const
 {
-    if (flag == 0) {
-        s << "ModifiedNewton";
-    }
+  if (flag == 0) {
+      s << "ModifiedNewton";
+  }
 }
 
 int
-ModifiedNewton::getNumIterations()
+ModifiedNewton::getNumIterations() const
 {
   return numIterations;
 }

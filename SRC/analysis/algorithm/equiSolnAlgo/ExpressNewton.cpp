@@ -171,7 +171,7 @@ ExpressNewton::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBrok
 
 
 void
-ExpressNewton::Print(OPS_Stream &s, int flag)
+ExpressNewton::Print(OPS_Stream &s, int flag) const
 {
   s << "\t ExpressNewton algorithm";
 }

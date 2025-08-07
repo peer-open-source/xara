@@ -65,14 +65,6 @@ PenaltyConstraintHandler::handle(const ID *nodesLast)
     // first check links exist to a Domain and an AnalysisModel object
     Domain *theDomain = this->getDomainPtr();
     AnalysisModel *theModel = this->getAnalysisModelPtr();
-    // Integrator *theIntegrator = this->getIntegratorPtr();    
-    
-    // if ((theDomain == 0) || (theModel == 0) || (theIntegrator == 0)) {
-	// opserr << "WARNING PenaltyConstraintHandler::handle() - ";
-	// opserr << " setLinks() has not been called\n";
-	// return -1;
-    // }
-
     
     // get number of elements and nodes in the domain 
     // and init the theFEs and theDOFs arrays
@@ -116,25 +108,25 @@ PenaltyConstraintHandler::handle(const ID *nodesLast)
     // now see if we have to set any of the dof's to -3
     //    int numLast = 0;
     if (nodesLast != 0) 
-	for (int i=0; i<nodesLast->Size(); i++) {
-	    int nodeID = (*nodesLast)(i);
-	    Node *nodPtr = theDomain->getNode(nodeID);
-	    if (nodPtr != 0) {
-		dofPtr = nodPtr->getDOF_GroupPtr();
-		
-		const ID &id = dofPtr->getID();
-		// set all the dof values to -3
-		for (int j=0; j < id.Size(); j++) 
-		    if (id(j) == -2) {
-                dofPtr->setID(j,-3);
-                count3++;
-		    } else {
-                opserr << "WARNING PenaltyConstraintHandler::handle() ";
-                opserr << " - boundary sp constraint in subdomain";
-                opserr << " this should not be - results suspect \n";
-		    }
-	    }
-	}
+      for (int i=0; i<nodesLast->Size(); i++) {
+          int nodeID = (*nodesLast)(i);
+          Node *nodPtr = theDomain->getNode(nodeID);
+          if (nodPtr != 0) {
+        dofPtr = nodPtr->getDOF_GroupPtr();
+        
+        const ID &id = dofPtr->getID();
+        // set all the dof values to -3
+        for (int j=0; j < id.Size(); j++) 
+            if (id(j) == -2) {
+              dofPtr->setID(j,-3);
+              count3++;
+            } else {
+              opserr << "WARNING PenaltyConstraintHandler::handle() ";
+              opserr << " - boundary sp constraint in subdomain";
+              opserr << " this should not be - results suspect \n";
+            }
+          }
+      }
 
     // create the FE_Elements for the Elements and add to the AnalysisModel
     ElementIter &theEle = theDomain->getElements();
@@ -148,13 +140,12 @@ PenaltyConstraintHandler::handle(const ID *nodesLast)
       // do independent analysis .. then subdomain part of this analysis so create
       // an FE_element & set subdomain to point to it.
       if (elePtr->isSubdomain() == true) {
-	Subdomain *theSub = (Subdomain *)elePtr;
-	if (theSub->doesIndependentAnalysis() == false) {
-          fePtr = new FE_Element(numFeEle++, elePtr);
-	  theModel->addFE_Element(fePtr);
-	  theSub->setFE_ElementPtr(fePtr);
-	}
-
+        Subdomain *theSub = (Subdomain *)elePtr;
+        if (theSub->doesIndependentAnalysis() == false) {
+                fePtr = new FE_Element(numFeEle++, elePtr);
+          theModel->addFE_Element(fePtr);
+          theSub->setFE_ElementPtr(fePtr);
+        }
       } else {	
 	// just a regular element .. create an FE_Element for it & add to AnalysisModel
         fePtr = new FE_Element(numFeEle++, elePtr);	
@@ -167,18 +158,16 @@ PenaltyConstraintHandler::handle(const ID *nodesLast)
     // add to the AnalysisModel
     SP_ConstraintIter &theSPss = theDomain->getDomainAndLoadPatternSPs();
     while ((spPtr = theSPss()) != nullptr) {
-        fePtr = new PenaltySP_FE(numFeEle, *theDomain, *spPtr, alphaSP);
-	theModel->addFE_Element(fePtr);
-	numFeEle++;
+      theModel->addFE_Element(new PenaltySP_FE(numFeEle, *theDomain, *spPtr, alphaSP));
+      numFeEle++;
     }	    
 
     // create the PenaltyMP_FE for the MP_Constraints and 
     // add to the AnalysisModel
     MP_ConstraintIter &theMPs = theDomain->getMPs();
     while ((mpPtr = theMPs()) != nullptr) {
-        fePtr = new PenaltyMP_FE(numFeEle, *theDomain, *mpPtr, alphaMP);
-	theModel->addFE_Element(fePtr);
-	numFeEle++;
+      theModel->addFE_Element(new PenaltyMP_FE(numFeEle, *theDomain, *mpPtr, alphaMP));
+      numFeEle++;
     }	        
     
     return count3;

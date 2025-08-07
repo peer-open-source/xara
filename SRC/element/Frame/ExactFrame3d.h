@@ -33,7 +33,8 @@ public:
     LogRight
   };
 
-  ExactFrame3d(int tag, std::array<int,nen>& nodes,
+  ExactFrame3d(int tag,
+               std::array<int,nen>& nodes,
                FrameSection *section[nen-1], 
                CrdTransf& transf
   );

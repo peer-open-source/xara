@@ -200,12 +200,12 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     dd22(1,2) = threeDtangent(2,4);
     dd22(2,2) = threeDtangent(4,4);
 
-    //set norm
+    // set norm
     norm = condensedStress.Norm();
     if (count == 0)
       norm0 = norm;
 
-    // condensation 
+    // condensation
     dd22.Solve(condensedStress, strainIncrement);
 
     this->Tstrain22 -= strainIncrement(0);

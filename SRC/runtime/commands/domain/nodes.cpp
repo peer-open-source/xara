@@ -872,11 +872,11 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   int tag, dof, responseID;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << "WARNING nodeResponse nodeTag? dof? - could not read nodeTag? \n";
+    opserr << "WARNING could not read nodeTag? \n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &dof) != TCL_OK) {
-    opserr << "WARNING nodeResponse nodeTag? dof? - could not read dof? \n";
+    opserr << "WARNING could not read dof? \n";
     return TCL_ERROR;
   }
 
@@ -889,6 +889,8 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       responseID = (int)NodeData::Accel;
     else if (strcmp(argv[3], "resiudal") == 0)
       responseID = (int)NodeData::UnbalancedLoad;
+    else if (strcmp(argv[3], "reactionForce") == 0)
+      responseID = (int)NodeData::Reaction;
     else {
       opserr << "WARNING unknown response " << argv[3] << "\n";
       return TCL_ERROR;

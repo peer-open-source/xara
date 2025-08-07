@@ -376,9 +376,11 @@ ExactFrame3d<nen,nwm>::update()
     }
   } // Main Gauss loop
 
-
   for (FrameLoad* load : frame_loads) {
     for (auto [xp, wp] : load->quadrature()) {
+      const double w  = wp*jxs;
+      const double xc = xp;
+
       double shp[2][nen];
       lagrange<nen>(xp*jxs, xn, shp);
       Versor q;
@@ -387,40 +389,17 @@ ExactFrame3d<nen,nwm>::update()
       else if (xp == 1.0)
         q = theNodes[nen-1]->getTrialRotation();
       else {
-        // TODO: this is not tested
-        Vector3D v{};
-        for (unsigned i=0; i<nen; i++)
-          v += shp[0][i]*theNodes[i]->getTrialDisp();
-        q = Versor::from_matrix(R0*ExpSO3(v));
+        q = theNodes[0]->getTrialRotation().slerp(
+          theNodes[nen-1]->getTrialRotation(), xp);
       }
       Matrix3D R  = MatrixFromVersor(q);
-      const double w = wp;
-      const double xc = xp;
-      // for_int<nen>([&](auto i_) {
-      //     constexpr int i = decltype(i_)::value;
-      //     load->addLoadAtPoint<i, nen, ndf>(p, xc, w * shp[0][i], R0, R);
-
-      //     for_int<nen>([&](auto j_) {
-      //         constexpr int j = decltype(j_)::value;
-      //         load->addTangAtPoint<i, j, nen, ndf>(K, xc, w * shp[0][i] * shp[0][j], R0, R);
-      //     });
-      // });
-      // for_int<nen>([&]<auto I>() constexpr {
-      //   constexpr int i = I;
-      //   load->addLoadAtPoint<I, nen, ndf>(p, xc, w * shp[0][i], R0, R);
-
-      //   for_int<nen>([&]<auto J>() constexpr {
-      //       constexpr int j = J;
-      //       load->addTangAtPoint<I, J, nen, ndf>(K, xc, w * shp[0][i] * shp[0][j], R0, R);
-      //   });
-      // });
 #ifndef _MSC_VER
       for_int<nen>([&](auto i_) constexpr {
         constexpr int i = i_.value;
-        load->addLoadAtPoint<i,nen,ndf>(p, xc, w*shp[0][i], R0, R);
+        load->addLoadAtPoint<i,nen,ndf>(p, xc, w*shp[0][i], jxs, R0, R);
         for_int<nen>([&](auto j_) constexpr {
           constexpr int j = j_.value;
-          load->addTangAtPoint<i,j,nen,ndf>(K, xc, w*shp[0][i]*shp[0][j], R0, R);
+          load->addTangAtPoint<i,j,nen,ndf>(K, xc, w*shp[0][i]*shp[0][j], jxs, R0, R);
         });
       });
 #endif

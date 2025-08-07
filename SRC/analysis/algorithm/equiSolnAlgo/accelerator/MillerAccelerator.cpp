@@ -199,7 +199,7 @@ MillerAccelerator::updateTangent(void)
 }
 
 void
-MillerAccelerator::Print(OPS_Stream &s, int flag)
+MillerAccelerator::Print(OPS_Stream &s, int flag) const
 {
   s << "MillerAccelerator" << "\n";
   s << "\tMax subspace dimension: " << maxDimension << "\n";

@@ -53,17 +53,15 @@ class Newmark1 : public TransientIntegrator
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);        
 
-    int domainChanged();    
-    int initialize();    
+    int domainChanged();
     int newStep(double deltaT);    
     int revertToLastStep();            
     int update(const Vector &deltaU);
 
     const Vector &getVel();
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
 
     void Print(OPS_Stream &, int flag) final;        
     

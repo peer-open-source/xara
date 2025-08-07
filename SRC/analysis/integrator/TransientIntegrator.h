@@ -44,31 +44,24 @@ class Vector;
 
 class TransientIntegrator : public IncrementalIntegrator
 {
-  public:
-    TransientIntegrator(int classTag);
-    virtual ~TransientIntegrator();
+public:
+  TransientIntegrator(int classTag);
+  virtual ~TransientIntegrator();
 
-    virtual int newStep(double dT) = 0;
-    virtual int formUnbalance();
-    virtual int formTangent(int statusFlag);
+  virtual int newStep(double dT) = 0;
+  virtual int formUnbalance();
+  virtual int formTangent(int statusFlag);
 #if 1
-    virtual int formTangent(int statusFlag, 
-			    double iFactor,
-			    double cFactor) final;
+  virtual int formTangent(int statusFlag, 
+        double iFactor,
+        double cFactor) final;
 #endif
 
-    // for Integrator
-    virtual int formEleResidual(FE_Element *theEle);
-    virtual int formNodUnbalance(DOF_Group *theDof);    
+  virtual const Vector& getVel() = 0; // For modal damping 
 
-
-    virtual const Vector& getVel(void) = 0; // For modal damping  
-    virtual int initialize(void) {return 0;};
-
-
-  protected:
-    
-  private:
+  // for Integrator
+  int formEleResidual(FE_Element *theEle) override;
+  int formNodUnbalance(DOF_Group *theDof) override;
 };
 
 #endif

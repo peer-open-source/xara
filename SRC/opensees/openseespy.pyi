@@ -41,6 +41,11 @@ class _Elements:
                ) -> int: ...
 
 class _Algorithm:
+
+    def integrator(self, type: str, *args, **kwargs):
+        """
+        Create an integrator of the specified type.
+        """
     
     def algorithm(self, type: str, *args, **kwargs) -> int:
         """
@@ -52,6 +57,19 @@ class _Algorithm:
                   tol=0.8) -> int:
         """
         Create a specific algorithm for the analysis.
+        """
+
+    def analysis(self, type: str):
+        """
+        Create an analysis of the specified type.
+        """
+
+    def analyze(self, nsteps: int = 1, *args) -> int:
+        """
+        Perform the analysis for a specified number of steps.
+        
+        :param nsteps: number of analysis steps to perform
+        :type nsteps: |integer|
         """
 
 class Model(_Elements,_Algorithm):

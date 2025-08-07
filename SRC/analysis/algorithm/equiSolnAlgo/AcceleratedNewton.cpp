@@ -247,7 +247,7 @@ AcceleratedNewton::recvSelf(int cTag, Channel &theChannel,
 }
 
 void
-AcceleratedNewton::Print(OPS_Stream &s, int flag)
+AcceleratedNewton::Print(OPS_Stream &s, int flag) const
 {
   s << "AcceleratedNewton" << endln;
   LinearSOE *theSOE = this->getLinearSOEptr();

@@ -260,7 +260,8 @@ LoadPattern::clearAll()
   }
 }
 
-NodalLoad *LoadPattern::removeNodalLoad(int tag)
+NodalLoad *
+LoadPattern::removeNodalLoad(int tag)
 {
   TaggedObject *obj = theNodalLoads->removeComponent(tag);
   if (obj == 0)

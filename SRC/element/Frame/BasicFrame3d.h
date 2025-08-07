@@ -15,6 +15,7 @@
 #include <VectorND.h>
 #include <FrameLoad.h>
 #include <ElementalLoad.h>
+#include <set>
 #include <vector>
 #include <utility>
 
@@ -66,7 +67,7 @@ protected:
   void computeReactions(double *p0);
 
    std::vector<std::pair<ElementalLoad*,double>> eleLoads;
-   std::vector<FrameLoad*> frame_loads;
+   std::set<FrameLoad*> frame_loads;
 
 private:
   double L;

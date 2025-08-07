@@ -38,12 +38,12 @@ class MatParameter : public Parameter
   MatParameter();
   virtual ~MatParameter();
 
-  virtual void Print(OPS_Stream &s, int flag =0);
+  virtual void Print(OPS_Stream &s, int flag);
   
-  virtual int sendSelf(int commitTag, Channel &theChannel);  
-  virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  virtual int sendSelf(int commitTag, Channel &);  
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-  virtual void setDomain(Domain *theDomain);
+  virtual void setDomain(Domain *);
 
  protected:
   
@@ -53,8 +53,6 @@ class MatParameter : public Parameter
 
   int theMaterialTag;
   int theParameterID;
-
-  Domain *theDomain;
 };
 
 #endif

@@ -83,7 +83,7 @@ public:
 
     int formUnbalance();
 
-    EquiSolnAlgo*        getAlgorithm();
+    const EquiSolnAlgo*  getAlgorithm() const;
     StaticIntegrator*    getStaticIntegrator();
     TransientIntegrator* getTransientIntegrator();
 
@@ -97,9 +97,14 @@ public:
     int analyzeStatic(int num_steps, int flag);
     
     int analyzeTransient(int numSteps, double dT);
+    int analyzeVariable(int numSteps, double dT, double dtMin, double dtMax, int Jd);
+private:
     int analyzeStep(double dT);
     int analyzeSubLevel(int level, double dT);
-    int analyzeVariable(int numSteps, double dT, double dtMin, double dtMax, int Jd);
+
+public:
+    int analyzeGradient();
+    int setGradientType(int flag);
 
     void wipe();
 

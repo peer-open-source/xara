@@ -30,7 +30,7 @@ public:
         bool aflag=false);
 
     ~GS4();
-    
+
     //
     // Integrator
     //
@@ -40,11 +40,15 @@ public:
     int formNodTangent(DOF_Group *theDof)   final;
     int formEleResidual(FE_Element* theEle) final;
     int formNodUnbalance(DOF_Group* theDof) final;
+
+    //
+    // IncrementalIntegrator
+    //
+
     // Sensitivity
     int formSensitivityRHS(int gradNum);
-    int formIndependentSensitivityRHS();
-    int saveSensitivity   (const Vector &v, int gradNum, int numGrads);
-    int commitSensitivity (int gradNum, int numGrads);  
+    int updateGradient   (const Vector &v, int gradNum, int numGrads);
+    int commitGradient (int gradNum, int numGrads);
     int computeSensitivities();
 
     //
@@ -99,8 +103,5 @@ private:
     Vector *dAa;
     Vector *dVa;
     int assemblyFlag;
-    Vector independentRHS;
     Vector dUn, dVn, dAn;
 };
-
-#endif

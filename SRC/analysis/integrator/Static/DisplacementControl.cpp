@@ -616,8 +616,8 @@ DisplacementControl::formSensitivityRHS(int grad)
   this->setGradIndex(grad);
 
   // get model
-  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
   LinearSOE* theSOE = this->getLinearSOE();
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
   // Loop through elements
   FE_Element *elePtr;
@@ -626,12 +626,12 @@ DisplacementControl::formSensitivityRHS(int grad)
     theSOE->addB(elePtr->getResidual(this) , elePtr->getID()  );
 
 
-  (*Residual)=theSOE->getB();
+  (*Residual) = theSOE->getB();
 
   // needed to calculate dLambdadh
   Residual->addVector(1.0,*phat, (*dLAMBDAdh)(grad) ); 
 
-  Residual->addVector(1.0,*dphatdh, currentLambda ); //needed to calculate dLambdadh
+  Residual->addVector(1.0,*dphatdh, currentLambda ); // needed to calculate dLambdadh
   
   //  Matrix dKdh(size,size);
   //         dKdh.Zero();
@@ -720,7 +720,6 @@ DisplacementControl::saveLambdaSensitivity(double dlambdadh, int gradNum, int nu
 int 
 DisplacementControl::commitSensitivity(int gradNum, int numGrads)
 {
-
    AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
    // Loop through the FE_Elements and set unconditional sensitivities
@@ -737,12 +736,12 @@ DisplacementControl::commitSensitivity(int gradNum, int numGrads)
 bool 
 DisplacementControl::computeSensitivityAtEachIteration()
 {
-   return true;     
+  return true;     
 }
 
 
 int 
-DisplacementControl::computeSensitivities(void)
+DisplacementControl::computeSensitivities()
 {
   LinearSOE *theSOE = this->getLinearSOE();
   
@@ -782,10 +781,9 @@ DisplacementControl::computeSensitivities(void)
     
     //  this->formTangDispSensitivity(dUhatdh,gradIndex);
     this->formSensitivityRHS(gradIndex);
-     
     this->formTangent(tangFlag);
     theSOE->solve();
-    *dUIJdh=theSOE->getX();// sensitivity of the residual displacement
+    *dUIJdh = theSOE->getX();// sensitivity of the residual displacement
  
     this->formTangDispSensitivity(dUhatdh,gradIndex);
     double dlamdh = this->getLambdaSensitivity(gradIndex);
@@ -806,7 +804,7 @@ DisplacementControl::computeSensitivities(void)
     this->saveSensitivity( (*sensU), gradIndex, numGrads );
     this->saveLambdaSensitivity(dlamdh, gradIndex, numGrads);
     
-    // Commit unconditional history variables (also for elastic problems; strain sens may be needed anyway)
+    // Commit unconditional history variables
     this->commitSensitivity(gradIndex, numGrads);
 
     // De-activate this parameter for next sensitivity calc

@@ -49,7 +49,6 @@
 // Analysis
 #include <AnalysisModel.h>
 #include <EquiSolnAlgo.h>
-#include <Integrator.h>
 #include <StaticIntegrator.h>
 #include <LinearSOE.h>
 #include <EigenSOE.h>
@@ -192,7 +191,6 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
   // sensitivity
   Tcl_CreateCommand(interp, "computeGradients",      &computeGradients, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
   Tcl_CreateCommand(interp, "sensitivityAlgorithm",  &TclCommand_sensitivityAlgorithm, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
-//Tcl_CreateCommand(interp, "sensitivityIntegrator", &sensitivityIntegrator, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
   Tcl_CreateCommand(interp, "sensNodeDisp",          &sensNodeDisp, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
 //Tcl_CreateCommand(interp, "sensLambda",            &sensLambda, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL); // Abbas
   Tcl_CreateCommand(interp, "sensNodeVel",           &sensNodeVel, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);

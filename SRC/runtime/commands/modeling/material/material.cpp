@@ -38,7 +38,7 @@
 // #include <FiniteDeformationEP3D.h>
 
 
-
+Tcl_CmdProc TclCommand_newPlasticMaterial;
 Tcl_CmdProc TclCommand_newElasticMaterial;
 // Tcl_CmdProc TclCommand_newIsotropicMaterial;
 
@@ -53,6 +53,9 @@ TclCommand_addMaterial(ClientData clientData, Tcl_Interp* interp,
     {"ElasticIsotropic",          TclCommand_newElasticMaterial},
     {"Elastic",                   TclCommand_newElasticMaterial},
     {"Isotropic",                 TclCommand_newElasticMaterial},
+    {"J2",                        TclCommand_newPlasticMaterial},
+    {"J2Simplified",              TclCommand_newPlasticMaterial},
+    {"J2BeamFiber",               TclCommand_newPlasticMaterial},
   };
 
 

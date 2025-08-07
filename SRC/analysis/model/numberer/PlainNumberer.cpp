@@ -47,13 +47,6 @@
 #include <MP_Constraint.h>
 #include <Node.h>
 #include <MP_ConstraintIter.h>
-#include <elementAPI.h> // For OPS_ADD_RUNTIME macro
-
-void *
-OPS_ADD_RUNTIME_VPV(OPS_PlainNumberer)
-{
-    return new PlainNumberer();
-}
 
 PlainNumberer::PlainNumberer() 
 :DOF_Numberer(NUMBERER_TAG_PlainNumberer)

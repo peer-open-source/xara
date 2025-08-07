@@ -77,13 +77,6 @@ EquiSolnAlgo::getConvergenceTest()
 }
 
 
-// AnalysisModel *
-// EquiSolnAlgo::getAnalysisModelPtr() const
-// {
-//   return theModel;
-// }
-
-
 IncrementalIntegrator *
 EquiSolnAlgo::getIncrementalIntegratorPtr() const
 {

@@ -464,6 +464,9 @@ class Model:
             
         }
 
+        # Aug 2025, for xara._analysis
+        self._patterns = {}
+
     def eval(self, *args, **kwds):
         return self._openseespy.eval(*args, **kwds)
 

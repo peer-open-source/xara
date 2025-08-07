@@ -32,6 +32,25 @@ struct Versor {
     return u + 2.0 * vector.cross( scalar*u + vector.cross(u) );
   }
 
+  Versor slerp(const Versor& other, double t) const
+  {
+    if (t < 1e-8)
+      return *this;
+    if (t > 1.0 - 1e-8)
+      return other;
+
+    double c = std::acos(scalar * other.scalar + vector.dot(other.vector));
+    if (c < 1e-8)
+      return *this;
+    double a = std::sin((1.0-t)*c) / std::sin(c);
+    double b = std::sin(t*c) / std::sin(c);
+
+    return {
+      a * vector + b * other.vector,
+      a * scalar + b * other.scalar,
+    };
+  }
+
   inline void 
   normalize() {
     static constexpr double eps = 1e-12;

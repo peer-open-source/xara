@@ -673,7 +673,8 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
 
     // "SimplifiedJ2"  tag?  G?  K?  Fy? Hkin?  Hiso?
     enum class Position : int {
-      Tag, G, K, YieldStress, Hkin, Hiso, EndRequired, 
+      Tag, G, K, YieldStress, EndRequired, 
+      Hkin, Hiso,
       End,
       E, Nu, Lambda, Eta, Theta, Hmix, Hsat,
       SatStress, SatStress0,
@@ -685,7 +686,8 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "J2BeamFiber") == 0) {
     // J2BeamFiber $tag $E $v $sigmaY $Hiso $Hkin <$rho>
     enum class Position : int {
-      Tag, E, G, YieldStress, Hkin, Hiso, EndRequired,
+      Tag, E, G, YieldStress, EndRequired,
+      Hkin, Hiso,
       Density,
       End,
       Nu, K, Eta, Lambda, Theta, Hmix, Hsat,

@@ -9,7 +9,8 @@
 # SuperLU.h must include it. This could be made
 # cleaner if SuperLU.h stored pointers to SuperLU 
 # types, and not the types directly.
-target_link_libraries(OPS_SysOfEqn PUBLIC SuperLU)
+target_link_libraries(OPS_SysOfEqn     PUBLIC SuperLU)
+
 target_sources(OPS_SysOfEqn
   PRIVATE 
     SparseGenColLinSOE.cpp
@@ -24,17 +25,23 @@ target_sources(OPS_SysOfEqn
     SparseGenRowLinSolver.h
     SuperLU.h
 )
+target_include_directories(OPS_SysOfEqn     PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-# target_sources(OPS_Parallel
-#     PRIVATE 
-#         DistributedSuperLU.cpp
-#         DistributedSparseGenColLinSOE.cpp
-#         DistributedSparseGenRowLinSOE.cpp
-#     PUBLIC
-#         DistributedSuperLU.h
-#         DistributedSparseGenColLinSOE.h
-#         DistributedSparseGenRowLinSOE.h
-# )
-target_include_directories(OPS_SysOfEqn PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_include_directories(OPS_Parallel PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+#
+# SuperLU for distrubuted memory parallelism
+#
+
+add_library(OPS_SuperLU_Dist OBJECT EXCLUDE_FROM_ALL)
+target_link_libraries(OPS_SuperLU_Dist PUBLIC SUPERLU_DIST)
+target_sources(OPS_SuperLU_Dist
+    PRIVATE 
+        DistributedSuperLU.cpp
+        DistributedSparseGenColLinSOE.cpp
+        DistributedSparseGenRowLinSOE.cpp
+    PUBLIC
+        DistributedSuperLU.h
+        DistributedSparseGenColLinSOE.h
+        DistributedSparseGenRowLinSOE.h
+)
+target_include_directories(OPS_SuperLU_Dist PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 

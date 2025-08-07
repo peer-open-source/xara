@@ -385,12 +385,12 @@ Broyden::recvSelf(int cTag,
 
 
 void
-Broyden::Print(OPS_Stream &s, int flag)
+Broyden::Print(OPS_Stream &s, int flag) const
 {
-    if (flag == 0) {
-      s << "Broyden" << endln ;
-      s << "  Number of Iterations = " << numberLoops << endln ;
-    }
+  if (flag == 0) {
+    s << "Broyden" << endln ;
+    s << "  Number of Iterations = " << numberLoops << endln ;
+  }
 }
 
 

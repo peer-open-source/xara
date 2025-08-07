@@ -89,7 +89,7 @@ public:
   ~J2ThreeDimensional();
 
   const char*
-  getClassType(void) const
+  getClassType() const
   {
     return "J2ThreeDimensional";
   };

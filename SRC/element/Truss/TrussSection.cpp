@@ -1060,7 +1060,7 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
   }
 }
 
-// AddingSensitivity:BEGIN ///////////////////////////////////
+
 int
 TrussSection::setParameter(const char** argv, int argc, Parameter& param)
 {
@@ -1086,12 +1086,16 @@ TrussSection::setParameter(const char** argv, int argc, Parameter& param)
     return theSection->setParameter(argv, argc, param);
 }
 
+
 int
 TrussSection::updateParameter(int parameterID, Information& info)
 {
   switch (parameterID) {
-  case 2:  rho = info.theDouble; return 0;
-  default: return -1;
+    case 2:  
+      rho = info.theDouble; 
+      return 0;
+    default: 
+      return -1;
   }
 }
 

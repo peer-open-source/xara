@@ -41,33 +41,33 @@
 class ElasticMaterial : public UniaxialMaterial
 {
   public:
-    ElasticMaterial(int tag, double E, double eta = 0.0);
-    ElasticMaterial(int tag, double Epos, double eta, double Eneg);
+    ElasticMaterial(int tag, double E);
+    ElasticMaterial(int tag, double Epos, double eta, double Eneg, double density = 0.0);
     ElasticMaterial();
     ~ElasticMaterial();
 
-    const char *getClassType(void) const {return "ElasticMaterial";};
+    const char *getClassType() const {return "ElasticMaterial";};
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
     int setTrial(double strain, double &stress, double &tangent, double strainRate = 0.0); 
-    double getStrain(void) {return trialStrain;};
-    double getStrainRate(void) {return trialStrainRate;};
-    double getStress(void);
-    double getTangent(void);
-    double getDampTangent(void) {return eta;};
-    double getInitialTangent(void);
+    double getStrain() {return trialStrain;};
+    double getStrainRate() {return trialStrainRate;};
+    double getStress();
+    double getTangent();
+    double getDampTangent() {return eta;};
+    double getInitialTangent();
+    double getRho() final;
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-        FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &) final;  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag) final;
     
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
@@ -90,10 +90,8 @@ class ElasticMaterial : public UniaxialMaterial
     double Epos;
     double Eneg;
     double eta;
-
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
+    double density;
     int parameterID;
-    // AddingSensitivity:END ///////////////////////////////////////////
 };
 
 

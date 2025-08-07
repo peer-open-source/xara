@@ -41,21 +41,23 @@
 #define EigenIntegrator_h
 
 #include <Integrator.h>
+#include <MovableObject.h>
 
 class EigenSOE;
 class AnalysisModel;
 class FE_Element;
 class DOF_Group;
 class Vector;
+class OPS_Stream;
 
-class EigenIntegrator : public Integrator
+class EigenIntegrator : public Integrator, public MovableObject
 {
   public:
      EigenIntegrator();
      virtual ~EigenIntegrator();
      
-     void setLinks(AnalysisModel &theModel, EigenSOE &theSOE);
-       
+     void setLinks(AnalysisModel &, EigenSOE &);
+
      // methods to form the M and K matrices.
      virtual int formK();
      virtual int formM();
@@ -72,14 +74,14 @@ class EigenIntegrator : public Integrator
      virtual int formEleResidual(FE_Element *theEle);
      virtual int formNodUnbalance(DOF_Group *theDof);
 
-     virtual int newStep(void);
-     
+     virtual int newStep();
+
      virtual int getLastResponse(Vector &result, const ID &id);
 
      virtual int sendSelf(int commitTag, Channel &) override;
      virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;     
-     virtual void Print(OPS_Stream &s, int flag) override;
-     
+     virtual void Print(OPS_Stream &s, int flag);
+
  protected:
      virtual EigenSOE *getEigenSOEPtr() const;
      virtual AnalysisModel *getAnalysisModelPtr() const;

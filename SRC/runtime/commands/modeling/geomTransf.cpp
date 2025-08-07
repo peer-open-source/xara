@@ -323,6 +323,12 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
       return TCL_ERROR;
     }
     CrdTransf* t = new BasicFrameTransf3d(tb->template create<2,6>());
+    if (t == nullptr) {
+      opserr << OpenSees::PromptValueError 
+             << "failed to create transformation with tag " << tag 
+             << "\n";
+      return TCL_ERROR;
+    }
     return builder->addTaggedObject<CrdTransf>(*t);
   }
 

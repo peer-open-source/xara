@@ -73,294 +73,294 @@ TransformationConstraintHandler::~TransformationConstraintHandler()
 int
 TransformationConstraintHandler::handle(const ID *nodesLast)
 {
-    // first check links exist to a Domain and an AnalysisModel object
-    Domain *theDomain = this->getDomainPtr();
-    AnalysisModel *theModel = this->getAnalysisModelPtr();
-    
-    // get number ofelements and nodes in the domain 
-    // and init the theFEs and theDOFs arrays
-    int numMPConstraints = theDomain->getNumMPs();
+  // first check links exist to a Domain and an AnalysisModel object
+  Domain *theDomain = this->getDomainPtr();
+  AnalysisModel *theModel = this->getAnalysisModelPtr();
+  
+  // get number ofelements and nodes in the domain 
+  // and init the theFEs and theDOFs arrays
+  int numMPConstraints = theDomain->getNumMPs();
 
-    //    int numSPConstraints = theDomain->getNumSPs();    
-    int numSPConstraints = 0;
-    SP_ConstraintIter &theSP1s = theDomain->getDomainAndLoadPatternSPs();
-    SP_Constraint *theSP1; 
-    while ((theSP1 = theSP1s()) != 0) 
-      numSPConstraints++;
-    
-    numDOF = 0;
-    ID transformedNode(0, 64);
+  //    int numSPConstraints = theDomain->getNumSPs();    
+  int numSPConstraints = 0;
+  SP_ConstraintIter &theSP1s = theDomain->getDomainAndLoadPatternSPs();
+  SP_Constraint *theSP1; 
+  while ((theSP1 = theSP1s()) != 0) 
+    numSPConstraints++;
+  
+  numDOF = 0;
+  ID transformedNode(0, 64);
 
-    // create an ID of constrained node tags in MP_Constraints
-    ID constrainedNodesMP(0, numMPConstraints);
-    MP_Constraint **mps =0;
-    if (numMPConstraints != 0) {
-        mps = new MP_Constraint *[numMPConstraints];
+  // create an ID of constrained node tags in MP_Constraints
+  ID constrainedNodesMP(0, numMPConstraints);
+  MP_Constraint **mps =0;
+  if (numMPConstraints != 0) {
+      mps = new MP_Constraint *[numMPConstraints];
 
-        MP_ConstraintIter &theMPs = theDomain->getMPs();
-        MP_Constraint *theMP; 
-        int index = 0;
-        while ((theMP = theMPs()) != 0) {
-          int nodeConstrained = theMP->getNodeConstrained();
-          if (transformedNode.getLocation(nodeConstrained) < 0)
-            transformedNode[numDOF++] = nodeConstrained;
-          constrainedNodesMP[index] = nodeConstrained;
-          mps[index] = theMP;
-          index++;
-          }
-    }
-
-    // create an ID of constrained node tags in SP_Constraints
-    ID constrainedNodesSP(0, numSPConstraints);;
-    SP_Constraint **sps =0;
-    if (numSPConstraints != 0) {
-      sps = new SP_Constraint *[numSPConstraints];
-      if (sps == 0) {
-          opserr << "WARNING TransformationConstraintHandler::handle() - ";
-          opserr << "ran out of memory for SP_Constraints"; 
-          opserr << " array of size " << numSPConstraints << endln;
-          if (mps != 0) delete [] mps;
-          if (sps != 0) delete [] sps;
-          return -3;          
-      }
-      SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
-      SP_Constraint *theSP; 
+      MP_ConstraintIter &theMPs = theDomain->getMPs();
+      MP_Constraint *theMP; 
       int index = 0;
-      while ((theSP = theSPs()) != 0) {
-        int constrainedNode = theSP->getNodeTag();
-        if (transformedNode.getLocation(constrainedNode) < 0)
-          transformedNode[numDOF++] = constrainedNode;          
-        constrainedNodesSP[index] = constrainedNode;
-        sps[index] = theSP;
+      while ((theMP = theMPs()) != 0) {
+        int nodeConstrained = theMP->getNodeConstrained();
+        if (transformedNode.getLocation(nodeConstrained) < 0)
+          transformedNode[numDOF++] = nodeConstrained;
+        constrainedNodesMP[index] = nodeConstrained;
+        mps[index] = theMP;
         index++;
-      }      
-    }
-
-    // create an array for the DOF_Groups and zero it
-    theDOFs = new DOF_Group *[numDOF]{};
-
-
-    //create a DOF_Group for each Node and add it to the AnalysisModel.
-    //    :must of course set the initial IDs
-    NodeIter &theNod = theDomain->getNodes();
-    Node *nodPtr;
-
-    int numDofGrp = 0;
-    int count3 = 0;
-    int countDOF =0;
-    
-    numConstrainedNodes = 0;
-    numDOF = 0;
-    while ((nodPtr = theNod()) != 0) {
-        DOF_Group *dofPtr = 0;
-
-      int nodeTag = nodPtr->getTag();
-      int numNodalDOF = nodPtr->getNumberDOF();
-      int loc = -1;
-      int createdDOF = 0;
-
-      loc = constrainedNodesMP.getLocation(nodeTag);
-      if (loc >= 0) {
-
-        TransformationDOF_Group *tDofPtr = 
-          new TransformationDOF_Group(numDofGrp++, nodPtr, mps[loc], this); 
-
-        createdDOF = 1;
-        dofPtr = tDofPtr;
-        
-        // add any SPs
-        if (numSPConstraints != 0) {
-          loc = constrainedNodesSP.getLocation(nodeTag);
-          if (loc >= 0) {
-            tDofPtr->addSP_Constraint(*(sps[loc]));
-            for (int i = loc+1; i<numSPConstraints; i++) {
-            if (constrainedNodesSP(i) == nodeTag)
-              tDofPtr->addSP_Constraint(*(sps[i]));
-            }
-          }
-          // add the DOF to the array          
-          theDOFs[numDOF++] = dofPtr;                    
-          numConstrainedNodes++;
         }
-      }
+  }
+
+  // create an ID of constrained node tags in SP_Constraints
+  ID constrainedNodesSP(0, numSPConstraints);;
+  SP_Constraint **sps =0;
+  if (numSPConstraints != 0) {
+    sps = new SP_Constraint *[numSPConstraints];
+    if (sps == 0) {
+        opserr << "WARNING TransformationConstraintHandler::handle() - ";
+        opserr << "ran out of memory for SP_Constraints"; 
+        opserr << " array of size " << numSPConstraints << endln;
+        if (mps != 0) delete [] mps;
+        if (sps != 0) delete [] sps;
+        return -3;          
+    }
+    SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
+    SP_Constraint *theSP; 
+    int index = 0;
+    while ((theSP = theSPs()) != 0) {
+      int constrainedNode = theSP->getNodeTag();
+      if (transformedNode.getLocation(constrainedNode) < 0)
+        transformedNode[numDOF++] = constrainedNode;          
+      constrainedNodesSP[index] = constrainedNode;
+      sps[index] = theSP;
+      index++;
+    }      
+  }
+
+  // create an array for the DOF_Groups and zero it
+  theDOFs = new DOF_Group *[numDOF]{};
+
+
+  //create a DOF_Group for each Node and add it to the AnalysisModel.
+  //    :must of course set the initial IDs
+  NodeIter &theNod = theDomain->getNodes();
+  Node *nodPtr;
+
+  int numDofGrp = 0;
+  int count3 = 0;
+  int countDOF =0;
+  
+  numConstrainedNodes = 0;
+  numDOF = 0;
+  while ((nodPtr = theNod()) != 0) {
+      DOF_Group *dofPtr = 0;
+
+    int nodeTag = nodPtr->getTag();
+    int numNodalDOF = nodPtr->getNumberDOF();
+    int loc = -1;
+    int createdDOF = 0;
+
+    loc = constrainedNodesMP.getLocation(nodeTag);
+    if (loc >= 0) {
+
+      TransformationDOF_Group *tDofPtr = 
+        new TransformationDOF_Group(numDofGrp++, nodPtr, mps[loc], this); 
+
+      createdDOF = 1;
+      dofPtr = tDofPtr;
       
-      if (createdDOF == 0) {
+      // add any SPs
+      if (numSPConstraints != 0) {
         loc = constrainedNodesSP.getLocation(nodeTag);
         if (loc >= 0) {
-          TransformationDOF_Group *tDofPtr = 
-            new TransformationDOF_Group(numDofGrp++, nodPtr, this);
-
-          int numSPs = 1;
-          createdDOF = 1;
-          dofPtr = tDofPtr;
           tDofPtr->addSP_Constraint(*(sps[loc]));
-      
-          // check for more SP_constraints acting on node and add them
           for (int i = loc+1; i<numSPConstraints; i++) {
-            if (constrainedNodesSP(i) == nodeTag) {
-                  tDofPtr->addSP_Constraint(*(sps[i]));
-                  numSPs++;
-            }
+          if (constrainedNodesSP(i) == nodeTag)
+            tDofPtr->addSP_Constraint(*(sps[i]));
           }
-          // add the DOF to the array
-          theDOFs[numDOF++] = dofPtr;                    
-          numConstrainedNodes++;          
-          countDOF+= numNodalDOF - numSPs;            
         }
+        // add the DOF to the array          
+        theDOFs[numDOF++] = dofPtr;                    
+        numConstrainedNodes++;
       }
-
-      // create an ordinary DOF_Group object if no dof constrained
-      if (createdDOF == 0) {
-        if ((dofPtr = new DOF_Group(numDofGrp++, nodPtr)) == 0) {
-          if (mps != 0) delete [] mps;
-          if (sps != 0) delete [] sps;
-          return -4;                
-        }
+    }
     
-        countDOF+= numNodalDOF;
+    if (createdDOF == 0) {
+      loc = constrainedNodesSP.getLocation(nodeTag);
+      if (loc >= 0) {
+        TransformationDOF_Group *tDofPtr = 
+          new TransformationDOF_Group(numDofGrp++, nodPtr, this);
+
+        int numSPs = 1;
+        createdDOF = 1;
+        dofPtr = tDofPtr;
+        tDofPtr->addSP_Constraint(*(sps[loc]));
+    
+        // check for more SP_constraints acting on node and add them
+        for (int i = loc+1; i<numSPConstraints; i++) {
+          if (constrainedNodesSP(i) == nodeTag) {
+                tDofPtr->addSP_Constraint(*(sps[i]));
+                numSPs++;
+          }
+        }
+        // add the DOF to the array
+        theDOFs[numDOF++] = dofPtr;                    
+        numConstrainedNodes++;          
+        countDOF+= numNodalDOF - numSPs;            
+      }
+    }
+
+    // create an ordinary DOF_Group object if no dof constrained
+    if (createdDOF == 0) {
+      if ((dofPtr = new DOF_Group(numDofGrp++, nodPtr)) == 0) {
+        if (mps != 0) delete [] mps;
+        if (sps != 0) delete [] sps;
+        return -4;                
+      }
+  
+      countDOF+= numNodalDOF;
+    }
+    
+    if (dofPtr == 0) 
+      opserr << "TransformationConstraintHandler::handle() - error in logic\n";
+        
+    nodPtr->setDOF_GroupPtr(dofPtr);
+    theModel->addDOF_Group(dofPtr);
+  }
+
+  // create the FE_Elements for the Elements and add to the AnalysisModel
+  ElementIter &theEle = theDomain->getElements();
+  Element *elePtr;
+  FE_Element *fePtr;
+
+  numFE = 0;
+  ID transformedEle(0, 64);
+
+  while ((elePtr = theEle()) != nullptr) {
+    int flag = 0;
+    if (elePtr->isSubdomain() == true) {
+    Subdomain *theSub = (Subdomain *)elePtr;
+    if (theSub->doesIndependentAnalysis() == true) 
+      flag = 1;
+    }
+
+    if (flag == 0) {
+
+      const ID &nodes = elePtr->getExternalNodes();
+      int nodesSize = nodes.Size();
+      int isConstrainedNode = 0;
+      for (int i=0; i<nodesSize; i++) {
+        int nodeTag = nodes(i);
+        if (numMPConstraints != 0) {
+          int loc = constrainedNodesMP.getLocation(nodeTag);
+          if (loc >= 0) {
+            isConstrainedNode = 1;
+            i = nodesSize;
+          }
+        } 
+        if (numSPConstraints != 0 && isConstrainedNode == 0) {
+          int loc = constrainedNodesSP.getLocation(nodeTag);
+          if (loc >= 0) {
+            isConstrainedNode = 1;                
+            i = nodesSize;
+          }
+        }
       }
       
-      if (dofPtr == 0) 
-        opserr << "TransformationConstraintHandler::handle() - error in logic\n";
-          
-      nodPtr->setDOF_GroupPtr(dofPtr);
-      theModel->addDOF_Group(dofPtr);
+      if (isConstrainedNode == 1) {
+        transformedEle[numFE++] = elePtr->getTag();
+      }
     }
+  }
+  
+  // create an array for the FE_elements and zero it
+  theFEs  = new FE_Element *[numFE]{};
 
-    // create the FE_Elements for the Elements and add to the AnalysisModel
-    ElementIter &theEle = theDomain->getElements();
-    Element *elePtr;
-    FE_Element *fePtr;
 
-    numFE = 0;
-    ID transformedEle(0, 64);
+  ElementIter &theEle1 = theDomain->getElements();
+  
+  // int numConstraints = numMPConstraints+numSPConstraints;
+  int numFeEle = 0;
+  int numFE = 0;
 
-    while ((elePtr = theEle()) != nullptr) {
-      int flag = 0;
-      if (elePtr->isSubdomain() == true) {
+  while ((elePtr = theEle1()) != nullptr) {
+    int tag = elePtr->getTag();
+    if (elePtr->isSubdomain() == true) {
       Subdomain *theSub = (Subdomain *)elePtr;
-      if (theSub->doesIndependentAnalysis() == true) 
-        flag = 1;
-      }
-
-      if (flag == 0) {
-
-        const ID &nodes = elePtr->getExternalNodes();
-        int nodesSize = nodes.Size();
-        int isConstrainedNode = 0;
-        for (int i=0; i<nodesSize; i++) {
-          int nodeTag = nodes(i);
-          if (numMPConstraints != 0) {
-            int loc = constrainedNodesMP.getLocation(nodeTag);
-            if (loc >= 0) {
-              isConstrainedNode = 1;
-              i = nodesSize;
-            }
-          } 
-          if (numSPConstraints != 0 && isConstrainedNode == 0) {
-            int loc = constrainedNodesSP.getLocation(nodeTag);
-            if (loc >= 0) {
-              isConstrainedNode = 1;                
-              i = nodesSize;
-            }
-          }
-        }
+      if (theSub->doesIndependentAnalysis() == false) {
         
-        if (isConstrainedNode == 1) {
-          transformedEle[numFE++] = elePtr->getTag();
-        }
-      }
-    }
-    
-    // create an array for the FE_elements and zero it
-    theFEs  = new FE_Element *[numFE]{};
-
-
-    ElementIter &theEle1 = theDomain->getElements();
-    
-    // int numConstraints = numMPConstraints+numSPConstraints;
-    int numFeEle = 0;
-    int numFE = 0;
-
-    while ((elePtr = theEle1()) != nullptr) {
-      int tag = elePtr->getTag();
-      if (elePtr->isSubdomain() == true) {
-        Subdomain *theSub = (Subdomain *)elePtr;
-        if (theSub->doesIndependentAnalysis() == false) {
-          
-          if (transformedEle.getLocation(tag) < 0) {
-            fePtr = new FE_Element(numFeEle, elePtr);
-          } else {
-            fePtr = new TransformationFE(numFeEle, elePtr);
-            theFEs[numFE++] = fePtr;
-          }
-
-          numFeEle++;
-          theModel->addFE_Element(fePtr);
-          theSub->setFE_ElementPtr(fePtr);
-        }
-
-      } else {
-
         if (transformedEle.getLocation(tag) < 0) {
-          if ((fePtr = new FE_Element(numFeEle, elePtr)) == 0) {
-            opserr << "WARNING TransformationConstraintHandler::handle()";
-            opserr << " - ran out of memory";
-            opserr << " creating FE_Element " << elePtr->getTag() << endln; 
-            if (mps != 0) delete [] mps;
-            if (sps != 0) delete [] sps;
-            return -5;
-          }      
+          fePtr = new FE_Element(numFeEle, elePtr);
         } else {
-          if ((fePtr = new TransformationFE(numFeEle, elePtr)) == 0) {            
-            opserr << "WARNING TransformationConstraintHandler::handle()";
-            opserr << " - ran out of memory";
-            opserr << " creating TransformationFE " << elePtr->getTag() << endln; 
-            if (mps != 0) delete [] mps;
-            if (sps != 0) delete [] sps;
-            return -6;                
-          }
+          fePtr = new TransformationFE(numFeEle, elePtr);
           theFEs[numFE++] = fePtr;
         }
-        
+
         numFeEle++;
         theModel->addFE_Element(fePtr);
+        theSub->setFE_ElementPtr(fePtr);
       }
+
+    } else {
+
+      if (transformedEle.getLocation(tag) < 0) {
+        if ((fePtr = new FE_Element(numFeEle, elePtr)) == 0) {
+          opserr << "WARNING TransformationConstraintHandler::handle()";
+          opserr << " - ran out of memory";
+          opserr << " creating FE_Element " << elePtr->getTag() << endln; 
+          if (mps != 0) delete [] mps;
+          if (sps != 0) delete [] sps;
+          return -5;
+        }      
+      } else {
+        if ((fePtr = new TransformationFE(numFeEle, elePtr)) == 0) {            
+          opserr << "WARNING TransformationConstraintHandler::handle()";
+          opserr << " - ran out of memory";
+          opserr << " creating TransformationFE " << elePtr->getTag() << endln; 
+          if (mps != 0) delete [] mps;
+          if (sps != 0) delete [] sps;
+          return -6;                
+        }
+        theFEs[numFE++] = fePtr;
+      }
+      
+      numFeEle++;
+      theModel->addFE_Element(fePtr);
+    }
+  }
+
+  theModel->setNumEqn(countDOF);
+  
+  // set the number of eqn in the model
+  // now see if we have to set any of the dof's to -3
+  //    int numLast = 0;
+  if (nodesLast != 0) 
+    for (int i=0; i<nodesLast->Size(); i++) {
+        int nodeID = (*nodesLast)(i);
+        Node *nodPtr = theDomain->getNode(nodeID);
+        if (nodPtr != 0) {
+          DOF_Group *dofPtr = nodPtr->getDOF_GroupPtr();
+          
+          const ID &id = dofPtr->getID();
+          // set all the dof values to -3
+          for (int j=0; j < id.Size(); j++) {
+              if (id(j) == -2) {
+                dofPtr->setID(j,-3);
+                count3++;
+              } else {
+                opserr << "WARNING TransformationConstraintHandler::handle() ";
+                opserr << " - boundary sp constraint in subdomain";
+                opserr << " this should not be - results suspect \n";
+                if (mps != 0) delete [] mps;
+                if (sps != 0) delete [] sps;
+              }
+          }
+        }
     }
 
-    theModel->setNumEqn(countDOF);
-    
-    // set the number of eqn in the model
-    // now see if we have to set any of the dof's to -3
-    //    int numLast = 0;
-    if (nodesLast != 0) 
-      for (int i=0; i<nodesLast->Size(); i++) {
-          int nodeID = (*nodesLast)(i);
-          Node *nodPtr = theDomain->getNode(nodeID);
-          if (nodPtr != 0) {
-            DOF_Group *dofPtr = nodPtr->getDOF_GroupPtr();
-            
-            const ID &id = dofPtr->getID();
-            // set all the dof values to -3
-            for (int j=0; j < id.Size(); j++) {
-                if (id(j) == -2) {
-                  dofPtr->setID(j,-3);
-                  count3++;
-                } else {
-                  opserr << "WARNING TransformationConstraintHandler::handle() ";
-                  opserr << " - boundary sp constraint in subdomain";
-                  opserr << " this should not be - results suspect \n";
-                  if (mps != 0) delete [] mps;
-                  if (sps != 0) delete [] sps;
-                }
-            }
-          }
-      }
+  if (mps != 0) delete [] mps;
+  if (sps != 0) delete [] sps;
 
-    if (mps != 0) delete [] mps;
-    if (sps != 0) delete [] sps;
-
-    return count3;
+  return count3;
 }
 
 

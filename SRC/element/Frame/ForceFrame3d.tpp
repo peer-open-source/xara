@@ -600,7 +600,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
           // Add the particular solution
           // si += bp*w
-          if (eleLoads.size() != 0)
+          if (frame_loads.size() != 0 || eleLoads.size() != 0)
             this->addLoadAtSection(si, points[i].point * L);
 
 
@@ -961,6 +961,10 @@ void
 ForceFrame3d<NIP,nsr,nwm>::addLoadAtSection(VectorND<nsr>& sp, double x)
 {
   double L = basic_system->getInitialLength();
+  for (auto load : frame_loads) {
+    load->template addBasicSolution<nsr, scheme>(sp, x, L, 
+        Eye3, basic_system->t.getRotation());
+  }
 
   for (auto[load, loadFactor] : eleLoads) {
 
@@ -1505,7 +1509,7 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
     double T     = q_save[5];
 
     double p0[5]{};
-    if (eleLoads.size() > 0)
+    if (frame_loads.size() > 0 || eleLoads.size() > 0)
       this->computeReactions(p0);
 
     s << "\tEnd 1 Forces (P MZ VY MY VZ T): " << -P + p0[0] << " " << MZ1 << " " << VY + p0[1]
@@ -2231,37 +2235,6 @@ ForceFrame3d<NIP,nsr,nwm>::activateParameter(int passedParameterID)
 }
 
 
-template <int NIP, int nsr, int nwm>
-const Matrix&
-ForceFrame3d<NIP,nsr,nwm>::getKiSensitivity(int gradNumber)
-{
-  ALWAYS_STATIC MatrixND<NEN*NDF,NEN*NDF> Ksen{};
-  ALWAYS_STATIC Matrix wrapper(Ksen);
-  return wrapper;
-}
-
-
-template <int NIP, int nsr, int nwm>
-const Matrix&
-ForceFrame3d<NIP,nsr,nwm>::getMassSensitivity(int gradNumber)
-{
-  ALWAYS_STATIC MatrixND<NEN*NDF,NEN*NDF> Msen{};
-  ALWAYS_STATIC Matrix wrapper(Msen);
-
-  double L = basic_system->getInitialLength();
-  if (parameterID == 1) {
-    // TODO: handle consistent mass
-    if (density != 0.0) {
-      Msen(0, 0) = Msen(1, 1) = Msen(2, 2) = 
-      Msen(6, 6) = Msen(7, 7) = Msen(8, 8) = 0.5 * L;
-    }
-  } else
-    Msen.zero();
-
-
-  return wrapper;
-}
-
 
 template <int NIP, int nsr, int nwm>
 const Vector&
@@ -2663,6 +2636,14 @@ const Vector &
 ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
 {
   double p0[5]{};
+
+  const double L = basic_system->getInitialLength();
+
+  for (auto load : frame_loads) {
+    load->addLinearSolution(p0, L, 
+        Eye3,
+        basic_system->t.getRotation());
+  }
   if (eleLoads.size() > 0)
     this->computeReactions(p0);
 
@@ -2682,23 +2663,31 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
   //
   VectorND<NDF*2> pf;
   pf.zero();
-  pf[0*NDF + 0] = p0[0];
-  pf[0*NDF + 1] = p0[1];
-  pf[0*NDF + 2] = p0[3];
-  pf[1*NDF + 1] = p0[2];
-  pf[1*NDF + 2] = p0[4];
+  pf[0*NDF + 0] = p0[0]; // N
+  pf[0*NDF + 1] = p0[1]; // Vy
+  pf[0*NDF + 2] = p0[3]; // Vz
+  pf[1*NDF + 1] = p0[2]; // Vy
+  pf[1*NDF + 2] = p0[4]; // Vz
 #if 0
   thread_local VectorND<NDF*2> pg;
   thread_local Vector wrapper(pg);
 
   pg  = basic_system->t.pushResponse(pl);
   pg += basic_system->linear.pushResponse(pf);
-#else
+#elif 0
   using Operation = typename FrameTransform<2,NDF>::Operation;
   thread_local Vector wrapper(pl);
   basic_system->t.push(pl, Operation::Total);
   if (pf.norm() > 0) [[unlikely]] {
     basic_system->linear.push(pf, Operation::Total);
+    pl += pf;
+  }
+#else
+  using Operation = typename FrameTransform<2,NDF>::Operation;
+  thread_local Vector wrapper(pl);
+  basic_system->t.push(pl, Operation::Total);
+  if (pf.norm() > 0) [[unlikely]] {
+    basic_system->t.push(pf, Operation::Rotation);
     pl += pf;
   }
 #endif

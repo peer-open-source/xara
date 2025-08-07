@@ -183,7 +183,7 @@ NewtonRaphson::recvSelf(int cTag,
 
 
 void
-NewtonRaphson::Print(OPS_Stream &s, int flag)
+NewtonRaphson::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
     s << "NewtonRaphson" << endln;
@@ -192,7 +192,7 @@ NewtonRaphson::Print(OPS_Stream &s, int flag)
 
 
 int
-NewtonRaphson::getNumIterations(void)
+NewtonRaphson::getNumIterations() const
 {
   return numIterations;
 }

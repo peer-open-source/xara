@@ -394,22 +394,24 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
   VectorND<nn*ndf> pa = p; // NOTE
   constexpr Vector3D iv{1, 0, 0};
 
-  // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
-  Vector3D m{};
-  for (int i=0; i<nn; i++) {
-    // m += mi
-    for (int j=0; j<3; j++)
-      m[j] += p[i*ndf+3+j];
+  if (op != Operation::Rotation) {
+    // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
+    Vector3D m{};
+    for (int i=0; i<nn; i++) {
+      // m += mi
+      for (int j=0; j<3; j++)
+        m[j] += p[i*ndf+3+j];
 
-    const Vector3D n = Vector3D{p[i*ndf+0], p[i*ndf+1], p[i*ndf+2]};
-    m.addVector(1, iv.cross(n), double(i)/double(nn-1)*L);
-  }
-  const Vector3D ixm = iv.cross(m);
+      const Vector3D n = Vector3D{p[i*ndf+0], p[i*ndf+1], p[i*ndf+2]};
+      m.addVector(1, iv.cross(n), double(i)/double(nn-1)*L);
+    }
+    const Vector3D ixm = iv.cross(m);
 
-  // 1.2) Adjust force part
-  for (int i=0; i<nn; i++) {
-    pa.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)/L);
-    pa[i*ndf+3] += m[0]*(i? -1.0:1.0)*0.5;
+    // 1.2) Adjust force part
+    for (int i=0; i<nn; i++) {
+      pa.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)/L);
+      pa[i*ndf+3] += m[0]*(i? -1.0:1.0)*0.5;
+    }
   }
 
   if (op == Operation::Isometry)

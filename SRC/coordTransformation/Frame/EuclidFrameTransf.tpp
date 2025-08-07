@@ -311,29 +311,32 @@ int
 EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, Operation op)
 {
   VectorND<nn*ndf>& pa = p;
+  if (op != Operation::Rotation) {
 
-  // 1) Logarithm
-  if (1) { // !(offset_flags & LogIter)) {
-    for (int i=0; i<nn; i++) {
-      Vector3D m {pa[i*ndf + 3], pa[i*ndf + 4], pa[i*ndf + 5]};
-      pa.insert(i*ndf + 3, ur[i].dLog()^m, 1.0);
+    // 1) Logarithm
+    if (1) { // !(offset_flags & LogIter)) {
+      for (int i=0; i<nn; i++) {
+        Vector3D m {pa[i*ndf + 3], pa[i*ndf + 4], pa[i*ndf + 5]};
+        pa.insert(i*ndf + 3, ur[i].dLog()^m, 1.0);
+      }
     }
+
+    // 2.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
+    Vector3D m{};
+    for (int i=0; i<nn; i++) {
+      // m += mi
+      for (int j=0; j<3; j++)
+        m[j] += pa[i*ndf+3+j];
+      // m += xi x ni
+      m += this->getNodeLocation(i).cross(Vector3D{pa[i*ndf+0], pa[i*ndf+1], pa[i*ndf+2]});
+    }
+    // 2.2) Adjust
+    for (int i=0; i<nn; i++)
+      pa.template assemble<6>(i*ndf, basis.getRotationGradient(i)^m, -1.0);
   }
 
-
-  // 2.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
-  Vector3D m{};
-  for (int i=0; i<nn; i++) {
-    // m += mi
-    for (int j=0; j<3; j++)
-      m[j] += pa[i*ndf+3+j];
-    // m += xi x ni
-    m += this->getNodeLocation(i).cross(Vector3D{pa[i*ndf+0], pa[i*ndf+1], pa[i*ndf+2]});
-  }
-  // 2.2) Adjust
-  for (int i=0; i<nn; i++)
-    pa.template assemble<6>(i*ndf, basis.getRotationGradient(i)^m, -1.0);
-
+  if (op == Operation::Isometry)
+    return 0;
 
   // 3,4) Rotate and joint offsets
   // pa = this->FrameTransform<nn,ndf>::pushConstant(pa);
@@ -358,7 +361,8 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
   VectorND<nn*ndf> p = pb;
 
   MatrixND<nn*ndf,nn*ndf> Kb = kb;
-  if (1) {//!(offset_flags & LogIter)) {
+
+  if (op != Operation::Rotation) {//!(offset_flags & LogIter)) {
     for (int i=0; i<nn; i++) {
       Vector3D m{pb[i*ndf+3], pb[i*ndf+4], pb[i*ndf+5]};
       const Matrix3D Ai = ur[i].dLog();

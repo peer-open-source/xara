@@ -45,7 +45,6 @@
 #include <DOF_Group.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
-#include <Integrator.h>
 #include <Channel.h>
 #include <arpack.hpp>
 
@@ -460,8 +459,8 @@ ArpackSolver::myMv(int n, double *v, double *result)
       opserr << "ArpackSolver: n > Msize!\n";
       return;
     }
-
-  } else {
+  }
+  else {
 
     y.Zero();
 

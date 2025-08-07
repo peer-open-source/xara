@@ -86,6 +86,13 @@ public:
         else
           return new EuclidFrameTransf<nn, ndf, RankinIsometry<nn>> (tag, vz, offset_array, offset_flags);
       }
+      else if (strcmp(name, "Corotational03") == 0)
+      {
+        if (getenv("Crisfield02"))
+          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, offset_flags);
+        
+        return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,true>> (tag, vz, offset_array, offset_flags);
+      }
 
       return nullptr;
     }

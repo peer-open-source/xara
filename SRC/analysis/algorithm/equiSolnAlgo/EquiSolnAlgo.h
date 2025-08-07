@@ -57,16 +57,16 @@ class EquiSolnAlgo: public SolutionAlgorithm
     virtual ConvergenceTest *getConvergenceTest() final;     
 
 
-    virtual void Print(OPS_Stream &, int flag) =0;    
+    virtual void Print(OPS_Stream &, int flag) const =0;    
 
-    virtual int    getNumFactorizations() {return 0;}
-    virtual int    getNumIterations() {return 0;}
-    virtual double getTotalTimeCPU()   {return 0.0;}
-    virtual double getTotalTimeReal()  {return 0.0;}
-    virtual double getSolveTimeCPU()   {return 0.0;}
-    virtual double getSolveTimeReal()  {return 0.0;}
-    virtual double getAccelTimeCPU()   {return 0.0;}
-    virtual double getAccelTimeReal()  {return 0.0;}
+    virtual int    getNumFactorizations() const {return 0;}
+    virtual int    getNumIterations()  const {return 0;}
+    virtual double getTotalTimeCPU()   const {return 0.0;}
+    virtual double getTotalTimeReal()  const {return 0.0;}
+    virtual double getSolveTimeCPU()   const {return 0.0;}
+    virtual double getSolveTimeReal()  const {return 0.0;}
+    virtual double getAccelTimeCPU()   const {return 0.0;}
+    virtual double getAccelTimeReal()  const {return 0.0;}
  
     // the following are not protected as convergence test
     // may need access to them
@@ -78,7 +78,6 @@ class EquiSolnAlgo: public SolutionAlgorithm
     ConvergenceTest *theTest;
     
   private:
-    AnalysisModel         *theModel;
     IncrementalIntegrator *theIntegrator;
     LinearSOE             *theSysOfEqn;
 };

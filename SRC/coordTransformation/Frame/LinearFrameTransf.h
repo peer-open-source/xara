@@ -43,17 +43,16 @@ public:
   ~LinearFrameTransf();
 
   
-  const char *getClassType() const {return "LinearFrameTransf";}
+  // const char *getClassType() const override {return "LinearFrameTransf";}
   
-  virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const;
-  
-  virtual FrameTransform<nn,ndf> *getCopy() const;
+  FrameTransform<nn,ndf> *getCopy() const override;
 
+  const std::array<Vector3D,nn> *getRigidOffsets() const final {return offsets;}
   double getInitialLength() final;
   double getDeformedLength() final;
-  const std::array<Vector3D,nn> *getRigidOffsets() const final {return offsets;}
+  int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const override;
   
-  int initialize(std::array<Node*, nn>& new_nodes) final;
+  int initialize(std::array<Node*, nn>& ) final;
   int update() final;
   int commit() final;
   int revertToLastCommit() final;

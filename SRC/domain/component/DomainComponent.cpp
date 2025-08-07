@@ -32,40 +32,34 @@
 //
 // What: "@(#) DomainComponent.h, revA"
 
-
-#include <Domain.h>
 #include <DomainComponent.h>
 
 DomainComponent::DomainComponent(int tag, int clasTag)
-  :TaggedObject(tag), MovableObject(clasTag), theDomain(0)
+  : TaggedObject(tag)
+  , MovableObject(clasTag)
+  , theDomain(nullptr)
 {
-    // does nothing else
+  // does nothing else
 }
 
 
 DomainComponent::~DomainComponent()
 {
-    // does nothing
+  // does nothing
 }
 
 
 void
 DomainComponent::setDomain(Domain *model)
 {
-    // sets the pointer 
-    theDomain = model;
+  // sets the pointer 
+  theDomain = model;
 }
 
 
 Domain *
 DomainComponent::getDomain(void) const
 {
-    // returns the current pointer
-    return theDomain;
-}
-
-int 
-DomainComponent::displaySelf(Renderer &theViewer, int mode, float fact, const char **displayModes, int numModes)
-{
-  return 0;
+  // returns the current pointer
+  return theDomain;
 }

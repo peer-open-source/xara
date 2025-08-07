@@ -49,7 +49,7 @@ class ExpressNewton: public EquiSolnAlgo
     virtual int sendSelf(int commitTag, Channel &);
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
-    void Print(OPS_Stream &, int flag) final;    
+    void Print(OPS_Stream &, int flag) const final;    
     
   protected:
     

@@ -94,10 +94,10 @@ public:
 
 //virtual VectorND<nn*ndf> getStateLogarithm() =0; //
   virtual VectorND<nn*ndf> getStateVariation() =0; // pull
-#if 1
+
   virtual int push(VectorND<nn*ndf>&pl, Operation=0) =0;
   virtual int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation=0) =0;
-#endif 
+
 #if 1
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final {
     VectorND<nn*ndf> pg{pl};
@@ -114,6 +114,18 @@ public:
 #endif
   virtual double getInitialLength() =0;
   virtual double getDeformedLength() =0;
+  Matrix3D getRotation() const {
+    Vector3D x, y, z;
+    getLocalAxes(x, y, z);
+    
+    Matrix3D R;
+    for (int i=0; i<3; i++) {
+      R(i,0) = x[i];
+      R(i,1) = y[i];
+      R(i,2) = z[i];
+    }
+    return R;
+  }
   virtual const std::array<Vector3D,nn> *getRigidOffsets() const =0;
 
   //

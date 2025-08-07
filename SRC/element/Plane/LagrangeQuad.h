@@ -26,10 +26,11 @@ class Response;
 
 namespace OpenSees {
 
-template<int NEN, bool enhanced=false>
-class LagrangeQuad : public Element, protected GaussLegendre<2, 4> {
+template<int NEN, int NIP, bool enhanced=false>
+class LagrangeQuad : public Element, protected GaussLegendre<2, NIP> {
 public:
-  LagrangeQuad(int tag, const std::array<int, NEN>& nodes, 
+  LagrangeQuad(int tag, 
+               const std::array<int, NEN>& nodes, 
                Mate<2>& m,  
                double thickness,
                double pressure = 0.0, 
@@ -40,11 +41,10 @@ public:
   ~LagrangeQuad();
 
   const char*
-  getClassType() const
+  getClassType() const override
   {
     return "LagrangeQuad";
   }
-  static constexpr const char* class_name = "LagrangeQuad";
 
   int getNumExternalNodes() const;
   const ID& getExternalNodes();
@@ -98,7 +98,6 @@ protected:
 private:
   constexpr static int NDM = 2; // number of spatial dimensions
   constexpr static int NDF = 2; // number of DOFs per node
-  constexpr static int NIP = 4; // number of integration points
 
   //
   // private member functions
@@ -134,6 +133,8 @@ private:
   double shp[3][NEN]; // shape functions and derivatives
 
   int parameterID;
+  using GaussLegendre<2,NIP>::pts;
+  using GaussLegendre<2,NIP>::wts;
 };
 } // namespace OpenSees
 

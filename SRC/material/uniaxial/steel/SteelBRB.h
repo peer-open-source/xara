@@ -72,7 +72,7 @@ class SteelBRB : public UniaxialMaterial
 
 
  // AddingSensitivity:BEGIN //////////////////////////////////////////
-    int    setParameter             (const char **argv, int argc, Information &);
+    int    setParameter             (const char **argv, int argc, Parameter &);
     int    updateParameter          (int parameterID, Information &info);
 	int    activateParameter        (int parameterID);
 	double getStressSensitivity     (int gradNumber, bool conditional);

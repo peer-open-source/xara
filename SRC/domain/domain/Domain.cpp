@@ -1760,6 +1760,7 @@ Domain::applyLoad(double scale)
   // set the current pseudo time in the domain to be newTime
   currentTime = scale;
   dT = currentTime - committedTime;
+  ops_Dt = dT;
 
   //
   // first zero all loads
@@ -1796,11 +1797,9 @@ Domain::applyLoad(double scale)
 
   SP_ConstraintIter &theSPs = this->getSPs();
   SP_Constraint *theSP;
-  while ((theSP = theSPs()) != nullptr) {
+  while ((theSP = theSPs()) != nullptr)
     theSP->applyConstraint(scale);
-  }
 
-  ops_Dt = dT;
 }
 
 
@@ -1833,7 +1832,7 @@ Domain::initialize()
 {
   Element *elePtr;
   ElementIter &theElemIter = this->getElements();    
-  while ((elePtr = theElemIter()) != nullptr) 
+  while ((elePtr = theElemIter()) != nullptr) {
     // lvalue needed here for M$ VC++ compiler -- MHS
 	// and either the  VS2011 or intel compiler does not like it!
 #ifndef _VS2011
@@ -1842,6 +1841,7 @@ Domain::initialize()
 #else
     elePtr->getInitialStiff();
 #endif
+  }
 
 
   return 0;

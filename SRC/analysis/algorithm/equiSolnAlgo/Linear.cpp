@@ -111,7 +111,7 @@ Linear::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 
 
 void
-Linear::Print(OPS_Stream &s, int flag)
+Linear::Print(OPS_Stream &s, int flag) const
 {
-    s << "\t Linear algorithm";
+  s << "\t Linear algorithm";
 }

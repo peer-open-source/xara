@@ -43,6 +43,8 @@
 
 #include <algorithm>
 #include <string>
+
+namespace {
 static
 std::string toLower( const std::string & s )
 {
@@ -72,6 +74,7 @@ class CaseInsensitive
         return equalsIgnoreCase( lhs, rhs );
     }
 };
+} // namespace
 
 using namespace OpenSees;
 
@@ -371,8 +374,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
         return TCL_ERROR;
 
       theElement =
-          new LagrangeQuad<4>(tag, nodes, *mat_2d,
-                              thickness, p, rho, b1, b2);
+          new LagrangeQuad<4,4>(tag, nodes, *mat_2d,
+                                thickness, p, rho, b1, b2);
 
     } else {
       if (nd_mat == nullptr) {

@@ -85,7 +85,8 @@ namespace {
         (flag1 == K_FLAG && flag2 == G_FLAG)) {
       double G = (flag1 == G_FLAG) ? in1 : in2;
       double K = (flag1 == K_FLAG) ? in1 : in2;
-      if (std::fabs(3.0*K + G) < TOL) return -1;
+      if (std::fabs(3.0*K + G) < TOL)
+        return -1;
       nu = (3.0 * K - 2.0 * G) / (2.0 * (3.0 * K + G));
       E = 9.0 * K * G / (3.0 * K + G);
       return 0;
@@ -120,7 +121,8 @@ namespace {
         (flag1 == G_FLAG && flag2 == E_FLAG)) {
       E = (flag1 == E_FLAG) ? in1 : in2;
       double G = (flag1 == G_FLAG) ? in1 : in2;
-      if (std::fabs(G) < TOL) return -1;
+      if (std::fabs(G) < TOL)
+        return -1;
       nu = E / (2.0 * G) - 1.0;
       return 0;
     }

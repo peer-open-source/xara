@@ -13,7 +13,7 @@
 #include <assert.h>
 #include <Parsing.h>
 #include <runtimeAPI.h>
-#include <G3_Logging.h>
+#include <Logging.h>
 #include <StandardStream.h>
 #include <FileStream.h>
 
@@ -453,26 +453,20 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   if (the_static_integrator == nullptr && theTransientIntegrator == nullptr)
     return TCL_OK;
 
-  Integrator *theIntegrator;
-  if (the_static_integrator != 0)
-    theIntegrator = the_static_integrator;
-  else
-    theIntegrator = theTransientIntegrator;
-
-  // if just 'print <filename> integrator'- no flag
-  if (argc == 0) {
-    theIntegrator->Print(output);
-    return TCL_OK;
-  }
-
   // if 'print <filename> Algorithm flag' get the flag
-  int flag;
-  if (Tcl_GetInt(interp, argv[eleArg], &flag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "print algorithm failed to get integer flag: \n";
-    opserr << argv[eleArg] << endln;
-    return TCL_ERROR;
+  int flag = 0;
+  if (argc > 2) {
+    if (Tcl_GetInt(interp, argv[eleArg], &flag) != TCL_OK) {
+      opserr << OpenSees::PromptValueError << "print algorithm failed to get integer flag: \n";
+      opserr << argv[eleArg] << endln;
+      return TCL_ERROR;
+    }
   }
-  theIntegrator->Print(output, flag);
+
+  if (the_static_integrator != 0)
+    the_static_integrator->Print(output, flag);
+  else
+    theTransientIntegrator->Print(output, flag);
   return TCL_OK;
 }
 
