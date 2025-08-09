@@ -273,6 +273,8 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       }
   }
 
+  transform.vz /= transform.vz.norm();
+
   if (builder->addTaggedObject<FrameTransformBuilder>(transform) != TCL_OK)
     return TCL_ERROR;
   

@@ -99,13 +99,16 @@ LinearFrameTransf<nn,ndf>::LinearFrameTransf(int tag,
     L(0.0),
     offsets{nullptr},
     offset_flags(offset_flags),
+    xi{},
+    xj{},
+    vz{vecxz},
     u_init{nullptr}, 
     initialDispChecked(false)
 {
   R.zero();
 
-  for (int i=0; i<3; i++)
-    vz[i] = vecxz[i];
+  // for (int i=0; i<3; i++)
+  //   vz[i] = vecxz[i];
 
   R(0,2) = vz(0);
   R(1,2) = vz(1);
@@ -677,9 +680,9 @@ LinearFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"LinearFrameTransf\"";
     s << ", \"vecxz\": [" 
-      << R(0,2) << ", " 
-      << R(1,2) << ", "
-      << R(2,2) << "]";
+      << vz[0] << ", " 
+      << vz[1] << ", "
+      << vz[2] << "]";
     if (offsets != nullptr) {
       s << ", \"offsets\": [";
       for (int i=0; i<nn; i++) {
