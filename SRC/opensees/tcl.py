@@ -153,10 +153,10 @@ class Interpreter:
             pass
 
 
-        self._err_file = None #pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}"
+        self._err_file = pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}"
         try:
             if self._err_file is not None:
-                self.eval(f"logFile {self._err_file} -noEcho")
+                self.eval(f"logFile {self._err_file}")
         except:
             self._err_file = None
 
