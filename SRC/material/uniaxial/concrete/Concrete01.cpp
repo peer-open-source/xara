@@ -43,60 +43,18 @@
 #include <Parameter.h>
 #include <string.h>
 
-#include <math.h>
+#include <cmath>
 #include <float.h>
 
-#include <elementAPI.h>
-#include <OPS_Globals.h>
-
-void * 
-OPS_ADD_RUNTIME_VPV(OPS_Concrete01)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-
-  int    iData[1];
-  double dData[7];
-  int numData = 1;
-
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial Concrete01 tag" << endln;
-    return 0;
-  }
-
-  numData = OPS_GetNumRemainingInputArgs();
-
-  if (numData != 4) {
-    opserr << "Invalid #args, want: uniaxialMaterial Concrete01 " 
-           << iData[0] << "fpc? epsc0? fpcu? epscu?\n";
-    return 0;
-  }
-
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid #args, want: uniaxialMaterial Concrete01 " << iData[0] << "fpc? epsc0? fpcu? epscu?\n";
-    return 0;
-  }
-
-
-  // Parsing was successful, allocate the material
-  theMaterial = new Concrete01(iData[0], dData[0], dData[1], dData[2], dData[3]);
-  
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Concrete01 Material\n";
-    return 0;
-  }
-
-  return theMaterial;
-}
+#include <Logging.h>
 
 
 
-Concrete01::Concrete01
-(int tag, double FPC, double EPSC0, double FPCU, double EPSCU)
-  :UniaxialMaterial(tag, MAT_TAG_Concrete01),
-   fpc(FPC), epsc0(EPSC0), fpcu(FPCU), epscu(EPSCU), 
-   CminStrain(0.0), CendStrain(0.0),
-   Cstrain(0.0), Cstress(0.0) 
+Concrete01::Concrete01(int tag, double FPC, double EPSC0, double FPCU, double EPSCU)
+  : UniaxialMaterial(tag, MAT_TAG_Concrete01),
+    fpc(FPC), epsc0(EPSC0), fpcu(FPCU), epscu(EPSCU), 
+    CminStrain(0.0), CendStrain(0.0),
+    Cstrain(0.0), Cstress(0.0) 
 {
 	EnergyP = 0;	//SAJalali
   // Make all concrete parameters negative
@@ -142,26 +100,26 @@ Concrete01::Concrete01():UniaxialMaterial(0, MAT_TAG_Concrete01),
   // AddingSensitivity:END //////////////////////////////////////
 }
 
-Concrete01::~Concrete01 ()
+Concrete01::~Concrete01()
 {
   // Does nothing
 }
 
 
-int Concrete01::setTrialStrain (double strain, double strainRate)
+int Concrete01::setTrialStrain(double strain, double strainRate)
 {
-   // Reset trial history variables to last committed state
-   TminStrain = CminStrain;
-   TendStrain = CendStrain;
-   TunloadSlope = CunloadSlope;
-   Tstress = Cstress;
-   Ttangent = Ctangent;
-   Tstrain = Cstrain;
+  // Reset trial history variables to last committed state
+  TminStrain = CminStrain;
+  TendStrain = CendStrain;
+  TunloadSlope = CunloadSlope;
+  Tstress = Cstress;
+  Ttangent = Ctangent;
+  Tstrain = Cstrain;
 
   // Determine change in strain from last converged state
   double dStrain = strain - Cstrain;
 
-  if (fabs(dStrain) < DBL_EPSILON)
+  if (std::fabs(dStrain) < DBL_EPSILON)
     return 0;
 
   // Set trial strain
@@ -224,7 +182,7 @@ Concrete01::setTrial (double strain, double &stress, double &tangent, double str
   // Determine change in strain from last converged state
   double dStrain = strain - Cstrain;
 
-  if (fabs(dStrain) < DBL_EPSILON) {
+  if (std::fabs(dStrain) < DBL_EPSILON) {
     stress = Tstress;
     tangent = Ttangent;
     return 0;

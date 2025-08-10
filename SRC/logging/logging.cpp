@@ -1,26 +1,25 @@
 #include <cstdarg>
 #include <tcl.h>
 #include <string.h>
-#include <elementAPI.h>
 class G3_Runtime;
 
 
 #include <StandardStream.h>
 #include <FileStream.h>
 #include <DummyStream.h>
+
+
+#include "Logging.h"
+
+
+namespace OpenSees {
+
 StandardStream sserr;
 DummyStream    ssnul;
 OPS_Stream *opserrPtr = &sserr;
 OPS_Stream *opsdbgPtr = &ssnul;
 OPS_Stream *opslogPtr = &ssnul;
 OPS_Stream *opswrnPtr = &sserr;
-OPS_Stream *opsmrdPtr = &sserr;
-
-
-#include "G3_Logging.h"
-
-
-namespace OpenSees {
 
 namespace Internal {
   const char * WarnPromptColor   = RED "WARNING " COLOR_RESET;
@@ -54,7 +53,8 @@ namespace Internal {
   const char * PromptAnalysisFailure = Internal::AnalysisFailureNoColor;
   const char * PromptAnalysisSuccess = Internal::AnalysisSuccessNoColor;
   const char * PromptAnalysisIterate = Internal::AnalysisIterateNoColor;
-}
+
+} // namespace OpenSees
 
 const char * G3_WARN_PROMPT  = OpenSees::Internal::WarnPromptNoColor;
 const char * G3_ERROR_PROMPT = OpenSees::Internal::ErrorPromptNoColor;
@@ -63,19 +63,20 @@ const char * G3_DEBUG_PROMPT = OpenSees::Internal::DebugPromptNoColor;
 int
 G3_SetStreamLevel(int stream, bool on)
 {
+
   OPS_Stream **theStream;
   switch (stream) {
-    case G3_LevelError: theStream = &opserrPtr; break;
-    case G3_LevelDebug: theStream = &opsdbgPtr; break;
-    case G3_LevelWarn : theStream = &opswrnPtr; break;
+    case G3_LevelError: theStream = &OpenSees::opserrPtr; break;
+    case G3_LevelDebug: theStream = &OpenSees::opsdbgPtr; break;
+    case G3_LevelWarn : theStream = &OpenSees::opswrnPtr; break;
     default:
       return -1;
   }
 
   if (on) {
-    *theStream = &sserr;
+    *theStream = &OpenSees::sserr;
   } else {
-    *theStream = &ssnul;
+    *theStream = &OpenSees::ssnul;
   }
   return 0;
 }
@@ -105,4 +106,3 @@ int G3_SetStreamColor(G3_Runtime* rt, int strm, int flag)
 
   return 0;
 }
-

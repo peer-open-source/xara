@@ -655,10 +655,9 @@ TclCommand_newFedeasConcrete(ClientData clientData, Tcl_Interp *interp,
     return FedeasConcrParse<Positions>(clientData, interp, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "Steel02") == 0) || 
-           (strcmp(argv[1], "Steel2") == 0) || 
-           (strcmp(argv[1], "Steel02Thermal") == 0) || 
-           (strcmp(argv[1], "SteelMP") == 0)
+  else if ((strcmp(argv[1], "Concrete02") == 0) || 
+           (strcmp(argv[1], "Concrete2") == 0) || 
+           (strcmp(argv[1], "Concrete02Thermal") == 0)
   ) {
     
     // uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? epscu? rat? ft? Ets?

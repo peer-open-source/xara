@@ -14,7 +14,7 @@
 //
 #include <runtimeAPI.h>
 #include "runtime/G3_Runtime.h"
-#include <logging/G3_Logging.h>
+#include <logging/Logging.h>
 #include <handler/OPS_Stream.h>
 #include <StandardStream.h>
 #include "commands/strings.cpp"

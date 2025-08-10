@@ -40,7 +40,6 @@ extern OPS_Routine OPS_CableMaterial;
 extern OPS_Routine OPS_Cast;
 extern OPS_Routine OPS_CreepMaterial;
 // Concrete
-extern OPS_Routine OPS_Concrete01;
 extern OPS_Routine OPS_Concrete02;
 extern OPS_Routine OPS_Concrete02IS;
 extern OPS_Routine OPS_Concrete02Thermal;
