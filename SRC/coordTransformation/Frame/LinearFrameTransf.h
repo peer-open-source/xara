@@ -123,7 +123,8 @@ private:
   std::array<Vector3D, nn> *offsets;
   int offset_flags;
 
-  Vector3D xi, xj, vz;
+  Vector3D xi, xj;
+  const Vector3D vz;
   Matrix3D R;         // rotation matrix
   double L;           // undeformed element length
 

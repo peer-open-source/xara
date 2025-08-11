@@ -134,7 +134,8 @@ public:
       return 0;
     }
 
-    const Vector &getResistingForceIncInertia()
+    const Vector &
+    getResistingForceIncInertia()
     {
       // TODO!!!! update for nen>2, ndf != 6
       static VectorND<nen*ndf> P_{0.0};
@@ -150,34 +151,32 @@ public:
         return P;
 
       // add inertia forces from element mass
-      const Vector &accel1 = theNodes[0]->getTrialAccel();
-      const Vector &accel2 = theNodes[1]->getTrialAccel();    
         
       if (cMass == 0)  {
         // take advantage of lumped mass matrix
-        double m = 0.5*total_mass;
-
-        P(0) += m * accel1(0);
-        P(1) += m * accel1(1);
-        P(2) += m * accel1(2);
-
-        P(6) += m * accel2(0);
-        P(7) += m * accel2(1);
-        P(8) += m * accel2(2);
+        double m = total_mass/double(nen);
+        for (int i=0; i<nen; i++) {
+          const Vector& accel = theNodes[i]->getTrialAccel();
+          for (int j=0; j<3; j++) 
+            P[i*ndf+j] += m * accel(j);
+        }
 
       } else  {
-        // use matrix vector multip. for consistent mass matrix
-        static Vector accel(12);
-        for (int i=0; i<6; i++)  {
-          accel(i)   = accel1(i);
-          accel(i+6) = accel2(i);
+        // use matrix-vector mult against consistent mass matrix
+        VectorND<nen*ndf> accel{};
+        for (int i=0; i<nen; i++) {
+          const Vector& trialAccel = theNodes[i]->getTrialAccel();
+          for (int j=0; j<6; j++) {
+            accel[i*ndf+j] = trialAccel(j);
+          }
         }
         P.addMatrixVector(1.0, this->getMass(), accel, 1.0);
       }
-      
       return P;
     }
-    int setParameter(const char **argv, int argc, Parameter &param)
+
+    int
+    setParameter(const char **argv, int argc, Parameter &param)
     {
       if (argc < 1)
         return -1;
@@ -190,7 +189,8 @@ public:
       return -1;
     }
 
-    int updateParameter(int paramID, Information &info)
+    int
+    updateParameter(int paramID, Information &info)
     {
       return -1;
     }
@@ -255,6 +255,7 @@ public:
       return M;
     }
 #endif
+
 protected:
 
 #ifdef FEFT
@@ -274,7 +275,8 @@ protected:
     virtual int setNodes() = 0;
 
     // Supplied for children
-    inline int setState(State state) {
+    inline int 
+    setState(State state) {
 
       if ((e_state & state) == state)
         return 0;
@@ -306,15 +308,15 @@ protected:
 
    Vector p_iner;
 
-   int parameterID;
+   int  parameterID;
 
 private:
     State  e_state;
-    int cMass;
-    double rho;
+    int    cMass;
+    // double rho;
 
     double total_mass,
-            twist_mass;
+           twist_mass;
 
 };
 

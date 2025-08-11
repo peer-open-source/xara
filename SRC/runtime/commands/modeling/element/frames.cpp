@@ -250,11 +250,11 @@ CreateFrame(BasicModelBuilder& builder,
     // ndm == 3
     //
 
+    if (CheckTransformation(*builder.getDomain(), nodev[0], nodev[nodev.size()-1], *theTransf) != TCL_OK)
+      return nullptr;
     if (strstr(name, "Frame") != nullptr) {
       if (strstr(name, "Exact") == nullptr) {
 
-        if (CheckTransformation(*builder.getDomain(), nodev[0], nodev[nodev.size()-1], *theTransf) != TCL_OK)
-          return nullptr;
         std::array<int, 2> nodes {nodev[0], nodev[1]};
 
         FrameTransformBuilder* tb = builder.getTypedObject<FrameTransformBuilder>(transfTag);
@@ -884,9 +884,16 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
     // Version a)
     else {
-      // If we fail to parse an integer tag, treat it like an inline definition
+      // If we fail to parse an integer tag for the integration,
+      // then we assume that the integration is specified as a
+      // BeamIntegration command
       builder->findFreeTag<BeamIntegrationRule>(itg_tag);
       std::string integrCommand{argv[positions[1]]};
+      if (integrCommand.find(" ") == std::string::npos) {
+        for (int i =2; i< positions.size(); i++) {
+          integrCommand += " " + std::string(argv[positions[i]]);
+        }
+      }
       integrCommand.insert(integrCommand.find(" "), " "+std::to_string(itg_tag)+" ");
       integrCommand.insert(0, "beamIntegration ");
       if (Tcl_Eval(interp, integrCommand.c_str()) != TCL_OK) {
