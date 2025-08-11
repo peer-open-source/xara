@@ -176,7 +176,6 @@ add_compile_definitions(
     "$<$<COMPILE_LANGUAGE:C,CXX>: OPS_USE_RUNTIME>"
     "$<$<COMPILE_LANGUAGE:C,CXX>: USE_TCL_STUBS>"
     "$<$<COMPILE_LANGUAGE:C,CXX>: _TCL85>"
-#   "$<$<COMPILE_LANGUAGE:C,CXX>: _NOGRAPHICS>"
 ) # _THREADS
 
 #
