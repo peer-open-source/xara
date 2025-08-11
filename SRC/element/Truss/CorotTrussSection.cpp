@@ -32,8 +32,9 @@
 #include <FEM_ObjectBroker.h>
 #include <FrameSection.h>
 #include <VectorND.h>
+#include <Parameter.h>
 using namespace OpenSees;
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,10 +51,13 @@ Vector CorotTrussSection::V6(6);
 Vector CorotTrussSection::V12(12);
 
 
-//  responsible for allocating the necessary space needed by each object
-//  and storing the tags of the CorotTrussSection end nodes.
-CorotTrussSection::CorotTrussSection(int tag, int dim, int Nd1, int Nd2,
-                                     FrameSection& theSec, double r, int damp, int cm)
+
+CorotTrussSection::CorotTrussSection(int tag, int dim, 
+                                     int Nd1, int Nd2,
+                                     FrameSection& theSec, 
+                                     double r, 
+                                     int damp, 
+                                     int cm)
  : Element(tag, ELE_TAG_CorotTrussSection),
    theSection(0),
    connectedExternalNodes(2),
@@ -65,6 +69,7 @@ CorotTrussSection::CorotTrussSection(int tag, int dim, int Nd1, int Nd2,
    doRayleighDamping(damp),
    cMass(cm),
    R(3, 3),
+   parameterID(0),
    theLoad(0),
    theMatrix(0),
    theVector(0)
@@ -76,9 +81,8 @@ CorotTrussSection::CorotTrussSection(int tag, int dim, int Nd1, int Nd2,
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
 
-  // set node pointers to NULL
   for (int i = 0; i < 2; i++)
-    theNodes[i] = 0;
+    theNodes[i] = nullptr;
 }
 
 //   invoked by a FEM_ObjectBroker - blank object that recvSelf needs
@@ -95,6 +99,7 @@ CorotTrussSection::CorotTrussSection()
    doRayleighDamping(0),
    cMass(0),
    R(3, 3),
+   parameterID(0),
    theLoad(0),
    theMatrix(0),
    theVector(0)
@@ -245,7 +250,7 @@ CorotTrussSection::setDomain(Domain* theDomain)
 
   // Set undeformed and initial length
   Lo = cosX[0] * cosX[0] + cosX[1] * cosX[1] + cosX[2] * cosX[2];
-  Lo = sqrt(Lo);
+  Lo = std::sqrt(Lo);
   Ln = Lo;
 
   // Initial offsets
@@ -276,7 +281,7 @@ CorotTrussSection::setDomain(Domain* theDomain)
   else {
     R(1, 0) = 0.0;
     R(1, 1) = -cosX[2];
-    R(1, 2) = cosX[1];
+    R(1, 2) =  cosX[1];
 
     R(2, 0) = 1.0;
     R(2, 1) = 0.0;
@@ -319,7 +324,8 @@ CorotTrussSection::revertToStart()
 int
 CorotTrussSection::update()
 {
-  if (Lo == 0.0) { // - problem in setDomain() no further warnings
+  if (Lo == 0.0) { 
+    // problem in setDomain(); no further warnings
     return -1;
   }
 
@@ -354,18 +360,10 @@ CorotTrussSection::getTangentStiff()
   int order      = theSection->getOrder();
   const ID& code = theSection->getType();
 
-  const Matrix& ks = theSection->getSectionTangent();
-  const Vector& s  = theSection->getStressResultant();
-
-  double EA = 0.0;
-  double q  = 0.0;
-
-  for (int i = 0; i < order; i++) {
-    if (code(i) == SECTION_RESPONSE_P) {
-      EA += ks(i, i);
-      q += s(i);
-    }
-  }
+  // const Matrix& ks = theSection->getSectionTangent();
+  // const Vector& s  = theSection->getStressResultant();
+  double EA = theSection->getTangent<1,section_layout>(State::Pres)(0,0);
+  double q  = theSection->getResultant<1,section_layout>()[0];
 
   EA /= (Ln * Ln * Lo);
 
@@ -627,6 +625,54 @@ CorotTrussSection::getResistingForceIncInertia()
 
   return *theVector;
 }
+
+
+int
+CorotTrussSection::setParameter(const char** argv, int argc, Parameter& param)
+{
+  if (argc < 1)
+    return -1;
+
+  // Mass densitity of the truss
+  if (strcmp(argv[0], "rho") == 0)
+    return param.addObject(2, this);
+
+  // Explicit specification of a material parameter
+  if (strstr(argv[0], "material") != 0 || strstr(argv[0], "section") != 0) {
+
+    if (argc < 2)
+      return -1;
+
+    else
+      return theSection->setParameter(&argv[1], argc - 1, param);
+  }
+
+  // Otherwise, send it to the material
+  else
+    return theSection->setParameter(argv, argc, param);
+}
+
+
+int
+CorotTrussSection::updateParameter(int parameterID, Information& info)
+{
+  switch (parameterID) {
+    case 2:  
+      rho = info.theDouble; 
+      return 0;
+    default: 
+      return -1;
+  }
+}
+
+int
+CorotTrussSection::activateParameter(int passedParameterID)
+{
+  parameterID = passedParameterID;
+
+  return 0;
+}
+
 
 int
 CorotTrussSection::sendSelf(int commitTag, Channel& theChannel)
@@ -921,6 +967,7 @@ CorotTrussSection::getResponse(int responseID, Information& eleInfo)
     }
     return eleInfo.setDouble(Lo * strain);
 
-  default: return -1;
+  default:
+    return -1;
   }
 }

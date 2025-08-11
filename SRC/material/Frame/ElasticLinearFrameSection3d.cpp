@@ -138,18 +138,6 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(std::shared_ptr<MatrixN
 
 }
 
-ElasticLinearFrameSection3d::ElasticLinearFrameSection3d()
-: FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
-  E(0.0),
-  G(0.0),
-  Ks(new MatrixND<nr,nr> {}),
-  Ksen(nullptr),
-  e{},
-  s{},
-  parameterID(0)
-{
-
-}
 
 ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
     double E,
@@ -270,7 +258,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
   //
   // OR
   // - add FrameSection::setLayout()
-  //
+  
   ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d(Ks);
 
   // Copy over all data
@@ -279,6 +267,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
   // Revoke any pointers that are owned by this instance
   theCopy->Ksen = nullptr;
   // return theCopy;
+
 
   int ni=0;
   bool ind[nr]{};
@@ -344,15 +333,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
 FrameSection*
 ElasticLinearFrameSection3d::getFrameCopy()
 {
-  // TODO: 
-  // - take layout as argument
-  // - overload 
-  //   template<int n> ID::operator==(std::array<int, n>)
-  //
-  // OR
-  // - add FrameSection::setLayout()
-  //
-  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d();
+  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d(Ks);
 
   // Copy over all data
   *theCopy = *this;

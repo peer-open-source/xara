@@ -31,40 +31,39 @@ class ElasticLinearFrameSection3d : public FrameSection
               bool   use_mass
   );
 
-  ElasticLinearFrameSection3d();
 public:
   ~ElasticLinearFrameSection3d();
 
-  const char *getClassType() const {
-       return "ElasticFrameSection3d";
+  const char *getClassType() const final {
+    return "ElasticFrameSection3d";
   }
   
-  int commitState();
-  int revertToLastCommit();
-  int revertToStart();
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
   
-  int setTrialSectionDeformation(const Vector&);
+  int setTrialSectionDeformation(const Vector&) override;
   const Vector &getSectionDeformation();
   
-  virtual int getIntegral(Field field, State state, double&) const override final;
+  int getIntegral(Field field, State state, double&) const final;
 
-  const Vector &getStressResultant();
-  const Matrix &getSectionTangent();
-  const Matrix &getInitialTangent();
-  const Matrix &getSectionFlexibility();
-  const Matrix &getInitialFlexibility();
+  const Vector &getStressResultant() override;
+  const Matrix &getSectionTangent() override;
+  const Matrix &getInitialTangent() override;
+  const Matrix &getSectionFlexibility() override;
+  const Matrix &getInitialFlexibility() override;
   
-  FrameSection *getFrameCopy();
-  virtual FrameSection* getFrameCopy(const FrameStressLayout& layout);
-  const ID &getType();
-  int getOrder() const;
+  FrameSection *getFrameCopy() final;
+  FrameSection* getFrameCopy(const FrameStressLayout&) final;
+  const ID &getType() final;
+  int getOrder() const final;
   
-  int sendSelf(int commitTag, Channel &);
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+  int sendSelf(int commitTag, Channel &) final;
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
   
-  void Print(OPS_Stream &s, int flag = 0);
+  void Print(OPS_Stream &s, int flag) final;
 
-  int setParameter(const char **argv, int argc, Parameter &param);
+  int setParameter(const char **argv, int argc, Parameter &);
   int updateParameter(int parameterID, Information &info);
   int activateParameter(int parameterID);
   const Vector& getStressResultantSensitivity(int gradIndex,
