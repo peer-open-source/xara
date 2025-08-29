@@ -47,7 +47,8 @@
 #include <elementAPI.h>
 #include <map>
 
-void* OPS_ADD_RUNTIME_VPV(OPS_TenNodeTetrahedron)
+void* 
+OPS_ADD_RUNTIME_VPV(OPS_TenNodeTetrahedron)
 {
 	if (OPS_GetNumRemainingInputArgs() < 12)
 	{
@@ -175,8 +176,6 @@ TenNodeTetrahedron::TenNodeTetrahedron(int tag,
 	connectedExternalNodes(8) = node9 ;
 	connectedExternalNodes(9) = node10 ;
 
-
-	// opserr << "TenNodeTetrahedron::constructor - material copy\n";
 	for (int i = 0; i < NumGaussPoints; i++ )
 	{
 		materialPointers[i] = theMaterial.getCopy("ThreeDimensional") ;
@@ -193,14 +192,12 @@ TenNodeTetrahedron::TenNodeTetrahedron(int tag,
 	b[1] = b2;
 	b[2] = b3;
 
-	// opserr << "TenNodeTetrahedron::constructor - init disp\n";
 
 	for (int i = 0; i < NumNodes; ++i)
 	{
 		initDisp[i] = Vector(3);
 		initDisp[i].Zero();
 	}
-	// opserr << "TenNodeTetrahedron::constructor - END\n";
 }
 //******************************************************************
 
@@ -813,7 +810,7 @@ void   TenNodeTetrahedron::formInertiaTerms( int tangFlag )
 			{
 				shp[p][q]  = Shape[p][q][i] ;
 			}
-		} // end for p
+		}
 
 
 		//node loop to compute acceleration
