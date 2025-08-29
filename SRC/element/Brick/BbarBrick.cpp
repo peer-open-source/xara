@@ -52,7 +52,7 @@ Vector  BbarBrick::resid(24) ;
 Matrix  BbarBrick::mass(24,24) ;
 
 
-//quadrature data
+// quadrature data
 const double  BbarBrick::root3 = sqrt(3.0) ;
 const double  BbarBrick::one_over_root3 = 1.0 / root3 ;
 
@@ -114,7 +114,7 @@ connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
 
 
 
-BbarBrick::~BbarBrick( )
+BbarBrick::~BbarBrick()
 {
 
   for (int i=0 ; i<8; i++ ) {

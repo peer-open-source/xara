@@ -125,7 +125,8 @@ HHT_TP::~HHT_TP()
 }
 
 
-int HHT_TP::newStep(double _deltaT)
+int
+HHT_TP::newStep(double _deltaT)
 {
     if (beta == 0 || gamma == 0 )  {
         opserr << "HHT_TP::newStep() - error in variable\n";
@@ -180,7 +181,7 @@ int HHT_TP::newStep(double _deltaT)
     double time = theModel->getCurrentDomainTime();
     time += deltaT;
     if (theModel->updateDomain(time, deltaT) < 0)  {
-        opserr << "HHT_TP::newStep() - failed to update the domain\n";
+        opserr << "HHT_TP::newStep() - failed to update\n";
         return -5;
     }
     
@@ -357,7 +358,7 @@ int HHT_TP::update(const Vector &deltaU)
     
     // check domainChanged() has been called, i.e. Ut will not be zero
     if (Ut == 0)  {
-        opserr << "WARNING HHT_TP::update() - domainChange() failed or not called\n";
+        opserr << "WARNING HHT_TP::update() - resize failed or not called\n";
         return -2;
     }
     
@@ -378,7 +379,7 @@ int HHT_TP::update(const Vector &deltaU)
     // update the response at the DOFs
     theModel->setResponse(*U, *Udot, *Udotdot);
     if (theModel->updateDomain() < 0)  {
-        opserr << "HHT_TP::update() - failed to update the domain\n";
+        opserr << "HHT_TP::update() - failed to update the\n";
         return -4;
     }
     

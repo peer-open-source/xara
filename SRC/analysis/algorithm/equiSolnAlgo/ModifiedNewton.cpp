@@ -53,57 +53,57 @@ ModifiedNewton::~ModifiedNewton()
 int 
 ModifiedNewton::solveCurrentStep()
 {
-    // set up some pointers and check they are valid
-    // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-    IncrementalIntegrator *theIncIntegratorr = this->getIncrementalIntegratorPtr();
-    LinearSOE                *theSOE = this->getLinearSOEptr();
+  // set up some pointers and check they are valid
+  // NOTE this could be taken away if we set Ptrs as protecetd in superclass
+  IncrementalIntegrator *theIncIntegratorr = this->getIncrementalIntegratorPtr();
+  LinearSOE                *theSOE = this->getLinearSOEptr();
 
-    if ((theIncIntegratorr == nullptr) 
-        || (theSOE == nullptr)
-        || (theTest == nullptr)) {
-      return SolutionAlgorithm::BadAlgorithm;
-    }
+  if ((theIncIntegratorr == nullptr) 
+      || (theSOE == nullptr)
+      || (theTest == nullptr)) {
+    return SolutionAlgorithm::BadAlgorithm;
+  }
 
-    if (theIncIntegratorr->formUnbalance() < 0) {    
+  if (theIncIntegratorr->formUnbalance() < 0) {    
+    return SolutionAlgorithm::BadFormResidual;
+  }        
+
+  SOLUTION_ALGORITHM_tangentFlag = tangent;
+  if (theIncIntegratorr->formTangent(tangent, iFactor, cFactor) < 0)
+    return SolutionAlgorithm::BadFormTangent;
+
+
+  // set itself as the ConvergenceTest objects EquiSolnAlgo
+  theTest->setEquiSolnAlgo(*this);
+  if (theTest->start() < 0) {
+    opserr << "ModifiedNewton::solveCurrentStep() -";
+    opserr << "the ConvergenceTest object failed in start()\n";
+    return SolutionAlgorithm::BadTestStart;
+  }
+
+  // repeat until convergence is obtained or reach max num iterations
+  int result = -1;
+  numIterations = 0;
+  do {
+    if (theSOE->solve() < 0)
+      return SolutionAlgorithm::BadLinearSolve;
+    
+    if (theIncIntegratorr->update(theSOE->getX()) < 0)
+      return SolutionAlgorithm::BadStepUpdate;
+
+    if (theIncIntegratorr->formUnbalance() < 0)
       return SolutionAlgorithm::BadFormResidual;
-    }        
 
-    SOLUTION_ALGORITHM_tangentFlag = tangent;
-    if (theIncIntegratorr->formTangent(tangent, iFactor, cFactor) < 0)
-      return SolutionAlgorithm::BadFormTangent;
+    result = theTest->test();
+    numIterations++;
+    this->record(numIterations);
 
+  }  while (result == ConvergenceTest::Continue);
 
-    // set itself as the ConvergenceTest objects EquiSolnAlgo
-    theTest->setEquiSolnAlgo(*this);
-    if (theTest->start() < 0) {
-      opserr << "ModifiedNewton::solveCurrentStep() -";
-      opserr << "the ConvergenceTest object failed in start()\n";
-      return SolutionAlgorithm::BadTestStart;
-    }
+  if (result == ConvergenceTest::Failure)
+    return SolutionAlgorithm::TestFailed;
 
-    // repeat until convergence is obtained or reach max num iterations
-    int result = -1;
-    numIterations = 0;
-    do {
-      if (theSOE->solve() < 0)
-        return SolutionAlgorithm::BadLinearSolve;
-      
-      if (theIncIntegratorr->update(theSOE->getX()) < 0)
-        return SolutionAlgorithm::BadStepUpdate;
-
-      if (theIncIntegratorr->formUnbalance() < 0)
-        return SolutionAlgorithm::BadFormResidual;
-
-      result = theTest->test();
-      numIterations++;
-      this->record(numIterations);
-
-    }  while (result == ConvergenceTest::Continue);
-
-    if (result == ConvergenceTest::Failure)
-      return SolutionAlgorithm::TestFailed;
-
-    return result;
+  return result;
 }
 
 int
