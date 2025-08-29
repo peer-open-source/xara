@@ -127,6 +127,7 @@ extern OPS_Routine OPS_Trilinwp2;
 extern OPS_Routine OPS_Trilinwp;
 extern OPS_Routine OPS_UVCuniaxial;
 extern OPS_Routine OPS_pyUCLA;
+extern OPS_Routine OPS_PenaltyMaterial;
 extern void *OPS_ConcretewBeta();
 
 extern Tcl_CmdProc Create_OOHystereticMaterial;
@@ -353,6 +354,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"APDFMD",               dispatch<OPS_APDFMD> },
     {"APDMD",                dispatch<OPS_APDMD> },
     {"APDVFD",               dispatch<OPS_APDVFD> },
+    {"Penalty",      dispatch<OPS_PenaltyMaterial>           },
 
     {"FedeasUniaxialDamage", dispatch<TclCommand_newFedeasUniaxialDamage>  },
     {"KikuchiAikenHDR",      dispatch<TclCommand_KikuchiAikenHDR>       },

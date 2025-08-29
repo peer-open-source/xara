@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-//
 // Description: This file implements commands that allow for construction
 // and interaction with Algorithm objects. Any command which requires
 // access to specific Algorithm types (from the standard library) should
