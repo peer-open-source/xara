@@ -388,7 +388,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
       opserr << OpenSees::PromptValueError << "insufficient arguments\n";
       opserr
           << "Want: section Iso2spring tag? tol? k1? Fy? k2? kv? hb? Pe? <Po?>"
-          << endln;
+          << "\n";
       return TCL_ERROR;
     }
 
@@ -397,7 +397,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
     double Po = 0.0;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid Iso2spring tag" << endln;
+      opserr << OpenSees::PromptValueError << "invalid Iso2spring tag" << "\n";
       return TCL_ERROR;
     }
 
@@ -437,7 +437,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
     if (argc > 10) {
       if (Tcl_GetDouble(interp, argv[10], &Po) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "invalid Po\n";
-        opserr << "section Iso2spring: " << tag << endln;
+        opserr << "section Iso2spring: " << tag << "\n";
         return TCL_ERROR;
       }
     }
@@ -459,13 +459,13 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
   // Ensure we have created the Material, out of memory if got here and no
   // section
   if (theSection == nullptr) {
-    opserr << OpenSees::PromptValueError << "could not create section " << argv[1] << endln;
+    opserr << OpenSees::PromptValueError << "could not create section " << argv[1] << "\n";
     return TCL_ERROR;
   }
 
   // Now add the material to the modelBuilder
   if (builder->addTaggedObject<SectionForceDeformation>(*theSection) < 0) {
-    opserr << *theSection << endln;
+    opserr << *theSection << "\n";
     delete theSection; // invoke the material objects destructor, otherwise mem leak
     return TCL_ERROR;
   } else
@@ -760,7 +760,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
       if (torsion == nullptr) {
         opserr << OpenSees::PromptValueError << "uniaxial material does not exist\n";
         opserr << "uniaxial material: " << torsionTag;
-        opserr << "\nFiberSection3d: " << secTag << endln;
+        opserr << "\nFiberSection3d: " << secTag << "\n";
         return TCL_ERROR;
       }
 
@@ -921,7 +921,7 @@ TclCommand_addFiberIntSection(ClientData clientData, Tcl_Interp *interp,
   if (NDM == 3 && torsion == nullptr) {
     opserr << OpenSees::PromptValueError << "- no torsion specified for 3D fiber section, use -GJ or "
               "-torsion\n";
-    opserr << "\nFiberSectionInt3d: " << secTag << endln;
+    opserr << "\nFiberSectionInt3d: " << secTag << "\n";
     return TCL_ERROR;
   }
 
@@ -1725,7 +1725,7 @@ TclCommand_addUCFiberSection(ClientData clientData, Tcl_Interp *interp,
       UniaxialMaterial *theMaterial = G3_getUniaxialMaterialInstance(rt,matTag);
       if (theMaterial == 0) {
         opserr << "section UCFiber - no material exists with tag << " << matTag
-               << endln;
+               << "\n";
         return TCL_ERROR;
       }
 
@@ -1922,7 +1922,7 @@ buildSectionInt(ClientData clientData, Tcl_Interp *interp, TclBasicBuilder *theT
             new UniaxialFiber3d(k, *material, fibersArea(k), fiberPosition);
         if (fibersArea(k) < 0)
           opserr << "ERROR: " << fiberPosition(0) << " " << fiberPosition(1)
-                 << endln;
+                 << "\n";
         k++;
       }
 
@@ -1972,7 +1972,7 @@ G3Parse_newTubeSection(G3_Runtime* rt, int argc, G3_Char ** const argv)
   if (strcmp(argv[1], "Tube") == 0) {
     if (argc < 8) {
       opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-      opserr << "Want: section Tube tag? matTag? D? t? nfw? nfr?" << endln;
+      opserr << "Want: section Tube tag? matTag? D? t? nfw? nfr?" << "\n";
       return nullptr;
     }
 
@@ -1981,36 +1981,36 @@ G3Parse_newTubeSection(G3_Runtime* rt, int argc, G3_Char ** const argv)
     int nfw, nfr;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section Tube tag" << endln;
+      opserr << OpenSees::PromptValueError << "invalid section Tube tag" << "\n";
       return nullptr;
     }
 
     if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid section Tube matTag" << endln;
+      opserr << OpenSees::PromptValueError << "invalid section Tube matTag" << "\n";
       return nullptr;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &D) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid D" << endln;
-      opserr << "Tube section: " << tag << endln;
+      opserr << OpenSees::PromptValueError << "invalid D" << "\n";
+      opserr << "Tube section: " << tag << "\n";
       return nullptr;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &t) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid t" << endln;
-      opserr << "Tube section: " << tag << endln;
+      opserr << OpenSees::PromptValueError << "invalid t" << "\n";
+      opserr << "Tube section: " << tag << "\n";
       return nullptr;
     }
 
     if (Tcl_GetInt(interp, argv[6], &nfw) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nfw" << endln;
-      opserr << "Tube section: " << tag << endln;
+      opserr << OpenSees::PromptValueError << "invalid nfw" << "\n";
+      opserr << "Tube section: " << tag << "\n";
       return nullptr;
     }
 
     if (Tcl_GetInt(interp, argv[7], &nfr) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nfr" << endln;
-      opserr << "Tube  section: " << tag << endln;
+      opserr << OpenSees::PromptValueError << "invalid nfr" << "\n";
+      opserr << "Tube  section: " << tag << "\n";
       return nullptr;
     }
 
@@ -2023,8 +2023,8 @@ G3Parse_newTubeSection(G3_Runtime* rt, int argc, G3_Char ** const argv)
       double shape = 1.0;
       if (argc > 9) {
         if (Tcl_GetDouble(interp, argv[9], &shape) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid shape" << endln;
-          opserr << "WFSection2d section: " << tag << endln;
+          opserr << OpenSees::PromptValueError << "invalid shape" << "\n";
+          opserr << "WFSection2d section: " << tag << "\n";
           return nullptr;
         }
       }

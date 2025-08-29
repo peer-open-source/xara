@@ -716,7 +716,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING invalid number of arguments\n";
       opserr
           << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? epscu?"
-          << endln;
+          << "\n";
       return TCL_ERROR;
     }
 
@@ -744,7 +744,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
     if (argc < 10) {
       opserr << "WARNING invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? epscu? rat? ft? Ets?"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
@@ -802,7 +802,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   if (argc < 7) {
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Hardening01 tag? E? sigY? Hiso? Hkin?"
-        << endln;
+        << "\n";
   return TCL_ERROR;
   }
 
@@ -833,7 +833,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Bond01 tag? u1p? q1p? u2p? u3p? q3p? "
             "u1n? q1n? u2n? u3n? q3n? s0? bb?"
-        << endln;
+        << "\n";
   return TCL_ERROR;
   }
 
@@ -902,7 +902,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Bond02 tag? u1p? q1p? u2p? u3p? q3p? "
             "u1n? q1n? u2n? u3n? q3n? s0? bb? alp? aln?"
-        << endln;
+        << "\n";
   return TCL_ERROR;
   }
 
@@ -979,7 +979,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Concrete03 tag? fpc? epsc0? fpcu? "
       "epscu? rat? ft? epst0? ft0? beta? epstu?"
-    << endln;
+    << "\n";
   return TCL_ERROR;
   }
 
@@ -1037,7 +1037,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Hysteretic01 tag? s1p? e1p? s2p? e2p? "
       "s1n? e1n? s2n? e1n? px? py? d1? d2?"
-    << endln;
+    << "\n";
   return TCL_ERROR;
   }
 
@@ -1104,7 +1104,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Hysteretic02 tag? s1p? e1p? s2p? e2p? "
       "s3p? e3p? s1n? e1n? s2n? e1n? s3n? e3n? px? py? d1? d2?"
-    << endln;
+    << "\n";
   return TCL_ERROR;
   }
 
@@ -1188,7 +1188,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial ConcretePlasticDamage tag? $Ec $Gf $Gc "
                 "$ft $fcy $fc $ktcr $relax"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 

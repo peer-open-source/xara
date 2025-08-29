@@ -759,7 +759,7 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
     if (argc < 7) {
       opserr << "WARNING invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial UniaxialJ2Plasticity tag? E? sigmaY? Hkin? <Hiso?>"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
@@ -769,7 +769,7 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
       opserr << "WARNING invalid uniaxialMaterial UniaxialJ2Plasticity tag"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 

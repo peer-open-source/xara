@@ -482,7 +482,7 @@ getEleClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
 
   } else {
     opserr << OpenSees::PromptValueError 
-           << "want - getEleClassTags <eleTag?>\n" << endln;
+           << "want - getEleClassTags <eleTag?>\n" << "\n";
     return TCL_ERROR;
   }
 

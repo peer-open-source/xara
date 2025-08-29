@@ -791,20 +791,20 @@ TclCommand_newMinMaxND(ClientData clientData, Tcl_Interp* interp, int argc, cons
     if (argc < 4) {
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: uniaxialMaterial MinMax tag? matTag?";
-      opserr << " <-min min?> <-max max?>" << endln;
+      opserr << " <-min min?> <-max max?>" << "\n";
       return TCL_ERROR;
     }
 
     int tag, matTag;
     
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial MinMax tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial MinMax tag" << "\n";
       return TCL_ERROR;               
     }
 
     if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
       opserr << "WARNING invalid component tag\n";
-      opserr << "uniaxialMaterial MinMax: " << tag << endln;
+      opserr << "uniaxialMaterial MinMax: " << tag << "\n";
       return TCL_ERROR;
     }
 
@@ -816,7 +816,7 @@ TclCommand_newMinMaxND(ClientData clientData, Tcl_Interp* interp, int argc, cons
       if (strcmp(argv[j],"-min") == 0) {
         if ((j+1) >= argc || Tcl_GetDouble (interp, argv[j+1], &epsmin) != TCL_OK) {
           opserr << "WARNING invalid min\n";
-          opserr << "uniaxialMaterial MinMax: " << tag << endln;
+          opserr << "uniaxialMaterial MinMax: " << tag << "\n";
           return TCL_ERROR;
         }
         j++;
@@ -824,7 +824,7 @@ TclCommand_newMinMaxND(ClientData clientData, Tcl_Interp* interp, int argc, cons
       if (strcmp(argv[j],"-max") == 0) {
         if ((j+1) >= argc || Tcl_GetDouble (interp, argv[j+1], &epsmax) != TCL_OK) {
           opserr << "WARNING invalid max\n";
-          opserr << "uniaxialMaterial MinMax: " << tag << endln;
+          opserr << "uniaxialMaterial MinMax: " << tag << "\n";
           return TCL_ERROR;
         }
         j++;
@@ -836,7 +836,7 @@ TclCommand_newMinMaxND(ClientData clientData, Tcl_Interp* interp, int argc, cons
     if (theMat == 0) {
       opserr << "WARNING component material does not exist\n";
       opserr << "Component material: " << matTag; 
-      opserr << "\nuniaxialMaterial MinMax: " << tag << endln;
+      opserr << "\nuniaxialMaterial MinMax: " << tag << "\n";
       return TCL_ERROR;
     }
 
