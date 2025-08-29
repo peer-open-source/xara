@@ -22,7 +22,6 @@
 //
 // Eight node Brick element
 //
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <cmath> 
 
@@ -508,6 +507,7 @@ Brick::addLoad(ElementalLoad *theLoad, double loadFactor)
   return -1;
 }
 
+
 int
 Brick::addInertiaLoadToUnbalance(const Vector &accel)
 {
@@ -564,8 +564,9 @@ Brick::getResistingForce( )
 }
 
 
-//get residual with inertia terms
-const Vector&  Brick::getResistingForceIncInertia( )
+
+const Vector&  
+Brick::getResistingForceIncInertia( )
 {
   static Vector res(24);
 
@@ -608,9 +609,6 @@ Brick::formInertiaTerms( int tangFlag )
   static double gaussPoint[ndm] ;
 
   static Vector momentum(ndf) ;
-
-  int i, j, k, p, q ;
-  int jj, kk ;
 
   double temp, rho, massJK ;
 
@@ -655,19 +653,19 @@ Brick::formInertiaTerms( int tangFlag )
 
 
   // Gauss loop 
-  for ( i = 0; i < numberGauss; i++ ) {
+  for (int i = 0; i < numberGauss; i++ ) {
 
     // extract shape functions from saved array
     double shp[nShape][numberNodes];
-    for ( p = 0; p < nShape; p++ ) {
-       for ( q = 0; q < numberNodes; q++ )
+    for (int p = 0; p < nShape; p++ ) {
+       for (int q = 0; q < numberNodes; q++ )
         shp[p][q]  = Shape[p][q][i] ;
     }
 
 
     // node loop to compute acceleration
     momentum.Zero( ) ;
-    for ( j = 0; j < numberNodes; j++ ) 
+    for (int j = 0; j < numberNodes; j++ ) 
       //momentum += shp[massIndex][j] * ( theNodes[j]->getTrialAccel()  ) ; 
       momentum.addVector(1.0, theNodes[j]->getTrialAccel(), shp[massIndex][j]);
 
@@ -681,7 +679,7 @@ Brick::formInertiaTerms( int tangFlag )
 
 
     //residual and tangent calculations node loops
-    jj = 0 ;
+    int jj = 0 ;
     for (int j = 0; j < numberNodes; j++ ) {
 
       temp = shp[massIndex][j] * dvol[i] ;
@@ -695,7 +693,7 @@ Brick::formInertiaTerms( int tangFlag )
         temp *= rho ;
 
         // node-node mass
-        kk = 0 ;
+        int kk = 0 ;
         for (int k = 0; k < numberNodes; k++ ) {
 
           massJK = temp * shp[massIndex][k] ;
@@ -713,7 +711,8 @@ Brick::formInertiaTerms( int tangFlag )
   }
 }
 
-//*********************************************************************
+
+
 //form residual and tangent
 int  
 Brick::update() 
