@@ -146,24 +146,60 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // Parse tag, iNode, jNode
+  int argi = 5;
   int tag, iNode, jNode, transTag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid tag " << argv[2] << "\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid iNode " << argv[3] << "\n";
-    return TCL_ERROR;
+
+  {
+    int list_argc;
+    TCL_Char **list_argv;
+    if (Tcl_SplitList(interp, argv[3], &list_argc, &list_argv) == TCL_OK && list_argc >= 2) {
+      argi -= 1;
+      if (list_argc > 2) {
+        opserr << OpenSees::PromptValueError << "too many nodes in node list\n";
+        return TCL_ERROR;
+      }
+      int nodes[2];
+      for (int i = 0; i < list_argc; ++i) {
+        int node;
+        if (Tcl_GetInt(interp, list_argv[i], &node) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid node\n";
+          return TCL_ERROR;
+        }
+        nodes[i] = node;
+      }
+      Tcl_Free((char *)list_argv);
+      iNode = nodes[0];
+      jNode = nodes[1];
+    }
+    else {
+      if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "invalid iNode\n";
+        return TCL_ERROR;
+      }
+  
+      if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "invalid jNode\n";
+        return TCL_ERROR;
+      }
+    }
   }
-  if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid jNode " << argv[4] << "\n";
-    return TCL_ERROR;
-  }
+  // if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
+  //   opserr << OpenSees::PromptValueError << "invalid iNode " << argv[3] << "\n";
+  //   return TCL_ERROR;
+  // }
+  // if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
+  //   opserr << OpenSees::PromptValueError << "invalid jNode " << argv[4] << "\n";
+  //   return TCL_ERROR;
+  // }
 
   //
   // Parse keyword arguments
   //
-  for (int argi = 5; argi < argc; argi++) {
+  for (; argi < argc; argi++) {
 
     // Section
     if (strcmp(argv[argi], "-section") == 0) {
