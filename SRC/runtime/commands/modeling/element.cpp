@@ -111,9 +111,6 @@ G3_TclElementCommand TclBasicBuilder_addMasonPan12;
 G3_TclElementCommand TclBasicBuilder_addMasonPan3D;
 G3_TclElementCommand TclBasicBuilder_addBeamGT;
 
-
-
-
 // Shells
 Element* TclDispatch_newShellANDeS(ClientData, Tcl_Interp*, int, TCL_Char** const);
 

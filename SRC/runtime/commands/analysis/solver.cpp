@@ -123,11 +123,12 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
     return ctor->second.ss(rt, argc, argv);
   }
 
-#if 1 || defined(XARA_USE_MUMPS)
+#if defined(XARA_USE_MUMPS)
   else if (strcasecmp(argv[1], "mumps") == 0) {
     return TclDispatch_newMumpsLinearSOE(clientData, interp, argc, argv);
   }
 #endif
+
   else if (strcasecmp(argv[1], "Umfpack")==0) {
     // TODO: if "umfpack" is in solver.hpp, this wont be reached
     return TclDispatch_newUmfpackLinearSOE(clientData, interp, argc, argv);
