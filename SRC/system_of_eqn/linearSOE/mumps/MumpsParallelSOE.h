@@ -27,7 +27,7 @@
 
 // Written: fmk 
 // Description: This file contains the class definition for MumpsParallelSOE
-// MumpsParallelSOE is a subclass of LinearSOE. It uses the sparse column
+// MumpsParallelSOE uses the sparse column
 // storage scheme. The matrix A is kept distributed, X and B kept on all processors.
 //
 // matrix types (matType): 0 Unsymmetrc
