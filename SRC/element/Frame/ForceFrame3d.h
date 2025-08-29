@@ -38,7 +38,8 @@ class ForceFrame3d: public BasicFrame3d,
                     public FiniteElement<2, 3, 6+nwm>
 {
  public:
-  ForceFrame3d(int tag, std::array<int,2>& nodes,
+  ForceFrame3d(int tag,
+               std::array<int,2>& nodes,
                std::vector<FrameSection*>& sections,
                BeamIntegration &,
                FrameTransformBuilder &, 

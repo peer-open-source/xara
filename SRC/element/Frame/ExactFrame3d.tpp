@@ -1,5 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 //        Please cite the following resources in any derivative works:
 //                 https://doi.org/10.5281/zenodo.10456866
 //                 https://doi.org/10.1002/nme.7506
