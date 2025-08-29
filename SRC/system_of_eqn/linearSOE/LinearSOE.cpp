@@ -53,7 +53,7 @@ LinearSOE::~LinearSOE()
 }
 
 int 
-LinearSOE::solve(void)
+LinearSOE::solve()
 {
   if (theSolver != 0)
     return (theSolver->solve());
@@ -68,14 +68,13 @@ LinearSOE::formAp(const Vector &p, Vector &Ap)
 }
 
 double
-LinearSOE::getDeterminant(void)
+LinearSOE::getDeterminant()
 {
   if (theSolver != nullptr)
     return theSolver->getDeterminant();
   else 
     return 0;
 }
-
 
 
 int 
@@ -86,7 +85,7 @@ LinearSOE::setSolver(LinearSOESolver &newSolver)
 }
 
 LinearSOESolver *
-LinearSOE::getSolver(void)
+LinearSOE::getSolver()
 {
   return theSolver;
 }
@@ -103,6 +102,7 @@ int
 LinearSOE::addA(const Matrix &) {
   return -1;
 }
+
 
 int
 LinearSOE::addColA(const Vector &col, int colIndex, double fact) {

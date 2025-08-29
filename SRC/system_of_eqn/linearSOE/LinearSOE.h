@@ -50,12 +50,12 @@ class LinearSOE : public MovableObject
     LinearSOE(int classTag);    
     virtual ~LinearSOE();
 
-    virtual int solve(void);    
+    virtual int solve();    
     virtual int setLinks(AnalysisModel &theModel);    
 
     // pure virtual functions
     virtual int setSize(Graph &theGraph) =0;    
-    virtual int getNumEqn(void) const =0;
+    virtual int getNumEqn() const =0;
     
     virtual int addA(const Matrix &, const ID &, double fact = 1.0) =0;
     virtual int addB(const Vector &, const ID &, double fact = 1.0) =0;    
@@ -64,21 +64,21 @@ class LinearSOE : public MovableObject
     virtual int addA(const Matrix &);
     virtual int addColA(const Vector &col, int colIndex, double fact = 1.0);
 
-    virtual void zeroA(void) =0;
-    virtual void zeroB(void) =0;
+    virtual void zeroA() =0;
+    virtual void zeroB() =0;
 
     virtual int formAp(const Vector &p, Vector &Ap);
 
     virtual const Vector &getX(void) = 0;
     virtual const Vector &getB(void) = 0;    
     virtual const Matrix *getA(void) {return 0;};    
-            double getDeterminant(void);
+    double getDeterminant(void);
     virtual double normRHS(void) = 0;
 
     virtual void setX(int loc, double value) =0;
     virtual void setX(const Vector &X) =0;
     
-    LinearSOESolver *getSolver(void);
+    LinearSOESolver *getSolver();
     
   protected:
     int setSolver(LinearSOESolver &newSolver);	        
