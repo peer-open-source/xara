@@ -59,7 +59,7 @@ class DOF_Group: public TaggedObject
 
     // methods to form the tangent
     virtual const Matrix &getTangent(Integrator *theIntegrator);
-    virtual void  zeroTangent(void);
+    virtual void  zeroTangent();
     virtual void  addMtoTang(double fact = 1.0);    
     virtual void  addCtoTang(double fact = 1.0);    
 
