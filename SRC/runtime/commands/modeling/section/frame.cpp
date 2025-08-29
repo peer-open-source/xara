@@ -323,6 +323,10 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
               opserr << OpenSees::PromptParseError << "invalid A.\n";
               return TCL_ERROR;
           } else {
+            if (tracker.contains(Position::ky))
+              consts.Ay = consts.A; // Default to A if Ay is not specified
+            if (tracker.contains(Position::kz))
+              consts.Az = consts.A; // Default to A if Az is not specified
             tracker.increment();
             break;
           }

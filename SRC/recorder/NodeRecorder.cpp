@@ -196,8 +196,8 @@ NodeRecorder::record(int commitTag, double timeStamp)
 
   int numDOF = theDofs->Size();
 
-  // where relDeltaTTol is the maximum reliable ratio between analysis time step and deltaT
-  // to provide adequate tolerance for floating point precision (default=1.0e-5)
+    // where relDeltaTTol is the maximum reliable ratio between analysis time step and deltaT
+    // to provide adequate tolerance for floating point precision (default=1.0e-5)
     if (deltaT == 0.0 || timeStamp - nextTimeStampToRecord >= -deltaT * relDeltaTTol) {
 
     if (deltaT != 0.0)

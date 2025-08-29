@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -276,7 +285,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
 // Concretes
     {"Concrete01",             dispatch<TclCommand_newFedeasConcrete>  },
-    {"Concrete02",             dispatch<OPS_Concrete02>                },
+    {"Concrete02",             dispatch<TclCommand_newFedeasConcrete>     },
     {"Concrete04",             dispatch<TclCommand_newUniaxialConcrete04> },
     {"Concrete06",             dispatch<TclCommand_newUniaxialConcrete06> },
     {"Concrete07",             dispatch<TclCommand_newUniaxialConcrete07> },
