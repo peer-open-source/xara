@@ -58,18 +58,19 @@ class MinUnbalDispNorm : public StaticIntegrator
 
     int newStep(void);    
     int update(const Vector &deltaU);
-    int domainChanged(void);
+    int domainChanged();
     
     int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
     void Print(OPS_Stream &, int flag) final;    
     
     //////////////////Sensitivity Begin//////////////////////////////////
 //  int formEleResidual(FE_Element *theEle);
+private:
     int formSensitivityRHS(int gradNum);// it's been modified to compute dLambdadh and dUdh
     int formIndependentSensitivityRHS();
+public:
     int saveSensitivity(const Vector &v, int gradNum, int numGrads);
     int saveLambdaSensitivity(double dlambdadh, int gradNum, int numGrads);
     int commitSensitivity(int gradNum, int numGrads);
