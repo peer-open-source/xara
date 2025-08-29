@@ -104,7 +104,6 @@ CorotTrussSection::CorotTrussSection()
    theMatrix(0),
    theVector(0)
 {
-  // set node pointers to NULL
   for (int i = 0; i < 2; i++)
     theNodes[i] = nullptr;
 }

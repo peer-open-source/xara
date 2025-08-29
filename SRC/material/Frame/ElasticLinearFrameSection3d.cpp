@@ -5,6 +5,15 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+//
 #include <ElasticLinearFrameSection3d.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -68,7 +77,7 @@ SetupTangent(MatrixND<12,12>& Ks, const FrameSectionConstants& cons, double E, d
   // n-n
   double A   = cons.A; 
   double Ay  = cons.Ay;
-  double Az  = cons.Ay;
+  double Az  = cons.Az;
   // m-m
   double Iy  = cons.Iy;    //   \int z^2
   double Iz  = cons.Iz;    //   \int y^2

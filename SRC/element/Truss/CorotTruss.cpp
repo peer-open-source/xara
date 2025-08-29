@@ -52,9 +52,10 @@ Vector CorotTruss::V6(6);
 Vector CorotTruss::V12(12);
 
 
-//  responsible for allocating the necessary space needed by each object
-//  and storing the tags of the CorotTruss end nodes.
-CorotTruss::CorotTruss(int tag, int dim, int Nd1, int Nd2, UniaxialMaterial& theMat, double a,
+CorotTruss::CorotTruss(int tag, int dim, 
+                       int Nd1, int Nd2,
+                       UniaxialMaterial& theMat,
+                       double a,
                        double r, int damp, int cm)
  : Element(tag, ELE_TAG_CorotTruss),
    theMaterial(0),
