@@ -46,6 +46,12 @@ class MumpsSolver;
 class MumpsParallelSolver;
 class LinearSOESolver;
 
+enum class MumpsMatrixType: int {
+  General = 0, 
+  SPD = 1, 
+  SID = 2
+};
+
 class MumpsSOE : public LinearSOE
 {
   public:
@@ -56,25 +62,25 @@ class MumpsSOE : public LinearSOE
 
     virtual ~MumpsSOE();
 
-    virtual int getNumEqn(void) const;
-    virtual int setSize(Graph &theGraph);
-    virtual int addA(const Matrix &, const ID &, double fact = 1.0);
-    virtual int addB(const Vector &, const ID &, double fact = 1.0);    
-    virtual int setB(const Vector &, double fact = 1.0);        
-    
-    virtual void zeroA(void);
-    virtual void zeroB(void);
-    
-    virtual const Vector &getX(void);
-    virtual const Vector &getB(void);    
-    virtual double normRHS(void);
+    int getNumEqn() const override;
+    int setSize(Graph &theGraph) override;
+    int addA(const Matrix &, const ID &, double fact = 1.0) override;
+    int addB(const Vector &, const ID &, double fact = 1.0) override;    
+    int setB(const Vector &, double fact = 1.0) override; 
 
-    virtual void setX(int loc, double value);        
-    virtual void setX(const Vector &x);        
-    virtual int setMumpsSolver(MumpsSolver &newSolver);    
+    void zeroA() override;
+    void zeroB() override;
+    
+    const Vector &getX() override;
+    const Vector &getB() override;    
+    double normRHS() override;
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    void setX(int loc, double value) override;        
+    void setX(const Vector &x) override;        
+    virtual int setMumpsSolver(MumpsSolver &);    
+
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
 
     friend class MumpsSolver;    
     friend class MumpsParallelSolver;    
