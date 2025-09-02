@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Written: Claudio Perez
@@ -232,7 +239,8 @@ BasicAnalysisBuilder::domainChanged()
   int stamp = domain->hasDomainChanged();
   domainStamp = stamp;
 
-  opsdbg << G3_DEBUG_PROMPT << "Domain changed\n";
+  opsdbg << G3_DEBUG_PROMPT 
+         << "Domain changed\n";
 
 
   theAnalysisModel->clearAll();
@@ -499,7 +507,7 @@ BasicAnalysisBuilder::analyzeStep(double dT)
   result = theAlgorithm->solveCurrentStep();
   if (result < 0) {
     if (AnalyzeFailedMessage.find(result) != AnalyzeFailedMessage.end()) {
-        opserr << OpenSees::PromptAnalysisFailure << AnalyzeFailedMessage[result];
+      opserr << OpenSees::PromptAnalysisFailure << AnalyzeFailedMessage[result];
     }
     theDomain->revertToLastCommit();
     theTransientIntegrator->revertToLastStep();
@@ -887,13 +895,13 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
     if (typeSolver == EigenSOE_TAGS_SymBandEigenSOE) {
       SymBandEigenSolver *theEigenSolver = new SymBandEigenSolver();
       theEigenSOE = new SymBandEigenSOE(*theEigenSolver, *theAnalysisModel);
-
-    } else if (typeSolver == EigenSOE_TAGS_FullGenEigenSOE) {
-        FullGenEigenSolver *theEigenSolver = new FullGenEigenSolver();
-        theEigenSOE = new FullGenEigenSOE(*theEigenSolver, *theAnalysisModel);
-
-    } else {
-        theEigenSOE = new ArpackSOE(shift);
+    }
+    else if (typeSolver == EigenSOE_TAGS_FullGenEigenSOE) {
+      FullGenEigenSolver *theEigenSolver = new FullGenEigenSolver();
+      theEigenSOE = new FullGenEigenSOE(*theEigenSolver, *theAnalysisModel);
+    }
+    else {
+      theEigenSOE = new ArpackSOE(*theAnalysisModel, shift);
     }
 
     //
@@ -1003,11 +1011,11 @@ BasicAnalysisBuilder::eigen(int numMode, bool generalized, bool findSmallest)
     }
   }
 
+
   //
   // Solve for the eigen values & vectors
   //
   if (theEigenSOE->solve(numMode, generalized, findSmallest) < 0) {
-    opserr << G3_WARN_PROMPT << "EigenSOE failed in solve()\n";
     return -4;
   }
 
