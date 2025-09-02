@@ -621,9 +621,8 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
            (strcmp(argv[1], "elementDamage") == 0)) {
     //////////  By Arash Altoontash /////////////////
     TCL_Char *filename  = nullptr;
-#if 1 
       
-#else
+#if 0
     if (argc < 7) {
       opserr << "WARNING recorder ElementDamage eleID? <-time> "
              << "<-file filename?> <-section secID1? secID2? ...> <-dof "

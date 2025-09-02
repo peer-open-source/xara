@@ -89,7 +89,8 @@ specifySysOfEqnTable(ClientData clientData, Tcl_Interp *interp, int argc, G3_Cha
   // make sure at least one other argument to contain type of system
   if (argc < 2) {
     opserr << OpenSees::PromptValueError
-           << "need to specify a system type" << "\n";
+           << "need to specify a system type" 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -178,7 +179,8 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
   else {
     opserr << OpenSees::PromptValueError 
            << " system '" 
-           << argv[1] << "' is unknown or not installed\n";
+           << argv[1] << "' is unknown or not installed"
+           << OpenSees::SignalMessageEnd;
     return nullptr;
   }
 
@@ -189,22 +191,20 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
 LinearSOE*
 specify_SparseSPD(G3_Runtime *rt, int argc, G3_Char ** const argv)
 {
-//if ((strcmp(argv[1], "SparseSPD") == 0) ||
-//         (strcmp(argv[1], "SparseSYM") == 0)) {
-    Tcl_Interp *interp = G3_getInterpreter(rt);
+  Tcl_Interp *interp = G3_getInterpreter(rt);
 
-    // determine ordering scheme
-    //   1 -- MMD
-    //   2 -- ND
-    //   3 -- RCM
+  // determine ordering scheme
+  //   1 -- MMD
+  //   2 -- ND
+  //   3 -- RCM
 
-    int lSparse = 1;
-    if (argc == 3) {
-      if (Tcl_GetInt(interp, argv[2], &lSparse) != TCL_OK)
-        return nullptr;
-    }
-    SymSparseLinSolver *theSolver = new SymSparseLinSolver();
-    return new SymSparseLinSOE(*theSolver, lSparse);
+  int lSparse = 1;
+  if (argc == 3) {
+    if (Tcl_GetInt(interp, argv[2], &lSparse) != TCL_OK)
+      return nullptr;
+  }
+
+  return new SymSparseLinSOE(*new SymSparseLinSolver(), lSparse);
 }
 
 
@@ -218,56 +218,52 @@ specify_SparseSPD(G3_Runtime *rt, int argc, G3_Char ** const argv)
 LinearSOE*
 specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
 {
-  // SPARSE GENERAL SOE * SOLVER
-//if ((strcmp(argv[1], "SparseGeneral") == 0) ||
-//         (strcmp(argv[1], "SuperLU") == 0) ||
-//         (strcmp(argv[1], "SparseGEN") == 0))
-    Tcl_Interp *interp = G3_getInterpreter(rt);
+  Tcl_Interp *interp = G3_getInterpreter(rt);
 
-    SparseGenColLinSolver *theSolver = nullptr;
-    int count = 2;
-    double thresh = 0.0;
-    int npRow = 1;
-    int npCol = 1;
-    int np = 1;
+  SparseGenColLinSolver *theSolver = nullptr;
+  int count = 2;
+  double thresh = 0.0;
+  int npRow = 1;
+  int npCol = 1;
+  int np = 1;
 
-    // defaults for threaded SuperLU
-    while (count < argc) {
-      if ((strcmp(argv[count], "p")    == 0) ||
-          (strcmp(argv[count], "piv")  == 0) ||
-          (strcmp(argv[count], "-piv") == 0)) {
-        thresh = 1.0;
-      } else if ((strcmp(argv[count], "-np") == 0) ||
-                 (strcmp(argv[count], "np")  == 0)) {
-        count++;
-        if (count < argc)
-          if (Tcl_GetInt(interp, argv[count], &np) != TCL_OK)
-            return nullptr;
-      } else if ((strcmp(argv[count], "npRow")  == 0) ||
-                 (strcmp(argv[count], "-npRow") == 0)) {
-        count++;
-        if (count < argc)
-          if (Tcl_GetInt(interp, argv[count], &npRow) != TCL_OK)
-            return nullptr;
-      } else if ((strcmp(argv[count], "npCol")  == 0) ||
-                 (strcmp(argv[count], "-npCol") == 0)) {
-        count++;
-        if (count < argc)
-          if (Tcl_GetInt(interp, argv[count], &npCol) != TCL_OK)
-            return nullptr;
-      }
+  // defaults for threaded SuperLU
+  while (count < argc) {
+    if ((strcmp(argv[count], "p")    == 0) ||
+        (strcmp(argv[count], "piv")  == 0) ||
+        (strcmp(argv[count], "-piv") == 0)) {
+      thresh = 1.0;
+    } else if ((strcmp(argv[count], "-np") == 0) ||
+                (strcmp(argv[count], "np")  == 0)) {
       count++;
+      if (count < argc)
+        if (Tcl_GetInt(interp, argv[count], &np) != TCL_OK)
+          return nullptr;
+    } else if ((strcmp(argv[count], "npRow")  == 0) ||
+                (strcmp(argv[count], "-npRow") == 0)) {
+      count++;
+      if (count < argc)
+        if (Tcl_GetInt(interp, argv[count], &npRow) != TCL_OK)
+          return nullptr;
+    } else if ((strcmp(argv[count], "npCol")  == 0) ||
+                (strcmp(argv[count], "-npCol") == 0)) {
+      count++;
+      if (count < argc)
+        if (Tcl_GetInt(interp, argv[count], &npCol) != TCL_OK)
+          return nullptr;
     }
+    count++;
+  }
 
-    int permSpec = 1;
-    int panelSize = 6;
-    int relax = 6;
+  int permSpec = 1;
+  int panelSize = 6;
+  int relax = 6;
 
 #ifdef _THREADS
-    if (np != 0)
-      theSolver = new ThreadedSuperLU(np, permSpec, panelSize, relax, thresh);
-    else
-      return nullptr;
+  if (np != 0)
+    theSolver = new ThreadedSuperLU(np, permSpec, panelSize, relax, thresh);
+  else
+    return nullptr;
 // #endif
 // 
 // #ifdef _PARALLEL_PROCESSING
@@ -279,25 +275,25 @@ specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
 //       theSolver = new DistributedSuperLU(npRow, npCol);
 //     }
 #else
-    char symmetric = 'N';
-    double drop_tol = 0.0;
-    while (count < argc) {
-      if (strcmp(argv[count], "s") == 0 || 
-          strcmp(argv[count], "symmetric") ||
-          strcmp(argv[count], "-symmetric") ||
-          strcmp(argv[count], "-symm")) {
-        symmetric = 'Y';
-      }
-      count++;
+  char symmetric = 'N';
+  double drop_tol = 0.0;
+  while (count < argc) {
+    if (strcmp(argv[count], "s") == 0 || 
+        strcmp(argv[count], "symmetric") ||
+        strcmp(argv[count], "-symmetric") ||
+        strcmp(argv[count], "-symm")) {
+      symmetric = 'Y';
     }
-    // TODO(cmp) : SuperLU
-    theSolver = new SuperLU(permSpec, drop_tol, panelSize, relax, symmetric);
+    count++;
+  }
+  // TODO(cmp) : SuperLU
+  theSolver = new SuperLU(permSpec, drop_tol, panelSize, relax, symmetric);
 #endif
 
 #ifdef _PARALLEL_PROCESSING
-    return new DistributedSparseGenColLinSOE(*theSolver);
+  return new DistributedSparseGenColLinSOE(*theSolver);
 #else
-    return new SparseGenColLinSOE(*theSolver);
+  return new SparseGenColLinSOE(*theSolver);
 #endif
 }
 

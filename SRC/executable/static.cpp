@@ -3,7 +3,16 @@
 //                                   xara
 //                              https://xara.so
 //
-//----------------------------------------------------------------------------//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 #include <string.h>
 #include <stdlib.h>
 #include <string>
@@ -230,83 +239,83 @@ main(int argc, char **argv)
     outChannel = Tcl_GetStdChannel(TCL_STDOUT);
     gotPartial = 0;
 
-    while (1) {
-        if (tty) {
-          Tcl_Obj *promptCmdPtr;
-          
-          char one[12] = "tcl_prompt1";
-          char two[12] = "tcl_prompt2";
-          promptCmdPtr = Tcl_GetVar2Ex(interp,
-                                              (gotPartial ? one : two),
-                                              NULL, TCL_GLOBAL_ONLY);
-          if (promptCmdPtr == NULL) {
-          defaultPrompt:
-            if (!gotPartial && outChannel) {
-              Tcl_WriteChars(outChannel, "OpenSees > ", 11);
-            }
-          } else {
-            
-            code = Tcl_EvalObjEx(interp, promptCmdPtr, 0);
-            
-            inChannel = Tcl_GetStdChannel(TCL_STDIN);
-            outChannel = Tcl_GetStdChannel(TCL_STDOUT);
-            errChannel = Tcl_GetStdChannel(TCL_STDERR);
-            if (code != TCL_OK) {
-              if (errChannel) {
-                  Tcl_WriteObj(errChannel, Tcl_GetObjResult(interp));
-                  Tcl_WriteChars(errChannel, "\n", 1);
-              }
-              Tcl_AddErrorInfo(interp,
-                                    "\n    (script that generates prompt)");
-              goto defaultPrompt;
-            }
-          }
-          if (outChannel) {
-            Tcl_Flush(outChannel);
-            }
-        }
-        if (!inChannel) {
-          goto done;
-        }
-        length = Tcl_GetsObj(inChannel, commandPtr);
-        if (length < 0) {
-          goto done;
-        }
-        if ((length == 0) && Tcl_Eof(inChannel) && (!gotPartial)) {
-          goto done;
-        }
-              
-        /*
-          * Add the newline removed by Tcl_GetsObj back to the string.
-          */
+    while (true) {
+      if (tty) {
+        Tcl_Obj *promptCmdPtr;
         
-        Tcl_AppendToObj(commandPtr, "\n", 1);
-        // if (!TclObjCommandComplete(commandPtr)) {
-        //   gotPartial = 1;
-        //   continue;
-        // }
-
-        gotPartial = 0;
-        code = Tcl_RecordAndEvalObj(interp, commandPtr, 0);
-        inChannel = Tcl_GetStdChannel(TCL_STDIN);
-        outChannel = Tcl_GetStdChannel(TCL_STDOUT);
-        errChannel = Tcl_GetStdChannel(TCL_STDERR);
-        Tcl_DecrRefCount(commandPtr);
-        commandPtr = Tcl_NewObj();
-        Tcl_IncrRefCount(commandPtr);
-        if (code != TCL_OK) {
-          if (errChannel) {
-            Tcl_WriteObj(errChannel, Tcl_GetObjResult(interp));
-            Tcl_WriteChars(errChannel, "\n", 1);
+        char one[12] = "tcl_prompt1";
+        char two[12] = "tcl_prompt2";
+        promptCmdPtr = Tcl_GetVar2Ex(interp,
+                                            (gotPartial ? one : two),
+                                            NULL, TCL_GLOBAL_ONLY);
+        if (promptCmdPtr == NULL) {
+        defaultPrompt:
+          if (!gotPartial && outChannel) {
+            Tcl_WriteChars(outChannel, "OpenSees > ", 11);
           }
-        } else if (tty) {
-          resultPtr = Tcl_GetObjResult(interp);
-          Tcl_GetStringFromObj(resultPtr, &length);
-          if ((length > 0) && outChannel) {
-            Tcl_WriteObj(outChannel, resultPtr);
-            Tcl_WriteChars(outChannel, "\n", 1);
+        } else {
+          
+          code = Tcl_EvalObjEx(interp, promptCmdPtr, 0);
+          
+          inChannel = Tcl_GetStdChannel(TCL_STDIN);
+          outChannel = Tcl_GetStdChannel(TCL_STDOUT);
+          errChannel = Tcl_GetStdChannel(TCL_STDERR);
+          if (code != TCL_OK) {
+            if (errChannel) {
+                Tcl_WriteObj(errChannel, Tcl_GetObjResult(interp));
+                Tcl_WriteChars(errChannel, "\n", 1);
+            }
+            Tcl_AddErrorInfo(interp,
+                                  "\n    (script that generates prompt)");
+            goto defaultPrompt;
           }
         }
+        if (outChannel) {
+          Tcl_Flush(outChannel);
+          }
+      }
+      if (!inChannel) {
+        goto done;
+      }
+      length = Tcl_GetsObj(inChannel, commandPtr);
+      if (length < 0) {
+        goto done;
+      }
+      if ((length == 0) && Tcl_Eof(inChannel) && (!gotPartial)) {
+        goto done;
+      }
+            
+      /*
+        * Add the newline removed by Tcl_GetsObj back to the string.
+        */
+      
+      Tcl_AppendToObj(commandPtr, "\n", 1);
+      // if (!TclObjCommandComplete(commandPtr)) {
+      //   gotPartial = 1;
+      //   continue;
+      // }
+
+      gotPartial = 0;
+      code = Tcl_RecordAndEvalObj(interp, commandPtr, 0);
+      inChannel = Tcl_GetStdChannel(TCL_STDIN);
+      outChannel = Tcl_GetStdChannel(TCL_STDOUT);
+      errChannel = Tcl_GetStdChannel(TCL_STDERR);
+      Tcl_DecrRefCount(commandPtr);
+      commandPtr = Tcl_NewObj();
+      Tcl_IncrRefCount(commandPtr);
+      if (code != TCL_OK) {
+        if (errChannel) {
+          Tcl_WriteObj(errChannel, Tcl_GetObjResult(interp));
+          Tcl_WriteChars(errChannel, "\n", 1);
+        }
+      } else if (tty) {
+        resultPtr = Tcl_GetObjResult(interp);
+        Tcl_GetStringFromObj(resultPtr, &length);
+        if ((length > 0) && outChannel) {
+          Tcl_WriteObj(outChannel, resultPtr);
+          Tcl_WriteChars(outChannel, "\n", 1);
+        }
+      }
     }
 
  done:

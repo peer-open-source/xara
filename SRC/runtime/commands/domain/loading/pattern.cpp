@@ -365,7 +365,7 @@ TclCommand_addPattern(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 #ifdef OPSDEF_DRM
-  //////// //////// ///////// ////////// /////  // DRMLoadPattern add BEGIN
+  //////// // DRMLoadPattern add BEGIN
   else if (strcmp(argv[1], "DRMLoadPattern") == 0) {
     TCL_Char *InputDataFileName = nullptr;
 

@@ -1989,7 +1989,6 @@ TclPackageClassBroker::getNewLinearSOE(int classTagSOE)
 EigenSOE *
 TclPackageClassBroker::getNewEigenSOE(int classTagSOE)
 {
-  EigenSOE *theSOE = 0;
 
   switch (classTagSOE) {
 
