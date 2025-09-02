@@ -38,7 +38,7 @@
 // ENSEEIHT-IRIT, and INRIA Rhone-Alpes. 
 // Main contributors to MUMPS are Patrick Amestoy, Iain Duff, Abdou Guermouche,
 // Jacko Koster, Jean-Yves L'Excellent, and Stephane Pralet.
-
+//
 // Up-to-date copies of the MUMPS package can be obtained from the Web pages 
 // http://www.enseeiht.fr/apo/MUMPS/ or http://graal.ens-lyon.fr/MUMPS
 
@@ -58,20 +58,17 @@ class MumpsSolver : public LinearSOESolver
 	      
   virtual ~MumpsSolver();
   
-  int solve(void);
-  int setSize(void);
+  int solve() override;
+  int setSize();
   
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+  int sendSelf(int commitTag, Channel &) override;
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
 
   int setLinearSOE(MumpsSOE &theSOE);
 
- protected:
-
  private:
-
-  int initializeMumps(void);
-  int solveAfterInitialization(void);
+  int initializeMumps();
+  int solveAfterInitialization();
 
   DMUMPS_STRUC_C id;
   MumpsSOE *theMumpsSOE;
