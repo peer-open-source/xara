@@ -55,10 +55,10 @@ enum class MumpsMatrixType: int {
 class MumpsSOE : public LinearSOE
 {
   public:
-    MumpsSOE(MumpsSolver &theSolver, int matType=0);        
+    MumpsSOE(MumpsSolver &, int matType=0);        
     MumpsSOE();       
     MumpsSOE(int classTag);        
-    MumpsSOE(LinearSOESolver &theSolver, int classTag, int matType = 0);        
+    MumpsSOE(LinearSOESolver &, int classTag, int matType = 0);        
 
     virtual ~MumpsSOE();
 
