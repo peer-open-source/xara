@@ -3,10 +3,13 @@
 //                                   xara
 //                              https://xara.so
 //
-//----------------------------------------------------------------------------//
+//===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
-//                https://opensees.berkeley.edu/copyright.html
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -112,10 +115,11 @@ class ForceFrame3d: public BasicFrame3d,
         ndm = 3,        // dimension of the problem (3D)
         NEN = 2,        // number of element nodes
         NBV = 6+nwm*2,  // number of element DOFs in the basic system
-        max_subdivision= 3;
+        max_subdivision= 10;
 
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 
+  static constexpr int shear_flag = (nsr-2*nwm == 6) ? 0 : 1;
 
   static constexpr FrameStressLayout scheme = {
     FrameStress::N,
