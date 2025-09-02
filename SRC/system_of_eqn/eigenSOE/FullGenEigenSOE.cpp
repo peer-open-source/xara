@@ -54,16 +54,16 @@ FullGenEigenSOE::FullGenEigenSOE(FullGenEigenSolver &theSolver,
 
 FullGenEigenSOE::~FullGenEigenSOE()
 {
-    if (A != 0)
-        delete [] A;
-    if (M != 0)
-        delete [] M;
+  if (A != nullptr)
+    delete [] A;
+  if (M != nullptr)
+    delete [] M;
 }
 
 
-int FullGenEigenSOE::getNumEqn(void) const
+int FullGenEigenSOE::getNumEqn() const
 {
-    return size;
+  return size;
 }
 
 
@@ -131,7 +131,8 @@ int FullGenEigenSOE::setSize(Graph &theGraph)
 }
 
 
-int FullGenEigenSOE::addA(const Matrix &m, const ID &id, double fact)
+int
+FullGenEigenSOE::addA(const Matrix &m, const ID &id, double fact)
 {
     // check for quick return 
     if (fact == 0.0)
@@ -225,7 +226,8 @@ int FullGenEigenSOE::addM(const Matrix &m, const ID &id, double fact)
 }
 
 
-void FullGenEigenSOE::zeroA(void)
+void
+FullGenEigenSOE::zeroA()
 {
     double *Aptr = A;
     for (int i = 0; i < Asize; i++)
@@ -235,7 +237,8 @@ void FullGenEigenSOE::zeroA(void)
 }
 
 
-void FullGenEigenSOE::zeroM(void)
+void
+FullGenEigenSOE::zeroM()
 {
     double *Mptr = M;
     for (int i = 0; i < Msize; i++)
@@ -245,13 +248,15 @@ void FullGenEigenSOE::zeroM(void)
 }
 
 
-int FullGenEigenSOE::sendSelf(int commitTag, Channel &theChannel)
+int
+FullGenEigenSOE::sendSelf(int commitTag, Channel &theChannel)
 {
     return 0;
 }
 
 
-int FullGenEigenSOE::recvSelf(int commitTag, Channel &theChannel, 
+int
+FullGenEigenSOE::recvSelf(int commitTag, Channel &theChannel, 
     FEM_ObjectBroker &theBroker)
 {
     return 0;

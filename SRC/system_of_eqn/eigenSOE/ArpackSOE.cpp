@@ -34,17 +34,20 @@
 #include <Vertex.h>
 #include <VertexIter.h>
 #include <math.h>
-// #include <f2c.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <AnalysisModel.h>
+#include <DOF_GrpIter.h>
+#include <DOF_Group.h>
+#include <FE_EleIter.h>
+#include <FE_Element.h>
 #include <LinearSOE.h>
 
 
 
-ArpackSOE::ArpackSOE(double s)
+ArpackSOE::ArpackSOE(AnalysisModel& model, double s)
 :EigenSOE(EigenSOE_TAGS_ArpackSOE),
- M(0), Msize(0), mDiagonal(false), shift(s), theModel(0), theSOE(0),
+ M(0), Msize(0), mDiagonal(false), shift(s), theModel(&model), theSOE(0),
  processID(-1), numChannels(0), theChannels(0), localCol(0), sizeLocal(0)
 {
   ArpackSolver *theSolvr = new ArpackSolver();
@@ -54,9 +57,9 @@ ArpackSOE::ArpackSOE(double s)
 
 
 int
-ArpackSOE::getNumEqn(void) const
+ArpackSOE::getNumEqn() const
 {
-  if (theSOE != 0)
+  if (theSOE != nullptr)
     return theSOE->getNumEqn();
   else 
     return 0;
@@ -64,7 +67,8 @@ ArpackSOE::getNumEqn(void) const
     
 ArpackSOE::~ArpackSOE()
 {
-  if (M != 0) delete [] M;
+  if (M != 0)
+    delete [] M;
 }
 
 int 
@@ -77,10 +81,9 @@ ArpackSOE::setSize(Graph &theGraph)
   int size = 0;
 
   if (processID == -1) {
-
-    size = theGraph.getNumVertex();    
-
-  } else {
+    size = theGraph.getNumVertex();
+  }
+  else {
 
     // fist itearte through the vertices of the graph to get n
     int maxVertexTag = -1;
@@ -151,12 +154,7 @@ ArpackSOE::setSize(Graph &theGraph)
       delete [] M;
     
     M = new double[size];
-    
-    if (M == 0) {
-      opserr << "WARNING ArpackSOE::ArpackSOE : - out of memory creating memory for M\n";
-      Msize = 0;
-    } else
-      Msize = size;
+    Msize = size;
   }
 
   //
@@ -179,20 +177,6 @@ ArpackSOE::setSize(Graph &theGraph)
   return result;    
 }
 
-int 
-ArpackSOE::addA(const Matrix &m, const ID &id, double fact)
-{
-  if (theSOE == nullptr) {
-    opserr << "ArpackSOE::addA() - no SOE set\n";
-    return -1;
-  }
-
-  // check for a quick return 
-  if (fact == 0.0)  return 0;
-
-  return theSOE->addA(m, id, fact);
-}
-
 
 void 
 ArpackSOE::zeroA()
@@ -203,6 +187,54 @@ ArpackSOE::zeroA()
   }
   return theSOE->zeroA();
 }
+
+
+
+int 
+ArpackSOE::addK(const Matrix &m, const ID &id, double fact)
+{
+  // check for a quick return 
+  if (fact == 0.0)
+    return 0;
+
+  return theSOE->addA(m, id, fact);
+}
+
+int 
+ArpackSOE::addA(const Matrix &m, const ID &id, double fact)
+{
+  if (theSOE == nullptr) {
+    opserr << "ArpackSOE::addA() - no SOE set\n";
+    return -1;
+  }
+
+  // check for a quick return 
+  if (fact == 0.0)
+    return 0;
+
+  return theSOE->addA(m, id, fact);
+}
+
+int
+ArpackSOE::setMask()
+{
+  int n = theSOE->getNumEqn();
+  if (!mDiagonal) {
+    std::vector<double> ones(n, 1.0);
+    this->opM(n, ones.data(), M);  // mdiag[i] == M_ii
+  }
+
+  double mmax = 0.0;
+  for (int i = 0; i < n; ++i)
+    mmax = std::max(mmax, std::abs(M[i]));
+  const double tau = (mmax > 0 ? 1e-12 * mmax : 0.0);
+
+  for (int i = 0; i < n; ++i)
+    if (std::abs(M[i]) < tau)
+      mask.insert(i);
+  return 0;
+}
+
 
 int 
 ArpackSOE::addM(const Matrix &m, const ID &id, double fact)
@@ -244,7 +276,7 @@ ArpackSOE::addM(const Matrix &m, const ID &id, double fact)
 }   
  
 void 
-ArpackSOE::zeroM(void)
+ArpackSOE::zeroM()
 {
   if (theSOE == 0) {
     opserr << "ArpackSOE::zeroM() - no SOE set\n";
@@ -259,9 +291,9 @@ ArpackSOE::zeroM(void)
 
 
 double 
-ArpackSOE::getShift(void)
+ArpackSOE::getShift()
 {
-    return shift;
+  return shift;
 }
 
 
@@ -385,42 +417,105 @@ ArpackSOE::setLinearSOE(LinearSOE &theLinearSOE)
   return 0;
 }
 
+
 int
 ArpackSOE::checkSameInt(int value)
 {
-    if (processID == -1)
-        return 1;
+  if (processID == -1)
+      return 1;
 
-    static ID idData(1);
+  static ID idData(1);
 
-    if (processID != 0) {
-    
-            Channel *theChannel = theChannels[0];
-            idData(0) = value;
-            theChannel->sendID(0, 0, idData);
+  if (processID != 0) {
+  
+          Channel *theChannel = theChannels[0];
+          idData(0) = value;
+          theChannel->sendID(0, 0, idData);
+          theChannel->recvID(0, 0, idData);
+          if (idData(0) == 1)
+                  return 1;
+          else
+                  return 0;
+  } 
+  else {
+    int ok = 1;
+    // receive B 
+    for (int j=0; j<numChannels; j++) {
+    // get X & add
+            Channel *theChannel = theChannels[j];
             theChannel->recvID(0, 0, idData);
-            if (idData(0) == 1)
-                    return 1;
-            else
-                    return 0;
-    } 
-    else {
-      int ok = 1;
-      // receive B 
-      for (int j=0; j<numChannels; j++) {
-      // get X & add
-              Channel *theChannel = theChannels[j];
-              theChannel->recvID(0, 0, idData);
-              if (idData(0) != value)
-                      ok = 0;
-      }
-
-      // send results back
-      idData(0) = ok;
-      for (int j=0; j<numChannels; j++) {
-              Channel *theChannel = theChannels[j];
-              theChannel->sendID(0, 0, idData);
-      }
-      return ok;
+            if (idData(0) != value)
+                    ok = 0;
     }
+
+    // send results back
+    idData(0) = ok;
+    for (int j=0; j<numChannels; j++) {
+            Channel *theChannel = theChannels[j];
+            theChannel->sendID(0, 0, idData);
+    }
+    return ok;
+  }
+}
+
+
+
+void
+ArpackSOE::opM(int n, double *v, double *result)
+{
+  Vector x(v, n);
+  Vector y(result,n);
+
+  if (mDiagonal == true) {
+
+    if (n <= Msize) {
+      for (int i=0; i<n; i++)
+        result[i] = M[i]*v[i];
+    } else {
+      opserr << "ArpackSolver: n > Msize!\n";
+      return;
+    }
+  }
+  else {
+
+    y.Zero();
+
+    AnalysisModel *theAnalysisModel = theModel;
+    
+    // loop over the FE_Elements
+    FE_Element *elePtr;
+    FE_EleIter &theEles = theAnalysisModel->getFEs();
+    while ((elePtr = theEles()) != 0) {
+      const Vector &b = elePtr->getM_Force(x, 1.0);
+      y.Assemble(b, elePtr->getID(), 1.0);
+    }
+
+    // loop over the DOF_Groups
+    DOF_Group *dofPtr;
+    DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();
+    while ((dofPtr = theDofs()) != 0) {
+      const Vector &a = dofPtr->getM_Force(x,1.0);      
+      y.Assemble(a, dofPtr->getID(), 1.0);
+    }
+  }
+
+  // if parallel we have to merge the results
+  if (processID != -1) {
+    if (processID != 0) {
+      theChannels[0]->sendVector(0, 0, y);
+      theChannels[0]->recvVector(0, 0, y);
+    }
+    else {
+      Vector other(n);
+      // recv contribution from remote & add
+      for (int i=0; i<numChannels; i++) {
+        theChannels[i]->recvVector(0,0,other);
+        y += other;
+      }
+      // send result back
+      for (int i=0; i<numChannels; i++) {
+        theChannels[i]->sendVector(0,0,y);
+      }
+    }
+  }
 }

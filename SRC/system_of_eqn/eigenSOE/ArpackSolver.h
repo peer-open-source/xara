@@ -75,18 +75,12 @@ class ArpackSolver : public EigenSolver
     Vector theVector;
 
     double shift;
-    double *v;
-    double *workl;
-    double *workd;
-    double *resid;
     int iparam[11];
     int ipntr[11];
-    //	long int* select;
-    int* select;
-    
-    void myMv(int n, double *v, double *result);
+
     void myCopy(int n, double *v, double *result);
     int  getNCV(int n, int nev);
+    int solveI(int numMode, bool generalized, bool findSmallest = true);
 };
 
 #endif
