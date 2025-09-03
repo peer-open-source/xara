@@ -37,6 +37,7 @@
 #include <cmath>
 #include <vector>
 #include <random>
+#include <algorithm>
 #include <cstring> // memcpy
 #include <ArpackSolver.h>
 #include <ArpackSOE.h>
