@@ -103,12 +103,12 @@ BasicAnalysisBuilder::wipe()
 {
 
   if (theAlgorithm != nullptr) {
-      delete theAlgorithm;
-      theAlgorithm = nullptr;
+    delete theAlgorithm;
+    theAlgorithm = nullptr;
   }
   if (theStaticIntegrator != nullptr) {
-      delete theStaticIntegrator;
-      theStaticIntegrator = nullptr;
+    delete theStaticIntegrator;
+    theStaticIntegrator = nullptr;
   }
   if ((theTransientIntegrator != nullptr) && freeTI) {
     delete theTransientIntegrator;
@@ -123,16 +123,16 @@ BasicAnalysisBuilder::wipe()
     theNumberer = nullptr;
   }
   if (theHandler != nullptr) {
-      delete theHandler;
-      theHandler = nullptr;
+    delete theHandler;
+    theHandler = nullptr;
   }
   if (theTest != nullptr) {
-      delete theTest;
-      theTest = nullptr;
+    delete theTest;
+    theTest = nullptr;
   }
   if (theEigenSOE != nullptr) {
-      delete theEigenSOE;
-      theEigenSOE = nullptr;
+    delete theEigenSOE;
+    theEigenSOE = nullptr;
   }
   if (theAnalysisModel != nullptr) {
     delete theAnalysisModel;
@@ -842,7 +842,6 @@ BasicAnalysisBuilder::setStaticAnalysis()
   this->setLinks(STATIC_ANALYSIS);
 
   this->CurrentAnalysisFlag = STATIC_ANALYSIS;
-
   return 0;
 }
 

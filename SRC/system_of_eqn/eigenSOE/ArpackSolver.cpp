@@ -37,6 +37,7 @@
 #include <cmath>
 #include <vector>
 #include <random>
+#include <cstring> // memcpy
 #include <ArpackSolver.h>
 #include <ArpackSOE.h>
 #include <LinearSOE.h>
@@ -283,7 +284,7 @@ char which[3];
       if (std::abs(mdiag[i]) <= tau) 
         r[i] = 0.0;
 
-    memcpy(w.resid, r.data(), n*sizeof(double));
+    std::memcpy(w.resid, r.data(), n*sizeof(double));
 #endif
   }
 
