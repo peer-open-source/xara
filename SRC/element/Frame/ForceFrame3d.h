@@ -176,7 +176,7 @@ class ForceFrame3d: public BasicFrame3d,
   //
   // Functions
   //
-  int getInitialFlexibility(MatrixND<NBV,NBV> &fe);
+  int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 
   void addLoadAtSection(VectorND<nsr> &sp, double x);

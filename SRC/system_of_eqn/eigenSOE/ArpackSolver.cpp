@@ -39,11 +39,11 @@
 #include <random>
 #include <algorithm>
 #include <cstring> // memcpy
+#include <limits>
 #include <ArpackSolver.h>
 #include <ArpackSOE.h>
 #include <LinearSOE.h>
 #include <Channel.h>
-#include <limits>
 #include <Logging.h>
 
 #define ARPACK_ICB
@@ -87,91 +87,87 @@ struct ArpackWorkspace {
 typedef struct { int code; const char *msg; } ErrorEntry;
 
 static const ErrorEntry DnaupdErrors[] = {
-    { 0,     "Normal exit." },
-    { 1,     "Maximum number of iterations taken. All possible eigenvalues of OP has been found. IPARAM(5) returns the number of wanted converged Ritz values." },
-    { 2,     "No longer an informational error. Deprecated starting with release 2 of ARPACK." },
-    { 3,     "No shifts could be applied during a cycle of the Implicitly restarted Arnoldi iteration. One possibility is to increase the size of NCV relative to NEV." },
-    { -1,    "N must be positive." },
-    { -2,    "NEV must be positive." },
-    { -3,    "NCV-NEV >= 2 and less than or equal to N." },
-    { -4,    "The maximum number of Arnoldi update iterations allowed must be greater than zero." },
-    { -5,    "WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'" },
-    { -6,    "BMAT must be one of 'I' or 'G'." },
-    { -7,    "Length of private work array WORKL is not sufficient." },
-    { -8,    "Error return from LAPACK eigenvalue calculation;" },
-    { -9,    "Starting vector is zero." },
-    { -10,   "IPARAM(7) must be 1,2,3,4." },
-    { -11,   "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
-    { -12,   "IPARAM(1) must be equal to 0 or 1." },
-    { -13,   "NEV and WHICH = 'BE' are incompatible." },
-    { -9999, "Could not build an Arnoldi factorization. IPARAM(5) returns the size of the current Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
+  { 0,     "Normal exit." },
+  { 1,     "Maximum number of iterations taken. All possible eigenvalues of OP has been found. IPARAM(5) returns the number of wanted converged Ritz values." },
+  { 2,     "No longer an informational error. Deprecated starting with release 2 of ARPACK." },
+  { 3,     "No shifts could be applied during a cycle of the Implicitly restarted Arnoldi iteration. One possibility is to increase the size of NCV relative to NEV." },
+  { -1,    "N must be positive." },
+  { -2,    "NEV must be positive." },
+  { -3,    "NCV-NEV >= 2 and less than or equal to N." },
+  { -4,    "The maximum number of Arnoldi update iterations allowed must be greater than zero." },
+  { -5,    "WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'" },
+  { -6,    "BMAT must be one of 'I' or 'G'." },
+  { -7,    "Length of private work array WORKL is not sufficient." },
+  { -8,    "Error return from LAPACK eigenvalue calculation;" },
+  { -9,    "Starting vector is zero." },
+  { -10,   "IPARAM(7) must be 1,2,3,4." },
+  { -11,   "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
+  { -12,   "IPARAM(1) must be equal to 0 or 1." },
+  { -13,   "NEV and WHICH = 'BE' are incompatible." },
+  { -9999, "Could not build an Arnoldi factorization. IPARAM(5) returns the size of the current Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
 };
 // static const size_t DnaupdErrorsCount = sizeof(DnaupdErrors)/sizeof(DnaupdErrors[0]);
 
 
 static const ErrorEntry DneupdErrors[] = {
-    { 0,    "Normal exit." },
-    { 1,    "The Schur form computed by LAPACK routine dlahqr could not be reordered by LAPACK routine dtrsen. Re-enter subroutine dneupd with IPARAM(5)NCV and increase the size of the arrays DR and DI to have dimension at least dimension NCV and allocate at least NCV columns for Z. NOTE: Not necessary if Z and V share the same space. Please notify the authors if this erroroccurs." },
-    { -1,   "N must be positive." },
-    { -2,   "NEV must be positive." },
-    { -3,   "NCV-NEV >= 2 and less than or equal to N." },
-    { -5,   "WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'" },
-    { -6,   "BMAT must be one of 'I' or 'G'." },
-    { -7,   "Length of private work WORKL array is not sufficient." },
-    { -8,   "Error return from calculation of a real Schur form. Informational error from LAPACK routine dlahqr ." },
-    { -9,   "Error return from calculation of eigenvectors. Informational error from LAPACK routine dtrevc." },
-    { -10,  "IPARAM(7) must be 1,2,3,4." },
-    { -11,  "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
-    { -12,  "HOWMNY = 'S' not yet implemented" },
-    { -13,  "HOWMNY must be one of 'A' or 'P' if RVEC = .true." },
-    { -14,  "DNAUPD  did not find any eigenvalues to sufficient accuracy." },
-    { -15,  "DNEUPD got a different count of the number of converged Ritz values than DNAUPD got.  This indicates the user probably made an error in passing data from DNAUPD to DNEUPD or that the data was modified before entering DNEUPD" }
+  { 0,    "Normal exit." },
+  { 1,    "The Schur form computed by LAPACK routine dlahqr could not be reordered by LAPACK routine dtrsen. Re-enter subroutine dneupd with IPARAM(5)NCV and increase the size of the arrays DR and DI to have dimension at least dimension NCV and allocate at least NCV columns for Z. NOTE: Not necessary if Z and V share the same space. Please notify the authors if this erroroccurs." },
+  { -1,   "N must be positive." },
+  { -2,   "NEV must be positive." },
+  { -3,   "NCV-NEV >= 2 and less than or equal to N." },
+  { -5,   "WHICH must be one of 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'" },
+  { -6,   "BMAT must be one of 'I' or 'G'." },
+  { -7,   "Length of private work WORKL array is not sufficient." },
+  { -8,   "Error return from calculation of a real Schur form. Informational error from LAPACK routine dlahqr ." },
+  { -9,   "Error return from calculation of eigenvectors. Informational error from LAPACK routine dtrevc." },
+  { -10,  "IPARAM(7) must be 1,2,3,4." },
+  { -11,  "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
+  { -12,  "HOWMNY = 'S' not yet implemented" },
+  { -13,  "HOWMNY must be one of 'A' or 'P' if RVEC = .true." },
+  { -14,  "DNAUPD  did not find any eigenvalues to sufficient accuracy." },
+  { -15,  "DNEUPD got a different count of the number of converged Ritz values than DNAUPD got.  This indicates the user probably made an error in passing data from DNAUPD to DNEUPD or that the data was modified before entering DNEUPD" }
 };
-// static const size_t DneupdErrorsCount = sizeof(DneupdErrors)/sizeof(DneupdErrors[0]);
-
 
 static const ErrorEntry DsaupdErrors[] = {
-    { 0,     "Normal exit." },
-    { 1,     "Maximum number of iterations taken. All possible eigenvalues of OP has been found." },
-    { 2,     "No longer an informational error. Deprecated starting with release 2 of ARPACK." },
-    { 3,     "No shifts could be applied during a cycle of the Implicitly restarted Arnoldi iteration. One possibility is to increase the size of NCV relative to NEV." },
-    { -1,    "N must be positive." },
-    { -2,    "NEV must be positive." },
-    { -3,    "NCV must be greater than NEV and less than or equal to N." },
-    { -4,    "The maximum number of Arnoldi update iterations allowed must be greater than zero." },
-    { -5,    "WHICH must be one of 'LM', 'SM', 'LA', 'SA' or 'BE'." },
-    { -6,    "BMAT must be one of 'I' or 'G'." },
-    { -7,    "Length of private work array WORKL is not sufficient." },
-    { -8,    "Error return from trid. eigenvalue calculation; Informational error from LAPACK routine dsteqr ." },
-    { -9,    "Starting vector is zero." },
-    { -10,   "IPARAM(7) must be 1,2,3,4,5." },
-    { -11,   "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
-    { -12,   "IPARAM(1) must be equal to 0 or 1." },
-    { -13,   "NEV and WHICH = 'BE' are incompatible." },
-    { -9999, "Could not build an Arnoldi factorization. IPARAM(5) returns the size of the current Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
+  { 0,     "Normal exit." },
+  { 1,     "Maximum number of iterations taken. All possible eigenvalues of OP has been found." },
+  { 2,     "No longer an informational error. Deprecated starting with release 2 of ARPACK." },
+  { 3,     "No shifts could be applied during a cycle of the Implicitly restarted Arnoldi iteration. One possibility is to increase the size of NCV relative to NEV." },
+  { -1,    "N must be positive." },
+  { -2,    "NEV must be positive." },
+  { -3,    "NCV must be greater than NEV and less than or equal to N." },
+  { -4,    "The maximum number of Arnoldi update iterations allowed must be greater than zero." },
+  { -5,    "WHICH must be one of 'LM', 'SM', 'LA', 'SA' or 'BE'." },
+  { -6,    "BMAT must be one of 'I' or 'G'." },
+  { -7,    "Length of private work array WORKL is not sufficient." },
+  { -8,    "Error return from trid. eigenvalue calculation; Informational error from LAPACK routine dsteqr ." },
+  { -9,    "Starting vector is zero." },
+  { -10,   "IPARAM(7) must be 1,2,3,4,5." },
+  { -11,   "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
+  { -12,   "IPARAM(1) must be equal to 0 or 1." },
+  { -13,   "NEV and WHICH = 'BE' are incompatible." },
+  { -9999, "Could not build an Arnoldi factorization. IPARAM(5) returns the size of the current Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
 };
-// static const size_t DsaupdErrorsCount = sizeof(DsaupdErrors)/sizeof(DsaupdErrors[0]);
 
 static const ErrorEntry DseupdErrors[] = {
-    { 0,    "Normal exit." },
-    { -1,   "N must be positive." },
-    { -2,   "NEV must be positive." },
-    { -3,   "NCV must be greater than NEV and less than or equal to N." },
-    { -5,   "WHICH must be one of 'LM', 'SM', 'LA', 'SA' or 'BE'." },
-    { -6,   "BMAT must be one of 'I' or 'G'." },
-    { -7,   "Length of private work WORKL array is not sufficient." },
-    { -8,   "Error return from trid. eigenvalue calculation; Information error from LAPACK routine dsteqr." },
-    { -9,   "Starting vector is zero." },
-    { -10,  "IPARAM(7) must be 1,2,3,4,5." },
-    { -11,  "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
-    { -12,  "NEV and WHICH = 'BE' are incompatible." },
-    { -14,  "DSAUPD  did not find any eigenvalues to sufficient accuracy." },
-    { -15,  "HOWMNY must be one of 'A' or 'S' if RVEC = .true." },
-    { -16,  "HOWMNY = 'S' not yet implemented" },
-    { -17,  "DSEUPD  got a different count of the number of converged Ritz values than DSAUPD  got.  This indicates the user probably made an error in passing data from DSAUPD  to DSEUPD  or that the data was modified before entering  DSEUPD." }
+  { 0,    "Normal exit." },
+  { -1,   "N must be positive." },
+  { -2,   "NEV must be positive." },
+  { -3,   "NCV must be greater than NEV and less than or equal to N." },
+  { -5,   "WHICH must be one of 'LM', 'SM', 'LA', 'SA' or 'BE'." },
+  { -6,   "BMAT must be one of 'I' or 'G'." },
+  { -7,   "Length of private work WORKL array is not sufficient." },
+  { -8,   "Error return from trid. eigenvalue calculation; Information error from LAPACK routine dsteqr." },
+  { -9,   "Starting vector is zero." },
+  { -10,  "IPARAM(7) must be 1,2,3,4,5." },
+  { -11,  "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
+  { -12,  "NEV and WHICH = 'BE' are incompatible." },
+  { -14,  "DSAUPD  did not find any eigenvalues to sufficient accuracy." },
+  { -15,  "HOWMNY must be one of 'A' or 'S' if RVEC = .true." },
+  { -16,  "HOWMNY = 'S' not yet implemented" },
+  { -17,  "DSEUPD  got a different count of the number of converged Ritz values than DSAUPD  got.  This indicates the user probably made an error in passing data from DSAUPD  to DSEUPD  or that the data was modified before entering  DSEUPD." }
 };
 
-// static const size_t DseupdErrorsCount = sizeof(DseupdErrors)/sizeof(DseupdErrors[0]);
 
 static inline const char* 
 LookupArpackError(const ErrorEntry *table, size_t count, int code) {
@@ -193,9 +189,9 @@ ArpackSolver::ArpackSolver()
 
 ArpackSolver::~ArpackSolver()
 {
-  if (eigenvalues != 0)
+  if (eigenvalues != nullptr)
     delete [] eigenvalues;
-  if (eigenvectors !=0)
+  if (eigenvectors != nullptr)
     delete [] eigenvectors;
 }
 

@@ -12,6 +12,9 @@
 // See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
+//
+// Claudio M. Perez
+//
 #pragma once
 #include <array>
 #include <vector>
@@ -103,8 +106,8 @@ public:
   {
     auto name = element.getClassType();
     if (strstr(name, "Frame") == nullptr) {
-        opserr << "WARNING FrameLoad::addElement() - cannot add load to element of type " << name << '\n';
-        return -1;
+      opserr << "WARNING FrameLoad::addElement() - cannot add load to element of type " << name << '\n';
+      return -1;
     }
     elements.push_back(&element);
     element.addLoad(this, 1.0);
@@ -209,6 +212,7 @@ public:
   {
     if (w == 0.0)
         return;
+
     for (unsigned q = 0; q < r.size(); q++) {
       Vector3D px, mx, rx;
       rx = r[q];
@@ -235,20 +239,20 @@ public:
 
       double scale = -w*pattern.getLoadFactor();
       switch (shape) {
-          case Dirac:
-              scale /= jxs;
-              if (std::fabs(x - r[q][0]) > 1.0e-6)
-                  scale *= 0.0;
-              break;
-          case Heaviside:
-              if (x < r[q][0])
-                  scale *= 0.0;
-              break;
-          case Lagrange:
-              for (unsigned s=0; s<r.size(); s++)
-                if (s != q)
-                  scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
-              break;
+        case Dirac:
+          scale /= jxs;
+          if (std::fabs(x - r[q][0]) > 1.0e-6)
+              scale *= 0.0;
+          break;
+        case Heaviside:
+          if (x < r[q][0])
+              scale *= 0.0;
+          break;
+        case Lagrange:
+          for (unsigned s=0; s<r.size(); s++)
+            if (s != q)
+              scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
+          break;
       }
 
       Matrix3D Px = Hat(px);
