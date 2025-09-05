@@ -116,7 +116,6 @@ B_nat(MatrixND<6+2*nwm,6+nwm> &B, double shape[2][nen], const Vector3D& dx, int 
   B(2,3) = -shape[0][n]*dx[1];
   B(2,4) =  shape[0][n]*dx[0];
   B(2,5) =  0;
-
 }
 
 
@@ -546,14 +545,15 @@ ExactFrame3d<nen,nwm>::addLoad(ElementalLoad* theLoad, double loadFactor)
     if (!frame_load->conservative())
       frame_loads.insert(frame_load);
   }
-  else 
+  else
+    return -1;
+
   // TODO: compute conservative load on flag == -1?
 #if 0
   else {
     c_loads[frame_load->getTag()] = VectorND<ndf*nn>{0.0};
   }
 #endif
-    return -1;
 
   return 0;
 }
