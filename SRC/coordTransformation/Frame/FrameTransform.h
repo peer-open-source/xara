@@ -65,7 +65,8 @@ public:
     Isometry    = 1<<2,
     Rotation,
     GlobalOffset,
-    Exponential
+    Exponential,
+    Bubnov
   };
 
   virtual FrameTransform<nn,ndf> *getCopy() const =0;
@@ -125,6 +126,11 @@ public:
       R(i,2) = z[i];
     }
     return R;
+  }
+
+  virtual MatrixND<3,nn*ndf> getRotationTangent() {
+    MatrixND<3,nn*ndf> dR{};
+    return dR;
   }
   virtual const std::array<Vector3D,nn> *getRigidOffsets() const =0;
 
