@@ -367,6 +367,7 @@ char which[3];
   if (info < 0) {
     opserr << "Arpack returned with flag " << info << "\n  ";
     opserr << LookupArpackError(DsaupdErrors, sizeof(DsaupdErrors) / sizeof(ErrorEntry), info);
+    opserr << OpenSees::SignalMessageEnd;
     if (info == -9999) {
       return this->solveI(numModes, generalized, findSmallest);
     }
