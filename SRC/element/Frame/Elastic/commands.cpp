@@ -30,7 +30,7 @@
 
 #include <FrameSection.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <transform/FrameTransformBuilder.hpp>
 //
 // element NAME 
@@ -96,7 +96,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
   // The program is fundamentally incorrect if this function
   // is invoked with NULL clientData
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   //
   // Declare the variables we're parsing for
@@ -705,7 +705,7 @@ TclBasicBuilder_addElasticBeam(ClientData clientData, Tcl_Interp *interp, int ar
                                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   const int ndm = builder->getNDM();
 

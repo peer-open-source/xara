@@ -18,7 +18,7 @@
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <ArgumentTracker.h>
 #include <string.h>
 
@@ -44,7 +44,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
                   int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   ArgumentTracker<Positions> tracker;
   std::set<int> positional;
@@ -261,7 +261,7 @@ static int
 FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   ArgumentTracker<Positions> tracker;
   std::set<int> positional;
@@ -686,7 +686,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments\n";

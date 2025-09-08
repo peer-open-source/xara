@@ -25,7 +25,7 @@
 
 #include <Parsing.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <PlateFiberMaterial.h>
 #include <ElasticMembranePlateSection.h>
 #include <MembranePlateFiberSection.h>
@@ -39,7 +39,7 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
                                   int argc, TCL_Char** const argv)
 {
 
-    BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
     if (argc < 5) {
       opserr << OpenSees::PromptValueError
@@ -103,7 +103,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp,
 {
   // Pointer to a section that will be added to the model builder
   SectionForceDeformation* theSection = nullptr;
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if ((strcmp(argv[1], "PlateFiber") == 0) ||
       (strcmp(argv[1], "PlateFiberThermal") == 0)) { // TODO: add thermal

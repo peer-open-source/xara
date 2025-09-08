@@ -28,6 +28,7 @@
 #include <Matrix.h>
 #include <Domain.h> // for modal damping
 #include <AnalysisModel.h>
+#include <ModelRegistry.h>
 
 #include "BasicAnalysisBuilder.h"
 
@@ -72,7 +73,7 @@ Tcl_CmdProc responseSpectrumAnalysis;
 // Add commands to the interpreter that take the AnalysisBuilder as clientData.
 //
 int
-G3_AddTclAnalysisAPI(Tcl_Interp *interp, BasicModelBuilder& context)
+G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
 {
   BasicAnalysisBuilder *builder = new BasicAnalysisBuilder(context);
   Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, builder, nullptr);

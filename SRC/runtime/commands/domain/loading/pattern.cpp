@@ -26,7 +26,7 @@
 //
 #include <tcl.h>
 #include <assert.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <runtimeAPI.h>
 #include <Logging.h>
@@ -78,7 +78,7 @@ TclCommand_addPattern(ClientData clientData, Tcl_Interp *interp, int argc,
                       TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain* domain = builder->getDomain();
   LoadPattern *thePattern = nullptr;
 
@@ -787,7 +787,7 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
   assert(clientData != nullptr);
   
   // TODO
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   LoadPattern *theTclLoadPattern = builder->getEnclosingPattern();
   int nodeLoadTag = builder->getNodalLoadTag();
 
@@ -862,7 +862,9 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
   // add the load to the domain
   if (builder->getDomain()->addNodalLoad(theLoad, loadPatternTag) == false) {
-    opserr << OpenSees::PromptValueError << "BasicModelBuilder - could not add load to domain\n";
+    opserr << OpenSees::PromptValueError
+           << "could not add load to domain"
+           << OpenSees::SignalMessageEnd;
     delete theLoad;
     return TCL_ERROR;
   }

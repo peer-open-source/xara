@@ -201,7 +201,7 @@ TclDispatch_UniaxialMaterial TclCommand_ReinforcingSteel;
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   G3_Runtime *rt = G3_getRuntime(interp);
   UniaxialMaterial* theMaterial = (UniaxialMaterial*)fn( rt, argc, argv );
 
@@ -217,7 +217,7 @@ template <UniaxialMaterial*(*fn)(G3_Runtime*, int, TCL_Char** const)> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   G3_Runtime *rt = G3_getRuntime(interp);
   UniaxialMaterial* theMaterial = fn( rt, argc, argv );
 

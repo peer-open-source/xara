@@ -4,7 +4,7 @@
 #include "AxialSpHD.h"
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 int
 TclCommand_AxialSp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
@@ -113,7 +113,7 @@ TclCommand_AxialSp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   // Now add the material to the modelBuilder
 
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
     delete theMaterial;
     return TCL_ERROR;
@@ -242,7 +242,7 @@ TclCommand_AxialSpHD(ClientData clientData, Tcl_Interp *interp, int argc,
   theMaterial = new AxialSpHD(tag, sce, fty, fcy, bte, bty, bth, bcy, fcr, ath);
 
   // Now add the material to the modelBuilder
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
     delete theMaterial;
     return TCL_ERROR;

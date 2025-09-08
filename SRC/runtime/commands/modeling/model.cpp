@@ -22,7 +22,7 @@
 #include <Domain.h>
 #include <FE_Datastore.h>
 
-#include "BasicModelBuilder.h"
+#include "ModelRegistry.h"
 
 #ifdef _PARALLEL_PROCESSING
 #  include <PartitionedDomain.h>
@@ -34,7 +34,7 @@ bool builtModel = false;
 
 FE_Datastore *theDatabase = nullptr;
 
-extern int G3_AddTclAnalysisAPI(Tcl_Interp *, BasicModelBuilder&);
+extern int G3_AddTclAnalysisAPI(Tcl_Interp *, ModelRegistry&);
 extern int G3_AddTclDomainCommands(Tcl_Interp *, Domain*);
 
 
@@ -45,7 +45,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
   G3_Runtime *rt = G3_getRuntime(interp);
   Domain *theNewDomain = (Domain*)clientData;
 
-  BasicModelBuilder *theNewBuilder = nullptr;
+  ModelRegistry *theNewBuilder = nullptr;
 
   //
   //
@@ -158,7 +158,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     int G3_setDomain(G3_Runtime*, Domain*);
     G3_setDomain(rt, theNewDomain);
     // create the model builder
-    theNewBuilder = new BasicModelBuilder(*theNewDomain, interp, ndm, ndf);
+    theNewBuilder = new ModelRegistry(*theNewDomain, interp, ndm, ndf);
     G3_setModelBuilder(rt, theNewBuilder);
 
     const char* analysis_option;
@@ -182,7 +182,7 @@ TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
 {
   Tcl_Eval(interp, "_clearAnalysis");
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (theDatabase != nullptr)
     delete theDatabase;
@@ -217,7 +217,7 @@ int
 buildModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char *argv[])
 {
   G3_Runtime *rt = G3_getRuntime(interp);
-  BasicModelBuilder* builder = (BasicModelBuilder*)G3_getModelBuilder(rt);
+  ModelRegistry* builder = (ModelRegistry*)G3_getModelBuilder(rt);
 
   // TODO: Remove `builtModel` var.
   // to build the model make sure the ModelBuilder has been constructed

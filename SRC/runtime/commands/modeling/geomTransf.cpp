@@ -22,7 +22,7 @@
 #include <string.h>
 #include <assert.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <LinearCrdTransf2d.h>
 #include <LinearCrdTransf3d.h>
@@ -44,7 +44,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
                          const char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
@@ -302,7 +302,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
 
   // Make sure there is a minimum number of arguments

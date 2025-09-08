@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <Domain.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <Brick.h>
 #include <BbarBrick.h>
@@ -27,7 +27,7 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   const int eleArgStart = 1;
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
   // check the number of arguments is correct
@@ -185,7 +185,7 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
                                    int argc,
                                    TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
   if (builder == 0 || clientData == 0) {
@@ -271,7 +271,7 @@ int
 TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
                            TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
   if (builder == 0 || clientData == 0) {
@@ -400,7 +400,7 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
                                           int argc, TCL_Char ** const argv)
 
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
 
@@ -543,7 +543,7 @@ int
 TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
                                TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
   if (builder == 0 || clientData == 0) {

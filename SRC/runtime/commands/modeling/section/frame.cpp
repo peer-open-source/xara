@@ -22,7 +22,7 @@
 #include <ArgumentTracker.h>
 #include <Parsing.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 //
 #include <ElasticLinearFrameSection3d.h>
 #include <ElasticSection3d.h>
@@ -59,7 +59,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
 {
 
     assert(clientData != nullptr);
-    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
     FrameSectionConstants consts {};
 
     Domain& domain = *builder->getDomain();
@@ -525,7 +525,7 @@ int
 TclCommand_newElasticSection(ClientData clientData, Tcl_Interp *interp,
                             int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   int ndm = builder->getNDM();
 
@@ -547,7 +547,7 @@ int
 TclCommand_addSectionAggregator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
 {
     assert(clientData != nullptr);
-    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
     if (argc < 5) {
       opserr << OpenSees::PromptValueError << "insufficient arguments\n";

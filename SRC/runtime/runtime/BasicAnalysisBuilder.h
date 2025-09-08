@@ -37,7 +37,7 @@
 #define BasicAnalysisBulider_h
 
 class Domain;
-class BasicModelBuilder;
+class ModelRegistry;
 class G3_Table;
 class ConstraintHandler;
 class DOF_Numberer;
@@ -52,7 +52,7 @@ class ConvergenceTest;
 class BasicAnalysisBuilder
 {
 public:
-    BasicAnalysisBuilder(BasicModelBuilder&);
+    BasicAnalysisBuilder(ModelRegistry&);
     ~BasicAnalysisBuilder();
 
     enum CurrentAnalysis {
@@ -79,7 +79,7 @@ public:
     LinearSOE* getLinearSOE();
 
     Domain* getDomain();
-    const BasicModelBuilder& getContext() const { return context; }
+    const ModelRegistry& getContext() const { return context; }
 
     int initialize();
 
@@ -126,7 +126,7 @@ private:
     void setLinks(CurrentAnalysis flag = EMPTY_ANALYSIS);
     void fillDefaults(enum CurrentAnalysis flag);
 
-    BasicModelBuilder&         context;
+    ModelRegistry&         context;
     Domain                    *theDomain;
     ConstraintHandler         *theHandler;
     DOF_Numberer              *theNumberer;

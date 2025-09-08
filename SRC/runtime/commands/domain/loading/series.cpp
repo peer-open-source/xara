@@ -19,7 +19,7 @@
 #include <string.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 // #include <elementAPI.h>
 
 #include <Domain.h>
@@ -777,7 +777,7 @@ TclSeriesCommand(ClientData clientData, Tcl_Interp *interp, TCL_Char * const arg
   int timeSeriesTag = 0;
 
   if (Tcl_GetInt(interp, arg, &timeSeriesTag) == TCL_OK) {
-    if (clientData && (series = ((BasicModelBuilder*)clientData)->getTypedObject<TimeSeries>(timeSeriesTag)))
+    if (clientData && (series = ((ModelRegistry*)clientData)->getTypedObject<TimeSeries>(timeSeriesTag)))
       return series->getCopy();
   }
 
@@ -800,7 +800,7 @@ TclCommand_addTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   TimeSeries *theSeries = TclDispatch_newTimeSeries(clientData, interp, argc - 1, &argv[1]);
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (theSeries != nullptr) {
     int tag;

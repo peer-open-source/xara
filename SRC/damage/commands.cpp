@@ -14,7 +14,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <DamageModel.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <NormalizedPeak.h>
 #include <Kratzig.h>
 #include <Mehanny.h>
@@ -32,7 +32,7 @@ TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp,
 				   
 {
   
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {

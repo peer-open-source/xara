@@ -30,7 +30,7 @@
 #include <Matrix.h>
 #include <Domain.h>
 #include <Parameter.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #define HeapNode Node
 
@@ -42,7 +42,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   assert(clientData != nullptr);
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   Domain *theTclDomain = builder->getDomain();
 
@@ -257,7 +257,7 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
 
   int ndf = argc - 2;
@@ -304,7 +304,7 @@ int
 TclCommand_getNDM(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *the_domain = builder->getDomain();
 
   int ndm;
@@ -336,7 +336,7 @@ int
 TclCommand_getNDF(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *the_domain = builder->getDomain();
   int ndf;
 

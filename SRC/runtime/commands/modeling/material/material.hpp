@@ -141,7 +141,7 @@ int OPS_ResetInputNoBuilder(ClientData, Tcl_Interp *, int cArg,
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, 0);
 

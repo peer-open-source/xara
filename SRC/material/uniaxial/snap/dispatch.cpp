@@ -39,7 +39,7 @@
 #include <CloughDamage.h>
 #include <Bilinear.h>
 #include <DamageModel.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <tcl.h>
 #include <Vector.h>
@@ -60,7 +60,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
                                 int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments for the Snap material "

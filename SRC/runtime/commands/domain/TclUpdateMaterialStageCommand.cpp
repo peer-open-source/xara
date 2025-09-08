@@ -32,7 +32,7 @@
 #include <Parsing.h>
 #include <Logging.h>
 #include <ID.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <PressureIndependMultiYield.h>
 #include <PressureDependMultiYield.h>
 #include <FluidSolidPorousMaterial.h>
@@ -55,7 +55,7 @@ TclCommand_updateMaterialStage(ClientData clientData,
 
   // UpdateMaterialStage material matTag? stage value?
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
   if (argc < 5) {
@@ -128,7 +128,7 @@ TclBasicBuilderUpdateParameterCommand(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (argc < 5) {
     opserr << "WARNING insufficient number of updateParameter arguments\n";

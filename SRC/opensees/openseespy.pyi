@@ -41,6 +41,20 @@ class _Elements:
                ) -> int: ...
 
 class _Algorithm:
+    def numberer(self, type: str, *args, **kwargs):
+        """
+        Create a numberer of the specified type.
+        """
+
+    def constraints(self, type: str, *args, **kwargs):
+        """
+        Create a constraint handler of the specified type.
+        """
+
+    def system(self, type: str, *args, **kwargs):
+        """
+        Create a system of the specified type.
+        """
 
     def integrator(self, type: str, *args, **kwargs):
         """
@@ -70,6 +84,21 @@ class _Algorithm:
         
         :param nsteps: number of analysis steps to perform
         :type nsteps: |integer|
+        """
+
+    def test(self, type: str, *args, **kwargs):
+        """
+        Create a convergence test of the specified type.
+        """
+
+    def numIter(self) -> int:
+        """
+        Get the number of iterations for the last analysis step.
+        """
+
+    def wipe(self)->None:
+        """
+        Clear the current model.
         """
 
 class Model(_Elements,_Algorithm):

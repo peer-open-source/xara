@@ -29,7 +29,7 @@
 #define strcmp strcasecmp
 
 #include <runtimeAPI.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <Logging.h>
 #include <packages.h>
@@ -123,7 +123,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
   TclBasicBuilder *theTclBuilder = (TclBasicBuilder*)G3_getSafeBuilder(rt);
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
 
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theTclDomain);
@@ -541,7 +541,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
                                        Domain *theTclDomain, 
                                        [[maybe_unused]] TclBasicBuilder* unused)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (builder == 0 || clientData == 0) {
     opserr << OpenSees::PromptValueError << "builder has been destroyed - multipleShearSpring\n";
@@ -790,7 +790,7 @@ TclBasicBuilder_addMultipleNormalSpring(ClientData clientData, Tcl_Interp *inter
 {
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // 3-dim, 6-dof
   int ndm = builder->getNDM();
@@ -1064,7 +1064,7 @@ TclBasicBuilder_addKikuchiBearing(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // 3-dim, 6dof
   int ndm = builder->getNDM();
@@ -1553,7 +1553,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
                                       [[maybe_unused]] TclBasicBuilder *unused)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
   
 
@@ -1756,7 +1756,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
 {
   constexpr static int eleArgStart = 1;
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   int ndm = builder->getNDM();
   int ndf = builder->getNDF();

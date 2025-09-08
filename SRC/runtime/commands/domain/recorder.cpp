@@ -371,7 +371,7 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   assert(clientData != nullptr);
   Domain* domain = static_cast<Domain*>(clientData);
-  // BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  // ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   // Domain* domain = builder->getDomain();
   G3_Runtime *rt = G3_getRuntime(interp);
   (*theRecorder) = nullptr;

@@ -33,7 +33,7 @@
 #include <Domain.h>
 
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <BeamColumnJoint2d.h>
 #include <BeamColumnJoint3d.h>
 #include <Information.h>
@@ -47,7 +47,7 @@ int
 TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
                                    int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
   constexpr static int eleArgStart = 1;
@@ -444,7 +444,7 @@ int
 TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
                            TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
   // check the number of arguments is correct
   int argStart = 2;
@@ -933,7 +933,7 @@ TclBasicBuilder_addJoint3D(ClientData clientData, Tcl_Interp *interp, int argc,
                            TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
 

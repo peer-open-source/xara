@@ -19,7 +19,7 @@
 //
 #include <assert.h>
 #include <tcl.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #define CONSTRAINT_ERROR TCL_ERROR
 #define CONSTRAINT_OK    TCL_OK
@@ -384,7 +384,7 @@ TclCommand_RigidDiaphragm(ClientData clientData, Tcl_Interp *interp, int argc, T
 {
   assert(clientData != nullptr);
   // TODO: Change RigidDiaphragm to take Domain as clientData
-  Domain *theTclDomain = ((BasicModelBuilder*)clientData)->getDomain();
+  Domain *theTclDomain = ((ModelRegistry*)clientData)->getDomain();
 
   if (argc < 3) {
       opserr << OpenSees::PromptValueError << "rigidLink perpDirn? rNode? <cNodes?>\n";
@@ -424,7 +424,7 @@ int
 TclCommand_RigidLink(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *theTclDomain = ((BasicModelBuilder*)clientData)->getDomain();
+  Domain *theTclDomain = ((ModelRegistry*)clientData)->getDomain();
 
   if (argc < 4) {
       opserr << OpenSees::PromptValueError << "rigidLink linkType? rNode? cNode?\n";

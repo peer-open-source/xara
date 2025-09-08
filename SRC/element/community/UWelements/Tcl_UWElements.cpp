@@ -1,7 +1,7 @@
 #include <tcl.h>
 #include <assert.h>
 #include <Domain.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <elementAPI.h>
 #include <element/community/UWelements/SSPquadUP.h>
 #include <element/community/UWelements/SSPbrick.h>
@@ -26,7 +26,7 @@ TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   Element* theEle = nullptr;
   assert(clientData != nullptr);
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
   if (strcasecmp(argv[1], "SSPquad")==0) {
@@ -52,7 +52,7 @@ static Element*
 TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   static int num_SSPbrick;
   if (num_SSPbrick == 0) {
@@ -120,7 +120,7 @@ static Element*
 TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   static int num_SSPbrickUP;
   if (num_SSPbrickUP == 0) {
@@ -196,7 +196,7 @@ static int
 TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 2) {
     opserr << "WARNING -- model dimensions and/or nodal DOF not compatible "
@@ -362,7 +362,7 @@ static Element*
 TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   static int num_SSPquadUP;
   if (num_SSPquadUP == 0) {
@@ -452,7 +452,7 @@ static Element*
 TclDispatch_BeamContact2D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_BeamContact2D == 0) {
     num_BeamContact2D++;
@@ -526,7 +526,7 @@ static Element*
 TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_BeamContact2Dp == 0) {
     num_BeamContact2Dp++;
@@ -602,7 +602,7 @@ static Element*
 TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_BeamContact3D == 0) {
     num_BeamContact3D++;
@@ -702,7 +702,7 @@ static Element*
 TclDispatch_BeamContact3Dp(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_BeamContact3Dp == 0) {
     num_BeamContact3Dp++;
@@ -803,7 +803,7 @@ static Element*
 TclDispatch_BeamEndContact3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_BeamEndContact3D == 0) {
     num_BeamEndContact3D++;
@@ -875,7 +875,7 @@ static Element*
 TclDispatch_BeamEndContact3Dp(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_BeamEndContact3Dp == 0) {
     num_BeamEndContact3Dp++;
@@ -944,7 +944,7 @@ TclDispatch_BeamEndContact3Dp(ClientData clientData, Tcl_Interp* interp, int arg
 static Element *OPS_Brick8FiberOverlay(void)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_Brick8FiberOverlay == 0) {
     num_Brick8FiberOverlay++;
@@ -1015,7 +1015,7 @@ static Element *OPS_Brick8FiberOverlay(void)
 static Element *OPS_EmbeddedBeamInterfaceL(void)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_EmbeddedBeamInterfaceL == 0) {
     num_EmbeddedBeamInterfaceL++;
@@ -1059,7 +1059,7 @@ static Element *OPS_EmbeddedBeamInterfaceL(void)
 static Element *OPS_EmbeddedBeamInterfaceP(void)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_EmbeddedBeamInterfaceP == 0) {
     num_EmbeddedBeamInterfaceP++;
@@ -1104,7 +1104,7 @@ static Element *OPS_EmbeddedBeamInterfaceP(void)
 static Element *OPS_EmbeddedEPBeamInterface(void)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_EmbeddedEPBeamInterface == 0) {
     num_EmbeddedEPBeamInterface++;
@@ -1150,7 +1150,7 @@ static Element*
 TclDispatch_PileToe3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_PileToe3D == 0) {
     num_PileToe3D++;
@@ -1227,7 +1227,7 @@ TclDispatch_PileToe3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
 static Element *OPS_Quad4FiberOverlay(void)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_Quad4FiberOverlay == 0) {
     num_Quad4FiberOverlay++;
@@ -1298,7 +1298,7 @@ static Element *OPS_Quad4FiberOverlay(void)
 static Element *OPS_QuadBeamEmbedContact(void)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_QuadBeamEmbedContact == 0) {
     num_QuadBeamEmbedContact++;
@@ -1363,7 +1363,7 @@ static Element*
 TclDispatch_SimpleContact2D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (num_SimpleContact2D == 0) {
     num_SimpleContact2D++;
@@ -1428,7 +1428,7 @@ static Element*
 TclDispatch_SimpleContact3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   static int num_SimpleContact3D;
   if (num_SimpleContact3D == 0) {

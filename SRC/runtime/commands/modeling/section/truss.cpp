@@ -22,7 +22,7 @@
 #include <Parsing.h>
 #include <Logging.h>
 #include <ArgumentTracker.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <UniaxialMaterial.h>
 #include <SectionAggregator.h>
 
@@ -31,7 +31,7 @@ int
 TclCommand_addUniaxialSection(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // section Uniaxial tag? material? code?
   if (argc < 5) {
@@ -90,7 +90,7 @@ int
 TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   enum class Positions : int {
     Material, Area, End
   };

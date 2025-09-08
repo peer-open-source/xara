@@ -16,7 +16,7 @@
 #include <tcl.h>
 #include <runtimeAPI.h>
 #include <elementAPI.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <Elastic2Material.h>   // ZHY
 #include <HardeningMaterial.h>  // MHS
 #include <HardeningMaterial2.h> // MHS
@@ -149,7 +149,7 @@ TclBasicBuilderUniaxialMaterialCommand(ClientData clientData, Tcl_Interp *interp
 {
 
   G3_Runtime *rt = G3_getRuntime(interp);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {

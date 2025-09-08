@@ -15,7 +15,7 @@
 
 #include "DispBeamColumn2dInt.h"
 #include <runtimeAPI.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <SectionForceDeformation.h>
 
 
@@ -24,7 +24,7 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
                                      int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   int ndm = builder->getNDM();
   int ndf = builder->getNDF();

@@ -17,7 +17,7 @@
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <NDMaterial.h>
 #include <UniaxialMaterial.h>
 
@@ -52,7 +52,7 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
     //
     //
     //
-    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
     if (argc < 4) {
         opserr << OpenSees::PromptValueError << " insufficient arguments\n";
@@ -154,7 +154,7 @@ TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int ar
 
     int tag;
     UniaxialMaterial* theMaterial = nullptr;
-    BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
         opserr << "WARNING invalid uniaxialMaterial Parallel tag" << "\n";
@@ -200,7 +200,7 @@ TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int ar
 int
 TclCommand_newPlateFiber(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (argc < 4) {
     opserr << "WARNING insufficient arguments\n";
@@ -273,7 +273,7 @@ TclCommand_newPlateRebar(ClientData clientData, Tcl_Interp* interp, int argc, G3
   //
   // nDMaterial type? tag? uni_tag? angle?
   //
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if (argc < 5) {
     opserr << "WARNING insufficient arguments\n";
     return TCL_ERROR;
@@ -328,7 +328,7 @@ int
 TclCommand_newFatigueMaterial(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (argc < 4) {
     opserr << OpenSees::PromptValueError << "insufficient arguments\n";
@@ -413,7 +413,7 @@ int
 TclCommand_addPlaneWrapper(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   NDMaterial * theMaterial = nullptr;
 

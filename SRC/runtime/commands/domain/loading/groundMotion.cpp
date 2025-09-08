@@ -19,7 +19,7 @@
 #include <MultiSupportPattern.h>
 #include <InterpolatedGroundMotion.h>
 #include <TimeSeriesIntegrator.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 extern TimeSeries *TclSeriesCommand(ClientData clientData, Tcl_Interp *interp,
                                     TCL_Char * const arg);
@@ -55,7 +55,7 @@ TclCommand_newGroundMotion(ClientData clientData, Tcl_Interp* interp, int argc,
                        TCL_Char ** const argv, MultiSupportPattern *thePattern)
 {
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // make sure at least one other argument to contain integrator
   if (argc < 4) {

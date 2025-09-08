@@ -11,7 +11,7 @@
 #include <Parsing.h>
 #include <Logging.h>
 #include "DegradingUniaxialWrapper.h"
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #define WRAPPER_CMD "FedeasUniaxialDamage"
 // #define WRAPPER_CMD "FedeasDamage"
@@ -20,7 +20,7 @@ int
 TclCommand_newFedeasUniaxialDamage(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   // Pointer to a uniaxial material that will be returned
   DegradingUniaxialWrapper *theMaterial = nullptr;
   UniaxialMaterial *theWrappedMaterial = nullptr;

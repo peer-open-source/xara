@@ -26,7 +26,7 @@
 // for the flatSliderBearing element.
 //
 #include <assert.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <tcl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,7 +48,7 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
                                 int argc, TCL_Char **const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
   const int eleArgStart = 1;
 
@@ -506,7 +506,7 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
 // Description: This file contains the function to parse the TCL input
 // for the RJWatsonEqsBearing element.
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -525,7 +525,7 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   constexpr int eleArgStart = 1;
 
 
@@ -1098,7 +1098,7 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
 // Revision: A
 //
 #include <assert.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -1118,7 +1118,7 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
   const int eleArgStart = 1;
 
@@ -1643,7 +1643,7 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
 #include <FrictionModel.h>
 #include <tcl.h>
 #include <elementAPI.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <Coulomb.h>
 #include <VelDependent.h>
@@ -1662,7 +1662,7 @@ int
 TclCommand_addFrictionModel(ClientData clientData, Tcl_Interp *interp,
                             int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
     // make sure there is a minimum number of arguments
     if (argc < 3)  {

@@ -18,7 +18,7 @@
 #include <string.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <PressureDependentElastic3D.h>
 

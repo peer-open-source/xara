@@ -14,18 +14,18 @@
 #include <Domain.h>
 #include <Node.h>
 #include <Matrix.h>
+#include <ModelRegistry.h>
 
 #include <CyclicModel.h>
 #include <LinearCyclic.h>
 #include <BilinearCyclic.h>
 #include <QuadraticCyclic.h>
-#include <BasicModelBuilder.h>
 
 int
 TclBasicBuilder_addLinearCylic(ClientData clientData, Tcl_Interp *interp, int argc,
                                TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   int tag;
 
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
@@ -52,7 +52,7 @@ int
 TclBasicBuilder_addBilinearCyclic(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   int tag;
   double wt;
 
@@ -80,7 +80,7 @@ int
 TclBasicBuilder_addQuadraticCyclic(ClientData clientData, Tcl_Interp *interp,
                                    int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   int tag;
   double wt, qy;
 
@@ -143,7 +143,6 @@ TclCommand_addCyclicModel(ClientData clientData, Tcl_Interp *interp,
 
 #include <Elastic2DGNL.h>
 
-#include <BasicModelBuilder.h>
 
 #define tcl_debug 0
 
@@ -155,7 +154,7 @@ TclBasicBuilder_addElastic2dGNL(ClientData clientData, Tcl_Interp *interp, int a
                                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
   if (tcl_debug)
     opserr << " TclBasicBuilder_addElastic2dGNL \n";
@@ -256,12 +255,6 @@ TclBasicBuilder_addElastic2dGNL(ClientData clientData, Tcl_Interp *interp, int a
   return TCL_OK;
 }
 
-#include <string.h>
-#include <OPS_Stream.h>
-
-#include <Domain.h>
-#include <Node.h>
-#include <Matrix.h>
 
 #include <CyclicModel.h>
 #include <Inelastic2DYS01.h>
@@ -269,9 +262,7 @@ TclBasicBuilder_addElastic2dGNL(ClientData clientData, Tcl_Interp *interp, int a
 #include <Inelastic2DYS03.h>
 //#include <Inelastic2DYS04.h>
 //#include <Inelastic2DYS05.h>
-
 #include <YieldSurface_BC.h>
-#include <BasicModelBuilder.h>
 
 #define tcl_debug 0
 
@@ -282,7 +273,7 @@ static int
 TclBasicBuilder_addElement2dYS01(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (tcl_debug)
     opserr << " TclBasicBuilder_addElement2dGNL \n";
@@ -396,7 +387,7 @@ int
 TclBasicBuilder_addElement2dYS02(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (tcl_debug)
     opserr << " TclBasicBuilder_addElement2dGNL \n";
@@ -545,7 +536,7 @@ int
 TclBasicBuilder_addElement2dYS03(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   // cerr << "Press key to continue...\n";
   // cin.get();
 
@@ -681,7 +672,7 @@ TclBasicBuilder_addElement2dYS04 (ClientData clientData, Tcl_Interp *interp,
                                                                    int argc,
                                   char **argv)
 {
-    BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+    ModelRegistry* builder = (ModelRegistry*)clientData;
 
         if (argc < 11)
         {

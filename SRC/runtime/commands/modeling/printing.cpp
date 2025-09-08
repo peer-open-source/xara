@@ -22,7 +22,7 @@
 #include <FileStream.h>
 #include <DummyStream.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <ID.h>
 #include <Domain.h>
@@ -75,7 +75,7 @@ TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
 {
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if (argc < 3) {
     opserr << "ERROR want - classType objectType tag?\n";
     return TCL_ERROR;
@@ -113,7 +113,7 @@ TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
 
 template <typename T>
 static int
-printRegistryObject(const BasicModelBuilder& builder, int tag, int flag, OPS_Stream *output)
+printRegistryObject(const ModelRegistry& builder, int tag, int flag, OPS_Stream *output)
 {
   TaggedObject* object = builder.getTypedObject<T>(tag);
   object->Print(*output, flag);
@@ -121,23 +121,23 @@ printRegistryObject(const BasicModelBuilder& builder, int tag, int flag, OPS_Str
 }
 
 static int
-printRegistry(const BasicModelBuilder& builder, TCL_Char* type, int flag, OPS_Stream *output)
+printRegistry(const ModelRegistry& builder, TCL_Char* type, int flag, OPS_Stream *output)
 {
   if (type == nullptr)
-    builder.printRegistry<BasicModelBuilder>(*output, flag);
+    builder.printRegistry<ModelRegistry>(*output, flag);
   return TCL_OK;
 }
 
 
 static void
-printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag) 
+printDomain(OPS_Stream &s, ModelRegistry* builder, int flag) 
 {
 
   Domain* theDomain = builder->getDomain();
 
   const char* tab = "  ";
   // TODO: maybe add a method called countRegistry<>
-  // to BasicModelBuilder
+  // to ModelRegistry
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << "{\n";
@@ -327,7 +327,7 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
 {
   assert(clientData != nullptr);
 
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain * domain = builder->getDomain();
 
   int currentArg = 1;
@@ -387,7 +387,7 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
                  << "\n";
           return TCL_ERROR;
         }
-        res += printRegistryObject<NDMaterial>(*((BasicModelBuilder*)clientData), tag, OPS_PRINT_PRINTMODEL_JSON, output);
+        res += printRegistryObject<NDMaterial>(*((ModelRegistry*)clientData), tag, OPS_PRINT_PRINTMODEL_JSON, output);
       }
       done = true;
     }
@@ -396,9 +396,9 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
     else if ((strcmp(argv[currentArg], "-registry") == 0)) {
       currentArg++;
       if (currentArg == argc)
-        res = printRegistry(*((BasicModelBuilder*)clientData), nullptr, flag, output);
+        res = printRegistry(*((ModelRegistry*)clientData), nullptr, flag, output);
       else
-        res = printRegistry(*((BasicModelBuilder*)clientData), argv[currentArg++], flag, output);
+        res = printRegistry(*((ModelRegistry*)clientData), argv[currentArg++], flag, output);
       done = true;
     }
 

@@ -18,7 +18,7 @@
 #include <Parsing.h>
 #include <ArgumentTracker.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <Domain.h>
 #include <vector>
 #include <cstddef>
@@ -46,7 +46,7 @@ int
 TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char **const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *domain       = builder->getDomain();
 
   std::vector<int>   tags;
@@ -298,7 +298,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
   }
 
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *domain       = builder->getDomain();
   static int eleLoadTag      = 0; // TODO: this is ugly
 

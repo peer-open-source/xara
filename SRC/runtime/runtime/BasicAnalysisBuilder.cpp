@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <unordered_map>
-#include "BasicModelBuilder.h"
+#include "ModelRegistry.h"
 #include "BasicAnalysisBuilder.h"
 #include <Domain.h>
 #include <Logging.h>
@@ -69,7 +69,7 @@ static std::unordered_map<int, std::string> AnalyzeFailedMessage {
    {SolutionAlgorithm::BadStepUpdate,   "Failed to update the model\n"}
 };
 
-BasicAnalysisBuilder::BasicAnalysisBuilder(BasicModelBuilder& context)
+BasicAnalysisBuilder::BasicAnalysisBuilder(ModelRegistry& context)
 :
   context(context),
   theDomain(context.getDomain()),

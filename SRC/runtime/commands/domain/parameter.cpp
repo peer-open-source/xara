@@ -18,7 +18,6 @@
 #include <Node.h>
 #include <NodeData.h>
 
-#include <BasicModelBuilder.h>
 
 #include <Parameter.h>
 #include <ParameterIter.h>

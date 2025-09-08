@@ -13,7 +13,7 @@
 #include <tcl.h>
 #include <Matrix.h>
 #include <NDMaterial.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <Logging.h>
 
 typedef const char TCL_Char;
@@ -30,7 +30,7 @@ static int countsTillCommit;
 // constructor: the constructor will add certain commands to the interpreter
 int TclCommand_usePlaneStress(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
 
   // get the matID form command line

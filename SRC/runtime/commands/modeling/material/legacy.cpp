@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <ENTMaterial.h>             // MHS
 #include <Elastic2Material.h>        // ZHY
@@ -22,7 +22,7 @@ int
 TclDispatch_LegacyUniaxials(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   UniaxialMaterial  *theMaterial = nullptr;
 
   if (strcmp(argv[1], "Elastic2") == 0) {
