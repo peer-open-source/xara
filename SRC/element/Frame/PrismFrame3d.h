@@ -162,12 +162,10 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
 
     int section_tag;
 
-    OpenSees::MatrixND<6,6> ke;  // TODO: make shared_ptr?
+    OpenSees::MatrixND<6,6> ke;
     OpenSees::MatrixND<6,6> km;
     OpenSees::MatrixND<6,6> kg;
     OpenSees::VectorND<6>   q;
-    // Matrix K;
-    // Vector P;
     BasicFrameTransf3d<NDF> *basic_system;
 };
 
