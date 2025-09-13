@@ -99,7 +99,7 @@ StaticIntegrator::formEleResidual(FE_Element *theEle)
       theEle->addResistingForceSensitivity(this->getGradIndex());
       break;
     case ResidualType::TransientUnbalance:
-      theEle->addRIncInertiaToResidual();
+      theEle->addRIncInertiaToResidual(1.0);
       break;
   }
   return 0;
