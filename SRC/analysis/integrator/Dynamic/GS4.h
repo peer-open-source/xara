@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -48,7 +54,7 @@ public:
     // Sensitivity
     int formSensitivityRHS(int gradNum);
     int updateGradient   (const Vector &v, int gradNum, int numGrads);
-    int commitGradient (int gradNum, int numGrads);
+    int commitGradient (int gradNum, int numGrads) {return -1;};
     int computeSensitivities();
 
     //
@@ -88,6 +94,13 @@ private:
     double beta;
     double alphaF;
     double alphaM;
+    double alphaU;
+    double alphaV;
+    double alphaA;
+    double gs[3];
+    double Gs[3][3]; // \Gamma
+    double ge[3];
+    double Ge[3][3]; // \tilde{\Gamma}
 
     int step;                       // track step number to initialize accelerations
     double dt;                      // store time step to determine step number

@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -20,24 +26,29 @@
 #include <DOF_Group.h>
 #include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <string.h>
-#include <NodeIter.h>
-#include <Domain.h>
 // for sensitivity
+#include <Domain.h>
+#include <NodeIter.h>
 #include <Node.h>
 #include <LoadPattern.h>
 #include <Parameter.h>
 #include <ParameterIter.h>
 
 
+enum {
+  eu=0,
+  ev=1,
+  ea=2
+};
+
 GS4::GS4(double gamma,  double beta, 
           double alphaF, double alphaM,
           int uFlag, int iFlag, bool aFlag)
   : TransientIntegrator(0),
     gamma(gamma), beta(beta), 
-    alphaF(1.0), alphaM(1.0), 
+    alphaF(1.0), alphaM(1.0),
+    alphaU(1.0), alphaV(1.0), alphaA(1.0),
     unknown(uFlag), unknown_initialize(iFlag),
     step(0),
     dt(0.0),
@@ -59,23 +70,23 @@ GS4::GS4(double gamma,  double beta,
 GS4::~GS4()
 {
   if (Uo != nullptr)
-      delete Uo;
+    delete Uo;
   if (Vo != nullptr)
-      delete Vo;
+    delete Vo;
   if (Ao != nullptr)
-      delete Ao;
+    delete Ao;
   if (Ua != nullptr)
-      delete Ua;
+    delete Ua;
   if (Va != nullptr)
-      delete Va;
+    delete Va;
   if (Aa != nullptr)
-      delete Aa;
+    delete Aa;
   if (Un != nullptr)
-      delete Un;
+    delete Un;
   if (Vn != nullptr)
-      delete Vn;
+    delete Vn;
   if (An != nullptr)
-      delete An;
+    delete An;
 
   // clean up sensitivity
   if (dAa != nullptr)
@@ -90,9 +101,9 @@ int
 GS4::newStep(double deltaT)
 {
   if (deltaT <= 0.0)  {
-      opserr << "GS4::newStep() - error in variable\n";
-      opserr << "dT = " << deltaT << endln;
-      return -2;  
+    opserr << "GS4::newStep() - error in variable\n";
+    opserr << "dT = " << deltaT << endln;
+    return -2;  
   }
   
   if (Un == nullptr)
@@ -100,13 +111,15 @@ GS4::newStep(double deltaT)
 
   // mark step as bootstrap or not
   if (deltaT != dt)
-      step = 0;
+    step = 0;
   else
-      step++;
+    step++;
 
   dt = deltaT;
 
+  //
   // Set response at t to be that at t+deltaT of previous step
+  //
   (*Uo) = *Un;        
   (*Vo) = *Vn;  
   (*Ao) = *An;
@@ -115,18 +128,18 @@ GS4::newStep(double deltaT)
   switch (unknown) {
   case Displacement:
     if (beta == 0.0)  {
-        opserr << "Invalid beta, requires beta != 0.0\n";
-        return -1;
+      opserr << "Invalid beta, requires beta != 0.0\n";
+      return -1;
     }
-    cu = 1.0;
-    cv = gamma/(beta*deltaT);
+    cu = alphaU;
+    cv = alphaU*gamma/(beta*deltaT);
     ca = 1.0/(beta*deltaT*deltaT);
     break;
 
   case Velocity:
     if (gamma == 0.0)  {
-        opserr << "Invalid gamma, requires gamma != 0.0\n";
-        return -1;
+      opserr << "Invalid gamma, requires gamma != 0.0\n";
+      return -1;
     }
     cu = deltaT*beta/gamma;
     cv = 1.0;
@@ -139,22 +152,25 @@ GS4::newStep(double deltaT)
     ca = 1.0;
     break;
   }
+  gs[eu] = cu;
+  gs[ev] = cv;
+  gs[ea] = ca;
 
   //
   // Set initial guesses for {u,v,a}_{t + dt}
   //
-  int init = (step < 2 && unknown==Displacement) ? unknown : unknown_initialize;
+  int init = unknown_initialize; // (step < 2 && unknown==Displacement) ? unknown : unknown_initialize;
 
   if (unknown == Displacement) {
-    double buu =  0.0;
+    double buu =  1.0 - alphaU;
     double buv =  0.0;
     double bua =  0.0;
 
-    double bvu = -gamma/(beta*deltaT);
-    double bvv = 1.0 - gamma/beta; 
+    double bvu = -gamma*alphaV/(beta*deltaT);
+    double bvv = 1.0 -  alphaV*gamma/beta; 
     double bva = deltaT*(1.0 - 0.5*gamma/beta);
 
-    double bau =  1/(beta*deltaT*deltaT);
+    double bau = -1.0/(beta*deltaT*deltaT);
     double bav = -1.0/(beta*deltaT);
     double baa =  1.0 - 0.5/beta;
 
@@ -320,8 +336,8 @@ GS4::newStep(double deltaT)
   double time = theModel->getCurrentDomainTime();
   time += alphaF*deltaT;
   if (theModel->updateDomain(time, deltaT) < 0)  {
-      opserr << "GS4::newStep - failed to update\n";
-      return -4;
+    opserr << "GS4::newStep - failed to update\n";
+    return -4;
   }
 
   return 0;
@@ -339,9 +355,9 @@ GS4::update(const Vector &deltaX)
 
   // check deltaX is of correct size
   if (deltaX.Size() != Un->Size())  {
-      opserr << "WARNING GS4::update() - Vectors of incompatible size ";
-      opserr << " expecting " << Un->Size() << " obtained " << deltaX.Size() << endln;
-      return -3;
+    opserr << "WARNING GS4::update() - Vectors of incompatible size ";
+    opserr << " expecting " << Un->Size() << " obtained " << deltaX.Size() << endln;
+    return -3;
   }
   
   //  determine the response at t+deltaT
@@ -366,8 +382,8 @@ GS4::update(const Vector &deltaX)
   // update the response at the DOFs
   theModel->setResponse(*Ua,*Va,*Aa);
   if (theModel->updateDomain() < 0)  {
-      opserr << "GS4::update - failed to update the domain\n";
-      return -4;
+    opserr << "GS4::update - failed to update the domain\n";
+    return -4;
   }
   
   return 0;
@@ -403,21 +419,21 @@ GS4::formEleTangent(FE_Element *theEle)
   
   switch (statusFlag) {
   case CURRENT_TANGENT:
-      theEle->addKtToTang(alphaF*cu);
-      theEle->addCtoTang(alphaF*cv);
-      theEle->addMtoTang(alphaM*ca);
-      break;
+    theEle->addKtToTang(alphaF*cu);
+    theEle->addCtoTang(alphaF*cv);
+    theEle->addMtoTang(alphaM*ca);
+    break;
   case INITIAL_TANGENT:
-      theEle->addKiToTang(alphaF*cu);
-      theEle->addCtoTang(alphaF*cv);
-      theEle->addMtoTang(alphaM*ca);
-      break;
+    theEle->addKiToTang(alphaF*cu);
+    theEle->addCtoTang(alphaF*cv);
+    theEle->addMtoTang(alphaM*ca);
+    break;
   case HALL_TANGENT:
-      theEle->addKtToTang(cu*cFactor);
-      theEle->addKiToTang(cu*iFactor);
-      theEle->addCtoTang(cv);
-      theEle->addMtoTang(ca);
-      break;
+    theEle->addKtToTang(cu*cFactor);
+    theEle->addKiToTang(cu*iFactor);
+    theEle->addCtoTang(cv);
+    theEle->addMtoTang(ca);
+    break;
   }
   return 0;
 }
@@ -426,12 +442,12 @@ int
 GS4::formNodTangent(DOF_Group *theDof)
 {
   if (determiningMass == true)
-      return 0;
+    return 0;
 
   theDof->zeroTangent();
   theDof->addCtoTang(alphaF*cv);
   theDof->addMtoTang(alphaM*ca);
-  
+
   return 0;
 }
 
@@ -439,114 +455,114 @@ GS4::formNodTangent(DOF_Group *theDof)
 int
 GS4::domainChanged()
 {
-    AnalysisModel *myModel = this->getAnalysisModel();
-    LinearSOE *theLinSOE = this->getLinearSOE();
-    const Vector &x = theLinSOE->getX();
-    int size = x.Size();
+  AnalysisModel *myModel = this->getAnalysisModel();
+  LinearSOE *theLinSOE = this->getLinearSOE();
+  const Vector &x = theLinSOE->getX();
+  int size = x.Size();
 
-    // create the new Vector objects
-    if (Uo == nullptr || Uo->Size() != size)  {
-      // delete the old
-      if (Uo != nullptr)
-          delete Uo;
-      if (Vo != nullptr)
-          delete Vo;
-      if (Ao != nullptr)
-          delete Ao;
-      if (Ua != nullptr)
-          delete Ua;
-      if (Va != nullptr)
-          delete Va;
-      if (Aa != nullptr)
-          delete Ao;
-      if (Un != nullptr)
-          delete Un;
-      if (Vn != nullptr)
-          delete Vn;
-      if (An != nullptr)
-          delete An;
+  // create the new Vector objects
+  if (Uo == nullptr || Uo->Size() != size)  {
+    // delete the old
+    if (Uo != nullptr)
+      delete Uo;
+    if (Vo != nullptr)
+      delete Vo;
+    if (Ao != nullptr)
+      delete Ao;
+    if (Ua != nullptr)
+      delete Ua;
+    if (Va != nullptr)
+      delete Va;
+    if (Aa != nullptr)
+      delete Ao;
+    if (Un != nullptr)
+      delete Un;
+    if (Vn != nullptr)
+      delete Vn;
+    if (An != nullptr)
+      delete An;
 
-      // perform the allocations
-      Uo = new Vector(size);
-      Vo = new Vector(size);
-      Ao = new Vector(size);
-      Ua = new Vector(size);
-      Va = new Vector(size);
-      Aa = new Vector(size);
-      Un = new Vector(size);
-      Vn = new Vector(size);
-      An = new Vector(size);
-      dUn.resize(size); 
-      dUn.Zero();
-      dVn.resize(size); 
-      dVn.Zero();
-      dAn.resize(size); 
-      dAn.Zero(); 
-    }        
+    // perform the allocations
+    Uo = new Vector(size);
+    Vo = new Vector(size);
+    Ao = new Vector(size);
+    Ua = new Vector(size);
+    Va = new Vector(size);
+    Aa = new Vector(size);
+    Un = new Vector(size);
+    Vn = new Vector(size);
+    An = new Vector(size);
+    dUn.resize(size); 
+    dUn.Zero();
+    dVn.resize(size); 
+    dVn.Zero();
+    dAn.resize(size); 
+    dAn.Zero(); 
+  }        
+  
+  // now go through and populate U, Udot and Udotdot by iterating through
+  // the DOF_Groups and getting the last committed velocity and accel
+  DOF_GrpIter &theDOFs = myModel->getDOFs();
+  DOF_Group *group;
+  while ((group = theDOFs()) != nullptr)  {
+    const ID &id = group->getID();
+    int idSize = id.Size();
+
+    const Vector &disp = group->getCommittedDisp();  
+    for (int i=0; i < idSize; i++)  {
+      int loc = id(i);
+      if (loc >= 0)  {
+        (*Un)(loc) = disp(i);    
+      }
+    }
     
-    // now go through and populate U, Udot and Udotdot by iterating through
-    // the DOF_Groups and getting the last committed velocity and accel
-    DOF_GrpIter &theDOFs = myModel->getDOFs();
-    DOF_Group *group;
-    while ((group = theDOFs()) != nullptr)  {
-      const ID &id = group->getID();
-      int idSize = id.Size();
+    const Vector &vel = group->getCommittedVel();
+    for (int i=0; i < idSize; i++)  {
+      int loc = id(i);
+      if (loc >= 0) {
+        (*Vn)(loc) = vel(i);
+      }
+    }
 
-      const Vector &disp = group->getCommittedDisp();  
-      for (int i=0; i < idSize; i++)  {
-          int loc = id(i);
-          if (loc >= 0)  {
-              (*Un)(loc) = disp(i);    
-          }
+    const Vector &accel = group->getCommittedAccel();  
+    for (int i=0; i < idSize; i++)  {
+      int loc = id(i);
+      if (loc >= 0) {
+        (*An)(loc) = accel(i);
       }
-      
-      const Vector &vel = group->getCommittedVel();
-      for (int i=0; i < idSize; i++)  {
-          int loc = id(i);
-          if (loc >= 0) {
-              (*Vn)(loc) = vel(i);
-          }
-      }
-      
-      const Vector &accel = group->getCommittedAccel();  
-      for (int i=0; i < idSize; i++)  {
-          int loc = id(i);
-          if (loc >= 0) {
-              (*An)(loc) = accel(i);
-          }
-      }
+    }
 
-      // The remaining get**Sensitivity methods cause seg faults with Lagrange constraint
-      // handler in dynamic (transient) analysis even when there is no sensitivity algorithm.
-      // However, I don't think these methods need to be called in domainChanged -- MHS
-      continue;
-      
-      const Vector &dispSens = group->getDispSensitivity(gradNumber);  
-      for (int i=0; i < idSize; i++) {
-          int loc = id(i);
-          if (loc >= 0) {
-            dUn(loc) = dispSens(i);    
-          }
-      }
-
-      const Vector &velSens = group->getVelSensitivity(gradNumber);
-      for (int i=0; i < idSize; i++) {
-          int loc = id(i);
-          if (loc >= 0) {
-            dVn(loc) = velSens(i);
-          }
-      }
-
-      const Vector &accelSens = group->getAccSensitivity(gradNumber);  
-      for (int i=0; i < idSize; i++) {
-          int loc = id(i);
-          if (loc >= 0) {
-            dAn(loc) = accelSens(i);
-          }
-      }
-    }    
+    // The remaining get**Sensitivity methods cause seg faults with Lagrange constraint
+    // handler in dynamic (transient) analysis even when there is no sensitivity algorithm.
+    // However, I don't think these methods need to be called in domainChanged -- MHS
+    continue;
     
-    return 0;
+    const Vector &dispSens = group->getDispSensitivity(gradNumber);  
+    for (int i=0; i < idSize; i++) {
+        int loc = id(i);
+        if (loc >= 0) {
+          dUn(loc) = dispSens(i);    
+        }
+    }
+
+    const Vector &velSens = group->getVelSensitivity(gradNumber);
+    for (int i=0; i < idSize; i++) {
+        int loc = id(i);
+        if (loc >= 0) {
+          dVn(loc) = velSens(i);
+        }
+    }
+
+    const Vector &accelSens = group->getAccSensitivity(gradNumber);  
+    for (int i=0; i < idSize; i++) {
+        int loc = id(i);
+        if (loc >= 0) {
+          dAn(loc) = accelSens(i);
+        }
+    }
+  }    
+  
+  return 0;
 }
 
 
@@ -682,7 +698,9 @@ GS4::formNodUnbalance(DOF_Group *theDof)
 int 
 GS4::formSensitivityRHS(int grad)
 {
-  // Set a couple of data members
+  // Set to sensitivity mode. This will change the behaviour of formEleResidual
+  // and formNodUnbalance so that they add the sensitivity terms to the RHS
+  // rather than the standard terms.
   isSensitivityResidual = true;
   gradNumber = grad;
 
@@ -826,39 +844,16 @@ GS4::computeSensitivities()
 
 
 int
-GS4::sendSelf(int cTag, Channel &theChannel)
+GS4::sendSelf(int cTag, Channel &)
 {
-  Vector data(3);
-  data(0) = gamma;
-  data(1) = beta;
-  data(2) = unknown;
-
-  
-  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-    opserr << "WARNING GS4::sendSelf() - could not send data\n";
-    return -1;
-  }
-
-  return 0;
+  return -1;
 }
 
 
 int
-GS4::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+GS4::recvSelf(int cTag, Channel &, FEM_ObjectBroker &)
 {
-  Vector data(3);
-  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-    opserr << "WARNING GS4::recvSelf() - could not receive data\n";
-    gamma = 0.5;
-    beta = 0.25; 
-    return -1;
-  }
-  
-  gamma  = data(0);
-  beta   = data(1);
-  unknown  = data(2);
-
-  return 0;
+  return -1;
 }
 
 
