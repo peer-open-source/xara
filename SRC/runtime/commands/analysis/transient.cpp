@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -10,13 +19,15 @@
 #include <string.h>
 #include <Parsing.h>
 #include <Logging.h>
-
+#include <stdlib.h>
+#include <GS4.h>
 #include <Newmark1.h>
 #include <Newmark.h>
 #include <GeneralizedNewmark.h>
 
 TransientIntegrator*
-TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp, 
+TclCommand_newNewmarkIntegrator(ClientData clientData,
+                                Tcl_Interp* interp, 
                                 Tcl_Size argc, G3_Char ** const argv)
 {
 
@@ -28,7 +39,7 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp,
     for (int i=0; i<argc; i++)
       opserr << argv[i] << " ";
     opserr << "\n";
-    return 0;
+    return nullptr;
   }
 
   int dispFlag =  1;
@@ -140,20 +151,32 @@ TclCommand_newNewmarkIntegrator(ClientData clientData, Tcl_Interp* interp,
     }
   }
 
+  //
   // Check that all required arguments were supplied
+  //
   if (!gotGamma) { 
-    opserr << OpenSees::PromptValueError << "missing required positional argument gamma\n";
+    opserr << OpenSees::PromptValueError 
+           << "missing required argument gamma"
+           << OpenSees::SignalMessageEnd;
     return nullptr;
   }
 
   if (!gotBeta) { 
-    opserr << OpenSees::PromptValueError << "missing required positional argument beta\n";
+    opserr << OpenSees::PromptValueError 
+           << "missing required argument beta"
+           << OpenSees::SignalMessageEnd;
     return nullptr;
   }
 
-  if (useGeneralized)
-    return new GeneralizedNewmark(gamma, beta, alphaF, alphaM, dispFlag, initFlag);
-  else
+  //
+  // create the integrator
+  //
+  if (useGeneralized || getenv("GS4")) {
+    if (!getenv("GS4"))
+      return new GeneralizedNewmark(gamma, beta, alphaF, alphaM, dispFlag, initFlag);
+    else
+      return new GS4(gamma, beta, alphaF, alphaM, dispFlag, initFlag);
+  } else
     return new Newmark(gamma, beta, dispFlag, initFlag);
 
   return nullptr;
