@@ -388,9 +388,9 @@ AnalysisModel::setResponse(const Vector &disp,
   DOF_Group         *dofPtr;
 
   while ((dofPtr = theDOFGrps()) != nullptr) {
-      dofPtr->setNodeDisp(disp);
-      dofPtr->setNodeVel(vel);
-      dofPtr->setNodeAccel(accel);
+    dofPtr->setNodeDisp(disp);
+    dofPtr->setNodeVel(vel);
+    dofPtr->setNodeAccel(accel);
   }
 }
 
