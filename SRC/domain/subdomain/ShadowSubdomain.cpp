@@ -1476,6 +1476,7 @@ Parameter *ShadowSubdomain::removeParameter(int tag)
   return 0;
 }
 
+#if 0
 int ShadowSubdomain::updateParameter(int tag, int value)
 {
   msgData(0) = ShadowActorSubdomain_updateParameterINT;
@@ -1505,3 +1506,4 @@ int ShadowSubdomain::updateParameter(int tag, double value)
 
   return msgData(0);
 }
+#endif

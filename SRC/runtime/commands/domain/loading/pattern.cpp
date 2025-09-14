@@ -61,12 +61,15 @@
 Tcl_CmdProc TclCommand_addSP;
 Tcl_CmdProc TclCommand_addNodalLoad;
 
-extern TimeSeriesIntegrator *TclDispatch_newSeriesIntegrator(ClientData clientData,
-                                                        Tcl_Interp *interp,
-                                                        TCL_Char * const arg);
+extern TimeSeriesIntegrator *
+TclDispatch_newSeriesIntegrator(ClientData clientData,
+                                Tcl_Interp *interp,
+                                TCL_Char * const arg);
 
-extern TimeSeries *TclSeriesCommand(ClientData clientData, Tcl_Interp *interp,
-                                    TCL_Char * const arg);
+extern TimeSeries *
+TclSeriesCommand(ClientData clientData,
+                 Tcl_Interp *interp,
+                  TCL_Char * const arg);
 
 //
 // This command creates a scope where the following commands
@@ -74,7 +77,9 @@ extern TimeSeries *TclSeriesCommand(ClientData clientData, Tcl_Interp *interp,
 // - load
 // - sp
 int
-TclCommand_addPattern(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addPattern(ClientData clientData,
+                      Tcl_Interp *interp,
+                      Tcl_Size argc,
                       TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -102,8 +107,8 @@ TclCommand_addPattern(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (strcmp(argv[1], "Plain") == 0) {
     if (argc < 4) {
-        opserr << OpenSees::PromptValueError << "Invalid command for Plain pattern.\n";
-        return TCL_ERROR;
+      opserr << OpenSees::PromptValueError << "Invalid command for Plain pattern.\n";
+      return TCL_ERROR;
     }
 
     double fact = 1.0;

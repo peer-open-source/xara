@@ -942,13 +942,13 @@ Subdomain::addResistingForceToNodalReaction(int inclInertia)
   return 0;
 }
 
-int  
-Subdomain::updateParameter(int tag, int value){
-  return this->Domain::updateParameter(tag, value);
-}
-
-int  
-Subdomain::updateParameter(int tag, double value)
-{
-  return this->Domain::updateParameter(tag, value);
-}
+// int  
+// Subdomain::updateParameter(int tag, int value) {
+//   return this->Domain::updateParameter(tag, value);
+// }
+// 
+// int  
+// Subdomain::updateParameter(int tag, double value)
+// {
+//   return this->Domain::updateParameter(tag, value);
+// }

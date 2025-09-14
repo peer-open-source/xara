@@ -131,8 +131,8 @@ class Subdomain: public Element, public Domain
 					  double betaK0, 
 					  double betaKc);
 
-    virtual  int  updateParameter(int tag, int value);
-    virtual  int  updateParameter(int tag, double value);    
+//  virtual  int  updateParameter(int tag, int value);
+//  virtual  int  updateParameter(int tag, double value);    
 
     // Element type methods unique to a subdomain
     virtual int computeTang(void);
