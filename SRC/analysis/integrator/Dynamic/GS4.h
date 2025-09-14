@@ -78,9 +78,7 @@ public:
     int sendSelf(int commitTag, Channel &) override;
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
     
-    void Print(OPS_Stream &s, int flag) final;
-
-protected:
+    void Print(OPS_Stream &, int flag) final;
 
 private:
     enum Unknown {
