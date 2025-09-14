@@ -185,19 +185,19 @@ public:
       double scale = -w*pattern.getLoadFactor();
       switch (shape) {
         case Dirac:
-            scale /= jxs;
-            if (std::fabs(x - r[q][0]) > 1.0e-6)
-              scale *= 0.0;
-            break;
+          scale /= jxs;
+          if (std::fabs(x - r[q][0]) > 1.0e-6)
+            scale *= 0.0;
+          break;
         case Heaviside:
-            if (x < r[q][0])
-              scale *= 0.0;
-            break;
+          if (x < r[q][0])
+            scale *= 0.0;
+          break;
         case Lagrange:
-            for (unsigned s=0; s<r.size(); s++)
-              if (s != q)
-                scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
-            break;
+          for (unsigned s=0; s<r.size(); s++)
+            if (s != q)
+              scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
+          break;
       }
       pe.template assemble<  i*ndf>(px, scale);
       pe.template assemble<3+i*ndf>(mx, scale);
@@ -221,20 +221,20 @@ public:
       rx = R * rx;
       rx = R*(R0*rx);
       if (rx.norm() == 0.0 && basis == Embedding)
-          continue;
+        continue;
       switch (basis) {
-          case Embedding:
-              px = p[q];
-              mx = m[q] + rx.cross(px);
-              break;
-          case Reference:
-              px = R0 * p[q];
-              mx = R0 * m[q] + rx.cross(px);
-              break;
-          case Director:
-              px = R * p[q];
-              mx = R * m[q] + rx.cross(px);
-              break;
+        case Embedding:
+          px = p[q];
+          mx = m[q] + rx.cross(px);
+          break;
+        case Reference:
+          px = R0 * p[q];
+          mx = R0 * m[q] + rx.cross(px);
+          break;
+        case Director:
+          px = R * p[q];
+          mx = R * m[q] + rx.cross(px);
+          break;
       }
 
       double scale = -w*pattern.getLoadFactor();
@@ -242,16 +242,16 @@ public:
         case Dirac:
           scale /= jxs;
           if (std::fabs(x - r[q][0]) > 1.0e-6)
-              scale *= 0.0;
+            scale *= 0.0;
           break;
         case Heaviside:
           if (x < r[q][0])
-              scale *= 0.0;
+            scale *= 0.0;
           break;
         case Lagrange:
           for (unsigned s=0; s<r.size(); s++)
             if (s != q)
-              scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
+            scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
           break;
       }
 
@@ -283,7 +283,7 @@ public:
           break;
         case Reference:
           nm = R^(R0^p[0]);
-          M  = R^m[0] + rx.cross(nm);
+          M  = (R^m[0]) + rx.cross(nm);
           break;
         case Director:
           nm = p[0];
@@ -357,8 +357,40 @@ public:
     }
   }
 
-  void addLinearSolution(double*p0, double L, const Matrix3D& R0, const Matrix3D& R) {
+  template <int nsr, const FrameStressLayout& scheme>
+  void addBasicTangent(MatrixND<nsr,3>& Ks,
+                       VectorND<nsr>& s) const
+  {
 
+    VectorND<3> nm = s.template extract<3>(0), 
+                M  = s.template extract<3>(3);
+
+    double scale = pattern.getLoadFactor();
+
+    Matrix3D Px = Hat(nm);
+    if (basis == Director) {
+      MatrixND<6,3> K{};
+      K.assemble(        Px,   0, 0, -scale);
+      K.assemble(    Hat(M),   3, 0, -scale);
+
+      for (int i = 0; i < nsr; i++) {
+        MatrixND<1,3> ki = K.template extract<1,3>(i, 0);
+        switch (scheme[i]) {
+        case FrameStress::N:  Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::Vy: Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::Vz: Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::My: Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::Mz: Ks.assemble(ki, i, 0, 1.0); break;
+        default:
+          break;
+        }
+      }
+    }
+  }
+
+  void
+  addLinearSolution(double*p0, double L, const Matrix3D& R0, const Matrix3D& R)
+  {
     double scale = pattern.getLoadFactor();
     Vector3D n{}, M{};
     {
@@ -371,7 +403,7 @@ public:
           break;
         case Reference:
           n = R^(R0^p[0]);
-          M = R^m[0] + rx.cross(n);
+          M = (R^m[0]) + rx.cross(n);
           break;
         case Director:
           n = p[0];
@@ -384,13 +416,6 @@ public:
       double wy = n[1] * scale; // Transverse
       double wz = n[2] * scale; // Transverse
 
-      // p0[0] -= wa * L; // Axial load
-      // double V = 0.5 * wy * L;
-      // p0[1] -= V;
-      // p0[2] -= V;
-      // V = 0.5 * wz * L;
-      // p0[3] -= V;
-      // p0[4] -= V;
       double P  =     wa*L;
       double Vy = 0.5*wy*L;
       double Vz = 0.5*wz*L;
@@ -404,6 +429,7 @@ public:
       p0[3] +=  My - Vz;
       p0[4] += -My - Vz;
     }
+
     #if 0
     else if (shape == LOAD_TAG_Beam3dPartialUniformLoad) {
       double wy  = p[0](1) * scale;  // Transverse Y at start

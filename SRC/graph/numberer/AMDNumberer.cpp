@@ -69,8 +69,8 @@ AMD::number(Graph &theGraph, int startVertex)
   int *P = new int[numVertex];
   int *Ap = new int[numVertex+1];
   int *Ai = new int[nnz];
-  double Control[AMD_CONTROL];
-  double Info[AMD_INFO];
+//double Control[AMD_CONTROL];
+//double Info[AMD_INFO];
 
   VertexIter &vertexIter2 = theGraph.getVertices();
 
