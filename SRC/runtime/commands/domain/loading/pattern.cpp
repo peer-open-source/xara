@@ -254,7 +254,7 @@ TclCommand_addPattern(ClientData clientData, Tcl_Interp *interp, int argc,
     }
 
     if (dispSeries == nullptr && velSeries == nullptr && accelSeries == nullptr) {
-      opserr << OpenSees::PromptValueError << "invalid series, expected:\n    pattern UniformExcitation";
+      opserr << OpenSees::PromptValueError << "invalid series, expected:\n    pattern UniformExcitation ";
       opserr << "-disp {dispSeries} -vel {velSeries} -accel {accelSeries} ";
       opserr << "-int {Series Integrator}" << "\n";
       return TCL_ERROR;
