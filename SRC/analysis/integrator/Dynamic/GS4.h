@@ -43,10 +43,10 @@ public:
     //
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
-    int formEleTangent(FE_Element *theEle)  final;
-    int formNodTangent(DOF_Group *theDof)   final;
-    int formEleResidual(FE_Element* theEle) final;
-    int formNodUnbalance(DOF_Group* theDof) final;
+    int formEleTangent(FE_Element*)  final;
+    int formNodTangent(DOF_Group*)   final;
+    int formEleResidual(FE_Element*) final;
+    int formNodUnbalance(DOF_Group*) final;
 
     //
     // IncrementalIntegrator
