@@ -55,7 +55,6 @@ PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain,
  theMP(&TheMP), theConstrainedNode(0) , theRetainedNode(0),
  tang(0), resid(0), C(0), alpha(Alpha)
 {
-    
     int size;
     const ID &id1 = theMP->getConstrainedDOFs();
     size = id1.Size();
@@ -65,22 +64,15 @@ PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain,
     tang = new Matrix(size,size);
     resid = new Vector(size);
     C = new Matrix(id1.Size(),size);
-
-    if (tang == 0 || resid == 0 || C == 0 ||
-	tang->noCols() != size || C->noCols() != size || 
-	resid->Size() != size) {
-	opserr << "FATAL PenaltyMP_FE::PenaltyMP_FE() - out of memory\n";
-	exit(-1);
-    }
 	    
     theRetainedNode = theDomain.getNode(theMP->getNodeRetained());    
     theConstrainedNode = theDomain.getNode(theMP->getNodeConstrained());
 
     if (theRetainedNode == 0 || theConstrainedNode == 0) {
-	opserr << "FATAL PenaltyMP_FE::PenaltyMP_FE() - Constrained or Retained";
-	opserr << " Node does not exist in Domain\n";
-	opserr << theMP->getNodeRetained() << " " << theMP->getNodeConstrained() << endln;
-	exit(-1);
+        opserr << "FATAL PenaltyMP_FE::PenaltyMP_FE() - Constrained or Retained";
+        opserr << " Node does not exist in Domain\n";
+        opserr << theMP->getNodeRetained() << " " << theMP->getNodeConstrained() << endln;
+        exit(-1);
     }	
 
 
@@ -88,39 +80,39 @@ PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain,
     DOF_Group *dofGrpPtr = 0;
     dofGrpPtr = theRetainedNode->getDOF_GroupPtr();
     if (dofGrpPtr != 0) 
-	myDOF_Groups(0) = dofGrpPtr->getTag();	    
+        myDOF_Groups(0) = dofGrpPtr->getTag();	    
     else 
-	opserr << "WARNING PenaltyMP_FE::PenaltyMP_FE() - node no Group yet?\n"; 
+        opserr << "WARNING PenaltyMP_FE::PenaltyMP_FE() - node no Group yet?\n"; 
     dofGrpPtr = theConstrainedNode->getDOF_GroupPtr();
-    if (dofGrpPtr != 0) 
-	myDOF_Groups(1) = dofGrpPtr->getTag();	        
+    if (dofGrpPtr != nullptr) 
+        myDOF_Groups(1) = dofGrpPtr->getTag();	        
     else
-	opserr << "WARNING PenaltyMP_FE::PenaltyMP_FE() - node no Group yet?\n"; 
+        opserr << "WARNING PenaltyMP_FE::PenaltyMP_FE() - node no Group yet?\n"; 
     
-    
+
     if (theMP->isTimeVarying() == false) {
-	this->determineTangent();
-	// we can free up the space taken by C as it is no longer needed
-	if (C != 0)
-	    delete C;
-	C = 0;
+        this->determineTangent();
+        // we can free up the space taken by C as it is no longer needed
+        if (C != 0)
+            delete C;
+        C = 0;
     }
 }
 
 PenaltyMP_FE::~PenaltyMP_FE()
 {
-    if (tang != 0)
-	delete tang;
-    if (resid != 0)
-	delete resid;
-    if (C != 0)
-	delete C;
+  if (tang != 0)
+    delete tang;
+  if (resid != 0)
+    delete resid;
+  if (C != 0)
+    delete C;
 }    
 
 // void setID(int index, int value);
 //	Method to set the correMPonding index of the ID to value.
 int
-PenaltyMP_FE::setID(void)
+PenaltyMP_FE::setID()
 {
     int result = 0;
 
