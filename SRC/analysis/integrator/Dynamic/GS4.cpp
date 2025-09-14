@@ -70,7 +70,7 @@ GS4::setConstants(int unknown,
     scheme.G[ea][eu] = -1.0/(beta*deltaT*deltaT);
     scheme.G[ea][ev] = -1.0/(beta*deltaT);
     scheme.G[ea][ea] =  1.0 - 0.5/beta;
-    break;
+    return 0;
 
   case GS4::Velocity:
     if (gamma == 0.0)  {
@@ -93,7 +93,7 @@ GS4::setConstants(int unknown,
     scheme.G[ea][eu] = 0.0;
     scheme.G[ea][ev] = -1/(gamma*deltaT);
     scheme.G[ea][ea] =  1 - 1/gamma;
-    break;
+    return 0;
 
   case GS4::Acceleration:
     scheme.g[eu] = beta*deltaT*deltaT;
@@ -112,7 +112,7 @@ GS4::setConstants(int unknown,
     scheme.G[ea][eu] = 0.0;
     scheme.G[ea][ev] = 0.0;
     scheme.G[ea][ea] = 0.0;
-    break;
+    return 0;
 
   default:
     opserr << "GS4::SetConstants -- unknown type " << unknown << endln;
@@ -127,12 +127,12 @@ GS4::GS4(double gamma,  double beta,
   : TransientIntegrator(0),
     gamma(gamma), beta(beta), 
     alphaF(1.0), alphaM(1.0),
-    alphaU(1.0), alphaV(1.0), alphaA(1.0),
     alpha{1, 1, 1},
     unknown(uFlag), unknown_initialize(iFlag),
     step(0),
     dt(0.0),
-    cu(0.0), cv(0.0), ca(0.0), 
+    cu(0.0), cv(0.0), ca(0.0),
+    G1(), G2(),
     Uo(nullptr), Vo(nullptr), Ao(nullptr),
     Ua(nullptr), Va(nullptr), Aa(nullptr),
     Un(nullptr), Vn(nullptr), An(nullptr),
@@ -384,14 +384,14 @@ GS4::update(const Vector &deltaX)
   }
   
   //  determine the response at t+deltaT
-  Un->addVector(1.0, deltaX, cu);
-  Vn->addVector(1.0, deltaX, cv);
-  An->addVector(1.0, deltaX, ca);
+  Un->addVector(1.0, deltaX, G1.g[eu]);
+  Vn->addVector(1.0, deltaX, G1.g[ev]);
+  An->addVector(1.0, deltaX, G1.g[ea]);
 
   // determine state at t + alpha*deltaT
-  Ua->addVector(1.0, deltaX, alphaF*cu);
-  Va->addVector(1.0, deltaX, alphaF*cv);
-  Aa->addVector(1.0, deltaX, alphaM*ca);
+  Ua->addVector(1.0, deltaX, alphaF*G1.g[eu]);
+  Va->addVector(1.0, deltaX, alphaF*G1.g[ev]);
+  Aa->addVector(1.0, deltaX, alphaM*G1.g[ea]);
 
 //  (*Ua) = *Uo;
 //  Ua->addVector((1.0-alphaF), *Un, alphaF);
@@ -442,14 +442,14 @@ GS4::formEleTangent(FE_Element *theEle)
   
   switch (statusFlag) {
   case CURRENT_TANGENT:
-    theEle->addKtToTang(alphaF*cu);
-    theEle->addCtoTang(alphaF*cv);
-    theEle->addMtoTang(alphaM*ca);
+    theEle->addKtToTang(alphaF*G1.g[eu]);
+    theEle->addCtoTang( alphaF*G1.g[ev]);
+    theEle->addMtoTang( alphaM*G1.g[ea]);
     break;
   case INITIAL_TANGENT:
-    theEle->addKiToTang(alphaF*cu);
-    theEle->addCtoTang(alphaF*cv);
-    theEle->addMtoTang(alphaM*ca);
+    theEle->addKiToTang(alphaF*G1.g[eu]);
+    theEle->addCtoTang( alphaF*G1.g[ev]);
+    theEle->addMtoTang( alphaM*G1.g[ea]);
     break;
   case HALL_TANGENT:
     theEle->addKtToTang(cu*cFactor);
@@ -468,8 +468,8 @@ GS4::formNodTangent(DOF_Group *theDof)
     return 0;
 
   theDof->zeroTangent();
-  theDof->addCtoTang(alphaF*cv);
-  theDof->addMtoTang(alphaM*ca);
+  theDof->addCtoTang(alphaF*G1.g[ev]);
+  theDof->addMtoTang(alphaM*G1.g[ea]);
 
   return 0;
 }
@@ -593,18 +593,18 @@ int
 GS4::revertToStart()
 {
   if (Uo != nullptr) 
-      Uo->Zero();
+    Uo->Zero();
   if (Vo != nullptr) 
-      Vo->Zero();
+    Vo->Zero();
   if (Ao != nullptr) 
-      Ao->Zero();
+    Ao->Zero();
   if (Un != nullptr) 
-      Un->Zero();
+    Un->Zero();
   if (Vn != nullptr) 
-      Vn->Zero();
+    Vn->Zero();
   if (An != nullptr) 
-      An->Zero();
-  
+    An->Zero();
+
   return 0;
 }
 

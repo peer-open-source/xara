@@ -54,7 +54,7 @@ public:
 
     // Sensitivity
     int formSensitivityRHS(int gradNum);
-    int updateGradient   (const Vector &v, int gradNum, int numGrads);
+    int updateGradient (const Vector &v, int gradNum, int numGrads);
     int commitGradient (int gradNum, int numGrads) {return -1;};
     int computeSensitivities();
 
@@ -105,9 +105,6 @@ private:
     double beta;
     double alphaF;
     double alphaM;
-    double alphaU;
-    double alphaV;
-    double alphaA;
     std::array<double,3> alpha;
 
     int step;                       // track step number to initialize accelerations
