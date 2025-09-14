@@ -138,7 +138,6 @@ class FileDatastore: public FE_Datastore
     MAP_FILES_ITERATOR theVectFilesIter;
     MAP_FILES_ITERATOR theMatFilesIter;
 
-    int lastDomainChangeStamp;
     int currentCommitTag;
     char *data;
     int sizeData;

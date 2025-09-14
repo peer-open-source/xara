@@ -1056,7 +1056,7 @@ FileDatastore::recvVector(int dataTag, int commitTag,
 
   if (pos < fileEnd) {
     theStream->read(data, stepSize);
-    if ((*(theIntData.dbTag) == dataTag)) {
+    if (*(theIntData.dbTag) == dataTag) {
       found = true;
       pos += stepSize;
     } 
