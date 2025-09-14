@@ -26,7 +26,7 @@
 #include <DOF_Group.h>
 #include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
-#include <string.h>
+// #include <string.h>
 // for sensitivity
 #include <Domain.h>
 #include <NodeIter.h>
@@ -42,6 +42,85 @@ enum {
   ea=2
 };
 
+int 
+GS4::setConstants(int unknown, 
+                  double deltaT, double beta, double gamma,
+                  std::array<double,3> const &alpha,
+                  GammaScheme& scheme)
+{
+  switch (unknown) {
+  case GS4::Displacement:
+    if (beta == 0.0)  {
+      opserr << "Invalid beta, requires beta != 0.0\n";
+      return -1;
+    }
+    scheme.g[eu] = 1.0;
+    scheme.g[ev] = gamma/(beta*deltaT);
+    scheme.g[ea] = 1.0/(beta*deltaT*deltaT);
+
+
+    scheme.G[eu][eu] =  1.0 - alpha[eu];
+    scheme.G[eu][ev] =  0.0;
+    scheme.G[eu][ea] =  0.0;
+
+    scheme.G[ev][eu] = -gamma*alpha[ev]/(beta*deltaT);
+    scheme.G[ev][ev] = 1.0 -  alpha[ev]*gamma/beta; 
+    scheme.G[ev][ea] = deltaT*(1.0 - 0.5*gamma/beta);
+
+    scheme.G[ea][eu] = -1.0/(beta*deltaT*deltaT);
+    scheme.G[ea][ev] = -1.0/(beta*deltaT);
+    scheme.G[ea][ea] =  1.0 - 0.5/beta;
+    break;
+
+  case GS4::Velocity:
+    if (gamma == 0.0)  {
+      opserr << "Invalid gamma, requires gamma != 0.0\n";
+      return -1;
+    }
+    scheme.g[eu] = deltaT*beta/gamma;
+    scheme.g[ev] = 1.0;
+    scheme.g[ea] = 1.0/(gamma*deltaT);
+
+
+    scheme.G[eu][eu] = 1.0;
+    scheme.G[eu][ev] = -deltaT*beta/gamma*(1.0 - gamma/beta);
+    scheme.G[eu][ea] =  deltaT*deltaT*beta/gamma*(gamma*0.5/beta - 1.0);
+
+    scheme.G[ev][eu] = 0.0;
+    scheme.G[ev][ev] = 0.0;
+    scheme.G[ev][ea] = 0.0;
+
+    scheme.G[ea][eu] = 0.0;
+    scheme.G[ea][ev] = -1/(gamma*deltaT);
+    scheme.G[ea][ea] =  1 - 1/gamma;
+    break;
+
+  case GS4::Acceleration:
+    scheme.g[eu] = beta*deltaT*deltaT;
+    scheme.g[ev] = gamma*deltaT;
+    scheme.g[ea] = 1.0;
+
+
+    scheme.G[eu][eu] = 1.0;
+    scheme.G[eu][ev] = deltaT;
+    scheme.G[eu][ea] = deltaT*deltaT*(0.5 - beta);
+
+    scheme.G[ev][eu] = 0.0;
+    scheme.G[ev][ev] = 1.0;
+    scheme.G[ev][ea] = deltaT*(1.0 - gamma);
+
+    scheme.G[ea][eu] = 0.0;
+    scheme.G[ea][ev] = 0.0;
+    scheme.G[ea][ea] = 0.0;
+    break;
+
+  default:
+    opserr << "GS4::SetConstants -- unknown type " << unknown << endln;
+    return -1;
+  }
+  return 0;
+}
+
 GS4::GS4(double gamma,  double beta, 
           double alphaF, double alphaM,
           int uFlag, int iFlag, bool aFlag)
@@ -49,6 +128,7 @@ GS4::GS4(double gamma,  double beta,
     gamma(gamma), beta(beta), 
     alphaF(1.0), alphaM(1.0),
     alphaU(1.0), alphaV(1.0), alphaA(1.0),
+    alpha{1, 1, 1},
     unknown(uFlag), unknown_initialize(iFlag),
     step(0),
     dt(0.0),
@@ -124,37 +204,22 @@ GS4::newStep(double deltaT)
   (*Vo) = *Vn;  
   (*Ao) = *An;
 
-  // set the constants
-  switch (unknown) {
-  case Displacement:
-    if (beta == 0.0)  {
-      opserr << "Invalid beta, requires beta != 0.0\n";
-      return -1;
-    }
-    cu = alphaU;
-    cv = alphaU*gamma/(beta*deltaT);
-    ca = 1.0/(beta*deltaT*deltaT);
-    break;
+  // set scheme constants
+  GS4::setConstants(unknown, dt, beta, gamma, alpha, G1);
+  cu = G1.g[eu];
+  cv = G1.g[ev];
+  ca = G1.g[ea];
+  double buu = G1.G[eu][eu],
+         buv = G1.G[eu][ev],
+         bua = G1.G[eu][ea],
 
-  case Velocity:
-    if (gamma == 0.0)  {
-      opserr << "Invalid gamma, requires gamma != 0.0\n";
-      return -1;
-    }
-    cu = deltaT*beta/gamma;
-    cv = 1.0;
-    ca = 1.0/(gamma*deltaT);
-    break;
+         bvu = G1.G[ev][eu],
+         bvv = G1.G[ev][ev],
+         bva = G1.G[ev][ea],
 
-  case Acceleration:
-    cu = beta*deltaT*deltaT;
-    cv = gamma*deltaT;
-    ca = 1.0;
-    break;
-  }
-  gs[eu] = cu;
-  gs[ev] = cv;
-  gs[ea] = ca;
+         bau = G1.G[ea][eu],
+         bav = G1.G[ea][ev],
+         baa = G1.G[ea][ea];
 
   //
   // Set initial guesses for {u,v,a}_{t + dt}
@@ -162,17 +227,6 @@ GS4::newStep(double deltaT)
   int init = unknown_initialize; // (step < 2 && unknown==Displacement) ? unknown : unknown_initialize;
 
   if (unknown == Displacement) {
-    double buu =  1.0 - alphaU;
-    double buv =  0.0;
-    double bua =  0.0;
-
-    double bvu = -gamma*alphaV/(beta*deltaT);
-    double bvv = 1.0 -  alphaV*gamma/beta; 
-    double bva = deltaT*(1.0 - 0.5*gamma/beta);
-
-    double bau = -1.0/(beta*deltaT*deltaT);
-    double bav = -1.0/(beta*deltaT);
-    double baa =  1.0 - 0.5/beta;
 
     switch (init) {
       case Displacement:
@@ -181,7 +235,6 @@ GS4::newStep(double deltaT)
         Vn->addVector(1.0, *Vo,  bvv  + cv/cu*(    - buv)); // += bvv*Vo
         Vn->addVector(1.0, *Ao,  bva  + cv/cu*(    - bua)); // += bva*Ao
 
-        // An->addVector(baa-1/beta, *Vo, bav);
         An->addVector(baa, *Vo, bav);
         break;
 
@@ -208,18 +261,6 @@ GS4::newStep(double deltaT)
   }
 
   else if (unknown == Velocity) {
-    double buu = 1.0;
-    double buv = -deltaT*beta/gamma*(1.0 - gamma/beta);
-    double bua =  deltaT*deltaT*beta/gamma*(gamma*0.5/beta - 1.0);
-
-    double bvu = 0.0;
-    double bvv = 0.0;
-    double bva = 0.0;
-
-    double bau = 0.0;
-    double bav = -1/(gamma*deltaT);
-    double baa =  1 - 1/gamma;
-
     switch (init) {
       case Displacement:
         Vn->addVector(0.0, *Uo,  bvu + cv*(1.0 - buu)/cu);
@@ -254,25 +295,7 @@ GS4::newStep(double deltaT)
         break;
     }
   }
-
   else {
-    double buu = 1.0;
-    double buv = deltaT;
-    double bua = deltaT*deltaT*(0.5 - beta);
-
-    double bvu = 0.0;
-    double bvv = 1.0;
-    double bva = deltaT*(1.0 - gamma);
-
-    double bau = 0.0;
-    double bav = 0.0;
-    double baa = 0.0;
-
-    // Choose how to initialize state
-    // u += c1*Da
-//    U->addVector(*Utdot,                   -c1*(      buv/c1));
-//    U->addVector(*Utdotdot,                -c1*(1.0 + bua/c1));
-
     switch (init) {
       case Displacement:
         // Initialize: U == Ut
@@ -413,7 +436,7 @@ int
 GS4::formEleTangent(FE_Element *theEle)
 {
   if (determiningMass == true)
-      return 0;
+    return 0;
 
   theEle->zeroTangent();
   

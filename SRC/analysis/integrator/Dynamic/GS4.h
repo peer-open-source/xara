@@ -22,6 +22,7 @@
 
 #include <TransientIntegrator.h>
 #include <Vector.h>
+#include <array>
 
 class DOF_Group;
 class FE_Element;
@@ -87,9 +88,19 @@ private:
       Velocity=2,
       Acceleration=3
     };
+
+    struct GammaScheme {
+      double g[3];
+      double G[3][3];
+    } G1, G2;
+
     int unknown;                    // flag indicating whether displ(1), vel(2) or accel(3) increments
     int unknown_initialize = 1;     //
 
+    static int setConstants(int flag,
+                            double dt, double gamma, double beta,
+                            const std::array<double,3> &alpha,
+                            GammaScheme& scheme);
     double gamma;
     double beta;
     double alphaF;
@@ -97,10 +108,7 @@ private:
     double alphaU;
     double alphaV;
     double alphaA;
-    double gs[3];
-    double Gs[3][3]; // \Gamma
-    double ge[3];
-    double Ge[3][3]; // \tilde{\Gamma}
+    std::array<double,3> alpha;
 
     int step;                       // track step number to initialize accelerations
     double dt;                      // store time step to determine step number
