@@ -1,3 +1,18 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
@@ -39,6 +54,11 @@ TclDispatch_newMumpsLinearSOE(ClientData clientData,
       }
 
       else if (strcmp(argv[currentArg], "-ICNTL7") == 0) {
+        if (argc < currentArg + 1) {
+          opserr << OpenSees::PromptValueError
+                 << "ICNTL7 option requires an argument\n";
+          return nullptr;
+        }
         if (Tcl_GetInt(interp, argv[currentArg + 1], &icntl7) != TCL_OK)
         ;
         currentArg += 2;
@@ -57,7 +77,7 @@ TclDispatch_newMumpsLinearSOE(ClientData clientData,
         if (matType < 0 || matType > 2) {
           opserr << OpenSees::PromptValueError 
                  << "invalid matrixType (" << matType
-                  << "). Unsymmetric matrix assumed\n";
+                 << "). Unsymmetric matrix assumed\n";
           matType = 0;
         }
         currentArg += 2;
