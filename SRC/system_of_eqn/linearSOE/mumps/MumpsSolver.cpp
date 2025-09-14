@@ -71,7 +71,8 @@ MumpsSolver::MumpsSolver(int ICNTL7, int ICNTL14)
 #endif
 
   id.ICNTL(14) = ICNTL14;
-  id.ICNTL( 7)=ICNTL7;;
+  id.ICNTL( 7) = ICNTL7; 
+  id.ICNTL(28) = 1; // sequential analysis
 
   needsSetSize = false;
 }
@@ -115,7 +116,10 @@ MumpsSolver::initializeMumps()
   id.rhs = theMumpsSOE->X;
   
   // No outputs 
-  id.ICNTL(1) = -1; id.ICNTL(2) = -1; id.ICNTL(3) = -1; id.ICNTL(4) = 0;
+  id.ICNTL(1) = -1; 
+  id.ICNTL(2) = -1; 
+  id.ICNTL(3) = -1; 
+  id.ICNTL(4) =  0;
 
   // Call the MUMPS package to factor & solve the system
   id.job = 1;
@@ -172,7 +176,10 @@ MumpsSolver::solveAfterInitialization()
     id.rhs = theMumpsSOE->X;
 
     // No outputs 
-    id.ICNTL(1)=-1; id.ICNTL(2)=-1; id.ICNTL(3)=-1; id.ICNTL(4)=0;
+    id.ICNTL(1)=-1; 
+    id.ICNTL(2)=-1; 
+    id.ICNTL(3)=-1;
+    id.ICNTL(4)=0;
     // Call the MUMPS package to factor & solve the system
     id.job = 5;
     dmumps_c(&id);
