@@ -131,57 +131,57 @@ PenaltyMP_FE::setID()
     
     int size1 = constrainedDOFs.Size();
     for (int i=0; i<size1; i++) {
-	int constrained = constrainedDOFs(i);
-	if (constrained < 0 || 
-	    constrained >= theConstrainedNode->getNumberDOF()) {
-	    
-	    opserr << "WARNING PenaltyMP_FE::setID(void) - unknown DOF ";
-	    opserr << constrained << " at Node\n";
-	    myID(i) = -1; // modify so nothing will be added to equations
-	    result = -3;
-	}    	
-	else {
-	    if (constrained >= theConstrainedNodesID.Size()) {
-		opserr << "WARNING PenaltyMP_FE::setID(void) - ";
-		opserr << " Nodes DOF_Group too small\n";
-		myID(i) = -1; // modify so nothing will be added to equations
-		result = -4;
-	    }
-	    else
-		myID(i) = theConstrainedNodesID(constrained);
-	}
+        int constrained = constrainedDOFs(i);
+        if (constrained < 0 || 
+            constrained >= theConstrainedNode->getNumberDOF()) {
+            
+            opserr << "WARNING PenaltyMP_FE::setID(void) - unknown DOF ";
+            opserr << constrained << " at Node\n";
+            myID(i) = -1; // modify so nothing will be added to equations
+            result = -3;
+        }    	
+        else {
+            if (constrained >= theConstrainedNodesID.Size()) {
+                opserr << "WARNING PenaltyMP_FE::setID(void) - ";
+                opserr << " Nodes DOF_Group too small\n";
+                myID(i) = -1; // modify so nothing will be added to equations
+                result = -4;
+            }
+            else
+                myID(i) = theConstrainedNodesID(constrained);
+        }
     }
     
     // now determine the IDs for the retained dof's
     DOF_Group *theRetainedNodesDOFs = theRetainedNode->getDOF_GroupPtr();
-    if (theRetainedNodesDOFs == 0) {
-	opserr << "WARNING PenaltyMP_FE::setID(void)";
-	opserr << " - no DOF_Group with Retained Node\n";
-	return -2;
-    }    
+    if (theRetainedNodesDOFs == nullptr) {
+        opserr << "WARNING PenaltyMP_FE::setID(void)";
+        opserr << " - no DOF_Group with Retained Node\n";
+        return -2;
+    }
     
     const ID &RetainedDOFs = theMP->getRetainedDOFs();
     const ID &theRetainedNodesID = theRetainedNodesDOFs->getID();    
 
     int size2 = RetainedDOFs.Size();
     for (int j=0; j<size2; j++) {
-	int retained = RetainedDOFs(j);
-	if (retained < 0 || retained >= theRetainedNode->getNumberDOF()) {
-	    opserr << "WARNING PenaltyMP_FE::setID(void) - unknown DOF ";
-	    opserr << retained << " at Node\n";
-	    myID(j+size1) = -1; // modify so nothing will be added
-	    result = -3;
-	}    	
-	else {
-	    if (retained >= theRetainedNodesID.Size()) {
-		opserr << "WARNING PenaltyMP_FE::setID(void) - ";
-		opserr << " Nodes DOF_Group too small\n";
-		myID(j+size1) = -1; // modify so nothing will be added 
-		result = -4;
-	    }
-	    else
-		myID(j+size1) = theRetainedNodesID(retained);
-	}
+        int retained = RetainedDOFs(j);
+        if (retained < 0 || retained >= theRetainedNode->getNumberDOF()) {
+            opserr << "WARNING PenaltyMP_FE::setID(void) - unknown DOF ";
+            opserr << retained << " at Node\n";
+            myID(j+size1) = -1; // modify so nothing will be added
+            result = -3;
+        }    	
+        else {
+            if (retained >= theRetainedNodesID.Size()) {
+                opserr << "WARNING PenaltyMP_FE::setID(void) - ";
+                opserr << " Nodes DOF_Group too small\n";
+                myID(j+size1) = -1; // modify so nothing will be added 
+                result = -4;
+            }
+            else
+                myID(j+size1) = theRetainedNodesID(retained);
+        }
     }
 
     myDOF_Groups(0) = theConstrainedNodesDOFs->getTag();
@@ -193,9 +193,9 @@ PenaltyMP_FE::setID()
 const Matrix &
 PenaltyMP_FE::getTangent(Integrator *theNewIntegrator)
 {
-    if (theMP->isTimeVarying() == true)
-	this->determineTangent();    
-    return *tang;
+  if (theMP->isTimeVarying() == true)
+    this->determineTangent();
+  return *tang;
 }
 
 const Vector &
@@ -250,15 +250,15 @@ PenaltyMP_FE::getTangForce(const Vector &disp, double fact)
 const Vector &
 PenaltyMP_FE::getK_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING PenaltyMP_FE::getK_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING PenaltyMP_FE::getK_Force() - not yet implemented\n";
+  return *resid;
 }
 
 const Vector &
 PenaltyMP_FE::getKi_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING PenaltyMP_FE::getK_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING PenaltyMP_FE::getK_Force() - not yet implemented\n";
+  return *resid;
 }
 
 const Vector &
