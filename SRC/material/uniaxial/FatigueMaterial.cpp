@@ -60,18 +60,18 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FatigueMaterial)
 {
     int numdata = OPS_GetNumRemainingInputArgs();
     if (numdata < 2) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: uniaxialMaterial Fatigue tag? matTag?";
-	opserr << " <-D_max dmax?> <-e0 e0?> <-m m?>" << endln;
-	opserr << " <-min min?> <-max max?>" << endln;
-	return 0;
+        opserr << "WARNING insufficient arguments\n";
+        opserr << "Want: uniaxialMaterial Fatigue tag? matTag?";
+        opserr << " <-D_max dmax?> <-e0 e0?> <-m m?>" << endln;
+        opserr << " <-min min?> <-max max?>" << endln;
+        return 0;
     }
 
     int idata[2];
     numdata = 2;
     if (OPS_GetIntInput(&numdata,idata)<0) {
-	opserr<<"WARNING invlid int inputs\n";
-	return 0;
+        opserr<<"WARNING invlid int inputs\n";
+        return 0;
     }
 
     double Dmax      =  1.0;
@@ -82,56 +82,56 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FatigueMaterial)
     numdata = 1;
 
     while(OPS_GetNumRemainingInputArgs() > 1) {
-	const char* type = OPS_GetString();
-	if (strcmp(type,"-Dmax")==0) {
-	    if (OPS_GetDouble(&numdata,&Dmax)<0) {
-		opserr<<"WARNING invalid double inputs\n";
-		return 0;
-	    }
-	} else if (strcmp(type,"-E0")==0) {
-	    if (OPS_GetDouble(&numdata,&E0)<0) {
-		opserr<<"WARNING invalid double inputs\n";
-		return 0;
-	    }
-	} else if (strcmp(type,"-m")==0) {
-	    if (OPS_GetDouble(&numdata,&m)<0) {
-		opserr<<"WARNING invalid double inputs\n";
-		return 0;
-	    }
-	} else if (strcmp(type,"-min")==0) {
-	    if (OPS_GetDouble(&numdata,&epsmin)<0) {
-		opserr<<"WARNING invalid double inputs\n";
-		return 0;
-	    }
-	} else if (strcmp(type,"-max")==0) {
-	    if (OPS_GetDouble(&numdata,&epsmax)<0) {
-		opserr<<"WARNING invalid double inputs\n";
-		return 0;
-	    }
-	}
+        const char* type = OPS_GetString();
+        if (strcmp(type,"-Dmax")==0) {
+            if (OPS_GetDouble(&numdata,&Dmax)<0) {
+                opserr<<"WARNING invalid double inputs\n";
+                return 0;
+            }
+        } else if (strcmp(type,"-E0")==0) {
+            if (OPS_GetDouble(&numdata,&E0)<0) {
+                opserr<<"WARNING invalid double inputs\n";
+                return 0;
+            }
+        } else if (strcmp(type,"-m")==0) {
+            if (OPS_GetDouble(&numdata,&m)<0) {
+                opserr<<"WARNING invalid double inputs\n";
+                return 0;
+            }
+        } else if (strcmp(type,"-min")==0) {
+            if (OPS_GetDouble(&numdata,&epsmin)<0) {
+                opserr<<"WARNING invalid double inputs\n";
+                return 0;
+            }
+        } else if (strcmp(type,"-max")==0) {
+            if (OPS_GetDouble(&numdata,&epsmax)<0) {
+                opserr<<"WARNING invalid double inputs\n";
+                return 0;
+            }
+        }
     }
 
     UniaxialMaterial* mat = OPS_getUniaxialMaterial(idata[1]);
     if (mat == 0) {
-	opserr << "WARNING component material does not exist\n";
-	opserr << "Component material: " << idata[1]; 
-	opserr << "\nuniaxialMaterial Fatigue: " << idata[0] << endln;
-	return 0;
+        opserr << "WARNING component material does not exist\n";
+        opserr << "Component material: " << idata[1]; 
+        opserr << "\nuniaxialMaterial Fatigue: " << idata[0] << endln;
+        return 0;
     }
 
     UniaxialMaterial* theMat = new FatigueMaterial(idata[0],*mat,
-						   Dmax,E0,m,epsmin,epsmax);
+                                                   Dmax,E0,m,epsmin,epsmax);
     if (theMat == 0) {
-	opserr << "WARNING: failed to create FatigueMaterial material\n";
-	return 0;
+        opserr << "WARNING: failed to create FatigueMaterial material\n";
+        return 0;
     }
 
     return theMat;
 }
 
 FatigueMaterial::FatigueMaterial(int tag, UniaxialMaterial &material,
-				 double dmax, double E_0, double slope_m, 
-				 double epsmin, double epsmax )
+                                 double dmax, double E_0, double slope_m, 
+                                 double epsmin, double epsmax )
   :UniaxialMaterial(tag,MAT_TAG_Fatigue), theMaterial(0), 
    Cfailed(false), trialStrain(0)
 {
@@ -143,14 +143,14 @@ FatigueMaterial::FatigueMaterial(int tag, UniaxialMaterial &material,
   C   = 0; //Peak or valley 2
   D   = 0; //Peak or valley 4
   PCC = 0; /*Previous Cycle counter flag if >1 then previous 'n' 
-	     cycles did not flag a complete cycle */
+             cycles did not flag a complete cycle */
   R1F = 0; //Flag for first  peak count
   R2F = 0; //Flag for second peak count
   cSlope  = 0; //Current Slope
   PS  = 0; //Previous slope
   EP  = 0; //Previous Strain
   SF  = 0; /*Start Flag = 0 if very first strain, (i.e. when initializing)
-	     = 1 otherwise */
+             = 1 otherwise */
   DL  = 0; //Damage if current strain was last peak.
   
   // added 6/9/2006
@@ -199,14 +199,14 @@ FatigueMaterial::FatigueMaterial()
   C   = 0; //Peak or valley 2
   D   = 0; //Peak or valley 4
   PCC = 0; /*Previous Cycle counter flag if >1 then previous 'n' 
-	     cycles did not flag a complete cycle */
+             cycles did not flag a complete cycle */
   R1F = 0; //Flag for first  peak count
   R2F = 0; //Flag for second peak count
   cSlope  = 0; //Current Slope
   PS  = 0; //Previous slope
   EP  = 0; //Previous Strain
   SF  = 0; /*Start Flag = 0 if very first strain, (i.e. when initializing)
-	     = 1 otherwise */
+             = 1 otherwise */
   DL  = 0; //Damage if current strain was last peak.
   
   Dmax    = 0;
@@ -336,7 +336,7 @@ FatigueMaterial::getStrainRate(void)
 
 int 
 FatigueMaterial::commitState(void)
-{	
+{        
 
   // NOTE: Do not accumulate damage if peaks are too small (e.g. if X < 1e-10)
   // may get floating point errors.  This is essentially a filter for 
@@ -409,79 +409,79 @@ FatigueMaterial::commitState(void)
 
       // begin modified Rainflow cycle counting
       if (PCC == 1) { 
-	
-	D = EP;
-	X = fabs(D-C);
-	
+        
+        D = EP;
+        X = fabs(D-C);
+        
       } else {
-	
-	C = EP;
-	X = fabs(C-B);
-	
+        
+        C = EP;
+        X = fabs(C-B);
+        
       }
 
       if (X < Y) {
 
-	PCC = PCC + 1;
+        PCC = PCC + 1;
 
-	if (PCC == 1) {
-	  Y = fabs(C-B);
-	} else if (PCC == 2 ) {
-	  // Count X = |D-C| as a 1.0 cycle
-	  DI = DI + 1.0 / fabs(pow( (X/E0) , 1/m )) ;
-	  //added 6/9/2006
-	  SR1 = X;
-	  NC1 = 1.0;
-	  // Reset parameters
-	  D = 0;
-	  C = 0;
-	  Y = fabs(B-A);
-	  PCC = 0;
+        if (PCC == 1) {
+          Y = fabs(C-B);
+        } else if (PCC == 2 ) {
+          // Count X = |D-C| as a 1.0 cycle
+          DI = DI + 1.0 / fabs(pow( (X/E0) , 1/m )) ;
+          //added 6/9/2006
+          SR1 = X;
+          NC1 = 1.0;
+          // Reset parameters
+          D = 0;
+          C = 0;
+          Y = fabs(B-A);
+          PCC = 0;
 
-	}
+        }
 
       } else {
-	
-	if (PCC == 1 ) {
-	  
-	  // Count Y = |C-B| as a 1.0 cycle
-	  DI = DI + 1.0 / fabs(pow( (Y/E0) , 1/m ));
-	  //added 6/9/2006
-	  SR1 = Y;
-	  NC1 = 1.0;
+        
+        if (PCC == 1 ) {
+          
+          // Count Y = |C-B| as a 1.0 cycle
+          DI = DI + 1.0 / fabs(pow( (Y/E0) , 1/m ));
+          //added 6/9/2006
+          SR1 = Y;
+          NC1 = 1.0;
 
-	  // Reset parameters
-	  B = D;
-	  C = 0;
-	  D = 0;
-	  Y = fabs(B-A);
-	  PCC = 0;
+          // Reset parameters
+          B = D;
+          C = 0;
+          D = 0;
+          Y = fabs(B-A);
+          PCC = 0;
 
 
 
-	} else {
-	  
-	  // Count Y = |A-B| as a 0.5 cycle
-	  DI = DI + 0.5 / fabs(pow( (Y/E0), 1/m ));
+        } else {
+          
+          // Count Y = |A-B| as a 0.5 cycle
+          DI = DI + 0.5 / fabs(pow( (Y/E0), 1/m ));
 
-	  //added 6/9/2006
-	  // For recorder
-	  SR1 = Y;
-	  NC1 = 0.5;
+          //added 6/9/2006
+          // For recorder
+          SR1 = Y;
+          NC1 = 0.5;
 
-	  // Reset parameters
-	  A = B;
-	  B = C;
-	  C = 0;
-	  D = 0;
-	  Y = X;
-	  PCC = 0;
+          // Reset parameters
+          A = B;
+          B = C;
+          C = 0;
+          D = 0;
+          Y = X;
+          PCC = 0;
 
-	  
-	}
-	  
+          
+        }
+          
       }
-	
+        
     }
 
     // Flag failure if we have reached that point
@@ -511,21 +511,21 @@ FatigueMaterial::commitState(void)
       X = fabs(trialStrain - A);
 
       if (fabs(X) < 1e-10) {
-	DL = DI ;
-	// added 6/9/2006
-	//values for recorder
-	SR2 = 0.0;
-	NC2 = 0.0;
-	SR3 = 0.0;
-	NC3 = 0.0;
+        DL = DI ;
+        // added 6/9/2006
+        //values for recorder
+        SR2 = 0.0;
+        NC2 = 0.0;
+        SR3 = 0.0;
+        NC3 = 0.0;
       } else {
-	DL = DI +  0.5 / fabs(pow( (X/E0), 1/m ));
-	// added 6/9/2006
-	//values for recorder
-	SR2 = X;
-	NC2 = 0.5;
-	SR3 = 0.0;
-	NC3 = 0.0;
+        DL = DI +  0.5 / fabs(pow( (X/E0), 1/m ));
+        // added 6/9/2006
+        //values for recorder
+        SR2 = X;
+        NC2 = 0.5;
+        SR3 = 0.0;
+        NC3 = 0.0;
       }
       
     } else if (B != 0 && C == 0 &&  D == 0) {
@@ -534,31 +534,31 @@ FatigueMaterial::commitState(void)
       X = fabs(trialStrain - B);
       
       if (fabs(X) < 1e-10) {
-	DL = DI;
-	// added 6/9/2006
-	//values for recorder
-	SR2 = 0.0;
-	NC2 = 0.0;
+        DL = DI;
+        // added 6/9/2006
+        //values for recorder
+        SR2 = 0.0;
+        NC2 = 0.0;
       } else {
-	DL = DI +  0.5 / fabs(pow( (X/E0) , 1/m ));
-	// added 6/9/2006
-	//values for recorder
-	SR2 = X;
-	NC2 = 0.5;
-      }	
+        DL = DI +  0.5 / fabs(pow( (X/E0) , 1/m ));
+        // added 6/9/2006
+        //values for recorder
+        SR2 = X;
+        NC2 = 0.5;
+      }        
       
       if (fabs(Y) < 1e-10) {
-	DL = DL;
-	// added 6/9/2006
-	//values for recorder
-	SR3 = 0.0;
-	NC3 = 0.0;
+//      DL = DL;
+        // added 6/9/2006
+        //values for recorder
+        SR3 = 0.0;
+        NC3 = 0.0;
       } else {
-	DL = DL +  0.5 / fabs(pow( (Y/E0) , 1/m ));
-	// added 6/9/2006
-	//values for recorder
-	SR3 = Y;
-	NC3 = 0.5;
+        DL = DL +  0.5 / fabs(pow( (Y/E0) , 1/m ));
+        // added 6/9/2006
+        //values for recorder
+        SR3 = Y;
+        NC3 = 0.5;
       }
       
     } else if (B != 0 && C != 0 &&  D == 0) {
@@ -571,69 +571,69 @@ FatigueMaterial::commitState(void)
       // 2.)  One full cylce at |D-C|, 1/2 cycle at |A-B|
 
       if (fabs(A-trialStrain)> fabs(A-B)) {
-	
-	//   count 1/2 cycle at |D-A|, and one full cycle at |B-C|.
-	X = fabs(trialStrain-A);
-	
-	if (fabs(Y) < 1e-10) {
-	  DL = DI;
-	  // added 6/9/2006
-	  //values for recorder
-	  SR3 = 0.0;
-	  NC3 = 0.0;
-	} else {
-	  DL = DI +  1.0 / fabs(pow( (Y/E0) , 1/m ));
-	  // added 6/9/2006
-	  //values for recorder
-	  SR3 = Y;
-	  NC3 = 1.0;
-	} 
+        
+        //   count 1/2 cycle at |D-A|, and one full cycle at |B-C|.
+        X = fabs(trialStrain-A);
+        
+        if (fabs(Y) < 1e-10) {
+          DL = DI;
+          // added 6/9/2006
+          //values for recorder
+          SR3 = 0.0;
+          NC3 = 0.0;
+        } else {
+          DL = DI +  1.0 / fabs(pow( (Y/E0) , 1/m ));
+          // added 6/9/2006
+          //values for recorder
+          SR3 = Y;
+          NC3 = 1.0;
+        } 
       
-	if (fabs(X) < 1e-10) {
-	  DL = DL;
-	  // added 6/9/2006
-	  //values for recorder
-	  SR2 = 0.0;
-	  NC2 = 0.0;
-	} else {
-	  DL = DL +  0.5 / fabs(pow( (X/E0) , 1/m ));
-	  // added 6/9/2006
-	  //values for recorder
-	  SR2 = X;
-	  NC2 = 0.5;
-	}
+        if (fabs(X) < 1e-10) {
+ //       DL = DL;
+          // added 6/9/2006
+          //values for recorder
+          SR2 = 0.0;
+          NC2 = 0.0;
+        } else {
+          DL = DL +  0.5 / fabs(pow( (X/E0) , 1/m ));
+          // added 6/9/2006
+          //values for recorder
+          SR2 = X;
+          NC2 = 0.5;
+        }
 
       } else {
-	
-	// One full cycle of |C-D| and 1/2 cyle of |A-B|
-	
-	if (fabs(C-trialStrain) < 1e-10) {
-	  DL = DI;
-	  // added 6/9/2006
-	  //values for recorder
-	  SR3 = 0.0;
-	  NC3 = 0.0;
-	} else {
-	  DL = DI +  1.0 / fabs(pow( ( fabs(C-trialStrain)/E0 ) , 1/m ));
-	  // added 6/9/2006
-	  //values for recorder
-	  SR3 = fabs(C-trialStrain);
-	  NC3 = 1.0;
-	} 
+        
+        // One full cycle of |C-D| and 1/2 cyle of |A-B|
+        
+        if (fabs(C-trialStrain) < 1e-10) {
+          DL = DI;
+          // added 6/9/2006
+          //values for recorder
+          SR3 = 0.0;
+          NC3 = 0.0;
+        } else {
+          DL = DI +  1.0 / fabs(pow( ( fabs(C-trialStrain)/E0 ) , 1/m ));
+          // added 6/9/2006
+          //values for recorder
+          SR3 = fabs(C-trialStrain);
+          NC3 = 1.0;
+        } 
       
-	if (fabs(A-B) < 1e-10) {
-	  DL = DL;
-	  // added 6/9/2006
-	  //values for recorder
-	  SR2 = 0.0;
-	  NC2 = 0.0;
-	} else {
-	  DL = DL +  0.5 / fabs(pow( (fabs(A-B) /E0) , 1/m ));
-	  // added 6/9/2006
-	  //values for recorder
-	  SR2 = fabs(A-B);
-	  NC2 = 0.5;
-	}
+        if (fabs(A-B) < 1e-10) {
+//        DL = DL;
+          // added 6/9/2006
+          //values for recorder
+          SR2 = 0.0;
+          NC2 = 0.0;
+        } else {
+          DL = DL +  0.5 / fabs(pow( (fabs(A-B) /E0) , 1/m ));
+          // added 6/9/2006
+          //values for recorder
+          SR2 = fabs(A-B);
+          NC2 = 0.5;
+        }
       }
     }
     
@@ -652,9 +652,9 @@ FatigueMaterial::commitState(void)
   //added by SAJalali
   if (!Cfailed)
   {
-	  double TStress = getStress();
-	  energy += 0.5*(trialStrain - PS)*(TStress + CStress);
-	  CStress = TStress;
+          double TStress = getStress();
+          energy += 0.5*(trialStrain - PS)*(TStress + CStress);
+          CStress = TStress;
   }
 
   PS = cSlope;            // Previous Slope
@@ -696,14 +696,14 @@ FatigueMaterial::revertToStart(void)
   C   = 0; //Peak or valley 2
   D   = 0; //Peak or valley 4
   PCC = 0; /*Previous Cycle counter flag if >1 then previous 'n' 
-	     cycles did not flag a complete cycle */
+             cycles did not flag a complete cycle */
   R1F = 0; //Flag for first  peak count
   R2F = 0; //Flag for second peak count
   cSlope  = 0; //Current Slope
   PS  = 0; //Previous slope
   EP  = 0; //Previous Strain
   SF  = 0; /*Start Flag = 0 if very first strain, (i.e. when initializing)
-	     = 1 otherwise */
+             = 1 otherwise */
   DL  = 0; //Damage if current strain was last peak.
 
   // added 6/9/2006
@@ -791,7 +791,7 @@ FatigueMaterial::sendSelf(int cTag, Channel &theChannel)
 
 int 
 FatigueMaterial::recvSelf(int cTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker)
+                         FEM_ObjectBroker &theBroker)
 {
   int dbTag = this->getDbTag();
 
@@ -808,7 +808,7 @@ FatigueMaterial::recvSelf(int cTag, Channel &theChannel,
     theMaterial = theBroker.getNewUniaxialMaterial(matClassTag);
     if (theMaterial == 0) {
       opserr << "FatigueMaterial::recvSelf() - failed to create Material with classTag " 
-	   << dataID(0) << endln;
+           << dataID(0) << endln;
       return -2;
     }
   }
@@ -861,29 +861,29 @@ FatigueMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 FatigueMaterial::Print(OPS_Stream &s, int flag)
 {
-	if (flag == 100) {
-		s << DL << endln;
-	}
-	
-	if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-		s << "FatigueMaterial tag: " << this->getTag() << endln;
-		s << "\tMaterial: " << theMaterial->getTag() << endln;
-		s << "\tDI: " << DI << " Dmax: " << Dmax << endln;
-		s << "\tE0: " << E0 << " m: " << m << endln;
-		s << "\tDL: " << DL << endln;
-	}
-		
-	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
-		s << "\"name\": \"" << this->getTag() << "\", ";
-		s << "\"type\": \"FatigueMaterial\", ";
-		s << "\"material\": \"" << theMaterial->getTag() << "\", ";
-		s << "\"tDI\": " << DI << ", ";
-		s << "\"Dmax\": " << Dmax << ", ";
-		s << "\"tE0\": " << E0 << ", ";
-		s << "\"m\": " << m << ", ";
-		s << "\"tDL\": " << DL << "}";
-	}
+        if (flag == 100) {
+                s << DL << endln;
+        }
+        
+        if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+                s << "FatigueMaterial tag: " << this->getTag() << endln;
+                s << "\tMaterial: " << theMaterial->getTag() << endln;
+                s << "\tDI: " << DI << " Dmax: " << Dmax << endln;
+                s << "\tE0: " << E0 << " m: " << m << endln;
+                s << "\tDL: " << DL << endln;
+        }
+                
+        if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+                s << "\t\t\t{";
+                s << "\"name\": \"" << this->getTag() << "\", ";
+                s << "\"type\": \"FatigueMaterial\", ";
+                s << "\"material\": \"" << theMaterial->getTag() << "\", ";
+                s << "\"tDI\": " << DI << ", ";
+                s << "\"Dmax\": " << Dmax << ", ";
+                s << "\"tE0\": " << E0 << ", ";
+                s << "\"m\": " << m << ", ";
+                s << "\"tDL\": " << DL << "}";
+        }
 }
 
 Response* 
@@ -918,7 +918,7 @@ FatigueMaterial::setResponse(const char **argv, int argc, OPS_Stream &theOutput)
 
   // strain
   else if ((strcmp(argv[0],"stressStrain") == 0) || 
-	   (strcmp(argv[0],"stressANDstrain") == 0)) {
+           (strcmp(argv[0],"stressANDstrain") == 0)) {
     theOutput.tag("ResponseType", "sig11");
     theOutput.tag("ResponseType", "eps11");
     theResponse =  new MaterialResponse(this, 4, Vector(2));

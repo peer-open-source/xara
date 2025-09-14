@@ -51,7 +51,7 @@ ChannelStream::~ChannelStream()
 }
 
 int 
-ChannelStream::setFile(const char *name, openMode mode)
+ChannelStream::setFile(const char *name, openMode mode, bool echo)
 {
   return 0;
 }
