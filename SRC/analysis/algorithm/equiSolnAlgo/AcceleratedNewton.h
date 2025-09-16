@@ -46,8 +46,8 @@ class AcceleratedNewton: public EquiSolnAlgo
   
   int solveCurrentStep(); 
   
-  int getNumFactorizations() {return numFactorizations;}
-  int getNumIterations() {return numIterations;}
+  int getNumFactorizations() const override {return numFactorizations;}
+  int getNumIterations()  const override {return numIterations;}
   //double getTotalTimeCPU(void)   {return totalTimeCPU;}
   //double getTotalTimeReal(void)  {return totalTimeReal;}
   //double getSolveTimeCPU(void)   {return solveTimeCPU;}
@@ -57,7 +57,7 @@ class AcceleratedNewton: public EquiSolnAlgo
   
   virtual int sendSelf(int commitTag, Channel &);
   virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-  void Print(OPS_Stream &, int flag) final;    
+  void Print(OPS_Stream &, int flag) const final;    
   
  protected:
   

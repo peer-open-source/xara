@@ -455,7 +455,7 @@ SoilFootingSection2d::applyLoading(Vector de)
    double Vinit, dMcal;
    double epsilon = pow(10.0, -20.0);
    char tempKey;
-   double expo = 0;
+// double expo = 0;
    double n_load, n_unload;
    double e_2;
  
@@ -466,7 +466,7 @@ SoilFootingSection2d::applyLoading(Vector de)
 
    double du = de(1);
    dTheta = de(2);
-   double dTheta1 = de(2);
+// double dTheta1 = de(2);
    double theta = eCommit(2);
 // double dss = 0.0;
 
@@ -495,7 +495,7 @@ SoilFootingSection2d::applyLoading(Vector de)
    double Fh1, Fh2, Fm1, Fm2;
    double ptFh1, ptFh2, ptFm1, ptFm2;
    double dist1, dist2, factor;
-   double hNew, hNew1, uH, uM, dVt1;
+   double hNew, uH, uM, dVt1;
    int ii;
 
 
@@ -689,8 +689,8 @@ SoilFootingSection2d::applyLoading(Vector de)
 
                do // check for Vinit
                {
-				   int i;
-                  for (i = 0; i <= noNodes; i++)
+                  int i;
+                  for (int i = 0; i <= noNodes; i++)
                   {
                      ds = (i-c)*(L/noNodes)*tan(dTheta);
 
@@ -709,7 +709,7 @@ SoilFootingSection2d::applyLoading(Vector de)
             
                   c1 = c2 = -1;
 
-                  for (i = 0; i <= noNodes; i++)
+                  for (int i = 0; i <= noNodes; i++)
                      if (foot[i][0] >= soilMax[i][0])
                      {
                         c1 = i;
@@ -771,14 +771,14 @@ SoilFootingSection2d::applyLoading(Vector de)
                                (soilMax[i][0]-soilMin[i][1])*q_recover* Kv/ Vult;
 
 
-                  expo = ((10.0 - 0.5)/(0.66*noNodes))*c1T + 0.5;
+//                expo = ((10.0 - 0.5)/(0.66*noNodes))*c1T + 0.5;
 
-           n_load = 0.5;
-           n_unload = 10.0;
-                 
-           e_2 = eCommit(2);
-           n_load = 9.5 * pow((thetaPlus-e_2)/thetaRange, 1.0) + 0.5;
-           n_unload = 9.5 * pow((e_2-thetaMinus)/thetaRange, 1.0) + 0.5;
+                  n_load = 0.5;
+                  n_unload = 10.0;
+                         
+                  e_2 = eCommit(2);
+                  n_load = 9.5 * pow((thetaPlus-e_2)/thetaRange, 1.0) + 0.5;
+                  n_unload = 9.5 * pow((e_2-thetaMinus)/thetaRange, 1.0) + 0.5;
 
 
 
@@ -797,8 +797,7 @@ SoilFootingSection2d::applyLoading(Vector de)
                   for (i = c2T+1; i <= noNodes; i++)
                      pressure[i][0] = 0.0;
 
-				  int a;
-
+                  int a;
                   for (a = 0; a <= noNodes; a++)
                   {
                      if (pressure[a][0] > pult)
@@ -952,15 +951,15 @@ SoilFootingSection2d::applyLoading(Vector de)
                                     (soilMax[i][0]-soilMin[i][1])*q_recover* Kv/ Vult;
 
 
-                  expo = ((10.0 - 0.5)/(0.66*noNodes))*(noNodes - c2T) + 0.5;
+//                expo = ((10.0 - 0.5)/(0.66*noNodes))*(noNodes - c2T) + 0.5;
 
 
-           n_load = 0.5;
-           n_unload = 10.0;
+                  n_load = 0.5;
+                  n_unload = 10.0;
 
-           e_2 = eCommit(2);            
-           n_unload = 9.5 * pow((thetaPlus-e_2)/thetaRange, 1.0) + 0.5;
-           n_load = 9.5 * pow((e_2-thetaMinus)/thetaRange, 1.0) + 0.5;
+                  e_2 = eCommit(2);            
+                  n_unload = 9.5 * pow((thetaPlus-e_2)/thetaRange, 1.0) + 0.5;
+                  n_load = 9.5 * pow((e_2-thetaMinus)/thetaRange, 1.0) + 0.5;
 
 
 

@@ -73,7 +73,15 @@ public:
 
   int push(VectorND<nn*ndf>&pl, Operation) final;
   int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
-
+  
+  MatrixND<3,ndf*nn> getRotationTangent() final {
+    MatrixND<3,ndf*nn> dR{};
+    for (int i=0; i<nn; i++)
+      dR.assemble(basis.getRotationGradient(i), 0, i*ndf, 1.0);
+    return dR;
+  }
+  
+  //
   // Sensitivity
   //
   bool isShapeSensitivity() final;
@@ -133,7 +141,6 @@ private:
 
   std::array<Node*, nn> nodes;
   std::array<AxisAngle, nn> ur; // rotation vector
-  // std::array<Vector3D,  nn> ux; // displacement vector
 
   std::array<Vector3D, nn> *offsets;
   int offset_flags;

@@ -110,8 +110,8 @@ class ShadowSubdomain: public Shadow, public Subdomain
     // methods dealing with Parameters
     virtual  bool           addParameter(Parameter *);            
     virtual  Parameter     *removeParameter(int tag);
-    virtual  int  updateParameter(int tag, int value);
-    virtual  int  updateParameter(int tag, double value);    
+//  virtual  int  updateParameter(int tag, int value);
+//  virtual  int  updateParameter(int tag, double value);    
 
     // methods to update the domain
     virtual  void setCommitTag(int newTag);    	

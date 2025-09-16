@@ -11,8 +11,8 @@
 #include <tcl.h>
 #include <assert.h>
 #include <BasicAnalysisBuilder.h>
-#include <PlainNumberer.h>
-#include <DOF_Numberer.h>
+#include <numberer/DOF_Numberer.h>
+#include <numberer/PlainNumberer.h>
 #include <RCM.h>
 #include <AMDNumberer.h>
 

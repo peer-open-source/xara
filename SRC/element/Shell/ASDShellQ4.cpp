@@ -41,7 +41,6 @@
 #include <ElementalLoad.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1491,7 +1490,8 @@ ASDShellQ4::setResponse(const char **argv, int argc, OPS_Stream &output)
         }
     }
 
-    else if (strcmp(argv[0], "stresses") == 0) {
+    else if ((strcmp(argv[0], "stresses") == 0) || 
+             (strcmp(argv[0], "stress") == 0)) {
 
         for (int i = 0; i < 4; i++) {
             output.tag("GaussPoint");

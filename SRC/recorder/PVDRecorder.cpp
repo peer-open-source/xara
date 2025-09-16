@@ -771,7 +771,7 @@ PVDRecorder::savePart0(int nodendf)
 	theFile<<" NumberOfComponents="<<quota<<nodendf<<quota;
 	theFile<<" format="<<quota<<"ascii"<<quota<<">\n";
 	this->incrLevel();
-	for(int i=0; i<(int)nodes.size(); i++) {
+	for (int i=0; i<(int)nodes.size(); i++) {
 	    const Matrix& eigens = nodes[i]->getEigenvectors();
 	    if(k >= eigens.noCols()) {
 		opserr<<"WARNING: eigenvector "<<k+1<<" is too large\n";

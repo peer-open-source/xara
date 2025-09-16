@@ -43,14 +43,6 @@ YS_Evolution *theCopy = new Kinematic2D02(getTag(), minIsoFactor,
 	return theCopy;
 }
 
-/*int Kinematic2D02::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-
- limSurface->displaySelf(theViewer, limSurface->SurfOnly, fact);
-//	limSurface->displaySelf(theViewer, displayMode, fact);
-	return  0;
-}
-*/
 void Kinematic2D02::Print(OPS_Stream &s, int flag)
 {
 	s << "Kinematic2D02 \n";

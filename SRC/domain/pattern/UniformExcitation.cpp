@@ -308,7 +308,7 @@ UniformExcitation::Print(OPS_Stream &s, int flag)
     s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"" << this->getClassType() <<"\", ";
-    s << "\"dof\": " << theDof << ", ";
+    s << "\"dof\": " << theDof+1 << ", ";
     s << "\"vel0\": " << vel0 << ", ";
     s << "\"fact\": " << fact;
     // if (theMotion != 0) {

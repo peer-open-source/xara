@@ -1372,9 +1372,9 @@ CycLiqCPSP::commitState( )
   epsvre_n=epsvre_nplus1;
   gammamono=gammamonos;
   epsvc_n=epsvc_nplus1;
-  etam=etam;
+//etam=etam;
   stress_n=stress_nplus1;
-  epsvirpr=epsvirpr;
+//epsvirpr=epsvirpr;
   //epsvc_ns0=epsvc_ns01;
   //epsvc0=epsvc0;
 

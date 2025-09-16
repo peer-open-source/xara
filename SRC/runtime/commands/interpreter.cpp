@@ -1,10 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
+
 // Description: This file contains basic commands that enhance the
 // experience of the interpreter. This file should not reference
 // any analysis or modeling classes.
@@ -395,6 +403,8 @@ Init_OpenSees(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "opensees::model",     TclCommand_specifyModel,   nullptr, nullptr);
   Tcl_CreateCommand(interp, "wipe",                TclCommand_wipeModel,      nullptr, nullptr);
   Tcl_CreateCommand(interp, "_clearAnalysis",      TclCommand_clearAnalysis,  nullptr, nullptr);
+
+  
 
   Tcl_CreateObjCommand(interp, "pset",             OPS_SetObjCmd, nullptr, nullptr);
   Tcl_CreateObjCommand(interp, "source",           OPS_SourceCmd, nullptr, nullptr);

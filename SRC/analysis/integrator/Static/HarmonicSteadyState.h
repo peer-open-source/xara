@@ -51,34 +51,30 @@ class HarmonicSteadyState : public StaticIntegrator
 
     ~HarmonicSteadyState();
 
-    int newStep(void);
-    int update(const Vector &deltaU);
+    int newStep() final;
+    int update(const Vector &du) final;
     int setDeltaLambda(double newDeltaLambda);
 
-    // Public methods for Output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel,
-			 FEM_ObjectBroker &theBroker);
-
-    void Print(OPS_Stream &, int flag) final;
 
     int formEleTangent(FE_Element *theEle);
 //  int formEleResidual(FE_Element *theEle);
 
-    // Adding sensitivity
-    int formSensitivityRHS(int gradNum);
-    int formIndependentSensitivityRHS();
-    int saveSensitivity(const Vector &v, int gradNum, int numGrads);
+    // Sensitivity
     int commitSensitivity(int gradNum, int numGrads);
+    int saveSensitivity(const Vector &v, int gradNum, int numGrads);
     int computeSensitivities(void);//Abbas
     bool computeSensitivityAtEachIteration();
 
+    // MovableObject interface
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    ///////////////////////
-
-protected:
+    void Print(OPS_Stream &, int flag) final;
 
   private:
+    int formSensitivityRHS(int gradNum);
+    int formIndependentSensitivityRHS();
+
     double deltaLambda;  // dlambda at step (i-1)
     double loadPeriod; // load period in seconds (p = 2pi/T)
 

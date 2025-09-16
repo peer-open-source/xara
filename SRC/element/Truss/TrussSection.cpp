@@ -913,7 +913,7 @@ TrussSection::setResponse(const char** argv, int argc, OPS_Stream& output)
 
   if ((strcmp(argv[0], "force") == 0) || (strcmp(argv[0], "forces") == 0) ||
       (strcmp(argv[0], "globalForce") == 0) || (strcmp(argv[0], "globalForces") == 0)) {
-    char outputData[10];
+    char outputData[32];
     int numDOFperNode = numDOF / 2;
     for (int i = 0; i < numDOFperNode; i++) {
       sprintf(outputData, "P1_%d", i + 1);
@@ -1060,7 +1060,7 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
   }
 }
 
-// AddingSensitivity:BEGIN ///////////////////////////////////
+
 int
 TrussSection::setParameter(const char** argv, int argc, Parameter& param)
 {
@@ -1086,12 +1086,16 @@ TrussSection::setParameter(const char** argv, int argc, Parameter& param)
     return theSection->setParameter(argv, argc, param);
 }
 
+
 int
 TrussSection::updateParameter(int parameterID, Information& info)
 {
   switch (parameterID) {
-  case 2:  rho = info.theDouble; return 0;
-  default: return -1;
+    case 2:  
+      rho = info.theDouble; 
+      return 0;
+    default: 
+      return -1;
   }
 }
 

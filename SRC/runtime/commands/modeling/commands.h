@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -96,7 +105,8 @@ namespace OpenSees {
 struct CommandTableEntry {
   const char* name;
   Tcl_CmdProc*  func;
-}  constexpr ModelBuilderCommands[] =  {
+}
+constexpr ModelBuilderCommands[] =  {
   {"build",                buildModel},
 
   {"getNDM",               TclCommand_getNDM},
@@ -114,7 +124,7 @@ struct CommandTableEntry {
   {"fixY",                 TclCommand_addHomogeneousBC_Y},
   {"fixZ",                 TclCommand_addHomogeneousBC_Z},
 
-// //
+// 
   {"with",                 TclCommand_invoke},
   {"invoke",               TclCommand_invoke},
 // Materials & sections

@@ -9,7 +9,7 @@
 #include <OPS_Globals.h>
 #include <Parsing.h>
 #include <UniaxialMaterial.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <runtimeAPI.h>
 
@@ -43,7 +43,7 @@ TclCommand_addHystereticBackbone(ClientData clientData,
                                  TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   G3_Runtime *rt = G3_getRuntime(interp);
 
   if (argc < 3) {

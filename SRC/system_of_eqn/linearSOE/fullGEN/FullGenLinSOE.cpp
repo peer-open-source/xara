@@ -128,45 +128,46 @@ FullGenLinSOE::setSize(Graph &theGraph)
 int 
 FullGenLinSOE::addA(const Matrix &m, const ID &id, double fact)
 {
-    // check that m and id are of similar size
-    assert(id.Size() == m.noRows() && id.Size() == m.noCols());
+  // check that m and id are of similar size
+  assert(id.Size() == m.noRows() && id.Size() == m.noCols());
 
-    // check for a quick return 
-    if (fact == 0.0)
-      return 0;
-
-    int idSize = id.Size();
-
-    if (fact == 1.0) { // do not need to multiply 
-	for (int i=0; i<idSize; i++) {
-	    int col = id(i);
-	    if (col < size && col >= 0) {
-		double *startColiPtr = A + col*size;
-		for (int j=0; j<idSize; j++) {
-		    int row = id(j);
-		    if (row <size && row >= 0) {
-			 double *APtr = startColiPtr + row;
-			 *APtr += m(j,i);
-		    }
-		}
-	    } 
-	}
-    } else {
-	for (int i=0; i<idSize; i++) {
-	    int col = id(i);
-	    if (col < size && col >= 0) {
-		double *startColiPtr = A + col*size;
-		for (int j=0; j<idSize; j++) {
-		    int row = id(j);
-		    if (row <size && row >= 0) {
-			 double *APtr = startColiPtr + row;
-			 *APtr += m(j,i) * fact;
-		     }
-		}  // for j
-	    } 
-	}  // for i
-    }    
+  // check for a quick return 
+  if (fact == 0.0)
     return 0;
+
+  int idSize = id.Size();
+
+  if (fact == 1.0) { // do not need to multiply 
+    for (int i=0; i<idSize; i++) {
+      int col = id(i);
+      if (col < size && col >= 0) {
+        double *startColiPtr = A + col*size;
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0) {
+            double *APtr = startColiPtr + row;
+            *APtr += m(j,i);
+          }
+        }
+      } 
+    }
+  }
+  else {
+    for (int i=0; i<idSize; i++) {
+      int col = id(i);
+      if (col < size && col >= 0) {
+        double *startColiPtr = A + col*size;
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0) {
+            double *APtr = startColiPtr + row;
+            *APtr += m(j,i) * fact;
+          }
+        }  // for j
+      } 
+    }  // for i
+  }    
+  return 0;
 }
 
 

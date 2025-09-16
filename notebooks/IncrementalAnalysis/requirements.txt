@@ -1,7 +1,0 @@
-# imageio[ffmpeg]
-opensees>=0.0.61
-sees
-mdof
-SciencePlots
-nbconvert[webpdf]
-

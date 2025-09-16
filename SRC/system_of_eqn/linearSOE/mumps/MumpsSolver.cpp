@@ -27,13 +27,12 @@
 // Written: fmk 
 // Created: 02/06
 
-#include <iostream>
 
 #include <MumpsSolver.h>
 #include <MumpsSOE.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 
 #define ICNTL(I) icntl[(I)-1] /* macro s.t. indices match documentation */
 
@@ -47,16 +46,16 @@
 #define OPENSEES_INCLUDED_MPI
 #endif
 
-#ifndef OPENSEES_INCLUDED_MPI
-#include <libseq\mpi.h>
-#endif
+#define _OPENMPI
+#include <mpi.h>
+// #ifndef OPENSEES_INCLUDED_MPI
+// #include <libseq/mpi.h>
+// #endif
 
 MumpsSolver::MumpsSolver(int ICNTL7, int ICNTL14)
   :LinearSOESolver(SOLVER_TAGS_MumpsSolver),
    theMumpsSOE(0)
 {
-
-  std::cerr << "MumpsSOlver - constructor\n";
 
   memset(&id, 0, sizeof(id));
 
@@ -68,86 +67,84 @@ MumpsSolver::MumpsSolver(int ICNTL7, int ICNTL14)
   //  id.comm_fortran=-987654;
   id.comm_fortran=0;
 #else
-  id.comm_fortran=MPI_COMM_WORLD;
+  id.comm_fortran = MPI_COMM_WORLD;
 #endif
 
   id.ICNTL(14) = ICNTL14;
-  id.ICNTL(7)=ICNTL7;;
+  id.ICNTL( 7) = ICNTL7; 
+  id.ICNTL(28) = 1; // sequential analysis
 
   needsSetSize = false;
 }
 
 MumpsSolver::~MumpsSolver()
 {
-  std::cerr << "MumpsSOlver - destructor\n";
-  opserr << "MumpsParallelSOlver::DESTRUCTOR - start\n";
   id.job=-2; 
   dmumps_c(&id); /* Terminate instance */
-  opserr << "MumpsParallelSOlver::DESTRUCTOR - end\n";
 }
 
 int 
-MumpsSolver::initializeMumps(void)
+MumpsSolver::initializeMumps()
 {
-  if (needsSetSize == false) {
+  if (needsSetSize == false)
     return 0;
-  }
-  else {
-    
-    if (init == false) {
-      std::cerr << "MumpsSOlver - initMumps\n";
-      id.sym = theMumpsSOE->matType;
-      id.job=-1; 
-      dmumps_c(&id);
-      init = true;
-    }
-    
-    int nnz = theMumpsSOE->nnz;
-    int *rowA = theMumpsSOE->rowA;
-    int *colA = theMumpsSOE->colA;
-    
-    // increment row and col A values by 1 for mumps fortran indexing
-    for (int i = 0; i < nnz; i++) {
-      rowA[i]++;
-      colA[i]++;
-    }
-    
-    // analyze the matrix
-    id.n = theMumpsSOE->size;
-    id.nz = theMumpsSOE->nnz;
-    id.irn = theMumpsSOE->rowA;
-    id.jcn = theMumpsSOE->colA;
-    id.a = theMumpsSOE->A;
-    id.rhs = theMumpsSOE->X;
-    
-    // No outputs 
-    id.ICNTL(1) = -1; id.ICNTL(2) = -1; id.ICNTL(3) = -1; id.ICNTL(4) = 0;
 
-    // Call the MUMPS package to factor & solve the system
-    id.job = 1;
+
+  if (init == false) {
+    id.sym = theMumpsSOE->matType;
+    id.job=-1; 
     dmumps_c(&id);
+    init = true;
+  }
+  
+  int nnz = theMumpsSOE->nnz;
+  int *rowA = theMumpsSOE->rowA;
+  int *colA = theMumpsSOE->colA;
+  
+  // increment row and col A values by 1 for mumps fortran indexing
+  for (int i = 0; i < nnz; i++) {
+    rowA[i]++;
+    colA[i]++;
+  }
+  
+  // analyze the matrix
+  id.n   = theMumpsSOE->size;
+  id.nz  = theMumpsSOE->nnz;
+  id.irn = theMumpsSOE->rowA;
+  id.jcn = theMumpsSOE->colA;
+  id.a   = theMumpsSOE->A;
+  id.rhs = theMumpsSOE->X;
+  
+  // No outputs 
+  id.ICNTL(1) = -1; 
+  id.ICNTL(2) = -1; 
+  id.ICNTL(3) = -1; 
+  id.ICNTL(4) =  0;
 
-    int info = id.infog[0];
-    if (info != 0) {
-      opserr << "WARNING MumpsSolver::setSize(void)- ";
-      opserr << " Error " << info << " returned in substitution dmumps()\n";
-      return info;
-    }
-    
-    // decrement row and col A values by 1 to return to C++ indexing
-    for (int i = 0; i < nnz; i++) {
-      rowA[i]--;
-      colA[i]--;
-    }
-    
-    needsSetSize = false;
-    
+  // Call the MUMPS package to factor & solve the system
+  id.job = 1;
+  dmumps_c(&id);
+
+  int info = id.infog[0];
+  if (info != 0) {
+    opserr << "WARNING MumpsSolver::setSize ";
+    opserr << " Error " << info << " returned in substitution dmumps\n";
     return info;
   }
+  
+  // decrement row and col A values by 1 to return to C++ indexing
+  for (int i = 0; i < nnz; i++) {
+    rowA[i]--;
+    colA[i]--;
+  }
+  
+  needsSetSize = false;
+  
+  return info;
 }
 
 int 
-MumpsSolver::solveAfterInitialization(void)
+MumpsSolver::solveAfterInitialization()
 {
   int nnz = theMumpsSOE->nnz;
   int n = theMumpsSOE->size;
@@ -161,13 +158,13 @@ MumpsSolver::solveAfterInitialization(void)
   for (int i=0; i<nnz; i++) {
     rowA[i]++;
     colA[i]++;
-    //    opserr << rowA[i] << " " << colA[i] << " " << theMumpsSOE->A[i] << endln;
   }
   
   for (int i=0; i<n; i++)
     X[i] = B[i];
 
   int info = 0;
+
   if (theMumpsSOE->factored == false) {
 
     // factor the matrix
@@ -179,12 +176,16 @@ MumpsSolver::solveAfterInitialization(void)
     id.rhs = theMumpsSOE->X;
 
     // No outputs 
-    id.ICNTL(1)=-1; id.ICNTL(2)=-1; id.ICNTL(3)=-1; id.ICNTL(4)=0;
+    id.ICNTL(1)=-1; 
+    id.ICNTL(2)=-1; 
+    id.ICNTL(3)=-1;
+    id.ICNTL(4)=0;
     // Call the MUMPS package to factor & solve the system
     id.job = 5;
     dmumps_c(&id);
 
     theMumpsSOE->factored = true;
+
   } else {
     // factor the matrix
     id.n   = theMumpsSOE->size; 
@@ -194,9 +195,10 @@ MumpsSolver::solveAfterInitialization(void)
     id.a   = theMumpsSOE->A; 
     id.rhs = theMumpsSOE->X;
 
-    // No outputs 
+    // No outputs
     id.ICNTL(1)=-1; id.ICNTL(2)=-1; id.ICNTL(3)=-1; id.ICNTL(4)=0;
-    // Call the MUMPS package to factor & solve the system
+  
+    // Call MUMPS to factor & solve the system
     id.job = 3;
     dmumps_c(&id);
   }	
@@ -205,7 +207,7 @@ MumpsSolver::solveAfterInitialization(void)
   
   info = id.infog[0];
   if (info != 0) {	
-    opserr << "WARNING MumpsSolver::solve(void)- ";
+    opserr << "WARNING MumpsSolver::solve - ";
     opserr << " Error " << info << " returned in substitution dmumps()\n";
 	switch(info) {
 	  case -5:
@@ -236,7 +238,7 @@ MumpsSolver::solveAfterInitialization(void)
 }
 
 int
-MumpsSolver::solve(void)
+MumpsSolver::solve()
 {
 	int initializationResult = initializeMumps();
 

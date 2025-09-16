@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
-//                                   xara  
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Written: Claudio M. Perez
@@ -78,6 +85,13 @@ public:
           return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, offset_flags);
         else
           return new EuclidFrameTransf<nn, ndf, RankinIsometry<nn>> (tag, vz, offset_array, offset_flags);
+      }
+      else if (strcmp(name, "Corotational03") == 0)
+      {
+        if (getenv("Crisfield02"))
+          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, offset_flags);
+        
+        return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,true>> (tag, vz, offset_array, offset_flags);
       }
 
       return nullptr;

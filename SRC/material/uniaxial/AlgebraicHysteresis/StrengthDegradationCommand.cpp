@@ -8,7 +8,7 @@
 #include <tcl.h>
 #include <OPS_Globals.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <SectionStrengthDegradation.h>
 #include <EnergyStrengthDegradation.h>
@@ -38,7 +38,7 @@ TclBasicBuilderStrengthDegradationCommand(ClientData clientData,
                                           TCL_Char ** const argv, Domain *theDomain)
 {
   G3_Runtime *rt = G3_getRuntime(interp);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   // Make sure there is a minimum number of arguments
   if (argc < 2) {

@@ -73,17 +73,16 @@ class Quad4FiberOverlay : public Element
 		int update(void);
  
 		// public methods to obtain stiffness  
-		const Matrix &getTangentStiff(void);
-		const Matrix &getInitialStiff(void);
+		const Matrix &getTangentStiff();
+		const Matrix &getInitialStiff();
  
 		// public method to obtain resisting force
 		const Vector &getResistingForce(void);
  
 		// method for obtaining information specific to an element 
-		void Print(OPS_Stream &s, int flag =0);
+		void Print(OPS_Stream &s, int flag) final;
 		Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 		int getResponse(int responseID, Information &eleInformation);
-		int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
 
 		// public methods for database/parallel processing                                                      
 		int sendSelf(int commitTag, Channel &theChannel);

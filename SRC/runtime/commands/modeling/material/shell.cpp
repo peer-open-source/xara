@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -16,7 +25,7 @@
 
 #include <Parsing.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <PlateFiberMaterial.h>
 #include <ElasticMembranePlateSection.h>
 #include <MembranePlateFiberSection.h>
@@ -30,14 +39,14 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
                                   int argc, TCL_Char** const argv)
 {
 
-    BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
     if (argc < 5) {
       opserr << OpenSees::PromptValueError
              << "insufficient arguments\n";
       opserr << "Want: section ElasticMembranePlateSection tag? E? nu? h? "
                 "<rho?> <Ep_mod?>"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
@@ -49,37 +58,37 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
              << "invalid section ElasticMembranePlateSection tag"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "invalid E" << endln;
+             << "invalid E" << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &nu) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "invalid nu" << endln;
+             << "invalid nu" << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &h) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "invalid h" << endln;
+             << "invalid h" << "\n";
       return TCL_ERROR;
     }
 
     if (argc > 6 && Tcl_GetDouble(interp, argv[6], &rho) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "invalid rho" << endln;
+             << "invalid rho" << "\n";
       return TCL_ERROR;
     }
 
     if (argc > 7 && Tcl_GetDouble(interp, argv[7], &Ep_mod) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "invalid Ep_mod" << endln;
+             << "invalid Ep_mod" << "\n";
       return TCL_ERROR;
     }
 
@@ -94,7 +103,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp,
 {
   // Pointer to a section that will be added to the model builder
   SectionForceDeformation* theSection = nullptr;
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if ((strcmp(argv[1], "PlateFiber") == 0) ||
       (strcmp(argv[1], "PlateFiberThermal") == 0)) { // TODO: add thermal
@@ -141,7 +150,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp,
       opserr << OpenSees::PromptValueError 
              << "insufficient arguments " << "\n";
       opserr << "Want: section LayeredShell tag? nLayers? mat1? h1? ... matn? hn? "
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
@@ -160,7 +169,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp,
     }
 
     if (nLayers < 3) {
-      opserr << "ERROR number of layers must be larger than 2" << endln;
+      opserr << "ERROR number of layers must be larger than 2" << "\n";
       return TCL_ERROR;
     }
 
@@ -175,7 +184,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp,
     for (int iLayer = 0; iLayer < nLayers; iLayer++) {
       int mat;
       if (Tcl_GetInt(interp, argv[4 + 2 * iLayer], &mat) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid material tag" << endln;
+        opserr << OpenSees::PromptValueError << "invalid material tag" << "\n";
         status = TCL_ERROR;
         goto cleanup;
       }

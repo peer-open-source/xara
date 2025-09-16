@@ -1,9 +1,17 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 #include <tcl.h>
 #include <set>
 #include <assert.h>
@@ -11,7 +19,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <element/Shell/ASDShellQ4.h>
 #include <element/Shell/ShellANDeS.h>
 #include <element/Shell/ShellDKGQ.h>
@@ -74,6 +82,7 @@ NodeCounts = {
   {"ShellDKGQ",          4},
   {"ShellNLDKGQ",        4},
   {"ShellDKGT",          3},
+  // {"ASDShellT3",         3}, // TODO
   {"ShellNLDKGT",        3},
   {"ShellANDeS",         4},
   {"ShellMITC4Thermal",  4},
@@ -85,7 +94,7 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
                                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   int tag;
   if (argc < 4) {
     opserr << OpenSees::PromptValueError 
@@ -99,13 +108,15 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
            << "\n";
     return TCL_ERROR;
   }
-  int nen = -1;
 
+  // Determine the number of nodes
+  int nen = -1;
   auto it = NodeCounts.find(argv[1]);
   if (it != NodeCounts.end())
     nen = it->second;
 
   int argi = 3;
+  // Parse node tags
   std::vector<int> multi_nodes;
   {
     int list_argc;
@@ -151,6 +162,8 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
     }
   }
 
+
+  // Section/Material
   int mat_tag;
   SectionForceDeformation *section = nullptr;
   double b[3] = {0.0, 0.0, 0.0}; // body forces
@@ -203,34 +216,34 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
       corotational = true;
 
     else if (strcmp(argv[i], "-noeas") == 0) {
-        use_eas = false;
+      use_eas = false;
     }
 
     else if (strcmp(argv[i], "-drillingStab") == 0) {
-        if (drill_mode != ASDShellQ4::DrillingDOF_Elastic) {
-            opserr << "Error: element ASDShellQ4: -drillingStab and -drillingNL options are mutually exclusive\n";
-            return 0;
-        }
-        if (argc < i + 2) {
-            opserr << "Error: drilling stabilization parameter not provided with -drillingStab option\n";
-            return TCL_ERROR;
-        }
-        if (Tcl_GetDouble(interp, argv[i+1], &drilling_stab) != TCL_OK) {
-            opserr << "Error: cannot get drilling stabilization parameter with -drillingStab option\n";
-            return TCL_ERROR;
-        }
-        drilling_stab = std::max(0.0, std::min(1.0, drilling_stab));
-        drill_mode = ASDShellQ4::DrillingDOF_Elastic;
-        use_drill_stab = true;
-        i++;
+      if (drill_mode != ASDShellQ4::DrillingDOF_Elastic) {
+          opserr << "Error: element ASDShellQ4: -drillingStab and -drillingNL options are mutually exclusive\n";
+          return 0;
+      }
+      if (argc < i + 2) {
+          opserr << "Error: drilling stabilization parameter not provided with -drillingStab option\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i+1], &drilling_stab) != TCL_OK) {
+          opserr << "Error: cannot get drilling stabilization parameter with -drillingStab option\n";
+          return TCL_ERROR;
+      }
+      drilling_stab = std::max(0.0, std::min(1.0, drilling_stab));
+      drill_mode = ASDShellQ4::DrillingDOF_Elastic;
+      use_drill_stab = true;
+      i++;
     }
     else if (strcmp(argv[i], "-drillingNL") == 0) {
-        if (use_drill_stab) {
-            opserr << "Error: element ASDShellQ4: -drillingStab and -drillingNL options are mutually exclusive\n";
-            return 0;
-        }
-        drill_mode = ASDShellQ4::DrillingDOF_NonLinear;
-        drilling_stab = 1.0;
+      if (use_drill_stab) {
+          opserr << "Error: -drillingStab and -drillingNL options are mutually exclusive\n";
+          return 0;
+      }
+      drill_mode = ASDShellQ4::DrillingDOF_NonLinear;
+      drilling_stab = 1.0;
     }
     // else if (strcmp(argv[i], "-local") == 0) {
     //     if (OPS_GetNumRemainingInputArgs() < 3) {
@@ -250,7 +263,6 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
     // }
 
     else
-      // continue;
       positional.insert(i);
   }
 
@@ -293,7 +305,7 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   //
-  //
+  // Create the element
   //
   Element* theElement = nullptr;
   if (nen == 3) {
@@ -366,6 +378,7 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
   return TCL_OK;
 }
 
+
 #include <elementAPI.h>
 Element*
 TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
@@ -408,117 +421,11 @@ TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, int argc, T
 }
 
 #if 0
-
-
-
-Element*
-TclDispatch_newASDShellQ4(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
-{
-  assert(clientData != nullptr);
-
-  Vector3D local_x{};
-  bool corotational = false;
-  bool use_eas = true;
-  bool use_drill_stab = false;
-  double drilling_stab = 0.01;
-  ASDShellQ4::DrillingDOFMode drill_mode = ASDShellQ4::DrillingDOF_Elastic;
-
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
-
-  if (argc < 6) {
-    opserr << "Want: element ASDShellQ4 $tag $iNode $jNode $kNode $lNode "
-              "$secTag <-corotational>";
-    return nullptr;
-  }
-
-  int tag;
-  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << "WARNING invalid element tag\n";
-    return nullptr;
-  }
-  int argi = 3;
-  int nodes[4];
-  for (int i=3; i<7; i++) {
-    if (Tcl_GetInt(interp, argv[i], &nodes[i-3]) != TCL_OK) {
-      opserr << "WARNING invalid node tag \"" << argv[i] << "\" \n";
-      return nullptr;
-    }
-    argi ++;
-  }
-  int stag;
-  if (Tcl_GetInt(interp, argv[argi++], &stag) != TCL_OK) {
-    opserr << "WARNING invalid section tag\n";
-    return nullptr;
-  }
-  for (int i=6; i<argc; i++) {
-      if ((strcmp(argv[i], "-corotational") == 0) ||
-          (strcmp(argv[i], "-Corotational") == 0))
-        corotational = true;
-    
-      else if (strcmp(argv[i], "-noeas") == 0) {
-          use_eas = false;
-      }
-      else if (strcmp(argv[i], "-drillingStab") == 0) {
-          if (drill_mode != ASDShellQ4::DrillingDOF_Elastic) {
-              opserr << "Error: element ASDShellQ4: -drillingStab and -drillingNL options are mutually exclusive\n";
-              return 0;
-          }
-          if (argc < i + 2) {
-              opserr << "Error: drilling stabilization parameter not provided with -drillingStab option\n";
-              return nullptr;
-          }
-          if (Tcl_GetDouble(interp, argv[i+1], &drilling_stab) != TCL_OK) {
-              opserr << "Error: cannot get drilling stabilization parameter with -drillingStab option\n";
-              return nullptr;
-          }
-          drilling_stab = std::max(0.0, std::min(1.0, drilling_stab));
-          drill_mode = ASDShellQ4::DrillingDOF_Elastic;
-          use_drill_stab = true;
-          i++;
-      }
-      else if (strcmp(argv[i], "-drillingNL") == 0) {
-          if (use_drill_stab) {
-              opserr << "Error: element ASDShellQ4: -drillingStab and -drillingNL options are mutually exclusive\n";
-              return 0;
-          }
-          drill_mode = ASDShellQ4::DrillingDOF_NonLinear;
-          drilling_stab = 1.0;
-      }
-      // else if (strcmp(argv[i], "-local") == 0) {
-      //     if (OPS_GetNumRemainingInputArgs() < 3) {
-      //         opserr << "Error: element ASDShellQ4: not enough arguments for -local options (3 components are required)\n";
-      //         return 0;
-      //     }
-      //     for (int i = 0; i < 3; ++i) {
-      //         double local_x_com;
-      //         if (OPS_GetDoubleInput(&numData, &local_x_com) == 0) {
-      //             local_x(i) = local_x_com;
-      //         }
-      //         else {
-      //             opserr << "Error: element ASDShellQ4: cannot get the component " << i + 1 << " for the local X axis\n";
-      //             return 0;
-      //         }
-      //     }
-      // }
-  }
-
-
-  SectionForceDeformation *section = builder->getTypedObject<SectionForceDeformation>(stag);
-  if (section == nullptr)
-    return nullptr;
-
-  return new ASDShellQ4(tag, nodes[0], nodes[1], nodes[2], nodes[3],
-                        section, local_x, 
-                        corotational, use_eas, drill_mode, drilling_stab);
-}
-
-
-
 Element*
 TclDispatch_newShellDKGQ(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (argc < 6) {
     opserr << "Want: element ShellDKGQ $tag $iNode $jNoe $kNode $lNode $secTag";
@@ -543,7 +450,7 @@ int
 TclDispatch_newShellMITC4(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   bool updateBasis = false;
   Element *theElement = nullptr;
@@ -584,7 +491,7 @@ Element*
 TclDispatch_newShellMITC9(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -614,7 +521,7 @@ Element*
 TclDispatch_newShellNLDKGQ(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -644,7 +551,7 @@ Element*
 TclDispatch_newShellDKGT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -687,7 +594,7 @@ Element*
 TclDispatch_newShellMITC4Thermal(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -717,7 +624,7 @@ Element*
 TclDispatch_newShellNLDKGQThermal(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -748,7 +655,7 @@ Element*
 TclDispatch_newShellNLDKGT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 

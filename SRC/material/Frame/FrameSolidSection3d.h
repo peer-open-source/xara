@@ -1,13 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
+//
 //===----------------------------------------------------------------------===//
 //
-// Description: This file contains the class definition for 
-// FrameSolidSection3d.h. FrameSolidSection3d provides the abstraction of a 
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+//===----------------------------------------------------------------------===//
+//
+// Description: FrameSolidSection3d provides the abstraction of a 
 // 3D beam section discretized by fibers. The section stiffness and
 // stress resultants are obtained by summing fiber contributions.
 //
@@ -81,18 +84,7 @@ class FrameSolidSection3d : public FrameSection
     constexpr static int nsr = 12;
     constexpr static int nwm =  3; // Number of warping modes
 
-    struct Tangent {
-      OpenSees::MatrixND<3,3> nn,     nw, nv, 
-                              mn, mm, mw, mv, 
-                                      ww,
-                                          vv;
-      void zero() {
-        nn.zero();            nw.zero(); nv.zero();
-        mn.zero(); mm.zero(); mw.zero(); mv.zero();
-        ww.zero();
-        vv.zero();
-      }
-    } K_pres;
+    FrameSection::Tangent K_pres;
     std::shared_ptr<Tangent> K_init;
   
     int stateDetermination(Tangent& K, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag);

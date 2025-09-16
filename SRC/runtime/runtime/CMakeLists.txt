@@ -8,16 +8,16 @@
 target_sources(OPS_Runtime
     PRIVATE
       BasicAnalysisBuilder.cpp
-      BasicModelBuilder.cpp
+        ModelRegistry.cpp
       TclPackageClassBroker.cpp
 
     PUBLIC
       BasicAnalysisBuilder.h
-      BasicModelBuilder.h
+        ModelRegistry.h
       TclPackageClassBroker.h
 )
 
-add_subdirectory(SectionBuilder)
-add_subdirectory(Renderer)
+add_subdirectory(modeling/section)
+add_subdirectory(legacy/Renderer)
 
 

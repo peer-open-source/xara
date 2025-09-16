@@ -43,7 +43,7 @@ class BFGS: public EquiSolnAlgo
     virtual int sendSelf(int commitTag, Channel &) final;
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
 
-    void Print(OPS_Stream &, int flag) final;    
+    void Print(OPS_Stream &, int flag) const final;    
     
   protected:
     

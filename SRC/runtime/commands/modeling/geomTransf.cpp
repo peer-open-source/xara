@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Description: Geometric transformation command
@@ -15,7 +22,7 @@
 #include <string.h>
 #include <assert.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <LinearCrdTransf2d.h>
 #include <LinearCrdTransf3d.h>
@@ -37,7 +44,7 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
                          const char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
@@ -273,6 +280,8 @@ TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int ar
       }
   }
 
+  transform.vz /= transform.vz.norm();
+
   if (builder->addTaggedObject<FrameTransformBuilder>(transform) != TCL_OK)
     return TCL_ERROR;
   
@@ -293,7 +302,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
 
   // Make sure there is a minimum number of arguments
@@ -323,6 +332,12 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
       return TCL_ERROR;
     }
     CrdTransf* t = new BasicFrameTransf3d(tb->template create<2,6>());
+    if (t == nullptr) {
+      opserr << OpenSees::PromptValueError 
+             << "failed to create transformation with tag " << tag 
+             << "\n";
+      return TCL_ERROR;
+    }
     return builder->addTaggedObject<CrdTransf>(*t);
   }
 
@@ -386,16 +401,17 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
              strcmp(argv[1], "LinearWithPDelta") == 0)
       crdTransf2d = new PDeltaCrdTransf2d(tag, jntOffsetI, jntOffsetJ);
 
-    else if (strcmp(argv[1], "Corotational") == 0 && ndf == 3)
+    else if ((strcmp(argv[1], "Corotational") == 0 || strcmp(argv[1], "Corotational02") == 0) && ndf == 3)
       crdTransf2d = new CorotCrdTransf2d(tag, jntOffsetI, jntOffsetJ);
 
-    else if (strcmp(argv[1], "Corotational") == 0 && ndf == 4)
+    else if ((strcmp(argv[1], "Corotational") == 0 || strcmp(argv[1], "Corotational02") == 0) && ndf == 4)
       crdTransf2d =
           new CorotCrdTransfWarping2d(tag, jntOffsetI, jntOffsetJ);
 
     else {
       opserr << OpenSees::PromptValueError 
-             << "invalid Type: " << argv[1] << "\n";
+             << "invalid Type: " << argv[1]
+             << "\n";
       return TCL_ERROR;
     }
 

@@ -12,14 +12,12 @@
 #include <assert.h>
 #include <string.h>
 #include <OPS_Stream.h>
-#include <G3_Logging.h>
 #include <Domain.h>
 #include <MovableObject.h>
 #include <Element.h>
 #include <Node.h>
 #include <NodeData.h>
 
-#include <BasicModelBuilder.h>
 
 #include <Parameter.h>
 #include <ParameterIter.h>
@@ -30,14 +28,6 @@
 #include <LoadFactorParameter.h>
 #include <LoadPattern.h>
 
-#ifdef _RELIABILITY
-#include <RandomVariable.h>
-#include <RVParameter.h>
-#include <ReliabilityDomain.h>
-
-extern ReliabilityDomain *theReliabilityDomain;
-
-#endif
 
 //  parameter tag <specific parameter args>
 int
@@ -160,6 +150,7 @@ TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     MovableObject *theObject = nullptr;
 
     if (strstr(argv[2], "randomVariable") != 0) {
+      // return TCL_ERROR;
       // REMOVED
     }
 
@@ -204,8 +195,8 @@ TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       theObject = static_cast<MovableObject *>(domain->getNode(nodeTag));
 
       argStart = (theRV) ? 6 : 4;
-
-    } else if (argc > argStart && strstr(argv[argStart], "loadPattern") != 0) {
+    }
+    else if (argc > argStart && strstr(argv[argStart], "loadPattern") != 0) {
 
 
       if (argc < 4) {
@@ -260,13 +251,7 @@ TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
         newParameter = new Parameter(paramTag, 0, 0, 0);
 
       if (theRV != nullptr) {
-#ifdef _RELIABILITY
-        RVParameter *newRVParameter =
-            new RVParameter(paramTag, theRV, newParameter);
-        domain->addParameter(newRVParameter);
-#else
         opserr << "ERROR: Reliability not compiled in\n";
-#endif
       } else {
         domain->addParameter(newParameter);
       }
@@ -339,12 +324,13 @@ getParamTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   Parameter *theParam;
   ParameterIter &paramIter = the_domain->getParameters();
 
-  char buffer[20];
+  Tcl_Obj* result = Tcl_NewListObj(0, nullptr);
 
-  while ((theParam = paramIter()) != nullptr) {
-    sprintf(buffer, "%d ", theParam->getTag());
-    Tcl_AppendResult(interp, buffer, NULL);
-  }
+  while ((theParam = paramIter()) != nullptr)
+    Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(theParam->getTag()));
+
+
+  Tcl_SetObjResult(interp, result);
 
   return TCL_OK;
 }

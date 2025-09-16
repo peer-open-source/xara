@@ -42,6 +42,7 @@ class BeamFiberMaterial: public NDMaterial {
     BeamFiberMaterial(int tag, NDMaterial &theMat);
     BeamFiberMaterial();
     virtual ~BeamFiberMaterial();
+    const char* getClassType() const override { return "BeamFiberMaterial"; }
 
     int setTrialStrain( const Vector &strainFromElement);
     const Vector& getStrain();

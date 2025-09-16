@@ -505,16 +505,16 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
     // check that each subdomain has a loadPattern with a similar tag and class tag
     for (int i=1; i<=numParts; i++) {
       if (i != mainPartition) {
-	Subdomain *theSubdomain = myDomain->getSubdomainPtr(i);
-	LoadPattern *loadPatternCopy = theSubdomain->getLoadPattern(loadPatternTag);
-	if (loadPatternCopy == 0) {
-	  LoadPattern *newLoadPattern = theLoadPattern->getCopy();
-	  if (newLoadPattern == 0) {
-	    opserr << "DomaiPartitioner::partition - out of memory creating LoadPatterns\n";
- 	    return -1;
-	  }
-	  theSubdomain->addLoadPattern(newLoadPattern);
-	}
+        Subdomain *theSubdomain = myDomain->getSubdomainPtr(i);
+        LoadPattern *loadPatternCopy = theSubdomain->getLoadPattern(loadPatternTag);
+        if (loadPatternCopy == 0) {
+          LoadPattern *newLoadPattern = theLoadPattern->getCopy();
+          if (newLoadPattern == 0) {
+            opserr << "DomaiPartitioner::partition - out of memory creating LoadPatterns\n";
+            return -1;
+          }
+          theSubdomain->addLoadPattern(newLoadPattern);
+        }
       }
     }
 
@@ -544,6 +544,7 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
             Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition);
             theLoadPattern->removeNodalLoad(theNodalLoad->getTag());
             if ((theSubdomain->addNodalLoad(theNodalLoad, loadPatternTag)) != true)
+              opserr << "DomainPartitioner::partition() - failed to add Nodal Load\n";
           }
         }
       }      

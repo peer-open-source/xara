@@ -35,12 +35,11 @@
 //
 //  element ElastomericX tag? ni? nj? Fy? alpha? $Gr $Kbulk $D1 $D2 $ts $tr $n < < $x1 $x2 $x3 > $y1 $y2 $y3 > < $kc > < $PhiM > < $ac > < $sDratio > < $m > < $cd > < $tc > < $tag1 > < $tag2 > < $tag3 > < $tag4 >
 //
-#include <BasicModelBuilder.h>
-#include <BasicModelBuilder.h>
 #include <tcl.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <ModelRegistry.h>
 #include <ID.h>
 #include <Vector.h>
 #include <Domain.h>
@@ -60,7 +59,7 @@ TclBasicBuilder_addElastomericBearingBoucWen(
   constexpr static int eleArgStart = 1;
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   Element *theElement = 0;
   int ndm = builder->getNDM();
@@ -553,7 +552,7 @@ TclBasicBuilder_addElastomericBearingPlasticity(
     ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   constexpr static int eleArgStart = 1;
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   assert(builder != nullptr);
 
 
@@ -1024,7 +1023,7 @@ TclBasicBuilder_addElastomericBearingPlasticity(
 }
 
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <stdlib.h>
 #include <assert.h>
@@ -1044,7 +1043,7 @@ TclBasicBuilder_addElastomericBearingUFRP(ClientData clientData, Tcl_Interp *int
   assert(clientData != nullptr);
   constexpr static int eleArgStart = 1;
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   Element *theElement = nullptr;
   int ndm = builder->getNDM();

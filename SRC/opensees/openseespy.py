@@ -1,9 +1,15 @@
-#===----------------------------------------------------------------------===#
+#===----------------------------------------------------------------------===//
 #
-#         STAIRLab -- STructural Artificial Intelligence Laboratory
-#                               Berkeley, CA
+#                                   xara
+#                              https://xara.so
 #
-#===----------------------------------------------------------------------===#
+#===----------------------------------------------------------------------===//
+#
+# Copyright (c) 2025, OpenSees/Xara Developers
+# All rights reserved.  No warranty, explicit or implicit, is provided.
+#
+# This source code is licensed under the BSD 2-Clause License.
+# See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 #
 """
 This module implements the OpenSeesPy interface. Imports can be performed 
@@ -19,6 +25,9 @@ exactly as one would from openseespy, for example:
 import re
 import os
 import json
+import pathlib 
+import tempfile
+import uuid
 from functools import partial
 
 from .tcl import Interpreter, _lift
@@ -131,6 +140,8 @@ class _Surface:
         nx *= self.order
         ny *= self.order
 
+        # setup exterior node locations in the "natural" coordinate system
+        # which is on [-1,1] for x and y
         nat_exterior = [
               [ ( x, -1)  for x in np.linspace(-1, 1, nx+1)[:]],
               [ ( 1,  y)  for y in np.linspace(-1, 1, ny+1)[:]],
@@ -151,6 +162,7 @@ class _Surface:
 #       yield (find_node(exterior_coords[-1]),
 #              find_node(exterior_coords[ 0]))
 
+        # get the number of nodes per element
         nen = self.order + 1
         for i,edge in enumerate(nat_exterior):
 #           print(len(edge), self.split[i%2])
@@ -166,16 +178,24 @@ class OpenSeesPy:
     It encapsulates an instance of Interpreter which implements an
     OpenSees state.
     """
-    def __init__(self, *args, save=False, echo_file=None, **kwds):
-        import sys
-        self._interp  = Interpreter(*args,  **kwds)
+    def __init__(self, *args,
+                 save=False,
+                 echo_file=None,
+                 **kwds):
+
+        self._interp  = Interpreter(*args,
+                                    error_file=pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}", 
+                                    **kwds)
         self._partial = partial
         self._save    = save
+
+
+        # Setup an echo file to capture all Tcl commands
         if echo_file is None and "XARA_ECHO_FILE" in os.environ:
             mode = os.environ.get("XARA_ECHO_MODE", "w+")
             echo_file = open(os.environ["XARA_ECHO_FILE"], mode)
-        self._echo    = echo_file #sys.stdout # echo_file
 
+        self._echo    = echo_file
 
         self._mesh = {"line": {}, "quad": {}}
 
@@ -196,7 +216,16 @@ class OpenSeesPy:
         strings.
 
         """
+        comment = ""
+        if "comment" in kwds:
+            comment = kwds.pop("comment")
+            if isinstance(comment, str):
+                comment = f"; # {comment}"
+            else:
+                raise TypeError(f"Invalid type for comment: {type(comment)}")
+
         cmd = _args_to_cmds(proc_name, *args, _final=_final, **kwds)
+        cmd += comment
 
         #
         #
@@ -255,6 +284,7 @@ class OpenSeesPy:
 
         nl  = '\n'
         ndm = self._invoke_proc("getNDM")
+
         # loop over remaining args to form node coords
         node_args = f"""{{
             {nl.join(" ".join(map(str,args[elem_argc+i*(ndm+1):elem_argc+(i+1)*(ndm+1)])) for i in range(int(len(args[elem_argc:])/(ndm+1))))}
@@ -359,9 +389,11 @@ class OpenSeesPy:
 
         return self._invoke_proc("nodalLoad", *args, "-pattern", pattern, **kwds)
 
+
     def mesh(self, type, tag: int, *args, **kwds):
         if type == "line":
             return self._mesh_line(tag, 2, args[1:3], *args[3:7], args[7:])
+        raise NotImplementedError(f"Mesh type '{type}' not implemented")
 
 
     def _mesh_line(self, tag, numnodes, ndtags, id, ndf:int, meshsize, eleType='', eleArgs=()):
@@ -451,6 +483,13 @@ class Model:
         if len(args) > 0 or len(kwds) > 0:
             self._openseespy._invoke_proc("model", *args, **kwds)
 
+        self._parameters = {
+            
+        }
+
+        # Aug 2025, for xara._analysis
+        self._patterns = {}
+
     def eval(self, *args, **kwds):
         return self._openseespy.eval(*args, **kwds)
 
@@ -537,10 +576,17 @@ class Model:
             gc.collect()
         return A; #.reshape([int(np.sqrt(len(A)))]*2)
 
+    def symbols(self, **kwds):
+        symbols = []
+        for k,v in kwds.items():
+            self.eval(f"set {k} {v}")
+            symbols.append((f"-{k}", f"${k}"))
+        return symbols
+
     def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
         """
         Create a surface mesh of elements in the current model.
-        
+
         Parameters
         ----------
         :param split: tuple of integers

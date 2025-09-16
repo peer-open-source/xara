@@ -47,7 +47,8 @@
 #include <elementAPI.h>
 #include <map>
 
-void* OPS_ADD_RUNTIME_VPV(OPS_TenNodeTetrahedron)
+void* 
+OPS_ADD_RUNTIME_VPV(OPS_TenNodeTetrahedron)
 {
 	if (OPS_GetNumRemainingInputArgs() < 12)
 	{
@@ -175,8 +176,6 @@ TenNodeTetrahedron::TenNodeTetrahedron(int tag,
 	connectedExternalNodes(8) = node9 ;
 	connectedExternalNodes(9) = node10 ;
 
-
-	// opserr << "TenNodeTetrahedron::constructor - material copy\n";
 	for (int i = 0; i < NumGaussPoints; i++ )
 	{
 		materialPointers[i] = theMaterial.getCopy("ThreeDimensional") ;
@@ -193,14 +192,12 @@ TenNodeTetrahedron::TenNodeTetrahedron(int tag,
 	b[1] = b2;
 	b[2] = b3;
 
-	// opserr << "TenNodeTetrahedron::constructor - init disp\n";
 
 	for (int i = 0; i < NumNodes; ++i)
 	{
 		initDisp[i] = Vector(3);
 		initDisp[i].Zero();
 	}
-	// opserr << "TenNodeTetrahedron::constructor - END\n";
 }
 //******************************************************************
 
@@ -208,11 +205,9 @@ TenNodeTetrahedron::TenNodeTetrahedron(int tag,
 //destructor
 TenNodeTetrahedron::~TenNodeTetrahedron( )
 {
-
-	// opserr << "TenNodeTetrahedron::~TenNodeTetrahedron - START\n";
 	for (int i = 0 ; i < NumGaussPoints; i++ ) {
 		delete materialPointers[i] ;
-	} //end for i
+	}
 
 	if (load != 0)
 		delete load;
@@ -220,38 +215,32 @@ TenNodeTetrahedron::~TenNodeTetrahedron( )
 	if (Ki != 0)
 		delete Ki;
 
-	// opserr << "TenNodeTetrahedron::~TenNodeTetrahedron - END\n";
 }
 
 
-//set domain
-void  TenNodeTetrahedron::setDomain( Domain *theDomain )
+void  
+TenNodeTetrahedron::setDomain( Domain *theDomain )
 {
-	// opserr << "TenNodeTetrahedron::setDomain( Domain *theDomain ) tag = " << this->getTag() << endln;
-	int i ;
-
 	//node pointers
-	for ( i = 0; i < NumNodes; i++ )
+	for (int i = 0; i < NumNodes; i++ )
 	{
 		nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 		initDisp[i] = nodePointers[i]->getDisp();
 	}
 
 	this->DomainComponent::setDomain(theDomain);
-
-	// opserr << "TenNodeTetrahedron::setDomain - END\n";
 }
 
 
-//get the number of external nodes
-int  TenNodeTetrahedron::getNumExternalNodes( ) const
+int
+TenNodeTetrahedron::getNumExternalNodes( ) const
 {
 	return NumNodes ;
 }
 
 
-//return connected external nodes
-const ID&  TenNodeTetrahedron::getExternalNodes( )
+const ID&
+TenNodeTetrahedron::getExternalNodes( )
 {
 	return connectedExternalNodes ;
 }
@@ -269,7 +258,8 @@ int  TenNodeTetrahedron::getNumDOF( )
 }
 
 
-int  TenNodeTetrahedron::commitState( )
+int
+TenNodeTetrahedron::commitState( )
 {
 	int success = 0 ;
 
@@ -393,11 +383,7 @@ TenNodeTetrahedron::Print(OPS_Stream &s, int flag)
 
 		s << endln;
 
-		// s << "DEBUGME!" << endln;
-
 		s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << endln;
-
-		// s << "DEBUGME!" << endln;
 
 		s << "Resisting Force (no inertia): " << this->getResistingForce();
 	}
@@ -405,7 +391,8 @@ TenNodeTetrahedron::Print(OPS_Stream &s, int flag)
 
 
 //return stiffness matrix
-const Matrix&  TenNodeTetrahedron::getTangentStiff( )
+const Matrix&
+TenNodeTetrahedron::getTangentStiff( )
 {
 	int tang_flag = 1 ; //get the tangent
 
@@ -415,10 +402,9 @@ const Matrix&  TenNodeTetrahedron::getTangentStiff( )
 	return stiff ;
 }
 
-//return secant matrix
-//const Matrix&  TenNodeTetrahedron::getSecantStiff( )
 
-const Matrix&  TenNodeTetrahedron::getInitialStiff( )
+const Matrix&
+TenNodeTetrahedron::getInitialStiff( )
 
 {
 	if (Ki != 0)
@@ -499,7 +485,6 @@ const Matrix&  TenNodeTetrahedron::getInitialStiff( )
 					for ( q = 0; q < numberNodes; q++ )
 					{
 						Shape[p][q][count] = shp[p][q] ;
-						std::cout << shp[p][q] << std::endl;
 					}
 				} // end for p
 
@@ -532,20 +517,19 @@ const Matrix&  TenNodeTetrahedron::getInitialStiff( )
 		dd *= dvol[i] ;
 
 		jj = 0;
-		for ( j = 0; j < numberNodes; j++ )
+		for (int j = 0; j < numberNodes; j++ )
 		{
 
 			BJ = computeB( j, shp ) ;
 
-			//transpose
-			//BJtran = transpose( nstress, ndf, BJ ) ;
+			// transpose
 			for (p = 0; p < ndf; p++)
 			{
 				for (q = 0; q < nstress; q++)
 				{
 					BJtran(p, q) = BJ(q, p) ;
 				}
-			}//end for p
+			}
 
 			//BJtranD = BJtran * dd ;
 			BJtranD.addMatrixProduct(0.0,  BJtran, dd, 1.0) ;
@@ -584,7 +568,8 @@ const Matrix&  TenNodeTetrahedron::getInitialStiff( )
 
 
 //return mass matrix
-const Matrix&  TenNodeTetrahedron::getMass( )
+const Matrix&
+TenNodeTetrahedron::getMass( )
 {
 	int tangFlag = 1 ;
 
@@ -595,7 +580,8 @@ const Matrix&  TenNodeTetrahedron::getMass( )
 
 
 
-void  TenNodeTetrahedron::zeroLoad( )
+void
+TenNodeTetrahedron::zeroLoad( )
 {
 	if (load != 0)
 		load->Zero();
@@ -733,17 +719,17 @@ const Vector&  TenNodeTetrahedron::getResistingForceIncInertia( )
 void   TenNodeTetrahedron::formInertiaTerms( int tangFlag )
 {
 
-	static const int ndm = 3 ;
+	static constexpr int ndm = 3 ;
 
-	static const int ndf = NumDOFsPerNode ;
+	static constexpr int ndf = NumDOFsPerNode ;
 
-	static const int numberNodes = NumNodes ;
+	static constexpr int numberNodes = NumNodes ;
 
-	static const int numberGauss = NumGaussPoints ;
+	static constexpr int numberGauss = NumGaussPoints ;
 
-	static const int nShape = 4 ;
+	static constexpr int nShape = 4 ;
 
-	static const int massIndex = nShape - 1 ;
+	static constexpr int massIndex = nShape - 1 ;
 
 	double xsj ;  // determinant jacaobian matrix
 
@@ -813,8 +799,8 @@ void   TenNodeTetrahedron::formInertiaTerms( int tangFlag )
 
 
 
-	//gauss loop
-	for ( i = 0; i < numberGauss; i++ )
+	// gauss loop
+	for (int i = 0; i < numberGauss; i++ )
 	{
 
 		//extract shape functions from saved array
@@ -824,7 +810,7 @@ void   TenNodeTetrahedron::formInertiaTerms( int tangFlag )
 			{
 				shp[p][q]  = Shape[p][q][i] ;
 			}
-		} // end for p
+		}
 
 
 		//node loop to compute acceleration
@@ -885,7 +871,6 @@ int
 TenNodeTetrahedron::update(void)
 {
 
-	// opserr << "TenNodeTetrahedron::update -- START" << endln;
 	if (do_update == 0)
 	{
 		stiff.Zero();
@@ -895,7 +880,6 @@ TenNodeTetrahedron::update(void)
 		return 0;
 	}
 
-	// opserr << "TenNodeTetrahedron::update -- 1" << endln;
 
 	//strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31
 
@@ -911,7 +895,6 @@ TenNodeTetrahedron::update(void)
 
 	static const int nShape = 4 ;
 
-	int i, j, k, p, q ;
 	int success ;
 
 	static double volume ;
@@ -950,12 +933,13 @@ TenNodeTetrahedron::update(void)
 
 	int count = 0 ;
 	volume = 0.0 ;
+	int i, j, k, p, q ;
 
 	// for ( i = 0; i < 2; i++ )
 	{
 		// for ( j = 0; j < 2; j++ )
 		{
-			for ( k = 0; k < numberGauss; k++ )
+			for (int k = 0; k < numberGauss; k++ )
 			{
 				
 				gaussPoint[0] = sg[k] ;
@@ -966,9 +950,9 @@ TenNodeTetrahedron::update(void)
 				shp3d( gaussPoint, xsj, shp, xl ) ;
 
 				//save shape functions
-				for ( p = 0; p < nShape; p++ )
+				for (int p = 0; p < nShape; p++ )
 				{
-					for ( q = 0; q < numberNodes; q++ )
+					for (int q = 0; q < numberNodes; q++ )
 					{
 						Shape[p][q][count] = shp[p][q] ;
 					}
@@ -981,28 +965,25 @@ TenNodeTetrahedron::update(void)
 		} //end for j
 	} // end for i
 
-	// opserr << "TenNodeTetrahedron::update -- 4" << endln;
 
-	//gauss loop
-	for ( i = 0; i < numberGauss; i++ )
+	// gauss loop
+	for (int i = 0; i < numberGauss; i++ )
 	{
 
-		// opserr << "TenNodeTetrahedron::update -- 4.1 i = " << i << endln;
 		//extract shape functions from saved array
-		for ( p = 0; p < nShape; p++ )
+		for (int p = 0; p < nShape; p++ )
 		{
 			for ( q = 0; q < numberNodes; q++ )
 			{
 				shp[p][q]  = Shape[p][q][i] ;
 			}
-		} // end for p
+		}
 
 		//zero the strains
 		strain.Zero( ) ;
-		// opserr << "TenNodeTetrahedron::update -- 4.2 i = " << i << endln;
 
 		// j-node loop to compute strain
-		for ( j = 0; j < numberNodes; j++ )  {
+		for (int j = 0; j < numberNodes; j++ )  {
 
 			// opserr << "TenNodeTetrahedron::update -- 4.2.1 j = " << j << endln;
 			/**************** fmk - unwinding for performance
@@ -1058,17 +1039,12 @@ TenNodeTetrahedron::update(void)
 			strain(4) += b41 * ul1 + b42 * ul2;
 			strain(5) += b50 * ul0 + b52 * ul2;
 
-		} // end for j
-		// opserr << "TenNodeTetrahedron::update -- 4.3 i = " << i << endln;
+		}
 
 		//send the strain to the material
 		success = materialPointers[i]->setTrialStrain( strain ) ;
 
-		// opserr << "TenNodeTetrahedron::update -- 4.4 i = " << i << "strain = " << strain << endln;
-
-	} //end for i gauss loop
-	// opserr << "TenNodeTetrahedron::update -- 5" << endln;
-	// opserr << "TenNodeTetrahedron::update -- END" << endln;
+	} // i gauss loop
 	return 0;
 }
 
@@ -1173,10 +1149,6 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 
 				//volume element to also be saved
 				dvol[k] = wg[0] * xsj ;
-				// opserr << "k = " << k << " gp = (" 
-				// << gaussPoint[0] << " " 
-				// << gaussPoint[1] << " " 
-				// << gaussPoint[2] << ") dvol = " << dvol[k] << endln;
 			} //end for k
 		} //end for j
 	} // end for i
@@ -1257,8 +1229,7 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 
 			BJ = computeB( j, shp ) ;
 
-			//transpose
-			//BJtran = transpose( nstress, ndf, BJ ) ;
+			// transpose
 			for (p = 0; p < ndf; p++)
 			{
 				for (q = 0; q < nstress; q++)
@@ -1374,20 +1345,6 @@ TenNodeTetrahedron::computeB( int node, const double shp[4][NumNodes] )
 }
 
 //***********************************************************************
-
-Matrix  TenNodeTetrahedron::transpose( int dim1, int dim2,  const Matrix &M )
-{
-	int i, j ;
-
-	Matrix Mtran( dim2, dim1 ) ;
-
-	for ( i = 0; i < dim1; i++ ) {
-		for ( j = 0; j < dim2; j++ )
-			Mtran(j, i) = M(i, j) ;
-	} // end for i
-
-	return Mtran ;
-}
 
 //**********************************************************************
 

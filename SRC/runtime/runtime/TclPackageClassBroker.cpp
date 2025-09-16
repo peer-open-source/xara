@@ -387,14 +387,8 @@ using namespace OpenSees::Hash::literals;
 #include "LagrangeConstraintHandler.h"
 #include "TransformationConstraintHandler.h"
 
-// dof numberer header files
-#include "DOF_Numberer.h"
-#include "PlainNumberer.h"
 
-// analysis model header files
-#include "AnalysisModel.h"
-
-// equi soln algo header files
+// equi soln algo
 #include "EquiSolnAlgo.h"
 #include "Linear.h"
 #include "NewtonRaphson.h"
@@ -418,13 +412,8 @@ using namespace OpenSees::Hash::literals;
 #include "DistributedDisplacementControl.h"
 #endif
 #include "LoadControl.h"
-// #include "StagedLoadControl.h"
 
 #include "TransientIntegrator.h"
-#include "AlphaOS.h"
-#include "AlphaOS_TP.h"
-#include "AlphaOSGeneralized.h"
-#include "AlphaOSGeneralized_TP.h"
 #include "CentralDifference.h"
 #include "CentralDifferenceAlternative.h"
 #include "CentralDifferenceNoDamping.h"
@@ -449,7 +438,6 @@ using namespace OpenSees::Hash::literals;
 #include "KRAlphaExplicit.h"
 #include "KRAlphaExplicit_TP.h"
 #include "Newmark.h"
-// #include "StagedNewmark.h"
 #include "NewmarkExplicit.h"
 #include "NewmarkHSFixedNumIter.h"
 #include "NewmarkHSIncrLimit.h"
@@ -559,7 +547,7 @@ TclPackageClassBroker::getNewActor(int classTag, Channel *theChannel)
   default:
     opserr << "TclPackageClassBroker::getNewActor - ";
     opserr << " - no ActorType type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -577,7 +565,7 @@ TclPackageClassBroker::getPtrNewPartitionedModelBuilder(Subdomain &theSubdomain,
   default:
     opserr << "TclPackageClassBroker::getPtrNewPartitionedModelBuilder - ";
     opserr << " - no PartitionedModelBuilder type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -595,7 +583,7 @@ TclPackageClassBroker::getPtrNewGraphNumberer(int classTag)
   default:
     opserr << "TclPackageClassBroker::getPtrNewGraphNumberer - ";
     opserr << " - no GraphNumberer type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -723,7 +711,7 @@ TclPackageClassBroker::getNewElement(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewElement - ";
     opserr << " - no Element type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -742,7 +730,7 @@ TclPackageClassBroker::getNewNode(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewNode - ";
     opserr << " - no Node type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -760,7 +748,7 @@ TclPackageClassBroker::getNewMP(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewMP - ";
     opserr << " - no MP_Constraint type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -781,7 +769,7 @@ TclPackageClassBroker::getNewSP(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewSP - ";
     opserr << " - no SP_Constraint type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -796,7 +784,7 @@ TclPackageClassBroker::getNewPC(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewPC - ";
     opserr << " - no Pressure_Constraint type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -831,7 +819,7 @@ TclPackageClassBroker::getNewElementalLoad(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewNodalLoad - ";
     opserr << " - no NodalLoad type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 
@@ -857,7 +845,7 @@ TclPackageClassBroker::getNewCrdTransf(int classTag)
   default:
     opserr << "TclPackageClassBroker::getCrdTransf - ";
     opserr << " - no CrdTransf type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -920,7 +908,7 @@ TclPackageClassBroker::getNewBeamIntegration(int classTag)
   default:
     opserr << "TclPackageClassBroker::getBeamIntegration - ";
     opserr << " - no BeamIntegration type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1144,7 +1132,7 @@ TclPackageClassBroker::getNewUniaxialMaterial(int classTag)
 
     opserr << "TclPackageClassBroker::getNewUniaxialMaterial - ";
     opserr << " - no UniaxialMaterial type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1197,7 +1185,7 @@ TclPackageClassBroker::getNewSection(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewSection - ";
     opserr << " - no section type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1349,7 +1337,7 @@ TclPackageClassBroker::getNewNDMaterial(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewNDMaterial - ";
     opserr << " - no NDMaterial type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1361,7 +1349,7 @@ TclPackageClassBroker::getNewFiber(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewFiber - ";
     opserr << " - no Fiber type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1388,7 +1376,7 @@ TclPackageClassBroker::getNewFrictionModel(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewFrictionModel - ";
     opserr << " - no FrictionModel type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1424,7 +1412,7 @@ TclPackageClassBroker::getNewConvergenceTest(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewConvergenceTest - ";
     opserr << " - no ConvergenceTest type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1454,7 +1442,7 @@ TclPackageClassBroker::getNewLoadPattern(int classTag)
   default:
     opserr << "TclPackageClassBroker::getPtrLoadPattern - ";
     opserr << " - no Load type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1473,7 +1461,7 @@ TclPackageClassBroker::getNewGroundMotion(int classTag)
   default:
     opserr << "TclPackageClassBroker::getPtrGroundMotion - ";
     opserr << " - no Load type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1506,7 +1494,7 @@ TclPackageClassBroker::getNewTimeSeries(int classTag)
   default:
     opserr << "TclPackageClassBroker::getPtrTimeSeries - ";
     opserr << " - no Load type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1521,7 +1509,7 @@ TclPackageClassBroker::getNewTimeSeriesIntegrator(int classTag)
   default:
     opserr << "TclPackageClassBroker::getPtrTimeSeriesIntegrator - ";
     opserr << " - no Load type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1536,7 +1524,7 @@ TclPackageClassBroker::getPtrNewMatrix(int classTag, int noRows, int noCols)
   default:
     opserr << "TclPackageClassBroker::getPtrNewMatrix - ";
     opserr << " - no NodalLoad type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1551,7 +1539,7 @@ TclPackageClassBroker::getPtrNewVector(int classTag, int size)
   default:
     opserr << "TclPackageClassBroker::getPtrNewVector - ";
     opserr << " - no Vector type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1566,7 +1554,7 @@ TclPackageClassBroker::getPtrNewID(int classTag, int size)
   default:
     opserr << "TclPackageClassBroker::getPtrNewID - ";
     opserr << " - no ID type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1608,7 +1596,7 @@ TclPackageClassBroker::getPtrNewStream(int classTag)
   default:
     opserr << "TclPackageClassBroker::getPtrNewStream - ";
     opserr << " - no DataOutputHandler type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1647,7 +1635,7 @@ TclPackageClassBroker::getPtrNewRecorder(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewRecordr - ";
     opserr << " - no Recorder type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1677,7 +1665,7 @@ TclPackageClassBroker::getNewConstraintHandler(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewConstraintHandler - ";
     opserr << " - no ConstraintHandler type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1685,39 +1673,13 @@ TclPackageClassBroker::getNewConstraintHandler(int classTag)
 DOF_Numberer *
 TclPackageClassBroker::getNewNumberer(int classTag)
 {
-  switch (classTag) {
-  case NUMBERER_TAG_DOF_Numberer:
-    return new DOF_Numberer();
-
-  case NUMBERER_TAG_PlainNumberer:
-    return new PlainNumberer();
-
-#ifdef _PARALLEL_PROCESSING
-  case NUMBERER_TAG_ParallelNumberer:
-    return new ParallelNumberer();
-#endif
-
-  default:
-    opserr << "TclPackageClassBroker::getNewConstraintHandler - ";
-    opserr << " - no ConstraintHandler type exists for class tag ";
-    opserr << classTag << endln;
-    return 0;
-  }
+  return nullptr;
 }
 
 AnalysisModel *
 TclPackageClassBroker::getNewAnalysisModel(int classTag)
 {
-  switch (classTag) {
-  case AnaMODEL_TAGS_AnalysisModel:
-    return new AnalysisModel();
-
-  default:
-    opserr << "TclPackageClassBroker::getNewAnalysisModel - ";
-    opserr << " - no AnalysisModel type exists for class tag ";
-    opserr << classTag << endln;
-    return 0;
-  }
+  return nullptr;
 }
 
 EquiSolnAlgo *
@@ -1742,7 +1704,7 @@ TclPackageClassBroker::getNewEquiSolnAlgo(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewEquiSolnAlgo - ";
     opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1754,7 +1716,7 @@ TclPackageClassBroker::getAccelerator(int classTag)
   default:
     opserr << "TclPackageClassBroker::getAccelerator - ";
     opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1778,7 +1740,7 @@ TclPackageClassBroker::getLineSearch(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewEquiSolnAlgo - ";
     opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1793,7 +1755,7 @@ TclPackageClassBroker::getNewDomainDecompAlgo(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewDomainDecompAlgo - ";
     opserr << " - no DomainDecompAlgo type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1819,7 +1781,7 @@ TclPackageClassBroker::getNewStaticIntegrator(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewStaticIntegrator - ";
     opserr << " - no StaticIntegrator type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1828,17 +1790,14 @@ TransientIntegrator *
 TclPackageClassBroker::getNewTransientIntegrator(int classTag)
 {
   switch (classTag) {
-  case INTEGRATOR_TAGS_AlphaOS:
-    return new AlphaOS();
-
-  case INTEGRATOR_TAGS_AlphaOS_TP:
-    return new AlphaOS_TP();
-
-  case INTEGRATOR_TAGS_AlphaOSGeneralized:
-    return new AlphaOSGeneralized();
-
-  case INTEGRATOR_TAGS_AlphaOSGeneralized_TP:
-    return new AlphaOSGeneralized_TP();
+  // case INTEGRATOR_TAGS_AlphaOS:
+  //   return new AlphaOS();
+  // case INTEGRATOR_TAGS_AlphaOS_TP:
+  //   return new AlphaOS_TP();
+  // case INTEGRATOR_TAGS_AlphaOSGeneralized:
+  //   return new AlphaOSGeneralized();
+  // case INTEGRATOR_TAGS_AlphaOSGeneralized_TP:
+  //   return new AlphaOSGeneralized_TP();
 
   case INTEGRATOR_TAGS_CentralDifference:
     return new CentralDifference(); // must recvSelf
@@ -1936,7 +1895,7 @@ TclPackageClassBroker::getNewTransientIntegrator(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewTransientIntegrator - ";
     opserr << " - no TransientIntegrator type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -1962,7 +1921,7 @@ TclPackageClassBroker::getNewIncrementalIntegrator(int classTag)
   default:
     opserr << "TclPackageClassBroker::getNewIncrementalIntegrator - ";
     opserr << " - no IncrementalIntegrator type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }
@@ -2022,7 +1981,7 @@ TclPackageClassBroker::getNewLinearSOE(int classTagSOE)
   default:
     opserr << "TclPackageClassBroker::getNewLinearSOE - ";
     opserr << " - no LinearSOE type exists for class tag ";
-    opserr << classTagSOE << endln;
+    opserr << classTagSOE << "\n";
     return 0;
   }
 }
@@ -2030,24 +1989,19 @@ TclPackageClassBroker::getNewLinearSOE(int classTagSOE)
 EigenSOE *
 TclPackageClassBroker::getNewEigenSOE(int classTagSOE)
 {
-  EigenSOE *theSOE = 0;
 
   switch (classTagSOE) {
-
-  case EigenSOE_TAGS_ArpackSOE:
-    theSOE = new ArpackSOE();
-    return theSOE;
 
   default:
     opserr << "TclPackageClassBroker::getNewEigenSOE - ";
     opserr << " - no EigenSOE type exists for class tag ";
-    opserr << classTagSOE << endln;
+    opserr << classTagSOE << "\n";
     return 0;
   }
 }
 
 DomainSolver *
-TclPackageClassBroker::getNewDomainSolver(void)
+TclPackageClassBroker::getNewDomainSolver()
 {
   return lastDomainSolver;
 }
@@ -2069,14 +2023,14 @@ TclPackageClassBroker::getPtrNewDDLinearSOE(int classTagSOE,
     } else {
       opserr << "TclPackageClassBroker::getNewLinearSOE - ";
       opserr << " - no ProfileSPD Domain Solver type exists for class tag ";
-      opserr << classTagDDSolver << endln;
+      opserr << classTagDDSolver << "\n";
       return 0;
     }
 
   default:
     opserr << "TclPackageClassBroker::getNewLinearSOE - ";
     opserr << " - no LinearSOE type exists for class tag ";
-    opserr << classTagSOE << endln;
+    opserr << classTagSOE << "\n";
     return 0;
   }
 }
@@ -2100,7 +2054,7 @@ TclPackageClassBroker::getNewDomainDecompAnalysis(int classTag,
   default:
     opserr << "TclPackageClassBroker::getNewDomainDecompAnalysis ";
     opserr << " - no DomainDecompAnalysis type exists for class tag ";
-    opserr << classTag << endln;
+    opserr << classTag << "\n";
     return 0;
   }
 }

@@ -13,16 +13,10 @@
 // by the given K and M, find the corresponding eigen value and eigen
 // vectors.
 //
-// This class is inheritanted from the base class of SystemOfEqn
-// which was created by fmk (Frank).
 
 
 #ifndef EigenSOE_h
 #define EigenSOE_h
-
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <MovableObject.h>
 
@@ -37,7 +31,7 @@ class LinearSOE;
 class EigenSOE : public MovableObject
 {
   public:
-     EigenSOE(EigenSolver &theSolver, int classTag);
+     EigenSOE(EigenSolver &, int classTag);
      EigenSOE(int classTag);
      virtual ~EigenSOE();
      
@@ -50,19 +44,19 @@ class EigenSOE : public MovableObject
      virtual int addM(const Matrix &, const ID &, double fact = 1.0) = 0;
 
      virtual int setSize(Graph &theGraph) = 0;
-     virtual void zeroA(void) = 0;
-     virtual void zeroM(void) = 0;
+     virtual void zeroA() = 0;
+     virtual void zeroM() = 0;
 
      // methods to get the eigenvectors and eigenvalues
      virtual const Vector &getEigenvector(int mode);
      virtual double getEigenvalue(int mode);          
-     
+
   protected:
-     virtual int setSolver(EigenSolver &newSolver);
-     EigenSolver *getSolver(void);
-     EigenSolver *theSolver;
+     virtual int setSolver(EigenSolver &);
+     EigenSolver *getSolver();
      
-  private:     
+  private:
+     EigenSolver *theSolver;
      
 };
 

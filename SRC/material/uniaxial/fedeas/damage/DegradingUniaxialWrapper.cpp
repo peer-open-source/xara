@@ -6,7 +6,7 @@
 #include <FEM_ObjectBroker.h>
 
 #include <OPS_Globals.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #ifdef OPS_USE_RUNTIME
 #  include <Parsing.h>
@@ -25,7 +25,7 @@ DegradingUniaxialWrapper::parseNew(Tcl_Interp* interp, void *cd, int argc,
   // Pointer to the uniaxial material that will be returned
   DegradingUniaxialWrapper *theMaterial = nullptr;
   UniaxialMaterial *theWrappedMaterial  = nullptr;
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(cd);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(cd);
 
   int tags[2];
 

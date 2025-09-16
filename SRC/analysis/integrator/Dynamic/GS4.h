@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -16,6 +22,7 @@
 
 #include <TransientIntegrator.h>
 #include <Vector.h>
+#include <array>
 
 class DOF_Group;
 class FE_Element;
@@ -30,38 +37,48 @@ public:
         bool aflag=false);
 
     ~GS4();
-    
+
+    //
+    // Integrator
+    //
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
-    virtual int formEleTangent(FE_Element *theEle)  final;
-    virtual int formNodTangent(DOF_Group *theDof)   final;
-    virtual int formEleResidual(FE_Element* theEle) final;
-    virtual int formNodUnbalance(DOF_Group* theDof) final;
+    int formEleTangent(FE_Element*)  final;
+    int formNodTangent(DOF_Group*)   final;
+    int formEleResidual(FE_Element*) final;
+    int formNodUnbalance(DOF_Group*) final;
 
-    int domainChanged();
-    int newStep(double deltaT);
-    int revertToLastStep();
-    virtual int update(const Vector &deltaU);
+    //
+    // IncrementalIntegrator
+    //
+
+    // Sensitivity
+    int formSensitivityRHS(int gradNum);
+    int updateGradient (const Vector &v, int gradNum, int numGrads);
+    int commitGradient (int gradNum, int numGrads) {return -1;};
+    int computeSensitivities();
+
+    //
+    // TransientIntegrator
+    //
+    int newStep(double deltaT) final;
+    //
+    int domainChanged() final;
+    //
+    // IncrementalIntegrator
+    //
+    int revertToLastStep() final;
+    int revertToStart();
+    int update(const Vector &deltaU) final;
 
     double getCFactor();
-
     const Vector &getVel();
 
     // MovableObject
-    virtual int sendSelf(int commitTag, Channel &) override;
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
     
-    void Print(OPS_Stream &s, int flag) final;        
-    
-    // Sensitivity
-    int revertToStart();
-    int formSensitivityRHS(int gradNum);
-    int formIndependentSensitivityRHS();
-    int saveSensitivity   (const Vector &v, int gradNum, int numGrads);
-    int commitSensitivity (int gradNum, int numGrads);  
-    int computeSensitivities();
-
-protected:
+    void Print(OPS_Stream &, int flag) final;
 
 private:
     enum Unknown {
@@ -69,13 +86,24 @@ private:
       Velocity=2,
       Acceleration=3
     };
+
+    struct GammaScheme {
+      double g[3];
+      double G[3][3];
+    } G1, G2;
+
     int unknown;                    // flag indicating whether displ(1), vel(2) or accel(3) increments
     int unknown_initialize = 1;     //
 
+    static int setConstants(int flag,
+                            double dt, double gamma, double beta,
+                            const std::array<double,3> &alpha,
+                            GammaScheme& scheme);
     double gamma;
     double beta;
     double alphaF;
     double alphaM;
+    std::array<double,3> alpha;
 
     int step;                       // track step number to initialize accelerations
     double dt;                      // store time step to determine step number
@@ -91,8 +119,5 @@ private:
     Vector *dAa;
     Vector *dVa;
     int assemblyFlag;
-    Vector independentRHS;
     Vector dUn, dVn, dAn;
 };
-
-#endif

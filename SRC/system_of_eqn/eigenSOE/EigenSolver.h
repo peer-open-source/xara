@@ -15,11 +15,10 @@
 
 #ifndef EigenSolver_h
 #define EigenSolver_h
-#include <Logging.h> // TODO
 #include <MovableObject.h>
-#include <Vector.h>
 
 class EigenSOE;
+class Vector;
 
 class EigenSolver : public MovableObject
 {
@@ -34,7 +33,6 @@ class EigenSolver : public MovableObject
      virtual int setSize() = 0;
      
   private:
-
 };
 
 #endif

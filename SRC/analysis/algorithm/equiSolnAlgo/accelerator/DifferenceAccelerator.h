@@ -45,7 +45,7 @@ class DifferenceAccelerator : public Accelerator
                  IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   
-  void Print(OPS_Stream &, int flag) final;
+  void Print(OPS_Stream &, int flag) const final;
   
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, 

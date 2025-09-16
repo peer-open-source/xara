@@ -18,23 +18,18 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2008-04-11 23:37:44 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/integrator/DistributedDisplacementControl.cpp,v $
-                                                                        
-// Written: fmk 
-// Created: 07/98
 //
 // Description: This file contains the class definition for DistributedDisplacementControl.
 // DistributedDisplacementControl is an algorithmic class for performing a static analysis
 // using the arc length scheme, that is within a load step the following
-// constraint is enforced: dU^TdU + alpha^2*dLambda^2 = DistributedDisplacementControl^2
+// constraint is enforced: 
+//      dU^TdU + alpha^2*dLambda^2 = DistributedDisplacementControl^2
 // where dU is change in nodal displacements for step, dLambda is
 // change in applied load and DistributedDisplacementControl is a control parameter.
 //
-// What: "@(#) DistributedDisplacementControl.C, revA"
-
+// Written: fmk 
+// Created: 07/98
+//
 #include <DistributedDisplacementControl.h>
 #include <AnalysisModel.h>
 #include <LinearSOE.h>
@@ -85,31 +80,30 @@ DistributedDisplacementControl::DistributedDisplacementControl()
 
 DistributedDisplacementControl::~DistributedDisplacementControl()
 {
-    // delete any vector object created
-    if (deltaUhat != 0)
-	delete deltaUhat;
-    if (deltaU != 0)
-	delete deltaU;
-    if (deltaUstep != 0)
-	delete deltaUstep;
-    if (deltaUbar != 0)
-	delete deltaUbar;
-    if (phat != 0)
-	delete phat;
-    if (theChannels != 0)
-      delete [] theChannels;
+  if (deltaUhat != 0)
+    delete deltaUhat;
+  if (deltaU != 0)
+    delete deltaU;
+  if (deltaUstep != 0)
+	  delete deltaUstep;
+  if (deltaUbar != 0)
+	  delete deltaUbar;
+  if (phat != 0)
+    delete phat;
+  if (theChannels != 0)
+    delete [] theChannels;
 }
 
 int
-DistributedDisplacementControl::newStep(void)
+DistributedDisplacementControl::newStep()
 {
     // get pointers to AnalysisModel and LinearSOE
     AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();    
     if (theModel == 0 || theLinSOE == 0) {
-	opserr << "WARNING DistributedDisplacementControl::newStep() ";
-	opserr << "No AnalysisModel or LinearSOE has been set\n";
-	return -1;
+      opserr << "WARNING DistributedDisplacementControl::newStep() ";
+      opserr << "No AnalysisModel or LinearSOE has been set\n";
+      return -1;
     }
 
 
@@ -129,7 +123,6 @@ DistributedDisplacementControl::newStep(void)
     this->formTangent();
 
 
-
     if (processID == 0)
       theLinSOE->setB(*phat);
     else
@@ -141,11 +134,10 @@ DistributedDisplacementControl::newStep(void)
 
     double dUahat = dUhat(theDofID);
     if (dUahat == 0.0) {
-	opserr << "WARNING DistributedDisplacementControl::newStep() ";
-	opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
-	return -1;
+      opserr << "WARNING DistributedDisplacementControl::newStep() ";
+      opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
+      return -1;
     }
-
 
     // determine delta lambda(1) == dlambda    
     double dLambda = theIncrement/dUahat;
@@ -238,7 +230,7 @@ DistributedDisplacementControl::update(const Vector &dU)
 
 
 int 
-DistributedDisplacementControl::domainChanged(void)
+DistributedDisplacementControl::domainChanged()
 {
     // we first create the Vectors needed
     AnalysisModel *theModel = this->getAnalysisModel();
@@ -255,28 +247,21 @@ DistributedDisplacementControl::domainChanged(void)
 
     // first we determine the id of the nodal dof
     Domain *theDomain = theModel->getDomainPtr();
-    if (theDomain == 0) {
-      opserr << "BUG WARNING DistributedDisplacementControl::domainChanged() - no Domain associated!!";
-      return -1;
-    }
 
     theDofID = -1;
     Node *theNodePtr = theDomain->getNode(theNode);
     if (theNodePtr != 0) {
       DOF_Group *theGroup = theNodePtr->getDOF_GroupPtr();
-      if (theGroup == 0) {
-	opserr << "BUG DistributedDisplacementControl::domainChanged() - no DOF_Group associated with the node!!\n";
-	return -1;
-      }
+      assert(theGroup != 0);
       const ID &theID = theGroup->getID();
       if (theDof < 0 || theDof >= theID.Size()) {
-	opserr << "DistributedDisplacementControl::domainChanged() - not a valid dof " << theDof << endln;
-	return -1;
+        opserr << "DistributedDisplacementControl::domainChanged() - not a valid dof " << theDof << endln;
+        return -1;
       }
       theDofID = theID(theDof);
       if (theDofID < 0) {
-	opserr << "DistributedDisplacementControl::domainChanged() - constrained dof not a valid a dof\n";;
-	return -1;
+        opserr << "DistributedDisplacementControl::domainChanged() - constrained dof not a valid a dof\n";;
+        return -1;
       }
     }
 

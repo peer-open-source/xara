@@ -104,7 +104,8 @@ StagedLoadControl::StagedLoadControl(double dLambda, int numIncr, double min, do
 }
 
 
-int StagedLoadControl::formTangent(int statFlag)
+int
+StagedLoadControl::formTangent(int statFlag)
 {
 
 #ifdef _PARALLEL_PROCESSING

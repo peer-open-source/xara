@@ -5,7 +5,7 @@
 // Modified by: LMS 
 
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 
 #define PI (3.14159265)
 
@@ -126,7 +126,7 @@ FiberSection2dInt::FiberSection2dInt(int tag, int num, Fiber **fibers, int Hnum,
       ycount += 1; 
     }
     else {
-      if (fabs(YLoc[ycount-1] - y) >= DBL_EPSILON) {
+      if (std::fabs(YLoc[ycount-1] - y) >= DBL_EPSILON) {
         YLoc[ycount] = y;
         ycount += 1;
       }
@@ -306,7 +306,7 @@ FiberSection2dInt::addFiber(UniaxialMaterial &theMat, const double Area, const d
       ycount += 1; 
     }
     else {
-      if (fabs(YLoc[ycount-1] - y) >= DBL_EPSILON) {
+      if (std::fabs(YLoc[ycount-1] - y) >= DBL_EPSILON) {
         YLoc[ycount] = y;
         ycount += 1;
       }
@@ -620,7 +620,7 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
     double ey=d0 + StripCenterLoc(jj)*d1;
     double gamma=d2;
 
-    if ((fabs(gamma) <= DBL_EPSILON) && (fabs(ey) <= DBL_EPSILON) ) {
+    if ((std::fabs(gamma) <= DBL_EPSILON) && (std::fabs(ey) <= DBL_EPSILON) ) {
       *ks = this->getInitialTangent();
       sData[0] = 0.0;
       sData[1] = 0.0;
@@ -667,7 +667,7 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
 
       root = sqrt(pow(-ex + ey,2) + pow(gamma,2));
 
-      if (fabs(gamma) <= DBL_EPSILON) {
+      if (std::fabs(gamma) <= DBL_EPSILON) {
     if ((ey - ex)*eCommit(2) > 0) {
       alfa[jj]=PI/2.0;
       e1 = ex; 
@@ -682,7 +682,7 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
       else {
     alfa[jj]=atan((-ex + ey)/gamma + sqrt(pow((-ex + ey)/gamma,2) + 1));
 
-    if (fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON) {
+    if (std::fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON) {
       e1 = ex; 
       e2 = ey; 
     }
@@ -801,8 +801,10 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
       // ex iteration...
 
       double signGamma;
-      if (fabs(gamma) <= DBL_EPSILON) signGamma=1.0;
-      else signGamma=fabs(gamma)/gamma;
+      if (std::fabs(gamma) <= DBL_EPSILON)
+        signGamma=1.0;
+      else
+        signGamma= std::fabs(gamma)/gamma;
 
       double de2 = (1.0 - (-ex + ey)*signGamma/root)*0.5;
       double de1 = (1.0 + (-ex + ey)*signGamma/root)*0.5;
@@ -814,9 +816,10 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
 
 
       // Check the residual
-      double err = fabs(fx);
+      double err = std::fabs(fx);
 
-      if (err < tol) break;
+      if (err < tol)
+        break;
 
       if (fx>0.0) XPrevPos=ex;
       else XPrevNeg=ex;
@@ -847,7 +850,7 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
     double dSydGamma;
     double dSydEy;
 
-    if ((fabs(gamma) <= DBL_EPSILON)||(fabs(alfa[jj]) <= DBL_EPSILON)||(fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON)) {
+    if ((std::fabs(gamma) <= DBL_EPSILON)||(std::fabs(alfa[jj]) <= DBL_EPSILON)||(std::fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON)) {
       dTdEy = 0;
       dTdGamma = (-Fcu1F + Fcu2F)/(2.*sqrt(pow(ex - ey,2)));
       dSydGamma = 0;
@@ -1222,7 +1225,7 @@ for (int jj = 0; jj < NStrip; jj++) {
      double e2;
      double root = sqrt(pow(-ex + ey,2) + pow(gamma,2));
 
-     if (fabs(alfa[jj] - PI/2) <= DBL_EPSILON) {
+     if (std::fabs(alfa[jj] - PI/2) <= DBL_EPSILON) {
          e1 = ex; 
          e2 = ey; 
      }
@@ -1311,7 +1314,7 @@ for (int jj = 0; jj < NStrip; jj++) {
     double dSydGamma;
     double dSydEy;
 
-    if ((fabs(gamma) <= DBL_EPSILON)||(fabs(alfa[jj]) <= DBL_EPSILON)||(fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON)) {
+    if ((std::fabs(gamma) <= DBL_EPSILON)||(std::fabs(alfa[jj]) <= DBL_EPSILON)||(std::fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON)) {
       dTdEy = 0;
       dTdGamma = (-Fcu1F + Fcu2F)/(2.*sqrt(pow(ex - ey,2)));
       dSydGamma = 0;
@@ -1871,7 +1874,7 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
         if (matTag == theMaterials1[j]->getTag()) {
           ySearch = -matData[2*j];
           dy = ySearch-yCoord;
-          closestDist = fabs(dy);
+          closestDist = std::fabs(dy);
           key = j;
           break;
         }
@@ -1881,7 +1884,7 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
         if (matTag == theMaterials1[j]->getTag()) {
           ySearch = -matData[2*j];
           dy = ySearch-yCoord;
-          distance = fabs(dy);
+          distance = std::fabs(dy);
           if (distance < closestDist) {
             closestDist = distance;
             key = j;
@@ -1897,12 +1900,12 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
       double distance;
       ySearch = -matData[0];
       dy = ySearch-yCoord;
-      closestDist = fabs(dy);
+      closestDist = std::fabs(dy);
       key = 0;
       for (int j = 1; j < numFibers; j++) {
         ySearch = -matData[2*j];
         dy = ySearch-yCoord;
-        distance = fabs(dy);
+        distance = std::fabs(dy);
         if (distance < closestDist) {
           closestDist = distance;
           key = j;
@@ -1942,7 +1945,7 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
         if (matTag == theMaterials2[j]->getTag()) {
           ySearch = -matData[2*j];
           dy = ySearch-yCoord;
-          closestDist = fabs(dy);
+          closestDist = std::fabs(dy);
           key = j;
           break;
         }
@@ -1952,7 +1955,7 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
         if (matTag == theMaterials2[j]->getTag()) {
           ySearch = -matData[2*j];
           dy = ySearch-yCoord;
-          distance = fabs(dy);
+          distance = std::fabs(dy);
           if (distance < closestDist) {
             closestDist = distance;
             key = j;
@@ -1968,12 +1971,12 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
       double distance;
       ySearch = -matData[0];
       dy = ySearch-yCoord;
-      closestDist = fabs(dy);
+      closestDist = std::fabs(dy);
       key = 0;
       for (int j = 1; j < numFibers; j++) {
         ySearch = -matData[2*j];
         dy = ySearch-yCoord;
-        distance = fabs(dy);
+        distance = std::fabs(dy);
         if (distance < closestDist) {
           closestDist = distance;
           key = j;
@@ -2016,7 +2019,7 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
         if (matTag == theHMaterials[j * numHFibers + HFibOut]->getTag()) {
           ySearch = -matHData[2*j];
           dy = ySearch-yCoord;
-          closestDist = fabs(dy);
+          closestDist = std::fabs(dy);
           key = j;
           break;
         }
@@ -2026,7 +2029,7 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
         if (matTag == theHMaterials[j * numHFibers + HFibOut]->getTag()) {
           ySearch = -matHData[2*j];
           dy = ySearch-yCoord;
-          distance = fabs(dy);
+          distance = std::fabs(dy);
           if (distance < closestDist) {
             closestDist = distance;
             key = j;
@@ -2042,12 +2045,12 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
       double distance;
       ySearch = -matHData[0];
       dy = ySearch-yCoord;
-      closestDist = fabs(dy);
+      closestDist = std::fabs(dy);
       key = 0;
       for (int j = 1; j < numHFibers; j++) {
         ySearch = -matHData[2*j];
         dy = ySearch-yCoord;
-        distance = fabs(dy);
+        distance = std::fabs(dy);
         if (distance < closestDist) {
           closestDist = distance;
           key = j;

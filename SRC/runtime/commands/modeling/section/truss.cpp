@@ -1,9 +1,19 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+// Description: This file implements a command to add a uniaxial section.
 // Written: cmp
 //
 #include <set>
@@ -12,7 +22,7 @@
 #include <Parsing.h>
 #include <Logging.h>
 #include <ArgumentTracker.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <UniaxialMaterial.h>
 #include <SectionAggregator.h>
 
@@ -21,12 +31,11 @@ int
 TclCommand_addUniaxialSection(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
-  // section Uniaxial tag? 1DTag? code?
+  // section Uniaxial tag? material? code?
   if (argc < 5) {
     opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: section Uniaxial tag? 1DTag? code?" << endln;
     return TCL_ERROR;
   }
   
@@ -44,9 +53,8 @@ TclCommand_addUniaxialSection(ClientData clientData, Tcl_Interp *interp,
 
   
   UniaxialMaterial* material = builder->getTypedObject<UniaxialMaterial>(mat);
-  if (material == nullptr) {
+  if (material == nullptr)
     return TCL_ERROR;
-  }
   
   UniaxialMaterial *theMats[1] = {material};
 
@@ -82,7 +90,7 @@ int
 TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   enum class Positions : int {
     Material, Area, End
   };

@@ -34,7 +34,6 @@
 #include <DOF_Group.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
-#include <Integrator.h>
 
 
 #ifdef _WIN32
@@ -65,29 +64,29 @@ FullGenEigenSolver::FullGenEigenSolver()
 
 FullGenEigenSolver::~FullGenEigenSolver()
 {
-    if (eigenvalue != 0)
-        delete [] eigenvalue;
-    if (eigenvector != 0)
-        delete [] eigenvector;
-    if (sortingID != 0)
-        delete [] sortingID;
-    if (eigenV != 0)
-        delete eigenV;
+  if (eigenvalue != 0)
+    delete [] eigenvalue;
+  if (eigenvector != 0)
+    delete [] eigenvector;
+  if (sortingID != 0)
+    delete [] sortingID;
+  if (eigenV != 0)
+    delete eigenV;
 }
 
 
 int FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
 {
-  if (generalized == false) {
-    opserr << "FullGenEigenSolver::solve() - only solves generalized problem\n";
-    return -1;
-  }
-  
-  if (theSOE == 0) {
-    opserr << "FullGenEigenSolver::solve()- "
-	   << " No EigenSOE object has been set yet\n";
-    return -1;
-  }
+    if (generalized == false) {
+        opserr << "FullGenEigenSolver::solve() - only solves generalized problem\n";
+        return -1;
+    }
+    
+    if (theSOE == 0) {
+        opserr << "FullGenEigenSolver::solve()- "
+        << " No EigenSOE object has been set yet\n";
+        return -1;
+    }
 
     // check for quick return
     if (nEigen < 1) {
@@ -126,7 +125,7 @@ int FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
     double *alphaI = new double [n];
     double *beta   = new double [n];
 
-    if (eigenvalue != 0)
+    if (eigenvalue != nullptr)
         delete [] eigenvalue;
 
     eigenvalue = new double [n];
@@ -285,7 +284,8 @@ const Vector& FullGenEigenSolver::getEigenvector(int mode)
 }
 
 
-double FullGenEigenSolver::getEigenvalue(int mode)
+double
+FullGenEigenSolver::getEigenvalue(int mode)
 {
     if (mode <= 0 || mode > numEigen) {
         opserr << "FullGenEigenSolver::getEigenvalue() - mode " 
@@ -304,7 +304,8 @@ double FullGenEigenSolver::getEigenvalue(int mode)
 }
 
 
-int FullGenEigenSolver::sendSelf(int commitTag, Channel &theChannel)
+int
+FullGenEigenSolver::sendSelf(int commitTag, Channel &theChannel)
 {
     return 0;
 }
@@ -317,7 +318,8 @@ int FullGenEigenSolver::recvSelf(int commitTag, Channel &theChannel,
 }
 
 
-void FullGenEigenSolver::sort(int length, double *x, int *id)
+void
+FullGenEigenSolver::sort(int length, double *x, int *id)
 {
     // this is an implementation of shell sort that
     // additionally keeps track of the sorting order

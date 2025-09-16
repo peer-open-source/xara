@@ -117,7 +117,7 @@ Response * NullEvolution::setResponse(char * * argv, int argc, OPS_Stream &outpu
 }
 
 /** No descriptions */
-int NullEvolution::commitState(int status)
+int NullEvolution::commitState()
 {
 	return 0;
 }

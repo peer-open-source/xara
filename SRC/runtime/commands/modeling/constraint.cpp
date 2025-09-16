@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 #include <tcl.h>
@@ -14,7 +21,7 @@
 #include <Domain.h>
 #include <Parsing.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <runtimeAPI.h>
 
@@ -34,7 +41,7 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
                             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *theTclDomain = ((BasicModelBuilder*)clientData)->getDomain();
+  Domain *theTclDomain = ((ModelRegistry*)clientData)->getDomain();
 
 
   if (argc < 3) {
@@ -150,8 +157,7 @@ TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
   ID fixity(ndf);
   for (int i=0; i<ndf; ++i) {
     if (Tcl_GetInt(interp, argv[2+i], &fixity(i)) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid fixity " << i+1 << " - fixX " << xLoc;
-      opserr << " " << ndf << " fixities\n";
+      opserr << OpenSees::PromptValueError << "invalid fixity " << i+1 << "\n";
       return TCL_ERROR;
     }
   }
@@ -162,14 +168,16 @@ TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
   if (argc >= (4 + ndf)) {
     if (strcmp(argv[2+ndf],"-tol") == 0)
     if (Tcl_GetDouble(interp, argv[3+ndf], &tol) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid tol specified - fixX " << xLoc << endln;
+      opserr << OpenSees::PromptValueError 
+             << "invalid tol specified - fixX " << xLoc 
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   }
 
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   // TODO: Why not add SP to Domain directly?
   builder->addSP_Constraint(0, xLoc, fixity, tol);
 
@@ -181,7 +189,7 @@ TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
                                    Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   int ndf = argc - 2;
   if (strcmp(argv[argc-2],"-tol") == 0)
@@ -216,7 +224,7 @@ TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
   if (argc >= (4 + ndf)) {
     if (strcmp(argv[2+ndf],"-tol") == 0)
       if (Tcl_GetDouble(interp, argv[3+ndf], &tol) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid tol specified - fixY " << yLoc << endln;
+        opserr << OpenSees::PromptValueError << "invalid tol specified - fixY " << yLoc << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
   }
@@ -232,7 +240,7 @@ TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
 {
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   int ndf = argc - 2;
   if (strcmp(argv[argc-2],"-tol") == 0)
@@ -267,7 +275,9 @@ TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
   if (argc >= (4 + ndf)) {
     if (strcmp(argv[2+ndf],"-tol") == 0)
       if (Tcl_GetDouble(interp, argv[3+ndf], &tol) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid tol specified - fixZ " << zLoc << endln;
+        opserr << OpenSees::PromptValueError 
+               << "invalid tol specified - fixZ " << zLoc 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
   }
@@ -284,20 +294,22 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                       TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
 
   if (argc > 1 && (strcmp(argv[1], "remove") == 0)) {
     if (argc < 3) {
-      opserr << OpenSees::PromptValueError << "want - remove sp spTag? -or- remove "
+      opserr << OpenSees::PromptValueError 
+             << "want - remove sp spTag? -or- remove "
                 "sp nodeTag? dofTag? <patternTag?>\n";
       return TCL_ERROR;
     }
     int tag;
     if (argc == 3) {
       if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "remove sp tag? failed to read tag: " << argv[2]
-               << endln;
+        opserr << OpenSees::PromptValueError 
+               << "remove sp tag? failed to read tag: " << argv[2]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       SP_Constraint *theSPconstraint = theTclDomain->removeSP_Constraint(tag);
@@ -310,19 +322,19 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
       if (Tcl_GetInt(interp, argv[2], &nodeTag) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "remove sp tag? failed to read node tag: " << argv[2]
-               << endln;
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[3], &dofTag) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "remove sp tag? failed to read dof tag: " << argv[3]
-               << endln;
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
       if (argc == 5) {
         if (Tcl_GetInt(interp, argv[4], &patternTag) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "remove sp tag? failed to read pattern tag: "
-                 << argv[4] << endln;
+                 << argv[4] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
       }
@@ -338,7 +350,8 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   // check number of arguments
   if (argc < 4) {
-    opserr << OpenSees::PromptValueError << "bad command - want: sp nodeId dofID value";
+    opserr << OpenSees::PromptValueError
+           << "bad command - want: sp nodeId dofID value";
     return TCL_ERROR;
   }
 
@@ -349,7 +362,7 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1] << " -  sp nodeId dofID value\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[2], &dofId) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[2], &dofId) != TCL_OK || dofId < 1) {
     opserr << OpenSees::PromptValueError << "invalid dofId: " << argv[2] << " -  sp ";
     opserr << nodeId << " dofID value\n";
     return TCL_ERROR;
@@ -422,7 +435,7 @@ int
 TclCommand_addEqualDOF_MP(ClientData clientData, Tcl_Interp *interp,
                                 Tcl_Size argc, TCL_Char ** const argv)
 {
-    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
     Domain     *theTclDomain   = builder->getDomain();
 
 
@@ -494,7 +507,7 @@ TclCommand_addEqualDOF_MP_Mixed(ClientData clientData, Tcl_Interp *interp,
                                 Tcl_Size argc, TCL_Char ** const argv)
 {
         // Ensure the destructor has not been called
-        BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+        ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
         if (theTclBuilder == 0 || clientData == 0) {
           opserr << OpenSees::PromptValueError << "builder has been destroyed - equalDOF \n";
@@ -588,8 +601,8 @@ TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
   G3_Runtime* rt = G3_getRuntime(interp);
   Domain *domain = G3_getDomain(rt);
 
-  // BasicModelBuilder *theTclBuilder = G3_getSafeBuilder(G3_getRuntime(interp));
-  // BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  // ModelRegistry *theTclBuilder = G3_getSafeBuilder(G3_getRuntime(interp));
+  // ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
 
   // check number of arguments

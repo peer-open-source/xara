@@ -43,17 +43,16 @@ public:
   ~LinearFrameTransf();
 
   
-  const char *getClassType() const {return "LinearFrameTransf";}
+  // const char *getClassType() const override {return "LinearFrameTransf";}
   
-  virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const;
-  
-  virtual FrameTransform<nn,ndf> *getCopy() const;
+  FrameTransform<nn,ndf> *getCopy() const override;
 
+  const std::array<Vector3D,nn> *getRigidOffsets() const final {return offsets;}
   double getInitialLength() final;
   double getDeformedLength() final;
-  const std::array<Vector3D,nn> *getRigidOffsets() const final {return offsets;}
+  int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const override;
   
-  int initialize(std::array<Node*, nn>& new_nodes) final;
+  int initialize(std::array<Node*, nn>& ) final;
   int update() final;
   int commit() final;
   int revertToLastCommit() final;
@@ -74,10 +73,10 @@ public:
 
   // Sensitivity
   //
-  const Vector & getBasicDisplFixedGrad();
-  const Vector & getBasicDisplTotalGrad(int gradNumber);
-  const Vector &getGlobalResistingForceShapeSensitivity (const Vector &basicForce, const Vector &p0, int grad);
-  bool isShapeSensitivity() final;
+  void   pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl) override;
+  void   pullFixedGrad(VectorND<nn*ndf>&) override;
+  void   pullTotalGrad(VectorND<nn*ndf>&, int) override;
+  bool   isShapeSensitivity() final;
   double getLengthGrad() final;
   double getd1overLdh() final;
 
@@ -124,7 +123,8 @@ private:
   std::array<Vector3D, nn> *offsets;
   int offset_flags;
 
-  Vector3D xi, xj, vz;
+  Vector3D xi, xj;
+  const Vector3D vz;
   Matrix3D R;         // rotation matrix
   double L;           // undeformed element length
 

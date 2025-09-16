@@ -5,6 +5,7 @@
 #
 #==============================================================================
 add_library(OPS_Element_LHMYS OBJECT)
+target_link_libraries(OPS_Element_LHMYS PRIVATE OPS_Transform OPS_Material)
 
 target_sources(OPS_Element_LHMYS
     PRIVATE

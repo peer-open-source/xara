@@ -4,7 +4,8 @@
 //
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
-//===----------------------------------------------------------------------===// 
+//===----------------------------------------------------------------------===//
+//
 // Description: This file implements the selection of a convergence test.
 //
 #include <tcl.h>
@@ -28,7 +29,7 @@
 #include <NormDispOrUnbalance.h>
 
 
-ConvergenceTest*
+static ConvergenceTest*
 TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv);
 
 
@@ -52,7 +53,7 @@ specifyCTest(ClientData clientData, Tcl_Interp *interp, int argc, G3_Char ** con
   return TCL_OK;
 }
 
-ConvergenceTest*
+static ConvergenceTest*
 TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {
   // get the tolerence first

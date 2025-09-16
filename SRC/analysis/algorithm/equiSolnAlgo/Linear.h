@@ -54,7 +54,7 @@ class Linear: public EquiSolnAlgo
     virtual int recvSelf(int commitTag, Channel &theChannel, 
 			 FEM_ObjectBroker &theBroker);
     
-    void Print(OPS_Stream &, int flag) final;    
+    void Print(OPS_Stream &, int flag) const final;    
     
   protected:
     

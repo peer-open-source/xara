@@ -13,7 +13,7 @@
 #include <tcl.h>
 
 class Domain;
-class BasicModelBuilder;
+class ModelRegistry;
 
 class AnalysisModel;
 class ConstraintHandler;
@@ -28,7 +28,7 @@ public:
   Tcl_Interp     *m_interp = nullptr;
 
 // MODEL BUILDING
-  BasicModelBuilder *m_builder = nullptr;
+  ModelRegistry *m_builder = nullptr;
   Domain            *m_domain  = nullptr;
 
 // ANALYSIS

@@ -53,23 +53,21 @@ class LoadControl : public StaticIntegrator
     int setDeltaLambda(double newDeltaLambda);
 
     // Public methods for Output
-    int sendSelf(int tag, Channel &theChannel);
-    int recvSelf(int tag, Channel &theChannel, 
-                 FEM_ObjectBroker &theBroker);
+    int sendSelf(int tag, Channel &);
+    int recvSelf(int tag, Channel &, FEM_ObjectBroker &);
 
     void Print(OPS_Stream &, int flag) final;
 
-    virtual int formSensitivityRHS(int gradNum);
-    virtual int formIndependentSensitivityRHS();
-    virtual int saveSensitivity(const Vector &v, int gradNum, int numGrads);
+    //
+    virtual int updateGradient(const Vector &v, int gradNum, int numGrads);
     virtual int commitSensitivity(int gradNum, int numGrads);
-    virtual int computeSensitivities();
-    virtual bool computeSensitivityAtEachIteration();
+    int computeSensitivities() final;
+    bool computeSensitivityAtEachIteration() final;
 
     
-protected:
-    
   private:
+    int formSensitivityRHS(int gradNum);
+
     double deltaLambda;                      // dlambda at step (i-1)
     double expon;                            // exponent for J(i-1)/Jd
     double specNumIncrStep, numIncrLastStep; // Jd & J(i-1) 

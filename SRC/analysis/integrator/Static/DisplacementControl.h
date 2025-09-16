@@ -35,7 +35,7 @@
 #define DisplacementControl_h
 
 #include <StaticIntegrator.h>
-#include<Vector.h>
+#include <Vector.h>
 class LinearSOE;
 class AnalysisModel;
 class FE_Element;
@@ -51,24 +51,21 @@ class DisplacementControl : public StaticIntegrator
 
       ~DisplacementControl();
 
-      int newStep(void);    
-      int update(const Vector &deltaU);
-      int domainChanged(void);
+      int newStep() final;    
+      int update(const Vector &deltaU) final;
+      int domainChanged() final;
 
-      int sendSelf(int commitTag, Channel &theChannel);
-      int recvSelf(int commitTag, Channel &theChannel, 
-	    FEM_ObjectBroker &theBroker);
+      int sendSelf(int commitTag, Channel &) final;
+      int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
 
-      void Print(OPS_Stream &s, int flag);   
+      void Print(OPS_Stream &s, int flag) final;   
 
-      //////////////////Sensitivity Begin//////////////////////////////////
+      // Sensitivity
 //    int formEleResidual(FE_Element *theEle);
-      int formSensitivityRHS(int gradNum);// it's been modified to compute dLambdadh and dUdh
-      int formIndependentSensitivityRHS();
       int saveSensitivity(const Vector &v, int gradNum, int numGrads);
       int saveLambdaSensitivity(double dlambdadh, int gradNum, int numGrads);
       int commitSensitivity(int gradNum, int numGrads);
-      int computeSensitivities(void);// this function is modified to obtain both dLambdadh and dUdh 
+      int computeSensitivities();
 
       /////////////////////////////// Abbas //////////////////////////////
       Vector *formTangDispSensitivity(Vector *dUhatdh,int gradNumber); //Obtain *dUhatdh 
@@ -76,8 +73,6 @@ class DisplacementControl : public StaticIntegrator
       double formdLambdaDh(int gradNumber);//calculate dLambdadh for J=1
       double getLambdaSensitivity(int gradNumber);// update the dLambdadh for J>1
       bool computeSensitivityAtEachIteration();// A key that return 1 for loadControl and 2 for DisplacementControl
-     // int newStepSens(int gradIndex);
-      ////////////////////Sensitivity End/////////////////////////////////////
 
 
    protected:
@@ -85,11 +80,13 @@ class DisplacementControl : public StaticIntegrator
       double dlambdadh; // deltaLambdaI1 for the first iteration J=1
       double Dlambdadh;// deltaLambdaIJ: for J>1
       double dLambda;
-     double calldLambda1dh;//Abbas
+      double calldLambda1dh;//Abbas
       int CallParam;
-  
-          //  IncrementalIntegrator *K_newStep;
+
    private:
+      int formSensitivityRHS(int gradNum);
+      int formIndependentSensitivityRHS();
+   
       int theNode;          // the node that is being followed
       int theDof;           // the dof at the node being followed
       double theIncrement;  // deltaU at step (i)

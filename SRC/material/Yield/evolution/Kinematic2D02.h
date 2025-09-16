@@ -19,7 +19,6 @@ public:
 				int algo, double resfact, double appfact, double dir);
 
 	virtual ~Kinematic2D02();
-//	virtual int  displaySelf(Renderer &theViewer, int displayMode, float fact);
 	virtual void Print(OPS_Stream &, int flag) final;
 	virtual YS_Evolution *getCopy(void);
 

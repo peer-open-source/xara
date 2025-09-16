@@ -1,8 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 //
 // Written: cmp 2024
 //
@@ -152,12 +162,10 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
 
     int section_tag;
 
-    OpenSees::MatrixND<6,6> ke;  // TODO: make shared_ptr?
+    OpenSees::MatrixND<6,6> ke;
     OpenSees::MatrixND<6,6> km;
     OpenSees::MatrixND<6,6> kg;
     OpenSees::VectorND<6>   q;
-    // Matrix K;
-    // Vector P;
     BasicFrameTransf3d<NDF> *basic_system;
 };
 

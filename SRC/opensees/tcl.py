@@ -130,7 +130,14 @@ def _lift(interpaddr: int, type, tag: int):
 
 
 class Interpreter:
-    def __init__(self,  model=None, verbose=False, safe=False, preload=True, enable_tk=False):
+    def __init__(self, 
+                 model=None,
+                 verbose=False,
+                 safe=False,
+                 error_file=None,
+                 preload=True,
+                 enable_tk=False):
+
         self._tcl = _create_interp(verbose=verbose,
                                    preload=preload,
                                    enable_tk=enable_tk)
@@ -153,15 +160,18 @@ class Interpreter:
             pass
 
 
-        self._err_file = None #pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}"
+        # Setup propagation of error messages
+        self._err_file = error_file
         try:
+            echo = "" if os.environ.get("XARA_ECHO_ERROR", False) is None else "-noEcho"
             if self._err_file is not None:
-                self.eval(f"logFile {self._err_file} -noEcho")
+                self.eval(f"logFile {self._err_file} {echo}")
         except:
             self._err_file = None
 
         if model is not None:
             self.send(model)
+
 
         atexit.register(self.cleanup)
 
@@ -180,18 +190,17 @@ class Interpreter:
         except tkinter._tkinter.TclError as e:
 
             err = self._tcl.getvar("errorInfo")
+
             if self._err_file is not None:
-                if err.count("\n") > 2:
-                    err = "\n".join(err.split("\n")[2:])
-                else:
-                    err = ""
                 with open(self._err_file, "r") as f:
-                    err += "\n" + textwrap.indent(f.read(), "    ")
+                    err = f.read().replace("ERROR", "").strip()
                 try:
                     os.remove(self._err_file)
                 except:
                     pass
+
             raise InterpreterError(err) from None
+
 
     def serialize(self)->dict:
         import tempfile, pathlib
@@ -295,6 +304,7 @@ class ModelRuntime:
         """
         self._interp.eval(f"model basic -ndm {ndm} -ndf {ndf}")
 
+
     def eval(self, cmd: str)->str:
         return self._interp.eval(cmd)
 
@@ -305,6 +315,7 @@ class ModelRuntime:
         if type == "uniaxialmaterial":
             self.model(2,3)
         return _lift(self._tcl.interpaddr(), type, tag)
+
 
     def send(self, obj, ndm=2, ndf=3, **kwds):
         self.model(ndm=ndm, ndf=ndf)
@@ -330,12 +341,14 @@ class ModelRuntime:
 
         return self
 
+
     @property
     def _rt(self):
         # if self._c_rt is None:
         #     from . import OpenSeesPyRT as libOpenSeesRT
         #     self._c_rt = libOpenSeesRT.getRuntime(self._tcl.tk.interpaddr())
         return self._c_rt
+
 
     @property
     def _domain(self):

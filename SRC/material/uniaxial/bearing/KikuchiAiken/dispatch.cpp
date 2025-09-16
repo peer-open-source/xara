@@ -1,7 +1,7 @@
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <string.h>
 #include "KikuchiAikenHDR.h"
 #include "KikuchiAikenLRB.h"
@@ -155,7 +155,7 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
   }
 
   // succeeded
-  return ((BasicModelBuilder*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
+  return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
 
 int
@@ -321,6 +321,6 @@ TclCommand_KikuchiAikenLRB(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
   theMaterial = new KikuchiAikenLRB(tag, type, ar, hr, gr, ap, tp, alph, beta,
                                     temp, rk, rq, rs, rf);
 
-  return ((BasicModelBuilder*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
+  return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
 

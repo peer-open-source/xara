@@ -29,22 +29,14 @@ peer_banner = R"(
 #endif
 
 static const char*
-unicode_banner 
-#if 1
-= R"(
+unicode_banner = R"(
                  ┌─┐┌─┐┌─┐┌─┐  ┌──┌─┐┌─┐ ┌──
                  └─┘├─┘└──┘ │ ─┘  └──└───┘
  ───────────────────┘Berkeley, California ──────────────────────
                          © UC Regents
 )";
 
-#else
-= R"(
-                 ╔═╗╔═╗╔═╗╔═╗  ╔══╔═╗╔═╗ ╔══
-                 ╚═╝╠═╝╚══╝ ║ ═╝  ╚══╚═══╝
- ═══════════════════╝Berkeley, California ══════════════════════
-)";
-#endif
+
 
 static const char*
 copyright = R"(

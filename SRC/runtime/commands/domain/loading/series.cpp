@@ -1,10 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
+//
 // Description: This file contains the function invoked when the user invokes
 // the pattern command in the interpreter. It is invoked by the
 // TclBasicBuilder_addPattern function.
@@ -16,11 +24,11 @@
 #include <sys/stat.h>
 
 #include <tcl.h>
+#include <vector>
 #include <string.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
-// #include <elementAPI.h>
+#include <ModelRegistry.h>
 
 #include <Domain.h>
 #include <LinearSeries.h>
@@ -31,10 +39,6 @@
 #include <RectangularSeries.h>
 #include <PulseSeries.h>
 #include <TriangleSeries.h>
-// #include <PeerMotion.h>
-// #include <PeerNGAMotion.h>
-
-
 
 // extern OPS_Routine OPS_ConstantSeries;
 // extern OPS_Routine OPS_LinearSeries;
@@ -45,13 +49,15 @@
 // extern OPS_Routine OPS_TriangleSeries;
 // extern OPS_Routine OPS_RectangularSeries;
 
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp,
-                                       int cArg, int mArg, TCL_Char ** const argv,
+extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, 
+                                       Tcl_Interp *interp,
+                                       int cArg,
+                                       int mArg, TCL_Char ** const argv,
                                        Domain *domain);
 
 
 static void *
-TclDispatch_newLinearSeries(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
+TclDispatch_newLinearSeries(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   int numRemainingArgs = argc;
 
@@ -62,9 +68,10 @@ TclDispatch_newLinearSeries(ClientData clientData, Tcl_Interp* interp, int argc,
 
     if (numRemainingArgs == 1 || numRemainingArgs == 3) {
       if (Tcl_GetInt(interp, argv[0], &tag) != 0) {
-        opserr << OpenSees::PromptValueError << "invalid series tag in LinearSeries tag? <-factor "
+        opserr << OpenSees::PromptValueError
+               << "invalid series tag in LinearSeries tag? <-factor "
                   "factor?>"
-               << "\n";
+               << OpenSees::SignalMessageEnd;
         return nullptr;
       }
       numRemainingArgs--;
@@ -103,8 +110,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     double cFactor = 1.0;
         
     int endMarker = 1;
-    if ((endMarker != argc) && (strcmp(argv[endMarker],"-factor") == 0)) {
-      // allow user to specify the factor
+    if ((endMarker != argc) && (strcmp(argv[endMarker], "-factor") == 0)) {
       endMarker++;
       if (endMarker == argc || 
           Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
@@ -117,12 +123,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       endMarker++;
     }
 
-    theSeries = new ConstantSeries(cFactor);            
-    
-
-//  void *theResult = OPS_ConstantSeries(rt, argc, argv);
-//  if (theResult != nullptr)
-//    theSeries = (TimeSeries *)theResult;
+    theSeries = new ConstantSeries(cFactor);
   }
 
   else if (strcmp(argv[0],"Trig") == 0 || 
@@ -170,7 +171,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       
      while (argi < argc) {
        if (strcmp(argv[argi], "-factor") == 0) {
-         // allow user to specify a scaling factor
+         // scaling factor
          argi++;
          if (argi == argc || 
              Tcl_GetDouble(interp, argv[argi], &cFactor) != TCL_OK) {
@@ -182,7 +183,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
        }
  
        else if (strcmp(argv[argi],"-shift") == 0) {
-         // allow user to specify phase shift
+         // phase shift
          argi++;
          if (argi == argc || 
              Tcl_GetDouble(interp, argv[argi], &shift) != TCL_OK) {
@@ -221,7 +222,6 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       theSeries = (TimeSeries *)theResult;
     else
       opserr << "ERROR\n";
-
   }
 
   else if (strcmp(argv[0],"Pulse") == 0)  {
@@ -236,7 +236,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
       Tcl_Free((char*)argv);
       return 0; 
-    }   
+    }
     if (Tcl_GetDouble(interp, argv[1], &tStart) != TCL_OK) {
       opserr << "WARNING invalid tStart " << argv[1] << " - ";
       opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
@@ -248,18 +248,18 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
       Tcl_Free((char*)argv);
       return 0; 
-    }     
+    }
     if (Tcl_GetDouble(interp, argv[3], &period) != TCL_OK) {
       opserr << "WARNING invalid period " << argv[3] << " - ";
       opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
       Tcl_Free((char*)argv);
       return 0; 
-    }     
-    
+    }
+
     int endMarker = 4;
-    
+
     while (endMarker < argc && endMarker < argc) {
-      if (strcmp(argv[endMarker],"-factor") == 0) {
+      if (strcmp(argv[endMarker], "-factor") == 0) {
         // allow user to specify the factor
         endMarker++;
         if (endMarker == argc || 
@@ -316,20 +316,17 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       return 0; 
     }   
     if (Tcl_GetDouble(interp, argv[1], &tStart) != TCL_OK) {
-      opserr << "WARNING invalid tStart " << argv[1] << " - ";
-      opserr << " Triangle tStart tFinish period <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING invalid tStart " << argv[1] << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0;                         
     }
     if (Tcl_GetDouble(interp, argv[2], &tFinish) != TCL_OK) {
-      opserr << "WARNING invalid tFinish " << argv[2] << " - ";
-      opserr << " Triangle tStart tFinish period <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING invalid tFinish " << argv[2] << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0; 
-    }     
+    }
     if (Tcl_GetDouble(interp, argv[3], &period) != TCL_OK) {
-      opserr << "WARNING invalid period " << argv[3] << " - ";
-      opserr << " Triangle tStart tFinish period <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING invalid period " << argv[3] << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0; 
     }     
@@ -338,7 +335,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     
     while (endMarker < argc && endMarker < argc) {
       if (strcmp(argv[endMarker],"-factor") == 0) {
-        // allow user to specify the factor
+        // Scale factor
         endMarker++;
         if (endMarker == argc || 
             Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
@@ -351,13 +348,13 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       }
 
       else if (strcmp(argv[endMarker],"-shift") == 0) {
-        // allow user to specify phase shift
+        // Phase shift
         endMarker++;
         if (endMarker == argc || 
             Tcl_GetDouble(interp, argv[endMarker], &shift) != TCL_OK) {
             
-          opserr << "WARNING invalid phase shift " << argv[endMarker] << " - ";
-          opserr << " Triangle tStart tFinish period <-shift shift> <-factor cFactor>\n";
+          opserr << "WARNING invalid phase shift "
+                 << argv[endMarker] << OpenSees::SignalMessageEnd;
           Tcl_Free((char*)argv);
           return 0;
         }
@@ -369,7 +366,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
   }
 
   else if (strcmp(argv[0],"Rectangular") == 0) {
-    // LoadPattern and RectangularSeries - read args and create RectangularSeries object
+    // LoadPattern and RectangularSeries
     double tStart, tFinish;
     double cFactor = 1.0;
     if (argc < 3) {
@@ -379,14 +376,12 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       return 0; 
     }   
     if (Tcl_GetDouble(interp, argv[1], &tStart) != TCL_OK) {
-      opserr << "WARNING invalid tStart " << argv[1] << " - ";
-      opserr << " Rectangular tStart tFinish <-factor factor>\n";
+      opserr << "WARNING invalid tStart " << argv[1] << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[2], &tFinish) != TCL_OK) {
-      opserr << "WARNING invalid tStart " << argv[2] << " - ";
-      opserr << " Rectangular tStart tFinish <-factor fcator>\n";
+      opserr << "WARNING invalid tStart " << argv[2] << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0; 
     }     
@@ -398,9 +393,8 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       endMarker++;
       if (endMarker == argc || 
           Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
-        
-        opserr << "WARNING invalid cFactor " << argv[endMarker] << " - ";
-        opserr << " Rectangular tStart tFinish -factor cFactor\n";
+
+        opserr << "WARNING invalid cFactor " << argv[endMarker] << OpenSees::SignalMessageEnd;
         Tcl_Free((char*)argv);
         return 0;
       }
@@ -473,8 +467,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc ||
             Tcl_GetDouble(interp, argv[endMarker], &timeIncr) != TCL_OK) {
 
-          opserr << OpenSees::PromptValueError << "invalid dt " << argv[endMarker] << " - ";
-          opserr << " Series -dt dt ... \n";
+          opserr << OpenSees::PromptValueError 
+                 << "invalid dt " << argv[endMarker]
+                 << OpenSees::SignalMessageEnd;
           return 0;
         }
       }
@@ -485,7 +480,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc ||
             Tcl_GetInt(interp, argv[endMarker], &tag) != TCL_OK) {
 
-          opserr << OpenSees::PromptValueError << "invalid tag " << argv[endMarker] << " - ";
+          opserr << OpenSees::PromptValueError
+                 << "invalid tag " << argv[endMarker]
+                 << OpenSees::SignalMessageEnd;
           return 0;
         }
       }
@@ -496,27 +493,30 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc ||
             Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
 
-          opserr << OpenSees::PromptValueError << "invalid scale factor " << argv[endMarker] << " - ";
-          opserr << " Series -factor ... \n";
+          opserr << OpenSees::PromptValueError
+                 << "invalid scale factor " << argv[endMarker]
+                 << OpenSees::SignalMessageEnd;
           return 0;
         }
       }
 
       else if (strcmp(argv[endMarker], "-file") == 0) {
-        // allow user to specify the file name containing time and data points
+        // File name containing time and data points
         endMarker++;
         if (endMarker != argc) {
           fileName = endMarker; // argv[endMarker];
           if (stat(argv[endMarker], &fileInfo ) != 0) {
-            opserr << OpenSees::PromptValueError << "Cannot open file "
-                   << argv[endMarker] << "\n";
+            opserr << OpenSees::PromptValueError
+                   << "Cannot open file "
+                   << argv[endMarker]
+                   << OpenSees::SignalMessageEnd;
             return nullptr;
           }
         }
       }
 
       else if (strcmp(argv[endMarker], "-filePath") == 0) {
-        // allow user to specify the file name containing the data points
+        // File name containing the data points
         endMarker++;
         if (endMarker != argc) {
           filePathName = endMarker; // argv[endMarker];
@@ -529,7 +529,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       }
 
       else if (strcmp(argv[endMarker], "-fileTime") == 0) {
-        // allow user to specify the file name containing the data points
+        // File name containing the data points
         endMarker++;
         if (endMarker != argc) {
           fileTimeName = endMarker; // argv[endMarker];
@@ -542,40 +542,67 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       }
 
       else if (strcmp(argv[endMarker], "-values") == 0) {
-        // allow user to specify the data points in tcl list
+        // data points in tcl list
         endMarker++;
-        if (endMarker != argc) {
-          int pathSize;
-          TCL_Char **pathStrings;
+        if (endMarker == argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "no data values after -values flag"
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
 
-          if (Tcl_SplitList(interp, argv[endMarker], &pathSize, &pathStrings) !=
-              TCL_OK) {
+        int pathSize;
+        TCL_Char **pathStrings;
+        if (Tcl_SplitList(interp, argv[endMarker], &pathSize, &pathStrings) != TCL_OK) {
 
-            opserr << OpenSees::PromptValueError << "problem splitting path list " << argv[endMarker]
-                   << " - ";
-            opserr << " Series -values {path} ... \n";
-            return nullptr;
+          opserr << OpenSees::PromptValueError << "problem splitting path list " << argv[endMarker]
+                  << " - ";
+          opserr << " Series -values {path} ... \n";
+          return nullptr;
+        }
+
+        double check_double;
+        if ((pathSize == 1) && (endMarker +1 < argc) &&
+            (Tcl_GetDouble(interp, argv[endMarker + 1], &check_double) == TCL_OK)) {
+          // -values is not enclosed in {}
+          Tcl_Free((char *)pathStrings);
+          int count = 0;
+          // Use std::vector which will amortize the memory allocation
+          std::vector<double> values;
+          for (int i = endMarker; i < argc; i++) {
+            double value;
+            if (Tcl_GetDouble(interp, argv[i], &value) != TCL_OK) {
+              break;
+            }
+            values.push_back(value);
+            count++;
           }
-
+          dataPath = new Vector(count);
+          for (int i = 0; i < count; i++) {
+            (*dataPath)(i) = values[i];
+          }
+        }
+        else {
           dataPath = new Vector(pathSize);
           for (int i = 0; i < pathSize; ++i) {
             double value;
             if (Tcl_GetDouble(interp, pathStrings[i], &value) != TCL_OK) {
-              opserr << OpenSees::PromptValueError << "problem reading path data value "
-                     << pathStrings[i] << " - ";
-              opserr << " Series -values {path} ... \n";
+              opserr << OpenSees::PromptValueError
+                     << "problem reading path value "
+                      << pathStrings[i]
+                      << OpenSees::SignalMessageEnd;
               Tcl_Free((char *)pathStrings);
               return nullptr;
             }
             (*dataPath)(i) = value;
           }
-          // free up the array of pathsStrings .. see tcl man pages as to why
+          // free up the array of pathsStrings
           Tcl_Free((char *)pathStrings);
         }
       }
 
       else if (strcmp(argv[endMarker], "-time") == 0) {
-        // allow user to specify the data points in tcl list
+        // Data points in tcl list
         endMarker++;
         if (endMarker != argc) {
           int pathSize;
@@ -618,7 +645,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
 
       else if (strcmp(argv[endMarker], "-startTime") == 0 ||
                strcmp(argv[endMarker], "-tStart") == 0) {
-        // allow user to specify the start time
+        // start time
         endMarker++;
         if (endMarker == argc ||
             Tcl_GetDouble(interp, argv[endMarker], &startTime) != TCL_OK) {
@@ -660,15 +687,16 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       delete dataPath;
       delete dataTime;
 
-    } else {
-      opserr << OpenSees::PromptValueError << "choice of options for Path Series invalid - valid "
+    }
+    else {
+      opserr << OpenSees::PromptValueError 
+             << "choice of options for Path Series invalid - valid "
                 "options for ";
       opserr << " Path are\n";
       opserr << " \t -fileT fileTimeName -fileP filePathName \n";
       opserr << " \t -dt constTimeIncr -file filePathName\n";
       opserr << " \t -dt constTimeIncr -values {list of points on path}\n";
-      opserr << " \t -time {list of time points} -values {list of points on "
-                "path}\n";
+      opserr << " \t -time {list of time points} -values {list of points on path}\n";
       return 0;
     }
 
@@ -718,155 +746,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
   }
 #endif
 
-
-#if 0
-  else if ((strcmp(argv[0], "PeerNGADatabase") == 0) ||
-           (strcmp(argv[0], "PeerNGAMotion") == 0)) {
-
-    void *theResult = OPS_PeerNGAMotion(rt, argc, argv);
-    if (theResult != 0)
-      theSeries = (TimeSeries *)theResult;
-
-    PeerNGAMotion *thePeerMotion = (PeerNGAMotion *)(theSeries);
-
-    if (argc > 3 && theSeries != 0) {
-      int argCount = 3;
-
-      while (argCount + 1 < argc) {
-        if ((strcmp(argv[argCount], "-dT") == 0) ||
-            (strcmp(argv[argCount], "-dt") == 0) ||
-            (strcmp(argv[argCount], "-DT") == 0)) {
-          const char *variableName = argv[argCount + 1];
-          double dT = thePeerMotion->getDt();
-          char string[30];
-          sprintf(string, "set %s %.18e", variableName, dT);
-          if (Tcl_Eval(interp, string) != TCL_OK) {
-            opserr << G3_WARN_PROMPT << Tcl_GetStringResult(interp);
-            Tcl_Exit(TCL_ERROR);
-          }
-          argCount += 2;
-
-        } else if ((strcmp(argv[argCount], "-nPts") == 0) ||
-                   (strcmp(argv[argCount], "-NPTS") == 0)) {
-          const char *variableName = argv[argCount + 1];
-          int nPts = thePeerMotion->getNPts();
-          char string[30];
-          sprintf(string, "set %s %d", variableName, nPts);
-          if (Tcl_Eval(interp, string) != TCL_OK) {
-            opserr << G3_WARN_PROMPT << Tcl_GetStringResult(interp);
-            Tcl_Exit(TCL_ERROR);
-          }
-          argCount += 2;
-        } else
-          argCount++;
-      }
-    }
-  }
-#endif
-
-#ifdef _RELIABILITY
-
-  else if (strcmp(argv[0], "DiscretizedRandomProcess") == 0) {
-
-    double mean, maxStdv;
-    ModulatingFunction *theModFunc;
-
-    if (Tcl_GetDouble(interp, argv[1], &mean) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid input: random process mean \n";
-      return 0;
-    }
-
-    if (Tcl_GetDouble(interp, argv[2], &maxStdv) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid input: random process max stdv \n";
-      return 0;
-    }
-
-    // Number of modulating functions
-    int argsBeforeModList = 3;
-    int numModFuncs = argc - argsBeforeModList;
-
-    // Create an array to hold pointers to modulating functions
-    ModulatingFunction **theModFUNCS = new ModulatingFunction *[numModFuncs];
-
-    // For each modulating function, get the tag and ensure it exists
-    int tagI;
-    for (int i = 0; i < numModFuncs; ++i) {
-      if (Tcl_GetInt(interp, argv[i + argsBeforeModList], &tagI) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid modulating function tag. " << "\n";
-        return 0;
-      }
-
-      theModFunc = 0;
-      theModFunc = theReliabilityDomain->getModulatingFunction(tagI);
-
-      if (theModFunc == 0) {
-        opserr << OpenSees::PromptValueError << "modulating function number "
-               << argv[i + argsBeforeModList] << "does not exist...\n";
-        delete[] theModFUNCS;
-        return 0;
-      } else {
-        theModFUNCS[i] = theModFunc;
-      }
-    }
-
-    // Parsing was successful, create the random process series object
-    theSeries = new DiscretizedRandomProcessSeries(0, numModFuncs, theModFUNCS,
-                                                   mean, maxStdv);
-  }
-
-  else if (strcmp(argv[0], "SimulatedRandomProcess") == 0) {
-
-    int spectrumTag, numFreqIntervals;
-    double mean;
-
-    if (Tcl_GetInt(interp, argv[1], &spectrumTag) != TCL_OK) {
-      opserr << "WARNING invalid input to SimulatedRandomProcess: spectrumTag"
-             << "\n";
-      return 0;
-    }
-
-    if (Tcl_GetDouble(interp, argv[2], &mean) != TCL_OK) {
-      opserr << "WARNING invalid input to SimulatedRandomProcess: mean"
-             << "\n";
-      return 0;
-    }
-
-    if (Tcl_GetInt(interp, argv[3], &numFreqIntervals) != TCL_OK) {
-      opserr
-          << "WARNING invalid input to SimulatedRandomProcess: numFreqIntervals"
-          << "\n";
-      return 0;
-    }
-
-    // Check that the random number generator exists
-    if (theRandomNumberGenerator == 0) {
-      opserr << "WARNING: A random number generator must be instantiated "
-                "before SimulatedRandomProcess."
-             << "\n";
-      return 0;
-    }
-
-    // Check that the spectrum exists
-    Spectrum *theSpectrum = 0;
-    theSpectrum = theReliabilityDomain->getSpectrum(spectrumTag);
-    if (theSpectrum == 0) {
-      opserr << "WARNING: Could not find the spectrum for the "
-                "SimulatedRandomProcess."
-             << "\n";
-      return 0;
-    }
-
-    // Parsing was successful, create the random process series object
-    theSeries = new SimulatedRandomProcessSeries(
-        0, theRandomNumberGenerator, theSpectrum, numFreqIntervals, mean);
-  }
-
-#endif
-
   else {
-    for (int i = 0; i < argc; ++i)
-      opserr << argv[i] << ' ';
-    opserr << "\n";
     // type unknown
     opserr << "WARNING unknown Series type " << argv[0] << " - ";
     opserr << " valid types: Linear, Rectangular, Path, Constant, Trig, Sine\n";
@@ -885,7 +765,7 @@ TclSeriesCommand(ClientData clientData, Tcl_Interp *interp, TCL_Char * const arg
   int timeSeriesTag = 0;
 
   if (Tcl_GetInt(interp, arg, &timeSeriesTag) == TCL_OK) {
-    if (clientData && (series = ((BasicModelBuilder*)clientData)->getTypedObject<TimeSeries>(timeSeriesTag)))
+    if (clientData && (series = ((ModelRegistry*)clientData)->getTypedObject<TimeSeries>(timeSeriesTag)))
       return series->getCopy();
   }
 
@@ -908,7 +788,7 @@ TclCommand_addTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   TimeSeries *theSeries = TclDispatch_newTimeSeries(clientData, interp, argc - 1, &argv[1]);
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (theSeries != nullptr) {
     int tag;

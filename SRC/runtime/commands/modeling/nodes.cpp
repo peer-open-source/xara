@@ -1,15 +1,25 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
-//===----------------------------------------------------------------------===// 
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+//
 // Description: This file implements commands that configure Node objects
 // for an analysis.
 //
 // Author: cmp
 //
+#include <string>
 #include <assert.h>
 #include <string.h>
 #include <tcl.h>
@@ -19,11 +29,11 @@
 #include <NodeND.h>
 #include <Matrix.h>
 #include <Domain.h>
-#include <BasicModelBuilder.h>
+#include <Parameter.h>
+#include <ModelRegistry.h>
 
 #define HeapNode Node
 
-// #define G3_MAX_NUM_DOFS 1000000000000
 #define G3_NUM_DOF_BUFFER 20
 
 int
@@ -32,7 +42,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   assert(clientData != nullptr);
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   Domain *theTclDomain = builder->getDomain();
 
@@ -57,11 +67,15 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
+
+  Parameter* coord_params[3] = {nullptr, nullptr, nullptr};
+  using namespace OpenSees::Parsing;
+
   // read in the coordinates and create the node
   double xLoc=0, yLoc=0, zLoc=0;
   if (ndm >= 1 && argc >= 3) {
     // create a node in 1d space
-    if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
+    if (GetDoubleParam(interp, *theTclDomain, argv[2], &xLoc, coord_params[0]) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
              << "invalid coordinate " << argv[2] 
              << OpenSees::SignalMessageEnd;
@@ -212,6 +226,20 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       currentArg++;
   }
 
+
+  //
+  // Setup parameters for coordinates
+  //
+  for (int i=0; i<3; ++i) {
+    if (coord_params[i] == nullptr)
+      continue;
+    char index[20];
+    snprintf(index, sizeof(index), "%d", i + 1);
+    std::string idx = std::to_string(i + 1);
+    const char* args[2] = { "coord",  index }; 
+    coord_params[i]->addComponent(theNode, args, 2);
+  }
+
   //
   // add the node to the domain
   //
@@ -229,7 +257,7 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
 
   int ndf = argc - 2;
@@ -276,7 +304,7 @@ int
 TclCommand_getNDM(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *the_domain = builder->getDomain();
 
   int ndm;
@@ -308,7 +336,7 @@ int
 TclCommand_getNDF(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *the_domain = builder->getDomain();
   int ndf;
 

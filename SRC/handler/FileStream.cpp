@@ -21,6 +21,7 @@
 //
 #include <FileStream.h>
 #include <Vector.h>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <ID.h>

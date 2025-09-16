@@ -58,7 +58,7 @@ MumpsParallelSOE::MumpsParallelSOE()
 
 MumpsParallelSOE::~MumpsParallelSOE()
 {
-  if (theChannels != 0)
+  if (theChannels != nullptr)
     delete [] theChannels;
 
   if (localCol != 0)
@@ -135,7 +135,7 @@ MumpsParallelSOE::setSize(Graph &theGraph)
       Channel *theChannel = theChannels[j];
       theChannel->recvID(0, 0, data);
       if (data(0) > maxVertexTag)
-	maxVertexTag = data(0);
+        maxVertexTag = data(0);
     }
 
     data(0) = maxVertexTag;
@@ -359,9 +359,9 @@ MumpsParallelSOE::solve(void)
     // send results back
     if (resSolver == 0) {
       for (int j=0; j<numChannels; j++) {
-	Channel *theChannel = theChannels[j];
-	theChannel->sendVector(0, 0, *vectX);
-	theChannel->sendVector(0, 0, *vectB);
+        Channel *theChannel = theChannels[j];
+        theChannel->sendVector(0, 0, *vectX);
+        theChannel->sendVector(0, 0, *vectB);
       }
     }
   } 

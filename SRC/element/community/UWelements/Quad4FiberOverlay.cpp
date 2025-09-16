@@ -30,7 +30,6 @@
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Parameter.h>
@@ -548,67 +547,11 @@ Quad4FiberOverlay::getResponse(int responseID, Information &eleInfo)
 	}
 }
 
-int
-Quad4FiberOverlay::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	///////////////////NEEDS TO BE CHECKED/////////////////////
-
-
-	int dimension = 2;
-    static Vector v1(3);
-    static Vector v2(3);
-
-    if (displayMode == 1 || displayMode == 2) {
-		const Vector &end1Disp = theNodes[0]->getDisp();
-		const Vector &end2Disp = theNodes[1]->getDisp();    
-         
-        for (int i=0; i<dimension; i++) {
-			v1(i) = Qfi(i)+end1Disp(i)*fact;
-            v2(i) = Qfj(i)+end2Disp(i)*fact;    
-        }
-        
-        // compute the strain and axial force in the member
-        double strain, force;
-        if (Lf == 0.0) {
-            strain = 0.0;
-            force = 0.0;
-        } else {
-            strain = this->computeCurrentStrain();
-            //theMaterial->setTrialStrain(strain);
-            force = Af*theMaterial->getStress();    
-        }
-    
-        if (displayMode == 2) // use the strain as the drawing measure
-			return theViewer.drawLine(v1, v2, (float)strain, (float)strain);      
-        else { // otherwise use the axial force as measure
-			return theViewer.drawLine(v1,v2, (float)force, (float)force);
-		}
-	} else if (displayMode < 0) {
-		int mode = displayMode  *  -1;
-		const Matrix &eigen1 = theNodes[0]->getEigenvectors();
-		const Matrix &eigen2 = theNodes[1]->getEigenvectors();
-		if (eigen1.noCols() >= mode) {
-			for (int i = 0; i < dimension; i++) {
-				v1(i) = Qfi(i) + eigen1(i,mode-1)*fact;
-				v2(i) = Qfj(i) + eigen2(i,mode-1)*fact;    
-			}    
-		} else {
-			for (int i = 0; i < dimension; i++) {
-				v1(i) = Qfi(i);
-				v2(i) = Qfj(i);
-			}    
-		}
-		return theViewer.drawLine(v1, v2, 1.0, 1.0);      
-	}
-    return 0;
-}
-
 
 int
 Quad4FiberOverlay::recvSelf(int commitTag, Channel &theChannel,
                                                 FEM_ObjectBroker &theBroker)
 {
-	/////////NEEDS TO BE ADDED//////////
 	return 0;
 }
 
@@ -616,6 +559,5 @@ Quad4FiberOverlay::recvSelf(int commitTag, Channel &theChannel,
 int
 Quad4FiberOverlay::sendSelf(int commitTag, Channel &theChannel)
 {
-	/////////NEEDS TO BE ADDED//////////
 	return 0;
 }

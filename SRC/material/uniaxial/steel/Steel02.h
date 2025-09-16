@@ -45,9 +45,9 @@ class Steel02 : public UniaxialMaterial
 {
   public:
     Steel02(int tag,
-	    double fy, double E0, double b,
-	    double R0, double cR1, double cR2,
-	    double a1, double a2, double a3, double a4, double sigInit =0.0);
+            double fy, double E0, double b,
+            double R0, double cR1, double cR2,
+            double a1, double a2, double a3, double a4, double sigInit =0.0);
 
     Steel02();
     virtual ~Steel02();
@@ -63,13 +63,12 @@ class Steel02 : public UniaxialMaterial
     double getStress();
     double getTangent();
     
-    int commitState();
-    int revertToLastCommit();    
-    int revertToStart();        
+    int commitState() final;
+    int revertToLastCommit() final;    
+    int revertToStart() final;
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &) final;  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
     void Print(OPS_Stream &, int flag) final;
 
@@ -77,7 +76,7 @@ class Steel02 : public UniaxialMaterial
     int updateParameter(int parameterID, Information &info);
     
     //by SAJalali
-	virtual double getEnergy() { return EnergyP; };
+    virtual double getEnergy() { return EnergyP; };
 
  protected:
     

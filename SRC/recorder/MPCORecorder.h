@@ -33,6 +33,7 @@
 MPCO recorder - Written by ASDEA Software Technology: M.Petracca, G.Camata\n
 ASDEA Software Technology: https://asdeasoft.net
 STKO (Scientific ToolKit for OpenSees): https://asdeasoft.net/stko/
+
 If you use this tool, please cite us:
 Petracca, M., Candeloro, F., & Camata, G. (2017). \"STKO user manual\". ASDEA Software Technology, Pescara Italy.
 

@@ -17,6 +17,7 @@ target_sources(OPS_Material
     DowelType.cpp
     Elastic2Material.cpp
     ElasticBilin.cpp
+    PenaltyMaterial.cpp
     ElasticMaterial.cpp
     ElasticMultiLinear.cpp
     ElasticPPMaterial.cpp

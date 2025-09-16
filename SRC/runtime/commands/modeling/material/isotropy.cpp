@@ -1,9 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+
 #include "isotropy.h"
 #include <string.h>
 #include <cmath>
@@ -17,7 +26,7 @@ namespace Isotropy {
       ShearModulus  = 1 << 1,  // G
       BulkModulus   = 1 << 2,  // K
       PoissonsRatio = 1 << 3,  // ν
-      LameLambda    = 1 << 4   // λ, Lamé's first parameter
+      LameLambda    = 1 << 4   // λ, Lame's first parameter
   };
 }
 
@@ -39,14 +48,14 @@ namespace {
     // Case A: Already (E, ν)
     if ((flag1 == E_FLAG && flag2 == NU_FLAG) ||
         (flag1 == NU_FLAG && flag2 == E_FLAG)) {
-      E  = (flag1 == E_FLAG) ? in1 : in2;
+      E  = (flag1 == E_FLAG)  ? in1 : in2;
       nu = (flag1 == NU_FLAG) ? in1 : in2;
       return 0;
     }
     // Case B: (G, ν): E = 2G(1+ν)
     if ((flag1 == G_FLAG && flag2 == NU_FLAG) ||
         (flag1 == NU_FLAG && flag2 == G_FLAG)) {
-      double G = (flag1 == G_FLAG) ? in1 : in2;
+      double G = (flag1 == G_FLAG)  ? in1 : in2;
       nu       = (flag1 == NU_FLAG) ? in1 : in2;
       E = 2.0 * G * (1.0 + nu);
       return 0;
@@ -54,7 +63,7 @@ namespace {
     // Case C: (K, ν): E = 3K(1-2ν)
     if ((flag1 == K_FLAG && flag2 == NU_FLAG) ||
         (flag1 == NU_FLAG && flag2 == K_FLAG)) {
-      double K = (flag1 == K_FLAG) ? in1 : in2;
+      double K = (flag1 == K_FLAG)  ? in1 : in2;
       nu       = (flag1 == NU_FLAG) ? in1 : in2;
       E = 3.0 * K * (1.0 - 2.0 * nu);
       return 0;
@@ -76,7 +85,8 @@ namespace {
         (flag1 == K_FLAG && flag2 == G_FLAG)) {
       double G = (flag1 == G_FLAG) ? in1 : in2;
       double K = (flag1 == K_FLAG) ? in1 : in2;
-      if (std::fabs(3.0*K + G) < TOL) return -1;
+      if (std::fabs(3.0*K + G) < TOL)
+        return -1;
       nu = (3.0 * K - 2.0 * G) / (2.0 * (3.0 * K + G));
       E = 9.0 * K * G / (3.0 * K + G);
       return 0;
@@ -111,7 +121,8 @@ namespace {
         (flag1 == G_FLAG && flag2 == E_FLAG)) {
       E = (flag1 == E_FLAG) ? in1 : in2;
       double G = (flag1 == G_FLAG) ? in1 : in2;
-      if (std::fabs(G) < TOL) return -1;
+      if (std::fabs(G) < TOL)
+        return -1;
       nu = E / (2.0 * G) - 1.0;
       return 0;
     }
@@ -140,15 +151,21 @@ namespace {
       double nu1 = (-b + sqrt_disc) / (2.0 * a);
       double nu2 = (-b - sqrt_disc) / (2.0 * a);
       // Choose the solution in the physical range (-1, 0.5).
-      if (nu1 > -1.0 && nu1 < 0.5) { nu = nu1; return 0; }
-      if (nu2 > -1.0 && nu2 < 0.5) { nu = nu2; return 0; }
+      if (nu1 > -1.0 && nu1 < 0.5) {
+        nu = nu1; 
+        return 0; 
+      }
+      if (nu2 > -1.0 && nu2 < 0.5) {
+        nu = nu2; 
+        return 0; 
+      }
       return -1;
     }
 
-    // (Any other combination is not supported.)
+    // Any other combination is not supported.
     return -1;
   }
-} // anonymous namespace
+} // namespace
 
 
 int
@@ -224,7 +241,11 @@ isotropic_convert(int flag1, double in1,
 
 
 int
-TclCommand_setIsotropicParameters(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+TclCommand_setIsotropicParameters(
+  ClientData clientData,
+  Tcl_Interp *interp,
+  Tcl_Size argc,
+  TCL_Char ** const argv)
 {
   // We expect the syntax:
   //    material Isotropic $tag <options>

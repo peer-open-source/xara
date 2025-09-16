@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -10,7 +19,7 @@
 #include <string.h>
 #include <Parsing.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include "PlaneSection.h"
 #include <ArgumentTracker.h>
 #include <PlaneStrainMaterial.h>
@@ -20,7 +29,7 @@ int
 TclCommand_addPlaneSection(ClientData clientData, Tcl_Interp *interp,
                            int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   enum class Positions : int {
     Material, Thickness, End
   };

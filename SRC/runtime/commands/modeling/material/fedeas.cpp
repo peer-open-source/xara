@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Written: cmp
@@ -11,7 +18,7 @@
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <ArgumentTracker.h>
 #include <string.h>
 
@@ -37,7 +44,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
                   int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   ArgumentTracker<Positions> tracker;
   std::set<int> positional;
@@ -45,7 +52,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
 
   int tag;
   double fpc, epsc0, fpcu, epscu;
-  double rat, ft, Ets;
+  double rat=0.1, ft=0, Ets=0;
 
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial tag\n";
@@ -62,6 +69,8 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
         opserr << "Invalid value for option " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
+      if (tracker.contains(Positions::ft))
+        ft = 0.1*fpc;
       tracker.consume(Positions::fpc);
     }
     else if ((strcasecmp(argv[i], "-epsc0") == 0) || (strcmp(argv[i], "-ec0") == 0)) {
@@ -252,7 +261,7 @@ static int
 FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   ArgumentTracker<Positions> tracker;
   std::set<int> positional;
@@ -648,16 +657,16 @@ TclCommand_newFedeasConcrete(ClientData clientData, Tcl_Interp *interp,
     return FedeasConcrParse<Positions>(clientData, interp, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "Steel02") == 0) || 
-           (strcmp(argv[1], "Steel2") == 0) || 
-           (strcmp(argv[1], "Steel02Thermal") == 0) || 
-           (strcmp(argv[1], "SteelMP") == 0)
+  else if ((strcmp(argv[1], "Concrete02") == 0) || 
+           (strcmp(argv[1], "Concrete2") == 0) || 
+           (strcmp(argv[1], "Concrete02Thermal") == 0)
   ) {
     
     // uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? epscu? rat? ft? Ets?
     enum class Positions: int {
       Tag,
-      fpc, epsc0, fpcu, epscu, rat, ft, Ets, EndRequired, 
+      fpc, epsc0, fpcu, epscu, EndRequired,
+      rat, ft, Ets, 
       End
     };
     return FedeasConcrParse<Positions>(clientData, interp, argc, argv);
@@ -677,7 +686,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments\n";
@@ -707,7 +716,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING invalid number of arguments\n";
       opserr
           << "Want: uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? epscu?"
-          << endln;
+          << "\n";
       return TCL_ERROR;
     }
 
@@ -735,7 +744,7 @@ TclBasicBuilder_addUniaxialConcrete(ClientData clientData, Tcl_Interp *interp,
     if (argc < 10) {
       opserr << "WARNING invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial Concrete02 tag? fpc? epsc0? fpcu? epscu? rat? ft? Ets?"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
@@ -793,7 +802,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   if (argc < 7) {
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Hardening01 tag? E? sigY? Hiso? Hkin?"
-        << endln;
+        << "\n";
   return TCL_ERROR;
   }
 
@@ -824,7 +833,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Bond01 tag? u1p? q1p? u2p? u3p? q3p? "
             "u1n? q1n? u2n? u3n? q3n? s0? bb?"
-        << endln;
+        << "\n";
   return TCL_ERROR;
   }
 
@@ -893,7 +902,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Bond02 tag? u1p? q1p? u2p? u3p? q3p? "
             "u1n? q1n? u2n? u3n? q3n? s0? bb? alp? aln?"
-        << endln;
+        << "\n";
   return TCL_ERROR;
   }
 
@@ -970,7 +979,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Concrete03 tag? fpc? epsc0? fpcu? "
       "epscu? rat? ft? epst0? ft0? beta? epstu?"
-    << endln;
+    << "\n";
   return TCL_ERROR;
   }
 
@@ -1028,7 +1037,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Hysteretic01 tag? s1p? e1p? s2p? e2p? "
       "s1n? e1n? s2n? e1n? px? py? d1? d2?"
-    << endln;
+    << "\n";
   return TCL_ERROR;
   }
 
@@ -1095,7 +1104,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
   opserr << "WARNING invalid number of arguments\n";
   opserr << "Want: uniaxialMaterial Hysteretic02 tag? s1p? e1p? s2p? e2p? "
       "s3p? e3p? s1n? e1n? s2n? e1n? s3n? e3n? px? py? d1? d2?"
-    << endln;
+    << "\n";
   return TCL_ERROR;
   }
 
@@ -1179,7 +1188,7 @@ Cmd(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial ConcretePlasticDamage tag? $Ec $Gf $Gc "
                 "$ft $fcy $fc $ktcr $relax"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 

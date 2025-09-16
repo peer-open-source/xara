@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -32,7 +41,8 @@ class ForceFrame3d: public BasicFrame3d,
                     public FiniteElement<2, 3, 6+nwm>
 {
  public:
-  ForceFrame3d(int tag, std::array<int,2>& nodes,
+  ForceFrame3d(int tag,
+               std::array<int,2>& nodes,
                std::vector<FrameSection*>& sections,
                BeamIntegration &,
                FrameTransformBuilder &, 
@@ -82,8 +92,6 @@ class ForceFrame3d: public BasicFrame3d,
 
   // Element: Sensitivity
   const Vector &getResistingForceSensitivity(int gradNumber);
-  const Matrix &getKiSensitivity(int gradNumber);
-  const Matrix &getMassSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
   int getResponseSensitivity(int responseID, int gradNumber, Information &);
 
@@ -97,9 +105,7 @@ class ForceFrame3d: public BasicFrame3d,
   // TaggedObject
   void Print(OPS_Stream &s, int flag =0);    
   
- protected:
 
-  
  private:
   //
   // Constexpr
@@ -109,10 +115,11 @@ class ForceFrame3d: public BasicFrame3d,
         ndm = 3,        // dimension of the problem (3D)
         NEN = 2,        // number of element nodes
         NBV = 6+nwm*2,  // number of element DOFs in the basic system
-        max_subdivision= 3;
+        max_subdivision= 10;
 
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 
+  static constexpr int shear_flag = (nsr-2*nwm == 6) ? 0 : 1;
 
   static constexpr FrameStressLayout scheme = {
     FrameStress::N,
@@ -169,7 +176,7 @@ class ForceFrame3d: public BasicFrame3d,
   //
   // Functions
   //
-  int getInitialFlexibility(MatrixND<NBV,NBV> &fe);
+  int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 
   void addLoadAtSection(VectorND<nsr> &sp, double x);
@@ -180,7 +187,7 @@ class ForceFrame3d: public BasicFrame3d,
   // Sensitivity
   int parameterID;
   VectorND<6+nwm*2> getBasicForceGrad(int gradNumber);
-  const Matrix &computedfedh(int gradNumber);
+  MatrixND<6+2*nwm,6+2*nwm> computedfedh(int gradNumber);
   void getStressGrad(VectorND<nsr> &dspdh, int isec, int gradNumber);
 
   //
@@ -206,8 +213,8 @@ class ForceFrame3d: public BasicFrame3d,
   // VectorND<2*NDF>       residual,
   //                       inertia;
 
-  MatrixND<NBV,NBV> K_pres,          // stiffness matrix in the basic system 
-                    K_save;          // committed stiffness matrix in the basic system
+  MatrixND<NBV,NBV> K_pres,      // stiffness matrix in the basic system 
+                    K_save;      // committed stiffness matrix in the basic system
   VectorND<NBV> q_pres,          // element resisting forces in the basic system
                 q_save;          // committed element end forces in the basic system
   

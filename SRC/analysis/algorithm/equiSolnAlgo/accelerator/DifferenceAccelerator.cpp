@@ -139,7 +139,8 @@ DifferenceAccelerator::newStep(LinearSOE &theSOE)
 }
 
 #ifdef _WIN32
-
+// DGELS solves overdetermined or underdetermined real linear systems 
+// involving an M-by-N matrix A, or its transpose, using a QR or LQ factorization of A. It is assumed that A has full rank.
 extern "C" int DGELS(char *T, unsigned int *SZ, int *M, int *N, int *NRHS,
                               double *A, int *LDA, double *B, int *LDB,
                               double *WORK, int *LWORK, int *INFO);
@@ -253,7 +254,7 @@ DifferenceAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool&
 }
 
 void
-DifferenceAccelerator::Print(OPS_Stream &s, int flag)
+DifferenceAccelerator::Print(OPS_Stream &s, int flag) const
 {
   s << "DifferenceAccelerator" << endln;
   s << "\tMax subspace dimension: " << maxDimension << endln;

@@ -8,40 +8,24 @@
 #include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <Integrator.h>
-#include <StaticIntegrator.h>
 #include <Domain.h>
 #include <LoadPattern.h>
 #include <Parameter.h>
 #include <ParameterIter.h>
-#include <TransientIntegrator.h>
 #include <BasicAnalysisBuilder.h>
 
 
 int 
 computeGradients(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
 {
-    BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
-    Integrator* theIntegrator = nullptr;
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
-    if(builder->getStaticIntegrator() != nullptr) {
-        theIntegrator = builder->getStaticIntegrator();
-
-    } else if(builder->getTransientIntegrator() != nullptr) {
-        theIntegrator = builder->getTransientIntegrator();
-    }
-
-    if (theIntegrator == nullptr) {
-        opserr << OpenSees::PromptValueError << "No integrator is created\n";
-        return TCL_ERROR;
-    }
-
-    if (theIntegrator->computeSensitivities() < 0) {
-      opserr << OpenSees::PromptValueError << "failed to compute sensitivities\n";
-      return TCL_ERROR;
-    }
-    
-    return TCL_OK;
+  if (builder->analyzeGradient() < 0) {
+    opserr << OpenSees::PromptValueError << "failed to compute sensitivities\n";
+    return TCL_ERROR;
+  }
+  
+  return TCL_OK;
 }
 
 
@@ -94,49 +78,32 @@ TclCommand_sensLambda(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
 int
 TclCommand_sensitivityAlgorithm(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
 {
-    BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
+  if (argc < 2) {
+    opserr << "ERROR: Wrong number of parameters to sensitivity algorithm." << "\n";
+    return TCL_ERROR;
+  }
 
-    Integrator* theIntegrator = nullptr;
+  // 1: compute at each step (default); 
+  // 2: compute by command; 
 
-    if (builder->getStaticIntegrator() != nullptr) {
-        theIntegrator = builder->getStaticIntegrator();
+  int analysisTypeTag = 1;
+  if (strcmp(argv[1],"-computeAtEachStep") == 0)
+      analysisTypeTag = 1;
 
-    } else if(builder->getTransientIntegrator() != nullptr) {
-        theIntegrator = builder->getTransientIntegrator();
-    }
+  else if (strcmp(argv[1],"-computeByCommand") == 0)
+      analysisTypeTag = 2;
 
+  else {
+      opserr << "Unknown sensitivity algorithm option: " << argv[1] << "\n";
+      return TCL_ERROR;
+  }
 
-    if (argc < 2) {
-        opserr << "ERROR: Wrong number of parameters to sensitivity algorithm." << "\n";
-        return TCL_ERROR;
-    }
+  if (builder->setGradientType(analysisTypeTag) < 0) {
+    return TCL_ERROR;
+  }
 
-    if (theIntegrator == nullptr) {
-        opserr << "The integrator needs to be instantiated before " << "\n"
-               << " setting  sensitivity algorithm." << "\n";
-        return -1;
-    }
-
-
-    // 1: compute at each step (default); 
-    // 2: compute by command; 
-
-    int analysisTypeTag = 1;
-    if (strcmp(argv[1],"-computeAtEachStep") == 0)
-        analysisTypeTag = 1;
-
-    else if (strcmp(argv[1],"-computeByCommand") == 0)
-        analysisTypeTag = 2;
-
-    else {
-        opserr << "Unknown sensitivity algorithm option: " << argv[1] << "\n";
-        return TCL_ERROR;
-    }
-
-    theIntegrator->setComputeType(analysisTypeTag);
-    theIntegrator->activateSensitivityKey();
-    
-    return TCL_OK;
+  return TCL_OK;
 }
 

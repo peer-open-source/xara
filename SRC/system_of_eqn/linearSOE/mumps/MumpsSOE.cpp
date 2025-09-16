@@ -34,20 +34,21 @@
 #include <Graph.h>
 #include <Vertex.h>
 #include <VertexIter.h>
-#include <math.h>
+#include <cmath>
 
 #include <stdlib.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-MumpsSOE::MumpsSOE(MumpsSolver &the_Solver, int _matType)
+MumpsSOE::MumpsSOE(MumpsSolver &the_Solver, int matType)
 :LinearSOE(the_Solver, LinSOE_TAGS_MumpsSOE),
  size(0), nnz(0), 
  A(0), B(0), X(0), 
  colA(0), rowA(0), rowB(0), colStartA(0),
  vectX(0), vectB(0),
  Asize(0), Bsize(0),
- factored(false), matType(_matType)
+ factored(false),
+ matType(matType)
 {
   the_Solver.setLinearSOE(*this);
 }
@@ -77,14 +78,14 @@ MumpsSOE::MumpsSOE(int classTag)
 }
 
 
-MumpsSOE::MumpsSOE(LinearSOESolver &the_Solver, int classTag, int _matType)
+MumpsSOE::MumpsSOE(LinearSOESolver &the_Solver, int classTag, int matType)
   :LinearSOE(the_Solver, classTag),
    size(0), nnz(0), 
    A(0), B(0), X(0), 
    colA(0), rowA(0), rowB(0), colStartA(0),
    vectX(0), vectB(0),
    Asize(0), Bsize(0),
-   factored(false), matType(_matType)
+   factored(false), matType(matType)
 {
 
 }
@@ -104,9 +105,9 @@ MumpsSOE::~MumpsSOE()
 
 
 int
-MumpsSOE::getNumEqn(void) const
+MumpsSOE::getNumEqn() const
 {
-    return size;
+  return size;
 }
 
 int 
@@ -126,6 +127,7 @@ MumpsSOE::setSize(Graph &theGraph)
   }
 
   if (matType !=  0) {
+    // Matrix is symmetric
     newNNZ -= size;
     newNNZ /= 2;
     newNNZ += size;
@@ -222,21 +224,22 @@ MumpsSOE::setSize(Graph &theGraph)
       // now we have to place the entries in the ID into order in rowA
 
       if (matType != 0) {
+        // Matrix is symmetric
 
-	for (int i=0; i<idSize; i++) {
-	  int row = theAdjacency(i);
-	  if (row > vertexTag) {
-	    bool foundPlace = false;
-	    // find a place in rowA for current col
-	    for (int j=startLoc; j<lastLoc; j++)
-	      if (rowA[j] > row) { 
-		// move the entries already there one further on
-		// and place col in current location
-		for (int k=lastLoc; k>j; k--)
-		  rowA[k] = rowA[k-1];
-		rowA[j] = row;
-		foundPlace = true;
-		j = lastLoc;
+        for (int i=0; i<idSize; i++) {
+          int row = theAdjacency(i);
+          if (row > vertexTag) {
+            bool foundPlace = false;
+            // find a place in rowA for current col
+            for (int j=startLoc; j<lastLoc; j++)
+              if (rowA[j] > row) { 
+          // move the entries already there one further on
+          // and place col in current location
+          for (int k=lastLoc; k>j; k--)
+            rowA[k] = rowA[k-1];
+          rowA[j] = row;
+          foundPlace = true;
+          j = lastLoc;
 	      }
 	    
 	    if (foundPlace == false) // put in at the end
@@ -294,203 +297,206 @@ MumpsSOE::setSize(Graph &theGraph)
 int 
 MumpsSOE::addA(const Matrix &m, const ID &id, double fact)
 {
-    // check for a quick return 
-    if (fact == 0.0)  
-	return 0;
-
-    int idSize = id.Size();
-    
-    // check that m and id are of similar size
-    if (idSize != m.noRows() && idSize != m.noCols()) {
-	opserr << "MumpsSOE::addA() ";
-	opserr << " - Matrix and ID not of similar sizes\n";
-	return -1;
-    }
-
-    if (matType != 0) {
-
-      if (fact == 1.0) { // do not need to multiply 
-	for (int i=0; i<idSize; i++) {
-	  int col = id(i);
-	  if (col < size && col >= 0) {
-	    int startColLoc = colStartA[col];
-	    int endColLoc = colStartA[col+1];
-	    
-	    for (int j=0; j<idSize; j++) {
-	      int row = id(j);
-	      if (row >= col && row < size && row >= 0) {
-		// find place in A using rowA
-		for (int k=startColLoc; k<endColLoc; k++)
-		  if (rowA[k] == row) {
-		    A[k] += m(j,i);
-		    k = endColLoc;
-		  }
-	      }
-	    }  // for j		
-	  } 
-	}  // for i
-      } else {
-	for (int i=0; i<idSize; i++) {
-	  int col = id(i);
-	  if (col < size && col >= 0) {
-	    int startColLoc = colStartA[col];
-	    int endColLoc = colStartA[col+1];
-
-	    for (int j=0; j<idSize; j++) {
-	      int row = id(j);
-	      if (row >= col && row <size && row >= 0) {
-		// find place in A using rowA
-		for (int k=startColLoc; k<endColLoc; k++)
-		  if (rowA[k] == row) {
-		    A[k] += fact * m(j,i);
-		    k = endColLoc;
-		  }
-	      }
-	    }  // for j		
-	  } 
-	}  // for i
-      }
-
-
-    } else {
-    
-      if (fact == 1.0) { // do not need to multiply 
-	for (int i=0; i<idSize; i++) {
-	  int col = id(i);
-	  if (col < size && col >= 0) {
-	    int startColLoc = colStartA[col];
-	    int endColLoc = colStartA[col+1];
-
-	    for (int j=0; j<idSize; j++) {
-	      int row = id(j);
-	      if (row <size && row >= 0) {
-		// find place in A using rowA
-		for (int k=startColLoc; k<endColLoc; k++)
-		  if (rowA[k] == row) {
-		    A[k] += m(j,i);
-		    k = endColLoc;
-		  }
-	      }
-	    }  // for j		
-	  } 
-	}  // for i
-      } else {
-	for (int i=0; i<idSize; i++) {
-	  int col = id(i);
-	  if (col < size && col >= 0) {
-	    int startColLoc = colStartA[col];
-	    int endColLoc = colStartA[col+1];
-	    for (int j=0; j<idSize; j++) {
-	      int row = id(j);
-	      if (row <size && row >= 0) {
-		// find place in A using rowA
-		for (int k=startColLoc; k<endColLoc; k++)
-		  if (rowA[k] == row) {
-		    A[k] += fact * m(j,i);
-		    k = endColLoc;
-		  }
-	      }
-	    }  // for j		
-	  } 
-	}  // for i
-      }
-    }
-
+  // check for a quick return 
+  if (fact == 0.0)  
     return 0;
+
+  int idSize = id.Size();
+  
+  // check that m and id are of similar size
+  if (idSize != m.noRows() && idSize != m.noCols()) {
+    opserr << "MumpsSOE::addA ";
+    opserr << " - Matrix and ID not of similar sizes\n";
+    return -1;
+  }
+
+  if (matType != 0) {
+    // Matrix is symmetric
+
+    if (fact == 1.0) { // do not need to multiply 
+      for (int i=0; i<idSize; i++) {
+        int col = id(i);
+        if (col < size && col >= 0) {
+          int startColLoc = colStartA[col];
+          int endColLoc = colStartA[col+1];
+          
+          for (int j=0; j<idSize; j++) {
+            int row = id(j);
+            if (row >= col && row < size && row >= 0) {
+              // find place in A using rowA
+              for (int k=startColLoc; k<endColLoc; k++)
+                if (rowA[k] == row) {
+                  A[k] += m(j,i);
+                  k = endColLoc;
+                }
+            }
+          }  // for j		
+        } 
+      }  // for i
+    } else {
+      for (int i=0; i<idSize; i++) {
+        int col = id(i);
+        if (col < size && col >= 0) {
+          int startColLoc = colStartA[col];
+          int endColLoc = colStartA[col+1];
+
+          for (int j=0; j<idSize; j++) {
+            int row = id(j);
+            if (row >= col && row <size && row >= 0) {
+              // find place in A using rowA
+              for (int k=startColLoc; k<endColLoc; k++)
+                if (rowA[k] == row) {
+                  A[k] += fact * m(j,i);
+                  k = endColLoc;
+                }
+            }
+          }  // for j		
+        } 
+      }  // for i
+    }
+
+
+  } else {
+  
+    if (fact == 1.0) { // do not need to multiply 
+      for (int i=0; i<idSize; i++) {
+        int col = id(i);
+        if (col < size && col >= 0) {
+          int startColLoc = colStartA[col];
+          int endColLoc = colStartA[col+1];
+
+          for (int j=0; j<idSize; j++) {
+            int row = id(j);
+            if (row <size && row >= 0) {
+              // find place in A using rowA
+              for (int k=startColLoc; k<endColLoc; k++)
+                if (rowA[k] == row) {
+                  A[k] += m(j,i);
+                  k = endColLoc;
+                }
+            }
+          }  // for j		
+        } 
+      }  // for i
+    } else {
+      for (int i=0; i<idSize; i++) {
+        int col = id(i);
+        if (col < size && col >= 0) {
+          int startColLoc = colStartA[col];
+          int endColLoc = colStartA[col+1];
+          for (int j=0; j<idSize; j++) {
+            int row = id(j);
+            if (row <size && row >= 0) {
+              // find place in A using rowA
+              for (int k=startColLoc; k<endColLoc; k++)
+                if (rowA[k] == row) {
+                  A[k] += fact * m(j,i);
+                  k = endColLoc;
+                }
+            }
+          }  // for j		
+        } 
+      }  // for i
+    }
+  }
+
+  return 0;
 }
 
     
 int 
 MumpsSOE::addB(const Vector &v, const ID &id, double fact)
 {
-    // check for a quick return 
-    if (fact == 0.0)  return 0;
-
-    int idSize = id.Size();    
-    // check that m and id are of similar size
-    if (idSize != v.Size() ) {
-	opserr << "MumpsSOE::addB() ";
-	opserr << " - Vector and ID not of similar sizes\n";
-	return -1;
-    }    
-
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		B[pos] += v(i);
-	}
-    } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		B[pos] -= v(i);
-	}
-    } else {
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		B[pos] += v(i) * fact;
-	}
-    }	
-
+  // check for a quick return 
+  if (fact == 0.0)
     return 0;
+
+  int idSize = id.Size();    
+  // check that m and id are of similar size
+  if (idSize != v.Size() ) {
+    opserr << "MumpsSOE::addB() ";
+    opserr << " - Vector and ID not of similar sizes\n";
+    return -1;
+  }    
+
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i=0; i<idSize; i++) {
+      int pos = id(i);
+      if (pos <size && pos >= 0)
+        B[pos] += v(i);
+    }
+  } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
+    for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+      B[pos] -= v(i);
+    }
+  } else {
+    for (int i=0; i<idSize; i++) {
+      int pos = id(i);
+      if (pos <size && pos >= 0)
+        B[pos] += v(i) * fact;
+    }
+  }	
+
+  return 0;
 }
 
 
 int
 MumpsSOE::setB(const Vector &v, double fact)
 {
-    // check for a quick return 
-    if (fact == 0.0)  return 0;
-
-
-    if (v.Size() != size) {
-	opserr << "WARNING BandGenLinSOE::setB() -";
-	opserr << " incompatible sizes " << size << " and " << v.Size() << endln;
-	return -1;
-    }
-    
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<size; i++) {
-	    B[i] = v(i);
-	}
-    } else if (fact == -1.0) {
-	for (int i=0; i<size; i++) {
-	    B[i] = -v(i);
-	}
-    } else {
-	for (int i=0; i<size; i++) {
-	    B[i] = v(i) * fact;
-	}
-    }	
-
+  // check for a quick return 
+  if (fact == 0.0)
     return 0;
+
+
+  if (v.Size() != size) {
+    opserr << "WARNING BandGenLinSOE::setB() -";
+    opserr << " incompatible sizes " << size << " and " << v.Size() << endln;
+    return -1;
+  }
+  
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i=0; i<size; i++) {
+      B[i] = v(i);
+    }
+  } else if (fact == -1.0) {
+    for (int i=0; i<size; i++) {
+      B[i] = -v(i);
+    }
+  } else {
+    for (int i=0; i<size; i++) {
+      B[i] = v(i) * fact;
+    }
+  }	
+
+  return 0;
 }
 
 void 
-MumpsSOE::zeroA(void)
+MumpsSOE::zeroA()
 {
-    double *Aptr = A;
-    for (int i=0; i<nnz; i++)
-	*Aptr++ = 0;
+  double *Aptr = A;
+  for (int i=0; i<nnz; i++)
+    *Aptr++ = 0;
 
 	factored = false;
 }
 	
 void 
-MumpsSOE::zeroB(void)
+MumpsSOE::zeroB()
 {
-    double *Bptr = B;
-    for (int i=0; i<size; i++)
-	*Bptr++ = 0;
+  double *Bptr = B;
+  for (int i=0; i<size; i++)
+    *Bptr++ = 0;
 }
 
 void 
 MumpsSOE::setX(int loc, double value)
 {
-    if (loc < size && loc >=0)
-	X[loc] = value;
+  if (loc < size && loc >=0)
+    X[loc] = value;
 }
 
 void 
@@ -501,47 +507,46 @@ MumpsSOE::setX(const Vector &x)
 }
 
 const Vector &
-MumpsSOE::getX(void)
+MumpsSOE::getX()
 {
-    if (vectX == 0) {
-	opserr << "FATAL MumpsSOE::getX - vectX == 0";
-	exit(-1);
-    }
-    return *vectX;
+  if (vectX == nullptr) {
+    opserr << "FATAL MumpsSOE::getX - vectX == 0";
+    exit(-1);
+  }
+  return *vectX;
 }
 
 const Vector &
-MumpsSOE::getB(void)
+MumpsSOE::getB()
 {
-    if (vectB == 0) {
-	opserr << "FATAL MumpsSOE::getB - vectB == 0";
-	exit(-1);
-    }        
-    return *vectB;
+  if (vectB == nullptr) {
+    opserr << "FATAL MumpsSOE::getB - vectB == 0";
+    exit(-1);
+  }        
+  return *vectB;
 }
 
 double 
-MumpsSOE::normRHS(void)
+MumpsSOE::normRHS()
 {
-    double norm =0.0;
-    for (int i=0; i<size; i++) {
-	double Yi = B[i];
-	norm += Yi*Yi;
-    }
-    return sqrt(norm);
-    
+  double norm =0.0;
+  for (int i=0; i<size; i++) {
+    double Yi = B[i];
+    norm += Yi*Yi;
+  }
+  return std::sqrt(norm);
 }    
 
 int 
 MumpsSOE::sendSelf(int cTag, Channel &theChannel)
 {
-    return 0;
+  return 0;
 }
 
 int 
 MumpsSOE::recvSelf(int cTag, Channel &theChannel, 
 			     FEM_ObjectBroker &theBroker)  
 {
-    return 0;
+  return 0;
 }
 

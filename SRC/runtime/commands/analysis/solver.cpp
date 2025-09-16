@@ -1,12 +1,19 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
-// Description: This file implements commands that configure the linear
-// solver.
+//
+// Description: This file implements commands that configure the linear solver.
 //
 #include <string>
 #include <algorithm>
@@ -16,12 +23,11 @@
 #else
 #  include <strings.h>
 #endif
-// #define strcmp strcasecmp
 
 #include <tcl.h>
-#include <G3_Logging.h>
+#include <Logging.h>
+#include <Parsing.h>
 #include <runtimeAPI.h>
-// #include "analysis.h"
 #include "solver.hpp"
 #include "BasicAnalysisBuilder.h"
 
@@ -34,18 +40,6 @@
 #include <SymSparseLinSOE.h>
 #include <SymSparseLinSolver.h>
 
-#ifdef _CUDA
-#  include <BandGenLinSOE_Single.h>
-#  include <BandGenLinLapackSolver_Single.h>
-#endif
-
-#ifdef _CULAS4
-#  include <CulaSparseSolverS4.h>
-#endif
-
-#ifdef _CULAS5
-#  include <CulaSparseSolverS5.h>
-#endif
 
 #if defined(_PARALLEL_PROCESSING)
 //  parallel soe & solvers
@@ -63,10 +57,6 @@
 #  include <DistributedSuperLU.h>
 #  include <DistributedProfileSPDLinSOE.h>
 #endif
-
-// TODO: remove
-// extern DirectIntegrationAnalysis *theTransientAnalysis;
-// extern LinearSOE *theSOE;
 
 
 LinearSOE*
@@ -92,13 +82,15 @@ TclCommand_systemSize(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
   return TCL_OK;
 }
 
+
 int
 specifySysOfEqnTable(ClientData clientData, Tcl_Interp *interp, int argc, G3_Char ** const argv)
 {
   // make sure at least one other argument to contain type of system
   if (argc < 2) {
     opserr << OpenSees::PromptValueError
-           << "need to specify a system type" << "\n";
+           << "need to specify a system type" 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -113,6 +105,7 @@ specifySysOfEqnTable(ClientData clientData, Tcl_Interp *interp, int argc, G3_Cha
   return TCL_OK;
 
 }
+
 
 LinearSOE*
 G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
@@ -129,30 +122,32 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
 
   if (ctor != soe_table.end()) {
     return ctor->second.ss(rt, argc, argv);
-
   }
-#ifdef XARA_USE_MUMPS
+
+#if defined(XARA_USE_MUMPS)
   else if (strcasecmp(argv[1], "mumps") == 0) {
     return TclDispatch_newMumpsLinearSOE(clientData, interp, argc, argv);
   }
 #endif
+
   else if (strcasecmp(argv[1], "Umfpack")==0) {
     // TODO: if "umfpack" is in solver.hpp, this wont be reached
     return TclDispatch_newUmfpackLinearSOE(clientData, interp, argc, argv);
-  } 
+  }
+
 #if 0
   else if (strcmp(argv[2],"Thread") == 0) {  
       int blockSize = 4;
       int numThreads = 1;
       if (argc == 5) {
-	if (Tcl_GetInt(interp, argv[3], &blockSize) != TCL_OK)
-	  return nullptr; //TCL_ERROR;
-	if (Tcl_GetInt(interp, argv[4], &numThreads) != TCL_OK)
-	  return nullptr; //TCL_ERROR;
-      }
-      return new ProfileSPDLinSOE(
-          *new ProfileSPDLinDirectThreadSolver(numThreads,blockSize,1.0e-12)
-      );
+    if (Tcl_GetInt(interp, argv[3], &blockSize) != TCL_OK)
+      return nullptr; //TCL_ERROR;
+    if (Tcl_GetInt(interp, argv[4], &numThreads) != TCL_OK)
+      return nullptr; //TCL_ERROR;
+    }
+    return new ProfileSPDLinSOE(
+        *new ProfileSPDLinDirectThreadSolver(numThreads,blockSize,1.0e-12)
+    );
   } 
 #endif
 
@@ -182,7 +177,10 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
 #endif
 
   else {
-    opserr << OpenSees::PromptValueError << " system '" << argv[1] << "' is unknown or not installed\n";
+    opserr << OpenSees::PromptValueError 
+           << " system '" 
+           << argv[1] << "' is unknown or not installed"
+           << OpenSees::SignalMessageEnd;
     return nullptr;
   }
 
@@ -193,22 +191,20 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc,
 LinearSOE*
 specify_SparseSPD(G3_Runtime *rt, int argc, G3_Char ** const argv)
 {
-//if ((strcmp(argv[1], "SparseSPD") == 0) ||
-//         (strcmp(argv[1], "SparseSYM") == 0)) {
-    Tcl_Interp *interp = G3_getInterpreter(rt);
+  Tcl_Interp *interp = G3_getInterpreter(rt);
 
-    // determine ordering scheme
-    //   1 -- MMD
-    //   2 -- ND
-    //   3 -- RCM
+  // determine ordering scheme
+  //   1 -- MMD
+  //   2 -- ND
+  //   3 -- RCM
 
-    int lSparse = 1;
-    if (argc == 3) {
-      if (Tcl_GetInt(interp, argv[2], &lSparse) != TCL_OK)
-        return nullptr;
-    }
-    SymSparseLinSolver *theSolver = new SymSparseLinSolver();
-    return new SymSparseLinSOE(*theSolver, lSparse);
+  int lSparse = 1;
+  if (argc == 3) {
+    if (Tcl_GetInt(interp, argv[2], &lSparse) != TCL_OK)
+      return nullptr;
+  }
+
+  return new SymSparseLinSOE(*new SymSparseLinSolver(), lSparse);
 }
 
 
@@ -222,56 +218,52 @@ specify_SparseSPD(G3_Runtime *rt, int argc, G3_Char ** const argv)
 LinearSOE*
 specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
 {
-  // SPARSE GENERAL SOE * SOLVER
-//if ((strcmp(argv[1], "SparseGeneral") == 0) ||
-//         (strcmp(argv[1], "SuperLU") == 0) ||
-//         (strcmp(argv[1], "SparseGEN") == 0))
-    Tcl_Interp *interp = G3_getInterpreter(rt);
+  Tcl_Interp *interp = G3_getInterpreter(rt);
 
-    SparseGenColLinSolver *theSolver = nullptr;
-    int count = 2;
-    double thresh = 0.0;
-    int npRow = 1;
-    int npCol = 1;
-    int np = 1;
+  SparseGenColLinSolver *theSolver = nullptr;
+  int count = 2;
+  double thresh = 0.0;
+  int npRow = 1;
+  int npCol = 1;
+  int np = 1;
 
-    // defaults for threaded SuperLU
-    while (count < argc) {
-      if ((strcmp(argv[count], "p")    == 0) ||
-          (strcmp(argv[count], "piv")  == 0) ||
-          (strcmp(argv[count], "-piv") == 0)) {
-        thresh = 1.0;
-      } else if ((strcmp(argv[count], "-np") == 0) ||
-                 (strcmp(argv[count], "np")  == 0)) {
-        count++;
-        if (count < argc)
-          if (Tcl_GetInt(interp, argv[count], &np) != TCL_OK)
-            return nullptr;
-      } else if ((strcmp(argv[count], "npRow")  == 0) ||
-                 (strcmp(argv[count], "-npRow") == 0)) {
-        count++;
-        if (count < argc)
-          if (Tcl_GetInt(interp, argv[count], &npRow) != TCL_OK)
-            return nullptr;
-      } else if ((strcmp(argv[count], "npCol")  == 0) ||
-                 (strcmp(argv[count], "-npCol") == 0)) {
-        count++;
-        if (count < argc)
-          if (Tcl_GetInt(interp, argv[count], &npCol) != TCL_OK)
-            return nullptr;
-      }
+  // defaults for threaded SuperLU
+  while (count < argc) {
+    if ((strcmp(argv[count], "p")    == 0) ||
+        (strcmp(argv[count], "piv")  == 0) ||
+        (strcmp(argv[count], "-piv") == 0)) {
+      thresh = 1.0;
+    } else if ((strcmp(argv[count], "-np") == 0) ||
+                (strcmp(argv[count], "np")  == 0)) {
       count++;
+      if (count < argc)
+        if (Tcl_GetInt(interp, argv[count], &np) != TCL_OK)
+          return nullptr;
+    } else if ((strcmp(argv[count], "npRow")  == 0) ||
+                (strcmp(argv[count], "-npRow") == 0)) {
+      count++;
+      if (count < argc)
+        if (Tcl_GetInt(interp, argv[count], &npRow) != TCL_OK)
+          return nullptr;
+    } else if ((strcmp(argv[count], "npCol")  == 0) ||
+                (strcmp(argv[count], "-npCol") == 0)) {
+      count++;
+      if (count < argc)
+        if (Tcl_GetInt(interp, argv[count], &npCol) != TCL_OK)
+          return nullptr;
     }
+    count++;
+  }
 
-    int permSpec = 0;
-    int panelSize = 6;
-    int relax = 6;
+  int permSpec = 1;
+  int panelSize = 6;
+  int relax = 6;
 
 #ifdef _THREADS
-    if (np != 0)
-      theSolver = new ThreadedSuperLU(np, permSpec, panelSize, relax, thresh);
-    else
-      return nullptr;
+  if (np != 0)
+    theSolver = new ThreadedSuperLU(np, permSpec, panelSize, relax, thresh);
+  else
+    return nullptr;
 // #endif
 // 
 // #ifdef _PARALLEL_PROCESSING
@@ -283,28 +275,30 @@ specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
 //       theSolver = new DistributedSuperLU(npRow, npCol);
 //     }
 #else
-    char symmetric = 'N';
-    double drop_tol = 0.0;
-    while (count < argc) {
-      if (strcmp(argv[count], "s") == 0 || strcmp(argv[count], "symmetric") ||
-          strcmp(argv[count], "-symm")) {
-        symmetric = 'Y';
-      }
-      count++;
+  char symmetric = 'N';
+  double drop_tol = 0.0;
+  while (count < argc) {
+    if (strcmp(argv[count], "s") == 0 || 
+        strcmp(argv[count], "symmetric") ||
+        strcmp(argv[count], "-symmetric") ||
+        strcmp(argv[count], "-symm")) {
+      symmetric = 'Y';
     }
-    // TODO(cmp) : SuperLU
-    theSolver = new SuperLU(permSpec, drop_tol, panelSize, relax, symmetric);
+    count++;
+  }
+  // TODO(cmp) : SuperLU
+  theSolver = new SuperLU(permSpec, drop_tol, panelSize, relax, symmetric);
 #endif
 
 #ifdef _PARALLEL_PROCESSING
-    return new DistributedSparseGenColLinSOE(*theSolver);
+  return new DistributedSparseGenColLinSOE(*theSolver);
 #else
-    return new SparseGenColLinSOE(*theSolver);
+  return new SparseGenColLinSOE(*theSolver);
 #endif
 }
 
 
-#if 0 // Some misc solvers i play with
+#if 0 // Some misc solvers
 
 else if (strcmp(argv[2],"Block") == 0) {
   int blockSize = 4;
@@ -353,86 +347,3 @@ else
   theSolver = new ProfileSPDLinDirectSolver();
 
 #endif // misc solvers
-
-
-#if defined(_CULAS4) || defined(_CULAS5)
-// CULA SPARSE
-else if ((strcmp(argv[1], "CulaSparse") == 0)) {
-  double absTol = 1.0e-6;
-  double relTol = 1e-6;
-
-  int maxInteration = 100000;
-
-  int preCond = 5; // fainv
-#  ifdef _CULAS4
-  preCond = 1;
-#  endif
-  int solver = 0; // cg
-  int count = 2;
-  int single = 0;
-  int host = 0;
-
-  while (count < argc) {
-
-    if (strcmp(argv[count], "-rTol") == 0) {
-      count++;
-      if (count < argc)
-        if (Tcl_GetDouble(interp, argv[count], &relTol) != TCL_OK)
-          return TCL_ERROR;
-    } else if ((strcmp(argv[count], "-mInt") == 0)) {
-      count++;
-      if (count < argc)
-        if (Tcl_GetInt(interp, argv[count], &maxInteration) != TCL_OK)
-          return TCL_ERROR;
-    } else if ((strcmp(argv[count], "-pre") == 0)) {
-      count++;
-      if (count < argc)
-        if ((strcmp(argv[count], "none") == 0))
-          preCond = 0;
-        else if ((strcmp(argv[count], "jacobi") == 0))
-          preCond = 1;
-        else if ((strcmp(argv[count], "blockjacobi") == 0))
-          preCond = 2;
-        else if ((strcmp(argv[count], "ilu0") == 0))
-          preCond = 3;
-        else if ((strcmp(argv[count], "ainv") == 0))
-          preCond = 4;
-        else if ((strcmp(argv[count], "fainv") == 0))
-          preCond = 5;
-        else
-          return TCL_ERROR;
-    } else if ((strcmp(argv[count], "-solver") == 0)) {
-      count++;
-      if (count < argc)
-        if ((strcmp(argv[count], "cg") == 0))
-          solver = 0;
-        else if ((strcmp(argv[count], "bicg") == 0))
-          solver = 1;
-        else if ((strcmp(argv[count], "blockstab") == 0))
-          solver = 2;
-        else if ((strcmp(argv[count], "blockstabl") == 0))
-          solver = 3;
-        else if ((strcmp(argv[count], "gmres") == 0))
-          solver = 4;
-        else if ((strcmp(argv[count], "minres") == 0))
-          solver = 5;
-        else
-          return TCL_ERROR;
-    } else if ((strcmp(argv[count], "-single") == 0)) {
-      single = 1;
-    } else if ((strcmp(argv[count], "-host") == 0)) {
-      host = 1;
-    }
-    count++;
-  }
-
-#  ifdef _CULAS5
-  CulaSparseSolverS5 *theSolver = new CulaSparseSolverS5(
-      relTol, maxInteration, preCond, solver, single, host);
-#  else
-  CulaSparseSolverS4 *theSolver =
-      new CulaSparseSolverS4(relTol, maxInteration, preCond, solver);
-#  endif
-  theSOE = new SparseGenRowLinSOE(*theSolver);
-}
-#endif

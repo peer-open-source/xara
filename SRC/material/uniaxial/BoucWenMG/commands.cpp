@@ -5,7 +5,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <BoucWenMG.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <ArgumentTracker.h>
 
 int
@@ -13,7 +13,7 @@ TclCommand_newBoucWenMG(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
     assert(clientData != nullptr);
-    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
     // Declare order for positional arguments
     enum class Position : int {

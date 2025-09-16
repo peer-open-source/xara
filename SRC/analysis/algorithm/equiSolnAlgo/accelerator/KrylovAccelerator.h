@@ -46,7 +46,7 @@ class KrylovAccelerator : public Accelerator
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   bool updateTangent(void);
 
-  void Print(OPS_Stream &, int flag) final;
+  void Print(OPS_Stream &, int flag) const final;
   
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, 

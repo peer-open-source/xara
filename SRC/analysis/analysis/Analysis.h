@@ -46,11 +46,10 @@ class Analysis
     virtual ~Analysis();
 
     // pure virtual functions
-    //    virtual int analyze(void) =0;
-    virtual int domainChanged(void) = 0;
+    virtual int domainChanged() = 0;
     
   protected:
-    Domain *getDomainPtr(void);
+    Domain *getDomainPtr();
     
   private:
     Domain *theDomain;

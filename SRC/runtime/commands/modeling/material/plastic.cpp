@@ -1,10 +1,21 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
 //
-// cmp
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+// Description: This file implements a unified parser for plasticity materials.
+//
+// Written: cmp
 // April 2025
 //
 #include <tcl.h>
@@ -13,7 +24,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include "isotropy.h"
 
@@ -30,7 +41,7 @@
 
 template <typename Position>
 static inline int
-TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
+ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
 
@@ -565,7 +576,7 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   //
   // Create the material (TODO)
   //
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if ((strcmp(argv[1], "Hardening") == 0) ||
       (strcmp(argv[1], "Steel") == 0)) {
 
@@ -580,9 +591,9 @@ TclCommand_newPlasticParser(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "J2BeamFiber") == 0) {
     NDMaterial* theMaterial = nullptr;
     if (builder->getNDM() == 2)
-      theMaterial = new J2BeamFiber2d(tag, consts.E, consts.G, Fy, Hkin, Hiso);
+      theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, Hkin, Hiso);
     else 
-      theMaterial = new J2BeamFiber3d(tag, consts.E, consts.G, Fy, Hkin, Hiso);
+      theMaterial = new J2BeamFiber3d(tag, consts.E, consts.nu, Fy, Hkin, Hiso);
 
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
@@ -662,26 +673,28 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
 
     // "SimplifiedJ2"  tag?  G?  K?  Fy? Hkin?  Hiso?
     enum class Position : int {
-      Tag, G, K, YieldStress, Hkin, Hiso, EndRequired, 
+      Tag, G, K, YieldStress, EndRequired, 
+      Hkin, Hiso,
       End,
       E, Nu, Lambda, Eta, Theta, Hmix, Hsat,
       SatStress, SatStress0,
       Delta2, Rho, RhoBar, Atm,
       Density
     };
-    return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
   else if (strcmp(argv[1], "J2BeamFiber") == 0) {
     // J2BeamFiber $tag $E $v $sigmaY $Hiso $Hkin <$rho>
     enum class Position : int {
-      Tag, E, G, YieldStress, Hkin, Hiso, EndRequired,
+      Tag, E, G, YieldStress, EndRequired,
+      Hkin, Hiso,
       Density,
       End,
       Nu, K, Eta, Lambda, Theta, Hmix, Hsat,
       SatStress, SatStress0,
       Delta2, Rho, RhoBar, Atm
     };
-    return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
 
   // "UniaxialJ2Plasticity" tag? E? sigmaY? Hkin? <Hiso?>
@@ -705,7 +718,7 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       SatStress, SatStress0, 
       Delta2, Rho, RhoBar, Atm,
     };
-    return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
 
   else if (strcmp(argv[1], "J2") == 0 ||
@@ -720,7 +733,7 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       Delta2, Rho, RhoBar, Atm,
       Density
     };
-    return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
   else if (strcmp(argv[1], "DP") == 0 ||
            strcmp(argv[1], "DruckerPrager")  == 0) {
@@ -732,7 +745,7 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       Density, Atm, End,
       Eta, E, Nu, Lambda, Hiso, Hkin
     };
-    return TclCommand_newPlasticParser<Position>(clientData, interp, argc, argv);
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
   return TCL_ERROR;
 }
@@ -746,7 +759,7 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
     if (argc < 7) {
       opserr << "WARNING invalid number of arguments\n";
       opserr << "Want: uniaxialMaterial UniaxialJ2Plasticity tag? E? sigmaY? Hkin? <Hiso?>"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
@@ -756,7 +769,7 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
       opserr << "WARNING invalid uniaxialMaterial UniaxialJ2Plasticity tag"
-             << endln;
+             << "\n";
       return TCL_ERROR;
     }
 
@@ -785,7 +798,7 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
     UniaxialMaterial* theMaterial = new UniaxialJ2Plasticity(tag, E, sigmaY, Hkin, Hiso);
 
    assert(clientData != nullptr);
-   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
    builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
    return TCL_OK;
 }
@@ -795,7 +808,7 @@ int
 TclCommand_newJ2Simplified(ClientData clientData, Tcl_Interp* interp, int argc, const char** const argv)
 {
 
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
   if (argc < 8) {
     opserr << "WARNING insufficient arguments\n";
@@ -868,7 +881,7 @@ TclCommand_newJ2Material(ClientData clientData,
                          int argc,
                          const char** const argv)
 {
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
   if (argc < 9) {
     opserr << "WARNING insufficient arguments\n";

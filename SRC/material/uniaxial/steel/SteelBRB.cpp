@@ -33,6 +33,7 @@
 #include <float.h>
 #include <MaterialResponse.h>
 #include <Information.h>
+#include <Parameter.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -378,6 +379,23 @@ SteelBRB::recvSelf(int cTag, Channel &theChannel,
 void 
 SteelBRB::Print(OPS_Stream &s, int flag)
 {
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+	s << TaggedObject::JsonPropertyIndent << "{";
+	s << "\"name\": \"" << this->getTag() << "\", ";
+	s << "\"type\": \"SteelBRB\", ";
+	s << "\"E\": " << E << ", ";
+	s << "\"sigmaY0\": " << sigmaY0 << ", ";
+	s << "\"sigmaY_T\": " << sigmaY_T << ", ";
+	s << "\"alpha_T\": " << alpha_T << ", ";
+	s << "\"beta_T\": " << beta_T << ", ";
+	s << "\"delta_T\": " << delta_T << ", ";
+	s << "\"sigmaY_C\": " << sigmaY_C << ", ";
+	s << "\"alpha_C\": " << alpha_C << ", ";
+	s << "\"beta_C\": " << beta_C << ", ";
+	s << "\"delta_C\": " << delta_C << ", ";
+	s << "\"Tol\": " << Tol;
+	s << "}";
+  }
   return;
 }
 
@@ -507,50 +525,50 @@ double  SteelBRB::Newton_BRB(double CStress, double beta, double CPlastStrain, d
 	double delta_C;
 */
 int
-SteelBRB::setParameter(const char **argv, int argc, Information &info)
+SteelBRB::setParameter(const char **argv, int argc, Parameter &param)
 {
 	if (argc < 1)
 		return -1;
 
 	if (strcmp(argv[0],"E") == 0) {
-		info.theType = DoubleType;
-		return 1;
+		param.setValue(E);
+		return param.addObject(1, this);
 	}
 	if (strcmp(argv[0],"sigmaY0") == 0) {
-		info.theType = DoubleType;
-		return 2;
+		param.setValue(sigmaY0);
+		return param.addObject(2, this);
 	}
 	if (strcmp(argv[0],"sigmaY_T") == 0) {
-		info.theType = DoubleType;
-		return 3;
+		param.setValue(sigmaY_T);
+		return param.addObject(3, this);
 	}
 	if (strcmp(argv[0],"alpha_T") == 0) {
-		info.theType = DoubleType;
-		return 4;
+		param.setValue(alpha_T);
+		return param.addObject(4, this);
 	}
 	if (strcmp(argv[0],"beta_T") == 0) {
-		info.theType = DoubleType;
-		return 5;
+		param.setValue(beta_T);
+		return param.addObject(5, this);
 	}
 	if (strcmp(argv[0],"delta_T") == 0) {
-		info.theType = DoubleType;
-		return 6;
+		param.setValue(delta_T);
+		return param.addObject(6, this);
 	}
 	if (strcmp(argv[0],"sigmaY_C") == 0) {
-		info.theType = DoubleType;
-		return 7;
+		param.setValue(sigmaY_C);
+		return param.addObject(7, this);
 	}
 	if (strcmp(argv[0],"alpha_C") == 0) {
-		info.theType = DoubleType;
-		return 8;
+		param.setValue(alpha_C);
+		return param.addObject(8, this);
 	}
 	if (strcmp(argv[0],"beta_C") == 0) {
-		info.theType = DoubleType;
-		return 9;
+		param.setValue(beta_C);
+		return param.addObject(9, this);
 	}
 	if (strcmp(argv[0],"delta_C") == 0) {
-		info.theType = DoubleType;
-		return 10;
+		param.setValue(delta_C);
+		return param.addObject(10, this);
 	}
 	
 	else

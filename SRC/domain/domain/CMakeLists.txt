@@ -7,10 +7,8 @@
 target_sources(OPS_Domain
   PRIVATE
     Domain.cpp
-    DomainModalProperties.cpp
   PUBLIC
     Domain.h
-    DomainModalProperties.h
     ElementIter.h
     LoadCaseIter.h
     MP_ConstraintIter.h

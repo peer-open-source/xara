@@ -39,10 +39,12 @@
 //
 #include <Tri31.h>
 #include <SixNodeTri.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <algorithm>
 #include <string>
+
+namespace {
 static
 std::string toLower( const std::string & s )
 {
@@ -72,6 +74,7 @@ class CaseInsensitive
         return equalsIgnoreCase( lhs, rhs );
     }
 };
+} // namespace
 
 using namespace OpenSees;
 
@@ -100,7 +103,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
                                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   //         0     1     2       3      4      5      6     7        8      9        10      11  12  13
   //  10  element name eleTag? iNode? jNode? kNode? lNode? thk?    type?  matTag?
   //  14  element name eleTag? iNode? jNode? kNode? lNode? thk?    type?  matTag? <pressure? rho? b1? b2?>
@@ -371,8 +374,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
         return TCL_ERROR;
 
       theElement =
-          new LagrangeQuad<4>(tag, nodes, *mat_2d,
-                              thickness, p, rho, b1, b2);
+          new LagrangeQuad<4,4>(tag, nodes, *mat_2d,
+                                thickness, p, rho, b1, b2);
 
     } else {
       if (nd_mat == nullptr) {
@@ -458,7 +461,7 @@ TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
                                               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 2) {
     opserr << OpenSees::PromptValueError 
@@ -546,7 +549,7 @@ int
 TclBasicBuilder_addNineNodeMixedQuad(ClientData clientData, Tcl_Interp *interp,
                                      int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 2) {
     opserr << OpenSees::PromptValueError << "-- model dimensions and/or nodal DOF not compatible "
@@ -649,7 +652,7 @@ TclBasicBuilder_addFourNodeQuadWithSensitivity(ClientData clientData,
                                                Tcl_Interp *interp, int argc,
                                                TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder == 0 || clientData == 0) {
     opserr << OpenSees::PromptValueError << "builder has been destroyed\n";
@@ -782,7 +785,7 @@ int
 TclBasicBuilder_addFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 3) {
     opserr << OpenSees::PromptValueError << "-- model dimensions and/or nodal DOF not compatible "
@@ -913,7 +916,7 @@ int
 TclBasicBuilder_addNineFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder == 0 || clientData == 0) {
     opserr << OpenSees::PromptValueError << "builder has been destroyed\n";
@@ -1033,7 +1036,7 @@ int
 TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder == 0 || clientData == 0) {
     opserr << OpenSees::PromptValueError << "builder has been destroyed\n";
@@ -1166,7 +1169,7 @@ TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
 int
 TclDispatch_newTri31(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **const argv)
 {
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   
   if (argc < 9) {
     opserr << "Invalid #args, want: "
@@ -1269,7 +1272,7 @@ TclBasicBuilder_addNineNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
                                 TCL_Char ** const argv)
 {
   // TODO: assertions, clean up
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder == 0 || clientData == 0) {
     opserr << OpenSees::PromptValueError << "builder has been destroyed\n";
@@ -1372,7 +1375,7 @@ int
 TclBasicBuilder_addEightNodeQuad(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 2) {
     opserr << OpenSees::PromptValueError << "-- model dimensions and/or nodal DOF not compatible "
@@ -1502,7 +1505,7 @@ int
 TclBasicBuilder_addSixNodeTri(ClientData clientData, Tcl_Interp *interp, int argc,
                               TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   if (builder->getNDM() != 2 || builder->getNDF() != 2) {
     opserr << OpenSees::PromptValueError << "-- model dimensions and/or nodal DOF not compatible "

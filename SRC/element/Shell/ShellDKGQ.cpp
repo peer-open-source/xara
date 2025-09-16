@@ -341,7 +341,8 @@ Response *ShellDKGQ::setResponse(const char **argv, int argc,
   return theResponse;
 }
 
-int ShellDKGQ::getResponse(int responseID, Information &eleInfo)
+int 
+ShellDKGQ::getResponse(int responseID, Information &eleInfo)
 {
   int cnt = 0;
 
@@ -406,8 +407,9 @@ const Matrix &ShellDKGQ::getTangentStiff()
   return stiff;
 }
 
-// return secant matrix
-const Matrix &ShellDKGQ::getInitialStiff()
+
+const Matrix &
+ShellDKGQ::getInitialStiff()
 {
   if (Ki != nullptr)
     return *Ki;
@@ -661,8 +663,9 @@ int ShellDKGQ::addInertiaLoadToUnbalance(const Vector &accel)
   return 0;
 }
 
-//get residual
-const Vector &ShellDKGQ::getResistingForce()
+
+const Vector &
+ShellDKGQ::getResistingForce()
 {
   int tang_flag = 0; //don't get the tangent
 
@@ -675,8 +678,9 @@ const Vector &ShellDKGQ::getResistingForce()
   return resid;
 }
 
-//get residual with inertia terms
-const Vector &ShellDKGQ::getResistingForceIncInertia()
+
+const Vector &
+ShellDKGQ::getResistingForceIncInertia()
 {
   static Vector res(24);
   int tang_flag = 0; //don't get the tangent
@@ -698,10 +702,9 @@ const Vector &ShellDKGQ::getResistingForceIncInertia()
   return res;
 }
 
-//*********************************************************************
-//form inertia terms
 
-void ShellDKGQ::formInertiaTerms(int tangFlag)
+void
+ShellDKGQ::formInertiaTerms(int tangFlag)
 {
 
   //translational mass only
@@ -724,7 +727,7 @@ void ShellDKGQ::formInertiaTerms(int tangFlag)
   //zero mass
   mass.Zero();
 
-  //gauss loop
+  // gauss loop
   for (int i = 0; i < ShellDKGQ::nip; i++) {
 
     //get shape functions

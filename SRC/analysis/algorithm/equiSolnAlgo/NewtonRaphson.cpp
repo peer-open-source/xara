@@ -30,7 +30,6 @@
 // Created: Sun Sept 15 15:06:47: 1996 
 //
 #include <NewtonRaphson.h>
-#include <AnalysisModel.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -52,10 +51,10 @@ NewtonRaphson::NewtonRaphson(IncrementalIntegrator::TangentFlagType prediction_t
 }
 
 NewtonRaphson::NewtonRaphson()
-        :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonRaphson),
-        prediction_tangent(CURRENT_TANGENT), 
-        correction_tangent(CURRENT_TANGENT),
-        iFactor(0.), cFactor(1.)
+    :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonRaphson),
+    prediction_tangent(CURRENT_TANGENT), 
+    correction_tangent(CURRENT_TANGENT),
+    iFactor(0.), cFactor(1.)
 {
 
 }
@@ -73,12 +72,10 @@ NewtonRaphson::solveCurrentStep()
 {
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-  AnalysisModel   *theAnaModel = this->getAnalysisModelPtr();
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
-  if  ( (theAnaModel  == nullptr) 
-      || (theIntegrator== nullptr)
+  if  (  (theIntegrator== nullptr)
       || (theSOE       == nullptr)
       || (theTest      == nullptr)){
       opserr << "WARNING NewtonRaphson::solveCurrentStep() - setLinks() has";
@@ -131,11 +128,12 @@ NewtonRaphson::solveCurrentStep()
     if (theSOE->solve() < 0) 
       return SolutionAlgorithm::BadLinearSolve;
 
+    if (theIntegrator->update(theSOE->getX()) < 0)
+      return SolutionAlgorithm::BadStepUpdate;
+
     //
     // 2.3 Form updated residual
     //
-    if (theIntegrator->update(theSOE->getX()) < 0)
-      return SolutionAlgorithm::BadStepUpdate;
 
     if (theIntegrator->formUnbalance() < 0)
       return SolutionAlgorithm::BadFormResidual;
@@ -185,7 +183,7 @@ NewtonRaphson::recvSelf(int cTag,
 
 
 void
-NewtonRaphson::Print(OPS_Stream &s, int flag)
+NewtonRaphson::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
     s << "NewtonRaphson" << endln;
@@ -194,7 +192,7 @@ NewtonRaphson::Print(OPS_Stream &s, int flag)
 
 
 int
-NewtonRaphson::getNumIterations(void)
+NewtonRaphson::getNumIterations() const
 {
   return numIterations;
 }

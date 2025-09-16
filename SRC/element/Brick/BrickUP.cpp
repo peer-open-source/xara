@@ -40,7 +40,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 
 #include <ID.h>
 #include <Vector.h>
@@ -51,7 +51,6 @@
 #include <ErrorHandler.h>
 #include <BrickUP.h>
 #include <shp3d.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <Information.h>
 #include <Parameter.h>
@@ -96,14 +95,14 @@ connectedExternalNodes(8), applyLoad(0), load(0), Ki(0), kc(0), rho(0)
 
 //*********************************************************************
 //full constructor
-BrickUP::BrickUP(  int tag,
-                         int node1,
-                         int node2,
-   	                     int node3,
-                         int node4,
-                         int node5,
-                         int node6,
-                         int node7,
+BrickUP::BrickUP( int tag,
+                  int node1,
+                  int node2,
+                  int node3,
+                  int node4,
+                  int node5,
+                  int node6,
+                  int node7,
 			             int node8,
 			 NDMaterial &theMaterial, double bulk, double rhof,
 			double p1, double p2, double p3,
@@ -121,15 +120,9 @@ connectedExternalNodes(8), applyLoad(0), load(0), Ki(0), kc(bulk), rho(rhof)
   connectedExternalNodes(6) = node7 ;
   connectedExternalNodes(7) = node8 ;
 
-  int i ;
-  for ( i=0; i<8; i++ ) {
+  for (int i=0; i<8; i++ ) {
 
       materialPointers[i] = theMaterial.getCopy("ThreeDimensional") ;
-
-      if (materialPointers[i] == 0) {
-	  opserr <<"BrickUP::constructor - failed to get a material of type: ThreeDimensional\n";
-	  exit(-1);
-      } //end if
 
   } //end for i
 
@@ -197,8 +190,9 @@ void  BrickUP::setDomain( Domain *theDomain )
 }
 
 
-//get the number of external nodes
-int  BrickUP::getNumExternalNodes( ) const
+// get the number of external nodes
+int
+BrickUP::getNumExternalNodes( ) const
 {
   return 8 ;
 }
@@ -1372,72 +1366,6 @@ int  BrickUP::recvSelf (int commitTag,
 }
 //**************************************************************************
 
-int
-BrickUP::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // get vertex display coordinate vectors
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-    static Vector v5(3);
-    static Vector v6(3);
-    static Vector v7(3);
-    static Vector v8(3);
-    nodePointers[0]->getDisplayCrds(v1, fact, displayMode);
-    nodePointers[1]->getDisplayCrds(v2, fact, displayMode);
-    nodePointers[2]->getDisplayCrds(v3, fact, displayMode);
-    nodePointers[3]->getDisplayCrds(v4, fact, displayMode);
-    nodePointers[4]->getDisplayCrds(v5, fact, displayMode);
-    nodePointers[5]->getDisplayCrds(v6, fact, displayMode);
-    nodePointers[6]->getDisplayCrds(v7, fact, displayMode);
-    nodePointers[7]->getDisplayCrds(v8, fact, displayMode);
-
-    // add to coord matrix
-    static Matrix coords(8, 3);
-    for (int i = 0; i < 3; i++) {
-        coords(0, i) = v1(i);
-        coords(1, i) = v2(i);
-        coords(2, i) = v3(i);
-        coords(3, i) = v4(i);
-        coords(4, i) = v5(i);
-        coords(5, i) = v6(i);
-        coords(6, i) = v7(i);
-        coords(7, i) = v8(i);
-    }
-
-    // create color vector
-    static Vector values(8);
-    if (displayMode < 3 && displayMode > 0) {
-        // get stress vectors
-        const Vector& stress1 = materialPointers[0]->getStress();
-        const Vector& stress2 = materialPointers[1]->getStress();
-        const Vector& stress3 = materialPointers[2]->getStress();
-        const Vector& stress4 = materialPointers[3]->getStress();
-        const Vector& stress5 = materialPointers[4]->getStress();
-        const Vector& stress6 = materialPointers[5]->getStress();
-        const Vector& stress7 = materialPointers[6]->getStress();
-        const Vector& stress8 = materialPointers[7]->getStress();
-        // apply to color value vector
-        int index = displayMode - 1;
-        values(0) = stress1(index);
-        values(1) = stress2(index);
-        values(2) = stress3(index);
-        values(3) = stress4(index);
-        values(4) = stress5(index);
-        values(5) = stress6(index);
-        values(6) = stress7(index);
-        values(7) = stress8(index);
-    }
-    else {
-        // default color
-        for (int i = 0; i < 8; i++)
-            values(i) = 1.0;
-    }
-
-    // draw cube
-    return theViewer.drawCube(coords, values, this->getTag());
-}
 
 Response*
 BrickUP::setResponse(const char **argv, int argc, OPS_Stream &output)

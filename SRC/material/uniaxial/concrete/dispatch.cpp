@@ -1,6 +1,6 @@
 #include <tcl.h>
 #include <OPS_Globals.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <Concrete04.h>
 #include <Concrete06.h>
 #include <Concrete07.h>
@@ -83,7 +83,7 @@ TclCommand_newUniaxialConcrete04(ClientData cd, Tcl_Interp* interp, int argc, TC
       theMaterial = new Concrete04(tag, fpc, epsc0, epscu, Ec0);
     }
 
-    return ((BasicModelBuilder*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
+    return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 //  return theMaterial;
 }
 
@@ -169,7 +169,7 @@ TclCommand_newUniaxialConcrete06(ClientData cd, Tcl_Interp* interp, int argc, TC
       theMaterial =
           new Concrete06(tag, fc, eo, r, k, alphaC, fcr, ecr, b, alphaT);
 
-    return ((BasicModelBuilder*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
+    return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 //  return theMaterial;
 }
 
@@ -248,6 +248,6 @@ TclCommand_newUniaxialConcrete07(ClientData cd, Tcl_Interp* interp, int argc, TC
       theMaterial =
           new Concrete07(tag, fpc, epsc0, Ec, fpt, epst0, xcrp, xcrn, r);
 
-    return ((BasicModelBuilder*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
+    return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 //  return theMaterial;
 }   

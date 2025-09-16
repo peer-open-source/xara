@@ -248,10 +248,10 @@ OneBasisFun(int p, int m, Vector U, int i, double u)
     }
   }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   double Nip = N[0];
-#pragma GCC diagnostic pop
+// #pragma GCC diagnostic pop
   free(N);
 
   return Nip;

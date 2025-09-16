@@ -2,12 +2,16 @@
 //
 //                                   xara
 //                              https://xara.so
-//===----------------------------------------------------------------------===//
-//
-//        OpenSees - Open System for Earthquake Engineering Simulation
 //
 //===----------------------------------------------------------------------===//
-
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 // Description:  PDeltaFrameTransf generalizes the original PDeltaCrdTransf3d
 // class to a more general FrameTransform interface.
@@ -46,7 +50,7 @@ public:
   double getInitialLength()  final;
   double getDeformedLength() final;
 
-  int initialize(std::array<Node*, nn>& new_nodes) final;
+  int initialize(std::array<Node*, nn>&) final;
   int update() final;
   int commit() final;
   int revertToLastCommit() final;
@@ -75,7 +79,6 @@ public:
 private:
   int offset_flags;
   LinearFrameTransf<nn,ndf> linear;
-
 };
 
 } // namespace OpenSees

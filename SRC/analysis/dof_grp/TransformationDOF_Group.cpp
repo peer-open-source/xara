@@ -332,10 +332,11 @@ TransformationDOF_Group::getTangent(Integrator *theIntegrator)
 
 
 const Matrix &
-TransformationDOF_Group::getEigenvectors(void) 
+TransformationDOF_Group::getEigenvectors() 
 {
     const Matrix &unmodTangent = this->DOF_Group::getEigenvectors();
     Matrix *T = this->getT();
+
     if (T != 0) {
 	// *modTangent = (*T) ^ unmodTangent * (*T);
       static Matrix res;

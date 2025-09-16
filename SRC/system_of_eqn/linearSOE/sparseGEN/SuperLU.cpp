@@ -29,6 +29,7 @@
 #include <SuperLU.h>
 #include <SparseGenColLinSOE.h>
 #include <math.h>
+#include <assert.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <DataFileStream.h>
@@ -128,12 +129,8 @@ extern "C" void    dCreate_Dense_Matrix(SuperMatrix *, int, int, double *, int,
 int
 SuperLU::solve()
 {
-    if (theSOE == nullptr) {
-      opserr << "WARNING SuperLU::solve(void)- ";
-      opserr << " No LinearSOE object has been set\n";
-      return -1;
-    }
-    
+  assert(theSOE != nullptr);
+
     int n = theSOE->size;
 
     // check for quick return
@@ -141,8 +138,8 @@ SuperLU::solve()
       return 0;
 
     if (sizePerm == 0) {
-      opserr << "WARNING SuperLU::solve(void)- ";
-      opserr << " size for row and col permutations 0 - has setSize() been called?\n";
+      // opserr << "WARNING SuperLU::solve(void)- ";
+      // opserr << " size for row and col permutations 0 - has setSize() been called?\n";
       return -1;
     }
 
@@ -195,8 +192,8 @@ SuperLU::solve()
 
 
       if (info != 0) {	
-        opserr << "WARNING SuperLU::solve(void)- ";
-        opserr << " Error " << info << " returned in factorization dgstrf()\n";
+        // opserr << "WARNING SuperLU::solve(void)- ";
+        // opserr << " Error " << info << " returned in factorization dgstrf()\n";
         return -info;
       }
 
@@ -214,8 +211,8 @@ SuperLU::solve()
     dgstrs (trans, &L, &U, perm_c, perm_r, &B, &stat, &info);    
 
     if (info != 0) {	
-       opserr << "WARNING SuperLU::solve(void)- ";
-       opserr << " Error " << info << " returned in substitution dgstrs()\n";
+       // opserr << "WARNING SuperLU::solve(void)- ";
+       // opserr << " Error " << info << " returned in substitution dgstrs()\n";
        return -info;
     }
 
@@ -247,12 +244,6 @@ SuperLU::setSize()
 	  delete [] etree;
 	etree = new (nothrow) int[n];		
 
-	if (perm_r == 0 || perm_c == 0 || etree == 0) {
-	  opserr << "WARNING SuperLU::setSize()";
-	  opserr << " - ran out of memory\n";
-	  sizePerm = 0;
-	  return -1;
-	}		
 	sizePerm = n;
       }
 
@@ -282,8 +273,8 @@ SuperLU::setSize()
     } else if (n == 0)
       return 0;
     else {
-      opserr << "WARNING SuperLU::setSize()";
-      opserr << " - order of system <  0\n";
+      // opserr << "WARNING SuperLU::setSize()";
+      // opserr << " - order of system <  0\n";
       return -1;	
     }
 	

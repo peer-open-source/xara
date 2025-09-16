@@ -32,8 +32,8 @@
 
 #ifndef LinearSOESolver_h
 #define LinearSOESolver_h
-#include <Logging.h> // TODO: remove
 #include <MovableObject.h>
+
 class LinearSOE;
 
 class LinearSOESolver : public MovableObject

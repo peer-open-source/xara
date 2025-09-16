@@ -326,7 +326,6 @@ int HHTHSIncrLimit_TP::formNodUnbalance(DOF_Group *theDof)
 
 int HHTHSIncrLimit_TP::domainChanged()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
     const Vector &x = theLinSOE->getX();
     int size = x.Size();
@@ -362,42 +361,6 @@ int HHTHSIncrLimit_TP::domainChanged()
         scaledDeltaU = new Vector(size);
         Put = new Vector(size);
         
-        // check we obtained the new
-        if (Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            scaledDeltaU == 0 || scaledDeltaU->Size() != size ||
-            Put == 0 || Put->Size() != size)  {
-            
-            opserr << "HHTHSIncrLimit_TP::domainChanged() - ran out of memory\n";
-            
-            // delete the old
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (scaledDeltaU != 0)
-                delete scaledDeltaU;
-            if (Put != 0)
-                delete Put;
-            
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            scaledDeltaU = 0; Put = 0;
-            
-            return -1;
-        }
     }
     
     this->getAnalysisModel()->getState(*U, *Udot, *Udotdot, 0);

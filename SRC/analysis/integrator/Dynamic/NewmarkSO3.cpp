@@ -851,8 +851,6 @@ Newmark::commitSensitivity(int gradNum, int numGrads)
 }
 
 
-// AddingSensitivity:END ////////////////////////////////
-
 double
 Newmark::getCFactor(void) {
   return c2;

@@ -39,9 +39,30 @@ if (UNIX)
     include(OpenSeesDependenciesUnix)
   endif ()
 
+  # General debug / optimization options
+  add_compile_options(
+    $<$<CONFIG:DEBUG>:-g3>
+    $<$<CONFIG:DEBUG>:-Og>
+    $<$<CONFIG:DEBUG>:-O1>
+  )
+  if (FALSE) #DEFINED ENV{OPENSEESRT_BUILD} AND  STREQUAL "light")
+    # For CI environments; minimize optimization and debug info
+    # for efficiency
+    add_compile_options(-O2 -g0)
+  elseif (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+    add_compile_options(-O3 -fno-stack-protector)
+  endif()
+
+  if (DEFINED ProfileBuild)
+    # Profiling with gprof
+    add_compile_options(-fno-omit-frame-pointer -g -p)
+  endif()
+
   if (APPLE)
     message(":: MacOS")
     add_compile_definitions(_LINUX _UNIX _TCL85)
+    add_link_options("-Wl,-no_compact_unwind")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
 
     if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
       add_compile_options(
@@ -54,8 +75,17 @@ if (UNIX)
 #       -fsanitize=address,undefined # , leak
 #       -shared-libsan
 #     )
+    else()
+      add_compile_options(
+        $<$<COMPILE_LANGUAGE:CXX>:-O3>
+        # $<$<COMPILE_LANGUAGE:CXX>:-ffast-math>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-math-errno>
+        -freciprocal-math
+        # $<$<COMPILE_LANGUAGE:CXX>:-fno-trapping-math>
+      )
     endif()
-  else()
+
+  else() # LINUX
     message(":: LINUX")
     add_compile_definitions(_LINUX _UNIX USE_TCL_STUBS _TCL85)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmax-errors=1 -ffloat-store")
@@ -79,26 +109,6 @@ if (UNIX)
         )
       endif()
     endif()
-  endif()
-
-  # More general debug / optimization options
-  add_compile_options(
-    $<$<CONFIG:DEBUG>:-g3>
-    $<$<CONFIG:DEBUG>:-Og>
-    $<$<CONFIG:DEBUG>:-O1>
-  )
-  if (FALSE) #DEFINED ENV{OPENSEESRT_BUILD} AND  STREQUAL "light")
-    # For CI environments; minimize optimization and debug info
-    # for efficiency
-    add_compile_options(-O2 -g0)
-  elseif (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
-    add_compile_options(-O3)
-  elseif (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
-  endif()
-
-  if (DEFINED ProfileBuild)
-    # Profiling with gprof
-    add_compile_options(-fno-omit-frame-pointer -g -p)
   endif()
 
 elseif (WIN32) # NOTE: this will execute for both 32-bit and 64-bit builds.
@@ -135,58 +145,48 @@ set(CMAKE_FORTRAN_STANDARD 08)
 #--------------------------------------
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_C_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # using Clang
-  set(CMAKE_CXX_STANDARD 17)
-
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # using GCC
-  set(CMAKE_CXX_STANDARD 17)
-
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  # using Intel C++
-  set(CMAKE_CXX_STANDARD 20)
-
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  # using Visual Studio C++
-  set(CMAKE_CXX_STANDARD 20)
-
-else ()
-  # This includes AppleClang
-  set(CMAKE_CXX_STANDARD 17)
-endif()
-
+#
 # Global compiler definitions
+#
 add_compile_definitions(
     "$<$<COMPILE_LANGUAGE:C,CXX>: OPS_USE_RUNTIME>"
     "$<$<COMPILE_LANGUAGE:C,CXX>: USE_TCL_STUBS>"
     "$<$<COMPILE_LANGUAGE:C,CXX>: _TCL85>"
-#   "$<$<COMPILE_LANGUAGE:C,CXX>: _NOGRAPHICS>"
 ) # _THREADS
 
-
-# Compiler warnings
+#
+# Global compiler warnings
+#
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   add_compile_options(
     "$<$<COMPILE_LANGUAGE:CXX>:-Wall>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-missing-braces>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>"
-    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder-ctor>"
-    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-inconsistent-missing-override>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated-declarations>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>"
   )
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    add_compile_options(
+      "$<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder-ctor>"
+      "$<$<COMPILE_LANGUAGE:CXX>:-Wno-inconsistent-missing-override>"
+      "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-reorder>"
+      "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-deprecated-declarations>"
+      "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-ignored-optimization-argument>"
+      "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-invalid-utf8>"
+    )
+  else()
+    add_compile_options(
+      "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-reorder>"
+      "$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-dummy-argument>"
+    )
+  endif()
 endif()
-add_compile_options(
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-reorder>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-deprecated-declarations>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-ignored-optimization-argument>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-invalid-utf8>"
-  "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-reorder>"
-  "$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-dummy-argument>"
-)
 
 #----------------------------------------------------------------
 # Global Includes
@@ -240,9 +240,8 @@ include_directories(
   ${OPS_SRC_DIR}/analysis/dof_grp
   ${OPS_SRC_DIR}/analysis/fe_ele
   ${OPS_SRC_DIR}/analysis/handler
-  ${OPS_SRC_DIR}/analysis/numberer
   ${OPS_SRC_DIR}/analysis/integrator
-  ${OPS_SRC_DIR}/runtime/runtime/Renderer
+  ${OPS_SRC_DIR}/runtime/runtime/legacy/Renderer
 )
 
 #==============================================================================

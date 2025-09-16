@@ -1049,7 +1049,7 @@ IGAQuad::setResponse(const char **argv, int argc,
   //output.attr("node3",connectedExternalNodes[2]);
   //output.attr("node4",connectedExternalNodes[3]);
 
-  char dataOut[10];
+  char dataOut[32];
   if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0) {
 
     for (int i=1; i<=numCPs; i++) {

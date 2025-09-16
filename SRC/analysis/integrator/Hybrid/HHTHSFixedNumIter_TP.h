@@ -54,12 +54,11 @@ public:
     HHTHSFixedNumIter_TP(double alphaI, double alphaF,
         double beta, double gamma, int polyOrder,
         bool updDomFlag = true);
-    
-    // destructor
+
     ~HHTHSFixedNumIter_TP();
-    
+
     // method to set up the system of equations
-    int formUnbalance(void);
+    int formUnbalance();
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
@@ -79,7 +78,7 @@ public:
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
     
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
 protected:
     

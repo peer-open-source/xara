@@ -37,49 +37,49 @@
 static int
 getStrainMatrix(double xi, double L, const Vector& v, MatrixND<8,12>&B, MatrixND<4,8>&A)
 {
-    double jsx = 1/L;
+  double jsx = 1/L;
 
-    double dshp_v1  = 1.0 + 3.0 * xi * xi - 4.0 * xi;
-    double ddshp_v1 = 6.0 * xi * jsx - 4.0 * jsx;
-    double dshp_v2  = 3.0 * xi * xi - 2.0 * xi;
-    double ddshp_v2 = 6.0 * xi * jsx - 2.0 * jsx;
-    double dshp_w1  = -dshp_v1;
-    double ddshp_w1 = -ddshp_v1;
-    double dshp_w2  = -dshp_v2;
-    double ddshp_w2 = -ddshp_v2;
-    double shp_alpha1   = xi;
+  double dshp_v1  = 1.0 + 3.0 * xi * xi - 4.0 * xi;
+  double ddshp_v1 = 6.0 * xi * jsx - 4.0 * jsx;
+  double dshp_v2  = 3.0 * xi * xi - 2.0 * xi;
+  double ddshp_v2 = 6.0 * xi * jsx - 2.0 * jsx;
+  double dshp_w1  = -dshp_v1;
+  double ddshp_w1 = -ddshp_v1;
+  double dshp_w2  = -dshp_v2;
+  double ddshp_w2 = -ddshp_v2;
+  double shp_alpha1   = xi;
 
-    double dv  =  dshp_v1*v[1] +  dshp_v2*v[2]; // v'
-    double ddv = ddshp_v1*v[1] + ddshp_v2*v[2]; // v"
-    double dw  =  dshp_w1*v[3] +  dshp_w2*v[4]; // w'
-    double ddw = ddshp_w1*v[3] + ddshp_w2*v[4]; // w"
-    double alpha   = shp_alpha1*v[5];           // phi
-    double dalpha  = jsx*v[5];                  // phi'
+  double dv  =  dshp_v1*v[1] +  dshp_v2*v[2]; // v'
+  double ddv = ddshp_v1*v[1] + ddshp_v2*v[2]; // v"
+  double dw  =  dshp_w1*v[3] +  dshp_w2*v[4]; // w'
+  double ddw = ddshp_w1*v[3] + ddshp_w2*v[4]; // w"
+  double alpha   = shp_alpha1*v[5];           // phi
+  double dalpha  = jsx*v[5];                  // phi'
 
-    A(0, 0)  = 1.0;
-    A(0, 1)  = (4.0 * v[1] - v[2]) / 30.0;
-    A(0, 2)  = (4.0 * v[3] - v[4]) / 30.0;
-    A(0, 3)  = (4.0 * v[2] - v[1]) / 30.0;
-    A(0, 4)  = (4.0 * v[4] - v[3]) / 30.0;
-    A(1, 7)  = 1.0;
+  A(0, 0)  = 1.0;
+  A(0, 1)  = (4.0 * v[1] - v[2]) / 30.0;
+  A(0, 2)  = (4.0 * v[3] - v[4]) / 30.0;
+  A(0, 3)  = (4.0 * v[2] - v[1]) / 30.0;
+  A(0, 4)  = (4.0 * v[4] - v[3]) / 30.0;
+  A(1, 7)  = 1.0;
 
-    B( 0, 0)  = jsx;
-    B( 1, 1)  = 1.0;
-    B( 2, 3)  = 1.0;
-    B( 3, 2)  = 1.0;
-    B( 4, 4)  = 1.0;
-    B( 5, 1)  = dshp_v1;
-    B( 5, 2)  = dshp_v2;
-    B( 6, 3)  = dshp_w1;
-    B( 6, 4)  = dshp_w2;
-    B( 7, 1)  = ddshp_v1;
-    B( 7, 2)  = ddshp_v2;
-    B( 8, 3)  = ddshp_w1;
-    B( 8, 4)  = ddshp_w2;
-    B( 9, 5)  = shp_alpha1;
-    B(10, 5)  = jsx;
+  B( 0, 0)  = jsx;
+  B( 1, 1)  = 1.0;
+  B( 2, 3)  = 1.0;
+  B( 3, 2)  = 1.0;
+  B( 4, 4)  = 1.0;
+  B( 5, 1)  = dshp_v1;
+  B( 5, 2)  = dshp_v2;
+  B( 6, 3)  = dshp_w1;
+  B( 6, 4)  = dshp_w2;
+  B( 7, 1)  = ddshp_v1;
+  B( 7, 2)  = ddshp_v2;
+  B( 8, 3)  = ddshp_w1;
+  B( 8, 4)  = ddshp_w2;
+  B( 9, 5)  = shp_alpha1;
+  B(10, 5)  = jsx;
 
-    return 0;
+  return 0;
 }
 
 EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, std::array<int,2>& nodes,

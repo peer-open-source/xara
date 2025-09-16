@@ -1,8 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 //
 #include <ElasticLinearFrameSection3d.h>
 #include <Matrix.h>
@@ -34,42 +44,51 @@ static int layout_array[] = {
 ID ElasticLinearFrameSection3d::layout(layout_array, nr);
 
 
-ElasticLinearFrameSection3d::ElasticLinearFrameSection3d()
-: FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
-  E(0.0),
-  G(0.0),
-  Ks(new MatrixND<nr,nr> {}),
-  Ksen(nullptr)
+namespace {
+enum class Parameters : int {
+  E  = 1,
+  G  = 5,
+  //
+  A  = 2,
+  Ay = 17,
+  Az = 18,
+  //
+  Iy = 4,
+  Iz = 3,
+  Iyz = 19,
+  //
+  J = 6,
+  // n-m
+  Qy = 7,
+  Qz = 8,
+  Rw = 9,
+  Ry = 10,
+  Rz = 11,
+  Sa = 12,
+  Sy = 13,
+  Sz = 14,
+  Cw = 15,
+  None = 0
+};
+
+void
+SetupTangent(MatrixND<12,12>& Ks, const FrameSectionConstants& cons, double E, double G)
 {
-
-}
-
-ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
-    double E_in,
-    double G_in,
-    const FrameSectionConstants& cons,
-    //
-    double mass_,
-    bool use_mass
-)
-: FrameSection(tag, SEC_TAG_ElasticLinearFrame3d, mass_, use_mass),
-  E(E_in),
-  G(G_in),
-  Ksen(nullptr),
-  Ks(new MatrixND<nr,nr> {})
-{
-
   // n-n
-  double A  = cons.A;
-  double Ay = cons.Ay;
-  double Az = cons.Az;
+  double A   = cons.A; 
+  double Ay  = cons.Ay;
+  double Az  = cons.Az;
   // m-m
-  double Iy = cons.Iy;     //   \int z^2
-  double Iz = cons.Iz;     //   \int y^2
+  double Iy  = cons.Iy;    //   \int z^2
+  double Iz  = cons.Iz;    //   \int y^2
   double Iyz = cons.Iyz;   //
   // w-w 
   double Cw = cons.Cw;     // 
-  double Ca = cons.Ca;     // 
+
+  // v-v
+  double Ca = cons.Ca;     //
+  double Sy = cons.Sy;     // m-w, int  z warp(x,y)
+  double Sz = cons.Sz;     // m-w, int -y warp(x,y) 
   // n-m
   double Qy = cons.Qy;     //  int y = A*zs
   double Qz = cons.Qz;     //  int z
@@ -79,31 +98,21 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
   double Rz = cons.Rz;
 
   double Sa = cons.Sa;     // m-v
-  double Sy = cons.Sy;     // m-w, int  z warp(x,y)
-  double Sz = cons.Sz;     // m-w, int -y warp(x,y) 
 
-  centroid = {Qz/A, Qy/A};
 
   // Polar moment of inertia
   const double I0   = Iy + Iz;
 
   double GSnyy = G*(Ay - A);
   double GSnzz = G*(Az - A);
-  double GSy   = -GSnyy; 
+  double GSy   = -GSnyy;
   double GSz   = -GSnzz;
 
-  // Centroidal moments of inertia
-  // const double Ic33 =  Iy  - A*zc*zc;
-  // const double Ic22 =  Iz  - A*yc*yc;
-  // const double Icyz =  Iyz - A*yc*zc;
 
-  // const double Qw3  = -Ic33*yc + Icyz*zc;
-  // const double Qw2  =  Ic22*zc - Icyz*yc;
-
-  *Ks = {
-    //            N                       M                      W                 Q    
-    //                        |                        |                 |                |
-    {   E*A,      0.,     0.,      0.,   E*Qy,  -E*Qz,    E*Rw ,  0.,  0.,    0.,     0.,     0.,
+  Ks = {
+    //            N                       M                       W                   Q    
+    //                        |                        |                  |                     |
+    {    E*A,     0.,     0.,      0.,   E*Qy,  -E*Qz,    E*Rw ,  0.,  0.,    0.,     0.,     0.,
           0.,    G*A,     0.,   -G*Qy,     0.,     0.,     0.  ,  0.,  0.,  G*Ry,  GSnyy,     0.,
           0.,     0.,    G*A,    G*Qz,     0.,     0.,     0.  ,  0.,  0.,  G*Rz,     0.,  GSnzz,
     //                        |                        |
@@ -120,8 +129,45 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
           0.,     0.,  GSnzz,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,    GSz}
   };
 
-    //                        |                        |                |
-    //    0       1       2   |    3       4       5   |      6     7   |
+    //                        |                        |                  |
+    //    0       1       2   |    3       4       5   |     6     7   8  |  9      10      11
+}
+}
+
+ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(std::shared_ptr<MatrixND<nr,nr>> Ks)
+: FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
+  E(0.0),
+  G(0.0),
+  Ks(Ks),
+  Ksen(nullptr),
+  e{},
+  s{},
+  parameterID(0)
+{
+
+}
+
+
+ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
+    double E,
+    double G,
+    const FrameSectionConstants& cons,
+    //
+    double mass_,
+    bool use_mass
+)
+: FrameSection(tag, SEC_TAG_ElasticLinearFrame3d, mass_, use_mass),
+  E(E),
+  G(G),
+  Ksen(nullptr),
+  Ks(new MatrixND<nr,nr> {}),
+  e{},
+  s{},
+  parameterID(0)
+{
+  centroid = {cons.Qz/cons.A, 
+              cons.Qy/cons.A};
+  SetupTangent(*Ks, cons, E, G);
 }
 
 void
@@ -133,16 +179,21 @@ ElasticLinearFrameSection3d::getConstants(FrameSectionConstants& consts) const
   consts.Iy  =  K(4,4)/E;
   consts.Iyz = -K(4,5)/E;
   consts.Iz  =  K(5,5)/E;
+  consts.Cw  =  K(6,6)/E;
+  consts.Rw  =  K(0,6)/E;
+  consts.Qy  =  K(0,4)/E;
+  consts.Qz  = -K(0,5)/E;
 
   if (G != 0) {
     consts.Ay  =  (K(1,10) + K(1,1))/G;
     consts.Az  =  (K(2,11) + K(2,2))/G;
     consts.Ca  =  K(9,9)/G;
-    consts.Cw  =  K(6,6)/E;
+    consts.Sa  =  K(3,9)/G;
   } else {
     consts.Ay  =  0;
     consts.Az  =  0;
     consts.Ca  =  0;
+    consts.Sa  =  0;
   }
 }
 
@@ -216,8 +267,8 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
   //
   // OR
   // - add FrameSection::setLayout()
-  //
-  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d();
+  
+  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d(Ks);
 
   // Copy over all data
   *theCopy = *this;
@@ -226,12 +277,13 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
   theCopy->Ksen = nullptr;
   // return theCopy;
 
+
   int ni=0;
   bool ind[nr]{};
   double data[nr][nr]{};
 
 
-  bool uniform_twist = true;
+  bool uniform_twist = true; // NOTE
   Matrix Kc(*(theCopy->Ks));
 
 
@@ -290,15 +342,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
 FrameSection*
 ElasticLinearFrameSection3d::getFrameCopy()
 {
-  // TODO: 
-  // - take layout as argument
-  // - overload 
-  //   template<int n> ID::operator==(std::array<int, n>)
-  //
-  // OR
-  // - add FrameSection::setLayout()
-  //
-  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d();
+  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d(Ks);
 
   // Copy over all data
   *theCopy = *this;
@@ -379,7 +423,7 @@ ElasticLinearFrameSection3d::getInitialTangent()
 const Matrix &
 ElasticLinearFrameSection3d::getSectionFlexibility()
 {
-    return getInitialFlexibility();
+  return getInitialFlexibility();
 }
 
 
@@ -393,7 +437,6 @@ ElasticLinearFrameSection3d::getInitialFlexibility()
     Matrix Kwrap(*Ks);
     Kwrap.Invert(*Fs);
   }
-
   return *Fs;
 }
 
@@ -410,6 +453,158 @@ ElasticLinearFrameSection3d::getOrder() const
 {
   return nr;
 }
+
+
+int
+ElasticLinearFrameSection3d::setParameter(const char **argv, int argc, Parameter &param)
+{
+  if (argc < 1)
+    return -1;
+
+  FrameSectionConstants consts{};
+  getConstants(consts);
+
+  if (strcmp(argv[0],"E") == 0) {
+    param.setValue(E);
+    return param.addObject(static_cast<int>(Parameters::E), this);
+  }
+  if (strcmp(argv[0],"G") == 0) {
+    param.setValue(G);
+    return param.addObject(static_cast<int>(Parameters::G), this);
+  }
+  if (strcmp(argv[0],"A") == 0) {
+    param.setValue(consts.A);
+    return param.addObject(static_cast<int>(Parameters::A), this);
+  }
+  if (strcmp(argv[0],"Iz") == 0) {
+    param.setValue(consts.Iz);
+    return param.addObject(static_cast<int>(Parameters::Iz), this);
+  }
+  if (strcmp(argv[0],"Iy") == 0) {
+    param.setValue(consts.Iy);
+    return param.addObject(static_cast<int>(Parameters::Iy), this);
+  }
+  if (strcmp(argv[0],"J") == 0) {
+    double J = consts.Iy + consts.Iz - consts.Ca;
+    param.setValue(J);
+    return param.addObject(static_cast<int>(Parameters::J), this);
+  }
+  return -1;
+}
+
+int
+ElasticLinearFrameSection3d::updateParameter(int paramID, Information &info)
+{
+  FrameSectionConstants consts{};
+  getConstants(consts);
+
+  Parameters parameter = static_cast<Parameters>(paramID);
+
+  if (parameter == Parameters::E)
+    E = info.theDouble;
+  if (parameter == Parameters::G)
+    G = info.theDouble;
+
+  // n-n
+  if (parameter == Parameters::A)
+    consts.A = info.theDouble;
+  if (parameter == Parameters::Ay)
+    consts.Ay = info.theDouble;
+  if (parameter == Parameters::Az)
+    consts.Az = info.theDouble;
+  // m-m
+  if (parameter == Parameters::Iyz)
+    consts.Iyz = info.theDouble;
+  if (parameter == Parameters::Iy)
+    consts.Iy = info.theDouble;
+  if (parameter == Parameters::Iz)
+    consts.Iz = info.theDouble;
+  
+  //
+  if (parameter == Parameters::J) {
+    double J = info.theDouble;
+    consts.Ca = consts.Iy + consts.Iz - J;
+  }
+  // n-m
+  if (parameter == Parameters::Qy)
+    consts.Qy = info.theDouble;
+  if (parameter == Parameters::Qz)
+    consts.Qz = info.theDouble;
+
+  SetupTangent(*Ks, consts, E, G);
+
+  return 0;
+}
+
+int
+ElasticLinearFrameSection3d::activateParameter(int paramID)
+{
+  parameterID = paramID;
+
+  return 0;
+}
+
+const Vector&
+ElasticLinearFrameSection3d::getStressResultantSensitivity(int gradIndex,
+                                                           bool conditional)
+{
+  static VectorND<nr> ds;
+  static Vector wrapper(ds);
+  ds.zero();
+
+  if (parameterID == 0)
+    return wrapper; // no sensitivity
+
+  
+  FrameSectionConstants C{}, dC{};
+  getConstants(C);
+
+  double dE = E, dG = G;
+  Parameters parameter = static_cast<Parameters>(parameterID);
+  if (parameter == Parameters::E) {
+    dE = 1.0;
+    dG = 0.0;
+    dC = C;
+  }
+  else if (parameter == Parameters::G) {
+    dE = 0.0;
+    dG = 1.0;
+    dC = C;
+  }
+  if (parameter == Parameters::A)
+    dC.A = 1.0;
+  if (parameter == Parameters::Iz)
+    dC.Iz = 1.0;
+  if (parameter == Parameters::Iy)
+    dC.Iy = 1.0;
+  if (parameter == Parameters::J) {
+    dC.Iy = 1.0;
+    dC.Iz = 1.0;
+    dC.Ca = -1.0;
+  }
+  if (parameter == Parameters::Qy)
+    dC.Qy = 1.0;
+  if (parameter == Parameters::Qz)
+    dC.Qz = 1.0;
+  if (parameter == Parameters::Cw)
+    dC.Cw = 1.0;
+
+  MatrixND<nr,nr> dK{};
+  SetupTangent(dK, dC, dE, dG);
+  ds = dK*e;
+
+  return wrapper;
+}
+
+const Matrix&
+ElasticLinearFrameSection3d::getInitialTangentSensitivity(int gradIndex)
+{
+  if (Ksen == nullptr)
+    Ksen = new Matrix(nr,nr);
+
+  return *Ksen;
+}
+
 
 int
 ElasticLinearFrameSection3d::sendSelf(int commitTag, Channel &theChannel)
@@ -508,154 +703,3 @@ ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
     s << "}";
   }
 }
-
-int
-ElasticLinearFrameSection3d::setParameter(const char **argv, int argc, Parameter &param)
-{
-  if (argc < 1)
-    return -1;
-
-  FrameSectionConstants consts;
-  getConstants(consts);
-
-  if (strcmp(argv[0],"E") == 0) {
-    param.setValue(E);
-    return param.addObject(1, this);
-  }
-  if (strcmp(argv[0],"G") == 0) {
-    param.setValue(G);
-    return param.addObject(5, this);
-  }
-  if (strcmp(argv[0],"A") == 0) {
-    param.setValue(consts.A);
-    return param.addObject(2, this);
-  }
-  if (strcmp(argv[0],"Iz") == 0) {
-    param.setValue(consts.Iz);
-    return param.addObject(3, this);
-  }
-  if (strcmp(argv[0],"Iy") == 0) {
-    param.setValue(consts.Iy);
-    return param.addObject(4, this);
-  }
-  if (strcmp(argv[0],"J") == 0) {
-    double J = consts.Iy + consts.Iz - consts.Ca;
-    param.setValue(J);
-    return param.addObject(6, this);
-  }
-  return -1;
-}
-
-int
-ElasticLinearFrameSection3d::updateParameter(int paramID, Information &info)
-{
-
-
-  FrameSectionConstants consts;
-  getConstants(consts);
-
-  // n-n
-  double &A=consts.A;
-  double &Ay=consts.Ay, &Az=consts.Az;
-  // m-m
-  double &Iy=consts.Iy, &Iz=consts.Iz, &Iyz=consts.Iyz;
-  // w-w
-  double &Cw=consts.Cw, &Ca=consts.Ca;
-  // n-m
-  double &Qy=consts.Qy, &Qz=consts.Qz;
-  // n-w
-  double &Rw=consts.Rw, &Ry=consts.Ry, &Rz=consts.Rz;
-  // m-w
-  double &Sa=consts.Sa, &Sy=consts.Sy, &Sz=consts.Sz;
-
-
-  if (paramID == 1)
-    E = info.theDouble;
-  if (paramID == 2)
-    A = info.theDouble;
-  if (paramID == 3)
-    Iz = info.theDouble;
-  if (paramID == 4)
-    Iy = info.theDouble;
-  if (paramID == 5)
-    G = info.theDouble;
-  if (paramID == 6) {
-    double J = info.theDouble;
-    Ca = Iy + Iz - J;
-  }
-
-  double GSnzz = G*(Az - A);
-  double GSnyy = G*(Ay - A);
-  double GSy   = -GSnyy;
-  double GSz   = -GSnzz;
-
-  double I0 = Iy + Iz;
-  *Ks = {{
-    //            N                       M                      W                 Q    
-    //                        |                        |                 |                |
-        E*A,      0.,     0.,      0.,   E*Qy,  -E*Qz,    E*Rw ,  0.,  0.,    0.,     0.,     0.,
-          0.,    G*A,     0.,   -G*Qy,     0.,     0.,     0.  ,  0.,  0.,  G*Ry,  GSnyy,     0.,
-          0.,     0.,    G*A,    G*Qz,     0.,     0.,     0.  ,  0.,  0.,  G*Rz,     0.,  GSnzz,
-    //                        |                        |
-          0.,  -G*Qy,   G*Qz,    G*I0,     0.,     0.,     0.  ,  0.,  0.,  G*Sa,     0.,     0.,
-        E*Qy,     0.,     0.,      0.,  E*Iy , -E*Iyz,     E*Sy,  0.,  0.,    0.,     0.,     0.,
-       -E*Qz,     0.,     0.,      0., -E*Iyz,  E*Iz ,     E*Sz,  0.,  0.,    0.,     0.,     0.,
-    //                        |                        | 
-        E*Rw,     0.,     0.,      0.,   E*Sy,   E*Sz,    E*Cw ,  0.,  0.,    0.,     0.,     0., // Bimoment
-          0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,     0.,
-          0.,     0.,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,     0.,
-    //                        |                        |          
-          0.,   G*Ry,   G*Rz,    G*Sa,     0.,     0.,      0. ,  0.,  0.,  G*Ca,     0.,     0., // Bishear
-          0.,  GSnyy,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,    GSy,     0.,
-          0.,     0.,  GSnzz,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,    GSz
-  }};
-
-  return 0;
-}
-
-int
-ElasticLinearFrameSection3d::activateParameter(int paramID)
-{
-  parameterID = paramID;
-
-  return 0;
-}
-
-const Vector&
-ElasticLinearFrameSection3d::getStressResultantSensitivity(int gradIndex,
-                                                           bool conditional)
-{
-  s.zero();
-
-  FrameSectionConstants consts;
-  getConstants(consts);
-
-  if (parameterID == 1) { // E
-    s[0] = consts.A*e[0];
-    s[1] = consts.Iz*e[1];
-    s[2] = consts.Iy*e[2];
-  }
-  if (parameterID == 2) // A
-    s[0] = E*e[0];
-  if (parameterID == 3) // Iz
-    s[1] = E*e[1];
-  if (parameterID == 4) // Iy
-    s[2] = E*e[2];
-  if (parameterID == 5) // G
-    s[3] = consts.Ca*e[3];
-  if (parameterID == 6) // J
-    s[3] = G*e[3];
-
-  v.setData(s);
-  return v;
-}
-
-const Matrix&
-ElasticLinearFrameSection3d::getInitialTangentSensitivity(int gradIndex)
-{
-  if (Ksen == nullptr)
-    Ksen = new Matrix(nr,nr);
-
-  return *Ksen;
-}
-

@@ -40,11 +40,7 @@ LoadPath::LoadPath(Vector &theLoadPath)
 :StaticIntegrator(INTEGRATOR_TAGS_LoadPath),
  loadPath(0), currentStep(0)
 {
-    loadPath = new Vector(theLoadPath);
-    if (loadPath == 0 || loadPath->Size() == 0) {
-	opserr << "LoadPath::LoadPath() - ran out of memory\n";
-	exit(-1);
-    }
+  loadPath = new Vector(theLoadPath);
 }
 
 LoadPath::LoadPath()
@@ -64,7 +60,7 @@ LoadPath::~LoadPath()
 }
 
 int 
-LoadPath::newStep(void)
+LoadPath::newStep()
 {
     AnalysisModel *theModel = this->getAnalysisModel();    
     if (theModel == 0) {
@@ -171,11 +167,11 @@ LoadPath::recvSelf(int cTag,
 void
 LoadPath::Print(OPS_Stream &s, int flag)
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
-    if (theModel != 0) {
+  AnalysisModel *theModel = this->getAnalysisModel();
+  if (theModel != 0) {
 	double currentLambda = theModel->getCurrentDomainTime();
 	s << "\t LoadPath - currentLambda: " << currentLambda << endln;
-    } else 
+  } else 
 	s << "\t LoadPath - no associated AnalysisModel\n";
     
 }

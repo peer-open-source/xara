@@ -134,7 +134,7 @@ ElasticIsotropicBeamFiber::revertToLastCommit (void)
 }
 
 int
-ElasticIsotropicBeamFiber::revertToStart (void)
+ElasticIsotropicBeamFiber::revertToStart ()
 {
   return 0;
 }

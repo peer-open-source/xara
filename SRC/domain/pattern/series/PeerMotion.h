@@ -84,13 +84,10 @@ class PeerMotion : public TimeSeries
  private:
     Vector *thePath;      // vector containing the data points
     double dT;
-    int currentTimeLoc;   // current location in time
     double cFactor;       // additional factor on the returned load factor
-    int dbTag1, dbTag2;   // additional database tags needed for vector objects
     int lastSendCommitTag;
     int otherDbTag;       // a database tag needed for the vector object   
      
-    Channel *lastChannel;
 };
 
 #endif

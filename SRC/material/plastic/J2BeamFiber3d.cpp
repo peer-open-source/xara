@@ -27,18 +27,131 @@
 #include <J2BeamFiber3d.h>
 #include <Channel.h>
 #include <string.h>
-#include <math.h>
+#include <cmath>
 #include <float.h>
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <string.h>
 
 using namespace OpenSees;
-Vector J2BeamFiber3d::sigma(3);
 Matrix J2BeamFiber3d::D(3, 3);
 
+#if 0
+namespace {
+struct J2Parameters {
+  double Hiso, Hkin, E, nu, sigmaY;
+};
+static int 
+ReturnMap(const struct J2Parameters& params, 
+          Vector3D& sig, const Vector3D& Tepsilon,
+          double epsPn[3], double epsPn1[3], double& alphan, double& alphan1, 
+          Matrix& D)
 
-J2BeamFiber3d::J2BeamFiber3d(int tag, double e, double g, double sy, double hi, double hk)
+{
+  const double &E = params.E,
+                &nu = params.nu,
+                &sigmaY = params.sigmaY,
+                &Hiso = params.Hiso,
+                &Hkin = params.Hkin;
+
+  double twoG = E / (1.0 + nu);
+  double G    = 0.5 * twoG;
+
+  Vector3D sig;
+  sig[0] = E * (Tepsilon(0) - epsPn[0]);
+  sig[1] = G * (Tepsilon(1) - epsPn[1]);
+  sig[2] = G * (Tepsilon(2) - epsPn[2]);
+
+  static constexpr double one3 = 1.0/3.0;
+  static constexpr double two3 = 2.0 * one3;
+  static const double root23   = std::sqrt(2.0/3.0);
+
+  double two3Hkin = two3 * Hkin;
+
+  Vector3D xsi;
+  xsi[0] = sig[0] - Hkin * epsPn[0];
+  xsi[1] = sig[1] - one3 * Hkin * epsPn[1];
+  xsi[2] = sig[2] - one3 * Hkin * epsPn[2];
+
+  double q = std::sqrt( 2.0/3.0 * xsi[0]*xsi[0]
+                      + 2.0*xsi[1] * xsi[1]
+                      + 2.0*xsi[2] * xsi[2]);
+  double F = q - root23 * (sigmaY + Hiso * alphan);
+
+  if (F < -100 * DBL_EPSILON) {
+    D(0, 0) = E;
+    D(1, 1) = G;
+    D(2, 2) = G;
+    D(0, 1) = D(1, 0) = 0.0;
+    D(0, 2) = D(2, 0) = 0.0;
+    D(1, 2) = D(2, 1) = 0.0;
+
+    epsPn1[0] = epsPn[0];
+    epsPn1[1] = epsPn[1];
+    epsPn1[2] = epsPn[2];
+    alphan1   = alphan;
+  } else {
+
+    // Solve for dg
+    double dg = 0.0;
+
+    VectorND<4> R{0.0, 0.0, 0.0, F};
+    VectorND<4> x{xsi[0], xsi[1], xsi[2], dg};
+
+    MatrixND<4, 4> J{};
+    VectorND<4> dx{};
+
+    int iter                    = 0;
+    int maxIter                 = 25;
+    constexpr static double tol = 1.0e-8;
+
+    do {
+      J(0, 0) = 1.0 + dg * two3 * (E + Hkin);
+      J(0, 1) = 0.0;
+      J(0, 2) = 0.0;
+      J(1, 0) = 0.0;
+      J(1, 1) = 1.0 + dg * 2 * (G + Hkin/3.0);
+      J(1, 2) = 0.0;
+      J(2, 0) = 0.0;
+      J(2, 1) = 0.0;
+      J(2, 2) = 1.0 + dg * 2 * (G + Hkin/3.0);
+
+      J(0, 3) = two3 * (E + Hkin) * x(0);
+      J(1, 3) = 2 * (G + Hkin / 3) * x(1);
+      J(2, 3) = 2 * (G + Hkin / 3) * x(2);
+
+      //J(2,0) = x(0)*two3/q; J(2,1) = x(1)*2.0/q;
+      J(3, 0) = (1.0 - 2.0/3.0*Hiso * dg) * x[0] * two3 / q;
+      J(3, 1) = (1.0 - 2.0/3.0*Hiso * dg) * x[1] * 2.0 / q;
+      J(3, 2) = (1.0 - 2.0/3.0*Hiso * dg) * x[2] * 2.0 / q;
+
+      //J(2,2) = -root23*Hiso;
+      J(3, 3) = -two3 * Hiso * q;
+
+      J.solve(R, dx);
+      x.addVector(1.0, dx, -1.0);
+
+      dg    = x(3);
+      double dg_n1 = dg;
+
+      q = std::sqrt(two3 * x(0)*x(0) + 2.0*x(1)*x(1) + 2.0*x(2)*x(2));
+
+      R(0) = x(0) - xsi[0] + dg * two3 * (E + Hkin) * x(0);
+      R(1) = x(1) - xsi[1] + dg * (twoG + two3Hkin) * x(1);
+      R(2) = x(2) - xsi[2] + dg * (twoG + two3Hkin) * x(2);
+      R(3) = q - root23 * (sigmaY + Hiso * (alphan + dg * root23 * q));
+    } while ((R.norm() > sigmaY * tol) && (iter++ < maxIter));
+
+    if (R.norm() > sigmaY * tol) {
+      opserr << "J2BeamFiber3d::getTangent -- maxIter reached, " << R.norm() << " > "
+             << sigmaY * tol << endln;
+    }
+}
+} // end namespace
+#endif
+
+J2BeamFiber3d::J2BeamFiber3d(int tag, 
+          double e, double g, double sy, double hi, double hk)
  : NDMaterial(tag, ND_TAG_J2BeamFiber3d),
    E(e),
    nu(g),
@@ -85,7 +198,7 @@ J2BeamFiber3d::J2BeamFiber3d()
 
 J2BeamFiber3d::~J2BeamFiber3d()
 {
-  if (SHVs != 0)
+  if (SHVs != nullptr)
     delete SHVs;
 }
 
@@ -126,9 +239,9 @@ J2BeamFiber3d::getTangent()
   sig[1] = G * (Tepsilon(1) - epsPn[1]);
   sig[2] = G * (Tepsilon(2) - epsPn[2]);
 
-  static constexpr double one3 = 1.0 / 3;
+  static constexpr double one3 = 1.0 / 3.0;
   static constexpr double two3 = 2.0 * one3;
-  static const double root23   = std::sqrt(two3);
+  static const double root23   = std::sqrt(2.0/3.0);
 
   double two3Hkin = two3 * Hkin;
 
@@ -139,7 +252,9 @@ J2BeamFiber3d::getTangent()
   xsi[1] = sig[1] - one3 * Hkin * epsPn[1];
   xsi[2] = sig[2] - one3 * Hkin * epsPn[2];
 
-  double q = sqrt(2. / 3. * xsi[0] * xsi[0] + 2. * xsi[1] * xsi[1] + 2. * xsi[2] * xsi[2]);
+  double q = std::sqrt( 2.0/3.0 * xsi[0]*xsi[0]
+                      + 2.0*xsi[1] * xsi[1]
+                      + 2.0*xsi[2] * xsi[2]);
   double F = q - root23 * (sigmaY + Hiso * alphan);
 
   if (F < -100 * DBL_EPSILON) {
@@ -162,8 +277,8 @@ J2BeamFiber3d::getTangent()
     VectorND<4> R{0.0, 0.0, 0.0, F};
     VectorND<4> x{xsi[0], xsi[1], xsi[2], dg};
 
-    MatrixND<4, 4> J;
-    VectorND<4> dx;
+    MatrixND<4, 4> J{};
+    VectorND<4> dx{};
 
     int iter                    = 0;
     int maxIter                 = 25;
@@ -174,20 +289,20 @@ J2BeamFiber3d::getTangent()
       J(0, 1) = 0.0;
       J(0, 2) = 0.0;
       J(1, 0) = 0.0;
-      J(1, 1) = 1.0 + dg * 2 * (G + Hkin / 3);
+      J(1, 1) = 1.0 + dg * 2.0 * (G + Hkin/3.0);
       J(1, 2) = 0.0;
       J(2, 0) = 0.0;
       J(2, 1) = 0.0;
-      J(2, 2) = 1.0 + dg * 2 * (G + Hkin / 3);
+      J(2, 2) = 1.0 + dg * 2.0 * (G + Hkin/3.0);
 
       J(0, 3) = two3 * (E + Hkin) * x(0);
-      J(1, 3) = 2 * (G + Hkin / 3) * x(1);
-      J(2, 3) = 2 * (G + Hkin / 3) * x(2);
+      J(1, 3) = 2.0 * (G + Hkin/3.0) * x(1);
+      J(2, 3) = 2.0 * (G + Hkin/3.0) * x(2);
 
       //J(2,0) = x(0)*two3/q; J(2,1) = x(1)*2.0/q;
-      J(3, 0) = (1.0 - 2 / 3 * Hiso * dg) * x[0] * two3 / q;
-      J(3, 1) = (1.0 - 2 / 3 * Hiso * dg) * x[1] * 2.0 / q;
-      J(3, 2) = (1.0 - 2 / 3 * Hiso * dg) * x[2] * 2.0 / q;
+      J(3, 0) = (1.0 - 2.0 / 3.0 * Hiso * dg) * x[0] * two3 / q;
+      J(3, 1) = (1.0 - 2.0 / 3.0 * Hiso * dg) * x[1] * 2.0 / q;
+      J(3, 2) = (1.0 - 2.0 / 3.0 * Hiso * dg) * x[2] * 2.0 / q;
 
       //J(2,2) = -root23*Hiso;
       J(3, 3) = -two3 * Hiso * q;
@@ -198,13 +313,13 @@ J2BeamFiber3d::getTangent()
       dg    = x(3);
       dg_n1 = dg;
 
-      q = sqrt(two3 * x(0) * x(0) + 2.0 * x(1) * x(1) + 2.0 * x(2) * x(2));
+      q = std::sqrt(two3*x(0)*x(0) + 2.0*x(1)*x(1) + 2.0*x(2)*x(2));
 
       R(0) = x(0) - xsi[0] + dg * two3 * (E + Hkin) * x(0);
       R(1) = x(1) - xsi[1] + dg * (twoG + two3Hkin) * x(1);
       R(2) = x(2) - xsi[2] + dg * (twoG + two3Hkin) * x(2);
       R(3) = q - root23 * (sigmaY + Hiso * (alphan + dg * root23 * q));
-    } while (R.norm() > sigmaY * tol && iter++ < maxIter);
+    } while ((R.norm() > sigmaY * tol) && (iter++ < maxIter));
 
     if (R.norm() > sigmaY * tol) {
       opserr << "J2BeamFiber3d::getTangent -- maxIter reached, " << R.norm() << " > "
@@ -233,8 +348,8 @@ J2BeamFiber3d::getTangent()
     J(2, 2) = 1.0 + dg * twoG / (1.0 + dg * two3Hkin);
 
     J(0, 3) = (two3 * E - dg * two3 * E / (1.0 + dg * two3Hkin) * two3Hkin) * x(0);
-    J(1, 3) = (twoG - dg * twoG / (1.0 + dg * two3Hkin) * two3Hkin) * x(1);
-    J(2, 3) = (twoG - dg * twoG / (1.0 + dg * two3Hkin) * two3Hkin) * x(2);
+    J(1, 3) = (twoG - dg * twoG / (1.0 + dg*two3Hkin) * two3Hkin) * x(1);
+    J(2, 3) = (twoG - dg * twoG / (1.0 + dg*two3Hkin) * two3Hkin) * x(2);
 
     //J(2,0) = x(0)/q*two3/(1.0+dg*two3Hkin);
     //J(2,1) = x(1)/q* 2.0/(1.0+dg*two3Hkin);
@@ -267,7 +382,7 @@ J2BeamFiber3d::getTangent()
 const Matrix&
 J2BeamFiber3d::getInitialTangent()
 {
-  double G = 0.5 * E / (1.0 + nu);
+  double G = 0.5*E/(1.0 + nu);
 
   D(0, 0) = E;
   D(1, 1) = G;
@@ -282,15 +397,16 @@ J2BeamFiber3d::getInitialTangent()
 const Vector&
 J2BeamFiber3d::getStress()
 {
-  double G = 0.5 * E / (1.0 + nu);
+  double G = 0.5 * E/(1.0 + nu);
 
+  static Vector sigma(3); // Stress vector
   sigma(0) = E * (Tepsilon(0) - epsPn[0]);
   sigma(1) = G * (Tepsilon(1) - epsPn[1]);
   sigma(2) = G * (Tepsilon(2) - epsPn[2]);
 
-  static const double one3   = 1.0 / 3;
-  static const double two3   = 2.0 * one3;
-  static const double root23 = sqrt(two3);
+  static constexpr double one3   = 1.0/3.0;
+  static constexpr double two3   = 2.0/3.0;
+  static const double root23 = std::sqrt(two3);
 
   double xsi[3];
   //xsi[0] = sigma(0) - two3*Hkin*1.5*epsPn[0];
@@ -299,7 +415,7 @@ J2BeamFiber3d::getStress()
   xsi[1] = sigma(1) - one3 * Hkin * epsPn[1];
   xsi[2] = sigma(2) - one3 * Hkin * epsPn[2];
 
-  double q = std::sqrt(two3 * xsi[0] * xsi[0] + 2.0 * xsi[1] * xsi[1] + 2.0 * xsi[2] * xsi[2]);
+  double q = std::sqrt(two3 * xsi[0] * xsi[0] + 2.0*xsi[1]*xsi[1] + 2.0*xsi[2]*xsi[2]);
   double F = q - root23 * (sigmaY + Hiso * alphan);
 
   if (F < -100 * DBL_EPSILON) {
@@ -328,7 +444,7 @@ J2BeamFiber3d::getStress()
 
     int iter    = 0;
     int maxIter = 25;
-    while (iter < maxIter && R.Norm() > sigmaY * 1.0e-14) {
+    while ((iter < maxIter) && (R.Norm() > sigmaY*1.0e-14)) {
       iter++;
 
       J(0, 0) = 1.0 + dg * two3 * (E + Hkin);
@@ -359,7 +475,7 @@ J2BeamFiber3d::getStress()
       dg    = x(3);
       dg_n1 = dg;
 
-      q = sqrt(two3 * x(0) * x(0) + 2.0 * x(1) * x(1) + 2.0 * x(2) * x(2));
+      q = std::sqrt(two3*x(0)*x(0) + 2.0*x(1)*x(1) + 2.0*x(2)*x(2));
 
       R(0) = x(0) - xsi[0] + dg * two3 * (E + Hkin) * x(0);
       R(1) = x(1) - xsi[1] + dg * (2.0 * G + two3 * Hkin) * x(1);
@@ -516,16 +632,16 @@ J2BeamFiber3d::getStressSensitivity(int gradIndex, bool conditional)
     dalphadh   = (*SHVs)(3, gradIndex);
   }
 
-  static const double one3   = 1.0 / 3;
+  static const double one3   = 1.0/3.0;
   static const double two3   = 2.0 * one3;
-  static const double root23 = sqrt(two3);
+  static const double root23 = std::sqrt(two3);
 
   double xsi[3];
   xsi[0] = E * (Tepsilon(0) - epsPn1[0]) - Hkin * epsPn1[0];
   xsi[1] = G * (Tepsilon(1) - epsPn1[1]) - one3 * Hkin * epsPn1[1];
   xsi[2] = G * (Tepsilon(2) - epsPn1[2]) - one3 * Hkin * epsPn1[2];
 
-  double q = sqrt(two3 * xsi[0] * xsi[0] + 2.0 * xsi[1] * xsi[1] + 2.0 * xsi[2] * xsi[2]);
+  double q = std::sqrt(two3 * xsi[0] * xsi[0] + 2.0 * xsi[1] * xsi[1] + 2.0 * xsi[2] * xsi[2]);
   double F = q - root23 * (sigmaY + Hiso * alphan1);
 
   if (F <= -100 * DBL_EPSILON) {
@@ -633,16 +749,16 @@ J2BeamFiber3d::commitSensitivity(const Vector& depsdh, int gradIndex, int numGra
     dalphadh   = (*SHVs)(3, gradIndex);
   }
 
-  static const double one3   = 1.0 / 3;
-  static const double two3   = 2.0 * one3;
-  static const double root23 = sqrt(two3);
+  static constexpr double one3   = 1.0 / 3.0;
+  static constexpr double two3   = 2.0 * one3;
+  static const double root23 = std::sqrt(two3);
 
   double xsi[3];
   xsi[0] = E * (Tepsilon(0) - epsPn1[0]) - Hkin * epsPn1[0];
   xsi[1] = G * (Tepsilon(1) - epsPn1[1]) - one3 * Hkin * epsPn1[1];
   xsi[2] = G * (Tepsilon(2) - epsPn1[2]) - one3 * Hkin * epsPn1[2];
 
-  double q = sqrt(two3 * xsi[0] * xsi[0] + 2.0 * xsi[1] * xsi[1] + 2.0 * xsi[2] * xsi[2]);
+  double q = std::sqrt(two3 * xsi[0] * xsi[0] + 2.0 * xsi[1] * xsi[1] + 2.0 * xsi[2] * xsi[2]);
   double F = q - root23 * (sigmaY + Hiso * alphan1);
 
   if (F <= -100 * DBL_EPSILON) {
@@ -688,7 +804,7 @@ J2BeamFiber3d::commitSensitivity(const Vector& depsdh, int gradIndex, int numGra
 
     dalphadh +=
         dx(3) * root23 * q +
-        dg * root23 * (xsi[0] * two3 * dx(0) + xsi[1] * 2.0 * dx(1) + xsi[2] * 2.0 * dx(2)) / q;
+        dg * root23 * (xsi[0] * two3 * dx(0) + xsi[1] * 2.0 * dx(1) + xsi[2]*2.0*dx(2)) / q;
     depsPdh[0] += dx(3) * two3 * xsi[0] + dg * two3 * dx(0);
     depsPdh[1] += dx(3) * 2.0 * xsi[1] + dg * 2.0 * dx(1);
     depsPdh[2] += dx(3) * 2.0 * xsi[2] + dg * 2.0 * dx(2);

@@ -31,8 +31,8 @@
 //
 #include <DomainDecompositionAnalysis.h>
 #include <ConstraintHandler.h>
-#include <DOF_Numberer.h>
 #include <AnalysisModel.h>
+#include <numberer/DOF_Numberer.h>
 #include <LinearSOE.h>
 #include <DomainDecompAlgo.h>
 #include <DomainSolver.h>
@@ -111,12 +111,10 @@ DomainDecompositionAnalysis::DomainDecompositionAnalysis(Subdomain &the_Domain,
  theResidual(0),numEqn(0),numExtEqn(0),tangFormed(false),tangFormedCount(0)
 {
     theModel->setLinks(the_Domain, handler);
-    theHandler->setLinks(*theSubdomain,*theModel,*theIntegrator);
+    theHandler->setLinks(*theSubdomain,*theModel);//,*theIntegrator);
     theNumberer->setLinks(*theModel);
     theIntegrator->setLinks(*theModel,*theSOE, theTest);
-    theAlgorithm->setLinks(*theModel,*theIntegrator,*theSOE,
-                           *theSolver,*theSubdomain);
-
+    theAlgorithm->setLinks(*theIntegrator,*theSOE,*theSolver,*theSubdomain);
     theSubdomain->setDomainDecompAnalysis(*this);
 }    
 
@@ -664,10 +662,10 @@ DomainDecompositionAnalysis::recvSelf(int commitTag,
     // set the links in all the objects
 
     theModel->setLinks(*theSubdomain, *theHandler);
-    theHandler->setLinks(*theSubdomain,*theModel,*theIntegrator);
+    theHandler->setLinks(*theSubdomain,*theModel);//,*theIntegrator);
     theNumberer->setLinks(*theModel);
     theIntegrator->setLinks(*theModel,*theSOE, theTest);
-    theAlgorithm->setLinks(*theModel,*theIntegrator,*theSOE,
+    theAlgorithm->setLinks(*theIntegrator,*theSOE,
                            *theSolver,*theSubdomain);
 
     theSubdomain->setDomainDecompAnalysis(*this);

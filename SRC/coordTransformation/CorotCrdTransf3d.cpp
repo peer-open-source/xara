@@ -1522,7 +1522,7 @@ CorotCrdTransf3d::getRotationMatrixFromQuaternion(const Vector &q) const
   static Matrix S(3, 3);
   static Matrix R(3, 3);
 
-  // R = (q0^2 - q' * q) * I + 2 * q * q' + 2*q0*S(q);
+  // R = (q0^2 - q' * q) * I   +   2 * q * q' + 2*q0*S(q);
 
   factor = q(3) * q(3) - (q(0) * q(0) + q(1) * q(1) + q(2) * q(2));
 
