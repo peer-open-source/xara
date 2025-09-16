@@ -30,11 +30,11 @@
 
 
 static ConvergenceTest*
-TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv);
+TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, G3_Char ** const argv);
 
 
 int
-specifyCTest(ClientData clientData, Tcl_Interp *interp, int argc, G3_Char ** const argv)
+specifyCTest(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, G3_Char ** const argv)
 {
   assert(clientData != nullptr);
   ConvergenceTest* theNewTest = TclDispatch_newConvergenceTest(clientData, interp, argc, argv);
@@ -43,7 +43,8 @@ specifyCTest(ClientData clientData, Tcl_Interp *interp, int argc, G3_Char ** con
     // Parse routine is expected to have reported an error
     return TCL_ERROR;
 
-  } else {
+  }
+  else {
     BasicAnalysisBuilder* builder = (BasicAnalysisBuilder*)clientData;
 
     assert(builder != nullptr);
@@ -54,7 +55,7 @@ specifyCTest(ClientData clientData, Tcl_Interp *interp, int argc, G3_Char ** con
 }
 
 static ConvergenceTest*
-TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
+TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, G3_Char ** const argv)
 {
   // get the tolerence first
   double tol     = 1e-12;
@@ -232,7 +233,6 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
   }
 
 
-  // ConvergenceTest *theNewTest = nullptr;
   if (strcmp(argv[1], "FixedNumIter") == 0)
     return new CTestFixedNumIter(numIter, flag, normType);
 
@@ -285,7 +285,8 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, int ar
 }
 
 int
-getCTestNorms(ClientData clientData, Tcl_Interp *interp, int argc,
+getCTestNorms(ClientData clientData, Tcl_Interp *interp,
+              Tcl_Size argc,
               G3_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -310,7 +311,7 @@ getCTestNorms(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-getCTestIter(ClientData clientData, Tcl_Interp *interp, int argc, G3_Char ** const argv)
+getCTestIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, G3_Char ** const argv)
 {
   assert(clientData != nullptr);
   ConvergenceTest *theTest =

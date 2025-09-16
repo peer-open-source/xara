@@ -12,6 +12,7 @@
 
 #include <tcl.h>
 #include <Matrix.h>
+#include <Vector.h>
 #include <NDMaterial.h>
 #include <ModelRegistry.h>
 #include <Logging.h>
