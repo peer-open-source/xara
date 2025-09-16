@@ -146,7 +146,7 @@ PlaneDRMInputHandler::PlaneDRMInputHandler(int tag, char** in_files, int files, 
     exit(-1);
   }
 
-  this->cacheValue = cacheValue;
+//this->cacheValue = cacheValue;
   this->initial = true;
   
   this->timeBuf = new double[this->cacheValue+4];
