@@ -19,6 +19,25 @@ class _Elements:
         """
         Create an element of the specified type.
         """
+    
+    @overload
+    def element(self,
+                __elmType: Literal["Truss"],
+                tag: int,
+                nodes: tuple,
+                section: int,
+                *args
+            ) -> int:
+        """
+        Create a truss element.
+        
+        :param tag: unique :ref:`element` tag
+        :type tag: |integer|
+        :param nodes: tuple of *two* integer :ref:`node` tags
+        :type nodes: tuple
+        :param section: tag of a previously-defined :ref:`section`
+        :type section: |integer|
+        """
 
     @overload
     def element(self,
@@ -113,5 +132,21 @@ class _Algorithm:
         Clear the current model.
         """
 
-class Model(_Elements,_Algorithm):
-    pass
+class Model(_Materials,_Elements,_Algorithm):
+    def node(self, tag: int, coords: tuple, *args, **kwargs) -> int:
+        """
+        Create a node with the specified tag and coordinates.
+        """
+    def fix(self, node: int, *args) -> int:
+        """
+        Apply boundary conditions to a node.
+        """
+    def mass(self, node: int, *args) -> int:
+        """
+        Assign mass to a node.
+        """
+    def load(self, node: int, *args) -> int:
+        """
+        Apply loads to a node.
+        """
+    
