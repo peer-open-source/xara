@@ -1,5 +1,17 @@
 from typing import overload, Literal
 
+
+class _Materials:
+    def material(self, type: str, tag: int, *args, **kwargs):
+        """
+        Create a material of the specified type.
+        """
+
+    def section(self, type: str, tag: int, *args, **kwargs):
+        """
+        Create a section of the specified type.
+        """
+
 class _Elements:
 
     @overload
