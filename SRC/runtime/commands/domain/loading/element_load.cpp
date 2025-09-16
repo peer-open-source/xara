@@ -15,9 +15,9 @@
 //
 //
 #include <tcl.h>
+#include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
-#include <Logging.h>
 #include <ModelRegistry.h>
 #include <Domain.h>
 #include <vector>
@@ -43,7 +43,7 @@
 #include <LoadPattern.h>
 
 int
-TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                         TCL_Char **const argv)
 {
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -65,21 +65,24 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
   // eleLoad FrameForce $shape -n $n -offset $r -pattern $pattern -basis $basis -ele $ele
 
   if (argc < 3) {
-    opserr << "WARNING eleLoad FrameLoad $shape -force $n -couple $m -offset r -pattern pattern -basis $basis\n";
+    opserr << OpenSees::PromptValueError
+           << "not enough arguments\n";
     return TCL_ERROR;
   }
 
-  if (strcmp(argv[2], "Dirac") == 0)
+  if ((strcmp(argv[2], "Dirac") == 0) || (strcmp(argv[2], "Point") == 0))
     shape = FrameLoad::Dirac;
-  else if (strcmp(argv[2], "Heaviside") == 0)
+  else if ((strcmp(argv[2], "Heaviside") == 0) || (strcmp(argv[2], "Uniform") == 0))
     shape = FrameLoad::Heaviside;
   else if (strcmp(argv[2], "Lagrange") == 0) {
     shape = FrameLoad::Lagrange;
-    opserr << "Lagrange shape not yet implemented\n";
+    opserr << OpenSees::PromptValueError
+           << "Lagrange shape not yet implemented\n";
     return TCL_ERROR;
   }
   else {
-    opserr << "WARNING unknown shape for FrameLoad " << argv[2] << "\n";
+    opserr << OpenSees::PromptValueError
+           << "unknown shape for FrameLoad " << argv[2] << "\n";
     return TCL_ERROR;
   }
 
@@ -87,24 +90,24 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
   for (int i=0; i<argc; i++) {
     if (strcmp(argv[i], "-pattern") == 0) {
       if (i == argc-1) {
-        opserr << "WARNING -pattern paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError << "-pattern paramter missing required argument\n";
         return TCL_ERROR;
       }
       int ptag;
       if (Tcl_GetInt(interp, argv[i+1], &ptag) != TCL_OK) {
-        opserr << "WARNING pattern parameter expected integer\n";
+        opserr << OpenSees::PromptValueError << "pattern parameter expected integer\n";
         return TCL_ERROR;
       }
       pattern = builder->getDomain()->getLoadPattern(ptag);
       if (pattern == nullptr) {
-        opserr << "WARNING pattern " << argv[i+1] << " not found\n";
+        opserr << OpenSees::PromptValueError << "pattern " << argv[i+1] << " not found\n";
         return TCL_ERROR;
       }
       i++;
     }
     else if (strcmp(argv[i], "-basis") == 0) {
       if (i == argc-1) {
-        opserr << "WARNING -basis paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError << "-basis paramter missing required argument\n";
         return TCL_ERROR;
       }
       if (strcmp(argv[i+1], "global") == 0)
@@ -115,31 +118,33 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
       else if (strcmp(argv[i+1], "director") == 0)
         basis = FrameLoad::Director;
       else {
-        opserr << "WARNING unknown basis for FrameLoad " << argv[i+1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "unknown basis for FrameLoad " << argv[i+1] << "\n";
         return TCL_ERROR;
       }
       i++;
     }
+
     else if (strcmp(argv[i], "-force") == 0) {
       if (i == argc-1) {
-        opserr << "WARNING -force paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError << "-force paramter missing required argument\n";
         return TCL_ERROR;
       }
       int list_argc;
       TCL_Char **list_argv;
       if (Tcl_SplitList(interp, argv[i+1], &list_argc, &list_argv) != TCL_OK) {
-        opserr << "WARNING force parameter expected list of floats\n";
+        opserr << OpenSees::PromptValueError << "force parameter expected list of floats\n";
         return TCL_ERROR;
       }
       if (list_argc != 3) {
-        opserr << "WARNING force parameter expected list of 3 floats\n";
+        opserr << OpenSees::PromptValueError << "force parameter expected list of 3 floats\n";
         Tcl_Free((char *) list_argv);
         return TCL_ERROR;
       }
       Vector3D force;
       for (int j = 0; j < 3; j++) {
         if (Tcl_GetDouble(interp, list_argv[j], &force[j]) != TCL_OK) {
-          opserr << "WARNING force parameter expected list of 3 floats\n";
+          opserr << OpenSees::PromptValueError << "force argument expected list of 3 floats\n";
           Tcl_Free((char *) list_argv);
           return TCL_ERROR;
         }
@@ -150,26 +155,28 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
       tracker.consume(Position::Force);
     }
+
     else if (strcmp(argv[i], "-couple") == 0) {
       if (i == argc-1) {
-        opserr << "WARNING -couple paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError
+               << "couple argument missing required argument\n";
         return TCL_ERROR;
       }
       int list_argc;
       TCL_Char **list_argv;
       if (Tcl_SplitList(interp, argv[i+1], &list_argc, &list_argv) != TCL_OK) {
-        opserr << "WARNING couple parameter expected list of floats\n";
+        opserr << OpenSees::PromptValueError << "couple parameter expected list of floats\n";
         return TCL_ERROR;
       }
       if (list_argc != 3) {
-        opserr << "WARNING couple parameter expected list of 3 floats\n";
+        opserr << OpenSees::PromptValueError << "couple parameter expected list of 3 floats\n";
         Tcl_Free((char *) list_argv);
         return TCL_ERROR;
       }
       Vector3D couple;
       for (int j = 0; j < 3; j++) {
         if (Tcl_GetDouble(interp, list_argv[j], &couple[j]) != TCL_OK) {
-          opserr << "WARNING couple parameter expected list of 3 floats\n";
+          opserr << OpenSees::PromptValueError << "couple parameter expected list of 3 floats\n";
           Tcl_Free((char *) list_argv);
           return TCL_ERROR;
         }
@@ -182,24 +189,24 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
     }
     else if (strcmp(argv[i], "-offset") == 0) {
       if (i == argc-1) {
-        opserr << "WARNING -offset paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError << "offset argument missing required argument\n";
         return TCL_ERROR;
       }
       int list_argc;
       TCL_Char **list_argv;
       if (Tcl_SplitList(interp, argv[i+1], &list_argc, &list_argv) != TCL_OK) {
-        opserr << "WARNING offset parameter expected list of floats\n";
+        opserr << OpenSees::PromptValueError << "offset argument expected list of floats\n";
         return TCL_ERROR;
       }
       if (list_argc != 3) {
-        opserr << "WARNING offset parameter expected list of 3 floats\n";
+        opserr << OpenSees::PromptValueError << "offset argument expected list of 3 floats\n";
         Tcl_Free((char *) list_argv);
         return TCL_ERROR;
       }
       Vector3D offset;
       for (int j = 0; j < 3; j++) {
         if (Tcl_GetDouble(interp, list_argv[j], &offset[j]) != TCL_OK) {
-          opserr << "WARNING offset parameter expected list of 3 floats\n";
+          opserr << OpenSees::PromptValueError << "offset argument expected list of 3 floats\n";
           Tcl_Free((char *) list_argv);
           return TCL_ERROR;
         }
@@ -210,19 +217,19 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
     }
     else if (strcmp(argv[i], "-elements") == 0) {
       if (i == argc-1) {
-        opserr << "WARNING -elements paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError << "elements argument missing required argument\n";
         return TCL_ERROR;
       }
       int list_argc;
       TCL_Char **list_argv;
       if (Tcl_SplitList(interp, argv[i+1], &list_argc, &list_argv) != TCL_OK) {
-        opserr << "WARNING elements parameter expected list of integers\n";
+        opserr << OpenSees::PromptValueError << "elements argument expected list of integers\n";
         return TCL_ERROR;
       }
       for (int j = 0; j < list_argc; j++) {
         int tag;
         if (Tcl_GetInt(interp, list_argv[j], &tag) != TCL_OK) {
-          opserr << "WARNING elements parameter expected list of integers\n";
+          opserr << OpenSees::PromptValueError << "elements argument expected list of integers\n";
           Tcl_Free((char *) list_argv);
           return TCL_ERROR;
         }
@@ -248,12 +255,12 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
         break;
       tracker.consume(tracker.current());
     }
-    opserr << "\n";
+    opserr << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (pattern == nullptr) {
-    opserr << "WARNING no current load pattern\n";
+    opserr << OpenSees::PromptValueError << "no current load pattern\n";
     return TCL_ERROR;
   }
 
@@ -262,12 +269,12 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
   for (int i : tags) {
     Element *elem = domain->getElement(i);
     if (elem == nullptr) {
-      opserr << "WARNING eleLoad - no element with tag " << i << "\n";
+      opserr << OpenSees::PromptValueError << "no element with tag " << i << "\n";
       delete load;
       return TCL_ERROR;
     }
     if (load->addElement(*elem) != 0) {
-      opserr << "WARNING eleLoad - could not add load to element\n";
+      opserr << OpenSees::PromptValueError << "could not add load to element\n";
       delete load;
       return TCL_ERROR;
     }
@@ -275,7 +282,7 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
   if (domain->addElementalLoad(load, pattern->getTag()) == false) {
     opserr
-        << "WARNING eleLoad - could not add load to domain\n ";
+        << OpenSees::PromptValueError << "could not add load to domain\n ";
     delete load;
     return TCL_ERROR;
   }
@@ -285,11 +292,11 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 int
-TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_main,
+TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc_main,
                             TCL_Char **const argv_main)
 {
   if (argc_main < 2) {
-    opserr << "WARNING eleLoad - expecting eleLoad type\n";
+    opserr << OpenSees::PromptValueError << "expecting eleLoad type\n";
     return TCL_ERROR;
   }
 
@@ -344,13 +351,13 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       count++;
       int eleStart, eleEnd;
       if (Tcl_GetInt(interp, argv_main[count], &eleStart) != TCL_OK) {
-        opserr << "WARNING eleLoad -range invalid eleStart " << argv_main[count]
+        opserr << OpenSees::PromptValueError << "eleLoad -range invalid eleStart " << argv_main[count]
                << "\n";
         return TCL_ERROR;
       }
       count++;
       if (Tcl_GetInt(interp, argv_main[count], &eleEnd) != TCL_OK) {
-        opserr << "WARNING eleLoad -range invalid eleEnd " << argv_main[count] << "\n";
+        opserr << OpenSees::PromptValueError << "eleLoad -range invalid eleEnd " << argv_main[count] << "\n";
         return TCL_ERROR;
       }
       count++;
@@ -360,12 +367,12 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
     else if (strcmp(argv_main[count], "-pattern") == 0) {
       if (count == argc_main - 1) {
-        opserr << "WARNING eleLoad -pattern paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError << "eleLoad -pattern paramter missing required argument\n";
         return TCL_ERROR;
       }
       int ptag;
       if (Tcl_GetInt(interp, argv_main[++count], &ptag) != TCL_OK) {
-        opserr << "WARNING eleLoad -pattern parameter expected integer\n";
+        opserr << OpenSees::PromptValueError << "eleLoad -pattern parameter expected integer\n";
         return TCL_ERROR;
       }
       explicitPatternPassed = true;
@@ -377,7 +384,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       argv[0] = argv_main[count++];
       argv[1] = argv_main[count++];
       if (count >= argc_main) {
-        opserr << "WARNING eleLoad -type paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError << "eleLoad -type paramter missing required argument\n";
         return TCL_ERROR;
       }
       typeIndex = 0;
@@ -393,7 +400,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
   if (explicitPatternPassed == false) {
     LoadPattern *theTclLoadPattern = builder->getEnclosingPattern();
     if (theTclLoadPattern == nullptr) {
-      opserr << "WARNING no current load pattern\n";
+      opserr << OpenSees::PromptValueError << "no current load pattern\n";
       return TCL_ERROR;
 
     } else {
@@ -403,7 +410,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
 
   if (typeIndex == -1) {
-    opserr << "WARNING missing required -type option"
+    opserr << OpenSees::PromptValueError << "missing required -type option"
            << "\n";
     return TCL_ERROR;
   }
@@ -424,37 +431,37 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // wy wx a/L  b/L wyb wxb
       double wta;
       if (count >= argc || Tcl_GetDouble(interp, argv[count], &wta) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wt for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wt for beamUniform \n";
         return TCL_ERROR;
       }
       count++;
       double waa = 0.0;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &waa) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wa for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wa for beamUniform \n";
         return TCL_ERROR;
       }
       double aL = 0.0;
       double bL = 1.0;
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &aL) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid aOverL for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid aOverL for beamUniform \n";
         return TCL_ERROR;
       }
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &bL) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid bOverL for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid bOverL for beamUniform \n";
         return TCL_ERROR;
       }
       double wab = waa;
       double wtb = wta;
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &wtb) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wt for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wt for beamUniform \n";
         return TCL_ERROR;
       }
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &wab) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wa for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wa for beamUniform \n";
         return TCL_ERROR;
       }
 
@@ -469,7 +476,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
         // add the load to the domain
         if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
           opserr
-              << "WARNING eleLoad - could not add following load to domain:\n ";
+              << OpenSees::PromptValueError << "eleLoad - could not add following load to domain:\n ";
           opserr << theLoad;
           delete theLoad;
           return TCL_ERROR;
@@ -484,29 +491,29 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       double wy, wz;
       double wx  = 0.0;
       if (count >= argc || Tcl_GetDouble(interp, argv[count], &wy) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wy for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wy for beamUniform \n";
         return TCL_ERROR;
       }
       count++;
       if (count >= argc || Tcl_GetDouble(interp, argv[count], &wz) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wz for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wz for beamUniform \n";
         return TCL_ERROR;
       }
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &wx) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wx for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wx for beamUniform \n";
         return TCL_ERROR;
       }
       double aL = 0.0;
       double bL = 1.0;
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &aL) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid aOverL for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid aOverL for beamUniform \n";
         return TCL_ERROR;
       }
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &bL) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid bOverL for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid bOverL for beamUniform \n";
         return TCL_ERROR;
       }
       
@@ -518,21 +525,21 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       double wyb = wy;
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &wyb) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wy for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wy for beamUniform \n";
         return TCL_ERROR;
       }
 
       double wzb = wz;
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &wzb) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wz for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wz for beamUniform \n";
         return TCL_ERROR;
       }
 
       double wxb = wx;
       count++;
       if (count < argc && Tcl_GetDouble(interp, argv[count], &wxb) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid wx for beamUniform \n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid wx for beamUniform \n";
         return TCL_ERROR;
       }
 
@@ -545,7 +552,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
         // add the load to the domain
         if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-          opserr << "WARNING eleLoad - could not add following load to domain:\n ";
+          opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to domain:\n ";
           delete theLoad;
           return TCL_ERROR;
         }
@@ -555,7 +562,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
     }
 
     else {
-      opserr << "WARNING eleLoad beamUniform currently only valid only for "
+      opserr << OpenSees::PromptValueError << "eleLoad beamUniform currently only valid only for "
                 "ndm=2 or 3\n";
       return TCL_ERROR;
     }
@@ -567,22 +574,22 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       double P, x;
       double N = 0.0;
       if (count >= argc || Tcl_GetDouble(interp, argv[count], &P) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid P for beamPoint\n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid P for beamPoint\n";
         return TCL_ERROR;
       }
       if (count + 1 >= argc ||
           Tcl_GetDouble(interp, argv[count + 1], &x) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid xDivL for beamPoint\n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid xDivL for beamPoint\n";
         return TCL_ERROR;
       }
       if (count + 2 < argc &&
           Tcl_GetDouble(interp, argv[count + 2], &N) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid N for beamPoint\n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid N for beamPoint\n";
         return TCL_ERROR;
       }
 
       if (x < 0.0 || x > 1.0) {
-        opserr << "WARNING eleLoad - invalid xDivL of " << x;
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid xDivL of " << x;
         opserr << " for beamPoint (valid range [0.0, 1.0]\n";
         return TCL_ERROR;
       }
@@ -593,7 +600,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
         // add the load to the domain
         if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-          opserr << "WARNING eleLoad - could not add load to domain:\n ";
+          opserr << OpenSees::PromptValueError << "eleLoad - could not add load to domain:\n ";
           delete theLoad;
           return TCL_ERROR;
         }
@@ -606,27 +613,27 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       double Py, Pz, x;
       double N = 0.0;
       if (count >= argc || Tcl_GetDouble(interp, argv[count], &Py) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid Py for beamPoint\n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid Py for beamPoint\n";
         return TCL_ERROR;
       }
       if (count + 1 >= argc ||
           Tcl_GetDouble(interp, argv[count + 1], &Pz) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid Pz  for beamPoint\n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid Pz  for beamPoint\n";
         return TCL_ERROR;
       }
       if (count + 2 >= argc ||
           Tcl_GetDouble(interp, argv[count + 2], &x) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid xDivL for beamPoint\n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid xDivL for beamPoint\n";
         return TCL_ERROR;
       }
       if (count + 3 < argc &&
           Tcl_GetDouble(interp, argv[count + 3], &N) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid N for beamPoint\n";
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid N for beamPoint\n";
         return TCL_ERROR;
       }
 
       if (x < 0.0 || x > 1.0) {
-        opserr << "WARNING eleLoad - invalid xDivL of " << x;
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid xDivL of " << x;
         opserr << " for beamPoint (valid range [0.0, 1.0]\n";
         return TCL_ERROR;
       }
@@ -638,7 +645,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
         // add the load to the domain
         if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
           opserr
-              << "WARNING eleLoad - could not add following load to domain:\n ";
+              << OpenSees::PromptValueError << "eleLoad - could not add following load to domain:\n ";
           opserr << theLoad;
           delete theLoad;
           return TCL_ERROR;
@@ -648,7 +655,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       return 0;
 
     } else {
-      opserr << "WARNING eleLoad beamPoint type currently only valid only for "
+      opserr << OpenSees::PromptValueError << "eleLoad beamPoint type currently only valid only for "
                 "ndm=2 or 3\n";
       return TCL_ERROR;
     }
@@ -663,7 +670,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // add the load to the domain
       if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
         opserr
-            << "WARNING eleLoad - could not add following load to domain:\n ";
+            << OpenSees::PromptValueError << "eleLoad - could not add following load to domain:\n ";
         opserr << theLoad;
         delete theLoad;
         return TCL_ERROR;
@@ -683,7 +690,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // add the load to the domain
       if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
         opserr
-            << "WARNING eleLoad - could not add following load to domain:\n ";
+            << OpenSees::PromptValueError << "eleLoad - could not add following load to domain:\n ";
         opserr << theLoad;
         delete theLoad;
         return TCL_ERROR;
@@ -699,18 +706,18 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
     double xf = 0.0, yf = 0.0, zf = 0.0;
     if (Tcl_GetDouble(interp, argv[count], &xf) != TCL_OK) {
-      opserr << "WARNING eleLoad - invalid xFactor " << argv[count]
+      opserr << OpenSees::PromptValueError << "eleLoad - invalid xFactor " << argv[count]
              << " for -selfWeight\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[count + 1], &yf) != TCL_OK) {
-      opserr << "WARNING eleLoad - invalid yFactor " << argv[count + 1]
+      opserr << OpenSees::PromptValueError << "eleLoad - invalid yFactor " << argv[count + 1]
              << " for -selfWeight\n";
       return TCL_ERROR;
     }
     if (count + 2 < argc) { // adding to stop seg faults
       if (Tcl_GetDouble(interp, argv[count + 2], &zf) != TCL_OK) {
-        opserr << "WARNING eleLoad - invalid zFactor " << argv[count + 2]
+        opserr << OpenSees::PromptValueError << "eleLoad - invalid zFactor " << argv[count + 2]
                << " for -selfWeight\n";
         return TCL_ERROR;
       }
@@ -722,7 +729,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
       // add the load to the domain
       if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-        opserr << "WARNING eleLoad - could not add load to domain:\n ";
+        opserr << OpenSees::PromptValueError << "eleLoad - could not add load to domain:\n ";
         delete theLoad;
         return TCL_ERROR;
       }
@@ -761,18 +768,18 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
         if (argc - count == 2) {
 
           if (Tcl_GetDouble(interp, argv[count], &RcvLoc1) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid single loc  " << argv[count]
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  " << argv[count]
                    << " for -beamThermal\n";
             return TCL_ERROR;
           }
           if (Tcl_GetDouble(interp, argv[count + 1], &RcvLoc2) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid single loc  "
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  "
                    << argv[count + 1] << " for -beamThermal\n";
             return TCL_ERROR;
           }
 
         } else {
-          opserr << "WARNING eleLoad - invalid input for -shellThermal\n";
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid input for -shellThermal\n";
         }
 
         for (std::size_t i=0; i< element_tags.size(); ++i) {
@@ -782,7 +789,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-            opserr << "WARNING eleLoad - could not add following load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                       "domain:\n ";
             delete theLoad;
             return TCL_ERROR;
@@ -798,7 +805,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) ==
               false) {
-            opserr << "WARNING eleLoad - could not add following load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                       "domain:\n ";
             opserr << theLoad;
             delete theLoad;
@@ -818,7 +825,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
         for (int i = 0; i < 18; ++i) {
           if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid data " << argv[count]
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
                    << " for -beamThermal 3D\n";
             return TCL_ERROR;
           }
@@ -838,7 +845,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) ==
               false) {
-            opserr << "WARNING eleLoad - could not add following load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                       "domain:\n ";
             opserr << theLoad;
             delete theLoad;
@@ -855,7 +862,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
         for (int i = 0; i < 10; ++i) {
           if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid data " << argv[count]
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
                    << " for -beamThermal 3D\n";
             return TCL_ERROR;
           }
@@ -876,7 +883,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) ==
               false) {
-            opserr << "WARNING eleLoad - could not add following load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                       "domain:\n ";
             opserr << theLoad;
             delete theLoad;
@@ -892,24 +899,24 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // if the two temperatures are different,i.e. linear Temperature change in element
       else if (argc - count == 4) {
         if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid T1 " << argv[count]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid T1 " << argv[count]
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[count + 1], &locY1) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid LocY1 " << argv[count + 1]
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[count + 2], &t2) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid T2 " << argv[count]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid T2 " << argv[count]
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[count + 3], &locY2) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid LocY2 " << argv[count + 1]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid LocY2 " << argv[count + 1]
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
@@ -921,7 +928,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) ==  false) {
-            opserr << "WARNING eleLoad - could not add load to domain\n ";
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add load to domain\n ";
             delete theLoad;
             return TCL_ERROR;
           }
@@ -932,7 +939,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       //finish the temperature arguments
       else {
         opserr
-            << "WARNING eleLoad -shellThermalLoad invalid number of "
+            << OpenSees::PromptValueError << "eleLoad -shellThermalLoad invalid number of "
                "temperature arguments,/n looking for 0, 1, 2 or 4 arguments.\n";
       }
     }
@@ -962,13 +969,13 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
         int NodalTtag;
 
         if (Tcl_GetDouble(interp, argv[count + i * 2 + 1], &Dblloc) != TCL_OK) {
-          opserr << "WARNING NodalLoad - invalid loc  " << argv[count]
+          opserr << OpenSees::PromptValueError << "NodalLoad - invalid loc  " << argv[count]
                  << " for NodalThermalAction\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetInt(interp, argv[count + 2 * i], &NodalTtag) != TCL_OK) {
-          opserr << "WARNING invalid nodeId: " << argv[1];
+          opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1];
           return TCL_ERROR;
         }
 
@@ -990,7 +997,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
         int NodalTtag;
 
         if (Tcl_GetInt(interp, argv[count + i], &NodalTtag) != TCL_OK) {
-          opserr << "WARNING invalid nodeId " << argv[1];
+          opserr << OpenSees::PromptValueError << "invalid nodeId " << argv[1];
           return TCL_ERROR;
         }
 
@@ -1048,7 +1055,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // add the load to the domain
       if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
         opserr
-            << "WARNING eleLoad - could not add following load to domain:\n ";
+            << OpenSees::PromptValueError << "eleLoad - could not add following load to domain:\n ";
         opserr << theLoad;
         delete theLoad;
         return TCL_ERROR;
@@ -1075,7 +1082,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
             // add the load to the domain
             if (domain->addElementalLoad(theLoad, loadPatternTag) ==
                 false) {
-              opserr << "WARNING eleLoad - could not add following load to "
+              opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                         "domain:\n ";
               opserr << theLoad;
               delete theLoad;
@@ -1102,12 +1109,12 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           if (argc - count == 2) {
             double RcvLoc1, RcvLoc2;
             if (Tcl_GetDouble(interp, argv[count], &RcvLoc1) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid single loc  " << argv[count]
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  " << argv[count]
                      << " for -beamThermal\n";
               return TCL_ERROR;
             }
             if (Tcl_GetDouble(interp, argv[count + 1], &RcvLoc2) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid single loc  "
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  "
                      << argv[count + 1] << " for -beamThermal\n";
               return TCL_ERROR;
             }
@@ -1135,7 +1142,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           }
           //end of receiving 9 arguments
           else {
-            opserr << "WARNING eleLoad - invalid input for -beamThermal\n";
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid input for -beamThermal\n";
           }
 
           for (std::size_t i=0; i< element_tags.size(); ++i) {
@@ -1146,7 +1153,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
             // add the load to the domain
             if (domain->addElementalLoad(theLoad, loadPatternTag) ==
                 false) {
-              opserr << "WARNING eleLoad - could not add following load to "
+              opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                         "domain:\n ";
               opserr << theLoad;
               delete theLoad;
@@ -1172,7 +1179,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           for (int i = 0; i < 18; ++i) {
             if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid data " << argv[count]
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
                      << " for -beamThermal 3D\n";
               return TCL_ERROR;
             }
@@ -1195,7 +1202,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           for (int i = 0; i < 10; ++i) {
             if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid data " << argv[count]
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
                      << " for -beamThermal 3D\n";
               return TCL_ERROR;
             }
@@ -1229,7 +1236,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           for (int i = 0; i < 4; ++i) {
             if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid data " << argv[count]
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
                      << " for -beamThermal 3D\n";
               return TCL_ERROR;
             }
@@ -1258,7 +1265,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-            opserr << "WARNING eleLoad - could not add following load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                       "domain:\n ";
             opserr << theLoad;
             delete theLoad;
@@ -1290,7 +1297,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
             // add the load to the domain
             if (domain->addElementalLoad(theLoad, loadPatternTag) ==
                 false) {
-              opserr << "WARNING eleLoad - could not add following load to "
+              opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                         "domain:\n ";
               opserr << theLoad;
               delete theLoad;
@@ -1318,22 +1325,22 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
             // using2Ddata = false;
 
             if (Tcl_GetDouble(interp, argv[count], &RcvLoc1) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid single loc  " << argv[count]
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  " << argv[count]
                      << " for -beamThermal\n";
               return TCL_ERROR;
             }
             if (Tcl_GetDouble(interp, argv[count + 1], &RcvLoc2) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid single loc  "
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  "
                      << argv[count + 1] << " for -beamThermal\n";
               return TCL_ERROR;
             }
             if (Tcl_GetDouble(interp, argv[count + 2], &RcvLoc3) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid single loc  "
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  "
                      << argv[count + 2] << " for -beamThermal\n";
               return TCL_ERROR;
             }
             if (Tcl_GetDouble(interp, argv[count + 3], &RcvLoc4) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid single loc  "
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  "
                      << argv[count + 3] << " for -beamThermal\n";
               return TCL_ERROR;
             }
@@ -1348,7 +1355,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
               // add the load to the domain
               if (domain->addElementalLoad(theLoad, loadPatternTag) ==
                   false) {
-                opserr << "WARNING eleLoad - could not add following load to "
+                opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                           "domain:\n ";
                 opserr << theLoad;
                 delete theLoad;
@@ -1370,12 +1377,12 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
               double RcvLoc1, RcvLoc2;
               if (Tcl_GetDouble(interp, argv[count], &RcvLoc1) != TCL_OK) {
-                opserr << "WARNING eleLoad - invalid single loc  "
+                opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  "
                        << argv[count] << " for -beamThermal\n";
                 return TCL_ERROR;
               }
               if (Tcl_GetDouble(interp, argv[count + 1], &RcvLoc2) != TCL_OK) {
-                opserr << "WARNING eleLoad - invalid single loc  "
+                opserr << OpenSees::PromptValueError << "eleLoad - invalid single loc  "
                        << argv[count + 1] << " for -beamThermal\n";
                 return TCL_ERROR;
               }
@@ -1392,7 +1399,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
               double BufferData;
               for (int i = 0; i < 9; ++i) {
                 if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-                  opserr << "WARNING eleLoad - invalid data " << argv[count]
+                  opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
                          << " for -beamThermal 3D\n";
                   return TCL_ERROR;
                 }
@@ -1415,7 +1422,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
               // add the load to the domain
               if (domain->addElementalLoad(theLoad, loadPatternTag) ==
                   false) {
-                opserr << "WARNING eleLoad - could not add following load to "
+                opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                           "domain:\n ";
                 opserr << theLoad;
                 delete theLoad;
@@ -1427,7 +1434,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           }
 
           else {
-            opserr << "WARNING eleLoad - invalid input for -beamThermal\n";
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid input for -beamThermal\n";
           }
 
         } //end for source beam element temperature data  -source -filePath
@@ -1446,7 +1453,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           for (int i = 0; i < 25; ++i) {
             if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-              opserr << "WARNING eleLoad - invalid data " << argv[count]
+              opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
                      << " for -beamThermal 3D\n";
               return TCL_ERROR;
             }
@@ -1468,7 +1475,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
             // add the load to the domain
             if (domain->addElementalLoad(theLoad, loadPatternTag) ==
                 false) {
-              opserr << "WARNING eleLoad - could not add following load to "
+              opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                         "domain:\n ";
               opserr << theLoad;
               delete theLoad;
@@ -1482,22 +1489,22 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
         else if (argc - count == 4) {
 
           if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid T1 " << argv[count]
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid T1 " << argv[count]
                    << " for -beamThermal\n";
             return TCL_ERROR;
           }
           if (Tcl_GetDouble(interp, argv[count + 1], &locY1) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1]
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid LocY1 " << argv[count + 1]
                    << " for -beamThermal\n";
             return TCL_ERROR;
           }
           if (Tcl_GetDouble(interp, argv[count + 2], &t5) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid T1 " << argv[count]
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid T1 " << argv[count]
                    << " for -beamThermal\n";
             return TCL_ERROR;
           }
           if (Tcl_GetDouble(interp, argv[count + 3], &locY5) != TCL_OK) {
-            opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1]
+            opserr << OpenSees::PromptValueError << "eleLoad - invalid LocY1 " << argv[count + 1]
                    << " for -beamThermal\n";
             return TCL_ERROR;
           }
@@ -1521,7 +1528,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
             // add the load to the domain
             if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-              opserr << "WARNING eleLoad - could not add following load to "
+              opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                         "domain:\n ";
               opserr << theLoad;
               delete theLoad;
@@ -1535,36 +1542,36 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 			  else if (argc - count == 8) {
 
 				  if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 				  if (Tcl_GetDouble(interp, argv[count + 1], &locY1) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid LocY1 " << argv[count + 1] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 				  if (Tcl_GetDouble(interp, argv[count + 2], &t5) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid T5 " << argv[count] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid T5 " << argv[count] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 				  if (Tcl_GetDouble(interp, argv[count + 3], &locY5) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid LocY5 " << argv[count + 1] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid LocY5 " << argv[count + 1] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 
 				  if (Tcl_GetDouble(interp, argv[count + 4], &t6) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 				  if (Tcl_GetDouble(interp, argv[count + 5], &locZ1) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid LocZ1 " << argv[count + 1] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid LocZ1 " << argv[count + 1] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 				  if (Tcl_GetDouble(interp, argv[count + 6], &t10) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid T10 " << argv[count] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid T10 " << argv[count] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 				  if (Tcl_GetDouble(interp, argv[count + 7], &locZ5) != TCL_OK) {
-					  opserr << "WARNING eleLoad - invalid LocZ5 " << argv[count + 1] << " for -beamThermal\n";
+					  opserr << OpenSees::PromptValueError << "eleLoad - invalid LocZ5 " << argv[count + 1] << " for -beamThermal\n";
 					  return TCL_ERROR;
 				  }
 
@@ -1591,7 +1598,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
 					  // add the load to the domain
 					  if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-						  opserr << "WARNING eleLoad - could not add following load to domain:\n ";
+						  opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to domain:\n ";
 						  opserr << theLoad;
 						  delete theLoad;
 						  return TCL_ERROR;
@@ -1601,7 +1608,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 				  return TCL_OK;
 			  }
         else {
-          opserr << "WARNING eleLoad Beam3dThermalAction: invalid number of "
+          opserr << OpenSees::PromptValueError << "eleLoad Beam3dThermalAction: invalid number of "
                     "temperature arguments,/n looking for arguments for "
                     "Temperatures and coordinates.\n";
         }
@@ -1620,23 +1627,23 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // Four temps given, Temp change at top node 1, bottom node 1, top node 2, bottom node 2.
       if (argc - count == 4) {
         if (Tcl_GetDouble(interp, argv[count], &temp1) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid Ttop1 " << argv[count]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid Ttop1 " << argv[count]
                  << " for -beamTemp\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[count + 1], &temp2) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid Tbot1 " << argv[count + 1]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid Tbot1 " << argv[count + 1]
                  << " for -beamTemp\n";
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[count + 2], &temp3) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid Ttop2 " << argv[count + 1]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid Ttop2 " << argv[count + 1]
                  << " for -beamTemp\n";
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[count + 3], &temp4) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid Tbot2 " << argv[count + 1]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid Tbot2 " << argv[count + 1]
                  << " for -beamTemp\n";
           return TCL_ERROR;
         }
@@ -1649,7 +1656,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) ==
               false) {
-            opserr << "WARNING eleLoad - could not add following load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                       "domain:\n ";
             opserr << theLoad;
             delete theLoad;
@@ -1664,13 +1671,13 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // Two temps given, temp change at top, temp at bottom of element
       else if (argc - count == 2) {
         if (Tcl_GetDouble(interp, argv[count], &temp1) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid Ttop " << argv[count]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid Ttop " << argv[count]
                  << " for -beamTemp\n";
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[count + 1], &temp2) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid Tbot " << argv[count + 1]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid Tbot " << argv[count + 1]
                  << " for -beamTemp\n";
           return TCL_ERROR;
         }
@@ -1681,7 +1688,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) ==
               false) {
-            opserr << "WARNING eleLoad - could not add following load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add following load to "
                       "domain:\n ";
             opserr << theLoad;
             delete theLoad;
@@ -1694,7 +1701,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       // One twmp change give, uniform temp change in element
       else if (argc - count == 1) {
         if (Tcl_GetDouble(interp, argv[count], &temp1) != TCL_OK) {
-          opserr << "WARNING eleLoad - invalid Tbot " << argv[count + 1]
+          opserr << OpenSees::PromptValueError << "eleLoad - invalid Tbot " << argv[count + 1]
                  << " for -beamTemp\n";
           return TCL_ERROR;
         }
@@ -1704,7 +1711,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
 
           // add the load to the domain
           if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-            opserr << "WARNING eleLoad - could not add load to "
+            opserr << OpenSees::PromptValueError << "eleLoad - could not add load to "
                       "domain:\n ";
             delete theLoad;
             return TCL_ERROR;
@@ -1717,11 +1724,11 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc_
       }
 
       else {
-        opserr << "WARNING eleLoad -beamTempLoad invalid number of temperature "
+        opserr << OpenSees::PromptValueError << "eleLoad -beamTempLoad invalid number of temperature "
                   "arguments,/n looking for 0, 1, 2 or 4 arguments.\n";
       }
     } else {
-      opserr << "WARNING eleLoad -beamTempLoad type currently only valid only "
+      opserr << OpenSees::PromptValueError << "eleLoad -beamTempLoad type currently only valid only "
                 "for ndm=2\n";
       return TCL_ERROR;
     }
