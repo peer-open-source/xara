@@ -33,15 +33,17 @@
 
 #include "eigenSOE/EigenSOE.h"
 #include <Vector.h>
+#include <set>
 
 class AnalysisModel;
 class ArpackSolver;
 class LinearSOE;
 
+
 class ArpackSOE : public EigenSOE
 {
   public:
-    ArpackSOE(double shift = 0.0);
+    ArpackSOE(AnalysisModel&, double shift);
 
     ~ArpackSOE();
 
@@ -52,8 +54,11 @@ class ArpackSOE : public EigenSOE
     int setSize(Graph &theGraph);
     
     int addA(const Matrix &, const ID &, double fact = 1.0);
-    int addM(const Matrix &, const ID &, double fact = 1.0);    
-   
+    int addK(const Matrix &, const ID &, double fact = 1.0);
+    int addM(const Matrix &, const ID &, double fact = 1.0); 
+    int setMask();
+    void opM(int n, double *v, double *result);
+
     void zeroA(void);
     void zeroM(void);
 
@@ -75,6 +80,8 @@ class ArpackSOE : public EigenSOE
     double shift;
     AnalysisModel *theModel;
     LinearSOE *theSOE;
+    std::set<int> mask;
+
 
     int processID;
     int numChannels;

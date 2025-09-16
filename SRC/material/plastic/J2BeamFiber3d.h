@@ -41,46 +41,52 @@
 #include <ID.h>
 #include <Information.h>
 #include <Parameter.h>
+#include <Matrix3D.h>
+#include <VectorND.h>
+#include <Vector3D.h>
+
 
 class J2BeamFiber3d : public NDMaterial {
 public:
-  J2BeamFiber3d(int tag, double E, double G, double sigY, double Hi, double Hk);
+  J2BeamFiber3d(int tag, double E, double nu, double sigY, double Hi, double Hk);
   J2BeamFiber3d();
   ~J2BeamFiber3d();
 
   const char* getClassType() const override { return "J2BeamFiber3d"; }
 
-  int setTrialStrain(const Vector& v);
-  int setTrialStrain(const Vector& v, const Vector& r);
-  int setTrialStrainIncr(const Vector& v);
-  int setTrialStrainIncr(const Vector& v, const Vector& r);
-  const Matrix& getTangent(void);
-  const Matrix& getInitialTangent(void);
-  const Vector& getStress(void);
-  const Vector& getStrain(void);
+  int setTrialStrain(const Vector&) override;
+  int setTrialStrain(const Vector&, const Vector& r) override;
+  int setTrialStrainIncr(const Vector& v) override;
+  int setTrialStrainIncr(const Vector& v, const Vector& r) override;
+  const Matrix& getTangent() override;
+  const Matrix& getInitialTangent() override;
+  const Vector& getStress() override;
+  const Vector& getStrain() override;
+  Vector3D getFrameStress();
+  OpenSees::Matrix3D getFrameTangent();
 
-  int commitState(void);
-  int revertToLastCommit(void);
-  int revertToStart(void);
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
 
-  NDMaterial* getCopy(void);
-  NDMaterial* getCopy(const char* type);
-  const char* getType(void) const;
-  int getOrder(void) const;
+  NDMaterial* getCopy() override;
+  NDMaterial* getCopy(const char* type) override;
+  const char* getType() const override;
+  int getOrder() const;
 
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+  int sendSelf(int commitTag, Channel& ) override;
+  int recvSelf(int commitTag, Channel& , FEM_ObjectBroker&) override;
 
-  void Print(OPS_Stream& s, int flag = 0);
+  void Print(OPS_Stream& s, int flag) override;
 
-  int setParameter(const char** argv, int argc, Parameter& param);
-  int updateParameter(int parameterID, Information& info);
+  int setParameter(const char** argv, int argc, Parameter&) override;
+  int updateParameter(int parameterID, Information&) override;
   int activateParameter(int paramID);
 
   const Vector& getStressSensitivity(int gradIndex, bool conditional);
   int commitSensitivity(const Vector& depsdh, int gradIndex, int numGrads);
 
-protected:
+
 private:
   double E;
   double nu;
@@ -91,7 +97,6 @@ private:
   int parameterID;
   Matrix* SHVs;
 
-  static Vector sigma; // Stress vector ... class-wide for returns
   static Matrix D;     // Elastic constants
   Vector Tepsilon;     // Trial strains
 

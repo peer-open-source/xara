@@ -175,20 +175,18 @@ MinUnbalDispNorm::newStep()
   (*deltaUstep) = (*deltaU);
 
 
-  /////////////////Abbas////////////////////////////
-
   if (this->activateSensitivity() == true) { 
     Domain *theDomain=theModel->getDomainPtr();
     ParameterIter &paramIter = theDomain->getParameters();
     Parameter *theParam;
 
     // De-activate all parameters
+    while ((theParam = paramIter()) != 0)
+      theParam->activate(false);
      
     // Now, compute sensitivity wrt each parameter
     // int numGrads = theDomain->getNumParameters();
     
-    while ((theParam = paramIter()) != 0)
-      theParam->activate(false);
     
     paramIter = theDomain->getParameters();
     while ((theParam = paramIter()) != 0) {
@@ -196,7 +194,7 @@ MinUnbalDispNorm::newStep()
       theParam->activate(true);
       // Get the grad index for this parameter
       gradNumber = theParam->getGradIndex();
-      
+
       this->formTangDispSensitivity(dUhatdh,gradNumber);
       this->formdLambdaDh(gradNumber);
 
@@ -209,7 +207,7 @@ MinUnbalDispNorm::newStep()
 
   // update model with delta lambda and delta U
   theModel->incrDisp(*deltaU);    
-  theModel->applyLoadDomain(currentLambda);    
+  theModel->applyLoadDomain(currentLambda);
   if (theModel->updateDomain() < 0) {
     opserr << "MinUnbalDispNorm::newStep - model failed to update for new dU\n";
     return -1;
@@ -396,7 +394,7 @@ MinUnbalDispNorm::domainChanged()
     }
 
   if (hasLoad == false) {
-    opserr << "WARNING ArcLength::domainChanged() - zero reference load";
+    opserr << "WARNING zero reference load";
     return -1;
   }
 
@@ -604,7 +602,7 @@ MinUnbalDispNorm::formSensitivityRHS(int passedGradNumber)
   FE_Element *elePtr;
   FE_EleIter &theEles = theAnalysisModel->getFEs(); 
 
-  while((elePtr = theEles()) != 0) {
+  while ((elePtr = theEles()) != 0) {
     theSOE->addB(elePtr->getResidual(this) ,elePtr->getID()  );
   }
 
@@ -625,43 +623,42 @@ MinUnbalDispNorm::formSensitivityRHS(int passedGradNumber)
 
   // double CallDlambda1dh=this->getLambdaSensitivity(gradNumber);
      
-  double CallDlambda1dh=(*dLAMBDAdh)(gradNumber);
+  double CallDlambda1dh = (*dLAMBDAdh)(gradNumber);
   Residual->addVector(1.0,*phat, CallDlambda1dh ); 
   Residual->addVector(1.0,*dphatdh,currentLambda);
 
   theSOE->setB(*Residual);
   
-  // Loop through the loadPatterns and add the dPext/dh contributions
+  //
+  // Add the dPext/dh contributions
+  //
   static Vector oneDimVectorWithOne(1);
   oneDimVectorWithOne(0) = 1.0;
   static ID oneDimID(1);
   
-  Node *aNode;
-  DOF_Group *aDofGroup;
-  int nodeNumber, dofNumber, relevantID, i, sizeRandomLoads, numRandomLoads;
-  LoadPattern *loadPatternPtr;
+
   Domain *theDomain = theAnalysisModel->getDomainPtr();
+  LoadPattern *loadPatternPtr;
   LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
-  while((loadPatternPtr = thePatterns()) != 0) {
+  while((loadPatternPtr = thePatterns()) != nullptr) {
     const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
-    sizeRandomLoads = randomLoads.Size();
+    int sizeRandomLoads = randomLoads.Size();
     if (sizeRandomLoads == 1) {
       // No random loads in this load pattern
-      	 //opserr<<"No sensitivity Load Parameter is involved"<<endln;
     }
     else {
       // Random loads: add contributions to the 'B' vector
-      numRandomLoads = (int)(sizeRandomLoads/2);
-      for (i=0; i<numRandomLoads*2; i=i+2) {
-	nodeNumber = (int)randomLoads(i);
-	dofNumber = (int)randomLoads(i+1);
-	aNode = theDomain->getNode(nodeNumber);
-	aDofGroup = aNode->getDOF_GroupPtr();
-	const ID &anID = aDofGroup->getID();
-	relevantID = anID(dofNumber-1);
-	oneDimID(0) = relevantID;
-	theSOE->addB(oneDimVectorWithOne, oneDimID);
-
+      int numRandomLoads = (int)(sizeRandomLoads/2);
+      for (int i=0; i<numRandomLoads*2; i=i+2) {
+        Node *aNode;
+        DOF_Group *aDofGroup;
+        int nodeNumber = (int)randomLoads(i);
+        int dofNumber = (int)randomLoads(i+1);
+        aNode = theDomain->getNode(nodeNumber);
+        aDofGroup = aNode->getDOF_GroupPtr();
+        const ID &anID = aDofGroup->getID();
+        oneDimID(0) = anID(dofNumber-1);
+        theSOE->addB(oneDimVectorWithOne, oneDimID);
       }
     }
     //  (*Residual) =theSOE->getB();

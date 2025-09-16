@@ -5,7 +5,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2025, Claudio M. Perez
+// Copyright (c) 2025, OpenSees/Xara Developers
 // All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 // This source code is licensed under the BSD 2-Clause License.
@@ -19,7 +19,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -40,7 +40,7 @@ ParseBoucWen(ClientData clientData, Tcl_Interp *interp,
                   int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
 
   ArgumentTracker<Positions> tracker;
   std::set<int> positional;

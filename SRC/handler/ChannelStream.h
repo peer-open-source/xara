@@ -37,8 +37,8 @@ class ChannelStream : public OPS_Stream
     ChannelStream(Channel *theChannel);        
     ~ChannelStream();
 
-    int setFile(const char *fileName, openMode mode = openMode::OVERWRITE);
-    int open(void);
+    int setFile(const char *fileName, openMode mode, bool echo);
+    int open();
     int close(void);
     
     // xml stuff

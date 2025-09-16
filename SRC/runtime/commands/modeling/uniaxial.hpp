@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -40,7 +49,6 @@ extern OPS_Routine OPS_CableMaterial;
 extern OPS_Routine OPS_Cast;
 extern OPS_Routine OPS_CreepMaterial;
 // Concrete
-extern OPS_Routine OPS_Concrete01;
 extern OPS_Routine OPS_Concrete02;
 extern OPS_Routine OPS_Concrete02IS;
 extern OPS_Routine OPS_Concrete02Thermal;
@@ -119,6 +127,7 @@ extern OPS_Routine OPS_Trilinwp2;
 extern OPS_Routine OPS_Trilinwp;
 extern OPS_Routine OPS_UVCuniaxial;
 extern OPS_Routine OPS_pyUCLA;
+extern OPS_Routine OPS_PenaltyMaterial;
 extern void *OPS_ConcretewBeta();
 
 extern Tcl_CmdProc Create_OOHystereticMaterial;
@@ -192,7 +201,7 @@ TclDispatch_UniaxialMaterial TclCommand_ReinforcingSteel;
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   G3_Runtime *rt = G3_getRuntime(interp);
   UniaxialMaterial* theMaterial = (UniaxialMaterial*)fn( rt, argc, argv );
 
@@ -208,7 +217,7 @@ template <UniaxialMaterial*(*fn)(G3_Runtime*, int, TCL_Char** const)> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   G3_Runtime *rt = G3_getRuntime(interp);
   UniaxialMaterial* theMaterial = fn( rt, argc, argv );
 
@@ -277,7 +286,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
 
 // Concretes
     {"Concrete01",             dispatch<TclCommand_newFedeasConcrete>  },
-    {"Concrete02",             dispatch<OPS_Concrete02>                },
+    {"Concrete02",             dispatch<TclCommand_newFedeasConcrete>     },
     {"Concrete04",             dispatch<TclCommand_newUniaxialConcrete04> },
     {"Concrete06",             dispatch<TclCommand_newUniaxialConcrete06> },
     {"Concrete07",             dispatch<TclCommand_newUniaxialConcrete07> },
@@ -345,6 +354,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"APDFMD",               dispatch<OPS_APDFMD> },
     {"APDMD",                dispatch<OPS_APDMD> },
     {"APDVFD",               dispatch<OPS_APDVFD> },
+    {"Penalty",      dispatch<OPS_PenaltyMaterial>           },
 
     {"FedeasUniaxialDamage", dispatch<TclCommand_newFedeasUniaxialDamage>  },
     {"KikuchiAikenHDR",      dispatch<TclCommand_KikuchiAikenHDR>       },

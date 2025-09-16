@@ -6,7 +6,7 @@
 //
 #include <tcl.h>
 #include "YieldSurface_BC.h"
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <string.h>
 #include <Vector.h>
 
@@ -23,7 +23,7 @@ TclCommand_addYieldSurface_BC(ClientData clientData, Tcl_Interp *interp,
                                       int argc, TCL_Char ** const argv)
 {
   int tag;
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
@@ -132,25 +132,21 @@ TclCommand_addYieldSurface_BC(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &xBal) != TCL_OK) {
       opserr << "WARNING invalid xBal\n";
-      opserr << "yieldSurfaceBC ElTawil2D tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &yBal) != TCL_OK) {
       opserr << "WARNING invalid yBal\n";
-      opserr << "yieldSurfaceBC ElTawil2D tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &yPos) != TCL_OK) {
       opserr << "WARNING invalid xPos\n";
-      opserr << "yieldSurfaceBC ElTawil2D tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &yNeg) != TCL_OK) {
       opserr << "WARNING invalid yNeg\n";
-      opserr << "yieldSurfaceBC ElTawil2D tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
@@ -193,36 +189,30 @@ TclCommand_addYieldSurface_BC(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[3], &xPosBal) != TCL_OK) {
       opserr << "WARNING invalid xPosBal\n";
-      opserr << "yieldSurfaceBC ElTawil2DUnSym tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &yPosBal) != TCL_OK) {
       opserr << "WARNING invalid yPosBal\n";
-      opserr << "yieldSurfaceBC ElTawil2DUnSym tag: " << tag << "\n";
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[5], &xNegBal) != TCL_OK) {
       opserr << "WARNING invalid xNegBal\n";
-      opserr << "yieldSurfaceBC ElTawil2DUnSym tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &yNegBal) != TCL_OK) {
       opserr << "WARNING invalid yNegBal\n";
-      opserr << "yieldSurfaceBC ElTawil2DUnSym tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &yPos) != TCL_OK) {
       opserr << "WARNING invalid xPos\n";
-      opserr << "yieldSurfaceBC ElTawil2DUnSym tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &yNeg) != TCL_OK) {
       opserr << "WARNING invalid yNeg\n";
-      opserr << "yieldSurfaceBC ElTawil2DUnSym tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
@@ -407,7 +397,6 @@ TclCommand_addYieldSurface_BC(ClientData clientData, Tcl_Interp *interp,
   return TCL_OK;
 }
 #include "YieldSurface_BC.h"
-#include <BasicModelBuilder.h>
 #include <string.h>
 #include <Vector.h>
 
@@ -426,7 +415,7 @@ TclCommand_addYieldSurface_BC(ClientData clientData, Tcl_Interp *interp,
 
 
 static int
-addTclYS_Evolution(BasicModelBuilder *theBuilder, YS_Evolution *theModel)
+addTclYS_Evolution(ModelRegistry *theBuilder, YS_Evolution *theModel)
 {
   if (theModel == nullptr)
     return TCL_ERROR;
@@ -444,7 +433,7 @@ addTclYS_Evolution(BasicModelBuilder *theBuilder, YS_Evolution *theModel)
 
 static PlasticHardeningMaterial *
 getTclPlasticMaterial(Tcl_Interp *interp, TCL_Char *arg,
-                      BasicModelBuilder *theBuilder)
+                      ModelRegistry *theBuilder)
 {
   int id;
   if (Tcl_GetInt(interp, arg, &id) != TCL_OK) {
@@ -465,7 +454,7 @@ getTclPlasticMaterial(Tcl_Interp *interp, TCL_Char *arg,
 
 static YieldSurface_BC *
 getTclYieldSurface_BC(Tcl_Interp *interp, TCL_Char *arg,
-                      BasicModelBuilder *builder)
+                      ModelRegistry *builder)
 {
   int id;
   if (Tcl_GetInt(interp, arg, &id) != TCL_OK) {
@@ -492,7 +481,7 @@ static int
 TclNullEvolutionCommand(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   YS_Evolution *theModel = 0;
   int tag;
   double isox;
@@ -539,7 +528,7 @@ static int
 TclKinematic2D01Command(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   YS_Evolution *theModel = 0;
   int tag;
   double minIsoFactor;
@@ -574,7 +563,7 @@ static int
 TclIsotropic2D01Command(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   YS_Evolution *theModel = 0;
 
   int tag;
@@ -606,7 +595,7 @@ static int
 TclPeakOriented2D01Command(ClientData clientData, Tcl_Interp *interp, int argc,
                            TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   YS_Evolution *theModel = 0;
   int tag;
   double minIsoFactor;
@@ -637,7 +626,7 @@ int
 TclCombinedIsoKin2D01Command(ClientData clientData, Tcl_Interp *interp, int argc,
                              TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   YS_Evolution *theModel = 0;
 
@@ -702,7 +691,7 @@ static int
 TclKinematic2D02Command(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   YS_Evolution *theModel = 0;
   int tag;
   double minIsoFactor;
@@ -753,7 +742,7 @@ int
 TclPeakOriented2D02Command(ClientData clientData, Tcl_Interp *interp, int argc,
                            TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   YS_Evolution *theModel = 0;
 
   int tag;
@@ -803,7 +792,7 @@ static int
 TclCombinedIsoKin2D02Command(ClientData clientData, Tcl_Interp *interp, int argc,
                              TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   YS_Evolution *theModel = 0;
   int tag, deformable;
   bool deform = false;
@@ -888,7 +877,7 @@ TclCommand_addYS_EvolutionModel(ClientData clientData,
                                         Tcl_Interp *interp, int argc,
                                         TCL_Char ** const argv)
 {
-  // TODO: BasicModelBuilder* theBuilder = (BasicModelBuilder*)clientData;
+  // TODO: ModelRegistry* theBuilder = (ModelRegistry*)clientData;
 
   if (strcmp(argv[1], "null") == 0) {
     return TclNullEvolutionCommand(clientData, interp, argc, argv);
@@ -919,13 +908,12 @@ TclCommand_addYS_EvolutionModel(ClientData clientData,
 #include "MultiLinearKp.h"
 #include "ExponReducing.h"
 #include "NullPlasticMaterial.h"
-#include <BasicModelBuilder.h>
 
 
 static int
 TclMultiLinearCommand(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   // Pointer to a uniaxial material that will be added to the model builder
   PlasticHardeningMaterial *theMaterial = 0;
 
@@ -1033,7 +1021,7 @@ int
 TclExponReducingCommand(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (argc < 5) {
     opserr << "TclExponReducingCommand - argc != 5 \n";
@@ -1089,7 +1077,7 @@ static int
 TclNullPlasticMaterialCommand(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   PlasticHardeningMaterial *theMaterial = 0;
 
   int tag;
@@ -1143,10 +1131,6 @@ TclCommand_addYS_PlasticMaterial(ClientData clientData, Tcl_Interp *interp,
 // @ rkaul@stanford.edu
 // @ ggd@stanford.edu
 
-#include <BasicModelBuilder.h>
-#include <string.h>
-#include <Vector.h>
-
 #include <YieldSurface_BC.h>
 #include <YS_Section2D01.h>
 #include <YS_Section2D02.h>
@@ -1159,7 +1143,7 @@ SectionForceDeformation *
 TclBasicBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*) clientData;
+  ModelRegistry* builder = (ModelRegistry*) clientData;
 
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments\n";

@@ -277,7 +277,7 @@ DOF_Group::getTangent(Integrator *theIntegrator)
 }
 
 void  
-DOF_Group::zeroTangent(void)
+DOF_Group::zeroTangent()
 {
   tangent->Zero();
 }
@@ -354,10 +354,10 @@ DOF_Group::addM_Force(const Vector &Udotdot, double fact)
     Vector accel(numDOF);
     // get accel for the unconstrained dof
     for (int i=0; i<numDOF; i++) {
-	int loc = myID(i);
-	if (loc >= 0)
-	    accel(i) = Udotdot(loc); 
-	else accel(i) = 0.0;
+      int loc = myID(i);
+      if (loc >= 0)
+          accel(i) = Udotdot(loc); 
+      else accel(i) = 0.0;
     }
 
     unbalance->addMatrixVector(1.0, myNode->getMass(), accel, fact);
@@ -390,8 +390,9 @@ DOF_Group::getM_Force(const Vector &Udotdot, double fact)
 	    accel(i) = Udotdot(loc); 
 	else accel(i) = 0.0;
     }
-	
-    unbalance->addMatrixVector(0.0, myNode->getMass(), accel, fact);
+    
+    unbalance->Zero();
+    unbalance->addMatrixVector(myNode->getMass(), accel, fact);
     
     return *unbalance;
 }
@@ -418,7 +419,7 @@ DOF_Group::getC_Force(const Vector &Udotdot, double fact)
 
 
 const Vector & 
-DOF_Group::getCommittedDisp(void)
+DOF_Group::getCommittedDisp()
 {
     assert(myNode != nullptr);
     return myNode->getDisp();
@@ -426,7 +427,7 @@ DOF_Group::getCommittedDisp(void)
 
 
 const Vector & 
-DOF_Group::getCommittedVel(void)
+DOF_Group::getCommittedVel()
 {
     assert(myNode != nullptr);
     return myNode->getVel();
@@ -434,7 +435,7 @@ DOF_Group::getCommittedVel(void)
 
 
 const Vector & 
-DOF_Group::getCommittedAccel(void)
+DOF_Group::getCommittedAccel()
 {
     assert(myNode != nullptr);
     return myNode->getAccel();
@@ -626,7 +627,7 @@ DOF_Group::setEigenvector(int mode, const Vector &theVector)
 
 
 const Matrix &
-DOF_Group::getEigenvectors(void)
+DOF_Group::getEigenvectors()
 {
   assert(myNode != nullptr);
   return myNode->getEigenvectors();
@@ -637,7 +638,7 @@ DOF_Group::getEigenvectors(void)
 Matrix *
 DOF_Group::getT(void)
 {
-    return 0;
+  return 0;
 }
 
 

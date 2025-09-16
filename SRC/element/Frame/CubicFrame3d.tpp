@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -443,7 +452,7 @@ CubicFrame3d<shear,nwm>::getTangentStiff()
       }
     }
 
-    //q.addMatrixTransposeVector(1.0, *B, s, wts(i));
+    // q.addMatrixTransposeVector(1.0, *B, s, wts(i));
     for (int j = 0; j < nsr; j++) {
       double si = s[j] * wt[i];
       switch (scheme[j]) {

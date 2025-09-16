@@ -19,7 +19,7 @@
 ** ****************************************************************** */
 
 #include "HyperbolicGapMaterial.h"
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <string.h>
@@ -92,7 +92,7 @@ TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, Tcl_
 
   UniaxialMaterial *theMaterial = new HyperbolicGapMaterial(tag, Kmax, Kur, Rf, Fult, gap);
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)(clientData);
+  ModelRegistry* builder = (ModelRegistry*)(clientData);
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) == TCL_OK)
     return TCL_OK;
   else

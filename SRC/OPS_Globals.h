@@ -29,8 +29,10 @@
 
 #define _USING_OpenSees_STREAMS
 #include <handler/OPS_Stream.h>
+namespace OpenSees {
 extern OPS_Stream *opserrPtr;
-#define opserr (*opserrPtr)
+}
+#define opserr (*OpenSees::opserrPtr)
 #define endln "\n"
 
 #include <string.h>

@@ -1,10 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
+//
 //
 // Description: This file implements commands that configure Node objects
 // for an analysis.
@@ -22,11 +30,10 @@
 #include <Matrix.h>
 #include <Domain.h>
 #include <Parameter.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #define HeapNode Node
 
-// #define G3_MAX_NUM_DOFS 1000000000000
 #define G3_NUM_DOF_BUFFER 20
 
 int
@@ -35,7 +42,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   assert(clientData != nullptr);
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   Domain *theTclDomain = builder->getDomain();
 
@@ -250,7 +257,7 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
                         TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
 
   int ndf = argc - 2;
@@ -297,7 +304,7 @@ int
 TclCommand_getNDM(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *the_domain = builder->getDomain();
 
   int ndm;
@@ -329,7 +336,7 @@ int
 TclCommand_getNDF(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *the_domain = builder->getDomain();
   int ndf;
 

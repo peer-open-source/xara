@@ -803,10 +803,10 @@ void   FourNodeTetrahedron::formInertiaTerms( int tangFlag )
 //*********************************************************************
 //form residual and tangent
 int  
-FourNodeTetrahedron::update(void) 
+FourNodeTetrahedron::update() 
 {
 
-  if(do_update == 0)
+  if (do_update == 0)
   {
     stiff.Zero();
     resid.Zero();
@@ -816,19 +816,16 @@ FourNodeTetrahedron::update(void)
   }
 
 
-  //strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31 
+  // strain order : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31 
 
   static const int ndm = 3 ;
-
   static const int ndf = NumDOFsPerNode ; 
-
   static const int nstress = NumStressComponents ;
- 
+
   static const int numberGauss = NumGaussPoints ;
 
   static const int nShape = 4 ;
 
-  int i, j, k, p, q ;
   int success ;
   
   static double volume ;
@@ -866,13 +863,14 @@ FourNodeTetrahedron::update(void)
   int count = 0 ;
   volume = 0.0 ;
 
+  int i, j, k, p, q ;
   // for ( i = 0; i < 2; i++ ) 
   {
     // for ( j = 0; j < 2; j++ ) 
     {
       // for ( k = 0; k < 2; k++ ) 
       {
-        i = j = k = 0;
+        int i=0, j=0, k=0;
 
         gaussPoint[0] = sg[i] ;        
         gaussPoint[1] = sg[j] ;        
@@ -881,14 +879,14 @@ FourNodeTetrahedron::update(void)
         //get shape functions    
         shp3d( gaussPoint, xsj, shp, xl ) ;
 
-        //save shape functions
-        for ( p = 0; p < nShape; p++ ) 
+        // save shape functions
+        for (int p = 0; p < nShape; p++ ) 
         {
-          for ( q = 0; q < NumNodes; q++ )
+          for (int q = 0; q < NumNodes; q++ )
           {
             Shape[p][q][count] = shp[p][q] ;
           }
-        } // end for p
+        }
 
         //volume element to also be saved
         dvol[count] = wg[count] * xsj ;  
@@ -898,8 +896,8 @@ FourNodeTetrahedron::update(void)
   } // end for i 
   
 
-  //gauss loop 
-  for ( i = 0; i < numberGauss; i++ ) 
+  // gauss loop 
+  for (int i = 0; i < numberGauss; i++ ) 
   {
 
     //extract shape functions from saved array
@@ -1314,14 +1312,15 @@ int  FourNodeTetrahedron::sendSelf (int commitTag, Channel &theChannel)
       return res;
     }
   }
-  
+
   return res;
 
 }
     
-int  FourNodeTetrahedron::recvSelf (int commitTag, 
-          Channel &theChannel, 
-          FEM_ObjectBroker &theBroker)
+int
+FourNodeTetrahedron::recvSelf (int commitTag, 
+            Channel &theChannel, 
+            FEM_ObjectBroker &theBroker)
 {
   int res = 0;
   
@@ -1487,8 +1486,7 @@ FourNodeTetrahedron::setResponse(const char **argv, int argc, OPS_Stream &output
       output.endTag(); // GaussPoint
     }
     theResponse =  new ElementResponse(this, 3, Vector(6));
-
-  } 
+  }
   else if (strcmp(argv[0],"strains") ==0) 
   {
     for (int i=0; i<1; i++) 
@@ -1511,6 +1509,11 @@ FourNodeTetrahedron::setResponse(const char **argv, int argc, OPS_Stream &output
     }
     theResponse =  new ElementResponse(this, 4, Vector(6));
   }
+
+  else if (strcmp(argv[0], "stressAtNodes") == 0) {
+    theResponse = new ElementResponse(this, 11, Vector(NumStressComponents*NumNodes));
+  }
+
   output.endTag(); // ElementOutput
   return theResponse;
 }
@@ -1560,7 +1563,18 @@ FourNodeTetrahedron::getResponse(int responseID, Information &eleInfo)
     }
     return eleInfo.setVector(stresses);
   }
-
+  else if (responseID == 11) {
+    // Loop over the nodes
+    int cnt = 0;
+    const Vector &sigma = materialPointers[0]->getStress();
+    for (int i = 0; i < NumNodes; i++) {
+      // Get material stress response at each node
+      for (int j = 0; j < NumStressComponents; j++) {
+        stresses(cnt++) = sigma(j);
+      }
+    }
+    return eleInfo.setVector(stresses);
+  }
   else
     return -1;
 }

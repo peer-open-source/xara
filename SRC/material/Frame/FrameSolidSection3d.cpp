@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -230,35 +239,33 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
       // Form material strain
       Vector3D eps = gamma + kappa.cross(r);
       for (int k=0; k<nwm; k++) {
-          eps[0] += w[k][0]*dalpha[k];
-          for (int j=1; j<3; j++)
-              eps[j] += w[k][j]*alpha[k];
+        eps[0] += w[k][0]*dalpha[k];
+        for (int j=1; j<3; j++)
+          eps[j] += w[k][j]*alpha[k];
       }
       if (wagner) {
-          tr2 = r.dot(r)*kappa[0];
-          eps[0] += 0.5*kappa[0]*tr2;
+        tr2 = r.dot(r)*kappa[0];
+        eps[0] += 0.5*kappa[0]*tr2;
       }
       res += theMat.setTrialStrain(eps);
     }
+
 
     const Matrix &tangent = tangentFlag==CurrentTangent
                             ? theMat.getTangent()
                             : theMat.getInitialTangent();
 
-    // opserr << theMat.getClassType() << "\n";
-    // opserr << tangent;
-
     Matrix3D C{};
     C.addMatrix(tangent, fiber.area);
 
     // NOTE: Matrix 3D is column major so these are transposed.
-    const Matrix3D iow{{
+    const Matrix3D iow {{
       w[0][0],     0.0,     0.0,
       w[1][0],     0.0,     0.0,
       w[2][0],     0.0,     0.0
     }};
 
-    const Matrix3D iodw{{
+    const Matrix3D iodw {{
           0.0, w[0][1], w[0][2],
           0.0, w[1][1], w[1][2],
           0.0, w[2][1], w[2][2]
@@ -287,6 +294,9 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
       K.vv.addMatrixTransposeProduct(1.0, iodw,  Ciodw, 1.0);
     }
 
+    //
+    //
+    //
     const Vector &stress  = theMat.getStress();
 
     if (wagner && e_trial != nullptr) {
@@ -371,6 +381,7 @@ FrameSolidSection3d::getInitialTangent()
   return ksi;
 }
 
+
 const Matrix&
 FrameSolidSection3d::getSectionTangent()
 {
@@ -395,6 +406,7 @@ FrameSolidSection3d::getSectionTangent()
   K_wrap.AssembleTranspose(K_pres.mv, 9, 3, 1.0);
   return K_wrap;
 }
+
 
 const Vector&
 FrameSolidSection3d::getStressResultant()
@@ -646,7 +658,6 @@ FrameSolidSection3d::setParameter(const char **argv, int argc, Parameter &param)
     return -1;
 
   int result = -1;
-
 
   if (strcmp(argv[0], "warp") == 0) {
     // ... warp $fiberID $warpField

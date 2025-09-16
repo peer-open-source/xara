@@ -21,7 +21,7 @@
 //
 //===----------------------------------------------------------------------===//
 #include "material.hpp"
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <elementAPI.h>
 #include <tcl.h>
 #include <packages.h>
@@ -80,7 +80,7 @@ int
 TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
                           Tcl_Size argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
 
   if (argc < 2) {

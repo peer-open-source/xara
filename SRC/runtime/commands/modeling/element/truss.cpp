@@ -5,7 +5,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2025, Claudio M. Perez
+// Copyright (c) 2025, OpenSees/Xara Developers
 // All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 // This source code is licensed under the BSD 2-Clause License.
@@ -27,7 +27,7 @@
 #include <ArgumentTracker.h>
 #include <FrameSection.h>
 #include <UniaxialMaterial.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 // Elements
 #include <TrussSection.h>
 #include <CorotTruss.h>
@@ -66,7 +66,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
   std::set<int> positional;
 
 
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
   int tag;
   if (argc < 3 || (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK)) {

@@ -59,14 +59,14 @@ public:
     int formNodUnbalance(DOF_Group* theDof);
     int formTangent(int statFlag);
 
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &deltaU);
     int commit();
 
-    const Vector &getVel(void);
-    
+    const Vector &getVel();
+
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
@@ -74,9 +74,6 @@ public:
 
     // AddingSensitivity:BEGIN //////////////////////////////////
     int revertToStart();
-    int formSensitivityRHS(int gradNum);
-    int formIndependentSensitivityRHS();
-    int formIndependentSensitivityLHS(int statusFlag = CURRENT_TANGENT);
     int saveSensitivity   (const Vector &v, int gradNum, int numGrads);
     int commitSensitivity (int gradNum, int numGrads);
     // AddingSensitivity:END ////////////////////////////////////
@@ -103,6 +100,10 @@ protected:
     //////////////////////
 
 private:
+    int formSensitivityRHS(int gradNum);
+    int formIndependentSensitivityRHS();
+    int formIndependentSensitivityLHS(int statusFlag = CURRENT_TANGENT);
+
     int populateU();
     int populateUn();
 };

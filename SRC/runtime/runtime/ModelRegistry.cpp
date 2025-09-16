@@ -1,12 +1,19 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
-//
-//===----------------------------------------------------------------------===//
 //                              https://xara.so
+//
 //===----------------------------------------------------------------------===//
 //
-// A BasicModelBuilder stores intermediate "reference" objects like
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+// A ModelRegistry stores intermediate "reference" objects like
 // materials and sections that are used
 // to construct other objects like elements.
 //
@@ -29,12 +36,13 @@
 #include <Domain.h>
 
 #include <CrdTransf.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <tcl.h> // For TCL_OK/ERROR
 
 
-BasicModelBuilder::BasicModelBuilder(Domain &domain, Tcl_Interp *interp, 
+ModelRegistry::ModelRegistry(Domain &domain,
+                                     Tcl_Interp *interp, 
                                      int NDM, int NDF)
   : ndm(NDM), ndf(NDF), theInterp(interp),
     section_builder_is_set(false),
@@ -63,7 +71,7 @@ BasicModelBuilder::BasicModelBuilder(Domain &domain, Tcl_Interp *interp,
 
 }
 
-BasicModelBuilder::~BasicModelBuilder()
+ModelRegistry::~ModelRegistry()
 {
 
   for (auto& [part, val] : m_registry ) {
@@ -84,77 +92,77 @@ BasicModelBuilder::~BasicModelBuilder()
 
 
 int
-BasicModelBuilder::buildFE_Model()
+ModelRegistry::buildFE_Model()
 {
   return 0;
 }
 
 
 int
-BasicModelBuilder::getNDM() const
+ModelRegistry::getNDM() const
 {
   return ndm;
 }
 
 int
-BasicModelBuilder::getNDF() const
+ModelRegistry::getNDF() const
 {
   return ndf;
 }
 
 
 void
-BasicModelBuilder::letClobber(bool let_clobber)
+ModelRegistry::letClobber(bool let_clobber)
 {
   no_clobber = !let_clobber;
 }
 
 bool
-BasicModelBuilder::canClobber()
+ModelRegistry::canClobber()
 {
   return !no_clobber;
 }
 
 int
-BasicModelBuilder::incrNodalLoadTag()
+ModelRegistry::incrNodalLoadTag()
 {
   return ++next_node_load;
 }
 
 int
-BasicModelBuilder::decrNodalLoadTag()
+ModelRegistry::decrNodalLoadTag()
 {
   return --next_node_load;
 }
 
 int
-BasicModelBuilder::getNodalLoadTag() 
+ModelRegistry::getNodalLoadTag() 
 {
   return   next_node_load;
 }
 
 
 int
-BasicModelBuilder::addSP_Constraint(int axisDirn, double axisValue, const ID &fixityCodes, double tol)
+ModelRegistry::addSP_Constraint(int axisDirn, double axisValue, const ID &fixityCodes, double tol)
 {
   return theDomain->addSP_Constraint(axisDirn, axisValue, fixityCodes, tol);
 }
 
 LoadPattern *
-BasicModelBuilder::getEnclosingPattern()
+ModelRegistry::getEnclosingPattern()
 {
   return tclEnclosingPattern;
 }
 
 int
-BasicModelBuilder::setEnclosingPattern(LoadPattern* pat)
+ModelRegistry::setEnclosingPattern(LoadPattern* pat)
 {
   tclEnclosingPattern = pat;
   return 1;
 }
 
 int
-BasicModelBuilder::getCurrentSectionBuilder(int& tag)
+ModelRegistry::getCurrentSectionBuilder(int& tag)
 {
   if (section_builder_is_set) {
     tag = current_section_builder;
@@ -164,43 +172,42 @@ BasicModelBuilder::getCurrentSectionBuilder(int& tag)
 }
 
 void 
-BasicModelBuilder::setCurrentSectionBuilder(int tag)
+ModelRegistry::setCurrentSectionBuilder(int tag)
 {
   section_builder_is_set   = true;
   current_section_builder  = tag;
 }
 
 Domain *
-BasicModelBuilder::getDomain() const 
+ModelRegistry::getDomain() const 
 {
   return theDomain;
 }
 
 
 int 
-BasicModelBuilder::printRegistry(const char *partition, OPS_Stream& stream, int flag) const 
+ModelRegistry::printRegistry(const char *partition, OPS_Stream& stream, int flag) const 
 {
-    int count = 0;
-    auto iter = m_registry.find(partition);
-    if (iter == m_registry.end()) {
-      return count;
-    }
-
-    for (auto const& [key, val] : iter->second) {
-      if (count != 0)
-        stream << ",\n";
-
-      val->Print(stream, flag);
-      count++;
-    }
-
+  int count = 0;
+  auto iter = m_registry.find(partition);
+  if (iter == m_registry.end()) {
     return count;
+  }
+
+  for (auto const& [key, val] : iter->second) {
+    if (count != 0)
+      stream << ",\n";
+
+    val->Print(stream, flag);
+    count++;
+  }
+
+  return count;
 }
 
 void* 
-BasicModelBuilder::getRegistryObject(const char* type, const char* specialize, int tag, int flags) const
+ModelRegistry::getRegistryObject(const char* type, const char* specialize, int tag, int flags) const
 {
-
   std::string partition = std::string{type};
   if (specialize)
     partition += std::string{specialize};
@@ -222,11 +229,10 @@ BasicModelBuilder::getRegistryObject(const char* type, const char* specialize, i
   }
 
   return (void*)iter_objs->second;
-
 }
 
 int
-BasicModelBuilder::addRegistryObject(const char* type, const char* specialize, int tag, void *obj)
+ModelRegistry::addRegistryObject(const char* type, const char* specialize, int tag, void *obj)
 {
   std::string partition = std::string{type};
   if (specialize)
@@ -237,7 +243,7 @@ BasicModelBuilder::addRegistryObject(const char* type, const char* specialize, i
 }
 
 int
-BasicModelBuilder::findFreeTag(const char* partition, int& tag) const
+ModelRegistry::findFreeTag(const char* partition, int& tag) const
 {
   tag = 0;
   const auto iter = m_registry.find(std::string{partition});
@@ -257,7 +263,7 @@ BasicModelBuilder::findFreeTag(const char* partition, int& tag) const
 }
 
 int
-BasicModelBuilder::removeRegistryObject(const char* partition, int tag, int flags) 
+ModelRegistry::removeRegistryObject(const char* partition, int tag, int flags) 
 {
   const auto iter = m_registry.find(std::string{partition});
   if (iter == m_registry.end()) {

@@ -92,8 +92,8 @@ TransientIntegrator::formTangent(int statFlag)
   DOF_Group *dofPtr; 
   while ((dofPtr = theDOFs()) != nullptr) {
     if (theLinSOE->addA(dofPtr->getTangent(this),dofPtr->getID()) <0) {
-        opserr << "TransientIntegrator::formTangent() - failed to addA:dof\n";
-        result = -1;
+      opserr << "TransientIntegrator::formTangent() - failed to addA:dof\n";
+      result = -1;
     }
   }
 
@@ -148,7 +148,7 @@ int
 TransientIntegrator::formEleResidual(FE_Element *theEle)
 {
   theEle->zeroResidual();
-  theEle->addRIncInertiaToResidual();
+  theEle->addRIncInertiaToResidual(1.0);
   return 0;
 }    
 

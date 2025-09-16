@@ -82,8 +82,8 @@ ForceFrame3d<NIP,nsr,nwm>::ForceFrame3d(int tag,
                            BeamIntegration& bi,
                            FrameTransformBuilder& tb, 
                            double dens, int mass_flag, bool use_density,
-                           int max_iter_, double tolerance
-                           )
+                           int max_iter, double tolerance
+                          )
  :
    BasicFrame3d(),
    FiniteElement<2, 3, 6+nwm>(tag, ELE_TAG_ForceFrame3d, nodes),
@@ -93,7 +93,7 @@ ForceFrame3d<NIP,nsr,nwm>::ForceFrame3d(int tag,
    Ki(nullptr),
    density(dens), mass_flag(mass_flag), use_density(use_density),
    mass_initialized(false), twist_mass(0), total_mass(0.0),
-   max_iter(max_iter_), tol(tolerance),
+   max_iter(max_iter), tol(tolerance),
    parameterID(0)
 {
   K_pres.zero();
@@ -128,7 +128,7 @@ ForceFrame3d<NIP,nsr,nwm>::setNodes()
 
   Node** theNodes = this->getNodePtrs();
   if (basic_system->initialize(theNodes[0], theNodes[1]) != 0) {
-      return -1;
+    return -1;
   }
 
   double L = basic_system->getInitialLength();
@@ -153,8 +153,8 @@ ForceFrame3d<NIP,nsr,nwm>::setNodes()
   if (state_flag == 0)
     this->initializeSectionHistoryVariables();
 
-//this->revertToStart();
-
+  // this->revertToStart();
+  // this->update();
   return 0;
 }
 
@@ -436,8 +436,7 @@ template <int NIP, int nsr, int nwm>
 int
 ForceFrame3d<NIP,nsr,nwm>::update()
 {
-  constexpr static double TOL_SUBDIV = DBL_EPSILON;
-
+  constexpr static double TOL_SUBDIV = DBL_EPSILON*10;
 
 
   // If we have completed a recvSelf() do a revertToLastCommit()
@@ -473,6 +472,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
     for (int i=0; i<6; i++)
       Dv[i] = v[i] - dv[i];
   }
+
   {
     Node** nodes = this->getNodePtrs();
     for (int i=0; i<nwm; i++) {
@@ -484,10 +484,10 @@ ForceFrame3d<NIP,nsr,nwm>::update()
       }
     }
   }
-  VectorND<NBV> dvToDo{}, dv_trial{};
+  VectorND<NBV> dv_total{}, dv_trial{};
 
-  dvToDo  = dv;
-  dv_trial = dvToDo;
+  dv_total  = dv;
+  dv_trial = dv_total;
 
   static constexpr double factor = 10.0;
   double dW;             // section strain energy (work) norm
@@ -511,8 +511,8 @@ ForceFrame3d<NIP,nsr,nwm>::update()
   enum class Strategy {
     Newton, InitialIterations, InitialThenNewton
   };
-  static constexpr std::array<Strategy,3> solve_strategy {
-    Strategy::Newton, Strategy::InitialIterations, Strategy::InitialThenNewton
+  static constexpr std::array<Strategy,1> solve_strategy {
+    Strategy::Newton, // Strategy::InitialIterations, Strategy::InitialThenNewton
   };
 
   int subdivision = 1;
@@ -523,7 +523,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
     for (Strategy strategy : solve_strategy ) {
 
-      // Allow 10 times more iterations for initial tangent strategy
+      // Allow extra iterations for initial tangent strategy
       const int numIters = (strategy==Strategy::InitialIterations) ? 10*max_iter : max_iter;
 
       for (int i = 0; i < nip; i++) {
@@ -536,7 +536,6 @@ ForceFrame3d<NIP,nsr,nwm>::update()
         continue;
 
       VectorND<NBV>      q_trial = q_pres;
-      // MatrixND<NBV, NBV> K_trial = K_pres;
 
       q_trial += K_pres*dv;
 
@@ -742,22 +741,21 @@ ForceFrame3d<NIP,nsr,nwm>::update()
             }
           }
 
-
           //
           // e. Integrate residual deformations
           //
           //    vr += (B' * (es + des)) * wi * L;
           //
           {
-            VectorND<nsr> ds = si;
             // calculate section residual deformations
             // des = Fs * ds,  with  ds = si - sr[i];
+            VectorND<nsr> ds = si;
             ds -= sr;
 
             VectorND<nsr> des = Fs*ds;
             des += es_trial[i];
 
-            // B' * des 
+            // B' * des
             for (int ii = 0; ii < nsr; ii++) {
               switch (scheme[ii]) {
               case FrameStress::N:
@@ -827,26 +825,25 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
         q_trial += dqe;
 
-
         //
         // Check for convergence of this interval
         //
         if (std::fabs(dW) < tol) {
 
           // Set the target displacement
-          dvToDo -= dv_trial;
+          dv_total -= dv_trial;
           Dv     += dv_trial;
 
           // Check if we have got to where we wanted
-          if (dvToDo.norm() <= TOL_SUBDIV) {
+          if (dv_total.norm() <= TOL_SUBDIV) {
             converged = true;
 
           } else {
             // We've converged but we have more to do;
             // reset variables for start of next subdivision
-            dv_trial = dvToDo;
+            dv_trial = dv_total;
             // NOTE setting subdivide to 1 again maybe too much
-            subdivision = 1; 
+            subdivision = 1;
           }
 
           // set K_pres, es and q_pres values
@@ -871,7 +868,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
           // if we have failed to converge for all of our Newton schemes
           // - reduce step size by the factor specified
-          if (j == (numIters - 1) && (strategy == Strategy::InitialThenNewton)) {
+          if (j == (numIters - 1)) {// } && (strategy == Strategy::InitialThenNewton)) {
             dv_trial /= factor;
             subdivision++;
           }
@@ -1474,7 +1471,9 @@ ForceFrame3d<NIP,nsr,nwm>::Print(OPS_Stream& s, int flag)
     else
       s << "\"massperlength\": " << density;
     s << ", ";
-    s << "\"mass_flag\": "<< mass_flag;
+    s << "\"mass_flag\": " << mass_flag;
+    s << ", ";
+    s << "\"shear_flag\": " << shear_flag;
     s << ", ";
 
     // Integration points
@@ -2668,6 +2667,7 @@ ForceFrame3d<NIP,nsr,nwm>::getResistingForce()
   pf[0*NDF + 2] = p0[3]; // Vz
   pf[1*NDF + 1] = p0[2]; // Vy
   pf[1*NDF + 2] = p0[4]; // Vz
+
 #if 0
   thread_local VectorND<NDF*2> pg;
   thread_local Vector wrapper(pg);

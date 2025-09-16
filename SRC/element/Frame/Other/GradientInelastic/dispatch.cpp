@@ -28,7 +28,7 @@
 #include <string.h>
 #include <Domain.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include "Frame/Other/GradientInelastic/GradientInelasticBeamColumn2d.h"
 #include "Frame/Other/GradientInelastic/GradientInelasticBeamColumn3d.h"
@@ -46,7 +46,7 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
                                                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
   Element *theElement = 0;

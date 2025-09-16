@@ -1,10 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
+//
 //
 // Description: This file contains functions that are responsible
 // for orchestrating an analysis.
@@ -20,6 +28,7 @@
 #include <Matrix.h>
 #include <Domain.h> // for modal damping
 #include <AnalysisModel.h>
+#include <ModelRegistry.h>
 
 #include "BasicAnalysisBuilder.h"
 
@@ -64,7 +73,7 @@ Tcl_CmdProc responseSpectrumAnalysis;
 // Add commands to the interpreter that take the AnalysisBuilder as clientData.
 //
 int
-G3_AddTclAnalysisAPI(Tcl_Interp *interp, BasicModelBuilder& context)
+G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
 {
   BasicAnalysisBuilder *builder = new BasicAnalysisBuilder(context);
   Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, builder, nullptr);
@@ -240,7 +249,9 @@ initializeAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 static int
-eigenAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+eigenAnalysis(ClientData clientData,
+              Tcl_Interp *interp, 
+              Tcl_Size argc,
               TCL_Char ** const argv)
 {
 
@@ -248,25 +259,26 @@ eigenAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   Domain *domain = builder->getDomain();
 
-
   // make sure at least one other argument to contain type of system
   if (argc < 2) {
-    opserr << OpenSees::PromptValueError << "eigen <type> numModes?\n";
+    opserr << OpenSees::PromptValueError
+           << "eigen <type> numModes?\n";
     return TCL_ERROR;
   }
 
   bool generalizedAlgo = true; 
       // 0 - frequency/generalized (default),
-      // 1 - standard, 
+      // 1 - standard,
       // 2 - buckling
+
   int typeSolver = EigenSOE_TAGS_ArpackSOE;
-  int loc = 1;
   double shift = 0.0;
   bool findSmallest = true;
-  int numEigen = 0;
+  int  numEigen = -1;
 
   // Check type of eigenvalue analysis
-  while (loc < (argc - 1)) {
+  int loc = 1;
+  while (loc < argc) {
     if ((strcmp(argv[loc], "frequency") == 0) ||
         (strcmp(argv[loc], "-frequency") == 0) ||
         (strcmp(argv[loc], "generalized") == 0) ||
@@ -300,19 +312,28 @@ eigenAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              (strcmp(argv[loc], "-fullGenLapackEigen") == 0))
       typeSolver = EigenSOE_TAGS_FullGenEigenSOE;
 
+    else if (numEigen == -1) {
+      if ((Tcl_GetInt(interp, argv[loc], &numEigen) != TCL_OK) || (numEigen < 0)) {
+        opserr << OpenSees::PromptValueError
+              << "invalid number of modes " << argv[loc]
+              << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+    }
+
     else {
-      opserr << "eigen - unknown option: " << argv[loc] << endln;
+      opserr << "Unknown option: " << argv[loc] 
+             << OpenSees::SignalMessageEnd;
     }
 
     loc++;
   }
 
-  // check argv[loc] for number of modes
-  if ((Tcl_GetInt(interp, argv[loc], &numEigen) != TCL_OK) || numEigen < 0) {
-    opserr << OpenSees::PromptValueError << "eigen numModes?  - invalid numModes\n";
-    return TCL_ERROR;
+  if (numEigen < 0) {
+    opserr << OpenSees::PromptValueError
+           << "eigen command requires number of modes to be specified"
+           << OpenSees::SignalMessageEnd;
   }
-
   //
   // create a transient analysis if no analysis exists
   // 
@@ -320,17 +341,23 @@ eigenAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   int result = builder->eigen(numEigen,generalizedAlgo,findSmallest);
 
-  Tcl_Obj* eig_values = Tcl_NewListObj(numEigen, nullptr);
 
   if (result == 0) {
+    Tcl_Obj* eig_values = Tcl_NewListObj(numEigen, nullptr);
     const Vector &eigenvalues = domain->getEigenvalues();
     for (int i = 0; i < numEigen; ++i) {
       Tcl_ListObjAppendElement(interp, eig_values, Tcl_NewDoubleObj(eigenvalues[i]));
     }
+    Tcl_SetObjResult(interp, eig_values);
+    return TCL_OK;
   }
-
-  Tcl_SetObjResult(interp, eig_values);
-  return TCL_OK;
+  else {
+    opserr << OpenSees::PromptValueError
+           << "Failed to perform eigenvalue analysis"
+           << OpenSees::SignalMessageEnd;
+    
+    return TCL_ERROR;
+  }
 }
 
 
@@ -355,7 +382,7 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   if (numEigen == 0) {
     opserr << G3_WARN_PROMPT 
-           << "- " << argv[0] << " - eigen command needs to be called first\n";
+           << "- " << argv[0] << " - eigen command should be called first\n";
 
     numEigen = numModes;
     builder->newEigenAnalysis(EigenSOE_TAGS_ArpackSOE, 0.0);
@@ -458,7 +485,7 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   if (argc > 2) {
     if (Tcl_GetInt(interp, argv[eleArg], &flag) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "print algorithm failed to get integer flag: \n";
-      opserr << argv[eleArg] << endln;
+      opserr << argv[eleArg] << "\n";
       return TCL_ERROR;
     }
   }
@@ -655,7 +682,7 @@ printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 
       if (outputFile.setFile(argv[currentArg]) != 0) {
         opserr << "print <filename> .. - failed to open file: "
-               << argv[currentArg] << endln;
+               << argv[currentArg] << "\n";
         return TCL_ERROR;
       }
       output = &outputFile;

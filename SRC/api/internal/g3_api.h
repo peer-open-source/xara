@@ -58,7 +58,7 @@ typedef int G3_Tag;
 #  define G3_getDouble Tcl_GetDoubleFromObj
 class G3_Runtime;
 class ModelBuilder;
-#include <runtime/runtime/BasicModelBuilder.h>
+#  include <runtime/runtime/ModelRegistry.h>
 class AnalysisModel;
 class EquiSolnAlgo;
 class ConstraintHandler;
@@ -96,9 +96,9 @@ Tcl_Interp *G3_getInterpreter(G3_Runtime*);
 // Domain
 Domain *G3_getDomain(G3_Runtime *);
 
-BasicModelBuilder *G3_getSafeBuilder(G3_Runtime *);
-BasicModelBuilder *G3_getModelBuilder(G3_Runtime *);
-int             G3_setModelBuilder(G3_Runtime *, BasicModelBuilder*);
+ModelRegistry *G3_getSafeBuilder(G3_Runtime *);
+ModelRegistry *G3_getModelBuilder(G3_Runtime *);
+int             G3_setModelBuilder(G3_Runtime *, ModelRegistry*);
 int     G3_getNDM(G3_Runtime *);
 
 // Materials

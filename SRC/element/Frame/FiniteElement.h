@@ -26,8 +26,8 @@ public:
          p_iner(nen*ndf),
          parameterID(0)
     {
-         for (int i=0; i<nen; i++)
-           theNodes[i] = nullptr;
+      for (int i=0; i<nen; i++)
+        theNodes[i] = nullptr;
      }
 
      FiniteElement(int tag, int classtag, std::array<int, nen>& nodes)
@@ -133,6 +133,7 @@ public:
 
       return 0;
     }
+
 
     const Vector &
     getResistingForceIncInertia()

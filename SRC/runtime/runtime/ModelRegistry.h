@@ -6,7 +6,7 @@
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
 // Description: This file contains the class definition for
-// BasicModelBuilder. A BasicModelBuilder aims to be a threadsafe
+// ModelRegistry. A ModelRegistry aims to be a threadsafe
 // alternative to the TclBasicBuilder class. This class adds the commands to
 // create the model for the standard models that can be generated using the
 // elements released with the g3 framework.
@@ -14,8 +14,7 @@
 // Written: cmp
 // Created: 10/21
 //
-#ifndef TCLSAFEBUILDER_H
-#define TCLSAFEBUILDER_H
+#pragma once
 
 #include <typeinfo>
 #include <string>
@@ -30,13 +29,11 @@ class ID;
 class Domain;
 struct Tcl_Interp;
 
-class BasicModelBuilder {
+class ModelRegistry {
 public:
 
-// Constructors / Destructors
-  BasicModelBuilder(Domain &domain, Tcl_Interp *interp, int ndm, int ndf);
-  ~BasicModelBuilder();
-
+  ModelRegistry(Domain &domain, Tcl_Interp *, int ndm, int ndf);
+  ~ModelRegistry();
 
 
 // Options
@@ -120,7 +117,6 @@ private:
 
   // previously extern variables
   LoadPattern *tclEnclosingPattern = nullptr;
-//MultiSupportPattern *theTclMultiSupportPattern = nullptr;
 
   bool  section_builder_is_set   = false;
   int   current_section_builder  = 0;
@@ -130,5 +126,4 @@ private:
 
 };
 
-#endif
 

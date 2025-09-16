@@ -1,11 +1,42 @@
 from typing import overload, Literal
 
+
+class _Materials:
+    def material(self, type: str, tag: int, *args, **kwargs):
+        """
+        Create a material of the specified type.
+        """
+
+    def section(self, type: str, tag: int, *args, **kwargs):
+        """
+        Create a section of the specified type.
+        """
+
 class _Elements:
 
     @overload
     def element(self, type: str, tag: int, nodes: tuple, **kwargs) -> int:
         """
         Create an element of the specified type.
+        """
+    
+    @overload
+    def element(self,
+                __elmType: Literal["Truss"],
+                tag: int,
+                nodes: tuple,
+                section: int,
+                *args
+            ) -> int:
+        """
+        Create a truss element.
+        
+        :param tag: unique :ref:`element` tag
+        :type tag: |integer|
+        :param nodes: tuple of *two* integer :ref:`node` tags
+        :type nodes: tuple
+        :param section: tag of a previously-defined :ref:`section`
+        :type section: |integer|
         """
 
     @overload
@@ -41,6 +72,20 @@ class _Elements:
                ) -> int: ...
 
 class _Algorithm:
+    def numberer(self, type: str, *args, **kwargs):
+        """
+        Create a numberer of the specified type.
+        """
+
+    def constraints(self, type: str, *args, **kwargs):
+        """
+        Create a constraint handler of the specified type.
+        """
+
+    def system(self, type: str, *args, **kwargs):
+        """
+        Create a system of the specified type.
+        """
 
     def integrator(self, type: str, *args, **kwargs):
         """
@@ -72,5 +117,36 @@ class _Algorithm:
         :type nsteps: |integer|
         """
 
-class Model(_Elements,_Algorithm):
-    pass
+    def test(self, type: str, *args, **kwargs):
+        """
+        Create a convergence test of the specified type.
+        """
+
+    def numIter(self) -> int:
+        """
+        Get the number of iterations for the last analysis step.
+        """
+
+    def wipe(self)->None:
+        """
+        Clear the current model.
+        """
+
+class Model(_Materials,_Elements,_Algorithm):
+    def node(self, tag: int, coords: tuple, *args, **kwargs) -> int:
+        """
+        Create a node with the specified tag and coordinates.
+        """
+    def fix(self, node: int, *args) -> int:
+        """
+        Apply boundary conditions to a node.
+        """
+    def mass(self, node: int, *args) -> int:
+        """
+        Assign mass to a node.
+        """
+    def load(self, node: int, *args) -> int:
+        """
+        Apply loads to a node.
+        """
+    

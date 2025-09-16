@@ -5,7 +5,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2025, Claudio M. Perez
+// Copyright (c) 2025, OpenSees/Xara Developers
 // All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 // This source code is licensed under the BSD 2-Clause License.
@@ -19,7 +19,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <element/Shell/ASDShellQ4.h>
 #include <element/Shell/ShellANDeS.h>
 #include <element/Shell/ShellDKGQ.h>
@@ -94,7 +94,7 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
                                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   int tag;
   if (argc < 4) {
     opserr << OpenSees::PromptValueError 
@@ -425,7 +425,7 @@ Element*
 TclDispatch_newShellDKGQ(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (argc < 6) {
     opserr << "Want: element ShellDKGQ $tag $iNode $jNoe $kNode $lNode $secTag";
@@ -450,7 +450,7 @@ int
 TclDispatch_newShellMITC4(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   bool updateBasis = false;
   Element *theElement = nullptr;
@@ -491,7 +491,7 @@ Element*
 TclDispatch_newShellMITC9(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -521,7 +521,7 @@ Element*
 TclDispatch_newShellNLDKGQ(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -551,7 +551,7 @@ Element*
 TclDispatch_newShellDKGT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -594,7 +594,7 @@ Element*
 TclDispatch_newShellMITC4Thermal(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -624,7 +624,7 @@ Element*
 TclDispatch_newShellNLDKGQThermal(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 
@@ -655,7 +655,7 @@ Element*
 TclDispatch_newShellNLDKGT(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   int numArgs = OPS_GetNumRemainingInputArgs();
 

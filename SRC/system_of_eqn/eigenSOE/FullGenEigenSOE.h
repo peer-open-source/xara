@@ -38,23 +38,21 @@ class FullGenEigenSolver;
 class FullGenEigenSOE : public EigenSOE
 {
 public:
-    FullGenEigenSOE(FullGenEigenSolver &theSolver,
-        AnalysisModel &theModel);
+    FullGenEigenSOE(FullGenEigenSolver &, AnalysisModel &);
 
     virtual ~FullGenEigenSOE();
 
-    virtual int getNumEqn(void) const;
-    virtual int setSize(Graph &theGraph);
+    virtual int getNumEqn() const;
+    virtual int setSize(Graph &);
 
-    virtual int addA(const Matrix &, const ID &, double fact = 1.0);
-    virtual int addM(const Matrix &, const ID &, double fact = 1.0);    
+    int addA(const Matrix &, const ID &, double fact = 1.0) override;
+    int addM(const Matrix &, const ID &, double fact = 1.0) override;    
 
-    virtual void zeroA(void);
-    virtual void zeroM(void);
+    void zeroA() override;
+    void zeroM() override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-        FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
     friend class FullGenEigenSolver;
 

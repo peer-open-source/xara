@@ -257,60 +257,60 @@ HarmonicSteadyState::formIndependentSensitivityRHS()
 int
 HarmonicSteadyState::formSensitivityRHS(int passedGradNumber)
 {
-    sensitivityFlag = 1;
+  sensitivityFlag = 1;
 
-    // Set a couple of data members
-    gradNumber = passedGradNumber;
+  // Set a couple of data members
+  gradNumber = passedGradNumber;
 
-    // get model
-    AnalysisModel* theAnalysisModel = this->getAnalysisModel();
-    LinearSOE* theSOE = this->getLinearSOE();
+  // get model
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+  LinearSOE* theSOE = this->getLinearSOE();
 
-    // Loop through elements
-    FE_Element *elePtr;
-    FE_EleIter &theEles = theAnalysisModel->getFEs();
-    while((elePtr = theEles()) != 0) {
-      theSOE->addB(  elePtr->getResidual(this),  elePtr->getID()  );
-    }
+  // Loop through elements
+  FE_Element *elePtr;
+  FE_EleIter &theEles = theAnalysisModel->getFEs();
+  while((elePtr = theEles()) != 0) {
+    theSOE->addB(  elePtr->getResidual(this),  elePtr->getID()  );
+  }
 
-    // Loop through the loadPatterns and add the dPext/dh contributions
-    static Vector oneDimVectorWithOne(1);
-    oneDimVectorWithOne(0) = 1.0;
-    static ID oneDimID(1);
+  // Loop through the loadPatterns and add the dPext/dh contributions
+  static Vector oneDimVectorWithOne(1);
+  oneDimVectorWithOne(0) = 1.0;
+  static ID oneDimID(1);
 
-    Node *aNode;
-    DOF_Group *aDofGroup;
-    int nodeNumber, dofNumber, relevantID, i, sizeRandomLoads, numRandomLoads;
-    LoadPattern *loadPatternPtr;
+  Node *aNode;
+  DOF_Group *aDofGroup;
+  int nodeNumber, dofNumber, relevantID, i, sizeRandomLoads, numRandomLoads;
+  LoadPattern *loadPatternPtr;
 
-    Domain *theDomain = theAnalysisModel->getDomainPtr();
-    LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
-    while((loadPatternPtr = thePatterns()) != 0) {
-	const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
-	sizeRandomLoads = randomLoads.Size();
-	if (sizeRandomLoads == 1) {
-	    // No random loads in this load pattern
-	}
-	else {
-	    // Random loads: add contributions to the 'B' vector
-	    numRandomLoads = (int)(sizeRandomLoads/2);
-	    for (i=0; i<numRandomLoads*2; i=i+2) {
-		nodeNumber = (int)randomLoads(i);
-		dofNumber = (int)randomLoads(i+1);
-		aNode = theDomain->getNode(nodeNumber);
-		aDofGroup = aNode->getDOF_GroupPtr();
-		const ID &anID = aDofGroup->getID();
-		relevantID = anID(dofNumber-1);
-		oneDimID(0) = relevantID;
-		theSOE->addB(oneDimVectorWithOne, oneDimID);
-	    }
-	}
-    }
+  Domain *theDomain = theAnalysisModel->getDomainPtr();
+  LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
+  while((loadPatternPtr = thePatterns()) != 0) {
+      const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
+      sizeRandomLoads = randomLoads.Size();
+      if (sizeRandomLoads == 1) {
+          // No random loads in this load pattern
+      }
+      else {
+          // Random loads: add contributions to the 'B' vector
+          numRandomLoads = (int)(sizeRandomLoads/2);
+          for (i=0; i<numRandomLoads*2; i=i+2) {
+        nodeNumber = (int)randomLoads(i);
+        dofNumber = (int)randomLoads(i+1);
+        aNode = theDomain->getNode(nodeNumber);
+        aDofGroup = aNode->getDOF_GroupPtr();
+        const ID &anID = aDofGroup->getID();
+        relevantID = anID(dofNumber-1);
+        oneDimID(0) = relevantID;
+        theSOE->addB(oneDimVectorWithOne, oneDimID);
+          }
+      }
+  }
 
-    // reset sensitivity flag
-    sensitivityFlag = 0;
+  // reset sensitivity flag
+  sensitivityFlag = 0;
 
-    return 0;
+  return 0;
 }
 
 int

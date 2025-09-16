@@ -3,7 +3,18 @@
 //                                   xara
 //                              https://xara.so
 //
-//----------------------------------------------------------------------------//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+// Claudio M. Perez
+//
 #pragma once
 #include <array>
 #include <vector>
@@ -60,11 +71,6 @@ public:
           break;
       case Lagrange:
       case Heaviside:
-        // gauss = {{0.0, 0.2777777777777778},
-        //         {0.2777777777777778, 0.4444444444444444},
-        //         {0.7222222222222222, 0.4444444444444444},
-        //         {1.0, 0.2777777777777778}};
-
         // 4-point Gauss-Legendre quadrature on [0, 1]
         gauss = {{0.069431844, 0.173927423},
                  {0.330009478, 0.326072577},
@@ -100,8 +106,8 @@ public:
   {
     auto name = element.getClassType();
     if (strstr(name, "Frame") == nullptr) {
-        opserr << "WARNING FrameLoad::addElement() - cannot add load to element of type " << name << '\n';
-        return -1;
+      opserr << "WARNING FrameLoad::addElement() - cannot add load to element of type " << name << '\n';
+      return -1;
     }
     elements.push_back(&element);
     element.addLoad(this, 1.0);
@@ -179,19 +185,19 @@ public:
       double scale = -w*pattern.getLoadFactor();
       switch (shape) {
         case Dirac:
-            scale /= jxs;
-            if (std::fabs(x - r[q][0]) > 1.0e-6)
-              scale *= 0.0;
-            break;
+          scale /= jxs;
+          if (std::fabs(x - r[q][0]) > 1.0e-6)
+            scale *= 0.0;
+          break;
         case Heaviside:
-            if (x < r[q][0])
-              scale *= 0.0;
-            break;
+          if (x < r[q][0])
+            scale *= 0.0;
+          break;
         case Lagrange:
-            for (unsigned s=0; s<r.size(); s++)
-              if (s != q)
-                scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
-            break;
+          for (unsigned s=0; s<r.size(); s++)
+            if (s != q)
+              scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
+          break;
       }
       pe.template assemble<  i*ndf>(px, scale);
       pe.template assemble<3+i*ndf>(mx, scale);
@@ -204,59 +210,60 @@ public:
                       const Matrix3D& R0,
                       const Matrix3D& R) const
   {
-      if (w == 0.0)
-          return;
-      for (unsigned q = 0; q < r.size(); q++) {
-        Vector3D px, mx, rx;
-        rx = r[q];
-        rx[0] = 0.0;
+    if (w == 0.0)
+        return;
 
-        rx = R * rx;
-        rx = R*(R0*rx);
-        if (rx.norm() == 0.0 && basis == Embedding)
-            continue;
-        switch (basis) {
-            case Embedding:
-                px = p[q];
-                mx = m[q] + rx.cross(px);
-                break;
-            case Reference:
-                px = R0 * p[q];
-                mx = R0 * m[q] + rx.cross(px);
-                break;
-            case Director:
-                px = R * p[q];
-                mx = R * m[q] + rx.cross(px);
-                break;
-        }
+    for (unsigned q = 0; q < r.size(); q++) {
+      Vector3D px, mx, rx;
+      rx = r[q];
+      rx[0] = 0.0;
 
-        double scale = -w*pattern.getLoadFactor();
-        switch (shape) {
-            case Dirac:
-                scale /= jxs;
-                if (std::fabs(x - r[q][0]) > 1.0e-6)
-                    scale *= 0.0;
-                break;
-            case Heaviside:
-                if (x < r[q][0])
-                    scale *= 0.0;
-                break;
-            case Lagrange:
-                for (unsigned s=0; s<r.size(); s++)
-                  if (s != q)
-                    scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
-                break;
-        }
-
-        Matrix3D Px = Hat(px);
-        if (basis == Director) {
-            K.assemble(        Px,   i*n, 3+j*n, -scale);
-            K.assemble(Hat(rx)*Px, 3+i*n, 3+j*n, -scale);
-        }
-        
-        if (rx.norm() != 0.0)
-            K.assemble(Px*Hat(rx), 3+i*n, 3+j*n, scale);
+      rx = R * rx;
+      rx = R*(R0*rx);
+      if (rx.norm() == 0.0 && basis == Embedding)
+        continue;
+      switch (basis) {
+        case Embedding:
+          px = p[q];
+          mx = m[q] + rx.cross(px);
+          break;
+        case Reference:
+          px = R0 * p[q];
+          mx = R0 * m[q] + rx.cross(px);
+          break;
+        case Director:
+          px = R * p[q];
+          mx = R * m[q] + rx.cross(px);
+          break;
       }
+
+      double scale = -w*pattern.getLoadFactor();
+      switch (shape) {
+        case Dirac:
+          scale /= jxs;
+          if (std::fabs(x - r[q][0]) > 1.0e-6)
+            scale *= 0.0;
+          break;
+        case Heaviside:
+          if (x < r[q][0])
+            scale *= 0.0;
+          break;
+        case Lagrange:
+          for (unsigned s=0; s<r.size(); s++)
+            if (s != q)
+            scale *= (x - r[s][0]) / (r[q][0] - r[s][0]);
+          break;
+      }
+
+      Matrix3D Px = Hat(px);
+      if (basis == Director) {
+        K.assemble(        Px,   i*n, 3+j*n, -scale);
+        K.assemble(Hat(rx)*Px, 3+i*n, 3+j*n, -scale);
+      }
+      
+      if (rx.norm() != 0.0)
+        K.assemble(Px*Hat(rx), 3+i*n, 3+j*n, scale);
+    }
   }
 
   template <int nsr, const FrameStressLayout& scheme>
@@ -265,7 +272,7 @@ public:
   // add particular solution for basic equations
   {
 
-    VectorND<3> nm{};
+    VectorND<3> nm{}, M{};
     {
       Vector3D rx = r[0];
       rx[0] = 0.0;
@@ -276,12 +283,15 @@ public:
           break;
         case Reference:
           nm = R^(R0^p[0]);
+          M  = (R^m[0]) + rx.cross(nm);
           break;
         case Director:
           nm = p[0];
+          M  = m[0] + rx.cross(nm);
           break;
       }
     }
+
 
     double scale = pattern.getLoadFactor();
 
@@ -294,11 +304,11 @@ public:
         for (int i = 0; i < nsr; i++) {
           switch (scheme[i]) {
           case FrameStress::N:  s[i] +=  wa * (L - x); break;
-          case FrameStress::Vy: s[i] +=  wy * (x - 0.5 * L); break;
-          case FrameStress::Vz: s[i] += -wz * (x - 0.5 * L); break;
+          case FrameStress::Vy: s[i] += M[2]*scale + wy * (x - 0.5 * L); break;
+          case FrameStress::Vz: s[i] +=-M[1]*scale - wz * (x - 0.5 * L); break;
 
-          case FrameStress::My: s[i] += -wz * 0.5 * x * (x - L); break;
-          case FrameStress::Mz: s[i] +=  wy * 0.5 * x * (x - L); break;
+          case FrameStress::My: s[i] += - wz * 0.5 * x * (x - L); break;
+          case FrameStress::Mz: s[i] += + wy * 0.5 * x * (x - L); break;
           default:
             break;
           }
@@ -347,20 +357,58 @@ public:
     }
   }
 
-  void addLinearSolution(double*p0, double L, const Matrix3D& R0, const Matrix3D& R) {
+  template <int nsr, const FrameStressLayout& scheme>
+  void addBasicTangent(MatrixND<nsr,3>& Ks,
+                       VectorND<nsr>& s) const
+  {
+
+    VectorND<3> nm = s.template extract<3>(0), 
+                M  = s.template extract<3>(3);
 
     double scale = pattern.getLoadFactor();
-    Vector3D n{};
-    switch (basis) {
-      case Embedding:
-        n = R^p[0];
-        break;
-      case Reference:
-        n = R^(R0^p[0]);
-        break;
-      case Director:
-        n = p[0];
-        break;
+
+    Matrix3D Px = Hat(nm);
+    if (basis == Director) {
+      MatrixND<6,3> K{};
+      K.assemble(        Px,   0, 0, -scale);
+      K.assemble(    Hat(M),   3, 0, -scale);
+
+      for (int i = 0; i < nsr; i++) {
+        MatrixND<1,3> ki = K.template extract<1,3>(i, 0);
+        switch (scheme[i]) {
+        case FrameStress::N:  Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::Vy: Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::Vz: Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::My: Ks.assemble(ki, i, 0, 1.0); break;
+        case FrameStress::Mz: Ks.assemble(ki, i, 0, 1.0); break;
+        default:
+          break;
+        }
+      }
+    }
+  }
+
+  void
+  addLinearSolution(double*p0, double L, const Matrix3D& R0, const Matrix3D& R)
+  {
+    double scale = pattern.getLoadFactor();
+    Vector3D n{}, M{};
+    {
+      Vector3D rx = r[0];
+      rx[0] = 0.0;
+      rx = R*(R0*rx);
+      switch (basis) {
+        case Embedding:
+          n = R^p[0];
+          break;
+        case Reference:
+          n = R^(R0^p[0]);
+          M = (R^m[0]) + rx.cross(n);
+          break;
+        case Director:
+          n = p[0];
+          break;
+      }
     }
 
     if (shape == Heaviside) {
@@ -368,24 +416,20 @@ public:
       double wy = n[1] * scale; // Transverse
       double wz = n[2] * scale; // Transverse
 
-      // p0[0] -= wa * L; // Axial load
-      // double V = 0.5 * wy * L;
-      // p0[1] -= V;
-      // p0[2] -= V;
-      // V = 0.5 * wz * L;
-      // p0[3] -= V;
-      // p0[4] -= V;
       double P  =     wa*L;
       double Vy = 0.5*wy*L;
       double Vz = 0.5*wz*L;
+      double My = M[1]*scale;
+      double Mz = M[2]*scale;
 
       // Reactions in basic system (projections on linear shape functions)
       p0[0] -=  P;
-      p0[1] -= Vy;
-      p0[2] -= Vy;
-      p0[3] -= Vz;
-      p0[4] -= Vz;
+      p0[1] +=  Mz - Vy; // Vyi
+      p0[2] += -Mz - Vy; // Vyj
+      p0[3] +=  My - Vz;
+      p0[4] += -My - Vz;
     }
+
     #if 0
     else if (shape == LOAD_TAG_Beam3dPartialUniformLoad) {
       double wy  = p[0](1) * scale;  // Transverse Y at start

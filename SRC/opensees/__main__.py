@@ -9,7 +9,7 @@
 This file implements the primary command line interface for
 the package which is invoked by running:
 
-    python -m opensees
+    python -m xara
 
 """
 import os
@@ -19,10 +19,10 @@ import opensees
 import opensees.tcl
 
 HELP = """\
-usage: opensees <file> [args..]
-   or  opensees [options..] <file> [args..]
+usage: xara <file> [args..]
+   or  xara [options..] <file> [args..]
 
-Execute an OpenSees Tcl script given in <file> with optional 
+Execute a Tcl script given in <file> with optional 
 script arguments [args].
 
 Options
@@ -74,16 +74,6 @@ def parse_args(args):
                 print(HELP)
                 sys.exit()
 
-            elif arg == "-modes":
-                import opensees.repl.eigen
-                opensees.repl.eigen.modes(*argi)
-                sys.exit()
-
-            elif arg == "-eigen":
-                import opensees.repl.eigen
-                opensees.repl.eigen.eigen(*argi)
-                sys.exit()
-
             elif arg == "--enable-tk":
                 opts["enable_tk"] = True
 
@@ -117,6 +107,7 @@ def parse_args(args):
     return file, opts, argi
 
 
+
 def main():
 
     file, opts, argi = parse_args(sys.argv)
@@ -128,6 +119,7 @@ def main():
     from_pipe = not sys.stdin.isatty()
 
     if file is None and len(opts["commands"]) == 0 and not from_pipe:
+        # Just drop into an interactive shell
 
         if opts["subproc"]:
             OpenSeesShell().cmdloop()
@@ -142,6 +134,7 @@ def main():
         except ImportError:
             from opensees.repl.cmdshell import TclShell
             TclShell().cmdloop()
+
         except EOFError:
             pass
         sys.exit()
@@ -200,9 +193,14 @@ def main():
 
     else:
         from opensees.repl.ptkshell import OpenSeesREPL
-        # TODO: do something for windows
-        if os.name != "nt":
+
+        # If we've already read from stdin we have to reset.
+        # This is the case when file is "-"
+        if file == "-" and os.name != "nt":
+            # TODO: do something for windows and macos
             sys.stdin = open("/dev/tty")
+
+
         tcl.eval("set tcl_interactive 1")
         try:
             OpenSeesREPL(interp=tcl).repl()

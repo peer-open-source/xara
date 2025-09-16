@@ -306,7 +306,6 @@ int HHTHSIncrReduct_TP::formNodUnbalance(DOF_Group *theDof)
 
 int HHTHSIncrReduct_TP::domainChanged()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
     const Vector &x = theLinSOE->getX();
     int size = x.Size();

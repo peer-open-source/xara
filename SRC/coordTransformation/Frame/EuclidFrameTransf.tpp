@@ -362,7 +362,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
 
   MatrixND<nn*ndf,nn*ndf> Kb = kb;
 
-  if (op != Operation::Rotation) {//!(offset_flags & LogIter)) {
+  if (op != Operation::Rotation) {// && (op != Operation::Bubnov)) {//!(offset_flags & LogIter)) {
     for (int i=0; i<nn; i++) {
       Vector3D m{pb[i*ndf+3], pb[i*ndf+4], pb[i*ndf+5]};
       const Matrix3D Ai = ur[i].dLog();
@@ -401,7 +401,10 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
 
   MatrixND<nn*ndf,nn*ndf>& Kl = kb;
   const MatrixND<nn*ndf,nn*ndf> A = getProjection();
-  Kl.addMatrixTripleProduct(0, A, Kb, 1);
+  if (op == Operation::Bubnov)
+    Kl = A^kb;
+  else
+    Kl.addMatrixTripleProduct(0, A, Kb, 1);
 
 
   const VectorND<nn*ndf> Ap = A^p;
@@ -413,16 +416,19 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
     for (int j=0; j<6; j++)
       qwx[i*6+j] = p[i*ndf+j] - Ap[i*ndf+j];
 
-  if constexpr (ndf == 6) {
-    Kl.addMatrixProduct(basis.getRotationJacobian(qwx), A, 1.0);
-  }
-  else {
-    const MatrixND<12,12> Kw = basis.getRotationJacobian(qwx);
-    Kb.assemble(Kw.template extract<0, 6,  0, 6>(),   0,   0, 1.0);
-    Kb.assemble(Kw.template extract<0, 6,  6,12>(),   0, ndf, 1.0);
-    Kb.assemble(Kw.template extract<6,12,  0, 6>(), ndf,   0, 1.0);
-    Kb.assemble(Kw.template extract<6,12,  6,12>(), ndf, ndf, 1.0);
-    Kl.addMatrixProduct(Kb, A, 1.0);
+
+  if (op != Operation::Bubnov) [[likely]] {
+    if constexpr (ndf == 6) {
+      Kl.addMatrixProduct(basis.getRotationJacobian(qwx), A, 1.0);
+    }
+    else {
+      const MatrixND<12,12> Kw = basis.getRotationJacobian(qwx);
+      Kb.assemble(Kw.template extract<0, 6,  0, 6>(),   0,   0, 1.0);
+      Kb.assemble(Kw.template extract<0, 6,  6,12>(),   0, ndf, 1.0);
+      Kb.assemble(Kw.template extract<6,12,  0, 6>(), ndf,   0, 1.0);
+      Kb.assemble(Kw.template extract<6,12,  6,12>(), ndf, ndf, 1.0);
+      Kl.addMatrixProduct(Kb, A, 1.0);
+    }
   }
 
   //
@@ -439,7 +445,8 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
       Kl.assemble(Hat(&Ap[i*ndf+3])*Gj, i*ndf+3, j*ndf, -1.0);
     }
   }
-  Kl.addMatrixTransposeProduct(1.0, Kb, A,  -1.0);
+  if (op != Operation::Bubnov)
+    Kl.addMatrixTransposeProduct(1.0, Kb, A,  -1.0);
 
   // Kl = diag(R) * Kl * diag(R)^T
   FrameTransform<nn,ndf>::pushRotation(Kl, basis.getRotation());

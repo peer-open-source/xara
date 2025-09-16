@@ -18,8 +18,8 @@
 #include <Node.h>
 #include <NodeND.h>
 #include <ID.h>
-#include <G3_Logging.h>
-#include <BasicModelBuilder.h>
+#include <Logging.h>
+#include <ModelRegistry.h>
 #include "Block2D.h"
 #include "Block3D.h"
 
@@ -32,7 +32,7 @@ TclCommand_doBlock2D(ClientData clientData,
                      TCL_Char ** const argv)
 { 
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
   int ndm = builder->getNDM();
   int ndf = builder->getNDF();
@@ -249,7 +249,7 @@ TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   // block3D numX? numY? startNode? startEle? eleType? eleArgs?
   //
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
   int ndm = builder->getNDM();
   int ndf = builder->getNDF();
@@ -421,7 +421,7 @@ TclCommand_doBlock(ClientData clientData, Tcl_Interp *interp, int argc,
                           TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   int ndm = builder->getNDM();
 
   if (argc < 1) {

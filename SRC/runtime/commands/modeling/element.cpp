@@ -5,7 +5,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2025, Claudio M. Perez
+// Copyright (c) 2025, OpenSees/Xara Developers
 // All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 // This source code is licensed under the BSD 2-Clause License.
@@ -29,9 +29,9 @@
 #define strcmp strcasecmp
 
 #include <runtimeAPI.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
-#include <G3_Logging.h>
+#include <Logging.h>
 #include <packages.h>
 #include <Domain.h>
 #include <Element.h>
@@ -111,9 +111,6 @@ G3_TclElementCommand TclBasicBuilder_addMasonPan12;
 G3_TclElementCommand TclBasicBuilder_addMasonPan3D;
 G3_TclElementCommand TclBasicBuilder_addBeamGT;
 
-
-
-
 // Shells
 Element* TclDispatch_newShellANDeS(ClientData, Tcl_Interp*, int, TCL_Char** const);
 
@@ -126,7 +123,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
   TclBasicBuilder *theTclBuilder = (TclBasicBuilder*)G3_getSafeBuilder(rt);
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
 
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theTclDomain);
@@ -288,7 +285,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
 
   if (theElement != nullptr) {
     if (theTclDomain->addElement(theElement) == false) {
-      opserr << "WARNING could not add element of with tag: "
+      opserr << OpenSees::PromptValueError << "could not add element of with tag: "
              << theElement->getTag()
              << " and of type: " << theElement->getClassType()
              << " to the Domain\n";
@@ -544,10 +541,10 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
                                        Domain *theTclDomain, 
                                        [[maybe_unused]] TclBasicBuilder* unused)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (builder == 0 || clientData == 0) {
-    opserr << "WARNING builder has been destroyed - multipleShearSpring\n";
+    opserr << OpenSees::PromptValueError << "builder has been destroyed - multipleShearSpring\n";
     return TCL_ERROR;
   }
 
@@ -557,7 +554,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
   if (ndm != 3 || ndf != 6) {
     opserr << "ndm=" << ndm << ", ndf=" << ndf << OpenSees::SignalMessageEnd;
-    opserr << "WARNING multipleShearSpring command only works when ndm is 3 "
+    opserr << OpenSees::PromptValueError << "multipleShearSpring command only works when ndm is 3 "
               "and ndf is 6"
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
@@ -593,29 +590,29 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
   if (argc < 8) { // element multipleShearSpring eleTag? iNode? jNode? nSpring?
                   // -mat matTag?
 
-    opserr << "WARNING insufficient arguments\n";
+    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
     ifNoError = false;
 
   } else {
 
     // argv[2~5]
     if (Tcl_GetInt(interp, argv[2], &eleTag) != TCL_OK) {
-      opserr << "WARNING invalid multipleShearSpring eleTag\n";
+      opserr << OpenSees::PromptValueError << "invalid multipleShearSpring eleTag\n";
       ifNoError = false;
     }
 
     if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
-      opserr << "WARNING invalid iNode\n";
+      opserr << OpenSees::PromptValueError << "invalid iNode\n";
       ifNoError = false;
     }
 
     if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
-      opserr << "WARNING invalid jNode\n";
+      opserr << OpenSees::PromptValueError << "invalid jNode\n";
       ifNoError = false;
     }
 
     if (Tcl_GetInt(interp, argv[5], &nSpring) != TCL_OK || nSpring <= 0) {
-      opserr << "WARNING invalid nSpring\n";
+      opserr << OpenSees::PromptValueError << "invalid nSpring\n";
       ifNoError = false;
     }
 
@@ -628,15 +625,12 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
           (i + 1) <= (argc - 1)) { // -mat matTag?
 
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
-          opserr << "WARNING invalid matTag\n";
+          opserr << OpenSees::PromptValueError << "invalid matTag\n";
           ifNoError = false;
         }
 
         material = builder->getTypedObject<UniaxialMaterial>(matTag);
-        if (material == 0) {
-          opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << OpenSees::SignalMessageEnd;
-          opserr << "multipleShearSpring element: " << eleTag << OpenSees::SignalMessageEnd;
+        if (material == nullptr) {
           return TCL_ERROR;
         }
 
@@ -649,13 +643,13 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
         theMaterials = new UniaxialMaterial *[nSpring];
         for (int j = 0; j < nSpring; j++) {
           if (Tcl_GetInt(interp, argv[j + i + 1], &matTag) != TCL_OK) {
-            opserr << "WARNING invalid matTag\n";
+            opserr << OpenSees::PromptValueError << "invalid matTag\n";
             ifNoError = false;
           }
 
           theMaterials[j] = builder->getTypedObject<UniaxialMaterial>(matTag);
           if (theMaterials[j] == 0) {
-            opserr << "WARNING material model not found\n";
+            opserr << OpenSees::PromptValueError << "material model not found\n";
             opserr << "uniaxialMaterial: " << matTag << OpenSees::SignalMessageEnd;
             opserr << "multipleShearSpring element: " << eleTag << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
@@ -672,7 +666,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
         for (int j = 1; j <= 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+            opserr << OpenSees::PromptValueError << "invalid -orient value\n";
             ifNoError = false;
           } else {
             oriX(j - 1) = value;
@@ -683,7 +677,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
         for (int j = 1; j <= 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+            opserr << OpenSees::PromptValueError << "invalid -orient value\n";
             ifNoError = false;
           } else {
             oriYp(j - 1) = value;
@@ -697,7 +691,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
         for (int j = 1; j <= 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+            opserr << OpenSees::PromptValueError << "invalid -orient value\n";
             ifNoError = false;
           } else {
             oriYp(j - 1) = value;
@@ -710,7 +704,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
         // <-mass m?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK || mass <= 0) {
-          opserr << "WARNING invalid mass\n";
+          opserr << OpenSees::PromptValueError << "invalid mass\n";
           ifNoError = false;
         }
 
@@ -720,7 +714,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
         // <-lim limDisp?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &limDisp) != TCL_OK || limDisp < 0) {
-          opserr << "WARNING invalid limDisp\n";
+          opserr << OpenSees::PromptValueError << "invalid limDisp\n";
           ifNoError = false;
         }
 
@@ -728,7 +722,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
       } else { // invalid option
 
-        opserr << "WARNING invalid optional arguments \n";
+        opserr << OpenSees::PromptValueError << "invalid optional arguments \n";
         ifNoError = false;
         break;
       }
@@ -738,7 +732,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
   // confirm material
   if (recvMat != 1) {
-    opserr << "WARNING wrong number of -mat inputs\n";
+    opserr << OpenSees::PromptValueError << "wrong number of -mat inputs\n";
     opserr << "got " << recvMat << " inputs, but want 1 input\n";
     ifNoError = false;
   }
@@ -763,7 +757,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
   // then add the multipleShearSpring to the domain
   if (theTclDomain->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
+    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
     opserr << "multipleShearSpring element: " << eleTag << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
@@ -796,14 +790,14 @@ TclBasicBuilder_addMultipleNormalSpring(ClientData clientData, Tcl_Interp *inter
 {
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // 3-dim, 6-dof
   int ndm = builder->getNDM();
   int ndf = builder->getNDF();
 
   if (ndm != 3 || ndf != 6) {
-    opserr << "WARNING multipleNormalSpring command only works when ndm is 3 "
+    opserr << OpenSees::PromptValueError << "multipleNormalSpring command only works when ndm is 3 "
               "and ndf is 6"
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
@@ -1054,7 +1048,7 @@ error:
 
   // then add the multipleNormalSpring to the domain
   if (theTclDomain->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
+    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
     opserr << "multipleNormalSpring element: " << eleTag << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
@@ -1070,7 +1064,7 @@ TclBasicBuilder_addKikuchiBearing(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // 3-dim, 6dof
   int ndm = builder->getNDM();
@@ -1078,7 +1072,7 @@ TclBasicBuilder_addKikuchiBearing(ClientData clientData, Tcl_Interp *interp,
 
   if (ndm != 3 || ndf != 6) {
     opserr << "ndm=" << ndm << ", ndf=" << ndf << OpenSees::SignalMessageEnd;
-    opserr << "WARNING KikuchiBearing command only works when ndm is 3 and ndf "
+    opserr << OpenSees::PromptValueError << "KikuchiBearing command only works when ndm is 3 and ndf "
               "is 6"
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
@@ -1543,7 +1537,7 @@ TclBasicBuilder_addKikuchiBearing(ClientData clientData, Tcl_Interp *interp,
 
   // then add the KikuchiBearing to the domain
   if (builder->getDomain()->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
+    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
     opserr << "KikuchiBearing element: " << eleTag << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
@@ -1559,7 +1553,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
                                       [[maybe_unused]] TclBasicBuilder *unused)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
   
 
@@ -1569,7 +1563,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
 
   if (ndm != 3 || ndf != 6) {
     opserr << "ndm=" << ndm << ", ndf=" << ndf << OpenSees::SignalMessageEnd;
-    opserr << "WARNING YamamotoBiaxialHDR command only works when ndm is 3 and "
+    opserr << OpenSees::PromptValueError << "YamamotoBiaxialHDR command only works when ndm is 3 and "
               "ndf is 6" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
@@ -1601,25 +1595,25 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
 
   if (argc < 9) { 
     // element YamamotoBiaxialHDR eleTag? iNode? jNode? Tp? DDo? DDi? Hr?
-    opserr << "WARNING insufficient arguments\n";
+    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
     ifNoError = false;
 
   } else {
     // argv[2~8]
     if (Tcl_GetInt(interp, argv[2], &eleTag) != TCL_OK) {
-      opserr << "WARNING invalid YamamotoBiaxialHDR eleTag\n";
+      opserr << OpenSees::PromptValueError << "invalid YamamotoBiaxialHDR eleTag\n";
       ifNoError = false;
     }
 
     // iNode
     if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
-      opserr << "WARNING invalid iNode\n";
+      opserr << OpenSees::PromptValueError << "invalid iNode\n";
       ifNoError = false;
     }
 
     // jNode
     if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
-      opserr << "WARNING invalid jNode\n";
+      opserr << OpenSees::PromptValueError << "invalid jNode\n";
       ifNoError = false;
     }
 
@@ -1627,25 +1621,25 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
     if (strcmp(argv[5], "1") == 0) {
       Tp = 1; // Bridgestone X0.6R (EESD version)
     } else {
-      opserr << "WARNING invalid YamamotoBiaxialHDR Tp" << OpenSees::SignalMessageEnd;
+      opserr << OpenSees::PromptValueError << "invalid YamamotoBiaxialHDR Tp" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     // DDo
     if (Tcl_GetDouble(interp, argv[6], &DDo) != TCL_OK || DDo <= 0.0) {
-      opserr << "WARNING invalid YamamotoBiaxialHDR DDo" << OpenSees::SignalMessageEnd;
+      opserr << OpenSees::PromptValueError << "invalid YamamotoBiaxialHDR DDo" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     // DDi
     if (Tcl_GetDouble(interp, argv[7], &DDi) != TCL_OK || DDi < 0.0) {
-      opserr << "WARNING invalid YamamotoBiaxialHDR DDi" << OpenSees::SignalMessageEnd;
+      opserr << OpenSees::PromptValueError << "invalid YamamotoBiaxialHDR DDi" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     // Hr
     if (Tcl_GetDouble(interp, argv[8], &Hr) != TCL_OK || Hr <= 0.0) {
-      opserr << "WARNING invalid YamamotoBiaxialHDR Hr" << OpenSees::SignalMessageEnd;
+      opserr << OpenSees::PromptValueError << "invalid YamamotoBiaxialHDR Hr" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
@@ -1662,7 +1656,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
         // x1, x2, x3
         for (int j = 1; j <= 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+            opserr << OpenSees::PromptValueError << "invalid -orient value\n";
             ifNoError = false;
           } else {
             oriX(j - 1) = value;
@@ -1674,7 +1668,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
         // yp1, yp2, yp3
         for (int j = 1; j <= 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+            opserr << OpenSees::PromptValueError << "invalid -orient value\n";
             ifNoError = false;
           } else {
             oriYp(j - 1) = value;
@@ -1688,7 +1682,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
 
         for (int j = 1; j <= 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+            opserr << OpenSees::PromptValueError << "invalid -orient value\n";
             ifNoError = false;
           } else {
             oriYp(j - 1) = value;
@@ -1701,7 +1695,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
         // <-mass m?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK || mass <= 0) {
-          opserr << "WARNING invalid mass\n";
+          opserr << OpenSees::PromptValueError << "invalid mass\n";
           ifNoError = false;
         }
 
@@ -1711,11 +1705,11 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
         // <-coRS cr? cs?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &Cr) != TCL_OK || Cr <= 0) {
-          opserr << "WARNING invalid cr\n";
+          opserr << OpenSees::PromptValueError << "invalid cr\n";
           ifNoError = false;
         }
         if (Tcl_GetDouble(interp, argv[i + 2], &Cs) != TCL_OK || Cs <= 0) {
-          opserr << "WARNING invalid cs\n";
+          opserr << OpenSees::PromptValueError << "invalid cs\n";
           ifNoError = false;
         }
 
@@ -1723,7 +1717,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
 
       } else {
 
-        opserr << "WARNING invalid optional arguments \n";
+        opserr << OpenSees::PromptValueError << "invalid optional arguments \n";
         ifNoError = false;
         break;
       }
@@ -1745,7 +1739,7 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
 
   // then add the YamamotoBiaxialHDR to the domain
   if (theTclDomain->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
+    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
     opserr << "YamamotoBiaxialHDR element: " << eleTag << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
@@ -1762,7 +1756,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
 {
   constexpr static int eleArgStart = 1;
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   int ndm = builder->getNDM();
   int ndf = builder->getNDF();
@@ -1776,14 +1770,14 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
 
     // check plane frame problem has 3 dof per node
     if (ndf != 3) {
-      opserr << "WARNING invalid ndf: " << ndf;
+      opserr << OpenSees::PromptValueError << "invalid ndf: " << ndf;
       opserr << ", for plane problem need 3 - elasticBeamColumn \n";
       return TCL_ERROR;
     }
 
     // check the number of arguments
     if ((argc - eleArgStart) < 8) {
-      opserr << "WARNING bad command - want: elasticBeamColumn beamId iNode "
+      opserr << OpenSees::PromptValueError << "bad command - want: elasticBeamColumn beamId iNode "
                 "jNode A E I <alpha> <d> transTag <-mass m> <-cMass>\n";
       return TCL_ERROR;
     }
@@ -1794,68 +1788,68 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
     double pDeltT, pVel, pInitLocation, pRWheel, pI, pE, pA;
 
     if (Tcl_GetInt(interp, argv[1 + eleArgStart], &pTag) != TCL_OK) {
-      opserr << "WARNING invalid pTag: " << argv[1 + eleArgStart];
+      opserr << OpenSees::PromptValueError << "invalid pTag: " << argv[1 + eleArgStart];
       opserr << " - WheelRail pTag iNode jNode";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[2 + eleArgStart], &pDeltT) != TCL_OK) {
-      opserr << "WARNING invalid pDeltT - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pDeltT - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[3 + eleArgStart], &pVel) != TCL_OK) {
-      opserr << "WARNING invalid pVel - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pVel - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4 + eleArgStart], &pInitLocation) != TCL_OK) {
-      opserr << "WARNING invalid pInitLocation - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pInitLocation - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[5 + eleArgStart], &pNd1) != TCL_OK) {
-      opserr << "WARNING invalid pNd1 - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pNd1 - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6 + eleArgStart], &pRWheel) != TCL_OK) {
-      opserr << "WARNING invalid pRWheel - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pRWheel - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7 + eleArgStart], &pI) != TCL_OK) {
-      opserr << "WARNING invalid pI - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pI - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8 + eleArgStart], &pE) != TCL_OK) {
-      opserr << "WARNING invalid pE - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pE - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[9 + eleArgStart], &pA) != TCL_OK) {
-      opserr << "WARNING invalid pA - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid pA - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[10 + eleArgStart], &transTag) != TCL_OK) {
-      opserr << "WARNING invalid transTag - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid transTag - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
     CrdTransf *theTransRWheel = builder->getTypedObject<CrdTransf>(transTag);
 
     if (Tcl_GetInt(interp, argv[11 + eleArgStart], &pnLoad) != TCL_OK) {
-      opserr << "WARNING invalid I - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError << "invalid I - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
@@ -1873,7 +1867,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
 
       if (Tcl_SplitList(interp, argv[13 + eleArgStart], &pathSize, &pathStrings) !=
           TCL_OK) {
-        opserr << "WARNING problem splitting path list "
+        opserr << OpenSees::PromptValueError << "problem splitting path list "
                << argv[13 + eleArgStart] << " - ";
         opserr << " NodeList -values {path} ... \n";
         return TCL_OK;
@@ -1883,7 +1877,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
         double value;
         // int debug = Tcl_GetDouble(interp, pathStrings[i], &value);
         if (Tcl_GetDouble(interp, pathStrings[i], &value) != TCL_OK) {
-          opserr << "WARNING problem reading path data value " << pathStrings[i]
+          opserr << OpenSees::PromptValueError << "problem reading path data value " << pathStrings[i]
                  << " - ";
           opserr << " -strain {path} ... \n";
           return 0;
@@ -1896,7 +1890,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
       TCL_Char **pathStrings;
       if (Tcl_SplitList(interp, argv[15 + eleArgStart], &pathSize, &pathStrings) !=
           TCL_OK) {
-        opserr << "WARNING problem splitting path list "
+        opserr << OpenSees::PromptValueError << "problem splitting path list "
                << argv[15 + eleArgStart] << " - ";
         opserr << " NodeList -values {path} ... \n";
         return TCL_OK;
@@ -1905,7 +1899,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
       for (int i = 0; i < pathSize; ++i) {
         double value;
         if (Tcl_GetDouble(interp, pathStrings[i], &value) != TCL_OK) {
-          opserr << "WARNING problem reading path data value " << pathStrings[i]
+          opserr << OpenSees::PromptValueError << "problem reading path data value " << pathStrings[i]
                  << " - ";
           opserr << " -strain {path} ... \n";
           return 0;
@@ -1918,7 +1912,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
       TCL_Char **pathStrings;
       if (Tcl_SplitList(interp, argv[17 + eleArgStart], &pathSize, &pathStrings) !=
           TCL_OK) {
-        opserr << "WARNING problem splitting path list "
+        opserr << OpenSees::PromptValueError << "problem splitting path list "
                << argv[17 + eleArgStart] << " - ";
         opserr << " NodeList -values {path} ... \n";
         return TCL_OK;
@@ -1927,7 +1921,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
       for (int i = 0; i < pathSize; ++i) {
         double value;
         if (Tcl_GetDouble(interp, pathStrings[i], &value) != TCL_OK) {
-          opserr << "WARNING problem reading path data value " << pathStrings[i]
+          opserr << OpenSees::PromptValueError << "problem reading path data value " << pathStrings[i]
                  << " - ";
           opserr << " -strain {path} ... \n";
           return 0;
@@ -1949,7 +1943,7 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
 
   // add the WheelRail element to the Domain
   if (builder->getDomain()->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
+    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
     opserr << "YamamotoBiaxialHDR element: " << pTag << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;

@@ -5,7 +5,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2025, Claudio M. Perez
+// Copyright (c) 2025, OpenSees/Xara Developers
 // All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 // This source code is licensed under the BSD 2-Clause License.
@@ -28,7 +28,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include "isotropy.h"
 
 #include <damage/FariaPlasticDamage3d.h>
@@ -390,7 +390,7 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
   //
   // Create the material (TODO)
   //
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if ((strcmp(argv[1], "PlasticDamageConcrete3d") == 0) ||
       (strcasecmp(argv[1], "PlasticDamageConcrete") == 0) ||
       (strcmp(argv[1], "FariaPlasticDamage") == 0)) {

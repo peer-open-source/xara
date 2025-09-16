@@ -25,7 +25,7 @@
 // Description: This file contains the function to parse the TCL input
 // for the actuator element.
 //
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <tcl.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -42,7 +42,7 @@ TclCommand_addActuator(ClientData clientData, Tcl_Interp *interp, int argc,
                             TCL_Char ** const argv)
 {
   constexpr static int eleArgStart = 1;
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   // check the number of arguments is correct
   if ((argc - eleArgStart) < 6) {
@@ -116,7 +116,7 @@ TclCommand_addActuatorCorot(ClientData clientData, Tcl_Interp *interp,
 {
   constexpr static int eleArgStart = 1;
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
 
   // check the number of arguments is correct
@@ -194,7 +194,7 @@ TclCommand_addAdapter(ClientData clientData, Tcl_Interp *interp, int argc,
                            TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
 
   constexpr static int eleArgStart = 1;
   // check the number of arguments is correct

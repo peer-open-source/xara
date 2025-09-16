@@ -46,7 +46,6 @@
 #include <SectionForceDeformation.h>
 #include <Domain.h>
 #include <ShellMITC4.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 #include <Parameter.h>
@@ -514,8 +513,8 @@ const Matrix &ShellMITC4::getInitialStiff()
   static Matrix Bbend(3, 3);     // bending B matrix
   static Matrix Bshear(2, 3);    // shear B matrix
   static Matrix Bmembrane(3, 2); // membrane B matrix
-  OPS_STATIC double BdrillJ[ndf]; // drill B matrix
-  OPS_STATIC double BdrillK[ndf];
+  double BdrillJ[ndf]; // drill B matrix
+  double BdrillK[ndf];
 
   OPS_STATIC double saveB[nstress][ndf][NEN];
   OPS_STATIC MatrixND<nstress, ndf> B[NEN];
@@ -824,7 +823,8 @@ ShellMITC4::getResistingForceIncInertia()
 }
 
 // form inertia terms
-void ShellMITC4::formInertiaTerms(int tangFlag)
+void
+ShellMITC4::formInertiaTerms(int tangFlag)
 {
   // translational mass only
   // rotational inertia terms are neglected
@@ -834,21 +834,21 @@ void ShellMITC4::formInertiaTerms(int tangFlag)
   static constexpr int nShape = 3;
   static constexpr int massIndex = nShape - 1;
 
-  double xsj; // determinant jacaobian matrix
-  double dvol; // volume element
   OPS_STATIC double shp[nShape][numberNodes]; // shape functions at a gauss point
 
   static Vector momentum(ndf);
 
   double temp, rhoH, massJK;
 
-  // zero mass
   mass.Zero();
 
   // Gauss loop
   for (int i = 0; i < nip; i++) {
 
     // get shape functions
+
+    double xsj; // determinant jacaobian matrix
+    double dvol; // volume element
     shape2d(pts[i][0], pts[i][1], xl, shp, xsj);
 
     // volume element to also be saved
@@ -888,7 +888,7 @@ void ShellMITC4::formInertiaTerms(int tangFlag)
           for (int p = 0; p < 3; p++)
             mass(jj + p, kk + p) += massJK;
 
-        } // end for k loop
+        }
 
       } // end if tang_flag
 

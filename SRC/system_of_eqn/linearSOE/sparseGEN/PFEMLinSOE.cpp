@@ -463,7 +463,7 @@ PFEMLinSOE::recvSelf(int cTag, Channel &theChannel,
 int 
 PFEMLinSOE::setDofIDs(int size,int& Ssize, int&Fsize, int& Isize,int& Psize,int& Pisize)
 {
-    if(theModel == 0) {
+    if (theModel == 0) {
         opserr << "Analysis model has not been linked - PFEMLinSOE::setDofIDs()\n";
         return -1;
     }

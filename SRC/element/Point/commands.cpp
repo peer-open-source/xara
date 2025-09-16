@@ -20,7 +20,7 @@
 #include <ZeroLengthContact2D.h>
 #include <ZeroLengthRocking.h>
 #include <ZeroLengthContact3D.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <ID.h>
 #include <Vector.h>
 #include <Domain.h>
@@ -34,7 +34,7 @@ int
 TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
                               TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
   // the spatial dimension of the problem
@@ -323,7 +323,7 @@ TclCommand_addZeroLengthSection(ClientData clientData, Tcl_Interp *interp,
                                      int argc, TCL_Char ** const argv)
 {
 
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
   int ndm = builder->getNDM(); // the spatial dimension of the problem
 
@@ -474,7 +474,7 @@ int
 TclCommand_addZeroLengthContact2D(ClientData clientData, Tcl_Interp *interp,
                                        int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
   //
@@ -590,7 +590,7 @@ int
 TclCommand_addZeroLengthContact3D(ClientData clientData, Tcl_Interp *interp,
                                        int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
   //
@@ -702,7 +702,7 @@ int
 TclCommand_addZeroLengthND(ClientData clientData, Tcl_Interp *interp, int argc,
                                 TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
   int ndm = builder->getNDM(); // the spatial dimension of the problem
 
@@ -864,7 +864,7 @@ int
 TclCommand_addZeroLengthRocking(ClientData clientData, Tcl_Interp *interp,
                                      int argc, TCL_Char ** const argv)
 {
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
   int ndm = builder->getNDM(); // the spatial dimension of the problem
 

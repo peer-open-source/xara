@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -8,11 +17,11 @@
 //
 #include <tcl.h>
 #include <string.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <set>
 #include <cstdlib>
-#include "BasicModelBuilder.h"
+#include "ModelRegistry.h"
 #include "Logging.h"
 #include "Parsing.h"
 #include "ArgumentTracker.h"
@@ -229,7 +238,7 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
   //
   // Create the material
   //
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if ((strcmp(argv[1], "ElasticIsotropic") == 0) ||
       (strcmp(argv[1], "Elastic") == 0)) {
@@ -453,7 +462,7 @@ TclCommand_newElasticUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if (strcmp(argv[1], "Elastic") == 0) {
     if (builder->addTaggedObject<UniaxialMaterial>(*new ElasticMaterial(tag, Epos, eta, Eneg, density)) != TCL_OK ) {
       return TCL_ERROR;
@@ -483,7 +492,7 @@ enum class MaterialSymmetry {
 int
 TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int argc, const char**const argv)
 {
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
 //MaterialSymmetry symm = MaterialSymmetry::Isotropic;
 //PlaneType type = PlaneType::None;

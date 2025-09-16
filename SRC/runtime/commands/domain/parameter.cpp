@@ -18,7 +18,6 @@
 #include <Node.h>
 #include <NodeData.h>
 
-#include <BasicModelBuilder.h>
 
 #include <Parameter.h>
 #include <ParameterIter.h>
@@ -29,14 +28,6 @@
 #include <LoadFactorParameter.h>
 #include <LoadPattern.h>
 
-#ifdef _RELIABILITY
-#include <RandomVariable.h>
-#include <RVParameter.h>
-#include <ReliabilityDomain.h>
-
-extern ReliabilityDomain *theReliabilityDomain;
-
-#endif
 
 //  parameter tag <specific parameter args>
 int
@@ -260,13 +251,7 @@ TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
         newParameter = new Parameter(paramTag, 0, 0, 0);
 
       if (theRV != nullptr) {
-#ifdef _RELIABILITY
-        RVParameter *newRVParameter =
-            new RVParameter(paramTag, theRV, newParameter);
-        domain->addParameter(newRVParameter);
-#else
         opserr << "ERROR: Reliability not compiled in\n";
-#endif
       } else {
         domain->addParameter(newParameter);
       }

@@ -6,7 +6,7 @@
 
 #include <tcl.h>
 #include <OPS_Globals.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
                                        Tcl_Interp *interp, int cArg, int mArg,

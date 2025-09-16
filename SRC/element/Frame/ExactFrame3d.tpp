@@ -1,5 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 //        Please cite the following resources in any derivative works:
 //                 https://doi.org/10.5281/zenodo.10456866
 //                 https://doi.org/10.1002/nme.7506
@@ -103,7 +116,6 @@ B_nat(MatrixND<6+2*nwm,6+nwm> &B, double shape[2][nen], const Vector3D& dx, int 
   B(2,3) = -shape[0][n]*dx[1];
   B(2,4) =  shape[0][n]*dx[0];
   B(2,5) =  0;
-
 }
 
 
@@ -128,7 +140,7 @@ ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
   for (int i = 0; i < nip; i++) {
     pres[i].point    = 0.0;
     pres[i].weight   = 0.0;
-    pres[i].material = section[i]->getFrameCopy(scheme);
+    pres[i].material = section[i]->getFrameCopy();//(scheme);
   }
 }
 
@@ -157,7 +169,7 @@ ExactFrame3d<nen,nwm>::setNodes()
   }
   const Vector& xi = theNodes[    0]->getCrds();
   const Vector& xj = theNodes[nen-1]->getCrds();
-  double L = (xi-xj).Norm();
+  double L = (xj-xi).Norm();
   jxs = L;
 
 
@@ -249,6 +261,7 @@ ExactFrame3d<nen,nwm>::update()
   // Form displaced node locations xyz
   VectorND<ndm> xyz[nen];
   std::array<std::array<double,nwm>,nen> uwarp{};
+
   for (unsigned i=0; i < nen; i++) {
     const Vector& xi = theNodes[i]->getCrds();
     const Vector& ui = theNodes[i]->getTrialDisp();
@@ -311,7 +324,7 @@ ExactFrame3d<nen,nwm>::update()
       kappa[0], kappa[1], kappa[2],
     };
     for (int j=0; j<nwm; j++) {
-      e[6+j] = dwarp[j];
+      e[6+j]     = dwarp[j];
       e[6+nwm+j] = warp[j];
     }
 
@@ -323,25 +336,24 @@ ExactFrame3d<nen,nwm>::update()
     VectorND<nsr> s = section.getResultant<nsr,scheme>();
     MatrixND<nsr,nsr> Ks = section.getTangent<nsr,scheme>(State::Pres);
 
-    //
+
     //
     // A = diag(R, R);
-    // Note that this is transposed
-    MatrixND<nsr,nsr> A {{
-      R(0,0), R(1,0), R(2,0), 0, 0, 0,
-      R(0,1), R(1,1), R(2,1), 0, 0, 0,
-      R(0,2), R(1,2), R(2,2), 0, 0, 0,
-      0, 0, 0, R(0,0), R(1,0), R(2,0),
-      0, 0, 0, R(0,1), R(1,1), R(2,1),
-      0, 0, 0, R(0,2), R(1,2), R(2,2),
-    }};
+    //
+    MatrixND<nsr,nsr> A{};
+    for (int j=0; j<3; j++) {
+      for (int k=0; k<3; k++) {
+        A(j,k) = R(j,k);
+        A(j+3,k+3) = R(j,k);
+      }
+    }
     for (int j=0; j<2*nwm; j++)
       A(6+j,6+j) = 1.0;
 
+
     MatrixND<nsr,ndf> B[nen];
     for (unsigned j=0; j<nen; j++) {
-      MatrixND<nsr,ndf> Bj;
-      Bj.zero();
+      MatrixND<nsr,ndf> Bj{};
       B_nat<nen,nwm>(Bj,  pres[i].shape, dx, j);
       B[j] = A^Bj;
 
@@ -352,7 +364,7 @@ ExactFrame3d<nen,nwm>::update()
     }
 
     // Material Tangent
-    MatrixND<ndf,ndf> Kjk;
+    MatrixND<ndf,ndf> Kjk{};
     for (unsigned j=0; j<nen; j++) {
       for (unsigned k=0; k<nen; k++) {
         Kjk.addMatrixTripleProduct(0.0, B[j], Ks, B[k], pres[i].weight);
@@ -366,7 +378,7 @@ ExactFrame3d<nen,nwm>::update()
     }
 
     // Geometric Tangent
-    MatrixND<ndf,ndf> G;
+    MatrixND<ndf,ndf> G{};
     for (unsigned j=0; j<nen; j++) {
       for (unsigned k=0; k<nen; k++) {
         G.zero();
@@ -488,17 +500,16 @@ ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
 
     //
     // A = diag(R, R);
-    // Note that this is transposed
+    //
     const Matrix3D& R = pres[i].rotation;
 
-    MatrixND<nsr,nsr> A {{
-      R(0,0), R(1,0), R(2,0), 0, 0, 0,
-      R(0,1), R(1,1), R(2,1), 0, 0, 0,
-      R(0,2), R(1,2), R(2,2), 0, 0, 0,
-      0, 0, 0, R(0,0), R(1,0), R(2,0),
-      0, 0, 0, R(0,1), R(1,1), R(2,1),
-      0, 0, 0, R(0,2), R(1,2), R(2,2),
-    }};
+    MatrixND<nsr,nsr> A{};
+    for (int j=0; j<3; j++) {
+      for (int k=0; k<3; k++) {
+        A(j,k) = R(j,k);
+        A(j+3,k+3) = R(j,k);
+      }
+    }
     for (int j=0; j<2*nwm; j++)
       A(6+j,6+j) = 1.0;
 
@@ -534,14 +545,15 @@ ExactFrame3d<nen,nwm>::addLoad(ElementalLoad* theLoad, double loadFactor)
     if (!frame_load->conservative())
       frame_loads.insert(frame_load);
   }
-  else 
+  else
+    return -1;
+
   // TODO: compute conservative load on flag == -1?
 #if 0
   else {
     c_loads[frame_load->getTag()] = VectorND<ndf*nn>{0.0};
   }
 #endif
-    return -1;
 
   return 0;
 }

@@ -196,7 +196,7 @@ int KRAlphaExplicit::newStep(double _deltaT)
         
         c1 *= (1.0 - alphaF);
         c2 *= (1.0 - alphaF);
-        c3 = (1.0 - alphaM);
+        c3  = (1.0 - alphaM);
         this->TransientIntegrator::formTangent(INITIAL_TANGENT);
         Matrix B3(*tmp);
         

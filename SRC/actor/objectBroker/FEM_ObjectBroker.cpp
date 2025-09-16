@@ -38,7 +38,6 @@
 
 
 FEM_ObjectBroker::FEM_ObjectBroker()
-:lastDomainSolver(0)
 {
 
 }

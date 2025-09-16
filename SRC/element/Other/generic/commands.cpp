@@ -14,7 +14,7 @@
 #include <string.h>
 #include <Domain.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <GenericClient.h>
 #include <GenericCopy.h>
 
@@ -24,7 +24,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
 {
   const int eleArgStart = 1;
 
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
   if (builder == 0 || clientData == 0) {
@@ -186,7 +186,7 @@ TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int ar
                                TCL_Char ** const argv)
 {
   const int eleArgStart = 1;
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
   // check the number of arguments is correct

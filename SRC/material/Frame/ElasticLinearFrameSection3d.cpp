@@ -5,6 +5,15 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+//
 #include <ElasticLinearFrameSection3d.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -68,7 +77,7 @@ SetupTangent(MatrixND<12,12>& Ks, const FrameSectionConstants& cons, double E, d
   // n-n
   double A   = cons.A; 
   double Ay  = cons.Ay;
-  double Az  = cons.Ay;
+  double Az  = cons.Az;
   // m-m
   double Iy  = cons.Iy;    //   \int z^2
   double Iz  = cons.Iz;    //   \int y^2
@@ -138,18 +147,6 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(std::shared_ptr<MatrixN
 
 }
 
-ElasticLinearFrameSection3d::ElasticLinearFrameSection3d()
-: FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
-  E(0.0),
-  G(0.0),
-  Ks(new MatrixND<nr,nr> {}),
-  Ksen(nullptr),
-  e{},
-  s{},
-  parameterID(0)
-{
-
-}
 
 ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
     double E,
@@ -270,7 +267,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
   //
   // OR
   // - add FrameSection::setLayout()
-  //
+  
   ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d(Ks);
 
   // Copy over all data
@@ -279,6 +276,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
   // Revoke any pointers that are owned by this instance
   theCopy->Ksen = nullptr;
   // return theCopy;
+
 
   int ni=0;
   bool ind[nr]{};
@@ -344,15 +342,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
 FrameSection*
 ElasticLinearFrameSection3d::getFrameCopy()
 {
-  // TODO: 
-  // - take layout as argument
-  // - overload 
-  //   template<int n> ID::operator==(std::array<int, n>)
-  //
-  // OR
-  // - add FrameSection::setLayout()
-  //
-  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d();
+  ElasticLinearFrameSection3d *theCopy = new ElasticLinearFrameSection3d(Ks);
 
   // Copy over all data
   *theCopy = *this;

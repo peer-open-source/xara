@@ -8,12 +8,12 @@
 target_sources(OPS_Runtime
     PRIVATE
       BasicAnalysisBuilder.cpp
-      BasicModelBuilder.cpp
+        ModelRegistry.cpp
       TclPackageClassBroker.cpp
 
     PUBLIC
       BasicAnalysisBuilder.h
-      BasicModelBuilder.h
+        ModelRegistry.h
       TclPackageClassBroker.h
 )
 

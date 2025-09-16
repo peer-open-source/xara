@@ -14,7 +14,7 @@
 //
 #include <Logging.h>
 #include <iostream>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include "uniaxial.hpp"
 #include <packages.h>
 
@@ -90,7 +90,7 @@ TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
 {
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theDomain = builder->getDomain();
 
   // Make sure there is a minimum number of arguments
@@ -254,7 +254,7 @@ static int
 TclDispatch_newUniaxialPinching4(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
 {
    assert(clientData != nullptr);
-   BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
    UniaxialMaterial* theMaterial = nullptr;
 
    if (strcmp(argv[1], "Pinching4") == 0) {

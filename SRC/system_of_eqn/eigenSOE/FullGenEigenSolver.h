@@ -39,18 +39,15 @@ public:
     FullGenEigenSolver();    
     virtual ~FullGenEigenSolver();
 
-    virtual int solve(int numEigen, bool generalized, bool findSmallest = true);    
-    virtual int setSize(void);
-    virtual int setEigenSOE(FullGenEigenSOE &theSOE);
+    int solve(int numEigen, bool generalized, bool findSmallest = true) override;    
+    int setSize() override;
+    virtual int setEigenSOE(FullGenEigenSOE &);
 
-    virtual const Vector &getEigenvector(int mode);
-    virtual double getEigenvalue(int mode);
+    const Vector &getEigenvector(int mode) override;
+    double getEigenvalue(int mode) override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-        FEM_ObjectBroker &theBroker);
-
-protected:
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
 private:
     void sort(int length, double *x, int *id);

@@ -36,7 +36,7 @@
 #include <Vector.h>
 #include <UniaxialMaterial.h>
 #include <SectionForceDeformation.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <TwoNodeLink.h>
 #include <TwoNodeLinkSection.h>
 #include <VectorND.h>
@@ -144,7 +144,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
                                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   constexpr static int eleArgStart = 1;
 
 
@@ -398,7 +398,7 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
                                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = (BasicModelBuilder*)clientData;
+  ModelRegistry *builder = (ModelRegistry*)clientData;
   constexpr static int eleArgStart = 1;
 
 

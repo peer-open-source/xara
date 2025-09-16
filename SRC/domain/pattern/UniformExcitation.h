@@ -45,22 +45,22 @@ class UniformExcitation : public EarthquakePattern
                       int dof, int tag, double vel0 = 0.0, double fact = 1.0);  
     ~UniformExcitation();
 
-    void setDomain(Domain *theDomain);    
+    const char* getClassType() const override {return "UniformExcitation";}
+
+    void setDomain(Domain *);    
     void applyLoad(double time);
     int getDirection() {return theDof;}
 
     void Print(OPS_Stream &s, int flag =0);
 
-    int sendSelf(int tag, Channel &);
-    int recvSelf(int tag, Channel &, FEM_ObjectBroker &);    
+    int sendSelf(int tag, Channel &) override;
+    int recvSelf(int tag, Channel &, FEM_ObjectBroker &) override;    
     
     LoadPattern *getCopy();
 
     virtual int setParameter(const char **argv, int argc, Parameter &param);
 
-    // AddingSensitivity:BEGIN /////////////////////////////////
     void applyLoadSensitivity(double time);
-    // AddingSensitivity:END ///////////////////////////////////
     
     const GroundMotion *getGroundMotion();
     

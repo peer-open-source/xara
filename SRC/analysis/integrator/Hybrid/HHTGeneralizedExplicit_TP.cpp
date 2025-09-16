@@ -218,7 +218,8 @@ int HHTGeneralizedExplicit_TP::revertToLastStep()
 }
 
 
-int HHTGeneralizedExplicit_TP::formUnbalance()
+int
+HHTGeneralizedExplicit_TP::formUnbalance()
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
@@ -230,7 +231,7 @@ int HHTGeneralizedExplicit_TP::formUnbalance()
     }
     
     theLinSOE->setB(*Put);
-    
+
     // do modal damping
     const Vector *modalValues = theModel->getModalDampingFactors();
     if (modalValues != 0)  {

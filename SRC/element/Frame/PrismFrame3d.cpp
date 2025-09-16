@@ -47,12 +47,20 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
     mass_flag(cm), density(r),
     releasez(rz), releasey(ry),
     geom_flag(geom),
-    section_tag(-1)
+    section_tag(-1),
+    shear_flag(shear_flag)
 {
   q.zero();
   ke.zero();
   kg.zero();
   km.zero();
+  if (!shear_flag) {
+    Ay = Az = 0.0;
+  }
+  else {
+    Ay = A;
+    Az = A;
+  }
 }
 
 
@@ -70,7 +78,8 @@ PrismFrame3d::PrismFrame3d(int tag,
     basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
     mass_flag(cMass), density(density),
     releasez(rz), releasey(ry),
-    geom_flag(geom)
+    geom_flag(geom),
+    shear_flag(shear_flag)
 {
   q.zero();
   ke.zero();
@@ -116,7 +125,8 @@ PrismFrame3d::PrismFrame3d(int tag,
 
   if (!shear_flag) {
     Ay = Az = 0.0;
-  } else {
+  } 
+  else {
     Ay = Kc(1,1)/G;
     Az = Kc(2,2)/G;
   }
@@ -133,7 +143,6 @@ int
 PrismFrame3d::setNodes()
 {
 
-  
   if (basic_system->initialize(theNodes[0], theNodes[1]) != 0) {
       return -1;
   }
@@ -475,8 +484,8 @@ PrismFrame3d::getMass()
       M.zero();
       thread_local Matrix Wrapper{M};
       return Wrapper;
-
-    } else if (mass_flag == 0)  {
+    }
+    else if (mass_flag == 0)  {
       // Lumped mass matrix
 
       thread_local MatrixND<12,12> M;
@@ -490,8 +499,8 @@ PrismFrame3d::getMass()
       M(7,7) = m;
       M(8,8) = m;
       return Wrapper;
-
-    } else {
+    }
+    else {
 
       // Consistent (cubic, prismatic) mass matrix
 
@@ -597,6 +606,7 @@ void
 PrismFrame3d::Print(OPS_Stream &s, int flag)
 {
   const ID& node_tags = this->getExternalNodes();
+  double L = basic_system->getInitialLength();
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
       s << OPS_PRINT_JSON_ELEM_INDENT << "{";
@@ -616,6 +626,7 @@ PrismFrame3d::Print(OPS_Stream &s, int flag)
       s << "\"releasey\": "<< releasey << ", ";                
       s << "\"transform\": " << basic_system->getTag();
       s << ", ";
+      s << "\"shear_flag\": " << shear_flag << ", ";
 
       // 
       if (section_tag > 0) {

@@ -238,38 +238,33 @@ int HHTHSFixedNumIter_TP::revertToLastStep()
 }
 
 
-int HHTHSFixedNumIter_TP::formUnbalance()
+int
+HHTHSFixedNumIter_TP::formUnbalance()
 {
-    // get a pointer to the LinearSOE and the AnalysisModel
-    LinearSOE *theLinSOE = this->getLinearSOE();
-    AnalysisModel *theModel = this->getAnalysisModel();
-    if (theLinSOE == 0 || theModel == 0)  {
-        opserr << "WARNING HHTHSFixedNumIter_TP::formUnbalance() - ";
-        opserr << "no LinearSOE or AnalysisModel has been set\n";
-        return -1;
-    }
+  // get a pointer to the LinearSOE and the AnalysisModel
+  LinearSOE *theLinSOE = this->getLinearSOE();
+  AnalysisModel *theModel = this->getAnalysisModel();
+  if (theLinSOE == 0 || theModel == 0)  {
+    return -1;
+  }
     
-    theLinSOE->setB(*Put);
+  theLinSOE->setB(*Put);
     
-    // do modal damping
-    const Vector *modalValues = theModel->getModalDampingFactors();
-    if (modalValues != 0)  {
-        this->addModalDampingForce(modalValues);
-    }
+  // do modal damping
+  const Vector *modalValues = theModel->getModalDampingFactors();
+  if (modalValues != 0)  {
+    this->addModalDampingForce(modalValues);
+  }
     
-    if (this->formElementResidual() < 0)  {
-        opserr << "WARNING HHTHSFixedNumIter_TP::formUnbalance() ";
-        opserr << " - this->formElementResidual failed\n";
-        return -2;
-    }
+  if (this->formElementResidual() < 0)  {
+    return -2;
+  }
     
-    if (this->formNodalUnbalance() < 0)  {
-        opserr << "WARNING HHTHSFixedNumIter_TP::formUnbalance() ";
-        opserr << " - this->formNodalUnbalance failed\n";
-        return -3;
-    }
+  if (this->formNodalUnbalance() < 0)  {
+    return -3;
+  }
     
-    return 0;
+  return 0;
 }
 
 
@@ -374,49 +369,6 @@ int HHTHSFixedNumIter_TP::domainChanged()
         Utm2 = new Vector(size);
         scaledDeltaU = new Vector(size);
         Put = new Vector(size);
-        
-        // check we obtained the new
-        if (Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            Utm1 == 0 || Utm1->Size() != size ||
-            Utm2 == 0 || Utm2->Size() != size ||
-            scaledDeltaU == 0 || scaledDeltaU->Size() != size ||
-            Put == 0 || Put->Size() != size)  {
-            
-            opserr << "HHTHSFixedNumIter_TP::domainChanged() - ran out of memory\n";
-            
-            // delete the old
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (Utm1 != 0)
-                delete Utm1;
-            if (Utm2 != 0)
-                delete Utm2;
-            if (scaledDeltaU != 0)
-                delete scaledDeltaU;
-            if (Put != 0)
-                delete Put;
-            
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            Utm1 = 0; Utm2 = 0; scaledDeltaU = 0; Put = 0;
-            
-            return -1;
-        }
     }
     
     // now go through and populate U, Udot and Udotdot by iterating through
@@ -472,7 +424,8 @@ int HHTHSFixedNumIter_TP::domainChanged()
 }
 
 
-int HHTHSFixedNumIter_TP::update(const Vector &deltaU)
+int
+HHTHSFixedNumIter_TP::update(const Vector &deltaU)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {

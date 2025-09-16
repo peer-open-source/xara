@@ -184,7 +184,6 @@ class FEM_ObjectBroker
   protected:
     
   private:
-    DomainSolver *lastDomainSolver;
 };
 
 #endif

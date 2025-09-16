@@ -15,7 +15,7 @@
 
 #include <ID.h>
 #include <FrameSection.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <BeamIntegration.h>
 #include <FrameQuadrature.hpp>
 #include <quadrature/GaussLobatto1D.hpp>
@@ -108,7 +108,7 @@ TclCommand_addBeamIntegration(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  BasicModelBuilder* builder = (BasicModelBuilder*)clientData;
+  ModelRegistry* builder = (ModelRegistry*)clientData;
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError << "want beamIntegration type tag...\n";

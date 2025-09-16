@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -16,6 +22,7 @@
 
 #include <TransientIntegrator.h>
 #include <Vector.h>
+#include <array>
 
 class DOF_Group;
 class FE_Element;
@@ -36,10 +43,10 @@ public:
     //
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
-    int formEleTangent(FE_Element *theEle)  final;
-    int formNodTangent(DOF_Group *theDof)   final;
-    int formEleResidual(FE_Element* theEle) final;
-    int formNodUnbalance(DOF_Group* theDof) final;
+    int formEleTangent(FE_Element*)  final;
+    int formNodTangent(DOF_Group*)   final;
+    int formEleResidual(FE_Element*) final;
+    int formNodUnbalance(DOF_Group*) final;
 
     //
     // IncrementalIntegrator
@@ -47,8 +54,8 @@ public:
 
     // Sensitivity
     int formSensitivityRHS(int gradNum);
-    int updateGradient   (const Vector &v, int gradNum, int numGrads);
-    int commitGradient (int gradNum, int numGrads);
+    int updateGradient (const Vector &v, int gradNum, int numGrads);
+    int commitGradient (int gradNum, int numGrads) {return -1;};
     int computeSensitivities();
 
     //
@@ -71,9 +78,7 @@ public:
     int sendSelf(int commitTag, Channel &) override;
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
     
-    void Print(OPS_Stream &s, int flag) final;
-
-protected:
+    void Print(OPS_Stream &, int flag) final;
 
 private:
     enum Unknown {
@@ -81,13 +86,24 @@ private:
       Velocity=2,
       Acceleration=3
     };
+
+    struct GammaScheme {
+      double g[3];
+      double G[3][3];
+    } G1, G2;
+
     int unknown;                    // flag indicating whether displ(1), vel(2) or accel(3) increments
     int unknown_initialize = 1;     //
 
+    static int setConstants(int flag,
+                            double dt, double gamma, double beta,
+                            const std::array<double,3> &alpha,
+                            GammaScheme& scheme);
     double gamma;
     double beta;
     double alphaF;
     double alphaM;
+    std::array<double,3> alpha;
 
     int step;                       // track step number to initialize accelerations
     double dt;                      // store time step to determine step number

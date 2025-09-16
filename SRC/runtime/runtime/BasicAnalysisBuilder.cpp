@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Written: Claudio Perez
@@ -11,10 +18,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include <unordered_map>
-#include "BasicModelBuilder.h"
+#include "ModelRegistry.h"
 #include "BasicAnalysisBuilder.h"
 #include <Domain.h>
-#include <G3_Logging.h>
+#include <Logging.h>
 // Abstract classes
 #include <EquiSolnAlgo.h>
 #include <StaticIntegrator.h>
@@ -62,7 +69,7 @@ static std::unordered_map<int, std::string> AnalyzeFailedMessage {
    {SolutionAlgorithm::BadStepUpdate,   "Failed to update the model\n"}
 };
 
-BasicAnalysisBuilder::BasicAnalysisBuilder(BasicModelBuilder& context)
+BasicAnalysisBuilder::BasicAnalysisBuilder(ModelRegistry& context)
 :
   context(context),
   theDomain(context.getDomain()),
@@ -96,12 +103,12 @@ BasicAnalysisBuilder::wipe()
 {
 
   if (theAlgorithm != nullptr) {
-      delete theAlgorithm;
-      theAlgorithm = nullptr;
+    delete theAlgorithm;
+    theAlgorithm = nullptr;
   }
   if (theStaticIntegrator != nullptr) {
-      delete theStaticIntegrator;
-      theStaticIntegrator = nullptr;
+    delete theStaticIntegrator;
+    theStaticIntegrator = nullptr;
   }
   if ((theTransientIntegrator != nullptr) && freeTI) {
     delete theTransientIntegrator;
@@ -116,16 +123,16 @@ BasicAnalysisBuilder::wipe()
     theNumberer = nullptr;
   }
   if (theHandler != nullptr) {
-      delete theHandler;
-      theHandler = nullptr;
+    delete theHandler;
+    theHandler = nullptr;
   }
   if (theTest != nullptr) {
-      delete theTest;
-      theTest = nullptr;
+    delete theTest;
+    theTest = nullptr;
   }
   if (theEigenSOE != nullptr) {
-      delete theEigenSOE;
-      theEigenSOE = nullptr;
+    delete theEigenSOE;
+    theEigenSOE = nullptr;
   }
   if (theAnalysisModel != nullptr) {
     delete theAnalysisModel;
@@ -232,7 +239,8 @@ BasicAnalysisBuilder::domainChanged()
   int stamp = domain->hasDomainChanged();
   domainStamp = stamp;
 
-  opsdbg << G3_DEBUG_PROMPT << "Domain changed\n";
+  opsdbg << G3_DEBUG_PROMPT 
+         << "Domain changed\n";
 
 
   theAnalysisModel->clearAll();
@@ -499,7 +507,7 @@ BasicAnalysisBuilder::analyzeStep(double dT)
   result = theAlgorithm->solveCurrentStep();
   if (result < 0) {
     if (AnalyzeFailedMessage.find(result) != AnalyzeFailedMessage.end()) {
-        opserr << OpenSees::PromptAnalysisFailure << AnalyzeFailedMessage[result];
+      opserr << OpenSees::PromptAnalysisFailure << AnalyzeFailedMessage[result];
     }
     theDomain->revertToLastCommit();
     theTransientIntegrator->revertToLastStep();
@@ -834,7 +842,6 @@ BasicAnalysisBuilder::setStaticAnalysis()
   this->setLinks(STATIC_ANALYSIS);
 
   this->CurrentAnalysisFlag = STATIC_ANALYSIS;
-
   return 0;
 }
 
@@ -887,13 +894,13 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
     if (typeSolver == EigenSOE_TAGS_SymBandEigenSOE) {
       SymBandEigenSolver *theEigenSolver = new SymBandEigenSolver();
       theEigenSOE = new SymBandEigenSOE(*theEigenSolver, *theAnalysisModel);
-
-    } else if (typeSolver == EigenSOE_TAGS_FullGenEigenSOE) {
-        FullGenEigenSolver *theEigenSolver = new FullGenEigenSolver();
-        theEigenSOE = new FullGenEigenSOE(*theEigenSolver, *theAnalysisModel);
-
-    } else {
-        theEigenSOE = new ArpackSOE(shift);
+    }
+    else if (typeSolver == EigenSOE_TAGS_FullGenEigenSOE) {
+      FullGenEigenSolver *theEigenSolver = new FullGenEigenSolver();
+      theEigenSOE = new FullGenEigenSOE(*theEigenSolver, *theAnalysisModel);
+    }
+    else {
+      theEigenSOE = new ArpackSOE(*theAnalysisModel, shift);
     }
 
     //
@@ -1003,11 +1010,11 @@ BasicAnalysisBuilder::eigen(int numMode, bool generalized, bool findSmallest)
     }
   }
 
+
   //
   // Solve for the eigen values & vectors
   //
   if (theEigenSOE->solve(numMode, generalized, findSmallest) < 0) {
-    opserr << G3_WARN_PROMPT << "EigenSOE failed in solve()\n";
     return -4;
   }
 

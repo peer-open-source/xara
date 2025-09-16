@@ -18,9 +18,9 @@
 #include <assert.h>
 
 #include <tcl.h>
-#include <G3_Logging.h>
+#include <Logging.h>
 #include <UniaxialMaterial.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 typedef const char TCL_Char;
 
@@ -60,7 +60,7 @@ TclCommand_useUniaxialMaterial(ClientData clientData,
   // prevents a copy from being created. This way, the state of the material
   // is preserved between invocations.
   UniaxialMaterial *theMaterial =
-    ((BasicModelBuilder*)clientData)->getTypedObject<UniaxialMaterial>(tag);
+    ((ModelRegistry*)clientData)->getTypedObject<UniaxialMaterial>(tag);
 
 
   if (theMaterial == nullptr) {

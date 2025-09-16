@@ -165,7 +165,7 @@ TclPatternCommand(ClientData clientData, Tcl_Interp *interp, int argc,
         currentArg++;
         velSeries = TclSeriesCommand(clientData, interp, argv[currentArg]);
 
-        if (velSeries == 0) {
+        if (velSeries == nullptr) {
           opserr << "WARNING invalid vel series: " << argv[currentArg];
           opserr << " pattern UniformExcitation -vel {series}\n";
           return TCL_ERROR;
@@ -179,7 +179,7 @@ TclPatternCommand(ClientData clientData, Tcl_Interp *interp, int argc,
         currentArg++;
         dispSeries = TclSeriesCommand(clientData, interp, argv[currentArg]);
 
-        if (dispSeries == 0) {
+        if (dispSeries == nullptr) {
           opserr << "WARNING invalid vel series: " << argv[currentArg];
           opserr << " pattern UniformExcitation -vel {series}\n";
           return TCL_ERROR;
@@ -224,18 +224,6 @@ TclPatternCommand(ClientData clientData, Tcl_Interp *interp, int argc,
 
     // create the UniformExcitation Pattern
     thePattern = new UniformExcitation(*theMotion, dir, patternID, vel0);
-
-    if (thePattern == 0) {
-      opserr << "WARNING ran out of memory creating load pattern - pattern "
-                "UniformExcitation ";
-      opserr << patternID << "\n";
-
-      // clean up memory allocated up to this point and return an error
-      if (theMotion != 0)
-        delete theMotion;
-
-      return TCL_ERROR;
-    }
 
     // Added by MHS to prevent call to Tcl_Eval at end of this function
     commandEndMarker = currentArg;

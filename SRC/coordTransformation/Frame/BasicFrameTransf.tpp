@@ -189,8 +189,8 @@ BasicFrameTransf3d<ndf>::getGlobalResistingForce(const Vector &q_pres, const Vec
   pl[0*NDF+4]  =  q_pres[imy];
   pl[0*NDF+5]  =  q_pres[imz];
   pl[1*NDF+0]  =  q_pres[jnx];           // Nj
-  pl[1*NDF+1]  =  p0[2]*c;
-  pl[1*NDF+2]  =  p0[4]*c;
+  pl[1*NDF+1]  =  p0[2]*c;               // Vyj
+  pl[1*NDF+2]  =  p0[4]*c;               // Vzj
   pl[1*NDF+3]  =  q_pres[jmx];           // Tj
   pl[1*NDF+4]  =  q_pres[jmy];
   pl[1*NDF+5]  =  q_pres[jmz];

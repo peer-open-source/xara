@@ -256,12 +256,12 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   if (argc < 2) {
     opserr << "WARNING: Incorrect number of arguments for InitialStateAnalysis "
               "command"
-           << endln;
+           << "\n";
     return TCL_ERROR;
   }
 
   if (strcmp(argv[1], "on") == 0) {
-    opserr << "InitialStateAnalysis ON" << endln;
+    opserr << "InitialStateAnalysis ON" << "\n";
 
     // set global variable to true
     // FMK changes for parallel:
@@ -274,7 +274,7 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     return TCL_OK;
 
   } else if (strcmp(argv[1], "off") == 0) {
-    opserr << "InitialStateAnalysis OFF" << endln;
+    opserr << "InitialStateAnalysis OFF" << "\n";
 
     // call revert to start to zero the displacements
     the_domain->revertToStart();
@@ -291,7 +291,7 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   } else {
     opserr << "WARNING: Incorrect arguments - want InitialStateAnalysis on, or "
               "InitialStateAnalysis off"
-           << endln;
+           << "\n";
 
     return TCL_ERROR;
   }
@@ -367,8 +367,8 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
         Tcl_AppendResult(interp, buffer, NULL);
       }
     }
-
-  } else if (argc == 2) {
+  }
+  else if (argc == 2) {
     int patternTag;
 
     if (Tcl_GetInt(interp, argv[1], &patternTag) != TCL_OK) {
@@ -418,8 +418,6 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     LoadPattern *thePattern;
     LoadPatternIter &thePatterns = the_domain->getLoadPatterns();
 
-    // char buffer[20];
-
     Tcl_Obj *result = Tcl_NewListObj(0, nullptr);
 
     while ((thePattern = thePatterns()) != nullptr) {
@@ -428,8 +426,6 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
       while ((theLoad = theEleLoads()) != nullptr) {
         Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(theLoad->getElementTag()));
-        // sprintf(buffer, "%d ", theLoad->getElementTag());
-        // Tcl_AppendResult(interp, buffer, NULL);
       }
     }
 
@@ -461,7 +457,7 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     }
 
   } else {
-    opserr << OpenSees::PromptValueError << "unexpectd arguments\n" << endln;
+    opserr << OpenSees::PromptValueError << "unexpectd arguments\n" << "\n";
     return TCL_ERROR;
   }
 
@@ -532,7 +528,7 @@ getEleLoadData(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   } else {
     opserr << OpenSees::PromptValueError 
-           << "want - getEleLoadTags <patternTag?>" << endln;
+           << "want - getEleLoadTags <patternTag?>" << "\n";
     return TCL_ERROR;
   }
 

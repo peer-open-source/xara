@@ -34,7 +34,7 @@
 #include <TzSimple1Gen.h>
 #include <TimeSeries.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <runtimeAPI.h>
 #include <tcl.h>
 
@@ -49,7 +49,7 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv, Domain *theDomain)
 {
   TimeSeries *theSeries = nullptr;
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments\n";

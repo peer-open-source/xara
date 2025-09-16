@@ -25,9 +25,8 @@
 #define strcmp strcasecmp
 
 
-// #include <BasicModelBuilder.h>
 #include <tcl.h>
-#include <G3_Logging.h>
+#include <Logging.h>
 #include <Domain.h>
 #include <NodeIter.h>
 #include <NodeData.h>
@@ -372,7 +371,7 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
 {
   assert(clientData != nullptr);
   Domain* domain = static_cast<Domain*>(clientData);
-  // BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  // ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   // Domain* domain = builder->getDomain();
   G3_Runtime *rt = G3_getRuntime(interp);
   (*theRecorder) = nullptr;
@@ -622,9 +621,8 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
            (strcmp(argv[1], "elementDamage") == 0)) {
     //////////  By Arash Altoontash /////////////////
     TCL_Char *filename  = nullptr;
-#if 1 
       
-#else
+#if 0
     if (argc < 7) {
       opserr << "WARNING recorder ElementDamage eleID? <-time> "
              << "<-file filename?> <-section secID1? secID2? ...> <-dof "

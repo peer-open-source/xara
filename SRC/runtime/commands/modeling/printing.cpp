@@ -1,10 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
+//
 // Description: Commands that are used to print out the domain
 //
 // Author: cmp
@@ -22,7 +30,7 @@
 #include <FileStream.h>
 #include <DummyStream.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 #include <ID.h>
 #include <Domain.h>
@@ -75,7 +83,7 @@ TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
 {
 
   assert(clientData != nullptr);
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if (argc < 3) {
     opserr << "ERROR want - classType objectType tag?\n";
     return TCL_ERROR;
@@ -113,7 +121,7 @@ TclCommand_classType(ClientData clientData, Tcl_Interp *interp, int argc,
 
 template <typename T>
 static int
-printRegistryObject(const BasicModelBuilder& builder, int tag, int flag, OPS_Stream *output)
+printRegistryObject(const ModelRegistry& builder, int tag, int flag, OPS_Stream *output)
 {
   TaggedObject* object = builder.getTypedObject<T>(tag);
   object->Print(*output, flag);
@@ -121,23 +129,23 @@ printRegistryObject(const BasicModelBuilder& builder, int tag, int flag, OPS_Str
 }
 
 static int
-printRegistry(const BasicModelBuilder& builder, TCL_Char* type, int flag, OPS_Stream *output)
+printRegistry(const ModelRegistry& builder, TCL_Char* type, int flag, OPS_Stream *output)
 {
   if (type == nullptr)
-    builder.printRegistry<BasicModelBuilder>(*output, flag);
+    builder.printRegistry<ModelRegistry>(*output, flag);
   return TCL_OK;
 }
 
 
 static void
-printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag) 
+printDomain(OPS_Stream &s, ModelRegistry* builder, int flag) 
 {
 
   Domain* theDomain = builder->getDomain();
 
   const char* tab = "  ";
   // TODO: maybe add a method called countRegistry<>
-  // to BasicModelBuilder
+  // to ModelRegistry
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << "{\n";
@@ -298,7 +306,7 @@ printDomain(OPS_Stream &s, BasicModelBuilder* builder, int flag)
 #if 0 
   s << "Current Domain Information\n";
   s << "\tCurrent Time: " << theDomain->getCurrentTime();
-  // s << "\ntCommitted Time: " << committedTime << endln;    
+  // s << "\ntCommitted Time: " << committedTime << "\n";    
   s << "NODE DATA: NumNodes: " << theDomain->getNumNodes() << "\n";  
   theNodes->Print(s, flag);
   
@@ -327,7 +335,7 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
 {
   assert(clientData != nullptr);
 
-  BasicModelBuilder* builder = static_cast<BasicModelBuilder*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
   Domain * domain = builder->getDomain();
 
   int currentArg = 1;
@@ -387,7 +395,7 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
                  << "\n";
           return TCL_ERROR;
         }
-        res += printRegistryObject<NDMaterial>(*((BasicModelBuilder*)clientData), tag, OPS_PRINT_PRINTMODEL_JSON, output);
+        res += printRegistryObject<NDMaterial>(*((ModelRegistry*)clientData), tag, OPS_PRINT_PRINTMODEL_JSON, output);
       }
       done = true;
     }
@@ -396,9 +404,9 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
     else if ((strcmp(argv[currentArg], "-registry") == 0)) {
       currentArg++;
       if (currentArg == argc)
-        res = printRegistry(*((BasicModelBuilder*)clientData), nullptr, flag, output);
+        res = printRegistry(*((ModelRegistry*)clientData), nullptr, flag, output);
       else
-        res = printRegistry(*((BasicModelBuilder*)clientData), argv[currentArg++], flag, output);
+        res = printRegistry(*((ModelRegistry*)clientData), argv[currentArg++], flag, output);
       done = true;
     }
 
@@ -506,7 +514,7 @@ printElement(ClientData clientData, Tcl_Interp *interp, int argc,
     }
     if (Tcl_GetInt(interp, argv[1], &flag) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "print ele failed to get integer flag: \n";
-      opserr << argv[eleArg] << endln;
+      opserr << argv[eleArg] << "\n";
       return TCL_ERROR;
     }
     eleArg += 2;
@@ -529,7 +537,7 @@ printElement(ClientData clientData, Tcl_Interp *interp, int argc,
       int eleTag;
       if (Tcl_GetInt(interp, argv[i + eleArg], &eleTag) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "print -ele failed to get integer: " << argv[i]
-               << endln;
+               << "\n";
         return TCL_ERROR;
       }
       (*theEle)(i) = eleTag;
@@ -576,7 +584,7 @@ printNode(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const
     }
     if (Tcl_GetInt(interp, argv[1], &flag) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "print node failed to get integer flag: \n";
-      opserr << argv[nodeArg] << endln;
+      opserr << argv[nodeArg] << "\n";
       return TCL_ERROR;
     }
     nodeArg += 2;
@@ -733,12 +741,12 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       for (int ii = l_tmp; ii < 3; ii++) {
         outputFile << 0.0 << "\t";
       }
-      outputFile << endln;
+      outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << endln;
+    outputFile << "End coordinates" << endln << "\n";
 
     // Print elements connectivity
-    outputFile << "Elements" << endln;
+    outputFile << "Elements" << "\n";
     ElementIter &theElements = the_domain->getElements();
     Element *theElement;
     while ((theElement = theElements()) != 0) {
@@ -759,11 +767,11 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
           for (int i = 0; i < nNode; ++i) {
             outputFile << tagNodes(i) << "\t";
           }
-          outputFile << endln;
+          outputFile << "\n";
         }
       }
     }
-    outputFile << "End elements" << endln;
+    outputFile << "End elements" << "\n";
   }
   //
   // **** Quadrilateral Elements - 4 Nodes
@@ -771,18 +779,18 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
   if (hasQuad4 == 1) {
     // Print HEADER
     outputFile << "MESH \"4NMESH\" dimension 3 ElemType Quadrilateral Nnode 4"
-               << endln;
-    outputFile << "#color 0 255 0" << endln << endln;
+               << "\n";
+    outputFile << "#color 0 255 0" << endln << "\n";
 
     // Print node coordinates
-    outputFile << "Coordinates" << endln;
+    outputFile << "Coordinates" << "\n";
     NodeIter &theNodes = the_domain->getNodes();
     Node *theNode;
     while ((theNode = theNodes()) != 0) {
       int tag = theNode->getTag();
       const Vector &crds = theNode->getCrds();
       // outputFile << tag << "\t\t" << crds(0) << "\t" << crds(1) << "\t" <<
-      // crds(2) << endln;
+      // crds(2) << "\n";
       int l_tmp = crds.Size();
       outputFile << tag << "\t\t";
       for (int ii = 0; ii < l_tmp; ii++) {
@@ -791,12 +799,12 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       for (int ii = l_tmp; ii < 3; ii++) {
         outputFile << 0.0 << "\t";
       }
-      outputFile << endln;
+      outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << endln;
+    outputFile << "End coordinates" << endln << "\n";
 
     // Print elements connectivity
-    outputFile << "Elements" << endln;
+    outputFile << "Elements" << "\n";
     ElementIter &theElements = the_domain->getElements();
     Element *theElement;
     while ((theElement = theElements()) != 0) {
@@ -818,11 +826,11 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
           for (int i = 0; i < nNode; ++i) {
             outputFile << tagNodes(i) << "\t";
           }
-          outputFile << endln;
+          outputFile << "\n";
         }
       }
     }
-    outputFile << "End elements" << endln;
+    outputFile << "End elements" << "\n";
   }
   //
   // **** Triangular Elements - 3 Nodes
@@ -830,18 +838,18 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
   if (hasTri3 == 1) {
     // Print HEADER
     outputFile << "MESH \"3NMESH\" dimension 3 ElemType Triangle Nnode 3"
-               << endln;
-    outputFile << "#color 0 255 0" << endln << endln;
+               << "\n";
+    outputFile << "#color 0 255 0" << endln << "\n";
 
     // Print node coordinates
-    outputFile << "Coordinates" << endln;
+    outputFile << "Coordinates" << "\n";
     NodeIter &theNodes = the_domain->getNodes();
     Node *theNode;
     while ((theNode = theNodes()) != 0) {
       int tag = theNode->getTag();
       const Vector &crds = theNode->getCrds();
       // outputFile << tag << "\t\t" << crds(0) << "\t" << crds(1) << "\t" <<
-      // crds(2) << endln;
+      // crds(2) << "\n";
       int l_tmp = crds.Size();
       outputFile << tag << "\t\t";
       for (int ii = 0; ii < l_tmp; ii++) {
@@ -850,12 +858,12 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       for (int ii = l_tmp; ii < 3; ii++) {
         outputFile << 0.0 << "\t";
       }
-      outputFile << endln;
+      outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << endln;
+    outputFile << "End coordinates" << endln << "\n";
 
     // Print elements connectivity
-    outputFile << "Elements" << endln;
+    outputFile << "Elements" << "\n";
     ElementIter &theElements = the_domain->getElements();
     Element *theElement;
     while ((theElement = theElements()) != 0) {
@@ -877,11 +885,11 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
           for (int i = 0; i < nNode; ++i) {
             outputFile << tagNodes(i) << "\t";
           }
-          outputFile << endln;
+          outputFile << "\n";
         }
       }
     }
-    outputFile << "End elements" << endln;
+    outputFile << "End elements" << "\n";
   }
   //
   // **** Quadrilateral Elements - 9 Nodes
@@ -889,11 +897,11 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
   if (hasQuad9 == 1) {
     // Print HEADER
     outputFile << "MESH \"9NMESH\" dimension 3 ElemType Linear Nnode 9"
-               << endln;
-    outputFile << "#color 0 255 0" << endln << endln;
+               << "\n";
+    outputFile << "#color 0 255 0" << endln << "\n";
 
     // Print node coordinates
-    outputFile << "Coordinates" << endln;
+    outputFile << "Coordinates" << "\n";
     NodeIter &theNodes = the_domain->getNodes();
     Node *theNode;
     while ((theNode = theNodes()) != 0) {
@@ -908,12 +916,12 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       for (int ii = l_tmp; ii < 3; ii++) {
         outputFile << 0.0 << "\t";
       }
-      outputFile << endln;
+      outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << endln;
+    outputFile << "End coordinates" << endln << "\n";
 
     // Print elements connectivity
-    outputFile << "Elements" << endln;
+    outputFile << "Elements" << "\n";
     ElementIter &theElements = the_domain->getElements();
     Element *theElement;
     while ((theElement = theElements()) != 0) {
@@ -935,11 +943,11 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
           for (int i = 0; i < nNode; ++i) {
             outputFile << tagNodes(i) << "\t";
           }
-          outputFile << endln;
+          outputFile << "\n";
         }
       }
     }
-    outputFile << "End elements" << endln;
+    outputFile << "End elements" << "\n";
   }
   //
   // **** Hexahedra Elements - 8 Nodes
@@ -947,11 +955,11 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
   if (hasBrick == 1) {
     // Print HEADER
     outputFile << "MESH \"8NMESH\" dimension 3 ElemType Hexahedra Nnode 8"
-               << endln;
-    outputFile << "#color 255 0 0" << endln << endln;
+               << "\n";
+    outputFile << "#color 255 0 0" << endln << "\n";
 
     // Print node coordinates
-    outputFile << "Coordinates" << endln;
+    outputFile << "Coordinates" << "\n";
     NodeIter &theNodes = the_domain->getNodes();
 
     Node *theNode;
@@ -959,7 +967,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       int tag = theNode->getTag();
       const Vector &crds = theNode->getCrds();
       // outputFile << tag << "\t\t" << crds(0) << "\t" << crds(1) << "\t" <<
-      // crds(2) << endln;
+      // crds(2) << "\n";
       int l_tmp = crds.Size();
       outputFile << tag << "\t\t";
       for (int ii = 0; ii < l_tmp; ii++) {
@@ -968,12 +976,12 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       for (int ii = l_tmp; ii < 3; ii++) {
         outputFile << 0.0 << "\t";
       }
-      outputFile << endln;
+      outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << endln;
+    outputFile << "End coordinates" << endln << "\n";
 
     // Print elements connectivity
-    outputFile << "Elements" << endln;
+    outputFile << "Elements" << "\n";
     ElementIter &theElements = the_domain->getElements();
     Element *theElement;
     while ((theElement = theElements()) != 0) {
@@ -995,11 +1003,11 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
           for (int i = 0; i < nNode; ++i) {
             outputFile << tagNodes(i) << "\t";
           }
-          outputFile << endln;
+          outputFile << "\n";
         }
       }
     }
-    outputFile << "End elements" << endln;
+    outputFile << "End elements" << "\n";
   }
 
   outputFile.close();

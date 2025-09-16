@@ -67,7 +67,7 @@ public:
 template <int ndm, class MatT, class SecT>
 class FiberSectionBuilder : public SectionBuilder {
 public:
-  FiberSectionBuilder(BasicModelBuilder& builder_, SecT& section_)
+  FiberSectionBuilder(ModelRegistry& builder_, SecT& section_)
     : SectionBuilder(section_.getTag()), builder(builder_), section(section_) {}
 
   virtual int addHFiber(int tag, int mat, double area, const Vector& cPos);
@@ -122,7 +122,7 @@ public:
   }
 
 private:
-  BasicModelBuilder& builder;
+  ModelRegistry& builder;
   SecT&              section;
 };
 

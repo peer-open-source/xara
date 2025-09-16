@@ -1,7 +1,7 @@
 #include <tcl.h>
 #include <Parsing.h>
 #include <Logging.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include "BoucWenMaterial.h"
 #include <assert.h>
 #include <string.h>
@@ -95,7 +95,7 @@ TclCommand_newUniaxialBoucWen(ClientData cd, Tcl_Interp* interp, int argc, G3_Ch
         new BoucWenMaterial(tag, alpha, ko, n, gamma, beta, Ao, deltaA, deltaNu,
                             deltaEta, tolerance, maxNumIter);
 
-    return ((BasicModelBuilder*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
+    return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
 
 
@@ -105,7 +105,7 @@ TclCommand_newBoucWenFamily(ClientData clientData, Tcl_Interp *interp,
                             int argc, TCL_Char ** const argv)
 {
     assert(clientData != nullptr);
-    BasicModelBuilder *builder = static_cast<BasicModelBuilder*>(clientData);
+    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
     // Declare order for positional arguments
     enum class Position : int {

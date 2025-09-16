@@ -34,7 +34,7 @@
 #include <DomainSolver.h>
 
 DomainSolver::DomainSolver(int classtag)
-:LinearSOESolver(classtag)
+ : LinearSOESolver(classtag)
 {
 
 }

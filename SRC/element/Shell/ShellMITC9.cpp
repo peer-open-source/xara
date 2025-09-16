@@ -136,7 +136,7 @@ ShellMITC9::ShellMITC9(int tag, int node1, int node2, int node3, int node4,
 }
 //******************************************************************
 
-// destructor
+
 ShellMITC9::~ShellMITC9()
 {
   int i;
@@ -155,7 +155,8 @@ ShellMITC9::~ShellMITC9()
 //**************************************************************************
 
 
-void ShellMITC9::setDomain(Domain *theDomain)
+void
+ShellMITC9::setDomain(Domain *theDomain)
 {
   Vector3D eig;
   Matrix3D ddMembrane;
@@ -203,18 +204,21 @@ void ShellMITC9::setDomain(Domain *theDomain)
 }
 
 // get the number of external nodes
-int ShellMITC9::getNumExternalNodes() const 
+int 
+ShellMITC9::getNumExternalNodes() const 
 {
   return NEN;
 }
 
 // return connected external nodes
-const ID &ShellMITC9::getExternalNodes()
+const ID &
+ShellMITC9::getExternalNodes()
 {
   return connectedExternalNodes;
 }
 
-Node **ShellMITC9::getNodePtrs()
+Node **
+ShellMITC9::getNodePtrs()
 {
   return theNodes;
 }
@@ -244,10 +248,9 @@ int ShellMITC9::commitState()
 // revert to last commit
 int ShellMITC9::revertToLastCommit()
 {
-  int i;
   int success = 0;
 
-  for (i = 0; i < 9; i++)
+  for (int i = 0; i < 9; i++)
     success += materialPointers[i]->revertToLastCommit();
 
   return success;
@@ -318,7 +321,7 @@ void ShellMITC9::Print(OPS_Stream &s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"ShellMITC9\", ";
     s << "\"nodes\": [" << connectedExternalNodes(0) << ", "
@@ -327,7 +330,8 @@ void ShellMITC9::Print(OPS_Stream &s, int flag)
     s << connectedExternalNodes(4) << ", " << connectedExternalNodes(5) << ", ";
     s << connectedExternalNodes(6) << ", " << connectedExternalNodes(7) << ", ";
     s << connectedExternalNodes(8) << "], ";
-    s << "\"section\": \"" << materialPointers[0]->getTag() << "\"}";
+    s << "\"section\": \"" << materialPointers[0]->getTag();
+    s << "\"}";
   }
 }
 
@@ -888,7 +892,8 @@ void ShellMITC9::formInertiaTerms(int tangFlag)
 //
 //  Shear strains gamma02, gamma12 constant through cross section
 //
-void ShellMITC9::formResidAndTangent(int tang_flag)
+void
+ShellMITC9::formResidAndTangent(int tang_flag)
 {
 
   int i, j, k, p, q;
@@ -1091,7 +1096,8 @@ void ShellMITC9::formResidAndTangent(int tang_flag)
 
 //************************************************************************
 // compute local coordinates and basis
-void ShellMITC9::computeBasis()
+void
+ShellMITC9::computeBasis()
 {
   // could compute derivatives \frac{ \partial {\bf x} }{ \partial L_1 }
   //                     and  \frac{ \partial {\bf x} }{ \partial L_2 }

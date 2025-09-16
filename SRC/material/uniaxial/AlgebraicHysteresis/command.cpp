@@ -2,7 +2,7 @@
 #include <Logging.h>
 #include <Parsing.h>
 
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 #include <UnloadingRule.h>
 #include <HystereticBackbone.h>
 #include <OOHystereticMaterial.h>
@@ -17,7 +17,7 @@ Create_OOHystereticMaterial(ClientData clientData,
                                    Tcl_Size argc,
                                    TCL_Char ** const argv)
 {
-  BasicModelBuilder *builder = static_cast<BasicModelBuilder *>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry *>(clientData);
   UniaxialMaterial *theMaterial = nullptr;
 
   if (argc - 2 < 5) {
