@@ -11,7 +11,7 @@ import setuptools
 
 #--------------------------------------------------
 
-version    = "0.1.22"
+version    = "0.1.23"
 build_type = os.environ.get("OPENSEESRT_BUILD", "release")
 
 #--------------------------------------------------
@@ -75,6 +75,7 @@ class CMakeCommand(amoeba.CMakeCommand):
             self.run_conan(ext)
 
         super().configure_extension(ext)
+
     def run_conan(self, ext):
         toolchain = str(Path(".").absolute()/"build"/"generators"/"conan_toolchain.cmake")
         ext.cmake_configure_options.append(
