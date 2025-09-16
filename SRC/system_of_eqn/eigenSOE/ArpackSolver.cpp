@@ -429,7 +429,7 @@ char which[3];
 int
 ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
 {
-
+  // Solve 
   int n = size;
 
   int ido = 0;
@@ -530,8 +530,17 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
         else
           eigenvalues[i] = 1.0/eigenvalues[i];
       }
+
+      // populate eigenvectors (all real)
+      {
+        const int ldz = work.ldv;         // leading dimension of z from neupd
+        for (int j = 0; j < nev; ++j) {
+          const double* zj = &z[j * ldz];     // column j of z
+          double* vj       = &eigenvectors[j * n]; // column j of output
+          std::memcpy(vj, zj, sizeof(double) * n);
+        }
+      } 
     }
-    // TODO: populate eigenvectors
     delete [] z;
     delete [] di;
     delete [] workev;
