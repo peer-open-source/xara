@@ -323,7 +323,13 @@ set_property(TARGET OPS_Runtime           PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_MaterialFortran   PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_ElementFortran    PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET G3                    PROPERTY POSITION_INDEPENDENT_CODE 1)
-
+target_include_directories(G3 PUBLIC 
+  ${OPS_SRC_DIR}/handler
+  ${OPS_SRC_DIR}/actor/actor
+  ${OPS_SRC_DIR}/actor/objectBroker
+  ${OPS_SRC_DIR}/actor/channel
+  ${OPS_SRC_DIR}/actor/message
+)
 
 
 
