@@ -26,9 +26,7 @@ else()
   add_subdirectory(arpack-ng/)
 
   if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(arpack PRIVATE -Wno-unused-variable
-#   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:"-Wno-unused-variable">
-    )
+    target_compile_options(arpack PRIVATE -Wno-unused-variable)
   endif()
 
   add_library(ARPACK INTERFACE)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+# cmake_minimum_required(VERSION 3.12)
 
 # project(arpack C Fortran)
 
@@ -332,6 +332,9 @@ add_library(arpack
             ${arpacksrc_STAT_SRCS}
             ${arpacksrc_ICB}
 )
+if (WIN32)
+  target_compile_options(arpack PRIVATE /fpp /libs:static /NODEFAULTLIB:"ifconsol.lib" /threads /c)
+endif()
 
 target_link_libraries(arpack
   PUBLIC
@@ -350,7 +353,7 @@ target_include_directories(arpack
   # Exported location of headers
   $<INSTALL_INTERFACE:${ARPACK_INSTALL_INCLUDEDIR}>
   # Find arpackdef.h, arpackicb.h, stat*.h, debug*.h at build time
-  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   # For ICB interface
   $<BUILD_INTERFACE:${arpack_SOURCE_DIR}/ICB>
@@ -360,6 +363,8 @@ if (APPLE)
     PUBLIC
     -Wl,-no_compact_unwind>
   )
+elseif(WIN32)
+  target_link_options(arpack PUBLIC /NODEFAULTLIB:"ifconsol.lib")
 endif()
 if (MPI)
     # use -DBUILD_SHARED_LIBS=ON|OFF to control static/shared
@@ -393,7 +398,7 @@ else ()
     set(INTERFACE64 0)
 endif ()
 
-include_directories("${PROJECT_BINARY_DIR}") # Find arpackdef.h and arpackicb.h
+# include_directories("${CMAKE_CURRENT_BINARY_DIR}") # Find arpackdef.h and arpackicb.h
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #---------------------------
@@ -518,8 +523,8 @@ foreach(lib ${LAPACK_LIBRARIES} ${MPI_Fortran_LIBRARIES})
 endforeach()
 string(REPLACE ";" " " PARPACK_PC_LIBS_PRIVATE "${PARPACK_PC_LIBS_PRIVATE}")
 
-configure_file(pkg-config/arpack.pc.in "${PROJECT_BINARY_DIR}/arpack${LIBSUFFIX}${ITF64SUFFIX}.pc" @ONLY)
-configure_file(pkg-config/parpack.pc.in "${PROJECT_BINARY_DIR}/parpack${LIBSUFFIX}${ITF64SUFFIX}.pc" @ONLY)
+configure_file(pkg-config/arpack.pc.in "${CMAKE_CURRENT_BINARY_DIR}/arpack${LIBSUFFIX}${ITF64SUFFIX}.pc" @ONLY)
+configure_file(pkg-config/parpack.pc.in "${CMAKE_CURRENT_BINARY_DIR}/parpack${LIBSUFFIX}${ITF64SUFFIX}.pc" @ONLY)
 
 if (FALSE)
   install(TARGETS arpack
@@ -529,7 +534,7 @@ if (FALSE)
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(
     FILES 
-      "${PROJECT_BINARY_DIR}/arpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
+      "${CMAKE_CURRENT_BINARY_DIR}/arpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
     DESTINATION 
       ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   )
@@ -539,7 +544,7 @@ if (FALSE)
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    install(FILES "${PROJECT_BINARY_DIR}/parpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/parpack${LIBSUFFIX}${ITF64SUFFIX}.pc"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   endif ()
 
@@ -567,28 +572,28 @@ if (FALSE)
   endif()
 endif(FALSE)
 
-  configure_file(arpackdef.h.in "${PROJECT_BINARY_DIR}/arpackdef.h" @ONLY)
-  configure_file(arpackicb.h.in "${PROJECT_BINARY_DIR}/arpackicb.h" @ONLY)
+  configure_file(arpackdef.h.in "${CMAKE_CURRENT_BINARY_DIR}/arpackdef.h" @ONLY)
+  configure_file(arpackicb.h.in "${CMAKE_CURRENT_BINARY_DIR}/arpackicb.h" @ONLY)
 
 if (FALSE)
-  install(FILES "${PROJECT_BINARY_DIR}/arpackdef.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/arpackdef.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
 
-  install(FILES "${PROJECT_BINARY_DIR}/arpackicb.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/arpackicb.h" DESTINATION ${ARPACK_INSTALL_INCLUDEDIR})
 
   install(EXPORT arpackngTargets
     DESTINATION "${ARPACK_INSTALL_CMAKEDIR}"
   )
 
 # Provide find_package for arpack-ng to users.
-  configure_file(cmake/arpackng-config.cmake.in "${PROJECT_BINARY_DIR}/arpackng-config.cmake" @ONLY)
-  configure_file(cmake/arpackng-config-version.cmake.in "${PROJECT_BINARY_DIR}/arpackng-config-version.cmake" @ONLY)
+  configure_file(cmake/arpackng-config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/arpackng-config.cmake" @ONLY)
+  configure_file(cmake/arpackng-config-version.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/arpackng-config-version.cmake" @ONLY)
   install(
     FILES
-    "${PROJECT_BINARY_DIR}/arpackng-config.cmake"
-    "${PROJECT_BINARY_DIR}/arpackng-config-version.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/arpackng-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/arpackng-config-version.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/arpackng${LIBSUFFIX}${ITF64SUFFIX}) # find_package(arpackng)
 
-  configure_file(cmake/tstCMakeInstall.sh.in ${PROJECT_BINARY_DIR}/tstCMakeInstall.sh @ONLY)
+  configure_file(cmake/tstCMakeInstall.sh.in ${CMAKE_CURRENT_BINARY_DIR}/tstCMakeInstall.sh @ONLY)
 
   # Packaging: ease arpack-ng distribution (precompiled binaries and sources tarballs).
   set(CPACK_VERSION_MAJOR "${arpack_ng_MAJOR_VERSION}")
