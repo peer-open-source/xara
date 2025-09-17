@@ -39,10 +39,10 @@ class Integrator
 public:
     virtual ~Integrator(); 
 
-    virtual int formEleTangent(FE_Element *theEle)  =0;
-    virtual int formNodTangent(DOF_Group *theDof)   =0;
-    virtual int formEleResidual(FE_Element *theEle) =0;
-    virtual int formNodUnbalance(DOF_Group *theDof) =0;    
+    virtual int formEleTangent(FE_Element *)  =0;
+    virtual int formNodTangent(DOF_Group *)   =0;
+    virtual int formEleResidual(FE_Element *) =0;
+    virtual int formNodUnbalance(DOF_Group *) =0;
 
     // Methods provided for Domain Decomposition. This
     // is implemented in IncrementalIntegrator, but is
