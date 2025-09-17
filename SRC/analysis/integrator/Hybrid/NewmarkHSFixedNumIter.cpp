@@ -387,14 +387,14 @@ int NewmarkHSFixedNumIter::update(const Vector &deltaU)
     
     // get interpolation location and scale displacement increment 
     x = (double) theTest->getNumTests()/theTest->getMaxNumTests();
-    if (polyOrder == 1)  {
+    if (polyOrder == 1) {
         (*scaledDeltaU) = x*((*U)+deltaU) - (x-1.0)*(*Ut)  - (*U);
     }
-    else if (polyOrder == 2)  {
+    else if (polyOrder == 2) {
         (*scaledDeltaU) = x*(x+1.0)/2.0*((*U)+deltaU) - (x-1.0)*(x+1.0)*(*Ut) 
                         + (x-1.0)*x/2.0*(*Utm1) - (*U);
     }
-    else if (polyOrder == 3)  {
+    else if (polyOrder == 3) {
         (*scaledDeltaU) = x*(x+1.0)*(x+2.0)/6.0*((*U)+deltaU) - (x-1.0)*(x+1.0)*(x+2.0)/2.0*(*Ut)
                         + (x-1.0)*x*(x+2.0)/2.0*(*Utm1) - (x-1.0)*x*(x+1.0)/6.0*(*Utm2) - (*U);
     }
@@ -421,7 +421,8 @@ int NewmarkHSFixedNumIter::update(const Vector &deltaU)
 }
 
 
-int NewmarkHSFixedNumIter::commit(void)
+int
+NewmarkHSFixedNumIter::commit()
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
