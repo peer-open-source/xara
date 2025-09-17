@@ -46,13 +46,13 @@ EigenAlgorithm::EigenAlgorithm(int classTag)
   :SolutionAlgorithm(classTag),
    theModel(0), theIntegrator(0), theSOE(0)
 {
-    // need do nothing here.
+  // need do nothing here.
 }
 
 
 EigenAlgorithm::~EigenAlgorithm()
 {
-    // do nothing here.
+  // do nothing here.
 }
 
 void 
@@ -60,26 +60,26 @@ EigenAlgorithm::setLinks(AnalysisModel &theNewModel,
 			 EigenIntegrator &theNewIntegrator,
 			 EigenSOE &theNewSOE)
 {
-    theModel = &theNewModel;
-    theIntegrator = &theNewIntegrator;
-    theSOE = &theNewSOE;
+  theModel = &theNewModel;
+  theIntegrator = &theNewIntegrator;
+  theSOE = &theNewSOE;
 }
 
 AnalysisModel *
 EigenAlgorithm::getAnalysisModelPtr() const
 {
-    return theModel;
+  return theModel;
 }
 
 EigenIntegrator *
 EigenAlgorithm::getEigenIntegratorPtr() const
 {
-    return theIntegrator;
+  return theIntegrator;
 }
 
 EigenSOE *
 EigenAlgorithm::getEigenSOEptr() const
 {
-    return theSOE;
+  return theSOE;
 }
 

@@ -18,8 +18,7 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Description: This file contains the class definition of FrequencyAlgo.
-// FrequencyAlgo is a class which performs a eigen solution algorithm
+// Description: FrequencyAlgo is a class which performs a eigen solution algorithm
 // to solve the Generalized eigen equations. It is not expected that 
 // this class will have subclasses.
 //
@@ -32,7 +31,6 @@
 //
 #include <FrequencyAlgo.h>
 #include <AnalysisModel.h>
-#include <EigenAnalysis.h>
 #include <EigenIntegrator.h>
 #include <EigenSOE.h>
 #include <Vector.h>
@@ -42,12 +40,12 @@
 FrequencyAlgo::FrequencyAlgo()
   :EigenAlgorithm(EigenALGORITHM_TAGS_Frequency)
 {
-    // do nothing here.
+  // do nothing here.
 }
 
 FrequencyAlgo::~FrequencyAlgo()
 {
-    // do nothing here.
+  // do nothing here.
 }
 
 int 
@@ -85,8 +83,8 @@ FrequencyAlgo::solveCurrentStep(int numModes)
     theModel->setNumEigenvectors(numModes);
     Vector theEigenvalues(numModes);
     for (int i=1; i<=numModes; i++) {
-	theEigenvalues[i-1] = theSOE->getEigenvalue(i);
-	theModel->setEigenvector(i, theSOE->getEigenvector(i));
+        theEigenvalues[i-1] = theSOE->getEigenvalue(i);
+        theModel->setEigenvector(i, theSOE->getEigenvector(i));
     }    
     theModel->setEigenvalues(theEigenvalues);
     

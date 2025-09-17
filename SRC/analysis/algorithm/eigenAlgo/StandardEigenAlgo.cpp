@@ -28,7 +28,6 @@
 //
 #include <StandardEigenAlgo.h>
 #include <AnalysisModel.h>
-#include <EigenAnalysis.h>
 #include <EigenIntegrator.h>
 #include <EigenSOE.h>
 #include <Vector.h>
