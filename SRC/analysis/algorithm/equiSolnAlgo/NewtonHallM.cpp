@@ -125,12 +125,8 @@ NewtonHallM::solveCurrentStep()
       return -2;
     }            
 
-    // set itself as the ConvergenceTest objects EquiSolnAlgo
-    theTest->setEquiSolnAlgo(*this);
-    if (theTest->start() < 0) {
-      opserr << "NewtnRaphson::solveCurrentStep() -";
-      opserr << "the ConvergenceTest object failed in start()\n";
-      return -3;
+    if (theTest->start(*theSOE) < 0) {
+      return SolutionAlgorithm::BadTestStart;
     }
 
     int result = -1;
@@ -178,7 +174,7 @@ NewtonHallM::solveCurrentStep()
         return -2;
       }        
       
-      result = theTest->test();
+      result = theTest->test(*theSOE);
       numIterations++;
       this->record(numIterations);
       

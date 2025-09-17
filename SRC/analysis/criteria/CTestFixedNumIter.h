@@ -31,8 +31,6 @@
 #define CTestFixedNumIter_h
 
 #include <ConvergenceTest.h>
-#include <stdbool.h>
-class EquiSolnAlgo;
 class LinearSOE;
 
 
@@ -49,24 +47,20 @@ public:
 
     ConvergenceTest *getCopy(int iterations);
 
-    int setEquiSolnAlgo(EquiSolnAlgo &theAlgo);
+    int test(LinearSOE&) override;
+    int start(LinearSOE&) override;
 
-    int test(void);
-    int start(void);
+    int getNumTests() override;
+    int getMaxNumTests() override;
+    double getRatioNumToMax() override;
+    const Vector &getNorms() override;
 
-    int getNumTests(void);
-    int getMaxNumTests(void);
-    double getRatioNumToMax(void);
-    const Vector &getNorms(void);
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker) override;
 
 protected:
 
 private:
-    LinearSOE *theSOE;
-
     int maxNumIter;     // max number of iterations
     int currentIter;    // number of times test() has been invokes since last start()
     int printFlag;      // a flag indicating if to print on test

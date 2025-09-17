@@ -36,7 +36,7 @@
 
 CTestEnergyIncr::CTestEnergyIncr()
     : ConvergenceTest(CONVERGENCE_TEST_CTestEnergyIncr),
-      theSOE(0), tol(0), maxTol(OPS_MAXTOL), maxNumIter(0), currentIter(0), printFlag(0),
+      tol(0), maxTol(OPS_MAXTOL), maxNumIter(0), currentIter(0), printFlag(0),
       nType(2), norms(20)
 {
 
@@ -45,7 +45,7 @@ CTestEnergyIncr::CTestEnergyIncr()
 
 CTestEnergyIncr::CTestEnergyIncr(double theTol, int maxIter, int printIt, int normType, double max)
     : ConvergenceTest(CONVERGENCE_TEST_CTestEnergyIncr),
-      theSOE(0), tol(theTol), maxTol(max), maxNumIter(maxIter), currentIter(0),printFlag(printIt),
+      tol(theTol), maxTol(max), maxNumIter(maxIter), currentIter(0),printFlag(printIt),
       nType(normType), norms(maxNumIter)
 {
 
@@ -58,38 +58,24 @@ CTestEnergyIncr::~CTestEnergyIncr()
 }
 
 
-ConvergenceTest* CTestEnergyIncr::getCopy(int iterations)
+ConvergenceTest*
+CTestEnergyIncr::getCopy(int iterations)
 {
-    CTestEnergyIncr *theCopy ;
-    theCopy = new CTestEnergyIncr(this->tol, iterations, this->printFlag, this->nType, this->maxTol);
-
-    theCopy->theSOE = this->theSOE ;
-
-    return theCopy ;
+  return new CTestEnergyIncr(this->tol, iterations, this->printFlag, this->nType, this->maxTol);
 }
 
 
 void CTestEnergyIncr::setTolerance(double newTol)
 {
-    tol = newTol;
+  tol = newTol;
 }
 
 
-int CTestEnergyIncr::setEquiSolnAlgo(EquiSolnAlgo &theAlgo)
-{
-    theSOE = theAlgo.getLinearSOEptr();
-        return 0;
-}
 
-
-int CTestEnergyIncr::test(void)
+int
+CTestEnergyIncr::test(LinearSOE& theSOE)
 {
-    // check to ensure the SOE has been set - this should not happen if the
-    // return from start() is checked
-    if (theSOE == 0) {
-        opserr << "WARNING: CTestEnergyIncr::test() - no SOE set\n";
-        return -2;
-    }
+
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
     if (currentIter == 0) {
@@ -98,8 +84,8 @@ int CTestEnergyIncr::test(void)
     }
 
     // determine the energy & save value in norms vector
-    const Vector &b = theSOE->getB();
-    const Vector &x = theSOE->getX();
+    const Vector &b = theSOE.getB();
+    const Vector &x = theSOE.getX();
     double product = x ^ b;
     if (product < 0.0)
         product *= -0.5;
@@ -190,13 +176,9 @@ int CTestEnergyIncr::test(void)
 }
 
 
-int CTestEnergyIncr::start(void)
+int
+CTestEnergyIncr::start(LinearSOE& theSOE)
 {
-    if (theSOE == 0) {
-        opserr << "WARNING: CTestEnergyIncr::test() - no SOE returning true\n";
-        return -1;
-    }
-
     // set iteration count = 1
     currentIter = 1;
     norms.Zero();

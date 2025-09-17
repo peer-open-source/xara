@@ -31,8 +31,6 @@
 #define NormDispAndUnbalance_h
 
 #include <ConvergenceTest.h>
-#include <stdbool.h>
-class EquiSolnAlgo;
 class LinearSOE;
 
 
@@ -45,31 +43,28 @@ public:
                          double tolUnbalance,
                          int maxNumIter,
                          int printFlag,
-                         int normType=2, int maxincr=-1);
-
-    // destructor
+                         int normType=2,
+                         int maxincr=-1);
     ~NormDispAndUnbalance();
 
     ConvergenceTest *getCopy(int iterations);
 
     void setTolerance(double newTol);
-    int setEquiSolnAlgo(EquiSolnAlgo &theAlgo);
 
-    int test(void);
-    int start(void);
+    int test(LinearSOE&) override;
+    int start(LinearSOE&) override;
 
-    int getNumTests(void);
-    int getMaxNumTests(void);
-    double getRatioNumToMax(void);
-    const Vector &getNorms(void);
+    int getNumTests() override;
+    int getMaxNumTests() override;
+    double getRatioNumToMax() override;
+    const Vector &getNorms() override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
 protected:
 
 private:
-    LinearSOE *theSOE;
     double tolDisp;      // the tol on the norm used to test for convergence
     double tolUnbalance; // the tol on the norm used to test for convergence
 

@@ -52,7 +52,7 @@ void* OPS_NormDispOrUnbalance()
 
 NormDispOrUnbalance::NormDispOrUnbalance()
   : ConvergenceTest(CONVERGENCE_TEST_NormDispOrUnbalance),
-    theSOE(0), tolDisp(0), tolUnbalance(0),
+    tolDisp(0), tolUnbalance(0),
     maxNumIter(0), currentIter(0), printFlag(0),
     norms(25), nType(2), maxIncr(0), numIncr(0)
 {
@@ -62,7 +62,7 @@ NormDispOrUnbalance::NormDispOrUnbalance()
 
 NormDispOrUnbalance::NormDispOrUnbalance(double theTolDisp, double theTolUnbalance, int maxIter, int printIt, int normType, int maxincr)
   : ConvergenceTest(CONVERGENCE_TEST_NormDispOrUnbalance),
-    theSOE(0), tolDisp(theTolDisp), tolUnbalance(theTolUnbalance),
+    tolDisp(theTolDisp), tolUnbalance(theTolUnbalance),
     maxNumIter(maxIter), currentIter(0), printFlag(printIt),
     norms(2*maxIter), nType(normType), maxIncr(maxincr), numIncr(0)
 {
@@ -78,43 +78,26 @@ NormDispOrUnbalance::~NormDispOrUnbalance()
 
 ConvergenceTest* NormDispOrUnbalance::getCopy(int iterations)
 {
-  NormDispOrUnbalance *theCopy ;
-  theCopy = new NormDispOrUnbalance(this->tolDisp,
+  return new NormDispOrUnbalance(this->tolDisp,
                                     this->tolUnbalance,
                                     iterations,
                                     this->printFlag,
                                     this->nType,
-                                    this->maxIncr) ;
-
-  theCopy->theSOE = this->theSOE ;
-
-  return theCopy ;
+                                    this->maxIncr);
 }
 
 
-void NormDispOrUnbalance::setTolerance(double newTolDisp)
+void
+NormDispOrUnbalance::setTolerance(double newTolDisp)
 {
     tolDisp = newTolDisp;
 }
 
 
-int NormDispOrUnbalance::setEquiSolnAlgo(EquiSolnAlgo &theAlgo)
+
+int
+NormDispOrUnbalance::test(LinearSOE& theSOE)
 {
-    theSOE = theAlgo.getLinearSOEptr();
-
-    return 0;
-}
-
-
-int NormDispOrUnbalance::test(void)
-{
-    // check to ensure the SOE has been set - this should not happen if the
-    // return from start() is checked
-    if (theSOE == 0) {
-                  opserr << "WARNING: NormDispOrUnbalance::test() - no SOE set.\n";
-        return -2;
-        }
-
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
     if (currentIter == 0) {
@@ -123,9 +106,9 @@ int NormDispOrUnbalance::test(void)
     }
 
     // get the X vector & determine it's norm & save the value in norms vector
-    const Vector &x = theSOE->getX();
+    const Vector &x = theSOE.getX();
     double normX = x.pNorm(nType);
-    const Vector &b = theSOE->getB();
+    const Vector &b = theSOE.getB();
     double normB = b.pNorm(nType);
 
     if((currentIter>1 && norms(currentIter-2)<normX) && (currentIter>1 && norms(maxNumIter+currentIter-2)<normB)) {
@@ -147,7 +130,7 @@ int NormDispOrUnbalance::test(void)
         opserr << "NormDispOrUnbalance::test() - iteration: " << pad(currentIter);
         opserr << ", NormX: " << normX;
         opserr << ", NormB: " << normB << ", NormIncr: " << numIncr << "\n";
-        opserr << "\tdeltaX: " << x << "\tdeltaR: " << theSOE->getB();
+        opserr << "\tdeltaX: " << x << "\tdeltaR: " << theSOE.getB();
     }
 
     //
@@ -196,13 +179,8 @@ int NormDispOrUnbalance::test(void)
 }
 
 
-int NormDispOrUnbalance::start(void)
+int NormDispOrUnbalance::start(LinearSOE& theSOE)
 {
-    if (theSOE == 0) {
-        opserr << "WARNING: NormDispOrUnbalance::test() - no SOE returning true\n";
-        return -1;
-    }
-
     // set iteration count = 1
     norms.Zero();
     currentIter = 1;
