@@ -74,7 +74,7 @@ class DomainDecompositionAnalysis: public Analysis, public MovableObject
     virtual ~DomainDecompositionAnalysis();
     virtual void clearAll();            
     virtual int initialize();
-    virtual int domainChanged();
+    virtual int domainChanged() =0;
 
     // methods for non standard domain deomposition analysis
     virtual bool doesIndependentAnalysis();    
@@ -96,9 +96,8 @@ class DomainDecompositionAnalysis: public Analysis, public MovableObject
     const Vector& getResidual();
     const Vector& getTangVectProduct();
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-                         FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     // methods to change the analysis aggregates
     virtual int setAlgorithm(EquiSolnAlgo &theAlgorithm);
