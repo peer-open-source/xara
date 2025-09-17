@@ -111,7 +111,7 @@ DomainDecompositionAnalysis::DomainDecompositionAnalysis(Subdomain &the_Domain,
  theResidual(0),numEqn(0),numExtEqn(0),tangFormed(false),tangFormedCount(0)
 {
     theModel->setLinks(the_Domain, handler);
-    theHandler->setLinks(*theSubdomain,*theModel);//,*theIntegrator);
+    theHandler->setLinks(*theModel);
     theNumberer->setLinks(*theModel);
     theIntegrator->setLinks(*theModel,*theSOE, theTest);
     theAlgorithm->setLinks(*theIntegrator,*theSOE,*theSolver,*theSubdomain);
@@ -170,6 +170,7 @@ DomainDecompositionAnalysis::doesIndependentAnalysis()
     return false;
 }
 
+#if 0
 int
 DomainDecompositionAnalysis::domainChanged()
 {
@@ -254,12 +255,12 @@ DomainDecompositionAnalysis::domainChanged()
     
     return 0;
 }
-
+#endif
 
 int
 DomainDecompositionAnalysis::getNumExternalEqn()
 {
-    return numExtEqn;
+  return numExtEqn;
 }
 
 int
@@ -472,7 +473,7 @@ DomainDecompositionAnalysis::getTangVectProduct()
 Subdomain  *
 DomainDecompositionAnalysis::getSubdomainPtr() const
 {
-    return theSubdomain;
+  return theSubdomain;
 }
 
 
@@ -481,7 +482,7 @@ DomainDecompositionAnalysis::getSubdomainPtr() const
 ConstraintHandler *
 DomainDecompositionAnalysis::getConstraintHandlerPtr() const
 {
-    return theHandler;
+  return theHandler;
 }
 
 
@@ -662,7 +663,7 @@ DomainDecompositionAnalysis::recvSelf(int commitTag,
     // set the links in all the objects
 
     theModel->setLinks(*theSubdomain, *theHandler);
-    theHandler->setLinks(*theSubdomain,*theModel);//,*theIntegrator);
+    theHandler->setLinks(*theModel);
     theNumberer->setLinks(*theModel);
     theIntegrator->setLinks(*theModel,*theSOE, theTest);
     theAlgorithm->setLinks(*theIntegrator,*theSOE,
