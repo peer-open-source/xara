@@ -47,6 +47,7 @@
 
 // constraint handlers
 #include <PlainHandler.h>
+#include <AutoConstraintHandler.h>
 #include <PenaltyConstraintHandler.h>
 #include <LagrangeConstraintHandler.h>
 #include <TransformationConstraintHandler.h>
@@ -75,11 +76,11 @@ Tcl_CmdProc responseSpectrumAnalysis;
 int
 G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
 {
-  BasicAnalysisBuilder *builder = new BasicAnalysisBuilder(context);
-  Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, builder, nullptr);
-  Tcl_CreateCommand(interp, "_clearAnalysis", &TclCommand_clearAnalysis, builder, nullptr);
+  BasicAnalysisBuilder *analysis = new BasicAnalysisBuilder(context);
+  Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, analysis, nullptr);
+  Tcl_CreateCommand(interp, "_clearAnalysis", &TclCommand_clearAnalysis, analysis, nullptr);
 
-  Tcl_CreateCommand(interp, "numberer",   TclCommand_setNumberer, builder, nullptr);
+  Tcl_CreateCommand(interp, "numberer",   TclCommand_setNumberer, analysis, nullptr);
 
   Tcl_CreateCommand(interp, "responseSpectrumAnalysis", &OpenSees::responseSpectrumAnalysis, nullptr, nullptr);
 
@@ -89,7 +90,7 @@ G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
     Tcl_CreateCommand(interp, 
         tcl_analysis_cmds[i].name, 
         tcl_analysis_cmds[i].func, 
-        (ClientData) builder, nullptr);
+        (ClientData)analysis, nullptr);
 
   return TCL_OK;
 }
@@ -137,7 +138,8 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     opserr << "Unimplemented\n";
     return TCL_ERROR;
 
-  } else {
+  }
+  else {
     opserr << OpenSees::PromptValueError << "Analysis type '" << argv[1]
       << "' does not exists (Static or Transient only). \n";
     return TCL_ERROR;
@@ -334,6 +336,7 @@ eigenAnalysis(ClientData clientData,
            << "eigen command requires number of modes to be specified"
            << OpenSees::SignalMessageEnd;
   }
+
   //
   // create a transient analysis if no analysis exists
   // 
@@ -406,9 +409,9 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   if (numModes != 1 && numModes != numEigen) {
     // TODO: Just call eigen again?
     opserr << OpenSees::PromptValueError 
-           << "modalDampingQ - same number of damping factors as modes must be "
+           << "same number of damping factors as modes must be "
               "specified\n";
-//  opserr << "                    - same damping ratio will be applied to all\n";
+//  opserr << " same damping ratio will be applied to all\n";
     return TCL_ERROR;
   }
 
@@ -420,7 +423,7 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     // read in all factors one at a time
     for (int i = 0; i < numEigen; ++i) {
       if (Tcl_GetDouble(interp, argv[1 + i], &factor) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << argv[0] << " - could not read factor at position "
+        opserr << OpenSees::PromptValueError << "could not read factor at position "
                << i << "\n";
         return TCL_ERROR;
       }
@@ -490,7 +493,7 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     }
   }
 
-  if (the_static_integrator != 0)
+  if (the_static_integrator != nullptr)
     the_static_integrator->Print(output, flag);
   else
     theTransientIntegrator->Print(output, flag);
@@ -515,13 +518,12 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
   LinearSOE  *oldSOE = builder->getLinearSOE();
 
 
-  // Cant allocate theSolver on stack because theSOE is going to 
+  // Cant allocate the Solver on stack because theSOE is going to 
   // delete it
-  FullGenLinLapackSolver *theSolver = new FullGenLinLapackSolver();
-  FullGenLinSOE theSOE(*theSolver);
+  FullGenLinSOE theSOE(*new FullGenLinLapackSolver());
 
   builder->set(&theSOE, false);
-  // invoke domainChange which constructs a graph and passes
+  // Construct a graph and pass
   // it to the SOE. Otherwise, getA() returns null
   builder->domainChanged();
 
@@ -540,33 +542,37 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
       }
 
       if (outputFile.setFile(argv[currentArg]) != 0) {
-        opserr << "failed to open file: "
-               << argv[currentArg] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "failed to open file: "
+               << argv[currentArg] << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       output = &outputFile;
     }
     else if ((strcmp(argv[currentArg], "ret") == 0) ||
-               (strcmp(argv[currentArg], "-ret") == 0)) {
+             (strcmp(argv[currentArg], "-ret") == 0)) {
       ret = true;
+    }
 
-    } else if ((strcmp(argv[currentArg], "-m") == 0)) {
+    else if ((strcmp(argv[currentArg], "-m") == 0)) {
       currentArg++;
       if (Tcl_GetDouble(interp, argv[currentArg], &m) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "failed to read float following flag -m\n";
         return TCL_ERROR;
       }
       do_mck = true;
+    }
 
-    } else if ((strcmp(argv[currentArg], "-c") == 0)) {
+    else if ((strcmp(argv[currentArg], "-c") == 0)) {
       currentArg++;
       if (Tcl_GetDouble(interp, argv[currentArg], &c) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "failed to read float following flag -c\n";
         return TCL_ERROR;
       }
       do_mck = true;
+    }
 
-    } else if ((strcmp(argv[currentArg], "-k") == 0)) {
+    else if ((strcmp(argv[currentArg], "-k") == 0)) {
       currentArg++;
       if (Tcl_GetDouble(interp, argv[currentArg], &k) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "failed to read float following flag -k\n";
@@ -603,7 +609,8 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
   }
   else {
     opserr << OpenSees::PromptValueError 
-           << "No integrator has been set, cannot form tangent\n";
+           << "No integrator has been set, cannot form tangent"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -640,8 +647,8 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
           Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj((*A)(i, j)));
       }
       Tcl_SetObjResult(interp, list);
-
-    } else {
+    }
+    else {
       *output << *A;
       outputFile.close();
     }
@@ -746,7 +753,6 @@ TclCommand_clearAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_C
 static int
 wipeAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
-
   if (cd != nullptr) {
     BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)cd;
     builder->wipe();
@@ -771,6 +777,10 @@ specifyConstraintHandler(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
     return TCL_ERROR;
   }
 
+  //
+  // Create the handler
+  //
+
   ConstraintHandler *theHandler = nullptr;
   // check argv[1] for type of handler and create the object
   if (strcmp(argv[1], "Plain") == 0)
@@ -781,8 +791,10 @@ specifyConstraintHandler(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
   }
 
   else if (strcmp(argv[1], "Penalty") == 0) {
+    // handler Penalty alpha1 alpha2
     if (argc < 4) {
-      opserr << "WARNING: need to specify alpha: handler Penalty alpha \n";
+      opserr << OpenSees::PromptValueError
+             << "need to specify alpha\n";
       return TCL_ERROR;
     }
     double alpha1, alpha2;
@@ -805,9 +817,61 @@ specifyConstraintHandler(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
     theHandler = new LagrangeConstraintHandler(alpha1, alpha2);
   }
 
+  else if (strcmp(argv[1], "Auto") == 0) {
+    bool verbose = false;
+    bool auto_penalty = true;
+    double auto_penalty_oom = 3.0;
+    double user_penalty = 0.0;
+    bool auto_penalty_done = false;
+    bool user_penalty_done = false;
+    for (int i=2; i<argc; i++) {
+      if (strcmp(argv[i], "-verbose") == 0)
+        verbose = true;
+      else if (strcmp(argv[i], "-autoPenalty") == 0) {
+        if (user_penalty_done) {
+          opserr << OpenSees::PromptValueError << "cannot use with userPenalty\n";
+          return TCL_ERROR;
+        }
+        if (argc < i+1) {
+          opserr << OpenSees::PromptValueError << "autoPenalty needs a value\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[i+1], &auto_penalty_oom) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "autoPenalty needs a numeric value\n";
+          return TCL_ERROR;
+        }
+        i++;
+        auto_penalty = true;
+        auto_penalty_done = true;
+      }
+      else if (strcmp(argv[i], "-userPenalty") == 0) {
+        if (argc < i+1) {
+          opserr << OpenSees::PromptValueError << "userPenalty needs a value\n";
+          return TCL_ERROR;
+        }
+        if (auto_penalty_done) {
+          opserr << OpenSees::PromptValueError << "cannot use userPenalty with autoPenalty\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[i+1], &user_penalty) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "userPenalty needs a numeric value\n";
+          return TCL_ERROR;
+        }
+        i++;
+        auto_penalty = false;
+        user_penalty_done = true;
+      }
+      else {
+        opserr << OpenSees::PromptValueError << "unknown option " << argv[i] << "\n";
+        return TCL_ERROR;
+      }
+    }
+    theHandler = new AutoConstraintHandler(verbose, auto_penalty, auto_penalty_oom, user_penalty);
+  }
+
   else {
     opserr << OpenSees::PromptValueError << "ConstraintHandler type '" << argv[1]
-      << "' does not exists \n\t(Plain, Penalty, Lagrange, Transformation) only\n";
+      << "' does not exists \n\t(Plain, Penalty, Lagrange, Transformation, Auto) only\n";
     return TCL_ERROR;
   }
 
