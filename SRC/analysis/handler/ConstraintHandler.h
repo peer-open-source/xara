@@ -44,8 +44,6 @@ class AnalysisMethod;
 class ID;
 class Domain;
 class AnalysisModel;
-class Integrator;
-class FEM_ObjectBroker;
 
 class ConstraintHandler : public MovableObject
 {
@@ -53,24 +51,21 @@ class ConstraintHandler : public MovableObject
     ConstraintHandler(int classTag);
     virtual ~ConstraintHandler();
 
-    void setLinks(Domain &, AnalysisModel &);
+    void setLinks(AnalysisModel &);
 
     // pure virtual functions
     virtual int handle(const ID *nodesNumberedLast =0) =0;
-    virtual int update(void);
-    virtual int applyLoad(void);
-    virtual int doneNumberingDOF(void);
-    virtual void clearAll() =0;    
+    virtual void clearAll() {};
+    int doneNumberingDOF();
+
+    virtual int update();
+    virtual int applyLoad();
 
   protected:
-    Domain *getDomainPtr() const;
     AnalysisModel *getAnalysisModelPtr() const;
     
   private:
-    Integrator *getIntegratorPtr() const;
-    Domain *theDomainPtr;
     AnalysisModel *theAnalysisModelPtr;
-    Integrator *theIntegratorPtr;
 };
 
 #endif
