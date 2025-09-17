@@ -8,18 +8,18 @@
 target_sources(OPS_Runtime PRIVATE commands.cpp)
 
 target_sources(OPS_Analysis
-    PRIVATE
-       EigenIntegrator.cpp                  # Jun Peng
-       IncrementalIntegrator.cpp
-       Integrator.cpp
-       StaticIntegrator.cpp
-       TransientIntegrator.cpp
-    PUBLIC
-       EigenIntegrator.h
-       IncrementalIntegrator.h
-       Integrator.h
-       StaticIntegrator.h
-       TransientIntegrator.h
+   PRIVATE
+      EigenIntegrator.cpp
+      IncrementalIntegrator.cpp
+      Integrator.cpp
+      StaticIntegrator.cpp
+      TransientIntegrator.cpp
+   PUBLIC
+      EigenIntegrator.h
+      IncrementalIntegrator.h
+      Integrator.h
+      StaticIntegrator.h
+      TransientIntegrator.h
 )
 
 
