@@ -38,7 +38,7 @@ add_subdirectory(CSPARSE/)
 add_subdirectory(METIS/)
 
 set(MUMPS_parallel OFF)
-add_subdirectory(mumps_sv)
+#add_subdirectory(mumps_sv)
 # if (MPI_FOUND)
 #   message("adding MUMPS and SUPERLU_DIST")
 # # add_subdirectory(MUMPS_5.4.1/)
