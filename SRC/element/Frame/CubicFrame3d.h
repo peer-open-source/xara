@@ -4,6 +4,19 @@
 //
 //===----------------------------------------------------------------------===//
 //
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 #ifndef CubicFrame3d_h
 #define CubicFrame3d_h
 
@@ -39,30 +52,30 @@ public:
 
 
   const char*
-  getClassType() const final
+  getClassType() const override
   {
     return "CubicFrame3d";
   }
 
-  int getNumExternalNodes() const;
-  const ID& getExternalNodes();
-  Node** getNodePtrs();
+  int getNumExternalNodes() const override;
+  const ID& getExternalNodes() override;
+  Node** getNodePtrs() override;
 
-  int getNumDOF();
-  void setDomain(Domain*);
+  int getNumDOF() override;
+  void setDomain(Domain*) override;
 
-  int update() final;
-  int commitState() final;
-  int revertToLastCommit() final;
-  int revertToStart() final;
+  int update() override;
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
 
-  // public methods to obtain stiffness, mass, damping and residual information
+  // public methods to obtain stiffness, mass, damping and residual
   const Matrix& getTangentStiff() final;
   const Matrix& getInitialStiff() final;
   const Matrix& getMass() final;
 
   void zeroLoad() final;
-  int addLoad(ElementalLoad* theLoad, double loadFactor) final;
+  int addLoad(ElementalLoad*, double loadFactor) final;
   int addInertiaLoadToUnbalance(const Vector& accel) final;
 
   const Vector& getResistingForce() final;
@@ -84,8 +97,8 @@ public:
   int commitSensitivity(int gradNumber, int numGrads);
 
   // MovableObject
-  int sendSelf(int commitTag, Channel&);
-  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
+  int sendSelf(int commitTag, Channel&) override;
+  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&) override;
 
   // TaggedObject
   void Print(OPS_Stream& s, int flag) final;
