@@ -78,17 +78,12 @@ NewtonLineSearch::solveCurrentStep()
 
   theLineSearch->newStep(*theSOE);
 
-  // set itself as the ConvergenceTest objects EquiSolnAlgo
-  theTest->setEquiSolnAlgo(*this);
-  if (theTest->start() < 0) {
-    opserr << "NewtonLineSearch::solveCurrentStep() -";
-    opserr << "the ConvergenceTest failed in start()\n";
-    return -3;
+  if (theTest->start(*theSOE) < 0) {
+    return SolutionAlgorithm::BadTestStart;
   }
 
   ConvergenceTest *theOtherTest = nullptr;
   theOtherTest = theTest->getCopy(10);
-  theOtherTest->setEquiSolnAlgo(*this);
 
   if (theIntegrator->formUnbalance() < 0) 
     return SolutionAlgorithm::BadFormResidual;
@@ -122,8 +117,8 @@ NewtonLineSearch::solveCurrentStep()
         return SolutionAlgorithm::BadFormResidual;
 
       // do a line search only if convergence criteria not met
-      theOtherTest->start();
-      result = theOtherTest->test();
+      theOtherTest->start(*theSOE);
+      result = theOtherTest->test(*theSOE);
 
       if (result < 1) {
         // new residual 
@@ -138,7 +133,7 @@ NewtonLineSearch::solveCurrentStep()
 
       this->record(0);
 
-      result = theTest->test();
+      result = theTest->test(*theSOE);
 
   }  while (result == ConvergenceTest::Continue);
 

@@ -92,7 +92,7 @@ TransientDomainDecompositionAnalysis::TransientDomainDecompositionAnalysis(Subdo
   if (setLinks == true) {
     // set up the links needed by the elements in the aggregation
     theAnalysisModel->setLinks(the_Domain, theHandler);
-    theConstraintHandler->setLinks(the_Domain,theModel);
+    theConstraintHandler->setLinks(theModel);
     theDOF_Numberer->setLinks(theModel);
     theIntegrator->setLinks(theModel,theLinSOE, theTest);
     theAlgorithm->setLinks(theTransientIntegrator,theLinSOE, theTest);
@@ -646,7 +646,7 @@ TransientDomainDecompositionAnalysis::recvSelf(int commitTag, Channel &theChanne
 
   // set up the links needed by the elements in the aggregation
   theAnalysisModel->setLinks(*the_Domain, *theConstraintHandler);
-  theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel);
+  theConstraintHandler->setLinks(*theAnalysisModel);
   theDOF_Numberer->setLinks(*theAnalysisModel);
   theIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
   theAlgorithm->setLinks( *theIntegrator, *theSOE, theTest);
@@ -685,13 +685,12 @@ TransientDomainDecompositionAnalysis::setIntegrator(IncrementalIntegrator &theNe
   }
   
   // set the links needed by the other objects in the aggregation
-  Domain *the_Domain = this->getDomainPtr();
-  
+
   theIntegrator = (TransientIntegrator *)(&theNewIntegrator);
 
-  if (theIntegrator != 0 && theConstraintHandler != 0 && theAlgorithm != 0 && theAnalysisModel != 0 && theSOE != 0) {
+  if (theIntegrator != nullptr && theConstraintHandler != 0 && theAlgorithm != 0 && theAnalysisModel != 0 && theSOE != 0) {
     theIntegrator->setLinks(*theAnalysisModel,*theSOE, theTest);
-    theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel);
+    theConstraintHandler->setLinks(*theAnalysisModel);
     theAlgorithm->setLinks(*theIntegrator, *theSOE, theTest);
   }
 

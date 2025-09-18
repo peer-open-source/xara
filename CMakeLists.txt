@@ -25,24 +25,6 @@ enable_testing()
 # DEPENDENCIES
 #==============================================================================
 
-# If conan has been run, load generated external dependencies
-if(EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-   message(":: Using Conan")
-   include("${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-   conan_basic_setup() # TARGETS)
-   set(TCL_INCLUDE_DIRS "${CONAN_INCLUDE_DIRS_TCL}")
-   set(TCL_INCLUDE_PATH "${CONAN_INCLUDE_DIRS_TCL}")
-   set(TCL_LIBRARIES    "${CONAN_PKG_LIBS_TCL}")
-#  message(":: TCL :: ${TCL_INCLUDE_DIRS}\n${CONAN_INCLUDE_DIRS_TCL}")
-#  message(":: TCL :: ${TCL_INCLUDE_PATH}\n${CONAN_INCLUDE_DIRS_TCL}")
-#  message(":: TCL :: ${TCL_LIBRARIES}   \n${CONAN_PKG_LIBS_TCL}")
-#  
-#  message("Win: TCL_LIBRARY:     ${TCL_LIBRARY}")
-#  message("Win: Env:TCL_LIBRARY: $ENV{TCL_LIBRARY}")
-#  message("Win: TCL_INCL_PATH:   ${TCL_INCLUDE_PATH}")
-#  message("Win: TCL:             ${TCL_LIBRARIES}")
-endif()
-
 set(OPS_Extension_List OPS_ASDEA)
 
 #==============================================================================
@@ -189,7 +171,7 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated-declarations>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>"
   )
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+  # if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     add_compile_options(
       "$<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder-ctor>"
       "$<$<COMPILE_LANGUAGE:CXX>:-Wno-inconsistent-missing-override>"
@@ -198,12 +180,12 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
       "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-ignored-optimization-argument>"
       "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-invalid-utf8>"
     )
-  else()
+  # else()
     add_compile_options(
       "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-reorder>"
       "$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-dummy-argument>"
     )
-  endif()
+  # endif()
 endif()
 
 #----------------------------------------------------------------
@@ -341,7 +323,13 @@ set_property(TARGET OPS_Runtime           PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_MaterialFortran   PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_ElementFortran    PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET G3                    PROPERTY POSITION_INDEPENDENT_CODE 1)
-
+target_include_directories(G3 PUBLIC 
+  ${OPS_SRC_DIR}/handler
+  ${OPS_SRC_DIR}/actor/actor
+  ${OPS_SRC_DIR}/actor/objectBroker
+  ${OPS_SRC_DIR}/actor/channel
+  ${OPS_SRC_DIR}/actor/message
+)
 
 
 

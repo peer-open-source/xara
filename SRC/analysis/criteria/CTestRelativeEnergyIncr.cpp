@@ -30,7 +30,7 @@
 
 CTestRelativeEnergyIncr::CTestRelativeEnergyIncr()
     : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeEnergyIncr),
-    theSOE(0), tol(0), maxNumIter(0), currentIter(0), printFlag(0),
+    tol(0), maxNumIter(0), currentIter(0), printFlag(0),
     norms(1), norm0(0.0), nType(2)
 {
 
@@ -39,7 +39,7 @@ CTestRelativeEnergyIncr::CTestRelativeEnergyIncr()
 
 CTestRelativeEnergyIncr::CTestRelativeEnergyIncr(double theTol, int maxIter, int printIt, int normType)
     : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeEnergyIncr),
-    theSOE(0), tol(theTol), maxNumIter(maxIter), currentIter(0),printFlag(printIt),
+    tol(theTol), maxNumIter(maxIter), currentIter(0),printFlag(printIt),
     norms(maxNumIter), norm0(0.0), nType(normType)
 {
 
@@ -52,14 +52,10 @@ CTestRelativeEnergyIncr::~CTestRelativeEnergyIncr()
 }
 
 
-ConvergenceTest* CTestRelativeEnergyIncr::getCopy(int iterations)
+ConvergenceTest*
+CTestRelativeEnergyIncr::getCopy(int iterations)
 {
-    CTestRelativeEnergyIncr *theCopy ;
-    theCopy = new CTestRelativeEnergyIncr(this->tol, iterations, this->printFlag, this->nType);
-
-    theCopy->theSOE = this->theSOE ;
-
-    return theCopy ;
+    return new CTestRelativeEnergyIncr(this->tol, iterations, this->printFlag, this->nType);
 }
 
 
@@ -69,23 +65,9 @@ void CTestRelativeEnergyIncr::setTolerance(double newTol)
 }
 
 
-int CTestRelativeEnergyIncr::setEquiSolnAlgo(EquiSolnAlgo &theAlgo)
+int
+CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
 {
-    theSOE = theAlgo.getLinearSOEptr();
-
-    return 0;
-}
-
-
-int CTestRelativeEnergyIncr::test(void)
-{
-    // check to ensure the SOE has been set - this should not happen if the
-    // return from start() is checked
-    if (theSOE == 0)  {
-        opserr << "WARNING: CTestRelativeEnergyIncr::test() - no SOE set.\n";
-        return -1;
-    }
-
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
     if (currentIter == 0) {
@@ -95,8 +77,8 @@ int CTestRelativeEnergyIncr::test(void)
 
 
     // determine the energy & save value in norms vector
-    const Vector &b = theSOE->getB();
-    const Vector &x = theSOE->getX();
+    const Vector &b = theSOE.getB();
+    const Vector &x = theSOE.getX();
     double product = x ^ b;
     if (product < 0.0)
         product *= -0.5;
@@ -194,13 +176,9 @@ int CTestRelativeEnergyIncr::test(void)
 }
 
 
-int CTestRelativeEnergyIncr::start(void)
+int
+CTestRelativeEnergyIncr::start(LinearSOE& theSOE)
 {
-    if (theSOE == 0) {
-        opserr << "WARNING: CTestRelativeEnergyIncr::start - no SOE returning true\n";
-        return -1;
-    }
-
     currentIter = 1;
     norms.Zero();
     norm0 = 0.0;

@@ -50,10 +50,9 @@ public:
     ConvergenceTest *getCopy(int iterations);
 
     void setTolerance(double newTol);
-    int setEquiSolnAlgo(EquiSolnAlgo &theAlgo);
 
-    int test(void);
-    int start(void);
+    int test(LinearSOE& theSOE) override;
+    int start(LinearSOE&) override;
 
     int getNumTests(void);
     int getMaxNumTests(void);
@@ -66,7 +65,6 @@ public:
 protected:
 
 private:
-    LinearSOE *theSOE;
     double tol;         // the tol on the norm used to test for convergence
     double maxTol;      // the max tol on the norm used to test for convergence, if reached returns failure
 

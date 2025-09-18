@@ -26,9 +26,7 @@ else()
   add_subdirectory(arpack-ng/)
 
   if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(arpack PRIVATE -Wno-unused-variable
-#   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:"-Wno-unused-variable">
-    )
+    target_compile_options(arpack PRIVATE -Wno-unused-variable)
   endif()
 
   add_library(ARPACK INTERFACE)
@@ -39,9 +37,11 @@ add_subdirectory(SuperLU_5.1.1/)
 add_subdirectory(CSPARSE/)
 add_subdirectory(METIS/)
 
-if(MPI_FOUND)
-  message("adding MUMPS and SUPERLU_DIST")
-# add_subdirectory(MUMPS_5.4.1/)
-  add_subdirectory(SuperLU_DIST_4.3/SRC)
-endif()
+set(MUMPS_parallel OFF)
+#add_subdirectory(mumps_sv)
+# if (MPI_FOUND)
+#   message("adding MUMPS and SUPERLU_DIST")
+# # add_subdirectory(MUMPS_5.4.1/)
+#   add_subdirectory(SuperLU_DIST_4.3/SRC)
+# endif()
 

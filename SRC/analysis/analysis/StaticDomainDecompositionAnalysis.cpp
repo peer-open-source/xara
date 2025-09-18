@@ -85,7 +85,7 @@ StaticDomainDecompositionAnalysis::StaticDomainDecompositionAnalysis(Subdomain &
   if (setLinks == true) {
     // set up the links needed by the elements in the aggregation
     theAnalysisModel->setLinks(the_Domain, theHandler);
-    theConstraintHandler->setLinks(the_Domain, theModel);
+    theConstraintHandler->setLinks(theModel);
     theDOF_Numberer->setLinks(theModel);
     theIntegrator->setLinks(theModel, theLinSOE, theTest);
     theAlgorithm->setLinks(theStaticIntegrator, theLinSOE, theTest);
@@ -360,7 +360,7 @@ StaticDomainDecompositionAnalysis::domainChanged()
   theAnalysisModel->clearAll();
   theConstraintHandler->clearAll();
   
-  // now we invoke handle() on the constraint handler which
+  // now we invoke handle on the constraint handler which
   // causes the creation of FE_Element and DOF_Group objects
   // and their addition to the AnalysisModel.
   
@@ -381,7 +381,7 @@ StaticDomainDecompositionAnalysis::domainChanged()
     opserr << "DOF_Numberer::numberDOF() failed";
     return -2;
   }	    
-    result = theConstraintHandler->doneNumberingDOF();
+  result = theConstraintHandler->doneNumberingDOF();
 
   
   // we invoke setSize() on the LinearSOE which
@@ -649,7 +649,7 @@ StaticDomainDecompositionAnalysis::recvSelf(int commitTag, Channel &theChannel,
 
   // set up the links needed by the elements in the aggregation
   theAnalysisModel->setLinks(*the_Domain, *theConstraintHandler);
-  theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel);
+  theConstraintHandler->setLinks(*theAnalysisModel);
   theDOF_Numberer->setLinks(*theAnalysisModel);
   theIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
   theAlgorithm->setLinks(*theIntegrator, *theSOE, theTest);
@@ -681,17 +681,16 @@ int
 StaticDomainDecompositionAnalysis::setIntegrator(IncrementalIntegrator &theNewIntegrator) 
 {
   // invoke the destructor on the old one
-  if (theIntegrator != 0) {
+  if (theIntegrator != nullptr) {
     delete theIntegrator;
   }
   
   // set the links needed by the other objects in the aggregation
-  Domain *the_Domain = this->getDomainPtr();
-  
+
   theIntegrator = (StaticIntegrator *)(&theNewIntegrator);
   if (theIntegrator != 0 && theConstraintHandler != 0 && theAlgorithm != 0 && theAnalysisModel != 0 && theSOE != 0) {
     theIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
-    theConstraintHandler->setLinks(*the_Domain, *theAnalysisModel);
+    theConstraintHandler->setLinks(*theAnalysisModel);
     theAlgorithm->setLinks(*theIntegrator, *theSOE, theTest);
   }
 

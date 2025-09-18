@@ -30,7 +30,7 @@
 
 CTestNormUnbalance::CTestNormUnbalance()
     : ConvergenceTest(CONVERGENCE_TEST_CTestNormUnbalance),
-      theSOE(0), tol(0.0), maxTol(OPS_MAXTOL), maxNumIter(0), currentIter(0), printFlag(0),
+      tol(0.0), maxTol(OPS_MAXTOL), maxNumIter(0), currentIter(0), printFlag(0),
       norms(1), nType(2), maxIncr(0), numIncr(0)
 {
 
@@ -39,7 +39,7 @@ CTestNormUnbalance::CTestNormUnbalance()
 
 CTestNormUnbalance::CTestNormUnbalance(double theTol, int maxIter, int printIt, int normType, int maxincr, double max)
     : ConvergenceTest(CONVERGENCE_TEST_CTestNormUnbalance),
-      theSOE(0), tol(theTol), maxTol(max), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
+      tol(theTol), maxTol(max), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
       nType(normType), norms(maxNumIter), maxIncr(maxincr), numIncr(0)
 {
     if(maxIncr < 0) {
@@ -57,9 +57,7 @@ CTestNormUnbalance::~CTestNormUnbalance()
 ConvergenceTest* CTestNormUnbalance::getCopy(int iterations)
 {
     CTestNormUnbalance *theCopy ;
-    theCopy = new CTestNormUnbalance(this->tol, iterations, this->printFlag, this->nType, this->maxIncr, this->maxTol) ;
-
-    theCopy->theSOE = this->theSOE ;
+    theCopy = new CTestNormUnbalance(this->tol, iterations, this->printFlag, this->nType, this->maxIncr, this->maxTol);
 
     return theCopy ;
 }
@@ -71,21 +69,9 @@ void CTestNormUnbalance::setTolerance(double newTol)
 }
 
 
-int CTestNormUnbalance::setEquiSolnAlgo(EquiSolnAlgo &theAlgo)
+int
+CTestNormUnbalance::test(LinearSOE& theSOE)
 {
-    theSOE = theAlgo.getLinearSOEptr();
-    return 0;
-}
-
-
-int CTestNormUnbalance::test(void)
-{
-    // check to ensure the SOE has been set - this should not happen if the
-    // return from start() is checked
-    if (theSOE == nullptr) {
-      opserr << "WARNING: CTestNormUnbalance::test() - no SOE set.\n";
-      return -2;
-    }
 
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
@@ -95,13 +81,13 @@ int CTestNormUnbalance::test(void)
     }
 
     // get the B vector & determine it's norm & save the value in norms vector
-    const Vector &x = theSOE->getB();
+    const Vector &x = theSOE.getB();
     double norm = x.pNorm(nType);
     if (currentIter <= maxNumIter)
         norms(currentIter-1) = norm;
 
-    if(currentIter > 1) {
-        if(norms(currentIter-2) < norm) {
+    if (currentIter > 1) {
+        if (norms(currentIter-2) < norm) {
             numIncr++;
         }
     }
@@ -110,13 +96,13 @@ int CTestNormUnbalance::test(void)
     if (printFlag & ConvergenceTest::PrintTest) {
         opserr << LOG_ITERATE << "Iter: " << pad(currentIter);
         opserr << ", Norm: " << pad(norm) << " (max: " << tol;
-        opserr << ", Norm deltaX: " << theSOE->getX().pNorm(nType) << ")\n";
+        opserr << ", Norm deltaX: " << theSOE.getX().pNorm(nType) << ")\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
         opserr << LOG_ITERATE << "Iter: " << pad(currentIter);
         opserr << ", Norm: " << pad(norm) << " (max: " << tol << ")\n";
-        opserr << "\tNorm deltaX: " << theSOE->getX().pNorm(nType) << ", Norm deltaR: " << pad(norm) << "\n";
-        opserr << "\tdeltaX: " << theSOE->getX() << "\tdeltaR: " << x;
+        opserr << "\tNorm deltaX: " << theSOE.getX().pNorm(nType) << ", Norm deltaR: " << pad(norm) << "\n";
+        opserr << "\tdeltaX: " << theSOE.getX() << "\tdeltaR: " << x;
     }
 
     if (printFlag == 7) {
@@ -130,8 +116,8 @@ int CTestNormUnbalance::test(void)
         outDu.open("dX.out",std::ios::app);
         outDp.open("dP.out", std::ios::app);
       }
-      const Vector &Du = theSOE->getX();
-      const Vector &Dp = theSOE->getB();
+      const Vector &Du = theSOE.getX();
+      const Vector &Dp = theSOE.getB();
       for (int i=0; i<Du.Size(); i++) {
         outDu << Du[i] << " ";
         outDp << Dp[i] << " ";
@@ -155,7 +141,7 @@ int CTestNormUnbalance::test(void)
         if (printFlag & ConvergenceTest::PrintSuccess || printFlag == 7) {
             opserr << LOG_SUCCESS << "Iter: " << pad(currentIter);
             opserr << ", Norm: " << pad(norm) << " (max: " << tol;
-            opserr << ", Norm deltaX: " << theSOE->getX().pNorm(nType) << ")\n";
+            opserr << ", Norm deltaX: " << theSOE.getX().pNorm(nType) << ")\n";
         }
 
         // return the number of times test has been called
@@ -168,7 +154,7 @@ int CTestNormUnbalance::test(void)
             opserr << LOG_FAILURE
                    //<< "criteria CTestNormUnbalance but going on -";
                    << ", Norm: " << pad(norm) 
-                   << ", Norm deltaX: " << pad(theSOE->getX().pNorm(nType))
+                   << ", Norm deltaX: " << pad(theSOE.getX().pNorm(nType))
                    << "\n";
         }
         return currentIter;
@@ -182,7 +168,7 @@ int CTestNormUnbalance::test(void)
                    // << LOG_CONTINUE
                    << "Iter: "           << pad(currentIter)
                    << ", Norm: "         << pad(norm)
-                   << ", Norm deltaX: "  << pad(theSOE->getX().pNorm(nType)) 
+                   << ", Norm deltaX: "  << pad(theSOE.getX().pNorm(nType)) 
                    << "\n";
         }
         currentIter++;  // we increment in case analysis does not check for convergence
@@ -197,13 +183,8 @@ int CTestNormUnbalance::test(void)
 }
 
 
-int CTestNormUnbalance::start(void)
+int CTestNormUnbalance::start(LinearSOE& theSOE)
 {
-    if (theSOE == 0) {
-        opserr << "WARNING: CTestNormUnbalance::test() - no SOE returning true\n";
-        return -1;
-    }
-
     // set iteration count = 1
     norms.Zero();
     currentIter = 1;

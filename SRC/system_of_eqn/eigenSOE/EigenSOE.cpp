@@ -55,7 +55,7 @@ EigenSOE::setSolver(EigenSolver &newSolver)
 }
 
 EigenSolver *
-EigenSOE::getSolver(void)
+EigenSOE::getSolver()
 {	
     return theSolver;
 }
@@ -72,8 +72,70 @@ EigenSOE::getEigenvalue(int mode) {
 
 
 int 
-EigenSOE::setLinks(AnalysisModel &theModel)
+EigenSOE::setLinks(AnalysisModel &)
 {
   return 0;
 }
 
+
+#include <FE_Element.h>
+#include <FE_EleIter.h>
+#include <DOF_Group.h>
+#include <DOF_GrpIter.h>
+#include <Vector.h>
+#include <Matrix.h>
+#include <Logging.h>
+int 
+EigenSOE::formSystem(AnalysisModel &model, bool generalized)
+{
+  int result = 0;
+
+  //
+  // zero A and M
+  //
+  this->zeroA();
+  this->zeroM();
+
+  //
+  // form K
+  //
+  FE_EleIter &theEles = model.getFEs();
+  FE_Element *elePtr;
+  while ((elePtr = theEles()) != nullptr) {
+    elePtr->zeroTangent();
+    elePtr->addKtToTang(1.0);
+    if (this->addA(elePtr->getTangent(nullptr), elePtr->getID()) < 0) {
+      opserr << G3_WARN_PROMPT << "eigen -";
+      opserr << " failed in addA for ID " << elePtr->getID();
+      result = -2;
+    }
+  }
+
+  //
+  // If generalized is true, form M
+  //
+  if (generalized == true) {
+    FE_EleIter &theEles2 = model.getFEs();
+    while ((elePtr = theEles2()) != nullptr) {
+      elePtr->zeroTangent();
+      elePtr->addMtoTang(1.0);
+      if (this->addM(elePtr->getTangent(nullptr), elePtr->getID()) < 0) {
+        opserr << "WARNING BasicAnalysisBuilder::eigen -";
+        opserr << " failed in addA for ID " << elePtr->getID() << "\n";
+        result = -2;
+      }
+    }
+
+    DOF_Group *dofPtr;
+    DOF_GrpIter &theDofs = model.getDOFs();
+    while ((dofPtr = theDofs()) != nullptr) {
+      dofPtr->zeroTangent();
+      dofPtr->addMtoTang(1.0);
+      if (this->addM(dofPtr->getTangent(0), dofPtr->getID()) < 0) {
+        opserr << G3_WARN_PROMPT << "failed in addM for ID " << dofPtr->getID() << "\n";
+        result = -3;
+      }
+    }
+  }
+  return 0;
+}

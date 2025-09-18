@@ -130,16 +130,13 @@ Broyden::solveCurrentStep()
       return -5;
   }        
 
-  // set itself as the ConvergenceTest objects EquiSolnAlgo
-  theTest->setEquiSolnAlgo(*this);
-  if (theTest->start() < 0) {
+  if (theTest->start(*theSOE) < 0) {
     opserr << "Broyden::solveCurrentStep() -";
     opserr << "the ConvergenceTest object failed in start()\n";
     return -3;
   }
 
   ConvergenceTest *localTest = theTest->getCopy(this->numberLoops);
-  localTest->setEquiSolnAlgo(*this);
 
   int result = -1 ;
   int count = 0 ;
@@ -198,7 +195,7 @@ Broyden::solveCurrentStep()
       du = new Vector(systemSize) ;
 
 
-    localTest->start() ;
+    localTest->start(*theSOE) ;
 
     int nBroyden = 1 ;
     do {
@@ -243,12 +240,12 @@ Broyden::solveCurrentStep()
         opserr << "the Integrator failed in formUnbalance()\n";        
       }            
       
-      result = localTest->test() ;
+      result = localTest->test(*theSOE); ;
       
     } while ( result == -1 && nBroyden <= numberLoops );
 
 
-    result = theTest->test();
+    result = theTest->test(*theSOE);
     this->record(count++);
 
   } while (result == ConvergenceTest::Continue);
@@ -273,7 +270,7 @@ void  Broyden::BroydenUpdate( IncrementalIntegrator *theIntegrator,
 
   static constexpr double eps = 1.0e-16 ;
 
-  int systemSize = theSOE->getNumEqn( ) ;
+  int systemSize = theSOE->getNumEqn() ;
 
 
   //compute z

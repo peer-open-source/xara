@@ -77,7 +77,7 @@ NewtonRaphson::solveCurrentStep()
 
   if  (  (theIntegrator== nullptr)
       || (theSOE       == nullptr)
-      || (theTest      == nullptr)){
+      || (theTest      == nullptr)) {
       opserr << "WARNING NewtonRaphson::solveCurrentStep() - setLinks() has";
       opserr << " not been called - or no ConvergenceTest has been set\n";
       return SolutionAlgorithm::BadAlgorithm;
@@ -90,12 +90,8 @@ NewtonRaphson::solveCurrentStep()
     return SolutionAlgorithm::BadFormResidual;
 
 
-  // Set self as the ConvergenceTest's EquiSolnAlgo;
-  // TODO: Perhaps move this to the BasicAnalysisBuilder;
-  // at least the call to start. 
   // Its prbably good to pass theTest as an argument to solveCurrentStep.
-  theTest->setEquiSolnAlgo(*this);
-  if (theTest->start() < 0)
+  if (theTest->start(*theSOE) < 0)
     return SolutionAlgorithm::BadTestStart;
 
 
@@ -117,7 +113,7 @@ NewtonRaphson::solveCurrentStep()
         return SolutionAlgorithm::BadFormTangent;
     }
     else {
-      SOLUTION_ALGORITHM_tangentFlag =correction_tangent;
+      SOLUTION_ALGORITHM_tangentFlag = correction_tangent;
       if (theIntegrator->formTangent(correction_tangent, iFactor, cFactor) < 0)
         return SolutionAlgorithm::BadFormTangent;
     }
@@ -141,7 +137,7 @@ NewtonRaphson::solveCurrentStep()
     //
     // 2.4 Test on updated residual
     //
-    result = theTest->test();
+    result = theTest->test(*theSOE);
     numIterations++;
     this->record(numIterations);
 

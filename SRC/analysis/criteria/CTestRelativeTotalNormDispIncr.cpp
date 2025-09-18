@@ -33,7 +33,7 @@
 
 CTestRelativeTotalNormDispIncr::CTestRelativeTotalNormDispIncr()
     : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr),
-    theSOE(0), tol(0), maxNumIter(0), currentIter(0), printFlag(0),
+    tol(0), maxNumIter(0), currentIter(0), printFlag(0),
     norms(1), totNorm(0.0), nType(2)
 {
 
@@ -42,7 +42,7 @@ CTestRelativeTotalNormDispIncr::CTestRelativeTotalNormDispIncr()
 
 CTestRelativeTotalNormDispIncr::CTestRelativeTotalNormDispIncr(double theTol, int maxIter, int printIt, int normType)
     : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr),
-    theSOE(0), tol(theTol), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
+    tol(theTol), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
     norms(maxIter), totNorm(0.0), nType(normType)
 {
 
@@ -59,9 +59,6 @@ ConvergenceTest* CTestRelativeTotalNormDispIncr::getCopy(int iterations)
 {
     CTestRelativeTotalNormDispIncr *theCopy;
     theCopy = new CTestRelativeTotalNormDispIncr(this->tol, iterations, this->printFlag, this->nType);
-
-    theCopy->theSOE = this->theSOE ;
-
     return theCopy;
 }
 
@@ -72,23 +69,10 @@ void CTestRelativeTotalNormDispIncr::setTolerance(double newTol)
 }
 
 
-int CTestRelativeTotalNormDispIncr::setEquiSolnAlgo(EquiSolnAlgo &theAlgo)
+
+int
+CTestRelativeTotalNormDispIncr::test(LinearSOE& theSOE)
 {
-    theSOE = theAlgo.getLinearSOEptr();
-
-    return 0;
-}
-
-
-int CTestRelativeTotalNormDispIncr::test(void)
-{
-    // check to ensure the SOE has been set - this should not happen if the
-    // return from start() is checked
-    if (theSOE == 0)  {
-        opserr << "WARNING: CTestRelativeTotalNormDispIncr::test() - no SOE set.\n";
-        return -1;
-    }
-
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
     if (currentIter == 0)  {
@@ -97,7 +81,7 @@ int CTestRelativeTotalNormDispIncr::test(void)
     }
 
     // get the X vector & determine it's norm & save the value in norms vector
-    const Vector &x = theSOE->getX();
+    const Vector &x = theSOE.getX();
     double norm = x.pNorm(nType);
     if (currentIter <= maxNumIter)
         norms(currentIter-1) = norm;
@@ -122,10 +106,10 @@ int CTestRelativeTotalNormDispIncr::test(void)
         opserr << ", |dR|/|dRtot|: " << pad(norm) 
                << endln;
         opserr << "\tNorm deltaX: "  << pad(norm) 
-               << ", Norm deltaR: "  << pad(theSOE->getB().pNorm(nType))
+               << ", Norm deltaR: "  << pad(theSOE.getB().pNorm(nType))
                << endln;
         opserr << "\tdeltaX: "       << x 
-               << "\tdeltaR: "       << theSOE->getB();
+               << "\tdeltaR: "       << theSOE.getB();
     }
 
     //
@@ -159,7 +143,7 @@ int CTestRelativeTotalNormDispIncr::test(void)
                    << ", |dR|/|dRtot|: " << pad(norm) 
                    << endln
                    << "\tNorm deltaX: "  << pad(norm)
-                   << ", Norm deltaR: "  << pad(theSOE->getB().pNorm(nType)) 
+                   << ", Norm deltaR: "  << pad(theSOE.getB().pNorm(nType)) 
                    << endln;
         }
         return currentIter;
@@ -187,13 +171,8 @@ int CTestRelativeTotalNormDispIncr::test(void)
 }
 
 
-int CTestRelativeTotalNormDispIncr::start(void)
+int CTestRelativeTotalNormDispIncr::start(LinearSOE& theSOE)
 {
-    if (theSOE == 0) {
-        opserr << "WARNING: CTestRelativeTotalNormDispIncr::start - no SOE returning true\n";
-        return -1;
-    }
-
     // set iteration count = 1
     norms.Zero();
     currentIter = 1;

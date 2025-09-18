@@ -28,7 +28,7 @@
 
 CTestRelativeNormUnbalance::CTestRelativeNormUnbalance()
     : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeNormUnbalance),
-    theSOE(0), tol(0.0), maxNumIter(0), currentIter(0), printFlag(0),
+    tol(0.0), maxNumIter(0), currentIter(0), printFlag(0),
     norms(1), norm0(0.0), nType(2)
 {
 
@@ -37,7 +37,7 @@ CTestRelativeNormUnbalance::CTestRelativeNormUnbalance()
 
 CTestRelativeNormUnbalance::CTestRelativeNormUnbalance(double theTol, int maxIter, int printIt, int normType)
     : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeNormUnbalance),
-    theSOE(0), tol(theTol), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
+    tol(theTol), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
     norms(maxNumIter+1), norm0(0.0), nType(normType)
 {
 
@@ -55,8 +55,6 @@ ConvergenceTest* CTestRelativeNormUnbalance::getCopy(int iterations)
     CTestRelativeNormUnbalance *theCopy ;
     theCopy = new CTestRelativeNormUnbalance(this->tol, iterations, this->printFlag, this->nType) ;
 
-    theCopy->theSOE = this->theSOE ;
-
     return theCopy ;
 }
 
@@ -67,23 +65,10 @@ void CTestRelativeNormUnbalance::setTolerance(double newTol)
 }
 
 
-int CTestRelativeNormUnbalance::setEquiSolnAlgo(EquiSolnAlgo &theAlgo)
+
+int
+CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
 {
-    theSOE = theAlgo.getLinearSOEptr();
-
-    return 0;
-}
-
-
-int CTestRelativeNormUnbalance::test(void)
-{
-    // check to ensure the SOE has been set - this should not happen if the
-    // return from start() is checked
-    if (theSOE == 0)  {
-        opserr << "WARNING: CTestRelativeNormUnbalance::test - no SOE set.\n";
-        return -1;
-    }
-
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
     if (currentIter == 0) {
@@ -92,7 +77,7 @@ int CTestRelativeNormUnbalance::test(void)
     }
 
     // get the B vector & determine it's norm & save the value in norms vector
-    const Vector &x = theSOE->getB();
+    const Vector &x = theSOE.getB();
     double norm = x.pNorm(nType);
     if (currentIter <= maxNumIter)
         norms(currentIter) = norm;
@@ -113,10 +98,10 @@ int CTestRelativeNormUnbalance::test(void)
                << "Iter: "     << pad(currentIter)
                << ", |dR|/|dR0|: "  << pad(norm) 
                << endln //" (max: " << tol << ")\n"
-               << "\tNorm deltaX: " << pad(theSOE->getX().pNorm(nType)) 
+               << "\tNorm deltaX: " << pad(theSOE.getX().pNorm(nType)) 
                << ", Norm deltaR: " << pad(norm) 
                << endln
-               << "\tdeltaX: "      << theSOE->getX() 
+               << "\tdeltaX: "      << theSOE.getX() 
                << "\tdeltaR: "      << x;
     }
 
@@ -148,7 +133,7 @@ int CTestRelativeNormUnbalance::test(void)
             opserr << LOG_FAILURE 
                    //<< "criteria CTestRelativeNormUnbalance but going on -"
                    << ", dR/dR0: "       << pad(norm)
-                   << ", Norm deltaX: "  << pad(theSOE->getX().pNorm(nType)) 
+                   << ", Norm deltaX: "  << pad(theSOE.getX().pNorm(nType)) 
                    << endln;
         }
         return currentIter;
@@ -177,20 +162,15 @@ int CTestRelativeNormUnbalance::test(void)
 }
 
 
-int CTestRelativeNormUnbalance::start(void)
+int CTestRelativeNormUnbalance::start(LinearSOE& theSOE)
 {
-    if (theSOE == 0) {
-        opserr << "WARNING: CTestRelativeNormUnbalance::test() - no SOE returning true\n";
-        return -1;
-    }
-
     // set iteration count = 1
     norms.Zero();
     currentIter = 1;
     norm0 = 0.0;
 
     // determine the initial norm .. the the norm of the initial unbalance
-    const Vector &x = theSOE->getB();
+    const Vector &x = theSOE.getB();
     double norm = x.pNorm(nType);
 
     if (currentIter <= maxNumIter)

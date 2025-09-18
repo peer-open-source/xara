@@ -118,20 +118,17 @@ BFGS::solveCurrentStep()
       return SolutionAlgorithm::BadAlgorithm;
   }        
 
-  // set itself as the ConvergenceTest objects EquiSolnAlgo
-  theTest->setEquiSolnAlgo(*this);
-  if (theTest->start() < 0) {
+  if (theTest->start(*theSOE) < 0) {
     return SolutionAlgorithm::BadTestStart;
   }
 
-  ConvergenceTest* localTest = theTest->getCopy( this->numberLoops ) ;
-  localTest->setEquiSolnAlgo(*this);
+  ConvergenceTest* localTest = theTest->getCopy( this->numberLoops );
 
   if (rdotz == 0)
-      rdotz = new double[numberLoops+3];
+    rdotz = new double[numberLoops+3];
 
   if (sdotr == 0)
-      sdotr = new double[numberLoops+3];
+    sdotr = new double[numberLoops+3];
 
 
   int result = -1;
@@ -140,7 +137,7 @@ BFGS::solveCurrentStep()
 
     // Form the initial tangent
     if (theIntegrator->formTangent(tangent) < 0)
-        return SolutionAlgorithm::BadFormTangent;
+      return SolutionAlgorithm::BadFormTangent;
 
     // form the initial residual 
     if (theIntegrator->formUnbalance() < 0) {
@@ -149,21 +146,17 @@ BFGS::solveCurrentStep()
     }            
 
     // solve
-    if (theSOE->solve() < 0) {
-        opserr << "WARNING BFGS::solveCurrentStep() - ";
-        opserr << "the LinearSysOfEqn failed in solve()\n";        
-        return SolutionAlgorithm::BadLinearSolve;
-      }            
+    if (theSOE->solve() < 0) {      
+      return SolutionAlgorithm::BadLinearSolve;
+    }            
 
     // update
-    if ( theIntegrator->update(theSOE->getX() ) < 0) {
-      opserr << "WARNING BFGS::solveCurrentStep() - ";
-      opserr << "the Integrator failed in update()\n";        
+    if ( theIntegrator->update(theSOE->getX()) < 0) {
       return SolutionAlgorithm::BadStepUpdate;
     }
 
 
-    int systemSize = theSOE->getNumEqn( );
+    int systemSize = theSOE->getNumEqn();
 
     // temporary vector
     if (temp == nullptr)
@@ -194,7 +187,7 @@ BFGS::solveCurrentStep()
     if ( b == nullptr )
       b = new Vector(systemSize);
 
-    localTest->start();
+    localTest->start(*theSOE);
 
     int nBFGS = 1;
     do {
@@ -203,16 +196,15 @@ BFGS::solveCurrentStep()
       *residNew =  theSOE->getB(); 
       *residNew *= (-1.0 );
 
-    
       // solve
       if (theSOE->solve() < 0)
-          return SolutionAlgorithm::BadLinearSolve;
+        return SolutionAlgorithm::BadLinearSolve;
 
       // save right hand side
-      *b = theSOE->getB( );
+      *b = theSOE->getB();
 
       // save displacement increment
-      *du = theSOE->getX( );
+      *du = theSOE->getX();
 
       // BFGS modifications to du
       BFGSUpdate( theIntegrator, theSOE, *du, *b, nBFGS ) ;
@@ -236,11 +228,11 @@ BFGS::solveCurrentStep()
       if (theIntegrator->formUnbalance() < 0)
         return SolutionAlgorithm::BadFormResidual;
 
-      result = localTest->test(); 
+      result = localTest->test(*theSOE); 
       
     } while (result == ConvergenceTest::Continue && nBFGS <= numberLoops);
 
-    result = theTest->test();
+    result = theTest->test(*theSOE);
 
     this->record(count++);
 

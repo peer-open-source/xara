@@ -32,8 +32,6 @@
 #define CTestRelativeEnergyIncr_h
 
 #include <ConvergenceTest.h>
-#include <stdbool.h>
-class EquiSolnAlgo;
 class LinearSOE;
 
 class CTestRelativeEnergyIncr: public ConvergenceTest
@@ -50,10 +48,9 @@ public:
     ConvergenceTest *getCopy(int iterations);
 
     void setTolerance(double newTol);
-    int setEquiSolnAlgo(EquiSolnAlgo &theAlgo);
 
-    int test(void);
-    int start(void);
+    int test(LinearSOE& theSOE) override;
+    int start(LinearSOE&) override;
 
     int getNumTests(void);
     int getMaxNumTests(void);
@@ -66,7 +63,6 @@ public:
 protected:
 
 private:
-    LinearSOE *theSOE;
     double tol;         // the tol on the energy used to test for convergence
 
     int maxNumIter;     // max number of iterations

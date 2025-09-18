@@ -1,6 +1,6 @@
 [project]
 name = "opensees"
-version = "0.1.23"
+version = "0.1.24"
 
 readme = "about/README.pypi.md"
 
@@ -100,7 +100,7 @@ skip=["pp*", "*i686*", "UNKNOWN*", "cp3[67]-*"]
 skip = ["pp*", "*-win32", "*UNKNOWN", "cp3[678]-*", "cp31[4]-*"]
 
 [tool.cibuildwheel.macos]
-skip = ["pp*", "*i686*", "UNKNOWN*", "*musllinux*", "cp3[6789]-*"]
+skip = ["pp*", "*i686*", "UNKNOWN*", "*musllinux*", "cp3[6789]-*", "cp314*"]
 
 
 [tool.cibuildwheel.linux]

@@ -73,13 +73,10 @@ ModifiedNewton::solveCurrentStep()
     return SolutionAlgorithm::BadFormTangent;
 
 
-  // set itself as the ConvergenceTest objects EquiSolnAlgo
-  theTest->setEquiSolnAlgo(*this);
-  if (theTest->start() < 0) {
-    opserr << "ModifiedNewton::solveCurrentStep() -";
-    opserr << "the ConvergenceTest object failed in start()\n";
+
+  if (theTest->start(*theSOE) < 0)
     return SolutionAlgorithm::BadTestStart;
-  }
+
 
   // repeat until convergence is obtained or reach max num iterations
   int result = -1;
@@ -94,7 +91,7 @@ ModifiedNewton::solveCurrentStep()
     if (theIncIntegratorr->formUnbalance() < 0)
       return SolutionAlgorithm::BadFormResidual;
 
-    result = theTest->test();
+    result = theTest->test(*theSOE);
     numIterations++;
     this->record(numIterations);
 

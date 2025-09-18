@@ -36,16 +36,17 @@ class EigenSOE : public MovableObject
      virtual ~EigenSOE();
      
      virtual int solve(int numModes, bool generalized, bool findSmallest = true);
-     virtual int setLinks(AnalysisModel &theModel);    
-     virtual int setLinearSOE(LinearSOE &theSOE) {return -1;};
-     
+     virtual int setLinks(AnalysisModel &);    
+     virtual int setLinearSOE(LinearSOE &) {return -1;};
+
      // pure virtual functions
      virtual int addA(const Matrix &, const ID &, double fact = 1.0) = 0;
      virtual int addM(const Matrix &, const ID &, double fact = 1.0) = 0;
-
-     virtual int setSize(Graph &theGraph) = 0;
      virtual void zeroA() = 0;
      virtual void zeroM() = 0;
+
+     virtual int setSize(Graph &) = 0;
+     int formSystem(AnalysisModel&, bool generalized);
 
      // methods to get the eigenvectors and eigenvalues
      virtual const Vector &getEigenvector(int mode);

@@ -50,14 +50,10 @@ class PenaltyConstraintHandler : public ConstraintHandler
     PenaltyConstraintHandler(double alphaSP, double alphaMP);
     ~PenaltyConstraintHandler();
 
-    int handle(const ID *nodesNumberedLast =0);
-    void clearAll(void);    
+    int handle(const ID *nodesNumberedLast =0) override;
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
-    
-  protected:
+    virtual int sendSelf(int commitTag, Channel &) override;
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
     
   private:
     double alphaSP;

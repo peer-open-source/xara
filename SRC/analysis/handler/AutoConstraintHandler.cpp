@@ -53,7 +53,6 @@
 #include <TransformationDOF_Group.h>
 #include <TransformationFE.h>
 #include <PenaltyMP_FE.h>
-#include <elementAPI.h>
 
 #include <cmath>
 #include <algorithm>
@@ -63,74 +62,6 @@
 #include <sstream>
 #include <iomanip>
 
-void* OPS_AutoConstraintHandler()
-{
-	// default parameters
-	bool verbose = false;
-	bool auto_penalty = true;
-	double auto_penalty_oom = 3.0;
-	double user_penalty = 0.0;
-
-	// utils
-	const char* header = "constraints Auto <-verbose> <-autoPenalty $oom> <-userPenalty $userPenalty>";
-
-	// parse
-	bool auto_penalty_done = false;
-	bool user_penalty_done = false;
-	while (OPS_GetNumRemainingInputArgs() > 0) {
-		const char* type = OPS_GetString();
-		if ((strcmp(type, "-verbose") == 0) || (strcmp(type, "-Verbose") == 0)) {
-			verbose = true;
-		}
-		else if ((strcmp(type, "-autoPenalty") == 0) || (strcmp(type, "-AutoPenalty") == 0)) {
-			if (OPS_GetNumRemainingInputArgs() == 0) {
-				opserr << "Error in: " << header << "\n";
-				opserr << "$scale parameter not provided with -autoPenalty option\n";
-				return 0;
-			}
-			int numData = 1;
-			if (OPS_GetDoubleInput(&numData, &auto_penalty_oom) != 0) {
-				opserr << "Error in: " << header << "\n";
-				opserr << "Cannot get $oom parameter with -autoPenalty option\n";
-				return 0;
-			}
-			if (user_penalty_done) {
-				opserr << "Error in: " << header << "\n";
-				opserr << "Options -autoPenalty and -userPenalty are mutually exclusive\n";
-				return 0;
-			}
-			auto_penalty = true;
-			auto_penalty_done = true;
-		}
-		else if ((strcmp(type, "-userPenalty") == 0) || (strcmp(type, "-UserPenalty") == 0)) {
-			if (OPS_GetNumRemainingInputArgs() == 0) {
-				opserr << "Error in: " << header << "\n";
-				opserr << "$userPenalty parameter not provided with -userPenalty option\n";
-				return 0;
-			}
-			int numData = 1;
-			if (OPS_GetDoubleInput(&numData, &user_penalty) != 0) {
-				opserr << "Error in: " << header << "\n";
-				opserr << "Cannot get $userPenalty parameter with -userPenalty option\n";
-				return 0;
-			}
-			if (auto_penalty_done) {
-				opserr << "Error in: " << header << "\n";
-				opserr << "Options -autoPenalty and -userPenalty are mutually exclusive\n";
-				return 0;
-			}
-			auto_penalty = false;
-			user_penalty_done = true;
-		}
-	}
-
-	// done
-	return new AutoConstraintHandler(
-		verbose,
-		auto_penalty,
-		auto_penalty_oom,
-		user_penalty);
-}
 
 namespace {
 
@@ -172,7 +103,8 @@ namespace {
 							break;
 						}
 					}
-					if (!found) continue;
+					if (!found)
+					    continue;
 					// eval max diagonal entry for this element
 					const Matrix& K = elePtr->getInitialStiff();
 					double kmax = 0.0;
@@ -249,8 +181,8 @@ int
 AutoConstraintHandler::handle(const ID* nodesLast)
 {
 	// first check links exist to a Domain and an AnalysisModel object
-	Domain* theDomain = this->getDomainPtr();
 	AnalysisModel* theModel = this->getAnalysisModelPtr();
+	Domain* theDomain = theModel->getDomainPtr();
 
 	// create a multimap (key = NodeID, value = SP_Constraint).
 	// multimap allows for duplicate keys because we may have multiple SP
@@ -273,7 +205,7 @@ AutoConstraintHandler::handle(const ID* nodesLast)
 		NodeIter& theNodes = theDomain->getNodes();
 		Node* nodPtr;
 		int numDofGrp = 0;
-		while ((nodPtr = theNodes()) != 0) {
+		while ((nodPtr = theNodes()) != nullptr) {
 
 			// process this node
 			DOF_Group* dofPtr = 0;
@@ -388,7 +320,8 @@ AutoConstraintHandler::handle(const ID* nodesLast)
 	std::shared_ptr<PenaltyEvaluator> peval;
 	if (auto_penalty) 
 		peval = std::make_shared<PenaltyEvaluator>(theDomain, mps_penalty, auto_penalty_oom);
-	for(MP_Constraint* mp : mps_penalty) {
+	
+	for (MP_Constraint* mp : mps_penalty) {
 		double penalty = auto_penalty ? peval->getPenaltyValue(mp) : user_penalty;
 		fePtr = new PenaltyMP_FE(numFeEle, *theDomain, *mp, penalty);
 		theModel->addFE_Element(fePtr);
@@ -404,7 +337,6 @@ AutoConstraintHandler::handle(const ID* nodesLast)
 		if (sp_map.size() > 0) {
 			NodeIter& theNodes = theDomain->getNodes();
 			Node* nodPtr;
-			int numDofGrp = 0;
 			while ((nodPtr = theNodes()) != 0) {
 				auto it_range = sp_map.equal_range(nodPtr->getTag());
 				if (it_range.first == it_range.second) continue;
@@ -414,7 +346,8 @@ AutoConstraintHandler::handle(const ID* nodesLast)
 					sp_per_dof[static_cast<std::size_t>(sp->getDOF_Number())] += 1;
 				}
 				ss << "      - Node: " << nodPtr->getTag() << " [ ";
-				for (auto i : sp_per_dof) ss << i << " ";
+				for (auto i : sp_per_dof)
+				  ss << i << " ";
 				ss << "]\n";
 				for (auto it = it_range.first; it != it_range.second; it++) {
 					SP_Constraint* sp = it->second;
@@ -449,20 +382,11 @@ AutoConstraintHandler::handle(const ID* nodesLast)
 }
 
 void
-AutoConstraintHandler::clearAll(void)
+AutoConstraintHandler::clearAll()
 {
 	// reset the TransformationDOF_Group vector
 	// don't delete the pointer inside the vector (owned by the model)
 	theDOFs.clear();
-
-	// for the nodes reset the DOF_Group pointers to 0
-	Domain* theDomain = this->getDomainPtr();
-	if (theDomain == 0)
-		return;
-	NodeIter& theNod = theDomain->getNodes();
-	Node* nodPtr;
-	while ((nodPtr = theNod()) != 0)
-		nodPtr->setDOF_GroupPtr(0);
 }
 
 int
@@ -498,7 +422,7 @@ AutoConstraintHandler::recvSelf(int cTag,
 }
 
 int
-AutoConstraintHandler::applyLoad(void)
+AutoConstraintHandler::applyLoad()
 {
 	// enforse SP constraints
 	// is there a reason for a backward loop?
@@ -510,16 +434,16 @@ AutoConstraintHandler::applyLoad(void)
 	return 0;
 }
 
-int
-AutoConstraintHandler::doneNumberingDOF(void)
-{
-	// iterate through the DOF_Groups telling them that their ID has now been set
-	DOF_GrpIter& theDOFS = this->getAnalysisModelPtr()->getDOFs();
-	DOF_Group* dofPtr;
-	while ((dofPtr = theDOFS()) != 0)
-		dofPtr->doneID();
+// int
+// AutoConstraintHandler::doneNumberingDOF()
+// {
+// 	// iterate through the DOF_Groups telling them that their ID has now been set
+// 	DOF_GrpIter& theDOFS = this->getAnalysisModelPtr()->getDOFs();
+// 	DOF_Group* dofPtr;
+// 	while ((dofPtr = theDOFS()) != 0)
+// 		dofPtr->doneID();
 
-	// iterate through the FE_Element getting them to set their IDs
-	// done using base class implementation
-	return ConstraintHandler::doneNumberingDOF();
-}
+// 	// iterate through the FE_Element getting them to set their IDs
+// 	// done using base class implementation
+// 	return ConstraintHandler::doneNumberingDOF();
+// }
