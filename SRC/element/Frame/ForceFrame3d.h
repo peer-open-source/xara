@@ -52,6 +52,15 @@ class ForceFrame3d: public BasicFrame3d,
 
   ~ForceFrame3d();
 
+private:
+    constexpr static int 
+        NDF = 6+nwm,
+        ndm = 3,        // dimension of the problem (3D)
+        NEN = 2,        // number of element nodes
+        NBV = 6+nwm*2,  // number of element DOFs in the basic system
+        max_subdivision= 10;
+public:
+
   const char *
   getClassType() const final {
     return "ForceFrame";
@@ -67,13 +76,14 @@ class ForceFrame3d: public BasicFrame3d,
   virtual const Matrix &getTangentStiff() final;
   const Matrix &getInitialStiff() final;
   const Vector &getResistingForce();
+  int addTangent(MatrixND<2*NDF,2*NDF>& K, double c, int flag) override;
 
-  void zeroLoad() {
+  void zeroLoad() override {
     this->BasicFrame3d::zeroLoad();
     this->FiniteElement<2, 3, NDF>::zeroLoad();
   }
-  
-  virtual int   addLoad(ElementalLoad *theLoad, double loadFactor) final {
+
+  int addLoad(ElementalLoad *theLoad, double loadFactor) final {
     return this->BasicFrame3d::addLoad(theLoad, loadFactor);
   }
 
@@ -88,34 +98,27 @@ class ForceFrame3d: public BasicFrame3d,
   // Element: Parameters
   int setParameter(const char **argv, int argc, Parameter &);
   int updateParameter(int parameterID, Information &);
-  int activateParameter(int parameterID);
+  // int activateParameter(int parameterID);
 
   // Element: Sensitivity
   const Vector &getResistingForceSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
   int getResponseSensitivity(int responseID, int gradNumber, Information &);
 
-
   virtual int getIntegral(Field field, State state, double& total);
 
   // MovableObject
-  int sendSelf(int cTag, Channel &);
-  int recvSelf(int cTag, Channel &, FEM_ObjectBroker &);
+  int sendSelf(int cTag, Channel &) override;
+  int recvSelf(int cTag, Channel &, FEM_ObjectBroker &) override;
   
   // TaggedObject
-  void Print(OPS_Stream &s, int flag =0);    
+  void Print(OPS_Stream &, int flag) override;    
   
 
  private:
   //
   // Constexpr
   //
-  constexpr static int 
-        NDF = 6+nwm,
-        ndm = 3,        // dimension of the problem (3D)
-        NEN = 2,        // number of element nodes
-        NBV = 6+nwm*2,  // number of element DOFs in the basic system
-        max_subdivision= 10;
 
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 
@@ -131,6 +134,7 @@ class ForceFrame3d: public BasicFrame3d,
     FrameStress::Bimoment,
     FrameStress::Bishear
   };
+  
   enum : int {
     inx = -12, //  0
     iny = -12, //  1
@@ -180,6 +184,7 @@ class ForceFrame3d: public BasicFrame3d,
   int getInitialDeformations(Vector &v0);
 
   void addLoadAtSection(VectorND<nsr> &sp, double x);
+  void addLoadTangent(MatrixND<2*NDF,2*NDF>& K, double c);
 
   int setSectionPointers(std::vector<FrameSection*>&);
   void initializeSectionHistoryVariables();
@@ -208,10 +213,6 @@ class ForceFrame3d: public BasicFrame3d,
   int    max_iter;               // maximum number of local iterations
   double tol;	                   // tolerance for relative energy norm for local iterations
 
-  // Element state
-  // MatrixND<2*NDF,2*NDF> tangent;
-  // VectorND<2*NDF>       residual,
-  //                       inertia;
 
   MatrixND<NBV,NBV> K_pres,      // stiffness matrix in the basic system 
                     K_save;      // committed stiffness matrix in the basic system

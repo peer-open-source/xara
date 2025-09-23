@@ -88,11 +88,11 @@ EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, std::array<int,2>& nodes,
                                      CrdTransf &coordTransf,
                                      double r, int cm, bool use_mass_)
 
-    : FiniteElement(tag, ELE_TAG_EulerDeltaFrame3d, nodes),
-      numSections(secs.size()),  sections(nullptr),
-      theCoordTransf(nullptr),   beamInt(nullptr), 
-      density(r), mass_flag(cm), use_density(use_mass_),
-      parameterID(0)
+  : FiniteElement(tag, ELE_TAG_EulerDeltaFrame3d, nodes, cm),
+    numSections(secs.size()),  sections(nullptr),
+    theCoordTransf(nullptr),   beamInt(nullptr), 
+    density(r), mass_flag(cm), use_density(use_mass_),
+    parameterID(0)
 
 {
   // Allocate arrays of pointers to FrameSections

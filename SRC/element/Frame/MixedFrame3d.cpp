@@ -98,7 +98,7 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
                            BeamIntegration& bi, 
                            CrdTransf& coordTransf,
                            double density, int damp, int geom)
- : FiniteElement<2,3,6>(tag, ELE_TAG_MixedFrame3d, nodes),
+ : FiniteElement<2,3,6>(tag, ELE_TAG_MixedFrame3d, nodes, 1),
    beamIntegr(0),
    numSections(0),
    sections(nullptr),

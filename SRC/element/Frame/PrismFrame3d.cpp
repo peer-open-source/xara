@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -31,7 +40,8 @@
 #include <runtime/commands/modeling/transform/FrameTransformBuilder.hpp>
 
 
-PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
+PrismFrame3d::PrismFrame3d(int tag,
+                           std::array<int, 2>& nodes,
                            double  A, double  E, double  G, 
                            double jx, double iy, double iz,
                            FrameTransformBuilder& tb,
@@ -39,7 +49,7 @@ PrismFrame3d::PrismFrame3d(int tag, std::array<int, 2>& nodes,
                            int rz, int ry,
                            int geom,
                            int shear_flag)
-  : FiniteElement<2, 3, 6> (tag, ELE_TAG_ElasticBeam3d, nodes), 
+  : FiniteElement<2, 3, 6> (tag, ELE_TAG_ElasticBeam3d, nodes, cm), 
     BasicFrame3d(),
     basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
     A(A), E(E), G(G), Jx(jx), 
@@ -73,7 +83,7 @@ PrismFrame3d::PrismFrame3d(int tag,
                            int geom,
                            int shear_flag
                            )
-  : FiniteElement<2, 3, 6>(tag, ELE_TAG_ElasticBeam3d, nodes),
+  : FiniteElement<2, 3, 6>(tag, ELE_TAG_ElasticBeam3d, nodes, cMass),
     BasicFrame3d(),
     basic_system(new BasicFrameTransf3d<6>(tb.template create<2,6>())),
     mass_flag(cMass), density(density),
@@ -102,7 +112,8 @@ PrismFrame3d::PrismFrame3d(int tag,
       }
       else if (layout(i) == FrameStress::Vy) {
         G = Ks(i,i)/A;
-      } else if (layout(i) == FrameStress::T) {
+      }
+      else if (layout(i) == FrameStress::T) {
         G = Ks(i,i)/(Iy + Iz);
       }
     }
@@ -478,64 +489,63 @@ PrismFrame3d::getBasicTangent(State flag, int rate)
 const Matrix &
 PrismFrame3d::getMass()
 {
-    if (total_mass == 0.0) {
+  if (total_mass == 0.0) {
+    thread_local MatrixND<12,12> M;
+    M.zero();
+    thread_local Matrix Wrapper{M};
+    return Wrapper;
+  }
+  else if (mass_flag == 0)  {
+    // Lumped mass matrix
 
-      thread_local MatrixND<12,12> M;
-      M.zero();
-      thread_local Matrix Wrapper{M};
-      return Wrapper;
-    }
-    else if (mass_flag == 0)  {
-      // Lumped mass matrix
+    thread_local MatrixND<12,12> M;
+    M.zero();
+    thread_local Matrix Wrapper{M};
+    double m = 0.5*total_mass;
+    M(0,0) = m;
+    M(1,1) = m;
+    M(2,2) = m;
+    M(6,6) = m;
+    M(7,7) = m;
+    M(8,8) = m;
+    return Wrapper;
+  }
+  else {
 
-      thread_local MatrixND<12,12> M;
-      M.zero();
-      thread_local Matrix Wrapper{M};
-      double m = 0.5*total_mass;
-      M(0,0) = m;
-      M(1,1) = m;
-      M(2,2) = m;
-      M(6,6) = m;
-      M(7,7) = m;
-      M(8,8) = m;
-      return Wrapper;
-    }
-    else {
+    // Consistent (cubic, prismatic) mass matrix
 
-      // Consistent (cubic, prismatic) mass matrix
+    if (!shear_flag) {
+      double L  = basic_system->getInitialLength();
+      double m  = total_mass/420.0;
+      double mx = twist_mass;
+      thread_local MatrixND<12,12> M{0};
 
-      if (!shear_flag) {
-        double L  = basic_system->getInitialLength();
-        double m  = total_mass/420.0;
-        double mx = twist_mass;
-        thread_local MatrixND<12,12> M{0};
+      M(0,0) = M(6,6) = m*140.0;
+      M(0,6) = M(6,0) = m*70.0;
 
-        M(0,0) = M(6,6) = m*140.0;
-        M(0,6) = M(6,0) = m*70.0;
+      M(3,3) = M(9,9) = mx/3.0; // Twisting
+      M(3,9) = M(9,3) = mx/6.0;
 
-        M(3,3) = M(9,9) = mx/3.0; // Twisting
-        M(3,9) = M(9,3) = mx/6.0;
+      M( 2, 2) = M( 8, 8) =  m*156.0;
+      M( 2, 8) = M( 8, 2) =  m*54.0;
+      M( 4, 4) = M(10,10) =  m*4.0*L*L;
+      M( 4,10) = M(10, 4) = -m*3.0*L*L;
+      M( 2, 4) = M( 4, 2) = -m*22.0*L;
+      M( 8,10) = M(10, 8) = -M(2,4);
+      M( 2,10) = M(10, 2) =  m*13.0*L;
+      M( 4, 8) = M( 8, 4) = -M(2,10);
 
-        M( 2, 2) = M( 8, 8) =  m*156.0;
-        M( 2, 8) = M( 8, 2) =  m*54.0;
-        M( 4, 4) = M(10,10) =  m*4.0*L*L;
-        M( 4,10) = M(10, 4) = -m*3.0*L*L;
-        M( 2, 4) = M( 4, 2) = -m*22.0*L;
-        M( 8,10) = M(10, 8) = -M(2,4);
-        M( 2,10) = M(10, 2) =  m*13.0*L;
-        M( 4, 8) = M( 8, 4) = -M(2,10);
+      M( 1, 1) = M( 7, 7) =  m*156.0;
+      M( 1, 7) = M( 7, 1) =  m*54.0;
+      M( 5, 5) = M(11,11) =  m*4.0*L*L;
+      M( 5,11) = M(11, 5) = -m*3.0*L*L;
+      M( 1, 5) = M( 5, 1) =  m*22.0*L;
+      M( 7,11) = M(11, 7) = -M(1,5);
+      M( 1,11) = M(11, 1) = -m*13.0*L;
+      M( 5, 7) = M( 7, 5) = -M(1,11);
 
-        M( 1, 1) = M( 7, 7) =  m*156.0;
-        M( 1, 7) = M( 7, 1) =  m*54.0;
-        M( 5, 5) = M(11,11) =  m*4.0*L*L;
-        M( 5,11) = M(11, 5) = -m*3.0*L*L;
-        M( 1, 5) = M( 5, 1) =  m*22.0*L;
-        M( 7,11) = M(11, 7) = -M(1,5);
-        M( 1,11) = M(11, 1) = -m*13.0*L;
-        M( 5, 7) = M( 7, 5) = -M(1,11);
-
-        // Transform local mass matrix to global system
-        return basic_system->getGlobalMatrixFromLocal(M);
+      // Transform local mass matrix to global system
+      return basic_system->getGlobalMatrixFromLocal(M);
     }
     else {
       Matrix mlTrn(12, 12), mlRot(12, 12), ml(12, 12);
