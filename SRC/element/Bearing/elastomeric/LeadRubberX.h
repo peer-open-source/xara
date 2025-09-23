@@ -47,12 +47,10 @@ public:
         double aS=1.41e-05, int tag1=0, int tag2=0, int tag3=0, int tag4=0, int tag5=0);
     
     LeadRubberX();
-    
-    // Destructor
     ~LeadRubberX();
     
     // Method to get class type
-    const char *getClassType() const {return "LeadRubberX";};
+    const char *getClassType() const {return "LeadRubberX";}
     
     // Public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;

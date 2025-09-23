@@ -27,8 +27,6 @@
 #include <NDMaterial.h>
 #include <Matrix.h>
 #include <Vector.h>
-#include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -86,9 +84,8 @@ class ASI3D8QuadWithSensitivity: public Element
     const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-		  &theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
 
     void Print(OPS_Stream &s, int flag =0);
     Response *setResponse (const char **argv, int argc, OPS_Stream &theHandler);

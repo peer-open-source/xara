@@ -1,6 +1,4 @@
 
-
-
 // Written: Quan Gu, Yichao Gao and Zhijian Qiu  
 // Created: 2015/01/25 
 // Sensitivity analysis of absorbing-transmitting element for boundaries of solid
@@ -30,15 +28,10 @@
 #include <NDMaterial.h>
 #include <Matrix.h>
 #include <Vector.h>
-#include <ID.h>
-#include <Renderer.h>
-#include <Domain.h>
-#include <string.h>
 #include <Information.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <ElementResponse.h>
-
 #include <ElementalLoad.h>
 
 #define ELE_TAG_VS3D4QuadWithSensitivity 100003
@@ -95,12 +88,11 @@ class VS3D4QuadWithSensitivity: public Element
     const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-		  &theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
     int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     Response *setResponse (const char **argv, int argc, OPS_Stream &theHandler);
     int getResponse (int responseID, Information &eleInformation);
 	// AddingSensitivity:BEGIN //////////////////////////////////////////

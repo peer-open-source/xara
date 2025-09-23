@@ -365,10 +365,6 @@ void VS3D4QuadWithSensitivity::Print(OPS_Stream &s, int flag)
   } 
   else {
     s << "VS3D4QuadWithSensitivity, element id:  " << this->getTag() << endln;
-    s << "Connected external nodes:  " << connectedExternalNodes;
-    for(int i = 0; i < NIP; i++) {
-      theNodes[i]->Print(s);
-    }
   }
 }
 

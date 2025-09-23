@@ -33,7 +33,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <NDMaterial.h>
@@ -420,11 +419,6 @@ TriSurfaceLoad::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &t
   return 0;
 }
 
-int
-TriSurfaceLoad::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
-}
 
 void
 TriSurfaceLoad::Print(OPS_Stream &s, int flag)
