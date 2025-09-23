@@ -113,6 +113,7 @@ TclBasicBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp, int 
 #include <set>
 #include <ArgumentTracker.h>
 #include <UniaxialMaterial.h>
+
 int
 TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
@@ -132,18 +133,19 @@ TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
   for (int i=2; i<argc; i++) {
     if (strcmp(argv[i], "-material") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << "Missing value for keyword " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[i], &matTag) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << "Invalid value for keyword " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
       tracker.consume(Positions::MaterialTag);
     }
-    else if (strcmp(argv[i], "-area") == 0) {
+    else if ((strcmp(argv[i], "-area") == 0) ||
+             (strcmp(argv[i], "-A") == 0)) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << "Missing value for keyword " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &area) != TCL_OK) {
@@ -152,8 +154,16 @@ TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
       }
       tracker.consume(Positions::Area);
     }
-    else
+    else {
+      // Possibly a positional argument. If possible to parse as a number,
+      // save it for the positional argument processing, otherwise error
+      double dummy;
+      if ((argv[i][0] == '-') && Tcl_GetDouble(interp, argv[i], &dummy) != TCL_OK) {
+        opserr << "Unknown argument " << argv[i] << "\n";
+        return TCL_ERROR;
+      }
       positional.insert(i);
+    }
   }
 
   //

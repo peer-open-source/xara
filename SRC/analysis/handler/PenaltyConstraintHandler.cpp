@@ -62,131 +62,111 @@ PenaltyConstraintHandler::~PenaltyConstraintHandler()
 int
 PenaltyConstraintHandler::handle(const ID *nodesLast)
 {
-    // first check links exist to a Domain and an AnalysisModel object
-    Domain *theDomain = this->getDomainPtr();
-    AnalysisModel *theModel = this->getAnalysisModelPtr();
-    
-    // get number of elements and nodes in the domain 
-    // and init the theFEs and theDOFs arrays
-    int numSPs = 0;
-    SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
-    SP_Constraint *spPtr;
-    while ((spPtr = theSPs()) != nullptr)
-      numSPs++;
-    
-    // initialise the DOF_Groups and add them to the AnalysisModel.
-    //    : must of course set the initial IDs
-    NodeIter &theNod = theDomain->getNodes();
-    Node *nodPtr;
-    MP_Constraint *mpPtr;    
-    DOF_Group *dofPtr;
-    
-    int numDofGrp = 0;
-    int count3 = 0;
-    int countDOF =0;
-    while ((nodPtr = theNod()) != nullptr) {
-        if ((dofPtr = new DOF_Group(numDofGrp++, nodPtr)) == 0) {
-            opserr << "WARNING PenaltyConstraintHandler::handle() ";
-            opserr << "- ran out of memory";
-            opserr << " creating DOF_Group " << numDofGrp << endln;	
-            return -4;    		
-        }
+  // first check links exist to a Domain and an AnalysisModel object
+  AnalysisModel *theModel = this->getAnalysisModelPtr();
+  Domain *theDomain = theModel->getDomainPtr();
+  
+  // get number of elements and nodes in the domain 
+  // and init the theFEs and theDOFs arrays
+  int numSPs = 0;
+  SP_ConstraintIter &theSPs = theDomain->getDomainAndLoadPatternSPs();
+  SP_Constraint *spPtr;
+  while ((spPtr = theSPs()) != nullptr)
+    numSPs++;
+  
+  // initialise the DOF_Groups and add them to the AnalysisModel.
+  //    : must of course set the initial IDs
+  NodeIter &theNod = theDomain->getNodes();
+  Node *nodPtr;
+  MP_Constraint *mpPtr;
+  
+  int numDofGrp = 0;
+  int count3 = 0;
+  int countDOF =0;
+  while ((nodPtr = theNod()) != nullptr) {
+    DOF_Group *dofPtr = new DOF_Group(numDofGrp++, nodPtr);
 
-        // initially set all the ID value to -2
-        const ID &id = dofPtr->getID();
-        for (int j=0; j < id.Size(); j++) {
-            dofPtr->setID(j,-2);
-            countDOF++;
-        }
-        nodPtr->setDOF_GroupPtr(dofPtr);
-        theModel->addDOF_Group(dofPtr);
+    // initially set all the ID value to -2
+    const ID &id = dofPtr->getID();
+    for (int j=0; j < id.Size(); j++) {
+      dofPtr->setID(j,-2);
+      countDOF++;
     }
+    nodPtr->setDOF_GroupPtr(dofPtr);
+    theModel->addDOF_Group(dofPtr);
+  }
 
-    theModel->setNumEqn(countDOF);
+  theModel->setNumEqn(countDOF);
 
-    // set the number of eqn in the model
-    // now see if we have to set any of the dof's to -3
-    //    int numLast = 0;
-    if (nodesLast != 0) 
-      for (int i=0; i<nodesLast->Size(); i++) {
-          int nodeID = (*nodesLast)(i);
-          Node *nodPtr = theDomain->getNode(nodeID);
-          if (nodPtr != 0) {
-        dofPtr = nodPtr->getDOF_GroupPtr();
+  // set the number of eqn in the model
+  // now see if we have to set any of the dof's to -3
+  //    int numLast = 0;
+  if (nodesLast != 0) 
+    for (int i=0; i<nodesLast->Size(); i++) {
+      int nodeID = (*nodesLast)(i);
+      Node *nodPtr = theDomain->getNode(nodeID);
+      if (nodPtr != 0) {
+        DOF_Group* dofPtr = nodPtr->getDOF_GroupPtr();
         
         const ID &id = dofPtr->getID();
         // set all the dof values to -3
         for (int j=0; j < id.Size(); j++) 
-            if (id(j) == -2) {
-              dofPtr->setID(j,-3);
-              count3++;
-            } else {
-              opserr << "WARNING PenaltyConstraintHandler::handle() ";
-              opserr << " - boundary sp constraint in subdomain";
-              opserr << " this should not be - results suspect \n";
-            }
+          if (id(j) == -2) {
+            dofPtr->setID(j,-3);
+            count3++;
+          } else {
+            opserr << "WARNING PenaltyConstraintHandler::handle() ";
+            opserr << " - boundary sp constraint in subdomain";
+            opserr << " this should not be - results suspect \n";
           }
       }
-
-    // create the FE_Elements for the Elements and add to the AnalysisModel
-    ElementIter &theEle = theDomain->getElements();
-    Element *elePtr;
-
-    int numFeEle = 0;
-    FE_Element *fePtr;
-    while ((elePtr = theEle()) != nullptr) {
-
-      // only create an FE_Element for a subdomain element if it does not
-      // do independent analysis .. then subdomain part of this analysis so create
-      // an FE_element & set subdomain to point to it.
-      if (elePtr->isSubdomain() == true) {
-        Subdomain *theSub = (Subdomain *)elePtr;
-        if (theSub->doesIndependentAnalysis() == false) {
-                fePtr = new FE_Element(numFeEle++, elePtr);
-          theModel->addFE_Element(fePtr);
-          theSub->setFE_ElementPtr(fePtr);
-        }
-      } else {	
-	// just a regular element .. create an FE_Element for it & add to AnalysisModel
-        fePtr = new FE_Element(numFeEle++, elePtr);	
-	theModel->addFE_Element(fePtr);
-      }
     }
-    
 
-    // create the PenaltySP_FE for the SP_Constraints and 
-    // add to the AnalysisModel
-    SP_ConstraintIter &theSPss = theDomain->getDomainAndLoadPatternSPs();
-    while ((spPtr = theSPss()) != nullptr) {
-      theModel->addFE_Element(new PenaltySP_FE(numFeEle, *theDomain, *spPtr, alphaSP));
-      numFeEle++;
-    }	    
+  // create the FE_Elements for the Elements and add to the AnalysisModel
+  ElementIter &theEle = theDomain->getElements();
+  Element *elePtr;
 
-    // create the PenaltyMP_FE for the MP_Constraints and 
-    // add to the AnalysisModel
-    MP_ConstraintIter &theMPs = theDomain->getMPs();
-    while ((mpPtr = theMPs()) != nullptr) {
-      theModel->addFE_Element(new PenaltyMP_FE(numFeEle, *theDomain, *mpPtr, alphaMP));
-      numFeEle++;
-    }	        
-    
-    return count3;
+  int numFeEle = 0;
+  FE_Element *fePtr;
+  while ((elePtr = theEle()) != nullptr) {
+
+    // only create an FE_Element for a subdomain element if it does not
+    // do independent analysis .. then subdomain part of this analysis so create
+    // an FE_element & set subdomain to point to it.
+    if (elePtr->isSubdomain() == true) {
+      Subdomain *theSub = (Subdomain *)elePtr;
+      if (theSub->doesIndependentAnalysis() == false) {
+              fePtr = new FE_Element(numFeEle++, elePtr);
+        theModel->addFE_Element(fePtr);
+        theSub->setFE_ElementPtr(fePtr);
+      }
+    } else {	
+      // just a regular element
+      fePtr = new FE_Element(numFeEle++, elePtr);	
+      theModel->addFE_Element(fePtr);
+    }
+  }
+  
+
+  // create the PenaltySP_FE for the SP_Constraints and 
+  // add to the AnalysisModel
+  SP_ConstraintIter &theSPss = theDomain->getDomainAndLoadPatternSPs();
+  while ((spPtr = theSPss()) != nullptr) {
+    theModel->addFE_Element(new PenaltySP_FE(numFeEle, *theDomain, *spPtr, alphaSP));
+    numFeEle++;
+  }	    
+
+  // create the PenaltyMP_FE for the MP_Constraints and 
+  // add to the AnalysisModel
+  MP_ConstraintIter &theMPs = theDomain->getMPs();
+  while ((mpPtr = theMPs()) != nullptr) {
+    theModel->addFE_Element(new PenaltyMP_FE(numFeEle, *theDomain, *mpPtr, alphaMP));
+    numFeEle++;
+  }	        
+  
+  return count3;
 }
 
-
-void 
-PenaltyConstraintHandler::clearAll(void)
-{
-    // for the nodes reset the DOF_Group pointers to 0
-    Domain *theDomain = this->getDomainPtr();
-    if (theDomain == nullptr)
-	return;
-
-    NodeIter &theNod = theDomain->getNodes();
-    Node *nodPtr;
-    while ((nodPtr = theNod()) != nullptr)
-	nodPtr->setDOF_GroupPtr(nullptr);
-}    
 
 int
 PenaltyConstraintHandler::sendSelf(int cTag, Channel &theChannel)

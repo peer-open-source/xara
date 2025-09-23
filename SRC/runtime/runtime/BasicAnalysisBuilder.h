@@ -67,40 +67,34 @@ public:
       Commit    = 1<<2
     };
 
-    void set(ConstraintHandler* obj);
-    void set(DOF_Numberer* obj);
-    void set(EquiSolnAlgo* obj);
-    void set(LinearSOE*  obj, bool free=true);
-    void set(StaticIntegrator& obj);
-    void set(TransientIntegrator& obj, bool free=true);
-    void set(ConvergenceTest* obj);
-    void set(EigenSOE& obj);
-
+    void set(ConstraintHandler*);
+    void set(DOF_Numberer*);
+    void set(EquiSolnAlgo*);
+    void set(LinearSOE*, bool free=true);
+    void set(StaticIntegrator&);
+    void set(TransientIntegrator&, bool free=true);
+    void set(ConvergenceTest*);
+    void set(EigenSOE&);
     LinearSOE* getLinearSOE();
+    const EquiSolnAlgo*  getAlgorithm() const;
+    StaticIntegrator*    getStaticIntegrator();
+    TransientIntegrator* getTransientIntegrator();
+    // for getCTestIter command
+    ConvergenceTest*     getConvergenceTest();
+
 
     Domain* getDomain();
-    const ModelRegistry& getContext() const { return context; }
 
-    int initialize();
-
-    int  newTransientAnalysis();
+    int  initialize();
     int  setStaticAnalysis();
     int  setTransientAnalysis();
 
     //   Eigen
     void newEigenAnalysis(int typeSolver, double shift);
     int  eigen(int numMode, bool generalized, bool findSmallest);
-    int  getNumEigen() {return numEigen;};
+    int  getNumEigen() {return numEigen;}
 
     int formUnbalance();
-
-    const EquiSolnAlgo*  getAlgorithm() const;
-    StaticIntegrator*    getStaticIntegrator();
-    TransientIntegrator* getTransientIntegrator();
-
-    // for getCTestIter command
-    ConvergenceTest*     getConvergenceTest();
-
     int domainChanged();
 
     // Performing analysis
@@ -116,7 +110,6 @@ private:
 public:
     int analyzeGradient();
     int setGradientType(int flag);
-
     void wipe();
 
     
@@ -125,17 +118,21 @@ public:
 private:
     void setLinks(CurrentAnalysis flag = EMPTY_ANALYSIS);
     void fillDefaults(enum CurrentAnalysis flag);
+    int  number();
 
-    ModelRegistry&         context;
-    Domain                    *theDomain;
-    ConstraintHandler         *theHandler;
-    DOF_Numberer              *theNumberer;
     AnalysisModel             *theAnalysisModel;
+    //
+    ModelRegistry&             context;
+    Domain                    *theDomain;
+    //
     EquiSolnAlgo              *theAlgorithm;
-    LinearSOE                 *theSOE;
-    EigenSOE                  *theEigenSOE;
     StaticIntegrator          *theStaticIntegrator;
     TransientIntegrator       *theTransientIntegrator;
+    //
+    ConstraintHandler         *theHandler;
+    DOF_Numberer              *theNumberer;
+    LinearSOE                 *theSOE;
+    EigenSOE                  *theEigenSOE;
     ConvergenceTest           *theTest;
 
     int domainStamp;

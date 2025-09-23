@@ -35,7 +35,7 @@
 #include <stdbool.h>
 #include <string>
 
-class EquiSolnAlgo;
+class LinearSOE;
 
 
 class ConvergenceTest: public MovableObject
@@ -62,14 +62,13 @@ class ConvergenceTest: public MovableObject
 
     virtual ConvergenceTest *getCopy( int iterations ) = 0 ;
 
-    virtual int setEquiSolnAlgo(EquiSolnAlgo &theAlgorithm) =0;
-    virtual int start(void) =0;
-    virtual int test(void) = 0;
+    virtual int start(LinearSOE&) =0;
+    virtual int test(LinearSOE&) =0;
 
-    virtual int getNumTests(void) =0;
-    virtual int getMaxNumTests(void) =0;
-    virtual double getRatioNumToMax(void) =0;
-    virtual const Vector &getNorms(void) =0;
+    virtual int getNumTests() =0;
+    virtual int getMaxNumTests() =0;
+    virtual double getRatioNumToMax() =0;
+    virtual const Vector &getNorms() =0;
 
 
   protected:

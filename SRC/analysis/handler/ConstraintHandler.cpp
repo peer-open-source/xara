@@ -35,10 +35,12 @@
 #include <AnalysisModel.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
+#include <DOF_GrpIter.h>
+#include <DOF_Group.h>
 
 ConstraintHandler::ConstraintHandler(int clasTag)
-:MovableObject(clasTag),
- theDomainPtr(0),theAnalysisModelPtr(0),theIntegratorPtr(0)
+ : MovableObject(clasTag)
+ , theAnalysisModelPtr(nullptr)
 {
 
 }
@@ -53,22 +55,32 @@ ConstraintHandler::~ConstraintHandler()
 int
 ConstraintHandler::doneNumberingDOF()
 {
+
+  // iterate through the DOF_Groups telling them that their ID has now been set
+  AnalysisModel *theModel1=this->getAnalysisModelPtr();
+  DOF_GrpIter &theDOFS = theModel1->getDOFs();
+  DOF_Group *dofPtr;
+  while ((dofPtr = theDOFS()) != nullptr) {
+    dofPtr->doneID();
+  }
+
+
   // iterate through the FE_Element getting them to set their IDs
-  FE_EleIter &theEle = theAnalysisModelPtr->getFEs();
+  AnalysisModel *theModel=this->getAnalysisModelPtr();
+  FE_EleIter &theEle = theModel->getFEs();
   FE_Element *elePtr;
-  while ((elePtr = theEle()) != nullptr)
+  while ((elePtr = theEle()) != nullptr) {
     elePtr->setID();
+  }
+
   return 0;
 }
 
 
 void 
-ConstraintHandler::setLinks(Domain &theDomain, AnalysisModel &theModel)
-			    // Integrator &theIntegrator)
+ConstraintHandler::setLinks(AnalysisModel &theModel)
 {
-  theDomainPtr = &theDomain;
   theAnalysisModelPtr = &theModel;
-  // theIntegratorPtr = &theIntegrator;
 }
 	
 
@@ -85,23 +97,8 @@ ConstraintHandler::applyLoad()
 }
 
 
-Domain *
-ConstraintHandler::getDomainPtr() const
-{
-  return theDomainPtr;
-}
-
 AnalysisModel *
 ConstraintHandler::getAnalysisModelPtr() const
 {
   return theAnalysisModelPtr;
 }
-
-Integrator *
-ConstraintHandler::getIntegratorPtr() const
-{
-  return theIntegratorPtr;
-}
-
-
-

@@ -51,11 +51,9 @@ class LagrangeConstraintHandler : public ConstraintHandler
     ~LagrangeConstraintHandler();
 
     int handle(const ID *nodesNumberedLast =0);
-    void clearAll(void);    
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
   protected:
     

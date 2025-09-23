@@ -22,15 +22,13 @@
 // $Date: 2005-11-28 21:35:54 $
 // $Source: /usr/local/cvs/OpenSees/SRC/analysis/handler/TransformationConstraintHandler.h,v $
                                                                         
-                                                                        
 // Written: fmk 
 // Created: May 1998.
 // Revision: A
 //
-// Description: This file contains the class definition for 
-// TransformationConstraintHandler. TransformationConstraintHandler is a 
-// constraint handler for handling constraints using the Transformation method.
-// for each element and degree-of-freedom at a node it constructs regular
+// Description: TransformationConstraintHandler is a 
+// constraint handler that uses the Transformation method.
+// For each element and degree-of-freedom at a node it constructs regular
 // FE_Element and DOF_Groups if there is no SP_Constraint or MP_Constraint
 // constraining an elements node or the node; otherwise a TransformationFE
 // element and a TransformationDOF_Group are created. 
@@ -51,19 +49,17 @@ class TransformationConstraintHandler : public ConstraintHandler
     TransformationConstraintHandler();
     ~TransformationConstraintHandler();
 
-    int handle(const ID *nodesNumberedLast =0);
-    int applyLoad();
-    void clearAll(void);    
-    int enforceSPs(void);    
-    int doneNumberingDOF(void);        
+    int handle(const ID *nodesNumberedLast =0) override;
+    int applyLoad() override;
+    void clearAll() override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &);
 
   protected:
     
   private:
+    int enforceSPs();
     FE_Element 	**theFEs;
     DOF_Group 	**theDOFs;
 
@@ -71,7 +67,6 @@ class TransformationConstraintHandler : public ConstraintHandler
     int 	numDOF;
     Domain  *theDomain;
     int numConstrainedNodes;
-
     int numTransformationFEs;
 };
 

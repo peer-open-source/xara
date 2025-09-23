@@ -171,7 +171,7 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated-declarations>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>"
   )
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+  # if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     add_compile_options(
       "$<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder-ctor>"
       "$<$<COMPILE_LANGUAGE:CXX>:-Wno-inconsistent-missing-override>"
@@ -180,12 +180,12 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
       "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-ignored-optimization-argument>"
       "$<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-Wno-invalid-utf8>"
     )
-  else()
+  # else()
     add_compile_options(
       "$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-reorder>"
       "$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-dummy-argument>"
     )
-  endif()
+  # endif()
 endif()
 
 #----------------------------------------------------------------

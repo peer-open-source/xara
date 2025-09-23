@@ -42,11 +42,9 @@ class PlainHandler : public ConstraintHandler
     ~PlainHandler();
 
     int handle(const ID *nodesNumberedLast =nullptr);
-    void clearAll(void);    
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
   protected:
     

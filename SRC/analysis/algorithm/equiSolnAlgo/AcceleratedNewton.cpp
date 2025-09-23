@@ -19,7 +19,8 @@
 ** ****************************************************************** */
 //
 // Description: This file contains the class definition for 
-// AcceleratedNewton.  AcceleratedNewton is a class which uses a Krylov
+// AcceleratedNewton.  
+// AcceleratedNewton is a class which uses a Krylov
 // subspace accelerator on the modified Newton method.
 // The accelerator is described by Carlson and Miller in
 // "Design and Application of a 1D GWMFE Code"
@@ -106,10 +107,9 @@ AcceleratedNewton::solveCurrentStep()
   }
   // Count factorization of the first tangent
   numFactorizations++;
-  
-  // set itself as the ConvergenceTest objects EquiSolnAlgo
-  theTest->setEquiSolnAlgo(*this);
-  if (theTest->start() < 0) {
+
+
+  if (theTest->start(*theSOE) < 0) {
     return SolutionAlgorithm::BadTestStart;
   }
   
@@ -152,7 +152,7 @@ AcceleratedNewton::solveCurrentStep()
     numIterations++;
 
     // Check convergence criteria
-    result = theTest->test();
+    result = theTest->test(*theSOE);
 
     if (result == ConvergenceTest::Continue) {
       // Let the accelerator update the tangent if needed

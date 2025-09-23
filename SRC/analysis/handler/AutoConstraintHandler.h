@@ -66,12 +66,10 @@ public:
 
     int handle(const ID* nodesNumberedLast = 0);
     int applyLoad();
-    void clearAll(void);
-    int doneNumberingDOF(void);
+    void clearAll();
 
-    int sendSelf(int commitTag, Channel& theChannel);
-    int recvSelf(int commitTag, Channel& theChannel,
-        FEM_ObjectBroker& theBroker);
+    int sendSelf(int commitTag, Channel& );
+    int recvSelf(int commitTag, Channel& , FEM_ObjectBroker& );
 
 private:
     bool verbose = false;
