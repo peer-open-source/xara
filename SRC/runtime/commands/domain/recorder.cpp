@@ -24,7 +24,7 @@
 #endif
 #define strcmp strcasecmp
 
-
+#include <elementAPI.h>
 #include <Parsing.h>
 #include <Logging.h>
 #include <Domain.h>
