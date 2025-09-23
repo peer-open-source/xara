@@ -818,13 +818,14 @@ BinaryFileStream::setOrder(const ID &orderData)
     
         if (numColumns != 0 && (*theColumns[i+1])[numColumns-1] > maxCount)
           maxCount = (*theColumns[i+1])[numColumns-1];
-          theData[i+1] = new double [numColumns];
-          theRemoteData[i+1] = new Vector(theData[i+1], numColumns);
-        } else {
-          theColumns[i+1] = 0;
-          theData[i+1] = 0;
-          theRemoteData[i+1] = 0;
-        }
+
+        theData[i+1] = new double [numColumns];
+        theRemoteData[i+1] = new Vector(theData[i+1], numColumns);
+      } else {
+        theColumns[i+1] = 0;
+        theData[i+1] = 0;
+        theRemoteData[i+1] = 0;
+      }
     }
 
     ID currentLoc(sendSelfCount+1);
