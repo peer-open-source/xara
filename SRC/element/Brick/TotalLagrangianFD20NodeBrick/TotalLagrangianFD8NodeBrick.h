@@ -66,8 +66,6 @@
 
 #include <ID.h>
 
-#include <Renderer.h>
-
 #include <Domain.h>
 
 #include <Element.h>
@@ -77,37 +75,20 @@
 
 
 #include <string.h>
-
-
-
-#include <OPS_Globals.h>
-
-
-
 #include <basics.h>
-
 #include <nDarray.h>
-
 #include <Vector.h>
-
 #include <Matrix.h>
-
 #include <BJtensor.h>
-
 #include <stresst.h>
-
 #include <straint.h>
-
-
 
 #include <NDMaterial.h>
 
 
 
 #include <Information.h>
-
 #include <Channel.h>
-
 #include <FEM_ObjectBroker.h>
 
 #include <ElementResponse.h>
