@@ -65,25 +65,25 @@ BinaryFileStream::~BinaryFileStream()
       for (int i=0; i<sendSelfCount; i++) 
 	    theChannels[i]->sendID(0, 0, lastMsg);
     } else
-	  theChannels[0]->recvID(0, 0, lastMsg);
+      theChannels[0]->recvID(0, 0, lastMsg);
 
     delete [] theChannels;
   }
 
-  if (fileName != 0)
+  if (fileName != nullptr)
     delete [] fileName;
 
   if (sendSelfCount > 0) {
 
     for (int i=0; i<=sendSelfCount; i++) {
-      if (theColumns[i] != 0)
-	delete theColumns[i];
+      if (theColumns[i] != nullptr)
+        delete theColumns[i];
 
-      if (theData[i] != 0)
-	delete [] theData[i];
+      if (theData[i] != nullptr)
+        delete [] theData[i];
 
-      if (theRemoteData[i] != 0)
-	delete theRemoteData[i];
+      if (theRemoteData[i] != nullptr)
+        delete theRemoteData[i];
     }
     delete [] theData;
     delete [] theRemoteData;
@@ -127,7 +127,7 @@ BinaryFileStream::setFile(const char *name, openMode mode, bool echo)
 }
 
 int 
-BinaryFileStream::open(void)
+BinaryFileStream::open()
 {
   // check setFile has been called
   if (fileName == 0) {
@@ -159,7 +159,7 @@ BinaryFileStream::open(void)
 }
 
 int 
-BinaryFileStream::close(void)
+BinaryFileStream::close()
 {
   if (fileOpen != 0)
     theFile.close();
@@ -255,11 +255,11 @@ BinaryFileStream::write(Vector &data)
     double *dataI = theData[i];
     if (i == 0) {
       for (int j=0; j<numColumns; j++) {
-	dataI[j] = data(j);
+        dataI[j] = data(j);
       }
     } else { 
       if (numColumns != 0) {
-	theChannels[i-1]->recvVector(0, 0, *(theRemoteData[i]));
+        theChannels[i-1]->recvVector(0, 0, *(theRemoteData[i]));
       }
     }
   }
@@ -388,6 +388,7 @@ BinaryFileStream::operator<<(const unsigned char *s)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(const signed char *s)
 {
@@ -396,6 +397,7 @@ BinaryFileStream::operator<<(const signed char *s)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(const void *p)
 {
@@ -404,6 +406,7 @@ BinaryFileStream::operator<<(const void *p)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(int n)
 {
@@ -412,6 +415,7 @@ BinaryFileStream::operator<<(int n)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(unsigned int n)
 {
@@ -420,6 +424,7 @@ BinaryFileStream::operator<<(unsigned int n)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(long n)
 {
@@ -428,6 +433,7 @@ BinaryFileStream::operator<<(long n)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(unsigned long n)
 {
@@ -436,6 +442,7 @@ BinaryFileStream::operator<<(unsigned long n)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(short n)
 {
@@ -444,7 +451,8 @@ BinaryFileStream::operator<<(short n)
 
   return *this;
 }
-OPS_Stream& 
+
+OPS_Stream&
 BinaryFileStream::operator<<(unsigned short n)
 {
   if (fileOpen == 0)
@@ -452,6 +460,7 @@ BinaryFileStream::operator<<(unsigned short n)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(bool b)
 {
@@ -460,6 +469,7 @@ BinaryFileStream::operator<<(bool b)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(double n)
 {
@@ -471,6 +481,7 @@ BinaryFileStream::operator<<(double n)
 
   return *this;
 }
+
 OPS_Stream& 
 BinaryFileStream::operator<<(float n)
 {
@@ -566,8 +577,8 @@ BinaryFileStream::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker 
     if (this->setFile(fileName, theOpenMode) < 0) {
       opserr << "BinaryFileStream::BinaryFileStream() - setFile() failed\n";
       if (fileName != 0) {
-	delete [] fileName;
-	fileName = 0;
+        delete [] fileName;
+        fileName = 0;
       }
     }
   }
@@ -721,18 +732,18 @@ textToBinary(const char *inputFilename, const char *outputFilename)
       int dataCount = 0;
 
       while ((loc < endLoc) && 
-	         (*cNext != ' ') && 
-	         (*cNext != '\n')) {
-	    data[dataCount++] = cNext[0];
-	    cNext++;
-	    loc++;
+            (*cNext != ' ') && 
+            (*cNext != '\n')) {
+        data[dataCount++] = cNext[0];
+        cNext++;
+        loc++;
       }
       
       if (dataCount != 0) {
-	    data[dataCount] = '\n';
-	    d = strtod(&data[0], &dataNext);
-	    output.write((char *)&d, 8);
-	    numNumbers++;
+        data[dataCount] = '\n';
+        d = strtod(&data[0], &dataNext);
+        output.write((char *)&d, 8);
+        numNumbers++;
       }
       
       cNext++;
@@ -789,77 +800,77 @@ BinaryFileStream::setOrder(const ID &orderData)
 
     // now receive orderData from the other channels
     for (int i=0; i<sendSelfCount; i++) { 
-      static ID numColumnID(1);	  
+      static ID numColumnID(1);
       if (theChannels[i]->recvID(0, 0, numColumnID) < 0) {
-	    opserr << "BinaryFileStream::setOrder - failed to recv column size for process: " << i+1 << endln;
-	    return -1;
+        opserr << "BinaryFileStream::setOrder - failed to recv column size for process: " << i+1 << endln;
+        return -1;
       }
 
       int numColumns = numColumnID(0);
 
       (*sizeColumns)(i+1) = numColumns;
       if (numColumns != 0) {
-	    theColumns[i+1] = new ID(numColumns);
-	    if (theChannels[i]->recvID(0, 0, *theColumns[i+1]) < 0) {
-	      opserr << "BinaryFileStream::setOrder - failed to recv column data for process: " << i+1 << endln;
-	      return -1;
-	    }
-	
-	    if (numColumns != 0 && (*theColumns[i+1])[numColumns-1] > maxCount)
-	        maxCount = (*theColumns[i+1])[numColumns-1];
-	        theData[i+1] = new double [numColumns];
-	        theRemoteData[i+1] = new Vector(theData[i+1], numColumns);
-         } else {
-	        theColumns[i+1] = 0;
-	        theData[i+1] = 0;
-	        theRemoteData[i+1] = 0;
-         }
+        theColumns[i+1] = new ID(numColumns);
+        if (theChannels[i]->recvID(0, 0, *theColumns[i+1]) < 0) {
+          opserr << "BinaryFileStream::setOrder - failed to recv column data for process: " << i+1 << endln;
+          return -1;
+        }
+    
+        if (numColumns != 0 && (*theColumns[i+1])[numColumns-1] > maxCount)
+          maxCount = (*theColumns[i+1])[numColumns-1];
+          theData[i+1] = new double [numColumns];
+          theRemoteData[i+1] = new Vector(theData[i+1], numColumns);
+        } else {
+          theColumns[i+1] = 0;
+          theData[i+1] = 0;
+          theRemoteData[i+1] = 0;
+        }
     }
 
     ID currentLoc(sendSelfCount+1);
     ID currentCount(sendSelfCount+1);
-	
+
     if (mapping != 0)
       delete mapping;
 
     mapping = new Matrix(3, maxCount+1);
 
     Matrix &printMapping = *mapping;
-	
+
     for (int i=0; i<=sendSelfCount; i++) {
       currentLoc(i) = 0;
       if (theColumns[i] != 0)
-	currentCount(i) = (*theColumns[i])[0];
+        currentCount(i) = (*theColumns[i])[0];
       else
-	currentCount(i) = -1;
+        currentCount(i) = -1;
     }
 
     int count =0;
     while (count <= maxCount) {
       for (int i=0; i<=sendSelfCount; i++) {
-	if (currentCount(i) == count) {
-	  printMapping(0,count) = i;
-	  
-	  int maxLoc = theColumns[i]->Size();
-	  int loc = currentLoc(i);
-	  int columnCounter = 0;
-	  
-	  printMapping(1,count) = loc;
-	  
-	  while (loc < maxLoc && (*theColumns[i])(loc) == count) {
-	    loc++;
-	    columnCounter++;
-	  }
-	  
-	  printMapping(2,count) = columnCounter;
-	  
-	  currentLoc(i) = loc;
-	  
-	  if (loc < maxLoc)
-	    currentCount(i) = (*theColumns[i])(loc);		
-	  else
-	    currentCount(i) = -1; 		
-	}
+        if (currentCount(i) == count) {
+          printMapping(0,count) = i;
+          
+          int maxLoc = theColumns[i]->Size();
+          int loc = currentLoc(i);
+          int columnCounter = 0;
+          
+          printMapping(1,count) = loc;
+          
+          while (loc < maxLoc && (*theColumns[i])(loc) == count) {
+            loc++;
+            columnCounter++;
+          }
+          
+          printMapping(2,count) = columnCounter;
+          
+          currentLoc(i) = loc;
+          
+          if (loc < maxLoc)
+            currentCount(i) = (*theColumns[i])(loc);
+          else
+            currentCount(i) = -1;
+        }
       }
       count++;
     }
@@ -871,7 +882,8 @@ BinaryFileStream::setOrder(const ID &orderData)
 }
 
 int
-BinaryFileStream::flush() {
+BinaryFileStream::flush()
+{
   if (theFile.is_open() && theFile.good()) {
     theFile.flush();
   }
