@@ -33,14 +33,12 @@
 
 #include <NDMaterial.h>
 #include <Information.h>
-#include <OPS_Globals.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <MaterialResponse.h>
 #include <stdlib.h> 
 #include <math.h> 
 #include <TaggedObject.h>
-#include <OPS_Globals.h>
 
 
 #ifndef ConcreteMcftNonLinear7_h
