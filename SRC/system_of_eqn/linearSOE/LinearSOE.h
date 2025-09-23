@@ -46,12 +46,12 @@ class AnalysisModel;
 class LinearSOE : public MovableObject
 {
   public:
-    LinearSOE(LinearSOESolver &theSolver, int classTag);    
+    LinearSOE(LinearSOESolver &, int classTag);    
     LinearSOE(int classTag);    
     virtual ~LinearSOE();
 
     virtual int solve();    
-    virtual int setLinks(AnalysisModel &theModel);    
+    virtual int setLinks(AnalysisModel &);    
 
     // pure virtual functions
     virtual int setSize(Graph &theGraph) =0;    
@@ -81,11 +81,10 @@ class LinearSOE : public MovableObject
     LinearSOESolver *getSolver();
     
   protected:
-    int setSolver(LinearSOESolver &newSolver);	        
-    AnalysisModel* theModel;
+    int setSolver(LinearSOESolver &);
     
   private:
-    LinearSOESolver *theSolver;    
+    LinearSOESolver *theSolver;
 };
 
 
