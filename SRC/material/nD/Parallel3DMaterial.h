@@ -49,38 +49,35 @@ public:
 	Parallel3DMaterial();
 	~Parallel3DMaterial();
 
-	// info
-	const char* getClassType(void) const { return "Parallel3DMaterial"; };
+	const char* getClassType() const { return "Parallel3DMaterial"; }
 
-	// density
-	double getRho(void);
+	double getRho();
 
 	// set state
 	int setTrialStrain(const Vector& v);
-	int setTrialStrain(const Vector& v, const Vector& r);
 
 	// get state
-	const Vector& getStrain(void);
-	const Vector& getStress(void);
-	const Matrix& getTangent(void);
-	const Matrix& getInitialTangent(void);
+	const Vector& getStrain();
+	const Vector& getStress();
+	const Matrix& getTangent();
+	const Matrix& getInitialTangent();
 
 	// handle state
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
 
 	// copy and others...
-	NDMaterial* getCopy(void);
+	NDMaterial* getCopy();
 	NDMaterial* getCopy(const char* code);
-	const char* getType(void) const;
-	int getOrder(void) const;
+	const char* getType() const;
+	int getOrder() const;
 
 	void Print(OPS_Stream& s, int flag) final;
 
 	// send/recv self
-	int sendSelf(int commitTag, Channel& theChannel);
-	int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+	int sendSelf(int commitTag, Channel&);
+	int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
 	// parameters and responses
 	int setParameter(const char** argv, int argc, Parameter& param);

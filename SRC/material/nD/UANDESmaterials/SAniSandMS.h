@@ -31,7 +31,7 @@
 #ifndef SAniSandMS_h
 #define SAniSandMS_h
 
-#include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
@@ -87,7 +87,6 @@ class SAniSandMS : public NDMaterial
 
     // null constructor
     SAniSandMS();
-    // destructor
     ~SAniSandMS();
  
     NDMaterial *getCopy(const char *type);
@@ -95,6 +94,10 @@ class SAniSandMS : public NDMaterial
     int commitState(void);
     int revertToLastCommit(void);
     int revertToStart(void);
+	int setTrialStrain(const Vector &v) {
+	  assert(false);
+	  return -1;
+	}
 
     NDMaterial *getCopy(void);
     const char *getType(void) const;

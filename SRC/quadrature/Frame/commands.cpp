@@ -4,7 +4,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
 #include <assert.h>
 #include <element/Frame/for_int.tpp>
 #include <Logging.h>

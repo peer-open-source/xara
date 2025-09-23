@@ -45,29 +45,27 @@
 class ElasticIsotropicPlateFiber : public ElasticIsotropicMaterial
 {
   public:
-    ElasticIsotropicPlateFiber (int tag, double E, double nu, double rho);
-    ElasticIsotropicPlateFiber ();
-    ~ElasticIsotropicPlateFiber ();
+    ElasticIsotropicPlateFiber(int tag, double E, double nu, double rho);
+    ElasticIsotropicPlateFiber();
+    ~ElasticIsotropicPlateFiber();
 
-    const char *getClassType() const {return "ElasticIsotropicPlateFiber";}
+    const char *getClassType() const override {return "ElasticIsotropicPlateFiber";}
 
     int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
     int setTrialStrainIncr (const Vector &v);
-    int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+    const Matrix &getTangent();
+    const Matrix &getInitialTangent();
 
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
-        
-    int commitState (void);
-    int revertToLastCommit (void);
-    int revertToStart (void);
-    
-    NDMaterial *getCopy (void);
-    const char *getType (void) const;
-    int getOrder (void) const;
+    const Vector &getStress() override;
+    const Vector &getStrain() override;
+
+    int commitState() override;
+    int revertToLastCommit() override;
+    int revertToStart() override;
+
+    NDMaterial *getCopy() override;
+    const char *getType() const override;
+    int getOrder() const override;
     
   protected:
 

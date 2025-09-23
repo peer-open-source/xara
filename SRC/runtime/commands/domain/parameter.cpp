@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
 #include <stdlib.h>
 #include <Logging.h>
 #include <Parsing.h>
@@ -38,7 +37,9 @@
 
 
 int
-TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+TclCommand_parameter(ClientData clientData,
+                     Tcl_Interp *interp,
+                     Tcl_Size argc,
                      TCL_Char ** const argv)
 {
 //  parameter tag <specific parameter args>
@@ -97,9 +98,9 @@ TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
   if (argc >= 6 && 
-      strcmp(argv[0], "parameter") == 0 &&
-      strcmp(argv[2], "node") == 0 &&
-      strcmp(argv[4], "disp") == 0) {
+      (strcmp(argv[0], "parameter") == 0) &&
+      (strcmp(argv[2], "node") == 0) &&
+      (strcmp(argv[4], "disp") == 0)) {
 
     int nodeTag;
     if (Tcl_GetInt(interp, argv[3], &nodeTag) != TCL_OK) {

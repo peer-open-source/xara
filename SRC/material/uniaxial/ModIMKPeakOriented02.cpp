@@ -40,8 +40,7 @@
 #include <Vector.h>
 #include <Channel.h>
 #include <MaterialResponse.h>
-
-#include <OPS_Globals.h>
+#include <Logging.h>
 
 static int numModIMKPeakOriented02Materials = 0;
 
@@ -49,11 +48,11 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ModIMKPeakOriented02)
 {
   if (numModIMKPeakOriented02Materials == 0) {
     numModIMKPeakOriented02Materials++;
-    opserr << "Modified Ibarra-Medina-Krawinkler Model with Peak-Oriented02 Hysteretic Response\n";
+    opslog << "Modified Ibarra-Medina-Krawinkler Model with Peak-Oriented02 Hysteretic Response\n";
   }
  
   // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
+  UniaxialMaterial *theMaterial = nullptr;
  
   int    iData[1];
   double dData[26];                     // Updated:Filipe Ribeiro and Andre Barbosa      

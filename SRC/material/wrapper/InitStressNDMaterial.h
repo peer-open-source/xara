@@ -34,6 +34,7 @@
 #define InitStressNDMaterial_h
 
 #include <NDMaterial.h>
+#include <Vector.h>
 
 class InitStressNDMaterial : public NDMaterial
 {

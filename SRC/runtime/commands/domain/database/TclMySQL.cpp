@@ -25,10 +25,10 @@
 //
 // What: "@(#) TclCommand_MySQL.C, revA"
 
-#include <OPS_Globals.h>
 #include <stdlib.h>
 #include <string.h>
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 
 #include <MySqlDatastore.h>
 

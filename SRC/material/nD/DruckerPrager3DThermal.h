@@ -37,14 +37,9 @@
 
 class DruckerPrager3DThermal : public DruckerPragerThermal {
 
-//-------------------Declarations-------------------------------
-
   public : 
 
-  //null constructor
   DruckerPrager3DThermal( ) ;
-
-  //full constructor
   DruckerPrager3DThermal(int tag, double bulk, double shear,
 		  double s_y, double r, double r_bar, double Kinfinity, double Kinit, 
 		  double d1, double d2, double H, double t, double massDen, double atm);
@@ -57,10 +52,7 @@ class DruckerPrager3DThermal : public DruckerPragerThermal {
   const char* getType( ) const ;
   int getOrder( ) const ;
 
-    int setTrialStrain(const Vector &strain_from_element);
-
-  // Unused trialStrain functions
-  int setTrialStrain(const Vector &v, const Vector &r);
+  int setTrialStrain(const Vector &);
     
   const Vector& getStrain( ) ;
 
@@ -71,8 +63,4 @@ class DruckerPrager3DThermal : public DruckerPragerThermal {
 
   const Vector& getTempAndElong( );
 
-
-  private :
-
-
-} ; //end of DruckerPrager3DThermal declarations
+};

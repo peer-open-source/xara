@@ -13,7 +13,8 @@
 // Created: 07/99
 //
 #include <unordered_map>
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <runtimeAPI.h>
 #include <elementAPI.h>
 #include <ModelRegistry.h>

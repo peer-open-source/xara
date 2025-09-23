@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <assert.h>
+#include <Parsing.h>
 #include <elementAPI.h>
 #include <stdlib.h>
 #include <packages.h>

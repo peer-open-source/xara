@@ -35,7 +35,8 @@
 //
 //  element ElastomericX tag? ni? nj? Fy? alpha? $Gr $Kbulk $D1 $D2 $ts $tr $n < < $x1 $x2 $x3 > $y1 $y2 $y3 > < $kc > < $PhiM > < $ac > < $sDratio > < $m > < $cd > < $tc > < $tag1 > < $tag2 > < $tag3 > < $tag4 >
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>

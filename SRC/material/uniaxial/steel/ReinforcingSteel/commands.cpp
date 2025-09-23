@@ -31,7 +31,6 @@
 #include <Parsing.h>
 #include <Vector.h>
 #include <string.h>
-#include <InputAPI.h>
 
 UniaxialMaterial*
 TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)

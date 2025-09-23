@@ -26,13 +26,23 @@
 // for the flatSliderBearing element.
 //
 #include <assert.h>
-#include <ModelRegistry.h>
-#include <tcl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <Domain.h>
 #include <ID.h>
 #include <Vector.h>
+
+#include <FrictionModel.h>
+#include <Parsing.h>
+#include <Logging.h>
+#include <elementAPI.h>
+#include <ModelRegistry.h>
+
+#include <Coulomb.h>
+#include <VelDependent.h>
+#include <VelPressureDep.h>
+#include <VelDepMultiLinear.h>
+#include <VelNormalFrcDep.h>
 
 #include <FlatSliderSimple2d.h>
 #include <FlatSliderSimple3d.h>
@@ -1640,16 +1650,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
 }
 
 
-#include <FrictionModel.h>
-#include <tcl.h>
-#include <elementAPI.h>
-#include <ModelRegistry.h>
-
-#include <Coulomb.h>
-#include <VelDependent.h>
-#include <VelPressureDep.h>
-#include <VelDepMultiLinear.h>
-#include <VelNormalFrcDep.h>
 
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 02/06

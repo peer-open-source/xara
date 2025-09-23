@@ -41,10 +41,8 @@
 #include <DamageModel.h>
 #include <ModelRegistry.h>
 
-#include <tcl.h>
 #include <Vector.h>
 #include <string.h>
-#include <stdlib.h>
 
 static void
 printCommand(int argc, TCL_Char ** const argv)

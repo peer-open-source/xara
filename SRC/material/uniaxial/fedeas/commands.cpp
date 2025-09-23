@@ -16,7 +16,6 @@
 #include <FedeasSteel2Material.h>
 #include <FedeasSteel1Material.h>
 #include <PlasticDamageMaterial.h>
-#include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <Vector.h>

@@ -227,9 +227,9 @@ J2Plasticity::zero()
 int
 J2Plasticity::plastic_integrator()
 {
+  extern double ops_Dt;
+  double dt = ops_Dt;
   const double tolerance = 1.0e-10 * sigma_0;
-
-  const double dt = ops_Dt; // time step
 
   static Matrix dev_stress(3, 3); // deviatoric stress
 

@@ -1,4 +1,6 @@
-#include <tcl.h>
+
+#include <Parsing.h>
+#include <Logging.h>
 #include <LimitCurve.h>
 #include <elementAPI.h>
 #include <LimitCurveAPI.h>

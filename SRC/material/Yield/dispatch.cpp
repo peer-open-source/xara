@@ -4,7 +4,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
+#include <Logging.h>
+#include <Parsing.h>
 #include "YieldSurface_BC.h"
 #include <ModelRegistry.h>
 #include <string.h>

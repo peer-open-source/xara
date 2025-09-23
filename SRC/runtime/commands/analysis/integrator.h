@@ -9,6 +9,8 @@
 // this file is included.
 //
 #include <runtimeAPI.h>
+#include <Parsing.h>
+#include <Logging.h>
 
 OPS_Routine OPS_Newmark;
 OPS_Routine OPS_GimmeMCK;
@@ -39,7 +41,6 @@ OPS_Routine OPS_NewmarkHSIncrLimit;
 OPS_Routine OPS_NewmarkHSIncrReduct;
 OPS_Routine OPS_WilsonTheta;
 
-#include <tcl.h>
 #include <string>
 #include <unordered_map>
 #include <runtimeAPI.h>

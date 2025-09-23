@@ -29,10 +29,6 @@
 // Written: fmk
 // Created: 07/99
 //
-// Modified: fmk 11/00 - removed TimeSeries stuff from file, now an external
-// procedure
-//
-#include <tcl.h>
 #include <assert.h>
 #include <ModelRegistry.h>
 
@@ -813,7 +809,7 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
   if (true) {
     if (argc < (2 + ndf)) {
-      opserr << OpenSees::PromptValueError << "bad command - want: load nodeId " << ndf << " forces\n";
+      opserr << OpenSees::PromptValueError << "expected " << ndf << " forces\n";
       return TCL_ERROR;
     }
 

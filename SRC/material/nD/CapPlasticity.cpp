@@ -211,7 +211,7 @@ CapPlasticity::~CapPlasticity( ) {
   
 };
 
-double CapPlasticity::getRho(void) {
+double CapPlasticity::getRho() {
   return rho;
 };
 
@@ -240,19 +240,18 @@ int CapPlasticity::setTrialStrain(const Vector &pStrain) {  // strain from eleme
   for ( int i = 3; i<6; i++) 
     strain[i] /=2.0; 
   
-  
-  
-  return 0;
-  
-};
 
-int CapPlasticity::setTrialStrain(const Vector &pStrain, const Vector &r) {
-  
-  return setTrialStrain(pStrain);
-  
-};
+  return 0; 
+}
 
-int CapPlasticity::setTrialStrainIncr(const Vector &pStrainRate) {
+int
+CapPlasticity::setTrialStrain(const Vector &pStrain, const Vector &r) 
+{
+  return setTrialStrain(pStrain); 
+}
+
+int CapPlasticity::setTrialStrainIncr(const Vector &pStrainRate)
+{
   
   // ----- change to real strain instead of eng. strain
   // ---- since all strain in material is the true strain, not eng.strain. 
@@ -277,16 +276,11 @@ int CapPlasticity::setTrialStrainIncr(const Vector &pStrainRate) {
     opserr << "Fatal:CapPlasticity:: Material dimension is: " << ndm << endln;
     opserr << "But strain vector size is: " << pStrainRate.Size() << endln;
 	opserr<< "Warning: errors in CapPlasticity::setTrialStrainIncr"<<endln;	
-   // exit(-1);
   }
+
+  return 0; 
   
-  
-  
-  
-  return 0;
-  
-  
-};
+}
 
 int CapPlasticity::setTrialStrainIncr(const Vector &pStrainRate, const Vector &r) {
   return setTrialStrainIncr(pStrainRate);
@@ -294,7 +288,8 @@ int CapPlasticity::setTrialStrainIncr(const Vector &pStrainRate, const Vector &r
 
 
 
-const Vector & CapPlasticity::getStrain(void) {
+const Vector & CapPlasticity::getStrain() 
+{
   
   if (ndm==3){
     tempVector = -1.0*strain;
@@ -316,26 +311,25 @@ const Vector & CapPlasticity::getStrain(void) {
 
 
 
-int CapPlasticity::commitState(void)  {
+int CapPlasticity::commitState() 
+{
   CStrain = strain;
   CStress = stress;
   CPlastStrain = plastStrain;
   CHardening_k =hardening_k;
-  
-  
-  //	debug =1;
-  
+
   return 0;
-  
-};
+}
 
 
 
-int CapPlasticity::revertToLastCommit(void)  {
+int CapPlasticity::revertToLastCommit()
+{
   return 0;
-};
+}
 
-int CapPlasticity::revertToStart(void)  {
+int CapPlasticity::revertToStart() 
+{
   
   CStrain.Zero();
   CPlastStrain.Zero();
@@ -347,29 +341,32 @@ int CapPlasticity::revertToStart(void)  {
   return 0;
 };
 
-NDMaterial * CapPlasticity::getCopy(void)  {
-  
+NDMaterial *
+CapPlasticity::getCopy()
+{
   CapPlasticity * copy = new CapPlasticity(*this);
   return copy;
-  
-};
+}
 
-NDMaterial * CapPlasticity::getCopy(const char *code)  {
+NDMaterial * 
+CapPlasticity::getCopy(const char *code)
+{
   if (strcmp(code,this->getType()) == 0) {
     CapPlasticity * copy = new CapPlasticity(*this);
     return copy;
   }
   else
     return 0;
-};
+}
 
-const char * CapPlasticity::getType(void) const  {
+const char * 
+CapPlasticity::getType() const  {
   return (ndm == 2) ? "PlaneStrain" : "ThreeDimensional";
-};
+}
 
-int CapPlasticity::getOrder(void) const  {
+int CapPlasticity::getOrder() const  {
   return (ndm == 2) ? 3 : 6;
-};
+}
 
 int CapPlasticity::sendSelf(int commitTag, Channel &theChannel)  {return 0;};
 
@@ -403,9 +400,8 @@ CapPlasticity::setResponse (const char **argv, int argc, OPS_Stream &output) {
   
   else
     return NDMaterial::setResponse(argv, argc, output);
-  
-  
-};
+
+}
 
 int CapPlasticity::getResponse (int responseID, Information &matInfo)  {
   
@@ -446,29 +442,31 @@ int CapPlasticity::getResponse (int responseID, Information &matInfo)  {
   }
   
   return NDMaterial::getResponse(responseID, matInfo);
-  
-};
+}
 
-void CapPlasticity::Print(OPS_Stream &s, int flag)  {return;};
+void CapPlasticity::Print(OPS_Stream &s, int flag)
+{
+  return;
+}
 
-// --------------
+
 
 double CapPlasticity::CapBoundL(double k){
   if (k>0) 
     return k; 
   return 0;
-};
+}
 
 // --------------
 double CapPlasticity::CapBoundX(double k){  // function of X
   return k+R*failureEnvelop(k);
-}; 
+}
 
 // --------------
 double CapPlasticity::failureEnvelop(double I){
   
   return alpha - lambda*exp(-beta*I)+theta*I; 
-};
+}
 
 // --------------
 double CapPlasticity::CapSurface(double normS,double I, double k){  // Fc
@@ -478,18 +476,20 @@ double CapPlasticity::CapSurface(double normS,double I, double k){  // Fc
   //	if (I< CapBoundX(k))
   res = pow(normS*normS+(I-CapBoundL(k))*(I-CapBoundL(k))/R/R,0.5);
   return res;
-};
+}
 
 // --------------
-double CapPlasticity::failureEnvelopDeriv(double I){
+double CapPlasticity::failureEnvelopDeriv(double I)
+{
   return lambda*beta*exp(-beta*I)+theta;
-};
+}
 
 // --------------
-double CapPlasticity::hardeningParameter_H(double k2, double k1){
+double CapPlasticity::hardeningParameter_H(double k2, double k1)
+{
 
   return W*(exp(-D*CapBoundX(k1))-exp(-D*CapBoundX(k2)));
-}; 
+}
 
 int CapPlasticity::findMode(double normS, double I1, double k){
   
@@ -514,10 +514,11 @@ int CapPlasticity::findMode(double normS, double I1, double k){
     mode = 5;
   }
   return mode;
-};
+}
 
 // --------------
-double CapPlasticity::Newton_k(double tol, int mode /*, double normS, double I1, double k */){
+double CapPlasticity::Newton_k(double tol, int mode /*, double normS, double I1, double k */)
+{
   
   
   double solution;
@@ -571,10 +572,11 @@ double CapPlasticity::Newton_k(double tol, int mode /*, double normS, double I1,
  }
 	
  return solution;
+}
 
-}; 
-
-double CapPlasticity::Newton_I1(double tol, int mode, double normS, double I1_trial){
+double 
+CapPlasticity::Newton_I1(double tol, int mode, double normS, double I1_trial)
+{
   
   double solution;
   int maxIter =200;
@@ -690,10 +692,11 @@ double CapPlasticity::Newton_I1(double tol, int mode, double normS, double I1_tr
   }  // if mode ==3
   
   return solution;
-  
-}; 
+}
 
-double CapPlasticity::Bisection(double tol, double normS, double I1_trial ){
+double 
+CapPlasticity::Bisection(double tol, double normS, double I1_trial )
+{
   
   double x_low = CHardening_k;
   int maxIter = 200; 
@@ -840,14 +843,10 @@ double CapPlasticity::Bisection(double tol, double normS, double I1_trial ){
  }
   return k; 
   
-}; // 
+}
 
 
-
- 
-
-
-const Matrix & CapPlasticity::getTangent(void) {
+const Matrix & CapPlasticity::getTangent() {
 	
   
   if (ndm==3) 
@@ -869,11 +868,12 @@ const Matrix & CapPlasticity::getTangent(void) {
 
 };
 
-const Matrix & CapPlasticity::getInitialTangent(void) {
+const Matrix & CapPlasticity::getInitialTangent()
+{
   return getTangent();
-};
+}
 
-const Vector & CapPlasticity::getStress(void) {
+const Vector & CapPlasticity::getStress() {
   
   
   double CPlastStrainI1 = CPlastStrain(0)+CPlastStrain(1)+CPlastStrain(2);
@@ -1043,10 +1043,8 @@ const Vector & CapPlasticity::getStress(void) {
     workV[1] = -1.0*stress[1];
     workV[2] = -1.0*stress[3];
     return workV;
-  }
-  
-  
-};
+  } 
+}
 
 // ---------------- for consistent tangent modulus ----
 // ---------------- for consistent tangent modulus ----
@@ -1054,7 +1052,9 @@ const Vector & CapPlasticity::getStress(void) {
 // ---------------- for consistent tangent modulus ----
 
 
-Matrix & CapPlasticity::dF2dSigma ( int mode){ // the returned matrix has been consistent with notation (i.e., last 3 columns multiplied by 2) 
+Matrix &
+CapPlasticity::dF2dSigma ( int mode)
+{ // the returned matrix has been consistent with notation (i.e., last 3 columns multiplied by 2) 
 
   tempMatrix.Zero();
   
@@ -1091,7 +1091,7 @@ Matrix & CapPlasticity::dF2dSigma ( int mode){ // the returned matrix has been c
     tempMatrix.addMatrix(0.0, I_dev, 1.0/normS);
     
     double tmp = lambda*beta*beta*exp(-beta*I1); 
-    
+
     for (int i=0; i<6; i++) {
       for ( int j=0; j<3; j++)
 	tempMatrix(i,j) += -1.0/normS*N(i)*N(j)+tmp*I2(i)*I2(j);
@@ -1115,12 +1115,12 @@ Matrix & CapPlasticity::dF2dSigma ( int mode){ // the returned matrix has been c
 	tempMatrix(i,j) += -1.0/Fe*tmp(i)*tmp(j)*2.0+1.0/Fe/R/R*I2(i)*I2(j)*2.0; // To be consistent with the transformation between 4th order tensor and matrix
     }
   }
-  else if (mode ==1) { }
+  else if (mode ==1) {
+    ;
+  }
   
   else {
     opserr<< "warning: CapPlasticity::dF2dSigma() should not be called! mode is "<< mode<<endln;
-    
-    
   }
 
 /*// ---- debug only ----------
@@ -1133,9 +1133,10 @@ Matrix & CapPlasticity::dF2dSigma ( int mode){ // the returned matrix has been c
 //*/
 
 	return tempMatrix;
-};
+}
 
-Vector & CapPlasticity::dFdSigma (int mode){
+Vector & CapPlasticity::dFdSigma (int mode)
+{
 			
   Vector stressDev = stress;
   double I1 = stress(0)+stress(1)+stress(2);
@@ -1261,7 +1262,7 @@ CapPlasticity::tripleTensorProduct (Vector &A, Matrix &B, Vector &C){ // result 
 
 
 double 
-CapPlasticity::dFdIdk(void){
+CapPlasticity::dFdIdk(){
 
 	double result =0;
 

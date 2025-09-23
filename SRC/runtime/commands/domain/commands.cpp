@@ -9,7 +9,6 @@
 // Description: This file contains the functions that will be called by
 // the interpreter when the appropriate command name is specified.
 //
-#include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <elementAPI.h>

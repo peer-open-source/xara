@@ -22,7 +22,6 @@
 #ifndef CapPlasticity_h
 #define CapPlasticity_h
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 

@@ -34,14 +34,14 @@ class Domain;
 class MatParameter : public Parameter
 {
  public:
-  MatParameter(int tag, int materialTag, const char *materialParameterName);
+  MatParameter(int tag, int materialTag, const char *name);
   MatParameter();
   virtual ~MatParameter();
 
-  virtual void Print(OPS_Stream &s, int flag);
+  virtual void Print(OPS_Stream &s, int flag) override;
   
-  virtual int sendSelf(int commitTag, Channel &);  
-  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+  virtual int sendSelf(int commitTag, Channel &) override;  
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
   virtual void setDomain(Domain *);
 
@@ -52,7 +52,6 @@ class MatParameter : public Parameter
   char *theParameterName;
 
   int theMaterialTag;
-  int theParameterID;
 };
 
 #endif

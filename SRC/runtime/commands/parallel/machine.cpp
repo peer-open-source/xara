@@ -3,8 +3,9 @@
 //        OpenSees - Open System for Earthquake Engineering Simulation
 //
 //===----------------------------------------------------------------------===//
-#include <tcl.h>
-#include <OPS_Globals.h>
+
+#include <Parsing.h>
+#include <Logging.h>
 #include <Channel.h>
 #include <MachineBroker.h>
 

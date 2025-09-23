@@ -23,7 +23,8 @@
 //
 // Description: This file contains the implementation of the
 // TclBasicBuilder_addDrainMaterial() function.
-
+#include <Logging.h>
+#include <Parsing.h>
 #include <DrainHardeningMaterial.h>
 #include <DrainBilinearMaterial.h>
 #include <DrainClough1Material.h>
@@ -33,7 +34,6 @@
 #include <Vector.h>
 #include <string.h>
 #include <runtimeAPI.h>
-#include <tcl.h>
 
 static void
 printCommand(int argc, TCL_Char ** const argv)

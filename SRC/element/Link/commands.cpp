@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <tcl.h>
 #include <Domain.h>
 #include <Logging.h>
 #include <Parsing.h>

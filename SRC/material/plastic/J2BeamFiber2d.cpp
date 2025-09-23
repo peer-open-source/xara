@@ -111,7 +111,7 @@ J2BeamFiber2d::setTrialStrainIncr(const Vector& strain, const Vector& rate)
 }
 
 const Matrix&
-J2BeamFiber2d::getTangent(void)
+J2BeamFiber2d::getTangent()
 {
   double twoG = E / (1.0 + nu);
   double G    = 0.5 * twoG;
@@ -120,7 +120,7 @@ J2BeamFiber2d::getTangent(void)
   sig[0] = E * (Tepsilon(0) - epsPn[0]);
   sig[1] = G * (Tepsilon(1) - epsPn[1]);
 
-  static const double one3   = 1.0 / 3;
+  static const double one3   = 1.0/3.0;
   static const double two3   = 2.0 * one3;
   static const double root23 = sqrt(two3);
 

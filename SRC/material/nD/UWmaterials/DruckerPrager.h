@@ -34,7 +34,7 @@
 // Description: This file contains the class definition for DruckerPrager. 
 //
 
-#include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -52,8 +52,6 @@ class DruckerPrager : public NDMaterial
 		  double d1, double d2, double H, double t, double massDen = 0.0, double atm = 101.0);
   
   DruckerPrager();
-  
-  //Destructor
   ~DruckerPrager();
 
   NDMaterial *getCopy(const char *type);
@@ -62,10 +60,14 @@ class DruckerPrager : public NDMaterial
   int commitState();
   int revertToLastCommit();
   int revertToStart();
+  int setTrialStrain(const Vector &v) {
+    assert(false);
+    return -1;
+  }
   
-  NDMaterial *getCopy(void);
-  const char *getType(void) const;
-  int getOrder(void) const;
+  NDMaterial *getCopy();
+  const char *getType() const;
+  int getOrder() const;
   
   Response *setResponse (const char **argv, int argc, OPS_Stream &output);
   int getResponse (int responseID, Information &matInformation);
@@ -77,7 +79,7 @@ class DruckerPrager : public NDMaterial
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int responseID, Information &eleInformation);
 
-  double getRho(void) {return massDen;};
+  double getRho() {return massDen;};
   
  protected:
   
@@ -129,10 +131,10 @@ class DruckerPrager : public NDMaterial
   
   //functions
   void initialize();	// initializes variables
-  int  updateElasticParam(void); //updated Elastic Parameters based on mean stress 
+  int  updateElasticParam(); //updated Elastic Parameters based on mean stress 
   
   //plasticity integration routine
-  void plastic_integrator(void);
+  void plastic_integrator();
   
   double Kiso(double alpha1);		// isotropic hardening function
   double Kisoprime(double alpha1);	//

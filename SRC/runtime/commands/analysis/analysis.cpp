@@ -17,7 +17,6 @@
 // Description: This file contains functions that are responsible
 // for orchestrating an analysis.
 //
-#include <tcl.h>
 #include <assert.h>
 #include <Parsing.h>
 #include <runtimeAPI.h>
@@ -290,7 +289,7 @@ eigenAnalysis(ClientData clientData,
     else if ((strcmp(argv[loc], "standard") == 0) ||
              (strcmp(argv[loc], "-standard") == 0)) {
       generalizedAlgo = false;
-      typeSolver = EigenSOE_TAGS_SymBandEigenSOE;
+      // typeSolver = EigenSOE_TAGS_SymBandEigenSOE;
     }
 
     else if ((strcmp(argv[loc], "-findLargest") == 0))

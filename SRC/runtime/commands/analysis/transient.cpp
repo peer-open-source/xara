@@ -15,7 +15,6 @@
 //
 // Written: cmp and cc
 //
-#include <tcl.h>
 #include <string.h>
 #include <Parsing.h>
 #include <Logging.h>

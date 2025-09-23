@@ -15,7 +15,6 @@
 //
 // Description: This file implements selection of an integrator.
 //
-#include <tcl.h>
 #include <Parsing.h>
 #include <Logging.h>
 #include <assert.h>

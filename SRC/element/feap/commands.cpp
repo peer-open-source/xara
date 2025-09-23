@@ -29,13 +29,14 @@
 // TclBasicBuilder.
 //
 // What: "@(#) TclBasicBuilder.C, revA"
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdlib.h>
 #include <string.h>
 #include <Domain.h>
 
 #include <fElmt02.h>
-#include <BasicModelBuilder.h>
+#include <ModelRegistry.h>
 
 
 
@@ -53,7 +54,7 @@ extern "C" int elmt05_(double *d, double *ul, double *xl, int *ix, double *tl,
 
 
 int
-TclBasicBuilder_addFeapTruss(ClientData clientData, Tcl_Interp *interp, int argc,
+TclBasicBuilder_addFeapTruss(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                              TCL_Char ** const argv, int eleArgStart)
 {
   // Ensure the destructor has not been called -

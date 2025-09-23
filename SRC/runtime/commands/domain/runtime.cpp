@@ -11,7 +11,6 @@
 //
 #include <assert.h>
 #include <Domain.h>
-#include <tcl.h>
 #include <Parsing.h>
 #include <Logging.h>
 

@@ -20,7 +20,8 @@
 // Written: fmk
 // Created: 11/00
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <GroundMotionRecord.h>
 
 #include <string.h>

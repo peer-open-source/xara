@@ -29,14 +29,11 @@
 #define CycLiqCP_h
 
 
-
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
-
+#include <cassert>
 #include <Vector.h>
 #include <Matrix.h>
-//#include <T2Vector.h>
 #include <NDMaterial.h>
 
 
@@ -47,7 +44,7 @@ public:
   CycLiqCP();
 
   //full constructor
-  CycLiqCP(int    tag,
+  CycLiqCP(int tag,
 	   int classTag,
 	   double G01,
 	   double kappa1,
@@ -65,7 +62,7 @@ public:
 
   ~CycLiqCP();
   
-  virtual const char *getClassType(void) const {return "CycLiqCP";}
+  virtual const char *getClassType() const {return "CycLiqCP";}
   
   //make a clone of this material
   virtual NDMaterial *getCopy(const char *type);
@@ -78,6 +75,10 @@ public:
   int commitState();
   int revertToLastCommit();
   int revertToStart();
+  int setTrialStrain(const Vector &v) {
+    assert(false);
+    return -1;
+  }
 
   //sending and receiving
   int sendSelf(int commitTag, Channel &theChannel) ;  

@@ -97,13 +97,13 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE
+        pstream << LOG_ITERATE
                << "Iter: "         << pad(currentIter)
                << ", EnergyIncr: " << pad(product) 
                << endln;
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE
+        pstream << LOG_ITERATE
                << "Iter: "          << pad(currentIter)
                << ", EnergyIncr: "  << pad(product)
                << LOG_CONTINUE
@@ -123,15 +123,15 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << "\n";
 
         else if (printFlag & ConvergenceTest::PrintSuccess) {
-            opserr << LOG_SUCCESS
+            pstream << LOG_SUCCESS
                    << "Iter: "      << pad(currentIter)
                    << ", Norm dX: " << pad(x.pNorm(nType))
                    << ", Norm dR: " << pad(b.pNorm(nType))
                    << ", Energy: "  << pad(product)
-                   << endln;
+                   << "\n";
         }
 
         // return the number of times test has been called - SUCCESSFULL

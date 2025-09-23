@@ -17,10 +17,10 @@
 //
 // cmp
 //
-#include <tcl.h>
 #include <string>
 #include <string.h>
 #include <assert.h>
+#include <Parsing.h>
 #include <Logging.h>
 #include <ModelRegistry.h>
 
@@ -40,7 +40,7 @@
 using namespace OpenSees;
 
 int 
-TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addTransformBuilder(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                          const char ** const argv)
 {
   assert(clientData != nullptr);

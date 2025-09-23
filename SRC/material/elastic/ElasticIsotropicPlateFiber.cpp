@@ -55,12 +55,6 @@ ElasticIsotropicPlateFiber::setTrialStrain (const Vector &strain)
   return 0;
 }
 
-int
-ElasticIsotropicPlateFiber::setTrialStrain (const Vector &strain, const Vector &rate)
-{
-  epsilon = strain;
-  return 0;
-}
 
 int
 ElasticIsotropicPlateFiber::setTrialStrainIncr (const Vector &strain)
@@ -69,12 +63,6 @@ ElasticIsotropicPlateFiber::setTrialStrainIncr (const Vector &strain)
   return 0;
 }
 
-int
-ElasticIsotropicPlateFiber::setTrialStrainIncr (const Vector &strain, const Vector &rate)
-{
-  epsilon += strain;
-  return 0;
-}
 
 const Matrix&
 ElasticIsotropicPlateFiber::getTangent (void)

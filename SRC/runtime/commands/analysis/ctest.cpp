@@ -8,7 +8,6 @@
 //
 // Description: This file implements the selection of a convergence test.
 //
-#include <tcl.h>
 #include <Parsing.h>
 #include <Logging.h>
 #include "BasicAnalysisBuilder.h"

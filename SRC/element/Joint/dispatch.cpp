@@ -26,7 +26,8 @@
 // to add beam column joint to a model.
 // Update: Optional User interfaces added in.
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -434,14 +435,15 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 #include <string.h>
 #include <Domain.h>
 
+#include <Parsing.h>
+#include <Logging.h>
 #include <Joint2D.h>
-#include <tcl.h>
 #include <DamageModel.h>
 #include <UniaxialMaterial.h>
 
 
 int
-TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
+TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                            TCL_Char ** const argv)
 {
   ModelRegistry* builder = (ModelRegistry*)clientData;

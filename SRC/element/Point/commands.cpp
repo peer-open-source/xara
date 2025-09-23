@@ -12,7 +12,8 @@
 //
 #include <stdlib.h>
 #include <string.h>
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 
 #include <ZeroLength.h>
 #include <ZeroLengthND.h>
@@ -31,7 +32,7 @@
 
 
 int
-TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                               TCL_Char ** const argv)
 {
   ModelRegistry* builder = (ModelRegistry*)clientData;

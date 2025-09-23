@@ -154,16 +154,19 @@ LinearCap::LinearCap( const LinearCap & a)
 
 };
 
-LinearCap::~LinearCap( ) {
+LinearCap::~LinearCap( ) 
+{
     return;
+}
 
-};
-
-double LinearCap::getRho(void) {
+double LinearCap::getRho()
+{
     return rho;
-};
+}
 
-int LinearCap::setTrialStrain(const Vector &pStrain) {  // strain from element is eng. strain!
+int LinearCap::setTrialStrain(const Vector &pStrain) 
+{ 
+    // strain from element is eng. strain!
  
 //  static Vector temp(6);
   if (ndm==3 && pStrain.Size()==6) 
@@ -188,18 +191,11 @@ int LinearCap::setTrialStrain(const Vector &pStrain) {  // strain from element i
 
   return 0;
     
-};
+}
 
 
-
-int LinearCap::setTrialStrain(const Vector &pStrain, const Vector &r) {
-
-    return setTrialStrain(pStrain);
-    
-};
-
-
-int LinearCap::setTrialStrainIncr(const Vector &pStrainRate) {
+int LinearCap::setTrialStrainIncr(const Vector &pStrainRate) 
+{
  
  // ----- change to real strain instead of eng. strain
 // ---- since all strain in material is the true strain, not eng.strain. 
@@ -229,17 +225,12 @@ int LinearCap::setTrialStrainIncr(const Vector &pStrainRate) {
 
 
   return 0;
+}
 
 
-};
 
-
-int LinearCap::setTrialStrainIncr(const Vector &pStrainRate, const Vector &r) {
-    return setTrialStrainIncr(pStrainRate);
-};
-
-
-const Vector & LinearCap::getStrain(void) {       
+const Vector & LinearCap::getStrain()
+{       
 
     if (ndm==3){
         tempVector = -1.0*strain;
@@ -255,11 +246,10 @@ const Vector & LinearCap::getStrain(void) {
     return workV;
   }
 
+}
 
-
-};
-
-int LinearCap::commitState(void)  {
+int LinearCap::commitState()
+{
     //if (theMode!=4)
     //opserr<<" stress is:"<<stress<<endln;  //debug only!
 
@@ -269,13 +259,15 @@ int LinearCap::commitState(void)  {
 
     return 0;
 
-};
+}
 
-int LinearCap::revertToLastCommit(void)  {
+int LinearCap::revertToLastCommit()
+{
     return 0;
-};
+}
 
-int LinearCap::revertToStart(void)  {
+int LinearCap::revertToStart()
+{
     
     CStrain.Zero();
     CPlastStrain.Zero();
@@ -284,28 +276,31 @@ int LinearCap::revertToStart(void)  {
     plastStrain.Zero();
     stress.Zero();
 
-     return 0;
-};
+    return 0;
+}
 
-NDMaterial * LinearCap::getCopy(void)  {
-    
-    LinearCap * copy = new LinearCap(*this);
-    return copy;
-
-};
+NDMaterial * 
+LinearCap::getCopy()
+{   
+    return new LinearCap(*this);
+}
 
 NDMaterial * LinearCap::getCopy(const char *code)  {
     LinearCap * copy = new LinearCap(*this);
     return copy;
-};
+}
 
-const char * LinearCap::getType(void) const  {
-     return (ndm == 2) ? "PlaneStrain" : "ThreeDimensional";
-};
+const char * 
+LinearCap::getType() const 
+{
+    return (ndm == 2) ? "PlaneStrain" : "ThreeDimensional";
+}
 
-int LinearCap::getOrder(void) const  {
-     return (ndm == 2) ? 3 : 6;
-};
+int 
+LinearCap::getOrder() const  
+{
+    return (ndm == 2) ? 3 : 6;
+}
 
 int LinearCap::sendSelf(int commitTag, Channel &theChannel)  {return 0;};
 
@@ -313,7 +308,8 @@ int LinearCap::recvSelf(int commitTag, Channel &theChannel,
            FEM_ObjectBroker &theBroker )  {return 0;};
 
 
-Response * LinearCap::setResponse (const char **argv, int argc, OPS_Stream &output)  {
+Response * LinearCap::setResponse (const char **argv, int argc, OPS_Stream &output)
+{
 
   if (strcmp(argv[0],"stress") == 0 || strcmp(argv[0],"stresses") == 0)
         return new MaterialResponse(this, 1, stress);
@@ -328,11 +324,9 @@ Response * LinearCap::setResponse (const char **argv, int argc, OPS_Stream &outp
   else if (strcmp(argv[0],"plasticStrain") == 0 || strcmp(argv[0],"plasticStrains") == 0)
         return new MaterialResponse(this, 4, plastStrain);
 
-     
   return NDMaterial::setResponse(argv, argc, output);
-    
 
-};
+}
 
 int LinearCap::getResponse (int responseID, Information &matInfo)  {
     
@@ -417,13 +411,13 @@ int LinearCap::findMode(double normS, double I1){
 };
 
 
-const Matrix & LinearCap::getInitialTangent(void) { 
+const Matrix & LinearCap::getInitialTangent() { 
     return getTangent();
 };
 
 
 
-const Vector & LinearCap::getStress(void) {    
+const Vector & LinearCap::getStress() {    
 
 
     double CPlastStrainI1 = CPlastStrain(0)+CPlastStrain(1)+CPlastStrain(2);
@@ -663,7 +657,7 @@ const Vector & LinearCap::getStress(void) {
 
 }
   
-const Matrix & LinearCap::getTangent(void) { 
+const Matrix & LinearCap::getTangent() { 
 /*    
     
     static Vector tempStress(6);

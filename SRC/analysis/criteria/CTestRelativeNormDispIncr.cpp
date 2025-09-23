@@ -88,20 +88,20 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE
+        pstream << LOG_ITERATE
                << "Iter: "        << pad(currentIter)
                << " |dR|/|dR1|: " << pad(norm)
                << endln;
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE 
+        pstream << LOG_ITERATE
                << "Iter: "          << pad(currentIter)
                << " |dR|/|dR1|: "   << pad(norm)
                << endln;
-        opserr << "\tNorm deltaX: " << pad(norm)
+        pstream << "\tNorm deltaX: " << pad(norm)
                << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
                << endln;
-        opserr << "\tdeltaX: " << x
+        pstream << "\tdeltaX: " << x
                << "\tdeltaR: " << theSOE.getB();
     }
 
@@ -114,9 +114,9 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << endln;
         if (printFlag & ConvergenceTest::PrintSuccess) {
-            opserr << LOG_SUCCESS
+            pstream << LOG_SUCCESS
                    << "Iter: "        << pad(currentIter)
                    << " |dR|/|dR1|: " << pad(norm)
                    << endln;
@@ -129,7 +129,7 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
         if   (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
+            pstream << LOG_FAILURE
                    << "Iter: "        << pad(currentIter)
                    << " |dR|/|dR1|: "   << pad(norm)
                    << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
@@ -142,7 +142,7 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter) { // failes to converge
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE 
+            pstream << LOG_FAILURE
                    << "Iter: "        << pad(currentIter)
                    << " |dR|/|dR1|: "   << pad(norm)
                    //<< "criteria CTestRelativeNormDispIncr"
@@ -177,13 +177,13 @@ int CTestRelativeNormDispIncr::getNumTests()
 }
 
 
-int CTestRelativeNormDispIncr::getMaxNumTests(void)
+int CTestRelativeNormDispIncr::getMaxNumTests()
 {
     return maxNumIter;
 }
 
 
-double CTestRelativeNormDispIncr::getRatioNumToMax(void)
+double CTestRelativeNormDispIncr::getRatioNumToMax()
 {
     double div = maxNumIter;
     return currentIter/div;
@@ -212,7 +212,8 @@ int CTestRelativeNormDispIncr::sendSelf(int cTag, Channel &theChannel)
 }
 
 
-int CTestRelativeNormDispIncr::recvSelf(int cTag, Channel &theChannel,
+int
+CTestRelativeNormDispIncr::recvSelf(int cTag, Channel &theChannel,
     FEM_ObjectBroker &theBroker)
 {
     int res = 0;

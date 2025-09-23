@@ -2,7 +2,7 @@
 #define DegradingUniaxialWrapper_h
 #include <string>
 #include <functional> // std::function
-#include <tcl.h>
+#include <Parsing.h>
 #include <UniaxialMaterial.h>
 #include "FedeasAPI.h"
 

@@ -25,7 +25,6 @@
 // BoundingCamClay3D isotropic hardening material class
 // 
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 

@@ -32,9 +32,9 @@
 // Created: 12/04
 //
 // Description: This file contains the class definition for DruckerPragerThermal. 
-////Modified by Liming Jiang [http://openseesforfire.github.io]
+//// Modified by Liming Jiang [http://openseesforfire.github.io]
 
-#include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -63,8 +63,12 @@ class DruckerPragerThermal : public NDMaterial
   NDMaterial *getCopy(const char *type);
   
   int commitState(void);
-  int revertToLastCommit(void);
-  int revertToStart(void);
+  int revertToLastCommit();
+  int revertToStart();
+  int setTrialStrain(const Vector &v) {
+    assert(false);
+    return -1;
+  }
   
   NDMaterial *getCopy(void);
   const char *getType(void) const;

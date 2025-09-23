@@ -27,8 +27,6 @@
 // Plane Stress User Defined Material
 // 
 
-
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -39,41 +37,35 @@
 
 
 
-class PlaneStressUserMaterial: public NDMaterial{
+class PlaneStressUserMaterial: public NDMaterial {
   public : 
-    PlaneStressUserMaterial( ) ;
+    PlaneStressUserMaterial();
     PlaneStressUserMaterial(int tag, int istatevs, int iprops, double *props) ;
 
-    virtual ~PlaneStressUserMaterial( ) ;
+    virtual ~PlaneStressUserMaterial();
 
-        NDMaterial *getCopy( ) ;
-    NDMaterial *getCopy( const char *type ) ;
+    NDMaterial *getCopy();
+    NDMaterial *getCopy( const char *type );
 
-        int getOrder( ) const ;
+    int getOrder( ) const ;
 
-        const char *getType( ) const ;
+    const char *getType( ) const ;
 
     void setInitials() ;
 
     //swap history variables
-    int commitState( ) ; 
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
-        int revertToLastCommit( ) ;
+    int setTrialStrain( const Vector & ) ;
 
-        int revertToStart( ) ;
+    const Vector& getStrain() override;
+    const Vector& getStress() override;
+    const Matrix& getTangent() override;
+    const Matrix& getInitialTangent() override;
 
-    //get the strain 
-    int setTrialStrain( const Vector &strainFromElement ) ;
-
-    const Vector& getStrain( ) ;
-
-    const Vector& getStress( ) ;
-
-    const Matrix& getTangent( ) ;
-
-    const Matrix& getInitialTangent( ) ;
-
-    void Print( OPS_Stream &s, int flag ) ;
+    void Print(OPS_Stream &s, int flag) override;
 
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);

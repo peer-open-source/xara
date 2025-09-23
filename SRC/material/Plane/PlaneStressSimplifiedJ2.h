@@ -25,17 +25,14 @@ class PlaneStressSimplifiedJ2 : public NDMaterial
 
   PlaneStressSimplifiedJ2 (int tag, 
 			   int nd,
-			   NDMaterial &the3DMaterial);
-  
+			   NDMaterial &);
   
   virtual ~PlaneStressSimplifiedJ2 ();
   
-  const char *getClassType(void) const {return "PlaneStressSimplifiedJ2";}
-  const char *getType(void) const{ return "PlaneStress";}
+  const char *getClassType() const {return "PlaneStressSimplifiedJ2";}
+  const char *getType() const{ return "PlaneStress";}
   int setTrialStrain (const Vector &strain);
-  int setTrialStrain(const Vector &v, const Vector &r);
   int setTrialStrainIncr(const Vector &v);
-  int setTrialStrainIncr(const Vector &v, const Vector &r);
   
   // Calculates current tangent stiffness.
   const Matrix &getTangent (void);
@@ -58,13 +55,11 @@ class PlaneStressSimplifiedJ2 : public NDMaterial
   int revertToLastCommit (void);
   int revertToStart(void);
   
-  NDMaterial *getCopy (void);
-  NDMaterial *getCopy (const char *type);
+  NDMaterial *getCopy();
+  NDMaterial *getCopy(const char *type);
   
   int plastIntegrator();
-  
-  
-  
+
   int sendSelf(int commitTag, Channel &theChannel);  
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);    

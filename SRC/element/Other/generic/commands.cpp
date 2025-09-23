@@ -9,7 +9,8 @@
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 11/06
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdlib.h>
 #include <string.h>
 #include <Domain.h>

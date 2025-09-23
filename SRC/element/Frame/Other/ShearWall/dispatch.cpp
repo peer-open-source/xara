@@ -6,7 +6,8 @@
 // Created: 07/04 
 // Modified by: LMS 
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

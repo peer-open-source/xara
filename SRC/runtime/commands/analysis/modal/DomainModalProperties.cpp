@@ -37,7 +37,6 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include <OPS_Globals.h>
 #include "DomainModalProperties.h"
 #include <Domain.h>
 

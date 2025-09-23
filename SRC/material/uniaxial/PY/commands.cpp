@@ -20,6 +20,8 @@
 //
 // PY Springs: RWBoulanger and BJeremic
 //
+#include <Logging.h>
+#include <Parsing.h>
 #include <Domain.h> // RWB for PyLiq1
 #include <PySimple1.h> // RWB
 #include <TzSimple1.h> // RWB
@@ -36,7 +38,6 @@
 
 #include <ModelRegistry.h>
 #include <runtimeAPI.h>
-#include <tcl.h>
 
 #include <Vector.h>
 #include <string.h>

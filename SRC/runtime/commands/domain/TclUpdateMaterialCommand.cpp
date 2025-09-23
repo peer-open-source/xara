@@ -12,7 +12,8 @@
 //
 // Written: fmk
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <string.h>
 #include <assert.h>
 #include <Domain.h>

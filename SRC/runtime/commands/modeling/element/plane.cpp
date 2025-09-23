@@ -21,7 +21,6 @@
 #else
 #  include <strings.h>
 #endif
-#include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <Domain.h>
@@ -457,7 +456,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, int a
 
 int
 TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
-                                              Tcl_Interp *interp, int argc,
+                                              Tcl_Interp *interp, 
+                                              Tcl_Size argc,
                                               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);

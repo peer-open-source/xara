@@ -21,9 +21,8 @@
 // Written: Chris McGann
 //          February 2011
 
-#include <stdio.h> 
 #include <stdlib.h> 
-#include <math.h> 
+#include <math.h>
 
 #include <NDMaterial.h>
 #include <Vector.h>
@@ -33,17 +32,13 @@
 
 class BoundingCamClayPlaneStrain : public BoundingCamClay {
 
-  public : 
+public : 
 
-  //null constructor
   BoundingCamClayPlaneStrain();
 
-  //full constructor
   BoundingCamClayPlaneStrain(int tag, double mDen, double c, double bulk, double OCR, double mu_o,
 							          double alpha, double lambda, double h, double m);
 
-
-  //destructor
   ~BoundingCamClayPlaneStrain();
 
   NDMaterial* getCopy();
@@ -62,14 +57,12 @@ class BoundingCamClayPlaneStrain : public BoundingCamClay {
   const Matrix& getTangent();
   const Matrix& getInitialTangent();
 
-  private :
+private :
 
   // static vectors and matrices
   static Vector strain;
   static Vector stress;
   static Matrix tangent;
-
-
 };
 
 

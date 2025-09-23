@@ -15,7 +15,7 @@
 //
 // Written: cmp
 //
-#include <tcl.h>
+#include <Parsing.h>
 
 // modeling/model.cpp
 extern Tcl_CmdProc  TclCommand_wipeModel;
