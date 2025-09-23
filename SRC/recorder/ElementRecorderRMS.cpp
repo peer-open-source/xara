@@ -24,7 +24,7 @@
 // EnvelopeElementRecorderRMS.
 //
 // What: "@(#) EnvelopeElementRecorderRMS.C, revA"
-
+#include <OPS_Globals.h>
 #include <ElementRecorderRMS.h>
 #include <Domain.h>
 #include <Element.h>

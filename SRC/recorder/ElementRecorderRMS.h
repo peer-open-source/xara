@@ -31,7 +31,6 @@
 
 #include <Recorder.h>
 #include <Information.h>
-#include <OPS_Globals.h>
 #include <ID.h>
 
 

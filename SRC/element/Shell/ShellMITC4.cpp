@@ -516,8 +516,8 @@ const Matrix &ShellMITC4::getInitialStiff()
   double BdrillJ[ndf]; // drill B matrix
   double BdrillK[ndf];
 
-  OPS_STATIC double saveB[nstress][ndf][NEN];
-  OPS_STATIC MatrixND<nstress, ndf> B[NEN];
+  static double saveB[nstress][ndf][NEN];
+  MatrixND<nstress, ndf> B[NEN];
 
   //-------------------------------------------------------
 
@@ -834,7 +834,7 @@ ShellMITC4::formInertiaTerms(int tangFlag)
   static constexpr int nShape = 3;
   static constexpr int massIndex = nShape - 1;
 
-  OPS_STATIC double shp[nShape][numberNodes]; // shape functions at a gauss point
+  double shp[nShape][numberNodes]; // shape functions at a gauss point
 
   static Vector momentum(ndf);
 
@@ -946,7 +946,7 @@ ShellMITC4::formResidAndTangent(int tang_flag)
   double volume = 0.0;
   double xsj;                   // determinant jacaobian matrix
 
-  OPS_STATIC double shp[3][NEN];      // shape functions at a gauss point
+  double shp[3][NEN];           // shape functions at a gauss point
 
   //  static double Shape[3][NEN][nip] ; // all the shape functions
   static Vector stress(nstress);      // stress resultants
@@ -960,14 +960,14 @@ ShellMITC4::formResidAndTangent(int tang_flag)
   double tauDrill = 0.0; // drilling "stress"
 
   //---------B-matrices------------------------------------
-  OPS_STATIC MatrixND<nstress, ndf> B[NEN];
+  MatrixND<nstress, ndf> B[NEN];
   static Matrix BJtranD(ndf, nstress);
   static Matrix Bbend(3, 3);           // bending B matrix
   static Matrix Bshear(2, 3);          // shear B matrix
 
   static Matrix Bmembrane(3, 2);       // membrane B matrix
-  OPS_STATIC double BdrillJ[ndf];      // drill B matrix
-  OPS_STATIC double BdrillK[ndf];
+  double BdrillJ[ndf];      // drill B matrix
+  double BdrillK[ndf];
   //-------------------------------------------------------
 
   // zero stiffness and residual
@@ -1084,7 +1084,7 @@ ShellMITC4::formResidAndTangent(int tang_flag)
       // nodal "displacements"
       const Vector &ul_tmp = theNodes[j]->getTrialDisp();
 
-      OPS_STATIC VectorND<6> ul;
+      VectorND<6> ul;
 
       ul[0] = ul_tmp(0) - init_disp[j][0];
       ul[1] = ul_tmp(1) - init_disp[j][1];

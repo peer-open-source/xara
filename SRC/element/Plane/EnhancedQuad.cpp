@@ -509,9 +509,9 @@ EnhancedQuad::formResidAndTangent( int tang_flag )
 
   int success ;
 
-  OPS_STATIC double xsj[nip] ;  // determinant jacaobian matrix 
-  OPS_STATIC double dvol[nip] ; // volume element
-  OPS_STATIC double Shape[nip][nShape][NEN]; // [nip] ; // all the shape functions
+  double xsj[nip] ;  // determinant jacaobian matrix 
+  double dvol[nip] ; // volume element
+  double Shape[nip][nShape][NEN]; // [nip] ; // all the shape functions
 
   static Vector residJ(NDF) ; // nodeJ residual
   // static Matrix dd(nstress,nstress) ;  // material tangent

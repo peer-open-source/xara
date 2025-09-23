@@ -569,13 +569,13 @@ ForceBeamColumn2d::update()
   // get basic displacements and increments
   const Vector &v = crdTransf->getBasicTrialDisp();    
 
-  OPS_STATIC VectorND<NEBD> dv;
+  VectorND<NEBD> dv;
   dv = crdTransf->getBasicIncrDeltaDisp();    
 
   if (initialFlag != 0 && dv.norm() <= DBL_EPSILON && numEleLoads == 0)
     return 0;
 
-  OPS_STATIC VectorND<NEBD> vin;
+  VectorND<NEBD> vin;
   vin  = v;
   vin -= dv;
 
@@ -596,8 +596,8 @@ ForceBeamColumn2d::update()
   static Vector dSe(NEBD);
   static Vector SeTrial(NEBD);
   static Matrix kvTrial(NEBD, NEBD);
-  OPS_STATIC VectorND<NEBD> dvTrial;
-  OPS_STATIC VectorND<NEBD> dvToDo;
+  VectorND<NEBD> dvTrial;
+  VectorND<NEBD> dvToDo;
 
   dvToDo = dv;
   dvTrial = dvToDo;
