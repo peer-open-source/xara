@@ -186,8 +186,8 @@ Information::Print(OPS_Stream &s, int flag)
   else if (theType == MatrixType && theMatrix != 0) {
     for (int i=0; i<theMatrix->noRows(); i++) {
       for (int j=0; j<theMatrix->noCols(); j++)
-	s <<  (*theMatrix)(i,j) << " ";
-      s << endln;
+        s <<  (*theMatrix)(i,j) << " ";
+      s << "\n";
     }
   }
 

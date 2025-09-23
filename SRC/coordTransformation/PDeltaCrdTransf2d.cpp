@@ -1213,10 +1213,10 @@ PDeltaCrdTransf2d::Print(OPS_Stream &s, int flag)
     s << "\nCrdTransf: " << this->getTag() << " Type: PDeltaCrdTransf2d";
     if (nodeIOffset != 0)
       s << "\tnodeI Offset: " << nodeIOffset[0] << ' ' << nodeIOffset[1]
-        << endln;
+        << "\n";
     if (nodeJOffset != 0)
       s << "\tnodeJ Offset: " << nodeJOffset[0] << ' ' << nodeJOffset[1]
-        << endln;
+        << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {

@@ -202,8 +202,6 @@ KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
         sumi = sqrt(sumi);
         sumj = sqrt(sumj);
         sum = sum/(sumi*sumj);
-        //if (fabs(sum) > 0.99)
-          //opserr << sum << ' ' << i << ' ' << j << "   ";
       }
     }
 
@@ -262,7 +260,6 @@ KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
     }
 
     theSOE.setB(Q);
-    //opserr << "Q: " << Q << endln;
   }
 
   theSOE.solve();
@@ -307,8 +304,8 @@ KrylovAccelerator2::updateTangent(void)
 void
 KrylovAccelerator2::Print(OPS_Stream &s, int flag) const
 {
-  s << "KrylovAccelerator2" << endln;
-  s << "\tMax subspace dimension: " << maxDimension << endln;
+  s << "KrylovAccelerator2" << "\n";
+  s << "\tMax subspace dimension: " << maxDimension << "\n";
 }
 
 int

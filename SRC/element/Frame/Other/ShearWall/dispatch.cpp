@@ -36,7 +36,7 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
 
   if (ok == 0) {
     opserr << "WARNING -- NDM = " << ndm << " and NDF = " << ndf
-           << " not compatible with dispBeamColumnInt element" << endln;
+           << " not compatible with dispBeamColumnInt element" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -54,22 +54,22 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
   int argi = 2;
 
   if (Tcl_GetInt(interp, argv[argi++], &eleTag) != TCL_OK) {
-    opserr << "WARNING invalid dispBeamColumnInt eleTag" << endln;
+    opserr << "WARNING invalid dispBeamColumnInt eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[argi++], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode ";
+    opserr << "WARNING invalid iNode " << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[argi++], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode ";
+    opserr << "WARNING invalid jNode " << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[argi++], &nIP) != TCL_OK) {
-    opserr << "WARNING invalid nIP ";
+    opserr << "WARNING invalid nIP " << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -111,7 +111,7 @@ TclBasicBuilder_addDispBeamColumnInt(ClientData clientData, Tcl_Interp *interp,
   }
 
   if (Tcl_GetDouble(interp, argv[argi++], &C1) != TCL_OK) {
-    opserr << "WARNING invalid dispBeamColumn C1" << endln;
+    opserr << "WARNING invalid dispBeamColumn C1" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

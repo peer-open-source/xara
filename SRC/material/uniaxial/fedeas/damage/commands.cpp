@@ -29,20 +29,18 @@ TclCommand_newFedeasUniaxialDamage(ClientData clientData, Tcl_Interp* interp, in
   if (argc < 2) {
     opserr << "WARNING invalid uniaxialMaterial " WRAPPER_CMD " $tag "
               "$wrapTag <-damage $damageTag>"
-           << endln;
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;;
   }
 
   // Get wrapper tag
   if (Tcl_GetInt(interp, argv[2], &tags[0]) != TCL_OK) {
-    opserr << "WARNING invalid uniaxialMaterial tag\n";
-    // printCommand(argc, argv);
+    opserr << "WARNING invalid uniaxialMaterial tag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;;
   }
   // Get base tag
   if (Tcl_GetInt(interp, argv[3], &tags[1]) != TCL_OK) {
-    opserr << "WARNING invalid uniaxialMaterial tag\n";
-    // printCommand(argc, argv);
+    opserr << "WARNING invalid uniaxialMaterial tag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;;
   }
 
@@ -50,7 +48,7 @@ TclCommand_newFedeasUniaxialDamage(ClientData clientData, Tcl_Interp* interp, in
   theWrappedMaterial = builder->getTypedObject<UniaxialMaterial>(tags[1]);
   if (theWrappedMaterial == nullptr) {
     opserr << "WARNING unable to retrieve uniaxialMaterial with tag" WRAPPER_CMD " tag: "
-           << tags[1] << endln;
+           << tags[1] << OpenSees::SignalMessageEnd;
     return TCL_ERROR;;
   }
 

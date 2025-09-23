@@ -81,41 +81,31 @@ TclBasicBuilder_addFeapTruss(ClientData clientData, Tcl_Interp *interp, Tcl_Size
   int trussId, iNode, jNode;
   double A, E;
   if (Tcl_GetInt(interp, argv[1 + eleArgStart], &trussId) != TCL_OK) {
-    opserr << "WARNING invalid truss eleTag" << endln;
+    opserr << "WARNING invalid truss eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode\n";
-    opserr << "truss element: " << trussId << endln;
+    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode\n";
-    opserr << "truss element: " << trussId << endln;
+    opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[4 + eleArgStart], &A) != TCL_OK) {
-    opserr << "WARNING invalid A\n";
-    opserr << "truss element: " << trussId << endln;
+    opserr << "WARNING invalid A" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[5 + eleArgStart], &E) != TCL_OK) {
-    opserr << "WARNING invalid E\n";
-    opserr << "truss element: " << trussId << endln;
+    opserr << "WARNING invalid E" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   // now create the truss and add it to the Domain
   fElmt02 *theTruss = new fElmt02(trussId, iNode, jNode, A, E);
-  if (theTruss == 0) {
-    opserr << "WARNING ran out of memory creating element\n";
-    opserr << "truss element: " << trussId << endln;
-    return TCL_ERROR;
-  }
 
   if (builder->getDomain()->addElement(theTruss) == false) {
-    opserr << "WARNING could not add element to the domain\n";
-    opserr << "truss element: " << trussId << endln;
+    opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
     delete theTruss;
     return TCL_ERROR;
   }

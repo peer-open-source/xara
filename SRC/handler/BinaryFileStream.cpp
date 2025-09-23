@@ -626,7 +626,7 @@ binaryToText(const char *inputFilename, const char *outputFilename)
       numNumbers++;
     } else {
       if (numNumbers != 0)
-	output << "\n";
+        output << "\n";
       numNumbers = 0;
     }
   }
@@ -728,7 +728,6 @@ textToBinary(const char *inputFilename, const char *outputFilename)
     int numNumbers = 0;
 
     while (loc < endLoc) {
-      
       int dataCount = 0;
 
       while ((loc < endLoc) && 

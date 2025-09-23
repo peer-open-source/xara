@@ -51,28 +51,15 @@
 //===============================================================================
 
 #ifndef TOTALLAGRANGIANFD8BRICK_H
-
 #define TOTALLAGRANGIANFD8BRICK_H
 
 
-
-#ifndef _bool_h
-
-#include "bool.h"
-
-#endif
-
-
-
 #include <ID.h>
-
 #include <Domain.h>
 
 #include <Element.h>
 
 #include <Node.h>
-
-
 
 #include <string.h>
 #include <basics.h>
@@ -92,11 +79,7 @@
 #include <FEM_ObjectBroker.h>
 
 #include <ElementResponse.h>
-
 #include <ElementalLoad.h>
-
-
-
 
 
 class TotalLagrangianFD8NodeBrick: public Element

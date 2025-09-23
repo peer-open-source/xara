@@ -36,7 +36,7 @@ Tcl_addWrapperLimitCurve(limCrvObj *theLimCrv, ClientData clientData,
 
   if (result != 0) {
     opserr << "Tcl_addWrapperLimitCurve - failed in limit curve function "
-           << result << endln;
+           << result << "\n";
     return 0;
   }
 
@@ -68,7 +68,6 @@ OPS_GetLimitCurveType(char *type, int sizeType)
 
       limCrvObj *theLimCrvObject = new limCrvObj;
       theLimCrvObject->limCrvFunctPtr = limCrvFunction->theFunct;
-      /* opserr << "limCrvObj *OPS_GetLimitCurveType() - FOUND " << endln;  */
       return theLimCrvObject;
     } else
       limCrvFunction = limCrvFunction->next;

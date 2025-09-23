@@ -743,7 +743,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << "\n";
+    outputFile << "End coordinates" << "\n" << "\n";
 
     // Print elements connectivity
     outputFile << "Elements" << "\n";
@@ -780,7 +780,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
     // Print HEADER
     outputFile << "MESH \"4NMESH\" dimension 3 ElemType Quadrilateral Nnode 4"
                << "\n";
-    outputFile << "#color 0 255 0" << endln << "\n";
+    outputFile << "#color 0 255 0" << "\n\n";
 
     // Print node coordinates
     outputFile << "Coordinates" << "\n";
@@ -801,7 +801,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << "\n";
+    outputFile << "End coordinates" << "\n\n";
 
     // Print elements connectivity
     outputFile << "Elements" << "\n";
@@ -839,7 +839,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
     // Print HEADER
     outputFile << "MESH \"3NMESH\" dimension 3 ElemType Triangle Nnode 3"
                << "\n";
-    outputFile << "#color 0 255 0" << endln << "\n";
+    outputFile << "#color 0 255 0" << "\n\n";
 
     // Print node coordinates
     outputFile << "Coordinates" << "\n";
@@ -860,7 +860,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << "\n";
+    outputFile << "End coordinates" << "\n\n";
 
     // Print elements connectivity
     outputFile << "Elements" << "\n";
@@ -898,7 +898,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
     // Print HEADER
     outputFile << "MESH \"9NMESH\" dimension 3 ElemType Linear Nnode 9"
                << "\n";
-    outputFile << "#color 0 255 0" << endln << "\n";
+    outputFile << "#color 0 255 0" << "\n\n";
 
     // Print node coordinates
     outputFile << "Coordinates" << "\n";
@@ -918,7 +918,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << "\n";
+    outputFile << "End coordinates" << "\n\n";
 
     // Print elements connectivity
     outputFile << "Elements" << "\n";
@@ -956,7 +956,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
     // Print HEADER
     outputFile << "MESH \"8NMESH\" dimension 3 ElemType Hexahedra Nnode 8"
                << "\n";
-    outputFile << "#color 255 0 0" << endln << "\n";
+    outputFile << "#color 255 0 0" << "\n\n";
 
     // Print node coordinates
     outputFile << "Coordinates" << "\n";
@@ -978,7 +978,7 @@ printModelGID(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       outputFile << "\n";
     }
-    outputFile << "End coordinates" << endln << "\n";
+    outputFile << "End coordinates" << "\n\n";
 
     // Print elements connectivity
     outputFile << "Elements" << "\n";

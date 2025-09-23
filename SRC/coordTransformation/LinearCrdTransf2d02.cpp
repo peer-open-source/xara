@@ -929,21 +929,17 @@ LinearCrdTransf2d02::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_CURRENTSTATE) {
     s << "\nCrdTransf: " << this->getTag() << " Type: LinearCrdTransf2d02";
-//  if (nodeIOffset != 0)
       s << "\tnodeI Offset: " << nodeIOffset[0] << ' ' << nodeIOffset[1]
-        << endln;
-//  if (nodeJOffset != 0)
+        << "\n";
       s << "\tnodeJ Offset: " << nodeJOffset[0] << ' ' << nodeJOffset[1]
-        << endln;
+        << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << "\t\t\t{\"name\": \"" << this->getTag()
       << "\", \"type\": \"LinearCrdTransf2d02\"";
-//  if (nodeIOffset != 0)
       s << ", \"iOffset\": [" << nodeIOffset[0] << ", " << nodeIOffset[1]
         << "]";
-//  if (nodeJOffset != 0)
       s << ", \"jOffset\": [" << nodeJOffset[0] << ", " << nodeJOffset[1]
         << "]";
     s << "}";
@@ -988,8 +984,9 @@ LinearCrdTransf2d02::getGlobalResistingForceShapeSensitivity(const Vector &pb,
   if (nodeParameterID(0) != 0 || nodeParameterID(1) != 0) {
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
-      opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+      opserr << "ERROR: Currently a node offset cannot be used in"
+             << " conjunction with random nodal coordinates." 
+             << "\n";
     }
 
     double dcosdh = 0.0, dsindh = 0.0, d1oLdh = 0.0;

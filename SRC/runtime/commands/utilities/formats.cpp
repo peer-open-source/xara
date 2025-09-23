@@ -72,7 +72,7 @@ stripOpenSeesXML(ClientData clientData, Tcl_Interp *interp, int argc,
   std::ifstream theInputFile;
   theInputFile.open(inputFile, std::ios::in);
   if (theInputFile.bad()) {
-    opserr << "stripXML - error opening input file: " << inputFile << endln;
+    opserr << "stripXML - error opening input file: " << inputFile << OpenSees::SignalMessageEnd;
     return -1;
   }
 
@@ -80,7 +80,7 @@ stripOpenSeesXML(ClientData clientData, Tcl_Interp *interp, int argc,
   theOutputDataFile.open(outputDataFile, std::ios::out);
   if (theOutputDataFile.bad()) {
     opserr << "stripXML - error opening input file: " << outputDataFile
-           << endln;
+           << OpenSees::SignalMessageEnd;
     return -1;
   }
 
@@ -89,7 +89,7 @@ stripOpenSeesXML(ClientData clientData, Tcl_Interp *interp, int argc,
     theOutputDescriptiveFile.open(outputDescriptiveFile, std::ios::out);
     if (theOutputDescriptiveFile.bad()) {
       opserr << "stripXML - error opening input file: " << outputDescriptiveFile
-             << endln;
+             << OpenSees::SignalMessageEnd;
       return -1;
     }
   }
@@ -104,14 +104,14 @@ stripOpenSeesXML(ClientData clientData, Tcl_Interp *interp, int argc,
       if (strstr(inputLine, "</Data>") != 0)
         spitData = false;
       else {
-        ; // theOutputDataFile << line << endln;
+        ; // theOutputDataFile << line << "\n";
       }
     } else {
       const char *inputLine = line.c_str();
       if (strstr(inputLine, "<Data>") != 0)
         spitData = true;
       else if (outputDescriptiveFile != nullptr) {
-        ; // theOutputDescriptiveFile << line << endln;
+        ; // theOutputDescriptiveFile << line << "\n";
       }
     }
   }

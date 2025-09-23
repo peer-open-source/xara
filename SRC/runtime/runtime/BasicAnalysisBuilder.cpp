@@ -637,8 +637,8 @@ BasicAnalysisBuilder::analyzeVariable(int numSteps, double dT, double dtMin, dou
 
       // if last dT was <= min specified the analysis FAILS - return FAILURE
       if (currentDt <= dtMin) {
-        opserr << "VariableTimeStepDirectIntegrationAnalysis::analyze() - ";
-        opserr << " failed at time " << theDomain->getCurrentTime() << endln;
+        opserr << "failed at time " << theDomain->getCurrentTime() 
+               << OpenSees::SignalMessageEnd;
         return result;
       }
 

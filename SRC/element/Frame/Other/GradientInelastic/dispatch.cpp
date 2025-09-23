@@ -91,37 +91,31 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
 
     if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
       opserr << "WARNING invalid iNode";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
       opserr << "WARNING invalid jNode";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[4 + eleArgStart], &numIntegrPts) != TCL_OK) {
       opserr << "WARNING invalid numIntegrPts";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[5 + eleArgStart], &endSecTag1) != TCL_OK) {
       opserr << "WARNING invalid firstSecTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[6 + eleArgStart], &intSecTag) != TCL_OK) {
       opserr << "WARNING invalid intSecTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[7 + eleArgStart], &endSecTag2) != TCL_OK) {
       opserr << "WARNING invalid lastSecTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -131,7 +125,6 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     if (!endSection1) {
       opserr << "WARNING end section not found";
       opserr << " - section: " << endSecTag1;
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -140,7 +133,6 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     if (!intSection) {
       opserr << "WARNING intermediate section not found";
       opserr << " - section: " << intSecTag;
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -150,31 +142,26 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     if (!endSection2) {
       opserr << "WARNING end section not found";
       opserr << " - section: " << endSecTag2;
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8 + eleArgStart], &secLR1) != TCL_OK) {
       opserr << "WARNING invalid secLR1";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[9 + eleArgStart], &secLR2) != TCL_OK) {
       opserr << "WARNING invalid secLR2";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[10 + eleArgStart], &lc) != TCL_OK) {
       opserr << "WARNING invalid lc";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[11 + eleArgStart], &transfTag) != TCL_OK) {
       opserr << "WARNING invalid transfTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -191,9 +178,7 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
         if (strcmp(argv[i + 1], "NewtonCotes") == 0) {
           if (numIntegrPts > 20) {
             opserr << "WARNING number of integration points must be less than "
-                      "20 for Newton-Cotes integration method";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+                      "20 for Newton-Cotes integration method" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
 
@@ -201,9 +186,7 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
         } else if (strcmp(argv[i + 1], "Simpson") == 0) {
           if (((numIntegrPts - 1) % 2) != 0) {
             opserr << "WARNING number of integration points must be odd for "
-                      "Simpson's integration method";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+                      "Simpson's integration method" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
 
@@ -226,8 +209,7 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     if (!beamIntegr) {
       if (((numIntegrPts - 1) % 2) != 0) {
         opserr << "WARNING number of integration points must be odd for "
-                  "Simpson's integration method";
-        opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+                  "Simpson's integration method" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
@@ -237,20 +219,17 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     for (int i = 12 + eleArgStart; i < argc; i++) {
       if (i + 3 < argc && strcmp(argv[i], "-iter") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &maxIter) != TCL_OK) {
-          opserr << "WARNING invalid maxIter";
-          opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+          opserr << "WARNING invalid maxIter" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i + 2], &minTol) != TCL_OK) {
-          opserr << "WARNING invalid minTol";
-          opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+          opserr << "WARNING invalid minTol" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i + 3], &maxTol) != TCL_OK) {
-          opserr << "WARNING invalid maxTol";
-          opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+          opserr << "WARNING invalid maxTol" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
       }
@@ -263,16 +242,12 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
         if (i + 2 < argc && strcmp(argv[i + 1], "auto") != 0) {
 
           if (Tcl_GetDouble(interp, argv[i + 1], &maxEpsInc) != TCL_OK) {
-            opserr << "WARNING invalid maxEpsInc";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+            opserr << "WARNING invalid maxEpsInc" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
 
           if (Tcl_GetDouble(interp, argv[i + 2], &maxPhiInc) != TCL_OK) {
-            opserr << "WARNING invalid maxPhiInc";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+            opserr << "WARNING invalid maxPhiInc" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
         }
@@ -291,14 +266,12 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
 
     if (!theElement) {
       opserr << "WARNING ran out of memory creating element";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     // then add the NonlocalBeamColumn to the domain
     if (builder->getDomain()->addElement(theElement) == false) {
       opserr << "WARNING could not add element to the domain";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       delete theElement;
       return TCL_ERROR;
     }
@@ -338,37 +311,31 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
 
     if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
       opserr << "WARNING invalid iNode";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
       opserr << "WARNING invalid jNode";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[4 + eleArgStart], &numIntegrPts) != TCL_OK) {
       opserr << "WARNING invalid numIntegrPts";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[5 + eleArgStart], &endSecTag1) != TCL_OK) {
       opserr << "WARNING invalid firstSecTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[6 + eleArgStart], &intSecTag) != TCL_OK) {
       opserr << "WARNING invalid intSecTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[7 + eleArgStart], &endSecTag2) != TCL_OK) {
       opserr << "WARNING invalid lastSecTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -377,7 +344,6 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     if (!endSection1) {
       opserr << "WARNING end section not found";
       opserr << " - section: " << endSecTag1;
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -386,7 +352,6 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     if (!intSection) {
       opserr << "WARNING intermediate section not found";
       opserr << " - section: " << intSecTag;
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -394,42 +359,31 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
         builder->getTypedObject<SectionForceDeformation>(endSecTag2);
 
     if (!endSection2) {
-      opserr << "WARNING end section not found";
-      opserr << " - section: " << endSecTag2;
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[8 + eleArgStart], &secLR1) != TCL_OK) {
-      opserr << "WARNING invalid secLR1";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+      opserr << "WARNING invalid secLR1" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[9 + eleArgStart], &secLR2) != TCL_OK) {
-      opserr << "WARNING invalid secLR2";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+      opserr << "WARNING invalid secLR2" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[10 + eleArgStart], &lc) != TCL_OK) {
-      opserr << "WARNING invalid lc";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+      opserr << "WARNING invalid lc" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     if (Tcl_GetInt(interp, argv[11 + eleArgStart], &transfTag) != TCL_OK) {
-      opserr << "WARNING invalid transfTag";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+      opserr << "WARNING invalid transfTag" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     CrdTransf *theTransf3d = builder->getTypedObject<CrdTransf>(transfTag);
-
     if (!theTransf3d) {
-      opserr << "WARNING transformation not found";
-      opserr << " - transformation: " << transfTag;
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -441,9 +395,7 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
         if (strcmp(argv[i + 1], "NewtonCotes") == 0) {
           if (numIntegrPts > 20) {
             opserr << "WARNING number of integration points must be less than "
-                      "20 for Newton-Cotes integration method";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+                      "20 for Newton-Cotes integration method" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
 
@@ -451,9 +403,7 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
         } else if (strcmp(argv[i + 1], "Simpson") == 0) {
           if (((numIntegrPts - 1) % 2) != 0) {
             opserr << "WARNING number of integration points must be odd for "
-                      "Simpson's integration method";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+                      "Simpson's integration method" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
 
@@ -476,8 +426,7 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     if (!beamIntegr) {
       if (((numIntegrPts - 1) % 2) != 0) {
         opserr << "WARNING number of integration points must be odd for "
-                  "Simpson's integration method";
-        opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+                  "Simpson's integration method" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
@@ -487,20 +436,17 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
     for (int i = 12 + eleArgStart; i < argc; i++) {
       if (i + 3 < argc && strcmp(argv[i], "-iter") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &maxIter) != TCL_OK) {
-          opserr << "WARNING invalid maxIter";
-          opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+          opserr << "WARNING invalid maxIter" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i + 2], &minTol) != TCL_OK) {
-          opserr << "WARNING invalid minTol";
-          opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+          opserr << "WARNING invalid minTol" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[i + 3], &maxTol) != TCL_OK) {
-          opserr << "WARNING invalid maxTol";
-          opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+          opserr << "WARNING invalid maxTol" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
       }
@@ -513,16 +459,12 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
         if (i + 2 < argc && strcmp(argv[i + 1], "auto") != 0) {
 
           if (Tcl_GetDouble(interp, argv[i + 1], &maxEpsInc) != TCL_OK) {
-            opserr << "WARNING invalid maxEpsInc";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+            opserr << "WARNING invalid maxEpsInc" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
 
           if (Tcl_GetDouble(interp, argv[i + 2], &maxPhiInc) != TCL_OK) {
-            opserr << "WARNING invalid maxPhiInc";
-            opserr << " - gradientInelasticBeamColumn element: " << tag
-                   << endln;
+            opserr << "WARNING invalid maxPhiInc" << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
         }
@@ -542,15 +484,13 @@ TclBasicBuilder_addGradientInelasticBeamColumn(ClientData clientData,
 
     // then add the NonlocalBeamColumn to the domain
     if (domain->addElement(theElement) == false) {
-      opserr << "WARNING could not add element to the domain";
-      opserr << " - gradientInelasticBeamColumn element: " << tag << endln;
+      opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
       delete theElement;
       return TCL_ERROR;
     }
   } else {
-    opserr << "WARNING gradientInelasticBeamColumn command only works when ndm "
-              "is 2 or 3, ndm: ";
-    opserr << ndm << endln;
+    opserr << "WARNING gradientInelasticBeamColumn only works when ndm "
+              "is 2 or 3, got ndm: " << ndm << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
