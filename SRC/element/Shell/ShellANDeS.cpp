@@ -66,7 +66,6 @@ These documents all mirror published works in indexed journals.
 #include <Vector.h>
 #include <cmath>
 #include <limits>
-#include <Renderer.h>
 
 #include <ElementResponse.h>
 #include "ShellANDeS.h"
@@ -2536,32 +2535,4 @@ void ShellANDeS::initializeBetaArrays()
     beta_membrane(8) = -1;
     beta_membrane(9) = -2;
   }
-}
-
-int ShellANDeS::displaySelf(Renderer &theViewer, int displayMode, float fact,
-                            const char **displayModes, int numModes)
-{
-  // get the end point display coords
-  static Vector v1(3);
-  static Vector v2(3);
-  static Vector v3(3);
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-  theNodes[2]->getDisplayCrds(v3, fact, displayMode);
-
-  // place values in coords matrix
-  static Matrix coords(3, 3);
-  for (int i = 0; i < 3; i++) {
-    coords(0, i) = v1(i);
-    coords(1, i) = v2(i);
-    coords(2, i) = v3(i);
-  }
-
-  // basic colors
-  static Vector values(3);
-  for (int i = 0; i < 3; i++)
-    values(i) = 0.0;
-
-  // draw the polygon
-  return theViewer.drawPolygon(coords, values, this->getTag());
 }
