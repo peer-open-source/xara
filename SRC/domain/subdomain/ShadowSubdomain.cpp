@@ -1176,7 +1176,8 @@ int ShadowSubdomain::computeResidual(void)
   return 0;
 }
 
-const Vector &ShadowSubdomain::getLastExternalSysResponse(void)
+const Vector &
+ShadowSubdomain::getLastExternalSysResponse()
 {
   opserr << "ShadowSubdomain::getLastExternalSysResponse() ";
   opserr << " SHOULD NEVER BE CALLED\n";
@@ -1187,14 +1188,15 @@ const Vector &ShadowSubdomain::getLastExternalSysResponse(void)
   return *theVect;
 }
 
-int ShadowSubdomain::computeNodalResponse(void)
+int
+ShadowSubdomain::computeNodalResponse()
 {
 
   DomainDecompositionAnalysis *theDDA = this->getDDAnalysis();
   if (theDDA != 0 && theDDA->doesIndependentAnalysis() != true) {
     FE_Element *theFePtr = this->getFE_ElementPtr();
 
-    if (theFePtr != 0) {
+    if (theFePtr != nullptr) {
 
       const Vector &lastChange = theFePtr->getLastResponse();
       msgData(0)               = ShadowActorSubdomain_computeNodalResponse;
@@ -1214,7 +1216,9 @@ int ShadowSubdomain::computeNodalResponse(void)
   return 0;
 }
 
-int ShadowSubdomain::analysisStep(double dT)
+
+int
+ShadowSubdomain::analysisStep(double dT)
 {
   msgData(0) = ShadowActorSubdomain_analysisStep;
   this->sendID(msgData);

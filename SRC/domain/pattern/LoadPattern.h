@@ -51,15 +51,10 @@ class TaggedObjectStorage;
 class GroundMotion;
 
 class LoadPattern :
-#if 0
- public DomainComponent    
-#else
  public TaggedObject,
  public MovableObject
-#endif
 {
   public:
-    // constructors
     LoadPattern(int tag, double fact = 1.0);    
     LoadPattern();                                         // for FEM_ObjectBroker
     LoadPattern(int tag, int classTag, double fact = 1.0); // for subclasses
