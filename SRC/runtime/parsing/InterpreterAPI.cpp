@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <assert.h>
+#include <Parsing.h>
 #include <elementAPI.h>
 #include <stdlib.h>
 #include <packages.h>
@@ -51,7 +52,7 @@ extern "C" int
 OPS_Error(const char *errorMessage, int length)
 {
   opserr << errorMessage;
-  opserr << endln;
+  opserr << OpenSees::SignalMessageEnd;
 
   return 0;
 }
@@ -146,7 +147,7 @@ int
 OPS_GetStringCopy(char **arrayData)
 {
   if (currentArg >= maxArg) {
-    opserr << "OPS_GetStringInput -- error reading " << currentArg << endln;
+    opserr << "OPS_GetStringInput -- error reading " << currentArg << OpenSees::SignalMessageEnd;
     return -1;
   }
   char *newData = new char[strlen(currentArgv[currentArg]) + 1];
@@ -191,8 +192,9 @@ int OPS_GetDoubleListInput(int* size, Vector* data)
 extern "C"
 int OPS_EvalDoubleStringExpression(const char* theExpression, double& current_val) {
     if (Tcl_ExprDouble(theInterp, theExpression, &current_val) != TCL_OK) {
-        opserr << "OPS_EvalDoubleStringExpression::evaluateExpression -- expression \"" << theExpression;
-        opserr << "\" caused error:" << endln << Tcl_GetStringResult(theInterp) << endln;
+        opserr << "expression \"" << theExpression;
+        opserr << "\" caused error: " << Tcl_GetStringResult(theInterp) 
+               << OpenSees::SignalMessageEnd;
         return -1;
     }
     return 0;

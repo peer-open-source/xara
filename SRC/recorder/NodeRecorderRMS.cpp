@@ -106,7 +106,7 @@ NodeRecorderRMS::NodeRecorderRMS(const ID &dofs,
     if (numNode != 0) {
       theNodalTags = new ID(*nodes);
       if (theNodalTags == 0 || theNodalTags->Size() != nodes->Size()) {
-	opserr << "NodeRecorder::NodeRecorder - out of memory\n";
+        opserr << "NodeRecorder::NodeRecorder - out of memory\n";
       }
     }
   } 
@@ -217,8 +217,8 @@ NodeRecorderRMS::record(int commitTag, double timeStamp)
 
     if (theTimeSeries != 0) {
       for (int i=0; i<numDOF; i++) {
-	if (theTimeSeries[i] != 0) 
-	  timeSeriesValues[i] = theTimeSeries[i]->getFactor(timeStamp);
+        if (theTimeSeries[i] != 0) 
+          timeSeriesValues[i] = theTimeSeries[i]->getFactor(timeStamp);
       }
     }
 
@@ -238,158 +238,159 @@ NodeRecorderRMS::record(int commitTag, double timeStamp)
       int cnt = i*numDOF;
 
       if (dataFlag == NodeData::DisplNorm)
-	cnt = i;
+        cnt = i;
+
 
       Node *theNode = theNodes[i];
 
       if (dataFlag == NodeData::DisplTrial) {
-	const Vector &response = theNode->getTrialDisp();
-	for (int j=0; j<numDOF; j++) {
-	  int dof = (*theDofs)(j);
+        const Vector &response = theNode->getTrialDisp();
+        for (int j=0; j<numDOF; j++) {
+          int dof = (*theDofs)(j);
 
-	  if (theTimeSeries != 0) {
-	    timeSeriesTerm = timeSeriesValues[j];
-	  }
+          if (theTimeSeries != 0) {
+            timeSeriesTerm = timeSeriesValues[j];
+          }
 
-	  if (response.Size() > dof) {
-	    (*currentData)(cnt) = response(dof) + timeSeriesTerm;
-	  }else 
-	    (*currentData)(cnt) = 0.0 + timeSeriesTerm;
-	  
-	  cnt++;
-	}
+          if (response.Size() > dof) {
+            (*currentData)(cnt) = response(dof) + timeSeriesTerm;
+          } else 
+            (*currentData)(cnt) = 0.0 + timeSeriesTerm;
+          
+          cnt++;
+        }
 
       } else if (dataFlag == NodeData::DisplNorm) {
-	const Vector &response = theNode->getTrialDisp();
-	double sum = 0.0;
-	for (int j=0; j<numDOF; j++) {
-	  int dof = (*theDofs)(j);
+        const Vector &response = theNode->getTrialDisp();
+        double sum = 0.0;
+        for (int j=0; j<numDOF; j++) {
+          int dof = (*theDofs)(j);
 
-	  if (theTimeSeries != 0) {
-	    timeSeriesTerm = timeSeriesValues[j];
-	  }
+          if (theTimeSeries != 0) {
+            timeSeriesTerm = timeSeriesValues[j];
+          }
 
-	  if (response.Size() > dof) {
-	    sum += (response(dof) + timeSeriesTerm) * (response(dof) + timeSeriesTerm);    
-	  } else 
-	    sum += timeSeriesTerm * timeSeriesTerm;    
-	}
+          if (response.Size() > dof) {
+            sum += (response(dof) + timeSeriesTerm) * (response(dof) + timeSeriesTerm);    
+          } else 
+            sum += timeSeriesTerm * timeSeriesTerm;    
+        }
 
-	(*currentData)(cnt) = sqrt(sum);
-	cnt++;
+        (*currentData)(cnt) = sqrt(sum);
+        cnt++;
 
       } else if (dataFlag == NodeData::VelocTrial) {
-	const Vector &response = theNode->getTrialVel();
-	for (int j=0; j<numDOF; j++) {
+        const Vector &response = theNode->getTrialVel();
+        for (int j=0; j<numDOF; j++) {
 
-	  if (theTimeSeries != 0) {
-	    timeSeriesTerm = timeSeriesValues[j];
-	  }
+          if (theTimeSeries != 0) {
+            timeSeriesTerm = timeSeriesValues[j];
+          }
 
-	  int dof = (*theDofs)(j);
-	  if (response.Size() > dof) {
-	    (*currentData)(cnt) = response(dof) + timeSeriesTerm;
-	  } else 
-	    (*currentData)(cnt) = 0.0 + timeSeriesTerm;
-	  
-	  cnt++;
-	}
+          int dof = (*theDofs)(j);
+          if (response.Size() > dof) {
+            (*currentData)(cnt) = response(dof) + timeSeriesTerm;
+          } else 
+            (*currentData)(cnt) = 0.0 + timeSeriesTerm;
+          
+          cnt++;
+        }
       } else if (dataFlag == NodeData::AccelTrial) {
-	const Vector &response = theNode->getTrialAccel();
-	for (int j=0; j<numDOF; j++) {
+        const Vector &response = theNode->getTrialAccel();
+        for (int j=0; j<numDOF; j++) {
 
-	  if (theTimeSeries != 0) {
-	    timeSeriesTerm = timeSeriesValues[j];
-	  }
+          if (theTimeSeries != 0) {
+            timeSeriesTerm = timeSeriesValues[j];
+          }
 
-	  int dof = (*theDofs)(j);
-	  if (response.Size() > dof) {
-	    (*currentData)(cnt) = response(dof) + timeSeriesTerm;
-	  } else 
-	    (*currentData)(cnt) = 0.0 + timeSeriesTerm;
-	  
-	  cnt++;
-	}
+          int dof = (*theDofs)(j);
+          if (response.Size() > dof) {
+            (*currentData)(cnt) = response(dof) + timeSeriesTerm;
+          } else 
+            (*currentData)(cnt) = 0.0 + timeSeriesTerm;
+          
+          cnt++;
+        }
       } else if (dataFlag == NodeData::IncrDisp) {
-	const Vector &response = theNode->getIncrDisp();
-	for (int j=0; j<numDOF; j++) {
-	  int dof = (*theDofs)(j);
-	  if (response.Size() > dof) {
-	    (*currentData)(cnt) = response(dof);
-	  } else 
-	    (*currentData)(cnt) = 0.0;
-	  
-	  cnt++;
-	}
+        const Vector &response = theNode->getIncrDisp();
+        for (int j=0; j<numDOF; j++) {
+          int dof = (*theDofs)(j);
+          if (response.Size() > dof) {
+            (*currentData)(cnt) = response(dof);
+          } else 
+            (*currentData)(cnt) = 0.0;
+          
+          cnt++;
+        }
       } else if (dataFlag == NodeData::IncrDeltaDisp) {
-	const Vector &response = theNode->getIncrDeltaDisp();
-	for (int j=0; j<numDOF; j++) {
-	  int dof = (*theDofs)(j);
-	  if (response.Size() > dof) {
-	    (*currentData)(cnt) = response(dof);
-	  } else 
-	    (*currentData)(cnt) = 0.0;
-	  
-	  cnt++;
-	}
+        const Vector &response = theNode->getIncrDeltaDisp();
+        for (int j=0; j<numDOF; j++) {
+          int dof = (*theDofs)(j);
+          if (response.Size() > dof) {
+            (*currentData)(cnt) = response(dof);
+          } else 
+            (*currentData)(cnt) = 0.0;
+          
+          cnt++;
+        }
       } else if (dataFlag == NodeData::UnbalancedLoad) {
-	const Vector &theResponse = theNode->getUnbalancedLoad();
-	for (int j=0; j<numDOF; j++) {
-	  int dof = (*theDofs)(j);
-	  if (theResponse.Size() > dof) {
-	    (*currentData)(cnt) = theResponse(dof);
-	  } else 
-	    (*currentData)(cnt) = 0.0;
-	  
-	  cnt++;
-	}
+        const Vector &theResponse = theNode->getUnbalancedLoad();
+        for (int j=0; j<numDOF; j++) {
+          int dof = (*theDofs)(j);
+          if (theResponse.Size() > dof) {
+            (*currentData)(cnt) = theResponse(dof);
+          } else 
+            (*currentData)(cnt) = 0.0;
+          
+          cnt++;
+        }
 
       } else if (dataFlag == NodeData::UnbalanceInclInertia) {
-	const Vector &theResponse = theNode->getUnbalancedLoadIncInertia();
-	for (int j=0; j<numDOF; j++) {
-	  int dof = (*theDofs)(j);
-	  if (theResponse.Size() > dof) {
-	    (*currentData)(cnt) = theResponse(dof);
-	  } else 
-	    (*currentData)(cnt) = 0.0;
-	  
-	  cnt++;
-	}
+        const Vector &theResponse = theNode->getUnbalancedLoadIncInertia();
+        for (int j=0; j<numDOF; j++) {
+          int dof = (*theDofs)(j);
+          if (theResponse.Size() > dof) {
+            (*currentData)(cnt) = theResponse(dof);
+          } else 
+            (*currentData)(cnt) = 0.0;
+          
+          cnt++;
+        }
 
       } else if (dataFlag == NodeData::Reaction 
               || dataFlag == NodeData::ReactionInclInertia 
               || dataFlag == NodeData::ReactionInclRayleigh) {
-	const Vector &theResponse = theNode->getReaction();
-	for (int j=0; j<numDOF; j++) {
-	  int dof = (*theDofs)(j);
-	  if (theResponse.Size() > dof) {
-	    (*currentData)(cnt) = theResponse(dof);
-	  } else 
-	    (*currentData)(cnt) = 0.0;
-	  
-	  cnt++;
-	}
+        const Vector &theResponse = theNode->getReaction();
+        for (int j=0; j<numDOF; j++) {
+          int dof = (*theDofs)(j);
+          if (theResponse.Size() > dof) {
+            (*currentData)(cnt) = theResponse(dof);
+          } else 
+            (*currentData)(cnt) = 0.0;
+          
+          cnt++;
+        }
 
       } else if (dataFlag == NodeData::EigenVector) {
-	int mode = dataIndex;
-	int column = mode - 1;
-	const Matrix &theEigenvectors = theNode->getEigenvectors();
-	if (theEigenvectors.noCols() > column) {
-	  int noRows = theEigenvectors.noRows();
-	  for (int j=0; j<numDOF; j++) {
-	    int dof = (*theDofs)(j);
-	    if (noRows > dof) {
-	      (*currentData)(cnt) = theEigenvectors(dof,column);
-	    } else 
-	      (*currentData)(cnt) = 0.0;
-	    cnt++;		
-	  }
-	} else {
-	  for (int j=0; j<numDOF; j++) {
-	    (*currentData)(cnt) = 0.0;
-	    cnt++;		
-	  }
-	}
+        int mode = dataIndex;
+        int column = mode - 1;
+        const Matrix &theEigenvectors = theNode->getEigenvectors();
+        if (theEigenvectors.noCols() > column) {
+          int noRows = theEigenvectors.noRows();
+          for (int j=0; j<numDOF; j++) {
+            int dof = (*theDofs)(j);
+            if (noRows > dof) {
+              (*currentData)(cnt) = theEigenvectors(dof,column);
+            } else 
+              (*currentData)(cnt) = 0.0;
+            cnt++;		
+          }
+        } else {
+          for (int j=0; j<numDOF; j++) {
+            (*currentData)(cnt) = 0.0;
+            cnt++;		
+          }
+        }
       }
     }
   }

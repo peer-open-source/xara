@@ -196,7 +196,7 @@ C       write(*,*) OmegFac
          Fps  = 0.
          Fpsu = 0.
          Write (6,800)
-                                                  RETURN
+         RETURN
       End If
 C
       If (((EpsLast-EpsOld)*Delta).Lt.0.) then    ! Reversal
@@ -318,7 +318,7 @@ C
         If (((LMR*s.Eq.-1).And.(Eps*s.Gt.Epr(K)*s)).Or.
      *      ((LMR*s.Eq.1).And.(Eps*s.Gt.Epa(M)*s))) then
 C
-C  Post Yield-Plateau Bausch1inger Curve
+C  Post Yield-Plateau Bauschinger Curve
 C
           If (s*(Eps-EprM(K)).GT.0.) then
 C

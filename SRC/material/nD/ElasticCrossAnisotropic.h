@@ -28,9 +28,6 @@
 #ifndef ElasticCrossAnisotropic_h
 #define ElasticCrossAnisotropic_h
 
-//#include <Channel.h>
-//#include <string.h>
-//#include <OPS_Globals.h>
 
 #include <Matrix.h>
 #include <Vector.h>

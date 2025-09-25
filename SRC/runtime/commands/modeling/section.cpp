@@ -29,7 +29,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <tcl.h>
 #include <Parsing.h>
 #include <Logging.h>
 #include <ArgumentTracker.h>

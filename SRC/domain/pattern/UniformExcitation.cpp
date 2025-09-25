@@ -203,14 +203,12 @@ UniformExcitation::applyLoadSensitivity(double time)
   if (theDomain == nullptr)
     return;
 
-//  if (numNodes != theDomain->getNumNodes()) {
-    NodeIter &theNodes = theDomain->getNodes();
-    Node *theNode;
-    while ((theNode = theNodes()) != nullptr) {
-      theNode->setNumColR(1);
-      theNode->setR(theDof, 0, 1.0);
-    }
-//  }
+  NodeIter &theNodes = theDomain->getNodes();
+  Node *theNode;
+  while ((theNode = theNodes()) != nullptr) {
+    theNode->setNumColR(1);
+    theNode->setR(theDof, 0, 1.0);
+  }
 
   this->EarthquakePattern::applyLoadSensitivity(time);
 

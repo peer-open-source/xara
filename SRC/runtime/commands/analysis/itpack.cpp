@@ -12,7 +12,9 @@
 // See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
-#include <tcl.h>
+
+#include <Parsing.h>
+#include <Logging.h>
 #include <ItpackLinSOE.h>
 #include <ItpackLinSolver.h>
 

@@ -38,9 +38,9 @@
 #include <Parameter.h>
 #include <Information.h>
 #include <float.h>
+#include <OPS_Globals.h>
 
-	
-// constructor: 
+
 ConcreteMcftNonLinear7 ::ConcreteMcftNonLinear7  
 (int tag, double fcui, double ecui, double Eci, double fcri, double Esvi, double fyvi, double alphaVi, double RoVi)
    :NDMaterial(tag, ND_TAG_ConcreteMcftNonLinear7 ), 

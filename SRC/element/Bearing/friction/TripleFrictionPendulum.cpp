@@ -518,7 +518,8 @@ int TripleFrictionPendulum::update()
     
     dFy1 = Fy1cr - Fy1pr; dFy3 = Fy3cr - Fy3pr; dFy5 = Fy5cr - Fy5pr;
     Fy1 = Fy1pr; Fy3 = Fy3pr; Fy5 = Fy5pr;
-    
+    double dt = getDomain()->getDT();
+
     int nDiv = 0; int nWhileIter = 0;
     double TolOriginal = Tol;
     while ((nDiv < 10) && (ErrDisp.Norm() > TolOriginal)) {
@@ -549,9 +550,9 @@ int TripleFrictionPendulum::update()
             ErrDisp(1) = utrial(1) - u(1);
             nWhileIter++;
         }
-        v1 = (1.0/ops_Dt)*(d1 - d1pr);
-        v3 = (1.0/ops_Dt)*(d3 - d3pr);
-        v5 = (1.0/ops_Dt)*(d5 - d5pr);
+        v1 = (1.0/dt)*(d1 - d1pr);
+        v3 = (1.0/dt)*(d3 - d3pr);
+        v5 = (1.0/dt)*(d5 - d5pr);
         Vel1Avg = v1.Norm();
         Vel3Avg = v3.Norm();
         Vel5Avg = v5.Norm();

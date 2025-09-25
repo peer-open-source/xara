@@ -76,10 +76,6 @@ DamageRecorder::DamageRecorder( int elemid, ID &secIDs, int dofid, DamageModel *
   int j;
   for (j= 0; j<numSec; j++) {
     theDamageModels[j] = dmgPtr->getCopy();
-    if ( theDamageModels [j] == NULL ) {
-      opserr << "DamageRecorder::DamageRecorder - out of memory copying damage models ";
-      exit(-1);
-    }
     theDamageModels[j]->revertToStart();
   }
   
@@ -110,10 +106,6 @@ DamageRecorder::DamageRecorder( int elemid, ID &secIDs, int dofid, DamageModel *
     // itoa( sectionTags(j) , argv[1] , 10);
     
     theResponses[j] = theEle->setResponse( ( const char**)argv, argc, *theOutput);
-    if (theResponses[j] == 0) {
-      opserr << "DamageRecorder::DamageRecorder - out of memory creating deformation response ";
-      exit(-1);
-    }
   }
   
   
@@ -123,10 +115,6 @@ DamageRecorder::DamageRecorder( int elemid, ID &secIDs, int dofid, DamageModel *
     sprintf(argv[1],"%d",sectionTags(j));
     //_itoa( sectionTags(j) , argv[1] , 10);
     theResponses[j+numSec] = theEle->setResponse( ( const char**) argv, argc, *theOutput);
-    if (theResponses[j+numSec] == 0) {
-      opserr << "DamageRecorder::DamageRecorder - out of memory creating force response ";
-      exit(-1);
-    }
   }
   
   strcpy( argv[2] , "stiffness" );
@@ -135,10 +123,6 @@ DamageRecorder::DamageRecorder( int elemid, ID &secIDs, int dofid, DamageModel *
     sprintf(argv[1],"%d",sectionTags(j));
     // _itoa( sectionTags(j) , argv[1] , 10);
     theResponses[j+2*numSec] = theEle->setResponse( ( const char**) argv, argc, *theOutput);
-    if (theResponses[j+2*numSec] == 0) {
-      opserr << "DamageRecorder::DamageRecorder - out of memory creating tanegnt response ";
-      exit(-1);
-    }
   }
   
   for ( j = 0; j<argc ; j++ )

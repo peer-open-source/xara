@@ -23,7 +23,6 @@ public:
 	virtual YS_Evolution *getCopy(void) = 0;
     virtual Response *setResponse(char **argv, int argc, OPS_Stream &output);
 	virtual int 	getResponse(int responseID, Information &info);
-	virtual int	 displaySelf(Renderer &theViewer, int displayMode, float fact);
 	
 	virtual int	update(int flag);
 

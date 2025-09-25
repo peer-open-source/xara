@@ -12,7 +12,8 @@
 //
 #include <stdlib.h>
 #include <string.h>
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 
 #include <ZeroLength.h>
 #include <ZeroLengthND.h>
@@ -31,7 +32,7 @@
 
 
 int
-TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                               TCL_Char ** const argv)
 {
   ModelRegistry* builder = (ModelRegistry*)clientData;
@@ -1004,12 +1005,12 @@ TclCommand_addZeroLengthRocking(ClientData clientData, Tcl_Interp *interp,
     } else if (strcmp(argv[argi], "-xi") == 0) {
       if (argc < (argi + 2)) {
         opserr << "WARNING not enough parameters after -xi flag for ele "
-               << eleTag << endln;
+               << eleTag << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       } else {
         argi++;
         if (Tcl_GetDouble(interp, argv[argi], &xi) != TCL_OK) {
-          opserr << "WARNING invalid -xi value for ele  " << eleTag << endln;
+          opserr << "WARNING invalid -xi value for ele  " << eleTag << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         } else
           argi++;
@@ -1018,12 +1019,12 @@ TclCommand_addZeroLengthRocking(ClientData clientData, Tcl_Interp *interp,
     } else if (strcmp(argv[argi], "-dTol") == 0) {
       if (argc < (argi + 2)) {
         opserr << "WARNING not enough parameters after -dTol flag for ele "
-               << eleTag << endln;
+               << eleTag << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       } else {
         argi++;
         if (Tcl_GetDouble(interp, argv[argi], &dTol) != TCL_OK) {
-          opserr << "WARNING invalid -dTol value for ele  " << eleTag << endln;
+          opserr << "WARNING invalid -dTol value for ele  " << eleTag << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         } else
           argi++;
@@ -1032,12 +1033,12 @@ TclCommand_addZeroLengthRocking(ClientData clientData, Tcl_Interp *interp,
     } else if (strcmp(argv[argi], "-vTol") == 0) {
       if (argc < (argi + 2)) {
         opserr << "WARNING not enough parameters after -vTol flag for ele "
-               << eleTag << endln;
+               << eleTag << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       } else {
         argi++;
         if (Tcl_GetDouble(interp, argv[argi], &vTol) != TCL_OK) {
-          opserr << "WARNING invalid -vTol value for ele  " << eleTag << endln;
+          opserr << "WARNING invalid -vTol value for ele  " << eleTag << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         } else
           argi++;

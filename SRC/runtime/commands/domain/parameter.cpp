@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
 #include <stdlib.h>
 #include <Logging.h>
 #include <Parsing.h>
@@ -38,7 +37,9 @@
 
 
 int
-TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+TclCommand_parameter(ClientData clientData,
+                     Tcl_Interp *interp,
+                     Tcl_Size argc,
                      TCL_Char ** const argv)
 {
 //  parameter tag <specific parameter args>
@@ -97,9 +98,9 @@ TclCommand_parameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
   if (argc >= 6 && 
-      strcmp(argv[0], "parameter") == 0 &&
-      strcmp(argv[2], "node") == 0 &&
-      strcmp(argv[4], "disp") == 0) {
+      (strcmp(argv[0], "parameter") == 0) &&
+      (strcmp(argv[2], "node") == 0) &&
+      (strcmp(argv[4], "disp") == 0)) {
 
     int nodeTag;
     if (Tcl_GetInt(interp, argv[3], &nodeTag) != TCL_OK) {
@@ -352,14 +353,14 @@ getParamValue(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   Domain* the_domain = (Domain*)clientData; 
 
   if (argc < 2) {
-    opserr << "Insufficient arguments to getParamValue" << endln;
+    opserr << "Insufficient arguments to getParamValue" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   int paramTag;
 
   if (Tcl_GetInt(interp, argv[1], &paramTag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "getParamValue -- could not read paramTag \n";
+    opserr << OpenSees::PromptValueError << "could not read paramTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -441,13 +442,13 @@ TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
       if (Tcl_GetInt(interp, argv[argLoc + 1], &start) != TCL_OK) {
         opserr
             << "WARNING recorder Element -eleRange start? end? - invalid start "
-            << argv[argLoc + 1] << endln;
+            << argv[argLoc + 1] << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[argLoc + 2], &end) != TCL_OK) {
         opserr
             << "WARNING recorder Element -eleRange start? end? - invalid end "
-            << argv[argLoc + 2] << endln;
+            << argv[argLoc + 2] << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (start > end) {

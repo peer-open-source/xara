@@ -30,7 +30,7 @@
 #include <CrdTransf.h>
 #include <ID.h>
 #include <Vector.h>
-
+#include <Logging.h>
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
 #include <GenericResponse.h>
@@ -155,7 +155,7 @@ CrdTransf::getGlobalResistingForceShapeSensitivity(const Vector &pb,
 						   int gradNumber)
 {
     opserr << "ERROR CrdTransf::getGlobalResistingForceSensitivity() - has not been"
-        << " implemented yet for the chosen transformation." << endln;
+        << " implemented yet for the chosen transformation." << OpenSees::SignalMessageEnd;
     
     static Vector dummy(1);
     return dummy;

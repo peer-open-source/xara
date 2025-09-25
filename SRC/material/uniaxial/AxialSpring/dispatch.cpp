@@ -1,5 +1,4 @@
 
-#include <tcl.h>
 #include "AxialSp.h"
 #include "AxialSpHD.h"
 #include <Logging.h>

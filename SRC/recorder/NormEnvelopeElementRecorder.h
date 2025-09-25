@@ -60,8 +60,8 @@ class NormEnvelopeElementRecorder: public Recorder
     ~NormEnvelopeElementRecorder();
 
     int record(int commitTag, double timeStamp);
-    int restart(void);    
-    int flush(void);    
+    int restart();
+    int flush();
 
     int setDomain(Domain &theDomain);
     int sendSelf(int commitTag, Channel &theChannel);  
@@ -71,7 +71,7 @@ class NormEnvelopeElementRecorder: public Recorder
   protected:
     
   private:	
-    int initialize(void);
+    int initialize();
 
     int numEle;
     int numDOF;

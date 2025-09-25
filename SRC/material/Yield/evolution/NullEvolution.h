@@ -35,10 +35,8 @@ public:
 
   YS_Evolution* getCopy();
 
-  int getResponse(int responseID, Information & info);
-  Response* setResponse(char **argv, int argc, OPS_Stream &output);
-  
-  int	 displaySelf(Renderer &theViewer, int displayMode, float fact) { return 0;}
+  int getResponse(int responseID, Information & );
+  Response* setResponse(char **argv, int argc, OPS_Stream &);
 
   virtual int sendSelf(int commitTag, Channel &) override {return -1;}
   virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override {return -1;}

@@ -7,7 +7,6 @@
 #ifndef LinearCap_h
 #define LinearCap_h
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -17,60 +16,55 @@
 
 
 class LinearCap : public NDMaterial {
-
-//-------------------Declarations-------------------------------
-
-  public :
+public :
 
  
-  LinearCap( int    tag,
-			     double G,
-			     double K,
-			     double rho,
-			     double theta,
-				 double alpha,
-				 double T, 
-				 int ndm,
-				 double pTol_k
+  LinearCap(int tag,
+            double G,
+            double K,
+            double rho,
+            double theta,
+            double alpha,
+            double T, 
+            int ndm,
+            double pTol_k
 			     ) ;
   LinearCap( const LinearCap & a);
+
+  ~LinearCap( ) ;
+
+  double getRho();
+  int setTrialStrain(const Vector &v);
+  int setTrialStrainIncr(const Vector &v);
+  const Matrix &getTangent();
+  const Matrix &getInitialTangent() ;
+
+  const char *getClassType() const {
+    return "LinearCap";
+  }
+
+  const Vector &getStress();
+  const Vector &getStrain();
+
+  int commitState() ;
+  int revertToLastCommit() ;
+  int revertToStart() ;
+
+  NDMaterial *getCopy();
+  NDMaterial *getCopy(const char *code) ;
+
+  const char *getType() const;
+  int getOrder() const ;
   
-      ~LinearCap( ) ;
+  int sendSelf(int commitTag, Channel &theChannel) ;
+  int recvSelf(int commitTag, Channel &theChannel,
+          FEM_ObjectBroker &theBroker ) ;
 
-      double getRho(void);
-      int setTrialStrain(const Vector &v);
-      int setTrialStrain(const Vector &v, const Vector &r);
-      int setTrialStrainIncr(const Vector &v);
-      int setTrialStrainIncr(const Vector &v, const Vector &r);
-      const Matrix &getTangent(void);
-      const Matrix &getInitialTangent(void) ;
+  Response *setResponse (const char **argv, int argc, OPS_Stream &output);
+  int getResponse (int responseID, Information &matInformation);
 
-      const char *getClassType(void) const {
-        return "LinearCap";
-      }
+  void Print(OPS_Stream &s, int flag = 0) ;	
 
-      const Vector &getStress(void);
-      const Vector &getStrain(void);
-
-      int commitState(void) ;
-      int revertToLastCommit(void) ;
-      int revertToStart(void) ;
-
-      NDMaterial *getCopy(void);
-      NDMaterial *getCopy(const char *code) ;
-
-      const char *getType(void) const;
-      int getOrder(void) const ;
-	  
-	  int sendSelf(int commitTag, Channel &theChannel) ;
-	  int recvSelf(int commitTag, Channel &theChannel,
-				   FEM_ObjectBroker &theBroker ) ;
-
-      Response *setResponse (const char **argv, int argc, OPS_Stream &output);
-      int getResponse (int responseID, Information &matInformation);
-	  
-	  void Print(OPS_Stream &s, int flag = 0) ;	
-  
   private:
  
 	  double CapBoundL(double k);

@@ -24,7 +24,6 @@
 #include <Parsing.h>
 #include <string.h>
 #include <math.h>
-#include <tcl.h>
 
 int
 TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)

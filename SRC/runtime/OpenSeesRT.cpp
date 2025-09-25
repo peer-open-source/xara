@@ -20,6 +20,7 @@
 #  define OPENSEESRT_VERSION "0.0.0"
 #endif
 //
+#include <Parsing.h>
 #include <runtimeAPI.h>
 #include "runtime/G3_Runtime.h"
 #include <logging/Logging.h>

@@ -55,39 +55,37 @@ public:
 	ElasticIsotropicMaterialThermal(int tag, double E, double nu, double rho = 0.0, double alpha = 0, int softindex=0);
 
 	// For parallel processing
-	ElasticIsotropicMaterialThermal(void);
+	ElasticIsotropicMaterialThermal();
 
-	virtual ~ElasticIsotropicMaterialThermal(void);
+	virtual ~ElasticIsotropicMaterialThermal();
 
-	virtual const char *getClassType(void) const { return "ElasticIsotropicMaterialThermal"; };
+	virtual const char *getClassType() const {return "ElasticIsotropicMaterialThermal";}
 
 	virtual double getRho();
 
 	virtual int setTrialStrain(const Vector &v);
-	virtual int setTrialStrain(const Vector &v, const Vector &r);
 	virtual int setTrialStrainIncr(const Vector &v);
-	virtual int setTrialStrainIncr(const Vector &v, const Vector &r);
-	virtual const Matrix &getTangent(void);
-	virtual const Matrix &getInitialTangent(void);
-	virtual const Vector &getStress(void);
-	virtual const Vector &getStrain(void);
+	virtual const Matrix &getTangent();
+	virtual const Matrix &getInitialTangent();
+	virtual const Vector &getStress();
+	virtual const Vector &getStrain();
 
-	virtual int commitState(void);
-	virtual int revertToLastCommit(void);
-	virtual int revertToStart(void);
+	virtual int commitState();
+	virtual int revertToLastCommit();
+	virtual int revertToStart();
 
 	// Create a copy of material parameters AND state variables
 	// Called by GenericSectionXD
-	virtual NDMaterial *getCopy(void);
+	virtual NDMaterial *getCopy();
 
 	// Create a copy of just the material parameters
 	// Called by the continuum elements
 	virtual NDMaterial *getCopy(const char *type);
 
 	// Return a string indicating the type of material model
-	virtual const char *getType(void) const;
+	virtual const char *getType() const;
 
-	virtual int getOrder(void) const;
+	virtual int getOrder() const;
 
 	virtual int sendSelf(int commitTag, Channel &theChannel);
 	virtual int recvSelf(int commitTag, Channel &theChannel,

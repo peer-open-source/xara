@@ -17,7 +17,6 @@
 #ifndef ElasticMembraneSection_h
 #define ElasticMembraneSection_h
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -43,34 +42,34 @@ public:
 	int setTrialSectionDeformation(const Vector& newTrialSectionStrain);
 
 	// Public methods to obtain strain, stress, tangent and residual information
-	const Vector& getSectionDeformation(void);
-	const Vector& getStressResultant(void);
-	const Matrix& getSectionTangent(void);
-	const Matrix& getInitialTangent(void);
+	const Vector& getSectionDeformation();
+	const Vector& getStressResultant();
+	const Matrix& getSectionTangent();
+	const Matrix& getInitialTangent();
 
 	// Public methods to obtain a copy of section and other information
-	SectionForceDeformation* getCopy(void);
-	const char* getClassType(void) const { return "ElasticMembraneSection"; };
-	const ID& getType(void);
-	int getOrder(void) const;
+	SectionForceDeformation* getCopy();
+	const char* getClassType() const { return "ElasticMembraneSection"; }
+	const ID& getType();
+	int getOrder() const;
 	
 	// Public methods to set the state of the section
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
 
 	// Public methods for output
-	int sendSelf(int commitTag, Channel& theChannel);
-	int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+	int sendSelf(int commitTag, Channel&);
+	int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
-	void Print(OPS_Stream& s, int flag);
+	void Print(OPS_Stream&, int flag);
 
 	// Functions used for recorders
-	const Vector& getCommittedStrain(void);
-	const Vector& getCommittedStress(void);
+	const Vector& getCommittedStrain();
+	const Vector& getCommittedStress();
 
 	// Density per unit area
-	double getRho(void);															
+	double getRho();															
 
 private:
 

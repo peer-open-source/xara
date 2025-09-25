@@ -24,7 +24,6 @@
 #include <vector>
 #include <algorithm>
 // Framework
-#include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <ID.h>

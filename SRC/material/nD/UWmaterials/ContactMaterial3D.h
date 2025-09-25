@@ -35,7 +35,6 @@
 // Description: This file contains the class prototype for ContactMaterial3D.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -46,39 +45,34 @@
 class ContactMaterial3D : public NDMaterial
 {
   public:
-  // Full constructor
   ContactMaterial3D (int tag, double mu, double G, double c, double t);
   ContactMaterial3D (const ContactMaterial3D &);
-  
-  // Null constructor
   ContactMaterial3D ();
-  
-  // Destructor: clean up memory storage space.
-  ~ContactMaterial3D ();
+  ~ContactMaterial3D();
   
   // Sets the values of the trial strain tensor.
-  int setTrialStrain (const Vector &strain_from_element);
+  int setTrialStrain(const Vector &strain_from_element);
   
   // Unused trialStrain functions
   int setTrialStrain(const Vector &v, const Vector &r);
   
-  // Calculates current tangent stiffness.
-  const Matrix &getTangent ();
-  const Matrix &getInitialTangent ();
-  
-  // Calculates the corresponding stress increment (rate),
+  // Calculate current tangent stiffness.
+  const Matrix &getTangent();
+  const Matrix &getInitialTangent();
+
+  // Calculate the corresponding stress increment (rate),
   // for a given strain increment. 
-  const Vector &getStress ();
-  const Vector &getStrain ();
+  const Vector &getStress();
+  const Vector &getStrain();
   
-  //Get cohesion function for use in contact element
-  double getcohesion ();
-  void ScaleCohesion (const double len); 
+  // Get cohesion function for use in contact element
+  double getcohesion();
+  void ScaleCohesion(const double len); 
 
   //Get tensile strength function for use in contact element
-  double getTensileStrength ();
-  void ScaleTensileStrength (const double len); 
-  
+  double getTensileStrength();
+  void ScaleTensileStrength(const double len); 
+
   // get metric tensor for material class
   void setMetricTensor(Matrix &m);
   bool getContactState() {return inSlip;}
@@ -86,16 +80,12 @@ class ContactMaterial3D : public NDMaterial
   // Accepts the current trial strain values as being on the
   // solution path, and updates all model parameters related
   // to stress/strain states. Return 0 on success.
-  int commitState ();
-  
-  // Revert the stress/strain states to the last committed states.
-  // Return 0 on success.
-  int revertToLastCommit ();
-  
-  int revertToStart();
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
   
   // Return an exact copy of itself.
-  NDMaterial *getCopy (void);
+  NDMaterial *getCopy () override;
   
   // Return a copy of itself if "code"="ContactMaterial3D", 
   // otherwise return null.

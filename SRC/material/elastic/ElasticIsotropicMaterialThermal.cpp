@@ -156,13 +156,6 @@ ElasticIsotropicMaterialThermal::setTrialStrain(const Vector &v)
 	return -1;
 }
 
-int
-ElasticIsotropicMaterialThermal::setTrialStrain(const Vector &v, const Vector &rate)
-{
-	opserr << "ElasticIsotropicMaterialThermal::setTrialStrain -- subclass responsibility\n";
-	exit(-1);
-	return -1;
-}
 
 int
 ElasticIsotropicMaterialThermal::setTrialStrainIncr(const Vector &v)
@@ -172,16 +165,8 @@ ElasticIsotropicMaterialThermal::setTrialStrainIncr(const Vector &v)
 	return -1;
 }
 
-int
-ElasticIsotropicMaterialThermal::setTrialStrainIncr(const Vector &v, const Vector &rate)
-{
-	opserr << "ElasticIsotropicMaterialThermal::setTrialStrainIncr -- subclass responsibility\n";
-	exit(-1);
-	return -1;
-}
-
 const Matrix&
-ElasticIsotropicMaterialThermal::getTangent(void)
+ElasticIsotropicMaterialThermal::getTangent()
 {
 	opserr << "ElasticIsotropicMaterialThermal::getTangent -- subclass responsibility\n";
 	exit(-1);
@@ -192,13 +177,13 @@ ElasticIsotropicMaterialThermal::getTangent(void)
 }
 
 const Matrix&
-ElasticIsotropicMaterialThermal::getInitialTangent(void)
+ElasticIsotropicMaterialThermal::getInitialTangent()
 {
 	return this->getTangent();
 }
 
 const Vector&
-ElasticIsotropicMaterialThermal::getStress(void)
+ElasticIsotropicMaterialThermal::getStress()
 {
 	opserr << "ElasticIsotropicMaterialThermal::getStress -- subclass responsibility\n";
 	exit(-1);
@@ -209,7 +194,7 @@ ElasticIsotropicMaterialThermal::getStress(void)
 }
 
 const Vector&
-ElasticIsotropicMaterialThermal::getStrain(void)
+ElasticIsotropicMaterialThermal::getStrain()
 {
 	opserr << "ElasticIsotropicMaterialThermal::getStrain -- subclass responsibility\n";
 	exit(-1);
@@ -220,7 +205,7 @@ ElasticIsotropicMaterialThermal::getStrain(void)
 }
 
 int
-ElasticIsotropicMaterialThermal::commitState(void)
+ElasticIsotropicMaterialThermal::commitState()
 {
 	opserr << "ElasticIsotropicMaterialThermal::commitState -- subclass responsibility\n";
 	exit(-1);
@@ -228,7 +213,7 @@ ElasticIsotropicMaterialThermal::commitState(void)
 }
 
 int
-ElasticIsotropicMaterialThermal::revertToLastCommit(void)
+ElasticIsotropicMaterialThermal::revertToLastCommit()
 {
 	opserr << "ElasticIsotropicMaterialThermal::revertToLastCommit -- subclass responsibility\n";
 	exit(-1);
@@ -237,7 +222,7 @@ ElasticIsotropicMaterialThermal::revertToLastCommit(void)
 }
 
 int
-ElasticIsotropicMaterialThermal::revertToStart(void)
+ElasticIsotropicMaterialThermal::revertToStart()
 {
 	opserr << "ElasticIsotropicMaterialThermal::revertToStart -- subclass responsibility\n";
 	exit(-1);
@@ -245,7 +230,7 @@ ElasticIsotropicMaterialThermal::revertToStart(void)
 }
 
 NDMaterial*
-ElasticIsotropicMaterialThermal::getCopy(void)
+ElasticIsotropicMaterialThermal::getCopy()
 {
 	opserr << "ElasticIsotropicMaterialThermal::getCopy -- subclass responsibility\n";
 	exit(-1);
@@ -253,7 +238,7 @@ ElasticIsotropicMaterialThermal::getCopy(void)
 }
 
 const char*
-ElasticIsotropicMaterialThermal::getType(void) const
+ElasticIsotropicMaterialThermal::getType() const
 {
 	opserr << "ElasticIsotropicMaterialThermal::getType -- subclass responsibility\n";
 	exit(-1);
@@ -262,7 +247,7 @@ ElasticIsotropicMaterialThermal::getType(void) const
 }
 
 int
-ElasticIsotropicMaterialThermal::getOrder(void) const
+ElasticIsotropicMaterialThermal::getOrder() const
 {
 	opserr << "ElasticIsotropicMaterialThermal::getOrder -- subclass responsibility\n";
 	exit(-1);

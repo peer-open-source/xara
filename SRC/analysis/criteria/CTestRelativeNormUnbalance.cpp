@@ -88,19 +88,19 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE 
+        pstream << LOG_ITERATE 
                << "Iter: "    << pad(currentIter)
                << ", |dR|/|dR0|: " << pad(norm) 
-               << endln; // << " (max: " << tol << ")\n";
+               << "\n"; // << " (max: " << tol << ")\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE 
+        pstream << LOG_ITERATE 
                << "Iter: "     << pad(currentIter)
                << ", |dR|/|dR0|: "  << pad(norm) 
-               << endln //" (max: " << tol << ")\n"
+               << "\n" //" (max: " << tol << ")\n"
                << "\tNorm deltaX: " << pad(theSOE.getX().pNorm(nType)) 
                << ", Norm deltaR: " << pad(norm) 
-               << endln
+               << "\n"
                << "\tdeltaX: "      << theSOE.getX() 
                << "\tdeltaR: "      << x;
     }
@@ -115,12 +115,12 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << "\n";
         if (printFlag & ConvergenceTest::PrintSuccess) {
-            opserr << LOG_SUCCESS 
+            pstream << LOG_SUCCESS 
                    << "Iter: "    << pad(currentIter)
                    << ", |dR|/|dR0|: " << pad(norm) 
-                   << endln; // " (max: " << tol << ")\n";
+                   << "\n"; // " (max: " << tol << ")\n";
         }
 
         // return the number of times test has been called
@@ -130,11 +130,10 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE 
-                   //<< "criteria CTestRelativeNormUnbalance but going on -"
+            pstream << LOG_FAILURE
                    << ", dR/dR0: "       << pad(norm)
                    << ", Norm deltaX: "  << pad(theSOE.getX().pNorm(nType)) 
-                   << endln;
+                   << "\n";
         }
         return currentIter;
     }
@@ -142,12 +141,12 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter) { // the algorithm failed to converge
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
+            pstream << LOG_FAILURE
                    //<< "criteria CTestRelativeNormUnbalance"
                    // << LOG_CONTINUE
                    << "Iter: "         << pad(currentIter)
                    << ", |dR|/|dR0|: " << pad(norm) 
-                   << endln;
+                   << "\n";
         }
         // we increment in case analysis does not check for convergence
         currentIter++;
@@ -162,7 +161,8 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
 }
 
 
-int CTestRelativeNormUnbalance::start(LinearSOE& theSOE)
+int
+CTestRelativeNormUnbalance::start(LinearSOE& theSOE)
 {
     // set iteration count = 1
     norms.Zero();
@@ -188,26 +188,28 @@ int CTestRelativeNormUnbalance::getNumTests()
 }
 
 
-int CTestRelativeNormUnbalance::getMaxNumTests(void)
+int CTestRelativeNormUnbalance::getMaxNumTests()
 {
     return maxNumIter;
 }
 
 
-double CTestRelativeNormUnbalance::getRatioNumToMax(void)
+double CTestRelativeNormUnbalance::getRatioNumToMax()
 {
     double div = maxNumIter;
     return currentIter/div;
 }
 
 
-const Vector& CTestRelativeNormUnbalance::getNorms()
+const Vector&
+CTestRelativeNormUnbalance::getNorms()
 {
     return norms;
 }
 
 
-int CTestRelativeNormUnbalance::sendSelf(int cTag, Channel &theChannel)
+int
+CTestRelativeNormUnbalance::sendSelf(int cTag, Channel &theChannel)
 {
     int res = 0;
     Vector x(4);

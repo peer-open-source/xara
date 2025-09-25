@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <string.h>
 // OpenSees
-#include <tcl.h>
 #include <Domain.h>
 #include <Logging.h>
 #include <Parsing.h>

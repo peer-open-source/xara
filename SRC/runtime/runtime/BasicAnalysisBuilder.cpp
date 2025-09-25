@@ -381,7 +381,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
       result = theStaticIntegrator->newStep();
       if (result < 0) {
         opserr << "The Integrator failed at step: " << i
-              << " with domain at load factor " << theDomain->getCurrentTime() << "\n";
+               << " with domain at load factor " << theDomain->getCurrentTime() << "\n";
         theDomain->revertToLastCommit();
         theStaticIntegrator->revertToLastStep();
         return -2;
@@ -393,7 +393,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
       if (result < 0) {
         // Print error message if we have one
         if (AnalyzeFailedMessage.find(result) != AnalyzeFailedMessage.end()) {
-            opserr << OpenSees::PromptAnalysisFailure << AnalyzeFailedMessage[result];
+          opserr << OpenSees::PromptAnalysisFailure << AnalyzeFailedMessage[result];
         }
         theDomain->revertToLastCommit();
         theStaticIntegrator->revertToLastStep();
@@ -602,7 +602,7 @@ BasicAnalysisBuilder::analyzeVariable(int numSteps, double dT, double dtMin, dou
 
     //
     // do newStep(), solveCurrentStep() and commit() as in regular
-    // DirectINtegrationAnalysis - difference is we do not return
+    // DirectIntegrationAnalysis - difference is we do not return
     // if a failure - we stop the analysis & resize time step if failure
     //
 
@@ -637,8 +637,8 @@ BasicAnalysisBuilder::analyzeVariable(int numSteps, double dT, double dtMin, dou
 
       // if last dT was <= min specified the analysis FAILS - return FAILURE
       if (currentDt <= dtMin) {
-        opserr << "VariableTimeStepDirectIntegrationAnalysis::analyze() - ";
-        opserr << " failed at time " << theDomain->getCurrentTime() << endln;
+        opserr << "failed at time " << theDomain->getCurrentTime() 
+               << OpenSees::SignalMessageEnd;
         return result;
       }
 
@@ -668,7 +668,6 @@ BasicAnalysisBuilder::set(ConstraintHandler* obj)
 void
 BasicAnalysisBuilder::set(DOF_Numberer* obj)
 {
-  // free the old numberer
   if (theNumberer != nullptr)
     delete theNumberer;
 
@@ -758,6 +757,7 @@ BasicAnalysisBuilder::set(TransientIntegrator& obj, bool free)
   else
     domainStamp = 0;
 }
+
 
 void
 BasicAnalysisBuilder::set(ConvergenceTest* obj)
@@ -866,16 +866,16 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
   if (this->CurrentAnalysisFlag == EMPTY_ANALYSIS)
     this->CurrentAnalysisFlag = TRANSIENT_ANALYSIS;
 
-  this->fillDefaults(this->CurrentAnalysisFlag);
-  this->setLinks(this->CurrentAnalysisFlag);
 
   // create a new eigen system and solver
   if (theEigenSOE != nullptr) {
-    if (theEigenSOE->getClassTag() != typeSolver) {
+    // if (theEigenSOE->getClassTag() != typeSolver) {
       delete theEigenSOE;
       theEigenSOE = nullptr;
-    }
+    // }
   }
+  this->fillDefaults(this->CurrentAnalysisFlag);
+  this->setLinks(this->CurrentAnalysisFlag);
 
   if (theEigenSOE == nullptr) {
     domainStamp = 0;
@@ -901,7 +901,8 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
 
 
 int
-BasicAnalysisBuilder::eigen(int numMode, bool generalized, bool findSmallest)
+BasicAnalysisBuilder::eigen(int numMode, 
+                            bool generalized, bool findSmallest)
 {
   // TODO: merge with newEigenAnalysis
 
@@ -953,7 +954,7 @@ BasicAnalysisBuilder::eigen(int numMode, bool generalized, bool findSmallest)
   while ((elePtr = theEles()) != nullptr) {
     elePtr->zeroTangent();
     elePtr->addKtToTang(1.0);
-    if (theEigenSOE->addA(elePtr->getTangent(0), elePtr->getID()) < 0) {
+    if (theEigenSOE->addA(elePtr->getTangent(nullptr), elePtr->getID()) < 0) {
       opserr << G3_WARN_PROMPT << "eigen -";
       opserr << " failed in addA for ID " << elePtr->getID();
       result = -2;
@@ -1007,6 +1008,10 @@ BasicAnalysisBuilder::eigen(int numMode, bool generalized, bool findSmallest)
   theAnalysisModel->setEigenvalues(theEigenvalues);
   this->numEigen = numMode;
 
+
+  //
+  delete theEigenSOE;
+  theEigenSOE = nullptr;
   return 0;
 }
 

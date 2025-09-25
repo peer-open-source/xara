@@ -162,9 +162,8 @@ PlaneStressMaterial::getRho( )
 }
 
 
-//receive the strain
 int 
-PlaneStressMaterial::setTrialStrain( const Vector &strainFromElement )
+PlaneStressMaterial::setTrialStrain(const Vector &strainFromElement )
 {
   static const double tolerance = 1.0e-08 ;
 
@@ -240,14 +239,14 @@ PlaneStressMaterial::setTrialStrain( const Vector &strainFromElement )
 
 
 const Vector& 
-PlaneStressMaterial::getStrain( )
+PlaneStressMaterial::getStrain()
 {
   return strain;
 }
 
 
 const Vector&  
-PlaneStressMaterial::getStress( )
+PlaneStressMaterial::getStress()
 {
   //three dimensional stress
   const Vector &threeDstress = theMaterial->getStress();
@@ -260,8 +259,7 @@ PlaneStressMaterial::getStress( )
 }
 
 const Vector& 
-PlaneStressMaterial::getStressSensitivity(int gradIndex,
-					  bool conditional)
+PlaneStressMaterial::getStressSensitivity(int gradIndex,  bool conditional)
 {
   const Vector &threeDstress = theMaterial->getStressSensitivity(gradIndex, conditional);
 

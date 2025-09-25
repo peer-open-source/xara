@@ -94,15 +94,15 @@ CTestNormUnbalance::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE << "Iter: " << pad(currentIter);
-        opserr << ", Norm: " << pad(norm) << " (max: " << tol;
-        opserr << ", Norm deltaX: " << theSOE.getX().pNorm(nType) << ")\n";
+        pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
+        pstream << ", Norm: " << pad(norm) << " (max: " << tol;
+        pstream << ", Norm deltaX: " << theSOE.getX().pNorm(nType) << ")\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE << "Iter: " << pad(currentIter);
-        opserr << ", Norm: " << pad(norm) << " (max: " << tol << ")\n";
-        opserr << "\tNorm deltaX: " << theSOE.getX().pNorm(nType) << ", Norm deltaR: " << pad(norm) << "\n";
-        opserr << "\tdeltaX: " << theSOE.getX() << "\tdeltaR: " << x;
+        pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
+        pstream << ", Norm: " << pad(norm) << " (max: " << tol << ")\n";
+        pstream << "\tNorm deltaX: " << theSOE.getX().pNorm(nType) << ", Norm deltaR: " << pad(norm) << "\n";
+        pstream << "\tdeltaX: " << theSOE.getX() << "\tdeltaR: " << x;
     }
 
     if (printFlag == 7) {
@@ -137,11 +137,11 @@ CTestNormUnbalance::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << "\n";
+            pstream << "\n";
         if (printFlag & ConvergenceTest::PrintSuccess || printFlag == 7) {
-            opserr << LOG_SUCCESS << "Iter: " << pad(currentIter);
-            opserr << ", Norm: " << pad(norm) << " (max: " << tol;
-            opserr << ", Norm deltaX: " << theSOE.getX().pNorm(nType) << ")\n";
+            pstream << LOG_SUCCESS << "Iter: " << pad(currentIter);
+            pstream << ", Norm: " << pad(norm) << " (max: " << tol;
+            pstream << ", Norm deltaX: " << theSOE.getX().pNorm(nType) << ")\n";
         }
 
         // return the number of times test has been called
@@ -151,7 +151,7 @@ CTestNormUnbalance::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag & ConvergenceTest::AlwaysSucceed) && (currentIter >= maxNumIter||numIncr>=maxIncr)) {
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
+            pstream << LOG_FAILURE
                    //<< "criteria CTestNormUnbalance but going on -";
                    << ", Norm: " << pad(norm) 
                    << ", Norm deltaX: " << pad(theSOE.getX().pNorm(nType))
@@ -163,7 +163,7 @@ CTestNormUnbalance::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter || numIncr >= maxIncr || norm > maxTol) { // the algorithm failed to converge
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE 
+            pstream << LOG_FAILURE
                    //<< "criteria CTestNormUnbalance"
                    // << LOG_CONTINUE
                    << "Iter: "           << pad(currentIter)
@@ -183,7 +183,8 @@ CTestNormUnbalance::test(LinearSOE& theSOE)
 }
 
 
-int CTestNormUnbalance::start(LinearSOE& theSOE)
+int
+CTestNormUnbalance::start(LinearSOE& )
 {
     // set iteration count = 1
     norms.Zero();
@@ -193,26 +194,30 @@ int CTestNormUnbalance::start(LinearSOE& theSOE)
 }
 
 
-int CTestNormUnbalance::getNumTests()
+int
+CTestNormUnbalance::getNumTests()
 {
     return currentIter;
 }
 
 
-int CTestNormUnbalance::getMaxNumTests(void)
+int
+CTestNormUnbalance::getMaxNumTests()
 {
     return maxNumIter;
 }
 
 
-double CTestNormUnbalance::getRatioNumToMax(void)
+double
+CTestNormUnbalance::getRatioNumToMax()
 {
     double div = maxNumIter;
     return currentIter/div;
 }
 
 
-const Vector& CTestNormUnbalance::getNorms()
+const Vector&
+CTestNormUnbalance::getNorms()
 {
     return norms;
 }

@@ -36,7 +36,7 @@
 
 MatParameter::MatParameter(int theTag, int materialTag, const char *materialParameterName)
 :Parameter(theTag, PARAMETER_TAG_MatParameter),
- theParameterName(0), theMaterialTag(materialTag), theParameterID(-1)
+ theParameterName(0), theMaterialTag(materialTag)
 {
   if (materialParameterName != 0) {
     theParameterName = new char[strlen(materialParameterName) +1];
@@ -46,7 +46,7 @@ MatParameter::MatParameter(int theTag, int materialTag, const char *materialPara
 
 MatParameter::MatParameter()
   :Parameter(), 
-   theParameterName(0), theMaterialTag(0), theParameterID(-1)
+   theParameterName(0), theMaterialTag(0)
 {
 
 }

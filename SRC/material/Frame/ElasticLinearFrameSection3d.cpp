@@ -128,7 +128,6 @@ SetupTangent(MatrixND<12,12>& Ks, const FrameSectionConstants& cons, double E, d
           0.,  GSnyy,     0.,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,    GSy,     0.,
           0.,     0.,  GSnzz,      0.,     0.,     0.,      0. ,  0.,  0.,    0.,     0.,    GSz}
   };
-
     //                        |                        |                  |
     //    0       1       2   |    3       4       5   |     6     7   8  |  9      10      11
 }
@@ -320,7 +319,6 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
 
 
   Ki.Invert();
-
 
   theCopy->Fs = new Matrix(nr,nr);
   Matrix& Fc = *(theCopy->Fs);

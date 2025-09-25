@@ -33,12 +33,12 @@
 #include <ActorSubdomain.h>
 #include <FEM_ObjectBroker.h>
 #include <TCP_Socket.h>
-// #include <TCP_SocketNoDelay.h>
 #include <UDP_Socket.h>
 #include <SocketAddress.h>
 #include <Message.h>
 
-int main(int argv, char **argc)
+int
+main(int argv, char **argc)
 {
     int channelType = atoi(argc[1]);
     
@@ -46,12 +46,11 @@ int main(int argv, char **argc)
     //
     // create a channel
     //
-    
     Channel *theChannel = 0;
     if (channelType == 1) {
-	char *machine = argc[2];    	
-	int port = atoi(argc[3]);	
-	theChannel = new TCP_Socket(port,machine);
+        char *machine = argc[2];    	
+        int port = atoi(argc[3]);	
+        theChannel = new TCP_Socket(port,machine);
     }
     //    else if (channelType == 2) {
     //	char *machine = argc[2];    	
@@ -64,15 +63,15 @@ int main(int argv, char **argc)
     // theChannel = new TCP_SocketNoDelay(port,machine);
     // }   
     else {
-	opserr << "ACTOR PROCESS: ShadowSubdomainActor Exiting ";	
-	opserr << "- invalid channel type " << channelType << endln;
-	exit(-1);
+        opserr << "ACTOR PROCESS: ShadowSubdomainActor Exiting ";	
+        opserr << "- invalid channel type " << channelType << endln;
+        exit(-1);
     }
 
     if (theChannel == 0) {
-	opserr << "ACTOR PROCESS: ShadowSubdomainActor Exiting ";	
-	opserr << "- could not create the channel " << endln;
-	exit(-1);
+        opserr << "ACTOR PROCESS: ShadowSubdomainActor Exiting ";	
+        opserr << "- could not create the channel " << endln;
+        exit(-1);
     }	
 
     //

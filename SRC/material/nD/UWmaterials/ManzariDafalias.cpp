@@ -29,6 +29,7 @@
 #include <MaterialResponse.h>
 
 #include <string.h>
+#include <elementAPI.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <algorithm>

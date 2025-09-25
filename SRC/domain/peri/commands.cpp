@@ -1,6 +1,9 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
+
 #include <cmath>
 #include <stdio.h>
 #include <vector>

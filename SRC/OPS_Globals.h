@@ -32,19 +32,18 @@
 namespace OpenSees {
 extern OPS_Stream *opserrPtr;
 }
-#define opserr (*OpenSees::opserrPtr)
+#ifndef opserr
+# define opserr (*OpenSees::opserrPtr)
+#endif
 #define endln "\n"
 
 #include <string.h>
-#define OPS_STATIC
 
-#define TCL_Char const char
-
-class Domain;
-class Element;
 
 extern double   ops_Dt;                // current delta T for current domain doing an update
 extern int ops_Creep;
+class Domain;
+class Element;
 extern Domain  *ops_TheActiveDomain;   // current domain undergoing an update
 extern Element *ops_TheActiveElement;  // current element undergoing an update
 

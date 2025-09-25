@@ -15,7 +15,8 @@
 //
 // Written: cmp
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include "element.hpp"
 #include <assert.h>
 #include <stdlib.h>
@@ -327,6 +328,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
            strcasecmp(argv[1], "ForceBeamColumn") == 0 ||
            strcasecmp(argv[1], "DispBeamColumn") == 0 ||
            strcasecmp(argv[1], "DispBeamColumn") == 0 ||
+           strcasecmp(argv[1], "DispBeamColumnAsym") == 0 ||
            strcasecmp(argv[1], "TimoshenkoBeamColumn") == 0 ||
            strcasecmp(argv[1], "ForceBeamColumnCBDI") == 0 ||
            strcasecmp(argv[1], "ForceBeamColumnCSBDI") == 0 ||

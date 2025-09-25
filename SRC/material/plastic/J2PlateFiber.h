@@ -52,7 +52,6 @@
 //  set eta := 0 for rate independent case
 //
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -67,10 +66,8 @@ class J2PlateFiber : public J2Plasticity {
 
   public : 
 
-  //null constructor
   J2PlateFiber( ) ;
 
-  //full constructor
   J2PlateFiber(   int    tag, 
                    double K,
                    double G,
@@ -88,22 +85,16 @@ class J2PlateFiber : public J2Plasticity {
   //destructor
   ~J2PlateFiber( ) ;
 
-  const char *getClassType(void) const {return "J2PlateFiber";};
-
-    NDMaterial* getCopy( ) ;
-
-  //send back type of material
+  const char *getClassType() const {return "J2PlateFiber";};
+  NDMaterial* getCopy( ) ;
   const char* getType( ) const ;
-
-    int getOrder( ) const ;
+  int getOrder( ) const ;
 
   //get the strain and integrate plasticity equations
   int setTrialStrain( const Vector &strain_from_element) ;
 
   //unused trial strain functions
-  int setTrialStrain( const Vector &v, const Vector &r ) ;
   int setTrialStrainIncr( const Vector &v ) ;
-  int setTrialStrainIncr( const Vector &v, const Vector &r ) ;
 
   const Vector& getStrain( ) ;
 

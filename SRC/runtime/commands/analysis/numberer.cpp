@@ -8,7 +8,8 @@
 // Description: This file implements the selection of a Numberer object,
 // which is used to optimally number the degrees of freedom of a problem.
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <assert.h>
 #include <BasicAnalysisBuilder.h>
 #include <numberer/DOF_Numberer.h>

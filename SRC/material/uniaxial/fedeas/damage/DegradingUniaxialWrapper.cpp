@@ -5,7 +5,7 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <ModelRegistry.h>
 
 #ifdef OPS_USE_RUNTIME

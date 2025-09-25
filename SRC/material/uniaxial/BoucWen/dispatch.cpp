@@ -1,4 +1,4 @@
-#include <tcl.h>
+
 #include <Parsing.h>
 #include <Logging.h>
 #include <ModelRegistry.h>
@@ -26,47 +26,38 @@ TclCommand_newUniaxialBoucWen(ClientData cd, Tcl_Interp* interp, int argc, G3_Ch
     }
     if (Tcl_GetDouble(interp, argv[3], &alpha) != TCL_OK) {
       opserr << "WARNING invalid alpha\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[4], &ko) != TCL_OK) {
       opserr << "WARNING invalid ko\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[5], &n) != TCL_OK) {
       opserr << "WARNING invalid n\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[6], &gamma) != TCL_OK) {
       opserr << "WARNING invalid gamma\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[7], &beta) != TCL_OK) {
       opserr << "WARNING invalid beta\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[8], &Ao) != TCL_OK) {
       opserr << "WARNING invalid Ao\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[9], &deltaA) != TCL_OK) {
       opserr << "WARNING invalid deltaA\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[10], &deltaNu) != TCL_OK) {
       opserr << "WARNING invalid deltaNu\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[11], &deltaEta) != TCL_OK) {
       opserr << "WARNING invalid deltaEta\n";
-      opserr << "uniaxialMaterial BoucWen: " << tag << endln;
       return TCL_ERROR;
     }
 
@@ -75,7 +66,6 @@ TclCommand_newUniaxialBoucWen(ClientData cd, Tcl_Interp* interp, int argc, G3_Ch
     if (argc > 12) {
       if (Tcl_GetDouble(interp, argv[12], &tolerance) != TCL_OK) {
         opserr << "WARNING invalid tolerance\n";
-        opserr << "uniaxialMaterial BoucWen: " << tolerance << endln;
         return TCL_ERROR;
       }
     }
@@ -85,7 +75,6 @@ TclCommand_newUniaxialBoucWen(ClientData cd, Tcl_Interp* interp, int argc, G3_Ch
     if (argc > 13) {
       if (Tcl_GetInt(interp, argv[13], &maxNumIter) != TCL_OK) {
         opserr << "WARNING invalid maxNumIter\n";
-        opserr << "uniaxialMaterial BoucWen: " << maxNumIter << endln;
         return TCL_ERROR;
       }
     }

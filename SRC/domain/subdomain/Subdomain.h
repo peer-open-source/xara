@@ -54,12 +54,12 @@ class Subdomain: public Element, public Domain
     Subdomain(int tag);
 
     Subdomain(int tag, 
-	      TaggedObjectStorage &theInternalNodeStorage,
-	      TaggedObjectStorage &theExternalNodeStorage,
-	      TaggedObjectStorage &theElementsStorage,
-	      TaggedObjectStorage &theLoadPatternsStorage,	      
-	      TaggedObjectStorage &theMPsStorage,
-	      TaggedObjectStorage &theSPsStorage);
+              TaggedObjectStorage &theInternalNodeStorage,
+              TaggedObjectStorage &theExternalNodeStorage,
+              TaggedObjectStorage &theElementsStorage,
+              TaggedObjectStorage &theLoadPatternsStorage,	      
+              TaggedObjectStorage &theMPsStorage,
+              TaggedObjectStorage &theSPsStorage);
     
     virtual  ~Subdomain();    
 
@@ -68,64 +68,62 @@ class Subdomain: public Element, public Domain
     //			       PartitionedModelBuilder &theBuilder); 
 
     // Domain methods which must be rewritten
-    virtual void clearAll(void);
+    virtual void clearAll();
     virtual bool addNode(Node *);	
     virtual Node *removeNode(int tag);        
-    virtual NodeIter &getNodes(void);    
+    virtual NodeIter &getNodes();    
     virtual Node *getNode(int tag);            
-    virtual Node **getNodePtrs(void);            
+    virtual Node **getNodePtrs();            
 
     virtual bool hasNode(int tag);
     virtual bool hasElement(int tag);
 
-    virtual int getNumNodes(void) const;    
-    virtual int commit(void);
-    virtual int revertToLastCommit(void);    
-    virtual int revertToStart(void);        
-    virtual int update(void);
+    virtual int getNumNodes() const;    
+    virtual int commit();
+    virtual int revertToLastCommit();    
+    virtual int revertToStart();        
+    virtual int update();
     virtual int update(double newTime, double dT);
 
-//#ifdef _PARALLEL_PROCESSING
-    virtual  int barrierCheckIN(void) {return 0;};
+    virtual  int barrierCheckIN() {return 0;};
     virtual  int barrierCheckOUT(int) {return 0;};
-//#endif
    
     virtual  void Print(OPS_Stream &s, int flag =0);
     virtual void Print(OPS_Stream &s, ID *nodeTags, ID *eleTags, int flag =0);
     
     // Domain type methods unique to a Subdomain
-    virtual NodeIter &getInternalNodeIter(void);
-    virtual NodeIter &getExternalNodeIter(void);
+    virtual NodeIter &getInternalNodeIter();
+    virtual NodeIter &getExternalNodeIter();
     virtual bool addExternalNode(Node *);
 
-    virtual void wipeAnalysis(void);
-    virtual void setDomainDecompAnalysis(DomainDecompositionAnalysis &theAnalysis);
-    virtual int setAnalysisAlgorithm(EquiSolnAlgo &theAlgorithm);
-    virtual int setAnalysisIntegrator(IncrementalIntegrator &theIntegrator);
-    virtual int setAnalysisLinearSOE(LinearSOE &theSOE);
-    virtual int setAnalysisEigenSOE(EigenSOE &theSOE);
-    virtual int setAnalysisConvergenceTest(ConvergenceTest &theTest);
-    virtual int invokeChangeOnAnalysis(void);
-    
+    virtual void wipeAnalysis();
+    virtual void setDomainDecompAnalysis(DomainDecompositionAnalysis &);
+    virtual int setAnalysisAlgorithm(EquiSolnAlgo &);
+    virtual int setAnalysisIntegrator(IncrementalIntegrator &);
+    virtual int setAnalysisLinearSOE(LinearSOE &);
+    virtual int setAnalysisEigenSOE(EigenSOE &);
+    virtual int setAnalysisConvergenceTest(ConvergenceTest &);
+    virtual int invokeChangeOnAnalysis();
+
     // Element methods which must be written
-    virtual int getNumExternalNodes(void) const;    
-    virtual const ID &getExternalNodes(void);
-    virtual int getNumDOF(void);
+    virtual int getNumExternalNodes() const;    
+    virtual const ID &getExternalNodes();
+    virtual int getNumDOF();
 
-    virtual int commitState(void);    
+    virtual int commitState();    
     
-    virtual const Matrix &getTangentStiff(void);
-    virtual const Matrix &getInitialStiff(void);    
-    virtual const Matrix &getDamp(void);    
-    virtual const Matrix &getMass(void);    
+    virtual const Matrix &getTangentStiff();
+    virtual const Matrix &getInitialStiff();    
+    virtual const Matrix &getDamp();    
+    virtual const Matrix &getMass();    
 
-    virtual void  zeroLoad(void);
+    virtual void  zeroLoad();
     virtual int addLoad(ElementalLoad *theLoad, double loadFactor);
     virtual int addInertiaLoadToUnbalance(const Vector &accel);
 
-    virtual const Vector &getResistingForce(void);    
-    virtual const Vector &getResistingForceIncInertia(void);        
-    virtual bool isSubdomain(void);    
+    virtual const Vector &getResistingForce();    
+    virtual const Vector &getResistingForceIncInertia();        
+    virtual bool isSubdomain();    
     virtual int setRayleighDampingFactors(double alphaM, 
 					  double betaK, 
 					  double betaK0, 
@@ -135,37 +133,36 @@ class Subdomain: public Element, public Domain
 //  virtual  int  updateParameter(int tag, double value);    
 
     // Element type methods unique to a subdomain
-    virtual int computeTang(void);
-    virtual int computeResidual(void);
-    virtual const Matrix &getTang(void);    
+    virtual int computeTang();
+    virtual int computeResidual();
+    virtual const Matrix &getTang();    
 
     void setFE_ElementPtr(FE_Element *theFE_Ele);
-    virtual const Vector &getLastExternalSysResponse(void);
-    virtual int computeNodalResponse(void);    
+    virtual const Vector &getLastExternalSysResponse();
+    virtual int computeNodalResponse();    
     virtual int analysisStep(double deltaT);
     virtual int eigenAnalysis(int numMode, bool generalized, bool findSmallest);
-    virtual bool doesIndependentAnalysis(void);
+    virtual bool doesIndependentAnalysis();
 
     virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-    virtual double getCost(void);
+    virtual double getCost();
     virtual int addResistingForceToNodalReaction(int inclInertia);
     
   protected:    
-    virtual int buildMap(void);
+    virtual int buildMap();
     bool mapBuilt;
     ID *map;
     Vector *mappedVect;
     Matrix *mappedMatrix;
 
 
-    FE_Element *getFE_ElementPtr(void);
+    FE_Element *getFE_ElementPtr();
     TaggedObjectStorage  *internalNodes;
     TaggedObjectStorage  *externalNodes;    
 
-    DomainDecompositionAnalysis *getDDAnalysis(void);
+    DomainDecompositionAnalysis *getDDAnalysis();
 
   private:
     double realCost;

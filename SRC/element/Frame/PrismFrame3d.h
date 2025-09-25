@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-//
 // Written: cmp 2024
 //
 #ifndef PrismFrame3d_h
@@ -58,7 +57,7 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
 		             int releasez, int releasey,
                  int geom,
                  int shear_flag);
-    
+
     ~PrismFrame3d() {
       if (basic_system != nullptr) {
         delete basic_system;
@@ -66,44 +65,44 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
       }
     }
 
-    const char *getClassType() const {
+    const char *getClassType() const override {
       return "PrismFrame3d";
     }
 
-    virtual void zeroLoad() {
+    void zeroLoad() override {
       this->BasicFrame3d::zeroLoad();
       this->FiniteElement<2, 3, 6>::zeroLoad();
     }
     
-    virtual int addLoad(ElementalLoad *theLoad, double loadFactor) final {
+    int addLoad(ElementalLoad *theLoad, double loadFactor) override {
       return this->BasicFrame3d::addLoad(theLoad, loadFactor);
     }
 /*
 //  int addLoad(ElementalLoad *theLoad, double loadFactor);
 //  int addInertiaLoadToUnbalance(const Vector &accel);
 */
-    
-    int update();
-    int commitState();
-    int revertToLastCommit();        
-    int revertToStart();
-    virtual const Matrix &getTangentStiff() final;
-    virtual const Matrix &getInitialStiff();
-    virtual const Vector &getResistingForce() final;
-    virtual const Matrix &getMass() final;
 
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    
-    void Print(OPS_Stream &s, int flag =0);
+    int update() override;
+    int commitState() override;
+    int revertToLastCommit() override;        
+    int revertToStart() override;
+    const Matrix &getTangentStiff() final;
+    const Matrix &getInitialStiff();
+    const Vector &getResistingForce() final;
+    const Matrix &getMass() final;
+
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
+
+    void Print(OPS_Stream &s, int flag) override;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
-    virtual int getResponse(int responseID, Information &) final;
+    int getResponse(int responseID, Information &) final;
  
     // Parameter
-    virtual int setParameter(const char **argv, int argc, Parameter &) final;
-    virtual int updateParameter(int parameterID, Information &) final;
-    virtual int activateParameter(int param)
+    int setParameter(const char **argv, int argc, Parameter &) final;
+    int updateParameter(int parameterID, Information &) final;
+    int activateParameter(int param)
     {
       parameterID = param; 
       return 0;

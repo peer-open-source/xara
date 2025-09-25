@@ -73,19 +73,11 @@ int DruckerPrager3DThermal :: getOrder( ) const
 //get the strain and integrate plasticity equations
 int DruckerPrager3DThermal :: setTrialStrain( const Vector &strain_from_element) 
 {
-	//}
 	mEpsilon = strain_from_element;
 	this->plastic_integrator( ) ;
 	return 0 ;
 }
 
-
-//unused trial strain functions
-int DruckerPrager3DThermal::setTrialStrain (const Vector &v, const Vector &r)
-{
-  opserr << "YOU SHOULD NOT SEE THIS: DruckerPrager::setTrialStrain (const Vector &v, const Vector &r)" << endln;
-  return this->setTrialStrain (v);
-}
 
 
 const Vector& DruckerPrager3DThermal :: getStrain( ) 

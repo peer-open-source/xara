@@ -75,7 +75,7 @@
 #ifndef MultiaxialCyclicPlasticity_h
 #define MultiaxialCyclicPlasticity_h
 
-#include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -120,10 +120,12 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
 
   //swap history variables
   virtual int commitState( ) ;
-
-    virtual int revertToLastCommit( ) ;
-
-    virtual int revertToStart( ) ;
+  virtual int revertToLastCommit( ) ;
+  virtual int revertToStart( ) ;
+  virtual int setTrialStrain(const Vector &v) {
+    assert(false);
+    return -1;
+  }
 
   //sending and receiving
   virtual int sendSelf(int commitTag, Channel &theChannel) ;

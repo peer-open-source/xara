@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <tcl.h>
 #include <Domain.h>
 #include <Logging.h>
 #include <Parsing.h>
@@ -157,7 +156,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
     opserr << "WARNING insufficient arguments\n";
     opserr << "Want: twoNodeLink eleTag iNode jNode -mat matTags -dir dirs "
               "<-orient <x1 x2 x3> y1 y2 y3> <-pDelta Mratios> <-shearDist "
-              "sDratios> <-doRayleigh> <-mass m>\n";
+              "sDratios> <-doRayleigh> <-mass m>" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -169,24 +168,24 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   double mass = 0.0;
 
   if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
-    opserr << "WARNING invalid eleTag\n";
+    opserr << "WARNING invalid eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode\n";
+    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode\n";
+    opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
   // read the number of materials
   numMat = 0;
   if (strcmp(argv[argi], "-mat") != 0) {
-    opserr << "WARNING expecting -mat flag\n";
+    opserr << "WARNING expecting -mat flag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
@@ -196,7 +195,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
     i++;
   }
   if (numMat == 0) {
-    opserr << "WARNING no directions specified\n";
+    opserr << "WARNING no directions specified" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   // create array of uniaxial materials
@@ -205,7 +204,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
     theMaterials[i] = nullptr;
     if (Tcl_GetInt(interp, argv[argi], &matTag) != TCL_OK) {
       opserr << "WARNING invalid matTag\n";
-      opserr << "twoNodeLink element: " << tag << endln;
       return TCL_ERROR;
     }
     theMaterials[i] = builder->getTypedObject<UniaxialMaterial>(matTag);
@@ -230,7 +228,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
     i++;
   }
   if (numDir != numMat) {
-    opserr << "WARNING wrong number of directions specified\n";
+    opserr << "WARNING wrong number of directions specified" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   // create the ID array to hold the direction IDs
@@ -238,14 +236,12 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   // fill in the directions
   for (i = 0; i < numDir; i++) {
     if (Tcl_GetInt(interp, argv[argi], &dirID) != TCL_OK) {
-      opserr << "WARNING invalid direction ID\n";
-      opserr << "twoNodeLink element: " << tag << endln;
+      opserr << "WARNING invalid direction ID" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (dirID < 1 || dirID > ndf) {
       opserr << "WARNING invalid direction ID: ";
-      opserr << "dir = " << dirID << " > ndf = " << ndf;
-      opserr << "\ntwoNodeLink element: " << tag << endln;
+      opserr << "dir = " << dirID << " > ndf = " << ndf << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     theDirIDs(i) = dirID - 1;
@@ -272,7 +268,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
             opserr << "WARNING invalid -orient value\n";
-            opserr << "twoNodeLink element: " << tag << endln;
             return TCL_ERROR;
           } else {
             y(j) = value;
@@ -286,7 +281,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
             opserr << "WARNING invalid -orient value\n";
-            opserr << "twoNodeLink element: " << tag << endln;
             return TCL_ERROR;
           } else {
             x(j) = value;
@@ -296,7 +290,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + 4 + j], &value) != TCL_OK) {
             opserr << "WARNING invalid -orient value\n";
-            opserr << "twoNodeLink element: " << tag << endln;
             return TCL_ERROR;
           } else {
             y(j) = value;
@@ -304,7 +297,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
         }
       } else {
         opserr << "WARNING insufficient arguments after -orient flag\n";
-        opserr << "twoNodeLink element: " << tag << endln;
         return TCL_ERROR;
       }
     }
@@ -318,7 +310,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int j = 0; j < 2; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
             opserr << "WARNING invalid -pDelta value\n";
-            opserr << "twoNodeLink element: " << tag << endln;
             return TCL_ERROR;
           }
           Mratio(2 + j) = Mr;
@@ -327,7 +318,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int j = 0; j < 4; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
             opserr << "WARNING invalid -pDelta value\n";
-            opserr << "twoNodeLink element: " << tag << endln;
             return TCL_ERROR;
           }
           Mratio(j) = Mr;
@@ -342,7 +332,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
       if (ndm == 2) {
         if (Tcl_GetDouble(interp, argv[i + 1], &sDI) != TCL_OK) {
           opserr << "WARNING invalid -shearDist value\n";
-          opserr << "twoNodeLink element: " << tag << endln;
           return TCL_ERROR;
         }
         shearDistI(0) = sDI;
@@ -351,7 +340,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
         for (int j = 0; j < 2; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &sDI) != TCL_OK) {
             opserr << "WARNING invalid -shearDist value\n";
-            opserr << "twoNodeLink element: " << tag << endln;
             return TCL_ERROR;
           }
           shearDistI(j) = sDI;
@@ -366,8 +354,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
   for (i = argi; i < argc; i++) {
     if (i + 1 < argc && strcmp(argv[i], "-mass") == 0) {
       if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
-        opserr << "WARNING invalid -mass value\n";
-        opserr << "twoNodeLink element: " << tag << endln;
+        opserr << "WARNING invalid -mass value" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
     }
@@ -384,7 +371,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
 
   // then add the twoNodeLink to the domain
   if (builder->getDomain()->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
+    opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
   }
@@ -420,22 +407,22 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
   // get the id and end nodes
   int tag, iNode, jNode, stag;
   if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
-    opserr << "WARNING invalid eleTag\n";
+    opserr << "WARNING invalid eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode\n";
+    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode\n";
+    opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &stag) != TCL_OK) {
-    opserr << "WARNING invalid section tag\n";
+    opserr << "WARNING invalid section tag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   SectionForceDeformation* theSection = builder->getTypedObject<SectionForceDeformation>(stag);
@@ -542,7 +529,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
             opserr << "WARNING invalid -orient value\n";
-            opserr << "twoNodeLinkSection element: " << tag << endln;
             return TCL_ERROR;
           } else {
             y(j) = value;
@@ -556,7 +542,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
             opserr << "WARNING invalid -orient value\n";
-            opserr << "twoNodeLinkSection element: " << tag << endln;
             return TCL_ERROR;
           } else {
             x(j) = value;
@@ -566,7 +551,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[i + 4 + j], &value) != TCL_OK) {
             opserr << "WARNING invalid -orient value\n";
-            opserr << "twoNodeLinkSection element: " << tag << endln;
             return TCL_ERROR;
           } else {
             y(j) = value;
@@ -574,7 +558,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         }
       } else {
         opserr << "WARNING insufficient arguments after -orient flag\n";
-        opserr << "twoNodeLinkSection element: " << tag << endln;
         return TCL_ERROR;
       }
 
@@ -588,7 +571,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         for (int j = 0; j < 2; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
             opserr << "WARNING invalid -pDelta value\n";
-            opserr << "twoNodeLinkSection element: " << tag << endln;
             return TCL_ERROR;
           }
           Mratio(2 + j) = Mr;
@@ -597,7 +579,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         for (int j = 0; j < 4; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
             opserr << "WARNING invalid -pDelta value\n";
-            opserr << "twoNodeLinkSection element: " << tag << endln;
             return TCL_ERROR;
           }
           Mratio(j) = Mr;
@@ -611,7 +592,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
       if (ndm == 2) {
         if (Tcl_GetDouble(interp, argv[i + 1], &sDI) != TCL_OK) {
           opserr << "WARNING invalid -shearDist value\n";
-          opserr << "twoNodeLinkSection element: " << tag << endln;
           return TCL_ERROR;
         }
         shearDistI(0) = sDI;
@@ -620,7 +600,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
         for (int j = 0; j < 2; j++) {
           if (Tcl_GetDouble(interp, argv[i + 1 + j], &sDI) != TCL_OK) {
             opserr << "WARNING invalid -shearDist value\n";
-            opserr << "twoNodeLinkSection element: " << tag << endln;
             return TCL_ERROR;
           }
           shearDistI(j) = sDI;
@@ -634,7 +613,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
     else if (i + 1 < argc && strcmp(argv[i], "-mass") == 0) {
       if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
         opserr << "WARNING invalid -mass value\n";
-        opserr << "twoNodeLinkSection element: " << tag << endln;
         return TCL_ERROR;
       }
     }
@@ -648,7 +626,6 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int 
   // then add the twoNodeLinkSection to the domain
   if (builder->getDomain()->addElement(theElement) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "twoNodeLinkSection element: " << tag << endln;
     delete theElement;
     return TCL_ERROR;
   }

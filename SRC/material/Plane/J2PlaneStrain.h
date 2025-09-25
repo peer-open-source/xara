@@ -46,7 +46,6 @@
 #ifndef J2PlaneStrain_h
 #define J2PlaneStrain_h
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -57,11 +56,9 @@
 
 class J2PlaneStrain : public J2Plasticity {
 
-//-------------------Declarations-------------------------------
 
   public : 
 
-  //null constructor
   J2PlaneStrain( ) ;
 
   //full constructor
@@ -77,47 +74,36 @@ class J2PlaneStrain : public J2Plasticity {
 
 
   //elastic constructor
-  J2PlaneStrain( int tag, double K, double G ) ;
+  J2PlaneStrain( int tag, double K, double G );
+  ~J2PlaneStrain();
 
-  //destructor
-  ~J2PlaneStrain( ) ;
-
-    NDMaterial* getCopy( ) ;
-
-  //send back type of material
+  NDMaterial* getCopy();
   const char* getType( ) const ;
 
-  const char *getClassType(void) const {return "J2PlaneStrain";};
+  const char *getClassType() const {return "J2PlaneStrain";};
 
-    int getOrder( ) const ;
+  int getOrder( ) const ;
 
 
   //get the strain and integrate plasticity equations
   int setTrialStrain( const Vector &strain_from_element) ;
 
-  //unused trial strain functions
-  int setTrialStrain( const Vector &v, const Vector &r ) ;
-  int setTrialStrainIncr( const Vector &v ) ;
-  int setTrialStrainIncr( const Vector &v, const Vector &r ) ;
+  // unused trial strain functions
+  int setTrialStrainIncr(const Vector &v);
 
-  const Vector& getStrain( ) ;
+  const Vector& getStrain( );
+  const Vector& getStress( );
+  const Matrix& getTangent( );
+  const Matrix& getInitialTangent( );
 
-  const Vector& getStress( ) ;
-
-  const Matrix& getTangent( ) ;
-  const Matrix& getInitialTangent( ) ;
-
-  //swap history variables
   int commitState( ) ; 
   int revertToLastCommit( ) ;
   int revertToStart( ) ;
 
-  //sending and receiving
-  int sendSelf(int commitTag, Channel &theChannel) ;  
-  int recvSelf(int commitTag, Channel &theChannel, 
-               FEM_ObjectBroker &theBroker ) ;
-  
-  
+
+  int sendSelf(int commitTag, Channel &) ;  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) ;
+
   private :
     
   //static vectors and matrices

@@ -85,10 +85,10 @@ class InertiaTruss : public Element
     const Vector &getResistingForceIncInertia(void);            
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);    
+    void Print(OPS_Stream &s, int flag);    
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
@@ -106,8 +106,6 @@ class InertiaTruss : public Element
     const Matrix & getMassSensitivity(int gradNumber);
     int            commitSensitivity(int gradNumber, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
-
-  protected:
     
   private:
     double computeCurrentStrain(void) const;

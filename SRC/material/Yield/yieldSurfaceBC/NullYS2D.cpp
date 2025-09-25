@@ -57,11 +57,6 @@ YieldSurface_BC *NullYS2D::getCopy(void)
     return theCopy;
 }
 
-int NullYS2D::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-	return 0;
-}
-
 void NullYS2D::Print(OPS_Stream &s, int flag)
 {
     s << "\nYield Surface No: " << this->getTag() << " type: NullYS2D\n";

@@ -46,7 +46,7 @@
 //  set eta := 0 for rate independent case
 //
 #include <math.h>
-
+#include <assert.h>
 #include <Vector.h>
 #include <Matrix.h>
 #include <NDMaterial.h>
@@ -78,7 +78,10 @@ public:
   virtual int commitState();
   virtual int revertToLastCommit();
   virtual int revertToStart();
-
+  virtual int setTrialStrain(const Vector &v) {
+    assert(false);
+    return -1;
+  }
 
   virtual NDMaterial* getCopy();
   virtual const char* getType() const;

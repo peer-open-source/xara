@@ -22,7 +22,6 @@
 // Created: 11/01
 // 
 // What: "@(#)RegulaFalsiLineSearch.h, revA"
-
 #include <RegulaFalsiLineSearch.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>

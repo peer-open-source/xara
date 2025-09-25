@@ -97,13 +97,13 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE
+        pstream << LOG_ITERATE
                << "Iter: "         << pad(currentIter)
                << ", EnergyIncr: " << pad(product) 
-               << endln;
+               << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE
+        pstream << LOG_ITERATE
                << "Iter: "          << pad(currentIter)
                << ", EnergyIncr: "  << pad(product)
                << LOG_CONTINUE
@@ -123,15 +123,15 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << "\n";
 
         else if (printFlag & ConvergenceTest::PrintSuccess) {
-            opserr << LOG_SUCCESS
+            pstream << LOG_SUCCESS
                    << "Iter: "      << pad(currentIter)
                    << ", Norm dX: " << pad(x.pNorm(nType))
                    << ", Norm dR: " << pad(b.pNorm(nType))
                    << ", Energy: "  << pad(product)
-                   << endln;
+                   << "\n";
         }
 
         // return the number of times test has been called - SUCCESSFULL
@@ -141,7 +141,7 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
     // Failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
         if (printFlag & ConvergenceTest::PrintFailure) {
-          opserr << LOG_FAILURE 
+          pstream << LOG_FAILURE 
                  << "Iter: "          << pad(currentIter)
                  << ", Norm dX: " << pad(x.pNorm(nType))
                  << ", Norm dR: " << pad(b.pNorm(nType))
@@ -154,7 +154,7 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter || product > maxTol) { // >= in case algorithm does not check
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
+            pstream << LOG_FAILURE
                    //<< "criteria CTestEnergyIncr"
                    // << LOG_CONTINUE
                    << "Iter: "      << pad(currentIter)
@@ -162,7 +162,7 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
                    // << LOG_CONTINUE
                    << ", Norm deltaX: "  << pad(x.pNorm(nType))
                    << ", Norm deltaR: "  << pad(b.pNorm(nType))
-                   << endln;
+                   << "\n";
         }
         currentIter++;
         return ConvergenceTest::Failure;

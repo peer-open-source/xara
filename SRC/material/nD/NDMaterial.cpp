@@ -34,7 +34,6 @@
 //
 #include <NDMaterial.h>
 #include <Information.h>
-#include <OPS_Globals.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <MaterialResponse.h>
@@ -45,20 +44,21 @@
 #include <BeamFiberMaterial2dPS.h>
 #include <PlateFiberMaterial.h>
 #include <string.h>
-// #include <api/runtimeAPI.h>
 
 Matrix NDMaterial::errMatrix(1,1);
 Vector NDMaterial::errVector(1);
 
 
 NDMaterial::NDMaterial(int tag, int classTag)
- : TaggedObject(tag), MovableObject(classTag) // Material(tag,classTag)
+ : TaggedObject(tag)
+ , MovableObject(classTag)
 {
 
 }
 
 NDMaterial::NDMaterial()
- : TaggedObject(0), MovableObject(0) // Material(0, 0)
+ : TaggedObject(0)
+ , MovableObject(0)
 {
 
 }
@@ -67,6 +67,7 @@ NDMaterial::~NDMaterial()
 {
 
 }
+
 
 NDMaterial*
 NDMaterial::getCopy(const char *type)
@@ -110,39 +111,19 @@ NDMaterial::getCopy(const char *type)
 }
 
 double
-NDMaterial::getRho(void)
+NDMaterial::getRho()
 {
   return 0.0;
 }
 
-// methods to set and retrieve state.
-int 
-NDMaterial::setTrialStrain(const Vector &v)
-{
-   opserr << "NDMaterial::setTrialStrain -- subclass responsibility\n";
-   return -1;    
-}
-
-int 
-NDMaterial::setTrialStrain(const Vector &v, const Vector &r)
-{
-   opserr << "NDMaterial::setTrialStrain -- subclass responsibility\n";
-   return -1;    
-}
 
 int 
 NDMaterial::setTrialStrainIncr(const Vector &v)
 {
-   opserr << "NDMaterial::setTrialStrainIncr -- subclass responsibility\n";
-   return -1;    
+  opserr << "NDMaterial::setTrialStrainIncr -- subclass responsibility\n";
+  return -1;    
 }
 
-int 
-NDMaterial::setTrialStrainIncr(const Vector &v, const Vector &r)
-{
-   opserr << "NDMaterial::setTrialStrainIncr -- subclass responsibility\n";
-   return -1;    
-}
 
 const Matrix &
 NDMaterial::getTangent()
@@ -155,15 +136,15 @@ NDMaterial::getTangent()
 const Vector &
 NDMaterial::getStress()
 {
-   opserr << "NDMaterial::getStress -- subclass responsibility\n";
-   return errVector;    
+  opserr << "NDMaterial::getStress -- subclass responsibility\n";
+  return errVector;    
 }
 
 const Vector &
 NDMaterial::getStrain()
 {
-   opserr << "NDMaterial::getStrain -- subclass responsibility\n";
-   return errVector;    
+  opserr << "NDMaterial::getStrain -- subclass responsibility\n";
+  return errVector;
 }
 #endif
 
@@ -178,20 +159,20 @@ NDMaterial::getThermalTangentAndElongation(double &TempT, double &ET, double &El
 double
 NDMaterial::setThermalTangentAndElongation(double &TempT, double &ET, double &Elong)
 {
-    opserr << "NDMaterial::setThermalTangentAndElongation -- subclass responsibility\n";
-    return -1;
+  opserr << "NDMaterial::setThermalTangentAndElongation -- subclass responsibility\n";
+  return -1;
 }
 
 const Vector&
 NDMaterial::getTempAndElong()
 {
-    opserr << "NDMaterial::getTempAndElong -- subclass responsibility\n";
-    return errVector;
+  opserr << "NDMaterial::getTempAndElong -- subclass responsibility\n";
+  return errVector;
 }
 //end of adding thermo-mechanical functions, L.Jiang [SIF]
 
 Response*
-NDMaterial::setResponse (const char **argv, int argc, OPS_Stream &output)
+NDMaterial::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
   Response *theResponse =0;
   const char *matType = this->getType();
@@ -204,42 +185,42 @@ NDMaterial::setResponse (const char **argv, int argc, OPS_Stream &output)
     const Vector &res = this->getStress();
     int size = res.Size();
     
-    if ( (strcmp(matType,"PlaneStress") == 0 && size == 3) ||
-	 (strcmp(matType,"PlaneStrain") == 0 && size == 3)) {
-	output.tag("ResponseType","sigma11");
-	output.tag("ResponseType","sigma22");
-	output.tag("ResponseType","sigma12");
-    } else if (strcmp(matType,"ThreeDimensional") == 0 && size == 6) {
-	output.tag("ResponseType","sigma11");
-	output.tag("ResponseType","sigma22");
-	output.tag("ResponseType","sigma33");
-	output.tag("ResponseType","sigma12");
-	output.tag("ResponseType","sigma23");
-	output.tag("ResponseType","sigma13");
+    if ((strcmp(matType,"PlaneStress") == 0 && size == 3) ||
+        (strcmp(matType,"PlaneStrain") == 0 && size == 3)) {
+      output.tag("ResponseType","sigma11");
+      output.tag("ResponseType","sigma22");
+      output.tag("ResponseType","sigma12");
+        } else if (strcmp(matType,"ThreeDimensional") == 0 && size == 6) {
+      output.tag("ResponseType","sigma11");
+      output.tag("ResponseType","sigma22");
+      output.tag("ResponseType","sigma33");
+      output.tag("ResponseType","sigma12");
+      output.tag("ResponseType","sigma23");
+      output.tag("ResponseType","sigma13");
     } else {
       for (int i=0; i<size; i++) 
-	output.tag("ResponseType","UnknownStress");
+      output.tag("ResponseType","UnknownStress");
     }
     theResponse =  new MaterialResponse(this, 1, this->getStress());
 
   } else if (strcmp(argv[0],"strain") == 0 || strcmp(argv[0],"strains") == 0) {
     const Vector &res = this->getStrain();
     int size = res.Size();
-    if ( (strcmp(matType,"PlaneStress") == 0 && size == 3) ||
-	 (strcmp(matType,"PlaneStrain") == 0 && size == 3)) {
-	output.tag("ResponseType","eta11");
-	output.tag("ResponseType","eta22");
-	output.tag("ResponseType","eta12");
+    if ((strcmp(matType,"PlaneStress") == 0 && size == 3) ||
+        (strcmp(matType,"PlaneStrain") == 0 && size == 3)) {
+      output.tag("ResponseType","eta11");
+      output.tag("ResponseType","eta22");
+      output.tag("ResponseType","eta12");
     } else if (strcmp(matType,"ThreeDimensional") == 0 && size == 6) {
-	output.tag("ResponseType","eps11");
-	output.tag("ResponseType","eps22");
-	output.tag("ResponseType","eps33");
-	output.tag("ResponseType","eps12");
-	output.tag("ResponseType","eps23");
-	output.tag("ResponseType","eps13");
+      output.tag("ResponseType","eps11");
+      output.tag("ResponseType","eps22");
+      output.tag("ResponseType","eps33");
+      output.tag("ResponseType","eps12");
+      output.tag("ResponseType","eps23");
+      output.tag("ResponseType","eps13");
     } else {
       for (int i=0; i<size; i++) 
-	output.tag("ResponseType","UnknownStrain");
+        output.tag("ResponseType","UnknownStrain");
     }      
     theResponse =  new MaterialResponse(this, 2, this->getStrain());
   }
@@ -276,7 +257,7 @@ NDMaterial::setResponse (const char **argv, int argc, OPS_Stream &output)
 }
 
 int 
-NDMaterial::getResponse (int responseID, Information &matInfo)
+NDMaterial::getResponse(int responseID, Information &matInfo)
 {
   switch (responseID) {
   case 1:

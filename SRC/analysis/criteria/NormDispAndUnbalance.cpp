@@ -100,19 +100,19 @@ NormDispAndUnbalance::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag == ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE;
-        opserr << "Iter: "    << pad(currentIter);
-        opserr << ", NormX: " << pad(normX);
-        opserr << ", NormB: " << pad(normB)  
-               << ", NormIncr: " << numIncr << "\n";
+        pstream << LOG_ITERATE;
+        pstream << "Iter: "    << pad(currentIter);
+        pstream << ", NormX: " << pad(normX);
+        pstream << ", NormB: " << pad(normB)  
+                << ", NormIncr: " << numIncr << "\n";
     }
     if (printFlag == ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE;
-        opserr << "Iter: " << pad(currentIter);
-        opserr << ", NormX: " << pad(normX);
-        opserr << ", NormB: " << pad(normB)  
+        pstream << LOG_ITERATE;
+        pstream << "Iter: " << pad(currentIter);
+        pstream << ", NormX: " << pad(normX);
+        pstream << ", NormB: " << pad(normB)  
                << ", NormIncr: " << numIncr << "\n";
-        opserr << "\tdeltaX: " << x << "\tdeltaR: " << theSOE.getB();
+        pstream << "\tdeltaX: " << x << "\tdeltaR: " << theSOE.getB();
     }
 
     //
@@ -124,11 +124,11 @@ NormDispAndUnbalance::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag == ConvergenceTest::PrintTest || printFlag == ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << "\n";
         if (printFlag == ConvergenceTest::PrintSuccess) {
-            opserr << "NormDispAndUnbalance::test() - iteration: " << pad(currentIter);
-            opserr << ", NormX: " << pad(normX);
-            opserr << ", NormB: " << pad(normB)  
+            pstream << "NormDispAndUnbalance::test() - iteration: " << pad(currentIter);
+            pstream << ", NormX: " << pad(normX);
+            pstream << ", NormB: " << pad(normB)  
                    << ", NormIncr: " << numIncr << "\n";
         }
 
@@ -139,21 +139,21 @@ NormDispAndUnbalance::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag == ConvergenceTest::AlwaysSucceed) && (currentIter >= maxNumIter || numIncr > maxIncr)) {
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << "WARNING Failed to converge with criteria NormDispAndUnbalance but going on - ";
-            opserr << ", NormX: " << pad(normX);
-            opserr << ", NormB: " << pad(normB)  
-                   << ", NormIncr: " << numIncr << "\n";
+            pstream << "WARNING Failed to converge with criteria NormDispAndUnbalance but going on - ";
+            pstream << ", NormX: " << pad(normX);
+            pstream << ", NormB: " << pad(normB)  
+                    << ", NormIncr: " << numIncr << "\n";
         }
         return currentIter;
     }
 
     // algo failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter || numIncr > maxIncr) { // failes to converge
-        opserr << LOG_FAILURE;
-        opserr << "Iter: " << pad(currentIter);
-        opserr << ", NormX: " << pad(normX);
-        opserr << ", NormB: " << pad(normB)  
-               << ", NormIncr: " << numIncr << "\n";
+        pstream << LOG_FAILURE;
+        pstream << "Iter: " << pad(currentIter);
+        pstream << ", NormX: " << pad(normX);
+        pstream << ", NormB: " << pad(normB)  
+                << ", NormIncr: " << numIncr << "\n";
         currentIter++;
         return ConvergenceTest::Failure;
     }
@@ -166,13 +166,14 @@ NormDispAndUnbalance::test(LinearSOE& theSOE)
 }
 
 
-int NormDispAndUnbalance::start(LinearSOE& theSOE)
+int
+NormDispAndUnbalance::start(LinearSOE& theSOE)
 {
-    // set iteration count = 1
-    norms.Zero();
-    currentIter = 1;
-    numIncr = 0;
-    return 0;
+  // set iteration count = 1
+  norms.Zero();
+  currentIter = 1;
+  numIncr = 0;
+  return 0;
 }
 
 
@@ -182,13 +183,13 @@ int NormDispAndUnbalance::getNumTests()
 }
 
 
-int NormDispAndUnbalance::getMaxNumTests(void)
+int NormDispAndUnbalance::getMaxNumTests()
 {
     return maxNumIter;
 }
 
 
-double NormDispAndUnbalance::getRatioNumToMax(void)
+double NormDispAndUnbalance::getRatioNumToMax()
 {
     double div = maxNumIter;
     return currentIter/div;

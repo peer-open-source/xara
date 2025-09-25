@@ -33,6 +33,7 @@
 #define MinMaxNDMaterial_h
 
 #include <NDMaterial.h>
+#include <Vector.h>
 
 class MinMaxNDMaterial : public NDMaterial
 {

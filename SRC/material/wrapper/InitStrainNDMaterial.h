@@ -34,6 +34,7 @@
 #define InitStrainNDMaterial_h
 
 #include <NDMaterial.h>
+#include <Vector.h>
 
 class InitStrainNDMaterial : public NDMaterial
 {

@@ -99,19 +99,19 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE
+        pstream << LOG_ITERATE
                << "Iter: "            << pad(currentIter)
                << ", dX*dR/dX1*dR1: " << pad(product)
-               << endln;
+               << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE
+        pstream << LOG_ITERATE
                << "Iter: "            << pad(currentIter)
                << ", dX*dR/dX1*dR1: " << pad(product)
-               << endln
+               << "\n"
                << ", Norm deltaX: "   << pad(x.pNorm(nType))
                << ", Norm deltaR: "   << pad(b.pNorm(nType)) 
-               << endln
+               << "\n"
                << "\tdeltaX: "        << x 
                << "\tdeltaR: "        << b;
     }
@@ -125,12 +125,12 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << "\n";
         if (printFlag & ConvergenceTest::PrintSuccess) {
-            opserr << LOG_SUCCESS 
+            pstream << LOG_SUCCESS
                    << "Iter: "           << pad(currentIter)
                    << ", dX*dR/dX1*dR1: " << pad(product)
-                   << endln;
+                   << "\n";
         }
 
         // return the number of times test has been called - SUCCESSFULL
@@ -140,7 +140,7 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
     // Failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
+            pstream << LOG_FAILURE
                    //<< "criteria CTestRelativeEnergyIncr but goin on -"
                    << "Iter: "            << pad(currentIter)
                    << ", Norm dX: "  << pad(x.pNorm(nType))
@@ -154,15 +154,14 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter) { // >= in case algorithm does not check
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
-                   //<< "criteria CTestRelativeEnergyIncr"
+            pstream << LOG_FAILURE
                    // << LOG_CONTINUE
                    << "Iter: "           << pad(currentIter)
                    << ", dX*dR/dX1*dR1: " << pad(product)
                    << ", Norm deltaX: "  << pad(x.pNorm(nType))
                    // << LOG_CONTINUE
                    <<   "Norm deltaR: "  << pad(b.pNorm(nType))
-                   << endln;
+                   << "\n";
         }
         currentIter++;
         return ConvergenceTest::Failure;
@@ -187,26 +186,27 @@ CTestRelativeEnergyIncr::start(LinearSOE& theSOE)
 }
 
 
-int CTestRelativeEnergyIncr::getNumTests(void)
+int CTestRelativeEnergyIncr::getNumTests()
 {
     return currentIter;
 }
 
 
-int CTestRelativeEnergyIncr::getMaxNumTests(void)
+int CTestRelativeEnergyIncr::getMaxNumTests()
 {
     return maxNumIter;
 }
 
 
-double CTestRelativeEnergyIncr::getRatioNumToMax(void)
+double CTestRelativeEnergyIncr::getRatioNumToMax()
 {
     double div = maxNumIter;
     return currentIter/div;
 }
 
 
-const Vector& CTestRelativeEnergyIncr::getNorms(void)
+const Vector&
+CTestRelativeEnergyIncr::getNorms()
 {
     return norms;
 }
@@ -228,7 +228,8 @@ int CTestRelativeEnergyIncr::sendSelf(int cTag, Channel &theChannel)
 }
 
 
-int CTestRelativeEnergyIncr::recvSelf(int cTag, Channel &theChannel,
+int
+CTestRelativeEnergyIncr::recvSelf(int cTag, Channel &theChannel,
     FEM_ObjectBroker &theBroker)
 {
     int res = 0;

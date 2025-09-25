@@ -28,9 +28,8 @@
 //
 // What: "@(#) commands.C, revA"
 
-#include <tcl.h>
-
-#include <OPS_Globals.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

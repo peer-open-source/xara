@@ -158,10 +158,6 @@ int KRAlphaExplicit_TP::newStep(double _deltaT)
         int size = theLinSOE->getNumEqn();
         FullGenLinSolver *theFullLinSolver = new FullGenLinLapackSolver();
         LinearSOE *theFullLinSOE = new FullGenLinSOE(size, *theFullLinSolver);
-        if (theFullLinSOE == 0)  {
-            opserr << "WARNING KRAlphaExplicit_TP::newStep() - failed to create FullLinearSOE\n";
-            return -4;
-        }
         theFullLinSOE->setLinks(*theModel);
         
         // now switch the SOE to the FullLinearSOE

@@ -26,7 +26,7 @@
 #ifndef ManzariDafalias_h
 #define ManzariDafalias_h
 
-#include <stdio.h>
+#include <cassert>
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
@@ -37,7 +37,6 @@
 #include <Vector.h>
 
 #include <Information.h>
-//#include <MaterialResponse.h>
 #include <Parameter.h>
 
 #include <Channel.h>
@@ -45,7 +44,6 @@
 #include <string.h>
 
 
-#include <elementAPI.h>
 
 class ManzariDafalias : public NDMaterial
 {
@@ -62,10 +60,7 @@ class ManzariDafalias : public NDMaterial
     
     //specific type null constructor
     ManzariDafalias(int classTag);
-
-    // null constructor
     ManzariDafalias();
-    // destructor
     ~ManzariDafalias();
  
     NDMaterial *getCopy(const char *type);
@@ -73,6 +68,10 @@ class ManzariDafalias : public NDMaterial
     int commitState(void);
     int revertToLastCommit(void);
     int revertToStart(void);
+	int setTrialStrain(const Vector &v) {
+	  assert(false);
+	  return -1;
+	}
 
     NDMaterial *getCopy(void);
     const char *getType(void) const;

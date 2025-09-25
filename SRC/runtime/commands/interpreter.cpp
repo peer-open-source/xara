@@ -17,7 +17,6 @@
 // experience of the interpreter. This file should not reference
 // any analysis or modeling classes.
 //
-#include <tcl.h>
 #include <assert.h>
 #include <runtimeAPI.h>
 #include <G3_Runtime.h>
@@ -36,8 +35,8 @@ extern ProgressBar* progress_bar_ptr;
 
 const char *getInterpPWD(Tcl_Interp *interp);
 
-int TclObjCommand_pragma([[maybe_unused]] ClientData clientData, 
-                     Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]);
+int TclObjCommand_pragma([[maybe_unused]] ClientData, 
+                     Tcl_Interp *, Tcl_Size, Tcl_Obj *const objv[]);
 
 
 //

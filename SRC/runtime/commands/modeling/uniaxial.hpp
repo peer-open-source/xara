@@ -19,10 +19,10 @@
 // Written: fmk, MHS, cmp
 // Created: 07/99
 //
-#include <tcl.h>
 #include <assert.h>
 #include <string>
 #include <Parsing.h>
+#include <Logging.h>
 #include <unordered_map>
 #include <runtimeAPI.h>
 #include <UniaxialMaterial.h>

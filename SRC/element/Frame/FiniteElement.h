@@ -16,103 +16,132 @@ using namespace OpenSees;
 
 #include <State.h>
 
-template <int nen, int ndm, int ndf, int mass_flag=0>
+template <int nen, int ndm, int ndf>
 class FiniteElement : public Element {
 public:
-     FiniteElement(int tag, int classtag)
-       : Element(tag, classtag),
-         connectedExternalNodes(nen),
-         e_state(State::None),
-         p_iner(nen*ndf),
-         parameterID(0)
+    FiniteElement(int tag, int classtag)
+      : Element(tag, classtag),
+        connectedExternalNodes(nen),
+        p_iner(nen*ndf),
+        parameterID(0),
+        e_state(State::None),
+        cMass(1)
     {
       for (int i=0; i<nen; i++)
         theNodes[i] = nullptr;
-     }
+    }
 
-     FiniteElement(int tag, int classtag, std::array<int, nen>& nodes)
-       : Element(tag, classtag),
-         connectedExternalNodes(nen),
-         e_state(State::None),
-         p_iner(nen*ndf),
-         parameterID(0)
+    FiniteElement(int tag, int classtag, std::array<int, nen>& nodes, int mass_flag)
+      : Element(tag, classtag),
+        connectedExternalNodes(nen),
+        p_iner(nen*ndf),
+        parameterID(0),
+        e_state(State::None),
+        cMass(mass_flag)
     {
-         for (int i=0; i<nen; i++) {
-           connectedExternalNodes(i) = nodes[i];
-           theNodes[i] = nullptr;
-         }
-     }
+      for (int i=0; i<nen; i++) {
+        connectedExternalNodes(i) = nodes[i];
+        theNodes[i] = nullptr;
+      }
+    }
 
 
     // For Element
-    virtual const ID& getExternalNodes() final {
+    const ID& getExternalNodes() final {
       return connectedExternalNodes;
     }
-    virtual Node **getNodePtrs() final {return theNodes.data();}
-    virtual int  getNumExternalNodes() const final {return nen;}
-    virtual int  getNumDOF() final {return nen*ndf;}
-    virtual void zeroLoad() {
+    Node **getNodePtrs() final {return theNodes.data();}
+    int  getNumExternalNodes() const final {return nen;}
+    int  getNumDOF() final {return nen*ndf;}
+    void zeroLoad() override {
     // TODO: need to reconcile with BasicFrame3d::zeroLoad()
       p_iner.Zero();
+    }
+
+    // addInertia(a)
+    // addDamping()
+    virtual VectorND<nen*ndf>
+    getInertia(VectorND<nen*ndf>& accel) {
+      VectorND<nen*ndf> zero{};
+      return zero;
+    }
+
+    virtual int 
+    getLumpedInertia(VectorND<nen*ndf>& m) {
+      return -1;
+    }
+
+    virtual int addResidual(VectorND<nen*ndf>& R, double c, int flag) {
+      return 0;
+    }
+
+    virtual int addTangent(MatrixND<nen*ndf,nen*ndf>&k, double c, int flag) {
+      if (flag == 1) {
+        k.addMatrix(this->getMass(), c);
+      }
+      if (flag == 2) {
+        k.addMatrix(this->getTangentStiff(), c);
+      }
+      if (flag == 3) {
+        k.addMatrix(this->getInitialStiff(), c);
+      }
+      return 0;
     }
 
     void
     setDomain(Domain *theDomain) final
     {
-        if (theDomain == nullptr) {
-         for (int i=0; i<nen; i++) {
-           theNodes[i] = nullptr;
-         }
-         return;
-        }
+      if (theDomain == nullptr) {
+        for (int i=0; i<nen; i++)
+          theNodes[i] = nullptr;
+        return;
+      }
 
-        for (int i=0; i<nen; i++) {
-          theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
-          if (theNodes[i] == nullptr) {
-            opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " 
-                   << connectedExternalNodes(i) << " does not exist\n";
-            return;
-          }
-
-          if (theNodes[i]->getNumberDOF() != ndf) {
-            opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " << connectedExternalNodes(i) 
-                   << " has incorrect number of DOF\n";
-            opserr << " " << theNodes[i]->getNumberDOF() << " should be " << ndf << endln;
-            return;
-          }
-        }
-
-        this->DomainComponent::setDomain(theDomain);
-
-        if (this->setState(State::Init) != 0)
+      for (int i=0; i<nen; i++) {
+        theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
+        if (theNodes[i] == nullptr) {
+          opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " 
+                 << connectedExternalNodes(i) << " does not exist\n";
           return;
+        }
 
-//      if (this->setState(State::Pres) != 0)
-//        return;
-    }
-
-        
-    int
-    addInertiaLoadToUnbalance(const Vector &accel)
-    {
-      if (total_mass == 0.0)
-        return 0;
-
-      // add ( - fact * M R * accel ) to unbalance
-      if (cMass == 0) {
-        // take advantage of lumped mass matrix
-        double m = 0.5*total_mass;
-        for (int i=0; i<nen; i++) {
-          const Vector& Raccel = theNodes[i]->getRV(accel);
-          for (int j=0; i<3; i++) {
-            p_iner[i*ndf+j] -= m * Raccel(j);
-          }
+        if (theNodes[i]->getNumberDOF() != ndf) {
+          opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " << connectedExternalNodes(i) 
+                  << " has incorrect number of DOF\n";
+          opserr << " " << theNodes[i]->getNumberDOF() << " should be " << ndf << endln;
+          return;
         }
       }
 
-      else  {
-        // TODO: Move this to FiniteElement::getAcceleration() ?
+      this->DomainComponent::setDomain(theDomain);
 
+      if (this->setState(State::Init) != 0)
+        return;
+
+//    if (this->setState(State::Pres) != 0)
+//      return;
+    }
+
+
+    int
+    addInertiaLoadToUnbalance(const Vector &accel) override
+    {
+      // if (total_mass == 0.0)
+      //   return 0;
+
+      // add ( - fact * M R * accel ) to unbalance
+      // if (cMass == 0) {
+      //   // take advantage of lumped mass matrix
+      //   double m = 0.5*total_mass;
+      //   for (int i=0; i<nen; i++) {
+      //     const Vector& Raccel = theNodes[i]->getRV(accel);
+      //     for (int j=0; i<3; i++) {
+      //       p_iner[i*ndf+j] -= m * Raccel(j);
+      //     }
+      //   }
+      // }
+      // else
+      {
         constexpr static int nrv = 6;
 
         // use matrix vector multip. for consistent mass matrix
@@ -124,7 +153,7 @@ public:
             opserr << "addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
             return -1;
           }
-          for (int j=0; i<nrv; i++)  {
+          for (int j=0; j<nrv; j++)  {
             Raccel[i*ndf+j] = rv[j];
           }
         }
@@ -134,11 +163,32 @@ public:
       return 0;
     }
 
+    // const Matrix&
+    // getDamp() 
+    // {
+    //   if (index  == -1) {
+    //     this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
+    //   }
+
+    //   // now compute the damping matrix
+    //   Matrix *theMatrix = theMatrices[index]; 
+    //   theMatrix->Zero();
+    //   if (alphaM != 0.0)
+    //     theMatrix->addMatrix(0.0, this->getMass(), alphaM);
+    //   if (betaK != 0.0)
+    //     theMatrix->addMatrix(1.0, this->getTangentStiff(), betaK);      
+    //   if (betaK0 != 0.0)
+    //     theMatrix->addMatrix(1.0, this->getInitialStiff(), betaK0);      
+    //   if (betaKc != 0.0)
+    //     theMatrix->addMatrix(1.0, *Kc, betaKc);      
+
+    //   // return the computed matrix
+    //   return *theMatrix;
+    // }
 
     const Vector &
     getResistingForceIncInertia()
     {
-      // TODO!!!! update for nen>2, ndf != 6
       static VectorND<nen*ndf> P_{0.0};
       static Vector P(P_);
       P = this->getResistingForce(); 
@@ -147,22 +197,22 @@ public:
       if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
         P.addVector(1.0, this->getRayleighDampingForces(), 1.0);
 
-
-      if (total_mass == 0.0)
-        return P;
+      // if (total_mass == 0.0)
+      //   return P;
 
       // add inertia forces from element mass
-        
-      if (cMass == 0)  {
-        // take advantage of lumped mass matrix
-        double m = total_mass/double(nen);
-        for (int i=0; i<nen; i++) {
-          const Vector& accel = theNodes[i]->getTrialAccel();
-          for (int j=0; j<3; j++) 
-            P[i*ndf+j] += m * accel(j);
-        }
 
-      } else  {
+      // if (cMass == 0)  {
+      //   // take advantage of lumped mass matrix
+      //   double m = total_mass/double(nen);
+      //   for (int i=0; i<nen; i++) {
+      //     const Vector& accel = theNodes[i]->getTrialAccel();
+      //     for (int j=0; j<3; j++) 
+      //       P[i*ndf+j] += m * accel(j);
+      //   }
+      // } else  
+      {
+        // TODO!!!! update for nen>2, ndf != 6
         // use matrix-vector mult against consistent mass matrix
         VectorND<nen*ndf> accel{};
         for (int i=0; i<nen; i++) {
@@ -177,13 +227,13 @@ public:
     }
 
     int
-    setParameter(const char **argv, int argc, Parameter &param)
+    setParameter(const char **argv, int argc, Parameter &param) override
     {
       if (argc < 1)
         return -1;
 
       // don't do anything if MaterialStageParameter calls this element
-      if (strcmp(argv[0],"updateMaterialStage") == 0) {
+      if (strcmp(argv[0], "updateMaterialStage") == 0) {
         return -1;
       }
 
@@ -191,71 +241,17 @@ public:
     }
 
     int
-    updateParameter(int paramID, Information &info)
+    updateParameter(int paramID, Information &info) override
     {
       return -1;
     }
 
-    int activateParameter(int passedParameterID)
+    int
+    activateParameter(int passedParameterID) override
     {
       parameterID = passedParameterID; 
       return 0;
     }
-
-#if 0
-    const Matrix &getMassSensitivity(int gradNumber)
-    {
-      // From DispBeamColumn
-      static MatrixND<12,12> M_{};
-      static Matrix M(M_);
-      M.Zero();
-
-      if (total_mass == 0.0 || parameterID != 1)
-        return M;
-      
-      double L = theCoordTransf->getInitialLength();
-      if (cMass == 0)  {
-        // lumped mass matrix
-        //double m = 0.5*rho*L;
-        double m = 0.5*L;
-        M(0,0) = M(1,1) = M(2,2) = M(6,6) = M(7,7) = M(8,8) = m;
-      }
-
-      else {
-        // consistent mass matrix
-        static Matrix ml(12,12);
-        //double m = rho*L/420.0;
-        double m = L/420.0;
-        ml(0,0) = ml(6,6) = m*140.0;
-        ml(0,6) = ml(6,0) = m*70.0;
-        //ml(3,3) = ml(9,9) = m*(Jx/A)*140.0;  // TODO: CURRENTLY NO TORSIONAL MASS 
-        //ml(3,9) = ml(9,3) = m*(Jx/A)*70.0;   // TODO: CURRENTLY NO TORSIONAL MASS
-        
-        ml(2, 2) = ml( 8, 8) =  m*156.0;
-        ml(2, 8) = ml( 8, 2) =  m*54.0;
-        ml(4, 4) = ml(10,10) =  m*4.0*L*L;
-        ml(4,10) = ml(10, 4) = -m*3.0*L*L;
-        ml(2, 4) = ml( 4, 2) = -m*22.0*L;
-        ml(8,10) = ml(10, 8) = -ml(2,4);
-        ml(2,10) = ml(10, 2) =  m*13.0*L;
-        ml(4, 8) = ml( 8, 4) = -ml(2,10);
-        
-        ml(1, 1) = ml(7,7) = m*156.0;
-        ml(1, 7) = ml(7,1) = m*54.0;
-        ml(5, 5) = ml(11,11) = m*4.0*L*L;
-        ml(5,11) = ml(11,5) = -m*3.0*L*L;
-        ml(1, 5) = ml(5,1) = m*22.0*L;
-        ml(7,11) = ml(11,7) = -ml(1,5);
-        ml(1,11) = ml(11,1) = -m*13.0*L;
-        ml(5, 7) = ml(7,5) = -ml(1,11);
-        
-        // transform local mass matrix to global system
-        M = theCoordTransf->getGlobalMatrixFromLocal(ml);
-      }
-      
-      return M;
-    }
-#endif
 
 protected:
 
@@ -263,13 +259,6 @@ protected:
     // Implemented by children
     virtual MatrixND<ndf*nen,ndf*nen> getTangent(State state, int rate) =0;
     virtual VectorND<ndf*nen>         getForce(State state, int rate) =0;
-
-    // Supplied to children
-    const VectorND<ndf>& getNodeUnknowns(int tag, int rate);
-    const VectorND<ndm>& getNodePosition(int tag, State state);
-    const Rotation&      getNodeRotation(int tag, State state);
-    const VectorND<ndm>& getNodeVelocity(int tag);
-    const VectorND<ndm>& getNodeLocation(int tag, State state);
 #endif
 
 // TODO: Rename setNodes to setReference
@@ -307,17 +296,14 @@ protected:
 
     ID  connectedExternalNodes;    
 
-   Vector p_iner;
+    Vector p_iner;
 
-   int  parameterID;
+    int  parameterID;
 
 private:
     State  e_state;
     int    cMass;
-    // double rho;
-
-    double total_mass,
-           twist_mass;
+    static MatrixND<ndf*nen,ndf*nen> D; // Damping matrix
 
 };
 

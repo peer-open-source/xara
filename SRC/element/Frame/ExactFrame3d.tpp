@@ -125,7 +125,7 @@ ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
                                      std::array<int, nen>& nodes,
                                      FrameSection* section[nen - 1],
                                      CrdTransf& transform)
- : FiniteElement<nen, ndm, ndf>(tag, 0, nodes),
+ : FiniteElement<nen, ndm, ndf>(tag, 0, nodes, 1),
    xn{0},
    jxs(0),
    R0(),
@@ -164,8 +164,8 @@ ExactFrame3d<nen,nwm>::setNodes()
   auto& theNodes = this->FiniteElement<nen,3,6+nwm>::theNodes;
 
   if (transform->initialize(theNodes[0], theNodes[nen-1]) != 0) {
-      opserr << " -- Error initializing coordinate transformation\n";
-      return -1;
+    opserr << " -- Error initializing coordinate transformation\n";
+    return -1;
   }
   const Vector& xi = theNodes[    0]->getCrds();
   const Vector& xj = theNodes[nen-1]->getCrds();

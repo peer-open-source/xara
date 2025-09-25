@@ -173,7 +173,8 @@ int FluidSolidPorousMaterial::setTrialStrain (const Vector &strain)
 }
 
 
-int FluidSolidPorousMaterial::setTrialStrain (const Vector &strain, const Vector &rate)
+int
+FluidSolidPorousMaterial::setTrialStrain (const Vector &strain, const Vector &rate)
 {
 	int ndm = ndmx[matN];
 
@@ -187,7 +188,7 @@ int FluidSolidPorousMaterial::setTrialStrain (const Vector &strain, const Vector
 		exit(-1);;
 	}
 
-  return theSoilMaterial->setTrialStrain(strain, rate);
+  return theSoilMaterial->setTrialStrain(strain);
 }
 
 
@@ -223,7 +224,7 @@ int FluidSolidPorousMaterial::setTrialStrainIncr (const Vector &strain, const Ve
 		exit(-1);;
 	}
 
-  return theSoilMaterial->setTrialStrainIncr(strain, rate);
+  return theSoilMaterial->setTrialStrainIncr(strain);
 }
 
 

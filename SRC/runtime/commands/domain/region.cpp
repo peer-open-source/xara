@@ -22,7 +22,6 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <string.h>
-#include <tcl.h>
 #include <Domain.h>
 #include <MeshRegion.h>
 #include <ID.h>
@@ -91,7 +90,6 @@ TclCommand_addMeshRegion(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
       }
       if (loc < argc)
         loc--;
-
     }
     else if (strcmp(argv[loc], "-eleRange") == 0 ||
              strcmp(argv[loc], "-eleOnlyRange") == 0) {

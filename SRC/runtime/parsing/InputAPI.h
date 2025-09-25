@@ -6,13 +6,5 @@
 #endif
 #include <tcl.h>
 
-#define G3_Char TCL_Char
-
-enum SuccessFlag {
-  G3_OK    = TCL_OK, 
-  G3_ERROR = TCL_ERROR
-};
-
-typedef enum SuccessFlag SuccessFlag;
 
 #endif // G3PARSE_H

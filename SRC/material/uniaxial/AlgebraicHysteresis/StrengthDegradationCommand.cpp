@@ -4,9 +4,9 @@
 // Description: This file contains the parsing routines for the
 // TCL strengthDegradation command.
 
+#include <Parsing.h>
+#include <Logging.h>
 #include <string.h>
-#include <tcl.h>
-#include <OPS_Globals.h>
 
 #include <ModelRegistry.h>
 

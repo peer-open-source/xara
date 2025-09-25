@@ -58,15 +58,17 @@ PlaneStressSimplifiedJ2::PlaneStressSimplifiedJ2 (int pTag,
 
 
 
-PlaneStressSimplifiedJ2::~PlaneStressSimplifiedJ2() {
-	
-	return; 
-};
+PlaneStressSimplifiedJ2::~PlaneStressSimplifiedJ2() 
+{
+  return; 
+}
 
      
 
-	
-int PlaneStressSimplifiedJ2::plastIntegrator(){
+
+int
+PlaneStressSimplifiedJ2::plastIntegrator()
+{
 
 	int maxIter = 25;
 	double tol = 1e-12;
@@ -90,7 +92,7 @@ int PlaneStressSimplifiedJ2::plastIntegrator(){
 
 	int i =0;
 
-	double e33_old=e33+1.0;
+	double e33_old = e33 + 1.0;
 
 	while (( fabs(e33-e33_old)>tol) &&( fabs(stress3D(2))>tol) &&(i<maxIter)) {
 	    e33_old = e33;		
@@ -149,7 +151,7 @@ for( int i=0; i<3; i++)
  
 
 int
-PlaneStressSimplifiedJ2::setTrialStrain (const Vector &pStrain)
+PlaneStressSimplifiedJ2::setTrialStrain(const Vector &pStrain)
 {
 
     strain = pStrain;
@@ -161,13 +163,9 @@ PlaneStressSimplifiedJ2::setTrialStrain (const Vector &pStrain)
   return this->plastIntegrator();
 }
 
-int
-PlaneStressSimplifiedJ2::setTrialStrain(const Vector &v, const Vector &r)
-{
-	return this->setTrialStrain ( v);
-}
 
-int PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v){
+int PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v)
+{
 	
 	// ----- change to real strain instead of eng. strain
    // ---- since all strain in material is the true strain, not eng.strain. 
@@ -181,12 +179,6 @@ int PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v){
 	 return 0;
 
 };
-
-int
-PlaneStressSimplifiedJ2::setTrialStrainIncr(const Vector &v, const Vector &r)
-{
-	return this->setTrialStrainIncr(v);
-}
 
 // Calculates current tangent stiffness.
 const Matrix & 
@@ -354,12 +346,16 @@ void PlaneStressSimplifiedJ2::Print(OPS_Stream &s, int flag)
 }
 
 
-int PlaneStressSimplifiedJ2::setParameter(const char **argv, int argc, Parameter &param){
+int
+PlaneStressSimplifiedJ2::setParameter(const char **argv, int argc, Parameter &param)
+{
   // -- to be implemented.
   return 0;
-};
+}
 
-int PlaneStressSimplifiedJ2::updateParameter(int responseID, Information &eleInformation){
+int
+PlaneStressSimplifiedJ2::updateParameter(int responseID, Information &eleInformation)
+{
   return 0;
-};
+}
 

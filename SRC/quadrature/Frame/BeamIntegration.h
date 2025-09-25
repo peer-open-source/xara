@@ -21,7 +21,6 @@
 #ifndef BeamIntegration_h
 #define BeamIntegration_h
 
-#include <OPS_Globals.h>
 #include <MovableObject.h>
 #include <TaggedObject.h>
 #include <ID.h>

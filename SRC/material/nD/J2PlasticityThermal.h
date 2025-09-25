@@ -47,7 +47,7 @@
 //  Modified for SIF modelling by Liming Jiang [http://openseesforfire.github.io]
 
 
-#include <stdio.h> 
+#include <assert.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -88,19 +88,19 @@ class J2PlasticityThermal : public NDMaterial {
   virtual NDMaterial* getCopy (const char *type);
 
   //swap history variables
-  virtual int commitState( ) ; 
+  virtual int commitState();
+  virtual int revertToLastCommit();
+  virtual int revertToStart();
+  virtual int setTrialStrain(const Vector &v) {
+    assert(false);
+    return -1;
+  }
 
-    virtual int revertToLastCommit( ) ;
+  virtual int sendSelf(int commitTag, Channel &) override;  
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
-    virtual int revertToStart( ) ;
 
-  //sending and receiving
-  virtual int sendSelf(int commitTag, Channel &theChannel) ;  
-  virtual int recvSelf(int commitTag, Channel &theChannel, 
-		       FEM_ObjectBroker &theBroker ) ;
-
-  //print out material data
-  void Print(OPS_Stream &s, int flag = 0) ;
+  void Print(OPS_Stream &s, int flag) ;
 
   virtual NDMaterial *getCopy (void) ;
   virtual const char *getType (void) const ;

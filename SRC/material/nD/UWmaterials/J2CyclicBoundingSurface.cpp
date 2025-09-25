@@ -678,48 +678,13 @@ J2CyclicBoundingSurface::sendSelf(int commitTag, Channel &theChannel)
 }
 
 int
-J2CyclicBoundingSurface::recvSelf(int commitTag, Channel &theChannel,
-	FEM_ObjectBroker &theBroker)
+J2CyclicBoundingSurface::recvSelf(int commitTag, Channel &,
+	FEM_ObjectBroker &)
 {
 	// TODO : implement this
 	return 0;
 }
 
-//// get the strain and integrate plasticity equations
-//int
-//J2CyclicBoundingSurface::setTrialStrain(const Vector &strain_from_element)
-//{
-//	m_strain_np1 = strain_from_element;
-//	this->integrate();
-//
-//	return 0;
-//}
-//
-//// unused trial strain functions
-//int
-//J2CyclicBoundingSurface::setTrialStrain(const Vector &v, const Vector &r)
-//{
-//	m_strainRate_n1 = r;
-//	m_strain_np1 = v;
-//	this->integrate();
-//
-//	return 0;
-//}
-//
-//// send back the strain
-//const Vector&
-//J2CyclicBoundingSurface::getStrain()
-//{
-//	return m_strain_np1;
-//}
-//
-//// send back the stress 
-//const Vector&
-//J2CyclicBoundingSurface::getStress()
-//{
-//	//return m_stress_np1;
-//	return m_stress_t_n1;
-//}
 
 // send back the tangent 
 const Matrix&

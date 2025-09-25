@@ -51,13 +51,14 @@ public:
     Heaviside,
     Lagrange,
   };
-  FrameLoad(int basis, 
+  FrameLoad(int tag,
+            int basis, 
             int shape, 
             std::vector<Vector3D>& p,
             std::vector<Vector3D>& m,
             std::vector<Vector3D>& r,
             LoadPattern& pattern)
-  : ElementalLoad(classTag),
+  : ElementalLoad(tag,classTag),
     basis(basis),
     shape(shape),
     pattern(pattern),
@@ -106,7 +107,7 @@ public:
   {
     auto name = element.getClassType();
     if (strstr(name, "Frame") == nullptr) {
-      opserr << "WARNING FrameLoad::addElement() - cannot add load to element of type " << name << '\n';
+      opserr << "WARNING FrameLoad::addElement - cannot add load to element of type " << name << '\n';
       return -1;
     }
     elements.push_back(&element);
@@ -135,7 +136,7 @@ public:
     for (auto e: elements)
       e->update();
   }
-  
+
   virtual const Vector&
   getData(int& type, double loadFactor) override final {
     type = classTag;
@@ -211,14 +212,13 @@ public:
                       const Matrix3D& R) const
   {
     if (w == 0.0)
-        return;
+      return;
 
     for (unsigned q = 0; q < r.size(); q++) {
       Vector3D px, mx, rx;
       rx = r[q];
       rx[0] = 0.0;
 
-      rx = R * rx;
       rx = R*(R0*rx);
       if (rx.norm() == 0.0 && basis == Embedding)
         continue;
@@ -262,12 +262,12 @@ public:
       }
       
       if (rx.norm() != 0.0)
-        K.assemble(Px*Hat(rx), 3+i*n, 3+j*n, scale);
+        K.assemble(Px*Hat(rx), 3+i*n, 3+j*n,  scale);
     }
   }
 
   template <int nsr, const FrameStressLayout& scheme>
-  void addBasicSolution(VectorND<nsr>&    s, double x, double L, 
+  void addBasicSolution(VectorND<nsr>&   s, double x, double L, 
                         const Matrix3D& R0, const Matrix3D& R) const
   // add particular solution for basic equations
   {
@@ -297,6 +297,7 @@ public:
 
     switch (shape) {
       case Heaviside: {
+        // M is moment/length, nm is force/length
         double wa = nm[0]*scale; // Axial
         double wy = nm[1]*scale; // Transverse
         double wz = nm[2]*scale; // Transverse
@@ -304,11 +305,11 @@ public:
         for (int i = 0; i < nsr; i++) {
           switch (scheme[i]) {
           case FrameStress::N:  s[i] +=  wa * (L - x); break;
-          case FrameStress::Vy: s[i] += M[2]*scale + wy * (x - 0.5 * L); break;
-          case FrameStress::Vz: s[i] +=-M[1]*scale - wz * (x - 0.5 * L); break;
+          case FrameStress::Vy: s[i] +=  M[2]*scale + wy*(x - 0.5*L); break;
+          case FrameStress::Vz: s[i] += -M[1]*scale + wz*(x - 0.5*L); break;
 
-          case FrameStress::My: s[i] += - wz * 0.5 * x * (x - L); break;
-          case FrameStress::Mz: s[i] += + wy * 0.5 * x * (x - L); break;
+          case FrameStress::My: s[i] += -wz*0.5*x*(x - L); break;
+          case FrameStress::Mz: s[i] +=  wy*0.5*x*(x - L); break;
           default:
             break;
           }
@@ -319,6 +320,9 @@ public:
         double N      = nm[0]*scale;
         double Py     = nm[1]*scale;
         double Pz     = nm[2]*scale;
+        double T      = M[0]*scale;
+        double My     = M[1]*scale;
+        double Mz     = M[2]*scale;
         double aOverL = r[0][0];
 
         if (aOverL < 0.0 || aOverL > 1.0)
@@ -326,23 +330,25 @@ public:
 
         double a = aOverL * L;
 
-        double Vyi = Py * (1.0 - a/L);
-        double Vyj = Py * aOverL;
-
-        double Vzi = Pz * (1.0 - a/L);
-        double Vzj = Pz * aOverL;
-
-        for (int i = 0; i < nsr; i++) {
-          if (x <= a) {
+        if (x <= a) {
+          double Vyi = -Py*(1.0 - a/L) + Mz/L;
+          double Vzi = -Pz*(1.0 - a/L) - My/L;
+          for (int i = 0; i < nsr; i++) {
             switch (scheme[i]) {
             case FrameStress::N:  s[i] +=       N; break;
-            case FrameStress::Vy: s[i] -=     Vyi; break;
-            case FrameStress::Vz: s[i] -=     Vzi; break;
-            case FrameStress::My: s[i] += x * Vzi; break;
-            case FrameStress::Mz: s[i] -= x * Vyi; break;
+            case FrameStress::Vy: s[i] +=     Vyi; break;
+            case FrameStress::Vz: s[i] +=     Vzi; break;
+            case FrameStress::T : s[i] +=       T; break;
+            case FrameStress::My: s[i] -= x * Vzi; break;
+            case FrameStress::Mz: s[i] += x * Vyi; break;
             default:                  break;
             }
-          } else {
+          }
+        } else {
+          // x > a
+          double Vyj = Py * aOverL + Mz/L;
+          double Vzj = Pz * aOverL - My/L;
+          for (int i = 0; i < nsr; i++) {
             switch (scheme[i]) {
             case FrameStress::Vy: s[i] +=           Vyj; break;
             case FrameStress::Vz: s[i] +=           Vzj; break;
@@ -388,8 +394,9 @@ public:
     }
   }
 
+  template <int NDF>
   void
-  addLinearSolution(double*p0, double L, const Matrix3D& R0, const Matrix3D& R)
+  addLinearSolution(VectorND<NDF*2>& p0, double L, const Matrix3D& R0, const Matrix3D& R)
   {
     double scale = pattern.getLoadFactor();
     Vector3D n{}, M{};
@@ -400,6 +407,7 @@ public:
       switch (basis) {
         case Embedding:
           n = R^p[0];
+          M = (R^m[0]) + rx.cross(n);
           break;
         case Reference:
           n = R^(R0^p[0]);
@@ -417,17 +425,19 @@ public:
       double wz = n[2] * scale; // Transverse
 
       double P  =     wa*L;
-      double Vy = 0.5*wy*L;
-      double Vz = 0.5*wz*L;
+      double T  = M[0]*scale*L;
+      double Vy = -0.5*wy*L;
+      double Vz = -0.5*wz*L;
       double My = M[1]*scale;
       double Mz = M[2]*scale;
 
       // Reactions in basic system (projections on linear shape functions)
-      p0[0] -=  P;
-      p0[1] +=  Mz - Vy; // Vyi
-      p0[2] += -Mz - Vy; // Vyj
-      p0[3] +=  My - Vz;
-      p0[4] += -My - Vz;
+      p0[0*NDF + 0] -=  P;
+      p0[0*NDF + 1] +=  Mz + Vy; // Vyi
+      p0[0*NDF + 2] +=  My + Vz; // Vzi
+      p0[0*NDF + 3] -=  T;
+      p0[1*NDF + 1] += -Mz + Vy; // Vyj
+      p0[1*NDF + 2] += -My + Vz;
     }
 
     #if 0
@@ -462,20 +472,21 @@ public:
       double N      = p[0](0) * scale;
       double Py     = p[0](1) * scale;
       double Pz     = p[0](2) * scale;
+      double T      = M[0] * scale;
+      double My     = M[1] * scale;
+      double Mz     = M[2] * scale;
       double aOverL = r[0][0];
+      double bOverL = 1.0 - aOverL;
 
       if (aOverL < 0.0 || aOverL > 1.0)
         return;
 
-      double V1 = Py * (1.0 - aOverL);
-      double V2 = Py * aOverL;
-      p0[0] -= N;
-      p0[1] -= V1;
-      p0[2] -= V2;
-      V1 = Pz * (1.0 - aOverL);
-      V2 = Pz * aOverL;
-      p0[3] -= V1;
-      p0[4] -= V2;
+      p0[0*NDF + 0] += -N;
+      p0[0*NDF + 1] += -Py*bOverL + Mz/L;
+      p0[1*NDF + 1] += -Py*aOverL - Mz/L;
+      p0[0*NDF + 3] += -T;
+      p0[0*NDF + 2] += -Pz * bOverL - My/L;
+      p0[1*NDF + 2] -= -Pz * aOverL - My/L;
     }
   }
 private:

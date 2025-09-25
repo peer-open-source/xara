@@ -110,7 +110,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PeerNGAMotion)
 PeerNGAMotion::PeerNGAMotion()	
   :TimeSeries(TSERIES_TAG_PeerNGAMotion),
    thePath(0), dT(0.0), 
-   cFactor(0.0), dbTag1(0), dbTag2(0), lastSendCommitTag(-1)
+   cFactor(0.0), lastSendCommitTag(-1)
 {
   // does nothing
 }
@@ -123,7 +123,7 @@ PeerNGAMotion::PeerNGAMotion(int tag,
 			     double theFactor)
   :TimeSeries(tag, TSERIES_TAG_PeerNGAMotion),
    thePath(0), dT(0.0), 
-   cFactor(theFactor), dbTag1(0), dbTag2(0), lastSendCommitTag(-1), lastChannel(0)
+   cFactor(theFactor), lastSendCommitTag(-1)
 {
   char peerPage[124];
   char *nextData, *eqData;
@@ -205,7 +205,7 @@ PeerNGAMotion::PeerNGAMotion(int tag,
 			     double theFactor)
   :TimeSeries(tag, TSERIES_TAG_PeerNGAMotion),
    thePath(0), dT(0.0), 
-   cFactor(theFactor), dbTag1(0), dbTag2(0), lastSendCommitTag(-1), lastChannel(0)
+   cFactor(theFactor), lastSendCommitTag(-1)
 {
   char  peerPage[124];
   char *nextData, *eqData;
@@ -271,7 +271,7 @@ PeerNGAMotion::PeerNGAMotion(int tag,
 			     double theFactor)
   :TimeSeries(tag, TSERIES_TAG_PeerNGAMotion),
    thePath(0), dT(theTimeStep), 
-   cFactor(theFactor), dbTag1(0), dbTag2(0), lastSendCommitTag(-1), lastChannel(0)
+   cFactor(theFactor), lastSendCommitTag(-1)
 {
   if (theDataPoints != 0)
     thePath = new Vector(*theDataPoints);

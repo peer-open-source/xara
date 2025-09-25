@@ -53,7 +53,6 @@
 //  set eta := 0 for rate independent case
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -67,10 +66,7 @@ class J2ThreeDimensional : public J2Plasticity {
   //-------------------Declarations-------------------------------
 
 public:
-  //null constructor
   J2ThreeDimensional();
-
-  //full constructor
   J2ThreeDimensional(int tag,
                      double K,
                      double G,
@@ -81,18 +77,15 @@ public:
                      double viscosity = 0,
                      double rho       = 0);
 
-
-  //elastic constructor
   J2ThreeDimensional(int tag, double K, double G);
 
-  //destructor
   ~J2ThreeDimensional();
 
   const char*
   getClassType() const
   {
     return "J2ThreeDimensional";
-  };
+  }
 
   NDMaterial* getCopy();
 

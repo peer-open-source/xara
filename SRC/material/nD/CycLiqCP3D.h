@@ -45,12 +45,8 @@
 #include <CycLiqCP.h>
 
 class CycLiqCP3D : public CycLiqCP {
-
-//-------------------Declarations-------------------------------
-
   public : 
 
-  //null constructor
   CycLiqCP3D() ;
 
   //full constructor

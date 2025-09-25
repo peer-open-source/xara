@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
+#include <Parsing.h>
 //
 // NOTE: wipe is not added to the table on purpose, it cannot be added to
 // and removed from the interpreter as simply as the other commands.

@@ -898,10 +898,6 @@ ActorSubdomain::run(void)
 	    }
 
 	    allResponseArgs = new char[msgLength];
-	    if (allResponseArgs == 0) {
-	      opserr << "ElementRecorder::recvSelf() - out of memory\n";
-	      return -1;
-	    }
 
 	    theMessage.setData(allResponseArgs, msgLength);
 	    if (this->recvMessage(theMessage) < 0) {
@@ -914,10 +910,6 @@ ActorSubdomain::run(void)
 	    // 
 	    
 	    argv = new char *[argc];
-	    if (argv == 0) {
-	      opserr << "ElementRecorder::recvSelf() - out of memory\n";
-	      return -1;
-	    }
 	    
 	    currentLoc = allResponseArgs;
 	    for (int j=0; j<argc; j++) {

@@ -24,8 +24,8 @@
 #endif
 #define strcmp strcasecmp
 
-
-#include <tcl.h>
+#include <elementAPI.h>
+#include <Parsing.h>
 #include <Logging.h>
 #include <Domain.h>
 #include <NodeIter.h>

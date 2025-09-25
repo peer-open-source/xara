@@ -305,10 +305,6 @@ ElementRecorder::sendSelf(int commitTag, Channel &theChannel)
   }
 
   char *allResponseArgs = new char[msgLength];
-  if (allResponseArgs == 0) {
-    opserr << "ElementRecorder::sendSelf() - out of memory\n";
-    return -1;
-  }
 
   char *currentLoc = allResponseArgs;
   for (int j=0; j<numArgs; j++) {
@@ -438,10 +434,6 @@ ElementRecorder::recvSelf(int commitTag, Channel &theChannel,
   }
 
   char *allResponseArgs = new char[msgLength];
-  if (allResponseArgs == 0) {
-    opserr << "ElementRecorder::recvSelf() - out of memory\n";
-    return -1;
-  }
 
   Message theMessage(allResponseArgs, msgLength);
   if (theChannel.recvMsg(0, commitTag, theMessage) < 0) {
@@ -454,10 +446,6 @@ ElementRecorder::recvSelf(int commitTag, Channel &theChannel,
   // 
 
   responseArgs = new char *[numArgs];
-  if (responseArgs == 0) {
-    opserr << "ElementRecorder::recvSelf() - out of memory\n";
-    return -1;
-  }
 
   char *currentLoc = allResponseArgs;
   for (int j=0; j<numArgs; j++) {
@@ -465,10 +453,6 @@ ElementRecorder::recvSelf(int commitTag, Channel &theChannel,
     int argLength = strlen(currentLoc)+1;
 
     responseArgs[j] = new char[argLength];
-    if (responseArgs[j] == 0) {
-      opserr << "ElementRecorder::recvSelf() - out of memory\n";
-      return -1;
-    }
 
     strcpy(responseArgs[j], currentLoc);
     currentLoc += argLength;
@@ -567,10 +551,6 @@ ElementRecorder::initialize(void)
 
     // allocate memory for Responses & set to 0
     theResponses = new Response *[numEle];
-    if (theResponses == 0) {
-      opserr << "ElementRecorder::initialize() - out of memory\n";
-      return -1;
-    }
 
     for (int k=0; k<numEle; k++)
       theResponses[k] = 0;

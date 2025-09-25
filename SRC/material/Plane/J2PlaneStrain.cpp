@@ -120,8 +120,9 @@ int J2PlaneStrain :: getOrder( ) const
 } 
 
 
-//get the strain and integrate plasticity equations
-int J2PlaneStrain :: setTrialStrain( const Vector &strain_from_element) 
+// get the strain and integrate plasticity equations
+int
+J2PlaneStrain::setTrialStrain(const Vector &strain_from_element) 
 {
   strain.Zero( ) ;
 
@@ -130,19 +131,14 @@ int J2PlaneStrain :: setTrialStrain( const Vector &strain_from_element)
   strain(0,1) = 0.50 * strain_from_element(2) ;
   strain(1,0) =        strain(0,1) ;
 
-  this->plastic_integrator( ) ;
-
+  this->plastic_integrator();
   return 0 ;
 }
 
 
-//unused trial strain functions
-int J2PlaneStrain :: setTrialStrain( const Vector &v, const Vector &r )
-{ 
-   return this->setTrialStrain( v ) ;
-} 
 
-int J2PlaneStrain :: setTrialStrainIncr( const Vector &v ) 
+int
+J2PlaneStrain::setTrialStrainIncr( const Vector &v ) 
 {
   static Vector newStrain(3);
   newStrain(0) = strain(0,0) + v(0);
@@ -152,13 +148,9 @@ int J2PlaneStrain :: setTrialStrainIncr( const Vector &v )
   return this->setTrialStrain(newStrain);  
 }
 
-int J2PlaneStrain :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
-{
-    return this->setTrialStrainIncr(v);
-}
 
-
-const Vector& J2PlaneStrain :: getStrain( ) 
+const Vector& 
+J2PlaneStrain :: getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
@@ -168,7 +160,8 @@ const Vector& J2PlaneStrain :: getStrain( )
 } 
 
 
-const Vector& J2PlaneStrain :: getStress( ) 
+const Vector& 
+J2PlaneStrain :: getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;

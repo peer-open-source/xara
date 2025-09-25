@@ -4,8 +4,8 @@
 // Description: This file contains the parsing routines for the
 // TCL stiffnessDegradation command.
 
-#include <tcl.h>
-#include <OPS_Globals.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <ModelRegistry.h>
 
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,

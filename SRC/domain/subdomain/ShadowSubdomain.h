@@ -44,19 +44,19 @@ class ShadowSubdomain: public Shadow, public Subdomain
 {
   public:
     ShadowSubdomain(int tag,
-		    MachineBroker &theMachineBroker,
-		    FEM_ObjectBroker &theObjectBroker);
+                    MachineBroker &theMachineBroker,
+                    FEM_ObjectBroker &theObjectBroker);
 
     ShadowSubdomain(int tag, 
-		    Channel &theChannel, 
-		    FEM_ObjectBroker &theObjectBroker);
+                    Channel &theChannel, 
+                    FEM_ObjectBroker &theObjectBroker);
 
     virtual  ~ShadowSubdomain();    
 
     // method added for parallel domain generation
     //    virtual int buildSubdomain(int numSubdomains, 
     //			       PartitionedModelBuilder &theBuilder);
-    virtual int getRemoteData(void);
+    virtual int getRemoteData();
 
     // Methods inherited from Domain, Subdomain and Element
     // which must be rewritten
