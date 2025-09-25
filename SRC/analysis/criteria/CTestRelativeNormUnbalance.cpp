@@ -91,16 +91,16 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
         pstream << LOG_ITERATE 
                << "Iter: "    << pad(currentIter)
                << ", |dR|/|dR0|: " << pad(norm) 
-               << endln; // << " (max: " << tol << ")\n";
+               << "\n"; // << " (max: " << tol << ")\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
         pstream << LOG_ITERATE 
                << "Iter: "     << pad(currentIter)
                << ", |dR|/|dR0|: "  << pad(norm) 
-               << endln //" (max: " << tol << ")\n"
+               << "\n" //" (max: " << tol << ")\n"
                << "\tNorm deltaX: " << pad(theSOE.getX().pNorm(nType)) 
                << ", Norm deltaR: " << pad(norm) 
-               << endln
+               << "\n"
                << "\tdeltaX: "      << theSOE.getX() 
                << "\tdeltaR: "      << x;
     }
@@ -115,12 +115,12 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            pstream << endln;
+            pstream << "\n";
         if (printFlag & ConvergenceTest::PrintSuccess) {
             pstream << LOG_SUCCESS 
                    << "Iter: "    << pad(currentIter)
                    << ", |dR|/|dR0|: " << pad(norm) 
-                   << endln; // " (max: " << tol << ")\n";
+                   << "\n"; // " (max: " << tol << ")\n";
         }
 
         // return the number of times test has been called
@@ -133,7 +133,7 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
             pstream << LOG_FAILURE
                    << ", dR/dR0: "       << pad(norm)
                    << ", Norm deltaX: "  << pad(theSOE.getX().pNorm(nType)) 
-                   << endln;
+                   << "\n";
         }
         return currentIter;
     }
@@ -146,7 +146,7 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
                    // << LOG_CONTINUE
                    << "Iter: "         << pad(currentIter)
                    << ", |dR|/|dR0|: " << pad(norm) 
-                   << endln;
+                   << "\n";
         }
         // we increment in case analysis does not check for convergence
         currentIter++;

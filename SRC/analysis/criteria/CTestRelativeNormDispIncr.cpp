@@ -91,16 +91,16 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
         pstream << LOG_ITERATE
                << "Iter: "        << pad(currentIter)
                << " |dR|/|dR1|: " << pad(norm)
-               << endln;
+               << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
         pstream << LOG_ITERATE
                << "Iter: "          << pad(currentIter)
                << " |dR|/|dR1|: "   << pad(norm)
-               << endln;
+               << "\n";
         pstream << "\tNorm deltaX: " << pad(norm)
                << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
-               << endln;
+               << "\n";
         pstream << "\tdeltaX: " << x
                << "\tdeltaR: " << theSOE.getB();
     }
@@ -114,12 +114,12 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            pstream << endln;
+            pstream << "\n";
         if (printFlag & ConvergenceTest::PrintSuccess) {
             pstream << LOG_SUCCESS
                    << "Iter: "        << pad(currentIter)
                    << " |dR|/|dR1|: " << pad(norm)
-                   << endln;
+                   << "\n";
         }
 
         // return the number of times test has been called
@@ -134,7 +134,7 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
                    << " |dR|/|dR1|: "   << pad(norm)
                    << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
                    //<< "criteria CTestRelativeNormDispIncr but going on -"
-                   << endln;
+                   << "\n";
         }
         return currentIter;
     }
@@ -146,7 +146,7 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
                    << "Iter: "        << pad(currentIter)
                    << " |dR|/|dR1|: "   << pad(norm)
                    //<< "criteria CTestRelativeNormDispIncr"
-                   << endln;
+                   << "\n";
         }
         currentIter++;
         return ConvergenceTest::Failure;

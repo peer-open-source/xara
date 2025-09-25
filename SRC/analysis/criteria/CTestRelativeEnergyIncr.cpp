@@ -102,16 +102,16 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
         pstream << LOG_ITERATE
                << "Iter: "            << pad(currentIter)
                << ", dX*dR/dX1*dR1: " << pad(product)
-               << endln;
+               << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
         pstream << LOG_ITERATE
                << "Iter: "            << pad(currentIter)
                << ", dX*dR/dX1*dR1: " << pad(product)
-               << endln
+               << "\n"
                << ", Norm deltaX: "   << pad(x.pNorm(nType))
                << ", Norm deltaR: "   << pad(b.pNorm(nType)) 
-               << endln
+               << "\n"
                << "\tdeltaX: "        << x 
                << "\tdeltaR: "        << b;
     }
@@ -125,12 +125,12 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            pstream << endln;
+            pstream << "\n";
         if (printFlag & ConvergenceTest::PrintSuccess) {
             pstream << LOG_SUCCESS
                    << "Iter: "           << pad(currentIter)
                    << ", dX*dR/dX1*dR1: " << pad(product)
-                   << endln;
+                   << "\n";
         }
 
         // return the number of times test has been called - SUCCESSFULL
@@ -155,14 +155,13 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
     else if (currentIter >= maxNumIter) { // >= in case algorithm does not check
         if (printFlag & ConvergenceTest::PrintFailure) {
             pstream << LOG_FAILURE
-                   //<< "criteria CTestRelativeEnergyIncr"
                    // << LOG_CONTINUE
                    << "Iter: "           << pad(currentIter)
                    << ", dX*dR/dX1*dR1: " << pad(product)
                    << ", Norm deltaX: "  << pad(x.pNorm(nType))
                    // << LOG_CONTINUE
                    <<   "Norm deltaR: "  << pad(b.pNorm(nType))
-                   << endln;
+                   << "\n";
         }
         currentIter++;
         return ConvergenceTest::Failure;

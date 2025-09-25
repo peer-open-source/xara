@@ -100,7 +100,7 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
         pstream << LOG_ITERATE
                << "Iter: "         << pad(currentIter)
                << ", EnergyIncr: " << pad(product) 
-               << endln;
+               << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
         pstream << LOG_ITERATE
@@ -141,7 +141,7 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
     // Failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
         if (printFlag & ConvergenceTest::PrintFailure) {
-          opserr << LOG_FAILURE 
+          pstream << LOG_FAILURE 
                  << "Iter: "          << pad(currentIter)
                  << ", Norm dX: " << pad(x.pNorm(nType))
                  << ", Norm dR: " << pad(b.pNorm(nType))
@@ -154,7 +154,7 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
     // algo failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter || product > maxTol) { // >= in case algorithm does not check
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
+            pstream << LOG_FAILURE
                    //<< "criteria CTestEnergyIncr"
                    // << LOG_CONTINUE
                    << "Iter: "      << pad(currentIter)
@@ -162,7 +162,7 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
                    // << LOG_CONTINUE
                    << ", Norm deltaX: "  << pad(x.pNorm(nType))
                    << ", Norm deltaR: "  << pad(b.pNorm(nType))
-                   << endln;
+                   << "\n";
         }
         currentIter++;
         return ConvergenceTest::Failure;
