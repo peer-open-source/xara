@@ -210,13 +210,12 @@ DOF_Numberer::numberDOF(ID &lastDOFs)
 {
    // check we have a model and a numberer
 
-
-   assert((theAnalysisModel != 0) &&
+    assert((theAnalysisModel != nullptr) &&
           (theGraphNumberer != nullptr));
 
     // check we can't do quick return
     if (theAnalysisModel->getNumDOF_Groups() == 0)
-	return 0;
+      return 0;
 
     // we first number the dofs using the dof group graph
 	
