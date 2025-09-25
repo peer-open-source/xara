@@ -327,13 +327,9 @@ ArrayOfTaggedObjects::getIter()
 
 
 TaggedObjectStorage *
-ArrayOfTaggedObjects::getEmptyCopy(void)
+ArrayOfTaggedObjects::getEmptyCopy()
 {
     ArrayOfTaggedObjects *theCopy = new ArrayOfTaggedObjects(sizeComponentArray);
-    
-    if (theCopy == 0) {
-      opserr << "ArrayOfTaggedObjects::getEmptyCopy - out of memory\n";
-    }
 
     return theCopy;
 }

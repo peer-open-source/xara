@@ -527,10 +527,6 @@ Graph::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
   // for each vertex to be received, create it, receive it and then add it to the graph
   for (int i=0; i<numVertex; i++) {
     Vertex *theVertex = new Vertex(0, 0);
-    if (theVertex == 0) {
-      opserr << "Graph::recvSelf() - out of memory\n";
-      return -4;
-    }
     if (theVertex->recvSelf(commitTag, theChannel, theBroker) < 0) {
       opserr << "Graph::recvSelf() - vertex failed to receive itself\n";      
       return -5;
