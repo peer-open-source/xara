@@ -638,7 +638,8 @@ EmbeddedBeamInterfaceP::setDomain(Domain *theDomain)
 
     m_InterfaceStiffness *= m_ep;
 
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     return;
 }
 

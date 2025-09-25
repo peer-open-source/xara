@@ -171,7 +171,8 @@ void FSIFluidBoundaryElement2D::setDomain(Domain* theDomain)
     }
 
     // call base class implementation
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 void FSIFluidBoundaryElement2D::Print(OPS_Stream& s, int flag)
@@ -181,7 +182,7 @@ void FSIFluidBoundaryElement2D::Print(OPS_Stream& s, int flag)
         s << "EL_FSIFluidBoundaryElement2D\t" << eleTag << " :";
         for (int i = 0; i < m_node_ids.Size(); ++i)
             s << "\t" << m_node_ids(i);
-        s << endln;
+        s << "\n";
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
@@ -267,7 +268,8 @@ void FSIFluidBoundaryElement2D::zeroLoad()
 
 int FSIFluidBoundaryElement2D::addLoad(ElementalLoad* theLoad, double loadFactor)
 {
-    opserr << "FSIFluidBoundaryElement2D::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
+    opserr << "FSIFluidBoundaryElement2D::addLoad - load type unknown for ele with tag: "
+           << this->getTag() << "\n";
     return -1;
 }
 

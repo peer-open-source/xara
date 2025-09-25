@@ -133,7 +133,8 @@ WrapperElement::setDomain(Domain *theDomain)
   }
 
   // call the DomainComponent class method THIS IS VERY IMPORTANT
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   u = new double [theEle->nDOF];
   R = new double [theEle->nDOF];

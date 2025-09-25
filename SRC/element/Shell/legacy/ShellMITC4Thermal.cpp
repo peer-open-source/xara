@@ -22,7 +22,7 @@
 // $Date: 2011/03/10 22:51:21 $
 // $Source: /usr/local/cvs/OpenSees/SRC/element/shell/ShellMITC4Thermal.cpp,v $
 
-// Written: Leopoldo Tesser, Diego A. Talledo, Véronique Le Corvec
+// Written: Leopoldo Tesser, Diego A. Talledo, Vï¿½ronique Le Corvec
 //
 // Bathe MITC 4 four node shell element with membrane and drill
 // Ref: Dvorkin,Bathe, A continuum mechanics based four node shell
@@ -48,49 +48,10 @@
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 
 #define min(a,b) ( (a)<(b) ? (a):(b) )
 
 static int numShellMITC4Thermal = 0;
-
-void *
-OPS_NewShellMITC4Thermal(void)
-{
-  if (numShellMITC4Thermal == 0) {
-    opserr << "Using ShellMITC4Thermal - ShellMITC4 was developed by: Leopoldo Tesser, Diego A. Talledo, Veronique Le Corvec\n";
-	opserr << "                        - Modified for Thermo-mechanical analysis by Jian Jiang, Liming Jiang\n";
-    numShellMITC4Thermal++;
-  }
-
-  Element *theElement = 0;
-  
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numArgs < 6) {
-    opserr << "Want: element ShellMITC4Thermal $tag $iNode $jNoe $kNode $lNode $secTag";
-    return 0;	
-  }
-  
-  int iData[6];
-  int numData = 6;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellMITC4Thermal \n";
-    return 0;
-  }
-
-  SectionForceDeformation *theSection = OPS_GetSectionForceDeformation(iData[5]);
-
-  if (theSection == 0) {
-    opserr << "ERROR:  element ShellMITC4Thermal " << iData[0] << "section " << iData[5] << " not found\n";
-    return 0;
-  }
-  
-  theElement = new ShellMITC4Thermal(iData[0], iData[1], iData[2], iData[3],
-			      iData[4], *theSection);
-
-  return theElement;
-}
 
 
 //static data
@@ -269,7 +230,8 @@ void  ShellMITC4Thermal::setDomain( Domain *theDomain )
   //basis vectors and local coordinates
   computeBasis( ) ;
 
-  this->DomainComponent::setDomain(theDomain);
+  if (in != nullptr)
+    this->Element::link(*in);
 
 }
 

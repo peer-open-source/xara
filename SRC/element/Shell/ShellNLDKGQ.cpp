@@ -176,7 +176,8 @@ void ShellNLDKGQ::setDomain(Domain *theDomain)
   updateBasis();
   //updateBasis( );
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 //get the number of external nodes
@@ -663,7 +664,6 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
 
       Cstrain(jlast) = CstrainGauss(i * 8 + jlast);
     }
-    //opserr<<CstrainGauss<<endln;
 
     // j-node loop to compute strain
     for (j = 0; j < numnodes; j++) {
@@ -681,8 +681,7 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
         for (q = 0; q < ndf; q++) {
           saveB[p][q][j] = BJ(p, q);
         }
-      } //end for p
-      //opserr<<Bmembrane<<endln;
+      }
 
       //add for geometric nonlinearity
       //BGJ
@@ -706,7 +705,6 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
       dispIncLocalBend(0) = dispIncLocal(2);
       dispIncLocalBend(1) = dispIncLocal(3);
       dispIncLocalBend(2) = dispIncLocal(4);
-      //opserr<<dul<<endln;
 
       //compute the strain - modified for geometric nonlinearity:dstrain_li(8)
       //Note: transform the dof's order
@@ -720,7 +718,6 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
       //dstrain_nl += (BGJ*dulbend);
       //note: dstrain should be BGJ * dispIncLocalBend sum from j=0 to j=3
       dstrain_nl += computeNLdstrain(BGJ, dispIncLocalBend);
-      //opserr<<dstrain_nl<<endln;
 
       //dstrain = dstrain_li + dstrain_nl
       dstrain(0) = dstrain_li(0) + dstrain_nl(0);
@@ -745,14 +742,10 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
     //compute the stress
     stress = materialPointers[i]->getStressResultant();
 
-    //opserr<<dstrain<<endln;
-    //opserr<<strain<<endln;
-
     //add for geometric nonlinearity
     //update strain in gauss points
     //define TstrainGauss
     for (jnew = 0; jnew < nstress; jnew++) {
-
       TstrainGauss(i * 8 + jnew) = strain(jnew);
     }
     //CstrainGauss = TstrainGauss;
@@ -770,7 +763,6 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
     dd = materialPointers[i]->getInitialTangent();
     dd *= dvol[i]; //for stiffJKlinear integration
 
-    //opserr<<tang_flag<<endln;
 
     //residual and tangent calculations node loops
 
@@ -800,7 +792,7 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
       for (p3 = 0; p3 < 3; p3++) {
         for (q3 = 0; q3 < 2; q3++)
           BGJtran(p3, q3) = BGJ(q3, p3);
-      } //end for p3
+      }
       stiffBGM.addMatrixProduct(0.0, BGJtran, membraneForce, 1.0);
 
       BJtranD.addMatrixProduct(0.0, BJtran, dd, 1.0);

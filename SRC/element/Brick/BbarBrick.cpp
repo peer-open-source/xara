@@ -145,7 +145,8 @@ BbarBrick::setDomain( Domain *theDomain )
   // compute basis vectors and local nodal coordinates
   computeBasis();
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 

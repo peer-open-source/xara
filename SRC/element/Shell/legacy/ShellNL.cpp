@@ -46,7 +46,7 @@
 static int numShellNL = 0;
 
 void *
-OPS_NewShellNL(void)
+OPS_NewShellNL()
 {
   if (numShellNL == 0) {
     opserr << "Using ShellNL - Developed by: Leopoldo Tesser and Diego A. Talledo\n";
@@ -264,7 +264,8 @@ void  ShellNL::setDomain( Domain *theDomain )
   //basis vectors and local coordinates
   computeBasis( ) ;
 
-  this->DomainComponent::setDomain(theDomain);
+  if (in != nullptr)
+    this->Element::link(*in);
 }
 
 
@@ -283,7 +284,7 @@ const ID&  ShellNL::getExternalNodes( )
 
 
 Node **
-ShellNL::getNodePtrs(void) 
+ShellNL::getNodePtrs() 
 {
   return nodePointers;
 } 

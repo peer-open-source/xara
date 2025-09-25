@@ -35,7 +35,6 @@
 #include <FrictionModel.h>
 #include <Parsing.h>
 #include <Logging.h>
-#include <elementAPI.h>
 #include <ModelRegistry.h>
 
 #include <Coulomb.h>
@@ -55,7 +54,7 @@
 
 int
 TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
-                                int argc, TCL_Char **const argv)
+                                Tcl_Size argc, TCL_Char **const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = (ModelRegistry*)clientData;
@@ -101,35 +100,42 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[2 + eleArgStart], &iNode) != TCL_OK) {
-      opserr << "WARNING invalid iNode\n";
+      opserr << "WARNING invalid iNode"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[3 + eleArgStart], &jNode) != TCL_OK) {
-      opserr << "WARNING invalid jNode\n";
+      opserr << "WARNING invalid jNode"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[4 + eleArgStart], &frnMdlTag) != TCL_OK) {
-      opserr << "WARNING invalid frnMdlTag\n";
+      opserr << "WARNING invalid frnMdlTag"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
+  
     FrictionModel *theFrnMdl = builder->getTypedObject<FrictionModel>(frnMdlTag);
-    if (theFrnMdl == 0) {
+    if (theFrnMdl == nullptr) {
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[5 + eleArgStart], &kInit) != TCL_OK) {
-      opserr << "WARNING invalid kInit\n";
+      opserr << "WARNING invalid kInit"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
+
     UniaxialMaterial *theMaterials[2];
     for (i = 6 + eleArgStart; i < argc; i++) {
       if (i + 1 < argc && strcmp(argv[i], "-P") == 0) {
-        theMaterials[0] = 0;
+        theMaterials[0] = nullptr;
         if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
-          opserr << "WARNING invalid matTag\n";
+          opserr << "WARNING invalid matTag"
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
-        if (theMaterials[0] == 0) {
+        if (theMaterials[0] == nullptr) {
           return TCL_ERROR;
         }
         recvMat++;
@@ -142,7 +148,7 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
           return TCL_ERROR;
         }
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
-        if (theMaterials[1] == 0) {
+        if (theMaterials[1] == nullptr) {
           return TCL_ERROR;
         }
         recvMat++;
@@ -150,7 +156,8 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
     }
     if (recvMat != 2) {
       opserr << "WARNING wrong number of materials. ";
-      opserr << "got " << recvMat << " materials, but want 2 materials\n";
+      opserr << "got " << recvMat << " materials, but want 2 materials"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
@@ -206,6 +213,7 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
         }
       }
     }
+
     for (int i = 6 + eleArgStart; i < argc; i++) {
       if (strcmp(argv[i], "-doRayleigh") == 0)
         doRayleigh = 1;
@@ -238,7 +246,7 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
 
     // then add the flatSliderBearing to the domain
     if (theTclDomain->addElement(theElement) == false) {
-      opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
+      opserr << "could not add element to the domain" << OpenSees::SignalMessageEnd;
       delete theElement;
       return TCL_ERROR;
     }
@@ -462,11 +470,6 @@ TclCommand_addFlatSliderBearing(ClientData clientData, Tcl_Interp *interp,
         tag, iNode, jNode, *theFrnMdl, kInit, theMaterials, y, x, shearDistI,
         doRayleigh, mass, maxIter, tol, kFactUplift);
 
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      return TCL_ERROR;
-    }
-
     // then add the flatSliderBearing to the domain
     if (theTclDomain->addElement(theElement) == false) {
       opserr << "WARNING could not add element to the domain\n";
@@ -569,8 +572,7 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     FrictionModel *theFrnMdl = builder->getTypedObject<FrictionModel>(frnMdlTag);
-    if (theFrnMdl == 0) {
-      opserr << "WARNING friction model not found\n";
+    if (theFrnMdl == nullptr) {
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[5 + eleArgStart], &kInit) != TCL_OK) {
@@ -586,7 +588,7 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
           return TCL_ERROR;
         }
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
-        if (theMaterials[0] == 0) {
+        if (theMaterials[0] == nullptr) {
           opserr << "WARNING material model not found\n";
           return TCL_ERROR;
         }
@@ -718,11 +720,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
                                    theMaterials, y, x, shearDistI, doRayleigh,
                                    mass, maxIter, tol, kFactUplift);
 
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      return TCL_ERROR;
-    }
-
     // then add the RJWatsonEqsBearing to the domain
     if (builder->getDomain()->addElement(theElement) == false) {
       opserr << "WARNING could not add element to the domain\n";
@@ -835,8 +832,7 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
           return TCL_ERROR;
         }
         theMaterials[3] = builder->getTypedObject<UniaxialMaterial>(matTag);
-        if (theMaterials[3] == 0) {
-          opserr << "WARNING material model not found\n";
+        if (theMaterials[3] == nullptr) {
           return TCL_ERROR;
         }
         recvMat++;
@@ -849,8 +845,7 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
           return TCL_ERROR;
         }
         theMaterials[4] = builder->getTypedObject<UniaxialMaterial>(matTag);
-        if (theMaterials[4] == 0) {
-          opserr << "WARNING material model not found\n";
+        if (theMaterials[4] == nullptr) {
           return TCL_ERROR;
         }
         recvMat++;
@@ -981,11 +976,6 @@ TclBasicBuilder_addRJWatsonEqsBearing(ClientData clientData, Tcl_Interp *interp,
     theElement = new RJWatsonEQS3d(tag, iNode, jNode, *theFrnMdl, kInit,
                                    theMaterials, y, x, shearDistI, doRayleigh,
                                    mass, maxIter, tol, kFactUplift);
-
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      return TCL_ERROR;
-    }
 
     // then add the RJWatsonEqsBearing to the domain
     if (builder->getDomain()->addElement(theElement) == false) {
@@ -1255,10 +1245,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
         tag, iNode, jNode, *theFrnMdl, Reff, kInit, theMaterials, y, x,
         shearDistI, doRayleigh, inclVertDisp, mass, maxIter, tol, kFactUplift);
 
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      return TCL_ERROR;
-    }
 
     // then add the singleFPBearing to the domain
     if (theTclDomain->addElement(theElement) == false) {
@@ -1500,11 +1486,6 @@ TclCommand_addSingleFPBearing(ClientData clientData, Tcl_Interp *interp,
     theElement = new SingleFPSimple3d(
         tag, iNode, jNode, *theFrnMdl, Reff, kInit, theMaterials, y, x,
         shearDistI, doRayleigh, inclVertDisp, mass, maxIter, tol, kFactUplift);
-
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      return TCL_ERROR;
-    }
 
     // then add the singleFPBearing to the domain
     if (builder->getDomain()->addElement(theElement) == false) {

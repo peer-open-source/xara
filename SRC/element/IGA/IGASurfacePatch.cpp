@@ -152,7 +152,6 @@ IGASurfacePatch::IGASurfacePatch(int tag, int nodeStartTag_, int P_, int Q_, int
     // // Y aqui iteron sobre los elementos
     // for (int e = 0; e < noElems; ++e)
     // {
-    //     opserr << "Element n: " << e << endln;
 
     //     idU = (*index)(e, 0);
     //     idV = (*index)(e, 1);
@@ -162,41 +161,6 @@ IGASurfacePatch::IGASurfacePatch(int tag, int nodeStartTag_, int P_, int Q_, int
 
     //     etaE(0) = (*elRangeV)(idV, 0);
     //     etaE(1) = (*elRangeV)(idV, 1);
-
-    //     // opserr << "Parametric global coordinates span of element in each direction:" << endln;
-
-    //     // opserr << "xiE = " << xiE << endln;
-    //     // opserr << "etaE = " << etaE << endln;
-
-
-
-    //     opserr << "Element spans these nodes :";
-    //     for (int i = 0; i < (*element).noCols(); ++i)
-    //     {
-    //         opserr << (*element)(e, i) << ", ";
-    //     }
-    //     opserr << endln;
-
-
-
-
-    //     for (int gp = 0; gp < (*quadWeight).Size(); ++gp)
-    //     {
-    //         ptU = (*quadPoint)(gp, 0);
-    //         ptV = (*quadPoint)(gp, 1);
-    //         opserr << "Gauss point n: " << gp << endln;
-    //         opserr << "ptU, ptV : " << ptU << ", " << ptV << endln;
-
-    //         //Global parametric coordinates of gauss point [0-1], dont know if needed
-    //         xi = parent2ParametricSpace(xiE, ptU);
-    //         eta = parent2ParametricSpace(etaE, ptV);
-    //         opserr << "xi, eta: " << xi << ", " << eta << endln;
-
-
-    //     }
-    //     opserr << endln;
-
-
     // }
 
 
@@ -263,17 +227,12 @@ void IGASurfacePatch::setDomain(Domain *theDomain)
     // Iterando sobre nodos, imprimo numero nodo global, numero local, coordenadas
     for (int i = 0; i < noPts; ++i)
     {
-        // opserr << "controlPoint n: " << i << endln;
         xCoord = controlPts(0, i);
         yCoord = controlPts(1, i);
         zCoord = controlPts(2, i);
 
         weights(i) = controlPts(3, i);
 
-
-        // opserr << "xCoord = " << xCoord << endln;
-        // opserr << "yCoord = " << yCoord << endln;
-        // opserr << "zCoord = " << zCoord << endln << endln;
 
         int tag = i + nodeStartTag; // Hacemos partir los nodos desde nodeStartTag, entregado desde python (para multipatches)
         int ndof = 3;
@@ -309,8 +268,6 @@ void IGASurfacePatch::setDomain(Domain *theDomain)
     // gaussQuad2dNurbs(P+1,Q+1, quadPoint, quadWeight);
     // gaussQuad2dNurbs(P+1,P+1, quadPoint, quadWeight);
 
-    // opserr << "*quadWeight = " << *quadWeight << endln;
-    // opserr << "*quadPoint = " << *quadPoint << endln;
 
     int idU;
     int idV;
@@ -329,7 +286,6 @@ void IGASurfacePatch::setDomain(Domain *theDomain)
     // Y aqui itero sobre los elementos
     for (int e = 0; e < noElems; ++e)
     {
-        // opserr << "Element n: " << e << endln;
 
         idU = (*index)(e, 0);
         idV = (*index)(e, 1);
@@ -344,15 +300,12 @@ void IGASurfacePatch::setDomain(Domain *theDomain)
         int nnodes = (*element).noCols();
         ID nodes(nnodes);
 
-        // opserr << "Element spans these nodes :";
         for (int i = 0; i < (*element).noCols(); ++i)
         {
 
             nodes(i) = (*element)(e, i) + nodeStartTag;    /// Ojo !!! con el nodeStartTag
-            // opserr << "nodes(i) = " << nodes(i) << endln;
             // nodes(i) = (*element)(e, i);    /// Ojo !!! + 1
         }
-        opserr << endln;
 
 
         Element* ele = 0 ;
@@ -905,7 +858,6 @@ void IGASurfacePatch::Print(OPS_Stream & s, int flag)
 
 int IGASurfacePatch::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-    // opserr << "IGASurfacePatch::addLoad - Element tag = " << this->getTag() << endln;
     Element* theElement = 0;
     for (int ele = 0; ele < noElems; ++ele)
     {

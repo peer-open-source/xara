@@ -102,16 +102,12 @@ class ShellMITC4GeoNonlinearThermal : public Element {
     const Vector &getResistingForceIncInertia( ) ;
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
 
 
-    Response* setResponse(const char **argv, int argc, OPS_Stream &output);
+    Response* setResponse(const char **argv, int argc, OPS_Stream &);
     int getResponse(int responseID, Information &eleInfo);
-      
-    //plotting 
-    int displaySelf(Renderer &theViewer, int displayMode, float fact);
 
   private : 
 

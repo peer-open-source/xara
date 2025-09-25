@@ -315,7 +315,8 @@ fElement::setDomain(Domain *theDomain)
 
     
     // call the DomainComponent class method THIS IS VERY IMPORTANT
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set nen - the number of element nodes
     nen = numNodes;

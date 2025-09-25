@@ -210,7 +210,8 @@ PrismShearFrame2d::setDomain(Domain* theDomain)
   }
 
   // call the base class method
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
   // initialize the coordinate transformation
   if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {

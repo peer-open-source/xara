@@ -26,15 +26,18 @@
 // for the TwoNodeLink element.
 
 #include <stdlib.h>
+#include <float.h>
 #include <string.h>
-#include <assert.h>
+#include <cassert>
+#include <Node.h>
 #include <Domain.h>
 #include <Logging.h>
 #include <Parsing.h>
+#include <ArgumentTracker.h>
 #include <ID.h>
 #include <Vector.h>
 #include <UniaxialMaterial.h>
-#include <SectionForceDeformation.h>
+#include <FrameSection.h>
 #include <ModelRegistry.h>
 #include <TwoNodeLink.h>
 #include <TwoNodeLinkSection.h>
@@ -42,595 +45,592 @@
 
 using OpenSees::VectorND;
 
-template <int ndm>
-int
-SetupLink(const VectorND<ndm> &xi, const VectorND<ndm>& xj,
-          const VectorND<ndm>& x, const VectorND<ndm>& y,
-          const ID &direction, const ID &dir,
-          Matrix &trans, double &L, bool onP0)
-{
-#if 0
-  const Vector &end1Crd = theNodes[0]->getCrds();
-  const Vector &end2Crd = theNodes[1]->getCrds();	
-  Vector xp = end2Crd - end1Crd;
-  L = xp.Norm();
-
-  // setup x and y orientation vectors
-  if (L > DBL_EPSILON)  {
-      if (x.Size() == 0)  {
-          x.resize(3);
-          x.Zero();
-          x(0) = xp(0);
-          if (xp.Size() > 1)
-              x(1) = xp(1);
-          if (xp.Size() > 2)
-              x(2) = xp(2);
-
-      } else if (onP0)  {
-          opserr << "WARNING TwoNodeLink::setUp() - " 
-              << "element: " << this->getTag() << endln
-              << "ignoring nodes and using specified "
-              << "local x vector to determine orientation\n";
-      }
-      if (y.Size() == 0)  {
-          y.resize(3);
-          y.Zero();
-          y(0) = -xp(1);
-          if (xp.Size() > 1)
-              y(1) = xp(0);
-          if (xp.Size() > 2)
-              opserr << "WARNING TwoNodeLink::setUp() - " 
-                  << "element: " << this->getTag() << endln
-                  << "no local y vector specified\n";
-      }
-  } else  {
-      if (x.Size() == 0)  {
-          x.resize(3);
-          x(0) = 1.0; x(1) = 0.0; x(2) = 0.0;
-      }
-      if (y.Size() == 0)  {
-          y.resize(3);
-          y(0) = 0.0; y(1) = 1.0; y(2) = 0.0;
-      }
-  }
-
-  // check that vectors for orientation are of correct size
-  if (x.Size() != 3 || y.Size() != 3)  {
-      opserr << "TwoNodeLink::setUp() - "
-          << "element: " << this->getTag() << endln
-          << "incorrect dimension of orientation vectors\n";
-      exit(-1);
-  }
-
-  // establish orientation of element for the transformation matrix
-  // z = x cross yp
-  static Vector z(3);
-  z(0) = x(1)*y(2) - x(2)*y(1);
-  z(1) = x(2)*y(0) - x(0)*y(2);
-  z(2) = x(0)*y(1) - x(1)*y(0);
-
-  // y = z cross x
-  y(0) = z(1)*x(2) - z(2)*x(1);
-  y(1) = z(2)*x(0) - z(0)*x(2);
-  y(2) = z(0)*x(1) - z(1)*x(0);
-
-  // compute length(norm) of vectors
-  double xn = x.Norm();
-  double yn = y.Norm();
-  double zn = z.Norm();
-
-  // check valid x and y vectors, i.e. not parallel and of zero length
-  if (xn == 0 || yn == 0 || zn == 0)  {
-      opserr << "TwoNodeLink::setUp() - "
-          << "element: " << this->getTag() << endln
-          << "invalid orientation vectors\n";
-      exit(-1);
-  }
-
-  // create transformation matrix of direction cosines
-  for (int i=0; i<3; i++)  {
-      trans(0,i) = x(i)/xn;
-      trans(1,i) = y(i)/yn;
-      trans(2,i) = z(i)/zn;
-  }
-#endif
-  return 0;
-}
-
 
 int
-TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp, int argc,
-                               TCL_Char ** const argv)
+TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
+                          Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = (ModelRegistry*)clientData;
-  constexpr static int eleArgStart = 1;
+
+  // element TwoNodeLink eleTag iNode jNode -mat {m1 ...}|m1 m2 ...
+  //                             -dir {d1 ...}|d1 d2 ...
+  //   <-orient <x1 x2 x3> <y1 x2 y3> | -orient <x1 x2 x3> (NDM=1,2)
+  //   | -orient <y1 y2 y3> (NDM=3 with x from nodes)>
+  //   <-pDelta Mratios> <-shearDist sDratios> <-doRayleigh> <-mass m>
 
 
-  Element *theElement = nullptr;
-  int ndm = builder->getNDM();
-  int ndf = builder->getNDF();
+  const int ndm = builder->getNDM();
 
-  // check the number of arguments is correct
-  if ((argc - eleArgStart) < 8) {
-    opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: twoNodeLink eleTag iNode jNode -mat matTags -dir dirs "
-              "<-orient <x1 x2 x3> y1 y2 y3> <-pDelta Mratios> <-shearDist "
-              "sDratios> <-doRayleigh> <-mass m>" << OpenSees::SignalMessageEnd;
+  if (argc < 8) {
+    opserr << OpenSees::PromptValueError
+           << "insufficient arguments for element " << argv[1] << "\n";
     return TCL_ERROR;
   }
 
-  // get the id and end nodes
-  int tag, iNode, jNode, numMat, matTag, numDir, dirID;
-  int argi = eleArgStart + 1;
-  Vector Mratio(0), shearDistI(0);
+  int tag, iNode, jNode;
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid element tag " << argv[2] << "\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid iNode " << argv[3] << "\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid jNode " << argv[4] << "\n";
+    return TCL_ERROR;
+  }
+
+  int argi = 5;
+
+  // Defaults
+  Vector3D x{};
+  Vector3D y{0, 1, 0};
+
+  {
+    Domain *theDomain = builder->getDomain();
+    Node *ndI = theDomain->getNode(iNode);
+    Node *ndJ = theDomain->getNode(jNode);
+    if (ndI == nullptr || ndJ == nullptr) {
+      opserr << OpenSees::PromptValueError << "invalid node tag(s)\n";
+      return TCL_ERROR;
+    }
+    const Vector &end1 = ndI->getCrds();
+    const Vector &end2 = ndJ->getCrds();
+    for (int i=0; i<ndm; ++i)
+      x(i) = end2(i) - end1(i);
+
+    if (x.norm() < DBL_EPSILON) {
+      x(0) = 1.0;
+      x(1) = 0.0;
+      x(2) = 0.0;
+    }
+    else {
+      y(0) = -x(1);
+      y(1) =  x(0);
+      y(2) =  0.0;
+    }
+  }
+
+  std::vector<UniaxialMaterial*> mats;
+  std::vector<int> dirs_vec;
+  Vector Mratio;
+  Vector sDistI;
   int doRayleigh = 0;
   double mass = 0.0;
 
-  if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
-    opserr << "WARNING invalid eleTag" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  argi++;
-  if (Tcl_GetInt(interp, argv[argi], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  argi++;
-  if (Tcl_GetInt(interp, argv[argi], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  argi++;
-  // read the number of materials
-  numMat = 0;
-  if (strcmp(argv[argi], "-mat") != 0) {
-    opserr << "WARNING expecting -mat flag" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  argi++;
-  int i = argi;
-  while (i < argc && strcmp(argv[i], "-dir") != 0) {
-    numMat++;
-    i++;
-  }
-  if (numMat == 0) {
-    opserr << "WARNING no directions specified" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  // create array of uniaxial materials
-  UniaxialMaterial **theMaterials = new UniaxialMaterial *[numMat];
-  for (int i = 0; i < numMat; i++) {
-    theMaterials[i] = nullptr;
-    if (Tcl_GetInt(interp, argv[argi], &matTag) != TCL_OK) {
-      opserr << "WARNING invalid matTag\n";
-      return TCL_ERROR;
-    }
-    theMaterials[i] = builder->getTypedObject<UniaxialMaterial>(matTag);
-    if (theMaterials[i] == 0) {
-      return TCL_ERROR;
-    }
-    argi++;
-  }
-  // read the number of directions
-  numDir = 0;
-  if (strcmp(argv[argi], "-dir") != 0) {
-    opserr << "WARNING expecting -dir flag\n";
-    return TCL_ERROR;
-  }
-  argi++;
-  i = argi;
-  while (i < argc && strcmp(argv[i], "-orient") != 0 &&
-         strcmp(argv[i], "-pDelta") != 0 &&
-         strcmp(argv[i], "-shearDist") != 0 &&
-         strcmp(argv[i], "-doRayleigh") != 0 && strcmp(argv[i], "-mass") != 0) {
-    numDir++;
-    i++;
-  }
-  if (numDir != numMat) {
-    opserr << "WARNING wrong number of directions specified" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  // create the ID array to hold the direction IDs
-  ID theDirIDs(numDir);
-  // fill in the directions
-  for (i = 0; i < numDir; i++) {
-    if (Tcl_GetInt(interp, argv[argi], &dirID) != TCL_OK) {
-      opserr << "WARNING invalid direction ID" << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-    if (dirID < 1 || dirID > ndf) {
-      opserr << "WARNING invalid direction ID: ";
-      opserr << "dir = " << dirID << " > ndf = " << ndf << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-    theDirIDs(i) = dirID - 1;
-    argi++;
-  }
-
-  // check for optional arguments
-  Vector x(0), y(0);
-  for (i = argi; i < argc; i++) {
-    if (strcmp(argv[i], "-orient") == 0) {
-      int j = i + 1;
-      int numOrient = 0;
-      while (j < argc && strcmp(argv[j], "-pDelta") != 0 &&
-             strcmp(argv[j], "-shearDist") != 0 &&
-             strcmp(argv[j], "-doRayleigh") != 0 &&
-             strcmp(argv[j], "-mass") != 0) {
-        numOrient++;
-        j++;
+  //
+  // Keyword loop
+  //
+  while (argi < argc) {
+    if (strcmp(argv[argi], "-mat") == 0) {
+      if (argi + 1 >= argc) {
+        opserr << OpenSees::PromptValueError
+               << "-mat requires arguments\n";
+        return TCL_ERROR;
       }
-      if (numOrient == 3) {
-        y.resize(3);
-        double value;
-        // read the y values
-        for (int j = 0; j < 3; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+      // Back-compat detection:
+      // If argv[argi+2] exists and is an int, treat as unpacked sequence starting at argi+1.
+      // Otherwise treat argv[argi+1] as a Tcl list.
+      bool unpacked = false;
+      if (argi + 2 < argc) {
+        int tmp;
+        if (Tcl_GetInt(interp, argv[argi+2], &tmp) == TCL_OK)
+          unpacked = true;
+      }
+
+      if (unpacked) {
+        int j = argi + 1;
+        int mt;
+        while (j < argc && Tcl_GetInt(interp, argv[j], &mt) == TCL_OK) {
+          UniaxialMaterial *umat = builder->getTypedObject<UniaxialMaterial>(mt);
+          if (umat == nullptr) {
             return TCL_ERROR;
-          } else {
-            y(j) = value;
+          }
+          mats.push_back(umat);
+          j++;
+        }
+        if (mats.empty()) {
+          opserr << OpenSees::PromptValueError
+                 << "no materials provided after -mat\n";
+          return TCL_ERROR;
+        }
+        argi = j; // advance past all parsed ints
+      }
+      else {
+        int list_argc;
+        TCL_Char **list_argv;
+        if (Tcl_SplitList(interp, argv[argi+1], &list_argc, &list_argv) != TCL_OK || list_argc < 1) {
+          opserr << OpenSees::PromptValueError << "invalid material list after -mat\n";
+          return TCL_ERROR;
+        }
+        for (int i=0; i<list_argc; ++i) {
+          int mt;
+          if (Tcl_GetInt(interp, list_argv[i], &mt) != TCL_OK) {
+            opserr << OpenSees::PromptValueError << "invalid material tag "
+                   << list_argv[i]
+                   << "\n";
+            Tcl_Free((char*)list_argv);
+            return TCL_ERROR;
+          }
+          UniaxialMaterial *umat = builder->getTypedObject<UniaxialMaterial>(mt);
+          if (umat == nullptr) {
+            Tcl_Free((char*)list_argv);
+            return TCL_ERROR;
+          }
+          mats.push_back(umat);
+        }
+        Tcl_Free((char*)list_argv);
+        argi += 2; // "-mat" + list token
+      }
+    }
+
+    else if (strcmp(argv[argi], "-dir") == 0 || strcmp(argv[argi], "-dof") == 0) {
+      if (argi + 1 >= argc) {
+        opserr << OpenSees::PromptValueError
+               << "-dir requires arguments\n";
+        return TCL_ERROR;
+      }
+      bool unpacked = false;
+      if (argi + 2 < argc) {
+        int tmp;
+        if (Tcl_GetInt(interp, argv[argi+2], &tmp) == TCL_OK)
+          unpacked = true;
+      }
+
+      if (unpacked) {
+        int j = argi + 1;
+        int d;
+        while (j < argc && Tcl_GetInt(interp, argv[j], &d) == TCL_OK) {
+          dirs_vec.push_back(d);
+          j++;
+        }
+        if (dirs_vec.empty()) {
+          opserr << OpenSees::PromptValueError
+                 << "no directions provided after -dir\n";
+          return TCL_ERROR;
+        }
+        argi = j; // advance past all parsed ints
+      } else {
+        int list_argc;
+        TCL_Char **list_argv;
+        if (Tcl_SplitList(interp, argv[argi+1], &list_argc, &list_argv) != TCL_OK || list_argc < 1) {
+          opserr << OpenSees::PromptValueError
+                 << "invalid direction list after -dir\n";
+          return TCL_ERROR;
+        }
+        for (int i=0; i<list_argc; ++i) {
+          int d;
+          if (Tcl_GetInt(interp, list_argv[i], &d) != TCL_OK) {
+            opserr << OpenSees::PromptValueError
+                   << "invalid direction " << list_argv[i] << "\n";
+            Tcl_Free((char*)list_argv);
+            return TCL_ERROR;
+          }
+          dirs_vec.push_back(d);
+        }
+        Tcl_Free((char*)list_argv);
+        argi += 2; // "-dir" + list token
+      }
+    }
+
+    else if (strcmp(argv[argi], "-orient") == 0) {
+      argi++;
+      int remaining = argc - argi;
+      if (remaining < 3) {
+        opserr << OpenSees::PromptValueError
+               << "insufficient arguments after -orient\n";
+        return TCL_ERROR;
+      }
+      if (remaining >= 6) {
+        for (int k=0; k<3; ++k) {
+          if (Tcl_GetDouble(interp, argv[argi++], &x(k)) != TCL_OK) {
+            opserr << OpenSees::PromptValueError
+                   << "invalid -orient x component\n";
+            return TCL_ERROR;
           }
         }
-      } else if (numOrient == 6) {
-        x.resize(3);
-        y.resize(3);
-        double value;
-        // read the x values
-        for (int j = 0; j < 3; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+        for (int k=0; k<3; ++k) {
+          if (Tcl_GetDouble(interp, argv[argi++], &y(k)) != TCL_OK) {
+            opserr << OpenSees::PromptValueError
+                   << "invalid -orient y component\n";
             return TCL_ERROR;
-          } else {
-            x(j) = value;
-          }
-        }
-        // read the y values
-        for (int j = 0; j < 3; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 4 + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
-            return TCL_ERROR;
-          } else {
-            y(j) = value;
           }
         }
       } else {
-        opserr << "WARNING insufficient arguments after -orient flag\n";
-        return TCL_ERROR;
-      }
-    }
-  }
-  for (int i = argi; i < argc; i++) {
-    if (i + 1 < argc && strcmp(argv[i], "-pDelta") == 0) {
-      double Mr;
-      Mratio.resize(4);
-      if (ndm == 2) {
-        Mratio.Zero();
-        for (int j = 0; j < 2; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
-            opserr << "WARNING invalid -pDelta value\n";
-            return TCL_ERROR;
+        if (ndm == 1 || ndm == 2) {
+          for (int k=0; k<3; ++k) {
+            if (Tcl_GetDouble(interp, argv[argi++], &x(k)) != TCL_OK) {
+              opserr << OpenSees::PromptValueError << "invalid -orient x component\n";
+              return TCL_ERROR;
+            }
           }
-          Mratio(2 + j) = Mr;
-        }
-      } else if (ndm == 3) {
-        for (int j = 0; j < 4; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
-            opserr << "WARNING invalid -pDelta value\n";
-            return TCL_ERROR;
+        } else {
+          for (int k=0; k<3; ++k) {
+            if (Tcl_GetDouble(interp, argv[argi++], &y(k)) != TCL_OK) {
+              opserr << OpenSees::PromptValueError << "invalid -orient y component\n";
+              return TCL_ERROR;
+            }
           }
-          Mratio(j) = Mr;
         }
       }
     }
-  }
-  for (i = argi; i < argc; i++) {
-    if (i + 1 < argc && strcmp(argv[i], "-shearDist") == 0) {
-      double sDI;
-      shearDistI.resize(2);
+
+    else if (strcmp(argv[argi], "-pDelta") == 0) {
+      argi++;
+      Mratio.resize(4); Mratio.Zero();
       if (ndm == 2) {
-        if (Tcl_GetDouble(interp, argv[i + 1], &sDI) != TCL_OK) {
-          opserr << "WARNING invalid -shearDist value\n";
+        if (argi + 2 > argc) {
+          opserr << OpenSees::PromptValueError << "insufficient data for -pDelta\n";
           return TCL_ERROR;
         }
-        shearDistI(0) = sDI;
-        shearDistI(1) = 0.5;
-      } else if (ndm == 3) {
-        for (int j = 0; j < 2; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &sDI) != TCL_OK) {
-            opserr << "WARNING invalid -shearDist value\n";
+        for (int k=2; k<4; ++k) {
+          if (Tcl_GetDouble(interp, argv[argi++], &Mratio(k)) != TCL_OK) {
+            opserr << OpenSees::PromptValueError << "invalid -pDelta value\n";
             return TCL_ERROR;
           }
-          shearDistI(j) = sDI;
+        }
+      } else {
+        if (argi + 4 > argc) {
+          opserr << OpenSees::PromptValueError << "insufficient data for -pDelta\n";
+          return TCL_ERROR;
+        }
+        for (int k=0; k<4; ++k) {
+          if (Tcl_GetDouble(interp, argv[argi++], &Mratio(k)) != TCL_OK) {
+            opserr << OpenSees::PromptValueError << "invalid -pDelta value\n";
+            return TCL_ERROR;
+          }
         }
       }
     }
-  }
-  for (i = argi; i < argc; i++) {
-    if (strcmp(argv[i], "-doRayleigh") == 0)
+
+    else if (strcmp(argv[argi], "-shearDist") == 0) {
+      argi++;
+      sDistI.resize(2); sDistI(0)=0.0; sDistI(1)=0.5;
+      if (ndm == 2) {
+        if (argi + 1 > argc) {
+          opserr << OpenSees::PromptValueError << "insufficient data for -shearDist\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[argi++], &sDistI(0)) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid -shearDist value\n";
+          return TCL_ERROR;
+        }
+      } else {
+        if (argi + 2 > argc) {
+          opserr << OpenSees::PromptValueError << "insufficient data for -shearDist\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[argi++], &sDistI(0)) != TCL_OK ||
+            Tcl_GetDouble(interp, argv[argi++], &sDistI(1)) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid -shearDist value\n";
+          return TCL_ERROR;
+        }
+      }
+    }
+
+    else if (strcmp(argv[argi], "-doRayleigh") == 0) {
+      argi++;
       doRayleigh = 1;
-  }
-  for (i = argi; i < argc; i++) {
-    if (i + 1 < argc && strcmp(argv[i], "-mass") == 0) {
-      if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
-        opserr << "WARNING invalid -mass value" << OpenSees::SignalMessageEnd;
+    }
+
+    else if (strcmp(argv[argi], "-mass") == 0) {
+      argi++;
+      if (argi >= argc) {
+        opserr << OpenSees::PromptValueError << "insufficient mass value\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[argi++], &mass) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "invalid -mass value\n";
         return TCL_ERROR;
       }
     }
+
+    else {
+      opserr << OpenSees::PromptParseError << "unexpected option " << argv[argi] << "\n";
+      return TCL_ERROR;
+    }
   }
 
-  // now create the twoNodeLink
-  theElement = new TwoNodeLink(tag, ndm, iNode, jNode, theDirIDs, theMaterials,
-                               y, x, Mratio, shearDistI, doRayleigh, mass);
+  //
+  // Validate -mat / -dir
+  //
+  if (mats.empty()) {
+    opserr << OpenSees::PromptValueError << "no materials provided\n";
+    return TCL_ERROR;
+  }
+  if (dirs_vec.size() != mats.size()) {
+    opserr << OpenSees::PromptValueError
+           << "wrong number of directions: expected " << mats.size() << "\n";
+    return TCL_ERROR;
+  }
 
-  // cleanup dynamic memory
-  if (theMaterials != 0)
-    delete[] theMaterials;
+  ID dirs((int)mats.size());
+  for (int i=0; i<(int)mats.size(); ++i)
+    dirs(i) = dirs_vec[i] - 1; // 1-based to 0-based
 
+  //
+  // Create and add element
+  //
+  Element *theEle = new TwoNodeLink(tag, ndm, iNode, jNode,
+                                    dirs, &mats[0],
+                                    y, x,
+                                    Mratio, sDistI,
+                                    doRayleigh, mass);
 
-  // then add the twoNodeLink to the domain
-  if (builder->getDomain()->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
-    delete theElement;
+  if (!builder->getDomain()->addElement(theEle)) {
+    opserr << OpenSees::PromptValueError
+           << "could not add element to the domain\n";
+    delete theEle;
     return TCL_ERROR;
   }
 
   return TCL_OK;
 }
 
-#include <elementAPI.h>
+
 int
-TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp, int argc,
-                               TCL_Char ** const argv)
+TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp,
+                                  Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = (ModelRegistry*)clientData;
-  constexpr static int eleArgStart = 1;
 
+  // Usage:
+  // element TwoNodeLinkSection eleTag iNode jNode secTag
+  //   <-orient <x1 x2 x3> <y1 y2 y3> | -orient <x1 x2 x3> (NDM=1,2)
+  //   | -orient <y1 y2 y3> (NDM=3 with x from nodes)>
+  //   <-pDelta Mratios> <-shearDist sDratios> <-doRayleigh> <-mass m>
 
-  int ndm = builder->getNDM();
+  const int ndm = builder->getNDM();
 
-  // Check the number of arguments is correct
-  if (argc < 5) {
-      opserr << "WARNING insufficient arguments\n";
-      //               0       1           2      3     4     5
-      opserr << "Want: element twoNodeLink eleTag iNode jNode secTag <-orient <x1 x2 x3> y1 y2 y3> <-pDelta Mratios> <-shearDist sDratios> <-doRayleigh> <-mass m>\n";
+  if (argc < 6) {
+    opserr << OpenSees::PromptValueError
+           << "insufficient arguments for element " << argv[1] << "\n";
     return TCL_ERROR;
   }
 
-  int argi = eleArgStart + 1;
-  Vector Mratio(0), shearDistI(0), x(0), y(0);
+  int tag, iNode, jNode, secTag;
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid element tag " << argv[2] << "\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid iNode " << argv[3] << "\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid jNode " << argv[4] << "\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[5], &secTag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid section tag " << argv[5] << "\n";
+    return TCL_ERROR;
+  }
+
+  // Fetch section
+  SectionForceDeformation *theSection =
+      builder->getTypedObject<FrameSection>(secTag);
+  if (theSection == nullptr) {
+    opserr << OpenSees::PromptValueError
+           << "no SectionForceDeformation with tag " << secTag << "\n";
+    return TCL_ERROR;
+  }
+
+  // Default orientation: x = end2 - end1; y = (0,1,0)
+  Vector x(3); x.Zero();
+  Vector y(3); y(0)=0.0; y(1)=1.0; y(2)=0.0;
+
+  {
+    Domain *theDomain = builder->getDomain();
+    Node *ndI = theDomain->getNode(iNode);
+    Node *ndJ = theDomain->getNode(jNode);
+    if (ndI == nullptr || ndJ == nullptr) {
+      opserr << OpenSees::PromptValueError << "invalid node tag(s)\n";
+      return TCL_ERROR;
+    }
+    const Vector &end1 = ndI->getCrds();
+    const Vector &end2 = ndJ->getCrds();
+    for (int i=0; i<ndm; ++i)
+      x(i) = end2(i) - end1(i);
+  }
+
+  // Options
+  Vector Mratio;   // will be resized on demand
+  Vector sDistI;   // will be resized on demand
   int doRayleigh = 0;
   double mass = 0.0;
 
-  // get the id and end nodes
-  int tag, iNode, jNode, stag;
-  if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
-    opserr << "WARNING invalid eleTag" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  argi++;
-  if (Tcl_GetInt(interp, argv[argi], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  argi++;
-  if (Tcl_GetInt(interp, argv[argi], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  argi++;
-  if (Tcl_GetInt(interp, argv[argi], &stag) != TCL_OK) {
-    opserr << "WARNING invalid section tag" << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  SectionForceDeformation* theSection = builder->getTypedObject<SectionForceDeformation>(stag);
-  if (theSection == nullptr)
-    return TCL_ERROR;
-  argi++;
-
-  //
-  int numdata;
-  for (int i=argi; i<argc; i++) {
-
-      if (strcmp(argv[i], "-orient") == 0) {
-          if (OPS_GetNumRemainingInputArgs() < 3) {
-              opserr << "WARNING: insufficient arguments after -orient\n";
-              return 0;
-          }
-          numdata = 3;
-          x.resize(3);
-          if (OPS_GetDoubleInput(&numdata, &x(0)) < 0) {
-              opserr << "WARNING: invalid -orient values\n";
-              return 0;
-          }
-          if (OPS_GetNumRemainingInputArgs() < 3) {
-              y = x;
-              x = Vector();
-              continue;
-          }
-          y.resize(3);
-          if (OPS_GetDoubleInput(&numdata, &y(0)) < 0) {
-              y = x;
-              x = Vector();
-              continue;
-          }
-      }
-
-      else if (strcmp(argv[i], "-pDelta") == 0) {
-          Mratio.resize(4);
-          Mratio.Zero();
-          numdata = 4;
-          double* ptr = &Mratio(0);
-          if (ndm == 2) {
-              numdata = 2;
-              ptr += 2;
-          }
-          if (OPS_GetNumRemainingInputArgs() < numdata) {
-              opserr << "WARNING: insufficient data for -pDelta\n";
-              return 0;
-          }
-          if (OPS_GetDoubleInput(&numdata, ptr) < 0) {
-              opserr << "WARNING: invalid -pDelta value\n";
-              return 0;
-          }
-      }
-      else if (strcmp(argv[i], "-shearDist") == 0) {
-          shearDistI.resize(2);
-          numdata = 2;
-          if (ndm == 2) {
-              numdata = 1;
-              shearDistI(1) = 0.5;
-          }
-          if (OPS_GetNumRemainingInputArgs() < numdata) {
-              opserr << "WARNING: insufficient data for -shearDist\n";
-              return 0;
-          }
-          if (OPS_GetDoubleInput(&numdata, &shearDistI(0)) < 0) {
-              opserr << "WARNING: invalid -shearDist value\n";
-              return 0;
-          }
-      }
-
-      else if (strcmp(argv[i], "-doRayleigh") == 0) {
-          doRayleigh = 1;
-      }
-
-      else if (strcmp(argv[i], "-mass") == 0) {
-        if (argc < i + 2) {
-          opserr << OpenSees::PromptValueError << "not enough arguments, expected -mass $mass\n";
-          return TCL_ERROR;
-        }
-        if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid mass\n";
-          return TCL_ERROR;
-        }
-        i += 1;
-      }
+  // If only required args are present, construct minimal element
+  if (argc == 6) {
+    Element *theEle = new TwoNodeLinkSection(tag, ndm, iNode, jNode, *theSection);
+    if (!builder->getDomain()->addElement(theEle)) {
+      opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
+      delete theEle;
+      return TCL_ERROR;
+    }
+    return TCL_OK;
   }
 
-  // Check for optional arguments
-  for (int i = argi; i < argc; i++) {
+  // Parse keyword options
+  int i = 6;
+  while (i < argc) {
     if (strcmp(argv[i], "-orient") == 0) {
-      int j = i + 1;
-      int numOrient = 0;
-      while (j < argc && strcmp(argv[j], "-pDelta") != 0 &&
-             strcmp(argv[j], "-shearDist") != 0 &&
-             strcmp(argv[j], "-doRayleigh") != 0 &&
-             strcmp(argv[j], "-mass") != 0) {
-        numOrient++;
-        j++;
-      }
-      if (numOrient == 3) {
-        y.resize(3);
-        double value;
-        // read the y values
-        for (int j = 0; j < 3; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+      i++;
+      // Read 6 doubles (x then y) if available; otherwise follow NDM logic
+      int remaining = argc - i;
+      if (remaining >= 6) {
+        // x
+        for (int k=0; k<3; ++k) {
+          if (Tcl_GetDouble(interp, argv[i++], &x(k)) != TCL_OK) {
+            opserr << OpenSees::PromptValueError
+                   << "invalid orient x component"
+                   << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
-          } else {
-            y(j) = value;
           }
         }
-      } else if (numOrient == 6) {
-        x.resize(3);
-        y.resize(3);
-        double value;
-        // read the x values
-        for (int j = 0; j < 3; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
+        // y
+        for (int k=0; k<3; ++k) {
+          if (Tcl_GetDouble(interp, argv[i++], &y[k]) != TCL_OK) {
+            opserr << OpenSees::PromptValueError
+                   << "invalid orient y component"
+                   << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
-          } else {
-            x(j) = value;
-          }
-        }
-        // read the y values
-        for (int j = 0; j < 3; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 4 + j], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value\n";
-            return TCL_ERROR;
-          } else {
-            y(j) = value;
           }
         }
       } else {
-        opserr << "WARNING insufficient arguments after -orient flag\n";
-        return TCL_ERROR;
-      }
-
-    }
-
-    else if (i + 1 < argc && strcmp(argv[i], "-pDelta") == 0) {
-      double Mr;
-      Mratio.resize(4);
-      if (ndm == 2) {
-        Mratio.Zero();
-        for (int j = 0; j < 2; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
-            opserr << "WARNING invalid -pDelta value\n";
-            return TCL_ERROR;
-          }
-          Mratio(2 + j) = Mr;
-        }
-      } else if (ndm == 3) {
-        for (int j = 0; j < 4; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &Mr) != TCL_OK) {
-            opserr << "WARNING invalid -pDelta value\n";
-            return TCL_ERROR;
-          }
-          Mratio(j) = Mr;
-        }
-      }
-    }
-    //
-    else if (i + 1 < argc && strcmp(argv[i], "-shearDist") == 0) {
-      double sDI;
-      shearDistI.resize(2);
-      if (ndm == 2) {
-        if (Tcl_GetDouble(interp, argv[i + 1], &sDI) != TCL_OK) {
-          opserr << "WARNING invalid -shearDist value\n";
+        // Only one vector provided: if NDM=1,2 treat as x; if NDM=3 treat as y.
+        if (remaining < 3) {
+          opserr << OpenSees::PromptValueError
+                 << "insufficient arguments for orient"
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
-        shearDistI(0) = sDI;
-        shearDistI(1) = 0.5;
-      } else if (ndm == 3) {
-        for (int j = 0; j < 2; j++) {
-          if (Tcl_GetDouble(interp, argv[i + 1 + j], &sDI) != TCL_OK) {
-            opserr << "WARNING invalid -shearDist value\n";
-            return TCL_ERROR;
+        if (ndm == 1 || ndm == 2) {
+          for (int k=0; k<3; ++k) {
+            if (Tcl_GetDouble(interp, argv[i++], &x[k]) != TCL_OK) {
+              opserr << OpenSees::PromptValueError
+                     << "invalid orient x component"
+                     << OpenSees::SignalMessageEnd;
+              return TCL_ERROR;
+            }
           }
-          shearDistI(j) = sDI;
+        } else {
+          for (int k=0; k<3; ++k) {
+            if (Tcl_GetDouble(interp, argv[i++], &y(k)) != TCL_OK) {
+              opserr << OpenSees::PromptValueError << "invalid -orient y component\n";
+              return TCL_ERROR;
+            }
+          }
         }
       }
     }
 
-    else if (strcmp(argv[i], "-doRayleigh") == 0)
-      doRayleigh = 1;
+    else if (strcmp(argv[i], "-pDelta") == 0) {
+      i++;
+      Mratio.resize(4); Mratio.Zero();
+      if (ndm == 2) {
+        // Read 2 values into the last two entries (matches your pointer offset logic)
+        if (i + 2 > argc) {
+          opserr << OpenSees::PromptValueError << "insufficient data for -pDelta\n";
+          return TCL_ERROR;
+        }
+        for (int k=2; k<4; ++k) {
+          if (Tcl_GetDouble(interp, argv[i++], &Mratio(k)) != TCL_OK) {
+            opserr << OpenSees::PromptValueError << "invalid -pDelta value\n";
+            return TCL_ERROR;
+          }
+        }
+      } else {
+        if (i + 4 > argc) {
+          opserr << OpenSees::PromptValueError << "insufficient data for -pDelta\n";
+          return TCL_ERROR;
+        }
+        for (int k=0; k<4; ++k) {
+          if (Tcl_GetDouble(interp, argv[i++], &Mratio(k)) != TCL_OK) {
+            opserr << OpenSees::PromptValueError << "invalid -pDelta value\n";
+            return TCL_ERROR;
+          }
+        }
+      }
+    }
 
-    else if (i + 1 < argc && strcmp(argv[i], "-mass") == 0) {
-      if (Tcl_GetDouble(interp, argv[i + 1], &mass) != TCL_OK) {
-        opserr << "WARNING invalid -mass value\n";
+    else if (strcmp(argv[i], "-shearDist") == 0) {
+      i++;
+      sDistI.resize(2); sDistI(0) = 0.0; sDistI(1) = 0.5; // default for 2D path matches your code
+      if (ndm == 2) {
+        if (i + 1 > argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "insufficient data for -shearDist"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[i++], &sDistI(0)) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "invalid shearDist value"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        // sDistI(1) stays 0.5 as in your original
+      } else {
+        if (i + 2 > argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "insufficient data for shearDist"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[i++], &sDistI(0)) != TCL_OK ||
+            Tcl_GetDouble(interp, argv[i++], &sDistI(1)) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "invalid shearDist"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+      }
+    }
+
+    else if (strcmp(argv[i], "-doRayleigh") == 0) {
+      i++;
+      doRayleigh = 1;
+    }
+
+    else if (strcmp(argv[i], "-mass") == 0) {
+      i++;
+      if (i >= argc) {
+        opserr << OpenSees::PromptValueError
+               << "insufficient mass values"
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
+      if (Tcl_GetDouble(interp, argv[i++], &mass) != TCL_OK) {
+        opserr << OpenSees::PromptValueError
+               << "invalid -mass value"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+    }
+
+    else {
+      opserr << OpenSees::PromptParseError
+             << "unexpected option " << argv[i]
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
     }
   }
 
-  // now create the twoNodeLink
-  Element* theElement = new TwoNodeLinkSection(tag, ndm, iNode, jNode,
-        *theSection, y, x, Mratio, shearDistI, doRayleigh, mass);
+  // Create element (full signature)
+  Element *theEle = new TwoNodeLinkSection(tag, ndm, iNode, jNode,
+                                           *theSection, y, x, Mratio, sDistI,
+                                           doRayleigh, mass);
 
-
-  // then add the twoNodeLinkSection to the domain
-  if (builder->getDomain()->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
-    delete theElement;
+  if (!builder->getDomain()->addElement(theEle)) {
+    opserr << OpenSees::PromptValueError
+           << "could not add element to the domain"
+           << OpenSees::SignalMessageEnd;
+    delete theEle;
     return TCL_ERROR;
   }
 
-  // if get here we have successfully created the twoNodeLinkSection and added it to
-  // the domain
   return TCL_OK;
 }

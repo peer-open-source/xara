@@ -256,7 +256,8 @@ PileToe3D::setDomain(Domain *theDomain)
   }
 
   // call the base class method
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }        
 
 

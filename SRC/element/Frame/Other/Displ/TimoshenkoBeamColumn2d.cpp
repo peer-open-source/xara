@@ -206,7 +206,8 @@ TimoshenkoBeamColumn2d::setDomain(Domain *theDomain)
     // Add some error check
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
   this->update();
 }

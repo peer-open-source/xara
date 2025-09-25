@@ -172,7 +172,8 @@ void ShellMITC4::setDomain(Domain *theDomain)
   // basis vectors and local coordinates
   computeBasis();
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 

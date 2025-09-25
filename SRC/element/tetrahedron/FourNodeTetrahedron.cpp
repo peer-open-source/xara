@@ -210,7 +210,8 @@ void  FourNodeTetrahedron::setDomain( Domain *theDomain )
       initDisp[i] = nodePointers[i]->getDisp();
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
 }
 
@@ -509,17 +510,14 @@ FourNodeTetrahedron::getInitialStiff( )
     } // end for j loop
   } //end for i gauss loop 
 
-
-  // opserr << "STIFF = " << stiff << endln;
-
   Ki = new Matrix(stiff);
 
   return stiff ;
 }    
 
 
-//return mass matrix
-const Matrix&  FourNodeTetrahedron::getMass( ) 
+const Matrix&
+FourNodeTetrahedron::getMass( ) 
 {
   int tangFlag = 1 ;
 
@@ -564,13 +562,7 @@ FourNodeTetrahedron::addLoad(ElementalLoad *theLoad, double loadFactor)
       appliedB[0] += loadFactor*data(0)*b[0];
       appliedB[1] += loadFactor*data(1)*b[1];
       appliedB[2] += loadFactor*data(2)*b[2];
-      // if( loadFactor > 0)
-      // {
-      //     opserr << "loadfactor = " << loadFactor << endln;
-      //       opserr << "      data = " << data;
-      //       opserr << "      b    = " << b[0] << " " << b[1] << " " << b[2] << "\n"   ;
-      //       opserr << "      appliedB    = " << appliedB[0] << " " << appliedB[1] << " " << appliedB[2] << "\n"   ;
-      //     }
+
       return 0;
   } else {
     opserr << "FourNodeTetrahedron::addLoad() - ele with tag: " << this->getTag() << " does not deal with load type: " << type << "\n";
@@ -583,15 +575,13 @@ FourNodeTetrahedron::addLoad(ElementalLoad *theLoad, double loadFactor)
 int
 FourNodeTetrahedron::addInertiaLoadToUnbalance(const Vector &accel)
 {
-  static const int NumNodes = 4 ;
-  static const int numberGauss = 1 ;
-  static const int ndf = 3 ; 
-
-  int i;
+  static constexpr int NumNodes = 4 ;
+  static constexpr int numberGauss = 1 ;
+  static constexpr int ndf = 3 ; 
 
   // check to see if have mass
   int haveRho = 0;
-  for (i = 0; i < numberGauss; i++) {
+  for (int i = 0; i < numberGauss; i++) {
     if (materialPointers[i]->getRho() != 0.0)
       haveRho = 1;
   }
@@ -605,7 +595,7 @@ FourNodeTetrahedron::addInertiaLoadToUnbalance(const Vector &accel)
 
   // store computed RV for nodes in resid vector
   int count = 0;
-  for (i=0; i<NumNodes; i++) 
+  for (int i=0; i<NumNodes; i++) 
   {
     const Vector &Raccel = nodePointers[i]->getRV(accel);
     for (int j=0; j<ndf; j++)
@@ -613,7 +603,7 @@ FourNodeTetrahedron::addInertiaLoadToUnbalance(const Vector &accel)
   }
 
   // create the load vector if one does not exist
-  if (load == 0) 
+  if (load == nullptr) 
     load = new Vector(NumNodes*ndf);
 
   // add -M * RV(accel) to the load vector

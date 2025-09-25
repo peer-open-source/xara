@@ -33,6 +33,7 @@
 #include "DataOutputDatabaseHandler.h"
 #include <FE_Datastore.h>
 #include <Vector.h>
+#include <Logging.h>
 
 DataOutputDatabaseHandler::DataOutputDatabaseHandler(FE_Datastore *database, const char *tName)
   :DataOutputHandler(DATAHANDLER_TAGS_DataOutputDatabaseHandler),

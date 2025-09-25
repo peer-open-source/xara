@@ -487,7 +487,8 @@ GradientInelasticBeamColumn3d::setDomain(Domain *theDomain)
 	}
 
 	// Call DomainComponent Class Method
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 
 	// Check Node DOFs are 6
 	int dofNd1 = theNodes[0]->getNumberDOF();

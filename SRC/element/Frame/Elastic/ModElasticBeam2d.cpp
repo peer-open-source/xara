@@ -217,35 +217,34 @@ ModElasticBeam2d::~ModElasticBeam2d()
 }
 
 int
-ModElasticBeam2d::getNumExternalNodes(void) const
+ModElasticBeam2d::getNumExternalNodes() const
 {
     return 2;
 }
 
 const ID &
-ModElasticBeam2d::getExternalNodes(void) 
+ModElasticBeam2d::getExternalNodes() 
 {
     return connectedExternalNodes;
 }
 
 Node **
-ModElasticBeam2d::getNodePtrs(void) 
+ModElasticBeam2d::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-ModElasticBeam2d::getNumDOF(void)
+ModElasticBeam2d::getNumDOF()
 {
-    return 6;
+  return 6;
 }
 
 void
 ModElasticBeam2d::setDomain(Domain *theDomain)
 {
   if (theDomain == 0) {
-    opserr << "ModElasticBeam2d::setDomain -- Domain is null\n";
-    exit(-1);
+    return;
   }
     
     theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
@@ -276,7 +275,8 @@ ModElasticBeam2d::setDomain(Domain *theDomain)
       exit(-1);
     }
 	
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
 	opserr << "ModElasticBeam2d::setDomain -- Error initializing coordinate transformation\n";
@@ -316,13 +316,13 @@ ModElasticBeam2d::revertToStart()
 }
 
 int
-ModElasticBeam2d::update(void)
+ModElasticBeam2d::update()
 {
   return theCoordTransf->update();
 }
 
 const Matrix &
-ModElasticBeam2d::getTangentStiff(void)
+ModElasticBeam2d::getTangentStiff()
 {
   const Vector &v = theCoordTransf->getBasicTrialDisp();
   
@@ -355,7 +355,7 @@ ModElasticBeam2d::getTangentStiff(void)
 }
 
 const Matrix &
-ModElasticBeam2d::getInitialStiff(void)
+ModElasticBeam2d::getInitialStiff()
 {
   double L = theCoordTransf->getInitialLength();
 
@@ -377,7 +377,7 @@ ModElasticBeam2d::getInitialStiff(void)
 }
 
 const Matrix &
-ModElasticBeam2d::getMass(void)
+ModElasticBeam2d::getMass()
 { 
     K.Zero();
     
@@ -413,7 +413,7 @@ ModElasticBeam2d::getMass(void)
 }
 
 void 
-ModElasticBeam2d::zeroLoad(void)
+ModElasticBeam2d::zeroLoad()
 {
   Q.Zero();
 

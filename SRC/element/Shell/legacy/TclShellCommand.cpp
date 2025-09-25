@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <Domain.h>
-
+#include <Logging.h>
 #include <ShellMITC4.h>
 #include <Shell02.h>
 #include <TclModelBuilder.h>
@@ -51,7 +51,6 @@ TclModelBuilder_addShellMITC4(ClientData clientData, Tcl_Interp *interp,  int ar
   // check the number of arguments is correct
   if ((argc-eleArgStart) < 7) {
     opserr << "WARNING insufficient arguments\n";
-    printCommand(argc, argv);
     opserr << "Want: element ShellMITC4 eleTag? iNode? jNode? kNode? lNode? secTag?\n";
     return TCL_ERROR;
   }    
@@ -59,33 +58,28 @@ TclModelBuilder_addShellMITC4(ClientData clientData, Tcl_Interp *interp,  int ar
   // get the id and end nodes 
   int ShellMITC4Id, iNode, jNode, kNode, lNode, matID;
   if (Tcl_GetInt(interp, argv[1+eleArgStart], &ShellMITC4Id) != TCL_OK) {
-    opserr << "WARNING invalid ShellMITC4 eleTag" << endln;
+    opserr << "WARNING invalid ShellMITC4 eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2+eleArgStart], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode\n";
-    opserr << "ShellMITC4 element: " << ShellMITC4Id << endln;
+    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3+eleArgStart], &jNode) != TCL_OK) {
      opserr << "WARNING invalid jNode\n";
-     opserr << "ShellMITC4 element: " << ShellMITC4Id << endln;
      return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[4+eleArgStart], &kNode) != TCL_OK) {
      opserr << "WARNING invalid jNode\n";
-     opserr << "ShellMITC4 element: " << ShellMITC4Id << endln;
      return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[5+eleArgStart], &lNode) != TCL_OK) {
      opserr << "WARNING invalid jNode\n";
-     opserr << "ShellMITC4 element: " << ShellMITC4Id << endln;
      return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[6+eleArgStart], &matID) != TCL_OK) {
     opserr << "WARNING invalid matTag\n";
-    opserr << "ShellMITC4 element: " << ShellMITC4Id << endln;
     return TCL_ERROR;
   }
 
@@ -93,22 +87,15 @@ TclModelBuilder_addShellMITC4(ClientData clientData, Tcl_Interp *interp,  int ar
 
   if (theSection == 0) {
     opserr << "WARNING section not found\n";
-    opserr << "section tag: " << matID;
-    opserr << "\nShellMITC4 element: " << ShellMITC4Id << endln;
     return TCL_ERROR;
   }
   
   // now create the ShellMITC4 and add it to the Domain
   ShellMITC4 *theShellMITC4 = new ShellMITC4(ShellMITC4Id,iNode,jNode,kNode,lNode,*theSection);
-  if (theShellMITC4 == 0) {
-    opserr << "WARNING ran out of memory creating element\n";
-    opserr << "ShellMITC4 element: " << ShellMITC4Id << endln;
-    return TCL_ERROR;
-  }
+
 
   if (theTclDomain->addElement(theShellMITC4) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "ShellMITC4 element: " << ShellMITC4Id << endln;
     delete theShellMITC4;
     return TCL_ERROR;
   }
@@ -140,33 +127,28 @@ TclModelBuilder *theTclBuilder, int eleArgStart)
 	// get the id and end nodes 
 	int Shell02Id, iNode, jNode, kNode, lNode, matID;
 	if (Tcl_GetInt(interp, argv[1+eleArgStart], &Shell02Id) != TCL_OK) {
-		opserr << "WARNING invalid Shell02 eleTag" << endln;
+		opserr << "WARNING invalid Shell02 eleTag" << OpenSees::SignalMessageEnd;
 		return TCL_ERROR;
 		}
 	if (Tcl_GetInt(interp, argv[2+eleArgStart], &iNode) != TCL_OK) {
-		opserr << "WARNING invalid iNode\n";
-		opserr << "Shell02 element: " << Shell02Id << endln;
+		opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
 		return TCL_ERROR;
 		}
 	if (Tcl_GetInt(interp, argv[3+eleArgStart], &jNode) != TCL_OK) {
-		opserr << "WARNING invalid jNode\n";
-		opserr << "Shell02 element: " << Shell02Id << endln;
+		opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
 		return TCL_ERROR;
 		}
 	if (Tcl_GetInt(interp, argv[4+eleArgStart], &kNode) != TCL_OK) {
 		opserr << "WARNING invalid jNode\n";
-		opserr << "Shell02 element: " << Shell02Id << endln;
 		return TCL_ERROR;
 		}
 	if (Tcl_GetInt(interp, argv[5+eleArgStart], &lNode) != TCL_OK) {
 		opserr << "WARNING invalid jNode\n";
-		opserr << "Shell02 element: " << Shell02Id << endln;
 		return TCL_ERROR;
 		}
 
 	if (Tcl_GetInt(interp, argv[6+eleArgStart], &matID) != TCL_OK) {
 		opserr << "WARNING invalid matTag\n";
-		opserr << "Shell02 element: " << Shell02Id << endln;
 		return TCL_ERROR;
 		}
 
@@ -175,21 +157,14 @@ TclModelBuilder *theTclBuilder, int eleArgStart)
 	if (theSection == 0) {
 		opserr << "WARNING section not found\n";
 		opserr << "section tag: " << matID;
-		opserr << "\nShell02 element: " << Shell02Id << endln;
 		return TCL_ERROR;
 		}
 
 	// now create the Shell02 and add it to the Domain
 	Shell02 *theShell02 = new Shell02(Shell02Id,iNode,jNode,kNode,lNode,*theSection);
-	if (theShell02 == 0) {
-		opserr << "WARNING ran out of memory creating element\n";
-		opserr << "Shell02 element: " << Shell02Id << endln;
-		return TCL_ERROR;
-		}
 
 	if (theTclDomain->addElement(theShell02) == false) {
 		opserr << "WARNING could not add element to the domain\n";
-		opserr << "Shell02 element: " << Shell02Id << endln;
 		delete theShell02;
 		return TCL_ERROR;
 		}

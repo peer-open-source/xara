@@ -141,7 +141,8 @@ Brick::setDomain( Domain *theDomain )
   for (int i=0; i<8; i++ ) 
     theNodes[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
 }
 

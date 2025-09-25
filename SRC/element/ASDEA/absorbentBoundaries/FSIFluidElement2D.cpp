@@ -125,15 +125,17 @@ FSIFluidElement2D::~FSIFluidElement2D()
         delete m_load;
 }
 
-const char* FSIFluidElement2D::getClassType(void) const
+const char*
+FSIFluidElement2D::getClassType() const
 {
     return "FSIFluidElement2D";
 }
 
-void FSIFluidElement2D::setDomain(Domain* theDomain)
+void
+FSIFluidElement2D::setDomain(Domain* theDomain)
 {
     // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
+    if (theDomain == nullptr) {
         for (std::size_t i = 0; i < m_nodes.size(); ++i)
             m_nodes[i] = nullptr;
         return;
@@ -170,7 +172,8 @@ void FSIFluidElement2D::setDomain(Domain* theDomain)
     }
 
     // call base class implementation
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 void FSIFluidElement2D::Print(OPS_Stream& s, int flag)
@@ -180,7 +183,7 @@ void FSIFluidElement2D::Print(OPS_Stream& s, int flag)
         s << "EL_FSIFluidElement2D\t" << eleTag << " :";
         for (int i = 0; i < m_node_ids.Size(); ++i)
             s << "\t" << m_node_ids(i);
-        s << endln;
+        s << "\n";
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
@@ -302,7 +305,8 @@ void FSIFluidElement2D::zeroLoad()
 
 int FSIFluidElement2D::addLoad(ElementalLoad* theLoad, double loadFactor)
 {
-    opserr << "FSIFluidElement2D::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
+    opserr << "FSIFluidElement2D::addLoad - load type unknown for ele with tag: " 
+           << this->getTag() << "\n";
     return -1;
 }
 

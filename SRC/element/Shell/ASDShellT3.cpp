@@ -627,8 +627,6 @@ void ASDShellT3::setDomain(Domain* theDomain)
             nodePointers[i] = nullptr;
         // set domain on transformation
         m_transformation->setDomain(theDomain, m_node_ids, m_initialized);
-        // call base class implementation
-        DomainComponent::setDomain(theDomain);
         return;
     }
 
@@ -693,7 +691,8 @@ void ASDShellT3::setDomain(Domain* theDomain)
     }
 
     // call base class implementation
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 void ASDShellT3::Print(OPS_Stream& s, int flag)

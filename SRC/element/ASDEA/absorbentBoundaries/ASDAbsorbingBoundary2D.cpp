@@ -143,7 +143,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ASDAbsorbingBoundary2D)
 {
     static bool first_done = false;
     if (!first_done) {
-        opserr << "Using ASDAbsorbingBoundary2D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+        opslog << "Using ASDAbsorbingBoundary2D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
         first_done = true;
     }
 
@@ -159,7 +159,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ASDAbsorbingBoundary2D)
     int iData[5];
     int numData = 5;
     if (OPS_GetInt(&numData, iData) != 0) {
-        opserr << "ASDAbsorbingBoundary2D ERROR: Invalid integer mandatory values: element ASDAbsorbingBoundary2D wants 5 integer parameters\n" << descr;
+        opserr << "ASDAbsorbingBoundary2D ERROR: Invalid integer mandatory values: expected 5 integer parameters\n" << descr;
         return 0;
     }
 
@@ -167,7 +167,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ASDAbsorbingBoundary2D)
     double dData[4];
     numData = 4;
     if (OPS_GetDouble(&numData, dData) != 0) {
-        opserr << "ASDAbsorbingBoundary2D ERROR: Invalid double mandatory values: element ASDAbsorbingBoundary2D wants 4 double parameters\n" << descr;
+        opserr << "ASDAbsorbingBoundary2D ERROR: Invalid double mandatory values: expected 4 double parameters\n" << descr;
         return 0;
     }
 
@@ -308,15 +308,17 @@ ASDAbsorbingBoundary2D::~ASDAbsorbingBoundary2D()
         delete m_tsy;
 }
 
-const char* ASDAbsorbingBoundary2D::getClassType(void) const
+const char* 
+ASDAbsorbingBoundary2D::getClassType() const
 {
     return "ASDAbsorbingBoundary2D";
 }
 
-void ASDAbsorbingBoundary2D::setDomain(Domain* theDomain)
+void
+ASDAbsorbingBoundary2D::setDomain(Domain* theDomain)
 {
     // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
+    if (theDomain == nullptr) {
         for (std::size_t i = 0; i < m_nodes.size(); ++i)
             m_nodes[i] = nullptr;
         return;
@@ -380,7 +382,8 @@ void ASDAbsorbingBoundary2D::setDomain(Domain* theDomain)
     }
 
     // call base class implementation
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 void ASDAbsorbingBoundary2D::Print(OPS_Stream& s, int flag)
@@ -390,11 +393,12 @@ void ASDAbsorbingBoundary2D::Print(OPS_Stream& s, int flag)
         s << "EL_ASDAbsorbingBoundary2D\t" << eleTag << " :";
         for (int i = 0; i < m_node_ids.Size(); ++i)
             s << "\t" << m_node_ids(i);
-        s << endln;
+        s << "\n";
+        return;
     }
 
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+    else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ASDAbsorbingBoundary2D\", ";
         s << "\"nodes\": [";
@@ -404,6 +408,7 @@ void ASDAbsorbingBoundary2D::Print(OPS_Stream& s, int flag)
             s << m_node_ids(i);
         }
         s << "]}";
+        return;
     }
 }
 

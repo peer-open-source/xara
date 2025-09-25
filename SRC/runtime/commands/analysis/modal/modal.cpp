@@ -49,7 +49,8 @@ modalProperties(ClientData clientData,
       }
       else {
           opserr << "Error in modalProperties; "
-                "After the keyword -file you should specify the file name.\n";
+                "After the keyword -file you should specify the file name"
+                << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
       }
     }

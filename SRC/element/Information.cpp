@@ -212,7 +212,7 @@ Information::Print(ofstream &s, int flag)
     for (int i=0; i<theMatrix->noRows(); i++) {
       for (int j=0; j<theMatrix->noCols(); j++)
 	s <<  (*theMatrix)(i,j) << " ";
-      s << endln;
+      s << "\n";
     }
   }
   
@@ -220,7 +220,7 @@ Information::Print(ofstream &s, int flag)
 }
 
 const Vector &
-Information::getData(void) 
+Information::getData() 
 {
   if (theType == IntType) {
     if (theVector == 0) 

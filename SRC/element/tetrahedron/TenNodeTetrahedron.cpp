@@ -44,9 +44,9 @@
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #include <map>
 
+#include <elementAPI.h>
 void* 
 OPS_ADD_RUNTIME_VPV(OPS_TenNodeTetrahedron)
 {
@@ -228,7 +228,8 @@ TenNodeTetrahedron::setDomain( Domain *theDomain )
 		initDisp[i] = nodePointers[i]->getDisp();
 	}
 
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 }
 
 
@@ -558,9 +559,6 @@ TenNodeTetrahedron::getInitialStiff( )
 		} // end for j loop
 	} //end for i gauss loop
 
-
-	// opserr << "STIFF = " << stiff << endln;
-
 	Ki = new Matrix(stiff);
 
 	return stiff ;
@@ -615,13 +613,6 @@ TenNodeTetrahedron::addLoad(ElementalLoad *theLoad, double loadFactor)
 		appliedB[0] += loadFactor * data(0) * b[0];
 		appliedB[1] += loadFactor * data(1) * b[1];
 		appliedB[2] += loadFactor * data(2) * b[2];
-		// if( loadFactor > 0)
-		// {
-		//     opserr << "loadfactor = " << loadFactor << endln;
-		//       opserr << "      data = " << data;
-		//       opserr << "      b    = " << b[0] << " " << b[1] << " " << b[2] << "\n"   ;
-		//       opserr << "      appliedB    = " << appliedB[0] << " " << appliedB[1] << " " << appliedB[2] << "\n"   ;
-		//     }
 		return 0;
 	} else {
 		opserr << "TenNodeTetrahedron::addLoad() - ele with tag: " << this->getTag() << " does not deal with load type: " << type << "\n";
@@ -674,8 +665,9 @@ TenNodeTetrahedron::addInertiaLoadToUnbalance(const Vector &accel)
 }
 
 
-//get residual
-const Vector&  TenNodeTetrahedron::getResistingForce( )
+
+const Vector&
+TenNodeTetrahedron::getResistingForce( )
 {
 	int tang_flag = 0 ; //don't get the tangent
 
@@ -688,7 +680,7 @@ const Vector&  TenNodeTetrahedron::getResistingForce( )
 }
 
 
-//get residual with inertia terms
+
 const Vector&  TenNodeTetrahedron::getResistingForceIncInertia( )
 {
 	static Vector res(12); res.Zero();
@@ -716,19 +708,15 @@ const Vector&  TenNodeTetrahedron::getResistingForceIncInertia( )
 //*********************************************************************
 //form inertia terms
 
-void   TenNodeTetrahedron::formInertiaTerms( int tangFlag )
+void
+TenNodeTetrahedron::formInertiaTerms( int tangFlag )
 {
 
 	static constexpr int ndm = 3 ;
-
 	static constexpr int ndf = NumDOFsPerNode ;
-
 	static constexpr int numberNodes = NumNodes ;
-
 	static constexpr int numberGauss = NumGaussPoints ;
-
 	static constexpr int nShape = 4 ;
-
 	static constexpr int massIndex = nShape - 1 ;
 
 	double xsj ;  // determinant jacaobian matrix
@@ -923,12 +911,9 @@ TenNodeTetrahedron::update(void)
 
 	//-------------------------------------------------------
 
-
-	// opserr << "TenNodeTetrahedron::update -- 2" << endln;
 	//compute basis vectors and local nodal coordinates
 	computeBasis( ) ;
 
-	// opserr << "TenNodeTetrahedron::update -- 3" << endln;
 	//gauss loop to compute and save shape functions
 
 	int count = 0 ;
@@ -1095,16 +1080,12 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 	//---------B-matrices------------------------------------
 
 	static Matrix BJ(nstress, ndf) ;     // B matrix node J
-
 	static Matrix BJtran(ndf, nstress) ;
-
 	static Matrix BK(nstress, ndf) ;     // B matrix node k
-
 	static Matrix BJtranD(ndf, nstress) ;
 
 	//-------------------------------------------------------
 
-	// opserr << "DEBUGME!" << endln;
 
 	//zero stiffness and residual
 	stiff.Zero( ) ;
@@ -1119,8 +1100,6 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 	computeBasis( ) ;
 
 	//gauss loop to compute and save shape functions
-
-	// opserr << "DEBUGME!" << endln;
 
 	volume = 0.0 ;
 
@@ -1142,9 +1121,7 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 				for ( p = 0; p < nShape; p++ ) {
 					for ( q = 0; q < numberNodes; q++ ){
 						Shape[p][q][k] = shp[p][q] ;
-						// std::cout << shp[p][q] << " ";
 					}
-					// std::cout << std::endl;
 				} // end for p
 
 				//volume element to also be saved
@@ -1154,7 +1131,7 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 	} // end for i
 
 
-	//gauss loop
+	// gauss loop
 	for ( i = 0; i < numberGauss; i++ )
 	{
 
@@ -1258,19 +1235,13 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 
 				//BJtranD = BJtran * dd ;
 				BJtranD.addMatrixProduct(0.0,  BJtran, dd, 1.0) ;
-				// opserr << "DEBUUG!! BJtranD = " << BJtranD << endln;
-				// opserr << "DEBUUG!! dd = " << dd << endln;
 
 				int kk = 0 ;
 				for ( k = 0; k < numberNodes; k++ )
 				{
-					// opserr << "DEBUUG!! k = " << k << endln;
 
 					BK = computeB( k, shp ) ;
 					stiffJK.addMatrixProduct(0.0,  BJtranD, BK, 1.0) ;
-
-					// opserr << "DEBUUG!! BK = " << BK << endln;
-					// opserr << "DEBUUG!! stiffJK = " << stiffJK << endln;
 
 					for ( p = 0; p < ndf; p++ )
 					{
@@ -1281,7 +1252,6 @@ void  TenNodeTetrahedron::formResidAndTangent( int tang_flag )
 					} //end for p
 					kk += ndf ;
 				} // end for k loop
-				// opserr << "STIFF = " << stiff << endln;
 			} // end if tang_flag
 			jj += ndf ;
 		} // end for j loop

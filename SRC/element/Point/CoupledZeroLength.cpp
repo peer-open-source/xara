@@ -282,7 +282,8 @@ CoupledZeroLength::setDomain(Domain *theDomain)
 	", which is greater than the tolerance\n";
         
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set the number of dof for element and set matrix and vector pointer
     if (dimension == 1 && dofNd1 == 1) {

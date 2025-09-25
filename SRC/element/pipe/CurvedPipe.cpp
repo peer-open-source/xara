@@ -222,8 +222,7 @@ int CurvedPipe::getNumDOF() { return pipeEle->getNumDOF(); }
 
 void CurvedPipe::setDomain(Domain *theDomain) {
     if (theDomain == 0) {
-        opserr << "CurvedPipe::setDomain -- Domain is null\n";
-        exit(-1);
+        return;
     }
 
     int ndm = OPS_GetNDM();
@@ -268,7 +267,8 @@ void CurvedPipe::setDomain(Domain *theDomain) {
         exit(-1);
     }
 
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // update section data
     double A, Jx, Iy, Iz, rho, alphaV;

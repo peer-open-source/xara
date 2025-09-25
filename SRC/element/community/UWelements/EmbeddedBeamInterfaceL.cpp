@@ -1065,7 +1065,8 @@ EmbeddedBeamInterfaceL::setDomain(Domain *theDomain)
             m_InterfaceStiffness(m_numSolidDOF * m_numSolidNodes + 6 * m_numBeamNodes + jj, m_numSolidDOF * m_numSolidNodes + ii) = -mB(ii, jj);
         }
 
-    this->DomainComponent::setDomain(theDomain);
+    if (in != nullptr)
+      this->Element::link(*in);
     return;
 }
 

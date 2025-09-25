@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 //
 #include <stdlib.h>
+#include <vector>
 #include <Logging.h>
 #include <Parsing.h>
 #include <assert.h>
@@ -67,10 +68,7 @@ TclCommand_parameter(ClientData clientData,
 
     domain->addParameter(newParameter);
 
-    char buffer[40];
-    sprintf(buffer, "%d", paramTag);
-    Tcl_SetResult(interp, buffer, TCL_VOLATILE);
-
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(paramTag));
     return TCL_OK;
   }
 
@@ -86,9 +84,7 @@ TclCommand_parameter(ClientData clientData,
 
     domain->addParameter(newParameter);
 
-    char buffer[40];
-    sprintf(buffer, "%d", paramTag);
-    Tcl_SetResult(interp, buffer, TCL_VOLATILE);
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(paramTag));
 
     return TCL_OK;
   }
@@ -117,11 +113,7 @@ TclCommand_parameter(ClientData clientData,
         new NodeResponseParameter(paramTag, theNode, NodeData::Disp, dof);
 
     domain->addParameter(newParameter);
-
-    char buffer[40];
-    sprintf(buffer, "%d", paramTag);
-    Tcl_SetResult(interp, buffer, TCL_VOLATILE);
-
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(paramTag));
     return TCL_OK;
   }
 
@@ -264,10 +256,7 @@ TclCommand_parameter(ClientData clientData,
       } else {
         domain->addParameter(newParameter);
       }
-
-      char buffer[40];
-      sprintf(buffer, "%d", paramTag);
-      Tcl_SetResult(interp, buffer, TCL_VOLATILE);
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(paramTag));
     }
 
     // Add to an existing parameter
@@ -366,23 +355,21 @@ getParamValue(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   Parameter *theEle = the_domain->getParameter(paramTag);
 
-  char buffer[40];
-
-  sprintf(buffer, "%35.20f", theEle->getValue());
-  Tcl_SetResult(interp, buffer, TCL_VOLATILE);
-
+  Tcl_SetObjResult(interp, Tcl_NewDoubleObj(theEle->getValue()));
   return TCL_OK;
 }
 
 
 int
-TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-             TCL_Char ** const argv)
+TclCommand_setParameter(ClientData clientData,
+                        Tcl_Interp *interp,
+                        Tcl_Size argc,
+                        TCL_Char ** const argv)
 {
-  Domain *theDomain = (Domain*)clientData;
+  Domain *theDomain = static_cast<Domain*>(clientData);
 
   double newValue = 0.0;
-  ID eleIDs(0, 32);
+  std::vector<int> elem_tags;
   int numEle = 0;
   int flag = 0;
 
@@ -390,17 +377,20 @@ TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
   if ((strstr(argv[argLoc], "-val") != 0) ||
       (strcmp(argv[argLoc], "-value") == 0)) {
     if (Tcl_GetDouble(interp, argv[argLoc + 1], &newValue) != TCL_OK) {
-      opserr << "WARNING invalid parameter value\n";
+      opserr << "WARNING invalid parameter value"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   } else {
-    opserr << "WARNING setParameter:  -val not found\n";
+    opserr << "WARNING missing required argument value" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   argLoc += 2;
 
   if (strstr(argv[argLoc], "-ele") != 0) {
+
+    ID eleIDs(0, 0);
 
     if ((strcmp(argv[argLoc], "-ele") == 0) ||
         (strcmp(argv[argLoc], "-eles") == 0) ||
@@ -409,21 +399,23 @@ TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
       //
       // read in a list of ele until end of command or other flag
       //
-
       argLoc++;
       int eleTag;
-
-      while (argLoc < argc &&
+      while ((argLoc < argc) &&
              Tcl_GetInt(interp, argv[argLoc], &eleTag) == TCL_OK) {
-        eleIDs[numEle] = eleTag;
+        elem_tags.push_back(eleTag);
         numEle++;
         argLoc++;
       }
 
-      if (numEle > 0)
+      if (numEle > 0) {
         flag = 1;
-
-    } else if (strcmp(argv[argLoc], "-eleRange") == 0) {
+        eleIDs.resize(numEle);
+        for (int i = 0; i < numEle; i++)
+          eleIDs(i) = elem_tags[i];
+      }
+    }
+    else if (strcmp(argv[argLoc], "-eleRange") == 0) {
 
       flag = 2;
 
@@ -441,13 +433,13 @@ TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
       int start, end;
       if (Tcl_GetInt(interp, argv[argLoc + 1], &start) != TCL_OK) {
         opserr
-            << "WARNING recorder Element -eleRange start? end? - invalid start "
+            << "WARNING invalid start "
             << argv[argLoc + 1] << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[argLoc + 2], &end) != TCL_OK) {
         opserr
-            << "WARNING recorder Element -eleRange start? end? - invalid end "
+            << "WARNING invalid end "
             << argv[argLoc + 2] << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
@@ -456,16 +448,30 @@ TclCommand_setParameter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
         end = start;
         start = swap;
       }
+
+      eleIDs.resize(2);
       eleIDs[0] = start;
       eleIDs[1] = end;
 
       argLoc += 3;
     }
 
-    ElementStateParameter theParameter(newValue, &argv[argLoc], argc - argLoc,
+    int param_tag = 0;
+    Parameter* param = nullptr;
+    ParameterIter &theParams = theDomain->getParameters();
+    while ((param = theParams()) != nullptr) {
+      if (param->getTag() > param_tag)
+        param_tag = param->getTag();
+    }
+    param_tag++;
+
+    ElementStateParameter theParameter(param_tag,
+                                       newValue, &argv[argLoc],
+                                       argc - argLoc,
                                        flag, &eleIDs);
 
     theDomain->addParameter(&theParameter);
+    theDomain->removeParameter(param_tag);
   }
 
   return TCL_OK;

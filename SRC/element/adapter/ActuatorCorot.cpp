@@ -280,7 +280,8 @@ void ActuatorCorot::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // now set the number of dof for element and set matrix and vector pointer
     if (numDIM == 1 && dofNd1 == 1)  {
@@ -320,13 +321,6 @@ void ActuatorCorot::setDomain(Domain *theDomain)
     else if (theLoad->Size() != numDOF)  {
         delete theLoad;
         theLoad = new Vector(numDOF);
-    }
-    
-    if (!theLoad)  {
-        opserr << "ActuatorCorot::setDomain() - element: " << this->getTag()
-            << " out of memory creating vector of size: " << numDOF << endln;
-        
-        return;
     }
     
     // now determine the length, cosines and fill in the transformation
@@ -407,10 +401,10 @@ int ActuatorCorot::commitState()
 int ActuatorCorot::revertToLastCommit()
 {
     opserr << "ActuatorCorot::revertToLastCommit() - "
-        << "Element: " << this->getTag() << endln
+        << "Element: " << this->getTag() << "\n"
         << "Can't revert to last commit. This element "
         << "is connected to an external process." 
-        << endln;
+        << "\n";
     
     return -1;
 }
@@ -419,10 +413,10 @@ int ActuatorCorot::revertToLastCommit()
 int ActuatorCorot::revertToStart()
 {
     opserr << "ActuatorCorot::revertToStart() - "
-        << "Element: " << this->getTag() << endln
+        << "Element: " << this->getTag() << "\n"
         << "Can't revert to start. This element "
         << "is connected to an external process." 
-        << endln;
+        << "\n";
     
     return -1;
 }
@@ -580,7 +574,7 @@ int ActuatorCorot::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
     opserr <<"ActuatorCorot::addLoad() - "
         << "load type unknown for element: "
-        << this->getTag() << endln;
+        << this->getTag() << "\n";
     
     return -1;
 }

@@ -173,7 +173,8 @@ ASI3D8QuadWithSensitivity::setDomain (Domain *theDomain)
       }
     }
     
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
   }
 }
 

@@ -330,27 +330,21 @@ BeamColumnJoint3d::getNumDOF(void)
 void
 BeamColumnJoint3d::setDomain(Domain *theDomain)
 {
-    if (theDomain == 0)
-	opserr << "ERROR : BeamColumnJoint::setDomain -- Domain is null" << endln;
 
 	// Check Domain is not null - invoked when object removed from a domain
     if (theDomain == 0) {
-	nodePtr[0] = 0;
-	nodePtr[1] = 0;
+		nodePtr[0] = 0;
+		nodePtr[1] = 0;
     }
 
-  //node pointers set
+  // node pointers set
     for (int i = 0; i < 4; i++ ) {
 		nodePtr[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
-		if (nodePtr[i] == 0)
-		{
-			opserr << "ERROR : BeamColumnJoint::setDomain -- node pointer is null" << endln;
-			exit(-1); // donot go any further - otherwise segmentation fault
-		}
 	}
 
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
 	// ensure connected nodes have correct dof's
 	int dofNd1 = nodePtr[0]->getNumberDOF();
@@ -362,7 +356,7 @@ BeamColumnJoint3d::setDomain(Domain *theDomain)
 	if ((dofNd1 != 6) || (dofNd2 != 6) || (dofNd3 != 6) || (dofNd4 != 6))
 	{
 		opserr << "ERROR : BeamColumnJoint::setDomain -- number of DOF associated with the node incorrect" << endln;
-		exit(-1); // donot go any further - otherwise segmentation fault
+		exit(-1); // do not go any further - otherwise segmentation fault
 	}
 
     // obtain the nodal coordinates    
@@ -392,8 +386,8 @@ BeamColumnJoint3d::setDomain(Domain *theDomain)
 
 	if ((elemHeight <= 1e-12) || (elemWidth <= 1e-12))
 	{
-			opserr << "ERROR : BeamColumnJoint::setDomain -- length or width not correct, division by zero occurs"<< endln;
-			exit(-1); // donot go any further - otherwise segmentation fault
+		opserr << "ERROR : BeamColumnJoint::setDomain -- length or width not correct, division by zero occurs"<< endln;
+		exit(-1); // donot go any further - otherwise segmentation fault
 	}
 
 	getBCJoint();
@@ -414,10 +408,10 @@ BeamColumnJoint3d::commitState()
   int mcs = 0;
 	for (int j=0; j<13; j++)
 	{
-			if (MaterialPtr[j] != 0) mcs = MaterialPtr[j]->commitState();
-			if (mcs != 0) break;
+		if (MaterialPtr[j] != 0) mcs = MaterialPtr[j]->commitState();
+		if (mcs != 0) break;
 	}
-    
+
   return mcs;
 }
 

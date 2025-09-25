@@ -296,85 +296,85 @@ ComponentElement3d::~ComponentElement3d()
 }
 
 int
-ComponentElement3d::getNumExternalNodes(void) const
+ComponentElement3d::getNumExternalNodes() const
 {
-    return 2;
+  return 2;
 }
 
 const ID &
-ComponentElement3d::getExternalNodes(void) 
+ComponentElement3d::getExternalNodes() 
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 Node **
-ComponentElement3d::getNodePtrs(void) 
+ComponentElement3d::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-ComponentElement3d::getNumDOF(void)
+ComponentElement3d::getNumDOF()
 {
-    return 12;
+  return 12;
 }
 
 void
 ComponentElement3d::setDomain(Domain *theDomain)
 {
   if (theDomain == 0) {
-    opserr << "ComponentElement3d::setDomain -- Domain is null\n";
-    exit(-1);
+    return;
   }
     
-    theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
-    theNodes[1] = theDomain->getNode(connectedExternalNodes(1));    
-    
-    if (theNodes[0] == 0) {
-      opserr << "ComponentElement3d::setDomain -- Node 1: " << connectedExternalNodes(0) << " does not exist\n";
-      exit(-1);
-    }
-			      
-    if (theNodes[1] == 0) {
-      opserr << "ComponentElement3d::setDomain -- Node 2: " << connectedExternalNodes(1) << " does not exist\n";
-      exit(-1);
-    }
+  theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
+  theNodes[1] = theDomain->getNode(connectedExternalNodes(1));    
+  
+  if (theNodes[0] == 0) {
+    opserr << "ComponentElement3d::setDomain -- Node 1: " << connectedExternalNodes(0) << " does not exist\n";
+    exit(-1);
+  }
+          
+  if (theNodes[1] == 0) {
+    opserr << "ComponentElement3d::setDomain -- Node 2: " << connectedExternalNodes(1) << " does not exist\n";
+    exit(-1);
+  }
 
-    int dofNd1 = theNodes[0]->getNumberDOF();
-    int dofNd2 = theNodes[1]->getNumberDOF();    
-    
-    if (dofNd1 != 6) {
-      opserr << "ComponentElement3d::setDomain -- Node 1: " << connectedExternalNodes(0) 
-	     << " has incorrect number of DOF\n";
-      exit(-1);
-    }
-    
-    if (dofNd2 != 6) {
-      opserr << "ComponentElement3d::setDomain -- Node 2: " << connectedExternalNodes(1) 
-	     << " has incorrect number of DOF\n";
-      exit(-1);
-    }
-	
-    this->DomainComponent::setDomain(theDomain);
-    
-    if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
-	opserr << "ComponentElement3d::setDomain -- Error initializing coordinate transformation\n";
-	exit(-1);
-    }
-    
-    double L = theCoordTransf->getInitialLength();
+  int dofNd1 = theNodes[0]->getNumberDOF();
+  int dofNd2 = theNodes[1]->getNumberDOF();    
+  
+  if (dofNd1 != 6) {
+    opserr << "ComponentElement3d::setDomain -- Node 1: " << connectedExternalNodes(0) 
+      << " has incorrect number of DOF\n";
+    exit(-1);
+  }
+  
+  if (dofNd2 != 6) {
+    opserr << "ComponentElement3d::setDomain -- Node 2: " << connectedExternalNodes(1) 
+      << " has incorrect number of DOF\n";
+    exit(-1);
+  }
 
-    if (L == 0.0) {
-      opserr << "ComponentElement3d::setDomain -- Element has zero length\n";
-      exit(-1);
-    }
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
+  
+  if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
+    opserr << "ComponentElement3d::setDomain -- Error initializing coordinate transformation\n";
+    exit(-1);
+  }
+  
+  double L = theCoordTransf->getInitialLength();
 
-    EAoverL  = A*E/L;		// EA/L
-    EIzoverL2 = 2.0*Iz*E/L;	// 2EI/L
-    EIzoverL4 = 2.0*EIzoverL2;	// 4EI/L
-    EIyoverL2 = 2.0*Iy*E/L;	// 2EI/L
-    EIyoverL4 = 2.0*EIyoverL2;	// 4EI/L
-    GJoverL = G*J/L;
+  if (L == 0.0) {
+    opserr << "ComponentElement3d::setDomain -- Element has zero length\n";
+    exit(-1);
+  }
+
+  EAoverL  = A*E/L;		// EA/L
+  EIzoverL2 = 2.0*Iz*E/L;	// 2EI/L
+  EIzoverL4 = 2.0*EIzoverL2;	// 4EI/L
+  EIyoverL2 = 2.0*Iy*E/L;	// 2EI/L
+  EIyoverL4 = 2.0*EIyoverL2;	// 4EI/L
+  GJoverL = G*J/L;
 }
 
 int
@@ -442,7 +442,7 @@ ComponentElement3d::revertToStart()
 }
 
 int
-ComponentElement3d::update(void)
+ComponentElement3d::update()
 {
   // get previous displacements and the new end delta displacements
   theCoordTransf->update();
@@ -584,9 +584,6 @@ ComponentElement3d::update(void)
 
 
 
-
-
-
   u1 = uyTrial(0);
   u2 = uyTrial(1);
   u3 = uyTrial(2);
@@ -681,8 +678,8 @@ ComponentElement3d::update(void)
     //    at these internal dof is less than some tolerance
 
     if ((sqrt(R2*R2 + R3*R3) > tol) && 
-	(sqrt(du2*du2+du3*du3) > tol) &&
-	count < maxCount) {
+        (sqrt(du2*du2+du3*du3) > tol) &&
+        count < maxCount) {
 
       // if not converged we determine new internal dof displacements
       // note we have not changed du1 or du4 from previous step
@@ -718,9 +715,6 @@ ComponentElement3d::update(void)
   uyTrial(2) = u3;
   uyTrial(3) = u4;
 
-
-
-  
   return 0;
 }
 
@@ -821,7 +815,7 @@ ComponentElement3d::getResistingForce()
 
 
 const Matrix &
-ComponentElement3d::getTangentStiff(void)
+ComponentElement3d::getTangentStiff()
 {
   // determine q = kv + q0
   static Vector R(12);  
@@ -849,7 +843,7 @@ ComponentElement3d::getTangentStiff(void)
 }
 
 const Matrix &
-ComponentElement3d::getInitialStiff(void)
+ComponentElement3d::getInitialStiff()
 {
   double k1 = 0.;
   if (end1zHinge != 0) 
@@ -890,46 +884,46 @@ ComponentElement3d::getInitialStiff(void)
 }
 
 const Matrix &
-ComponentElement3d::getMass(void)
+ComponentElement3d::getMass()
 { 
   K.Zero();
   
   if (rho > 0.0)  {
     // get initial element length
     double L = theCoordTransf->getInitialLength();
-    
-        if (cMass == 0)  {
 
-            // lumped mass matrix
-            double m = 0.5*rho*L;
-            K(0,0) = K(1,1) = K(2,2) = K(6,6) = K(7,7) = K(8,8) = m;
+    if (cMass == 0)  {
 
-        } else  {
-            // consistent mass matrix
-            static Matrix ml(6,6);
-            double m = rho*L/420.0;
-            ml(0,0) = ml(3,3) = m*140.0;
-            ml(0,3) = ml(3,0) = m*70.0;
+        // lumped mass matrix
+        double m = 0.5*rho*L;
+        K(0,0) = K(1,1) = K(2,2) = K(6,6) = K(7,7) = K(8,8) = m;
 
-            ml(1,1) = ml(4,4) = m*156.0;
-            ml(1,4) = ml(4,1) = m*54.0;
-            ml(2,2) = ml(5,5) = m*4.0*L*L;
-            ml(2,5) = ml(5,2) = -m*3.0*L*L;
-            ml(1,2) = ml(2,1) = m*22.0*L;
-            ml(4,5) = ml(5,4) = -ml(1,2);
-            ml(1,5) = ml(5,1) = -m*13.0*L;
-            ml(2,4) = ml(4,2) = -ml(1,5);
-            
-            // transform local mass matrix to global system
-            K = theCoordTransf->getGlobalMatrixFromLocal(ml);
-        }
+    } else  {
+        // consistent mass matrix
+        static Matrix ml(6,6);
+        double m = rho*L/420.0;
+        ml(0,0) = ml(3,3) = m*140.0;
+        ml(0,3) = ml(3,0) = m*70.0;
+
+        ml(1,1) = ml(4,4) = m*156.0;
+        ml(1,4) = ml(4,1) = m*54.0;
+        ml(2,2) = ml(5,5) = m*4.0*L*L;
+        ml(2,5) = ml(5,2) = -m*3.0*L*L;
+        ml(1,2) = ml(2,1) = m*22.0*L;
+        ml(4,5) = ml(5,4) = -ml(1,2);
+        ml(1,5) = ml(5,1) = -m*13.0*L;
+        ml(2,4) = ml(4,2) = -ml(1,5);
+        
+        // transform local mass matrix to global system
+        K = theCoordTransf->getGlobalMatrixFromLocal(ml);
+    }
   }
 
   return K;
 }
 
 void 
-ComponentElement3d::zeroLoad(void)
+ComponentElement3d::zeroLoad()
 {
   Q.Zero();
 
@@ -1167,8 +1161,8 @@ ComponentElement3d::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &th
     if (theCoordTransf == 0) {
       theCoordTransf = theBroker.getNewCrdTransf(crdTag);
       if (theCoordTransf == 0) {
-	opserr << "ComponentElement3d::recvSelf -- could not get a CrdTransf2d\n";
-	exit(-1);
+        opserr << "ComponentElement3d::recvSelf -- could not get a CrdTransf2d\n";
+        exit(-1);
       }
     }
     
@@ -1178,8 +1172,8 @@ ComponentElement3d::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &th
       delete theCoordTransf;
       theCoordTransf = theBroker.getNewCrdTransf(crdTag);
       if (theCoordTransf == 0) {
-	opserr << "ComponentElement3d::recvSelf -- could not get a CrdTransf2d\n";
-	exit(-1);
+        opserr << "ComponentElement3d::recvSelf -- could not get a CrdTransf2d\n";
+        exit(-1);
       }
     }
 	

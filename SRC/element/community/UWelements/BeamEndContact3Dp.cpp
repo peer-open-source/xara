@@ -224,7 +224,8 @@ BeamEndContact3Dp::setDomain(Domain *theDomain)
 	inContact = (was_inContact && in_bounds);
 
 	// call the base class method
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 }
 
 int

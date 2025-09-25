@@ -1010,7 +1010,6 @@ ActorSubdomain::run(void)
 	    msgData(0) = -1;
 	    
       }
-      //      opserr << "DONE ACTION: " << action << endln;
     }
 
     //    this->sendID(msgData);

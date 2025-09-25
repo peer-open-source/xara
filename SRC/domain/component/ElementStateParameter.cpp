@@ -27,17 +27,17 @@
 #include <Channel.h>
 #include <Message.h>
 
-ElementStateParameter::ElementStateParameter(double value, 
+ElementStateParameter::ElementStateParameter(int tag, double value, 
 					     const char **Argv, 
 					     int Argc, 
 					     int Flag, 
 					     ID *theEle)
-  :Parameter(0,PARAMETER_TAG_ElementStateParameter),
+  : Parameter(tag,PARAMETER_TAG_ElementStateParameter),
    currentValue(value),
    flag(Flag),
    argc(Argc), fromFree(1)
 {
-  if (theEle != 0)
+  if (theEle != nullptr)
     theEleIDs = new ID(*theEle);
 
   argv = new char *[argc];
@@ -58,17 +58,18 @@ ElementStateParameter::ElementStateParameter()
 
 }
 
+
 ElementStateParameter::~ElementStateParameter()
 {
   if (fromFree == 0) {
     if (argc != 0) {
       for (int i=0; i<argc; i++)
-	delete argv[i];
+        delete argv[i];
 
       delete [] argv;
       
-      if (theEleIDs != 0)
-	delete theEleIDs;
+      if (theEleIDs != nullptr)
+        delete theEleIDs;
     }
   }
 }
@@ -212,10 +213,6 @@ ElementStateParameter::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBr
   for (int j=0; j<argc; j++) {    
     int argLength = argvData[j];
     argv[j] = new char[argLength];
-    if (argv[j] == 0) {
-      opserr << "ElementRecorder::recvSelf() - out of memory\n";
-      return -1;
-    }
     Message theMessage((char *)argv[j], argLength);
     theChannel.recvMsg(commitTag, 0, theMessage);      
   }

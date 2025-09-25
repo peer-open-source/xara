@@ -138,7 +138,8 @@ beam2d02::setDomain(Domain *theDomain)
     }	
 
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // determine length and direction cosines
     double dx,dy;

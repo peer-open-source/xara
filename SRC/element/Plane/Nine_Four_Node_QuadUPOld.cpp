@@ -176,7 +176,8 @@ NineFourNodeQuadUP::setDomain(Domain *theDomain)
 		 }
   }
   
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 
@@ -372,11 +373,6 @@ const Matrix &NineFourNodeQuadUP::getInitialStiff ()
   }
 
   Ki = new Matrix(K);
-  if (Ki == 0) {
-    opserr << "FATAL NineFourNodeQuadUP::getInitialStiff() -";
-    opserr << "ran out of memory\n";
-    exit(-1);
-  }  
     
   return *Ki;
 }
@@ -587,7 +583,6 @@ NineFourNodeQuadUP::getResistingForce()
         P(jk+1) -= dvolu[i]*(shgu[2][j][i]*r*b[1]);
     }
   }
-//  opserr<<"K -body"<<P<<endln;
   
   // Subtract fluid body force
   for (j = 0; j < nenp; j++) {
@@ -598,7 +593,6 @@ NineFourNodeQuadUP::getResistingForce()
      }
   }
 
-//  opserr<<"K -fluid "<<P<<endln;
 
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   //P = P - Q;
@@ -629,7 +623,6 @@ NineFourNodeQuadUP::getResistingForceIncInertia()
   
   // Compute the current resisting force
   this->getResistingForce();
-  //  opserr<<"K "<<P<<endln;
   
   // Compute the mass matrix
   this->getMass();
@@ -638,7 +631,6 @@ NineFourNodeQuadUP::getResistingForceIncInertia()
     for (j = 0; j < 22; j++)
       P(i) += K(i,j)*a[j];
   }
-//  opserr<<"K+M "<<P<<endln; 
    
   for (i=0; i<nenu; i++) {
       const Vector &vel = theNodes[i]->getTrialVel();
@@ -661,7 +653,6 @@ NineFourNodeQuadUP::getResistingForceIncInertia()
       P(i) += K(i,j)*a[j];
     }
   }
-//  opserr<<"final "<<P<<endln;
   return P;
 }
 

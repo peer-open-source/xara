@@ -112,7 +112,8 @@ NineNodeMixedQuad::setDomain( Domain *theDomain )
   for ( int i = 0; i<9; i++ ) 
     nodePointers[i] = theDomain->getNode( connectedExternalNodes(i)  ) ;
   
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 

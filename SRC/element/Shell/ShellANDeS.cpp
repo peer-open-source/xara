@@ -232,7 +232,8 @@ void ShellANDeS::setDomain(Domain *theDomain)
       exit(-1);
     }
 
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     initializeGeometry(n1, n2, n3);
 
     if (!initialized_disps) {
@@ -1739,12 +1740,6 @@ Matrix ShellANDeS::getBendingBasicStiffness()
   // To sad radi rutina koja poziva
   //
   //
-  //    C1 = C *(1./Ar) ;
-  //    Kb = C1*Lt;
-  //    Kb = L*Kb;
-  // cout<<"Kb = " <<Kb.OutString();
-  // cout<<"det Kb = ";
-  // Kb.eigenvalues().print();
 
   Kb.Zero();
   calculate_E_planestress_and_beta0();

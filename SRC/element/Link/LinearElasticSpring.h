@@ -29,7 +29,7 @@
 // LinearElasticSpring is an element defined by two nodes and by a stiffness matrix
 // that can be full and does not be symmetric.
 // This LinearElasticSpring element will work in 1d, 2d or 3d problems.
-
+//
 #include "Element.h"
 #include <Matrix.h>
 
@@ -37,36 +37,32 @@ class Channel;
 class UniaxialMaterial;
 class Response;
 
-// Type of dimension of element NxDy has dimension x=1,2,3 and
-// y=2,4,6,12 degrees-of-freedom for the element
-#ifndef ZeroLength_h
-    enum Etype { D1N2, D2N4, D2N6, D3N6, D3N12 };
-#endif
-
 
 class LinearElasticSpring : public Element
 {
 public:
-    // constructors
+// Type of dimension of element NxDy has dimension x=1,2,3 and
+// y=2,4,6,12 degrees-of-freedom for the element
+    enum Etype { D1N2, D2N4, D2N6, D3N6, D3N12 };
+
     LinearElasticSpring(int tag, int dimension, int Nd1, int Nd2,
         const ID &direction, const Matrix &stif,
         const Vector y = 0, const Vector x = 0,
         const Vector Mratio = 0, int addRayleigh = 0,
         const Matrix *damp = 0);
+
     LinearElasticSpring();
-    
-    // destructor
     ~LinearElasticSpring();
     
     // method to get class type
-    const char *getClassType() const {return "LinearElasticSpring";};
+    const char *getClassType() const {return "LinearElasticSpring";}
     
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
     int getNumDOF();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *);
     
     // public methods to set the state of the element
     int commitState();
@@ -81,17 +77,17 @@ public:
     const Matrix &getDamp();
     
     void zeroLoad();
-    int addLoad(ElementalLoad *theLoad, double loadFactor);
+    int addLoad(ElementalLoad *, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
     
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();
-    
+
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
     // public methods for element recorder
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);

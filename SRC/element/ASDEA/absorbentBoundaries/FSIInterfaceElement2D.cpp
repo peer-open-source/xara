@@ -130,7 +130,7 @@ const char* FSIInterfaceElement2D::getClassType(void) const
 void FSIInterfaceElement2D::setDomain(Domain* theDomain)
 {
     // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
+    if (theDomain == nullptr) {
         for (std::size_t i = 0; i < m_nodes.size(); ++i)
             m_nodes[i] = nullptr;
         return;
@@ -167,7 +167,8 @@ void FSIInterfaceElement2D::setDomain(Domain* theDomain)
     }
 
     // call base class implementation
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 void FSIInterfaceElement2D::Print(OPS_Stream& s, int flag)
@@ -177,7 +178,7 @@ void FSIInterfaceElement2D::Print(OPS_Stream& s, int flag)
         s << "EL_FSIInterfaceElement2D\t" << eleTag << " :";
         for (int i = 0; i < m_node_ids.Size(); ++i)
             s << "\t" << m_node_ids(i);
-        s << endln;
+        s << "\n";
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {

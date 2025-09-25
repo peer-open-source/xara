@@ -371,25 +371,25 @@ RockingBC::~RockingBC()
 }
 
 int
-RockingBC::getNumExternalNodes(void) const
+RockingBC::getNumExternalNodes() const
 {
     return 2;
 }
 
 const ID &
-RockingBC::getExternalNodes(void) 
+RockingBC::getExternalNodes() 
 {
     return connectedExternalNodes;
 }
 
 Node **
-RockingBC::getNodePtrs(void) 
+RockingBC::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-RockingBC::getNumDOF(void)
+RockingBC::getNumDOF()
 {
     return 6;
 }
@@ -397,54 +397,53 @@ RockingBC::getNumDOF(void)
 void
 RockingBC::setDomain(Domain *theDomain)
 {
-  if (theDomain == 0) {
-    opserr << "RockingBC::setDomain -- Domain is null\n";
-    exit(-1);
+  if (theDomain == nullptr) {
+    return;
   }
     
-    theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
-    theNodes[1] = theDomain->getNode(connectedExternalNodes(1));    
-    
-    if (theNodes[0] == 0) {
-      opserr << "RockingBC::setDomain -- Node 1: " << connectedExternalNodes(0) << " does not exist\n";
-      exit(-1);
-    }
-			      
-    if (theNodes[1] == 0) {
-      opserr << "RockingBC::setDomain -- Node 2: " << connectedExternalNodes(1) << " does not exist\n";
-      exit(-1);
-    }
+  theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
+  theNodes[1] = theDomain->getNode(connectedExternalNodes(1));    
+  
+  if (theNodes[0] == 0) {
+    opserr << "RockingBC::setDomain -- Node 1: " << connectedExternalNodes(0) << " does not exist\n";
+    exit(-1);
+  }
+          
+  if (theNodes[1] == 0) {
+    opserr << "RockingBC::setDomain -- Node 2: " << connectedExternalNodes(1) << " does not exist\n";
+    exit(-1);
+  }
 
-    int dofNd1 = theNodes[0]->getNumberDOF();
-    int dofNd2 = theNodes[1]->getNumberDOF();    
-    
-    if (dofNd1 != 3) {
-      opserr << "RockingBC::setDomain -- Node 1: " << connectedExternalNodes(0) 
-	     << " has incorrect number of DOF\n";
-      exit(-1);
-    }
-    
-    if (dofNd2 != 3) {
-      opserr << "RockingBC::setDomain -- Node 2: " << connectedExternalNodes(1) 
-	     << " has incorrect number of DOF\n";
-      exit(-1);
-    }
-	
-    this->DomainComponent::setDomain(theDomain);
-    
- //   if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
-	//opserr << "RockingBC::setDomain -- Error initializing coordinate transformation\n";
-	//exit(-1);
- //   }
-	this->initialize(theNodes[0], theNodes[1]);
-    
-    double L = this->getInitialLength();
+  int dofNd1 = theNodes[0]->getNumberDOF();
+  int dofNd2 = theNodes[1]->getNumberDOF();    
+  
+  if (dofNd1 != 3) {
+    opserr << "RockingBC::setDomain -- Node 1: " << connectedExternalNodes(0) 
+      << " has incorrect number of DOF\n";
+    exit(-1);
+  }
+  
+  if (dofNd2 != 3) {
+    opserr << "RockingBC::setDomain -- Node 2: " << connectedExternalNodes(1) 
+      << " has incorrect number of DOF\n";
+    exit(-1);
+  }
 
-    if (L == 0.0) {
-      opserr << "RockingBC::setDomain -- Element has zero length\n";
-      exit(-1);
-    }
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
+  
+//   if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
+//opserr << "RockingBC::setDomain -- Error initializing coordinate transformation\n";
+//exit(-1);
+//   }
+  this->initialize(theNodes[0], theNodes[1]);
+  
+  double L = this->getInitialLength();
 
+  if (L == 0.0) {
+    opserr << "RockingBC::setDomain -- Element has zero length\n";
+    exit(-1);
+  }
 }
 
 int
@@ -504,7 +503,7 @@ RockingBC::initialize(Node *nodeIPointer, Node *nodeJPointer)
 }
 
 int
-RockingBC::compElemtLengthAndOrient(void)
+RockingBC::compElemtLengthAndOrient()
 {
 	// element projection
 	static Vector dx(2);
@@ -546,7 +545,7 @@ RockingBC::commitState()
   DWcommit = W - Wcommit;
   Dtcommit = Dt;
 
-  curtime = this->DomainComponent::getDomain()->getCurrentTime();
+  curtime = this->getDomain()->getCurrentTime();
   committedtime = curtime;
 
   Wcommit = W;
@@ -654,7 +653,7 @@ RockingBC::revertToStart()
 }
 
 bool
-RockingBC::is_analysis_dynamic(void)
+RockingBC::is_analysis_dynamic()
 {
 	const Vector &velI = nodeIPtr->getTrialVel();
 	const Vector &velJ = nodeJPtr->getTrialVel();
@@ -682,7 +681,7 @@ RockingBC::is_analysis_dynamic(void)
 }
 
 int
-RockingBC::update(void)
+RockingBC::update()
 {
 
 	triesfromcommitstate += 1;
@@ -733,10 +732,12 @@ RockingBC::update(void)
 }
 
 double
-RockingBC::getDt(void) {
-	curtime = this->DomainComponent::getDomain()->getCurrentTime();
+RockingBC::getDt()
+{
+	curtime = this->getDomain()->getCurrentTime();
 	return curtime - committedtime;
 }
+
 
 void
 RockingBC::compTransfMatrixLocalGlobal(Matrix &Tlg)
@@ -752,13 +753,13 @@ RockingBC::compTransfMatrixLocalGlobal(Matrix &Tlg)
 }
 
 const Vector &
-RockingBC::getLocalTrialDisp(void)
+RockingBC::getLocalTrialDisp()
 {
 	return ue;
 }
 
 const Vector &
-RockingBC::getLocalIncrDeltaDisp(void)
+RockingBC::getLocalIncrDeltaDisp()
 {
 	// dub = ub - ubpr;
 	due = ue;
@@ -768,7 +769,7 @@ RockingBC::getLocalIncrDeltaDisp(void)
 }
 
 const Vector &
-RockingBC::getLocalIncrDisp(void)
+RockingBC::getLocalIncrDisp()
 {
 	// Dub = ub - ubcommit;
 	Due = ue;
@@ -779,7 +780,7 @@ RockingBC::getLocalIncrDisp(void)
 
 
 double
-RockingBC::getInitialLength(void)
+RockingBC::getInitialLength()
 {
 	return L;
 }
@@ -1020,7 +1021,7 @@ RockingBC::getGlobalMatrixFromLocal(const Matrix &ml)
 }
 
 int
-RockingBC::state_determination(void)
+RockingBC::state_determination()
 {
 
 	const Vector& ue = this->getLocalTrialDisp();
@@ -1149,13 +1150,13 @@ RockingBC::state_determination(void)
 }
 
 const Matrix &
-RockingBC::getTangentStiff(void)
+RockingBC::getTangentStiff()
 {
   return this->getGlobalStiffMatrix(ke);
 }
 
 const Matrix &
-RockingBC::getInitialStiff(void)
+RockingBC::getInitialStiff()
 {
   double L = this->getInitialLength();
 
@@ -1172,7 +1173,7 @@ RockingBC::getInitialStiff(void)
 }
 
 const Matrix &
-RockingBC::getDamp(void)
+RockingBC::getDamp()
 {
 	K.Zero();
 
@@ -1180,7 +1181,7 @@ RockingBC::getDamp(void)
 }
 
 const Matrix &
-RockingBC::getMass(void)
+RockingBC::getMass()
 { 
     K.Zero();
     
@@ -1188,7 +1189,7 @@ RockingBC::getMass(void)
 }
 
 void 
-RockingBC::zeroLoad(void)
+RockingBC::zeroLoad()
 {
   return;
 }

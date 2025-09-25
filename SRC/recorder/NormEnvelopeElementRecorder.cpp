@@ -366,10 +366,6 @@ NormEnvelopeElementRecorder::sendSelf(int commitTag, Channel &theChannel)
   }
 
   char *allResponseArgs = new char[msgLength];
-  if (allResponseArgs == 0) {
-    opserr << "NormEnvelopeElementRecorder::sendSelf() - out of memory\n";
-    return -1;
-  }
 
   char *currentLoc = allResponseArgs;
   for (int j=0; j<numArgs; j++) {
@@ -500,10 +496,7 @@ NormEnvelopeElementRecorder::recvSelf(int commitTag, Channel &theChannel,
   }
 
   char *allResponseArgs = new char[msgLength];
-  if (allResponseArgs == 0) {
-    opserr << "NormEnvelopeElementRecorder::recvSelf() - out of memory\n";
-    return -1;
-  }
+
 
   Message theMessage(allResponseArgs, msgLength);
   if (theChannel.recvMsg(0, commitTag, theMessage) < 0) {
@@ -516,10 +509,7 @@ NormEnvelopeElementRecorder::recvSelf(int commitTag, Channel &theChannel,
   // 
 
   responseArgs = new char *[numArgs];
-  if (responseArgs == 0) {
-    opserr << "NormEnvelopeElementRecorder::recvSelf() - out of memory\n";
-    return -1;
-  }
+
 
   char *currentLoc = allResponseArgs;
   for (int j=0; j<numArgs; j++) {
@@ -527,10 +517,7 @@ NormEnvelopeElementRecorder::recvSelf(int commitTag, Channel &theChannel,
     int argLength = strlen(currentLoc)+1;
 
     responseArgs[j] = new char[argLength];
-    if (responseArgs[j] == 0) {
-      opserr << "NormEnvelopeElementRecorder::recvSelf() - out of memory\n";
-      return -1;
-    }
+
 
     strcpy(responseArgs[j], currentLoc);
     currentLoc += argLength;

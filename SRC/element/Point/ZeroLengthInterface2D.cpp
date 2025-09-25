@@ -50,16 +50,16 @@
 //*********************************************************************
 //  Full Constructor:
 
-ZeroLengthInterface2D::ZeroLengthInterface2D(int tag, int sNdNum, int pNdNum, int sDof, int pDof, const ID& Nodes,
+ZeroLengthInterface2D::ZeroLengthInterface2D(
+               int tag, int sNdNum, int pNdNum, int sDof, int pDof, const ID& Nodes,
 					     double Knormal, double Ktangent, double frictionAngle)
-  :Element(tag,ELE_TAG_ZeroLengthInterface2D),
-   connectedExternalNodes(sNdNum + pNdNum),
-   N(6), T(6), ContactNormal(2), Ki(0), load(0)
+  : Element(tag,ELE_TAG_ZeroLengthInterface2D)
+  , SecondaryNodeNum(sNdNum), PrimaryNodeNum(pNdNum)
+  , numberNodes(sNdNum + pNdNum)
+  , connectedExternalNodes(sNdNum + pNdNum)
+  , N(6), T(6), ContactNormal(2), Ki(0), load(0)
 {
   //static data
-  SecondaryNodeNum = sNdNum;
-  PrimaryNodeNum = pNdNum;
-  numberNodes = SecondaryNodeNum + PrimaryNodeNum;
   SecondaryDof = sDof;
   PrimaryDof = pDof;
   
@@ -72,8 +72,7 @@ ZeroLengthInterface2D::ZeroLengthInterface2D(int tag, int sNdNum, int pNdNum, in
   stored_shear_gap.resize(numberNodes);
   
   // set the vectors to zero
-  for(int i = 0; i < numberNodes; i++)
-    {
+  for (int i = 0; i < numberNodes; i++) {
       stored_shear_gap(i) = 0;
       shear_gap(i) = 0;
       pressure(i) = 0;
@@ -97,7 +96,8 @@ ZeroLengthInterface2D::ZeroLengthInterface2D(int tag, int sNdNum, int pNdNum, in
   nodePointers = new Node* [numberNodes];
   
   // restore node number
-  for (int i = 0 ; i < numberNodes; i++) connectedExternalNodes(i) = (int) Nodes(i);
+  for (int i = 0 ; i < numberNodes; i++)
+    connectedExternalNodes(i) = (int) Nodes(i);
   
   // assign Kn, Kt, fc
   Kn = Knormal;
@@ -107,26 +107,19 @@ ZeroLengthInterface2D::ZeroLengthInterface2D(int tag, int sNdNum, int pNdNum, in
   
   // initialized contact flag be zero
   ContactFlag=0;
-  
 }
 
-//null constructor
 
-ZeroLengthInterface2D::ZeroLengthInterface2D(void)                               //fixme numberNodes?
-  :Element(0,ELE_TAG_ZeroLengthInterface2D),
-  connectedExternalNodes(numberNodes),
-  N(6), T(6), Ki(0), load(0)
+ZeroLengthInterface2D::ZeroLengthInterface2D()
+  : Element(0,ELE_TAG_ZeroLengthInterface2D)
+  , numberNodes(0)
+  , connectedExternalNodes(0)
+  , N(6), T(6), Ki(0), load(0)
 {
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != numberNodes)
-      opserr << "FATAL ZeroLengthInterface2D::ZeroLengthInterface2D - failed to create an ID of correct size\n";
-    for (int j = 0; j < numberNodes; j++ ) nodePointers[j] = 0;
+
 }
 
 
-//  Destructor:
-//  delete must be invoked on any objects created by the object
-//  and on the matertial object.
 ZeroLengthInterface2D::~ZeroLengthInterface2D()
 {
   if (load != 0) delete load;
@@ -134,13 +127,13 @@ ZeroLengthInterface2D::~ZeroLengthInterface2D()
 }
 
 int
-ZeroLengthInterface2D::getNumExternalNodes(void) const
+ZeroLengthInterface2D::getNumExternalNodes() const
 {
-    return numberNodes;
+  return numberNodes;
 }
 
 const ID &
-ZeroLengthInterface2D::getExternalNodes(void)
+ZeroLengthInterface2D::getExternalNodes()
 {
   return connectedExternalNodes;
 }
@@ -148,13 +141,13 @@ ZeroLengthInterface2D::getExternalNodes(void)
 Node **
 ZeroLengthInterface2D::getNodePtrs(void)
 {
-    return nodePointers;
+  return nodePointers;
 }
 
 int
-ZeroLengthInterface2D::getNumDOF(void)
+ZeroLengthInterface2D::getNumDOF()
 {
-     return numDOF;
+  return numDOF;
 }
 
 // method: setDomain()
@@ -166,12 +159,14 @@ ZeroLengthInterface2D::setDomain(Domain *theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
   if (theDomain == 0) {
-    for (int j = 0; j < numberNodes; j++ )  nodePointers[j] = 0;
+    for (int j = 0; j < numberNodes; j++ )
+      nodePointers[j] = 0;
     return;
   }
   
   // call the base class method
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   numDOF = 0;
   // set default values for error conditions

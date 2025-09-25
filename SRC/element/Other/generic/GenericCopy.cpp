@@ -234,7 +234,8 @@ void GenericCopy::setDomain(Domain *theDomain)
     theMass.Zero();
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 

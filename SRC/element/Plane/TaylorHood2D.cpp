@@ -475,7 +475,8 @@ TaylorHood2D::setDomain(Domain *theDomain)
 {
 
     // set domain
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     if(theDomain == 0) return;
 

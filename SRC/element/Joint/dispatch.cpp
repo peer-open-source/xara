@@ -319,10 +319,6 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       }
     }
 
-    if (theBeamColumnJoint == 0) {
-      opserr << "WARNING ran out of memory creating elements\n";
-      return TCL_ERROR;
-    }
 
     if (domain->addElement(theBeamColumnJoint) == false) {
       opserr << "WARNING could not add element to the domain\n";
@@ -332,7 +328,8 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
   } else {
     opserr << "WARNING NDM = " << NDM << " and NDF = " << NDF
-           << " is incompatible with available joint elements";
+           << " is incompatible with available joint elements"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

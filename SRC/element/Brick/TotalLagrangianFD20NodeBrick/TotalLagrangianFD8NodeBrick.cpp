@@ -169,7 +169,8 @@ void TotalLagrangianFD8NodeBrick::setDomain (Domain *theDomain)
 	  }	   
     }
 
-    this->DomainComponent::setDomain(theDomain);  // Very Important!!
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);  // Very Important!!
 
     for (i=0; i<NumNodes; i++) {
 	  if ( theNodes[i]->getNumberDOF() != NumDof ) {
