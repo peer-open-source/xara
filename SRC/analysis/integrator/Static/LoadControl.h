@@ -48,21 +48,22 @@ class LoadControl : public StaticIntegrator
 
     ~LoadControl();
 
-    virtual int newStep() final;
-    int update(const Vector &deltaU);
+    virtual int newStep() override;
+    int update(const Vector &deltaU) override;
     int setDeltaLambda(double newDeltaLambda);
+    int revertToLastStep() override {return 0;}
 
     // Public methods for Output
     int sendSelf(int tag, Channel &);
     int recvSelf(int tag, Channel &, FEM_ObjectBroker &);
 
-    void Print(OPS_Stream &, int flag) final;
+    void Print(OPS_Stream &, int flag) override;
 
     //
     virtual int updateGradient(const Vector &v, int gradNum, int numGrads);
     virtual int commitSensitivity(int gradNum, int numGrads);
-    int computeSensitivities() final;
-    bool computeSensitivityAtEachIteration() final;
+    int computeSensitivities() override;
+    bool computeSensitivityAtEachIteration() override;
 
     
   private:
