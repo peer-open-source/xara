@@ -41,9 +41,9 @@ class CorotTruss2 : public Element
 {
   public:
     CorotTruss2(int tag, int dim,
-	       int Nd1, int Nd2, int oNd1, int oNd2, 
-	       UniaxialMaterial &theMaterial,
-	       double A, double rho=0.0);
+               int Nd1, int Nd2, int oNd1, int oNd2, 
+               UniaxialMaterial &theMaterial,
+               double A, double rho=0.0);
     
     CorotTruss2();    
     ~CorotTruss2();
@@ -55,7 +55,7 @@ class CorotTruss2 : public Element
     const ID &getExternalNodes(void);
     Node **getNodePtrs(void);
 
-    int getNumDOF(void);	
+    int getNumDOF(void);        
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element    
@@ -69,7 +69,7 @@ class CorotTruss2 : public Element
     const Matrix &getInitialStiff(void);
     const Matrix &getMass(void);    
 
-    void zeroLoad(void);	
+    void zeroLoad(void);        
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
@@ -88,32 +88,32 @@ class CorotTruss2 : public Element
   protected:
     
   private:
-	double computeCurrentNormalStrain(void);
+        double computeCurrentNormalStrain(void);
    
     // private attributes - a copy for each object of the class
     UniaxialMaterial *theMaterial;  // pointer to a material
     ConcretewBeta *theBetaMaterial; //consider making abstract class for materials that are sensitive to normal strain.
     ID  connectedExternalNodes;     // contains the tags of the end nodes
-	ID  connectedExternalOtherNodes;     // contains the tags of the end nodes
-    int numDOF;	                    // number of dof for CorotTruss2
+        ID  connectedExternalOtherNodes;     // contains the tags of the end nodes
+    int numDOF;                            // number of dof for CorotTruss2
     int numDIM;                     // number of dimensions
 
-    double Lo;	        // initial length of truss
-    double Ln;		    // current length of truss
-    double d21[3];	    // current displacement offsets in basic system
+    double Lo;                // initial length of truss
+    double Ln;                    // current length of truss
+    double d21[3];            // current displacement offsets in basic system
     double v21[3];      // current velocity offsets in basic system
-    double A; 	        // area of CorotTruss2
-    double rho; 	    // mass density per unit length
+    double A;                 // area of CorotTruss2
+    double rho;             // mass density per unit length
 
-	double otherLength;
-	double otherLength_new;
-	double theta; // for getting the normal strain
-	double od21[3]; //displacement offsets for auxiliary nodes.
+        double otherLength;
+        double otherLength_new;
+        double theta; // for getting the normal strain
+        double od21[3]; //displacement offsets for auxiliary nodes.
 
     Node *theNodes[2];
-	Node *theOtherNodes[2];  // for computing et.
+        Node *theOtherNodes[2];  // for computing et.
 
-    Matrix R;	// Rotation matrix
+    Matrix R;        // Rotation matrix
 
     Matrix *theMatrix;
 

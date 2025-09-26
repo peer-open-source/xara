@@ -46,41 +46,41 @@ class Truss2 : public Element
     Truss2();    
     ~Truss2();
 
-    const char *getClassType(void) const {return "Truss2";};
+    const char *getClassType(void) const final {return "Truss2";}
 
     // public methods to obtain information about dof & connectivity    
     int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    const ID &getExternalNodes() final;
+    Node **getNodePtrs();
 
-    int getNumDOF(void);	
+    int getNumDOF();	
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);        
-    int revertToStart(void);        
-    int update(void);
+    int commitState() final;
+    int revertToLastCommit() final;        
+    int revertToStart() final;        
+    int update() final;
     
     // public methods to obtain stiffness, mass, damping and residual information    
-    const Matrix &getKi(void);
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getDamp(void);    
-    const Matrix &getMass(void);    
+    const Matrix &getTangentStiff() final;
+    const Matrix &getInitialStiff() final;
+    const Matrix &getDamp() final;    
+    const Matrix &getMass() final;    
 
-    void zeroLoad(void);	
+    void zeroLoad() final;	
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);            
+    const Vector &getResistingForce() final;
+    const Vector &getResistingForceIncInertia() final;            
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);    
+    
+    // TaggedObject
+    void Print(OPS_Stream &s, int flag) final;    
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
