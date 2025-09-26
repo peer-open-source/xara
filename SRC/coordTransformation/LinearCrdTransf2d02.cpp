@@ -1131,7 +1131,7 @@ LinearCrdTransf2d02::getLengthGrad()
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
       opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     if (nodeParameterI == 1) // here x1 is random
@@ -1158,8 +1158,8 @@ LinearCrdTransf2d02::getd1overLdh()
   if (nodeParameterI != 0 || nodeParameterJ != 0) {
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
-      opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+      opserr << "ERROR: Currently a node offset cannot be used in "
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     if (nodeParameterI == 1) // here x1 is random
@@ -1212,7 +1212,7 @@ LinearCrdTransf2d02::getBasicDisplFixedGrad()
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
       opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     double dcosdh = 0.0, dsindh = 0.0, dsldh = 0.0, dcldh = 0.0;

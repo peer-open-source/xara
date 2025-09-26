@@ -944,7 +944,7 @@ const Vector &
 CorotCrdTransfWarping3d::getBasicTrialVel()
 {
   opserr << "ERROR CorotCrdTransfWarping3d::getBasicTrialVel()"
-         << " - has not been implemented yet." << endln;
+         << " - has not been implemented yet." << "\n";
 
   static Vector dummy(1);
   return dummy;
@@ -954,7 +954,7 @@ const Vector &
 CorotCrdTransfWarping3d::getBasicTrialAccel()
 {
   opserr << "ERROR CorotCrdTransfWarping3d::getBasicTrialAccel()"
-         << " - has not been implemented yet." << endln;
+         << " - has not been implemented yet." << "\n";
 
   static Vector dummy(1);
   return dummy;
@@ -1525,7 +1525,7 @@ CorotCrdTransfWarping3d::getRotationMatrixFromQuaternion(const Vector &q) const
 
   factor = q(3) * q(3) - (q(0) * q(0) + q(1) * q(1) + q(2) * q(2));
 
-  // opserr << "q rotationMatrix" <<q<< endln;
+  // opserr << "q rotationMatrix" <<q<< "\n";
   for (i = 0; i < 3; i++)
     for (j = 0; j < 3; j++)
       qqT(i, j) = q(i) * q(j);
@@ -1633,7 +1633,7 @@ CorotCrdTransfWarping3d::getLMatrix(const Vector &ri) const
 
   rie1 = ri ^ e1;
 
-  //opserr << "rie1: " << rie1 << endln;
+  //opserr << "rie1: " << rie1 << "\n";
 
   for (k = 0; k < 3; k++) {
     e1r1k = (e1(k) + r1(k));

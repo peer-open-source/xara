@@ -1529,14 +1529,14 @@ LinearCrdTransf3d::Print(OPS_Stream &s, int flag)
     s << "\nCrdTransf: " << this->getTag() << " Type: LinearCrdTransf3d";
     if (nodeIOffset)
       s << "\tNode I offset: " << nodeIOffset[0] << " " << nodeIOffset[1] << " "
-        << nodeIOffset[2] << endln;
+        << nodeIOffset[2] << "\n";
     if (nodeJOffset)
       s << "\tNode J offset: " << nodeJOffset[0] << " " << nodeJOffset[1] << " "
-        << nodeJOffset[2] << endln;
+        << nodeJOffset[2] << "\n";
     s << "\n\tOrientation: " << Matrix(&R[0][0], 3,3) << "\n";
   }
 
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << "\t\t\t{\"name\": \"" << this->getTag()
       << "\", \"type\": \"LinearCrdTransf3d\"";
     s << ", \"vecInLocXZPlane\": [" << R[2][0] << ", " << R[2][1] << ", "
