@@ -23,7 +23,7 @@ class Component:
             self._exit_name_none = False
 
         model.eval(dumps(self))
-        return _Handle(model._openseespy, "UniaxialMaterial", self.name, *args)
+        return _Handle(model._openseespy, "UniaxialMaterial", *args, tag=self.name)
 
     def __enter__(self):
         assert self._rt is None

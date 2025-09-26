@@ -26,7 +26,7 @@ public:
                  double dInf, double a, std::vector<double> cK, std::vector<double> gammaK);
 
   //! Constructor, parallel processing
-  UVCplanestress(void);
+  UVCplanestress();
 
   //! Destructor
   ~UVCplanestress();
@@ -38,24 +38,24 @@ public:
 public:
   //! Returns the class type
   const char*
-  getClassType(void) const
+  getClassType() const
   {
     return "UVCplanestress";
-  };
+  }
 
   //! Returns the type of ND material
   const char*
   getType() const
   {
     return "PlaneStress";
-  };
+  }
 
   //! Returns the number of vector components
   int
   getOrder() const
   {
     return N_DIMS;
-  };
+  }
 
   //! Calculates the trial strain and stress, provided the total strain
   int setTrialStrain(const Vector& v);
@@ -66,30 +66,25 @@ public:
   int setTrialStrainIncr(const Vector& v, const Vector& r);
 
 
-  //! Returns the trial strain
-  const Vector& getStrain(void);
+  const Vector& getStrain();
+  const Vector& getStress();
 
-  //! Returns the trial stress
-  const Vector& getStress(void);
+  const Matrix& getTangent();
 
-  //! Returns the trial elastoplastic tangent modulus
-  const Matrix& getTangent(void);
-
-  //! Returns the tangent modulus in the undeformed configuration
-  const Matrix& getInitialTangent(void);
+  const Matrix& getInitialTangent();
 
   //! Returns the mass density of the material - zero mass assumed
   double
-  getRho(void)
+  getRho()
   {
     return 0.;
-  };
+  }
 
   //! Sets the converged state to be the current trial state
-  int commitState(void);
+  int commitState();
 
   //! Sets the trial state to be the converged state
-  int revertToLastCommit(void);
+  int revertToLastCommit();
 
   //! Sets the converged state to the undeformed configuration
   int revertToStart(void);
