@@ -33,7 +33,6 @@
 #if !defined ZEROFINDINGAlgorithm_H 
 #define  ZEROFINDINGAlgorithm_H
 
-#include <OPS_Globals.h> 
 # include <SamplingAnalysis.h>
 
 #include "ReliabilityAnalysis.h"	// Added by ClassView

@@ -184,7 +184,8 @@ DispBeamColumnNL2d::setDomain(Domain *theDomain)
       // Add some error check
     }
 
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     this->update();
 }
@@ -1088,11 +1089,6 @@ DispBeamColumnNL2d::recvSelf(int commitTag, Channel &theChannel,
 
     // create a new array to hold pointers
     theSections = new SectionForceDeformation *[idData(3)];
-    if (theSections == 0) {
-opserr << "DispBeamColumnNL2d::recvSelf() - out of memory creating sections array of size " <<
-  idData(3) << endln;
-      return -1;
-    }    
 
     // create a section and recvSelf on it
     numSections = idData(3);

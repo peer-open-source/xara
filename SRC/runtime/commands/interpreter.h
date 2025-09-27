@@ -12,7 +12,8 @@
 // See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
-#include <tcl.h>
+
+#include <Parsing.h>
 
 Tcl_CmdProc TclCommand_wipeModel;
 Tcl_CmdProc TclCommand_clearAnalysis;

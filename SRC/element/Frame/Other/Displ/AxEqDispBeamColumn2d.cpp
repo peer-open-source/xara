@@ -391,7 +391,8 @@ AxEqDispBeamColumn2d::setDomain(Domain *theDomain)
     // Add some error check
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   opserr << "setDomain - 9\n";
   this->update();
   opserr << "setDomain - DONE\n";

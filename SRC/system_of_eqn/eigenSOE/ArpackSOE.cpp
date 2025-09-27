@@ -45,10 +45,11 @@
 
 
 
-ArpackSOE::ArpackSOE(AnalysisModel& model, double s)
-:EigenSOE(EigenSOE_TAGS_ArpackSOE),
- M(0), Msize(0), mDiagonal(false), shift(s), theModel(&model), theSOE(0),
- processID(-1), numChannels(0), theChannels(0), localCol(0), sizeLocal(0)
+ArpackSOE::ArpackSOE(AnalysisModel& model, double shift)
+: EigenSOE(EigenSOE_TAGS_ArpackSOE)
+ , M(nullptr), Msize(0), mDiagonal(false)
+ , shift(shift), theModel(&model), theSOE(nullptr)
+ , processID(-1), numChannels(0), theChannels(0), localCol(0), sizeLocal(0)
 {
   ArpackSolver *theSolvr = new ArpackSolver();
   this->setSolver(*theSolvr);
@@ -74,7 +75,7 @@ ArpackSOE::~ArpackSOE()
 int 
 ArpackSOE::setSize(Graph &theGraph)
 {
-  if (theSOE == 0)
+  if (theSOE == nullptr)
     return -1;
 
   int result = 0;
@@ -111,8 +112,8 @@ ArpackSOE::setSize(Graph &theGraph)
       theChannel->recvID(0, 0, data);    // recv global max tag 
 
       size = data(0);    
-    } else {
-
+    }
+    else {
       //
       // from each distributed soe recv it's max n and compare; return max n to all
       //
@@ -148,11 +149,11 @@ ArpackSOE::setSize(Graph &theGraph)
   }
   */
 
-  if (size != Msize && size > 0) {
+  if ((size != Msize) && (size > 0)) {
 
-    if (M != 0) 
+    if (M != nullptr) 
       delete [] M;
-    
+
     M = new double[size];
     Msize = size;
   }
@@ -163,7 +164,7 @@ ArpackSOE::setSize(Graph &theGraph)
 
   EigenSolver *theSolvr = this->getSolver();
 
-  if (theSolvr == 0) {
+  if (theSolvr == nullptr) {
     opserr << "ArpackSOE::setSize(Graph &theGraph) - no EigenSolver set\n";             
     return -1;
   }
@@ -422,37 +423,37 @@ int
 ArpackSOE::checkSameInt(int value)
 {
   if (processID == -1)
-      return 1;
+    return 1;
 
   static ID idData(1);
 
   if (processID != 0) {
-  
-          Channel *theChannel = theChannels[0];
-          idData(0) = value;
-          theChannel->sendID(0, 0, idData);
-          theChannel->recvID(0, 0, idData);
-          if (idData(0) == 1)
-                  return 1;
-          else
-                  return 0;
+
+      Channel *theChannel = theChannels[0];
+      idData(0) = value;
+      theChannel->sendID(0, 0, idData);
+      theChannel->recvID(0, 0, idData);
+      if (idData(0) == 1)
+        return 1;
+      else
+        return 0;
   } 
   else {
     int ok = 1;
     // receive B 
     for (int j=0; j<numChannels; j++) {
     // get X & add
-            Channel *theChannel = theChannels[j];
-            theChannel->recvID(0, 0, idData);
-            if (idData(0) != value)
-                    ok = 0;
+        Channel *theChannel = theChannels[j];
+        theChannel->recvID(0, 0, idData);
+        if (idData(0) != value)
+                ok = 0;
     }
 
     // send results back
     idData(0) = ok;
     for (int j=0; j<numChannels; j++) {
-            Channel *theChannel = theChannels[j];
-            theChannel->sendID(0, 0, idData);
+        Channel *theChannel = theChannels[j];
+        theChannel->sendID(0, 0, idData);
     }
     return ok;
   }

@@ -160,21 +160,12 @@ extern "C" int dgels_(char *T, int *M, int *N, int *NRHS,
 
 #endif
 
-//#include <fstream.h>
-//ofstream vFile("v.out");
-//ofstream AvFile("Av.out");
-//ofstream rFile("r.out");
-//ofstream cFile("c.out");
-//ofstream wFile("w.out");
-//ofstream qFile("q.out");
 
 int
 KrylovAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE, 
                               IncrementalIntegrator &theIntegrator)
 {
   Vector &r = vStar;
-  //rFile << "dim: " << dimension << endln;
-  //rFile << r << endln;
 
   int k = dimension;
 
@@ -210,13 +201,8 @@ KrylovAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
         sumi = sqrt(sumi);
         sumj = sqrt(sumj);
         sum = sum/(sumi*sumj);
-        //if (fabs(sum) > 0.99)
-          //opserr << sum << ' ' << i << ' ' << j << "   ";
       }
     }
-
-    //AvFile << "dim: " << dimension << endln;
-    //AvFile << A << endln;
     
     // Put residual vector into rData (need to save r for later!)
     Vector B(rData, numEqns);
@@ -254,7 +240,6 @@ KrylovAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
     //Vector q(numEqns);
     //q = r;
 
-    //cFile << "dim: " << dimension << endln;
     // Compute the correction vector
     double cj;
     for (j = 0; j < k; j++) {
@@ -270,16 +255,11 @@ KrylovAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
       // q_{k+1} = r_k - (c_1 Av_1 + ... + c_k Av_k)
       r.addVector(1.0, *(Av[j]), -cj);
       //q.addVector(1.0, *(Av[j]), -cj);
-
-      //cFile << cj << ' ';
     }
   }
 
   // Put accelerated vector into storage for next iteration
   *(v[k]) = r;
-
-  //vFile << "dim: " << dimension << endln;
-  //vFile << r << endln;
 
   dimension++;
 

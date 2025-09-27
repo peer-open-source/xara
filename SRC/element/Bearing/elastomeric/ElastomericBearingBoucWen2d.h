@@ -44,7 +44,6 @@ class Response;
 class ElastomericBearingBoucWen2d : public Element
 {
 public:
-    // constructors
     ElastomericBearingBoucWen2d(int tag, int Nd1, int Nd2,
         double kInit, double qd, double alpha1,
         UniaxialMaterial **theMaterials,
@@ -60,14 +59,14 @@ public:
     ~ElastomericBearingBoucWen2d();
     
     // method to get class type
-    const char *getClassType() const {return "ElastomericBearingBoucWen2d";};
+    const char *getClassType() const {return "ElastomericBearingBoucWen2d";}
     
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
     int getNumDOF();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *);
     
     // public methods to set the state of the element
     int commitState();
@@ -91,8 +90,7 @@ public:
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
     // public methods for element recorder
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);

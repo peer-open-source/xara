@@ -69,7 +69,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Actuator)
     int idata[3];
     int numdata = 3;
     if (OPS_GetIntInput(&numdata, idata) < 0) {
-	opserr << "WARNING invalid actuator int inputs" << endln;
+	opserr << "WARNING invalid actuator int inputs" << "\n";
 	return 0;
     }
     int tag = idata[0];
@@ -80,7 +80,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Actuator)
     double EA;
     numdata = 1;
     if (OPS_GetDoubleInput(&numdata, &EA) < 0) {
-	opserr << "WARNING invalid actuator EA" << endln;
+	opserr << "WARNING invalid actuator EA" << "\n";
 	return 0;
     }
     
@@ -288,7 +288,7 @@ void Actuator::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    this->Element::link(*theDomain);
     
     // now set the number of dof for element and set matrix and vector pointer
     if (numDIM == 1 && dofNd1 == 1)  {
@@ -376,11 +376,10 @@ int Actuator::commitState()
 int Actuator::revertToLastCommit()
 {
     opserr << "Actuator::revertToLastCommit() - "
-        << "Element: " << this->getTag() << endln
+        << "Element: " << this->getTag() << "\n"
         << "Can't revert to last commit. This element "
         << "is connected to an external process." 
-        << endln;
-    
+        << "\n";
     return -1;
 }
 
@@ -388,10 +387,10 @@ int Actuator::revertToLastCommit()
 int Actuator::revertToStart()
 {
     opserr << "Actuator::revertToStart() - "
-        << "Element: " << this->getTag() << endln
+        << "Element: " << this->getTag() << "\n"
         << "Can't revert to start. This element "
         << "is connected to an external process." 
-        << endln;
+        << "\n";
     
     return -1;
 }

@@ -12,7 +12,8 @@
 //
 #include <stdlib.h>
 #include <string.h>
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 
 #include <ZeroLength.h>
 #include <ZeroLengthND.h>
@@ -31,7 +32,7 @@
 
 
 int
-TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                               TCL_Char ** const argv)
 {
   ModelRegistry* builder = (ModelRegistry*)clientData;
@@ -213,38 +214,45 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
 
   while (argi < argc) {
     if (strcmp(argv[argi], "-orient") == 0) {
-      if (argc < (argi + 7)) {
-        opserr << "WARNING not enough parameters after -orient flag for ele "
-               << eleTag << "- element ZeroLength eleTag? iNode? jNode? "
-               << "-mat matID1? ... -dir dirMat1? .. "
-               << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+      if (argc < (argi + 4)) {
+        opserr << "WARNING not enough parameters after -orient flag"
+              << OpenSees::SignalMessageEnd;
         delete[] theMats;
         return TCL_ERROR;
-      } else {
-        argi++;
-        double value;
-        // read the x values
-        for (int i = 0; i < 3; i++) {
-          if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value for ele  " << eleTag
-                   << argv[i] << "- element ZeroLength eleTag? iNode? jNode? "
-                   << "-mat matID1? ... -dir dirMat1? .. "
-                   << "<-orient x1? x2? x3? y1? y2? y3?>\n";
-            delete[] theMats;
-            return TCL_ERROR;
-          } else {
-            argi++;
-            x(i) = value;
-          }
+      }
+      argi++;
+      // read 3 x values
+      double value;
+      for (int i = 0; i < 3; i++) {
+        if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
+          opserr << "WARNING invalid -orient  "
+                  << argv[argi] 
+                  << OpenSees::SignalMessageEnd;
+          delete[] theMats;
+          return TCL_ERROR;
         }
+        x(i) = value;
+        argi++;
+      }
+      if (ndm == 2) {
+        y(0) = -x(1);
+        y(1) = x(0);
+        y(2) = 0.0;
+      }
+      else if (ndm == 3) {
+        if (argc < (argi + 4)) {
+          opserr << "WARNING not enough parameters after -orient flag"
+                << OpenSees::SignalMessageEnd;
+          delete[] theMats;
+          return TCL_ERROR;
+        }
+        argi++;
         // read the y values
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
-            opserr << "WARNING invalid -orient value for ele  " << eleTag
-                   << argv[argi]
-                   << "- element ZeroLength eleTag? iNode? jNode? "
-                   << "-mat matID1? ... -dir dirMat1? .. "
-                   << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+            opserr << "WARNING invalid -orient value "
+                    << argv[argi]
+                    << OpenSees::SignalMessageEnd;
             delete[] theMats;
             return TCL_ERROR;
           } else {
@@ -253,9 +261,10 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
           }
         }
       }
-
       argi++;
-    } else if (strcmp(argv[argi], "-doRayleigh") == 0) {
+    }
+
+    else if (strcmp(argv[argi], "-doRayleigh") == 0) {
       doRayleighDamping = 1;
       argi++;
       if (argi < argc)
@@ -271,9 +280,7 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
         // read the material tag
         if (Tcl_GetInt(interp, argv[argi], &matID) != TCL_OK) {
           opserr << "WARNING invalid matID " << argv[argi]
-                 << " - element ZeroLength eleTag? iNode? jNode? "
-                 << "-mat matID1? ... -dir dirMat1? .. "
-                 << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+                 << OpenSees::SignalMessageEnd;
           delete[] theMats;
           return TCL_ERROR;
         } else {
@@ -284,7 +291,6 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, int argc,
           }
           theDampMats[i] = theMat;
         }
-
         argi++;
       }
 
@@ -1004,12 +1010,12 @@ TclCommand_addZeroLengthRocking(ClientData clientData, Tcl_Interp *interp,
     } else if (strcmp(argv[argi], "-xi") == 0) {
       if (argc < (argi + 2)) {
         opserr << "WARNING not enough parameters after -xi flag for ele "
-               << eleTag << endln;
+               << eleTag << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       } else {
         argi++;
         if (Tcl_GetDouble(interp, argv[argi], &xi) != TCL_OK) {
-          opserr << "WARNING invalid -xi value for ele  " << eleTag << endln;
+          opserr << "WARNING invalid -xi value for ele  " << eleTag << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         } else
           argi++;
@@ -1018,12 +1024,12 @@ TclCommand_addZeroLengthRocking(ClientData clientData, Tcl_Interp *interp,
     } else if (strcmp(argv[argi], "-dTol") == 0) {
       if (argc < (argi + 2)) {
         opserr << "WARNING not enough parameters after -dTol flag for ele "
-               << eleTag << endln;
+               << eleTag << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       } else {
         argi++;
         if (Tcl_GetDouble(interp, argv[argi], &dTol) != TCL_OK) {
-          opserr << "WARNING invalid -dTol value for ele  " << eleTag << endln;
+          opserr << "WARNING invalid -dTol value for ele  " << eleTag << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         } else
           argi++;
@@ -1032,12 +1038,12 @@ TclCommand_addZeroLengthRocking(ClientData clientData, Tcl_Interp *interp,
     } else if (strcmp(argv[argi], "-vTol") == 0) {
       if (argc < (argi + 2)) {
         opserr << "WARNING not enough parameters after -vTol flag for ele "
-               << eleTag << endln;
+               << eleTag << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       } else {
         argi++;
         if (Tcl_GetDouble(interp, argv[argi], &vTol) != TCL_OK) {
-          opserr << "WARNING invalid -vTol value for ele  " << eleTag << endln;
+          opserr << "WARNING invalid -vTol value for ele  " << eleTag << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         } else
           argi++;

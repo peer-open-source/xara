@@ -32,7 +32,7 @@
 // and MP_Constraints that have been added to the subdomain.
 //
 // What: "@(#) Subdomain.C, revA"
-
+#include <logging/Logging.h>
 #include <Subdomain.h>
 #include <stdlib.h>
 
@@ -578,7 +578,7 @@ Subdomain::commitState(void)
 }
 
 const Matrix &
-Subdomain::getTangentStiff(void)
+Subdomain::getTangentStiff()
 {
     opserr << "Subdomain::getTangentStiff(void)";
     opserr << "DOES NOT DO ANYTHING";
@@ -586,23 +586,23 @@ Subdomain::getTangentStiff(void)
 }
 
 const Matrix &
-Subdomain::getInitialStiff(void)
+Subdomain::getInitialStiff()
 {
-    opserr << "Subdomain::getSecantStiff(void)";
-    opserr << "DOES NOT DO ANYTHING";
-    return badResult;
+  opserr << "Subdomain::getSecantStiff(void)";
+  opserr << "DOES NOT DO ANYTHING";
+  return badResult;
 }
 
 const Matrix &
-Subdomain::getDamp(void)
+Subdomain::getDamp()
 {
-    opserr << "Subdomain::getDamp(void)";
-    opserr << "DOES NOT DO ANYTHING";    
-    return badResult;
+  opserr << "Subdomain::getDamp(void)";
+  opserr << "DOES NOT DO ANYTHING";    
+  return badResult;
 }
 
 const Matrix &
-Subdomain::getMass(void)
+Subdomain::getMass()
 {
     opserr << "Subdomain::getMass(void)";
     opserr << "DOES NOT DO ANYTHING";    
@@ -613,17 +613,17 @@ Subdomain::getMass(void)
 
 
 void  
-Subdomain::zeroLoad(void)
+Subdomain::zeroLoad()
 {
-    opserr << "Subdomain::zeroLoad() - should not be called\n";
+  opserr << "Subdomain::zeroLoad() - should not be called\n";
 }
 
 
 int	  
 Subdomain::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-    opserr << "Subdomain::addLoad() - should not be called\n";
-    return 0;
+  opserr << "Subdomain::addLoad() - should not be called\n";
+  return 0;
 }
 
 int	  
@@ -762,33 +762,33 @@ Subdomain::getFE_ElementPtr(void)
 
 
 const Vector &
-Subdomain::getLastExternalSysResponse(void)
+Subdomain::getLastExternalSysResponse()
 {
-    if (theFEele == 0) {
-	opserr << "FATAL ERROR: Subdomain::getLastExternalSysResponse() :";
-	opserr << " - no FE_Element *exists for a subdomain\n";
-	opserr << " This is the responsibilty of the FE_ELement constructor\n";
-	exit(0);
-    }
+  if (theFEele == 0) {
+    opserr << "FATAL ERROR: Subdomain::getLastExternalSysResponse() :";
+    opserr << " - no FE_Element *exists for a subdomain\n";
+    opserr << " This is the responsibilty of the FE_ELement constructor\n";
+    exit(0);
+  }
 
-    // get the response from the FE_ele for the nodal
-    // quantities - WARNING this is expressed in global dof
+  // get the response from the FE_ele for the nodal
+  // quantities - WARNING this is expressed in global dof
 
-    if (mapBuilt == false)
-      this->buildMap();
+  if (mapBuilt == false)
+    this->buildMap();
 
-    ID &theMap = *map;
-    const Vector &localResponse = theFEele->getLastResponse();
-    int numDOF = this->getNumDOF();
-    for (int i=0; i<numDOF; i++)
-      (*mappedVect)(theMap(i)) = localResponse(i);
+  ID &theMap = *map;
+  const Vector &localResponse = theFEele->getLastResponse();
+  int numDOF = this->getNumDOF();
+  for (int i=0; i<numDOF; i++)
+    (*mappedVect)(theMap(i)) = localResponse(i);
 
-    return *mappedVect;
+  return *mappedVect;
 }
     
 
 int 
-Subdomain::computeNodalResponse(void)
+Subdomain::computeNodalResponse()
 {
     int res =0;
     if (theAnalysis != 0) {
@@ -806,7 +806,7 @@ Subdomain::computeNodalResponse(void)
 int 
 Subdomain::analysisStep(double dT)
 {
-  if (theAnalysis != 0)
+  if (theAnalysis != nullptr)
     return theAnalysis->analysisStep(dT);
 
   return 0;
@@ -823,9 +823,9 @@ Subdomain::eigenAnalysis(int numMode, bool generalized, bool findSmallest)
 
 
 bool
-Subdomain::doesIndependentAnalysis(void)
+Subdomain::doesIndependentAnalysis()
 {
-  if (theAnalysis != 0)
+  if (theAnalysis != nullptr)
     return theAnalysis->doesIndependentAnalysis();
   else
     return true;
@@ -837,16 +837,15 @@ Subdomain::sendSelf(int cTag, Channel &theChannel)
 {
     int dataTag = this->getDbTag();
     if (theAnalysis != 0) {
-	ID data(2);
-	data(0) = theAnalysis->getClassTag();
-	data(1) = 0;
-	theChannel.sendID(dataTag, cTag, data);
-        
-	return theAnalysis->sendSelf(cTag, theChannel);
+      ID data(2);
+      data(0) = theAnalysis->getClassTag();
+      data(1) = 0;
+      theChannel.sendID(dataTag, cTag, data);
+            
+      return theAnalysis->sendSelf(cTag, theChannel);
     }
     else {
-	opserr << "Subdomain::sendSelf - no analysis set\n";
-    
+      opserr << "Subdomain::sendSelf - no analysis set\n";
     }
     return -1;
 }
@@ -855,75 +854,75 @@ int
 Subdomain::recvSelf(int cTag, Channel &theChannel, 
 		    FEM_ObjectBroker &theBroker)
 {
-    int dataTag = this->getDbTag();
-    ID data(2);
-    theChannel.recvID(dataTag, cTag, data);
-    if (data(1) == 0) {
-      theAnalysis = theBroker.getNewDomainDecompAnalysis(data(0),*this);
-      if (theAnalysis != 0)
-	return theAnalysis->recvSelf(cTag, theChannel,theBroker);
-    }
-    return -1;
+  int dataTag = this->getDbTag();
+  ID data(2);
+  theChannel.recvID(dataTag, cTag, data);
+  if (data(1) == 0) {
+    theAnalysis = theBroker.getNewDomainDecompAnalysis(data(0),*this);
+    if (theAnalysis != 0)
+      return theAnalysis->recvSelf(cTag, theChannel,theBroker);
+  }
+  return -1;
 }
 
 double    
-Subdomain::getCost(void) 
+Subdomain::getCost() 
 {
-    double lastRealCost = realCost;
+  double lastRealCost = realCost;
 
-    realCost = 0.0;
-    cpuCost = 0.0;
-    pageCost = 0;
+  realCost = 0.0;
+  cpuCost = 0.0;
+  pageCost = 0;
 
-    return lastRealCost;
+  return lastRealCost;
 }
 
 
 int
-Subdomain::buildMap(void)
+Subdomain::buildMap()
 {
   if (mapBuilt == false) {
 	// determine the mapping between local dof and subdomain ana dof
-        int numDOF = this->getNumDOF();
-	if (map == 0) 
-	  map = new ID(numDOF);
-	if (map->Size() != numDOF) {
-	  delete map;
-	  map = new ID(numDOF);
-	}
+    int numDOF = this->getNumDOF();
+    if (map == 0) 
+      map = new ID(numDOF);
+    if (map->Size() != numDOF) {
+      delete map;
+      map = new ID(numDOF);
+    }
 
-	//	int numExt = theAnalysis->getNumExternalEqn();
-	int numInt = theAnalysis->getNumInternalEqn();
+    //	int numExt = theAnalysis->getNumExternalEqn();
+    int numInt = theAnalysis->getNumInternalEqn();
 
-	const ID &theExtNodes = this->getExternalNodes();
-	int numExtNodes = theExtNodes.Size();
-	int locInMap =0;
-	for (int i=0; i<numExtNodes; i++) {
-	  Node *nodePtr = this->getNode(theExtNodes(i));
-	  int numNodeDOF = nodePtr->getNumberDOF();
-	  DOF_Group *theDOF = nodePtr->getDOF_GroupPtr();
-	  const ID &theLocalID = theDOF->getID();
-	  for (int j=0; j<numNodeDOF; j++){
-	    int locInSubdomainExt = theLocalID(j)-numInt;
-	    (*map)(locInMap)=locInSubdomainExt;
-	    locInMap++;
-	  }
-	}
-	mapBuilt = true;
+    const ID &theExtNodes = this->getExternalNodes();
+    int numExtNodes = theExtNodes.Size();
+    int locInMap =0;
+    for (int i=0; i<numExtNodes; i++) {
+      Node *nodePtr = this->getNode(theExtNodes(i));
+      int numNodeDOF = nodePtr->getNumberDOF();
+      DOF_Group *theDOF = nodePtr->getDOF_GroupPtr();
+      const ID &theLocalID = theDOF->getID();
+      for (int j=0; j<numNodeDOF; j++){
+        int locInSubdomainExt = theLocalID(j)-numInt;
+        (*map)(locInMap)=locInSubdomainExt;
+        locInMap++;
+      }
+    }
+    mapBuilt = true;
 
-	if (mappedVect == 0) 
-	  mappedVect = new Vector(numDOF);
-	if (mappedVect->Size() != numDOF) {
-	  delete mappedVect;
-	  mappedVect = new Vector(numDOF);
-	}
+    if (mappedVect == 0) 
+      mappedVect = new Vector(numDOF);
+    if (mappedVect->Size() != numDOF) {
+      delete mappedVect;
+      mappedVect = new Vector(numDOF);
+    }
 
-	if (mappedMatrix == 0) 
-	  mappedMatrix = new Matrix(numDOF,numDOF);
-	if (mappedMatrix->noRows() != numDOF) {
-	  delete mappedMatrix;
-	  mappedMatrix = new Matrix(numDOF,numDOF);
-	}
+    if (mappedMatrix == 0) 
+      mappedMatrix = new Matrix(numDOF,numDOF);
+    if (mappedMatrix->noRows() != numDOF) {
+      delete mappedMatrix;
+      mappedMatrix = new Matrix(numDOF,numDOF);
+    }
   }
   
   return 0;

@@ -95,15 +95,6 @@ PartitionedDomain::PartitionedDomain()
 
   mainEleIter = new SingleDomEleIter(elements);
   theEleIter  = new PartitionedDomainEleIter(this);
-
-  if (theSubdomains == 0 || elements == 0 ||
-      theSubdomainIter == 0 ||
-      theEleIter == 0 || mainEleIter == 0) {
-
-    opserr << "FATAL: PartitionedDomain::PartitionedDomain ";
-    opserr << "  - ran out of memory\n";
-    exit(-1);
-  }
 }
 
 
@@ -118,15 +109,6 @@ PartitionedDomain::PartitionedDomain(DomainPartitioner &thePartitioner)
 
   mainEleIter = new SingleDomEleIter(elements);
   theEleIter = new PartitionedDomainEleIter(this);
-
-  if (theSubdomains == 0 || elements == 0 ||
-      theSubdomainIter == 0 || theDomainPartitioner == 0 ||
-      theEleIter == 0 || mainEleIter == 0) {
-
-    opserr << "FATAL: PartitionedDomain::PartitionedDomain ";
-    opserr << "  - ran out of memory\n";
-    exit(-1);
-  }
 }
 
 
@@ -200,31 +182,6 @@ PartitionedDomain::addElement(Element *elePtr)
     return this->addSubdomain((Subdomain *)elePtr);
 
   int eleTag = elePtr->getTag();
-#ifdef _DEBUG
-
-  // check ele Tag >= 0
-  if (eleTag < 0) {
-    opserr << "PartitionedDomain::addElement - Element " << eleTag;
-    opserr << " tag must be >= 0\n";
-    return false;
-  }
-
-  // check its not in this or any of the subdomains
-  // MISSING CODE
-
-  // check all the elements nodes exist in the domain
-  const ID &nodes = elePtr->getExternalNodes();
-  for (int i = 0; i < nodes.Size(); i++) {
-    int nodeTag = nodes(i);
-    Node *nodePtr = this->getNode(nodeTag);
-    if (nodePtr == 0) {
-      opserr << "PartitionedDomain::addElement - In element " << eleTag;
-      opserr << " no node " << nodeTag << " exists in the domain\n";
-      return false;
-    }
-  }
-
-#endif
 
   TaggedObject *other = elements->getComponentPtr(eleTag);
   if (other != 0)
@@ -246,9 +203,6 @@ PartitionedDomain::addElement(Element *elePtr)
 bool
 PartitionedDomain::addNode(Node *nodePtr)
 {
-#ifdef _DEBUG
-
-#endif
   return (this->Domain::addNode(nodePtr));
 }
 
@@ -262,11 +216,11 @@ PartitionedDomain::addSP_Constraint(SP_Constraint *load)
 
   if (!has_sent_yet)
   {
-      Node *nodePtr = this->getNode(nodeTag);
-      if (nodePtr != 0) {
-        return this->Domain::addSP_Constraint(load);
-      } else 
-        return false;
+    Node *nodePtr = this->getNode(nodeTag);
+    if (nodePtr != 0) {
+      return this->Domain::addSP_Constraint(load);
+    } else 
+      return false;
   }
 
   // check the Node exists in the Domain or one of Subdomains

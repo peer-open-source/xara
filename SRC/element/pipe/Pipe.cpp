@@ -200,8 +200,7 @@ int Pipe::getNumDOF() { return 12; }
 void Pipe::setDomain(Domain *theDomain) {
     // check domain
     if (theDomain == 0) {
-        opserr << "Pipe::setDomain -- Domain is null\n";
-        exit(-1);
+        return;
     }
 
     int ndm = OPS_GetNDM();
@@ -247,7 +246,8 @@ void Pipe::setDomain(Domain *theDomain) {
     }
 
     // copy domain
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // create transf
     const auto &crdsI = theNodes[0]->getCrds();

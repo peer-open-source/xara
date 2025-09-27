@@ -20,7 +20,6 @@
 #include <Mehanny.h>
 #include <ParkAng.h>
 #include <HystereticEnergy.h>
-#include <tcl.h>
 
 #include <Vector.h>
 #include <string.h>

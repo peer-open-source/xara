@@ -26,13 +26,11 @@
 
 
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 
 #include <GaussQuadRule1d.h>
 
-#include <OPS_Globals.h>
 
 #include <Matrix.h>
 #include <Vector.h>
@@ -51,7 +49,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>

@@ -52,7 +52,7 @@ public:
   virtual ~DomainComponent();
 
   virtual void setDomain(Domain *);
-  virtual Domain *getDomain() const final;
+  Domain *getDomain() const;
 
 
 protected:

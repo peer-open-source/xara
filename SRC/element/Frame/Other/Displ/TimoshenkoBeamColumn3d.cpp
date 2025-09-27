@@ -316,7 +316,8 @@ TimoshenkoBeamColumn3d::setDomain(Domain *theDomain)
         phiys[i] = 12*EI/(GA*L*L);      
     }
     
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     this->update();
 }

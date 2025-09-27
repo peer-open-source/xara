@@ -33,6 +33,7 @@
 #include "DataOutputDatabaseHandler.h"
 #include <FE_Datastore.h>
 #include <Vector.h>
+#include <Logging.h>
 
 DataOutputDatabaseHandler::DataOutputDatabaseHandler(FE_Datastore *database, const char *tName)
   :DataOutputHandler(DATAHANDLER_TAGS_DataOutputDatabaseHandler),
@@ -107,23 +108,10 @@ DataOutputDatabaseHandler::open(char **dataDescription, int numData)
   //
 
   columns = new char *[numColumns];
-  if (columns == 0) {
-    opserr << "DataOutputDatabaseHandler::open() - out of memory creating array for columns of size (" << numData << ") < 0\n";
-    numColumns = 0;
-    return -1;
-  } 
 
   // make copy
   for (int i=0; i<numColumns; i++) {
     columns[i] = new char[strlen(dataDescription[i])+1];
-    if (columns[i] == 0) {
-      opserr << "DataOutputDatabaseHandler::open() - out of memory creating copy of string " << dataDescription[i] << endln;
-      for (int j=0; j<i; j++)
-	delete [] columns[j];
-      delete [] columns;
-      numColumns = 0;
-      return -1;
-    }
     strcpy(columns[i], dataDescription[i]);
   }
 

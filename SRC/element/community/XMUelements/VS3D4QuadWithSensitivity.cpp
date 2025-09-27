@@ -187,7 +187,8 @@ VS3D4QuadWithSensitivity::setDomain (Domain *theDomain)
       }
     }
     
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
   }
 }
 
@@ -365,10 +366,6 @@ void VS3D4QuadWithSensitivity::Print(OPS_Stream &s, int flag)
   } 
   else {
     s << "VS3D4QuadWithSensitivity, element id:  " << this->getTag() << endln;
-    s << "Connected external nodes:  " << connectedExternalNodes;
-    for(int i = 0; i < NIP; i++) {
-      theNodes[i]->Print(s);
-    }
   }
 }
 
@@ -759,11 +756,6 @@ VS3D4QuadWithSensitivity::computeHH(void)
     
     for(int i = 0; i < NIP; i++) {
       HH[i] = new Matrix(NEN, NEN);
-      if (HH[i] == 0) {
-        opserr << "VS3D4QuadWithSensitivity::computeHH - out of memory!\n";
-        return -3;
-      }
-      
       HH[i]->addMatrixTransposeProduct(0.0, *H[i], *H[i], 1.0);
     }
   }

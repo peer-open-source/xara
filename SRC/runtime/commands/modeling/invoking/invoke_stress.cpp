@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <tcl.h>
+#include <Parsing.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <NDMaterial.h>

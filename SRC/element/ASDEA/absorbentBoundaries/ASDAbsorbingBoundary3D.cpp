@@ -682,15 +682,17 @@ ASDAbsorbingBoundary3D::~ASDAbsorbingBoundary3D()
         delete m_tsz;
 }
 
-const char* ASDAbsorbingBoundary3D::getClassType(void) const
+const char*
+ASDAbsorbingBoundary3D::getClassType() const
 {
     return "ASDAbsorbingBoundary3D";
 }
 
-void ASDAbsorbingBoundary3D::setDomain(Domain* theDomain)
+void
+ASDAbsorbingBoundary3D::setDomain(Domain* theDomain)
 {
     // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
+    if (theDomain == nullptr) {
         for (std::size_t i = 0; i < m_nodes.size(); ++i)
             m_nodes[i] = nullptr;
         return;
@@ -832,7 +834,8 @@ void ASDAbsorbingBoundary3D::setDomain(Domain* theDomain)
     }
 
     // call base class implementation
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 void ASDAbsorbingBoundary3D::Print(OPS_Stream& s, int flag)
@@ -842,7 +845,7 @@ void ASDAbsorbingBoundary3D::Print(OPS_Stream& s, int flag)
         s << "EL_ASDAbsorbingBoundary3D\t" << eleTag << " :";
         for (int i = 0; i < m_node_ids.Size(); ++i)
             s << "\t" << m_node_ids(i);
-        s << endln;
+        s << "\n";
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {

@@ -80,10 +80,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ContactMaterial2DMaterial)
 
   theMaterial = new ContactMaterial2D(tag, dData[0], dData[1], dData[2], dData[3]);
 
-  if (theMaterial == 0) {
-    opserr << "WARNING ran out of memory for nDMaterial ContactMaterial2D material  with tag: " << tag << endln;
-  }
-
   return theMaterial;
 }
 

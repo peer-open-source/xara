@@ -38,7 +38,7 @@
 #include <Node.h>
 #include <Domain.h>
 
-Element  *ops_TheActiveElement = 0;
+Element  *ops_TheActiveElement = nullptr;
 
 Matrix **Element::theMatrices; 
 Vector **Element::theVectors1; 
@@ -50,12 +50,11 @@ int  Element::numMatrices(0);
 //        of external nodes for the element.
 
 Element::Element(int tag, int cTag) 
-  :DomainComponent(tag, cTag), alphaM(0.0), 
-  betaK(0.0), betaK0(0.0), betaKc(0.0), 
-      Kc(0), previousK(0), numPreviousK(0), index(-1), nodeIndex(-1)
-      /* is_this_element_active(true) */
+  : TaggedObject(tag), MovableObject(cTag)
+  , alphaM(0.0), betaK(0.0), betaK0(0.0), betaKc(0.0)
+  , domain(nullptr)
+  , Kc(0), previousK(0), numPreviousK(0), index(-1), nodeIndex(-1)
 {
-  // does nothing
   ops_TheActiveElement = this;
 }
 
@@ -72,7 +71,7 @@ Element::~Element()
 }
 
 int
-Element::commitState(void)
+Element::commitState()
 {
   if (Kc != 0)
     *Kc = this->getTangentStiff();
@@ -81,20 +80,20 @@ Element::commitState(void)
 }
 
 int
-Element::update(void)
+Element::update()
 {
-    return 0;
+  return 0;
 }
 
 int
-Element::revertToStart(void)
+Element::revertToStart()
 {
   return 0;
 }
 
 
 void 
-Element::zeroLoad(void)
+Element::zeroLoad()
 {
 
 }
@@ -169,10 +168,10 @@ Element::setRayleighDampingFactors(double alpham, double betak, double betak0, d
     if (Kc == nullptr) 
       Kc = new Matrix(this->getTangentStiff());
 
-    // if don't need storage for Kc & have allocated some for it, free the memory
+  // if don't need storage for Kc & have allocated some for it, free the memory
   } else if (Kc != 0) { 
-      delete Kc;
-      Kc = 0;
+    delete Kc;
+    Kc = 0;
   }
 
   return 0;
@@ -202,7 +201,7 @@ Element::getDamp()
 }
 
 const Matrix &
-Element::getMass(void)
+Element::getMass()
 {
   if (index  == -1) {
     this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
@@ -215,7 +214,7 @@ Element::getMass(void)
 }
 
 const Vector &
-Element::getResistingForceIncInertia(void) 
+Element::getResistingForceIncInertia() 
 {
   if (index == -1) {
     this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
@@ -240,7 +239,7 @@ Element::getResistingForceIncInertia(void)
   int numNodes = this->getNumExternalNodes();
 
   int i;
-  for (i=0; i<numNodes; i++) {
+  for (int i=0; i<numNodes; i++) {
     const Vector &acc = theNodes[i]->getAccel();
     for (int i=0; i<acc.Size(); i++) {
       (*theVector2)(loc++) = acc(i);
@@ -255,7 +254,7 @@ Element::getResistingForceIncInertia(void)
 
   // determine the vel vector from ele nodes
   loc = 0;
-  for (i=0; i<numNodes; i++) {
+  for (int i=0; i<numNodes; i++) {
     const Vector &vel = theNodes[i]->getTrialVel();
     for (int i=0; i<vel.Size(); i++) {
       (*theVector2)(loc++) = vel[i];
@@ -726,17 +725,4 @@ Element::getPreviousK(int num) {
     return previousK[num];
   else
     return 0;
-}
-
-const Matrix &
-Element::getGeometricTangentStiff()
-{
-  if (index == -1) {
-    this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
-  }
-  
-  Matrix *theMatrix = theMatrices[index];
-  theMatrix->Zero();
-  
-  return *theMatrix;
 }

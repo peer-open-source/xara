@@ -282,7 +282,8 @@ Brick8FiberOverlay::setDomain(Domain *theDomain)
 	 A.Normalize();
 	 AA(0) = A(0)*A(0); AA(1) = A(1)*A(1); AA(2) = A(2)*A(2);
 	 AA(3) = A(0)*A(1); AA(4) = A(2)*A(1); AA(5) = A(0)*A(2);
-	 this->DomainComponent::setDomain(theDomain);
+	 if (theDomain != nullptr)
+	   this->Element::link(*theDomain);
  }
 
 

@@ -20,6 +20,8 @@
 //
 // PY Springs: RWBoulanger and BJeremic
 //
+#include <Logging.h>
+#include <Parsing.h>
 #include <Domain.h> // RWB for PyLiq1
 #include <PySimple1.h> // RWB
 #include <TzSimple1.h> // RWB
@@ -36,7 +38,6 @@
 
 #include <ModelRegistry.h>
 #include <runtimeAPI.h>
-#include <tcl.h>
 
 #include <Vector.h>
 #include <string.h>
@@ -73,7 +74,7 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: uniaxialMaterial PySimple1 tag? soilType? pult? y50? "
                 "drag? dashpot? "
-             << endln;
+             << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -81,31 +82,27 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
     double pult, y50, drag, dashpot;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial PySimple1 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial PySimple1 tag" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetInt(interp, argv[3], &soilType) != TCL_OK) {
       opserr << "WARNING invalid soilType\n";
-      opserr << "uniaxialMaterial PySimple1: " << tag << endln;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &pult) != TCL_OK) {
       opserr << "WARNING invalid pult\n";
-      opserr << "uniaxialMaterial PySimple1: " << tag << endln;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &y50) != TCL_OK) {
       opserr << "WARNING invalid y50\n";
-      opserr << "uniaxialMaterial PySimple1: " << tag << endln;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &drag) != TCL_OK) {
       opserr << "WARNING invalid drag\n";
-      opserr << "uniaxialMaterial PySimple1: " << tag << endln;
       return 0;
     }
 
@@ -114,8 +111,7 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (argc > 7) {
       if (Tcl_GetDouble(interp, argv[7], &dashpot) != TCL_OK) {
-        opserr << "WARNING invalid dashpot\n";
-        opserr << "uniaxialMaterial PySimple1: " << tag << endln;
+        opserr << "WARNING invalid dashpot" << OpenSees::SignalMessageEnd;
         return 0;
       }
     }
@@ -138,10 +134,10 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: uniaxialMaterial PyLiq1 tag? soilType? pult? y50? drag? "
                 "dashpot? pRes? solidElem1? solidElem2?"
-             << endln;
+             << OpenSees::SignalMessageEnd;
       opserr << "or: uniaxialMaterial PyLiq1 tag? soilType? pult? y50? drag? "
                 "dashpot? pRes? -timeSeries seriesTag?"
-             << endln;
+             << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -151,55 +147,47 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
     solidElem2 = 0;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial PyLiq1 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial PyLiq1 tag" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetInt(interp, argv[3], &soilType) != TCL_OK) {
-      opserr << "WARNING invalid soilType\n";
-      opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
+      opserr << "WARNING invalid soilType" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &pult) != TCL_OK) {
-      opserr << "WARNING invalid pult\n";
-      opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
+      opserr << "WARNING invalid pult" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &y50) != TCL_OK) {
       opserr << "WARNING invalid y50\n";
-      opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &drag) != TCL_OK) {
       opserr << "WARNING invalid drag\n";
-      opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &dashpot) != TCL_OK) {
       opserr << "WARNING invalid dashpot\n";
-      opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &pRes) != TCL_OK) {
       opserr << "WARNING invalid pRes\n";
-      opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
       return 0;
     }
     if (strcmp(argv[9], "-timeSeries") != 0) {
       if (Tcl_GetInt(interp, argv[9], &solidElem1) != TCL_OK) {
-        opserr << "WARNING invalid solidElem\n";
-        opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
+        opserr << "WARNING invalid timeSeries\n";
         return 0;
       }
 
       if (Tcl_GetInt(interp, argv[10], &solidElem2) != TCL_OK) {
         opserr << "WARNING invalid solidElem\n";
-        opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
         return 0;
       }
 
@@ -210,7 +198,6 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
     } else {
       if (Tcl_GetInt(interp, argv[10], &seriesTag) != TCL_OK) {
         opserr << "WARNING time Series\n";
-        opserr << "uniaxialMaterial PyLiq1: " << tag << endln;
         return 0;
       }
 
@@ -231,7 +218,7 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: uniaxialMaterial QzSimple1 tag? QzType? Qult? z50? "
                 "suction? dashpot? "
-             << endln;
+             << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -239,25 +226,22 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
     double Qult, z50, suction, dashpot;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial QzSimple1 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial QzSimple1 tag" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetInt(interp, argv[3], &QzType) != TCL_OK) {
       opserr << "WARNING invalid QzType\n";
-      opserr << "uniaxialMaterial QzSimple1: " << tag << endln;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &Qult) != TCL_OK) {
-      opserr << "WARNING invalid Qult\n";
-      opserr << "uniaxialMaterial QzSimple1: " << tag << endln;
+      opserr << "WARNING invalid Qult" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &z50) != TCL_OK) {
-      opserr << "WARNING invalid z50\n";
-      opserr << "uniaxialMaterial QzSimple1: " << tag << endln;
+      opserr << "WARNING invalid z50" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -268,13 +252,11 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (argc > 6) {
       if (Tcl_GetDouble(interp, argv[6], &suction) != TCL_OK) {
-        opserr << "WARNING invalid suction\n";
-        opserr << "uniaxialMaterial QzSimple1: " << tag << endln;
+        opserr << "WARNING invalid suction" << OpenSees::SignalMessageEnd;
         return 0;
       }
       if (Tcl_GetDouble(interp, argv[7], &dashpot) != TCL_OK) {
-        opserr << "WARNING invalid dashpot\n";
-        opserr << "uniaxialMaterial QzSimple1: " << tag << endln;
+        opserr << "WARNING invalid dashpot" << OpenSees::SignalMessageEnd;
         return 0;
       }
     }
@@ -294,10 +276,10 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: uniaxialMaterial QzLiq1 tag? qzType? qult? z50? "
                 "suction? dashpot? alpha solidElem1? solidElem2?"
-             << endln;
+             << OpenSees::SignalMessageEnd;
       opserr << "or: uniaxialMaterial QzLiq1 tag? qzType? qult? z50? suction? "
                 "dashpot? alpha -timeSeries seriesTag?"
-             << endln;
+             << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -305,56 +287,48 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
     double qult, z50, suction, dashpot, alpha;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial QzLiq1 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial QzLiq1 tag" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetInt(interp, argv[3], &qzType) != TCL_OK) {
-      opserr << "WARNING invalid qzType\n";
-      opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+      opserr << "WARNING invalid qzType" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &qult) != TCL_OK) {
-      opserr << "WARNING invalid qult\n";
-      opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+      opserr << "WARNING invalid qult" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &z50) != TCL_OK) {
-      opserr << "WARNING invalid z50\n";
-      opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+      opserr << "WARNING invalid z50" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &suction) != TCL_OK) {
-      opserr << "WARNING invalid suction\n";
-      opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+      opserr << "WARNING invalid suction" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &dashpot) != TCL_OK) {
-      opserr << "WARNING invalid dashpot\n";
-      opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+      opserr << "WARNING invalid dashpot" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &alpha) != TCL_OK) {
-      opserr << "WARNING invalid alpha\n";
-      opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+      opserr << "WARNING invalid alpha" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (strcmp(argv[9], "-timeSeries") != 0) {
       if (Tcl_GetInt(interp, argv[9], &solidElem1) != TCL_OK) {
-        opserr << "WARNING invalid solidElem\n";
-        opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+        opserr << "WARNING invalid solidElem" << OpenSees::SignalMessageEnd;
         return 0;
       }
 
       if (Tcl_GetInt(interp, argv[10], &solidElem2) != TCL_OK) {
-        opserr << "WARNING invalid solidElem\n";
-        opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+        opserr << "WARNING invalid solidElem" << OpenSees::SignalMessageEnd;
         return 0;
       }
 
@@ -363,11 +337,13 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
                                solidElem1, solidElem2, theDomain);
     } else {
       if (Tcl_GetInt(interp, argv[10], &seriesTag) != TCL_OK) {
-        opserr << "WARNING time Series\n";
-        opserr << "uniaxialMaterial QzLiq1: " << tag << endln;
+        opserr << "WARNING time Series" << OpenSees::SignalMessageEnd;
         return 0;
       }
       theSeries = builder->getTypedObject<TimeSeries>(seriesTag);
+      if (theSeries == nullptr) {
+        return 0;
+      }
 
       // Parsing was successful, allocate the material
       theMaterial = new QzLiq1(tag, qzType, qult, z50, suction, dashpot, alpha,
@@ -385,7 +361,7 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: uniaxialMaterial TzSimple1 tag? tzType? tult? z50? "
                 "dashpot? "
-             << endln;
+             << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -393,25 +369,22 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
     double tult, z50, dashpot;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial TzSimple1 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial TzSimple1 tag" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetInt(interp, argv[3], &tzType) != TCL_OK) {
-      opserr << "WARNING invalid tzType\n";
-      opserr << "uniaxialMaterial TzSimple1: " << tag << endln;
+      opserr << "WARNING invalid tzType" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &tult) != TCL_OK) {
-      opserr << "WARNING invalid tult\n";
-      opserr << "uniaxialMaterial TzSimple1: " << tag << endln;
+      opserr << "WARNING invalid tult" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &z50) != TCL_OK) {
-      opserr << "WARNING invalid z50\n";
-      opserr << "uniaxialMaterial TzSimple1: " << tag << endln;
+      opserr << "WARNING invalid z50" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -420,8 +393,7 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
 
     if (argc > 6) {
       if (Tcl_GetDouble(interp, argv[6], &dashpot) != TCL_OK) {
-        opserr << "WARNING invalid dashpot\n";
-        opserr << "uniaxialMaterial TzSimple1: " << tag << endln;
+        opserr << "WARNING invalid dashpot" << OpenSees::SignalMessageEnd;
         return 0;
       }
     }
@@ -443,10 +415,10 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: uniaxialMaterial TzLiq1 tag? tzType? tult? z50? "
                 "dashpot? solidElem1? solidElem2?"
-             << endln;
+             << OpenSees::SignalMessageEnd;
       opserr << "or: uniaxialMaterial TzLiq1 tag? tzType? tult? z50? dashpot? "
                 "-timeSeries seriesTag?"
-             << endln;
+             << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -454,44 +426,38 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
     double tult, z50, dashpot;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial TzLiq1 tag" << endln;
+      opserr << "WARNING invalid uniaxialMaterial TzLiq1 tag" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetInt(interp, argv[3], &tzType) != TCL_OK) {
-      opserr << "WARNING invalid tzType\n";
-      opserr << "uniaxialMaterial TzLiq1: " << tag << endln;
+      opserr << "WARNING invalid tzType" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &tult) != TCL_OK) {
-      opserr << "WARNING invalid tult\n";
-      opserr << "uniaxialMaterial TzLiq1: " << tag << endln;
+      opserr << "WARNING invalid tult" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &z50) != TCL_OK) {
-      opserr << "WARNING invalid z50\n";
-      opserr << "uniaxialMaterial TzLiq1: " << tag << endln;
+      opserr << "WARNING invalid z50" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &dashpot) != TCL_OK) {
-      opserr << "WARNING invalid dashpot\n";
-      opserr << "uniaxialMaterial TzLiq1: " << tag << endln;
+      opserr << "WARNING invalid dashpot" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     if (strcmp(argv[7], "-timeSeries") != 0) {
       if (Tcl_GetInt(interp, argv[7], &solidElem1) != TCL_OK) {
-        opserr << "WARNING invalid solidElem\n";
-        opserr << "uniaxialMaterial TzLiq1: " << tag << endln;
+        opserr << "WARNING invalid solidElem" << OpenSees::SignalMessageEnd;
         return 0;
       }
 
       if (Tcl_GetInt(interp, argv[8], &solidElem2) != TCL_OK) {
-        opserr << "WARNING invalid solidElem\n";
-        opserr << "uniaxialMaterial TzLiq1: " << tag << endln;
+        opserr << "WARNING invalid solidElem2" << OpenSees::SignalMessageEnd;
         return 0;
       }
 
@@ -500,8 +466,7 @@ TclBasicBuilder_addPyTzQzMaterial(ClientData clientData, Tcl_Interp *interp,
                                solidElem1, solidElem2, theDomain);
     } else {
       if (Tcl_GetInt(interp, argv[8], &seriesTag) != TCL_OK) {
-        opserr << "WARNING time Series\n";
-        opserr << "uniaxialMaterial TzLiq1: " << tag << endln;
+        opserr << "WARNING invalid time Series tag" << OpenSees::SignalMessageEnd;
         return 0;
       }
       theSeries = builder->getTypedObject<TimeSeries>(seriesTag);

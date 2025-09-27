@@ -37,7 +37,7 @@
 // Created: Feb 2000
 // Revision: A
 //
-#include <Vector.h> // TODO: remove this include
+#include <cassert>
 #include <TaggedObject.h>
 #include <MovableObject.h>
 
@@ -54,13 +54,11 @@ class NDMaterial : public TaggedObject, public MovableObject
     NDMaterial();
     virtual ~NDMaterial();
 
-    // methods to set state and retrieve state using Matrix and Vector classes
+    // methods to set state and retrieve state
     virtual double getRho();
 
-    virtual int setTrialStrain(const Vector &v);
-    virtual int setTrialStrain(const Vector &v, const Vector &r);
-    virtual int setTrialStrainIncr(const Vector &v);
-    virtual int setTrialStrainIncr(const Vector &v, const Vector &r);
+    virtual int setTrialStrain(const Vector &) =0;
+    virtual int setTrialStrainIncr(const Vector &);
     virtual const Matrix &getTangent();
     virtual const Matrix &getInitialTangent() {return this->getTangent();}
 
@@ -74,6 +72,9 @@ class NDMaterial : public TaggedObject, public MovableObject
     virtual const Vector &getStrain();
 
     virtual int commitState() = 0;
+
+    // Revert the stress/strain states to the last committed states.
+    // Return 0 on success.
     virtual int revertToLastCommit() = 0;
     virtual int revertToStart() = 0;
 
@@ -83,8 +84,8 @@ class NDMaterial : public TaggedObject, public MovableObject
     virtual const char *getType() const = 0;
     virtual int getOrder() const {return 0;};  //??
 
-    virtual Response *setResponse (const char **argv, int argc, OPS_Stream &s);
-    virtual int getResponse (int responseID, Information &matInformation);
+    virtual Response *setResponse (const char **argv, int argc, OPS_Stream &);
+    virtual int getResponse (int responseID, Information &);
 
     // Sensitivity
     virtual const Vector & getStressSensitivity         (int gradIndex, bool conditional);
@@ -95,13 +96,9 @@ class NDMaterial : public TaggedObject, public MovableObject
     virtual double         getRhoSensitivity            (int gradIndex);
     virtual int            commitSensitivity            (const Vector & strainGradient, int gradIndex, int numGrads);
 
-
-  protected:
-
   private:
     static Matrix errMatrix;
     static Vector errVector;
-
 };
 
 #endif

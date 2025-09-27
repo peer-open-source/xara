@@ -157,7 +157,8 @@ beam3d02::setDomain(Domain *theDomain)
   }
   
   // call the base class method
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   const Vector &end1Crd = end1Ptr->getCrds();
   const Vector &end2Crd = end2Ptr->getCrds();	

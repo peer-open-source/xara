@@ -326,9 +326,9 @@ LoadPattern::applyLoad(double pseudoTime)
     sp->applyConstraint(loadFactor);
 }
 
-void LoadPattern::setLoadConstant(void) { isConstant = true; }
+void LoadPattern::setLoadConstant() { isConstant = true; }
 
-void LoadPattern::unsetLoadConstant(void) { isConstant = false; }
+void LoadPattern::unsetLoadConstant() { isConstant = false; }
 
 double
 LoadPattern::getLoadFactor()

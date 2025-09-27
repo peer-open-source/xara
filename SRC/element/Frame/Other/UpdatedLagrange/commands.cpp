@@ -4,12 +4,16 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdlib.h>
 #include <string.h>
-#include <OPS_Stream.h>
-#include <Logging.h>
-#include <Parsing.h>
+
+#include <Domain.h>
+#include <Node.h>
+#include <Matrix.h>
+
+#include <Elastic2DGNL.h>
 
 #include <Domain.h>
 #include <Node.h>
@@ -132,16 +136,6 @@ TclCommand_addCyclicModel(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
 }
 
-#include <tcl.h>
-#include <stdlib.h>
-#include <string.h>
-#include <OPS_Stream.h>
-
-#include <Domain.h>
-#include <Node.h>
-#include <Matrix.h>
-
-#include <Elastic2DGNL.h>
 
 
 #define tcl_debug 0

@@ -256,7 +256,8 @@ AC3D8HexWithSensitivity::setDomain (Domain *theDomain)
       }
     }
     
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
   }
 }
 
@@ -498,10 +499,6 @@ void AC3D8HexWithSensitivity::Print(OPS_Stream &s, int flag)
   } 
   else {
     s << "AC3D8HexWithSensitivity, element id:  " << this->getTag() << endln;
-    s << "Connected external nodes:  " << connectedExternalNodes;
-    for(int i = 0; i < NIP; i++) {
-      theNodes[i]->Print(s);
-    }
   }
 }
 
@@ -1034,12 +1031,7 @@ AC3D8HexWithSensitivity::computeHH(void)
     this->computeH();
     
     for(int i = 0; i < NIP; i++) {
-      HH[i] = new Matrix(NEN, NEN);
-      if (HH[i] == 0) {
-        opserr << "AC3D8HexWithSensitivity::computeHH - out of memory!\n";
-        return -3;
-      }
-      
+      HH[i] = new Matrix(NEN, NEN);      
       HH[i]->addMatrixTransposeProduct(0.0, *H[i], *H[i], 1.0);
     }
   }
@@ -1049,15 +1041,11 @@ AC3D8HexWithSensitivity::computeHH(void)
 }
 
 int
-AC3D8HexWithSensitivity::computeDiff(void)
+AC3D8HexWithSensitivity::computeDiff()
 {
   if (L == 0 || detJ == 0) {
     L = new Matrix*[NIP];
     detJ = new double[NIP];
-    if (L == 0 || detJ == 0) {
-      opserr << "AC3D8HexWithSensitivity::computeDiff - out of memory!\n";
-      return -3;
-    }
     
     Matrix Jacobian(3,3);
     
@@ -1066,10 +1054,6 @@ AC3D8HexWithSensitivity::computeDiff(void)
     
     for(int i = 0; i < NIP; i++) {
       L[i] = new Matrix(3, NEN);
-      if(L[i] == 0) {
-        opserr << "AC3D8HexWithSensitivity::computDiff() - out of memory!\n";
-        return -3;
-      }
       
       Matrix &dh = *DH[i];
       Jacobian = dh*NC;

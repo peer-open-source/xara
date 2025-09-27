@@ -347,9 +347,7 @@ FileDatastore::sendID(int dataTag, int commitTag,
   
   // update the size of file if we have added to eof
   if (fileEnd <= pos) 
-    theFileStruct->fileEnd = pos + stepSize; 
-  
-  //opserr << "WROTE: " << dataTag << " " << pos << endln;
+    theFileStruct->fileEnd = pos + stepSize;
   
   return 0;
 }		       
@@ -381,8 +379,8 @@ FileDatastore::recvID(int dataTag, int commitTag,
     // we first check if we need to resize recv buffer
     if (idSize > currentMaxInt) {
       if (this->resizeInt(idSize) < 0) {
-	opserr << "FileDatastore::recvID() - failed in resizeInt()\n";
-	return -1;
+        opserr << "FileDatastore::recvID() - failed in resizeInt()\n";
+        return -1;
       }
     }
 
@@ -416,10 +414,10 @@ FileDatastore::recvID(int dataTag, int commitTag,
     if (theFileStruct->theFile == 0) {
 
       if (idSize > currentMaxInt) {
-	if (this->resizeInt(idSize) < 0) {
-	  opserr << "FileDatastore::recvID() - failed in resizeInt()\n";
-	  return -1;
-	}
+        if (this->resizeInt(idSize) < 0) {
+          opserr << "FileDatastore::recvID() - failed in resizeInt()\n";
+          return -1;
+        }
       }
       char *fileName = new char[strlen(dataBase)+21];
       static char intName[20];
@@ -429,9 +427,9 @@ FileDatastore::recvID(int dataTag, int commitTag,
       strcat(fileName,intName);
       
       if (this->openFile(fileName, theFileStruct, stepSize) < 0) {
-	opserr << "FileDatastore::recvID() - could not open file\n";
-	delete [] fileName;
-	return -1;
+        opserr << "FileDatastore::recvID() - could not open file\n";
+        delete [] fileName;
+        return -1;
       }
       delete [] fileName;
     } 
@@ -464,9 +462,9 @@ FileDatastore::recvID(int dataTag, int commitTag,
     while ((pos < fileEnd) && (found == false)) {
       theStream->read(data, stepSize);
       if (*(theIntData.dbTag) == dataTag) 
-	found = true;
+        found = true;
       else 
-	pos += stepSize;
+        pos += stepSize;
     }
   }
 
@@ -474,8 +472,6 @@ FileDatastore::recvID(int dataTag, int commitTag,
     opserr << "FileDatastore::recvID() - failed\n";
     return -1;
   }
-
-  //opserr << "READ: " << dataTag << " " << pos << endln;
 
   // we now place the received data into the ID 
   for (int i=0; i<idSize; i++)
@@ -567,9 +563,9 @@ FileDatastore::sendMatrix(int dataTag, int commitTag,
       strcat(fileName,intName);
       
       if (this->openFile(fileName, theFileStruct, stepSize) < 0) {
-	opserr << "FileDatastore::sendMatrix() - could not open file\n";
-	delete [] fileName;
-	return -1;
+        opserr << "FileDatastore::sendMatrix() - could not open file\n";
+        delete [] fileName;
+        return -1;
       }
 
       delete [] fileName;
@@ -685,8 +681,8 @@ FileDatastore::recvMatrix(int dataTag, int commitTag,
     // we first check if we need to resize recv buffer
     if (matSize > currentMaxDouble) {
       if (this->resizeDouble(matSize) < 0) {
-	opserr << "FileDatastore::recvMatrix() - failed in resizeDouble()\n";
-	return -1;
+        opserr << "FileDatastore::recvMatrix() - failed in resizeDouble()\n";
+        return -1;
       }
     }
 
@@ -719,12 +715,11 @@ FileDatastore::recvMatrix(int dataTag, int commitTag,
 
     // make sure not close from a last commit
     if (theFileStruct->theFile == 0) {
-
       if (matSize > currentMaxDouble) {
-	if (this->resizeDouble(matSize) < 0) {
-	  opserr << "FileDatastore::recvMatrix() - failed in resizeInt()\n";
-	  return -1;
-	}
+        if (this->resizeDouble(matSize) < 0) {
+          opserr << "FileDatastore::recvMatrix() - failed in resizeInt()\n";
+          return -1;
+        }
       }
       char *fileName = new char[strlen(dataBase)+21];
       static char intName[20];
@@ -734,9 +729,9 @@ FileDatastore::recvMatrix(int dataTag, int commitTag,
       strcat(fileName,intName);
       
       if (this->openFile(fileName, theFileStruct, stepSize) < 0) {
-	opserr << "FileDatastore::recvMatrix() - could not open file\n";
-	delete [] fileName;
-	return -1;
+        opserr << "FileDatastore::recvMatrix() - could not open file\n";
+        delete [] fileName;
+        return -1;
       }
 
       delete [] fileName;
@@ -771,9 +766,9 @@ FileDatastore::recvMatrix(int dataTag, int commitTag,
     while ((pos < fileEnd) && (found == false)) {
       theStream->read(data, stepSize);
       if (*(theIntData.dbTag) == dataTag) 
-	found = true;
+        found = true;
       else 
-	pos += stepSize;
+        pos += stepSize;
     }
   }
 
@@ -823,18 +818,13 @@ FileDatastore::sendVector(int dataTag, int commitTag,
     // we first check if we need to resize send buffer
     if (vectSize > currentMaxDouble) {
       if (this->resizeDouble(vectSize) < 0) {
-	opserr << "FileDatastore::sendVector() - failed in resizeInt()\n";
-	return -1;
+        opserr << "FileDatastore::sendVector() - failed in resizeInt()\n";
+        return -1;
       }
     }
 
     char *fileName = new char[strlen(dataBase)+21];
     theFileStruct = new FileDatastoreOutputFile;
-
-    if (fileName == 0 || theFileStruct == 0) {
-      opserr << "FileDatastore::sendVector() - out of memory\n";
-      return -1;
-    }
 
     static char intName[20];
     strcpy(fileName, dataBase);
@@ -859,10 +849,10 @@ FileDatastore::sendVector(int dataTag, int commitTag,
     if (theFileStruct->theFile == 0) {
 
       if (vectSize > currentMaxDouble) {
-	if (this->resizeDouble(vectSize) < 0) {
-	  opserr << "FileDatastore::sendVector() - failed in resizeInt()\n";
-	  return -1;
-	}
+        if (this->resizeDouble(vectSize) < 0) {
+          opserr << "FileDatastore::sendVector() - failed in resizeInt()\n";
+          return -1;
+        }
       }
       char *fileName = new char[strlen(dataBase)+21];
       static char intName[20];
@@ -872,9 +862,9 @@ FileDatastore::sendVector(int dataTag, int commitTag,
       strcat(fileName,intName);
       
       if (this->openFile(fileName, theFileStruct, stepSize) < 0) {
-	opserr << "FileDatastore::sendVector() - could not open file\n";
-	delete [] fileName;
-	return -1;
+        opserr << "FileDatastore::sendVector() - could not open file\n";
+        delete [] fileName;
+        return -1;
       }
 
       delete [] fileName;
@@ -923,9 +913,9 @@ FileDatastore::sendVector(int dataTag, int commitTag,
       theStream->read(data, stepSize);
       
       if (*(theIntData.dbTag) == dataTag) 
-	found = true;
+        found = true;
       else 
-	pos += stepSize;
+        pos += stepSize;
     }
     
     if (found == false) {
@@ -984,8 +974,8 @@ FileDatastore::recvVector(int dataTag, int commitTag,
     // we first check if we need to resize recv buffer
     if (vectSize > currentMaxDouble) {
       if (this->resizeDouble(vectSize) < 0) {
-	opserr << "FileDatastore::recvVectrix() - failed in resizeDouble()\n";
-	return -1;
+        opserr << "FileDatastore::recvVectrix() - failed in resizeDouble()\n";
+        return -1;
       }
     }
 
@@ -1020,10 +1010,10 @@ FileDatastore::recvVector(int dataTag, int commitTag,
     if (theFileStruct->theFile == 0) {
 
       if (vectSize > currentMaxDouble) {
-	if (this->resizeDouble(vectSize) < 0) {
-	  opserr << "FileDatastore::recvVectrix() - failed in resizeInt()\n";
-	  return -1;
-	}
+        if (this->resizeDouble(vectSize) < 0) {
+          opserr << "FileDatastore::recvVectrix() - failed in resizeInt()\n";
+          return -1;
+        }
       }
       char *fileName = new char[strlen(dataBase)+21];
       static char intName[20];
@@ -1033,9 +1023,9 @@ FileDatastore::recvVector(int dataTag, int commitTag,
       strcat(fileName,intName);
       
       if (this->openFile(fileName, theFileStruct, stepSize) < 0) {
-	opserr << "FileDatastore::recvVectrix() - could not open file\n";
-	delete [] fileName;
-	return -1;
+        opserr << "FileDatastore::recvVectrix() - could not open file\n";
+        delete [] fileName;
+        return -1;
       }
 
       delete [] fileName;
@@ -1069,9 +1059,9 @@ FileDatastore::recvVector(int dataTag, int commitTag,
     while ((pos < fileEnd) && (found == false)) {
       theStream->read(data, stepSize);
       if (*(theIntData.dbTag) == dataTag) 
-	found = true;
+        found = true;
       else 
-	pos += stepSize;
+        pos += stepSize;
     }
   }
 
@@ -1098,10 +1088,6 @@ FileDatastore::createTable(const char *tableName, int numColumns, char *columns[
   // open the file
   int res = 0;
   char *fileName = new char[strlen(tableName) + strlen(dataBase) + 10];
-  if (fileName == 0) {
-    opserr << "FileDatastore::insertData - out of memory; failed to open file: " << fileName << endln;
-    return -1;
-  }
 
   strcpy(fileName, dataBase);    
   strcat(fileName,".");
@@ -1111,10 +1097,9 @@ FileDatastore::createTable(const char *tableName, int numColumns, char *columns[
   table.open(fileName, ios::out | ios::trunc); 
 
   if (table.bad() == true || table.is_open() == false) {
-    opserr << "FileDatastore::insertData - failed to open file: " << fileName << endln;
+    opserr << "FileDatastore::insertData - failed to open file: " << fileName << "\n";
     delete [] fileName;
     res = -1;
-    
   } 
 
   // write the data
@@ -1135,10 +1120,6 @@ FileDatastore::insertData(const char *tableName, char *columns[],
 {
   // open the file
   char *fileName = new char[strlen(tableName) + strlen(dataBase) + 10];
-  if (fileName == 0) {
-    opserr << "FileDatastore::insertData - out of memory; failed to open file: " << fileName << endln;
-    return -1;
-  }
 
   strcpy(fileName, dataBase);    
   strcat(fileName,".");
@@ -1147,7 +1128,7 @@ FileDatastore::insertData(const char *tableName, char *columns[],
   ofstream table;
   table.open(fileName, ios::app); 
   if (table.bad() == true || table.is_open() == false) {
-    opserr << "FileDatastore::insertData - failed to open file: " << fileName << endln;
+    opserr << "FileDatastore::insertData - failed to open file: " << fileName << "\n";
     delete [] fileName;
     return -1;
   }
@@ -1184,10 +1165,6 @@ int
 FileDatastore::openFile(char *fileName, FileDatastoreOutputFile *theFileStruct, int dataSize)
 {
   fstream *res = new fstream();
-  if (res == 0) {
-    opserr << "FileDatastore::openFile - out of memory; failed to open file: " << fileName << endln;
-    return 0;
-  }
 
   res->open(fileName, ios::in | ios::out | ios::binary); 
 
@@ -1196,16 +1173,11 @@ FileDatastore::openFile(char *fileName, FileDatastoreOutputFile *theFileStruct, 
     // delete & new again for unix gcc compiler to work!
     delete res;
     res = new fstream();
-    if (res == 0) {
-      opserr << "FileDatastore::openFile - out of memory; failed to open file: " << fileName << endln;
-      theFileStruct->theFile = res;
-      return -1;
-    }
     res->open(fileName, ios::in | ios::out | ios::trunc | ios::binary);   
   }
 
   if (res->bad() == true || res->is_open() == false) {
-    opserr << "FATAL - FileDatastore::openFile() - could not open file " << fileName << endln;
+    opserr << "FATAL - FileDatastore::openFile() - could not open file " << fileName << "\n";
     delete res;
     theFileStruct->theFile = 0;
     return -1;
@@ -1251,7 +1223,7 @@ FileDatastore::resizeInt(int newSize) {
     return 0; // already big enough
 
   if (newSize <= 0) {
-    opserr << "FileDatastore::resizeInt(int newSize) - invalidSize " << newSize << endln;
+    opserr << "FileDatastore::resizeInt(int newSize) - invalidSize " << newSize << "\n";
     return -1; // invalid size
   }
 
@@ -1259,10 +1231,6 @@ FileDatastore::resizeInt(int newSize) {
     delete [] data;
 
   data = new char[newSize];
-  if (data == 0) {
-    opserr << "FileDatastore::resizeInt(int newSize) - out of memory for size: " << newSize << endln;
-    return -1;
-  }
 
   sizeData = newSize;
 
@@ -1288,7 +1256,7 @@ FileDatastore::resizeDouble(int newSize) {
     return 0; // already big enough
 
   if (newSize <= 0) {
-    opserr << "FileDatastore::resizeInt(int newSize) - invalidSize " << newSize << endln;
+    opserr << "FileDatastore::resizeInt(int newSize) - invalidSize " << newSize << "\n";
     return -1; // invalid size
   }
 
@@ -1296,10 +1264,6 @@ FileDatastore::resizeDouble(int newSize) {
     delete [] data;
 
   data = new char[newSize];
-  if (data == 0) {
-    opserr << "FileDatastore::resizeInt(int newSize) - out of memory for size: " << newSize << endln;
-    return -1;
-  }
 
   sizeData = newSize;
 

@@ -228,7 +228,8 @@ void  IGAKLShell::setDomain( Domain *theDomain )
     }
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 
@@ -4019,30 +4020,16 @@ void IGAKLShell::formResidAndTangent( int tang_flag )
       stiff->addMatrix(1, ke, J2 * wt);
     }
 
-    // opserr << "ke = " << ke << endln;
-
   }
-  // opserr << "*stiff = " << *stiff << endln;
-  // raise(SIGSEGV);
 }
 
 void IGAKLShell::formTangentNguyen()
 {
-  // opserr << "IGAKLShell::getTangentStiff - eleTag" << this->getTag() << " called! " << endln;
-
-  // opserr << "connectedExternalNodes = " << connectedExternalNodes << endln;
-
-  // opserr << "Element number:  = " << this->getTag() << endln;
-
-  // opserr << "xiE = " << xiE << endln;
-  // opserr << "etaE = " << etaE << endln;
 
   // Matrix& K = *stiff;
   // K.Zero();
   stiff->Zero();
 
-  // opserr << "xiE = " << xiE << endln;
-  // opserr << "etaE = " << etaE << endln;
 
   float wt;
   float ptU;
@@ -4234,16 +4221,11 @@ void IGAKLShell::formTangentNguyen()
     Matrix Cbar(3, 3); // Equivalent constitutive matrix
     double stiffMat; // Factor for constituvie composite matrix
 
-    // opserr << "nLayers = " << nLayers << endln;
     for (int capa = 0; capa < nLayers; ++capa)
     {
       double iAngle     = myPatch->getAngle(capa);
       double iThickness = myPatch->getThickness(capa);
       double iZ         = myPatch->getZk(capa);// Mid center laminate position, 1 in the meantime
-
-      // opserr << "iAngle = " << iAngle << endln;
-      // opserr << "iThickness = " << iThickness << endln;
-      // opserr << "iZ = " << iZ << endln;
 
 
       const Matrix& Czig = materialPointers[gp][capa]->getTangent();
@@ -4268,24 +4250,7 @@ void IGAKLShell::formTangentNguyen()
       B.addMatrix(1.0, Cbar, iThickness * iZ);
       D.addMatrix(1.0, Cbar, iThickness * pow(iZ, 2) + pow(iThickness, 3) / 12 );
 
-      // opserr << "A = " << A << endln;
-      // opserr << "B = " << B << endln;
-      // opserr << "D = " << D << endln;
     }
-    // opserr << "Finished making composite laminate " << endln;
-    // opserr << "A = " << A << endln;
-    // opserr << "B = " << B << endln;
-    // opserr << "D = " << D << endln;
-
-    // opserr << "A = " << A << endln;
-    // opserr << "B = " << B << endln;
-    // opserr << "D = " << D << endln;
-
-
-    // for (int capa = 0; capa < nLayers; capa++)
-    // {
-    //   opserr << "capa = " << matTags(capa) << endln;
-    // }
 
     // Vector theta = myPatch->theta;
 
@@ -4344,11 +4309,8 @@ void IGAKLShell::formTangentNguyen()
     stiff->addMatrixTripleProduct(1.0, Bben, B, Bmem, J1 * J2 * wt);
     stiff->addMatrixTripleProduct(1.0, Bben, D, J1 * J2 * wt);
 
-    // opserr << "Ke = " <<  transpose(Bben.noRows(), Bben.noCols(), Bben) * D * Bben * J1 * J2 * wt << endln;
   }
 
-  // opserr << "Finished making Ke!!" << endln << endln;
-  // opserr << "K = " << K << endln;
   // return *stiff;
   // *stiff+=K;
   // return K ;
@@ -4389,7 +4351,6 @@ const Vector&  IGAKLShell::getResistingForceIncInertia( )
       NodalAccelerations(k) = accel_i(j);
       NodalDisplacements(k) = disp_i(j);
       k += 1;
-      // opserr << "NodalAccelerations(Nnodes * j + i) = " << NodalAccelerations(Nnodes * j + i) << endln;
     }
   }
 
@@ -4437,12 +4398,6 @@ const Vector&  IGAKLShell::getResistingForceIncInertia( )
 
   // res = *resid;
   // *resid = res;
-
-  // opserr << "M = " << this->getMass() << endln;
-
-  // opserr << "NodalAccelerations = " << NodalAccelerations << endln;
-
-  // opserr << "this->getMass() * NodalAccelerations = " << this->getMass() * NodalAccelerations << endln;
 
   // *resid += this->getMass() * NodalAccelerations;
   // res = getResistingForce() + this->getMass() * NodalAccelerations;

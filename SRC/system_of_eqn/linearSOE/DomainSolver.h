@@ -52,7 +52,7 @@ class DomainSolver: public LinearSOESolver
     virtual const Vector &getCondensedMatVect(void) =0;
 
     virtual int setComputedXext(const Vector &) =0;
-    virtual int solveXint(void) =0;
+    virtual int solveXint() =0;
     
   protected:
     

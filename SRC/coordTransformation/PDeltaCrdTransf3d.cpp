@@ -1525,13 +1525,13 @@ PDeltaCrdTransf3d::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_CURRENTSTATE) {
     s << "\nCrdTransf: " << this->getTag() << " Type: PDeltaCrdTransf3d"
-      << endln;
+      << "\n";
     if (nodeIOffset)
       s << "\tNode I offset: " << nodeIOffset[0] << " " << nodeIOffset[1] << " "
-        << nodeIOffset[2] << endln;
+        << nodeIOffset[2] << "\n";
     if (nodeJOffset)
       s << "\tNode J offset: " << nodeJOffset[0] << " " << nodeJOffset[1] << " "
-        << nodeJOffset[2] << endln;
+        << nodeJOffset[2] << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {

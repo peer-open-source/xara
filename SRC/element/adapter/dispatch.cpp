@@ -26,7 +26,8 @@
 // for the actuator element.
 //
 #include <ModelRegistry.h>
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

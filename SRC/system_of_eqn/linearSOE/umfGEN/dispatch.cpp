@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
 #include <string.h>
 #include <Logging.h>
 #include <Parsing.h>

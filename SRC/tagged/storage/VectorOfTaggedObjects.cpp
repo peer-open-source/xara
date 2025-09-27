@@ -162,14 +162,9 @@ VectorOfTaggedObjects::getIter()
 
 
 TaggedObjectStorage *
-VectorOfTaggedObjects::getEmptyCopy(void)
+VectorOfTaggedObjects::getEmptyCopy()
 {
     VectorOfTaggedObjects *theCopy = new VectorOfTaggedObjects();
-    
-    if (theCopy == nullptr) {
-      opserr << "VectorOfTaggedObjects::getEmptyCopy-out of memory\n";
-    }
-
     return theCopy;
 }
 

@@ -26,7 +26,8 @@
 // to add beam column joint to a model.
 // Update: Optional User interfaces added in.
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -93,111 +94,88 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[2 + eleArgStart], &nd1) != TCL_OK) {
-      opserr << "WARNING invalid Node 1\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Node 1" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[3 + eleArgStart], &nd2) != TCL_OK) {
-      opserr << "WARNING invalid Node 2\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Node 2" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[4 + eleArgStart], &nd3) != TCL_OK) {
-      opserr << "WARNING invalid Node 3\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Node 3" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[5 + eleArgStart], &nd4) != TCL_OK) {
-      opserr << "WARNING invalid Node 4\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Node 4" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[6 + eleArgStart], &matId1) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 1\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 1" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[7 + eleArgStart], &matId2) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 2\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 2" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[8 + eleArgStart], &matId3) != TCL_OK) {
       opserr << "WARNING invalid Material Tag 3\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[9 + eleArgStart], &matId4) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 4\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 4" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[10 + eleArgStart], &matId5) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 5\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 5" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[11 + eleArgStart], &matId6) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 6\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 6" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[12 + eleArgStart], &matId7) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 7\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 7" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[13 + eleArgStart], &matId8) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 8\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 8" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[14 + eleArgStart], &matId9) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 9\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 9" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[15 + eleArgStart], &matId10) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 10\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 10" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[16 + eleArgStart], &matId11) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 11\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 11" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[17 + eleArgStart], &matId12) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 12\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 12" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (Tcl_GetInt(interp, argv[18 + eleArgStart], &matId13) != TCL_OK) {
-      opserr << "WARNING invalid Material Tag 13\n";
-      opserr << "beamColumnJoint Element: " << id << endln;
+      opserr << "WARNING invalid Material Tag 13" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     if ((argc - eleArgStart) == 21) {
       if (Tcl_GetDouble(interp, argv[19 + eleArgStart], &hgtfac) != TCL_OK) {
-        opserr << "WARNING invalid factor for height\n";
-        opserr << "beamColumnJoint Element: " << id << endln;
+        opserr << "WARNING invalid factor for height" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[20 + eleArgStart], &wdtfac) != TCL_OK) {
-        opserr << "WARNING invalid factor for width\n";
-        opserr << "beamColumnJoint Element: " << id << endln;
+        opserr << "WARNING invalid factor for width" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
     }
 
     if (matId1 != 0) {
       theMaterial1 = builder->getTypedObject<UniaxialMaterial>(matId1);
-
-      if (theMaterial1 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId1;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
+      if (theMaterial1 == nullptr) {
         return TCL_ERROR;
       }
     } else
@@ -208,8 +186,6 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
       if (theMaterial2 == 0) {
         opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId2;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -220,8 +196,6 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
       if (theMaterial3 == 0) {
         opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId3;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -232,8 +206,6 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
       if (theMaterial4 == 0) {
         opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId4;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -244,8 +216,6 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
       if (theMaterial5 == 0) {
         opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId5;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -253,11 +223,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
     if (matId6 != 0) {
       theMaterial6 = builder->getTypedObject<UniaxialMaterial>(matId6);
-
       if (theMaterial6 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId6;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -265,11 +231,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
     if (matId7 != 0) {
       theMaterial7 = builder->getTypedObject<UniaxialMaterial>(matId7);
-
       if (theMaterial7 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId7;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -277,11 +239,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
     if (matId8 != 0) {
       theMaterial8 = builder->getTypedObject<UniaxialMaterial>(matId8);
-
       if (theMaterial8 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId8;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -289,11 +247,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
     if (matId9 != 0) {
       theMaterial9 = builder->getTypedObject<UniaxialMaterial>(matId9);
-
       if (theMaterial9 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId9;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -301,11 +255,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
     if (matId10 != 0) {
       theMaterial10 = builder->getTypedObject<UniaxialMaterial>(matId10);
-
       if (theMaterial10 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId10;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -313,11 +263,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
     if (matId11 != 0) {
       theMaterial11 = builder->getTypedObject<UniaxialMaterial>(matId11);
-
       if (theMaterial11 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId11;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -325,11 +271,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 
     if (matId12 != 0) {
       theMaterial12 = builder->getTypedObject<UniaxialMaterial>(matId12);
-
       if (theMaterial12 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId12;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
@@ -339,16 +281,13 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       theMaterial13 = builder->getTypedObject<UniaxialMaterial>(matId13);
 
       if (theMaterial13 == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matId13;
-        opserr << "\nbeamColumnJoint element: " << id << endln;
         return TCL_ERROR;
       }
     } else
       theMaterial13 = 0;
 
     // create Beam Column Joint Element and add it to Domain
-    Element *theBeamColumnJoint = 0;
+    Element *theBeamColumnJoint = nullptr;
 
     if (NDM == 2) {
       if ((argc - eleArgStart) == 19) {
@@ -380,47 +319,25 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       }
     }
 
-    if (theBeamColumnJoint == 0) {
-      opserr << "WARNING ran out of memory creating elements\n";
-      opserr << "beamColumnJoint element: " << id << endln;
-      return TCL_ERROR;
-    }
 
     if (domain->addElement(theBeamColumnJoint) == false) {
       opserr << "WARNING could not add element to the domain\n";
-      opserr << "beamColumnJoint element: " << id << endln;
       delete theBeamColumnJoint;
       return TCL_ERROR;
     }
 
   } else {
     opserr << "WARNING NDM = " << NDM << " and NDF = " << NDF
-           << " is incompatible with available joint elements";
+           << " is incompatible with available joint elements"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   // the element successfully created and added to the domain
   return TCL_OK;
 }
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+
+
 //
 // Written: Arash Altoontash, Gregory Deierlein	Created: 04/01
 // Revision:
@@ -434,14 +351,15 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
 #include <string.h>
 #include <Domain.h>
 
+#include <Parsing.h>
+#include <Logging.h>
 #include <Joint2D.h>
-#include <tcl.h>
 #include <DamageModel.h>
 #include <UniaxialMaterial.h>
 
 
 int
-TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
+TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                            TCL_Char ** const argv)
 {
   ModelRegistry* builder = (ModelRegistry*)clientData;
@@ -470,34 +388,34 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
   // get the id and end nodes
   int Joint2DId, iNode, jNode, kNode, lNode;
   if (Tcl_GetInt(interp, argv[argStart], &Joint2DId) != TCL_OK) {
-    opserr << "WARNING invalid Joint2D eleTag" << endln;
+    opserr << "WARNING invalid Joint2D eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode\n";
+    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode\n";
+    opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
-    opserr << "WARNING invalid kNode\n";
+    opserr << "WARNING invalid kNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
-    opserr << "WARNING invalid lNode\n";
+    opserr << "WARNING invalid lNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   // Get the center node
   int CenterNodeTag;
   if (Tcl_GetInt(interp, argv[5 + argStart], &CenterNodeTag) != TCL_OK) {
-    opserr << "WARNING invalid tag for center node\n";
+    opserr << "WARNING invalid tag for center node" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -526,7 +444,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
     if ((argc - argStart) == 8) {
       int PanelMatId;
       if (Tcl_GetInt(interp, argv[6 + argStart], &PanelMatId) != TCL_OK) {
-        opserr << "WARNING invalid matID\n";
+        opserr << "WARNING invalid matID" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
@@ -592,11 +510,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       if (MatLid != 0) {
         MatL = builder->getTypedObject<UniaxialMaterial>(MatLid);
-
         if (MatL == nullptr) {
-          opserr << "WARNING material not found\n";
-          opserr << "Material: " << MatLid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -604,14 +518,11 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       int PanelMatId;
       if (Tcl_GetInt(interp, argv[10 + argStart], &PanelMatId) != TCL_OK) {
-        opserr << "WARNING invalid matID\n";
+        opserr << "WARNING invalid matID" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       PanelMaterial = builder->getTypedObject<UniaxialMaterial>(PanelMatId);
-
       if (PanelMaterial == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << PanelMatId;
         return TCL_ERROR;
       }
 
@@ -628,8 +539,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
     if (domain->addElement(theJoint2D) == false) {
-      opserr << "WARNING could not add element to the domain\n";
-      opserr << "Joint2D element: " << Joint2DId << endln;
+      opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
       delete theJoint2D;
       return TCL_ERROR;
     }
@@ -660,10 +570,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       }
 
       PanelMaterial = builder->getTypedObject<UniaxialMaterial>(PanelMatId);
-
       if (PanelMaterial == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << PanelMatId;
         return TCL_ERROR;
       }
 
@@ -680,9 +587,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       }
 
       DamageModel *PanelDamage = builder->getTypedObject<DamageModel>(PanelDamageId);
-
-      if (PanelDamage == 0) {
-        opserr << "WARNING damage model not found\n";
+      if (PanelDamage == nullptr) {
         return TCL_ERROR;
       }
     }
@@ -697,9 +602,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       if (MatIid != 0) {
         MatI = builder->getTypedObject<UniaxialMaterial>(MatIid);
-
         if (MatI == nullptr) {
-          opserr << "WARNING material not found\n";
           return TCL_ERROR;
         }
       } else
@@ -707,16 +610,13 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       int MatJid;
       if (Tcl_GetInt(interp, argv[7 + argStart], &MatJid) != TCL_OK) {
-        opserr << "WARNING invalid material ID for spring J\n";
+        opserr << "WARNING invalid material ID for spring J" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
       if (MatJid != 0) {
         MatJ = builder->getTypedObject<UniaxialMaterial>(MatJid);
-
         if (MatJ == nullptr) {
-          opserr << "WARNING material not found\n";
-          opserr << "Material: " << MatJid;
           return TCL_ERROR;
         }
       } else
@@ -724,17 +624,12 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       int MatKid;
       if (Tcl_GetInt(interp, argv[8 + argStart], &MatKid) != TCL_OK) {
-        opserr << "WARNING invalid material ID for spring K\n";
-
+        opserr << "WARNING invalid material ID for spring K" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (MatKid != 0) {
         MatK = builder->getTypedObject<UniaxialMaterial>(MatKid);
-
         if (MatK == nullptr) {
-          opserr << "WARNING material not found\n";
-          opserr << "Material: " << MatKid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -747,11 +642,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       if (MatLid != 0) {
         MatL = builder->getTypedObject<UniaxialMaterial>(MatLid);
-
         if (MatL == nullptr) {
-          opserr << "WARNING material not found\n";
-          opserr << "Material: " << MatLid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -763,10 +654,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
         return TCL_ERROR;
       }
       PanelMaterial = builder->getTypedObject<UniaxialMaterial>(PanelMatId);
-
-      if (PanelMaterial == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << PanelMatId;
+      if (PanelMaterial == nullptr) {
         return TCL_ERROR;
       }
 
@@ -777,7 +665,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       if (strcmp(argv[12 + argStart], "-damage") != 0 &&
           strcmp(argv[12 + argStart], "-Damage") != 0) {
-        opserr << "WARNING incorrect command line\n";
+        opserr << "WARNING incorrect command line" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
@@ -789,11 +677,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       if (DmgIid != 0 && MatI != 0) {
         DmgI = builder->getTypedObject<DamageModel>(DmgIid);
-
         if (DmgI == nullptr) {
-          opserr << "WARNING damage model not found\n";
-          opserr << "Damage Model: " << DmgIid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -801,17 +685,13 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       int DmgJid;
       if (Tcl_GetInt(interp, argv[14 + argStart], &DmgJid) != TCL_OK) {
-        opserr << "WARNING invalid damage model ID for spring J\n";
+        opserr << "WARNING invalid damage model ID for spring J" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
       if (DmgJid != 0 && MatJ != 0) {
         DmgJ = builder->getTypedObject<DamageModel>(DmgJid);
-
         if (DmgJ == nullptr) {
-          opserr << "WARNING damage model not found\n";
-          opserr << "Damage Model: " << DmgJid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -819,17 +699,13 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       int DmgKid;
       if (Tcl_GetInt(interp, argv[15 + argStart], &DmgKid) != TCL_OK) {
-        opserr << "WARNING invalid damage model ID for spring K\n";
+        opserr << "WARNING invalid damage model ID for spring K" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
       if (DmgKid != 0 && MatK != 0) {
         DmgK = builder->getTypedObject<DamageModel>(DmgKid);
-
         if (DmgK == nullptr) {
-          opserr << "WARNING damage model not found\n";
-          opserr << "Damage Model: " << DmgKid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -837,17 +713,13 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       int DmgLid;
       if (Tcl_GetInt(interp, argv[16 + argStart], &DmgLid) != TCL_OK) {
-        opserr << "WARNING invalid damage model ID for spring L\n";
+        opserr << "WARNING invalid damage model ID for spring L" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
       if (DmgLid != 0 && MatL != 0) {
         DmgL = builder->getTypedObject<DamageModel>(DmgLid);
-
         if (DmgL == nullptr) {
-          opserr << "WARNING damage model not found\n";
-          opserr << "Damage Model: " << DmgLid;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
@@ -861,15 +733,11 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
       if (PanelDmgId != 0 && PanelMaterial != 0) {
         PanelDamage = builder->getTypedObject<DamageModel>(PanelDmgId);
-
         if (PanelDamage == nullptr) {
-          opserr << "WARNING damage model not found\n";
-          opserr << "Damage Model: " << PanelDmgId;
-          opserr << "\nJoint2D element: " << Joint2DId << endln;
           return TCL_ERROR;
         }
       } else
-        DmgL = nullptr;
+        PanelDamage = nullptr;
     }
 
     // Create the new material
@@ -881,8 +749,7 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
     if (domain->addElement(theJoint2D) == false) {
-      opserr << "WARNING could not add element to the domain\n";
-      opserr << "Joint2D element: " << Joint2DId << endln;
+      opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
       delete theJoint2D;
       return TCL_ERROR;
     }
@@ -960,50 +827,43 @@ TclBasicBuilder_addJoint3D(ClientData clientData, Tcl_Interp *interp, int argc,
   // get the id and end nodes
   int Joint3DId, iNode, jNode, kNode, lNode, mNode, nNode;
   if (Tcl_GetInt(interp, argv[argStart], &Joint3DId) != TCL_OK) {
-    opserr << "WARNING invalid Joint3D eleTag" << endln;
+    opserr << "WARNING invalid Joint3D eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
-    opserr << "WARNING invalid iNode\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid iNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
-    opserr << "WARNING invalid jNode\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid jNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
-    opserr << "WARNING invalid kNode\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid kNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
-    opserr << "WARNING invalid lNode\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid lNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[5 + argStart], &mNode) != TCL_OK) {
-    opserr << "WARNING invalid mNode\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid mNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[6 + argStart], &nNode) != TCL_OK) {
-    opserr << "WARNING invalid nNode\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid nNode" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   // Get the center node
   int CenterNodeTag;
   if (Tcl_GetInt(interp, argv[7 + argStart], &CenterNodeTag) != TCL_OK) {
-    opserr << "WARNING invalid tag for center node\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid tag for center node" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -1011,57 +871,44 @@ TclBasicBuilder_addJoint3D(ClientData clientData, Tcl_Interp *interp, int argc,
   Node *CenterNode = domain->getNode(CenterNodeTag);
   if (CenterNode != 0) {
     opserr
-        << "WARNING node tag specified for the center node already exists.\n";
-    opserr << "Use a new node tag.\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+        << "WARNING node tag specified for the center node already exists. ";
+    opserr << "Use a new node tag." << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   UniaxialMaterial *MatX = NULL;
   int MatXid;
   if (Tcl_GetInt(interp, argv[8 + argStart], &MatXid) != TCL_OK) {
-    opserr << "WARNING invalid material ID for spring X\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid material ID for spring X" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   MatX = builder->getTypedObject<UniaxialMaterial>(MatXid);
   if (MatX == NULL) {
-    opserr << "WARNING material not found\n";
-    opserr << "Material: " << MatXid;
-    opserr << "\nJoint3D element: " << Joint3DId << endln;
     return TCL_ERROR;
   }
 
   UniaxialMaterial *MatY = NULL;
   int MatYid;
   if (Tcl_GetInt(interp, argv[9 + argStart], &MatYid) != TCL_OK) {
-    opserr << "WARNING invalid material ID for spring Y\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid material ID for spring Y" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   MatY = builder->getTypedObject<UniaxialMaterial>(MatYid);
   if (MatY == NULL) {
-    opserr << "WARNING material not found\n";
-    opserr << "Material: " << MatYid;
-    opserr << "\nJoint3D element: " << Joint3DId << endln;
     return TCL_ERROR;
   }
 
   UniaxialMaterial *MatZ = NULL;
   int MatZid;
   if (Tcl_GetInt(interp, argv[10 + argStart], &MatZid) != TCL_OK) {
-    opserr << "WARNING invalid material ID for spring Z\n";
-    opserr << "Joint3D element: " << Joint3DId << endln;
+    opserr << "WARNING invalid material ID for spring Z" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   MatZ = builder->getTypedObject<UniaxialMaterial>(MatZid);
   if (MatZ == NULL) {
-    opserr << "WARNING material not found\n";
-    opserr << "Material: " << MatZid;
-    opserr << "\nJoint3D element: " << Joint3DId << endln;
     return TCL_ERROR;
   }
 
@@ -1081,15 +928,9 @@ TclBasicBuilder_addJoint3D(ClientData clientData, Tcl_Interp *interp, int argc,
         new Joint3D(Joint3DId, iNode, jNode, kNode, lNode, mNode, nNode,
                     CenterNodeTag, springModels, domain, LargeDisp);
 
-    if (theJoint3D == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      opserr << "Joint3D element: " << Joint3DId << endln;
-      return TCL_ERROR;
-    }
 
     if (domain->addElement(theJoint3D) == false) {
-      opserr << "WARNING could not add element to the domain\n";
-      opserr << "Joint3D element: " << Joint3DId << endln;
+      opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
       delete theJoint3D;
       return TCL_ERROR;
     }

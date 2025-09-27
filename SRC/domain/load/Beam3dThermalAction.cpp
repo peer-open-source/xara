@@ -301,17 +301,17 @@ Beam3dThermalAction::Print(OPS_Stream &s, int flag)
 	if (indicator == 4 || indicator == 5) {
 		s << "Beam3dThermalAction - reference load : " << TempApp[0] << " at bot\n";
 		s << TempApp[8] << " at top\n";
-		s << "  element acted on: " << eleTag << endln;
+		s << "  element acted on: " << eleTag << "\n";
 	}
 	else if (indicator == 6) {
 		s << "Beam3dThermalAction - reference load : " << TempApp[0] << " at bot\n";
 		s << TempApp[24] << " at top\n";
-		s << "  element acted on: " << eleTag << endln;
+		s << "  element acted on: " << eleTag << "\n";
 	}
 	else {
 		s << "Beam3dThermalAction - reference load : " << TempApp[0] << " at bot\n";
 		s << TempApp[5] << " at top\n";
-		s << "  element acted on: " << eleTag << endln;
+		s << "  element acted on: " << eleTag << "\n";
 	}
   
 }

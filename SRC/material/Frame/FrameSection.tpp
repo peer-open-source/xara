@@ -93,6 +93,10 @@ FrameSection::getResultant() {
     }
 
     constexpr FrameLayout e = WarpIndex(n, scheme);
+    if constexpr ((e.m[0] != -1) && (e.v[0] == -1))
+      if (m == 12)
+        sout[e.m[0]] += s[9];
+  
     if constexpr ((e.n[1] != -1) && (e.v[1] == -1))
       if (m == 12)
         sout[e.n[1]] += s[10];
@@ -135,7 +139,6 @@ FrameSection::getTangent(State state) {
       }
     }
   }
-
   return kout;
 }
 

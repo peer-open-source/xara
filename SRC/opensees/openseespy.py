@@ -11,6 +11,7 @@
 # This source code is licensed under the BSD 2-Clause License.
 # See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 #
+#===----------------------------------------------------------------------===//
 """
 This module implements the OpenSeesPy interface. Imports can be performed 
 exactly as one would from openseespy, for example:
@@ -154,18 +155,10 @@ class _Surface:
                 if np.linalg.norm(np.array(xyz) - np.array(coord)) <= 1e-12:
                     return tag
 
-#       exterior_coords = [self.outline.coord(x) for x in nat_exterior]
-
-#       for i in range(1,len(exterior_coords)):
-#           yield tuple(find_node(exterior_coords[i-1]),
-#                  find_node(exterior_coords[i]))
-#       yield (find_node(exterior_coords[-1]),
-#              find_node(exterior_coords[ 0]))
 
         # get the number of nodes per element
         nen = self.order + 1
         for i,edge in enumerate(nat_exterior):
-#           print(len(edge), self.split[i%2])
             for j in range(self.split[i%2]):
                 yield tuple(find_node(self.outline.coord(xn)) for xn in edge[j*(nen-1):j*(nen-1)+nen])
 
@@ -195,10 +188,9 @@ class OpenSeesPy:
             mode = os.environ.get("XARA_ECHO_MODE", "w+")
             echo_file = open(os.environ["XARA_ECHO_FILE"], mode)
 
-        self._echo    = echo_file
+        self._echo = echo_file
 
         self._mesh = {"line": {}, "quad": {}}
-
 
         # Enable OpenSeesPy command behaviors
         self.eval("pragma openseespy")
@@ -395,7 +387,6 @@ class OpenSeesPy:
             return self._mesh_line(tag, 2, args[1:3], *args[3:7], args[7:])
         raise NotImplementedError(f"Mesh type '{type}' not implemented")
 
-
     def _mesh_line(self, tag, numnodes, ndtags, id, ndf:int, meshsize, eleType='', eleArgs=()):
         import numpy as np
         from itertools import count
@@ -434,11 +425,11 @@ class OpenSeesPy:
         self._mesh["line"][tag] = nodes
 
 
-
     def section(self, type: str, sec_tag: int, *args, **kwds):
         self._current_section = sec_tag
         # TODO: error handling
 
+        # Undocumented feature
         if "shape" in kwds:
             from opensees.section import from_shape
             ndm = int(self.eval("getNDM"))
@@ -459,8 +450,6 @@ class OpenSeesPy:
         if "section" not in kwds:
             kwds["section"] = self._current_section
         return self._invoke_proc("patch", *args, **kwds)
-        section = self._current_section
-        return self._invoke_proc("patch", *args, "-section", section, **kwds)
 
     def layer(self, *args, **kwds):
         if "section" not in kwds:
@@ -473,7 +462,57 @@ class OpenSeesPy:
         if "section" not in kwds:
             kwds["section"] = self._current_section
         return self._invoke_proc("fiber", *args, **kwds)
-        return self._invoke_proc("fiber", *args, "-section", section, **kwds)
+
+
+class StateView:
+    class _NodalVector:
+        def __init__(self, model, response: str):
+            self._model = model
+            self._response = response
+
+        def __call__(self, node=None, dof=None, element=None):
+            if dof is not None:
+                return self._model._call(f"node{self._response.capitalize()}", node, dof)
+            else:
+                return self._model._call(f"node{self._response.capitalize()}", node)
+        
+        def __getitem__(self, index):
+            if isinstance(index, tuple):
+                node, dof = index
+                return self._model._call(f"node{self._response.capitalize()}", node, dof)
+            else:
+                node = index
+                return self._model._call(f"node{self._response.capitalize()}", node)
+
+    def __init__(self, model):
+        self._model = model
+
+    def save(self, fields=None, file=None):
+        pass
+
+    @property
+    def u(self):
+        return self._NodalVector(self._model, "disp")
+    
+    @property
+    def v(self):
+        return self._NodalVector(self._model, "vel")
+    
+    @property
+    def a(self):
+        return self._NodalVector(self._model, "accel")
+
+    # @property
+    # def tangent(self):
+    #     return self._model.getTangent()
+    
+    # @property 
+    # def residual(self):
+    #     return self._model.getResidual()
+    
+    @property 
+    def reactions(self):
+        return self._NodalVector(self._model, "reaction")
 
 
 
@@ -489,6 +528,12 @@ class Model:
 
         # Aug 2025, for xara._analysis
         self._patterns = {}
+    
+    @property
+    def state(self):
+
+        return StateView(self)
+
 
     def eval(self, *args, **kwds):
         return self._openseespy.eval(*args, **kwds)
@@ -499,9 +544,10 @@ class Model:
         EXPERIMENTAL (2025-07-04)
         """
         if self._openseespy._echo is not None:
-            print(_args_to_cmds(proc_name, *args, **kwds), file=self._openseespy._echo)
+            print(_args_to_cmds(proc_name, *args, **kwds),
+                  file=self._openseespy._echo)
 
-        return self._openseespy._interp.call(proc_name, *args, **kwds)
+        return self._openseespy._interp._tcl.call(proc_name, *args, **kwds)
 
 
     def export(self, *args, **kwds):
@@ -702,12 +748,6 @@ class Model:
             return self._openseespy._partial(self._openseespy._invoke_proc, name)
 
 
-
-# The global singleton, for backwards compatibility
-try:
-    _openseespy = OpenSeesPy()
-except:
-    _openseespy = None
 
 # A list of symbol names that are importable
 # from this module. All of these are dynamically
@@ -945,8 +985,6 @@ __all__ = [
     "NDTest",
 ]
 
-_PROTOTYPES = {
-}
 
 # Commands that are pre-processed in Python
 # before forwarding to the Tcl interpreter
@@ -960,6 +998,12 @@ _OVERWRITTEN = {
     "mesh"
 }
 
+
+# The global singleton, for backwards compatibility
+try:
+    _openseespy = OpenSeesPy()
+except:
+    _openseespy = None
 
 
 def __getattr__(name: str):

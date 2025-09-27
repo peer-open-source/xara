@@ -33,12 +33,6 @@
 
 static MapOfTaggedObjects theTimeSeriesObjects;
 
-void
-OPS_ADD_RUNTIME_VXV(OPS_clearAllTimeSeries)
-{
-  theTimeSeriesObjects.clearAll();
-}
-    
 
 TimeSeries::TimeSeries(int tag, int classTag)
   :TaggedObject(tag), MovableObject(classTag)

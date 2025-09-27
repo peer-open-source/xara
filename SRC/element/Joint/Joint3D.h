@@ -83,15 +83,12 @@ public:
 
   // methods for returning and applying loads
   //virtual Vector &getUVLoadVector(double q1, double q2);
-  void	zeroLoad(void);
+  void	zeroLoad();
   int addLoad(ElementalLoad* theLoad, double loadFactor);
   int addInertiaLoadToUnbalance(const Vector& accel);
 
   const	Vector& getResistingForce(void);
   const	Vector& getResistingForceIncInertia(void);
-
-  // method for graphics
-  int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
 
   // method for obtaining information specific to an element
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);

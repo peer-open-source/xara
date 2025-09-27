@@ -4,14 +4,14 @@
 // Description: This file contains the parsing routines for the
 // TCL unloadingRule command.
 
-#include <OPS_Globals.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <UnloadingRule.h>
 // #include <TakedaUnloadingRule.h>
 // #include <EnergyUnloadingRule.h>
 // #include <ConstantUnloadingRule.h>
 
 #include <elementAPI.h>
-#include <tcl.h>
 #include <string.h>
 
 extern OPS_Routine OPS_TakedaUnloadingRule;

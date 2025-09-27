@@ -250,7 +250,8 @@ ElasticTubularJoint::setDomain(Domain *theDomain)
     }
   // call the base class method
   
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   // now determine the length
   const Vector &end1Crd = theNodes[0]->getCrds();

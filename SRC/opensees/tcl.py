@@ -1,10 +1,17 @@
-#===----------------------------------------------------------------------===#
+#===----------------------------------------------------------------------===//
 #
-#         STAIRLab -- STructural Artificial Intelligence Laboratory
-#                               Berkeley, CA
+#                                   xara
+#                              https://xara.so
 #
-#===----------------------------------------------------------------------===#
+#===----------------------------------------------------------------------===//
 #
+# Copyright (c) 2025, OpenSees/Xara Developers
+# All rights reserved.  No warranty, explicit or implicit, is provided.
+#
+# This source code is licensed under the BSD 2-Clause License.
+# See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+#
+#===----------------------------------------------------------------------===//
 import os
 import sys
 import uuid
@@ -163,8 +170,8 @@ class Interpreter:
         # Setup propagation of error messages
         self._err_file = error_file
         try:
-            echo = "" if os.environ.get("XARA_ECHO_ERROR", False) is None else "-noEcho"
-            if self._err_file is not None:
+            echo = "" if os.environ.get("XARA_ECHO_ERROR", False) else "-noEcho"
+            if self._err_file is not None and echo:
                 self.eval(f"logFile {self._err_file} {echo}")
         except:
             self._err_file = None
@@ -201,6 +208,16 @@ class Interpreter:
 
             raise InterpreterError(err) from None
 
+    def read_error(self)->str:
+        if self._err_file is not None:
+            try:
+                with open(self._err_file, "r") as f:
+                    err = f.read().replace("ERROR", "").strip()
+                os.remove(self._err_file)
+                return err
+            except:
+                return ""
+        return ""
 
     def serialize(self)->dict:
         import tempfile, pathlib

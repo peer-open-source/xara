@@ -74,12 +74,12 @@ ElementParameter::ElementParameter()
 
 ElementParameter::~ElementParameter()
 {
-  if (argv != 0)
+  if (argv != nullptr)
     delete [] argv[0]; // stored in 1 array
 
   delete [] argv;
 
-  if (theChannels != 0)
+  if (theChannels != nullptr)
     delete [] theChannels;
 }
 
@@ -159,7 +159,7 @@ ElementParameter::setDomain(Domain *aDomain)
     Element *theEle = theDomain->getElement(eleTag);
     if (theEle != 0) {
       this->Parameter::addComponent(theEle, theArgv, argc);
-	}
+	  }
   }
 }
 

@@ -109,7 +109,7 @@ ParallelMaterial::setTrialStrain(double strain, double strainRate)
   trialStrainRate = strainRate;
 
   for (int i=0; i<numMaterials; i++)
-    theModels[i]->setTrialStrain(strain, strainRate);
+    theModels[i]->setTrialStrain(strain);
 
   return 0;
 }
@@ -133,11 +133,11 @@ ParallelMaterial::getStress()
   // get the stress = sum of stress in all local MaterialModel objects
   double stress = 0.0;
   if (theFactors == 0) {
-      for (int i=0; i<numMaterials; i++)
-          stress += theModels[i]->getStress();
+    for (int i=0; i<numMaterials; i++)
+        stress += theModels[i]->getStress();
   } else {
-      for (int i=0; i<numMaterials; i++)
-          stress += (*theFactors)(i) * theModels[i]->getStress();
+    for (int i=0; i<numMaterials; i++)
+        stress += (*theFactors)(i) * theModels[i]->getStress();
   }
 
   return stress;

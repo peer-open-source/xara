@@ -79,7 +79,6 @@ These documents all mirror published works in indexed journals.
 #include <Node.h>
 #include <ID.h>
 #include <Domain.h>
-#include <OPS_Globals.h>
 #include <NDMaterial.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -129,16 +128,14 @@ public:
     const Vector &getResistingForce ();
     const Vector &getResistingForceIncInertia ();
 
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
 
-    void Print(OPS_Stream &s, int flag = 0);
-    Response* setResponse (const char** argv, int argc, OPS_Stream& theHandler);
-    int getResponse (int responseID, Information& eleInformation);
+    void Print(OPS_Stream &s, int flag);
+    Response* setResponse (const char** argv, int argc, OPS_Stream&);
+    int getResponse (int responseID, Information& );
 
-    int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
-
-    Matrix returnMass(void);
+    Matrix returnMass();
 
     void useThisCoordinateSystem(Vector e1, Vector e2, Vector e3);
 

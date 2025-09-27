@@ -185,25 +185,16 @@ int J2PlateFiber :: setTrialStrain( const Vector &strain_from_element )
 }
 
 
-//unused trial strain functions
-int J2PlateFiber :: setTrialStrain( const Vector &v, const Vector &r )
-{ 
-   return this->setTrialStrain( v ) ;
-} 
 
 int J2PlateFiber :: setTrialStrainIncr( const Vector &v ) 
 {
     return -1 ;
 }
 
-int J2PlateFiber :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
-{
-    return -1 ;
-}
 
 
-
-const Vector& J2PlateFiber :: getStrain( ) 
+const Vector&
+J2PlateFiber::getStrain() 
 {
 
   strain_vec(0) =       strain(0,0) ;
@@ -235,7 +226,8 @@ J2PlateFiber :: getStress( )
   return stress_vec ;
 }
 
-const Matrix& J2PlateFiber :: getTangent( ) 
+const Matrix& 
+J2PlateFiber :: getTangent( ) 
 {
 
   // matrix to tensor mapping
@@ -250,23 +242,22 @@ const Matrix& J2PlateFiber :: getTangent( )
   int ii, jj ;
   int i, j, k, l ;
 
-  for ( ii = 0; ii < 5; ii++ ) {
-    for ( jj = 0; jj < 5; jj++ ) {
+  for (int ii = 0; ii < 5; ii++ ) {
+    for (int jj = 0; jj < 5; jj++ ) {
 
       index_map( ii, i, j ) ;
       index_map( jj, k, l ) ;
 
       tangent_matrix(ii,jj) = tangent[i][j][k][l] ;
 
-    } //end for j
-  } //end for i
-       
-
+    }
+  }
   return tangent_matrix ;
 } 
 
 
-const Matrix& J2PlateFiber :: getInitialTangent( ) 
+const Matrix& 
+J2PlateFiber :: getInitialTangent( ) 
 {
 
   // matrix to tensor mapping
@@ -310,7 +301,8 @@ J2PlateFiber::commitState( )
 }
 
 int 
-J2PlateFiber::revertToLastCommit( ) {
+J2PlateFiber::revertToLastCommit( ) 
+{
 
   strain(2,2) = commitEps22;
 
@@ -319,7 +311,8 @@ J2PlateFiber::revertToLastCommit( ) {
 
 
 int 
-J2PlateFiber::revertToStart( ) {
+J2PlateFiber::revertToStart( ) 
+{
   commitEps22 = 0.0;
 
   this->zero( ) ;

@@ -14,8 +14,7 @@ public:
     NullYS2D(int tag);
 	virtual ~NullYS2D();
 
-	virtual YieldSurface_BC *getCopy(void);
-	virtual int		displaySelf(Renderer &theViewer, int displayMode, float fact);
+	virtual YieldSurface_BC *getCopy();
 	virtual void	Print(OPS_Stream &s, int flag =0);
 
 //protected:

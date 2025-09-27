@@ -16,7 +16,6 @@
 #ifndef ElasticPlaneStress_h
 #define ElasticPlaneStress_h
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -28,66 +27,48 @@
 class ElasticPlaneStress : public NDMaterial {
 
   public : 
-  ElasticPlaneStress( ) ;
-
-  //full constructor
+  ElasticPlaneStress();
   ElasticPlaneStress(int tag, 
                    double E,
                    double nu,
-                   double rho) ;
+                   double rho);
+  ~ElasticPlaneStress();
 
-
-  //destructor
-  ~ElasticPlaneStress( ) ;
-
-  const char *getClassType(void) const {return "ElasticPlaneStress";};
+  const char *getClassType() const {return "ElasticPlaneStress";}
 
     NDMaterial* getCopy( ) ;
 
-  //send back type of material
-  const char* getType( ) const ;
+  const char* getType( ) const override;
+  int getOrder( ) const override;
+  double getRho() override;
 
-    int getOrder( ) const ;
+  int setTrialStrain( const Vector &strain_from_element) override;
 
-  //mass per unit volume
-  double getRho();
+  // unsupported trial strain functions
+  int setTrialStrainIncr( const Vector &v );
 
-  //get the strain and integrate plasticity equations
-  int setTrialStrain( const Vector &strain_from_element) ;
+  const Vector& getStrain() override;
+  const Vector& getStress() override;
+  const Matrix& getTangent() override;
+  const Matrix& getInitialTangent() override;
 
-  //unused trial strain functions
-  int setTrialStrain( const Vector &v, const Vector &r ) ;
-  int setTrialStrainIncr( const Vector &v ) ;
-  int setTrialStrainIncr( const Vector &v, const Vector &r ) ;
+  int commitState() override; 
+  int revertToLastCommit() override;
+  int revertToStart() override;
 
-  const Vector& getStrain( ) ;
+  int sendSelf(int commitTag, Channel &) override;  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) override;
 
-  const Vector& getStress( ) ;
+  void Print(OPS_Stream &s, int flag) override;
 
-  const Matrix& getTangent( ) ;
-  const Matrix& getInitialTangent( ) ;
+private: 
 
-  //swap history variables
-  int commitState( ) ; 
-  int revertToLastCommit( ) ;
-  int revertToStart( ) ;
-
-  //sending and receiving
-  int sendSelf(int commitTag, Channel &theChannel) ;  
-  int recvSelf(int commitTag, Channel &theChannel, 
-               FEM_ObjectBroker &theBroker ) ;
-
-  void Print(OPS_Stream &s, int flag = 0) ;
-  
-  private : 
-  
   //static vectors and matrices
   Vector strain_vec ;     //strain in vector notation
   static Vector stress_vec ;     //stress in vector notation
   static Matrix tangent_matrix ; //material tangent in matrix notation
 
   double E, nu, rho;
-
 };
 
 #endif

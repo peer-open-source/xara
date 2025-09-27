@@ -79,13 +79,6 @@ DispBeamColumnAsym3d::DispBeamColumnAsym3d(int tag, int nd1, int nd2, int numSec
 
     // Get copies of the material model for each integration point
     theSections[i] = s[i]->getCopy();
-
-    // Check allocation
-    if (theSections[i] == 0) {
-      opserr << "DispBeamColumnAsym3d::DispBeamColumnAsym3d -- failed to get a copy of "
-                "section model\n";
-      exit(-1);
-    }
   }
 
   beamInt = bi.getCopy();
@@ -201,7 +194,8 @@ DispBeamColumnAsym3d::setDomain(Domain *theDomain)
     // Add some error check
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
   this->update();
 }

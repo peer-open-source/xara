@@ -111,18 +111,6 @@ ModelRegistry::getNDF() const
 }
 
 
-void
-ModelRegistry::letClobber(bool let_clobber)
-{
-  no_clobber = !let_clobber;
-}
-
-bool
-ModelRegistry::canClobber()
-{
-  return !no_clobber;
-}
-
 int
 ModelRegistry::incrNodalLoadTag()
 {
@@ -138,9 +126,26 @@ ModelRegistry::decrNodalLoadTag()
 int
 ModelRegistry::getNodalLoadTag() 
 {
-  return   next_node_load;
+  return next_node_load;
 }
 
+int
+ModelRegistry::incrElemLoadTag()
+{
+  return ++next_elem_load;
+}
+
+int
+ModelRegistry::decrElemLoadTag()
+{
+  return --next_elem_load;
+}
+
+int
+ModelRegistry::getElemLoadTag()
+{
+  return next_elem_load++;
+}
 
 int
 ModelRegistry::addSP_Constraint(int axisDirn, double axisValue, const ID &fixityCodes, double tol)

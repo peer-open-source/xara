@@ -98,7 +98,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   double aDouble;
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING error reading element properties for element" << eleTag << endln;
+    opserr << "WARNING error reading element properties for element" << eleTag << "\n";
     return 0;	
   }
   dData[0]=aDouble;
@@ -117,7 +117,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //Reference Pressure
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING error reading element properties for element" << eleTag << endln;
+    opserr << "WARNING error reading element properties for element" << eleTag << "\n";
     return 0;
   }
   dData[1]=aDouble;
@@ -136,7 +136,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //Thermal diffusivity of Steel
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING error reading element properties for element" << eleTag << endln;
+    opserr << "WARNING error reading element properties for element" << eleTag << "\n";
     return 0;
   }
   dData[2]=aDouble;
@@ -145,7 +145,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //Thermal conductivity of Steel
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING error reading element properties for element" << eleTag << endln;
+    opserr << "WARNING error reading element properties for element" << eleTag << "\n";
     return 0;
   }
   dData[3]=aDouble;
@@ -164,7 +164,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //rateParameter
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING invalid element data" << eleTag << endln;
+    opserr << "WARNING invalid element data" << eleTag << "\n";
     return 0;
   }
   dData[4]=aDouble;
@@ -173,7 +173,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //Effective radius of curvature of sliding surface
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING invalid element data" << eleTag << endln;
+    opserr << "WARNING invalid element data" << eleTag << "\n";
     return 0;
   }
   dData[5]=aDouble;
@@ -182,7 +182,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //Radius of contact area
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING invalid element data" << eleTag << endln;
+    opserr << "WARNING invalid element data" << eleTag << "\n";
     return 0;
   }
   dData[6]=aDouble;
@@ -191,7 +191,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //kInitial
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING invalid element data" << eleTag << endln;
+    opserr << "WARNING invalid element data" << eleTag << "\n";
     return 0;
   }
   dData[7]=aDouble;
@@ -239,7 +239,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //Shear distance
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING invalid element data" << eleTag << endln;
+    opserr << "WARNING invalid element data" << eleTag << "\n";
     return 0;
   }
   dData[14]=aDouble;
@@ -258,7 +258,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //mass
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING error reading element properties for element" << eleTag << endln;
+    opserr << "WARNING error reading element properties for element" << eleTag << "\n";
     return 0;
   }
   dData[15]=aDouble;
@@ -277,7 +277,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   //tol
   numData = 1;  
   if (OPS_GetDoubleInput(&numData, &aDouble) != 0) {
-    opserr << "WARNING error reading element properties for element" << eleTag << endln;
+    opserr << "WARNING error reading element properties for element" << eleTag << "\n";
     return 0;
   }
   dData[16]=aDouble;
@@ -310,7 +310,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FPBearingPTV)
   
 
   if (theEle == 0) {
-    opserr << "WARNING ran out of memory creating element with tag " << eleTag << endln;
+    opserr << "WARNING ran out of memory creating element with tag " << eleTag << "\n";
 	delete theMaterialA;
 	delete theMaterialB;
 	delete theMaterialC;
@@ -537,7 +537,8 @@ void FPBearingPTV::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 	    
     // set up the transformation matrix for orientation
     this->setUp();
@@ -1307,18 +1308,18 @@ void FPBearingPTV::Print(OPS_Stream &s, int flag)
         // print everything
         s << "Element: " << this->getTag(); 
         s << "  type: FPBearingPTV  iNode: " << connectedExternalNodes(0);
-        s << "  jNode: " << connectedExternalNodes(1) << endln;
-        //s << "  FrictionModel: " << theFrnMdl->getTag() << endln;
-        s << "  Reff: " << Reffective << "  kInit: " << k0 << endln;
-        s << "  Material ux: " << theMaterials[0]->getTag() << endln;
-        s << "  Material rx: " << theMaterials[1]->getTag() << endln;
-        s << "  Material ry: " << theMaterials[2]->getTag() << endln;
-        s << "  Material rz: " << theMaterials[3]->getTag() << endln;		
+        s << "  jNode: " << connectedExternalNodes(1) << "\n";
+        //s << "  FrictionModel: " << theFrnMdl->getTag() << "\n";
+        s << "  Reff: " << Reffective << "  kInit: " << k0 << "\n";
+        s << "  Material ux: " << theMaterials[0]->getTag() << "\n";
+        s << "  Material rx: " << theMaterials[1]->getTag() << "\n";
+        s << "  Material ry: " << theMaterials[2]->getTag() << "\n";
+        s << "  Material rz: " << theMaterials[3]->getTag() << "\n";		
         s << "  shearDistI: " << shearDistI << "  addRayleigh: "
-            << addRayleigh << "  mass: " << mass << endln;
-        s << "  maxIter: " << maxIter << "  tol: " << tol << endln;
+            << addRayleigh << "  mass: " << mass << "\n";
+        s << "  maxIter: " << maxIter << "  tol: " << tol << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {

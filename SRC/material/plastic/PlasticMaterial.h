@@ -32,8 +32,6 @@
 #ifndef PlasticMaterial_h
 #define PlasticMaterial_h
 
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -55,10 +53,8 @@ class TensorIndexing {
 
 template <int n, PlaneType type, typename index> class PlasticMaterial : public Mate<n> {
 public:
-  // null constructor
   PlasticMaterial();
 
-  // full constructor
   PlasticMaterial(int tag,
                   int classTag,
                   double K,

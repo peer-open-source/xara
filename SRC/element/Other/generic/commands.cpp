@@ -9,7 +9,8 @@
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 11/06
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <stdlib.h>
 #include <string.h>
 #include <Domain.h>
@@ -76,8 +77,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
   // fill in the nodes ID
   for (int i = 0; i < numNodes; ++i) {
     if (Tcl_GetInt(interp, argv[argi], &node) != TCL_OK) {
-      opserr << "WARNING invalid node\n";
-      opserr << "genericClient element: " << tag << endln;
+      opserr << "WARNING invalid node" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     nodes(i) = node;
@@ -88,7 +88,6 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
     int numDOFj = 0;
     if (strcmp(argv[argi], "-dof") != 0) {
       opserr << "WARNING expect -dof\n";
-      opserr << "genericClient element: " << tag << endln;
       return TCL_ERROR;
     }
     argi++;
@@ -104,8 +103,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
     ID dofsj(numDOFj);
     for (int i = 0; i < numDOFj; ++i) {
       if (Tcl_GetInt(interp, argv[argi], &dof) != TCL_OK) {
-        opserr << "WARNING invalid dof\n";
-        opserr << "genericClient element: " << tag << endln;
+        opserr << "WARNING invalid dof" << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       dofsj(i) = dof - 1;
@@ -116,8 +114,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
   if (strcmp(argv[argi], "-server") == 0) {
     argi++;
     if (Tcl_GetInt(interp, argv[argi], &ipPort) != TCL_OK) {
-      opserr << "WARNING invalid ipPort\n";
-      opserr << "genericClient element: " << tag << endln;
+      opserr << "WARNING invalid ipPort" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     argi++;
@@ -141,16 +138,14 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
         ssl = 0;
       } else if (strcmp(argv[i], "-dataSize") == 0) {
         if (Tcl_GetInt(interp, argv[i + 1], &dataSize) != TCL_OK) {
-          opserr << "WARNING invalid dataSize\n";
-          opserr << "genericClient element: " << tag << endln;
+          opserr << "WARNING invalid dataSize" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
       }
     }
   } else {
     opserr << "WARNING expecting -server string but got ";
-    opserr << argv[argi] << endln;
-    opserr << "genericClient element: " << tag << endln;
+    opserr << argv[argi] << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   for (int i = argi; i < argc; ++i) {
@@ -172,8 +167,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
 
   // then add the GenericClient to the domain
   if (theTclDomain->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
-    opserr << "genericClient element: " << tag << endln;
+    opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
   }
@@ -191,8 +185,8 @@ TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int ar
 
   // check the number of arguments is correct
   if ((argc - eleArgStart) < 6) {
-    opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: expElement genericCopy eleTag -node Ndi ... -src srcTag\n";
+    opserr << "WARNING insufficient arguments; ";
+    opserr << "Want: expElement genericCopy eleTag -node Ndi ... -src srcTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -202,12 +196,12 @@ TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int ar
   int numNodes = 0;
 
   if (Tcl_GetInt(interp, argv[1 + eleArgStart], &tag) != TCL_OK) {
-    opserr << "WARNING invalid genericCopy eleTag\n";
+    opserr << "WARNING invalid genericCopy eleTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   // read the number of nodes
   if (strcmp(argv[2 + eleArgStart], "-node") != 0) {
-    opserr << "WARNING expecting -node flag\n";
+    opserr << "WARNING expecting -node flag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   int argi = 3 + eleArgStart;
@@ -217,26 +211,26 @@ TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int ar
     i++;
   }
   if (numNodes == 0) {
-    opserr << "WARNING no nodes specified\n";
+    opserr << "WARNING no nodes specified" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   // create and fill in the ID array to hold the nodes
   ID nodes(numNodes);
   for (int i = 0; i < numNodes; ++i) {
     if (Tcl_GetInt(interp, argv[argi], &node) != TCL_OK) {
-      opserr << "WARNING invalid node\n";
+      opserr << "WARNING invalid node" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     nodes(i) = node;
     argi++;
   }
   if (strcmp(argv[argi], "-src") != 0) {
-    opserr << "WARNING expect -src\n";
+    opserr << "WARNING expect -src" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
   if (Tcl_GetInt(interp, argv[argi], &srcTag) != TCL_OK) {
-    opserr << "WARNING invalid srcTag\n";
+    opserr << "WARNING invalid srcTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -245,8 +239,7 @@ TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int ar
 
   // then add the GenericCopy to the domain
   if (theTclDomain->addElement(theElement) == false) {
-    opserr << "WARNING could not add element to the domain\n";
-    opserr << "genericCopy element: " << tag << endln;
+    opserr << "WARNING could not add element to the domain" << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
   }

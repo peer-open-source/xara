@@ -119,7 +119,7 @@ ForceDeltaFrame3d<NIP,nsr>::ForceDeltaFrame3d(int tag,
                            bool includeShear
   )
  : 
-   FiniteElement<2, 3, 6> (tag, ELE_TAG_ForceDeltaFrame3d, nodes),
+   FiniteElement<2, 3, 6> (tag, ELE_TAG_ForceDeltaFrame3d, nodes, mass_type),
    BasicFrame3d(),
    basic_system(new BasicFrameTransf3d<ndf>(tb.template create<2,ndf>())),
    stencil(nullptr),

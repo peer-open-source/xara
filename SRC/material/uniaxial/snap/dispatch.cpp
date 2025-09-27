@@ -41,19 +41,9 @@
 #include <DamageModel.h>
 #include <ModelRegistry.h>
 
-#include <tcl.h>
 #include <Vector.h>
 #include <string.h>
-#include <stdlib.h>
 
-static void
-printCommand(int argc, TCL_Char ** const argv)
-{
-  opserr << "Input command: ";
-  for (int i = 0; i < argc; i++)
-    opserr << argv[i] << " ";
-  opserr << endln;
-}
 
 UniaxialMaterial *
 TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
@@ -64,15 +54,13 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
   
   if (argc < 3) {
     opserr << "WARNING insufficient number of arguments for the Snap material "
-              "model\n";
-    printCommand(argc, argv);
+              "model" << OpenSees::SignalMessageEnd;
     return 0;
   }
 
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << "WARNING invalid uniaxialMaterial tag\n";
-    printCommand(argc, argv);
+    opserr << "WARNING invalid uniaxialMaterial tag" << OpenSees::SignalMessageEnd;
     return 0;
   }
 
@@ -80,8 +68,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
 
   if (strcmp(argv[1], "Bilinear") == 0) {
     if (argc < 15) {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: uniaxialMaterial Bilinear tag? ..." << endln;
+      opserr << "WARNING insufficient arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -90,8 +77,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 12; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -102,12 +88,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       strength = NULL;
     } else {
       strength = builder->getTypedObject<DamageModel>((int)input(9));
-
-      if (strength == 0) {
-        opserr << "WARNING damage model for strength deterioration not found\n";
-        opserr << "Damage Model: " << input(9);
-        opserr << "\nBinilear material: " << tag << endln;
-        exit(-1);
+      if (strength == nullptr) {
+        return nullptr;
       }
     }
 
@@ -116,13 +98,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       stiffness = NULL;
     } else {
       stiffness = builder->getTypedObject<DamageModel>((int)input(10));
-
       if (stiffness == 0) {
-        opserr
-            << "WARNING damage model for stiffness deterioration not found\n";
-        opserr << "Damage Model: " << input(10);
-        opserr << "\nBinilear material: " << tag << endln;
-        exit(-1);
+        return nullptr;
       }
     }
 
@@ -131,12 +108,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       capping = NULL;
     } else {
       capping = builder->getTypedObject<DamageModel>((int)input(11));
-
       if (capping == 0) {
-        opserr << "WARNING damage model for capping deterioration not found\n";
-        opserr << "Damage Model: " << input(11);
-        opserr << "\nBinilear material: " << tag << endln;
-        exit(-1);
+        return nullptr;
       }
     }
 
@@ -148,9 +121,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
            (strcmp(argv[1], "CloughHenry") == 0)) {
 
     if (argc < 19) {
-      opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Clough tag? 17 args" << endln;
+      opserr << "WARNING insufficient arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -159,8 +130,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 16; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -177,9 +147,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
            strcmp(argv[1], "Clough_Damage") == 0 ||
            strcmp(argv[1], "CloughDamage") == 0) {
     if (argc < 15) {
-      opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Clough tag? ..." << endln;
+      opserr << "WARNING insufficient arguments"
+             << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -188,8 +157,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 12; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -202,10 +170,10 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       strength = builder->getTypedObject<DamageModel>((int)input(8));
 
       if (strength == 0) {
-        opserr << "WARNING damage model for strength deterioration not found\n";
-        opserr << "Damage Model: " << input(8);
-        opserr << "\nClough material: " << tag << endln;
-        exit(-1);
+        opserr << OpenSees::PromptModelError
+               << "damage model for strength deterioration not found"
+               << OpenSees::SignalMessageEnd;
+        return 0;
       }
     }
 
@@ -216,11 +184,10 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       stiffness = builder->getTypedObject<DamageModel>((int)input(9));
 
       if (stiffness == 0) {
-        opserr
-            << "WARNING damage model for stiffness deterioration not found\n";
-        opserr << "Damage Model: " << input(9);
-        opserr << "\nClough material: " << tag << endln;
-        exit(-1);
+        opserr << OpenSees::PromptModelError
+            << "damage model for stiffness deterioration not found"
+            << OpenSees::SignalMessageEnd;
+        return 0;
       }
     }
 
@@ -232,10 +199,9 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
 
       if (accelerated == 0) {
         opserr << "WARNING damage model for accelerated stiffness "
-                  "deterioration not found\n";
-        opserr << "Damage Model: " << input(10);
-        opserr << "\nClough material: " << tag << endln;
-        exit(-1);
+                  "deterioration not found"
+                << OpenSees::SignalMessageEnd;
+        return 0;
       }
     }
 
@@ -244,12 +210,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       capping = NULL;
     } else {
       capping = builder->getTypedObject<DamageModel>((int)input(11));
-
       if (capping == 0) {
-        opserr << "WARNING damage model for capping deterioration not found\n";
-        opserr << "Damage Model: " << input(11);
-        opserr << "\nClough material: " << tag << endln;
-        exit(-1);
+        return 0;
       }
     }
     theMaterial =
@@ -260,8 +222,6 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
            strcmp(argv[1], "pinching") == 0) {
     if (argc < 22) {
       opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Pinching tag? ..." << endln;
       return 0;
     }
 
@@ -270,8 +230,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 19; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -284,9 +243,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
            strcmp(argv[1], "PinchingDamage") == 0 ||
            strcmp(argv[1], "pinchingDamage") == 0) {
     if (argc < 18) {
-      opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Pinching tag? ..." << endln;
+      opserr << "WARNING insufficient arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -295,8 +252,7 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 15; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -309,10 +265,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       strength = builder->getTypedObject<DamageModel>((int)input(11));
 
       if (strength == 0) {
-        opserr << "WARNING damage model for strength deterioration not found\n";
-        opserr << "Damage Model: " << input(11);
-        opserr << "\nPinching material: " << tag << endln;
-        exit(-1);
+        opserr << "WARNING damage model for strength deterioration not found" << OpenSees::SignalMessageEnd;
+        return 0;
       }
     }
 
@@ -323,10 +277,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       stiffness = builder->getTypedObject<DamageModel>((int)input(12));
       if (stiffness == 0) {
         opserr
-            << "WARNING damage model for stiffness deterioration not found\n";
-        opserr << "Damage Model: " << input(12);
-        opserr << "\nPinching material: " << tag << endln;
-        exit(-1);
+            << "WARNING damage model for stiffness deterioration not found" << OpenSees::SignalMessageEnd;
+        return 0;
       }
     }
 
@@ -337,10 +289,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       accelerated = builder->getTypedObject<DamageModel>((int)input(13));
       if (accelerated == 0) {
         opserr << "WARNING damage model for accelerated stiffness "
-                  "deterioration not found\n";
-        opserr << "Damage Model: " << input(13);
-        opserr << "\nPinching material: " << tag << endln;
-        exit(-1);
+                  "deterioration not found" << OpenSees::SignalMessageEnd;
+        return 0;
       }
     }
 
@@ -349,12 +299,8 @@ TclBasicBuilder_addSnapMaterial(ClientData clientData, Tcl_Interp *interp,
       capping = NULL;
     } else {
       capping = builder->getTypedObject<DamageModel>((int)input(14));
-
-      if (capping == 0) {
-        opserr << "WARNING damage model for capping deterioration not found\n";
-        opserr << "Damage Model: " << input(14);
-        opserr << "\nPinching material: " << tag << endln;
-        exit(-1);
+      if (capping == nullptr) {
+        return 0;
       }
     }
     theMaterial = new PinchingDamage(tag, input, strength, stiffness,

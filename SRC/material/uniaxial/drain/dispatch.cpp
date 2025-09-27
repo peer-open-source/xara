@@ -23,7 +23,8 @@
 //
 // Description: This file contains the implementation of the
 // TclBasicBuilder_addDrainMaterial() function.
-
+#include <Logging.h>
+#include <Parsing.h>
 #include <DrainHardeningMaterial.h>
 #include <DrainBilinearMaterial.h>
 #include <DrainClough1Material.h>
@@ -33,31 +34,20 @@
 #include <Vector.h>
 #include <string.h>
 #include <runtimeAPI.h>
-#include <tcl.h>
 
-static void
-printCommand(int argc, TCL_Char ** const argv)
-{
-  opserr << "Input command: ";
-  for (int i = 0; i < argc; i++)
-    opserr << argv[i] << " ";
-  opserr << endln;
-}
 
 UniaxialMaterial *
 TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
   if (argc < 3) {
-    opserr << "WARNING insufficient number of arguments\n";
-    printCommand(argc, argv);
+    opserr << "WARNING insufficient number of arguments" << OpenSees::SignalMessageEnd;
     return 0;
   }
 
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << "WARNING invalid uniaxialMaterial tag\n";
-    printCommand(argc, argv);
+    opserr << "WARNING invalid uniaxialMaterial tag" << OpenSees::SignalMessageEnd;
     return 0;
   }
 
@@ -66,33 +56,26 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
   if (strcmp(argv[1], "Hardening2") == 0 ||
       strcmp(argv[1], "Hardening02") == 0) {
     if (argc < 7) {
-      opserr << "WARNING invalid number of arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Hardening02 tag? E? sigY? Hiso? Hkin?"
-             << endln;
+      opserr << "WARNING invalid number of arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
     double E, sigY, Hiso, Hkin;
 
     if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-      opserr << "WARNING invalid E\n";
-      printCommand(argc, argv);
+      opserr << "WARNING invalid E" << OpenSees::SignalMessageEnd;
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[4], &sigY) != TCL_OK) {
-      opserr << "WARNING invalid sigY\n";
-      printCommand(argc, argv);
+      opserr << "WARNING invalid sigY" << OpenSees::SignalMessageEnd;
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[5], &Hiso) != TCL_OK) {
-      opserr << "WARNING invalid Hiso\n";
-      printCommand(argc, argv);
+      opserr << "WARNING invalid Hiso" << OpenSees::SignalMessageEnd;
       return 0;
     }
     if (Tcl_GetDouble(interp, argv[6], &Hkin) != TCL_OK) {
-      opserr << "WARNING invalid Hkin\n";
-      printCommand(argc, argv);
+      opserr << "WARNING invalid Hkin" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -101,9 +84,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
   else if (strcmp(argv[1], "BiLinear") == 0) {
     if (argc < 19) {
-      opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial BiLinear tag? ..." << endln;
+      opserr << "WARNING insufficient arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -112,8 +93,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 16; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -124,9 +104,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
   else if (strcmp(argv[1], "Clough1") == 0) {
     if (argc < 19) {
-      opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Clough1 tag? ..." << endln;
+      opserr << "WARNING insufficient arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -135,8 +113,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 16; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -147,9 +124,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
   else if (strcmp(argv[1], "Clough2") == 0) {
     if (argc < 19) {
-      opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Clough2 tag? ..." << endln;
+      opserr << "WARNING insufficient arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -158,8 +133,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 16; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;
@@ -170,9 +144,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
   else if (strcmp(argv[1], "Pinch1") == 0) {
     if (argc < 22) {
-      opserr << "WARNING insufficient arguments\n";
-      printCommand(argc, argv);
-      opserr << "Want: uniaxialMaterial Pinch1 tag? ..." << endln;
+      opserr << "WARNING insufficient arguments" << OpenSees::SignalMessageEnd;
       return 0;
     }
 
@@ -181,8 +153,7 @@ TclBasicBuilder_addDrainMaterial(ClientData clientData, Tcl_Interp *interp,
 
     for (int i = 3, j = 0; j < 19; i++, j++) {
       if (Tcl_GetDouble(interp, argv[i], &temp) != TCL_OK) {
-        opserr << "WARNING invalid input, data " << i << endln;
-        printCommand(argc, argv);
+        opserr << "WARNING invalid input, data " << i << OpenSees::SignalMessageEnd;
         return 0;
       }
       input(j) = temp;

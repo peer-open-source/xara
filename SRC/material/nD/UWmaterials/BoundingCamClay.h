@@ -29,8 +29,7 @@
 // Description: This file contains the class definition for BoundingCamClay. 
 
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <assert.h>
 #include <math.h>
 
 #include <NDMaterial.h>
@@ -55,6 +54,10 @@ class BoundingCamClay : public NDMaterial
     int commitState(void);
     int revertToLastCommit(void);
     int revertToStart(void);
+	virtual int setTrialStrain(const Vector &v) {
+	  assert(false);
+	  return -1;
+	}
 
     NDMaterial *getCopy(void);
     const char *getType(void) const;

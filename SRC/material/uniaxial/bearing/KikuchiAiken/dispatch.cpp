@@ -1,4 +1,4 @@
-#include <tcl.h>
+
 #include <Logging.h>
 #include <Parsing.h>
 #include <ModelRegistry.h>
@@ -9,6 +9,9 @@
 int
 TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {
+  // uniaxialMaterial KikuchiAikenHDR matTag? tp? ar? hr? 
+  //           <-coGHU cg? ch? cu?> <-coMSS rs? rf?>
+
   // arguments (necessary)
   int tag;
   int tp = -1;
@@ -37,7 +40,7 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
 
     // argv[2~5]
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid KikuchiAikenHDR tag" << endln;
+      opserr << "WARNING invalid KikuchiAikenHDR tag" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
@@ -58,7 +61,7 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
       tp = 6;
 
     } else {
-      opserr << "WARNING invalid KikuchiAikenHDR tp" << endln;
+      opserr << "WARNING invalid KikuchiAikenHDR tp" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
@@ -89,7 +92,7 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
         }
 
         if (Tcl_GetDouble(interp, argv[i + 3], &cu) != TCL_OK || cu < 0.0) {
-          opserr << "WARNING invalid cu\n";
+          opserr << "WARNING invalid cu" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
@@ -99,19 +102,19 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
                  (i + 2) <= (argc - 1)) { // <-coMSS rs? rf?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &rs) != TCL_OK || rs < 0.0) {
-          opserr << "WARNING invalid rs\n";
+          opserr << "WARNING invalid rs" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
         if (Tcl_GetDouble(interp, argv[i + 2], &rf) != TCL_OK || rf < 0.0) {
-          opserr << "WARNING invalid rf\n";
+          opserr << "WARNING invalid rf" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
         i += 2;
 
       } else { // invalid option
-        opserr << "WARNING invalid optional arguments \n";
+        opserr << "WARNING invalid optional arguments" << OpenSees::SignalMessageEnd;
         ifNoError = false;
         break;
       }
@@ -120,17 +123,6 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
 
   // if error detected
   if (!ifNoError) {
-    // input:
-    opserr << "Input command: ";
-    for (int i = 0; i < argc; i++) {
-      opserr << argv[i] << " ";
-    }
-    opserr << endln;
-
-    // want:
-    opserr << "Want: uniaxialMaterial KikuchiAikenHDR matTag? tp? ar? hr? "
-              "<-coGHU cg? ch? cu?> <-coMSS rs? rf?>"
-           << endln;
     return TCL_ERROR;
   }
 
@@ -149,11 +141,6 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
   // Parsing was successful, allocate the material
   theMaterial = new KikuchiAikenHDR(tag, tp, ar, hr, cg, ch, cu, rs, rf);
 
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial " << argv[1] << endln;
-    return TCL_ERROR;
-  }
-
   // succeeded
   return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
@@ -161,6 +148,9 @@ TclCommand_KikuchiAikenHDR(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
 int
 TclCommand_KikuchiAikenLRB(ClientData cd, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {
+
+  // uniaxialMaterial KikuchiAikenLRB matTag? type? ar? hr? gr? "
+  //        "ap? tp? alph? beta? <-T temp? > <-coKQ rk? rq?> <-coMSS rs? rf?>"
 
   // arguments (necessary)
   int tag;
@@ -196,47 +186,47 @@ TclCommand_KikuchiAikenLRB(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
 
     // argv[2~10]
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING KikuchiAikenLRB invalid tag" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid tag" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     if (Tcl_GetInt(interp, argv[3], &type) != TCL_OK) {
-      opserr << "WARNING KikuchiAikenLRB invalid type" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid type" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &ar) != TCL_OK || ar <= 0.0) {
-      opserr << "WARNING KikuchiAikenLRB invalid ar" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid ar" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
-    if (Tcl_GetDouble(interp, argv[5], &hr) != TCL_OK || ar <= 0.0) {
-      opserr << "WARNING KikuchiAikenLRB invalid hr" << endln;
+    if (Tcl_GetDouble(interp, argv[5], &hr) != TCL_OK || hr <= 0.0) {
+      opserr << "WARNING KikuchiAikenLRB invalid hr" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &gr) != TCL_OK || gr <= 0.0) {
-      opserr << "WARNING KikuchiAikenLRB invalid gr" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid gr" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &ap) != TCL_OK || ap <= 0.0) {
-      opserr << "WARNING KikuchiAikenLRB invalid ap" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid ap" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     if (Tcl_GetDouble(interp, argv[8], &tp) != TCL_OK || tp <= 0.0) {
-      opserr << "WARNING KikuchiAikenLRB invalid tp" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid tp" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     if (Tcl_GetDouble(interp, argv[9], &alph) != TCL_OK || alph <= 0.0) {
-      opserr << "WARNING KikuchiAikenLRB invalid alph" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid alph" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
     if (Tcl_GetDouble(interp, argv[10], &beta) != TCL_OK || beta <= 0.0) {
-      opserr << "WARNING KikuchiAikenLRB invalid beta" << endln;
+      opserr << "WARNING KikuchiAikenLRB invalid beta" << OpenSees::SignalMessageEnd;
       ifNoError = false;
     }
 
@@ -246,7 +236,7 @@ TclCommand_KikuchiAikenLRB(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
       if (strcmp(argv[i], "-T") == 0 && (i + 1) <= (argc - 1)) { // <-T temp?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &temp) != TCL_OK) {
-          opserr << "WARNING KikuchiAikenLRB invalid temp" << endln;
+          opserr << "WARNING KikuchiAikenLRB invalid temp" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
@@ -256,12 +246,12 @@ TclCommand_KikuchiAikenLRB(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
                  (i + 2) <= (argc - 1)) { // <-coKQ rk? rq?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &rk) != TCL_OK || rk < 0.0) {
-          opserr << "WARNING KikuchiAikenLRB invalid rk" << endln;
+          opserr << "WARNING KikuchiAikenLRB invalid rk" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
         if (Tcl_GetDouble(interp, argv[i + 2], &rq) != TCL_OK || rq < 0.0) {
-          opserr << "WARNING KikuchiAikenLRB invalid rq" << endln;
+          opserr << "WARNING KikuchiAikenLRB invalid rq" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
@@ -270,19 +260,19 @@ TclCommand_KikuchiAikenLRB(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
                  (i + 2) <= (argc - 1)) { // <-coMSS rs? rf?>
 
         if (Tcl_GetDouble(interp, argv[i + 1], &rs) != TCL_OK || rs < 0.0) {
-          opserr << "WARNING KikuchiAikenLRB invalid rs" << endln;
+          opserr << "WARNING KikuchiAikenLRB invalid rs" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
         if (Tcl_GetDouble(interp, argv[i + 2], &rf) != TCL_OK || rf < 0.0) {
-          opserr << "WARNING KikuchiAikenLRB invalid rf" << endln;
+          opserr << "WARNING KikuchiAikenLRB invalid rf" << OpenSees::SignalMessageEnd;
           ifNoError = false;
         }
 
         i += 2;
 
       } else { // invalid option
-        opserr << "WAINING KikuchiAikenLRB invalid optional arguments" << endln;
+        opserr << "WARNING KikuchiAikenLRB invalid optional arguments" << OpenSees::SignalMessageEnd;
         ifNoError = false;
         break;
       }
@@ -291,19 +281,6 @@ TclCommand_KikuchiAikenLRB(ClientData cd, Tcl_Interp* interp, int argc, G3_Char 
 
   // if error detected
   if (!ifNoError) {
-    // input:
-    opserr << "Input command: ";
-    for (int i = 0; i < argc; i++) {
-      opserr << argv[i] << " ";
-    }
-    opserr << endln;
-
-    // want:
-    opserr
-        << "Want: uniaxialMaterial KikuchiAikenLRB matTag? type? ar? hr? gr? "
-           "ap? tp? alph? beta? <-T temp? > <-coKQ rk? rq?> <-coMSS rs? rf?>"
-        << endln;
-    //
     return TCL_ERROR;
   }
 

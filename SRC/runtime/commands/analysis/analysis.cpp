@@ -17,7 +17,6 @@
 // Description: This file contains functions that are responsible
 // for orchestrating an analysis.
 //
-#include <tcl.h>
 #include <assert.h>
 #include <Parsing.h>
 #include <runtimeAPI.h>
@@ -135,7 +134,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   else if (((strcmp(argv[1], "VariableTimeStepTransient") == 0) ||
           (strcmp(argv[1], "TransientWithVariableTimeStep") == 0) ||
           (strcmp(argv[1], "VariableTransient") == 0))) {
-    opserr << "Unimplemented\n";
+    opserr << OpenSees::PromptValueError << "Unimplemented\n";
     return TCL_ERROR;
 
   }
@@ -212,12 +211,24 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       if (argc == 6) {
         int Jd;
         double dtMin, dtMax;
-        if (Tcl_GetDouble(interp, argv[3], &dtMin) != TCL_OK)
+        if (Tcl_GetDouble(interp, argv[3], &dtMin) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+              << "invalid dtMin " << argv[3]
+              << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
-        if (Tcl_GetDouble(interp, argv[4], &dtMax) != TCL_OK)
+        }
+        if (Tcl_GetDouble(interp, argv[4], &dtMax) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+              << "invalid dtMax " << argv[4]
+              << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
-        if (Tcl_GetInt(interp, argv[5], &Jd) != TCL_OK)
+        }
+        if (Tcl_GetInt(interp, argv[5], &Jd) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+              << "invalid Jd " << argv[5]
+              << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
+        }
 
         result = builder->analyzeVariable(numIncr, dT, dtMin, dtMax, Jd);
 
@@ -227,7 +238,9 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       break;
     }
     default:
-      opserr << OpenSees::PromptValueError << "No Analysis type has been specified \n";
+      opserr << OpenSees::PromptValueError 
+             << "No Analysis type has been specified"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
   }
 

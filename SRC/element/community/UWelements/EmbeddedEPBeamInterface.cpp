@@ -684,7 +684,8 @@ EmbeddedEPBeamInterface::setDomain(Domain *theDomain)
     mB.Invert(mBinv);
     mBinvTAT = Transpose(6 * m_numBeamNodes, 6 * m_numBeamNodes, mBinv) * mAt;
 
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     return;
 }
 

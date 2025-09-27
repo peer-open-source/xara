@@ -255,9 +255,9 @@ void
 BisectionLineSearch::Print(OPS_Stream &s, int flag)
 {
   if (flag == 0) {
-    s << "BisectionLineSearch :: Line Search Tolerance = " << tolerance << endln;
-    s << "                         max num Iterations = " << maxIter << endln;
-    s << "                         max value on eta = " << maxEta << endln;
+    s << "BisectionLineSearch :: Line Search Tolerance = " << tolerance << "\n";
+    s << "                         max num Iterations = " << maxIter << "\n";
+    s << "                         max value on eta = " << maxEta << "\n";
   }
 }
 

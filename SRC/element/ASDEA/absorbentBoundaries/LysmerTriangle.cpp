@@ -73,13 +73,13 @@ void * OPS_ADD_RUNTIME_VPV(OPS_LysmerTriangle)
 
   int numData = 4;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer data: element LysmerTriangleElement" << endln;
+    opserr << "WARNING invalid integer data: element LysmerTriangleElement" << "\n";
     return 0;
   }
 
   numData = 3;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: element LysmerTriangle " << iData[0] << endln;
+    opserr << "WARNING invalid data: element LysmerTriangle " << iData[0] << "\n";
     return 0; 
   }
 
@@ -138,11 +138,6 @@ LysmerTriangle::LysmerTriangle(int tag, int Nd1, int Nd2, int Nd3, double rho_, 
 	GsPts[0][0] = 0.5;
 
 	mLoadFactor = 1.0;
-
-  // if(stage != 0)
-  // {
-  //   opserr << "LysmerTriangle::LysmerTriangle - element at tag # " << this->getTag() << " starting at stage = " << stage << " also L = " << element_length <<  endln;
-  // }
 }
 
 LysmerTriangle::LysmerTriangle()
@@ -211,7 +206,8 @@ LysmerTriangle::setDomain(Domain *theDomain)
     dcrd3 = theNodes[2]->getCrds();
 
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     UpdateBase(GsPts[0][0], GsPts[0][0]);
 
@@ -343,21 +339,6 @@ LysmerTriangle::getTangentStiff(void)
 
       subStiff.addMatrixTripleProduct(1., T, K, A);
 
-      // static bool do_once = true;
-
-      // if(do_once)
-      // {
-      //   opserr << "L = " << L << endln;
-      //   opserr << "G = " << G << endln;
-      //   opserr << "M = " << M << endln;
-      //   opserr << "E = " << E << endln;
-      //   opserr << "A = " << A << endln;
-      //   opserr << "subStiff = " << subStiff << endln;
-      //   opserr << "T = " << T << endln;
-      //   opserr << "K = " << K << endln;
-      //   do_once = false;
-      // }
-
       tangentStiffness.addMatrixTripleProduct(1, Bmat, subStiff, 1.0);
     }
 
@@ -365,7 +346,7 @@ LysmerTriangle::getTangentStiff(void)
 }
 
 const Matrix &
-LysmerTriangle::getInitialStiff(void)
+LysmerTriangle::getInitialStiff()
 {
     return getTangentStiff();
 }
@@ -424,7 +405,9 @@ LysmerTriangle::addLoad(ElementalLoad *theLoad, double loadFactor)
     gnd_velocity += data;
     return 0;
   } else {
-    opserr << "LysmerTriangle::addLoad() - ele with tag: " << this->getTag() << " does not accept load type: " << type << endln;
+    opserr << "element with tag: "
+           << this->getTag() << " does not accept load type: " 
+           << type << "\n";
     return -1;
   }
 
@@ -624,11 +607,6 @@ LysmerTriangle::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &t
 
   this->setTag((int)MyTag);
 
-  // if(stage != 0)
-  // {
-  //   opserr << "LysmerTriangle::recvSelf - (chantag = " << theChannel.getTag() <<" ) element at tag # " << this->getTag() << " starting at stage = " << stage << " also L = " << element_length << endln;
-  // }
-
   // LysmerTriangle now receives the tags of it's four external nodes
   res = theChannel.recvID(dataTag, commitTag, myExternalNodes);
   if (res < 0) {
@@ -695,26 +673,42 @@ LysmerTriangle::displaySelf(Renderer &theViewer, int displayMode, float fact, co
 void
 LysmerTriangle::Print(OPS_Stream &s, int flag)
 {
-    opserr << "LysmerTriangle, element id:  " << this->getTag() << endln;
-    opserr << "   Connected external nodes:  " ; 
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"LysmerTriangle\", ";
+    s << "\"nodes\": [" 
+      << myExternalNodes(0) << ", " 
+      << myExternalNodes(1) << ", " 
+      << myExternalNodes(2) << "], ";
+    s << "\"rho\": " << rho << ", ";
+    s << "\"Vp\": " << Vp << ", ";
+    s << "\"Vs\": " << Vs << ", ";
+    s << "\"length\": " << element_length << ", ";
+    s << "\"stage\": " << stage << ", ";
+    s << "\"A\": " << A << "}"; 
+  }
+  else {
+    s << "LysmerTriangle, element id:  " << this->getTag() << "\n";
+    s << "   Connected external nodes:  " ; 
     for (int i = 0; i<SL_NUM_NODE; i++) {
-      opserr << myExternalNodes(i)<< " ";
+      s << myExternalNodes(i)<< " ";
     }
-    opserr << endln ; 
-    opserr << "   A:  " << A << endln ; 
+    s << "\n" ; 
+    s << "   A:  " << A << "\n" ; 
 
-    opserr << "   g1  : " <<  g1 << endln;
-    opserr << "   g2  : " <<  g2 << endln;
-    opserr << "   myNhat  : " <<  myNhat << endln;
-    opserr << "   myThat  : " <<  myThat << endln;
-    opserr << "   myShat  : " <<  myShat << endln;
-    opserr << "   myNI  : " <<  myNI << endln;
-    opserr << "   dcrd1  : " <<  dcrd1 << endln;
-    opserr << "   dcrd2  : " <<  dcrd2 << endln;
-    opserr << "   dcrd3  : " <<  dcrd3 << endln;
-    opserr << "   gnd_velocity  : " <<  gnd_velocity << endln;
-
-    return;
+    s << "   g1  : " <<  g1 << "\n";
+    s << "   g2  : " <<  g2 << "\n";
+    s << "   myNhat  : " <<  myNhat << "\n";
+    s << "   myThat  : " <<  myThat << "\n";
+    s << "   myShat  : " <<  myShat << "\n";
+    s << "   myNI  : " <<  myNI << "\n";
+    s << "   dcrd1  : " <<  dcrd1 << "\n";
+    s << "   dcrd2  : " <<  dcrd2 << "\n";
+    s << "   dcrd3  : " <<  dcrd3 << "\n";
+    s << "   gnd_velocity  : " <<  gnd_velocity << "\n";
+  }
+  return;
 }
 
 Response*

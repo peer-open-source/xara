@@ -36,7 +36,6 @@
   #define strcmp strcasecmp
   
   // Parsing
-  #include <tcl.h>
   #include <Logging.h>
   #include <Parsing.h>
   #include <ArgumentTracker.h>
@@ -71,6 +70,7 @@
   #include <DispBeamColumn2d.h>
   #include <DispBeamColumn2dThermal.h>
   #include <DispBeamColumn3d.h>
+  #include <DispBeamColumnAsym3d.h>
   #include <DispBeamColumn3dThermal.h>
   #include <DispBeamColumnNL2d.h>
   
@@ -155,6 +155,7 @@ CreateFrame(ModelRegistry& builder,
             const std::vector<int>& section_tags,
             BeamIntegration& beamIntegr,
             double mass, int max_iter, double tol,
+            const std::array<double,2>& shear_center,
             Options& options) 
 {
 
@@ -185,7 +186,8 @@ CreateFrame(ModelRegistry& builder,
   if (theTransf == nullptr) {
     opserr << OpenSees::PromptValueError 
            << "transformation not found with tag " 
-           << transfTag << "\n";
+           << transfTag 
+           << OpenSees::SignalMessageEnd;
     return nullptr;
   }
 
@@ -411,6 +413,11 @@ CreateFrame(ModelRegistry& builder,
       theElement = new ForceBeamColumnCBDI3d(tag, iNode, jNode, nIP, secptrs,
                                              beamIntegr, *theTransf, 
                                              mass, false, max_iter, tol);
+    else if (strcmp(name, "dispBeamColumnAsym") == 0)
+      theElement = new DispBeamColumnAsym3d(tag, iNode, jNode, nIP, secptrs,
+                                            beamIntegr, *theTransf, 
+                                            shear_center[0], shear_center[1],
+                                            mass, options.mass_flag);
     else
       theElement = new ForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs,
                                          beamIntegr, *theTransf, mass, max_iter, tol);
@@ -628,6 +635,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   BeamIntegration   *beamIntegr   = nullptr;
   BeamIntegrationRule  *theRule   = nullptr;
   int itg_tag;
+  std::array<double,2> shear_center = {0.0, 0.0};
 
   // If we get a BeamIntegration from a BeamIntegrationRule
   // then we dont own it and can't delete it
@@ -792,6 +800,25 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         argi++;
       }
 
+      else if (strcmp(argv[argi], "-shearCenter") == 0) {
+        if (argc < argi + 3) {
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -shearCenter $y $z\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+
+        if (Tcl_GetDouble(interp, argv[argi + 1], &shear_center[0]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid shear_center y\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+        if (Tcl_GetDouble(interp, argv[argi + 2], &shear_center[1]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid shear_center z\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+        argi += 3;
+      }
 
     //else if (strcmp(argv[argi], "-sections") == 0) {
     // split possible lists present in argv
@@ -852,7 +879,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       status = TCL_ERROR;
       goto clean_up;
     }
-
   }
 
   // Version e) ?
@@ -992,9 +1018,11 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   {
     Element *theElement = ndm == 2 
                         ? CreateFrame<2, CrdTransf, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
-                                                              section_tags, *beamIntegr, mass, max_iter, tol, options)
+                                                              section_tags, *beamIntegr, mass, max_iter, tol, 
+                                                              shear_center, options)
                         : CreateFrame<3, CrdTransf, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
-                                                                        section_tags, *beamIntegr, mass, max_iter, tol, options);
+                                                                        section_tags, *beamIntegr, mass, max_iter, tol, 
+                                                                        shear_center, options);
 
                                                                         
     if (theElement == nullptr) {

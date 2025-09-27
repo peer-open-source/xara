@@ -350,7 +350,8 @@ BeamColumnJoint2d::setDomain(Domain *theDomain)
 	}
 
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
 	// ensure connected nodes have correct dof's
 	int dofNd1 = nodePtr[0]->getNumberDOF();

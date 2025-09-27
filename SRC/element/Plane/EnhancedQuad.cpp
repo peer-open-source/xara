@@ -252,7 +252,8 @@ EnhancedQuad::setDomain( Domain *theDomain )
   for (int i = 0; i < NEN; i++ ) 
     theNodes[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
-  this->DomainComponent::setDomain(theDomain) ;
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain) ;
 }
 
 
@@ -509,9 +510,9 @@ EnhancedQuad::formResidAndTangent( int tang_flag )
 
   int success ;
 
-  OPS_STATIC double xsj[nip] ;  // determinant jacaobian matrix 
-  OPS_STATIC double dvol[nip] ; // volume element
-  OPS_STATIC double Shape[nip][nShape][NEN]; // [nip] ; // all the shape functions
+  double xsj[nip] ;  // determinant jacaobian matrix 
+  double dvol[nip] ; // volume element
+  double Shape[nip][nShape][NEN]; // [nip] ; // all the shape functions
 
   static Vector residJ(NDF) ; // nodeJ residual
   // static Matrix dd(nstress,nstress) ;  // material tangent

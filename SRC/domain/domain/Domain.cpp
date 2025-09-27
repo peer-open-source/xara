@@ -363,33 +363,43 @@ Domain::addElement(Element *element)
   // check all the elements nodes exist in the domain
   const ID &nodes = element->getExternalNodes();
   for (int i=0; i<nodes.Size(); i++) {
-      int nodeTag = nodes(i);
-      Node *nodePtr = this->getNode(nodeTag);
-      if (nodePtr == nullptr) {
-        opserr << "WARNING Domain::addElement - In element " << eleTag;
-        opserr << "\n no Node " << nodeTag << " exists in the domain\n";
-        return false;
-      }
+    int nodeTag = nodes(i);
+    Node *nodePtr = this->getNode(nodeTag);
+    if (nodePtr == nullptr) {
+      opserr << "WARNING Domain::addElement - In element " << eleTag;
+      opserr << "\n no Node " << nodeTag << " exists in the domain\n";
+      return false;
+    }
   }
 
   // check if an Element with a similar tag already exists in the Domain
   TaggedObject *other = theElements->getComponentPtr(eleTag);
   if (other != nullptr) {
-    opserr << "Domain::addElement - element with tag " << eleTag << " already exists in model\n"; 
+    opserr << "element with tag " << eleTag << " already exists in model\n"; 
     return false;
   }
 
   // add the element to the container object for the elements
   bool result = theElements->addComponent(element);
-  if (result == true) {
-    element->setDomain(this);
-    element->update();
+  if (result == false) {
+    opserr << "Domain::addElement - element " << eleTag << "could not be added to container\n";
+    return result;
+  }
 
-    // mark the Domain as having been changed
-    this->domainChange();
+  // set the element's domain to be this
+  if (element->link(*this) != 0) {
+    theElements->removeComponent(eleTag);
+    return false;
+  }
+  if (element->configure(*this) != 0) {
+    theElements->removeComponent(eleTag);
+    element->unlink(*this);
+    return false;
+  }
+  element->update();
 
-  } else 
-    opserr << "Domain::addElement - element " << eleTag << "could not be added to container\n";      
+  // mark the Domain as having been changed
+  this->domainChange();
 
   return result;
 }
@@ -700,13 +710,13 @@ Domain::addLoadPattern(LoadPattern *load)
     // now we add the load pattern to the container for load patterns
     bool result = theLoadPatterns->addComponent(load);
     if (result == true) {
-	load->setDomain(this);
-	if (numSPs > 0)
-	  this->domainChange();
+      load->setDomain(this);
+      if (numSPs > 0)
+        this->domainChange();
     }
     else 
-      opserr << "Domain::addLoadPattern - cannot add LoadPattern with tag " <<
-	tag << " to the container\n";                   	
+      opserr << "cannot add LoadPattern with tag " 
+             << tag << " to the container\n";              	
     return result;
 }    
 

@@ -23,7 +23,6 @@ Vector ElasticPlaneStress :: stress_vec(3) ;
 Matrix ElasticPlaneStress :: tangent_matrix(3,3) ;
 
 
-//null constructor
 ElasticPlaneStress ::  ElasticPlaneStress( ) : 
 NDMaterial(0, ND_TAG_ElasticPlaneStress), 
 strain_vec(3),
@@ -34,7 +33,6 @@ rho(0)
 }
 
 
-//full constructor
 ElasticPlaneStress :: 
 ElasticPlaneStress(int tag, 
                    double E_,
@@ -50,74 +48,69 @@ rho(rho_)
 }
 
 
-//destructor
-ElasticPlaneStress :: ~ElasticPlaneStress() 
-{  } 
+ElasticPlaneStress::~ElasticPlaneStress() 
+{
+
+} 
 
 
-NDMaterial* ElasticPlaneStress :: getCopy( ) 
+NDMaterial*
+ElasticPlaneStress::getCopy() 
 { 
   ElasticPlaneStress  *clone;
-  clone = new ElasticPlaneStress( ) ;   //new instance of this class
-  *clone = *this ;                 //asignment to make copy
+  clone = new ElasticPlaneStress();   //new instance of this class
+  *clone = *this ;                 // asignment to make copy
   return clone ;
 }
 
 
-//send back type of material
-const char* ElasticPlaneStress :: getType( ) const 
+const char*
+ElasticPlaneStress::getType() const
 {
   return "PlaneStress" ;
 }
 
 
-int ElasticPlaneStress :: getOrder( ) const 
+int
+ElasticPlaneStress :: getOrder( ) const 
 { 
   return 3 ; 
 } 
 
-//mass per unit volume
+// mass per unit volume
 double
 ElasticPlaneStress::getRho( )
 {
   return rho ;
 }
 
-//get the strain and integrate plasticity equations
-int ElasticPlaneStress :: setTrialStrain( const Vector &strain_from_element ) 
+
+int
+ElasticPlaneStress::setTrialStrain( const Vector &strain_from_element ) 
 {
   strain_vec = strain_from_element;
-  
   return 0 ;
 }
 
 
-// unused trial strain functions
-int ElasticPlaneStress :: setTrialStrain( const Vector &v, const Vector &r )
-{ 
-   opserr << "ElasticPlaneStress :: setTrialStrain( const Vector &v, const Vector &r ) -- should not be used! \n";
-   return this->setTrialStrain( v ) ;
-} 
 
-int ElasticPlaneStress :: setTrialStrainIncr( const Vector &v ) 
+int
+ElasticPlaneStress :: setTrialStrainIncr( const Vector &v ) 
 {
-   opserr << "ElasticPlaneStress :: setTrialStrainIncr( const Vector &v ) -- should not be used! \n";
-   return -1 ;
+  opserr << "ElasticPlaneStress :: setTrialStrainIncr( const Vector &v ) -- should not be used! \n";
+  return -1 ;
 }
 
-int ElasticPlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
-{
-   opserr << "ElasticPlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r ) -- should not be used! \n";
-    return this->setTrialStrainIncr(v);
-}
 
-const Vector& ElasticPlaneStress :: getStrain( ) 
+const Vector&
+ElasticPlaneStress :: getStrain( ) 
 {
   return strain_vec ;
 }
 
 
-const Vector& ElasticPlaneStress :: getStress( ) 
+const Vector& 
+ElasticPlaneStress :: getStress( ) 
 {
 
   //stress_vec = this->getTangent() * strain_vec;
@@ -132,7 +125,7 @@ const Vector& ElasticPlaneStress :: getStress( )
 }
 
 const Matrix& 
-ElasticPlaneStress :: getTangent( ) 
+ElasticPlaneStress::getTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -143,7 +136,7 @@ ElasticPlaneStress :: getTangent( )
   // 
        
   double den = 1 - nu*nu;
-  double G = E / (2*(1+nu));
+  double G = E / (2.0*(1.0+nu));
 
   tangent_matrix(0,0) = E / den ;
   tangent_matrix(1,1) = E / den ;
@@ -162,7 +155,8 @@ ElasticPlaneStress :: getTangent( )
 } 
 
 
-const Matrix& ElasticPlaneStress::getInitialTangent( ) 
+const Matrix&
+ElasticPlaneStress::getInitialTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor

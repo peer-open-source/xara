@@ -282,7 +282,7 @@ N4BiaxialTruss::setDomain(Domain *theDomain)
 	theNodes[3] = theDomain->getNode(GNd2);	
 	
 	// if can't find the nodes - send a warning message
-	if ((theNodes[0] == 0)) {
+	if (theNodes[0] == 0) {
 		opserr <<"N4BiaxialTruss::setDomain() - N4BiaxialTruss" << this->getTag() << " node " << Nd1 <<
 		"does not exist in the model\n";
 		
@@ -292,7 +292,8 @@ N4BiaxialTruss::setDomain(Domain *theDomain)
 		theVector = &trussV2;	
 		theVector2 = &trussV2;	
 		return;
-	} else if ((theNodes[1] == 0)) {
+	}
+  else if (theNodes[1] == 0) {
 		opserr <<"N4BiaxialTruss::setDomain() - N4BiaxialTruss" << this->getTag() << " node " << Nd2 <<
 		"does not exist in the model\n";
 		
@@ -302,7 +303,8 @@ N4BiaxialTruss::setDomain(Domain *theDomain)
 		theVector = &trussV2;	
 		theVector2 = &trussV2;	
 		return;
-	} else if ((theNodes[2] == 0)) {
+	}
+  else if (theNodes[2] == 0) {
 		opserr <<"N4BiaxialTruss::setDomain() - N4BiaxialTruss" << this->getTag() << " node " << GNd1 <<
 		"does not exist in the model\n";
 		
@@ -312,7 +314,8 @@ N4BiaxialTruss::setDomain(Domain *theDomain)
 		theVector = &trussV2;	
 		theVector2 = &trussV2;	
 		return;
-	} else if ((theNodes[3] == 0)) {
+	}
+  else if (theNodes[3] == 0) {
 		opserr <<"N4BiaxialTruss::setDomain() - N4BiaxialTruss" << this->getTag() << " node " << GNd2 <<
 		"does not exist in the model\n";
 		
@@ -344,7 +347,8 @@ N4BiaxialTruss::setDomain(Domain *theDomain)
 	}	
 
 	// call the base class method
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 
 	// now set the number of dof for element and set matrix and vector pointer
 	if (dimension == 2 && dofNd1 == 2) {

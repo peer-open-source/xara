@@ -104,7 +104,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_TPB1D)
 
   numData = 16;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "WARNING error reading element area for element" << eleTag << endln;
+    opserr << "WARNING error reading element area for element" << eleTag << "\n";
     return 0;
   }
 
@@ -118,7 +118,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_TPB1D)
 		     dData[15]);
 
   if (theEle == 0) {
-    opserr << "WARNING ran out of memory creating element type TPB1D with tag " << eleTag << endln;
+    opserr << "WARNING ran out of memory creating element type TPB1D with tag " << eleTag << "\n";
     return 0;
   }
 
@@ -335,7 +335,7 @@ TPB1D::setDomain(Domain *theDomain)
     else
       opserr << "WARNING TPB1D::setDomain() - Nd2: " << Nd2 << " does not exist in ";
     
-    opserr << "model for TPB1D ele: " << this->getTag() << endln;
+    opserr << "model for TPB1D ele: " << this->getTag() << "\n";
     
     return;
   }
@@ -347,7 +347,7 @@ TPB1D::setDomain(Domain *theDomain)
     // if differing dof at the ends - print a warning message
     if ( dofNd1 != dofNd2 ) {
       opserr << "WARNING TPB1D::setDomain(): nodes " << Nd1 << " and " << Nd2 <<
-	"have differing dof at ends for TPB1D " << this->getTag() << endln;
+	"have differing dof at ends for TPB1D " << this->getTag() << "\n";
       return;
     }	
 
@@ -372,7 +372,8 @@ TPB1D::setDomain(Domain *theDomain)
 	", which is greater than the tolerance\n";
         
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     if (direction < 0) 
       direction = -direction;
@@ -524,7 +525,7 @@ TPB1D::zeroLoad(void)
 int 
 TPB1D::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-  opserr << "TPB1D::addLoad - load type unknown for truss with tag: " << this->getTag() << endln;
+  opserr << "TPB1D::addLoad - load type unknown for truss with tag: " << this->getTag() << "\n";
   
   return -1;
 }
@@ -579,58 +580,58 @@ TPB1D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 void
 TPB1D::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << "Element: " << this->getTag();
-        s << " type: TPB1D  iNode: " << connectedExternalNodes(0);
-        s << " jNode: " << connectedExternalNodes(1) << endln;
-        s << " direction: " << direction << "\n";
-        opserr << " mu1: " << mu[0] << endln;
-        opserr << " mu2: " << mu[1] << endln;
-        opserr << " mu3: " << mu[2] << endln;
-        
-        opserr << " R1: " << R[0] << endln;
-        opserr << " R2: " << R[1] << endln;
-        opserr << " R3: " << R[2] << endln;
-        
-        opserr << " h1: " << h[0] << endln;
-        opserr << " h2: " << h[1] << endln;
-        opserr << " h3: " << h[2] << endln;
-        
-        opserr << " D1: " << D[0] << endln;
-        opserr << " D2: " << D[1] << endln;
-        opserr << " D3: " << D[2] << endln;
-        
-        opserr << " d1: " << d[0] << endln;
-        opserr << " d2: " << d[1] << endln;
-        opserr << " d3: " << d[2] << endln;
-        
-        s << "\tMaterial: \n";
-        s << *(theMaterial);
-    }
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "Element: " << this->getTag();
+    s << " type: TPB1D  iNode: " << connectedExternalNodes(0);
+    s << " jNode: " << connectedExternalNodes(1) << "\n";
+    s << " direction: " << direction << "\n";
+    s << " mu1: " << mu[0] << "\n";
+    s << " mu2: " << mu[1] << "\n";
+    s << " mu3: " << mu[2] << "\n";
     
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"TPB1D\", ";
-        s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
-        s << "\"direction\": " << direction << ", ";
-        s << "\"mu1\": " << mu[0] << ", ";
-        s << "\"mu2\": " << mu[1] << ", ";
-        s << "\"mu3\": " << mu[2] << ", ";
-        s << "\"R1\": " << R[0] << ", ";
-        s << "\"R2\": " << R[1] << ", ";
-        s << "\"R3\": " << R[2] << ", ";
-        s << "\"h1\": " << h[0] << ", ";
-        s << "\"h2\": " << h[1] << ", ";
-        s << "\"h3\": " << h[2] << ", ";
-        s << "\"D1\": " << D[0] << ", ";
-        s << "\"D2\": " << D[1] << ", ";
-        s << "\"D3\": " << D[2] << ", ";
-        s << "\"d1\": " << d[0] << ", ";
-        s << "\"d2\": " << d[1] << ", ";
-        s << "\"d3\": " << d[2] << ", ";
-        s << "\"material\": \"" << theMaterial->getTag() << "\"}";
-    }
+    s << " R1: " << R[0] << "\n";
+    s << " R2: " << R[1] << "\n";
+    s << " R3: " << R[2] << "\n";
+    
+    s << " h1: " << h[0] << "\n";
+    s << " h2: " << h[1] << "\n";
+    s << " h3: " << h[2] << "\n";
+    
+    s << " D1: " << D[0] << "\n";
+    s << " D2: " << D[1] << "\n";
+    s << " D3: " << D[2] << "\n";
+    
+    s << " d1: " << d[0] << "\n";
+    s << " d2: " << d[1] << "\n";
+    s << " d3: " << d[2] << "\n";
+
+    s << "\tMaterial: \n";
+    s << *(theMaterial);
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "\t\t\t{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"TPB1D\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
+    s << "\"direction\": " << direction << ", ";
+    s << "\"mu1\": " << mu[0] << ", ";
+    s << "\"mu2\": " << mu[1] << ", ";
+    s << "\"mu3\": " << mu[2] << ", ";
+    s << "\"R1\": " << R[0] << ", ";
+    s << "\"R2\": " << R[1] << ", ";
+    s << "\"R3\": " << R[2] << ", ";
+    s << "\"h1\": " << h[0] << ", ";
+    s << "\"h2\": " << h[1] << ", ";
+    s << "\"h3\": " << h[2] << ", ";
+    s << "\"D1\": " << D[0] << ", ";
+    s << "\"D2\": " << D[1] << ", ";
+    s << "\"D3\": " << D[2] << ", ";
+    s << "\"d1\": " << d[0] << ", ";
+    s << "\"d2\": " << d[1] << ", ";
+    s << "\"d3\": " << d[2] << ", ";
+    s << "\"material\": \"" << theMaterial->getTag() << "\"}";
+  }
 }
 
 Response*

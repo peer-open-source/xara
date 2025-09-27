@@ -54,12 +54,8 @@ namespace OpenSees {struct Versor;}
 using OpenSees::Versor;
 
 class Node :
-#if 0
-  public DomainComponent
-#else
   public TaggedObject,
   public MovableObject
-#endif
 {
   public:
     enum class Field {

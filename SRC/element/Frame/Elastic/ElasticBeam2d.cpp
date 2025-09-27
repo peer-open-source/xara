@@ -217,7 +217,8 @@ ElasticBeam2d::setDomain(Domain *theDomain)
       exit(-1);
     }
         
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
         opserr << "ElasticBeam2d::setDomain -- Error initializing coordinate transformation\n";

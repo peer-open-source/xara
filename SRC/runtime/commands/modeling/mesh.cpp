@@ -5,6 +5,11 @@
 //===----------------------------------------------------------------------===//
 //
 //
+#include <Parsing.h>
+#include <Logging.h>
+#include <cassert>
+#include <Domain.h>
+#include <ModelRegistry.h>
 extern int OPS_LineMesh(Domain& domain, int ndm);
 extern int OPS_TriMesh(Domain& domain);
 extern int OPS_TriReMesh(Domain& domain, int ndf);
@@ -48,7 +53,7 @@ TclCommand_remesh(ClientData clientData, Tcl_Interp *interp, int argc,
                   TCL_Char ** const argv)
 {
   if (theTclBuilder == nullptr) {
-    opserr << "WARNING builder has been destroyed" << endln;
+    opserr << "WARNING builder has been destroyed" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

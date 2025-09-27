@@ -28,7 +28,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>

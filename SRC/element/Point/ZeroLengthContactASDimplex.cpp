@@ -191,11 +191,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthContactASDimplex) {
     theElement = new ZeroLengthContactASDimplex(idata[0], idata[1], idata[2], ddata[0], ddata[1],
         ddata[2], ndm, integrationType, x_e[0], x_e[1], x_e[2]);
 
-    if (theElement == 0) {
-        opserr << "WARNING: out of memory: element zeroLengthContactASDimplex " << idata[0] <<
-            " iNode? jNode? Kn? Kt? mu? <-orient $x1 $x2 $x3> <-intType type?>\n";
-    }
-
     return theElement;
 }
 
@@ -324,10 +319,11 @@ void ZeroLengthContactASDimplex::setDomain(Domain* theDomain)
     }
 
     // call the base class method
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
-int ZeroLengthContactASDimplex::commitState(void)
+int ZeroLengthContactASDimplex::commitState()
 {
     // do the implicit correction if impl-ex
     if (use_implex) {
@@ -350,7 +346,7 @@ int ZeroLengthContactASDimplex::commitState(void)
     return 0;
 }
 
-int ZeroLengthContactASDimplex::revertToLastCommit(void)
+int ZeroLengthContactASDimplex::revertToLastCommit()
 {
     // restore committed internal variables
     sv.eps = sv.eps_commit;
@@ -373,10 +369,11 @@ int ZeroLengthContactASDimplex::revertToStart()
     return 0;
 }
 
-int ZeroLengthContactASDimplex::update()
+int
+ZeroLengthContactASDimplex::update()
 {
     if (!sv.dtime_is_user_defined) {
-        sv.dtime_n = ops_Dt;
+        sv.dtime_n = getDomain()->getDT();
         if (!sv.dtime_first_set) {
             sv.dtime_n_commit = sv.dtime_n;
             sv.dtime_first_set = true;

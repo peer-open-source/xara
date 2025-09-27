@@ -148,7 +148,7 @@ const ID& TotalLagrangianFD20NodeBrick::getExternalNodes ()
 }
 
 //=============================================================================
-Node **TotalLagrangianFD20NodeBrick::getNodePtrs(void)
+Node **TotalLagrangianFD20NodeBrick::getNodePtrs()
 {
     return theNodes;
 }
@@ -162,34 +162,33 @@ int TotalLagrangianFD20NodeBrick::getNumDOF ()
 //=============================================================================
 void TotalLagrangianFD20NodeBrick::setDomain (Domain *theDomain)
 {
-    int i;
-
-    // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
-      for (i=0; i<NumNodes; i++) {
-        theNodes[i] = 0; 
-      }
-      return;
-    }
-    
+  // Check Domain is not null - invoked when object removed from a domain
+  if (theDomain == 0) {
     for (i=0; i<NumNodes; i++) {
-      theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
-      if ( theNodes[i]==0 ) {
-        opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
-        " ), node not found in domain\n";
-        exit(-1);
-      }	   
+      theNodes[i] = 0; 
     }
+    return;
+  }
+  
+  for (int i=0; i<NumNodes; i++) {
+    theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
+    if ( theNodes[i]==0 ) {
+      opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
+      " ), node not found in domain\n";
+      exit(-1);
+    }	   
+  }
 
-    this->DomainComponent::setDomain(theDomain);  // Very Important!!
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);  // Very Important!!
 
-    for (i=0; i<NumNodes; i++) {
-      if ( theNodes[i]->getNumberDOF() != NumDof ) {
-        opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
-        "), has differing number of DOFs at its nodes\n";
-        exit(-1);
-      }	      
-    }
+  for (i=0; i<NumNodes; i++) {
+    if ( theNodes[i]->getNumberDOF() != NumDof ) {
+      opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
+      "), has differing number of DOFs at its nodes\n";
+      exit(-1);
+    }	      
+  }
 
 }
 
@@ -298,7 +297,7 @@ tensor TotalLagrangianFD20NodeBrick::dh_Global(double x, double y, double z)
      return dhGlobal;}
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getStiffnessTensor(void)
+tensor TotalLagrangianFD20NodeBrick::getStiffnessTensor()
 {
     tensor tI2("I", 2, def_dim_2);
 	  
@@ -382,7 +381,7 @@ tensor TotalLagrangianFD20NodeBrick::getStiffnessTensor(void)
 }
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getRtensor(void)
+tensor TotalLagrangianFD20NodeBrick::getRtensor()
 {
     int R_dim[] = {NumNodes, NumDof};
     tensor Rr(2,R_dim,0.0);
@@ -446,7 +445,7 @@ tensor TotalLagrangianFD20NodeBrick::getRtensor(void)
 }
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getBodyForce(void)
+tensor TotalLagrangianFD20NodeBrick::getBodyForce()
 {
     int B_dim[] = {NumNodes, NumDof};
     tensor Bb(2,B_dim,0.0);
@@ -502,7 +501,7 @@ tensor TotalLagrangianFD20NodeBrick::getBodyForce(void)
 }
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getSurfaceForce(void)
+tensor TotalLagrangianFD20NodeBrick::getSurfaceForce()
 {
     int S_dim[] = {NumNodes, NumDof};
     tensor Ss(2,S_dim,0.0);
@@ -512,7 +511,7 @@ tensor TotalLagrangianFD20NodeBrick::getSurfaceForce(void)
 }
 
 //============================================================================
-tensor TotalLagrangianFD20NodeBrick::getForces(void)
+tensor TotalLagrangianFD20NodeBrick::getForces()
 {
     int F_dim[] = {NumNodes,NumDof};
     tensor Ff(2,F_dim,0.0);
@@ -570,7 +569,7 @@ const Matrix &TotalLagrangianFD20NodeBrick::getMass ()
 }
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getNodesCrds(void)
+tensor TotalLagrangianFD20NodeBrick::getNodesCrds()
 {
     const int dimensions[] = {NumNodes, NumDof};
     tensor N_coord(2, dimensions, 0.0);
@@ -587,7 +586,7 @@ tensor TotalLagrangianFD20NodeBrick::getNodesCrds(void)
 }
 
 //=============================================================================================
-tensor TotalLagrangianFD20NodeBrick::getNodesDisp(void)
+tensor TotalLagrangianFD20NodeBrick::getNodesDisp()
 {
     int i, j;
     int dimU[] = {NumNodes, NumDof};
@@ -604,7 +603,7 @@ tensor TotalLagrangianFD20NodeBrick::getNodesDisp(void)
 }
 
 //=============================================================================
-void TotalLagrangianFD20NodeBrick::zeroLoad(void)
+void TotalLagrangianFD20NodeBrick::zeroLoad()
 {
    if ( Q != 0 )
      Q->Zero();

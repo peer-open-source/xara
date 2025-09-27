@@ -4,10 +4,10 @@
 
 class OPS_Stream;
 namespace OpenSees {
-   extern OPS_Stream *opserrPtr;
-   extern OPS_Stream *opslogPtr;
-   extern OPS_Stream *opswrnPtr;
-   extern OPS_Stream *opsdbgPtr;
+  extern OPS_Stream *opserrPtr;
+  extern OPS_Stream *opslogPtr;
+  extern OPS_Stream *opswrnPtr;
+  extern OPS_Stream *opsdbgPtr;
 }
 
 

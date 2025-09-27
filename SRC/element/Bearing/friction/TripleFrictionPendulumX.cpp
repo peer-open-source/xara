@@ -52,8 +52,9 @@
 #include <string.h>
 #include <Message.h>
 #include <Vector.h>
-#include <SingleFPSimple3d.h>
 
+
+#include "tfpx.cpp"
 
 // initialize the class wide variables
 Matrix TripleFrictionPendulumX::eleK(12, 12);
@@ -63,6 +64,7 @@ Matrix TripleFrictionPendulumX::eleD(12, 12);
 Vector TripleFrictionPendulumX::eleR(12);
 
 static int numTripleFrictionPendulumX = 0;
+
 
 
 void* OPS_ADD_RUNTIME_VPV(OPS_TripleFrictionPendulumX)
@@ -108,16 +110,10 @@ void* OPS_ADD_RUNTIME_VPV(OPS_TripleFrictionPendulumX)
     // create the element and add it to the Domain
     Element* theTripleFrictionPendulumX = new TripleFrictionPendulumX(eleTag, iData[1], iData[2], iData[3], iData[4], theMaterials, iData[9], iData[10], iData[11], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7], dData[8], dData[9], dData[10], dData[11], dData[12], dData[13], dData[14], dData[15], dData[16], dData[17], dData[18], dData[19], dData[20], dData[21], dData[22], dData[23], dData[24], dData[25], dData[26], dData[27]);
 
-    if (theTripleFrictionPendulumX == 0) {
-        opserr << "WARNING ran out of memory creating element with tag " << eleTag << endln;
-        return 0;
-    }
-
     return theTripleFrictionPendulumX;
 }
 
 
-// typical constructor
 TripleFrictionPendulumX::TripleFrictionPendulumX(int tag,
     int Nd1, int Nd2, int tg, int tg2,
     UniaxialMaterial** materials,
@@ -299,8 +295,7 @@ void TripleFrictionPendulumX::setDomain(Domain* theDomain)
 {
     // check Domain is not null - invoked when object removed from a domain
     if (theDomain == 0) {
-        opserr << "Domain does not exist" << endln;
-        exit(0);
+        return;
     }
 
     // first ensure nodes exist in Domain and set the node pointers
@@ -325,7 +320,8 @@ void TripleFrictionPendulumX::setDomain(Domain* theDomain)
     theNodes[1] = end2Ptr;
 
     // call the DomainComponent class method THIS IS VERY IMPORTANT
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // ensure connected nodes have correct number of dof's
     int dofNd1 = end1Ptr->getNumberDOF();
@@ -502,11 +498,13 @@ int TripleFrictionPendulumX::revertToStart()
 }
 
 
-int TripleFrictionPendulumX::update()
+
+int
+TripleFrictionPendulumX::update()
 {
     // get current time
-    //Current domain time
     double tCurrent = (this->getDomain())->getCurrentTime();
+    double dt = (this->getDomain())->getDT();
 
     const Vector& duNd1 = theNodes[0]->getIncrDisp();
     const Vector& duNd2 = theNodes[1]->getIncrDisp();
@@ -586,11 +584,6 @@ int TripleFrictionPendulumX::update()
     // averaging vertical force
     Wavg = (Wpr + Wcr) / 2.0;
 
-    // get coefficients of friction
-    double Fy1cr, Fy3cr, Fy5cr, dFy1, dFy3, dFy5;
-
-
-
     // Partitioning Approaches: Displacement and Velocity Histories of each surfaces
 
     // Regime limit
@@ -609,1041 +602,66 @@ int TripleFrictionPendulumX::update()
 
 
     // Partitioning Approach 2 (X-direction)
+    DirectionState X{
+        fx,
+        forceSlope_x, loading_x, unloading_x, sign_fx,
+        u1, u2, u3, u4,
+        F_tr, F_tr_u, F_ref,
+        u1_tr, u2_tr, u3_tr, u4_tr,
+        u1_tr_u, u2_tr_u, u3_tr_u, u4_tr_u,
+        u1_stored, u2_stored, u3_stored, u4_stored };
 
-    // 1. Save sign for first cycle    
-    if (fabs(fx) <= F_f2) { // Before regime 1
-        changeSignX = forceSlope_x;
-    }
-
-    // 2. First Cycle
-    if (unloading_x == 0 && loading_x == 0 && forceSlope_x == changeSignX) {
-        sign_fx = sgn(forceSlope_x); // Keep loading direction for next cycles
-        // Regime 1 
-        if (sign_fx * fx <= F_f1) {
-            u1 = u1_stored; u4 = u4_stored; u2 = (fx - sign_fx * F_f2) / Wavg * L1; u3 = (fx - sign_fx * F_f2) / Wavg * L1;
-            if (sign_fx * fx <= F_f2) { u2 = u3 = 0; }
-            // Save force and displacement histories for unloading phase 
-            F_tr = fx; u1_tr = u1; u2_tr = u2; u3_tr = u3; u4_tr = u4;
-        }
-        // Regime 2
-        else if (sign_fx * fx > F_f1 && sign_fx * fx <= F_f4) {
-            u1 = (fx - sign_fx * F_f1) / Wavg * L2; u4 = u4_stored; u2 = u2_stored; u3 = (fx - sign_fx * F_f2) / Wavg * L1;
-            // Save histories for unloading phase 
-            F_tr = fx; u1_tr = u1; u2_tr = u2; u3_tr = u3; u4_tr = u4;
-        }
-        // Regime 3
-        else if (sign_fx * fx >= F_f4 && sign_fx * fx <= F_dr1) {
-            u1 = (fx - sign_fx * F_f1) / Wavg * L2; u4 = (fx - sign_fx * F_f4) / Wavg * L3; u2 = u2_stored; u3 = u3_stored;
-            // Save histories for unloading phase 
-            F_tr = fx; u1_tr = u1; u2_tr = u2; u3_tr = u3; u4_tr = u4;
-        }
-        // Regime 4
-        else if (sign_fx * fx >= F_dr1 && sign_fx * fx <= F_dr4) {
-            u1 = u1_stored; u4 = (fx - sign_fx * F_f4) / Wavg * L3; u2 = ((fx - sign_fx * F_f2) / Wavg - sign_fx * Ubar2 / L2) * L1; u3 = u3_stored;
-            // Save histories for unloading phase 
-            F_tr = fx; u1_tr = u1; u2_tr = u2; u3_tr = u3; u4_tr = u4;
-        }
-        // Regime 5
-        else if (sign_fx * fx >= F_dr4) {
-            u1 = u1_stored; u4 = u4_stored; u2 = ((fx - sign_fx * F_f2) / Wavg - sign_fx * Ubar2 / L2) * L1; u3 = ((fx - sign_fx * F_f2) / Wavg - sign_fx * Ubar3 / L3) * L1;
-            if (fabs(u2) >= Ubar1) { u2 = sign_fx * Ubar1; }
-            if (fabs(u3) >= Ubar1) { u3 = sign_fx * Ubar1; }
-            // Save histories for unloading phase 
-            F_tr = fx; u1_tr = u1; u2_tr = u2; u3_tr = u3; u4_tr = u4;
-        }
-    }
-
-    // 2. Change loading phase - from bottom to top of the force-displacement loop
-    else if (forceSlope_x == 1) {
-        loading_x = 1; // tag for closing first loop 
-
-        // Setting the starting points depending on the direction of first cycle
-        if (sign_fx == -1) {
-            F_ref = F_tr; u1_ref = u1_tr; u4_ref = u4_tr; u2_ref = u2_tr; u3_ref = u3_tr;
-        }
-        else {
-            F_ref = F_tr_u; u1_ref = u1_tr_u; u4_ref = u4_tr_u; u2_ref = u2_tr_u; u3_ref = u3_tr_u;
-        }
-
-        // Starting Regime (5)
-        if (F_ref < -F_dr4) { // If F_ref requires loop for regime 5
-            // Regime 0 (just unloading)
-            if (fx <= F_ref + 2 * F_f2) {
-                u1 = u1_stored; u4 = u4_stored; u2 = u2_stored; u3 = u3_stored;
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 1 
-            else if (fx > F_ref + 2 * F_f2 && fx <= -F_dr1 + 2 * F_f1) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 2
-            else if (fx > -F_dr1 + 2 * F_f1 && fx <= -F_dr4 + 2 * F_f4) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                u2 = u2_stored; u4 = u4_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 3
-            else if (fx > -F_dr4 + 2 * F_f4 && fx <= F_dr1) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u4 = ((fx - F_tr_u) / Wavg * L3 + u4_tr_u); }
-                else { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u4 = ((fx - F_tr) / Wavg * L3 + u4_tr); }
-                u2 = u2_stored; u3 = u3_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 4
-            else if (fx > F_dr1 && fx <= F_dr4) {
-                u1 = u1_stored;
-                if (sign_fx == -1) { u4 = (fx - F_tr_u) / Wavg * L3 + u4_tr_u; u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); }
-                else { u4 = (fx - F_tr) / Wavg * L3 + u4_tr; u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); }
-                u3 = u3_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 5
-            else if (fx >= F_dr4) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-        } // end of starting regime 5
-
-        // Starting Regime (4)
-        else if (F_ref >= -F_dr4 && F_ref <= -F_dr1) { // If F_ref requires loop for regime 4
-             // Regime 0 (just unloading)
-            if (fx <= F_ref + 2 * F_f2) {
-                u1 = u1_stored; u4 = u4_stored; u2 = u2_stored; u3 = u3_stored;
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 1 
-            else if (fx > F_ref + 2 * F_f2 && fx <= -F_dr1 + 2 * F_f1) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 2
-            else if (fx > -F_dr1 + 2 * F_f1 && fx <= F_ref + 2 * F_f4) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                u2 = u2_stored; u4 = u4_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 3
-            else if (fx > F_ref + 2 * F_f4 && fx <= F_dr1) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u4 = ((fx - F_tr_u) / Wavg * L3 + u4_tr_u); }
-                else { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u4 = ((fx - F_tr) / Wavg * L3 + u4_tr); }
-                u2 = u2_stored; u3 = u3_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 4
-            else if (fx > F_dr1 && fx <= F_dr4) {
-                u1 = u1_stored;
-                if (sign_fx == -1) { u4 = (fx - F_tr_u) / Wavg * L3 + u4_tr_u; u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); }
-                else { u4 = (fx - F_tr) / Wavg * L3 + u4_tr; u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); }
-                u3 = u3_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 5
-            else if (fx >= F_dr4) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-        } // end of starting regime 4    
-
-        // Starting Regime (3, 2, 1)
-        else if (F_ref > -F_dr1) { // If F_ref requires loop for regime 3 or lower
-             // Regime 0 (just unloading)
-            if (fx <= F_ref + 2 * F_f2) {
-                u1 = u1_stored; u4 = u4_stored; u2 = u2_stored; u3 = u3_stored;
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 1 
-            else if (fx > F_ref + 2 * F_f2 && fx <= F_ref + 2 * F_f1) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 2
-            else if (fx > F_ref + 2 * F_f1 && fx <= F_ref + 2 * F_f4) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                u2 = u2_stored; u4 = u4_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 3
-            else if (fx > F_ref + 2 * F_f4 && fx <= F_dr1) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u4 = ((fx - F_tr_u) / Wavg * L3 + u4_tr_u); }
-                else { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u4 = ((fx - F_tr) / Wavg * L3 + u4_tr); }
-                u2 = u2_stored; u3 = u3_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 4
-            else if (fx > F_dr1 && fx <= F_dr4) {
-                u1 = u1_stored;
-                if (sign_fx == -1) { u4 = (fx - F_tr_u) / Wavg * L3 + u4_tr_u; u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); }
-                else { u4 = (fx - F_tr) / Wavg * L3 + u4_tr; u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); }
-                u3 = u3_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-            // Regime 5
-            else if (fx >= F_dr4) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                else { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-                else { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-            }
-        } // end of starting regime 3,2,1   
-    }
-
-    // 3. Change loading phase - from top to bottom of the force-displacement loop
-    else if (forceSlope_x == -1) {
-        unloading_x = 1; // tag for closing first loop 
-        // Setting the starting points depending on the direction of first cycle
-        if (sign_fx == -1) { F_ref = F_tr_u; u1_ref = u1_tr_u; u4_ref = u4_tr_u; u2_ref = u2_tr_u; u3_ref = u3_tr_u; }
-        else { F_ref = F_tr; u1_ref = u1_tr; u4_ref = u4_tr; u2_ref = u2_tr; u3_ref = u3_tr; }
-        // Starting Regime (5)
-        if (F_ref > F_dr4) {
-            // Regime 0 (just unloading)
-            if (fx >= F_ref - 2 * F_f2) {
-                u1 = u1_stored; u4 = u4_stored; u2 = u2_stored; u3 = u3_stored;
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 1 // Sliding on inner only (Regime 1 in TFP, force limit)
-            else if (fx < F_ref - 2 * F_f2 && fx >= F_dr1 - 2 * F_f1) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 2
-            else if (fx < F_dr1 - 2 * F_f1 && fx >= F_dr4 - 2 * F_f4) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                u4 = u4_stored; u2 = u2_stored;
-                // displacement limit states for inner surface
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 3
-            else if (fx <= F_dr4 - 2 * F_f4 && fx >= -F_dr1) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u4 = ((fx - F_tr) / Wavg * L3 + u4_tr); }
-                else { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u4 = ((fx - F_tr_u) / Wavg * L3 + u4_tr_u); }
-                u2 = u2_stored; u3 = u3_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 4
-            else if (fx < -F_dr1 && fx >= -F_dr4) {
-                u1 = u1_stored;
-                if (sign_fx == -1) { u4 = (fx - F_tr) / Wavg * L3 + u4_tr; u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); }
-                else { u4 = (fx - F_tr_u) / Wavg * L3 + u4_tr_u; u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); }
-                u3 = u3_stored;
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 5
-            else if (fx <= -F_dr4) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-        } // end of starting regime 5
-
-        // Starting Regime (4)
-        else if (F_ref >= F_dr1 && F_ref < F_dr4) {
-            // Regime 0 (just unloading)
-            if (fx >= F_ref - 2 * F_f2) {
-                u1 = u1_stored; u4 = u4_stored; u2 = u2_stored; u3 = u3_stored;
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 1 // Sliding on inner only (Regime 1 in TFP, force limit)
-            else if (fx < F_ref - 2 * F_f2 && fx >= F_dr1 - 2 * F_f1) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 2
-            else if (fx < F_dr1 - 2 * F_f1 && fx >= F_ref - 2 * F_f4) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                u4 = u4_stored; u2 = u2_stored;
-                // displacement limit states for inner surface
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 3
-            else if (fx <= F_ref - 2 * F_f4 && fx >= -F_dr1) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u4 = ((fx - F_tr) / Wavg * L3 + u4_tr); }
-                else { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u4 = ((fx - F_tr_u) / Wavg * L3 + u4_tr_u); }
-                u2 = u2_stored; u3 = u3_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 4
-            else if (fx < -F_dr1 && fx >= -F_dr4) {
-                u1 = u1_stored;
-                if (sign_fx == -1) { u4 = (fx - F_tr) / Wavg * L3 + u4_tr; u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); }
-                else { u4 = (fx - F_tr_u) / Wavg * L3 + u4_tr_u; u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); }
-                u3 = u3_stored;
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 5
-            else if (fx <= -F_dr4) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-        } // end of starting regime 4
-
-        // Starting Regime (3,2,1)
-        else if (F_ref < F_dr1) {
-            // Regime 0 (just unloading)
-            if (fx >= F_ref - 2 * F_f2) {
-                u1 = u1_stored; u4 = u4_stored; u2 = u2_stored; u3 = u3_stored;
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 1 // Sliding on inner only (Regime 1 in TFP, force limit)
-            else if (fx < F_ref - 2 * F_f2 && fx >= F_ref - 2 * F_f1) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 2
-            else if (fx < F_ref - 2 * F_f1 && fx >= F_ref - 2 * F_f4) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                u4 = u4_stored; u2 = u2_stored;
-                // displacement limit states for inner surface
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 3
-            else if (fx <= F_ref - 2 * F_f4 && fx >= -F_dr1) {
-                if (sign_fx == -1) { u1 = ((fx - F_tr) / Wavg * L2 + u1_tr); u4 = ((fx - F_tr) / Wavg * L3 + u4_tr); }
-                else { u1 = ((fx - F_tr_u) / Wavg * L2 + u1_tr_u); u4 = ((fx - F_tr_u) / Wavg * L3 + u4_tr_u); }
-                u2 = u2_stored; u3 = u3_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1) >= Ubar2) { u1 = sgn(u1) * Ubar2; }
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 4
-            else if (fx < -F_dr1 && fx >= -F_dr4) {
-                u1 = u1_stored;
-                if (sign_fx == -1) { u4 = (fx - F_tr) / Wavg * L3 + u4_tr; u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); }
-                else { u4 = (fx - F_tr_u) / Wavg * L3 + u4_tr_u; u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); }
-                u3 = u3_stored;
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4) >= Ubar3) { u4 = sgn(u4) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-            // Regime 5
-            else if (fx <= -F_dr4) {
-                u1 = u1_stored; u4 = u4_stored;
-                if (sign_fx == -1) { u2 = ((fx - F_tr) / Wavg * L1 + u2_tr); u3 = ((fx - F_tr) / Wavg * L1 + u3_tr); }
-                else { u2 = ((fx - F_tr_u) / Wavg * L1 + u2_tr_u); u3 = ((fx - F_tr_u) / Wavg * L1 + u3_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2) >= Ubar1) { u2 = sgn(u2) * Ubar1; }
-                if (fabs(u3) >= Ubar1) { u3 = sgn(u3) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fx == -1) { F_tr = fx; u1_tr = u1; u4_tr = u4; u2_tr = u2; u3_tr = u3; }
-                else { F_tr_u = fx; u1_tr_u = u1; u4_tr_u = u4; u2_tr_u = u2; u3_tr_u = u3; }
-            }
-        } // end of starting regime 3,2,1
-    }
+    updateDirection(X,
+                    /* thresholds */ F_f1, F_f2, F_f4, F_dr1, F_dr4,
+                    /* geometry   */ Wavg, L1, L2, L3,
+                    /* limits     */ Ubar1, Ubar2, Ubar3);
 
     // Histories of inner surface for series model element 1
     u23 = u2 + u3;
-    v2x = (u2 - u2_stored2) * (1.0 / (2 * ops_Dt));
-    v3x = (u3 - u3_stored2) * (1.0 / (2 * ops_Dt));
+    v2x = (u2 - u2_stored2) * (1.0 / (2 * dt));
+    v3x = (u3 - u3_stored2) * (1.0 / (2 * dt));
     v23 = v2x + v3x;
 
     // Velocity for outer surfaces
-    v1x = (u1 - u1_stored2) * (1.0 / (2 * ops_Dt));
-    v4x = (u4 - u4_stored2) * (1.0 / (2 * ops_Dt));
+    v1x = (u1 - u1_stored2) * (1.0 / (2 * dt));
+    v4x = (u4 - u4_stored2) * (1.0 / (2 * dt));
 
     // Partitioning Approach 2 (Y-direction)
+    DirectionState Y{
+        fy,                       // current shear force in Y   (V)
+        forceSlope_y,             // sign of instantaneous slope  (+1 / -1)
+        loading_y, unloading_y,   // flags that mark half-loops completed
+        sign_fy,                  // sign remembered from first excursion
 
-    // 1. Save sign for first cycle    
-    if (fabs(fy) <= F_f2) { // Before regime 1
-        changeSignY = forceSlope_y;
-    }
+        /* working displacements that this routine will update */
+        u1y, u2y, u3y, u4y,
 
-    // 2. First Cycle
-    if (unloading_y == 0 && loading_y == 0 && forceSlope_y == changeSignY) {
-        sign_fy = sgn(forceSlope_y); // Keep loading direction for next cycles
-        // Regime 1 
-        if (sign_fy * fy <= F_f1) {
-            u1y = u1y_stored; u4y = u4y_stored; u2y = (fy - sign_fy * F_f2) / Wavg * L1; u3y = (fy - sign_fy * F_f2) / Wavg * L1;
-            if (sign_fy * fy <= F_f2) { u2y = u3y = 0; }
-            // Save force and displacement histories for unloading phase 
-            Fy_tr = fy; u1y_tr = u1y; u2y_tr = u2y; u3y_tr = u3y; u4y_tr = u4y;
-        }
-        // Regime 2
-        else if (sign_fy * fy > F_f1 && sign_fy * fy <= F_f4) {
-            u1y = (fy - sign_fy * F_f1) / Wavg * L2; u4y = u4y_stored; u2y = u2y_stored; u3y = (fy - sign_fy * F_f2) / Wavg * L1;
-            // Save histories for unloading phase 
-            Fy_tr = fy; u1y_tr = u1y; u2y_tr = u2y; u3y_tr = u3y; u4y_tr = u4y;
-        }
-        // Regime 3
-        else if (sign_fy * fy >= F_f4 && sign_fy * fy <= F_dr1) {
-            u1y = (fy - sign_fy * F_f1) / Wavg * L2; u4y = (fy - sign_fy * F_f4) / Wavg * L3; u2y = u2y_stored; u3y = u3y_stored;
-            // Save histories for unloading phase 
-            Fy_tr = fy; u1y_tr = u1y; u2y_tr = u2y; u3y_tr = u3y; u4y_tr = u4y;
-        }
-        // Regime 4
-        else if (sign_fy * fy >= F_dr1 && sign_fy * fy <= F_dr4) {
-            u1y = u1y_stored; u4y = (fy - sign_fy * F_f4) / Wavg * L3; u2y = ((fy - sign_fy * F_f2) / Wavg - sign_fy * Ubar2 / L2) * L1; u3y = u3y_stored;
-            // Save histories for unloading phase 
-            Fy_tr = fy; u1y_tr = u1y; u2y_tr = u2y; u3y_tr = u3y; u4y_tr = u4y;
-        }
-        // Regime 5
-        else if (sign_fy * fy >= F_dr4) {
-            u1y = u1y_stored; u4y = u4y_stored; u2y = ((fy - sign_fy * F_f2) / Wavg - sign_fy * Ubar2 / L2) * L1; u3y = ((fy - sign_fy * F_f2) / Wavg - sign_fy * Ubar3 / L3) * L1;
-            if (fabs(u2y) >= Ubar1) { u2y = sign_fy * Ubar1; }
-            if (fabs(u3y) >= Ubar1) { u3y = sign_fy * Ubar1; }
-            // Save histories for unloading phase 
-            Fy_tr = fy; u1y_tr = u1y; u2y_tr = u2y; u3y_tr = u3y; u4y_tr = u4y;
-        }
-    }
+        /* turning-point histories (lower and upper half of loop) */
+        Fy_tr,  Fy_tr_u,          // last stored forces at the turn
+        Fy_ref,                   // reference force for current half-loop
 
-    // 2. Change loading phase - from bottom to top of the force-displacement loop
-    else if (forceSlope_y == 1) {
-        loading_y = 1; // tag for closing first loop 
+        u1y_tr, u2y_tr, u3y_tr, u4y_tr,
+        u1y_tr_u, u2y_tr_u, u3y_tr_u, u4y_tr_u,
 
-        // Setting the starting points depending on the direction of first cycle
-        if (sign_fy == -1) { Fy_ref = Fy_tr; u1y_ref = u1y_tr; u4y_ref = u4y_tr; u2y_ref = u2y_tr; u3y_ref = u3y_tr; }
-        else { Fy_ref = Fy_tr_u; u1y_ref = u1y_tr_u; u4y_ref = u4y_tr_u; u2y_ref = u2y_tr_u; u3y_ref = u3y_tr_u; }
+        /* pre-step stored displacements */
+        u1y_stored, u2y_stored, u3y_stored, u4y_stored
+    };
 
-        // Starting Regime (5)
-        if (Fy_ref < -F_dr4) { // If F_ref requires loop for regime 5
-            // Regime 0 (just unloading)
-            if (fy <= Fy_ref + 2 * F_f2) {
-                u1y = u1y_stored; u4y = u4y_stored; u2y = u2y_stored; u3y = u3y_stored;
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 1 
-            else if (fy > Fy_ref + 2 * F_f2 && fy <= -F_dr1 + 2 * F_f1) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 2
-            else if (fy > -F_dr1 + 2 * F_f1 && fy <= -F_dr4 + 2 * F_f4) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                u2y = u2y_stored; u4y = u4y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 3
-            else if (fy > -F_dr4 + 2 * F_f4 && fy <= F_dr1) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u4y = ((fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u); }
-                else { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u4y = ((fy - Fy_tr) / Wavg * L3 + u4y_tr); }
-                u2y = u2y_stored; u3y = u3y_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 4
-            else if (fy > F_dr1 && fy <= F_dr4) {
-                u1y = u1y_stored;
-                if (sign_fy == -1) { u4y = (fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u; u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); }
-                else { u4y = (fy - Fy_tr) / Wavg * L3 + u4y_tr; u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); }
-                u3y = u3y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 5
-            else if (fy >= F_dr4) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-        } // end of starting regime 5
-
-        // Starting Regime (4)
-        else if (Fy_ref >= -F_dr4 && Fy_ref <= -F_dr1) { // If F_ref requires loop for regime 4
-             // Regime 0 (just unloading)
-            if (fy <= Fy_ref + 2 * F_f2) {
-                u1y = u1y_stored; u4y = u4y_stored; u2y = u2y_stored; u3y = u3y_stored;
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 1 
-            else if (fy > Fy_ref + 2 * F_f2 && fy <= -F_dr1 + 2 * F_f1) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 2
-            else if (fy > -F_dr1 + 2 * F_f1 && fy <= Fy_ref + 2 * F_f4) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                u2y = u2y_stored; u4y = u4y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 3
-            else if (fy > Fy_ref + 2 * F_f4 && fy <= F_dr1) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u4y = ((fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u); }
-                else { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u4y = ((fy - Fy_tr) / Wavg * L3 + u4y_tr); }
-                u2y = u2y_stored; u3y = u3y_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 4
-            else if (fy > F_dr1 && fy <= F_dr4) {
-                u1y = u1y_stored;
-                if (sign_fy == -1) { u4y = (fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u; u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); }
-                else { u4y = (fy - Fy_tr) / Wavg * L3 + u4y_tr; u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); }
-                u3y = u3y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 5
-            else if (fy >= F_dr4) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-        } // end of starting regime 4    
-
-        // Starting Regime (3, 2, 1)
-        else if (Fy_ref > -F_dr1) { // If F_ref requires loop for regime 3 or lower
-             // Regime 0 (just unloading)
-            if (fy <= Fy_ref + 2 * F_f2) {
-                u1y = u1y_stored; u4y = u4y_stored; u2y = u2y_stored; u3y = u3y_stored;
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 1 
-            else if (fy > Fy_ref + 2 * F_f2 && fy <= Fy_ref + 2 * F_f1) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 2
-            else if (fy > Fy_ref + 2 * F_f1 && fy <= Fy_ref + 2 * F_f4) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                u2y = u2y_stored; u4y = u4y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 3
-            else if (fy > Fy_ref + 2 * F_f4 && fy <= F_dr1) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u4y = ((fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u); }
-                else { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u4y = ((fy - Fy_tr) / Wavg * L3 + u4y_tr); }
-                u2y = u2y_stored; u3y = u3y_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 4
-            else if (fy > F_dr1 && fy <= F_dr4) {
-                u1y = u1y_stored;
-                if (sign_fy == -1) { u4y = (fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u; u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); }
-                else { u4y = (fy - Fy_tr) / Wavg * L3 + u4y_tr; u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); }
-                u3y = u3y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-            // Regime 5
-            else if (fy >= F_dr4) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                else { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr);  u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-                else { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-            }
-        } // end of starting regime 3,2,1   
-    }
-
-    // 3. Change loading phase - from top to bottom of the force-displacement loop
-    else if (forceSlope_y == -1) {
-        unloading_y = 1; // tag for closing first loop 
-
-        // Setting the starting points depending on the direction of first cycle
-        if (sign_fy == -1) { Fy_ref = Fy_tr_u; u1y_ref = u1y_tr_u; u4y_ref = u4y_tr_u; u2y_ref = u2y_tr_u; u3y_ref = u3y_tr_u; }
-        else { Fy_ref = Fy_tr; u1y_ref = u1y_tr; u4y_ref = u4y_tr; u2y_ref = u2y_tr; u3y_ref = u3y_tr; }
-
-        // Starting Regime (5)
-        if (Fy_ref > F_dr4) {
-            // Regime 0 (just unloading)
-            if (fy >= Fy_ref - 2 * F_f2) {
-                u1y = u1y_stored; u4y = u4y_stored; u2y = u2y_stored; u3y = u3y_stored;
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 1 // Sliding on inner only (Regime 1 in TFP, force limit)
-            else if (fy < Fy_ref - 2 * F_f2 && fy >= F_dr1 - 2 * F_f1) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 2
-            else if (fy < F_dr1 - 2 * F_f1 && fy >= F_dr4 - 2 * F_f4) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                u4y = u4y_stored; u2y = u2y_stored;
-                // displacement limit states for inner surface
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 3
-            else if (fy <= F_dr4 - 2 * F_f4 && fy >= -F_dr1) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u4y = ((fy - Fy_tr) / Wavg * L3 + u4y_tr); }
-                else { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u4y = ((fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u); }
-                u2y = u2y_stored; u3y = u3y_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 4
-            else if (fy < -F_dr1 && fy >= -F_dr4) {
-                u1y = u1y_stored;
-                if (sign_fy == -1) { u4y = (fy - Fy_tr) / Wavg * L3 + u4y_tr; u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); }
-                else { u4y = (fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u; u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); }
-                u3y = u3y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 5
-            else if (fy <= -F_dr4) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-        } // end of starting regime 5
-
-        // Starting Regime (4)
-        else if (Fy_ref >= F_dr1 && Fy_ref < F_dr4) {
-            // Regime 0 (just unloading) 
-            if (fy >= Fy_ref - 2 * F_f2) {
-                u1y = u1y_stored; u4y = u4y_stored; u2y = u2y_stored; u3y = u3y_stored;
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 1 // Sliding on inner only (Regime 1 in TFP, force limit)
-            else if (fy < Fy_ref - 2 * F_f2 && fy >= F_dr1 - 2 * F_f1) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 2
-            else if (fy < F_dr1 - 2 * F_f1 && fy >= Fy_ref - 2 * F_f4) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                u4y = u4y_stored; u2y = u2y_stored;
-                // displacement limit states for inner surface
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 3
-            else if (fy <= Fy_ref - 2 * F_f4 && fy >= -F_dr1) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u4y = ((fy - Fy_tr) / Wavg * L3 + u4y_tr); }
-                else { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u4y = ((fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u); }
-                u2y = u2y_stored; u3y = u3y_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 4
-            else if (fy < -F_dr1 && fy >= -F_dr4) {
-                u1y = u1y_stored;
-                if (sign_fy == -1) { u4y = (fy - Fy_tr) / Wavg * L3 + u4y_tr; u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); }
-                else { u4y = (fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u; u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); }
-                u3y = u3y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 5
-            else if (fy <= -F_dr4) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-        } // end of starting regime 4
-
-        // Starting Regime (3,2,1)
-        else if (Fy_ref < F_dr1) {
-            // Regime 0 (just unloading)
-            if (fy >= Fy_ref - 2 * F_f2) {
-                u1y = u1y_stored; u4y = u4y_stored; u2y = u2y_stored; u3y = u3y_stored;
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 1 // Sliding on inner only (Regime 1 in TFP, force limit)
-            else if (fy < Fy_ref - 2 * F_f2 && fy >= Fy_ref - 2 * F_f1) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                // displacement limit states for inner surface
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 2
-            else if (fy < Fy_ref - 2 * F_f1 && fy >= Fy_ref - 2 * F_f4) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                u4y = u4y_stored;
-                u2y = u2y_stored;
-                // displacement limit states for inner surface
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 3
-            else if (fy <= Fy_ref - 2 * F_f4 && fy >= -F_dr1) {
-                if (sign_fy == -1) { u1y = ((fy - Fy_tr) / Wavg * L2 + u1y_tr); u4y = ((fy - Fy_tr) / Wavg * L3 + u4y_tr); }
-                else { u1y = ((fy - Fy_tr_u) / Wavg * L2 + u1y_tr_u); u4y = ((fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u); }
-                u2y = u2y_stored; u3y = u3y_stored;
-                // Limit states for outer surfaces displacement
-                if (fabs(u1y) >= Ubar2) { u1y = sgn(u1y) * Ubar2; }
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 4
-            else if (fy < -F_dr1 && fy >= -F_dr4) {
-                u1y = u1y_stored;
-                if (sign_fy == -1) { u4y = (fy - Fy_tr) / Wavg * L3 + u4y_tr; u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); }
-                else { u4y = (fy - Fy_tr_u) / Wavg * L3 + u4y_tr_u;  u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); }
-                u3y = u3y_stored;
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                // Limit states for outer surfaces displacement
-                if (fabs(u4y) >= Ubar3) { u4y = sgn(u4y) * Ubar3; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-            // Regime 5
-            else if (fy <= -F_dr4) {
-                u1y = u1y_stored; u4y = u4y_stored;
-                if (sign_fy == -1) { u2y = ((fy - Fy_tr) / Wavg * L1 + u2y_tr); u3y = ((fy - Fy_tr) / Wavg * L1 + u3y_tr); }
-                else { u2y = ((fy - Fy_tr_u) / Wavg * L1 + u2y_tr_u); u3y = ((fy - Fy_tr_u) / Wavg * L1 + u3y_tr_u); }
-                // Limit states for inner surfaces displacement
-                if (fabs(u2y) >= Ubar1) { u2y = sgn(u2y) * Ubar1; }
-                if (fabs(u3y) >= Ubar1) { u3y = sgn(u3y) * Ubar1; }
-                // Save histories for unloading phase 
-                if (sign_fy == -1) { Fy_tr = fy; u1y_tr = u1y; u4y_tr = u4y; u2y_tr = u2y; u3y_tr = u3y; }
-                else { Fy_tr_u = fy; u1y_tr_u = u1y; u4y_tr_u = u4y; u2y_tr_u = u2y; u3y_tr_u = u3y; }
-            }
-        } // end of starting regime 3,2,1
-    }
+    /* ---------- one-line update, exactly once per time-step ---------------- */
+    updateDirection(Y,
+                    /* thresholds  */ F_f1, F_f2, F_f4, F_dr1, F_dr4,
+                    /* geometry    */ Wavg, L1, L2, L3,
+                    /* displacement caps */ Ubar1, Ubar2, Ubar3);
 
     // Histories of inner surface for series model element 1
     u23y = u2y + u3y;
-    v2y = (u2y - u2y_stored2) * (1.0 / (2 * ops_Dt));
-    v3y = (u3y - u3y_stored2) * (1.0 / (2 * ops_Dt));
+    v2y = (u2y - u2y_stored2) * (1.0 / (2 * dt));
+    v3y = (u3y - u3y_stored2) * (1.0 / (2 * dt));
     v23y = v2y + v3y;
 
     // Velocity for outer surfaces
-    v1y = (u1y - u1y_stored2) * (1.0 / (2 * ops_Dt));
-    v4y = (u4y - u4y_stored2) * (1.0 / (2 * ops_Dt));
+    v1y = (u1y - u1y_stored2) * (1.0 / (2 * dt));
+    v4y = (u4y - u4y_stored2) * (1.0 / (2 * dt));
 
     // Resultant Histories
     u23t = sqrt(u23 * u23 + u23y * u23y);
@@ -1667,14 +685,13 @@ int TripleFrictionPendulumX::update()
     u23sum = sqrt(u23xx * u23xx + u23yy * u23yy);
 
     // 3point velocity
-    v23xx = (u23xx - u23xx_storedpr) * (1.0 / (2 * ops_Dt));
-    v23yy = (u23yy - u23yy_storedpr) * (1.0 / (2 * ops_Dt));
+    v23xx = (u23xx - u23xx_storedpr) * (1.0 / (2 * dt));
+    v23yy = (u23yy - u23yy_storedpr) * (1.0 / (2 * dt));
     v23sum = sqrt(v23xx * v23xx + v23yy * v23yy);
 
 
     // Partitioning Approaches (tag1 == 1 for Approach 1, 0 for Approach 2)
     if (tag1 == 1) {
-
         disp1 = v1Fact * u23sumpr; vel1 = v1Fact * v23sumpr; //(ward)
         //disp1 = v1Fact * D1prAvg; vel1 = v1Fact * Vel1Avg;
         disp2 = v3Fact * D3prAvg; vel2 = v3Fact * Vel3Avg;
@@ -1682,7 +699,6 @@ int TripleFrictionPendulumX::update()
 
     }
     else {
-
         disp1 = disp1pr; disp2 = disp2pr; disp3 = disp3pr;
         vel1 = vel1pr; vel2 = vel2pr; vel3 = vel3pr;
     }
@@ -2004,6 +1020,8 @@ int TripleFrictionPendulumX::update()
 
 
 
+    // get coefficients of friction
+    double Fy1cr, Fy3cr, Fy5cr, dFy1, dFy3, dFy5;
     Fy1cr = Mu_Adj1; Fy3cr = Mu_Adj2; Fy5cr = Mu_Adj3;
     dFy1 = Fy1cr - Fy1pr; dFy3 = Fy3cr - Fy3pr; dFy5 = Fy5cr - Fy5pr;
     Fy1 = Fy1pr; Fy3 = Fy3pr; Fy5 = Fy5pr;
@@ -2044,9 +1062,9 @@ int TripleFrictionPendulumX::update()
         }
 
         // Three-point formula for velocity calculation 
-        v1 = 1.0 / (2 * ops_Dt) * (d1 - d1ppr);
-        v3 = 1.0 / (2 * ops_Dt) * (d3 - d3ppr);
-        v5 = 1.0 / (2 * ops_Dt) * (d5 - d5ppr);
+        v1 = 1.0 / (2 * dt) * (d1 - d1ppr);
+        v3 = 1.0 / (2 * dt) * (d3 - d3ppr);
+        v5 = 1.0 / (2 * dt) * (d5 - d5ppr);
 
         Vel1Avg = v1.Norm(); Vel3Avg = v3.Norm(); Vel5Avg = v5.Norm();
         Disp1Avg = d1.Norm(); Disp3Avg = d3.Norm(); Disp5Avg = d5.Norm();
@@ -2160,7 +1178,8 @@ const Matrix& TripleFrictionPendulumX::getDamp()
 }
 
 
-const Matrix& TripleFrictionPendulumX::getMass()
+const Matrix& 
+TripleFrictionPendulumX::getMass()
 {
     eleM.Zero();
 
@@ -2168,7 +1187,8 @@ const Matrix& TripleFrictionPendulumX::getMass()
 }
 
 
-const Vector& TripleFrictionPendulumX::getResistingForce()
+const Vector& 
+TripleFrictionPendulumX::getResistingForce()
 {
     Matrix aT(12, 2);
     aT.Zero();
@@ -2190,7 +1210,8 @@ const Vector& TripleFrictionPendulumX::getResistingForce()
 }
 
 
-Element* TripleFrictionPendulumX::getCopy()
+Element* 
+TripleFrictionPendulumX::getCopy()
 {
     TripleFrictionPendulumX* theCopy = new TripleFrictionPendulumX(this->getTag(),
         externalNodes(0), externalNodes(1), tag1, tag2, theMaterials, kpFactor, kTFactor, kvFactor, Mu_ref1, Mu_ref2, Mu_ref3, L1, L2, L3,

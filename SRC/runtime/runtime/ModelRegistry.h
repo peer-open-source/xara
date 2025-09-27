@@ -1,10 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
+//
 // Description: This file contains the class definition for
 // ModelRegistry. A ModelRegistry aims to be a threadsafe
 // alternative to the TclBasicBuilder class. This class adds the commands to
@@ -36,25 +44,9 @@ public:
   ~ModelRegistry();
 
 
-// Options
-  void letClobber(bool option);
-  bool canClobber();
-
-// Methods
-
   int getNDM() const;
   int getNDF() const;
   Domain *getDomain() const;
-
-  int  getCurrentSectionBuilder(int&);
-  void setCurrentSectionBuilder(int);
-
-  LoadPattern* getEnclosingPattern();
-  int setEnclosingPattern(LoadPattern*);
-
-  int incrNodalLoadTag();
-  int decrNodalLoadTag();
-  int getNodalLoadTag();
 
   //
   // Managing tagged objects
@@ -88,6 +80,19 @@ public:
     return findFreeTag(typeid(T).name(), tag);
   }
 
+  int  getCurrentSectionBuilder(int&);
+  void setCurrentSectionBuilder(int);
+
+  LoadPattern* getEnclosingPattern();
+  int setEnclosingPattern(LoadPattern*);
+
+  int incrNodalLoadTag();
+  int decrNodalLoadTag();
+  int getNodalLoadTag();
+  int incrElemLoadTag();
+  int decrElemLoadTag();
+  int getElemLoadTag();
+
   int addSP_Constraint(int axisDirn, 
          double axisValue, 
          const ID &fixityCodes, 
@@ -111,9 +116,7 @@ private:
   Domain *theDomain     = nullptr;
 
   int next_node_load          = 0;
-
-  // Options
-  bool no_clobber = true;
+  int next_elem_load          = 0;
 
   // previously extern variables
   LoadPattern *tclEnclosingPattern = nullptr;

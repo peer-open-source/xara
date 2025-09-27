@@ -166,7 +166,8 @@ Tri31::setDomain(Domain *theDomain)
     }
 
     //
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // Compute consistent nodal loads due to pressure
     this->setPressureLoadAtNodes();

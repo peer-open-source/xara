@@ -197,14 +197,14 @@ MP_Joint2D::~MP_Joint2D()
 
 
 int
-MP_Joint2D::getNodeRetained(void) const
+MP_Joint2D::getNodeRetained() const
 {
     // return id of retained node
     return nodeRetained;
 }
 
 int
-MP_Joint2D::getNodeConstrained(void) const
+MP_Joint2D::getNodeConstrained() const
 {
     // return id of constrained node    
     return nodeConstrained;
@@ -212,7 +212,7 @@ MP_Joint2D::getNodeConstrained(void) const
 
 
 const ID &
-MP_Joint2D::getConstrainedDOFs(void) const
+MP_Joint2D::getConstrainedDOFs() const
 {
     if (constrDOF == NULL) {
 	opserr << "MP_Joint2D::getConstrainedDOF - no ID was set, ";
@@ -226,7 +226,7 @@ MP_Joint2D::getConstrainedDOFs(void) const
 
 
 const ID &
-MP_Joint2D::getRetainedDOFs(void) const
+MP_Joint2D::getRetainedDOFs() const
 {
     if (retainDOF == NULL) {
 	opserr << "MP_Joint2D::getRetainedDOFs - no ID was set\n ";
@@ -281,7 +281,7 @@ MP_Joint2D::applyConstraint(double timeStamp)
 
 
 bool
-MP_Joint2D::isTimeVarying(void) const
+MP_Joint2D::isTimeVarying() const
 {
     if ( LargeDisplacement != 0 ) return true;
 
@@ -428,7 +428,7 @@ int MP_Joint2D::recvSelf(int commitTag, Channel &theChannel,
 }
 
 
-const Matrix &MP_Joint2D::getConstraint(void)
+const Matrix &MP_Joint2D::getConstraint()
 {
     if (constraint == 0) {
 	opserr << "MP_Joint2D::getConstraint - no Matrix was set\n";

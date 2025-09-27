@@ -28,7 +28,7 @@
 #ifndef J2CyclicBoundingSurface_h
 #define J2CyclicBoundingSurface_h
 
-#include <stdio.h> 
+#include <assert.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -79,9 +79,13 @@ public:
 	//swap history variables
 	virtual int commitState();
 
-		virtual int revertToLastCommit();
+	virtual int revertToLastCommit();
 
-		virtual int revertToStart();
+	virtual int revertToStart();
+	int setTrialStrain(const Vector &v) override {
+	  assert(false);
+	  return -1;
+	}
 
 	//sending and receiving
 	virtual int sendSelf(int commitTag, Channel &theChannel);

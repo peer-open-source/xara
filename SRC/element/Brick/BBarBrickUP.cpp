@@ -146,18 +146,15 @@ connectedExternalNodes(8), applyLoad(0), load(0), Ki(0), kc(bulk), rho(rhof)
 //******************************************************************
 
 
-//destructor
 BBarBrickUP::~BBarBrickUP( )
 {
-  int i ;
-  for ( i=0 ; i<8; i++ ) {
+  for (int i=0 ; i<8; i++ ) {
 
     delete materialPointers[i] ;
-    materialPointers[i] = 0 ;
+    materialPointers[i] = nullptr;
 
-    nodePointers[i] = 0 ;
-
-  } //end for i
+    nodePointers[i] = nullptr;
+  }
 
   if (load != 0)
     delete load;
@@ -168,40 +165,42 @@ BBarBrickUP::~BBarBrickUP( )
 
 
 //set domain
-void  BBarBrickUP::setDomain( Domain *theDomain )
+void
+BBarBrickUP::setDomain(Domain *theDomain )
 {
-  int i,dof ;
 
   // Check Domain is not null - invoked when object removed from a domain
-  if (theDomain == 0) {
-    for ( i=0; i<8; i++ )
-    nodePointers[i] = 0;
-	return;
+  if (theDomain == nullptr) {
+    for (int i=0; i<8; i++ )
+      nodePointers[i] = nullptr;
+    return;
   }
 
-  //node pointers
-  for ( i=0; i<8; i++ ) {
+  // node pointers
+  for (int i=0; i<8; i++ ) {
      nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
-     if (nodePointers[i] == 0) {
-	   opserr << "FATAL ERROR BBarBrickUP ("<<this->getTag()<<"): node not found in domain"<<endln;
-	   return;
+     if (nodePointers[i] == nullptr) {
+      opserr << "ERROR BBarBrickUP (" << this->getTag() << "): node not found in domain"<<endln;
+      return;
      }
 
-     dof = nodePointers[i]->getNumberDOF();
+     int dof = nodePointers[i]->getNumberDOF();
      if (dof != 4) {
-	   opserr << "FATAL ERROR BBarBrickUP ("<<this->getTag()<<"): has differing number of DOFs at its nodes"<<endln;
-	   return;
+      opserr << "ERROR BBarBrickUP ("<<this->getTag()<<"): has differing number of DOFs at its nodes"<<endln;
+      return;
      }
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 
-//get the number of external nodes
-int  BBarBrickUP::getNumExternalNodes( ) const
+// get the number of external nodes
+int
+BBarBrickUP::getNumExternalNodes( ) const
 {
-  return 8 ;
+  return 8;
 }
 
 
@@ -211,16 +210,17 @@ const ID&  BBarBrickUP::getExternalNodes( )
   return connectedExternalNodes ;
 }
 
-//return connected external node
+
 Node **
-BBarBrickUP::getNodePtrs(void)
+BBarBrickUP::getNodePtrs()
 {
   return nodePointers ;
 }
 
 
-//return number of dofs
-int  BBarBrickUP::getNumDOF( )
+
+int
+BBarBrickUP::getNumDOF( )
 {
   return 32 ;
 }
@@ -245,12 +245,12 @@ int  BBarBrickUP::commitState( )
 
 
 //revert to last commit
-int  BBarBrickUP::revertToLastCommit( )
+int
+BBarBrickUP::revertToLastCommit( )
 {
-  int i ;
   int success = 0 ;
 
-  for ( i=0; i<8; i++ )
+  for (int i=0; i<8; i++ )
     success += materialPointers[i]->revertToLastCommit( ) ;
 
   return success ;
@@ -259,20 +259,36 @@ int  BBarBrickUP::revertToLastCommit( )
 
 int  BBarBrickUP::revertToStart( )
 {
-  int i ;
   int success = 0 ;
 
-  for ( i=0; i<8; i++ )
+  for (int i=0; i<8; i++ )
     success += materialPointers[i]->revertToStart( ) ;
 
   return success ;
 }
 
-//print out element data
-void  BBarBrickUP::Print( OPS_Stream &s, int flag )
-{
 
-  if (flag == 2) {
+void
+BBarBrickUP::Print( OPS_Stream &s, int flag )
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "\t\t\t{" << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"BBarBrickUP\", ";
+    s << "\"nodes\": [";
+    for (int i=0; i<8; i++) {
+      s << connectedExternalNodes(i);
+      if (i < 7)
+        s << ", ";
+      else
+        s << "], ";
+    }
+    s << "\"material\": \"" << materialPointers[0]->getTag() << "\", ";
+    s << "\"bulk\": " << kc << ", ";
+    s << "\"rho\": " << rho << ", ";
+    s << "\"permeability\": [" << perm[0] << ", " << perm[1] << ", " << perm[2] << "], ";
+    s << "\"b\": [" << b[0] << ", " << b[1] << ", " << b[2] << "]}" << "\n";
+  }
+  else if (flag == 2) {
 
     s << "#Brick\n";
 
@@ -284,8 +300,8 @@ void  BBarBrickUP::Print( OPS_Stream &s, int flag )
       const Vector &nodeCrd = nodePointers[i]->getCrds();
       const Vector &nodeDisp = nodePointers[i]->getDisp();
       s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2)
-	<< " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << endln;
-     }
+        << " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << "\n";
+    }
 
     // spit out the section location & invoke print on the scetion
     const int numMaterials = 8;
@@ -309,40 +325,33 @@ void  BBarBrickUP::Print( OPS_Stream &s, int flag )
     s << "#AVERAGE_STRAIN ";
     for (i=0; i<nstress; i++)
       s << avgStrain(i) << " " ;
-    s << endln;
+    s << "\n";
 
-    /*
-    for (i=0; i<numMaterials; i++) {
-      s << "#MATERIAL\n";
-      //      materialPointers[i]->Print(s, flag);
-      s << materialPointers[i]->getStress();
-    }
-    */
-
-  } else {
-
-    s << endln ;
+  }
+  else {
+    s << "\n";
     s << "Eight Node BBarBrickUP \n" ;
-    s << "Element Number: " << this->getTag() << endln ;
-    s << "Node 1 : " << connectedExternalNodes(0) << endln ;
-    s << "Node 2 : " << connectedExternalNodes(1) << endln ;
-    s << "Node 3 : " << connectedExternalNodes(2) << endln ;
-    s << "Node 4 : " << connectedExternalNodes(3) << endln ;
-    s << "Node 5 : " << connectedExternalNodes(4) << endln ;
-    s << "Node 6 : " << connectedExternalNodes(5) << endln ;
-    s << "Node 7 : " << connectedExternalNodes(6) << endln ;
-    s << "Node 8 : " << connectedExternalNodes(7) << endln ;
+    s << "Element Number: " << this->getTag() << "\n" ;
+    s << "Node 1 : " << connectedExternalNodes(0) << "\n" ;
+    s << "Node 2 : " << connectedExternalNodes(1) << "\n" ;
+    s << "Node 3 : " << connectedExternalNodes(2) << "\n" ;
+    s << "Node 4 : " << connectedExternalNodes(3) << "\n" ;
+    s << "Node 5 : " << connectedExternalNodes(4) << "\n" ;
+    s << "Node 6 : " << connectedExternalNodes(5) << "\n" ;
+    s << "Node 7 : " << connectedExternalNodes(6) << "\n" ;
+    s << "Node 8 : " << connectedExternalNodes(7) << "\n" ;
 
     s << "Material Information : \n " ;
     materialPointers[0]->Print( s, flag ) ;
 
-    s << endln ;
+    s << "\n" ;
   }
 }
 
 
 //return stiffness matrix
-const Matrix&  BBarBrickUP::getTangentStiff( )
+const Matrix&
+BBarBrickUP::getTangentStiff( )
 {
   int tang_flag = 1 ; //get the tangent
 
@@ -352,9 +361,6 @@ const Matrix&  BBarBrickUP::getTangentStiff( )
   return stiff ;
 }
 
-
-//return secant matrix
-//const Matrix&  BBarBrickUP::getSecantStiff( )
 
 const Matrix& 
 BBarBrickUP::getInitialStiff( )

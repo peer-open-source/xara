@@ -185,7 +185,7 @@ int
 InitStressNDMaterial::setTrialStrain(const Vector &strain, 
 				     const Vector &strainRate)
 {
-  return theMaterial->setTrialStrain(strain+epsInit, strainRate);
+  return theMaterial->setTrialStrain(strain+epsInit);
 }
 
 int 
@@ -198,23 +198,23 @@ int
 InitStressNDMaterial::setTrialStrainIncr(const Vector &strain, 
 					 const Vector &strainRate)
 {
-  return theMaterial->setTrialStrainIncr(strain, strainRate);
+  return theMaterial->setTrialStrainIncr(strain);
 }
 
 const Vector &
-InitStressNDMaterial::getStress(void)
+InitStressNDMaterial::getStress()
 {
   return theMaterial->getStress();
 }
 
 const Matrix &
-InitStressNDMaterial::getTangent(void)
+InitStressNDMaterial::getTangent()
 {
   return theMaterial->getTangent();  
 }
 
 const Matrix &
-InitStressNDMaterial::getInitialTangent(void)
+InitStressNDMaterial::getInitialTangent()
 {
   return theMaterial->getInitialTangent();  
 }

@@ -183,7 +183,8 @@ void  PML3D::setDomain(Domain* theDomain)
 	for (int i = 0; i < PML3D_NUM_NODES; i++)
 		nodePointers[i] = theDomain->getNode(connectedExternalNodes(i));
 
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 
 	// create the coordinate vectors
 	double coords[PML3D_NUM_DOF];

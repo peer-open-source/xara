@@ -11,7 +11,7 @@
 // Created: 07/01
 //
 #include "Block3D.h"
-
+#include <Logging.h>
 
 Block3D::Block3D(int numx, int numy, int numz,
                  const ID& nodeID, 
@@ -33,7 +33,7 @@ void  Block3D::setUpXl( const ID &nodeID, const Matrix &coorArray )
       opserr << "Warning : in Block3D, block node " 
            << i 
            << " is not defined.  No Generation will take place."
-           << endln;
+           << OpenSees::SignalMessageEnd;
       break; 
     }
   }

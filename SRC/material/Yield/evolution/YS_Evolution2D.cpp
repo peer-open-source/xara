@@ -348,11 +348,7 @@ int YS_Evolution2D::evolveSurface(YieldSurface_BC *ys, double lamda,
 	return 0;
 }
 
-int YS_Evolution2D::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-	return -1;
-}
-	
+
 Response* YS_Evolution2D::setResponse(char **argv, int argc, OPS_Stream &output)
 {
 	return 0;

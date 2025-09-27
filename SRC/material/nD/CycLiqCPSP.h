@@ -31,14 +31,12 @@
 #define CycLiqCPSP_h
 
 
-
-#include <stdio.h> 
+#include <cassert>
 #include <stdlib.h> 
 #include <math.h> 
 
 #include <Vector.h>
 #include <Matrix.h>
-//#include <T2Vector.h>
 #include <NDMaterial.h>
 
 
@@ -87,7 +85,11 @@ class CycLiqCPSP : public NDMaterial {
   virtual int getOrder( void ) const ;
 
   //swap history variables
-  int commitState( ) ; 
+  int commitState( ) ;
+  int setTrialStrain(const Vector &v) {
+    assert(false);
+    return -1;
+  }
 
   //revert to last saved state
   int revertToLastCommit( ) ;
@@ -98,7 +100,7 @@ class CycLiqCPSP : public NDMaterial {
   //sending and receiving
   int sendSelf(int commitTag, Channel &theChannel) ;  
   int recvSelf(int commitTag, Channel &theChannel, 
-		       FEM_ObjectBroker &theBroker ) ;
+		       FEM_ObjectBroker & ) ;
 
   //print out material data
   void Print(OPS_Stream &s, int flag = 0) ;

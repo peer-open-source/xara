@@ -19,7 +19,8 @@
 // Written: fmk
 // Created: 11/00
 //
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <string.h>
 
 #include <TrapezoidalTimeSeriesIntegrator.h>

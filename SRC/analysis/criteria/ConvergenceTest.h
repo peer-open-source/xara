@@ -31,6 +31,7 @@
 #define OPS_MAXTOL 1.7e307
 
 #include <MovableObject.h>
+#include <StandardStream.h>
 #include <Vector.h>
 #include <stdbool.h>
 #include <string>
@@ -74,9 +75,7 @@ class ConvergenceTest: public MovableObject
   protected:
     std::string pad(double x);
     std::string pad(int i);
-
-  private:
-    int pad_width = 10;
+    StandardStream pstream;
 };
 
 #endif

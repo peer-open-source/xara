@@ -243,7 +243,7 @@ Parallel3DMaterial::~Parallel3DMaterial()
 	}
 }
 
-double Parallel3DMaterial::getRho(void)
+double Parallel3DMaterial::getRho()
 {
 	double rho = 0.0;
 	for (std::size_t i = 0; i < m_materials.size(); ++i) {
@@ -265,20 +265,9 @@ int Parallel3DMaterial::setTrialStrain(const Vector& v)
 	return result;
 }
 
-int Parallel3DMaterial::setTrialStrain(const Vector& v, const Vector& r)
-{
-	m_strain = v;
-	int result = 0;
-	for (std::size_t i = 0; i < m_materials.size(); ++i) {
-		if (!m_materials[i]->setTrialStrain(v, r))
-			result = -1;
-	}
-	computeStress();
-	computeTangent();
-	return result;
-}
 
-const Vector &Parallel3DMaterial::getStrain()
+const Vector &
+Parallel3DMaterial::getStrain()
 {
 	return m_strain;
 }
@@ -293,12 +282,14 @@ const Matrix &Parallel3DMaterial::getTangent()
 	return m_tangent;
 }
 
-const Matrix &Parallel3DMaterial::getInitialTangent(void)
+const Matrix &
+Parallel3DMaterial::getInitialTangent()
 {
 	return m_initial_tangent;
 }
 
-int Parallel3DMaterial::commitState(void)
+int
+Parallel3DMaterial::commitState()
 {
 	// commit each material
 	int res = 0;
@@ -315,7 +306,8 @@ int Parallel3DMaterial::commitState(void)
 	return res;
 }
 
-int Parallel3DMaterial::revertToLastCommit(void)
+int 
+Parallel3DMaterial::revertToLastCommit()
 {
 	// revert each material
 	int res = 0;
@@ -332,7 +324,7 @@ int Parallel3DMaterial::revertToLastCommit(void)
 	return res;
 }
 
-int Parallel3DMaterial::revertToStart(void)
+int Parallel3DMaterial::revertToStart()
 {
 	int res = 0;
 	// only if not called by the initial state analysis off command
@@ -349,7 +341,7 @@ int Parallel3DMaterial::revertToStart(void)
 	return res;
 }
 
-NDMaterial* Parallel3DMaterial::getCopy(void)
+NDMaterial* Parallel3DMaterial::getCopy()
 {
 	return new Parallel3DMaterial(getTag(), m_materials, m_weights);
 }
@@ -361,12 +353,12 @@ NDMaterial* Parallel3DMaterial::getCopy(const char* code)
 	return NDMaterial::getCopy(code);
 }
 
-const char* Parallel3DMaterial::getType(void) const
+const char* Parallel3DMaterial::getType() const
 {
 	return "ThreeDimensional";
 }
 
-int Parallel3DMaterial::getOrder(void) const
+int Parallel3DMaterial::getOrder() const
 {
 	return 6;
 }

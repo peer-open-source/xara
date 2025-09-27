@@ -132,21 +132,40 @@ class _Algorithm:
         Clear the current model.
         """
 
+
+class _Output:
+    def nodeDisp(self, node: int, dof: int) -> float:
+        """
+        Get the displacement of a node in a specified degree of freedom.
+        """
+
 class Model(_Materials,_Elements,_Algorithm):
     def node(self, tag: int, coords: tuple, *args, **kwargs) -> int:
         """
         Create a node with the specified tag and coordinates.
         """
+
     def fix(self, node: int, *args) -> int:
         """
         Apply boundary conditions to a node.
         """
-    def mass(self, node: int, *args) -> int:
+
+    def mass(self, node: int, *args):
         """
         Assign mass to a node.
         """
-    def load(self, node: int, *args) -> int:
+
+    def load(self, node: int, *args):
         """
         Apply loads to a node.
         """
     
+    def getNodeTags(self) -> list[int]:
+        """
+        Get a list of all node tags in the model.
+        """
+
+    def nodeCoord(self, node: int, index: int=None) -> list[float] | float:
+        """
+        Get the coordinates of a node.
+        """

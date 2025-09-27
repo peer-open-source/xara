@@ -389,7 +389,7 @@ void
 BFGS::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
-    s << "BFGS" << endln;
-    s << "  Number of Iterations = " << numberLoops << endln;
+    s << "BFGS" << "\n";
+    s << "  Number of Iterations = " << numberLoops << "\n";
   }
 }

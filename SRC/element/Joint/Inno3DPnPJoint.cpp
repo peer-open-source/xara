@@ -1141,7 +1141,8 @@ void Inno3DPnPJoint::setDomain(Domain *theDomain)
     }
 	
 	// call the base class method
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 
 	// CHECK 1: NUMBER OF DOFs
 	int dofNd1 = nodePtr[0]->getNumberDOF();
@@ -1532,10 +1533,7 @@ void Inno3DPnPJoint::getGlobalDispls(Vector &dg)
 	double ctolIntEqdU = tol;
 	
 	double toluInt = (tol>tol*uInt.Norm()) ? tol:tol*uInt.Norm();
-	
-	//opserr << "getGlobalDispls uInt "		<< uInt;
-	//opserr << "getGlobalDispls uInt.Norm " 	<< uInt.Norm() << endln;
-	//opserr << "getGlobalDispls toluInt "	<< toluInt;
+
 	
 	double normDuInt = toluInt;
 	
@@ -1792,18 +1790,13 @@ void Inno3DPnPJoint::getMatResponse(Vector U, Vector &fS, Vector &kS)
 		// opserr << kS(j) << endln;
 				
 		fS(j) = MaterialPtr[j]->getStress();
-		// opserr << fS(j) << endln;
 	}
 
-	// opserr << "getMatResponse - fS: " << fS << endln;
-	// opserr << "getMatResponse - kS: " << kS << endln; //vector
-	// opserr << "getMatResponse - defSpring: " << defSpring << endln;
-	
-	// opserr << "getMatResponse: END" << endln;
 }
 
 
-void Inno3DPnPJoint::formTransfMat()
+void
+Inno3DPnPJoint::formTransfMat()
 {
 	// opserr << "formTransfMat: START" << endln;
 	
@@ -2862,12 +2855,7 @@ Response* Inno3DPnPJoint::setResponse(const char **argv, int argc, OPS_Stream &o
 		return new ElementResponse(this,7,Vector(64));
 	}
 	
-	else
-    {
-		return 0;
-	}
-	
-	// opserr << "setResponse: END" << endln;
+	return nullptr;
 }
 
 
@@ -3016,22 +3004,18 @@ int Inno3DPnPJoint::getResponse(int responseID, Information &eleInfo)
 		// opserr << "getResponse: END " << "default return -1" <<endln;
 		return -1;
 	}
-	// opserr << "getResponse: END " << "return -1" <<endln;
 	return -1;
 	
-	// opserr << "getResponse: END" << endln;
 }
 
 
 int Inno3DPnPJoint::setParameter (char **argv, int argc, Information &info)
 {
-	// opserr << "setParameter: START/END" << endln;
 	return -1;
 }
  
  
 int Inno3DPnPJoint::updateParameter (int parameterID, Information &info)
 {
-	// opserr << "updateParameter: START/END" << endln;
 	return -1;
 }

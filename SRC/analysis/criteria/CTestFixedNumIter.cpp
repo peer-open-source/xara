@@ -87,16 +87,16 @@ int CTestFixedNumIter::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest)  {
-        opserr << LOG_ITERATE << "Iter: " << pad(currentIter);
-        opserr << ", EnergyIncr: " << product;
-        opserr << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
+        pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
+        pstream << ", EnergyIncr: " << product;
+        pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
     }
 
     if (printFlag & ConvergenceTest::PrintTest02)  {
-        opserr << LOG_ITERATE << "Iter: " << pad(currentIter);
-        opserr << ", EnergyIncr: " << product;
-        opserr << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
-        opserr << "\tdeltaX: " << x << "\tdeltaR: " << b;
+        pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
+        pstream << ", EnergyIncr: " << product;
+        pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
+        pstream << "\tdeltaX: " << x << "\tdeltaR: " << b;
     }
 
     //
@@ -106,12 +106,12 @@ int CTestFixedNumIter::test(LinearSOE& theSOE)
     // if converged - print & return ok
     if (currentIter == maxNumIter)  {
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << "\n";
 
         if (printFlag & ConvergenceTest::PrintSuccess)  {
-            opserr << LOG_SUCCESS << "Iter: " << pad(currentIter);
-            opserr << " last EnergyIncr: " << product;
-            opserr << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
+            pstream << LOG_SUCCESS << "Iter: " << pad(currentIter);
+            pstream << " last EnergyIncr: " << product;
+            pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
         }
 
         // return the number of times test has been called
@@ -136,26 +136,30 @@ CTestFixedNumIter::start(LinearSOE&)
 }
 
 
-int CTestFixedNumIter::getNumTests()
+int 
+CTestFixedNumIter::getNumTests()
 {
-    return currentIter;
+  return currentIter;
 }
 
 
-int CTestFixedNumIter::getMaxNumTests(void)
+int 
+CTestFixedNumIter::getMaxNumTests()
 {
-    return maxNumIter;
+  return maxNumIter;
 }
 
 
-double CTestFixedNumIter::getRatioNumToMax(void)
+double
+CTestFixedNumIter::getRatioNumToMax()
 {
     double div = maxNumIter;
     return currentIter/div;
 }
 
 
-const Vector& CTestFixedNumIter::getNorms()
+const Vector&
+CTestFixedNumIter::getNorms()
 {
     return norms;
 }

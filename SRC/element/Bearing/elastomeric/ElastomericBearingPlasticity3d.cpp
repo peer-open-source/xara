@@ -387,7 +387,8 @@ void ElastomericBearingPlasticity3d::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set up the transformation matrix for orientation
     this->setUp();
@@ -881,24 +882,24 @@ void ElastomericBearingPlasticity3d::Print(OPS_Stream &s, int flag)
 {
     if (flag == OPS_PRINT_CURRENTSTATE) {
         // print everything
-        s << "Element: " << this->getTag() << endln; 
+        s << "Element: " << this->getTag() << "\n"; 
         s << "  type: ElastomericBearingPlasticity3d\n";
         s << "  iNode: " << connectedExternalNodes(0);
-        s << "  jNode: " << connectedExternalNodes(1) << endln;
-        s << "  k0: " << k0 << "  qYield: " << qYield << "  k2: " << k2 << endln;
-        s << "  k3: " << k3 << "  mu: " << mu << endln;
+        s << "  jNode: " << connectedExternalNodes(1) << "\n";
+        s << "  k0: " << k0 << "  qYield: " << qYield << "  k2: " << k2 << "\n";
+        s << "  k3: " << k3 << "  mu: " << mu << "\n";
         s << "  Material ux: " << theMaterials[0]->getTag();
         s << "  Material rx: " << theMaterials[1]->getTag();
         s << "  Material ry: " << theMaterials[2]->getTag();
-        s << "  Material rz: " << theMaterials[3]->getTag() << endln;
+        s << "  Material rz: " << theMaterials[3]->getTag() << "\n";
         s << "  shearDistI: " << shearDistI << "  addRayleigh: "
-            << addRayleigh << "  mass: " << mass << endln;
+            << addRayleigh << "  mass: " << mass << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
     }
     
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+    else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ElastomericBearingPlasticity3d\", ";
         s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
@@ -915,11 +916,13 @@ void ElastomericBearingPlasticity3d::Print(OPS_Stream &s, int flag)
         s << "\"shearDistI\": " << shearDistI << ", ";
         s << "\"addRayleigh\": " << addRayleigh << ", ";
         s << "\"mass\": " << mass << "}";
+        return;
     }
 }
 
 
-Response* ElastomericBearingPlasticity3d::setResponse(const char **argv, int argc,
+Response*
+ElastomericBearingPlasticity3d::setResponse(const char **argv, int argc,
     OPS_Stream &output)
 {
     Response *theResponse = 0;

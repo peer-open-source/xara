@@ -957,7 +957,8 @@ void Joint2D::setDomain(Domain* theDomain)
   else {
 
     TheDomain = theDomain;
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     for (int i = 0; i < 5; i++)
       if (theNodes[i] == 0)  theNodes[i] = TheDomain->getNode(ExternalNodes(i));

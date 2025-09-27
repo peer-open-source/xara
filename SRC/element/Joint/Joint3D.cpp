@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <math.h>
 #include <stdlib.h>
@@ -442,7 +441,8 @@ void Joint3D::setDomain(Domain* theDomain)
   else {
 
     TheDomain = theDomain;
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     for (int i = 0; i < 7; i++)
       if (theNodes[i] == 0)  theNodes[i] = TheDomain->getNode(ExternalNodes(i));
@@ -457,11 +457,6 @@ int Joint3D::addMP_Joint(Domain* theDomain, int RetNodeID, int ConNodeID, int Ro
   // create MP_ForJoint constraint
   Temp_MP = new MP_Joint3D(theDomain, RetNodeID, ConNodeID, RotNodeID, Rdof, DspNodeID, Ddof, LrgDispFlag);
 
-  if (Temp_MP == NULL)
-  {
-    opserr << "Joint3D::addMP_Joint - WARNING ran out of memory for MP_Joint3D MP_Constraint ";
-    return -1;
-  }
   // Add the multi-point constraint to the domain
   if (theDomain->addMP_Constraint(Temp_MP) == false)
   {
@@ -653,96 +648,6 @@ const Vector&
 Joint3D::getResistingForceIncInertia()
 {
   return this->getResistingForce();
-}
-
-
-int Joint3D::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** modes, int numMode)
-{
-  // first determine the four corner points of the element based on
-  // the display factor (a measure of the distorted image)
-  // store this information in 2 3d vectors v1 and v2
-
-  static Vector v1(3);
-  static Vector v2(3);
-  static Vector v3(3);
-  static Vector v4(3);
-  static Vector v5(3);
-  static Vector v6(3);
-  
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-  theNodes[2]->getDisplayCrds(v3, fact, displayMode);
-  theNodes[3]->getDisplayCrds(v4, fact, displayMode);
-  theNodes[2]->getDisplayCrds(v5, fact, displayMode);
-  theNodes[3]->getDisplayCrds(v6, fact, displayMode);
-
-  // draw the center lines
-  int dummy;
-  dummy = theViewer.drawLine(v1, v2, 1.0, 1.0);
-  dummy = theViewer.drawLine(v3, v4, 1.0, 1.0);
-  dummy = theViewer.drawLine(v5, v6, 1.0, 1.0);
-
-  // calculate the eight corners of the block
-  Vector va(3);
-  Vector vb(3);
-  Vector vc(3);
-
-  va = v2 - v1;
-  vb = v4 - v3;
-  vc = v6 - v5;
-
-  Vector vbegin(3);
-  Vector vend(3);
-  vbegin = v1 + 0.5 * vb - 0.5 * vc;
-  vend = vbegin + va;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = vend;
-  vend = vbegin + vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = vend;
-  vend = vbegin - va;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = vend;
-  vend = vbegin - vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = v1 - 0.5 * vb - 0.5 * vc;
-  vend = vbegin + va;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = vend;
-  vend = vbegin + vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = vend;
-  vend = vbegin - va;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = vend;
-  vend = vbegin - vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = v1 + 0.5 * vb - 0.5 * vc;
-  vend = vbegin - vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = v1 + 0.5 * vb + 0.5 * vc;
-  vend = vbegin - vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = v2 + 0.5 * vb - 0.5 * vc;
-  vend = vbegin - vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  vbegin = v2 + 0.5 * vb + 0.5 * vc;
-  vend = vbegin - vb;
-  dummy = theViewer.drawLine(vbegin, vend, 1.0, 1.0);
-
-  return 0;
-
 }
 
 

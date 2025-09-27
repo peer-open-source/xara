@@ -84,20 +84,20 @@ CTestNormDispIncr::test(LinearSOE& theSOE)
 
     // print the data if required
     if (printFlag & ConvergenceTest::PrintTest) {
-        opserr << LOG_ITERATE 
+        pstream << LOG_ITERATE 
                << "Iter: "           << pad(currentIter)
                << ", Norm: "         << pad(norm) 
                << ", Norm deltaR: "  << pad(theSOE.getB().pNorm(nType))
-               << endln;
+               << "\n";
     }
     else if (printFlag & ConvergenceTest::PrintTest02) {
-        opserr << LOG_ITERATE 
+        pstream << LOG_ITERATE 
                << "Iter: "     << currentIter
                << ", Norm: "         << pad(norm) 
-               << endln;
-        opserr << "\tNorm deltaX: "  << pad(norm) 
+               << "\n";
+        pstream << "\tNorm deltaX: "  << pad(norm) 
                << ", Norm deltaR: "  << pad(theSOE.getB().pNorm(nType))
-               << endln
+               << "\n"
                << "\tdeltaX: "       << x
                << "\tdeltaR: "       << theSOE.getB();
     }
@@ -111,14 +111,14 @@ CTestNormDispIncr::test(LinearSOE& theSOE)
 
         // do some printing first
         if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            opserr << endln;
+            pstream << "\n";
 
         if (printFlag & ConvergenceTest::PrintSuccess) {
-            opserr << LOG_SUCCESS 
+            pstream << LOG_SUCCESS 
                    << "Iter: "          << pad(currentIter)
                    << ", Norm: "        << pad(norm)
                    << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
-                   << endln;
+                   << "\n";
         }
 
         // return the number of times test has been called
@@ -128,12 +128,12 @@ CTestNormDispIncr::test(LinearSOE& theSOE)
     // failed to converged after specified number of iterations - but RETURN OK
     else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
         if (printFlag & ConvergenceTest::PrintFailure) {
-            opserr << LOG_FAILURE
+            pstream << LOG_FAILURE
                    << ", Norm: " << pad(norm)  // << " (max: " << tol;
                    << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
                    << LOG_CONTINUE
                    << "failed to converge but going on - "
-                   << endln;
+                   << "\n";
         }
         return currentIter;
     }
@@ -141,13 +141,12 @@ CTestNormDispIncr::test(LinearSOE& theSOE)
     // failed to converged after specified number of iterations - return FAILURE -2
     else if (currentIter >= maxNumIter || norm > maxTol) { // failes to converge
         if (printFlag & ConvergenceTest::PrintFailure) {
-          opserr << LOG_FAILURE 
-                 //<< "criteria CTestNormDispIncr" 
+          pstream << LOG_FAILURE 
                  // << LOG_CONTINUE
                  << "Iter: "             << pad(currentIter)
                  << ", Norm: "           << pad(norm)
                  << ", Norm deltaR: "    << pad(theSOE.getB().pNorm(nType))
-                 << endln;
+                 << "\n";
         }
         currentIter++;
         return ConvergenceTest::Failure;

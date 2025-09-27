@@ -29,6 +29,7 @@
 #include <Channel.h>
 #include <Message.h>
 #include <Matrix.h>
+#include <Logging.h>
 
 using std::cerr;
 using std::getline;
@@ -811,7 +812,7 @@ BinaryFileStream::setOrder(const ID& orderData)
       static ID numColumnID(1);
       if (theChannels[i]->recvID(0, 0, numColumnID) < 0) {
         opserr << "BinaryFileStream::setOrder - failed to recv column size for process: " << i + 1
-               << endln;
+               << OpenSees::SignalMessageEnd;
         return -1;
       }
 
@@ -821,8 +822,8 @@ BinaryFileStream::setOrder(const ID& orderData)
       if (numColumns != 0) {
         theColumns[i + 1] = new ID(numColumns);
         if (theChannels[i]->recvID(0, 0, *theColumns[i + 1]) < 0) {
-          opserr << "BinaryFileStream::setOrder - failed to recv column data for process: " << i + 1
-                 << endln;
+          opserr << "failed to recv column data for process: " << i + 1
+                 << OpenSees::SignalMessageEnd;
           return -1;
         }
 

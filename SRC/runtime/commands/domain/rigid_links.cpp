@@ -18,7 +18,6 @@
 #include <Vector.h>
 //
 #include <assert.h>
-#include <tcl.h>
 #include <ModelRegistry.h>
 
 #define CONSTRAINT_ERROR TCL_ERROR

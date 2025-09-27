@@ -254,25 +254,25 @@ ComponentElement2d::~ComponentElement2d()
 }
 
 int
-ComponentElement2d::getNumExternalNodes(void) const
+ComponentElement2d::getNumExternalNodes() const
 {
     return 2;
 }
 
 const ID &
-ComponentElement2d::getExternalNodes(void) 
+ComponentElement2d::getExternalNodes() 
 {
     return connectedExternalNodes;
 }
 
 Node **
-ComponentElement2d::getNodePtrs(void) 
+ComponentElement2d::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-ComponentElement2d::getNumDOF(void)
+ComponentElement2d::getNumDOF()
 {
     return 6;
 }
@@ -281,55 +281,55 @@ void
 ComponentElement2d::setDomain(Domain *theDomain)
 {
   if (theDomain == 0) {
-    opserr << "ComponentElement2d::setDomain -- Domain is null\n";
-    exit(-1);
+    return;
   }
     
-    theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
-    theNodes[1] = theDomain->getNode(connectedExternalNodes(1));    
-    
-    if (theNodes[0] == 0) {
-      opserr << "ComponentElement2d::setDomain -- Node 1: " << connectedExternalNodes(0) << " does not exist\n";
-      exit(-1);
-    }
-			      
-    if (theNodes[1] == 0) {
-      opserr << "ComponentElement2d::setDomain -- Node 2: " << connectedExternalNodes(1) << " does not exist\n";
-      exit(-1);
-    }
+  theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
+  theNodes[1] = theDomain->getNode(connectedExternalNodes(1));    
+  
+  if (theNodes[0] == 0) {
+    opserr << "ComponentElement2d::setDomain -- Node 1: " << connectedExternalNodes(0) << " does not exist\n";
+    exit(-1);
+  }
+          
+  if (theNodes[1] == 0) {
+    opserr << "ComponentElement2d::setDomain -- Node 2: " << connectedExternalNodes(1) << " does not exist\n";
+    exit(-1);
+  }
 
-    int dofNd1 = theNodes[0]->getNumberDOF();
-    int dofNd2 = theNodes[1]->getNumberDOF();    
-    
-    if (dofNd1 != 3) {
-      opserr << "ComponentElement2d::setDomain -- Node 1: " << connectedExternalNodes(0) 
-	     << " has incorrect number of DOF\n";
-      exit(-1);
-    }
-    
-    if (dofNd2 != 3) {
-      opserr << "ComponentElement2d::setDomain -- Node 2: " << connectedExternalNodes(1) 
-	     << " has incorrect number of DOF\n";
-      exit(-1);
-    }
-	
-    this->DomainComponent::setDomain(theDomain);
-    
-    if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
-	opserr << "ComponentElement2d::setDomain -- Error initializing coordinate transformation\n";
-	exit(-1);
-    }
-    
-    double L = theCoordTransf->getInitialLength();
+  int dofNd1 = theNodes[0]->getNumberDOF();
+  int dofNd2 = theNodes[1]->getNumberDOF();    
+  
+  if (dofNd1 != 3) {
+    opserr << "ComponentElement2d::setDomain -- Node 1: " << connectedExternalNodes(0) 
+      << " has incorrect number of DOF\n";
+    exit(-1);
+  }
+  
+  if (dofNd2 != 3) {
+    opserr << "ComponentElement2d::setDomain -- Node 2: " << connectedExternalNodes(1) 
+      << " has incorrect number of DOF\n";
+    exit(-1);
+  }
 
-    if (L == 0.0) {
-      opserr << "ComponentElement2d::setDomain -- Element has zero length\n";
-      exit(-1);
-    }
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
+  
+  if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
+    opserr << "ComponentElement2d::setDomain -- Error initializing coordinate transformation\n";
+    exit(-1);
+  }
+  
+  double L = theCoordTransf->getInitialLength();
 
-    EAoverL  = A*E/L;		// EA/L
-    EIoverL2 = 2.0*I*E/L;	// 2EI/L
-    EIoverL4 = 2.0*EIoverL2;	// 4EI/L
+  if (L == 0.0) {
+    opserr << "ComponentElement2d::setDomain -- Element has zero length\n";
+    exit(-1);
+  }
+
+  EAoverL  = A*E/L;		// EA/L
+  EIoverL2 = 2.0*I*E/L;	// 2EI/L
+  EIoverL4 = 2.0*EIoverL2;	// 4EI/L
 }
 
 int
@@ -381,7 +381,7 @@ ComponentElement2d::revertToStart()
 }
 
 int
-ComponentElement2d::update(void)
+ComponentElement2d::update()
 {
   // get previous displacements and the new end delta displacements
   theCoordTransf->update();
@@ -576,7 +576,7 @@ ComponentElement2d::getResistingForce()
 
 
 const Matrix &
-ComponentElement2d::getTangentStiff(void)
+ComponentElement2d::getTangentStiff()
 {
   // determine q = kv + q0
 
@@ -594,7 +594,7 @@ ComponentElement2d::getTangentStiff(void)
 }
 
 const Matrix &
-ComponentElement2d::getInitialStiff(void)
+ComponentElement2d::getInitialStiff()
 {
   double k1 = 0.;
   if (end1Hinge != 0) 
@@ -617,7 +617,7 @@ ComponentElement2d::getInitialStiff(void)
 }
 
 const Matrix &
-ComponentElement2d::getMass(void)
+ComponentElement2d::getMass()
 { 
   K.Zero();
   
@@ -656,7 +656,7 @@ ComponentElement2d::getMass(void)
 }
 
 void 
-ComponentElement2d::zeroLoad(void)
+ComponentElement2d::zeroLoad()
 {
   Q.Zero();
 

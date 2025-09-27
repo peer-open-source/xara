@@ -587,19 +587,19 @@ VTK_Recorder::vtu()
   // cells - output element connectivity, offsets and types
   //
 
-  theFileVTU<<"<Cells>\n";
+  theFileVTU << "<Cells>\n";
 
   // connectivity
-  theFileVTU<<"<DataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\">\n";
+  theFileVTU << "<DataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\">\n";
   for (auto i : theEleTags) {
     Element *theEle=theDomain->getElement(i);
     if (theEle != 0) {
       const ID &theNodes=theEle->getExternalNodes();
       int numNode = theNodes.Size();
       for (int i=0; i<numNode; i++) {
-	int nodeTag = theNodes(i);
-	auto nodeID = theNodeMapping[nodeTag];
-	theFileVTU << nodeID << " ";
+        int nodeTag = theNodes(i);
+        auto nodeID = theNodeMapping[nodeTag];
+        theFileVTU << nodeID << " ";
       }
       theFileVTU << "\n";
     }

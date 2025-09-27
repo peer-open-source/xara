@@ -228,12 +228,6 @@ Metis::partition(Graph &theGraph, int numPart)
   }
   int edgecut;
 
-  if ((options == 0) || (partition == 0) || (xadj == 0) || (adjncy == 0)) {
-    opserr << "WARNING Metis::partition - No partitioning done";
-    opserr << " as ran out of memory\n";
-    return (-2);
-  }
-
 
   // we build these data structures
 

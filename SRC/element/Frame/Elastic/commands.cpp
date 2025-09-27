@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <tcl.h>
 #include <Logging.h>
+#include <Parsing.h>
 #include <ArgumentTracker.h>
 
 #include <Domain.h>

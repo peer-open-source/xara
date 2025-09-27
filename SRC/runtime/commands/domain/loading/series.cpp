@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <tcl.h>
 #include <vector>
 #include <string.h>
 #include <Logging.h>

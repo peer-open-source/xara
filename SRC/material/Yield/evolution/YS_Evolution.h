@@ -5,8 +5,6 @@
 #if !defined YS_EVOLUTION_H
 #define YS_EVOLUTION_H
 
-//#include "YieldSurface_BC.h"
-
 #include <Vector.h>
 #include <Matrix.h>
 #include <DomainComponent.h>
@@ -29,24 +27,22 @@ public:
 	virtual ~YS_Evolution();
 
 //  Methods inherited
-    virtual void	Print(OPS_Stream &s, int flag =0);
-//	friend OPS_Stream &operator<<(OPS_Stream &s, const YS_Evolution &hModel);
+    virtual void Print(OPS_Stream &s, int flag);
 
 	virtual int	update(int flag=0);
 	virtual int commitState();
-	virtual int	revertToLastCommit(void);
-	virtual YS_Evolution *getCopy(void) = 0;
+	virtual int	revertToLastCommit();
+	virtual YS_Evolution *getCopy() = 0;
 
 	virtual Response *setResponse(char **argv, int argc, OPS_Stream &output)=0;
 	virtual int 	getResponse(int responseID, Information &info)=0;
-	virtual int	 displaySelf(Renderer &theViewer, int displayMode, float fact)=0;
 
 // Public methods called by the yield surface
 	virtual int 	evolveSurface(YieldSurface_BC *ys, double magPlasticDefo, Vector &G, 
 								  Vector &F_Surface, int flag=0)=0;
 
 	// needed by ys->add Kp
-	virtual const   Vector &getEquiPlasticStiffness(void)=0;
+	virtual const   Vector &getEquiPlasticStiffness()=0;
 	  
     virtual double getTrialPlasticStrains(int dof)=0;
     virtual double getCommitPlasticStrains(int dof)=0;

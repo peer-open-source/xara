@@ -24,7 +24,7 @@
 // EnvelopeElementRecorderRMS.
 //
 // What: "@(#) EnvelopeElementRecorderRMS.C, revA"
-
+#include <OPS_Globals.h>
 #include <ElementRecorderRMS.h>
 #include <Domain.h>
 #include <Element.h>
@@ -317,13 +317,10 @@ ElementRecorderRMS::ElementRecorderRMS(const ID *ele,
    runningTotal(0), currentData(0), count(0),
   initializationDone(false), responseArgs(0), numArgs(0), addColumnInfo(0)
 {
-  opserr << "ElementRMS:: constructor\n";
 
   if (ele != 0) {
     numEle = ele->Size();
     eleID = new ID(*ele);
-    if (eleID == 0 || eleID->Size() != numEle)
-      opserr << "ElementRecorder::ElementRecorder() - out of memory\n";
   }
   
   if (indexValues != 0) {
@@ -336,10 +333,6 @@ ElementRecorderRMS::ElementRecorderRMS(const ID *ele,
   //
 
   responseArgs = new char *[argc];
-  if (responseArgs == 0) {
-    opserr << "ElementRecorder::ElementRecorder() - out of memory\n";
-    numEle = 0;
-  }
   
   for (int i=0; i<argc; i++) {
     responseArgs[i] = new char[strlen(argv[i])+1];
@@ -577,10 +570,7 @@ ElementRecorderRMS::sendSelf(int commitTag, Channel &theChannel)
   }
 
   char *allResponseArgs = new char[msgLength];
-  if (allResponseArgs == 0) {
-    opserr << "ElementRecorderRMS::sendSelf() - out of memory\n";
-    return -1;
-  }
+
 
   char *currentLoc = allResponseArgs;
   for (int j=0; j<numArgs; j++) {
@@ -706,10 +696,7 @@ ElementRecorderRMS::recvSelf(int commitTag, Channel &theChannel,
   }
 
   char *allResponseArgs = new char[msgLength];
-  if (allResponseArgs == 0) {
-    opserr << "ElementRecorderRMS::recvSelf() - out of memory\n";
-    return -1;
-  }
+
 
   Message theMessage(allResponseArgs, msgLength);
   if (theChannel.recvMsg(0, commitTag, theMessage) < 0) {
@@ -722,10 +709,7 @@ ElementRecorderRMS::recvSelf(int commitTag, Channel &theChannel,
   // 
 
   responseArgs = new char *[numArgs];
-  if (responseArgs == 0) {
-    opserr << "ElementRecorderRMS::recvSelf() - out of memory\n";
-    return -1;
-  }
+
 
   char *currentLoc = allResponseArgs;
   for (int j=0; j<numArgs; j++) {
@@ -733,10 +717,6 @@ ElementRecorderRMS::recvSelf(int commitTag, Channel &theChannel,
     int argLength = strlen(currentLoc)+1;
 
     responseArgs[j] = new char[argLength];
-    if (responseArgs[j] == 0) {
-      opserr << "ElementRecorderRMS::recvSelf() - out of memory\n";
-      return -1;
-    }
 
     strcpy(responseArgs[j], currentLoc);
     currentLoc += argLength;

@@ -363,7 +363,8 @@ SimpleContact3D::setDomain(Domain *theDomain)
         this->ComputeB();
 
         // call the base class method
-        this->DomainComponent::setDomain(theDomain);
+        if (theDomain != nullptr)
+          this->Element::link(*theDomain);
 
 #ifdef DEBUG
         if (DEBUG_LEVEL > 1) {

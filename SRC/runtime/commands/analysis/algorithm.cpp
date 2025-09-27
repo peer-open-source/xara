@@ -23,7 +23,6 @@
 #include <assert.h>
 #include <unordered_map>
 
-#include <tcl.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>

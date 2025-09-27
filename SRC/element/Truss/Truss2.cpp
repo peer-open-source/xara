@@ -32,7 +32,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -339,7 +338,8 @@ void
 	}	
 
 	// call the base class method
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 
 	// now set the number of dof for element and set matrix and vector pointer
 	if (dimension == 1 && dofNd1 == 1) {
@@ -1000,47 +1000,9 @@ int
 }
 
 
-int
-Truss2::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	// ensure setDomain() worked
-	if (L == 0.0)
-		return 0;
-
-	// get display coordinates
-	static Vector v1(3);
-	static Vector v2(3);
-	theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-	theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-	// determine color and draw line
-	if (displayMode == 1 || displayMode == 2) {
-		// compute the strain and axial force in the member
-		double strain, force;
-		if (L == 0.0) {
-			strain = 0.0;
-			force = 0.0;
-		}
-		else {
-			strain = this->computeCurrentStrain();
-			theMaterial->setTrialStrain(strain);
-			force = A * theMaterial->getStress();
-		}
-		if (displayMode == 2) {// use the strain as the drawing measure
-			return theViewer.drawLine(v1, v2, (float)strain, (float)strain);
-		}
-		else { // otherwise use the axial force as measure
-			return theViewer.drawLine(v1, v2, (float)force, (float)force);
-		}
-	}
-	else {
-		return theViewer.drawLine(v1, v2, 1.0, 1.0);
-	}
-}
-
 
 void
-	Truss2::Print(OPS_Stream &s, int flag)
+Truss2::Print(OPS_Stream &s, int flag)
 {
 	// compute the strain and axial force in the member
 	double strain, force;

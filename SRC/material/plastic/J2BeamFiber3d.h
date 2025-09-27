@@ -55,9 +55,7 @@ public:
   const char* getClassType() const override { return "J2BeamFiber3d"; }
 
   int setTrialStrain(const Vector&) override;
-  int setTrialStrain(const Vector&, const Vector& r) override;
   int setTrialStrainIncr(const Vector& v) override;
-  int setTrialStrainIncr(const Vector& v, const Vector& r) override;
   const Matrix& getTangent() override;
   const Matrix& getInitialTangent() override;
   const Vector& getStress() override;
@@ -105,6 +103,7 @@ private:
 
   double epsPn[3];
   double epsPn1[3];
+  // Vector3D xsi;
 
   double dg_n1;
 };

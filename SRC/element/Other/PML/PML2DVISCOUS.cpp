@@ -182,7 +182,8 @@ void  PML2DVISCOUS::setDomain(Domain* theDomain)
 	for ( i=0; i<4; i++ ) 
 		nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 
 
 	// 

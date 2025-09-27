@@ -47,8 +47,7 @@
 // Written: Mark D. Denavit, University of Illinois at Urbana-Champaign
 //
 #include <MixedFrame3d.h>
-#include <elementAPI.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -98,7 +97,7 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
                            BeamIntegration& bi, 
                            CrdTransf& coordTransf,
                            double density, int damp, int geom)
- : FiniteElement<2,3,6>(tag, ELE_TAG_MixedFrame3d, nodes),
+ : FiniteElement<2,3,6>(tag, ELE_TAG_MixedFrame3d, nodes, 1),
    beamIntegr(0),
    numSections(0),
    sections(nullptr),
@@ -120,11 +119,6 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
 {
   // get copy of the beam integration object
   beamIntegr = bi.getCopy();
-  if (beamIntegr == nullptr) {
-    opserr << "Error: MixedFrame3d::MixedFrame3d: could not create copy of beam integration object"
-           << "\n";
-    exit(-1);
-  }
 
   // get copy of the transformation object
   crdTransf = coordTransf.getCopy3d();
@@ -413,14 +407,11 @@ MixedFrame3d::setNodes() // (Domain* theDomain)
 {
 
   if (crdTransf->initialize(theNodes[0], theNodes[1]) != 0) {
-      opserr << "BasicFrame3d::setDomain  tag: " 
-            << this->getTag()
-            << " -- Error initializing coordinate transformation\n";
-      return -1;
+    opserr << "BasicFrame3d::setDomain  tag: " 
+          << this->getTag()
+          << " -- Error initializing coordinate transformation\n";
+    return -1;
   }
-
-  // call the DomainComponent class method
-//this->DomainComponent::setDomain(theDomain);
 
   // Get the numerical integration weights
   beamIntegr->getSectionWeights(numSections, L0, wt);
@@ -912,10 +903,6 @@ MixedFrame3d::addLoad(ElementalLoad* theLoad, double loadFactor)
 
   if (sp == 0) {
     sp = new Matrix(NDM_SECTION, numSections);
-    if (sp == 0) {
-      opserr << "MixedFrame3d::addLoad -- out of memory\n";
-      exit(-1);
-    }
   }
 
   double L = crdTransf->getInitialLength();

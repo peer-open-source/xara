@@ -321,7 +321,8 @@ ZeroLengthImpact3D::setDomain(Domain *theDomain)
 	", which is greater than the tolerance\n";
         
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
 	if (dofNd1 == 3 && dofNd2 == 3) {
 	numDOF = 6;	

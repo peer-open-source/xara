@@ -200,7 +200,8 @@ ShellMITC9::setDomain(Domain *theDomain)
   // basis vectors and local coordinates
   computeBasis();
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 // get the number of external nodes
@@ -896,19 +897,17 @@ void
 ShellMITC9::formResidAndTangent(int tang_flag)
 {
 
-  int i, j, k, p, q;
-  int jj, kk;
   int success;
   double volume = 0.0;
   double xsj; // determinant jacaobian matrix
 
-  OPS_STATIC double dvol[nip]; // volume element
-  OPS_STATIC double shp[3][NEN]; // shape functions at a gauss point
+  double dvol[nip]; // volume element
+  double shp[3][NEN]; // shape functions at a gauss point
                                   //
   static Vector residJ(NDF); // nodeJ residual
   static Matrix stiffJK(NDF, NDF); // nodeJK stiffness
-  OPS_STATIC Vector strain(nstress); // strain
-  OPS_STATIC Vector stress(nstress); // stress resultants
+  static Vector strain(nstress); // strain
+  static Vector stress(nstress); // stress resultants
   static Matrix dd(nstress, nstress); // material tangent
 
   double epsDrill = 0.0; // drilling "strain"
@@ -939,8 +938,11 @@ ShellMITC9::formResidAndTangent(int tang_flag)
   double L1 = 0.0;
   double L2 = 0.0;
 
+  int k, p, q;
+  int jj, kk;
+
   // gauss loop
-  for (i = 0; i < nip; i++) {
+  for (int i = 0; i < nip; i++) {
 
     // get shape functions
     shape2d(sg[i], tg[i], xl, shp, xsj);

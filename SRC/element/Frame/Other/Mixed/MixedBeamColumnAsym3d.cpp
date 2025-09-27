@@ -714,7 +714,8 @@ void MixedBeamColumnAsym3d::setDomain(Domain *theDomain) {
   }
 
   // call the DomainComponent class method
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
   // ensure connected nodes have correct number of dof's
   int dofNode1 = theNodes[0]->getNumberDOF();

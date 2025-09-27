@@ -357,10 +357,6 @@ TclCommand_getNDF(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char 
     ndf = builder->getNDF();
   }
 
-  char buffer[G3_NUM_DOF_BUFFER];
-  sprintf(buffer, "%d", ndf);
-
-  Tcl_AppendResult(interp, buffer, NULL);
-
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(ndf));
   return TCL_OK;
 }

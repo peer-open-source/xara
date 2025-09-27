@@ -282,9 +282,8 @@ int TripleFrictionPendulum::getNumDOF()
 void TripleFrictionPendulum::setDomain(Domain *theDomain)
 {
     // check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
-        opserr << "Domain does not exist" << endln;	
-        exit(0);
+    if (theDomain == nullptr) {
+        return;
     }
     
     // first ensure nodes exist in Domain and set the node pointers
@@ -309,7 +308,8 @@ void TripleFrictionPendulum::setDomain(Domain *theDomain)
     theNodes[1] = end2Ptr;
     
     // call the DomainComponent class method THIS IS VERY IMPORTANT
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // ensure connected nodes have correct number of dof's
     int dofNd1 = end1Ptr->getNumberDOF();
@@ -518,7 +518,8 @@ int TripleFrictionPendulum::update()
     
     dFy1 = Fy1cr - Fy1pr; dFy3 = Fy3cr - Fy3pr; dFy5 = Fy5cr - Fy5pr;
     Fy1 = Fy1pr; Fy3 = Fy3pr; Fy5 = Fy5pr;
-    
+    double dt = getDomain()->getDT();
+
     int nDiv = 0; int nWhileIter = 0;
     double TolOriginal = Tol;
     while ((nDiv < 10) && (ErrDisp.Norm() > TolOriginal)) {
@@ -549,9 +550,9 @@ int TripleFrictionPendulum::update()
             ErrDisp(1) = utrial(1) - u(1);
             nWhileIter++;
         }
-        v1 = (1.0/ops_Dt)*(d1 - d1pr);
-        v3 = (1.0/ops_Dt)*(d3 - d3pr);
-        v5 = (1.0/ops_Dt)*(d5 - d5pr);
+        v1 = (1.0/dt)*(d1 - d1pr);
+        v3 = (1.0/dt)*(d3 - d3pr);
+        v5 = (1.0/dt)*(d5 - d5pr);
         Vel1Avg = v1.Norm();
         Vel3Avg = v3.Norm();
         Vel5Avg = v5.Norm();

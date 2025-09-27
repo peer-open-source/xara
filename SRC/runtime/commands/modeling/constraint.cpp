@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <tcl.h>
 #include <assert.h>
 #include <Matrix.h>
 #include <ID.h>
@@ -40,12 +39,13 @@ int
 TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                             TCL_Char ** const argv)
 {
+  // fix tag <fixities>
   assert(clientData != nullptr);
+
   Domain *theTclDomain = ((ModelRegistry*)clientData)->getDomain();
 
-
   if (argc < 3) {
-    opserr << OpenSees::PromptValueError << "bad command - want: fix tag <fixities>\n";
+    opserr << OpenSees::PromptValueError << "Missing required arguments\n";
     return TCL_ERROR;
   }
 

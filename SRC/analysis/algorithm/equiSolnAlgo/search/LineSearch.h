@@ -33,12 +33,12 @@
 // What: "@(#)LineSearch.h, revA"
 
 #include <MovableObject.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 
 class SolutionAlgorithm;
 class IncrementalIntegrator;
 class LinearSOE;
-//class OPS_Stream; //Jeremic@ucdavis.edu taken out since there is an include<iOPS_Stream.h> in LineSearch.h 
+class OPS_Stream;
 
 class LineSearch: public MovableObject
 {
@@ -47,15 +47,10 @@ class LineSearch: public MovableObject
     virtual ~LineSearch();
 
     // virtual functions
-    virtual int newStep(LinearSOE &theSOE) =0;
-    virtual int search(double s0, 
-		       double s1, 
-		       LinearSOE &theSOE, 
-		       IncrementalIntegrator &theIntegrator) =0;
-    virtual void Print(OPS_Stream &s, int flag =0) =0;
-  protected:
-    
-  private:
+    virtual int newStep(LinearSOE &) =0;
+    virtual int search(double s0, double s1, LinearSOE &, IncrementalIntegrator &) =0;
+    virtual void Print(OPS_Stream &, int flag =0) =0;
+
 };
 
 #endif

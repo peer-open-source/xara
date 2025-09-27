@@ -360,7 +360,8 @@ void ElastomericBearingBoucWen2d::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set up the transformation matrix for orientation
     this->setUp();
@@ -828,19 +829,6 @@ int ElastomericBearingBoucWen2d::recvSelf(int commitTag, Channel &rChannel,
     this->revertToStart();
     
     return 0;
-}
-
-
-int ElastomericBearingBoucWen2d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)					     
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
 }
 
 
