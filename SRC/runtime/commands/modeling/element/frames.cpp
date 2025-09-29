@@ -918,7 +918,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       builder->findFreeTag<BeamIntegrationRule>(itg_tag);
       std::string integrCommand{argv[positions[1]]};
       if (integrCommand.find(" ") == std::string::npos) {
-        for (int i =2; i< positions.size(); i++) {
+        for (std::vector<int>::size_type i =2; i< positions.size(); i++) {
           integrCommand += " " + std::string(argv[positions[i]]);
         }
       }
