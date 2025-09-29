@@ -49,7 +49,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
 
   int numArgs = OPS_GetNumRemainingInputArgs();
   if (numArgs < 3 || numArgs > 4) {
-    opserr << "Invalid #args,  want: uniaxialMaterial Viscous tag? C? alpha? <minVel?> ... " << endln;
+    opserr << "Invalid #args,  want: uniaxialMaterial Viscous tag? C? alpha? <minVel?> ... " << "\n";
     return 0;
   }
   
@@ -59,13 +59,13 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
 
   int numData = 1;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid tag for uniaxialMaterial Viscous" << endln;
+    opserr << "WARNING invalid tag for uniaxialMaterial Viscous" << "\n";
     return 0;
   }
 
   numData = numArgs-1;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid data for uniaxial Viscous " << iData[0] << endln;
+    opserr << "Invalid data for uniaxial Viscous " << iData[0] << "\n";
     return 0;	
   }
 
@@ -256,11 +256,22 @@ ViscousMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 ViscousMaterial::Print(OPS_Stream &s, int flag)
 {
-    s << "Viscous tag: " << this->getTag() << endln;
-    s << "  C: " << C << endln;
-    s << "  Alpha: " << Alpha << endln;
-    s << "  minVel: " << minVel << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"type\": \""<<getClassType()<<"\", ";
+    s << "\"tag\": "<<getTag()<<", ";
+    s << "\"C\": "<<C<<", ";
+    s << "\"Alpha\": "<<Alpha<<", ";
+    s << "\"minVel\": "<<minVel;
+    s << "}";
+  } else {
+    s << "Viscous tag: " << this->getTag() << "\n";
+    s << "  C: " << C << "\n";
+    s << "  Alpha: " << Alpha << "\n";
+    s << "  minVel: " << minVel << "\n";
+  }
 }
+
 
 
 
