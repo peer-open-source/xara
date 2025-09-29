@@ -1,9 +1,14 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+//===----------------------------------------------------------------------===//
 //
 // Written in Matlab: Thanh Do
 // Created: 07/16
@@ -153,7 +158,7 @@ negative_damage(double rn0, double rn, double An, double Bn)
 }
 
 // Compute dp = 1 - (rp0/rp)*exp(Ap*(1 - rp/rp0))
-// with improved precision when rp ≈ rp0
+// with improved precision when rp is near rp0
 static double
 positive_damage(double rp0, double rp, double Ap)
 {
@@ -164,7 +169,7 @@ positive_damage(double rp0, double rp, double Ap)
   double inv_alpha = 1.0 / alpha;
   double x = Ap * (1.0 - inv_alpha);
 
-  // 3) exm1 = exp(x) - 1 computed accurately
+  // 3) exm1 = exp(x) - 1
   double exm1 = std::expm1(x);
 
   // 4)
@@ -192,8 +197,8 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   double F2c = 1.16*Fc; // f2c: biaxial compressive strength
   double k = std::sqrt(2.0)*(F2c - Fc)/(2.*F2c - Fc);
   // initial damage threshold
-  double rp0 = ft/sqrt(E);
-  double rn0 = sqrt((-k + sqrt(2.0))*Fc/std::sqrt(3.0));
+  double rp0 = ft/std::sqrt(E);
+  double rn0 = std::sqrt((-k + std::sqrt(2.0))*Fc/std::sqrt(3.0));
 
   constexpr static double toln = 1e-10,
                           tolp = 1e-10;
@@ -252,8 +257,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
     double L_trDotDeps = L_tr.dot(Deps);
 
     // plastic strain increment
-    VectorND<6> Deps_p;
-    Deps_p.addVector(0.0, Depse_tr,  beta*E/nrm*L_trDotDeps);
+    VectorND<6> Deps_p = Depse_tr*(beta*E/nrm*L_trDotDeps);
 
     double lam  = 1.0 - beta*E/nrm * L_trDotDeps;
 
@@ -261,7 +265,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
 
     // check damage
     signeg = sige;
-    StrsDecA(sige, sigpos, nullptr);                    //  decompose the effective stress  
+    StrsDecA(sige, sigpos, nullptr);                   //  decompose the effective stress  
     signeg -= sigpos;
 
     if ((negative_surface(signeg, rn, k) <= toln*rn0) || (L_trDotDeps <= 0.0)) {
@@ -388,14 +392,14 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
         // norm of deviatoric stress
         VectorND<6> s = IIdevMix*signeg;            // deviatoric stress
 
-        double nrms = sqrt( pow(s(0),2) + pow(s(1),2) + pow(s(2),2) +  
-                          2*pow(s(3),2) + 2*pow(s(4),2) + 2*pow(s(5),2));
+        double nrms = std::sqrt(s[0]*s[0] + s[1]*s[1] + s[2]*s[2]
+                         + 2.0*(s[3]*s[3] + s[4]*s[4] + s[5]*s[5]));
         VectorND<6> n = s;
-        if (abs(nrms) <= 1e-8) //toln) 
+        if (std::abs(nrms) <= 1e-8) //toln) 
           n.zero();
         else {
           n/=nrms;
-          double Dtaun_Dtauoct = pow(3,0.25) / 2./sqrt(k*sigoct + tauoct);
+          double Dtaun_Dtauoct = std::pow(3,0.25) / 2./sqrt(k*sigoct + tauoct);
           Dtaun_Dsigneg.addVector(1.0,    n, Dtaun_Dtauoct/std::sqrt(3.0)); // += Dtaun_Dtauoct * Dtauoct_Dsigneg
         }
 
@@ -532,12 +536,12 @@ FariaPlasticDamage3d::revertToStart()
   C = Ce;
 
   double F2c = 1.16*Fc;
-  double k = sqrt(2.0)*(F2c - Fc)/(2.*F2c - Fc);
+  double k = std::sqrt(2.0)*(F2c - Fc)/(2.*F2c - Fc);
 
   // initial damage threshold
-  double rp0 = ft/sqrt(E);
-  double rn0 = sqrt((-k+sqrt(2.0))*Fc/sqrt(3.0));
-      
+  double rp0 = ft/std::sqrt(E);
+  double rn0 = std::sqrt((-k+std::sqrt(2.0))*Fc/std::sqrt(3.0));
+
   rp = rp0;
   rn = rn0;
   dp = 0.;
@@ -548,10 +552,10 @@ FariaPlasticDamage3d::revertToStart()
 NDMaterial*
 FariaPlasticDamage3d::getCopy(const char *type)
 {
-  if (strcmp(type,"ThreeDimensional") == 0 || strcmp(type,"3D") == 0) {
+  if ((strcmp(type,"ThreeDimensional") == 0) || (strcmp(type,"3D") == 0)) {
     return this->getCopy();
-
-  } else {
+  }
+  else {
     return NDMaterial::getCopy(type);
   }
 }

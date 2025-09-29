@@ -161,7 +161,6 @@ TFP_Bearing2d::setDomain(Domain *theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
   if (theDomain == 0) {
-    exit(-1);    
     return;
   }
   
@@ -186,7 +185,8 @@ TFP_Bearing2d::setDomain(Domain *theDomain)
   theNodes[0] = end1Ptr;
   theNodes[1] = end2Ptr;
   // call the DomainComponent class method THIS IS VERY IMPORTANT
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   // ensure connected nodes have correct number of dof's
   int dofNd1 = end1Ptr->getNumberDOF();
@@ -227,14 +227,6 @@ TFP_Bearing2d::commitState()
   HCommit = HTrial;
 
   Ac = Ap;
-
-  Domain *theDomain = this->getDomain();
-
-  //  theDomain->calculateNodalReactions(1);
-  //  const Vector &nd2Reactions = theNodes[1]->getReaction();
-  //  Ac = nd2Reactions(2);
-
-  //  opserr << "Ac: " << Ac << endln;
   return 0;
 }
 
@@ -392,8 +384,6 @@ TFP_Bearing2d::kt3Drma(double *v, double *vp, double *Fr, double A, double *P, d
       ks(z,z) =  qYield*k0*qTrialx*qTrialx/qTrialNorm3 + N[i]/R[z];
     }
 
-    //opserr << "ks: " << ks;
-
     // restrainer contact stiffness
     double vt=sqrt(v[i]*v[i]+v[z]*v[z]); //local displacement of surface
     double rt=(dOut[i]-dIn[i])/2.0;  //restrainer distance
@@ -426,7 +416,6 @@ TFP_Bearing2d::kt3Drma(double *v, double *vp, double *Fr, double A, double *P, d
     for (int j=0; j<8; j++)
       ksrest(i,j)=kcont(i,j)+krot(i,j)/(del * 2.0);
 
-  //  opserr << "ksrest: " << ksrest;
 
   Af.Zero();
   Af(0,4) = Ri[0];
@@ -450,11 +439,6 @@ TFP_Bearing2d::kt3Drma(double *v, double *vp, double *Fr, double A, double *P, d
   Af(7,6) = Ri[7]*(-Ri[4]+Ri[6])/(Ri[6]+Ri[7]);
   Af(7,7) = Ri[7]*(-Ri[6]-Ri[5])/(Ri[6]+Ri[7]);
 
-
-  //  opserr << "Af: " << Af;
-  //  opserr << "ks: " << ks;
-  //  opserr << "ksrest: " << ksrest;
-
   static Matrix KsPlusKsrest(8,8);
 
 
@@ -462,8 +446,6 @@ TFP_Bearing2d::kt3Drma(double *v, double *vp, double *Fr, double A, double *P, d
   KsPlusKsrest += ksrest;
     
   kt.addMatrixTripleProduct(0.0, Af, KsPlusKsrest,1.0);
-
-  //  opserr << "kt:" << kt;
 
   static Matrix Kee(4,4);
 
@@ -478,8 +460,6 @@ TFP_Bearing2d::kt3Drma(double *v, double *vp, double *Fr, double A, double *P, d
   Kee.Invert(kee);
   kthat.addMatrixTripleProduct(1.0, kei, kee, -1.0);
 
-  //  opserr << "kthat: " << kthat;
-
   return cont;
 }
 
@@ -487,7 +467,6 @@ TFP_Bearing2d::kt3Drma(double *v, double *vp, double *Fr, double A, double *P, d
 int
 TFP_Bearing2d::update()
 {
-  //  opserr << "UPDATE: " << this->getTag() << endln;
 
   static Vector delU(4);
   static Vector delP(4);
@@ -504,18 +483,12 @@ TFP_Bearing2d::update()
 
   int contC = kt3Drma(vCommit, vpCommit, FrCommit, Ac, PCommit, vpi);
 
-  //  Vector vpiF (vpi,8);  
-  //  opserr << "delU: " << delU;
-  //  opserr << "vpiF: " << vpiF;
-
   static Matrix stiffCommit(8,8);
   stiffCommit = ks;
   stiffCommit += ksrest;
 
   Vector PC(PCommit,4);
   Vector PT(PTrial, 4);
-
-  //  opserr << "PTrial 1:" << PTrial;
 
   delP = kthat*delU;
 
@@ -543,28 +516,16 @@ TFP_Bearing2d::update()
 
   dv = Af * tmp2;
 
-  //  opserr << "dv: " << dv;
-  //  Vector vC(vCommit, 8); opserr << "vCommit: " << vC;
-
   for (int i=0; i<8; i++) {
     vTrial[i] = vCommit[i] + dvData[i];
     FrTrial[i] = FrCommit[i] + dFr(i);
   }
 
-  //  Vector vT(vTrial, 8); opserr << "vTrial: " << vT;
 
   HTrial = H0 + dh;
   double vpit[8];
 
   int contT = kt3Drma(vTrial, vpCommit, FrTrial, Ac, PTrial, vpit);
-
-  //  opserr << "vTrial: " << vT;
-  // Vector FT(FrTrial, 8); opserr << "FrTrial: " << FT;
-
-  // opserr << "Ptrial 2:" << PT;
-  // opserr << "kthat: " << kthat;
-
-  //   Vector vpiO(vpi, 8); opserr << "VPI 0: " << vpiO;
 
   static Matrix stiffTrial(8,8);
 
@@ -578,8 +539,6 @@ TFP_Bearing2d::update()
       subDiv=1;
   }
 
-  //  opserr << "subDIV: " << subDiv << " contT: " << contT << " contC: " << contC << endln;
-
   if (subDiv==1) {
 
     double dumax = 0.0001; 
@@ -588,20 +547,16 @@ TFP_Bearing2d::update()
 
     for (int i=0; i<4; i++) {
       double delUi = fabs(delU(i));
-      //      opserr << "delUi: " << delUi << " maxDelU: " << maxDelU << endln;
 
       if (delUi > maxDelU)
 	maxDelU = delUi;
     }
 
     int n=ceil(maxDelU/dumax);
-    //    opserr << "n: " << n << "maxDelU: " << maxDelU << " dumax: " << dumax << endln;
 
     static Vector delu(4);
     delu =  delU;
     delu /= 1.0*n;
-
-    //    opserr << "delu: " << delu;
 
     static double padd[4];
     static double uadd[4];
@@ -624,23 +579,20 @@ TFP_Bearing2d::update()
     for (int j=0; j<n; j++) {
 
       for (int i=0; i<4; i++) {
-	vTrial[i] = vCommit[i] + vadd[i];
-	Ptemp[i] = PCommit[i] + padd[i];
+        vTrial[i] = vCommit[i] + vadd[i];
+        Ptemp[i] = PCommit[i] + padd[i];
       }
 
       contT = kt3Drma(vTrial, vpTemp, FrTemp, Ac, Ptemp, vpi);    
-
-      //      Vector vpiJ(vpi, 8); opserr << "vpiJ: " << vpiJ;
       
       static Vector delp(4);
 
       delp.addMatrixVector(0.0, kthat, delu, 1.0);
 
-      //      opserr << "delp: " << delp;
       
       for (int i=0; i<4; i++) {
-	padd[i] += delp(i);
-	uadd[i] += delu[i];
+        padd[i] += delp(i);
+        uadd[i] += delu[i];
       }
 
       // delu58=-kt(5:8,5:8)^-1*kt(5:8,1:4)*delu;
@@ -648,26 +600,21 @@ TFP_Bearing2d::update()
       tmp1.addMatrixVector(0.0, kei, delu, 1.0);
       delU58.addMatrixVector(0.0, kee, tmp1, -1.0);
 
-      //      opserr << "delU58: " << delU58;
-      
       // dv=Af*[delu;delu58];
       static Vector tmp2(8);
       for (int i=0; i<4; i++) {
-	tmp2(i)=delu[i];
-	tmp2(i+4)=delU58(i);
+        tmp2(i)=delu[i];
+        tmp2(i+4)=delU58(i);
       }
       
       dv.addMatrixVector(0.0, Af, tmp2, 1.0);
 
-      ///      opserr << "tmp2: " << tmp2;
-      // opserr << "dv: " << dv;
-
       dFr.addMatrixVector(0.0, ksrest, dv, 1.0);
 
       for (int i=0; i<8; i++) {
-	vadd[i] += dv(i); 
-	vpTemp[i]=vpi[i];
-	FrTemp[i] = FrTemp[i] + dFr(i);
+        vadd[i] += dv(i); 
+        vpTemp[i]=vpi[i];
+        FrTemp[i] = FrTemp[i] + dFr(i);
       }
     }
     
@@ -739,13 +686,13 @@ TFP_Bearing2d::update()
 
 
 const Matrix &
-TFP_Bearing2d::getTangentStiff(void)
+TFP_Bearing2d::getTangentStiff()
 {
   return *theMatrix;
 }
 
 const Matrix &
-TFP_Bearing2d::getInitialStiff(void)
+TFP_Bearing2d::getInitialStiff()
 {
   return *theMatrix;
 }
@@ -771,18 +718,18 @@ TFP_Bearing2d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &th
 void
 TFP_Bearing2d::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << "Element: " << this->getTag();
-        s << " type: TFP_Bearing2d  iNode: " << externalNodes(0);
-        s << " jNode: " << externalNodes(1) << endln;
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"TFP_Bearing2d\", ";
-        s << "\"nodes\": [" << externalNodes(0) << ", " << externalNodes(1) << "]}";
-    }
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+      s << "Element: " << this->getTag();
+      s << " type: TFP_Bearing2d  iNode: " << externalNodes(0);
+      s << " jNode: " << externalNodes(1) << "\n";
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << "\t\t\t{";
+      s << "\"name\": " << this->getTag() << ", ";
+      s << "\"type\": \"TFP_Bearing2d\", ";
+      s << "\"nodes\": [" << externalNodes(0) << ", " << externalNodes(1) << "]}";
+  }
 }
 
 

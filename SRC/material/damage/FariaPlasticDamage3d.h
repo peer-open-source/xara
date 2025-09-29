@@ -1,8 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+//===----------------------------------------------------------------------===//
+//
 //
 //
 #pragma once
@@ -35,10 +42,10 @@ class FariaPlasticDamage3d : public NDMaterial
 
   const char *getClassType() const override {return "FariaPlasticDamage";}
 
-  int setTrialStrain (const Vector &v);
-  int setTrialStrain (const Vector &v, const Vector &r);
-  int setTrialStrainIncr (const Vector &v);
-  int setTrialStrainIncr (const Vector &v, const Vector &r);
+  int setTrialStrain(const Vector &v) override;
+  int setTrialStrain(const Vector &v, const Vector &r);
+  int setTrialStrainIncr(const Vector &v) override;
+  int setTrialStrainIncr(const Vector &v, const Vector &r);
   const Matrix &getTangent();
   const Matrix &getInitialTangent();
   
@@ -50,9 +57,9 @@ class FariaPlasticDamage3d : public NDMaterial
   int revertToStart() override;
 
   NDMaterial *getCopy(const char *type);
-  NDMaterial *getCopy();
-  const char *getType() const;
-  int getOrder() const;
+  NDMaterial *getCopy() override;
+  const char *getType() const override;
+  int getOrder() const override;
 
   int sendSelf(int commitTag, Channel &) override;  
   int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    

@@ -18,7 +18,6 @@
 // Written: cmp
 // April 2025
 //
-#include <tcl.h>
 #include <set>
 #include <string.h>
 #include <Logging.h>
@@ -30,6 +29,9 @@
 
 #include <HardeningMaterial.h>
 #include <SimplifiedJ2.h>
+#if defined(XARA_HAVE_GENERALIZEDJ2)
+#include <GeneralizedJ2.h>
+#endif
 #include <PlaneStressSimplifiedJ2.h>
 #include <J2Plasticity.h>
 #include <J2PlasticityThermal.h>
@@ -39,10 +41,11 @@
 #include <J2BeamFiber3d.h>
 
 
+using namespace OpenSees;
 template <typename Position>
 static inline int
 ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+                Tcl_Size argc, TCL_Char ** const argv)
 {
 
   assert(clientData != nullptr);
@@ -369,7 +372,10 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         }
       case Position::SatStress:
         if (Tcl_GetDouble (interp, argv[i], &Fsat) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid saturation stress.\n";
+            opserr << OpenSees::PromptParseError 
+                   << "invalid saturation stress " 
+                   << argv[i]
+                   << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
         } else {
           tracker.increment();
@@ -633,6 +639,25 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
   }
 
+  else if (strcmp(argv[1], "GeneralizedJ2") == 0) {
+#if !defined(XARA_HAVE_GENERALIZEDJ2)
+    opserr << OpenSees::PromptParseError
+           << "GeneralizedJ2 material requires Xara to be built with GeneralizedJ2 support.\n";
+    return TCL_ERROR;
+#else
+    NDMaterial* theMaterial = new GeneralizedJ2(tag,
+                                               consts.E, consts.nu,
+                                               Fy, Fsat,
+                                               Hiso, Hkin, hard.Hsat, density, 
+                                              GeneralizedJ2::HRule::GP);
+    if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+      delete theMaterial;
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+#endif
+  }
+
   else if ((strcmp(argv[1], "J2PlasticityThermal") == 0) ||
            (strcmp(argv[1], "J2Thermal") == 0)) {
     NDMaterial* theMaterial = new J2PlasticityThermal(tag, 0, consts.K, consts.G, 
@@ -730,6 +755,32 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       Tag, K, G, YieldStress, SatStress, Hsat, Hiso, EndRequired, 
       Eta,                                           End,
       E, Nu, Lambda, Hkin, Theta, Hmix, SatStress0, 
+      Delta2, Rho, RhoBar, Atm,
+      Density
+    };
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
+  }
+  else if (strcmp(argv[1], "GeneralizedJ2") == 0) {
+
+    // "GeneralizedJ2" tag? E? nu? sig0?  Hiso? Hkin? sigInf? <density?>
+    enum class Position : int {
+      Tag, E, Nu, YieldStress, EndRequired, 
+      Hiso, Hkin,  SatStress, Density,
+      End,
+      G, K, Lambda, Eta, Theta, Hmix, Hsat, SatStress0,
+      Delta2, Rho, RhoBar, Atm
+    };
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
+  }
+
+  else if (strcmp(argv[1], "J2PlasticityThermal") == 0 ||
+           strcmp(argv[1], "J2Thermal") == 0) {
+
+    // "J2Thermal" tag? K? G? sig0? sigInf? delta? Hiso? <eta?>
+    enum class Position : int {
+      Tag, K, G, YieldStress, SatStress, Hsat, Hiso, EndRequired,
+      Eta,                                           End,
+      E, Nu, Lambda, Hkin, Theta, Hmix, SatStress0,
       Delta2, Rho, RhoBar, Atm,
       Density
     };

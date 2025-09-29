@@ -125,8 +125,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingUFRP2d)
     theMaterials[1] = OPS_getUniaxialMaterial(matTag);
     if (theMaterials[1] == 0)  {
 	opserr << "WARNING material model not found\n";
-	opserr << "uniaxialMaterial: " << matTag << endln;
-	opserr << "elastomericBearingUFRP element: " << tag << endln;
+	opserr << "uniaxialMaterial: " << matTag << "\n";
 	return 0;
     }
         
@@ -145,7 +144,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingUFRP2d)
 	if (strcmp(flag, "-orient") == 0)  {
 	    if (OPS_GetNumRemainingInputArgs() < 6) {
 		opserr << "WARNING insufficient arguments after -orient flag\n";
-		opserr << "elastomericBearingUFRP element: " << tag << endln;
 		return 0;
 	    }
 	    x.resize(3);
@@ -153,19 +151,16 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingUFRP2d)
 	    numdata = 3;
 	    if (OPS_GetDoubleInput(&numdata, &x(0)) < 0) {
 		opserr << "WARNING invalid -orient value\n";
-		opserr << "elastomericBearingUFRP element: " << tag << endln;
 		return 0;
 	    }
 	    if (OPS_GetDoubleInput(&numdata, &y(0)) < 0) {
 		opserr << "WARNING invalid -orient value\n";
-		opserr << "elastomericBearingUFRP element: " << tag << endln;
 		return 0;
 	    }
 	} else if (strcmp(flag, "-shearDist") == 0) {
 	    if (OPS_GetNumRemainingInputArgs() > 0) {
 		if (OPS_GetDoubleInput(&numdata, &shearDistI) < 0) {
 		    opserr << "WARNING invalid -shearDist value\n";
-		    opserr << "elastomericBearingUFRP element: " << tag << endln;
 		    return 0;
 		}
 	    }
@@ -175,7 +170,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingUFRP2d)
 	    if (OPS_GetNumRemainingInputArgs() > 0) {
 		if (OPS_GetDoubleInput(&numdata, &mass) < 0) {
 		    opserr << "WARNING invalid -mass value\n";
-		    opserr << "elastomericBearingUFRP element: " << tag << endln;
 		    return 0;
 		}
 	    }
@@ -183,12 +177,10 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingUFRP2d)
 	    if (OPS_GetNumRemainingInputArgs() > 1) {
 		if (OPS_GetIntInput(&numdata, &maxIter) < 0) {
 		    opserr << "WARNING invalid maxIter value\n";
-		    opserr << "elastomericBearingUFRP element: " << tag << endln;
 		    return 0;
 		}
 		if (OPS_GetDoubleInput(&numdata, &tol) < 0) {
 		    opserr << "WARNING invalid tol value\n";
-		    opserr << "elastomericBearingUFRP element: " << tag << endln;
 		    return 0;
 		}
 	    }
@@ -371,7 +363,8 @@ void ElastomericBearingUFRP2d::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set up the transformation matrix for orientation
     this->setUp();
@@ -499,7 +492,7 @@ int ElastomericBearingUFRP2d::update()
         if (iter >= maxIter)   {
             opserr << "WARNING: ElastomericBearingUFRP2d::update() - "
                 << "did not find the hysteretic evolution parameter z after "
-                << iter << " iterations and norm: " << fabs(delta_z) << endln;
+                << iter << " iterations and norm: " << fabs(delta_z) << "\n";
             return -2;
         }
         
@@ -866,25 +859,25 @@ void ElastomericBearingUFRP2d::Print(OPS_Stream &s, int flag)
 {
     if (flag == OPS_PRINT_CURRENTSTATE) {
         // print everything
-        s << "Element: " << this->getTag() << endln; 
+        s << "Element: " << this->getTag() << "\n";
         s << "  type: ElastomericBearingUFRP2d\n";
         s << "  iNode: " << connectedExternalNodes(0);
-        s << "  jNode: " << connectedExternalNodes(1) << endln;
-        s << "  uy: " << uy << endln;
+        s << "  jNode: " << connectedExternalNodes(1) << "\n";
+        s << "  uy: " << uy << "\n";
         s << "  a1: " << a1 << "  a2: " << a2 << "  a3: " << a3;
-        s << "  a4: " << a4 << "  a5: " << a5 << endln;
-        s << "  b: " << b << "  c: " << c << endln;
-        s << "  eta: " << eta << "  beta: " << beta << "  gamma: " << gamma << endln;
+        s << "  a4: " << a4 << "  a5: " << a5 << "\n";
+        s << "  b: " << b << "  c: " << c << "\n";
+        s << "  eta: " << eta << "  beta: " << beta << "  gamma: " << gamma << "\n";
         s << "  Material ux: " << theMaterials[0]->getTag();
-        s << "  Material rz: " << theMaterials[1]->getTag() << endln;
+        s << "  Material rz: " << theMaterials[1]->getTag() << "\n";
         s << "  shearDistI: " << shearDistI << "  addRayleigh: "
-            << addRayleigh << "  mass: " << mass << endln;
-        s << "  maxIter: " << maxIter << "  tol: " << tol << endln;
+            << addRayleigh << "  mass: " << mass << "\n";
+        s << "  maxIter: " << maxIter << "  tol: " << tol << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
     }
     
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
         s << "\t\t\t{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ElastomericBearingUFRP2d\", ";

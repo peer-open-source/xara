@@ -30,7 +30,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -288,7 +287,8 @@ FourNodeQuad3d::setDomain(Domain *theDomain)
       return;
     }
   }
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   // Compute consistent nodal loads due to pressure
   this->setPressureLoadAtNodes();
@@ -1036,45 +1036,6 @@ FourNodeQuad3d::Print(OPS_Stream &s, int flag)
     }
 }
 
-int
-FourNodeQuad3d::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **mdes, int numMode)
-{
-    // get the end point display coords
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-    theNodes[2]->getDisplayCrds(v3, fact, displayMode);
-    theNodes[3]->getDisplayCrds(v4, fact, displayMode);
-
-    // place values in coords matrix
-    static Matrix coords(4, 3);
-    for (int i = 0; i < 3; i++) {
-        coords(0, i) = v1(i);
-        coords(1, i) = v2(i);
-        coords(2, i) = v3(i);
-        coords(3, i) = v4(i);
-    }
-
-    // set the quantity to be displayed at the nodes;
-    // if displayMode is 1 through 3 we will plot material stresses otherwise 0.0
-    static Vector values(4);
-    if (displayMode < 4 && displayMode > 0) {
-        for (int i = 0; i < 4; i++) {
-            const Vector& stress = theMaterial[i]->getStress();
-            values(i) = stress(displayMode - 1);
-        }
-    }
-    else {
-        for (int i = 0; i < 4; i++)
-            values(i) = 0.0;
-    }
-
-    // draw the polygon
-    return theViewer.drawPolygon(coords, values, this->getTag());
-}
 
 Response*
 FourNodeQuad3d::setResponse(const char **argv, int argc, 

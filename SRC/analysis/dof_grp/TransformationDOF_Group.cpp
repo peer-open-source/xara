@@ -540,7 +540,9 @@ TransformationDOF_Group::setNodeDisp(const Vector &u)
   // *unbalance = (*T) * (*modUnbalance);
   unbalance->addMatrixVector(0.0, *T, *modUnbalance, 1.0);
 
+#ifndef TRANSF_INCREMENTAL_MP
   const Vector &disp = myNode->getTrialDisp();
+#endif
 
   int numDOF = myNode->getNumberDOF();
   for (int i=0; i<numDOF; i++) {
@@ -564,8 +566,8 @@ TransformationDOF_Group::setNodeVel(const Vector &u)
 {
     // call base class method and return if no MP_Constraint
     if (theMP == 0) {
-	this->DOF_Group::setNodeVel(u);
-	return;
+      this->DOF_Group::setNodeVel(u);
+      return;
     }
     
    const ID &theID = this->getID();
@@ -919,7 +921,7 @@ TransformationDOF_Group::getT(void)
 
 
 int
-TransformationDOF_Group::doneID(void)
+TransformationDOF_Group::doneID()
 {
   if (theMP == 0)
     return 0;
@@ -953,11 +955,11 @@ TransformationDOF_Group::doneID(void)
     for (int i=0; i<numNodalDOF; i++) {
       int loc = constrainedDOF.getLocation(i);
       if (loc < 0) {
-	(*Trans)(i,col) = 1.0;
-	col++;
+        (*Trans)(i,col) = 1.0;
+        col++;
       } else {
-	for (int j=0; j<numRetainedNodeDOF; j++)
-	  (*Trans)(i,j+numRetainedDOF) = Ccr(loc,j);
+        for (int j=0; j<numRetainedNodeDOF; j++)
+          (*Trans)(i,j+numRetainedDOF) = Ccr(loc,j);
       }
     }
   }

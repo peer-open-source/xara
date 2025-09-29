@@ -257,13 +257,13 @@ BeamColumnwLHNMYS::getExternalNodes(void)
 }
 
 Node **
-BeamColumnwLHNMYS::getNodePtrs(void)
+BeamColumnwLHNMYS::getNodePtrs()
 {
   return theNodes;
 }
 
 int
-BeamColumnwLHNMYS::getNumDOF(void)
+BeamColumnwLHNMYS::getNumDOF()
 {
     return 6;
 }
@@ -272,8 +272,7 @@ void
 BeamColumnwLHNMYS::setDomain(Domain *theDomain)
 {
   if (theDomain == 0) {
-    opserr << "BeamColumnwLHNMYS::setDomain -- Domain is null\n";
-    exit(-1);
+    return;
   }
     
     theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
@@ -304,7 +303,8 @@ BeamColumnwLHNMYS::setDomain(Domain *theDomain)
       exit(-1);
     }
         
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
         opserr << "BeamColumnwLHNMYS::setDomain -- Error initializing coordinate transformation\n";

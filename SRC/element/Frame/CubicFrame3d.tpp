@@ -224,7 +224,8 @@ CubicFrame3d<shear,nwm>::setDomain(Domain* theDomain)
   beamInt->getSectionLocations(numSections, L, xi);
   beamInt->getSectionWeights(numSections, L, wt);
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
   this->update();
 }

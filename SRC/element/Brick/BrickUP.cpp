@@ -159,34 +159,36 @@ BrickUP::~BrickUP( )
 }
 
 
-//set domain
-void  BrickUP::setDomain( Domain *theDomain )
+
+void
+BrickUP::setDomain(Domain *theDomain)
 {
   int i,dof ;
 
   // Check Domain is not null - invoked when object removed from a domain
   if (theDomain == 0) {
     for ( i=0; i<8; i++ )
-    nodePointers[i] = 0;
-	return;
+      nodePointers[i] = 0;
+    return;
   }
 
   //node pointers
   for ( i=0; i<8; i++ ) {
-     nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
-     if (nodePointers[i] == 0) {
+    nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
+    if (nodePointers[i] == 0) {
 	   opserr << "FATAL ERROR BrickUP ("<<this->getTag()<<"): node not found in domain"<<endln;
 	   return;
-     }
+    }
 
-     dof = nodePointers[i]->getNumberDOF();
-     if (dof != 4) {
+    dof = nodePointers[i]->getNumberDOF();
+    if (dof != 4) {
 	   opserr << "FATAL ERROR BrickUP ("<<this->getTag()<<"): has differing number of DOFs at its nodes"<<endln;
 	   return;
-     }
+    }
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 

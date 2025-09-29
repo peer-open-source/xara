@@ -328,7 +328,8 @@ void  Shell02::setDomain( Domain *theDomain )
   //basis vectors and local coordinates
   computeBasis( ) ;
 
-  this->DomainComponent::setDomain(theDomain);
+  if (in != nullptr)
+    this->Element::link(*in);
 }
 
 

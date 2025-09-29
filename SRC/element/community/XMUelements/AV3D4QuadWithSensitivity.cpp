@@ -214,7 +214,8 @@ AV3D4QuadWithSensitivity::setDomain (Domain *theDomain)
       }
     }
     
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
   }
 }
 
@@ -665,10 +666,6 @@ AV3D4QuadWithSensitivity::computeH(void)
   if(H == 0 || DH == 0) {
     H = new Matrix*[numGP];
     DH = new Matrix*[numGP];
-    if (H == 0 || DH == 0) {
-      opserr << "AV3D4QuadWithSensitivity::computeH - out of memory!\n";
-      return -3;
-    }
 
     double r = 0.0;
     double s = 0.0;
@@ -681,10 +678,6 @@ AV3D4QuadWithSensitivity::computeH(void)
         
         H[where] = new Matrix(1, nodes_in_quad);
         DH[where] = new Matrix(2, nodes_in_quad);
-        if(H[where] == 0 || DH[where] == 0) {
-          opserr << "AV3D4QuadWithSensitivity::computeH - out of memory!\n";
-          return -3;
-        }
         
         *H[where] = interp_fun(r, s);
         *DH[where] = diff_interp_fun(r, s);
@@ -698,25 +691,16 @@ AV3D4QuadWithSensitivity::computeH(void)
 }
 
 int
-AV3D4QuadWithSensitivity::computeHH(void)
+AV3D4QuadWithSensitivity::computeHH()
 {
   if (HH == 0) {
     HH = new Matrix*[numGP];
-    if (HH == 0) {
-      opserr << "AV3D4QuadWithSensitivity::computeHH - out of memory!\n";
-      return -3;
-    }
     
     // compute H first
     this->computeH();
     
     for(int i = 0; i < numGP; i++) {
-      HH[i] = new Matrix(NEN, NEN);
-      if (HH[i] == 0) {
-        opserr << "AV3D4QuadWithSensitivity::computeHH - out of memory!\n";
-        return -3;
-      }
-      
+      HH[i] = new Matrix(NEN, NEN);      
       HH[i]->addMatrixTransposeProduct(0.0, *H[i], *H[i], 1.0);
     }
   }

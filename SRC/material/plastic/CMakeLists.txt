@@ -24,3 +24,13 @@ target_sources(OPS_Material
 )
 
 target_include_directories(OPS_Material PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/GeneralizedJ2.cpp")
+  target_sources(OPS_Material
+    PRIVATE
+      GeneralizedJ2.cpp
+    PUBLIC
+      GeneralizedJ2.h
+  )
+  target_compile_definitions(OPS_Runtime PRIVATE XARA_HAVE_GENERALIZEDJ2)
+endif()

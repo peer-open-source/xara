@@ -47,7 +47,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_DamperMaterial)
   int argc = OPS_GetNumRemainingInputArgs();
 
   if (argc < 2) {
-    opserr << "Invalid #args,  want: uniaxialMaterial Damper $tag $tag1 $tag2 ... <-factors $fact1 $fact2 ...>" << endln;
+    opserr << "Invalid #args,  want: uniaxialMaterial Damper $tag $tag1 $tag2 ... <-factors $fact1 $fact2 ...>" << "\n";
     return 0;
   }
 
@@ -55,14 +55,14 @@ void * OPS_ADD_RUNTIME_VPV(OPS_DamperMaterial)
   int *iData = new int[2];
   
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid data for uniaxialMaterial Damper" << endln;
+    opserr << "WARNING invalid data for uniaxialMaterial Damper" << "\n";
     return 0;
   }
 
   UniaxialMaterial *theMat = OPS_getUniaxialMaterial(iData[1]);
   if (theMat == 0) {
     opserr << "WARNING no existing material with tag " << iData[1] 
-	   << " for uniaxialMaterial Damper" << iData[0] << endln;
+	   << " for uniaxialMaterial Damper" << iData[0] << "\n";
     delete [] iData;
     return 0;
   }
@@ -129,19 +129,19 @@ DamperMaterial::setTrialStrain(double strain, double strainRate)
 
 
 double 
-DamperMaterial::getStrain(void)
+DamperMaterial::getStrain()
 {
   return trialStrain;
 }
 
 double 
-DamperMaterial::getStrainRate(void)
+DamperMaterial::getStrainRate()
 {
     return trialStrainRate;
 }
 
 double 
-DamperMaterial::getStress(void)
+DamperMaterial::getStress()
 {
   if (theMaterial)
     return theMaterial->getStress();
@@ -150,19 +150,19 @@ DamperMaterial::getStress(void)
 }
 
 double 
-DamperMaterial::getTangent(void)
+DamperMaterial::getTangent()
 {
   return 0.0;
 }
 
 double 
-DamperMaterial::getInitialTangent(void)
+DamperMaterial::getInitialTangent()
 {
   return 0.0;
 }
 
 double 
-DamperMaterial::getDampTangent(void)
+DamperMaterial::getDampTangent()
 {
   if (theMaterial)
     return theMaterial->getTangent();
@@ -171,7 +171,7 @@ DamperMaterial::getDampTangent(void)
 }
 
 int 
-DamperMaterial::commitState(void)
+DamperMaterial::commitState()
 {
   if (theMaterial)
     return theMaterial->commitState();
@@ -180,7 +180,7 @@ DamperMaterial::commitState(void)
 }
 
 int 
-DamperMaterial::revertToLastCommit(void)
+DamperMaterial::revertToLastCommit()
 {
   if (theMaterial)
     return theMaterial->revertToLastCommit();
@@ -190,7 +190,7 @@ DamperMaterial::revertToLastCommit(void)
 
 
 int 
-DamperMaterial::revertToStart(void)
+DamperMaterial::revertToStart()
 {
     trialStrain = 0.0;
     trialStrainRate = 0.0;
@@ -204,7 +204,7 @@ DamperMaterial::revertToStart(void)
 
 
 UniaxialMaterial *
-DamperMaterial::getCopy(void)
+DamperMaterial::getCopy()
 {
   DamperMaterial *theCopy = 0;
   if (theMaterial) {
@@ -287,11 +287,23 @@ DamperMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 DamperMaterial::Print(OPS_Stream &s, int flag)
 {
-  s << "DamperMaterial tag: " << this->getTag() << endln;
-  if (theMaterial)
-    s << "\tMaterial: " << theMaterial->getTag() << endln;
-  else
-    s << "\tMaterial is NULL" << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"DamperMaterial\", ";
+    s << "\"tag\": " << this->getTag() << ", ";
+    if (theMaterial != nullptr)
+      s << "\"material\": " << theMaterial->getTag();
+    else
+      s << "\"material\": null";
+    s << "}";
+  }
+  else {
+    s << "DamperMaterial tag: " << this->getTag() << "\n";
+    if (theMaterial)
+      s << "\tMaterial: " << theMaterial->getTag() << "\n";
+    else
+      s << "\tMaterial is NULL" << "\n";
+  }
 }
 
 

@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 
@@ -91,7 +90,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_HDR)
     
     numData = 17;
     if (OPS_GetDoubleInput(&numData, dData) != 0) {
-        opserr << "WARNING error reading element properties for element" << eleTag << endln;
+        opserr << "WARNING error reading element properties for element" << eleTag << "\n";
         return 0;
     }
     
@@ -113,7 +112,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_HDR)
         numData = 1;
         for (int i=0; i<3; i++) {
             if (OPS_GetDoubleInput(&numData, &value) != 0) {
-                opserr << "WARNING invalid orientation value for element" << eleTag << endln;
+                opserr << "WARNING invalid orientation value for element" << eleTag << "\n";
                 return 0;
             } else {
                 x(i) = value;
@@ -121,7 +120,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_HDR)
         }
         for (int i=0; i<3; i++) {
             if (OPS_GetDoubleInput(&numData, &value) != 0) {
-                opserr << "WARNING invalid orientation value for element" << eleTag << endln;
+                opserr << "WARNING invalid orientation value for element" << eleTag << "\n";
                 return 0;
             } else {
                 y(i) = value;
@@ -130,37 +129,37 @@ void * OPS_ADD_RUNTIME_VPV(OPS_HDR)
         if (numArgs >= 27) {
             numData = 1;
             if (OPS_GetDoubleInput(&numData, &kl) != 0) {
-                opserr << "WARNING error reading element property cavitation parameter for element" << eleTag << endln;
+                opserr << "WARNING error reading element property cavitation parameter for element" << eleTag << "\n";
                 return 0;
             }
             if (numArgs >= 28) {
                 numData = 1;
                 if (OPS_GetDoubleInput(&numData, &phi) != 0) {
-                    opserr << "WARNING error reading element property damage index for element" << eleTag << endln;
+                    opserr << "WARNING error reading element property damage index for element" << eleTag << "\n";
                     return 0;
                 }
                 if (numArgs >= 29) {
                     numData = 1;
                     if (OPS_GetDoubleInput(&numData, &al) != 0) {
-                        opserr << "WARNING error reading element property strength degradation parameter for element" << eleTag << endln;
+                        opserr << "WARNING error reading element property strength degradation parameter for element" << eleTag << "\n";
                         return 0;
                     }
                     if (numArgs >= 30) {
                         numData = 1;
                         if (OPS_GetDoubleInput(&numData, &sDratio) != 0) {
-                            opserr << "WARNING error reading element property shear distance ratio for element" << eleTag << endln;
+                            opserr << "WARNING error reading element property shear distance ratio for element" << eleTag << "\n";
                             return 0;
                         }
                         if (numArgs >= 31) {
                             numData = 1;
                             if (OPS_GetDoubleInput(&numData, &m) != 0) {
-                                opserr << "WARNING error reading element property mass for element" << eleTag << endln;
+                                opserr << "WARNING error reading element property mass for element" << eleTag << "\n";
                                 return 0;
                             }
                             if (numArgs == 32) {
                                 numData = 1;
                                 if (OPS_GetDoubleInput(&numData, &tc1) != 0) {
-                                    opserr << "WARNING error reading element property cover thickness for element" << eleTag << endln;
+                                    opserr << "WARNING error reading element property cover thickness for element" << eleTag << "\n";
                                     return 0;
                                 }
                             }
@@ -181,11 +180,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_HDR)
         }
         theEle = new HDR(iData[0], iData[1], iData[2], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], int(dData[6]), dData[7], dData[8], 
             dData[9], dData[10], dData[11], dData[12], dData[13], dData[14], dData[15], dData[16], y, x, kl, phi, al, sDratio, m, tc1);
-    }
-    
-    if (theEle == 0) {
-        opserr << "WARNING ran out of memory creating element with tag " << eleTag << endln;
-        return 0;
     }
     
     return theEle;
@@ -353,7 +347,7 @@ void HDR::setDomain(Domain *theDomain)
                 << connectedExternalNodes(1)
                 << " does not exist in the model for";
         }
-        opserr << " element: " << this->getTag() << endln;
+        opserr << " element: " << this->getTag() << "\n";
         
         return;
     }
@@ -377,7 +371,8 @@ void HDR::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set up the transformation matrix for orientation
     this->setUp();
@@ -608,11 +603,6 @@ int HDR::update()
     kb(1,2) = DF_DU(0,1);
     kb(2,1) = DF_DU(1,0);
     kb(2,2) = DF_DU(1,1);
-    
-    //cout<<"Delta: "<<Delta<<" DeltaC: "<<DeltaC<<" R: "<<R<<" dn_dU(0,0): "<<dn_dU(0,0)<<" dn_dU(1,1): "<<dn_dU(1,1)<<endln;
-    //cout<<"a1: "<<a1<<" a2: "<<a2<<" a3: "<<a3<<" b1: "<<b1<<" b2: "<<b2<<" b3: "<<b3<<" c1: "<<c1<<" c2: "<<c2<<" c3: "<<c3<<" c4: "<<c4<<endln;
-    //cout<<"Delta: "<<Delta<<" dKS1_dDS: "<<dKS1_dDS<<" dKS2_dDS: "<<dKS2_dDS<<" dKM_dDM: "<<dKM_dDM<<" DF_DU(0,0): "<<DF_DU(0,0)<<" DF_DU(0,1): "<<DF_DU(0,1)<<" DF_DU(1,0): "<<DF_DU(1,0)<<" DF_DU(1,1): "<<DF_DU(1,1)<<endln;
-    
     // 3) get moment and stiffness in basic x-direction
     qb(3) = Kt*ub(3);
     kb(3,3) = Kt;
@@ -721,7 +711,7 @@ int HDR::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
     opserr <<"HDR::addLoad() - "
         << "load type unknown for element: "
-        << this->getTag() << endln;
+        << this->getTag() << "\n";
     
     return -1;
 }
@@ -967,41 +957,29 @@ int HDR::recvSelf(int commitTag, Channel &rChannel,
 }
 
 
-int HDR::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
-
 
 void HDR::Print(OPS_Stream &s, int flag)
 {
     if (flag == OPS_PRINT_CURRENTSTATE) {
         // print everything
-        s << "************************************************************" << endln;
+        s << "************************************************************" << "\n";
         s << "Element: " << this->getTag();
         s << "  type: HDR  iNode: " << connectedExternalNodes(0);
-        s << "  jNode: " << connectedExternalNodes(1) << endln;
-        s << "************************************************************" << endln;
-        s << "GEOMETRIC PROPERTIES" << endln;
-        s << "D1: "<< D1 << " D2: " << D2 << " L: " << L << " Tr: " << Tr << " n: " << n << " A: " << A << endln;
-        s << "MATERIAL PROPERTIES" << endln;
-        s << "G: " << G << " kc: " << kc << " ac: " << ac << " PhiM: " << PhiM << " shearDistI: " << shearDistI << " mass: " << mass << endln;
-        s << "MECHANICAL PROPERTIES: HORIZONTAL MOTION" << endln;
+        s << "  jNode: " << connectedExternalNodes(1) << "\n";
+        s << "************************************************************" << "\n";
+        s << "GEOMETRIC PROPERTIES" << "\n";
+        s << "D1: "<< D1 << " D2: " << D2 << " L: " << L << " Tr: " << Tr << " n: " << n << " A: " << A << "\n";
+        s << "MATERIAL PROPERTIES" << "\n";
+        s << "G: " << G << " kc: " << kc << " ac: " << ac << " PhiM: " << PhiM << " shearDistI: " << shearDistI << " mass: " << mass << "\n";
+        s << "MECHANICAL PROPERTIES: HORIZONTAL MOTION" << "\n";
         s << "a1: " << a1 << " a2: " << a2 << " a3: " << a3 <<endln;
         s << "b1: " << b1 << " b2: " << b2 << " b3: " << b3 <<endln;
-        s << "c1: " << c1 << " c2: " << c2 << " c3: " << c3 << " c4: " << c4 << endln;
-        s << "MECHANICAL PROPERTIES: VERTICAL MOTION" << endln;
-        s << "Ec: " << Ec << " Kv0: " << Kv0 << " Kv: " << Kv << " uc: " << uc << " Fcr: " << Fcr << " ucr: " << ucr << " Fcn: " << Fcn << " umax: " << umax << endln;
+        s << "c1: " << c1 << " c2: " << c2 << " c3: " << c3 << " c4: " << c4 << "\n";
+        s << "MECHANICAL PROPERTIES: VERTICAL MOTION" << "\n";
+        s << "Ec: " << Ec << " Kv0: " << Kv0 << " Kv: " << Kv << " uc: " << uc << " Fcr: " << Fcr << " ucr: " << ucr << " Fcn: " << Fcn << " umax: " << umax << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
-        s << "************************************************************" << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
+        s << "************************************************************" << "\n";
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {

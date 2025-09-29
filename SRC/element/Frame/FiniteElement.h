@@ -113,7 +113,8 @@ public:
         }
       }
 
-      this->DomainComponent::setDomain(theDomain);
+      if (theDomain != nullptr)
+        this->Element::link(*theDomain);
 
       if (this->setState(State::Init) != 0)
         return;

@@ -44,92 +44,11 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
-#include <elementAPI.h>
 
 Matrix ElasticBeamWarping3d::K(14,14);
 Vector ElasticBeamWarping3d::P(14);
 Matrix ElasticBeamWarping3d::kb(9,9);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_ElasticBeamWarping3d)
-{
-    int numArgs = OPS_GetNumRemainingInputArgs();
-    if (numArgs < 11 && numArgs != 6) {
-        opserr<<"insufficient arguments:eleTag,iNode,jNode,<A,E,G,J,Iy,Iz>or<sectionTag>,transfTag,Cw\n";
-        return 0;
-    }
-
-    int ndm = OPS_GetNDM();
-    int ndf = OPS_GetNDF();
-    if (ndm != 3 || ndf != 7) {
-        opserr<<"ndm must be 3 and ndf must be 7\n";
-        return 0;
-    }
-
-    // inputs: 
-    int iData[3];
-    int numData = 3;
-    if (OPS_GetIntInput(&numData,&iData[0]) < 0)
-      return 0;
-
-    SectionForceDeformation* theSection = 0;
-    CrdTransf* theTrans = 0;
-    double data[6];
-    int transfTag, secTag;
-    
-    if (numArgs == 6) {
-        numData = 1;
-        if (OPS_GetIntInput(&numData,&secTag) < 0)
-          return 0;
-        if (OPS_GetIntInput(&numData,&transfTag) < 0)
-          return 0;
-
-        theSection = G3_getSafeBuilder(rt)->getTypedObject<SectionForceDeformation>(secTag);
-        if (theSection == nullptr)
-            return nullptr;
-
-        theTrans = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(transfTag);
-        if (theTrans == nullptr)
-            return nullptr;
-
-    } else {
-        numData = 6;
-        if (OPS_GetDoubleInput(&numData,&data[0]) < 0)
-          return 0;
-        numData = 1;
-        if (OPS_GetIntInput(&numData,&transfTag) < 0)
-          return 0;
-
-        theTrans = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(transfTag);
-        if (theTrans == nullptr) {
-            return nullptr;
-        }
-    }
-
-    // Read Cw
-    numData = 1;
-    double Cw;
-    if (OPS_GetDoubleInput(&numData,&Cw) < 0)
-      return 0;    
-
-    // options
-    double mass = 0.0;
-    int cMass = 0;
-    while(OPS_GetNumRemainingInputArgs() > 0) {
-        std::string theType = OPS_GetString();
-        if (theType == "-mass") {
-            if (OPS_GetNumRemainingInputArgs() > 0) {
-                if(OPS_GetDoubleInput(&numData,&mass) < 0) return 0;
-            }
-        }
-    }
-
-    if (theSection != nullptr) {
-      return new ElasticBeamWarping3d(iData[0],iData[1],iData[2],theSection,*theTrans,Cw,mass); 
-    } else {
-      return new ElasticBeamWarping3d(iData[0],data[0],data[1],data[2],data[3],data[4],
-                                      data[5],iData[1],iData[2],*theTrans, Cw, mass);
-    }
-}
 
 ElasticBeamWarping3d::ElasticBeamWarping3d()
   :Element(0,ELE_TAG_ElasticBeamWarping3d), 
@@ -288,8 +207,7 @@ void
 ElasticBeamWarping3d::setDomain(Domain *theDomain)
 {
   if (theDomain == 0) {
-    opserr << "ElasticBeamWarping3d::setDomain -- Domain is null\n";
-    exit(-1);
+    return;
   }
     
     theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
@@ -310,7 +228,8 @@ ElasticBeamWarping3d::setDomain(Domain *theDomain)
     int dofNd2 = theNodes[1]->getNumberDOF();    
     
 
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
         opserr << "ElasticBeamWarping3d::setDomain -- Error initializing coordinate transformation\n";

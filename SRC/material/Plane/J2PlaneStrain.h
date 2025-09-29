@@ -46,13 +46,13 @@
 #ifndef J2PlaneStrain_h
 #define J2PlaneStrain_h
 
-#include <stdlib.h> 
 #include <math.h> 
 
 #include <Vector.h>
 #include <Matrix.h>
 
 #include <J2Plasticity.h>
+using namespace OpenSees;
 
 class J2PlaneStrain : public J2Plasticity {
 

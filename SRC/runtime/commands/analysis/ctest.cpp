@@ -292,22 +292,24 @@ getCTestNorms(ClientData clientData, Tcl_Interp *interp,
   ConvergenceTest *theTest =
       ((BasicAnalysisBuilder *)clientData)->getConvergenceTest();
 
-  if (theTest != nullptr) {
-    const Vector &data = theTest->getNorms();
-
-    char buffer[40];
-    int size = data.Size();
-    for (int i = 0; i < size; ++i) {
-      sprintf(buffer, "%35.20e", data(i));
-      Tcl_AppendResult(interp, buffer, NULL);
-    }
-
-    return TCL_OK;
+  if (theTest == nullptr) {
+    opserr << OpenSees::PromptValueError
+           << "no convergence test has been defined.\n";
+    return TCL_ERROR;
   }
 
-  opserr << OpenSees::PromptValueError << "no convergence test has been defined.\n";
-  return TCL_ERROR;
+  const Vector &data = theTest->getNorms();
+
+  int size = data.Size();
+  Tcl_Obj *result = Tcl_NewListObj(size, NULL);
+  for (int i = 0; i < size; ++i) {
+    Tcl_ListObjAppendElement(interp, result, Tcl_NewDoubleObj(data(i)));
+  }
+  Tcl_SetObjResult(interp, result);
+
+  return TCL_OK;
 }
+
 
 int
 getCTestIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, G3_Char ** const argv)
@@ -316,17 +318,15 @@ getCTestIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, G3_Char *
   ConvergenceTest *theTest =
       ((BasicAnalysisBuilder *)clientData)->getConvergenceTest();
 
-  if (theTest != nullptr) {
-    int res = theTest->getNumTests();
-
-    char buffer[10];
-    sprintf(buffer, "%d", res);
-    Tcl_AppendResult(interp, buffer, NULL);
-
-    return TCL_OK;
+  if (theTest == nullptr) {
+    opserr << OpenSees::PromptValueError
+           << "no convergence test was found.\n";
+    return TCL_ERROR;
   }
 
-  opserr << OpenSees::PromptValueError << "no convergence test was found.\n";
-  return TCL_ERROR;
+  int res = theTest->getNumTests();
+  
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(res));
+  return TCL_OK;
 }
 

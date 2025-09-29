@@ -282,9 +282,8 @@ int TripleFrictionPendulum::getNumDOF()
 void TripleFrictionPendulum::setDomain(Domain *theDomain)
 {
     // check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
-        opserr << "Domain does not exist" << endln;	
-        exit(0);
+    if (theDomain == nullptr) {
+        return;
     }
     
     // first ensure nodes exist in Domain and set the node pointers
@@ -309,7 +308,8 @@ void TripleFrictionPendulum::setDomain(Domain *theDomain)
     theNodes[1] = end2Ptr;
     
     // call the DomainComponent class method THIS IS VERY IMPORTANT
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // ensure connected nodes have correct number of dof's
     int dofNd1 = end1Ptr->getNumberDOF();

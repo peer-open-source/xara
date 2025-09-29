@@ -65,11 +65,11 @@ basicDeformation(ClientData clientData, Tcl_Interp *interp, int argc,
   const Vector &theVec = *(info.theVector);
   int nbf = theVec.Size();
 
-  char buffer[200];
+  Tcl_Obj* result = Tcl_NewListObj(nbf, NULL);
   for (int i = 0; i < nbf; ++i) {
-    sprintf(buffer, "%12.8f ", theVec(i));
-    Tcl_AppendResult(interp, buffer, NULL);
+    Tcl_ListObjAppendElement(interp, result, Tcl_NewDoubleObj(theVec(i)));
   }
+  Tcl_SetObjResult(interp, result);
 
   delete theResponse;
 
@@ -126,11 +126,11 @@ basicForce(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** cons
   const Vector &theVec = *(info.theVector);
   int nbf = theVec.Size();
 
-  char buffer[200];
+  Tcl_Obj* result = Tcl_NewListObj(nbf, NULL);
   for (int i = 0; i < nbf; ++i) {
-    sprintf(buffer, "%12.8f ", theVec(i));
-    Tcl_AppendResult(interp, buffer, NULL);
+    Tcl_ListObjAppendElement(interp, result, Tcl_NewDoubleObj(theVec(i)));
   }
+  Tcl_SetObjResult(interp, result);
 
   delete theResponse;
 
@@ -152,7 +152,7 @@ basicStiffness(ClientData clientData, Tcl_Interp *interp, int argc,
   int tag;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "basicStiffness eleTag? - could not read eleTag? \n";
+    opserr << OpenSees::PromptValueError << "could not read eleTag? \n";
     return TCL_ERROR;
   }
   /*
@@ -217,8 +217,7 @@ sectionForce(ClientData clientData, Tcl_Interp *interp, int argc,
   int secNum = 0;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "sectionForce eleTag? secNum? dof? - could not read "
-              "eleTag? \n";
+    opserr << OpenSees::PromptValueError << "could not read eleTag \n";
     return TCL_ERROR;
   }
 
@@ -226,8 +225,7 @@ sectionForce(ClientData clientData, Tcl_Interp *interp, int argc,
   int currentArg = 2;
   if (argc > 3) {
     if (Tcl_GetInt(interp, argv[currentArg++], &secNum) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "sectionForce eleTag? secNum? dof? - could not read "
-                "secNum? \n";
+      opserr << OpenSees::PromptValueError << "could not read secNum? \n";
       return TCL_ERROR;
     }
   }
@@ -355,13 +353,11 @@ sectionLocation(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int tag, secNum;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "sectionLocation eleTag? secNum? - could not read "
-              "eleTag? \n";
+    opserr << OpenSees::PromptValueError << "could not read eleTag \n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &secNum) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "sectionLocation eleTag? secNum? - could not read "
-              "secNum? \n";
+    opserr << OpenSees::PromptValueError << "could not read secNum? \n";
     return TCL_ERROR;
   }
 

@@ -1154,8 +1154,8 @@ CorotCrdTransf2d::getGlobalResistingForceShapeSensitivity(const Vector &q,
   this->update();
 
   if (nodeIOffset.Norm() != 0.0 || nodeJOffset.Norm() != 0.0) {
-    opserr << "ERROR: Currently a node offset cannot be used in " << endln
-           << " conjunction with random nodal coordinates." << endln;
+    opserr << "ERROR: Currently a node offset cannot be used in "
+           << " conjunction with random nodal coordinates." << "\n";
   }
 
   double dcosThetadh = 0.0;
@@ -1430,8 +1430,8 @@ CorotCrdTransf2d::getLengthGrad(void)
     return 0.0;
 
   if (nodeIOffset.Norm() != 0.0 || nodeJOffset.Norm() != 0.0) {
-    opserr << "ERROR: Currently a node offset cannot be used in " << endln
-           << " conjunction with random nodal coordinates." << endln;
+    opserr << "ERROR: Currently a node offset cannot be used in "
+           << " conjunction with random nodal coordinates." << "\n";
   }
 
   if (nodeIid == 1) // here x1 is random
@@ -1457,8 +1457,8 @@ CorotCrdTransf2d::getd1overLdh(void)
     return 0.0;
 
   if (nodeIOffset.Norm() != 0.0 || nodeJOffset.Norm() != 0.0) {
-    opserr << "ERROR: Currently a node offset cannot be used in " << endln
-           << " conjunction with random nodal coordinates." << endln;
+    opserr << "ERROR: Currently a node offset cannot be used in "
+           << " conjunction with random nodal coordinates." << "\n";
   }
 
   if (nodeIid == 1) // here x1 is random

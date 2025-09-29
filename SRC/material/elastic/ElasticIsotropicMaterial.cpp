@@ -37,7 +37,7 @@
 #include <ElasticIsotropicAxiSymm.h>
 #include <ElasticIsotropicThreeDimensional.h>
 #include <ElasticIsotropicPlateFiber.h>
-#include <ElasticIsotropicBeamFiber.h>
+#include "ElasticIsotropicBeamFiber.h"
 #include <ElasticIsotropicBeamFiber2d.h>
 
 #include <Channel.h>
@@ -47,6 +47,7 @@
 #include <assert.h>
 #include <Logging.h>
 #include <stdlib.h>
+using namespace OpenSees;
 
 
 ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double e, double nu, double r)
@@ -55,8 +56,7 @@ ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double
 
 }
 
-ElasticIsotropicMaterial::ElasticIsotropicMaterial
-(int tag, double e, double nu, double r)
+ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, double e, double nu, double r)
   : NDMaterial(tag, ND_TAG_ElasticIsotropic), E(e), v(nu), rho(r), parameterID(0)
 {
 
@@ -138,17 +138,17 @@ ElasticIsotropicMaterial::setTrialStrain(const Vector &v, const Vector &rate)
 }
 
 int
-ElasticIsotropicMaterial::setTrialStrainIncr (const Vector &v)
+ElasticIsotropicMaterial::setTrialStrainIncr(const Vector &v)
 {
   assert(false);
   return -1;
 }
 
 int
-ElasticIsotropicMaterial::setTrialStrainIncr (const Vector &v, const Vector &rate)
+ElasticIsotropicMaterial::setTrialStrainIncr(const Vector &v, const Vector &rate)
 {
   opserr << "ElasticIsotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-  exit(-1);
+  assert(false);
   return -1;
 }
 
@@ -173,7 +173,7 @@ const Vector&
 ElasticIsotropicMaterial::getStress()
 {
   opserr << "ElasticIsotropicMaterial::getStress -- subclass responsibility\n";
-  exit(-1);
+  assert(false);
     
   // Just to make it compile
   Vector *ret = new Vector();

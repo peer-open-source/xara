@@ -195,7 +195,8 @@ PrismFrame2d::setDomain(Domain *theDomain)
   int dofNd2 = theNodes[1]->getNumberDOF();    
 
       
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
     opserr << "PrismFrame2d::setDomain -- Error initializing coordinate transformation\n";

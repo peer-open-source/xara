@@ -1067,8 +1067,7 @@ Vector::operator!=(double value) const
 }
 
 
-// friend OPS_Stream &operator<<(OPS_Stream &s, const Vector &V)
-//        A function is defined to allow user to print the vectors using OPS_Streams.
+
 
 OPS_Stream &operator<<(OPS_Stream &s, const Vector &V)
 {

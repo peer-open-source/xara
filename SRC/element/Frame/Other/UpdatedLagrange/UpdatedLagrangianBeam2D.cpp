@@ -124,7 +124,8 @@ void UpdatedLagrangianBeam2D::setDomain(Domain *theDomain)
     }
 
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // determine length and direction cosines
 	{
@@ -449,8 +450,7 @@ void UpdatedLagrangianBeam2D::getTrialLocalForce(Vector &lforce)
 		getIncrLocalDisp(disp);
 	else
 		getIncrNaturalDisp(disp);
-	
-	//~ cout << disp << endln;
+
 /* 
 //////////////////////////////////////////
 // using the natural deformation approach

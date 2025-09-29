@@ -31,8 +31,12 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <string.h>
+#include <Vector3D.h>
+#include <Matrix3D.h>
+#include <Cholesky.tpp>
+#include <cmath> 
+using namespace OpenSees;
 
-Vector BeamFiberMaterial::stress(3);
 Matrix BeamFiberMaterial::tangent(3,3);
 
 //      0  1  2  3  4  5
@@ -43,7 +47,7 @@ BeamFiberMaterial::BeamFiberMaterial()
 : NDMaterial(0, ND_TAG_BeamFiberMaterial),
 Tstrain22(0.0), Tstrain33(0.0), Tgamma23(0.0),
 Cstrain22(0.0), Cstrain33(0.0), Cgamma23(0.0),
-theMaterial(0), strain(3)
+theMaterial(0), strain()
 {
   // Nothing to do
 }
@@ -52,7 +56,7 @@ BeamFiberMaterial::BeamFiberMaterial(int tag, NDMaterial &theMat)
 : NDMaterial(tag, ND_TAG_BeamFiberMaterial),
 Tstrain22(0.0), Tstrain33(0.0), Tgamma23(0.0),
 Cstrain22(0.0), Cstrain33(0.0), Cgamma23(0.0),
-theMaterial(0), strain(3)
+theMaterial(0), strain()
 
 {
   theMaterial = theMat.getCopy("ThreeDimensional");
@@ -130,6 +134,7 @@ BeamFiberMaterial::revertToStart()
   this->Cstrain22 = 0.0;
   this->Cstrain33 = 0.0;
   this->Cgamma23  = 0.0;
+  this->strain.zero();
 
   return theMaterial->revertToStart();
 }
@@ -151,15 +156,14 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
   strain(2) = strainFromElement(2);
 
   // Newton loop to solve for out-of-plane strains
-
-  double norm;
-  static Vector condensedStress(3);
-  static Vector strainIncrement(3);
+  Vector3D condensedStress{}; //(3);
+  Vector3D strainIncrement{};
+  Matrix3D dd22; // (3,3);
   static Vector threeDstrain(6);
-  static Matrix dd22(3,3);
 
   int count = 0;
-  const int maxCount = 20;
+  static constexpr int maxCount = 40;
+  double norm;
   double norm0;
 
   do {
@@ -181,8 +185,8 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     // three dimensional tangent 
     const Matrix &threeDtangent = theMaterial->getTangent();
 
-    //NDmaterial strain order        = 11, 22, 33, 12, 23, 31  
-    //BeamFiberMaterial strain order = 11, 12, 31, 22, 33, 23
+    // NDmaterial strain order        = 11, 22, 33, 12, 23, 31  
+    // BeamFiberMaterial strain order = 11, 12, 31, 22, 33, 23
 
     condensedStress(0) = threeDstress(1);
     condensedStress(1) = threeDstress(2);
@@ -201,31 +205,48 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     dd22(2,2) = threeDtangent(4,4);
 
     // set norm
-    norm = condensedStress.Norm();
+    norm = condensedStress.norm();
     if (count == 0)
       norm0 = norm;
 
     // condensation
-    dd22.Solve(condensedStress, strainIncrement);
+    Cholesky<3> chol(dd22);
+    if (chol.solve(&condensedStress[0], &strainIncrement[0]) < 0) [[unlikely]] {
+      if (dd22.solve(condensedStress, strainIncrement) < 0) {
+        opserr << "could not solve for strain increment\n";
+        return -1;
+      }
+    }
 
     this->Tstrain22 -= strainIncrement(0);
     this->Tstrain33 -= strainIncrement(1);
     this->Tgamma23  -= strainIncrement(2);
 
-  } while (count++ < maxCount && norm > tolerance);
+  } while ((count++ < maxCount) && (norm > tolerance));
+
+  if (norm > tolerance && norm0 > 0.0) {
+    opserr << "BeamFiberMaterial::setTrialStrain -- did not converge after ";
+    opserr << maxCount << " iterations, norm: " << norm << endln;
+    return -1;
+  }
 
   return 0;
 }
 
-const Vector& 
+const Vector&
 BeamFiberMaterial::getStrain()
 {
-  return strain;
+  static Vector wrapper(3);
+  wrapper(0) = strain(0);
+  wrapper(1) = strain(1);
+  wrapper(2) = strain(2);
+  return wrapper;
 }
 
 const Vector&  
 BeamFiberMaterial::getStress()
 {
+  static Vector stress;
   const Vector &threeDstress = theMaterial->getStress();
 
   stress(0) = threeDstress(0);
@@ -241,6 +262,7 @@ BeamFiberMaterial::getStressSensitivity(int gradIndex,
 {
   const Vector &threeDstress = theMaterial->getStressSensitivity(gradIndex, conditional);
 
+  static Vector stress(3);
   stress(0) = threeDstress(0);
   stress(1) = threeDstress(3);
   stress(2) = threeDstress(5);
@@ -293,7 +315,7 @@ BeamFiberMaterial::getTangent()
 {
   const Matrix &threeDtangent = theMaterial->getTangent();
 
-  static Matrix dd11(3,3);
+  static Matrix3D dd11;
   dd11(0,0) = threeDtangent(0,0);
   dd11(1,0) = threeDtangent(3,0);
   dd11(2,0) = threeDtangent(5,0);
@@ -307,7 +329,7 @@ BeamFiberMaterial::getTangent()
   dd11(2,2) = threeDtangent(5,5);
 
 
-  static Matrix dd12(3,3);
+  static Matrix3D dd12;
   dd12(0,0) = threeDtangent(0,1);
   dd12(1,0) = threeDtangent(3,1);
   dd12(2,0) = threeDtangent(5,1);
@@ -320,43 +342,57 @@ BeamFiberMaterial::getTangent()
   dd12(1,2) = threeDtangent(3,4);
   dd12(2,2) = threeDtangent(5,4);
 
-  static Matrix dd21(3,3);
-  dd21(0,0) = threeDtangent(1,0);
-  dd21(1,0) = threeDtangent(2,0);
-  dd21(2,0) = threeDtangent(4,0);
 
-  dd21(0,1) = threeDtangent(1,3);
-  dd21(1,1) = threeDtangent(2,3);
-  dd21(2,1) = threeDtangent(4,3);
+  Matrix3D dd22invdd21;
+  {
+    Matrix3D dd22;
+    dd22(0,0) = threeDtangent(1,1);
+    dd22(1,0) = threeDtangent(2,1);
+    dd22(2,0) = threeDtangent(4,1);
 
-  dd21(0,2) = threeDtangent(1,5);
-  dd21(1,2) = threeDtangent(2,5);
-  dd21(2,2) = threeDtangent(4,5);
+    dd22(0,1) = threeDtangent(1,2);
+    dd22(1,1) = threeDtangent(2,2);
+    dd22(2,1) = threeDtangent(4,2);
 
-  static Matrix dd22(3,3);
-  dd22(0,0) = threeDtangent(1,1);
-  dd22(1,0) = threeDtangent(2,1);
-  dd22(2,0) = threeDtangent(4,1);
+    dd22(0,2) = threeDtangent(1,4);
+    dd22(1,2) = threeDtangent(2,4);
+    dd22(2,2) = threeDtangent(4,4);
 
-  dd22(0,1) = threeDtangent(1,2);
-  dd22(1,1) = threeDtangent(2,2);
-  dd22(2,1) = threeDtangent(4,2);
+    Matrix3D dd21;
+    dd21(0,0) = threeDtangent(1,0);
+    dd21(1,0) = threeDtangent(2,0);
+    dd21(2,0) = threeDtangent(4,0);
 
-  dd22(0,2) = threeDtangent(1,4);
-  dd22(1,2) = threeDtangent(2,4);
-  dd22(2,2) = threeDtangent(4,4);
+    dd21(0,1) = threeDtangent(1,3);
+    dd21(1,1) = threeDtangent(2,3);
+    dd21(2,1) = threeDtangent(4,3);
 
+    dd21(0,2) = threeDtangent(1,5);
+    dd21(1,2) = threeDtangent(2,5);
+    dd21(2,2) = threeDtangent(4,5);
 
-  //int Solve(const Vector &V, Vector &res) const;
-  //int Solve(const Matrix &M, Matrix &res) const;
-  //condensation 
-  static Matrix dd22invdd21(3,3);
-  dd22.Solve(dd21, dd22invdd21);
+    //int Solve(const Vector &V, Vector &res) const;
+    //int Solve(const Matrix &M, Matrix &res) const;
+    //condensation
+    Cholesky<3> chol(dd22);
+    Matrix3D d22inv;
+    if (chol.invert(d22inv) < 0) [[unlikely]] {
+      if (dd22.solve(dd21, dd22invdd21) < 0) {
+        opserr << "could not solve material tangent\n";
+      }
+    }
+    else {
+      dd22invdd21 = d22inv * dd21;
+    }
+  }
 
   //this->tangent   = dd11; 
   //this->tangent  -= (dd12*dd22invdd21);
   dd11.addMatrixProduct(1.0, dd12, dd22invdd21, -1.0);
-  tangent = dd11; 
+
+  for (int i=0; i<3; i++)
+    for (int j=0; j<3; j++)
+      tangent(i,j) = dd11(i,j);
 
   return tangent;
 }
@@ -437,10 +473,20 @@ BeamFiberMaterial::getInitialTangent()
 void  
 BeamFiberMaterial::Print(OPS_Stream &s, int flag)
 {
-  s << "BeamFiberMaterial, tag: " << this->getTag() << endln;
-  s << "\tWrapped material: "<< theMaterial->getTag() << endln;
 
-  theMaterial->Print(s, flag);
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"BeamFiberMaterial\", ";
+    s << "\"material\": " << theMaterial->getTag();
+    s << "}";
+  }
+  else {
+    s << "BeamFiberMaterial, tag: " << this->getTag() << endln;
+    s << "\tWrapped material: "<< theMaterial->getTag() << endln;
+
+    theMaterial->Print(s, flag);
+  }
 }
 
 int 

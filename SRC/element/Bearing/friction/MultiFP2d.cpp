@@ -78,7 +78,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiFP2d)
 
   int axialCase = 1; //
 
-  opserr << "NUM REMAINING ARGS: " << numRemainingArgs << endln;
+  opserr << "NUM REMAINING ARGS: " << numRemainingArgs << "\n";
 
   while (done == 0 && numRemainingArgs > 0) {
 
@@ -105,7 +105,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiFP2d)
 	double dData[1];
 	numData = 1;
 	if (OPS_GetDoubleInput(&numData, dData) != 0) {
-	  opserr << "WARNING error reading element area for element" << eleTag << endln;
+	  opserr << "WARNING error reading element area for element" << eleTag << "\n";
 	  return 0;
 	}
 	
@@ -120,7 +120,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiFP2d)
 			       dData[0], axialCase);
 	done = 1;
       } else {
-	opserr << "WARNING incorrect #args for MultiFP ele " << eleTag << " for -material option" << endln;
+	opserr << "WARNING incorrect #args for MultiFP ele " << eleTag << " for -material option" << "\n";
 
       }
     } 
@@ -132,7 +132,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiFP2d)
 	double dData[17];
 	numData = 17;
 	if (OPS_GetDoubleInput(&numData, dData) != 0) {
-	  opserr << "WARNING error reading element area for element" << eleTag << endln;
+	  opserr << "WARNING error reading element area for element" << eleTag << "\n";
 	  return 0;
 	}
 	Vector R(3); R(0) = dData[0]; R(1)=dData[1]; R(2)=dData[2];
@@ -154,15 +154,15 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiFP2d)
 	
 	done = 1;
       } else {
-	opserr << "WARNING incorrect #args for MultiFP ele " << eleTag << " for -triple option" << endln;
+	opserr << "WARNING incorrect #args for MultiFP ele " << eleTag << " for -triple option" << "\n";
       }
     } else {
-      opserr << "WARNING unknown option: " << nextArg << " for MultiFP ele " << eleTag << endln;
+      opserr << "WARNING unknown option: " << nextArg << " for MultiFP ele " << eleTag << "\n";
       done = 1;
     }
     
     if (theEle == 0) {
-      opserr << "WARNING ran out of memory creating element with tag " << eleTag << endln;
+      opserr << "WARNING ran out of memory creating element with tag " << eleTag << "\n";
       return 0;
     }
   }
@@ -290,13 +290,13 @@ MultiFP2d::getExternalNodes(void)
 }
 
 Node **
-MultiFP2d::getNodePtrs(void) 
+MultiFP2d::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-MultiFP2d::getNumDOF(void) {
+MultiFP2d::getNumDOF() {
   return numDOF;
 }
 
@@ -308,8 +308,7 @@ void
 MultiFP2d::setDomain(Domain *theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
-  if (theDomain == 0) {
-    exit(-1);    
+  if (theDomain == nullptr) {
     return;
   }
   
@@ -334,7 +333,8 @@ MultiFP2d::setDomain(Domain *theDomain)
   theNodes[0] = end1Ptr;
   theNodes[1] = end2Ptr;
   // call the DomainComponent class method THIS IS VERY IMPORTANT
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
   
   // ensure connected nodes have correct number of dof's
   int dofNd1 = end1Ptr->getNumberDOF();
@@ -496,7 +496,7 @@ MultiFP2d::Print(OPS_Stream &s, int flag)
 {
   s << "Element: " << this->getTag(); 
   s << " type: MultiFP2d  iNode: " << externalNodes(0);
-  s << " jNode: " << externalNodes(1) << endln;
+  s << " jNode: " << externalNodes(1) << "\n";
   s << "material for normalized lateral force displacement response\n";
   theFrictionModel->Print(s, flag);
   s << "material for vertical force displacement response\n";

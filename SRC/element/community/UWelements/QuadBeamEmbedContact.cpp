@@ -261,7 +261,8 @@ QuadBeamEmbedContact::setDomain(Domain *theDomain)
 	//opserr << "x= " << m_x_n(0) << ", " << m_x_n(1) << endln;
 	//opserr << "y= " << m_y_n(0) << ", " << m_y_n(1) << endln;
 
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 }
 
 int 

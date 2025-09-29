@@ -16,6 +16,8 @@ target_sources(OPS_SysOfEqn
     FullGenEigenSolver.cpp
     SymBandEigenSOE.cpp
     SymBandEigenSolver.cpp
+    SymmGeneralizedEigenSolver.cpp
+    SymmGeneralizedEigenSOE.cpp
   PUBLIC
     ArpackSOE.h
     ArpackSolver.h

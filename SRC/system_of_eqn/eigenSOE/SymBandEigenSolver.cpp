@@ -178,12 +178,12 @@ SymBandEigenSolver::solve(int nModes, bool generalized, bool findSmallest)
     // form M^(-1/2) and check for singular mass matrix
     for (int k=0; k<size; k++) {
       if (M[k] == 0.0) {
-	singular = true;
-	// alternative is to set as a small no ~ 1e-10 times smallest m(i,i) != 0.0
-	opserr << "SymBandEigenSolver::solve() - M matrix singular\n";
-	return -1;
+        singular = true;
+        // alternative is to set as a small no ~ 1e-10 times smallest m(i,i) != 0.0
+        opserr << "SymBandEigenSolver::solve() - M matrix singular\n";
+        return -1;
       } else {
-	M[k] = 1.0/sqrt(M[k]);
+        M[k] = 1.0/sqrt(M[k]);
       }
     }
 
@@ -194,8 +194,8 @@ SymBandEigenSolver::solve(int nModes, bool generalized, bool findSmallest)
       int minColRow = i - numSuperD;
       if (minColRow < 0) minColRow = 0;
       for (j=i; j>=minColRow; j--) {
-	*AijPtr *= M[j]*M[i];
-	AijPtr--;
+        *AijPtr *= M[j]*M[i];
+        AijPtr--;
       }
     }
   }

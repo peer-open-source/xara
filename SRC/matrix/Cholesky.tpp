@@ -28,23 +28,24 @@ class Cholesky {
     {
       // Perform in-place Cholesky into L
       for (std::size_t j = 0; j < N; ++j) {
-          // diagonal
-          double sum_sq = 0;
-          for (std::size_t k = 0; k < j; ++k)
-              sum_sq += L[j*N + k] * L[j*N + k];
-          double diag = A(j, j) - sum_sq;
-          if (diag <= 0.0) {
-              ok = false; return;
-          }
-          L[j*N + j] = std::sqrt(diag);
+        // diagonal
+        double sum_sq = 0;
+        for (std::size_t k = 0; k < j; ++k)
+          sum_sq += L[j*N + k] * L[j*N + k];
+        double diag = A(j, j) - sum_sq;
+        if (diag <= 0.0) {
+          ok = false;
+          return;
+        }
+        L[j*N + j] = std::sqrt(diag);
 
-          // sub-diagonal
-          for (std::size_t i = j + 1; i < N; ++i) {
-              double sum_pr = 0;
-              for (std::size_t k = 0; k < j; ++k)
-                  sum_pr += L[i*N + k] * L[j*N + k];
-              L[i*N + j] = (A(i, j) - sum_pr) / L[j*N + j];
-          }
+        // sub-diagonal
+        for (std::size_t i = j + 1; i < N; ++i) {
+          double sum_pr = 0;
+          for (std::size_t k = 0; k < j; ++k)
+              sum_pr += L[i*N + k] * L[j*N + k];
+          L[i*N + j] = (A(i, j) - sum_pr) / L[j*N + j];
+        }
       }
     }
 

@@ -91,7 +91,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Adapter)
         type = OPS_GetString();
         if (strcmp(type, "-dof") != 0 && strcmp(type, "-dir") != 0) {
             opserr << "WARNING expecting -dof dofNd"
-                << i + 1 << ", but got " << type << endln;
+                << i + 1 << ", but got " << type << "\n";
             return 0;
         }
         ID dofsi(ndf);
@@ -393,7 +393,8 @@ void Adapter::setDomain(Domain *theDomain)
     theLoad.Zero();
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 
@@ -411,10 +412,10 @@ int Adapter::commitState()
 int Adapter::revertToLastCommit()
 {
     opserr << "Adapter::revertToLastCommit() - "
-        << "Element: " << this->getTag() << endln
+        << "Element: " << this->getTag() << "\n"
         << "Can't revert to last commit. This element "
         << "is connected to an external process." 
-        << endln;
+        << "\n";
     
     return -1;
 }
@@ -423,10 +424,10 @@ int Adapter::revertToLastCommit()
 int Adapter::revertToStart()
 {
     opserr << "Adapter::revertToStart() - "
-        << "Element: " << this->getTag() << endln
+        << "Element: " << this->getTag() << "\n"
         << "Can't revert to start. This element "
         << "is connected to an external process." 
-        << endln;
+        << "\n";
     
     return -1;
 }

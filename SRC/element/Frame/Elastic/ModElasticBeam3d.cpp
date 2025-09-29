@@ -210,10 +210,10 @@ Node **ModElasticBeam3d::getNodePtrs(void) { return theNodes; }
 
 int ModElasticBeam3d::getNumDOF(void) { return 12; }
 
-void ModElasticBeam3d::setDomain(Domain *theDomain) {
+void
+ModElasticBeam3d::setDomain(Domain *theDomain) {
   if (theDomain == 0) {
-    opserr << "ModElasticBeam3d::setDomain -- Domain is null" << "\n";
-    exit(-1);
+    return;
   }
 
   theNodes[0] = theDomain->getNode(connectedExternalNodes(0));
@@ -250,7 +250,8 @@ void ModElasticBeam3d::setDomain(Domain *theDomain) {
     exit(-1);
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
   if (theCoordTransf->initialize(theNodes[0], theNodes[1]) != 0) {
     opserr << "ModElasticBeam3d::setDomain  tag: " << this->getTag()

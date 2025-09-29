@@ -197,7 +197,8 @@ void FlatSliderSimple3d::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set up the transformation matrix for orientation
     this->setUp();
@@ -745,18 +746,18 @@ void FlatSliderSimple3d::Print(OPS_Stream &s, int flag)
         // print everything
         s << "Element: " << this->getTag(); 
         s << "  type: FlatSliderSimple3d  iNode: " << connectedExternalNodes(0);
-        s << "  jNode: " << connectedExternalNodes(1) << endln;
-        s << "  FrictionModel: " << theFrnMdl->getTag() << endln;
-        s << "  kInit: " << k0 << endln;
-        s << "  Material ux: " << theMaterials[0]->getTag() << endln;
-        s << "  Material rx: " << theMaterials[1]->getTag() << endln;
-        s << "  Material ry: " << theMaterials[2]->getTag() << endln;
-        s << "  Material rz: " << theMaterials[3]->getTag() << endln;
+        s << "  jNode: " << connectedExternalNodes(1) << "\n";
+        s << "  FrictionModel: " << theFrnMdl->getTag() << "\n";
+        s << "  kInit: " << k0 << "\n";
+        s << "  Material ux: " << theMaterials[0]->getTag() << "\n";
+        s << "  Material rx: " << theMaterials[1]->getTag() << "\n";
+        s << "  Material ry: " << theMaterials[2]->getTag() << "\n";
+        s << "  Material rz: " << theMaterials[3]->getTag() << "\n";
         s << "  shearDistI: " << shearDistI << "  addRayleigh: "
-            << addRayleigh << "  mass: " << mass << endln;
-        s << "  maxIter: " << maxIter << "  tol: " << tol << endln;
+            << addRayleigh << "  mass: " << mass << "\n";
+        s << "  maxIter: " << maxIter << "  tol: " << tol << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {

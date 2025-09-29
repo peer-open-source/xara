@@ -399,7 +399,8 @@ void ASDEmbeddedNodeElement::setDomain(Domain* theDomain)
     }
 
     // call base class implementation
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 void ASDEmbeddedNodeElement::Print(OPS_Stream& s, int flag)
@@ -409,11 +410,11 @@ void ASDEmbeddedNodeElement::Print(OPS_Stream& s, int flag)
         s << "EL_ASDEmbeddedNodeElement\t" << eleTag << " :";
         for (int i = 0; i < m_node_ids.Size(); ++i)
             s << "\t" << m_node_ids(i);
-        s << endln;
+        s << "\n";
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ASDEmbeddedNodeElement\", ";
         s << "\"nodes\": [";

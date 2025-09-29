@@ -191,7 +191,8 @@ void ShellDKGT::setDomain(Domain *theDomain)
   //basis vectors and local coordinates
   computeBasis();
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 //get the number of external nodes

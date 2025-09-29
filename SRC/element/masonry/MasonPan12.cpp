@@ -344,7 +344,8 @@ MasonPan12::setDomain(Domain *theDomain)
         
         
         // call the DomainComponent class method THIS IS VERY IMPORTANT
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // ensure connected nodes have correct number of dof's
     int dofNd1 = end1Ptr->getNumberDOF();

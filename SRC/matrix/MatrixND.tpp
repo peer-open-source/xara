@@ -272,6 +272,15 @@ int
 MatrixND<NR,NC,T>::solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept
 {
   static_assert(NR == NC);
+  if constexpr (NR < 6) {
+    MatrixND<NR,NC,T> Ainv;
+    int status = this->invert(Ainv);
+    if (status != 0)
+      return status;
+
+    res = Ainv * V;
+    return 0;
+  }
 
   MatrixND<NR,NC> work = *this;
   int pivot_ind[NR];
@@ -292,6 +301,15 @@ MatrixND<NR,NC,T>::solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const noexc
 {
   static_assert(NR == NC, "Matrix must be square.");
   static_assert(n == NR, "RHS row-count must match A.");
+  if constexpr (NR < 6) {
+    MatrixND<NR,NC,T> Ainv;
+    int status = this->invert(Ainv);
+    if (status != 0)
+      return status;
+
+    X = Ainv * M;
+    return 0;
+  }
 
   MatrixND<NR,NC,T> work = *this;               // copy of A to be factorised
   int ipiv[NR]{};

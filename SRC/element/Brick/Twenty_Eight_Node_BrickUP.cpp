@@ -263,7 +263,8 @@ void  TwentyEightNodeBrickUP::setDomain( Domain *theDomain )
       return;
     }
   }
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 
@@ -953,19 +954,16 @@ const Vector&  TwentyEightNodeBrickUP::getResistingForce( )
     }
 
     // Subtract other external nodal loads ... P_res = P_int - P_ext
-//    opserr<<"resid before:"<<resid<<endln;
 
     if (load != 0)
         resid -= *load;
-
-//    opserr<<"resid "<<resid<<endln;
 
     return resid ;
 }
 
 
-//get residual with inertia terms
-const Vector&  TwentyEightNodeBrickUP::getResistingForceIncInertia( )
+const Vector&
+TwentyEightNodeBrickUP::getResistingForceIncInertia( )
 {
     static Vector res(68);
 
@@ -990,7 +988,6 @@ const Vector&  TwentyEightNodeBrickUP::getResistingForceIncInertia( )
     }
     // Compute the current resisting force
     this->getResistingForce();
-//    opserr<<"K "<<resid<<endln;
 
     // Compute the mass matrix
     this->getMass();
@@ -1000,9 +997,6 @@ const Vector&  TwentyEightNodeBrickUP::getResistingForceIncInertia( )
             resid(i) += mass(i,j)*a[j];
         }
     }
-//    printf("\n");
-    //opserr<<"K+M "<<P<<endln;
-
 
     for (i=0; i<nenu; i++) {
         const Vector &vel = nodePointers[i]->getTrialVel();
@@ -1030,7 +1024,6 @@ const Vector&  TwentyEightNodeBrickUP::getResistingForceIncInertia( )
     }
 
     res = resid;
-//    opserr<<"res "<<res<<endln;
 
     return res;
 }
@@ -1039,7 +1032,8 @@ const Vector&  TwentyEightNodeBrickUP::getResistingForceIncInertia( )
 //*********************************************************************
 //form inertia terms
 
-void   TwentyEightNodeBrickUP::formInertiaTerms( int tangFlag )
+void
+TwentyEightNodeBrickUP::formInertiaTerms( int tangFlag )
 {
     static double xsj ;  // determinant jacaobian matrix
     int i, j, k, ik, m, jk;

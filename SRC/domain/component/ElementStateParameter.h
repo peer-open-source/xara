@@ -33,20 +33,22 @@ class Domain;
 class ElementStateParameter : public Parameter
 {
  public:
-  ElementStateParameter(double value, 
-			const char **argv, 
-			int argc, 
-			int flag, 
-			ID *theEle = 0);
+  ElementStateParameter(
+      int tag,
+      double value, 
+      const char **argv, 
+      int argc, 
+      int flag, 
+      ID *theEle = 0);
 
   ElementStateParameter();
   ~ElementStateParameter();
   
   void Print(OPS_Stream &s, int flag =0);
 
-  void setDomain(Domain *theDomain);
-  int sendSelf(int commitTag, Channel &theChannel);  
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  void setDomain(Domain *);
+  int sendSelf(int commitTag, Channel &) override;  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
  protected:
   

@@ -329,7 +329,8 @@ MEFI::setDomain(Domain *theDomain)
 		exit(-1);
 	}
 
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
 }//end setDomain
 

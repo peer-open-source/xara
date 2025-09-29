@@ -186,7 +186,8 @@ BBarFourNodeQuadUP::setDomain(Domain *theDomain)
 
       return;
     }
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // Compute consistent nodal loads due to pressure
     this->setPressureLoadAtNodes();

@@ -46,7 +46,6 @@
 #include <ElementIter.h>
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
-// AddingSensitivity:END ////////////////////////////
 
 #include <NodalLoad.h>
 
@@ -68,7 +67,7 @@ Node::Node(int theClassTag)
  rotation(nullptr),
  dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
- index(-1), reaction(0)//, displayLocation(0)
+ index(-1), reaction(0)
 {
   // for FEM_ObjectBroker, recvSelf() must be invoked on object
 
@@ -103,7 +102,7 @@ Node::Node(int tag, int theClassTag)
   accSensitivity  = nullptr;
   parameterID = 0;
 
-  theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
+  theNodalThermalActionPtr = 0;
 }
 
 Node::Node(int tag, int ndof, double Crd1, Vector *dLoc)
@@ -116,7 +115,7 @@ Node::Node(int tag, int ndof, double Crd1, Vector *dLoc)
  rotation(nullptr),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
- index(-1), reaction(0)//, displayLocation(0)
+ index(-1), reaction(0)
 {
   this->createDisp();
   dispSensitivity = 0;
@@ -124,7 +123,7 @@ Node::Node(int tag, int ndof, double Crd1, Vector *dLoc)
   accSensitivity  = 0;
   parameterID     = 0;
 
-  theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
+  theNodalThermalActionPtr = 0;
 
   Crd = new Vector(1);
   (*Crd)(0) = Crd1;
@@ -143,7 +142,7 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
  rotation(nullptr),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
- reaction(0)//, displayLocation(0)
+ reaction(0)
 {
   this->createDisp();
   dispSensitivity = 0;
@@ -151,7 +150,7 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
   accSensitivity = 0;
   parameterID = 0;
 
-  theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
+  theNodalThermalActionPtr = 0;
 
   Crd = new Vector(2);
   (*Crd)(0) = Crd1;
@@ -174,7 +173,7 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
  rotation(nullptr),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
- reaction(0)//, displayLocation(0)
+ reaction(0)
 {
   this->createDisp();
   dispSensitivity = 0;
@@ -198,15 +197,15 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
 //  we should really set the mass to 0.0
 Node::Node(const Node &otherNode, bool copyMass)
   :TaggedObject(otherNode.getTag()),MovableObject(otherNode.getClassTag()),
- numberDOF(otherNode.numberDOF), theDOF_GroupPtr(0),
- Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
- trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
- incrDeltaDisp(0),
- disp(0), vel(0), accel(0), 
- rotation(nullptr),
- dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
- R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
-   reaction(0)//, displayLocation(0)
+  numberDOF(otherNode.numberDOF), theDOF_GroupPtr(0),
+  Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
+  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
+  incrDeltaDisp(0),
+  disp(0), vel(0), accel(0), 
+  rotation(nullptr),
+  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
+  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
+  reaction(0)
 {
   this->createDisp();
   dispSensitivity = 0;
@@ -256,31 +255,27 @@ Node::Node(const Node &otherNode, bool copyMass)
 }
 
 
-// ~Node():
-//       destructor
-
 Node::~Node()
 {
-  // delete anything that we created with new
-  if (Crd != 0)
+  if (Crd != nullptr)
     delete Crd;
 
-  if (commitDisp != 0)
+  if (commitDisp != nullptr)
     delete commitDisp;
 
-  if (commitVel != 0)
+  if (commitVel != nullptr)
     delete commitVel;
 
-  if (commitAccel != 0)
+  if (commitAccel != nullptr)
     delete commitAccel;
 
-  if (trialDisp != 0)
+  if (trialDisp != nullptr)
     delete trialDisp;
 
-  if (trialVel != 0)
+  if (trialVel != nullptr)
     delete trialVel;
 
-  if (trialAccel != 0)
+  if (trialAccel != nullptr)
     delete trialAccel;
 
   if (rotation != nullptr)
@@ -334,7 +329,7 @@ Node::~Node()
 
 
 int
-Node::getNumberDOF(void) const
+Node::getNumberDOF() const
 {
   return  numberDOF;
 }
@@ -349,7 +344,7 @@ Node::setDOF_GroupPtr(DOF_Group *theDOF_Grp)
 
 
 DOF_Group *
-Node::getDOF_GroupPtr(void)
+Node::getDOF_GroupPtr()
 {
   return theDOF_GroupPtr;
 }
@@ -400,7 +395,7 @@ Node::getAccel()
   // accel on first call to this method, getTrialAccel()
   // setTrialAccel() or incrTrialAccel()
   if (commitAccel == nullptr)
-      this->createAccel();
+    this->createAccel();
 
   return *commitAccel;
 }
@@ -416,20 +411,20 @@ const Vector &
 Node::getTrialDisp()
 {
 #if 0
-    if (trialDisp == nullptr)
-      this->createDisp();
+  if (trialDisp == nullptr)
+    this->createDisp();
 #endif
-    return *trialDisp;
+  return *trialDisp;
 }
 
 const Vector &
-Node::getIncrDisp(void)
+Node::getIncrDisp()
 {
 #if 0
-    if (incrDisp == nullptr)
-      this->createDisp();
+  if (incrDisp == nullptr)
+    this->createDisp();
 #endif
-    return *incrDisp;
+  return *incrDisp;
 }
 
 const Vector &
@@ -467,12 +462,12 @@ Node::getTrialVel()
 
 
 const Vector &
-Node::getTrialAccel(void)
+Node::getTrialAccel()
 {
-    if (trialAccel == nullptr)
-      this->createAccel();
+  if (trialAccel == nullptr)
+    this->createAccel();
 
-    return *trialAccel;
+  return *trialAccel;
 }
 
 
@@ -499,22 +494,29 @@ Node::setTrialDisp(const Vector &newTrialDisp)
 {
   // check vector arg is of correct size
   assert(newTrialDisp.Size() == numberDOF);
+  assert(numberDOF <= 12); // max size of static array below
+
+  static double tmp[12];
+  Vector du(tmp, numberDOF);
+  du = newTrialDisp;
+  du -= this->getTrialDisp();
+  return this->incrTrialDisp(du);
 
 #if 0
   if (trialDisp == 0)
       this->createDisp();
 #endif
-
+#if 0
   // perform the assignment .. we don't go through Vector interface
   // as we are sure of size and this way is quicker
   for (int i=0; i<numberDOF; i++) {
-      double tDisp = newTrialDisp(i);
-      disp[i+2*numberDOF] = tDisp - disp[i+numberDOF];
-      disp[i+3*numberDOF] = tDisp - disp[i];
-      disp[i] = tDisp;
+    double tDisp = newTrialDisp(i);
+    disp[i+2*numberDOF] = tDisp - disp[i+numberDOF];
+    disp[i+3*numberDOF] = tDisp - disp[i];
+    disp[i] = tDisp;
   }
-
   return 0;
+#endif
 }
 
 int
@@ -556,10 +558,10 @@ Node::incrTrialDisp(const Vector &incrDispl)
 
   // otherwise set trial = incr + trial
   for (int i = 0; i<numberDOF; i++) {
-      double incrDispI = incrDispl(i);
-      disp[i]             += incrDispI;
-      disp[i+2*numberDOF] += incrDispI;
-      disp[i+3*numberDOF]  = incrDispI;
+    double incrDispI = incrDispl(i);
+    disp[i]             += incrDispI;
+    disp[i+2*numberDOF] += incrDispI;
+    disp[i+3*numberDOF]  = incrDispI;
   }
 
   if (rotation != nullptr && this->getNumberDOF() >= 6) [[likely]] {
@@ -593,7 +595,6 @@ Node::setTrialAccel(const Vector &newTrialAccel)
 
   return 0;
 }
-
 
 
 int
@@ -642,7 +643,7 @@ Node::incrTrialAccel(const Vector &incrAccel)
 
 
 void
-Node::zeroUnbalancedLoad(void)
+Node::zeroUnbalancedLoad()
 {
   if (unbalLoad != nullptr)
     unbalLoad->Zero();
@@ -763,8 +764,8 @@ Node::getUnbalancedLoadIncInertia()
     unbalLoadWithInertia->addMatrixVector(1.0, *mass, theAccel, -1.0);
 
     if (alphaM != 0.0) {
-    const Vector &theVel = this->getTrialVel(); // in case vel not created
-    unbalLoadWithInertia->addMatrixVector(1.0, *mass, theVel, -alphaM);
+      const Vector &theVel = this->getTrialVel(); // in case vel not created
+      unbalLoadWithInertia->addMatrixVector(1.0, *mass, theVel, -alphaM);
     }
   }
 
@@ -777,7 +778,7 @@ Node::commitState()
   // check disp exists, if does set commit = trial, incr = 0.0
   if (trialDisp != 0) {
     for (int i=0; i<numberDOF; i++) {
-    disp[i+numberDOF] = disp[i];
+      disp[i+numberDOF] = disp[i];
       disp[i+2*numberDOF] = 0.0;
       disp[i+3*numberDOF] = 0.0;
     }
@@ -807,30 +808,29 @@ int
 Node::revertToLastCommit()
 {
   // check memory was allocated, if it does set trial = last commit, incr = 0
-  if (disp != 0) {
+  if (disp != nullptr) {
     for (int i=0 ; i<numberDOF; i++) {
-    disp[i] = disp[i+numberDOF];
-    disp[i+2*numberDOF] = 0.0;
-    disp[i+3*numberDOF] = 0.0;
+      disp[i] = disp[i+numberDOF];
+      disp[i+2*numberDOF] = 0.0;
+      disp[i+3*numberDOF] = 0.0;
     }
   }
 
   // check vel exists, if does set trial = last commit
-  if (vel != 0) {
+  if (vel != nullptr) {
     for (int i=0 ; i<numberDOF; i++)
-    vel[i] = vel[numberDOF+i];
+      vel[i] = vel[numberDOF+i];
   }
 
   // check accel exists, if does set trial = last commit
-  if (accel != 0) {
+  if (accel != nullptr) {
     for (int i=0 ; i<numberDOF; i++)
-    accel[i] = accel[numberDOF+i];
+      accel[i] = accel[numberDOF+i];
   }
 
   if (rotation != nullptr)
     rotation[1] = rotation[0];
 
-  // if we get here we are done
   return 0;
 }
 
@@ -841,24 +841,23 @@ Node::revertToStart()
   // check disp exists, if does set all to zero
   if (disp != 0) {
     for (int i=0 ; i<4*numberDOF; i++)
-    disp[i] = 0.0;
+      disp[i] = 0.0;
   }
 
   // check vel exists, if does set all to zero
   if (vel != 0) {
     for (int i=0 ; i<2*numberDOF; i++)
-    vel[i] = 0.0;
+      vel[i] = 0.0;
   }
 
   // check accel exists, if does set all to zero
   if (accel != 0) {
     for (int i=0 ; i<2*numberDOF; i++)
-    accel[i] = 0.0;
+      accel[i] = 0.0;
   }
 
   if (unbalLoad != nullptr)
     (*unbalLoad) *= 0;
-
 
   if (dispSensitivity != 0)
     dispSensitivity->Zero();
@@ -874,7 +873,6 @@ Node::revertToStart()
     rotation[1] = rotation[0];
   }
 
-
   return 0;
 }
 
@@ -882,21 +880,22 @@ Node::revertToStart()
 const Matrix &
 Node::getMass()
 {
-    if (index == -1) {
-      setGlobalMatrices();
-    }
+  if (index == -1) {
+    setGlobalMatrices();
+  }
 
-    // make sure it was created before we return it
-    if (mass == 0) {
-      theMatrices[index]->Zero();
-      return *theMatrices[index];
-    } else
-      return *mass;
+  // make sure it was created before we return it
+  if (mass == 0) {
+    theMatrices[index]->Zero();
+    return *theMatrices[index];
+  } else
+    return *mass;
 }
 
 
 int
-Node::setRayleighDampingFactor(double alpham) {
+Node::setRayleighDampingFactor(double alpham)
+{
   alphaM = alpham;
   return 0;
 }
@@ -905,61 +904,60 @@ Node::setRayleighDampingFactor(double alpham) {
 const Matrix &
 Node::getDamp()
 {
-    if (index == -1) {
-      setGlobalMatrices();
-    }
+  if (index == -1)
+    setGlobalMatrices();
 
-    // make sure it was created before we return it
-    if (mass == 0 || alphaM == 0.0) {
-      theMatrices[index]->Zero();
-      return *theMatrices[index];
-    } else {
-      Matrix &result = *theMatrices[index];
-      result = *mass;
-      result *= alphaM;
-      return result;
-    }
+  // make sure it was created before we return it
+  if (mass == 0 || alphaM == 0.0) {
+    theMatrices[index]->Zero();
+    return *theMatrices[index];
+  } else {
+    Matrix &result = *theMatrices[index];
+    result = *mass;
+    result *= alphaM;
+    return result;
+  }
 }
 
 
 const Matrix &
-Node::getDampSensitivity(void)
+Node::getDampSensitivity()
 {
-    if (index == -1) {
-      setGlobalMatrices();
-    }
+  if (index == -1) {
+    setGlobalMatrices();
+  }
 
-    // make sure it was created before we return it
-    if (mass == 0 || alphaM == 0.0) {
-      theMatrices[index]->Zero();
-      return *theMatrices[index];
-    } else {
-      Matrix &result = *theMatrices[index];
-        result.Zero();
-      //result = *mass;
-      //result *= alphaM;
-      return result;
-    }
+  // make sure it was created before we return it
+  if (mass == 0 || alphaM == 0.0) {
+    theMatrices[index]->Zero();
+    return *theMatrices[index];
+  } else {
+    Matrix &result = *theMatrices[index];
+      result.Zero();
+    //result = *mass;
+    //result *= alphaM;
+    return result;
+  }
 }
 
 
 int
 Node::setMass(const Matrix &newMass)
 {
-    // check right size
-    assert(newMass.noRows() == numberDOF && newMass.noCols() == numberDOF);
+  // check right size
+  assert(newMass.noRows() == numberDOF && newMass.noCols() == numberDOF);
 
 
-    // create a matrix if no mass yet set
-    if (mass == nullptr) {
-      mass = new Matrix(newMass);
-      return 0;
-    }
-
-    // otherwise assign mass
-    (*mass) = newMass;
-
+  // create a matrix if no mass yet set
+  if (mass == nullptr) {
+    mass = new Matrix(newMass);
     return 0;
+  }
+
+  // otherwise assign mass
+  (*mass) = newMass;
+
+  return 0;
 }
 
 
@@ -1090,7 +1088,7 @@ Node::setEigenvector(int mode, const Vector &eigenVector)
 }
 
 const Matrix &
-Node::getEigenvectors(void)
+Node::getEigenvectors()
 {
   // check the eigen vectors have been set
   if (theEigenvectors == 0) {
@@ -1106,105 +1104,105 @@ Node::getEigenvectors(void)
 int
 Node::sendSelf(int cTag, Channel &theChannel)
 {
-    int dataTag = this->getDbTag();
+  int dataTag = this->getDbTag();
 
-    ID data(14);
-    data(0) = this->getTag();
-    data(1) = numberDOF;
+  ID data(14);
+  data(0) = this->getTag();
+  data(1) = numberDOF;
 
-    // indicate whether vector quantaties have been formed
-    if (disp == 0)       data(2) = 1; else data(2) = 0;
-    if (vel == 0)        data(3) = 1; else data(3) = 0;
-    if (accel == 0)      data(4) = 1; else data(4) = 0;
-    if (mass == 0)       data(5) = 1; else data(5) = 0;
-    if (unbalLoad  == 0) data(6) = 1; else data(6) = 0;
-    if (R == 0)
-      data(12) = 1;
-    else {
-      data(12) = 0;
-      data(13) = R->noCols();
-    }
+  // indicate whether vector quantaties have been formed
+  if (disp == 0)       data(2) = 1; else data(2) = 0;
+  if (vel == 0)        data(3) = 1; else data(3) = 0;
+  if (accel == 0)      data(4) = 1; else data(4) = 0;
+  if (mass == 0)       data(5) = 1; else data(5) = 0;
+  if (unbalLoad  == 0) data(6) = 1; else data(6) = 0;
+  if (R == 0)
+    data(12) = 1;
+  else {
+    data(12) = 0;
+    data(13) = R->noCols();
+  }
 
-    data(7) = Crd->Size();
+  data(7) = Crd->Size();
 
-    if (dbTag1 == 0)
-      dbTag1 = theChannel.getDbTag();
-    if (dbTag2 == 0)
-      dbTag2 = theChannel.getDbTag();
-    if (dbTag3 == 0)
-      dbTag3 = theChannel.getDbTag();
-    if (dbTag4 == 0)
-      dbTag4 = theChannel.getDbTag();
+  if (dbTag1 == 0)
+    dbTag1 = theChannel.getDbTag();
+  if (dbTag2 == 0)
+    dbTag2 = theChannel.getDbTag();
+  if (dbTag3 == 0)
+    dbTag3 = theChannel.getDbTag();
+  if (dbTag4 == 0)
+    dbTag4 = theChannel.getDbTag();
 
-    data(8) = dbTag1;
-    data(9) = dbTag2;
-    data(10) = dbTag3;
-    data(11) = dbTag4;
+  data(8) = dbTag1;
+  data(9) = dbTag2;
+  data(10) = dbTag3;
+  data(11) = dbTag4;
 
-    int res = 0;
+  int res = 0;
 
-    res = theChannel.sendID(dataTag, cTag, data);
+  res = theChannel.sendID(dataTag, cTag, data);
+  if (res < 0) {
+    opserr << " Node::sendSelf() - failed to send ID data\n";
+    return res;
+  }
+
+  res = theChannel.sendVector(dataTag, cTag, *Crd);
+  if (res < 0) {
+    opserr << " Node::sendSelf() - failed to send Vecor data\n";
+    return res;
+  }
+
+  if (commitDisp != 0) {
+    res = theChannel.sendVector(dbTag1, cTag, *commitDisp);
     if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send ID data\n";
+      opserr << " Node::sendSelf() - failed to send Disp data\n";
       return res;
     }
+  }
 
-    res = theChannel.sendVector(dataTag, cTag, *Crd);
+  if (commitVel != 0) {
+    res = theChannel.sendVector(dbTag2, cTag, *commitVel);
     if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send Vecor data\n";
+      opserr << " Node::sendSelf() - failed to send Vel data\n";
       return res;
     }
+  }
 
-    if (commitDisp != 0) {
-      res = theChannel.sendVector(dbTag1, cTag, *commitDisp);
-      if (res < 0) {
-        opserr << " Node::sendSelf() - failed to send Disp data\n";
-        return res;
-      }
+  if (commitAccel != 0) {
+    res = theChannel.sendVector(dbTag3, cTag, *commitAccel);
+    if (res < 0) {
+      opserr << " Node::sendSelf() - failed to send Accel data\n";
+      return res;
     }
+  }
 
-    if (commitVel != 0) {
-      res = theChannel.sendVector(dbTag2, cTag, *commitVel);
-      if (res < 0) {
-        opserr << " Node::sendSelf() - failed to send Vel data\n";
-        return res;
-      }
+  if (mass != 0) {
+    res = theChannel.sendMatrix(dataTag, cTag, *mass);
+    if (res < 0) {
+      opserr << " Node::sendSelf() - failed to send Mass data\n";
+      return res;
     }
+  }
 
-    if (commitAccel != 0) {
-      res = theChannel.sendVector(dbTag3, cTag, *commitAccel);
-      if (res < 0) {
-        opserr << " Node::sendSelf() - failed to send Accel data\n";
-        return res;
-      }
+  if (R != nullptr) {
+    res = theChannel.sendMatrix(dbTag2, cTag, *R);
+    if (res < 0) {
+      opserr << " Node::sendSelf() - failed to send R data\n";
+      return res;
     }
+  }
 
-    if (mass != 0) {
-      res = theChannel.sendMatrix(dataTag, cTag, *mass);
-      if (res < 0) {
-        opserr << " Node::sendSelf() - failed to send Mass data\n";
-        return res;
-      }
+  if (unbalLoad  != 0) {
+    res = theChannel.sendVector(dbTag4, cTag, *unbalLoad);
+    if (res < 0) {
+      opserr << " Node::sendSelf() - failed to send Load data\n";
+      return res;
     }
+  }
 
-    if (R != nullptr) {
-      res = theChannel.sendMatrix(dbTag2, cTag, *R);
-      if (res < 0) {
-        opserr << " Node::sendSelf() - failed to send R data\n";
-        return res;
-      }
-    }
-
-    if (unbalLoad  != 0) {
-      res = theChannel.sendVector(dbTag4, cTag, *unbalLoad);
-      if (res < 0) {
-        opserr << " Node::sendSelf() - failed to send Load data\n";
-        return res;
-      }
-    }
-
-    // if get here successful
-    return 0;
+  // if get here successful
+  return 0;
 }
 
 int
@@ -1361,7 +1359,6 @@ Node::recvSelf(int cTag, Channel &theChannel,
     theMatrices = nextMatrices;
   }
 
-
   return 0;
 }
 
@@ -1371,7 +1368,7 @@ Node::recvSelf(int cTag, Channel &theChannel,
 // values and the Vector objects for the committed and trial quantaties.
 
 int
-Node::createDisp(void)
+Node::createDisp()
 {
   // trial , committed, incr = (committed-trial)
   // Use {} to allocate zero-initialized space for the data
@@ -1385,7 +1382,7 @@ Node::createDisp(void)
 
 
 int
-Node::createVel(void)
+Node::createVel()
 {
   // Use {} to allocate zero-initialized space for the data
   vel       = new double[2*numberDOF]{};
@@ -1395,7 +1392,7 @@ Node::createVel(void)
 }
 
 int
-Node::createAccel(void)
+Node::createAccel()
 {
   // Use {} to allocate zero-initialized space for the data
   accel       = new double[2*numberDOF]{};
@@ -1407,59 +1404,59 @@ Node::createAccel(void)
 void
 Node::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_CURRENTSTATE) { // print out everything
-        s << "\n  Node: " << this->getTag() << endln;
-        s << "\tCoordinates  : " << *Crd;
-        if (commitDisp != 0)
-            s << "\tDisps: " << *trialDisp;
-        if (commitVel != 0)
-            s << "\tVelocities   : " << *trialVel;
-        if (commitAccel != 0)
-            s << "\tcommitAccels: " << *trialAccel;
-        if (unbalLoad != 0)
-            s << "\tunbalanced Load: " << *unbalLoad;
-        if (reaction != 0)
-            s << "\treaction: " << *reaction;
-        if (mass != 0) {
-            s << "\tMass : " << *mass;
-            s << "\tRayleigh Factor: alphaM: " << alphaM << endln;
-            s << "\tRayleigh Forces: " << *this->getResponse(NodeData::RayleighForces);
-        }
-        if (theEigenvectors != 0)
-            s << "\t Eigenvectors: " << *theEigenvectors;
-        if (theDOF_GroupPtr != 0)
-            s << "\tID : " << theDOF_GroupPtr->getID();
-        s << "\n";
+  if (flag == OPS_PRINT_CURRENTSTATE) { // print out everything
+    s << "\n  Node: " << this->getTag() << "\n";
+    s << "\tCoordinates  : " << *Crd;
+    if (commitDisp != 0)
+        s << "\tDisps: " << *trialDisp;
+    if (commitVel != 0)
+        s << "\tVelocities   : " << *trialVel;
+    if (commitAccel != 0)
+        s << "\tcommitAccels: " << *trialAccel;
+    if (unbalLoad != 0)
+        s << "\tunbalanced Load: " << *unbalLoad;
+    if (reaction != 0)
+        s << "\treaction: " << *reaction;
+    if (mass != 0) {
+        s << "\tMass : " << *mass;
+        s << "\tRayleigh Factor: alphaM: " << alphaM << "\n";
+        s << "\tRayleigh Forces: " << *this->getResponse(NodeData::RayleighForces);
     }
+    if (theEigenvectors != 0)
+        s << "\t Eigenvectors: " << *theEigenvectors;
+    if (theDOF_GroupPtr != 0)
+        s << "\tID : " << theDOF_GroupPtr->getID();
+    s << "\n";
+  }
 
-    else if (flag == 1) { // print out: nodeId displacements
-        s << this->getTag() << "  " << *commitDisp;
-    }
+  else if (flag == 1) { // print out: nodeId displacements
+    s << this->getTag() << "  " << *commitDisp;
+  }
 
-    else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_NODE_INDENT << "{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"ndf\": " << numberDOF << ", ";
-        s << "\"crd\": [";
-        int numCrd = Crd->Size();
-        for (int i = 0; i < numCrd - 1; i++)
-            s << (*Crd)(i) << ", ";
-        s << (*Crd)(numCrd - 1) << "]";
-        if (mass != 0) {
-            s << ", \"mass\": [";
-            for (int i = 0; i < numberDOF - 1; i++)
-                s << (*mass)(i, i) << ", ";
-            s << (*mass)(numberDOF - 1, numberDOF - 1) << "]";
-        }
-        s << "}";
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_NODE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"ndf\": " << numberDOF << ", ";
+    s << "\"crd\": [";
+    int numCrd = Crd->Size();
+    for (int i = 0; i < numCrd - 1; i++)
+        s << (*Crd)(i) << ", ";
+    s << (*Crd)(numCrd - 1) << "]";
+    if (mass != 0) {
+        s << ", \"mass\": [";
+        for (int i = 0; i < numberDOF - 1; i++)
+            s << (*mass)(i, i) << ", ";
+        s << (*mass)(numberDOF - 1, numberDOF - 1) << "]";
     }
+    s << "}";
+  }
 }
 
 
 // AddingSensitivity:BEGIN ///////////////////////////////////////
 
 Matrix
-Node::getMassSensitivity(void)
+Node::getMassSensitivity()
 {
   if (index == -1)
       setGlobalMatrices();
@@ -1488,7 +1485,7 @@ Node::getMassSensitivity(void)
 
 
 int
-Node::getCrdsSensitivity(void)
+Node::getCrdsSensitivity()
 {
   if ( (parameterID == 4) || (parameterID == 5) || (parameterID == 6) ) {
     return (parameterID-3);
@@ -1621,7 +1618,6 @@ Node::saveDispSensitivity(const Vector &v, int gradIndex, int numGrads)
     dispSensitivity = new Matrix( numberDOF, numGrads );
   }
 
-  //opserr << "Node::saveDispSens " << dispSensitivity->noRows() << ' ' << dispSensitivity->noCols() << endln;
   for (int i=0; i<numberDOF; i++ )
     (*dispSensitivity)(i,gradIndex) = v(i);
 
@@ -1687,7 +1683,8 @@ Node::getAccSensitivity(int dof, int gradIndex)
 
 
 const Vector &
-Node::getReaction() {
+Node::getReaction()
+{
   if (reaction == 0)
     reaction = new Vector(numberDOF);
 
@@ -1697,8 +1694,8 @@ Node::getReaction() {
 }
 
 int
-Node::addReactionForce(const Vector &add, double factor){
-
+Node::addReactionForce(const Vector &add, double factor)
+{
   // create rection vector if have not done so already
   if (reaction == 0)
     reaction = new Vector(numberDOF);
@@ -1913,45 +1910,46 @@ Node::setDisplayCrds(const Vector &theCrds)
 #endif
 
 
-//Add Pointer to NodalThermalAction id applicable------begin-----L.Jiang, [SIF]
+// Add Pointer to NodalThermalAction id applicable------begin-----L.Jiang, [SIF]
 NodalThermalAction*
-Node::getNodalThermalActionPtr(void)
+Node::getNodalThermalActionPtr()
 {
-    return theNodalThermalActionPtr;
+  return theNodalThermalActionPtr;
 }
+
 void
 Node::setNodalThermalActionPtr(NodalThermalAction* theAction)
 {
-    theNodalThermalActionPtr = theAction;
+  theNodalThermalActionPtr = theAction;
 }
-//Add Pointer to NodalThermalAction id applicable-----end------L.Jiang, {SIF]
+// Add Pointer to NodalThermalAction id applicable-----end------L.Jiang, {SIF]
 
 int
 Node::setGlobalMatrices()
 {
-    if (index == -1) {
-      for (int i=0; i<numMatrices; i++) {
-          if (theMatrices[i]->noRows() == numberDOF) {
-            index = i;
-            i = numMatrices;
-          }
-      }
+  if (index == -1) {
+    for (int i=0; i<numMatrices; i++) {
+        if (theMatrices[i]->noRows() == numberDOF) {
+          index = i;
+          i = numMatrices;
+        }
     }
-    if (index == -1) {
-      Matrix **nextMatrices = new Matrix *[numMatrices+1];
+  }
+  if (index == -1) {
+    Matrix **nextMatrices = new Matrix *[numMatrices+1];
 
-      for (int j=0; j<numMatrices; j++)
-          nextMatrices[j] = theMatrices[j];
+    for (int j=0; j<numMatrices; j++)
+        nextMatrices[j] = theMatrices[j];
 
-      Matrix *theMatrix = new Matrix(numberDOF, numberDOF);
+    Matrix *theMatrix = new Matrix(numberDOF, numberDOF);
 
-      nextMatrices[numMatrices] = theMatrix;
-      if (numMatrices != 0)
-          delete [] theMatrices;
-      index = numMatrices;
-      numMatrices++;
-      theMatrices = nextMatrices;
-    }
+    nextMatrices[numMatrices] = theMatrix;
+    if (numMatrices != 0)
+        delete [] theMatrices;
+    index = numMatrices;
+    numMatrices++;
+    theMatrices = nextMatrices;
+  }
 
-    return 0;
+  return 0;
 }

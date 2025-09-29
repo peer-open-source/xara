@@ -191,11 +191,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthContactASDimplex) {
     theElement = new ZeroLengthContactASDimplex(idata[0], idata[1], idata[2], ddata[0], ddata[1],
         ddata[2], ndm, integrationType, x_e[0], x_e[1], x_e[2]);
 
-    if (theElement == 0) {
-        opserr << "WARNING: out of memory: element zeroLengthContactASDimplex " << idata[0] <<
-            " iNode? jNode? Kn? Kt? mu? <-orient $x1 $x2 $x3> <-intType type?>\n";
-    }
-
     return theElement;
 }
 
@@ -324,7 +319,8 @@ void ZeroLengthContactASDimplex::setDomain(Domain* theDomain)
     }
 
     // call the base class method
-    DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 }
 
 int ZeroLengthContactASDimplex::commitState()

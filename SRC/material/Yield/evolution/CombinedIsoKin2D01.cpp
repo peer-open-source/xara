@@ -1,4 +1,4 @@
-//CombinedIsoKin2D01.cpp: implementation of the YS_HardeningModel class.
+// implementation of the YS_HardeningModel class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -44,10 +44,6 @@ YS_Evolution *CombinedIsoKin2D01::getCopy(void)
 						minIsoFactor,
 						*kpMatXPos, *kpMatXNeg, *kpMatYPos, *kpMatYNeg,
 						deformable, direction);
-	if(theCopy==0)
-	{
-		opserr << "WARNING - CombinedIsoKin2D01, unable to get copy\n";
-	}
 	
 	return theCopy;
 }

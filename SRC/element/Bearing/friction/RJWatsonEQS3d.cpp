@@ -229,7 +229,8 @@ void RJWatsonEQS3d::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set up the transformation matrix for orientation
     this->setUp();
@@ -349,7 +350,7 @@ int RJWatsonEQS3d::update()
             kb(2,2) = theMaterials[2]->getTangent();
             //opserr << "WARNING: RJWatsonEQS3d::update() - element: "
             //    << this->getTag() << " - uplift encountered, scaling "
-            //    << "stiffness matrix by: " << kFactUplift << endln;
+            //    << "stiffness matrix by: " << kFactUplift << "\n";
         }
         return 0;
     }
@@ -833,24 +834,24 @@ void RJWatsonEQS3d::Print(OPS_Stream &s, int flag)
         // print everything
         s << "Element: " << this->getTag(); 
         s << "  type: RJWatsonEQS3d  iNode: " << connectedExternalNodes(0);
-        s << "  jNode: " << connectedExternalNodes(1) << endln;
+        s << "  jNode: " << connectedExternalNodes(1) << "\n";
         s << "  FrictionModel: " << theFrnMdl->getTag()
-            << " k0: " << k0 << endln;
-        s << "  Material ux: " << theMaterials[0]->getTag() << endln;
-        s << "  Material uy: " << theMaterials[1]->getTag() << endln;
-        s << "  Material uz: " << theMaterials[2]->getTag() << endln;
-        s << "  Material rx: " << theMaterials[3]->getTag() << endln;
-        s << "  Material ry: " << theMaterials[4]->getTag() << endln;
-        s << "  Material rz: " << theMaterials[5]->getTag() << endln;
+            << " k0: " << k0 << "\n";
+        s << "  Material ux: " << theMaterials[0]->getTag() << "\n";
+        s << "  Material uy: " << theMaterials[1]->getTag() << "\n";
+        s << "  Material uz: " << theMaterials[2]->getTag() << "\n";
+        s << "  Material rx: " << theMaterials[3]->getTag() << "\n";
+        s << "  Material ry: " << theMaterials[4]->getTag() << "\n";
+        s << "  Material rz: " << theMaterials[5]->getTag() << "\n";
         s << "  shearDistI: " << shearDistI << "  addRayleigh: "
-            << addRayleigh << "  mass: " << mass << endln;
-        s << "  maxIter: " << maxIter << "  tol: " << tol << endln;
+            << addRayleigh << "  mass: " << mass << "\n";
+        s << "  maxIter: " << maxIter << "  tol: " << tol << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"RJWatsonEQS3d\", ";
         s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";

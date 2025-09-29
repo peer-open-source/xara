@@ -46,18 +46,20 @@ SymBandEigenSOE::SymBandEigenSOE(SymBandEigenSolver &theSolvr,
 }
 
 int
-SymBandEigenSOE::getNumEqn(void) const
+SymBandEigenSOE::getNumEqn() const
 {
   return size;
 }
-    
+
+
 SymBandEigenSOE::~SymBandEigenSOE()
 {
-  if (A != 0)
+  if (A != nullptr)
     delete [] A;
-  if (M != 0)
+  if (M != nullptr)
     delete [] M;
 }
+
 
 int 
 SymBandEigenSOE::setSize(Graph &theGraph)
@@ -142,16 +144,16 @@ SymBandEigenSOE::addA(const Matrix &m, const ID &id, double fact)
     for (int i = 0; i < idSize; i++) {
       int col = id(i);
       if (col < size && col >= 0) {
-	double *coliiPtr = A +(col+1)*(numSuperD+1) - 1;
-	int minColRow = col - (numSuperD+1) + 1;
-	for (int j = 0; j < idSize; j++) {
-	  int row = id(j);
-	  if (row <size && row >= 0 && 
-	      row <= col && row >= minColRow) { // only add upper
-	    double *APtr = coliiPtr + (row-col);
-	    *APtr += m(j,i);
-	  }
-	}  // for j
+        double *coliiPtr = A +(col+1)*(numSuperD+1) - 1;
+        int minColRow = col - (numSuperD+1) + 1;
+        for (int j = 0; j < idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0 && 
+              row <= col && row >= minColRow) { // only add upper
+            double *APtr = coliiPtr + (row-col);
+            *APtr += m(j,i);
+          }
+        }  // for j
       } 
     }  // for i
   } else {

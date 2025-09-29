@@ -17,10 +17,9 @@ public:
 	
 	virtual double getFactor();
 	// for now ignore
-	virtual int 	sendSelf(int commitTag, Channel &theChannel){return -1;}
-    virtual int 	recvSelf(int commitTag, Channel &theChannel,
-							 FEM_ObjectBroker &theBroker){return -1;}
-	virtual void Print (OPS_Stream &s, int flag=0);
+	virtual int 	sendSelf(int commitTag, Channel &){return -1;}
+    virtual int 	recvSelf(int commitTag, Channel &, FEM_ObjectBroker &){return -1;}
+	virtual void Print(OPS_Stream &, int flag);
 
 protected:
 // virtual methods

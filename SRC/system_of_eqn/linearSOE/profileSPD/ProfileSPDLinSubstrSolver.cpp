@@ -54,13 +54,13 @@ ProfileSPDLinSubstrSolver::~ProfileSPDLinSubstrSolver()
 int
 ProfileSPDLinSubstrSolver::solve()
 {
-    return this->ProfileSPDLinDirectSolver::solve();
+  return this->ProfileSPDLinDirectSolver::solve();
 }
 
 int
 ProfileSPDLinSubstrSolver::setSize()
 {
-    return this->ProfileSPDLinDirectSolver::setSize();
+  return this->ProfileSPDLinDirectSolver::setSize();
 }    
 
 /* ProfileSPDLinSubstrSolver::condenseA(int numInt)
@@ -92,19 +92,19 @@ int
 ProfileSPDLinSubstrSolver::condenseA(int numInt)
 {
     // check for quick return
-    if (theSOE == 0)
+  if (theSOE == 0)
 	return -1;
 
-    if (numInt == 0) {
+  if (numInt == 0) {
 	theSOE->numInt = numInt;	
 	return 0;
-    }
+  }
 
-    if (dSize != size) {
+  if (dSize != size) {
 	if (DU != 0) delete [] DU;
 	DU = new double[numInt];
 	dSize = numInt;
-    }
+  }
 
     //
     //  form D1 & U11, store in A11
@@ -118,9 +118,7 @@ ProfileSPDLinSubstrSolver::condenseA(int numInt)
      *  form M, leave in A12
      *   - where M = inv(U11')*A12
      */
-    int i;
-
-    for (i=numInt; i<size; i++) {
+    for (int i=numInt; i<size; i++) {
 		
 		int rowitop = RowTop[i];
 		double *ajiPtr = topRowPtr[i];
@@ -166,7 +164,7 @@ ProfileSPDLinSubstrSolver::condenseA(int numInt)
      *  - where K* = A22 - M'*inv(D11)*M
      */
 
-    for (i=numInt; i<size; i++) {
+    for (int i=numInt; i<size; i++) {
 
 	int rowitop = RowTop[i];
 	double *ajiPtr =  topRowPtr[i];;
@@ -215,8 +213,6 @@ ProfileSPDLinSubstrSolver::condenseA(int numInt)
 
     theSOE->isAcondensed = true;
     theSOE->numInt = numInt;
-
-    // opserr << "ProfileSPDLinSubstrSolver::condenseA  numDOF: " << size << "  numInt: " << numInt << "  numExt: " << size-numInt << endln;
 
     return 0;
 }

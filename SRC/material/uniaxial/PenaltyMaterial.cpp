@@ -56,26 +56,26 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PenaltyMaterial)
 
   int argc = OPS_GetNumRemainingInputArgs();
   if (argc < 2) {
-    opserr << "WARNING insufficient args, uniaxialMaterial Penalty $tag $otherTag $penalty <-noStress>" << endln;
+    opserr << "WARNING insufficient args, uniaxialMaterial Penalty $tag $otherTag $penalty <-noStress>" << "\n";
     return 0;
   }
 
   int numData = 2;
   if (OPS_GetIntInput(&numData, iData) < 0) {
-    opserr << "WARNING invalid uniaxialMaterial Penalty $tag $otherTag $penalty" << endln;
+    opserr << "WARNING invalid uniaxialMaterial Penalty $tag $otherTag $penalty" << "\n";
     return 0;
   }
 
   theOtherMaterial = OPS_GetUniaxialMaterial(iData[1]);
   if (theOtherMaterial == 0) {
-    opserr << "WARNING invalid otherTag uniaxialMaterial Penalty tag: " << iData[0] << endln;
+    opserr << "WARNING invalid otherTag uniaxialMaterial Penalty tag: " << iData[0] << "\n";
     return 0;	
   }
 
   double penalty = 0.0;
   numData = 1;
   if (OPS_GetDouble(&numData,&penalty) < 0) {
-    opserr << "WARNING invalid input uniaxialMaterial Penalty tag: " << iData[0] << endln;
+    opserr << "WARNING invalid input uniaxialMaterial Penalty tag: " << iData[0] << "\n";
     return 0;
   }
 
@@ -142,7 +142,7 @@ PenaltyMaterial::setTrialStrain(double strain, double temp, double strainRate)
 
 
 double 
-PenaltyMaterial::getStress(void)
+PenaltyMaterial::getStress()
 {
   if (theMaterial) {
     double sig = theMaterial->getStress();
@@ -155,7 +155,7 @@ PenaltyMaterial::getStress(void)
 }
 
 double 
-PenaltyMaterial::getTangent(void)
+PenaltyMaterial::getTangent()
 {
   if (theMaterial)
     return theMaterial->getTangent() + penalty;
@@ -164,7 +164,7 @@ PenaltyMaterial::getTangent(void)
 }
 
 double 
-PenaltyMaterial::getDampTangent(void)
+PenaltyMaterial::getDampTangent()
 {
   if (theMaterial)
     return theMaterial->getDampTangent();
@@ -173,7 +173,7 @@ PenaltyMaterial::getDampTangent(void)
 }
 
 double 
-PenaltyMaterial::getStrain(void)
+PenaltyMaterial::getStrain()
 {
   if (theMaterial)
     return theMaterial->getStrain();
@@ -182,7 +182,7 @@ PenaltyMaterial::getStrain(void)
 }
 
 double 
-PenaltyMaterial::getStrainRate(void)
+PenaltyMaterial::getStrainRate()
 {
   if (theMaterial)  
     return theMaterial->getStrainRate();
@@ -191,7 +191,7 @@ PenaltyMaterial::getStrainRate(void)
 }
 
 int 
-PenaltyMaterial::commitState(void)
+PenaltyMaterial::commitState()
 {
   if (theMaterial)
     return theMaterial->commitState();
@@ -200,7 +200,7 @@ PenaltyMaterial::commitState(void)
 }
 
 int 
-PenaltyMaterial::revertToLastCommit(void)
+PenaltyMaterial::revertToLastCommit()
 {
   if (theMaterial)
     return theMaterial->revertToLastCommit();
@@ -209,7 +209,7 @@ PenaltyMaterial::revertToLastCommit(void)
 }
 
 int 
-PenaltyMaterial::revertToStart(void)
+PenaltyMaterial::revertToStart()
 {
   if (theMaterial)  
     return theMaterial->revertToStart();
@@ -218,7 +218,7 @@ PenaltyMaterial::revertToStart(void)
 }
 
 UniaxialMaterial *
-PenaltyMaterial::getCopy(void)
+PenaltyMaterial::getCopy()
 {
   PenaltyMaterial *theCopy = 0;
   if (theMaterial)
@@ -287,7 +287,7 @@ PenaltyMaterial::recvSelf(int cTag, Channel &theChannel,
     theMaterial = theBroker.getNewUniaxialMaterial(matClassTag);
     if (theMaterial == 0) {
       opserr << "PenaltyMaterial::recvSelf() - failed to create Material with classTag " 
-	   << dataID(1) << endln;
+	   << dataID(1) << "\n";
       return -2;
     }
   }
@@ -312,12 +312,27 @@ PenaltyMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 PenaltyMaterial::Print(OPS_Stream &s, int flag)
 {
-  s << "PenaltyMaterial tag: " << this->getTag() << endln;
-  if (theMaterial)
-    s << "\tMaterial: " << theMaterial->getTag() << endln;
-  else
-    s << "\tMaterial is NULL" << endln;  
-  s << "\tPenalty: " << penalty << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"PenaltyMaterial\", ";
+    s << "\"tag\": " << this->getTag() << ", ";
+    s << "\"type\": \"Uniaxial\", ";
+    s << "\"otherTag\": ";
+    if (theMaterial)
+      s << theMaterial->getTag() << ", ";
+    else
+      s << "null, ";
+    s << "\"penalty\": " << penalty << ", ";
+    s << "\"addStress\": " << (addStress ? "true" : "false") << "}";
+  }
+  else {
+    s << "PenaltyMaterial tag: " << this->getTag() << "\n";
+    if (theMaterial)
+      s << "\tMaterial: " << theMaterial->getTag() << "\n";
+    else
+      s << "\tMaterial is NULL" << "\n";  
+    s << "\tPenalty: " << penalty << "\n";
+  }
 }
 
 int

@@ -66,7 +66,7 @@ ElementalLoad::setDomain(Domain *theDomain)
 {
   this->Load::setDomain(theDomain);
 
-  if (theDomain == 0) {
+  if (theDomain == nullptr) {
     theElement = 0;
     return;
   }

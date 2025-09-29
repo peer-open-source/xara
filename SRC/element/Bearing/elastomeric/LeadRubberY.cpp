@@ -93,7 +93,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_LeadRubberY)
     
     numData = 9;
     if (OPS_GetDoubleInput(&numData, dData) != 0) {
-        opserr << "WARNING error reading element properties for element" << eleTag << endln;
+        opserr << "WARNING error reading element properties for element" << eleTag << "\n";
         return 0;
     }
     
@@ -127,7 +127,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_LeadRubberY)
         numData = 1;
         for (int i=0; i<3; i++) {
             if (OPS_GetDoubleInput(&numData, &value) != 0) {
-                opserr << "WARNING invalid orientation value for element" << eleTag << endln;
+                opserr << "WARNING invalid orientation value for element" << eleTag << "\n";
                 return 0;
             } else {
                 x(i) = value;
@@ -135,7 +135,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_LeadRubberY)
         }
         for (int i=0; i<3; i++) {
             if (OPS_GetDoubleInput(&numData, &value) != 0) {
-                opserr << "WARNING invalid orientation value for element" << eleTag << endln;
+                opserr << "WARNING invalid orientation value for element" << eleTag << "\n";
                 return 0;
             } else {
                 y(i) = value;
@@ -144,91 +144,91 @@ void *OPS_ADD_RUNTIME_VPV(OPS_LeadRubberY)
         if (numArgs >= 19) {
             numData = 1;
             if (OPS_GetDoubleInput(&numData, &kl) != 0) {
-                opserr << "WARNING error reading element property cavitation parameter for element" << eleTag << endln;
+                opserr << "WARNING error reading element property cavitation parameter for element" << eleTag << "\n";
                 return 0;
             }
             if (numArgs >= 20) {
                 numData = 1;
                 if (OPS_GetDoubleInput(&numData, &phi) != 0) {
-                    opserr << "WARNING error reading element property damage index for element" << eleTag << endln;
+                    opserr << "WARNING error reading element property damage index for element" << eleTag << "\n";
                     return 0;
                 }
                 if (numArgs >= 21) {
                     numData = 1;
                     if (OPS_GetDoubleInput(&numData, &al) != 0) {
-                        opserr << "WARNING error reading element property strength degradation parameter for element" << eleTag << endln;
+                        opserr << "WARNING error reading element property strength degradation parameter for element" << eleTag << "\n";
                         return 0;
                     }
                     if (numArgs >= 22) {
                         numData = 1;
                         if (OPS_GetDoubleInput(&numData, &sDratio) != 0) {
-                            opserr << "WARNING error reading element property shear distance ratio for element" << eleTag << endln;
+                            opserr << "WARNING error reading element property shear distance ratio for element" << eleTag << "\n";
                             return 0;
                         }
                         if (numArgs >= 23) {
                             numData = 1;
                             if (OPS_GetDoubleInput(&numData, &m) != 0) {
-                                opserr << "WARNING error reading element property mass for element" << eleTag << endln;
+                                opserr << "WARNING error reading element property mass for element" << eleTag << "\n";
                                 return 0;
                             }
                             if (numArgs >= 24) {
                                 numData = 1;
                                 if (OPS_GetDoubleInput(&numData, &cd1) != 0) {
-                                    opserr << "WARNING error reading element property viscous damping parameter for element" << eleTag << endln;
+                                    opserr << "WARNING error reading element property viscous damping parameter for element" << eleTag << "\n";
                                     return 0;
                                 }
                                 if (numArgs >= 25) {
                                     numData = 1;
                                     if (OPS_GetDoubleInput(&numData, &tc1) != 0) {
-                                        opserr << "WARNING error reading element property cover thickness for element" << eleTag << endln;
+                                        opserr << "WARNING error reading element property cover thickness for element" << eleTag << "\n";
                                         return 0;
                                     }
                                     if (numArgs >= 29) {
                                         numData = 1;
                                         if (OPS_GetDoubleInput(&numData, &qL1) != 0) {
-                                            opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                            opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                             return 0;
                                         }
                                         if (OPS_GetDoubleInput(&numData, &cL1) != 0) {
-                                            opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                            opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                             return 0;
                                         }
                                         if (OPS_GetDoubleInput(&numData, &kS1) != 0) {
-                                            opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                            opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                             return 0;
                                         }
                                         if (OPS_GetDoubleInput(&numData, &aS1) != 0) {
-                                            opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                            opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                             return 0;
                                         }
                                         if (numArgs >= 30) {
                                             numData = 1;
                                             if (OPS_GetIntInput(&numData, &tag1) != 0) {
-                                                opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                                opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                                 return 0;
                                             }
                                             if (numArgs >= 31) {
                                                 numData = 1;
                                                 if (OPS_GetIntInput(&numData, &tag2) != 0) {
-                                                    opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                                    opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                                     return 0;
                                                 }
                                                 if (numArgs >= 32) {
                                                     numData = 1;
                                                     if (OPS_GetIntInput(&numData, &tag3) != 0) {
-                                                        opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                                        opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                                         return 0;
                                                     }
                                                     if (numArgs >= 33) {
                                                         numData = 1;
                                                         if (OPS_GetIntInput(&numData, &tag4) != 0) {
-                                                            opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                                            opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                                             return 0;
                                                         }
                                                         if (numArgs == 34) {
                                                             numData = 1;
                                                             if (OPS_GetIntInput(&numData, &tag5) != 0) {
-                                                                opserr << "WARNING error reading element properties for element" << eleTag << endln;
+                                                                opserr << "WARNING error reading element properties for element" << eleTag << "\n";
                                                                 return 0;
                                                             }
                                                         }
@@ -258,7 +258,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_LeadRubberY)
     }
     
     if (theEle == 0) {
-        opserr << "WARNING ran out of memory creating element with tag " << eleTag << endln;
+        opserr << "WARNING ran out of memory creating element with tag " << eleTag << "\n";
         return 0;
     }
     
@@ -439,7 +439,7 @@ void LeadRubberY::setDomain(Domain *theDomain)
                 << connectedExternalNodes(1)
                 << " does not exist in the model for";
         }
-        opserr << " element: " << this->getTag() << endln;
+        opserr << " element: " << this->getTag() << "\n";
         
         return;
     }
@@ -463,7 +463,8 @@ void LeadRubberY::setDomain(Domain *theDomain)
     }
     
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
     // set up the transformation matrix for orientation
     this->setUp();
@@ -688,7 +689,7 @@ int LeadRubberY::update()
         if (iter >= maxIter)   {
             opserr << "WARNING: LeadRubberY::update() - "
                 << "did not find the hysteretic evolution parameters z after "
-                << iter << " iterations and norm: " << delta_z.Norm() << endln;
+                << iter << " iterations and norm: " << delta_z.Norm() << "\n";
             return -2;
         }
         
@@ -832,7 +833,7 @@ int LeadRubberY::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
     opserr <<"LeadRubberY::addLoad() - "
         << "load type unknown for element: "
-        << this->getTag() << endln;
+        << this->getTag() << "\n";
     
     return -1;
 }
@@ -1104,24 +1105,24 @@ void LeadRubberY::Print(OPS_Stream &s, int flag)
 {
     if (flag == OPS_PRINT_CURRENTSTATE) {
         // print everything
-        s << "************************************************************" << endln;
+        s << "************************************************************" << "\n";
         s << "Element: " << this->getTag();
         s << "  type: LeadRubberY  iNode: " << connectedExternalNodes(0);
-        s << "  jNode: " << connectedExternalNodes(1) << endln;
-        s << "************************************************************" << endln;
-        s << "GEOMETRIC PROPERTIES" << endln;
-        s << "D1: " << D1 << " D2: " << D2 << " L: " << L << " Tr: " << Tr << " S: " << S << " A: " << A << endln;
-        s << "MATERIAL PROPERTIES" << endln;
-        s << "G: " << G << " kc: " << kc << " ac: " << ac << " PhiM: " << PhiM << " shearDistI: " << shearDistI << " mass: " << mass << endln;
-        s << " qL: " << qL << " cL: " << cL << " kS: " << kS << " aS: " << aS << endln;
-        s << "MECHANICAL PROPERTIES: HORIZONTAL MOTION" << endln;
-        s << "k0: " << k0 << " ke: " << ke << " qYield: " << qYield << " DeltaT: " << TL_commit << " Fcrmin: " << Fcrmin << endln;
-        s << "MECHANICAL PROPERTIES: VERTICAL MOTION" << endln;
-        s << "Kv: "<< Kv << " Fc: " << Fc << " Fcr: " << Fcr << " Fcn: " << Fcn << " umax: " << umax << endln;
+        s << "  jNode: " << connectedExternalNodes(1) << "\n";
+        s << "************************************************************" << "\n";
+        s << "GEOMETRIC PROPERTIES" << "\n";
+        s << "D1: " << D1 << " D2: " << D2 << " L: " << L << " Tr: " << Tr << " S: " << S << " A: " << A << "\n";
+        s << "MATERIAL PROPERTIES" << "\n";
+        s << "G: " << G << " kc: " << kc << " ac: " << ac << " PhiM: " << PhiM << " shearDistI: " << shearDistI << " mass: " << mass << "\n";
+        s << " qL: " << qL << " cL: " << cL << " kS: " << kS << " aS: " << aS << "\n";
+        s << "MECHANICAL PROPERTIES: HORIZONTAL MOTION" << "\n";
+        s << "k0: " << k0 << " ke: " << ke << " qYield: " << qYield << " DeltaT: " << TL_commit << " Fcrmin: " << Fcrmin << "\n";
+        s << "MECHANICAL PROPERTIES: VERTICAL MOTION" << "\n";
+        s << "Kv: "<< Kv << " Fc: " << Fc << " Fcr: " << Fcr << " Fcn: " << Fcn << " umax: " << umax << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
-        s << "************************************************************" << endln;
-        //s <<"time: " << tCommit <<" ke0: " << G*A/Tr  <<" ke: " << ke <<" Fcr: "<< Fcr << " Fcrmin: "<< Fcrmin <<" Kv0: "<< Kv0<<" Kv: "<< Kv << " qYield0: " << qYield0 << " qYield: " << qYield << " DeltaT: " << TL_commit << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
+        s << "************************************************************" << "\n";
+        //s <<"time: " << tCommit <<" ke0: " << G*A/Tr  <<" ke: " << ke <<" Fcr: "<< Fcr << " Fcrmin: "<< Fcrmin <<" Kv0: "<< Kv0<<" Kv: "<< Kv << " qYield0: " << qYield0 << " qYield: " << qYield << " DeltaT: " << TL_commit << "\n";
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {

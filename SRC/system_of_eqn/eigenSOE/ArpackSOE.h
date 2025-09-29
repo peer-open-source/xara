@@ -47,11 +47,11 @@ class ArpackSOE : public EigenSOE
 
     ~ArpackSOE();
 
-    int setLinks(AnalysisModel &theModel);   
-    int setLinearSOE(LinearSOE &theSOE);    
+    int setLinks(AnalysisModel &);
+    int setLinearSOE(LinearSOE &);
 
-    int getNumEqn(void) const;
-    int setSize(Graph &theGraph);
+    int getNumEqn() const;
+    int setSize(Graph &);
     
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addK(const Matrix &, const ID &, double fact = 1.0);
@@ -59,13 +59,13 @@ class ArpackSOE : public EigenSOE
     int setMask();
     void opM(int n, double *v, double *result);
 
-    void zeroA(void);
-    void zeroM(void);
+    void zeroA();
+    void zeroM();
 
-    double getShift(void);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    double getShift();
+
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
     friend class ArpackSolver;
 

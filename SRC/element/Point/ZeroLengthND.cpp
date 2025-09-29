@@ -316,7 +316,8 @@ ZeroLengthND::setDomain(Domain *theDomain)
 		opserr << "ZeroLengthND::setDomain -- Element has L=, which is greater than the tolerance\n";
         
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     
 	// Set up the A matrix
 	this->setTransformation();

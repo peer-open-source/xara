@@ -337,7 +337,8 @@ Quad4FiberOverlay::setDomain(Domain *theDomain)
      Vf = Qfj - Qfi;
      Lf = Vf.Norm();
 
-     this->DomainComponent::setDomain(theDomain);
+     if (theDomain != nullptr)
+       this->Element::link(*theDomain);
  }
 
 double

@@ -230,7 +230,8 @@ void  IGAKLShell_BendingStrip::setDomain( Domain *theDomain )
     }
   }
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 
@@ -1437,11 +1438,6 @@ IGAKLShell_BendingStrip::addLoad(ElementalLoad *theLoad, double loadFactor)
       followerforce = (data(2) * e1 + data(3) * e2 + data(4) * e3);
 
 
-      // followerforce(0) = 0;
-
-      // opserr << "e3 = " << e3 << endln;
-
-      // opserr << "followerforce = " << followerforce << endln;
 
       // N debe ser evaluado en xi, eta
       myPatch->Nurbs2DBasis2ndDers(xi, eta, R, dRdxi, dRdeta, dR2dxi, dR2deta, dR2dxideta);
@@ -1463,22 +1459,6 @@ IGAKLShell_BendingStrip::addLoad(ElementalLoad *theLoad, double loadFactor)
       opserr << "e3 = " << e3 << endln;
       opserr << "followerforce = " << followerforce << endln;
       opserr << "loadFactor = " << loadFactor << endln;
-
-
-      // resid->addMatrixTransposeVector(1.0, N, followerforce, -1.0);
-
-      // opserr << "*load = " << *load << endln;
-
-      // opserr << "*load = " << *load << endln;
-      // The error is that the shape functions are not interpolatory, so the above multiplication does not apply the force in the desired DOF, as the shape functions are greater elsewhere.
-
-      // opserr << "xi = " << xi << endln;
-      // opserr << "eta = " << eta << endln;
-      // opserr << "xiE = " << xiE << endln;
-      // opserr << "etaE = " << etaE << endln;
-      // opserr << "R = " << R << endln;
-      // opserr << "-1*followerforce = " << -1 * followerforce << endln;
-      // opserr << "*load = " << *load << endln;
     }
 
     return 0;
@@ -1555,24 +1535,9 @@ IGAKLShell_BendingStrip::getResistingForce()
   if (load != 0)
   {
     *resid -= *load;
-    // opserr << "this->getTag() = " << this->getTag() << endln;
-    // opserr << "*resid = " << *resid << endln;
   }
 
-  // opserr << "*resid = " << *resid << endln;
-
   return *resid ;
-
-  // resid->Zero();
-  // // opserr << "connectedExternalNodes = " << connectedExternalNodes << endln;
-
-  // // opserr << "Element number:  = " << this->getTag() << endln;
-
-  // // opserr << "xiE = " << xiE << endln;
-  // // opserr << "etaE = " << etaE << endln;
-
-  // Vector gFact = myPatch->getGravityFactors();
-  // // opserr << "gFact = " << gFact << endln;
 
 
   // double t = 0.0; // thickness [m]
@@ -1639,7 +1604,6 @@ IGAKLShell_BendingStrip::getResistingForce()
 
   // }
 
-  // // opserr << "pts = " << pts << endln;
 
   // // Loop over integrations points
   // for (int gp = 0; gp < ngauss; ++gp)
@@ -1650,8 +1614,6 @@ IGAKLShell_BendingStrip::getResistingForce()
   //   xi = myPatch->parent2ParametricSpace(xiE, ptU);
   //   eta = myPatch->parent2ParametricSpace(etaE, ptV);
   //   J2 = 0.5 * (xiE(1) - xiE(0)) * 0.5 * (etaE(1) - etaE(0));
-  //   // opserr << "xi = " << xi << endln;
-  //   // opserr << "eta = " << eta << endln;
   //   R.Zero();
   //   dRdxi.Zero();
   //   dRdeta.Zero();
@@ -2346,7 +2308,6 @@ void IGAKLShell_BendingStrip::formResidAndTangent( int tang_flag )
     D.Zero();         // Bending stiffness matrix
     W = 0.0; //Total laminate weight (kg/m^2)
 
-    // opserr << "Getting Tangent" << endln;
 
     for (int capa = 0; capa < nLayers; ++capa)
     {
@@ -2354,7 +2315,7 @@ void IGAKLShell_BendingStrip::formResidAndTangent( int tang_flag )
       iThickness = myPatch -> getThickness(capa);
       iZ         = myPatch -> getZk(capa);// Mid center laminate position
       iRho       = (OPS_getNDMaterial(myPatch -> getMatTag(capa))) -> getRho(); // Density of material kg/m^3;
-      // opserr << "iRho = " << iRho << endln;
+
 
       W += iRho * iThickness;
 
@@ -2410,7 +2371,6 @@ void IGAKLShell_BendingStrip::formResidAndTangent( int tang_flag )
     D(0,0) = max(D(0,0),D(1,1));
     // D(1,1) = D(0,0);
     D(2,2) = 0;
-    // opserr << "D = " << D << endln;
 
 
     double lg3_3 = pow(lg3, 3);

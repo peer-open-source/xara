@@ -264,11 +264,6 @@ TclBasicBuilder_addElastomericBearingBoucWen(
         tag, iNode, jNode, kInit, qd, alpha1, theMaterials, y, x, alpha2, mu,
         eta, beta, gamma, shearDistI, doRayleigh, mass, maxIter, tol);
 
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      return TCL_ERROR;
-    }
-
     Domain* theTclDomain = builder->getDomain();
     // then add the elastomericBearingBoucWen to the domain
     if (theTclDomain->addElement(theElement) == false) {
@@ -519,11 +514,6 @@ TclBasicBuilder_addElastomericBearingBoucWen(
         tag, iNode, jNode, kInit, qd, alpha1, theMaterials, y, x, alpha2, mu,
         eta, beta, gamma, shearDistI, doRayleigh, mass, maxIter, tol);
 
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      return TCL_ERROR;
-    }
-
     Domain* theTclDomain = builder->getDomain();
     // then add the elastomericBearingBoucWen to the domain
     if (theTclDomain->addElement(theElement) == false) {
@@ -746,11 +736,6 @@ TclBasicBuilder_addElastomericBearingPlasticity(
         tag, iNode, jNode, kInit, qd, alpha1, theMaterials, y, x, alpha2, mu,
         shearDistI, doRayleigh, mass);
 
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      opserr << "elastomericBearing element: " << tag << "\n";
-      return TCL_ERROR;
-    }
 
     Domain* theTclDomain = builder->getDomain();
     // then add the elastomericBearing to the domain
@@ -994,12 +979,6 @@ TclBasicBuilder_addElastomericBearingPlasticity(
     theElement = new ElastomericBearingPlasticity3d(
         tag, iNode, jNode, kInit, qd, alpha1, theMaterials, y, x, alpha2, mu,
         shearDistI, doRayleigh, mass);
-
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      opserr << "elastomericBearing element: " << tag << "\n";
-      return TCL_ERROR;
-    }
 
     Domain* theTclDomain = builder->getDomain();
     // then add the elastomericBearing to the domain
@@ -1284,12 +1263,6 @@ TclBasicBuilder_addElastomericBearingUFRP(ClientData clientData, Tcl_Interp *int
     theElement = new ElastomericBearingUFRP2d(
         tag, iNode, jNode, uy, a1, a2, a3, a4, a5, b, c, theMaterials, y, x,
         eta, beta, gamma, shearDistI, doRayleigh, mass, maxIter, tol);
-
-    if (theElement == 0) {
-      opserr << "WARNING ran out of memory creating element\n";
-      opserr << "elastomericBearingUFRP element: " << tag << "\n";
-      return TCL_ERROR;
-    }
 
     Domain* theTclDomain = builder->getDomain();
     // then add the elastomericBearingUFRP to the domain
@@ -1583,12 +1556,6 @@ TclBasicBuilder_addElastomericBearingUFRP(ClientData clientData, Tcl_Interp *int
       theElement = new ElastomericBearingUFRP3d(tag, iNode, jNode, uy, a1, a2,
           a3, a4, a5, b, c, theMaterials, y, x, eta, beta, gamma, shearDistI,
           doRayleigh, mass, maxIter, tol);
-
-      if (theElement == nullptr)  {
-          opserr << "WARNING ran out of memory creating element\n";
-          opserr << "elastomericBearingUFRP element: " << tag << "\n";
-          return TCL_ERROR;
-      }
 
       Domain* theTclDomain = builder->getDomain();
       // then add the elastomericBearingUFRP to the domain

@@ -41,13 +41,25 @@ class Response;
 class ElementalLoad;
 class Node;
 
-class Element : public DomainComponent
+class Element : public TaggedObject, public MovableObject
 {
   public:
     Element(int tag, int classTag);    
     virtual ~Element();
 
     // methods dealing with nodes and number of external dof
+
+    //
+    virtual int configure(Domain& domain) {
+        this->setDomain(&domain);
+        return 0;
+    }
+
+    virtual void setDomain(Domain *theDomain) {
+        // DEPRECATED
+        this->link(*theDomain);
+    }
+
     virtual int getNumExternalNodes() const =0;
     virtual const ID &getExternalNodes()  =0;	
     virtual Node **getNodePtrs()  =0;	
@@ -67,7 +79,6 @@ class Element : public DomainComponent
     virtual const Matrix &getInitialStiff() =0;
     virtual const Matrix &getDamp();
     virtual const Matrix &getMass();
-    virtual const Matrix &getGeometricTangentStiff() final;
 
     // methods for applying loads
     virtual void zeroLoad();	
@@ -85,7 +96,9 @@ class Element : public DomainComponent
     virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
     virtual int getResponse(int responseID, Information &eleInformation);
 
-// AddingSensitivity:BEGIN //////////////////////////////////////////
+    //
+    // Sensitivity
+    //
     virtual int getResponseSensitivity(int responseID, int gradIndex, Information &);
     virtual int addInertiaLoadSensitivityToUnbalance(const Vector &accel, bool tag);
     virtual const Vector & getResistingForceSensitivity(int gradIndex);
@@ -95,7 +108,6 @@ class Element : public DomainComponent
     virtual const Matrix & getDampSensitivity(int gradIndex);
     virtual const Matrix & getMassSensitivity(int gradIndex);
     virtual int   commitSensitivity(int gradIndex, int numGrads);
-// AddingSensitivity:END ///////////////////////////////////////////
 
     virtual int addResistingForceToNodalReaction(int flag);
 
@@ -103,6 +115,17 @@ class Element : public DomainComponent
     virtual const Matrix *getPreviousK(int num);
 
 
+    int link(Domain& domain) {
+        this->domain = &domain;
+        return 0;
+    }
+    int unlink(Domain& domain) {
+        this->domain = nullptr;
+        return 0;
+    }
+    Domain* getDomain() const {
+      return this->domain;
+    }
 protected:
     const Vector& getRayleighDampingForces();
 
@@ -111,6 +134,7 @@ protected:
 
     Matrix **previousK;
     int   numPreviousK;
+
 
 private:
 //  std::vector<Node*> nodes;
@@ -121,6 +145,7 @@ private:
     static Vector ** theVectors1; 
     static Vector ** theVectors2; 
     static int numMatrices;
+    Domain* domain;
 };
 
 

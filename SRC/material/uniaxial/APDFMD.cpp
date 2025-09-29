@@ -347,7 +347,9 @@ APDFMD::setTrialStrain(double strain, double strainRate)
         sigr = sig;
     }
 
+    return 0;
 }
+
 double APDFMD::findstress1(double targetStrain, double K, double mq, double yi, double rezaAA, double rezaNN)
 {
     double low = -1000.0;

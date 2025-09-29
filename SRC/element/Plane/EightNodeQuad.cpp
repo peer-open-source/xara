@@ -161,7 +161,8 @@ EightNodeQuad::setDomain(Domain *theDomain)
     for (int i = 0; i < NEN; i++ ) 
       theNodes[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
-    this->DomainComponent::setDomain(theDomain) ;
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain) ;
 
     // Compute consistent nodal loads due to pressure
     this->setPressureLoadAtNodes();

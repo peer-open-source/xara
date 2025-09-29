@@ -83,17 +83,17 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BeamGT)
  
   numData =1;
   if (OPS_GetIntInput(&numData, &iData[3]) != 0) {
-    opserr << "WARNING error reading element material 1 tag for element " << eleTag << endln;
+    opserr << "WARNING error reading element material 1 tag for element " << eleTag << "\n";
     return 0;
   }
       numData =1;
   if (OPS_GetIntInput(&numData, &iData[4]) != 0) {
-    opserr << "WARNING error reading element material 2 tag for element " << eleTag << endln;
+    opserr << "WARNING error reading element material 2 tag for element " << eleTag << "\n";
     return 0;
   }
       numData =1;
   if (OPS_GetIntInput(&numData, &iData[5]) != 0) {
-    opserr << "WARNING error reading element material 3 tag for element " << eleTag << endln;
+    opserr << "WARNING error reading element material 3 tag for element " << eleTag << "\n";
     return 0;
   }
    int matID = iData[3];
@@ -102,7 +102,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BeamGT)
  
   numData =8 ;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-   opserr << "WARNING error reading Elastic properties for element" << eleTag << endln;
+   opserr << "WARNING error reading Elastic properties for element" << eleTag << "\n";
    return 0;
   }
 
@@ -112,16 +112,16 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BeamGT)
 	  UniaxialMaterial *theMaterial3 =OPS_GetUniaxialMaterial(matID3);
 
   if (theMaterial == 0) {
-    opserr << "WARNING material with tag " << matID << "not found for element " << eleTag << endln;
+    opserr << "WARNING material with tag " << matID << "not found for element " << eleTag << "\n";
     return 0;
   }
 
     if (theMaterial2 == 0) {
-    opserr << "WARNING material with tag " << matID2 << "not found for element " << eleTag << endln;
+    opserr << "WARNING material with tag " << matID2 << "not found for element " << eleTag << "\n";
     return 0;
   }
 	   if (theMaterial3 == 0) {
-    opserr << "WARNING material with tag " << matID3 << "not found for element " << eleTag << endln;
+    opserr << "WARNING material with tag " << matID3 << "not found for element " << eleTag << "\n";
     return 0;
   }
     // now create the truss and add it to the Domain
@@ -129,7 +129,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BeamGT)
   theBeam = new BeamGT(eleTag, iData[1], iData[2], *theMaterial, *theMaterial2, *theMaterial3, dData[0],dData[1],dData[2],dData[3],dData[4],dData[5],dData[6],dData[7]  );
 
   if (theBeam == 0) {
-    opserr << "WARNING ran out of memory creating element with tag " << eleTag << endln;
+    opserr << "WARNING ran out of memory creating element with tag " << eleTag << "\n";
     delete theMaterial;
 	delete theMaterial2;
 	delete theMaterial3;
@@ -290,7 +290,8 @@ BeamGT::setDomain(Domain *theDomain)
         
         
         // call the DomainComponent class method THIS IS VERY IMPORTANT
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // ensure connected nodes have correct number of dof's
     int dofNd1 = end1Ptr->getNumberDOF();

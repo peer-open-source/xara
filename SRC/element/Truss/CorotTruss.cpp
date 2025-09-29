@@ -231,15 +231,10 @@ CorotTruss::setDomain(Domain* theDomain)
     delete theLoad;
     theLoad = new Vector(numDOF);
   }
-  if (theLoad == 0) {
-    opserr << "Truss::setDomain - truss " << this->getTag()
-           << "out of memory creating vector of size" << numDOF << endln;
-    exit(-1);
-    return;
-  }
 
   // call the base class method
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
   // now determine the length, cosines and fill in the transformation
   // NOTE t = -t(every one else uses for residual calc)
@@ -251,8 +246,7 @@ CorotTruss::setDomain(Domain* theDomain)
   cosX[0] = 0.0;
   cosX[1] = 0.0;
   cosX[2] = 0.0;
-  int i;
-  for (i = 0; i < numDIM; i++) {
+  for (int i = 0; i < numDIM; i++) {
     cosX[i] += end2Crd(i) - end1Crd(i);
   }
 
@@ -297,9 +291,8 @@ CorotTruss::setDomain(Domain* theDomain)
   }
 
   // Orthonormalize last two rows of R
-  double norm;
-  for (i = 1; i < 3; i++) {
-    norm = sqrt(R(i, 0) * R(i, 0) + R(i, 1) * R(i, 1) + R(i, 2) * R(i, 2));
+  for (int i = 1; i < 3; i++) {
+    double norm = sqrt(R(i, 0) * R(i, 0) + R(i, 1) * R(i, 1) + R(i, 2) * R(i, 2));
     R(i, 0) /= norm;
     R(i, 1) /= norm;
     R(i, 2) /= norm;

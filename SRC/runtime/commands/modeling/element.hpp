@@ -85,8 +85,6 @@ extern OPS_Routine OPS_FSIInterfaceElement2D;      // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_FSIFluidBoundaryElement2D;  // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_FSIFluidElement2D;          // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_ASDShellT3;
-extern OPS_Routine OPS_TwoNodeLink;
-extern OPS_Routine OPS_TwoNodeLinkSection;
 extern OPS_Routine OPS_LinearElasticSpring;
 extern OPS_Routine OPS_Inerter;
 extern OPS_Routine OPS_Inno3DPnPJoint;
@@ -109,35 +107,37 @@ extern OPS_Routine OPS_MasonPan3D;
 
 #include <algorithm>
 #include <string>
+namespace {
 static
 std::string toLower( const std::string & s )
 {
-    std::string copy = s;
-    transform( copy.begin( ), copy.end( ), copy.begin( ), 
-        [](unsigned char c) { return std::tolower(c); });
-    return copy;
+  std::string copy = s;
+  transform( copy.begin( ), copy.end( ), copy.begin( ), 
+      [](unsigned char c) { return std::tolower(c); });
+  return copy;
 }
 
 static bool 
 equalsIgnoreCase( const std::string & lhs, const std::string & rhs )
 {
-    return toLower( lhs ) == toLower( rhs );
+  return toLower( lhs ) == toLower( rhs );
 }
 
 class CaseInsensitive
 {
-  public:
-    size_t operator( ) ( const std::string & s ) const
-    {  
-        static std::hash<std::string> hf;
-        return hf( toLower( s ) );
-    }
-    
-    bool operator( ) ( const std::string & lhs, const std::string & rhs ) const
-    {
-        return equalsIgnoreCase( lhs, rhs );
-    }
+public:
+  size_t operator( ) ( const std::string & s ) const
+  {  
+      static std::hash<std::string> hf;
+      return hf( toLower( s ) );
+  }
+  
+  bool operator( ) ( const std::string & lhs, const std::string & rhs ) const
+  {
+      return equalsIgnoreCase( lhs, rhs );
+  }
 };
+}
 
 Tcl_CmdProc TclCommand_addTruss;
 Tcl_CmdProc TclCommand_addTwoNodeLink;
@@ -170,6 +170,7 @@ const static
 std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
 element_dispatch_tcl = {
   {"twoNodeLink",               TclCommand_addTwoNodeLink},
+  {"Link",                      TclCommand_addTwoNodeLink},
   {"twoNodeLinkSection",        TclCommand_addTwoNodeLinkSection},
   {"Truss",                     TclCommand_addTruss},
   {"TrussSection",              TclCommand_addTruss},
@@ -211,9 +212,7 @@ element_dispatch_tcl = {
 // U-P
 
   {"quadUP",                    TclBasicBuilder_addFourNodeQuadUP},
-
   {"9_4_QuadUP",                TclBasicBuilder_addNineFourNodeQuadUP},
-
   {"bbarQuadUP",                TclBasicBuilder_addBBarFourNodeQuadUP},
 
 //
@@ -299,6 +298,7 @@ element_dispatch = {
 // Fluid
   {"FSIFluidElement2D",            OPS_FSIFluidElement2D },
   {"FSIInterfaceElement2D",        OPS_FSIInterfaceElement2D },
+  {"FluidInterface",               OPS_FSIInterfaceElement2D },
   {"FSIFluidBoundaryElement2D",    OPS_FSIFluidBoundaryElement2D },
 
 // Joint
@@ -311,7 +311,6 @@ element_dispatch = {
   {"BeamGT",                       OPS_BeamGT},
   {"ZeroLengthVG_HG",              OPS_ZeroLengthVG_HG},
   {"ZeroLengthContactASDimplex",   OPS_ZeroLengthContactASDimplex},
-//{"twoNodeLink",                  OPS_TwoNodeLink},
   {"SurfaceLoad",                  OPS_SurfaceLoad},
   {"TriSurfaceLoad",               OPS_TriSurfaceLoad},
   {"TPB1D",                        OPS_TPB1D},

@@ -24,6 +24,7 @@
 // Created: 11/96
 // Revision: A
 //
+#include <logging/Logging.h>
 #include <MP_Constraint.h>
 #include <string.h>
 #include <Matrix.h>

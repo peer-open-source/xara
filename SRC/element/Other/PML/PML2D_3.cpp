@@ -199,7 +199,8 @@ void  PML2D_3::setDomain(Domain* theDomain)
 	for ( int i=0; i<PML2D_3_NUM_NODES; i++ ) {
 		nodePointers[i] = theDomain->getNode( connectedExternalNodes(i)) ;
 	}
-	this->DomainComponent::setDomain(theDomain);
+	if (theDomain != nullptr)
+	  this->Element::link(*theDomain);
 
 
 	// obtaining the zone 

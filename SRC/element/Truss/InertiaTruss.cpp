@@ -280,7 +280,8 @@ InertiaTruss::setDomain(Domain *theDomain)
     }	
 
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
     // now set the number of dof for element and set matrix and vector pointer
     if (dimension == 1 && dofNd1 == 1) {
@@ -324,14 +325,7 @@ InertiaTruss::setDomain(Domain *theDomain)
     else if (theLoad->Size() != numDOF) {
       delete theLoad;
       theLoad = new Vector(numDOF);
-    }
-
-    if (theLoad == 0) {
-      opserr << "InertiaTruss::setDomain - truss " << this->getTag() << 
-	"out of memory creating vector of size" << numDOF << endln;
-      exit(-1);
-      return;
-    }          
+    }     
     
     // now determine the length, cosines and fill in the transformation
     // NOTE t = -t(every one else uses for residual calc)

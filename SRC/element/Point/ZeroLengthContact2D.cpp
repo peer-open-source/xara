@@ -270,7 +270,8 @@ ZeroLengthContact2D::setDomain(Domain *theDomain)
 	", which is greater than the tolerance\n";
 
     // call the base class method
-    this->DomainComponent::setDomain(theDomain);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
 
 	if (dofNd1 == 2 && dofNd2 == 2) {
 	numDOF = 4;

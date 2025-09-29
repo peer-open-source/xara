@@ -57,18 +57,18 @@ class PartitionedDomain: public Domain
 {
   public:
     PartitionedDomain();    
-    PartitionedDomain(DomainPartitioner &thePartitioner);    
+    PartitionedDomain(DomainPartitioner &);    
 
     PartitionedDomain(int numNodes, int numElements, 
-		      int numSPs, int numMPs, int numLoadPatterns,
-		      int numSubdomains,
-		      DomainPartitioner &thePartitioner);
+                      int numSPs, int numMPs, int numLoadPatterns,
+                      int numSubdomains,
+                      DomainPartitioner &thePartitioner);
     
     virtual  ~PartitionedDomain();    
 
     // public methods to populate a domain	
-    virtual  bool addElement(Element *elePtr);
-    virtual  bool addNode(Node *nodePtr);
+    virtual  bool addElement(Element *);
+    virtual  bool addNode(Node *);
 
     virtual  bool addLoadPattern(LoadPattern *);            
     virtual  bool addSP_Constraint(SP_Constraint *); 
@@ -81,7 +81,7 @@ class PartitionedDomain: public Domain
     virtual  bool addElementalLoad(ElementalLoad *, int loadPatternTag);
 
     // methods to remove the components     
-    virtual void clearAll(void);
+    virtual void clearAll();
     virtual Element *removeElement(int tag);
     virtual Node *removeNode(int tag);        
     virtual SP_Constraint *removeSP_Constraint(int tag);
@@ -89,14 +89,14 @@ class PartitionedDomain: public Domain
     virtual MP_Constraint *removeMP_Constraint(int tag);
     virtual int removeMP_Constraints(int tag);
     virtual LoadPattern   *removeLoadPattern(int loadTag);
-    
+
     // methods to access the elements
     virtual  ElementIter       &getElements();
     virtual  Element           *getElement(int tag);
-    virtual  int 		getNumElements(void) const;
+    virtual  int 		getNumElements() const;
 
     // public methods to update the domain
-    virtual int hasDomainChanged(void);
+    virtual int hasDomainChanged();
 
     virtual  void setCommitTag(int newTag);    	
     virtual  void setCurrentTime(double newTime);    
@@ -105,11 +105,11 @@ class PartitionedDomain: public Domain
     virtual  void setLoadConstant(void);    
     virtual  int  setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc);
 
-    virtual  int commit(void);    
-    virtual  int revertToLastCommit(void);        
-    virtual  int revertToStart(void);    
+    virtual  int commit();    
+    virtual  int revertToLastCommit();        
+    virtual  int revertToStart();    
 
-    virtual  int update(void);        
+    virtual  int update();        
     virtual  int update(double newTime, double dT);
 
     virtual  int analysisStep(double dT);
@@ -135,9 +135,9 @@ class PartitionedDomain: public Domain
     virtual int repartition(int numPartitions, bool usingMain = false, int mainPartitionID = 0, int specialElementTag = 0);
 			
     virtual bool addSubdomain(Subdomain *theSubdomain);
-    virtual int getNumSubdomains(void);
+    virtual int getNumSubdomains();
     virtual Subdomain *getSubdomainPtr(int tag);
-    virtual SubdomainIter &getSubdomains(void);
+    virtual SubdomainIter &getSubdomains();
     virtual Node *removeExternalNode(int tag);        
     virtual Graph &getSubdomainGraph(void);
 

@@ -43,7 +43,7 @@ class NDFiberSection3d : public FrameSection
     NDFiberSection3d(int tag, int numFibers, double a = 1.0, bool compCentroid=true);
     ~NDFiberSection3d();
 
-    const char *getClassType(void) const {return "NDFiberSection3d";};
+    const char *getClassType(void) const {return "NDFiberSection3d";}
 
     int   setTrialSectionDeformation(const Vector &deforms); 
     const Vector &getSectionDeformation(void);

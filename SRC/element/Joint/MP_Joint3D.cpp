@@ -39,7 +39,6 @@
 #include <FEM_ObjectBroker.h>
 
 
-// constructor for FEM_ObjectBroker
 MP_Joint3D::MP_Joint3D()
  :MP_Constraint(CNSTRNT_TAG_MP_Joint3D ), thisDomain(0),
 nodeRetained(0), nodeConstrained(0), nodeRotation(0), RotDOF(0),
@@ -52,7 +51,6 @@ RotationNode(0), DisplacementNode(0)
 }
 
 
-// general constructor for ModelBuilder
 MP_Joint3D::MP_Joint3D( Domain *theDomain, int nodeRetain, int nodeConstr,
 		int nodeRot, int Rotdof, int nodeDisp, int Dispdof, int LrgDsp )
 :MP_Constraint(CNSTRNT_TAG_MP_Joint3D ), thisDomain(theDomain),

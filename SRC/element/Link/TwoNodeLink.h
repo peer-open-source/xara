@@ -32,47 +32,46 @@
 
 #include "Element.h"
 #include <Matrix.h>
+#include <Vector3D.h>
+#include <Matrix3D.h>
+using namespace OpenSees;
 
 class Channel;
 class UniaxialMaterial;
 class Response;
 
-// Type of dimension of element NxDy has dimension x=1,2,3 and
-// y=2,4,6,12 degrees-of-freedom for the element
-#ifndef ZeroLength_h
-    enum Etype { D1N2, D2N4, D2N6, D3N6, D3N12 };
-#endif
-
 
 class TwoNodeLink : public Element
 {
 public:
-    // constructors
+// Type of dimension of element NxDy has dimension x=1,2,3 and
+// y=2,4,6,12 degrees-of-freedom for the element
+    enum Etype { D1N2, D2N4, D2N6, D3N6, D3N12 };
+
     TwoNodeLink(int tag, int dimension, int Nd1, int Nd2,
         const ID &direction, UniaxialMaterial **theMaterials,
-        const Vector y = 0, const Vector x = 0,
+        const Vector3D& y, const Vector3D& x,
         const Vector Mratio = 0, const Vector shearDistI = 0,
         int addRayleigh = 0, double mass = 0.0);
     TwoNodeLink();
-    
-    // destructor
+
     ~TwoNodeLink();
     
     // method to get class type
-    const char *getClassType() const {return "TwoNodeLink";};
+    const char *getClassType() const override {return "TwoNodeLink";}
     
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
     int getNumDOF();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *) override;
     
     // public methods to set the state of the element
-    int commitState();
-    int revertToLastCommit();
-    int revertToStart();
-    int update();
+    int commitState() override;
+    int revertToLastCommit() override;
+    int revertToStart() override;
+    int update() override;
     
     // public methods to obtain stiffness,
     // mass, damping and residual information
@@ -89,13 +88,12 @@ public:
     const Vector &getResistingForceIncInertia();
     
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag = 0);
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
+    void Print(OPS_Stream &s, int flag) override;
     
     // public methods for element recorder
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
     int getResponse(int responseID, Information &eleInfo);
     
     int setParameter(const char **argv, int argc, Parameter &param);
@@ -121,8 +119,8 @@ private:
     int numDIR;         // number of directions
     ID *dir;            // array of directions 0-5
     Matrix trans;       // transformation matrix for orientation
-    Vector x;           // local x direction
-    Vector y;           // local y direction
+    Vector3D x;           // local x direction
+    Vector3D y;           // local y direction
     Vector Mratio;      // p-delta moment distribution ratios
     Vector shearDistI;  // shear distance from node I as fraction of length
     int addRayleigh;    // flag to add Rayleigh damping
@@ -140,16 +138,6 @@ private:
     Matrix *theMatrix;  // pointer to objects matrix (a class wide Matrix)
     Vector *theVector;  // pointer to objects vector (a class wide Vector)
     Vector *theLoad;    // pointer to the load vector
-    
-    // static data - single copy for all objects of the class
-    static Matrix TwoNodeLinkM2;   // class wide matrix for 2*2
-    static Matrix TwoNodeLinkM4;   // class wide matrix for 4*4
-    static Matrix TwoNodeLinkM6;   // class wide matrix for 6*6
-    static Matrix TwoNodeLinkM12;  // class wide matrix for 12*12
-    static Vector TwoNodeLinkV2;   // class wide Vector for size 2
-    static Vector TwoNodeLinkV4;   // class wide Vector for size 4
-    static Vector TwoNodeLinkV6;   // class wide Vector for size 6
-    static Vector TwoNodeLinkV12;  // class wide Vector for size 12
 };
 
 #endif

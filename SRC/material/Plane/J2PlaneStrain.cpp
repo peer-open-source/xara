@@ -54,13 +54,13 @@ Vector J2PlaneStrain :: stress_vec(3) ;
 Matrix J2PlaneStrain :: tangent_matrix(3,3) ;
 
 
-//null constructor
-J2PlaneStrain ::  J2PlaneStrain( ) : 
-J2Plasticity( ) 
-{  }
+J2PlaneStrain::J2PlaneStrain( ) : 
+J2Plasticity() 
+{
+
+}
 
 
-//full constructor
 J2PlaneStrain :: 
 J2PlaneStrain(   int    tag, 
                  double K,
@@ -78,7 +78,6 @@ J2Plasticity( tag, ND_TAG_J2PlaneStrain,
 }
 
 
-//elastic constructor
 J2PlaneStrain :: 
 J2PlaneStrain(   int    tag, 
                  double K, 
@@ -89,8 +88,6 @@ J2Plasticity( tag, ND_TAG_J2PlaneStrain, K, G )
 }
 
 
-
-//destructor
 J2PlaneStrain :: ~J2PlaneStrain( ) 
 { 
 

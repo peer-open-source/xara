@@ -24,6 +24,7 @@
 // Created: 11/96
 // Revision: A
 //
+#include <logging/Logging.h>
 #include <string.h>
 #include <SP_Constraint.h>
 #include <classTags.h>

@@ -61,7 +61,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_CorotTruss2)
 
   if (numRemainingArgs < 7) {
     opserr << "Invalid Args want: element CorotTruss2 $tag $iNode $jNode $auxN1 $auxN2 $A $matTag <-rho $rho>\n";
-    return 0;	
+    return 0;        
   }
 
   int    iData[5];
@@ -81,7 +81,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_CorotTruss2)
   if (OPS_GetDouble(&numData, &A) != 0) {
     opserr << "WARNING: Invalid A: element CorotTruss2 " << iData[0] << 
       " $iNode $jNode $A $matTag <-rho $rho> <-rayleig $flagh>\n";
-    return 0;	
+    return 0;        
   }
 
   numData = 1;
@@ -106,13 +106,13 @@ void * OPS_ADD_RUNTIME_VPV(OPS_CorotTruss2)
     if (strcmp(argvS,"-rho") == 0) {
       numData = 1;
       if (OPS_GetDouble(&numData, &rho) != 0) {
-	opserr << "WARNING Invalid rho in element CorotTruss2 " << iData[0] << 
-	  " $iNode $jNode $auxN1 $auxN2 $A $matTag <-rho $rho> <-rayleigh $flagh>\n";
-	return 0;
+        opserr << "WARNING Invalid rho in element CorotTruss2 " << iData[0] << 
+          " $iNode $jNode $auxN1 $auxN2 $A $matTag <-rho $rho> <-rayleigh $flagh>\n";
+        return 0;
       }
     } else {
       opserr << "WARNING: Invalid option " << argvS << "  in: element CorotTruss2 " << iData[0] << 
-	" $iNode $jNode $auxN1 $auxN2 $A $matTag <-rho $rho> <-rayleigh $flagh>\n";
+        " $iNode $jNode $auxN1 $auxN2 $A $matTag <-rho $rho> <-rayleigh $flagh>\n";
       return 0;
     }      
     numRemainingArgs -= 2;
@@ -134,9 +134,9 @@ void * OPS_ADD_RUNTIME_VPV(OPS_CorotTruss2)
 //  responsible for allocating the necessary space needed by each object
 //  and storing the tags of the CorotTruss2 end nodes.
 CorotTruss2::CorotTruss2(int tag, int dim,
-			   int Nd1, int Nd2, int oNd1, int oNd2, 
-			   UniaxialMaterial &theMat,
-			   double a, double r)
+                           int Nd1, int Nd2, int oNd1, int oNd2, 
+                           UniaxialMaterial &theMat,
+                           double a, double r)
   :Element(tag,ELE_TAG_CorotTruss2),     
   theMaterial(0), theBetaMaterial(0), 
   connectedExternalNodes(2), connectedExternalOtherNodes(2),
@@ -152,7 +152,7 @@ CorotTruss2::CorotTruss2(int tag, int dim,
       "failed to get a copy of material with tag " << theMat.getTag() << endln;
     exit(-1);
   } else if (theMaterial->getClassTag() == MAT_TAG_ConcretewBeta) {
-	theBetaMaterial = (ConcretewBeta *) theMaterial;
+        theBetaMaterial = (ConcretewBeta *) theMaterial;
   }
   
   // ensure the connectedExternalNode ID is of correct size & set values
@@ -220,7 +220,7 @@ CorotTruss2::getNumExternalNodes(void) const
 const ID &
 CorotTruss2::getExternalNodes(void) 
 {
-	return connectedExternalNodes;
+        return connectedExternalNodes;
 }
 
 Node **
@@ -232,7 +232,7 @@ CorotTruss2::getNodePtrs(void)
 int
 CorotTruss2::getNumDOF(void) 
 {
-	return numDOF;
+        return numDOF;
 }
 
 // method: setDomain()
@@ -251,9 +251,9 @@ CorotTruss2::setDomain(Domain *theDomain)
     Lo = 0.0;
     Ln = 0.0;
 
-	theOtherNodes[0] = 0;
-	theOtherNodes[1] = 0;
-	otherLength = 0.0;
+        theOtherNodes[0] = 0;
+        theOtherNodes[1] = 0;
+        otherLength = 0.0;
     return;
   }
   
@@ -261,31 +261,31 @@ CorotTruss2::setDomain(Domain *theDomain)
   int Nd1 = connectedExternalNodes(0);
   int Nd2 = connectedExternalNodes(1);
   theNodes[0] = theDomain->getNode(Nd1);
-  theNodes[1] = theDomain->getNode(Nd2);	
+  theNodes[1] = theDomain->getNode(Nd2);        
   // and the other node pointers (will be reordered later)
   int oNd1 = connectedExternalOtherNodes(0);
   int oNd2 = connectedExternalOtherNodes(1);
   theOtherNodes[0] = theDomain->getNode(oNd1);
-  theOtherNodes[1] = theDomain->getNode(oNd2);	
+  theOtherNodes[1] = theDomain->getNode(oNd2);        
   
   // if can't find both - send a warning message
   if ((theNodes[0] == 0) || (theNodes[1] == 0) || theOtherNodes[0] == 0 || theOtherNodes[1] == 0) {
       if (theNodes[0] == 0)
-	opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << Nd1 <<
-	  " does not exist in the model\n";
+        opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << Nd1 <<
+          " does not exist in the model\n";
       else if (theNodes[1] == 0)
-	opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << Nd2 <<
-	  " does not exist in the model\n";
-	  else if (theOtherNodes[0] == 0)
-	opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << oNd1 <<
-	  " does not exist in the model\n";
-	  else 
-	opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << oNd2 <<
-	  " does not exist in the model\n";
+        opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << Nd2 <<
+          " does not exist in the model\n";
+          else if (theOtherNodes[0] == 0)
+        opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << oNd1 <<
+          " does not exist in the model\n";
+          else 
+        opserr <<"Truss2::setDomain() - truss" << this->getTag() << " node " << oNd2 <<
+          " does not exist in the model\n";
 
       // fill this in so don't segment fault later
       numDOF = 6;
-	  theMatrix = &M6;
+          theMatrix = &M6;
       theVector = &V6;
       return;
     }
@@ -293,7 +293,7 @@ CorotTruss2::setDomain(Domain *theDomain)
   
   // now determine the number of dof and the dimesnion    
   int dofNd1 = theNodes[0]->getNumberDOF();
-  int dofNd2 = theNodes[1]->getNumberDOF();	
+  int dofNd2 = theNodes[1]->getNumberDOF();        
   
   // if differing dof at the ends - print a warning message
   if (dofNd1 != dofNd2) {
@@ -305,7 +305,7 @@ CorotTruss2::setDomain(Domain *theDomain)
     theMatrix = &M6;
     theVector = &V6;
     return;
-  }	
+  }        
   
   if (numDIM == 1 && dofNd1 == 1) {
     numDOF = 2;
@@ -339,22 +339,23 @@ CorotTruss2::setDomain(Domain *theDomain)
     // fill this in so don't segment fault later
     numDOF = 6;    
     theMatrix = &M6;
-    theVector = &V6;	
+    theVector = &V6;        
     return;
   }
 
-	// call the base class method
-	this->DomainComponent::setDomain(theDomain);
+        // call the base class method
+        if (theDomain != nullptr)
+          this->Element::link(*theDomain);
 
-	// now determine the length, cosines and fill in the transformation
-	// NOTE t = -t(every one else uses for residual calc)
-	const Vector &end1Crd = theNodes[0]->getCrds();
-	const Vector &end2Crd = theNodes[1]->getCrds();
-	double dx = end2Crd(0)-end1Crd(0);
-	double dy = end2Crd(1)-end1Crd(1);	
-	double dz = end2Crd(2)-end1Crd(2);		
+        // now determine the length, cosines and fill in the transformation
+        // NOTE t = -t(every one else uses for residual calc)
+        const Vector &end1Crd = theNodes[0]->getCrds();
+        const Vector &end2Crd = theNodes[1]->getCrds();
+        double dx = end2Crd(0)-end1Crd(0);
+        double dy = end2Crd(1)-end1Crd(1);        
+        double dz = end2Crd(2)-end1Crd(2);                
 
-	// Determine global offsets
+        // Determine global offsets
     double cosX[3];
     cosX[0] = 0.0;  cosX[1] = 0.0;  cosX[2] = 0.0;
     int i;
@@ -362,77 +363,77 @@ CorotTruss2::setDomain(Domain *theDomain)
         cosX[i] += end2Crd(i)-end1Crd(i);
     }
 
-	// Set undeformed and initial length
-	Lo = cosX[0]*cosX[0] + cosX[1]*cosX[1] + cosX[2]*cosX[2];
-	Lo = sqrt(Lo);
-	Ln = Lo;
+        // Set undeformed and initial length
+        Lo = cosX[0]*cosX[0] + cosX[1]*cosX[1] + cosX[2]*cosX[2];
+        Lo = sqrt(Lo);
+        Ln = Lo;
 
     // Initial offsets
-   	d21[0] = Lo;
-	d21[1] = 0.0;
-	d21[2] = 0.0;
+           d21[0] = Lo;
+        d21[1] = 0.0;
+        d21[2] = 0.0;
 
-	// Set global orientation
-	cosX[0] /= Lo;
-	cosX[1] /= Lo;
-	cosX[2] /= Lo;
+        // Set global orientation
+        cosX[0] /= Lo;
+        cosX[1] /= Lo;
+        cosX[2] /= Lo;
 
-	R(0,0) = cosX[0];
-	R(0,1) = cosX[1];
-	R(0,2) = cosX[2];
+        R(0,0) = cosX[0];
+        R(0,1) = cosX[1];
+        R(0,2) = cosX[2];
 
-	// Element lies outside the YZ plane
-	if (fabs(cosX[0]) > 0.0) {
-		R(1,0) = -cosX[1];
-		R(1,1) =  cosX[0];
-		R(1,2) =  0.0;
+        // Element lies outside the YZ plane
+        if (fabs(cosX[0]) > 0.0) {
+                R(1,0) = -cosX[1];
+                R(1,1) =  cosX[0];
+                R(1,2) =  0.0;
 
-		R(2,0) = -cosX[0]*cosX[2];
-		R(2,1) = -cosX[1]*cosX[2];
-		R(2,2) =  cosX[0]*cosX[0] + cosX[1]*cosX[1];
-	}
-	// Element is in the YZ plane
-	else {
-		R(1,0) =  0.0;
-		R(1,1) = -cosX[2];
-		R(1,2) =  cosX[1];
+                R(2,0) = -cosX[0]*cosX[2];
+                R(2,1) = -cosX[1]*cosX[2];
+                R(2,2) =  cosX[0]*cosX[0] + cosX[1]*cosX[1];
+        }
+        // Element is in the YZ plane
+        else {
+                R(1,0) =  0.0;
+                R(1,1) = -cosX[2];
+                R(1,2) =  cosX[1];
 
-		R(2,0) =  1.0;
-		R(2,1) =  0.0;
-		R(2,2) =  0.0;
-	}
+                R(2,0) =  1.0;
+                R(2,1) =  0.0;
+                R(2,2) =  0.0;
+        }
 
-	// Orthonormalize last two rows of R
-	double norm;
-	for (i = 1; i < 3; i++) {
-		norm = sqrt(R(i,0)*R(i,0) + R(i,1)*R(i,1) + R(i,2)*R(i,2));
-		R(i,0) /= norm;
-		R(i,1) /= norm;
-		R(i,2) /= norm;
-	}
+        // Orthonormalize last two rows of R
+        double norm;
+        for (i = 1; i < 3; i++) {
+                norm = sqrt(R(i,0)*R(i,0) + R(i,1)*R(i,1) + R(i,2)*R(i,2));
+                R(i,0) /= norm;
+                R(i,1) /= norm;
+                R(i,2) /= norm;
+        }
 
-	// set up the normal strain nodes.
-	 // determine the strain
+        // set up the normal strain nodes.
+         // determine the strain
     const Vector &Oend1Crd = theOtherNodes[0]->getCrds();
-    const Vector &Oend2Crd = theOtherNodes[1]->getCrds();	
-	double dx2 = Oend2Crd(0)-Oend1Crd(0);
-	double dy2 = Oend2Crd(1)-Oend1Crd(1);	
-	double dz2 = Oend2Crd(2)-Oend1Crd(2);	
+    const Vector &Oend2Crd = theOtherNodes[1]->getCrds();        
+        double dx2 = Oend2Crd(0)-Oend1Crd(0);
+        double dy2 = Oend2Crd(1)-Oend1Crd(1);        
+        double dz2 = Oend2Crd(2)-Oend1Crd(2);        
 
-	od21[0] = 0.0;
-	od21[1] = 0.0;
-	od21[2] = 0.0;
+        od21[0] = 0.0;
+        od21[1] = 0.0;
+        od21[2] = 0.0;
 
-	// Update offsets in basic system due to nodal displacements
-	for (int i = 0; i < numDIM; i++) {
-		double deltaDisp = Oend1Crd(i) - Oend2Crd(i);
-		od21[0] += deltaDisp*R(0,i);
-		od21[1] += deltaDisp*R(1,i);
-		od21[2] += deltaDisp*R(2,i);
-	}
+        // Update offsets in basic system due to nodal displacements
+        for (int i = 0; i < numDIM; i++) {
+                double deltaDisp = Oend1Crd(i) - Oend2Crd(i);
+                od21[0] += deltaDisp*R(0,i);
+                od21[1] += deltaDisp*R(1,i);
+                od21[2] += deltaDisp*R(2,i);
+        }
 
-	otherLength = sqrt(od21[0]*od21[0] + od21[1]*od21[1] + od21[2]*od21[2]);
-	theta = acos((dx*dx2+dy*dy2+dz*dz2)/(Lo*otherLength)); // cos*theta = a*b/(|a|*|b|)
+        otherLength = sqrt(od21[0]*od21[0] + od21[1]*od21[1] + od21[2]*od21[2]);
+        theta = acos((dx*dx2+dy*dy2+dz*dz2)/(Lo*otherLength)); // cos*theta = a*b/(|a|*|b|)
 }
 
 int
@@ -450,15 +451,15 @@ CorotTruss2::commitState()
 int
 CorotTruss2::revertToLastCommit()
 {
-	// Revert the material
-	return theMaterial->revertToLastCommit();
+        // Revert the material
+        return theMaterial->revertToLastCommit();
 }
 
 int
 CorotTruss2::revertToStart()
 {
-	// Revert the material to start
-	return theMaterial->revertToStart();
+        // Revert the material to start
+        return theMaterial->revertToStart();
 }
 
 int
@@ -468,7 +469,7 @@ CorotTruss2::update(void)
   const Vector &end1Disp  = theNodes[0]->getTrialDisp();
   const Vector &end2Disp  = theNodes[1]->getTrialDisp();    
   const Vector &end1Vel   = theNodes[0]->getTrialVel();
-  const Vector &end2Vel   = theNodes[1]->getTrialVel();	
+  const Vector &end2Vel   = theNodes[1]->getTrialVel();        
   
   // Initial offsets
   d21[0] = Lo; d21[1] = d21[2] = 0.0;
@@ -495,11 +496,11 @@ CorotTruss2::update(void)
   
   // Set material trial strain
   if (theBetaMaterial && theta != 0.0) {
-  	double strain_t = this->computeCurrentNormalStrain();
-	strain_t = (strain_t-strain*fabs(cos(theta)))/(fabs(sin(theta)));
-	return theBetaMaterial->setTrialStrainwBeta(strain, strain_t, rate);
+          double strain_t = this->computeCurrentNormalStrain();
+        strain_t = (strain_t-strain*fabs(cos(theta)))/(fabs(sin(theta)));
+        return theBetaMaterial->setTrialStrainwBeta(strain, strain_t, rate);
   } else {
-	return theMaterial->setTrialStrain(strain, rate);
+        return theMaterial->setTrialStrain(strain, rate);
   }
 }
 
@@ -507,31 +508,31 @@ double
 CorotTruss2::computeCurrentNormalStrain(void)
 {
     // normal vector = (-cosX[1], cosX[0])
-	if (otherLength == 0) {
-		return 0;
-	}
+        if (otherLength == 0) {
+                return 0;
+        }
 
     // determine the strain
     const Vector &disp1 = theOtherNodes[0]->getTrialDisp();
-    const Vector &disp2 = theOtherNodes[1]->getTrialDisp();	
+    const Vector &disp2 = theOtherNodes[1]->getTrialDisp();        
 
       // Initial offsets
-	double temp[3];
-	temp[0] = od21[0];
-	temp[1] = od21[1];
-	temp[2] = od21[2];
+        double temp[3];
+        temp[0] = od21[0];
+        temp[1] = od21[1];
+        temp[2] = od21[2];
   
-	// Update offsets in basic system due to nodal displacements
-	for (int i = 0; i < numDIM; i++) {
-		double deltaDisp = disp1(i) - disp2(i);
-		temp[0] += deltaDisp*R(0,i);
-		temp[1] += deltaDisp*R(1,i);
-		temp[2] += deltaDisp*R(2,i);
-	}
+        // Update offsets in basic system due to nodal displacements
+        for (int i = 0; i < numDIM; i++) {
+                double deltaDisp = disp1(i) - disp2(i);
+                temp[0] += deltaDisp*R(0,i);
+                temp[1] += deltaDisp*R(1,i);
+                temp[2] += deltaDisp*R(2,i);
+        }
   
     // this method should never be called with L == 0
-	otherLength_new = sqrt(temp[0]*temp[0] + temp[1]*temp[1] + temp[2]*temp[2]);
-	double strain_t = (otherLength_new - otherLength)/otherLength;
+        otherLength_new = sqrt(temp[0]*temp[0] + temp[1]*temp[1] + temp[2]*temp[2]);
+        double strain_t = (otherLength_new - otherLength)/otherLength;
 
     return strain_t;
 }
@@ -625,7 +626,7 @@ CorotTruss2::getMass(void)
 
     // check for quick return
     if (Lo == 0.0 || rho == 0.0)
-	return Mass;
+        return Mass;
 
     double M = 0.5*rho*Lo;
     int numDOF2 = numDOF/2;
@@ -640,7 +641,7 @@ CorotTruss2::getMass(void)
 void 
 CorotTruss2::zeroLoad(void)
 {
-	return;
+        return;
 }
 
 int 
@@ -656,21 +657,21 @@ CorotTruss2::addLoad(ElementalLoad *theLoad, double loadFactor)
 int 
 CorotTruss2::addInertiaLoadToUnbalance(const Vector &accel)
 {
-	return 0;
+        return 0;
 }
 
 const Vector &
 CorotTruss2::getResistingForce()
 {
-	// Get material stress
-	double SA = A*theMaterial->getStress();
-	SA /= Ln;
+        // Get material stress
+        double SA = A*theMaterial->getStress();
+        SA /= Ln;
 
     static Vector ql(3);
 
-	ql(0) = d21[0]*SA;
-	ql(1) = d21[1]*SA;
-	ql(2) = d21[2]*SA;
+        ql(0) = d21[0]*SA;
+        ql(1) = d21[1]*SA;
+        ql(2) = d21[2]*SA;
 
     static Vector qg(3);
     qg.addMatrixTransposeVector(0.0, R, ql, 1.0);
@@ -692,20 +693,20 @@ CorotTruss2::getResistingForce()
 
 const Vector &
 CorotTruss2::getResistingForceIncInertia()
-{	
+{        
     Vector &P = *theVector;
     P = this->getResistingForce();
     
     if (rho != 0.0) {
-	
+        
       const Vector &accel1 = theNodes[0]->getTrialAccel();
-      const Vector &accel2 = theNodes[1]->getTrialAccel();	
+      const Vector &accel2 = theNodes[1]->getTrialAccel();        
       
       double M = 0.5*rho*Lo;
       int numDOF2 = numDOF/2;
       for (int i = 0; i < numDIM; i++) {
-	P(i)        += M*accel1(i);
-	P(i+numDOF2) += M*accel2(i);
+        P(i)        += M*accel1(i);
+        P(i+numDOF2) += M*accel2(i);
       }
     }
 
@@ -752,7 +753,7 @@ CorotTruss2::sendSelf(int commitTag, Channel &theChannel)
   if (res < 0) {
     opserr << "WARNING Truss::sendSelf() - " << this->getTag() << " failed to send Vector\n";
     return -1;
-  }	      
+  }              
 
   // truss then sends the tags of it's two end nodes
 
@@ -791,7 +792,7 @@ CorotTruss2::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theB
   if (res < 0) {
     opserr << "WARNING Truss::recvSelf() - failed to receive Vector\n";
     return -1;
-  }	      
+  }              
 
   this->setTag((int)data(0));
   numDIM = (int)data(1);
@@ -828,11 +829,11 @@ CorotTruss2::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theB
     theMaterial = theBroker.getNewUniaxialMaterial(matClass);
     if (theMaterial == 0) {
       opserr << "WARNING Truss::recvSelf() - " << this->getTag() << 
-	"failed to get a blank Material of type: " << matClass << endln;
+        "failed to get a blank Material of type: " << matClass << endln;
       return -3;
     } else if (theMaterial->getClassTag() == MAT_TAG_ConcretewBeta) {
-		theBetaMaterial = (ConcretewBeta *) theMaterial;
-	}
+                theBetaMaterial = (ConcretewBeta *) theMaterial;
+        }
   }
 
   theMaterial->setDbTag(matDb); // note: we set the dbTag before we receive the material
@@ -848,9 +849,9 @@ CorotTruss2::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theB
 int
 CorotTruss2::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
 {
-	// ensure setDomain() worked
-	if (Ln == 0.0)
-		return 0;
+        // ensure setDomain() worked
+        if (Ln == 0.0)
+                return 0;
 
     static Vector v1(3);
     static Vector v2(3);

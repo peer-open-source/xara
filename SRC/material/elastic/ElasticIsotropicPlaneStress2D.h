@@ -51,18 +51,18 @@ class ElasticIsotropicPlaneStress2D : public ElasticIsotropicMaterial
     ElasticIsotropicPlaneStress2D ();
     ~ElasticIsotropicPlaneStress2D ();
 
-    const char *getClassType(void) const {return "ElasticIsotropicPlaneStress2D";};
+    const char *getClassType() const {return "ElasticIsotropicPlaneStress2D";}
 
-    int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
+    int setTrialStrain(const Vector &v);
+    int setTrialStrain(const Vector &v, const Vector &r);
     int setTrialStrainIncr (const Vector &v);
     int setTrialStrainIncr (const Vector &v, const Vector &r);
 
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+    const Matrix &getTangent();
+    const Matrix &getInitialTangent();
 
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
+    const Vector &getStress(void);
+    const Vector &getStrain(void);
         
     int commitState (void);
     int revertToLastCommit (void);

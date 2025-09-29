@@ -120,7 +120,8 @@ ConstantPressureVolumeQuad::setDomain( Domain *theDomain )
 
   }
   
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 int ConstantPressureVolumeQuad :: getNumExternalNodes( ) const

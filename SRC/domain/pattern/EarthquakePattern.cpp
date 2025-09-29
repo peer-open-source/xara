@@ -90,11 +90,11 @@ EarthquakePattern::applyLoad(double time)
   Node *theNode;
   while ((theNode = theNodes()) != nullptr)
     theNode->addInertiaLoadToUnbalance(*uDotDotG, 1.0);
-  
+
 
   ElementIter &theElements = theDomain->getElements();
   Element *theElement;
-  while ((theElement = theElements()) != 0) 
+  while ((theElement = theElements()) != nullptr) 
     theElement->addInertiaLoadToUnbalance(*uDotDotG);
 }
     
@@ -106,7 +106,7 @@ EarthquakePattern::applyLoadSensitivity(double time)
     return;
 
   Domain *theDomain = this->getDomain();
-  if (theDomain == 0)
+  if (theDomain == nullptr)
     return;
 
 

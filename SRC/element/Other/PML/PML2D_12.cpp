@@ -135,7 +135,8 @@ void  PML2D_12::setDomain( Domain *theDomain )
   for ( i=0; i<PML2D_12_NUM_NODES; i++ ) 
      nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
-  this->DomainComponent::setDomain(theDomain);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
 
   // 
