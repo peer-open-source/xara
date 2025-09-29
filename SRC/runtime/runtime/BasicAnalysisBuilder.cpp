@@ -49,6 +49,8 @@
 #include <FullGenEigenSolver.h>
 #include <FullGenEigenSOE.h>
 #include <ArpackSOE.h>
+#include <SymmGeneralizedEigenSOE.h>
+#include <SymmGeneralizedEigenSolver.h>
 #include <ProfileSPDLinSOE.h>
 #include <NewtonRaphson.h>
 #include <RCM.h>
@@ -886,6 +888,10 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
     else if (typeSolver == EigenSOE_TAGS_FullGenEigenSOE) {
       FullGenEigenSolver *theEigenSolver = new FullGenEigenSolver();
       theEigenSOE = new FullGenEigenSOE(*theEigenSolver, *theAnalysisModel);
+    }
+    else if (typeSolver == EigenSOE_TAGS_SymmGeneralizedEigenSOE) {
+      SymmGeneralizedEigenSolver *theEigenSolver = new SymmGeneralizedEigenSolver();
+      theEigenSOE = new SymmGeneralizedEigenSOE(*theEigenSolver, *theAnalysisModel);
     }
     else {
       theEigenSOE = new ArpackSOE(*theAnalysisModel, shift);

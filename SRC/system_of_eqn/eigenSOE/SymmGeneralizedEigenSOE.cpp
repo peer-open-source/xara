@@ -21,6 +21,7 @@
 #include <SymmGeneralizedEigenSOE.h>
 #include <SymmGeneralizedEigenSolver.h>
 #include <Matrix.h>
+#include <Vector.h>
 #include <Graph.h>
 #include <Vertex.h>
 #include <VertexIter.h>
@@ -28,8 +29,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <AnalysisModel.h>
-
-#define EigenSOE_TAGS_SymmGeneralizedEigenSOE 0
 
 SymmGeneralizedEigenSOE::SymmGeneralizedEigenSOE(SymmGeneralizedEigenSolver &theSolver,  
     AnalysisModel &aModel)

@@ -24,6 +24,7 @@
 #include <EigenSolver.h>
 #include <SymmGeneralizedEigenSOE.h>
 
+class Vector;
 class SymmGeneralizedEigenSolver : public EigenSolver
 {
 public:

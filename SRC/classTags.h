@@ -45,22 +45,6 @@
 #define DMG_TAG_NormalizedPeak   5
 
 
-#define EigenSOE_TAGS_BandArpackSOE 	1
-#define EigenSOE_TAGS_SymArpackSOE 	2
-#define EigenSOE_TAGS_SymBandEigenSOE   3
-#define EigenSOE_TAGS_FullGenEigenSOE   4
-#define EigenSOE_TAGS_ArpackSOE 	5
-#define EigenSOE_TAGS_GeneralArpackSOE 	6
-#define EigenSOLVER_TAGS_BandArpackSolver 	1
-#define EigenSOLVER_TAGS_SymArpackSolver 	2
-#define EigenSOLVER_TAGS_SymBandEigenSolver     3
-#define EigenSOLVER_TAGS_FullGenEigenSolver  4
-#define EigenSOLVER_TAGS_ArpackSolver  5
-#define EigenSOLVER_TAGS_GeneralArpackSolver  6
-
-#define EigenALGORITHM_TAGS_Frequency 1
-#define EigenALGORITHM_TAGS_Standard  2
-
 #define EigenINTEGRATOR_TAGS_Eigen 1
 
 #define CONVERGENCE_TEST_CTestNormUnbalance                 1
@@ -942,18 +926,18 @@
 #define BEAM_INTEGRATION_TAG_DistHinge3d     35
 
 enum {
-        CRDTR_TAG_LinearCrdTransf2d,       // 1
-        CRDTR_TAG_PDeltaCrdTransf2d,       // 2
-        CRDTR_TAG_ModerateDispCrdTransf2d, // 8
-        CRDTR_TAG_CorotCrdTransf2d,        // 3
-        CRDTR_TAG_CorotCrdTransfWarping2d, // 31
-        CRDTR_TAG_LinearCrdTransf3d,       // 4
-        CRDTR_TAG_PDeltaCrdTransf3d,       // 5
-        CRDTR_TAG_ModerateDispCrdTransf3d, // 9
-        CRDTR_TAG_CorotCrdTransf3d,        // 6
-        CRDTR_TAG_CorotCrdTransf3d02,
-        CRDTR_TAG_CorotCrdTransfWarping3d, //  61
-        CRDTR_TAG_LinearCrdTransf2dInt,    // 7
+ CRDTR_TAG_LinearCrdTransf2d,       // 1
+ CRDTR_TAG_PDeltaCrdTransf2d,       // 2
+ CRDTR_TAG_ModerateDispCrdTransf2d, // 8
+ CRDTR_TAG_CorotCrdTransf2d,        // 3
+ CRDTR_TAG_CorotCrdTransfWarping2d, // 31
+ CRDTR_TAG_LinearCrdTransf3d,       // 4
+ CRDTR_TAG_PDeltaCrdTransf3d,       // 5
+ CRDTR_TAG_ModerateDispCrdTransf3d, // 9
+ CRDTR_TAG_CorotCrdTransf3d,        // 6
+ CRDTR_TAG_CorotCrdTransf3d02,
+ CRDTR_TAG_CorotCrdTransfWarping3d, //  61
+ CRDTR_TAG_LinearCrdTransf2dInt,    // 7
 };
 
 #define DMP_TAG_UniformDamping 1

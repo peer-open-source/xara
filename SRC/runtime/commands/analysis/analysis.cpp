@@ -326,6 +326,12 @@ eigenAnalysis(ClientData clientData,
              (strcmp(argv[loc], "fullGenLapackEigen") == 0) ||
              (strcmp(argv[loc], "-fullGenLapackEigen") == 0))
       typeSolver = EigenSOE_TAGS_FullGenEigenSOE;
+    
+    else if ((strcmp(argv[loc], "symmGenLapack") == 0) ||
+             (strcmp(argv[loc], "-symmGenLapack") == 0) ||
+             (strcmp(argv[loc], "symmGenLapackEigen") == 0) ||
+             (strcmp(argv[loc], "-symmGenLapackEigen") == 0))
+      typeSolver = EigenSOE_TAGS_SymmGeneralizedEigenSOE;
 
     else if (numEigen == -1) {
       if ((Tcl_GetInt(interp, argv[loc], &numEigen) != TCL_OK) || (numEigen < 0)) {

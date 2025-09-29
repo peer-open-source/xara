@@ -22,10 +22,11 @@
 #define SymmGeneralizedEigenSOE_h
 
 #include <EigenSOE.h>
-#include <Vector.h>
 
+class Vector;
 class AnalysisModel;
 class SymmGeneralizedEigenSolver;
+
 
 class SymmGeneralizedEigenSOE : public EigenSOE
 {

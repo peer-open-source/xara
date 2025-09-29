@@ -21,14 +21,13 @@
 #include <SymmGeneralizedEigenSolver.h>
 #include <float.h>
 #include <math.h>
-#include <stdio.h>
+#include <Vector.h>
 #include <AnalysisModel.h>
 #include <DOF_GrpIter.h>
 #include <DOF_Group.h>
 #include <FE_EleIter.h>
 #include <FE_Element.h>
 #include <Integrator.h>
-#define EigenSOLVER_TAGS_SymmGeneralizedEigenSolver 0
 
 #ifndef _WIN32
 #define DSYGVX dsygvx_
@@ -101,14 +100,14 @@ int SymmGeneralizedEigenSolver::solve(int nEigen, bool generalized, bool findSma
     int itype = 1;
     
     // compute eigenvalues and eigenvectors
-    char *jobz = "V";
+    char jobz[] = "V";
 
     // compute range of eigenvalues
-    char *range = "I";
+    char range[] = "I";
 
     // upper or lower triangle of A and B
-    char *uplo = "U";
-    
+    char uplo[] = "U";
+
     // stiffness matrix data
     double *Kptr = theSOE->A;
       
@@ -138,9 +137,9 @@ int SymmGeneralizedEigenSolver::solve(int nEigen, bool generalized, bool findSma
     int ldM = n;
 
     // allocate memory for eigenvalues
-    double *alphaR = new double [n];
-    double *alphaI = new double [n];
-    double *beta   = new double [n];
+    // double *alphaR = new double [n];
+    // double *alphaI = new double [n];
+    // double *beta   = new double [n];
 
     if (eigenvalue != 0)
         delete [] eigenvalue;
