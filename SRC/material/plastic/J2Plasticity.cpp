@@ -53,7 +53,11 @@
 #include <FEM_ObjectBroker.h>
 #include <matrix/identity.h> // IbunI, IIdev
 
-const double J2Plasticity ::four3  = 4.0 / 3.0;
+
+extern double ops_Dt;
+
+using OpenSees::J2Plasticity;
+
 const double J2Plasticity ::root23 = sqrt(2.0 / 3.0);
 
 double J2Plasticity::initialTangent[3][3][3][3]; //material tangent
@@ -133,7 +137,10 @@ J2Plasticity::J2Plasticity(int tag, int classTag, double K, double G)
 }
 
 
-J2Plasticity::~J2Plasticity() {}
+J2Plasticity::~J2Plasticity()
+{
+
+}
 
 
 NDMaterial*
@@ -227,7 +234,6 @@ J2Plasticity::zero()
 int
 J2Plasticity::plastic_integrator()
 {
-  extern double ops_Dt;
   double dt = ops_Dt;
   const double tolerance = 1.0e-10 * sigma_0;
 
@@ -264,7 +270,7 @@ J2Plasticity::plastic_integrator()
     for (int j = 0; j < 3; j++)
       norm_tau += dev_stress(i, j) * dev_stress(i, j);
   }
-  norm_tau = sqrt(norm_tau);
+  norm_tau = std::sqrt(norm_tau);
 
   if (norm_tau > tolerance) {
     inv_norm_tau = 1.0 / norm_tau;
@@ -425,7 +431,7 @@ J2Plasticity::doInitialTangent()
 double
 J2Plasticity::q(double xi)
 {
-  return Hard * xi + sigma_infty + (sigma_0 - sigma_infty) * exp(-delta * xi);
+  return Hard*xi + sigma_infty + (sigma_0 - sigma_infty) * exp(-delta * xi);
 }
 
 

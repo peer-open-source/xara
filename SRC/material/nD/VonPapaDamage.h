@@ -63,13 +63,13 @@ public :
 
   ~VonPapaDamage( ) ;
 
-  const char *getClassType(void) const {return "VonPapaDamage";};
+  const char *getClassType(void) const {return "VonPapaDamage";}
 
     NDMaterial* getCopy( ) ;
 
   const char* getType( ) const ;
 
-    int getOrder( ) const ;
+  int getOrder( ) const ;
 
   //mass per unit volume
   double getRho();

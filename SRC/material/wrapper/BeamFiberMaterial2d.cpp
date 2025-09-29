@@ -57,11 +57,6 @@ BeamFiberMaterial2d::BeamFiberMaterial2d(int tag, NDMaterial &theMat)
 {
   // Get a copy of the material
   theMaterial = theMat.getCopy("ThreeDimensional");
-  
-  if (theMaterial == 0) {
-    opserr << "BeamFiberMaterial2d::BeamFiberMaterial2d -- failed to get copy of material\n";
-    exit(-1);
-  }
 }
 
 BeamFiberMaterial2d::~BeamFiberMaterial2d() 
@@ -222,7 +217,7 @@ BeamFiberMaterial2d::setTrialStrain(const Vector &strainFromElement)
     dd22(2,3) = threeDtangent(4,5);
     dd22(3,3) = threeDtangent(5,5);
 
-    //set norm
+    // set norm
     norm = condensedStress.Norm();
     if (count == 0)
       norm0 = norm;
@@ -362,14 +357,14 @@ BeamFiberMaterial2d::commitSensitivity(const Vector &depsdh, int gradIndex,
   sigma2.addMatrixVector(0.0, dd21, depsdh, -1.0);
 
   const Vector &threeDstress = theMaterial->getStressSensitivity(gradIndex, true);
-  //opserr << threeDstress;
+
   sigma2(0) -= threeDstress(1);
   sigma2(1) -= threeDstress(2);
   sigma2(2) -= threeDstress(4);
   sigma2(3) -= threeDstress(5);
 
   //const Vector &threeDstress2 = theMaterial->getStressSensitivity(gradIndex, false);
-  //opserr << threeDstress2;
+
   //sigma2(0) += threeDstress2(1);
   //sigma2(1) += threeDstress2(2);
   //sigma2(2) += threeDstress2(4);

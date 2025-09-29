@@ -27,24 +27,22 @@
 // Written: MHS
 // Created: Aug 2001
 //
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <math.h> 
 
 #include <Vector.h>
 #include <Matrix.h>
+#include <VectorND.h>
 #include <ID.h> 
 #include <NDMaterial.h>
 
 class BeamFiberMaterial: public NDMaterial {
 
   public:
-    BeamFiberMaterial(int tag, NDMaterial &theMat);
+    BeamFiberMaterial(int tag, NDMaterial &);
     BeamFiberMaterial();
     virtual ~BeamFiberMaterial();
-    const char* getClassType() const override { return "BeamFiberMaterial"; }
+    const char* getClassType() const override {return "BeamFiberMaterial";}
 
-    int setTrialStrain( const Vector &strainFromElement);
+    int setTrialStrain( const Vector &);
     const Vector& getStrain();
     const Vector& getStress();
     const Matrix& getTangent();
@@ -58,18 +56,17 @@ class BeamFiberMaterial: public NDMaterial {
 
     NDMaterial *getCopy();
     NDMaterial *getCopy(const char *type);
-    const char *getType(void) const;
-    int getOrder(void) const; 
+    const char *getType() const;
+    int getOrder() const;
 
     void Print(OPS_Stream &s, int flag);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     int setParameter(const char **argv, int argc, Parameter &param);
 
-    const Vector& getStressSensitivity(int gradIndex,
-				       bool conditional);
+    const Vector& getStressSensitivity(int gradIndex, bool conditional);
 
   private:
     double Tstrain22;
@@ -78,12 +75,14 @@ class BeamFiberMaterial: public NDMaterial {
     double Cstrain22;
     double Cstrain33;
     double Cgamma23;
+    // struct {
+    //   double strain22, strain33, gamma23;
+    // } past, pres;
 
     NDMaterial *theMaterial;
 
-    Vector strain;
+    OpenSees::VectorND<3> strain;
 
-    static Vector stress;
     static Matrix tangent;
 };
 

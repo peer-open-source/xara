@@ -39,15 +39,15 @@ operator && (const Vector & a, const Vector & b)
 
 // ---------------- add by guquan ------------------------------
 // ---------------- c=a:b, c(k,l)=a(i,j)*b(i,j,k,l)-------------
-void doubledotProduct (Vector & c, const Vector & a, const Matrix & b)
+void doubledotProduct(Vector & c, const Vector & a, const Matrix & b)
 {
   assert(c.Size() ==6 && a.Size() ==6 && b.noCols() ==6&& b.noRows() ==6);
 
   c.Zero();
   for (int j=0;j<6;j++){
-      for (int i=0; i<3; i++){
-            c[j] += a[i]*b(i,j) + 2*a[i+3]*b(i+3,j);
-      }
+    for (int i=0; i<3; i++){
+        c[j] += a[i]*b(i,j) + 2*a[i+3]*b(i+3,j);
+    }
   }
   return;
 }
@@ -194,7 +194,8 @@ T2Vector::t2Vector(int isEngrgStrain) const
 }
 
 
-const Vector & T2Vector::deviator(int isEngrgStrain) const
+const Vector & 
+T2Vector::deviator(int isEngrgStrain) const
 {
   if (isEngrgStrain==0)
     return theDeviator;
@@ -323,6 +324,6 @@ T2Vector::Zero()
   theT2Vector.Zero();
   theDeviator.Zero();
   theVolume=0.0;
-return 1;
+  return 1;
 }
 

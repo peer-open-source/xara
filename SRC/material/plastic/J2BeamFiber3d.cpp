@@ -73,15 +73,16 @@ ReturnMap(const J2Parameters& params,
 
   double two3Hkin = two3 * Hkin;
 
+  // relative stress
   xsi[0] = sig[0] - Hkin * epsPn[0];
-  xsi[1] = sig[1] - one3 * Hkin * epsPn[1];
-  xsi[2] = sig[2] - one3 * Hkin * epsPn[2];
+  xsi[1] = sig[1] - Hkin * epsPn[1]/3.0;
+  xsi[2] = sig[2] - Hkin * epsPn[2]/3.0;
 
   double q = std::sqrt( 2.0/3.0 * xsi[0]*xsi[0]
                       + 2.0*xsi[1] * xsi[1]
                       + 2.0*xsi[2] * xsi[2]);
 
-  double F = q - root23 * (sigmaY + Hiso * alphan);
+  double F = q - root23*(sigmaY + Hiso*alphan);
 
   if (F < -100 * DBL_EPSILON) {
     epsPn1[0] = epsPn[0];
@@ -106,7 +107,7 @@ ReturnMap(const J2Parameters& params,
     constexpr static double tol = 1.0e-8;
 
     do {
-      J(0, 0) = 1.0 + dg * two3 * (E + Hkin);
+      J(0, 0) = 1.0 + dg*two3*(E + Hkin);
       J(0, 1) = 0.0;
       J(0, 2) = 0.0;
       J(1, 0) = 0.0;
@@ -145,7 +146,7 @@ ReturnMap(const J2Parameters& params,
     if (R.norm() > sigmaY * tol) {
       opserr << "J2BeamFiber3d::getTangent -- maxIter reached, "
              << R.norm() << " > "
-             << sigmaY * tol << endln;
+             << sigmaY*tol << "\n";
       return -1;
     }
 
@@ -325,7 +326,7 @@ J2BeamFiber3d::getTangent()
     if (R.norm() > sigmaY * tol) {
       opserr << "J2BeamFiber3d::getTangent -- maxIter reached, "
              << R.norm() << " > "
-             << sigmaY * tol << endln;
+             << sigmaY * tol << "\n";
     }
 
     alphan1   = alphan   + dg*root23*q;
@@ -528,7 +529,7 @@ J2BeamFiber3d::getStress()
     }
 
     if (iter == maxIter) {
-      opserr << "J2BeamFiber3d::getStress -- maxIter reached " << R.Norm() << endln;
+      opserr << "J2BeamFiber3d::getStress -- maxIter reached " << R.Norm() << "\n";
     }
 
     alphan1 = alphan + dg * root23 * q;
@@ -757,7 +758,7 @@ J2BeamFiber3d::commitSensitivity(const Vector& depsdh, int gradIndex, int numGra
   }
 
   if (gradIndex >= SHVs->noCols()) {
-    //opserr << gradIndex << ' ' << SHVs->noCols() << endln;
+    //opserr << gradIndex << ' ' << SHVs->noCols() << "\n";
     return 0;
   }
 
@@ -920,13 +921,14 @@ void
 J2BeamFiber3d::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_CURRENTSTATE) {
-    s << "J2 Beam Fiber Material Model" << endln;
-    s << "\tE:  " << E << endln;
-    s << "\tnu:  " << nu << endln;
-    s << "\tsigmaY:  " << sigmaY << endln;
-    s << "\tHiso:  " << Hiso << endln;
-    s << "\tHkin:  " << Hkin << endln;
-  } else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "J2 Beam Fiber Material Model" << "\n";
+    s << "\tE:  " << E << "\n";
+    s << "\tnu:  " << nu << "\n";
+    s << "\tsigmaY:  " << sigmaY << "\n";
+    s << "\tHiso:  " << Hiso << "\n";
+    s << "\tHkin:  " << Hkin << "\n";
+  }
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"J2BeamFiber\", ";

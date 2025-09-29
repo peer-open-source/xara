@@ -60,6 +60,7 @@
 #include <Matrix.h>
 
 #include <J2Plasticity.h>
+using namespace OpenSees;
 
 class J2ThreeDimensional : public J2Plasticity {
 
@@ -115,4 +116,4 @@ private:
   static Vector stress_vec;     //stress in vector notation
   static Matrix tangent_matrix; //material tangent in matrix notation
 
-}; //end of J2ThreeDimensional declarations
+}; // end of J2ThreeDimensional declarations

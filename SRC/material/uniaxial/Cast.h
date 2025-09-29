@@ -58,31 +58,28 @@ class Cast : public UniaxialMaterial
     Cast(int tag, double nLegs, double bo, double h, 
 		 double fy, double eo, double l, double b);
 	    
-    Cast(void);
+    Cast();
     virtual ~Cast();
     
 
-    const char *getClassType(void) const {return "Cast";};
+    const char *getClassType() const {return "Cast";}
 
-    double getInitialTangent(void);
-    UniaxialMaterial *getCopy(void);
+    double getInitialTangent();
+    UniaxialMaterial *getCopy();
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);      
-    double getStress(void);
-    double getTangent(void);
+    double getStrain();      
+    double getStress();
+    double getTangent();
     
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
-    
-    void Print(OPS_Stream &s, int flag =0);
-    
- protected:
+    void Print(OPS_Stream &s, int flag);
     
  private:
     // additional parameters addeded by Dimitrios Lignos

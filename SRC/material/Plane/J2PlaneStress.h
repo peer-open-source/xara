@@ -52,7 +52,6 @@
 //  set eta := 0 for rate independent case
 //
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -60,6 +59,7 @@
 #include <Matrix.h>
 
 #include <J2Plasticity.h>
+using namespace OpenSees;
 
 class J2PlaneStress : public J2Plasticity {
 

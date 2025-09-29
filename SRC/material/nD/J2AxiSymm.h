@@ -58,73 +58,60 @@
 #include <Matrix.h>
 
 #include <J2Plasticity.h>
-
-
+using namespace OpenSees;
 
 
 class J2AxiSymm : public J2Plasticity {
 
-//-------------------Declarations-------------------------------
+public:
 
-  public : 
+  J2AxiSymm();
+  J2AxiSymm(int    tag, 
+            double K,
+            double G,
+            double yield0,
+            double yield_infty,
+            double d,
+            double H,
+            double viscosity = 0,
+            double rho = 0 );
 
-  //null constructor
-  J2AxiSymm( ) ;
+  J2AxiSymm( int tag, double K, double G );
 
-  //full constructor
-  J2AxiSymm(   int    tag, 
-	       double K,
-	       double G,
-	       double yield0,
-	       double yield_infty,
-	       double d,
-	       double H,
-   	       double viscosity = 0,
-	       double rho = 0 ) ;
+  ~J2AxiSymm();
 
+  const char *getClassType() const override {return "J2AxiSymm";}
 
-  //elastic constructor
-  J2AxiSymm( int tag, double K, double G ) ;
+  NDMaterial* getCopy( ) override;
 
-  //destructor
-  ~J2AxiSymm( ) ;
+  const char* getType( ) const override;
 
-  const char *getClassType(void) const {return "J2AxiSymm";};
-
-    NDMaterial* getCopy( ) ;
-
-  //send back type of material
-  const char* getType( ) const ;
-
-    int getOrder( ) const ;
+  int getOrder( ) const override;
 
   //get the strain and integrate plasticity equations
-  int setTrialStrain( const Vector &strain_from_element) ;
+  int setTrialStrain( const Vector &strain_from_element) override;
 
   //unused trial strain functions
   int setTrialStrain( const Vector &v, const Vector &r ) ;
   int setTrialStrainIncr( const Vector &v ) ;
   int setTrialStrainIncr( const Vector &v, const Vector &r ) ;
 
-  const Vector& getStrain( ) ;
-
-  const Vector& getStress( ) ;
-
-  const Matrix& getTangent( ) ;
-  const Matrix& getInitialTangent( ) ;
+  const Vector& getStrain() override;
+  const Vector& getStress() override;
+  const Matrix& getTangent() override;
+  const Matrix& getInitialTangent() override;
 
   //swap history variables
-  int commitState( ) ; 
-  int revertToLastCommit( ) ;
-  int revertToStart( ) ;
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
 
   //sending and receiving
-  int sendSelf(int commitTag, Channel &theChannel) ;  
-  int recvSelf(int commitTag, Channel &theChannel, 
-               FEM_ObjectBroker &theBroker ) ;
+  int sendSelf(int commitTag, Channel &) override;
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
-  
-  private :
+
+private:
 
   //static vectors and matrices
   static Vector strain_vec ;     //strain in vector notation

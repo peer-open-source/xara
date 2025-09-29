@@ -34,40 +34,6 @@ addVoightTensorProduct(MatrixND<6,6>& P,
     P.addTensorProduct(pi, pj, scale);
 }
 
-#if 0
-template <int nr>
-void 
-Vector2Tensor(VectorND<nr>& V)
-{
-//VECTOR2TENSOR transforms vector to 3x3 tensor
-//  TENSOR = VECTOR2TENSOR (V)
-//  the function transforms vector to a 2x2 or 3x3 tensor with the following ordering:
-//  11, 22, 33, 12 (21), 23 (32) , 31 (13) (parentheses for 6x1 vector to symmetric tensor)
-
-//  =========================================================================================
-//  FEDEASLab - Release 6.0, July 2025
-//  MATLAB Finite Elements for Design, Evaluation and Analysis of Structures
-//  Professor Filip C. Filippou (filippou@berkeley.edu)
-//  Department of Civil and Environmental Engineering, UC Berkeley
-//  Copyright(c) 1998-2025. The Regents of the University of California. All Rights Reserved.
-//  =========================================================================================
-//  function added                                                                    03-2021
-//  -----------------------------------------------------------------------------------------
-
-// arrange in column
-V = V(:);
-
-if constexpr (nr == 3) 
-    Tensor = [ V(1) V(3) ; V(3) V(2) ];
-if constexpr (nr == 6)
-    Tensor = [ V(1) V(4) V(6) ; 
-               V(4) V(2) V(5) ; 
-               V(6) V(5) V(3) ];
-if constexpr (nr == 9)
-    Tensor = [ V(1) V(4) V(9) ; V(5) V(2) V(6) ; V(8) V(7) V(3) ];
-
-}
-#endif
 
 int 
 StrsDecA(const VectorND<6> &sig, 

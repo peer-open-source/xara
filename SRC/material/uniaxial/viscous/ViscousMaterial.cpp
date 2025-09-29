@@ -235,9 +235,9 @@ ViscousMaterial::recvSelf(int cTag, Channel &theChannel,
   res = theChannel.recvVector(this->getDbTag(), cTag, data);
   
   if (res < 0) {
-      opserr << "ViscousMaterial::recvSelf() - failed to receive data\n";
-      C = 0; 
-      this->setTag(0);      
+    opserr << "ViscousMaterial::recvSelf() - failed to receive data\n";
+    C = 0; 
+    this->setTag(0);      
   }
   else {
     this->setTag((int)data(0));

@@ -49,9 +49,11 @@
 #include <assert.h>
 #include <Vector.h>
 #include <Matrix.h>
+#include <MatrixND.h>
+#include <Matrix3D.h>
 #include <NDMaterial.h>
 
-
+namespace OpenSees {
 class J2Plasticity : public NDMaterial {
 
 public:
@@ -103,11 +105,11 @@ public:
   {
     return "J2Plasticity";
   }
-  virtual int sendSelf(int commitTag, Channel&);
+  virtual int sendSelf(int commitTag, Channel&) ;
   virtual int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
   // TaggedObject
-  virtual void Print(OPS_Stream& s, int flag = 0) final;
+  virtual void Print(OPS_Stream& s, int flag) final;
 
 protected:
   // zero internal variables
@@ -129,6 +131,7 @@ protected:
   double sigma_infty; // final saturation yield stress
   double delta;       // exponential hardening parameter
   double Hard;        // linear hardening parameter
+  double Hkin;        // kinematic hardening parameter
   double eta;         // viscosity
   double rho;         // density
 
@@ -150,9 +153,9 @@ protected:
   int parameterID;
 
   // static const double one3 ;
-  static const double two3;
-  static const double four3;
+  static constexpr double two3 = 2.0 / 3.0;
+  static constexpr double four3 = 4.0 / 3.0;
   static const double root23;
 };
-
+}
 #endif

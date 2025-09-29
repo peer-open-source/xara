@@ -49,7 +49,7 @@ ElasticIsotropicPlateFiber::~ElasticIsotropicPlateFiber ()
 }
 
 int
-ElasticIsotropicPlateFiber::setTrialStrain (const Vector &strain)
+ElasticIsotropicPlateFiber::setTrialStrain(const Vector &strain)
 {
   epsilon = strain;
   return 0;
@@ -57,7 +57,7 @@ ElasticIsotropicPlateFiber::setTrialStrain (const Vector &strain)
 
 
 int
-ElasticIsotropicPlateFiber::setTrialStrainIncr (const Vector &strain)
+ElasticIsotropicPlateFiber::setTrialStrainIncr(const Vector &strain)
 {
   epsilon += strain;
   return 0;
@@ -65,88 +65,88 @@ ElasticIsotropicPlateFiber::setTrialStrainIncr (const Vector &strain)
 
 
 const Matrix&
-ElasticIsotropicPlateFiber::getTangent (void)
+ElasticIsotropicPlateFiber::getTangent()
 {
-    double d00 = E/(1.0-v*v);
-    double d01 = v*d00;
-    double d22 = 0.5*(d00-d01);
-    
-    D(0,0) = D(1,1) = d00;
-    D(0,1) = D(1,0) = d01;
-    D(2,2) = d22;
-    D(3,3) = d22;
-    D(4,4) = d22;
+  double d00 = E/(1.0-v*v);
+  double d01 = v*d00;
+  double d22 = 0.5*(d00-d01);
+  
+  D(0,0) = D(1,1) = d00;
+  D(0,1) = D(1,0) = d01;
+  D(2,2) = d22;
+  D(3,3) = d22;
+  D(4,4) = d22;
 
-    return D;
+  return D;
 }
 
 const Matrix&
-ElasticIsotropicPlateFiber::getInitialTangent (void)
+ElasticIsotropicPlateFiber::getInitialTangent()
 {
-    double d00 = E/(1.0-v*v);
-    double d01 = v*d00;
-    double d22 = 0.5*(d00-d01);
-    
-    D(0,0) = D(1,1) = d00;
-    D(0,1) = D(1,0) = d01;
-    D(2,2) = d22;
-    D(3,3) = d22;
-    D(4,4) = d22;
+  double d00 = E/(1.0-v*v);
+  double d01 = v*d00;
+  double d22 = 0.5*(d00-d01);
+  
+  D(0,0) = D(1,1) = d00;
+  D(0,1) = D(1,0) = d01;
+  D(2,2) = d22;
+  D(3,3) = d22;
+  D(4,4) = d22;
 
-    return D;
+  return D;
 }
 
 const Vector&
-ElasticIsotropicPlateFiber::getStress (void)
+ElasticIsotropicPlateFiber::getStress()
 {
-    double d00 = E/(1.0-v*v);
-    double d01 = v*d00;
-    double d22 = 0.5*(d00-d01);
+  double d00 = E/(1.0-v*v);
+  double d01 = v*d00;
+  double d22 = 0.5*(d00-d01);
 
-    double eps0 = epsilon(0);
-    double eps1 = epsilon(1);
+  double eps0 = epsilon(0);
+  double eps1 = epsilon(1);
 
-    //sigma = D*epsilon;
-    sigma(0) = d00*eps0 + d01*eps1;
-    sigma(1) = d01*eps0 + d00*eps1;
+  //sigma = D*epsilon;
+  sigma(0) = d00*eps0 + d01*eps1;
+  sigma(1) = d01*eps0 + d00*eps1;
 
-    sigma(2) = d22*epsilon(2);
-    sigma(3) = d22*epsilon(3);
-    sigma(4) = d22*epsilon(4);
-	
-    return sigma;
+  sigma(2) = d22*epsilon(2);
+  sigma(3) = d22*epsilon(3);
+  sigma(4) = d22*epsilon(4);
+
+  return sigma;
 }
 
 const Vector&
-ElasticIsotropicPlateFiber::getStrain (void)
+ElasticIsotropicPlateFiber::getStrain()
 {
   return epsilon;
 }
 
 int
-ElasticIsotropicPlateFiber::commitState (void)
+ElasticIsotropicPlateFiber::commitState()
 {
   return 0;
 }
 
 int
-ElasticIsotropicPlateFiber::revertToLastCommit (void)
+ElasticIsotropicPlateFiber::revertToLastCommit()
 {
   return 0;
 }
 
 int
-ElasticIsotropicPlateFiber::revertToStart (void)
+ElasticIsotropicPlateFiber::revertToStart()
 {
   epsilon.Zero();
   return 0;
 }
 
 NDMaterial*
-ElasticIsotropicPlateFiber::getCopy (void)
+ElasticIsotropicPlateFiber::getCopy()
 {
 	ElasticIsotropicPlateFiber *theCopy =
-		new ElasticIsotropicPlateFiber (this->getTag(), E, v, rho);
+		new ElasticIsotropicPlateFiber(this->getTag(), E, v, rho);
 
 	theCopy->epsilon = epsilon;
 
@@ -154,13 +154,13 @@ ElasticIsotropicPlateFiber::getCopy (void)
 }
 
 const char*
-ElasticIsotropicPlateFiber::getType (void) const
+ElasticIsotropicPlateFiber::getType() const
 {
 	return "PlateFiber";
 }
 
 int
-ElasticIsotropicPlateFiber::getOrder (void) const
+ElasticIsotropicPlateFiber::getOrder() const
 {
 	return 5;
 }

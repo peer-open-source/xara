@@ -60,7 +60,9 @@ Matrix J2PlaneStress::tangent_matrix(3,3) ;
 //null constructor
 J2PlaneStress:: J2PlaneStress( ) : 
 J2Plasticity( ) 
-{  }
+{
+
+}
 
 
 //full constructor
@@ -127,7 +129,6 @@ int J2PlaneStress::setTrialStrain( const Vector &strain_from_element )
   const int max_iterations = 25 ;
   int iteration_counter  = 0 ;
 
-  int i, j, k, l ;
   int ii, jj ;
 
   double eps22  =  strain(2,2) ;
@@ -158,21 +159,22 @@ int J2PlaneStress::setTrialStrain( const Vector &strain_from_element )
 
   } while ( fabs(stress(2,2)) > tolerance ) ;
 
-  //modify tangent for plane stress 
+  // modify tangent for plane stress 
   for ( ii = 0; ii < 3; ii++ ) {
     for ( jj = 0; jj < 3; jj++ )  {
 
-          index_map( ii, i, j ) ;
-          index_map( jj, k, l ) ;
+      int i, j, k, l ;
+      index_map( ii, i, j ) ;
+      index_map( jj, k, l ) ;
 
-          tangent[i][j][k][l] -=   tangent[i][j][2][2] 
-                                 * tangent[2][2][k][l] 
-                                 / tangent[2][2][2][2] ;
+      tangent[i][j][k][l] -=   tangent[i][j][2][2] 
+                              * tangent[2][2][k][l] 
+                              / tangent[2][2][2][2] ;
 
-          //minor symmetries 
-          tangent [j][i][k][l] = tangent[i][j][k][l] ;
-          tangent [i][j][l][k] = tangent[i][j][k][l] ;
-          tangent [j][i][l][k] = tangent[i][j][k][l] ;
+      //minor symmetries 
+      tangent [j][i][k][l] = tangent[i][j][k][l] ;
+      tangent [i][j][l][k] = tangent[i][j][k][l] ;
+      tangent [j][i][l][k] = tangent[i][j][k][l] ;
 
     } // end for jj
   } // end for ii 
@@ -203,7 +205,8 @@ int J2PlaneStress::setTrialStrainIncr( const Vector &v, const Vector &r )
 }
 
 
-const Vector& J2PlaneStress::getStrain( ) 
+const Vector&
+J2PlaneStress::getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
@@ -213,7 +216,8 @@ const Vector& J2PlaneStress::getStrain( )
 } 
 
 
-const Vector& J2PlaneStress::getStress( ) 
+const Vector&
+J2PlaneStress::getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
@@ -222,7 +226,8 @@ const Vector& J2PlaneStress::getStress( )
   return stress_vec ;
 }
 
-const Matrix& J2PlaneStress::getTangent( ) 
+const Matrix&
+J2PlaneStress::getTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -249,7 +254,8 @@ const Matrix& J2PlaneStress::getTangent( )
 } 
 
 
-const Matrix& J2PlaneStress::getInitialTangent( ) 
+const Matrix&
+J2PlaneStress::getInitialTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -283,14 +289,14 @@ J2PlaneStress::commitState( )
   epsilon_p_n = epsilon_p_nplus1 ;
   xi_n        = xi_nplus1 ;
 
-  commitEps22 =       strain(2,2);
+  commitEps22 = strain(2,2);
 
   return 0;
 }
 
 int 
-J2PlaneStress::revertToLastCommit( ) {
-
+J2PlaneStress::revertToLastCommit( )
+{
   strain(2,2)  = commitEps22;
 
   return 0;
@@ -298,7 +304,8 @@ J2PlaneStress::revertToLastCommit( ) {
 
 
 int 
-J2PlaneStress::revertToStart( ) {
+J2PlaneStress::revertToStart( )
+{
   commitEps22 = 0.0;
 
   this->zero( ) ;

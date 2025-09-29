@@ -142,7 +142,7 @@ PenaltyMaterial::setTrialStrain(double strain, double temp, double strainRate)
 
 
 double 
-PenaltyMaterial::getStress(void)
+PenaltyMaterial::getStress()
 {
   if (theMaterial) {
     double sig = theMaterial->getStress();
@@ -155,7 +155,7 @@ PenaltyMaterial::getStress(void)
 }
 
 double 
-PenaltyMaterial::getTangent(void)
+PenaltyMaterial::getTangent()
 {
   if (theMaterial)
     return theMaterial->getTangent() + penalty;
@@ -164,7 +164,7 @@ PenaltyMaterial::getTangent(void)
 }
 
 double 
-PenaltyMaterial::getDampTangent(void)
+PenaltyMaterial::getDampTangent()
 {
   if (theMaterial)
     return theMaterial->getDampTangent();
@@ -173,7 +173,7 @@ PenaltyMaterial::getDampTangent(void)
 }
 
 double 
-PenaltyMaterial::getStrain(void)
+PenaltyMaterial::getStrain()
 {
   if (theMaterial)
     return theMaterial->getStrain();
@@ -182,7 +182,7 @@ PenaltyMaterial::getStrain(void)
 }
 
 double 
-PenaltyMaterial::getStrainRate(void)
+PenaltyMaterial::getStrainRate()
 {
   if (theMaterial)  
     return theMaterial->getStrainRate();
@@ -191,7 +191,7 @@ PenaltyMaterial::getStrainRate(void)
 }
 
 int 
-PenaltyMaterial::commitState(void)
+PenaltyMaterial::commitState()
 {
   if (theMaterial)
     return theMaterial->commitState();
@@ -200,7 +200,7 @@ PenaltyMaterial::commitState(void)
 }
 
 int 
-PenaltyMaterial::revertToLastCommit(void)
+PenaltyMaterial::revertToLastCommit()
 {
   if (theMaterial)
     return theMaterial->revertToLastCommit();
@@ -209,7 +209,7 @@ PenaltyMaterial::revertToLastCommit(void)
 }
 
 int 
-PenaltyMaterial::revertToStart(void)
+PenaltyMaterial::revertToStart()
 {
   if (theMaterial)  
     return theMaterial->revertToStart();
@@ -218,7 +218,7 @@ PenaltyMaterial::revertToStart(void)
 }
 
 UniaxialMaterial *
-PenaltyMaterial::getCopy(void)
+PenaltyMaterial::getCopy()
 {
   PenaltyMaterial *theCopy = 0;
   if (theMaterial)
