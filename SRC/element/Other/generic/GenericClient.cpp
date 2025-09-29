@@ -847,12 +847,12 @@ Response* GenericClient::setResponse(const char **argv, int argc,
     Response *theResponse = 0;
     
     int i;
-    char outputData[10];
+    char outputData[64];
     
     output.tag("ElementOutput");
     output.attr("eleType","GenericClient");
     output.attr("eleTag",this->getTag());
-    for (i=0; i<numExternalNodes; i++ )  {
+    for (int i=0; i<numExternalNodes; i++ )  {
         sprintf(outputData,"node%d",i+1);
         output.attr(outputData,connectedExternalNodes[i]);
     }
@@ -863,7 +863,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"globalForce") == 0 ||
         strcmp(argv[0],"globalForces") == 0)
     {
-         for (i=0; i<numDOF; i++)  {
+         for (int i=0; i<numDOF; i++)  {
             sprintf(outputData,"P%d",i+1);
             output.tag("ResponseType",outputData);
         }
