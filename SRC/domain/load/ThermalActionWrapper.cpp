@@ -340,7 +340,7 @@ ThermalActionWrapper::getIntData(const Vector& locs)
   int ndm = NodalLocs.noCols();
   //Vector IntData;
   IntData.Zero();
-  double ratio[6];
+  double ratio[6]{};
   double r1, r2, r3; //, r4, r5;
   double constStart=0;
   double constEnd =1.0;
