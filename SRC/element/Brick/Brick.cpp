@@ -248,7 +248,7 @@ Brick::Print(OPS_Stream &s, int flag)
         const Vector &nodeCrd = theNodes[i]->getCrds();
         const Vector &nodeDisp = theNodes[i]->getDisp();
         s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2)
-            << " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << endln;
+            << " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << "\n";
     }
     
     // spit out the section location & invoke print on the scetion
@@ -268,12 +268,12 @@ Brick::Print(OPS_Stream &s, int flag)
     s << "#AVERAGE_STRESS ";
     for (i = 0; i < nstress; i++)
         s << avgStress(i) << " ";
-    s << endln;
+    s << "\n";
     
     s << "#AVERAGE_STRAIN ";
     for (i = 0; i < nstress; i++)
         s << avgStrain(i) << " ";
-    s << endln;
+    s << "\n";
     
     /*
     for (i=0; i<numMaterials; i++) {
@@ -287,13 +287,13 @@ Brick::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_CURRENTSTATE) {
       
       s << "Standard Eight Node Brick \n";
-      s << "Element Number: " << this->getTag() << endln;
+      s << "Element Number: " << this->getTag() << "\n";
       s << "Nodes: " << connectedExternalNodes;
       
       s << "Material Information : \n ";
       materialPointers[0]->Print(s, flag);
       
-      s << endln;
+      s << "\n";
       s << this->getTag() << " " << connectedExternalNodes(0)
           << " " << connectedExternalNodes(1)
           << " " << connectedExternalNodes(2)
@@ -302,9 +302,9 @@ Brick::Print(OPS_Stream &s, int flag)
           << " " << connectedExternalNodes(5)
           << " " << connectedExternalNodes(6)
           << " " << connectedExternalNodes(7)
-          << endln;
+          << "\n";
       
-      s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << endln;
+      s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << "\n";
       s << "Resisting Force (no inertia): " << this->getResistingForce();
   }
 }
@@ -1207,7 +1207,7 @@ int  Brick::recvSelf (int commitTag,
       // Allocate new material with the sent class tag
       materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
       if (materialPointers[i] == 0) {
-	opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
+	opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << "\n";
 	return -1;
       }
       // Now receive materials into the newly allocated space
@@ -1229,9 +1229,9 @@ int  Brick::recvSelf (int commitTag,
       if (materialPointers[i]->getClassTag() != matClassTag) {
         delete materialPointers[i];
         materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-        if (materialPointers[i] == 0) {
+        if (materialPointers[i] == nullptr) {
           opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " <<
-          matClassTag << endln;
+          matClassTag << "\n";
           return -1;
         }
         materialPointers[i]->setDbTag(matDbTag);
@@ -1292,11 +1292,9 @@ Brick::setResponse(const char **argv, int argc, OPS_Stream &output)
 
       output.endTag(); // GaussPoint
     }
-
-
   }
-  
-  else if (strcmp(argv[0],"stresses") ==0) {
+
+  else if ((strcmp(argv[0],"stresses") ==0) || (strcmp(argv[0],"stress") ==0)) {
 
     for (int i=0; i<8; i++) {
       output.tag("GaussPoint");
@@ -1319,7 +1317,7 @@ Brick::setResponse(const char **argv, int argc, OPS_Stream &output)
 
   }
   
-  else if (strcmp(argv[0],"strains") ==0) {
+  else if ((strcmp(argv[0],"strains") ==0) || (strcmp(argv[0],"strain") ==0)) {
 
     for (int i=0; i<8; i++) {
       output.tag("GaussPoint");
