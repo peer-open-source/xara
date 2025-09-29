@@ -1018,17 +1018,40 @@ NDFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
 void
 NDFiberSection3d::Print(OPS_Stream &s, int flag)
 {
-  s << "\nNDFiberSection3d, tag: " << this->getTag() << endln;
-  s << "\tSection code: " << code;
-  s << "\tNumber of Fibers: " << numFibers << endln;
-  s << "\tCentroid (y,z): " << yBar << ' ' << zBar << endln;
-  s << "\tShape factor, alpha = " << alpha << endln;
-
-  if (flag == 1) {
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"numFibers\": " << numFibers << ", ";
+    s << "\"yBar\": " << yBar << ", ";
+    s << "\"zBar\": " << zBar << ", ";
+    s << "\"alpha\": " << alpha << ", ";
+    s << "\"fibers\": [";
     for (int i = 0; i < numFibers; i++) {
-      s << "\nLocation (y,z) = " << matData[3*i] << ' ' << matData[3*i+1];
-      s << "\nArea = " << matData[3*i+2] << endln;
-      theMaterials[i]->Print(s, flag);
+      s << ((i == 0) ? "" : ", ");
+      s << "{";
+      s << "\"y\": " << matData[3*i] << ", ";
+      s << "\"z\": " << matData[3*i+1] << ", ";
+      s << "\"area\": " << matData[3*i+2] << ", ";
+      s << "\"material\": " << theMaterials[i]->getTag();
+      s << "}";
+    }
+    s << "]";
+    s << "}";
+  }
+  else {
+    s << "\nNDFiberSection3d, tag: " << this->getTag() << "\n";
+    s << "\tSection code: " << code;
+    s << "\tNumber of Fibers: " << numFibers << "\n";
+    s << "\tCentroid (y,z): " << yBar << ' ' << zBar << "\n";
+    s << "\tShape factor, alpha = " << alpha << "\n";
+
+    if (flag == 1) {
+      for (int i = 0; i < numFibers; i++) {
+        s << "\nLocation (y,z) = " << matData[3*i] << ' ' << matData[3*i+1];
+        s << "\nArea = " << matData[3*i+2] << "\n";
+        theMaterials[i]->Print(s, flag);
+      }
     }
   }
 }
