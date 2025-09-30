@@ -17,7 +17,7 @@
 #include <Channel.h>
 #include <MatrixND.h>
 #include <cmath>
-#include <Projector.hh>
+#include <Voight.hpp>
 
 #define MND
 using namespace OpenSees;
@@ -213,7 +213,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   dp = dpCommit;
   dn = dnCommit;
 
-   // elastic compliance
+  // elastic compliance
   MatrixND<6,6> Se;
   Ce.invert(Se);
 
@@ -304,7 +304,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   //
 
   // decompose into positive and negative effective stress tensor
-  MatrixND<6,6> Qpos{}, Qneg = OpenSees::IImix;
+  MatrixND<6,6> Qpos{}, Qneg = Voight::IImix;
   signeg = sige;
   StrsDecA(sige, sigpos, &Qpos);    // decompose the effective stress
   signeg -= sigpos;                 // signeg = sige - sigpos
@@ -390,7 +390,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
         double taun = sqrt((sqrt(3.)*(k*sigoct + tauoct)));   // negative equivalent stress
 
         // norm of deviatoric stress
-        VectorND<6> s = IIdevMix*signeg;            // deviatoric stress
+        VectorND<6> s = Voight::IIdevMix*signeg;            // deviatoric stress
 
         double nrms = std::sqrt(s[0]*s[0] + s[1]*s[1] + s[2]*s[2]
                          + 2.0*(s[3]*s[3] + s[4]*s[4] + s[5]*s[5]));
@@ -399,17 +399,17 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
           n.zero();
         else {
           n/=nrms;
-          double Dtaun_Dtauoct = std::pow(3,0.25) / 2./sqrt(k*sigoct + tauoct);
+          double Dtaun_Dtauoct = std::pow(3,0.25) / 2./std::sqrt(k*sigoct + tauoct);
           Dtaun_Dsigneg.addVector(1.0,    n, Dtaun_Dtauoct/std::sqrt(3.0)); // += Dtaun_Dtauoct * Dtauoct_Dsigneg
         }
 
-        double Dtaun_Dsigoct = pow(3,0.25) * k/2./sqrt(k*sigoct + tauoct);
-        Dtaun_Dsigneg.addVector(0.0, ivol, 1./3.0*Dtaun_Dsigoct); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
+        double Dtaun_Dsigoct = std::pow(3,0.25) * k/2./std::sqrt(k*sigoct + tauoct);
+        Dtaun_Dsigneg.addVector(0.0, Voight::ivol, Dtaun_Dsigoct/3.0); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
       }
 
       VectorND<6> Ddn_Deps = Dsigneg_Deps ^ Dtaun_Dsigneg;
       Ddn_Deps *= Ddn_Drn;
-      C.addMatrix(Dsigneg_Deps , (1-dn));
+      C.addMatrix(Dsigneg_Deps , (1.0 - dn));
       C.addTensorProduct(signeg, Ddn_Deps, -1.0);
     }
 
@@ -430,7 +430,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       VectorND<6> Ddp_Deps = Dsigpos_Deps ^ Dtaup_Dsigpos;
       Ddp_Deps *= Ddp_Drp; 
 
-      C.addMatrix(Dsigpos_Deps , (1-dp));
+      C.addMatrix(Dsigpos_Deps , (1.0 - dp));
       C.addTensorProduct(sigpos, Ddp_Deps, -1.0);
     }
   }
@@ -529,8 +529,8 @@ FariaPlasticDamage3d::revertToStart()
   double G  = E/2./(1. +    nu);     // Shear modulus
   double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
   Ce.zero();
-  Ce.addMatrix(IIvol, K);
-  Ce.addMatrix(IIdevCon, 2.*G);
+  Ce.addMatrix(Voight::IIvol, K);
+  Ce.addMatrix(Voight::IIdevCon, 2.*G);
   // Ce.addMatrix(IIdevMix, 2*G);
 
   C = Ce;
@@ -552,7 +552,7 @@ FariaPlasticDamage3d::revertToStart()
 NDMaterial*
 FariaPlasticDamage3d::getCopy(const char *type)
 {
-  if ((strcmp(type,"ThreeDimensional") == 0) || (strcmp(type,"3D") == 0)) {
+  if (strcmp(type,"ThreeDimensional") == 0) {
     return this->getCopy();
   }
   else {
@@ -564,7 +564,7 @@ NDMaterial*
 FariaPlasticDamage3d::getCopy()
 {
   FariaPlasticDamage3d *theCopy =
-    new FariaPlasticDamage3d (this->getTag(), E, nu, ft, Fc, beta, Ap, An, Bn, density);
+    new FariaPlasticDamage3d(this->getTag(), E, nu, ft, Fc, beta, Ap, An, Bn, density);
 
   return theCopy;
 }

@@ -23,8 +23,6 @@
 #include <Matrix3D.h>
 #include <TaggedObject.h>
 
-#define MAYBE_STATIC static
-
 using OpenSees::VectorND;
 using OpenSees::MatrixND;
 using OpenSees::Matrix3D;

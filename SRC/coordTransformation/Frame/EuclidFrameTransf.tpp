@@ -200,7 +200,9 @@ template <int nn, int ndf, typename IsoT>
 Vector3D 
 EuclidFrameTransf<nn,ndf,IsoT>::getNodeLocation(int node)
 {
-  Vector3D xn = basis.getRotation()^nodes[node]->getCrds();
+  const Vector &Xn = nodes[node]->getCrds();
+  const Vector3D X3 {Xn[0], Xn[1], Xn[2]};
+  Vector3D xn = basis.getRotation()^X3;
 
   xn += this->pullPosition<&Node::getTrialDisp>(node);
   
@@ -214,7 +216,9 @@ EuclidFrameTransf<nn,ndf,IsoT>::getNodePosition(int node)
 {
   Vector3D u = this->pullPosition<&Node::getTrialDisp>(node);
   u -= basis.getPosition();
-  u += basis.getRotationDelta()^(nodes[node]->getCrds());
+  const Vector& Xn = nodes[node]->getCrds();
+  Vector3D X3 {Xn[0], Xn[1], Xn[2]};
+  u += basis.getRotationDelta()^X3;
   return u;
 }
 
@@ -348,6 +352,22 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, Operation op)
   }
 
   // Offset
+  if (offsets != nullptr) [[unlikely]] {
+    if (!(offset_flags&OffsetLocal))  {
+      for (int i=0; i<nn; i++) {
+        const int j = i * ndf;
+        Vector3D w {pa[j+3], pa[j+4], pa[j+5]};
+        pa.assemble(j, (R*offsets->at(i)).cross(w), -1.0);
+      }
+    }
+    else {
+      for (int i=0; i<nn; i++) {
+        const int j = i * ndf;
+        Vector3D w {pa[j+3], pa[j+4], pa[j+5]};
+        pa.assemble(j, offsets->at(i).cross(w), -1.0);
+      }
+    }
+  }
   return 0;
 }
 
