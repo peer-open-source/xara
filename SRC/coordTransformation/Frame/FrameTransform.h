@@ -21,11 +21,9 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
+#include <Vector3D.h>
 #include <TaggedObject.h>
 
-using OpenSees::VectorND;
-using OpenSees::MatrixND;
-using OpenSees::Matrix3D;
 class Information;
 class Response;
 class Node;
