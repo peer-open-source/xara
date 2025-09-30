@@ -183,10 +183,10 @@ constexpr ModelBuilderCommands[] =  {
 
 #if 0
   {"limitCurve",           TclCommand_addLimitCurve},
-  {"stiffnessDegradation", TclCommand_addStiffnessDegradation},
-  {"unloadingRule",        TclCommand_addUnloadingRule},
-  {"strengthDegradation",  TclCommand_addStrengthDegradation},
-  {"loadPackage",          TclCommand_Package},
+  // {"stiffnessDegradation", TclCommand_addStiffnessDegradation},
+  // {"unloadingRule",        TclCommand_addUnloadingRule},
+  // {"strengthDegradation",  TclCommand_addStrengthDegradation},
+  // {"loadPackage",          TclCommand_Package},
 #endif
 
 

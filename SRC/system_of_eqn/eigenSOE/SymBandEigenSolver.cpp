@@ -143,13 +143,13 @@ SymBandEigenSolver::solve(int nModes, bool generalized, bool findSmallest)
   int iu = numModes;
 
   // Compute eigenvalues and eigenvectors
-  const char *jobz = "V";
+  char jobz[] = "V";
 
   // Selected eigenpairs are based on index range [il,iu]
-  const char *range = "I";
+  char range[] = "I";
 
   // Upper triagle of matrix is stored
-  const char *uplo = "U";
+  char uplo[] = "U";
   
   // Return value
   int *ifail = new int [n];

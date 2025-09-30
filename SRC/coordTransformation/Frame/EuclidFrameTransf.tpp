@@ -22,6 +22,7 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <Matrix3D.h>
+#include <Vector3D.h>
 #include <Node.h>
 #include <Logging.h>
 #include <AxisAngle.h>

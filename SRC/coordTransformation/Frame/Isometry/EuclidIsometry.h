@@ -197,7 +197,7 @@ public:
   }
 
   virtual Matrix3D 
-  getRotationDelta() {
+  getRotationDelta() final {
     return R[pres] - R[init];
   }
 
