@@ -32,31 +32,9 @@
 #include <Vector.h>
 #include <Logging.h>
 #include <TaggedObject.h>
-#include <MapOfTaggedObjects.h>
 #include <GenericResponse.h>
 
 typedef GenericResponse<CrdTransf> CrdTransfResponse;
-
-static MapOfTaggedObjects theCrdTransfObjects;
-
-
-ID
-OPS_getAllCrdTransfTags() {
-
-    ID allCrdTransfTags(0);
-      
-    MapOfTaggedObjectsIter theObjects = theCrdTransfObjects.getIter();
-    theObjects.reset();
-    TaggedObject *theObject;
-
-    while ((theObject = theObjects()) != 0) {
-      CrdTransf *theTransf = (CrdTransf *)theObject;    
-      allCrdTransfTags.insert(theTransf->getTag());
-    }
-
-    return allCrdTransfTags;
-}
-
 
 
 CrdTransf::CrdTransf(int tag, int classTag):TaggedObject(tag), MovableObject(classTag)
@@ -76,6 +54,7 @@ CrdTransf::getLocalAxes(Vector &xAxis, Vector &yAxis, Vector &zAxis)
   zAxis.Zero();
   return 0;
 }
+
 
 int
 CrdTransf::getRigidOffsets(Vector &offsets)

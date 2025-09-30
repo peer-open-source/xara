@@ -46,7 +46,7 @@ extern Tcl_CmdProc  TclCommand_addUniaxialMaterial;
 // section.cpp
 extern Tcl_CmdProc  TclCommand_addSection;
 extern Tcl_CmdProc  TclCommand_addPatch;
-extern Tcl_CmdProc  TclCommand_addReinfLayer;
+extern Tcl_CmdProc  TclCommand_addFiberLayer;
 // extern Tcl_CmdProc  TclCommand_addRemoFiber;
 extern Tcl_CmdProc  TclCommand_addFiber;
 extern Tcl_CmdProc  TclCommand_addHFiber;
@@ -136,7 +136,7 @@ constexpr ModelBuilderCommands[] =  {
   {"section",              TclCommand_addSection},
   {"patch",                TclCommand_addPatch},
   {"fiber",                TclCommand_addFiber},
-  {"layer",                TclCommand_addReinfLayer},
+  {"layer",                TclCommand_addFiberLayer},
   {"Hfiber",               TclCommand_addHFiber},
 
   {"geomTransf",           TclCommand_addGeomTransf},

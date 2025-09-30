@@ -6,7 +6,7 @@
 #==============================================================================
 
 target_sources(OPS_Domain
-    PRIVATE
+  PRIVATE
     Load.cpp
     #ElementalLoad.cpp
     ElementalLoadIter.cpp
@@ -20,7 +20,7 @@ target_sources(OPS_Domain
     SurfaceLoader.cpp
     SelfWeight.cpp
     LysmerVelocityLoader.cpp
-    PUBLIC
+  PUBLIC
     Load.h
     #ElementalLoad.h
     ElementalLoadIter.h
@@ -55,5 +55,7 @@ target_sources(OPS_Thermal
         Beam3dThermalAction.h
         ShellThermalAction.h
 )
-
+target_include_directories(OPS_Thermal
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes}
+)
 target_include_directories(OPS_Domain PUBLIC ${CMAKE_CURRENT_LIST_DIR})

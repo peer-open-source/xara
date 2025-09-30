@@ -13,15 +13,35 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// File: StraightFiberLayer.h
+// Written by Remo M. de Souza
+// December 1998
+//
 #pragma once
 
+#include "FiberLayer.h"
+#include <VectorND.h>
 #include <FiberCell.h>
 
 namespace OpenSees {
 
-class CircSectionCell : public FiberCell {
+class StraightFiberLayer : public FiberLayer {
 public:
-  CircSectionCell(double r2, double r1, double alpha, double theta, double centerX, double centerY);
+  StraightFiberLayer(int materialID, int numReinfBars, 
+                     double reinfBarArea,
+                     const VectorND<2>& initialPosition, 
+                     const VectorND<2>& finalPosition);
+
+  virtual ~StraightFiberLayer() {};
+
+  int getNumReinfBars() const;
+  std::vector<FiberCell> getReinfBars() const;
+
+protected:
+private:
+  int nReinfBars;
+  VectorND<2> initPosit;
+  VectorND<2> finalPosit;
 };
 
 } // namespace OpenSees

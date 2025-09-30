@@ -13,42 +13,39 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Claudio M. Perez
-// Adapted from CircPatch.h
+// File: CircFiberLayer.h
 // Written by Remo M. de Souza
 // December 1998
 //
-#ifndef CircPatch_h
-#define CircPatch_h
+#pragma once
 
-#include "FiberPatch.h"
-#include <Vector.h>
+#include <FiberLayer.h>
 #include <VectorND.h>
-
-class Matrix;
+#include <FiberCell.h>
 
 namespace OpenSees {
-class FiberCell;
-class CircPatch : public FiberPatch {
+
+class CircFiberLayer : public FiberLayer {
 public:
-  CircPatch(int material,
-            int numSubdivCircunf, int numSubdivRadial,
-            const VectorND<2>& centerPosition, 
-            double internRadius, double externRadius,
-            double initialAngle, double finalAngle);
+  // Constructor for an arc
+  CircFiberLayer(int material, int n, double area,
+                 const VectorND<2>& center, double radius, 
+                 double initialAngle,
+                 double finalAngle);
+  // Constructor for full circle
+  CircFiberLayer(int material, int n, double area,
+                 const VectorND<2>& center, double radius);
 
-  ~CircPatch();
+  virtual ~CircFiberLayer() {};
 
-  int getMaterialID() const;
-  int getNumCells() const;
-  FiberCell** getCells() const;
+  int getNumReinfBars() const;
+  std::vector<FiberCell> getReinfBars() const;
 
 private:
-  int matID;
-  int nDivCirc, nDivRad;
-  const VectorND<2> centerPosit;
-  double intRad, extRad;
-  double initAng, finalAng;
+  int nReinfBars;
+  VectorND<2> centerPosit;
+  double arcRad;
+  double initAng;
+  double finalAng;
 };
 } // namespace OpenSees
-#endif

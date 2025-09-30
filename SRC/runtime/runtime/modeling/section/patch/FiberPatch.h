@@ -13,15 +13,21 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#pragma once
-
-#include <FiberCell.h>
-
+// File: Patch.h
+// Written by Remo M. de Souza
+// December 1998
+//
+#ifndef Patch_h
+#define Patch_h
 namespace OpenSees {
 
-class CircSectionCell : public FiberCell {
-public:
-  CircSectionCell(double r2, double r1, double alpha, double theta, double centerX, double centerY);
-};
+class FiberCell;
 
+class FiberPatch {
+public:
+  virtual int getMaterialID() const = 0;
+  virtual int getNumCells() const   = 0;
+  virtual FiberCell** getCells() const   = 0;
+};
 } // namespace OpenSees
+#endif

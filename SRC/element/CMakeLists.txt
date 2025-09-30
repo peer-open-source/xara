@@ -11,6 +11,8 @@ target_link_libraries(OPS_Element
   PRIVATE OPS_Transform
           OPS_FrameQuadrature
           OPS_Logging
+          OPS_Recorder
+          OPS_Material
 )
 
 target_include_directories(OPS_Element PUBLIC

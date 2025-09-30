@@ -13,15 +13,40 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// Claudio M. Perez
+//
+// Adapted from: QuadFiberPatch.h
+// Written by Remo M. de Souza
+// December 1998
+//
 #pragma once
 
-#include <FiberCell.h>
+#include <MatrixND.h>
+#include "FiberPatch.h"
+#include <Vector.h>
+
+class Matrix;
 
 namespace OpenSees {
 
-class CircSectionCell : public FiberCell {
+class Cell;
+
+class QuadFiberPatch : public FiberPatch {
 public:
-  CircSectionCell(double r2, double r1, double alpha, double theta, double centerX, double centerY);
+  QuadFiberPatch();
+  QuadFiberPatch(int materialID, int numSubdivIJ, int numSubdivJK, const MatrixND<4,2>& vertexCoords);
+
+  ~QuadFiberPatch();
+
+  int getMaterialID() const;
+  int getNumCells() const;
+  FiberCell** getCells() const;
+
+protected:
+private:
+  int matID;
+  int nDivIJ, nDivJK;
+  MatrixND<4,2> vertCoord;
 };
 
 } // namespace OpenSees

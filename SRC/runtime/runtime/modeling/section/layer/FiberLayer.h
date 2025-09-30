@@ -13,15 +13,34 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// File: FiberLayer.h
+// Written by Remo M. de Souza
+// December 1998
+//
 #pragma once
 
+#include <vector>
 #include <FiberCell.h>
 
 namespace OpenSees {
-
-class CircSectionCell : public FiberCell {
+class FiberLayer {
 public:
-  CircSectionCell(double r2, double r1, double alpha, double theta, double centerX, double centerY);
-};
+  FiberLayer(int material, double area) : material(material), area(area) {}
+  virtual ~FiberLayer() {};
 
+  int getMaterialID() const {
+    return material;
+  }
+
+  virtual int getNumReinfBars() const = 0;
+  virtual std::vector<FiberCell> getReinfBars() const = 0;
+
+protected:
+  double getCellArea() const {
+    return area;
+  }
+private:
+  int material;
+  double area;
+};
 } // namespace OpenSees

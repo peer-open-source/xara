@@ -43,7 +43,6 @@
 #include <Node.h>
 #include <NodeIter.h>
 #include <ConstraintHandler.h>
-#include <Flag.h>
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -956,7 +955,7 @@ AnalysisModel::commitDomain()
     return -2;
   }
 
-  return OpenSees::Flag::Success;
+  return 0;
 }
 
 # if 0
@@ -971,7 +970,7 @@ AnalysisModel::revertDomainToLastCommit()
     opserr << " Domain::revertToLastCommit() failed.\n";
     return -2;
   }
-  return OpenSees::Flag::Success;
+  return 0;
 }
 #endif
 

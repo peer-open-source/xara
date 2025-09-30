@@ -6,7 +6,7 @@
 #==============================================================================
 add_library(OPS_Material_YieldSurface OBJECT)
 
-target_link_libraries(OPS_Material_YieldSurface PRIVATE OPS_Logging)
+target_link_libraries(OPS_Material_YieldSurface PRIVATE OPS_Logging OPS_Recorder)
 
 target_sources(OPS_Runtime PRIVATE dispatch.cpp)
 

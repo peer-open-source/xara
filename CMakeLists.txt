@@ -155,9 +155,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Global compiler definitions
 #
 add_compile_definitions(
-    "$<$<COMPILE_LANGUAGE:C,CXX>: OPS_USE_RUNTIME>"
-    "$<$<COMPILE_LANGUAGE:C,CXX>: USE_TCL_STUBS>"
-    "$<$<COMPILE_LANGUAGE:C,CXX>: _TCL85>"
+  "$<$<COMPILE_LANGUAGE:C,CXX>: OPS_USE_RUNTIME>"
+  "$<$<COMPILE_LANGUAGE:C,CXX>: USE_TCL_STUBS>"
+  "$<$<COMPILE_LANGUAGE:C,CXX>: _TCL85>"
 ) # _THREADS
 
 #
@@ -191,16 +191,14 @@ endif()
 #----------------------------------------------------------------
 # Global Includes
 #---------------------------------------------------------------- 
-include_directories(
+set(OPS_Includes
   ${OPS_SRC_DIR}
+  ${OPS_SRC_DIR}/api
   ${OPS_SRC_DIR}/handler
   ${OPS_SRC_DIR}/actor/actor
   ${OPS_SRC_DIR}/actor/objectBroker
   ${OPS_SRC_DIR}/actor/channel
   ${OPS_SRC_DIR}/actor/message
-
-  ${OPS_SRC_DIR}/api
-
   ${OPS_SRC_DIR}/tagged
   ${OPS_SRC_DIR}/tagged/storage
 
@@ -219,7 +217,6 @@ include_directories(
   ${OPS_SRC_DIR}/domain/subdomain
 
   ${OPS_SRC_DIR}/recorder
-  ${OPS_SRC_DIR}/recorder/response
 
   ${OPS_SRC_DIR}/element
   ${OPS_SRC_DIR}/graph/graph
@@ -227,7 +224,6 @@ include_directories(
   ${OPS_SRC_DIR}/graph/partitioner
   ${OPS_SRC_DIR}/material
   ${OPS_SRC_DIR}/material/nD
-  ${OPS_SRC_DIR}/material/elastic
   ${OPS_SRC_DIR}/material/section
   ${OPS_SRC_DIR}/material/section/yieldSurface
   ${OPS_SRC_DIR}/material/uniaxial
@@ -241,8 +237,8 @@ include_directories(
   ${OPS_SRC_DIR}/analysis/fe_ele
   ${OPS_SRC_DIR}/analysis/handler
   ${OPS_SRC_DIR}/analysis/integrator
-  ${OPS_SRC_DIR}/runtime/runtime/legacy/Renderer
 )
+
 
 #==============================================================================
 #                            Define Targets
@@ -329,18 +325,46 @@ target_include_directories(G3 PUBLIC
   ${OPS_SRC_DIR}/actor/objectBroker
   ${OPS_SRC_DIR}/actor/channel
   ${OPS_SRC_DIR}/actor/message
+  ${OPS_Includes}
 )
 
-
+target_include_directories(OPS_Domain PRIVATE
+  ${OPS_SRC_DIR}/recorder/response
+  ${OPS_SRC_DIR}/material/uniaxial
+  ${OPS_SRC_DIR}/material/elastic
+  ${OPS_SRC_DIR}/material/nD
+  ${OPS_SRC_DIR}/tagged
+  ${OPS_SRC_DIR}/tagged/storage
+  ${OPS_Includes}
+)
+target_include_directories(OPS_Element PRIVATE
+  ${OPS_SRC_DIR}/tagged
+  ${OPS_SRC_DIR}/runtime/runtime/legacy/Renderer
+  ${OPS_Includes}
+)
+target_include_directories(OPS_Recorder PRIVATE
+  ${OPS_SRC_DIR}/tagged
+  ${OPS_SRC_DIR}/recorder/response
+  ${OPS_Includes}
+)
+target_include_directories(OPS_Transform PRIVATE
+  ${OPS_SRC_DIR}/recorder/response
+  ${OPS_Includes}
+)
+target_include_directories(OPS_Damage PRIVATE
+  ${OPS_SRC_DIR}/recorder/response
+  ${OPS_Includes}
+)
 
 # Add sources to targets
 add_subdirectory(${OPS_SRC_DIR})
+
 #==============================================================================
 #                            Configure targets
 #
 #==============================================================================
-target_link_libraries(OPS_Element      PRIVATE ${OPS_Element_List})
-target_link_libraries(OPS_Material     PRIVATE ${TCL_STUB_LIBRARY})
+target_link_libraries(OPS_Element   PRIVATE ${OPS_Element_List})
+target_link_libraries(OPS_Material  PRIVATE ${TCL_STUB_LIBRARY})
 
 
 # G3
@@ -402,14 +426,14 @@ endforeach()
 # HDF5
 #----------------------------
 if (FALSE)
-   find_package(HDF5)
-    if(HDF5_FOUND)
-        include_directories(${HDF5_INCLUDE_DIR})
-        set(_hdf5_libs hdf5 hdf5_cpp)
+  find_package(HDF5)
+  if(HDF5_FOUND)
+    include_directories(${HDF5_INCLUDE_DIR})
+    set(_hdf5_libs hdf5 hdf5_cpp)
     add_compile_definitions(-D_H5DRM)
-    else()
-        message(STATUS "OPS >>> Could not find HDF5")
-    endif()
+  else()
+      message(STATUS "OPS >>> Could not find HDF5")
+  endif()
 endif()
 
 

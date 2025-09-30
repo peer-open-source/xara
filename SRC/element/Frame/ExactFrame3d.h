@@ -18,7 +18,6 @@
 #pragma once
 #include <set>
 #include <array>
-#include <Flag.h>
 #include <Element.h>
 #include <VectorND.h>
 #include <MatrixND.h>
@@ -78,7 +77,7 @@ public:
       if (point.material->commitState() != 0)
         return -1;
     }
-    return OpenSees::Flag::Success;
+    return 0;
   }
 
   // Element: Parameters

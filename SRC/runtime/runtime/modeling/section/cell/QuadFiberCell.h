@@ -13,15 +13,20 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// File: QuadCell.h
+//
+// Written by Remo M. de Souza
+// December 1998
 #pragma once
 
-#include <FiberCell.h>
+#include "FiberCell.h"
+#include <MatrixND.h>
 
 namespace OpenSees {
 
-class CircSectionCell : public FiberCell {
+class QuadFiberCell : public FiberCell {
 public:
-  CircSectionCell(double r2, double r1, double alpha, double theta, double centerX, double centerY);
+  QuadFiberCell(const MatrixND<4,2>& vertexCoords);
 };
 
 } // namespace OpenSees
