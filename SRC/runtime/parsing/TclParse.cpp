@@ -1,10 +1,13 @@
 #include <string>
+#include <vector>
+#include <cstring>
+#include <cstdlib>
 
 struct Tcl_Interp {};
 #define TCL_OK 0
 #define TCL_ERROR 1
 
-int 
+extern "C" int 
 Tcl_GetDouble(Tcl_Interp *interp, const char *arg, double *value)
 {
     std::string str(arg);
@@ -16,7 +19,7 @@ Tcl_GetDouble(Tcl_Interp *interp, const char *arg, double *value)
     }
 }
 
-int 
+extern "C" int 
 Tcl_GetInt(Tcl_Interp *interp, const char *arg, int *value)
 {
     std::string str(arg);
@@ -28,7 +31,7 @@ Tcl_GetInt(Tcl_Interp *interp, const char *arg, int *value)
     }
 }
 
-int 
+extern "C" int
 Tcl_SplitList(Tcl_Interp *interp, const char *list, int *argcPtr, char ***argvPtr)
 {
     std::string str(list);
