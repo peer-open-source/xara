@@ -112,7 +112,8 @@ public:
       R[init](i,2) = e3[i];
     }
 
-    Xc = nodes[ic]->getCrds();
+    const Vector& XC = nodes[ic]->getCrds();
+    Xc = Vector3D {XC[0], XC[1], XC[2]};
     c[init] = R[init]^Xc;
 
     return this->update(nodes);
@@ -164,7 +165,8 @@ public:
     //
     //
     //
-    Vector3D uc = nodes[ic]->getTrialDisp();
+    const Vector& UC = nodes[ic]->getTrialDisp();
+    Vector3D uc {UC[0], UC[1], UC[2]};
     if (offsets != nullptr) {
       uc.addVector(1.0, (*offsets)[ic], -1.0);
       uc.addVector(1.0, nodes[ic]->getTrialRotation().rotate((*offsets)[ic]), 1.0);
@@ -212,15 +214,15 @@ public:
     return c[pres];
   }
 
-  virtual Vector3D
-  getPosition() {
+  Vector3D
+  getPosition() override {
     // Return Delta c
     Vector3D Dc =  c[pres] - (R[init]^Xc) ; // (R[pres]^c[init]);
     return Dc;
   }
 
-  virtual Vector3D 
-  getPositionVariation(int ndf, double* du) {
+  Vector3D 
+  getPositionVariation(int ndf, double* du) override {
     return Vector3D {du[ndf*ic+0], du[ndf*ic+1], du[ndf*ic+2]};
   }
 
