@@ -912,6 +912,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
     // Version a)
     else {
+#if !defined(OPS_API)
       // If we fail to parse an integer tag for the integration,
       // then we assume that the integration is specified as a
       // BeamIntegration command
@@ -932,6 +933,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
       deleteBeamIntegr = false;
       removeHingeIntegr = true;
+#else
+      return TCL_ERROR;
+#endif
     }
 
     theRule = builder->getTypedObject<BeamIntegrationRule>(itg_tag);
