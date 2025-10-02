@@ -929,13 +929,13 @@ TclCommand_addFiberIntSection(ClientData clientData, Tcl_Interp *interp,
   }
 #endif
 
-
+#if !defined(OPS_API)
   // parse the information inside the braces (patches and reinforcing layers)
   if (Tcl_Eval(interp, argv[brace]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "- error reading information in { } \n";
     return TCL_ERROR;
   }
-
+#endif
   if (NDM == 3 && torsion == nullptr) {
     opserr << OpenSees::PromptValueError << "- no torsion specified for 3D fiber section, use -GJ or "
               "-torsion\n";
