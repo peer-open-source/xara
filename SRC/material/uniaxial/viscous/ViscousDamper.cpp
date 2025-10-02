@@ -52,11 +52,11 @@
 #include <OPS_Globals.h>
 #include <Parameter.h>
 
-static int numViscousDamperMaterials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ViscousDamper)
 
 {
+  static int numViscousDamperMaterials = 0;
   if (numViscousDamperMaterials == 0) {
     numViscousDamperMaterials++;
     opslog << "ViscousDamper Model by Sarven Akcelyan and Dimitrios G. Lignos, PhD, McGill University\n";
