@@ -1000,6 +1000,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   }
 
   if (beamIntegr == nullptr) {
+#if defined(OPS_API)
+    return TCL_ERROR;
+#else
     if (integration_type == nullptr) {
       if (strstr(argv[1], "ispBeam") == 0) {
         integration_type = "Lobatto";
@@ -1007,13 +1010,13 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         integration_type = "Legendre";
       }
     }
-
     if ((beamIntegr = GetBeamIntegration(integration_type, section_tags.size())) == nullptr) {
       opserr << OpenSees::PromptValueError << "invalid integration type or size\n";
       status = TCL_ERROR;
       goto clean_up;
     }
     deleteBeamIntegr = true;
+#endif
   }
 
   //
