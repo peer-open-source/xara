@@ -823,11 +823,12 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   //
   // Execute the commands inside the braces (fibers, patches, and reinforcing layers)
   //
+#if !defined(OPS_API)
   if (iarg < argc && Tcl_Eval(interp, argv[iarg]) != TCL_OK) {
     // Assume the subcommands have printed a message regarding the error
     return TCL_ERROR;
   }
-
+#endif
   if (deleteTorsion)
     delete torsion;
 

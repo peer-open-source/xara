@@ -27,15 +27,11 @@
 #include <string>
 #include <unordered_map>
 
-#include <modeling/commands.h>
-
-#include <runtimeAPI.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
 #include <Domain.h>
 
-#include <CrdTransf.h>
 #include <ModelRegistry.h>
 
 #include <Parsing.h> // For TCL_OK/ERROR
@@ -205,7 +201,7 @@ ModelRegistry::getRegistryObject(const char* type, const char* specialize, int t
   if (iter_objs == iter->second.end()) {
     if (flags == 0)
       opserr << "No object with tag \"" << tag << "\" in partition \"" 
-             << partition << "\"\n";
+             << partition.c_str() << "\"\n";
     return nullptr;
   }
 

@@ -13,6 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
+#pragma once
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <cmath>

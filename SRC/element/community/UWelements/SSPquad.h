@@ -30,6 +30,7 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <ID.h>
+#include <array>
 
 // number of nodes per element
 #define SSPQ_NUM_NODE 4
@@ -48,36 +49,40 @@ class Response;
 class SSPquad : public Element
 {
   public:
-    SSPquad(int tag, int Nd1, int Nd2, int Nd3, int Nd4, NDMaterial &theMat,
-                     const char *type, double thick, double b1 = 0.0, double b2 = 0.0);
+    SSPquad(int tag,
+            const std::array<int, 4> &nodes,
+            NDMaterial &theMat,
+            double thick, 
+            double density,
+            double b1 = 0.0, double b2 = 0.0);
     SSPquad();
     ~SSPquad();
 
     const char* getClassType()  const { return "SSPquad"; };
 
     // public methods to obtain information about dof and connectivity
-    int getNumExternalNodes(void) const; 
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
-    int getNumDOF(void);
+    int getNumExternalNodes() const; 
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
+    int getNumDOF();
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
-    int update(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+    int update();
 
     // public methods to obtain stiffness, mass, damping, and residual info
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getMass(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getMass();
 
-    void zeroLoad(void);
+    void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
@@ -103,7 +108,7 @@ class SSPquad : public Element
 
     // member functions
     Matrix DyadicProd(Vector v1, Vector v2);            // dyadic product for two 2x1 vectors
-    void GetStab(void);                                 // compute stabilization stiffness matrix
+    void GetStab();                                 // compute stabilization stiffness matrix
 
     // objects
     NDMaterial *theMaterial;                            // pointer to NDMaterial object
@@ -131,6 +136,7 @@ class SSPquad : public Element
     Matrix Mmem;                                        // mapping matrix for membrane modes
     Matrix Kstab;                                       // stabilization stiffness matrix
     Matrix mNodeCrd;                                    // nodal coordinate array
+    double density;                                     // mass density
 };
 
 #endif
