@@ -86,15 +86,15 @@ public:
   int getResponse(int responseID, Information& eleInfo) final;
 
   // Element: Parameters
-  int setParameter(const char** argv, int argc, Parameter& param);
-  int updateParameter(int parameterID, Information& info);
-  int activateParameter(int parameterID);
+  int setParameter(const char** argv, int argc, Parameter&) final;
+  int updateParameter(int parameterID, Information&) final;
+  int activateParameter(int parameterID) final;
 
   // Element: Sensitivity
-  const Vector& getResistingForceSensitivity(int gradNumber);
-  const Matrix& getInitialStiffSensitivity(int gradNumber);
-  const Matrix& getMassSensitivity(int gradNumber);
-  int commitSensitivity(int gradNumber, int numGrads);
+  const Vector& getResistingForceSensitivity(int gradNumber) final;
+  const Matrix& getInitialStiffSensitivity(int gradNumber) final;
+  const Matrix& getMassSensitivity(int gradNumber) final;
+  int commitSensitivity(int gradNumber, int numGrads) final;
 
   // MovableObject
   int sendSelf(int commitTag, Channel&) override;
