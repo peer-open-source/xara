@@ -23,7 +23,7 @@
 #include <Channel.h>
 #include <CoulombDamperMaterial.h>
 #include <Information.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <Parameter.h>
 #include <Vector.h>
 #include <elementAPI.h>
@@ -98,12 +98,6 @@ void *OPS_ADD_RUNTIME_VPV(OPS_CoulombDamperMaterial)
     theMaterial =
         new CoulombDamperMaterial(iData[0], dData[0], dData[1], tol,
                                   dampOutTangent, method, numFlipped);
-    if (theMaterial == 0) {
-        opserr << "WARNING could not create uniaxialMaterial of type "
-                  "CoulombDamperMaterial"
-               << endln;
-        return 0;
-    }
 
     return theMaterial;
 }
@@ -233,7 +227,7 @@ int CoulombDamperMaterial::sendSelf(int cTag, Channel &theChannel) {
     if (res < 0)
         opserr << "CoulombDamperMaterial::sendSelf() - failed to "
                   "send data"
-               << endln;
+               << "\n";
 
     return res;
 }
@@ -247,7 +241,7 @@ int CoulombDamperMaterial::recvSelf(int cTag, Channel &theChannel,
     if (res < 0) {
         opserr << "CoulombDamperMaterial::recvSelf() - failed to "
                   "receive data"
-               << endln;
+               << "\n";
         tangent = 0;
         friction = 0;
         this->setTag(0);
@@ -270,9 +264,9 @@ int CoulombDamperMaterial::recvSelf(int cTag, Channel &theChannel,
 void
 CoulombDamperMaterial::Print(OPS_Stream &s, int flag) {
     if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "CoulombDamperMaterial tag: " << this->getTag() << endln;
+        s << "CoulombDamperMaterial tag: " << this->getTag() << "\n";
         s << "  Tangent: " << tangent
-          << ", Friciton force: " << friction << "\n";
+          << ", Friction force: " << friction << "\n";
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {

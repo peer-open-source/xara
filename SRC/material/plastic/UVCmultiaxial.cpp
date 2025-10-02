@@ -12,7 +12,7 @@ using namespace OpenSees;
 #include <Channel.h>
 #include <Information.h>
 #include <Parameter.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <elementAPI.h>
 
 #include "classTags.h"
@@ -127,8 +127,9 @@ nonzero
 * @param gammaK controls the saturation rate of the kinematic hardening
 */
 UVCmultiaxial::UVCmultiaxial(int tag, double E, double poissonRatio, double sy0, double qInf,
-                             double b, double dInf, double a, std::vector<double> cK,
-                             std::vector<double> gammaK)
+                             double b, double dInf, double a,
+                             const std::vector<double>& cK,
+                             const std::vector<double>& gammaK)
  : NDMaterial(tag, ND_TAG_UVCmultiaxial),
    elasticModulus(E),
    poissonRatio(poissonRatio),
