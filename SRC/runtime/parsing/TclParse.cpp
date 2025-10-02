@@ -53,3 +53,10 @@ Tcl_SplitList(Tcl_Interp *interp, const char *list, int *argcPtr, char ***argvPt
     }
     return TCL_OK;
 }
+
+int
+Tcl_Free(char *ptr)
+{
+    delete[] ptr;
+    return TCL_OK;
+}
