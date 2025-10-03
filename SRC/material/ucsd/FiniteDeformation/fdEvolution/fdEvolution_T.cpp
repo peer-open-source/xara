@@ -19,44 +19,40 @@
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
 //#
-//# DATE:              19AUg2003
-//# UPDATE HISTORY:    28May2004
-//#
+//# DATE:              July 2004
+//# UPDATE HISTORY:
 //#
 //===============================================================================
 
-#ifndef OgdenWEnergy_H
-#define OgdenWEnergy_H
+#ifndef fdEvolution_T_CPP
+#define fdEvolution_T_CPP
 
-#include <Vector.h>
-#include <Tensor.h>
+#include "fdEvolution_T.h"
+#include <OPS_Stream.h>
 #include <OPS_Globals.h>
-#include <W.h>
 
-#include <math.h>
+fdEvolution_T * fdEvolution_T::newObj() 
+{   
+    fdEvolution_T *newEL = new fdEvolution_T( *this );    
+    return newEL;
+}
 
-
-class OgdenWEnergy : public WEnergy
+tensor fdEvolution_T::HModulus(const stresstensor &sts, const FDEPState &fdepstate) const
 {
-  private:
-    int N_Ogden;
-    double *cr_Ogden;
-    double *mur_Ogden;
-  public:
-    OgdenWEnergy(int , double * , double * );
-    OgdenWEnergy( );
-    ~OgdenWEnergy( );
-    WEnergy *newObj( );
+    tensor Z400(4, def_dim_4, 0.0);
+    return Z400;
+}
 
-    const double  wE(const double &, const Vector &) ;
-    const Vector  disowOdlambda(const Vector & )  ;
-    const Vector  d2isowOdlambda2(const Vector & )  ;
-//    const tensor  d2isowOdlambda1dlambda2( const Vector &)  ;
-//    const double  dvolwOdJ( const double &)  ;
-//    const double  d2volwOdJ2( const double &) ;
+void fdEvolution_T::print()
+{
+    opserr << (*this);
+}
 
-
-};
+OPS_Stream& operator<< (OPS_Stream& os, const fdEvolution_T & ev)
+{
+   os << "Tensor Evolution Law's Parameters: " << "\n";
+   return os;
+}
 
 #endif
 

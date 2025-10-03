@@ -19,62 +19,37 @@
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
 //#
-//# DATE:              19AUg2003
+//# DATE:              July 2004
 //# UPDATE HISTORY:
-//#
 //#
 //===============================================================================
 
+#ifndef fdEvolution_T_H
+#define fdEvolution_T_H 
 
-#ifndef W_cpp
-#define W_cpp
+#include <stresst.h>
+#include <straint.h>
+#include <math.h>
 
+#include <FDEPState.h>
 
-#include "W.h"
-
-WEnergy::WEnergy()
+class fdEvolution_T
 {
+ public:
+    
+    fdEvolution_T() {};
+    virtual ~fdEvolution_T() {};
 
-}
+    virtual fdEvolution_T *newObj();
+    
+    // Derivative of stress like hardening variable to strain like variable
+    virtual tensor HModulus(const stresstensor &sts, const FDEPState &fdepstate) const;  
 
-WEnergy::~WEnergy()
-{
+    void print();
 
-}
+    friend OPS_Stream& operator<< (OPS_Stream& os, const fdEvolution_T & ev);
 
-const double WEnergy::wE(const double &J_in, const Vector &lambda_wave_in)
-{
-  return 0.0;
-}
-
-
-const Vector WEnergy::disowOdlambda( const Vector &lambda_wave_in)
-{
-  return Vector(3);
-}
-
-const Vector WEnergy::d2isowOdlambda2( const Vector &lambda_wave_in)
-{
-  return Vector(3);
-}
-
-const Tensor WEnergy::d2isowOdlambda1dlambda2(const Vector &lambda_wave_in)
-{
-  Tensor zerotensor(2,def_dim_2,0.0);
-  return zerotensor;
-}
-
-const double WEnergy::dvolwOdJ(const double &J_in)
-{
-  return 0.0;
-}
-
-const double WEnergy::d2volwOdJ2(const double &J_in)
-{
-  return 0.0;;
-
-}
+};
 
 
 #endif
-

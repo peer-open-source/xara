@@ -24,32 +24,35 @@
 //#
 //===============================================================================
 
-#ifndef fdEvolution_S_CPP
-#define fdEvolution_S_CPP
+#ifndef fdYieldVM_H
+#define fdYieldVM_H
 
-#include "fdEvolution_S.h"
+#include "fdYield.h"
 
-fdEvolution_S * fdEvolution_S::newObj() 
-{   
-    fdEvolution_S *newEL = new fdEvolution_S( *this );    
-    return newEL;
-}
-
-double fdEvolution_S::HModulus(const stresstensor &sts, const FDEPState &fdepstate) const
+class fdYieldVM : public fdYield
 {
-    return 0.0;
-}
+  private:
+    double Y0;
+  public:
+    fdYieldVM(double Y0_in);
+    // virtual ~fdYieldVM() {}; 
+    
+    fdYield *newObj();   
 
-void fdEvolution_S::print()
-{
-    opserr << (*this);
-}
+    int getNumRank();
+    double getTolerance();
+    
+    double Yd(const stresstensor &sts, const FDEPState &fdepstate ) const;	
 
-OPS_Stream& operator<< (OPS_Stream& os, const fdEvolution_S & ev)
-{
-   os << "Scalar Evolution Law's Parameters: " << "\n";
-   return os;
-}
+    stresstensor dYods(const stresstensor &sts, const FDEPState &fdepstate ) const; 
+    double dYodq(const stresstensor &sts, const FDEPState &fdepstate ) const;	    
+    stresstensor dYoda(const stresstensor &sts, const FDEPState &fdepstate ) const;
+    
+    void print();
+    // { opserr << *this; };   
+
+    friend OPS_Stream& operator<< (OPS_Stream& os, const fdYieldVM & fdydVM);
+};
+
 
 #endif
-

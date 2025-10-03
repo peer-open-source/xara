@@ -19,34 +19,41 @@
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
 //#
-//# DATE:              19AUg2003
-//# UPDATE HISTORY:    28May2004
-//#
+//# DATE:              July 2004
+//# UPDATE HISTORY:
 //#
 //===============================================================================
 
+#ifndef fdYieldDP_H
+#define fdYieldDP_H
 
-#ifndef W_H
-#define W_H
+#include "fdYield.h"
 
-#include <Vector.h>
-#include <Tensor.h>
-
-class WEnergy
+class fdYieldDP : public fdYield
 {
+  private:
+    double alpha;
+    double k;
+  
   public:
-    WEnergy();
-    virtual ~WEnergy();
-    virtual WEnergy*newObj( ) =0;
+    fdYieldDP(double alpha_in, double k_in);
+    // virtual ~fdYieldDP() {}; 
+    
+    fdYield *newObj();   
 
-    virtual const  double wE(const double &, const Vector &) ;
-    virtual const Vector disowOdlambda(const Vector &) ;
-    virtual const Vector d2isowOdlambda2(const Vector &) ;
-    virtual const Tensor d2isowOdlambda1dlambda2(const Vector &) ;
-    virtual const double dvolwOdJ(const double &) ;
-    virtual const double d2volwOdJ2(const double &) ;
+    int getNumRank();
+    double getTolerance();
+    
+    double Yd(const stresstensor &sts, const FDEPState &fdepstate ) const;	
 
+    stresstensor dYods(const stresstensor &sts, const FDEPState &fdepstate ) const; 
+    double dYodq(const stresstensor &sts, const FDEPState &fdepstate ) const;	    
+    //stresstensor dYoda(const stresstensor &sts, const FDEPState &fdepstate ) const;
+
+    void print(); // { opserr << *this; };   
+
+    friend OPS_Stream& operator<< (OPS_Stream& os, const fdYieldDP & fdydDP);
 };
 
-#endif
 
+#endif

@@ -19,41 +19,38 @@
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
 //#
-//# DATE:              19AUg2003
-//# UPDATE HISTORY:    28May2004
-//#
+//# DATE:              July 2004
+//# UPDATE HISTORY:
 //#
 //===============================================================================
 
-#ifndef SimoPisterWEnergy_H
-#define SimoPisterWEnergy_H
+#ifndef fdEvolution_S_CPP
+#define fdEvolution_S_CPP
 
-#include <Vector.h>
-#include <Tensor.h>
-#include <Channel.h>
+#include "fdEvolution_S.h"
 #include <OPS_Globals.h>
-#include <W.h>
 
+fdEvolution_S * fdEvolution_S::newObj() 
+{   
+    fdEvolution_S *newEL = new fdEvolution_S( *this );    
+    return newEL;
+}
 
-
-class SimoPisterWEnergy : public WEnergy
+double fdEvolution_S::HModulus(const stresstensor &sts, const FDEPState &fdepstate) const
 {
-  private:
-    double K;
-  public:
-    SimoPisterWEnergy( double  );
-    SimoPisterWEnergy(  );
-    ~SimoPisterWEnergy( ) ;
-    WEnergy *newObj( );
+    return 0.0;
+}
 
-    const double  wE(const double &, const Vector & )  ;
-//  const Vector   disowOdlambda(const Vector &lambda_wave_in ) ;
-//  const Vector const d2isowOdlambda2(const Vector &lambda_wave_in )  ;
-//  const Tensor const d2isowOdlambda1dlambda2( const Vector &lambda_wave_in)  ;
-    const double   dvolwOdJ( const double &J_in) ;
-    const double  d2volwOdJ2( const double &J_in) ;
+void fdEvolution_S::print()
+{
+    opserr << (*this);
+}
 
-};
+OPS_Stream& operator<< (OPS_Stream& os, const fdEvolution_S & ev)
+{
+   os << "Scalar Evolution Law's Parameters: " << "\n";
+   return os;
+}
 
 #endif
 

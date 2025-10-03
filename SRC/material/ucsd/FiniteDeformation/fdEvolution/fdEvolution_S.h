@@ -19,41 +19,37 @@
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
 //#
-//# DATE:              19AUg2003
+//# DATE:              July 2004
 //# UPDATE HISTORY:
-//#
 //#
 //===============================================================================
 
-#ifndef MooneyRivlinWEnergy_H
-#define MooneyRivlinWEnergy_H
+#ifndef fdEvolution_S_H
+#define fdEvolution_S_H 
 
-#include <Vector.h>
-#include <Tensor.h>
-#include <OPS_Globals.h>
-#include <W.h>
+#include <stresst.h>
+#include <straint.h>
+#include <math.h>
 
+#include <FDEPState.h>
 
-class MooneyRivlinWEnergy : public WEnergy
+class fdEvolution_S
 {
-  private:
-    double c1;
-    double c2;
-  public:
-    MooneyRivlinWEnergy(double , double);
-    MooneyRivlinWEnergy( );
-    ~MooneyRivlinWEnergy( );
-    WEnergy *newObj( );
+ public:
+    
+    fdEvolution_S() {};
+    virtual ~fdEvolution_S() {};
 
-    const double wE(const double &, const Vector &);
-    const Vector disowOdlambda(const Vector &);
-    const Vector d2isowOdlambda2(const Vector & );
-//  const tensor d2isowOdlambda1dlambda2(const vector &);
-//  const double dvolwOdJ( const double &);
-//  const double d2volOdj2(const double &);
+    virtual fdEvolution_S *newObj();
+    
+    // Derivative of stress like hardening variable to strain like variable
+    virtual double HModulus(const stresstensor &sts, const FDEPState &fdepstate) const;  
 
+    void print();
+
+    friend OPS_Stream& operator<< (OPS_Stream& os, const fdEvolution_S & ev);
 
 };
 
-#endif
 
+#endif

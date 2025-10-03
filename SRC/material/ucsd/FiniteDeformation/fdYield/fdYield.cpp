@@ -19,41 +19,50 @@
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
 //#
-//# DATE:              19AUg2003
-//# UPDATE HISTORY:    28May2004
-//#
+//# DATE:              July 2004
+//# UPDATE HISTORY:
 //#
 //===============================================================================
 
-#ifndef MooneyRivlinSimoWEnergy_H
-#define MooneyRivlinSimoWEnergy_H
+#ifndef fdYield_CPP
+#define fdYield_CPP
 
-#include <Vector.h>
-#include <Tensor.h>
+#include "fdYield.h"
+#include <OPS_Stream.h>
 #include <OPS_Globals.h>
-#include <W.h>
 
+fdYield::fdYield ()
+{ 
 
-class MooneyRivlinSimoWEnergy : public WEnergy
+}
+
+int fdYield::getNumRank( )
+{ 
+     return 0;
+}
+
+double fdYield::getTolerance( )
+{ 
+     return 1.0e-8;
+}
+
+double fdYield::dYodq(const stresstensor &sts,  const FDEPState &fdepstate ) const 
+{ 
+     return 0.0;
+}
+
+stresstensor fdYield::dYoda(const stresstensor &sts,  const FDEPState &fdepstate ) const 
+{ 
+     tensor tZ2(2, def_dim_2, 0.0);
+     return tZ2;
+}
+
+OPS_Stream& operator<<(OPS_Stream& os, const fdYield & fdyd)
 {
-  private:
-    double c1;
-    double c2;
-    double K;
-  public:
-    MooneyRivlinSimoWEnergy(double, double, double );
-    MooneyRivlinSimoWEnergy( );
-    ~MooneyRivlinSimoWEnergy( );
-    WEnergy *newObj( );
+     os << "fdYield Parameters: " << "\n";
+     return os;
+}
 
-    const double wE(const double &, const Vector &);
-    const Vector disowOdlambda(const Vector &);
-    const Vector d2isowOdlambda2(const Vector & );
-    //const tensor d2isowOdlambda1dlambda2(const vector &);
-    const double dvolwOdJ( const double &);
-    const double d2volwOdJ2(const double &);
-
-};
 
 #endif
 
