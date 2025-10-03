@@ -57,7 +57,7 @@ MooneyRivlinSimoWEnergy::~MooneyRivlinSimoWEnergy( )
 //================================================================================
 //create a clone of itself
 //================================================================================
-WEnergy * MooneyRivlinSimoWEnergy::newObj()
+WEnergy * MooneyRivlinSimoWEnergy::copy()
   {
     WEnergy  *new_WEnergy = new MooneyRivlinSimoWEnergy (c1, c2, K);
     return new_WEnergy;

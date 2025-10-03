@@ -53,14 +53,12 @@ NeoHookeanWEnergy::~NeoHookeanWEnergy( )
 
 }
 
-//================================================================================
-//create a clone of itself
-//================================================================================
-WEnergy * NeoHookeanWEnergy::newObj( )
-  {
-    WEnergy  *new_WEnergy = new NeoHookeanWEnergy(K,  G);
-    return new_WEnergy;
-  }
+
+WEnergy * 
+NeoHookeanWEnergy::copy( )
+{
+  return new NeoHookeanWEnergy(K,  G);
+}
 
 
 //================================================================================

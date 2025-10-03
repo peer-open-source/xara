@@ -54,7 +54,7 @@ SimoPisterWEnergy::~SimoPisterWEnergy( )
 //================================================================================
 //create a clone of itself
 //================================================================================
-WEnergy * SimoPisterWEnergy::newObj( )
+WEnergy * SimoPisterWEnergy::copy( )
   {
     WEnergy  *new_WEnergy = new SimoPisterWEnergy(K);
     return new_WEnergy;

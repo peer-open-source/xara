@@ -43,11 +43,6 @@
 #include <Vector.h>
 #include <stresst.h>
 #include <straint.h>
-#include <MaterialResponse.h>
-
-#include <PlaneStressMaterial.h>
-#include <BeamFiberMaterial.h>
-#include <PlateFiberMaterial.h>
 
 Matrix BJMaterial::errMatrix(1,1);
 Vector BJMaterial::errVector(1);
@@ -56,7 +51,7 @@ stresstensor BJMaterial::errstresstensor;
 straintensor BJMaterial::errstraintensor;
 
 BJMaterial::BJMaterial(int tag, int classTag)
-:NDMaterial(tag,classTag)
+: NDMaterial(tag,classTag)
 {
 
 }
@@ -74,7 +69,8 @@ BJMaterial::~BJMaterial()
 
 
 NDMaterial*
-BJMaterial::getCopy(void) {
+BJMaterial::getCopy() 
+{
   return (NDMaterial*)(this->getCopyBJ());
 }
 

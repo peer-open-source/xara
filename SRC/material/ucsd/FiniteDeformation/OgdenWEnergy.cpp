@@ -59,7 +59,7 @@ OgdenWEnergy::~OgdenWEnergy( )
 //================================================================================
 //create a clone of itself
 //================================================================================
-WEnergy * OgdenWEnergy::newObj( )
+WEnergy * OgdenWEnergy::copy( )
   {
     WEnergy  *new_WEnergy = new OgdenWEnergy( N_Ogden,  cr_Ogden,  mur_Ogden);
     return new_WEnergy;

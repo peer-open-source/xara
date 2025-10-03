@@ -2,7 +2,7 @@
 //# COPY-YES  (C):     :-))                                                      #
 //# PROJECT:           Object Oriented Finite Element Program                    #
 //# PURPOSE:           strain tensor with all necessery functions                #
-//# CLASS:             Cosseratstraintensor                                     #
+//# CLASS:             Cosseratstraintensor                                      #
 //#                                                                              #
 //# VERSION:                                                                     #
 //# LANGUAGE:          C++.ver >= 2.0 ( Borland C++ ver=3.00, SUN C++ ver=2.1 )  #
@@ -25,28 +25,28 @@
 //#                                                                              #
 //#                                                                              #
 //#                                                                              #
-//################################################################################
+##
 //
 #ifndef COSSERATSTRAINTENSOR_CC
 #define COSSERATSTRAINTENSOR_CC
 
 #include "Cosseratstraint.h"
 
-//##############################################################################
+
 Cosseratstraintensor::Cosseratstraintensor (int rank_of_tensor, double initval):
   tensor(rank_of_tensor, Cosserat_def_dim_2, initval)
-    {   } // default constructor
+    {   }
 
-//##############################################################################
+
 Cosseratstraintensor::Cosseratstraintensor ( double *values ):
   tensor( 2, Cosserat_def_dim_2, values)
     {  }
 
-//##############################################################################
+
 Cosseratstraintensor::Cosseratstraintensor ( double initvalue ):
   tensor( 2, Cosserat_def_dim_2, initvalue) {  }
 
-//##############################################################################
+
 Cosseratstraintensor::Cosseratstraintensor( const Cosseratstraintensor & x ):
   tensor("NO")
     {
@@ -59,11 +59,11 @@ Cosseratstraintensor::Cosseratstraintensor( const Cosseratstraintensor & x ):
     }
 
 
-//##############################################################################
+
 Cosseratstraintensor::Cosseratstraintensor(const tensor & x):
   tensor( x ) {  } // copy-initializer
 
-//##############################################################################
+
 Cosseratstraintensor::Cosseratstraintensor(const nDarray & x):
   tensor( x ) {  }  // copy-initializer
 
@@ -99,7 +99,7 @@ Cosseratstraintensor::Cosseratstraintensor(const nDarray & x):
 
 // IT IS NOT INHERITED so must be defined in all derived classes
 // See ARM page 306.
-//##############################################################################
+
 Cosseratstraintensor Cosseratstraintensor::operator=( const Cosseratstraintensor & rval)
 {
     rval.pc_nDarray_rep->n++;  // tell the rval it has another reference
@@ -142,8 +142,9 @@ Cosseratstraintensor Cosseratstraintensor::operator=( const Cosseratstraintensor
 
 // IT IS NOT INHERITED so must be defined in all derived classes
 // See ARM page 306.
-//##############################################################################
-Cosseratstraintensor Cosseratstraintensor::operator=( const tensor & rval)
+
+Cosseratstraintensor 
+Cosseratstraintensor::operator=( const tensor & rval)
 {
     rval.pc_nDarray_rep->n++;  // tell the rval it has another reference
 //    rval.reference_count(+1);  // tell the rval it has another reference
@@ -181,7 +182,7 @@ Cosseratstraintensor Cosseratstraintensor::operator=( const tensor & rval)
 
 // IT IS NOT INHERITED so must be defined in all derived classes
 // See ARM page 306.
-//##############################################################################
+
 Cosseratstraintensor Cosseratstraintensor::operator=( const nDarray & rval)
 {
     rval.pc_nDarray_rep->n++;  // tell the rval it has another reference
@@ -203,7 +204,7 @@ Cosseratstraintensor Cosseratstraintensor::operator=( const nDarray & rval)
     return *this;
 }
 
-//##############################################################################
+
 // makes a complete new copy of Cosseratstraintensor!!
 Cosseratstraintensor Cosseratstraintensor::deep_copy(void)
   {
@@ -242,14 +243,14 @@ Cosseratstraintensor Cosseratstraintensor::deep_copy(void)
 //___  }
 
 
-//##############################################################################
+
 // invariants of the strain tensor              // Chen W.F. "plasticity for
 double Cosseratstraintensor::Iinvariant1()const       // Structural Engineers"
   {
     return (cval(1,1)+cval(2,2)+cval(3,3));
   }
 
-//##############################################################################
+
 double Cosseratstraintensor::Iinvariant2() const
   {
     return (cval(2,2)*cval(3,3)-cval(3,2)*cval(2,3)+
@@ -257,7 +258,7 @@ double Cosseratstraintensor::Iinvariant2() const
             cval(1,1)*cval(2,2)-cval(2,1)*cval(1,2));
   }
 
-//##############################################################################
+
 double Cosseratstraintensor::Iinvariant3() const
   {
 
@@ -275,14 +276,14 @@ double Cosseratstraintensor::Iinvariant3() const
 
 
 
-//##############################################################################
+
 // invariants of the deviatoric strain tensor
 double Cosseratstraintensor::Jinvariant1() const
   {
     return (0.0);
   }
 
-//##############################################################################
+
 double Cosseratstraintensor::Jinvariant2() const
   {
     double EPS = sqrt(d_macheps());
@@ -294,7 +295,7 @@ double Cosseratstraintensor::Jinvariant2() const
     return ( temp1 );      // as (-) and theoreticaly J2d>0
   }
 
-//##############################################################################
+
 double Cosseratstraintensor::Jinvariant3() const
   {
     return ( (2.0*Iinvariant1()*Iinvariant1()*Iinvariant1()-
@@ -304,7 +305,7 @@ double Cosseratstraintensor::Jinvariant3() const
 
 
 
-//##############################################################################
+
 double Cosseratstraintensor::equivalent( ) const	  //Zhaohui added 09-02-2000
 {   
     // Evaluating e_eq = sqrt( 2.0 * epsilon_ij * epsilon_ij / 3.0)
@@ -318,7 +319,7 @@ double Cosseratstraintensor::equivalent( ) const	  //Zhaohui added 09-02-2000
 }
 
 
-//##############################################################################
+
 Cosseratstraintensor Cosseratstraintensor::principal() const
   {
 
@@ -362,18 +363,6 @@ Cosseratstraintensor Cosseratstraintensor::principal() const
 //..    ac[2] = complex( -(this->Iinvariant1()), 0.0);
 //..    ac[3] = complex(  1.0, 0.0);
 //..
-//..// what was obtained for coefficients
-//..//DEBUGprint ::printf("ac[0].r = %lf  ac[0].i = %lf\n", real(ac[0]), imag(ac[0]));
-//..//DEBUGprint ::printf("ac[1].r = %lf  ac[1].i = %lf\n", real(ac[1]), imag(ac[1]));
-//..//DEBUGprint ::printf("ac[2].r = %lf  ac[2].i = %lf\n", real(ac[2]), imag(ac[2]));
-//..//DEBUGprint ::printf("ac[3].r = %lf  ac[3].i = %lf\n", real(ac[3]), imag(ac[3]));
-//..//DEBUGprint ::printf("m  = %d\n",m);
-//..
-//..    zroots( ac, m, roots, polish);
-//..
-//..//DEBUGprint ::printf("\nroots[1].r=%lf  roots[1].i=%lf\n",real(roots[1]),imag(roots[1]));
-//..//DEBUGprint ::printf("roots[2].r=%lf  roots[2].i=%lf\n",real(roots[2]),imag(roots[2]));
-//..//DEBUGprint ::printf("roots[3].r=%lf  roots[3].i=%lf\n",real(roots[3]),imag(roots[3]));
 //..
 //..
 //..    Cosseratstraintensor principal(0.0);
@@ -387,7 +376,7 @@ Cosseratstraintensor Cosseratstraintensor::principal() const
 //..
   }
 
-//##############################################################################
+
 Cosseratstraintensor Cosseratstraintensor::deviator() const
   {
     tensor I2("I", 2, Cosserat_def_dim_2);
@@ -398,13 +387,13 @@ Cosseratstraintensor Cosseratstraintensor::deviator() const
 
 
 
-//##############################################################################
+
 double Cosseratstraintensor::sigma_octahedral() const  // Chen W.F. "plasticity for
   {                                            // Structural Engineers"
     return ( this->Iinvariant1()/3.0 );        // page 59-60
   }
 
-//##############################################################################
+
 double Cosseratstraintensor::tau_octahedral() const    // Chen W.F. "plasticity for
   {                                             // Structural Engineers"
     return(sqrt(2.0/3.0*(this->Jinvariant2())));// page 59-60
@@ -412,14 +401,14 @@ double Cosseratstraintensor::tau_octahedral() const    // Chen W.F. "plasticity 
 
 
 
-//##############################################################################
+
 double Cosseratstraintensor::ksi()  const                     // Chen W.F. "plasticity for
   {                                            // Structural Engineers"
     return( (this->Iinvariant1())/sqrt(3.0) ); // page 66
   }
 
 
-//##############################################################################
+
 double Cosseratstraintensor::ro() const                        // Chen W.F. "plasticity for
   {                                             // Structural Engineers"
     double temp1 = this->Jinvariant2();         // page 68
@@ -431,7 +420,7 @@ double Cosseratstraintensor::ro() const                        // Chen W.F. "pla
     return( sqrt(2.0*(temp1)));
   }
 
-//##############################################################################
+
 double Cosseratstraintensor::p_hydrostatic() const         // Desai "Constitutive Laws
   {                                         // for Engineering Materials"
     // Joey modified to make it consistent with stress tensor
@@ -441,7 +430,7 @@ double Cosseratstraintensor::p_hydrostatic() const         // Desai "Constitutiv
   }
 
 
-//##############################################################################
+
 double Cosseratstraintensor::q_deviatoric() const        // Desai "Constitutive Laws
   {                                       // for Engineering Materials"
 //     double temp1 = this->Jinvariant2();   // page 283
@@ -470,7 +459,7 @@ double Cosseratstraintensor::q_deviatoric() const        // Desai "Constitutive 
   }
 
 
-//##############################################################################
+
 double Cosseratstraintensor::theta()  const             // Chen W.F. "plasticity for
   {                                             // Structural Engineers"
                                                 // page 70
@@ -525,7 +514,7 @@ double Cosseratstraintensor::theta()  const             // Chen W.F. "plasticity
     return ( temp9 );
   }
 
-//##############################################################################
+
 double Cosseratstraintensor::thetaPI() const
   {
     double thetaPI = theta() / PI;
@@ -534,7 +523,7 @@ double Cosseratstraintensor::thetaPI() const
 
 
 
-//##############################################################################
+
 Cosseratstraintensor Cosseratstraintensor::pqtheta2strain( double p, double q, double theta)
   {
     Cosseratstraintensor ret;
@@ -565,7 +554,7 @@ Cosseratstraintensor Cosseratstraintensor::pqtheta2strain( double p, double q, d
   }
 
 
-//##############################################################################
+
 Cosseratstraintensor Cosseratstraintensor::evoleq2strain( double evol, double eq )
   {
     Cosseratstraintensor ret;
@@ -580,7 +569,7 @@ Cosseratstraintensor Cosseratstraintensor::evoleq2strain( double evol, double eq
 
 
 
-//##############################################################################
+
 void Cosseratstraintensor::report(char * msg) const
   {
     ::printf("\n****************  strain tensor report ****************\n");
@@ -622,7 +611,7 @@ void Cosseratstraintensor::report(char * msg) const
   }
 
 
-//##############################################################################
+
 void Cosseratstraintensor::reportshort(char * msg) const
   {
 //    ::printf("\n         ****************** short strain tensor report ***\n");

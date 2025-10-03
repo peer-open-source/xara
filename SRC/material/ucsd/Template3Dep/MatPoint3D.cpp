@@ -352,11 +352,6 @@ void MatPoint3D::reportpqtheta(char *msg) const
     //p_stress->reportshortpqtheta("");
     //p_stress->reportshortpqtheta("");
     if ( msg )  opserr << msg;
-    
-    //if ( gpEPS ) {
-    //   ( gpEPS->getStress() ).reportshortpqtheta("");
-    //   ( gpEPS->getStress() ).reportSHORTs1s2s3("");
-    //}
    
     if ( matmodel ) {
        stresstensor tmp = matmodel->getStressTensor();

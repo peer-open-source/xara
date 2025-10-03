@@ -10,11 +10,9 @@
 //
 //# PROJECT:           Object Oriented Finite Element Program
 //# PURPOSE:           Finite Deformation Hyper-Elastic classes
-//# CLASS:
 //#
 //# VERSION:           0.6_(1803398874989) (golden section)
 //# LANGUAGE:          C++
-//# TARGET OS:         all...
 //# DESIGN:            Zhao Cheng, Boris Jeremic (jeremic@ucdavis.edu)
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
@@ -38,7 +36,7 @@ class NeoHookeanCompressible3D : public FiniteDeformationElastic3D
     
     virtual ~NeoHookeanCompressible3D();
 
-    const char *getClassType(void) const {return "NeoHookeanCompressible3D";};
+    const char *getClassType(void) const {return "NeoHookeanCompressible3D";}
 
     double getRho(void);
 
@@ -59,27 +57,22 @@ class NeoHookeanCompressible3D : public FiniteDeformationElastic3D
     int revertToLastCommit(void) ;
     int revertToStart(void) ;
 
-    BJMaterial *getCopyBJ (void);
-    BJMaterial *getCopyBJ (const char *type);
+    BJMaterial *getCopyBJ(void);
+    BJMaterial *getCopyBJ(const char *type);
 
-    const char *getType (void) const;
+    const char *getType() const;
     //int getOrder (void) const;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    void Print(OPS_Stream &s, int flag = 0);
-
-//    int setParameter(char **argv, int argc, Information &info);
-//    int updateParameter(int parameterID, Information &info);
+    void Print(OPS_Stream &s, int flag);
 
     const  stresstensor& getPK1StressTensor(void) ;
     const  stresstensor& getCauchyStressTensor(void) ;
 
-   
   private:
-
-    int ComputeTrials(void);
+    int ComputeTrials();
      
   private:   
      

@@ -44,7 +44,7 @@ class SimoPisterWEnergy : public WEnergy
     SimoPisterWEnergy( double  );
     SimoPisterWEnergy(  );
     ~SimoPisterWEnergy( ) ;
-    WEnergy *newObj( );
+    WEnergy *copy( );
 
     double  wE(const double &, const Vector & )  ;
 //  const Vector   disowOdlambda(const Vector &lambda_wave_in ) ;

@@ -37,7 +37,7 @@ class WEnergy
   public:
     WEnergy();
     virtual ~WEnergy();
-    virtual WEnergy*newObj( ) =0;
+    virtual WEnergy*copy( ) =0;
 
     virtual double wE(const double &, const Vector &) ;
     virtual const Vector disowOdlambda(const Vector &) ;

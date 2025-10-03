@@ -4,15 +4,7 @@
 // PROJECT:           Object Oriented Finite Element Program
 // FILE:              TwentySevenNodeBrick.cpp
 // CLASS:             TwentySevenNodeBrick
-// MEMBER FUNCTIONS:
 //
-// MEMBER VARIABLES
-//
-// PURPOSE:           Finite Element Class
-// RETURN:
-// VERSION:
-// LANGUAGE:          C++
-// TARGET OS:         all
 // DESIGNER:          Boris Jeremic,  Guanzhou Jie
 // PROGRAMMER:        Guanzhou Jie and Boris Jeremic
 // DATE:              Oct. 2003
@@ -27,7 +19,6 @@
 #include <OPS_Stream.h>
 #include <Domain.h>
 
-// #include <ErrorHandler.h>
 #include <TwentySevenNodeBrick.h>
 #include <TclModelBuilder.h>
 
@@ -93,11 +84,12 @@ TclModelBuilder_addTwentySevenNodeBrick(ClientData clientData, Tcl_Interp *inter
 
   // read the 3 bodyforce accel's
   for (i=0; i<3; i++) {
-      if (Tcl_GetDouble(interp, argv[30+i+eleArgStart], &bodyforces[i]) != TCL_OK) {
-  opserr << "command: element Brick27N " << eleID << " - invalid bodyforces tag " <<
-    argv[30+i+eleArgStart] << endln;
-  return TCL_ERROR;
-      }
+    if (Tcl_GetDouble(interp, argv[30+i+eleArgStart], &bodyforces[i]) != TCL_OK) {
+      opserr << "command: element Brick27N " << eleID 
+            << " - invalid bodyforces tag " <<
+          argv[30+i+eleArgStart] << endln;
+      return TCL_ERROR;
+    }
   }
 
   // now get the massDensity

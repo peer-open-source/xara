@@ -41,9 +41,6 @@
 
 
 #include <Tensor.h>
-//#include <G3Globals.h>
-//#include <ConsoleErrorHandler.h>
-//ErrorHandler *g3ErrorHandler;
 
 int main(int argc, char *argv[])
 {

@@ -30,9 +30,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
-
-#ifndef AF_Eij_CPP
-#define AF_Eij_CPP
 #include <OPS_Globals.h>
 
 #include "AF_Eij.h"
@@ -44,7 +41,7 @@ stresstensor AF_Eij::AFal;
 AF_Eij::AF_Eij(int ha_index_in, 
                int Cr_index_in,
                int alpha_index_in)
-  :TensorEvolution(TENSOR_EVOLUTION_TAGS_AF_Eij),
+ : TensorEvolution(TENSOR_EVOLUTION_TAGS_AF_Eij),
    ha_index(ha_index_in), 
    Cr_index(Cr_index_in),
    alpha_index(alpha_index_in)
@@ -52,17 +49,19 @@ AF_Eij::AF_Eij(int ha_index_in,
 
 }
 
-TensorEvolution* AF_Eij::newObj()
+TensorEvolution* 
+AF_Eij::newObj()
 {
-    TensorEvolution* nObj = new AF_Eij(this->ha_index,
-                                       this->Cr_index,
-                                       this->alpha_index);
-                                       
-    return nObj;
+    return new AF_Eij(this->ha_index,
+                        this->Cr_index,
+                        this->alpha_index);
 }
 
-const straintensor& AF_Eij::Hij(const straintensor& plastic_flow, const stresstensor& Stre, 
-                                const straintensor& Stra, const MaterialParameter& material_parameter)
+const straintensor& 
+AF_Eij::Hij(const straintensor& plastic_flow, 
+            const stresstensor& Stre, 
+            const straintensor& Stra, 
+            const MaterialParameter& material_parameter)
 {
     double ha = getha(material_parameter);
     double Cr = getCr(material_parameter);
@@ -73,7 +72,8 @@ const straintensor& AF_Eij::Hij(const straintensor& plastic_flow, const stresste
     return TensorEvolution::TensorEvolutionHij;
 }
 
-double AF_Eij::getha(const MaterialParameter& material_parameter) const
+double
+AF_Eij::getha(const MaterialParameter& material_parameter) const
 {
     if ( ha_index <= material_parameter.getNum_Material_Parameter() && ha_index > 0)
         return material_parameter.getMaterial_Parameter(ha_index -1);
@@ -83,7 +83,8 @@ double AF_Eij::getha(const MaterialParameter& material_parameter) const
     }
 }
 
-double AF_Eij::getCr(const MaterialParameter& material_parameter) const
+double
+AF_Eij::getCr(const MaterialParameter& material_parameter) const
 {
     if ( Cr_index <= material_parameter.getNum_Material_Parameter() && Cr_index > 0)
         return material_parameter.getMaterial_Parameter(Cr_index -1);
@@ -93,7 +94,8 @@ double AF_Eij::getCr(const MaterialParameter& material_parameter) const
     }
 }
 
-const stresstensor& AF_Eij::getalpha(const MaterialParameter& material_parameter) const
+const stresstensor& 
+AF_Eij::getalpha(const MaterialParameter& material_parameter) const
 {
     if ( alpha_index <= material_parameter.getNum_Internal_Tensor() && alpha_index > 0) {
         AF_Eij::AFal = material_parameter.getInternal_Tensor(alpha_index -1);
@@ -141,6 +143,3 @@ AF_Eij::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker
 
   return 0;
 }
-
-#endif
-

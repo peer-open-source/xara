@@ -54,7 +54,6 @@
 #include "TensorEvolution.h"
 
 #include <Channel.h>
-#include <G3Globals.h>
 
 class NewTemplate3Dep : public NDMaterial
 {

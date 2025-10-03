@@ -46,7 +46,7 @@ class OgdenWEnergy : public WEnergy
     OgdenWEnergy(int , double * , double * );
     OgdenWEnergy( );
     ~OgdenWEnergy( );
-    WEnergy *newObj( );
+    WEnergy *copy( );
 
     double  wE(const double &, const Vector &) ;
     const Vector  disowOdlambda(const Vector & )  ;

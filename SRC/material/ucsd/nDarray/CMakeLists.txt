@@ -1,5 +1,5 @@
 add_library(UCSD_Array)
-target_include_directories(UCSD_Array PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(UCSD_Array PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes})
 target_sources(UCSD_Array
     PRIVATE
         basics.cpp

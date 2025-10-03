@@ -11,29 +11,16 @@
 //
 // COPYRIGHT (C):     :-))
 // PROJECT:           Object Oriented Finite Element Program
-// FILE:              
-// CLASS:             
-// MEMBER FUNCTIONS:
-//
-// MEMBER VARIABLES
 //
 // PURPOSE:           
 //
-// RETURN:
-// VERSION:
 // LANGUAGE:          C++
-// TARGET OS:         
 // DESIGNER:          Zhao Cheng, Boris Jeremic
 // PROGRAMMER:        Zhao Cheng, 
 // DATE:              Fall 2005
-// UPDATE HISTORY:    
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
-
-#ifndef CC_PF_CPP
-#define CC_PF_CPP
-
 
 #include "CC_PF.h"
 #include <Channel.h>
@@ -149,6 +136,3 @@ CC_PF::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 
   return 0;
 }
-
-#endif
-

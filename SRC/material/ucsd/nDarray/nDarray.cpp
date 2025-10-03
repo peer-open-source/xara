@@ -2304,94 +2304,66 @@ void nDarray::eigsrt(double * d, double ** v, int n)
 //##############################################################################
 // very private part
 //##############################################################################
-   double * nDarray::data(void) const
-    {
-      return this->pc_nDarray_rep->pd_nDdata;
-    }
+double * nDarray::data(void) const
+{
+  return this->pc_nDarray_rep->pd_nDdata;
+}
 
-    void nDarray::set_data_pointer(double * data_pointer)
-    {
-      this->pc_nDarray_rep->pd_nDdata = data_pointer;
-    }
+void nDarray::set_data_pointer(double * data_pointer)
+{
+  this->pc_nDarray_rep->pd_nDdata = data_pointer;
+}
 
-    int nDarray::rank(void) const
-    {
-      return this->pc_nDarray_rep->nDarray_rank;
-    }
+int nDarray::rank(void) const
+{
+  return this->pc_nDarray_rep->nDarray_rank;
+}
 
-    void nDarray::rank(int nDarray_rank)
-    {
-      this->pc_nDarray_rep->nDarray_rank = nDarray_rank;
-    }
+void nDarray::rank(int nDarray_rank)
+{
+  this->pc_nDarray_rep->nDarray_rank = nDarray_rank;
+}
 
-    long int nDarray::total_number(void) const
-    {
-      return this->pc_nDarray_rep->total_numb;
-    }
+long int nDarray::total_number(void) const
+{
+  return this->pc_nDarray_rep->total_numb;
+}
 
-    void nDarray::total_number(long int number)
-    {
-      this->pc_nDarray_rep->total_numb = number;
-    }
+void nDarray::total_number(long int number)
+{
+  this->pc_nDarray_rep->total_numb = number;
+}
 
-    int * nDarray::dim(void) const
-    {
-      return this->pc_nDarray_rep->dim;
-    }
+int * nDarray::dim(void) const
+{
+  return this->pc_nDarray_rep->dim;
+}
 
-    int & nDarray::get_dim_pointer(void) const
-    {
-      return this->pc_nDarray_rep->dim[0];
-    }
+int & nDarray::get_dim_pointer(void) const
+{
+  return this->pc_nDarray_rep->dim[0];
+}
 
-    void nDarray::set_dim_pointer(int * dim_pointer)
-    {
-      this->pc_nDarray_rep->dim = dim_pointer;
-    }
+void nDarray::set_dim_pointer(int * dim_pointer)
+{
+  this->pc_nDarray_rep->dim = dim_pointer;
+}
 
-    int nDarray::dim(int which) const
-    {
-      return this->pc_nDarray_rep->dim[which-1];
-    }
+int nDarray::dim(int which) const
+{
+  return this->pc_nDarray_rep->dim[which-1];
+}
 
-    int nDarray::reference_count(int up_down)
-    {
-      this->pc_nDarray_rep->n += up_down;
-      return(this->pc_nDarray_rep->n);
-    }
+int nDarray::reference_count(int up_down)
+{
+  this->pc_nDarray_rep->n += up_down;
+  return(this->pc_nDarray_rep->n);
+}
 
-    void nDarray::set_reference_count(int ref_count)
-    {
-      this->pc_nDarray_rep->n=ref_count;
-    }
-
-
-//tempOUT//##############################################################################
-// TENSOR_REP_CC
-// #######################
-// memory manager part
-// overloading operator new in nDarray::nDarray_rep class  ##################
-void * nDarray_rep::operator new(size_t s)
-  {                                       // see C++ reference manual by
-    void *void_pointer;                   // ELLIS and STROUSTRUP page 283.
-    void_pointer = ::operator new(s);     // and ECKEL page 529.
-//    ::printf("\nnew pointer %p of size %d\n",void_pointer,s);
-    if (!void_pointer)
-      {
-        ::fprintf(stderr,"\a\nInsufficient memory\n");
-        ::exit(1);
-      }
-    return void_pointer;
-  }
-
-// overloading operator delete in nDarray::nDarray_rep class  ##################
-void nDarray_rep::operator delete(void *p)
-  {                                       // see C++ reference manual by
-                                          // ELLIS and STROUSTRUP page 283.
-                                          // and ECKEL page 529.
-//    ::printf("deleted pointer %p\n",p);
-    ::operator delete(p);
-  }
+void nDarray::set_reference_count(int ref_count)
+{
+  this->pc_nDarray_rep->n=ref_count;
+}
 
 
 

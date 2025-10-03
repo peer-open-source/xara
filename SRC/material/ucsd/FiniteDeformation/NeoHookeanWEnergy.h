@@ -42,7 +42,7 @@ class NeoHookeanWEnergy : public WEnergy
     NeoHookeanWEnergy(double , double  );
     NeoHookeanWEnergy( );
     ~NeoHookeanWEnergy( );
-    WEnergy *newObj( );
+    WEnergy *copy( );
 
      double wE(const double &, const Vector &)  ;
      const Vector disowOdlambda(const Vector &l)  ;

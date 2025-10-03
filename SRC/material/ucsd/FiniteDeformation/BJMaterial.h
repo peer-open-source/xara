@@ -35,7 +35,6 @@
 //
 #ifndef BJMaterial_h
 #define BJMaterial_h
-#include <Material.h>
 #include <Tensor.h>
 #include <NDMaterial.h>
 //
@@ -62,43 +61,42 @@ class BJMaterial : public NDMaterial
     virtual const Matrix &getTangent(void);
     virtual const Matrix &getInitialTangent(void) {return this->getTangent();};
 
-    virtual const Vector &getStress(void);
-    virtual const Vector &getStrain(void);
+    virtual const Vector &getStress();
+    virtual const Vector &getStrain();
 
     // methods to set and retrieve state using the Tensor class
     virtual int setTrialStrain(const Tensor &v);
     virtual int setTrialStrain(const Tensor &v, const Tensor &r);
     virtual int setTrialStrainIncr(const Tensor &v);
     virtual int setTrialStrainIncr(const Tensor &v, const Tensor &r);
-    virtual const Tensor& getTangentTensor(void);
-    virtual const stresstensor& getStressTensor(void);
-    virtual const straintensor& getStrainTensor(void);
+    virtual const Tensor& getTangentTensor();
+    virtual const stresstensor& getStressTensor();
+    virtual const straintensor& getStrainTensor();
 
     //Added Joey Aug. 13, 2001
-    virtual const straintensor& getPlasticStrainTensor(void);
+    virtual const straintensor& getPlasticStrainTensor();
 
     // added Sept 22 2003 for Large Deformation, F is the Deformation Gradient
     virtual int setTrialF(const straintensor &f);
     virtual int setTrialFIncr(const straintensor &df);
     virtual int setTrialC(const straintensor &c);
     virtual int setTrialCIncr(const straintensor &dc);
-    virtual const stresstensor& getPK1StressTensor(void);
-    virtual const stresstensor& getCauchyStressTensor(void);
-    virtual const straintensor& getF(void);
-    virtual const straintensor& getC(void);
-    virtual const straintensor& getFp(void);
+    virtual const stresstensor& getPK1StressTensor();
+    virtual const stresstensor& getCauchyStressTensor();
+    virtual const straintensor& getF();
+    virtual const straintensor& getC();
+    virtual const straintensor& getFp();
     // Only For Large Deformation, END////////////////////////////////////////
 
     virtual int commitState(void) = 0;
     virtual int revertToLastCommit(void) = 0;
     virtual int revertToStart(void) = 0;
 
-    virtual NDMaterial *getCopy(void);
-    virtual BJMaterial *getCopyBJ(void) = 0;
-//    virtual BJMaterial *getCopyBJ(const char *code);
+    virtual NDMaterial *getCopy();
+    virtual BJMaterial *getCopyBJ() = 0;
 
 //    virtual const char *getType(void) const = 0;
-    virtual int getOrder(void) const {return 0;};  //??
+    virtual int getOrder() const {return 0;}  //??
 
 //    virtual Response *setResponse (const char **argv, int argc, 
 //                                   OPS_Stream &s);

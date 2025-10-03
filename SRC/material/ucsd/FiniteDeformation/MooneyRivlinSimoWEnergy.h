@@ -44,7 +44,7 @@ class MooneyRivlinSimoWEnergy : public WEnergy
     MooneyRivlinSimoWEnergy(double, double, double );
     MooneyRivlinSimoWEnergy( );
     ~MooneyRivlinSimoWEnergy( );
-    WEnergy *newObj( );
+    WEnergy *copy( );
 
     double wE(const double &, const Vector &);
     const Vector disowOdlambda(const Vector &);

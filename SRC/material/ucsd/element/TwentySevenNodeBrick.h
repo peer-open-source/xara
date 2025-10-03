@@ -32,7 +32,6 @@
 #include <Node.h>
 
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 
@@ -98,7 +97,7 @@ class TwentySevenNodeBrick: public Element
     int revertToStart ();
 
     // update, Guanzhou added Apr. 2004 to update incremental strain in the domain
-    int update(void);
+    int update();
 
     // public methods to obtain stiffness, mass, damping and residual information
     // We haven't build the following functions.
@@ -119,10 +118,8 @@ class TwentySevenNodeBrick: public Element
     const Vector &getResistingForceIncInertia ();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-      &theBroker);
-    int displaySelf (Renderer &theViewer, int displayMode, float fact);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
     void Print(OPS_Stream &s, int flag =0);
     //    Do nothing with void Print (OPS_Stream &s, int flag =0);
     //    use Brick3D report.  08/16/00
@@ -179,7 +176,7 @@ class TwentySevenNodeBrick: public Element
     //int  LM[60]; // for 20noded x 3 = 60
   public:
 
-    void incremental_Update(void);
+    void incremental_Update();
     //void iterative_Update(void);
 
     tensor H_3D(double r1, double r2, double r3);
@@ -189,10 +186,10 @@ class TwentySevenNodeBrick: public Element
 
     TwentySevenNodeBrick & operator[](int subscript);
 
-    tensor getStiffnessTensor(void);
+    tensor getStiffnessTensor();
 
     void set_strain_stress_tensor(FILE *fp, double * u);
-    tensor getMassTensor(void);
+    tensor getMassTensor();
 
     tensor Jacobian_3D(tensor dh);
     tensor Jacobian_3Dinv(tensor dh);

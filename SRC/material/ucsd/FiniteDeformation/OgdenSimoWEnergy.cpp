@@ -61,7 +61,7 @@ OgdenSimoWEnergy::~OgdenSimoWEnergy( )
 //================================================================================
 //create a clone of itself
 //================================================================================
-WEnergy * OgdenSimoWEnergy::newObj( )
+WEnergy * OgdenSimoWEnergy::copy( )
   {
     WEnergy  *new_WEnergy = new OgdenSimoWEnergy(N_Ogden,  cr_Ogden,  mur_Ogden, K);
     return new_WEnergy;

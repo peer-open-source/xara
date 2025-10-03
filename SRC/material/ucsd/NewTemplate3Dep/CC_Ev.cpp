@@ -31,9 +31,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 
-#ifndef CC_Ev_CPP
-#define CC_Ev_CPP
-
 #include "CC_Ev.h"
 #include <Channel.h>
 #include <ID.h>
@@ -75,7 +72,8 @@ double CC_Ev::H(const straintensor& plastic_flow, const stresstensor& Stre,
 }
 
 // Get lambda
-double CC_Ev::getlambda(const MaterialParameter& material_parameter) const
+double
+CC_Ev::getlambda(const MaterialParameter& material_parameter) const
 {
     if ( lambda_index <= material_parameter.getNum_Material_Parameter() && lambda_index > 0)
         return material_parameter.getMaterial_Parameter(lambda_index-1);
@@ -96,8 +94,9 @@ double CC_Ev::getkappa(const MaterialParameter& material_parameter) const
     }
 }
 
-// Get e0
-double CC_Ev::gete0(const MaterialParameter& material_parameter) const
+
+double 
+CC_Ev::gete0(const MaterialParameter& material_parameter) const
 {
     if ( e0_index <= material_parameter.getNum_Material_Parameter() && e0_index > 0)
         return material_parameter.getMaterial_Parameter(e0_index-1);
@@ -107,8 +106,9 @@ double CC_Ev::gete0(const MaterialParameter& material_parameter) const
     }
 }
 
-// Get p0
-double CC_Ev::getp0(const MaterialParameter& material_parameter) const
+
+double
+CC_Ev::getp0(const MaterialParameter& material_parameter) const
 {
     if ( p0_index <= material_parameter.getNum_Internal_Scalar() && p0_index > 0)
         return material_parameter.getInternal_Scalar(p0_index-1);
@@ -136,6 +136,7 @@ CC_Ev::sendSelf(int commitTag, Channel &theChannel)
 
   return 0;
 }
+
 int 
 CC_Ev::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
@@ -154,6 +155,3 @@ CC_Ev::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 
   return 0;
 }
-
-#endif
-

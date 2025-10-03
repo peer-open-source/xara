@@ -4,20 +4,15 @@
 // PROJECT:           Object Oriented Finite Element Program
 // FILE:              MatPoint3D.h
 // CLASS:             MatPoint3D
-// MEMBER FUNCTIONS:
-//
-// MEMBER VARIABLES
 //
 // PURPOSE:           Gauss Point
 // RETURN:
-// VERSION:
 // LANGUAGE:          C++.ver >= 3.0 (Borland.C++.ver=3.1||SUN.C++.ver=3.0.1)
 // TARGET OS:         DOS || UNIX || . . .
 // DESIGNER:          Boris Jeremic
 // PROGRAMMER:        Boris Jeremic
 // DATE:              17 October 1994.
 // UPDATE HISTORY:
-//
 //
 //#                    Aug 2000 porting to OpenSees                            #
 //=============================================================================

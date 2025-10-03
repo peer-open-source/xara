@@ -54,7 +54,7 @@ LogWEnergy::~LogWEnergy( )
 //================================================================================
 //create a clone of itself
 //================================================================================
-WEnergy * LogWEnergy::newObj( )
+WEnergy * LogWEnergy::copy( )
   {
     LogWEnergy  *new_WEnergy = new LogWEnergy(K, G);
     return new_WEnergy;

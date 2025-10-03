@@ -36,6 +36,10 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+using std::ofstream;
 
 #include "NewTemplate3Dep.h"
 
@@ -66,7 +70,6 @@
 #include "DM04_alpha_Eij.h"
 #include "DM04_z_Eij.h"
 
-#include <G3Globals.h>
 #include <OPS_Globals.h>
 #include <ConsoleErrorHandler.h>
 #include <OPS_Stream.h>

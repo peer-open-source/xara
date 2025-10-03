@@ -11,28 +11,13 @@
 //
 // COPYRIGHT (C):     :-))
 // PROJECT:           Object Oriented Finite Element Program
-// FILE:              
-// CLASS:             
-// MEMBER FUNCTIONS:
-//
-// MEMBER VARIABLES
-//
-// PURPOSE:           
-//
-// RETURN:
-// VERSION:
 // LANGUAGE:          C++
-// TARGET OS:         
 // DESIGNER:          Zhao Cheng, Boris Jeremic
 // PROGRAMMER:        Zhao Cheng, 
 // DATE:              Fall 2005
-// UPDATE HISTORY:    
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
-
-#ifndef YieldFunction_CPP
-#define YieldFunction_CPP
 
 #include "YieldFunction.h"
 
@@ -45,16 +30,17 @@ double YieldFunction::InScalarDerivative(const stresstensor& Stre,
                                          const MaterialParameter &MaterialParameter_in, 
                                          int which) const
 {
-    return 0.0;
+  return 0.0;
 }
 
-const stresstensor& YieldFunction::InTensorDerivative(const stresstensor& Stre, 
-                                                      const MaterialParameter &MaterialParameter_in, 
-                                                      int which) const
+const stresstensor& 
+YieldFunction::InTensorDerivative(const stresstensor& Stre, 
+                                  const MaterialParameter &MaterialParameter_in, 
+                                  int which) const
 {
-    // Just for compiling
-    static stresstensor ZStre;
-    return ZStre;
+  // Just for compiling
+  static stresstensor ZStre;
+  return ZStre;
 }
 
 //int YieldFunction::getTensionOrCompressionType() const
@@ -63,6 +49,3 @@ const stresstensor& YieldFunction::InTensorDerivative(const stresstensor& Stre,
 //    // By default, return 0;
 //    return 0;
 //}
-
-#endif
-

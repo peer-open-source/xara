@@ -47,7 +47,7 @@ class LogWEnergy : public WEnergy
     LogWEnergy(double , double );
     LogWEnergy();
     ~LogWEnergy();
-    WEnergy *newObj( );
+    WEnergy *copy( );
 
     double wE(const double &, const Vector &) ;
     const Vector disowOdlambda(const Vector &) ;

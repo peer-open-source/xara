@@ -44,9 +44,9 @@ class OgdenSimoWEnergy : public WEnergy
     OgdenSimoWEnergy(int , double * , double * , double );
     OgdenSimoWEnergy( );
     ~OgdenSimoWEnergy( );
-    WEnergy *newObj( );
+    WEnergy *copy( ) override;
 
-    double  wE(const double &, const Vector &) ;
+    double  wE(const double &, const Vector &) override;
     const Vector  disowOdlambda(const Vector & )  ;
     const Vector  d2isowOdlambda2(const Vector & )  ;
 //    const tensor  d2isowOdlambda1dlambda2( const Vector &)  ;

@@ -1,28 +1,3 @@
-//#############################################################################
-//                                                                            #
-//                                                                            #
-//             /~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/~~\                #
-//            |                                          |____|               #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |        B A S E   C L A S S E S           |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |          C + +     H E A D E R           |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//         /~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/   |                    #
-//         \_________________________________________\__/                     #
-//                                                                            #
-//                                                                            #
-//#############################################################################
-//#############################################################################
 ///*
 //################################################################################
 //# COPYRIGHT (C):     :-))                                                      #
@@ -73,58 +48,40 @@ class BJmatrix;
 class BJvector;
 class Channel;
 
-//class stiffness_BJmatrix;
-
-//class Material_Model;
-//class Elastic;
-//class Drucker_Prager;
-//class von_Mises;
-//class MRS_Lade_cone;
-//class Parabolic;
-//
 class stresstensor;
 class straintensor;
 
 
-
-
 class nDarray_rep
-  {
-  public:
-    friend class nDarray;
-    friend class BJtensor;
-    friend class BJmatrix;
-//    friend class skyBJmatrix;
-    friend class stiffness_matrix;
-    friend class BJvector;
-    friend class stresstensor;
-    friend class straintensor;
+{
+public:
+  friend class nDarray;
+  friend class BJtensor;
+  friend class BJmatrix;
+  friend class stiffness_matrix;
+  friend class BJvector;
+  friend class stresstensor;
+  friend class straintensor;
 
-    friend class Cosseratstresstensor;
-    friend class Cosseratstraintensor;
-    friend class FileChannel;
+  friend class Cosseratstresstensor;
+  friend class Cosseratstraintensor;
+  friend class FileChannel;
 
-
-  private:
-    double *pd_nDdata;  // nD array as 1D array
-    int nDarray_rank;   ///*  nDarray rank :
-                        //     0  ->  scalar
-                        //     1  ->  BJvector
-                        //     2  ->  BJmatrix
-                        //     *  ->  ********   */
-    long int total_numb; // total number of elements in nDarray
-    int *dim;          //  array of dimensions in each rank direction
-                       //  for example, if nDarray_rank = 3 :
-                       //      dim[0] = dimension in direction 1
-                       //      dim[1] = dimension in direction 2
-                       //      dim[2] = dimension in direction 3  */
-    int n;             // reference count
-  public:
-// overloading operator new and delete in nDarray_rep class  ########
-    void * operator new(size_t s); // see C++ reference manual by
-    void operator delete(void *);  // by ELLIS and STROUSTRUP page 283.
-                                   // and ECKEL page 529.
-  };
+private:
+  double *pd_nDdata;  // nD array as 1D array
+  int nDarray_rank;   ///*  nDarray rank :
+                      //     0  ->  scalar
+                      //     1  ->  BJvector
+                      //     2  ->  BJmatrix
+                      //     *  ->  ********   */
+  long int total_numb; // total number of elements in nDarray
+  int *dim;           //  array of dimensions in each rank direction
+                      //  for example, if nDarray_rank = 3 :
+                      //      dim[0] = dimension in direction 1
+                      //      dim[1] = dimension in direction 2
+                      //      dim[2] = dimension in direction 3  */
+  int n;              // reference count
+};
 
 
 class nDarray
@@ -155,9 +112,7 @@ class nDarray
     nDarray(int rank_of_nDarray=1, double initval=0.0);// default constructor
     nDarray(int rank_of_nDarray, const int *pdim, double *values);
     nDarray(int rank_of_nDarray, const int *pdim, double initvalue);
-//..//  for skyBJmatrix --v
-//..    nDarray(int dim);
-//..    nDarray(int dim, double* initvalue);
+
 
 // special case for BJmatrix and BJvector . . .
     nDarray(int rank_of_nDarray, int rows, int cols, double *values);
@@ -259,36 +214,36 @@ class nDarray
 
 //++    nDarray operator-( nDarray & rval); // nDarray subtraction
 //....// This is from JOOP May/June 1990 after ARKoenig
-    nDarray& operator -=( const nDarray & ); // nDarray subtraction
+  nDarray& operator -=( const nDarray & ); // nDarray subtraction
 
 
 
-    nDarray operator+( double rval);  // scalar addition
-    nDarray operator-( double rval);  // scalar subtraction
-    nDarray operator*( const double rval) const ;  // scalar multiplication
+  nDarray operator+( double rval);  // scalar addition
+  nDarray operator-( double rval);  // scalar subtraction
+  nDarray operator*( const double rval) const ;  // scalar multiplication
 
-    nDarray operator-( );  // Unary minus
+  nDarray operator-( );  // Unary minus
 
-    double sum() const;    // summ of all the elements
-    double trace( ) const;            // trace of a 2-nd BJtensor, BJmatrix
+  double sum() const;    // summ of all the elements
+  double trace( ) const;            // trace of a 2-nd BJtensor, BJmatrix
 
-    nDarray deep_copy( ); // make an image
+  nDarray deep_copy( ); // make an image
 
-    int operator==( nDarray & rval);  // nDarray comparisson
-                                      // returns 1 if they are same
-                                      // returns 0 if they are not
+  int operator==( nDarray & rval);  // nDarray comparisson
+                                    // returns 1 if they are same
+                                    // returns 0 if they are not
 
 // prebacen u nDarray 14 oktobra 1996
-    public:
-      nDarray eigenvalues(void);
-      nDarray eigenvectors(void);
+  public:
+    nDarray eigenvalues(void);
+    nDarray eigenvectors(void);
 
-      nDarray nDsqrt(void);
+    nDarray nDsqrt(void);
 
 
     void print(const char *name = "t", const char *msg = "Hi there#") const;
     void printshort(const char *msg = "Hi there#") const;
-    void mathprint(void) const;
+    void mathprint() const;
      // print nDarray with a "name" and the "message"
 
     double Frobenius_norm( void ); // return the Frobenius norm of
@@ -296,19 +251,19 @@ class nDarray
     double General_norm( double p ); // return the General p-th norm of
                                      // BJmatrix, BJtensor, BJvector
 
-    int number_of_zeros(void) const; // number of members that are
+    int number_of_zeros() const; // number of members that are
                                       // smaller than sqrt(macheps)
 //.....//-> the declaration also put in the nDaray_rep class defintion because
 //.....//-> frienship is not inhereted ( see ARM page 251 or around ).
 //.....    friend BJtensor operator*(BJtensor& lval, BJtensor& rval); // inner/outter product
 
   public:
-    int rank(void) const;
+    int rank() const;
     int dim(int which) const;
 
  public:
-    virtual int sendSelf(int dbTag, int commitTag, Channel &theChannel);
-    virtual int recvSelf(int dbTag, int commitTag, Channel &theChannel);
+    virtual int sendSelf(int dbTag, int commitTag, Channel &);
+    virtual int recvSelf(int dbTag, int commitTag, Channel &);
 
 // from Numerical recipes in C
     private:
@@ -317,14 +272,13 @@ class nDarray
       void eigsrt(double * d, double ** v, int n);
 
   private:
-    double* data(void) const;
+    double* data() const;
     void set_data_pointer(double* );
-//    int rank(void) const;
     void rank(int );
-    long int total_number(void) const ;
+    long int total_number() const ;
     void total_number(long int );
-    int* dim(void) const ;
-    int& get_dim_pointer(void) const ;
+    int* dim() const ;
+    int& get_dim_pointer() const ;
     void set_dim_pointer(int* );
     //    int dim(int which) const;
     int reference_count(int );

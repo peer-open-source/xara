@@ -30,10 +30,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
-
-#ifndef AF_Eij_H
-#define AF_Eij_H 
-
+#pragma once
 #define TENSOR_EVOLUTION_TAGS_AF_Eij 2
 
 #include "TensorEvolution.h"
@@ -49,12 +46,14 @@ class AF_Eij : public TensorEvolution
 
     TensorEvolution* newObj();
 
-    const straintensor& Hij(const straintensor& plastic_flow, const stresstensor& Stre, 
-                            const straintensor& Stra, const MaterialParameter& material_parameter);
+    const straintensor& Hij(const straintensor& plastic_flow, 
+                            const stresstensor& Stre, 
+                            const straintensor& Stra, 
+                            const MaterialParameter& material_parameter);
 
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
-              
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
+
   private:
   
     double getha(const MaterialParameter& material_parameter) const;
@@ -70,7 +69,3 @@ class AF_Eij : public TensorEvolution
     static stresstensor AFal;
 
 };
-
-
-#endif
-

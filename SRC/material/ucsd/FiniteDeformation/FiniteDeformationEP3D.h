@@ -18,7 +18,6 @@
 //# DESIGN:            Zhao Cheng, Boris Jeremic (jeremic@ucdavis.edu)
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
-//#
 //# DATE:              July 2004
 //# UPDATE HISTORY:
 //#
@@ -54,61 +53,60 @@ public:
   // Constructor 01
   FiniteDeformationEP3D(int tag,
                         BJMaterial *fde3d_in,
-			fdYield *fdy_in,
-			fdFlow *fdf_in,
-			fdEvolution_S *fdEvolutionS_in,
-			fdEvolution_T *fdEvolutionT_in);
+                        fdYield *fdy_in,
+                        fdFlow *fdf_in,
+                        fdEvolution_S *fdEvolutionS_in,
+                        fdEvolution_T *fdEvolutionT_in);
   // Constructor 02
   FiniteDeformationEP3D(int tag,
                         BJMaterial *fde3d_in,
-			fdYield *fdy_in,
-			fdFlow *fdf_in,
-			fdEvolution_S *fdEvolutionS_in);
+                        fdYield *fdy_in,
+                        fdFlow *fdf_in,
+                        fdEvolution_S *fdEvolutionS_in);
   // Constructor 03
   FiniteDeformationEP3D(int tag,
                         BJMaterial *fde3d_in,
-			fdYield *fdy_in,
-			fdFlow *fdf_in,
-			fdEvolution_T *fdEvolutionT_in);
+                        fdYield *fdy_in,
+                        fdFlow *fdf_in,
+                        fdEvolution_T *fdEvolutionT_in);
   // Constructor 04
   FiniteDeformationEP3D(int tag,
                         BJMaterial *fde3d_in,
-			fdYield *fdy_in,
-			fdFlow *fdf_in);
-  // Destructor
+                        fdYield *fdy_in,
+                        fdFlow *fdf_in);
+
   virtual ~FiniteDeformationEP3D( );
-    const char *getClassType(void) const {return "FiniteDeformationEP3D";};
+  const char *getClassType() const {return "FiniteDeformationEP3D";}
   
-  double getRho(void);  
+  double getRho();  
 
   int setTrialF(const straintensor &f);
   int setTrialFIncr(const straintensor &df);
 
-  const Tensor& getTangentTensor(void) ;
+  const Tensor& getTangentTensor() ;
 
-  const  straintensor& getStrainTensor(void) ;  // Default Green Strain
-  const  stresstensor& getStressTensor(void) ;  // Default 2nd Piola Kirchhoff Stress
-  const  straintensor& getF(void);
-  const  straintensor& getFp(void);
+  const  straintensor& getStrainTensor() ;  // Default Green Strain
+  const  stresstensor& getStressTensor() ;  // Default 2nd Piola Kirchhoff Stress
+  const  straintensor& getF();
+  const  straintensor& getFp();
 
   int commitState(void) ;
   int revertToLastCommit(void) ;
   int revertToStart(void) ;
 
-  BJMaterial *getCopyBJ (void);
-  BJMaterial *getCopyBJ (const char *type);
+  BJMaterial *getCopyBJ();
+  BJMaterial *getCopyBJ(const char *type);
 
-  const char *getType (void) const;
-  //int getOrder (void) const;
+  const char *getType() const;
 
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
   void Print(OPS_Stream &s, int flag);
 
-  const  stresstensor& getCauchyStressTensor(void);
-  const  stresstensor& getPK1StressTensor(void) ;
-  
+  const  stresstensor& getCauchyStressTensor();
+  const  stresstensor& getPK1StressTensor() ;
+
 private:
 
   BJMaterial *getFDE3D() const;
@@ -128,10 +126,10 @@ private:
   fdEvolution_S *fdEvolutionS;
   fdEvolution_T *fdEvolutionT;
 
-  //material input
+  // material input
   straintensor F;
 
-  //material response
+  // material response
   straintensor iniGreen;
   stresstensor iniPK2;
   tensor iniTangent;
@@ -144,8 +142,6 @@ private:
   
   static stresstensor static_stress; //Only for reference return
   static straintensor static_strain; //Only for reference return
-
-
 };
 
 #endif

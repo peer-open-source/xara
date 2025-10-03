@@ -43,7 +43,7 @@ class MooneyRivlinWEnergy : public WEnergy
     MooneyRivlinWEnergy(double , double);
     MooneyRivlinWEnergy( );
     ~MooneyRivlinWEnergy( );
-    WEnergy *newObj( );
+    WEnergy *copy( );
 
     double wE(const double &, const Vector &);
     const Vector disowOdlambda(const Vector &);

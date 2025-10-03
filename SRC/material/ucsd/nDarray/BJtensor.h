@@ -8,10 +8,6 @@
 //            |                                          |                    #
 //            |                                          |                    #
 //            |        B A S E   C L A S S E S           |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
-//            |                                          |                    #
 //            |          C + +     H E A D E R           |                    #
 //            |                                          |                    #
 //            |                                          |                    #
@@ -80,9 +76,9 @@ class BJtensor : public nDarray
   friend class straintensor;
 //  private:
   public:
-    const char *indices1;   //  character array of indices
-    const char *indices2;    //  they should be checked for matching and
-                       //  then operator will be identified
+    const char *indices1;  //  character array of indices
+    const char *indices2;  //  they should be checked for matching and
+                           //  then operator will be identified
   public: // just send appropriate arguments to the base constructor
     BJtensor(int rank_of_BJtensor=1, double initval=0); // default constructor
     BJtensor(int rank_of_BJtensor, const int *pdim, double *values);
@@ -139,9 +135,7 @@ class BJtensor : public nDarray
     BJtensor & operator()(const char *indices_from_user);
 
     void null_indices( );
-//K    char *BJtensor::f_indices1( ) const;
     const char *f_indices1( ) const;
-//K    char *BJtensor::f_indices2( ) const;
     const char *f_indices2( ) const;
 
   private:
@@ -149,10 +143,8 @@ class BJtensor : public nDarray
 //K    int BJtensor::uncontracted_ind(int *, int *, int);
     int contracted_ind(const char *, const char *, int *, int *, int , int );
     int uncontracted_ind(int *, int *, int);
-
-
-
 };
+
 // GLOBAL
 BJtensor operator*( const double lval, const BJtensor & rval);  // REVIEWER global *
 BJtensor operator*( const double lval, BJtensor const & rval);  // REVIEWER global *

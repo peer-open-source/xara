@@ -24,7 +24,7 @@
 //#
 //===============================================================================
 
-#include <FDdecoupledElastic3D.h>
+#include "FDdecoupledElastic3D.h"
 
 
 stresstensor FDdecoupledElastic3D::static_FDE_stress;
@@ -37,46 +37,22 @@ FDdecoupledElastic3D::FDdecoupledElastic3D(int tag,
                                            double rho_in= 0.0)
 :FiniteDeformationElastic3D(tag, classTag, rho_in)
 {
-    if ( wEnergy_in )
-    {
-       W = wEnergy_in->newObj();
-    }
-    else
-    {
-      opserr << "FDdecoupledElastic3D:: FDdecoupledElastic3D failed to construct the W Energy\n";
-      exit(-1);
-    }
+   W = wEnergy_in->copy();
 }
 
 FDdecoupledElastic3D::FDdecoupledElastic3D(int tag,
                                            WEnergy *wEnergy_in,
                                            double rho_in = 0.0)
-:FiniteDeformationElastic3D(tag, ND_TAG_FDdecoupledElastic3D, rho_in)
+: FiniteDeformationElastic3D(tag, ND_TAG_FDdecoupledElastic3D, rho_in)
 {
-    if ( wEnergy_in)
-    {
-       W = wEnergy_in->newObj();
-    }
-    else
-    {
-      opserr << "FDdecoupledElastic3D:: FDdecoupledElastic3D failed to construct the W Energy\n";
-      exit(-1);
-    }
+   W = wEnergy_in->copy();
 }
 
 FDdecoupledElastic3D::FDdecoupledElastic3D(int tag,
                                            WEnergy *wEnergy_in)
 :FiniteDeformationElastic3D(tag, ND_TAG_FDdecoupledElastic3D, 0.0)
 {
-    if ( wEnergy_in )
-    {
-       W = wEnergy_in->newObj();
-    }
-    else
-    {
-     opserr << "FDdecoupledElastic3D:: FDdecoupledElastic3D failed to construct the W Energy\n";
-      exit(-1);
-    }
+   W = wEnergy_in->copy();
 }
 
 // ------------------------------------------------------------------
@@ -136,34 +112,39 @@ int FDdecoupledElastic3D::setTrialFIncr(const straintensor &df)
    return this->setTrialF(this->getF() + df);
 }
 // ---------------------------------------------------------------------
-int FDdecoupledElastic3D::setTrialC(const straintensor &c)
+int
+FDdecoupledElastic3D::setTrialC(const straintensor &c)
 {
    FromForC = 1;
    C = c;
    return this->ComputeTrials();
 }
 // ---------------------------------------------------------------------
-int FDdecoupledElastic3D::setTrialCIncr(const straintensor &dc)
+int
+FDdecoupledElastic3D::setTrialCIncr(const straintensor &dc)
 {
    return this->setTrialC(this->getC() + dc);
 }
 // -----------------------------------------------------------------------
-const straintensor& FDdecoupledElastic3D::getF(void)
+const straintensor& 
+FDdecoupledElastic3D::getF()
 {
    return F;
 }
 // -----------------------------------------------------------------------
-const straintensor& FDdecoupledElastic3D::getC(void)
+const straintensor& 
+FDdecoupledElastic3D::getC()
 {
    return C;
 }
 // ------------------------------------------------------------------------
-const double FDdecoupledElastic3D::getJ(void)
+const double 
+FDdecoupledElastic3D::getJ()
 {
    return J;
 }
 // -----------------------------------------------------------------------
-const Vector FDdecoupledElastic3D::getlambda(void)
+const Vector FDdecoupledElastic3D::getlambda()
 {
   Vector lambda(3);
 
@@ -174,7 +155,7 @@ const Vector FDdecoupledElastic3D::getlambda(void)
   return lambda;
 }
 // ---------------------------------------------------------------------------
-const Vector FDdecoupledElastic3D::getlambda_wave(void)
+const Vector FDdecoupledElastic3D::getlambda_wave()
 {
   Vector lambda_wave(3);
   lambda_wave(0) = lambda_wave1;
@@ -184,7 +165,8 @@ const Vector FDdecoupledElastic3D::getlambda_wave(void)
   return lambda_wave;
 }
 // -----------------------------------------------------------------------------
-const Vector FDdecoupledElastic3D::wa(void)
+const Vector 
+FDdecoupledElastic3D::wa()
 {
   Vector Wa(3);
   Vector lambda_wave(3);
@@ -200,43 +182,45 @@ const Vector FDdecoupledElastic3D::wa(void)
   return Wa;
 }
 // ------------------------------------------------------------------------------
-const Tensor FDdecoupledElastic3D::Yab(void)
+const Tensor 
+FDdecoupledElastic3D::Yab()
 {
-        Tensor Y(2, def_dim_2, 0.0);
-        Tensor I_ij("I", 2, def_dim_2);
-        Vector lambda_wave(3);
-        lambda_wave = this->getlambda_wave();
-        Tensor  d2 = W->d2isowOdlambda1dlambda2(lambda_wave);
-        Vector  d1 = W->disowOdlambda(lambda_wave);
-        Vector  d11 = W->d2isowOdlambda2(lambda_wave);
-	d2.val(1,1) = d11(0);
-        d2.val(2,2) = d11(1);
-        d2.val(3,3) = d11(2);
-        Vector tempi(3);
-        double tempd = d1(0)*lambda_wave(0) + d1(1)*lambda_wave(1) + d1(2)*lambda_wave(2) ;
-        double tempcd = 0.0;
-        for (int i=0; i<3; i++)
-        {
-          tempi(i) = 0.0;
-          for (int j=0; j<3; j++)
-          {
-              tempi(i) += d2.cval(i+1,j+1) * lambda_wave(i) * lambda_wave(j);
-              tempcd   += d2.cval(i+1,j+1) * lambda_wave(i) * lambda_wave(j);
-          }
-        }
-        for(int a=1; a<=3; a++)
-        {
-          for(int b=1; b<=3; b++)
-          {
-              Y.val(a,b) = d1(a-1)*I_ij.cval(a,b)*lambda_wave(b-1) + d2.cval(a,b)*lambda_wave(a-1)*lambda_wave(b-1) -
-                           (  tempi(a-1) + tempi(b-1) + d1(a-1)*lambda_wave(a-1) + d1(b-1)*lambda_wave(b-1) ) / 3.0 +
-                           ( tempcd + tempd ) / 9.0;
-          }
-        }
-        return Y;
+   Tensor Y(2, def_dim_2, 0.0);
+   Tensor I_ij("I", 2, def_dim_2);
+   Vector lambda_wave(3);
+   lambda_wave = this->getlambda_wave();
+   Tensor  d2 = W->d2isowOdlambda1dlambda2(lambda_wave);
+   Vector  d1 = W->disowOdlambda(lambda_wave);
+   Vector  d11 = W->d2isowOdlambda2(lambda_wave);
+   d2.val(1,1) = d11(0);
+   d2.val(2,2) = d11(1);
+   d2.val(3,3) = d11(2);
+   Vector tempi(3);
+   double tempd = d1(0)*lambda_wave(0) + d1(1)*lambda_wave(1) + d1(2)*lambda_wave(2) ;
+   double tempcd = 0.0;
+   for (int i=0; i<3; i++)
+   {
+      tempi(i) = 0.0;
+      for (int j=0; j<3; j++)
+      {
+         tempi(i) += d2.cval(i+1,j+1) * lambda_wave(i) * lambda_wave(j);
+         tempcd   += d2.cval(i+1,j+1) * lambda_wave(i) * lambda_wave(j);
+      }
+   }
+   for(int a=1; a<=3; a++)
+   {
+      for(int b=1; b<=3; b++)
+      {
+         Y.val(a,b) = d1(a-1)*I_ij.cval(a,b)*lambda_wave(b-1) + d2.cval(a,b)*lambda_wave(a-1)*lambda_wave(b-1) -
+                     (  tempi(a-1) + tempi(b-1) + d1(a-1)*lambda_wave(a-1) + d1(b-1)*lambda_wave(b-1) ) / 3.0 +
+                     ( tempcd + tempd ) / 9.0;
+      }
+   }
+   return Y;
 }
 // -------------------------------------------------------------------------------------
-const Tensor FDdecoupledElastic3D::FDisoStiffness(void)
+const Tensor 
+FDdecoupledElastic3D::FDisoStiffness()
 {
   Tensor I_ij("I", 2, def_dim_2);
   Tensor I_ijkl( 4, def_dim_4, 0.0 );
@@ -263,7 +247,7 @@ const Tensor FDdecoupledElastic3D::FDisoStiffness(void)
 
   Tensor L_iso(2,def_dim_2,0.0);
 
-  if(caseIndex == 0)
+  if (caseIndex == 0)
   {
     double d1 = (lambda1+lambda2)*(lambda1+lambda3)*(lambda1-lambda2)*(lambda1-lambda3);
     double d2 = (lambda2+lambda3)*(lambda2+lambda1)*(lambda2-lambda3)*(lambda2-lambda1);
@@ -481,48 +465,50 @@ int FDdecoupledElastic3D::revertToStart (void)
    return 0;
 }
 // ---------------------------------------------------------------------------------------------
-BJMaterial * FDdecoupledElastic3D::getCopyBJ (void)
+BJMaterial *
+FDdecoupledElastic3D::getCopyBJ()
 {
-    FDdecoupledElastic3D   *theCopy =
+   FDdecoupledElastic3D   *theCopy =
     new FDdecoupledElastic3D (this->getTag(), this->getWEnergy(), this->getRho());
 
-    theCopy->F = F;
-    theCopy->C = C;
-    theCopy->Cinv = Cinv;
-    theCopy->J = J;
-    theCopy->lambda1 = lambda1;
-    theCopy->lambda2 = lambda2;
-    theCopy->lambda3 = lambda3;
-    theCopy->lambda_wave1 = lambda_wave1;
-    theCopy->lambda_wave2 = lambda_wave2;
-    theCopy->lambda_wave3 = lambda_wave3;
+   theCopy->F = F;
+   theCopy->C = C;
+   theCopy->Cinv = Cinv;
+   theCopy->J = J;
+   theCopy->lambda1 = lambda1;
+   theCopy->lambda2 = lambda2;
+   theCopy->lambda3 = lambda3;
+   theCopy->lambda_wave1 = lambda_wave1;
+   theCopy->lambda_wave2 = lambda_wave2;
+   theCopy->lambda_wave3 = lambda_wave3;
 
-    theCopy->Stiffness = Stiffness;
-    theCopy->thisGreenStrain = thisGreenStrain;
-    theCopy->thisPK2Stress = thisPK2Stress;
+   theCopy->Stiffness = Stiffness;
+   theCopy->thisGreenStrain = thisGreenStrain;
+   theCopy->thisPK2Stress = thisPK2Stress;
 
-    return theCopy;
+   return theCopy;
 }
 // ---------------------------------------------------------------------------------------------
-BJMaterial * FDdecoupledElastic3D::getCopyBJ (const char *type)
+BJMaterial *
+FDdecoupledElastic3D::getCopyBJ (const char *type)
 {
-
-  opserr << "FDdecoupledElastic3D::getCopyBJ(const char *) - not yet implemented\n";
-
-    return 0;
+   opserr << "FDdecoupledElastic3D::getCopyBJ(const char *) - not yet implemented\n";
+   return 0;
 }
-// --------------------------------------------------------------------------------------------
-const char* FDdecoupledElastic3D::getType (void) const
+
+const char* 
+FDdecoupledElastic3D::getType() const
 {
    return "ThreeDimentionalFD";
 }
+
 //// --------------------------------------------------------------------------------------------
 //int FDdecoupledElastic3D::getOrder (void) const
 //{
 //   return 6;
 //}
 // --------------------------------------------------------------------------------------------
-int FDdecoupledElastic3D::sendSelf (int commitTag, Channel &theChannel)
+int FDdecoupledElastic3D::sendSelf(int commitTag, Channel &theChannel)
 {
    int res = 0;
 
@@ -542,8 +528,8 @@ int FDdecoupledElastic3D::sendSelf (int commitTag, Channel &theChannel)
 }
 // ---------------------------------------------------------------------------------------------
 int FDdecoupledElastic3D::recvSelf (int commitTag,
-                                          Channel &theChannel,
-                                          FEM_ObjectBroker &theBroker)
+                                    Channel &theChannel,
+                                    FEM_ObjectBroker &theBroker)
 {
    int res = 0;
 
@@ -562,24 +548,18 @@ int FDdecoupledElastic3D::recvSelf (int commitTag,
    return res;
 }
 // ---------------------------------------------------------------------------------------------
-void FDdecoupledElastic3D::Print (OPS_Stream &s, int flag)
+void
+FDdecoupledElastic3D::Print(OPS_Stream &s, int flag)
 {
    s << "Finite Deformation Elastic 3D model" << endln;
    s << "\trho: " << rho << endln;
    return;
 }
-// --------------------------------------------------------------------------------------------------
-//int FDdecoupledElastic3D::setParameter(char **argv, int argc, Information &info)
-//{
-//   return -1;
-//}
-// --------------------------------------------------------------------------------------------------
-//int FDdecoupledElastic3D::updateParameter(int parameterID, Information &info)
-//{
-//   return -1;
-//}
-// --------------------------------------------------------------------------------------------------
-int FDdecoupledElastic3D::ComputeTrials()
+
+
+
+int
+FDdecoupledElastic3D::ComputeTrials()
 {
    // Cinv:
    Cinv = C.inverse();
@@ -595,7 +575,7 @@ int FDdecoupledElastic3D::ComputeTrials()
    lambda3 = sqrt(eigtensor.cval(3));
 
    // lambda_wave
-   double JJJ = pow(J, -0.33333333333333333333333333333);
+   double JJJ = pow(J, -1.0/3.0);
    lambda_wave1 = lambda1 *JJJ;
    lambda_wave2 = lambda2 *JJJ;
    lambda_wave3 = lambda3 *JJJ;
@@ -605,15 +585,17 @@ int FDdecoupledElastic3D::ComputeTrials()
    double diff23 = fabs(lambda2-lambda3);
    double perturbation = pow( d_macheps(), (0.4) );
    if ( diff12 >= perturbation && diff23 >= perturbation )
-	caseIndex = 0;
+      caseIndex = 0;
    else if (diff12 >= perturbation && diff23 < perturbation )
-	caseIndex = 11;
+      caseIndex = 11;
    else if (diff12 < perturbation && diff23 >= perturbation )
-	caseIndex = 13;
+      caseIndex = 13;
    else if (diff12 < perturbation &&  diff23 < perturbation )
-	caseIndex = 2;
-   else   {opserr << "FDdecoupledElastic3D::getCaseIndex -- unknown case! \n";
-	exit (-1);}
+      caseIndex = 2;
+   else   {
+      opserr << "FDdecoupledElastic3D::getCaseIndex -- unknown case! \n";
+      exit (-1);
+   }
 
    Tensor I_ij("I", 2, def_dim_2);
 
@@ -621,7 +603,7 @@ int FDdecoupledElastic3D::ComputeTrials()
 
    Vector Wa = this->wa();
 
-   double I1 = lambda1*lambda1+lambda2*lambda2+lambda3*lambda3;
+   double I1 = lambda1*lambda1 + lambda2*lambda2 + lambda3*lambda3;
 
    if (caseIndex == 0)
    {
@@ -668,8 +650,10 @@ int FDdecoupledElastic3D::ComputeTrials()
 
    return 0;
 }
+
 // ----------------------------------------------------------------------------
-int FDdecoupledElastic3D::getCaseIndex()
+int
+FDdecoupledElastic3D::getCaseIndex()
 {
    return caseIndex;
 }
