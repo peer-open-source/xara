@@ -90,7 +90,7 @@ public:
       e->addLoad(this, 0.0);
   }
 
-  virtual void
+  void
   setDomain(Domain *theDomain) final
   {
     this->Load::setDomain(theDomain);
@@ -101,6 +101,8 @@ public:
       return;
     }
   }
+
+  void Print(OPS_Stream &s, int flag) final {}
 
   int 
   addElement(Element& element) 

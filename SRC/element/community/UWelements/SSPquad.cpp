@@ -46,198 +46,15 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <elementAPI.h>
-#if 0
-#define OPS_Export
-static int num_SSPquad = 0;
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPquad)
-{
-    if (num_SSPquad == 0) {
-        num_SSPquad++;
-        opslog << "SSPquad element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
-    }
-
-    // Pointer to an element that will be returned
-    Element *theElement = 0;
-
-    int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
-
-    if (numRemainingInputArgs < 8) {
-      opserr << "Invalid #args, want: element SSPquad eleTag? iNode? jNode? kNode? lNode? matTag? type? thickness? <b1? b2?>?\n";
-      return 0;
-    }
-
-    int iData[6];
-    const char *theType;
-    double dData[3] = { 1.0,0.0,0.0 };
-
-    int numData = 6;
-    if (OPS_GetIntInput(&numData, iData) != 0) {
-      opserr << "WARNING invalid integer data: element SSPquad " << iData[0] << endln;
-      return 0;
-    }
-
-    theType = OPS_GetString();
-
-    numData = 1;
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-        opserr << "WARNING invalid thickness data: element SSPquad " << iData[0] << endln;
-        return 0;
-    }
-
-    int matID = iData[5];
-    NDMaterial *theMaterial = OPS_getNDMaterial(matID);
-    if (theMaterial == 0) {
-      opserr << "WARNING element SSPquad " << iData[0] << endln;
-      opserr << " Material: " << matID << "not found\n";
-      return 0;
-    }
-
-    if (numRemainingInputArgs == 10) {
-      numData = 2;
-      if (OPS_GetDoubleInput(&numData, &dData[1]) != 0) {
-          opserr << "WARNING invalid optional data: element SSPquad " << iData[0] << endln;
-          return 0;
-      }
-    }
-
-    // parsing was successful, allocate the element
-    theElement = new SSPquad(iData[0], iData[1], iData[2], iData[3], iData[4],
-                               *theMaterial, theType, dData[0], dData[1], dData[2]);
-
-    if (theElement == 0) {
-      opserr << "WARNING could not create element of type SSPquad\n";
-      return 0;
-    }
-
-    return theElement;
-}
-
-void *OPS_SSPquad(const ID &info) 
-{
-		if (info.Size() == 0) {
-				opserr << "WARNING: info is empty -- SSPquad\n";
-				return 0;
-		}
-
-		int ndm = OPS_GetNDM();
-		int ndf = OPS_GetNDF();
-
-		// mesh data
-    static std::map<int, Vector> meshdata;
-
-		// save data
-    if (info(0) == 1) {
-        // check input
-        if (info.Size() < 2) {
-            opserr << "WARNING: need info -- inmesh, meshtag\n";
-            return 0;
-        }
-				if (OPS_GetNumRemainingInputArgs() < 3) {
-					opserr << "Invalid #args, want: matTag? type? thickness? <b1? b2?>?\n";
-					return 0;
-				}
-
-				// save data
-        Vector &mdata = meshdata[info(1)];
-        mdata.resize(5);
-        mdata.Zero();
-
-				// mat
-				int matTag;
-        int num = 1;
-        if (OPS_GetIntInput(&num, &matTag) < 0) {
-            opserr << "WARNING: invalid matTag\n";
-            return 0;
-        }
-        mdata(0) = matTag;
-
-				const char *type = OPS_GetString();
-        if (strcmp(type, "PlaneStrain") == 0) {
-            mdata(1) = 1;
-        } else if (strcmp(type, "PlaneStress") == 0) {
-            mdata(1) = 2;
-        }
-
-        double thk = 1.0;
-        num = 1;
-        if (OPS_GetDoubleInput(&num, &thk) < 0) {
-            opserr << "WARNING: invalid double inputs\n";
-            return 0;
-        }
-        mdata(2) = thk;
-
-				if (OPS_GetNumRemainingInputArgs() > 0) {
-					double b1 = 0.0;
-					num = 1;
-					if (OPS_GetDoubleInput(&num, &b1) < 0) {
-							opserr << "WARNING: invalid double inputs\n";
-							return 0;
-					}
-					mdata(3) = b1;
-				}
-				if (OPS_GetNumRemainingInputArgs() > 0) {
-					double b2 = 0.0;
-					num = 1;
-					if (OPS_GetDoubleInput(&num, &b2) < 0) {
-							opserr << "WARNING: invalid double inputs\n";
-							return 0;
-					}
-					mdata(4) = b2;
-				}
-
-        return &meshdata;
-		}
-
-		// load data
-    if (info(0) == 2) {
-        if (info.Size() < 7) {
-            opserr << "WARNING: need info -- inmesh, meshtag, "
-                      "eleTag, nd1, nd2, nd3, nd4\n";
-            return 0;
-        }
-
-        int eleTag = info(2);
-
-        // get data
-        Vector &mdata = meshdata[info(1)];
-        if (mdata.Size() < 5) {
-            return 0;
-        }
-
-				int matTag = (int)mdata(0);
-        const char *type = "PlaneStrain";
-        if (mdata(1) == 1) {
-            type = "PlaneStrain";
-        } else {
-            type = "PlaneStress";
-        }
-        double thk = mdata(2);
-				double b1 = mdata(3);
-				double b2 = mdata(4);
+#include <array>
 
 
-        NDMaterial *mat = OPS_getNDMaterial(matTag);
-        if (mat == 0) {
-            opserr << "WARNING material not found\n";
-            opserr << "Material: " << matTag;
-            opserr << "\nSSPquad element: " << eleTag << endln;
-            return 0;
-        }
-
-        return new SSPquad(eleTag, info(3), info(4), info(5),
-                                info(6), *mat, type, thk, b1, b2);
-    }
-
-  	return 0;
-}
-#endif
-
-// full constructor
-SSPquad::SSPquad(int tag, int Nd1, int Nd2, int Nd3, int Nd4, NDMaterial &theMat, 
-                          const char *type, double thick, double b1, double b2)
+SSPquad::SSPquad(int tag,
+                 const std::array<int, 4> &nodes,
+                 NDMaterial &theMat, 
+                 double thick, 
+                 double density,
+                 double b1, double b2)
   :Element(tag,ELE_TAG_SSPquad),
       theMaterial(0),
     mExternalNodes(SSPQ_NUM_NODE),
@@ -249,43 +66,30 @@ SSPquad::SSPquad(int tag, int Nd1, int Nd2, int Nd3, int Nd4, NDMaterial &theMat
     Mmem(3,SSPQ_NUM_DOF),
     Kstab(SSPQ_NUM_DOF,SSPQ_NUM_DOF),
     mThickness(thick),
+    density(density),
     applyLoad(0)
 {
-    mExternalNodes(0) = Nd1;
-    mExternalNodes(1) = Nd2;
-    mExternalNodes(2) = Nd3;
-    mExternalNodes(3) = Nd4;
-        
-    mThickness = thick;
+    for (int i=0; i<4; i++) {
+        mExternalNodes(i) = nodes[i];
+    }
 
     b[0] = b1;
     b[1] = b2;
-    
-    appliedB[0] = 0.0;
-    appliedB[1] = 0.0;
+
+    appliedB[0] = b1;
+    appliedB[1] = b2;
 
     // get copy of the material object
-    NDMaterial *theMatCopy = theMat.getCopy(type);
-    if (theMatCopy != 0) {
-        theMaterial = (NDMaterial *)theMatCopy;
-    } else {
-        opserr << "SSPquad::SSPquad - failed to get copy of material model\n";;
-    }
-
-    // check material
-    if (theMaterial == 0) {
-        opserr << "SSPquad::SSPquad - failed to allocate material model pointer\n";
-        exit(-1);
-    }
-        
-    // check the type
-    if (strcmp(type,"PlaneStrain") != 0 && strcmp(type,"PlaneStress") != 0) {
-        opserr << "SSPquad::SSPquad - improper material type: " << type << "for SSPquad\n";
-        exit(-1);
-    }
+    theMaterial = theMat.getCopy();
+    
+    // // check the type
+    // if (strcmp(type,"PlaneStrain") != 0 && strcmp(type,"PlaneStress") != 0) {
+    //     opserr << "SSPquad::SSPquad - improper material type: " << type << "for SSPquad\n";
+    //     exit(-1);
+    // }
 }
 
-// null constructor
+
 SSPquad::SSPquad()
   :Element(0,ELE_TAG_SSPquad),
       theMaterial(0),
@@ -305,7 +109,7 @@ SSPquad::SSPquad()
 // destructor
 SSPquad::~SSPquad()
 {
-    if (theMaterial != 0) {
+    if (theMaterial != nullptr) {
         delete theMaterial;
     }
 }

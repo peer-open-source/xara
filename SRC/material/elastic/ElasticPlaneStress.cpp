@@ -16,24 +16,26 @@
 #include <ElasticPlaneStress.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
+#include <Logging.h>
+#include <math.h>
 
-// Vector ElasticPlaneStress :: strain_vec(3) ;
 Vector ElasticPlaneStress :: stress_vec(3) ;
 Matrix ElasticPlaneStress :: tangent_matrix(3,3) ;
 
 
-ElasticPlaneStress ::  ElasticPlaneStress( ) : 
-NDMaterial(0, ND_TAG_ElasticPlaneStress), 
-strain_vec(3),
-E(0),
-nu(0),
-rho(0)
+ElasticPlaneStress::
+ElasticPlaneStress()
+ : 
+  NDMaterial(0, ND_TAG_ElasticPlaneStress), 
+  strain_vec(3),
+  E(0),
+  nu(0),
+  rho(0)
 {
 }
 
 
-ElasticPlaneStress :: 
+ElasticPlaneStress::
 ElasticPlaneStress(int tag, 
                    double E_,
                    double nu_,
@@ -95,7 +97,7 @@ ElasticPlaneStress::setTrialStrain( const Vector &strain_from_element )
 
 
 int
-ElasticPlaneStress :: setTrialStrainIncr( const Vector &v ) 
+ElasticPlaneStress::setTrialStrainIncr( const Vector &v ) 
 {
   opserr << "ElasticPlaneStress :: setTrialStrainIncr( const Vector &v ) -- should not be used! \n";
   return -1 ;
@@ -103,16 +105,15 @@ ElasticPlaneStress :: setTrialStrainIncr( const Vector &v )
 
 
 const Vector&
-ElasticPlaneStress :: getStrain( ) 
+ElasticPlaneStress::getStrain() 
 {
-  return strain_vec ;
+  return strain_vec;
 }
 
 
 const Vector& 
-ElasticPlaneStress :: getStress( ) 
+ElasticPlaneStress::getStress() 
 {
-
   //stress_vec = this->getTangent() * strain_vec;
   double den = 1 - nu*nu;
   double G = E / (2*(1+nu));
@@ -165,17 +166,17 @@ ElasticPlaneStress::getInitialTangent( )
   //   1           1 1
   //   2           0 1  ( or 1 0 ) 
   //
-  return this->getTangent() ;
+  return this->getTangent();
 } 
 
 int 
-ElasticPlaneStress::commitState( ) 
+ElasticPlaneStress::commitState() 
 {
   return 0;
 }
 
 int 
-ElasticPlaneStress::revertToLastCommit( ) 
+ElasticPlaneStress::revertToLastCommit() 
 {
   return 0;
 }
@@ -202,11 +203,22 @@ ElasticPlaneStress::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
 
 void ElasticPlaneStress :: Print( OPS_Stream &s, int flag )
 {
-  s << endln ;
-  s << "ElasticPlaneStress : " ; 
-  s << this->getType( ) << endln ;
-  s << "Elastic Modulus =   " << E        << endln ;
-  s << "Poisson's ratio =  " << nu       << endln ;
-  s << "mass density =        " << rho     << endln ;
-  s << endln ;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"ElasticPlaneStress\", ";
+    s << "\"E\": " << E << ", ";
+    s << "\"nu\": " << nu << ", ";
+    s << "\"rho\": " << rho;
+    s << "}";
+  }
+  else {
+    s << endln ;
+    s << "ElasticPlaneStress : " ; 
+    s << this->getType( ) << endln ;
+    s << "Elastic Modulus =   " << E        << endln ;
+    s << "Poisson's ratio =  " << nu       << endln ;
+    s << "mass density =        " << rho     << endln ;
+    s << endln ;
+  }
 }

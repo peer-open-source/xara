@@ -49,51 +49,51 @@ static int numCastMaterials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_Cast)
 {
-	if (numCastMaterials == 0) {
-		numCastMaterials++;
-		opserr << "Cast Fuse uniaxial material - Written by Dimitrios G. Lignos, Ph.D.\n";
-	}
-	
-	// Pointer to a uniaxial material that will be returned
-	UniaxialMaterial *theMaterial = 0;
-	
-	int    iData[1];
-	double dData[14];
-	int numData = 1;
-	// Check Tag and number of Fingers
-	if (OPS_GetIntInput(&numData, iData) != 0) {
-		opserr << "WARNING invalid uniaxialMaterial  Cast Fuse tag" << endln;
-		return 0;
-	}
-	
-	numData = OPS_GetNumRemainingInputArgs();
-	if (numData < 14) {
-	    opserr << "WARNING insufficient number of args want  uniaxialMaterial CastFuse tag? NLegs? bo? h? Fy? E? L? b? R0? cR1? cR2? a1? a2? a3? a4\n";
-	    return 0;
-	}
-	if (OPS_GetDoubleInput(&numData, dData) != 0) {
-		opserr << "Invalid Args want: uniaxialMaterial CastFuse tag? NLegs? bo? h? Fy? E? L? b? R0? cR1? cR2? a1? a2? a3? a4?";
-		return 0;	
-	}
-	
-	// Parsing was successful, allocate the material
-	theMaterial = new Cast(iData[0], dData[0],
-							   dData[1], dData[2], dData[3], dData[4], dData[5], 
-							   dData[6], dData[7], dData[8], dData[9], dData[10],
-						       dData[11], dData[12], dData[13]);
-	
-	if (theMaterial == 0) {
-		opserr << "WARNING could not create uniaxialMaterial of type Cast Material\n";
-		return 0;
-	}
-	
-	return theMaterial;
+    if (numCastMaterials == 0) {
+        numCastMaterials++;
+        opserr << "Cast Fuse uniaxial material - Written by Dimitrios G. Lignos, Ph.D.\n";
+    }
+    
+    // Pointer to a uniaxial material that will be returned
+    UniaxialMaterial *theMaterial = 0;
+    
+    int    iData[1];
+    double dData[14];
+    int numData = 1;
+    // Check Tag and number of Fingers
+    if (OPS_GetIntInput(&numData, iData) != 0) {
+        opserr << "WARNING invalid uniaxialMaterial  Cast Fuse tag" << "\n";
+        return 0;
+    }
+    
+    numData = OPS_GetNumRemainingInputArgs();
+    if (numData < 14) {
+        opserr << "WARNING insufficient number of args want  uniaxialMaterial CastFuse tag? NLegs? bo? h? Fy? E? L? b? R0? cR1? cR2? a1? a2? a3? a4\n";
+        return 0;
+    }
+    if (OPS_GetDoubleInput(&numData, dData) != 0) {
+        opserr << "Invalid Args want: uniaxialMaterial CastFuse tag? NLegs? bo? h? Fy? E? L? b? R0? cR1? cR2? a1? a2? a3? a4?";
+        return 0;    
+    }
+    
+    // Parsing was successful, allocate the material
+    theMaterial = new Cast(iData[0], dData[0],
+                               dData[1], dData[2], dData[3], dData[4], dData[5], 
+                               dData[6], dData[7], dData[8], dData[9], dData[10],
+                               dData[11], dData[12], dData[13]);
+    
+    if (theMaterial == 0) {
+        opserr << "WARNING could not create uniaxialMaterial of type Cast Material\n";
+        return 0;
+    }
+    
+    return theMaterial;
 }
 
 Cast::Cast(int tag, double NLegs, double _BO, double H, double _Fy,
-		 double E, double L, double _b,
-		 double _R0, double _cR1, double _cR2,
-		 double _a1, double _a2, double _a3, double _a4):
+         double E, double L, double _b,
+         double _R0, double _cR1, double _cR2,
+         double _a1, double _a2, double _a3, double _a4):
   UniaxialMaterial(tag, MAT_TAG_Cast),
   nLegs(NLegs), bo(_BO), h(H), fy(_Fy), eo(E), l(L), b(_b), R0(_R0), 
   cR1(_cR1), cR2(_cR2), a1(_a1), a2(_a2), a3(_a3), a4(_a4)
@@ -126,8 +126,8 @@ Cast::Cast(int tag, double NLegs, double _BO, double H, double _Fy,
 }
 
 Cast::Cast(int tag, double NLegs, double _BO, double H, double _Fy,
-		   double E, double L, double _b,
-		   double _R0, double _cR1, double _cR2):
+           double E, double L, double _b,
+           double _R0, double _cR1, double _cR2):
   UniaxialMaterial(tag, MAT_TAG_Cast),
   nLegs(NLegs), bo(_BO), h(H), fy(_Fy), eo(E), l(L), b(_b), R0(_R0),
   cR1(_cR1), cR2(_cR2)
@@ -165,7 +165,7 @@ Cast::Cast(int tag, double NLegs, double _BO, double H, double _Fy,
 }
 
 Cast::Cast(int tag, double NLegs, double _BO, double H,
-		   double _Fy, double E, double L, double _b):
+           double _Fy, double E, double L, double _b):
   UniaxialMaterial(tag, MAT_TAG_Cast),
   nLegs(NLegs), bo(_BO), h(H), fy(_Fy), eo(E), l(L), b(_b)
 {
@@ -205,21 +205,20 @@ double  epsmaxrP = Pp/kp;
 double  epsminrP = -epsmaxrP;
 }
 
-Cast::Cast(void):
+Cast::Cast():
   UniaxialMaterial(0, MAT_TAG_Cast)
 {
   konP = 0;
 }
 
-Cast::~Cast(void)
+Cast::~Cast()
 {
   // Does nothing
 }
 
 double
-Cast::getInitialTangent(void)
+Cast::getInitialTangent()
 {
-  
   return kp;
 }
 
@@ -230,7 +229,7 @@ Cast::setTrialStrain(double trialStrain, double strainRate)
   double Esh = b * kp;
   
   double epsy = Pp / kp;
-	
+    
   eps = trialStrain;
 
   double deps = eps - epsP;
@@ -249,29 +248,29 @@ double  epsminr = epsminrP;
 double  epsmaxr = epsmaxrP;
 
   if (kon == 0 ) {
-	  if (fabs(deps) < 10.0*DBL_EPSILON) {
-		  
-		  e = kp;
-		  sig = 0;
-		  return 0;
-		
-	  } else {
-		  epsmax = epsy;
-	      epsmin = -epsy;
-	
-		  if (deps < 0.0) {
-			  kon = 2;						  
-			  epss0 = epsmin;		  
-			  sigs0 = -Pp;
-			  epspl = epsmin;
-				  
-		  } else {		  
-			  kon = 1;		 
-			  epss0 = epsmax;		  
-			  sigs0 = Pp;
-			  epspl = epsmax;	 
-		  }
-	  }
+      if (fabs(deps) < 10.0*DBL_EPSILON) {
+          
+          e = kp;
+          sig = 0;
+          return 0;
+        
+      } else {
+          epsmax = epsy;
+          epsmin = -epsy;
+    
+          if (deps < 0.0) {
+              kon = 2;                          
+              epss0 = epsmin;          
+              sigs0 = -Pp;
+              epspl = epsmin;
+                  
+          } else {          
+              kon = 1;         
+              epss0 = epsmax;          
+              sigs0 = Pp;
+              epspl = epsmax;     
+          }
+      }
   }
   // in case of load reversal from negative to positive strain increment, 
   // update the minimum previous strain, store the last load reversal 
@@ -285,38 +284,38 @@ double  epsmaxr = epsmaxrP;
 
     kon = 1;
 
-	// MG: This variable is used to evaluate if the strain is enough since the
-	// previous reversal to consider an increase in strain hardening
-	double yieldcheck = (eps - epsr)/(epss0 - epsr);
+    // MG: This variable is used to evaluate if the strain is enough since the
+    // previous reversal to consider an increase in strain hardening
+    double yieldcheck = (eps - epsr)/(epss0 - epsr);
 
     epsr = epsP;
 
-	// MG: This ensures that in the case where post-yeilding is applied it isn't double counted
+    // MG: This ensures that in the case where post-yeilding is applied it isn't double counted
     if ((eps > 0 && sig > 0) || (eps < 0 && sig < 0)) {
-	  sigr = sigP * cos(2.0*epsP/l);
+      sigr = sigP * cos(2.0*epsP/l);
   } else {
       sigr = sigP;
   }
-	// commented before  
-	// MG: This is redundant
+    // commented before  
+    // MG: This is redundant
     // epsmin = min(epsP, epsmin);
 
-	// MG: This stores the min strain that was used to calculate the strain
-	// hardening before this load reversal.  In the case where there
-	// is a quick double back we won't consider strain hardening
-	// epsminr = epsmin;
+    // MG: This stores the min strain that was used to calculate the strain
+    // hardening before this load reversal.  In the case where there
+    // is a quick double back we won't consider strain hardening
+    // epsminr = epsmin;
 
     if (epsP < epsmin)
       epsmin = epsP;
 
       //double d1 = (epsmax - epsmin) / (2.0*(a4 * epsy));
-	  
-	  // MG: recalculate d1 if the material hasn't yielded in this excursion
-	  if (fabs(yieldcheck) > 1){
-		  epsmaxr = epsmax;
-	  }
+      
+      // MG: recalculate d1 if the material hasn't yielded in this excursion
+      if (fabs(yieldcheck) > 1){
+          epsmaxr = epsmax;
+      }
 
-	  double d1 = (epsmaxr - epsmin) / (2.0*(a2 * epsy));
+      double d1 = (epsmaxr - epsmin) / (2.0*(a2 * epsy));
       double shft = 1.0 + a3 * pow(d1, 0.8);
       epss0 = (Pp * shft - Esh * epsy * shft - sigr + kp * epsr) / (kp - Esh);
       sigs0 = Pp * shft + Esh * (epss0 - epsy * shft);
@@ -333,39 +332,39 @@ double  epsmaxr = epsmaxrP;
 
     kon = 2;
 
-	// MG: This variable is used to evaluate if strain the strain is enough since the
-	// previous reversal to consider strain hardening
-	double yieldcheck = (eps - epsr)/(epss0 - epsr);
+    // MG: This variable is used to evaluate if strain the strain is enough since the
+    // previous reversal to consider strain hardening
+    double yieldcheck = (eps - epsr)/(epss0 - epsr);
 
     epsr = epsP;
 
-	// MG: This ensures that in the case where post-yeilding is applied it isn't double counted
+    // MG: This ensures that in the case where post-yeilding is applied it isn't double counted
     if ((eps > 0 && sig > 0) || (eps < 0 && sig < 0)) {
-	  sigr = sigP * cos(2.0*epsP/l);
+      sigr = sigP * cos(2.0*epsP/l);
   } else {
       sigr = sigP;
   }
 
-	  
-	// commented before
-	// MG: This is redundant
+      
+    // commented before
+    // MG: This is redundant
     // epsmax = max(epsP, epsmax);
 
-	// MG: This stores the max strain that was used to calculate the strain
-	// hardening before this load reversal.  In the case where there
-	// is a quick double back we won't consider strain hardening
-	// epsmaxr = epsmax;
-	  
+    // MG: This stores the max strain that was used to calculate the strain
+    // hardening before this load reversal.  In the case where there
+    // is a quick double back we won't consider strain hardening
+    // epsmaxr = epsmax;
+      
     if (epsP > epsmax)
       epsmax = epsP;
     
     // double d1 = (epsmax - epsmin) / (2.0*(a2 * epsy));
 
-	// MG: recalculate d1 if the material hasn't yielded in this excursion
-	if (fabs(yieldcheck) > 1){
-	   double epsminr = epsmin;
-	} 
-	double d1 = (epsmax - epsminr) / (2.0*(a2 * epsy));
+    // MG: recalculate d1 if the material hasn't yielded in this excursion
+    if (fabs(yieldcheck) > 1){
+       double epsminr = epsmin;
+    } 
+    double d1 = (epsmax - epsminr) / (2.0*(a2 * epsy));
     double shft = 1.0 + a1 * pow(d1, 0.8);
     epss0 = (-Pp * shft + Esh * epsy * shft - sigr + kp * epsr) / (kp - Esh);
     sigs0 = -Pp * shft + Esh * (epss0 + epsy * shft);
@@ -382,18 +381,18 @@ double  epsmaxr = epsmaxrP;
   double dum2  = pow(dum1,(1/R));
 
   sig   = b*epsrat +(1.0-b)*epsrat/dum2;
-	
+    
   // Added by DL to Change Paths and Pinch
   sig = sig*(sigs0-sigr);
  
   sig = sig+sigr;
-  // MG: This variable is used in the tangent calc when post-yield stiffening is considered	
+  // MG: This variable is used in the tangent calc when post-yield stiffening is considered    
   double sign = 1;
 
   if ((eps-epsr) < 0){
-	  sign = -1;
+      sign = -1;
   }else {
-	  sign = 1;
+      sign = 1;
   }
   
   // MG: Checks which quadrant we are in and then considers post-yield stiffening when appropriate
@@ -401,17 +400,17 @@ double  epsmaxr = epsmaxrP;
   // reversal in the elastic rebound
 
   if ((eps > 0 && sig > 0) || (eps < 0 && sig < 0)) {
-	  sig = sig/cos(2.0*eps/l);
-	  e = ((sigr - sigs0)*(b/(epsr - epss0) - (b - 1)/((epsr - epss0)*pow(pow((fabs(eps - epsr)/fabs(epsr - epss0)),R) + 1,(1/R))) + (sign*(eps - epsr)*pow(fabs(eps - epsr)/fabs(epsr - epss0),(R - 1))*(b - 1))/(fabs(epsr - epss0)*(epsr - epss0)*pow(pow(fabs(eps - epsr)/fabs(epsr - epss0),R) + 1,(1/R + 1)))))/cos((2*eps)/l) + (2*sin((2*eps)/l)*(sigr + ((b*(eps - epsr))/(epsr - epss0) - ((eps - epsr)*(b - 1))/((epsr - epss0)*pow(pow(fabs(eps - epsr)/fabs(epsr - epss0),R) + 1,(1/R))))*(sigr - sigs0)))/(l*pow(cos((2*eps)/l),2));
+      sig = sig/cos(2.0*eps/l);
+      e = ((sigr - sigs0)*(b/(epsr - epss0) - (b - 1)/((epsr - epss0)*pow(pow((fabs(eps - epsr)/fabs(epsr - epss0)),R) + 1,(1/R))) + (sign*(eps - epsr)*pow(fabs(eps - epsr)/fabs(epsr - epss0),(R - 1))*(b - 1))/(fabs(epsr - epss0)*(epsr - epss0)*pow(pow(fabs(eps - epsr)/fabs(epsr - epss0),R) + 1,(1/R + 1)))))/cos((2*eps)/l) + (2*sin((2*eps)/l)*(sigr + ((b*(eps - epsr))/(epsr - epss0) - ((eps - epsr)*(b - 1))/((epsr - epss0)*pow(pow(fabs(eps - epsr)/fabs(epsr - epss0),R) + 1,(1/R))))*(sigr - sigs0)))/(l*pow(cos((2*eps)/l),2));
   } else {
       e = b + (1.0-b)/(dum1*dum2);
       e = e*(sigs0-sigr)/(epss0-epsr);
   }
 
 //  if (fabs(eps)>fabs(epsy)) {
-//	  sig = sig/cos(2.0*eps/l) + sigr;
+//      sig = sig/cos(2.0*eps/l) + sigr;
 //  }else
-  //	  sig = sig + sigr;
+  //      sig = sig + sigr;
   
  // e = b + (1.0-b)/(dum1*dum2);
  // e = e*(sigs0-sigr)/(epss0-epsr);
@@ -422,25 +421,25 @@ double  epsmaxr = epsmaxrP;
 }
 
 double 
-Cast::getStrain(void)
+Cast::getStrain()
 {
   return eps;
 }
 
 double 
-Cast::getStress(void)
+Cast::getStress()
 {
   return sig;
 }
 
 double 
-Cast::getTangent(void)
+Cast::getTangent()
 {
   return e;
 }
 
 int 
-Cast::commitState(void)
+Cast::commitState()
 {
   epsminP = epsmin;
   epsmaxP = epsmax;
@@ -463,7 +462,7 @@ Cast::commitState(void)
 }
 
 int 
-Cast::revertToLastCommit(void)
+Cast::revertToLastCommit()
 {
   epsmin = epsminP;
   epsmax = epsmaxP;
@@ -486,7 +485,7 @@ double  epsminr = epsminrP;
 }
 
 int 
-Cast::revertToStart(void)
+Cast::revertToStart()
 {
   kp = (1.0/6.0) * nLegs * bo * eo * pow((h/l),3.0); // Initial Stiffness of Cast Fuse
   Pp = nLegs * bo * pow(h,2.0) * fy/(4.0*l);   // Yield strength of Cast Fuse (Monotonic Backbone)
@@ -515,11 +514,11 @@ double epsminrP = -epsmaxrP;
 }
 
 UniaxialMaterial*
-Cast::getCopy(void)
+Cast::getCopy()
 {
-	Cast *theCopy = new Cast(this->getTag(), nLegs, bo, h, fy, eo, l, b, R0, cR1, cR2, a1, a2, a3, a4);
-	
-	return theCopy;
+    Cast *theCopy = new Cast(this->getTag(), nLegs, bo, h, fy, eo, l, b, R0, cR1, cR2, a1, a2, a3, a4);
+    
+    return theCopy;
 }
 
 int 
@@ -529,7 +528,7 @@ Cast::sendSelf(int commitTag, Channel &theChannel)
   static Vector data(30);
 
   data(0) = this->getTag();
-	
+    
   // Material properties
   data(1) = nLegs;
   data(2) = bo;
@@ -568,73 +567,94 @@ Cast::sendSelf(int commitTag, Channel &theChannel)
 
   res = theChannel.sendVector(this->getDbTag(), commitTag, data);
   if (res < 0)
-	opserr << "Cast::sendSelf() - failed to send data\n";
+    opserr << "Cast::sendSelf() - failed to send data\n";
     
   return res;
 }
 
 int 
 Cast::recvSelf(int commitTag, Channel &theChannel, 
-	     FEM_ObjectBroker &theBroker)
+         FEM_ObjectBroker &theBroker)
 {
   int res = 0;
   static Vector data(30);
   res = theChannel.recvVector(this->getDbTag(),commitTag, data);
   
   if (res < 0) {
-	  
+      
   //if (theChannel.recvVector(this->getDbTag(), commitTag, data) < 0) {
     opserr << "Cast::recvSelf() - failed to receive data\n";
-	this->setTag(0);
+    this->setTag(0);
   }
   else {
-	  this->setTag((int)data(0));
+      this->setTag((int)data(0));
 
-	  // Material properties
-	  nLegs = data(1);
-	  bo = data(2);
-	  h = data(3);
-	  fy = data(4);
-	  eo = data(5);
-	  l = data(6);
-	  b = data(7); 
+      // Material properties
+      nLegs = data(1);
+      bo = data(2);
+      h = data(3);
+      fy = data(4);
+      eo = data(5);
+      l = data(6);
+      b = data(7); 
 
-	  // State Variables from last converged state  
-	  R0 = data(8);
-	  cR1 = data(9);
-	  cR2 = data(10);
-	  a1 = data(11); 
-	  a2 = data(12);	
-	  a3 = data(13); 
-	  a4 = data(14); 
-	  epsminP = data(15);
-	  epsmaxP = data(16);
-	  epsplP = data(17); 
-	  epss0P = data(18); 
-	  sigs0P = data(19); 
-	  epssrP = data(20);  
-	  sigsrP = data(21); 
-	  konP = data(22);   
-	  epsP = data(23);   
-  	  sigP = data(24);   
-	  eP   = data(25);   
-	  Pp = data(26);
-	  kp = data(27);
+      // State Variables from last converged state  
+      R0 = data(8);
+      cR1 = data(9);
+      cR2 = data(10);
+      a1 = data(11); 
+      a2 = data(12);    
+      a3 = data(13); 
+      a4 = data(14); 
+      epsminP = data(15);
+      epsmaxP = data(16);
+      epsplP = data(17); 
+      epss0P = data(18); 
+      sigs0P = data(19); 
+      epssrP = data(20);  
+      sigsrP = data(21); 
+      konP = data(22);   
+      epsP = data(23);   
+        sigP = data(24);   
+      eP   = data(25);   
+      Pp = data(26);
+      kp = data(27);
 
-	  // Added by MG
-	  epsmaxrP = data(28);
-	  epsminrP = data(29);
+      // Added by MG
+      epsmaxrP = data(28);
+      epsminrP = data(29);
   }
-	
+    
   return res;
 }
 
 void 
 Cast::Print(OPS_Stream &s, int flag)
 {
-	s << "Cast Fuse tag: " << this->getTag() << endln;
-    s << "  Finger Yield Strength: " << fy << endln;	
-    s << "  Finger height: " << h << endln;
-    s << "  Number of fingers: " << nLegs << endln;
-    s << "  Finger Length: " << l << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"Cast\", ";
+    s << "\"nLegs\": " << nLegs << ", ";
+    s << "\"bo\": " << bo << ", ";
+    s << "\"h\": " << h << ", ";
+    s << "\"fy\": " << fy << ", ";
+    s << "\"E\": " << eo << ", ";
+    s << "\"L\": " << l << ", ";
+    s << "\"b\": " << b << ", ";
+    s << "\"R0\": " << R0 << ", ";
+    s << "\"cR1\": " << cR1 << ", ";
+    s << "\"cR2\": " << cR2 << ", ";
+    s << "\"a1\": " << a1 << ", ";
+    s << "\"a2\": " << a2 << ", ";
+    s << "\"a3\": " << a3 << ", ";
+    s << "\"a4\": " << a4 << "}";
+  }
+  else {
+    s << "Cast Fuse tag: " << this->getTag() << "\n";
+    s << "  Finger Yield Strength: " << fy << "\n";    
+    s << "  Finger height: " << h << "\n";
+    s << "  Number of fingers: " << nLegs << "\n";
+    s << "  Finger Length: " << l << "\n";
+  }
 }

@@ -8,11 +8,11 @@
 target_sources(OPS_Section_Repres
     PRIVATE
         CircPatch.cpp
-        QuadPatch.cpp
+        QuadFiberPatch.cpp
     PUBLIC
         CircPatch.h
-        Patch.h
-        QuadPatch.h
+        FiberPatch.h
+        QuadFiberPatch.h
 )
 target_include_directories(OPS_Section_Repres PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 

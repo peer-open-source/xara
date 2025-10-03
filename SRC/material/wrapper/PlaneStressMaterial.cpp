@@ -181,7 +181,7 @@ PlaneStressMaterial::setTrialStrain(const Vector &strainFromElement )
   const int maxCount = 20;
   double norm0;
 
-  //newton loop to solve for out-of-plane strains
+  // newton loop to solve for out-of-plane strains
   do {
 
     //set three dimensional strain
@@ -200,8 +200,8 @@ PlaneStressMaterial::setTrialStrain(const Vector &strainFromElement )
     const Vector &threeDstress = theMaterial->getStress();
     const Matrix &threeDtangent = theMaterial->getTangent();
 
-    //NDmaterial strain order          = 11, 22, 33, 12, 23, 31 
-    //PlaneStressMaterial strain order = 11, 22, 12, 33, 23, 31 
+    // NDmaterial strain order          = 11, 22, 33, 12, 23, 31 
+    // PlaneStressMaterial strain order = 11, 22, 12, 33, 23, 31 
 
     condensedStress[0] = threeDstress(2);
     condensedStress[1] = threeDstress(4);
@@ -224,7 +224,7 @@ PlaneStressMaterial::setTrialStrain(const Vector &strainFromElement )
     if (count == 0)
       norm0 = norm;
 
-    //condensation 
+    // condensation 
     dd22.solve(condensedStress, strainIncrement);
 
     // Update

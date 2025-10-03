@@ -13,7 +13,6 @@ typedef void *OPS_Routine(G3_Runtime* , int, const char** const);
 extern OPS_Routine OPS_ComponentElement2d;
 extern OPS_Routine OPS_ComponentElement3d;
 extern OPS_Routine OPS_ElasticTubularJoint;
-extern OPS_Routine OPS_ZeroLength;
 extern OPS_Routine OPS_ZeroLengthContactNTS2D;
 extern OPS_Routine OPS_ZeroLengthVG_HG;
 extern OPS_Routine OPS_ZeroLengthInterface2D;
@@ -185,6 +184,7 @@ element_dispatch_tcl = {
   {"quad",                      TclBasicBuilder_addFourNodeQuad},
   {"quad9n",                    TclBasicBuilder_addFourNodeQuad},
   {"quad8n",                    TclBasicBuilder_addFourNodeQuad},
+  {"SSPquad",                   TclBasicBuilder_addFourNodeQuad},
 
   {"quadWithSensitivity",       TclBasicBuilder_addFourNodeQuadWithSensitivity},
 
@@ -210,8 +210,8 @@ element_dispatch_tcl = {
   {"ShellNLDKGQThermal",           TclBasicBuilder_addShell},
 
 // U-P
-
   {"quadUP",                    TclBasicBuilder_addFourNodeQuadUP},
+  {"SSPquadUP",                 TclCommand_SSP_Element},
   {"9_4_QuadUP",                TclBasicBuilder_addNineFourNodeQuadUP},
   {"bbarQuadUP",                TclBasicBuilder_addBBarFourNodeQuadUP},
 
@@ -230,9 +230,6 @@ element_dispatch_tcl = {
   {"bbarBrick",                 TclBasicBuilder_addBrick},
   {"bbarBrickWithSensitivity",  TclBasicBuilder_addBrick},
   {"flBrick",                   TclBasicBuilder_addBrick},
-  
-  {"SSPquad",                   TclCommand_SSP_Element},
-  {"SSPquadUP",                 TclCommand_SSP_Element},
   {"SSPbrick",                  TclCommand_SSP_Element},
 
 // Actuators

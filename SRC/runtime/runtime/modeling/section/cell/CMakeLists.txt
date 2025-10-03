@@ -8,11 +8,11 @@
 target_sources(OPS_Section_Repres
     PRIVATE
         CircSectionCell.cpp
-        QuadCell.cpp
+        QuadFiberCell.cpp
     PUBLIC
-        Cell.h
+        FiberCell.h
         CircSectionCell.h
-        QuadCell.h
+        QuadFiberCell.h
 )
 target_include_directories(OPS_Section_Repres PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 

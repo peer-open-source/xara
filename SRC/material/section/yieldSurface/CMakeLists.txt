@@ -8,7 +8,7 @@ add_library(OPS_Section_YieldSurface OBJECT)
 
 target_link_libraries(OPS_Section_YieldSurface PRIVATE OPS_Material_YieldSurface OPS_Logging)
 
-target_include_directories(OPS_Section_YieldSurface PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(OPS_Section_YieldSurface PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes})
 
 target_sources(OPS_Section_YieldSurface
     PRIVATE

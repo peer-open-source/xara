@@ -1078,6 +1078,7 @@ int Pipe::crossProduct(const Vector &A, const Vector &B,
 }
 
 int Pipe::nextTransfTag() {
+#if 0
     ID tags = OPS_getAllCrdTransfTags();
     int gap = 10;
     if (tags.Size() == 0) {
@@ -1092,6 +1093,9 @@ int Pipe::nextTransfTag() {
     }
 
     return maxTag + gap;
+#else
+    return 0;
+#endif
 }
 
 void Pipe::shearCoefficients(double &B1, double &B2, double &C1,

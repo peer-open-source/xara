@@ -29,7 +29,7 @@
 // Description: This file contains the class implementation for 
 // ViscousMaterial. 
 
-#include <math.h>
+#include <cmath>
 #include "ViscousMaterial.h"
 #include <Vector.h>
 #include <Channel.h>
@@ -37,9 +37,9 @@
 #include <Parameter.h>
 #include <string.h>
 
-#include <OPS_Globals.h>
+#include <Logging.h>
 
-
+#if 1
 #include <elementAPI.h>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
@@ -49,7 +49,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
 
   int numArgs = OPS_GetNumRemainingInputArgs();
   if (numArgs < 3 || numArgs > 4) {
-    opserr << "Invalid #args,  want: uniaxialMaterial Viscous tag? C? alpha? <minVel?> ... " << endln;
+    opserr << "Invalid #args,  want: uniaxialMaterial Viscous tag? C? alpha? <minVel?> ... " << "\n";
     return 0;
   }
   
@@ -59,13 +59,13 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
 
   int numData = 1;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid tag for uniaxialMaterial Viscous" << endln;
+    opserr << "WARNING invalid tag for uniaxialMaterial Viscous" << "\n";
     return 0;
   }
 
   numData = numArgs-1;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid data for uniaxial Viscous " << iData[0] << endln;
+    opserr << "Invalid data for uniaxial Viscous " << iData[0] << "\n";
     return 0;	
   }
 
@@ -78,7 +78,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
 
   return theMaterial;
 }
-
+#endif
 
 ViscousMaterial::ViscousMaterial(int tag, double c, double a, double minV)
 :UniaxialMaterial(tag,MAT_TAG_Viscous),
@@ -89,7 +89,7 @@ ViscousMaterial::ViscousMaterial(int tag, double c, double a, double minV)
       Alpha = 1.0;
     }
     
-    minVel = fabs(minVel);
+    minVel = std::fabs(minVel);
     if (minVel == 0.0) {
       opserr << "ViscousMaterial::ViscousMaterial -- minVel == 0.0, setting to 1.0e-21\n";
       minVel = 1.0e-21;
@@ -118,17 +118,17 @@ ViscousMaterial::setTrialStrain(double strain, double strainRate)
 }
 
 double 
-ViscousMaterial::getStress(void)
+ViscousMaterial::getStress()
 {
     double stress = 0.0;
-    double absRate = fabs(trialRate);
+    double absRate = std::fabs(trialRate);
 
     if (absRate > minVel)
-      stress = C*pow(absRate, Alpha);
+      stress = C*std::pow(absRate, Alpha);
     else
-      stress = C*pow(minVel, Alpha);
+      stress = C*std::pow(minVel, Alpha);
 
-    stress = C*pow(absRate, Alpha);    
+    stress = C*std::pow(absRate, Alpha); // TODO!
 
     if (trialRate < 0.0)
         return -stress;
@@ -137,7 +137,7 @@ ViscousMaterial::getStress(void)
 }
 
 double 
-ViscousMaterial::getTangent(void)
+ViscousMaterial::getTangent()
 {
     return 0.0;
 }
@@ -235,9 +235,9 @@ ViscousMaterial::recvSelf(int cTag, Channel &theChannel,
   res = theChannel.recvVector(this->getDbTag(), cTag, data);
   
   if (res < 0) {
-      opserr << "ViscousMaterial::recvSelf() - failed to receive data\n";
-      C = 0; 
-      this->setTag(0);      
+    opserr << "ViscousMaterial::recvSelf() - failed to receive data\n";
+    C = 0; 
+    this->setTag(0);      
   }
   else {
     this->setTag((int)data(0));
@@ -256,11 +256,22 @@ ViscousMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 ViscousMaterial::Print(OPS_Stream &s, int flag)
 {
-    s << "Viscous tag: " << this->getTag() << endln;
-    s << "  C: " << C << endln;
-    s << "  Alpha: " << Alpha << endln;
-    s << "  minVel: " << minVel << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"type\": \""<<getClassType()<<"\", ";
+    s << "\"tag\": "<<getTag()<<", ";
+    s << "\"C\": "<<C<<", ";
+    s << "\"Alpha\": "<<Alpha<<", ";
+    s << "\"minVel\": "<<minVel;
+    s << "}";
+  } else {
+    s << "Viscous tag: " << this->getTag() << "\n";
+    s << "  C: " << C << "\n";
+    s << "  Alpha: " << Alpha << "\n";
+    s << "  minVel: " << minVel << "\n";
+  }
 }
+
 
 
 

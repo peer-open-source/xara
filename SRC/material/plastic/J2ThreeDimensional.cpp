@@ -63,12 +63,14 @@ Vector J2ThreeDimensional ::stress_vec(6);
 Matrix J2ThreeDimensional ::tangent_matrix(6, 6);
 
 
-//null constructor
-J2ThreeDimensional ::J2ThreeDimensional() : J2Plasticity(0, ND_TAG_J2ThreeDimensional, 0.0, 0.0) {}
+J2ThreeDimensional::J2ThreeDimensional()
+ : J2Plasticity(0, ND_TAG_J2ThreeDimensional, 0.0, 0.0) 
+{
+
+}
 
 
-//full constructor
-J2ThreeDimensional ::J2ThreeDimensional(int tag,
+J2ThreeDimensional::J2ThreeDimensional(int tag,
                                         double K,
                                         double G,
                                         double yield0,
@@ -88,20 +90,19 @@ J2ThreeDimensional ::J2ThreeDimensional(int tag, double K, double G)
 }
 
 
-J2ThreeDimensional ::~J2ThreeDimensional() {}
+J2ThreeDimensional::~J2ThreeDimensional() {}
 
 
 NDMaterial*
-J2ThreeDimensional ::getCopy()
+J2ThreeDimensional::getCopy()
 {
-  J2ThreeDimensional* clone;
-  clone  = new J2ThreeDimensional(); //new instance of this class
+  J2ThreeDimensional* clone = new J2ThreeDimensional();
   *clone = *this;                    //assignment to make copy
   return clone;
 }
 
 
-//send back type of material
+
 const char*
 J2ThreeDimensional ::getType() const
 {
@@ -141,13 +142,13 @@ J2ThreeDimensional ::setTrialStrain(const Vector& strain_from_element)
 
 //unused trial strain functions
 int
-J2ThreeDimensional ::setTrialStrain(const Vector& v, const Vector& r)
+J2ThreeDimensional::setTrialStrain(const Vector& v, const Vector& r)
 {
   return this->setTrialStrain(v);
 }
 
 int
-J2ThreeDimensional ::setTrialStrainIncr(const Vector& v)
+J2ThreeDimensional::setTrialStrainIncr(const Vector& v)
 {
   static Vector newStrain(6);
   newStrain(0) = strain(0, 0) + v(0);
@@ -161,23 +162,21 @@ J2ThreeDimensional ::setTrialStrainIncr(const Vector& v)
 }
 
 int
-J2ThreeDimensional ::setTrialStrainIncr(const Vector& v, const Vector& r)
+J2ThreeDimensional::setTrialStrainIncr(const Vector& v, const Vector& r)
 {
   return this->setTrialStrainIncr(v);
 }
 
 
 const Vector&
-J2ThreeDimensional ::getStrain()
+J2ThreeDimensional::getStrain()
 {
   strain_vec(0) = strain(0, 0);
   strain_vec(1) = strain(1, 1);
   strain_vec(2) = strain(2, 2);
 
   strain_vec(3) = 2.0 * strain(0, 1);
-
   strain_vec(4) = 2.0 * strain(1, 2);
-
   strain_vec(5) = 2.0 * strain(2, 0);
 
   return strain_vec;
@@ -185,7 +184,7 @@ J2ThreeDimensional ::getStrain()
 
 
 const Vector&
-J2ThreeDimensional ::getStress()
+J2ThreeDimensional::getStress()
 {
   stress_vec(0) = stress(0, 0);
   stress_vec(1) = stress(1, 1);
@@ -213,19 +212,16 @@ J2ThreeDimensional ::getTangent()
   //   4           1 2  ( or 2 1 )
   //   5           2 0  ( or 0 2 )
 
-  int ii, jj;
-  int i, j, k, l;
-
-  for (ii = 0; ii < 6; ii++) {
-    for (jj = 0; jj < 6; jj++) {
-
+  for (int ii = 0; ii < 6; ii++) {
+    for (int jj = 0; jj < 6; jj++) {
+      int i,j,k,l;
       index_map(ii, i, j);
       index_map(jj, k, l);
 
       tangent_matrix(ii, jj) = tangent[i][j][k][l];
 
-    } //end for j
-  } //end for i
+    }
+  }
 
 
   return tangent_matrix;
@@ -244,21 +240,19 @@ J2ThreeDimensional ::getInitialTangent()
   //   4           1 2  ( or 2 1 )
   //   5           2 0  ( or 0 2 )
 
-  int ii, jj;
-  int i, j, k, l;
 
   this->doInitialTangent();
 
-  for (ii = 0; ii < 6; ii++) {
-    for (jj = 0; jj < 6; jj++) {
+  for (int ii = 0; ii < 6; ii++) {
+    for (int jj = 0; jj < 6; jj++) {
 
+      int i, j, k, l;
       index_map(ii, i, j);
       index_map(jj, k, l);
 
       tangent_matrix(ii, jj) = initialTangent[i][j][k][l];
-
-    } //end for j
-  } //end for i
+    }
+  }
 
   return tangent_matrix;
 }

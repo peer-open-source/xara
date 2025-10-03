@@ -18,43 +18,34 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// File: CircReinfLayer.h
+// File: Cell.h
+//
 // Written by Remo M. de Souza
 // December 1998
 
-#ifndef CircReinfLayer_h
-#define CircReinfLayer_h
-
-#include <ReinfLayer.h>
+#ifndef Cell_h
+#define Cell_h
 #include <VectorND.h>
-#include <Cell.h>
 
-using OpenSees::VectorND;
-
-class CircReinfLayer : public ReinfLayer {
+namespace OpenSees {
+class FiberCell {
 public:
-  // Constructor for an arc
-  CircReinfLayer(int material, int n, double area,
-                 const VectorND<2>& center, double radius, 
-                 double initialAngle,
-                 double finalAngle);
-  // Constructor for full circle
-  CircReinfLayer(int material, int n, double area,
-                 const VectorND<2>& center, double radius);
+  FiberCell() : area(0.0) {}
+  FiberCell(int mat, double area, const VectorND<2>& loc) : area(area), location(loc)
+  {
+  }
+  // reinforcing bar inquiring functions
 
-  virtual ~CircReinfLayer() {};
-
-  int getNumReinfBars() const;
-  std::vector<Cell> getReinfBars() const;
-
+  double getArea() const {return area;};
+  double getdValue() const {return 0.0;};
+  const VectorND<2>& getPosition() const {return location;};
+  int getMaterial() const {return matID;};
 
 protected:
+  double area;
+  int matID;
+  VectorND<2> location;
 private:
-  int nReinfBars;
-  VectorND<2> centerPosit;
-  double arcRad;
-  double initAng;
-  double finalAng;
 };
-
+} // namespace OpenSees
 #endif

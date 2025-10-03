@@ -16,8 +16,6 @@
 #ifndef ElasticPlaneStress_h
 #define ElasticPlaneStress_h
 
-#include <stdlib.h> 
-#include <math.h> 
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -29,14 +27,14 @@ class ElasticPlaneStress : public NDMaterial {
   public : 
   ElasticPlaneStress();
   ElasticPlaneStress(int tag, 
-                   double E,
-                   double nu,
-                   double rho);
+                    double E,
+                    double nu,
+                    double rho);
   ~ElasticPlaneStress();
 
   const char *getClassType() const {return "ElasticPlaneStress";}
 
-    NDMaterial* getCopy( ) ;
+  NDMaterial* getCopy( );
 
   const char* getType( ) const override;
   int getOrder( ) const override;

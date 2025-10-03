@@ -26,6 +26,7 @@
 #include <Parameter.h>
 #include <Information.h>
 #include <MaterialResponse.h>
+#include "Voight.hpp"
 
 using namespace OpenSees;
 
@@ -123,13 +124,14 @@ int
 SimplifiedJ2::plastIntegrator()
 {
   double trace = strain(0) + strain(1) + strain(2);
+  const static double SQRT23 = std::sqrt(2.0/3.0);
 
 
   VectorND<6> I2{1.0, 1.0, 0, 0, 0, 0};
 
   VectorND<6> strainDev;
   strainDev = strain;
-  strainDev.addVector(1.0, I2, -trace / 3.0);
+  strainDev.addVector(1.0, I2, -trace/3.0);
 
   //Vector TbackStress(6);
   //TbackStress = CbackStress;
@@ -144,17 +146,16 @@ SimplifiedJ2::plastIntegrator()
 
   // --- check elastic or plastic--
   double yieldFunction =
-      pow((Teta && Teta), 0.5) - pow(2. / 3, 0.5) * CsigmaY; // to replace Yn=(2/3)^.5*sigmaYn
+      std::sqrt(Voight::Dot(Teta, Teta)) - SQRT23*CsigmaY; // to replace Yn=(2/3)^.5*sigmaYn
 
   if (yieldFunction > 0) { // plastic corrector
 
     lambda = yieldFunction / (2. * G + 2. / 3. * (H_iso + H_kin));
-
-    sigmaY = CsigmaY +
-             pow(2. / 3., 0.5) * H_iso * lambda; //  Note:to replace Y_n+1 = Yn=(2/3)^.5*sigmaYn
+    //  Note:to replace Y_n+1 = Yn=(2/3)^.5*sigmaYn
+    sigmaY = CsigmaY + SQRT23* H_iso * lambda;
 
     VectorND<6> n;
-    n.addVector(0, Teta, 1. / pow((Teta && Teta), 0.5));
+    n.addVector(0, Teta, 1.0/std::sqrt(Voight::Dot(Teta, Teta)));
 
     //Vector eta(6);
     //eta.addVector(0, n, pow( (Teta &&  Teta),0.5)-(2.*G+2./3.*H_kin)*lambda);
@@ -181,9 +182,9 @@ SimplifiedJ2::plastIntegrator()
 
     // -------- consistent tangent modulus ------------
 
-    double A = 2. * G / (2. * G + 2. / 3. * H_kin + 2. / 3. * H_iso);
+    double A = 2.*G / (2.*G + 2./3.*H_kin + 2./3.*H_iso);
 
-    double C = 2. * G * lambda / pow(Teta && Teta, 0.5);
+    double C = 2.*G * lambda / std::sqrt(Voight::Dot(Teta, Teta));
 
     //  double D = 2./3.*H_kin*lambda/pow(Teta&&Teta, 0.5);
 
@@ -218,10 +219,9 @@ SimplifiedJ2::plastIntegrator()
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 3; j++)
         non(i, j) = n[i] * n[j];
+       // To be consistent with the transformation between 4th order tensor and matrix
       for (int j = 3; j < 6; j++)
-        non(i, j) =
-            n[i] * n[j] *
-            2.0; // To be consistent with the transformation between 4th order tensor and matrix
+        non(i, j) = n[i] * n[j] * 2.0;
     }
 
     tangent.addMatrix(non, 2. * G * (C - A));
@@ -238,8 +238,7 @@ SimplifiedJ2::plastIntegrator()
     plastStrainDev.addVector(0.0, CplastStrainDev, 1.0);
     //cumPlastStrainDev = CcumPlastStrainDev;
     // sigmaY = CsigmaY;
-    Vector n(6);
-    n.addVector(0, Teta, 1. / pow((Teta && Teta), 0.5));
+    VectorND<6> n = Teta*(1./std::sqrt(Voight::Dot(Teta, Teta)));
 
     //Vector eta(6);
     //eta.addVector(0, n, pow( (Teta &&  Teta),0.5));
@@ -253,7 +252,7 @@ SimplifiedJ2::plastIntegrator()
 
     for (int i = 0; i < 3; i++)
       for (int j = 0; j < 3; j++)
-        theTangent(i, j) = K - 2.0 / 3.0 * G;
+        theTangent(i, j) = K - 2.0/3.0 * G;
 
     for (int i = 0; i < 6; i++)
       theTangent(i, i) += 2.0 * G;
@@ -283,8 +282,8 @@ SimplifiedJ2::setTrialStrain(const Vector& pStrain)
     strain[4] = 0.0;
     strain[5] = 0.0;
   } else {
-    opserr << "Fatal:SimplifiedJ2:: Material dimension is: " << ndm << endln;
-    opserr << "But strain vector size is: " << pStrain.Size() << endln;
+    opserr << "Fatal:SimplifiedJ2:: Material dimension is: " << ndm << "\n";
+    opserr << "But strain vector size is: " << pStrain.Size() << "\n";
     return -1;
   }
 
@@ -327,8 +326,8 @@ SimplifiedJ2::setTrialStrainIncr(const Vector& v)
     strain[4] = 0.0;
     strain[5] = 0.0;
   } else {
-    opserr << "Fatal:SimplifiedJ2:: Material dimension is: " << ndm << endln;
-    opserr << "But strain vector size is: " << v.Size() << endln;
+    opserr << "Fatal:SimplifiedJ2:: Material dimension is: " << ndm << "\n";
+    opserr << "But strain vector size is: " << v.Size() << "\n";
     return -1;
   }
 

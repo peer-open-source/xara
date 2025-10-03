@@ -51,10 +51,10 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2PlateFibreMaterial)
   int numArgs = OPS_GetNumRemainingInputArgs();
   
   if (numArgs < 6) {
-    opserr << "Want: nDMaterial J2PlateFibre $tag $E $v $sigmaY $Hiso $Hkin <$rho>" << endln;
+    opserr << "Want: nDMaterial J2PlateFibre $tag $E $v $sigmaY $Hiso $Hkin <$rho>" << "\n";
     return 0;	
   }
-  
+
   int iData[1];
   double dData[6];
   dData[5] = 0.0;
@@ -76,7 +76,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2PlateFibreMaterial)
   }  
   
   theMaterial = new J2PlateFibre(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4]);
-  
   return theMaterial;
 }
 
@@ -123,6 +122,7 @@ J2PlateFibre::J2PlateFibre():
   alphan1 = 0.0;
 }
 
+
 J2PlateFibre::~J2PlateFibre ()
 {
   if (SHVs != 0)
@@ -130,7 +130,7 @@ J2PlateFibre::~J2PlateFibre ()
 }
 
 int
-J2PlateFibre::setTrialStrain (const Vector &strain)
+J2PlateFibre::setTrialStrain(const Vector &strain)
 {
   Tepsilon = strain;
 
@@ -138,7 +138,7 @@ J2PlateFibre::setTrialStrain (const Vector &strain)
 }
 
 int
-J2PlateFibre::setTrialStrain (const Vector &strain, const Vector &rate)
+J2PlateFibre::setTrialStrain(const Vector &strain, const Vector &rate)
 {
   Tepsilon = strain;
 
@@ -146,19 +146,19 @@ J2PlateFibre::setTrialStrain (const Vector &strain, const Vector &rate)
 }
 
 int
-J2PlateFibre::setTrialStrainIncr (const Vector &strain)
+J2PlateFibre::setTrialStrainIncr(const Vector &strain)
 {
   return 0;
 }
 
 int
-J2PlateFibre::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+J2PlateFibre::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   return 0;
 }
 
 const Matrix&
-J2PlateFibre::getTangent (void)
+J2PlateFibre::getTangent()
 {
   double twoG = E/(1+nu);
   double G = 0.5*twoG;
@@ -181,9 +181,9 @@ J2PlateFibre::getTangent (void)
   double xsi[5];
   xsi[0] = sig[0] - two3Hkin*(2*epsPn[0]+epsPn[1]);
   xsi[1] = sig[1] - two3Hkin*(2*epsPn[1]+epsPn[0]);
-  xsi[2] = sig[2] - one3*Hkin*epsPn[2];
-  xsi[3] = sig[3] - one3*Hkin*epsPn[3];
-  xsi[4] = sig[4] - one3*Hkin*epsPn[4];
+  xsi[2] = sig[2] - Hkin*epsPn[2]/3.0;
+  xsi[3] = sig[3] - Hkin*epsPn[3]/3.0;
+  xsi[4] = sig[4] - Hkin*epsPn[4]/3.0;
 
   double q = sqrt(two3*(xsi[0]*xsi[0] + xsi[1]*xsi[1] - xsi[0]*xsi[1]) +
 		  2.0*(xsi[2]*xsi[2] + xsi[3]*xsi[3] + xsi[4]*xsi[4]));
@@ -224,11 +224,13 @@ J2PlateFibre::getTangent (void)
     while (iter < maxIter && R.Norm() > 1.0e-14) {
       iter++;
 
-      J(0,0) = 1.0 + dg*(two3*C00-one3*C01+two3Hkin); J(0,1) = dg*(two3*C01-one3*C00);
-      J(1,0) = dg*(two3*C10-one3*C11); J(1,1) = 1.0 + dg*(two3*C11-one3*C10+two3Hkin);
-      J(2,2) = 1.0 + dg*(twoG+two3Hkin);
-      J(3,3) = 1.0 + dg*(twoG+two3Hkin);
-      J(4,4) = 1.0 + dg*(twoG+two3Hkin);
+      J(0,0) = 1.0 + dg*(two3*C00 - C01/3.0 + two3Hkin);
+      J(0,1) = dg*(two3*C01 - C00/3.0);
+      J(1,0) = dg*(two3*C10 - C11/3.0); 
+      J(1,1) = 1.0 + dg*(two3*C11 - C10/3.0 + two3Hkin);
+      J(2,2) = 1.0 + dg*(twoG + two3Hkin);
+      J(3,3) = 1.0 + dg*(twoG + two3Hkin);
+      J(4,4) = 1.0 + dg*(twoG + two3Hkin);
 
       J(0,5) = (two3*C00-one3*C01+two3Hkin)*x(0) + (two3*C01-one3*C00)*x(1);
       J(1,5) = (two3*C10-one3*C11)*x(0) + (two3*C11-one3*C10+two3Hkin)*x(1);
@@ -236,13 +238,13 @@ J2PlateFibre::getTangent (void)
       J(3,5) = (twoG+two3Hkin)*x(3);
       J(4,5) = (twoG+two3Hkin)*x(4);
 
-      J(5,0) = (1.0-two3*Hiso*dg)*(two3*x(0)-one3*x(1))/q;
-      J(5,1) = (1.0-two3*Hiso*dg)*(two3*x(1)-one3*x(0))/q;
+      J(5,0) = (1.0-two3*Hiso*dg)*(two3*x(0)- x(1)/3.0)/q;
+      J(5,1) = (1.0-two3*Hiso*dg)*(two3*x(1)- x(0)/3.0)/q;
       J(5,2) = (1.0-two3*Hiso*dg)*2.0*x(2)/q;
       J(5,3) = (1.0-two3*Hiso*dg)*2.0*x(3)/q;
       J(5,4) = (1.0-two3*Hiso*dg)*2.0*x(4)/q;
 
-      J(5,5) = -two3*Hiso*q;
+      J(5,5) = -(2.0/3.0)*Hiso*q;
 
       J.Solve(R, dx);
       x.addVector(1.0, dx, -1.0);
@@ -261,7 +263,7 @@ J2PlateFibre::getTangent (void)
     }
 
     if (iter == maxIter) {
-      //opserr << "J2PlateFibre::getTangent -- maxIter reached " << R.Norm() << endln;
+      //opserr << "J2PlateFibre::getTangent -- maxIter reached " << R.Norm() << "\n";
     }
 
     alphan1 = alphan + dg*root23*q;
@@ -337,7 +339,7 @@ J2PlateFibre::getTangent (void)
 }
 
 const Matrix&
-J2PlateFibre::getInitialTangent (void)
+J2PlateFibre::getInitialTangent()
 {
   double G = 0.5*E/(1+nu);
   double C00 = E/(1-nu*nu);
@@ -354,7 +356,7 @@ J2PlateFibre::getInitialTangent (void)
 }
 
 const Vector&
-J2PlateFibre::getStress (void)
+J2PlateFibre::getStress()
 {
   double twoG = E/(1+nu);
   double G = 0.5*twoG;
@@ -376,9 +378,9 @@ J2PlateFibre::getStress (void)
   double xsi[5];
   xsi[0] = sigma(0) - two3Hkin*(2*epsPn[0]+epsPn[1]);
   xsi[1] = sigma(1) - two3Hkin*(2*epsPn[1]+epsPn[0]);
-  xsi[2] = sigma(2) - one3*Hkin*epsPn[2];
-  xsi[3] = sigma(3) - one3*Hkin*epsPn[3];
-  xsi[4] = sigma(4) - one3*Hkin*epsPn[4];
+  xsi[2] = sigma(2) - Hkin*epsPn[2]/3.0;
+  xsi[3] = sigma(3) - Hkin*epsPn[3]/3.0;
+  xsi[4] = sigma(4) - Hkin*epsPn[4]/3.0;
 
   double q = sqrt(two3*(xsi[0]*xsi[0] + xsi[1]*xsi[1] - xsi[0]*xsi[1]) +
 		  2.0*(xsi[2]*xsi[2] + xsi[3]*xsi[3] + xsi[4]*xsi[4]));
@@ -447,7 +449,7 @@ J2PlateFibre::getStress (void)
       R(5) = q - root23*(sigmaY + Hiso*(alphan+dg*root23*q));
     }
     if (iter == maxIter) {
-      //opserr << "J2PlateFibre::getStress -- maxIter reached " << R.Norm() << endln;
+      //opserr << "J2PlateFibre::getStress -- maxIter reached " << R.Norm() << "\n";
     }
 
     alphan1 = alphan + dg*root23*q;
@@ -469,13 +471,13 @@ J2PlateFibre::getStress (void)
 }
 
 const Vector&
-J2PlateFibre::getStrain (void)
+J2PlateFibre::getStrain()
 {
   return Tepsilon;
 }
 
 int
-J2PlateFibre::commitState (void)
+J2PlateFibre::commitState()
 {
   epsPn[0] = epsPn1[0];
   epsPn[1] = epsPn1[1];
@@ -503,7 +505,7 @@ J2PlateFibre::revertToLastCommit (void)
 }
 
 int
-J2PlateFibre::revertToStart (void)
+J2PlateFibre::revertToStart()
 {
   Tepsilon.Zero();
 
@@ -531,7 +533,7 @@ J2PlateFibre::revertToStart (void)
 }
 
 NDMaterial*
-J2PlateFibre::getCopy (void)
+J2PlateFibre::getCopy()
 {
   J2PlateFibre *theCopy =
     new J2PlateFibre (this->getTag(), E, nu, sigmaY, Hiso, Hkin);
@@ -549,13 +551,13 @@ J2PlateFibre::getCopy (const char *type)
 }
 
 const char*
-J2PlateFibre::getType (void) const
+J2PlateFibre::getType() const
 {
   return "PlateFiber";
 }
 
 int
-J2PlateFibre::getOrder (void) const
+J2PlateFibre::getOrder() const
 {
   return 5;
 }
@@ -569,10 +571,12 @@ J2PlateFibre::getStressSensitivity(int gradIndex, bool conditional)
   sigma(3) = 0.0;
   sigma(4) = 0.0;
 
-  double twoG = E/(1+nu);
+  double twoG = E/(1.0+nu);
   double G = 0.5*twoG;
-  double C00 = E/(1-nu*nu); double C11 = C00;
-  double C01 = nu*C00; double C10 = C01;
+  double C00 = E/(1.0-nu*nu);
+  double C11 = C00;
+  double C01 = nu*C00;
+  double C10 = C01;
 
   double dEdh = 0.0;
   double dsigmaYdh = 0.0;
@@ -709,7 +713,7 @@ J2PlateFibre::commitSensitivity(const Vector &depsdh, int gradIndex, int numGrad
   }
 
   if (gradIndex >= SHVs->noCols()) {
-    //opserr << gradIndex << ' ' << SHVs->noCols() << endln;
+    //opserr << gradIndex << ' ' << SHVs->noCols() << "\n";
     return 0;
   }
 
@@ -879,23 +883,23 @@ void
 J2PlateFibre::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-      s << "J2 Plate Fibre Material Model" << endln;
-      s << "\tE:  " << E << endln;
-      s << "\tnu:  " << nu << endln;
-      s << "\tsigmaY:  " << sigmaY << endln;
-      s << "\tHiso:  " << Hiso << endln;
-      s << "\tHkin:  " << Hkin << endln;
+    s << "J2 Plate Fibre Material Model" << "\n";
+    s << "\tE:  " << E << "\n";
+    s << "\tnu:  " << nu << "\n";
+    s << "\tsigmaY:  " << sigmaY << "\n";
+    s << "\tHiso:  " << Hiso << "\n";
+    s << "\tHkin:  " << Hkin << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << "\t\t\t{";
-      s << "\"name\": \"" << this->getTag() << "\", ";
-      s << "\"type\": \"J2PlateFibre\", ";
-      s << "\"E\": " << E << ", ";
-      s << "\"nu\": " << nu << ", ";
-      s << "\"fy\": " << sigmaY << ", ";
-      s << "\"Hiso\": " << Hiso << ", ";
-      s << "\"Hkin\": " << Hkin << "}";
+    s << "\t\t\t{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"J2PlateFibre\", ";
+    s << "\"E\": " << E << ", ";
+    s << "\"nu\": " << nu << ", ";
+    s << "\"fy\": " << sigmaY << ", ";
+    s << "\"Hiso\": " << Hiso << ", ";
+    s << "\"Hkin\": " << Hkin << "}";
   }
   return;
 }

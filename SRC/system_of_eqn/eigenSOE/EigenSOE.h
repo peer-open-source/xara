@@ -28,6 +28,30 @@ class Vector;
 class ID;
 class LinearSOE;
 
+
+enum {
+ EigenSOE_TAGS_BandArpackSOE 	=1,
+ EigenSOE_TAGS_SymArpackSOE 	=2,
+ EigenSOE_TAGS_SymBandEigenSOE  =3,
+ EigenSOE_TAGS_FullGenEigenSOE  =4,
+ EigenSOE_TAGS_ArpackSOE,
+ EigenSOE_TAGS_GeneralArpackSOE,
+ EigenSOE_TAGS_SymmGeneralizedEigenSOE,
+
+ EigenSOLVER_TAGS_BandArpackSolver,
+ EigenSOLVER_TAGS_SymArpackSolver ,
+ EigenSOLVER_TAGS_SymBandEigenSolver,
+ EigenSOLVER_TAGS_FullGenEigenSolver,
+ EigenSOLVER_TAGS_ArpackSolver,
+ EigenSOLVER_TAGS_GeneralArpackSolver,
+ EigenSOLVER_TAGS_SymmGeneralizedEigenSolver
+};
+
+enum {
+ EigenALGORITHM_TAGS_Frequency =1,
+ EigenALGORITHM_TAGS_Standard  =2
+};
+
 class EigenSOE : public MovableObject
 {
   public:

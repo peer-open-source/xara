@@ -50,7 +50,7 @@ getNodeTags(ClientData clientData,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   NodeIter &nodeIter = the_domain->getNodes();
 
@@ -266,7 +266,7 @@ int
 nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 3) {
     opserr << "WARNING want - nodeMass nodeTag? nodeDOF?\n";
@@ -309,7 +309,7 @@ nodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
     opserr << "WARNING: want - nodePressure nodeTag?\n";
@@ -333,7 +333,7 @@ int
 nodeBounds(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   const int requiredDataSize = 20*6;
   if (requiredDataSize > resDataSize) {
@@ -364,7 +364,7 @@ int
 setNodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 4) {
     opserr << "WARNING want - setNodeVel nodeTag? dof? value? <-commit>\n";
@@ -422,7 +422,7 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 4) {
     opserr << "WARNING want - setNodeDisp nodeTag? dof? value? <-commit>\n";
@@ -544,7 +544,7 @@ nodeRotation(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
     opserr << "WARNING want - nodeRotation tag\n";
@@ -745,7 +745,7 @@ int
 nodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError << "want - nodeCoord nodeTag? <dim?>\n";
@@ -858,7 +858,7 @@ int
 nodeDOFs(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc != 2) {
     opserr << OpenSees::PromptValueError 

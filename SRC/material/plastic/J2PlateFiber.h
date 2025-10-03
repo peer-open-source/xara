@@ -59,6 +59,7 @@
 #include <Matrix.h>
 
 #include <J2Plasticity.h>
+using namespace OpenSees;
 
 class J2PlateFiber : public J2Plasticity {
 

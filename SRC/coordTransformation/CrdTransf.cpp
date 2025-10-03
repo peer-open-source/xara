@@ -32,31 +32,9 @@
 #include <Vector.h>
 #include <Logging.h>
 #include <TaggedObject.h>
-#include <MapOfTaggedObjects.h>
 #include <GenericResponse.h>
 
 typedef GenericResponse<CrdTransf> CrdTransfResponse;
-
-static MapOfTaggedObjects theCrdTransfObjects;
-
-
-ID
-OPS_getAllCrdTransfTags() {
-
-    ID allCrdTransfTags(0);
-      
-    MapOfTaggedObjectsIter theObjects = theCrdTransfObjects.getIter();
-    theObjects.reset();
-    TaggedObject *theObject;
-
-    while ((theObject = theObjects()) != 0) {
-      CrdTransf *theTransf = (CrdTransf *)theObject;    
-      allCrdTransfTags.insert(theTransf->getTag());
-    }
-
-    return allCrdTransfTags;
-}
-
 
 
 CrdTransf::CrdTransf(int tag, int classTag):TaggedObject(tag), MovableObject(classTag)
@@ -76,6 +54,7 @@ CrdTransf::getLocalAxes(Vector &xAxis, Vector &yAxis, Vector &zAxis)
   zAxis.Zero();
   return 0;
 }
+
 
 int
 CrdTransf::getRigidOffsets(Vector &offsets)
@@ -143,7 +122,7 @@ const Vector &
 CrdTransf::getBasicDisplTotalGrad(int gradNumber)
 {
     opserr << "WARNING CrdTransf::getBasicDisplTotalGrad() - this method "
-        << " should not be called." << endln;
+        << " should not be called." << "\n";
     
     static Vector dummy(1);
     return dummy;
@@ -167,7 +146,7 @@ CrdTransf::getGlobalResistingForceShapeSensitivity(const Vector &pb,
 						   const Vector &p0)
 {
     opserr << "ERROR CrdTransf::getGlobalResistingForceSensitivity() - has not been"
-        << " implemented yet for the chosen transformation." << endln;
+        << " implemented yet for the chosen transformation." << "\n";
     
     static Vector dummy(1);
     return dummy;
@@ -178,7 +157,7 @@ const Vector &
 CrdTransf::getBasicDisplFixedGrad()
 {
     opserr << "ERROR CrdTransf::getBasicDisplFixedGrad() - has not been"
-           << " implemented yet for the chosen transformation." << endln;
+           << " implemented yet for the chosen transformation." << "\n";
     
     static Vector dummy(1);
     return dummy;

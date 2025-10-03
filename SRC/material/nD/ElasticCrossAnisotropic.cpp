@@ -274,10 +274,25 @@ ElasticCrossAnisotropic::recvSelf(int commitTag, Channel &theChannel, FEM_Object
 void
 ElasticCrossAnisotropic::Print (OPS_Stream &s, int flag)
 {
-	s << "Elastic Cross-Anisotropic Material Model\n";
-	s << "\tEh:  " << Eh << "\tEv:  " << Ev << "\n";
-	s << "\tnuhv:  " << nuhv << "\tnuhh:  " << nuhh << "\n";
-	s << "\tGhv:  " << Ghv << "\trho:  " << rho << "\n";
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"ElasticCrossAnisotropic\", \"tag\":";
+    s << this->getTag() << ", ";
+    s << "\"Eh\":" << Eh << ", ";
+    s << "\"Ev\":" << Ev << ", ";
+    s << "\"nuhv\":" << nuhv << ", ";
+    s << "\"nuhh\":" << nuhh << ", ";
+    s << "\"Ghv\":" << Ghv << ", ";
+    s << "\"rho\":" << rho;
+    s << "}";
+    return;
+  }
+  else {
+    s << "Elastic Cross-Anisotropic Material Model\n";
+    s << "\tEh:  " << Eh << "\tEv:  " << Ev << "\n";
+    s << "\tnuhv:  " << nuhv << "\tnuhh:  " << nuhh << "\n";
+    s << "\tGhv:  " << Ghv << "\trho:  " << rho << "\n";
+  }
 	
 	return;
 }

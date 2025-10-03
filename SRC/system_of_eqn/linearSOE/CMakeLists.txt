@@ -32,4 +32,6 @@ add_subdirectory(profileSPD)
 #add_subdirectory(mumps)
 add_subdirectory(itpack)
 #add_subdirectory(pardiso)
-
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/apple/CMakeLists.txt")
+  add_subdirectory(apple)
+endif()

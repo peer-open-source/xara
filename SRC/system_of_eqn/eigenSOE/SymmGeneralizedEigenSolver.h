@@ -17,29 +17,44 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-//
-// File: QuadCell.h
-//
-// Written by Remo M. de Souza
-// December 1998
 
-#ifndef QuadCell_h
-#define QuadCell_h
+#ifndef SymmGenEigenSolver_h
+#define SymmGenEigenSolver_h
 
-#include <Cell.h>
-#include <VectorND.h>
-#include <MatrixND.h>
+#include <EigenSolver.h>
+#include <SymmGeneralizedEigenSOE.h>
 
-using OpenSees::MatrixND;
-using OpenSees::VectorND;
-
-
-class QuadCell : public Cell {
+class Vector;
+class SymmGeneralizedEigenSolver : public EigenSolver
+{
 public:
-  QuadCell(const MatrixND<4,2>& vertexCoords);
+    SymmGeneralizedEigenSolver(double msmall = 1e-10);    
+    virtual ~SymmGeneralizedEigenSolver();
+
+    virtual int solve(int numEigen, bool generalized, bool findSmallest = true);    
+    virtual int setSize(void);
+    virtual int setEigenSOE(SymmGeneralizedEigenSOE &theSOE);
+
+    virtual const Vector &getEigenvector(int mode);
+    virtual double getEigenvalue(int mode);
+
+    int sendSelf(int commitTag, Channel &theChannel);
+    int recvSelf(int commitTag, Channel &theChannel, 
+                 FEM_ObjectBroker &theBroker);
 
 protected:
+
 private:
+    void sort(int length, double *x, int *id);
+    SymmGeneralizedEigenSOE *theSOE;
+    int numEigen;
+
+    double *eigenvalue;
+    double *eigenvector;
+    int *sortingID;
+    Vector *eigenV;
+
+  double msmall; // m_ii = k_ii*msmall if m_ii == 0.0
 };
 
 #endif

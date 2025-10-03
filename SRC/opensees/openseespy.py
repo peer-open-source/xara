@@ -464,6 +464,62 @@ class OpenSeesPy:
         return self._invoke_proc("fiber", *args, **kwds)
 
 
+class State:
+    class NodalVector:
+        def __init__(self, dofs, values=None):
+            self._dofs   = dofs
+            self._values = values
+
+        def __call__(self, node=None, dof=None):
+            if node is None:
+                return self._values
+    
+            elif dof is None:
+                ndofs = self._dofs.get(node)
+                if ndofs is None:
+                    return None
+                return self._values[node]
+
+            else:
+                ndofs = self._dofs.get(node)
+                if ndofs is None or dof > len(ndofs):
+                    return None
+                return self._values[node][dof-1]
+
+
+    def __init__(self, model,
+                 u=None,
+                 v=None,
+                 a=None,
+                 reactions=None,
+                 time=None):
+        self._nodes = {
+            node: model._call("nodeDOFs", node)
+                for node in model._call("getNodeTags") or []
+        }
+        self._u         = u
+        self._v         = v
+        self._a         = a
+        self._reactions = reactions
+        self._time      = time
+
+    @property
+    def u(self):
+        return self.NodalVector(self._nodes, self._u)
+
+    def v(self):
+        return self.NodalVector(self._nodes, self._v)
+
+    def a(self):
+        return self.NodalVector(self._nodes, self._a)
+
+    def reactions(self):
+        return self.NodalVector(self._nodes, self._reactions)
+
+    def time(self):
+        return self._time
+
+
 class StateView:
     class _NodalVector:
         def __init__(self, model, response: str):
@@ -484,11 +540,28 @@ class StateView:
                 node = index
                 return self._model._call(f"node{self._response.capitalize()}", node)
 
+
     def __init__(self, model):
         self._model = model
 
-    def save(self, fields=None, file=None):
-        pass
+    def store(self, fields=None, file=None):
+        if fields is None:
+            fields = ["u", "v", "a", "reactions"]
+
+        data = {
+            key: getattr(self, key).values for key in fields
+        }
+
+        state = State(self._model, time=self.time, **data)
+        if file is None:
+            return state
+        else:
+            # TODO
+            pass
+
+    @property
+    def time(self):
+        return self._model._call("getTime")
 
     @property
     def u(self):
@@ -620,7 +693,7 @@ class Model:
             import gc
             del tangent_string
             gc.collect()
-        return A; #.reshape([int(np.sqrt(len(A)))]*2)
+        return A
 
     def symbols(self, **kwds):
         symbols = []

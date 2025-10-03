@@ -321,8 +321,8 @@ LinearShearTransf2d::getBasicDisplFixedGrad()
     if (nodeParameterID(0) != 0 || nodeParameterID(1) != 0) {
 
       if (nodeIOffset != 0 || nodeJOffset != 0) {
-        opserr << "ERROR: Currently a node offset cannot be used in " << endln
-           << " conjunction with random nodal coordinates." << endln;
+        opserr << "ERROR: Currently a node offset cannot be used in "
+           << " conjunction with random nodal coordinates." << "\n";
       }
      
       double dcosdh =0.0, dsindh =0.0, dsldh =0.0, dcldh =0.0;
@@ -583,7 +583,7 @@ LinearShearTransf2d::getGlobalResistingForceShapeSensitivity(const Vector &pb, c
 
         if (nodeIOffset != 0 || nodeJOffset != 0) {
           opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+             << " conjunction with random nodal coordinates." << "\n";
         }
      
         double dcosdh =0.0, dsindh =0.0, d1oLdh =0.0;
@@ -1250,9 +1250,9 @@ LinearShearTransf2d::Print(OPS_Stream &s, int flag)
 {
    s << "\nCrdTransf: " << this->getTag() << " Type: LinearShearTransf2d";
    if (nodeIOffset != 0)
-     s << "\tnodeI Offset: " << nodeIOffset[0] << ' ' << nodeIOffset[1] << endln;
+     s << "\tnodeI Offset: " << nodeIOffset[0] << ' ' << nodeIOffset[1] << "\n";
    if (nodeJOffset != 0)
-     s << "\tnodeJ Offset: " << nodeJOffset[0] << ' ' << nodeJOffset[1] << endln;
+     s << "\tnodeJ Offset: " << nodeJOffset[0] << ' ' << nodeJOffset[1] << "\n";
 
 }
 

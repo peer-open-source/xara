@@ -92,18 +92,18 @@ public:
   int addInertiaLoadToUnbalance(const Vector &accel); 
   */
   
-  Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-  int getResponse(int responseID, Information &);
+  Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
+  int getResponse(int responseID, Information &) final;
   
   // Element: Parameters
-  int setParameter(const char **argv, int argc, Parameter &);
-  int updateParameter(int parameterID, Information &);
+  int setParameter(const char **argv, int argc, Parameter &) final;
+  int updateParameter(int parameterID, Information &) final;
   // int activateParameter(int parameterID);
 
   // Element: Sensitivity
-  const Vector &getResistingForceSensitivity(int gradNumber);
-  int commitSensitivity(int gradNumber, int numGrads);
-  int getResponseSensitivity(int responseID, int gradNumber, Information &);
+  const Vector &getResistingForceSensitivity(int gradNumber) final;
+  int commitSensitivity(int gradNumber, int numGrads) final;
+  int getResponseSensitivity(int responseID, int gradNumber, Information &) final;
 
   virtual int getIntegral(Field field, State state, double& total);
 

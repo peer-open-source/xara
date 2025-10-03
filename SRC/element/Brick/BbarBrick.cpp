@@ -239,22 +239,22 @@ BbarBrick::Print( OPS_Stream &s, int flag )
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
-      s << endln;
+      s << "\n";
       s << "Volume/Pressure Eight Node BbarBrick \n";
-      s << "Element Number: " << this->getTag() << endln;
-      s << "Node 1 : " << connectedExternalNodes(0) << endln;
-      s << "Node 2 : " << connectedExternalNodes(1) << endln;
-      s << "Node 3 : " << connectedExternalNodes(2) << endln;
-      s << "Node 4 : " << connectedExternalNodes(3) << endln;
-      s << "Node 5 : " << connectedExternalNodes(4) << endln;
-      s << "Node 6 : " << connectedExternalNodes(5) << endln;
-      s << "Node 7 : " << connectedExternalNodes(6) << endln;
-      s << "Node 8 : " << connectedExternalNodes(7) << endln;
+      s << "Element Number: " << this->getTag() << "\n";
+      s << "Node 1 : " << connectedExternalNodes(0) << "\n";
+      s << "Node 2 : " << connectedExternalNodes(1) << "\n";
+      s << "Node 3 : " << connectedExternalNodes(2) << "\n";
+      s << "Node 4 : " << connectedExternalNodes(3) << "\n";
+      s << "Node 5 : " << connectedExternalNodes(4) << "\n";
+      s << "Node 6 : " << connectedExternalNodes(5) << "\n";
+      s << "Node 7 : " << connectedExternalNodes(6) << "\n";
+      s << "Node 8 : " << connectedExternalNodes(7) << "\n";
       
       s << "Material Information : \n ";
       materialPointers[0]->Print(s, flag);
       
-      s << endln;
+      s << "\n";
   }
 
 }
@@ -470,7 +470,7 @@ BbarBrick::addLoad(ElementalLoad *theLoad, double loadFactor)
 	  appliedB[2] += loadFactor*data(2)*b[2];
 	  return 0;
   } else {
-    opserr << "BbarBrick::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
+    opserr << "BbarBrick::addLoad - load type unknown for ele with tag: " << this->getTag() << "\n";
     return -1;
   }
 
@@ -1137,7 +1137,7 @@ BbarBrick::recvSelf (int commitTag,
       materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
       if (materialPointers[i] == 0) {
 	  opserr << "BbarBrick::recvSelf() - Broker could not create NDMaterial of class type" <<
-	            matClassTag << endln;
+	            matClassTag << "\n";
 	  exit(-1);
       }
       // Now receive materials into the newly allocated space
@@ -1160,9 +1160,9 @@ BbarBrick::recvSelf (int commitTag,
       if (materialPointers[i]->getClassTag() != matClassTag) {
         delete materialPointers[i];
         materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-        if (materialPointers[i] == 0) {
+        if (materialPointers[i] == nullptr) {
           opserr << "BbarBrick::recvSelf() - Broker could not create NDMaterial of class type" <<
-            matClassTag << endln;
+            matClassTag << "\n";
           exit(-1);
         }
         materialPointers[i]->setDbTag(matDbTag);
@@ -1226,7 +1226,7 @@ BbarBrick::setResponse(const char **argv, int argc, OPS_Stream &output)
     }
 
 
-  } else if (strcmp(argv[0],"stresses") ==0) {
+  } else if ((strcmp(argv[0],"stresses") ==0) || (strcmp(argv[0],"stress") ==0)) {
 
     for (int i=0; i<8; i++) {
       output.tag("GaussPoint");
@@ -1246,7 +1246,8 @@ BbarBrick::setResponse(const char **argv, int argc, OPS_Stream &output)
       output.endTag(); // GaussPoint
     }
     theResponse =  new ElementResponse(this, 3, Vector(48));
-    } else if (strcmp(argv[0],"strains") ==0) {
+  }
+  else if ((strcmp(argv[0],"strains") ==0) || (strcmp(argv[0],"strain") ==0)) {
 
     for (int i=0; i<8; i++) {
       output.tag("GaussPoint");

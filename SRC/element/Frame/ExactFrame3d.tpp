@@ -49,7 +49,6 @@
 //
 #include <cstddef>
 #include <ExactFrame3d.h>
-#include <Flag.h>
 #include <Node.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -417,7 +416,7 @@ ExactFrame3d<nen,nwm>::update()
 #endif
     }
   }
-  return OpenSees::Flag::Success;
+  return 0;
 }
 
 

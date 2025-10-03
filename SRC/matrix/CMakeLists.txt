@@ -13,20 +13,23 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 target_sources(OPS_Matrix
-    PRIVATE
-      ID.cpp
-      Matrix.cpp
-      Vector.cpp
-      R3vectors.cpp
-      TriMatrix.cpp
-    PUBLIC
-      ID.h
-      Matrix.h
-      Vector.h
-      R3vectors.h
-      TriMatrix.h
+  PRIVATE
+    ID.cpp
+    Matrix.cpp
+    Vector.cpp
+    R3vectors.cpp
+    TriMatrix.cpp
+  PUBLIC
+    ID.h
+    Matrix.h
+    Vector.h
+    R3vectors.h
+    TriMatrix.h
 )
 
 add_subdirectory(routines)
 
-target_include_directories(OPS_Matrix PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(OPS_Matrix 
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR}
+  PRIVATE ${OPS_Includes}
+)

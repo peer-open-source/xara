@@ -31,9 +31,12 @@
 
 #include <Matrix.h>
 #include <Vector.h>
+#include <Vector3D.h>
 #include <ID.h>
 #include <Information.h>
 #include <Parameter.h>
+
+namespace OpenSees {
 
 class ElasticIsotropicBeamFiber : public ElasticIsotropicMaterial
 {
@@ -67,10 +70,10 @@ class ElasticIsotropicBeamFiber : public ElasticIsotropicMaterial
   protected:
 
   private:
-    static Vector sigma;	// Stress vector ... class-wide for returns
     static Matrix D;		// Elastic constants
-    Vector Tepsilon;		// Trial strains
+    Vector3D Tepsilon;		// Trial strains
+    Vector retStrain;
 };
-
+}
 
 #endif

@@ -31,6 +31,7 @@
 // Modified: 04/2005 Andreas Schellenberg (getBasicTrialVel, getBasicTrialAccel)
 //
 #include <ID.h>
+#include <Logging.h>
 #include <Vector.h>
 #include <Matrix.h>
 #include <Node.h>
@@ -561,8 +562,8 @@ LinearCrdTransf2d::getGlobalResistingForceShapeSensitivity(const Vector &pb,
   if (nodeParameterID(0) != 0 || nodeParameterID(1) != 0) {
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
-      opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+      opserr << "ERROR: Currently a node offset cannot be used in " << "\n"
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     double dcosdh = 0.0, dsindh = 0.0, d1oLdh = 0.0;
@@ -1171,10 +1172,10 @@ LinearCrdTransf2d::Print(OPS_Stream &s, int flag)
     s << "\nCrdTransf: " << this->getTag() << " Type: LinearCrdTransf2d";
     if (nodeIOffset != 0)
       s << "\tnodeI Offset: " << nodeIOffset[0] << ' ' << nodeIOffset[1]
-        << endln;
+        << "\n";
     if (nodeJOffset != 0)
       s << "\tnodeJ Offset: " << nodeJOffset[0] << ' ' << nodeJOffset[1]
-        << endln;
+        << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
@@ -1229,8 +1230,8 @@ LinearCrdTransf2d::getGlobalResistingForceShapeSensitivity(const Vector &pb,
   if (nodeParameterID(0) != 0 || nodeParameterID(1) != 0) {
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
-      opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+      opserr << "ERROR: Currently a node offset cannot be used in " << "\n"
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     double dcosdh = 0.0, dsindh = 0.0, d1oLdh = 0.0;
@@ -1373,8 +1374,8 @@ LinearCrdTransf2d::getLengthGrad(void)
   if (nodeParameterI != 0 || nodeParameterJ != 0) {
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
-      opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+      opserr << "ERROR: Currently a node offset cannot be used in " << "\n"
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     if (nodeParameterI == 1) // here x1 is random
@@ -1401,8 +1402,8 @@ LinearCrdTransf2d::getd1overLdh(void)
   if (nodeParameterI != 0 || nodeParameterJ != 0) {
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
-      opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+      opserr << "ERROR: Currently a node offset cannot be used in " << "\n"
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     if (nodeParameterI == 1) // here x1 is random
@@ -1454,8 +1455,8 @@ LinearCrdTransf2d::getBasicDisplFixedGrad()
   if (nodeParameterID(0) != 0 || nodeParameterID(1) != 0) {
 
     if (nodeIOffset != 0 || nodeJOffset != 0) {
-      opserr << "ERROR: Currently a node offset cannot be used in " << endln
-             << " conjunction with random nodal coordinates." << endln;
+      opserr << "ERROR: Currently a node offset cannot be used in " << "\n"
+             << " conjunction with random nodal coordinates." << "\n";
     }
 
     double dcosdh = 0.0, dsindh = 0.0, dsldh = 0.0, dcldh = 0.0;

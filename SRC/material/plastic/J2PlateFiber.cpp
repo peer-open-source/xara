@@ -114,8 +114,9 @@ int J2PlateFiber :: getOrder( ) const
   return 5 ; 
 } 
 
-//get the strain and integrate plasticity equations
-int J2PlateFiber :: setTrialStrain( const Vector &strain_from_element ) 
+
+int
+J2PlateFiber :: setTrialStrain( const Vector &strain_from_element ) 
 {
   const double tolerance = 1e-8 ;
 
@@ -142,41 +143,39 @@ int J2PlateFiber :: setTrialStrain( const Vector &strain_from_element )
 
   strain(2,2) =        eps22 ; 
 
-  //enforce the plane stress condition sigma_22 = 0 
-  //solve for epsilon_22 
+  // enforce the plane stress condition sigma_22 = 0 
+  // solve for epsilon_22 
   iteration_counter = 0 ;  
   do {
 
-     this->plastic_integrator( ) ;
+     this->plastic_integrator( );
     
-     strain(2,2) -= stress(2,2) / tangent[2][2][2][2] ;
-
-     //opserr << stress(2,2) << endln ;
+     strain(2,2) -= stress(2,2) / tangent[2][2][2][2];
 
      iteration_counter++ ;
      if ( iteration_counter > max_iterations ) {
        opserr << "More than " << max_iterations ;
        opserr << " iterations in setTrialStrain of J2PlateFiber \n" ;
        break ;
-     }// end if 
+     }
 
   } while ( fabs(stress(2,2)) > tolerance ) ;
 
   //modify tangent for plane stress 
-  for ( ii = 0; ii < 5; ii++ ) {
-    for ( jj = 0; jj < 5; jj++ )  {
+  for (int ii = 0; ii < 5; ii++ ) {
+    for (int jj = 0; jj < 5; jj++ )  {
 
-          index_map( ii, i, j ) ;
-          index_map( jj, k, l ) ;
+      index_map( ii, i, j ) ;
+      index_map( jj, k, l ) ;
 
-          tangent[i][j][k][l] -=   tangent[i][j][2][2] 
-                                 * tangent[2][2][k][l] 
-                                 / tangent[2][2][2][2] ;
+      tangent[i][j][k][l] -=   tangent[i][j][2][2] 
+                              * tangent[2][2][k][l] 
+                              / tangent[2][2][2][2] ;
 
-          //minor symmetries 
-          tangent [j][i][k][l] = tangent[i][j][k][l] ;
-          tangent [i][j][l][k] = tangent[i][j][k][l] ;
-          tangent [j][i][l][k] = tangent[i][j][k][l] ;
+      //minor symmetries 
+      tangent [j][i][k][l] = tangent[i][j][k][l] ;
+      tangent [i][j][l][k] = tangent[i][j][k][l] ;
+      tangent [j][i][l][k] = tangent[i][j][k][l] ;
 
     } // end for jj
   } // end for ii 
@@ -186,9 +185,10 @@ int J2PlateFiber :: setTrialStrain( const Vector &strain_from_element )
 
 
 
-int J2PlateFiber :: setTrialStrainIncr( const Vector &v ) 
+int 
+J2PlateFiber :: setTrialStrainIncr( const Vector &v ) 
 {
-    return -1 ;
+  return -1 ;
 }
 
 

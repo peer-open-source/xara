@@ -1,9 +1,19 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
 //
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+// Claudio M. Perez
 // Adapted from CircPatch.h
 // Written by Remo M. de Souza
 // December 1998
@@ -11,15 +21,15 @@
 #ifndef CircPatch_h
 #define CircPatch_h
 
-#include <Patch.h>
+#include "FiberPatch.h"
 #include <Vector.h>
 #include <VectorND.h>
-using OpenSees::VectorND;
 
-class Cell;
 class Matrix;
 
-class CircPatch : public Patch {
+namespace OpenSees {
+class FiberCell;
+class CircPatch : public FiberPatch {
 public:
   CircPatch(int material,
             int numSubdivCircunf, int numSubdivRadial,
@@ -31,9 +41,8 @@ public:
 
   int getMaterialID() const;
   int getNumCells() const;
-  Cell** getCells() const;
+  FiberCell** getCells() const;
 
-protected:
 private:
   int matID;
   int nDivCirc, nDivRad;
@@ -41,5 +50,5 @@ private:
   double intRad, extRad;
   double initAng, finalAng;
 };
-
+} // namespace OpenSees
 #endif

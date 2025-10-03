@@ -233,7 +233,7 @@ double StainlessECThermal::determineYieldSurface(double sigini)  // Added by Mia
 		epsini = sigini / E0T;
 	}
 
-	else if (fabsSigini = fyT)
+	else if (fabsSigini == fyT)
 	{
 		if (sigini > 0)   // positive/tensile initial stress
 		{
@@ -391,7 +391,7 @@ void StainlessECThermal::determineTrialState (double dStrain)
 //#endif
    	if(Tloading == 1)
 	{
-	  Tstress = Tstress;
+	  ;//   Tstress = Tstress;
 	}
 	else if(Tloading ==-1) // this needs to get changed, as the stress-strain relation is based on Ulitmate stensile strength Fu
 	{

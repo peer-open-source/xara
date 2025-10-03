@@ -17,36 +17,48 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-//
-// File: ReinfLayer.h
-// Written by Remo M. de Souza
-// December 1998
-//
-#ifndef ReinfLayer_h
-#define ReinfLayer_h
 
-#include <vector>
-#include <Cell.h>
+#ifndef SymmGeneralizedEigenSOE_h
+#define SymmGeneralizedEigenSOE_h
 
-class ReinfLayer {
+#include <EigenSOE.h>
+
+class Vector;
+class AnalysisModel;
+class SymmGeneralizedEigenSolver;
+
+
+class SymmGeneralizedEigenSOE : public EigenSOE
+{
 public:
-  ReinfLayer(int material, double area) : material(material), area(area) {}
-  virtual ~ReinfLayer() {};
+    SymmGeneralizedEigenSOE(SymmGeneralizedEigenSolver &, AnalysisModel &);
 
-  int getMaterialID() const {
-    return material;
-  };
+    virtual ~SymmGeneralizedEigenSOE();
 
-  virtual int getNumReinfBars() const = 0;
-  virtual std::vector<Cell> getReinfBars() const = 0;
+    virtual int getNumEqn() const;
+    virtual int setSize(Graph &);
+
+    virtual int addA(const Matrix &, const ID &, double fact = 1.0);
+    virtual int addM(const Matrix &, const ID &, double fact = 1.0);    
+
+    virtual void zeroA();
+    virtual void zeroM();
+
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
+    friend class SymmGeneralizedEigenSolver;
 
 protected:
-  double getCellArea() const {
-    return area;
-  };
+
 private:
-  int material;
-  double area;
+    int size;
+    double *A;
+    int Asize;
+    double *M;
+    int Msize;
+    bool factored;
+    AnalysisModel *theModel;
 };
 
 #endif

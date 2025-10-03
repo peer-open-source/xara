@@ -34,9 +34,9 @@
 //
 // What: "@(#) Timer.h, revA"
 
-#include<Timer.h>
+#include <Timer.h>
+#include <OPS_Stream.h>
 
-#include <stdbool.h>
 
 #ifndef TIMER_USE_MPIWTIME
 
@@ -75,7 +75,7 @@ Timer::~Timer()
 }
 
 void 
-Timer::start(void)
+Timer::start()
 {
 #ifdef TIMER_USE_MPIWTIME
     t1 = MPI_Wtime();
@@ -83,7 +83,7 @@ Timer::start(void)
 #ifdef _WIN32
     SYSTEMTIME st;
     GetSystemTime(&st);
-    opserr << "Timer::start (hr:min:millisec): " << (int)st.wHour << ":" << (int)st.wMinute << ":" << (int)st.wMilliseconds << endln;
+    opserr << "Timer::start (hr:min:millisec): " << (int)st.wHour << ":" << (int)st.wMinute << ":" << (int)st.wMilliseconds << "\n";
 #else // NOT _WIN_32
     t1 = times(&tmsstart);
     getrusage(0,r1us);
@@ -101,7 +101,7 @@ Timer::pause(void)
     // fill in later
         SYSTEMTIME st;
     GetSystemTime(&st);
-    opserr << "Timer::stop (hr:min:millisec): " << (int)st.wHour << ":" << (int)st.wMinute << ":" << (int)st.wMilliseconds << endln;
+    opserr << "Timer::stop (hr:min:millisec): " << (int)st.wHour << ":" << (int)st.wMinute << ":" << (int)st.wMilliseconds << "\n";
 #else // Not _WIN32
     t2 = times(&tmsend);
     getrusage(0,r2us);    
@@ -167,7 +167,7 @@ void
 Timer::Print(OPS_Stream &s) const
 {
 #ifdef TIMER_USE_MPIWTIME
-    s << "TIME(sec) Real: " << getReal() << endln;
+    s << "TIME(sec) Real: " << getReal() << "\n";
 #else //TIMER_USE_MPIWTIME
 #ifdef _WIN32
     // fill in later
@@ -176,9 +176,9 @@ Timer::Print(OPS_Stream &s) const
     double Real = (t2-t1)/(double) clktck;
     double CPU  = (tmsend.tms_utime - tmsstart.tms_utime)/(double) clktck;
     double System  = (tmsend.tms_stime - tmsstart.tms_stime)/(double) clktck;
-    s << endln;
+    s << "\n";
     s << "TIME(sec) Real: " << Real << "  CPU: " << CPU;
-    s << "   System: " << System << endln;
+    s << "   System: " << System << "\n";
 
     int r2no = r2us->ru_minflt;
     int r2yes = r2us->ru_majflt;
@@ -204,8 +204,8 @@ Timer::Print(OPS_Stream &s) const
     r1no = r1us->ru_nswap;
     r2yes = r2us->ru_maxrss;
     
-    s << "Swapped: " << r2no-r1no << " Max Res Set Size: " << r2yes << endln;
-    s << endln;
+    s << "Swapped: " << r2no-r1no << " Max Res Set Size: " << r2yes << "\n";
+    s << "\n";
 #endif    //_WIN32
 #endif    //TIMER_USE_MPIWTIME
 }    

@@ -967,7 +967,7 @@ const Vector &
 CorotCrdTransf3d::getBasicTrialVel(void)
 {
   opserr << "WARNING CorotCrdTransf3d::getBasicTrialVel()"
-         << " - has not been implemented yet. Returning zeros." << endln;
+         << " - has not been implemented yet. Returning zeros." << "\n";
 
   static Vector dummy(6);
   return dummy;
@@ -977,7 +977,7 @@ const Vector &
 CorotCrdTransf3d::getBasicTrialAccel(void)
 {
   opserr << "WARNING CorotCrdTransf3d::getBasicTrialAccel()"
-         << " - has not been implemented yet. Returning zeros." << endln;
+         << " - has not been implemented yet. Returning zeros." << "\n";
 
   static Vector dummy(6);
   return dummy;
@@ -1347,7 +1347,7 @@ CorotCrdTransf3d::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
 
   if (L == 0.0) {
     opserr << "\nCorotCrdTransf3d::getLocalAxes transfTag = " << this->getTag();
-    opserr << "\nelement has zero length" << endln;
+    opserr << "\nelement has zero length" << "\n";
     return -2;
   }
 
@@ -1370,7 +1370,7 @@ CorotCrdTransf3d::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
 
   if (ynorm == 0) {
     opserr << "\nCorotCrdTransf3d::getLocalAxes transfTag = " << this->getTag();
-    opserr << "\nvector v that defines plane xz is parallel to x axis" << endln;
+    opserr << "\nvector v that defines plane xz is parallel to x axis" << "\n";
     return -3;
   }
 
@@ -1631,7 +1631,7 @@ CorotCrdTransf3d::getLMatrix(const Vector &ri) const
 
   rie1 = ri ^ e1;
 
-  //opserr << "rie1: " << rie1 << endln;
+  //opserr << "rie1: " << rie1 << "\n";
 
   for (k = 0; k < 3; k++) {
     e1r1k = (e1(k) + r1(k));

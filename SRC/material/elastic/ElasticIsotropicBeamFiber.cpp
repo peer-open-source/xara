@@ -27,21 +27,24 @@
 #include <ElasticIsotropicBeamFiber.h>           
 #include <Channel.h>
 #include <string.h>
+#include <cassert>
+using namespace OpenSees;
 
-Vector ElasticIsotropicBeamFiber::sigma(3);
 Matrix ElasticIsotropicBeamFiber::D(3,3);
 
 ElasticIsotropicBeamFiber::ElasticIsotropicBeamFiber
 (int tag, double E, double nu, double rho):
   ElasticIsotropicMaterial (tag, ND_TAG_ElasticIsotropicBeamFiber, E, nu, rho),
-  Tepsilon(3)
+  Tepsilon(),
+  retStrain(Tepsilon)
 {
 
 }
 
 ElasticIsotropicBeamFiber::ElasticIsotropicBeamFiber():
   ElasticIsotropicMaterial (0, ND_TAG_ElasticIsotropicBeamFiber, 0.0, 0.0),
-  Tepsilon(3)
+  Tepsilon(),
+  retStrain(Tepsilon)
 {
 
 }
@@ -54,7 +57,10 @@ ElasticIsotropicBeamFiber::~ElasticIsotropicBeamFiber ()
 int
 ElasticIsotropicBeamFiber::setTrialStrain(const Vector &strain)
 {
-  Tepsilon = strain;
+  assert(strain.Size() == 3);
+
+  for (int i=0; i<3; i++)
+    Tepsilon[i] = strain(i);
 
   return 0;
 }
@@ -62,7 +68,9 @@ ElasticIsotropicBeamFiber::setTrialStrain(const Vector &strain)
 int
 ElasticIsotropicBeamFiber::setTrialStrain(const Vector &strain, const Vector &rate)
 {
-  Tepsilon = strain;
+  assert(strain.Size() == 3);
+  for (int i=0; i<3; i++)
+    Tepsilon[i] = strain(i);
 
   return 0;
 }
@@ -82,12 +90,11 @@ ElasticIsotropicBeamFiber::setTrialStrainIncr(const Vector &strain, const Vector
 const Matrix&
 ElasticIsotropicBeamFiber::getTangent()
 {
-  double mu = 0.5*E/(1.0+v);
+  const double G = 0.5*E/(1.0 + v);
 
   D(0,0) = E;
-  D(1,1) = mu;
-  D(2,2) = mu;
-  
+  D(1,1) = G;
+  D(2,2) = G;
   return D;
 }
 
@@ -107,7 +114,8 @@ const Vector&
 ElasticIsotropicBeamFiber::getStress()
 {
   double mu = 0.5*E/(1.0+v);
-
+  
+  static Vector sigma(3);
   sigma(0) =  E*Tepsilon(0);
   sigma(1) = mu*Tepsilon(1);
   sigma(2) = mu*Tepsilon(2);
@@ -116,28 +124,29 @@ ElasticIsotropicBeamFiber::getStress()
 }
 
 const Vector&
-ElasticIsotropicBeamFiber::getStrain ()
+ElasticIsotropicBeamFiber::getStrain()
 {
-  return Tepsilon;
+  return retStrain;
 }
 
 int
-ElasticIsotropicBeamFiber::commitState ()
+ElasticIsotropicBeamFiber::commitState()
 {
   return 0;
 }
 
 int
-ElasticIsotropicBeamFiber::revertToLastCommit (void)
+ElasticIsotropicBeamFiber::revertToLastCommit()
 {
   return 0;
 }
 
 int
-ElasticIsotropicBeamFiber::revertToStart ()
+ElasticIsotropicBeamFiber::revertToStart()
 {
   return 0;
 }
+
 
 NDMaterial*
 ElasticIsotropicBeamFiber::getCopy()
@@ -163,6 +172,7 @@ ElasticIsotropicBeamFiber::getOrder() const
 const Vector&
 ElasticIsotropicBeamFiber::getStressSensitivity(int gradIndex, bool conditional)
 {
+  static Vector sigma(3);
   sigma(0) = 0.0;
   sigma(1) = 0.0;
   sigma(2) = 0.0;
@@ -170,7 +180,6 @@ ElasticIsotropicBeamFiber::getStressSensitivity(int gradIndex, bool conditional)
   if (parameterID == 1) { // E
     //double mu = 0.5*E/(1.0+v);
     double dmudE = 0.5/(1.0+v);
-
     sigma(0) = Tepsilon(0);
     sigma(1) = dmudE*Tepsilon(1);
     sigma(2) = dmudE*Tepsilon(2);
