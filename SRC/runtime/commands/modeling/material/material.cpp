@@ -56,7 +56,8 @@ TclCommand_addMaterial(ClientData clientData, Tcl_Interp* interp,
     {"J2",                        TclCommand_newPlasticMaterial},
     {"J2Simplified",              TclCommand_newPlasticMaterial},
     {"J2BeamFiber",               TclCommand_newPlasticMaterial},
-    {"GeneralizedJ2",             TclCommand_newPlasticMaterial}
+    {"GeneralizedJ2",             TclCommand_newPlasticMaterial},
+    {"NonlinearJ2",               TclCommand_newPlasticMaterial}
   };
 
 
@@ -66,7 +67,6 @@ TclCommand_addMaterial(ClientData clientData, Tcl_Interp* interp,
            << "\n";
     return TCL_ERROR;
   }
-
 
   auto cmd = MaterialLibrary.find(std::string(argv[1]));
   if (cmd != MaterialLibrary.end())
