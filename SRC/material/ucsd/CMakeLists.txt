@@ -1,10 +1,16 @@
 # cmake_minimum_required(VERSION 3.24)
 # project(UCSD)
+
 add_subdirectory(nDarray)
 
 add_library(UCSD_FiniteDeformation)
-target_include_directories(UCSD_FiniteDeformation PRIVATE "${CMAKE_CURRENT_LIST_DIR}/nDarray/")
+target_include_directories(UCSD_FiniteDeformation 
+  PUBLIC "${CMAKE_CURRENT_LIST_DIR}/nDarray/" ${OPS_Includes}
+)
 
+target_link_libraries(UCSD_FiniteDeformation
+  PUBLIC UCSD_Array OPS_Material
+)
 add_subdirectory(FiniteDeformation)
 add_subdirectory(NewTemplate3Dep)
 
