@@ -15,6 +15,20 @@
 //
 // This element is adapted from TimoshenkoBeamColumn3d
 //
+// Shear deformations are included following the approach by Mazars et al. [1,2]
+// where shear is accounted for by modifying the shape functions according to the
+// initial stiffness. This is not ideal.
+//
+// [1] Mazars, J., P. Kotronis, F. Ragueneau, and G. Casaux. 
+//     “Using Multifiber Beams to Account for Shear and Torsion.” 
+//     Computer Methods in Applied Mechanics and Engineering 195, no. 52 (2006): 7264–81. 
+//     https://doi.org/10.1016/j.cma.2005.05.053.
+//
+// [2] Kotronis, P., and Mazars, P. 
+//     “Simplified Modelling Strategies To Simulate The Dynamic Behaviour Of R/C Walls.” 
+//     Journal of Earthquake Engineering 9, no. 2 (2005): 285–306. 
+//     https://doi.org/10.1080/13632460509350543.
+//
 // Written: CMP, MHS
 // Created: Feb 2001
 //
@@ -65,7 +79,6 @@ CubicFrame3d<shear,nwm>::CubicFrame3d(int tag,
    loads(nullptr),
    parameterID(0)
 {
-  // Allocate arrays of pointers to SectionForceDeformations
   theSections = new FrameSection*[numSections];
 
   for (int i = 0; i < numSections; i++) {
@@ -73,7 +86,6 @@ CubicFrame3d<shear,nwm>::CubicFrame3d(int tag,
   }
 
   beamInt = bi.getCopy();
-
 
   theCoordTransf = coordTransf.getCopy3d();
 
@@ -192,6 +204,7 @@ CubicFrame3d<shear,nwm>::setDomain(Domain* theDomain)
   if (L == 0.0)
     return;
 
+  // set modification factors for shear [1,2]
   for (int i = 0; i < numSections; i++) {
     const Matrix& ks0 = theSections[i]->getInitialTangent();
     const ID& code    = theSections[i]->getType();
@@ -624,6 +637,7 @@ CubicFrame3d<shear,nwm>::getInitialStiff()
 
   return theCoordTransf->getInitialGlobalStiffMatrix(kb);
 }
+
 
 template <bool shear, int nwm>
 const Matrix&
