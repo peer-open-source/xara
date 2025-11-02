@@ -165,6 +165,7 @@ jobs:
             -DCMAKE_Fortran_COMPILER="%CONDA_PREFIX%\Library\bin\ifx.exe" ^
             -DCMAKE_REQUIRED_INCLUDES="%IFX_INC%" ^
             -DBLA_VENDOR=Intel10_64_dyn ^
+            -DCMAKE_TOOLCHAIN_FILE:FILEPATH="ifx_toolchain.cmake" ^
             -DMKLROOT="%MKLROOT%" -DMKL_ROOT="%MKLROOT%"
 
 #   steps:
