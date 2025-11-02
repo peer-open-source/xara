@@ -41,7 +41,7 @@ class OPS_Stream;
 namespace OpenSees {
   template<int n, typename T> struct VectorND;
   template<int, int, typename T> struct MatrixND;
-};
+}
 
 // #define NO_STATIC_WORK
 

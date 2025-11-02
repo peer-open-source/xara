@@ -43,7 +43,6 @@
 #include <Node.h>
 #include <NodeIter.h>
 #include <ConstraintHandler.h>
-#include <Flag.h>
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -63,10 +62,9 @@
 
 AnalysisModel::AnalysisModel()
 : MovableObject(AnaMODEL_TAGS_AnalysisModel),
-  myDomain(0), myHandler(0),
-  myDOFGraph(0), myGroupGraph(0),
-  numFE_Ele(0), numDOF_Grp(0), numEqn(0)
-
+  myDomain(nullptr), myHandler(nullptr),
+  myDOFGraph(0), myGroupGraph(0)
+ , numFE_Ele(0), numDOF_Grp(0), numEqn(0)
  , eigenVectors(0), eigenValues(0), dampingForces(0)
  , isDiagonal(false),diagMass(0)
 {
@@ -119,7 +117,7 @@ AnalysisModel::addFE_Element(FE_Element *theElement)
   // check we don't add a null pointer or this is a subclass
   // trying to use this method when it shouldn't
   if (theElement == 0 || theFEs == 0)
-      return false;
+    return false;
 
   // check if an Element with a similar tag already exists in the Domain
   int tag = theElement->getTag();
@@ -139,7 +137,6 @@ AnalysisModel::addFE_Element(FE_Element *theElement)
   } else
     return false;
 
-
   return result;
 }
 
@@ -152,13 +149,13 @@ AnalysisModel::addDOF_Group(DOF_Group *theGroup)
   // to use a method it shouldn't be using
   if (theGroup == 0 || theDOFs == 0)
       return false;
-  
 
   // check if an Element with a similar tag already exists in the Domain
   int tag = theGroup->getTag();
   TaggedObject *other = theDOFs->getComponentPtr(tag);
-  if (other != 0) {
-    opserr << "AnalysisModel::addDOF_Group - group with tag " << tag << "already exists in model\n"; 
+  if (other != nullptr) {
+    opserr << "AnalysisModel::addDOF_Group - group with tag "
+           << tag << " already exists in model\n"; 
     return false;
   }
 
@@ -171,25 +168,35 @@ AnalysisModel::addDOF_Group(DOF_Group *theGroup)
     return false;
 }
 
+
 void
 AnalysisModel::clearAll() 
 {
   // if the graphs have been constructed delete them
-  if (myDOFGraph != 0)
-    delete myDOFGraph;
+  this->clearDOFGroupGraph();
 
-  if (myGroupGraph != 0)
-    delete myGroupGraph;    
+  this->clearDOFGraph(); 
 
   theFEs->clearAll();
   theDOFs->clearAll();
-
-  myDOFGraph = 0;
-  myGroupGraph = 0;
   
   numFE_Ele =0;
   numDOF_Grp = 0;
-  numEqn = 0;    
+  numEqn = 0;
+
+  if (myHandler != nullptr)
+    myHandler->clearAll();
+
+  
+  // for the nodes reset the DOF_Group pointers to 0
+  Domain *theDomain = this->getDomainPtr();
+  if (theDomain == nullptr)
+    return;
+  
+  NodeIter &theNod = theDomain->getNodes();
+  Node *nodPtr;
+  while ((nodPtr = theNod()) != nullptr)
+    nodPtr->setDOF_GroupPtr(nullptr);
 }
 
 void
@@ -214,7 +221,7 @@ AnalysisModel::clearDOFGroupGraph()
 
 
 int
-AnalysisModel::getNumDOF_Groups(void) const
+AnalysisModel::getNumDOF_Groups() const
 {
   return numDOF_Grp;
 }
@@ -249,18 +256,18 @@ AnalysisModel::getDOFs()
 void 
 AnalysisModel::setNumEqn(int theNumEqn)
 {
-    numEqn = theNumEqn;
+  numEqn = theNumEqn;
 }
 
 int 
-AnalysisModel::getNumEqn(void) const
+AnalysisModel::getNumEqn() const
 {
     return numEqn;
 }
 
 
 Graph &
-AnalysisModel::getDOFGraph(void)
+AnalysisModel::getDOFGraph()
 {
   if (myDOFGraph == 0) {
     // int numVertex = this->getNumDOF_Groups();
@@ -497,11 +504,12 @@ AnalysisModel::incrDisp(const Vector &disp)
 void 
 AnalysisModel::incrVel(const Vector &vel)
 {
-    DOF_GrpIter &theDOFGrps = this->getDOFs();
-    DOF_Group         *dofPtr;    
-    while ((dofPtr = theDOFGrps()) != nullptr)
-        dofPtr->incrNodeVel(vel);
+  DOF_GrpIter &theDOFGrps = this->getDOFs();
+  DOF_Group         *dofPtr;    
+  while ((dofPtr = theDOFGrps()) != nullptr)
+      dofPtr->incrNodeVel(vel);
 }
+
 
 #if 0
 void 
@@ -566,18 +574,18 @@ AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
     
     const Vector &vel = dofPtr->getCommittedVel();
     for (int i=0; i < idSize; i++)  {
-        int loc = id(i);
-        if (loc >= 0)  {
-          Udot(loc) = vel(i);
-        }
+      int loc = id(i);
+      if (loc >= 0)  {
+        Udot(loc) = vel(i);
+      }
     }
     
     const Vector &accel = dofPtr->getCommittedAccel();
     for (int i=0; i < idSize; i++)  {
-        int loc = id(i);
-        if (loc >= 0)  {
-          Udotdot(loc) = accel(i);
-        }
+      int loc = id(i);
+      if (loc >= 0)  {
+        Udotdot(loc) = accel(i);
+      }
     }
   }
 
@@ -832,7 +840,7 @@ AnalysisModel::setNumEigenvectors(int numEigenvectors)
 void 
 AnalysisModel::setEigenvalues(const Vector &eigenvalues)
 {
-    myDomain->setEigenvalues(eigenvalues);
+  myDomain->setEigenvalues(eigenvalues);
 }        
 
 
@@ -864,7 +872,7 @@ AnalysisModel::setEigenvector(int mode, const Vector &eigenvalue)
   DOF_Group         *dofPtr;
   
   while ((dofPtr = theDOFGrps()) != nullptr) 
-      dofPtr->setEigenvector(mode, eigenvalue);        
+    dofPtr->setEigenvector(mode, eigenvalue);        
 }        
 
 
@@ -947,18 +955,10 @@ AnalysisModel::commitDomain()
     return -2;
   }
 
-  return OpenSees::Flag::Success;
+  return 0;
 }
 
 # if 0
-int
-AnalysisModel::eigenAnalysis(int numMode, bool generalized, bool findSmallest)
-{
-  assert(myDomain != nullptr);
-  // invoke the method
-  return myDomain->eigenAnalysis(numMode, generalized, findSmallest);
-}
-
 int
 AnalysisModel::revertDomainToLastCommit()
 {
@@ -970,7 +970,7 @@ AnalysisModel::revertDomainToLastCommit()
     opserr << " Domain::revertToLastCommit() failed.\n";
     return -2;
   }
-  return OpenSees::Flag::Success;
+  return 0;
 }
 #endif
 
@@ -1012,13 +1012,13 @@ AnalysisModel::getDomainPtr() const
 int
 AnalysisModel::sendSelf(int cTag, Channel &theChannel)
 {
-  return OpenSees::Flag::Success;
+  return 0;
 }
 
 
 int
 AnalysisModel::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker) 
 {
-  return OpenSees::Flag::Success;
+  return 0;
 }
 

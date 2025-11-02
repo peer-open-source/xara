@@ -341,7 +341,7 @@ SymmGeneralizedEigenSolver::getEigenvector(int mode)
     int size = theSOE->size;
     int index = size*sortingID[mode-1];
     
-    if (eigenvector != 0) {
+    if (eigenvector != nullptr) {
         for (int i=0; i<size; i++) {
             (*eigenV)[i] = eigenvector[index++];
         }        
@@ -350,9 +350,7 @@ SymmGeneralizedEigenSolver::getEigenvector(int mode)
         opserr << "SymmGeneralizedEigenSolver::getEigenvector() - "
             << "eigenvectors not computed yet\n";
         eigenV->Zero();
-    }      
-
-    //opserr << "EIGEN VECTOR: " << *eigenV;
+    }
     
     return *eigenV;
     
@@ -396,23 +394,24 @@ void SymmGeneralizedEigenSolver::sort(int length, double *x, int *id)
 {
     // this is an implementation of shell sort that
     // additionally keeps track of the sorting order
-  
+
     int flag = 1;
     int d = length;
-    int i, idTmp;
-    double xTmp;
     
     while (flag || d>1) {
         flag = 0;
         d = (d+1)/2;
-        for (i=0; i<(length-d); i++) {
+        for (int i=0; i<(length-d); i++) {
             if (x[i+d] < x[i]) {
                 // swap items at positions i+d and d
-                    xTmp = x[i+d];  idTmp = id[i+d]; 
-                    x[i+d] = x[i];  id[i+d] = id[i]; 
-                    x[i] = xTmp;    id[i] = idTmp; 
-                    // indicate that a swap has occurred
-                    flag = 1;
+                double xTmp = x[i+d];
+                int idTmp = id[i+d]; 
+                x[i+d] = x[i];
+                id[i+d] = id[i]; 
+                x[i] = xTmp;
+                id[i] = idTmp; 
+                // indicate that a swap has occurred
+                flag = 1;
             }
         }
     }

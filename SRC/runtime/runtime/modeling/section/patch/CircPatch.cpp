@@ -1,8 +1,19 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+// Claudio M. Perez
 //
 // Adapted from CircPatch.C
 // Written by Remo M. de Souza
@@ -11,10 +22,11 @@
 #include <CircPatch.h>
 #include <CircSectionCell.h>
 #include <Matrix.h>
-#include <OPS_Stream.h>
-#include <Patch.h>
-#include <math.h>
+#include <FiberPatch.h>
+#include <cmath>
 #include <string>
+
+using namespace OpenSees;
 
 CircPatch::CircPatch(int materialID, int numSubdivCircunf, int numSubdivRadial,
                      const VectorND<2>& centerPosition, double internRadius, double externRadius,
@@ -44,7 +56,7 @@ CircPatch::getNumCells() const
   return nDivCirc * nDivRad;
 }
 
-Cell**
+FiberCell**
 CircPatch::getCells() const
 {
   double pi = acos(-1.0);
@@ -54,12 +66,12 @@ CircPatch::getCells() const
   Matrix cellVertCoord(4, 2);
 
   int numCells;
-  Cell** cells;
+  FiberCell** cells;
 
   if (nDivRad > 0 && nDivCirc > 0) {
     numCells = this->getNumCells();
 
-    cells = new Cell*[numCells];
+    cells = new FiberCell*[numCells];
 
     initAngRadians  = pi * initAng / 180.0;
     finalAngRadians = pi * finalAng / 180.0;

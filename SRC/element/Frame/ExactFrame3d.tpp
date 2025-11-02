@@ -49,7 +49,6 @@
 //
 #include <cstddef>
 #include <ExactFrame3d.h>
-#include <Flag.h>
 #include <Node.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -140,7 +139,7 @@ ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
   for (int i = 0; i < nip; i++) {
     pres[i].point    = 0.0;
     pres[i].weight   = 0.0;
-    pres[i].material = section[i]->getFrameCopy();//(scheme);
+    pres[i].material = section[i]->getFrameCopy();
   }
 }
 
@@ -417,7 +416,7 @@ ExactFrame3d<nen,nwm>::update()
 #endif
     }
   }
-  return OpenSees::Flag::Success;
+  return 0;
 }
 
 

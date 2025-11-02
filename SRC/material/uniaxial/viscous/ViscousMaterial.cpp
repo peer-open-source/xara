@@ -29,7 +29,7 @@
 // Description: This file contains the class implementation for 
 // ViscousMaterial. 
 
-#include <math.h>
+#include <cmath>
 #include "ViscousMaterial.h"
 #include <Vector.h>
 #include <Channel.h>
@@ -37,9 +37,9 @@
 #include <Parameter.h>
 #include <string.h>
 
-#include <OPS_Globals.h>
+#include <Logging.h>
 
-
+#if 1
 #include <elementAPI.h>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
@@ -78,7 +78,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousMaterial)
 
   return theMaterial;
 }
-
+#endif
 
 ViscousMaterial::ViscousMaterial(int tag, double c, double a, double minV)
 :UniaxialMaterial(tag,MAT_TAG_Viscous),
@@ -89,7 +89,7 @@ ViscousMaterial::ViscousMaterial(int tag, double c, double a, double minV)
       Alpha = 1.0;
     }
     
-    minVel = fabs(minVel);
+    minVel = std::fabs(minVel);
     if (minVel == 0.0) {
       opserr << "ViscousMaterial::ViscousMaterial -- minVel == 0.0, setting to 1.0e-21\n";
       minVel = 1.0e-21;
@@ -118,17 +118,17 @@ ViscousMaterial::setTrialStrain(double strain, double strainRate)
 }
 
 double 
-ViscousMaterial::getStress(void)
+ViscousMaterial::getStress()
 {
     double stress = 0.0;
-    double absRate = fabs(trialRate);
+    double absRate = std::fabs(trialRate);
 
     if (absRate > minVel)
-      stress = C*pow(absRate, Alpha);
+      stress = C*std::pow(absRate, Alpha);
     else
-      stress = C*pow(minVel, Alpha);
+      stress = C*std::pow(minVel, Alpha);
 
-    stress = C*pow(absRate, Alpha);    
+    stress = C*std::pow(absRate, Alpha); // TODO!
 
     if (trialRate < 0.0)
         return -stress;
@@ -137,7 +137,7 @@ ViscousMaterial::getStress(void)
 }
 
 double 
-ViscousMaterial::getTangent(void)
+ViscousMaterial::getTangent()
 {
     return 0.0;
 }

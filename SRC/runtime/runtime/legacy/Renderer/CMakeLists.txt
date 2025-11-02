@@ -17,4 +17,6 @@ target_sources(OPS_Renderer
     Renderer.h
 )
 
-target_include_directories(OPS_Renderer PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(OPS_Renderer
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes}
+)

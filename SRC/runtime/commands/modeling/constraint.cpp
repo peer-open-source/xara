@@ -41,8 +41,9 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
 {
   // fix tag <fixities>
   assert(clientData != nullptr);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
-  Domain *theTclDomain = ((ModelRegistry*)clientData)->getDomain();
+  Domain *theTclDomain = builder->getDomain();
 
   if (argc < 3) {
     opserr << OpenSees::PromptValueError << "Missing required arguments\n";
@@ -100,11 +101,19 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
   for (int i = 0; i < ndf; ++i) {
     int theFixity;
     if (Tcl_GetInt(interp, argv[2 + i], &theFixity) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid fixity " << i + 1 << " - load " << nodeId;
+      opserr << OpenSees::PromptValueError
+             << "invalid fixity " << i + 1
+             << " - load " << nodeId;
       opserr << " " << ndf << " fixities\n";
       return TCL_ERROR;
 
     } else {
+      if (i+1 > builder->getNDF()) {
+        opserr << OpenSees::PromptValueError
+               << "dof " << i + 1 << " not allowed with NDF = "
+               << builder->getNDF() << "\n";
+        continue;
+      }
       if (theFixity != 0) {
         // create a homogeneous constraint
         SP_Constraint *theSP = new SP_Constraint(nodeId, i, 0.0, true, true);

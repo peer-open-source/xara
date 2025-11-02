@@ -59,14 +59,6 @@ static ElementPackageCommand *theElementPackageCommands = nullptr;
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp, int cArg,
                           int mArg, TCL_Char ** const argv, Domain *);
 
-//
-// THE PROTOTYPES OF THE FUNCTIONS INVOKED BY THE INTERPRETER
-//
-
-#if 0 // cmp - commented out to eliminate use of TclBasicBuilder
-extern int Tcl_addWrapperElement(eleObj *, ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv, Domain *, TclBuilder *);
-// Added by Quan Gu and Yongdou Liu, et al. on 2018/10/31 (Xiamen University)
-#endif
 static Tcl_CmdProc TclBasicBuilder_addWheelRail;
 
 

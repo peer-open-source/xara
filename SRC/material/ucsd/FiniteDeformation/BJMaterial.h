@@ -1,0 +1,126 @@
+/* ****************************************************************** **
+**    OpenSees - Open System for Earthquake Engineering Simulation    **
+**          Pacific Earthquake Engineering Research Center            **
+**                                                                    **
+**                                                                    **
+** (C) Copyright 1999, The Regents of the University of California    **
+** All Rights Reserved.                                               **
+**                                                                    **
+** Commercial use of this program without express permission of the   **
+** University of California, Berkeley, is strictly prohibited.  See   **
+** file 'COPYRIGHT'  in main directory for information on usage and   **
+** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
+**                                                                    **
+** Developed by:                                                      **
+**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
+**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
+**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
+**                                                                    **
+**                                                                    **
+** Additions and changes by:                                          **
+**   Boris Jeremic (@ucdavis.edu)                                     **
+**                                                                    **
+** ****************************************************************** */
+//
+// Description: This file contains the class definition for BJMaterial.
+// BJMaterial is an abstract base class and thus no objects of it's type
+// can be instantiated. It has pure virtual functions which must be
+// implemented in it's derived classes.
+//
+// Note: This is an old version of NDMaterial renamed by CMP
+//
+//
+// $Revision: 1.23 $
+// $Date: 2010-09-13 21:29:28 $
+//
+#ifndef BJMaterial_h
+#define BJMaterial_h
+#include <Tensor.h>
+#include <NDMaterial.h>
+//
+class Matrix;
+class ID;
+class Vector;
+class Information;
+class Response;
+
+class BJMaterial : public NDMaterial
+{
+  public:
+    BJMaterial(int tag, int classTag);
+    BJMaterial();
+    virtual ~BJMaterial();
+
+    // methods to set state and retrieve state using Matrix and Vector classes
+    virtual double getRho(void);
+
+    virtual int setTrialStrain(const Vector &v);
+    virtual int setTrialStrain(const Vector &v, const Vector &r);
+    virtual int setTrialStrainIncr(const Vector &v);
+    virtual int setTrialStrainIncr(const Vector &v, const Vector &r);
+    virtual const Matrix &getTangent(void);
+    virtual const Matrix &getInitialTangent(void) {return this->getTangent();};
+
+    virtual const Vector &getStress();
+    virtual const Vector &getStrain();
+
+    // methods to set and retrieve state using the Tensor class
+    virtual int setTrialStrain(const Tensor &v);
+    virtual int setTrialStrain(const Tensor &v, const Tensor &r);
+    virtual int setTrialStrainIncr(const Tensor &v);
+    virtual int setTrialStrainIncr(const Tensor &v, const Tensor &r);
+    virtual const Tensor& getTangentTensor();
+    virtual const stresstensor& getStressTensor();
+    virtual const straintensor& getStrainTensor();
+
+    //Added Joey Aug. 13, 2001
+    virtual const straintensor& getPlasticStrainTensor();
+
+    // added Sept 22 2003 for Large Deformation, F is the Deformation Gradient
+    virtual int setTrialF(const straintensor &f);
+    virtual int setTrialFIncr(const straintensor &df);
+    virtual int setTrialC(const straintensor &c);
+    virtual int setTrialCIncr(const straintensor &dc);
+    virtual const stresstensor& getPK1StressTensor();
+    virtual const stresstensor& getCauchyStressTensor();
+    virtual const straintensor& getF();
+    virtual const straintensor& getC();
+    virtual const straintensor& getFp();
+    // Only For Large Deformation, END////////////////////////////////////////
+
+    virtual int commitState(void) = 0;
+    virtual int revertToLastCommit(void) = 0;
+    virtual int revertToStart(void) = 0;
+
+    virtual NDMaterial *getCopy();
+    virtual BJMaterial *getCopyBJ() = 0;
+
+//    virtual const char *getType(void) const = 0;
+    virtual int getOrder() const {return 0;}  //??
+
+//    virtual Response *setResponse (const char **argv, int argc, 
+//                                   OPS_Stream &s);
+//    virtual int getResponse (int responseID, Information &matInformation);
+
+// AddingSensitivity:BEGIN //////////////////////////////////////////
+    virtual const Vector & getStressSensitivity     (int gradIndex, bool conditional);
+    virtual const Vector & getStrainSensitivity     (int gradIndex);
+    virtual const Matrix & getTangentSensitivity    (int gradIndex);
+    virtual const Matrix & getInitialTangentSensitivity    (int gradIndex);
+    virtual const Matrix & getDampTangentSensitivity(int gradIndex);
+    virtual double         getRhoSensitivity        (int gradIndex);
+    virtual int            commitSensitivity        (Vector & strainGradient, int gradIndex, int numGrads);
+// AddingSensitivity:END ///////////////////////////////////////////
+
+  protected:
+
+  private:
+    static Matrix errMatrix;
+    static Vector errVector;
+    static Tensor errTensor;
+    static stresstensor errstresstensor;
+    static straintensor errstraintensor;
+};
+
+
+#endif

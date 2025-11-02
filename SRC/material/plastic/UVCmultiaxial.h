@@ -25,8 +25,13 @@ class UVCmultiaxial : public NDMaterial {
 public:
    UVCmultiaxial();
   ~UVCmultiaxial();
-  UVCmultiaxial(int tag, double E, double poissonRatio, double sy0, double qInf, double b,
-                double dInf, double a, std::vector<double> cK, std::vector<double> gammaK);
+  UVCmultiaxial(int tag,
+                double E, double poissonRatio, 
+                double sy0, 
+                double qInf, double b,
+                double dInf, double a, 
+                const std::vector<double>& cK, 
+                const std::vector<double>& gammaK);
 
 
   /* ------------------------------------------------------------------------ */

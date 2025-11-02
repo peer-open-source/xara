@@ -13,7 +13,6 @@ LimitCurve *
 Tcl_addWrapperLimitCurve(limCrvObj *theLimCrv, ClientData clientData,
                          Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
-  theInterp = interp;
 
   //  theModelBuilder = builder;
   currentArgv = argv;

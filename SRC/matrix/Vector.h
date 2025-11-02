@@ -71,12 +71,10 @@ class Vector
 
     // utility methods
     int setData(double *newData, int size);
-#if 1
     template <int n>
     inline int setData(OpenSees::VectorND<n, double> v) {
       return setData(&v.values[0], n);
     }
-#endif
     Vector view(int start, int end) const;
     int Assemble(const Vector &V, const ID &l, double fact = 1.0);
     double Norm() const;

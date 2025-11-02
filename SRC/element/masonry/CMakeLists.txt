@@ -25,5 +25,5 @@ if (UNIX)
       APPEND PROPERTY COMPILE_FLAGS "-w"
   )
 endif()
-
+target_link_libraries(OPS_Element_Masonry PRIVATE OPS_Domain OPS_Logging OPS_Recorder)
 target_link_libraries(OPS_Element PRIVATE OPS_Element_Masonry)

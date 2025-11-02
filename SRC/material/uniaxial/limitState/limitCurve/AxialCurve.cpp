@@ -74,18 +74,18 @@ void * OPS_ADD_RUNTIME_VPV(OPS_AxialCurve)
 
     numdata = 1;
     if (OPS_GetIntInput(&numdata, &tag) < 0) {
-	opserr << "WARNING invalid Axial LimitCurve tag" << endln;
-	return 0;
+		opserr << "WARNING invalid Axial LimitCurve tag" << endln;
+		return 0;
     }
     if (OPS_GetIntInput(&numdata, &eleTag) < 0) {
-	opserr << "WARNING invalid element tag for associated beam-column element (eleTag)\n";
-	opserr << "LimitCurve Axial: " << tag << endln;
-	return 0;
+		opserr << "WARNING invalid element tag for associated beam-column element (eleTag)\n";
+		opserr << "LimitCurve Axial: " << tag << endln;
+		return 0;
     }
     if (OPS_GetDoubleInput(&numdata, &Fsw) < 0) {
-	opserr << "WARNING invalid Fsw\n";
-	opserr << "LimitCurve Axial: " << tag << endln;
-	return 0;
+		opserr << "WARNING invalid Fsw\n";
+		opserr << "LimitCurve Axial: " << tag << endln;
+		return 0;
     }
     if (OPS_GetDoubleInput(&numdata, &Kdeg) < 0) {
 	opserr << "WARNING invalid degrading slope Kdeg\n";

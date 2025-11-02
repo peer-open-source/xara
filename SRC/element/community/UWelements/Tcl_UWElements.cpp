@@ -234,7 +234,6 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
     return TCL_ERROR;
   }
 
-#if 1
   int argi = 1;
   if (Tcl_GetInt(interp, argv[++argi], &tag) != TCL_OK) {   // 2
     opserr << "WARNING invalid SSPquad eleTag" << endln;
@@ -242,31 +241,26 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
   }
   if (Tcl_GetInt(interp, argv[++argi], &iNode) != TCL_OK) { // 3
     opserr << "WARNING invalid iNode\n";
-    opserr << "SSPquad element: " << tag << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[++argi], &jNode) != TCL_OK) { // 4
     opserr << "WARNING invalid jNode\n";
-    opserr << "SSPquad element: " << tag << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[++argi], &kNode) != TCL_OK) {
     opserr << "WARNING invalid kNode\n";
-    opserr << "SSPquad element: " << tag << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[++argi], &lNode) != TCL_OK) {
     opserr << "WARNING invalid lNode\n";
-    opserr << "SSPquad element: " << tag << endln;
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[++argi], &thickness) != TCL_OK) { // 7
     opserr << "WARNING invalid thickness\n";
-    opserr << "SSPquad element: " << tag << endln;
     return TCL_ERROR;
   }
 
@@ -274,7 +268,6 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
 
   if (Tcl_GetInt(interp, argv[++argi], &matID) != TCL_OK) {
     opserr << "WARNING invalid matID\n";
-    opserr << "SSPquad element: " << tag << endln;
     return TCL_ERROR;
   }
 
@@ -296,67 +289,17 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
     return TCL_ERROR;
 
 
-  Element *theElem =
-      new SSPquad(tag, iNode, jNode, kNode, lNode, *theMaterial,
-                       type, thickness, b1, b2);
+  Element *theElem = nullptr;
+      // new SSPquad(tag, iNode, jNode, kNode, lNode, *theMaterial,
+      //                  type, thickness, b1, b2);
 
   if (builder->getDomain()->addElement(theElem) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "FourNodeQuad element: " << tag << endln;
     delete theElem;
     return TCL_ERROR;
   }
 
   return TCL_OK;
-#else
-  int iData[6];
-  const char *theType;
-  double dData[3] = {1.0, 0.0, 0.0};
-
-  int numData = 6;
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer data: element SSPquad " << iData[0]
-           << endln;
-    return 0;
-  }
-
-  theType = OPS_GetString();
-
-  numData = 1;
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "WARNING invalid thickness data: element SSPquad " << iData[0]
-           << endln;
-    return 0;
-  }
-
-  int matID = iData[5];
-  NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-
-  if (theMaterial == 0) {
-    opserr << "WARNING element SSPquad " << iData[0] << endln;
-    opserr << " Material: " << matID << "not found\n";
-    return 0;
-  }
-
-  if (argc == 10) {
-    numData = 2;
-    if (OPS_GetDoubleInput(&numData, &dData[1]) != 0) {
-      opserr << "WARNING invalid optional data: element SSPquad " << iData[0]
-             << endln;
-      return 0;
-    }
-  }
-
-  // parsing was successful, allocate the element
-  theElement = new SSPquad(iData[0], iData[1], iData[2], iData[3], iData[4],
-                           *theMaterial, theType, dData[0], dData[1], dData[2]);
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type SSPquad\n";
-    return 0;
-  }
-  return theElement;
-#endif
 }
 
 static Element*

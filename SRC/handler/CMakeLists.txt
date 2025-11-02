@@ -32,7 +32,9 @@ target_sources(OPS_Handler
     ChannelStream.h
 )
 
-target_include_directories(OPS_Handler PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(OPS_Handler
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes}
+)
 
 target_link_libraries(OPS_Handler PRIVATE OPS_Actor OPS_Logging)
 

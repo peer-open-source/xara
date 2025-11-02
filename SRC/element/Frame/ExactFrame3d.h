@@ -18,7 +18,6 @@
 #pragma once
 #include <set>
 #include <array>
-#include <Flag.h>
 #include <Element.h>
 #include <VectorND.h>
 #include <MatrixND.h>
@@ -56,18 +55,18 @@ public:
     return "ExactFrame3d";
   }
 
-  virtual int setNodes();
-  virtual const Vector &getResistingForce();
-  virtual const Matrix &getTangentStiff();
-  virtual const Matrix &getMass();
-  virtual const Matrix &getInitialStiff();
+  int setNodes() override;
+  const Vector &getResistingForce() override;
+  const Matrix &getTangentStiff() override;
+  const Matrix &getMass() override;
+  const Matrix &getInitialStiff() override;
 
-  virtual int update() final;
-  virtual int addLoad(ElementalLoad* , double scale) final;
+  int update() final;
+  int addLoad(ElementalLoad* , double scale) final;
 
-  virtual int revertToStart();
-  virtual int revertToLastCommit();
-  virtual int commitState() final {
+  int revertToStart() override;
+  int revertToLastCommit() override;
+  int commitState() final {
 
     if (this->Element::commitState() != 0)
       opserr << "ExactFrame3d::commitState () - failed in base class";
@@ -78,7 +77,7 @@ public:
       if (point.material->commitState() != 0)
         return -1;
     }
-    return OpenSees::Flag::Success;
+    return 0;
   }
 
   // Element: Parameters
@@ -92,11 +91,11 @@ public:
   virtual int getResponse(int responseID, Information &) final;
 
   // MovableObject
-  int sendSelf(int cTag, Channel&);
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&);
+  int sendSelf(int cTag, Channel&) override;
+  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) override;
 
   // TaggedObject
-  void Print(OPS_Stream& s, int flag = 0);
+  void Print(OPS_Stream& s, int flag) override;
 
   private:
     //

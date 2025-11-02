@@ -61,10 +61,10 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <FiberSectionAsym3d.h>
 
 // SectionBuilder
-#include <QuadPatch.h>
+#include <QuadFiberPatch.h>
 #include <CircPatch.h>
-#include <StraightReinfLayer.h>
-#include <CircReinfLayer.h>
+#include <StraightFiberLayer.h>
+#include <CircFiberLayer.h>
 #include <FiberSectionBuilder.h>
 
 //
@@ -823,11 +823,12 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   //
   // Execute the commands inside the braces (fibers, patches, and reinforcing layers)
   //
+#if !defined(OPS_API)
   if (iarg < argc && Tcl_Eval(interp, argv[iarg]) != TCL_OK) {
     // Assume the subcommands have printed a message regarding the error
     return TCL_ERROR;
   }
-
+#endif
   if (deleteTorsion)
     delete torsion;
 
@@ -928,13 +929,13 @@ TclCommand_addFiberIntSection(ClientData clientData, Tcl_Interp *interp,
   }
 #endif
 
-
+#if !defined(OPS_API)
   // parse the information inside the braces (patches and reinforcing layers)
   if (Tcl_Eval(interp, argv[brace]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "- error reading information in { } \n";
     return TCL_ERROR;
   }
-
+#endif
   if (NDM == 3 && torsion == nullptr) {
     opserr << OpenSees::PromptValueError << "- no torsion specified for 3D fiber section, use -GJ or "
               "-torsion\n";
@@ -1036,7 +1037,7 @@ TclCommand_addPatch(ClientData clientData,
     }
 
     // Done parsing
-    QuadPatch patch(matTag, numSubdivIJ, numSubdivJK, vertexCoords);
+    QuadFiberPatch patch(matTag, numSubdivIJ, numSubdivJK, vertexCoords);
     int error = fiberSectionRepr->addPatch(patch);
     if (error != 0)
       return TCL_ERROR;
@@ -1102,7 +1103,7 @@ TclCommand_addPatch(ClientData clientData,
     vertexCoords(3, 1) = vertexCoords(2, 1);
 
     // create patch
-    QuadPatch patch(matTag, numSubdivIJ, numSubdivJK, vertexCoords);
+    QuadFiberPatch patch(matTag, numSubdivIJ, numSubdivJK, vertexCoords);
 
     // add patch to section representation
     int error = fiberSectionRepr->addPatch(patch);
@@ -1477,7 +1478,7 @@ TclCommand_addHFiber(ClientData clientData, Tcl_Interp *interp, int argc,
 // add layers of reinforcing bars to fiber section
 
 int
-TclCommand_addReinfLayer(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addFiberLayer(ClientData clientData, Tcl_Interp *interp, int argc,
                          TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -1562,7 +1563,7 @@ TclCommand_addReinfLayer(ClientData clientData, Tcl_Interp *interp, int argc,
     endPt(0) = yEndPt;
     endPt(1) = zEndPt;
 
-    StraightReinfLayer reinfLayer(matTag, numReinfBars, reinfBarArea, startPt, endPt);
+    StraightFiberLayer reinfLayer(matTag, numReinfBars, reinfBarArea, startPt, endPt);
 
     // add reinfLayer to section
     int error = fiberSectionRepr->addLayer(reinfLayer);
@@ -1640,12 +1641,12 @@ TclCommand_addReinfLayer(ClientData clientData, Tcl_Interp *interp, int argc,
     // construct and add to section
     if (anglesSpecified) {
       // Construct arc
-      CircReinfLayer reinfLayer(matTag, numReinfBars, reinfBarArea,
+      CircFiberLayer reinfLayer(matTag, numReinfBars, reinfBarArea,
                                 center, radius, startAng, endAng);
       error = fiberSectionRepr->addLayer(reinfLayer);
     } else {
       // Construct circle
-      CircReinfLayer reinfLayer(matTag, numReinfBars, reinfBarArea,
+      CircFiberLayer reinfLayer(matTag, numReinfBars, reinfBarArea,
                                 center, radius);
       error = fiberSectionRepr->addLayer(reinfLayer);
     }
@@ -1793,13 +1794,13 @@ buildSectionInt(ClientData clientData, Tcl_Interp *interp, TclBasicBuilder *theT
     int numPatches;
     Patch **patch;
 
-    int numReinfLayers;
-    ReinfLayer **reinfLayer;
+    int numFiberLayers;
+    FiberLayer **reinfLayer;
 
     numPatches = fiberSectionRepr->getNumPatches();
     patch = fiberSectionRepr->getPatches();
-    numReinfLayers = fiberSectionRepr->getNumReinfLayers();
-    reinfLayer = fiberSectionRepr->getReinfLayers();
+    numFiberLayers = fiberSectionRepr->getNumFiberLayers();
+    reinfLayer = fiberSectionRepr->getFiberLayers();
 
     int numSectionRepresFibers = fiberSectionRepr->getNumFibers();
     Fiber **sectionRepresFibers = fiberSectionRepr->getFibers();
@@ -1811,7 +1812,7 @@ buildSectionInt(ClientData clientData, Tcl_Interp *interp, TclBasicBuilder *theT
     for (int i = 0; i < numPatches; ++i)
       numFibers += patch[i]->getNumCells();
 
-    for (int i = 0; i < numReinfLayers; ++i)
+    for (int i = 0; i < numFiberLayers; ++i)
       numFibers += reinfLayer[i]->getNumReinfBars();
 
     numHFibers = numSectionRepresHFibers;
@@ -1851,7 +1852,7 @@ buildSectionInt(ClientData clientData, Tcl_Interp *interp, TclBasicBuilder *theT
     ReinfBar *reinfBar;
     int numReinfBars;
 
-    for (int i = 0; i < numReinfLayers; ++i) {
+    for (int i = 0; i < numFiberLayers; ++i) {
       numReinfBars = reinfLayer[i]->getNumReinfBars();
       reinfBar = reinfLayer[i]->getReinfBars();
       matTag = reinfLayer[i]->getMaterialID();

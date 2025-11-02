@@ -6,9 +6,11 @@
 #==============================================================================
 add_library(OPS_Section_Repres OBJECT)
 
-target_include_directories(OPS_Section_Repres PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(OPS_Section_Repres
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes}
+)
 
 add_subdirectory(cell)
 add_subdirectory(patch)
-add_subdirectory(reinfLayer)
+add_subdirectory(layer)
 

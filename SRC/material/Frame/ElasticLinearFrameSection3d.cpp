@@ -279,7 +279,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
 
   int ni=0;
   bool ind[nr]{};
-  double data[nr][nr]{};
+  double K_data[nr][nr]{}, F_data[nr][nr]{};
 
 
   bool uniform_twist = true; // NOTE
@@ -305,7 +305,8 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
     }
 
   // Form Ki with only independent variables
-  Matrix Ki(&data[0][0], ni, ni);
+  Matrix Ki(&K_data[0][0], ni, ni),
+         Fi(&F_data[0][0], ni, ni);
   int ii=0;
   for (int i=0; i<nr; i++)
     if (ind[i]) {
@@ -317,8 +318,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
       ii++;
     }
 
-
-  Ki.Invert();
+  Ki.Invert(Fi);
 
   theCopy->Fs = new Matrix(nr,nr);
   Matrix& Fc = *(theCopy->Fs);
@@ -329,7 +329,7 @@ ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
       int jj=0;
       for (int j=0; j<nr; j++)
         if (ind[j])
-          Fc(i,j) = Ki(ii,jj++);
+          Fc(i,j) = Fi(ii,jj++);
 
       ii++;
     }

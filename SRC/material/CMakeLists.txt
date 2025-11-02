@@ -5,12 +5,18 @@
 #
 #==============================================================================
 
-target_link_libraries(OPS_Material PRIVATE OPS_Domain OPS_Logging)
+target_link_libraries(OPS_Material
+  PRIVATE OPS_Domain OPS_Logging 
+  PUBLIC OPS_Recorder
+)
 
 
 target_include_directories(OPS_Material
   PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/elastic
+    ${CMAKE_CURRENT_LIST_DIR}/nD 
+    ${CMAKE_CURRENT_LIST_DIR}/section
   PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/Solid
     ${CMAKE_CURRENT_LIST_DIR}/nD/cyclicSoil

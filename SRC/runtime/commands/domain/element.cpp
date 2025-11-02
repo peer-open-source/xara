@@ -1,10 +1,18 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
+//
 //
 #include <assert.h>
 #include <Parsing.h>
@@ -13,6 +21,7 @@
 #include <ElementIter.h>
 #include <Vector.h>
 #include <Logging.h>
+#include <cmath>
 
 namespace OpenSees {
 namespace DomainCommands {
@@ -25,11 +34,11 @@ getEleTags(ClientData clientData, Tcl_Interp *interp, int argc,
   //       to work in terms of tagged object
 
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   ElementIter &elemIter = the_domain->getElements();
 
-  Tcl_Obj* result = Tcl_NewListObj(the_domain->getNumElements(), nullptr);
+  Tcl_Obj* result = Tcl_NewListObj(std::min(2, the_domain->getNumElements()), nullptr);
 
   Element *elem;
   while ((elem = elemIter()) != nullptr)
@@ -123,7 +132,7 @@ setElementRayleighDampingFactors(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 6) {
     opserr << OpenSees::PromptValueError << "setElementRayleighDampingFactors eleTag? alphaM? betaK? "
@@ -385,7 +394,7 @@ int
 eleNodes(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError << "want - eleNodes eleTag?\n";
@@ -420,7 +429,7 @@ int
 eleType(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError << "want - eleType eleTag?\n";
@@ -452,7 +461,7 @@ getEleClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain*)clientData;
+  Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc == 1) {
     Element *theEle;

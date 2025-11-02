@@ -32,7 +32,6 @@
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <Parameter.h>
 #include <math.h>
@@ -1381,11 +1380,3 @@ MasonPan12::computeCurrentStrain(int mat) const
   		 strain=str[mat];
 		return strain;
 }
-
-int
-MasonPan12::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	return 0;
-}
-
- 

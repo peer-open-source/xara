@@ -13,6 +13,8 @@
 #pragma once
 #include <State.h>
 #include <Field.h>
+#include <MatrixND.h>
+#include <VectorND.h>
 #include <Cholesky.tpp>
 #include <material/section/SectionForceDeformation.h>
 #include <cmath>

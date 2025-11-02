@@ -66,14 +66,14 @@ class FrameSolidSection3d : public FrameSection
     int recvSelf(int tag, Channel &, FEM_ObjectBroker &) override;
     void Print(OPS_Stream &s, int flag = 0) override;
 	    
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &info);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &) override;
+    int getResponse(int responseID, Information &) override;
 
 
     // Sensitivity
-    int setParameter(const char **argv, int argc, Parameter &);
-    int updateParameter(int id, Information &);
-    int activateParameter(int id);
+    int setParameter(const char **argv, int argc, Parameter &) override;
+    int updateParameter(int id, Information &) override;
+    int activateParameter(int id) override;
     const Vector& getStressResultantSensitivity(int gradIndex, bool conditional);
     const Vector& getSectionDeformationSensitivity(int gradIndex);
     const Matrix& getInitialTangentSensitivity(int gradIndex);

@@ -248,6 +248,8 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
         eps[0] += 0.5*kappa[0]*tr2;
       }
       res += theMat.setTrialStrain(eps);
+      if (res < 0)
+        return res;
     }
 
 
