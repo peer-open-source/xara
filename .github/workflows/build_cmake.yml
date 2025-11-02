@@ -123,6 +123,7 @@ jobs:
           activate-environment: ifx
 
       - name: Create env with ifx + MKL + tools
+        shell: cmd
         run: |
           mamba install -y -c conda-forge ^
             cmake ninja ^
