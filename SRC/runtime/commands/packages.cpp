@@ -1,15 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation
+//                                   xara
 //
 //===----------------------------------------------------------------------===//
-//
+//                              https://xara.so
+//===----------------------------------------------------------------------===//
 // Written: fmk
 //
 #include <stdlib.h>
 #include <string.h>
-#include <OPS_Globals.h>
-#include <tcl.h>
+#include <Parsing.h>
+#include <Logging.h>
 #include <sys/stat.h>
 
 #ifdef _WIN32
@@ -150,9 +151,12 @@ getLibraryFunction(const char *libName, const char *funcName, void **libHandle,
   /* get library
   if(intStat != 0) {
     opserr << "packages.cpp - NO FILE EXISTS: - trying OpenSees" << localLibName
-  << endln; int res = httpGET_File("opensees.berkeley.edu", localLibName, 80,
-  localLibName); if (res != 0) { opserr << "packages.cpp - NO FILE EXISTS: " <<
-  localLibName << endln; return -1;
+  << "\n"; 
+  int res = httpGET_File("opensees.berkeley.edu", localLibName, 80, localLibName); 
+  if (res != 0) {
+    opserr << "packages.cpp - NO FILE EXISTS: " <<
+    localLibName << "\n";
+    return -1;
     }
   }
   */
