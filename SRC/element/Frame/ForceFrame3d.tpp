@@ -54,6 +54,9 @@
 #include <array>
 
 #include <Matrix.h>
+#include <Vector.h>
+#include <MatrixND.h>
+#include <VectorND.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <ForceFrame3d.h>
@@ -110,7 +113,6 @@ ForceFrame3d<NIP,nsr,nwm>::ForceFrame3d(int tag,
 template <int NIP, int nsr, int nwm>
 ForceFrame3d<NIP,nsr,nwm>::~ForceFrame3d()
 {
-
   for (GaussPoint& point : points)
     if (point.material != nullptr)
       delete point.material;
@@ -1523,7 +1525,7 @@ ForceFrame3d<NIP,nsr,nwm>::getInitialFlexibility(MatrixND<NBV,NBV>& fe)
 {
   fe.zero();
 
-  double L        = basic_system->getInitialLength();
+  double L   = basic_system->getInitialLength();
   double jsx = 1.0 / L;
 
   const int numSections = points.size();
@@ -1940,8 +1942,8 @@ ForceFrame3d<NIP,nsr,nwm>::setResponse(const char** argv, int argc, OPS_Stream& 
         }
 
         output.endTag();
-
-      } else if (sectionNum == 0) { 
+      }
+      else if (sectionNum == 0) { 
         // argv[1] was not an int, we want all sections,
 
         CompositeResponse* theCResponse = new CompositeResponse();
