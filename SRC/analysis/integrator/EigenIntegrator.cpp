@@ -43,9 +43,8 @@
 #include <FE_EleIter.h>
 #include <DOF_GrpIter.h>
 
-EigenIntegrator::EigenIntegrator()
-  : MovableObject(EigenINTEGRATOR_TAGS_Eigen),
-   theSOE(0), theAnalysisModel(0)
+EigenIntegrator::EigenIntegrator(AnalysisModel &theModel, EigenSOE &theSysOE)
+  : theSOE(&theSysOE), theAnalysisModel(&theModel)
 {
 
 }
@@ -55,20 +54,14 @@ EigenIntegrator::~EigenIntegrator()
 
 }
 
-void
-EigenIntegrator::setLinks(AnalysisModel &theModel, EigenSOE &theSysOE)
-{
-  theAnalysisModel = &theModel;
-  theSOE = &theSysOE;
-}
 
 int 
 EigenIntegrator::formEleTangent(FE_Element *theEle)
 {
   if (flagK == 0)
-      return this->formEleTangK(theEle);
+    return this->formEleTangK(theEle);
   else
-      return this->formEleTangM(theEle);
+    return this->formEleTangM(theEle);
 }
 
 int 
@@ -78,7 +71,7 @@ EigenIntegrator::formNodTangent(DOF_Group *theDof)
 }
 
 int 
-EigenIntegrator::formEleResidual(FE_Element *theEle)
+EigenIntegrator::formEleResidual(FE_Element *)
 {
   return 0;
 }
@@ -89,11 +82,6 @@ EigenIntegrator::formNodUnbalance(DOF_Group *theDof)
   return 0;
 }
 
-int 
-EigenIntegrator::newStep()
-{
-  return 0;
-}
 
 int 
 EigenIntegrator::getLastResponse(Vector &result, const ID &id)
@@ -103,87 +91,75 @@ EigenIntegrator::getLastResponse(Vector &result, const ID &id)
 
 int
 EigenIntegrator::formK()
-{
-    if (theAnalysisModel == 0 || theSOE == 0) {
+{    
+  // the loops to form and add the tangents are broken into two for 
+  // efficiency when performing parallel computations
+
+  // loop through the FE_Elements getting them to form the tangent
+  // FE_EleIter &theEles1 = theAnalysisModel->getFEs();
+  FE_Element *elePtr;
+
+  flagK = 0;
+
+  theSOE->zeroA();
+
+  //while((elePtr = theEles1()) != 0) 
+  //  elePtr->formTangent(this);
+  
+  // loop through the FE_Elements getting them to add the tangent    
+  int result = 0;
+  FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
+  while((elePtr = theEles2()) != 0) {
+    if (theSOE->addA(elePtr->getTangent(this), elePtr->getID()) < 0) {
         opserr << "WARNING EigenIntegrator::formK -";
-        opserr << " no AnalysisModel or EigenSOE has been set\n";
-        return -1;
+        opserr << " failed in addA for ID " << elePtr->getID();	    
+        result = -2;
     }
-    
-    // the loops to form and add the tangents are broken into two for 
-    // efficiency when performing parallel computations
+  }
 
-    // loop through the FE_Elements getting them to form the tangent
-    // FE_EleIter &theEles1 = theAnalysisModel->getFEs();
-    FE_Element *elePtr;
-
-    flagK = 0;
-
-    theSOE->zeroA();
-
-    //while((elePtr = theEles1()) != 0) 
-    //  elePtr->formTangent(this);
-   
-   // loop through the FE_Elements getting them to add the tangent    
-    int result = 0;
-    FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
-    while((elePtr = theEles2()) != 0) {
-        if (theSOE->addA(elePtr->getTangent(this), elePtr->getID()) < 0) {
-            opserr << "WARNING EigenIntegrator::formK -";
-            opserr << " failed in addA for ID " << elePtr->getID();	    
-            result = -2;
-        }
-    }
-
-    return result;    
+  return result;
 }
 
 
 int
 EigenIntegrator::formM()
-{
-    if (theAnalysisModel == 0 || theSOE == 0) {
-	opserr << "WARNING EigenIntegrator::formK -";
-	opserr << " no AnalysisModel or EigenSOE has been set\n";
-	return -1;
+{  
+  // the loops to form and add the tangents are broken into two for 
+  // efficiency when performing parallel computations
+
+  // loop through the FE_Elements getting them to form the tangent
+  // FE_EleIter &theEles1 = theAnalysisModel->getFEs();
+
+  flagK = 1;
+  theSOE->zeroM();
+
+  // while((elePtr = theEles1()) != 0) 
+  //     elePtr->formTangent(this);
+  
+  // loop through the FE_Elements getting them to add the tangent    
+  int result = 0;
+  FE_Element *elePtr;
+  FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
+  while((elePtr = theEles2()) != nullptr) {     
+    if (theSOE->addM(elePtr->getTangent(this), elePtr->getID()) < 0) {
+      opserr << "WARNING EigenIntegrator::formK -";
+      opserr << " failed in addA for ID " << elePtr->getID();	    
+      result = -2;
     }
-    
-    // the loops to form and add the tangents are broken into two for 
-    // efficiency when performing parallel computations
+  }
 
-    // loop through the FE_Elements getting them to form the tangent
-    // FE_EleIter &theEles1 = theAnalysisModel->getFEs();
-    FE_Element *elePtr;
-
-    flagK = 1;
-    theSOE->zeroM();
-
-    // while((elePtr = theEles1()) != 0) 
-    //     elePtr->formTangent(this);
-   
-   // loop through the FE_Elements getting them to add the tangent    
-    int result = 0;
-    FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
-    while((elePtr = theEles2()) != 0) {     
-	if (theSOE->addM(elePtr->getTangent(this), elePtr->getID()) < 0) {
-	    opserr << "WARNING EigenIntegrator::formK -";
-	    opserr << " failed in addA for ID " << elePtr->getID();	    
-	    result = -2;
-	}
+  DOF_Group *dofPtr;
+  DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();    
+  while((dofPtr = theDofs()) != nullptr) {
+    //   	dofPtr->formTangent(this);
+    if (theSOE->addM(dofPtr->getTangent(this),dofPtr->getID()) < 0) {
+      opserr << "WARNING EigenIntegrator::formM -";
+      opserr << " failed in addM for ID " << dofPtr->getID();	    
+      result = -3;
     }
+  }
 
-    DOF_Group *dofPtr;
-    DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();    
-    while((dofPtr = theDofs()) != 0) {
-	//   	dofPtr->formTangent(this);
-	if (theSOE->addM(dofPtr->getTangent(this),dofPtr->getID()) < 0) {
-	    opserr << "WARNING EigenIntegrator::formM -";
-	    opserr << " failed in addM for ID " << dofPtr->getID();	    
-	    result = -3;
-	}
-    }
-
-    return result;    
+  return result;
 }
 
 int 
@@ -209,42 +185,3 @@ EigenIntegrator::formNodTangM(DOF_Group *theDof)
   theDof->addMtoTang(1.0);
   return 0;
 }
-
-int 
-EigenIntegrator::update(const Vector &deltaU)
-{
-    return 0;
-}
-
-EigenSOE *
-EigenIntegrator::getEigenSOEPtr() const
-{
-    return theSOE;
-}
-
-AnalysisModel *
-EigenIntegrator::getAnalysisModelPtr() const
-{
-    return theAnalysisModel;
-}
-
-int 
-EigenIntegrator::sendSelf(int commitTag, Channel &theChannel)
-{
-    return 0;
-}
-
-int 
-EigenIntegrator::recvSelf(int commitTag, Channel &theChannel,
-			  FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
-void 
-EigenIntegrator::Print(OPS_Stream &s, int flag)
-{
-    s << "\t EigenIntegrator: \n";
-}
-
-
