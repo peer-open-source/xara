@@ -21,21 +21,18 @@
 // $Revision: 1.2 $
 // $Date: 2003-02-14 23:00:48 $
 // $Source: /usr/local/cvs/OpenSees/SRC/analysis/integrator/EigenIntegrator.h,v $
-                                                                        
-                                                                        
-// File: ~/analysis/integrator/eigenIntegrator/EigenIntegrator.h
-//
-// Written: Jun Peng
-// Created: Wed Jan 27, 1999
-// Revision: A
-//
+
 // Description: This file contains the class definition of EigenIntegrator.
 // EigenIntegrator is an algorithmic class for setting up the finite element 
 // equations for a eigen problem analysis. 
 //
 // This class is inheritanted from the base class of Integrator which was
 // created by fmk (Frank).
-
+//
+// Written: Jun Peng
+// Created: Wed Jan 27, 1999
+// Revision: A
+//
 
 #ifndef EigenIntegrator_h
 #define EigenIntegrator_h
@@ -50,47 +47,34 @@ class DOF_Group;
 class Vector;
 class OPS_Stream;
 
-class EigenIntegrator : public Integrator, public MovableObject
+class EigenIntegrator : public Integrator
 {
   public:
-     EigenIntegrator();
+     EigenIntegrator(AnalysisModel&, EigenSOE &);
      virtual ~EigenIntegrator();
-     
-     void setLinks(AnalysisModel &, EigenSOE &);
 
      // methods to form the M and K matrices.
-     virtual int formK();
-     virtual int formM();
-     
+     int formK();
+     int formM();
+     int getLastResponse(Vector &result, const ID &id);
+
+
      // methods to instruct the FE_Element and DOF_Group objects
      // how to determining their contribution to M and K
-     virtual int formEleTangK(FE_Element *theEle);
-     virtual int formEleTangM(FE_Element *theEle);
-     virtual int formNodTangM(DOF_Group *theDof);
-     virtual int update(const Vector &deltaU);
+     virtual int formEleTangK(FE_Element *);
+     virtual int formEleTangM(FE_Element *);
+     virtual int formNodTangM(DOF_Group *);
 
-     virtual int formEleTangent(FE_Element *theEle);
-     virtual int formNodTangent(DOF_Group *theDof);
-     virtual int formEleResidual(FE_Element *theEle);
-     virtual int formNodUnbalance(DOF_Group *theDof);
+     int formEleTangent(FE_Element *) override;
+     int formNodTangent(DOF_Group *) override;
+     int formEleResidual(FE_Element *) override;
+     int formNodUnbalance(DOF_Group *) override;
 
-     virtual int newStep();
-
-     virtual int getLastResponse(Vector &result, const ID &id);
-
-     virtual int sendSelf(int commitTag, Channel &) override;
-     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;     
-     virtual void Print(OPS_Stream &s, int flag);
-
- protected:
-     virtual EigenSOE *getEigenSOEPtr() const;
-     virtual AnalysisModel *getAnalysisModelPtr() const;
   
  private:
-     EigenSOE *theSOE;
-     AnalysisModel *theAnalysisModel;
-     int flagK;
-
+    EigenSOE *theSOE;
+    AnalysisModel *theAnalysisModel;
+    int flagK;
 };
 
 #endif
