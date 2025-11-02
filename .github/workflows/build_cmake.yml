@@ -139,7 +139,7 @@ jobs:
         run: |
           call "%CONDA%\condabin\conda.bat" activate ifx
           mamba install -y -c conda-forge ^
-            cmake ninja ^
+            cmake ninja tk ^
             ifx_win-64 ^
             mkl-devel conda-forge/label/mkl_rc::blas
 
@@ -165,27 +165,9 @@ jobs:
             -DCMAKE_Fortran_COMPILER="%CONDA_PREFIX%\Library\bin\ifx.exe" ^
             -DCMAKE_REQUIRED_INCLUDES="%IFX_INC%" ^
             -DBLA_VENDOR=Intel10_64_dyn ^
+            -DCMAKE_TOOLCHAIN_FILE:FILEPATH="ifx_toolchain.cmake" ^
             -DMKLROOT="%MKLROOT%" -DMKL_ROOT="%MKLROOT%"
+          cmake --build build --target OpenSeesRT -j4
 
-#   steps:
-#   - uses: awvwgk/setup-fortran@v1
-#     with:
-#       compiler: "intel"
-#       version:  "2023.1"
-
-#   - name: Checkout sources
-#     uses: actions/checkout@v2
-#     with: {ref: cmake-build}
-#   
-#   - name: Install Conan
-#     uses: turtlebrowser/get-conan@main
-  
-  
-#   - name: Build
-#     run: |
-#       mkdir build
-#       cd build
-#       cmake ..
-#       cmake --build . --target OpenSeesRT -j5
 
 
