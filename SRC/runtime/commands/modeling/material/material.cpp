@@ -40,6 +40,7 @@
 
 Tcl_CmdProc TclCommand_newPlasticMaterial;
 Tcl_CmdProc TclCommand_newElasticMaterial;
+Tcl_CmdProc TclCommand_newConcreteMaterial;
 // Tcl_CmdProc TclCommand_newIsotropicMaterial;
 
 
@@ -57,7 +58,10 @@ TclCommand_addMaterial(ClientData clientData, Tcl_Interp* interp,
     {"J2Simplified",              TclCommand_newPlasticMaterial},
     {"J2BeamFiber",               TclCommand_newPlasticMaterial},
     {"GeneralizedJ2",             TclCommand_newPlasticMaterial},
-    {"NonlinearJ2",               TclCommand_newPlasticMaterial}
+    {"NonlinearJ2",               TclCommand_newPlasticMaterial},
+
+    {"PlasticDamageConcrete",     TclCommand_newConcreteMaterial},
+    {"FariaPlasticDamage",        TclCommand_newConcreteMaterial},
   };
 
 
