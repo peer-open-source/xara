@@ -149,7 +149,6 @@ jobs:
         shell: cmd
         run: |
           call "%CONDA%\condabin\conda.bat" activate ifx
-          dir %CONDA_PREFIX%\Library\bin
 
           rem Intel intrinsic modules (iso_c_binding, iso_fortran_env)
           set IFX_INC=%CONDA_PREFIX%\opt\compiler\include\intel64
