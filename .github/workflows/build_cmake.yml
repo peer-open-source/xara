@@ -167,6 +167,7 @@ jobs:
             -DBLA_VENDOR=Intel10_64_dyn ^
             -DCMAKE_TOOLCHAIN_FILE:FILEPATH="ifx_toolchain.cmake" ^
             -DMKLROOT="%MKLROOT%" -DMKL_ROOT="%MKLROOT%"
+          cmake --build build --target OpenSeesRT -j4
 
 
 
