@@ -135,16 +135,14 @@ jobs:
           cmake --version
           ninja --version
 
-      # Configure MSVC environment (VS 2022) via vswhere
-      - name: Configure MSVC dev environment
-        shell: cmd
-        run: |
-          for /f "usebackq tokens=*" %%i in (`
-            "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property InstallationPath
-          `) do set VSPATH=%%i
-          call "%VSPATH%\Common7\Tools\VsDevCmd.bat" -arch=amd64
-          rem Persist a few vars for next steps
-          echo VSPATH=%VSPATH%>> "%GITHUB_ENV%"
+      # Put MSBuild on PATH (does not add cl.exe)
+      - uses: microsoft/setup-msbuild@v2
+
+      # Enter the MSVC “Developer Command Prompt” so cl.exe & libs are usable
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64   # or x86 / arm64
+
 
       # Configure (no build):
       - name: CMake configure
