@@ -3,7 +3,7 @@
 subroutine cnaupd_c(ido, bmat, n, which, nev, tol, resid, ncv, v, ldv,&
                     iparam, ipntr, workd, workl, lworkl, rwork, info) &
                     bind(c, name="cnaupd_c")
-  use :: iso_c_binding
+  use, intrinsic :: iso_c_binding
   implicit none
 #include "arpackicb.h"
   integer(kind=i_int),                              intent(inout) :: ido
@@ -39,7 +39,7 @@ subroutine cneupd_c(rvec, howmny, select, d, z, ldz, sigma, workev,  &
                     bmat, n, which, nev, tol, resid, ncv, v, ldv,    &
                     iparam, ipntr, workd, workl, lworkl, rwork, info)&
                     bind(c, name="cneupd_c")
-  use :: iso_c_binding
+  use, intrinsic :: iso_c_binding
   implicit none
 #include "arpackicb.h"
   integer(kind=i_int),          value,              intent(in)    :: rvec
