@@ -137,6 +137,7 @@ jobs:
       - name: Create env with ifx + MKL + tools
         shell: cmd
         run: |
+          call "%CONDA%\condabin\conda.bat" activate ifx
           mamba install -y -c conda-forge ^
             cmake ninja ^
             ifx_win-64 ^
@@ -147,8 +148,8 @@ jobs:
       - name: CMake configure
         shell: cmd
         run: |
-          call "%VSPATH%\Common7\Tools\VsDevCmd.bat" -arch=amd64
           call "%CONDA%\condabin\conda.bat" activate ifx
+          dir %CONDA_PREFIX%\Library\bin
 
           rem Intel intrinsic modules (iso_c_binding, iso_fortran_env)
           set IFX_INC=%CONDA_PREFIX%\opt\compiler\include\intel64
