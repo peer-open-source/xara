@@ -11,6 +11,7 @@
 #include <OPS_Globals.h>
 #include <tcl.h>
 #include <sys/stat.h>
+#include <Parsing.h>
 
 #ifdef _WIN32
 #  define byte win_byte_override
@@ -21,6 +22,8 @@
 #else
 #  include <dlfcn.h>
 #endif
+
+class Domain;
 
 int
 getLibraryFunction(const char *libName, const char *funcName, void **libHandle,
