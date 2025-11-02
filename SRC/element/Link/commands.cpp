@@ -362,7 +362,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
   }
   if (dirs_vec.size() != mats.size()) {
     opserr << OpenSees::PromptValueError
-           << "wrong number of directions: expected " << mats.size() << "\n";
+           << "wrong number of directions, expected " << static_cast<int>(mats.size()) << "\n";
     return TCL_ERROR;
   }
 
