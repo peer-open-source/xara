@@ -214,49 +214,46 @@ DOF_Group::setID(const ID &copy)
 }
  
 
-// const ID &getID(void) const;
-//	Method to return the current ID.
-
 const ID &
-DOF_Group::getID(void) const
+DOF_Group::getID() const
 {
   return myID;
 }
 
 int
-DOF_Group::doneID(void)
+DOF_Group::doneID()
 {
   return 0;
 }
 
 int
-DOF_Group::getNumDOF(void) const
+DOF_Group::getNumDOF() const
 {
   return numDOF;
 }
 
 int
-DOF_Group::getNodeTag(void) const
+DOF_Group::getNodeTag() const
 {
   if (myNode != nullptr)
-      return myNode->getTag();
+    return myNode->getTag();
   else
-      return -1;
+    return -1;
 }
 
 int
-DOF_Group::getNumFreeDOF(void) const
+DOF_Group::getNumFreeDOF() const
 {
   int numFreeDOF = numDOF;
   for (int i=0; i<numDOF; i++)
-      if (myID(i) == -1 || myID(i) == -4)
-          numFreeDOF--;
+    if (myID(i) == -1 || myID(i) == -4)
+      numFreeDOF--;
   
   return numFreeDOF;
 }
 
 int
-DOF_Group::getNumConstrainedDOF(void) const
+DOF_Group::getNumConstrainedDOF() const
 {   
   int numConstr = 0;
   for (int i=0; i<numDOF; i++)
@@ -454,9 +451,9 @@ DOF_Group::setNodeDisp(const Vector &u)
   
   // get disp for my dof out of vector u
   for (i=0; i<numDOF; i++) {
-      int loc = myID(i);
-      if (loc >= 0)
-          disp(i) = u(loc);  
+    int loc = myID(i);
+    if (loc >= 0)
+      disp(i) = u(loc);  
   }
 
   myNode->setTrialDisp(disp);

@@ -284,7 +284,7 @@ int DisplacementControl::update(const Vector &dU)
 
 
 int 
-DisplacementControl::domainChanged(void)
+DisplacementControl::domainChanged()
 {
    // we first create the Vectors needed
    AnalysisModel *theModel = this->getAnalysisModel();

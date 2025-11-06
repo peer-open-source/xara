@@ -22,13 +22,14 @@
 #include <FE_Datastore.h>
 
 #include "ModelRegistry.h"
+#include <modeling/commands.h>
 
 #ifdef _PARALLEL_PROCESSING
 #  include <PartitionedDomain.h>
    extern PartitionedDomain theDomain;
 #endif
 
-
+using namespace OpenSees;
 bool builtModel = false;
 
 FE_Datastore *theDatabase = nullptr;
@@ -134,7 +135,8 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
     // check that ndm was specified
     if (ndm == 0) {
-      opserr << OpenSees::PromptValueError << "missing required argument ndm\n";
+      opserr << OpenSees::PromptValueError
+             << "missing required argument ndm\n";
       return TCL_ERROR;
     }
 
@@ -157,7 +159,25 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     int G3_setDomain(G3_Runtime*, Domain*);
     G3_setDomain(rt, theNewDomain);
     // create the model builder
-    theNewBuilder = new ModelRegistry(*theNewDomain, interp, ndm, ndf);
+    theNewBuilder = new ModelRegistry(*theNewDomain, ndm, ndf);
+    //
+    // Add model commands
+    //
+#if 1
+    static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0])); // CommandTableEntry);
+
+    Tcl_CreateCommand(interp, "wipe", TclCommand_wipeModel, (ClientData)theNewBuilder, nullptr);
+
+    for (int i = 0; i < ncmd; i++)
+      Tcl_CreateCommand(interp, 
+          ModelBuilderCommands[i].name,
+          ModelBuilderCommands[i].func,
+          (ClientData) theNewBuilder, nullptr);
+
+    Tcl_SetAssocData(interp, "OPS::theTclBuilder", NULL, (ClientData)theNewBuilder);
+    Tcl_SetAssocData(interp, "OPS::theBasicModelBuilder", NULL, (ClientData)theNewBuilder);
+    Tcl_SetAssocData(interp, "OPS::theTclDomain", NULL, (ClientData)theNewDomain);
+#endif
     G3_setModelBuilder(rt, theNewBuilder);
 
     const char* analysis_option;
@@ -192,6 +212,10 @@ TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
     ops_TheActiveDomain = nullptr;
     delete theDomain;
     delete builder;
+
+    static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0]));
+    for (int i = 0; i < ncmd; i++)
+      Tcl_DeleteCommand(interp, ModelBuilderCommands[i].name);
     builtModel = false;
   }
   Tcl_CreateCommand(interp, "model", &TclCommand_specifyModel, nullptr, nullptr);

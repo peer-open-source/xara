@@ -52,11 +52,11 @@
 #include <OPS_Globals.h>
 #include <Parameter.h>
 
-static int numViscousDamperMaterials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ViscousDamper)
 
 {
+  static int numViscousDamperMaterials = 0;
   if (numViscousDamperMaterials == 0) {
     numViscousDamperMaterials++;
     opslog << "ViscousDamper Model by Sarven Akcelyan and Dimitrios G. Lignos, PhD, McGill University\n";
@@ -70,19 +70,21 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousDamper)
   int numData = 1;
         // Check tag
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial  ViscousDamper tag" << endln;
+    opserr << "WARNING invalid uniaxialMaterial  ViscousDamper tag" << "\n";
     return 0;
   }
   // Check if we have 3 or 4 or 8 input variables
   numData = OPS_GetNumRemainingInputArgs();
 
   if (numData != 3 && numData != 4 && numData != 8) {
-    opserr << "Invalid #args, want: uniaxialMaterial ViscousDamper " << iData[0] <<  " K? C? Alpha? <LGap?> <NM? RelTol? AbsTol? MaxHalf?>" << endln;
+    opserr << "Invalid #args, want: uniaxialMaterial ViscousDamper " 
+           << iData[0] <<  " K? C? Alpha? <LGap?> <NM? RelTol? AbsTol? MaxHalf?>" << "\n";
     return 0;
   }
   
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid #args want: uniaxialMaterial ViscousDamper " << iData[0] <<  " K? C? Alpha? <LGap?> <NM? RelTol? AbsTol? MaxHalf?>" << endln;
+    opserr << "Invalid #args want: uniaxialMaterial ViscousDamper " 
+           << iData[0] <<  " K? C? Alpha? <LGap?> <NM? RelTol? AbsTol? MaxHalf?>" << "\n";
     
     return 0;   
   }
@@ -520,30 +522,29 @@ ViscousDamper::recvSelf(int cTag, Channel &theChannel,
   res = theChannel.recvVector(this->getDbTag(), cTag, data);
   
   if (res < 0) {
-      opserr << "ViscousDamper::recvSelf() - failed to receive data\n";
-      this->setTag(0);      
+    opserr << "ViscousDamper::recvSelf() - failed to receive data\n";
+    this->setTag(0);      
   }
   else {
     this->setTag((int)data(0));
         
-        // Material properties
-        K = data(1);
-        C = data(2);
-		Alpha = data(3);
-		LGap = data(4);
-	    NM = data(5);
-        RelTol = data(6);
-		AbsTol = data(7);
-		MaxHalf = data(8);
+    // Material properties
+    K = data(1);
+    C = data(2);
+    Alpha = data(3);
+    LGap = data(4);
+    NM = data(5);
+    RelTol = data(6);
+    AbsTol = data(7);
+    MaxHalf = data(8);
         
-        // State variables from last converged state 
-        Cstrain = data(9);
-        Cstress = data(10);
-        Ctangent = data(11);
-        CVel = data(12);
-		Cpugr = data(13);
-		Cnugr = data(14);
-          
+    // State variables from last converged state 
+    Cstrain = data(9);
+    Cstress = data(10);
+    Ctangent = data(11);
+    CVel = data(12);
+    Cpugr = data(13);
+    Cnugr = data(14);
   }
     
   return res;
@@ -583,29 +584,28 @@ void
 ViscousDamper::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		  s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-      s << "\"name\": " << this->getTag() << ", ";
-      s << "\"type\": \"ViscousDamper\",";
-      s << "\"K\": " << K << ", "; 
-      s << "\"C\": " << C << ", ";
-      s << "\"Alpha\": " << Alpha << ", ";
-      s << "\"LGap\": " << LGap << ", "; 
-      s << "\"NM\": " << NM << ", "; 
-      s << "\"RelTol\": " << RelTol << ", ";
-      s << "\"AbsTol\": " << AbsTol << ", ";
-      s << "\"MaxHalf\": " << MaxHalf;
-      s << "}";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"ViscousDamper\",";
+    s << "\"K\": " << K << ", "; 
+    s << "\"C\": " << C << ", ";
+    s << "\"Alpha\": " << Alpha << ", ";
+    s << "\"LGap\": " << LGap << ", "; 
+    s << "\"NM\": " << NM << ", "; 
+    s << "\"RelTol\": " << RelTol << ", ";
+    s << "\"AbsTol\": " << AbsTol << ", ";
+    s << "\"MaxHalf\": " << MaxHalf;
+    s << "}";
   }
   else if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-    s << "ViscousDamper tag: " << this->getTag() << endln;
-    s << "  K: " << K << endln; 
-    s << "  C: " << C << endln;
-    s << "  Alpha: " << Alpha << endln;
-    s << "  LGap: " << LGap << endln; 
-    s << "  NM: " << NM << endln; 
-    s << "  RelTol: " << RelTol << endln;
-    s << "  AbsTol: " << AbsTol << endln;
-    s << "  MaxHalf: " << MaxHalf << endln;
+    s << "ViscousDamper tag: " << this->getTag() << "\n";
+    s << "  K: " << K << "\n"; 
+    s << "  C: " << C << "\n";
+    s << "  Alpha: " << Alpha << "\n";
+    s << "  LGap: " << LGap << "\n"; 
+    s << "  NM: " << NM << "\n"; 
+    s << "  RelTol: " << RelTol << "\n";
+    s << "  AbsTol: " << AbsTol << "\n";
+    s << "  MaxHalf: " << MaxHalf << "\n";
   }
-        
 }

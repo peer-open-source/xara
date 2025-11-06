@@ -11,3 +11,7 @@ target_sources(G3_ObjectBroker
   PUBLIC
     FEM_ObjectBroker.h
 )
+
+target_include_directories(G3_ObjectBroker
+  PUBLIC ${CMAKE_CURRENT_LIST_DIR}
+)

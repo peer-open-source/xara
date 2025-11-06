@@ -33,6 +33,7 @@ extern OPS_Routine OPS_ViscousDamper;
 extern OPS_Routine OPS_ViscousMaterial;
 extern OPS_Routine OPS_ViscoelasticGap;
 extern OPS_Routine OPS_DamperMaterial;
+extern OPS_Routine OPS_CoulombDamperMaterial;
 
 extern OPS_Routine OPS_ASD_SMA_3K;
 extern OPS_Routine OPS_ASDConcrete1DMaterial;
@@ -311,6 +312,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"ViscousDamper",          dispatch<OPS_ViscousDamper>             },
     {"DamperMaterial",         dispatch<OPS_DamperMaterial>            },
     {"BilinearOilDamper",      dispatch<OPS_BilinearOilDamper>         },
+    {"CoulombDamper",          dispatch<OPS_CoulombDamperMaterial>     },
 //
 // Multilinear
 //

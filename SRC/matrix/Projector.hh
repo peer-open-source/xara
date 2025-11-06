@@ -47,7 +47,7 @@ namespace OpenSees {
          0, 0, 0,   0 ,  0 , 0.5 ,
     }};
 
-    // 4th order Volumetric Tensor (57)
+    // 4th order Volumetric Tensor (57), or Ivp = ivol ⊗ ivol
     // IIvol = I1 tensor I1
     static constexpr MatrixND<6,6> IoI {{
          1, 1, 1,  0, 0, 0 ,
@@ -84,8 +84,22 @@ namespace OpenSees {
 
     // 4th order contravariant deviatoric tensor (Id)
     static constexpr MatrixND<6,6> IIdevCon = IIcon - 1./3.*IIvol;
+    //    0.6667   -0.3333   -0.3333         0         0         0
+    //   -0.3333    0.6667   -0.3333         0         0         0
+    //   -0.3333   -0.3333    0.6667         0         0         0
+    //         0         0         0    0.5000         0         0
+    //         0         0         0         0    0.5000         0
+    //         0         0         0         0         0    0.5000
+
     // 4th order covariant deviatoric tensor
     static constexpr MatrixND<6,6> IIdevCo  = IIco  - 1./3.*IIvol;
+
     // 4th order mixed variant deviatoric tensor (Idp)
     static constexpr MatrixND<6,6> IIdevMix = IImix - 1./3.*IIvol;
+    //     0.6667   -0.3333   -0.3333         0         0         0
+    //    -0.3333    0.6667   -0.3333         0         0         0
+    //    -0.3333   -0.3333    0.6667         0         0         0
+    //          0         0         0    1.0000         0         0
+    //          0         0         0         0    1.0000         0
+    //          0         0         0         0         0    1.0000
 }

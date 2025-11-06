@@ -66,9 +66,9 @@ public:
   const Matrix &getGlobalMatrixFromLocal(const Matrix &local) final;
  
   // methods used in post-processing only
-  const Vector &getPointGlobalCoordFromLocal(const Vector &localCoords);
-  const Vector &getPointGlobalDisplFromBasic(double xi, const Vector &basicDisps);
-  const Vector &getPointLocalDisplFromBasic(double xi, const Vector &basicDisps);    
+  const Vector &getPointGlobalCoordFromLocal(const Vector &localCoords) final;
+  const Vector &getPointGlobalDisplFromBasic(double xi, const Vector &basicDisps) final;
+  const Vector &getPointLocalDisplFromBasic(double xi, const Vector &basicDisps) final;
 
   //
   // Sensitivity

@@ -40,6 +40,7 @@
 
 Tcl_CmdProc TclCommand_newPlasticMaterial;
 Tcl_CmdProc TclCommand_newElasticMaterial;
+Tcl_CmdProc TclCommand_newConcreteMaterial;
 // Tcl_CmdProc TclCommand_newIsotropicMaterial;
 
 
@@ -56,7 +57,11 @@ TclCommand_addMaterial(ClientData clientData, Tcl_Interp* interp,
     {"J2",                        TclCommand_newPlasticMaterial},
     {"J2Simplified",              TclCommand_newPlasticMaterial},
     {"J2BeamFiber",               TclCommand_newPlasticMaterial},
-    {"GeneralizedJ2",             TclCommand_newPlasticMaterial}
+    {"GeneralizedJ2",             TclCommand_newPlasticMaterial},
+    {"NonlinearJ2",               TclCommand_newPlasticMaterial},
+
+    {"PlasticDamageConcrete",     TclCommand_newConcreteMaterial},
+    {"FariaPlasticDamage",        TclCommand_newConcreteMaterial},
   };
 
 
@@ -66,7 +71,6 @@ TclCommand_addMaterial(ClientData clientData, Tcl_Interp* interp,
            << "\n";
     return TCL_ERROR;
   }
-
 
   auto cmd = MaterialLibrary.find(std::string(argv[1]));
   if (cmd != MaterialLibrary.end())

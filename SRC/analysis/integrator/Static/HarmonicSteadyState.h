@@ -64,6 +64,7 @@ class HarmonicSteadyState : public StaticIntegrator
     int saveSensitivity(const Vector &v, int gradNum, int numGrads);
     int computeSensitivities(void);//Abbas
     bool computeSensitivityAtEachIteration();
+    int revertToLastStep() override {return 0;}
 
     // MovableObject interface
     int sendSelf(int commitTag, Channel &);

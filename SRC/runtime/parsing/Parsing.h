@@ -38,6 +38,7 @@ typedef int Tcl_Size;
     TCL_OK    = 0,
     TCL_ERROR = 1
   };
+  extern "C" {
   typedef int (Tcl_CmdProc)(ClientData, Tcl_Interp *, Tcl_Size, const TCL_Char *const []);
   int Tcl_GetDouble(Tcl_Interp *interp, const char *arg, double *value);
   int Tcl_GetInt(Tcl_Interp *interp, const char *arg, int *value);
@@ -49,6 +50,7 @@ typedef int Tcl_Size;
   void* Tcl_GetAssocData(Tcl_Interp *interp, const char *name, void *deleteProc);
   int Tcl_SetAssocData(Tcl_Interp *interp, const char *name, void *deleteProc, void *clientData);
   int Tcl_Eval(Tcl_Interp *interp, const char *script);
+  }
 # endif
 
   namespace OpenSees {

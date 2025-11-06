@@ -1,6 +1,6 @@
 [project]
 name = "opensees"
-version = "0.1.24"
+version = "0.1.25"
 
 readme = "about/README.pypi.md"
 
@@ -47,6 +47,9 @@ dependencies = [
     "numpy < 1.20.0; python_version<'3.8'",
     "numpy ; python_version>='3.8'",
     "tcinter>=1.0; platform_python_implementation=='PyPy' or sys_platform=='emscripten'",
+  # Windows/Fortran
+    "mkl ; sys_platform=='win32'",
+    "intel-fortran-rt ; sys_platform=='win32'",
 
 # Full-featured REPL
 #   "pyparsing",

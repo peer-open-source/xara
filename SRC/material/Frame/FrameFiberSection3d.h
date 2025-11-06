@@ -56,17 +56,16 @@ class FrameFiberSection3d : public FrameSection
     const ID &getType();
     int getOrder () const; //  {return 4;};
  
-    int sendSelf(int cTag, Channel &theChannel);
-    int recvSelf(int cTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag = 0);
+    int sendSelf(int cTag, Channel &) override;
+    int recvSelf(int cTag, Channel &, FEM_ObjectBroker &) override;
+    void Print(OPS_Stream &s, int flag) override;
 	    
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &info);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &) override;
+    int getResponse(int responseID, Information &) override;
 
     int addFiber(UniaxialMaterial &theMat, double area, double y, double z=0.0);
 
-    int setParameter(const char **argv, int argc, Parameter &param);
+    int setParameter(const char **argv, int argc, Parameter &);
 
     const Vector & getStressResultantSensitivity(int gradIndex, bool conditional);
     const Matrix & getSectionTangentSensitivity(int gradIndex);

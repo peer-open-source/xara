@@ -35,6 +35,7 @@
 #include <NineNodeQuad.h>
 #include <EightNodeQuad.h>
 #include <LagrangeQuad.h>
+#include <SSPquad.h>
 //
 #include <Tri31.h>
 #include <SixNodeTri.h>
@@ -89,6 +90,7 @@ NodeCounts = {
   {"EnhancedQuad",                4},
   {"NineNodeQuad",                9},
   {"quad9n",                      9},
+  {"SSPquad",                     4},
   {"NineNodeMixedQuad",           9},
   {"LagrangeQuad",                4},
   {"Tri31",                       3},
@@ -392,6 +394,13 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
         theElement = new ConstantPressureVolumeQuad(tag, nodes[0], nodes[1], nodes[2], nodes[3], *nd_mat, thickness);
 
       }
+      else if (strcasecmp(argv[1], "sspquad") == 0) {
+        theElement = new SSPquad(tag, nodes, *nd_mat, thickness, rho, b1, b2);
+      }
+      // else if (strcasecmp(argv[1], "FourNodeQuad3d") == 0) {
+      //   theElement =
+      //       new FourNodeQuad3d(tag, nodes, *nd_mat, thickness, p, rho, b1, b2);
+      // }
       else 
         theElement =
             new FourNodeQuad(tag, nodes, *nd_mat, thickness, p, rho, b1, b2);

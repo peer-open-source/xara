@@ -27,47 +27,25 @@
 #include <string>
 #include <unordered_map>
 
-#include <modeling/commands.h>
-
-#include <runtimeAPI.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
 #include <Domain.h>
 
-#include <CrdTransf.h>
 #include <ModelRegistry.h>
 
-#include <tcl.h> // For TCL_OK/ERROR
+#include <Parsing.h> // For TCL_OK/ERROR
 
 
 ModelRegistry::ModelRegistry(Domain &domain,
-                                     Tcl_Interp *interp, 
-                                     int NDM, int NDF)
-  : ndm(NDM), ndf(NDF), theInterp(interp),
+                             int NDM, int NDF)
+  : ndm(NDM), ndf(NDF),
     section_builder_is_set(false),
     theDomain(&domain),
     tclEnclosingPattern(nullptr),
     next_node_load(0)
     // , next_elem_load(0)
 {
-  using namespace OpenSees;
-
-  static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0])); // CommandTableEntry);
-
-  Tcl_CreateCommand(interp, "wipe", TclCommand_wipeModel, (ClientData)this, nullptr);
-
-  for (int i = 0; i < ncmd; i++)
-    Tcl_CreateCommand(interp, 
-        ModelBuilderCommands[i].name, 
-        ModelBuilderCommands[i].func, 
-        (ClientData) this, nullptr);
-
-  tclEnclosingPattern = nullptr;
-
-  Tcl_SetAssocData(interp, "OPS::theTclBuilder", NULL, (ClientData)this);
-  Tcl_SetAssocData(interp, "OPS::theBasicModelBuilder", NULL, (ClientData)this);
-  Tcl_SetAssocData(interp, "OPS::theTclDomain", NULL, (ClientData)&theDomain);
 
 }
 
@@ -82,12 +60,6 @@ ModelRegistry::~ModelRegistry()
   // set the pointers to 0
   theDomain = nullptr;
   tclEnclosingPattern = nullptr;
-
-  using namespace OpenSees;
-
-  static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0]));
-  for (int i = 0; i < ncmd; i++)
-    Tcl_DeleteCommand(theInterp, ModelBuilderCommands[i].name);
 }
 
 
@@ -220,7 +192,7 @@ ModelRegistry::getRegistryObject(const char* type, const char* specialize, int t
   auto iter = m_registry.find(partition);
   if (iter == m_registry.end()) {
     if (flags == 0)
-      opserr << "No objects of type \"" << partition
+      opserr << "No objects of type \"" << partition.c_str()
              << "\" have been created.\n";
     return nullptr;
   }
@@ -229,7 +201,7 @@ ModelRegistry::getRegistryObject(const char* type, const char* specialize, int t
   if (iter_objs == iter->second.end()) {
     if (flags == 0)
       opserr << "No object with tag \"" << tag << "\" in partition \"" 
-             << partition << "\"\n";
+             << partition.c_str() << "\"\n";
     return nullptr;
   }
 

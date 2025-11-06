@@ -9,6 +9,7 @@
 // NOTE: This doesnt really need access to the model builder, it would
 // work with just the domain
 //
+#define ALLOW_IMPLICIT_MATRIX
 #include <tcl.h>
 #include <Parsing.h>
 #include <assert.h>

@@ -54,11 +54,6 @@
 
 #include <MultiYieldSurfaceClay.h>
 
-#if 0
-extern NDMaterial *Tcl_addWrapperNDMaterial(matObj *, ClientData, Tcl_Interp *,
-                                            int, TCL_Char **);
-#endif
-
 #if defined(OPSDEF_Material_FEAP)
 NDMaterial *TclBasicBuilder_addFeapMaterial(ClientData clientData,
                                             Tcl_Interp *interp, int argc,

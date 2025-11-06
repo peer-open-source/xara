@@ -35,12 +35,11 @@ class MultiSupportPattern;
 class OPS_Stream;
 class ID;
 class Domain;
-struct Tcl_Interp;
 
 class ModelRegistry {
 public:
 
-  ModelRegistry(Domain &domain, Tcl_Interp *, int ndm, int ndf);
+  ModelRegistry(Domain &domain, int ndm, int ndf);
   ~ModelRegistry();
 
 
@@ -112,7 +111,6 @@ private:
   int ndm; // space dimension of the mesh
   int ndf; // number of degrees of freedom per node
 
-  Tcl_Interp *theInterp;
   Domain *theDomain     = nullptr;
 
   int next_node_load          = 0;

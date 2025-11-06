@@ -5,6 +5,7 @@ target_sources(OPS_Material
       Maxwell.cpp                      # Uses ops_Dt
       ViscousDamper.cpp
       ViscousMaterial.cpp
+      CoulombDamperMaterial.cpp
 )
 
 

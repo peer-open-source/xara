@@ -3,16 +3,21 @@
 //                                   xara
 //                              https://xara.so
 //
-//----------------------------------------------------------------------------//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 // Please cite the following resource in any derivative works:
 //
-// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+// Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
 //     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-
 //
 // Written: Claudio M. Perez
 //
@@ -35,8 +40,9 @@ public:
   virtual int initialize(std::array<Node*,nn>& nodes) =0;
   virtual int update(std::array<Node*,nn>& nodes) =0;
 
-  virtual int update(const Matrix3D& RI, 
-                     const Matrix3D& RJ, const Vector3D& dx, 
+  virtual int update(const Matrix3D& RI,
+                     const Matrix3D& RJ,
+                     const Vector3D& dx, 
                      std::array<Node*,nn>& nodes) =0;
 
   virtual double    getLength() const =0;
@@ -106,7 +112,8 @@ public:
       R[init](i,2) = e3[i];
     }
 
-    Xc = nodes[ic]->getCrds();
+    const Vector& XC = nodes[ic]->getCrds();
+    Xc = Vector3D {XC[0], XC[1], XC[2]};
     c[init] = R[init]^Xc;
 
     return this->update(nodes);
@@ -158,7 +165,8 @@ public:
     //
     //
     //
-    Vector3D uc = nodes[ic]->getTrialDisp();
+    const Vector& UC = nodes[ic]->getTrialDisp();
+    Vector3D uc {UC[0], UC[1], UC[2]};
     if (offsets != nullptr) {
       uc.addVector(1.0, (*offsets)[ic], -1.0);
       uc.addVector(1.0, nodes[ic]->getTrialRotation().rotate((*offsets)[ic]), 1.0);
@@ -197,7 +205,7 @@ public:
   }
 
   virtual Matrix3D 
-  getRotationDelta() {
+  getRotationDelta() final {
     return R[pres] - R[init];
   }
 
@@ -206,15 +214,15 @@ public:
     return c[pres];
   }
 
-  virtual Vector3D
-  getPosition() {
+  Vector3D
+  getPosition() override {
     // Return Delta c
     Vector3D Dc =  c[pres] - (R[init]^Xc) ; // (R[pres]^c[init]);
     return Dc;
   }
 
-  virtual Vector3D 
-  getPositionVariation(int ndf, double* du) {
+  Vector3D 
+  getPositionVariation(int ndf, double* du) override {
     return Vector3D {du[ndf*ic+0], du[ndf*ic+1], du[ndf*ic+2]};
   }
 

@@ -19,7 +19,7 @@ target_sources(OPS_SysOfEqn
     SProfileSPDLinSOE.cpp
     SProfileSPDLinSolver.cpp
 
-    ProfileSPDLinDirectThreadSolver.cpp
+#   ProfileSPDLinDirectThreadSolver.cpp
 
   PUBLIC
     ProfileSPDLinSOE.h

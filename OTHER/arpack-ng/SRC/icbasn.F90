@@ -3,7 +3,7 @@
 subroutine snaupd_c(ido, bmat, n, which, nev, tol, resid, ncv, v, ldv,&
                     iparam, ipntr, workd, workl, lworkl, info)        &
                     bind(c, name="snaupd_c")
-  use :: iso_c_binding
+  use, intrinsic :: iso_c_binding
   implicit none
 #include "arpackicb.h"
   integer(kind=i_int),                         intent(inout) :: ido
@@ -39,7 +39,7 @@ subroutine sneupd_c(rvec, howmny, select,                        &
                     bmat, n, which, nev, tol, resid, ncv, v, ldv,&
                     iparam, ipntr, workd, workl, lworkl, info)   &
                     bind(c, name="sneupd_c")
-  use :: iso_c_binding
+  use, intrinsic :: iso_c_binding
   implicit none
 #include "arpackicb.h"
   integer(kind=i_int),    value,               intent(in)    :: rvec

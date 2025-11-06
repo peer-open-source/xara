@@ -96,16 +96,8 @@ SymBandEigenSOE::setSize(Graph &theGraph)
       delete [] A;
     
     A = new double[newSize];
-    
-    if (A == 0) {
-      opserr << "SymBandEigenSOE::setSize() -- ran out of memory for A, size = " <<
-	size <<  " and numSuperD = : " << numSuperD << endln;
-			      
-      Asize = 0; size = 0; numSuperD = 0;
-      result= -1;
-    }
-    else  
-      Asize = newSize;
+
+    Asize = newSize;
   }
   
   // zero the matrix
@@ -178,7 +170,7 @@ SymBandEigenSOE::addA(const Matrix &m, const ID &id, double fact)
 }
 
 void 
-SymBandEigenSOE::zeroA(void)
+SymBandEigenSOE::zeroA()
 {
   double *Aptr = A;
   

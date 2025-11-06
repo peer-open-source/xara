@@ -5,6 +5,7 @@
 #
 #==============================================================================
 
+
 add_library(OpenSeesRT SHARED)
 add_library(OpenSeesRT_Static STATIC)
 
@@ -26,6 +27,7 @@ target_include_directories(OPS_Runtime PUBLIC
   ${OPS_SRC_DIR}/runtime/parsing/
   ${OPS_SRC_DIR}/runtime/commands/modeling
   ${OPS_SRC_DIR}/runtime/runtime/
+  ${OPS_Includes}
 )
 target_link_libraries(OPS_Runtime PRIVATE G3 OPS_Algorithm)
 
