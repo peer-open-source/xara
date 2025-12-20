@@ -1316,25 +1316,21 @@ int  BrickUP::recvSelf (int commitTag,
   if (materialPointers[0] == 0) {
     // Allocate new materials
     //materialPointers = new NDMaterial[8];
-    //if (materialPointers == 0) {
-    //  opserr << "BrickUP::recvSelf() - Could not allocate NDMaterial array\n";
-    //  return -1;
-    //}
     for (i = 0; i < 8; i++) {
       int matClassTag = idData(i);
       int matDbTag = idData(i+8);
       // Allocate new material with the sent class tag
       materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
       if (materialPointers[i] == 0) {
-	opserr << "BrickUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-	return -1;
+        opserr << "BrickUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
+        return -1;
       }
       // Now receive materials into the newly allocated space
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "BrickUP::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
+        opserr << "BrickUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -1346,20 +1342,20 @@ int  BrickUP::recvSelf (int commitTag,
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (materialPointers[i]->getClassTag() != matClassTag) {
-	delete materialPointers[i];
-	materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-	if (materialPointers[i] == 0) {
-	  opserr << "BrickUP::recvSelf() - Broker could not create NDMaterial of class type " <<
-	    matClassTag << endln;
-	  exit(-1);
-	}
+        delete materialPointers[i];
+        materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
+        if (materialPointers[i] == 0) {
+          opserr << "BrickUP::recvSelf() - Broker could not create NDMaterial of class type " <<
+            matClassTag << "\n";
+          exit(-1);
+        }
       }
       // Receive the material
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "BrickUP::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
+        opserr << "BrickUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
