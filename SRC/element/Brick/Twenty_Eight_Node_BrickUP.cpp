@@ -1233,10 +1233,6 @@ int  TwentyEightNodeBrickUP::recvSelf (int commitTag,
   if (materialPointers == 0) {
     // Allocate new materials
     materialPointers = new NDMaterial* [nintu];
-    if (materialPointers == 0) {
-      opserr << "TwentyEightNodeBrickUP::recvSelf() - Could not allocate NDMaterial array\n";
-      return -1;
-    }
     for (i = 0; i < nintu; i++) {
       int matClassTag = idData(i);
       int matDbTag = idData(i+nintu);
@@ -1257,7 +1253,7 @@ int  TwentyEightNodeBrickUP::recvSelf (int commitTag,
   }
   // materials exist , ensure materials of correct type and recvSelf on them
   else {
-    for (i = 0; i < nintu; i++) {
+    for (int i = 0; i < nintu; i++) {
       int matClassTag = idData(i);
       int matDbTag = idData(i+nintu);
       // Check that material is of the right type; if not,
