@@ -354,7 +354,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
   int result = 0;
 
   for (int i=0; i<numSteps; i++) {
-    // This is used for parallelization
+    // This is done for parallelization
     result = theAnalysisModel->analysisStep(0.0);
     if (result < 0) {
       opserr << "The AnalysisModel failed\n";
