@@ -172,7 +172,8 @@ class Interpreter:
         try:
             echo = "" if os.environ.get("XARA_ECHO_ERROR", False) else "-noEcho"
             if self._err_file is not None and echo:
-                self.eval(f"logFile {self._err_file} {echo}")
+                # Note: The extra braces are needed to escape backslashes on Windows
+                self.eval(f"logFile {{{self._err_file}}} {echo}")
         except:
             self._err_file = None
 
@@ -220,7 +221,7 @@ class Interpreter:
         return ""
 
     def serialize(self)->dict:
-        import tempfile, pathlib
+        import pathlib
         with tempfile.TemporaryDirectory() as tmp:
             if os.name == 'nt':
                 file = ".model.json"

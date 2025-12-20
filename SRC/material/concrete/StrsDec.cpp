@@ -9,7 +9,7 @@
 
 using namespace OpenSees;
 
-inline double 
+inline double
 Heaviside(double X) { 
   return X > 1e-16 ? 1.0 : (X < 0.0 ? 0.0 : 0.0); // 0.5 
 }
@@ -41,7 +41,7 @@ StrsDecA(const VectorND<6> &sig,
         MatrixND<6,6>* Qpos)
 {
   // convert to matrix form
-  MatrixND<3,3> sigM; // = Vector2Tensor(sig);
+  MatrixND<3,3> sigM{}; // = Vector2Tensor(sig);
 
   // sigM(0, 0) = sig[0];
   // sigM(1, 1) = sig[1];
@@ -51,8 +51,8 @@ StrsDecA(const VectorND<6> &sig,
   // sigM(0, 2) = sigM(2, 0) = sig[5];
 
   // find eigenvalues sigI and eigenvectors n
-  Vector3D sigI;
-  std::array<Vector3D,3> V;
+  Vector3D sigI{};
+  std::array<Vector3D,3> V{};
   SymEigDirect3D<double,-1> eigen;
   eigen(sig[0], sig[3], sig[5], 
         sig[1], sig[4], 
@@ -60,14 +60,14 @@ StrsDecA(const VectorND<6> &sig,
         sigI, V);
 
   // eigenvectors are n = [n1 n2 n3]
-  Vector3D   & n1 = V[0], 
-              & n2 = V[1], 
-              & n3 = V[2];
+  Vector3D  & n1 = V[0], 
+            & n2 = V[1], 
+            & n3 = V[2];
 
   // Heaviside function
-  double H1 = Heaviside(sigI[0]), 
+  double  H1 = Heaviside(sigI[0]), 
           H2 = Heaviside(sigI[1]), 
-          H3 = Heaviside(sigI[2]);;
+          H3 = Heaviside(sigI[2]);
 
   // positive stress
 

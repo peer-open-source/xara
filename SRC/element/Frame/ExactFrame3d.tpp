@@ -139,7 +139,7 @@ ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
   for (int i = 0; i < nip; i++) {
     pres[i].point    = 0.0;
     pres[i].weight   = 0.0;
-    pres[i].material = section[i]->getFrameCopy();//(scheme);
+    pres[i].material = section[i]->getFrameCopy();
   }
 }
 

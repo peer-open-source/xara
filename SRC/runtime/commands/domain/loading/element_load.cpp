@@ -295,7 +295,8 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
 
 
 int
-TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc_main,
+TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, 
+                            Tcl_Size argc_main,
                             TCL_Char **const argv_main)
 {
   if (argc_main < 2) {
@@ -328,16 +329,16 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
   // for which the load applies.
   int count    = 1;
   while (count < argc_main) {
-
     // Element tags
     if (strcmp(argv_main[count], "-ele") == 0) {
       count++;
       int eleStart = count;
       int eleEnd   = 0;
       int eleID;
-      while (count < argc_main && eleEnd == 0) {
-        if (Tcl_GetInt(interp, argv_main[count], &eleID) != TCL_OK)
+      while ((count < argc_main) && (eleEnd == 0)) {
+        if (Tcl_GetInt(interp, argv_main[count], &eleID) != TCL_OK) {
           eleEnd = count;
+        }
         else
           count++;
       }
@@ -384,17 +385,19 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
 
     else if (strcmp(argv_main[count], "-type") == 0) {
       argv[0] = argv_main[count++];
-      argv[1] = argv_main[count++];
       if (count >= argc_main) {
         opserr << OpenSees::PromptValueError << "eleLoad -type paramter missing required argument\n";
         return TCL_ERROR;
       }
+      argv[1] = argv_main[count++];
       typeIndex = 0;
 
-    } else {
+    }
+    else {
       argv.push_back(argv_main[count++]);
     }
   }
+
   const int argc = static_cast<int>(argv.size());
 
   // If  -pattern  wasnt given explicitly, see if there is one
@@ -409,7 +412,6 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
       loadPatternTag = theTclLoadPattern->getTag();
     }
   }
-
 
   if (typeIndex == -1) {
     opserr << OpenSees::PromptValueError << "missing required -type option"
@@ -608,7 +610,6 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
           return TCL_ERROR;
         }
       }
-
       return TCL_OK;
     }
     else if (ndm == 3) {
@@ -689,8 +690,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
 
       // add the load to the domain
       if (domain->addElementalLoad(theLoad, loadPatternTag) == false) {
-        opserr
-            << OpenSees::PromptValueError << "could not add following load to domain:\n ";
+        opserr << OpenSees::PromptValueError << "could not add load to domain:\n ";
         opserr << theLoad;
         delete theLoad;
         return TCL_ERROR;

@@ -99,11 +99,13 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
 
     else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Missing value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
-          opserr << "Invalid density value for option " << argv[i-1] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid density value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
       }
     }
@@ -112,24 +114,28 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
     else if (strcmp(argv[i], "-Fc") == 0 || 
              strcmp(argv[i], "-fc") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Fc) != TCL_OK) {
-          opserr << "Invalid " << &argv[i-1][1] << " value " << argv[i] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Invalid " << &argv[i-1][1] << " value " << argv[i] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::PeakCompression);
     }
     // Tension
     else if ((strcmp(argv[i], "-Ft") == 0)) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Ft) != TCL_OK) {
-          opserr << "Invalid " << &argv[i-1][1] << " value " << argv[i] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Invalid " << &argv[i-1][1] << " value " << argv[i] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::PeakTension);
     }
@@ -138,12 +144,14 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
     //
     else if (strcmp(argv[i], "-beta") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &beta) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Beta);
     }
@@ -151,34 +159,40 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
     //
     else if (strcmp(argv[i], "-Ap") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Ap) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Ap);
     }
     else if (strcmp(argv[i], "-An") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &An) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+                << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::An);
     }
     else if (strcmp(argv[i], "-Bn") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+                << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Bn) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+                << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Bn);
     }
@@ -382,7 +396,7 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
       tracker.consume(tracker.current());
     }
 
-    opserr << "\n";
+    opserr << OpenSees::SignalMessageEnd;
 
     return TCL_ERROR;
   }

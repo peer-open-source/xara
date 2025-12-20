@@ -333,7 +333,7 @@ add_library(arpack
             ${arpacksrc_ICB}
 )
 if (WIN32)
-  target_compile_options(arpack PRIVATE /fpp /libs:static /NODEFAULTLIB:"ifconsol.lib" /threads /c)
+  target_compile_options(arpack PRIVATE /fpp /libs:static /threads /c)
 endif()
 
 target_link_libraries(arpack
