@@ -77,6 +77,157 @@
 
 #define ELE_TAG_ForceFrame3d 0 // TODO
 
+#define INTERP 1
+namespace {
+template <int nsr, int nwm, int NBV, const FrameStressLayout& scheme>
+class ForceInterpolation {
+public:
+  enum : int {
+    inx = -12, //  0
+    iny = -12, //  1
+    inz = -12, //  2
+    imx = -12, //  3
+    imy =   3, //  4
+    imz =   1, //  5
+    iwx =   6, //
+    //
+    jnx =   0, //  6
+    jny = -12, //  7
+    jnz = -12, //  8
+    jmx =   5, //  9
+    jmy =   4, // 10
+    jmz =   2, // 11
+    jwx =   7,
+  };
+
+  MatrixND<nsr,NBV> b(double xL, double L) {
+    double xL1 = xL - 1.0;
+    MatrixND<nsr,NBV> B{};
+    for (int i = 0; i < nsr; i++) {
+      switch (scheme[i]) {
+      case FrameStress::N:
+        B(i, jnx) = 1.0;
+        break;
+      case FrameStress::Vy:
+        B(i, imz) = -1.0/L;
+        B(i, jmz) = -1.0/L;
+        break;
+      case FrameStress::Vz:
+        B(i, imy) =  1.0/L;
+        B(i, jmy) =  1.0/L;
+        break;
+      case FrameStress::T:
+        B(i, jmx) = 1.0;
+        break;
+      case FrameStress::My:
+        B(i, imy) = xL1;
+        B(i, jmy) = xL;
+        break;
+      case FrameStress::Mz:
+        B(i, imz) = xL1;
+        B(i, jmz) = xL;
+        break;
+      case FrameStress::Bimoment: 
+        B(i, iwx) = xL1;
+        B(i, jwx) = xL;
+        break;
+      case FrameStress::Bishear:
+        B(i, iwx) = 1.0/L;
+        B(i, jwx) = 1.0/L;
+        break;
+      }
+    }
+    return B;
+  }
+
+  void addTripleProduct(const MatrixND<nsr,nsr>& Fs, 
+                        double xL, double wtL, double jsx,
+                        MatrixND<nsr,nsr> & F) 
+  {
+    double xL1 = xL - 1.0;
+    MatrixND<nsr,NBV> FsB{};
+    for (int ii = 0; ii < nsr; ii++) {
+      for (int jj = 0; jj < nsr; jj++) {
+        switch (scheme[jj]) {
+        case FrameStress::N:
+          FsB(ii, jnx) += Fs(ii, jj) * wtL;
+          break;
+
+        case FrameStress::Vy:
+          FsB(ii, imz) += Fs(ii, jj) * wtL * jsx;
+          FsB(ii, jmz) += Fs(ii, jj) * wtL * jsx;
+          break;
+
+        case FrameStress::Vz:
+          FsB(ii, imy) += Fs(ii, jj) * wtL * jsx;
+          FsB(ii, jmy) += Fs(ii, jj) * wtL * jsx;
+          break;
+
+        case FrameStress::T:
+          FsB(ii, jmx) += Fs(ii, jj) * wtL;
+          break;
+
+        case FrameStress::My:
+          FsB(ii, imy) += xL1 * Fs(ii, jj)*wtL;
+          FsB(ii, jmy) += xL  * Fs(ii, jj)*wtL;
+          break;
+
+        case FrameStress::Mz:
+          FsB(ii, imz) += xL1 * Fs(ii, jj)*wtL;
+          FsB(ii, jmz) += xL  * Fs(ii, jj)*wtL;
+          break;
+
+        case FrameStress::Bimoment:
+          FsB(ii, iwx) += xL1 * Fs(ii, jj)*wtL;
+          FsB(ii, jwx) += xL  * Fs(ii, jj)*wtL;
+          break;
+        case FrameStress::Bishear:
+          FsB(ii, iwx) += Fs(ii, jj) * wtL * jsx;
+          FsB(ii, jwx) += Fs(ii, jj) * wtL * jsx;
+          break;
+        }
+      }
+    }
+
+    for (int jj = 0; jj < nsr; jj++) {
+      for (int ii = 0; ii < NBV; ii++) {
+        switch (scheme[jj]) {
+        case FrameStress::N:
+          F(jnx, ii) += 1.0 * FsB(jj, ii); // Nj
+          break;
+        case FrameStress::Vy:
+          F(imz, ii) += jsx * FsB(jj, ii);
+          F(jmz, ii) += jsx * FsB(jj, ii);
+          break;
+        case FrameStress::Vz:
+          F(imy, ii) += jsx * FsB(jj, ii);
+          F(jmy, ii) += jsx * FsB(jj, ii);
+          break;
+        case FrameStress::T:
+          F(jmx, ii) += 1.0 * FsB(jj, ii);
+          break;
+        case FrameStress::My:
+          F(imy, ii) += xL1 * FsB(jj, ii);
+          F(jmy, ii) += xL  * FsB(jj, ii);
+          break;
+        case FrameStress::Mz:
+          F(imz, ii) += xL1 * FsB(jj, ii);
+          F(jmz, ii) += xL  * FsB(jj, ii);
+          break;
+        case FrameStress::Bimoment:
+          F(iwx, ii) += xL1 * FsB(jj, ii);
+          F(jwx, ii) += xL  * FsB(jj, ii);
+          break;
+        case FrameStress::Bishear:
+          F(iwx, ii) += jsx * FsB(jj, ii);
+          F(jwx, ii) += jsx * FsB(jj, ii);
+          break;
+        }
+      }
+    }
+  }
+};
+}
 
 template <int NIP, int nsr, int nwm>
 ForceFrame3d<NIP,nsr,nwm>::ForceFrame3d(int tag, 
@@ -547,6 +698,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
         VectorND<NBV> vr{};       // element residual deformations
         MatrixND<NBV, NBV> F{};   // element flexibility matrix
+        ForceInterpolation<nsr,nwm,NBV,scheme> interp;
 
         //
         // Gauss Loop
@@ -560,6 +712,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           auto& Fs = Fs_trial[i];
           auto& sr = sr_trial[i];
           FrameSection& section = *points[i].material;
+          const MatrixND<nsr,NBV> b = interp.b(xL, L);
 
           //
           // a. Calculate section force by interpolation of q_trial
@@ -570,6 +723,9 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           //    b*q_trial
           //
           VectorND<nsr> si{};
+          #ifdef INTERP 
+          si = b * q_trial;
+          #else
           for (int ii=0; ii<nsr; ii++) {
             switch (scheme[ii]) {
               case FrameStress::N:
@@ -600,6 +756,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
                 break;
             }
           }
+          #endif
 
           //
           // Add the particular solution
@@ -650,7 +807,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           // c. Set trial section state and get response
           //
           if (section.setTrialState<nsr,scheme>(es_trial[i]) < 0) {
-            opserr << "ForceFrame3d: section " << i << " failed in setTrial\n";
+            opserr << "element " << this->getTag() << ", section " << i << ": failed in setTrial\n";
             return -1;
           }
 
@@ -662,6 +819,9 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           //
           //    F += (B' * Fs * B) * wi * L;
           //
+          #ifdef INTERP
+          F.addMatrixTripleProduct(1.0, b, Fs, b, wtL);
+          #else
           {
             MatrixND<nsr,NBV> FsB;
             FsB.zero();
@@ -745,6 +905,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
               }
             }
           }
+          #endif
 
           //
           // e. Integrate residual deformations
@@ -754,13 +915,15 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           {
             // calculate section residual deformations
             // des = Fs * ds,  with  ds = si - sr[i];
-            VectorND<nsr> ds = si;
-            ds -= sr;
+            const VectorND<nsr> ds = si - sr;
 
             VectorND<nsr> des = Fs*ds;
             des += es_trial[i];
 
             // B' * des
+            #ifdef INTERP
+            vr.addMatrixTransposeVector(1.0, b, des, wtL);
+            #else
             for (int ii = 0; ii < nsr; ii++) {
               switch (scheme[ii]) {
               case FrameStress::N:
@@ -795,6 +958,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
                 break;
               }
             }
+            #endif
           }
         } // Gauss loop
 
@@ -810,12 +974,13 @@ ForceFrame3d<NIP,nsr,nwm>::update()
         //    K_trial  = inv(F)
         //    q_trial += K * (Dv + dv_trial - vr)
         //
-        const Cholesky<NBV> cholF(F);
+        const MatrixND<NBV, NBV> FT = F; //.transpose();
+        const Cholesky<NBV, true> cholF(FT);
 
         VectorND<NBV> dqe{};
         if (cholF.solve(&dv[0], &dqe[0]) < 0) [[unlikely]] {
-          opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
-          if (F.solve(dv, dqe) < 0)
+          // opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
+          if (FT.solve(dv, dqe) < 0)
             return -1;
         }
 
@@ -832,7 +997,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
 
           // Set the target displacement
           dv_total -= dv_trial;
-          Dv     += dv_trial;
+          Dv       += dv_trial;
 
           // Check if we have got to where we wanted
           if (dv_total.norm() <= TOL_SUBDIV) {
@@ -850,7 +1015,7 @@ ForceFrame3d<NIP,nsr,nwm>::update()
           // K_pres = K_trial;
 
           if (cholF.invert(K_pres) < 0) [[unlikely]] {
-            if (F.invert(K_pres) < 0)
+            if (FT.invert(K_pres) < 0)
               return -1;
           }
           q_pres = q_trial;
