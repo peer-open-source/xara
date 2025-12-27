@@ -34,25 +34,25 @@ public:
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
-    virtual int formEleTangent(FE_Element *theEle)  final;
-    virtual int formNodTangent(DOF_Group *theDof)   final;
-    virtual int formEleResidual(FE_Element* theEle) final;
-    virtual int formNodUnbalance(DOF_Group* theDof) final;
+    int formEleTangent(FE_Element *theEle)  final;
+    int formNodTangent(DOF_Group *theDof)   final;
+    int formEleResidual(FE_Element* theEle) final;
+    int formNodUnbalance(DOF_Group* theDof) final;
 
     int domainChanged();    
     int newStep(double deltaT);
-    int revertToLastStep();
     virtual int update(const Vector &deltaU);
+    int revertToLastStep();
 
     double getCFactor();
 
     const Vector &getVel();
 
     // MovableObject
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
-    void Print(OPS_Stream &s, int flag = 0);        
+    void Print(OPS_Stream &s, int flag);        
     
     // Sensitivity
     int revertToStart();

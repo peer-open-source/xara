@@ -1953,7 +1953,7 @@ Domain::revertToLastCommit(void)
 }
 
 int
-Domain::revertToStart(void)
+Domain::revertToStart()
 {
     // 
     // first invoke revertToLastCommit  on all nodes and 
@@ -2028,7 +2028,7 @@ Domain::updateParameter(int tag, int value)
   
   // if not there return 0
   if (mc == 0)
-      return 0;
+    return 0;
 
   // convert to a parameter & update
   Parameter *result = (Parameter *)mc;
@@ -2045,8 +2045,8 @@ Domain::updateParameter(int tag, double value)
   
   // if not there return 0
   if (mc == 0) {
-      opserr << "Domain::updateParameter(int tag, double value) - parameter with tag not present\n";
-      return 0;
+    opserr << "Domain::updateParameter(int tag, double value) - parameter with tag not present\n";
+    return 0;
   }
 
   Parameter *theParam = (Parameter *)mc;

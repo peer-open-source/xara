@@ -69,8 +69,7 @@ NewtonLineSearch::solveCurrentStep()
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
-  if ((theIntegrator == 0) || (theSOE == 0)
-    || (theTest == 0)){
+  if ((theIntegrator == 0) || (theSOE == 0) || (theTest == 0)){
     opserr << "WARNING NewtonLineSearch::solveCurrentStep() - setLinks() has";
     opserr << " not been called - or no ConvergenceTest has been set\n";
     return -5;
@@ -138,7 +137,7 @@ NewtonLineSearch::solveCurrentStep()
   }  while (result == ConvergenceTest::Continue);
 
   if (result == ConvergenceTest::Failure)
-    return SolutionAlgorithm::TestFailed;;
+    return SolutionAlgorithm::TestFailed;
 
 
   // note - if positive result we are returning what the convergence test returned

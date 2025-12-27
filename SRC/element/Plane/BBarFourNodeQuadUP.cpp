@@ -693,7 +693,6 @@ BBarFourNodeQuadUP::getResistingForceIncInertia()
 
   // Compute the current resisting force
   this->getResistingForce();
-  //opserr<<"K "<<P<<endln;
 
   // Compute the mass matrix
   this->getMass();
@@ -703,6 +702,7 @@ BBarFourNodeQuadUP::getResistingForceIncInertia()
     for (int j = 0; j < 12; j++)
       P(i) += K(i,j)*a[j];
   }
+
   //opserr<<"K+M "<<P<<endln;
 
   // dynamic seepage force
@@ -713,7 +713,7 @@ BBarFourNodeQuadUP::getResistingForceIncInertia()
            +shp[2][i][j]*a[k+1]*perm[1]*shp[1][i][j]);
     }
   }*/
-  //opserr<<"K+M+fb "<<P<<endln;
+  // opserr<<"K+M+fb "<<P<<endln;
 
   const Vector &vel1 = nd1Ptr->getTrialVel();
   const Vector &vel2 = nd2Ptr->getTrialVel();
@@ -867,33 +867,29 @@ BBarFourNodeQuadUP::recvSelf(int commitTag, Channel &theChannel,
   connectedExternalNodes(3) = idData(11);
 
 
-  if (theMaterial == 0) {
+  if (theMaterial == nullptr) {
     // Allocate new materials
     theMaterial = new NDMaterial *[4];
-    if (theMaterial == 0) {
-      opserr << "BBarFourNodeQuadUP::recvSelf() - Could not allocate NDMaterial* array\n";
-      return -1;
-    }
     for (int i = 0; i < 4; i++) {
       int matClassTag = idData(i);
       int matDbTag = idData(i+4);
       // Allocate new material with the sent class tag
       theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
       if (theMaterial[i] == 0) {
-  opserr << "BBarFourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-  return -1;
+        opserr << "BBarFourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
+        return -1;
       }
       // Now receive materials into the newly allocated space
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-  return res;
+        opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
 
-  // materials exist , ensure materials of correct type and recvSelf on them
+  // materials exist, ensure materials of correct type and recvSelf on them
   else {
     for (int i = 0; i < 4; i++) {
       int matClassTag = idData(i);
@@ -901,20 +897,19 @@ opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to recv i
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (theMaterial[i]->getClassTag() != matClassTag) {
-  delete theMaterial[i];
-  theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-  if (theMaterial[i] == 0) {
-opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
-
-    return -1;
-  }
+        delete theMaterial[i];
+        theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
+        if (theMaterial[i] == nullptr) {
+          opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
+          return -1;
+        }
       }
       // Receive the material
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-  return res;
+        opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -922,19 +917,40 @@ opserr << "BBarFourNodeQuadUP::recvSelf() - material " << i << "failed to recv i
   return res;
 }
 
+
 void
 BBarFourNodeQuadUP::Print(OPS_Stream &s, int flag)
 {
-  s << "\nBBarFourNodeQuadUP, element id:  " << this->getTag() << endln;
-  s << "\tConnected external nodes:  " << connectedExternalNodes;
-  s << "\tthickness:  " << thickness << endln;
-  s << "\tmass density:  " << rho << endln;
-  s << "\tsurface pressure:  " << pressure << endln;
-  s << "\tbody forces:  " << b[0] << ' ' << b[1] << endln;
-  theMaterial[0]->Print(s,flag);
-  s << "\tStress (xx yy xy)" << endln;
-  for (int i = 0; i < 4; i++)
-    s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{\n";
+    s << "\"name\": " << this->getTag() << ",\n";
+    s << "\"type\": \"BBarFourNodeQuadUP\",\n";
+
+    s << "\"nodes\": [";
+    const ID &nodes = this->getExternalNodes();
+    for (int i=0; i<NEN; i++) {
+      s << nodes(i);
+      if (i < NEN-1)
+        s << ", ";
+    }
+    s << "], ";
+    s << "\"thickness\": " << thickness << ", ";
+    s << "\"massDensity\": " << rho << ", ";
+    s << "\"surfacePressure\": " << pressure;
+    s << "}";
+  }
+  else {
+    s << "\nBBarFourNodeQuadUP, element id:  " << this->getTag() << endln;
+    s << "\tConnected external nodes:  " << connectedExternalNodes;
+    s << "\tthickness:  " << thickness << endln;
+    s << "\tmass density:  " << rho << endln;
+    s << "\tsurface pressure:  " << pressure << endln;
+    s << "\tbody forces:  " << b[0] << ' ' << b[1] << endln;
+    theMaterial[0]->Print(s,flag);
+    s << "\tStress (xx yy xy)" << endln;
+    for (int i = 0; i < 4; i++)
+      s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
+  }
 }
 
 
@@ -1091,13 +1107,11 @@ BBarFourNodeQuadUP::updateParameter(int parameterID, Information &info)
   }
 }
 
-void BBarFourNodeQuadUP::shapeFunction(void)
+void
+BBarFourNodeQuadUP::shapeFunction()
 {
-  double xi, eta, oneMinuseta, onePluseta, oneMinusxi, onePlusxi,
-         detJ, oneOverdetJ, J[2][2], L[2][2], L00, L01, L10, L11,
-         L00oneMinuseta, L00onePluseta, L01oneMinusxi, L01onePlusxi,
-         L10oneMinuseta, L10onePluseta, L11oneMinusxi, L11onePlusxi,
-         vol = 0.0;
+  double J[2][2], L[2][2];
+  double vol = 0.0;
 
   int i, k, l;
 
@@ -1109,13 +1123,14 @@ void BBarFourNodeQuadUP::shapeFunction(void)
 
   // loop over integration points
   for (int i=0; i<4; i++) {
-    xi = pts[i][0];
-    eta = pts[i][1];
+    double xi = pts[i][0];
+    double eta = pts[i][1];
     const Vector &nd1Crds = nd1Ptr->getCrds();
     const Vector &nd2Crds = nd2Ptr->getCrds();
     const Vector &nd3Crds = nd3Ptr->getCrds();
     const Vector &nd4Crds = nd4Ptr->getCrds();
 
+    double oneMinuseta, onePluseta, oneMinusxi, onePlusxi;
     oneMinuseta = 1.0-eta;
     onePluseta = 1.0+eta;
     oneMinusxi = 1.0-xi;
@@ -1138,8 +1153,8 @@ void BBarFourNodeQuadUP::shapeFunction(void)
     J[1][1] = 0.25 * (-nd1Crds(1)*oneMinusxi - nd2Crds(1)*onePlusxi +
         nd3Crds(1)*onePlusxi + nd4Crds(1)*oneMinusxi);
 
-    detJ = J[0][0]*J[1][1] - J[0][1]*J[1][0];
-    oneOverdetJ = 1.0/detJ;
+    double detJ = J[0][0]*J[1][1] - J[0][1]*J[1][0];
+    double oneOverdetJ = 1.0/detJ;
 
     // L = inv(J)
     L[0][0] =  J[1][1]*oneOverdetJ;
@@ -1147,11 +1162,14 @@ void BBarFourNodeQuadUP::shapeFunction(void)
     L[0][1] = -J[1][0]*oneOverdetJ;
     L[1][1] =  J[0][0]*oneOverdetJ;
 
+    double L00, L01, L10, L11;
     L00 = 0.25*L[0][0];
     L10 = 0.25*L[1][0];
     L01 = 0.25*L[0][1];
     L11 = 0.25*L[1][1];
 
+    double L00oneMinuseta, L00onePluseta, L01oneMinusxi, L01onePlusxi,
+           L10oneMinuseta, L10onePluseta, L11oneMinusxi, L11onePlusxi;
     L00oneMinuseta = L00*oneMinuseta;
     L00onePluseta  = L00*onePluseta;
     L01oneMinusxi  = L01*oneMinusxi;
@@ -1164,13 +1182,13 @@ void BBarFourNodeQuadUP::shapeFunction(void)
 
     // B: See Cook, Malkus, Plesha p. 169 for the derivation of these terms
     shp[0][0][i] = -L00oneMinuseta - L01oneMinusxi;  // N_1,1
-    shp[0][1][i] =  L00oneMinuseta - L01onePlusxi;    // N_2,1
-    shp[0][2][i] =  L00onePluseta  + L01onePlusxi;    // N_3,1
+    shp[0][1][i] =  L00oneMinuseta - L01onePlusxi;   // N_2,1
+    shp[0][2][i] =  L00onePluseta  + L01onePlusxi;   // N_3,1
     shp[0][3][i] = -L00onePluseta  + L01oneMinusxi;  // N_4,1
 
     shp[1][0][i] = -L10oneMinuseta - L11oneMinusxi;  // N_1,2
-    shp[1][1][i] =  L10oneMinuseta - L11onePlusxi;    // N_2,2
-    shp[1][2][i] =  L10onePluseta  + L11onePlusxi;    // N_3,2
+    shp[1][1][i] =  L10oneMinuseta - L11onePlusxi;   // N_2,2
+    shp[1][2][i] =  L10onePluseta  + L11onePlusxi;   // N_3,2
     shp[1][3][i] = -L10onePluseta  + L11oneMinusxi;  // N_4,2
 
     dvol[i] = detJ * thickness * wts[i];
@@ -1208,7 +1226,8 @@ void BBarFourNodeQuadUP::shapeFunction(void)
 }
 
 
-double BBarFourNodeQuadUP::mixtureRho(int i)
+double
+BBarFourNodeQuadUP::mixtureRho(int i)
 {
   double rhoi, e, n;
   rhoi= theMaterial[i]->getRho();
@@ -1218,7 +1237,8 @@ double BBarFourNodeQuadUP::mixtureRho(int i)
   return rhoi;
 }
 
-void BBarFourNodeQuadUP::setPressureLoadAtNodes(void)
+void
+BBarFourNodeQuadUP::setPressureLoadAtNodes()
 {
   pressureLoad.Zero();
 
