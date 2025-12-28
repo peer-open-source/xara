@@ -45,30 +45,31 @@ public:
     return "ForceDeltaFrame3d";
   }
 
-  int setNodes();
-  int commitState();
-  int revertToLastCommit();
-  int revertToStart();
-  int update();
+  int setNodes() final;
+  int commitState() final;
+  int revertToLastCommit() final;
+  int revertToStart() final;
+  int update() final;
 
   //const Matrix &getMass();
   virtual const Matrix &getTangentStiff() final;
 
-  void zeroLoad() {
+  void zeroLoad() final {
     this->BasicFrame3d::zeroLoad();
     this->FiniteElement<2, 3, 6>::zeroLoad();
   }
   //int addLoad(ElementalLoad *theLoad, double loadFactor);
   //int addInertiaLoadToUnbalance(const Vector &accel);
 
-  const Vector &getResistingForce();
+  const Vector &getResistingForce() final;
 //const Vector &getResistingForceIncInertia();
 
   virtual const Matrix &getInitialStiff() {
-      return basic_system->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
+    return basic_system->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
   }
 
-  void Print(OPS_Stream& s, int flag = 0);
+  // TaggedObject
+  void Print(OPS_Stream& s, int flag) final;
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
   int getResponse(int responseID, Information& information);
@@ -85,9 +86,9 @@ public:
   const Matrix& getMassSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
 
-
-  int sendSelf(int cTag, Channel&);
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&);
+  // MovableObject
+  int sendSelf(int cTag, Channel&) final;
+  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) final;
 
 protected:
   virtual VectorND<6>&   getBasicForce();
@@ -135,8 +136,6 @@ private:
   void computedwdh(double dwidh[], int gradNumber, const Vector& q);
   void getStressGrad(VectorND<nsr>& dspdh, int isec, int gradNumber);
 
-  // Reactions of basic system due to element loads
-//void computeReactions(double* p0);
 
   // Section forces due to element loads
   void computeSectionForces(VectorND<nsr>& sp, int isec);
