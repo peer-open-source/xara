@@ -422,7 +422,9 @@ PrismFrame3d::getTangentStiff()
 const Matrix &
 PrismFrame3d::getInitialStiff()
 {
-  return basic_system->getInitialGlobalStiffMatrix(this->getBasicTangent(State::Init, 0));
+  MatrixND<6,6> ki = this->getBasicTangent(State::Init, 0);
+
+  return basic_system->getInitialGlobalStiffMatrix(Matrix(ki)); // TODO
 }
 
 const Vector &
@@ -519,6 +521,7 @@ PrismFrame3d::getMass()
       double m  = total_mass/420.0;
       double mx = twist_mass;
       thread_local MatrixND<12,12> M{0};
+      thread_local Matrix Wrapper{M};
 
       M(0,0) = M(6,6) = m*140.0;
       M(0,6) = M(6,0) = m*70.0;
@@ -545,10 +548,10 @@ PrismFrame3d::getMass()
       M( 5, 7) = M( 7, 5) = -M(1,11);
 
       // Transform local mass matrix to global system
-      return basic_system->getGlobalMatrixFromLocal(M);
+      return basic_system->getGlobalMatrixFromLocal(Wrapper);
     }
     else {
-      Matrix mlTrn(12, 12), mlRot(12, 12), ml(12, 12);
+      static Matrix mlTrn(12, 12), mlRot(12, 12), ml(12, 12);
       mlTrn.Zero();
       mlRot.Zero();
       ml.Zero();
