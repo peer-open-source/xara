@@ -380,10 +380,13 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     }
 
     if (flag & Increment) {
+      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: New Step " << i+1 << "\n";
+
       result = theStaticIntegrator->newStep();
       if (result < 0) {
         opserr << "The Integrator failed at step: " << i
-               << " with domain at load factor " << theDomain->getCurrentTime() << "\n";
+               << " with domain at load factor " << theDomain->getCurrentTime()
+               << OpenSees::SignalMessageEnd;
         theDomain->revertToLastCommit();
         theStaticIntegrator->revertToLastStep();
         return -2;
@@ -391,6 +394,8 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     }
 
     if (flag & Iterate) {
+      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: Iterate Step " << i+1 << "\n";
+
       result = theAlgorithm->solveCurrentStep();
       if (result < 0) {
         // Print error message if we have one
@@ -408,7 +413,8 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
       if (result < 0) {
         opserr << "StaticAnalysis::analyze() - the SensitivityAlgorithm failed";
         opserr << " at step: " << i << " with domain at load factor ";
-        opserr << theDomain->getCurrentTime() << "\n";
+        opserr << theDomain->getCurrentTime()
+               << OpenSees::SignalMessageEnd;
         theDomain->revertToLastCommit();
         theStaticIntegrator->revertToLastStep();
         return -5;
@@ -421,7 +427,8 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
         opserr << "StaticAnalysis::analyze - ";
         opserr << "the Integrator failed to commit";
         opserr << " at step: " << i << " with domain at load factor ";
-        opserr << theDomain->getCurrentTime() << "\n";
+        opserr << theDomain->getCurrentTime()
+               << OpenSees::SignalMessageEnd;
 
         theDomain->revertToLastCommit();
         theStaticIntegrator->revertToLastStep();
