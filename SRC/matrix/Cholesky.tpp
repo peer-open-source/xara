@@ -1,9 +1,13 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
 //===----------------------------------------------------------------------===//
 //
 // Description: A compile-time Cholesky factorization for small
@@ -16,7 +20,7 @@
 #include <cmath>
 #include <cstddef>
 
-template<std::size_t N>
+template<std::size_t N, bool CheckSPD = false>
 class Cholesky {
   public:
     // Attempt to factor A (row-major size N*N) on construction.
@@ -26,6 +30,18 @@ class Cholesky {
     Cholesky(const MatType& A) noexcept
     : ok{true}, L{}
     {
+      if constexpr (CheckSPD) {
+        // Perform checks for symmetry and positive-definiteness
+        for (std::size_t i = 0; i < N; ++i) {
+          for (std::size_t j = 0; j < i; ++j) {
+            if (std::abs(A(i, j) - A(j, i)) > 1e-12) {
+              ok = false;
+              return;
+            }
+          }
+        }
+      }
+
       // Perform in-place Cholesky into L
       for (std::size_t j = 0; j < N; ++j) {
         // diagonal
