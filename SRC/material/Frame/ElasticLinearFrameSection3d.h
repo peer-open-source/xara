@@ -29,6 +29,8 @@ class FEM_ObjectBroker;
 class Information;
 class Parameter;
 
+namespace OpenSees {
+
 class ElasticLinearFrameSection3d : public FrameSection
 {
 
@@ -120,4 +122,5 @@ public:
 //   } K_pres;
 };
 
+} // namespace OpenSees
 #endif
