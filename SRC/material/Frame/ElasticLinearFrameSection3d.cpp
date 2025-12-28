@@ -26,6 +26,9 @@ using namespace OpenSees;
 
 constexpr int SEC_TAG_ElasticLinearFrame3d = 0;
 
+
+namespace {
+
 static int layout_array[] = {
     FrameStress::N,
     FrameStress::Vy,
@@ -41,10 +44,6 @@ static int layout_array[] = {
     FrameStress::Qz
 };
 
-ID ElasticLinearFrameSection3d::layout(layout_array, nr);
-
-
-namespace {
 enum class Parameters : int {
   E  = 1,
   G  = 5,
@@ -132,6 +131,8 @@ SetupTangent(MatrixND<12,12>& Ks, const FrameSectionConstants& cons, double E, d
     //    0       1       2   |    3       4       5   |     6     7   8  |  9      10      11
 }
 }
+
+ID ElasticLinearFrameSection3d::layout(layout_array, nr);
 
 ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(std::shared_ptr<MatrixND<nr,nr>> Ks)
 : FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
