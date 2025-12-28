@@ -176,8 +176,9 @@ class OpenSeesPy:
                  echo_file=None,
                  **kwds):
 
+        error_file = pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}"
         self._interp  = Interpreter(*args,
-                                    error_file=pathlib.Path(tempfile.gettempdir())/f"{uuid.uuid4()}", 
+                                    error_file=error_file, 
                                     **kwds)
         self._partial = partial
         self._save    = save
@@ -195,6 +196,16 @@ class OpenSeesPy:
         # Enable OpenSeesPy command behaviors
         self.eval("pragma openseespy")
 
+
+    def _call(self, proc_name: str, *args, **kwds):
+        """
+        EXPERIMENTAL (2025-07-04)
+        """
+        if self._echo is not None:
+            print(_args_to_cmds(proc_name, *args, **kwds),
+                  file=self._echo)
+
+        return self._interp._tcl.call(proc_name, *args, **kwds)
 
     def _invoke_proc(self, proc_name: str, *args, _final=None, _return_string=False, **kwds)->object:
         """
@@ -324,6 +335,23 @@ class OpenSeesPy:
 
         return self._invoke_proc("block2D", *args[:5], elem_args, node_args)
 
+    def getNodeTags(self)->list[int]:
+        tags = self._call("getNodeTags")
+        if tags is None:
+            return []
+        elif isinstance(tags, int):
+            return [tags]
+        else:
+            return tags
+        
+    def getEleTags(self)->list[int]:
+        tags = self._call("getEleTags")
+        if tags is None:
+            return []
+        elif isinstance(tags, int):
+            return [tags]
+        else:
+            return tags
 
     def timeSeries(self, *args, **kwds):
         """
@@ -616,11 +644,7 @@ class Model:
         """
         EXPERIMENTAL (2025-07-04)
         """
-        if self._openseespy._echo is not None:
-            print(_args_to_cmds(proc_name, *args, **kwds),
-                  file=self._openseespy._echo)
-
-        return self._openseespy._interp._tcl.call(proc_name, *args, **kwds)
+        return self._openseespy._call(proc_name, *args, **kwds)
 
 
     def export(self, *args, **kwds):
@@ -1068,8 +1092,11 @@ _OVERWRITTEN = {
     "section", "patch", "layer", "fiber",
     "block2D",
     "block3D",
-    "mesh"
+    "mesh",
+    "getNodeTags",
+    "getEleTags",
 }
+
 
 
 # The global singleton, for backwards compatibility
