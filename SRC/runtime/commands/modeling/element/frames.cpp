@@ -17,14 +17,13 @@
 //
 // Created: Feb 2023
 //
-// Standard library
 #define ALLOW_IMPLICIT_MATRIX
+// Standard library
 #include <string>
 #include <array>
 #include <algorithm>
 #include <vector>
 #include <utility>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
@@ -332,7 +331,7 @@ CreateFrame(ModelRegistry& builder,
             int ndf = builder.getNDF();
             if (sections.size() > 30) {
               opserr << OpenSees::PromptValueError 
-                     << "too many sections for ForceFrame3d: " << sections.size()
+                     << "too many sections for ForceFrame3d: " << static_cast<int>(sections.size())
                      << OpenSees::SignalMessageEnd;
               return nullptr;
             }
