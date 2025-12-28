@@ -185,7 +185,6 @@ public:
   //
   // Functions
   //
-  // static MatrixND<2*NDF,NBV> FormBasicTransform();
   int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 

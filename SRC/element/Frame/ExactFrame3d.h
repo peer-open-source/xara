@@ -56,7 +56,7 @@ public:
   }
 
   int setNodes() override;
-  const Vector &getResistingForce() override;
+  const Vector &getResistingForce() final;
   const Matrix &getTangentStiff() override;
   const Matrix &getMass() override;
   const Matrix &getInitialStiff() override;

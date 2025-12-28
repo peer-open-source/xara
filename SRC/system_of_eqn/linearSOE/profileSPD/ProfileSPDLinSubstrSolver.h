@@ -47,21 +47,21 @@ class ProfileSPDLinSubstrSolver : public ProfileSPDLinDirectSolver,
     ProfileSPDLinSubstrSolver(double tol=1.0e-12);    
     ~ProfileSPDLinSubstrSolver();
 
-    int solve(void);
+    int solve() override;
     int condenseA(int numInt);
     int condenseRHS(int numInt, Vector *v =0);
     int computeCondensedMatVect(int numInt, const Vector &u);    
-    const Matrix &getCondensedA(void);
-    const Vector &getCondensedRHS(void);
-    const Vector &getCondensedMatVect(void);
+    const Matrix &getCondensedA();
+    const Vector &getCondensedRHS();
+    const Vector &getCondensedMatVect();
     
     int setComputedXext(const Vector &);
-    int solveXint(void);
+    int solveXint();
 
-    int setSize(void);
+    int setSize();
     int getClassTag() const;
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
     
   protected:
     
@@ -70,7 +70,6 @@ class ProfileSPDLinSubstrSolver : public ProfileSPDLinDirectSolver,
     double *DU;
     Matrix *Aext;
     Vector *Yext;
-    
 };
 
 

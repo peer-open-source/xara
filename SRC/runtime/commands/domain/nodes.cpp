@@ -713,12 +713,13 @@ nodeEigenvector(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+
 int
 calculateNodalReactions(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                         TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
-  Domain *the_domain = (Domain *)clientData;
+  Domain *domain = static_cast<Domain *>(clientData);
 
   int incInertia = 0;
 
@@ -735,7 +736,7 @@ calculateNodalReactions(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
       incInertia = 2;
   }
 
-  the_domain->calculateNodalReactions(incInertia);
+  domain->calculateNodalReactions(incInertia);
 
   return TCL_OK;
 }
