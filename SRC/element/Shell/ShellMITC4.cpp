@@ -950,8 +950,8 @@ ShellMITC4::formResidAndTangent(int tang_flag)
   double shp[3][NEN];           // shape functions at a gauss point
 
   //  static double Shape[3][NEN][nip] ; // all the shape functions
-  static Vector stress(nstress);      // stress resultants
-  static Vector strain(nstress);      // strain
+  static VectorND<nstress> stress; //(nstress);      // stress resultants
+  static VectorND<nstress> strain; //(nstress);      // strain
                                       //
   VectorND<ndf> residJ;
   MatrixND<nstress,nstress> dd; // material tangent
@@ -1064,7 +1064,7 @@ ShellMITC4::formResidAndTangent(int tang_flag)
     auto Bs = Rot * Bsv;
 
     // zero the strains
-    strain.Zero();
+    strain.zero();
     epsDrill = 0.0;
 
     // j-node loop to compute strain
