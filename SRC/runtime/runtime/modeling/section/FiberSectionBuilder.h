@@ -27,6 +27,7 @@
 #include <FiberSection2dInt.h>
 
 namespace OpenSees {
+
 // Inherit tagged object so that the model builder can delete
 class SectionBuilder: public TaggedObject {
 public:
@@ -110,7 +111,7 @@ public:
     if (area <= 0.0) {
       opserr << OpenSees::PromptValueError
              << "fiber area <= 0.0 for fiber " << tag 
-             << "\n";
+             << OpenSees::SignalMessageEnd;
       return -1;
     }
 
@@ -118,7 +119,7 @@ public:
     if (theMaterial == nullptr) {
       opserr << OpenSees::PromptValueError
              << "no material with tag " << mat << " for fiber " << tag 
-             << "\n";
+             << OpenSees::SignalMessageEnd;
       return -1;
     }
 
@@ -144,7 +145,7 @@ FiberSectionBuilder<2, UniaxialMaterial, FiberSection2dInt>::addHFiber(int tag, 
   if (theMaterial == nullptr) {
     opserr << OpenSees::PromptValueError 
            << "no material with tag " << mat << " for fiber " << tag
-           << "\n";
+           << OpenSees::SignalMessageEnd;
     return -1;
   }
 
@@ -155,7 +156,8 @@ FiberSectionBuilder<2, UniaxialMaterial, FiberSection2dInt>::addHFiber(int tag, 
 template <int ndm, class MatT, class SecT> int
 FiberSectionBuilder<ndm, MatT, SecT>::addHFiber(int tag, int mat, double area, const Vector& cPos) {
   opserr << OpenSees::PromptValueError
-         << "section does not support H fibers\n";
+         << "section does not support H fibers"
+         << OpenSees::SignalMessageEnd;
   return -1;
 }
 } // namespace OpenSees
