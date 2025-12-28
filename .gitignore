@@ -11,6 +11,7 @@
 # Distribution / packaging
 #
 build/
+build-*/
 bin
 out/
 develop-eggs/
