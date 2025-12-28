@@ -97,7 +97,7 @@ private:
   // Shape Functions
   MatrixND<NDM_SECTION, NDM_NATURAL> getNld_hat(int sec, const Vector& v, double L, int geom_flag);
   Vector getd_hat(int sec, const Vector& v, double L, int geom_flag);
-  Matrix getNd1(int sec, const Vector& v, double L, int geom_flag);
+  MatrixND<NDM_SECTION, NDM_NATURAL> getNd1(int sec, const Vector& v, double L, int geom_flag);
   MatrixND<NDM_SECTION, NDM_NATURAL> getNd2(int sec, double P, double L);
   MatrixND<NDM_NATURAL, NDM_NATURAL> getKg(int sec, double P, double L);
   MatrixND<NDM_NATURAL, NDM_NATURAL> getMd(int sec, Vector& dShapeFcn, Vector& dFibers, double L);
@@ -147,8 +147,8 @@ private:
   Vector  qe_past;
   Vector  commitedNaturalForce;
   Vector  commitedLastNaturalDisp;
-  Matrix  commitedHinv;
-  MatrixND<NDM_NATURAL, NDM_NATURAL>  commitedGMH;
+  MatrixND<NDM_NATURAL, NDM_NATURAL> commitedHinv;
+  MatrixND<NDM_NATURAL, NDM_NATURAL> commitedGMH;
   MatrixND<NDM_NATURAL_WITH_TORSION, NDM_NATURAL_WITH_TORSION>  ke_past;
   Vector* sr_past;
   Vector* es_past;

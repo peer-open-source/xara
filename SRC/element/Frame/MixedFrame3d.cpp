@@ -112,7 +112,7 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
    naturalForce(NDM_NATURAL),    commitedNaturalForce(NDM_NATURAL),
    lastNaturalDisp(NDM_NATURAL), commitedLastNaturalDisp(NDM_NATURAL),
    sp(0),
-   commitedHinv(NDM_NATURAL, NDM_NATURAL),
+   commitedHinv{},
    Ki(nullptr),
    sr_trial(nullptr),es_trial(nullptr), fs_trial(nullptr),
    sr_past(nullptr), es_past(nullptr),  fs_past(nullptr)
@@ -189,7 +189,7 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
   qe_past.Zero();
   commitedNaturalForce.Zero();
   commitedLastNaturalDisp.Zero();
-  commitedHinv.Zero();
+  commitedHinv.zero();
   commitedGMH.zero();
   ke_past.zero();
 
@@ -260,7 +260,7 @@ MixedFrame3d::MixedFrame3d()
    lastNaturalDisp(NDM_NATURAL),
    commitedLastNaturalDisp(NDM_NATURAL),
    sp(nullptr),
-   commitedHinv(NDM_NATURAL, NDM_NATURAL),
+   commitedHinv{},
    Ki(0),
    sr_trial(nullptr),
    sr_past(nullptr),
@@ -309,7 +309,7 @@ MixedFrame3d::MixedFrame3d()
   qe_past.Zero();
   commitedNaturalForce.Zero();
   commitedLastNaturalDisp.Zero();
-  commitedHinv.Zero();
+  commitedHinv.zero();
   commitedGMH.zero();
   ke_past.zero();
 
@@ -619,7 +619,7 @@ MixedFrame3d::revertToStart()
   kv(5, 5) = GJ / L0; // Torsional Stiffness GJ/L
   ke_past = kv;
 
-  Matrix kvOpenSees = transformNaturalCoordsT * kv * transformNaturalCoords;
+  Matrix kvOpenSees = transformNaturalCoordsT * Matrix(kv) * transformNaturalCoords;
   if (Ki == nullptr)
     Ki = new Matrix(NEGD, NEGD);
 
@@ -664,7 +664,7 @@ MixedFrame3d::getTangentStiff()
   if (state_flag == 0)
     this->revertToStart();
 
-  Matrix ktOpenSees = transformNaturalCoordsT * kv * transformNaturalCoords;
+  Matrix ktOpenSees = transformNaturalCoordsT * Matrix(kv) * transformNaturalCoords;
   return crdTransf->getGlobalStiffMatrix(ktOpenSees, qe_pres);
 }
 
@@ -1164,7 +1164,7 @@ MixedFrame3d::getNd2(int sec, double P, double L)
   return Nd2;
 }
 
-Matrix
+MatrixND<NDM_SECTION, NDM_NATURAL> 
 MixedFrame3d::getNd1(int sec, const Vector& v, double L, int geom_flag)
 {
 
@@ -1549,15 +1549,14 @@ MixedFrame3d::getResponse(int responseID, Information& info)
 
   } else if (responseID == 5) { // plastic section deformation (from forces)
 
-    int i;
     Vector tempVector(3 * numSections);
-    Vector sectionForce(NDM_SECTION);
-    Vector plasticSectionDef(NDM_SECTION);
-    Matrix ks(3, 3);
-    Matrix fs(3, 3);
+    VectorND<NDM_SECTION> sectionForce{};
+    VectorND<NDM_SECTION> plasticSectionDef{};
+    MatrixND<3, 3> ks{};
+    MatrixND<3, 3> fs{};
     tempVector.Zero();
     double scratch = 0.0;
-    for (i = 0; i < numSections; i++) {
+    for (int i = 0; i < numSections; i++) {
 
       sectionForce = sections[i]->getResultant<nsr, scheme>();
 //    getSectionTangent(i, 2, ks, scratch);
