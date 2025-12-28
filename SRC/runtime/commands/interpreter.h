@@ -18,7 +18,8 @@
 Tcl_CmdProc TclCommand_wipeModel;
 Tcl_CmdProc TclCommand_clearAnalysis;
 Tcl_CmdProc TclCommand_specifyModel;
-
+// nodes.cpp
+Tcl_CmdProc TclCommand_wipeNodes;
 
 // formats.cpp
 Tcl_CmdProc convertBinaryToText;
