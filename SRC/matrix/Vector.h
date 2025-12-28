@@ -72,7 +72,7 @@ class Vector
     // utility methods
     int setData(double *newData, int size);
     template <int n>
-    inline int setData(OpenSees::VectorND<n, double> v) {
+    inline int setData(OpenSees::VectorND<n, double>& v) {
       return setData(&v.values[0], n);
     }
     Vector view(int start, int end) const;
