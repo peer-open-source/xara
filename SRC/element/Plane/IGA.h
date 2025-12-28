@@ -7,18 +7,22 @@
 // https://github.com/li-ming-jiang/MyOpenSees
 //
 
-int    findSpan(int order, int ncp, int eleId, int nele, Vector& KnotVect);
+namespace IGA {
+
+int    FindSpan(int order, int ncp, int eleId, int nele, Vector& KnotVect);
 void   DerBasisFuns(double Idx, Vector Pts, int obf, int n, Vector KnotVect, Matrix** N0n);
 void   calcDersBasisFunsAtGPs(int obf, int ncp, Vector KnotVect, int d, int NGPs, int Idx, double* J2, Vector* Xg, Matrix** N0n);
 void   Rationalize(Vector WeightsCP, Vector N0, Matrix N1, Vector* R0, Matrix* R1);
 
 
 void   GaussRule(int NGPs1, Vector* Xg, Vector* WXg);
-Vector dotProduct(Vector VecA, Vector VecB);
-Vector dotDivide(Vector VecA, Vector VecB);
+
+
+Vector Dot(const Vector& VecA, const Vector& VecB);
+Vector DotDiv(const Vector& VecA, const Vector& VecB);
 
 Vector
-dotDivide(Vector VecA, Vector VecB)
+DotDiv(const Vector& VecA, const Vector& VecB)
 {
     Vector result(VecA.Size());
     for (int i = 1; i <= VecA.Size();i++) {
@@ -28,7 +32,7 @@ dotDivide(Vector VecA, Vector VecB)
 }
 
 Vector
-dotProduct(Vector VecA, Vector VecB)
+Dot(const Vector& VecA, const Vector& VecB)
 {
     Vector result(VecA.Size());
     for (int i = 1; i <= VecA.Size();i++) {
@@ -37,6 +41,7 @@ dotProduct(Vector VecA, Vector VecB)
     return result;
 }
 
+#if 0
 void 
 GaussRule(int NGPs1, Vector* Xg, Vector* WXg)
 {
@@ -69,31 +74,31 @@ GaussRule(int NGPs1, Vector* Xg, Vector* WXg)
         pkm1 += 1;
         pk = x0;
         for (int k = 2; k <= NGPs; k++) {
-            Vector pkp1 = 2 * dotProduct(x0, pk) - pkm1 - (dotProduct(x0, pk) - pkm1) / k;
+            Vector pkp1 = 2 * Dot(x0, pk) - pkm1 - (Dot(x0, pk) - pkm1) / k;
             pkm1 = pk;
             pk = pkp1;
         }
 
-        Vector den = -1 * dotProduct(x0, x0) + 1;
-        d1   = NGPs * (pkm1 - dotProduct(x0, pk));
-        dpn  = dotDivide(d1, den);
-        d2pn = dotDivide((2 * dotProduct(x0, dpn) - e1 * pk), den);
-        d3pn = dotDivide((4 * dotProduct(x0, d2pn) + (2 - e1) * dpn), den);
-        d4pn = dotDivide((6 * dotProduct(x0, d3pn) + (6 - e1) * d2pn), den);
-        Vector uu = dotDivide(pk, dpn);
-        Vector vv = dotDivide(d2pn, dpn);
+        Vector den = -1 * Dot(x0, x0) + 1;
+        d1   = NGPs * (pkm1 - Dot(x0, pk));
+        dpn  = DotDiv(d1, den);
+        d2pn = DotDiv((2 * Dot(x0, dpn) - e1 * pk), den);
+        d3pn = DotDiv((4 * Dot(x0, d2pn) + (2 - e1) * dpn), den);
+        d4pn = DotDiv((6 * Dot(x0, d3pn) + (6 - e1) * d2pn), den);
+        Vector uu = DotDiv(pk, dpn);
+        Vector vv = DotDiv(d2pn, dpn);
 
         // Initial approximation H
-        h = dotProduct(-1 * uu, 0.5 * dotProduct(uu, vv + dotProduct(uu, dotDivide(dotProduct(vv, vv) - dotProduct(uu, d3pn), 3 * dpn))) + 1);
+        h = Dot(-1 * uu, 0.5 * Dot(uu, vv + Dot(uu, DotDiv(Dot(vv, vv) - Dot(uu, d3pn), 3 * dpn))) + 1);
 
         // Refine H using one step of Newton's method
-        Vector p = pk + dotProduct(h, dpn + 0.5 * dotProduct(h, d2pn + dotProduct(h / 3, d3pn + 0.25 * dotProduct(h, d4pn))));
+        Vector p = pk + Dot(h, dpn + 0.5 * Dot(h, d2pn + Dot(h / 3, d3pn + 0.25 * Dot(h, d4pn))));
         x0 += h;
     }
     for (int i = 1; i <= x0.Size();i++) { 
       X(i - 1) = -1 * x0(i - 1) - h(i - 1); 
     }
-    Vector fx = d1 - dotProduct(h, e1 * (pk + 0.5 * dotProduct(h, dpn + dotProduct(h / 3, d2pn + 0.25 * dotProduct(h, d3pn + 0.2 * dotProduct(h, d4pn))))));
+    Vector fx = d1 - Dot(h, e1 * (pk + 0.5 * Dot(h, dpn + Dot(h / 3, d2pn + 0.25 * Dot(h, d3pn + 0.2 * Dot(h, d4pn))))));
     for (int i = 1;i <= x0.Size();i++) { 
       W(i - 1) = 2 * (1 - X(i - 1) * X(i - 1)) / (fx(i - 1) * fx(i - 1)); 
     }
@@ -112,10 +117,11 @@ GaussRule(int NGPs1, Vector* Xg, Vector* WXg)
         (*WXg)(i - 1) = W(i - 1);
     }
 }
-
+#endif
 
 // calculate the shape function and derivatives of the quadrature point
-int findSpan(int order, int ncp, int eleId, int nele, Vector &KnotVect) 
+int
+FindSpan(int order, int ncp, int eleId, int nele, Vector &KnotVect) 
 {
     ID Idxs(nele);
     Idxs.Zero();
@@ -232,7 +238,8 @@ DerBasisFuns(double Idx, Vector Pts, int obf, int n, Vector KnotVect, Matrix** N
 
 // to calculate the shape functions and derivatives of Gaussian points
 // 需要修改成单个单元的版本！
-void calcDersBasisFunsAtGPs(int obf, int ncp, Vector KnotVect, int d, int NGPs, int Idx, double* J2, Vector* WXg, Matrix** N0n)
+void 
+calcDersBasisFunsAtGPs(int obf, int ncp, Vector KnotVect, int d, int NGPs, int Idx, double* J2, Vector* WXg, Matrix** N0n)
 {
     // obf: order of basis function, ncp: number of control points;
     // KnotVect: knot vector; d: degree of derivative; NGPs: number of gauss points; Idx: span index of the element;
@@ -266,7 +273,8 @@ void calcDersBasisFunsAtGPs(int obf, int ncp, Vector KnotVect, int d, int NGPs, 
     //result.N = N0n;
 }
 
-void Rationalize(Vector WeightsCP, Vector N0, Matrix N1, Vector* R0, Matrix* R1)
+void
+Rationalize(Vector WeightsCP, Vector N0, Matrix N1, Vector* R0, Matrix* R1)
 {
     // convert B-spline to NURBS basis functions for 1D
     Vector N0W(N0.Size());
@@ -352,4 +360,4 @@ void Rationalize(Vector WeightsCP, Vector N0, Matrix N1, Vector* R0, Matrix* R1)
 //    //R1 = Rationalize()
 //}
 
-
+}
