@@ -26,7 +26,7 @@
 //
 // Written: Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
 //
-#include <stdio.h>
+#define ALLOW_IMPLICIT_MATRIX
 #include <stdlib.h>
 #include <math.h>
 
