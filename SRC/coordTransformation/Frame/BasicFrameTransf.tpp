@@ -152,7 +152,7 @@ template<int ndf>
 const Vector &
 BasicFrameTransf3d<ndf>::getBasicIncrDisp()
 {
-  static VectorND<6> ub;
+  static VectorND<6> ub{};
   static Vector wrapper(ub);
   opserr << "Unimplemented method\n";
   return wrapper;

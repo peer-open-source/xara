@@ -55,11 +55,12 @@ public:
     int formNodTangent(DOF_Group *theDof);
     
     int domainChanged(void);
+
     int newStep(double deltaT);
     int update(const Vector &U);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
+    const Vector &getVel();
     
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);

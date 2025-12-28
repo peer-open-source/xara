@@ -29,6 +29,7 @@
 #include <Isometry/RankinIsometry.h>
 #include <Isometry/CrisfieldIsometry.h>
 #include <Isometry/BattiniIsometry.h>
+#include <Isometry/LinearIsometry.h>
 
 namespace OpenSees {
 
@@ -64,6 +65,9 @@ public:
       int tag = this->getTag();
       if (strstr(name, "Linear") != nullptr)
         return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+
+      else if (strstr(name, "LinearIsometric") != nullptr)
+        return new EuclidFrameTransf<nn, ndf, LinearIsometry<nn>> (tag, vz, offset_array, offset_flags);
 
       else if (strcmp(name, "Corotational") == 0) {
         if constexpr (ndf == 6)

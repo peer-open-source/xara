@@ -24,6 +24,7 @@
 #include <MatrixND.h>
 #include <FrameSection.h>
 #include <BasicFrameTransf.h>
+#define BASIC_TRANSFORM 1
 
 class Matrix;
 class Channel;
@@ -36,7 +37,7 @@ class FrameTransformBuilder;
 
 using namespace OpenSees;
 
-template <int NIP, int nsr, int nwm=0>
+template <int NIP, int nsr, int nwm, int shear_flag>
 class ForceFrame3d: public BasicFrame3d, 
                     public FiniteElement<2, 3, 6+nwm>
 {
@@ -67,16 +68,15 @@ public:
   }
 
   int setNodes();
-  int commitState();
-  int revertToLastCommit();        
-  int revertToStart();
-  int update();    
+  int commitState() override;
+  int revertToLastCommit() override;        
+  int revertToStart() override;
+  int update() override;
 
   virtual const Matrix &getMass() final;
   virtual const Matrix &getTangentStiff() final;
   const Matrix &getInitialStiff() final;
-  const Vector &getResistingForce();
-  int addTangent(MatrixND<2*NDF,2*NDF>& K, double c, int flag) override;
+  const Vector &getResistingForce() final;
 
   void zeroLoad() override {
     this->BasicFrame3d::zeroLoad();
@@ -92,7 +92,7 @@ public:
   int addInertiaLoadToUnbalance(const Vector &accel); 
   */
   
-  Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
+  Response *setResponse(const char **argv, int argc, OPS_Stream &) final;
   int getResponse(int responseID, Information &) final;
   
   // Element: Parameters
@@ -122,38 +122,42 @@ public:
 
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 
-  static constexpr int shear_flag = (nsr-2*nwm == 6) ? 0 : 1;
+  // static constexpr int shear_flag = (nsr-2*nwm == 6) ? 1 : 0;
 
   static constexpr FrameStressLayout scheme = {
     FrameStress::N,
     FrameStress::T,
     FrameStress::My,
     FrameStress::Mz,
-    (nsr-2*nwm == 6) ? FrameStress::Vy : FrameStress::Bimoment,
-    (nsr-2*nwm == 6) ? FrameStress::Vz : FrameStress::Bishear,
+    shear_flag ? FrameStress::Vy : FrameStress::Bimoment,
+    shear_flag ? FrameStress::Vz : FrameStress::Bishear,
     FrameStress::Bimoment,
     FrameStress::Bishear
   };
   
   enum : int {
+#if BASIC_TRANSFORM == 0
     inx = -12, //  0
     iny = -12, //  1
     inz = -12, //  2
     imx = -12, //  3
+#endif
     imy =   3, //  4
     imz =   1, //  5
     iwx =   6, //
     //
     jnx =   0, //  6
+#if BASIC_TRANSFORM == 0
     jny = -12, //  7
     jnz = -12, //  8
+#endif
     jmx =   5, //  9
     jmy =   4, // 10
     jmz =   2, // 11
     jwx =   7,
   };
 
-
+#if BASIC_TRANSFORM == 0
   static constexpr std::array<int, NDF*2> make_iq() {
     if constexpr (nwm) {
       return {
@@ -168,6 +172,7 @@ public:
     }
   }
   static constexpr auto iq = make_iq();
+#endif 
 
   enum Respond: int {
     GlobalForce = 1,
@@ -180,6 +185,7 @@ public:
   //
   // Functions
   //
+  // static MatrixND<2*NDF,NBV> FormBasicTransform();
   int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 

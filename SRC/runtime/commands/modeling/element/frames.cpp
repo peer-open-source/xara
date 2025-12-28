@@ -17,13 +17,13 @@
 //
 // Created: Feb 2023
 //
+#define ALLOW_IMPLICIT_MATRIX
 // Standard library
 #include <string>
 #include <array>
 #include <algorithm>
 #include <vector>
 #include <utility>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
@@ -329,14 +329,18 @@ CreateFrame(ModelRegistry& builder,
               });
           } else {
             int ndf = builder.getNDF();
-
+            if (sections.size() > 30) {
+              opserr << OpenSees::PromptValueError 
+                     << "too many sections for ForceFrame3d: " << static_cast<int>(sections.size())
+                     << OpenSees::SignalMessageEnd;
+              return nullptr;
+            }
             static_loop<0, 3>([&](auto nwm) constexpr {
               if (nwm.value + 6 == ndf) {
-                // Create the transform
                 if (!options.shear_flag) {
                   static_loop<2,30>([&](auto nip) constexpr {
                     if (nip.value == sections.size())
-                      theElement = new ForceFrame3d<nip.value, 4+nwm.value*2, nwm.value>(tag, 
+                      theElement = new ForceFrame3d<nip.value, 4+nwm.value*2, nwm.value, 0>(tag, 
                                                     nodes,
                                                     sections,
                                                     beamIntegr, *tb,
@@ -345,14 +349,18 @@ CreateFrame(ModelRegistry& builder,
                                                     );
                     });
                 }
-                else
-                  theElement = new ForceFrame3d<20, 6+nwm.value*2, nwm.value>(tag, 
-                                                nodes,
-                                                sections,
-                                                beamIntegr, *tb,
-                                                mass, options.mass_flag, use_mass,
-                                                max_iter, tol
-                                                );
+                else {
+                  static_loop<2,30>([&](auto nip) constexpr {
+                    if (nip.value == sections.size())
+                      theElement = new ForceFrame3d<nip.value, 6+nwm.value*2, nwm.value, 1>(tag, 
+                                                    nodes,
+                                                    sections,
+                                                    beamIntegr, *tb,
+                                                    mass, options.mass_flag, use_mass,
+                                                    max_iter, tol
+                                                    );
+                  });
+                }
               }
             });
           }
@@ -425,18 +433,6 @@ CreateFrame(ModelRegistry& builder,
   return theElement;
 }
 
-
-#if 0
-Element*
-CreateInelasticFrame(std::string, std::vector<int>& nodes,
-                                  std::vector<FrameSection>&, 
-                                  BeamIntegration&, 
-                              //  FrameQuadrature&,
-                                  FrameTransform&,
-                                  Options&);
-Element*
-CreatePrismaticFrame(std::string);
-#endif
 
 // 0       1    2 3  4
 // element beam 1 $i $j 0 1 2
@@ -570,7 +566,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
     if (ok == 0) {
       opserr << OpenSees::PromptValueError << "ndm = " << ndm << " and ndf = " << ndf
-             << " not compatible with Frame element" << "\n";
+             << " not compatible with Frame element" 
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
   }
@@ -585,12 +582,13 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid " << " tag " << tag << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "invalid " << " tag " << tag 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   int argi = 5;
-  // int iNode=0, jNode=0;
   // bool multi_node = false;
   std::vector<int> multi_nodes;
   {
@@ -762,6 +760,36 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         argi++;
       }
 
+      else if (strcmp(argv[argi], "-gauss_points") == 0) {
+        if (argc < argi + 2) {
+          opserr << OpenSees::PromptValueError << "not enough arguments, expected -gauss-points $nIP\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+
+        int nIP;
+        if (Tcl_GetInt(interp, argv[argi + 1], &nIP) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid nIP\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+        argi += 2;
+
+        if (integration_type == nullptr) {
+          opserr << OpenSees::PromptValueError << "-gauss-points must be preceded by -integration\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+
+        beamIntegr = GetBeamIntegration((TCL_Char*)integration_type, nIP);
+        if (beamIntegr == nullptr) {
+          opserr << OpenSees::PromptValueError << "invalid integration type or nIP\n";
+          status = TCL_ERROR;
+          goto clean_up;
+        }
+        deleteBeamIntegr = true;
+      }
+
       // Transform
       else if (strcmp(argv[argi], "-transform") == 0) {
         if (argc < argi + 2) {
@@ -802,7 +830,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
 
       else if (strcmp(argv[argi], "-shearCenter") == 0) {
         if (argc < argi + 3) {
-          opserr << OpenSees::PromptValueError << "not enough arguments, expected -shearCenter $y $z\n";
+          opserr << OpenSees::PromptValueError
+                 << "not enough arguments, expected -shearCenter $y $z"
+                 << OpenSees::SignalMessageEnd;
           status = TCL_ERROR;
           goto clean_up;
         }
@@ -993,9 +1023,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   // TODO
   if (section_tags.size() == 1 && theRule == nullptr) {
     if (strstr(argv[1], "isp") == 0) {
-      section_tags.resize(5, section_tags[0]);
+      section_tags.resize(8, section_tags[0]);
     } else {
-      section_tags.resize(5, section_tags[0]);
+      section_tags.resize(8, section_tags[0]);
     }
   }
 

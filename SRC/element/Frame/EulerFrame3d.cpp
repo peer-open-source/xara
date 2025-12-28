@@ -418,7 +418,8 @@ EulerFrame3d::getTangentStiff()
 const Matrix &
 EulerFrame3d::getInitialStiff()
 {
-  return basic_system->getInitialGlobalStiffMatrix(this->stateDetermination(State::Init, 0));
+  MatrixND<6,6> Ki = this->stateDetermination(State::Init, 0);
+  return basic_system->getInitialGlobalStiffMatrix(Matrix(Ki)); // TODO
 }
 
 int
@@ -542,6 +543,7 @@ EulerFrame3d::getMass()
       double m  = total_mass/420.0;
       double mx = twist_mass;
       thread_local MatrixND<12,12> ml{0};
+      static Matrix Wrapper{ml};
 
       ml(0,0) = ml(6,6) = m*140.0;
       ml(0,6) = ml(6,0) = m*70.0;
@@ -568,7 +570,7 @@ EulerFrame3d::getMass()
       ml( 5, 7) = ml( 7, 5) = -ml(1,11);
 
       // transform local mass matrix to global system
-      return basic_system->getGlobalMatrixFromLocal(ml);
+      return basic_system->getGlobalMatrixFromLocal(Wrapper);
   }
 }
 

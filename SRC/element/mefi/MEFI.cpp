@@ -634,13 +634,9 @@ MEFI::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 	connectedExternalNodes(2) = idData(2 * nip + 2);
 	connectedExternalNodes(3) = idData(2 * nip + 3);
 
-	if (theSection == 0) {
+	if (theSection == nullptr) {
 		//allocate new materials
 		theSection = new SectionForceDeformation *[nip];
-		if (theSection == 0) {
-			opserr << "MEFI::recvSelf() - Could not allocate section array\n";
-			return -1;
-		}
 		for (int i = 0; i < nip; i++) {
 			int matClassTag = idData(i);
 			int matDbTag = idData(i + nip);

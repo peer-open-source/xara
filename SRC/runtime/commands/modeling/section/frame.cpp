@@ -30,7 +30,7 @@
 #include <ElasticShearSection3d.h>
 #include <ElasticSection2d.h>
 #include <SectionAggregator.h>
-
+using namespace OpenSees;
 
 // section ElasticFrame tag E? A? Iz? <Iy? G? J?>
 //                          E  A  I

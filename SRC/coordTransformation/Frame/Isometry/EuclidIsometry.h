@@ -38,8 +38,9 @@ class Isometry
 {
 public:
   virtual int initialize(std::array<Node*,nn>& nodes) =0;
+  // Used by EuclidFrameTransf
   virtual int update(std::array<Node*,nn>& nodes) =0;
-
+  // Used by SouzaFrameTransf
   virtual int update(const Matrix3D& RI,
                      const Matrix3D& RJ,
                      const Vector3D& dx, 
@@ -114,6 +115,7 @@ public:
 
     const Vector& XC = nodes[ic]->getCrds();
     Xc = Vector3D {XC[0], XC[1], XC[2]};
+    // Cbar
     c[init] = R[init]^Xc;
 
     return this->update(nodes);
@@ -153,7 +155,7 @@ public:
     Ln = dx.norm();
 
     if (Ln == 0.0) [[unlikely]] {
-      opserr << "\nSouzaFrameTransf: deformed length is 0.0\n";
+      opserr << "\nElement deformed length is 0.0\n";
       return -2;
     }
 
@@ -171,7 +173,7 @@ public:
       uc.addVector(1.0, (*offsets)[ic], -1.0);
       uc.addVector(1.0, nodes[ic]->getTrialRotation().rotate((*offsets)[ic]), 1.0);
     }
-
+    // cbar
     c[pres] = R[pres]^(Xc + uc);
     return 0;
   }

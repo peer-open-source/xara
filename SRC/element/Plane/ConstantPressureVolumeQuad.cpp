@@ -60,7 +60,7 @@ double ConstantPressureVolumeQuad :: wg[] = { 1.0, 1.0, 1.0, 1.0 } ;
   
 
 
-ConstantPressureVolumeQuad :: ConstantPressureVolumeQuad( ) :
+ConstantPressureVolumeQuad::ConstantPressureVolumeQuad( ) :
 Element( 0, ELE_TAG_ConstantPressureVolumeQuad ),
 connectedExternalNodes(4), thickness(0.0), load(0)
 { 
@@ -84,17 +84,17 @@ connectedExternalNodes(4), thickness(thickness), load(0)
   connectedExternalNodes(3) = node4 ;
 
   for (int i = 0 ;  i < 4; i++ ) {
-      materialPointers[i] = theMaterial.getCopy("AxiSymmetric2D") ;
+    materialPointers[i] = theMaterial.getCopy("AxiSymmetric2D") ;
   }
 }
 
 
-ConstantPressureVolumeQuad::~ConstantPressureVolumeQuad( )
+ConstantPressureVolumeQuad::~ConstantPressureVolumeQuad()
 {
   for (int i = 0 ;  i < 4; i++ ) {
 
-    delete materialPointers[i] ;
-    materialPointers[i] = 0 ; 
+    delete materialPointers[i];
+    materialPointers[i] = 0; 
 
     nodePointers[i] = nullptr;
   }
@@ -124,13 +124,15 @@ ConstantPressureVolumeQuad::setDomain( Domain *theDomain )
     this->Element::link(*theDomain);
 }
 
-int ConstantPressureVolumeQuad :: getNumExternalNodes( ) const
+int
+ConstantPressureVolumeQuad::getNumExternalNodes( ) const
 {
-  return 4 ;
-} 
+  return 4;
+}
 
-//return connected external nodes
-const ID& ConstantPressureVolumeQuad :: getExternalNodes( ) 
+// return connected external nodes
+const ID&
+ConstantPressureVolumeQuad::getExternalNodes( ) 
 {
   return connectedExternalNodes ;
 } 
@@ -225,7 +227,7 @@ ConstantPressureVolumeQuad :: update( )
 
   for (int k = 0; k < 3; k++ ){
     for (int l = 0; l < 4; l++ ) 
-        vol_avg_shp[k][l] = 0.0 ; 
+      vol_avg_shp[k][l] = 0.0 ; 
   }
 
 
@@ -255,7 +257,7 @@ ConstantPressureVolumeQuad :: update( )
   // compute volume averaged shape functions
   for (int k = 0; k < 3; k++ ){
     for (int l = 0; l < 4; l++ ) 
-        vol_avg_shp[k][l] /= volume ; 
+      vol_avg_shp[k][l] /= volume ; 
   }
 
 
@@ -317,33 +319,34 @@ ConstantPressureVolumeQuad :: update( )
 void
 ConstantPressureVolumeQuad::Print( OPS_Stream &s, int flag )
 {
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << endln;
-        s << "Four Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
-        s << "Element Number " << this->getTag() << endln;
-        s << "Node 1 : " << connectedExternalNodes(0) << endln;
-        s << "Node 2 : " << connectedExternalNodes(1) << endln;
-        s << "Node 3 : " << connectedExternalNodes(2) << endln;
-        s << "Node 4 : " << connectedExternalNodes(3) << endln;
-        s << "Material Information : \n ";
-        materialPointers[0]->Print(s, flag);
-        s << endln;
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"bbarQuad\", ";
-        s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-        s << connectedExternalNodes(1) << ", ";
-        s << connectedExternalNodes(2) << ", ";
-        s << connectedExternalNodes(3) << "], ";
-        s << "\"material\": " << materialPointers[0]->getTag() << "}";
-    }
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+      s << endln;
+      s << "Four Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
+      s << "Element Number " << this->getTag() << endln;
+      s << "Node 1 : " << connectedExternalNodes(0) << endln;
+      s << "Node 2 : " << connectedExternalNodes(1) << endln;
+      s << "Node 3 : " << connectedExternalNodes(2) << endln;
+      s << "Node 4 : " << connectedExternalNodes(3) << endln;
+      s << "Material Information : \n ";
+      materialPointers[0]->Print(s, flag);
+      s << endln;
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << "\t\t\t{";
+      s << "\"name\": " << this->getTag() << ", ";
+      s << "\"type\": \"bbarQuad\", ";
+      s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+      s << connectedExternalNodes(1) << ", ";
+      s << connectedExternalNodes(2) << ", ";
+      s << connectedExternalNodes(3) << "], ";
+      s << "\"material\": " << materialPointers[0]->getTag() << "}";
+  }
 }
 
 //return stiffness matrix 
-const Matrix& ConstantPressureVolumeQuad :: getTangentStiff( ) 
+const Matrix&
+ConstantPressureVolumeQuad::getTangentStiff( ) 
 {
   int tang_flag = 1 ; //get the tangent 
 
@@ -353,10 +356,9 @@ const Matrix& ConstantPressureVolumeQuad :: getTangentStiff( )
   return stiff ;
 }    
 
-const Matrix& ConstantPressureVolumeQuad :: getInitialStiff( ) 
+const Matrix&
+ConstantPressureVolumeQuad::getInitialStiff( ) 
 {
-  int i,  j,  k, l, p, q ;
-  int jj, kk ;
   
   static double tmp_shp[3][4] ; // shape functions
 
@@ -442,10 +444,12 @@ const Matrix& ConstantPressureVolumeQuad :: getInitialStiff( )
   //zero stuff
   volume = 0.0 ;
 
-  for ( k = 0; k < 3; k++ ){
-    for ( l = 0; l < 4; l++ ) 
-        vol_avg_shp[k][l] = 0.0 ; 
-  } //end for k
+  int i,  j,  k, l, p, q ;
+  int jj, kk ;
+  for (int k = 0; k < 3; k++ ){
+    for (int l = 0; l < 4; l++ ) 
+      vol_avg_shp[k][l] = 0.0 ; 
+  }
 
 
   // gauss loop to compute volume averaged shape functions
@@ -465,20 +469,20 @@ const Matrix& ConstantPressureVolumeQuad :: getInitialStiff( )
 
         vol_avg_shp[k][l] += tmp_shp[k][l] * dvol[i] ;
 
-      } // end for l
-    } //end for k
+      }
+    }
 
-  } //end for i 
+  }
 
 
   //compute volume averaged shape functions
-  for ( k = 0; k < 3; k++ ){
-    for ( l = 0; l < 4; l++ ) 
-        vol_avg_shp[k][l] /= volume ; 
+  for (int k = 0; k < 3; k++ ){
+    for (int l = 0; l < 4; l++ )
+      vol_avg_shp[k][l] /= volume ; 
   } //end for k
 
   //residual and tangent calculations gauss loop
-  for ( i = 0; i < 4; i++ ) {
+  for (int i = 0; i < 4; i++ ) {
 
     static Matrix dd(4,4);
 
@@ -511,7 +515,7 @@ const Matrix& ConstantPressureVolumeQuad :: getInitialStiff( )
                     + dd(2,0) + dd(2,1) + dd(2,2) ) ;
     
     jj = 0 ;
-    for ( j = 0; j < 4; j++ ) {
+    for (int j = 0; j < 4; j++ ) {
       
       double BJ00 = shp[0][j][i];
       double BJ11 = shp[1][j][i]; 
@@ -593,8 +597,9 @@ const Matrix& ConstantPressureVolumeQuad :: getInitialStiff( )
   return stiff ;
 }    
 
-//return mass matrix
-const Matrix& ConstantPressureVolumeQuad :: getMass( ) 
+
+const Matrix&
+ConstantPressureVolumeQuad :: getMass( ) 
 {
   int tangFlag = 1 ;
 
@@ -622,13 +627,11 @@ ConstantPressureVolumeQuad::addInertiaLoadToUnbalance(const Vector &accel)
 {
   static const int numberGauss = 4 ;
   static const int numberNodes = 4 ;
-  static const int ndf = 2 ; 
-
-  int i;
+  static const int ndf = 2 ;
 
   // check to see if have mass
   int haveRho = 0;
-  for (i = 0; i < numberGauss; i++) {
+  for (int i = 0; i < numberGauss; i++) {
     if (materialPointers[i]->getRho() != 0.0)
       haveRho = 1;
   }
@@ -643,7 +646,7 @@ ConstantPressureVolumeQuad::addInertiaLoadToUnbalance(const Vector &accel)
   // store computed RV for nodes in resid vector
   int count = 0;
 
-  for (i=0; i<numberNodes; i++) {
+  for (int i=0; i<numberNodes; i++) {
     const Vector &Raccel = nodePointers[i]->getRV(accel);
     for (int j=0; j<ndf; j++)
       resid(count++) = Raccel(i);
@@ -661,7 +664,8 @@ ConstantPressureVolumeQuad::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 //get residual
-const Vector& ConstantPressureVolumeQuad :: getResistingForce( ) 
+const Vector&
+ConstantPressureVolumeQuad :: getResistingForce( ) 
 {
   int tang_flag = 0 ; //don't get the tangent
 
@@ -675,8 +679,9 @@ const Vector& ConstantPressureVolumeQuad :: getResistingForce( )
 }
 
 
-//get residual with inertia terms
-const Vector& ConstantPressureVolumeQuad :: getResistingForceIncInertia( )
+// get residual with inertia terms
+const Vector&
+ConstantPressureVolumeQuad::getResistingForceIncInertia( )
 {
   int tang_flag = 0 ; //don't get the tangent
 
@@ -786,10 +791,7 @@ void   ConstantPressureVolumeQuad::formInertiaTerms( int tangFlag )
       jj += ndf ;
 
     } // end for j loop
-  } //end for i gauss loop 
-
-
-
+  } //end for i gauss loop
 }
 
 //*********************************************************************
@@ -811,20 +813,13 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   int jj, kk ;
   
   static double tmp_shp[3][4] ; //shape functions
-
   static double shp[3][4][4] ; //shape functions at each gauss point
-
   static double vol_avg_shp[3][4] ; // volume averaged shape functions
-
   double xsj ;  // determinant jacaobian matrix 
-
   static Matrix sx(2,2) ; // inverse jacobian matrix 
-
   double dvol[4] ; //volume elements
-
   double volume = 0.0 ; //volume of element
-
-  double pressure = 0.0 ; //constitutive pressure  
+  double pressure = 0.0 ; //constitutive pressure
 
   static Vector strain(4) ; //strain in vector form 
 
@@ -899,7 +894,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
   for ( k = 0; k < 3; k++ ){
     for ( l = 0; l < 4; l++ ) 
-        vol_avg_shp[k][l] = 0.0 ; 
+      vol_avg_shp[k][l] = 0.0 ; 
   }
 
 
@@ -922,19 +917,19 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
       }
     }
-  } //end for i 
+  }
 
 
   //compute volume averaged shape functions
   for ( k = 0; k < 3; k++ ){
     for ( l = 0; l < 4; l++ ) 
-        vol_avg_shp[k][l] /= volume ; 
-  } //end for k
+      vol_avg_shp[k][l] /= volume ; 
+  }
 
   //compute pressure if residual calculation
   if (tang_flag != 1) {
     pressure = 0.0 ;
-    for ( i = 0; i < 4; i++ ) {
+    for (int i = 0; i < 4; i++ ) {
 
       const Vector &sigBar = materialPointers[i]->getStress( ) ;
 
@@ -947,7 +942,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
   //residual and tangent calculations gauss loop
   
-  for ( i = 0; i < 4; i++ ) {
+  for (int i = 0; i < 4; i++ ) {
 
     if ( tang_flag == 1 ) {    // compute matrices for stiffness calculation
       
@@ -1170,7 +1165,7 @@ ConstantPressureVolumeQuad :: shape2d( double ss, double tt,
       shp[2][i] = ( 0.5 + s[i]*ss )*( 0.5 + t[i]*tt ) ;
       shp[0][i] = s[i] * ( 0.5 + t[i]*tt ) ;
       shp[1][i] = t[i] * ( 0.5 + s[i]*ss ) ;
-  } // end for i
+  }
 
   
   // Construct jacobian and its inverse
@@ -1204,6 +1199,7 @@ ConstantPressureVolumeQuad :: shape2d( double ss, double tt,
 
   return ;
 }
+
 
 Response*
 ConstantPressureVolumeQuad::setResponse(const char **argv, int argc, 

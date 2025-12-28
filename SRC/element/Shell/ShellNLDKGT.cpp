@@ -24,6 +24,7 @@
 //
 // Written: Shuhao Zhang & Xinzheng Lu
 //
+#define ALLOW_IMPLICIT_MATRIX
 #include <math.h>
 #include <ID.h>
 #include <Vector.h>
