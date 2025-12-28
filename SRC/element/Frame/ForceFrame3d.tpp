@@ -1092,14 +1092,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
 
   //
   VectorND<NDF*2> pf{};
-#if 0
-  double p0[5]{};
-  pf[0*NDF + 0] = p0[0]; // N
-  pf[0*NDF + 1] = p0[1]; // Vy
-  pf[0*NDF + 2] = p0[3]; // Vz
-  pf[1*NDF + 1] = p0[2]; // Vy
-  pf[1*NDF + 2] = p0[4]; // Vz
-#endif 
 
   for (auto load : frame_loads) {
     load->template addLinearSolution<NDF>(pf, L, 
@@ -2061,10 +2053,10 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponse(int responseID, Information& i
 
     double L = basic_system->getInitialLength();
 
-    if (fabs(q_pres[imz] + q_pres[jmz]) > DBL_EPSILON)
+    if (std::fabs(q_pres[imz] + q_pres[jmz]) > DBL_EPSILON)
       LI(0) = q_pres[imz] / (q_pres[imz] + q_pres[jmz]) * L;
 
-    if (fabs(q_pres[imy] + q_pres[jmy]) > DBL_EPSILON)
+    if (std::fabs(q_pres[imy] + q_pres[jmy]) > DBL_EPSILON)
       LI(1) = q_pres[imy] / (q_pres[imy] + q_pres[jmy]) * L;
 
     return info.setVector(LI);
