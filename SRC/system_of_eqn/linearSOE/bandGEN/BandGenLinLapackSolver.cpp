@@ -90,14 +90,9 @@ BandGenLinLapackSolver::getDeterminant()
 
 
 int
-BandGenLinLapackSolver::solve(void)
+BandGenLinLapackSolver::solve()
 {
     assert(theSOE != nullptr);
-    // if (theSOE == nullptr) {
-    //     opserr << "WARNING BandGenLinLapackSolver::solve(void)- ";
-    //     opserr << " No LinearSOE object has been set\n";
-    //     return -1;
-    // }
 
     int n = theSOE->size;
     // check iPiv is large enough
@@ -121,7 +116,7 @@ BandGenLinLapackSolver::solve(void)
 
     // first copy B into X
     for (int i=0; i<n; i++) {
-	*(Xptr++) = *(Bptr++);
+      *(Xptr++) = *(Bptr++);
     }
     Xptr = theSOE->X;
 
@@ -142,12 +137,12 @@ BandGenLinLapackSolver::solve(void)
     // check if successful
     if (info != 0) {
       if (info > 0) {
-	// opserr << "WARNING BandGenLinLapackSolver::solve() -";
-	// opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
-	return -info+1;
+        // opserr << "WARNING BandGenLinLapackSolver::solve() -";
+        // opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
+        return -info+1;
       } else {
-	// opserr << "WARNING BandGenLinLapackSolver::solve() - OpenSees code error\n";
-	return info;
+        // opserr << "WARNING BandGenLinLapackSolver::solve() - OpenSees code error\n";
+        return info;
       }
     }
 
