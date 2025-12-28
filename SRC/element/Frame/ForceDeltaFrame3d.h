@@ -115,10 +115,11 @@ private:
   int getInitialFlexibility(Matrix& fe);
   int getInitialDeformations(Vector& v0);
 
-//void getForceInterpolatMatrix(double xi, Matrix& b, const ID& code);
-//void getDistrLoadInterpolatMatrix(double xi, Matrix& bp, const ID& code);
   void computew(Vector& w, Vector& wp, double xi[], const Vector& kappa, const Vector& gamma);
-  void computedwdq(Matrix& dwidq, const Vector& q, const Vector& w, const Vector& wp,
+  void computedwdq(Matrix & dwidq, 
+                   const Vector& q, 
+                   const Vector& w, 
+                   const Vector& wp,
                    const Matrix& lsk, const Matrix& lsg, const Matrix& lskp, const Matrix& lsgp);
   void computedwzdq(Matrix& dwidzq, const Vector& q, const Vector& wz, const Vector& wpz,
                     const Matrix& lsk, const Matrix& lsg, const Matrix& lskp, const Matrix& lsgp) const;
