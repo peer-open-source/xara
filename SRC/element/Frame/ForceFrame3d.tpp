@@ -455,7 +455,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::initializeSectionHistoryVariables()
 
 namespace {
 
-template <int nsr, int nwm, int NBV, const FrameStressLayout& scheme>
+template <int nsr, int nwm, int NBV, int NDF, const FrameStressLayout& scheme>
 class ForceInterpolation {
 public:
   enum : int {
@@ -469,6 +469,26 @@ public:
     jmz =   2, // 11
     jwx =   7,
   };
+
+  MatrixND<2*NDF,NBV> 
+  reshape_matrix()
+  {
+    constexpr static int NNW = 6;
+    MatrixND<2*NDF, NBV> Tb {};
+    Tb(0*NDF+0, jnx) = -1.0;
+    Tb(0*NDF+3, jmx) = -1.0;
+    Tb(0*NDF+4, imy) =  1.0;
+    Tb(0*NDF+5, imz) =  1.0;
+    Tb(1*NDF+0, jnx) =  1.0;
+    Tb(1*NDF+3, jmx) =  1.0;
+    Tb(1*NDF+4, jmy) =  1.0;
+    Tb(1*NDF+5, jmz) =  1.0;
+    for (int i=0; i<nwm; i++) {
+      Tb(0*NDF+6+i, NNW+i*2)   =  1.0;
+      Tb(1*NDF+6+i, NNW+i*2+1) =  1.0;
+    }
+    return Tb;
+  }
 
   MatrixND<nsr,NBV> 
   b(double xL, double L) 
@@ -602,25 +622,6 @@ public:
 
 
 template <int NIP, int nsr, int nwm, int shear_flag>
-MatrixND<2*ForceFrame3d<NIP,nsr,nwm,shear_flag>::NDF,ForceFrame3d<NIP,nsr,nwm,shear_flag>::NBV> 
-ForceFrame3d<NIP,nsr,nwm,shear_flag>::FormBasicTransform() {
-  MatrixND<2*NDF, NBV> Tb {};
-  Tb(0*NDF+0, jnx) = -1.0;
-  Tb(0*NDF+3, jmx) = -1.0;
-  Tb(0*NDF+4, imy) =  1.0;
-  Tb(0*NDF+5, imz) =  1.0;
-  Tb(1*NDF+0, jnx) =  1.0;
-  Tb(1*NDF+3, jmx) =  1.0;
-  Tb(1*NDF+4, jmy) =  1.0;
-  Tb(1*NDF+5, jmz) =  1.0;
-  for (int i=0; i<nwm; i++) {
-    Tb(0*NDF+6+i, NNW+i*2)   =  1.0;
-    Tb(1*NDF+6+i, NNW+i*2+1) =  1.0;
-  }
-  return Tb;
-}
-
-template <int NIP, int nsr, int nwm, int shear_flag>
 int
 ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
 {
@@ -736,7 +737,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
 
         VectorND<NBV> vr{};       // element residual deformations
         MatrixND<NBV, NBV> F{};   // element flexibility matrix
-        ForceInterpolation<nsr,nwm,NBV,scheme> interp;
+        ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
 
         //
         // Gauss Loop
@@ -956,7 +957,9 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getTangentStiff()
   static Matrix Wrapper(kl);
 
 #if BASIC_TRANSFORM == 1
-  const static MatrixND<2*NDF,NBV> Tb = FormBasicTransform();
+  
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
+  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix(); //FormBasicTransform();
   kl = Tb*kb * Tb.transpose();
   pl = Tb * q_pres;
 #else
@@ -1107,7 +1110,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
   MatrixND<2*NDF,2*NDF> Kf{};
 
 #if BASIC_TRANSFORM == 1
-  const static MatrixND<2*NDF,NBV> Tb = FormBasicTransform();
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
+  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix(); // FormBasicTransform();
   Kf = Tb*F;
 #else
   for (int i=0; i<NDF*2; i++) {
@@ -2784,7 +2788,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResistingForce()
 
   static VectorND<NDF*2> pl{};
 #if BASIC_TRANSFORM == 1
-  const static MatrixND<2*NDF,NBV> Tb = FormBasicTransform();
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
+  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix();
   pl = Tb * q_pres;
 #else
   pl.zero();
