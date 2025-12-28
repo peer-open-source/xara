@@ -29,7 +29,7 @@ static HigherOrder high;
 
 HigherOrder& OPS_getHigherOrder()
 {
-    return high;
+  return high;
 }
 
 
