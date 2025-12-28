@@ -1,3 +1,4 @@
+.DS_Store
 
 # Editor
 .vscode/
@@ -187,5 +188,4 @@ SRC/interpreter/openseespy
 SRC/interpreter/openseestcl
 PML
 Concrete.h
-forumat.for
 
