@@ -162,10 +162,11 @@ Steel02::setTrialStrain(double trialStrain, double strainRate)
     }
   }
 
-  // in case of load reversal from negative to positive strain increment, 
-  // update the minimum previous strain, store the last load reversal 
-  // point and calculate the stress and strain (sigs0 and epss0) at the 
-  // new intersection between elastic and strain hardening asymptote 
+  // in case of load reversal from negative to positive strain increment: 
+  // - update the minimum previous strain, 
+  // - store the last load reversal point and 
+  // - calculate the stress and strain (sigs0 and epss0) at the 
+  //   new intersection between elastic and strain hardening asymptote
   // To include isotropic strain hardening shift the strain hardening 
   // asymptote by sigsft before calculating the intersection point 
   // Constants a3 and a4 control this stress shift on the tension side
@@ -177,33 +178,33 @@ Steel02::setTrialStrain(double trialStrain, double strainRate)
     //epsmin = min(epsP, epsmin);
     if (epsP < epsmin)
       epsmin = epsP;
-      double d1 = (epsmax - epsmin) / (2.0*(a4 * epsy));
-      double shft = 1.0 + a3 * pow(d1, 0.8);
-      epss0 = (Fy * shft - Esh * epsy * shft - sigr + E0 * epsr) / (E0 - Esh);
-      sigs0 = Fy * shft + Esh * (epss0 - epsy * shft);
-      epspl = epsmax;
+    double d1 = (epsmax - epsmin) / (2.0*(a4 * epsy));
+    double shft = 1.0 + a3 * pow(d1, 0.8);
+    epss0 = (Fy * shft - Esh * epsy * shft - sigr + E0 * epsr) / (E0 - Esh);
+    sigs0 = Fy * shft + Esh * (epss0 - epsy * shft);
+    epspl = epsmax;
 
-    } else if (kon == 1 && deps < 0.0) {
-      
-      // update the maximum previous strain, store the last load reversal 
-      // point and calculate the stress and strain (sigs0 and epss0) at the 
-      // new intersection between elastic and strain hardening asymptote 
-      // To include isotropic strain hardening shift the strain hardening 
-      // asymptote by sigsft before calculating the intersection point 
-      // Constants a1 and a2 control this stress shift on compression side 
+  } else if (kon == 1 && deps < 0.0) {
+    
+    // update the maximum previous strain, store the last load reversal 
+    // point and calculate the stress and strain (sigs0 and epss0) at the 
+    // new intersection between elastic and strain hardening asymptote 
+    // To include isotropic strain hardening shift the strain hardening 
+    // asymptote by sigsft before calculating the intersection point 
+    // Constants a1 and a2 control this stress shift on compression side 
 
-      kon = 2;
-      epsr = epsP;
-      sigr = sigP;
-      //      epsmax = max(epsP, epsmax);
-      if (epsP > epsmax)
-        epsmax = epsP;
-      
-      double d1 = (epsmax - epsmin) / (2.0*(a2 * epsy));
-      double shft = 1.0 + a1 * pow(d1, 0.8);
-      epss0 = (-Fy * shft + Esh * epsy * shft - sigr + E0 * epsr) / (E0 - Esh);
-      sigs0 = -Fy * shft + Esh * (epss0 + epsy * shft);
-      epspl = epsmin;
+    kon = 2;
+    epsr = epsP;
+    sigr = sigP;
+    //      epsmax = max(epsP, epsmax);
+    if (epsP > epsmax)
+      epsmax = epsP;
+    
+    double d1 = (epsmax - epsmin) / (2.0*(a2 * epsy));
+    double shft = 1.0 + a1 * pow(d1, 0.8);
+    epss0 = (-Fy * shft + Esh * epsy * shft - sigr + E0 * epsr) / (E0 - Esh);
+    sigs0 = -Fy * shft + Esh * (epss0 + epsy * shft);
+    epspl = epsmin;
   }
 
   
