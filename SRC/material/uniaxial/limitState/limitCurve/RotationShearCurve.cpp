@@ -413,7 +413,7 @@ RotationShearCurve::setDegSlope(double V)
   else if(Vr > -1 && Vr < 0.0)
     Vr = fabs(V*Vr);
   else if(Vr >= 0.0)
-    Vr = Vr;
+    ; // Vr = Vr;
   else
     {
       opserr << "FATAL ERROR RotationShearCurve -- Vr input is not implemented\n" << endln;
@@ -428,7 +428,7 @@ RotationShearCurve::setDegSlope(double V)
     Kdeg = -V/(ResDriftRatio*L);
   } 
   else if (Kdeg < 0.0) {
-    Kdeg = Kdeg;
+    ; // Kdeg = Kdeg;
   }
   else {
     opserr << "FATAL ERROR RotationShearCurve -- Regression Kdeg input is not implemented\n" << endln;
