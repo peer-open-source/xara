@@ -134,7 +134,8 @@ public:
     return gauss;
   }
 
-  void applyLoad(double loadFactor) final {
+  void
+  applyLoad(double loadFactor) final {
     for (auto e: elements)
       e->update();
   }
