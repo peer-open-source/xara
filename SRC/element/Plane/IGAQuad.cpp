@@ -1361,15 +1361,15 @@ IGAQuad::shapeFunction(int qx, int qy, ID& eleIdInfo, Vector& KnotVect_x, Vector
     int nd_y   = nds[1];
     int NGPs_x = NGPss[0]; 
     int NGPs_y = NGPss[1];
-    int Idx_x  = findSpan(obfs[0], ncp_x, ex, nex, KnotVect_x);
-    int Idx_y  = findSpan(obfs[1], ncp_y, ey, ney, KnotVect_y);// find the knot span
+    int Idx_x  = IGA::FindSpan(obfs[0], ncp_x, ex, nex, KnotVect_x);
+    int Idx_y  = IGA::FindSpan(obfs[1], ncp_y, ey, ney, KnotVect_y);// find the knot span
 
     double Jx=0.,
            Jy=0.;
     Vector Wx(NGPs_x), Wy(NGPs_y);
     //Matrix* N0nx, N0ny;
-    calcDersBasisFunsAtGPs(obf_x, ncp_x, KnotVect_x, nd_x, NGPs_x, Idx_x,&Jx,&Wx,&N0nx);// return basis function and derivatives of GP
-    calcDersBasisFunsAtGPs(obf_y, ncp_y, KnotVect_y, nd_y, NGPs_y, Idx_y,&Jy,&Wy,&N0ny);
+    IGA::calcDersBasisFunsAtGPs(obf_x, ncp_x, KnotVect_x, nd_x, NGPs_x, Idx_x,&Jx,&Wx,&N0nx);// return basis function and derivatives of GP
+    IGA::calcDersBasisFunsAtGPs(obf_y, ncp_y, KnotVect_y, nd_y, NGPs_y, Idx_y,&Jy,&Wy,&N0ny);
     //double Jx = ValBFG_x.J2; Vector Wx = ValBFG_x.WXg; Matrix* Nx = ValBFG_x.N;
     //double Jy = ValBFG_y.J2; Vector Wy = ValBFG_y.WXg; Matrix* Ny = ValBFG_y.N;
     //int NEN = (obf_x + 1) * (obf_y + 1); // number of local basic functions
@@ -1399,7 +1399,7 @@ IGAQuad::shapeFunction(int qx, int qy, ID& eleIdInfo, Vector& KnotVect_x, Vector
     //delete[] Ny;
     Vector R0;
     Matrix R1;
-    Rationalize(WeightsCP, N0, N1, &R0, &R1); // obtaining the rationalized shape function
+    IGA::Rationalize(WeightsCP, N0, N1, &R0, &R1); // obtaining the rationalized shape function
 
     double J2 = Jx * Jy; // J2
     DataJ(1) = J2;
