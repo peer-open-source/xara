@@ -18,24 +18,17 @@
 **                                                                    **
 ** ****************************************************************** */
 
-// $Revision$
-// $Date$
-// $URL$
-
-
-#ifndef TrussSection_h
-#define TrussSection_h
-
 // Written: fmk
 // Created: 07/98
 // Revision: A
 //
 // Description: This file contains the class definition for Truss. A Truss
 // object provides the abstraction of the small deformation bar element.
-// Each truss object is associated with a section object. This Truss element
-// will work in 1d, 2d or 3d problems.
+// Each truss object is associated with a section object. 
+// This Truss element will work in 1d, 2d or 3d problems.
 //
-// What: "@(#) Truss.h, revA"
+#ifndef TrussSection_h
+#define TrussSection_h
 
 #include <Element.h>
 #include <Matrix.h>
@@ -45,69 +38,76 @@ class Node;
 class Channel;
 class FrameSection;
 
+
 class TrussSection : public Element {
 public:
-  TrussSection(int tag, int dimension, int Nd1, int Nd2, FrameSection& theSection,
-               double rho = 0.0, int doRayleighDamping = 0, int cMass = 0);
+  TrussSection(int tag, 
+               int dimension, 
+               int Nd1, int Nd2, 
+               FrameSection& theSection,
+               double rho = 0.0, 
+               int doRayleighDamping = 0, 
+               int cMass = 0);
 
   TrussSection();
   ~TrussSection();
 
   const char*
-  getClassType(void) const
+  getClassType() const override
   {
     return "TrussSection";
-  };
+  }
 
   // public methods to obtain information about dof & connectivity
-  int getNumExternalNodes(void) const;
-  const ID& getExternalNodes(void);
-  Node** getNodePtrs(void);
+  int getNumExternalNodes() const override;
+  const ID& getExternalNodes() override;
+  Node** getNodePtrs() override;
 
-  int getNumDOF(void);
-  void setDomain(Domain* theDomain);
+  int getNumDOF() override;
+  void setDomain(Domain*);
 
-  // public methods to set the state of the element
-  int commitState(void);
-  int revertToLastCommit(void);
-  int revertToStart(void);
-  int update(void);
+  // Alter the state of the element
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
+  int update() override;
 
-  // public methods to obtain stiffness, mass, damping and residual information
-  const Matrix& getTangentStiff(void);
-  const Matrix& getInitialStiff(void);
-  const Matrix& getDamp(void);
-  const Matrix& getMass(void);
+  // Obtain stiffness, mass, damping and residual information
+  const Matrix& getTangentStiff() override;
+  const Matrix& getInitialStiff() override;
+  const Matrix& getDamp() override;
+  const Matrix& getMass() override;
+  const Vector& getResistingForce() override;
+  const Vector& getResistingForceIncInertia() override;
 
-  void zeroLoad(void);
-  int addLoad(ElementalLoad* theLoad, double loadFactor);
-  int addInertiaLoadToUnbalance(const Vector& accel);
+  void zeroLoad() override;
+  int addLoad(ElementalLoad* theLoad, double loadFactor) override;
+  int addInertiaLoadToUnbalance(const Vector& accel) override;
 
-  const Vector& getResistingForce(void);
-  const Vector& getResistingForceIncInertia(void);
+  // MovableObject interface
+  int sendSelf(int commitTag, Channel&) override;
+  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&) override;
 
-  // public methods for element output
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
-  void Print(OPS_Stream& s, int flag) final;
+  // TaggedObject interface
+  void Print(OPS_Stream& s, int flag) override;
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
-  int getResponse(int responseID, Information& eleInformation);
+  int getResponse(int responseID, Information& );
 
-  // AddingSensitivity:BEGIN //////////////////////////////////////////
+  // Sensitivity
   int addInertiaLoadSensitivityToUnbalance(const Vector& accel, bool tag);
-  int setParameter(const char** argv, int argc, Parameter& param);
+  int setParameter(const char** argv, int argc, Parameter&);
   int updateParameter(int parameterID, Information& info);
   int activateParameter(int parameterID);
   const Vector& getResistingForceSensitivity(int gradNumber);
   const Matrix& getKiSensitivity(int gradNumber);
   const Matrix& getMassSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
-  // AddingSensitivity:END ///////////////////////////////////////////
 
-protected:
+
 private:
   double computeCurrentStrain() const;
+
   // Layout of stress resultants
   static constexpr FrameStressLayout section_layout = {
     FrameStress::N,
@@ -119,8 +119,8 @@ private:
   int numDOF;                // number of dof for truss
 
   Vector* theLoad;   // pointer to the load vector P
-  Matrix* theMatrix; // pointer to objects matrix (a class wide Matrix)
-  Vector* theVector; // pointer to objects vector (a class wide Vector)
+  Matrix* theMatrix; // pointer to objects matrix (a static Matrix)
+  Vector* theVector; // pointer to objects vector (a static Vector)
 
   double cosX[3]; // direction cosines
 
@@ -129,15 +129,14 @@ private:
   int doRayleighDamping; // flag to include Rayleigh damping
   int cMass;             // consistent mass flag
 
-  Node* theNodes[2];
+  Node*   theNodes[2];
   double* initialDisp;
 
   FrameSection* theSection;
 
-  // AddingSensitivity:BEGIN //////////////////////////////////////////
+  // Sensitivity
   int parameterID;
   Vector* theLoadSens;
-  // AddingSensitivity:END ///////////////////////////////////////////
 
   // static data - single copy for all objects of the class
   static Matrix trussM2;  // class wide matrix for 2*2
