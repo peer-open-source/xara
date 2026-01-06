@@ -144,37 +144,90 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
         }
         if ((GetDoubleParam(interp, domain, argv[i], &consts.A, parameters[int(Position::A)]) != TCL_OK) ||
             consts.A <= 0.0) {
-          opserr << OpenSees::PromptParseError << "invalid area.\n";
+          opserr << OpenSees::PromptParseError 
+                 << "invalid area."
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
-
+        
+        // Default to A if Ay or Az is not specified
         if (tracker.contains(Position::ky))
-          consts.Ay = consts.A; // Default to A if Ay is not specified
+          consts.Ay = consts.A;
         if (tracker.contains(Position::kz))
-          consts.Az = consts.A; // Default to A if Az is not specified
+          consts.Az = consts.A;
 
         tracker.consume(Position::A);
       }
 
+      // Shear corrections
       else if ((strcmp(argv[i], "-shear-y") == 0) ||
                (strcmp(argv[i], "-Ay") == 0)) {
-        use_shear = true;
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.Ay) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid shear area.\n";
+        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &consts.Ay) != TCL_OK) {
+          opserr << OpenSees::PromptParseError 
+                 << "invalid shear area."
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
+        use_shear = true;
         construct_full = true;
         tracker.consume(Position::ky);
       }
-
       else if ((strcmp(argv[i], "-shear-z") == 0) ||
                (strcmp(argv[i], "-Az") == 0)) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &consts.Az) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid shear area.\n";
+        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &consts.Az) != TCL_OK) {
+          opserr << OpenSees::PromptParseError 
+                 << "invalid shear area."
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
+        use_shear = true;
         construct_full = true;
         tracker.consume(Position::kz);
+      }
+      else if ((strcmp(argv[i], "-ky") == 0) || (strcmp(argv[i], "-kz") == 0)) {
+        // Shear corrections as fraction of area
+        double k;
+        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &k) != TCL_OK) {
+          opserr << OpenSees::PromptParseError 
+                 << "invalid shear correction."
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+
+        double A;
+        bool have_A = false;
+        // If we have already read A, use it; otherwise, find it. A is required.
+        if (tracker.contains(Position::A)) {
+          // Find A from parameters
+          for (int j=0; j<argc; j++) {
+            if ((strcmp(argv[j], "-area") == 0) || (strcmp(argv[j], "-A") == 0)) {
+              if ( argc <= ++j )
+                // -A flag without value; wait for area handler above to catch it
+                break;
+              if (Tcl_GetDouble(interp, argv[j], &A) != TCL_OK)
+                break;
+              have_A = true;
+              break;
+            }
+          }
+        }
+        else {
+          A = consts.A;
+          have_A = true;
+        }
+        if (!have_A || A <= 0.0)
+          continue; // Let area handler above catch missing/invalid A;
+
+        if (strcmp(argv[i-1], "-ky") == 0) {
+          consts.Ay = A * k;
+          tracker.consume(Position::ky);
+        }
+        else if (strcmp(argv[i-1], "-kz") == 0) {
+          consts.Az = A * k;
+          tracker.consume(Position::kz);
+        }
+        use_shear = true;
+        construct_full = true;
       }
 
       else if ((strcmp(argv[i], "-inertia") == 0) ||
@@ -388,7 +441,6 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
             break;
           }
         }
-
         case Position::kz: {
           double kz;
           if (Tcl_GetDouble (interp, argv[i], &kz) != TCL_OK) {
