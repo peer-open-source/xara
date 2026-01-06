@@ -33,6 +33,7 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <memory>
+#include <vector>
 
 #define SHARE_FIBERS
 class UniaxialMaterial;
