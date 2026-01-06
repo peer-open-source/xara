@@ -47,14 +47,17 @@ ID FiberSection2d::code(2);
 // allocate memory for fibers
 FiberSection2d::FiberSection2d(int tag, int num, bool compCentroid): 
   FrameSection(tag, SEC_TAG_FiberSection2d),
-  numFibers(0), sizeFibers(num), theMaterials(0), matData(new double [num*2]{}),
+  numFibers(0), sizeFibers(num), theMaterials(0), 
+#ifdef SHARE_FIBERS
+  matData(new double [sizeFibers*2]{}),
+#else
+  matData(nullptr),
+#endif
   QzBar(0.0), ABar(0.0), yBar(0.0), computeCentroid(compCentroid),
   e(2), s(0), ks(0), dedh(2)
 {
     if (sizeFibers > 0) {
       theMaterials = new UniaxialMaterial *[sizeFibers]{};
-//    matData      = new double [sizeFibers*2]{};
-//    matData = std::make_shared<double[]>(new double [numFibers*2]{});
       // matData.reset();
     }
 
@@ -105,28 +108,34 @@ FiberSection2d::addFiber(UniaxialMaterial &theMat, const double Area, const doub
         newsize = 30;
       UniaxialMaterial **newArray = new UniaxialMaterial *[newsize]; 
       // std::shared_ptr<double[]> newMatData = std::make_shared<double[]>(new double [2 * newsize]);
+#ifdef SHARE_FIBERS
       std::shared_ptr<double[]> newMatData(new double [2 * newsize]);
+#else
+      double* newMatData = new double [2 * newsize];
+#endif
 
       // copy the old pointers and data
       for (int i = 0; i < sizeFibers; i++) {
-	  newArray[i]       = theMaterials[i];
-	  newMatData[2*i]   = matData[2*i];
-	  newMatData[2*i+1] = matData[2*i+1];
+        newArray[i]       = theMaterials[i];
+        newMatData[2*i]   = matData[2*i];
+        newMatData[2*i+1] = matData[2*i+1];
       }
 
       // initialize new memory
       for(int i = sizeFibers; i<newsize; i++) {
-	  newArray[i]       = nullptr;
-	  newMatData[2*i]   = 0.0;
-	  newMatData[2*i+1] = 0.0;
+        newArray[i]       = nullptr;
+        newMatData[2*i]   = 0.0;
+        newMatData[2*i+1] = 0.0;
       }
 
       sizeFibers = newsize;
 
       // set new memory
       if (theMaterials != nullptr) {
-	  delete [] theMaterials;
-	  // delete [] matData;
+        delete [] theMaterials;
+#ifndef SHARE_FIBERS
+        delete [] matData;
+#endif
       }
 
       theMaterials = newArray;
@@ -138,7 +147,7 @@ FiberSection2d::addFiber(UniaxialMaterial &theMat, const double Area, const doub
   matData[numFibers*2+1] = Area;
   theMaterials[numFibers] = theMat.getCopy();
 
-  if(theMaterials[numFibers] == 0) {
+  if (theMaterials[numFibers] == 0) {
     opserr <<"FiberSection2d::addFiber -- failed to get copy of a Material\n";
     return -1;
   }
@@ -183,7 +192,7 @@ FiberSection2d::getIntegral(Field field, State state, double& value) const
   switch (field) {
     case Field::Unit:
       for (int i=0; i<numFibers; i++) {
-        const double A  = matData[2*i+2];
+        const double A  = matData[2*i+1];
         value += A;
       }
       return 0;
@@ -195,7 +204,7 @@ FiberSection2d::getIntegral(Field field, State state, double& value) const
 
       for (int i=0; i<numFibers; i++) {
         double density;
-        const double A  = matData[2*i+2];
+        const double A  = matData[2*i+1];
         if (theMaterials[i]->getRho() != 0)
           value += A*density;
         else
@@ -207,7 +216,7 @@ FiberSection2d::getIntegral(Field field, State state, double& value) const
     case Field::UnitYY:
     case Field::UnitCentroidYY:
       for (int i=0; i<numFibers; i++) {
-        const double A  = matData[2*i+2];
+        const double A  = matData[2*i+1];
         const double y  = matData[2*i]
                         - yBar*(Field::UnitCentroidYY == field);
         value += A*y*y;
@@ -316,15 +325,21 @@ FiberSection2d::getFrameCopy(void)
 
   if (numFibers != 0) {
     theCopy->theMaterials = new UniaxialMaterial *[numFibers]; 
-    theCopy->matData = matData; // new double [numFibers*2];
+#ifdef SHARE_FIBERS
+    theCopy->matData = matData;
+#else 
+    theCopy->matData = new double [numFibers*2];
+#endif 
 
     for (int i = 0; i < numFibers; i++) {
-//    theCopy->matData[i*2] = matData[i*2];
-//    theCopy->matData[i*2+1] = matData[i*2+1];
+#ifndef SHARE_FIBERS
+      theCopy->matData[i*2] = matData[i*2];
+      theCopy->matData[i*2+1] = matData[i*2+1];
+#endif
       theCopy->theMaterials[i] = theMaterials[i]->getCopy();
 
       if (theCopy->theMaterials[i] == 0) {
-	opserr <<"FiberSection2d::getFrameCopy -- failed to get copy of a Material";
+        opserr <<"FiberSection2d::getFrameCopy -- failed to get copy of a Material";
         delete theCopy;
         return nullptr;
       }
@@ -512,7 +527,7 @@ FiberSection2d::sendSelf(int commitTag, Channel &theChannel)
 
 int
 FiberSection2d::recvSelf(int commitTag, Channel &theChannel,
-			 FEM_ObjectBroker &theBroker)
+                         FEM_ObjectBroker &theBroker)
 {
   int res = 0;
 
@@ -538,27 +553,32 @@ FiberSection2d::recvSelf(int commitTag, Channel &theChannel,
     // if current arrays not of correct size, release old and resize
     if (theMaterials == 0 || numFibers != data(1)) {
       // delete old stuff if outa date
-      if (theMaterials != 0) {
-	for (int i=0; i<numFibers; i++)
-	  delete theMaterials[i];
-	delete [] theMaterials;
-	theMaterials = nullptr;
-	// if (matData != 0)
-	//   delete [] matData;
-	// matData = 0;
+      if (theMaterials != nullptr) {
+        for (int i=0; i<numFibers; i++)
+          delete theMaterials[i];
+        delete [] theMaterials;
+        theMaterials = nullptr;
+#ifndef SHARE_FIBERS
+        if (matData != 0)
+          delete [] matData;
+        matData = 0;
+#endif
       }
 
       // create memory to hold material pointers and fiber data
       numFibers = data(1);
       sizeFibers = data(1);
       if (numFibers != 0) {
-	theMaterials = new UniaxialMaterial *[numFibers];
-	for (int j=0; j<numFibers; j++)
-	  theMaterials[j] = 0;
+        theMaterials = new UniaxialMaterial *[numFibers];
+        for (int j=0; j<numFibers; j++)
+          theMaterials[j] = 0;
 
 	// matData = std::make_shared<double[]>(new double [numFibers*2]);
-	matData.reset(new double [numFibers*2]);
-
+#ifdef SHARE_FIBERS
+	      matData.reset(new double [numFibers*2]);
+#else
+        matData = new double [numFibers*2];
+#endif
       }
     }
 
@@ -577,10 +597,10 @@ FiberSection2d::recvSelf(int commitTag, Channel &theChannel,
       // if material pointed to is blank or not of corrcet type, 
       // release old and create a new one
       if (theMaterials[i] == 0)
-	theMaterials[i] = theBroker.getNewUniaxialMaterial(classTag);
+        theMaterials[i] = theBroker.getNewUniaxialMaterial(classTag);
       else if (theMaterials[i]->getClassTag() != classTag) {
-	delete theMaterials[i];
-	theMaterials[i] = theBroker.getNewUniaxialMaterial(classTag);      
+        delete theMaterials[i];
+        theMaterials[i] = theBroker.getNewUniaxialMaterial(classTag);      
       }
 
       theMaterials[i]->setDbTag(dbTag);
@@ -629,18 +649,19 @@ FiberSection2d::Print(OPS_Stream &s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-	s << "\"name\": \"" << this->getTag() << "\", ";
-	s << "\"type\": \"FiberSection2d\", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"FiberSection2d\", ";
     s << "\"fibers\": [\n";
     for (int i = 0; i < numFibers; i++) {
-      s << "\t\t\t\t{\"coord\": [" << matData[2*i] << ", 0.0], ";
+      s << OPS_PRINT_JSON_MATE_INDENT << "  ";
+      s << "{\"coord\": [" << matData[2*i] << ", 0.0], ";
       s << "\"area\": " << matData[2*i+1] << ", ";
       s << "\"material\": " << theMaterials[i]->getTag();
       if (i < numFibers-1)
-	s << "},\n";
+        s << "},\n";
       else
-	s << "}\n";	
+        s << "}\n";	
     }
     s << "\t\t\t]}";
   }
@@ -648,7 +669,7 @@ FiberSection2d::Print(OPS_Stream &s, int flag)
 
 Response*
 FiberSection2d::setResponse(const char **argv, int argc,
-			    OPS_Stream &output)
+                            OPS_Stream &output)
 {
   Response *theResponse = 0;
   
@@ -657,7 +678,7 @@ FiberSection2d::setResponse(const char **argv, int argc,
     static double fiberLocs[10000];
     { // TODO
       for (int i = 0; i < numFibers; i++) {
-	fiberLocs[i] = matData[2*i];
+        fiberLocs[i] = matData[2*i];
       }
     }
   
@@ -679,27 +700,27 @@ FiberSection2d::setResponse(const char **argv, int argc,
       int j;
       // Find first fiber with specified material tag
       for (j = 0; j < numFibers; j++) {
-	if (matTag == theMaterials[j]->getTag()) {
-	  //ySearch = matData[2*j];
-	  ySearch = fiberLocs[j];
-	  dy = ySearch-yCoord;
-	  closestDist = dy*dy;
-	  key = j;
-	  break;
-	}
+        if (matTag == theMaterials[j]->getTag()) {
+          //ySearch = matData[2*j];
+          ySearch = fiberLocs[j];
+          dy = ySearch-yCoord;
+          closestDist = dy*dy;
+          key = j;
+          break;
+        }
       }
       // Search the remaining fibers
       for ( ; j < numFibers; j++) {
-	if (matTag == theMaterials[j]->getTag()) {
-	  //ySearch = matData[2*j];
-	  ySearch = fiberLocs[j];	  
-	  dy = ySearch-yCoord;
-	  distance = dy*dy;
-	  if (distance < closestDist) {
-	    closestDist = distance;
-	    key = j;
-	  }
-	}
+        if (matTag == theMaterials[j]->getTag()) {
+          //ySearch = matData[2*j];
+          ySearch = fiberLocs[j];	  
+          dy = ySearch-yCoord;
+          distance = dy*dy;
+          if (distance < closestDist) {
+            closestDist = distance;
+            key = j;
+          }
+        }
       }
       passarg = 4;
     }
@@ -717,15 +738,15 @@ FiberSection2d::setResponse(const char **argv, int argc,
       closestDist = fabs(dy);
       key = 0;
       for (int j = 1; j < numFibers; j++) {
-	//ySearch = matData[2*j];
-	ySearch = fiberLocs[j];	  	
-	dy = ySearch-yCoord;
-	
-	distance = dy*dy;
-	if (distance < closestDist) {
-	  closestDist = distance;
-	  key = j;
-	}
+        //ySearch = matData[2*j];
+        ySearch = fiberLocs[j];	  	
+        dy = ySearch-yCoord;
+        
+        distance = dy*dy;
+        if (distance < closestDist) {
+          closestDist = distance;
+          key = j;
+        }
       }
       passarg = 3;
     }
@@ -844,7 +865,7 @@ FiberSection2d::getResponse(int responseID, Information &sectInfo)
     int count = 0;
     for (int j = 0; j < numFibers; j++) {    
       if (theMaterials[j]->hasFailed() == true)
-	count++;
+        count++;
     }
     return sectInfo.setInt(count);
 
@@ -852,7 +873,7 @@ FiberSection2d::getResponse(int responseID, Information &sectInfo)
     int count = 0;
     for (int j = 0; j < numFibers; j++) {    
       if (theMaterials[j]->hasFailed() == true) {
-	count+=1;
+        count+=1;
       }
     }
     if (count == numFibers)
@@ -872,7 +893,6 @@ FiberSection2d::getResponse(int responseID, Information &sectInfo)
 
 
 
-// AddingSensitivity:BEGIN ////////////////////////////////////
 int
 FiberSection2d::setParameter(const char **argv, int argc, Parameter &param)
 {
@@ -893,9 +913,9 @@ FiberSection2d::setParameter(const char **argv, int argc, Parameter &param)
     // Loop over fibers to find the right material
     for (int i = 0; i < numFibers; i++)
       if (materialTag == theMaterials[i]->getTag()) {
-	int ok = theMaterials[i]->setParameter(&argv[2], argc-2, param);
-	if (ok != -1)
-	  result = ok;
+        int ok = theMaterials[i]->setParameter(&argv[2], argc-2, param);
+        if (ok != -1)
+          result = ok;
       }
     return result;
   }
@@ -921,23 +941,23 @@ FiberSection2d::setParameter(const char **argv, int argc, Parameter &param)
     // Find first fiber with specified material tag
     for (j = 0; j < numFibers; j++) {
       if (matTag == theMaterials[j]->getTag()) {
-	ySearch = matData[2*j];
-	dy = ySearch-yCoord;
-	closestDist = fabs(dy);
-	key = j;
-	break;
+        ySearch = matData[2*j];
+        dy = ySearch-yCoord;
+        closestDist = fabs(dy);
+        key = j;
+        break;
       }
     }
     // Search the remaining fibers
     for ( ; j < numFibers; j++) {
       if (matTag == theMaterials[j]->getTag()) {
-	ySearch = matData[2*j];
-	dy = ySearch-yCoord;
-	distance = fabs(dy);
-	if (distance < closestDist) {
-	  closestDist = distance;
-	  key = j;
-	}
+        ySearch = matData[2*j];
+        dy = ySearch-yCoord;
+        distance = fabs(dy);
+        if (distance < closestDist) {
+          closestDist = distance;
+          key = j;
+        }
       }
       passarg = 4;
     }
@@ -1102,15 +1122,14 @@ FiberSection2d::commitSensitivity(const Vector& defSens,
   return 0;
 }
 
-// AddingSensitivity:END ///////////////////////////////////
 
-//by SAJalali
+// by SAJalali
 double FiberSection2d::getEnergy() const
 {
-    double energy = 0;
-    for (int i = 0; i < numFibers; i++) {
-      const double A = matData[2*i+1];
-      energy += A * theMaterials[i]->getEnergy();
-    }
-    return energy;
+  double energy = 0;
+  for (int i = 0; i < numFibers; i++) {
+    const double A = matData[2*i+1];
+    energy += A * theMaterials[i]->getEnergy();
+  }
+  return energy;
 }
