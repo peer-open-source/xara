@@ -38,7 +38,7 @@ class PrismFrame2d : public Element
                   double alpha, double depth,
                   double rho, int mass_flag, bool use_mass,
                   int release,
-                  int geom_flag);
+                  int geom_flag, int shear_flag);
 
     ~PrismFrame2d();
 
@@ -100,6 +100,7 @@ class PrismFrame2d : public Element
     int mass_flag;        // consistent mass flag
     int release;      // moment release 0=none, 1=I, 2=J, 3=I,J
     int geom_flag;
+    int shear_flag;
 
     // State variables; not passed in send/recvSelf
     double L;                    // Initial length

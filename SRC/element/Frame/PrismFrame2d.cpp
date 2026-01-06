@@ -11,6 +11,7 @@
 //
 // Written: cc,cmp 05/2024
 //
+#include <Frame/Prism.h>
 #include <Vector.h>
 #include <VectorND.h>
 #include <Matrix.h>
@@ -30,8 +31,7 @@
 #include <ElementResponse.h>
 #include <math.h>
 
-using OpenSees::VectorND;
-using OpenSees::MatrixND;
+using namespace OpenSees;
 
 Matrix PrismFrame2d::K(6,6);
 Vector PrismFrame2d::P(6);
@@ -51,7 +51,6 @@ PrismFrame2d::PrismFrame2d()
   p0.zero();
   kg.zero();
 
-  // set node pointers to NULL
   for (int i=0; i<2; i++)
     theNodes[i] = nullptr;      
 }
@@ -65,6 +64,7 @@ PrismFrame2d::PrismFrame2d(int tag, double a, double e, double i,
    alpha(Alpha), depth(depth_), rho(r), 
    mass_flag(cm), release(rel), 
    geom_flag(geom_flag_),
+   shear_flag(0),
    Q(6), connectedExternalNodes(2), theCoordTransf(nullptr)
 {
   connectedExternalNodes(0) = Nd1;
@@ -91,22 +91,24 @@ PrismFrame2d::PrismFrame2d(int tag, int Nd1, int Nd2,
                            CrdTransf &coordTransf, 
                            double Alpha, double depth_, 
                            double r, int cm, bool use_mass, int rel,
-                           int geom_flag_)
+                           int geom_flag_, int shear_flag)
   : Element(tag,ELE_TAG_ElasticBeam2d), 
     G(0.0), Ay(0.0),
     alpha(Alpha), depth(depth_), 
     rho(r), mass_flag(cm), 
     release(rel),
     geom_flag(geom_flag_),
+    shear_flag(shear_flag),
     Q(6), connectedExternalNodes(2), theCoordTransf(nullptr)
 {
-
+#if 0
   section.getIntegral(Field::Unit,   State::Init, A);
   section.getIntegral(Field::UnitY,  State::Init, Ay);
   section.getIntegral(Field::UnitYY, State::Init, Iz);
 
 
   const Matrix &sectTangent = section.getInitialTangent();
+  opserr << "K = " << sectTangent;
   const ID &sectCode = section.getType();
   for (int i=0; i<sectCode.Size(); i++) {
     int code = sectCode(i);
@@ -123,6 +125,19 @@ PrismFrame2d::PrismFrame2d(int tag, int Nd1, int Nd2,
     }
   }
   
+#else
+  Frame::Prism prism_props(section);
+  A  = *prism_props.A;
+  Iz = *prism_props.Iz;
+  E  = *prism_props.E;
+  G  = *prism_props.G;
+  if (!shear_flag) {
+    Ay = 0.0;
+  } 
+  else {
+    Ay = *prism_props.Ay;
+  }
+#endif
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
   
@@ -357,13 +372,13 @@ PrismFrame2d::update()
 const Matrix &
 PrismFrame2d::getTangentStiff()
 {
-  return theCoordTransf->getGlobalStiffMatrix(ke, q);
+  return theCoordTransf->getGlobalStiffMatrix(Matrix(ke), q);
 }
 
 const Matrix &
 PrismFrame2d::getInitialStiff()
 {
-  return theCoordTransf->getInitialGlobalStiffMatrix(km);
+  return theCoordTransf->getInitialGlobalStiffMatrix(Matrix(km));
 }
 
 const Matrix &
@@ -411,7 +426,7 @@ PrismFrame2d::getMass()
       // add translational and rotational parts
       ml = mlTrn + mlRot;
       // transform from local to global system
-      return theCoordTransf->getGlobalMatrixFromLocal(M);
+      return theCoordTransf->getGlobalMatrixFromLocal(Matrix(M));
     }
 
     mass_initialized = true;

@@ -605,7 +605,8 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
                                  options.mass_type,
                                  use_mass,
                                  options.relz_flag,
-                                 options.geom_flag);
+                                 options.geom_flag,
+                                 options.shear_flag);
     }
 
     else if (strcmp(argv[1], "PrismFrame") == 0) {

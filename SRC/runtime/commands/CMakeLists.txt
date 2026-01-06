@@ -20,6 +20,7 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/geomTransf.cpp"
 
     "modeling/element.cpp"
+    "modeling/element/prism.cpp"
     "modeling/element/frames.cpp"
     "modeling/element/shells.cpp"
     "modeling/element/brick.cpp"
