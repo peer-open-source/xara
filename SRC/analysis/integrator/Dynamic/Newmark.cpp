@@ -160,18 +160,18 @@ int Newmark::newStep(double deltaT)
     (*Utdotdot) = *Udotdot;
 
     if (unknown == Displacement || unknown == Velocity)  {    
-        // determine new velocities and accelerations at t+deltaT
-        double a1 = (1.0 - gamma/beta); 
-        double a2 = deltaT*(1.0 - 0.5*gamma/beta);
-        Udot->addVector(a1, *Utdotdot, a2);
+      // determine new velocities and accelerations at t+deltaT
+      double a1 = (1.0 - gamma/beta); 
+      double a2 = deltaT*(1.0 - 0.5*gamma/beta);
+      Udot->addVector(a1, *Utdotdot, a2);
 
-        double a3 = -1.0/(beta*deltaT);
-        double a4 = 1.0 - 0.5/beta;
-        Udotdot->addVector(a4, *Utdot, a3);
+      double a3 = -1.0/(beta*deltaT);
+      double a4 = 1.0 - 0.5/beta;
+      Udotdot->addVector(a4, *Utdot, a3);
 
-        // set the trial response quantities
-        theModel->setVel(*Udot);
-        theModel->setAccel(*Udotdot);
+      // set the trial response quantities
+      theModel->setVel(*Udot);
+      theModel->setAccel(*Udotdot);
 
     } else {
       // determine new displacements and velocities at t+deltaT      
