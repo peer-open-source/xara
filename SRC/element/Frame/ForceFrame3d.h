@@ -105,7 +105,6 @@ public:
   int commitSensitivity(int gradNumber, int numGrads) final;
   int getResponseSensitivity(int responseID, int gradNumber, Information &) final;
 
-  virtual int getIntegral(Field field, State state, double& total);
 
   // MovableObject
   int sendSelf(int cTag, Channel &) override;
@@ -119,6 +118,8 @@ public:
   //
   // Constexpr
   //
+
+  int getIntegral(Field field, State state, double& total);
 
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 

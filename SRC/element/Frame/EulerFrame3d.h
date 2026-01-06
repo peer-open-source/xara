@@ -83,7 +83,6 @@ class EulerFrame3d : public BasicFrame3d,
     virtual int            commitSensitivity(int gradNumber, int numGrads);
 
 
-    virtual int getIntegral(Field field, State state, double& total);
 
 
 protected:
@@ -103,6 +102,7 @@ private:
         maxNumSections = 20;
   constexpr static int max_nip = 20;
 
+  int getIntegral(Field field, State state, double& total);
   OpenSees::VectorND<6>&   getBasicForce();
   OpenSees::MatrixND<6,6>& stateDetermination(State state, int rate);
 
