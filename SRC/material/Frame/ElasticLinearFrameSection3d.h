@@ -50,20 +50,20 @@ public:
     return "ElasticFrameSection3d";
   }
   
-  int commitState() override;
-  int revertToLastCommit() override;
-  int revertToStart() override;
+  int commitState() final;
+  int revertToLastCommit() final;
+  int revertToStart() final;
   
-  int setTrialSectionDeformation(const Vector&) override;
+  int setTrialSectionDeformation(const Vector&) final;
   const Vector &getSectionDeformation();
   
   int getIntegral(Field field, State state, double&) const final;
 
-  const Vector &getStressResultant() override;
-  const Matrix &getSectionTangent() override;
-  const Matrix &getInitialTangent() override;
-  const Matrix &getSectionFlexibility() override;
-  const Matrix &getInitialFlexibility() override;
+  const Vector &getStressResultant() final;
+  const Matrix &getSectionTangent() final;
+  const Matrix &getInitialTangent() final;
+  const Matrix &getSectionFlexibility() final;
+  const Matrix &getInitialFlexibility() final;
   
   FrameSection *getFrameCopy() final;
   FrameSection* getFrameCopy(const FrameStressLayout&) final;
@@ -75,8 +75,8 @@ public:
   
   void Print(OPS_Stream &s, int flag) final;
 
-  int setParameter(const char **argv, int argc, Parameter &);
-  int updateParameter(int parameterID, Information &info);
+  int setParameter(const char **argv, int argc, Parameter &) final;
+  int updateParameter(int parameterID, Information &info) final;
   int activateParameter(int parameterID);
   const Vector& getStressResultantSensitivity(int gradIndex,
                                               bool conditional);
@@ -106,20 +106,6 @@ public:
 
   static ID layout;
   std::array<double, 2> centroid;
-
-
-//   struct Tangent {
-//      OpenSees::MatrixND<3,3> nn,         nw, nv, 
-//                                  mn, mm, mw, mv, 
-//                                          ww,
-//                                              vv;
-//      void zero() {
-//             nn.zero();            nw.zero(); nv.zero();
-//             mn.zero(); mm.zero(); mw.zero(); mv.zero();
-//                                   ww.zero();
-//                                              vv.zero();
-//      }
-//   } K_pres;
 };
 
 } // namespace OpenSees
