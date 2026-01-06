@@ -949,7 +949,8 @@ void DruckerPragerThermal::plastic_integrator()
 	return;
 }
 
-int DruckerPragerThermal::updateElasticParam()
+int 
+DruckerPragerThermal::updateElasticParam()
 {
 	double Sigma_mean = 0.0;
 	if (mElastFlag == 1 && mFlag == 1) {
@@ -959,7 +960,6 @@ int DruckerPragerThermal::updateElasticParam()
 		mG = mGref * pow(1 + (Sigma_mean / mPatm), 0.5);
 		mCe = mK * mIIvol + 2 * mG*mIIdev;
 		mFlag = 0;
-		//opserr << "Plastic Integrator -->" << "K = " << mK  << "  G =" << mG << endln;
 	}
 	else if (mElastFlag != 1) {
 		mFlag = 1;

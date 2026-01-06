@@ -108,7 +108,6 @@ PrismFrame2d::PrismFrame2d(int tag, int Nd1, int Nd2,
 
 
   const Matrix &sectTangent = section.getInitialTangent();
-  opserr << "K = " << sectTangent;
   const ID &sectCode = section.getType();
   for (int i=0; i<sectCode.Size(); i++) {
     int code = sectCode(i);
