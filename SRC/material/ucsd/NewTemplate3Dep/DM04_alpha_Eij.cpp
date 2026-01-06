@@ -111,8 +111,9 @@ TensorEvolution* DM04_alpha_Eij::newObj()
     return nObj;
 }
 
-const straintensor& DM04_alpha_Eij::Hij(const straintensor& plastic_flow, const stresstensor& Stre, 
-                                        const straintensor& Stra, const MaterialParameter& material_parameter)
+const straintensor& 
+DM04_alpha_Eij::Hij(const straintensor& plastic_flow, const stresstensor& Stre, 
+                    const straintensor& Stra, const MaterialParameter& material_parameter)
 {
     stresstensor alpha_alpha_in;
     double a_in = 0.0;
@@ -123,7 +124,7 @@ const straintensor& DM04_alpha_Eij::Hij(const straintensor& plastic_flow, const 
     double lambda_c = getlambda_c(material_parameter);
     double xi = getxi(material_parameter);
     double Pat = getPat(material_parameter);
-    double m = getm(material_parameter);
+    // double m = getm(material_parameter);
     double M_cal = getM_cal(material_parameter);
     double cc = getcc(material_parameter);
     double nb = getnb(material_parameter);
@@ -219,57 +220,55 @@ const straintensor& DM04_alpha_Eij::Hij(const straintensor& plastic_flow, const 
 }
 
 // to get e0
-//================================================================================
-double DM04_alpha_Eij::gete0(const MaterialParameter& material_parameter) const
+double 
+DM04_alpha_Eij::gete0(const MaterialParameter& material_parameter) const
 {
     return getParameters(material_parameter, e0_index);
 }
 
 // to get e_r
-//================================================================================
-double DM04_alpha_Eij::gete_r(const MaterialParameter& material_parameter) const
+double 
+DM04_alpha_Eij::gete_r(const MaterialParameter& material_parameter) const
 {
     return getParameters(material_parameter, e_r_index);
 }
 
 // to get lambda_c
-//================================================================================
-double DM04_alpha_Eij::getlambda_c(const MaterialParameter& material_parameter) const
+double 
+DM04_alpha_Eij::getlambda_c(const MaterialParameter& material_parameter) const
 {
     return getParameters(material_parameter, lambda_c_index);
 }
 
 // to get xi
 //================================================================================
-double DM04_alpha_Eij::getxi(const MaterialParameter& material_parameter) const
+double 
+DM04_alpha_Eij::getxi(const MaterialParameter& material_parameter) const
 {
     return getParameters(material_parameter, xi_index);
 
 }
 
 // to get Pat
-//================================================================================
 double DM04_alpha_Eij::getPat(const MaterialParameter& material_parameter) const
 {
-    return getParameters(material_parameter, Pat_index);
+  return getParameters(material_parameter, Pat_index);
 }
 
 // to get m
 //================================================================================
 double DM04_alpha_Eij::getm(const MaterialParameter& material_parameter) const
 {
-    return getParameters(material_parameter, m_index);
+  return getParameters(material_parameter, m_index);
 }
 
 // to get M
-//================================================================================
 double DM04_alpha_Eij::getM_cal(const MaterialParameter& material_parameter) const
 {
     return getParameters(material_parameter, M_cal_index);
 }
 
 // to get c
-//================================================================================
 double DM04_alpha_Eij::getcc(const MaterialParameter& material_parameter) const
 {
     return getParameters(material_parameter, cc_index);
