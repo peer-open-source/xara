@@ -68,12 +68,13 @@ class EulerDeltaFrame3d : public FiniteElement<2, 3, 6>
     int updateParameter(int parameterID, Information &);
     int activateParameter(int parameterID);
 
-    virtual int getIntegral(Field field, State state, double& total);
 
   protected:
     int setNodes();
     
   private:
+    int getIntegral(Field field, State state, double& total);
+
     constexpr static int
       nen = 2,
       ndf = 6,

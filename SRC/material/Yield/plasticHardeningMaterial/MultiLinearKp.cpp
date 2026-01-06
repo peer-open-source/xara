@@ -8,7 +8,7 @@
 #include <Logging.h>
 
 #define MAT_TAG_MULTILINEAR -1
-#define DEBG 0
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -86,12 +86,11 @@ double sumDisp = val_trial;
 		}
 	}
 
-	if(sFactor != 1.0)
+	if (sFactor != 1.0)
 		K = Kp(0)*sFactor;
 	else
 		K = residual*K;
 
-	// opserr << "K = " << K << ", sFactor = " << sFactor << endln; // opserr << "\a";
 	return K;
 }
 
@@ -101,9 +100,10 @@ MultiLinearKp::Print(OPS_Stream &s, int flag)
 {
     this->PlasticHardeningMaterial::Print(s, flag);
 
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {  
-      s << "{}";
-    } else {
+    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << OPS_PRINT_JSON_MATE_INDENT << "{}";
+    } 
+	else {
       s << "+-MultiLinear" << "\n";
       s << "    Kp = " << this->getTrialPlasticStiffness();
       s << "    SumPlasDefo Vector = " <<  sumPlasDefo;
@@ -112,7 +112,7 @@ MultiLinearKp::Print(OPS_Stream &s, int flag)
 }
 
 PlasticHardeningMaterial *
-MultiLinearKp::getCopy(void)
+MultiLinearKp::getCopy()
 {
     Vector spd(numPoints);
     Vector kp(numPoints);

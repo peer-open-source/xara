@@ -74,10 +74,11 @@ TensorEvolution* DM04_z_Eij::newObj()
     return nObj;
 }
 
-const straintensor& DM04_z_Eij::Hij(const straintensor& plastic_flow, const stresstensor& Stre, 
-                                    const straintensor& Stra, const MaterialParameter& material_parameter)
+const straintensor& 
+DM04_z_Eij::Hij(const straintensor& plastic_flow, const stresstensor& Stre, 
+                const straintensor& Stra, const MaterialParameter& material_parameter)
 {
-    double m = getm(material_parameter);
+    // double m = getm(material_parameter);
     double c_z = getc_z(material_parameter);
     double z_max = getz_max(material_parameter);        
     stresstensor alpha = getalpha(material_parameter);
@@ -105,8 +106,8 @@ const straintensor& DM04_z_Eij::Hij(const straintensor& plastic_flow, const stre
 }
 
 // to get m
-//================================================================================
-double DM04_z_Eij::getm(const MaterialParameter& material_parameter) const
+double 
+DM04_z_Eij::getm(const MaterialParameter& material_parameter) const
 {
     if ( m_index <= material_parameter.getNum_Material_Parameter() && m_index > 0)
         return material_parameter.getMaterial_Parameter(m_index-1);
@@ -117,8 +118,8 @@ double DM04_z_Eij::getm(const MaterialParameter& material_parameter) const
 }
 
 // to get c_z
-//================================================================================
-double DM04_z_Eij::getc_z(const MaterialParameter& material_parameter) const
+double 
+DM04_z_Eij::getc_z(const MaterialParameter& material_parameter) const
 {
     if ( c_z_index <= material_parameter.getNum_Material_Parameter() && c_z_index > 0)
         return material_parameter.getMaterial_Parameter(c_z_index-1);
@@ -129,8 +130,8 @@ double DM04_z_Eij::getc_z(const MaterialParameter& material_parameter) const
 }
 
 // to get c
-//================================================================================
-double DM04_z_Eij::getz_max(const MaterialParameter& material_parameter) const
+double 
+DM04_z_Eij::getz_max(const MaterialParameter& material_parameter) const
 {
     if ( z_max_index <= material_parameter.getNum_Material_Parameter() && z_max_index > 0)
         return material_parameter.getMaterial_Parameter(z_max_index-1);

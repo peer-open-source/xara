@@ -624,18 +624,18 @@ DruckerPrager::plastic_integrator( )
 	return;
 }
 
-int DruckerPrager::updateElasticParam( )
+int 
+DruckerPrager::updateElasticParam( )
 {
     double Sigma_mean = 0.0;
-	if ( mElastFlag == 1 && mFlag == 1){
+	if ( mElastFlag == 1 && mFlag == 1) {
 		Sigma_mean = -one3*(mSigma(0)+mSigma(1)+mSigma(2));
         if (Sigma_mean < 0.0) Sigma_mean = 0.0;  // prevents modulus update for cases where tension exists 
         mK = mKref * pow(1+(Sigma_mean/mPatm), 0.5);
         mG = mGref * pow(1+(Sigma_mean/mPatm), 0.5);
    		mCe  = mK * mIIvol + 2*mG*mIIdev;
         mFlag = 0;
-		//opserr << "Plastic Integrator -->" << "K = " << mK  << "  G =" << mG << endln;
-	} else if ( mElastFlag != 1 ){
+	} else if ( mElastFlag != 1 ) {
         mFlag = 1;
 	}
 

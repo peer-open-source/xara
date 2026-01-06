@@ -260,8 +260,7 @@ ElasticLinearFrameSection3d::~ElasticLinearFrameSection3d()
 FrameSection*
 ElasticLinearFrameSection3d::getFrameCopy(const FrameStressLayout& layout)
 {
-  // TODO: 
-  // - take layout as argument
+  // TODO:
   // - overload 
   //   template<int n> ID::operator==(std::array<int, n>)
   //

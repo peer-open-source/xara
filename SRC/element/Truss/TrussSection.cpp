@@ -20,8 +20,6 @@
 //
 // Description: This file contains the implementation for the TrussSection class.
 //
-// What: "@(#) TrussSection.C, revA"
-//
 // Written: fmk
 // Created: 07/98
 // Revision: A
@@ -41,7 +39,7 @@
 
 #include <math.h>
 
-// initialise the class wide variables
+// initialize the class wide variables
 Matrix TrussSection::trussM2(2, 2);
 Matrix TrussSection::trussM3(3, 3);
 Matrix TrussSection::trussM4(4, 4);
@@ -91,7 +89,7 @@ TrussSection::TrussSection(int tag, int dim, int Nd1, int Nd2,
 
   // set node pointers to NULL
   for (i = 0; i < 2; i++)
-    theNodes[i] = 0;
+    theNodes[i] = nullptr;
 
   cosX[0] = 0.0;
   cosX[1] = 0.0;
@@ -121,7 +119,7 @@ TrussSection::TrussSection()
 
   // set node pointers to NULL
   for (int i = 0; i < 2; i++)
-    theNodes[i] = 0;
+    theNodes[i] = nullptr;
 
   cosX[0] = 0.0;
   cosX[1] = 0.0;
@@ -390,7 +388,8 @@ TrussSection::revertToStart()
 int
 TrussSection::update()
 {
-  if (L == 0.0) { // - problem in setDomain() no further warnings
+  if (L == 0.0) {
+    // problem in setDomain, no further warnings
     return -1;
   }
 
@@ -414,7 +413,8 @@ TrussSection::update()
 const Matrix&
 TrussSection::getTangentStiff()
 {
-  if (L == 0.0) { // - problem in setDomain() no further warnings
+  if (L == 0.0) {
+    // problem in setDomain, no further warnings
     theMatrix->Zero();
     return *theMatrix;
   }
@@ -424,8 +424,7 @@ TrussSection::getTangentStiff()
 
   const Matrix& k = theSection->getSectionTangent();
   double AE       = 0.0;
-  int i;
-  for (i = 0; i < order; i++) {
+  for (int i = 0; i < order; i++) {
     if (code(i) == SECTION_RESPONSE_P)
       AE += k(i, i);
   }
@@ -436,7 +435,7 @@ TrussSection::getTangentStiff()
   int numDOF2 = numDOF / 2;
   double temp;
   AE /= L;
-  for (i = 0; i < dimension; i++) {
+  for (int i = 0; i < dimension; i++) {
     for (int j = 0; j < dimension; j++) {
       temp                            = cosX[i] * cosX[j] * AE;
       stiff(i, j)                     = temp;
@@ -582,7 +581,8 @@ TrussSection::addInertiaLoadToUnbalance(const Vector& accel)
 const Vector&
 TrussSection::getResistingForce()
 {
-  if (L == 0.0) { // - problem in setDomain() no further warnings
+  if (L == 0.0) {
+    // problem in setDomain, no further warnings
     theVector->Zero();
     return *theVector;
   }
@@ -807,6 +807,17 @@ TrussSection::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& the
 void
 TrussSection::Print(OPS_Stream& s, int flag)
 {
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"Truss\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", " 
+                        << connectedExternalNodes(1) << "], ";
+    s << "\"massperlength\": " << rho << ", ";
+    s << "\"section\": " << theSection->getTag() << "}";
+    return;
+  }
+
   // compute the strain and axial force in the member
   double strain, force;
   if (L == 0.0) {
@@ -865,15 +876,6 @@ TrussSection::Print(OPS_Stream& s, int flag)
     s << this->getTag() << "  " << strain << "  ";
     s << force << endln;
   }
-
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"TrussSection\", ";
-    s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
-    s << "\"massperlength\": " << rho << ", ";
-    s << "\"section\": \"" << theSection->getTag() << "\"}";
-  }
 }
 
 double
@@ -909,11 +911,13 @@ TrussSection::setResponse(const char** argv, int argc, OPS_Stream& output)
   output.attr("node2", connectedExternalNodes[1]);
 
   //
-  // we compare argv[0] for known response types for the Truss
+  // compare argv[0] for known response types for the Truss
   //
 
-  if ((strcmp(argv[0], "force") == 0) || (strcmp(argv[0], "forces") == 0) ||
-      (strcmp(argv[0], "globalForce") == 0) || (strcmp(argv[0], "globalForces") == 0)) {
+  if ((strcmp(argv[0], "force") == 0) || 
+      (strcmp(argv[0], "forces") == 0) ||
+      (strcmp(argv[0], "globalForce") == 0) || 
+      (strcmp(argv[0], "globalForces") == 0)) {
     char outputData[32];
     int numDOFperNode = numDOF / 2;
     for (int i = 0; i < numDOFperNode; i++) {
@@ -990,7 +994,8 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
   static Matrix kVec(1, 1);
 
   switch (responseID) {
-  case 1:  return eleInfo.setVector(this->getResistingForce());
+  case 1:
+    return eleInfo.setVector(this->getResistingForce());
 
   case 11: {
     Vector P(numDOF);
@@ -999,8 +1004,7 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
 
     const Vector& s = theSection->getStressResultant();
     force           = 0.0;
-    int i;
-    for (i = 0; i < order; i++) {
+    for (int i = 0; i < order; i++) {
       if (code(i) == SECTION_RESPONSE_P)
         force += s(i);
     }
@@ -1020,8 +1024,7 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
 
       const Vector& s = theSection->getStressResultant();
       force           = 0.0;
-      int i;
-      for (i = 0; i < order; i++) {
+      for (int i = 0; i < order; i++) {
         if (code(i) == SECTION_RESPONSE_P)
           force += s(i);
       }
@@ -1048,8 +1051,7 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
 
       const Matrix& ks = theSection->getSectionTangent();
       force            = 0.0;
-      int i;
-      for (i = 0; i < order; i++) {
+      for (int i = 0; i < order; i++) {
         if (code(i) == SECTION_RESPONSE_P)
           force += ks(i, i);
       }
@@ -1172,7 +1174,7 @@ TrussSection::getResistingForceSensitivity(int gradIndex)
   theVector->Zero();
 
   // Initial declarations
-  int i;
+
   double stressSensitivity, temp1, temp2;
 
   // Make sure the material is up to date
@@ -1188,7 +1190,7 @@ TrussSection::getResistingForceSensitivity(int gradIndex)
 
   const Vector& dsdh = theSection->getStressResultantSensitivity(gradIndex, true);
   double dNdh        = 0.0;
-  for (i = 0; i < order; i++) {
+  for (int i = 0; i < order; i++) {
     if (code(i) == SECTION_RESPONSE_P)
       dNdh += dsdh(i);
   }
@@ -1256,14 +1258,14 @@ TrussSection::getResistingForceSensitivity(int gradIndex)
     const Vector& disp1      = theNodes[0]->getTrialDisp();
     const Vector& disp2      = theNodes[1]->getTrialDisp();
     double dLengthDerivative = 0.0;
-    for (i = 0; i < dimension; i++) {
+    for (int i = 0; i < dimension; i++) {
       dLengthDerivative += (disp2(i) - disp1(i)) * dcosXdh[i];
     }
 
     //double materialTangent = theMaterial->getTangent();
     const Matrix& ks = theSection->getSectionTangent();
     double EA        = 0.0;
-    for (i = 0; i < order; i++) {
+    for (int i = 0; i < order; i++) {
       if (code(i) == SECTION_RESPONSE_P)
         EA += ks(i, i);
     }
@@ -1290,7 +1292,7 @@ TrussSection::getResistingForceSensitivity(int gradIndex)
   // Compute sensitivity depending on 'parameter'
   double N        = 0.0;
   const Vector& s = theSection->getStressResultant();
-  for (i = 0; i < order; i++) {
+  for (int i = 0; i < order; i++) {
     if (code(i) == SECTION_RESPONSE_P)
       N += s(i);
   }
@@ -1301,7 +1303,7 @@ TrussSection::getResistingForceSensitivity(int gradIndex)
     // Cross-sectional area
 
   } else { // Density, material parameter or nodal coordinate
-    for (i = 0; i < dimension; i++) {
+    for (int i = 0; i < dimension; i++) {
       temp                      = dNdh * cosX[i] + N * dcosXdh[i];
       (*theVector)(i)           = -temp;
       (*theVector)(i + numDOF2) = temp;
@@ -1309,7 +1311,7 @@ TrussSection::getResistingForceSensitivity(int gradIndex)
   }
 
   // subtract external load sensitivity
-  if (theLoadSens == 0) {
+  if (theLoadSens == nullptr) {
     theLoadSens = new Vector(numDOF);
   }
   (*theVector) -= *theLoadSens;
@@ -1317,11 +1319,11 @@ TrussSection::getResistingForceSensitivity(int gradIndex)
   return *theVector;
 }
 
+
 int
 TrussSection::commitSensitivity(int gradIndex, int numGrads)
 {
   // Initial declarations
-  int i;
   double strainSensitivity, temp1, temp2;
 
   // Displacement difference between the two ends
@@ -1401,22 +1403,22 @@ TrussSection::commitSensitivity(int gradIndex, int numGrads)
     const Vector& disp1      = theNodes[0]->getTrialDisp();
     const Vector& disp2      = theNodes[1]->getTrialDisp();
     double dLengthDerivative = 0.0;
-    for (i = 0; i < dimension; i++) {
+    for (int i = 0; i < dimension; i++) {
       dLengthDerivative += (disp2(i) - disp1(i)) * dcosXdh[i];
     }
 
     strainSensitivity += dLengthDerivative / L;
 
-    if (nodeParameterID0 == 1) { // here x1 is random
+    if (nodeParameterID0 == 1) { // here x1 is varying
       strainSensitivity += dLength / (L * L * L) * dx;
     }
-    if (nodeParameterID0 == 2) { // here y1 is random
+    if (nodeParameterID0 == 2) { // here y1 is varying
       strainSensitivity += dLength / (L * L * L) * dy;
     }
-    if (nodeParameterID1 == 1) { // here x2 is random
+    if (nodeParameterID1 == 1) { // here x2 is varying
       strainSensitivity -= dLength / (L * L * L) * dx;
     }
-    if (nodeParameterID1 == 2) { // here y2 is random
+    if (nodeParameterID1 == 2) { // here y2 is varying
       strainSensitivity -= dLength / (L * L * L) * dy;
     }
   }
@@ -1458,15 +1460,10 @@ TrussSection::addInertiaLoadSensitivityToUnbalance(const Vector& accel,
 
     int nodalDOF = numDOF / 2;
 
-#ifdef _G3DEBUG
-    if (nodalDOF != Raccel1.Size() || nodalDOF != Raccel2.Size()) {
-      opserr << "Truss::addInertiaLoadToUnbalance " << "matrix and vector sizes are incompatible\n";
-      return -1;
-    }
-#endif
+    assert((nodalDOF == Raccel1.Size()) && (nodalDOF == Raccel2.Size()));
 
     double M = 0.5 * rho * L;
-    // want to add ( - fact * M R * accel ) to unbalance
+    // Add ( - fact * M R * accel ) to unbalance
     for (int i = 0; i < dimension; i++) {
       double val1 = Raccel1(i);
       double val2 = Raccel2(i);
@@ -1478,7 +1475,8 @@ TrussSection::addInertiaLoadSensitivityToUnbalance(const Vector& accel,
       (*theLoadSens)(i)            = val1;
       (*theLoadSens)(i + nodalDOF) = val2;
     }
-  } else {
+  }
+  else {
 
     // check for a quick return
     if (L == 0.0 || rho == 0.0)
@@ -1518,5 +1516,3 @@ TrussSection::addInertiaLoadSensitivityToUnbalance(const Vector& accel,
   }
   return 0;
 }
-
-// AddingSensitivity:END /////////////////////////////////////////////

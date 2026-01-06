@@ -33,7 +33,9 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <memory>
+#include <vector>
 
+#define SHARE_FIBERS
 class UniaxialMaterial;
 class Response;
 
@@ -49,7 +51,7 @@ class FiberSection2d : public FrameSection
 #endif
     ~FiberSection2d();
 
-    const char *getClassType(void) const {return "FiberSection2d";};
+    const char *getClassType(void) const {return "FiberSection2d";}
 
     int   setTrialSectionDeformation(const Vector &deforms); 
     const Vector &getSectionDeformation(void);
@@ -67,9 +69,8 @@ class FiberSection2d : public FrameSection
     int getOrder (void) const;
     
     int sendSelf(int cTag, Channel &theChannel);
-    int recvSelf(int cTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag = 0);
+    int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);
 	    
     Response *setResponse(const char **argv, int argc, 
 			  OPS_Stream &s);
@@ -79,8 +80,7 @@ class FiberSection2d : public FrameSection
 
     // AddingSensitivity:BEGIN //////////////////////////////////////////
     int setParameter(const char **argv, int argc, Parameter &param);
-    const Vector& getStressResultantSensitivity(int gradIndex,
-						bool conditional);
+    const Vector& getStressResultantSensitivity(int gradIndex,	bool conditional);
     const Vector& getSectionDeformationSensitivity(int gradIndex);
     const Matrix& getInitialTangentSensitivity(int gradIndex);
     int commitSensitivity(const Vector& sectionDeformationGradient,
@@ -88,14 +88,23 @@ class FiberSection2d : public FrameSection
     // AddingSensitivity:END ///////////////////////////////////////////
 
     double getEnergy() const; // by SAJalali
-    int   getIntegral(Field field, State state, double& value) const override final;
+    int   getIntegral(Field field, State state, double& value) const final;
 
   protected:
     
-    //  private:
+  private:
+    struct FiberData {
+      double area;
+      double y;
+    };
+    const std::shared_ptr<std::vector<FiberData>> fibers;
     int numFibers, sizeFibers;         // number of fibers in the section
     UniaxialMaterial **theMaterials;   // array of pointers to materials
-    std::shared_ptr<double[]> matData; // data for the materials [yloc and area]
+#ifdef SHARE_FIBERS
+    std::shared_ptr<double[]> matData;
+#else
+    double* matData; // data for the materials [yloc and area]
+#endif
     double   kData[4];                 // data for ks matrix 
     double   sData[2];                 // data for s vector 
     

@@ -127,7 +127,7 @@ template<int ndf>
 const Vector &
 BasicFrameTransf3d<ndf>::getBasicTrialDisp()
 {
-  static VectorND<6> ub;
+  static VectorND<6> ub{};
   static Vector wrapper(ub);
   Vector3D wi = t.getNodeRotationLogarithm(0),
            wj = t.getNodeRotationLogarithm(1);
@@ -162,7 +162,7 @@ template<int ndf>
 const Vector &
 BasicFrameTransf3d<ndf>::getBasicTrialVel()
 {
-  static VectorND<6> ub;
+  static VectorND<6> ub{};
   static Vector wrapper(ub);
   opserr << "Unimplemented method\n";
   return wrapper;

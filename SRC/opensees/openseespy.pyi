@@ -63,7 +63,7 @@ class _Elements:
 
     @overload
     def element(self,
-                __elmType: Literal["forceBeamColumn"],
+                __elmType: Literal["ForceFrame"],
                 tag: int,
                 nodes: tuple,
                 nip: int,
@@ -139,7 +139,50 @@ class _Output:
         Get the displacement of a node in a specified degree of freedom.
         """
 
-class Model(_Materials,_Elements,_Algorithm):
+    def getNodeTags(self) -> list[int]:
+        """
+        Get a list of all node tags in the model.
+        """
+
+    def nodeCoord(self, node: int, index: int=None) -> list[float] | float:
+        """
+        Get the coordinates of a node.
+        """
+
+    @overload
+    def nodeDisp(self, node: int) -> list[float]:
+        """
+        Return the displacements of a node.
+        """
+
+    @overload
+    def nodeDisp(self, node: int, dof: int) -> float:
+        """
+        Return the displacement of a node.
+        """
+
+    @overload
+    def nodeReaction(self, node: int) -> list[float]:
+        """
+        Get the reaction forces at a node.
+        """
+    @overload
+    def nodeReaction(self, node: int, dof: int) -> float:
+        """
+        Get the reaction force(s) at a node.
+        """
+
+    def getEleTags(self) -> list[int]:
+        """
+        Get a list of all element tags in the model.
+        """
+
+    def eleResponse(self, ele: int, responseType: str) -> list[float]:
+        """
+        Get the response of an element.
+        """
+
+class Model(_Materials,_Elements,_Algorithm, _Output):
     def node(self, tag: int, coords: tuple, *args, **kwargs) -> int:
         """
         Create a node with the specified tag and coordinates.
@@ -158,14 +201,4 @@ class Model(_Materials,_Elements,_Algorithm):
     def load(self, node: int, *args):
         """
         Apply loads to a node.
-        """
-    
-    def getNodeTags(self) -> list[int]:
-        """
-        Get a list of all node tags in the model.
-        """
-
-    def nodeCoord(self, node: int, index: int=None) -> list[float] | float:
-        """
-        Get the coordinates of a node.
         """

@@ -1179,7 +1179,8 @@ LinearCrdTransf2d::Print(OPS_Stream &s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{\"name\": \"" << this->getTag()
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag()
       << "\", \"type\": \"LinearCrdTransf2d\"";
     if (nodeIOffset != 0)
       s << ", \"iOffset\": [" << nodeIOffset[0] << ", " << nodeIOffset[1]
