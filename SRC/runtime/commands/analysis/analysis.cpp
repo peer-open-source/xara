@@ -140,7 +140,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
   else {
     opserr << OpenSees::PromptValueError << "Analysis type '" << argv[1]
-      << "' does not exists (Static or Transient only). \n";
+           << "' does not exists (Static or Transient only). \n";
     return TCL_ERROR;
   }
 
@@ -675,9 +675,11 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 
   builder->getDomain()->revertToLastCommit();
   // put the original SOE back.
+  builder->unset(theSOE);
   if (oldSOE != nullptr)
     builder->set(oldSOE, true);
 
+  builder->unset(integrator);
   if (oldint != nullptr)
     builder->set(*oldint, true);
 
