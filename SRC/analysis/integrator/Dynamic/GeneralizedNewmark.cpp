@@ -15,12 +15,10 @@
 #include <stdexcept>
 #include <GeneralizedNewmark.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <LinearSOE.h>
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>

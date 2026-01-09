@@ -98,6 +98,10 @@ public:
         return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,true>> (tag, vz, offset_array, offset_flags);
       }
 
+      else if (strcmp(name, "Corotational04") == 0)
+      {
+        return new EuclidFrameTransf<nn, ndf, BattiniIsometry<nn>> (tag, vz, offset_array, offset_flags);
+      }
       return nullptr;
     }
 

@@ -44,21 +44,27 @@ class TaggedObjectStorage
 {
   public:
     TaggedObjectStorage() {};
-    virtual  ~TaggedObjectStorage() {};    
+    virtual  ~TaggedObjectStorage() {};
+
+    using Iterator = TaggedObjectIter;
 
     // public methods to populate the container
-    virtual  int   setSize(int newSize) =0;
+    [[nodiscard]] virtual int  setSize(int newSize) =0;
     virtual  bool  addComponent(TaggedObject *newComponent) =0;
     virtual  TaggedObject  *removeComponent(int tag) =0;    
-    virtual  int   getNumComponents(void) const =0;
+    virtual  int   getNumComponents() const =0;
     
     virtual  TaggedObject *getComponentPtr(int tag) =0;
-    virtual  TaggedObjectIter  &getComponents(void) =0;
+    virtual  TaggedObjectIter  &getComponents() =0;
 
-    virtual  TaggedObjectStorage *getEmptyCopy(void) =0;
+    virtual  TaggedObjectStorage *getEmptyCopy() =0;
     virtual  void clearAll(bool invokeDestructors = true) =0;
     
-    virtual  void Print(OPS_Stream &s, int flag =0) =0;
+    virtual  void Print(OPS_Stream &s, int flag) =0;
+
+    Iterator& getIterRef() {
+      return this->getComponents();
+    }
     
   protected:    
     

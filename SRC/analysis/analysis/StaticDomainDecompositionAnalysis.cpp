@@ -38,8 +38,6 @@
 
 #include <FE_Element.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
-#include <DOF_GrpIter.h>
 #include <Matrix.h>
 #include <ID.h>
 #include <Graph.h>
@@ -258,7 +256,7 @@ StaticDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool fin
     // form K
     //
 
-    FE_EleIter &theEles = theAnalysisModel->getFEs();    
+    auto &theEles = theAnalysisModel->getFEs();    
     FE_Element *elePtr;
 
     while((elePtr = theEles()) != 0) {
@@ -276,7 +274,7 @@ StaticDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool fin
     //
 
     if (generalized == true) {
-      FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
+      auto &theEles2 = theAnalysisModel->getFEs();    
       while((elePtr = theEles2()) != 0) {     
         elePtr->zeroTangent();
         elePtr->addMtoTang(1.0);
@@ -288,7 +286,7 @@ StaticDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool fin
       }
       
       DOF_Group *dofPtr;
-      DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();    
+      auto &theDofs = theAnalysisModel->getDOFs();    
       while((dofPtr = theDofs()) != 0) {
         dofPtr->zeroTangent();
         dofPtr->addMtoTang(1.0);
@@ -305,8 +303,8 @@ StaticDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool fin
     //
 
     if (theEigenSOE->solve(numMode, generalized, findSmallest) < 0) {
-	opserr << "WARNING StaticAnalysis::eigen() - EigenSOE failed in solve()\n";
-	return -4;
+      opserr << "WARNING StaticAnalysis::eigen() - EigenSOE failed in solve()\n";
+      return -4;
     }
 
     //
@@ -328,24 +326,24 @@ StaticDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool fin
 int 
 StaticDomainDecompositionAnalysis::initialize()
 {
-    Domain *the_Domain = this->getDomainPtr();
-    
-    // check if domain has undergone change
-    int stamp = the_Domain->hasDomainChanged();
-    if (stamp != domainStamp) {
-      domainStamp = stamp;	
-      if (this->domainChanged() < 0) {
-	opserr << "DirectIntegrationAnalysis::initialize() - domainChanged() failed\n";
-	return -1;
-      }	
-    }
-    if (theIntegrator->initialize() < 0) {
-	opserr << "DirectIntegrationAnalysis::initialize() - integrator initialize() failed\n";
-	return -2;
-    } else
-      theIntegrator->commit();
-    
-    return 0;
+  Domain *the_Domain = this->getDomainPtr();
+  
+  // check if domain has undergone change
+  int stamp = the_Domain->hasDomainChanged();
+  if (stamp != domainStamp) {
+    domainStamp = stamp;	
+    if (this->domainChanged() < 0) {
+      opserr << "DirectIntegrationAnalysis::initialize() - domainChanged() failed\n";
+      return -1;
+    }	
+  }
+  if (theIntegrator->initialize() < 0) {
+    opserr << "DirectIntegrationAnalysis::initialize() - integrator initialize() failed\n";
+    return -2;
+  } else
+    theIntegrator->commit();
+  
+  return 0;
 }
 
 int

@@ -38,7 +38,7 @@
 class DOF_Group;
 class TaggedObjectStorage;
 class TaggedObjectIter;
-
+#if 0
 class DOF_GrpIter 
 {
   public:
@@ -54,6 +54,6 @@ class DOF_GrpIter
   private:
     TaggedObjectIter *myIter;
 };
-
+#endif
 #endif
 

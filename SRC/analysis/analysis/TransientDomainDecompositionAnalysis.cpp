@@ -44,8 +44,6 @@
 
 #include <FE_Element.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
-#include <DOF_GrpIter.h>
 #include <Matrix.h>
 #include <ID.h>
 #include <Graph.h>
@@ -261,7 +259,7 @@ TransientDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool 
     // form K
     //
 
-    FE_EleIter &theEles = theAnalysisModel->getFEs();    
+    auto &theEles = theAnalysisModel->getFEs();    
     FE_Element *elePtr;
 
     while((elePtr = theEles()) != 0) {
@@ -279,7 +277,7 @@ TransientDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool 
     //
 
     if (generalized == true) {
-      FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
+      auto &theEles2 = theAnalysisModel->getFEs();    
       while((elePtr = theEles2()) != 0) {     
         elePtr->zeroTangent();
         elePtr->addMtoTang(1.0);
@@ -289,9 +287,9 @@ TransientDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool 
           result = -2;
         }
       }
-      
+
       DOF_Group *dofPtr;
-      DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();    
+      auto &theDofs = theAnalysisModel->getDOFs();    
       while((dofPtr = theDofs()) != 0) {
         dofPtr->zeroTangent();
         dofPtr->addMtoTang(1.0);
@@ -307,8 +305,8 @@ TransientDomainDecompositionAnalysis::eigen(int numMode, bool generalized, bool 
     // solve for the eigen values & vectors
     //
     if (theEigenSOE->solve(numMode, generalized, findSmallest) < 0) {
-        opserr << "WARNING TransientDomainDecomposition::eigen() - EigenSOE failed in solve()\n";
-        return -4;
+      opserr << "WARNING TransientDomainDecomposition::eigen() - EigenSOE failed in solve()\n";
+      return -4;
     }
 
     //

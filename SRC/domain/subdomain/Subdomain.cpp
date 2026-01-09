@@ -377,13 +377,13 @@ Subdomain::Print(OPS_Stream &s, int flag)
 
   s << "\nINTERNAL NODE DATA: NumNodes: ";
   s << internalNodes->getNumComponents() << "\n"; 
-  internalNodes->Print(s);
+  internalNodes->Print(s, 0);
 
   s << "\nEXTERNAL NODE DATA: NumNodes: ";
   s << externalNodes->getNumComponents() << "\n"; 
-  externalNodes->Print(s);
+  externalNodes->Print(s, 0);
 
-  this->Domain::Print(s);
+  this->Domain::Print(s, 0);
   s << "\nEnd Subdomain Information\n";
 }
 

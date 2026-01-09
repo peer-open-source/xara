@@ -33,9 +33,7 @@
 #include <ConstraintHandler.h>
 #include <Domain.h>
 #include <AnalysisModel.h>
-#include <FE_EleIter.h>
 #include <FE_Element.h>
-#include <DOF_GrpIter.h>
 #include <DOF_Group.h>
 
 ConstraintHandler::ConstraintHandler(int clasTag)

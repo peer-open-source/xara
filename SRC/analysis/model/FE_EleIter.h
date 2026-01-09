@@ -42,7 +42,7 @@ class TaggedObjectIter;
 class TaggedObjectStorage;
 
 class FE_Element;
-
+#if 0
 class FE_EleIter 
 {
   public:
@@ -58,6 +58,6 @@ class FE_EleIter
   private:
     TaggedObjectIter *myIter;
 };
-
+#endif
 #endif
 

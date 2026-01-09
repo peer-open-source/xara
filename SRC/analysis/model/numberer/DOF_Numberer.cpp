@@ -45,7 +45,6 @@
 #include <MP_Constraint.h>
 #include <Node.h>
 #include <MP_ConstraintIter.h>
-#include <DOF_GrpIter.h>
 
 
 DOF_Numberer::DOF_Numberer(int clsTag) 
@@ -189,7 +188,7 @@ DOF_Numberer::numberDOF(int lastDOF_Group)
     FE_EleIter &theEle = theAnalysisModel->getFEs();
     FE_Element *elePtr;
     while ((elePtr = theEle()) != 0)
-	elePtr->setID();
+        elePtr->setID();
 
     // set the numOfEquation in the Model
     theAnalysisModel->setNumEqn(numEqn);
@@ -219,8 +218,8 @@ DOF_Numberer::numberDOF(ID &lastDOFs)
 
     // we first number the dofs using the dof group graph
 	
-    const ID &orderedRefs = theGraphNumberer->
-	number(theAnalysisModel->getDOFGroupGraph(), lastDOFs);     
+    const ID &orderedRefs 
+        = theGraphNumberer->number(theAnalysisModel->getDOFGroupGraph(), lastDOFs);     
 
     theAnalysisModel->clearDOFGroupGraph();
 
@@ -232,9 +231,9 @@ DOF_Numberer::numberDOF(ID &lastDOFs)
     int result =0;
     int size = orderedRefs.Size();
     for (int i=0; i<size; i++) {
-	int dofTag = orderedRefs(i);
-	DOF_Group *dofPtr;	
-	dofPtr = theAnalysisModel->getDOF_GroupPtr(dofTag);
+        int dofTag = orderedRefs(i);
+        DOF_Group *dofPtr;	
+        dofPtr = theAnalysisModel->getDOF_GroupPtr(dofTag);
         assert(dofPtr != nullptr);
 
         const ID &theID = dofPtr->getID();
@@ -246,15 +245,15 @@ DOF_Numberer::numberDOF(ID &lastDOFs)
     // iterate through  the DOFs first time setting -3 values
     
     for (int k=0; k<size; k++) {
-	int dofTag = orderedRefs(k);
-	DOF_Group *dofPtr;	
-	dofPtr = theAnalysisModel->getDOF_GroupPtr(dofTag);
-	if (dofPtr != 0) {
-	    const ID &theID = dofPtr->getID();
-	    int idSize = theID.Size();
-	    for (int j=0; j<idSize; j++)
-		if (theID(j) == -3) dofPtr->setID(j,eqnNumber++);
-	}
+        int dofTag = orderedRefs(k);
+        DOF_Group *dofPtr;	
+        dofPtr = theAnalysisModel->getDOF_GroupPtr(dofTag);
+        if (dofPtr != 0) {
+            const ID &theID = dofPtr->getID();
+            int idSize = theID.Size();
+            for (int j=0; j<idSize; j++)
+            if (theID(j) == -3) dofPtr->setID(j,eqnNumber++);
+        }
     }
 
     // iterate through the DOFs one last time setting any -4 values
@@ -264,35 +263,35 @@ DOF_Numberer::numberDOF(ID &lastDOFs)
     while ((dofPtr = tDOFs()) != 0) {
     	const ID &theID = dofPtr->getID();
     	int have4s = 0;
-	for (int i=0; i<theID.Size(); i++)
-	    if (theID(i) == -4) have4s = 1;
+        for (int i=0; i<theID.Size(); i++)
+            if (theID(i) == -4) have4s = 1;
 
-	if (have4s == 1) {
-		int nodeID = dofPtr->getNodeTag();
-		// loop through the MP_Constraints to see if any of the
-		// DOFs are constrained, note constraint matrix must be diagonal
-		// with 1's on the diagonal
-		MP_ConstraintIter &theMPs = theDomain->getMPs();
-		MP_Constraint *mpPtr;
-		while ((mpPtr = theMPs()) != 0 ) {
-			// note keep looping over all in case multiple constraints
-			// are used to constrain a node -- can't assume intelli user
-	    		if (mpPtr->getNodeConstrained() == nodeID) {
-	    			int nodeRetained = mpPtr->getNodeRetained();
-	    			Node *nodeRetainedPtr = theDomain->getNode(nodeRetained);
-	    			DOF_Group *retainedDOF = nodeRetainedPtr->getDOF_GroupPtr();
-	    			const ID&retainedDOFIDs = retainedDOF->getID();
-	    			const ID&constrainedDOFs = mpPtr->getConstrainedDOFs();
-	    			const ID&retainedDOFs = mpPtr->getRetainedDOFs();
-	    			for (int i=0; i<constrainedDOFs.Size(); i++) {
-	    				int dofC = constrainedDOFs(i);
-	    				int dofR = retainedDOFs(i);
-	    				int dofID = retainedDOFIDs(dofR);
-	    				dofPtr->setID(dofC, dofID);
-	    			}
-	    		}
-		}		
-	}	
+        if (have4s == 1) {
+            int nodeID = dofPtr->getNodeTag();
+            // loop through the MP_Constraints to see if any of the
+            // DOFs are constrained, note constraint matrix must be diagonal
+            // with 1's on the diagonal
+            MP_ConstraintIter &theMPs = theDomain->getMPs();
+            MP_Constraint *mpPtr;
+            while ((mpPtr = theMPs()) != 0 ) {
+                // note keep looping over all in case multiple constraints
+                // are used to constrain a node -- can't assume intelli user
+                if (mpPtr->getNodeConstrained() == nodeID) {
+                    int nodeRetained = mpPtr->getNodeRetained();
+                    Node *nodeRetainedPtr = theDomain->getNode(nodeRetained);
+                    DOF_Group *retainedDOF = nodeRetainedPtr->getDOF_GroupPtr();
+                    const ID&retainedDOFIDs = retainedDOF->getID();
+                    const ID&constrainedDOFs = mpPtr->getConstrainedDOFs();
+                    const ID&retainedDOFs = mpPtr->getRetainedDOFs();
+                    for (int i=0; i<constrainedDOFs.Size(); i++) {
+                        int dofC = constrainedDOFs(i);
+                        int dofR = retainedDOFs(i);
+                        int dofID = retainedDOFIDs(dofR);
+                        dofPtr->setID(dofC, dofID);
+                    }
+                }
+            }		
+        }	
     }
 
     int numEqn = eqnNumber;
@@ -301,13 +300,13 @@ DOF_Numberer::numberDOF(ID &lastDOFs)
     FE_EleIter &theEle = theAnalysisModel->getFEs();
     FE_Element *elePtr;
     while ((elePtr = theEle()) != 0)
-	elePtr->setID();
+        elePtr->setID();
 
     // set the numOfEquation in the Model
     theAnalysisModel->setNumEqn(numEqn);
     
     if (result == 0)
-	return numEqn;
+        return numEqn;
     
     return result;
 

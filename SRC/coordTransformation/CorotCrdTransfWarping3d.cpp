@@ -1331,7 +1331,8 @@ CorotCrdTransfWarping3d::getInitialGlobalStiffMatrix(const Matrix &kb)
 }
 
 int
-CorotCrdTransfWarping3d::getLocalAxes(Vector &XAxis, Vector &YAxis,
+CorotCrdTransfWarping3d::getLocalAxes(Vector &XAxis,
+                                      Vector &YAxis,
                                       Vector &ZAxis)
 {
   // element projection

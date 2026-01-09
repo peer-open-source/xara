@@ -35,9 +35,7 @@
 #include <AnalysisModel.h>
 #include <Domain.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <Node.h>
 #include <Element.h>
 #include <NodeIter.h>

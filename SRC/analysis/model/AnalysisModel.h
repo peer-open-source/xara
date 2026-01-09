@@ -33,11 +33,11 @@
 #define AnalysisModel_h
 
 #include <MovableObject.h>
+#include <TaggedIterator.hpp>
+#include <VectorOfTaggedObjects.h>
 
 class TaggedObjectStorage;
 class Domain;
-class FE_EleIter;
-class DOF_GrpIter;
 class Graph;
 class FE_Element;
 class DOF_Group;
@@ -46,6 +46,10 @@ class FEM_ObjectBroker;
 class ConstraintHandler;
 class Integrator;
 class LinearSOE;
+class OPS_Stream;
+
+using DOF_GrpIter = TaggedIterator<DOF_Group, VectorOfTaggedObjects>;
+using FE_EleIter = TaggedIterator<FE_Element, VectorOfTaggedObjects>;
 
 class AnalysisModel: public MovableObject
 {
@@ -62,7 +66,7 @@ class AnalysisModel: public MovableObject
     void clearDOFGroupGraph();
     int  getNumDOF_Groups() const;		
     DOF_Group *getDOF_GroupPtr(int tag);	
-    FE_EleIter &getFEs();
+    FE_EleIter  &getFEs();
     DOF_GrpIter &getDOFs();
     void   setNumEqn(int);
 
@@ -105,6 +109,8 @@ class AnalysisModel: public MovableObject
     void   setRayleighDampingFactors(double alphaM, double betaK, double betaKi, double betaKc);
     const Vector &getEigenvalues();
 
+    void Print(OPS_Stream &s, int flag =0);
+
     // Parallel
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
@@ -120,6 +126,8 @@ class AnalysisModel: public MovableObject
     bool inclModalDampingMatrix();
 
   private:
+    using Storage = VectorOfTaggedObjects;
+
     int addModalDampingForce(LinearSOE *);
     int setupModal(LinearSOE*, const Vector *modalDampingValues);
     int doMv(const Vector &v, Vector &res);
@@ -135,8 +143,8 @@ class AnalysisModel: public MovableObject
     int numDOF_Grp;            // number of DOF_Group objects added
     int numEqn;                // numEqn set by the ConstraintHandler typically
 
-    TaggedObjectStorage  *theFEs;
-    TaggedObjectStorage  *theDOFs;
+    Storage  *theFEs;
+    Storage  *theDOFs;
     
     FE_EleIter    *theFEiter;     
     DOF_GrpIter   *theDOFiter;

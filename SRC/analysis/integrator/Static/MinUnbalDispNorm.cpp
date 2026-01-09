@@ -106,9 +106,9 @@ MinUnbalDispNorm::newStep()
   AnalysisModel *theModel = this->getAnalysisModel();
   LinearSOE *theLinSOE = this->getLinearSOE();    
   if (theModel == 0 || theLinSOE == 0) {
-      opserr << "WARNING MinUnbalDispNorm::newStep() ";
-      opserr << "No AnalysisModel or LinearSOE has been set\n";
-      return -1;
+    opserr << "WARNING MinUnbalDispNorm::newStep() ";
+    opserr << "No AnalysisModel or LinearSOE has been set\n";
+    return -1;
   }
 
   // get the current load factor

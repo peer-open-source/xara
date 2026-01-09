@@ -36,10 +36,8 @@
 #include <float.h>
 
 // For eigen
-#include <FE_EleIter.h>
 #include <FE_Element.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 
 // Default concrete analysis classes
 #include <Newmark.h>

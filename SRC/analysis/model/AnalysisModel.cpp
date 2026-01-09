@@ -31,13 +31,10 @@
 #include <assert.h>
 #include <cmath>
 
-#include <ArrayOfTaggedObjects.h>
 #include <AnalysisModel.h>
 #include <Domain.h>
 #include <FE_Element.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
-#include <FE_EleIter.h>
 #include <Graph.h>
 #include <Vertex.h>
 #include <Node.h>
@@ -55,6 +52,7 @@
 #include <ParameterIter.h>
 
 #include <MapOfTaggedObjects.h>
+#include <VectorOfTaggedObjects.h>
 
 #define START_EQN_NUM 0
 #define START_VERTEX_NUM 0
@@ -68,8 +66,8 @@ AnalysisModel::AnalysisModel()
  , eigenVectors(0), eigenValues(0), dampingForces(0)
  , isDiagonal(false),diagMass(0)
 {
-  theFEs     = new ArrayOfTaggedObjects(256);
-  theDOFs    = new ArrayOfTaggedObjects(256);
+  theFEs     = new VectorOfTaggedObjects(); // 256);
+  theDOFs    = new VectorOfTaggedObjects(); // 256);
   theFEiter  = new FE_EleIter(theFEs);
   theDOFiter = new DOF_GrpIter(theDOFs);
 } 
@@ -123,7 +121,8 @@ AnalysisModel::addFE_Element(FE_Element *theElement)
   int tag = theElement->getTag();
   TaggedObject *other = theFEs->getComponentPtr(tag);
   if (other != 0) {
-    opserr << "AnalysisModel::addFE_Element - element with tag " << tag << "already exists in model\n"; 
+    opserr << "AnalysisModel::addFE_Element - element with tag " 
+           << tag << " already exists in model\n"; 
     return false;
   }
 
@@ -338,7 +337,7 @@ AnalysisModel::getDOFGraph()
 Graph &
 AnalysisModel::getDOFGroupGraph()
 {
-  if (myGroupGraph == 0) {
+  if (myGroupGraph == nullptr) {
     // int numVertex = this->getNumDOF_Groups();
     // assert(numVertex != 0);
     // myGroupGraph = new Graph(numVertex);
@@ -367,16 +366,16 @@ AnalysisModel::getDOFGroupGraph()
     FE_EleIter &eleIter = this->getFEs();
 
     while((elePtr = eleIter()) != 0) {
-        const ID &id = elePtr->getDOFtags();
-        int size = id.Size();
-        for (int i=0; i<size; i++) {
-            int dof1 = id(i);
-            for (int j=0; j<size; j++) 
-                if (i != j) {
-                    int dof2 = id(j);
-                    myGroupGraph->addEdge(dof1,dof2);
-                }
-        }
+      const ID &id = elePtr->getDOFtags();
+      int size = id.Size();
+      for (int i=0; i<size; i++) {
+        int dof1 = id(i);
+        for (int j=0; j<size; j++) 
+          if (i != j) {
+            int dof2 = id(j);
+            myGroupGraph->addEdge(dof1,dof2);
+          }
+      }
     }
   }
 
@@ -507,7 +506,7 @@ AnalysisModel::incrVel(const Vector &vel)
   DOF_GrpIter &theDOFGrps = this->getDOFs();
   DOF_Group         *dofPtr;    
   while ((dofPtr = theDOFGrps()) != nullptr)
-      dofPtr->incrNodeVel(vel);
+    dofPtr->incrNodeVel(vel);
 }
 
 
@@ -611,7 +610,6 @@ AnalysisModel::formVector(Integrator& assm, LinearSOE& soe)
 
   // loop through the FE_Elements and add the residual
   FE_Element *elePtr;
-
   FE_EleIter &theEles2 = this->getFEs();    
   while ((elePtr = theEles2()) != nullptr) {
     if (soe.addB(elePtr->getResidual(&assm), elePtr->getID()) < 0) {
@@ -834,7 +832,7 @@ AnalysisModel::setNumEigenvectors(int numEigenvectors)
   Node *theNode;
   NodeIter &theNodes = myDomain->getNodes();
   while ((theNode = theNodes()) != 0)
-      theNode->setNumEigenvectors(numEigenvectors);
+    theNode->setNumEigenvectors(numEigenvectors);
 }
 
 void 
@@ -1008,6 +1006,31 @@ AnalysisModel::getDomainPtr() const
   return myDomain;
 }
 
+void 
+AnalysisModel::Print(OPS_Stream &s, int flag)
+{
+  opserr << "{\n";
+  opserr << "  \"u\": [\n";
+  Node* theNode;
+  NodeIter &theNodes = myDomain->getNodes();
+  bool firstNode = true;
+  while ((theNode = theNodes()) != nullptr) {
+    if (firstNode)
+      firstNode = false;
+    else
+      opserr << ",\n";
+    opserr << "    [";
+    const Vector &disp = theNode->getDisp();
+    for (int i = 0; i < disp.Size(); i++) {
+      if (i != 0)
+        opserr << ", ";
+      opserr << disp(i);
+    }
+    opserr << "]";
+  }
+  opserr << "\n  ]\n";
+  opserr << "}\n";
+}
 
 int
 AnalysisModel::sendSelf(int cTag, Channel &theChannel)

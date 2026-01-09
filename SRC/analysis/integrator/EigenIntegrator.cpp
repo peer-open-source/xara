@@ -40,8 +40,6 @@
 #include <EigenSOE.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
-#include <DOF_GrpIter.h>
 
 EigenIntegrator::EigenIntegrator(AnalysisModel &theModel, EigenSOE &theSysOE)
   : theSOE(&theSysOE), theAnalysisModel(&theModel)
@@ -96,7 +94,7 @@ EigenIntegrator::formK()
   // efficiency when performing parallel computations
 
   // loop through the FE_Elements getting them to form the tangent
-  // FE_EleIter &theEles1 = theAnalysisModel->getFEs();
+  // auto &theEles1 = theAnalysisModel->getFEs();
   FE_Element *elePtr;
 
   flagK = 0;
@@ -108,7 +106,7 @@ EigenIntegrator::formK()
   
   // loop through the FE_Elements getting them to add the tangent    
   int result = 0;
-  FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
+  auto &theEles2 = theAnalysisModel->getFEs();    
   while((elePtr = theEles2()) != 0) {
     if (theSOE->addA(elePtr->getTangent(this), elePtr->getID()) < 0) {
         opserr << "WARNING EigenIntegrator::formK -";
@@ -139,7 +137,7 @@ EigenIntegrator::formM()
   // loop through the FE_Elements getting them to add the tangent    
   int result = 0;
   FE_Element *elePtr;
-  FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
+  auto &theEles2 = theAnalysisModel->getFEs();    
   while((elePtr = theEles2()) != nullptr) {     
     if (theSOE->addM(elePtr->getTangent(this), elePtr->getID()) < 0) {
       opserr << "WARNING EigenIntegrator::formK -";
@@ -149,7 +147,7 @@ EigenIntegrator::formM()
   }
 
   DOF_Group *dofPtr;
-  DOF_GrpIter &theDofs = theAnalysisModel->getDOFs();    
+  auto &theDofs = theAnalysisModel->getDOFs();    
   while((dofPtr = theDofs()) != nullptr) {
     //   	dofPtr->formTangent(this);
     if (theSOE->addM(dofPtr->getTangent(this),dofPtr->getID()) < 0) {

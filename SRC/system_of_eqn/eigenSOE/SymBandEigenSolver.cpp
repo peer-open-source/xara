@@ -33,9 +33,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <AnalysisModel.h>
-#include <DOF_GrpIter.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
 #include <FE_Element.h>
 
 SymBandEigenSolver::SymBandEigenSolver()

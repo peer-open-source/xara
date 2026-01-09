@@ -2,22 +2,22 @@
 #include <TaggedObjectIter.h>
 #include <TaggedObjectStorage.h>
 
-template <typename T>
+template <typename T, typename StorageType=TaggedObjectStorage>
 class TaggedIterator {
   public:
-    TaggedIterator(TaggedObjectStorage* storage) : mIter(storage->getComponents()) {}
+    TaggedIterator(StorageType* storage) : mIter(storage->getIterRef()) {}
     
     void reset() {
-        mIter.reset();
+      mIter.reset();
     }
 
     T* operator()() {
-        TaggedObject* item = mIter();
-        if (item == nullptr)
-          return nullptr;
-        return (T*)item;
+      TaggedObject* item = mIter();
+      if (item == nullptr)
+        return nullptr;
+      return (T*)item;
     }
 
   private:
-    TaggedObjectIter &mIter;
+    StorageType::Iterator &mIter;
 };
