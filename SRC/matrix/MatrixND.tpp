@@ -33,6 +33,19 @@ MatrixND<nr, nc, T>::zero() noexcept
   values.fill(0.0);
 }
 
+template <index_t nr, index_t nc, typename T>
+const double
+MatrixND<nr, nc, T>::norm() const noexcept
+{
+  double sum = 0.0;
+  for (index_t j = 0; j < nc; ++j) {
+    for (index_t i = 0; i < nr; ++i) {
+      const double val = static_cast<double>((*this)(i,j));
+      sum += val * val;
+    }
+  }
+  return std::sqrt(sum);
+}
 
 #if 0
 template <index_t nr, index_t nc, typename T>
@@ -348,6 +361,15 @@ void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
   for (int i=0; i<nr; i++)
     for (int j=0; j<nc; j++)
       (*this)(i,j) += A(i,j)*scale;
+}
+
+template <index_t nr, index_t nc, typename T>
+inline void
+MatrixND<nr, nc, T>::addTranspose(const MatrixND<nc,nr>& A, const double scale)
+{
+  for (int i=0; i<nr; i++)
+    for (int j=0; j<nc; j++)
+      (*this)(i,j) += A(j,i)*scale;
 }
 
 
