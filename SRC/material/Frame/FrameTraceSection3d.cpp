@@ -489,8 +489,8 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
                                 0, 0, 0 ,
                                 0, 0, 0 }};
       const Matrix3D ioiC = ioi*C;
-      K.se.assemble(ioiC, 3, 0, tr2); // K.mn.addMatrix(ioiC, tr2);
-      K.se.assembleTranspose(ioiC, 0, 3, tr2); // K.nm.addTranspose(ioiC, tr2);
+      K.se.assemble(ioiC, 3, 0, tr2);
+      K.se.assembleTranspose(ioiC, 0, 3, tr2);
       //
       K.se.assemble(Hat(r)*ioiC.transpose() - ioiC*Hat(r), 3, 3, tr2);
       // K.mm.addSpinMatrixProduct(r, ioiC.transpose(), tr2);
@@ -501,7 +501,6 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
       // Geometric part,  equivalent to Kmm.addMatrix(ioi, r2*stress(0));
       if (kappa[0] != 0) [[likely]]
         K.se(3,3) += (tr2/kappa[0])*stress(0)*fiber.area;
-        // K.mm(0,0) += (tr2/kappa[0])*stress(0)*fiber.area;
 
       K.sw.assemble(ioiC*iow, 3, 0, tr2); // 6
       // K.mw.addMatrixProduct(ioiC, iow,  tr2);
