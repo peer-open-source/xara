@@ -36,7 +36,8 @@
 // ArrayOfTaggedObjects. ArrayOfTaggedObjects is a storage class. The class 
 // is responsible for holding and providing access to objects of type 
 // TaggedObject. The data structure used to hold the objects is a simple 
-// array of pointers. As a one dimensional array is used certain ideas are tried 
+// array of pointers. 
+// As a one dimensional array is used certain ideas are tried 
 // to improve performance: (1) if the array needs to be larger to hold more 
 // components, the array size is doubled and (2) when adding/retrieving components,
 // the array location given by the components tag is first checked. 
@@ -56,19 +57,20 @@ class ArrayOfTaggedObjects : public TaggedObjectStorage
     // public methods to populate a domain
     int  setSize(int newSize);
     bool addComponent(TaggedObject *newComponent);
-//		       bool allowMutltipleTags = false);
     TaggedObject *removeComponent(int tag);    
-    int  getNumComponents(void) const;
+    int  getNumComponents() const;
     
     TaggedObject     *getComponentPtr(int tag);
     TaggedObjectIter &getComponents();
 
+    using Iterator = ArrayOfTaggedObjectsIter;
+
     ArrayOfTaggedObjectsIter  getIter();
     
-    virtual TaggedObjectStorage *getEmptyCopy(void);
+    virtual TaggedObjectStorage *getEmptyCopy();
     virtual void clearAll(bool invokeDestructor = true);
-    
-    void Print(OPS_Stream &s, int flag =0);
+
+    void Print(OPS_Stream &s, int flag);
     friend class ArrayOfTaggedObjectsIter;
     
   protected:    
