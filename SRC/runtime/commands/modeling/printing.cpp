@@ -60,7 +60,6 @@
 #include <NodeIter.h>
 
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 
 #include <CrdTransf.h>
 

@@ -40,7 +40,6 @@
 #include <ElementIter.h>
 #include <NodeIter.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <ElementalLoad.h>
 #include <ElementalLoadIter.h>
 #include <NodalLoad.h>
