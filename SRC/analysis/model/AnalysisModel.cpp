@@ -47,7 +47,6 @@
 #include <Node.h>
 #include <NodeIter.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Parameter.h>
 #include <ParameterIter.h>
 
@@ -893,7 +892,7 @@ AnalysisModel::applyLoadGradient()
 
   // 2) Add external load sensitivity
   LoadPattern *pattern;
-  LoadPatternIter &thePatterns = myDomain->getLoadPatterns();
+  auto &thePatterns = myDomain->getLoadPatterns();
   while ((pattern = thePatterns()) != nullptr)
     pattern->applyLoadSensitivity(myDomain->getCurrentTime());
 
