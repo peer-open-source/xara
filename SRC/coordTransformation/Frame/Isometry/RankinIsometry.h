@@ -109,12 +109,36 @@ public:
     Psi.template insert<6,0>(ex,   -Ln);
     Psi.template insert<9,0>(Eye3, 1.0);
 #endif
-    Matrix3D B = Gamma^Psi;
+    const Matrix3D B = Gamma^Psi;
     Matrix3D A;
     B.invert(A);
     return Gamma*A.transpose()*NWL;
   }
 
+  MatrixND<3,6> 
+  getRotationGradient(int node) final {
+    MatrixND<3,6> Gb{};
+
+    constexpr Vector3D axis{1, 0, 0};
+    constexpr Matrix3D ix = Hat(axis);
+
+    const double Ln = this->getLength();
+
+    if (node == 0) {
+      Gb.template insert<0,0>( ix, -1.0/Ln);
+      Gb(0,2) =  n/Ln;
+      Gb(0,3) =   1.0;
+      Gb(0,4) =    -n;
+    }
+    else if (node == nn-1) {
+      Gb.template insert<0,0>( ix,  1.0/Ln);
+      Gb(0,2) = -n/Ln;
+      Gb(0,3) =  0.0;
+    }
+    return Gb;
+  }
+
+private:
   MatrixND<3,6>
   getBasisVariation(int ie, int node)
   {
@@ -143,29 +167,6 @@ public:
       );
     }
     return dei;
-  }
-
-  MatrixND<3,6> 
-  getRotationGradient(int node) final {
-    MatrixND<3,6> Gb{};
-
-    constexpr Vector3D axis{1, 0, 0};
-    constexpr Matrix3D ix = Hat(axis);
-
-    const double Ln = this->getLength();
-
-    if (node == 0) {
-      Gb.template insert<0,0>( ix, -1.0/Ln);
-      Gb(0,2) =  n/Ln;
-      Gb(0,3) =   1.0;
-      Gb(0,4) =    -n;
-    }
-    else if (node == nn-1) {
-      Gb.template insert<0,0>( ix,  1.0/Ln);
-      Gb(0,2) = -n/Ln;
-      Gb(0,3) =  0.0;
-    }
-    return Gb;
   }
 
 private:
