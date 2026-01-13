@@ -32,6 +32,8 @@
 
 #include <OPS_Stream.h>
 #include <Vector.h>
+#include <TaggedIterator.hpp>
+#include <MapOfTaggedObjects.h>
 
 enum class NodeData: int;
 class Element;
@@ -49,7 +51,6 @@ class NodeIter;
 class SP_ConstraintIter;
 class MP_ConstraintIter;
 class Pressure_ConstraintIter;
-class LoadPatternIter;
 class ParameterIter;
 
 class SingleDomEleIter;
@@ -67,7 +68,6 @@ class NodeGraph;
 class ElementGraph;
 class Channel;
 class FEM_ObjectBroker;
-
 class TaggedObjectStorage;
 
 
@@ -77,15 +77,12 @@ class Domain
     Domain();
     Domain(int numNodes, int numElements, int numSPs, int numMPs, int numLoadPatterns);
 
-    Domain(TaggedObjectStorage &theNodesStorage,
-          TaggedObjectStorage &theElementsStorage,
-          TaggedObjectStorage &theMPsStorage,
-          TaggedObjectStorage &theSPsStorage,
-          TaggedObjectStorage &theLoadPatternsStorage);
-
-    Domain(TaggedObjectStorage &theStorageType);
-    
     virtual ~Domain();    
+
+
+    using NodeStorage = MapOfTaggedObjects;
+    using PatternStorage = MapOfTaggedObjects;
+    using PatternIterator = TaggedIterator<LoadPattern, PatternStorage>;
 
     // methods to populate a domain
     virtual  bool addElement(Element *);
@@ -101,7 +98,7 @@ class Domain
     
     
     // methods to remove the components 
-    virtual void clearAll(void);	
+    virtual void clearAll();	
     virtual Element       *removeElement(int tag);
     virtual Node          *removeNode(int tag);
     virtual SP_Constraint *removeSP_Constraint(int tag);
@@ -122,7 +119,7 @@ class Domain
     virtual  ElementalLoad *removeElementalLoad(int tag, int loadPattern);
     virtual  SP_Constraint *removeSP_Constraint(int tag, int loadPattern);
     virtual  int removeSP_Constraint(int nodeTag, int dof, int loadPatternTag);
-    virtual  LoadPatternIter   &getLoadPatterns();
+    virtual  PatternIterator   &getLoadPatterns();
     virtual  SP_ConstraintIter &getDomainAndLoadPatternSPs();
     virtual  void setLoadConstant();
     virtual  void unsetLoadConstant();
@@ -157,17 +154,17 @@ class Domain
     virtual int getNumSPs() const;
     virtual int getNumPCs() const;
     virtual int getNumMPs() const;
-    virtual int getNumLoadPatterns(void) const;            
-    virtual int getNumParameters(void) const;            
-    virtual const Vector &getPhysicalBounds(void); 
+    virtual int getNumLoadPatterns() const;            
+    virtual int getNumParameters() const;            
+    virtual const Vector &getPhysicalBounds(); 
     virtual const Vector *getNodeResponse(int nodeTag, NodeData responseType); 
     virtual const Vector *getElementResponse(int eleTag, const char **argv, int argc); 
 
     // methods to get element and node graphs
-    virtual  Graph  &getElementGraph(void);
-    virtual  Graph  &getNodeGraph(void);
-    virtual  void   clearElementGraph(void);
-    virtual  void   clearNodeGraph(void);
+    virtual  Graph  &getElementGraph();
+    virtual  Graph  &getNodeGraph();
+    virtual  void   clearElementGraph();
+    virtual  void   clearNodeGraph();
 
     // methods to update the domain
     virtual  void setCommitTag(int newTag);    	
@@ -233,10 +230,6 @@ class Domain
     virtual int calculateNodalReactions(int flag);
     
 
-#if 0
-    virtual int activateElements(const ID& elementList);
-    virtual int deactivateElements(const ID& elementList);
-#endif
   protected:    
 
     virtual int buildEleGraph(Graph *theEleGraph);
@@ -263,19 +256,19 @@ class Domain
     Graph *theElementGraph;
 
     TaggedObjectStorage  *theElements;
-    TaggedObjectStorage  *theNodes;
+    NodeStorage*          theNodes;
     TaggedObjectStorage  *theSPs;    
     TaggedObjectStorage  *thePCs;    
     TaggedObjectStorage  *theMPs;    
-    TaggedObjectStorage  *theLoadPatterns;        
+    PatternStorage       *theLoadPatterns;        
     TaggedObjectStorage  *theParameters;        
 
     SingleDomEleIter      *theEleIter;
-    SingleDomNodIter  	  *theNodIter;
+    SingleDomNodIter *theNodIter;
     SingleDomSP_Iter      *theSP_Iter;
     SingleDomPC_Iter      *thePC_Iter;
     SingleDomMP_Iter      *theMP_Iter;
-    LoadPatternIter       *theLoadPatternIter;        
+    PatternIterator       *theLoadPatternIter;        
     SingleDomAllSP_Iter   *allSP_Iter;
     SingleDomParamIter    *theParamIter;
 
@@ -304,5 +297,6 @@ class Domain
     int numParameters;
 };
 
+using LoadPatternIter = Domain::PatternIterator;
 #endif
 

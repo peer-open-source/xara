@@ -66,6 +66,11 @@ class ArrayOfTaggedObjects : public TaggedObjectStorage
     using Iterator = ArrayOfTaggedObjectsIter;
 
     ArrayOfTaggedObjectsIter  getIter();
+
+    Iterator& getIterRef() {
+      myIter.reset();
+      return myIter;
+    }
     
     virtual TaggedObjectStorage *getEmptyCopy();
     virtual void clearAll(bool invokeDestructor = true);

@@ -40,11 +40,10 @@
 #define SingleDomAllSP_Iter_h
 
 #include <SP_ConstraintIter.h>
-
+#include <Domain.h>
 class TaggedObjectStorage;
 class TaggedObjectIter;
 class Domain;
-class LoadPatternIter;
 class LoadPatternSPIter;
 class LoadPattern;
 

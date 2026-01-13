@@ -120,6 +120,10 @@ elseif (WIN32) # NOTE: this will execute for both 32-bit and 64-bit builds.
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
 
+if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+  add_compile_definitions(XARA_RELEASE)
+endif()
+
 # Check for IPO and maybe use it; this can significantly slow down linking 
 # and can be problematic on slow or memory constrained machines (e.g., my laptop)
 include(CheckIPOSupported)

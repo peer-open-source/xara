@@ -72,7 +72,8 @@ ShadowSubdomain::ShadowSubdomain(int tag, MachineBroker &theMachineBroker,
                                  FEM_ObjectBroker &theObjectBroker)
     : Shadow(ACTOR_TAGS_SUBDOMAIN, theObjectBroker, theMachineBroker, 0),
 
-      Subdomain(tag), msgData(4), theElements(0, 128), theNodes(0, 128),
+      Subdomain(tag), 
+      msgData(4), theElements(0, 128), theNodes(0, 128),
       theExternalNodes(0, 128), theLoadCases(0, 128), theShadowSPs(0),
       theShadowMPs(0), theShadowLPs(0), numDOF(0), numElements(0), numNodes(0),
       numExternalNodes(0), numSPs(0), numMPs(0), buildRemote(false),
@@ -799,7 +800,7 @@ void ShadowSubdomain::setCommittedTime(double time)
   this->sendVector(data);
 }
 
-void ShadowSubdomain::setLoadConstant(void)
+void ShadowSubdomain::setLoadConstant()
 {
   msgData(0) = ShadowActorSubdomain_setLoadConstant;
 

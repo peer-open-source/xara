@@ -33,8 +33,9 @@
 #include <Domain.h>
 #include <DummyStream.h>
 
+#include <MapOfTaggedObjects.h>
+
 #include <ElementIter.h>
-#include <NodeIter.h>
 #include <ElementalLoadIter.h>
 #include <NodalLoadIter.h>
 #include <Element.h>
@@ -48,15 +49,13 @@
 #include <Parameter.h>
 #include <Response.h>
 
-#include <MapOfTaggedObjects.h>
 #include <MapOfTaggedObjectsIter.h>
-
-#include <SingleDomEleIter.h>
 #include <SingleDomNodIter.h>
+#include <TaggedIterator.hpp>
+#include <SingleDomEleIter.h>
 #include <SingleDomSP_Iter.h>
 #include <SingleDomPC_Iter.h>
 #include <SingleDomMP_Iter.h>
-#include <LoadPatternIter.h>
 #include <SingleDomAllSP_Iter.h>
 #include <SingleDomParamIter.h>
 
@@ -78,6 +77,7 @@ double        ops_Dt = 0.0;
 bool          ops_InitialStateAnalysis = false;
 int           ops_Creep = 0;
 
+
 Domain::Domain()
 :theRecorders(0), numRecorders(0),
  currentTime(0.0), committedTime(0.0), dT(0.0), currentGeoTag(0),
@@ -94,11 +94,11 @@ Domain::Domain()
 {
   // initialize the arrays for storing the domain components
   theElements     = new MapOfTaggedObjects();
-  theNodes        = new MapOfTaggedObjects();
+  theNodes        = new NodeStorage();
   theSPs          = new MapOfTaggedObjects();
   thePCs          = new MapOfTaggedObjects();
   theMPs          = new MapOfTaggedObjects();    
-  theLoadPatterns = new MapOfTaggedObjects();
+  theLoadPatterns = new PatternStorage();
   theParameters   = new MapOfTaggedObjects();
 
   // initialize the iterators
@@ -107,7 +107,7 @@ Domain::Domain()
   theSP_Iter = new SingleDomSP_Iter(theSPs);
   thePC_Iter = new SingleDomPC_Iter(thePCs);
   theMP_Iter = new SingleDomMP_Iter(theMPs);
-  theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
+  theLoadPatternIter = new PatternIterator(theLoadPatterns);
   allSP_Iter = new SingleDomAllSP_Iter(*this);
   theParamIter = new SingleDomParamIter(theParameters);
 
@@ -120,8 +120,11 @@ Domain::Domain()
 }
 
 
-Domain::Domain(int numNodes, int numElements, int numSPs, int numMPs,
-	       int numLoadPatterns)
+Domain::Domain(int numNodes,
+               int numElements, 
+               int numSPs, 
+               int numMPs,
+               int numLoadPatterns)
 :theRecorders(0), numRecorders(0),
  currentTime(0.0), committedTime(0.0), dT(0.0), currentGeoTag(0),
  hasDomainChangedFlag(false), theDbTag(0), lastGeoSendTag(-1),
@@ -133,130 +136,31 @@ Domain::Domain(int numNodes, int numElements, int numSPs, int numMPs,
  theModalDampingFactors(0), inclModalMatrix(false),
  lastChannel(0), paramIndex(0), paramSize(0), numParameters(0)
 {
-    // init the arrays for storing the domain components
-    theElements     = new MapOfTaggedObjects();
-    theNodes        = new MapOfTaggedObjects();
-    theSPs          = new MapOfTaggedObjects();
-    thePCs          = new MapOfTaggedObjects();
-    theMPs          = new MapOfTaggedObjects();    
-    theLoadPatterns = new MapOfTaggedObjects();
-    theParameters   = new MapOfTaggedObjects();
-    
-    // init the iters
-    theEleIter         = new SingleDomEleIter(theElements);    
-    theNodIter         = new SingleDomNodIter(theNodes);
-    theSP_Iter         = new SingleDomSP_Iter(theSPs);
-    thePC_Iter         = new SingleDomPC_Iter(thePCs);
-    theMP_Iter         = new SingleDomMP_Iter(theMPs);
-    theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
-    allSP_Iter         = new SingleDomAllSP_Iter(*this);
-    theParamIter       = new SingleDomParamIter(theParameters); 
-    
-    theBounds(0) = 0;
-    theBounds(1) = 0;
-    theBounds(2) = 0;
-    theBounds(3) = 0;
-    theBounds(4) = 0;    
-    theBounds(5) = 0;            
-}
-
-
-Domain::Domain(TaggedObjectStorage &theNodesStorage,
-	       TaggedObjectStorage &theElementsStorage,
-	       TaggedObjectStorage &theMPsStorage,
-	       TaggedObjectStorage &theSPsStorage,
-	       TaggedObjectStorage &theLoadPatternsStorage)
-:theRecorders(0), numRecorders(0),
- currentTime(0.0), committedTime(0.0), dT(0.0), 
- currentGeoTag(0), hasDomainChangedFlag(false), theDbTag(0), lastGeoSendTag(-1),
- dbEle(0), dbNod(0), dbSPs(0), dbPCs(0), dbMPs(0), dbLPs(0), dbParam(0),
- eleGraphBuiltFlag(false), nodeGraphBuiltFlag(false), theNodeGraph(nullptr),
- theElementGraph(nullptr), 
- theElements(&theElementsStorage),
- theNodes(&theNodesStorage),
- theSPs(&theSPsStorage),
- theMPs(&theMPsStorage), 
- theLoadPatterns(&theLoadPatternsStorage),
- theRegions(nullptr), numRegions(0), commitTag(0),
- initBounds(true), resetBounds(false),
- theBounds(6), theEigenvalues(nullptr), theEigenvalueSetTime(0), 
- theModalDampingFactors(nullptr), inclModalMatrix(false),
- lastChannel(0),
- paramIndex(0), paramSize(0), numParameters(0)
-{
-  // check that the containers are empty
-  if (theElements->getNumComponents() != 0 ||
-      theNodes->getNumComponents() != 0 ||
-      theSPs->getNumComponents() != 0 ||
-      theMPs->getNumComponents() != 0 ||
-      theLoadPatterns->getNumComponents() != 0 ) {
-
-      opserr << "Domain::Domain(&, & ...) - out of memory\n";
-  }
-
   // init the arrays for storing the domain components
-  thePCs      = new MapOfTaggedObjects();
-
-  // init the iters    
+  theElements     = new MapOfTaggedObjects();
+  theNodes        = new NodeStorage();
+  theSPs          = new MapOfTaggedObjects();
+  thePCs          = new MapOfTaggedObjects();
+  theMPs          = new MapOfTaggedObjects();    
+  theLoadPatterns = new PatternStorage();
+  theParameters   = new MapOfTaggedObjects();
+  
+  // init the iters
   theEleIter         = new SingleDomEleIter(theElements);    
   theNodIter         = new SingleDomNodIter(theNodes);
   theSP_Iter         = new SingleDomSP_Iter(theSPs);
   thePC_Iter         = new SingleDomPC_Iter(thePCs);
   theMP_Iter         = new SingleDomMP_Iter(theMPs);
-  theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
+  theLoadPatternIter = new PatternIterator(theLoadPatterns);
   allSP_Iter         = new SingleDomAllSP_Iter(*this);
-  theParameters      = new MapOfTaggedObjects();    
-  theParamIter       = new SingleDomParamIter(theParameters);
-
-  theBounds(0) = 0.0;
-  theBounds(1) = 0.0;
-  theBounds(2) = 0.0;
-  theBounds(3) = 0.0;
-  theBounds(4) = 0.0;
-  theBounds(5) = 0.0;
-}    
-
-Domain::Domain(TaggedObjectStorage &theStorage)
-:theRecorders(0), numRecorders(0),
- currentTime(0.0), committedTime(0.0), dT(0.0), currentGeoTag(0),
- hasDomainChangedFlag(false), theDbTag(0), lastGeoSendTag(-1),
- dbEle(0), dbNod(0), dbSPs(0), dbPCs(0), dbMPs(0), dbLPs(0), dbParam(0),
- eleGraphBuiltFlag(false), nodeGraphBuiltFlag(false), theNodeGraph(nullptr), 
- theElementGraph(nullptr), 
- theRegions(0), numRegions(0), commitTag(0),initBounds(true), resetBounds(false),
- theBounds(6), theEigenvalues(0), theEigenvalueSetTime(0),
- theModalDampingFactors(0), inclModalMatrix(false),
- lastChannel(0),
- paramIndex(0), paramSize(0), numParameters(0)
-{
-  // init the arrays for storing the domain components
-  theStorage.clearAll(); // clear the storage just in case populated
-  theElements     = &theStorage;
-  theNodes        = theStorage.getEmptyCopy();
-  theSPs          = theStorage.getEmptyCopy();
-  thePCs          = theStorage.getEmptyCopy();
-  theMPs          = theStorage.getEmptyCopy();
-  theLoadPatterns = theStorage.getEmptyCopy();    
-  theParameters   = theStorage.getEmptyCopy();    
-
-  // init the iters    
-  theEleIter         = new SingleDomEleIter(theElements);    
-  theNodIter         = new SingleDomNodIter(theNodes);
-  theSP_Iter         = new SingleDomSP_Iter(theSPs);
-  thePC_Iter         = new SingleDomPC_Iter(thePCs);
-  theMP_Iter         = new SingleDomMP_Iter(theMPs);
-  theLoadPatternIter = new LoadPatternIter(theLoadPatterns);
-  allSP_Iter         = new SingleDomAllSP_Iter(*this);
-  theParamIter       = new SingleDomParamIter(theParameters);
-
-  theBounds(0) = 0.0;
-  theBounds(1) = 0.0;
-  theBounds(2) = 0.0;
-  theBounds(3) = 0.0;
-  theBounds(4) = 0.0;
-  theBounds(5) = 0.0;
-
-  dbEle =0; dbNod =0; dbSPs =0; dbPCs = 0; dbMPs =0; dbLPs = 0; dbParam = 0;
+  theParamIter       = new SingleDomParamIter(theParameters); 
+  
+  theBounds(0) = 0;
+  theBounds(1) = 0;
+  theBounds(2) = 0;
+  theBounds(3) = 0;
+  theBounds(4) = 0;    
+  theBounds(5) = 0;            
 }
 
 
@@ -273,8 +177,6 @@ Domain::~Domain()
   this->Domain::clearAll();
 
   // delete all the storage objects
-  // SEGMENT FAULT WILL OCCUR IF THESE OBJECTS WERE NOT CONSTRUCTED
-  // USING NEW
 
   if (theElements != nullptr)
     delete theElements;    
@@ -1010,7 +912,7 @@ Domain::removeNode(int tag)
   
   // if not there return NULL
   if (mc == nullptr)
-      return nullptr;
+    return nullptr;
 
   // mark the domain has having changed 
   this->domainChange();
@@ -1079,45 +981,46 @@ Domain::removeSP_Constraint(int theNode, int theDOF, int loadPatternTag)
 SP_Constraint *
 Domain::removeSP_Constraint(int tag)
 {
-    // remove the object from the container    
-    TaggedObject *mc = theSPs->removeComponent(tag);
-    
-    // if not there return nullptr    
-    if (mc == nullptr) 
-	return nullptr;
+  // remove the object from the container    
+  TaggedObject *mc = theSPs->removeComponent(tag);
+  
+  // if not there return nullptr    
+  if (mc == nullptr) 
+    return nullptr;
 
-    // mark the domain as having changed    
-    this->domainChange();
-    
-    // perform a downward cast, set the objects domain pointer to 0
-    // and return the result of the cast    
-    SP_Constraint *result = (SP_Constraint *)mc;
-    // result->setDomain(0);
+  // mark the domain as having changed    
+  this->domainChange();
+  
+  // perform a downward cast, set the objects domain pointer to 0
+  // and return the result of the cast    
+  SP_Constraint *result = (SP_Constraint *)mc;
+  // result->setDomain(0);
 
-    // should check that theLoad and result are the same    
-    return result;
+  // should check that theLoad and result are the same    
+  return result;
 }
+
 
 Pressure_Constraint *
 Domain::removePressure_Constraint(int tag)
 {
-    // remove the object from the container    
-    TaggedObject *mc = thePCs->removeComponent(tag);
-    
-    // if not there return nullptr    
-    if (mc == nullptr) 
-	return nullptr;
+  // remove the object from the container    
+  TaggedObject *mc = thePCs->removeComponent(tag);
+  
+  // if not there return nullptr    
+  if (mc == nullptr) 
+    return nullptr;
 
-    // mark the domain as having changed    
-    this->domainChange();
-    
-    // perform a downward cast, set the objects domain pointer to 0
-    // and return the result of the cast    
-    Pressure_Constraint *result = (Pressure_Constraint *)mc;
-    // result->setDomain(0);
-    
-    // should check that theLoad and result are the same    
-    return result;
+  // mark the domain as having changed    
+  this->domainChange();
+  
+  // perform a downward cast, set the objects domain pointer to 0
+  // and return the result of the cast    
+  Pressure_Constraint *result = (Pressure_Constraint *)mc;
+  // result->setDomain(0);
+  
+  // should check that theLoad and result are the same    
+  return result;
 }
 
 MP_Constraint *
@@ -1128,7 +1031,7 @@ Domain::removeMP_Constraint(int tag)
     
     // if not there return nullptr    
     if (mc == nullptr) 
-	return nullptr;
+      return nullptr;
 
     // mark the domain as having changed    
     this->domainChange();
@@ -1320,16 +1223,16 @@ Domain::removeSP_Constraint(int tag, int loadPattern)
 ElementIter &
 Domain::getElements()
 {
-    theEleIter->reset();    
-    return *theEleIter;
+  theEleIter->reset();    
+  return *theEleIter;
 }
 
 
 NodeIter &
 Domain::getNodes()
 {
-    theNodIter->reset();    
-    return *theNodIter;
+  theNodIter->reset();
+  return *theNodIter;
 }
 
 SP_ConstraintIter &
@@ -1386,10 +1289,10 @@ Element *
 Domain::getElement(int tag) 
 {
   TaggedObject *mc = theElements->getComponentPtr(tag);
-  
+
   // if not there return 0 otherwise perform a cast and return that
   if (mc == 0) 
-      return 0;
+    return 0;
   Element *result = (Element *)mc;
   return result;
 }
@@ -1424,13 +1327,13 @@ Domain::getSP_Constraint(int tag)
 Pressure_Constraint *
 Domain::getPressure_Constraint(int tag) 
 {
-    TaggedObject *mc = thePCs->getComponentPtr(tag);
+  TaggedObject *mc = thePCs->getComponentPtr(tag);
 
-    // if not there return 0 otherwise perform a cast and return that  
-    if (mc == 0) 
-        return 0;
-    Pressure_Constraint *result = (Pressure_Constraint *)mc;
-    return result;
+  // if not there return 0 otherwise perform a cast and return that  
+  if (mc == 0) 
+    return 0;
+  Pressure_Constraint *result = (Pressure_Constraint *)mc;
+  return result;
 }
 
 MP_Constraint *
@@ -1467,7 +1370,6 @@ Domain::getParameterFromIndex(int index)
     opserr << "Domain::getParameterFromIndex -- index " << index << " out of bounds 0 ... " << numParameters-1 << endln;
     return 0;
   }
-
 }
 
 int
@@ -1502,19 +1404,19 @@ Domain::getLoadPattern(int tag)
 
 
 double
-Domain::getCurrentTime(void) const
+Domain::getCurrentTime() const
 {
   return currentTime;
 }
 
 double
-Domain::getDT(void) const
+Domain::getDT() const
 {
   return dT;
 }
 
 int
-Domain::getCommitTag(void) const
+Domain::getCommitTag() const
 {
   return commitTag;
 }
@@ -1926,30 +1828,30 @@ Domain::commit(void)
 }
 
 int
-Domain::revertToLastCommit(void)
+Domain::revertToLastCommit()
 {
-    // 
-    // first invoke revertToLastCommit  on all nodes and elements in the domain
-    // 
-    Node *nodePtr;
-    NodeIter &theNodeIter = this->getNodes();
-    while ((nodePtr = theNodeIter()) != nullptr)
-	nodePtr->revertToLastCommit();
-    
-    Element *elePtr;
-    ElementIter &theElemIter = this->getElements();    
-    while ((elePtr = theElemIter()) != nullptr) {
-	elePtr->revertToLastCommit();
-    }
+  // 
+  // first invoke revertToLastCommit  on all nodes and elements in the domain
+  // 
+  Node *nodePtr;
+  NodeIter &theNodeIter = this->getNodes();
+  while ((nodePtr = theNodeIter()) != nullptr)
+    nodePtr->revertToLastCommit();
+  
+  Element *elePtr;
+  ElementIter &theElemIter = this->getElements();    
+  while ((elePtr = theElemIter()) != nullptr) {
+    elePtr->revertToLastCommit();
+  }
 
-    // set the current time and load factor in the domain to last committed
-    currentTime = committedTime;
-    dT = 0.0;
+  // set the current time and load factor in the domain to last committed
+  currentTime = committedTime;
+  dT = 0.0;
 
-    // apply load for the last committed time
-    this->applyLoad(currentTime);
+  // apply load for the last committed time
+  this->applyLoad(currentTime);
 
-    return this->update();
+  return this->update();
 }
 
 int
@@ -3439,12 +3341,14 @@ Domain::calculateNodalReactions(int flag)
   // apply load again! (for case ele load removed and record before an analysis)
   this->applyLoad(committedTime);
 
-  Node *theNode;
-  Element *theElement;
-  NodeIter &theNodes = this->getNodes();
-  while ((theNode = theNodes()) != nullptr)
-    theNode->resetReactionForce(flag);
+  {
+    Node *theNode;
+    NodeIter &theNodes = this->getNodes();
+    while ((theNode = theNodes()) != nullptr)
+      theNode->resetReactionForce(flag);
+  }
 
+  Element *theElement;
   ElementIter &theElements = this->getElements();
   while ((theElement = theElements()) != nullptr)
     if (theElement->isSubdomain() == false)

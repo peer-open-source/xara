@@ -10,7 +10,6 @@ target_sources(OPS_Domain
   PUBLIC
     Domain.h
     ElementIter.h
-    LoadCaseIter.h
     MP_ConstraintIter.h
     NodeIter.h
     ParameterIter.h

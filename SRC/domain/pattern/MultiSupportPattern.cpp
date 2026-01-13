@@ -31,7 +31,6 @@
 #include <Domain.h>
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
-#include <stdlib.h>
 #include <Channel.h>
 
 MultiSupportPattern::MultiSupportPattern(int tag, int _classTag)
@@ -192,8 +191,8 @@ MultiSupportPattern::sendSelf(int commitTag, Channel &theChannel)
     for (int j=0; j<numMotions; j++) {
       theMotion = theMotions[j];
       if (theMotion->sendSelf(commitTag, theChannel) < 0) {
-	opserr << "MultiSupportPattern::sendSelf - ground motion  failed in sendSelf\n";
-	return -7;
+        opserr << "MultiSupportPattern::sendSelf - ground motion  failed in sendSelf\n";
+        return -7;
       }
     }
   }
@@ -219,7 +218,7 @@ MultiSupportPattern::recvSelf(int commitTag, Channel &theChannel,
   if (theMotions != 0) {
     for (int i=0; i<numMotions; i++)
       if (theMotions[i] != 0)
-	delete theMotions[i];
+        delete theMotions[i];
     delete [] theMotions;
     numMotions = 0;
   }
@@ -248,29 +247,24 @@ MultiSupportPattern::recvSelf(int commitTag, Channel &theChannel,
 
     theMotions = new GroundMotion *[numMotions];
     for (int i=0; i<numMotions; i++)
-      theMotions[i] = 0;
-
-    if (theMotions == 0) {
-      opserr << "MultiSupportPattern::recvSelf() - out of memory\n";
-      return -1;
-    }
+      theMotions[i] = nullptr;
 
     GroundMotion *theMotion;
     for (int i=0; i<numMotions; i++) {
       int motionClassTag = motionData(i*3);
 
       theMotion = theBroker.getNewGroundMotion(motionClassTag);
-      if (theMotion == 0) {
-	opserr << "MultiSupportPattern::sendSelf - failed to get a ground motion from object broker\n";
-	return -1;
+      if (theMotion == nullptr) {
+        opserr << "MultiSupportPattern::sendSelf - failed to get a ground motion from object broker\n";
+        return -1;
       }
 
       theMotion->setDbTag(motionData(i*3+1));
       int tag = motionData(i*3+2);
 
       if (theMotion->recvSelf(commitTag, theChannel, theBroker) < 0) {
-	opserr << "MultiSupportPattern::sendSelf - ground motion failed in recvSelf\n";
-	return -7;
+        opserr << "MultiSupportPattern::sendSelf - ground motion failed in recvSelf\n";
+        return -7;
       }
 
       theMotionTags[i] = tag;
@@ -286,8 +280,8 @@ MultiSupportPattern::recvSelf(int commitTag, Channel &theChannel,
 void 
 MultiSupportPattern::Print(OPS_Stream &s, int flag)
 {
-  s << "MultiSupportPattern  tag: " << this->getTag() <<
-    "   numMotions: " << numMotions << endln;
+  s << "MultiSupportPattern  tag: " << this->getTag() 
+    << "   numMotions: " << numMotions << "\n";
 
   SP_Constraint *sp;
   SP_ConstraintIter &theIter = this->getSPs();
@@ -297,7 +291,7 @@ MultiSupportPattern::Print(OPS_Stream &s, int flag)
 }
 
 LoadPattern *
-MultiSupportPattern::getCopy(void)
+MultiSupportPattern::getCopy()
 {
   LoadPattern *theCopy = new MultiSupportPattern(this->getTag());
   for (int i=0; i<numMotions; i++) {

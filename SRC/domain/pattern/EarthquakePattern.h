@@ -51,13 +51,12 @@ class EarthquakePattern : public LoadPattern
     virtual bool addElementalLoad(ElementalLoad *);
 
     // methods for o/p
-    virtual int sendSelf(int commitTag, Channel &theChannel) =0;
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker) =0;
-    virtual void Print(OPS_Stream &s, int flag =0);        
+    virtual int sendSelf(int commitTag, Channel &) =0;
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) =0;
+    virtual void Print(OPS_Stream &s, int flag);        
 
     // method to obtain a blank copy of the LoadPattern
-    virtual LoadPattern *getCopy(void) =0;
+    virtual LoadPattern *getCopy() =0;
     
     // AddingSensitivity:BEGIN //////////////////////////////////////////
     virtual void applyLoadSensitivity(double pseudoTime = 0.0);
