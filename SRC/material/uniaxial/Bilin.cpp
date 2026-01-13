@@ -935,26 +935,24 @@ Bilin::setTrialStrain(double strain, double strainRate)
  
   ////    energy CALCULATIONS ---------------------------------------------
  
-  if((flagstopdeg==0)&&(flagdeg==1)) {
+  if ((flagstopdeg==0)&&(flagdeg==1)) {
    
-    if((Enrgtot>=Enrgts)&&(Enrgts!=0.0)) {
+    if ((Enrgtot>=Enrgts)&&(Enrgts!=0.0)) {
       betas = 1.0;
-    } else if((Enrgtot>=Enrgtd)&&(Enrgtd!=0.0)) {
+    } else if ((Enrgtot>=Enrgtd)&&(Enrgtd!=0.0)) {
       betad = 1.0;
     } else {
-      if(LamdaS!=0.0) {
-        betas = pow((Enrgc/(Enrgts-Enrgtot)),Cs);
-      }
-      if(LamdaD!=0.0) {
-        betad = pow((Enrgc/(Enrgtd-Enrgtot)),Cd);
-      }
+      if (LamdaS!=0.0)
+        betas = pow((Enrgc/(Enrgts-Enrgtot)), Cs);
+
+      if(LamdaD!=0.0)
+        betad = pow((Enrgc/(Enrgtd-Enrgtot)), Cd);
      
-      if(fabs(betas)>=1.0) {
+      if (fabs(betas)>=1.0)
         betas = 1.0;
-      }
-      if(fabs(betad)>=1.0) {
+
+      if (fabs(betad)>=1.0)
         betad = 1.0;
-      }
     }
     ////            Initialize energy of the cycle and Kstif for next loop -------
    
@@ -962,9 +960,9 @@ Bilin::setTrialStrain(double strain, double strainRate)
     ekexcurs = ekunload;
    
     ////            Deteriorate parameters for the next half cycle
-    if(deltaD<0.0){
+    if (deltaD<0.0){
      
-      if(flagstopdeg == 0){
+      if (flagstopdeg == 0){
         fyNeg = fyNeg*(1-betas*PDNeg); 
 
         //change the strain hardening ratio						 // Updated: Filipe Ribeiro and Andre Barbosa
@@ -974,21 +972,22 @@ Bilin::setTrialStrain(double strain, double strainRate)
         alphaNeg=alphaNeg*(1-betas*PDNeg);      
         //3rd - recompute the strain hardening ratio (updated) 
         alphaNeg=(alphaNeg)/(1+nFactor*(1-alphaNeg));			// Updated: Filipe Ribeiro and Andre Barbosa
-        
-		fCapRefNeg=fCapRefNeg*(1-betad*PDNeg);
-      }else{
-        fyNeg = fyNeg;
-        alphaNeg=alphaNeg;
-        fCapRefNeg=fCapRefNeg;
+            
+        fCapRefNeg=fCapRefNeg*(1-betad*PDNeg);
+      } else {
+        // CMP: Commented out to silcence -Wself-assign-field warnings
+        // fyNeg = fyNeg;
+        // alphaNeg=alphaNeg;
+        // fCapRefNeg=fCapRefNeg;
       }
       // When we reach post capping slope goes to zero due to residual
-      if(fyNeg>=KNeg*My_neg) { // If strength drops below residual
+      if (fyNeg >= KNeg*My_neg) { // If strength drops below residual
         fyNeg = KNeg*My_neg;
         //alphaNeg = 10^(-4); // This evaluates to -10 (bitwise XOR)
-	alphaNeg = 1.0e-4;
+        alphaNeg = 1.0e-4;
         fCapRefNeg = fyNeg;
         //capSlopeNeg = -pow(10.0,-6);
-	capSlopeNeg = -1.0e-6;
+        capSlopeNeg = -1.0e-6;
         flagstopdeg = 1;
       } else { //% Keep updating the post capping slope
 
@@ -999,10 +998,10 @@ Bilin::setTrialStrain(double strain, double strainRate)
         capSlopeNeg=capSlopeNeg*(fabs((KNeg*My_neg-fyNeg)/(KNeg*My_neg-My_neg)));      
         //3rd - recompute the post-capping ratio (updated) 
         capSlopeNeg = capSlopeNeg/(1+nFactor*(1-capSlopeNeg));  // Updated: Filipe Ribeiro and Andre Barbosa
-        
-		if(capSlopeNeg >=0){
-		  //capSlopeNeg = -pow(10.0,-6);
-		  capSlopeNeg = -1.0e-6;
+
+        if(capSlopeNeg >=0){
+          //capSlopeNeg = -pow(10.0,-6);
+          capSlopeNeg = -1.0e-6;
         }
       }
      
@@ -1013,13 +1012,9 @@ Bilin::setTrialStrain(double strain, double strainRate)
       double dCap2Neg=(fCapRefNeg+ekhardNeg*dyNeg-fyNeg)/(ekhardNeg-capSlopeOrigNeg*Ke);
       //cpNeg=min(dCap1Neg,dCap2Neg);
       if (dCap1Neg<dCap2Neg)
-        {
-          cpNeg=dCap1Neg;
-        }
+        cpNeg=dCap1Neg;
       else
-        {
-          cpNeg=dCap2Neg;
-        }
+        cpNeg=dCap2Neg;
      
       fCapNeg = fCapRefNeg + capSlopeOrigNeg*Ke*cpNeg;
      
@@ -1032,7 +1027,7 @@ Bilin::setTrialStrain(double strain, double strainRate)
         ek = ekhardNeg;  
       }
     } else {
-      if(flagstopdeg == 0){
+      if (flagstopdeg == 0){
         fyPos = fyPos*(1-betas*PDPlus);
 
         //change the strain hardening ratio						 // Updated: Filipe Ribeiro and Andre Barbosa
@@ -1042,16 +1037,17 @@ Bilin::setTrialStrain(double strain, double strainRate)
         alphaPos=alphaPos*(1-betas*PDPlus);     
         //3rd - recompute the strain hardening ratio (updated)          
         alphaPos=(alphaPos)/(1+nFactor*(1-alphaPos));				// Updated: Filipe Ribeiro and Andre Barbosa
-        
-		fCapRefPos=fCapRefPos*(1-betad*PDPlus);
+        fCapRefPos=fCapRefPos*(1-betad*PDPlus);
+
       } else {
-        fyPos = fyPos;
-        alphaPos=alphaPos;    
-        fCapRefPos=fCapRefPos;
+        // CMP: Commented out to silcence -Wself-assign-field warnings
+        // fyPos = fyPos;
+        // alphaPos=alphaPos;
+        // fCapRefPos=fCapRefPos;
       }
                
       //   %If post capping slope goes to zero due to residual:
-      if(fyPos <= KPos*My_pos) {  //% If yield Strength Pos drops below residual
+      if (fyPos <= KPos*My_pos) {  //% If yield Strength Pos drops below residual
         fyPos = KPos*My_pos;
         //alphaPos = pow(10.0,-4);
         alphaPos = 1.0e-4;
@@ -1069,9 +1065,9 @@ Bilin::setTrialStrain(double strain, double strainRate)
         //3rd - recompute the post-capping ratio (updated)     
         capSlope = capSlope/(1+nFactor*(1-capSlope));   // Updated: Filipe Ribeiro and Andre Barbosa
         
-		if(capSlope >=0) {
-		  //capSlope = -pow(10.0,-6);
-		  capSlope = -1.0e-6;
+        if(capSlope >=0) {
+          //capSlope = -pow(10.0,-6);
+          capSlope = -1.0e-6;
         }
       }
       dyPos = fyPos/Ke;
@@ -1080,14 +1076,11 @@ Bilin::setTrialStrain(double strain, double strainRate)
       double dCap1Pos=fCapRefPos/(Ke-capSlopeOrig*Ke);
       double dCap2Pos=(fCapRefPos+ekhardPos*dyPos-fyPos)/(ekhardPos-capSlopeOrig*Ke);
       //cpPos=max(dCap1Pos,dCap2Pos);
-      if(dCap1Pos>dCap2Pos)
-        {
-          cpPos=dCap1Pos;
-        }
+      if (dCap1Pos>dCap2Pos)
+        cpPos=dCap1Pos;
       else
-        {
-          cpPos=dCap2Pos;
-        }
+        cpPos=dCap2Pos;
+
       fCapPos = fCapRefPos + capSlopeOrig*Ke*cpPos;
      
       envelPosCap2(fyPos,alphaPos,capSlope,cpPos,dLimPos,fLimPos,ek,Ke,My_pos,KPos);
@@ -1104,20 +1097,20 @@ Bilin::setTrialStrain(double strain, double strainRate)
   }
  
   // c            Check the horizontal limit in case that dBound is reached after first neg slope
-  if ((d<0)&&(fabs(ek)<=1.0e-7)) {
+  if ((d<0) && (fabs(ek)<=1.0e-7)) {
     LN = 1;
   }
-  if ((d>0)&&(fabs(ek)<=1.0e-7)) {
+  if ((d>0) && (fabs(ek)<=1.0e-7)) {
     LP = 1;
   }
  
  
-  // c    Update envelope values --------------------------------------------    
+  //    Update envelope values --------------------------------------------    
  
   f1 = f;  
  
  
-  // c    Updating parameters for next cycle ---------------------------------
+  //    Updating parameters for next cycle ---------------------------------
   ekP = ek;
   fP = f;
   dP = d;
@@ -1130,116 +1123,116 @@ Bilin::setTrialStrain(double strain, double strainRate)
  
   return 0;
 }
+
 double
-Bilin::getStress(void)
+Bilin::getStress()
 {
-   return (fP);
+  return fP;
 }
 
 double
-Bilin::getTangent(void)
+Bilin::getTangent()
 {
-  return (Tangent);
+  return Tangent;
 }
 
 double
-Bilin::getInitialTangent(void)
+Bilin::getInitialTangent()
 {
-  return (Ke);         
+  return Ke;         
 }
 
 
-
-
 double
-Bilin::getStrain(void)
+Bilin::getStrain()
 {
-  return (U);
+  return U;
 }
 
 
 
 int
-Bilin::commitState(void)
+Bilin::commitState()
 {
   commitCalledOnce = 1;
   
   //commit trial  variables
-   CU=U;
-   CTangent=Tangent;
+  CU=U;
+  CTangent=Tangent;
 
-   CdNewLoadPos=dNewLoadPos;
-   CdNewLoadNeg=dNewLoadNeg;
-   Cflagdeg=flagdeg ;
-   Cflagstopdeg=flagstopdeg;
-   Cinterup=interup;  
-   Ckon=kon;
-   CiNoFneg=iNoFneg;
-   CiNoFpos=iNoFpos;
-   CLP=LP;  //fmk
-   CLN=LN;
-   CcapSlope=capSlope;
-   Cdmax=dmax;
-   Cdmin=dmin;
-   CEnrgtot=Enrgtot;
-   CEnrgc=Enrgc;
-   CfyPos=fyPos;
-   CfLimNeg=fLimNeg;
-   CfyNeg=fyNeg;
-   CekP=ekP;
-   Cekunload=ekunload;
-   Csp=sp;
-   Csn=sn;
-   CdP=dP;
-   CfP=fP;
-   Cek=ek;
-   CdLimPos=dLimPos;
-   CdLimNeg=dLimNeg;  
-   CcpPos=cpPos;
-   CcpNeg=cpNeg;
-   CfLimPos=fLimPos;
-   Cekexcurs=ekexcurs;
-   CRSE=RSE;
-   CfPeakPos=fPeakPos;
-   CfPeakNeg=fPeakNeg;
-   CalphaNeg=alphaNeg;
-   CalphaPos=alphaPos;
-   CekhardNeg=ekhardNeg;
-   CekhardPos=ekhardPos;
-   CfCapRefPos=fCapRefPos;
-   CfCapRefNeg=fCapRefNeg;
-   CEnrgts=Enrgts;
-   CEnrgtk=Enrgtk;
-   CEnrgtd=Enrgtd;
-   CdyPos=dyPos;
-   CdyNeg=dyNeg;
-   CresSnHor=resSnHor;
-   Cfmax=fmax;
-   Cfmin=fmin;
-   CresSp=resSp;
-   CresSn=resSn;
-   CfCapPos=fCapPos;
-   CfCapNeg=fCapNeg;
-   CsnHor=snHor;
-   CspHor=spHor;
-   CresSpHor=resSpHor;
-   CsnEnv=snEnv;
-   CresSnEnv=resSnEnv;
-   CspEnv=spEnv;
-   CresSpEnv=resSpEnv;
-   CcapSlopeOrig=capSlopeOrig;  
-   CcapSlopeNeg=capSlopeNeg;
-   CflagControlResponse=flagControlResponse;
-   CcapSlopeOrigNeg=capSlopeOrigNeg;
-   CcapSlopeNegMember=capSlopeNegMember; // Updated: Filipe Ribeiro and Andre Barbosa
-   CcapSlopeMember=capSlopeMember;// Updated: Filipe Ribeiro and Andre Barbosa
-   CKe=Ke;  // Updated: Filipe Ribeiro and Andre Barbosa
-   CprodBeta=prodBeta;	// Updated: Filipe Ribeiro and Andre Barbosa
-   return 0;
+  CdNewLoadPos=dNewLoadPos;
+  CdNewLoadNeg=dNewLoadNeg;
+  Cflagdeg=flagdeg ;
+  Cflagstopdeg=flagstopdeg;
+  Cinterup=interup;  
+  Ckon=kon;
+  CiNoFneg=iNoFneg;
+  CiNoFpos=iNoFpos;
+  CLP=LP;  //fmk
+  CLN=LN;
+  CcapSlope=capSlope;
+  Cdmax=dmax;
+  Cdmin=dmin;
+  CEnrgtot=Enrgtot;
+  CEnrgc=Enrgc;
+  CfyPos=fyPos;
+  CfLimNeg=fLimNeg;
+  CfyNeg=fyNeg;
+  CekP=ekP;
+  Cekunload=ekunload;
+  Csp=sp;
+  Csn=sn;
+  CdP=dP;
+  CfP=fP;
+  Cek=ek;
+  CdLimPos=dLimPos;
+  CdLimNeg=dLimNeg;  
+  CcpPos=cpPos;
+  CcpNeg=cpNeg;
+  CfLimPos=fLimPos;
+  Cekexcurs=ekexcurs;
+  CRSE=RSE;
+  CfPeakPos=fPeakPos;
+  CfPeakNeg=fPeakNeg;
+  CalphaNeg=alphaNeg;
+  CalphaPos=alphaPos;
+  CekhardNeg=ekhardNeg;
+  CekhardPos=ekhardPos;
+  CfCapRefPos=fCapRefPos;
+  CfCapRefNeg=fCapRefNeg;
+  CEnrgts=Enrgts;
+  CEnrgtk=Enrgtk;
+  CEnrgtd=Enrgtd;
+  CdyPos=dyPos;
+  CdyNeg=dyNeg;
+  CresSnHor=resSnHor;
+  Cfmax=fmax;
+  Cfmin=fmin;
+  CresSp=resSp;
+  CresSn=resSn;
+  CfCapPos=fCapPos;
+  CfCapNeg=fCapNeg;
+  CsnHor=snHor;
+  CspHor=spHor;
+  CresSpHor=resSpHor;
+  CsnEnv=snEnv;
+  CresSnEnv=resSnEnv;
+  CspEnv=spEnv;
+  CresSpEnv=resSpEnv;
+  CcapSlopeOrig=capSlopeOrig;  
+  CcapSlopeNeg=capSlopeNeg;
+  CflagControlResponse=flagControlResponse;
+  CcapSlopeOrigNeg=capSlopeOrigNeg;
+  CcapSlopeNegMember=capSlopeNegMember; // Updated: Filipe Ribeiro and Andre Barbosa
+  CcapSlopeMember=capSlopeMember;// Updated: Filipe Ribeiro and Andre Barbosa
+  CKe=Ke;  // Updated: Filipe Ribeiro and Andre Barbosa
+  CprodBeta=prodBeta;	// Updated: Filipe Ribeiro and Andre Barbosa
+  return 0;
 }
 
+
 int
-Bilin::revertToLastCommit(void)
+Bilin::revertToLastCommit()
 {
         //the opposite of commit trial history variables
    U=CU;
@@ -2061,27 +2054,26 @@ void Bilin::snCalc(void)
    }
    else
    {
-           resSn=resSnCap;
+      resSn=resSnCap;
    }
-        snEnv = sn;
-        resSnEnv = resSn;
-        if((LP==1)&&(fLimPos==0.0)) {
-                //call interPoint(snLim,resSnLim,dLimPos,fLimPos,0.d0,dP,fP,ekunload)
-        interPoint(snLim,resSnLim,dLimPos,fLimPos,0.0,dP,fP,ekunload);
-                if (snLim<sn){  
-                        sn=snLim;
-                        resSn=resSnLim;
-                }
+  snEnv = sn;
+  resSnEnv = resSn;
 
-     interPoint(snHor,resSnHor,dLimPos,fLimPos,0.0,dyPos,fyPos,Ke*alphaPos);           
-        }
+  if((LP==1) && (fLimPos==0.0)) {
+    interPoint(snLim,resSnLim,dLimPos,fLimPos,0.0,dP,fP,ekunload);
+    if (snLim<sn){  
+      sn=snLim;
+      resSn=resSnLim;
+    }
 
-        if (sn>dresid) {
-//              call interPoint(snResid,resSnResid,dresid,Resid,ekresid,dP,fP,ekunload)
-        interPoint(snResid,resSnResid,dresid,Resid,ekresid,dP,fP,ekunload);
-                sn = snResid;
-                resSn = resSnResid;
-        }
+    interPoint(snHor,resSnHor,dLimPos,fLimPos,0.0,dyPos,fyPos,Ke*alphaPos);           
+  }
+
+  if (sn>dresid) {
+    interPoint(snResid,resSnResid,dresid,Resid,ekresid,dP,fP,ekunload);
+    sn = snResid;
+    resSn = resSnResid;
+  }
 }
 
 
@@ -2090,66 +2082,68 @@ Bilin::envelPosCap2(double fy,double alphaPos,double alphaCap,double cpDsp,doubl
                                   double& f,double& ek,double elstk,double fyieldPos,double Resfac)
 {
 
-        double dy = fy/elstk;
+  double dy = fy/elstk;
 
-     double Res,rcap,dres;
-        if(dy<=cpDsp) {
-                Res = Resfac*fyieldPos;
-                rcap = fy+alphaPos*elstk*(cpDsp-dy);
-                dres = cpDsp+(Res-rcap)/(alphaCap*elstk);
+  double Res,rcap,dres;
+  if(dy<=cpDsp) {
+          Res = Resfac*fyieldPos;
+          rcap = fy+alphaPos*elstk*(cpDsp-dy);
+          dres = cpDsp+(Res-rcap)/(alphaCap*elstk);
 
-                if (d<0.0){
-                        f = 0.0;
-                        ek = 1.0e-7;
-                }else if (d<=dy) {
-                        ek = elstk;
-                        f = ek*d;
-                } else if(d<=cpDsp) {
-                        ek = elstk*alphaPos;
-                        f = fy+ek*(d-dy);
-                } else if(d<=dres) {
-                        ek = alphaCap*elstk;
-                        f = rcap+ek*(d-cpDsp);
-                } else {
-                        ek = 1.0e-7;
-                        f = Res+d*ek;
-                }
+    if (d<0.0){
+            f = 0.0;
+            ek = 1.0e-7;
+    } else if (d<=dy) {
+            ek = elstk;
+            f = ek*d;
+    } else if(d<=cpDsp) {
+            ek = elstk*alphaPos;
+            f = fy+ek*(d-dy);
+    } else if(d<=dres) {
+            ek = alphaCap*elstk;
+            f = rcap+ek*(d-cpDsp);
+    } else {
+            ek = 1.0e-7;
+            f = Res+d*ek;
+    }
 // c added by Dimitrios to account for fracture
-                if(d>=Thetau_pos) {
-                ek = 1.0e-7;
-                        f = 1.0e-10;
-                        d=Thetau_pos;
-            flagControlResponse=1;
-                }
-        } else if(dy>cpDsp) {
+    if(d>=Thetau_pos) {
+      ek = 1.0e-7;
+      f = 1.0e-10;
+      d=Thetau_pos;
+      flagControlResponse=1;
+    }
+  } 
+  else if(dy > cpDsp) {
 
-                rcap = elstk*cpDsp;
-                Res = Resfac*rcap;
-                dres = cpDsp+(Res-rcap)/(alphaCap*elstk);
+    rcap = elstk*cpDsp;
+    Res = Resfac*rcap;
+    dres = cpDsp+(Res-rcap)/(alphaCap*elstk);
 
-                if (d<0.0) {
-                        f = 0.0;
-                        ek = 1.0e-7;
-                } else if(d<=cpDsp) {
-                        ek = elstk;
-                        f = ek*d;
-                } else if(d<=dres) {
-                        ek = alphaCap*elstk;
-                        f = rcap+ek*(d-cpDsp);
-                } else {
-                        ek = 1.0e-7;
-                        f = Res+d*ek;
-                }
-// c added by Dimitrios to account for fracture
-                if(d>=Thetau_pos) {
-                ek = 1.0e-7;
-                        f = 1.0e-10;
-                        d=Thetau_pos;
-            flagControlResponse=1;  
-                }
-               
-        } else {
-        }
+    if (d<0.0) {
+            f = 0.0;
+            ek = 1.0e-7;
+    } else if(d<=cpDsp) {
+            ek = elstk;
+            f = ek*d;
+    } else if(d<=dres) {
+            ek = alphaCap*elstk;
+            f = rcap+ek*(d-cpDsp);
+    } else {
+            ek = 1.0e-7;
+            f = Res+d*ek;
+    }
+    // c added by Dimitrios to account for fracture
+    if(d>=Thetau_pos) {
+      ek = 1.0e-7;
+      f = 1.0e-10;
+      d=Thetau_pos;
+      flagControlResponse=1;  
+    }
+          
+  } 
+  else {
+  }
 }
 double
 Bilin::boundPos(void)
