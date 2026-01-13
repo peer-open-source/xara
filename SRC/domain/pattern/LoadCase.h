@@ -4,6 +4,7 @@
 #include <MapOfTaggedObjects.h>
 #include <SP_ConstraintIter.h>
 #include <ranges>
+#include <vector>
 
 // case <tag> {
 //   pattern <type> <tag> ...
