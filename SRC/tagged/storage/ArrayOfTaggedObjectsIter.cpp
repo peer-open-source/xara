@@ -51,14 +51,14 @@ ArrayOfTaggedObjectsIter::~ArrayOfTaggedObjectsIter()
 }    
 
 void
-ArrayOfTaggedObjectsIter::reset(void)
+ArrayOfTaggedObjectsIter::reset()
 {
-    currIndex = 0;
-    numDone = 0;
+  currIndex = 0;
+  numDone = 0;
 }
 
 TaggedObject *
-ArrayOfTaggedObjectsIter::operator()(void)
+ArrayOfTaggedObjectsIter::operator()()
 {
   // check if we still have elements in the model
   // if not return 0, indicating we are done
@@ -81,6 +81,3 @@ ArrayOfTaggedObjectsIter::operator()(void)
   }
   return (0);
 }
-
-    
-    
