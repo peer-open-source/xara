@@ -232,6 +232,7 @@ template <index_t nr, index_t nc, typename T> inline int
 MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 {
   static_assert(nr == nc, "Matrix must be square");
+  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
 
   int status = -1;
   if constexpr (nr == 2) {
@@ -284,7 +285,9 @@ template <index_t NR, index_t NC, typename T>
 int
 MatrixND<NR,NC,T>::solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept
 {
+  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
   static_assert(NR == NC);
+
   if constexpr (NR < 6) {
     MatrixND<NR,NC,T> Ainv;
     int status = this->invert(Ainv);
@@ -312,8 +315,10 @@ template<index_t n>
 int 
 MatrixND<NR,NC,T>::solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const noexcept
 {
+  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
   static_assert(NR == NC, "Matrix must be square.");
   static_assert(n == NR, "RHS row-count must match A.");
+
   if constexpr (NR < 6) {
     MatrixND<NR,NC,T> Ainv;
     int status = this->invert(Ainv);
@@ -394,6 +399,8 @@ MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A,
                                       const MatrixND<nk, nc>& B,
                                       double scale) noexcept
 {
+  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+
   if constexpr (nr*nk < BlasSize) {
     // want: this += A * B * scale
     const double *ckjPtr  = &B(0,0);
@@ -445,6 +452,8 @@ MatrixND<nr, nc, T>::setMatrixProduct(const MatrixND<nr, nk, T>& B,
   }
   else
   {
+    static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+  
     int m = nr,
         n = nc,
         k = nk;
@@ -473,6 +482,8 @@ MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A, const MatT& 
   }
   else
   {
+    static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+  
     int m = nr,
         n = nc,
         k = nk;
@@ -493,6 +504,8 @@ MatrixND<nr, nc, T>::addMatrixProduct(double scale_this,
                                       const MatrixND<nr, nk, T>& A, 
                                       const MatT& B, double scale)
 {
+  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+
   int m = nr,
       n = nc,
       k = nk;
