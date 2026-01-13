@@ -47,7 +47,6 @@
 #include <Pressure_ConstraintIter.h>
 #include <NodeIter.h>
 #include <Node.h>
-#include <LoadPatternIter.h>
 #include <LoadPattern.h>
 #include <elementAPI.h>
 #include "sparseGEN/PFEMLinSOE.h"

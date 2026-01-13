@@ -28,7 +28,6 @@
 // for sensitivity
 #include <Node.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Parameter.h>
 #include <ParameterIter.h>
 

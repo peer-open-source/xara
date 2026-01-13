@@ -40,7 +40,6 @@
 #include <NodeIter.h>
 #include <Domain.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <elementAPI.h>
 #include <fstream>
 #include <Parameter.h>

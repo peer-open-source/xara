@@ -42,7 +42,6 @@
 #include <Domain.h>
 #include <Node.h> // for sensitivity
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Parameter.h>
 #include <ParameterIter.h>//Abbas
 
