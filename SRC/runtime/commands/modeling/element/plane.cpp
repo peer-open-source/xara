@@ -122,13 +122,13 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
   if (argc < 6) {
     opserr << OpenSees::PromptValueError 
            << "insufficient arguments for element " << argv[1] 
-           << "\n";
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
            << "invalid element tag " << argv[2] 
-           << "\n";
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   int nen = -1;
