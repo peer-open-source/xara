@@ -33,8 +33,6 @@
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
-#include <DOF_GrpIter.h>
 
 TransientIntegrator::TransientIntegrator(int clasTag)
  : IncrementalIntegrator(clasTag)

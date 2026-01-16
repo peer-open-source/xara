@@ -19,12 +19,10 @@
 #include <stdexcept>
 #include <GS4.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <LinearSOE.h>
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 // #include <string.h>
 // for sensitivity

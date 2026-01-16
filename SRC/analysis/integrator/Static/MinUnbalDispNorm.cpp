@@ -31,7 +31,6 @@
 #include <Domain.h>
 #include <Node.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <ID.h>
 #include <stdlib.h>
 #include <FE_Element.h>
