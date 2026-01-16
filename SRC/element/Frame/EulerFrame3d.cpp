@@ -976,18 +976,18 @@ EulerFrame3d::getBasicForceGrad(int gradNumber)
     for (int j = 0; j < nsr; j++) {
       double sensi = ds[j]*wti;
       switch(scheme[j]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         dqdh(0) += sensi; 
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         dqdh(1) += (xi6-4.0)*sensi; 
         dqdh(2) += (xi6-2.0)*sensi; 
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         dqdh(3) += (xi6-4.0)*sensi;
         dqdh(4) += (xi6-2.0)*sensi;
         break;
-      case SECTION_RESPONSE_T:
+      case FrameStress::T:
         dqdh(5) += sensi; 
         break;
       default:
@@ -1072,18 +1072,18 @@ EulerFrame3d::commitSensitivity(int gradNumber, int numGrads)
     
     for (int j = 0; j < nsr; j++) {
       switch(scheme[j]) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         e[j] = jsx*dvdh(0) + d1oLdh*v(0); 
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         e[j] = jsx*((xi6-4.0)*dvdh(1) + (xi6-2.0)*dvdh(2))
              + d1oLdh*((xi6-4.0)*v(1) + (xi6-2.0)*v(2)); 
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         e[j] = jsx*((xi6-4.0)*dvdh(3) + (xi6-2.0)*dvdh(4))
              + d1oLdh*((xi6-4.0)*v(3) + (xi6-2.0)*v(4)); 
         break;
-      case SECTION_RESPONSE_T:
+      case FrameStress::T:
         e[j] = jsx*dvdh(5)
              + d1oLdh*v(5); 
         break;
