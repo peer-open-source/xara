@@ -35,6 +35,16 @@
 #endif
 #define strcmp strcasecmp
 
+// Maximum number of integration points. 
+// Large values can noticeably impact compile time.
+#ifdef _DEBUG
+ #define MAX_NIP 8
+#elif defined(XARA_RELEASE)
+ #define MAX_NIP 30
+#else
+ #define MAX_NIP 15
+#endif
+
 // Parsing
 #include <Logging.h>
 #include <Parsing.h>
@@ -303,8 +313,14 @@ CreateFrame(ModelRegistry& builder,
         else if ((strstr(name, "Force") != 0) ||
                 (strcmp(name, "MixedFrame") == 0)) {
           if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
+            if (sections.size() > MAX_NIP) {
+              opserr << OpenSees::PromptValueError 
+                     << "too many sections for ForceDeltaFrame3d: " << static_cast<int>(sections.size())
+                     << OpenSees::SignalMessageEnd;
+              return nullptr;
+            }
             if (!options.shear_flag)
-              static_loop<2,6>([&](auto nip) constexpr {
+              static_loop<2,MAX_NIP>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 4>(tag, nodes, sections,
                                                 beamIntegr, *tb, 
@@ -316,7 +332,7 @@ CreateFrame(ModelRegistry& builder,
                                                 );
               });
             else
-              static_loop<2,6>([&](auto nip) constexpr {
+              static_loop<2,MAX_NIP>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 6>(tag, nodes, sections,
                                                 beamIntegr, *tb, 
@@ -329,7 +345,7 @@ CreateFrame(ModelRegistry& builder,
               });
           } else {
             int ndf = builder.getNDF();
-            if (sections.size() > 30) {
+            if (sections.size() > MAX_NIP) {
               opserr << OpenSees::PromptValueError 
                      << "too many sections for ForceFrame3d: " << static_cast<int>(sections.size())
                      << OpenSees::SignalMessageEnd;
@@ -338,7 +354,7 @@ CreateFrame(ModelRegistry& builder,
             static_loop<0, 3>([&](auto nwm) constexpr {
               if (nwm.value + 6 == ndf) {
                 if (!options.shear_flag) {
-                  static_loop<2,30>([&](auto nip) constexpr {
+                  static_loop<2,MAX_NIP>([&](auto nip) constexpr {
                     if (nip.value == sections.size())
                       theElement = new ForceFrame3d<nip.value, 4+nwm.value*2, nwm.value, 0>(tag, 
                                                     nodes,
@@ -350,7 +366,7 @@ CreateFrame(ModelRegistry& builder,
                     });
                 }
                 else {
-                  static_loop<2,30>([&](auto nip) constexpr {
+                  static_loop<2,MAX_NIP>([&](auto nip) constexpr {
                     if (nip.value == sections.size())
                       theElement = new ForceFrame3d<nip.value, 6+nwm.value*2, nwm.value, 1>(tag, 
                                                     nodes,
