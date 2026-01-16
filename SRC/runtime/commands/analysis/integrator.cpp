@@ -22,6 +22,8 @@
 #include <Domain.h>
 #include <Node.h>
 #include "BasicAnalysisBuilder.h"
+#include <ArgumentTracker.h>
+#include <set>
 
 // integrators
 #include <LoadControl.h>
@@ -259,6 +261,18 @@ G3Parse_newHSIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, con
 int
 G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, const char *argv[])
 {
+  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
+  enum class Position: int {
+    StepSize,
+    EndRequired,
+    IterationTarget,
+    MinStepSize,
+    MaxStepSize,
+    End
+  };
+  ArgumentTracker<Position> tracker;
+  std::set<int> positional;
+
   double dLambda;
   double minIncr, maxIncr;
   int numIter;
@@ -267,25 +281,131 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
               "dlamMin dlamMax>\n";
     return TCL_ERROR;;
   }
-  if (Tcl_GetDouble(interp, argv[2], &dLambda) != TCL_OK)
-    return TCL_ERROR;;
-  if (argc > 5) {
-    if (Tcl_GetInt(interp, argv[3], &numIter) != TCL_OK)
-      return TCL_ERROR;;
-    if (Tcl_GetDouble(interp, argv[4], &minIncr) != TCL_OK)
-      return TCL_ERROR;;
-    if (Tcl_GetDouble(interp, argv[5], &maxIncr) != TCL_OK)
-      return TCL_ERROR;;
-  } else {
-    minIncr = dLambda;
-    maxIncr = dLambda;
-    numIter = 1;
+  for (int i=2; i<argc; ++i) {
+    if (strcmp(argv[i], "-step") == 0) {
+      if (i + 1 >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "parameter missing for -step"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      if (Tcl_GetDouble(interp, argv[i+1], &dLambda) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid -step value"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      i++;
+      tracker.consume(Position::StepSize);
+    }
+    else if (strcmp(argv[i], "-iter") == 0) {
+      if (i + 1 >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "parameter missing for -iter"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      if (Tcl_GetInt(interp, argv[i+1], &numIter) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid -iter value"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      i++;
+      tracker.consume(Position::IterationTarget);
+    }
+    else if (strcmp(argv[i], "-min_step") == 0) {
+      if (i + 1 >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "parameter missing for -min_step"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      if (Tcl_GetDouble(interp, argv[i+1], &minIncr) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid -min value"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      i++;
+      tracker.consume(Position::MinStepSize);
+    }
+    else if (strcmp(argv[i], "-max_step") == 0) {
+      if (i + 1 >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "parameter missing for -max_step"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      if (Tcl_GetDouble(interp, argv[i+1], &maxIncr) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid -max_step value"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      i++;
+      tracker.consume(Position::MaxStepSize);
+    }
+    else {
+      positional.insert(i);
+    }
   }
+
+  for (int i: positional) {
+    if (tracker.current() == Position::EndRequired)
+      tracker.increment();
+  
+    switch (tracker.current()) {
+    case Position::StepSize:
+      if (Tcl_GetDouble(interp, argv[i], &dLambda) != TCL_OK)
+        return TCL_ERROR;
+      break;
+    case Position::IterationTarget:
+      if (Tcl_GetInt(interp, argv[i], &numIter) != TCL_OK)
+        return TCL_ERROR;
+      break;
+    case Position::MinStepSize:
+      if (Tcl_GetDouble(interp, argv[i], &minIncr) != TCL_OK)
+        return TCL_ERROR;
+      break;
+    case Position::MaxStepSize:
+      if (Tcl_GetDouble(interp, argv[i], &maxIncr) != TCL_OK)
+        return TCL_ERROR;
+      break;
+    case Position::EndRequired:
+      // This shouldnt be reached; only here to silence compiler.
+      break;
+    case Position::End:
+      opserr << OpenSees::PromptValueError 
+             << "unexpected parameter: " << argv[i]
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    tracker.increment();
+  }
+  
+  if (tracker.current() < Position::EndRequired) {
+    opserr << OpenSees::PromptValueError 
+           << "missing required parameters for LoadControl integrator"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  if (tracker.contains(Position::MinStepSize))
+    minIncr = dLambda;
+  if (tracker.contains(Position::MaxStepSize))
+    maxIncr = dLambda;
+  if (tracker.contains(Position::IterationTarget))
+    numIter = 1;
+
 
   StaticIntegrator *theStaticIntegrator =
     new LoadControl(dLambda, numIter, minIncr, maxIncr);
 
-  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
   builder->set(*theStaticIntegrator);
   return TCL_OK;
