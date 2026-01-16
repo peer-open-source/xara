@@ -219,17 +219,17 @@ G3Parse_newHSIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, con
   if (argc < 3) {
     opserr << "WARNING integrator HSConstraint <arcLength> <psi_u> <psi_f> "
               "<u_ref> \n";
-    return TCL_ERROR;;
+    return TCL_ERROR;
   }
 
   if (argc >= 3 && Tcl_GetDouble(interp, argv[2], &arcLength) != TCL_OK)
-    return TCL_ERROR;;
+    return TCL_ERROR;
   if (argc >= 4 && Tcl_GetDouble(interp, argv[3], &psi_u) != TCL_OK)
-    return TCL_ERROR;;
+    return TCL_ERROR;
   if (argc >= 5 && Tcl_GetDouble(interp, argv[4], &psi_f) != TCL_OK)
-    return TCL_ERROR;;
+    return TCL_ERROR;
   if (argc == 6 && Tcl_GetDouble(interp, argv[5], &u_ref) != TCL_OK)
-    return TCL_ERROR;;
+    return TCL_ERROR;
 
   // Create the integrator
   StaticIntegrator* theStaticIntegrator = nullptr;
@@ -279,7 +279,7 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
   if (argc < 3) {
     opserr << "WARNING incorrect # args - integrator LoadControl dlam <Jd "
               "dlamMin dlamMax>\n";
-    return TCL_ERROR;;
+    return TCL_ERROR;
   }
   for (int i=2; i<argc; ++i) {
     if (strcmp(argv[i], "-step") == 0) {
