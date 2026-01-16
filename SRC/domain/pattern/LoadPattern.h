@@ -126,12 +126,12 @@ class LoadPattern : public TaggedObject, public MovableObject
     // storage objects for the loads and constraints
     TaggedObjectStorage  *theNodalLoads;
     TaggedObjectStorage  *theElementalLoads;
-    TaggedObjectStorage  *theSPs; 	  
+    TaggedObjectStorage  *theSPs;
 
     // iterator objects for the objects added to the storage objects
     NodalLoadIter       *theNodIter;
     ElementalLoadIter   *theEleIter;
-    SingleDomSP_Iter    *theSpIter;    
+    SingleDomSP_Iter    *theSpIter;
 //
 
     Vector *randomLoads;
