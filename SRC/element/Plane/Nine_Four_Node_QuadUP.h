@@ -16,9 +16,6 @@
 #ifndef NineFourNodeQuadUP_h
 #define NineFourNodeQuadUP_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <Element.h>
 #include <Matrix.h>
@@ -40,8 +37,7 @@ class NineFourNodeQuadUP : public Element
 
     NineFourNodeQuadUP();
     virtual ~NineFourNodeQuadUP();
-    const char *getClassType(void) const {return "NineFourNodeQuadUP";};
-    static constexpr const char* class_name = "NineFourNodeQuadUP";
+    const char *getClassType(void) const {return "NineFourNodeQuadUP";}
     int getNumExternalNodes(void) const;
     const ID &getExternalNodes(void);
     Node **getNodePtrs(void);
@@ -68,10 +64,8 @@ class NineFourNodeQuadUP : public Element
     const Vector &getResistingForceIncInertia(void);
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
-		  &theBroker);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     void Print(OPS_Stream &, int flag) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);

@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <FrictionModel.h>
@@ -798,40 +797,6 @@ int SingleFPSimple3d::recvSelf(int commitTag, Channel &rChannel,
     return 0;
 }
 
-
-int SingleFPSimple3d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    int errCode = 0;
-
-    // get coordinates
-    const Vector& end1Crd = theNodes[0]->getCrds();
-    const Vector& end2Crd = theNodes[1]->getCrds();
-    Vector xp = end2Crd - end1Crd;
-
-    // get displaced coordinates for ends
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    // get displacement vector for rotation
-    static Vector r2(6);
-    theNodes[1]->getDisplayRots(r2, fact, displayMode);
-
-    // calculate coordinates of intermediate point
-    for (int i = 0; i < 2; i++) {
-        v3(0) = v1(0) + v2(0) - end2Crd(0) + xp(1) * r2(2) - xp(2) * r2(1);
-        v3(1) = v1(1) + v2(1) - end2Crd(1) - xp(0) * r2(2) + xp(2) * r2(0);
-        v3(2) = v1(2) + v2(2) - end2Crd(2) + xp(0) * r2(1) - xp(1) * r2(0);
-    }
-
-    errCode += theViewer.drawLine(v1, v3, 1.0, 1.0, this->getTag(), 0);
-    errCode += theViewer.drawLine(v3, v2, 1.0, 1.0, this->getTag(), 0);
-
-    return errCode;
-}
 
 
 void SingleFPSimple3d::Print(OPS_Stream &s, int flag)
