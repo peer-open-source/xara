@@ -38,22 +38,5 @@
 class DOF_Group;
 class TaggedObjectStorage;
 class TaggedObjectIter;
-#if 0
-class DOF_GrpIter 
-{
-  public:
-    DOF_GrpIter();
-    DOF_GrpIter(TaggedObjectStorage *);
-    virtual ~DOF_GrpIter();
-
-    virtual void reset(void);    
-    virtual DOF_Group *operator()(void);
-
-  protected:
-    
-  private:
-    TaggedObjectIter *myIter;
-};
-#endif
 #endif
 
