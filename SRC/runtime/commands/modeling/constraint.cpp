@@ -580,100 +580,17 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  // Parse DOF list argument. This is a Tcl list in one argv slot:
-  // {d1 d2 ...}
-  Tcl_Size listSize = 0;
-  const char **listDOF = nullptr;
-  if (Tcl_SplitList(interp, argv[argi + 2], &listSize, &listDOF) != TCL_OK) {
-    opserr << OpenSees::PromptValueError
-           << "invalid dof list: " << argv[argi + 2]
-           << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  if (listSize <= 0) {
-    Tcl_Free((char*)listDOF);
-    opserr << OpenSees::PromptValueError
-           << "empty dof list"
-           << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-
-  const int numDOF = static_cast<int>(listSize);
+  const int numDOF = builder->getNDF();
 
   // Prepare IDs and store 0-based indices of requested DOFs
   ID rDOF(numDOF);
   ID cDOF(numDOF);
-  std::vector<int> dofIdx(numDOF, -1);
 
- 
-  
-  // Check that nodes have valid spatial dimension
-  int dim = theRetainedNode->getCrds().Size();
-  if (dim < 1) {
-    Tcl_Free((char*)listDOF);
-    opserr << OpenSees::PromptValueError
-          << "node coordinate dimension is invalid"
-          << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
-  // Ensure both nodes have the same dimension
-  if (dim != theConstrainedNode->getCrds().Size()) {
-    Tcl_Free((char*)listDOF);
-    opserr << OpenSees::PromptValueError
-          << "retained and constrained node coordinate dimensions do not match"
-          << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
+  for (int i=0; i<numDOF; ++i) {
+    cDOF(i)   = i;
+    rDOF(i)   = i;
   }
 
-  // Parse and validate DOF indices
-  for (int i = 0; i < numDOF; ++i) {
-    int dof1 = 0;
-    if (Tcl_GetInt(interp, listDOF[i], &dof1) != TCL_OK) {
-      Tcl_Free((char*)listDOF);
-      opserr << OpenSees::PromptValueError
-             << "invalid dof value: " << listDOF[i]
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-    if (dof1 <= 0) {
-      Tcl_Free((char*)listDOF);
-      opserr << OpenSees::PromptValueError
-             << "dof values must be >= 1, got: " << dof1
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-
-    // Convert to 0-based index
-    const int d = dof1 - 1; // 0-based
-
-    // Translation DOFs should live in [0, dim-1]
-    if (d < 0 || d >= dim) {
-      Tcl_Free((char*)listDOF);
-      opserr << OpenSees::PromptValueError
-             << "Translation constraint DOF out of range for node dimension. "
-             << "Got dof=" << dof1 
-             << " but node dimension is " << dim
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-
-    // Check duplicates
-    for (int k = 0; k < i; ++k) {
-      if (dofIdx[k] == d) {
-        Tcl_Free((char*)listDOF);
-        opserr << OpenSees::PromptValueError
-               << "duplicate dof in list: " << dof1
-               << OpenSees::SignalMessageEnd;
-        return TCL_ERROR;
-      }
-    }
-
-    dofIdx[i] = d;
-    cDOF(i)   = d;
-    rDOF(i)   = d;
-  }
-
-  Tcl_Free((char*)listDOF);
 
   //
   // Parse optional -rotate {v1 v2 v3}
@@ -681,7 +598,7 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
   bool doRotate = false;
   Vector3D v{}; // rotation vector
 
-  for (Tcl_Size a = argi + 3; a < argc; ++a) {
+  for (Tcl_Size a = argi + 2; a < argc; ++a) {
     if (strcmp(argv[a], "-rotate") == 0) {
       if (a + 1 >= argc) {
         opserr << OpenSees::PromptValueError
@@ -748,19 +665,25 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
     // Compute 3x3 rotation R = Exp(v) using Rodrigues’ formula
     Matrix3D R = ExpSO3(v);
 
-    opserr << "R = " << Matrix(R);
-
-    // Fill submatrix of R corresponding to requested DOFs
-    for (int i = 0; i < numDOF; ++i) {
-      const int ii = dofIdx[i]; // 0..(dim-1)
-      for (int j = 0; j < numDOF; ++j) {
-        const int jj = dofIdx[j];
-        Ccr(i, j) = R(ii, jj);
+    switch (builder->getNDM()) {
+      case 3: {
+        // Map R into the 6x6 Ccr for 3D problems
+        for (int i = 0; i < 3; ++i)
+          for (int j = 0; j < 3; ++j)
+            Ccr(i, j) = R(i, j);
+        for (int i = 3; i < 6; ++i)
+          for (int j = 3; j < 6; ++j)
+            Ccr(i, j) = R(i - 3, j - 3);
+        break;
+      }
+      default: {
+        opserr << OpenSees::PromptValueError
+               << "constrain command - rotation only implemented for 3D problems"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
       }
     }
   }
-
-  opserr << "Ccr = " << Ccr;
 
   // Create and add MP (multi-point) constraint
   MP_Constraint *theMP = new MP_Constraint(RnodeID, CnodeID, Ccr, cDOF, rDOF);
