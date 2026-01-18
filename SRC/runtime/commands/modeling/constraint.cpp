@@ -22,6 +22,7 @@
 #include <Logging.h>
 #include <ModelRegistry.h>
 #include <vector>
+#include <GroupSO3.h>
 
 #include <runtimeAPI.h>
 #include <Vector3D.h>
@@ -531,11 +532,11 @@ int
 TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
                      Tcl_Size argc, TCL_Char ** const argv)
 {
+  assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
-  Domain *theDomain = (builder != nullptr) ? builder->getDomain() : nullptr;
+  Domain *domain = builder->getDomain();
 
   // Usage:
-  //   constrain Translation Rnode Cnode {d1 d2 ...} <-rotate {v1 v2 v3}>
   //   constrain Rnode Cnode {d1 d2 ...} <-rotate {v1 v2 v3}>
   //
   // where v is a rotation vector (axis * angle in radians), R = Exp(Hat(v)),
@@ -543,14 +544,7 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
 
   Tcl_Size argi = 1;
 
-  // Optional keyword "Translation"
-  if (argc > argi &&
-      (std::strcmp(argv[argi], "Translation") == 0 ||
-       std::strcmp(argv[argi], "translation") == 0)) {
-    ++argi;
-  }
-
-  if (argc - argi < 3) {
+  if (argc < 3) {
     opserr << OpenSees::PromptValueError
            << "insufficient arguments.\n"
            << "Usage: constrain Translation Rnode Cnode {d1 d2 ...} <-rotate {v1 v2 v3}>"
@@ -558,8 +552,10 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
+  //
+  // Read tags for the retained and constrained nodes
+  //
   int RnodeID = 0, CnodeID = 0;
-
   if (Tcl_GetInt(interp, argv[argi + 0], &RnodeID) != TCL_OK) {
     opserr << OpenSees::PromptValueError
            << "invalid RnodeID: " << argv[argi + 0]
@@ -574,8 +570,8 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  Node *theRetainedNode    = theDomain->getNode(RnodeID);
-  Node *theConstrainedNode = theDomain->getNode(CnodeID);
+  Node *theRetainedNode    = domain->getNode(RnodeID);
+  Node *theConstrainedNode = domain->getNode(CnodeID);
   if (theRetainedNode == nullptr || theConstrainedNode == nullptr) {
     opserr << OpenSees::PromptValueError
            << "Retained or Constrained node does not exist in the Domain: "
@@ -584,7 +580,8 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  // Parse DOF list argument (a Tcl list in one argv slot)
+  // Parse DOF list argument. This is a Tcl list in one argv slot:
+  // {d1 d2 ...}
   Tcl_Size listSize = 0;
   const char **listDOF = nullptr;
   if (Tcl_SplitList(interp, argv[argi + 2], &listSize, &listDOF) != TCL_OK) {
@@ -608,20 +605,27 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
   ID cDOF(numDOF);
   std::vector<int> dofIdx(numDOF, -1);
 
-  // For a "Translation" constraint, we strongly prefer DOFs to be within the
-  // coordinate dimension (2D -> {1,2}, 3D -> {1,2,3}).
-  const int dimR = theRetainedNode->getCrds().Size();
-  const int dimC = theConstrainedNode->getCrds().Size();
-  const int dim  = (dimR < dimC) ? dimR : dimC;
-
+ 
+  
+  // Check that nodes have valid spatial dimension
+  int dim = theRetainedNode->getCrds().Size();
   if (dim < 1) {
     Tcl_Free((char*)listDOF);
     opserr << OpenSees::PromptValueError
-           << "node coordinate dimension is invalid"
-           << OpenSees::SignalMessageEnd;
+          << "node coordinate dimension is invalid"
+          << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+  // Ensure both nodes have the same dimension
+  if (dim != theConstrainedNode->getCrds().Size()) {
+    Tcl_Free((char*)listDOF);
+    opserr << OpenSees::PromptValueError
+          << "retained and constrained node coordinate dimensions do not match"
+          << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
+  // Parse and validate DOF indices
   for (int i = 0; i < numDOF; ++i) {
     int dof1 = 0;
     if (Tcl_GetInt(interp, listDOF[i], &dof1) != TCL_OK) {
@@ -639,6 +643,7 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
 
+    // Convert to 0-based index
     const int d = dof1 - 1; // 0-based
 
     // Translation DOFs should live in [0, dim-1]
@@ -646,7 +651,8 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
       Tcl_Free((char*)listDOF);
       opserr << OpenSees::PromptValueError
              << "Translation constraint DOF out of range for node dimension. "
-             << "Got dof=" << dof1 << " but node dimension is " << dim
+             << "Got dof=" << dof1 
+             << " but node dimension is " << dim
              << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
@@ -669,12 +675,14 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
 
   Tcl_Free((char*)listDOF);
 
+  //
   // Parse optional -rotate {v1 v2 v3}
+  //
   bool doRotate = false;
-  double vx = 0.0, vy = 0.0, vz = 0.0;
+  Vector3D v{}; // rotation vector
 
   for (Tcl_Size a = argi + 3; a < argc; ++a) {
-    if (strcmp(argv[a], "-rotate") == 0 || strcmp(argv[a], "-rot") == 0) {
+    if (strcmp(argv[a], "-rotate") == 0) {
       if (a + 1 >= argc) {
         opserr << OpenSees::PromptValueError
                << "missing vector after -rotate"
@@ -690,7 +698,7 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
       const char **vec = nullptr;
       if (Tcl_SplitList(interp, argv[a + 1], &nvec, &vec) != TCL_OK) {
         opserr << OpenSees::PromptValueError
-               << "invalid -rotate vector list: " << argv[a + 1]
+               << "invalid rotate vector list: " << argv[a + 1]
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
@@ -703,12 +711,12 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
         return TCL_ERROR;
       }
 
-      if (Tcl_GetDouble(interp, vec[0], &vx) != TCL_OK ||
-          Tcl_GetDouble(interp, vec[1], &vy) != TCL_OK ||
-          Tcl_GetDouble(interp, vec[2], &vz) != TCL_OK) {
+      if (Tcl_GetDouble(interp, vec[0], &v[0]) != TCL_OK ||
+          Tcl_GetDouble(interp, vec[1], &v[1]) != TCL_OK ||
+          Tcl_GetDouble(interp, vec[2], &v[2]) != TCL_OK) {
         Tcl_Free((char*)vec);
         opserr << OpenSees::PromptValueError
-               << "invalid -rotate vector components: " << argv[a + 1]
+               << "invalid rotate vector components: " << argv[a + 1]
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
@@ -716,7 +724,8 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
       Tcl_Free((char*)vec);
       doRotate = true;
       ++a; // skip the vector argument
-    } else {
+    }
+    else {
       opserr << OpenSees::PromptValueError
              << "unknown option: " << argv[a]
              << OpenSees::SignalMessageEnd;
@@ -724,7 +733,9 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
+  //
   // Build constraint matrix Ccr such that Uc = Ccr * Ur
+  //
   Matrix Ccr(numDOF, numDOF);
   Ccr.Zero();
 
@@ -732,60 +743,29 @@ TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
     // Identity -> equalDOF behavior on the selected DOFs
     for (int i = 0; i < numDOF; ++i)
       Ccr(i, i) = 1.0;
-  } else {
+  }
+  else {
+    // Compute 3x3 rotation R = Exp(v) using Rodrigues’ formula
+    Matrix3D R = ExpSO3(v);
 
-    // For 2D models, reject rotation vectors with x or y components
-    if (dim == 2 && (std::fabs(vx) > 1e-14 || std::fabs(vy) > 1e-14)) {
-      opserr << OpenSees::PromptValueError
-             << "2D Translation constraint only supports rotation about global Z. "
-             << "Use -rotate {0 0 theta} (theta in radians)."
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-
-    // Compute 3x3 rotation R = Exp(Hat(v)) using Rodrigues’ formula
-    double R[3][3];
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-        R[i][j] = (i == j) ? 1.0 : 0.0;
-
-    const double theta = std::sqrt(vx*vx + vy*vy + vz*vz);
-    if (theta > 1e-14) {
-      const double kx = vx / theta;
-      const double ky = vy / theta;
-      const double kz = vz / theta;
-
-      const double st = std::sin(theta);
-      const double ct = std::cos(theta);
-      const double omc = 1.0 - ct;
-
-      R[0][0] = ct + kx*kx*omc;
-      R[0][1] = kx*ky*omc - kz*st;
-      R[0][2] = kx*kz*omc + ky*st;
-
-      R[1][0] = ky*kx*omc + kz*st;
-      R[1][1] = ct + ky*ky*omc;
-      R[1][2] = ky*kz*omc - kx*st;
-
-      R[2][0] = kz*kx*omc - ky*st;
-      R[2][1] = kz*ky*omc + kx*st;
-      R[2][2] = ct + kz*kz*omc;
-    }
+    opserr << "R = " << Matrix(R);
 
     // Fill submatrix of R corresponding to requested DOFs
     for (int i = 0; i < numDOF; ++i) {
       const int ii = dofIdx[i]; // 0..(dim-1)
       for (int j = 0; j < numDOF; ++j) {
         const int jj = dofIdx[j];
-        Ccr(i, j) = R[ii][jj];
+        Ccr(i, j) = R(ii, jj);
       }
     }
   }
 
-  // Create and add MP constraint
+  opserr << "Ccr = " << Ccr;
+
+  // Create and add MP (multi-point) constraint
   MP_Constraint *theMP = new MP_Constraint(RnodeID, CnodeID, Ccr, cDOF, rDOF);
 
-  if (theDomain->addMP_Constraint(theMP) == false) {
+  if (domain->addMP_Constraint(theMP) == false) {
     opserr << OpenSees::PromptValueError
            << "could not add MP_Constraint to domain"
            << OpenSees::SignalMessageEnd;
