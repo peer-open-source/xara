@@ -48,8 +48,8 @@ TclCommand_addGroundMotion(ClientData clientData, Tcl_Interp *interp,
                            int argc, TCL_Char ** const argv)
 
 {
-  MultiSupportPattern* pattern = 
-    (MultiSupportPattern *)Tcl_GetAssocData(interp,"theTclMultiSupportPattern", NULL);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  MultiSupportPattern* pattern = builder->getCurrentPattern<MultiSupportPattern>();
 
   if (pattern == nullptr) {
     opserr << "ERROR no multi-support pattern\n";

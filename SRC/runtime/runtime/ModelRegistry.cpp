@@ -36,6 +36,7 @@
 
 #include <Parsing.h> // For TCL_OK/ERROR
 
+using OpenSees::LoadCase;
 
 ModelRegistry::ModelRegistry(Domain &domain,
                              int NDM, int NDF)
@@ -125,18 +126,6 @@ ModelRegistry::addSP_Constraint(int axisDirn, double axisValue, const ID &fixity
   return theDomain->addSP_Constraint(axisDirn, axisValue, fixityCodes, tol);
 }
 
-LoadPattern *
-ModelRegistry::getEnclosingPattern()
-{
-  return tclEnclosingPattern;
-}
-
-int
-ModelRegistry::setEnclosingPattern(LoadPattern* pat)
-{
-  tclEnclosingPattern = pat;
-  return 1;
-}
 
 int
 ModelRegistry::getCurrentSectionBuilder(int& tag)

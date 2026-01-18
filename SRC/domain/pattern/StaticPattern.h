@@ -1,3 +1,15 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once 
 #include <LoadPattern.h>
 
@@ -27,27 +39,34 @@ class StaticPattern : public LoadPattern
 #if 0
     LoadPattern *getCopy() override;
     bool addSP_Constraint(SP_Constraint *) final;
+    SP_ConstraintIter &getSPs() final;
+    SP_Constraint *removeSP_Constraint(int tag) final;
+private:
+    TaggedObjectStorage  *theSPs; 	  
+
+#endif
+#if 0
     bool addNodalLoad(NodalLoad *) final;
     bool addElementalLoad(ElementalLoad *) final;
     NodalLoadIter     &getNodalLoads() final;
-    ElementalLoadIter &getElementalLoads() final;    
-    SP_ConstraintIter &getSPs() final;
+    ElementalLoadIter &getElementalLoads() final;
+
     // methods to remove loads
     NodalLoad *removeNodalLoad(int tag) final;
     ElementalLoad *removeElementalLoad(int tag) final;
-    SP_Constraint *removeSP_Constraint(int tag) final;
     void clearAll();
 #endif
 private:
-#if 0
     // storage objects for the loads and constraints
     TaggedObjectStorage  *theNodalLoads;
     TaggedObjectStorage  *theElementalLoads;
-    TaggedObjectStorage  *theSPs; 	  
+    TaggedObjectStorage  *theSPs;
 
     // iterator objects for the objects added to the storage objects
     NodalLoadIter       *theNodIter;
     ElementalLoadIter   *theEleIter;
     SingleDomSP_Iter    *theSpIter;
-#endif
+
+    int	   currentGeoTag;
+    int    lastGeoSendTag;
 };
