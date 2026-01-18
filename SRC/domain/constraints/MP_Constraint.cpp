@@ -58,12 +58,7 @@ MP_Constraint::MP_Constraint(int nodeRetain, int nodeConstr,
   numMPs++;
   
   constrDOF = new ID(constrainedDOF);
-  retainDOF = new ID(retainedDOF);    
-  if (constrDOF == 0 || constrainedDOF.Size() != constrDOF->Size() ||
-      retainDOF == 0 || retainedDOF.Size() != retainDOF->Size()) { 
-    opserr << "MP_Constraint::MP_Constraint - ran out of memory 1\n";
-    exit(-1);
-  }    
+  retainDOF = new ID(retainedDOF);
 
   // resize initial state
   Uc0.resize(constrDOF->Size());
