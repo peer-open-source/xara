@@ -27,7 +27,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -1018,58 +1017,6 @@ N4BiaxialTruss::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &t
 	return 0;
 }
 
-
-int
-N4BiaxialTruss::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	// ensure setDomain() worked
-	if (L == 0.0)
-	return 0;
-
-	// get display coordinates
-	static Vector v1(3);
-	static Vector v2(3);
-	static Vector v3(3);
-	static Vector v4(3);
-	theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-	theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-	theNodes[2]->getDisplayCrds(v3, fact, displayMode);
-	theNodes[3]->getDisplayCrds(v4, fact, displayMode);
-
-	// determine color and draw lines
-	int retVal = 0;
-	if (displayMode == 1 || displayMode == 2) {
-		// compute the strain and axial force in the member
-		double force1, force2;
-		if (L == 0.0) {
-			strain_1 = 0.0;
-			strain_2 = 0.0;
-			force1 = 0.0;
-			force2 = 0.0;
-		}
-		else {
-			this->computeCurrentStrainBiaxial();
-			theMaterial_1->setTrialStrain(strain_1);
-			theMaterial_2->setTrialStrain(strain_2);
-			force1 = A * theMaterial_1->getStress();
-			force2 = A * theMaterial_2->getStress();
-		}
-		if (displayMode == 2) {// use the strain as the drawing measure
-			retVal += theViewer.drawLine(v1, v2, (float)strain_1, (float)strain_1);
-			retVal += theViewer.drawLine(v3, v4, (float)strain_2, (float)strain_2);
-		}
-		else { // otherwise use the axial force as measure
-			retVal += theViewer.drawLine(v1, v2, (float)force1, (float)force1);
-			retVal += theViewer.drawLine(v3, v4, (float)force2, (float)force2);
-		}
-
-	}
-	else {
-		retVal += theViewer.drawLine(v1, v2, 1.0, 1.0);
-		retVal += theViewer.drawLine(v3, v4, 1.0, 1.0);
-	}
-	return retVal;
-}
 
 void
 N4BiaxialTruss::Print(OPS_Stream &s, int flag)

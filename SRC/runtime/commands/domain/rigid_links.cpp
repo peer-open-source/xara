@@ -53,7 +53,7 @@ createLinearRigidBeam(Domain &theDomain, int ret_tag, int con_tag)
   }
 
   Node *nodeC = theDomain.getNode(con_tag);
-  if (nodeR == nullptr) {
+  if (nodeC == nullptr) {
     opserr << OpenSees::PromptValueError 
             << "constrained node " <<  con_tag <<  " not in domain\n";
     return CONSTRAINT_ERROR;
@@ -109,7 +109,7 @@ createLinearRigidBeam(Domain &theDomain, int ret_tag, int con_tag)
       mat(0,2) = -deltaY;
       mat(1,2) = deltaX;
 
-          } else if (dimR == 3 && numDOF == 6) {
+    } else if (dimR == 3 && numDOF == 6) {
       double deltaX = crdC(0) - crdR(0);
       double deltaY = crdC(1) - crdR(1);	    
       double deltaZ = crdC(2) - crdR(2);
