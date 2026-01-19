@@ -1227,31 +1227,31 @@ MixedFrame3d::getSectionTangent(int sec, int type, MatrixND<NDM_SECTION, NDM_SEC
   for (int i = 0; i < order; i++) {
     for (int j = 0; j < order; j++) {
       switch (code(i)) {
-      case SECTION_RESPONSE_P:
+      case FrameStress::N:
         switch (code(j)) {
-        case SECTION_RESPONSE_P:  kSection(0, 0) = sectionTangent(i, j); break;
-        case SECTION_RESPONSE_MZ: kSection(0, 1) = sectionTangent(i, j); break;
-        case SECTION_RESPONSE_MY: kSection(0, 2) = sectionTangent(i, j); break;
+        case FrameStress::N:  kSection(0, 0) = sectionTangent(i, j); break;
+        case FrameStress::Mz: kSection(0, 1) = sectionTangent(i, j); break;
+        case FrameStress::My: kSection(0, 2) = sectionTangent(i, j); break;
         default:                  break;
         }
         break;
-      case SECTION_RESPONSE_MZ:
+      case FrameStress::Mz:
         switch (code(j)) {
-        case SECTION_RESPONSE_P:  kSection(1, 0) = sectionTangent(i, j); break;
-        case SECTION_RESPONSE_MZ: kSection(1, 1) = sectionTangent(i, j); break;
-        case SECTION_RESPONSE_MY: kSection(1, 2) = sectionTangent(i, j); break;
+        case FrameStress::N:  kSection(1, 0) = sectionTangent(i, j); break;
+        case FrameStress::Mz: kSection(1, 1) = sectionTangent(i, j); break;
+        case FrameStress::My: kSection(1, 2) = sectionTangent(i, j); break;
         default:                  break;
         }
         break;
-      case SECTION_RESPONSE_MY:
+      case FrameStress::My:
         switch (code(j)) {
-        case SECTION_RESPONSE_P:  kSection(2, 0) = sectionTangent(i, j); break;
-        case SECTION_RESPONSE_MZ: kSection(2, 1) = sectionTangent(i, j); break;
-        case SECTION_RESPONSE_MY: kSection(2, 2) = sectionTangent(i, j); break;
+        case FrameStress::N:  kSection(2, 0) = sectionTangent(i, j); break;
+        case FrameStress::Mz: kSection(2, 1) = sectionTangent(i, j); break;
+        case FrameStress::My: kSection(2, 2) = sectionTangent(i, j); break;
         default:                  break;
         }
         break;
-      case SECTION_RESPONSE_T: GJ = sectionTangent(i, i); break;
+      case FrameStress::T: GJ = sectionTangent(i, i); break;
       default:                 break;
       }
     }
@@ -1272,10 +1272,10 @@ MixedFrame3d::setSectionDeformation(int sec, Vector& defSection, double& twist)
   // Set Components of Section Deformations
   for (int j = 0; j < order; j++) {
     switch (code(j)) {
-    case SECTION_RESPONSE_P:  sectionDeformation(j) = defSection(0); break;
-    case SECTION_RESPONSE_MZ: sectionDeformation(j) = defSection(1); break;
-    case SECTION_RESPONSE_MY: sectionDeformation(j) = defSection(2); break;
-    case SECTION_RESPONSE_T:  sectionDeformation(j) = twist; break;
+    case FrameStress::N:  sectionDeformation(j) = defSection(0); break;
+    case FrameStress::Mz: sectionDeformation(j) = defSection(1); break;
+    case FrameStress::My: sectionDeformation(j) = defSection(2); break;
+    case FrameStress::T:  sectionDeformation(j) = twist; break;
     default:                  break;
     }
   }
@@ -1625,9 +1625,9 @@ MixedFrame3d::getResponse(int responseID, Information& info)
       const Vector& e = sections[i]->getSectionDeformation();
       int order       = sections[i]->getOrder();
       for (int j = 0; j < order; j++) {
-        if (code(j) == SECTION_RESPONSE_MZ)
+        if (code(j) == FrameStress::Mz)
           kappaz[i] += e(j);
-        if (code(j) == SECTION_RESPONSE_MY)
+        if (code(j) == FrameStress::My)
           kappay[i] += e(j);
       }
     }
