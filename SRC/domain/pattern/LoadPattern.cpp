@@ -229,19 +229,22 @@ LoadPattern::addSP_Constraint(SP_Constraint *theSp)
   return result;
 }
 
-NodalLoadIter &LoadPattern::getNodalLoads()
+NodalLoadIter &
+LoadPattern::getNodalLoads()
 {
   theNodIter->reset();
   return *theNodIter;
 }
 
-ElementalLoadIter &LoadPattern::getElementalLoads()
+ElementalLoadIter &
+LoadPattern::getElementalLoads()
 {
   theEleIter->reset();
   return *theEleIter;
 }
 
-SP_ConstraintIter &LoadPattern::getSPs()
+SP_ConstraintIter &
+LoadPattern::getSPs()
 {
   theSpIter->reset();
   return *theSpIter;
