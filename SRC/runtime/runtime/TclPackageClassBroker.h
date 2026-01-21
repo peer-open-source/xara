@@ -27,9 +27,6 @@ public:
 
   Actor *getNewActor(int classTag, Channel *theChannel);
 
-  PartitionedModelBuilder *getPtrNewPartitionedModelBuilder(Subdomain &theSub,
-                                                            int classTag);
-
   GraphNumberer *getPtrNewGraphNumberer(int classTag);
 
   // methods to get new modelling class objects
@@ -86,7 +83,7 @@ public:
   DomainSolver *getNewDomainSolver(void);
 
   DomainDecompositionAnalysis *getNewDomainDecompAnalysis(int classTag,
-                                                          Subdomain &theDomain);
+                                                          Subdomain &);
 
   Subdomain *getSubdomainPtr(int classTag);
 
