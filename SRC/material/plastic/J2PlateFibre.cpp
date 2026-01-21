@@ -80,9 +80,9 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2PlateFibreMaterial)
 }
 
 J2PlateFibre::J2PlateFibre
-(int tag, double e, double g, double sy, double hi, double hk):
+(int tag, double e, double v, double sy, double hi, double hk):
   NDMaterial(tag, ND_TAG_J2PlateFibre),
-  E(e), nu(g), sigmaY(sy), Hiso(hi), Hkin(hk),
+  E(e), nu(v), sigmaY(sy), Hiso(hi), Hkin(hk),
   parameterID(0), SHVs(0), Tepsilon(5), dg_n1(0.0)
 {
   epsPn[0] = 0.0;
@@ -491,7 +491,7 @@ J2PlateFibre::commitState()
 }
 
 int
-J2PlateFibre::revertToLastCommit (void)
+J2PlateFibre::revertToLastCommit()
 {
   epsPn1[0] = epsPn[0];
   epsPn1[1] = epsPn[1];
