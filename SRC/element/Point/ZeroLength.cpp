@@ -1251,50 +1251,50 @@ ZeroLength::setUp( int Nd1, int Nd2,
 		   const Vector &x,
 		   const Vector &yp )
 { 
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)
-      opserr << "FATAL ZeroLength::setUp - failed to create an ID of correct size\n";
-    
-    connectedExternalNodes(0) = Nd1;
-    connectedExternalNodes(1) = Nd2;
+  // ensure the connectedExternalNode ID is of correct size & set values
+  if (connectedExternalNodes.Size() != 2)
+    opserr << "FATAL ZeroLength::setUp - failed to create an ID of correct size\n";
+  
+  connectedExternalNodes(0) = Nd1;
+  connectedExternalNodes(1) = Nd2;
 
 	int i;
-    for (i=0; i<2; i++)
-      theNodes[i] = 0;
+  for (i=0; i<2; i++)
+    theNodes[i] = 0;
 
-    // check that vectors for orientation are correct size
-    if ( x.Size() != 3 || yp.Size() != 3 )
-	opserr << "FATAL ZeroLength::setUp - incorrect dimension of orientation vectors\n";
+  // check that vectors for orientation are correct size
+  if ( x.Size() != 3 || yp.Size() != 3 )
+    opserr << "FATAL ZeroLength::setUp - incorrect dimension of orientation vectors\n";
 
-    // establish orientation of element for the transformation matrix
-    // z = x cross yp
-    Vector z(3);
-    z(0) = x(1)*yp(2) - x(2)*yp(1);
-    z(1) = x(2)*yp(0) - x(0)*yp(2);
-    z(2) = x(0)*yp(1) - x(1)*yp(0);
+  // establish orientation of element for the transformation matrix
+  // z = x cross yp
+  Vector z(3);
+  z(0) = x(1)*yp(2) - x(2)*yp(1);
+  z(1) = x(2)*yp(0) - x(0)*yp(2);
+  z(2) = x(0)*yp(1) - x(1)*yp(0);
 
-    // y = z cross x
-    Vector y(3);
-    y(0) = z(1)*x(2) - z(2)*x(1);
-    y(1) = z(2)*x(0) - z(0)*x(2);
-    y(2) = z(0)*x(1) - z(1)*x(0);
+  // y = z cross x
+  Vector y(3);
+  y(0) = z(1)*x(2) - z(2)*x(1);
+  y(1) = z(2)*x(0) - z(0)*x(2);
+  y(2) = z(0)*x(1) - z(1)*x(0);
 
-    // compute length(norm) of vectors
-    double xn = x.Norm();
-    double yn = y.Norm();
-    double zn = z.Norm();
+  // compute length(norm) of vectors
+  double xn = x.Norm();
+  double yn = y.Norm();
+  double zn = z.Norm();
 
-    // check valid x and y vectors, i.e. not parallel and of zero length
-    if (xn == 0 || yn == 0 || zn == 0) {
-      opserr << "FATAL ZeroLength::setUp - invalid vectors to constructor\n";
-    }
-    
-    // create transformation matrix of direction cosines
-    for ( i=0; i<3; i++ ) {
-	transformation(0,i) = x(i)/xn;
-	transformation(1,i) = y(i)/yn;
-	transformation(2,i) = z(i)/zn;
-     }
+  // check valid x and y vectors, i.e. not parallel and of zero length
+  if (xn == 0 || yn == 0 || zn == 0) {
+    opserr << "FATAL ZeroLength::setUp - invalid vectors to constructor\n";
+  }
+  
+  // create transformation matrix of direction cosines
+  for ( i=0; i<3; i++ ) {
+    transformation(0,i) = x(i)/xn;
+    transformation(1,i) = y(i)/yn;
+    transformation(2,i) = z(i)/zn;
+  }
 
 }
 
@@ -1303,11 +1303,12 @@ ZeroLength::setUp( int Nd1, int Nd2,
 void
 ZeroLength::checkDirection( ID &dir ) const
 {
-    for ( int i=0; i<dir.Size(); i++)
-	if ( dir(i) < 0 || dir(i) > 5 ) {
-	  opserr << "WARNING ZeroLength::checkDirection - incorrect direction " << dir(i) << " is set to 0\n";
-	  dir(i) = 0;
-	}
+  for ( int i=0; i<dir.Size(); i++)
+    if ( dir(i) < 0 || dir(i) > 5 ) {
+      opserr << "WARNING ZeroLength::checkDirection - incorrect direction " 
+             << dir(i) << " is set to 0\n";
+      dir(i) = 0;
+    }
 }
 
 
