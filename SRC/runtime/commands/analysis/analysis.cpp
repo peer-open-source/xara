@@ -311,6 +311,7 @@ eigenAnalysis(ClientData clientData,
 
     else if ((strcmp(argv[loc], "genBandArpack") == 0) ||
              (strcmp(argv[loc], "-genBandArpack") == 0) ||
+             (strcmp(argv[loc], "-bandGenArpack") == 0) ||
              (strcmp(argv[loc], "genBandArpackEigen") == 0) ||
              (strcmp(argv[loc], "-genBandArpackEigen") == 0))
       typeSolver = EigenSOE_TAGS_ArpackSOE;
@@ -341,7 +342,9 @@ eigenAnalysis(ClientData clientData,
         return TCL_ERROR;
       }
     }
-
+    else if (strcmp(argv[loc], "-solver")==0) {
+      ;
+    }
     else {
       opserr << "Unknown option: " << argv[loc] 
              << OpenSees::SignalMessageEnd;
