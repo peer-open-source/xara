@@ -552,23 +552,6 @@ TclPackageClassBroker::getNewActor(int classTag, Channel *theChannel)
   }
 }
 
-PartitionedModelBuilder *
-TclPackageClassBroker::getPtrNewPartitionedModelBuilder(Subdomain &theSubdomain,
-                                                        int classTag)
-{
-  switch (classTag) {
-    /*
-    case PartitionedModelBuilder_TAGS_PartitionedQuick2dFrameModel:
-         return new PartitionedQuick2dFrame(theSubdomain);
-         */
-
-  default:
-    opserr << "TclPackageClassBroker::getPtrNewPartitionedModelBuilder - ";
-    opserr << " - no PartitionedModelBuilder type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
-}
 
 GraphNumberer *
 TclPackageClassBroker::getPtrNewGraphNumberer(int classTag)
@@ -672,7 +655,6 @@ TclPackageClassBroker::getNewElement(int classTag)
     DISPATCH(ZeroLengthInterface2D);
     DISPATCH(ZeroLengthContactNTS2D);
     DISPATCH(ZeroLengthContactASDimplex);
-
 
 
     DISPATCH(Joint2D);
@@ -1045,6 +1027,7 @@ TclPackageClassBroker::getNewUniaxialMaterial(int classTag)
 
   case MAT_TAG_ENTMaterial:
     return new ENTMaterial();
+
 #if defined(OPSDEF_UNIAXIAL_FEDEAS)
   case MAT_TAG_FedeasBond1:
     return new FedeasBond1Material();
