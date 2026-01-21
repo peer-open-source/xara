@@ -4,6 +4,14 @@
 
 namespace OpenSees {
 namespace Frame {
+struct Release {
+  enum {
+    None  = 0,
+    My    = 1 << 3,
+    Mz    = 1 << 4,
+  } i,j;
+};
+
 // TODO: Maybe make this public under ElasticFrameSection
 struct Prism {
   // n-n
