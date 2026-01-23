@@ -260,7 +260,7 @@ LinearFrameTransf<nn,ndf>::getDeformedLength()
 
 template <int nn, int ndf>
 int
-LinearFrameTransf<nn,ndf>::update()
+LinearFrameTransf<nn,ndf>::update() noexcept
 {
   constexpr Vector3D iv{1, 0, 0};
 
