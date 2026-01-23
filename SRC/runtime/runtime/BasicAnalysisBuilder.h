@@ -48,7 +48,11 @@ class EigenSOE;
 class StaticIntegrator;
 class TransientIntegrator;
 class ConvergenceTest;
+namespace OpenSees {
+class LoadCase;
+}
 
+#include <string>
 
 class BasicAnalysisBuilder
 {
@@ -92,8 +96,12 @@ public:
 
 
     Domain* getDomain();
+    AnalysisModel& getAnalysisModel() {
+      return *theAnalysisModel;
+    }
 
     int  initialize();
+    int  domainChanged();
     int  setStaticAnalysis();
     int  setTransientAnalysis();
 
@@ -103,7 +111,6 @@ public:
     int  getNumEigen() {return numEigen;}
 
     int formUnbalance();
-    int domainChanged();
 
     // Performing analysis
     int analyze(int num_steps, double size_steps, int flag=Increment|Iterate|Commit);
@@ -121,7 +128,9 @@ public:
     int setGradientType(int flag);
     void wipe();
 
-    
+    int setLoadCase(std::string& name);
+    int newLoadCase(std::string& name);
+
     enum CurrentAnalysis  CurrentAnalysisFlag = EMPTY_ANALYSIS;
 
 private:
