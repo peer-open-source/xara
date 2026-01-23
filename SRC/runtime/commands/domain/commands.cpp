@@ -40,7 +40,6 @@
 #include <Element.h>
 #include <ElementIter.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <ElementalLoad.h>
 #include <ElementalLoadIter.h>
 #include <SP_Constraint.h>
@@ -82,6 +81,85 @@ Tcl_CmdProc TclCommand_record;
 Tcl_CmdProc TclCommand_setLoadConst;
 Tcl_CmdProc TclCommand_setCreep;
 
+namespace {
+static struct {
+  const char *name;
+  int (*func)(ClientData, Tcl_Interp *, Tcl_Size, TCL_Char ** const);
+} domainCommands[] = {
+  {"loadConst",           &TclCommand_setLoadConst},
+  {"recorder",            &TclAddRecorder},
+  {"region",              &TclCommand_addMeshRegion},
+
+  {"printGID",            &printModelGID},
+
+  {"setTime",             &TclCommand_setTime},
+  {"getTime",             &TclCommand_getTime},
+  {"setCreep",            &TclCommand_setCreep},
+
+  // DAMPING
+  {"rayleigh",            &rayleighDamping},
+  
+  {"getLoadFactor",       &getLoadFactor},
+
+  //
+  {"basicDeformation",    &basicDeformation},
+  {"basicForce",          &basicForce},
+  {"basicStiffness",      &basicStiffness},
+
+
+  {"nodeDOFs",            &nodeDOFs},
+  {"nodeCoord",           &nodeCoord},
+  {"nodeMass",            &nodeMass},
+  {"nodeVel",             &nodeVel},
+  {"nodeDisp",            &nodeDisp},
+  {"nodeAccel",           &nodeAccel},
+  {"nodeResponse",        &nodeResponse},
+  {"nodePressure",        &nodePressure},
+  {"nodeBounds",          &nodeBounds},
+  {"findNodeWithID",      &findID},
+  {"nodeUnbalance",       &nodeUnbalance},
+  {"nodeEigenvector",     &nodeEigenvector},
+  {"nodeReaction",        &nodeReaction},
+
+  {"reactions",           &calculateNodalReactions},
+
+  {"setNodeVel",          &setNodeVel},
+  {"setNodeDisp",         &setNodeDisp},
+  {"setNodeAccel",        &setNodeAccel},
+  {"setNodeCoord",        &setNodeCoord},
+  {"nodeRotation",        &nodeRotation},
+  {"getNodeTags",         &getNodeTags},
+
+
+
+  {"getParamTags",        &getParamTags},
+  {"getParamValue",       &getParamValue},
+  {"parameter",           &TclCommand_parameter},
+  {"addToParameter",      &TclCommand_parameter},
+  {"updateParameter",     &TclCommand_parameter},
+  {"setParameter",        &TclCommand_setParameter},
+
+
+  {"getEleLoadTags",      &getEleLoadTags},
+  {"getEleLoadData",      &getEleLoadData},
+  {"getEleLoadClassTags", &getEleLoadClassTags},
+
+
+  {"sectionForce",        &sectionForce},
+  {"sectionTag",          &sectionTag},
+  {"sectionDisplacement", &sectionDisplacement},
+  {"sectionDeformation",  &sectionDeformation},
+  {"sectionStiffness",    &sectionStiffness},
+  {"sectionFlexibility",  &sectionFlexibility},
+  {"sectionLocation",     &sectionLocation},
+  {"sectionWeight",       &sectionWeight},
+
+  {"recorderValue",       &OPS_recorderValue},
+  {"record",              &TclCommand_record},
+
+  {"InitialStateAnalysis", &InitialStateAnalysis},
+};
+}
 
 // TODO: reimplement defaultUnits and setParameter
 // int defaultUnits(ClientData, Tcl_Interp *, int, TCL_Char ** const argv);
@@ -91,6 +169,7 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 {
 
   ClientData domain = (ClientData)the_domain;
+
 
   {
     using namespace OpenSees::DomainCommands;
@@ -118,82 +197,13 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
     Tcl_CreateCommand(interp, "setElementRayleighDampingFactors", &addElementRayleigh, domain, nullptr);
     Tcl_CreateCommand(interp, "setElementRayleighFactors",        &addElementRayleigh, domain, nullptr);
     // Modal
-    Tcl_CreateCommand(interp, "modalProperties",     &modalProperties, domain, nullptr);
+    Tcl_CreateCommand(interp, "modalProperties",     &modalProperties,     domain, nullptr);
   }
 
-  Tcl_CreateCommand(interp, "loadConst",           &TclCommand_setLoadConst,  domain, nullptr);
-  Tcl_CreateCommand(interp, "recorder",            &TclAddRecorder,  domain,  nullptr);
-  Tcl_CreateCommand(interp, "region",              &TclCommand_addMeshRegion, domain, nullptr);
-
-  Tcl_CreateCommand(interp, "printGID",            &printModelGID, domain, nullptr);
-
-  Tcl_CreateCommand(interp, "setTime",             &TclCommand_setTime,  domain, nullptr);
-  Tcl_CreateCommand(interp, "getTime",             &TclCommand_getTime,  domain, nullptr);
-  Tcl_CreateCommand(interp, "setCreep",            &TclCommand_setCreep, nullptr, nullptr);
-
-  // DAMPING
-  Tcl_CreateCommand(interp, "rayleigh",            &rayleighDamping, domain, nullptr);
-  
-  Tcl_CreateCommand(interp, "getLoadFactor",       &getLoadFactor, domain, nullptr);
-
-  //
-  Tcl_CreateCommand(interp, "basicDeformation",    &basicDeformation,    domain, nullptr);
-  Tcl_CreateCommand(interp, "basicForce",          &basicForce,          domain, nullptr);
-  Tcl_CreateCommand(interp, "basicStiffness",      &basicStiffness,      domain, nullptr);
-
-
-  Tcl_CreateCommand(interp, "nodeDOFs",            &nodeDOFs,            domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeCoord",           &nodeCoord,           domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeMass",            &nodeMass,            domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeVel",             &nodeVel,             domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeDisp",            &nodeDisp,            domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeAccel",           &nodeAccel,           domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeResponse",        &nodeResponse,        domain, nullptr);
-  Tcl_CreateCommand(interp, "nodePressure",        &nodePressure,        domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeBounds",          &nodeBounds,          domain, nullptr);
-  Tcl_CreateCommand(interp, "findNodeWithID",      &findID,              domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeUnbalance",       &nodeUnbalance,       domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeEigenvector",     &nodeEigenvector,     domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeReaction",        &nodeReaction,            domain, nullptr);
-
-  Tcl_CreateCommand(interp, "reactions",           &calculateNodalReactions, domain, nullptr);
-
-  Tcl_CreateCommand(interp, "setNodeVel",          &setNodeVel,              domain, nullptr);
-  Tcl_CreateCommand(interp, "setNodeDisp",         &setNodeDisp,             domain, nullptr);
-  Tcl_CreateCommand(interp, "setNodeAccel",        &setNodeAccel,            domain, nullptr);
-  Tcl_CreateCommand(interp, "setNodeCoord",        &setNodeCoord,            domain, nullptr);
-  Tcl_CreateCommand(interp, "nodeRotation",        &nodeRotation,            domain, nullptr);
-  Tcl_CreateCommand(interp, "getNodeTags",         &getNodeTags,             domain, nullptr);
-
-
-
-  Tcl_CreateCommand(interp, "getParamTags",        &getParamTags,            domain, nullptr);
-  Tcl_CreateCommand(interp, "getParamValue",       &getParamValue,           domain, nullptr);
-  Tcl_CreateCommand(interp, "parameter",           &TclCommand_parameter,    domain, nullptr);
-  Tcl_CreateCommand(interp, "addToParameter",      &TclCommand_parameter,    domain, nullptr);
-  Tcl_CreateCommand(interp, "updateParameter",     &TclCommand_parameter,    domain, nullptr);
-  Tcl_CreateCommand(interp, "setParameter",        &TclCommand_setParameter, domain, nullptr);
-
-
-  Tcl_CreateCommand(interp, "getEleLoadTags",      &getEleLoadTags,      domain, nullptr);
-  Tcl_CreateCommand(interp, "getEleLoadData",      &getEleLoadData,      domain, nullptr);
-  Tcl_CreateCommand(interp, "getEleLoadClassTags", &getEleLoadClassTags, domain, nullptr);
-
-
-  Tcl_CreateCommand(interp, "sectionForce",        &sectionForce,        domain, nullptr);
-  Tcl_CreateCommand(interp, "sectionTag",          &sectionTag,          domain, nullptr);
-  Tcl_CreateCommand(interp, "sectionDisplacement", &sectionDisplacement, domain, nullptr);
-  Tcl_CreateCommand(interp, "sectionDeformation",  &sectionDeformation,  domain, nullptr);
-  Tcl_CreateCommand(interp, "sectionStiffness",    &sectionStiffness,    domain, nullptr);
-  Tcl_CreateCommand(interp, "sectionFlexibility",  &sectionFlexibility,  domain, nullptr);
-  Tcl_CreateCommand(interp, "sectionLocation",     &sectionLocation,     domain, nullptr);
-  Tcl_CreateCommand(interp, "sectionWeight",       &sectionWeight,       domain, nullptr);
-
-  Tcl_CreateCommand(interp, "recorderValue",       &OPS_recorderValue,   domain, nullptr);
-  Tcl_CreateCommand(interp, "record",              &TclCommand_record,   domain, nullptr);
-
-  Tcl_CreateCommand(interp, "InitialStateAnalysis", &InitialStateAnalysis, nullptr, nullptr);
-
+  for (int i = 0; i < sizeof(domainCommands) / sizeof(domainCommands[0]); ++i) {
+    Tcl_CreateCommand(interp, domainCommands[i].name,
+                      domainCommands[i].func, domain, nullptr);
+  }
 
   // sensitivity
   Tcl_CreateCommand(interp, "computeGradients",      &computeGradients, (ClientData)domain, (Tcl_CmdDeleteProc *)NULL);
