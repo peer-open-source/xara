@@ -60,14 +60,17 @@ int Node::numMatrices = 0;
 Node::Node(int theClassTag)
 :TaggedObject(0),MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
- Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
+ coord_data{0,0,0}, xyz(coord_data, 0), 
+ position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), dbTag1(0), 
  rotation(nullptr),
  dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
- index(-1), reaction(0)
+ index(-1), 
+ reaction(nullptr)
 {
   // for FEM_ObjectBroker, recvSelf() must be invoked on object
 
@@ -85,14 +88,16 @@ Node::Node(int theClassTag)
 Node::Node(int tag, int theClassTag)
 :TaggedObject(tag), MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
- Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
+ coord_data{0,0,0}, xyz(coord_data, 0),
+ position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
   R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
- index(-1), reaction(0)//, displayLocation(0)
+ index(-1), reaction(nullptr)
 {
   // for subclasses - they must implement all the methods with
   // their own data structures.
@@ -105,17 +110,21 @@ Node::Node(int tag, int theClassTag)
   theNodalThermalActionPtr = 0;
 }
 
-Node::Node(int tag, int ndof, double Crd1, Vector *dLoc)
+Node::Node(int tag, int ndof, double Crd1)
 :TaggedObject(tag),MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
- Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
+ coord_data{Crd1, 0,0}, xyz(coord_data, 1),
+ position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ // State
+ commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
- index(-1), reaction(0)
+ index(-1), 
+ reaction(nullptr)
 {
   this->createDisp();
   dispSensitivity = 0;
@@ -125,23 +134,27 @@ Node::Node(int tag, int ndof, double Crd1, Vector *dLoc)
 
   theNodalThermalActionPtr = 0;
 
-  Crd = new Vector(1);
-  (*Crd)(0) = Crd1;
+  // Crd = new Vector(1);
+  // xyz(0) = Crd1;
 }
 
 
 //  Node(int tag, int ndof, double Crd1, double yCrd);
 //      constructor for 2d nodes
-Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
+Node::Node(int tag, int ndof, double Crd1, double Crd2)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
- Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
+ coord_data{Crd1, Crd2, 0}, xyz(coord_data, 2),
+ position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ // State
+ commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
+ index(-1),
  reaction(0)
 {
   this->createDisp();
@@ -152,27 +165,27 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
 
   theNodalThermalActionPtr = 0;
 
-  Crd = new Vector(2);
-  (*Crd)(0) = Crd1;
-  (*Crd)(1) = Crd2;
-
-  index = -1;
 }
 
 
 //  Node(int tag, int ndof, double Crd1, double Crd2, double zCrd);
 //      constructor for 3d nodes
 
- Node::Node(int tag, int ndof, double Crd1, double Crd2, double Crd3, Vector *dLoc)
+ Node::Node(int tag, int ndof, double Crd1, double Crd2, double Crd3)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
- Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
+ coord_data{Crd1, Crd2, Crd3}, xyz(coord_data, 3), 
+ position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0}, mass(0),
+ // State
+ commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
- R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
+ R(0), 
+ unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
+ index(-1),
  reaction(0)
 {
   this->createDisp();
@@ -183,12 +196,6 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
-  Crd = new Vector(3);
-  (*Crd)(0) = Crd1;
-  (*Crd)(1) = Crd2;
-  (*Crd)(2) = Crd3;
-
-  index = -1;
 }
 
 
@@ -198,13 +205,15 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2, Vector *dLoc)
 Node::Node(const Node &otherNode, bool copyMass)
   :TaggedObject(otherNode.getTag()),MovableObject(otherNode.getClassTag()),
   numberDOF(otherNode.numberDOF), theDOF_GroupPtr(0),
-  Crd(0), commitDisp(0), commitVel(0), commitAccel(0),
+  coord_data{}, xyz(coord_data, otherNode.getCrds().Size()),
+  position_inertia{}, rotation_inertia{0.0,0.0,0.0},
+  commitDisp(0), commitVel(0), commitAccel(0),
   trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
   incrDeltaDisp(0),
   disp(0), vel(0), accel(0), 
   rotation(nullptr),
   dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
-  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
+  R(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
   reaction(0)
 {
   this->createDisp();
@@ -215,7 +224,8 @@ Node::Node(const Node &otherNode, bool copyMass)
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
-  Crd = new Vector(otherNode.getCrds());
+  for (int i=0; i<otherNode.getCrds().Size(); i++)
+    coord_data[i] = otherNode.getCrds()(i);
 
   if (otherNode.commitDisp != nullptr) {
     // this->createDisp();
@@ -243,8 +253,7 @@ Node::Node(const Node &otherNode, bool copyMass)
   }
 
   if (otherNode.mass != 0 && copyMass == true) {
-    mass = new Matrix(*(otherNode.mass)) ;
-    // TODO; zero?
+    mass = new Matrix(*(otherNode.mass));
   }
 
   if (otherNode.R != 0) {
@@ -257,8 +266,6 @@ Node::Node(const Node &otherNode, bool copyMass)
 
 Node::~Node()
 {
-  if (Crd != nullptr)
-    delete Crd;
 
   if (commitDisp != nullptr)
     delete commitDisp;
@@ -354,14 +361,13 @@ const Vector &
 Node::getCrds() const
 {
   // return the vector of nodal coordinates
-  return *Crd;
+  return xyz;
 }
 
 
 
-
 const Vector &
-Node::getDisp()
+Node::getDisp() noexcept
 {
   // construct memory and Vectors for trial and committed
   // displacement on first call to this method, getTrialDisp()
@@ -407,34 +413,22 @@ Node::getAccel()
 **
 ** *********************************************************************/
 
-const Vector &
-Node::getTrialDisp()
-{
-#if 0
-  if (trialDisp == nullptr)
-    this->createDisp();
-#endif
-  return *trialDisp;
-}
+// const Vector &
+// Node::getTrialDisp() noexcept
+// {
+//   return *trialDisp;
+// }
 
 const Vector &
-Node::getIncrDisp()
+Node::getIncrDisp() noexcept
 {
-#if 0
-  if (incrDisp == nullptr)
-    this->createDisp();
-#endif
   return *incrDisp;
 }
 
 const Vector &
-Node::getIncrDeltaDisp()
+Node::getIncrDeltaDisp() noexcept
 {
-#if 0
-    if (incrDeltaDisp == 0)
-      this->createDisp();
-#endif
-    return *incrDeltaDisp;
+  return *incrDeltaDisp;
 }
 
 Versor
@@ -472,7 +466,7 @@ Node::getTrialAccel()
 
 
 int
-Node::setTrialDisp(double value, int dof)
+Node::setTrialDisp(double value, int dof) noexcept
 {
   // check vector arg is of correct size
   assert(dof >= 0 && dof < numberDOF);
@@ -490,7 +484,7 @@ Node::setTrialDisp(double value, int dof)
 }
 
 int
-Node::setTrialDisp(const Vector &newTrialDisp)
+Node::setTrialDisp(const Vector &newTrialDisp) noexcept
 {
   // check vector arg is of correct size
   assert(newTrialDisp.Size() == numberDOF);
@@ -643,7 +637,7 @@ Node::incrTrialAccel(const Vector &incrAccel)
 
 
 void
-Node::zeroUnbalancedLoad()
+Node::zeroUnbalancedLoad() noexcept
 {
   if (unbalLoad != nullptr)
     unbalLoad->Zero();
@@ -736,7 +730,7 @@ Node::addInertiaLoadSensitivityToUnbalance(const Vector &accelG, double fact, bo
 
 
 const Vector &
-Node::getUnbalancedLoad()
+Node::getUnbalancedLoad() noexcept
 {
   // make sure it was created before we return it
   if (unbalLoad == nullptr)
@@ -773,7 +767,7 @@ Node::getUnbalancedLoadIncInertia()
 }
 
 int
-Node::commitState()
+Node::commitState() noexcept
 {
   // check disp exists, if does set commit = trial, incr = 0.0
   if (trialDisp != 0) {
@@ -880,14 +874,21 @@ Node::revertToStart()
 const Matrix &
 Node::getMass()
 {
-  if (index == -1) {
+  if (index == -1) [[unlikely]] {
     setGlobalMatrices();
   }
 
   // make sure it was created before we return it
   if (mass == 0) {
-    theMatrices[index]->Zero();
-    return *theMatrices[index];
+    Matrix& Mass = *theMatrices[index];
+    Mass.Zero();
+    const int ndm = xyz.Size();
+    for (int i=0; i<ndm; i++)
+      Mass(i,i) = position_inertia;
+    for (int i=ndm; i<numberDOF; i++)
+      Mass(i,i) = rotation_inertia[i-ndm];
+    return Mass;
+
   } else
     return *mass;
 }
@@ -957,6 +958,34 @@ Node::setMass(const Matrix &newMass)
   // otherwise assign mass
   (*mass) = newMass;
 
+  return 0;
+}
+
+
+int
+Node::addPositionInertia(double value)
+{
+
+  position_inertia += value;
+
+  if (mass != nullptr) {
+    const int ndm = xyz.Size();
+    for (int i=0; i<ndm; i++)
+      (*mass)(i,i) += value;
+  }
+
+  return 0;
+}
+
+int
+Node::addRotationInertia(double value, unsigned int dof)
+{
+  if (dof >= 3) {
+    opserr << "Node::addRotationInertia - dof " 
+           << dof << " invalid for node " << this->getTag() << "\n";
+    return -1;
+  }
+  rotation_inertia[dof-1] += value;
   return 0;
 }
 
@@ -1091,7 +1120,7 @@ const Matrix &
 Node::getEigenvectors()
 {
   // check the eigen vectors have been set
-  if (theEigenvectors == 0) {
+  if (theEigenvectors == nullptr) {
     opserr << "Node::getEigenvectors() - eigenvectors have not been set\n";
     // TODO: Handle this!
     exit(-1);
@@ -1123,7 +1152,7 @@ Node::sendSelf(int cTag, Channel &theChannel)
     data(13) = R->noCols();
   }
 
-  data(7) = Crd->Size();
+  data(7) = xyz.Size();
 
   if (dbTag1 == 0)
     dbTag1 = theChannel.getDbTag();
@@ -1147,7 +1176,7 @@ Node::sendSelf(int cTag, Channel &theChannel)
     return res;
   }
 
-  res = theChannel.sendVector(dataTag, cTag, *Crd);
+  res = theChannel.sendVector(dataTag, cTag, xyz);
   if (res < 0) {
     opserr << " Node::sendSelf() - failed to send Vecor data\n";
     return res;
@@ -1230,10 +1259,9 @@ Node::recvSelf(int cTag, Channel &theChannel,
     dbTag4 = data(11);
 
     // create a Vector to hold coordinates IF one needed
-    if (Crd == nullptr)
-      Crd = new Vector(numberCrd);
+    xyz.setData(coord_data, numberCrd);
 
-    if (theChannel.recvVector(dataTag, cTag, *Crd) < 0) {
+    if (theChannel.recvVector(dataTag, cTag, xyz) < 0) {
       opserr << "Node::recvSelf() - failed to receive the Coordinate vector\n";
       return -2;
     }
@@ -1406,7 +1434,7 @@ Node::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_CURRENTSTATE) { // print out everything
     s << "\n  Node: " << this->getTag() << "\n";
-    s << "\tCoordinates  : " << *Crd;
+    s << "\tCoordinates  : " << xyz;
     if (commitDisp != 0)
         s << "\tDisps: " << *trialDisp;
     if (commitVel != 0)
@@ -1438,10 +1466,10 @@ Node::Print(OPS_Stream &s, int flag)
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"ndf\": " << numberDOF << ", ";
     s << "\"crd\": [";
-    int numCrd = Crd->Size();
+    int numCrd = xyz.Size();
     for (int i = 0; i < numCrd - 1; i++)
-        s << (*Crd)(i) << ", ";
-    s << (*Crd)(numCrd - 1) << "]";
+        s << xyz(i) << ", ";
+    s << xyz(numCrd - 1) << "]";
     if (mass != 0) {
         s << ", \"mass\": [";
         for (int i = 0; i < numberDOF - 1; i++)
@@ -1459,7 +1487,7 @@ Matrix
 Node::getMassSensitivity()
 {
   if (index == -1)
-      setGlobalMatrices();
+    setGlobalMatrices();
 
   if (mass == 0) {
     theMatrices[index]->Zero();
@@ -1543,10 +1571,12 @@ Node::setParameter(const char **argv, int argc, Parameter &param)
   }
   else if (strstr(argv[0],"coord") != 0) {
     int direction = atoi(argv[1]);
-    if (direction >= 1 && direction <= 3) {
-      if (Crd != 0)
-      param.setValue((*Crd)(direction-1));
+    if (direction >= 1 && direction <= xyz.Size()) {
+      param.setValue(xyz(direction-1));
       return param.addObject(direction+3, this);
+    }
+    else {
+      return -1;
     }
   }
   else
@@ -1574,10 +1604,10 @@ Node::updateParameter(int pparameterID, Information &info)
 
   else if (pparameterID >= 4 && pparameterID <= 6) {
 
-    if ( (*Crd)(pparameterID-4) != info.theDouble) {
+    if ( xyz(pparameterID-4) != info.theDouble) {
 
       // Set the new coordinate value
-      (*Crd)(pparameterID-4) = info.theDouble;
+      xyz(pparameterID-4) = info.theDouble;
 
       // Need to "setDomain" to make the change take effect.
       Domain *theDomain = this->getDomain();
@@ -1685,7 +1715,7 @@ Node::getAccSensitivity(int dof, int gradIndex)
 const Vector &
 Node::getReaction()
 {
-  if (reaction == 0)
+  if (reaction == nullptr)
     reaction = new Vector(numberDOF);
 
   // TODO; zero this?
@@ -1734,8 +1764,8 @@ Node::resetReactionForce(int flag)
   } else {
     if (mass != 0 && alphaM != 0) {
       if (alphaM != 0.0) {
-      const Vector &theVel = this->getTrialVel(); // in case vel not created
-      reaction->addMatrixVector(1.0, *mass, theVel, alphaM);
+        const Vector &theVel = this->getTrialVel(); // in case vel not created
+        reaction->addMatrixVector(1.0, *mass, theVel, alphaM);
       }
     }
   }
@@ -1807,8 +1837,8 @@ Node::getResponse(NodeData responseType)
 void
 Node::setCrds(double Crd1)
 {
-  if (Crd != 0 && Crd->Size() >= 1)
-    (*Crd)(0) = Crd1;
+  if (xyz.Size() >= 1)
+    xyz(0) = Crd1;
 
   // Need to "setDomain" to make the change take effect.
   Domain *theDomain = this->getDomain();
@@ -1822,9 +1852,9 @@ Node::setCrds(double Crd1)
 void
 Node::setCrds(double Crd1, double Crd2)
 {
-  if (Crd != 0 && Crd->Size() >= 2) {
-    (*Crd)(0) = Crd1;
-    (*Crd)(1) = Crd2;
+  if (xyz.Size() >= 2) {
+    xyz(0) = Crd1;
+    xyz(1) = Crd2;
 
     // Need to "setDomain" to make the change take effect.
     Domain *theDomain = this->getDomain();
@@ -1838,10 +1868,10 @@ Node::setCrds(double Crd1, double Crd2)
 void
 Node::setCrds(double Crd1, double Crd2, double Crd3)
 {
-  if (Crd != 0 && Crd->Size() >= 3) {
-    (*Crd)(0) = Crd1;
-    (*Crd)(1) = Crd2;
-    (*Crd)(2) = Crd3;
+  if (xyz.Size() >= 3) {
+    xyz(0) = Crd1;
+    xyz(1) = Crd2;
+    xyz(2) = Crd3;
 
     // Need to "setDomain" to make the change take effect.
     Domain *theDomain = this->getDomain();
@@ -1855,10 +1885,11 @@ Node::setCrds(double Crd1, double Crd2, double Crd3)
 void
 Node::setCrds(const Vector &newCrds)
 {
-  if (Crd != 0 && Crd->Size() == newCrds.Size()) {
-    (*Crd) = newCrds;
+  if (xyz.Size() == newCrds.Size()) {
+    for (int i=0; i<xyz.Size(); i++)
+      xyz(i) = newCrds(i);
 
-      return;
+    return; // TODO: whats happening here?
 
     // Need to "setDomain" to make the change take effect.
     Domain *theDomain = this->getDomain();
@@ -1870,31 +1901,6 @@ Node::setCrds(const Vector &newCrds)
 }
 
 #if 1
-int
-Node::getDisplayRots(Vector& res, double fact, int mode)
-{
-  int ndm = Crd->Size();
-  int resSize = res.Size();
-  int nRotDOFs = numberDOF - ndm;
-  if (resSize < nRotDOFs)
-      return -1;
-
-  if (mode < 0) {
-    int eigenMode = -mode;
-    for (int i = ndm; i < resSize; i++)
-        res(i) = (*theEigenvectors)(i, eigenMode - 1) * fact;
-
-  } else {
-    for (int i = ndm; i < resSize; i++)
-        res(i) = (*commitDisp)(i) * fact;
-  }
-
-  // zero rest
-  for (int i = nRotDOFs; i < resSize; i++)
-    res(i) = 0;
-
-  return 0;
-}
 
 int
 Node::getDisplayCrds(Vector &res, double fact, int mode)
@@ -1902,11 +1908,6 @@ Node::getDisplayCrds(Vector &res, double fact, int mode)
   return -1;
 }
 
-int
-Node::setDisplayCrds(const Vector &theCrds)
-{
-  return -1;
-}
 #endif
 
 
@@ -1924,6 +1925,20 @@ Node::setNodalThermalActionPtr(NodalThermalAction* theAction)
 }
 // Add Pointer to NodalThermalAction id applicable-----end------L.Jiang, {SIF]
 
+
+int
+Node::resetGlobalMatrices() 
+{
+  if (numMatrices > 0) {
+    for (int i=0; i<numMatrices; i++)
+      delete theMatrices[i];
+    delete [] theMatrices;
+  }
+  theMatrices = nullptr;
+  numMatrices = 0;
+  return 0;
+}
+
 int
 Node::setGlobalMatrices()
 {
@@ -1939,7 +1954,7 @@ Node::setGlobalMatrices()
     Matrix **nextMatrices = new Matrix *[numMatrices+1];
 
     for (int j=0; j<numMatrices; j++)
-        nextMatrices[j] = theMatrices[j];
+      nextMatrices[j] = theMatrices[j];
 
     Matrix *theMatrix = new Matrix(numberDOF, numberDOF);
 

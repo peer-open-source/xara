@@ -36,6 +36,17 @@
 
 #define G3_NUM_DOF_BUFFER 20
 
+
+int
+TclCommand_wipeNodes(ClientData clientData, Tcl_Interp *interp,
+                    Tcl_Size argc, TCL_Char ** const argv)
+{
+  // TODO: Check that all nodes are deleted from the domain
+  // assert(clientData != nullptr);
+  Node::resetGlobalMatrices();
+  return TCL_OK;
+}
+
 int
 TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
                    TCL_Char ** const argv)
@@ -63,7 +74,8 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   int nodeId;
   if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid nodeTag\n";
-    opserr << "        Want: node nodeTag? [ndm coordinates?] <-mass [ndf values?]>\n";
+    opserr << "        Want: node nodeTag? [ndm coordinates?] <-mass [ndf values?]>"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -163,25 +175,13 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       theNode->setMass(mass);
 
     } else if (strcmp(argv[currentArg], "-dispLoc") == 0) {
-      currentArg++;
-      if (argc < currentArg + ndm) {
-        opserr << OpenSees::PromptValueError << "incorrect number of nodal display location terms, "
-                  "need ndm\n";
-        return TCL_ERROR;
-      }
-      Vector displayLoc(ndm);
-      double theCrd;
-      for (int i = 0; i < ndm; ++i) {
-        if (Tcl_GetDouble(interp, argv[currentArg++], &theCrd) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid nodal mass term\n";
-          opserr << "node: " << nodeId << ", dof: " << i + 1 << "\n";
-          return TCL_ERROR;
-        }
-        displayLoc(i) = theCrd;
-      }
-      theNode->setDisplayCrds(displayLoc);
-
-    } else if (strcmp(argv[currentArg], "-disp") == 0) {
+      
+      opswrn << G3_WARN_PROMPT
+             << "-dispLoc option is no longer supported\n"
+             << OpenSees::SignalMessageEnd;
+      currentArg += 1+ndm;
+    } 
+    else if (strcmp(argv[currentArg], "-disp") == 0) {
       currentArg++;
       if (argc < currentArg + ndf) {
         opserr << OpenSees::PromptValueError << "incorrect number of nodal disp terms\n";
@@ -263,8 +263,9 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
   int ndf = argc - 2;
 
   // make sure at least one other argument
-  if (argc < (1 + ndf)) {
-    opserr << OpenSees::PromptValueError << "insufficient arguments, expected:\n"
+  if (argc < 2 + 1) {
+    opserr << OpenSees::PromptValueError 
+           << "insufficient arguments, expected:\n"
               "      mass nodeId <" << ndf << " mass values>\n"; 
     return TCL_ERROR;
   }
@@ -272,29 +273,88 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
   // get the id of the node
   int nodeId;
   if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1];
+    opserr << OpenSees::PromptValueError 
+           << "invalid nodeId: " << argv[1];
     opserr << " - mass nodeId " << ndf << " forces\n";
     return TCL_ERROR;
   }
 
-  // check for mass terms
-  Matrix mass(ndf,ndf);
-  for (int i=0; i<ndf; ++i) {
-     double theMass;
-     if (Tcl_GetDouble(interp, argv[i+2], &theMass) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid nodal mass term\n";
-          opserr << "node: " << nodeId << ", dof: " << i+1 << "\n";
-          return TCL_ERROR;
-      }
-      mass(i,i) = theMass;
-  }
-
-  if (theTclDomain->setMass(mass, nodeId) != 0) {
-    opserr << OpenSees::PromptValueError << "failed to set mass at node " << nodeId << "\n";
+  Node* node = theTclDomain->getNode(nodeId);
+  if (node == nullptr) {
+    opserr << OpenSees::PromptValueError << "node " << nodeId << " does not exist in domain\n";
     return TCL_ERROR;
   }
 
-  // if get here we have sucessfully created the node and added it to the domain
+  const int ndm = node->getCrds().Size();
+  // check for mass terms
+  bool equal_position = true;
+
+  double position_inertia[3];
+  int argi=2;
+  while (argi<argc) {
+    if (strcmp(argv[argi], "-position")==0) {
+      equal_position = true;
+      if (argi + 1 >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "missing nodal mass term after -position\n"
+               << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[argi+1], &position_inertia[0]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid nodal mass term\n";
+          opserr << "node: " << nodeId << "\n";
+          return TCL_ERROR;
+      }
+      for (int j=1; j<ndm; ++j)
+        position_inertia[j] = position_inertia[0];
+      argi += 2;
+    } else {
+      break;
+    }
+  }
+
+  if (argi < argc) {
+    if (argc - argi < ndm) {
+      opserr << OpenSees::PromptValueError 
+             << "insufficient nodal mass terms, need " << ndf << "\n";
+      return TCL_ERROR;
+    }
+    for (int i=0; i<ndm; ++i) {
+      double theMass;
+      if (Tcl_GetDouble(interp, argv[i+2], &theMass) != TCL_OK) {
+            opserr << OpenSees::PromptValueError 
+                  << "invalid nodal mass term\n";
+            opserr << "node: " << nodeId << ", dof: " << i+1 << "\n";
+            return TCL_ERROR;
+        }
+        position_inertia[i] = theMass;
+    }
+    for (int i=1; i<ndm; ++i) {
+      if (position_inertia[i] != position_inertia[0]) {
+        equal_position = false;
+        break;
+      }
+    }
+  }
+
+  // set the mass
+  if (equal_position) {
+    node->addPositionInertia(position_inertia[0]);
+  }
+  else {
+    Matrix mass(ndf,ndf);
+    for (int i=0; i<ndf; ++i) {
+      double theMass;
+      if (Tcl_GetDouble(interp, argv[i+2], &theMass) != TCL_OK) {
+            opserr << OpenSees::PromptValueError << "invalid nodal mass term\n";
+            opserr << "node: " << nodeId << ", dof: " << i+1 << "\n";
+            return TCL_ERROR;
+        }
+        mass(i,i) = theMass;
+    }
+    node->setMass(mass);
+  }
+
   return TCL_OK;
 }
 
