@@ -20,6 +20,7 @@
 //
 // Written: cmp 2024
 //
+#include <Frame/Prism.h>
 #include <Frame/BasicFrame3d.h>
 #include "PrismFrame3d.h"
 #include <Domain.h>
@@ -95,7 +96,7 @@ PrismFrame3d::PrismFrame3d(int tag,
   ke.zero();
   kg.zero();
   km.zero();
-
+#if 0
   // 1) Get Area properties
   section_tag = section.getTag();
   section.getIntegral(Field::Unit,   State::Init, A);
@@ -141,7 +142,24 @@ PrismFrame3d::PrismFrame3d(int tag,
     Ay = Kc(1,1)/G;
     Az = Kc(2,2)/G;
   }
+#else
+  Frame::Prism prism_props(section);
+  A  = *prism_props.A;
+  Iy = *prism_props.Iy;
+  Iz = *prism_props.Iz;
+  Jx = *prism_props.J;
+  E  = *prism_props.E;
+  G  = *prism_props.G;
+  if (!shear_flag) {
+    Ay = Az = 0.0;
+  } 
+  else {
+    Ay = *prism_props.Ay;
+    Az = *prism_props.Az;
+  }
+#endif
 
+  Iyz = 0.0;
   // TODO
   if (!use_mass) {
     if (section.getIntegral(Field::Density, State::Init, density) == 0) {
@@ -445,20 +463,35 @@ PrismFrame3d::getResistingForce()
   pl[7]  = -pl[1];        // Vjy
   pl[8]  = -pl[2];        // Vjz
 #endif
-  pl[3]  = -q5;           // Ti
+  pl[3]  = -q5;            // Ti
   pl[4]  =  q3;
   pl[5]  =  q1;
-  pl[6]  =  q[0];           // Nj
-  pl[9]  = q5;            // Tj
-  pl[10] = q4;
-  pl[11] = q2;
+  pl[6]  =  q[0];          // Nj
+  pl[9]  =  q5;            // Tj
+  pl[10] =  q4;
+  pl[11] =  q2;
 
+  // 2. Element loads
   VectorND<12> pf{0.0};
+  // 2.1 Legacy load classes
+  double p0[5]{};
+  if (eleLoads.size() > 0)
+    this->computeReactions(p0);
+
   pf[0] = p0[0];
   pf[1] = p0[1];
   pf[7] = p0[2];
   pf[2] = p0[3];
   pf[8] = p0[4];
+
+  // 2.2 Frame load classes
+  for (auto load : frame_loads) {
+    load->template addLinearSolution<NDF>(pf, L, 
+        basic_system->t.getInitialRotation(),
+        basic_system->t.getRotation());
+  }
+
+  // 3. Push to global system
 #if 0
   static VectorND<12> pg;
   static Vector wrapper(pg);
@@ -470,7 +503,7 @@ PrismFrame3d::getResistingForce()
   static Vector wrapper(pl);
   basic_system->t.push(pl, Operation::Total);
   if (pf.norm() > 0.0) [[unlikely]] {
-    basic_system->linear.push(pf, Operation::Total);
+    basic_system->linear.push(pf, Operation::Rotation);
     pl += pf;
   }
 #endif
