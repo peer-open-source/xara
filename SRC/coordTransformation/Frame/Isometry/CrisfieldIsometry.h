@@ -23,6 +23,11 @@
 //
 // References:
 //
+// [1] Perez, C.M., and Filippou F.C. (2024)
+//     "On Nonlinear Geometric Transformations of Finite Elements" 
+//     Int. J. Numer. Meth. Engrg.; 
+//     Available at: https://doi.org/10.1002/nme.7506
+//
 // [2] Filippou, F.C. (1998)
 //     "FEDEASLab: Finite Elements for Design Evaluation and Analysis of Structures"
 //
@@ -199,8 +204,6 @@ public:
     // TODO
     return dG;
   }
-
-  // MatrixND<3,6> getRotationGradient(int node) final;
 
   MatrixND<3,6> 
   getRotationGradient(int node) final {
@@ -415,8 +418,8 @@ public:
     // Axial
     // T(:,7) = [-e1' O' e1' O']';
     for (int i = 0; i < 3; i++) {
-        T(jnx,i  ) = -e1[i];
-        T(jnx,i+6) =  e1[i];
+      T(jnx,i  ) = -e1[i];
+      T(jnx,i+6) =  e1[i];
     }
 
     return T;
@@ -433,8 +436,8 @@ public:
   //      +  ks3 + ks3' + ks4 + ks5;
   //
   int addTangent(MatrixND<12,12>& kg,
-                                      const VectorND<12>& pl,
-                                      const VectorND<12>& ul)
+                const VectorND<12>& pl,
+                const VectorND<12>& ul)
   {
     const Vector3D 
       &e1  =  e[0],
