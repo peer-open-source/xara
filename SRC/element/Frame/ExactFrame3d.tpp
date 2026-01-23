@@ -304,8 +304,8 @@ ExactFrame3d<nen,nwm>::update()
 
     //
     //
-    Matrix3D dR = ExpSO3(theta);
-    Matrix3D R = dR*pres[i].rotation;
+    const Matrix3D dR = ExpSO3(theta);
+    const Matrix3D R = dR*pres[i].rotation;
 
     pres[i].rotation = R;
 
@@ -315,8 +315,9 @@ ExactFrame3d<nen,nwm>::update()
 //  pres[i].curvature = omega + TanSO3(theta, 'R')*dtheta;
     pres[i].curvature = omega + TExpSO3(theta)*dtheta;
 
-    Vector3D gamma = (R^dx) - D;
-    Vector3D kappa = R^pres[i].curvature;
+    const Vector3D gamma = (R^dx) - D;
+    const Vector3D kappa = R^pres[i].curvature;
+  
 
     VectorND<nsr> e {
       gamma[0], gamma[1], gamma[2],
