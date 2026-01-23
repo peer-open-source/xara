@@ -77,7 +77,6 @@
 Matrix MixedFrame3d::theMatrix(NEGD, NEGD);
 Vector MixedFrame3d::theVector(NEGD);
 Matrix MixedFrame3d::transformNaturalCoords(NDM_NATURAL_WITH_TORSION, NDM_NATURAL_WITH_TORSION);
-Matrix MixedFrame3d::transformNaturalCoordsT(NDM_NATURAL_WITH_TORSION, NDM_NATURAL_WITH_TORSION);
 
 
 Vector* MixedFrame3d::ei_trial = nullptr;
@@ -85,8 +84,6 @@ Vector* MixedFrame3d::si_trial = nullptr;
 MatrixND<NDM_SECTION, NDM_NATURAL>* MixedFrame3d::nldhat   = nullptr;
 MatrixND<NDM_SECTION, NDM_NATURAL>* MixedFrame3d::nd1      = nullptr;
 MatrixND<NDM_SECTION, NDM_NATURAL>* MixedFrame3d::nd2      = nullptr;
-MatrixND<NDM_NATURAL, NDM_SECTION>* MixedFrame3d::nd1T     = nullptr;
-MatrixND<NDM_NATURAL, NDM_SECTION>* MixedFrame3d::nd2T     = nullptr;
 
 
 // Constructor which takes the unique element tag, sections,
@@ -206,13 +203,6 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
     transformNaturalCoords(3, 2) = 1;
     transformNaturalCoords(4, 4) = 1;
     transformNaturalCoords(5, 5) = 1;
-    transformNaturalCoordsT.Zero();
-    transformNaturalCoordsT(0, 0) = 1;
-    transformNaturalCoordsT(1, 1) = 1;
-    transformNaturalCoordsT(3, 2) = 1;
-    transformNaturalCoordsT(2, 3) = 1;
-    transformNaturalCoordsT(4, 4) = 1;
-    transformNaturalCoordsT(5, 5) = 1;
   }
 
   if (ei_trial == nullptr)
@@ -225,15 +215,6 @@ MixedFrame3d::MixedFrame3d(int tag, std::array<int, 2>& nodes,
     nd1 = new MatrixND<NDM_SECTION, NDM_NATURAL>[MAX_NUM_SECTIONS];
   if (nd2 == nullptr)
     nd2 = new MatrixND<NDM_SECTION, NDM_NATURAL>[MAX_NUM_SECTIONS];
-  if (nd1T == nullptr)
-    nd1T = new MatrixND<NDM_NATURAL,NDM_SECTION>[MAX_NUM_SECTIONS]{};
-  if (nd2T == nullptr)
-    nd2T = new MatrixND<NDM_NATURAL,NDM_SECTION>[MAX_NUM_SECTIONS]{};
-
-//for (int i = 0; i < MAX_NUM_SECTIONS; i++) {
-//  nd1T[i] = Matrix(NDM_NATURAL, NDM_SECTION);
-//  nd2T[i] = Matrix(NDM_NATURAL, NDM_SECTION);
-//}
 }
 
 
@@ -332,13 +313,6 @@ MixedFrame3d::MixedFrame3d()
     transformNaturalCoords(3, 2) = 1;
     transformNaturalCoords(4, 4) = -1;
     transformNaturalCoords(5, 5) = 1;
-    transformNaturalCoordsT.Zero();
-    transformNaturalCoordsT(0, 0) = 1;
-    transformNaturalCoordsT(1, 1) = 1;
-    transformNaturalCoordsT(3, 2) = -1;
-    transformNaturalCoordsT(2, 3) = 1;
-    transformNaturalCoordsT(4, 4) = -1;
-    transformNaturalCoordsT(5, 5) = 1;
   }
 
   if (ei_trial == nullptr)
@@ -351,10 +325,6 @@ MixedFrame3d::MixedFrame3d()
     nd1 = new MatrixND<NDM_SECTION, NDM_NATURAL>[MAX_NUM_SECTIONS];
   if (nd2 == nullptr)
     nd2 = new MatrixND<NDM_SECTION, NDM_NATURAL>[MAX_NUM_SECTIONS];
-  if (nd1T == nullptr)
-    nd1T = new MatrixND<NDM_NATURAL,NDM_SECTION>[MAX_NUM_SECTIONS]{};
-  if (nd2T == nullptr)
-    nd2T = new MatrixND<NDM_NATURAL,NDM_SECTION>[MAX_NUM_SECTIONS]{};
 
 }
 
@@ -536,13 +506,6 @@ MixedFrame3d::revertToStart()
     nldhat[i] = this->getNld_hat(i, myZeros, L0, geom_flag);
     nd1[i]    = this->getNd1(i, myZeros, L0, geom_flag);
     nd2[i]    = this->getNd2(i, 0, L0);
-
-    for (int j = 0; j < NDM_SECTION; j++) {
-      for (int k = 0; k < NDM_NATURAL; k++) {
-        nd1T[i](k, j) = nd1[i](j, k);
-        nd2T[i](k, j) = nd2[i](j, k);
-      }
-    }
   }
 
   // Set initial and committed section flexibility and GJ
@@ -572,11 +535,11 @@ MixedFrame3d::revertToStart()
   MatrixND<NDM_NATURAL, NDM_NATURAL> Kg{};
 
   for (int i = 0; i < numSections; i++) {
-    G   += L0 * wt[i] * nd1T[i] * nldhat[i];
-    G2  += L0 * wt[i] * nd2T[i] * nldhat[i];
-    H   += L0 * wt[i] * nd1T[i] * fs_trial[i] * nd1[i];
-    H12 += L0 * wt[i] * nd1T[i] * fs_trial[i] * nd2[i];
-    H22 += L0 * wt[i] * nd2T[i] * fs_trial[i] * nd2[i];
+    G   += L0 * wt[i] * (nd1[i] ^ nldhat[i]);
+    G2  += L0 * wt[i] * (nd2[i] ^ nldhat[i]);
+    H   += L0 * wt[i] * (nd1[i] ^ (fs_trial[i] * nd1[i]));
+    H12 += L0 * wt[i] * (nd1[i] ^ (fs_trial[i] * nd2[i]));
+    H22 += L0 * wt[i] * (nd2[i] ^ (fs_trial[i] * nd2[i]));
     // Md is zero since deformations are zero
     Kg.addMatrix(this->getKg(i, 0.0, L0),  L0 * wt[i]);
   }
@@ -619,7 +582,7 @@ MixedFrame3d::revertToStart()
   kv(5, 5) = GJ / L0; // Torsional Stiffness GJ/L
   ke_past = kv;
 
-  Matrix kvOpenSees = transformNaturalCoordsT * Matrix(kv) * transformNaturalCoords;
+  Matrix kvOpenSees = transformNaturalCoords^(Matrix(kv) * transformNaturalCoords);
   if (Ki == nullptr)
     Ki = new Matrix(NEGD, NEGD);
 
@@ -664,7 +627,7 @@ MixedFrame3d::getTangentStiff()
   if (state_flag == 0)
     this->revertToStart();
 
-  Matrix ktOpenSees = transformNaturalCoordsT * Matrix(kv) * transformNaturalCoords;
+  Matrix ktOpenSees = transformNaturalCoords ^ Matrix(kv) * transformNaturalCoords;
   return crdTransf->getGlobalStiffMatrix(ktOpenSees, qe_pres);
 }
 
@@ -730,14 +693,6 @@ MixedFrame3d::update()
     } else {
       nd2[i] = this->getNd2(i, qe_pres(0), L);
     }
-
-    // Transpose of shape functions
-    for (int j = 0; j < NDM_SECTION; j++) {
-      for (int k = 0; k < NDM_NATURAL; k++) {
-        nd1T[i](k, j) = nd1[i](j, k);
-        nd2T[i](k, j) = nd2[i](j, k);
-      }
-    }
   }
 
   // Update natural force
@@ -793,14 +748,14 @@ MixedFrame3d::update()
   Kg.zero();
 
   for (int i = 0; i < numSections; i++) {
-    V = V + L0*wt[i] * nd1T[i]*(ei_trial[i] - es_trial[i] -
+    V += L0*wt[i] * nd1[i]^(ei_trial[i] - es_trial[i] -
                  fs_trial[i] * (si_trial[i] - sr_trial[i]));
-    V2  = V2  + L0 * wt[i] * nd2T[i] * (ei_trial[i] - es_trial[i]);
-    G   = G   + L0 * wt[i] * nd1T[i] * nldhat[i];
-    G2  = G2  + L0 * wt[i] * nd2T[i] * nldhat[i];
-    H   = H   + L0 * wt[i] * nd1T[i] * fs_trial[i] * nd1[i];
-    H12 = H12 + L0 * wt[i] * nd1T[i] * fs_trial[i] * nd2[i];
-    H22 = H22 + L0 * wt[i] * nd2T[i] * fs_trial[i] * nd2[i];
+    V2  = V2  + L0*wt[i] * (nd2[i] ^ (ei_trial[i] - es_trial[i]));
+    G   = G   + L0*wt[i] * (nd1[i] ^ nldhat[i]);
+    G2  = G2  + L0*wt[i] * (nd2[i] ^ nldhat[i]);
+    H   = H   + L0*wt[i] * (nd1[i] ^ (fs_trial[i] * nd1[i]));
+    H12 = H12 + L0*wt[i] * (nd1[i] ^ (fs_trial[i] * nd2[i]));
+    H22 = H22 + L0*wt[i] * (nd2[i] ^ (fs_trial[i] * nd2[i]));
 
     if (!geom_flag) {
       // sr_trial[i][0] is the axial load, P
@@ -843,7 +798,7 @@ MixedFrame3d::update()
     qe_pres(i) = internalForce[i];
 
   qe_pres(5) = torsionalForce; // Add in torsional force
-  qe_pres    = transformNaturalCoordsT * qe_pres;
+  qe_pres    = transformNaturalCoords^qe_pres;
 
   // Compute the stiffness matrix without the torsion term
   MatrixND<NDM_NATURAL, NDM_NATURAL> K_temp;

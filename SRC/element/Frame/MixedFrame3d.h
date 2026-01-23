@@ -30,7 +30,8 @@ public:
   // constructors
   MixedFrame3d(int tag, 
                std::array<int, 2>& nodes, 
-               int numSections, FrameSection** sectionPtrs, 
+               int numSections,
+               FrameSection** sectionPtrs, 
                BeamIntegration& bi, 
                CrdTransf& coordTransf,
                double density, 
@@ -38,16 +39,13 @@ public:
                int geom_flag = true);
   MixedFrame3d();
 
-
   ~MixedFrame3d();
 
   const char*
   getClassType() const
   {
     return "MixedFrame3d";
-  };
-
-
+  }
 
   int setNodes(); // (Domain* theDomain);
 
@@ -73,7 +71,7 @@ public:
   int recvSelf(int cTag, Channel&, FEM_ObjectBroker&);
 
   // TaggedObject
-  void Print(OPS_Stream& s, int flag = 0);
+  void Print(OPS_Stream& s, int flag);
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& output);
   int getResponse(int responseID, Information& info);
@@ -160,7 +158,6 @@ private:
   static Matrix theMatrix;
   static Vector theVector;
   static Matrix transformNaturalCoords;
-  static Matrix transformNaturalCoordsT;
   // matrix to transform the natural coordinates from what the coordinate transformation uses and what the element uses
 
   // These variable are always recomputed, so there is no need to store them for each instance of the element
@@ -169,8 +166,6 @@ private:
   static MatrixND<NDM_SECTION, NDM_NATURAL>* nldhat;
   static MatrixND<NDM_SECTION, NDM_NATURAL>* nd1;
   static MatrixND<NDM_SECTION, NDM_NATURAL>* nd2;
-  static MatrixND<NDM_NATURAL, NDM_SECTION>* nd1T;
-  static MatrixND<NDM_NATURAL, NDM_SECTION>* nd2T;
 
   double wt[MAX_NUM_SECTIONS]; // weights of sections or gauss points of integration points
   double xi[MAX_NUM_SECTIONS];
