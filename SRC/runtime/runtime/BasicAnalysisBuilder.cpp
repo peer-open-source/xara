@@ -75,7 +75,7 @@ BasicAnalysisBuilder::BasicAnalysisBuilder(ModelRegistry& context)
   theDomain(context.getDomain()),
   theHandler(nullptr),
   theNumberer(nullptr),
-  theAnalysisModel(new AnalysisModel()),
+  theAnalysisModel(new AnalysisModel(*context.getDomain())),
   theAlgorithm(nullptr),
   theSOE(nullptr),
   theEigenSOE(nullptr),
@@ -138,7 +138,7 @@ BasicAnalysisBuilder::wipe()
   }
   if (theAnalysisModel != nullptr) {
     delete theAnalysisModel;
-    theAnalysisModel = new AnalysisModel();
+    theAnalysisModel = new AnalysisModel(*context.getDomain());
   }
 }
 
@@ -231,7 +231,7 @@ BasicAnalysisBuilder::number()
 {
   theAnalysisModel->clearAll();
 
-  if (theHandler != nullptr) {
+  if (theHandler != nullptr && theNumberer != nullptr) {
 
     // Create FE_Element and DOF_Group objects
     // and add to the AnalysisModel.
@@ -336,7 +336,8 @@ BasicAnalysisBuilder::analyze(int num_steps, double size_steps, int flag)
     }
 
     default:
-      opserr << OpenSees::PromptValueError << "No Analysis type has been specified \n";
+      opserr << OpenSees::PromptValueError 
+             << "No Analysis type has been specified \n";
       return -1;
   }
 
@@ -986,7 +987,7 @@ BasicAnalysisBuilder::eigen(int numMode,
       elePtr->zeroTangent();
       elePtr->addMtoTang(1.0);
       if (theEigenSOE->addM(elePtr->getTangent(0), elePtr->getID()) < 0) {
-        opserr << "WARNING BasicAnalysisBuilder::eigen -";
+        opserr << G3_WARN_PROMPT << "eigen -";
         opserr << " failed in addA for ID " << elePtr->getID() << "\n";
         result = -2;
       }
