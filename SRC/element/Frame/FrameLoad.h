@@ -16,6 +16,7 @@
 // Claudio M. Perez
 //
 #pragma once
+#include "Prism.h"
 #include <array>
 #include <vector>
 #include <Domain.h>
@@ -279,14 +280,16 @@ public:
     {
       Vector3D rx = r[0];
       rx[0] = 0.0;
-      rx = R*(R0*rx);
+      // rx = R*(R0*rx);
+      rx = R0*rx;
       switch (basis) {
         case Embedding:
           nm = R^p[0]; // + rx.cross(m[0]);
           break;
         case Reference:
-          nm = R^(R0^p[0]);
-          M  = (R^m[0]) + rx.cross(nm);
+          nm = R^(R0*p[0]);
+          // nm =  R^p[0];
+          M  = (R^m[0]) + (R^(rx.cross(p[0])));
           break;
         case Director:
           nm = p[0];
@@ -311,6 +314,7 @@ public:
           case FrameStress::Vy: s[i] +=  M[2]*scale + wy*(x - 0.5*L); break;
           case FrameStress::Vz: s[i] += -M[1]*scale + wz*(x - 0.5*L); break;
 
+          case FrameStress::T : s[i] +=  M[0]*(L-x)*scale; break;
           case FrameStress::My: s[i] += -wz*0.5*x*(x - L); break;
           case FrameStress::Mz: s[i] +=  wy*0.5*x*(x - L); break;
           default:
@@ -366,13 +370,25 @@ public:
     }
   }
 
+
   template <int nsr, const FrameStressLayout& scheme>
   void addBasicTangent(MatrixND<nsr,3>& Ks,
                        VectorND<nsr>& s) const
   {
 
-    VectorND<3> nm = s.template extract<3>(0), 
-                M  = s.template extract<3>(3);
+    VectorND<3> nm{}, M{};
+    for (int i=0; i<nsr; i++) {
+      switch (scheme[i]) {
+      case FrameStress::N:  nm[0] += s[i]; break;
+      case FrameStress::Vy: nm[1] += s[i]; break;
+      case FrameStress::Vz: nm[2] += s[i]; break;
+      case FrameStress::T:  M[0]  += s[i]; break;
+      case FrameStress::My: M[1]  += s[i]; break;
+      case FrameStress::Mz: M[2]  += s[i]; break;
+      default:
+        break;
+      }
+    }
 
     double scale = pattern.getLoadFactor();
 
@@ -406,15 +422,17 @@ public:
     {
       Vector3D rx = r[0];
       rx[0] = 0.0;
-      rx = R*(R0*rx);
+      // rx = R*(R0*rx);
+      rx = R0*rx;
       switch (basis) {
         case Embedding:
-          n = R^p[0];
+          n =  R^p[0];
           M = (R^m[0]) + rx.cross(n);
           break;
         case Reference:
-          n = R^(R0^p[0]);
-          M = (R^m[0]) + rx.cross(n);
+          n = R^(R0*p[0]);
+          // n =  R^p[0];
+          M = (R^m[0]) + (R^(rx.cross(p[0])));
           break;
         case Director:
           n = p[0];
@@ -431,16 +449,16 @@ public:
       double T  = M[0]*scale*L;
       double Vy = -0.5*wy*L;
       double Vz = -0.5*wz*L;
-      double My = M[1]*scale;
-      double Mz = M[2]*scale;
+      double my = M[1]*scale;
+      double mz = M[2]*scale;
 
       // Reactions in basic system (projections on linear shape functions)
       p0[0*NDF + 0] -=  P;
-      p0[0*NDF + 1] +=  Mz + Vy; // Vyi
-      p0[0*NDF + 2] +=  My + Vz; // Vzi
+      p0[0*NDF + 1] +=  mz + Vy; // Vyi
+      p0[0*NDF + 2] +=  my + Vz; // Vzi
       p0[0*NDF + 3] -=  T;
-      p0[1*NDF + 1] += -Mz + Vy; // Vyj
-      p0[1*NDF + 2] += -My + Vz;
+      p0[1*NDF + 1] += -mz + Vy; // Vyj
+      p0[1*NDF + 2] += -my + Vz;
     }
 
     #if 0
@@ -476,8 +494,8 @@ public:
       double Py     = p[0](1) * scale;
       double Pz     = p[0](2) * scale;
       double T      = M[0] * scale;
-      double My     = M[1] * scale;
-      double Mz     = M[2] * scale;
+      double my     = M[1] * scale/L;
+      double mz     = M[2] * scale/L;
       double aOverL = r[0][0];
       double bOverL = 1.0 - aOverL;
 
@@ -485,13 +503,60 @@ public:
         return;
 
       p0[0*NDF + 0] += -N;
-      p0[0*NDF + 1] += -Py*bOverL + Mz/L;
-      p0[1*NDF + 1] += -Py*aOverL - Mz/L;
+      p0[0*NDF + 1] += -Py*bOverL + mz; // Vyi
+      p0[0*NDF + 2] += -Pz*bOverL - my; // Vzi
       p0[0*NDF + 3] += -T;
-      p0[0*NDF + 2] += -Pz * bOverL - My/L;
-      p0[1*NDF + 2] -= -Pz * aOverL - My/L;
+      p0[1*NDF + 1] += -Py*aOverL - mz; // Vyj
+      p0[1*NDF + 2] += -Pz*aOverL + my; // Vzj
     }
   }
+
+  int 
+  addBasicIntegral(VectorND<6>& q0, double L, 
+                   Frame::Release release,
+                   const Matrix3D& R0, const Matrix3D& R) const
+  {
+    switch (shape) {
+      case Heaviside: {
+        double scale = pattern.getLoadFactor();
+        double wx = p[0][0] * scale; // Axial
+        double wy = p[0][1] * scale; // Transverse
+        double wz = p[0][2] * scale; // Transverse
+
+        double P  =     wx*L; // +/- 
+        double Vy = 0.5*wy*L;
+        double Vz = 0.5*wz*L;
+        // Fixed end forces in basic system
+        double Mz = Vy/6.0*L; // wy*L*L/12
+        double My = Vz/6.0*L; // wz*L*L/12
+        q0[0] -= 0.5*P;
+        if (!(release.i & Frame::Release::Mz) && 
+            !(release.j & Frame::Release::Mz)) {
+          q0[1] -= Mz;
+          q0[2] += Mz;
+        }
+        if (release.i & Frame::Release::Mz)
+          q0[2] += wy/8*L*L;
+          
+        if (release.j & Frame::Release::Mz)
+          q0[1] -= wy/8*L*L;
+        
+        if (!(release.i & Frame::Release::My) && 
+            !(release.j & Frame::Release::My)) {
+          q0[3] += My;
+          q0[4] -= My;
+        }
+        if (release.i & Frame::Release::My)
+          q0[4] -= wz/8*L*L;
+
+        if (release.j & Frame::Release::My)
+          q0[3] += wz/8*L*L;
+      }
+    }
+
+    return 0;
+  }
+
 private:
   Vector3D getForce(double x,
                     const Matrix3D& R0,
