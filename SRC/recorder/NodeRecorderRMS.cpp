@@ -696,8 +696,8 @@ NodeRecorderRMS::initialize(void)
   // need to create the data description, i.e. what each column of data is
   //
 
-  char outputData[128];
-  char dataType[128];
+  char outputData[256];
+  char dataType[256];
 
   if (dataFlag == NodeData::DisplTrial) {
     strcpy(dataType,"D");
@@ -750,9 +750,9 @@ NodeRecorderRMS::initialize(void)
       int nodeTag = (*theNodalTags)(i);
       Node *theNode = theDomain->getNode(nodeTag);
       if (theNode != 0) {
-	xmlOrder(nodeCount++) = i+1;
-	for (int j=0; j<numDOF; j++)
-	  dataOrder(count++) = i+1;
+        xmlOrder(nodeCount++) = i+1;
+        for (int j=0; j<numDOF; j++)
+          dataOrder(count++) = i+1;
       }
     }
 
