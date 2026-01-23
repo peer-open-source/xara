@@ -27,6 +27,10 @@
 //
 // Adapted from: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
 //
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
+//
 // [2] Crisfield, M.A. (1990) "A consistent co-rotational formulation for
 //     non-linear, three-dimensional, beam-elements", Computer Methods in Applied
 //     Mechanics and Engineering, 81(2), pp. 131–150. Available at:
@@ -277,7 +281,7 @@ SouzaFrameTransf<nn,ndf>::getNodeRotationLogarithm(int tag)
 //
 template <int nn, int ndf>
 int
-SouzaFrameTransf<nn,ndf>::update()
+SouzaFrameTransf<nn,ndf>::update() noexcept
 {
   // determine global displacement increments from last iteration
 
