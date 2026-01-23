@@ -67,7 +67,7 @@ public:
   const std::array<Vector3D,nn> *getRigidOffsets() const final {return offsets;}
   
   int initialize(std::array<Node*, nn>& new_nodes) final;
-  int update() final;
+  int update() noexcept final;
   int commit() final;
   int revertToLastCommit() final;
   int revertToStart() final;
@@ -76,6 +76,10 @@ public:
   Vector3D getNodePosition(int tag) final;
   Versor   getNodeRotation(int tag) /* final */;
   Vector3D getNodeRotationLogarithm(int tag) final;
+
+  Matrix3D getRotation() const noexcept final {
+    return basis.getRotation();
+  }
 
   int push(VectorND<nn*ndf>&pl, Operation) final;
   int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
