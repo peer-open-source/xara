@@ -22,13 +22,12 @@
 //
 // References:
 //
+// [1] Perez, C.M., and Filippou F.C. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024;
+//     https://doi.org/10.1002/nme.7506
+//
 // [2] Filippou, F.C. (1998)
 //     "FEDEASLab: Finite Elements for Design Evaluation and Analysis of Structures"
-//
-// [3] Nour-Omid, B. and Rankin, C.C. (1991) "Finite rotation analysis and 
-//     consistent linearization using projectors", 
-//     Computer Methods in Applied Mechanics and Engineering, 93(3), pp. 353–384. 
-//     Available at: https://doi.org/10.1016/0045-7825(91)90248-5.
 //
 #pragma once
 #include <Vector3D.h>
@@ -37,7 +36,6 @@
 #include "EuclidIsometry.h"
 
 class Node;
-#define TRIAD C2
 
 namespace OpenSees {
 
