@@ -145,7 +145,7 @@ template <int nn, int ndf, typename IsoT>
 int
 EuclidFrameTransf<nn,ndf,IsoT>::getLocalAxes(Vector3D &e1, Vector3D &e2, Vector3D &e3) const
 {
-  Matrix3D R = basis.getRotation();
+  const Matrix3D R = basis.getInitialRotation();
   for (int i = 0; i < 3; i++) {
     e1[i] = R(i,0);
     e2[i] = R(i,1);
@@ -174,7 +174,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::getDeformedLength()
 //
 template <int nn, int ndf, typename IsoT>
 int
-EuclidFrameTransf<nn,ndf,IsoT>::update()
+EuclidFrameTransf<nn,ndf,IsoT>::update() noexcept
 {
   if (basis.update(nodes) < 0) 
     return -1;
@@ -423,7 +423,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
   // 2) Isometry
   //
   // 2.2) Projection
-  // Kl = A ^ k * A
+  // 2.2.1) Kl = A ^ k * A
   MatrixND<nn*ndf,nn*ndf>& Kl = kb;
   const MatrixND<nn*ndf,nn*ndf> A = getProjection();
   if (op == Operation::Bubnov)
@@ -434,7 +434,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
 
   const VectorND<nn*ndf> Ap = A^p;
 
-  // Kl += Kw * A
+  // 2.2.2) Kl += Kw * A
   Kb.zero();
   VectorND<12> qwx{};
   for (int i=0; i<nn; i++)
