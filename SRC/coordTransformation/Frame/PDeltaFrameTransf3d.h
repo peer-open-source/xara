@@ -51,7 +51,7 @@ public:
   double getDeformedLength() final;
 
   int initialize(std::array<Node*, nn>&) final;
-  int update() final;
+  int update() noexcept final;
   int commit() final;
   int revertToLastCommit() final;
   int revertToStart() final;
@@ -60,6 +60,10 @@ public:
   Vector3D getNodePosition(int tag) final;
   Vector3D getNodeRotationLogarithm(int tag) final;
   const std::array<Vector3D,nn> *getRigidOffsets() const final { return linear.getRigidOffsets();}
+
+  Matrix3D getRotation() const noexcept final {
+    return this->getInitialRotation();
+  }
 
   using Operation = typename FrameTransform<nn,ndf>::Operation;
   int push(VectorND<nn*ndf>&pl, Operation) final;
