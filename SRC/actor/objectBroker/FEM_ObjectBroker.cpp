@@ -56,14 +56,6 @@ FEM_ObjectBroker::getNewActor(int classTag, Channel *theChannel)
 }
 
 
-PartitionedModelBuilder          *
-FEM_ObjectBroker::getPtrNewPartitionedModelBuilder(Subdomain &theSubdomain,
-						   int classTag)
-{
-  return 0;
-}
-
-
 GraphNumberer *
 FEM_ObjectBroker::getPtrNewGraphNumberer(int classTag)
 {
