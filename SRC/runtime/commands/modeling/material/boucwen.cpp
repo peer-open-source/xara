@@ -630,9 +630,10 @@ TclCommand_newBoucWen(ClientData clientData, Tcl_Interp *interp,
         Mu,
         N, Beta, Gamma,
         Tolerance, Iterations,
-      End,
+      EndAllowed,
         Ao, DeltaA, DeltaV, DeltaN,
         PinchSlope, PinchStart, PinchRate, PinchSize, PinchSlip, PinchLamda,
+      End
     };
     return ParseBoucWen<Positions>(clientData, interp, argc, argv);
   }
