@@ -186,6 +186,8 @@ public:
   //
   // Functions
   //
+  int update01();
+  int update02();
   int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 
