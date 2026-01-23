@@ -242,9 +242,8 @@ ViscousDamper::setTrialStrain(double strain, double strainRate)
     
     
     if  ((fabs(Tnugr) > 0.) && (Tstress == 0)) {   //from positive to negative
-      
       if ((strain < Tnugr) && ((strain-Tnugr) > -LGap)) {
-	fd0 = 0.;
+        fd0 = 0.;
       }
     }
     
