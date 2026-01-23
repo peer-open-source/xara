@@ -38,6 +38,11 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
   ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
+  // Syntax:
+  // element ZeroLength eleTag? iNode? jNode? 
+  //          -mat matID1? ... -dir dirMat1? .. 
+  //          <-orient x1? x2? x3? y1? y2? y3?>
+
   // the spatial dimension of the problem
   int ndm = builder->getNDM();
 
@@ -52,9 +57,7 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
   // a quick check on number of args
   if (argc < 9) {
     opserr << "WARNING too few arguments "
-           << "want - element ZeroLength eleTag? iNode? jNode? "
-           << "-mat matID1? ... -dir dirMat1? .. "
-           << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+           << "\n";
 
     return TCL_ERROR;
   }
@@ -62,27 +65,21 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
   // get the ele tag
   if (Tcl_GetInt(interp, argv[2], &eleTag) != TCL_OK) {
     opserr << "WARNING invalied eleTag " << argv[2]
-           << "- element ZeroLength eleTag? iNode? jNode? -mat matID1? ... "
-              "-dir dirMat1? .. "
-           << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+           << "\n";
     return TCL_ERROR;
   }
 
   // get the two end nodes
   if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
     opserr << "WARNING invalied iNode " << argv[3]
-           << "- element ZeroLength eleTag? iNode? jNode? "
-           << "-mat matID1? ... -dir dirMat1? .. "
-           << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+           << "\n";
 
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
     opserr << "WARNING invalid jNode " << argv[4]
-           << "- element ZeroLength eleTag? iNode? jNode? "
-           << "-mat matID1? ... -dir dirMat1? .. "
-           << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+           << "\n";
     return TCL_ERROR;
   }
 
@@ -109,17 +106,13 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
 
   if (argi == argc) { // check we encountered the -dirn flag
     opserr << "WARNING no -dirn flag encountered "
-           << "- element ZeroLength eleTag? iNode? jNode? "
-           << "-mat matID1? ... -dir dirMat1? .. "
-           << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+           << "\n";
     return TCL_ERROR;
   }
 
   if (numMat == 0) {
     opserr << "WARNING no materials specified "
-           << "- element ZeroLength eleTag? iNode? jNode? "
-           << "-mat <matID1? ... -dir irMat1? .. "
-           << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+           << "\n";
     return TCL_ERROR;
   }
 
@@ -161,9 +154,7 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
   argi = 6 + numMat;
   if (strcmp(argv[argi], "-dir") != 0) {
     opserr << "WARNING expecting -dirn flag " << argv[argi]
-           << "- element ZeroLength eleTag? iNode? jNode? "
-           << "-mat matID1? ... -dir dirMat1? .. "
-           << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+           << "\n";
 
     delete[] theMats;
     return TCL_ERROR;
@@ -183,17 +174,18 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
   argi++;
   int dirnID;
 
+  const int ndf = builder->getNDF();
   // read the dirn identifiers
   for (int j = 0; j < numMat; j++) {
-    if (Tcl_GetInt(interp, argv[argi], &dirnID) != TCL_OK) {
-      opserr << "WARNING invalid directiion " << argv[argi]
-             << "- element ZeroLength eleTag? iNode? jNode? "
-             << "-mat matID1? ... -dir dirMat1? .. "
-             << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+    if ((Tcl_GetInt(interp, argv[argi], &dirnID) != TCL_OK) || (dirnID < 1) || (dirnID > ndf)) {
+      opserr << OpenSees::PromptValueError 
+             << "invalid directiion " << argv[argi]
+             << "\n";
 
       delete[] theMats;
       return TCL_ERROR;
-    } else {
+    }
+    else {
       theDirns[j] = dirnID - 1; // the minus g3 to C++
       argi++;
     }
@@ -240,13 +232,12 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
         y(2) = 0.0;
       }
       else if (ndm == 3) {
-        if (argc < (argi + 4)) {
+        if (argc < (argi + 3)) {
           opserr << "WARNING not enough parameters after -orient flag"
                 << OpenSees::SignalMessageEnd;
           delete[] theMats;
           return TCL_ERROR;
         }
-        argi++;
         // read the y values
         for (int j = 0; j < 3; j++) {
           if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
@@ -270,7 +261,8 @@ TclCommand_addZeroLength(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
       if (argi < argc)
         if ((Tcl_GetInt(interp, argv[argi], &doRayleighDamping) == TCL_OK))
           argi++;
-    } else if (strcmp(argv[argi], "-dampMats") == 0) {
+    } 
+    else if (strcmp(argv[argi], "-dampMats") == 0) {
       doRayleighDamping = 2;
       argi++;
       for (int i = 0; i < numMat; i++) {
