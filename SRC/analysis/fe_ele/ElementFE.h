@@ -1,27 +1,22 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 // Description: This file contains the class definition for ElementFE.
 //
-// Written: fmk 
-// Created: 11/96
+// Written: cmp 
+// Created: Jan 2026
 // Revision: A
 //
 #ifndef ElementFE_h
@@ -42,19 +37,18 @@ class ElementFE: public FE_Element
 {
   public:
     ElementFE(int tag, Element *);
-    virtual ~ElementFE();    
+    ~ElementFE() override;
 
     // public methods for setting/obtaining mapping information
-    virtual const ID &getDOFtags() const;
-    virtual const ID &getID() const;
     int  setID(AnalysisModel &) override;
+    const ID &getID() const override;
 
     // methods to form and obtain the tangent and residual
     const Matrix &getTangent(Integrator *) override;
     const Vector &getResidual(Integrator *) override;
 
     // methods called by integrator to build tangent
-    virtual void  zeroTangent()                  ;
+    void  zeroTangent() override;
     void  addKtToTang(double fact = 1.0) override;
     void  addKiToTang(double fact = 1.0) override;
     void  addCtoTang (double fact = 1.0) override;
@@ -96,8 +90,7 @@ class ElementFE: public FE_Element
     void  addLocalM_ForceSensitivity(int gradNumber, const Vector &accel, double fact = 1.0);
     void  addLocalD_ForceSensitivity(int gradNumber, const Vector &vel, double fact = 1.0);
 
-    // protected variables - a copy for each object of the class        
-    ID myDOF_Groups;
+    // protected variables - a copy for each object of the class
     ID myID;
 
   private:
