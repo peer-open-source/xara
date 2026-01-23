@@ -63,7 +63,8 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
                                        TCL_Char ** const argv, Domain *domain);
 
 Tcl_CmdProc TclCommand_clearAnalysis;
-Tcl_CmdProc TclCommand_setNumberer;
+extern Tcl_CmdProc TclCommand_setNumberer;
+extern Tcl_CmdProc TclCommand_runNumberer;
 namespace OpenSees {
 Tcl_CmdProc responseSpectrumAnalysis;
 }
@@ -80,6 +81,7 @@ G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
   Tcl_CreateCommand(interp, "_clearAnalysis", &TclCommand_clearAnalysis, analysis, nullptr);
 
   Tcl_CreateCommand(interp, "numberer",   TclCommand_setNumberer, analysis, nullptr);
+  Tcl_CreateCommand(interp, "number",     TclCommand_runNumberer, analysis, nullptr);
 
   Tcl_CreateCommand(interp, "responseSpectrumAnalysis", &OpenSees::responseSpectrumAnalysis, nullptr, nullptr);
 
