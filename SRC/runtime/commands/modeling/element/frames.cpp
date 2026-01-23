@@ -76,6 +76,7 @@
 #include <EulerFrame3d.h>
 #include <EulerDeltaFrame3d.h>
 #include <ExactFrame3d.h>
+#include <ShearFrame3d.h>
 
 #include <DispBeamColumn2d.h>
 #include <DispBeamColumn2dThermal.h>
@@ -115,6 +116,33 @@ struct Options {
   int use_mass;
   int shear_flag;
   int geom_flag;
+};
+
+enum class FrameClass {
+  ForceFrame3d,
+  ForceDeltaFrame3d,
+  EulerFrame3d,
+  EulerDeltaFrame3d,
+  ExactFrame3d,
+  CubicFrame3d,
+  // Legacy
+  DispBeamColumn2d,
+  DispBeamColumn3d,
+  DispBeamColumnNL2d,
+  DispBeamColumn2dThermal,
+  DispBeamColumn3dThermal,
+  DispBeamColumnAsym3d,
+  ElasticForceBeamColumn2d,
+  ElasticForceBeamColumn3d,
+  ElasticForceBeamColumnWarping2d,
+  ForceBeamColumn2d,
+  ForceBeamColumn3d,
+  ForceBeamColumnCBDI2d,
+  ForceBeamColumnCBDI3d,
+  ForceBeamColumnWarping2d,
+  ForceBeamColumn2dThermal,
+  TimoshenkoBeamColumn2d,
+  Unknown
 };
 
 
@@ -168,7 +196,6 @@ CreateFrame(ModelRegistry& builder,
             const std::array<double,2>& shear_center,
             Options& options) 
 {
-
   std::vector<Section*> sections;
 
   // Finalize sections
@@ -204,7 +231,7 @@ CreateFrame(ModelRegistry& builder,
   //
   // Create the element
   //
-  Element  *theElement   = nullptr;
+  Element  *theElement = nullptr;
 
   int iNode = nodev[0],
       jNode = nodev[1];
@@ -266,6 +293,8 @@ CreateFrame(ModelRegistry& builder,
 
     if (CheckTransformation(*builder.getDomain(), nodev[0], nodev[nodev.size()-1], *theTransf) != TCL_OK)
       return nullptr;
+    
+    // Create 3d frame elements
     if (strstr(name, "Frame") != nullptr) {
       if (strstr(name, "Exact") == nullptr) {
 
@@ -287,7 +316,7 @@ CreateFrame(ModelRegistry& builder,
                                           mass, options.mass_flag);
         }
 
-        if (strcmp(name, "CubicFrame") == 0) {
+        else if (strcmp(name, "CubicFrame") == 0) {
           if (options.shear_flag)
             theElement = new CubicFrame3d<true,0>(tag, nodes, 
                                           sections,
@@ -310,6 +339,37 @@ CreateFrame(ModelRegistry& builder,
                                               use_mass);
         }
 
+        else if (strcmp(name, "ShearFrame") == 0) {
+          if (!options.shear_flag) {
+            opserr << OpenSees::PromptValueError 
+                  << "ShearFrame3d requires shear"
+                  << OpenSees::SignalMessageEnd;
+            return nullptr;
+          }
+
+          int ndf = builder.getNDF();
+          if (sections.size() < nodev.size()-1)
+            for (unsigned i = 0; i < nodev.size()-1; ++i)
+              sections.push_back(sections[0]);
+          
+          unsigned nen = nodev.size();
+          static_loop<2,6>([&](auto nn) constexpr {
+            if (nn.value == nen) {
+              std::array<int, nn.value> nodes;
+              std::copy_n(nodev.begin(), nn.value, nodes.begin());
+              static_loop<0,4>([&](auto nwm) constexpr {
+                if (nwm.value+6 == ndf)
+                  theElement = new ShearFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *theTransf);
+              });
+            }
+          });
+          if (theElement == nullptr) {
+            opserr << OpenSees::PromptValueError 
+                  << "invalid number of dofs for ShearFrame; got " << ndf 
+                  << OpenSees::SignalMessageEnd;
+            return nullptr;
+          }
+        }
         else if ((strstr(name, "Force") != 0) ||
                 (strcmp(name, "MixedFrame") == 0)) {
           if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
@@ -347,7 +407,8 @@ CreateFrame(ModelRegistry& builder,
             int ndf = builder.getNDF();
             if (sections.size() > MAX_NIP) {
               opserr << OpenSees::PromptValueError 
-                     << "too many sections for ForceFrame3d: " << static_cast<int>(sections.size())
+                     << "too many sections for element: " 
+                     << static_cast<int>(sections.size())
                      << OpenSees::SignalMessageEnd;
               return nullptr;
             }
@@ -425,19 +486,19 @@ CreateFrame(ModelRegistry& builder,
                                         beamIntegr, *theTransf, 
                                         mass, options.mass_flag);
 
-    else if (strcmp(name, "dispBeamColumnWithSensitivity") == 0)
+    else if (strcasecmp(name, "dispBeamColumnWithSensitivity") == 0)
       theElement = new DispBeamColumn3d(
           tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
 
-    else if (strcmp(name, "dispBeamColumnThermal") == 0)
+    else if (strcasecmp(name, "dispBeamColumnThermal") == 0)
       theElement = new DispBeamColumn3dThermal(
           tag, iNode, jNode, nIP, secptrs, beamIntegr, *theTransf, mass);
 
-    else if (strcmp(name, "forceBeamColumnCBDI") == 0)
+    else if (strcasecmp(name, "forceBeamColumnCBDI") == 0)
       theElement = new ForceBeamColumnCBDI3d(tag, iNode, jNode, nIP, secptrs,
                                              beamIntegr, *theTransf, 
                                              mass, false, max_iter, tol);
-    else if (strcmp(name, "dispBeamColumnAsym") == 0)
+    else if (strcasecmp(name, "dispBeamColumnAsym") == 0)
       theElement = new DispBeamColumnAsym3d(tag, iNode, jNode, nIP, secptrs,
                                             beamIntegr, *theTransf, 
                                             shear_center[0], shear_center[1],
@@ -453,28 +514,29 @@ CreateFrame(ModelRegistry& builder,
 // 0       1    2 3  4
 // element beam 1 $i $j 0 1 2
 //
-//  a)
+// Legacy:
+//  a) Gauss Inline
 //     0       1     2    3    4    5    6
 //                                  0    1
 //     element $type $tag $ndi $ndj $trn "Gauss arg1 arg2 ..." 
 //             <-mass $mass> <-iter $iter $tol>
 //
-//  b)
+//  b) Gauss Predefined
 //                                  0    1
 //     element(type, tag, ndi, ndj, trn, itag, 
 //              iter=(10, 1e-12), mass=0.0)
 //
-//  c) "Original/Obsolete"
+//  c) "Original/Obsolete": Gauss Tabulated, Prismatic
 //                                  0    1    2
 //     element $type $tag $ndi $ndj $nip $sec $trn 
 //             <-mass $mass> <-iter $iter $tol> <-integration $ityp>
 //
-//  d) 
+//  d) Gauss Tabulated, Non-Prismatic
 //                                  0    1         ... (2 + nIP)
 //     element $type $tag $ndi $ndj $nip -sections ... $trn 
 //             <-mass $massDens> <-cMass> <-integration $ityp>
 //
-//  e)
+//   or
 //                                   0
 //     element $type $tag $ndi $ndj  $trn 
 //             -sections {...}
@@ -506,7 +568,6 @@ CreateFrame(ModelRegistry& builder,
 //
 //      "-transform" $Tag
 //      "-vertical" {}
-//      "-horizontal" {}
 //
 //      "-sections" $SectionTags
 //        - if cannot split $SectionTags as list, then
@@ -551,23 +612,32 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
                                    int argc, TCL_Char **const argv)
 {
   assert(clientData != nullptr);
-  ModelRegistry *builder = (ModelRegistry*)clientData;
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *domain = builder->getDomain();
   assert(domain != nullptr);
 
   int status = TCL_OK;
 
-//enum class GaussMethod {
-//  None,
-//  Rule, // Quadrature name + section locations; Hinge methods
-//  Quad, // Quadrature name
-//} gauss_method = GaussMethod::None;
+  enum class FrameSyntax {
+    None,
+    A, // _GaussInline,
+    B, // _GaussLookup,
+    C, // _GaussPrismRule,
+    D, // _GaussHingeRule,
+    X
+  } syntax = FrameSyntax::None;
+
+  struct {
+    bool transform   = false;
+    bool integration = false;
+    bool sections    = false;
+  } received;
 
   // collect positional arguments
   std::vector<int> positions;
 
 
-  // 
+  //
   // Preliminary checks
   //
   int ndm = builder->getNDM();
@@ -596,6 +666,43 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   // Required positional arguments
   //
+  FrameClass beam_type = FrameClass::Unknown;
+  if (strcasecmp(argv[1], "dispBeamColumn") == 0) {
+    if (ndm == 2)
+      beam_type = FrameClass::DispBeamColumn2d;
+    else
+      beam_type = FrameClass::DispBeamColumn3d;
+  }
+  else if ((strcasecmp(argv[1], "forceBeamColumn") == 0) ||
+           (strcasecmp(argv[1], "nonlinearBeamColumn") == 0)) {
+    if (ndm == 2)
+      beam_type = FrameClass::ForceBeamColumn2d;
+    else
+      beam_type = FrameClass::ForceBeamColumn3d;
+  }
+  else if (strcasecmp(argv[1], "timoshenkoBeamColumn") == 0) {
+    if (ndm == 2)
+      beam_type = FrameClass::TimoshenkoBeamColumn2d;
+    else {
+      opserr << OpenSees::PromptValueError 
+             << "timoshenkoBeamColumn not available in 3d\n"
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+  }
+  else if (strcasecmp(argv[1], "ForceFrame") == 0) {
+    if (ndm == 2)
+      beam_type = FrameClass::ForceBeamColumn2d;
+    else
+      beam_type = FrameClass::ForceFrame3d;
+  }
+  // else {
+  //   opserr << OpenSees::PromptValueError 
+  //          << "unknown beam element type " << argv[1] 
+  //          << OpenSees::SignalMessageEnd;
+  //   return TCL_ERROR;
+  // }
+
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
@@ -605,7 +712,6 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   }
 
   int argi = 5;
-  // bool multi_node = false;
   std::vector<int> multi_nodes;
   {
     int list_argc;
@@ -642,19 +748,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   int max_iter = 10;
   double tol  = 1.0e-12;
   double mass = 0.0;
-  bool use_mass = false;
   int transfTag;
-  std::vector<int> section_tags;
-  const char* integration_type = nullptr;
-  BeamIntegration   *beamIntegr   = nullptr;
-  BeamIntegrationRule  *theRule   = nullptr;
-  int itg_tag;
   std::array<double,2> shear_center = {0.0, 0.0};
-
-  // If we get a BeamIntegration from a BeamIntegrationRule
-  // then we dont own it and can't delete it
-  bool deleteBeamIntegr = true;
-  bool removeHingeIntegr = false;
 
   //
   // Defaults
@@ -663,20 +758,23 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   options.mass_flag  =  0;
   options.shear_flag = -1;
   options.geom_flag  =  0;
-  if (strcasecmp(argv[1], "elasticBeamColumn") == 0) {
-    options.shear_flag = 0;
+  options.use_mass   =  0;
+  switch (beam_type) {
+    case FrameClass::DispBeamColumn2d:
+    case FrameClass::DispBeamColumn3d:
+    case FrameClass::ForceBeamColumn2d:
+    case FrameClass::ForceBeamColumn3d:
+      options.shear_flag = 0;
+      break;
+    case FrameClass::TimoshenkoBeamColumn2d:
+      options.shear_flag = 1;
+      break;
+    default:
+      break;
   }
-  if (strcasecmp(argv[1], "dispBeamColumn") == 0 || 
-      strcasecmp(argv[1], "nonlinearBeamColumn") == 0) {
-    options.shear_flag = 0;
-  }
-  else if (strcasecmp(argv[1], "timoshenkoBeamColumn") == 0) {
-    options.shear_flag = 1;
-  }
-
 
   //
-  // Parse positions
+  // Parse keywords
   //
   {
     while (argi < argc) {
@@ -684,28 +782,25 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       if (strcmp(argv[argi], "-shear") == 0) {
         if (argc < argi + 2) {
           opserr << OpenSees::PromptValueError << "not enough arguments, expected -shear $flag\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         if (Tcl_GetInt(interp, argv[argi + 1], &options.shear_flag) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid shear_flag, expected integer\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         argi += 2;
       }
 
       // Geometry
       else if (strcmp(argv[argi], "-order") == 0) {
+        syntax = FrameSyntax::X;
         if (argc < argi + 2) {
           opserr << OpenSees::PromptValueError << "not enough arguments, expected -order $flag\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         if (Tcl_GetInt(interp, argv[argi + 1], &options.geom_flag) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid geom_flag, expected integer\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         argi += 2;
       }
@@ -714,18 +809,15 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       else if (strcmp(argv[argi], "-iter") == 0) {
         if (argc < argi + 3) {
           opserr << OpenSees::PromptValueError << "not enough -iter args need -iter max_iter? tol?\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         if (Tcl_GetInt(interp, argv[argi + 1], &max_iter) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid max_iter\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[argi + 2], &tol) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid tol\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         argi += 3;
       }
@@ -733,16 +825,14 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       else if (strcmp(argv[argi], "-mass") == 0) {
         if (argc < argi + 2) {
           opserr << OpenSees::PromptValueError << "not enough arguments, expected -mass $mass\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[argi + 1], &mass) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid mass\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         argi += 2;
-        use_mass = true;
+        options.use_mass = 1;
 
       // mass type
       } else if ((strcmp(argv[argi], "-lMass") == 0) ||
@@ -756,92 +846,22 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
         argi++;
       }
 
-      // Quadrature
-      else if (strcmp(argv[argi], "-integration") == 0) {
-        if (argc < argi + 2) {
-          opserr << OpenSees::PromptValueError << "not enough arguments, expected -integration $integration\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-
-        argi++;
-        integration_type = argv[argi];
-        // beamIntegr = GetBeamIntegration(argv[argi]);
-
-        // if (beamIntegr == nullptr) {
-        //   opserr << OpenSees::PromptValueError << "invalid integration type\n";
-        //   status = TCL_ERROR;
-        //   goto clean_up;
-        // }
-        argi++;
-      }
-
-      else if (strcmp(argv[argi], "-gauss_points") == 0) {
-        if (argc < argi + 2) {
-          opserr << OpenSees::PromptValueError << "not enough arguments, expected -gauss-points $nIP\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-
-        int nIP;
-        if (Tcl_GetInt(interp, argv[argi + 1], &nIP) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid nIP\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-        argi += 2;
-
-        if (integration_type == nullptr) {
-          opserr << OpenSees::PromptValueError << "-gauss-points must be preceded by -integration\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-
-        beamIntegr = GetBeamIntegration((TCL_Char*)integration_type, nIP);
-        if (beamIntegr == nullptr) {
-          opserr << OpenSees::PromptValueError << "invalid integration type or nIP\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-        deleteBeamIntegr = true;
-      }
-
       // Transform
       else if (strcmp(argv[argi], "-transform") == 0) {
+        syntax = FrameSyntax::X;
         if (argc < argi + 2) {
-          opserr << OpenSees::PromptValueError << "not enough arguments, expected -transform $transform\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          opserr << OpenSees::PromptValueError 
+                 << "not enough arguments, expected -transform $transform\n";
+          return TCL_ERROR;
         }
 
         argi++;
         if (Tcl_GetInt(interp, argv[argi], &transfTag) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid transform\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         argi++;
-      }
-
-      // Section
-      else if (strcmp(argv[argi], "-section") == 0) {
-        if (argc < argi + 2) {
-          opserr << OpenSees::PromptValueError << "not enough arguments, expected -section $section\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-
-        argi++;
-        int sec_tag;
-        if (Tcl_GetInt(interp, argv[argi], &sec_tag) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid sec_tag\n";
-          status = TCL_ERROR;
-          goto clean_up;
-        }
-
-        section_tags.push_back(sec_tag);
-
-        argi++;
+        received.transform = true;
       }
 
       else if (strcmp(argv[argi], "-shearCenter") == 0) {
@@ -849,39 +869,63 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
           opserr << OpenSees::PromptValueError
                  << "not enough arguments, expected -shearCenter $y $z"
                  << OpenSees::SignalMessageEnd;
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
 
         if (Tcl_GetDouble(interp, argv[argi + 1], &shear_center[0]) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid shear_center y\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[argi + 2], &shear_center[1]) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid shear_center z\n";
-          status = TCL_ERROR;
-          goto clean_up;
+          return TCL_ERROR;
         }
         argi += 3;
       }
 
-    //else if (strcmp(argv[argi], "-sections") == 0) {
-    // split possible lists present in argv
-    //char *List = Tcl_Merge(inArgc, inArgv);
-    //if (List == nullptr) {
-    //  opserr << OpenSees::PromptValueError << "problem merging list\n";
-    //  return TCL_ERROR;
-    //}
-    //  int secc;
-    //  TCL_Char ** secv;
-    //  if (Tcl_SplitList(interp, argv[positions[2]], &secc, &secv) != TCL_OK) {
-    //    opserr << OpenSees::PromptValueError << "problem splitting list\n";
-    //    return TCL_ERROR;
-    //  }
-    //Tcl_Free((char *)List);
+      // Quadrature
+      else if (strcmp(argv[argi], "-integration") == 0) {
+        // Either syntax c, d, or e.
+        if (syntax == FrameSyntax::X) {
+          opserr << OpenSees::PromptValueError
+                 << "-integration cannot be used with Xara options\n";
+          return TCL_ERROR;
+        }
+        syntax = FrameSyntax::C;
+        for (int ii=0; ii<argc; ii++) {
+          if (strcmp(argv[ii], "-sections") == 0) {
+            syntax = FrameSyntax::D;
+            break;
+          }
+        }
+        argi += 2;
+      }
+      else if ((strcmp(argv[argi], "-gauss_points") == 0) ||
+               (strcmp(argv[argi], "-n") == 0) || 
+               (strcmp(argv[argi], "-gauss_type") == 0)) {
+        syntax = FrameSyntax::X;
+        argi += 2;
+      }
+      else if ((strcmp(argv[argi], "-gauss") == 0)) {
+        if (argc < argi + 2) {
+          opserr << OpenSees::PromptValueError 
+                 << "not enough arguments, expected -gauss $type\n";
+          return TCL_ERROR;
+        }
+        int itag;
+        if (Tcl_GetInt(interp, argv[argi + 1], &itag) != TCL_OK)
+          syntax = FrameSyntax::X;
+        else
+          syntax = FrameSyntax::A;
+        argi += 2;
+      }
+      // Section
+      else if (strcmp(argv[argi], "-section") == 0) {
+        syntax = FrameSyntax::X;
+        argi += 2;
+      }
 
-    //}
+      // Positional argument
       else {
         positions.push_back(argi);
         argi++;
@@ -892,54 +936,33 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   // II Parse Positional Arguments
   //
-
-  // Version d)
-  // positional arguments are:
-  //   0: nIP
-  //   1: -sections
-  //   2: secTag1
-  //   3: secTag2...
-  if (positions.size() > 1 && strcmp(argv[positions[1]], "-sections") == 0) {
-    
-    int nIP;
-    if (Tcl_GetInt(interp, argv[positions[0]], &nIP) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nIP\n";
-      status = TCL_ERROR;
-      goto clean_up;
+  // If we get a BeamIntegration from a BeamIntegrationRule
+  // then we dont own it and can't delete it
+  bool deleteBeamIntegr = true;
+  BeamIntegration   *beamIntegr   = nullptr;
+  std::vector<int>   section_tags;
+  if (syntax == FrameSyntax::None) {
+    // a or b
+    if (positions.size() == 2 || positions.size() > 3) {
+      int itg_tag;
+      if (Tcl_GetInt(interp, argv[positions[1]], &itg_tag) == TCL_OK)
+        syntax = FrameSyntax::B;
+      else
+        syntax = FrameSyntax::A;
     }
-    // TODO: Make sure 2+nIP < positions.size()
-  
-    // Get section tags
-    for (int i = 0; i < nIP; i++) {
-      int secTag;
-      if (Tcl_GetInt(interp, argv[positions[2+i]], &secTag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid section\n";
-        status = TCL_ERROR;
-        goto clean_up;
-      }
-      section_tags.push_back(secTag);
-    }
-
-    if (Tcl_GetInt(interp, argv[positions[2+nIP]], &transfTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid transform\n";
-      status = TCL_ERROR;
-      goto clean_up;
-    }
+    // c
+    else if (positions.size() == 3)
+      syntax = FrameSyntax::C;
   }
 
-  // Version e) ?
-  else if (positions.size() == 1) {
-    if (section_tags.empty()) {
-      status = TCL_ERROR;
-      goto clean_up;
-    }
-  }
-  
   // Version a or b
-  else if (positions.size() == 2 || positions.size() > 3) {
+  if (syntax == FrameSyntax::A ||
+      syntax == FrameSyntax::B) {
     // Here we create a BeamIntegrationRule (theRule) which is a pair of
     // section tags and a BeamIntegration. In this case we do not
     // delete the BeamIntegration because it is owned by theRule.
+    deleteBeamIntegr = false;
+
 
     // Geometric transformation
     if (Tcl_GetInt(interp, argv[positions[0]], &transfTag) != TCL_OK) {
@@ -949,19 +972,25 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       status = TCL_ERROR;
       goto clean_up;
     }
-    
-    // Version b)
-    if (Tcl_GetInt(interp, argv[positions[1]], &itg_tag) == TCL_OK) {
-      deleteBeamIntegr = false;
-      removeHingeIntegr = false;
-    }
+    received.transform = true;
 
+    int itg_tag;
+    // Version b)
+    if (syntax == FrameSyntax::B) {
+      if (Tcl_GetInt(interp, argv[positions[1]], &itg_tag) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid integration tag " << argv[positions[1]] 
+               << OpenSees::SignalMessageEnd;
+        status = TCL_ERROR;
+        goto clean_up;
+      }
+    }
     // Version a)
     else {
 #if !defined(OPS_API)
       // If we fail to parse an integer tag for the integration,
-      // then we assume that the integration is specified as a
-      // BeamIntegration command
+      // then we assume that the integration is specified as an
+      // inline BeamIntegration command
       builder->findFreeTag<BeamIntegrationRule>(itg_tag);
       std::string integrCommand{argv[positions[1]]};
       if (integrCommand.find(" ") == std::string::npos) {
@@ -973,34 +1002,37 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       integrCommand.insert(0, "beamIntegration ");
       if (Tcl_Eval(interp, integrCommand.c_str()) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "failed to parse integration\n";
-        status = TCL_ERROR;
-        goto clean_up;
+        return TCL_ERROR;
       }
-
-      deleteBeamIntegr = false;
-      removeHingeIntegr = true;
 #else
       return TCL_ERROR;
 #endif
     }
 
-    theRule = builder->getTypedObject<BeamIntegrationRule>(itg_tag);
-    if (theRule == nullptr) {
-      status = TCL_ERROR;
-      goto clean_up;
-    }
+    BeamIntegrationRule* theRule =
+        builder->getTypedObject<BeamIntegrationRule>(itg_tag);
+    if (theRule == nullptr)
+      return TCL_ERROR;
 
-    beamIntegr = theRule->getBeamIntegration();
+    beamIntegr = theRule->getBeamIntegration()->getCopy();
     const ID& secTags = theRule->getSectionTags();
+    received.integration = true;
 
     for (int i=0; i < secTags.Size(); i++)
       section_tags.push_back(secTags(i));
+    received.sections = true;
+
+    if (syntax == FrameSyntax::A) {
+      builder->removeObject<BeamIntegrationRule>(itg_tag);
+      delete theRule;
+    }
   }
 
   // Version c)
   //
-  // .. nip section transf
-  else if (positions.size() == 3) {
+  // .. $nip $section $transf
+  else if (syntax == FrameSyntax::C) {
+    deleteBeamIntegr = true;
 
     int nIP;
     if (Tcl_GetInt(interp, argv[positions[0]], &nIP) != TCL_OK) {
@@ -1009,7 +1041,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       goto clean_up;
     }
     if (nIP <= 0) {
-      opserr << OpenSees::PromptValueError << "invalid nIP, must be > 0\n";
+      opserr << OpenSees::PromptValueError << "invalid nIP, must be positive.\n";
       status = TCL_ERROR;
       goto clean_up;
     }
@@ -1017,65 +1049,219 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     //
     int secTag;
     if (Tcl_GetInt(interp, argv[positions[1]], &secTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid secTag\n";
+      opserr << OpenSees::PromptValueError 
+             << "invalid secTag\n";
       status = TCL_ERROR;
       goto clean_up;
     }
 
     for (int i=0; i < nIP; i++)
       section_tags.push_back(secTag);
+    received.sections = true;
+
+    if ((beamIntegr = GetBeamIntegration("Lobatto", nIP)) == nullptr) {
+      opserr << OpenSees::PromptValueError 
+             << "invalid integration type or size\n";
+      status = TCL_ERROR;
+      goto clean_up;
+    }
+    received.integration = true;
 
     // Transform
     if (Tcl_GetInt(interp, argv[positions[2]], &transfTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid transform\n";
+      opserr << OpenSees::PromptValueError 
+             << "invalid transform"
+             << OpenSees::SignalMessageEnd;
       status = TCL_ERROR;
       goto clean_up;
     }
+    received.transform = true;
   }
-
-  //
-  // Finalize the quadrature
-  //
-  // TODO
-  if (section_tags.size() == 1 && theRule == nullptr) {
-    if (strstr(argv[1], "isp") == 0) {
-      section_tags.resize(8, section_tags[0]);
-    } else {
-      section_tags.resize(8, section_tags[0]);
+  // Version d)
+  else if (syntax == FrameSyntax::D) {
+    // positional arguments are:
+    //   0: nIP
+    //   1: -sections
+    //   2: secTag1
+    //   3: secTag2...
+    deleteBeamIntegr = true;
+  
+    int nIP;
+    if (Tcl_GetInt(interp, argv[positions[0]], &nIP) != TCL_OK) {
+      opserr << OpenSees::PromptValueError 
+             << "invalid nIP\n";
+      return TCL_ERROR;
     }
-  }
+    if (nIP <= 0) {
+      opserr << OpenSees::PromptValueError 
+             << "invalid nIP, must be positive."
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    // TODO: Make sure 2+nIP < positions.size()
 
-  if (beamIntegr == nullptr) {
-#if defined(OPS_API)
-    return TCL_ERROR;
-#else
-    if (integration_type == nullptr) {
-      if (strstr(argv[1], "ispBeam") == 0) {
-        integration_type = "Lobatto";
-      } else {
-        integration_type = "Legendre";
+    // Get section tags
+    for (int i = 0; i < nIP; i++) {
+      int secTag;
+      if (Tcl_GetInt(interp, argv[positions[2+i]], &secTag) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid section"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      section_tags.push_back(secTag);
+    }
+    if (section_tags.size() != static_cast<size_t>(nIP)) {
+      opserr << OpenSees::PromptValueError 
+             << "number of sections does not match nIP"
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    received.sections = true;
+
+    if (Tcl_GetInt(interp, argv[positions[2+nIP]], &transfTag) != TCL_OK) {
+      opserr << OpenSees::PromptValueError 
+             << "invalid transform"
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    received.transform = true;
+
+    for (int ii=0; ii<argc; ii++) {
+      if (strcmp(argv[ii], "-integration") == 0) {
+        if (argc < ii + 2) {
+          opserr << OpenSees::PromptValueError 
+                 << "not enough arguments, expected -integration <type>"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        beamIntegr = GetBeamIntegration(argv[ii+1], nIP);
+        if (beamIntegr == nullptr) {
+          opserr << OpenSees::PromptValueError 
+                 << "invalid integration type"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        received.integration = true;
+        break;
       }
     }
-    if ((beamIntegr = GetBeamIntegration(integration_type, section_tags.size())) == nullptr) {
-      opserr << OpenSees::PromptValueError << "invalid integration type or size\n";
-      status = TCL_ERROR;
-      goto clean_up;
-    }
+  }
+  else if (syntax == FrameSyntax::X) {
     deleteBeamIntegr = true;
-#endif
+    int n = 5;
+    int section_tag = -1;
+    const char* gauss_type = "Legendre";
+
+    for (int ii=0; ii<argc; ii++) {
+      if ((strcmp(argv[ii], "-gauss") == 0) || 
+          (strcmp(argv[ii], "-gauss_type") == 0)) {
+        if (argc < ii + 2) {
+          opserr << OpenSees::PromptValueError 
+                 << "not enough arguments, expected -gauss <type>"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        gauss_type = argv[ii + 1];
+      }
+      else if ((strcmp(argv[ii], "-n") == 0) ||
+               (strcmp(argv[ii], "-gauss_points") == 0)) {
+        if (argc < ii + 2) {
+          opserr << OpenSees::PromptValueError 
+                 << "not enough arguments, expected -n <n>"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        if (Tcl_GetInt(interp, argv[ii + 1], &n) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "invalid n: " << argv[ii + 1]
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+      }
+      else if (strcmp(argv[ii], "-section") == 0) {
+        if (argc < ii + 2) {
+          opserr << OpenSees::PromptValueError 
+                 << "not enough arguments, expected -section <section>"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+
+        if (Tcl_GetInt(interp, argv[ii + 1], &section_tag) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "invalid section tag " << argv[ii + 1]
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+      }
+    }
+    if (section_tag == -1) {
+      opserr << OpenSees::PromptValueError 
+             << "missing required argument: -section <section>"
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    for (int ii=0; ii<n; ii++)
+      section_tags.push_back(section_tag);
+    received.sections = true;
+
+    if (gauss_type == nullptr) {
+      if (strcasecmp(argv[1], "ForceFrame") == 0) {
+        // integration_type = "Legendre";
+        gauss_type = "Lobatto";
+      } else if (strstr(argv[1], "ispBeam") == 0) {
+        // forceBeamColumn
+        gauss_type = "Lobatto";
+      } else {
+        gauss_type = "Legendre";
+      }
+    }
+    if ((beamIntegr = GetBeamIntegration(gauss_type, n)) == nullptr) {
+      opserr << OpenSees::PromptValueError 
+             << "invalid integration type or size\n";
+      return TCL_ERROR;
+    }
+    received.integration = true;
+  }
+  else if (syntax == FrameSyntax::None) {
+    opserr << OpenSees::PromptValueError 
+           << "could not determine syntax for frame element\n";
+    return TCL_ERROR;
   }
 
   //
+  // Finalize options
   //
-  options.use_mass = use_mass;
+  if (!received.transform) {
+    opserr << OpenSees::PromptValueError 
+           << "missing required argument: transform\n";
+    status = TCL_ERROR;
+    goto clean_up;
+  }
+  if (!received.integration) {
+    opserr << OpenSees::PromptValueError 
+           << "missing required argument: integration\n";
+    status = TCL_ERROR;
+    goto clean_up;
+  }
+  if (!received.sections) {
+    opserr << OpenSees::PromptValueError 
+           << "missing required argument: sections\n";
+    status = TCL_ERROR;
+    goto clean_up;
+  }
+  assert(beamIntegr != nullptr);
+
+  //
+  //
   {
     Element *theElement = ndm == 2 
                         ? CreateFrame<2, CrdTransf, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
-                                                              section_tags, *beamIntegr, mass, max_iter, tol, 
-                                                              shear_center, options)
+                                                                  section_tags, *beamIntegr, mass, max_iter, tol, 
+                                                                  shear_center, options)
                         : CreateFrame<3, CrdTransf, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
-                                                                        section_tags, *beamIntegr, mass, max_iter, tol, 
-                                                                        shear_center, options);
+                                                                  section_tags, *beamIntegr, mass, max_iter, tol, 
+                                                                  shear_center, options);
 
                                                                         
     if (theElement == nullptr) {
@@ -1097,16 +1283,13 @@ clean_up:
   //
   // Clean up
   //
+
   if (deleteBeamIntegr && beamIntegr != nullptr)
     delete beamIntegr;
 
-  if (removeHingeIntegr) {
-    builder->removeObject<BeamIntegrationRule>(itg_tag);
-    delete theRule;
-  }
-
   return status;
 }
+
 
 
 //
