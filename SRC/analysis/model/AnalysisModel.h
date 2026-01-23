@@ -54,7 +54,7 @@ using FE_EleIter = TaggedIterator<FE_Element, VectorOfTaggedObjects>;
 class AnalysisModel: public MovableObject
 {
   public:
-    AnalysisModel();
+    AnalysisModel(Domain&);
     ~AnalysisModel();
     void setLinks(Domain &, ConstraintHandler &);
 

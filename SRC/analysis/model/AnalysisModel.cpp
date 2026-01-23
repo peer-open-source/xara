@@ -56,10 +56,22 @@
 #define START_EQN_NUM 0
 #define START_VERTEX_NUM 0
 
+static int 
+ApproxDOF(Domain& domain)
+{
+  int nf = 0;
+  Node *nodePtr;
+  NodeIter &theNodes = domain.getNodes();
+  while ((nodePtr = theNodes()) != nullptr)
+    nf += nodePtr->getNumberDOF();
 
-AnalysisModel::AnalysisModel()
+  return nf;
+}
+
+
+AnalysisModel::AnalysisModel(Domain& domain)
 : MovableObject(AnaMODEL_TAGS_AnalysisModel),
-  myDomain(nullptr), myHandler(nullptr),
+  myDomain(&domain), myHandler(nullptr),
   myDOFGraph(0), myGroupGraph(0)
  , numFE_Ele(0), numDOF_Grp(0), numEqn(0)
  , eigenVectors(0), eigenValues(0), dampingForces(0)
@@ -69,6 +81,9 @@ AnalysisModel::AnalysisModel()
   theDOFs    = new VectorOfTaggedObjects(); // 256);
   theFEiter  = new FE_EleIter(theFEs);
   theDOFiter = new DOF_GrpIter(theDOFs);
+
+  theDOFs->setSize(ApproxDOF(domain));
+  theFEs->setSize(domain.getNumElements());
 } 
 
 
