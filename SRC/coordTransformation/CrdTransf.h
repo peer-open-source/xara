@@ -97,7 +97,4 @@ protected:
 private:
 };
 
-// some additional methods related to prototypes created for copy constructors
-extern ID       OPS_getAllCrdTransfTags();
-
 #endif
