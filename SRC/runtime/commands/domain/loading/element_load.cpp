@@ -828,8 +828,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp,
 
         for (int i = 0; i < 18; ++i) {
           if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "invalid data " << argv[count]
-                   << " for -beamThermal 3D\n";
+            opserr << OpenSees::PromptValueError 
+                   << "invalid data " << argv[count]
+                   << " for -shellThermal 3D\n";
             return TCL_ERROR;
           }
           indata[i] = BufferData;
@@ -865,8 +866,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp,
 
         for (int i = 0; i < 10; ++i) {
           if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
-                   << " for -beamThermal 3D\n";
+            opserr << OpenSees::PromptValueError 
+                   << "eleLoad - invalid data " << argv[count]
+                   << " for -shellThermal 3D\n";
             return TCL_ERROR;
           }
           indata[i] = BufferData;
