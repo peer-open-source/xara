@@ -22,6 +22,10 @@
 //
 // References:
 //
+// [1] Perez, C.M., and Filippou F.C. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024;
+//     https://doi.org/10.1002/nme.7506
+//
 // [2] Filippou, F.C. (1998)
 //     "FEDEASLab: Finite Elements for Design Evaluation and Analysis of Structures"
 //
@@ -58,8 +62,7 @@ public:
   {
     Matrix3D R;
     {
-      Vector3D e1 = dx;
-      e1 /= e1.norm();
+      const Vector3D e1 = dx/dx.norm();
 
       constexpr static Vector3D D2 {0,1,0};
       const Vector3D E2 = this->AlignedIsometry<nn>::R[init]*D2;
@@ -67,7 +70,7 @@ public:
       Vector3D e3 = e1.cross(q);
       e3 /= e3.norm();
 
-      Vector3D e2 = e3.cross(e1);
+      const Vector3D e2 = e3.cross(e1);
 
       for (int i = 0; i < 3; i++) {
         R(i,0) = e1[i];
@@ -75,7 +78,7 @@ public:
         R(i,2) = e3[i];
       }
 
-      Vector3D Q = R^q;
+      const Vector3D Q = R^q;
       n = Q[0]/Q[1];
     }
     return R;
