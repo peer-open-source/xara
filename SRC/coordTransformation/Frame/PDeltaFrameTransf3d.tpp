@@ -73,7 +73,7 @@ PDeltaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
 
 template <int nn, int ndf>
 int
-PDeltaFrameTransf<nn,ndf>::update()
+PDeltaFrameTransf<nn,ndf>::update() noexcept
 {
   return linear.update();
 }
