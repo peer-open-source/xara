@@ -28,6 +28,10 @@
 //
 // Adapted from work by: Remo Magalhaes de Souza (rmsouza@ce.berkeley.edu)
 //
+// [1] Perez, C.M., and Filippou F.C.. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
+//     https://doi.org/10.1002/nme.7506
+//
 // [2] Crisfield, M.A. (1990) "A consistent co-rotational formulation for
 //     non-linear, three-dimensional, beam-elements", Computer Methods in Applied
 //     Mechanics and Engineering, 81(2), pp. 131–150. Available at:
@@ -67,7 +71,7 @@ public:
   FrameTransform<nn,ndf> *getCopy() const final;
 
   int initialize(std::array<Node*, nn>& new_nodes) final;
-  int update() final;
+  int update() noexcept final;
   int commit() final;
   int revertToLastCommit() final;        
   int revertToStart() final;
@@ -81,9 +85,14 @@ public:
   Vector3D getNodePosition(int tag) final;
   Vector3D getNodeRotationLogarithm(int tag) final;
 
+  Matrix3D getRotation() const noexcept final {
+    return crs.getRotation();
+  }
+
   using Operation = typename FrameTransform<nn,ndf>::Operation;
   int push(VectorND<nn*ndf>&pl, Operation) final;
   int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
+
 
   // Sensitivity
   double getLengthGrad() final;
