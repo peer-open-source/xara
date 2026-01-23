@@ -81,7 +81,7 @@ public:
   virtual VectorND<ndm>  getNodeLocation(int tag);
 #endif
   virtual int initialize(std::array<Node*, nn>& nodes)=0;
-  virtual int update() =0;
+  virtual int update() noexcept =0;
   virtual int commit() =0;
   virtual int restart() {return 0;} // TODO
   virtual int recover() {return 0;} // TODO
@@ -95,7 +95,6 @@ public:
   virtual int push(VectorND<nn*ndf>&pl, Operation=0) =0;
   virtual int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation=0) =0;
 
-#if 1
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final {
     VectorND<nn*ndf> pg{pl};
     push(pg, Operation::Total);
@@ -108,10 +107,10 @@ public:
     push(kg, pl, Operation::Total);
     return kg;              
   }
-#endif
+
   virtual double getInitialLength() =0;
   virtual double getDeformedLength() =0;
-  Matrix3D getRotation() const {
+  Matrix3D getInitialRotation() const {
     Vector3D x, y, z;
     getLocalAxes(x, y, z);
     
@@ -123,6 +122,8 @@ public:
     }
     return R;
   }
+
+  virtual Matrix3D getRotation() const noexcept =0;
 
   virtual MatrixND<3,nn*ndf> getRotationTangent() {
     MatrixND<3,nn*ndf> dR{};
