@@ -83,14 +83,10 @@ public:
   ~J2ThreeDimensional();
 
   const char*
-  getClassType() const
-  {
-    return "J2ThreeDimensional";
-  }
+  getClassType() const {return "J2ThreeDimensional";}
 
   NDMaterial* getCopy();
 
-  //send back type of material
   const char* getType() const;
 
   int getOrder() const;
@@ -98,10 +94,8 @@ public:
   //get the strain and integrate plasticity equations
   int setTrialStrain(const Vector& strain_from_element);
 
-  //unused trial strain functions
-  int setTrialStrain(const Vector& v, const Vector& r);
+  // unused trial strain functions
   int setTrialStrainIncr(const Vector& v);
-  int setTrialStrainIncr(const Vector& v, const Vector& r);
 
   const Vector& getStrain();
 
