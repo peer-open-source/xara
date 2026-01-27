@@ -81,16 +81,21 @@ J2ThreeDimensional::J2ThreeDimensional(int tag,
                                         double rho)
  : J2Plasticity(tag, ND_TAG_J2ThreeDimensional, K, G, yield0, yield_infty, d, H, viscosity, rho)
 {
+
 }
 
 
 J2ThreeDimensional ::J2ThreeDimensional(int tag, double K, double G)
  : J2Plasticity(tag, ND_TAG_J2ThreeDimensional, K, G)
 {
+
 }
 
 
-J2ThreeDimensional::~J2ThreeDimensional() {}
+J2ThreeDimensional::~J2ThreeDimensional()
+{
+
+}
 
 
 NDMaterial*
@@ -104,14 +109,14 @@ J2ThreeDimensional::getCopy()
 
 
 const char*
-J2ThreeDimensional ::getType() const
+J2ThreeDimensional::getType() const
 {
   return "ThreeDimensional";
 }
 
 
 int
-J2ThreeDimensional ::getOrder() const
+J2ThreeDimensional::getOrder() const
 {
   return 6;
 }
@@ -141,11 +146,6 @@ J2ThreeDimensional ::setTrialStrain(const Vector& strain_from_element)
 
 
 //unused trial strain functions
-int
-J2ThreeDimensional::setTrialStrain(const Vector& v, const Vector& r)
-{
-  return this->setTrialStrain(v);
-}
 
 int
 J2ThreeDimensional::setTrialStrainIncr(const Vector& v)
@@ -159,12 +159,6 @@ J2ThreeDimensional::setTrialStrainIncr(const Vector& v)
   newStrain(5) = 2.0 * strain(2, 0) + v(5);
 
   return this->setTrialStrain(newStrain);
-}
-
-int
-J2ThreeDimensional::setTrialStrainIncr(const Vector& v, const Vector& r)
-{
-  return this->setTrialStrainIncr(v);
 }
 
 
