@@ -640,7 +640,7 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
     for (int i = 0; i < numSections; i++) {
       output.tag("GaussPointOutput");
       output.attr("number", i + 1);
-      output.attr("eta", pres[i].point * L);
+      output.attr("eta", pres[i].point);
 
       Response* theSectionResponse = pres[i].material->setResponse(&argv[1], argc - 1, output);
 
@@ -784,7 +784,7 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
 
     Vector locs(pres.size());
     for (int i = 0; i < nip; i++)
-      locs[i] = pres[i].point * L;
+      locs[i] = pres[i].point;
 
     return info.setVector(locs);
   }
