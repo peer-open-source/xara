@@ -65,7 +65,7 @@ class AnalysisModel: public MovableObject
     void clearDOFGraph();                 // called by Numberer and Analysis
     void clearDOFGroupGraph();
     int  getNumDOF_Groups() const;		
-    DOF_Group *getDOF_GroupPtr(int tag);	
+    DOF_Group *getDOF_GroupPtr(int tag);
     FE_EleIter  &getFEs();
     DOF_GrpIter &getDOFs();
     void   setNumEqn(int);
