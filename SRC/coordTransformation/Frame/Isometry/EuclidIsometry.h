@@ -52,13 +52,13 @@ public:
 
   virtual double    getLength() const =0;
 
-  virtual Matrix3D  getRotation() const =0;
-  virtual Vector3D  getPosition() =0;
+  virtual const Matrix3D&  getRotation() const =0;
+  virtual       Vector3D   getPosition() =0;
 
   virtual Vector3D  getPositionVariation(int ndf, double* du) =0; 
   virtual Vector3D  getRotationVariation(int ndf, double* du) =0;
-  virtual MatrixND<12,12> getRotationJacobian(const VectorND<12>&pl) {
-    return MatrixND<12,12> {};
+  virtual MatrixND<6*nn,6*nn> getRotationJacobian(const VectorND<6*nn>&pl) {
+    return MatrixND<6*nn,6*nn> {};
   }
   virtual Matrix3D  getRotationDelta() =0;
   virtual MatrixND<3,6> getRotationGradient(int node) =0;
@@ -127,8 +127,8 @@ public:
 
   virtual
   int update(std::array<Node*,nn>& nodes) final {
-    Matrix3D RI = MatrixFromVersor(nodes[0]->getTrialRotation());
-    Matrix3D RJ = MatrixFromVersor(nodes[nn-1]->getTrialRotation());
+    const Matrix3D RI = MatrixFromVersor(nodes[0]->getTrialRotation());
+    const Matrix3D RJ = MatrixFromVersor(nodes[nn-1]->getTrialRotation());
 
     Vector3D dx = dX;
     //
@@ -153,7 +153,7 @@ public:
 
   
   int
-  update(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx, std::array<Node*,nn>& nodes) final 
+  update(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx, std::array<Node*,nn>& nodes) override 
   {
     // Calculate the deformed length
     Ln = dx.norm();
@@ -200,7 +200,7 @@ public:
     return Ln;
   }
 
-  Matrix3D
+  const Matrix3D&
   getRotation() const final {
     return R[pres];
   }

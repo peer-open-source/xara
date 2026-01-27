@@ -101,47 +101,62 @@ PDeltaFrameTransf<nn,ndf>::getDeformedLength()
 
 
 template <int nn, int ndf>
-// VectorND<nn*ndf>
 int
-PDeltaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, Operation op)
+PDeltaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int op)
 {
-  //
-  // Include leaning column effects (P-Delta)
-  //
   // Axial force
   const double N = pl[1*ndf+0];
+  //
+  // 1) let linear.push do redistribution (isometry only)
+  //
+  if (op & Transform::Adjoint) {
 
-  const Vector3D Du = linear.getDelta()/linear.getInitialLength();
+    // Include leaning column effects (P-Delta)
 
-  pl[0*ndf+1] -= Du[1] * N;
-  pl[1*ndf+1] += Du[1] * N;
+    const Vector3D Du = linear.getDelta()/linear.getInitialLength();
 
-  pl[0*ndf+2] -= Du[2] * N;
-  pl[1*ndf+2] += Du[2] * N;
+    pl[0*ndf+1] -= Du[1] * N;
+    pl[1*ndf+1] += Du[1] * N;
 
-  return linear.push(pl, op);
+    pl[0*ndf+2] -= Du[2] * N;
+    pl[1*ndf+2] += Du[2] * N;
+    linear.push(pl, Transform::Adjoint);
+  }
+
+  linear.push(pl, op&~Transform::Adjoint);
+
+  return 0;
 }
 
 
 template <int nn, int ndf>
 // MatrixND<nn*ndf,nn*ndf>
 int
-PDeltaFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf> &pl, Operation op)
+PDeltaFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>& kl, 
+                                const VectorND<nn*ndf> &pl, int op)
 {
-  // Include geometric stiffness effects in local system;
-  //
-  // Kl += [ ]
   double NoverL = pl[6] / linear.getInitialLength();
-  kl(1, 1) += NoverL;
-  kl(2, 2) += NoverL;
-  kl(7, 7) += NoverL;
-  kl(8, 8) += NoverL;
 
-  kl(1, 7) -= NoverL;
-  kl(7, 1) -= NoverL;
-  kl(2, 8) -= NoverL;
-  kl(8, 2) -= NoverL;
-  return linear.push(kl, pl, op);
+  //
+  if (op & Transform::Adjoint) {
+    linear.push(kl, pl, Transform::Adjoint);
+
+    //
+    // Include geometric stiffness effects in local system;
+    //
+    // Kl += [ ]
+    kl(1, 1) += NoverL;
+    kl(2, 2) += NoverL;
+    kl(7, 7) += NoverL;
+    kl(8, 8) += NoverL;
+
+    kl(1, 7) -= NoverL;
+    kl(7, 1) -= NoverL;
+    kl(2, 8) -= NoverL;
+    kl(8, 2) -= NoverL;
+  }
+
+  return linear.push(kl, pl, op&~Transform::Adjoint);
 }
 
 
@@ -186,6 +201,7 @@ PDeltaFrameTransf<nn,ndf>::getLengthGrad()
 {
   return linear.getLengthGrad();
 }
+
 
 template <int nn, int ndf>
 void

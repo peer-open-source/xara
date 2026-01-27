@@ -89,9 +89,8 @@ public:
     return crs.getRotation();
   }
 
-  using Operation = typename FrameTransform<nn,ndf>::Operation;
-  int push(VectorND<nn*ndf>&pl, Operation) final;
-  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
+  int push(VectorND<nn*ndf>&pl, int) final;
+  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, int) final;
 
 
   // Sensitivity

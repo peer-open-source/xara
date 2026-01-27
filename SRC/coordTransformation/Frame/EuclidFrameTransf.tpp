@@ -218,7 +218,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::getNodePosition(int node)
   Vector3D u = this->pullPosition<&Node::getTrialDisp>(node);
   u -= basis.getPosition();
   const Vector& Xn = nodes[node]->getCrds();
-  Vector3D X3 {Xn[0], Xn[1], Xn[2]};
+  const Vector3D X3 {Xn[0], Xn[1], Xn[2]};
   u += basis.getRotationDelta()^X3;
   return u;
 }
@@ -245,7 +245,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::getStateVariation()
     }
   }
 
-  const Matrix3D R = basis.getRotation();
+  const Matrix3D& R = basis.getRotation();
 
   // -) Global Offsets
   // Do ui -= ri x wi
@@ -313,21 +313,22 @@ EuclidFrameTransf<nn,ndf,IsoT>::getStateVariation()
 template <int nn, int ndf, typename IsoT>
 // VectorND<nn*ndf>
 int
-EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, Operation op)
+EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, int op)
 {
   VectorND<nn*ndf>& pa = p;
 
-  if (op != Operation::Rotation) {
-
-    // 3) Element Parameters
-    if (1) { // !(offset_flags & LogIter)) {
-      for (int i=0; i<nn; i++) {
-        Vector3D m {pa[i*ndf + 3], pa[i*ndf + 4], pa[i*ndf + 5]};
-        pa.insert(i*ndf + 3, ur[i].dLog()^m, 1.0);
-      }
+  // 3) Element Parameters
+  if (op & Transform::Logarithm) {
+    for (int i=0; i<nn; i++) {
+      Vector3D m {pa[i*ndf + 3], pa[i*ndf + 4], pa[i*ndf + 5]};
+      pa.insert(i*ndf + 3, ur[i].dLog()^m, 1.0);
     }
+  }
 
-    // 2.1) Isometry
+
+  // 2.1) Isometry
+  if (op & Transform::Adjoint) {
+
     // a) Sum of moments: m = sum_i mi + sum_i (xi x ni)
     Vector3D m{};
     for (int i=0; i<nn; i++) {
@@ -342,16 +343,17 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, Operation op)
       pa.template assemble<6>(i*ndf, basis.getRotationGradient(i)^m, -1.0);
   }
 
-  if (op == Operation::Isometry)
-    return 0;
+  // if (op == Transform::Isometry)
+  //   return 0;
 
   // 2.2) Rotation
-  // pa = this->FrameTransform<nn,ndf>::pushConstant(pa);
-  Matrix3D R = basis.getRotation();
-  for (int i=0; i<nn; i++) {
-    const int base = i * ndf;
-    pa.insert(base,   R*Vector3D{pa[base  ], pa[base+1], pa[base+2]}, 1.0);
-    pa.insert(base+3, R*Vector3D{pa[base+3], pa[base+4], pa[base+5]}, 1.0);
+  const Matrix3D& R = basis.getRotation();
+  if (op & Transform::Rotation) {
+    for (int i=0; i<nn; i++) {
+      const int base = i * ndf;
+      pa.insert(base,   R*Vector3D{pa[base  ], pa[base+1], pa[base+2]}, 1.0);
+      pa.insert(base+3, R*Vector3D{pa[base+3], pa[base+4], pa[base+5]}, 1.0);
+    }
   }
 
   // -) Offset
@@ -379,13 +381,19 @@ template <int nn, int ndf, typename IsoT>
 int
 EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
                                      const VectorND<nn*ndf>& pb, 
-                                     Operation op)
+                                     int op)
 {
   VectorND<nn*ndf> p = pb;
+  for (int i=0; i<nn; i++) {
+    for (int j=0; j<ndf-6; j++) {
+      p(i*ndf +6 + j) = 0.0;
+    }
+  }
 
   MatrixND<nn*ndf,nn*ndf> Kb = kb;
   // 1) Element parameters
-  if (op != Operation::Rotation) {// && (op != Operation::Bubnov)) {//!(offset_flags & LogIter)) {
+  if (op & Transform::Logarithm) {
+  // if (op != Transform::Rotation) {// && (op != Transform::Bubnov)) {//!(offset_flags & LogIter)) {
     for (int i=0; i<nn; i++) {
       Vector3D m{pb[i*ndf+3], pb[i*ndf+4], pb[i*ndf+5]};
       const Matrix3D Ai = ur[i].dLog();
@@ -419,65 +427,76 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
       }
     }
   }
+
   //
   // 2) Isometry
   //
   // 2.2) Projection
   // 2.2.1) Kl = A ^ k * A
-  MatrixND<nn*ndf,nn*ndf>& Kl = kb;
-  const MatrixND<nn*ndf,nn*ndf> A = getProjection();
-  if (op == Operation::Bubnov)
-    Kl = A^kb;
-  else
-    Kl.addMatrixTripleProduct(0, A, Kb, 1);
+  // if ((op & Transform::Adjoint) || (op & Transform::Tangent))
+  {
+    MatrixND<nn*ndf,nn*ndf>& Kl = kb;
+    const MatrixND<nn*ndf,nn*ndf> A = getProjection();
+    if (op == Transform::Bubnov)
+      Kl = A^kb;
+    else
+      Kl.addMatrixTripleProduct(0, A, Kb, 1);
 
 
-  const VectorND<nn*ndf> Ap = A^p;
+    const VectorND<nn*ndf> Ap = A^p;
 
-  // 2.2.2) Kl += Kw * A
-  Kb.zero();
-  VectorND<12> qwx{};
-  for (int i=0; i<nn; i++)
-    for (int j=0; j<6; j++)
-      qwx[i*6+j] = p[i*ndf+j] - Ap[i*ndf+j];
+    // 2.2.2) Kl += Kw * A
+    {
+      VectorND<nn*6> qwx{};
+      for (int i=0; i<nn; i++)
+        for (int j=0; j<6; j++)
+          qwx[i*6+j] = p[i*ndf+j] - Ap[i*ndf+j];
 
 
-  if (op != Operation::Bubnov) [[likely]] {
-    if constexpr (ndf == 6) {
-      Kl.addMatrixProduct(basis.getRotationJacobian(qwx), A, 1.0);
+      if (op != Transform::Bubnov) [[likely]] {
+        MatrixND<nn*ndf,nn*ndf> Kb{};
+        Kb.zero();
+        if constexpr (ndf == 6) {
+          Kl.addMatrixProduct(basis.getRotationJacobian(qwx), A, 1.0);
+        }
+        else {
+          const MatrixND<6*nn,6*nn> Kw = basis.getRotationJacobian(qwx);
+          Kb.assemble(Kw.template extract<0, 6,  0, 6>(),   0,   0, 1.0);
+          Kb.assemble(Kw.template extract<0, 6,  6,12>(),   0, ndf, 1.0);
+          Kb.assemble(Kw.template extract<6,12,  0, 6>(), ndf,   0, 1.0);
+          Kb.assemble(Kw.template extract<6,12,  6,12>(), ndf, ndf, 1.0);
+          Kl.addMatrixProduct(Kb, A, 1.0);
+        }
+      }
     }
-    else {
-      const MatrixND<12,12> Kw = basis.getRotationJacobian(qwx);
-      Kb.assemble(Kw.template extract<0, 6,  0, 6>(),   0,   0, 1.0);
-      Kb.assemble(Kw.template extract<0, 6,  6,12>(),   0, ndf, 1.0);
-      Kb.assemble(Kw.template extract<6,12,  0, 6>(), ndf,   0, 1.0);
-      Kb.assemble(Kw.template extract<6,12,  6,12>(), ndf, ndf, 1.0);
-      Kl.addMatrixProduct(Kb, A, 1.0);
+
+    //
+    // Kl += -W'*Pn'*A  - Pnm * W
+    //
+    {
+      MatrixND<nn*ndf,nn*ndf> Kb{};
+      Kb.zero();
+      for (int j=0; j<nn; j++) {
+        const MatrixND<3,6> Gj = basis.getRotationGradient(j);
+        for (int i=0; i<nn; i++) {
+          Kb.assemble(Hat(&p[i*ndf+0])*Gj,  i*ndf+0, j*ndf, -1.0);
+
+          // Kl += -Pnm*W
+          Kl.assemble(Hat(&Ap[i*ndf+0])*Gj, i*ndf+0, j*ndf, -1.0);
+          Kl.assemble(Hat(&Ap[i*ndf+3])*Gj, i*ndf+3, j*ndf, -1.0);
+        }
+      }
+      if (op != Transform::Bubnov)
+        Kl.addMatrixTransposeProduct(1.0, Kb, A,  -1.0);
     }
   }
 
-  //
-  // Kl += -W'*Pn'*A  - Pnm * W
-  //
-  Kb.zero();
-  for (int j=0; j<nn; j++) {
-    const MatrixND<3,6> Gj = basis.getRotationGradient(j);
-    for (int i=0; i<nn; i++) {
-      Kb.assemble(Hat(&p[i*ndf+0])*Gj,  i*ndf+0, j*ndf, -1.0);
-
-      // Kl += -Pnm*W
-      Kl.assemble(Hat(&Ap[i*ndf+0])*Gj, i*ndf+0, j*ndf, -1.0);
-      Kl.assemble(Hat(&Ap[i*ndf+3])*Gj, i*ndf+3, j*ndf, -1.0);
-    }
-  }
-  if (op != Operation::Bubnov)
-    Kl.addMatrixTransposeProduct(1.0, Kb, A,  -1.0);
 
   //
   // 2.1) Rotation
   //
   // Kl = diag(R) * Kl * diag(R)^T
-  FrameTransform<nn,ndf>::pushRotation(Kl, basis.getRotation());
+  FrameTransform<nn,ndf>::pushRotation(kb, basis.getRotation());
   return 0;
 }
 

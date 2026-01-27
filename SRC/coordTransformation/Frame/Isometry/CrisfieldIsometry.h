@@ -198,9 +198,9 @@ public:
     return E;
   }
 
-  MatrixND<12,12>
-  getRotationJacobian(const VectorND<12>&pl) final {
-    MatrixND<12,12> dG{};
+  MatrixND<nn*6,nn*6>
+  getRotationJacobian(const VectorND<nn*6>&pl) final {
+    MatrixND<nn*6,nn*6> dG{};
     // TODO
     return dG;
   }

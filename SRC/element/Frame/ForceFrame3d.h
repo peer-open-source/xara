@@ -181,6 +181,8 @@ public:
     LocalForce  = 2,
     BasicForce  = 7,
     BasicStiff  =19,
+    ResultantGradient=76,
+    ResultantStiffness=1001
   };
 
   //

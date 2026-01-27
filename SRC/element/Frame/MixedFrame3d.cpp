@@ -67,12 +67,6 @@
 
 #include <FrameSection.h>
 #include <BeamIntegration.h>
-#include <LobattoBeamIntegration.h>
-#include <LegendreBeamIntegration.h>
-#include <RadauBeamIntegration.h>
-#include <NewtonCotesBeamIntegration.h>
-#include <TrapezoidalBeamIntegration.h>
-#include <RegularizedHingeIntegration.h>
 
 Matrix MixedFrame3d::theMatrix(NEGD, NEGD);
 Vector MixedFrame3d::theVector(NEGD);

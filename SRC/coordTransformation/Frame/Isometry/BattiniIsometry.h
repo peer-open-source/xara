@@ -77,7 +77,7 @@ public:
       Vector3D e3 = e1.cross(q);
       e3 /= e3.norm();
 
-      Vector3D e2 = e3.cross(e1);
+      const Vector3D e2 = e3.cross(e1);
 
       for (int i = 0; i < 3; i++) {
         R(i,0) = e1[i];
@@ -85,7 +85,7 @@ public:
         R(i,2) = e3[i];
       }
     
-      Vector3D Q = R^q;
+      const Vector3D Q = R^q;
       n = Q[0]/Q[1];
 
       Vector3D QI = R^(RI*E2);
@@ -120,8 +120,43 @@ public:
       Gb(0,3) =  n22/2.0;
       Gb(0,4) = -n12/2.0;
     }
-    
+  
     return Gb;
+  }
+
+
+  MatrixND<nn*6,nn*6>
+  getRotationJacobian(const VectorND<nn*6>&pwx) final 
+  {
+    if constexpr (nn != 2) {
+      return MatrixND<nn*6,nn*6> {};
+    }
+    else {
+      // TODO: Copied from RankinIsometry.h, need to adapt to Battini
+      MatrixND<3,12> NWL{};
+      const double Ln = this->getLength();
+
+      constexpr static Matrix3D ex = Hat(Vector3D {1,0,0});
+
+      for (int i=0; i<nn; i++)
+        NWL.assemble(Hat(&pwx[i*6]), 0, i*6,  -1.0);
+
+
+      MatrixND<12,3> Gamma{};
+      Gamma.template insert<0,0>(ex,  1.0);
+      Gamma(3,0) = -1.0;
+      Gamma.template insert<6,0>(ex, -1.0);
+
+      MatrixND<12,3> Psi{};
+      Psi.template insert<3,0>(Eye3, 1.0);
+      Psi.template insert<6,0>(ex,   -Ln);
+      Psi.template insert<9,0>(Eye3, 1.0);
+
+      const Matrix3D B = Gamma^Psi;
+      Matrix3D A;
+      B.invert(A);
+      return Gamma*A.transpose()*NWL;
+    }
   }
 
 private:

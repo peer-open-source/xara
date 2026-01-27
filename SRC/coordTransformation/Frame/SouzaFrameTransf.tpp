@@ -107,8 +107,7 @@ SouzaFrameTransf<nn,ndf>::getCopy() const
   SouzaFrameTransf *theCopy =
     new SouzaFrameTransf<nn,ndf>(this->getTag(), vz, offsets);
 
-  theCopy->nodes[0]  = nodes[0];
-  theCopy->nodes[1]  = nodes[1];
+  theCopy->nodes     = nodes;
   theCopy->xAxis     = xAxis;
   theCopy->L         = L;
   theCopy->Ln        = Ln;
@@ -157,7 +156,7 @@ SouzaFrameTransf<nn,ndf>::revertToLastCommit()
 {
   // determine global displacement increments from last iteration
   const Vector &dispI = nodes[0]->getTrialDisp();
-  const Vector &dispJ = nodes[1]->getTrialDisp();
+  const Vector &dispJ = nodes[nn-1]->getTrialDisp();
 
   for (int k = 0; k < 3; k++) {
     alphaI(k) =  dispI(k+3);
@@ -194,7 +193,7 @@ SouzaFrameTransf<nn,ndf>::initialize(std::array<Node*, nn>& new_nodes)
   // Add initial displacements at nodes
   if (initialDispChecked == false) {
     const Vector &nodeIDisp = nodes[0]->getDisp();
-    const Vector &nodeJDisp = nodes[1]->getDisp();
+    const Vector &nodeJDisp = nodes[nn-1]->getDisp();
     for (int i = 0; i<6; i++)
       if (nodeIDisp[i] != 0.0) {
         nodeIInitialDisp = new double [6];
@@ -367,7 +366,7 @@ SouzaFrameTransf<nn,ndf>::update() noexcept
 
 template <int nn, int ndf>
 int
-SouzaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, Operation)
+SouzaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int)
 {
   // return T^pl;
   VectorND<nn*ndf> pg{};
@@ -395,9 +394,9 @@ template <int nn, int ndf>
 int
 SouzaFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>& kl, 
                                const VectorND<nn*ndf>& pl,
-                               Operation op)
+                               int op)
 {
-  MatrixND<12,12> KT = kl*T;
+  MatrixND<6*nn,6*nn> KT = kl*T;
   kl.addMatrixTransposeProduct(0.0, T, KT, 1.0);
 
   // Add geometric part
@@ -463,8 +462,8 @@ template <int nn, int ndf>
 double
 SouzaFrameTransf<nn,ndf>::getLengthGrad()
 {
-  const int di = nodes[0]->getCrdsSensitivity();
-  const int dj = nodes[1]->getCrdsSensitivity();
+  const int di = nodes[   0]->getCrdsSensitivity();
+  const int dj = nodes[nn-1]->getCrdsSensitivity();
 
   Vector3D dxi{0.0};
   Vector3D dxj{0.0};

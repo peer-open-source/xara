@@ -48,22 +48,31 @@ enum {
 
 namespace OpenSees {
 
+namespace Transform {
+enum Action : int {
+  None        = 0,
+
+  Logarithm   = 1u << 0,
+  // LocalOffset = 1u << 1,
+  Isometry    = 1u << 2,
+  Rotation    = 1u << 3,
+  Offset      = 1u << 4,
+  Bubnov      = 1u << 6,
+  Adjoint     = 1u << 7,
+  Tangent     = 1u << 8,
+  Total  = (1u<<0)
+         | (1u<<1)
+         | (1u<<2) | (1u<<3) | (1u<<4) | (1u<<5) 
+         | (1u<<6)| (1u<<7)
+         | (1u<<8)
+};
+}
+
 template <int nn, int ndf>
 class FrameTransform : public TaggedObject
 {
 public:
   explicit FrameTransform(int tag) : TaggedObject(tag) {}
-
-  enum class Operation {
-    Total       =    0,
-    Logarithm   = 1<<0,
-    LocalOffset = 1<<1,
-    Isometry    = 1<<2,
-    Rotation,
-    GlobalOffset,
-    Exponential,
-    Bubnov
-  };
 
   virtual FrameTransform<nn,ndf> *getCopy() const =0;
 
@@ -92,19 +101,21 @@ public:
 //virtual VectorND<nn*ndf> getStateLogarithm() =0; //
   virtual VectorND<nn*ndf> getStateVariation() =0; // pull
 
-  virtual int push(VectorND<nn*ndf>&pl, Operation=0) =0;
-  virtual int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation=0) =0;
+  virtual int push(VectorND<nn*ndf>&pl, int=Transform::Total) =0;
+  virtual int push(MatrixND<nn*ndf,nn*ndf>& kl, 
+                   const VectorND<nn*ndf>& pl, 
+                   int=Transform::Total) =0;
 
   virtual VectorND<nn*ndf>    pushResponse(VectorND<nn*ndf>&pl) final {
     VectorND<nn*ndf> pg{pl};
-    push(pg, Operation::Total);
+    push(pg, Transform::Total);
     return pg;
   }
 
   virtual MatrixND<nn*ndf,nn*ndf> pushResponse(MatrixND<nn*ndf,nn*ndf>& kl,
                                                const VectorND<nn*ndf>& pl) final {
     MatrixND<nn*ndf,nn*ndf> kg{kl};
-    push(kg, pl, Operation::Total);
+    push(kg, pl, Transform::Total);
     return kg;              
   }
 
@@ -201,6 +212,43 @@ protected:
   MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
 
 };
+
+// namespace {
+// constexpr std::uint32_t to_u(Transform op) noexcept {
+//   return static_cast<std::uint32_t>(op);
+// }
+
+// constexpr Transform op_from_u(std::uint32_t v) noexcept {
+//   return static_cast<Transform>(v);
+// }
+// }
+
+// constexpr Transform operator|(Transform a, Transform b) noexcept {
+//   return op_from_u(to_u(a) | to_u(b));
+// }
+// constexpr Transform operator&(Transform a, Transform b) noexcept {
+//   return op_from_u(to_u(a) & to_u(b));
+// }
+// constexpr Transform operator^(Transform a, Transform b) noexcept {
+//   return op_from_u(to_u(a) ^ to_u(b));
+// }
+
+// constexpr Transform& operator|=(Transform& a, Transform b) noexcept {
+//   a = a | b; return a;
+// }
+// constexpr Transform& operator&=(Transform& a, Transform b) noexcept {
+//   a = a & b; return a;
+// }
+// constexpr Transform& operator^=(Transform& a, Transform b) noexcept {
+//   a = a ^ b; return a;
+// }
+
+// // IMPORTANT: mask ~ so we don't turn on undefined bits.
+// constexpr Transform operator~(Transform a) noexcept {
+//   constexpr std::uint32_t mask = to_u(Transform::Total);
+//   return op_from_u(mask & ~to_u(a));
+// }
+
 }
 #include "FrameTransform.tpp"
 

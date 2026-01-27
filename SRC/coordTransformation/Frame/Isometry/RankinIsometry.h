@@ -85,37 +85,44 @@ public:
   }
 
 
-  MatrixND<12,12>
-  getRotationJacobian(const VectorND<12>&pwx) final 
+  MatrixND<6*nn,6*nn>
+  getRotationJacobian(const VectorND<6*nn>&pwx) final 
   {
-    MatrixND<3,12> NWL{};
-    const double Ln = this->getLength();
+    if constexpr (nn != 2) {
+      // TODO: Implement for nn != 2
+      return MatrixND<6*nn,6*nn> {};
+    }
+    else {
+      
+      MatrixND<3,12> NWL{};
+      const double Ln = this->getLength();
 
-    constexpr static Matrix3D ex = Hat(Vector3D {1,0,0});
+      constexpr static Matrix3D ex = Hat(Vector3D {1,0,0});
 
-    for (int i=0; i<nn; i++)
-      NWL.assemble(Hat(&pwx[i*6]), 0, i*6,  -1.0);
+      for (int i=0; i<nn; i++)
+        NWL.assemble(Hat(&pwx[i*6]), 0, i*6,  -1.0);
 
-#if __cplusplus >= 202000L
-    static constinit MatrixND<12,3> Gamma = MakeGamma();
-    static constinit MatrixND<12,3> Psi0  = MakePsi();
-    MatrixND<12,3> Psi = Psi0;
-    Psi.template insert<6,0>(ex,  -Ln);
-#else
-    MatrixND<12,3> Gamma{};
-    Gamma.template insert<0,0>(ex,  1.0);
-    Gamma(3,0) = -1.0;
-    Gamma.template insert<6,0>(ex, -1.0);
+  #if __cplusplus >= 202000L
+      static constinit MatrixND<12,3> Gamma = MakeGamma();
+      static constinit MatrixND<12,3> Psi0  = MakePsi();
+      MatrixND<12,3> Psi = Psi0;
+      Psi.template insert<6,0>(ex,  -Ln);
+  #else
+      MatrixND<12,3> Gamma{};
+      Gamma.template insert<0,0>(ex,  1.0);
+      Gamma(3,0) = -1.0;
+      Gamma.template insert<6,0>(ex, -1.0);
 
-    MatrixND<12,3> Psi{};
-    Psi.template insert<3,0>(Eye3, 1.0);
-    Psi.template insert<6,0>(ex,   -Ln);
-    Psi.template insert<9,0>(Eye3, 1.0);
-#endif
-    const Matrix3D B = Gamma^Psi;
-    Matrix3D A;
-    B.invert(A);
-    return Gamma*A.transpose()*NWL;
+      MatrixND<12,3> Psi{};
+      Psi.template insert<3,0>(Eye3, 1.0);
+      Psi.template insert<6,0>(ex,   -Ln);
+      Psi.template insert<9,0>(Eye3, 1.0);
+  #endif
+      const Matrix3D B = Gamma^Psi;
+      Matrix3D A;
+      B.invert(A);
+      return Gamma*A.transpose()*NWL;
+    }
   }
 
   MatrixND<3,6> 

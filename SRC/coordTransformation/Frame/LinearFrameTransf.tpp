@@ -346,7 +346,6 @@ LinearFrameTransf<nn,ndf>::pull(VectorND<nn*ndf>& ul,
     ul.assemble(i*ndf+3, ixDu, -1.0/L);
   }
 
-  // return ul;
   return 0;
 }
 
@@ -392,12 +391,12 @@ LinearFrameTransf<nn,ndf>::getNodeRotationLogarithm(int node)
 //
 template <int nn, int ndf>
 int
-LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
+LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, int op)
 {
-  VectorND<nn*ndf> pa = p; // NOTE
+  VectorND<nn*ndf>& pa = p; // NOTE
   constexpr Vector3D iv{1, 0, 0};
 
-  if (op != Operation::Rotation) {
+  if (op & Transform::Adjoint) {
     // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
     Vector3D m{};
     for (int i=0; i<nn; i++) {
@@ -410,37 +409,39 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, Operation op)
     }
     const Vector3D ixm = iv.cross(m);
 
-    // 1.2) Adjust force part
+    // 1.2) Adjust shear/torsion
     for (int i=0; i<nn; i++) {
       pa.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)/L);
       pa[i*ndf+3] += m[0]*(i? -1.0:1.0)*0.5;
     }
   }
 
-  if (op == Operation::Isometry)
-    return 0;
-
   // 2) Rotate and do joint offsets
-  p = this->FrameTransform<nn,ndf>::pushConstant(pa);
+  if (op & Transform::Rotation)
+    p = this->FrameTransform<nn,ndf>::pushConstant(pa);
   return 0;
 }
+
 
 template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb, 
                                 const VectorND<nn*ndf>&, 
-                                Operation op)
+                                int op)
 {
 
   static constexpr Vector3D axis{1, 0, 0};
+  static constexpr Matrix3D I {1,0,0,
+                               0,1,0,
+                               0,0,1};
   static constexpr Matrix3D ix  = Hat(Vector3D{1, 0, 0});
   static constexpr Matrix3D ioi = axis.bun(Vector3D{1, 0, 0});
+  const Matrix3D R = (op & Transform::Rotation) ? this->R : I;
   const Matrix3D RT = R.transpose();
-  const Matrix3D ixRT = ix*RT;
+  const Matrix3D ixRT = (op & Transform::Adjoint) ? ix*RT : Matrix3D{0.0};
 
   MatrixND<nn*ndf,nn*ndf> A{};
-  if constexpr (ndf > 6)
-    A.addDiagonal(1.0);
+  A.addDiagonal(1.0);
 
   {
     MatrixND<3,ndf> Gb{};
@@ -456,24 +457,25 @@ LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb,
 
         // TODO(nn>2): Interpolate coordinate
         if constexpr (b == 0)
-          Gb.template insert<0,0>(ixRT, -1/L);
+          Gb.template insert<0,0>(ixRT, -1.0/L);
         else if constexpr (b == nn-1)
-          Gb.template insert<0,0>(ixRT,  1/L);
+          Gb.template insert<0,0>(ixRT,  1.0/L);
 
         // TODO(nn>2): Interpolate coordinate
         A.assemble(ix*Gb, a*ndf  , b*ndf,  double(a)/double(nn-1)*L);
         A.assemble(   Gb, a*ndf+3, b*ndf, -1.0);
       });
     });
+
+    // MatrixND<nn*ndf,nn*ndf> kl = kb;
+    // kb.addMatrixTripleProduct(0, A, kl, 1);
+    const MatrixND<nn*ndf,nn*ndf> KA = kb*A;
+    kb.addMatrixTransposeProduct(0.0, A, KA, 1.0);
   }
 
-  // MatrixND<nn*ndf,nn*ndf> kl = kb;
-  // kb.addMatrixTripleProduct(0, A, kl, 1);
-  const MatrixND<nn*ndf,nn*ndf> KA = kb*A;
-  kb.addMatrixTransposeProduct(0.0, A, KA, 1.0);
-  if (offsets != nullptr) [[unlikely]] {
+  if (op & Transform::Offset && offsets != nullptr) [[unlikely]]
     this->pushOffsets(kb, *offsets);
-  }
+
   return 0;
 }
 
@@ -553,7 +555,7 @@ LinearFrameTransf<nn,ndf>::pushGrad(VectorND<nn*ndf>& dp,
   double doneOverL = -dL/(L*L);
 
   constexpr Vector3D iv{1, 0, 0};
-
+#if 1
   // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
   Vector3D m{};
   for (int i=0; i<nn; i++) {
@@ -569,7 +571,8 @@ LinearFrameTransf<nn,ndf>::pushGrad(VectorND<nn*ndf>& dp,
   // 1.2) Adjust force part
   for (int i=0; i<nn; i++)
     dp.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)*doneOverL);
-
+#else 
+#endif
 
   // 2) Rotate and do joint offsets
 
@@ -587,7 +590,7 @@ LinearFrameTransf<nn,ndf>::pushGrad(VectorND<nn*ndf>& dp,
     dp.assemble(base+3,  R*Vector3D{dp[base+3], dp[base+4], dp[base+5]}, 1.0);
   }
 
-  this->push(pl, Operation::Isometry);
+  this->push(pl, Transform::Isometry);
   Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
   
   for (int i=0; i<nn; i++) {

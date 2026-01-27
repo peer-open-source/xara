@@ -499,11 +499,11 @@ PrismFrame3d::getResistingForce()
   pg  = basic_system->t.pushResponse(pl);
   pg += basic_system->linear.pushResponse(pf);
 #else
-  using Operation = typename FrameTransform<2,6>::Operation;
+
   static Vector wrapper(pl);
-  basic_system->t.push(pl, Operation::Total);
+  basic_system->t.push(pl, Transform::Total);
   if (pf.norm() > 0.0) [[unlikely]] {
-    basic_system->linear.push(pf, Operation::Rotation);
+    basic_system->linear.push(pf, Transform::Rotation);
     pl += pf;
   }
 #endif
