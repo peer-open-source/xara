@@ -1825,7 +1825,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getInitialFlexibility(MatrixND<NBV,NBV>& f
   fe.zero();
 
   double L   = basic_system->getInitialLength();
-  double jsx = 1.0 / L;
 
   const int numSections = points.size();
   ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
