@@ -1138,7 +1138,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update02()
 
       for (int j = 0; j < numIters; j++) {
 
-        double DWi = 0.0;         // 
         VectorND<NBV> vr{};       // element residual deformations
         MatrixND<NBV, NBV> F{};   // element flexibility matrix
 
