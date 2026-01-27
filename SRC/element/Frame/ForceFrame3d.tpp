@@ -1832,7 +1832,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getInitialFlexibility(MatrixND<NBV,NBV>& f
   for (int i = 0; i < numSections; i++) {
 
     double xL  = points[i].point;
-    double xL1 = xL - 1.0;
     double wtL = points[i].weight * L;
 
     const MatrixND<nsr,nsr> fSec = points[i].material->template getFlexibility<nsr, scheme>(State::Init);
