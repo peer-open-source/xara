@@ -52,6 +52,7 @@
 #include <MatrixND.h>
 #include <Matrix3D.h>
 #include <NDMaterial.h>
+#include "hardening/FlowStress.h"
 
 namespace OpenSees {
 class J2Plasticity : public NDMaterial {
@@ -74,20 +75,20 @@ public:
 
   virtual ~J2Plasticity();
 
-  virtual NDMaterial* getCopy(const char* type);
+  NDMaterial* getCopy(const char* type) override;
+  NDMaterial* getCopy() override;
+  const char* getType() const override;
+  int getOrder() const override;
 
   // Material State
-  virtual int commitState();
-  virtual int revertToLastCommit();
-  virtual int revertToStart();
-  virtual int setTrialStrain(const Vector &v) {
+  int commitState() override;
+  int revertToLastCommit() override;
+  int revertToStart() override;
+  int setTrialStrain(const Vector &v) override {
     assert(false);
     return -1;
   }
 
-  virtual NDMaterial* getCopy();
-  virtual const char* getType() const;
-  virtual int getOrder() const;
 
   double
   getRho()
@@ -95,8 +96,8 @@ public:
     return rho;
   }
 
-  virtual int setParameter(const char** argv, int argc, Parameter& param);
-  virtual int updateParameter(int parameterID, Information& info);
+  int setParameter(const char** argv, int argc, Parameter&) override;
+  int updateParameter(int parameterID, Information&) override;
   virtual int activateParameter(int paramID);
 
   // MovableObject
