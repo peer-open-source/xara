@@ -19,7 +19,11 @@ namespace export verify
 
 proc verify {cmd {value ""} {reference ""} {tolerance 1e-12} {about ""}} {
     if {$cmd == "error"} {
-        set check [expr abs(($value - $reference)/$reference)]
+        if {$reference == 0} {
+          set check [expr abs($value)]
+        } else {
+          set check [expr abs(($value - $reference)/$reference)]
+        }
         if {$check > $tolerance} {
           puts  "   \033\[31mFAIL\033\[0m: | $value - $reference | = $check > $tolerance"
           error "$about"
