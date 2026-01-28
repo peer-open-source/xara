@@ -48,7 +48,7 @@ ID FrameTraceSection3d::code(nsr);
 
 FrameTraceSection3d::FrameTraceSection3d(int tag, int num): 
     FrameSection(tag, SEC_TAG_FrameTraceSection3d),
-    s(), e(),
+    s{}, e{},
     e_wrap(e), s_wrap(s),
     shear_align{},
     shift_twist{},
