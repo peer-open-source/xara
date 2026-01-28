@@ -302,9 +302,9 @@ getCTestNorms(ClientData clientData, Tcl_Interp *interp,
 
   int size = data.Size();
   Tcl_Obj *result = Tcl_NewListObj(size, NULL);
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i)
     Tcl_ListObjAppendElement(interp, result, Tcl_NewDoubleObj(data(i)));
-  }
+
   Tcl_SetObjResult(interp, result);
 
   return TCL_OK;
