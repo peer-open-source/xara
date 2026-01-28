@@ -458,7 +458,7 @@ using namespace OpenSees::Hash::literals;
 #include "DomainDecompositionAnalysis.h"
 
 // load patterns
-#include "LoadPattern.h"
+#include "StaticPattern.h"
 #include "UniformExcitation.h"
 #include "MultiSupportPattern.h"
 #include "GroundMotion.h"
@@ -1405,7 +1405,7 @@ TclPackageClassBroker::getNewLoadPattern(int classTag)
 {
   switch (classTag) {
   case PATTERN_TAG_LoadPattern:
-    return new LoadPattern();
+    return new StaticPattern();
 
   case PATTERN_TAG_UniformExcitation:
     return new UniformExcitation();
