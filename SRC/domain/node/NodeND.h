@@ -4,13 +4,13 @@
 
 template <int ndm, int ndf>
 class NodeND: public Node {
-  public:
+public:
   NodeND(int tag, double crd)                           : Node(tag, ndf) {static_assert(ndm == 1); createDisp();}
   NodeND(int tag, double crd1, double crd2)             : Node(tag, ndf) {static_assert(ndm == 2); createDisp();}
   NodeND(int tag, double crd1, double crd2, double crd3): Node(tag, ndf) {static_assert(ndm == 3); createDisp();}
 
 
-  virtual int setTrialDisp  (double value, int dof) final {
+  int setTrialDisp  (double value, int dof) noexcept final {
     assert(dof >= 0 && dof < ndf);
     double tDisp = value;
     displ[dof+2*ndf] = tDisp - displ[dof+ndf];
@@ -19,7 +19,7 @@ class NodeND: public Node {
     return 0;
   }
 
-  virtual int setTrialDisp  (const Vector & newTrialDisp) final {
+  int setTrialDisp  (const Vector & newTrialDisp) noexcept final {
     assert(newTrialDisp.Size() == ndf);
 
     for (int i=0; i<ndf; i++) {
@@ -31,7 +31,7 @@ class NodeND: public Node {
     return 0;
   }
 
-  virtual int incrTrialDisp (const Vector &incrDispl) override final {
+  int incrTrialDisp (const Vector &incrDispl) final {
     assert(incrDispl.Size() == ndf);
     // set trial = incr + trial
     for (int i = 0; i<ndf; i++) {
@@ -43,7 +43,7 @@ class NodeND: public Node {
     return 0;
   }
 
-  virtual int commitState() override final {
+  int commitState() noexcept final {
       // set commit = trial, incr = 0.0
       for (int i=0; i<ndf; i++) {
         displ[i+ndf] = displ[i];  
@@ -66,7 +66,7 @@ class NodeND: public Node {
       return 0;
   }
 
-  virtual int revertToLastCommit() final {
+  int revertToLastCommit() final {
       // check disp exists, if does set trial = last commit, incr = 0
       for (int i=0 ; i<ndf; i++) {
         displ[i] = displ[i+ndf];
@@ -89,7 +89,7 @@ class NodeND: public Node {
       return 0;
   }
 
-  virtual int revertToStart() override final {
+  int revertToStart() final {
       // set all to zero
       for (int i=0 ; i<4*ndf; i++)
         displ[i] = 0.0;
@@ -113,12 +113,11 @@ class NodeND: public Node {
   }
 
   // MovableObject
-  virtual int sendSelf(int commitTag, Channel &theChannel) {
+  int sendSelf(int commitTag, Channel &) final {
     return -1;
   }
 
-  virtual int recvSelf(int commitTag, Channel &theChannel, 
-                       FEM_ObjectBroker &theBroker) {
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final {
     return -1;
   }
 
