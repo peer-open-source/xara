@@ -92,6 +92,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
   {"KrylovNewton",      TclCommand_newAcceleratedNewton},
   {"PeriodicNewton",    TclCommand_newAcceleratedNewton},
   {"RaphsonNewton",     TclCommand_newAcceleratedNewton},
+  {"AcceleratedNewton", TclCommand_newAcceleratedNewton},
 };
 }
 
@@ -680,7 +681,8 @@ TclCommand_newAcceleratedNewton(ClientData clientData, Tcl_Interp *interp, Tcl_S
   }
 
   Accelerator *accel = nullptr;
-  if (strcmp(argv[1], "MillerNewton") == 0) {
+  if ((type == AcceleratorType::Miller) || 
+      (strcmp(argv[1], "MillerNewton") == 0)) {
     accel = new MillerAccelerator(maxDim, 0.01, correction_tangent);
   }
 
