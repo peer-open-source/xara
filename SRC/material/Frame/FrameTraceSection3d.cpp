@@ -454,27 +454,18 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
       const Matrix3D Ciow  = C*iow;
       const Matrix3D Ciodw = C*iodw;
       {
-        // K.nn.addMatrix(C,    1.0);
-        // K.nm.addMatrix(Crx,  1.0);
         K.sw.assemble(Ciow,  0, 0, 1.0);
         K.sv.assemble(Ciodw, 0, 0, 1.0);
       }
       {
-        // K.mn.addSpinMatrixProduct(r, C,     1.0);
-        // K.mm.addSpinMatrixProduct(r, Crx,   1.0);
         K.sw.assemble(Hat(r)*Ciow,  3, 0, 1.0);
         K.sv.assemble(Hat(r)*Ciodw, 3, 0, 1.0);
       }
       {
-        // K.wn.addTranspose(Ciow, 1.0);
-        // K.wm.addMatrixTransposeProduct(1.0, iow,  Crx,  1.0);
         K.ww.addMatrixTransposeProduct(1.0, iow,  Ciow, 1.0);
         K.wv.addMatrixTransposeProduct(1.0, iow,  Ciodw, 1.0);
       }
       {
-        // K.vn.addTranspose(Ciodw, 1.0);
-        // K.vm.addMatrixTransposeProduct(1.0, iodw,  Crx,   1.0);
-        // K.vw.addMatrixTransposeProduct(1.0, iodw,  Ciow,  1.0);
         K.vv.addMatrixTransposeProduct(1.0, iodw,  Ciodw, 1.0);
       }
     }
