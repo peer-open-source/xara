@@ -164,7 +164,6 @@ SubdomainFE::setID(AnalysisModel &theModel)
 const Matrix &
 SubdomainFE::getTangent(Integrator *theNewIntegrator)
 {
-#ifdef OLD_FE
   theIntegrator = theNewIntegrator;
 
   {
@@ -172,7 +171,6 @@ SubdomainFE::getTangent(Integrator *theNewIntegrator)
     theSub->computeTang();
     return theSub->getTang();
   }
-#endif
 }
 
 void
@@ -287,11 +285,7 @@ SubdomainFE::getResidual(Integrator *theNewIntegrator)
 
   assert(myEle != nullptr);
 
-  if (myEle->isSubdomain() == false) {
-    theNewIntegrator->formEleResidual(this);
-    return *theResidual;
-
-  } else {
+  {
     Subdomain *theSub = (Subdomain *)myEle;
     theSub->computeResidual();
     return theSub->getResistingForce();
