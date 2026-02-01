@@ -69,11 +69,13 @@ class LinearSOE : public MovableObject
 
     virtual int formAp(const Vector &p, Vector &Ap);
 
-    virtual const Vector &getX(void) = 0;
-    virtual const Vector &getB(void) = 0;    
-    virtual const Matrix *getA(void) {return 0;};    
-    double getDeterminant(void);
-    virtual double normRHS(void) = 0;
+    virtual const Vector &getX() = 0;
+    virtual const Vector &getB() = 0;    
+    virtual const Matrix *getA() {return nullptr;}
+    virtual int getA(int row, int col, double &value) const {return -2;}
+  
+    double getDeterminant();
+    virtual double normRHS() = 0;
 
     virtual void setX(int loc, double value) =0;
     virtual void setX(const Vector &X) =0;
