@@ -42,6 +42,7 @@
 
 #include <EigenSolver.h>
 #include <ArpackSOE.h>
+#include <cstring> // memcpy, memset
 
 class LinearSOE;
 
