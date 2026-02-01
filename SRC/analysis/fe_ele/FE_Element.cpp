@@ -78,8 +78,6 @@ FE_Element::setAnalysisModel(AnalysisModel &theAnalysisModel)
   theModel = &theAnalysisModel;
 }
 
-// void setID(int index, int value);
-//        Method to set the corresponding index of the ID to value.
 
 int
 FE_Element::setID()
