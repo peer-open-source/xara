@@ -130,6 +130,7 @@ FE_Element::addKpToTang(double fact, int numP)
 int
 FE_Element::storePreviousK(int numP)
 {
+  return -1;
 }
 
 //
