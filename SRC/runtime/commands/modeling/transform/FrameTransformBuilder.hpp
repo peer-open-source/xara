@@ -62,14 +62,18 @@ public:
       }
 
       int tag = this->getTag();
-      if (strstr(name, "Linear") != nullptr)
-        return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+      if (strstr(name, "Linear") != nullptr) {
+        if (!getenv("Linear02"))
+          return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+        else
+          return new EuclidFrameTransf<nn, ndf, LinearIsometry<nn>> (tag, vz, offset_array, offset_flags);
+      }
 
       else if (strstr(name, "LinearIsometric") != nullptr)
         return new EuclidFrameTransf<nn, ndf, LinearIsometry<nn>> (tag, vz, offset_array, offset_flags);
 
       else if (strcmp(name, "Corotational") == 0) {
-        if constexpr (ndf == 6)
+        if constexpr (ndf == 6 && nn==2)
           return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
         else 
           return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, offset_flags);
