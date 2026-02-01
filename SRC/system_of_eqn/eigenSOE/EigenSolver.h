@@ -26,7 +26,8 @@ class EigenSolver : public MovableObject
      EigenSolver(int classTag);
      virtual ~EigenSolver();
 
-     virtual int solve(int numModes, bool generalized, bool findSmallest = true) =0;     
+     virtual int solve(int numModes, bool generalized, bool findSmallest = true) =0;
+     virtual int getEigenvector(int mode, Vector &theVector) =0;
      virtual const Vector &getEigenvector(int mode) = 0;
      virtual double getEigenvalue(int mode) = 0;     
 
