@@ -55,23 +55,59 @@ class ArpackSolver : public EigenSolver
     int setSize();
     int setEigenSOE(ArpackSOE &theSOE);
     
-    const Vector &getEigenvector(int mode);
-    double getEigenvalue(int mode);
+    const Vector &getEigenvector(int mode) final;
+    int getEigenvector(int mode, Vector &theVector) final;
+    double getEigenvalue(int mode) final;
     
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		             FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &theBroker);
 
   protected:
 
   private:
     LinearSOE *theSOE;
     ArpackSOE *theArpackSOE;
-    int numModesMax;
-    int numMode;
     int size;
-    double *eigenvalues;
-    double *eigenvectors;
+    int numMode;
+    struct EigenData {
+      int ndf = 0;
+      int numModesMax = 0;
+      double *eigenvalues = nullptr;
+      double *eigenvectors = nullptr;
+
+      void clear() {
+        if (eigenvalues != nullptr)
+          delete [] eigenvalues;
+        if (eigenvectors != nullptr)
+          delete [] eigenvectors;
+        eigenvalues = nullptr;
+        eigenvectors = nullptr;
+        numModesMax = 0;
+        ndf = 0;
+      }
+      void zero() {
+        if (eigenvalues != nullptr && numModesMax > 0)
+          std::memset(eigenvalues, 0, numModesMax * sizeof(double));
+        if (eigenvectors != nullptr && ndf > 0 && numModesMax > 0)
+          std::memset(eigenvectors, 0, ndf * numModesMax * sizeof(double));
+      }
+
+      void reserve(int n, int nev) {
+        if (numModesMax < nev) {
+          if (eigenvalues != nullptr)
+            delete [] eigenvalues;
+          eigenvalues = new double[nev]{};
+          numModesMax = nev;
+        }
+        if (this->ndf != n || numModesMax < nev) {
+          if (eigenvectors != nullptr)
+            delete [] eigenvectors;
+
+          eigenvectors = new double[n * nev]{};
+          this->ndf = n;
+        }
+      }
+    } solution;
     Vector theVector;
 
     double shift;
