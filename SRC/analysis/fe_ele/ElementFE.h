@@ -77,7 +77,7 @@ class ElementFE: public FE_Element
     virtual const Vector &getLastResponse();
     Element *getElement() override;
 
-    virtual void  Print(OPS_Stream&, int flag) {return;};
+    virtual void  Print(OPS_Stream&, int flag) {return;}
 
     virtual void addResistingForceSensitivity(int gradNumber, double fact = 1.0);
     virtual void addM_ForceSensitivity       (int gradNumber, const Vector &vect, double fact = 1.0);
@@ -96,7 +96,7 @@ class ElementFE: public FE_Element
   private:
     // private variables - a copy for each object of the class    
     int numDOF;
-    Element       *myEle;
+    Element       &myEle;
     Vector        *theResidual;
     Matrix        *theTangent;
     Integrator    *theIntegrator; // need for Subdomain
