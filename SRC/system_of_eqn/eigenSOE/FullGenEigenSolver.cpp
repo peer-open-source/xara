@@ -27,12 +27,11 @@
 
 #include <FullGenEigenSolver.h>
 #include <float.h>
+#include <algorithm>
 #include <math.h>
 #include <stdio.h>
 #include <AnalysisModel.h>
-#include <DOF_GrpIter.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
 #include <FE_Element.h>
 
 
@@ -44,6 +43,8 @@ extern "C" int DGGEV(char *JOBVL, char *JOBVR, int *N, double *A, int *LDA,
                      int *LDVR, double *WORK, int *LWORK, int *INFO);
 
 #else
+#define DGGEV dggev_ 
+#define DGEEV dgeev_
 
 extern "C" int dggev_(char *JOBVL, char *JOBVR, int *N, double *A, int *LDA,
                       double *B, int *LDB, double *ALPHAR, double *ALPHAI,
@@ -51,6 +52,11 @@ extern "C" int dggev_(char *JOBVL, char *JOBVR, int *N, double *A, int *LDA,
                       int *LDVR, double *WORK, int *LWORK, int *INFO);
 
 #endif
+
+extern "C" int DGEEV(char *JOBVL, char *JOBVR, int *N, double *A,
+                      int *LDA, double *WR, double *WI, double *VL,
+                      int *LDVL, double *VR, int *LDVR, double *WORK,
+                      int *LWORK, int *INFO);
 
 
 FullGenEigenSolver::FullGenEigenSolver()
@@ -75,9 +81,11 @@ FullGenEigenSolver::~FullGenEigenSolver()
 }
 
 
-int FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
+int
+FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
 {
     if (generalized == false) {
+        return this->solveI(nEigen, findSmallest);
         opserr << "FullGenEigenSolver::solve() - only solves generalized problem\n";
         return -1;
     }
@@ -201,7 +209,7 @@ int FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
     }
 
 
-    // sort eigenvalues in ascending order and return sorting ID
+    // sort eigenvalues in ascending order and return sorting ID 
     this->sort(n, eigenvalue, sortingID);
 
     for (int i=0; i<numEigen; i++) {
@@ -214,8 +222,8 @@ int FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
     int lworkOpt = (int) work[0];
     if (lwork < lworkOpt) {
         opserr << "FullGenEigenSolver::solve() - optimal workspace size "
-                << lworkOpt << " is larger than provided workspace size "
-                << lwork << " consider increasing workspace\n";
+               << lworkOpt << " is larger than provided workspace size "
+               << lwork << " consider increasing workspace\n";
     }
 
     // clean up the memory
@@ -227,8 +235,139 @@ int FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
     return 0;
 }
 
+int
+FullGenEigenSolver::solveI(int nEigen, bool findSmallest)
+{
+    // quick checks
+    if (theSOE == 0) {
+        opserr << "FullGenEigenSolver::solveI()- No EigenSOE object has been set yet\n";
+        return -1;
+    }
+    if (nEigen < 1) {
+        numEigen = 0;
+        return 0;
+    }
 
-int FullGenEigenSolver::setSize()
+    // problem size
+    int n = theSOE->size;
+    numEigen = nEigen > n ? n : nEigen;
+
+    // K matrix (standard problem: K v = lambda v)
+    double *Kptr = theSOE->A;
+    int ldK = n;
+
+    // allocate eigenvalue storage
+    if (eigenvalue != nullptr) delete [] eigenvalue;
+    eigenvalue = new double[n]; // will hold real parts only
+
+    // scratch for LAPACK eigenvalues (real & imag parts)
+    double *wr = new double[n];
+    double *wi = new double[n];
+
+    // (re)allocate right eigenvectors buffer (column-major, n x n)
+    if (eigenvector != nullptr) delete [] eigenvector;
+    eigenvector = new double[n * n];
+    int ldvr = n;
+
+    // dummy left eigenvectors
+    double vl_dummy; // not referenced since jobvl = 'N'
+    int ldvl = 1;
+
+    // sorting index
+    if (sortingID != nullptr) delete [] sortingID;
+    sortingID = new int[n];
+
+    // workspace query
+    int info = 0;
+    int lwork = -1;
+    double wkopt;
+
+#ifdef _WIN32
+    DGEEV((char*)"N", (char*)"V", &n, Kptr, &ldK, wr, wi,
+          &vl_dummy, &ldvl, eigenvector, &ldvr, &wkopt, &lwork, &info);
+#else
+    dgeev_((char*)"N", (char*)"V", &n, Kptr, &ldK, wr, wi,
+           &vl_dummy, &ldvl, eigenvector, &ldvr, &wkopt, &lwork, &info);
+#endif
+    if (info != 0) {
+        opserr << "FullGenEigenSolver::solveI() - DGEEV workspace query failed, info=" << info << endln;
+        delete [] wr; delete [] wi;
+        return info < 0 ? info : -info;
+    }
+
+    lwork = (int)wkopt;
+    double *work = new double[lwork];
+
+    // DGEEV call (overwrites Kptr with Schur-like data)
+    DGEEV((char*)"N", (char*)"V", &n, Kptr, &ldK, wr, wi,
+          &vl_dummy, &ldvl, eigenvector, &ldvr, work, &lwork, &info);
+
+    if (info < 0) {
+        opserr << "FullGenEigenSolver::solveI() - invalid argument number "
+               << -info << " passed to LAPACK dgeev routine\n";
+        delete [] wr; delete [] wi; delete [] work;
+        return info;
+    }
+    if (info > 0) {
+        opserr << "FullGenEigenSolver::solveI() - the LAPACK dgeev routine "
+               << "failed to converge, info=" << info << endln;
+        delete [] wr; delete [] wi; delete [] work;
+        return -info;
+    }
+
+    // mark factored (not strictly meaningful for standard eigensolve, but kept for consistency)
+    theSOE->factored = true;
+
+    // Transfer eigenvalues, flag complex ones
+    for (int i = 0; i < n; ++i) {
+        if (wi[i] == 0.0) {
+            eigenvalue[i] = wr[i];
+        } else {
+            // Complex pair (columns i and i+1 contain conjugate pair in LAPACK’s real storage)
+            eigenvalue[i] = DBL_MAX;
+            opserr << "FullGenEigenSolver::solveI() - eigenvalue " << (i+1)
+                   << " is complex with magnitude " << std::hypot(wr[i], wi[i]) << endln;
+            // Optionally also mark pair partner if this is the first of the pair
+            if (i+1 < n && wi[i+1] == -wi[i]) {
+                eigenvalue[i+1] = DBL_MAX;
+                ++i; // skip partner column since we've handled it
+            }
+        }
+    }
+
+    for (int i = 0; i < n; ++i)
+      sortingID[i] = i;
+
+    // Sort ascending by default
+    this->sort(n, eigenvalue, sortingID);
+
+    // Flip to descending if largest requested
+    if (!findSmallest) {
+        // reverse eigenvalue[] and sortingID[] in-place
+        for (int i = 0, j = n-1; i < j; ++i, --j) {
+            std::swap(eigenvalue[i], eigenvalue[j]);
+            std::swap(sortingID[i], sortingID[j]);
+        }
+    }
+
+    // Warn about undetermined (complex) among the requested numEigen
+    for (int i = 0; i < numEigen; ++i) {
+        if (eigenvalue[i] == DBL_MAX) {
+            opserr << "FullGenEigenSolver::solveI() - eigenvalue "
+                   << (i+1) << " is complex/undetermined for standard (real) solve\n";
+        }
+    }
+
+    // Clean up
+    delete [] wr;
+    delete [] wi;
+    delete [] work;
+
+    return 0;
+}
+
+int
+FullGenEigenSolver::setSize()
 {
     int size = theSOE->size;
 
@@ -249,7 +388,8 @@ int FullGenEigenSolver::setSize()
 }
 
 
-int FullGenEigenSolver::setEigenSOE(FullGenEigenSOE &thesoe)
+int
+FullGenEigenSolver::setEigenSOE(FullGenEigenSOE &thesoe)
 {
     theSOE = &thesoe;
 
@@ -257,13 +397,22 @@ int FullGenEigenSolver::setEigenSOE(FullGenEigenSOE &thesoe)
 }
 
 
-const Vector& FullGenEigenSolver::getEigenvector(int mode)
+const Vector&
+FullGenEigenSolver::getEigenvector(int mode)
+{
+    this->getEigenvector(mode, *eigenV);
+
+    return *eigenV;
+}
+
+int
+FullGenEigenSolver::getEigenvector(int mode, Vector &theVector)
 {
     if (mode <= 0 || mode > numEigen) {
         opserr << "FullGenEigenSolver::getEigenVector() - mode "
             << mode << " is out of range (1 - " << numEigen << ")\n";
-        eigenV->Zero();
-        return *eigenV;
+        theVector.Zero();
+        return -1;
     }
 
     int size = theSOE->size;
@@ -271,36 +420,37 @@ const Vector& FullGenEigenSolver::getEigenvector(int mode)
 
     if (eigenvector != 0) {
         for (int i=0; i<size; i++) {
-            (*eigenV)[i] = eigenvector[index++];
+            theVector[i] = eigenvector[index++];
         }	
     }
     else {
         opserr << "FullGenEigenSolver::getEigenvector() - "
             << "eigenvectors not computed yet\n";
-        eigenV->Zero();
+        theVector.Zero();
+        return -2;
     }      
 
-    return *eigenV;
+    return 0;
 }
 
 
 double
 FullGenEigenSolver::getEigenvalue(int mode)
 {
-    if (mode <= 0 || mode > numEigen) {
-        opserr << "FullGenEigenSolver::getEigenvalue() - mode " 
-            << mode << " is out of range (1 - " << numEigen << ")\n";
-        return 0.0;
-    }
+  if (mode <= 0 || mode > numEigen) {
+      opserr << "FullGenEigenSolver::getEigenvalue() - mode " 
+          << mode << " is out of range (1 - " << numEigen << ")\n";
+      return 0.0;
+  }
 
-    if (eigenvalue != 0) {
-        return eigenvalue[mode-1];
-    }
-    else {
-        opserr << "FullGenEigenSolver::getEigenvalue() - "
-            << "eigenvalues not yet computed\n";
-        return 0.0;
-    }      
+  if (eigenvalue != 0) {
+    return eigenvalue[mode-1];
+  }
+  else {
+    opserr << "FullGenEigenSolver::getEigenvalue() - "
+        << "eigenvalues not yet computed\n";
+    return 0.0;
+  }      
 }
 
 
