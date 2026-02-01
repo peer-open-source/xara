@@ -28,7 +28,7 @@
 #include <FullGenEigenSolver.h>
 #include <float.h>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <AnalysisModel.h>
 #include <DOF_Group.h>
@@ -134,13 +134,13 @@ FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
     double *beta   = new double [n];
 
     if (eigenvalue != nullptr)
-        delete [] eigenvalue;
+      delete [] eigenvalue;
 
     eigenvalue = new double [n];
 
     // allocate memory for sorting index array
     if (sortingID != 0)
-        delete [] sortingID;
+      delete [] sortingID;
     sortingID = new int [n];
 
     // dummy left eigenvectors
@@ -176,47 +176,46 @@ FullGenEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
 #endif
 
     if (info < 0) {
-        opserr << "FullGenEigenSolver::solve() - invalid argument number "
-            << -info << " passed to LAPACK dggev routine\n";
-        return info;
+      opserr << "FullGenEigenSolver::solve() - invalid argument number "
+          << -info << " passed to LAPACK dggev routine\n";
+      return info;
     }
 
     if (info > 0) {
-        opserr << "FullGenEigenSolver::solve() - the LAPACK dggev routine "
-            << "returned error code " << info << endln;
-        return -info;
+      opserr << "The LAPACK dggev routine "
+             << "returned error code " << info << "\n";
+      return -info;
     }
 
     theSOE->factored = true;
 
     for (int i=0; i<n; i++) {
-        double mag = sqrt(alphaR[i]*alphaR[i]+alphaI[i]*alphaI[i]);
-        if (mag*DBL_EPSILON < fabs(beta[i])) {
-            if (alphaI[i] == 0.0) {
-                eigenvalue[i] = alphaR[i]/beta[i];
-            }
-            else {
-                eigenvalue[i] = -mag/beta[i];
-                opserr << "FullGenEigenSolver::solve() - the eigenvalue "
-                    << i+1 << " is complex with magnitude "
-                    << -eigenvalue[i] << endln;
-            }
+        double mag = std::sqrt(alphaR[i]*alphaR[i]+alphaI[i]*alphaI[i]);
+        if (mag*DBL_EPSILON < std::fabs(beta[i])) {
+          if (alphaI[i] == 0.0) {
+              eigenvalue[i] = alphaR[i]/beta[i];
+          }
+          else {
+            eigenvalue[i] = -mag/beta[i];
+            opserr << "FullGenEigenSolver::solve() - the eigenvalue "
+                << i+1 << " is complex with magnitude "
+                << -eigenvalue[i] << "\n";
+          }
         }
         else {
-	    eigenvalue[i] = DBL_MAX;
-	}
+          eigenvalue[i] = DBL_MAX;
+        }
         sortingID[i] = i;
     }
-
 
     // sort eigenvalues in ascending order and return sorting ID 
     this->sort(n, eigenvalue, sortingID);
 
     for (int i=0; i<numEigen; i++) {
-        if (eigenvalue[i] == DBL_MAX) {
-	    opserr << "FullGenEigenSolver::solve() - the eigenvalue "
-		    << i+1 << " is numerically undetermined or infinite\n";
-        }
+      if (eigenvalue[i] == DBL_MAX) {
+        opserr << "FullGenEigenSolver::solve() - the eigenvalue "
+                << i+1 << " is numerically undetermined or infinite\n";
+      }
     }
 
     int lworkOpt = (int) work[0];
@@ -369,68 +368,68 @@ FullGenEigenSolver::solveI(int nEigen, bool findSmallest)
 int
 FullGenEigenSolver::setSize()
 {
-    int size = theSOE->size;
+  int size = theSOE->size;
 
+  if (eigenV == 0 || eigenV->Size() != size) {
+    if (eigenV != 0)
+        delete eigenV;
+
+    eigenV = new Vector(size);
     if (eigenV == 0 || eigenV->Size() != size) {
-        if (eigenV != 0)
-            delete eigenV;
-
-        eigenV = new Vector(size);
-        if (eigenV == 0 || eigenV->Size() != size) {
-            opserr << "FullGenEigenSolver::setSize() ";
-            opserr << " - ran out of memory for eigenVector of size ";
-            opserr << theSOE->size << endln;
-            return -2;	    
-        }
+        opserr << "FullGenEigenSolver::setSize() ";
+        opserr << " - ran out of memory for eigenVector of size ";
+        opserr << theSOE->size << endln;
+        return -2;            
     }
+  }
 
-    return 0;
+  return 0;
 }
 
 
 int
 FullGenEigenSolver::setEigenSOE(FullGenEigenSOE &thesoe)
 {
-    theSOE = &thesoe;
+  theSOE = &thesoe;
 
-    return 0;
+  return 0;
 }
 
 
 const Vector&
 FullGenEigenSolver::getEigenvector(int mode)
 {
-    this->getEigenvector(mode, *eigenV);
+  this->getEigenvector(mode, *eigenV);
 
-    return *eigenV;
+  return *eigenV;
 }
 
 int
 FullGenEigenSolver::getEigenvector(int mode, Vector &theVector)
 {
-    if (mode <= 0 || mode > numEigen) {
-        opserr << "FullGenEigenSolver::getEigenVector() - mode "
-            << mode << " is out of range (1 - " << numEigen << ")\n";
-        theVector.Zero();
-        return -1;
-    }
+  if (mode <= 0 || mode > numEigen) {
+    opserr << "FullGenEigenSolver::getEigenVector() - mode "
+        << mode << " is out of range (1 - " << numEigen << ")\n";
+    theVector.Zero();
+    return -1;
+  }
 
-    int size = theSOE->size;
-    int index = size*sortingID[mode-1];
+  int size = theSOE->size;
+  int index = size*sortingID[mode-1];
 
-    if (eigenvector != 0) {
-        for (int i=0; i<size; i++) {
-            theVector[i] = eigenvector[index++];
-        }	
-    }
-    else {
-        opserr << "FullGenEigenSolver::getEigenvector() - "
-            << "eigenvectors not computed yet\n";
-        theVector.Zero();
-        return -2;
-    }      
+  if (eigenvector != 0) {
+    for (int i=0; i<size; i++) {
+        theVector[i] = eigenvector[index++];
+    }        
+  }
+  else {
+    opserr << "FullGenEigenSolver::getEigenvector() - "
+        << "eigenvectors not computed yet\n";
+    theVector.Zero();
+    return -2;
+  }      
 
-    return 0;
+  return 0;
 }
 
 
@@ -438,9 +437,9 @@ double
 FullGenEigenSolver::getEigenvalue(int mode)
 {
   if (mode <= 0 || mode > numEigen) {
-      opserr << "FullGenEigenSolver::getEigenvalue() - mode " 
-          << mode << " is out of range (1 - " << numEigen << ")\n";
-      return 0.0;
+    opserr << "FullGenEigenSolver::getEigenvalue() - mode " 
+        << mode << " is out of range (1 - " << numEigen << ")\n";
+    return 0.0;
   }
 
   if (eigenvalue != 0) {
@@ -448,7 +447,7 @@ FullGenEigenSolver::getEigenvalue(int mode)
   }
   else {
     opserr << "FullGenEigenSolver::getEigenvalue() - "
-        << "eigenvalues not yet computed\n";
+            << "eigenvalues not yet computed\n";
     return 0.0;
   }      
 }
@@ -457,14 +456,15 @@ FullGenEigenSolver::getEigenvalue(int mode)
 int
 FullGenEigenSolver::sendSelf(int commitTag, Channel &theChannel)
 {
-    return 0;
+  return 0;
 }
 
 
-int FullGenEigenSolver::recvSelf(int commitTag, Channel &theChannel, 
-    FEM_ObjectBroker &theBroker)
+int
+FullGenEigenSolver::recvSelf(int commitTag, Channel &theChannel, 
+                             FEM_ObjectBroker &theBroker)
 {
-    return 0;
+  return 0;
 }
 
 
@@ -483,12 +483,12 @@ FullGenEigenSolver::sort(int length, double *x, int *id)
         d = (d+1)/2;
         for (i=0; i<(length-d); i++) {
             if (x[i+d] < x[i]) {
-                // swap items at positions i+d and d
-	            xTmp = x[i+d];  idTmp = id[i+d]; 
-	            x[i+d] = x[i];  id[i+d] = id[i]; 
-	            x[i] = xTmp;    id[i] = idTmp; 
-	            // indicate that a swap has occurred
-	            flag = 1;
+              // swap items at positions i+d and d
+              xTmp = x[i+d];  idTmp = id[i+d]; 
+              x[i+d] = x[i];  id[i+d] = id[i]; 
+              x[i] = xTmp;    id[i] = idTmp; 
+              // indicate that a swap has occurred
+              flag = 1;
             }
         }
     }
