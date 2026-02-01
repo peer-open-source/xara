@@ -7,6 +7,8 @@
 target_sources(OPS_Analysis
     PRIVATE
       FE_Element.cpp
+      ElementFE.cpp
+      SubdomainFE.cpp
     PUBLIC
       FE_Element.h
 )

@@ -31,6 +31,8 @@
 #include <AnalysisModel.h>
 #include <Domain.h>
 #include <FE_Element.h>
+#include <ElementFE.h>
+#include <SubdomainFE.h>
 #include <DOF_Group.h>
 #include <Node.h>
 #include <Element.h>
@@ -117,14 +119,14 @@ LagrangeConstraintHandler::handle(const ID *nodesLast)
     if (elePtr->isSubdomain() == true) {
       Subdomain *theSub = (Subdomain *)elePtr;
       if (theSub->doesIndependentAnalysis() == false) {
-        FE_Element *fePtr = new FE_Element(numFeEle++, elePtr);
+        FE_Element *fePtr = new SubdomainFE(numFeEle++, theSub);
         theModel->addFE_Element(fePtr);
         theSub->setFE_ElementPtr(fePtr);
       }
     }
     else {
       // just a regular element
-      theModel->addFE_Element(new FE_Element(numFeEle++, elePtr));
+      theModel->addFE_Element(new ElementFE(numFeEle++, elePtr));
     }
   }
 

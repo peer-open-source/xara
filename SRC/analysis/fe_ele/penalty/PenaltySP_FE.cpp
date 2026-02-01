@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.8 $
-// $Date: 2009-10-13 21:13:01 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/fe_ele/penalty/PenaltySP_FE.cpp,v $
-                                                                        
-                                                                        
+//
 // File: ~/analysis/fe_ele/penalty/PenaltySP_FE.C
 //
 // Written: fmk 
@@ -54,22 +49,22 @@ Matrix PenaltySP_FE::tang(1,1);
 Vector PenaltySP_FE::resid(1);
 
 PenaltySP_FE::PenaltySP_FE(int tag, Domain &theDomain, 
-			   SP_Constraint &TheSP, double Alpha)
+                            SP_Constraint &TheSP, double Alpha)
 :FE_Element(tag, 1,1), alpha(Alpha),
  theSP(&TheSP), theNode(0)
 {
-    // get a pointer to the Node
-    theNode = theDomain.getNode(theSP->getNodeTag());
-    if (theNode == 0) {
-	opserr << "FATAL PenaltySP_FE::PenaltySP_FE() - no Node: ";
-	opserr << theSP->getNodeTag() << "in domain\n";
-	exit(-1);
-    }
+  // get a pointer to the Node
+  theNode = theDomain.getNode(theSP->getNodeTag());
+  if (theNode == 0) {
+    opserr << "FATAL PenaltySP_FE::PenaltySP_FE() - no Node: ";
+    opserr << theSP->getNodeTag() << "in domain\n";
+    exit(-1);
+  }
 
-    // set the DOF_Group tags
-    DOF_Group *dofGrpPtr = theNode->getDOF_GroupPtr();
-    if (dofGrpPtr != 0) 
-	myDOF_Groups(0) = dofGrpPtr->getTag();	    
+  // set the DOF_Group tags
+  DOF_Group *dofGrpPtr = theNode->getDOF_GroupPtr();
+  if (dofGrpPtr != 0) 
+    myDOF_Groups(0) = dofGrpPtr->getTag();    
 }
 
 
@@ -79,34 +74,34 @@ PenaltySP_FE::~PenaltySP_FE()
 }    
 
 // void setID(int index, int value);
-//	Method to set the corresponding index of the ID to value.
+//        Method to set the corresponding index of the ID to value.
 
 int
-PenaltySP_FE::setID(void)
+PenaltySP_FE::setID(AnalysisModel &)
 {
-    DOF_Group *theNodesDOFs = theNode->getDOF_GroupPtr();
-    if (theNodesDOFs == 0) {
-	opserr << "WARNING PenaltySP_FE::setID(void) - no DOF_Group with Node\n";
-	return -2;
-    }    
-    myDOF_Groups(0) = theNodesDOFs->getTag();
-    
-    int restrainedDOF = theSP->getDOF_Number();
-    if (restrainedDOF < 0 || restrainedDOF >= theNode->getNumberDOF()) {
-	opserr << "WARNING PenaltySP_FE::setID(void) - unknown DOF ";
-	opserr << restrainedDOF << " at Node\n";
-	return -3;
-    }    	
-    const ID &theNodesID = theNodesDOFs->getID();
-    if (restrainedDOF >= theNodesID.Size()) {
-	opserr << "WARNING PenaltySP_FE::setID(void) - ";
-	opserr << " Nodes DOF_Group too small\n";
-	return -4;
-    }    		
-    
-    myID(0) = theNodesID(restrainedDOF);
+  DOF_Group *theNodesDOFs = theNode->getDOF_GroupPtr();
+  if (theNodesDOFs == 0) {
+    opserr << "WARNING PenaltySP_FE::setID(void) - no DOF_Group with Node\n";
+    return -2;
+  }
+  myDOF_Groups(0) = theNodesDOFs->getTag();
+  
+  int restrainedDOF = theSP->getDOF_Number();
+  if (restrainedDOF < 0 || restrainedDOF >= theNode->getNumberDOF()) {
+    opserr << "WARNING PenaltySP_FE::setID(void) - unknown DOF ";
+    opserr << restrainedDOF << " at Node\n";
+    return -3;
+  }    
+  const ID &theNodesID = theNodesDOFs->getID();
+  if (restrainedDOF >= theNodesID.Size()) {
+    opserr << "WARNING PenaltySP_FE::setID(void) - ";
+    opserr << " Nodes DOF_Group too small\n";
+    return -4;
+  }    
+  
+  myID(0) = theNodesID(restrainedDOF);
 
-    return 0;
+  return 0;
 }
 
 
@@ -121,41 +116,41 @@ PenaltySP_FE::getTangent(Integrator *theNewIntegrator)
 const Vector &
 PenaltySP_FE::getResidual(Integrator *theNewIntegrator)
 {
-    double constraint = theSP->getValue();
-    double initialValue = theSP->getInitialValue();
-    int constrainedDOF = theSP->getDOF_Number();
-    const Vector &nodeDisp = theNode->getTrialDisp();
-	
-    if (constrainedDOF < 0 || constrainedDOF >= nodeDisp.Size()) {
-	opserr << "WARNING PenaltySP_FE::getTangForce() - ";	
-	opserr << " constrained DOF " << constrainedDOF << " outside disp\n";
-	resid(0) = 0;
-    }
+  double constraint = theSP->getValue();
+  double initialValue = theSP->getInitialValue();
+  int constrainedDOF = theSP->getDOF_Number();
+  const Vector &nodeDisp = theNode->getTrialDisp();
 
-    //    (*resid)(0) = alpha * (constraint - nodeDisp(constrainedDOF));    
-    // is replace with the following to remove possible problems with
-    // subtracting very small numbers
+  if (constrainedDOF < 0 || constrainedDOF >= nodeDisp.Size()) {
+    opserr << "WARNING PenaltySP_FE::getTangForce() - ";
+    opserr << " constrained DOF " << constrainedDOF << " outside disp\n";
+    resid(0) = 0;
+  }
 
-    resid(0) = alpha * (constraint - (nodeDisp(constrainedDOF) - initialValue));    
+  //    (*resid)(0) = alpha * (constraint - nodeDisp(constrainedDOF));    
+  // is replace with the following to remove possible problems with
+  // subtracting very small numbers
 
-    return resid;
+  resid(0) = alpha * (constraint - (nodeDisp(constrainedDOF) - initialValue));    
+
+  return resid;
 }
 
 
 const Vector &
 PenaltySP_FE::getTangForce(const Vector &disp, double fact)
 {
-    // double constraint = theSP->getValue();
-    int constrainedID = myID(0);
-    if (constrainedID < 0 || constrainedID >= disp.Size()) {
-	opserr << "WARNING PenaltySP_FE::getTangForce() - ";	
-	opserr << " constrained DOF " << constrainedID << " outside disp\n";
-	resid(0) = 0.0;
-	return resid;
-    }
-    resid(0) = alpha * disp(constrainedID);
+  // double constraint = theSP->getValue();
+  int constrainedID = myID(0);
+  if (constrainedID < 0 || constrainedID >= disp.Size()) {
+      opserr << "WARNING PenaltySP_FE::getTangForce() - ";
+      opserr << " constrained DOF " << constrainedID << " outside disp\n";
+      resid(0) = 0.0;
+      return resid;
+  }
+  resid(0) = alpha * disp(constrainedID);
 
-    return resid;
+  return resid;
 }
 
 const Vector &

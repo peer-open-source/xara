@@ -27,6 +27,8 @@
 #include <AnalysisModel.h>
 #include <Domain.h>
 #include <FE_Element.h>
+#include <ElementFE.h>
+#include <SubdomainFE.h>
 #include <DOF_Group.h>
 #include <Node.h>
 #include <Element.h>
@@ -136,13 +138,13 @@ PenaltyConstraintHandler::handle(const ID *nodesLast)
     if (elePtr->isSubdomain() == true) {
       Subdomain *theSub = (Subdomain *)elePtr;
       if (theSub->doesIndependentAnalysis() == false) {
-              fePtr = new FE_Element(numFeEle++, elePtr);
+        fePtr = new SubdomainFE(numFeEle++, theSub);
         theModel->addFE_Element(fePtr);
         theSub->setFE_ElementPtr(fePtr);
       }
     } else {	
       // just a regular element
-      fePtr = new FE_Element(numFeEle++, elePtr);	
+      fePtr = new ElementFE(numFeEle++, elePtr);	
       theModel->addFE_Element(fePtr);
     }
   }

@@ -57,21 +57,21 @@ class LagrangeSP_FE: public FE_Element
     virtual ~LagrangeSP_FE();    
 
     // public methods
-    virtual int  setID();
-    virtual const Matrix &getTangent(Integrator *theIntegrator);    
-    virtual const Vector &getResidual(Integrator *theIntegrator) final;
-//  virtual const Vector &getResidual(StaticIntegrator &theIntegrator) final {
-//      return this->getResidual(static_cast<Integrator*>(&theIntegrator));
-//  };
+    int  setID(AnalysisModel& ) final;
+    const ID &getID() const final {return myID;};
+    virtual const Matrix &getTangent(Integrator *);    
+    virtual const Vector &getResidual(Integrator *) final;
     virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
 
     virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);        
+    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0); 
+    void zeroTangent() final {tang? tang->Zero() : void();}
   protected:
     
   private:
+    ID myID;
     double alpha;
     Matrix *tang;
     Vector *resid;

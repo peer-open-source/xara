@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.9 $
-// $Date: 2006-02-08 20:20:00 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/fe_ele/transformation/TransformationFE.h,v $
-                                                                        
-                                                                        
 #ifndef TransformationFE_h
 #define TransformationFE_h
 
@@ -36,26 +31,24 @@
 //
 // What: "@(#) TransformationFE.h, revA"
 
-#include <FE_Element.h>
+#include <ElementFE.h>
 class SP_Constraint;
 class DOF_Group;
 class TransformationConstraintHandler;
 
-class TransformationFE: public FE_Element
+class TransformationFE: public ElementFE
 {
   public:
-  TransformationFE(int tag, Element *theElement);
+  TransformationFE(int tag, Element *);
   ~TransformationFE();    
 
     // public methods for setting/obtaining mapping information
-    virtual const ID &getDOFtags(void) const;
-    virtual const ID &getID(void) const;
-    void setAnalysisModel(AnalysisModel &theModel);
-    virtual int setID(void);
+    virtual const ID &getID() const final;
+    int setID(AnalysisModel&) final;
     
     // methods to form and obtain the tangent and residual
-    virtual const Matrix &getTangent(Integrator *theIntegrator);
-    virtual const Vector &getResidual(Integrator *theIntegrator);
+    virtual const Matrix &getTangent(Integrator *);
+    virtual const Vector &getResidual(Integrator *);
     
     // methods for ele-by-ele strategies
     virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
@@ -66,9 +59,7 @@ class TransformationFE: public FE_Element
     virtual void  addD_Force(const Vector &vel,   double fact = 1.0);
     virtual void  addM_Force(const Vector &accel, double fact = 1.0);    
     
-    const Vector &getLastResponse(void);
-    int addSP(SP_Constraint &theSP);
-
+    const Vector &getLastResponse();
 
     // AddingSensitivity:BEGIN ////////////////////////////////////
     virtual void addM_ForceSensitivity       (int gradNumber, const Vector &vect, double fact = 1.0);
@@ -91,7 +82,7 @@ class TransformationFE: public FE_Element
     int numTransformedDOF;
     int numOriginalDOF;
     
-    // static variables - single copy for all objects of the class	
+    // static variables - single copy for all objects of the class
     static Matrix **modMatrices; // array of pointers to class wide matrices
     static Vector **modVectors;  // array of pointers to class widde vectors
     static Matrix **theTransformations; // for holding pointers to the T matrices

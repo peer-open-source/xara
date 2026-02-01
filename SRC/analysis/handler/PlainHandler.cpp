@@ -29,6 +29,8 @@
 #include <AnalysisModel.h>
 #include <Domain.h>
 #include <FE_Element.h>
+#include <ElementFE.h>
+#include <SubdomainFE.h>
 #include <DOF_Group.h>
 #include <Node.h>
 #include <Element.h>
@@ -217,14 +219,14 @@ PlainHandler::handle(const ID *nodesLast)
       Subdomain *theSub = (Subdomain *)elePtr;
       if (theSub->doesIndependentAnalysis() == false) {
 
-        FE_Element *fePtr = new FE_Element(numFe++, elePtr);
+        FE_Element *fePtr = new SubdomainFE(numFe++, theSub);
         theModel->addFE_Element(fePtr);
         theSub->setFE_ElementPtr(fePtr);
       }
 
     } else {
       // just a regular element .. create an FE_Element for it & add to AnalysisModel
-      theModel->addFE_Element(new FE_Element(numFe++, elePtr));
+      theModel->addFE_Element(new ElementFE(numFe++, elePtr));
     }
   }
 

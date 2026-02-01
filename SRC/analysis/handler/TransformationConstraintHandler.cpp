@@ -35,6 +35,8 @@
 #include <AnalysisModel.h>
 #include <Domain.h>
 #include <FE_Element.h>
+#include <ElementFE.h>
+#include <SubdomainFE.h>
 #include <DOF_Group.h>
 #include <Node.h>
 #include <Element.h>
@@ -141,7 +143,7 @@ TransformationConstraintHandler::handle(const ID *nodesLast)
   numConstrainedNodes = 0;
   numDOF = 0;
   while ((nodPtr = theNod()) != 0) {
-      DOF_Group *dofPtr = 0;
+    DOF_Group *dofPtr = nullptr;
 
     int nodeTag = nodPtr->getTag();
     int numNodalDOF = nodPtr->getNumberDOF();
@@ -272,7 +274,7 @@ TransformationConstraintHandler::handle(const ID *nodesLast)
       if (theSub->doesIndependentAnalysis() == false) {
         
         if (transformedEle.getLocation(tag) < 0) {
-          fePtr = new FE_Element(numFeEle, elePtr);
+          fePtr = new SubdomainFE(numFeEle, theSub);
         } else {
           fePtr = new TransformationFE(numFeEle, elePtr);
           theFEs[numFE++] = fePtr;
@@ -286,7 +288,7 @@ TransformationConstraintHandler::handle(const ID *nodesLast)
     } else {
 
       if (transformedEle.getLocation(tag) < 0) {
-        fePtr = new FE_Element(numFeEle, elePtr);
+        fePtr = new ElementFE(numFeEle, elePtr);
       }
       else {
         fePtr = new TransformationFE(numFeEle, elePtr);
@@ -390,7 +392,10 @@ TransformationConstraintHandler::enforceSPs()
 
   for (int j=0; j<numFE; j++) {
     FE_Element *theEle = theFEs[j];
-    theEle->updateElement();
+    Element* ele = theEle->getElement();
+    if (ele != nullptr) {
+      ele->update();
+    }
   }
 
   return 0;

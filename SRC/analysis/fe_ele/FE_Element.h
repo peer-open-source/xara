@@ -41,26 +41,28 @@ class AnalysisModel;
 class FE_Element: public TaggedObject
 {
   public:
-    FE_Element(int tag, Element *theElement);
     FE_Element(int tag, int numDOF_Group, int ndof);
     virtual ~FE_Element();    
 
+    static constexpr int MaxNumDOFs = 100; //
+
     // public methods for setting/obtaining mapping information
-    virtual const ID &getDOFtags() const;
-    virtual const ID &getID() const;
     void setAnalysisModel(AnalysisModel &);
-    virtual int  setID();
+    int  setID();
+    virtual int setID(AnalysisModel &) =0;
+    virtual const ID &getDOFtags() const final;
+    virtual const ID &getID() const = 0;
 
     // methods to form and obtain the tangent and residual
-    virtual const Matrix &getTangent(Integrator *);
-    virtual const Vector &getResidual(Integrator *);
+    virtual const Matrix &getTangent(Integrator *)=0;
+    virtual const Vector &getResidual(Integrator *)=0;
 
     // methods called by integrator to build tangent
-            void  zeroTangent()                  ;
-            void  addKtToTang(double fact = 1.0) ;
-            void  addKiToTang(double fact = 1.0) ;
-            void  addCtoTang (double fact = 1.0) ;
-            void  addMtoTang (double fact = 1.0) ;
+    virtual void  zeroTangent()                  ;
+    virtual void  addKtToTang(double fact = 1.0) ;
+    virtual void  addKiToTang(double fact = 1.0) ;
+    virtual void  addCtoTang (double fact = 1.0) ;
+    virtual void  addMtoTang (double fact = 1.0) ;
     virtual void  addKpToTang(double fact = 1.0, int numP = 0);
     virtual int   storePreviousK(int numP);
 
@@ -75,17 +77,15 @@ class FE_Element: public TaggedObject
     virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
-    virtual void  addM_Force(const Vector &accel, double fact = 1.0);    
+    virtual void  addM_Force(const Vector &accel, double fact = 1.0){}    
     virtual void  addD_Force(const Vector &vel, double fact = 1.0);    
     virtual void  addK_Force(const Vector &disp, double fact = 1.0);
 
-    virtual int updateElement();
-
     virtual Integrator   *getLastIntegrator();
     virtual const Vector &getLastResponse();
-    Element *getElement();
+    virtual Element *getElement() {return nullptr;}
 
-    virtual void  Print(OPS_Stream&, int flag) {return;};
+    virtual void  Print(OPS_Stream&, int flag) {return;}
 
     virtual void addResistingForceSensitivity(int gradNumber, double fact = 1.0);
     virtual void addM_ForceSensitivity       (int gradNumber, const Vector &vect, double fact = 1.0);
@@ -93,31 +93,15 @@ class FE_Element: public TaggedObject
     virtual int  commitSensitivity           (int gradNum, int numGrads);
    
   protected:
-    void  addLocalM_Force(const Vector &accel, double fact = 1.0);
-    void  addLocalD_Force(const Vector &vel, double fact = 1.0);
-    void  addLocalM_ForceSensitivity(int gradNumber, const Vector &accel, double fact = 1.0);
-    void  addLocalD_ForceSensitivity(int gradNumber, const Vector &vel, double fact = 1.0);
-
-    // protected variables - a copy for each object of the class        
     ID myDOF_Groups;
-    ID myID;
-
   private:
-    // private variables - a copy for each object of the class    
     int numDOF;
     AnalysisModel *theModel;
-    Element       *myEle;
     Vector        *theResidual;
     Matrix        *theTangent;
     Integrator    *theIntegrator; // need for Subdomain
-
-    //
-    // static variables
-    //
-    static Matrix **theMatrices; // array of pointers to class wide matrices
-    static Vector **theVectors;  // array of pointers to class widde vectors
-    static int numFEs;           // number of objects
-
+    static double static_matrix_data[MaxNumDOFs*MaxNumDOFs];
+    static double static_vector_data[MaxNumDOFs];
 };
 
 #endif

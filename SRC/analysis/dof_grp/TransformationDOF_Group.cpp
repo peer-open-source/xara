@@ -54,124 +54,124 @@ TransformationDOF_Group::TransformationDOF_Group(int tag, Node *node,
 :DOF_Group(tag,node),
  theMP(mp),Trans(0),modTangent(0),modUnbalance(0),modID(0),theSPs(0)
 {
-    // determine the number of DOF 
-    int numNodalDOF = node->getNumberDOF();
-    const ID &retainedDOF = mp->getRetainedDOFs();
-    const ID &constrainedDOF = mp->getConstrainedDOFs();    
-    int numNodalDOFConstrained = constrainedDOF.Size();
-    numConstrainedNodeRetainedDOF = numNodalDOF - numNodalDOFConstrained;
-    needRetainedData = -1;
+  // determine the number of DOF 
+  int numNodalDOF = node->getNumberDOF();
+  const ID &retainedDOF = mp->getRetainedDOFs();
+  const ID &constrainedDOF = mp->getConstrainedDOFs();    
+  int numNodalDOFConstrained = constrainedDOF.Size();
+  numConstrainedNodeRetainedDOF = numNodalDOF - numNodalDOFConstrained;
+  needRetainedData = -1;
 
-    int numRetainedNodeDOF = retainedDOF.Size();
+  int numRetainedNodeDOF = retainedDOF.Size();
 
-    modNumDOF = numConstrainedNodeRetainedDOF + numRetainedNodeDOF;
+  modNumDOF = numConstrainedNodeRetainedDOF + numRetainedNodeDOF;
 
-    // create space for the SP_Constraint array
-    theSPs = new SP_Constraint *[numNodalDOF];
-    for (int ii=0; ii<numNodalDOF; ii++) 
-      theSPs[ii] = 0;
+  // create space for the SP_Constraint array
+  theSPs = new SP_Constraint *[numNodalDOF];
+  for (int ii=0; ii<numNodalDOF; ii++) 
+    theSPs[ii] = 0;
 
-    /***********************
-    // set the SP_Constraint corresponding to the dof in modID
-    Domain *theDomain=node->getDomain();
-    int nodeTag = node->getTag();    
-    SP_ConstraintIter &theSPIter = theDomain->getSPs();
-    SP_Constraint *sp;
-    while ((sp = theSPIter()) != 0) {
-	if (sp->getNodeTag() == nodeTag) {
-	    int dof = sp->getDOF_Number();
-	    int loc = 0;
-	    for (int i=0; i<dof; i++) 
-		if (constrainedDOF.getLocation(i) < 0)
-		    loc++;
-	    theSPs[loc] = sp;
-	}
-    }
-    *******************/
-     
-    // create ID and transformation matrix
-    modID = new ID(modNumDOF);
-    Trans = new Matrix(numNodalDOF, modNumDOF);
-
-    if (modID == 0 || modID->Size() == 0 ||
-	Trans == 0 || Trans->noRows() == 0) {
-	
-	opserr << "FATAL TransformationDOF_Group::TransformationDOF_Group() -";
-	opserr << " ran out of memory for size: " << modNumDOF << endln;
-	exit(-1);
-    }
-
-    // initially set the id values to -2 for any dof still due to constrained node
-    for (int i=0; i<numConstrainedNodeRetainedDOF; i++)
-	(*modID)(i) = -2;
+  /***********************
+  // set the SP_Constraint corresponding to the dof in modID
+  Domain *theDomain=node->getDomain();
+  int nodeTag = node->getTag();    
+  SP_ConstraintIter &theSPIter = theDomain->getSPs();
+  SP_Constraint *sp;
+  while ((sp = theSPIter()) != 0) {
+if (sp->getNodeTag() == nodeTag) {
+    int dof = sp->getDOF_Number();
+    int loc = 0;
+    for (int i=0; i<dof; i++) 
+  if (constrainedDOF.getLocation(i) < 0)
+      loc++;
+    theSPs[loc] = sp;
+}
+  }
+  *******************/
     
-    // for all the constrained dof values set to -1
-    for (int j=numConstrainedNodeRetainedDOF; j<modNumDOF; j++)
-	(*modID)(j) = -1;
+  // create ID and transformation matrix
+  modID = new ID(modNumDOF);
+  Trans = new Matrix(numNodalDOF, modNumDOF);
 
-    // for all the dof corresponding to the retained node set initially to -1
-    // we don't initially assign these equation nos. - this is done in doneID()
-    for (int k=numConstrainedNodeRetainedDOF; k<modNumDOF; k++)
-	(*modID)(k) = -1;
+  if (modID == 0 || modID->Size() == 0 ||
+    Trans == 0 || Trans->noRows() == 0) {
     
-    // if this is the first TransformationDOF_Group we now
-    // create the arrays used to store pointers to class wide
-    // matrix and vector objects used to return modTangent and residual
-    if (numTransDOFs == 0) {
-	modMatrices = new Matrix *[MAX_NUM_DOF+1];
-	modVectors  = new Vector *[MAX_NUM_DOF+1];
-	
-	if (modMatrices == 0 || modVectors == 0) {
-	    opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
-	    opserr << " ran out of memory";	    
-	}
-	for (int i=0; i<MAX_NUM_DOF; i++) {
-	    modMatrices[i] = 0;
-	    modVectors[i] = 0;
-	}
-    }    
+    opserr << "FATAL TransformationDOF_Group::TransformationDOF_Group() -";
+    opserr << " ran out of memory for size: " << modNumDOF << endln;
+    exit(-1);
+  }
 
-    // set the pointers for the modTangent and residual
-    if (modNumDOF <= MAX_NUM_DOF) {
-	// use class wide objects
-	if (modVectors[modNumDOF] == 0) {
+  // initially set the id values to -2 for any dof still due to constrained node
+  for (int i=0; i<numConstrainedNodeRetainedDOF; i++)
+    (*modID)(i) = -2;
+  
+  // for all the constrained dof values set to -1
+  for (int j=numConstrainedNodeRetainedDOF; j<modNumDOF; j++)
+    (*modID)(j) = -1;
+
+  // for all the dof corresponding to the retained node set initially to -1
+  // we don't initially assign these equation nos. - this is done in doneID()
+  for (int k=numConstrainedNodeRetainedDOF; k<modNumDOF; k++)
+    (*modID)(k) = -1;
+
+  // if this is the first TransformationDOF_Group we now
+  // create the arrays used to store pointers to class wide
+  // matrix and vector objects used to return modTangent and residual
+  if (numTransDOFs == 0) {
+    modMatrices = new Matrix *[MAX_NUM_DOF+1];
+    modVectors  = new Vector *[MAX_NUM_DOF+1];
+    
+    if (modMatrices == 0 || modVectors == 0) {
+        opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
+        opserr << " ran out of memory";	    
+    }
+    for (int i=0; i<MAX_NUM_DOF; i++) {
+        modMatrices[i] = 0;
+        modVectors[i] = 0;
+    }
+  }
+
+  // set the pointers for the modTangent and residual
+  if (modNumDOF <= MAX_NUM_DOF) {
+    // use class wide objects
+    if (modVectors[modNumDOF] == 0) {
 	    // have to create matrix and vector of size as none yet created
 	    modVectors[modNumDOF] = new Vector(modNumDOF);
 	    modMatrices[modNumDOF] = new Matrix(modNumDOF,modNumDOF);
 	    modUnbalance = modVectors[modNumDOF];
 	    modTangent = modMatrices[modNumDOF];
 	    if (modUnbalance == 0 || modUnbalance->Size() != modNumDOF ||	
-		modTangent == 0 || modTangent->noCols() != modNumDOF)	{  
-		opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
-		opserr << " ran out of memory for vector/Matrix of size :";
-		opserr << modNumDOF << endln;
-		exit(-1);
+        modTangent == 0 || modTangent->noCols() != modNumDOF)	{  
+        opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
+        opserr << " ran out of memory for vector/Matrix of size :";
+        opserr << modNumDOF << endln;
+        exit(-1);
 	    }
-	} else {
-	    modUnbalance = modVectors[modNumDOF];
-	    modTangent = modMatrices[modNumDOF];
-	}
     } else {
-	// create matrices and vectors for each object instance
-	modUnbalance = new Vector(modNumDOF);
-	modTangent = new Matrix(modNumDOF, modNumDOF);
-	if (modUnbalance == 0 || modTangent ==0 ||
-	    modTangent ==0 || modTangent->noRows() ==0) {
-	    
-	    opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
-	    opserr << " ran out of memory for vector/Matrix of size :";
-	    opserr << modNumDOF << endln;
-	    exit(-1);
-	}
+        modUnbalance = modVectors[modNumDOF];
+        modTangent = modMatrices[modNumDOF];
     }
+  } else {
+    // create matrices and vectors for each object instance
+    modUnbalance = new Vector(modNumDOF);
+    modTangent = new Matrix(modNumDOF, modNumDOF);
+    if (modUnbalance == 0 || modTangent ==0 ||
+        modTangent ==0 || modTangent->noRows() ==0) {
+        
+        opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
+        opserr << " ran out of memory for vector/Matrix of size :";
+        opserr << modNumDOF << endln;
+        exit(-1);
+    }
+  }
 
 #ifdef TRANSF_INCREMENTAL_MP
     modTotalDisp.resize(modNumDOF);
     modTotalDisp = getTrialDisp();
 #endif // TRANSF_INCREMENTAL_MP
-    
-    numTransDOFs++;
-    theHandler = theTHandler;
+
+  numTransDOFs++;
+  theHandler = theTHandler;
 }
 
 void 
@@ -216,15 +216,15 @@ TransformationDOF_Group::TransformationDOF_Group(int tag,
     if (numTransDOFs == 0) {
       modMatrices = new Matrix *[MAX_NUM_DOF+1];
       modVectors  = new Vector *[MAX_NUM_DOF+1];
-	
-	if (modMatrices == 0 || modVectors == 0) {
-	    opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
-	    opserr << " ran out of memory";	    
-	}
-	for (int i=0; i<MAX_NUM_DOF; i++) {
-	    modMatrices[i] = 0;
-	    modVectors[i] = 0;
-	}
+
+      if (modMatrices == 0 || modVectors == 0) {
+          opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
+          opserr << " ran out of memory";	    
+      }
+      for (int i=0; i<MAX_NUM_DOF; i++) {
+          modMatrices[i] = 0;
+          modVectors[i] = 0;
+      }
     }    
 
 #ifdef TRANSF_INCREMENTAL_MP
@@ -279,27 +279,27 @@ TransformationDOF_Group::getID(void) const
 }
 
 int
-TransformationDOF_Group::getNumDOF(void) const
+TransformationDOF_Group::getNumDOF() const
 {
-    return modNumDOF;
+  return modNumDOF;
 }
 
 
 int
-TransformationDOF_Group::getNumFreeDOF(void) const
+TransformationDOF_Group::getNumFreeDOF() const
 {
-    if (modID != 0) {
-	int numFreeDOF = modNumDOF;
-	for (int i=0; i<modNumDOF; i++)
-	    if ((*modID)(i) == -1)
-		numFreeDOF--;
-	return numFreeDOF;	
-    } else
-	return this->DOF_Group::getNumFreeDOF();
+  if (modID != 0) {
+    int numFreeDOF = modNumDOF;
+    for (int i=0; i<modNumDOF; i++)
+      if ((*modID)(i) == -1)
+        numFreeDOF--;
+    return numFreeDOF;
+  } else
+    return this->DOF_Group::getNumFreeDOF();
 }
 
 int
-TransformationDOF_Group::getNumConstrainedDOF(void) const
+TransformationDOF_Group::getNumConstrainedDOF() const
 {   
     if (modID != 0) {    
 	int numConstr = 0;
@@ -366,7 +366,7 @@ TransformationDOF_Group::getUnbalance(Integrator *theIntegrator)
 
 
 const Vector & 
-TransformationDOF_Group::getCommittedDisp(void)
+TransformationDOF_Group::getCommittedDisp()
 {
     const Vector &responseC = myNode->getDisp();
     
@@ -400,7 +400,7 @@ TransformationDOF_Group::getCommittedDisp(void)
 }
 
 const Vector & 
-TransformationDOF_Group::getCommittedVel(void)
+TransformationDOF_Group::getCommittedVel()
 {
     const Vector &responseC = myNode->getVel();
     
@@ -589,7 +589,7 @@ TransformationDOF_Group::setNodeVel(const Vector &u)
     for (int i=numConstrainedNodeRetainedDOF, j=0; i<modNumDOF; i++, j++) {
       int loc = theID(i);
       if (loc < 0)
-	(*modUnbalance)(i) = responseR(retainedDOF(j));
+        (*modUnbalance)(i) = responseR(retainedDOF(j));
     }
   }
 
@@ -1054,36 +1054,34 @@ TransformationDOF_Group::enforceSPs(int doMP)
   else {
 
     if (needRetainedData == 0) {
-      
       if (theMP != 0) {
-	
-	const ID &theID = this->getID();
-	
-	int retainedNode = theMP->getNodeRetained();
-	Domain *theDomain = myNode->getDomain();
-	Node *retainedNodePtr = theDomain->getNode(retainedNode);
-	const Vector &responseR = retainedNodePtr->getTrialDisp();
-	const ID &retainedDOF = theMP->getRetainedDOFs();
-	
-	modUnbalance->Zero();    
-	for (int i=numConstrainedNodeRetainedDOF, j=0; i<modNumDOF; i++, j++) {
-	  int loc = theID(i);
-	  if (loc < 0)
-	    (*modUnbalance)(i) = responseR(retainedDOF(j));
-	}
-	
-	Matrix *T = this->getT();
-	if (T != 0) {
-	  
-	  // *unbalance = (*T) * (*modUnbalance);
-	  unbalance->addMatrixVector(0.0, *T, *modUnbalance, 1.0);
-	  
-	  const ID &constrainedDOF = theMP->getConstrainedDOFs();
-	  for (int i=0; i<constrainedDOF.Size(); i++) {
-	    int cDOF = constrainedDOF(i);
-	    myNode->setTrialDisp((*unbalance)(cDOF), cDOF);
-	  }
-	}
+        const ID &theID = this->getID();
+        
+        int retainedNode = theMP->getNodeRetained();
+        Domain *theDomain = myNode->getDomain();
+        Node *retainedNodePtr = theDomain->getNode(retainedNode);
+        const Vector &responseR = retainedNodePtr->getTrialDisp();
+        const ID &retainedDOF = theMP->getRetainedDOFs();
+        
+        modUnbalance->Zero();    
+        for (int i=numConstrainedNodeRetainedDOF, j=0; i<modNumDOF; i++, j++) {
+          int loc = theID(i);
+          if (loc < 0)
+            (*modUnbalance)(i) = responseR(retainedDOF(j));
+        }
+        
+        Matrix *T = this->getT();
+        if (T != 0) {
+          
+          // *unbalance = (*T) * (*modUnbalance);
+          unbalance->addMatrixVector(0.0, *T, *modUnbalance, 1.0);
+          
+          const ID &constrainedDOF = theMP->getConstrainedDOFs();
+          for (int i=0; i<constrainedDOF.Size(); i++) {
+            int cDOF = constrainedDOF(i);
+            myNode->setTrialDisp((*unbalance)(cDOF), cDOF);
+          }
+        }
       }
     }
   }
@@ -1094,24 +1092,24 @@ TransformationDOF_Group::enforceSPs(int doMP)
 void
 TransformationDOF_Group::addM_Force(const Vector &Udotdot, double fact)
 {
-    // call base class method and return if no MP_Constraint
-    if (theMP == 0 || modID == 0) {
-	this->DOF_Group::addM_Force(Udotdot, fact);
-	return;
-    }
-    
-   for (int i=0; i<modNumDOF; i++) {
-	int loc = (*modID)(i);
-	if (loc >= 0)
-	    (*modUnbalance)(i) = Udotdot(loc);
-	else 	// DO THE SP STUFF
-	    (*modUnbalance)(i) = 0.0;	    
-    }    
+  // call base class method and return if no MP_Constraint
+  if (theMP == 0 || modID == 0) {
+    this->DOF_Group::addM_Force(Udotdot, fact);
+    return;
+  }
+  
+  for (int i=0; i<modNumDOF; i++) {
+    int loc = (*modID)(i);
+    if (loc >= 0)
+        (*modUnbalance)(i) = Udotdot(loc);
+    else 	// DO THE SP STUFF
+        (*modUnbalance)(i) = 0.0;	    
+  }    
 
-    Vector unmod(Trans->noRows());
-    //unmod = (*Trans) * (*modUnbalance);
-    unmod.addMatrixVector(0.0, *Trans, *modUnbalance, 1.0);
-    this->addLocalM_Force(unmod, fact);
+  Vector unmod(Trans->noRows());
+  //unmod = (*Trans) * (*modUnbalance);
+  unmod.addMatrixVector(0.0, *Trans, *modUnbalance, 1.0);
+  this->addLocalM_Force(unmod, fact);
 }
 
 
