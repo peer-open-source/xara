@@ -22,7 +22,6 @@
 // $Date: 2009-05-11 20:57:49 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/SparseGenColLinSOE.cpp,v $
 
-
 // Written: fmk
 // Created: 04/98
 // Revision: A
@@ -74,6 +73,7 @@ SparseGenColLinSOE::SparseGenColLinSOE()
    Bsize(0),
    factored(false)
 {
+
 }
 
 SparseGenColLinSOE::SparseGenColLinSOE(int classTag)
@@ -105,7 +105,7 @@ SparseGenColLinSOE::SparseGenColLinSOE(SparseGenColLinSolver& the_Solver, int cl
    Bsize(0),
    factored(false)
 {
-  //    the_Solver.setLinearSOE(*this);
+  // the_Solver.setLinearSOE(*this);
 }
 
 
@@ -152,7 +152,7 @@ SparseGenColLinSOE::~SparseGenColLinSOE()
 
 
 int
-SparseGenColLinSOE::getNumEqn(void) const
+SparseGenColLinSOE::getNumEqn() const
 {
   return size;
 }
@@ -204,6 +204,7 @@ SparseGenColLinSOE::setSize(Graph& theGraph)
 
   // fill in colStartA and rowA
   if (size != 0) {
+    
     colStartA[0] = 0;
     int startLoc = 0;
     int lastLoc  = 0;
@@ -232,7 +233,6 @@ SparseGenColLinSOE::setSize(Graph& theGraph)
             // move the entries already there one further on
             // and place col in current location
             for (int k = lastLoc; k > j; k--)
-
               rowA[k] = rowA[k - 1];
             rowA[j]    = row;
             foundPlace = true;
