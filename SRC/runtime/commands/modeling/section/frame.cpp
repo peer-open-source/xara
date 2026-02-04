@@ -139,13 +139,15 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
       else if ((strcmp(argv[i], "-area") == 0) ||
                (strcmp(argv[i], "-A") == 0)) {
         if (argc == ++i) {
-          opserr << OpenSees::PromptParseError << "invalid area.\n";
+          opserr << OpenSees::PromptParseError 
+                 << "invalid area: " << argv[i]
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if ((GetDoubleParam(interp, domain, argv[i], &consts.A, parameters[int(Position::A)]) != TCL_OK) ||
             consts.A <= 0.0) {
           opserr << OpenSees::PromptParseError 
-                 << "invalid area."
+                 << "invalid area: " << argv[i]
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
@@ -164,7 +166,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
                (strcmp(argv[i], "-Ay") == 0)) {
         if (argc == ++i || Tcl_GetDouble(interp, argv[i], &consts.Ay) != TCL_OK) {
           opserr << OpenSees::PromptParseError 
-                 << "invalid shear area."
+                 << "invalid shear area: " << argv[i]
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
@@ -176,7 +178,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
                (strcmp(argv[i], "-Az") == 0)) {
         if (argc == ++i || Tcl_GetDouble(interp, argv[i], &consts.Az) != TCL_OK) {
           opserr << OpenSees::PromptParseError 
-                 << "invalid shear area."
+                 << "invalid shear area: " << argv[i]
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
@@ -432,7 +434,9 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
         case Position::ky: {
           double ky;
           if (Tcl_GetDouble (interp, argv[i], &ky) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid ky.\n";
+              opserr << OpenSees::PromptParseError 
+                     << "invalid ky: " << argv[i]
+                     << "\n";
               return TCL_ERROR;
           } else {
             use_shear = true;
