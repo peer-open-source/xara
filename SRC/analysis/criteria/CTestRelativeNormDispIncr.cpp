@@ -98,8 +98,8 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
                << "Iter: "          << pad(currentIter)
                << " |dR|/|dR1|: "   << pad(norm)
                << "\n";
-        pstream << "\tNorm deltaX: " << pad(norm)
-               << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
+        pstream << "\tNorm dX: " << pad(norm)
+               << ", Norm dR: " << pad(theSOE.getB().pNorm(nType))
                << "\n";
         pstream << "\tdeltaX: " << x
                << "\tdeltaR: " << theSOE.getB();
