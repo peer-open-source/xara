@@ -49,24 +49,24 @@ SingleDomNodIter::~SingleDomNodIter()
 
 
 void
-SingleDomNodIter::reset(void)
+SingleDomNodIter::reset()
 {
-    myIter.reset();
+  myIter.reset();
 }
 
 
 Node *
-SingleDomNodIter::operator()(void)
+SingleDomNodIter::operator()()
 {
-    // check if we still have Nodes in the model
-    // if not return 0, indicating we are done
-    TaggedObject *theComponent = myIter();
-    if (theComponent == 0)
-	return 0;
-    else {
-	Node *result = (Node *)theComponent;
-	return result;
-    }
+  // check if we still have Nodes in the model
+  // if not return 0, indicating we are done
+  TaggedObject *theComponent = myIter();
+  if (theComponent == nullptr)
+	return nullptr;
+  else {
+    Node *result = (Node *)theComponent;
+    return result;
+  }
 }
 
 
