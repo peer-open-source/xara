@@ -89,14 +89,14 @@ int CTestFixedNumIter::test(LinearSOE& theSOE)
     if (printFlag & ConvergenceTest::PrintTest)  {
         pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
         pstream << ", EnergyIncr: " << product;
-        pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
+        pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm dR: " << b.pNorm(nType) << ")\n";
     }
 
     if (printFlag & ConvergenceTest::PrintTest02)  {
         pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
         pstream << ", EnergyIncr: " << product;
-        pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
-        pstream << "\tdeltaX: " << x << "\tdeltaR: " << b;
+        pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm dR: " << b.pNorm(nType) << ")\n";
+        pstream << "\tdeltaX: " << x << "\tdR: " << b;
     }
 
     //
@@ -111,7 +111,7 @@ int CTestFixedNumIter::test(LinearSOE& theSOE)
         if (printFlag & ConvergenceTest::PrintSuccess)  {
             pstream << LOG_SUCCESS << "Iter: " << pad(currentIter);
             pstream << " last EnergyIncr: " << product;
-            pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm deltaR: " << b.pNorm(nType) << ")\n";
+            pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm dR: " << b.pNorm(nType) << ")\n";
         }
 
         // return the number of times test has been called
