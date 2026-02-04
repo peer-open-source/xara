@@ -967,28 +967,30 @@ Bilin02::setTrialStrain(double strain, double strainRate)
       if(flagstopdeg == 0){
         fyNeg = fyNeg*(1-betas*PDNeg);
 
-        //change the strain hardening ratio                                              // Updated: Filipe Ribeiro and Andre Barbosa
-        //1st - recover the strain hardening ratio of the member        
-        alphaNeg=alphaNeg*(1+nFactor)/(1+nFactor*alphaNeg);            
-        //2nd - apply the redution to the ratio of the member          
-        alphaNeg=alphaNeg*(1-betas*PDNeg);      
-        //3rd - recompute the strain hardening ratio (updated)
-        alphaNeg=(alphaNeg)/(1+nFactor*(1-alphaNeg));                   // Updated: Filipe Ribeiro and Andre Barbosa
+        // change the strain hardening ratio                              // Updated: Filipe Ribeiro and Andre Barbosa
+        // 1st - recover the strain hardening ratio of the member        
+        alphaNeg = alphaNeg*(1+nFactor)/(1+nFactor*alphaNeg);            
+        // 2nd - apply the redution to the ratio of the member          
+        alphaNeg = alphaNeg*(1-betas*PDNeg);      
+        // 3rd - recompute the strain hardening ratio (updated)
+        alphaNeg = (alphaNeg)/(1+nFactor*(1-alphaNeg));                   // Updated: Filipe Ribeiro and Andre Barbosa
        
                 fCapRefNeg=fCapRefNeg*(1-betad*PDNeg);
-      }else{
-        fyNeg = fyNeg;
-        alphaNeg=alphaNeg;
-        fCapRefNeg=fCapRefNeg;
+      } else {
+        ; // cmp: Commented the following to silence warning
+        // fyNeg = fyNeg;
+        // alphaNeg=alphaNeg;
+        // fCapRefNeg=fCapRefNeg;
       }
       // When we reach post capping slope goes to zero due to residual
-      if(fyNeg>=KNeg*My_neg) { // If strength drops below residual
+      if (fyNeg>=KNeg*My_neg) { // If strength drops below residual
         fyNeg = KNeg*My_neg;
         alphaNeg = 10^(-4);
         fCapRefNeg = fyNeg;
         capSlopeNeg = -pow(10.0,-6);
         flagstopdeg = 1;
-      } else { //% Keep updating the post capping slope
+      } else { 
+        // Keep updating the post capping slope
 
         //change the post-capping ratio (not activated in this implementation)                                  // Updated: Filipe Ribeiro and Andre Barbosa
         //1st - recover post-capping ratio of the member
