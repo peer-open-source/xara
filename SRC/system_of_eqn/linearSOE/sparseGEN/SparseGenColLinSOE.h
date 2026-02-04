@@ -52,7 +52,7 @@ public:
   virtual ~SparseGenColLinSOE();
 
   virtual int getNumEqn(void) const;
-  virtual int setSize(Graph& theGraph);
+  virtual int setSize(Graph&);
   virtual int addA(const Matrix&, const ID&, double fact = 1.0);
   virtual int addB(const Vector&, const ID&, double fact = 1.0);
   virtual int setB(const Vector&, double fact = 1.0);
