@@ -44,8 +44,9 @@ CTestEnergyIncr::CTestEnergyIncr()
 
 
 CTestEnergyIncr::CTestEnergyIncr(double theTol, int maxIter, int printIt, int normType, double max)
-    : ConvergenceTest(CONVERGENCE_TEST_CTestEnergyIncr),
-      tol(theTol), maxTol(max), maxNumIter(maxIter), currentIter(0),printFlag(printIt),
+    : ConvergenceTest(CONVERGENCE_TEST_CTestEnergyIncr)
+    , tol(theTol), maxTol(max), maxNumIter(maxIter)
+    , currentIter(0), printFlag(printIt),
       nType(normType), norms(maxNumIter)
 {
 
@@ -61,11 +62,15 @@ CTestEnergyIncr::~CTestEnergyIncr()
 ConvergenceTest*
 CTestEnergyIncr::getCopy(int iterations)
 {
-  return new CTestEnergyIncr(this->tol, iterations, this->printFlag, this->nType, this->maxTol);
+  return new CTestEnergyIncr(this->tol, iterations, 
+                             ConvergenceTest::Silent, //this->printFlag, 
+                             this->nType, 
+                             this->maxTol);
 }
 
 
-void CTestEnergyIncr::setTolerance(double newTol)
+void
+CTestEnergyIncr::setTolerance(double newTol)
 {
   tol = newTol;
 }
@@ -85,6 +90,12 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
 
     // determine the energy & save value in norms vector
     const Vector &b = theSOE.getB();
+#if 0
+    if (currentIter > 1) {
+        theSOE.setB(b);
+        theSOE.solve();
+    }
+#endif
     const Vector &x = theSOE.getX();
     double product = x ^ b;
     if (product < 0.0)
@@ -100,6 +111,8 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
         pstream << LOG_ITERATE
                << "Iter: "         << pad(currentIter)
                << ", EnergyIncr: " << pad(product) 
+               << ", Residual: "   << pad(b.pNorm(nType))
+               << ", Increment: "  << pad(x.pNorm(nType))
                << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
@@ -107,8 +120,8 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
                << "Iter: "          << pad(currentIter)
                << ", EnergyIncr: "  << pad(product)
                << LOG_CONTINUE
-               << "Norm deltaX: "   << pad(x.pNorm(nType))
-               << ", Norm deltaR: " << pad(b.pNorm(nType))
+               << "Norm dX: "   << pad(x.pNorm(nType))
+               << ", Norm dR: " << pad(b.pNorm(nType))
                << LOG_CONTINUE
                << "deltaX: " << x
                << "\tdeltaR: " << b;
@@ -187,32 +200,35 @@ CTestEnergyIncr::start(LinearSOE& theSOE)
 
 
 int
-CTestEnergyIncr::getNumTests(void)
+CTestEnergyIncr::getNumTests()
 {
-    return currentIter;
+  return currentIter;
 }
 
 
-int CTestEnergyIncr::getMaxNumTests(void)
+int
+CTestEnergyIncr::getMaxNumTests()
 {
-    return maxNumIter;
+  return maxNumIter;
 }
 
 
-double CTestEnergyIncr::getRatioNumToMax(void)
+double CTestEnergyIncr::getRatioNumToMax()
 {
-    double div = maxNumIter;
-    return currentIter/div;
+  double div = maxNumIter;
+  return currentIter/div;
 }
 
 
-const Vector& CTestEnergyIncr::getNorms(void)
+const Vector& 
+CTestEnergyIncr::getNorms()
 {
-    return norms;
+  return norms;
 }
 
 
-int CTestEnergyIncr::sendSelf(int cTag, Channel &theChannel)
+int
+CTestEnergyIncr::sendSelf(int cTag, Channel &theChannel)
 {
     int res = 0;
     static Vector x(5);
@@ -229,8 +245,8 @@ int CTestEnergyIncr::sendSelf(int cTag, Channel &theChannel)
 }
 
 
-int CTestEnergyIncr::recvSelf(int cTag, Channel &theChannel,
-    FEM_ObjectBroker &theBroker)
+int
+CTestEnergyIncr::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
     int res = 0;
     static Vector x(5);
