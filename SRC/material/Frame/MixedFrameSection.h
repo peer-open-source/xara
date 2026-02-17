@@ -40,6 +40,7 @@ class MixedFrameSection : public FrameSection
     enum class MixedType {
       None, 
       // Default, 
+      UT,
       Constant,
       Energetic,
       Equilibrium
@@ -208,7 +209,6 @@ class MixedFrameSection : public FrameSection
     static constexpr int MaxThreads = 12;
     int num_threads = 8;
     void *pool;        // thread pool
-    bool thread_safe = true;
 
     inline int 
     RigidShape(const FiberData& fiber, double aw, MatrixND<3,6>& Ae) const noexcept {
@@ -225,14 +225,10 @@ class MixedFrameSection : public FrameSection
 
     inline int
     WarpShape(const FiberData& fiber, Matrix3D& iow, Matrix3D& iodw) const noexcept {
-      // Matrix3D iow {{
-      //   // w[0][0],     0.0,     0.0,
-      //   // w[1][0],     0.0,     0.0,
-      //   // w[2][0],     0.0,     0.0
-      // }};
 
       const FiberData::WarpArray& w = fiber.warp;
       switch (mixed_type) {
+        case MixedType::UT:
         case MixedType::Energetic:
         case MixedType::Constant:
           return 0;
@@ -264,6 +260,10 @@ class MixedFrameSection : public FrameSection
       const FiberData::WarpArray& w = fiber.warp;
       if (mixed_type == MixedType::None)
         return;
+      else if (mixed_type == MixedType::UT) {
+        An(1,2) = w[0][1];
+        An(2,2) = w[0][2];
+      }
       else if (mixed_type == MixedType::Equilibrium) {
         double b = Gw(2,2);
         An(1,2) = w[0][1] + b*w[1][1];
