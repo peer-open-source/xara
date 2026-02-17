@@ -110,7 +110,6 @@ MixedFrameSection::MixedFrameSection(const MixedFrameSection &other)
   materials.reserve(other.materials.size());
   for (int i = 0; i < other.materials.size(); i++) {
     materials.push_back(other.materials[i]->getCopy("BeamFiber"));
-    thread_safe &= other.materials[i]->threadSafe();
   }
   this->revertToStart();
 }
@@ -202,7 +201,9 @@ MixedFrameSection::addFiber(MaterialBuilder& theMat,
   if (materials[materials.size()-1] == nullptr)
     return -1;
 
-  thread_safe &= materials.back()->threadSafe();
+  if (!materials.back()->threadSafe())
+    return -1;
+
   fiber_state = FiberState::Dirty;
   return materials.size()-1;
 }
@@ -270,6 +271,7 @@ MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) const
   Lw.zero();
 
   if (mixed_type == MixedType::None) {
+    Lr(2,2) = 1.0;
     return 0;
   }
   else if (mixed_type == MixedType::Equilibrium) {
@@ -281,7 +283,8 @@ MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) const
       Ja -= w[0][0]*w[1][0]*fiber.area;
       Jw += w[0][0]*w[0][0]*fiber.area;
     }
-    Lw(2,2) =  Jw/Ja;
+    Lr(2,2) = 1.0;
+    Lw(2,2) = Jw/Ja;
     // static bool done = false;
     // if (!done) {
     //   done = true;
@@ -491,6 +494,11 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     }
     else if (mixed_type == MixedType::Energetic) {
       Knn.invert(Knn_inv);
+      Knne.addMatrixTripleProduct(0.0, Kae, Knn_inv, -1.0);
+    }
+    else if (mixed_type == MixedType::UT) {
+      Knn_inv = Knn;
+      Knn_inv(2,2) = 1.0/Knn(2,2);
       Knne.addMatrixTripleProduct(0.0, Kae, Knn_inv, -1.0);
     }
     else if (mixed_type == MixedType::Equilibrium) {
@@ -1344,6 +1352,7 @@ MixedFrameSection::Print(OPS_Stream &s, int flag)
     s << "\"warp_type\": \"";
     switch (mixed_type) {
       case MixedType::None:        s << "None"; break;
+      case MixedType::UT:          s << "UT"; break;
       case MixedType::Equilibrium: s << "NR"; break;
       case MixedType::Energetic:   s << "UE"; break;
       case MixedType::Constant:    s << "UG"; break;
