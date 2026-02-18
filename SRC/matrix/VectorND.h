@@ -98,6 +98,11 @@ struct VectorND {
   addMatrixTransposeVector(double thisFact, const MatrixND<NR, N, double> &m, 
                            const Vector &v, double otherFact);
 
+  template <int NR>
+  inline int
+  addMatrixTransposeVector(const MatrixND<NR, N, double> &m, 
+                           const VectorND<NR>& v, double otherFact);
+
   inline int
   addMatrixVector(const double thisFact, const Matrix &m, const Vector &v, const double otherFact);
 
