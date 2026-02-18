@@ -231,6 +231,18 @@ VectorND<N,T>::addMatrixTransposeVector(double thisFact, const MatrixND<NR, N, d
 
 
 template <index_t N, typename T>
+template <int NR>
+inline int
+VectorND<N,T>::addMatrixTransposeVector(const MatrixND<NR, N, double> &m, const VectorND<NR>& v, double otherFact)
+{
+  for (int i=0; i<N; i++)
+    for (int j=0; j<NR; j++)
+      values[i] += m(j,i) * v[j] * otherFact;
+  return 0;
+}
+
+
+template <index_t N, typename T>
 inline int
 VectorND<N,T>::addMatrixVector(const double thisFact, const Matrix &m, const Vector &v, const double otherFact)
 {
