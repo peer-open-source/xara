@@ -38,6 +38,7 @@
 #include <ElasticIsotropicThreeDimensional.h>
 #include <ElasticIsotropicPlateFiber.h>
 #include "ElasticIsotropicBeamFiber.h"
+#include "ElasticIsotropicBeamThread.h"
 #include <ElasticIsotropicBeamFiber2d.h>
 
 #include <Channel.h>
@@ -51,7 +52,8 @@ using namespace OpenSees;
 
 
 ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double e, double nu, double r)
-  : NDMaterial(tag, classTag), E(e), v(nu), rho(r), parameterID(0)
+  : NDMaterial(tag, classTag), 
+  E(e), v(nu), rho(r), parameterID(0)
 {
 
 }
@@ -74,7 +76,7 @@ ElasticIsotropicMaterial::getRho()
 }
 
 NDMaterial*
-ElasticIsotropicMaterial::getCopy (const char *type)
+ElasticIsotropicMaterial::getCopy(const char *type)
 {
   if (strcmp(type,"PlaneStress2D") == 0 || strcmp(type,"PlaneStress") == 0) {
     ElasticIsotropicPlaneStress2D *theModel;
@@ -108,8 +110,10 @@ ElasticIsotropicMaterial::getCopy (const char *type)
 
   else if (strcmp(type,"BeamFiber") == 0) {
     ElasticIsotropicBeamFiber *theModel;
-    theModel = new ElasticIsotropicBeamFiber(this->getTag(), E, v, rho);
-    return theModel;
+    if (getenv("XARA_FIBER_THREADS") != nullptr)
+      return new ElasticIsotropicBeamThread(*this);
+    else
+      return new ElasticIsotropicBeamFiber(this->getTag(), E, v, rho);
   }
 
   else if (strcmp(type,"BeamFiber2d") == 0) {
@@ -126,8 +130,8 @@ ElasticIsotropicMaterial::getCopy (const char *type)
 int
 ElasticIsotropicMaterial::setTrialStrain(const Vector &v)
 {
-    opserr << "ElasticIsotropicMaterial::setTrialStrain -- subclass responsibility\n";
-    return -1;
+  opserr << "ElasticIsotropicMaterial::setTrialStrain -- subclass responsibility\n";
+  return -1;
 }
 
 int
@@ -262,8 +266,7 @@ ElasticIsotropicMaterial::sendSelf (int commitTag, Channel &theChannel)
 }
 
 int
-ElasticIsotropicMaterial::recvSelf (int commitTag, Channel &theChannel, 
-				    FEM_ObjectBroker &theBroker)
+ElasticIsotropicMaterial::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
   int res = 0;
   
@@ -274,7 +277,7 @@ ElasticIsotropicMaterial::recvSelf (int commitTag, Channel &theChannel,
    opserr << "ElasticIsotropicMaterial::recvSelf -- could not recv Vector\n";
    return res;
   }
-    
+
   this->setTag((int)data(0));
   E = data(1);
   v = data(2);
@@ -286,22 +289,22 @@ ElasticIsotropicMaterial::recvSelf (int commitTag, Channel &theChannel,
 void
 ElasticIsotropicMaterial::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "Elastic Isotropic Material Model" << endln;
-        s << "\tE:  " << E << endln;
-        s << "\tv:  " << v << endln;
-        s << "\trho:  " << rho << endln;
-        return;
-    } 
-    else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"" << this->getClassType() << "\", ";
-        s << "\"E\": "   << E   << ", ";
-        s << "\"nu\": "  << v   << ", ";
-        s << "\"rho\": " << rho << "}";
-        return;
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+      s << "Elastic Isotropic Material Model" << endln;
+      s << "\tE:  " << E << endln;
+      s << "\tv:  " << v << endln;
+      s << "\trho:  " << rho << endln;
+      return;
+  } 
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+      s << "\"name\": \"" << this->getTag() << "\", ";
+      s << "\"type\": \"" << this->getClassType() << "\", ";
+      s << "\"E\": "   << E   << ", ";
+      s << "\"nu\": "  << v   << ", ";
+      s << "\"rho\": " << rho << "}";
+      return;
+  }
 }
 
 int
