@@ -174,11 +174,6 @@ EarthquakePattern::addMotion(GroundMotion &theMotion)
     delete uDotDotG;
   uDotDotG = new Vector(numMotions);
 
-  if (uDotDotG == 0 || uDotDotG->Size() == 0 || uDotG == 0 || uDotG->Size() == 0) {
-    opserr << "EarthquakePattern::addMotion - ran out of memory creating vectors\n";
-    numMotions = 0;
-    return -2;
-  }
   return 0;
 }
 
