@@ -39,8 +39,7 @@ SecantAccelerator2::SecantAccelerator2(int maxIter, int tangent)
 
 }
 
-SecantAccelerator2::SecantAccelerator2(int maxIter, int tangent,
-				       double r1, double r2)
+SecantAccelerator2::SecantAccelerator2(int maxIter, int tangent, double r1, double r2)
   :Accelerator(ACCELERATOR_TAGS_Secant),
    iteration(0), numEqns(0), R1(r1), R2(r2),
    vOld(0), rOld(0), maxIterations(maxIter), theTangent(tangent),
@@ -112,8 +111,6 @@ SecantAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
     // Check "cut-out" criteria
     if (cutOut && (A > R1 || A < 1.0/R1 || DA > R2 || DA < -0.5*R2)) {
       // do nothing
-      //opserr << "SecantAccelerator2::accelerate() -- cut out, A = " << A
-      // 	   << ", D/A = " << DA << "\n";
     }
     else {
       //vStar.addVector(A, *vOld, D);
