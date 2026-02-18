@@ -58,7 +58,8 @@
 static int numFireLoadPattern = 0;
 
 FireLoadPattern::FireLoadPattern(int tag, int classTag)
-  :LoadPattern(tag, classTag), theSeries1(0), theSeries2(0), theSeries3(0), theSeries4(0), 
+  :LoadPattern(tag, classTag, 1.0)
+  , theSeries1(0), theSeries2(0), theSeries3(0), theSeries4(0), 
    theSeries5(0), theSeries6(0), theSeries7(0), theSeries8(0), theSeries9(0), loadFactors(9), currentTime(0.0) 
 {
 
@@ -71,7 +72,8 @@ FireLoadPattern::FireLoadPattern(int tag, int classTag)
 }
 
 FireLoadPattern::FireLoadPattern(int tag)
-  :LoadPattern(tag, PATTERN_TAG_LoadPattern), theSeries1(0), theSeries2(0), theSeries3(0), theSeries4(0), 
+  :LoadPattern(tag, PATTERN_TAG_LoadPattern, 1.0)
+  , theSeries1(0), theSeries2(0), theSeries3(0), theSeries4(0), 
    theSeries5(0), theSeries6(0), theSeries7(0), theSeries8(0), theSeries9(0), loadFactors(9), currentTime(0.0)
 {
   loadFactors.Zero();

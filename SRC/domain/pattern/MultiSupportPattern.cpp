@@ -34,7 +34,7 @@
 #include <Channel.h>
 
 MultiSupportPattern::MultiSupportPattern(int tag, int _classTag)
-  :LoadPattern(tag, _classTag), 
+  :LoadPattern(tag, _classTag, 1.0), 
    theMotions(0), theMotionTags(0,16), numMotions(0), dbMotions(0)
 {
 
@@ -42,7 +42,7 @@ MultiSupportPattern::MultiSupportPattern(int tag, int _classTag)
 
 
 MultiSupportPattern::MultiSupportPattern(int tag)
-  :LoadPattern(tag, PATTERN_TAG_MultiSupportPattern), 
+  :LoadPattern(tag, PATTERN_TAG_MultiSupportPattern, 1.0), 
    theMotions(0), theMotionTags(0,16), numMotions(0), dbMotions(0)
 {
 
@@ -50,7 +50,7 @@ MultiSupportPattern::MultiSupportPattern(int tag)
 
 
 MultiSupportPattern::MultiSupportPattern()
-  :LoadPattern(0, PATTERN_TAG_MultiSupportPattern), 
+  :LoadPattern(0, PATTERN_TAG_MultiSupportPattern, 1.0), 
    theMotions(0), theMotionTags(0,16), numMotions(0), dbMotions(0)
 {
 

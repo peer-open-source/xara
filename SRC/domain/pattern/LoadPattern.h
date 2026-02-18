@@ -52,9 +52,8 @@ class GroundMotion;
 class LoadPattern : public TaggedObject, public MovableObject
 {
   public:
-    LoadPattern(int tag, double fact = 1.0);    
-    LoadPattern();                                         // for FEM_ObjectBroker
-    LoadPattern(int tag, int classTag, double fact = 1.0); // for subclasses
+    LoadPattern();                                   // for FEM_ObjectBroker
+    LoadPattern(int tag, int classTag, double fact); // for subclasses
 
     virtual ~LoadPattern();
 
@@ -72,10 +71,7 @@ class LoadPattern : public TaggedObject, public MovableObject
     // methods for o/p
     virtual int sendSelf(int commitTag, Channel &);
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    virtual void Print(OPS_Stream &s, int flag);        
-
-    // method to obtain a blank copy of the LoadPattern
-    virtual LoadPattern *getCopy();
+    virtual void Print(OPS_Stream &s, int flag);
 
     // TODO: Move to subclass
     virtual int addMotion(GroundMotion &theMotion, int tag);    

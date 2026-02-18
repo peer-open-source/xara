@@ -20,7 +20,7 @@ DRMLoadPatternWrapper::DRMLoadPatternWrapper(int ttag, double cfact, char** on_f
 					     int nd_1, int nd_2,
 					     double* drmboxcrds, double* ele_D,
 					     int stepstocache)
-  :LoadPattern(ttag, PATTERN_TAG_DRMLoadPattern)
+  :LoadPattern(ttag, PATTERN_TAG_DRMLoadPattern, 1.0)
 {
   this->infiles = on_files;
   this->fileData_size = fileDatasize;
@@ -41,7 +41,7 @@ DRMLoadPatternWrapper::DRMLoadPatternWrapper(int ttag, double cfact, char** on_f
 }
 
 DRMLoadPatternWrapper::DRMLoadPatternWrapper()
-  :LoadPattern(0,PATTERN_TAG_DRMLoadPattern)
+  :LoadPattern(0,PATTERN_TAG_DRMLoadPattern,1.0)
 {
   this->infiles = 0;
   this->fileData_size = 0;
