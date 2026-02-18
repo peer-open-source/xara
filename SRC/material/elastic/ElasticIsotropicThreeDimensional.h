@@ -17,11 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2006-08-04 18:18:37 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticIsotropicPlaneStress2D.h,v $
-
 #ifndef ElasticIsotropicThreeDimensional_h
 #define ElasticIsotropicThreeDimensional_h
 
@@ -54,22 +49,20 @@ class ElasticIsotropicThreeDimensional : public ElasticIsotropicMaterial
     virtual const Matrix &getTangent() final;
     virtual const Matrix &getInitialTangent() final;
     
-    const Vector &getStress();
-    const Vector &getStrain();
+    const Vector &getStress() override;
+    const Vector &getStrain() override;
     
-    int commitState();
-    int revertToLastCommit();
-    int revertToStart();
+    int commitState() override;
+    int revertToLastCommit() override;
+    int revertToStart() override;
     
-    NDMaterial *getCopy();
-    const char *getType() const;
-    int getOrder() const;
-
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    NDMaterial *getCopy() override;
+    const char *getType() const override;
+    int getOrder() const override;
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
-    const Vector& getStressSensitivity(int gradIndex,
-				       bool conditional);
+    const Vector& getStressSensitivity(int gradIndex, bool conditional) override;
 
  protected:
 
