@@ -219,7 +219,7 @@ CTestNormUnbalance::getRatioNumToMax()
 const Vector&
 CTestNormUnbalance::getNorms()
 {
-    return norms;
+  return norms;
 }
 
 
