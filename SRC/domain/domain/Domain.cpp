@@ -1796,35 +1796,35 @@ Domain::record(bool fromAnalysis)
 }
 
 int
-Domain::commit(void)
+Domain::commit()
 {
-    // 
-    // first invoke commit on all nodes and elements in the domain
-    //
-    Node *nodePtr;
-    NodeIter &theNodeIter = this->getNodes();
-    while ((nodePtr = theNodeIter()) != nullptr) {
-      nodePtr->commitState();
-    }
+  // 
+  // first invoke commit on all nodes and elements in the domain
+  //
+  Node *nodePtr;
+  NodeIter &theNodeIter = this->getNodes();
+  while ((nodePtr = theNodeIter()) != nullptr) {
+    nodePtr->commitState();
+  }
 
-    Element *elePtr;
-    ElementIter &theElemIter = this->getElements();    
-    while ((elePtr = theElemIter()) != nullptr) {
-      elePtr->commitState();
-    }
+  Element *elePtr;
+  ElementIter &theElemIter = this->getElements();    
+  while ((elePtr = theElemIter()) != nullptr) {
+    elePtr->commitState();
+  }
 
-    // set the new committed time in the domain
-    committedTime = currentTime;
-    dT = 0.0;
+  // set the new committed time in the domain
+  committedTime = currentTime;
+  dT = 0.0;
 
-    // invoke record on all recorders
-    for (int i=0; i<numRecorders; i++)
-      if (theRecorders[i] != 0)
-	theRecorders[i]->record(commitTag, currentTime);
+  // invoke record on all recorders
+  for (int i=0; i<numRecorders; i++)
+    if (theRecorders[i] != 0)
+      theRecorders[i]->record(commitTag, currentTime);
 
-    // update the commitTag
-    commitTag++;
-    return 0;
+  // update the commitTag
+  commitTag++;
+  return 0;
 }
 
 int
@@ -1840,9 +1840,9 @@ Domain::revertToLastCommit()
   
   Element *elePtr;
   ElementIter &theElemIter = this->getElements();    
-  while ((elePtr = theElemIter()) != nullptr) {
+  while ((elePtr = theElemIter()) != nullptr)
     elePtr->revertToLastCommit();
-  }
+
 
   // set the current time and load factor in the domain to last committed
   currentTime = committedTime;
@@ -1857,36 +1857,36 @@ Domain::revertToLastCommit()
 int
 Domain::revertToStart()
 {
-    // 
-    // first invoke revertToLastCommit  on all nodes and 
-    // elements in the domain
-    //
-    Node *nodePtr;
-    NodeIter &theNodeIter = this->getNodes();
-    while ((nodePtr = theNodeIter()) != nullptr) 
-        nodePtr->revertToStart();
+  // 
+  // first invoke revertToLastCommit  on all nodes and 
+  // elements in the domain
+  //
+  Node *nodePtr;
+  NodeIter &theNodeIter = this->getNodes();
+  while ((nodePtr = theNodeIter()) != nullptr) 
+      nodePtr->revertToStart();
 
-    Element *elePtr;
-    ElementIter &theElements = this->getElements();    
-    while ((elePtr = theElements()) != nullptr) {
-        elePtr->revertToStart();
-    }
+  Element *elePtr;
+  ElementIter &theElements = this->getElements();    
+  while ((elePtr = theElements()) != nullptr) {
+      elePtr->revertToStart();
+  }
 
-    // ADDED BY TERJE //////////////////////////////////
-    // invoke 'restart' on all recorders
-    for (int i=0; i<numRecorders; i++) 
-      if (theRecorders[i] != nullptr)
-        theRecorders[i]->restart();
-    /////////////////////////////////////////////////////
+  // ADDED BY TERJE //////////////////////////////////
+  // invoke 'restart' on all recorders
+  for (int i=0; i<numRecorders; i++) 
+    if (theRecorders[i] != nullptr)
+      theRecorders[i]->restart();
+  /////////////////////////////////////////////////////
 
-    // set the current time and load factor in the domain to last committed
-    committedTime = 0;
-    currentTime = 0;
-    dT = 0.0;
-    // apply load for the last committed time
-    this->applyLoad(currentTime);
+  // set the current time and load factor in the domain to last committed
+  committedTime = 0;
+  currentTime = 0;
+  dT = 0.0;
+  // apply load for the last committed time
+  this->applyLoad(currentTime);
 
-    return this->update();
+  return this->update();
 }
 
 
