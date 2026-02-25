@@ -227,11 +227,9 @@ MixedFrameSection::setTrialSectionDeformation(const Vector &e_trial)
   return stateDetermination(K_pres, &s, &e, CurrentTangent);
 }
 
-
-FrameSection*
-MixedFrameSection::getFrameCopy()
+int 
+MixedFrameSection::checkFiberState()
 {
-
   double area = 0.0;
   if (fiber_state == FiberState::Dirty) {
     nubar = 0.0;
@@ -250,9 +248,27 @@ MixedFrameSection::getFrameCopy()
     centroid /= area;
     nubar /= area;
   }
+  
+
+  if (mixed_type == MixedType::Energetic || mixed_type == MixedType::Constant) {
+    if ((mixed_shapes&MixedShapes::ShearY) == 0)
+      mixed_type = MixedType::UT;
+  }
+  if (mixed_type == MixedType::UT) {
+    if ((mixed_shapes&MixedShapes::TwistX) == 0)
+      mixed_type = MixedType::None;
+  }
 
   fiber_state = FiberState::Clean;
+  return 0;
+}
 
+
+FrameSection*
+MixedFrameSection::getFrameCopy()
+{
+  if (fiber_state == FiberState::Dirty)
+    this->checkFiberState();
   return new MixedFrameSection(*this);
 }
 
@@ -270,7 +286,7 @@ MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) const
   Lr.zero();
   Lw.zero();
 
-  if (mixed_type == MixedType::None) {
+  if (mixed_type == MixedType::UT) {
     Lr(2,2) = 1.0;
     return 0;
   }
@@ -285,12 +301,6 @@ MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) const
     }
     Lr(2,2) = 1.0;
     Lw(2,2) = Jw/Ja;
-    // static bool done = false;
-    // if (!done) {
-    //   done = true;
-    //   opserr << "Jw = " << Jw << ", Ja = " << Ja << "\n";
-    //   // exit(1);
-    // }
     return 0;
   }
 
@@ -405,7 +415,6 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       NDMaterial &theMat = *materials[i];
       auto & fiber = (*fibers)[i];
       const Vector3D r = {0.0, fiber.r[0], fiber.r[1]};
-      // const VectorND<2>& r = fiber.r;
       double tr2 = 0;
 
       // NOTE: Matrix 3D is column major so these are transposed.
@@ -531,6 +540,10 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 int
 MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag)
 {
+  
+  if (fiber_state == FiberState::Dirty) [[unlikely]] {
+    int res = this->checkFiberState();
+  }
 
   const bool do_aux_warp = (mixed_type != MixedType::Constant)
                          &&(mixed_type != MixedType::Energetic);
@@ -587,7 +600,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
     auto & fiber = (*fibers)[i];
     const FiberData::WarpArray& w = fiber.warp;
     const Vector3D r = {0.0, fiber.r[0], fiber.r[1]};
-    double tr2 = 0;
+    double tr2 = wagner? r.dot(r)*kappa[0] : 0.0;
 
     // NOTE: Matrix 3D is column major so these are transposed.
     const double aw = 0.0;
@@ -721,6 +734,9 @@ MixedFrameSection::getFullTangent(State state)
 
   if (state == State::Init)
     this->stateDetermination(K_pres, nullptr, nullptr, InitialTangent);
+  else if (fiber_state == FiberState::Dirty) {
+    this->stateDetermination(K_pres, nullptr, nullptr, CurrentTangent);
+  }
 
   K.assemble(K_pres.se, 0, 0, 1.0);
   K.assemble(K_pres.sw, 0, 6, 1.0);
@@ -1117,6 +1133,8 @@ MixedFrameSection::updateParameter(int paramID, Information &info)
         break;
       case Param::FiberWarpX:
         (*fibers)[fiberID].warp[0][0] = info.theDouble;
+        if (info.theDouble != 0.0)
+          mixed_shapes |= MixedShapes::TwistX;
         break;
       case Param::FiberWarpXY:
         (*fibers)[fiberID].warp[0][1] = info.theDouble;
@@ -1127,6 +1145,10 @@ MixedFrameSection::updateParameter(int paramID, Information &info)
       //
       case Param::FiberWarpY:
         (*fibers)[fiberID].warp[1][0] = info.theDouble;
+        if (info.theDouble != 0.0 && mixed_type == MixedType::Equilibrium)
+          mixed_shapes |= MixedShapes::TwistE;
+        else if (info.theDouble != 0.0)
+          mixed_shapes |= MixedShapes::ShearY;
         break;
       case Param::FiberWarpYY:
         (*fibers)[fiberID].warp[1][1] = info.theDouble;
@@ -1137,6 +1159,8 @@ MixedFrameSection::updateParameter(int paramID, Information &info)
 
       case Param::FiberWarpZ:
         (*fibers)[fiberID].warp[2][0] = info.theDouble;
+        if (info.theDouble != 0.0)
+          mixed_shapes |= MixedShapes::ShearZ;
         break;
       case Param::FiberWarpZY:
         (*fibers)[fiberID].warp[2][1] = info.theDouble;

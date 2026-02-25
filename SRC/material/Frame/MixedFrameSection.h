@@ -28,6 +28,7 @@
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <Matrix3D.h>
+#include "FrameSectionConstants.h"
 
 class NDMaterial;
 class MaterialBuilder;
@@ -37,14 +38,7 @@ namespace OpenSees {
 class MixedFrameSection : public FrameSection
 {
   public:
-    enum class MixedType {
-      None, 
-      // Default, 
-      UT,
-      Constant,
-      Energetic,
-      Equilibrium
-    };
+    using MixedType = Frame::Prism::MixedType;
     MixedFrameSection(int tag, int reserve, MixedType type);
   private:
     MixedFrameSection(const MixedFrameSection &);
@@ -100,8 +94,6 @@ class MixedFrameSection : public FrameSection
     constexpr static int nwm =  3; // Number of warping shapes
     constexpr static int nem =  0; // number of enhanced modes
     constexpr static int nep =  3;
-    // std::array<int, nwm> mixed_shape;
-    const MixedType mixed_type;
 
     VectorND<nsr> s, e;
     Vector s_wrap, e_wrap;
@@ -123,6 +115,8 @@ class MixedFrameSection : public FrameSection
     int solveMixed(const VectorND<nsr>& e, MatrixND<6,6>& Kee, Tangent& Ks);
   
     int stateDetermination(Tangent& K, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag);
+
+    int checkFiberState();
 
     struct Param {
       enum : int {
@@ -182,21 +176,24 @@ class MixedFrameSection : public FrameSection
     std::vector<NDMaterial*> materials;
 
 
-    // Trace matrix blocks
+    // Mixed formulation data
+    MixedType mixed_type;
+    enum MixedShapes: int {
+      TwistX = 1<< 0,
+      ShearY = 1<< 1,
+      ShearZ = 1<< 2,
+      TwistE = 1<< 3,
+    };
+    int mixed_shapes = 0;
     Matrix3D    shear_align;
     VectorND<3> shift_twist, shift_axial;
-
-    // struct MixedData {
-    //   int shear_shape[2], twist_shape;
-    // } mixed_data;
 
     // Centroid
     Vector3D centroid;
     // Average material Poisson's ratio
     double nubar;
-    enum class FiberState {
-      Dirty, Clean
-    } fiber_state;
+    enum class FiberState {Dirty, Clean} fiber_state;
+    State tangent_state = State::None;
 
     const bool wagner;
     int parameterID;
