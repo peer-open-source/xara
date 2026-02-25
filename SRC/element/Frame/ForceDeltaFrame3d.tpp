@@ -41,11 +41,15 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// Force formulation with P-delta effects using 
+// Curvature-based displacement interpolation (CBDI)
+// 
+//
 // fcf, rms, mhs, cmp, fmk
 //
 #include <array>
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
@@ -68,12 +72,14 @@
 
 using namespace OpenSees;
 
+namespace {
+
 template<int n, typename MatT>
 void getHk(double xi[], MatT& H)
 {
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++)
-      H(i, j) = (pow(xi[i], j + 2) - xi[i]) / (j + 1) / (j + 2);
+      H(i, j) = (std::pow(xi[i], j + 2) - xi[i]) / (j + 1) / (j + 2);
   }
 
   return;
@@ -84,7 +90,7 @@ void getHkp(double xi[], MatT& H)
 {
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
-      H(i, j) = pow(xi[i], j + 1) / (j + 1) - 1.0 / (j + 1) / (j + 2);
+      H(i, j) = std::pow(xi[i], j + 1) / (j + 1) - 1.0 / (j + 1) / (j + 2);
 }
 
 template<int n, typename MatT>
@@ -93,7 +99,7 @@ void getHg(double xi[], MatT& H)
   for (int i = 0; i < n; i++) {
     H(i, 0) = 0;
     for (int j = 1; j < n; j++)
-      H(i, j) = (pow(xi[i], j + 1) - xi[i]) / (j + 1);
+      H(i, j) = (std::pow(xi[i], j + 1) - xi[i]) / (j + 1);
   }
 }
 
@@ -103,9 +109,10 @@ void getHgp(double xi[], MatT& H)
   for (int i = 0; i < n; i++) {
     H(i, 0) = 0;
     for (int j = 1; j < n; j++)
-      H(i, j) = pow(xi[i], j) - 1 / (j + 1);
+      H(i, j) = std::pow(xi[i], j) - 1 / (j + 1);
   }
 }
+} // namespace
 
 
 template<int NIP, int nsr>
@@ -390,10 +397,10 @@ ForceDeltaFrame3d<NIP,nsr>::update()
   VectorND<nq> dq_trial = K_trial * dv_trial;
 
 
-  Vector w(nip);
-  Vector wp(nip);
-  Vector wz(nip);
-  Vector wpz(nip);
+  VectorND<nip> w{};
+  VectorND<nip> wp{};
+  VectorND<nip> wz{};
+  VectorND<nip> wpz{};
   MatrixND<nsr * nip, nsr * nip> K_tilde{}; // (nsr * nip, nsr * nip);
 
   MatrixND<nq,nq> F; // Element flexibility
@@ -440,7 +447,7 @@ ForceDeltaFrame3d<NIP,nsr>::update()
 
     wz.addMatrixVector(0.0, ls, kappay, L * L);
     if (shear_flag) {
-      wz.addMatrixVector(1.0, lsg, gammaz, L);
+      wz.addMatrixVector(1.0,  lsg, gammaz, L);
       wpz.addMatrixVector(0.0, lskp, kappay, L);
       wpz.addMatrixVector(1.0, lsgp, gammaz, 1.0);
     }
@@ -709,10 +716,8 @@ ForceDeltaFrame3d<NIP,nsr>::update()
     //
     //
     //
-    MatrixND<nsr, nq> Bstr;
-    MatrixND<nsr, nq> Bhat;
-    Bstr.zero();
-    Bhat.zero();
+    MatrixND<nsr, nq> Bstr{};
+    MatrixND<nsr, nq> Bhat{};
     for (int i = 0; i < nip; i++) {
       double xL = points[i].point;
       double wtL = points[i].weight * L;
@@ -1945,7 +1950,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
     for (int i = 0; i < NIP; i++) {
       dGdh(i, 0) = 0;
       for (int j = 1; j < NIP; j++) {
-        dGdh(i, j) = j * pow(xi[i], j - 1) * dxidh[i];
+        dGdh(i, j) = j * std::pow(xi[i], j - 1) * dxidh[i];
       }
     }
 
@@ -1955,7 +1960,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
     Matrix dHkdh(NIP, NIP);
     for (int i = 0; i < NIP; i++) {
       for (int j = 0; j < NIP; j++) {
-        dHkdh(i, j) = (pow(xi[i], j + 1) / (j + 1) - 1.0 / (j + 1) / (j + 2)) * dxidh[i];
+        dHkdh(i, j) = (std::pow(xi[i], j + 1) / (j + 1) - 1.0/(j + 1)/(j + 2))*dxidh[i];
       }
     }
     dlsdh.addMatrixProduct(0.0, dHkdh, Ginv, 1.0);
@@ -1966,7 +1971,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
       Matrix dHgdh(NIP, NIP);
       for (int i = 0; i < NIP; i++) {
         for (int j = 0; j < NIP; j++) {
-          dHgdh(i, j) = (pow(xi[i], j) - 1.0 / (j + 1)) * dxidh[i];
+          dHgdh(i, j) = (std::pow(xi[i], j) - 1.0 / (j + 1)) * dxidh[i];
         }
       }
       dlsdh.addMatrixProduct(0.0, dHgdh, Ginv, 1.0);
@@ -1982,7 +1987,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
       Matrix dHkpdh(NIP, NIP);
       for (int i = 0; i < NIP; i++) {
         for (int j = 0; j < NIP; j++) {
-          dHkpdh(i, j) = pow(xi[i], j) * dxidh[i];
+          dHkpdh(i, j) = std::pow(xi[i], j) * dxidh[i];
         }
       }
       dlsdh.addMatrixProduct(0.0, dHkpdh, Ginv, 1.0);
@@ -1993,7 +1998,7 @@ ForceDeltaFrame3d<NIP,nsr>::computedwdh(double dwidh[], int igrad, const Vector&
       for (int i = 0; i < NIP; i++) {
         dHgpdh(i, 0) = 0.0;
         for (int j = 1; j < NIP; j++) {
-          dHgpdh(i, j) = (j * pow(xi[i], j - 1)) * dxidh[i];
+          dHgpdh(i, j) = (j * std::pow(xi[i], j - 1)) * dxidh[i];
         }
       }
       dlsdh.addMatrixProduct(0.0, dHgpdh, Ginv, 1.0);
@@ -2018,8 +2023,6 @@ template<int NIP, int nsr>
 void
 ForceDeltaFrame3d<NIP,nsr>::compSectionDisplacements(Vector sectionCoords[], Vector sectionDispls[]) const
 {
-  // int numSections = points.size();
-  constexpr static int numSections = NIP;
   // get basic displacements and increments
   static Vector ub(nq);
   ub = basic_system->getBasicTrialDisp();
@@ -2039,10 +2042,10 @@ ForceDeltaFrame3d<NIP,nsr>::compSectionDisplacements(Vector sectionCoords[], Vec
   getCBDIinfluenceMatrix(NIP, xi_pts, L, ls);
 
   // get section curvatures
-  Vector kappa(numSections); // curvature
+  Vector kappa(NIP); // curvature
   static Vector vs;          // section deformations
 
-  for (int i = 0; i < numSections; i++) {
+  for (int i = 0; i < NIP; i++) {
     // THIS IS VERY INEFFICIENT ... CAN CHANGE LATER
     int sectionKey = 0;
     int ii;
@@ -2062,14 +2065,13 @@ ForceDeltaFrame3d<NIP,nsr>::compSectionDisplacements(Vector sectionCoords[], Vec
     kappa(i) = vs(sectionKey);
   }
 
-  Vector w(numSections);
+  Vector w(NIP);
   VectorND<ndm> xl, uxb;
-//VectorND<ndm> xg, uxg;
 
   // w = ls * kappa;
   w.addMatrixVector(0.0, ls, kappa, 1.0);
 
-  for (int i = 0; i < numSections; i++) {
+  for (int i = 0; i < NIP; i++) {
     double xi = xi_pts[i];
 
     xl(0) = xi * L;
@@ -3579,214 +3581,7 @@ template<int NIP, int nsr>
 int
 ForceDeltaFrame3d<NIP,nsr>::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
-#if 1
   return -1;
-#else
-  //
-  // receive the integer data containing tag, numSections and coord transformation info
-  //
-  int dbTag = this->getDbTag();
-
-  static ID idData(11); // one bigger than needed
-
-  if (theChannel.recvID(dbTag, commitTag, idData) < 0) {
-    opserr << "ForceDeltaFrame3d::recvSelf() - failed to recv ID data\n";
-    return -1;
-  }
-
-  this->setTag(idData(0));
-  connectedExternalNodes(0) = idData(1);
-  connectedExternalNodes(1) = idData(2);
-  max_iter                  = idData(4);
-  state_flag               = idData(5);
-
-  int crdTransfClassTag = idData(6);
-  int crdTransfDbTag    = idData(7);
-
-  int stencilClassTag = idData(8);
-  int stencilDbTag    = idData(9);
-
-  // create a new crdTransf object if one needed
-  if (theCoordTransf == 0 || basic_system->getClassTag() != crdTransfClassTag) {
-    if (theCoordTransf != 0)
-      delete theCoordTransf;
-
-    // TODO(cmp) - add FrameTransform to ObjBroker
-    theCoordTransf = nullptr; //theBroker.getNewCrdTransf(crdTransfClassTag);
-
-    if (theCoordTransf == nullptr) {
-      opserr << "ForceDeltaFrame3d::recvSelf() - failed to obtain a CrdTrans object with classTag"
-             << crdTransfClassTag << "\n";
-      return -1;
-    }
-  }
-
-  basic_system->setDbTag(crdTransfDbTag);
-
-  // invoke recvSelf on the coordTransf object
-  if (basic_system->recvSelf(commitTag, theChannel, theBroker) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to recv crdTranf\n";
-
-    return -3;
-  }
-
-  // create a new stencil object if one needed
-  if (stencil == 0 || stencil->getClassTag() != stencilClassTag) {
-    if (stencil != 0)
-      delete stencil;
-
-    stencil = theBroker.getNewBeamIntegration(stencilClassTag);
-
-    if (stencil == 0) {
-      opserr
-          << "ForceDeltaFrame3d::recvSelf() - failed to obtain the beam integration object with classTag"
-          << stencilClassTag << "\n";
-      exit(-1);
-    }
-  }
-
-  stencil->setDbTag(stencilDbTag);
-
-  // invoke recvSelf on the stencil object
-  if (stencil->recvSelf(commitTag, theChannel, theBroker) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to recv beam integration\n";
-
-    return -3;
-  }
-
-  //
-  // recv an ID for the sections containing each sections dbTag and classTag
-  //
-
-  ID idSections(2 * idData(3));
-  int loc = 0;
-
-  if (theChannel.recvID(dbTag, commitTag, idSections) < 0) {
-    opserr << "ForceDeltaFrame3d::recvSelf() - failed to recv ID data\n";
-    return -1;
-  }
-
-  int numSections = points.size();
-  //
-  // now receive the sections
-  //
-  if (numSections != idData(3)) {
-
-    //
-    // we do not have correct number of sections, must delete the old and create
-    // new ones before can recvSelf on the sections
-    //
-
-
-    // create a section and recvSelf on it
-    numSections = idData(3);
-
-
-    loc = 0;
-
-    for (int i = 0; i < numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag    = idSections(loc + 1);
-      loc += 2;
-      // TODO: FrameSection in object broker
-//    points[i].material = theBroker.getNewSection(sectClassTag);
-//    if (points[i].material == nullptr) {
-//      opserr << "ForceDeltaFrame3d::recvSelf() - "
-//             << "Broker could not create Section of class type " << sectClassTag << "\n";
-//      exit(-1);
-//    }
-//    points[i].material->setDbTag(sectDbTag);
-//    if (points[i].material->recvSelf(commitTag, theChannel, theBroker) < 0) {
-//      opserr << "ForceDeltaFrame3d::recvSelf() - section " << i << "failed to recv itself\n";
-//      return -1;
-//    }
-    }
-
-    this->initializeSectionHistoryVariables();
-
-  } else {
-
-    //
-    // for each existing section, check it is of correct type
-    // (if not delete old & create a new one) then recvSelf on it
-    //
-
-    loc = 0;
-    for (int i = 0; i < numSections; i++) {
-      int sectClassTag = idSections(loc);
-      int sectDbTag    = idSections(loc + 1);
-      loc += 2;
-
-//    // check of correct type
-//    if (points[i].material->getClassTag() != sectClassTag) {
-//      // delete the old section[i] and create a new one
-//      delete points[i].material;
-//      // TODO: FrameSection in object broker
-//      points[i].material = theBroker.getNewSection(sectClassTag);
-//      if (points[i].material == 0) {
-//        opserr << "ForceDeltaFrame3d::recvSelf() - Broker could not create Section of class type"
-//               << sectClassTag << "\n";
-//        return -1;
-//      }
-//    }
-
-      // recvvSelf on it
-//    points[i].material->setDbTag(sectDbTag);
-//    if (points[i].material->recvSelf(commitTag, theChannel, theBroker) < 0) {
-//      opserr << "ForceDeltaFrame3d::recvSelf() - section " << i << "failed to recv itself\n";
-//      return -1;
-//    }
-    }
-  }
-
-  // into a vector place distrLoadCommit, density, UeCommit, q_past and K_past
-  int secDefSize = nsr*points.size();
-
-  Vector dData(1 + 1 + nq + nq * nq + secDefSize + 4);
-
-  if (theChannel.recvVector(dbTag, commitTag, dData) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to send Vector data\n";
-    return -1;
-  }
-
-  loc = 0;
-
-  // place double variables into Vector
-  density = dData(loc++);
-  tol = dData(loc++);
-
-  // put  distrLoadCommit into the Vector
-  //for (int i=0; i<NL; i++)
-  // distrLoad(i) = dData(loc++);
-
-  // place K_past into vector
-  for (int i = 0; i < nq; i++)
-    q_past(i) = dData(loc++);
-
-  // place K_past into vector
-  for (int i = 0; i < nq; i++)
-    for (int j = 0; j < nq; j++)
-      K_past(i, j) = dData(loc++);
-
-  K_pres = K_past;
-  q_pres = q_past;
-
-  for (unsigned k = 0; k < points.size(); k++) {
-    // place es_save into vector
-    for (unsigned i = 0; i < nsr; i++)
-      points[k].es_save[i] = dData(loc++);
-  }
-
-  // set damping coefficients
-  alphaM = dData(loc++);
-  betaK  = dData(loc++);
-  betaK0 = dData(loc++);
-  betaKc = dData(loc++);
-
-  state_flag = 2;
-
-  return 0;
-#endif
 }
 
 
