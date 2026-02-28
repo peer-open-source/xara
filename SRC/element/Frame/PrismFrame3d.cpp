@@ -143,19 +143,20 @@ PrismFrame3d::PrismFrame3d(int tag,
     Az = Kc(2,2)/G;
   }
 #else
-  Frame::Prism prism_props(section);
-  A  = *prism_props.A;
-  Iy = *prism_props.Iy;
-  Iz = *prism_props.Iz;
-  Jx = *prism_props.J;
-  E  = *prism_props.E;
-  G  = *prism_props.G;
+  Frame::Prism shape_data(3,6);
+  section.getShape(shape_data);
+  A  =  shape_data.A;
+  Iy = *shape_data.Iy;
+  Iz = *shape_data.Iz;
+  Jx = *shape_data.J;
+  E  = *shape_data.E;
+  G  = *shape_data.G;
   if (!shear_flag) {
     Ay = Az = 0.0;
   } 
   else {
-    Ay = *prism_props.Ay;
-    Az = *prism_props.Az;
+    Ay = *shape_data.Ay;
+    Az = *shape_data.Az;
   }
 #endif
 
@@ -173,7 +174,7 @@ PrismFrame3d::setNodes()
 {
 
   if (basic_system->initialize(theNodes[0], theNodes[1]) != 0) {
-      return -1;
+    return -1;
   }
   int status = 0;
 

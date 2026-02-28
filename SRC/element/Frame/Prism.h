@@ -1,8 +1,15 @@
 #pragma once
 #include <optional>
-#include <FrameSection.h>
+#include <Logging.h>
+#include <MatrixND.h>
+#include <VectorND.h>
+// #include <FrameSection.h>
+
+// integrate(Rigid, [AEGM], [012], [012])
+
 
 namespace OpenSees {
+
 namespace Frame {
 struct Release {
   enum {
@@ -12,110 +19,160 @@ struct Release {
   } i,j;
 };
 
-// TODO: Maybe make this public under ElasticFrameSection
+
+// TODO: Maybe rename to Frame::Shape
 struct Prism {
-  // n-n
-  std::optional<double> A;
-  std::optional<double> Ay, Az;
-  // m-m
-  std::optional<double> Iy, Iz, Iyz;
-  // w-w
-  std::optional<double> Cw, Ca;
-  // n-m
-  std::optional<double> Qy, Qz;
-  // n-w
-  std::optional<double> Rw, Ry, Rz;
-  // m-w
-  std::optional<double> Sa, Sy, Sz;
-  // Derived
-  std::optional<double> J;    // Torsional constant
-
-
+  int ndm, ndf;
   std::optional<double> E, G;
+  std::optional<double> density; // per unit length
 
+  double alpha=0.0; // ?
+  // Rigid
+  // n-n
+  double A;// std::optional<double> A;
+  // m-m
+  std::optional<double> Iy, Iz;
+  double Iyz = 0.0;
+  // n-m
+  double Qy=0.0, Qz=0.0;
+  double centroid[2];
 
-  double thermal_coeff = 0.0,          // Thermal
-          thermal_depth = 0.0;
+  // Warping
+  // w-w
+  double Cw=0.0, Ca=0.0;
+  // n-w
+  double Rw=0.0, Ry=0.0, Rz=0.0;
+  // m-w
+  double Sa=0.0, Sy=0.0, Sz=0.0;
 
-  Prism() = default;
-  Prism(FrameSection& section):
-    A{}, Ay{}, Az{},
-    Iy{}, Iz{}, Iyz{},
-    Cw{}, Ca{},
-    Qy{}, Qz{},
-    Rw{}, Ry{}, Rz{},
-    Sa{}, Sy{}, Sz{},
-    J{},
-    E{}, G{}
+  // Mixed
+  std::optional<double> Ay, Az, ky, kz;
+  std::optional<double> J;    // Torsional constant
+  // double J = consts.Iy + consts.Iz - consts.Ca;
+
+  struct Mixed {
+    std::optional<MatrixND<2,2>>  shear_align;
+    std::optional<VectorND<2>>    shift_twist;
+    std::optional<VectorND<2>>    shift_axial;
+    VectorND<2>    shear_origin, twist_origin;
+  } mixed;
+
+  enum class MixedType {
+    None,
+    UT,
+    Constant,
+    Energetic,
+    Equilibrium
+  };
+  // using MixedType = Shape::MixedType;
+  MixedType mixed_form = MixedType::Energetic;
+
+  //
+  // Thermal
+  double thermal_coeff = 0.0,
+         thermal_depth = 0.0;
+
+  // Prism() = default;
+
+  Prism(int ndm, int ndf)
+   : ndm(ndm), ndf(ndf)
+   {
+   }
+  
+  void print() const {
+    opserr << "Prism: ndm=" << ndm << " ndf=" << ndf << "\n"
+           << "  A=" << A 
+           << " Ay=" << (Ay ? std::to_string(*Ay) : "n/a")
+           << " Az=" << (Az ? std::to_string(*Az) : "n/a")
+           << " Iy=" << (Iy ? std::to_string(*Iy) : "n/a") 
+           << " Iz=" << (Iz ? std::to_string(*Iz) : "n/a") 
+           << " Iyz=" << Iyz
+           << " Cw=" << Cw << " Ca=" << Ca
+           << " Qy=" << Qy << " Qz=" << Qz
+           << " Rw=" << Rw << " Ry=" << Ry << " Rz=" << Rz
+           << " Sa=" << Sa << " Sy=" << Sy << " Sz=" << Sz
+           << " J="  << (J ? std::to_string(*J) : "n/a")
+           << " MT = ";
+    switch (mixed_form) {
+      case MixedType::None:        opserr << "None"; break;
+      case MixedType::UT:          opserr << "UT"; break;
+      case MixedType::Constant:    opserr << "UG"; break;
+      case MixedType::Energetic:   opserr << "UE"; break;
+      case MixedType::Equilibrium: opserr << "NR"; break;
+    }
+    opserr << "\n";
+  }
+
+  int validate()
   {
 
-    // 1) Get exact reference properties; not all sections provide these
+    if (Ay && ky)
+      return -1;
+    if (Az && kz)
+      return -1;
 
-    double value;
-    if (section.getIntegral(Field::Unit,   State::Init, value) == 0)
-      A = value;
-    else
-      A = 1.0;
-
-    if (section.getIntegral(Field::UnitZZ, State::Init, value) == 0)
-      Iy = value;
-
-    if (section.getIntegral(Field::UnitYY, State::Init, value) == 0)
-      Iz = value;
-
-    // 2) Get Young and Shear Modulus and determine if shear is supported
-    // by the section. The shear areas we pull here may still be 
-    // uncondensed.
-    const ID& layout = section.getType();
-    const Matrix& Ks = section.getInitialTangent();
-    for (int i=0; i<layout.Size(); i++) {
-      if (layout(i) == FrameStress::N && A) {
-        E = Ks(i,i)/(*A);
-      }
-      else if (layout(i) == FrameStress::Vy && A) {
-        G = Ks(i,i)/(*A);
-        Ay = A;
-      }
-      else if (layout(i) == FrameStress::Vz && A) {
-        G = Ks(i,i)/(*A);
-        Az = A;
-      }
-    }
-    //
-    for (int i=0; i<layout.Size(); i++) {
-      if (layout(i) == FrameStress::My && !Iy && E) {
-        Iy = Ks(i,i)/(*E);
-      }
-      else if (layout(i) == FrameStress::Mz && !Iz && E) {
-        Iz = Ks(i,i)/(*E);
-      }
-    }
-    // In a 3D shear-free section, G wouldnt have been found yet
-    for (int i=0; i<layout.Size(); i++) {
-      if (layout(i) == FrameStress::T && Iy && Iz && !G) {
-        G = Ks(i,i)/(*Iy + *Iz);
-      }
+    if (E && *E <= 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Young's modulus must be positive"
+             << OpenSees::SignalMessageEnd;
+      return -1;
     }
 
-    // 3) Condense Warping
-    static constexpr FrameStressLayout scheme = {
-        FrameStress::N,
-        FrameStress::Vy,
-        FrameStress::Vz,
-        FrameStress::T,
-        FrameStress::My,
-        FrameStress::Mz,
-    };
-
-    MatrixND<6,6> Kc = section.getTangent<6,scheme>(State::Init);
-
-    if (G) {
-      J  = Kc(3,3)/(*G);
-      if (Ay)
-        Ay = Kc(1,1)/(*G);
-      if (Az)
-        Az = Kc(2,2)/(*G);
+    if (G && *G <= 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Shear modulus must be positive"
+             << OpenSees::SignalMessageEnd;
+      return -1;
     }
+
+    if (density && *density < 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Density must be non-negative"
+             << OpenSees::SignalMessageEnd;
+      return -1;
+    }
+
+    if (A <= 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Area must be positive"
+             << OpenSees::SignalMessageEnd;
+      return -1;
+    }
+    if (Ay && *Ay == 0.0)
+      Ay = std::nullopt;
+    else if (Ay && *Ay < 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Shear area Ay must be non-negative"
+             << OpenSees::SignalMessageEnd;
+      return -1;
+    }
+
+    if (Az && *Az == 0.0)
+      Az = std::nullopt;
+    else if (Az && *Az < 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Shear area Az must be non-negative"
+             << OpenSees::SignalMessageEnd;
+      return -1;
+    }
+
+    // We allow zero in Iy and Iz because these may be set to zero
+    // when a 2D simulation is run by restraining out-of-plane DOFs
+    // in a 3D model; this is the case in a alot of models imported from
+    // SAP2000, for example.
+    if (Iy && *Iy < 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Moment of inertia Iy must be positive"
+             << OpenSees::SignalMessageEnd;
+      return -1;
+    }
+    if (Iz && *Iz < 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "Moment of inertia Iz must be positive"
+             << OpenSees::SignalMessageEnd;
+      return -1;
+    }
+    return 0;
   }
 };
 } // namespace Frame
