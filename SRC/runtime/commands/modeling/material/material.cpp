@@ -58,6 +58,7 @@ TclCommand_addMaterial(ClientData clientData, Tcl_Interp* interp,
     {"Hardening",                 TclCommand_newPlasticMaterial},
     {"J2Simplified",              TclCommand_newPlasticMaterial},
     {"J2BeamFiber",               TclCommand_newPlasticMaterial},
+    {"J2BeamThread",              TclCommand_newPlasticMaterial},
     {"GeneralizedJ2",             TclCommand_newPlasticMaterial},
     {"NonlinearJ2",               TclCommand_newPlasticMaterial},
 
