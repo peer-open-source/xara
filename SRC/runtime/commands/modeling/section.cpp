@@ -66,6 +66,7 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <FiberSectionAsym3d.h>
 
 // SectionBuilder
+#include <Prism.h>
 #include <QuadFiberPatch.h>
 #include <CircPatch.h>
 #include <StraightFiberLayer.h>
@@ -78,7 +79,7 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <Isolator2spring.h>
 
 #include <FiberSection2dThermal.h>
-#include <FiberSection3dThermal.h> //Added by L.Jiang [SIF] 2017
+#include <FiberSection3dThermal.h> // Added by L.Jiang [SIF] 2017
 
 //#include <McftSection2dfiber.h>
 
@@ -494,31 +495,17 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
 
 
 struct FiberSectionConfig {
-   bool isND            = false;
-   bool isAsym          = false;
-   bool isWarping       = false;
-   bool isThermal       = false;
-   bool isNew           = false; // use new FrameFiberSection class
-   bool computeCentroid = true;
-   bool use_twist = false;
-   bool use_density = false;
-   MixedFrameSection::MixedType mixed_type = MixedFrameSection::MixedType::UT;
-};
-
-struct FiberSectionData {
-  double alpha=0.0;
-  // Shear center relative to centroid
-  double shear_center[2] = {0.0, 0.0};
-  double J=1.0;
-  double ky=1.0;
-  double kz=1.0;
-  double density=0.0;
+  bool isND            = false;
+  bool isAsym          = false;
+  bool isWarping       = false;
+  bool isThermal       = false;
+  bool isNew           = false; // use new FrameFiberSection class
+  bool computeCentroid = true;
+  bool use_twist = false;
+  bool use_density = false;
   int reserve = 30;
-
-  MatrixND<2,2>* shear_align = nullptr;
-  VectorND<2>*   shift_twist = nullptr;
-  VectorND<2>*   shift_axial = nullptr;
 };
+
 
 static SectionBuilder* 
 findSectionBuilder(ModelRegistry* builder, Tcl_Interp *interp, int argc, const char** const argv)
@@ -557,7 +544,7 @@ initSectionCommands(ClientData clientData,
                     Tcl_Interp *interp,
                     int secTag, 
                     UniaxialMaterial *theTorsion, 
-                    const FiberSectionData& data,
+                    const Frame::Prism& shape_data,
                     const FiberSectionConfig& options)
 {
   assert(clientData != nullptr);
@@ -572,12 +559,12 @@ initSectionCommands(ClientData clientData,
   if (ndm == 2) {
     if (options.isND) {
       if (options.isNew) {
-        auto sec = new FrameSolidSection3d(secTag, data.reserve);
+        auto sec = new FrameSolidSection3d(secTag, options.reserve);
         sbuilder = new FiberSectionBuilder<2, NDMaterial, FrameSolidSection3d>(*builder, *sec);
         section = sec;
       }
       else if (options.isWarping) {
-        auto sec = new NDFiberSectionWarping2d(secTag, data.reserve, data.alpha);
+        auto sec = new NDFiberSectionWarping2d(secTag, options.reserve, shape_data.alpha);
         sbuilder = new FiberSectionBuilder<2, NDMaterial, NDFiberSectionWarping2d>(*builder, *sec);
         section = sec;
       }
@@ -604,21 +591,21 @@ initSectionCommands(ClientData clientData,
     if (options.isND) {
       if (options.isNew) {
         if (getenv("XARA_FIBER_THREADS")) {
-          auto sec = new MixedFrameSection(secTag, data.reserve, options.mixed_type);
+          auto sec = new MixedFrameSection(secTag, options.reserve, shape_data.mixed_form);
           sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
           section = sec;
         } else {
-          auto sec = new FrameTraceSection3d(secTag, data.reserve);
+          auto sec = new FrameTraceSection3d(secTag, options.reserve);
           sbuilder = new FiberSectionBuilder<3, NDMaterial, FrameTraceSection3d>(*builder, *sec);
           section = sec;
-          // auto sec = new FrameSolidSection3d(secTag, data.reserve);
+          // auto sec = new FrameSolidSection3d(secTag, options.reserve);
           // sbuilder = new FiberSectionBuilder<3, NDMaterial, FrameSolidSection3d>(*builder, *sec);
           // section = sec;
         }
       }
       else {
         auto sec = new NDFiberSection3d(secTag,
-                                        data.reserve,
+                                        options.reserve,
                                         options.computeCentroid);
         sbuilder = new FiberSectionBuilder<3, NDMaterial, NDFiberSection3d>(*builder, *sec);
         section = sec;
@@ -640,7 +627,9 @@ initSectionCommands(ClientData clientData,
 
       }
       else if (options.isAsym) {
-        auto sec = new FiberSectionAsym3d(secTag, 30, theTorsion, data.shear_center[0], data.shear_center[1]);
+        auto sec = new FiberSectionAsym3d(secTag, 30, theTorsion, 
+                                          shape_data.mixed.shear_origin[0], 
+                                          shape_data.mixed.shear_origin[1]);
         sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FiberSectionAsym3d>(*builder, *sec);
         section = sec;
       }
@@ -652,9 +641,12 @@ initSectionCommands(ClientData clientData,
         }
         if (options.isNew) {
           auto sec = new FrameFiberSection3d(secTag, 30,  theTorsion, 
-                                             data.J, data.ky, data.kz,
+                                             *shape_data.J, 
+                                             *shape_data.Ay, 
+                                             *shape_data.Az,
                                              options.computeCentroid, 
-                                             data.density, options.use_density);
+                                             *shape_data.density, 
+                                             options.use_density);
           sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FrameFiberSection3d>(*builder, *sec);
           section = sec;
         } else {
@@ -674,7 +666,7 @@ initSectionCommands(ClientData clientData,
   //
   // Set extra data
   //
-  if (data.shear_align != nullptr) {
+  if (shape_data.mixed.shear_align) {
     for (int i=0; i<2; ++i){
       for (int j=0; j<2; ++j) {
         Parameter p(-1, nullptr, nullptr, 0);
@@ -689,11 +681,11 @@ initSectionCommands(ClientData clientData,
                  << argv_ij[1] << argv_ij[2] << "\n";
           return TCL_ERROR;
         }
-        p.update((*data.shear_align)(i,j));
+        p.update((*shape_data.mixed.shear_align)(i,j));
       }
     }
   }
-  if (data.shift_twist != nullptr) {
+  if (shape_data.mixed.shift_twist) {
     for (int i=0; i<2; ++i){
       Parameter p(-1, nullptr, nullptr, 0);
       const char* argv_i[] {
@@ -706,10 +698,10 @@ initSectionCommands(ClientData clientData,
                << argv_i[1] << "\n";
         return TCL_ERROR;
       }
-      p.update((*data.shift_twist)(i));
+      p.update((*shape_data.mixed.shift_twist)(i));
     }
   }
-  if (data.shift_axial != nullptr) {
+  if (shape_data.mixed.shift_axial) {
     for (int i=0; i<2; ++i){
       Parameter p(-1, nullptr, nullptr, 0);
       const char* argv_i[] {
@@ -722,7 +714,7 @@ initSectionCommands(ClientData clientData,
                << argv_i[1] << "\n";
         return TCL_ERROR;
       }
-      p.update((*data.shift_axial)(i));
+      p.update((*shape_data.mixed.shift_axial)(i));
     }
   }
 
@@ -807,7 +799,14 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
   int iarg  = 3;
-  FiberSectionData data;
+  // FiberSectionData data;
+  Frame::Prism shape_data(builder->getNDM(), builder->getNDF());
+
+  if (builder->getNDF() <= 6)
+    shape_data.mixed_form = MixedFrameSection::MixedType::UT;//Energetic;
+  else 
+    shape_data.mixed_form = MixedFrameSection::MixedType::None;
+
   UniaxialMaterial *torsion = nullptr;
   bool deleteTorsion = false;
   bool shearParsed = false;
@@ -828,10 +827,12 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
         opserr << OpenSees::PromptValueError << "not enough -mass args need -mass mass?\n";
         return TCL_ERROR;
       }
-      if (Tcl_GetDouble(interp, argv[iarg + 1], &data.density) != TCL_OK) {
+      double density;
+      if (Tcl_GetDouble(interp, argv[iarg + 1], &density) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "invalid density";
         return TCL_ERROR;
       }
+      shape_data.density = density;
       options.use_density = true;
 
       iarg  += 2;
@@ -857,12 +858,14 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
-      if (Tcl_GetDouble(interp, argv[iarg + 1], &data.alpha) != TCL_OK) {
+      double alpha;
+      if (Tcl_GetDouble(interp, argv[iarg + 1], &alpha) != TCL_OK) {
         opserr << OpenSees::PromptValueError 
                << "invalid alpha value after -alpha"
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
+      shape_data.alpha = alpha;
       iarg += 2;
     }
 
@@ -877,19 +880,21 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
       if ((strcmp(argv[iarg + 1], "None") == 0) || 
           (strcmp(argv[iarg + 1], "NV") == 0) ||
           (strcmp(argv[iarg + 1], "NT") == 0)) {
-        options.mixed_type = MixedFrameSection::MixedType::None;
+        shape_data.mixed_form = MixedFrameSection::MixedType::None;
       } else if ((strcmp(argv[iarg + 1], "constant") == 0) || 
                  (strcmp(argv[iarg + 1], "geometric") == 0) ||
                  (strcmp(argv[iarg + 1], "UG") == 0)) {
-        options.mixed_type = MixedFrameSection::MixedType::Constant;
+        shape_data.mixed_form = MixedFrameSection::MixedType::Constant;
+      } else if (strcmp(argv[iarg + 1],  "UT") == 0) {
+        shape_data.mixed_form = MixedFrameSection::MixedType::UT;
       } else if ((strcmp(argv[iarg + 1], "energetic") == 0) || 
-                 (strcmp(argv[iarg + 1], "UE") == 0)) {
-        options.mixed_type = MixedFrameSection::MixedType::Energetic;
+                 (strcmp(argv[iarg + 1], "UE") == 0) ) {
+        shape_data.mixed_form = MixedFrameSection::MixedType::Energetic;
       } else if (strcmp(argv[iarg + 1],  "NR") == 0) {
-        options.mixed_type = MixedFrameSection::MixedType::Equilibrium;
+        shape_data.mixed_form = MixedFrameSection::MixedType::Equilibrium;
       } else {
         opserr << OpenSees::PromptValueError 
-               << "invalid mixed type value after -mixed_type: " << argv[iarg + 1]
+               << "invalid mixed type value: " << argv[iarg + 1]
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
@@ -903,21 +908,19 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
-      data.shear_align = new MatrixND<2,2>();
+      shape_data.mixed.shear_align = MatrixND<2,2>();
       int argc_sa;
       TCL_Char** argv_sa;
       if (Tcl_SplitList(interp, argv[iarg + 1], &argc_sa,  &argv_sa) != TCL_OK) {
         opserr << OpenSees::PromptValueError 
                << "failed to parse shearAlign matrix after -align"
                << OpenSees::SignalMessageEnd;
-        delete data.shear_align;
         return TCL_ERROR;
       }
       if (argc_sa != 4) {
         opserr << OpenSees::PromptValueError 
                << "shearAlign matrix after -align needs 4 entries"
                << OpenSees::SignalMessageEnd;
-        delete data.shear_align;
         Tcl_Free((char*)argv_sa);
         return TCL_ERROR;
       }
@@ -928,11 +931,10 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
             opserr << OpenSees::PromptValueError
                    << "invalid shearAlign matrix entry"
                    << OpenSees::SignalMessageEnd;
-            delete data.shear_align;
             Tcl_Free((char*)argv_sa);
             return TCL_ERROR;
           }
-          (*data.shear_align)(i, j) = val;
+          (*shape_data.mixed.shear_align)(i, j) = val;
         }
       }
       iarg += 2;
@@ -945,21 +947,19 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
-      data.shift_twist = new VectorND<2>();
+      shape_data.mixed.shift_twist = VectorND<2>();
       int argc_st;
       TCL_Char** argv_st;
       if (Tcl_SplitList(interp, argv[iarg + 1], &argc_st,  &argv_st) != TCL_OK) {
         opserr << OpenSees::PromptValueError 
                << "failed to parse shiftTwist vector after -shiftTwist"
                << OpenSees::SignalMessageEnd;
-        delete data.shift_twist;
         return TCL_ERROR;
       }
       if (argc_st != 2) {
         opserr << OpenSees::PromptValueError 
                << "shiftTwist vector after -shiftTwist needs 2 entries"
                << OpenSees::SignalMessageEnd;
-        delete data.shift_twist;
         Tcl_Free((char*)argv_st);
         return TCL_ERROR;
       }
@@ -969,11 +969,10 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
           opserr << OpenSees::PromptValueError
                  << "invalid shiftTwist vector entry"
                  << OpenSees::SignalMessageEnd;
-          delete data.shift_twist;
           Tcl_Free((char*)argv_st);
           return TCL_ERROR;
         }
-        (*data.shift_twist)(i) = val;
+        (*shape_data.mixed.shift_twist)(i) = val;
       }
       iarg += 2;
     }
@@ -985,21 +984,19 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
-      data.shift_axial = new VectorND<2>();
+      shape_data.mixed.shift_axial = VectorND<2>();
       int argc_sa;
       TCL_Char** argv_sa;
       if (Tcl_SplitList(interp, argv[iarg + 1], &argc_sa,  &argv_sa) != TCL_OK) {
         opserr << OpenSees::PromptValueError 
                << "failed to parse shiftAxial vector after -shiftAxial"
                << OpenSees::SignalMessageEnd;
-        delete data.shift_axial;
         return TCL_ERROR;
       }
       if (argc_sa != 2) {
         opserr << OpenSees::PromptValueError 
                << "shiftAxial vector after -shiftAxial needs 2 entries"
                << OpenSees::SignalMessageEnd;
-        delete data.shift_axial;
         Tcl_Free((char*)argv_sa);
         return TCL_ERROR;
       }
@@ -1009,11 +1006,10 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
           opserr << OpenSees::PromptValueError
                  << "invalid shiftAxial vector entry"
                  << OpenSees::SignalMessageEnd;
-          delete data.shift_axial;
           Tcl_Free((char*)argv_sa);
           return TCL_ERROR;
         }
-        (*data.shift_axial)(i) = val;
+        (*shape_data.mixed.shift_axial)(i) = val;
       }
       iarg += 2;
     }
@@ -1041,11 +1037,11 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
         opserr << OpenSees::PromptValueError << "Asym sections require shear center before fiber block.\n";
         return TCL_ERROR;
       }
-      if (Tcl_GetDouble(interp, argv[iarg], &data.shear_center[0]) != TCL_OK) {
+      if (Tcl_GetDouble(interp, argv[iarg], &shape_data.mixed.shear_origin[0]) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "invalid Ys";
         return TCL_ERROR;
       }
-      if (Tcl_GetDouble(interp, argv[iarg+1], &data.shear_center[1]) != TCL_OK) {
+      if (Tcl_GetDouble(interp, argv[iarg+1], &shape_data.mixed.shear_origin[1]) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "invalid Zs";
         return TCL_ERROR;
       }
@@ -1069,11 +1065,11 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   // try preallocating fiber space.
   if (iarg < argc) {
     std::string_view sv{argv[iarg]};
-    data.reserve = std::count(sv.begin(), sv.end(), '\n');
+    options.reserve = std::count(sv.begin(), sv.end(), '\n');
   }
 
   // initialize  the fiber section (for building)
-  if (initSectionCommands(clientData, interp, secTag, torsion, data, options) != TCL_OK) {
+  if (initSectionCommands(clientData, interp, secTag, torsion, shape_data, options) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "error constructing the section\n";
     return TCL_ERROR;
   }
@@ -1154,7 +1150,8 @@ TclCommand_addFiberIntSection(ClientData clientData, Tcl_Interp *interp,
     }
 
     if (Tcl_GetDouble(interp, argv[5], &t1) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid t1" << OpenSees::SignalMessageEnd;
+      opserr << OpenSees::PromptValueError << "invalid t1" 
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
