@@ -249,13 +249,13 @@ AcceleratedNewton::recvSelf(int cTag, Channel &theChannel,
 void
 AcceleratedNewton::Print(OPS_Stream &s, int flag) const
 {
-  s << "AcceleratedNewton" << endln;
+  s << "QuasiNewton" << "\n";
   LinearSOE *theSOE = this->getLinearSOEptr();
-  s << "\tNumber of equations: " << theSOE->getNumEqn() << endln;
+  s << "\tNumber of equations: " << theSOE->getNumEqn() << "\n";
 
   if (theAccelerator != 0)
     theAccelerator->Print(s,flag);
   else
-    s << "\tNo accelerator --> Modified Newton" << endln;
+    s << "\tNo accelerator --> Modified Newton" << "\n";
 }
 
