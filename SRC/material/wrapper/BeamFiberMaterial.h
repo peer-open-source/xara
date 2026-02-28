@@ -31,8 +31,13 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <VectorND.h>
+#include <MatrixND.h>
+#include <Matrix3D.h>
 #include <ID.h> 
 #include <NDMaterial.h>
+
+
+namespace OpenSees {
 
 class BeamFiberMaterial: public NDMaterial {
 
@@ -47,6 +52,12 @@ class BeamFiberMaterial: public NDMaterial {
     const Vector& getStress();
     const Matrix& getTangent();
     const Matrix& getInitialTangent();
+    bool threadSafe() const override {
+      if (theMaterial != nullptr)
+        return theMaterial->threadSafe();
+      else
+        return false;
+    }
 
     double getRho();
 
@@ -81,12 +92,11 @@ class BeamFiberMaterial: public NDMaterial {
 
     NDMaterial *theMaterial;
 
-    OpenSees::VectorND<3> strain;
+    VectorND<3>   strain;
+    VectorND<3>   stress;
+    MatrixND<3,3> tangent;
 
-    static Matrix tangent;
+    Vector rvec;
+    Matrix rmat;
 };
-
-
-
-
-
+} // namespace OpenSees

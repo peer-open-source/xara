@@ -26,6 +26,7 @@
 //
 // Written: MHS
 // Created: Aug 2001
+// Modified: CMP, Jan 2026: Make thread safe
 //
 #include <BeamFiberMaterial.h>
 #include <Channel.h>
@@ -34,10 +35,8 @@
 #include <Vector3D.h>
 #include <Matrix3D.h>
 #include <Cholesky.tpp>
-#include <cmath> 
+#include <cmath>
 using namespace OpenSees;
-
-Matrix BeamFiberMaterial::tangent(3,3);
 
 //      0  1  2  3  4  5
 // ND: 11 22 33 12 23 31
@@ -47,7 +46,7 @@ BeamFiberMaterial::BeamFiberMaterial()
 : NDMaterial(0, ND_TAG_BeamFiberMaterial),
 Tstrain22(0.0), Tstrain33(0.0), Tgamma23(0.0),
 Cstrain22(0.0), Cstrain33(0.0), Cgamma23(0.0),
-theMaterial(0), strain()
+theMaterial(0), strain(), stress(), tangent()
 {
   // Nothing to do
 }
@@ -56,15 +55,14 @@ BeamFiberMaterial::BeamFiberMaterial(int tag, NDMaterial &theMat)
 : NDMaterial(tag, ND_TAG_BeamFiberMaterial),
 Tstrain22(0.0), Tstrain33(0.0), Tgamma23(0.0),
 Cstrain22(0.0), Cstrain33(0.0), Cgamma23(0.0),
-theMaterial(0), strain()
-
+theMaterial(0), strain(), stress(), tangent()
 {
   theMaterial = theMat.getCopy("ThreeDimensional");
 }
 
 BeamFiberMaterial::~BeamFiberMaterial() 
 { 
-  if (theMaterial != 0)
+  if (theMaterial != nullptr)
     delete theMaterial;
 } 
 
@@ -84,13 +82,14 @@ BeamFiberMaterial::getCopy()
   return theCopy;
 }
 
+
 NDMaterial* 
 BeamFiberMaterial::getCopy(const char *type)
 {
   if (strcmp(type, "BeamFiber") == 0)
     return this->getCopy();
   else
-    return 0;
+    return nullptr;
 }
 
 int 
@@ -139,6 +138,7 @@ BeamFiberMaterial::revertToStart()
   return theMaterial->revertToStart();
 }
 
+
 double
 BeamFiberMaterial::getRho()
 {
@@ -158,8 +158,8 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
   // Newton loop to solve for out-of-plane strains
   Vector3D condensedStress{}; //(3);
   Vector3D strainIncrement{};
-  Matrix3D dd22; // (3,3);
-  static Vector threeDstrain(6);
+  Matrix3D dd22{};
+  VectorND<6> threeDstrain{};
 
   int count = 0;
   static constexpr int maxCount = 40;
@@ -167,7 +167,6 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
   double norm0;
 
   do {
-
     // set three dimensional strain
     threeDstrain(0) = this->strain(0); // xx
     threeDstrain(1) = this->Tstrain22; // yy
@@ -183,7 +182,7 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     const Vector &threeDstress = theMaterial->getStress();
 
     // three dimensional tangent 
-    const Matrix &threeDtangent = theMaterial->getTangent();
+    const Matrix &Duu = theMaterial->getTangent();
 
     // NDmaterial strain order        = 11, 22, 33, 12, 23, 31  
     // BeamFiberMaterial strain order = 11, 12, 31, 22, 33, 23
@@ -192,17 +191,17 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     condensedStress(1) = threeDstress(2);
     condensedStress(2) = threeDstress(4);
 
-    dd22(0,0) = threeDtangent(1,1);
-    dd22(1,0) = threeDtangent(2,1);
-    dd22(2,0) = threeDtangent(4,1);
+    dd22(0,0) = Duu(1,1);
+    dd22(1,0) = Duu(2,1);
+    dd22(2,0) = Duu(4,1);
 
-    dd22(0,1) = threeDtangent(1,2);
-    dd22(1,1) = threeDtangent(2,2);
-    dd22(2,1) = threeDtangent(4,2);
+    dd22(0,1) = Duu(1,2);
+    dd22(1,1) = Duu(2,2);
+    dd22(2,1) = Duu(4,2);
 
-    dd22(0,2) = threeDtangent(1,4);
-    dd22(1,2) = threeDtangent(2,4);
-    dd22(2,2) = threeDtangent(4,4);
+    dd22(0,2) = Duu(1,4);
+    dd22(1,2) = Duu(2,4);
+    dd22(2,2) = Duu(4,4);
 
     // set norm
     norm = condensedStress.norm();
@@ -210,7 +209,7 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
       norm0 = norm;
 
     // condensation
-    Cholesky<3> chol(dd22);
+    Cholesky<3,true> chol(dd22);
     if (chol.solve(&condensedStress[0], &strainIncrement[0]) < 0) [[unlikely]] {
       if (dd22.solve(condensedStress, strainIncrement) < 0) {
         opserr << "could not solve for strain increment\n";
@@ -246,14 +245,14 @@ BeamFiberMaterial::getStrain()
 const Vector&  
 BeamFiberMaterial::getStress()
 {
-  static Vector stress;
   const Vector &threeDstress = theMaterial->getStress();
 
   stress(0) = threeDstress(0);
   stress(1) = threeDstress(3);
   stress(2) = threeDstress(5);
 
-  return stress;
+  rvec.setData(stress);
+  return rvec;
 }
 
 const Vector& 
@@ -262,119 +261,116 @@ BeamFiberMaterial::getStressSensitivity(int gradIndex,
 {
   const Vector &threeDstress = theMaterial->getStressSensitivity(gradIndex, conditional);
 
-  static Vector stress(3);
   stress(0) = threeDstress(0);
   stress(1) = threeDstress(3);
   stress(2) = threeDstress(5);
 
-  const Matrix &threeDtangent = theMaterial->getTangent();
+  const Matrix &Duu = theMaterial->getTangent();
 
-  static Matrix dd12(3,3);
-  dd12(0,0) = threeDtangent(0,1);
-  dd12(1,0) = threeDtangent(3,1);
-  dd12(2,0) = threeDtangent(5,1);
+  Matrix3D dd12{};
+  dd12(0,0) = Duu(0,1);
+  dd12(1,0) = Duu(3,1);
+  dd12(2,0) = Duu(5,1);
 
-  dd12(0,1) = threeDtangent(0,2);
-  dd12(1,1) = threeDtangent(3,2);
-  dd12(2,1) = threeDtangent(5,2);
+  dd12(0,1) = Duu(0,2);
+  dd12(1,1) = Duu(3,2);
+  dd12(2,1) = Duu(5,2);
 
-  dd12(0,2) = threeDtangent(0,4);
-  dd12(1,2) = threeDtangent(3,4);
-  dd12(2,2) = threeDtangent(5,4);
+  dd12(0,2) = Duu(0,4);
+  dd12(1,2) = Duu(3,4);
+  dd12(2,2) = Duu(5,4);
 
 
-  static Matrix dd22(3,3);
-  dd22(0,0) = threeDtangent(1,1);
-  dd22(1,0) = threeDtangent(2,1);
-  dd22(2,0) = threeDtangent(4,1);
+  Matrix3D dd22{};
+  dd22(0,0) = Duu(1,1);
+  dd22(1,0) = Duu(2,1);
+  dd22(2,0) = Duu(4,1);
+
+  dd22(0,1) = Duu(1,2);
+  dd22(1,1) = Duu(2,2);
+  dd22(2,1) = Duu(4,2);
   
-  dd22(0,1) = threeDtangent(1,2);
-  dd22(1,1) = threeDtangent(2,2);
-  dd22(2,1) = threeDtangent(4,2);
-  
-  dd22(0,2) = threeDtangent(1,4);
-  dd22(1,2) = threeDtangent(2,4);
-  dd22(2,2) = threeDtangent(4,4);
+  dd22(0,2) = Duu(1,4);
+  dd22(1,2) = Duu(2,4);
+  dd22(2,2) = Duu(4,4);
 
   
-  static Vector sigma2(3);
+  VectorND<3> sigma2{};
   sigma2(0) = threeDstress(1);
   sigma2(1) = threeDstress(2);
   sigma2(2) = threeDstress(4);
 
-  static Vector dd22sigma2(3);
-  dd22.Solve(sigma2,dd22sigma2);
+  VectorND<3> dd22sigma2{};
+  dd22.solve(sigma2,dd22sigma2);
 
   stress.addMatrixVector(1.0, dd12, dd22sigma2, -1.0);
 
-  return stress;
+  rvec.setData(stress);
+  return rvec;
 }
 
 const Matrix&  
 BeamFiberMaterial::getTangent()
 {
-  const Matrix &threeDtangent = theMaterial->getTangent();
+  const Matrix &D = theMaterial->getTangent();
 
-  static Matrix3D dd11;
-  dd11(0,0) = threeDtangent(0,0);
-  dd11(1,0) = threeDtangent(3,0);
-  dd11(2,0) = threeDtangent(5,0);
+  Matrix3D& dd11 = tangent;
+  dd11(0,0) = D(0,0);
+  dd11(1,0) = D(3,0);
+  dd11(2,0) = D(5,0);
 
-  dd11(0,1) = threeDtangent(0,3);
-  dd11(1,1) = threeDtangent(3,3);
-  dd11(2,1) = threeDtangent(5,3);
+  dd11(0,1) = D(0,3);
+  dd11(1,1) = D(3,3);
+  dd11(2,1) = D(5,3);
+  dd11(0,2) = D(0,5);
+  dd11(1,2) = D(3,5);
+  dd11(2,2) = D(5,5);
 
-  dd11(0,2) = threeDtangent(0,5);
-  dd11(1,2) = threeDtangent(3,5);
-  dd11(2,2) = threeDtangent(5,5);
 
+  Matrix3D dd12{};
+  dd12(0,0) = D(0,1);
+  dd12(1,0) = D(3,1);
+  dd12(2,0) = D(5,1);
 
-  static Matrix3D dd12;
-  dd12(0,0) = threeDtangent(0,1);
-  dd12(1,0) = threeDtangent(3,1);
-  dd12(2,0) = threeDtangent(5,1);
+  dd12(0,1) = D(0,2);
+  dd12(1,1) = D(3,2);
+  dd12(2,1) = D(5,2);
 
-  dd12(0,1) = threeDtangent(0,2);
-  dd12(1,1) = threeDtangent(3,2);
-  dd12(2,1) = threeDtangent(5,2);
-
-  dd12(0,2) = threeDtangent(0,4);
-  dd12(1,2) = threeDtangent(3,4);
-  dd12(2,2) = threeDtangent(5,4);
-
+  dd12(0,2) = D(0,4);
+  dd12(1,2) = D(3,4);
+  dd12(2,2) = D(5,4);
 
   Matrix3D dd22invdd21;
   {
     Matrix3D dd22;
-    dd22(0,0) = threeDtangent(1,1);
-    dd22(1,0) = threeDtangent(2,1);
-    dd22(2,0) = threeDtangent(4,1);
+    dd22(0,0) = D(1,1);
+    dd22(1,0) = D(2,1);
+    dd22(2,0) = D(4,1);
 
-    dd22(0,1) = threeDtangent(1,2);
-    dd22(1,1) = threeDtangent(2,2);
-    dd22(2,1) = threeDtangent(4,2);
+    dd22(0,1) = D(1,2);
+    dd22(1,1) = D(2,2);
+    dd22(2,1) = D(4,2);
 
-    dd22(0,2) = threeDtangent(1,4);
-    dd22(1,2) = threeDtangent(2,4);
-    dd22(2,2) = threeDtangent(4,4);
+    dd22(0,2) = D(1,4);
+    dd22(1,2) = D(2,4);
+    dd22(2,2) = D(4,4);
 
     Matrix3D dd21;
-    dd21(0,0) = threeDtangent(1,0);
-    dd21(1,0) = threeDtangent(2,0);
-    dd21(2,0) = threeDtangent(4,0);
+    dd21(0,0) = D(1,0);
+    dd21(1,0) = D(2,0);
+    dd21(2,0) = D(4,0);
 
-    dd21(0,1) = threeDtangent(1,3);
-    dd21(1,1) = threeDtangent(2,3);
-    dd21(2,1) = threeDtangent(4,3);
-
-    dd21(0,2) = threeDtangent(1,5);
-    dd21(1,2) = threeDtangent(2,5);
-    dd21(2,2) = threeDtangent(4,5);
+    dd21(0,1) = D(1,3);
+    dd21(1,1) = D(2,3);
+    dd21(2,1) = D(4,3);
+    dd21(0,2) = D(1,5);
+    dd21(1,2) = D(2,5);
+    dd21(2,2) = D(4,5);
 
     //int Solve(const Vector &V, Vector &res) const;
     //int Solve(const Matrix &M, Matrix &res) const;
     //condensation
-    Cholesky<3> chol(dd22);
+    Cholesky<3, true> chol(dd22);
     Matrix3D d22inv;
     if (chol.invert(d22inv) < 0) [[unlikely]] {
       if (dd22.solve(dd21, dd22invdd21) < 0) {
@@ -390,70 +386,72 @@ BeamFiberMaterial::getTangent()
   //this->tangent  -= (dd12*dd22invdd21);
   dd11.addMatrixProduct(1.0, dd12, dd22invdd21, -1.0);
 
-  for (int i=0; i<3; i++)
-    for (int j=0; j<3; j++)
-      tangent(i,j) = dd11(i,j);
+  // for (int i=0; i<3; i++)
+  //   for (int j=0; j<3; j++)
+  //     tangent(i,j) = dd11(i,j);
 
-  return tangent;
+  rmat.setData(tangent);
+  return rmat;
 }
 
 const Matrix&  
 BeamFiberMaterial::getInitialTangent()
 {
-  const Matrix &threeDtangent = theMaterial->getInitialTangent();
+  static Matrix tangent(3,3);
+  const Matrix &Duu = theMaterial->getInitialTangent();
 
   static Matrix dd11(3,3);
-  dd11(0,0) = threeDtangent(0,0);
-  dd11(1,0) = threeDtangent(3,0);
-  dd11(2,0) = threeDtangent(5,0);
+  dd11(0,0) = Duu(0,0);
+  dd11(1,0) = Duu(3,0);
+  dd11(2,0) = Duu(5,0);
 
-  dd11(0,1) = threeDtangent(0,3);
-  dd11(1,1) = threeDtangent(3,3);
-  dd11(2,1) = threeDtangent(5,3);
+  dd11(0,1) = Duu(0,3);
+  dd11(1,1) = Duu(3,3);
+  dd11(2,1) = Duu(5,3);
 
-  dd11(0,2) = threeDtangent(0,5);
-  dd11(1,2) = threeDtangent(3,5);
-  dd11(2,2) = threeDtangent(5,5);
+  dd11(0,2) = Duu(0,5);
+  dd11(1,2) = Duu(3,5);
+  dd11(2,2) = Duu(5,5);
 
 
   static Matrix dd12(3,3);
-  dd12(0,0) = threeDtangent(0,1);
-  dd12(1,0) = threeDtangent(3,1);
-  dd12(2,0) = threeDtangent(5,1);
+  dd12(0,0) = Duu(0,1);
+  dd12(1,0) = Duu(3,1);
+  dd12(2,0) = Duu(5,1);
 
-  dd12(0,1) = threeDtangent(0,2);
-  dd12(1,1) = threeDtangent(3,2);
-  dd12(2,1) = threeDtangent(5,2);
+  dd12(0,1) = Duu(0,2);
+  dd12(1,1) = Duu(3,2);
+  dd12(2,1) = Duu(5,2);
 
-  dd12(0,2) = threeDtangent(0,4);
-  dd12(1,2) = threeDtangent(3,4);
-  dd12(2,2) = threeDtangent(5,4);
+  dd12(0,2) = Duu(0,4);
+  dd12(1,2) = Duu(3,4);
+  dd12(2,2) = Duu(5,4);
 
   static Matrix dd21(3,3);
-  dd21(0,0) = threeDtangent(1,0);
-  dd21(1,0) = threeDtangent(2,0);
-  dd21(2,0) = threeDtangent(4,0);
+  dd21(0,0) = Duu(1,0);
+  dd21(1,0) = Duu(2,0);
+  dd21(2,0) = Duu(4,0);
 
-  dd21(0,1) = threeDtangent(1,3);
-  dd21(1,1) = threeDtangent(2,3);
-  dd21(2,1) = threeDtangent(4,3);
+  dd21(0,1) = Duu(1,3);
+  dd21(1,1) = Duu(2,3);
+  dd21(2,1) = Duu(4,3);
 
-  dd21(0,2) = threeDtangent(1,5);
-  dd21(1,2) = threeDtangent(2,5);
-  dd21(2,2) = threeDtangent(4,5);
+  dd21(0,2) = Duu(1,5);
+  dd21(1,2) = Duu(2,5);
+  dd21(2,2) = Duu(4,5);
 
   static Matrix dd22(3,3);
-  dd22(0,0) = threeDtangent(1,1);
-  dd22(1,0) = threeDtangent(2,1);
-  dd22(2,0) = threeDtangent(4,1);
+  dd22(0,0) = Duu(1,1);
+  dd22(1,0) = Duu(2,1);
+  dd22(2,0) = Duu(4,1);
 
-  dd22(0,1) = threeDtangent(1,2);
-  dd22(1,1) = threeDtangent(2,2);
-  dd22(2,1) = threeDtangent(4,2);
+  dd22(0,1) = Duu(1,2);
+  dd22(1,1) = Duu(2,2);
+  dd22(2,1) = Duu(4,2);
 
-  dd22(0,2) = threeDtangent(1,4);
-  dd22(1,2) = threeDtangent(2,4);
-  dd22(2,2) = threeDtangent(4,4);
+  dd22(0,2) = Duu(1,4);
+  dd22(1,2) = Duu(2,4);
+  dd22(2,2) = Duu(4,4);
 
 
   //int Solve(const Vector &V, Vector &res) const;
