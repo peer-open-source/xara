@@ -19,8 +19,10 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <MatrixND.h>
 #include <FrameSection.h>
+#include "FrameSectionConstants.h"
 
 class Matrix;
 class Vector;
@@ -36,9 +38,7 @@ class ElasticLinearFrameSection3d : public FrameSection
 
  public:
   ElasticLinearFrameSection3d(int tag, 
-              double E, 
-              double G, 
-              const FrameSectionConstants&,
+              const Frame::Prism&,
               double mass,
               bool   use_mass
   );
@@ -76,7 +76,7 @@ public:
   void Print(OPS_Stream &s, int flag) final;
 
   int setParameter(const char **argv, int argc, Parameter &) final;
-  int updateParameter(int parameterID, Information &info) final;
+  int updateParameter(int parameterID, Information &) final;
   int activateParameter(int parameterID);
   const Vector& getStressResultantSensitivity(int gradIndex,
                                               bool conditional);
@@ -85,20 +85,19 @@ public:
   
  private:
 
-  void getConstants(FrameSectionConstants& consts) const; 
+  void getConstants(Frame::Prism& consts) const; 
 
 
   constexpr static int nr = 12;
 
-  ElasticLinearFrameSection3d(std::shared_ptr<OpenSees::MatrixND<nr,nr>> Ks);
-
-  double E, G;
+  ElasticLinearFrameSection3d(ElasticLinearFrameSection3d& other);
   Vector  v;
   Matrix  M,         // Generic matrix for returning Ks or Fs (nr x nr)
          *Ksen;      // Tangent sensitivity (nr x nr)
 
   OpenSees::VectorND<nr> s;
   OpenSees::VectorND<nr> e;                      // section trial deformations
+  std::shared_ptr<Frame::Prism> shape_data;
   std::shared_ptr<OpenSees::MatrixND<nr,nr>> Ks;
   Matrix* Fs = nullptr;
 
