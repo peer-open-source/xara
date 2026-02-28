@@ -190,6 +190,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"J2Thermal",                        dispatch<TclCommand_newPlasticMaterial>},
   {"J2PlasticityThermal",              dispatch<TclCommand_newPlasticMaterial>},
   {"J2BeamFiber",                      dispatch<TclCommand_newPlasticMaterial>},
+  {"J2BeamThread",                     dispatch<TclCommand_newPlasticMaterial>},
 
   {"SimplifiedJ2",                     dispatch<TclCommand_newPlasticMaterial>},
   {"J2Simplified",                     dispatch<TclCommand_newPlasticMaterial>},
