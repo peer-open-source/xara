@@ -52,7 +52,7 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <matrix/identity.h> // IbunI, IIdev
-
+#include "hardening/FlowStress.h"
 
 extern double ops_Dt;
 
@@ -236,6 +236,7 @@ J2Plasticity::plastic_integrator()
 {
   double dt = ops_Dt;
   const double tolerance = 1.0e-10 * sigma_0;
+  const double G = shear;
 
   static Matrix dev_stress(3, 3); // deviatoric stress
 
@@ -243,7 +244,6 @@ J2Plasticity::plastic_integrator()
 
   double NbunN; // normal bun normal
   double inv_norm_tau = 0.0;
-  double tang         = 0.0;
 
 
   constexpr static int max_iterations = 25;
@@ -259,10 +259,10 @@ J2Plasticity::plastic_integrator()
 
   // compute the trial deviatoric stresses
 
-  // dev_stress = (2.0*shear) * ( dev_strain - epsilon_p_n ) ;
+  // dev_stress = (2.0*G) * ( dev_strain - epsilon_p_n ) ;
   dev_stress = dev_strain;
   dev_stress -= epsilon_p_n;
-  dev_stress *= 2.0 * shear;
+  dev_stress *= 2.0*G;
 
 
   double norm_tau = 0.0; // norm of deviatoric stress
@@ -284,58 +284,53 @@ J2Plasticity::plastic_integrator()
 
   double phi = norm_tau - root23 * q(xi_n);
 
-  double c1 = 0.0;
-  double c2 = 0.0;
-  double c3 = 0.0;
-
   double theta_inv = 0.0;
 
-  double gamma = 0.0;
+  double Dlam = 0.0;
   if (phi > 0.0) {
     // plastic
 
     // solve for gamma
-    double resid          = 1.0;
+    double g          = 1.0;
     int iteration_counter = 0;
-    while (fabs(resid) > tolerance) {
+    while (std::fabs(g) > tolerance) {
 
-      resid = norm_tau - (2.0 * shear) * gamma - root23 * q(xi_n + root23 * gamma);
+      g = norm_tau - (2.0*G)*Dlam - root23*q(xi_n + root23*Dlam);
 
       if (eta > 0.0 && dt > 0.0)
-        resid -= (eta / dt) * gamma;
+        g -= (eta / dt) * Dlam;
 
-      tang = -(2.0 * shear) - 2. / 3. * qprime(xi_n + root23 * gamma);
+      double Dg = -(2.0*G) - (2./3.)*qprime(xi_n + root23*Dlam);
       if (eta > 0.0 && dt > 0.0)
-        tang -= (eta / dt);
+        Dg -= (eta / dt);
 
-      gamma -= (resid / tang);
+      Dlam -= (g / Dg);
 
       iteration_counter++;
 
       if (iteration_counter > max_iterations) {
         opserr << "More than " << max_iterations;
         opserr << " iterations in J2-plasticity. "
-               << "residual is " << fabs(resid) << " > " << tolerance << "\n";
+               << "residual is " << std::fabs(g) << " > " << tolerance << "\n";
         return -1;
       }
     }
 
 
-    gamma *= 1.0 - 1e-08;
+    Dlam *= 1.0 - 1e-08;
 
     // update plastic internal variables
 
-    epsilon_p_nplus1 = epsilon_p_n + gamma * normal;
-
-    xi_nplus1 = xi_n + root23 * gamma;
+    epsilon_p_nplus1 = epsilon_p_n + Dlam*normal;
+    xi_nplus1        = xi_n + root23*Dlam;
 
     // recompute deviatoric stresses
 
-    dev_stress = (2.0 * shear) * (dev_strain - epsilon_p_nplus1);
+    dev_stress = (2.0*G) * (dev_strain - epsilon_p_nplus1);
 
     // compute the terms for plastic part of tangent
 
-    double theta = (2.0 * shear) + 2./3. * qprime(xi_nplus1);
+    double theta = (2.0*G) + (2./3.)*qprime(xi_nplus1);
 
     if (eta > 0.0 && dt > 0.0)
       theta += (eta / dt);
@@ -353,7 +348,7 @@ J2Plasticity::plastic_integrator()
     epsilon_p_nplus1 = epsilon_p_n;
     xi_nplus1        = xi_n;
 
-    gamma     = 0.0;
+    Dlam      = 0.0;
     theta_inv = 0.0;
 
   } // end if phi > 0
@@ -367,17 +362,17 @@ J2Plasticity::plastic_integrator()
 
   // compute the tangent
 
-  c1 = -4.0 * shear * shear;
-  c2 = c1 * theta_inv;
-  c3 = c1 * gamma * inv_norm_tau;
+  double c1 = -4.0 * shear * shear;
+  double c2 = c1 * theta_inv;
+  double c3 = c1 * Dlam * inv_norm_tau;
 
   for (int ii = 0; ii < 6; ii++) {
     for (int jj = 0; jj < 6; jj++) {
 
       int i, j, k, l;
 
-      index_map(ii, i, j);
-      index_map(jj, k, l);
+      this->index_map(ii, i, j);
+      this->index_map(jj, k, l);
 
       NbunN = normal(i, j) * normal(k, l);
 
@@ -431,7 +426,7 @@ J2Plasticity::doInitialTangent()
 double
 J2Plasticity::q(double xi)
 {
-  return Hard*xi + sigma_infty + (sigma_0 - sigma_infty) * exp(-delta * xi);
+  return Hard*xi + sigma_infty + (sigma_0 - sigma_infty) * std::exp(-delta * xi);
 }
 
 
@@ -439,7 +434,7 @@ J2Plasticity::q(double xi)
 double
 J2Plasticity::qprime(double xi)
 {
-  return (sigma_0 - sigma_infty) * (-delta) * exp(-delta * xi) + Hard;
+  return (sigma_0 - sigma_infty) * (-delta)*std::exp(-delta * xi) + Hard;
 }
 
 

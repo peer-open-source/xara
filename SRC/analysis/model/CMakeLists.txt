@@ -7,8 +7,6 @@
 target_sources(OPS_Analysis
     PRIVATE
       AnalysisModel.cpp
-      FE_EleIter.cpp
-      DOF_GrpIter.cpp
     PUBLIC
       AnalysisModel.h
       FE_EleIter.h

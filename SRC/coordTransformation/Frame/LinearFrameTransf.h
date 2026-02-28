@@ -53,7 +53,7 @@ public:
   int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const override;
   
   int initialize(std::array<Node*, nn>& ) final;
-  int update() final;
+  int update() noexcept final;
   int commit() final;
   int revertToLastCommit() final;
   int revertToStart() final;
@@ -62,14 +62,14 @@ public:
   Vector3D getNodeRotationLogarithm(int tag) final;
   VectorND<nn*ndf> getStateVariation() final;
 
-  using Operation = typename FrameTransform<nn,ndf>::Operation;
+  Matrix3D getRotation() const noexcept final {
+    return this->getInitialRotation();
+  }
 
-  int push(VectorND<nn*ndf>&pl, Operation) final;
-  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
 
-  // // method used to rotate consistent mass matrix
-  // const Matrix &getGlobalMatrixFromLocal(const Matrix &local);
-  
+  int push(VectorND<nn*ndf>&pl, int) final;
+  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, int) final;
+
 
   // Sensitivity
   //

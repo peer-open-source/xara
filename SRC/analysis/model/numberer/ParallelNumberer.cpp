@@ -35,10 +35,8 @@
 #include <Vertex.h>
 #include <VertexIter.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <GraphNumberer.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <MP_Constraint.h>
 #include <MP_ConstraintIter.h>
 #include <Node.h>

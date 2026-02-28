@@ -40,8 +40,8 @@ class TaggedObjectIter
     TaggedObjectIter() {};
     virtual ~TaggedObjectIter() {};
 
-    virtual void reset(void) =0;
-    virtual TaggedObject *operator()(void) =0;
+    virtual void reset() =0;
+    virtual TaggedObject *operator()() =0;
 
   protected:
     

@@ -34,7 +34,6 @@
 #include <Channel.h>
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <NDMaterial.h>
@@ -911,49 +910,6 @@ SSPbrick::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBrok
   return 0; 
 }
 
-int
-SSPbrick::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	// vertex display coordinate vectors
-	static Vector v1(3);
-	static Vector v2(3);
-	static Vector v3(3);
-	static Vector v4(3);
-	static Vector v5(3);
-	static Vector v6(3);
-	static Vector v7(3);
-	static Vector v8(3);
-	theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-	theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-	theNodes[2]->getDisplayCrds(v3, fact, displayMode);
-	theNodes[3]->getDisplayCrds(v4, fact, displayMode);
-	theNodes[4]->getDisplayCrds(v5, fact, displayMode);
-	theNodes[5]->getDisplayCrds(v6, fact, displayMode);
-	theNodes[6]->getDisplayCrds(v7, fact, displayMode);
-	theNodes[7]->getDisplayCrds(v8, fact, displayMode);
-
-	// add to coord matrix
-	static Matrix coords(8, 3);
-	int i;
-	for (i = 0; i < 3; i++) {
-		coords(0, i) = v1(i);
-		coords(1, i) = v2(i);
-		coords(2, i) = v3(i);
-		coords(3, i) = v4(i);
-		coords(4, i) = v5(i);
-		coords(5, i) = v6(i);
-		coords(6, i) = v7(i);
-		coords(7, i) = v8(i);
-	}
-
-	// get color vector
-	static Vector values(8);
-	for (i = 0; i < 8; i++)
-		values(i) = 1.0;
-
-	// draw cube
-	return theViewer.drawCube(coords, values, this->getTag());
-}
 
 void
 SSPbrick::Print(OPS_Stream &s, int flag)

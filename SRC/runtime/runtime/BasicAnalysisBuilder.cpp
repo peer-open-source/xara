@@ -36,10 +36,8 @@
 #include <float.h>
 
 // For eigen
-#include <FE_EleIter.h>
 #include <FE_Element.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 
 // Default concrete analysis classes
 #include <Newmark.h>
@@ -77,7 +75,7 @@ BasicAnalysisBuilder::BasicAnalysisBuilder(ModelRegistry& context)
   theDomain(context.getDomain()),
   theHandler(nullptr),
   theNumberer(nullptr),
-  theAnalysisModel(new AnalysisModel()),
+  theAnalysisModel(new AnalysisModel(*context.getDomain())),
   theAlgorithm(nullptr),
   theSOE(nullptr),
   theEigenSOE(nullptr),
@@ -140,7 +138,7 @@ BasicAnalysisBuilder::wipe()
   }
   if (theAnalysisModel != nullptr) {
     delete theAnalysisModel;
-    theAnalysisModel = new AnalysisModel();
+    theAnalysisModel = new AnalysisModel(*context.getDomain());
   }
 }
 
@@ -155,14 +153,15 @@ BasicAnalysisBuilder::setLinks(CurrentAnalysis flag)
   if (theTest && theAlgorithm)
     theAlgorithm->setConvergenceTest(theTest);
 
+  if (theAnalysisModel && theHandler)
+    theHandler->setLinks(*theAnalysisModel);
 
   switch (flag) {
     case EMPTY_ANALYSIS:
+    case EIGEN_ANALYSIS:
       break;
 
     case TRANSIENT_ANALYSIS:
-      if (theAnalysisModel && theTransientIntegrator && theHandler)
-        theHandler->setLinks(*theAnalysisModel);
 
       if (theTransientIntegrator && theSOE && theTest && theAlgorithm)
         theAlgorithm->setLinks(*theTransientIntegrator, *theSOE, theTest);
@@ -177,9 +176,6 @@ BasicAnalysisBuilder::setLinks(CurrentAnalysis flag)
       break;
 
     case STATIC_ANALYSIS:
-      if (theAnalysisModel && theStaticIntegrator && theHandler)
-        theHandler->setLinks(*theAnalysisModel);
-
       if (theAnalysisModel && theSOE && theTest && theStaticIntegrator)
         theStaticIntegrator->setLinks(*theAnalysisModel, *theSOE, theTest);
 
@@ -205,6 +201,7 @@ BasicAnalysisBuilder::initialize()
 
   switch (this->CurrentAnalysisFlag) {
     case EMPTY_ANALYSIS:
+    case EIGEN_ANALYSIS:
       break;
 
     case STATIC_ANALYSIS:
@@ -234,7 +231,7 @@ BasicAnalysisBuilder::number()
 {
   theAnalysisModel->clearAll();
 
-  if (theHandler != nullptr) {
+  if (theHandler != nullptr && theNumberer != nullptr) {
 
     // Create FE_Element and DOF_Group objects
     // and add to the AnalysisModel.
@@ -323,6 +320,7 @@ BasicAnalysisBuilder::domainChanged()
 int
 BasicAnalysisBuilder::analyze(int num_steps, double size_steps, int flag)
 {
+
   int status = -1;
   switch (this->CurrentAnalysisFlag) {
 
@@ -338,7 +336,8 @@ BasicAnalysisBuilder::analyze(int num_steps, double size_steps, int flag)
     }
 
     default:
-      opserr << OpenSees::PromptValueError << "No Analysis type has been specified \n";
+      opserr << OpenSees::PromptValueError 
+             << "No Analysis type has been specified \n";
       return -1;
   }
 
@@ -803,6 +802,7 @@ BasicAnalysisBuilder::fillDefaults(BasicAnalysisBuilder::CurrentAnalysis flag)
 
   switch (flag) {
     case EMPTY_ANALYSIS:
+    case EIGEN_ANALYSIS:
       break;
 
     case STATIC_ANALYSIS:
@@ -868,12 +868,15 @@ void
 BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
 {
   assert(theAnalysisModel != nullptr);
-
   if (theHandler == nullptr)
     theHandler = new TransformationConstraintHandler();
 
-  if (this->CurrentAnalysisFlag == EMPTY_ANALYSIS)
-    this->CurrentAnalysisFlag = TRANSIENT_ANALYSIS;
+  if (theNumberer == nullptr)
+    theNumberer = new DOF_Numberer(*(new RCM(false)));
+
+  if (theSOE == nullptr)
+    // TODO: CHANGE TO MORE GENERAL SOE
+    theSOE = new ProfileSPDLinSOE(*(new ProfileSPDLinDirectSolver()));
 
 
   // create a new eigen system and solver
@@ -883,8 +886,9 @@ BasicAnalysisBuilder::newEigenAnalysis(int typeSolver, double shift)
       theEigenSOE = nullptr;
     // }
   }
-  this->fillDefaults(this->CurrentAnalysisFlag);
-  this->setLinks(this->CurrentAnalysisFlag);
+
+  this->fillDefaults(EIGEN_ANALYSIS);
+  this->setLinks(EIGEN_ANALYSIS);
 
   if (theEigenSOE == nullptr) {
     domainStamp = 0;
@@ -983,7 +987,7 @@ BasicAnalysisBuilder::eigen(int numMode,
       elePtr->zeroTangent();
       elePtr->addMtoTang(1.0);
       if (theEigenSOE->addM(elePtr->getTangent(0), elePtr->getID()) < 0) {
-        opserr << "WARNING BasicAnalysisBuilder::eigen -";
+        opserr << G3_WARN_PROMPT << "eigen -";
         opserr << " failed in addA for ID " << elePtr->getID() << "\n";
         result = -2;
       }
@@ -1077,6 +1081,7 @@ BasicAnalysisBuilder::analyzeGradient()
 {
   switch (this->CurrentAnalysisFlag) {
     case EMPTY_ANALYSIS:
+    case EIGEN_ANALYSIS:
       return -1;
 
     case STATIC_ANALYSIS:
@@ -1096,6 +1101,7 @@ BasicAnalysisBuilder::setGradientType(int flag)
 {
   switch (this->CurrentAnalysisFlag) {
     case EMPTY_ANALYSIS:
+    case EIGEN_ANALYSIS:
       return -1;
 
     case STATIC_ANALYSIS:
@@ -1113,4 +1119,29 @@ BasicAnalysisBuilder::setGradientType(int flag)
       break;
   }
   return 0;
+}
+
+
+void 
+BasicAnalysisBuilder::Print(OPS_Stream &s, int flag)
+{
+  s << "  Analysis Type: ";
+  switch (this->CurrentAnalysisFlag) {
+    case STATIC_ANALYSIS:
+      s << "  Static";
+      break;
+    case TRANSIENT_ANALYSIS:
+      s << "  Transient";
+      break;
+    case EMPTY_ANALYSIS:
+      s << "  No Analysis Specified\n";
+      return;
+    case EIGEN_ANALYSIS:
+      s << "  Eigenvalue";
+      break;
+  }
+  s << " (" 
+    << int(0 != this->theStaticIntegrator) << ", "
+    << int(0 != this->theTransientIntegrator) << ")";
+  s << "\n";
 }

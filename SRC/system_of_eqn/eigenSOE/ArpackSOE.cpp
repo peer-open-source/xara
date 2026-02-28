@@ -37,9 +37,7 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <AnalysisModel.h>
-#include <DOF_GrpIter.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
 #include <FE_Element.h>
 #include <LinearSOE.h>
 

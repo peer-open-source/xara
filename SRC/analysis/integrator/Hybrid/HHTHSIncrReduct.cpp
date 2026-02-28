@@ -35,7 +35,6 @@
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -246,7 +245,6 @@ int HHTHSIncrReduct::formNodTangent(DOF_Group *theDof)
 
 int HHTHSIncrReduct::domainChanged()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
     const Vector &x = theLinSOE->getX();
     int size = x.Size();
@@ -287,50 +285,6 @@ int HHTHSIncrReduct::domainChanged()
         Ualphadot = new Vector(size);
         Ualphadotdot = new Vector(size);
         scaledDeltaU = new Vector(size);
-        
-        // check we obtained the new
-        if (Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            Ualpha == 0 || Ualpha->Size() != size ||
-            Ualphadot == 0 || Ualphadot->Size() != size ||
-            Ualphadotdot == 0 || Ualphadotdot->Size() != size ||
-            scaledDeltaU == 0 || scaledDeltaU->Size() != size)  {
-            
-            opserr << "HHTHSIncrReduct::domainChanged() - ran out of memory\n";
-            
-            // delete the old
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (Ualpha != 0)
-                delete Ualpha;
-            if (Ualphadot != 0)
-                delete Ualphadot;
-            if (Ualphadotdot != 0)
-                delete Ualphadotdot;
-            if (scaledDeltaU != 0)
-                delete scaledDeltaU;
-            
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            Ualpha = 0; Ualphadot = 0; Ualphadotdot = 0;
-            scaledDeltaU = 0;
-            
-            return -1;
-        }
     }
     
     this->getAnalysisModel()->getState(*U, *Udot, *Udotdot, 0);

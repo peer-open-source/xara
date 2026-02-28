@@ -36,6 +36,7 @@ public:
     virtual int setEigenSOE(SymmGeneralizedEigenSOE &theSOE);
 
     virtual const Vector &getEigenvector(int mode);
+    int getEigenvector(int mode, Vector &theVector) final;
     virtual double getEigenvalue(int mode);
 
     int sendSelf(int commitTag, Channel &theChannel);

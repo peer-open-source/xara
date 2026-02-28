@@ -58,8 +58,8 @@ private:
         NDF = 6+nwm,
         ndm = 3,        // dimension of the problem (3D)
         NEN = 2,        // number of element nodes
-        NBV = 6+nwm*2,  // number of element DOFs in the basic system
-        max_subdivision= 10;
+        NBV = 6+nwm*2;  // number of element DOFs in the basic system
+
 public:
 
   const char *
@@ -181,11 +181,15 @@ public:
     LocalForce  = 2,
     BasicForce  = 7,
     BasicStiff  =19,
+    ResultantGradient=76,
+    ResultantStiffness=1001
   };
 
   //
   // Functions
   //
+  int update01();
+  int update02();
   int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 

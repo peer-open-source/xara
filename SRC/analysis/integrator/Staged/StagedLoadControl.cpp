@@ -36,7 +36,6 @@
 #include <Node.h>
 #include <DOF_Group.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Domain.h>
 #include <Parameter.h>
 #include <ParameterIter.h>

@@ -49,7 +49,8 @@ DistributedDiagonalSOE::DistributedDiagonalSOE(DistributedDiagonalSolver &the_So
  size(0), A(0), B(0), X(0), vectX(0), vectB(0), isAfactored(false),
  processID(0), numProcesses(0),
  numChannels(0), theChannels(0), localCol(0), 
- myDOFs(0,32), myDOFsShared(0,16), numShared(0), dataShared(0), vectShared(0), theModel(0)
+ myDOFs(0,32), myDOFsShared(0,16), numShared(0), dataShared(0), vectShared(0)
+ , theModel(0)
 {
     the_Solver.setLinearSOE(*this);
 }
@@ -59,7 +60,8 @@ DistributedDiagonalSOE::DistributedDiagonalSOE()
  size(0), A(0), B(0), X(0), vectX(0), vectB(0), isAfactored(false),
  processID(0), numProcesses(0),
  numChannels(0), theChannels(0), localCol(0), 
- myDOFs(0,32), myDOFsShared(0,16), numShared(0), dataShared(0), vectShared(0), theModel(0)
+ myDOFs(0,32), myDOFsShared(0,16), numShared(0), dataShared(0), vectShared(0)
+ , theModel(0)
 {
 
 }
@@ -195,21 +197,21 @@ DistributedDiagonalSOE::setSize(Graph &theGraph)
 
       // need to send to all others
       for (int k=0; k<numChannels; k++) {
-	Channel *theChannel = theChannels[k];
-	if (k != j) {
-	  theChannel->sendID(0, 0, otherSize);	
-	  if (numOther != 0) {
-	    theChannel->sendID(0, 0, otherDOFS);	    
-	  }
-	}
+        Channel *theChannel = theChannels[k];
+        if (k != j) {
+          theChannel->sendID(0, 0, otherSize);	
+          if (numOther != 0) {
+            theChannel->sendID(0, 0, otherDOFS);	    
+          }
+        }
       }
       
       // need to merge with mine 
       for (int l=0; l<numOther; l++) {
-	int otherTag = otherDOFS(l);
-	if (myDOFs.getLocation(otherTag) != -1 && myDOFsShared.getLocation(otherTag) == -1) { 
-	  myDOFsShared[numShared++] = otherTag;
-	}
+        int otherTag = otherDOFS(l);
+        if (myDOFs.getLocation(otherTag) != -1 && myDOFsShared.getLocation(otherTag) == -1) { 
+          myDOFsShared[numShared++] = otherTag;
+        }
       }
     }
 
@@ -219,14 +221,14 @@ DistributedDiagonalSOE::setSize(Graph &theGraph)
       theChannel->recvID(0, 0, otherSize);	
       int numOther = otherSize(0);
       if (numOther != 0) {
-	otherDOFS.resize(numOther);
-	theChannel->recvID(0, 0, otherDOFS);
+        otherDOFS.resize(numOther);
+        theChannel->recvID(0, 0, otherDOFS);
       } 
       // need to merge with mine 
       for (int k=0; k<numOther; k++) {
-	int otherTag = otherDOFS(k);
-	if (myDOFsShared.getLocation(otherTag) == -1) 
-	  myDOFsShared(numShared++) = otherTag;
+        int otherTag = otherDOFS(k);
+        if (myDOFsShared.getLocation(otherTag) == -1) 
+          myDOFsShared(numShared++) = otherTag;
       }
     }
 
@@ -300,7 +302,7 @@ DistributedDiagonalSOE::setSize(Graph &theGraph)
   FE_EleIter &theEle = theModel->getFEs();
   FE_Element *elePtr;
   while ((elePtr = theEle()) != nullptr)
-      elePtr->setID(); 
+    elePtr->setID(); 
 
 
   // invoke setSize() on the Solver
@@ -309,8 +311,6 @@ DistributedDiagonalSOE::setSize(Graph &theGraph)
   int solverOK = the_Solver->setSize();
   
   if (solverOK < 0) {
-    // opserr << "WARNING DistributedDiagonalSOE::setSize :";
-    // opserr << " solver failed setSize()\n";
     return solverOK;
   }    
 
@@ -322,35 +322,26 @@ DistributedDiagonalSOE::addA(const Matrix &m, const ID &id, double fact)
 {
   // check for a quick return 
   if (fact == 0.0)  return 0;
-  
-#ifdef _G3DEBUG
-  // check that m and id are of similar size
-  int idSize = id.Size();    
-  if (idSize != m.noRows() && idSize != m.noCols()) {
-    opserr << "FullGenLinSOE::addA()	- Matrix and ID not of similar sizes\n";
-    return -1;
-  }
-#endif
 
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0) {
-	A[pos] += m(i,i);
+        A[pos] += m(i,i);
       }
     }
   } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0) {
-	A[pos] -= m(i,i);
+        A[pos] -= m(i,i);
       }
     }
   } else {
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0) {
-	A[pos] += m(i,i) * fact;
+        A[pos] += m(i,i) * fact;
       }
     }
   }	
@@ -380,19 +371,19 @@ DistributedDiagonalSOE::addB(const Vector &v, const ID &id, double fact)
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] += v(i);
+        B[pos] += v(i);
     }
   } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] -= v(i);
+        B[pos] -= v(i);
     }
   } else {
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] += v(i) * fact;
+        B[pos] += v(i) * fact;
     }
   }	
   return 0;
@@ -425,7 +416,7 @@ DistributedDiagonalSOE::setB(const Vector &v, double fact)
 }
 
 void 
-DistributedDiagonalSOE::zeroA(void)
+DistributedDiagonalSOE::zeroA()
 {
   double *Aptr = A;
   for (int i=0; i<size; i++)
@@ -435,7 +426,7 @@ DistributedDiagonalSOE::zeroA(void)
 }
 
 void 
-DistributedDiagonalSOE::zeroB(void)
+DistributedDiagonalSOE::zeroB()
 {
   double *Bptr = B;
   for (int i=0; i<size; i++)
@@ -458,21 +449,21 @@ DistributedDiagonalSOE::setX(const Vector &x)
 }
 
 const Vector &
-DistributedDiagonalSOE::getX(void)
+DistributedDiagonalSOE::getX()
 {
   assert(vectX != nullptr);
   return *vectX;
 }
 
 const Vector &
-DistributedDiagonalSOE::getB(void)
+DistributedDiagonalSOE::getB()
 {
   assert(vectB != nullptr);
   return *vectB;
 }
 
 double 
-DistributedDiagonalSOE::normRHS(void)
+DistributedDiagonalSOE::normRHS()
 {
   double norm =0.0;
   for (int i=0; i<size; i++) {

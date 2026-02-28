@@ -1658,11 +1658,7 @@ const Matrix&  IGAKLShell::getTangentStiff( )
 
 
   // // opserr << "Finished making Ke!!" << endln << endln;
-  // // opserr << "K = " << K << endln;
-
-  // // opserr << "K = " << K << endln;
   // // return K ;
-  // // opserr << "*stiff = " << *stiff << endln;
   // return *stiff;
 }
 

@@ -17,45 +17,27 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1.1.1 $
-// $Date: 2000-09-15 08:23:19 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/pattern/LoadPatternIter.h,v $
-                                                                        
-                                                                        
-// File: ~/domain/loadcase/LoadPatternIter.h
-//
-// Written: fmk 
-// Created: Fri Sep 20 15:27:47: 1996
-// Revision: A
 //
 // Description: This file contains the class definition for LoadPatternIter.
 // LoadPatternIter is an abstract base class. An LoadPatternIter is an 
 // iter for returning the LoadPatterns of an object of class  LoadCasse. 
 // LoadPatternIters must be written for each subclass of LoadCase.
+//
+// Written: fmk 
+// Created: Fri Sep 20 15:27:47: 1996
+// Revision: A
+//
+// $Revision: 1.1.1.1 $
+// $Date: 2000-09-15 08:23:19 $
+// $Source: /usr/local/cvs/OpenSees/SRC/domain/pattern/LoadPatternIter.h,v $
+//             
+// File: ~/domain/loadcase/LoadPatternIter.h
+//
 
 #ifndef LoadPatternIter_h
 #define LoadPatternIter_h
 
 class LoadPattern;
-class TaggedObjectStorage;
-class TaggedObjectIter;
-
-class LoadPatternIter
-{
-  public:
-    LoadPatternIter(TaggedObjectStorage *theStorage);
-    virtual ~LoadPatternIter();
-
-    virtual LoadPattern *operator()(void);
-    virtual void reset(void);
-
-  protected:
-    
-  private:
-    TaggedObjectIter &myIter;
-    
-};
-
+#include <domain/domain/Domain.h>
 #endif
 

@@ -44,6 +44,7 @@ public:
     virtual int setEigenSOE(FullGenEigenSOE &);
 
     const Vector &getEigenvector(int mode) override;
+    int getEigenvector(int mode, Vector &theVector) override;
     double getEigenvalue(int mode) override;
 
     int sendSelf(int commitTag, Channel &);
@@ -51,6 +52,7 @@ public:
 
 private:
     void sort(int length, double *x, int *id);
+    int solveI(int nEigen, bool findSmallest);
 
     FullGenEigenSOE *theSOE;
     int numEigen;

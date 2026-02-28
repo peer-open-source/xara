@@ -17,24 +17,19 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.5 $
-// $Date: 2008-11-19 23:38:29 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/fe_ele/penalty/PenaltySP_FE.h,v $
-                                                                        
-                                                                        
 #ifndef PenaltySP_FE_h
 #define PenaltySP_FE_h
-
-// Written: fmk 
-// Created: 11/96
-// Revision: A
 //
 // Description: This file contains the class definition for PenaltySP_FE.
 // PenaltySP_FE is a subclass of FE_Element which handles SP_Constraints
 // using the penalty method.
 //
 // What: "@(#) PenaltySP_FE.h, revA"
+//
+// Written: fmk 
+// Created: 11/96
+// Revision: A
+//
 
 #include <FE_Element.h>
 #include <ID.h>
@@ -51,11 +46,12 @@ class Node;
 class PenaltySP_FE: public FE_Element
 {
   public:
-    PenaltySP_FE(int tag, Domain &theDomain, SP_Constraint &theSP, double alpha=1.0e8);    
+    PenaltySP_FE(int tag, Domain &, SP_Constraint &, double alpha=1.0e8);    
     virtual ~PenaltySP_FE();    
 
     // public methods
-    virtual int  setID(void);
+    int  setID(AnalysisModel& ) final;
+    const ID &getID() const final {return myID;}
     virtual const Matrix &getTangent(Integrator *theIntegrator);
     virtual const Vector &getResidual(Integrator *theIntegrator);
     virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
@@ -63,11 +59,13 @@ class PenaltySP_FE: public FE_Element
     virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);    
+    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
+    void zeroTangent() final {tang.Zero();}
 
   protected:
     
   private:
+    ID myID;
     double alpha;
     SP_Constraint *theSP;
     Node *theNode;

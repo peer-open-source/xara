@@ -19,25 +19,29 @@ namespace export verify
 
 proc verify {cmd {value ""} {reference ""} {tolerance 1e-12} {about ""}} {
     if {$cmd == "error"} {
-        set check [expr abs(($value - $reference)/$reference)]
-        if {$check > $tolerance} {
-        puts  "   \033\[31mFAIL\033\[0m: | $value - $reference | = $check > $tolerance"
-        error "$about"
+        if {$reference == 0} {
+          set check [expr abs($value)]
         } else {
-          puts  "   \033\[32mPASS\033\[0m  "; # " $value   $reference $about"
+          set check [expr abs(($value - $reference)/$reference)]
+        }
+        if {$check > $tolerance} {
+          puts  "   \033\[31mFAIL\033\[0m: | $value - $reference | = $check > $tolerance"
+          error "$about"
+        } else {
+          puts  "   \033\[32mPASS\033\[0m   $value  $check $about"
         }
 
     } elseif {$cmd == "value"} {
-        if {abs($value - $reference) > $tolerance} {
         set check [expr abs($value - $reference)]
-        puts  "   \033\[31mFAIL\033\[0m($about): | $value - $reference | = $check > $tolerance"
-        error "$about"
+        if {abs($value - $reference) > $tolerance} {
+          puts  "   \033\[31mFAIL\033\[0m($about): | $value - $reference | = $check > $tolerance"
+          error "$about"
         } else {
-        puts  "    \033\[32mPASS\033\[0m  "; # "$value   $reference $about"
+          puts  "    \033\[32mPASS\033\[0m  $value $check $about"
         }
     } else {
-     # value or  "about"
-    puts "  $value"
+      # "about"
+      puts "  $value"
     }
 }
 

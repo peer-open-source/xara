@@ -38,7 +38,6 @@
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -48,9 +47,7 @@
 #include <Pressure_ConstraintIter.h>
 #include <NodeIter.h>
 #include <Node.h>
-#include <LoadPatternIter.h>
 #include <LoadPattern.h>
-#include <FE_EleIter.h>
 #include <elementAPI.h>
 #include "sparseGEN/PFEMLinSOE.h"
 

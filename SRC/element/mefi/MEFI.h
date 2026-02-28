@@ -9,7 +9,7 @@
 // points and weights of the classical finite element formulation of membrane elements to resemble strips (fibers), similarly to macroscopic elements.
 //
 // Reference:
-// 1.- López, C. N., Rojas, F., & Massone, L. M. (2022). Membrane fiber element for reinforced concrete walls – the benefits of macro and micro modeling approaches. Engineering Structures, 254, 113819.
+// 1.- Lï¿½pez, C. N., Rojas, F., & Massone, L. M. (2022). Membrane fiber element for reinforced concrete walls ï¿½ the benefits of macro and micro modeling approaches. Engineering Structures, 254, 113819.
 //
 // Source: /usr/local/cvs/OpenSees/SRC/element/mefi/MEFI.h
 //
@@ -67,15 +67,12 @@ class MEFI : public Element
     const Vector &getResistingForceIncInertia(void);            
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
-    Response *setResponse(const char **argv, int argc, 
-			  OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
     int getResponse(int responseID, Information &eleInformation);
 

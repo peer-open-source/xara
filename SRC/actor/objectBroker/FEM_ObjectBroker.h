@@ -65,7 +65,6 @@ class LinearSOE;
 class EigenSOE;
 class DomainSolver;
 class DomainDecompositionAnalysis;
-class PartitionedModelBuilder;
 
 class CrdTransf;
 class Damping;
@@ -101,11 +100,7 @@ class FEM_ObjectBroker
     FEM_ObjectBroker();
     virtual ~FEM_ObjectBroker();
 
-    virtual Actor*getNewActor(int classTag, Channel *theChannel);
-    
-    virtual PartitionedModelBuilder *
-      getPtrNewPartitionedModelBuilder(Subdomain &theSub,
-				       int classTag);
+    virtual Actor*getNewActor(int classTag, Channel *);
     
     virtual GraphNumberer *getPtrNewGraphNumberer(int classTag);
     

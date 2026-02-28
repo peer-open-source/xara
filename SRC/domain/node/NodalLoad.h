@@ -46,13 +46,12 @@ class NodalLoad : public Load
     ~NodalLoad();
 
     virtual void setDomain(Domain *newDomain);
-    virtual int getNodeTag(void) const;
+    virtual int getNodeTag() const;
     virtual void applyLoad(double loadFactor);
     virtual void applyLoadSensitivity(double loadFactor);
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
     virtual void Print(OPS_Stream &s, int flag =0);   
     

@@ -33,9 +33,7 @@
 #include <Vertex.h>
 #include <AnalysisModel.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <Logging.h>
 
 #define START_EQN_NUM 0

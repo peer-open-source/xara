@@ -35,7 +35,6 @@ typedef std::map<int, TaggedObject *> MAP_TAGGED;
 typedef MAP_TAGGED::value_type   MAP_TAGGED_TYPE;
 typedef MAP_TAGGED::iterator     MAP_TAGGED_ITERATOR;
 
-// MapOfTaggedObjectsIter(SingleDomain &theDomain):
 //	constructor that takes the model, just the basic iter
 MapOfTaggedObjectsIter::MapOfTaggedObjectsIter(MapOfTaggedObjects &theComponents)
 {
@@ -49,7 +48,7 @@ MapOfTaggedObjectsIter::~MapOfTaggedObjectsIter()
 }    
 
 void
-MapOfTaggedObjectsIter::reset(void)
+MapOfTaggedObjectsIter::reset()
 {
     currentComponent = theMap->begin();
 }

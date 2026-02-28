@@ -29,21 +29,19 @@ OPS_ADD_RUNTIME_VPV(OPS_UVCmultiaxial)
            << "\n";
     numUVCmultiaxial++;
   }
-  NDMaterial* theMaterial = 0;
 
   // Parameters for parsing
-  const unsigned int N_TAGS               = 1;
-  const unsigned int N_BASIC_PROPERTIES   = 5;
-  const unsigned int N_UPDATED_PROPERTIES = 2;
-  const unsigned int N_PARAM_PER_BACK     = 2;
-  const unsigned int MAX_BACKSTRESSES     = 8;
-  const unsigned int BACKSTRESS_SPACE     = MAX_BACKSTRESSES * N_PARAM_PER_BACK;
+  static constexpr unsigned int N_TAGS               = 1;
+  static constexpr unsigned int N_BASIC_PROPERTIES   = 5;
+  static constexpr unsigned int N_UPDATED_PROPERTIES = 2;
+  static constexpr unsigned int N_PARAM_PER_BACK     = 2;
+  static constexpr unsigned int MAX_BACKSTRESSES     = 8;
+  static constexpr unsigned int BACKSTRESS_SPACE     = MAX_BACKSTRESSES * N_PARAM_PER_BACK;
 
   std::string inputInstructions = "Invalid args, want:\n"
                                   "nDMaterial UVCmultiaxial "
                                   "tag? E? nu? fy? QInf? b? DInf? a? "
-                                  "N? C1? gamma1? <C2? gamma2? C3? gamma3? ... C8? gamma8?>\n"
-                                  "Note: to neglect the updated model, set DInf = 0.0";
+                                  "N? C1? gamma1? <C2? gamma2? C3? gamma3? ... C8? gamma8?>\n";
 
   // Containers for the inputs
   int nInputsToRead;
@@ -101,6 +99,7 @@ OPS_ADD_RUNTIME_VPV(OPS_UVCmultiaxial)
   }
 
   // Allocate the material
+  NDMaterial* theMaterial = 0;
   theMaterial =
       new UVCmultiaxial(materialTag[0], basicProps[0], basicProps[1], basicProps[2], basicProps[3],
                         basicProps[4], updProps[0], updProps[1], cK, gammaK);
@@ -364,8 +363,7 @@ UVCmultiaxial::calculateStiffness(double consistParam, double stressRelativeNorm
     double Hkin = 0.;
     for (unsigned int i = 0; i < nBackstresses; ++i) {
       double eK = calculateEk(i);
-      Hkin +=
-          cK[i] * eK - std::sqrt(2. / 3.) * gammaK[i] * eK * dotprod6(flowNormal, alphaKConverged[i]);
+      Hkin +=  cK[i]*eK - std::sqrt(2. / 3.) * gammaK[i] * eK * dotprod6(flowNormal, alphaKConverged[i]);
     }
 
     beta    = 1.0 + (Hkin + Hiso) / (3.0 * shearModulus);

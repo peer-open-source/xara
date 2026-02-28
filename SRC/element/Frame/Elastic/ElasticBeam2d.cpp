@@ -325,14 +325,14 @@ ElasticBeam2d::getTangentStiff()
   q[0] += q0[0];
   q[1] += q0[1];
   q[2] += q0[2];
-#endif  
-  return theCoordTransf->getGlobalStiffMatrix(kb, q);
+#endif  // TODO
+  return theCoordTransf->getGlobalStiffMatrix(Matrix(kb), q);
 }
 
 const Matrix &
 ElasticBeam2d::getInitialStiff()
 {
-#if 0
+#if 0// TODO
   double L = theCoordTransf->getInitialLength();
 
   double EoverL   = E/L;
@@ -353,7 +353,7 @@ ElasticBeam2d::getInitialStiff()
     kb(1,1) = 3.0*I*EoverL;
   }
 #endif
-  return theCoordTransf->getInitialGlobalStiffMatrix(kb);
+  return theCoordTransf->getInitialGlobalStiffMatrix(Matrix(kb));
 }
 
 const Matrix &

@@ -24,9 +24,11 @@
 // File: ~/tagged/storage/VectorOfTaggedObjects.h
 // 
 // Description: This file contains the class definition for 
-// VectorOfTaggedObjects. VectorOfTaggedObjects is a storage class. The class 
+// VectorOfTaggedObjects. 
+// VectorOfTaggedObjects is a storage class. The class 
 // is responsible for holding and providing access to objects of type 
-// TaggedObject. A map template of the standard template class is used to store
+// TaggedObject. 
+// A std::map is used to store
 // the pointers to these objects.
 //
 // Written: fmk 
@@ -36,9 +38,9 @@
 #ifndef VectorOfTaggedObjects_h
 #define VectorOfTaggedObjects_h
 //
-#include <map>
+#include <vector>
 #include <TaggedObjectStorage.h>
-#include <VectorOfTaggedObjectsIter.h>
+#include <TaggedObjectIter.h>
 
 class VectorOfTaggedObjects : public TaggedObjectStorage
 {
@@ -46,29 +48,42 @@ class VectorOfTaggedObjects : public TaggedObjectStorage
     VectorOfTaggedObjects();
     ~VectorOfTaggedObjects();    
 
+    class Iterator: public TaggedObjectIter
+    {
+      public:
+        Iterator(VectorOfTaggedObjects &theComponents);
+        virtual ~Iterator();
+        
+        void reset() final;
+        TaggedObject *operator()() final;
+        
+      private:
+        std::vector<TaggedObject *> *container;
+        std::vector<TaggedObject *>::iterator currentComponent;
+    };
+
     // public methods to populate a domain
     int  setSize(int newSize);
-    bool addComponent(TaggedObject *newComponent);
-//		      bool allowMutltipleTags = false);
-    TaggedObject *removeComponent(int tag);    
-    int getNumComponents(void) const;
+    bool addComponent(TaggedObject *newComponent) final;
+    TaggedObject *removeComponent(int tag) final;    
+    int getNumComponents() const;
     
-    TaggedObject     *getComponentPtr(int tag);
-    TaggedObjectIter &getComponents();
-
-    VectorOfTaggedObjectsIter getIter();
-    
-    TaggedObjectStorage *getEmptyCopy(void);
+    TaggedObject     *getComponentPtr(int tag) final;
+    TaggedObjectIter &getComponents() final {
+      return this->getIterRef();
+    }
+    Iterator& getIterRef();
+    Iterator getIter();
+  
+    TaggedObjectStorage *getEmptyCopy();
     void clearAll(bool invokeDestructor = true);
     
-    void Print(OPS_Stream &s, int flag =0);
-    friend class VectorOfTaggedObjectsIter;
-    
-  protected:    
+    void Print(OPS_Stream &s, int flag);
+
     
   private:
-    std::map<int, TaggedObject *> theMap; // the map container for storing the pointers
-    VectorOfTaggedObjectsIter  myIter;  // the iter for this object
+    std::vector<TaggedObject *> container; // the map container for storing the pointers
+    Iterator  myIter;  // the iter for this object
 };
 
 #endif

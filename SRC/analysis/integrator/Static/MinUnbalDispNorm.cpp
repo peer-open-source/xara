@@ -31,13 +31,11 @@
 #include <Domain.h>
 #include <Node.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <ID.h>
 #include <stdlib.h>
 #include <FE_Element.h>
 #include <FE_EleIter.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Parameter.h>
 #include <ParameterIter.h>
 #include <EquiSolnAlgo.h>
@@ -106,9 +104,9 @@ MinUnbalDispNorm::newStep()
   AnalysisModel *theModel = this->getAnalysisModel();
   LinearSOE *theLinSOE = this->getLinearSOE();    
   if (theModel == 0 || theLinSOE == 0) {
-      opserr << "WARNING MinUnbalDispNorm::newStep() ";
-      opserr << "No AnalysisModel or LinearSOE has been set\n";
-      return -1;
+    opserr << "WARNING MinUnbalDispNorm::newStep() ";
+    opserr << "No AnalysisModel or LinearSOE has been set\n";
+    return -1;
   }
 
   // get the current load factor
@@ -503,13 +501,13 @@ MinUnbalDispNorm::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
    Domain *theDomain = theModel->getDomainPtr();
    LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
   
-   while((loadPatternPtr = thePatterns()) != nullptr) {
+   while ((loadPatternPtr = thePatterns()) != nullptr) {
 
      const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
       sizeRandomLoads = randomLoads.Size();
       if (sizeRandomLoads == 1) {
-	 // No random loads in this load pattern
-         continue;
+	      // No random loads in this load pattern
+        continue;
       }
       // Random loads: add contributions to the 'B' vector
       numRandomLoads = (int)(sizeRandomLoads/2);
@@ -528,13 +526,11 @@ MinUnbalDispNorm::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
    }
 
    if(theLinSOE->solve()<0) {
-     opserr<<"SOE failed to obtained dUhatdh ";
+     opserr << "SOE failed to obtained dUhatdh ";
      exit(-1);
    }
 
    (*dUhatdh)=theLinSOE->getX();
-
-
 
    return dUhatdh;
 }

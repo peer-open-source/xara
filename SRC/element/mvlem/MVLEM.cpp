@@ -38,7 +38,6 @@
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 
@@ -1250,83 +1249,6 @@ MVLEM::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 	return res;
 }
 
-// Display model
-int MVLEM::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	// Get the end points of the beam for the display factor
-	static Vector v1(3);
-	static Vector v2(3);
-	theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-	theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-	// determine the deformation - rotation - other is taken from v1, v2
-	static Vector r1(1);
-	theNodes[0]->getDisplayRots(r1, fact, displayMode);
-
-	// Displaying wall axis
-	int error = 0;
-	Vector RGB(3);
-	RGB(0) = 0.0;
-	RGB(1) = 1.0;
-	RGB(2) = 0.0;
-	error += theViewer.drawLine(v1, v2, RGB, RGB, 1, 1);
-
-	// Displaying Panels
-	for (int panel = 0; panel < m; panel++) // loop over m panels
-	{
-		Matrix NodePLotCrds(m, 13); // (panel id, x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4)
-
-		// first set the quantity to be displayed at the nodes;
-		// if displayMode is 1 through 3 we will plot material stresses otherwise 0.0
-		static Vector values(1); // values to be plotted (either epsX, epsY, gammaXY)
-		if (displayMode < 4 && displayMode > 0) {
-			values(0) = theMaterialsConcrete[panel]->getStrain();
-		}
-		else {
-			values(0) = 0.0;
-		}
-
-		// Fiber nodes
-		NodePLotCrds(panel, 0) = panel + 1; // panel id
-		// Local node 1 - bottom left
-		NodePLotCrds(panel, 1) = v1(0) + x[panel] - b[panel] / 2.0; // x 
-		NodePLotCrds(panel, 2) = v1(1) + (x[panel] - b[panel] / 2.0) * r1(0); // y
-		NodePLotCrds(panel, 3) = v1(2); // z
-		// Local node 2 - bottom right
-		NodePLotCrds(panel, 4) = v1(0) + x[panel] + b[panel] / 2.0; // x
-		NodePLotCrds(panel, 5) = v1(1) + (x[panel] + b[panel] / 2.0) * r1(0); // y
-		NodePLotCrds(panel, 6) = v1(2); // z
-		// Local node 3 - top left
-		NodePLotCrds(panel, 7) = v2(0) + x[panel] + b[panel] / 2.0; // x
-		NodePLotCrds(panel, 8) = v2(1) + (x[panel] + b[panel] / 2.0) * r1(0); // y
-		NodePLotCrds(panel, 9) = v2(2); // z
-		// Local node 4 - top right
-		NodePLotCrds(panel, 10) = v2(0) + x[panel] - b[panel] / 2.0; // x
-		NodePLotCrds(panel, 11) = v2(1) + (x[panel] - b[panel] / 2.0) * r1(0); // y
-		NodePLotCrds(panel, 12) = v2(2); // z
-
-		Matrix coords(4, 3); // Temporary coordinates for plotting
-
-		coords(0, 0) = NodePLotCrds(panel, 1); // node 1 x
-		coords(1, 0) = NodePLotCrds(panel, 4); // node 2 x
-		coords(2, 0) = NodePLotCrds(panel, 7); // node 3 x
-		coords(3, 0) = NodePLotCrds(panel, 10); // node 4 x
-
-		coords(0, 1) = NodePLotCrds(panel, 2); // node 1 y
-		coords(1, 1) = NodePLotCrds(panel, 5); // node 2 y
-		coords(2, 1) = NodePLotCrds(panel, 8); // node 3 y
-		coords(3, 1) = NodePLotCrds(panel, 11); // node 4 y
-
-		coords(0, 2) = NodePLotCrds(panel, 3); // node 1 z
-		coords(1, 2) = NodePLotCrds(panel, 6); // node 2 z
-		coords(2, 2) = NodePLotCrds(panel, 9); // node 3 z
-		coords(3, 2) = NodePLotCrds(panel, 12); // node 4 z
-
-		error += theViewer.drawPolygon(coords, values);
-	}
-
-	return error;
-}
 
 void
 MVLEM::Print(OPS_Stream &s, int flag)

@@ -103,3 +103,13 @@ TclCommand_setNumberer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   return TCL_OK;
 }
 
+int
+TclCommand_runNumberer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
+{
+  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
+  assert(builder != nullptr);
+
+  builder->domainChanged();
+
+  return TCL_OK;
+}

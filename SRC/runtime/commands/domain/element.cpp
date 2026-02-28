@@ -473,8 +473,8 @@ getEleClassTags(ClientData clientData, Tcl_Interp *interp, int argc,
       sprintf(buffer, "%d ", theEle->getClassTag());
       Tcl_AppendResult(interp, buffer, NULL);
     }
-
-  } else if (argc == 2) {
+  } 
+  else if (argc == 2) {
     int eleTag;
 
     if (Tcl_GetInt(interp, argv[1], &eleTag) != TCL_OK) {

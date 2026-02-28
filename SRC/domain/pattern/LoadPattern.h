@@ -33,7 +33,6 @@
 //
 // What: "@(#) LoadPattern.h, revA"
 
-// #include <DomainComponent.h>
 #include <TaggedObject.h>
 #include <MovableObject.h>
 #include <Vector.h>
@@ -50,9 +49,7 @@ class SP_ConstraintIter;
 class TaggedObjectStorage;
 class GroundMotion;
 
-class LoadPattern :
- public TaggedObject,
- public MovableObject
+class LoadPattern : public TaggedObject, public MovableObject
 {
   public:
     LoadPattern(int tag, double fact = 1.0);    
@@ -62,43 +59,43 @@ class LoadPattern :
     virtual ~LoadPattern();
 
     // method to set the associated TimeSeries and Domain
-    virtual void setTimeSeries(TimeSeries *theSeries);
-    virtual void setDomain(Domain *theDomain);
+    virtual void setDomain(Domain *);
+    void setTimeSeries(TimeSeries *);
     Domain* getDomain() {return theDomain;}
 
+    // methods to apply loads
+    virtual void applyLoad(double pseudoTime = 0.0);
+    void setLoadConstant();
+    void unsetLoadConstant();
+    double getLoadFactor();
+
+    // methods for o/p
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    virtual void Print(OPS_Stream &s, int flag);        
+
+    // method to obtain a blank copy of the LoadPattern
+    virtual LoadPattern *getCopy();
+
+    // TODO: Move to subclass
+    virtual int addMotion(GroundMotion &theMotion, int tag);    
+    virtual GroundMotion *getMotion(int tag);        
+
+    // TODO: Move to subclass
     // methods to add loads
     virtual bool addSP_Constraint(SP_Constraint *);
     virtual bool addNodalLoad(NodalLoad *);
     virtual bool addElementalLoad(ElementalLoad *);
     virtual NodalLoadIter     &getNodalLoads();
     virtual ElementalLoadIter &getElementalLoads();    
-    virtual SP_ConstraintIter &getSPs();        
-
+    virtual SP_ConstraintIter &getSPs();
     // methods to remove loads
-    virtual void clearAll();
     virtual NodalLoad *removeNodalLoad(int tag);
     virtual ElementalLoad *removeElementalLoad(int tag);
     virtual SP_Constraint *removeSP_Constraint(int tag);
+    virtual void clearAll();
 
-    // methods to apply loads
-    virtual void applyLoad(double pseudoTime = 0.0);
-    virtual void setLoadConstant();
-    virtual void unsetLoadConstant();
-    virtual double getLoadFactor();
-
-    // methods for o/p
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
-    virtual void Print(OPS_Stream &s, int flag =0);        
-
-    // method to obtain a blank copy of the LoadPattern
-    virtual LoadPattern *getCopy(void);
-
-    virtual int addMotion(GroundMotion &theMotion, int tag);    
-    virtual GroundMotion *getMotion(int tag);        
-
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     virtual void applyLoadSensitivity(double pseudoTime = 0.0);
     virtual int  setParameter(const char **argv, int argc, Parameter &param);
     virtual int  updateParameter(int parameterID, Information &info);
@@ -108,9 +105,14 @@ class LoadPattern :
     virtual int saveLoadFactorSensitivity(double dlambdadh, int gradIndex, int numGrads);
     virtual double getLoadFactorSensitivity(int gradIndex);
 
+
   protected:
     bool   isConstant;     // to indicate whether setConstant has been called
-	
+  
+    enum : int {
+      PATTERN_TAG_StaticPattern = 1000
+    };
+
   private:
     double loadFactor;     // current load factor
     double scaleFactor;    // factor to scale load factor from time series
@@ -124,21 +126,20 @@ class LoadPattern :
     // storage objects for the loads and constraints
     TaggedObjectStorage  *theNodalLoads;
     TaggedObjectStorage  *theElementalLoads;
-    TaggedObjectStorage  *theSPs; 	  
+    TaggedObjectStorage  *theSPs;
 
     // iterator objects for the objects added to the storage objects
     NodalLoadIter       *theNodIter;
     ElementalLoadIter   *theEleIter;
-    SingleDomSP_Iter    *theSpIter;    
+    SingleDomSP_Iter    *theSpIter;
+//
 
-    // AddingSensitivity:BEGIN //////////////////////////////////////
     Vector *randomLoads;
     bool RVisRandomProcessDiscretizer;
     Vector *dLambdadh;
-    // AddingSensitivity:END ////////////////////////////////////////
 
+  //
     int lastChannel; 
-
     Domain* theDomain;
 };
 

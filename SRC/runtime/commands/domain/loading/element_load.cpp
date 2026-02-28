@@ -39,7 +39,7 @@
 #include <BrickSelfWeight.h>
 #include <SurfaceLoader.h>
 #include <SelfWeight.h>
-#include <LoadPattern.h>
+#include <StaticPattern.h>
 
 int
 TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
@@ -61,7 +61,7 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
   ArgumentTracker<Position> tracker;
 
 
-  LoadPattern *pattern = builder->getEnclosingPattern();
+  LoadPattern *pattern = builder->getCurrentPattern<StaticPattern>();
 
   // eleLoad FrameForce $shape -n $n -offset $r -pattern $pattern -basis $basis -ele $ele
 
@@ -91,24 +91,30 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
   for (int i=0; i<argc; i++) {
     if (strcmp(argv[i], "-pattern") == 0) {
       if (i == argc-1) {
-        opserr << OpenSees::PromptValueError << "-pattern paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError 
+               << "-pattern paramter missing required argument"
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       int ptag;
       if (Tcl_GetInt(interp, argv[i+1], &ptag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "pattern parameter expected integer\n";
+        opserr << OpenSees::PromptValueError 
+               << "pattern parameter expected integer"
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       pattern = builder->getDomain()->getLoadPattern(ptag);
       if (pattern == nullptr) {
-        opserr << OpenSees::PromptValueError << "pattern " << argv[i+1] << " not found\n";
+        opserr << OpenSees::PromptValueError 
+               << "pattern " << argv[i+1] << " not found\n";
         return TCL_ERROR;
       }
       i++;
     }
     else if (strcmp(argv[i], "-basis") == 0) {
       if (i == argc-1) {
-        opserr << OpenSees::PromptValueError << "-basis paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError 
+               << "-basis paramter missing required argument\n";
         return TCL_ERROR;
       }
       if (strcmp(argv[i+1], "global") == 0)
@@ -120,7 +126,8 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
         basis = FrameLoad::Director;
       else {
         opserr << OpenSees::PromptValueError
-               << "unknown basis for FrameLoad " << argv[i+1] << "\n";
+               << "unknown basis for FrameLoad " << argv[i+1] 
+               << "\n";
         return TCL_ERROR;
       }
       i++;
@@ -128,24 +135,28 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
 
     else if (strcmp(argv[i], "-force") == 0) {
       if (i == argc-1) {
-        opserr << OpenSees::PromptValueError << "-force paramter missing required argument\n";
+        opserr << OpenSees::PromptValueError 
+               << "-force paramter missing required argument\n";
         return TCL_ERROR;
       }
       int list_argc;
       TCL_Char **list_argv;
       if (Tcl_SplitList(interp, argv[i+1], &list_argc, &list_argv) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "force parameter expected list of floats\n";
+        opserr << OpenSees::PromptValueError 
+               << "force parameter expected list of floats\n";
         return TCL_ERROR;
       }
       if (list_argc != 3) {
-        opserr << OpenSees::PromptValueError << "force parameter expected list of 3 floats\n";
+        opserr << OpenSees::PromptValueError 
+               << "force parameter expected list of 3 floats\n";
         Tcl_Free((char *) list_argv);
         return TCL_ERROR;
       }
       Vector3D force;
       for (int j = 0; j < 3; j++) {
         if (Tcl_GetDouble(interp, list_argv[j], &force[j]) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "force argument expected list of 3 floats\n";
+          opserr << OpenSees::PromptValueError 
+                 << "force argument expected list of 3 floats\n";
           Tcl_Free((char *) list_argv);
           return TCL_ERROR;
         }
@@ -403,7 +414,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp,
   // If  -pattern  wasnt given explicitly, see if there is one
   // activated in the builder
   if (explicitPatternPassed == false) {
-    LoadPattern *theTclLoadPattern = builder->getEnclosingPattern();
+    LoadPattern *theTclLoadPattern = builder->getCurrentPattern<StaticPattern>();
     if (theTclLoadPattern == nullptr) {
       opserr << OpenSees::PromptValueError << "no current load pattern\n";
       return TCL_ERROR;
@@ -817,8 +828,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp,
 
         for (int i = 0; i < 18; ++i) {
           if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "invalid data " << argv[count]
-                   << " for -beamThermal 3D\n";
+            opserr << OpenSees::PromptValueError 
+                   << "invalid data " << argv[count]
+                   << " for -shellThermal 3D\n";
             return TCL_ERROR;
           }
           indata[i] = BufferData;
@@ -854,8 +866,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp,
 
         for (int i = 0; i < 10; ++i) {
           if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "eleLoad - invalid data " << argv[count]
-                   << " for -beamThermal 3D\n";
+            opserr << OpenSees::PromptValueError 
+                   << "eleLoad - invalid data " << argv[count]
+                   << " for -shellThermal 3D\n";
             return TCL_ERROR;
           }
           indata[i] = BufferData;

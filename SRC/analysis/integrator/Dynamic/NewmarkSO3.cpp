@@ -29,12 +29,10 @@
 #include <stdexcept>
 #include <Newmark.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <LinearSOE.h>
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -42,11 +40,10 @@
 #include <NodeIter.h>
 #include <Domain.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <elementAPI.h>
 #include <fstream>
 #include <Parameter.h>
-#include <ParameterIter.h>//Abbas
+#include <ParameterIter.h>
 static bool converged = false;
 // static int count = 0;
 

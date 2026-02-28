@@ -48,6 +48,11 @@ class EigenSOE;
 class StaticIntegrator;
 class TransientIntegrator;
 class ConvergenceTest;
+namespace OpenSees {
+class LoadCase;
+}
+
+#include <string>
 
 class BasicAnalysisBuilder
 {
@@ -57,6 +62,7 @@ public:
 
     enum CurrentAnalysis {
       EMPTY_ANALYSIS,
+      EIGEN_ANALYSIS,
       STATIC_ANALYSIS, 
       TRANSIENT_ANALYSIS
     };
@@ -71,8 +77,14 @@ public:
     void set(DOF_Numberer*);
     void set(EquiSolnAlgo*);
     void set(LinearSOE*, bool free=true);
+    void unset(LinearSOE&) {
+      theSOE = nullptr;
+    }
     void set(StaticIntegrator&);
     void set(TransientIntegrator&, bool free=true);
+    void unset(TransientIntegrator&) {
+      theTransientIntegrator = nullptr;
+    }
     void set(ConvergenceTest*);
     void set(EigenSOE&);
     LinearSOE* getLinearSOE();
@@ -84,8 +96,12 @@ public:
 
 
     Domain* getDomain();
+    AnalysisModel& getAnalysisModel() {
+      return *theAnalysisModel;
+    }
 
     int  initialize();
+    int  domainChanged();
     int  setStaticAnalysis();
     int  setTransientAnalysis();
 
@@ -95,7 +111,6 @@ public:
     int  getNumEigen() {return numEigen;}
 
     int formUnbalance();
-    int domainChanged();
 
     // Performing analysis
     int analyze(int num_steps, double size_steps, int flag=Increment|Iterate|Commit);
@@ -103,6 +118,7 @@ public:
     
     int analyzeTransient(int numSteps, double dT);
     int analyzeVariable(int numSteps, double dT, double dtMin, double dtMax, int Jd);
+    void Print(OPS_Stream &s, int flag);
 private:
     int analyzeStep(double dT);
     int analyzeSubLevel(int level, double dT);
@@ -112,7 +128,9 @@ public:
     int setGradientType(int flag);
     void wipe();
 
-    
+    int setLoadCase(std::string& name);
+    int newLoadCase(std::string& name);
+
     enum CurrentAnalysis  CurrentAnalysisFlag = EMPTY_ANALYSIS;
 
 private:
@@ -143,7 +161,6 @@ private:
 
     bool freeSOE = true;
     bool freeTI  = true;
-
 };
 
 #endif

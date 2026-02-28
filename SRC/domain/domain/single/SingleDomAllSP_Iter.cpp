@@ -37,7 +37,6 @@
 
 #include <Domain.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <SP_Constraint.h>
 #include <TaggedObjectIter.h>
 #include <TaggedObjectStorage.h>

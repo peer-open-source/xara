@@ -51,7 +51,9 @@
 PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain, 
 			   MP_Constraint &TheMP, double Alpha)
 :FE_Element(tag, 2,(TheMP.getConstrainedDOFs()).Size()+
- (TheMP.getRetainedDOFs()).Size()),
+                   (TheMP.getRetainedDOFs()).Size()),
+ myID( (TheMP.getConstrainedDOFs()).Size()+
+       (TheMP.getRetainedDOFs()).Size()),
  theMP(&TheMP), theConstrainedNode(0) , theRetainedNode(0),
  tang(0), resid(0), C(0), alpha(Alpha)
 {
@@ -112,7 +114,7 @@ PenaltyMP_FE::~PenaltyMP_FE()
 // void setID(int index, int value);
 //	Method to set the correMPonding index of the ID to value.
 int
-PenaltyMP_FE::setID()
+PenaltyMP_FE::setID(AnalysisModel &)
 {
     int result = 0;
 
@@ -121,10 +123,10 @@ PenaltyMP_FE::setID()
     // associated with the constrained node
     DOF_Group *theConstrainedNodesDOFs = theConstrainedNode->getDOF_GroupPtr();
     if (theConstrainedNodesDOFs == 0) {
-	opserr << "WARNING PenaltyMP_FE::setID(void)";
-	opserr << " - no DOF_Group with Constrained Node\n";
-	return -2;
-    }    
+        opserr << "WARNING PenaltyMP_FE::setID(void)";
+        opserr << " - no DOF_Group with Constrained Node\n";
+        return -2;
+    }
 
     const ID &constrainedDOFs = theMP->getConstrainedDOFs();
     const ID &theConstrainedNodesID = theConstrainedNodesDOFs->getID();    
@@ -201,41 +203,41 @@ PenaltyMP_FE::getTangent(Integrator *theNewIntegrator)
 const Vector &
 PenaltyMP_FE::getResidual(Integrator *theNewIntegrator)
 {
-    // zero residual, CD = 0
+  // zero residual, CD = 0
 
-    // get the solution vector [Uc Ur]
-    static Vector UU;
-    const ID& id1 = theMP->getConstrainedDOFs();
-    const ID& id2 = theMP->getRetainedDOFs();
-    int size = id1.Size() + id2.Size();
-    UU.resize(size);
-    const Vector& Uc = theConstrainedNode->getTrialDisp();
-    const Vector& Ur = theRetainedNode->getTrialDisp();
-    const Vector& Uc0 = theMP->getConstrainedDOFsInitialDisplacement();
-    const Vector& Ur0 = theMP->getRetainedDOFsInitialDisplacement();
-    for (int i = 0; i < id1.Size(); ++i) {
-        int cdof = id1(i);
-        if (cdof < 0 || cdof >= Uc.Size()) {
-            opserr << "PenaltyMP_FE::getResidual FATAL Error: Constrained DOF " << cdof << " out of bounds [0-" << Uc.Size() << "]\n";
-            exit(-1);
-        }
-        UU(i) = Uc(cdof) - Uc0(i);
-    }
-    for (int i = 0; i < id2.Size(); ++i) {
-        int rdof = id2(i);
-        if (rdof < 0 || rdof >= Ur.Size()) {
-            opserr << "PenaltyMP_FE::getResidual FATAL Error: Retained DOF " << rdof << " out of bounds [0-" << Ur.Size() << "]\n";
-            exit(-1);
-        }
-        UU(i+id1.Size()) = Ur(rdof) - Ur0(i);
-    }
+  // get the solution vector [Uc Ur]
+  static Vector UU;
+  const ID& id1 = theMP->getConstrainedDOFs();
+  const ID& id2 = theMP->getRetainedDOFs();
+  int size = id1.Size() + id2.Size();
+  UU.resize(size);
+  const Vector& Uc = theConstrainedNode->getTrialDisp();
+  const Vector& Ur = theRetainedNode->getTrialDisp();
+  const Vector& Uc0 = theMP->getConstrainedDOFsInitialDisplacement();
+  const Vector& Ur0 = theMP->getRetainedDOFsInitialDisplacement();
+  for (int i = 0; i < id1.Size(); ++i) {
+      int cdof = id1(i);
+      if (cdof < 0 || cdof >= Uc.Size()) {
+          opserr << "PenaltyMP_FE::getResidual FATAL Error: Constrained DOF " << cdof << " out of bounds [0-" << Uc.Size() << "]\n";
+          exit(-1);
+      }
+      UU(i) = Uc(cdof) - Uc0(i);
+  }
+  for (int i = 0; i < id2.Size(); ++i) {
+      int rdof = id2(i);
+      if (rdof < 0 || rdof >= Ur.Size()) {
+          opserr << "PenaltyMP_FE::getResidual FATAL Error: Retained DOF " << rdof << " out of bounds [0-" << Ur.Size() << "]\n";
+          exit(-1);
+      }
+      UU(i+id1.Size()) = Ur(rdof) - Ur0(i);
+  }
 
-    // compute residual
-    const Matrix& KK = getTangent(theNewIntegrator);
-    resid->addMatrixVector(0.0, KK, UU, -1.0);
+  // compute residual
+  const Matrix& KK = getTangent(theNewIntegrator);
+  resid->addMatrixVector(0.0, KK, UU, -1.0);
 
-    // done
-    return *resid;
+  // done
+  return *resid;
 }
 
 
@@ -276,42 +278,26 @@ PenaltyMP_FE::getM_Force(const Vector &disp, double fact)
 }
 
 void  
-PenaltyMP_FE::determineTangent(void)
+PenaltyMP_FE::determineTangent()
 {
-    // first determine [C] = [-I [Ccr]]
-    C->Zero();
-    const Matrix &constraint = theMP->getConstraint();
-    int noRows = constraint.noRows();
-    int noCols = constraint.noCols();
+  // first determine [C] = [-I [Ccr]]
+  C->Zero();
+  const Matrix &constraint = theMP->getConstraint();
+  int noRows = constraint.noRows();
+  int noCols = constraint.noCols();
     
-    for (int j=0; j<noRows; j++)
-	(*C)(j,j) = -1.0;
+  for (int j=0; j<noRows; j++)
+    (*C)(j,j) = -1.0;
     
-    for (int i=0; i<noRows; i++)
-	for (int j=0; j<noCols; j++)
-	    (*C)(i,j+noRows) = constraint(i,j);
-    
+  for (int i=0; i<noRows; i++)
+    for (int j=0; j<noCols; j++)
+        (*C)(i,j+noRows) = constraint(i,j);
 
-    // now form the tangent: [K] = alpha * [C]^t[C]
-    // *(tang) = (*C)^(*C);
-    // *(tang) *= alpha;
-    /*
-	// THIS IS A WORKAROUND UNTIL WE GET addMatrixTransposeProduct() IN
-	// THE Matrix CLASS OR UNROLL THIS COMPUTATION
-	int rows = C->noRows();
-	int cols = C->noCols();
-	Matrix CT(cols,rows);
-	const Matrix &Cref = *C;
-	// Fill in the transpose of C
-	for (int k = 0; k < cols; k++)
-		for (int l = 0; l < rows; l++)
-			CT(k,l) = Cref(l,k);
-	// Compute alpha*(C^*C)
-	tang->addMatrixProduct(0.0, CT, Cref, alpha);
-    */
-    // workaround no longer required
-    const Matrix &Cref = *C;
-    tang->addMatrixTransposeProduct(0.0, Cref, Cref, alpha);
+  // now form the tangent: [K] = alpha * [C]^t[C]
+  // *(tang) = (*C)^(*C);
+  // *(tang) *= alpha;
+  const Matrix &Cref = *C;
+  tang->addMatrixTransposeProduct(0.0, Cref, Cref, alpha);
 }
 
 

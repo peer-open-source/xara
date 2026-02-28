@@ -50,44 +50,39 @@
 LagrangeSP_FE::LagrangeSP_FE(int tag, Domain &theDomain, SP_Constraint &TheSP,
 			     DOF_Group &theGroup, double Alpha)
 :FE_Element(tag, 2,2),
+ myID(2),
  alpha(Alpha), tang(0), resid(0), theSP(&TheSP), theDofGroup(&theGroup)
 {
-    // create a Matrix and a Vector for the tangent and residual
-    tang = new Matrix(2,2);
-    resid = new Vector(2);
-    if ((tang == 0) || (tang->noCols() == 0) || (resid == 0) ||
-	(resid->Size() == 0)) {
-	opserr << "WARNING LagrangeSP_FE::LagrangeSP_FE()";
-	opserr << "- ran out of memory\n";
-	exit(-1);
-    }
+  // create a Matrix and a Vector for the tangent and residual
+  tang = new Matrix(2,2);
+  resid = new Vector(2);
 
-    // zero the Matrix and Vector
-    resid->Zero();
-    tang->Zero();
+  // zero the Matrix and Vector
+  resid->Zero();
+  tang->Zero();
 
-    theNode = theDomain.getNode(theSP->getNodeTag());    
-    if (theNode == 0) {
-	opserr << "WARNING LagrangeSP_FE::LagrangeSP_FE()";
-	opserr << "- no asscoiated Node\n";
-	exit(-1);
-    }
+  theNode = theDomain.getNode(theSP->getNodeTag());    
+  if (theNode == 0) {
+    opserr << "WARNING LagrangeSP_FE::LagrangeSP_FE()";
+    opserr << "- no asscoiated Node\n";
+    exit(-1);
+  }
 
-    // set the tangent
-    (*tang)(0,1) = alpha;
-    (*tang)(1,0) = alpha;
-    
-    // set the myDOF_Groups tags indicating the attached id's of the
-    // DOF_Group objects
-    DOF_Group *theNodesDOFs = theNode->getDOF_GroupPtr();
-    if (theNodesDOFs == 0) {
-	opserr << "WARNING LagrangeSP_FE::LagrangeSP_FE()";
-	opserr << " - no DOF_Group with Constrained Node\n";
-	exit(-1);	
-    }    
+  // set the tangent
+  (*tang)(0,1) = alpha;
+  (*tang)(1,0) = alpha;
+  
+  // set the myDOF_Groups tags indicating the attached id's of the
+  // DOF_Group objects
+  DOF_Group *theNodesDOFs = theNode->getDOF_GroupPtr();
+  if (theNodesDOFs == 0) {
+    opserr << "WARNING LagrangeSP_FE::LagrangeSP_FE()";
+    opserr << " - no DOF_Group with Constrained Node\n";
+    exit(-1);	
+  }    
 
-    myDOF_Groups(0) = theNodesDOFs->getTag();
-    myDOF_Groups(1) = theDofGroup->getTag();
+  myDOF_Groups(0) = theNodesDOFs->getTag();
+  myDOF_Groups(1) = theDofGroup->getTag();
 }
 
 LagrangeSP_FE::~LagrangeSP_FE()
@@ -101,33 +96,33 @@ LagrangeSP_FE::~LagrangeSP_FE()
 // void setID(int index, int value);
 //	Method to set the correSPonding index of the ID to value.
 int
-LagrangeSP_FE::setID(void)
+LagrangeSP_FE::setID(AnalysisModel& theModel)
 {
-    int result = 0;
+  int result = 0;
 
-    // first determine the IDs in myID for those DOFs marked
-    // as constrained DOFs, this is obtained from the DOF_Group
-    // associated with the constrained node
-    DOF_Group *theNodesDOFs = theNode->getDOF_GroupPtr();
-    if (theNodesDOFs == 0) {
-	opserr << "WARNING LagrangeSP_FE::setID(void)";
-	opserr << " - no DOF_Group with Constrained Node\n";
-	return -1;
-    }    
+  // first determine the IDs in myID for those DOFs marked
+  // as constrained DOFs, this is obtained from the DOF_Group
+  // associated with the constrained node
+  DOF_Group *theNodesDOFs = theNode->getDOF_GroupPtr();
+  if (theNodesDOFs == 0) {
+    opserr << "WARNING LagrangeSP_FE::setID()";
+    opserr << " - no DOF_Group with Constrained Node\n";
+    return -1;
+  }    
 
-    int restrainedDOF = theSP->getDOF_Number();
-    const ID &theNodesID = theNodesDOFs->getID();
-    
-    if (restrainedDOF < 0 || restrainedDOF >= theNodesID.Size()) {
-	opserr << "WARNING LagrangeSP_FE::setID(void)";
-	opserr << " - restrained DOF invalid\n";
-	return -2;
-    }    	
-    
-    myID(0) = theNodesID(restrainedDOF);
-    myID(1) = (theDofGroup->getID())(0);
-    
-    return result;
+  int restrainedDOF = theSP->getDOF_Number();
+  const ID &theNodesID = theNodesDOFs->getID();
+  
+  if (restrainedDOF < 0 || restrainedDOF >= theNodesID.Size()) {
+    opserr << "WARNING LagrangeSP_FE::setID()";
+    opserr << " - restrained DOF invalid\n";
+    return -2;
+  }    	
+  
+  myID(0) = theNodesID(restrainedDOF);
+  myID(1) = (theDofGroup->getID())(0);
+  
+  return result;
 }
 
 const Matrix &
@@ -179,16 +174,16 @@ LagrangeSP_FE::getResidual(Integrator *theNewIntegrator)
 const Vector &
 LagrangeSP_FE::getTangForce(const Vector &disp, double fact)
 {
-    double constraint = theSP->getValue();
-    int constrainedID = myID(1);
-    if (constrainedID < 0 || constrainedID >= disp.Size()) {
-	opserr << "WARNING LagrangeSP_FE::getTangForce() - ";	
-	opserr << " constrained DOF " << constrainedID << " outside disp\n";
-	(*resid)(1) = constraint*alpha;
-	return *resid;
-    }
-    (*resid)(1) = disp(constrainedID);
-    return *resid;    
+  double constraint = theSP->getValue();
+  int constrainedID = myID(1);
+  if (constrainedID < 0 || constrainedID >= disp.Size()) {
+    opserr << "WARNING LagrangeSP_FE::getTangForce() - ";	
+    opserr << " constrained DOF " << constrainedID << " outside disp\n";
+    (*resid)(1) = constraint*alpha;
+    return *resid;
+  }
+  (*resid)(1) = disp(constrainedID);
+  return *resid;    
 }
 
 const Vector &

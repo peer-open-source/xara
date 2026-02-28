@@ -50,7 +50,7 @@ EarthquakePattern::~EarthquakePattern()
 {
   // invoke the destructor on all ground motions supplied
   for (int i=0; i<numMotions; i++)
-      delete theMotions[i];
+    delete theMotions[i];
   
   if (theMotions != 0)
     delete [] theMotions;

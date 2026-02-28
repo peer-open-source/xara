@@ -54,16 +54,16 @@ class MP_Constraint : public DomainComponent
     MP_Constraint(int classTag ); // Arash
 
     MP_Constraint(int nodeRetain, 
-		  int nodeConstr, 
-		  ID &constrainedDOF,
-    		  ID &retainedDOF,
-		  int classTag);    
+                  int nodeConstr, 
+                  ID &constrainedDOF,
+                  ID &retainedDOF,
+                  int classTag);    
 
     MP_Constraint(int nodeRetain, 
-		  int nodeConstr, 
-		  Matrix &constrnt,
-		  ID &constrainedDOF,
-    		  ID &retainedDOF);
+                  int nodeConstr, 
+                  Matrix &constrnt,
+                  ID &constrainedDOF,
+                  ID &retainedDOF);
 
     // destructor    
     virtual ~MP_Constraint();
@@ -72,20 +72,19 @@ class MP_Constraint : public DomainComponent
     void setDomain(Domain* theDomain);
 
     // method to get information about the constraint
-    virtual int getNodeRetained(void) const;
-    virtual int getNodeConstrained(void) const;    
-    virtual const ID &getConstrainedDOFs(void) const;        
-    virtual const ID &getRetainedDOFs(void) const;            
+    virtual int getNodeRetained() const;
+    virtual int getNodeConstrained() const;    
+    virtual const ID &getConstrainedDOFs() const;        
+    virtual const ID &getRetainedDOFs() const;            
     virtual int applyConstraint(double pseudoTime);
-    virtual bool isTimeVarying(void) const;
-    virtual const Matrix &getConstraint(void);    
-    virtual const Vector &getConstrainedDOFsInitialDisplacement(void) const;
-    virtual const Vector &getRetainedDOFsInitialDisplacement(void) const;
+    virtual bool isTimeVarying() const;
+    virtual const Matrix &getConstraint();    
+    virtual const Vector &getConstrainedDOFsInitialDisplacement() const;
+    virtual const Vector &getRetainedDOFsInitialDisplacement() const;
 
     // methods for output
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
     
     virtual void Print(OPS_Stream &s, int flag =0);
 

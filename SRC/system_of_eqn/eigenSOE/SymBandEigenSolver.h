@@ -46,6 +46,7 @@ class SymBandEigenSolver : public EigenSolver
   virtual int setEigenSOE(SymBandEigenSOE &theSOE);
   
   virtual const Vector &getEigenvector(int mode);
+  int getEigenvector(int mode, Vector &theVector) final;
   virtual double getEigenvalue(int mode);
   
   int sendSelf(int commitTag, Channel &theChannel);

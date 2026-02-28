@@ -47,17 +47,22 @@ ID FrameSolidSection3d::code(nsr);
 
 FrameSolidSection3d::FrameSolidSection3d(int tag, int num): 
     FrameSection(tag, SEC_TAG_FrameSolidSection3d),
+    s(), e(),
     e_wrap(e), s_wrap(s),
+    shear_align{},
+    centroid{},
+    nubar(0.0),
     parameterID(0), dedh(nsr),
     fibers(new std::vector<FiberData>),
-    K_init(new Tangent)
+    K_init(new Tangent),
+    fiber_state(FiberState::Clean)
 {
-  code(inx) = SECTION_RESPONSE_P;
-  code(iny) = SECTION_RESPONSE_VY;
-  code(inz) = SECTION_RESPONSE_VZ;
-  code(imx) = SECTION_RESPONSE_T;
-  code(imy) = SECTION_RESPONSE_MY;
-  code(imz) = SECTION_RESPONSE_MZ;
+  code(inx) = FrameStress::N;
+  code(iny) = FrameStress::Vy;
+  code(inz) = FrameStress::Vz;
+  code(imx) = FrameStress::T;
+  code(imy) = FrameStress::My;
+  code(imz) = FrameStress::Mz;
   code(iwx) = FrameStress::Bimoment;
   code(iwy) = FrameStress::By;
   code(iwz) = FrameStress::Bz;
@@ -68,19 +73,25 @@ FrameSolidSection3d::FrameSolidSection3d(int tag, int num):
   wagner = getenv("Wagner") != nullptr;
 }
 
-// constructor for blank object that recvSelf needs to be invoked upon
+
+// for recvSelf
 FrameSolidSection3d::FrameSolidSection3d():
   FrameSection(0, SEC_TAG_FrameSolidSection3d),
+  s(), e(),
   e_wrap(e), s_wrap(s),
+  shear_align{},
+  centroid{},
+  nubar(0.0),
   parameterID(0), dedh(nsr),
-  fibers(new std::vector<FiberData>)
+  fibers(new std::vector<FiberData>),
+  fiber_state(FiberState::Clean)
 {
-  code(inx) = SECTION_RESPONSE_P;
-  code(iny) = SECTION_RESPONSE_VY;
-  code(inz) = SECTION_RESPONSE_VZ;
-  code(imx) = SECTION_RESPONSE_T;
-  code(imy) = SECTION_RESPONSE_MY;
-  code(imz) = SECTION_RESPONSE_MZ;
+  code(inx) = FrameStress::N;
+  code(iny) = FrameStress::Vy;
+  code(inz) = FrameStress::Vz;
+  code(imx) = FrameStress::T;
+  code(imy) = FrameStress::My;
+  code(imz) = FrameStress::Mz;
   code(iwx) = FrameStress::Bimoment;
   code(iwy) = FrameStress::By;
   code(iwz) = FrameStress::Bz;
@@ -89,6 +100,31 @@ FrameSolidSection3d::FrameSolidSection3d():
   code(ivz) = FrameStress::Qz;
   wagner = getenv("Wagner") != nullptr;
 }
+
+// Used in getCopy to create an element instance from a reference instance
+FrameSolidSection3d::FrameSolidSection3d(const FrameSolidSection3d &other)
+  : FrameSection(other.getTag(), other.getClassTag()),
+    K_pres(other.K_pres),
+    K_init(other.K_init),
+    fibers(other.fibers),
+    s(),
+    e(),
+    s_wrap(s),
+    e_wrap(e),
+    shear_align(other.shear_align),
+    centroid(other.centroid),
+    wagner(other.wagner),
+    fiber_state(FiberState::Clean),
+    parameterID(0)
+{
+  materials.reserve(other.materials.size());
+  for (int i = 0; i < other.materials.size(); i++)
+    materials.push_back(other.materials[i]->getCopy("BeamFiber"));
+    // materials[i] = other.materials[i]->getCopy("BeamFiber");
+
+  this->revertToStart();
+}
+
 
 int
 FrameSolidSection3d::getIntegral(Field field, State state, double& value) const
@@ -175,7 +211,8 @@ FrameSolidSection3d::addFiber(NDMaterial& theMat,
 
   if (materials[materials.size()-1] == nullptr)
     return -1;
-  
+
+  fiber_state = FiberState::Dirty;
   return materials.size()-1;
 }
 
@@ -197,9 +234,97 @@ FrameSolidSection3d::setTrialSectionDeformation(const Vector &e_trial)
   return stateDetermination(K_pres, &s, &e, CurrentTangent);
 }
 
+
+FrameSection*
+FrameSolidSection3d::getFrameCopy()
+{
+
+  double area = 0.0;
+  if (fiber_state == FiberState::Dirty) {
+    nubar = 0.0;
+    const int nf = fibers->size();
+    centroid.zero();
+    for (int i = 0; i < nf; i++) {
+      NDMaterial &theMat = *materials[i];
+      auto & fiber = (*fibers)[i];
+      const Matrix & tangent = theMat.getInitialTangent();
+      double nu = tangent(0,0)/(2.0*tangent(1,1)) - 1.0;
+      area  += fiber.area;
+      nubar += nu*fiber.area;
+      centroid[1] += fiber.r[1]*fiber.area;
+      centroid[2] += fiber.r[2]*fiber.area;
+    }
+    centroid /= area;
+    nubar /= area;
+  }
+  if (!(getenv("Align"))) {
+    fiber_state = FiberState::Clean;
+  }
+
+  if (fiber_state == FiberState::Dirty) {
+    const VectorND<2> rc {
+      centroid[1],
+      centroid[2]
+    };
+    const int nf = fibers->size();
+    double do_poisson = shear_align.norm() != 0.0;
+    MatrixND<2,2> H{}, HF{};
+    for (int i = 0; i < nf; i++) {
+      NDMaterial &theMat = *materials[i];
+      auto & fiber = (*fibers)[i];
+      auto & w = fiber.warp;
+      const VectorND<2> r {fiber.r[1], fiber.r[2]};
+      const Matrix & tangent = theMat.getInitialTangent();
+      double nu = tangent(0,0)/(2.0*tangent(1,1)) - 1.0;
+      nu *= do_poisson;
+      MatrixND<2,2> Bb{};
+      // -(dev ror)Xi
+      Bb.addTensorProduct(r, r, -nu);
+      Bb.addDiagonal(0.5*r.dot(r)*nu);
+      // + roc 
+      Bb.addTensorProduct(r, rc, nu);
+      for (int j=0; j<2; j++) {
+        for (int k=0; k<2; k++) {
+          Bb(j,k) += w[1+k][1+j];
+        }
+      }
+      HF.addMatrix(Bb, fiber.area*tangent(1,1));
+      // HF.addTensorProduct(r-rc, r-rc, fiber.area*tangent(0,0));
+      H.addMatrixTransposeProduct(1.0, Bb, Bb, fiber.area*tangent(1,1));
+    }
+    Cholesky<2,false> chol(H);
+    MatrixND<2,2> Hi{};
+    chol.invert(Hi);
+    MatrixND<2,2> X = Hi*HF.transpose();
+
+    for (int i=0; i<2; i++)
+      for (int j=0; j<2; j++)
+        shear_align(i+1,j+1) = X(i,j)*nubar;
+
+    for (int k=0; k<nf; k++) {
+      FiberData & fiber = (*fibers)[k];
+      auto & w = fiber.warp;
+      MatrixND<2,2> U {{w[1][1], w[1][2],
+                        w[2][1], w[2][2]}};
+      MatrixND<2,2> UX = U*X;
+      VectorND<2>   xu = X^(VectorND<2>{w[1][0], w[2][0]});
+      for (int i=0; i<2; i++) {
+        fiber.warp[i+1][0] = xu(i) - fiber.r[i+1];
+        for (int j=0; j<2; j++)
+          fiber.warp[i+1][j+1] = UX(j,i) - double(i==j);
+      }
+    }
+
+    fiber_state = FiberState::Clean;
+  }
+  return new FrameSolidSection3d(*this);
+}
+
 int
 FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag)
 {
+
+  const bool conj_poisson = getenv("ConjPoisson") != nullptr;
 
   const Vector3D gamma {
     e_trial? (*e_trial)(inx) : 0.0,
@@ -222,8 +347,12 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     e_trial? (*e_trial)(ivz) : 0.0 
   };
 
+  if (s_trial != nullptr)
+    s_trial->zero();
+
   K.zero();
 
+  // integrate over fibers
   int res = 0;
   const int nf = fibers->size();
   for (int i = 0; i < nf; i++) {
@@ -231,9 +360,16 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     NDMaterial &theMat = *materials[i];
     auto & fiber = (*fibers)[i];
     auto & w = fiber.warp;
-
-    const Vector3D r = fiber.r;
+    const Vector3D& r = fiber.r;
     double tr2 = 0;
+
+    Matrix3D Wb{};
+    // -(dev ror)Xi
+    Wb.addTensorProduct(r, shear_align^r, -1.0);
+    Wb.addMatrix(shear_align, 0.5*r.dot(r));
+    // + roc 
+    Wb.addTensorProduct(r, shear_align^centroid, 1.0);
+    for (int j=0; j<3; j++) Wb(0,j) = (Wb(j,0) = 0.0); // No axial Poisson effect
 
     if (e_trial != nullptr) {
       // Form material strain
@@ -243,6 +379,23 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
         for (int j=1; j<3; j++)
           eps[j] += w[k][j]*alpha[k];
       }
+      // Poisson effect
+      eps += Wb*gamma;
+      // if (eps.norm() != 0.0) {
+      //   Vector3D eps_gamma = gamma + Wb*gamma;
+      //   Vector3D eps_kappa = kappa.cross(r);
+
+      //   for (int k=1; k<nwm; k++) {
+      //     for (int j=1; j<3; j++)
+      //       eps_gamma[j] += w[k][j]*alpha[k];
+      //   }
+      //   for (int j=1; j<3; j++)
+      //     eps_kappa[j] += w[0][j]*alpha[0];
+      //   opserr << ", eps_gamma = " << Vector(eps_gamma)
+      //          << ", eps_kappa = " << Vector(eps_kappa) << "\n";
+      //   exit(1);
+      // }
+
       if (wagner) {
         tr2 = r.dot(r)*kappa[0];
         eps[0] += 0.5*kappa[0]*tr2;
@@ -254,8 +407,8 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
 
 
     const Matrix &tangent = tangentFlag==CurrentTangent
-                            ? theMat.getTangent()
-                            : theMat.getInitialTangent();
+                          ? theMat.getTangent()
+                          : theMat.getInitialTangent();
 
     Matrix3D C{};
     C.addMatrix(tangent, fiber.area);
@@ -268,31 +421,50 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     }};
 
     const Matrix3D iodw {{
-          0.0, w[0][1], w[0][2],
-          0.0, w[1][1], w[1][2],
-          0.0, w[2][1], w[2][2]
+      0.0, w[0][1], w[0][2],
+      0.0, w[1][1], w[1][2],
+      0.0, w[2][1], w[2][2]
     }};
 
+    const Matrix3D CWb   = C*Wb;
+    const Matrix3D Ciow  = C*iow;
+    const Matrix3D Ciodw = C*iodw;
+    Matrix3D Crx{};
+    Crx.addMatrixSpinProduct( C, r,  -1.0);
 
-    K.nn.addMatrix(C, 1.0);
     {
-      Matrix3D rxC{};
-      rxC.addSpinMatrixProduct(r, C, 1.0);
-      K.mm.addMatrixSpinProduct(rxC, r, -1.0);
-      K.mn.addMatrix(rxC, 1.0);
-      K.mw.addMatrixProduct(rxC, iow,  1.0);
-      K.mv.addMatrixProduct(rxC, iodw, 1.0);
-    }
-    {
-      Matrix3D Ciow{};
-      Ciow.addMatrixProduct(C, iow, 1.0);
+      K.nn.addMatrix(C,    1.0);
+      K.nn.addMatrix(CWb,  1.0);
       K.nw.addMatrix(Ciow,  1.0);
-      K.ww.addMatrixTransposeProduct(1.0, iow,  Ciow, 1.0);
+      K.nm.addMatrix(Crx,  1.0);
+      K.nv.addMatrix(Ciodw, 1.0);
+      if (conj_poisson) {
+        K.nv.addMatrixTransposeProduct(1.0, Wb, Ciodw, 1.0);
+        K.nm.addMatrixTransposeProduct(1.0, Wb, Crx, 1.0);
+        K.nn.addMatrixTransposeProduct(1.0, Wb, C+CWb, 1.0);
+        K.nw.addMatrixTransposeProduct(1.0, Wb, Ciow, 1.0);
+      }
+    }
+
+    {
+      K.mn.addSpinMatrixProduct(r, C,     1.0);
+      K.mn.addSpinMatrixProduct(r, CWb,   1.0);
+      K.mm.addSpinMatrixProduct(r, Crx,   1.0);
+      K.mw.addSpinMatrixProduct(r, Ciow,  1.0);
+      K.mv.addSpinMatrixProduct(r, Ciodw, 1.0);
     }
     {
-      Matrix3D Ciodw{};
-      Ciodw.addMatrixProduct(C, iodw, 1.0);
-      K.nv.addMatrix(Ciodw, 1.0);
+      K.wn.addTranspose(Ciow, 1.0);
+      K.wn.addMatrixTransposeProduct(1.0, iow,  CWb,  1.0);
+      K.wm.addMatrixTransposeProduct(1.0, iow,  Crx,  1.0);
+      K.ww.addMatrixTransposeProduct(1.0, iow,  Ciow, 1.0);
+      K.wv.addMatrixTransposeProduct(1.0, iow,  Ciodw, 1.0);
+    }
+    {
+      K.vn.addTranspose(Ciodw, 1.0);
+      K.vn.addMatrixTransposeProduct(1.0, iodw,  CWb,   1.0);
+      K.vm.addMatrixTransposeProduct(1.0, iodw,  Crx,   1.0);
+      K.vw.addMatrixTransposeProduct(1.0, iodw,  Ciow,  1.0);
       K.vv.addMatrixTransposeProduct(1.0, iodw,  Ciodw, 1.0);
     }
 
@@ -301,23 +473,24 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     //
     const Vector &stress  = theMat.getStress();
 
-    if (wagner && e_trial != nullptr) {
+    if (wagner && (e_trial != nullptr)) {
       constexpr Matrix3D ioi {{ 1, 0, 0 ,
                                 0, 0, 0 ,
                                 0, 0, 0 }};
-       Matrix3D ioiC = ioi*C;
-       K.mn.addMatrix(ioiC, tr2);
-       //
-       K.mm.addSpinMatrixProduct(r, ioiC.transpose(), tr2);
-       K.mm.addMatrixSpinProduct(ioiC, r, -tr2);
-       K.mm.addMatrixProduct(ioiC, ioi, tr2*tr2);
+      Matrix3D ioiC = ioi*C;
+      K.mn.addMatrix(ioiC, tr2);
+      K.nm.addTranspose(ioiC, tr2);
+      //
+      K.mm.addSpinMatrixProduct(r, ioiC.transpose(), tr2);
+      K.mm.addMatrixSpinProduct(ioiC, r, -tr2);
+      K.mm.addMatrixProduct(ioiC, ioi, tr2*tr2);
 
-       // Geometric part,  equivalent to Kmm.addMatrix(ioi, r2*stress(0));
-       if (kappa[0] != 0) [[likely]]
-          K.mm(0,0) += tr2/kappa[0]*stress(0)*fiber.area;
+      // Geometric part,  equivalent to Kmm.addMatrix(ioi, r2*stress(0));
+      if (kappa[0] != 0) [[likely]]
+        K.mm(0,0) += (tr2/kappa[0])*stress(0)*fiber.area;
 
-       K.mw.addMatrixProduct(ioiC, iow,  tr2);
-       K.mv.addMatrixProduct(ioiC, iodw, tr2);
+      K.mw.addMatrixProduct(ioiC, iow,  tr2);
+      K.mv.addMatrixProduct(ioiC, iodw, tr2);
     }
 
     if (s_trial != nullptr) {
@@ -344,10 +517,17 @@ FrameSolidSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
 
       if (wagner && e_trial != nullptr)
         (*s_trial)(imx) += tr2*sig0;
+
+      if (conj_poisson) {
+        // Poisson effect
+        (*s_trial)(iny) += Wb(1,1)*sig1 + Wb(2,1)*sig2;
+        (*s_trial)(inz) += Wb(1,2)*sig1 + Wb(2,2)*sig2;
+      }
     }
   }
   return res;
 }
+
 
 const Vector&
 FrameSolidSection3d::getSectionDeformation()
@@ -355,59 +535,76 @@ FrameSolidSection3d::getSectionDeformation()
   return e_wrap;
 }
 
-const Matrix&
-FrameSolidSection3d::getInitialTangent()
-{
-  static double kInitial[nsr*nsr];
-  static Matrix ksi(kInitial, nsr, nsr);
-
-  ksi.Zero();
-  this->stateDetermination(*K_init, nullptr, nullptr, InitialTangent);
-
-  ksi.Zero();
-  ksi.Assemble(K_init->nn, 0, 0, 1.0);
-  ksi.Assemble(K_init->nw, 0, 6, 1.0);
-  ksi.Assemble(K_init->nv, 0, 9, 1.0);
-  ksi.Assemble(K_init->mn, 3, 0, 1.0);
-  ksi.Assemble(K_init->mm, 3, 3, 1.0);
-  ksi.Assemble(K_init->mw, 3, 6, 1.0);
-  ksi.Assemble(K_init->mv, 3, 9, 1.0);
-  ksi.Assemble(K_init->ww, 6, 6, 1.0);
-  ksi.Assemble(K_init->vv, 9, 9, 1.0);
-
-  ksi.AssembleTranspose(K_init->nw, 6, 0, 1.0);
-  ksi.AssembleTranspose(K_init->nv, 9, 0, 1.0);
-  ksi.AssembleTranspose(K_init->mn, 0, 3, 1.0);
-  ksi.AssembleTranspose(K_init->mw, 6, 3, 1.0);
-  ksi.AssembleTranspose(K_init->mv, 9, 3, 1.0);
-  return ksi;
-}
-
 
 const Matrix&
 FrameSolidSection3d::getSectionTangent()
 {
 #ifndef SEES_SECTION_THREADS
-  static Matrix K_wrap(nsr, nsr);
+  static MatrixND<nsr,nsr> K;
+  static Matrix K_wrap(K);
+  // K_wrap.setData(K);
 #endif
-  K_wrap.Zero();
-  K_wrap.Assemble(K_pres.nn, 0, 0, 1.0);
-  K_wrap.Assemble(K_pres.nw, 0, 6, 1.0);
-  K_wrap.Assemble(K_pres.nv, 0, 9, 1.0);
-  K_wrap.Assemble(K_pres.mn, 3, 0, 1.0);
-  K_wrap.Assemble(K_pres.mm, 3, 3, 1.0);
-  K_wrap.Assemble(K_pres.mw, 3, 6, 1.0);
-  K_wrap.Assemble(K_pres.mv, 3, 9, 1.0);
-  K_wrap.Assemble(K_pres.ww, 6, 6, 1.0);
-  K_wrap.Assemble(K_pres.vv, 9, 9, 1.0);
 
-  K_wrap.AssembleTranspose(K_pres.nw, 6, 0, 1.0);
-  K_wrap.AssembleTranspose(K_pres.nv, 9, 0, 1.0);
-  K_wrap.AssembleTranspose(K_pres.mn, 0, 3, 1.0);
-  K_wrap.AssembleTranspose(K_pres.mw, 6, 3, 1.0);
-  K_wrap.AssembleTranspose(K_pres.mv, 9, 3, 1.0);
+  K.zero();
+  K.assemble(K_pres.nn, 0, 0, 1.0);
+  K.assemble(K_pres.nm, 0, 3, 1.0);
+  K.assemble(K_pres.nw, 0, 6, 1.0);
+  K.assemble(K_pres.nv, 0, 9, 1.0);
+
+  K.assemble(K_pres.mn, 3, 0, 1.0);
+  K.assemble(K_pres.mm, 3, 3, 1.0);
+  K.assemble(K_pres.mw, 3, 6, 1.0);
+  K.assemble(K_pres.mv, 3, 9, 1.0);
+
+  K.assemble(K_pres.wn, 6, 0, 1.0);
+  K.assemble(K_pres.wm, 6, 3, 1.0);
+  K.assemble(K_pres.ww, 6, 6, 1.0);
+  K.assemble(K_pres.wv, 6, 9, 1.0);
+
+  //
+  K.assemble(K_pres.vn, 9, 0, 1.0);
+  K.assemble(K_pres.vm, 9, 3, 1.0);
+  K.assemble(K_pres.vw, 9, 6, 1.0);
+  K.assemble(K_pres.vv, 9, 9, 1.0);
+
+  // K.assembleTranspose(K_pres.mn, 0, 3, 1.0); // nm
+  // K.assembleTranspose(K_pres.nw, 6, 0, 1.0);
+  // K.assembleTranspose(K_pres.mw, 6, 3, 1.0);
+  // // K.assembleTranspose(K_pres.nv, 9, 0, 1.0);
+  // K.assembleTranspose(K_pres.mv, 9, 3, 1.0); // vm
+  // K.assembleTranspose(K_pres.wv, 9, 6, 1.0); // vw
   return K_wrap;
 }
+
+
+const Matrix&
+FrameSolidSection3d::getInitialTangent()
+{
+  static MatrixND<nsr,nsr> ksi;
+  static Matrix wrap(ksi); //, nsr, nsr);
+
+  ksi.zero();
+  this->stateDetermination(K_pres, nullptr, nullptr, InitialTangent);
+
+  ksi.zero();
+  ksi.assemble(K_pres.nn, 0, 0, 1.0);
+  ksi.assemble(K_pres.mn, 3, 0, 1.0);
+  ksi.assemble(K_pres.nw, 0, 6, 1.0);
+  ksi.assemble(K_pres.nv, 0, 9, 1.0);
+  ksi.assemble(K_pres.mn, 3, 0, 1.0);
+  ksi.assemble(K_pres.mm, 3, 3, 1.0);
+  ksi.assemble(K_pres.mw, 3, 6, 1.0);
+  ksi.assemble(K_pres.mv, 3, 9, 1.0);
+  ksi.assemble(K_pres.ww, 6, 6, 1.0);
+  ksi.assemble(K_pres.vv, 9, 9, 1.0);
+  ksi.assembleTranspose(K_pres.nw, 6, 0, 1.0);
+  ksi.assembleTranspose(K_pres.nv, 9, 0, 1.0);
+  ksi.assembleTranspose(K_pres.mn, 0, 3, 1.0);
+  ksi.assembleTranspose(K_pres.mw, 6, 3, 1.0);
+  ksi.assembleTranspose(K_pres.mv, 9, 3, 1.0);
+  return wrap;
+}
+
 
 
 const Vector&
@@ -416,23 +613,7 @@ FrameSolidSection3d::getStressResultant()
   return s_wrap;
 }
 
-FrameSection*
-FrameSolidSection3d::getFrameCopy()
-{
-  FrameSolidSection3d *theCopy = new FrameSolidSection3d();
-  theCopy->setTag(this->getTag());
 
-
-  for (auto& material: materials)
-    theCopy->materials.push_back(material->getCopy("BeamFiber"));
-
-  theCopy->fibers = fibers;
-  theCopy->e = e;
-  theCopy->parameterID = parameterID;
-  theCopy->K_init = K_init;
-
-  return theCopy;
-}
 
 const ID&
 FrameSolidSection3d::getType()
@@ -440,11 +621,13 @@ FrameSolidSection3d::getType()
   return code;
 }
 
+
 int
 FrameSolidSection3d::getOrder() const
 {
   return nsr;
 }
+
 
 int
 FrameSolidSection3d::commitState()
@@ -472,6 +655,7 @@ FrameSolidSection3d::revertToLastCommit()
   return err;
 }
 
+
 int
 FrameSolidSection3d::revertToStart()
 {
@@ -480,13 +664,15 @@ FrameSolidSection3d::revertToStart()
     err += material->revertToStart();
 
   s.zero();
+  e.zero();
   err += this->stateDetermination(K_pres, &s, nullptr, CurrentTangent);
 
   return err;
 }
 
+
 int
-FrameSolidSection3d::sendSelf(int commitTag, Channel &theChannel)
+FrameSolidSection3d::sendSelf(int commitTag, Channel &)
 {
   return -1;
 }
@@ -498,63 +684,10 @@ FrameSolidSection3d::recvSelf(int , Channel &,
   return -1;
 }
 
-void
-FrameSolidSection3d::Print(OPS_Stream &s, int flag)
-{
-  const int nf = fibers->size();
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"" << this->getClassType() << "\", ";
-
-    double mass;
-    if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0)
-      s << "\"mass\": " << mass;
-
-    s << "\"fibers\": [\n";
-
-    for (int i = 0; i < nf; i++) {
-      s << OPS_PRINT_JSON_MATE_INDENT << "\t{\"location\": [" 
-        << (*fibers)[i].r[1] << ", " 
-        << (*fibers)[i].r[2] << "], ";
-      s << "\"area\": " << (*fibers)[i].area << ", ";
-      s << "\"warp\": [";
-      for (int j = 0; j < nwm; j++) {
-        s << "[";
-        for (int k = 0; k < 3; k++) {
-          s << (*fibers)[i].warp[j][k];
-          if (k < 2)
-            s << ", ";
-        }
-        s << "]";
-        if (j < nwm-1)
-          s << ", ";
-      }
-      s << "], ";
-
-      s << "\"material\": " << materials[i]->getTag();
-      if (i < nf - 1)
-          s << "},\n";
-      else
-          s << "}\n";
-    }
-    s << OPS_PRINT_JSON_MATE_INDENT << "]}";
-    return;
-  }
-
-  else if (flag == 1) {
-    for (int i = 0; i < nf; i++) {
-      auto & fiber = (*fibers)[i];
-      s << "\nLocation (y,z) = " << fiber.r[1] << ' ' << fiber.r[2];
-      s << "\nArea = " << fiber.area << endln;
-      materials[i]->Print(s, flag);
-    }
-  }
-}
 
 Response*
 FrameSolidSection3d::setResponse(const char **argv, int argc,
-                              OPS_Stream &output)
+                                 OPS_Stream &output)
 {
   Response *theResponse = nullptr;
 
@@ -678,6 +811,28 @@ FrameSolidSection3d::setParameter(const char **argv, int argc, Parameter &param)
     return param.addObject(Param::FiberFieldBase+fiberID*100+field, this);
   }
 
+  if (strcmp(argv[0], "shift_shear") == 0) {
+    // ... shift_shear i j
+    if (argc < 3) {
+      opserr << "FrameSolidSection3d::setParameter - i, j, value are required\n";
+      return -1;
+    }
+    int i = atoi(argv[1]);
+    int j = atoi(argv[2]);
+    if ((i == 1) && (j == 1))
+      return param.addObject(Param::ShearAlignYY, this);
+    else if ((i == 2) && (j == 2))
+      return param.addObject(Param::ShearAlignZZ, this);
+    else if ((i == 1) && (j == 2))
+      return param.addObject(Param::ShearAlignYZ, this);
+    else if ((i == 2) && (j == 1))
+      return param.addObject(Param::ShearAlignZY, this);
+    else {
+      opserr << "FrameSolidSection3d::setParameter - invalid i, j: " << i << ", " << j << "\n";
+      return -1;
+    }
+  }
+
   // Check if the parameter belongs to the material
   if (strstr(argv[0], "material") != 0) {
     
@@ -709,6 +864,23 @@ FrameSolidSection3d::setParameter(const char **argv, int argc, Parameter &param)
 int
 FrameSolidSection3d::updateParameter(int paramID, Information &info)
 {
+
+  if (paramID == Param::ShearAlignYY) {
+    shear_align(1,1) = info.theDouble;
+    return 0;
+  }
+  else if (paramID == Param::ShearAlignZZ) {
+    shear_align(2,2) = info.theDouble;
+    return 0;
+  }
+  else if (paramID == Param::ShearAlignYZ) {
+    shear_align(1,2) = info.theDouble;
+    return 0;
+  }
+  else if (paramID == Param::ShearAlignZY) {
+    shear_align(2,1) = info.theDouble;
+    return 0;
+  }
 
   if (paramID >= Param::FiberFieldBase) {
     int fiberID = (paramID - Param::FiberFieldBase) / 100;
@@ -762,7 +934,6 @@ FrameSolidSection3d::updateParameter(int paramID, Information &info)
     }
     return 0;
   }
-
 
   return -1;
 }
@@ -862,11 +1033,12 @@ FrameSolidSection3d::getStressResultantSensitivity(int gradIndex, bool condition
     dasdh(2,4) = 0;
     dasdh(1,5) = -dzdh[i];
     dasdh(2,5) = dydh[i];
-    
+#if 0 // removed to eliminate implicit cast from MatrixND to Matrix
     static Matrix tmpMatrix(nsr,nsr);
     tmpMatrix.addMatrixTripleProduct(0.0, as, tangent, dasdh, 1.0);
     
     ds.addMatrixVector(1.0, tmpMatrix, e, A);
+#endif
   }
 
   return ds;
@@ -880,6 +1052,7 @@ FrameSolidSection3d::getInitialTangentSensitivity(int gradIndex)
   dksdh.Zero();
   return dksdh;
 }
+
 
 int
 FrameSolidSection3d::commitSensitivity(const Vector& defSens,
@@ -922,4 +1095,74 @@ FrameSolidSection3d::commitSensitivity(const Vector& defSens,
   }
 
   return 0;
+}
+
+
+void
+FrameSolidSection3d::Print(OPS_Stream &s, int flag)
+{
+  const int nf = fibers->size();
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+
+    double mass;
+    if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0)
+      s << "\"mass\": " << mass << ", ";
+
+
+    s << "\"shear_align\": [";
+    for (int i = 1; i < 3; i++) {
+      s << "[";
+      for (int j = 1; j < 3; j++) {
+        s << shear_align(i,j);
+        if (j < 2)
+          s << ", ";
+      }
+      s << "]";
+      if (i < 2)
+        s << ", ";
+    }
+    s << "], ";
+
+    s << "\"fibers\": [\n";
+
+    for (int i = 0; i < nf; i++) {
+      s << OPS_PRINT_JSON_MATE_INDENT << "\t{\"location\": [" 
+        << (*fibers)[i].r[1] << ", " 
+        << (*fibers)[i].r[2] << "], ";
+      s << "\"area\": " << (*fibers)[i].area << ", ";
+      s << "\"warp\": [";
+      for (int j = 0; j < nwm; j++) {
+        s << "[";
+        for (int k = 0; k < 3; k++) {
+          s << (*fibers)[i].warp[j][k];
+          if (k < 2)
+            s << ", ";
+        }
+        s << "]";
+        if (j < nwm-1)
+          s << ", ";
+      }
+      s << "], ";
+
+      s << "\"material\": " << materials[i]->getTag();
+      if (i < nf - 1)
+          s << "},\n";
+      else
+          s << "}\n";
+    }
+    s << OPS_PRINT_JSON_MATE_INDENT << "]}";
+    return;
+  }
+
+  else if (flag == 1) {
+    for (int i = 0; i < nf; i++) {
+      auto & fiber = (*fibers)[i];
+      s << "\nLocation (y,z) = " << fiber.r[1] << ' ' << fiber.r[2];
+      s << "\nArea = " << fiber.area << endln;
+      materials[i]->Print(s, flag);
+    }
+  }
 }

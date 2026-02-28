@@ -53,6 +53,7 @@
 #include <cfloat>
 #include <array>
 
+#include <Logging.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <MatrixND.h>
@@ -194,9 +195,13 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getIntegral(Field field, State state, doub
 
     // Integrate density to compute total mass
     case Field::Density: {
+      // use element density if supplied
+      if (use_density) {
+        total = density * basic_system->getInitialLength();
+        return 0;
+      }
       for (GaussPoint& sample : points) {
         double value = 0.0;
-        // use element density if supplied
         if (use_density)
           total += sample.weight*density;
 
@@ -366,6 +371,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getMass()
     ALWAYS_STATIC Matrix Wrapper{M};
     // lumped mass matrix
     double m = 0.5*total_mass;
+    M.zero();
     M(0,0) = m;
     M(1,1) = m;
     M(2,2) = m;
@@ -429,8 +435,9 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getInitialStiff()
 
   // calculate element stiffness matrix
   ALWAYS_STATIC MatrixND<NBV, NBV> K_init;
-  if (Cholesky<NBV>(F_init).invert(K_init) < 0)
-    opserr << "ForceFrame3d: Failed to invert flexibility";
+  if (Cholesky<NBV>(F_init).invert(K_init) < 0) {
+    opserr << "ForceFrame3d: Failed to invert flexibility\n";
+  }
 
   Matrix wrapper(K_init);
   Ki = new Matrix(basic_system->getInitialGlobalStiffMatrix(wrapper));
@@ -490,10 +497,9 @@ public:
     return Tb;
   }
 
-  MatrixND<nsr,NBV> 
+  const MatrixND<nsr,NBV> &
   b(double xL, double L) 
   {
-    MatrixND<nsr,NBV> B{};
     for (int i = 0; i < nsr; i++) {
       switch (scheme[i]) {
       case FrameStress::N:
@@ -617,6 +623,8 @@ public:
       }
     }
   }
+private:
+  MatrixND<nsr,NBV> B;
 };
 }
 
@@ -624,6 +632,399 @@ public:
 template <int NIP, int nsr, int nwm, int shear_flag>
 int
 ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
+{
+  if (!getenv("Force02"))
+    return this->update01();
+  else
+    return this->update02();
+
+  return 0;
+}
+
+
+template <int NIP, int nsr, int nwm, int shear_flag>
+int
+ForceFrame3d<NIP,nsr,nwm,shear_flag>::update01()
+{
+  constexpr static double TOL_SUBDIV = DBL_EPSILON*10;
+
+
+  // If we have completed a recvSelf() do a revertToLastCommit()
+  // to get sr, etc. set correctly
+  if (state_flag == 2)
+    this->revertToLastCommit();
+
+  //
+  // Localize deformations
+  //
+  basic_system->update();
+
+  double L   = basic_system->getInitialLength();
+
+  VectorND<NBV> dv_total{};
+  {
+    const Vector& dvb = basic_system->getBasicIncrDeltaDisp();
+    for (int i=0; i<6; i++) {
+      dv_total[i] = dvb[i];
+    }
+  }
+
+
+  // Basic DOFs
+  VectorND<NBV> v0{};
+  {
+    const Vector& v = basic_system->getBasicTrialDisp();
+    for (int i=0; i<6; i++)
+      v0[i] = v[i] - dv_total[i];
+  }
+
+  {
+    // Warping DOFs
+    Node** nodes = this->getNodePtrs();
+    for (int i=0; i<nwm; i++) {
+      for (int j=0; j<2; j++) {
+        const Vector& uj  = nodes[j]->getTrialDisp();
+        const Vector& duj = nodes[j]->getIncrDeltaDisp();
+        dv_total[NNW+i*nwm+j] = duj[6+i];
+        v0[NNW+i*nwm+j] = uj[6+i] - duj[6+i];
+        // dv_total[NNW+2*nwm+j] = duj[6+i];
+        // Dv[NNW+2*nwm+j] = uj[6+i] - duj[6+i];
+      }
+    }
+  }
+
+  //
+  //
+  //
+  if ((state_flag != 0) && 
+      (dv_total.norm() <= DBL_EPSILON) &&
+      (eleLoads.size()==0) &&
+      (frame_loads.size()==0))
+    return 0;
+
+
+  // VectorND<NBV> dv = dv_total;
+  VectorND<NBV> dv_trial = dv_total;
+  const VectorND<NBV> Dv = dv_total;
+
+  static constexpr int max_subdivision= 10;
+  static constexpr double factor = 10.0;
+  double dW;             // section strain energy (work) norm
+  double dW0  = 0.0;
+
+
+  static VectorND<nsr>     es_trial[NIP]{}; //  strain
+  static VectorND<nsr>     sr_trial[NIP]{}; //  stress resultant
+  static MatrixND<nsr,nsr> Fs_trial[NIP]{}; //  flexibility
+
+  //
+  //   Iterate to find compatible forces and deformations
+  //
+  //   First try first a Newton iteration, if that fails we try an initial
+  //   flexibility iteration on first iteration and then regular Newton, if
+  //   that fails we use the initial flexiblity for all iterations.
+  //   If they both fail we subdivide dV & try to get compatible forces
+  //   and deformations. If they work, and we have subdivided we apply
+  //   the remaining dV.
+  //
+  enum class Strategy {
+    Newton, InitialIterations, InitialThenNewton
+  };
+  static constexpr std::array<Strategy,3> solve_strategy {
+    Strategy::Newton, Strategy::InitialThenNewton, Strategy::InitialIterations, 
+  };
+
+  int subdivision = 0;
+  bool converged = false;
+
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
+
+  const int nip = points.size();
+  while ((converged == false) && (subdivision < max_subdivision)) {
+
+    for (Strategy strategy : solve_strategy ) {
+      if (strategy != Strategy::Newton) {
+        opserr << "  Element " << this->getTag() 
+              << ": Attempting strategy ";
+        switch (strategy) {
+          case Strategy::Newton:
+            opserr << "Newton";
+            break;
+          case Strategy::InitialIterations:
+            opserr << "Initial Tangent Iterations";
+            break;
+          case Strategy::InitialThenNewton:
+            opserr << "Initial Tangent then Newton";
+            break;
+        }
+        opserr << "\n";
+      }
+
+      // Allow extra iterations for initial tangent strategy
+      const int numIters = (strategy==Strategy::InitialIterations) ? 10*max_iter : max_iter;
+
+
+      for (int i = 0; i < nip; i++) {
+        es_trial[i]  = points[i].es;
+        Fs_trial[i]  = points[i].Fs;
+        sr_trial[i]  = points[i].sr;
+      }
+
+      if (state_flag == 2)
+        continue;
+
+      VectorND<NBV> q_trial = q_pres;
+
+      q_trial += K_pres*dv_trial;
+
+      for (int j = 0; j < numIters; j++) {
+
+        VectorND<NBV> vr{};       // element residual deformations
+        MatrixND<NBV, NBV> F{};   // element flexibility matrix
+        double DWi = 0.0;
+
+        //
+        // Gauss Loop
+        //
+        for (int i = 0; i < nip; i++) {
+          double xL = points[i].point;
+          double wtL = points[i].weight * L;
+
+          // Retrieve section flexibility, deformations, and forces from last iteration
+          const MatrixND<nsr,nsr>& Fs = Fs_trial[i];
+          const VectorND<nsr>&     s0 = sr_trial[i];
+          const MatrixND<nsr,NBV>& b = interp.b(xL, L);
+          FrameSection& section = *points[i].material;
+
+          //
+          // a. Calculate section force by interpolation of q_trial
+          //
+          //    si = b*q + bp*w;
+
+          // Interpolation of q_trial
+          //    b*q_trial
+          //
+          VectorND<nsr> si = b * q_trial;
+
+          //
+          // Add the particular solution
+          //
+          if ((frame_loads.size() != 0) || (eleLoads.size() != 0))
+            this->addLoadAtSection(si, points[i].point * L);
+
+
+          //
+          // b. Compute section deformations es_trial
+          //
+          //    es += Fs * ( si - sr(e) );
+          //
+          if (state_flag != 0) {
+
+            // Form stress increment ds from last iteration
+            // ds = si - si_past;
+            const VectorND<nsr> ds = si - s0;
+
+            // Add strain correction
+            //    es += Fs * ds;
+            switch (strategy) {
+              case Strategy::Newton:
+                //  regular Newton
+                es_trial[i].addMatrixVector(Fs, ds, 1.0);
+                break;
+
+              case Strategy::InitialThenNewton:
+                //  Newton with initial tangent if first iteration
+                //  otherwise regular Newton
+                if (j == 0) {
+                  MatrixND<nsr,nsr> Fs0 = section.template getFlexibility<nsr,scheme>(State::Init);
+                  es_trial[i].addMatrixVector(Fs0, ds, 1.0);
+                } else
+                  es_trial[i].addMatrixVector(Fs, ds, 1.0);
+                break;
+
+              case Strategy::InitialIterations:
+                //  Newton with initial tangent
+                MatrixND<nsr,nsr> Fs0 = section.template getFlexibility<nsr,scheme>(State::Init);
+                es_trial[i].addMatrixVector(Fs0, ds, 1.0);
+                break;
+            }
+          }
+
+
+          //
+          // c. Set trial section state and get response
+          //
+          if (section.setTrialState<nsr,scheme>(es_trial[i]) < 0) {
+            opserr << "  Element " << this->getTag() << ", section " << i << ": failed in setTrial\n";
+            return -1;
+          }
+
+          sr_trial[i] = section.getResultant<nsr, scheme>();
+          Fs_trial[i] = section.template getFlexibility<nsr, scheme>();
+
+          //
+          // d. Integrate element flexibility matrix
+          //
+          //    F += (B' * Fs * B) * wi * L;
+          //
+          F.addMatrixTripleProduct(1.0, b, Fs, b, wtL);
+
+          //
+          // e. Integrate residual deformations
+          //
+          //    vr += (B' * (es + des)) * wi * L;
+          //
+          {
+            // calculate section residual deformations
+            // des = Fs * ds,  with  ds = si - sr[i];
+            const VectorND<nsr> ds = si - s0;
+
+            // B' * des
+            vr.addMatrixTransposeVector(1.0, b, Fs*ds+es_trial[i], wtL);
+            
+            DWi += ds.dot(Fs*ds)*wtL;
+          }
+
+        } // Gauss loop
+
+
+        // dv = Dv + dv_trial  - vr
+        VectorND<NBV> dv  = v0;
+        dv += dv_trial;
+        dv -= vr;
+
+        //
+        // Finalize trial element state 
+        //
+        //    K_trial  = inv(F)
+        //    q_trial += K * (Dv + dv_trial - vr)
+        //
+        const Cholesky<NBV, true> cholF(F);
+
+        VectorND<NBV> dqe{};
+        if (cholF.solve(&dv[0], &dqe[0]) < 0) [[unlikely]] {
+          opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
+          if (F.solve(dv, dqe) < 0)
+            return -1;
+        }
+
+        dW = dqe.dot(dv)+DWi;
+        if (dW0 == 0.0)
+          dW0 = dW;
+
+        q_trial += dqe;
+
+        //
+        // Check for convergence of this interval
+        //
+        if (std::fabs(dW) < tol) {
+
+          // Set the target displacement
+          dv_total -= dv_trial;
+          v0       += dv_trial;
+
+          if (subdivision > 0)
+            opserr << "    " << LOG_SUCCESS << "Subdivision " << subdivision 
+                   << " converged with dW = " << dW 
+                   << ", tol = " << tol << "\n";
+
+          // Check if we have got to where we wanted
+          if (dv_total.dot(dv_total) <= TOL_SUBDIV*TOL_SUBDIV) {
+            converged = true;
+          } 
+          else {
+            // We've converged but we have more to do;
+            // reset variables for start of next subdivision
+
+            // keep the working step size as long as we dont surpass dv_total
+            if (dv_trial.dot(dv_trial) > dv_total.dot(dv_total))
+              dv_trial = dv_total;
+            // NOTE setting subdivide to 1 again maybe too much
+            // subdivision = 0;
+          }
+
+          // set K_pres, es and q_pres values
+          // K_pres = K_trial;
+
+          if (cholF.invert(K_pres) < 0) [[unlikely]] {
+            if (F.invert(K_pres) < 0)
+              return -1;
+          }
+          q_pres = q_trial;
+
+          for (int k = 0; k < nip; k++) {
+            points[k].es  = es_trial[k];
+            points[k].Fs  = Fs_trial[k];
+            points[k].sr  = sr_trial[k];
+          }
+
+          // break out of j & l loops
+          goto iterations_completed;
+        }
+        else { //  if (fabs(dW) < tol) {
+
+          // if we have failed to converge for all of our Newton schemes
+          // - reduce step size by the factor specified
+          if (j == (numIters - 1) && (strategy == solve_strategy.back())) {
+            dv_trial /= factor;
+            subdivision++;
+            opserr << "  Element " << this->getTag() 
+                   << ": Attempting substep " << subdivision 
+                   << " with "
+                   << " dW = " << dW 
+                   << ", tol = " << tol << "\n";
+          }
+        }
+      } // for (iteration)
+    }   // for (strategy)
+
+iterations_completed:
+        ;
+
+  } // while (converged == false)
+
+
+  if (converged == false) [[unlikely]] {
+    opserr << "  Element " 
+           << this->getTag() 
+            << ": failed to converge with  "
+           <<  " dW = " << dW 
+           << ", tol = " << tol
+           << ", % dv = " << 100.0*dv_trial.norm()/Dv.norm()
+           << "\n";
+    return -1;
+  }
+  else {
+    if (subdivision > 0) {
+      opserr << "ForceFrame3d::update - element " 
+             << this->getTag() 
+             << " required " << subdivision 
+             << " subdivisions to converge\n";
+    }
+
+    // ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
+    for (int k=0; k<nip; k++) {
+      const MatrixND<nsr,NBV>& B = interp.b(points[k].point, L);
+      VectorND<nsr> si = B * q_pres;
+      // Add the particular solution
+      if ((frame_loads.size() != 0) || (eleLoads.size() != 0))
+        this->addLoadAtSection(si, points[k].point * L);
+
+      MatrixND<nsr,nsr>& Fs = points[k].Fs;
+      points[k].es  = points[k].es + Fs*(si - sr_trial[k]);
+      points[k].sr  = si;
+    }
+  }
+
+  state_flag = 1;
+
+  return 0;
+}
+
+
+template <int NIP, int nsr, int nwm, int shear_flag>
+int
+ForceFrame3d<NIP,nsr,nwm,shear_flag>::update02()
 {
   constexpr static double TOL_SUBDIV = DBL_EPSILON*10;
 
@@ -683,6 +1084,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
   dv_total  = dv;
   dv_trial = dv_total;
 
+  static constexpr int max_subdivision= 5;
   static constexpr double factor = 10.0;
   double dW;             // section strain energy (work) norm
   double dW0  = 0.0;
@@ -712,6 +1114,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
   int subdivision = 1;
   bool converged = false;
 
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
   const int nip = points.size();
   while ((converged == false) && (subdivision <= max_subdivision)) {
 
@@ -737,7 +1140,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
 
         VectorND<NBV> vr{};       // element residual deformations
         MatrixND<NBV, NBV> F{};   // element flexibility matrix
-        ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
 
         //
         // Gauss Loop
@@ -748,9 +1150,9 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
 
           // Retrieve section flexibility, deformations, and forces from last iteration
           const MatrixND<nsr,nsr>& Fs = Fs_trial[i];
-          const VectorND<nsr>& sr = sr_trial[i];
+          const VectorND<nsr>&     s0 = sr_trial[i];
           FrameSection& section = *points[i].material;
-          const MatrixND<nsr,NBV> b = interp.b(xL, L);
+          const MatrixND<nsr,NBV>& b = interp.b(xL, L);
 
           //
           // a. Calculate section force by interpolation of q_trial
@@ -778,7 +1180,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
 
             // Form stress increment ds from last iteration
             // ds = si - si_past;
-            const VectorND<nsr> ds = si - sr;
+            const VectorND<nsr> ds = si - s0;
 
             // Add strain correction
             //    es += Fs * ds;
@@ -833,7 +1235,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
           {
             // calculate section residual deformations
             // des = Fs * ds,  with  ds = si - sr[i];
-            const VectorND<nsr> ds = si - sr;
+            const VectorND<nsr> ds = si - s0;
 
             VectorND<nsr> des = Fs*ds;
             des += es_trial[i];
@@ -859,7 +1261,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
 
         VectorND<NBV> dqe{};
         if (cholF.solve(&dv[0], &dqe[0]) < 0) [[unlikely]] {
-          opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
+          // opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
           if (F.solve(dv, dqe) < 0)
             return -1;
         }
@@ -880,7 +1282,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
           Dv       += dv_trial;
 
           // Check if we have got to where we wanted
-          if (dv_total.norm() <= TOL_SUBDIV) {
+          if (dv_total.dot(dv_total) <= TOL_SUBDIV*TOL_SUBDIV) {
             converged = true;
 
           } else {
@@ -958,8 +1360,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getTangentStiff()
 
 #if BASIC_TRANSFORM == 1
   
-  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
-  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix(); //FormBasicTransform();
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
+  const MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix(); //FormBasicTransform();
   kl = Tb*kb * Tb.transpose();
   pl = Tb * q_pres;
 #else
@@ -1001,8 +1403,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getTangentStiff()
   }
 #endif
 
-  using Operation = typename FrameTransform<2,NDF>::Operation;
-  basic_system->t.push(kl, pl, Operation::Total);
+  basic_system->t.push(kl, pl, Transform::Total);//&~Transform::Logarithm);
   this->addLoadTangent(kl, 1.0);
   return Wrapper;
 }
@@ -1014,7 +1415,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
 {
 
   double L   = basic_system->getInitialLength();
-  double jsx = 1.0 / L;
   //
   // Gauss Loop
   //
@@ -1022,9 +1422,10 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
   const MatrixND<3,2*NDF>& dR = basic_system->t.getRotationTangent();
   MatrixND<NBV,2*NDF> F{};
 
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
+
   for (int i = 0; i < nip; i++) {
     double xL = points[i].point;
-    double xL1 = xL - 1.0;
     double wtL = points[i].weight * L;
 
     // Retrieve section flexibility, deformations, and forces from last iteration
@@ -1036,58 +1437,23 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
     //    F += (B' * Fs * dsp) * wi * L;
     //
     {
+      const MatrixND<nsr,NBV>& b = interp.b(xL, L);
       MatrixND<nsr,2*NDF> FsB;
       FsB.zero();
       for (auto load : frame_loads) {
         VectorND<nsr> sp{};
         load->template addBasicSolution<nsr,scheme>(sp, points[i].point*L, L, 
-            Eye3, basic_system->t.getRotation());
+            basic_system->t.getInitialRotation(), 
+            basic_system->t.getRotation());
 
         MatrixND<nsr,3> Ks{};
         load->template addBasicTangent<nsr,scheme>(Ks, sp);
         FsB += Fs*Ks*dR*wtL;
       }
 
-      for (int jj = 0; jj < nsr; jj++) {
-        for (int ii = 0; ii < NDF; ii++) {
-          switch (scheme[jj]) {
-          case FrameStress::N:
-            F(jnx, ii) += 1.0 * FsB(jj, ii); // Nj
-            break;
-          case FrameStress::Vy:
-            F(imz, ii) += jsx * FsB(jj, ii);
-            F(jmz, ii) += jsx * FsB(jj, ii);
-            break;
-          case FrameStress::Vz:
-            F(imy, ii) += jsx * FsB(jj, ii);
-            F(jmy, ii) += jsx * FsB(jj, ii);
-            break;
-          case FrameStress::T:
-            F(jmx, ii) += 1.0 * FsB(jj, ii);
-            break;
-          case FrameStress::My:
-            F(imy, ii) += xL1 * FsB(jj, ii);
-            F(jmy, ii) += xL  * FsB(jj, ii);
-            break;
-          case FrameStress::Mz:
-            F(imz, ii) += xL1 * FsB(jj, ii);
-            F(jmz, ii) += xL  * FsB(jj, ii);
-            break;
-          case FrameStress::Bimoment:
-            F(iwx, ii) += xL1 * FsB(jj, ii);
-            F(jwx, ii) += xL  * FsB(jj, ii);
-            break;
-          case FrameStress::Bishear:
-            F(iwx, ii) += jsx * FsB(jj, ii);
-            F(jwx, ii) += jsx * FsB(jj, ii);
-            break;
-          }
-        }
-      }
+      F.addMatrixTransposeProduct(1.0, b, FsB, wtL);
     }
   } // Gauss loop
-
-
 
 
   //
@@ -1095,14 +1461,13 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
 
   for (auto load : frame_loads) {
     load->template addLinearSolution<NDF>(pf, L, 
-        Eye3, // TODO?
+        basic_system->t.getInitialRotation(),
         basic_system->t.getRotation());
   }
 
   MatrixND<2*NDF,2*NDF> Kf{};
 
 #if BASIC_TRANSFORM == 1
-  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
   const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix(); // FormBasicTransform();
   Kf = Tb*F;
 #else
@@ -1121,8 +1486,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
   }
 #endif
   //
-  using Operation = typename FrameTransform<2,NDF>::Operation;
-  basic_system->t.push(Kf, pf, Operation::Bubnov);
+  basic_system->t.push(Kf, pf, Transform::Bubnov);
 
   K += Kf;
 }
@@ -1135,7 +1499,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadAtSection(VectorND<nsr>& sp, double
   double L = basic_system->getInitialLength();
   for (auto load : frame_loads) {
     load->template addBasicSolution<nsr, scheme>(sp, x, L, 
-        Eye3, basic_system->t.getRotation());
+        basic_system->t.getInitialRotation(), 
+        basic_system->t.getRotation());
   }
 
   for (auto[load, loadFactor] : eleLoads) {
@@ -1459,102 +1824,18 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getInitialFlexibility(MatrixND<NBV,NBV>& f
   fe.zero();
 
   double L   = basic_system->getInitialLength();
-  double jsx = 1.0 / L;
 
   const int numSections = points.size();
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
   for (int i = 0; i < numSections; i++) {
 
     double xL  = points[i].point;
-    double xL1 = xL - 1.0;
     double wtL = points[i].weight * L;
 
     const MatrixND<nsr,nsr> fSec = points[i].material->template getFlexibility<nsr, scheme>(State::Init);
 
-    static MatrixND<nsr, NBV> FB;
-    FB.zero();
-    for (int ii = 0; ii < nsr; ii++) {
-      switch (scheme[ii]) {
-      case FrameStress::N:
-        for (int jj = 0; jj < nsr; jj++)
-          FB(jj, 0) += fSec(jj, ii) * wtL;
-        break;
-      case FrameStress::Mz:
-        for (int jj = 0; jj < nsr; jj++) {
-          double tmp = fSec(jj, ii) * wtL;
-          FB(jj, 1) += xL1 * tmp;
-          FB(jj, 2) += xL * tmp;
-        }
-        break;
-      case FrameStress::Vy:
-        for (int jj = 0; jj < nsr; jj++) {
-          double tmp = jsx * fSec(jj, ii) * wtL;
-          FB(jj, 1) += tmp;
-          FB(jj, 2) += tmp;
-        }
-        break;
-      case FrameStress::My:
-        for (int jj = 0; jj < nsr; jj++) {
-          double tmp = fSec(jj, ii) * wtL;
-          FB(jj, 3) += xL1 * tmp;
-          FB(jj, 4) += xL * tmp;
-        }
-        break;
-      case FrameStress::Vz:
-        for (int jj = 0; jj < nsr; jj++) {
-          double tmp = jsx * fSec(jj, ii) * wtL;
-          FB(jj, 3) += tmp;
-          FB(jj, 4) += tmp;
-        }
-        break;
-      case FrameStress::T:
-        for (int jj = 0; jj < nsr; jj++)
-          FB(jj, 5) += fSec(jj, ii) * wtL;
-        break;
-      default: break;
-      }
-    }
-    //
-    for (int ii = 0; ii < nsr; ii++) {
-      switch (scheme[ii]) {
-      case FrameStress::N:
-        for (int jj = 0; jj < NBV; jj++)
-          fe(0, jj) += FB(ii, jj);
-        break;
-      case FrameStress::Mz:
-        for (int jj = 0; jj < NBV; jj++) {
-          double tmp = FB(ii, jj);
-          fe(1, jj) += xL1 * tmp;
-          fe(2, jj) += xL * tmp;
-        }
-        break;
-      case FrameStress::Vy:
-        for (int jj = 0; jj < NBV; jj++) {
-          double tmp = jsx * FB(ii, jj);
-          fe(1, jj) += tmp;
-          fe(2, jj) += tmp;
-        }
-        break;
-      case FrameStress::My:
-        for (int jj = 0; jj < NBV; jj++) {
-          double tmp = FB(ii, jj);
-          fe(3, jj) += xL1 * tmp;
-          fe(4, jj) += xL * tmp;
-        }
-        break;
-      case FrameStress::Vz:
-        for (int jj = 0; jj < NBV; jj++) {
-          double tmp = jsx * FB(ii, jj);
-          fe(3, jj) += tmp;
-          fe(4, jj) += tmp;
-        }
-        break;
-      case FrameStress::T:
-        for (int jj = 0; jj < NBV; jj++)
-          fe(5, jj) += FB(ii, jj);
-        break;
-      default: break;
-      }
-    }
+    const MatrixND<nsr,NBV>& b = interp.b(xL, L);
+    fe += b.transpose() * fSec * b * wtL;
   }
   return 0;
 }
@@ -1865,13 +2146,21 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::setResponse(const char** argv, int argc, O
         output.attr("number", sectionNum);
         output.attr("eta", 2.0 * points[sectionNum - 1].point - 1.0);
 
-        if (strcmp(argv[2], "dsdh") != 0) {
-          theResponse = points[sectionNum - 1].material->setResponse(&argv[2], argc - 2, output);
-        } else {
-          int order         = points[sectionNum - 1].material->getOrder();
-          theResponse       = new ElementResponse(this, 76, Vector(order));
+        if (argc > 2 && strcmp(argv[2], "tangent") == 0) {
+          // stiffness
+          theResponse       = new ElementResponse(this, Respond::ResultantStiffness, Matrix(nsr, nsr));
           Information& info = theResponse->getInformation();
           info.theInt       = sectionNum;
+        }
+        else if (argc > 2 && strcmp(argv[2], "dsdh") == 0) {
+          // dsdh 
+          int order         = points[sectionNum - 1].material->getOrder();
+          theResponse       = new ElementResponse(this, Respond::ResultantGradient, Vector(order));
+          Information& info = theResponse->getInformation();
+          info.theInt       = sectionNum;
+        }
+        else {
+          theResponse = points[sectionNum - 1].material->setResponse(&argv[2], argc - 2, output);
         }
 
         output.endTag();
@@ -1926,7 +2215,7 @@ int
 ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponse(int responseID, Information& info)
 {
   THREAD_LOCAL Vector vp(6);
-  THREAD_LOCAL MatrixND<NBV,NBV> fe;
+  THREAD_LOCAL MatrixND<NBV,NBV> fe{};
 
   if (responseID == Respond::GlobalForce)
     return info.setVector(this->getResistingForce());
@@ -1987,6 +2276,13 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponse(int responseID, Information& i
   else if (responseID == 19)
     return info.setMatrix(K_pres);
 
+  // Ks
+  else if (responseID == Respond::ResultantStiffness) {
+    int i = info.theInt;
+    MatrixND<nsr,nsr> K = points[i-1].material->template getTangent<nsr,scheme>(State::Pres);
+    return info.setMatrix(K);
+  }
+
   // Plastic rotation
   else if (responseID == 4) {
     this->getInitialFlexibility(fe);
@@ -2034,12 +2330,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponse(int responseID, Information& i
     for (int i = 0; i < numSections; i++)
       tags(i) = points[i].material->getTag();
     return info.setID(tags);
-  }
-
-  else if (responseID == 111 || responseID == 1111) {
-  }
-
-  else if (responseID == 112) {
   }
 
   else if (responseID == 12)
@@ -2183,12 +2473,11 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponseSensitivity(int responseID, int
   }
 
   // dsdh
-  else if (responseID == 76) {
+  else if (responseID == Respond::ResultantGradient) {
 
     int sectionNum = info.theInt;
 
-    VectorND<nsr> dsdh;
-    dsdh.zero();
+    VectorND<nsr> dsdh{};
 
     if (eleLoads.size() > 0)
       this->getStressGrad(dsdh, sectionNum - 1, gradNumber);
@@ -2290,6 +2579,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::setParameter(const char** argv, int argc, 
   if ((strcmp(argv[0], "rho") == 0) ||
       (strcmp(argv[0], "density") == 0)) {
     param.setValue(density);
+    use_density = true;
     return param.addObject(1, this);
   }
 
@@ -2379,6 +2669,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::updateParameter(int parameterID, Informati
 {
   if (parameterID == 1) {
     this->density = info.theDouble;
+    total_mass = density * basic_system->getInitialLength();
+    use_density = true;
     return 0;
   } else
     return -1;
@@ -2780,8 +3072,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResistingForce()
 
   static VectorND<NDF*2> pl{};
 #if BASIC_TRANSFORM == 1
-  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp;
-  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix();
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
+  const MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix();
   pl = Tb * q_pres;
 #else
   pl.zero();
@@ -2797,49 +3089,39 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResistingForce()
 #endif
 
   // 2. Element loads
-
+  VectorND<NDF*2> pf{};
   // 2.1 Legacy load classes
   double p0[5]{};
   if (eleLoads.size() > 0)
     this->computeReactions(p0);
-  
-  // 2.2 Frame load classes
-  VectorND<NDF*2> pf;
-  pf.zero();
   pf[0*NDF + 0] = p0[0]; // N
   pf[0*NDF + 1] = p0[1]; // Vy
   pf[0*NDF + 2] = p0[3]; // Vz
   pf[1*NDF + 1] = p0[2]; // Vy
   pf[1*NDF + 2] = p0[4]; // Vz
+  
+  // 2.2 Frame load classes
 
   for (auto load : frame_loads) {
     load->template addLinearSolution<NDF>(pf, L, 
-        Eye3, // TODO?
+        basic_system->t.getInitialRotation(),
         basic_system->t.getRotation());
   }
 
 
   // 3. Push to global system
 #if 0
-  thread_local VectorND<NDF*2> pg;
-  thread_local Vector wrapper(pg);
-
-  pg  = basic_system->t.pushResponse(pl);
-  pg += basic_system->linear.pushResponse(pf);
-#elif 0
-  using Operation = typename FrameTransform<2,NDF>::Operation;
   thread_local Vector wrapper(pl);
-  basic_system->t.push(pl, Operation::Total);
+  basic_system->t.push(pl, Transform::Total);
   if (pf.norm() > 0) [[unlikely]] {
-    basic_system->linear.push(pf, Operation::Total);
+    basic_system->linear.push(pf, Transform::Total);
     pl += pf;
   }
 #else
-  using Operation = typename FrameTransform<2,NDF>::Operation;
   thread_local Vector wrapper(pl);
-  basic_system->t.push(pl, Operation::Total);
+  basic_system->t.push(pl, Transform::Total);//&~(Transform::Logarithm));
   if (pf.norm() > 0) [[unlikely]] {
-    basic_system->t.push(pf, Operation::Rotation);
+    basic_system->t.push(pf, Transform::Total&~(Transform::Adjoint|Transform::Logarithm));//Transform::Rotation);//|Transform::Tangent);
     pl += pf;
   }
 #endif

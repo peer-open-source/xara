@@ -16,7 +16,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -929,66 +928,6 @@ NineFourNodeQuadUP::Print(OPS_Stream &s, int flag)
         s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
 }
 
-int
-NineFourNodeQuadUP::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // get the end point display coords
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-    static Vector v5(3);
-    static Vector v6(3);
-    static Vector v7(3);
-    static Vector v8(3);
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-    theNodes[2]->getDisplayCrds(v3, fact, displayMode);
-    theNodes[3]->getDisplayCrds(v4, fact, displayMode);
-    theNodes[4]->getDisplayCrds(v5, fact, displayMode);
-    theNodes[5]->getDisplayCrds(v6, fact, displayMode);
-    theNodes[6]->getDisplayCrds(v7, fact, displayMode);
-    theNodes[7]->getDisplayCrds(v8, fact, displayMode);
-    // place values in coords matrix
-    static Matrix coords(8, 3);
-    for (int i = 0; i < 3; i++) {
-        coords(0, i) = v1(i);
-        coords(1, i) = v5(i);
-        coords(2, i) = v2(i);
-        coords(3, i) = v6(i);
-        coords(4, i) = v3(i);
-        coords(5, i) = v7(i);
-        coords(6, i) = v4(i);
-        coords(7, i) = v8(i);
-    }
-    // set the quantity to be displayed at the nodes;
-    // if displayMode is 1 through 8 we will plot material stresses otherwise 0.0
-    static Vector values(8);
-    if (displayMode < 8 && displayMode > 0) {
-        const Vector& stress1 = theMaterial[0]->getStress();
-        const Vector& stress2 = theMaterial[1]->getStress();
-        const Vector& stress3 = theMaterial[2]->getStress();
-        const Vector& stress4 = theMaterial[3]->getStress();
-        const Vector& stress5 = theMaterial[4]->getStress();
-        const Vector& stress6 = theMaterial[5]->getStress();
-        const Vector& stress7 = theMaterial[6]->getStress();
-        const Vector& stress8 = theMaterial[7]->getStress();
-        values(0) = stress1(displayMode - 1);
-        values(1) = stress5(displayMode - 1);
-        values(2) = stress2(displayMode - 1);
-        values(3) = stress6(displayMode - 1);
-        values(4) = stress3(displayMode - 1);
-        values(5) = stress7(displayMode - 1);
-        values(6) = stress4(displayMode - 1);
-        values(7) = stress8(displayMode - 1);
-    }
-    else {
-        for (int i = 0; i < 8; i++)
-            values(i) = 0.0;
-    }
-    // draw the polygon
-    return theViewer.drawPolygon(coords, values, this->getTag());
-}
 
 Response*
 NineFourNodeQuadUP::setResponse(const char **argv, int argc, OPS_Stream &output)

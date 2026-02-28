@@ -55,7 +55,6 @@
 #include <NodalLoadIter.h>
 #include <ElementalLoadIter.h>
 #include <LoadBalancer.h>
-#include <LoadPatternIter.h>
 #include <LoadPattern.h>
 
 #include <map>

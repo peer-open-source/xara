@@ -38,7 +38,7 @@ class BeamIntegration : public MovableObject
   virtual void getSectionLocations(int nIP, double L, double *xi) const = 0;
   virtual void getSectionWeights(int nIP, double L, double *wt) const = 0;
 
-  virtual BeamIntegration *getCopy(void) = 0;
+  virtual BeamIntegration *getCopy() = 0;
 
 //
 //
@@ -100,16 +100,16 @@ public:
     BeamIntegrationRule(int tag, BeamIntegration* bi, const ID& stags)
 	:TaggedObject(tag),theInt(bi),secTags(stags){}
 
-    ~BeamIntegrationRule(){
-	if (theInt != 0) 
-          delete theInt;
+    ~BeamIntegrationRule() {
+      if (theInt != 0) 
+        delete theInt;
     }
 
     BeamIntegration* getBeamIntegration(){return theInt;}
     const ID& getSectionTags() const {return secTags;}
 
     void Print(OPS_Stream &s, int flag) {
-      theInt->Print(s);
+      theInt->Print(s, flag);
     }
 private:
     BeamIntegration* theInt;

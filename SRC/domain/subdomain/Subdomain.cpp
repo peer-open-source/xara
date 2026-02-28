@@ -46,7 +46,6 @@
 #include <FE_Element.h>
 #include <SingleDomNodIter.h>
 #include <classTags.h>
-//#include <PartitionedModelBuilder.h>
 #include <DOF_Group.h>
 #include <ElementIter.h>
 
@@ -80,51 +79,7 @@ Subdomain::Subdomain(int tag)
     internalNodeIter = new SingleDomNodIter(internalNodes);
     externalNodeIter = new SingleDomNodIter(externalNodes);    
     theNodIter = new SubdomainNodIter(*this);
-
-    // check that space was available
-    if (internalNodes == 0 || externalNodes == 0 ||
-	internalNodeIter == 0 || externalNodeIter == 0 ||
-	theNodIter == 0) {
-      
-      opserr << "Subdomain::Subdomain() - ran out of memory\n";
-      exit(-1);
-    }
 }
-
-
-Subdomain::Subdomain(int tag, 
-		     TaggedObjectStorage &theInternalNodeStorage,
-		     TaggedObjectStorage &theExternalNodeStorage,
-		     TaggedObjectStorage &theElementsStorage,
-		     TaggedObjectStorage &theLoadPatternsStorage,	      
-		     TaggedObjectStorage &theMPsStorage,
-		     TaggedObjectStorage &theSPsStorage)
-  :Element(tag,ELE_TAG_Subdomain), 
-   Domain(theExternalNodeStorage, theElementsStorage,
-	  theLoadPatternsStorage, 
-	  theMPsStorage,theSPsStorage),
-   mapBuilt(false),map(0),mappedVect(0),mappedMatrix(0),
-   internalNodes(&theInternalNodeStorage),
-   externalNodes(&theExternalNodeStorage), 
-   realCost(0.0),cpuCost(0),pageCost(0),
-   theAnalysis(0), extNodes(0), theFEele(0)
-{
-  //thePartitionedModelBuilder = 0;
-  //    realExternalNodes = new MapOfTaggedObjects(256);    
-    
-    internalNodeIter = new SingleDomNodIter(internalNodes);
-    externalNodeIter = new SingleDomNodIter(externalNodes);    
-
-    // check that space was available
-    if (internalNodes == 0 || externalNodes == 0 ||
-	internalNodeIter == 0 || externalNodeIter == 0 ||
-	theNodIter == 0) {
-	
-	opserr << "Subdomain::Subdomain() - ran out of memory\n";
-	exit(-1);
-    }    
-
-}    
 
 
 Subdomain::~Subdomain()
@@ -377,13 +332,13 @@ Subdomain::Print(OPS_Stream &s, int flag)
 
   s << "\nINTERNAL NODE DATA: NumNodes: ";
   s << internalNodes->getNumComponents() << "\n"; 
-  internalNodes->Print(s);
+  internalNodes->Print(s, 0);
 
   s << "\nEXTERNAL NODE DATA: NumNodes: ";
   s << externalNodes->getNumComponents() << "\n"; 
-  externalNodes->Print(s);
+  externalNodes->Print(s, 0);
 
-  this->Domain::Print(s);
+  this->Domain::Print(s, 0);
   s << "\nEnd Subdomain Information\n";
 }
 

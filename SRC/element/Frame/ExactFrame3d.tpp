@@ -304,8 +304,8 @@ ExactFrame3d<nen,nwm>::update()
 
     //
     //
-    Matrix3D dR = ExpSO3(theta);
-    Matrix3D R = dR*pres[i].rotation;
+    const Matrix3D dR = ExpSO3(theta);
+    const Matrix3D R = dR*pres[i].rotation;
 
     pres[i].rotation = R;
 
@@ -315,8 +315,9 @@ ExactFrame3d<nen,nwm>::update()
 //  pres[i].curvature = omega + TanSO3(theta, 'R')*dtheta;
     pres[i].curvature = omega + TExpSO3(theta)*dtheta;
 
-    Vector3D gamma = (R^dx) - D;
-    Vector3D kappa = R^pres[i].curvature;
+    const Vector3D gamma = (R^dx) - D;
+    const Vector3D kappa = R^pres[i].curvature;
+  
 
     VectorND<nsr> e {
       gamma[0], gamma[1], gamma[2],
@@ -639,7 +640,7 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
     for (int i = 0; i < numSections; i++) {
       output.tag("GaussPointOutput");
       output.attr("number", i + 1);
-      output.attr("eta", pres[i].point * L);
+      output.attr("eta", pres[i].point);
 
       Response* theSectionResponse = pres[i].material->setResponse(&argv[1], argc - 1, output);
 
@@ -783,7 +784,7 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
 
     Vector locs(pres.size());
     for (int i = 0; i < nip; i++)
-      locs[i] = pres[i].point * L;
+      locs[i] = pres[i].point;
 
     return info.setVector(locs);
   }

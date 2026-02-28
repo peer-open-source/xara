@@ -52,6 +52,9 @@ LagrangeMP_FE::LagrangeMP_FE(int tag, Domain &theDomain, MP_Constraint &TheMP,
 : FE_Element(tag, 3,  TheMP.getConstrainedDOFs().Size()
 	           + TheMP.getRetainedDOFs().Size()
 	           + TheMP.getRetainedDOFs().Size()), // *see note 1
+  myID( TheMP.getConstrainedDOFs().Size()
+        + TheMP.getRetainedDOFs().Size()
+        + TheMP.getRetainedDOFs().Size()), // *see note 1
   alpha(Alpha), theMP(&TheMP),
   theConstrainedNode(0), theRetainedNode(0),
   theDofGroup(&theGroup), tang(0), resid(0)
@@ -123,7 +126,7 @@ LagrangeMP_FE::~LagrangeMP_FE()
 // void setID(int index, int value);
 //	Method to set the correMPonding index of the ID to value.
 int
-LagrangeMP_FE::setID(void)
+LagrangeMP_FE::setID(AnalysisModel& theModel)
 {
     int result = 0;
 
@@ -131,15 +134,15 @@ LagrangeMP_FE::setID(void)
     // as constrained DOFs, this is obtained from the DOF_Group
     // associated with the constrained node
     if (theConstrainedNode == 0) {
-	opserr << "WARNING LagrangeMP_FE::setID(void)";
-	opserr << "- no asscoiated Constrained Node\n";
-	return -1;
+        opserr << "WARNING LagrangeMP_FE::setID()";
+        opserr << "- no asscoiated Constrained Node\n";
+        return -1;
     }
     DOF_Group *theConstrainedNodesDOFs = theConstrainedNode->getDOF_GroupPtr();
     if (theConstrainedNodesDOFs == 0) {
-	opserr << "WARNING LagrangeMP_FE::setID(void)";
-	opserr << " - no DOF_Group with Constrained Node\n";
-	return -2;
+        opserr << "WARNING LagrangeMP_FE::setID(void)";
+        opserr << " - no DOF_Group with Constrained Node\n";
+        return -2;
     }    
 
     const ID &constrainedDOFs = theMP->getConstrainedDOFs();
@@ -147,38 +150,38 @@ LagrangeMP_FE::setID(void)
     
     int size1 = constrainedDOFs.Size();
     for (int i=0; i<size1; i++) {
-	int constrained = constrainedDOFs(i);
-	if (constrained < 0 || 
-	    constrained >= theConstrainedNode->getNumberDOF()) {
-	    
-	    opserr << "WARNING LagrangeMP_FE::setID(void) - unknown DOF ";
-	    opserr << constrained << " at Node\n";
-	    myID(i) = -1; // modify so nothing will be added to equations
-	    result = -3;
-	}    	
-	else {
-	    if (constrained >= theConstrainedNodesID.Size()) {
-		opserr << "WARNING LagrangeMP_FE::setID(void) - ";
-		opserr << " Nodes DOF_Group too small\n";
-		myID(i) = -1; // modify so nothing will be added to equations
-		result = -4;
-	    }
-	    else
-		myID(i) = theConstrainedNodesID(constrained);
-	}
+        int constrained = constrainedDOFs(i);
+        if (constrained < 0 || 
+            constrained >= theConstrainedNode->getNumberDOF()) {
+            
+            opserr << "WARNING LagrangeMP_FE::setID(void) - unknown DOF ";
+            opserr << constrained << " at Node\n";
+            myID(i) = -1; // modify so nothing will be added to equations
+            result = -3;
+        }    	
+        else {
+            if (constrained >= theConstrainedNodesID.Size()) {
+                opserr << "WARNING LagrangeMP_FE::setID(void) - ";
+                opserr << " Nodes DOF_Group too small\n";
+                myID(i) = -1; // modify so nothing will be added to equations
+                result = -4;
+            }
+            else
+                myID(i) = theConstrainedNodesID(constrained);
+        }
     }
     
     // now determine the IDs for the retained dof's
     if (theRetainedNode == 0) {
-	opserr << "WARNING LagrangeMP_FE::setID(void)";
-	opserr << "- no asscoiated Retained Node\n";
-	return -1;
+        opserr << "WARNING LagrangeMP_FE::setID(void)";
+        opserr << "- no asscoiated Retained Node\n";
+        return -1;
     }
     DOF_Group *theRetainedNodesDOFs = theRetainedNode->getDOF_GroupPtr();
     if (theRetainedNodesDOFs == 0) {
-	opserr << "WARNING LagrangeMP_FE::setID(void)";
-	opserr << " - no DOF_Group with Retained Node\n";
-	return -2;
+        opserr << "WARNING LagrangeMP_FE::setID(void)";
+        opserr << " - no DOF_Group with Retained Node\n";
+        return -2;
     }    
     
     const ID &RetainedDOFs = theMP->getRetainedDOFs();

@@ -53,10 +53,13 @@ struct alignas(64) MatrixND {
   inline constexpr const T* data() const noexcept { return values.data(); }
 
   // Convert to regular Matrix class
+  #ifndef ALLOW_IMPLICIT_MATRIX
+  explicit operator Matrix() { return Matrix(&(*this)(0,0), NR, NC);}
+  explicit operator const Matrix() const { return Matrix(&(*this)(0,0), NR, NC);}
+  #else
   operator Matrix() { return Matrix(&(*this)(0,0), NR, NC);}
-
   operator const Matrix() const { return Matrix(&(*this)(0,0), NR, NC);}
-
+  #endif
   inline constexpr void zero() noexcept;
 
   constexpr T
@@ -70,11 +73,18 @@ struct alignas(64) MatrixND {
     return sum;
   }
 
+  const double norm() const noexcept;
+
   constexpr double determinant() const ;
 
   inline constexpr MatrixND<NC, NR> transpose() const noexcept;
 
   inline constexpr MatrixND<NR,NC,T>& addDiagonal(const double vol) noexcept;
+
+  template <class MatT>
+    void addMatrix(const MatT& A, const double scale);
+
+  void addTranspose(const MatrixND<NC,NR>& A, const double scale);
 
   template <int nk> constexpr
     void setMatrixProduct(const MatrixND<NR,nk,T>& A, const MatrixND<nk,NC,T>& B, double scale) noexcept;
@@ -91,9 +101,6 @@ struct alignas(64) MatrixND {
 
   template <int nk> constexpr
     void addMatrixTransposeProduct(const MatrixND<nk, NR, T>& B, const MatrixND<nk, NC, T>& C) noexcept;
-                                                
-  template <class MatT>
-    void addMatrix(const MatT& A, const double scale);
 
   template <class VecA, class VecB>  constexpr MatrixND<NR,NC,T>& 
     addTensorProduct(const VecA& V, const VecB& W, const double scale) noexcept;

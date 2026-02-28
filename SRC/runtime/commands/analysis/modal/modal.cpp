@@ -6,7 +6,6 @@
 #include "DomainModalProperties.h"
 #include "ResponseSpectrumAnalysis.h"
 
-
 namespace OpenSees {
 
 Tcl_CmdProc responseSpectrumAnalysis;
@@ -18,6 +17,9 @@ modalProperties(ClientData clientData,
                 Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   // modalProperties <-print> <-file $fileName> <-unorm>
+
+  assert(clientData != nullptr);
+  Domain* domain = static_cast<Domain*>(clientData);
 
   // some kudos
   static bool first_done = false;
@@ -57,8 +59,7 @@ modalProperties(ClientData clientData,
     ++loc;
   }
 
-
-  Domain* domain = static_cast<Domain*>(clientData);
+  
 
   // create the modal properties, compute them,
   // and add them to the domain

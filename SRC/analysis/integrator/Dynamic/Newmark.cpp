@@ -28,12 +28,10 @@
 #include <stdexcept>
 #include <Newmark.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <LinearSOE.h>
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -42,7 +40,6 @@
 #include <Domain.h>
 #include <Node.h> // for sensitivity
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Parameter.h>
 #include <ParameterIter.h>//Abbas
 

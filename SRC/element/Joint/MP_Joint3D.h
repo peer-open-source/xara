@@ -64,15 +64,14 @@ class MP_Joint3D : public MP_Constraint
     const ID &getRetainedDOFs(void) const;            
     int applyConstraint(double pseudoTime);
     bool isTimeVarying(void) const;
-    const Matrix &getConstraint(void);    
-	void setDomain(Domain *theDomain);
+    const Matrix &getConstraint(void);
+    void setDomain(Domain *theDomain);
 
     // methods for output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
 
   protected:

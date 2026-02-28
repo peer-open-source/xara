@@ -93,8 +93,8 @@ SphericalIsometry<nn>::update() {
     Ln = e1.norm();
 
     if (Ln == 0.0) [[unlikely]] {
-        opserr << "\nSouzaFrameTransf: deformed length is 0.0\n";
-        return -2;
+      opserr << "\nSouzaFrameTransf: deformed length is 0.0\n";
+      return -2;
     }
 
     e1 /= Ln;

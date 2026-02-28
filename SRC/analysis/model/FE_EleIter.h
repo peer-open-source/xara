@@ -43,21 +43,5 @@ class TaggedObjectStorage;
 
 class FE_Element;
 
-class FE_EleIter 
-{
-  public:
-    FE_EleIter();
-    FE_EleIter(TaggedObjectStorage *);
-    virtual ~FE_EleIter();
-
-    virtual void reset(void);
-    virtual FE_Element *operator()(void);
-
-  protected:
-    
-  private:
-    TaggedObjectIter *myIter;
-};
-
 #endif
 

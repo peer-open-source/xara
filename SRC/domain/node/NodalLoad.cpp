@@ -64,7 +64,7 @@ NodalLoad::~NodalLoad()
 void 
 NodalLoad::setDomain(Domain *newDomain)
 {
-    // first get myNodePtr
+  // first get myNodePtr
   if (newDomain == 0)
     return;
 
@@ -120,10 +120,10 @@ NodalLoad::applyLoadSensitivity(double loadFactor)
   if (myNodePtr == 0) {
     Domain *theDomain=this->getDomain();
     if ((theDomain == 0) || 
-        (myNodePtr = theDomain->getNode(myNode)) == 0) {
-        opserr << "WARNING NodalLoad::applyLoadSensitivity() - No associated Node node " ;
-        opserr << " for NodalLoad " << *this;
-        return;
+      (myNodePtr = theDomain->getNode(myNode)) == 0) {
+      opserr << "WARNING NodalLoad::applyLoadSensitivity() - No associated Node node " ;
+      opserr << " for NodalLoad " << *this;
+      return;
     }
   }
 

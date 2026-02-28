@@ -27,14 +27,17 @@
 #include <typeinfo>
 #include <string>
 #include <unordered_map>
-
+#include <LoadCase.h>
 #include <TaggedObject.h>
-
+#include <StaticPattern.h>
+#include <MultiSupportPattern.h>
 class LoadPattern;
+class StaticPattern;
 class MultiSupportPattern;
 class OPS_Stream;
 class ID;
 class Domain;
+
 
 class ModelRegistry {
 public:
@@ -79,11 +82,38 @@ public:
     return findFreeTag(typeid(T).name(), tag);
   }
 
+
   int  getCurrentSectionBuilder(int&);
   void setCurrentSectionBuilder(int);
 
-  LoadPattern* getEnclosingPattern();
-  int setEnclosingPattern(LoadPattern*);
+  OpenSees::LoadCase& getLoadCase();
+  int setLoadCase(std::string& name);
+  int newLoadCase(std::string& name);
+
+  template<class T>
+  T* getCurrentPattern() {
+    if constexpr (std::is_same<T, StaticPattern>::value) {
+      return static_pattern;
+    }
+    else if constexpr (std::is_same<T, MultiSupportPattern>::value) {
+      return multi_pattern;
+    }
+    else if constexpr (std::is_same<T, LoadPattern>::value) {
+      return tclEnclosingPattern;
+    }
+  }
+
+  template <class T>
+  int setCurrentPattern(T* pattern) {
+    if constexpr (std::is_same<T, StaticPattern>::value) {
+      static_pattern = pattern;
+    }
+    else if constexpr (std::is_same<T, MultiSupportPattern>::value) {
+      multi_pattern = pattern;
+    }
+    tclEnclosingPattern = static_cast<LoadPattern*>(pattern);
+    return 0;
+  }
 
   int incrNodalLoadTag();
   int decrNodalLoadTag();
@@ -118,12 +148,15 @@ private:
 
   // previously extern variables
   LoadPattern *tclEnclosingPattern = nullptr;
+  StaticPattern* static_pattern       = nullptr;
+  MultiSupportPattern* multi_pattern  = nullptr;
 
   bool  section_builder_is_set   = false;
   int   current_section_builder  = 0;
 
 // OBJECT CONTAINERS
   std::unordered_map<std::string, std::unordered_map<int, TaggedObject*>> m_registry;
+  std::unordered_map<std::string, OpenSees::LoadCase> m_cases;
 
 };
 

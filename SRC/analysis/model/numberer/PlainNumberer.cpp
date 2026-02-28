@@ -36,9 +36,7 @@
 #include <AnalysisModel.h>
 
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <ID.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>

@@ -63,7 +63,8 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
                                        TCL_Char ** const argv, Domain *domain);
 
 Tcl_CmdProc TclCommand_clearAnalysis;
-Tcl_CmdProc TclCommand_setNumberer;
+extern Tcl_CmdProc TclCommand_setNumberer;
+extern Tcl_CmdProc TclCommand_runNumberer;
 namespace OpenSees {
 Tcl_CmdProc responseSpectrumAnalysis;
 }
@@ -80,6 +81,7 @@ G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
   Tcl_CreateCommand(interp, "_clearAnalysis", &TclCommand_clearAnalysis, analysis, nullptr);
 
   Tcl_CreateCommand(interp, "numberer",   TclCommand_setNumberer, analysis, nullptr);
+  Tcl_CreateCommand(interp, "number",     TclCommand_runNumberer, analysis, nullptr);
 
   Tcl_CreateCommand(interp, "responseSpectrumAnalysis", &OpenSees::responseSpectrumAnalysis, nullptr, nullptr);
 
@@ -140,7 +142,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
   else {
     opserr << OpenSees::PromptValueError << "Analysis type '" << argv[1]
-      << "' does not exists (Static or Transient only). \n";
+           << "' does not exists (Static or Transient only). \n";
     return TCL_ERROR;
   }
 
@@ -311,6 +313,7 @@ eigenAnalysis(ClientData clientData,
 
     else if ((strcmp(argv[loc], "genBandArpack") == 0) ||
              (strcmp(argv[loc], "-genBandArpack") == 0) ||
+             (strcmp(argv[loc], "-bandGenArpack") == 0) ||
              (strcmp(argv[loc], "genBandArpackEigen") == 0) ||
              (strcmp(argv[loc], "-genBandArpackEigen") == 0))
       typeSolver = EigenSOE_TAGS_ArpackSOE;
@@ -341,7 +344,9 @@ eigenAnalysis(ClientData clientData,
         return TCL_ERROR;
       }
     }
-
+    else if (strcmp(argv[loc], "-solver")==0) {
+      ;
+    }
     else {
       opserr << "Unknown option: " << argv[loc] 
              << OpenSees::SignalMessageEnd;
@@ -675,9 +680,11 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 
   builder->getDomain()->revertToLastCommit();
   // put the original SOE back.
+  builder->unset(theSOE);
   if (oldSOE != nullptr)
     builder->set(oldSOE, true);
 
+  builder->unset(integrator);
   if (oldint != nullptr)
     builder->set(*oldint, true);
 

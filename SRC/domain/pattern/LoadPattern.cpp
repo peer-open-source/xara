@@ -229,19 +229,22 @@ LoadPattern::addSP_Constraint(SP_Constraint *theSp)
   return result;
 }
 
-NodalLoadIter &LoadPattern::getNodalLoads()
+NodalLoadIter &
+LoadPattern::getNodalLoads()
 {
   theNodIter->reset();
   return *theNodIter;
 }
 
-ElementalLoadIter &LoadPattern::getElementalLoads()
+ElementalLoadIter &
+LoadPattern::getElementalLoads()
 {
   theEleIter->reset();
   return *theEleIter;
 }
 
-SP_ConstraintIter &LoadPattern::getSPs()
+SP_ConstraintIter &
+LoadPattern::getSPs()
 {
   theSpIter->reset();
   return *theSpIter;
@@ -308,7 +311,6 @@ LoadPattern::applyLoad(double pseudoTime)
   {
     Load *nodLoad;
     NodalLoadIter &theNodalIter = this->getNodalLoads();
-
     while ((nodLoad = theNodalIter()) != nullptr)
       nodLoad->applyLoad(loadFactor);
   }
@@ -713,7 +715,8 @@ int LoadPattern::recvSelf(int cTag, Channel &theChannel,
         if (theEle == 0) {
           opserr << "LoadPattern::recv - cannot create ElementalLoad with "
                     "classTag "
-                 << classTag << endln;
+                 << classTag 
+                 << "\n";
           return -2;
         }
 
@@ -757,7 +760,8 @@ int LoadPattern::recvSelf(int cTag, Channel &theChannel,
         if (theSP == 0) {
           opserr << "LoadPattern::recv - cannot create SP_Constraint with "
                     "classTag "
-                 << classTag << endln;
+                 << classTag 
+                 << "\n";
           return -2;
         }
         theSP->setDbTag(dbTag);
@@ -852,7 +856,8 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
   
   else {
     s << "Load Pattern: " << this->getTag() << "\n";
-    s << "  Scale Factor: " << scaleFactor << endln;
+    s << "  Scale Factor: " << scaleFactor
+      << "\n";
     if (theSeries != 0)
       theSeries->Print(s, flag);
     s << "  Nodal Loads: \n";
@@ -864,7 +869,9 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
   }
 }
 
-LoadPattern *LoadPattern::getCopy()
+
+LoadPattern *
+LoadPattern::getCopy()
 {
   LoadPattern *theCopy = new LoadPattern(this->getTag());
 
@@ -875,7 +882,8 @@ LoadPattern *LoadPattern::getCopy()
   return theCopy;
 }
 
-int LoadPattern::addMotion(GroundMotion &theMotion, int tag)
+int
+LoadPattern::addMotion(GroundMotion &theMotion, int tag)
 {
   opserr << "LoadPattern::addMotion() - cannot add GroundMotion - use "
             "MultiSupport Pattern instead\n";
@@ -924,9 +932,9 @@ void LoadPattern::applyLoadSensitivity(double pseudoTime)
 
 int LoadPattern::setParameter(const char **argv, int argc, Parameter &param)
 {
-  if (theSeries == 0) {
+  if (theSeries == nullptr) {
     opserr << "set/update/activate parameter is illegaly called in LoadPattern "
-           << endln;
+           << "\n";
     return 0;
   }
 
@@ -993,16 +1001,17 @@ int LoadPattern::setParameter(const char **argv, int argc, Parameter &param)
     return -1;
 }
 
-int LoadPattern::updateParameter(int parameterID, Information &info)
+int
+LoadPattern::updateParameter(int parameterID, Information &info)
 {
   if (theSeries == 0) {
     opserr << "set/update/activate parameter is illegaly called in LoadPattern "
-           << endln;
+           << "\n";
   }
 
   opserr << "LoadPattern::updateParameter -- no parameters defined, this "
             "method should not be called"
-         << endln;
+         << "\n";
 
   return 0;
 
@@ -1055,14 +1064,14 @@ int LoadPattern::updateParameter(int parameterID, Information &info)
 
 int LoadPattern::activateParameter(int parameterID)
 {
-  if (theSeries == 0) {
+  if (theSeries == nullptr) {
     opserr << "set/update/activate parameter is illegaly called in LoadPattern "
-           << endln;
+           << "\n";
   }
 
   opserr << "LoadPattern::activateParameter -- no parameters defined, this "
             "method should not be called"
-         << endln;
+         << "\n";
 
   return 0;
 
@@ -1117,7 +1126,7 @@ int LoadPattern::activateParameter(int parameterID)
 	}
       }
       else {
-	opserr << "LoadPattern::gradient() -- error in identifier. " << endln;
+        opserr << "LoadPattern::gradient() -- error in identifier. " << "\n";
       }
     }
   }
@@ -1125,7 +1134,8 @@ int LoadPattern::activateParameter(int parameterID)
   */
 }
 
-const Vector &LoadPattern::getExternalForceSensitivity(int gradNumber)
+const Vector &
+LoadPattern::getExternalForceSensitivity(int gradNumber)
 {
 
   // THIS METHOD IS CURRENTLY ONLY USED FOR THE STATIC CASE
@@ -1144,9 +1154,8 @@ const Vector &LoadPattern::getExternalForceSensitivity(int gradNumber)
   }
 
   // Prepare the vector identifying which loads are random.
-  NodalLoad *theNodalLoad     = 0;
+  NodalLoad *theNodalLoad     = nullptr;
   NodalLoadIter &theNodalIter = this->getNodalLoads();
-  int i;
 
   // Loop through the nodal loads to pick up possible contributions
   int nodeNumber;
@@ -1171,7 +1180,7 @@ const Vector &LoadPattern::getExternalForceSensitivity(int gradNumber)
         tempRandomLoads = (*randomLoads);
         delete randomLoads;
         randomLoads = new Vector(sizeRandomLoads + 2);
-        for (i = 0; i < sizeRandomLoads; i++) {
+        for (int i = 0; i < sizeRandomLoads; i++) {
           (*randomLoads)(i) = tempRandomLoads(i);
         }
         (*randomLoads)(sizeRandomLoads)     = nodeNumber;
@@ -1187,7 +1196,6 @@ int LoadPattern::saveLoadFactorSensitivity(double dlambdadh, int gradIndex,
                                            int numGrads)
 {
 
-  //opserr << "LoadPattern::savedlamdh " << gradIndex << ' ' << numGrads << endln;
   if (dLambdadh == 0) {
     dLambdadh = new Vector(numGrads);
   }
@@ -1204,7 +1212,7 @@ int LoadPattern::saveLoadFactorSensitivity(double dlambdadh, int gradIndex,
   } else {
     opserr
         << "LoadPattern::saveLoadFactorSensitivity -- gradIndex out of bounds"
-        << endln;
+        << "\n";
     return -1;
   }
 }

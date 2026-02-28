@@ -420,9 +420,10 @@ ParseBoucWen(ClientData clientData, Tcl_Interp *interp,
       case Positions::EndRequired:
         // This will not be reached
         break;
-
+      
+      case Positions::EndAllowed:
       case Positions::End:
-        opserr << "Invalid value for option " << argv[i] << "\n";
+        opserr << "Invalid positional argument " << argv[i] << "\n";
         return TCL_ERROR;
     }
   }
@@ -629,9 +630,10 @@ TclCommand_newBoucWen(ClientData clientData, Tcl_Interp *interp,
         Mu,
         N, Beta, Gamma,
         Tolerance, Iterations,
-      End,
+      EndAllowed,
         Ao, DeltaA, DeltaV, DeltaN,
         PinchSlope, PinchStart, PinchRate, PinchSize, PinchSlip, PinchLamda,
+      End
     };
     return ParseBoucWen<Positions>(clientData, interp, argc, argv);
   }

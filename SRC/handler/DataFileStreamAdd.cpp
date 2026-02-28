@@ -333,14 +333,14 @@ DataFileStreamAdd::write(Vector &data)
     for (int j=0; j<numData; j++) {
       val = 0.;
       for (int k=0; k<=sendSelfCount; k++) {
-	if (theColumns[k] != 0) {
+        if (theColumns[k] != 0) {
           // TODO: shouldl currentColID be used below?
-	  ID &currentColID = *theColumns[k];
-	  if (currentCol(k) == i) {
-	    double *theColData = theData[k];
-	    val += theColData[currentColLoc(k)+j];
-	  }
-	}
+          // ID &currentColID = *theColumns[k];
+          if (currentCol(k) == i) {
+            double *theColData = theData[k];
+            val += theColData[currentColLoc(k)+j];
+          }
+        }
       }
       theFile << val << " ";
     }

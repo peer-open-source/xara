@@ -315,6 +315,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
            strcasecmp(argv[1], "ForceFrame") == 0 ||
            strcasecmp(argv[1], "MixedFrame") == 0 ||
            strcasecmp(argv[1], "ExactFrame") == 0 ||
+           strcasecmp(argv[1], "ShearFrame") == 0 ||
            strcasecmp(argv[1], "ForceDeltaFrame") == 0 ||
 
            strcasecmp(argv[1], "ForceBeamColumn") == 0 ||

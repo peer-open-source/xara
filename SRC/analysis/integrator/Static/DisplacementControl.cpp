@@ -40,13 +40,10 @@
 #include <Domain.h>
 #include <Node.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <ID.h>
 #include <stdlib.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Parameter.h>
 #include <ParameterIter.h>
 #include <EquiSolnAlgo.h>
@@ -65,7 +62,9 @@ DisplacementControl::DisplacementControl(int node, int dof,
    theNode(node), theDof(dof), theIncrement(increment), theDomain(domain),
    theDofID(-1),
    deltaUhat(0), deltaUbar(0), deltaU(0), deltaUstep(0),dUhatdh(0),
-   phat(0), deltaLambdaStep(0.0), currentLambda(0.0), dLambdaStepDh(0.0),dUIJdh(0),Dlambdadh(0.0),
+   phat(0), 
+   dUIJdh(0),Dlambdadh(0.0),
+   deltaLambdaStep(0.0), currentLambda(0.0), dLambdaStepDh(0.0),
    specNumIncrStep(numIncr), numIncrLastStep(numIncr),
    minIncrement(min), maxIncrement(max),
 // sensitivityFlag(0),
@@ -261,9 +260,9 @@ int DisplacementControl::update(const Vector &dU)
 
 
    // update dU and dlambda
-   (*deltaUstep) += *deltaU;
+   (*deltaUstep)   += *deltaU;
    deltaLambdaStep += dLambda;
-   currentLambda += dLambda;
+   currentLambda   += dLambda;
 
    // update the model
    theModel->incrDisp(*deltaU);    
@@ -368,7 +367,7 @@ DisplacementControl::domainChanged()
    int numGrads = theDomain->getNumParameters();
 
    if (dLAMBDAdh == 0 || dLAMBDAdh->Size() != (numGrads)) { 
-     if (dLAMBDAdh != 0 )  
+     if (dLAMBDAdh != nullptr)  
        delete dLAMBDAdh;
      dLAMBDAdh = new Vector(numGrads);
    } 
@@ -393,7 +392,7 @@ DisplacementControl::domainChanged()
       }
 
    if (haveLoad == 0) {
-      opserr << "WARNING DisplacementControl::domainChanged - zero reference load";
+      opserr << "WARNING DisplacementControl: zero reference load\n";
       return -1;
    }
 

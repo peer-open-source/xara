@@ -42,7 +42,6 @@
 #include <Domain.h>
 #include <Matrix.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <NodalLoad.h>
 #include <Element.h>
 #include <DOF_Group.h>

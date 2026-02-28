@@ -47,8 +47,8 @@ class MapOfTaggedObjectsIter: public TaggedObjectIter
     MapOfTaggedObjectsIter(MapOfTaggedObjects &theComponents);
     virtual ~MapOfTaggedObjectsIter();
     
-    virtual void reset(void);
-    virtual TaggedObject *operator()(void);
+    void reset() final;
+    TaggedObject *operator()() final;
     
   private:
     std::map<int, TaggedObject *> *theMap;

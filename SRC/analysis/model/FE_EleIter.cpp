@@ -54,15 +54,15 @@ FE_EleIter::reset()
 FE_Element *
 FE_EleIter::operator()()
 {
-    // check if we still have elements in the model
-    // if not return 0, indicating we are done
-    TaggedObject *theComponent = (*myIter)();
-    if (theComponent == 0)
-        return 0;
-    else {
-        FE_Element *result = (FE_Element *)theComponent;
-        return result;
-    }
+  // check if we still have elements in the model
+  // if not return 0, indicating we are done
+  TaggedObject *theComponent = (*myIter)();
+  if (theComponent == nullptr)
+    return 0;
+  else {
+    FE_Element *result = (FE_Element *)theComponent;
+    return result;
+  }
 }
 
     

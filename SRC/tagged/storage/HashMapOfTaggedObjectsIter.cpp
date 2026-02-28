@@ -39,7 +39,7 @@ typedef MAP_TAGGED::iterator     MAP_TAGGED_ITERATOR;
 //	constructor that takes the model, just the basic iter
 HashMapOfTaggedObjectsIter::HashMapOfTaggedObjectsIter(HashMapOfTaggedObjects &theComponents)
 {
-    theMap = &(theComponents.theMap);
+  theMap = &(theComponents.theMap);
 }
 
 
@@ -49,20 +49,21 @@ HashMapOfTaggedObjectsIter::~HashMapOfTaggedObjectsIter()
 }    
 
 void
-HashMapOfTaggedObjectsIter::reset(void)
+HashMapOfTaggedObjectsIter::reset()
 {
-    currentComponent = theMap->begin();
+  currentComponent = theMap->begin();
 }
 
+
 TaggedObject *
-HashMapOfTaggedObjectsIter::operator()(void)
+HashMapOfTaggedObjectsIter::operator()()
 {
-    if (currentComponent != theMap->end()) {
-	TaggedObject *result = (*currentComponent).second;
-	currentComponent++;
-	return result;
-    } else
-	return nullptr;
+  if (currentComponent != theMap->end()) {
+    TaggedObject *result = (*currentComponent).second;
+    currentComponent++;
+    return result;
+  } else
+    return nullptr;
 }
 
     

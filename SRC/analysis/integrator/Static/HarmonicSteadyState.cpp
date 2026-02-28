@@ -34,12 +34,9 @@
 #include <Vector.h>
 #include <Channel.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <Node.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Domain.h>
 #include<Parameter.h>
 #include<ParameterIter.h>

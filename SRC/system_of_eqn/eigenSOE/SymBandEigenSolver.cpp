@@ -33,9 +33,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <AnalysisModel.h>
-#include <DOF_GrpIter.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
 #include <FE_Element.h>
 
 SymBandEigenSolver::SymBandEigenSolver()
@@ -290,6 +288,37 @@ SymBandEigenSolver::getEigenvector(int mode)
   
   return *eigenV;  
 }
+
+
+int
+SymBandEigenSolver::getEigenvector(int mode, Vector& eigenV)
+{
+  if (mode < 1 || mode > numModes) {
+    opserr << "SymBandEigenSolver::getEigenVector() -- mode " << mode << " is out of range (1 - "
+	   << numModes << ")\n";
+
+    eigenV.Zero();
+    return -1;  
+  }
+  
+  int size = theSOE->size;
+
+  int index = (mode - 1) * size;
+
+  if (eigenvector != 0) {
+    for (int i = 0; i < size; i++) {
+      eigenV(i) = eigenvector[index++];
+    }	
+  }
+  else {
+    opserr << "SymBandEigenSolver::getEigenVector() -- eigenvectors not yet computed\n";
+    eigenV.Zero();
+    return -2;
+  }      
+  
+  return 0;  
+}
+
 
 double
 SymBandEigenSolver::getEigenvalue(int mode)

@@ -60,18 +60,25 @@ class MapOfTaggedObjects : public TaggedObjectStorage
     bool addComponent(TaggedObject *newComponent);
 //		      bool allowMutltipleTags = false);
     TaggedObject *removeComponent(int tag);    
-    int getNumComponents(void) const;
+    int getNumComponents() const;
     
     TaggedObject     *getComponentPtr(int tag);
     TaggedObjectIter &getComponents();
 
+    using Iterator = MapOfTaggedObjectsIter;
     MapOfTaggedObjectsIter getIter();
     
-    TaggedObjectStorage *getEmptyCopy(void);
+    Iterator& getIterRef() {
+      myIter.reset();
+      return myIter;
+    }
+
+    TaggedObjectStorage *getEmptyCopy();
     void clearAll(bool invokeDestructor = true);
     
     void Print(OPS_Stream &s, int flag =0);
     friend class MapOfTaggedObjectsIter;
+
     
   protected:    
     

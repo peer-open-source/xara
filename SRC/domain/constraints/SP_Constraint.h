@@ -52,23 +52,22 @@ class SP_Constraint : public DomainComponent
     // destructor
     virtual ~SP_Constraint();
 
-    virtual int getNodeTag(void) const;
-    virtual int getDOF_Number(void) const;
+    virtual int getNodeTag() const;
+    virtual int getDOF_Number() const;
     virtual int applyConstraint(double loadFactor);    
-    virtual double getValue(void);
-    virtual double getInitialValue(void);
-    virtual bool isHomogeneous(void) const;
+    virtual double getValue();
+    virtual double getInitialValue();
+    virtual bool isHomogeneous() const;
     virtual void setLoadPatternTag(int loadPaternTag);
-    virtual int  getLoadPatternTag(void) const;
-    
+    virtual int  getLoadPatternTag() const;
+
     // Inherited
-    virtual void setDomain(Domain* theDomain);
+    virtual void setDomain(Domain*);
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    virtual void Print(OPS_Stream &s, int flag =0);
+    virtual void Print(OPS_Stream &s, int flag=0);
 
   protected:
     int nodeTag;     // to identify the node in the model

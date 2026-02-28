@@ -1010,13 +1010,9 @@ Bilin02::setTrialStrain(double strain, double strainRate)
       double dCap2Neg=(fCapRefNeg+ekhardNeg*dyNeg-fyNeg)/(ekhardNeg-capSlopeOrigNeg*Ke);
       //cpNeg=min(dCap1Neg,dCap2Neg);
       if (dCap1Neg<dCap2Neg)
-        {
-          cpNeg=dCap1Neg;
-        }
+          cpNeg = dCap1Neg;
       else
-        {
           cpNeg=dCap2Neg;
-        }
      
       fCapNeg = fCapRefNeg + capSlopeOrigNeg*Ke*cpNeg;
      
@@ -1035,16 +1031,17 @@ Bilin02::setTrialStrain(double strain, double strainRate)
         //change the strain hardening ratio                                              // Updated: Filipe Ribeiro and Andre Barbosa
         //1st - recover the strain hardening ratio of the member        
         alphaPos=alphaPos*(1+nFactor)/(1+nFactor*alphaPos);            
-        //2nd - apply the redution to the ratio of the member          
+        //2nd - apply the reduction to the ratio of the member
         alphaPos=alphaPos*(1-betas*PDPlus);    
         //3rd - recompute the strain hardening ratio (updated)          
         alphaPos=(alphaPos)/(1+nFactor*(1-alphaPos));                           // Updated: Filipe Ribeiro and Andre Barbosa
        
                 fCapRefPos=fCapRefPos*(1-betad*PDPlus);
       } else {
-        fyPos = fyPos;
-        alphaPos=alphaPos;    
-        fCapRefPos=fCapRefPos;
+        ;
+        // fyPos = fyPos;
+        // alphaPos=alphaPos;
+        // fCapRefPos=fCapRefPos;
       }
                
       //   %If post capping slope goes to zero due to residual:

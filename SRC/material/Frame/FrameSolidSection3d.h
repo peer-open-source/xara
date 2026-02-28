@@ -27,6 +27,7 @@
 #include <Matrix.h>
 #include <MatrixND.h>
 #include <VectorND.h>
+#include <Matrix3D.h>
 
 class NDMaterial;
 class Response;
@@ -37,6 +38,9 @@ class FrameSolidSection3d : public FrameSection
   public:
     FrameSolidSection3d(); 
     FrameSolidSection3d(int tag, int numFibers);
+  private:
+    FrameSolidSection3d(const FrameSolidSection3d &);
+  public:
     ~FrameSolidSection3d();
 
     int addFiber(NDMaterial&, double area, double y, double z=0.0);
@@ -58,13 +62,15 @@ class FrameSolidSection3d : public FrameSection
     int   revertToLastCommit() override;    
     int   revertToStart() override;
  
-    FrameSection *getFrameCopy();
-    const ID &getType();
-    int getOrder () const;
+    FrameSection *getFrameCopy() override;
+    const ID &getType() override;
+    int getOrder () const override;
     
+    // MovableObject
     int sendSelf(int tag, Channel &) override;
     int recvSelf(int tag, Channel &, FEM_ObjectBroker &) override;
-    void Print(OPS_Stream &s, int flag = 0) override;
+    // TaggedObject
+    void Print(OPS_Stream &s, int flag) override;
 	    
     Response *setResponse(const char **argv, int argc, OPS_Stream &) override;
     int getResponse(int responseID, Information &) override;
@@ -84,11 +90,6 @@ class FrameSolidSection3d : public FrameSection
     constexpr static int nsr = 12;
     constexpr static int nwm =  3; // Number of warping modes
 
-    FrameSection::Tangent K_pres;
-    std::shared_ptr<Tangent> K_init;
-  
-    int stateDetermination(Tangent& K, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag);
-
     struct Param {
       enum : int {
         FiberWarpX=0,
@@ -104,6 +105,10 @@ class FrameSolidSection3d : public FrameSection
         FiberZ,
         FiberArea,
         alpha,
+        ShearAlignYY,
+        ShearAlignZZ,
+        ShearAlignYZ,
+        ShearAlignZY,
         FiberFieldBase=10000
       };
     };
@@ -129,6 +134,25 @@ class FrameSolidSection3d : public FrameSection
       ivy,
       ivz
     };
+
+    struct Tangent {
+      OpenSees::MatrixND<3,3> nn, nm, nw, nv,
+                              mn, mm, mw, mv, 
+                              wn, wm, ww, wv,
+                              vn, vm, vw, vv;
+      void zero() {
+        nn.zero(); nm.zero(); nw.zero(); nv.zero();
+        mn.zero(); mm.zero(); mw.zero(); mv.zero();
+        wn.zero(); wm.zero(); ww.zero(); wv.zero();
+        vn.zero(); vm.zero(); vw.zero(); vv.zero();
+      }
+    };
+
+    Tangent K_pres;
+    std::shared_ptr<Tangent> K_init;
+  
+    int stateDetermination(Tangent& K, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag);
+
     
     struct FiberData {
       // NOTE: this may be faster if qualified with const, but this would
@@ -140,21 +164,23 @@ class FrameSolidSection3d : public FrameSection
       // std::array<double, 3> wmix{{{0}}};
       OpenSees::VectorND<3> r;
     };
-    std::shared_ptr<std::vector<FiberData>> fibers;
+    const std::shared_ptr<std::vector<FiberData>> fibers;
     std::vector<NDMaterial*> materials;
 
     VectorND<nsr> s, e;
     Vector s_wrap, e_wrap;
-
+    Matrix3D shear_align;
     Vector3D centroid;
-    double yBar;                      // Section centroid
-    double zBar;                      // Section centroid
+    double nubar;
+    enum class FiberState {
+      Dirty, Clean
+    } fiber_state;
 
     bool wagner;
+    int parameterID;
 
     static ID code;
 
-    int parameterID;
     Vector dedh;
 };
 

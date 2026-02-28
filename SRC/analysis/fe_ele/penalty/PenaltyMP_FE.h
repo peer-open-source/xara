@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.4 $
-// $Date: 2006-02-08 20:20:00 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/fe_ele/penalty/PenaltyMP_FE.h,v $
-                                                                        
-                                                                        
 #ifndef PenaltyMP_FE_h
 #define PenaltyMP_FE_h
 
@@ -51,11 +46,12 @@ class Node;
 class PenaltyMP_FE: public FE_Element
 {
   public:
-    PenaltyMP_FE(int tag, Domain &theDomain, MP_Constraint &theMP, double alpha);
+    PenaltyMP_FE(int tag, Domain &, MP_Constraint &, double alpha);
     virtual ~PenaltyMP_FE();    
 
     // public methods
-    virtual int  setID(void);
+    int  setID(AnalysisModel &) final;
+    const ID &getID() const final {return myID;}
     virtual const Matrix &getTangent(Integrator *theIntegrator);
     virtual const Vector &getResidual(Integrator *theIntegrator);
     virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
@@ -64,11 +60,13 @@ class PenaltyMP_FE: public FE_Element
     virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
+    void zeroTangent() final {tang? tang->Zero() : void();};
     
   protected:
     
   private:
-    void determineTangent(void);
+    void determineTangent();
+    ID myID;
     
     MP_Constraint *theMP;
     Node *theConstrainedNode;
@@ -78,8 +76,7 @@ class PenaltyMP_FE: public FE_Element
     Vector *resid;
     Matrix *C;    // to hold the C matrix
     double alpha;
-	
-    
+  
 };
 
 #endif

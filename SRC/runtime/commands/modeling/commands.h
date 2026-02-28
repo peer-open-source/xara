@@ -58,6 +58,7 @@ extern Tcl_CmdProc  TclCommand_addYieldSurface_BC;
 // Constraints
 extern Tcl_CmdProc TclCommand_addMP;
 extern Tcl_CmdProc TclCommand_addSP;
+extern Tcl_CmdProc TclCommand_constrain;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC_X;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC_Y; 
@@ -151,6 +152,7 @@ constexpr ModelBuilderCommands[] =  {
   {"rigidLink",            TclCommand_RigidLink},
   
   {"sp",                   TclCommand_addSP},
+  {"constrain",            TclCommand_constrain},
   {"groundMotion",         TclCommand_addGroundMotion},
   {"imposedMotion",        TclCommand_addImposedMotionSP},
   {"imposedSupportMotion", TclCommand_addImposedMotionSP},

@@ -39,7 +39,6 @@ public:
     : ndm(ndm), 
       TaggedObject(t), 
       vz{{0, 0, 0}}, offsets{}, offset_flags(0) {
-      // strncpy(name, n, 128);
       snprintf(name, sizeof(name), "%s", n);
       // offset_flags |= LogIter;
     }
@@ -63,17 +62,21 @@ public:
       }
 
       int tag = this->getTag();
-      if (strstr(name, "Linear") != nullptr)
-        return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+      if (strstr(name, "Linear") != nullptr) {
+        if (!getenv("Linear02"))
+          return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
+        else
+          return new EuclidFrameTransf<nn, ndf, LinearIsometry<nn>> (tag, vz, offset_array, offset_flags);
+      }
 
       else if (strstr(name, "LinearIsometric") != nullptr)
         return new EuclidFrameTransf<nn, ndf, LinearIsometry<nn>> (tag, vz, offset_array, offset_flags);
 
       else if (strcmp(name, "Corotational") == 0) {
-        if constexpr (ndf == 6)
+        if constexpr (ndf == 6 && nn==2)
           return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, offset_flags);
         else 
-          return nullptr;
+          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, offset_flags);
       }
 
       else if (strstr(name, "PDelta") != nullptr)
@@ -91,13 +94,14 @@ public:
           return new EuclidFrameTransf<nn, ndf, RankinIsometry<nn>> (tag, vz, offset_array, offset_flags);
       }
       else if (strcmp(name, "Corotational03") == 0)
-      {
-        if (getenv("Crisfield02"))
-          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, offset_flags);
-        
-        return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,true>> (tag, vz, offset_array, offset_flags);
-      }
+        return new EuclidFrameTransf<nn, ndf, BattiniIsometry<nn>> (tag, vz, offset_array, offset_flags);
 
+      else if (strcmp(name, "Corotational04") == 0)
+        return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,true>> (tag, vz, offset_array, offset_flags);
+
+      else if (strcmp(name, "Corotational05") == 0)
+        return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, offset_flags);
+      
       return nullptr;
     }
 

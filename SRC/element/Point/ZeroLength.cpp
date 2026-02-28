@@ -1007,95 +1007,102 @@ ZeroLength::Print(OPS_Stream &s, int flag)
 Response*
 ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
-    Response *theResponse = nullptr;
+  Response *theResponse = nullptr;
 
-    output.tag("ElementOutput");
-    output.attr("eleType","ZeroLength");
-    output.attr("eleTag",this->getTag());
-    output.attr("node1",connectedExternalNodes[0]);
-    output.attr("node2",connectedExternalNodes[1]);
+  output.tag("ElementOutput");
+  output.attr("eleType","ZeroLength");
+  output.attr("eleTag",this->getTag());
+  output.attr("node1",connectedExternalNodes[0]);
+  output.attr("node2",connectedExternalNodes[1]);
 
-    char outputData[10];
+  char outputData[256];
 
-    if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
-        || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
+  if ((strcmp(argv[0],"force") == 0) || 
+      (strcmp(argv[0],"forces") == 0) ||
+      (strcmp(argv[0],"globalForces") == 0) || 
+      (strcmp(argv[0],"globalforces") == 0)) {
 
-            char outputData[20];
-            int numDOFperNode = numDOF/2;
-            for (int i=0; i<numDOFperNode; i++) {
-                sprintf(outputData,"P1_%d", i+1);
-                output.tag("ResponseType", outputData);
-            }
-            for (int j=0; j<numDOFperNode; j++) {
-                sprintf(outputData,"P2_%d", j+1);
-                output.tag("ResponseType", outputData);
-            }
-            theResponse = new ElementResponse(this, 1, Vector(numDOF));
-
-    } else if ((strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) ||
-	       (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)) {
-
-        for (int i=0; i<numMaterials1d; i++) {
-            sprintf(outputData,"P%d",i+1);
-            output.tag("ResponseType",outputData);
-        }
-        theResponse = new ElementResponse(this, 2, Vector(numMaterials1d));
-
-    } else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
-	       strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
-
-            for (int i=0; i<numMaterials1d; i++) {
-                sprintf(outputData,"e%d",i+1);
-                output.tag("ResponseType",outputData);
-            }
-            theResponse = new ElementResponse(this, 3, Vector(numMaterials1d));
-
-    } else if (strcmp(argv[0],"basicStiffness") == 0) {
-
-            for (int i=0; i<numMaterials1d; i++) {
-                sprintf(outputData,"e%d",i+1);
-                output.tag("ResponseType",outputData);
-            }
-            theResponse = new ElementResponse(this, 13, Matrix(numMaterials1d,numMaterials1d));
-
-    } else if ((strcmp(argv[0],"defoANDforce") == 0) ||
-        (strcmp(argv[0],"deformationANDforces") == 0) ||
-        (strcmp(argv[0],"deformationsANDforces") == 0)) {
-      
-      int i;
-      for (i=0; i<numMaterials1d; i++) {
-	sprintf(outputData,"e%d",i+1);
-	output.tag("ResponseType",outputData);
-      }
-      for (i=0; i<numMaterials1d; i++) {
-	sprintf(outputData,"P%d",i+1);
-	output.tag("ResponseType",outputData);
-	    }
-      theResponse = new ElementResponse(this, 4, Vector(2*numMaterials1d));
-      
-      
-      // a material quantity
-    } else if (strcmp(argv[0],"material") == 0) {
-      if (argc > 2) {
-	int matNum = atoi(argv[1]);
-	int numMat = numMaterials1d;
-	if (useRayleighDamping == 2)
-	  numMat *= 2;
-	if (matNum >= 1 && matNum <= numMat)
-	  theResponse =  theMaterial1d[matNum-1]->setResponse(&argv[2], argc-2, output);
-      }
+    char outputData[256];
+    int numDOFperNode = numDOF/2;
+    for (int i=0; i<numDOFperNode; i++) {
+        sprintf(outputData,"P1_%d", i+1);
+        output.tag("ResponseType", outputData);
     }
-
-    if ((strcmp(argv[0],"dampingForces") == 0) || (strcmp(argv[0],"rayleighForces") == 0)) {
-            theResponse = new ElementResponse(this, 15, Vector(numDOF));
+    for (int j=0; j<numDOFperNode; j++) {
+        sprintf(outputData,"P2_%d", j+1);
+        output.tag("ResponseType", outputData);
     }
+    theResponse = new ElementResponse(this, 1, Vector(numDOF));
 
-    output.endTag();
+  } 
+  else if ((strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) ||
+        (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)) {
+
+    for (int i=0; i<numMaterials1d; i++) {
+        sprintf(outputData,"P%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 2, Vector(numMaterials1d));
+
+  } 
+  else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
+        strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
+
+    for (int i=0; i<numMaterials1d; i++) {
+        sprintf(outputData,"e%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 3, Vector(numMaterials1d));
+
+  } 
+  else if (strcmp(argv[0],"basicStiffness") == 0) {
+
+          for (int i=0; i<numMaterials1d; i++) {
+              sprintf(outputData,"e%d",i+1);
+              output.tag("ResponseType",outputData);
+          }
+          theResponse = new ElementResponse(this, 13, Matrix(numMaterials1d,numMaterials1d));
+
+  } 
+  else if ((strcmp(argv[0],"defoANDforce") == 0) ||
+           (strcmp(argv[0],"deformationANDforces") == 0) ||
+           (strcmp(argv[0],"deformationsANDforces") == 0)) {
+    
+    int i;
+    for (i=0; i<numMaterials1d; i++) {
+      sprintf(outputData,"e%d",i+1);
+      output.tag("ResponseType",outputData);
+    }
+    for (i=0; i<numMaterials1d; i++) {
+      sprintf(outputData,"P%d",i+1);
+      output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 4, Vector(2*numMaterials1d));
+    
+    
+  // a material quantity
+  } 
+  else if (strcmp(argv[0],"material") == 0) {
+    if (argc > 2) {
+      int matNum = atoi(argv[1]);
+      int numMat = numMaterials1d;
+      if (useRayleighDamping == 2)
+        numMat *= 2;
+      if (matNum >= 1 && matNum <= numMat)
+        theResponse =  theMaterial1d[matNum-1]->setResponse(&argv[2], argc-2, output);
+    }
+  }
+
+  if ((strcmp(argv[0],"dampingForces") == 0) || (strcmp(argv[0],"rayleighForces") == 0)) {
+    theResponse = new ElementResponse(this, 15, Vector(numDOF));
+  }
+
+  output.endTag();
 
 
 
 
-    return theResponse;
+  return theResponse;
 }
 
 int 
@@ -1118,15 +1125,15 @@ ZeroLength::getResponse(int responseID, Information &eleInformation)
         if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
             *theVector += this->getRayleighDampingForces();      
       } else if (useRayleighDamping == 2) {
-	for (int mat=0; mat<numMaterials1d; mat++) {
-	  
-	  // get resisting force for material
-	  double force = theMaterial1d[mat+numMaterials1d]->getStress();
-	  
-	  // compute residual due to resisting force
-	  for (int i=0; i<numDOF; i++)
-	    (*theVector)(i)  += (*t1d)(mat,i) * force;
-	}
+        for (int mat=0; mat<numMaterials1d; mat++) {
+          
+          // get resisting force for material
+          double force = theMaterial1d[mat+numMaterials1d]->getStress();
+
+          // compute residual due to resisting force
+          for (int i=0; i<numDOF; i++)
+            (*theVector)(i)  += (*t1d)(mat,i) * force;
+        }
       }
       return eleInformation.setVector(*theVector);
 
@@ -1251,50 +1258,50 @@ ZeroLength::setUp( int Nd1, int Nd2,
 		   const Vector &x,
 		   const Vector &yp )
 { 
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)
-      opserr << "FATAL ZeroLength::setUp - failed to create an ID of correct size\n";
-    
-    connectedExternalNodes(0) = Nd1;
-    connectedExternalNodes(1) = Nd2;
+  // ensure the connectedExternalNode ID is of correct size & set values
+  if (connectedExternalNodes.Size() != 2)
+    opserr << "FATAL ZeroLength::setUp - failed to create an ID of correct size\n";
+  
+  connectedExternalNodes(0) = Nd1;
+  connectedExternalNodes(1) = Nd2;
 
 	int i;
-    for (i=0; i<2; i++)
-      theNodes[i] = 0;
+  for (i=0; i<2; i++)
+    theNodes[i] = 0;
 
-    // check that vectors for orientation are correct size
-    if ( x.Size() != 3 || yp.Size() != 3 )
-	opserr << "FATAL ZeroLength::setUp - incorrect dimension of orientation vectors\n";
+  // check that vectors for orientation are correct size
+  if ( x.Size() != 3 || yp.Size() != 3 )
+    opserr << "FATAL ZeroLength::setUp - incorrect dimension of orientation vectors\n";
 
-    // establish orientation of element for the transformation matrix
-    // z = x cross yp
-    Vector z(3);
-    z(0) = x(1)*yp(2) - x(2)*yp(1);
-    z(1) = x(2)*yp(0) - x(0)*yp(2);
-    z(2) = x(0)*yp(1) - x(1)*yp(0);
+  // establish orientation of element for the transformation matrix
+  // z = x cross yp
+  Vector z(3);
+  z(0) = x(1)*yp(2) - x(2)*yp(1);
+  z(1) = x(2)*yp(0) - x(0)*yp(2);
+  z(2) = x(0)*yp(1) - x(1)*yp(0);
 
-    // y = z cross x
-    Vector y(3);
-    y(0) = z(1)*x(2) - z(2)*x(1);
-    y(1) = z(2)*x(0) - z(0)*x(2);
-    y(2) = z(0)*x(1) - z(1)*x(0);
+  // y = z cross x
+  Vector y(3);
+  y(0) = z(1)*x(2) - z(2)*x(1);
+  y(1) = z(2)*x(0) - z(0)*x(2);
+  y(2) = z(0)*x(1) - z(1)*x(0);
 
-    // compute length(norm) of vectors
-    double xn = x.Norm();
-    double yn = y.Norm();
-    double zn = z.Norm();
+  // compute length(norm) of vectors
+  double xn = x.Norm();
+  double yn = y.Norm();
+  double zn = z.Norm();
 
-    // check valid x and y vectors, i.e. not parallel and of zero length
-    if (xn == 0 || yn == 0 || zn == 0) {
-      opserr << "FATAL ZeroLength::setUp - invalid vectors to constructor\n";
-    }
-    
-    // create transformation matrix of direction cosines
-    for ( i=0; i<3; i++ ) {
-	transformation(0,i) = x(i)/xn;
-	transformation(1,i) = y(i)/yn;
-	transformation(2,i) = z(i)/zn;
-     }
+  // check valid x and y vectors, i.e. not parallel and of zero length
+  if (xn == 0 || yn == 0 || zn == 0) {
+    opserr << "FATAL ZeroLength::setUp - invalid vectors to constructor\n";
+  }
+  
+  // create transformation matrix of direction cosines
+  for ( i=0; i<3; i++ ) {
+    transformation(0,i) = x(i)/xn;
+    transformation(1,i) = y(i)/yn;
+    transformation(2,i) = z(i)/zn;
+  }
 
 }
 
@@ -1303,11 +1310,12 @@ ZeroLength::setUp( int Nd1, int Nd2,
 void
 ZeroLength::checkDirection( ID &dir ) const
 {
-    for ( int i=0; i<dir.Size(); i++)
-	if ( dir(i) < 0 || dir(i) > 5 ) {
-	  opserr << "WARNING ZeroLength::checkDirection - incorrect direction " << dir(i) << " is set to 0\n";
-	  dir(i) = 0;
-	}
+  for ( int i=0; i<dir.Size(); i++)
+    if ( dir(i) < 0 || dir(i) > 5 ) {
+      opserr << "WARNING ZeroLength::checkDirection - incorrect direction " 
+             << dir(i) << " is set to 0\n";
+      dir(i) = 0;
+    }
 }
 
 

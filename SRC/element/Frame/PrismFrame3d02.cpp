@@ -209,9 +209,7 @@ PrismFrame3d02::getTangentStiff()
 
   kb = this->getBasicTangent(State::Pres, 0);
 
-  using Operation = typename FrameTransform<2,6>::Operation;
-
-  basic_system->t.push(kb, q, Operation::Total);
+  basic_system->t.push(kb, q, Transform::Total);
 
   return wrapper;
 }

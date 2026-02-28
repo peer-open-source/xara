@@ -203,7 +203,7 @@ BasicFrameTransf3d<ndf>::getGlobalResistingForce(const Vector &q_pres, const Vec
     }
   //
 
-  t.push(pl, Operation::Total);
+  t.push(pl, Transform::Total);
 
 #if 0
   if (p0.Norm() > 0.0) [[unlikely]] {
@@ -215,7 +215,7 @@ BasicFrameTransf3d<ndf>::getGlobalResistingForce(const Vector &q_pres, const Vec
     pf[0*NDF + 2] = p0[3];
     pf[1*NDF + 1] = p0[2];
     pf[1*NDF + 2] = p0[4];
-    linear.push(pf, Operation::Total);
+    linear.push(pf, Transform::Total);
     pl += pf;
   }
 #endif
@@ -323,7 +323,7 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
     kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   });
 #endif
-  t.push(kl, pl, Operation::Total);
+  t.push(kl, pl, Transform::Total);
 
   return Wrapper;
 }

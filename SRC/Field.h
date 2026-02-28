@@ -17,11 +17,6 @@ enum class Field {
   DensityZZ,
   DensityXY,
   DensityXZ,
-  DensityCentroidXX,
-  DensityCentroidYY,
-  DensityCentroidZZ,
-  DensityCentroidXY,
-  DensityCentroidXZ,
 
   PolarInertia,      // NOTE: not J0; this includes density
 

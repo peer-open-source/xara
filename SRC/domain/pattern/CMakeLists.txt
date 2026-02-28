@@ -8,13 +8,13 @@ target_sources(OPS_Domain
     PRIVATE
         EarthquakePattern.cpp
         LoadPattern.cpp
-        LoadPatternIter.cpp
         MultiSupportPattern.cpp
         UniformExcitation.cpp
+        LoadCase.cpp
+        StaticPattern.cpp
     PUBLIC
         EarthquakePattern.h
         LoadPattern.h
-        LoadPatternIter.h
         MultiSupportPattern.h
         UniformExcitation.h
 )

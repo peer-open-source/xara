@@ -1,3 +1,4 @@
+
 // $Revision: 1.5 $
 // $Date: 2009-05-14 22:45:57 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/eigenSOE/EigenSOE.cpp,v $
@@ -18,15 +19,24 @@
 #include <EigenSolver.h>
 #include <AnalysisModel.h>
 
+// for formSystem
+#include <FE_Element.h>
+#include <DOF_Group.h>
+#include <Vector.h>
+#include <Matrix.h>
+#include <Logging.h>
+
 EigenSOE::EigenSOE(EigenSolver &theEigenSolver, int classTag)
-  :MovableObject(classTag), theSolver(&theEigenSolver)
+  : MovableObject(classTag)
+  , theSolver(&theEigenSolver)
 {
 
 }
 
 
 EigenSOE::EigenSOE(int classTag)
-  :MovableObject(classTag), theSolver(0)
+  : MovableObject(classTag)
+  , theSolver(nullptr)
 {
 
 }
@@ -34,40 +44,42 @@ EigenSOE::EigenSOE(int classTag)
 
 EigenSOE::~EigenSOE()
 {
-  if (theSolver != 0)
+  if (theSolver != nullptr)
     delete theSolver;
 }
 
 int 
 EigenSOE::solve(int numModes, bool generalized, bool findSmallest)
 {
-  if (theSolver == 0)
+  if (theSolver == nullptr)
     return -1;
   else
-    return (theSolver->solve(numModes, generalized, findSmallest));
+    return theSolver->solve(numModes, generalized, findSmallest);
 }
 
 int
 EigenSOE::setSolver(EigenSolver &newSolver)
 {
-    theSolver = &newSolver;
-    return 0;
+  theSolver = &newSolver;
+  return 0;
 }
 
 EigenSolver *
 EigenSOE::getSolver()
 {	
-    return theSolver;
+  return theSolver;
 }
 
 const Vector &
-EigenSOE::getEigenvector(int mode) {
-    return theSolver->getEigenvector(mode);
+EigenSOE::getEigenvector(int mode)
+{
+  return theSolver->getEigenvector(mode);
 }
 
 double 
-EigenSOE::getEigenvalue(int mode) {
-    return theSolver->getEigenvalue(mode);
+EigenSOE::getEigenvalue(int mode)
+{
+  return theSolver->getEigenvalue(mode);
 }
 
 
@@ -78,13 +90,6 @@ EigenSOE::setLinks(AnalysisModel &)
 }
 
 
-#include <FE_Element.h>
-#include <FE_EleIter.h>
-#include <DOF_Group.h>
-#include <DOF_GrpIter.h>
-#include <Vector.h>
-#include <Matrix.h>
-#include <Logging.h>
 int 
 EigenSOE::formSystem(AnalysisModel &model, bool generalized)
 {

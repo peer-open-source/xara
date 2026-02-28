@@ -22,6 +22,10 @@
 //
 // References:
 //
+// [1] Perez, C.M., and Filippou F.C. "On Nonlinear Geometric Transformations
+//     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024;
+//     https://doi.org/10.1002/nme.7506
+//
 // [2] Filippou, F.C. (1998)
 //     "FEDEASLab: Finite Elements for Design Evaluation and Analysis of Structures"
 //
@@ -58,8 +62,7 @@ public:
   {
     Matrix3D R;
     {
-      Vector3D e1 = dx;
-      e1 /= e1.norm();
+      const Vector3D e1 = dx/dx.norm();
 
       constexpr static Vector3D D2 {0,1,0};
       const Vector3D E2 = this->AlignedIsometry<nn>::R[init]*D2;
@@ -67,7 +70,7 @@ public:
       Vector3D e3 = e1.cross(q);
       e3 /= e3.norm();
 
-      Vector3D e2 = e3.cross(e1);
+      const Vector3D e2 = e3.cross(e1);
 
       for (int i = 0; i < 3; i++) {
         R(i,0) = e1[i];
@@ -75,46 +78,77 @@ public:
         R(i,2) = e3[i];
       }
 
-      Vector3D Q = R^q;
+      const Vector3D Q = R^q;
       n = Q[0]/Q[1];
     }
     return R;
   }
 
 
-  MatrixND<12,12>
-  getRotationJacobian(const VectorND<12>&pwx) final 
+  MatrixND<6*nn,6*nn>
+  getRotationJacobian(const VectorND<6*nn>&pwx) final 
   {
-    MatrixND<3,12> NWL{};
-    const double Ln = this->getLength();
+    if constexpr (nn != 2) {
+      // TODO: Implement for nn != 2
+      return MatrixND<6*nn,6*nn> {};
+    }
+    else {
+      
+      MatrixND<3,12> NWL{};
+      const double Ln = this->getLength();
 
-    constexpr static Matrix3D ex = Hat(Vector3D {1,0,0});
+      constexpr static Matrix3D ex = Hat(Vector3D {1,0,0});
 
-    for (int i=0; i<nn; i++)
-      NWL.assemble(Hat(&pwx[i*6]), 0, i*6,  -1.0);
+      for (int i=0; i<nn; i++)
+        NWL.assemble(Hat(&pwx[i*6]), 0, i*6,  -1.0);
 
-#if __cplusplus >= 202000L
-    static constinit MatrixND<12,3> Gamma = MakeGamma();
-    static constinit MatrixND<12,3> Psi0  = MakePsi();
-    MatrixND<12,3> Psi = Psi0;
-    Psi.template insert<6,0>(ex,  -Ln);
-#else
-    MatrixND<12,3> Gamma{};
-    Gamma.template insert<0,0>(ex,  1.0);
-    Gamma(3,0) = -1.0;
-    Gamma.template insert<6,0>(ex, -1.0);
+  #if __cplusplus >= 202000L
+      static constinit MatrixND<12,3> Gamma = MakeGamma();
+      static constinit MatrixND<12,3> Psi0  = MakePsi();
+      MatrixND<12,3> Psi = Psi0;
+      Psi.template insert<6,0>(ex,  -Ln);
+  #else
+      MatrixND<12,3> Gamma{};
+      Gamma.template insert<0,0>(ex,  1.0);
+      Gamma(3,0) = -1.0;
+      Gamma.template insert<6,0>(ex, -1.0);
 
-    MatrixND<12,3> Psi{};
-    Psi.template insert<3,0>(Eye3, 1.0);
-    Psi.template insert<6,0>(ex,   -Ln);
-    Psi.template insert<9,0>(Eye3, 1.0);
-#endif
-    Matrix3D B = Gamma^Psi;
-    Matrix3D A;
-    B.invert(A);
-    return Gamma*A.transpose()*NWL;
+      MatrixND<12,3> Psi{};
+      Psi.template insert<3,0>(Eye3, 1.0);
+      Psi.template insert<6,0>(ex,   -Ln);
+      Psi.template insert<9,0>(Eye3, 1.0);
+  #endif
+      const Matrix3D B = Gamma^Psi;
+      Matrix3D A;
+      B.invert(A);
+      return Gamma*A.transpose()*NWL;
+    }
   }
 
+  MatrixND<3,6> 
+  getRotationGradient(int node) final {
+    MatrixND<3,6> Gb{};
+
+    constexpr Vector3D axis{1, 0, 0};
+    constexpr Matrix3D ix = Hat(axis);
+
+    const double Ln = this->getLength();
+
+    if (node == 0) {
+      Gb.template insert<0,0>( ix, -1.0/Ln);
+      Gb(0,2) =  n/Ln;
+      Gb(0,3) =   1.0;
+      Gb(0,4) =    -n;
+    }
+    else if (node == nn-1) {
+      Gb.template insert<0,0>( ix,  1.0/Ln);
+      Gb(0,2) = -n/Ln;
+      Gb(0,3) =  0.0;
+    }
+    return Gb;
+  }
+
+private:
   MatrixND<3,6>
   getBasisVariation(int ie, int node)
   {
@@ -143,29 +177,6 @@ public:
       );
     }
     return dei;
-  }
-
-  MatrixND<3,6> 
-  getRotationGradient(int node) final {
-    MatrixND<3,6> Gb{};
-
-    constexpr Vector3D axis{1, 0, 0};
-    constexpr Matrix3D ix = Hat(axis);
-
-    const double Ln = this->getLength();
-
-    if (node == 0) {
-      Gb.template insert<0,0>( ix, -1.0/Ln);
-      Gb(0,2) =  n/Ln;
-      Gb(0,3) =   1.0;
-      Gb(0,4) =    -n;
-    }
-    else if (node == nn-1) {
-      Gb.template insert<0,0>( ix,  1.0/Ln);
-      Gb(0,2) = -n/Ln;
-      Gb(0,3) =  0.0;
-    }
-    return Gb;
   }
 
 private:

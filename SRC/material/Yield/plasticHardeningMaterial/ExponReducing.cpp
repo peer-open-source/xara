@@ -48,8 +48,6 @@ double ExponReducing::getTrialPlasticStiffness()
 	
 	if(K < (Kp0*resFactor))
 		K = Kp0*resFactor;
-
-//	opserr << "K = " << K << ", sFactor = " << sFactor << endln;
 	
 	if(K <0.0)
 	{

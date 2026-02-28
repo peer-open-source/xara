@@ -36,12 +36,11 @@
 #endif
 
 #define VIRTUAL virtual
-
 #include <TaggedObject.h>
 #include <MovableObject.h>
-
 // TODO: Remove include of NodeData
 #include "NodeData.h"
+#include <Vector.h>
 
 class Vector;
 class Matrix;
@@ -50,7 +49,9 @@ class DOF_Group;
 class NodalThermalAction; //L.Jiang [ SIF ]
 class Domain;
 class Element;
-namespace OpenSees {struct Versor;}
+namespace OpenSees {
+  struct Versor;
+}
 using OpenSees::Versor;
 
 class Node :
@@ -65,21 +66,21 @@ class Node :
     // constructors
     Node(int classTag);
     Node(int tag, int classTag);
-    Node(int tag, int ndof, double Crd1, Vector *displayLoc = 0);
-    Node(int tag, int ndof, double Crd1, double Crd2, Vector *displayLoc = 0);
-    Node(int tag, int ndof, double Crd1, double Crd2, double Crd3, Vector *displayLoc = 0);
+    Node(int tag, int ndof, double Crd1);
+    Node(int tag, int ndof, double Crd1, double Crd2);
+    Node(int tag, int ndof, double Crd1, double Crd2, double Crd3);
     Node(const Node &theCopy, bool copyMass = true);
     
     // destructor
     VIRTUAL ~Node();
 
     // public methods dealing with the DOF at the node
-    VIRTUAL int  getNumberDOF(void) const;
+    VIRTUAL int  getNumberDOF() const;
     VIRTUAL void setDOF_GroupPtr(DOF_Group *theDOF_Grp);
-    VIRTUAL DOF_Group *getDOF_GroupPtr(void);
+    VIRTUAL DOF_Group *getDOF_GroupPtr();
 
     // public methods for obtaining the nodal coordinates
-    VIRTUAL const Vector &getCrds(void) const;
+    VIRTUAL const Vector &getCrds() const;
     VIRTUAL void  setCrds(double Crd1);
     VIRTUAL void  setCrds(double Crd1, double Crd2);
     VIRTUAL void  setCrds(double Crd1, double Crd2, double Crd3);
@@ -89,7 +90,7 @@ class Node :
     // State
     //
     // public methods dealing with the committed state of the node
-    virtual int commitState();
+    virtual int commitState() noexcept;
     virtual int revertToLastCommit();
     virtual int revertToStart();
 
@@ -98,10 +99,10 @@ class Node :
     //
     // public methods for obtaining committed and trial 
     // response quantities of the node
-    VIRTUAL const Vector &getDisp();
-    VIRTUAL const Vector &getIncrDisp();
-    VIRTUAL const Vector &getIncrDeltaDisp();
-    VIRTUAL const Vector &getTrialDisp();
+    VIRTUAL const Vector &getDisp() noexcept;
+    VIRTUAL const Vector &getIncrDisp() noexcept;
+    VIRTUAL const Vector &getIncrDeltaDisp() noexcept;
+    VIRTUAL const Vector &getTrialDisp() noexcept {return *trialDisp;}
     VIRTUAL       Versor  getTrialRotation();
 
     VIRTUAL const Vector &getVel();
@@ -110,8 +111,8 @@ class Node :
     VIRTUAL const Vector &getTrialAccel();
 
     // public methods for updating the trial response quantities
-    virtual int setTrialDisp  (double value, int dof);
-    virtual int setTrialDisp  (const Vector &);
+    virtual int setTrialDisp  (double value, int dof) noexcept;
+    virtual int setTrialDisp  (const Vector &) noexcept;
     virtual int incrTrialDisp (const Vector &);
     VIRTUAL int setTrialVel   (const Vector &);
     VIRTUAL int setTrialAccel (const Vector &);
@@ -122,6 +123,8 @@ class Node :
     VIRTUAL const Matrix &getMass();
     VIRTUAL const Matrix &getDamp();
     VIRTUAL int setMass(const Matrix &theMass);
+    VIRTUAL int addPositionInertia(double value);
+    VIRTUAL int addRotationInertia(double value, unsigned dof);
     VIRTUAL int setNumColR(int numCol);
     VIRTUAL int setR(int row, int col, double Value);
     VIRTUAL const Vector &getRV(const Vector &V);
@@ -139,10 +142,10 @@ class Node :
     //
     // Load information
     //
-    VIRTUAL void zeroUnbalancedLoad(void);
+    VIRTUAL void zeroUnbalancedLoad() noexcept;
     VIRTUAL int addUnbalancedLoad(const Vector &load, double fact = 1.0);
     VIRTUAL int addInertiaLoadToUnbalance(const Vector &accel, double fact = 1.0);
-    VIRTUAL const Vector &getUnbalancedLoad();
+    VIRTUAL const Vector &getUnbalancedLoad() noexcept;
     VIRTUAL const Vector &getUnbalancedLoadIncInertia();
 
 
@@ -157,9 +160,8 @@ class Node :
     //
     // Parallel
     //
-    VIRTUAL int sendSelf(int commitTag, Channel &theChannel);
-    VIRTUAL int recvSelf(int commitTag, Channel &theChannel, 
-                         FEM_ObjectBroker &theBroker);
+    VIRTUAL int sendSelf(int commitTag, Channel &);
+    VIRTUAL int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     //
     // Misc
@@ -190,9 +192,10 @@ class Node :
     // Display
     //
     VIRTUAL int getDisplayCrds(Vector &results, double fact, int displayMode=0);
-    VIRTUAL int getDisplayRots(Vector& results, double fact, int displayMode=0);
-    VIRTUAL int setDisplayCrds(const Vector &theCrds);
 #endif
+
+    // Reset global matrices
+    static int resetGlobalMatrices();
 
 
     Domain *getDomain() {return theDomain;};
@@ -218,8 +221,6 @@ class Node :
 
     static Matrix **theMatrices;
     static int numMatrices;
-    static Matrix **theVectors;
-    static int numVectors;
     int index;
 
 
@@ -235,12 +236,17 @@ class Node :
     NodalThermalAction *theNodalThermalActionPtr; //Added by Liming Jiang for pointer to nodalThermalAction, [SIF]
 
     Vector *Crd;                      // original nodal coords
+    Vector xyz;
+    double coord_data[3];
     
 
     Matrix *R;                          // nodal participation matrix
     Matrix *mass;                       // pointer to mass matrix
-    Vector *unbalLoadWithInertia;
     double alphaM;                      // rayleigh damping factor 
+    double position_inertia;
+    double rotation_inertia[3];
+    // State
+    Vector *unbalLoadWithInertia;
     Matrix *theEigenvectors;
 
 

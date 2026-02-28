@@ -30,8 +30,6 @@
 #include <AnalysisModel.h>
 #include <FE_Element.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
-#include <DOF_GrpIter.h>
 #include <Logging.h>
 
 // constructs the Graph

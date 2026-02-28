@@ -31,7 +31,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <Parameter.h>
 #include <math.h>
@@ -764,22 +763,7 @@ CorotTruss::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBr
   return 0;
 }
 
-int
-CorotTruss::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** modes,
-                        int numMode)
-{
-  // ensure setDomain() worked
-  if (Ln == 0.0)
-    return 0;
 
-  static Vector v1(3);
-  static Vector v2(3);
-
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-  return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 void
 CorotTruss::Print(OPS_Stream& s, int flag)

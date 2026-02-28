@@ -37,6 +37,7 @@
 #include <Parsing.h>
 #include <Domain.h>
 #include <LoadPattern.h>
+#include <StaticPattern.h>
 
 #include <UniformExcitation.h>
 #include <MultiSupportPattern.h>
@@ -93,7 +94,8 @@ TclCommand_addPattern(ClientData clientData,
 
   // make sure at least one other argument to contain integrator
   if (argc < 3) {
-    opserr << OpenSees::PromptValueError << "invalid command - want: pattern type ";
+    opserr << OpenSees::PromptValueError 
+           << "invalid command - want: pattern type ";
     opserr << " <type args> {list of load and sp constraints commands}\n";
     opserr << "           valid types: Plain, UniformExcitation, MultiSupport\n";
     return TCL_ERROR;
@@ -138,20 +140,24 @@ TclCommand_addPattern(ClientData clientData,
       }
     }
 
-    thePattern = new LoadPattern(patternID, fact);
+    StaticPattern* theStaticPattern = new StaticPattern(patternID, fact);
     theSeries = TclSeriesCommand(clientData, interp, series_arg);
 
     if (theSeries == nullptr) {
-      opserr << OpenSees::PromptValueError << "problem creating TimeSeries for LoadPattern "
-             << patternID << "\n";
+      opserr << OpenSees::PromptValueError 
+             << "problem creating TimeSeries for LoadPattern "
+             << patternID
+             << OpenSees::SignalMessageEnd;
 
       // clean up the memory and return an error
-      if (thePattern != nullptr)
-        delete thePattern;
+      if (theStaticPattern != nullptr)
+        delete theStaticPattern;
       return TCL_ERROR;
     }
 
-    thePattern->setTimeSeries(theSeries);
+    theStaticPattern->setTimeSeries(theSeries);
+    builder->setCurrentPattern<StaticPattern>(theStaticPattern);
+    thePattern = theStaticPattern;
   }
 
   else if (strcmp(argv[1], "UniformExcitation") == 0) {
@@ -275,6 +281,7 @@ TclCommand_addPattern(ClientData clientData,
     // create the UniformExcitation Pattern
     thePattern = new UniformExcitation(*theMotion, dir, patternID, vel0, fact);
 
+    builder->setCurrentPattern<LoadPattern>(thePattern);
     // Added by MHS to prevent call to Tcl_Eval at end of this function
     commandEndMarker = currentArg+1;
   }
@@ -357,8 +364,7 @@ TclCommand_addPattern(ClientData clientData,
 
     // Create the UniformExcitation Pattern
     thePattern = new UniformExcitation(*theMotion, dir, patternID);
-    Tcl_SetAssocData(interp,"theTclMultiSupportPattern", NULL, (ClientData)0);
-
+    builder->setCurrentPattern<LoadPattern>(thePattern);
   }
 
   else if ((strcmp(argv[1], "MultipleSupportExcitation") == 0) ||
@@ -366,9 +372,8 @@ TclCommand_addPattern(ClientData clientData,
            (strcmp(argv[1], "MultiSupport") == 0)) {
 
     MultiSupportPattern *theTclMultiSupportPattern = new MultiSupportPattern(patternID);
-    Tcl_SetAssocData(interp,"theTclMultiSupportPattern", NULL, (ClientData)theTclMultiSupportPattern);
+    builder->setCurrentPattern<MultiSupportPattern>(theTclMultiSupportPattern);
     thePattern = theTclMultiSupportPattern;
-
 //  commandEndMarker = 2;
   }
 
@@ -427,9 +432,8 @@ TclCommand_addPattern(ClientData clientData,
           new DRMLoadPattern(1, 1.0, patternhandler, domain);
       ptr->setMaps();
       thePattern = ptr;
-      theTclMultiSupportPattern = 0;
-      Tcl_SetAssocData(interp,"theTclMultiSupportPattern", NULL, (ClientData)0);
-    } else {
+    } 
+    else {
 
       //     TCL_Char * ifp = 0;
       double INVALID = 0.7111722273337;
@@ -695,8 +699,6 @@ TclCommand_addPattern(ClientData clientData,
       thePattern = new DRMLoadPatternWrapper(patternID, factor, files, nf, dt,
                                              num_steps, f_d, 15, n1, n2,
                                              drm_box_crds, ele_d, steps_cached);
-      // theTclMultiSupportPattern = 0;
-      Tcl_SetAssocData(interp,"theTclMultiSupportPattern", NULL, (ClientData)0);
       commandEndMarker = c_arg+1;
     }
 
@@ -739,9 +741,9 @@ TclCommand_addPattern(ClientData clientData,
 #endif
 
   else {
-    opserr << OpenSees::PromptValueError << "unknown pattern type " << argv[1];
-    opserr << " \t valid types: Plain, UniformExcitation, "
-              "MultiSupportExciatation \n";
+    opserr << OpenSees::PromptValueError 
+           << "unknown pattern type " << argv[1]
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -754,11 +756,10 @@ TclCommand_addPattern(ClientData clientData,
     return TCL_ERROR;
   }
 
-
-  builder->setEnclosingPattern(thePattern);
-
+  //
   // use TCL_Eval to evaluate the list of load and single point constraint
   // commands
+  //
 
   if (commandEndMarker < argc) {
     // Set the Pattern for "sp" command
@@ -778,7 +779,6 @@ TclCommand_addPattern(ClientData clientData,
       return TCL_ERROR;
     }
 
-    Tcl_SetAssocData(interp,"theTclMultiSupportPattern", NULL, (ClientData)0);
 //  info.clientData = (ClientData)builder;
 //  Tcl_SetCommandInfo(interp, "sp", &info);
 
@@ -797,7 +797,7 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
   
   // TODO
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
-  LoadPattern *theTclLoadPattern = builder->getEnclosingPattern();
+  StaticPattern *theTclLoadPattern = builder->getCurrentPattern<StaticPattern>();
   int nodeLoadTag = builder->getNodalLoadTag();
 
   int ndf = builder->getNDF(); // argc - 2;
@@ -809,14 +809,18 @@ TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
   if (true) {
     if (argc < (2 + ndf)) {
-      opserr << OpenSees::PromptValueError << "expected " << ndf << " forces\n";
+      opserr << OpenSees::PromptValueError 
+             << "expected " << ndf << " forces"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     // get the id of the node
     int nodeId;
     if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1];
+      opserr << OpenSees::PromptValueError 
+             << "invalid nodeId: " << argv[1]
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 

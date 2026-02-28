@@ -54,7 +54,6 @@ public:
 
   ~EuclidFrameTransf();
 
-  using Operation = typename FrameTransform<nn,ndf>::Operation;
 
   const char *getClassType() const {return "EuclidFrameTransf";}
   
@@ -67,7 +66,7 @@ public:
   const std::array<Vector3D,nn> *getRigidOffsets() const final {return offsets;}
   
   int initialize(std::array<Node*, nn>& new_nodes) final;
-  int update() final;
+  int update() noexcept final;
   int commit() final;
   int revertToLastCommit() final;
   int revertToStart() final;
@@ -77,22 +76,27 @@ public:
   Versor   getNodeRotation(int tag) /* final */;
   Vector3D getNodeRotationLogarithm(int tag) final;
 
-  int push(VectorND<nn*ndf>&pl, Operation) final;
-  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, Operation) final;
-  
+  Matrix3D getRotation() const noexcept final {
+    return basis.getRotation();
+  }
+
+  int push(VectorND<nn*ndf>&pl, int op) final;
+  int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, int op) final;
+
   MatrixND<3,ndf*nn> getRotationTangent() final {
     MatrixND<3,ndf*nn> dR{};
     for (int i=0; i<nn; i++)
       dR.assemble(basis.getRotationGradient(i), 0, i*ndf, 1.0);
     return dR;
   }
-  
+
   //
   // Sensitivity
   //
   bool isShapeSensitivity() final;
   double getLengthGrad() final;
   double getd1overLdh() final;
+  // void   pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl) final;
 
   // TaggedObject
   void Print(OPS_Stream &s, int flag) final;

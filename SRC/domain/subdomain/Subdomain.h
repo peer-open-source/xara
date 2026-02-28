@@ -52,15 +52,6 @@ class Subdomain: public Element, public Domain
 {
   public:
     Subdomain(int tag);
-
-    Subdomain(int tag, 
-              TaggedObjectStorage &theInternalNodeStorage,
-              TaggedObjectStorage &theExternalNodeStorage,
-              TaggedObjectStorage &theElementsStorage,
-              TaggedObjectStorage &theLoadPatternsStorage,	      
-              TaggedObjectStorage &theMPsStorage,
-              TaggedObjectStorage &theSPsStorage);
-    
     virtual  ~Subdomain();    
 
     // method added for parallel domain generation
@@ -71,7 +62,7 @@ class Subdomain: public Element, public Domain
     virtual void clearAll();
     virtual bool addNode(Node *);	
     virtual Node *removeNode(int tag);        
-    virtual NodeIter &getNodes();    
+    virtual NodeIter &getNodes();
     virtual Node *getNode(int tag);            
     virtual Node **getNodePtrs();            
 

@@ -23,9 +23,7 @@
 #include <math.h>
 #include <Vector.h>
 #include <AnalysisModel.h>
-#include <DOF_GrpIter.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
 #include <FE_Element.h>
 #include <Integrator.h>
 
@@ -331,11 +329,21 @@ SymmGeneralizedEigenSolver::setEigenSOE(SymmGeneralizedEigenSOE &thesoe)
 const Vector&
 SymmGeneralizedEigenSolver::getEigenvector(int mode)
 {
+    this->getEigenvector(mode, *eigenV);
+    
+    return *eigenV;
+    
+}
+
+
+int
+SymmGeneralizedEigenSolver::getEigenvector(int mode, Vector &theVector)
+{
     if (mode <= 0 || mode > numEigen) {
-        opserr << "SymmGeneralizedEigenSolver::getEigenVector() - mode "
+        opserr << "SymmGeneralizedEigenSolver::getEigenvector() - mode "
             << mode << " is out of range (1 - " << numEigen << ")\n";
-        eigenV->Zero();
-        return *eigenV;
+        theVector.Zero();
+        return -1;
     }
 
     int size = theSOE->size;
@@ -343,16 +351,17 @@ SymmGeneralizedEigenSolver::getEigenvector(int mode)
     
     if (eigenvector != nullptr) {
         for (int i=0; i<size; i++) {
-            (*eigenV)[i] = eigenvector[index++];
+            theVector(i) = eigenvector[index++];
         }        
     }
     else {
         opserr << "SymmGeneralizedEigenSolver::getEigenvector() - "
             << "eigenvectors not computed yet\n";
         eigenV->Zero();
+        return -2;
     }
     
-    return *eigenV;
+    return 0;
     
 }
 

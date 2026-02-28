@@ -43,68 +43,58 @@ Vector **DOF_Group::theVectors;  // array of pointers to class widde vectors
 int DOF_Group::numDOFs(0);       // number of objects
 
 
-//  DOF_Group(Node *);
-//	construictor that take the corresponding model node.
-
 DOF_Group::DOF_Group(int tag, Node *node)
-:TaggedObject(tag),
- unbalance(0), tangent(0), myNode(node), 
- myID(node->getNumberDOF()), 
- numDOF(node->getNumberDOF())
+: TaggedObject(tag),
+  unbalance(0), tangent(0), myNode(node), 
+  myID(node->getNumberDOF()), 
+  numDOF(node->getNumberDOF())
 {
-    // get number of DOF & verify valid
-    int numDOF = node->getNumberDOF();
-    if (numDOF <= 0) {
-	opserr << "DOF_Group::DOF_Group(Node *) ";
-	opserr << " node must have at least 1 dof " << *node;
-	exit(-1);
-    }	
+  // get number of DOF & verify valid
+  int numDOF = node->getNumberDOF();
+  if (numDOF <= 0) {
+    opserr << "DOF_Group::DOF_Group(Node *) ";
+    opserr << " node must have at least 1 dof " << *node;
+    exit(-1);
+  }
 
-    // check the ID created is of appropriate size
-    if (myID.Size() != numDOF) {
-	opserr << "DOF_Group::DOF_Group(Node *) ";
-	opserr << " ran out of memory creating ID for node " << *node;
-	exit(-1);
-    }
+  // initially set all the IDs to be -2
+  for (int i=0; i<numDOF; i++)
+    myID(i) = -2;
 
-    // initially set all the IDs to be -2
-    for (int i=0; i<numDOF; i++)
-	myID(i) = -2;
-    
     // if this is the first DOF_Group we now
     // create the arrays used to store pointers to class wide
     // matrix and vector objects used to return tangent and residual
     if (numDOFs == 0) {
-	theMatrices = new Matrix *[MAX_NUM_DOF+1];
-	theVectors  = new Vector *[MAX_NUM_DOF+1];
-	
-	for (int i=0; i<MAX_NUM_DOF; i++) {
-	    theMatrices[i] = 0;
-	    theVectors[i] = 0;
-	}
-    }    
+    theMatrices = new Matrix *[MAX_NUM_DOF+1];
+    theVectors  = new Vector *[MAX_NUM_DOF+1];
     
-    // set the pointers for the tangent and residual
-    if (numDOF <= MAX_NUM_DOF) {
-	// use class wide objects
-	if (theVectors[numDOF] == 0) {
-	    // have to create matrix and vector of size as none yet created
-	    theVectors[numDOF] = new Vector(numDOF);
-	    theMatrices[numDOF] = new Matrix(numDOF,numDOF);
-	    unbalance = theVectors[numDOF];
-	    tangent = theMatrices[numDOF];
-
-	} else {
-	    unbalance = theVectors[numDOF];
-	    tangent = theMatrices[numDOF];
-	}
-    } else {
-	// create matrices and vectors for each object instance
-	unbalance = new Vector(numDOF);
-	tangent = new Matrix(numDOF, numDOF);
+    for (int i=0; i<MAX_NUM_DOF; i++) {
+      theMatrices[i] = 0;
+      theVectors[i] = 0;
     }
-    
-    numDOFs++;
+  }    
+  
+  // set the pointers for the tangent and residual
+  if (numDOF <= MAX_NUM_DOF) {
+    // use class wide objects
+    if (theVectors[numDOF] == 0) {
+      // have to create matrix and vector of size as none yet created
+      theVectors[numDOF] = new Vector(numDOF);
+      theMatrices[numDOF] = new Matrix(numDOF,numDOF);
+      unbalance = theVectors[numDOF];
+      tangent = theMatrices[numDOF];
+
+    } else {
+      unbalance = theVectors[numDOF];
+      tangent = theMatrices[numDOF];
+    }
+  } else {
+    // create matrices and vectors for each object instance
+    unbalance = new Vector(numDOF);
+    tangent = new Matrix(numDOF, numDOF);
+  }
+
+  numDOFs++;
 }
 
 
@@ -114,54 +104,48 @@ DOF_Group::DOF_Group(int tag, int ndof)
  myID(ndof), 
  numDOF(ndof)
 {
-    // get number of DOF & verify valid
-    int numDOF = ndof;
-    if (numDOF <= 0) {
-	opserr << "DOF_Group::DOF_Group(int, int ndof) ";
-	opserr << ndof << " ndof specified, there must be at least 1\n";
-	exit(-1);
-    }
+  // get number of DOF & verify valid
+  int numDOF = ndof;
+  assert(numDOF > 0);
 
-    // initially set all the IDs to be -2
-    for (int i=0; i<numDOF; i++)
-	myID(i) = -2;
+  // initially set all the IDs to be -2
+  for (int i=0; i<numDOF; i++)
+    myID(i) = -2;
+  
+  // if this is the first DOF_Group we now
+  // create the arrays used to store pointers to class wide
+  // matrix and vector objects used to return tangent and residual
+  if (numDOFs == 0) {
+    theMatrices = new Matrix *[MAX_NUM_DOF+1];
+    theVectors  = new Vector *[MAX_NUM_DOF+1];
     
-    // if this is the first DOF_Group we now
-    // create the arrays used to store pointers to class wide
-    // matrix and vector objects used to return tangent and residual
-    if (numDOFs == 0) {
-	theMatrices = new Matrix *[MAX_NUM_DOF+1];
-	theVectors  = new Vector *[MAX_NUM_DOF+1];
-	
-	for (int i=0; i<MAX_NUM_DOF; i++) {
-	    theMatrices[i] = 0;
-	    theVectors[i]  = 0;
-	}
-    }    
-
-    // set the pointers for the tangent and residual
-    if (numDOF <= MAX_NUM_DOF) {
-	// use class wide objects
-	if (theVectors[numDOF] == 0) {
-	    // have to create matrix and vector of size as none yet created
-	    theVectors[numDOF] = new Vector(numDOF);
-	    theMatrices[numDOF] = new Matrix(numDOF,numDOF);
-	    unbalance = theVectors[numDOF];
-	    tangent   = theMatrices[numDOF];
-	} else {
-	    unbalance = theVectors[numDOF];
-	    tangent   = theMatrices[numDOF];
-	}
-    } else {
-	// create matrices and vectors for each object instance
-	unbalance = new Vector(numDOF);
-	tangent   = new Matrix(numDOF, numDOF);
+    for (int i=0; i<MAX_NUM_DOF; i++) {
+        theMatrices[i] = 0;
+        theVectors[i]  = 0;
     }
-    numDOFs++;
+  }
+
+  // set the pointers for the tangent and residual
+  if (numDOF <= MAX_NUM_DOF) {
+    // use class wide objects
+    if (theVectors[numDOF] == 0) {
+        // have to create matrix and vector of size as none yet created
+        theVectors[numDOF] = new Vector(numDOF);
+        theMatrices[numDOF] = new Matrix(numDOF,numDOF);
+        unbalance = theVectors[numDOF];
+        tangent   = theMatrices[numDOF];
+    } else {
+        unbalance = theVectors[numDOF];
+        tangent   = theMatrices[numDOF];
+    }
+  } else {
+    // create matrices and vectors for each object instance
+    unbalance = new Vector(numDOF);
+    tangent   = new Matrix(numDOF, numDOF);
+  }
+  numDOFs++;
 }
 
-// ~DOF_Group();    
-//	destructor.
 
 DOF_Group::~DOF_Group()
 {
@@ -184,10 +168,10 @@ DOF_Group::~DOF_Group()
   // storage for the matrix and vector objects
   if (numDOFs == 0) {
     for (int i=0; i<MAX_NUM_DOF; i++) {
-        if (theVectors[i] != nullptr)
-            delete theVectors[i];
-        if (theMatrices[i] != nullptr)
-            delete theMatrices[i];
+      if (theVectors[i] != nullptr)
+        delete theVectors[i];
+      if (theMatrices[i] != nullptr)
+        delete theMatrices[i];
     }
     delete [] theMatrices;
     delete [] theVectors;
@@ -302,7 +286,7 @@ DOF_Group::addCtoTang(double fact)
 
 
 void
-DOF_Group::zeroUnbalance(void) 
+DOF_Group::zeroUnbalance() 
 {
   unbalance->Zero();
 }
@@ -373,25 +357,25 @@ DOF_Group::getTangForce(const Vector &Udotdot, double fact)
 const Vector &
 DOF_Group::getM_Force(const Vector &Udotdot, double fact)
 {
-    if (myNode == 0) {
-	opserr << "DOF_Group::getM_Force() - no Node associated";	
-	opserr << " subclass should not call this method \n";	    
-	return *unbalance;
-    }
-
-    Vector accel(numDOF);
-    // get accel for the unconstrained dof
-    for (int i=0; i<numDOF; i++) {
-	int loc = myID(i);
-	if (loc >= 0)
-	    accel(i) = Udotdot(loc); 
-	else accel(i) = 0.0;
-    }
-    
-    unbalance->Zero();
-    unbalance->addMatrixVector(myNode->getMass(), accel, fact);
-    
+  if (myNode == 0) {
+    opserr << "DOF_Group::getM_Force() - no Node associated";	
+    opserr << " subclass should not call this method \n";	    
     return *unbalance;
+  }
+
+  Vector accel(numDOF);
+  // get accel for the unconstrained dof
+  for (int i=0; i<numDOF; i++) {
+    int loc = myID(i);
+    if (loc >= 0)
+        accel(i) = Udotdot(loc); 
+    else accel(i) = 0.0;
+  }
+  
+  unbalance->Zero();
+  unbalance->addMatrixVector(myNode->getMass(), accel, fact);
+  
+  return *unbalance;
 }
 
 
@@ -418,24 +402,24 @@ DOF_Group::getC_Force(const Vector &Udotdot, double fact)
 const Vector & 
 DOF_Group::getCommittedDisp()
 {
-    assert(myNode != nullptr);
-    return myNode->getDisp();
+  assert(myNode != nullptr);
+  return myNode->getDisp();
 }
 
 
 const Vector & 
 DOF_Group::getCommittedVel()
 {
-    assert(myNode != nullptr);
-    return myNode->getVel();
+  assert(myNode != nullptr);
+  return myNode->getVel();
 }
 
 
 const Vector & 
 DOF_Group::getCommittedAccel()
 {
-    assert(myNode != nullptr);
-    return myNode->getAccel();
+  assert(myNode != nullptr);
+  return myNode->getAccel();
 }
 
 // void setNodeDisp(const Vector &u);
@@ -633,7 +617,7 @@ DOF_Group::getEigenvectors()
 
 
 Matrix *
-DOF_Group::getT(void)
+DOF_Group::getT()
 {
   return 0;
 }
@@ -668,15 +652,16 @@ DOF_Group::getVelSensitivity(int gradNumber)
 
     return result;
 }
-	
+
+
 const Vector &
 DOF_Group::getAccSensitivity(int gradNumber)
 {
-    Vector &result = *unbalance;
-    for (int i=0; i<numDOF; i++)
-      result(i) = myNode->getAccSensitivity(i+1,gradNumber);
+  Vector &result = *unbalance;
+  for (int i=0; i<numDOF; i++)
+    result(i) = myNode->getAccSensitivity(i+1,gradNumber);
 
-    return result;
+  return result;
 }
 	
 	
@@ -696,6 +681,7 @@ DOF_Group::saveDispSensitivity(const Vector &v, int gradNum, int numGrads)
 
   return myNode->saveDispSensitivity(dudh, gradNum, numGrads);
 }
+
 
 int 
 DOF_Group::saveVelSensitivity(const Vector &v, int gradNum, int numGrads)
@@ -796,7 +782,7 @@ DOF_Group::addD_ForceSensitivity(const Vector &Udot, double fact)
 
 // AddingSensitivity:END //////////////////////////////////////////
 void
-DOF_Group::resetNodePtr(void)
+DOF_Group::resetNodePtr()
 {
   myNode = 0;
 }

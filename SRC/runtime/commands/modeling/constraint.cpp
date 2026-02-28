@@ -21,9 +21,11 @@
 #include <Parsing.h>
 #include <Logging.h>
 #include <ModelRegistry.h>
+#include <vector>
+#include <GroupSO3.h>
 
 #include <runtimeAPI.h>
-
+#include <Vector3D.h>
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
 #include <MP_Constraint.h>
@@ -143,6 +145,9 @@ int
 TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
                                    Tcl_Size argc, TCL_Char ** const argv)
 {
+  assert(clientData != nullptr);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+
   int ndf = argc - 2;
   if (strcmp(argv[argc-2],"-tol") == 0)
     ndf -= 2;
@@ -185,8 +190,6 @@ TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
   }
 
 
-  assert(clientData != nullptr);
-  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   // TODO: Why not add SP to Domain directly?
   builder->addSP_Constraint(0, xLoc, fixity, tol);
 
@@ -233,7 +236,9 @@ TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
   if (argc >= (4 + ndf)) {
     if (strcmp(argv[2+ndf],"-tol") == 0)
       if (Tcl_GetDouble(interp, argv[3+ndf], &tol) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid tol specified - fixY " << yLoc << OpenSees::SignalMessageEnd;
+        opserr << OpenSees::PromptValueError 
+               << "invalid tol specified - fixY " 
+               << yLoc << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
   }
@@ -272,7 +277,8 @@ TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
   ID fixity(ndf);
   for (int i=0; i<ndf; ++i) {
     if (Tcl_GetInt(interp, argv[2+i], &fixity(i)) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid fixity " << i+1 << " - fixZ " << zLoc;
+      opserr << OpenSees::PromptValueError
+             << "invalid fixity " << i+1 << " - fixZ " << zLoc;
       opserr << " " << ndf << " fixities\n";
       return TCL_ERROR;
     }
@@ -343,7 +349,8 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       if (argc == 5) {
         if (Tcl_GetInt(interp, argv[4], &patternTag) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "remove sp tag? failed to read pattern tag: "
-                 << argv[4] << OpenSees::SignalMessageEnd;
+                 << argv[4] 
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
       }
@@ -355,7 +362,16 @@ TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     return TCL_OK;
   }
 
-  LoadPattern *theTclLoadPattern = builder->getEnclosingPattern();
+  LoadPattern *theTclLoadPattern = nullptr;
+  if ((theTclLoadPattern = builder->getCurrentPattern<MultiSupportPattern>()))
+    ;
+  else if ((theTclLoadPattern = builder->getCurrentPattern<StaticPattern>()))
+    ;
+  else {
+    opserr << OpenSees::PromptValueError
+            << "no current load pattern supports single point constraints\n";
+    return TCL_ERROR;
+  }
 
   // check number of arguments
   if (argc < 4) {
@@ -450,7 +466,8 @@ TclCommand_addEqualDOF_MP(ClientData clientData, Tcl_Interp *interp,
 
     // Check number of arguments
     if (argc < 4) {
-      opserr << OpenSees::PromptValueError << "bad command - want: equalDOF RnodeID? CnodeID? DOF1? DOF2? ...";
+      opserr << OpenSees::PromptValueError 
+             << "bad command - want: equalDOF RnodeID? CnodeID? DOF1? DOF2? ...";
       return TCL_ERROR;
     }
 
@@ -510,94 +527,268 @@ TclCommand_addEqualDOF_MP(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
 }
 
+
+int
+TclCommand_constrain(ClientData clientData, Tcl_Interp *interp,
+                     Tcl_Size argc, TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  Domain *domain = builder->getDomain();
+
+  // Usage:
+  //   constrain Rnode Cnode {d1 d2 ...} <-rotate {v1 v2 v3}>
+  //
+  // where v is a rotation vector (axis * angle in radians), R = Exp(Hat(v)),
+  // and the enforced relation is Uc = R * Ur on the selected DOFs.
+
+  Tcl_Size argi = 1;
+
+  if (argc < 3) {
+    opserr << OpenSees::PromptValueError
+           << "insufficient arguments.\n"
+           << "Usage: constrain Translation Rnode Cnode {d1 d2 ...} <-rotate {v1 v2 v3}>"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  //
+  // Read tags for the retained and constrained nodes
+  //
+  int RnodeID = 0, CnodeID = 0;
+  if (Tcl_GetInt(interp, argv[argi + 0], &RnodeID) != TCL_OK) {
+    opserr << OpenSees::PromptValueError
+           << "invalid RnodeID: " << argv[argi + 0]
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  if (Tcl_GetInt(interp, argv[argi + 1], &CnodeID) != TCL_OK) {
+    opserr << OpenSees::PromptValueError
+           << "invalid CnodeID: " << argv[argi + 1]
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  Node *theRetainedNode    = domain->getNode(RnodeID);
+  Node *theConstrainedNode = domain->getNode(CnodeID);
+  if (theRetainedNode == nullptr || theConstrainedNode == nullptr) {
+    opserr << OpenSees::PromptValueError
+           << "Retained or Constrained node does not exist in the Domain: "
+           << RnodeID << " " << CnodeID
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  const int numDOF = builder->getNDF();
+
+  // Prepare IDs and store 0-based indices of requested DOFs
+  ID rDOF(numDOF);
+  ID cDOF(numDOF);
+
+  for (int i=0; i<numDOF; ++i) {
+    cDOF(i)   = i;
+    rDOF(i)   = i;
+  }
+
+
+  //
+  // Parse optional -rotate {v1 v2 v3}
+  //
+  bool doRotate = false;
+  Vector3D v{}; // rotation vector
+
+  for (Tcl_Size a = argi + 2; a < argc; ++a) {
+    if (strcmp(argv[a], "-rotate") == 0) {
+      if (a + 1 >= argc) {
+        opserr << OpenSees::PromptValueError
+               << "missing vector after -rotate"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      if (strcmp(argv[a + 1], "None") == 0) {
+        argi++;
+        continue; // no rotation
+      }
+
+      Tcl_Size nvec = 0;
+      const char **vec = nullptr;
+      if (Tcl_SplitList(interp, argv[a + 1], &nvec, &vec) != TCL_OK) {
+        opserr << OpenSees::PromptValueError
+               << "invalid rotate vector list: " << argv[a + 1]
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      if (nvec != 3) {
+        Tcl_Free((char*)vec);
+        opserr << OpenSees::PromptValueError
+               << "-rotate expects 3 components {v1 v2 v3}"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      if (Tcl_GetDouble(interp, vec[0], &v[0]) != TCL_OK ||
+          Tcl_GetDouble(interp, vec[1], &v[1]) != TCL_OK ||
+          Tcl_GetDouble(interp, vec[2], &v[2]) != TCL_OK) {
+        Tcl_Free((char*)vec);
+        opserr << OpenSees::PromptValueError
+               << "invalid rotate vector components: " << argv[a + 1]
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      Tcl_Free((char*)vec);
+      doRotate = true;
+      ++a; // skip the vector argument
+    }
+    else {
+      opserr << OpenSees::PromptValueError
+             << "unknown option: " << argv[a]
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+  }
+
+  //
+  // Build constraint matrix Ccr such that Uc = Ccr * Ur
+  //
+  Matrix Ccr(numDOF, numDOF);
+  Ccr.Zero();
+
+  if (!doRotate) {
+    // Identity -> equalDOF behavior on the selected DOFs
+    for (int i = 0; i < numDOF; ++i)
+      Ccr(i, i) = 1.0;
+  }
+  else {
+    // Compute 3x3 rotation R = Exp(v) using Rodrigues’ formula
+    Matrix3D R = ExpSO3(v);
+
+    switch (builder->getNDM()) {
+      case 3: {
+        // Map R into the 6x6 Ccr for 3D problems
+        for (int i = 0; i < 3; ++i)
+          for (int j = 0; j < 3; ++j)
+            Ccr(i, j) = R(i, j);
+        for (int i = 3; i < 6; ++i)
+          for (int j = 3; j < 6; ++j)
+            Ccr(i, j) = R(i - 3, j - 3);
+        break;
+      }
+      default: {
+        opserr << OpenSees::PromptValueError
+               << "constrain command - rotation only implemented for 3D problems"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+    }
+  }
+
+  // Create and add MP (multi-point) constraint
+  MP_Constraint *theMP = new MP_Constraint(RnodeID, CnodeID, Ccr, cDOF, rDOF);
+
+  if (domain->addMP_Constraint(theMP) == false) {
+    opserr << OpenSees::PromptValueError
+           << "could not add MP_Constraint to domain"
+           << OpenSees::SignalMessageEnd;
+    delete theMP;
+    return TCL_ERROR;
+  }
+
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(theMP->getTag()));
+  return TCL_OK;
+}
+
+
 #if 0
 int
 TclCommand_addEqualDOF_MP_Mixed(ClientData clientData, Tcl_Interp *interp,
                                 Tcl_Size argc, TCL_Char ** const argv)
 {
-        // Ensure the destructor has not been called
-        ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  // Ensure the destructor has not been called
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
-        if (theTclBuilder == 0 || clientData == 0) {
-          opserr << OpenSees::PromptValueError << "builder has been destroyed - equalDOF \n";
-          return TCL_ERROR;
-        }
+  if (theTclBuilder == 0 || clientData == 0) {
+    opserr << OpenSees::PromptValueError << "builder has been destroyed - equalDOF \n";
+    return TCL_ERROR;
+  }
 
-        // Check number of arguments
-        if (argc < 4) {
-          opserr << OpenSees::PromptValueError << "bad command - want: equalDOFmixed RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ... ...";
-          return TCL_ERROR;
-        }
+  // Check number of arguments
+  if (argc < 4) {
+    opserr << OpenSees::PromptValueError << "bad command - want: equalDOFmixed RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ... ...";
+    return TCL_ERROR;
+  }
 
-        // Read in the node IDs and the DOF
-        int RnodeID, CnodeID, dofIDR, dofIDC, numDOF;
+  // Read in the node IDs and the DOF
+  int RnodeID, CnodeID, dofIDR, dofIDC, numDOF;
 
-        if (Tcl_GetInt(interp, argv[1], &RnodeID) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid RnodeID: " << argv[1]
-               << " equalDOF RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ...";
-          return TCL_ERROR;
-        }
-        if (Tcl_GetInt(interp, argv[2], &CnodeID) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid CnodeID: " << argv[2]
-               << " equalDOF RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ...";
-          return TCL_ERROR;
-        }
+  if (Tcl_GetInt(interp, argv[1], &RnodeID) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid RnodeID: " << argv[1]
+          << " equalDOF RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ...";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[2], &CnodeID) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid CnodeID: " << argv[2]
+          << " equalDOF RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ...";
+    return TCL_ERROR;
+  }
 
-        if (Tcl_GetInt(interp, argv[3], &numDOF) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid numDOF: " << argv[2]
-               << " equalDOF RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ...";
-          return TCL_ERROR;
-        }
+  if (Tcl_GetInt(interp, argv[3], &numDOF) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "invalid numDOF: " << argv[2]
+          << " equalDOF RnodeID? CnodeID? numDOF? RDOF1? CDOF1? ...";
+    return TCL_ERROR;
+  }
 
-        // The number of DOF to be coupled
-        //        int numDOF = argc - 3;
+  // The number of DOF to be coupled
+  //        int numDOF = argc - 3;
 
-        // The constraint matrix ... U_c = C_cr * U_r
-        Matrix Ccr (numDOF, numDOF);
-        Ccr.Zero();
+  // The constraint matrix ... U_c = C_cr * U_r
+  Matrix Ccr (numDOF, numDOF);
+  Ccr.Zero();
 
-        // The vector containing the retained and constrained DOFs
-        ID rDOF (numDOF);
-        ID cDOF (numDOF);
+  // The vector containing the retained and constrained DOFs
+  ID rDOF (numDOF);
+  ID cDOF (numDOF);
 
-        int i, j, k;
-        // Read the degrees of freedom which are to be coupled
-        for (i = 4, j = 5, k = 0; k < numDOF; i+=2, j+=2, k++) {
-          if (Tcl_GetInt(interp, argv[i], &dofIDR) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "invalid dofID: " << argv[3]
-                 << " equalDOF RnodeID? CnodeID? DOF1? DOF2? ...";
-            return TCL_ERROR;
-          }
-          if (Tcl_GetInt(interp, argv[j], &dofIDC) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "invalid dofID: " << argv[3]
-                 << " equalDOF RnodeID? CnodeID? DOF1? DOF2? ...";
-            return TCL_ERROR;
-          }
+  int i, j, k;
+  // Read the degrees of freedom which are to be coupled
+  for (i = 4, j = 5, k = 0; k < numDOF; i+=2, j+=2, k++) {
+    if (Tcl_GetInt(interp, argv[i], &dofIDR) != TCL_OK) {
+      opserr << OpenSees::PromptValueError << "invalid dofID: " << argv[3]
+            << " equalDOF RnodeID? CnodeID? DOF1? DOF2? ...";
+      return TCL_ERROR;
+    }
+    if (Tcl_GetInt(interp, argv[j], &dofIDC) != TCL_OK) {
+      opserr << OpenSees::PromptValueError << "invalid dofID: " << argv[3]
+            << " equalDOF RnodeID? CnodeID? DOF1? DOF2? ...";
+      return TCL_ERROR;
+    }
 
-          dofIDR -= 1; // Decrement for 0-based indexing
-          dofIDC -= 1;
-          if (dofIDC < 0 || dofIDR < 0) {
-            opserr << OpenSees::PromptValueError << "invalid dofID: " << argv[i]
-                   << " must be >= 1";
-            return TCL_ERROR;
-          }
-          rDOF(k) = dofIDR;
-          cDOF(k) = dofIDC;
-          Ccr(k,k) = 1.0;
-        }
+    dofIDR -= 1; // Decrement for 0-based indexing
+    dofIDC -= 1;
+    if (dofIDC < 0 || dofIDR < 0) {
+      opserr << OpenSees::PromptValueError << "invalid dofID: " << argv[i]
+              << " must be >= 1";
+      return TCL_ERROR;
+    }
+    rDOF(k) = dofIDR;
+    cDOF(k) = dofIDC;
+    Ccr(k,k) = 1.0;
+  }
 
-        // Create the multi-point constraint
-        MP_Constraint *theMP = new MP_Constraint (RnodeID, CnodeID, Ccr, cDOF, rDOF); 
+  // Create the multi-point constraint
+  MP_Constraint *theMP = new MP_Constraint (RnodeID, CnodeID, Ccr, cDOF, rDOF); 
 
-        // Add the multi-point constraint to the domain
-        if (theTclDomain->addMP_Constraint (theMP) == false) {
-          opserr << OpenSees::PromptValueError << "could not add equalDOF MP_Constraint to domain ";
-          delete theMP;
-          return TCL_ERROR;
-        }
+  // Add the multi-point constraint to the domain
+  if (theTclDomain->addMP_Constraint (theMP) == false) {
+    opserr << OpenSees::PromptValueError << "could not add equalDOF MP_Constraint to domain ";
+    delete theMP;
+    return TCL_ERROR;
+  }
 
-        Tcl_SetObjResult(interp, Tcl_NewIntObj(theMP->getTag()));
-        return TCL_OK;
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(theMP->getTag()));
+  return TCL_OK;
 }
 #endif
 
@@ -606,17 +797,15 @@ int
 TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
                               Tcl_Size argc, TCL_Char ** const argv)
 {
-  // TODO: Cleanup
-  G3_Runtime* rt = G3_getRuntime(interp);
-  Domain *domain = G3_getDomain(rt);
-
-  // ModelRegistry *theTclBuilder = G3_getSafeBuilder(G3_getRuntime(interp));
-  // ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  assert(clientData != nullptr);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  Domain* domain = builder->getDomain();
 
 
   // check number of arguments
   if (argc < 4) {
-    opserr << OpenSees::PromptValueError << "bad command - want: imposedMotion nodeId dofID gMotionID\n";
+    opserr << OpenSees::PromptValueError 
+           << "bad command - want: imposedMotion nodeId dofID gMotionID\n";
     return TCL_ERROR;
   }
 
@@ -624,14 +813,17 @@ TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
   int nodeId, dofId, gMotionID;
 
   if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid nodeId: " << argv[1]
-           << " - imposedMotion nodeId dofID gMotionID" << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "invalid nodeId: " << argv[1]
+           << " - imposedMotion nodeId dofID gMotionID" 
+           << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2], &dofId) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid dofId: " << argv[2] 
-           << " -  imposedMotion " << nodeId << " dofID gMotionID\n";
+           << " -  imposedMotion " << nodeId << " dofID gMotionID"
+           << "\n";
     return TCL_ERROR;
   }
   dofId--; // DECREMENT THE DOF VALUE BY 1 TO GO TO OUR C++ INDEXING
@@ -653,19 +845,20 @@ TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
   //
   Node *theNode = domain->getNode(nodeId);
   if (theNode == nullptr) {
-    opserr << OpenSees::PromptValueError << "invalid node " << argv[2] << " node not found\n ";
+    opserr << OpenSees::PromptValueError 
+           << "invalid node " << argv[2] << " node not found\n ";
     return -1;
   }
 
   int nDof = theNode->getNumberDOF();
   if (dofId < 0 || dofId >= nDof) {
-    opserr << OpenSees::PromptValueError << "invalid dofId: " << argv[2] << " dof specified cannot be <= 0 or greater than num dof at nod\n "; 
+    opserr << OpenSees::PromptValueError 
+           << "invalid dofId: " << argv[2] << " dof specified cannot be <= 0 or greater than num dof at nod\n "; 
     return -2;
   }
 
-  MultiSupportPattern *thePattern = 
-    (MultiSupportPattern*)Tcl_GetAssocData(interp, "theTclMultiSupportPattern", NULL);
-  if (thePattern == 0) {
+  MultiSupportPattern *thePattern = builder->getCurrentPattern<MultiSupportPattern>();
+  if (thePattern == nullptr) {
     opserr << "ERROR no multi-support pattern found\n";
     return TCL_ERROR;
   }
@@ -681,7 +874,9 @@ TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
   }
 
   if (thePattern->addSP_Constraint(theSP) == false) {
-    opserr << OpenSees::PromptValueError << "could not add SP_Constraint to pattern ";
+    opserr << OpenSees::PromptValueError 
+           << "could not add SP_Constraint to pattern "
+           << OpenSees::SignalMessageEnd;
     delete theSP;
     return TCL_ERROR;
   }

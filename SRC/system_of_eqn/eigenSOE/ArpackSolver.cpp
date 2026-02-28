@@ -15,7 +15,7 @@
 **   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
 **   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
+**                                                                     **
 ** ****************************************************************** */
 //
 // This is the solver that works on the ArpackSOE. It uses the LinearSOE
@@ -31,11 +31,102 @@
 //
 // It is based on previous work of Jun Peng(Stanford)
 //
+// From SciPy (Symmetric):
+//
+// # The following modes are supported:
+// #  mode = 1:
+// #    Solve the standard eigenvalue problem:
+// #      A*x = lambda*x :
+// #       A - symmetric
+// #    Arguments should be
+// #       matvec      = left multiplication by A
+// #       M_matvec    = None [not used]
+// #       Minv_matvec = None [not used]
+// #
+// #  mode = 2:
+// #    Solve the general eigenvalue problem:
+// #      A*x = lambda*M*x
+// #       A - symmetric
+// #       M - symmetric positive definite
+// #    Arguments should be
+// #       matvec      = left multiplication by A
+// #       M_matvec    = left multiplication by M
+// #       Minv_matvec = left multiplication by M^-1
+// #
+// #  mode = 3:
+// #    Solve the general eigenvalue problem in shift-invert mode:
+// #      A*x = lambda*M*x
+// #       A - symmetric
+// #       M - symmetric positive semi-definite
+// #    Arguments should be
+// #       matvec      = None [not used]
+// #       M_matvec    = left multiplication by M
+// #                     or None, if M is the identity
+// #       Minv_matvec = left multiplication by [A-sigma*M]^-1
+// #
+// #  mode = 4:
+// #    Solve the general eigenvalue problem in Buckling mode:
+// #      A*x = lambda*AG*x
+// #       A  - symmetric positive semi-definite
+// #       AG - symmetric indefinite
+// #    Arguments should be
+// #       matvec      = left multiplication by A
+// #       M_matvec    = None [not used]
+// #       Minv_matvec = left multiplication by [A-sigma*AG]^-1
+// #
+// #  mode = 5:
+// #    Solve the general eigenvalue problem in Cayley-transformed mode:
+// #      A*x = lambda*M*x
+// #       A - symmetric
+// #       M - symmetric positive semi-definite
+// #    Arguments should be
+// #       matvec      = left multiplication by A
+// #       M_matvec    = left multiplication by M
+// #                     or None, if M is the identity
+// #       Minv_matvec = left multiplication by [A-sigma*M]^-1
+//
+// For unsymmetric:
+// # The following modes are supported:
+// #  mode = 1:
+// #    Solve the standard eigenvalue problem:
+// #      A*x = lambda*x
+// #       A - square matrix
+// #    Arguments should be
+// #       matvec      = left multiplication by A
+// #       M_matvec    = None [not used]
+// #       Minv_matvec = None [not used]
+// #
+// #  mode = 2:
+// #    Solve the generalized eigenvalue problem:
+// #      A*x = lambda*M*x
+// #       A - square matrix
+// #       M - symmetric, positive semi-definite
+// #    Arguments should be
+// #       matvec      = left multiplication by A
+// #       M_matvec    = left multiplication by M
+// #       Minv_matvec = left multiplication by M^-1
+// #
+// #  mode = 3,4:
+// #    Solve the general eigenvalue problem in shift-invert mode:
+// #      A*x = lambda*M*x
+// #       A - square matrix
+// #       M - symmetric, positive semi-definite
+// #    Arguments should be
+// #       matvec      = None [not used]
+// #       M_matvec    = left multiplication by M
+// #                     or None, if M is the identity
+// #       Minv_matvec = left multiplication by [A-sigma*M]^-1
+// #    if A is real and mode==3, use the real part of Minv_matvec
+// #    if A is real and mode==4, use the imag part of Minv_matvec
+// #    if A is complex and mode==3,
+// #       use real and imag parts of Minv_matvec
+//
 // Written: fmk
 // Created: 05.09
 //
 #include <cmath>
 #include <vector>
+#include <iostream>
 #include <random>
 #include <algorithm>
 #include <cstring> // memcpy
@@ -55,34 +146,6 @@
 
 
 namespace {
-struct ArpackWorkspace {
-  ArpackWorkspace(int n, int ncv, int symm=0) :
-    ldv(n),
-    ncv(ncv),
-    lworkl(symm? (ncv*(ncv+8)) : (3*ncv*(ncv+6))),
-    workl(new double[lworkl]{}),
-    workd(new double[3*n]{}),
-    resid(new double[n]{}),
-    select(new int[ncv]{}),
-    v(new double[n * ncv]{})
-  {}
-
-  ~ArpackWorkspace() {
-    delete [] workl;
-    delete [] workd;
-    delete [] resid;
-    delete [] select;
-  }
-
-  int     ldv;
-  int     ncv;
-  int     lworkl;
-  double* v;
-  double* workl;
-  double* workd;
-  double* resid;
-  int*    select;
-};
 
 typedef struct { int code; const char *msg; } ErrorEntry;
 
@@ -175,13 +238,105 @@ LookupArpackError(const ErrorEntry *table, size_t count, int code) {
     if (table[i].code == code) return table[i].msg;
   return "Unknown error code.";
 }
-}
+
+struct ArpackWorkspace {
+  ArpackWorkspace(int n, int nev, int symm) :
+    size(n),
+    ldv(n),
+    nev(nev),
+    ncv(getNCV(n, nev, symm)),
+    lworkl(symm==ArpackWorkspace::Symmetric ? 1*(  ncv*ncv + 8*ncv) 
+                                            : 1*(3*ncv*ncv + 6*ncv)),
+    v(new double[n * ncv]{}),
+    workl(new double[lworkl+1]{}),
+    workd(new double[3*n]{}),
+    resid(new double[n]{}),
+    select(new int[ncv]{})
+  {
+    assert(n >=0);
+    assert(ncv <= n);
+    if (symm == ArpackWorkspace::NonSymmetric) {
+      assert(ncv > nev + 2);
+    }
+    else {
+      assert(ncv > nev);
+    }
+  }
+
+  ~ArpackWorkspace() {
+    delete [] v;
+    delete [] workl;
+    delete [] workd;
+    delete [] resid;
+    delete [] select;
+  }
+
+  ArpackWorkspace(const ArpackWorkspace&) = delete;
+  ArpackWorkspace& operator=(const ArpackWorkspace&) = delete;
+  ArpackWorkspace(ArpackWorkspace&&) = delete;
+  ArpackWorkspace& operator=(ArpackWorkspace&&) = delete;
+
+  enum { Symmetric = 1, NonSymmetric = 2 };
+  int getNCV(int n, int nev, int driver)
+  {
+    // compute the number of Arnoldi vectors to use
+    // n is the system size, nev is the number of eigenvectors.
+    // dsaupd: NCV must be greater than NEV and less than or equal to N.
+
+    // For dnaupd: NCV must satisfy the two inequalities 
+    //.       2 <= NCV-NEV and NCV <= N.
+    // The only formal requrement is that NCV > NEV + 2.
+    // However, it is recommended that NCV .ge. 2*NEV+1. See Chapter 8 of:
+    // 
+    // 2. R.B. Lehoucq, "Analysis and Implementation of an Implicitly 
+    //    Restarted Arnoldi Iteration", Rice University Technical Report
+    //    TR95-13, Department of Computational and Applied Mathematics.
+    //
+    // Scipy uses min(max(2 * n + 1, 20), n)
+  #if 1
+    int result;
+    if (2*nev > nev+8) {
+      result = nev+8;
+    } else {
+      result = 2*nev;
+    }
+    
+    if (result >= n) {
+      result = n;
+    }
+    
+    return result;
+  #elif 1
+    return std::min(std::max(2*nev + 1, 20), n);
+  #else
+    // ensure headroom and a sensible floor
+    int ncv = std::max({2*nev + 8, nev + 20, 20});
+    ncv = std::min(ncv, n);
+    // ARPACK requires ncv > nev+1; enforce with a small bump if saturated
+    if (ncv <= nev + 1 && n > nev + 1) 
+      ncv = std::min(n, nev + 2);
+    return ncv;
+  #endif
+  }
+
+  int size; // ldv
+  int ldv;
+  int nev;
+  int ncv;
+  int lworkl;
+  double* v;
+  double* workl;
+  double* workd;
+  double* resid;
+  int*    select;
+};
+
+} // namespace
 
 
 ArpackSolver::ArpackSolver()
 :EigenSolver(EigenSOLVER_TAGS_ArpackSolver),
- theSOE(0), numModesMax(0), numMode(0), size(0),
- eigenvalues(0), eigenvectors(0)
+ theSOE(nullptr), numMode(0), size(0), iparam{0}, ipntr{0}, shift(0.0)
 {
 
 }
@@ -189,10 +344,7 @@ ArpackSolver::ArpackSolver()
 
 ArpackSolver::~ArpackSolver()
 {
-  if (eigenvalues != nullptr)
-    delete [] eigenvalues;
-  if (eigenvectors != nullptr)
-    delete [] eigenvectors;
+  solution.clear();
 }
 
 
@@ -200,11 +352,13 @@ int
 ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
 {
   if (generalized == false) {
-    opserr << "ArpackSolver::solve - at moment only solves generalized problem\n";
+    return solveI(numModes, generalized, findSmallest);
+    // opserr << "ArpackSolver::solve - at moment only solves generalized problem\n";
     return -1;
   }
 
   theSOE = theArpackSOE->theSOE;
+  numMode = 0;
 
   if (theSOE == nullptr) {
     opserr << "ArpackSolver::setSize() - no LinearSOE set\n";
@@ -215,18 +369,23 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
   //
   // this is done each time method is called!! .. this needs to be cleaned up
   
-  int n = size;
-  int nev = numModes;
-  int ncv = getNCV(n, nev);
+  int n = theArpackSOE->getNumEqn(); // size;
+  const int nev = numModes;
+  if (n < nev || nev < 1) {
+    opserr << "ArpackSolver::solve - no. of modes requested is invalid\n";
+    return -1;
+  }
+  solution.reserve(n, numModes);
 
   int ido = 0;
   double tol = std::numeric_limits<double>::epsilon();
   int info = 0;
   int maxitr = 1000;
-  int mode = 3;
-  bool rvec = true;
-  iparam[0] = 1;
+  int mode = 3; //
+  iparam[0] = 1; // exact shifts
+  iparam[1] = 0; // not used by ARPACK
   iparam[2] = maxitr;
+  iparam[3] = 1; // NB; must be 1.
   iparam[6] = mode;
 
   int processID = theArpackSOE->processID;
@@ -246,11 +405,12 @@ char which[3];
                       ? arpack::which::largest_magnitude
                       : arpack::which::smallest_magnitude; 
 
-  arpack::bmat   bmat  = arpack::bmat::generalized;
-  arpack::howmny howmy = arpack::howmny::ritz_vectors;
+  arpack::bmat   bmat  = arpack::bmat::generalized; // 'G'
+  arpack::howmny howmy = arpack::howmny::ritz_vectors; // 'A'
 #endif
 
-  ArpackWorkspace w(n, ncv);
+  ArpackWorkspace w(n, nev, ArpackWorkspace::Symmetric);
+  int ncv = w.ncv;
 
   if (false) {
     std::vector<double> ones(n, 1.0), mdiag(n);
@@ -286,10 +446,9 @@ char which[3];
   }
 
   // 
-  // I Compute Eigenvalues
+  // I Arnoldi Iteration
   //
-  while (true) { 
-      
+  while (true) {
     arpack::saupd(ido, bmat, n, which, nev, tol, w.resid, ncv, 
                   w.v, w.ldv,
                   iparam, ipntr, w.workd, w.workl, w.lworkl, info);
@@ -363,15 +522,15 @@ char which[3];
   //
   //
   //
-  
-  if (info < 0) {
+  // iparam[4]: number of converged eigenvalues
+  if (info < 0 || iparam[4] == 0) {
     opserr << "Arpack returned with flag " << info << "\n  ";
     opserr << LookupArpackError(DsaupdErrors, sizeof(DsaupdErrors) / sizeof(ErrorEntry), info);
     opserr << OpenSees::SignalMessageEnd;
     if (info == -9999) {
       return this->solveI(numModes, generalized, findSmallest);
     }
-    
+  
     return info;
   }
   //
@@ -383,26 +542,22 @@ char which[3];
     }
     else if (info == 3) {
       opserr << "ArpackSolver::No Shifts could be applied during implicit,";
-      opserr << "Arnoldi update, try increasing NCV." << endln;
+      opserr << "Arnoldi update, try increasing NCV." << "\n";
     }
     
     double sigma = shift;
     if (iparam[4] > 0) {
-      rvec = true;
-      n = size;
-      if (numModes > numModesMax) {
-        if (eigenvalues != nullptr) delete [] eigenvalues;
-        if (eigenvectors != nullptr) delete [] eigenvectors;
-        
-        eigenvalues = new double[nev]{};
-        eigenvectors = new double[n * nev]{};
-        
-        numModesMax = numModes;
-      } 
+      this->numMode = numModes;
+      bool rvec = true;
+      solution.reserve(n, nev);
+      assert(w.ldv >= 1);
+      if (rvec)
+        assert(w.ldv >= n);
 
       arpack::seupd(rvec, howmy, 
                     w.select,
-                    eigenvalues, eigenvectors, 
+                    solution.eigenvalues,  // D
+                    solution.eigenvectors, // Z
                     w.ldv,
                     sigma, bmat, n, which,
                     nev, tol, w.resid, ncv, w.v, w.ldv, 
@@ -418,8 +573,6 @@ char which[3];
       }
     }
   }
-  
-  numMode = numModes;
 
   return 0;
 }
@@ -429,29 +582,40 @@ char which[3];
 int
 ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
 {
-  // Solve 
-  int n = size;
+  // Asymmetric solver
+
+  // Solve
+  theSOE = theArpackSOE->theSOE;
+  numMode = 0;
+  int n = theArpackSOE->getNumEqn(); // size;
+
+  if (n < numModes || numModes < 1) {
+    opserr << "ArpackSolver::solve - no. of modes requested is invalid\n";
+    return -1;
+  }
+  assert (theSOE != nullptr);
+
+  solution.reserve(n, numModes);
 
   int ido = 0;
   double tol = std::numeric_limits<double>::epsilon();
   int  info = 0;
   int  maxitr = 1000;
   int  mode = 1;
-  bool rvec = true;
   double sigma = shift;
 
   int nev = numModes;
-  int ncv = getNCV(n, nev);
-  ArpackWorkspace work(n, ncv);
+  ArpackWorkspace work(n, nev, ArpackWorkspace::NonSymmetric);
+  int ncv = work.ncv;
 
   arpack::bmat  bmat   = arpack::bmat::identity;
   arpack::which which  = arpack::which::largest_magnitude;
   iparam[0] = 1;        // exact shifts
   iparam[2] = maxitr;
-  iparam[6] = mode;     // mode 1 (std. problem, user OP)
+  iparam[6] = mode;     // mode 1 (std. problem)
 
 
-  // 
+  //
   // I Arnoldi Iteration
   //
   while (true) { 
@@ -462,8 +626,8 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
                   work.workd, work.workl, work.lworkl, 
                   info);
 
-    // assert(ipntr[0] >= 1 && ipntr[0] <= 3*n);
-    // assert(ipntr[1] >= 1 && ipntr[1] <= 3*n);
+    assert(ipntr[0] >= 1 && ipntr[0] <= 3*n);
+    assert(ipntr[1] >= 1 && ipntr[1] <= 3*n);
 
     if (ido == -1 || ido == 1) {
       // x is at workd[ipntr[0]-1]
@@ -472,15 +636,21 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
       double* y = &work.workd[ipntr[1]-1];
 
       // y = M * x
-      theArpackSOE->opM(n, x, y);
+      if (generalized == true)
+        theArpackSOE->opM(n, x, y);
+      else
+        // theArpackSOE->opM(n, x, y);
+        this->myCopy(n, x, y);
 
       // solve (K - σ M) z = y, store solution (z) into y
-      theVector.setData(y, n);
-      theSOE->setB(theVector);
-      theSOE->solve();             // factor Aσ and solve
-      const Vector& X = theSOE->getX();
-      for (int i=0; i<n; i++)
-        y[i] = X[i];
+      if (true) { // sigma != 0.0 && generalized == true) {
+        theVector.setData(y, n);
+        theSOE->setB(theVector);
+        theSOE->solve();             // factor Aσ and solve
+        const Vector& X = theSOE->getX();
+        for (int i=0; i<n; i++)
+          y[i] = X[i];
+      }
 
       continue;
     }
@@ -494,28 +664,19 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
   if (info != 0) {
     opserr << LookupArpackError(DnaupdErrors, sizeof(DnaupdErrors) / sizeof(ErrorEntry), info)
            << OpenSees::SignalMessageEnd;
+    return info;
   }
-  else if (info == 0 && iparam[4] > 0) {
-    rvec = true;
-    n = size;
+  else {
+    bool rvec = true;
     arpack::howmny howmny = arpack::howmny::ritz_vectors;
     double* di = new double[nev]{};
     double* workev = new double[3*ncv]{};
-    double* z = new double[n*ncv]{};
-    if (numModes > numModesMax) {
-      if (eigenvalues != nullptr) delete [] eigenvalues;
-      if (eigenvectors != nullptr) delete [] eigenvectors;
-      
-      eigenvalues = new double[nev]{};
-      eigenvectors = new double[n * nev]{};
-      
-      numModesMax = numModes;
-    } 
+    double* z = new double[n*(nev+1)]{};
 
     arpack::neupd(rvec, 
                   howmny, 
                   work.select, 
-                  eigenvalues, di, z, 
+                  solution.eigenvalues, di, z, 
                   work.ldv,
                   sigma, 0.0, workev,
                   bmat, n, which, nev, tol, 
@@ -524,72 +685,40 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
                   work.workd, work.workl, work.lworkl, info);
     
     if (info == 0) {
+      numMode = iparam[4];
       for (int i=0; i<nev; i++) {
-        if (eigenvalues[i] < 0.0)
-          eigenvalues[i] = 0.0;
+        if (std::abs(solution.eigenvalues[i]) < 1e-16)
+          solution.eigenvalues[i] = 0.0;
         else
-          eigenvalues[i] = 1.0/eigenvalues[i];
+          solution.eigenvalues[i] = sigma + 1.0/solution.eigenvalues[i];
       }
 
       // populate eigenvectors (all real)
       {
-        const int ldz = work.ldv;         // leading dimension of z from neupd
+        const int ldz = work.ldv;  // leading dimension of z from neupd
         for (int j = 0; j < nev; ++j) {
           const double* zj = &z[j * ldz];     // column j of z
-          double* vj       = &eigenvectors[j * n]; // column j of output
+          double* vj       = &solution.eigenvectors[j * n]; // column j of output
           std::memcpy(vj, zj, sizeof(double) * n);
         }
-      } 
+      }
     }
     delete [] z;
     delete [] di;
     delete [] workev;
-    numMode = numModes;
   }
 
   if (info != 0) {
     opserr << LookupArpackError(DneupdErrors, sizeof(DneupdErrors) / sizeof(ErrorEntry), info)
            << OpenSees::SignalMessageEnd;
 
-    if (eigenvalues != nullptr) 
-      delete [] eigenvalues;
-    eigenvalues = nullptr;
-    if (eigenvectors != nullptr)
-      delete [] eigenvectors;
-    eigenvectors = nullptr;
+    solution.zero();
   }
 
   return info;
 }
 #endif
 
-
-int 
-ArpackSolver::getNCV(int n, int nev)
-{
-  // compute the number of Arnoldi vectors to use
-  // n is the system size, nev is the number of eigenvectors
-  int result;
-  if (2*nev > nev+8) {
-    result = nev+8;
-  } else {
-    result = 2*nev+1;
-  }
-  
-  if (result >= n) {
-    result = n;
-  }
-  
-  return result;
-
-  // ensure headroom and a sensible floor
-  int ncv = std::max({2*nev + 8, nev + 20, 20});
-  ncv = std::min(ncv, n);
-  // ARPACK requires ncv > nev+1; enforce with a small bump if saturated
-  if (ncv <= nev + 1 && n > nev + 1) 
-    ncv = std::min(n, nev + 2);
-  return ncv;
-}
 
 
 
@@ -613,15 +742,23 @@ ArpackSolver::setEigenSOE(ArpackSOE &theArpSOE)
 const Vector &
 ArpackSolver::getEigenvector(int mode)
 {
+  this->getEigenvector(mode, theVector);
+
+  return theVector;
+}
+
+int 
+ArpackSolver::getEigenvector(int mode, Vector &eigenvector)
+{
   if (mode <= 0 || mode > numMode) {
-    theVector.Zero();
+    return -1;
   }
   
   int index = (mode - 1) * size;
   
-  theVector.setData(&eigenvectors[index], size);
+  eigenvector.setData(&solution.eigenvectors[index], size);
 
-  return theVector;;  
+  return 0;  
 }
 
 
@@ -633,8 +770,8 @@ ArpackSolver::getEigenvalue(int mode)
     return -1;
   }
   
-  if (eigenvalues != nullptr)
-    return eigenvalues[mode-1];
+  if (mode <= numMode)
+    return solution.eigenvalues[mode-1];
   else {
     opserr << "ArpackSOE::getEigenvalue() - eigenvalues not yet determined";
     return -2;
@@ -645,20 +782,19 @@ ArpackSolver::getEigenvalue(int mode)
 int
 ArpackSolver::setSize()
 {
-  size = theArpackSOE->Msize;
+  size = theArpackSOE->getNumEqn(); // Msize;
   return 0;
 }
 
 
 int    
-ArpackSolver::sendSelf(int commitTag, Channel &theChannel)
+ArpackSolver::sendSelf(int commitTag, Channel &)
 {
   return 0;
 }
 
 int
-ArpackSolver::recvSelf(int commitTag, Channel &theChannel, 
-                       FEM_ObjectBroker &theBroker)
+ArpackSolver::recvSelf(int commitTag, Channel &, FEM_ObjectBroker &)
 {
   return 0;
 }
