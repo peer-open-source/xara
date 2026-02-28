@@ -33,6 +33,7 @@
 // Description: This file contains the class implementation for NDMaterial.
 //
 #include <NDMaterial.h>
+#include <FrameWrapper.h>
 #include <Information.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -50,14 +51,14 @@ Vector NDMaterial::errVector(1);
 
 
 NDMaterial::NDMaterial(int tag, int classTag)
- : TaggedObject(tag)
+ : MaterialBuilder(tag)
  , MovableObject(classTag)
 {
 
 }
 
 NDMaterial::NDMaterial()
- : TaggedObject(0)
+ : MaterialBuilder(0)
  , MovableObject(0)
 {
 
@@ -109,6 +110,7 @@ NDMaterial::getCopy(const char *type)
   else
     return 0;
 }
+
 
 double
 NDMaterial::getRho()

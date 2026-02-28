@@ -40,14 +40,30 @@
 #include <cassert>
 #include <TaggedObject.h>
 #include <MovableObject.h>
-
 class Matrix;
 class ID;
 class Vector;
 class Information;
 class Response;
+namespace OpenSees {
+class FrameMaterial;
+}
 
-class NDMaterial : public TaggedObject, public MovableObject
+using namespace OpenSees;
+class NDMaterial;
+
+class MaterialBuilder: public TaggedObject
+{
+  public:
+    MaterialBuilder(int tag): TaggedObject(tag) {};
+    virtual ~MaterialBuilder() {};
+
+    virtual NDMaterial *getCopy(const char *type) =0;
+    virtual FrameMaterial* getFrameFiber() {return nullptr;}
+};
+
+
+class NDMaterial : public MaterialBuilder, public MovableObject
 {
   public:
     NDMaterial(int tag, int classTag);
@@ -70,6 +86,7 @@ class NDMaterial : public TaggedObject, public MovableObject
 
     virtual const Vector &getStress();
     virtual const Vector &getStrain();
+    virtual bool threadSafe() const {return false;}
 
     virtual int commitState() = 0;
 
@@ -79,7 +96,7 @@ class NDMaterial : public TaggedObject, public MovableObject
     virtual int revertToStart() = 0;
 
     virtual NDMaterial *getCopy() = 0;
-    virtual NDMaterial *getCopy(const char *code);
+    virtual NDMaterial *getCopy(const char *type) override;
 
     virtual const char *getType() const = 0;
     virtual int getOrder() const {return 0;};  //??
