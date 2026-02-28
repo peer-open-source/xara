@@ -33,6 +33,8 @@
 #include <Vector.h>
 #include <ID.h>
 
+namespace OpenSees {
+
 class ElasticIsotropicThreeDimensional : public ElasticIsotropicMaterial
 {
   public:
@@ -72,5 +74,5 @@ class ElasticIsotropicThreeDimensional : public ElasticIsotropicMaterial
     Vector epsilon;	        // Trial strains
     Vector Cepsilon;	        // Committed strain
 };
-
+} // namespace
 #endif
