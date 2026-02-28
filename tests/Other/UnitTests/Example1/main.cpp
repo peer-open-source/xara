@@ -53,6 +53,7 @@
 #include <ElasticMaterial.h>
 #include <SP_Constraint.h>
 #include <LoadPattern.h>
+#include <StaticPattern.h>
 #include <LinearSeries.h>
 #include <NodalLoad.h>
 
@@ -140,7 +141,7 @@ int main(int argc, char **argv)
     //		LoadPattern(tag)
     // and then set it's TimeSeries and add it to the domain
     
-    LoadPattern *theLoadPattern = new LoadPattern(1);
+    LoadPattern *theLoadPattern = new StaticPattern(1);
     theLoadPattern->setTimeSeries(theSeries);
     theDomain->addLoadPattern(theLoadPattern);
     
