@@ -421,9 +421,9 @@ WheelRail::Print(OPS_Stream &s, int flag)
 Response*
 WheelRail::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
-	Response *theResponse = 0;
+	Response *theResponse = nullptr;
   //
-  char outputData[124];
+  char outputData[256];
 
   output.tag("ElementOutput");
   output.attr("eleType","WheelRail");

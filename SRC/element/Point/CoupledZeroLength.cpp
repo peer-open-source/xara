@@ -821,7 +821,7 @@ CoupledZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
     if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
         || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
 
-            char outputData[10];
+            char outputData[256];
             int numDOFperNode = numDOF/2;
             for (int i=0; i<numDOFperNode; i++) {
                 sprintf(outputData,"P1_%d", i+1);

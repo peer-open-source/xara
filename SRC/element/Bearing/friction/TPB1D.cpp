@@ -649,17 +649,17 @@ TPB1D::setResponse(const char **argv, int argc, OPS_Stream &output)
     if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
         || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
 
-            char outputData[15];
-            int numDOFperNode = numDOF/2;
-            for (int i=0; i<numDOFperNode; i++) {
-                sprintf(outputData,"P1_%d", i+1);
-                output.tag("ResponseType", outputData);
-            }
-            for (int j=0; j<numDOFperNode; j++) {
-                sprintf(outputData,"P2_%d", j+1);
-                output.tag("ResponseType", outputData);
-            }
-            theResponse = new ElementResponse(this, 1, Vector(numDOF));
+      char outputData[256];
+      int numDOFperNode = numDOF/2;
+      for (int i=0; i<numDOFperNode; i++) {
+        sprintf(outputData,"P1_%d", i+1);
+        output.tag("ResponseType", outputData);
+      }
+      for (int j=0; j<numDOFperNode; j++) {
+        sprintf(outputData,"P2_%d", j+1);
+        output.tag("ResponseType", outputData);
+      }
+      theResponse = new ElementResponse(this, 1, Vector(numDOF));
     }
 
     // a material quantity

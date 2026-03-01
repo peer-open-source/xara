@@ -779,29 +779,29 @@ ZeroLengthRocking::setResponse(const char **argv, int argc, OPS_Stream &output)
     output.attr("node1",connectedExternalNodes[0]);
     output.attr("node2",connectedExternalNodes[1]);
 
-    char outputData[10];
+    char outputData[256];
 
     if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0)) {
 
-            int numDOFperNode = numDOF/2;
-            for (int i=0; i<numDOFperNode; i++) {
-                sprintf(outputData,"P1_%d", i+1);
-                output.tag("ResponseType", outputData);
-            }
-            for (int j=0; j<numDOFperNode; j++) {
-                sprintf(outputData,"P2_%d", j+1);
-                output.tag("ResponseType", outputData);
-            }
-            theResponse = new ElementResponse(this, 1, Vector(numDOF));
+        int numDOFperNode = numDOF/2;
+        for (int i=0; i<numDOFperNode; i++) {
+            sprintf(outputData,"P1_%d", i+1);
+            output.tag("ResponseType", outputData);
+        }
+        for (int j=0; j<numDOFperNode; j++) {
+            sprintf(outputData,"P2_%d", j+1);
+            output.tag("ResponseType", outputData);
+        }
+        theResponse = new ElementResponse(this, 1, Vector(numDOF));
 
     } else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
-	       strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
+        strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
 
-            for (int i=0; i<vb->Size(); i++) {
-                sprintf(outputData,"vb%d",i+1);
-                output.tag("ResponseType",outputData);
-            }
-            theResponse = new ElementResponse(this, 2, Vector(vb->Size()));
+        for (int i=0; i<vb->Size(); i++) {
+            sprintf(outputData,"vb%d",i+1);
+            output.tag("ResponseType",outputData);
+        }
+        theResponse = new ElementResponse(this, 2, Vector(vb->Size()));
 
     }
     

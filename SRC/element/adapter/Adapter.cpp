@@ -809,7 +809,7 @@ Response* Adapter::setResponse(const char **argv, int argc,
 {
     Response *theResponse = 0;
 
-    char outputData[13];
+    char outputData[256];
 
     output.tag("ElementOutput");
     output.attr("eleType","Adapter");
