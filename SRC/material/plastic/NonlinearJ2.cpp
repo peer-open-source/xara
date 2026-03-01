@@ -323,9 +323,9 @@ NonlinearJ2::updateState()
   return 0;
 }
 
-//--------------------------------------------------------------------------------------
+//
 // NDMaterial API
-//--------------------------------------------------------------------------------------
+//
 
 int
 NonlinearJ2::setTrialStrain(const Vector &v)
@@ -474,7 +474,7 @@ NonlinearJ2::Print(OPS_Stream &s, int flag)
       << " fy: " << fy
       << " a: " << a_ << " DInf: " << DInf_
       << " b: " << b_ << " QInf: " << QInf_
-      << " m(backstresses): " << Ck_.size()
+      << " m(backstresses): " << int(Ck_.size())
       << " tol: " << YFtol_ << " iters: " << MaxIter_
       << " rho: " << density_ << "\n";
   }
