@@ -11,11 +11,13 @@ target_sources(OPS_Material
     J2ThreeDimensional.cpp
     J2BeamFiber2d.cpp
     J2BeamFiber3d.cpp
+    J2BeamThread3d.cpp
     J2PlateFiber.cpp
     J2PlateFibre.cpp
     UVCmultiaxial.cpp
     UVCplanestress.cpp
     SimplifiedJ2.cpp
+    NonlinearJ2.cpp
   PUBLIC
     J2Plasticity.h
     SimplifiedJ2.h
