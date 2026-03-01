@@ -398,10 +398,11 @@ CreateFrame(ModelRegistry& builder,
                                                 );
               });
           } 
-
+#if 0
           else if (getenv("ForceMixed02") != 0) {
             theElement = CreateMixedFrame(tag, ndf, nodes, sections, beamIntegr, *tb, options, mass, max_iter, tol);
           }
+#endif
           else {
             static_loop<0, 3>([&](auto nwm) constexpr {
               if (nwm.value + 6 == ndf) {
