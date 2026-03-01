@@ -66,7 +66,7 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <FiberSectionAsym3d.h>
 
 // SectionBuilder
-#include <Prism.h>
+#include <Frame/Shape.h>
 #include <QuadFiberPatch.h>
 #include <CircPatch.h>
 #include <StraightFiberLayer.h>
@@ -225,9 +225,11 @@ TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
   if (material == nullptr) {
     return TCL_ERROR;
   }
-  auto fiber_section = new FrameFiberSection3d(tag, 1, nullptr, 
-                                               1.0, 1.0, 1.0, true, 
-                                               0.0, false);
+  auto fiber_section = new FrameFiberSection3d(tag, 1, 
+                                               nullptr, 
+                                               true, 
+                                               0.0, 
+                                               false);
   fiber_section->addFiber(*material, area, 0.0, 0.0);
   return builder->addTaggedObject<FrameSection>(*fiber_section);
 }
@@ -544,7 +546,7 @@ initSectionCommands(ClientData clientData,
                     Tcl_Interp *interp,
                     int secTag, 
                     UniaxialMaterial *theTorsion, 
-                    const Frame::Prism& shape_data,
+                    const Frame::Shape& shape_data,
                     const FiberSectionConfig& options)
 {
   assert(clientData != nullptr);
@@ -640,16 +642,14 @@ initSectionCommands(ClientData clientData,
           return TCL_ERROR;
         }
         if (options.isNew) {
-          auto sec = new FrameFiberSection3d(secTag, 30,  theTorsion, 
-                                             *shape_data.J, 
-                                             *shape_data.Ay, 
-                                             *shape_data.Az,
+          auto sec = new FrameFiberSection3d(secTag, 30,  theTorsion,
                                              options.computeCentroid, 
                                              *shape_data.density, 
                                              options.use_density);
           sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FrameFiberSection3d>(*builder, *sec);
           section = sec;
-        } else {
+        }
+        else {
           auto sec = new FiberSection3d(secTag, 30, *theTorsion, options.computeCentroid);
           sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FiberSection3d>(*builder, *sec);
           section = sec;
@@ -800,7 +800,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int iarg  = 3;
   // FiberSectionData data;
-  Frame::Prism shape_data(builder->getNDM(), builder->getNDF());
+  Frame::Shape shape_data(builder->getNDM(), builder->getNDF());
 
   if (builder->getNDF() <= 6)
     shape_data.mixed_form = MixedFrameSection::MixedType::UT;//Energetic;

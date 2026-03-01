@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -22,16 +28,20 @@
 #include <Matrix.h>
 #include <VectorND.h>
 #include <memory>
+#include <Frame/Shape.h>
 
 class Response;
 class UniaxialMaterial;
+
+namespace OpenSees {
 
 class FrameFiberSection3d : public FrameSection
 {
   public:
     FrameFiberSection3d(); 
+    explicit
     FrameFiberSection3d(int tag, int numFibers, 
-                        UniaxialMaterial *torsion, 
+                        UniaxialMaterial *shear,
                         bool compCentroid,
                         double mass, bool use_mass);
     ~FrameFiberSection3d();
@@ -40,7 +50,7 @@ class FrameFiberSection3d : public FrameSection
       return "FrameFiberSection3d";
     }
 
-    int   setTrialSectionDeformation(const Vector &deforms);
+    int   setTrialSectionDeformation(const Vector &e);
     const Vector &getSectionDeformation();
 
     int   getIntegral(Field field, State state, double& value) const override final;
@@ -93,7 +103,7 @@ class FrameFiberSection3d : public FrameSection
     UniaxialMaterial **theMaterials;   // array of pointers to materials
     std::shared_ptr<double[]> matData; // data for the materials [yloc, zloc, and area]
 
-    OpenSees::MatrixND<nsr,nsr> ks;
+    MatrixND<nsr,nsr> ks;
     Matrix K_wrap;
 
     double QzBar, QyBar, Abar;
@@ -103,12 +113,13 @@ class FrameFiberSection3d : public FrameSection
 
     static ID code;
 
-    OpenSees::VectorND<nsr> es, sr;
+    VectorND<nsr> es, sr;
     Vector  e;         // trial section deformations 
     Vector  s;         // section resisting forces  (axial force, bending moment)
 
-    UniaxialMaterial *theTorsion;
+    UniaxialMaterial *shear;
     void *pool;        // thread pool
 };
 
+} // namespace OpenSees
 #endif

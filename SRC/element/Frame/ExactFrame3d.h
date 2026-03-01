@@ -28,7 +28,11 @@
 #include <Frame/FiniteElement.h>
 #include <GroupSO3.h>
 
+class CrdTransf;
+
 namespace OpenSees {
+
+class FrameLoad;
 
 template<std::size_t nen, int nwm=0>
 class ExactFrame3d: 

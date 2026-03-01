@@ -6,6 +6,7 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 #include <ID.h>
+#include <State.h>
 
 class Node;
 class Domain;
@@ -14,7 +15,6 @@ class Rotation;
 
 using namespace OpenSees;
 
-#include <State.h>
 
 template <int nen, int ndm, int ndf>
 class FiniteElement : public Element {

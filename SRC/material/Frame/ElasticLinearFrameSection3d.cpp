@@ -71,7 +71,7 @@ enum class Parameters : int {
 };
 
 void
-SetupTangent(MatrixND<12,12>& Ks, const Frame::Prism& cons)
+SetupTangent(MatrixND<12,12>& Ks, const Frame::Shape& cons)
 {
   double E = *cons.E;
   double G = *cons.G;
@@ -112,19 +112,19 @@ SetupTangent(MatrixND<12,12>& Ks, const Frame::Prism& cons)
   double GAy,GAz,GJ;
   if (getenv("XARA_FIBER_THREADS")) {
     switch (cons.mixed_form) {
-      case Frame::Prism::MixedType::Equilibrium:
-      case Frame::Prism::MixedType::None:
+      case Frame::Shape::MixedType::Equilibrium:
+      case Frame::Shape::MixedType::None:
         GAy = G*A;
         GAz = G*A;
         GJ  = G*I0;
         break;
-      case Frame::Prism::MixedType::UT:
+      case Frame::Shape::MixedType::UT:
         GAy = G*A;
         GAz = G*A;
         GJ = G*(*cons.J);
         break;
-      case Frame::Prism::MixedType::Energetic:
-      case Frame::Prism::MixedType::Constant:
+      case Frame::Shape::MixedType::Energetic:
+      case Frame::Shape::MixedType::Constant:
         GAy = G*Ay;
         GAz = G*Az;
         GJ  = G*(*cons.J);
@@ -178,13 +178,13 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(ElasticLinearFrameSecti
 
 
 ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
-    const Frame::Prism& shape,
+    const Frame::Shape& shape,
     double mass_,
     bool use_mass
 )
 : FrameSection(tag, SEC_TAG_ElasticLinearFrame3d, mass_, use_mass),
   Ksen(nullptr),
-  shape_data(std::make_shared<Frame::Prism>(shape)),
+  shape_data(std::make_shared<Frame::Shape>(shape)),
   Ks(new MatrixND<nr,nr> {}),
   e{},
   s{},
@@ -196,7 +196,7 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
 }
 
 void
-ElasticLinearFrameSection3d::getConstants(Frame::Prism& consts) const
+ElasticLinearFrameSection3d::getConstants(Frame::Shape& consts) const
 {
   consts = *shape_data;
   return;
@@ -228,7 +228,7 @@ ElasticLinearFrameSection3d::getConstants(Frame::Prism& consts) const
 int
 ElasticLinearFrameSection3d::getIntegral(Field field, State state, double& value) const
 {
-  const Frame::Prism& consts = *shape_data;
+  const Frame::Shape& consts = *shape_data;
 
   switch (field) {
     case Field::Unit:
@@ -473,7 +473,7 @@ ElasticLinearFrameSection3d::setParameter(const char **argv, int argc, Parameter
   if (argc < 1)
     return -1;
 
-  const Frame::Prism& consts = *shape_data;
+  const Frame::Shape& consts = *shape_data;
 
   if (strcmp(argv[0],"E") == 0) {
     param.setValue(*consts.E);
@@ -506,8 +506,8 @@ int
 ElasticLinearFrameSection3d::updateParameter(int paramID, Information &info)
 {
   Ks = std::make_shared<MatrixND<nr,nr>>(*Ks); // copy on write
-  shape_data = std::make_shared<Frame::Prism>(*shape_data); // copy on write
-  Frame::Prism& consts = *shape_data;
+  shape_data = std::make_shared<Frame::Shape>(*shape_data); // copy on write
+  Frame::Shape& consts = *shape_data;
 
   Parameters parameter = static_cast<Parameters>(paramID);
 
@@ -566,8 +566,8 @@ ElasticLinearFrameSection3d::getStressResultantSensitivity(int gradIndex,
     return wrapper; // no sensitivity
 
   
-  Frame::Prism& C = *shape_data;
-  Frame::Prism dC(shape_data->ndm, shape_data->ndf);
+  Frame::Shape& C = *shape_data;
+  Frame::Shape dC(shape_data->ndm, shape_data->ndf);
   if (C.Ay)  dC.Ay = 0.0;
   if (C.Az)  dC.Az = 0.0;
   if (C.J)   dC.J  = 0.0;
@@ -640,7 +640,7 @@ void
 ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
 {
 
-  const Frame::Prism& consts = *shape_data;
+  const Frame::Shape& consts = *shape_data;
 
 
   if (flag == OPS_PRINT_PRINTMODEL_SECTION) {

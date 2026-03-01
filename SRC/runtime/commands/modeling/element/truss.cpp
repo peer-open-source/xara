@@ -42,6 +42,8 @@
 #endif
 #define strcmp strcasecmp
 
+using namespace OpenSees;
+
 //
 //  element Truss        $tag $iNode $jNode $A $matTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag> <-useInitialDisp $flag>
 //  element Truss        $tag $iNode $jNode $sectTag <-rho $rho> <-cMass $flag> <-doRayleigh $flag>
@@ -334,8 +336,18 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
              << "missing required argument material\n";
       return TCL_ERROR;
     }
-
-    auto fiber_section = new FrameFiberSection3d(0, 1, nullptr, true, 0.0, 0);
+    const int stag = 0;
+    const int numFibers = 1;
+    UniaxialMaterial *torsion = nullptr;
+    const bool compCentroid = true;
+    const double smass = 0.0;
+    const bool use_mass = false;
+    auto fiber_section = new FrameFiberSection3d(stag, 
+                                                 numFibers, 
+                                                 torsion, 
+                                                 compCentroid, 
+                                                 smass, 
+                                                 use_mass);
     fiber_section->addFiber(*material, area, 0, 0);
     section = fiber_section;
   }

@@ -59,7 +59,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
 {
     assert(clientData != nullptr);
     ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
-    Frame::Prism shape_data(NDM, builder->getNDF());
+    Frame::Shape shape_data(NDM, builder->getNDF());
 
     Domain& domain = *builder->getDomain();
 

@@ -4,18 +4,20 @@
 #include <for_int.tpp>
 #include <ExactFrame3d.h>
 #include <vector>
+class CrdTransf;
 
 Element*
 CreateExactFrame(int tag,
                  int ndf,
-                 std::vector<int>& nodev,
+                 const std::vector<int>& nodev,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
-                 FrameTransformBuilder& tb,
-                 Options& options,
-                 double mass, int max_iter, double tol)
+                 CrdTransf& theTransf,
+                 const Options& options,
+                 double mass
+                )
 {
-  bool use_mass = false;
+  // bool use_mass = false;
 
   Element* element = nullptr;
 
@@ -37,7 +39,7 @@ CreateExactFrame(int tag,
       std::copy_n(nodev.begin(), nn.value, nodes.begin());
       static_loop<0,4>([&](auto nwm) constexpr {
           if (nwm.value+6 == ndf)
-          element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *theTransf);
+          element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
       });
       }
   });

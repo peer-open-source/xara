@@ -1,9 +1,20 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once
 #include <optional>
 #include <Logging.h>
 #include <MatrixND.h>
 #include <VectorND.h>
-// #include <FrameSection.h>
 
 // integrate(Rigid, [AEGM], [012], [012])
 
@@ -20,8 +31,7 @@ struct Release {
 };
 
 
-// TODO: Maybe rename to Frame::Shape
-struct Prism {
+struct Shape {
   int ndm, ndf;
   std::optional<double> E, G;
   std::optional<double> density; // per unit length
@@ -74,13 +84,13 @@ struct Prism {
 
   // Prism() = default;
 
-  Prism(int ndm, int ndf)
+  Shape(int ndm, int ndf)
    : ndm(ndm), ndf(ndf)
    {
    }
   
   void print() const {
-    opserr << "Prism: ndm=" << ndm << " ndf=" << ndf << "\n"
+    opserr << "Shape: ndm=" << ndm << " ndf=" << ndf << "\n"
            << "  A=" << A 
            << " Ay=" << (Ay ? std::to_string(*Ay) : "n/a")
            << " Az=" << (Az ? std::to_string(*Az) : "n/a")

@@ -65,6 +65,7 @@
 #include <BeamIntegration.h>
 #include <ElementResponse.h>
 #include <CompositeResponse.h>
+#include <FrameLoad.h>
 //
 
 namespace OpenSees {
@@ -388,6 +389,7 @@ ExactFrame3d<nen,nwm>::update()
     }
   } // Main Gauss loop
 
+  // Apply element loads
   for (FrameLoad* load : frame_loads) {
     for (auto [xp, wp] : load->quadrature()) {
       const double w  = wp*jxs;
@@ -544,6 +546,7 @@ ExactFrame3d<nen,nwm>::addLoad(ElementalLoad* theLoad, double loadFactor)
     FrameLoad* frame_load = (FrameLoad*)theLoad;
     if (!frame_load->conservative())
       frame_loads.insert(frame_load);
+    this->update(); // TODO?
   }
   else
     return -1;

@@ -14,6 +14,7 @@
 
 #include <FrameSection.h>
 class Element;
+class CrdTransf;
 class BeamIntegration;
 namespace OpenSees {
 class FrameTransformBuilder;
@@ -28,6 +29,9 @@ struct Options {
 };
 
 
+//
+// Factory functions for template elements
+//
 Element*
 CreateMixedFrame(int tag,
                  int ndf,
@@ -48,3 +52,14 @@ CreateForceFrame(int tag,
                  FrameTransformBuilder& tb,
                  Options& options,
                  double mass, int max_iter, double tol);
+
+
+Element*
+CreateExactFrame(int tag,
+                 int ndf,
+                 const std::vector<int>& nodev,
+                 std::vector<FrameSection*>& sections,
+                 BeamIntegration& beamIntegr,
+                 CrdTransf& theTransf,
+                 const Options& options,
+                 double mass);

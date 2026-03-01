@@ -1,13 +1,20 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once
 
 template <int nn> void 
-constexpr lagrange(const double xi, const double xn[nn], double shp[2][nn])
+constexpr 
+lagrange(const double xi, const double xn[nn], double shp[2][nn])
 {
   // constexpr int nn = 2;
   for (int i = 0; i < nn; i++) {
@@ -39,40 +46,39 @@ lagrange(const double xi, T shp[nn]);
 template <> void 
 lagrange<1, 2, 0>(const double xi, double shp[2])
 {
-    shp[0] = 0.5*(1. - xi);
-    shp[1] = 0.5*(1. + xi);
+  shp[0] = 0.5*(1. - xi);
+  shp[1] = 0.5*(1. + xi);
 }
 
 template <> void 
 lagrange<1, 2, 1>(const double xi, double shp[2])
 {
-    shp[0] = -0.5;
-    shp[1] =  0.5;
+  shp[0] = -0.5;
+  shp[1] =  0.5;
 }
 
 template <> void 
 lagrange<1, 3, 0>(const double xi, double shp[3])
 {
-    // one-dimensional quadratic shape functions
-    //
-    // o------o------o
-    // 0      2      1
-    shp[0] = 0.5*xi*(xi - 1.0);
-    shp[1] = 0.5*xi*(xi + 1.0);
-    shp[2] = 1.0 - xi*xi;
+  // one-dimensional quadratic shape functions
+  //
+  // o------o------o
+  // 0      2      1
+  shp[0] = 0.5*xi*(xi - 1.0);
+  shp[1] = 0.5*xi*(xi + 1.0);
+  shp[2] = 1.0 - xi*xi;
 }
 
 template <> void 
 lagrange<1, 3, 1>(const double xi, double shp[3])
 {
-    // one-dimensional quadratic shape functions
-    //
-    // o------o------o
-    // 0      2      1
-    shp[0] =  0.5 * ( 2.0*xi - 1.0 ) ;
-    shp[1] =  0.5 * ( 2.0*xi + 1.0 ) ;
-    shp[2] = -2.0*xi ;
-
+  // one-dimensional quadratic shape functions
+  //
+  // o------o------o
+  // 0      2      1
+  shp[0] =  0.5 * ( 2.0*xi - 1.0 ) ;
+  shp[1] =  0.5 * ( 2.0*xi + 1.0 ) ;
+  shp[2] = -2.0*xi ;
 }
 
 template <> void 

@@ -1,6 +1,12 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -32,16 +38,19 @@ typedef SensitiveResponse<FrameSection> SectionResponse;
 // #include <threads/thread_pool.hpp>
 // #define N_FIBER_THREADS 6
 
-ID FrameFiberSection3d::code(4);
+ID FrameFiberSection3d::code(FrameFiberSection3d::nsr);
 
-FrameFiberSection3d::FrameFiberSection3d(int tag, int num, UniaxialMaterial *torsion, bool compCentroid, 
-                                         double mass, bool use_mass)
+FrameFiberSection3d::FrameFiberSection3d(int tag, int num, 
+                                         UniaxialMaterial *shear_,
+                                         bool compCentroid, 
+                                         double mass, 
+                                         bool use_mass)
   : FrameSection(tag, SEC_TAG_FrameFiberSection3d, mass, use_mass),
     numFibers(0), sizeFibers(num), 
     theMaterials(nullptr), matData(new double [num*3]{}),
     QzBar(0.0), QyBar(0.0), Abar(0.0), 
     yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
-    theTorsion(nullptr),
+    shear(nullptr),
 #ifdef N_FIBER_THREADS
     pool((void*)new OpenSees::thread_pool{N_FIBER_THREADS}),
 #endif
@@ -52,17 +61,18 @@ FrameFiberSection3d::FrameFiberSection3d(int tag, int num, UniaxialMaterial *tor
       // matData.reset();
     }
 
-    if (torsion != nullptr)
-      theTorsion = torsion->getCopy();
+    if (shear_ != nullptr) {
+      shear = shear_->getCopy();
+    }
 
     es.zero();
     sr.zero();
     ks.zero();
 
-    code(0) = SECTION_RESPONSE_P;  // 0  0
-    code(1) = SECTION_RESPONSE_MZ; // 1  5
-    code(2) = SECTION_RESPONSE_MY; // 2  4
-    code(3) = SECTION_RESPONSE_T;  // 3  3
+    code(0) = FrameStress::N;  // 0  0
+    code(1) = FrameStress::Mz; // 1  5
+    code(2) = FrameStress::My; // 2  4
+    code(3) = FrameStress::T;  // 3  3
 }
 
 
@@ -78,16 +88,16 @@ FrameFiberSection3d::FrameFiberSection3d():
   pool((void*)new OpenSees::thread_pool{N_FIBER_THREADS}),
 #endif
   e(es), s(sr), K_wrap(ks),
-  theTorsion(nullptr)
+  shear(nullptr)
 {
   es.zero();
   sr.zero();
   ks.zero();
 
-  code(0) = SECTION_RESPONSE_P;
-  code(1) = SECTION_RESPONSE_MZ;
-  code(2) = SECTION_RESPONSE_MY;
-  code(3) = SECTION_RESPONSE_T;
+  code(0) = FrameStress::N;
+  code(1) = FrameStress::Mz;
+  code(2) = FrameStress::My;
+  code(3) = FrameStress::T;
 }
 
 
@@ -101,8 +111,8 @@ FrameFiberSection3d::~FrameFiberSection3d()
     delete [] theMaterials;
   }
 
-  if (theTorsion != nullptr)
-    delete theTorsion;
+  if (shear != nullptr)
+    delete shear;
 }
 
 
@@ -219,9 +229,9 @@ FrameFiberSection3d::setTrialSectionDeformation(const Vector &deforms)
   ks(2, 0) = ks(0, 2);
   ks(2, 1) = ks(1, 2);
  
-  if (theTorsion != nullptr) {
+  if (shear != nullptr) {
     double stress, tangent;
-    res += theTorsion->setTrial(e3, stress, tangent);
+    res += shear->setTrial(e3, stress, tangent);
     sr[ 3] = stress;
     ks(3, 3) = tangent;
   }
@@ -261,7 +271,6 @@ FrameFiberSection3d::setTrialSectionDeformation(const Vector &deforms)
     ks( 0, 0) +=     EA;
     ks( 0, 1) +=  -y*EA;
     ks( 0, 2) +=   z*EA;
-//  ks( 0, 2) +=   z*EA;
 
     ks( 1, 1) +=  y*y*EA; // 5
     ks( 2, 2) +=  z*z*EA; // 10
@@ -277,9 +286,9 @@ FrameFiberSection3d::setTrialSectionDeformation(const Vector &deforms)
   ks(2, 0) = ks(0, 2);
   ks(2, 1) = ks(1, 2);
  
-  if (theTorsion != nullptr) {
+  if (shear != nullptr) {
     double stress, tangent;
-    res += theTorsion->setTrial(e3, stress, tangent);
+    res += shear->setTrial(e3, stress, tangent);
     sr[ 3] = stress;
     ks(3, 3) = tangent;
   }
@@ -293,8 +302,8 @@ FrameFiberSection3d::setTrialSectionDeformation(const Vector &deforms)
 const Matrix&
 FrameFiberSection3d::getInitialTangent()
 {
-  static double kInitialData[16];
-  static Matrix kInitial(kInitialData, 4, 4);
+  static double kInitialData[nsr*nsr];
+  static Matrix kInitial(kInitialData, nsr, nsr);
   
   kInitial.Zero();
 
@@ -324,8 +333,8 @@ FrameFiberSection3d::getInitialTangent()
   kInitialData[8] = kInitialData[2];
   kInitialData[9] = kInitialData[6];
 
-  if (theTorsion != nullptr)
-    kInitialData[15] = theTorsion->getInitialTangent();
+  if (shear != nullptr)
+    kInitialData[15] = shear->getInitialTangent();
 
   return kInitial;
 }
@@ -382,10 +391,10 @@ FrameFiberSection3d::getFrameCopy()
   theCopy->zBar  = zBar;
   theCopy->computeCentroid = computeCentroid;
 
-  if (theTorsion != nullptr)
-    theCopy->theTorsion = theTorsion->getCopy();
+  if (shear != nullptr)
+    theCopy->shear = shear->getCopy();
   else
-    theCopy->theTorsion = nullptr;
+    theCopy->shear = nullptr;
 
   return theCopy;
 }
@@ -409,8 +418,8 @@ FrameFiberSection3d::commitState()
   for (int i = 0; i < numFibers; i++)
     err += theMaterials[i]->commitState();
 
-  if (theTorsion != nullptr)
-    err += theTorsion->commitState();
+  if (shear != nullptr)
+    err += shear->commitState();
 
   return err;
 }
@@ -422,13 +431,12 @@ FrameFiberSection3d::revertToLastCommit()
 
   for (int i = 0; i < numFibers; i++) {
     UniaxialMaterial *theMat = theMaterials[i];
-    // invoke revertToLast on the material
     err += theMat->revertToLastCommit();
   }
 
 
-  if (theTorsion != nullptr)
-    err += theTorsion->revertToLastCommit();
+  if (shear != nullptr)
+    err += shear->revertToLastCommit();
 
   return err;
 }
@@ -445,8 +453,8 @@ FrameFiberSection3d::revertToStart()
     err += theMat->revertToStart();
   }
 
-  if (theTorsion != nullptr)
-    err += theTorsion->revertToStart();
+  if (shear != nullptr)
+    err += shear->revertToStart();
 
   return err;
 }
@@ -543,11 +551,11 @@ FrameFiberSection3d::sendSelf(int commitTag, Channel &theChannel)
   static ID data(5);
   data(0) = this->getTag();
   data(1) = numFibers;
-  data(2) = (theTorsion != 0) ? 1 : 0;
+  data(2) = (shear != 0) ? 1 : 0;
   int dbTag = this->getDbTag();
-  if (theTorsion != nullptr) {
-    theTorsion->setDbTag(dbTag);
-    data(3) = theTorsion->getClassTag();
+  if (shear != nullptr) {
+    shear->setDbTag(dbTag);
+    data(3) = shear->getClassTag();
   }
   data(4) = computeCentroid ? 1 : 0; // Now the ID data is really 5
 
@@ -557,8 +565,8 @@ FrameFiberSection3d::sendSelf(int commitTag, Channel &theChannel)
     return res;
   }    
 
-  if (theTorsion != nullptr)
-    theTorsion->sendSelf(commitTag, theChannel);
+  if (shear != nullptr)
+    shear->sendSelf(commitTag, theChannel);
 
   if (numFibers != 0) { 
     // create an id containingg classTag and dbTag for each material & send it
@@ -615,17 +623,17 @@ FrameFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
 
   this->setTag(data(0));
 
-  if (data(2) == 1 && theTorsion == nullptr) {      
+  if (data(2) == 1 && shear == nullptr) {      
     int cTag = data(3);
-    theTorsion = theBroker.getNewUniaxialMaterial(cTag);
-    if (theTorsion == 0) {
+    shear = theBroker.getNewUniaxialMaterial(cTag);
+    if (shear == nullptr) {
       opserr << "FrameFiberSection3d::recvSelf - failed to get torsion material \n";
       return -1;
     }
-    theTorsion->setDbTag(dbTag);
+    shear->setDbTag(dbTag);
   }
 
-  if (theTorsion->recvSelf(commitTag, theChannel, theBroker) < 0) {
+  if (shear->recvSelf(commitTag, theChannel, theBroker) < 0) {
          opserr << "FrameFiberSection3d::recvSelf - torsion failed to recvSelf \n";
        return -2;
   }
@@ -723,28 +731,28 @@ void
 FrameFiberSection3d::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_MATE_INDENT << "{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"" << this->getClassType() << "\", ";
-        if (theTorsion != 0)
-          s << "\"torsion\": " << theTorsion->getInitialTangent() << ", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    if (shear != 0)
+      s << "\"torsion\": " << shear->getInitialTangent() << ", ";
 
-        double mass;
-        if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0)
-          s << "\"mass\": " << mass;
+    double mass;
+    if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0)
+      s << "\"mass\": " << mass;
 
-        s << "\"fibers\": [\n";
-        for (int i = 0; i < numFibers; i++) {
-              s << OPS_PRINT_JSON_MATE_INDENT << "\t{\"coord\": [" << matData[3*i] << ", " << matData[3*i+1] << "], ";
-              s << "\"area\": " << matData[3*i+2] << ", ";
-              s << "\"material\": " << theMaterials[i]->getTag();
-              if (i < numFibers - 1)
-                  s << "},\n";
-              else
-                  s << "}\n";
-        }
-        s << OPS_PRINT_JSON_MATE_INDENT << "]}";
-        return;
+    s << "\"fibers\": [\n";
+    for (int i = 0; i < numFibers; i++) {
+          s << OPS_PRINT_JSON_MATE_INDENT << "\t{\"coord\": [" << matData[3*i] << ", " << matData[3*i+1] << "], ";
+          s << "\"area\": " << matData[3*i+2] << ", ";
+          s << "\"material\": " << theMaterials[i]->getTag();
+          if (i < numFibers - 1)
+              s << "},\n";
+          else
+              s << "}\n";
+    }
+    s << OPS_PRINT_JSON_MATE_INDENT << "]}";
+    return;
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_SECTION || flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
@@ -752,8 +760,8 @@ FrameFiberSection3d::Print(OPS_Stream &s, int flag)
     s << "\tSection code: " << code;
     s << "\tNumber of Fibers: " << numFibers << endln;
     s << "\tCentroid: (" << yBar << ", " << zBar << ')' << endln;
-    if (theTorsion != 0)
-        theTorsion->Print(s, flag);    
+    if (shear != 0)
+        shear->Print(s, flag);    
 
     if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
       for (int i = 0; i < numFibers; i++) {
@@ -1024,8 +1032,8 @@ FrameFiberSection3d::setParameter(const char **argv, int argc, Parameter &param)
         result = ok;
       }
     
-    if (paramMatTag == theTorsion->getTag()) {
-      ok = theTorsion->setParameter(&argv[2], argc-2, param);
+    if (paramMatTag == shear->getTag()) {
+      ok = shear->setParameter(&argv[2], argc-2, param);
       if (ok != -1)
         result = ok;
     }
@@ -1034,7 +1042,7 @@ FrameFiberSection3d::setParameter(const char **argv, int argc, Parameter &param)
 
   // Check if it belongs to the section integration
   else if (strstr(argv[0],"integration") != 0)
-      return -1;
+    return -1;
 
   int ok = 0;
   
@@ -1046,7 +1054,7 @@ FrameFiberSection3d::setParameter(const char **argv, int argc, Parameter &param)
   }
 
   // Don't really need to do this in "default" mode
-  //ok = theTorsion->setParameter(argv, argc, param);
+  //ok = shear->setParameter(argv, argc, param);
   //if (ok != -1)
   //  result = ok;
 
@@ -1056,7 +1064,7 @@ FrameFiberSection3d::setParameter(const char **argv, int argc, Parameter &param)
 const Vector &
 FrameFiberSection3d::getSectionDeformationSensitivity(int gradIndex)
 {
-  static Vector dummy(4);
+  static Vector dummy(nsr);
   
   dummy.Zero();
   
@@ -1067,7 +1075,7 @@ FrameFiberSection3d::getSectionDeformationSensitivity(int gradIndex)
 const Vector &
 FrameFiberSection3d::getStressResultantSensitivity(int gradIndex, bool conditional)
 {
-  static Vector ds(4);
+  static Vector ds(nsr);
   
   ds.Zero();
   
@@ -1125,7 +1133,7 @@ FrameFiberSection3d::getStressResultantSensitivity(int gradIndex, bool condition
     static Matrix as(1,3);
     as(0,0) = 1;
     as(0,1) = -y;
-    as(0,2) = z;
+    as(0,2) =  z;
     
     static Matrix dasdh(1,3);
     dasdh(0,1) = -dydh[i];
@@ -1139,8 +1147,8 @@ FrameFiberSection3d::getStressResultantSensitivity(int gradIndex, bool condition
     ds(1) += (tmpMatrix(1,0)*e(0) + tmpMatrix(1,1)*e(1) + tmpMatrix(1,2)*e(2))*A;
     ds(2) += (tmpMatrix(2,0)*e(0) + tmpMatrix(2,1)*e(1) + tmpMatrix(2,2)*e(2))*A;
   }
-  if (theTorsion != nullptr)
-    ds(3) = theTorsion->getStressSensitivity(gradIndex, conditional);
+  if (shear != nullptr)
+    ds(3) = shear->getStressSensitivity(gradIndex, conditional);
 
   return ds;
 }
@@ -1151,8 +1159,8 @@ FrameFiberSection3d::getSectionTangentSensitivity(int gradIndex)
   static Matrix something(nsr,nsr);
   
   something.Zero();
-  if (theTorsion != nullptr)
-    something(3,3) = theTorsion->getTangentSensitivity(gradIndex);
+  if (shear != nullptr)
+    something(3,3) = shear->getTangentSensitivity(gradIndex);
   
   return something;
 }
@@ -1202,8 +1210,8 @@ FrameFiberSection3d::commitSensitivity(const Vector& defSens, int gradIndex, int
     theMaterials[i]->commitSensitivity(depsdh,gradIndex,numGrads);
   }
 
-  if (theTorsion != nullptr)
-    theTorsion->commitSensitivity(d3, gradIndex, numGrads);
+  if (shear != nullptr)
+    shear->commitSensitivity(d3, gradIndex, numGrads);
 
   return 0;
 }

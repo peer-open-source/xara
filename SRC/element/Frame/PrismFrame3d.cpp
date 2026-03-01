@@ -20,7 +20,7 @@
 //
 // Written: cmp 2024
 //
-#include <Frame/Prism.h>
+#include <Frame/Shape.h>
 #include <Frame/BasicFrame3d.h>
 #include "PrismFrame3d.h"
 #include <Domain.h>
@@ -143,7 +143,7 @@ PrismFrame3d::PrismFrame3d(int tag,
     Az = Kc(2,2)/G;
   }
 #else
-  Frame::Prism shape_data(3,6);
+  Frame::Shape shape_data(3,6);
   section.getShape(shape_data);
   A  =  shape_data.A;
   Iy = *shape_data.Iy;

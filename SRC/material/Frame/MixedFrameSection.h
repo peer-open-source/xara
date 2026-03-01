@@ -28,7 +28,7 @@
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <Matrix3D.h>
-#include "FrameSectionConstants.h"
+#include <Frame/Shape.h>
 
 class NDMaterial;
 class MaterialBuilder;
@@ -38,7 +38,7 @@ namespace OpenSees {
 class MixedFrameSection : public FrameSection
 {
   public:
-    using MixedType = Frame::Prism::MixedType;
+    using MixedType = Frame::Shape::MixedType;
     MixedFrameSection(int tag, int reserve, MixedType type);
   private:
     MixedFrameSection(const MixedFrameSection &);

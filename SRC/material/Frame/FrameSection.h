@@ -18,7 +18,7 @@
 #include <Cholesky.tpp>
 #include <material/section/SectionForceDeformation.h>
 #include <cmath>
-#include "FrameSectionConstants.h"
+#include <Frame/Shape.h>
 
 using namespace OpenSees;
 
@@ -58,7 +58,7 @@ public:
     return getFrameCopy();
   }
 
-  virtual int getShape(Frame::Prism& shape) {
+  virtual int getShape(Frame::Shape& shape) {
     
     // 1) Get exact reference properties; not all sections provide these
 

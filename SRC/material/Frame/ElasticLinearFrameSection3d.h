@@ -22,7 +22,7 @@
 #include <optional>
 #include <MatrixND.h>
 #include <FrameSection.h>
-#include "FrameSectionConstants.h"
+#include <Frame/Shape.h>
 
 class Matrix;
 class Vector;
@@ -38,7 +38,7 @@ class ElasticLinearFrameSection3d : public FrameSection
 
  public:
   ElasticLinearFrameSection3d(int tag, 
-              const Frame::Prism&,
+              const Frame::Shape&,
               double mass,
               bool   use_mass
   );
@@ -85,7 +85,7 @@ public:
   
  private:
 
-  void getConstants(Frame::Prism& consts) const; 
+  void getConstants(Frame::Shape& consts) const; 
 
 
   constexpr static int nr = 12;
@@ -97,7 +97,7 @@ public:
 
   OpenSees::VectorND<nr> s;
   OpenSees::VectorND<nr> e;                      // section trial deformations
-  std::shared_ptr<Frame::Prism> shape_data;
+  std::shared_ptr<Frame::Shape> shape_data;
   std::shared_ptr<OpenSees::MatrixND<nr,nr>> Ks;
   Matrix* Fs = nullptr;
 
