@@ -21,7 +21,6 @@
 // Standard library
 #include <string>
 #include <array>
-#include <algorithm>
 #include <vector>
 #include <utility>
 #include <string.h>
@@ -36,6 +35,7 @@
 #define strcmp strcasecmp
 
 
+#include <for_int.tpp>
 #include "frames.hpp"
 
 // Parsing
@@ -64,12 +64,10 @@
 #include "PrismFrame3d.h"
 
 #include <CubicFrame3d.h>
-#include <ForceFrame3d.h>
 #include <ForceDeltaFrame3d.h>
 #include <EulerFrame3d.h>
 #include <EulerDeltaFrame3d.h>
-#include <ExactFrame3d.h>
-#include <ShearFrame3d.h>
+// #include <ShearFrame3d.h>
 
 #include <DispBeamColumn2d.h>
 #include <DispBeamColumn2dThermal.h>
@@ -337,7 +335,7 @@ CreateFrame(ModelRegistry& builder,
                                               options.mass_flag, 
                                               use_mass);
         }
-
+#if 0
         else if (strcmp(name, "ShearFrame") == 0) {
           if (!options.shear_flag) {
             opserr << OpenSees::PromptValueError 
@@ -370,6 +368,7 @@ CreateFrame(ModelRegistry& builder,
             return nullptr;
           }
         }
+#endif
         else if ((strstr(name, "Force") != 0) ||
                  (strcmp(name, "MixedFrame") == 0)) {
           if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
@@ -404,68 +403,22 @@ CreateFrame(ModelRegistry& builder,
           }
 #endif
           else {
-            static_loop<0, 3>([&](auto nwm) constexpr {
-              if (nwm.value + 6 == ndf) {
-                if (!options.shear_flag) {
-                  static_loop<2,MAX_NIP>([&](auto nip) constexpr {
-                    if (nip.value == sections.size())
-                      theElement = new ForceFrame3d<nip.value, 4+nwm.value*2, nwm.value, 0>(tag, 
-                                                    nodes,
-                                                    sections,
-                                                    beamIntegr, *tb,
-                                                    mass, options.mass_flag, use_mass,
-                                                    max_iter, tol
-                                                    );
-                    });
-                }
-                else {
-                  static_loop<2,MAX_NIP>([&](auto nip) constexpr {
-                    if (nip.value == sections.size())
-                      theElement = new ForceFrame3d<nip.value, 6+nwm.value*2, nwm.value, 1>(tag, 
-                                                    nodes,
-                                                    sections,
-                                                    beamIntegr, *tb,
-                                                    mass, options.mass_flag, use_mass,
-                                                    max_iter, tol
-                                                    );
-                  });
-                }
-              }
-            });
+            theElement = CreateForceFrame(tag, ndf, nodes, sections, beamIntegr, *tb, options, mass, max_iter, tol);
           }
         }
       }
 
       else if (strcmp(name, "ExactFrame") == 0) {
-        if (!options.shear_flag) {
-          opserr << OpenSees::PromptValueError 
-                 << "ExactFrame3d requires shear formulation"
-                 << OpenSees::SignalMessageEnd;
-          return nullptr;
-        }
-
-        int ndf = builder.getNDF();
-        if (sections.size() < nodev.size()-1)
-          for (unsigned i = 0; i < nodev.size()-1; ++i)
-            sections.push_back(sections[0]);
-        
-        unsigned nen = nodev.size();
-        static_loop<2,6>([&](auto nn) constexpr {
-          if (nn.value == nen) {
-            std::array<int, nn.value> nodes;
-            std::copy_n(nodev.begin(), nn.value, nodes.begin());
-            static_loop<0,4>([&](auto nwm) constexpr {
-              if (nwm.value+6 == ndf)
-                theElement = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *theTransf);
-            });
-          }
-        });
-        if (theElement == nullptr) {
-          opserr << OpenSees::PromptValueError 
-                 << "invalid number of dofs for ExactFrame; got " << ndf 
-                 << OpenSees::SignalMessageEnd;
-          return nullptr;
-        }
+        theElement = CreateExactFrame(
+          tag, 
+          ndf,
+          nodev, 
+          sections, 
+          beamIntegr,
+          *theTransf, 
+          options,
+          mass
+        );
       }
     }
 
