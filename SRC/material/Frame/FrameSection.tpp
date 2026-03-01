@@ -15,15 +15,17 @@
 
 namespace {
 
+using OpenSees::MatrixND;
+using OpenSees::VectorND;
 
 struct FrameLayout {
   int n[3], m[3], w[3], v[3];
 };
 
 static inline constexpr FrameLayout
-WarpIndex(const int n, const FrameStressLayout& layout) {
+WarpIndex(const int n, const FrameStressLayout& layout) noexcept {
   FrameLayout L {{-1, -1, -1}, {-1, -1, -1},
-                  {-1, -1, -1}, {-1, -1, -1}};
+                 {-1, -1, -1}, {-1, -1, -1}};
   // Save layout locations
   for (int i=0; i<n; i++) {
     switch (layout[i]) {
@@ -48,84 +50,76 @@ WarpIndex(const int n, const FrameStressLayout& layout) {
 
 
 static inline constexpr
-OpenSees::MatrixND<12,12>
-SectionCondensation(const FrameLayout& e)
+MatrixND<12,12>
+ConstraintMatrix(const FrameLayout& e) noexcept
 {
-  OpenSees::MatrixND<12,12> L{};
+  MatrixND<12,12> L{};
+
   L.addDiagonal(1.0);
 
   if ((e.m[0] != -1) && (e.v[0] == -1)) {
     L(9, 3) = 1.0;
     L(9, 9) = 0.0;
   }
-  if (e.n[1] != -1) {
+
+  if ((e.n[1] != -1) && (e.v[1] == -1)) {
     if (e.v[1] == -1) {
       L(10, 1) = 1.0;
       L(10,10) = 0.0;
     }
   }
-  if (e.n[2] != -1) {
+  if ((e.n[2] != -1) && (e.v[2] == -1)) {
     if (e.v[2] == -1) {
       L(11, 2) = 1.0;
       L(11,11) = 0.0;
     }
   }
+
   return L;
 }
 } // namespace
 
+
 template <int n, const FrameStressLayout& scheme>
 OpenSees::VectorND<n>
-FrameSection::getResultant() {
+FrameSection::getResultant() noexcept {
+  using namespace OpenSees;
 
-    OpenSees::VectorND<n> sout;
+  VectorND<n> sout{};
 
-    const ID& layout = this->getType();
+  const VectorND<12> s_full = this->getFullStress();
 
-    int m = this->getOrder();
+  for (int i=0; i<n; i++)
+    for (int j=0; j<12; j++)
+      if (FullLayout[j] == scheme[i])
+        sout[i] = s_full(j);
 
-    const Vector& s = this->getStressResultant();
-    for (int i=0; i<n; i++) {
-      sout[i] = 0.0;
-      for (int j=0; j<m; j++)
-        if (layout(j) == scheme[i])
-          sout[i] = s(j);
-    }
+  return sout;
+}
 
-    constexpr FrameLayout e = WarpIndex(n, scheme);
-    if constexpr ((e.m[0] != -1) && (e.v[0] == -1))
-      if (m == 12)
-        sout[e.m[0]] += s[9];
-  
-    if constexpr ((e.n[1] != -1) && (e.v[1] == -1))
-      if (m == 12)
-        sout[e.n[1]] += s[10];
-
-    if constexpr ((e.n[2] != -1) && (e.v[2] == -1))
-      if (m == 12)
-        sout[e.n[2]] += s[11];
-
-    return sout;
-  }
 
 template <int n, const FrameStressLayout& scheme>
 OpenSees::MatrixND<n,n> 
-FrameSection::getTangent(State state) {
+FrameSection::getTangent(State state) noexcept
+{
 
-  OpenSees::MatrixND<n,n> kout;
+  constexpr static int m = 12;
 
-  int m = 12;
+  OpenSees::MatrixND<n,n> kout{};
 
   OpenSees::MatrixND<12,12> Ks = this->getFullTangent(state);
 
-  constexpr FrameLayout e = WarpIndex(n, scheme);
 
-  constexpr OpenSees::MatrixND<12,12> L = SectionCondensation(e);
+  if (!getenv("XARA_FIBER_THREADS")) {
+    constexpr FrameLayout iw = WarpIndex(n, scheme);
+    constexpr
+    OpenSees::MatrixND<12,12> L  = ConstraintMatrix(iw);
+    OpenSees::MatrixND<12,12> LKL = Ks*L;
+    for (int i=0; i<m; i++)
+      for (int j=0; j<m; j++)
+        Ks(i,j) = LKL(i,j);
+  }
 
-  OpenSees::MatrixND<12,12> LKL = L^(Ks*L);
-  for (int i=0; i<12; i++)
-    for (int j=0; j<12; j++)
-      Ks(i,j) = LKL(i,j);
 
   for (int i=0; i<n; i++) {
     for (int j=0; j<n; j++) {
@@ -133,7 +127,7 @@ FrameSection::getTangent(State state) {
       for (int k=0; k<m; k++) {
         if (FullLayout[k] == scheme[i]) {
           for (int l=0; l<m; l++)
-            if ((FullLayout[l] == scheme[j]))
+            if (FullLayout[l] == scheme[j])
               kout(i,j) = Ks(k,l);
         }
       }
@@ -145,7 +139,8 @@ FrameSection::getTangent(State state) {
 
 template <int n, const FrameStressLayout& scheme>
 int 
-FrameSection::setTrialState(const OpenSees::VectorND<n>& e) {
+FrameSection::setTrialState(const OpenSees::VectorND<n>& e) noexcept
+{
   double strain_data[FrameStress::Max]{};
 
   const int m = this->getOrder();
@@ -153,7 +148,6 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) {
   trial.Zero();
 
   const ID& layout = this->getType();
-
 
   constexpr FrameLayout l = WarpIndex(n, scheme);
 
@@ -172,7 +166,7 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) {
   // optimized out by the compiler, however this might be 
   // optimistic
   //
-  if constexpr (l.v[0] == -1) 
+  if ((l.v[0] == -1) && !getenv("XARA_FIBER_THREADS")) 
   {
     for (int j=0; j<m; j++)
       switch (layout(j)) {
@@ -200,39 +194,14 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) {
 
 
 template <int n, const FrameStressLayout& scheme>
-OpenSees::MatrixND<n,n, double> 
-FrameSection::getFlexibility(State state)
+OpenSees::MatrixND<n,n> 
+FrameSection::getFlexibility(State state) noexcept
 {
-  OpenSees::MatrixND<n,n,double> K = getTangent<n,scheme>(state);
-  // TODO: clean this up, validate
-  OpenSees::MatrixND<n,n,double> F;
-  Cholesky<n>(K).invert(F);
+  static OpenSees::MatrixND<n,n> K;
+  K = getTangent<n,scheme>(state);
+  OpenSees::MatrixND<n,n> F{};
+  K.invert(F);
+  // Cholesky<n>(K).invert(F);
   return F;
-
-  OpenSees::MatrixND<n,n,double> Fout;
-
-
-  const ID& layout = this->getType();
-
-  int m = this->getOrder();
-
-  const Matrix& Fs = (state == State::Init)
-                    ? this->getInitialFlexibility()
-                    : this->getSectionFlexibility();
-
-  for (int i=0; i<n; i++) {
-    for (int j=0; j<n; j++) {  
-      Fout(i,j) = 0.0;
-      for (int k=0; k<m; k++) {
-        if (layout(k) == scheme[i]) {
-          for (int l=0; l<m; l++)
-            if (layout(l) == scheme[j]) {
-              Fout(i,j) = Fs(k,l);
-            }
-        }
-      }
-    }
-  }
-
-  return Fout;
 }
+

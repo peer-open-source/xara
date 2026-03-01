@@ -18,32 +18,18 @@
 #include <Cholesky.tpp>
 #include <material/section/SectionForceDeformation.h>
 #include <cmath>
+#include "FrameSectionConstants.h"
 
-// TODO: Maybe make this public under ElasticFrameSection
-struct FrameSectionConstants {
-  // n-n
-  double A;
-  double Ay, Az;
-  // m-m
-  double Iy, Iz, Iyz;
-  // w-w
-  double Cw, Ca;
-  // n-m
-  double Qy, Qz;
-  // n-w
-  double Rw, Ry, Rz;
-  // m-w
-  double Sa, Sy, Sz;
-};
+using namespace OpenSees;
 
 enum FrameStress : int {
   End         =     0,
-  N           =     2, //
-  Vy          =     3, // 0b00000010
-  Vz          =     5, // 0b00000100
-  T           =     6, // 0b00000000
-  My          =     4, // 0b00000000
-  Mz          =     1, // 0b00000000
+  N           =     2,
+  Vy          =     3,
+  Vz          =     5,
+  T           =     6,
+  My          =     4,
+  Mz          =     1,
   R           =     7, // (Obselete, also bishear)
   Q           =     8, // (Obselete, also bimoment)
   Bimoment    =     9, // 
@@ -51,7 +37,7 @@ enum FrameStress : int {
   Bishear     =    11,
   By, Bz,
   Qy, Qz,
-  Max,
+  Max=16,
 };
 
 
@@ -67,22 +53,81 @@ public:
       density(mass), has_mass(use_mass)
   {}
 
-  struct Tangent {
-    OpenSees::MatrixND<3,3> nn,     nw, nv,
-                            mn, mm, mw, mv, 
-                                    ww,
-                                        vv;
-    void zero() {
-      nn.zero();            nw.zero(); nv.zero();
-      mn.zero(); mm.zero(); mw.zero(); mv.zero();
-      ww.zero();
-      vv.zero();
-    }
-  };
-
   virtual FrameSection* getFrameCopy() =0;
   virtual FrameSection* getFrameCopy(const FrameStressLayout& layout) {
     return getFrameCopy();
+  }
+
+  virtual int getShape(Frame::Prism& shape) {
+    
+    // 1) Get exact reference properties; not all sections provide these
+
+    double value;
+    if (this->getIntegral(Field::Unit,   State::Init, value) == 0)
+      shape.A = value;
+    else
+      shape.A = 1.0;
+
+    if (this->getIntegral(Field::UnitZZ, State::Init, value) == 0)
+      shape.Iy = value;
+
+    if (this->getIntegral(Field::UnitYY, State::Init, value) == 0)
+      shape.Iz = value;
+
+    // 2) Get Young and Shear Modulus and determine if shear is supported
+    // by the section. The shear areas we pull here may still be 
+    // uncondensed.
+    const ID& layout = this->getType();
+    const Matrix& Ks = this->getInitialTangent();
+    for (int i=0; i<layout.Size(); i++) {
+      if (layout(i) == FrameStress::N && shape.A) {
+        shape.E = Ks(i,i)/(shape.A);
+      }
+      else if (layout(i) == FrameStress::Vy && shape.A) {
+        shape.G = Ks(i,i)/(shape.A);
+        shape.Ay = shape.A;
+      }
+      else if (layout(i) == FrameStress::Vz && shape.A) {
+        shape.G = Ks(i,i)/(shape.A);
+        shape.Az = shape.A;
+      }
+    }
+    //
+    for (int i=0; i<layout.Size(); i++) {
+      if (layout(i) == FrameStress::My && !shape.Iy && shape.E) {
+        shape.Iy = Ks(i,i)/(*shape.E);
+      }
+      else if (layout(i) == FrameStress::Mz && !shape.Iz && shape.E) {
+        shape.Iz = Ks(i,i)/(*shape.E);
+      }
+    }
+    // In a 3D shear-free section, G wouldnt have been found yet
+    for (int i=0; i<layout.Size(); i++) {
+      if (layout(i) == FrameStress::T && shape.Iy && shape.Iz && !shape.G) {
+        shape.G = Ks(i,i)/(*shape.Iy + *shape.Iz);
+      }
+    }
+
+    // 3) Condense Warping
+    static constexpr FrameStressLayout scheme = {
+        FrameStress::N,
+        FrameStress::Vy,
+        FrameStress::Vz,
+        FrameStress::T,
+        FrameStress::My,
+        FrameStress::Mz,
+    };
+
+    MatrixND<6,6> Kc = this->getTangent<6,scheme>(State::Init);
+
+    if (shape.G) {
+      shape.J  = Kc(3,3)/(*shape.G);
+      if (shape.Ay)
+        shape.Ay = Kc(1,1)/(*shape.G);
+      if (shape.Az)
+        shape.Az = Kc(2,2)/(*shape.G);
+    }
+    return 0;
   }
 
   virtual SectionForceDeformation* getCopy() {
@@ -105,7 +150,24 @@ public:
   // New response API
   //
   template <int n, const FrameStressLayout& scheme>
-  int setTrialState(const OpenSees::VectorND<n>& e);
+  int setTrialState(const OpenSees::VectorND<n>& e) noexcept;
+
+  virtual OpenSees::VectorND<12>
+  getFullStress() {
+    const Vector& s = this->getStressResultant();
+
+    const int m = this->getOrder();
+    const ID& layout = this->getType();
+
+    OpenSees::VectorND<12> S{};
+    for (int i=0; i<m; i++) {
+      const int k = layout(i);
+      for (int j=0; j<12; j++)
+        if (k == FullLayout[j])
+          S[j] = s(i);
+    }
+    return S;
+  }
 
   virtual OpenSees::MatrixND<12,12>
   getFullTangent(State state) {
@@ -116,7 +178,7 @@ public:
     int m = this->getOrder();
     const ID& layout = this->getType();
 
-    OpenSees::MatrixND<12,12> Ks;
+    OpenSees::MatrixND<12,12> Ks{};
     for (int i=0; i<12; i++) {
       for (int j=0; j<12; j++) {
         Ks(i,j) = 0.0;
@@ -132,16 +194,16 @@ public:
   }
 
   template <int n, const FrameStressLayout& scheme>
-  OpenSees::VectorND<n> getResultant();
+  OpenSees::VectorND<n> getResultant() noexcept;
 
   template <int n, const FrameStressLayout& scheme>
-  OpenSees::MatrixND<n,n> getTangent(State state); 
+  OpenSees::MatrixND<n,n> getTangent(State state) noexcept; 
 
   template <int n, const FrameStressLayout& scheme>
-  OpenSees::MatrixND<n,n, double> getFlexibility(State state=State::Pres);
+  OpenSees::MatrixND<n,n, double> getFlexibility(State state=State::Pres) noexcept;
 
   template <int n, const FrameStressLayout& scheme>
-  OpenSees::VectorND<n> 
+  OpenSees::VectorND<n>
   getResultantGradient(int grad, bool conditional) {
 
     OpenSees::VectorND<n> sout;
@@ -160,7 +222,7 @@ public:
 
     return sout;
   }
-
+  
 
 private:
   double density;
@@ -173,6 +235,7 @@ private:
     FrameStress::Bishear,  FrameStress::Qy, FrameStress::Qz
   };
 };
+
 
 //
 // Inlines
