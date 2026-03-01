@@ -48,7 +48,7 @@ FullGenEigenSOE::FullGenEigenSOE(FullGenEigenSolver &theSolver,
     size(0), A(0), Asize(0), M(0), Msize(0),
     factored(false), theModel(&aModel)
 {
-    theSolver.setEigenSOE(*this);
+  theSolver.setEigenSOE(*this);
 }
 
 
