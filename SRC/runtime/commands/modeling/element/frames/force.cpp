@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// Description: This file contains the factory function for ForceFrame3d.
+//
 #define ALLOW_IMPLICIT_MATRIX
 #include "frames.hpp"
 #include <for_int.tpp>
@@ -35,7 +37,9 @@ CreateForceFrame(int tag,
 
   if (sections.size() > MAX_NIP) {
     opserr << OpenSees::PromptValueError
-           << "number of sections (" << sections.size() << ") exceeds maximum (" << MAX_NIP << ")\n";
+           << "number of sections (" << int(sections.size()) 
+           << ") exceeds maximum (" << MAX_NIP << ")"
+           << OpenSees::SignalMessageEnd;
     return nullptr;
   }
 
