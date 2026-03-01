@@ -53,13 +53,10 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #if 0
 extern void *OPS_PlateBearingConnectionThermal(G3_Runtime*);
 
-extern int TclCommand_ConfinedConcrete02(ClientData clientData, Tcl_Interp
-*interp, int argc, 					 TCL_Char ** const argv, TclBasicBuilder
-*theTclBuilder);
+extern int TclCommand_ConfinedConcrete02(ClientData, Tcl_Interp*, int argc,TCL_Char ** const argv, TclBasicBuilder*);
 
-extern UniaxialMaterial *Tcl_AddLimitStateMaterial(ClientData clientData,
-                                                   Tcl_Interp *interp, int argc,
-                                                   TCL_Char **arg);
+extern UniaxialMaterial *
+Tcl_AddLimitStateMaterial(ClientData, Tcl_Interp *, int ,TCL_Char **);
 
 
 extern UniaxialMaterial *
@@ -91,14 +88,18 @@ UniaxialMaterial *TclBasicBuilder_FRPCnfinedConcrete(ClientData,
 UniaxialMaterial *TclBasicBuilder_addDegradingMaterial(ClientData, Tcl_Interp *,
                                                        int, TCL_Char **);
 
+
+
 int
 TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
+  using OpenSees::Library::UniaxialLibrary;
 
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theDomain = builder->getDomain();
+
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
@@ -111,8 +112,8 @@ TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theDomain);
 
 
-  auto tcl_cmd = uniaxial_dispatch.find(std::string(argv[1]));
-  if (tcl_cmd != uniaxial_dispatch.end())
+  auto tcl_cmd = UniaxialLibrary.find(std::string(argv[1]));
+  if (tcl_cmd != UniaxialLibrary.end())
     return (*tcl_cmd->second)(clientData, interp, argc, &argv[0]);
 
 

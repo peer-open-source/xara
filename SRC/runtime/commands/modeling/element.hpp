@@ -1,17 +1,25 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
 #include <string>
 #include <unordered_map>
+#include <algorithm>
 
 class G3_Runtime;
 typedef void *OPS_Routine(G3_Runtime* , int, const char** const);
 
-extern OPS_Routine OPS_ComponentElement2d;
-extern OPS_Routine OPS_ComponentElement3d;
 extern OPS_Routine OPS_ElasticTubularJoint;
 extern OPS_Routine OPS_ZeroLengthContactNTS2D;
 extern OPS_Routine OPS_ZeroLengthVG_HG;
@@ -27,19 +35,7 @@ extern OPS_Routine OPS_TriSurfaceLoad;
 
 extern OPS_Routine OPS_ModElasticBeam2d;
 extern OPS_Routine OPS_ModElasticBeam3d;
-extern OPS_Routine OPS_ElasticTimoshenkoBeam2d;
-extern OPS_Routine OPS_ElasticTimoshenkoBeam3d;
-extern OPS_Routine OPS_AxEqDispBeamColumn2d;
-extern OPS_Routine OPS_BeamGT;
-#if defined(_HAVE_LHNMYS) || defined(OPSDEF_ELEMENT_LHNMYS)
-  extern void *OPS_BeamColumn2DwLHNMYS(G3_Runtime*);
-  extern void *OPS_Beam2dDamage(G3_Runtime*);
-  extern void *OPS_BeamColumn2DwLHNMYS_Damage(G3_Runtime*);
-  extern void *OPS_BeamColumn3DwLHNMYS(G3_Runtime*);
-#endif
 
-extern OPS_Routine OPS_FourNodeTetrahedron;
-extern OPS_Routine OPS_TenNodeTetrahedron;
 
 extern OPS_Routine OPS_TPB1D;
 extern OPS_Routine OPS_TFP_Bearing;
@@ -53,16 +49,9 @@ extern OPS_Routine OPS_ASID8QuadWithSensitivity;
 extern OPS_Routine OPS_AV3D4QuadWithSensitivity;
 
 extern OPS_Routine OPS_Brick8FiberOverlay;
-extern OPS_Routine OPS_TripleFrictionPendulum;
-extern OPS_Routine OPS_TripleFrictionPendulumX;
-extern OPS_Routine OPS_Truss2;
 extern OPS_Routine OPS_PML3D;
 extern OPS_Routine OPS_PML2D;
 extern OPS_Routine OPS_CorotTruss2;
-extern OPS_Routine OPS_HDR;
-extern OPS_Routine OPS_LeadRubberX;
-extern OPS_Routine OPS_LeadRubberY;
-extern OPS_Routine OPS_ElastomericX;
 extern OPS_Routine OPS_N4BiaxialTruss;
 extern OPS_Routine OPS_AC3D8HexWithSensitivity;
 extern OPS_Routine OPS_VS3D4QuadWithSensitivity;
@@ -73,28 +62,23 @@ extern OPS_Routine OPS_SFI_MVLEM_3D; // Kristijan Kolozvari
 extern OPS_Routine OPS_E_SFI_MVLEM_3D;
 extern OPS_Routine OPS_E_SFI;
 extern OPS_Routine OPS_MEFI;
-extern OPS_Routine OPS_ElastomericBearingBoucWenMod3d;
 extern OPS_Routine OPS_InertiaTrussElement; // Added by Xiaodong Ji, Yuhao Cheng, Yue Yu
 extern OPS_Routine OPS_CatenaryCableElement;
 extern OPS_Routine OPS_LysmerTriangle;
 extern OPS_Routine OPS_ASDEmbeddedNodeElement;     // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_ASDAbsorbingBoundary2D;     // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_ASDAbsorbingBoundary3D;     // Massimo Petracca (ASDEA)
+// Fluid
 extern OPS_Routine OPS_FSIInterfaceElement2D;      // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_FSIFluidBoundaryElement2D;  // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_FSIFluidElement2D;          // Massimo Petracca (ASDEA)
-extern OPS_Routine OPS_ASDShellT3;
+// Other
 extern OPS_Routine OPS_LinearElasticSpring;
 extern OPS_Routine OPS_Inerter;
 extern OPS_Routine OPS_Inno3DPnPJoint;
 extern OPS_Routine OPS_Adapter;
 extern OPS_Routine OPS_Actuator;
 extern OPS_Routine OPS_ActuatorCorot;
-extern OPS_Routine OPS_ElastomericBearingPlasticity2d;
-extern OPS_Routine OPS_ElastomericBearingPlasticity3d;
-extern OPS_Routine OPS_ElastomericBearingBoucWen2d;
-extern OPS_Routine OPS_ElastomericBearingBoucWen3d;
-extern OPS_Routine OPS_ElastomericBearingUFRP2d;
 
 extern OPS_Routine OPS_RJWatsonEQS2d;
 extern OPS_Routine OPS_RJWatsonEQS3d;
@@ -104,8 +88,6 @@ extern OPS_Routine OPS_MasonPan12;
 extern OPS_Routine OPS_MasonPan3D;
 
 
-#include <algorithm>
-#include <string>
 namespace {
 static
 std::string toLower( const std::string & s )
@@ -138,6 +120,15 @@ public:
 };
 }
 
+// Zero-length
+Tcl_CmdProc TclCommand_addZeroLength;
+Tcl_CmdProc TclCommand_addZeroLengthSection;
+Tcl_CmdProc TclCommand_addZeroLengthContact2D;
+Tcl_CmdProc TclCommand_addZeroLengthContact3D;
+Tcl_CmdProc TclCommand_addZeroLengthRocking;
+Tcl_CmdProc TclCommand_addZeroLengthND;
+// Truss
+extern OPS_Routine OPS_Truss2;
 Tcl_CmdProc TclCommand_addTruss;
 Tcl_CmdProc TclCommand_addTwoNodeLink;
 Tcl_CmdProc TclCommand_addTwoNodeLinkSection;
@@ -150,8 +141,31 @@ Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addNineFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addBBarFourNodeQuadUP;
+// Frame
+Tcl_CmdProc TclBasicBuilder_addElasticBeam;
+Tcl_CmdProc TclBasicBuilder_addGradientInelasticBeamColumn;
+Tcl_CmdProc TclBasicBuilder_addForceBeamColumn;
+Tcl_CmdProc TclBasicBuilder_addBeamWithHinges;
+Tcl_CmdProc TclBasicBuilder_addDispBeamColumnInt;
+extern OPS_Routine OPS_ElasticTimoshenkoBeam2d;
+extern OPS_Routine OPS_ElasticTimoshenkoBeam3d;
+extern OPS_Routine OPS_AxEqDispBeamColumn2d;
+extern OPS_Routine OPS_BeamGT;
+extern OPS_Routine OPS_ComponentElement2d;
+extern OPS_Routine OPS_ComponentElement3d;
+#if defined(_HAVE_LHNMYS) || defined(OPSDEF_ELEMENT_LHNMYS)
+  extern void *OPS_BeamColumn2DwLHNMYS(G3_Runtime*);
+  extern void *OPS_Beam2dDamage(G3_Runtime*);
+  extern void *OPS_BeamColumn2DwLHNMYS_Damage(G3_Runtime*);
+  extern void *OPS_BeamColumn3DwLHNMYS(G3_Runtime*);
+#endif
 // Shell
 Tcl_CmdProc TclBasicBuilder_addShell;
+Tcl_CmdProc TclDispatch_newShellANDeS;
+extern OPS_Routine OPS_ASDShellT3;
+// Solid
+extern OPS_Routine OPS_FourNodeTetrahedron;
+extern OPS_Routine OPS_TenNodeTetrahedron;
 // Brick
 Tcl_CmdProc TclBasicBuilder_addBrickUP;
 Tcl_CmdProc TclBasicBuilder_addBBarBrickUP;
@@ -159,18 +173,51 @@ Tcl_CmdProc TclBasicBuilder_addTwentyEightNodeBrickUP;
 Tcl_CmdProc TclBasicBuilder_addTwentyNodeBrick;
 Tcl_CmdProc TclBasicBuilder_addBrick;
 Tcl_CmdProc TclCommand_SSP_Element;
-
+//
 Tcl_CmdProc TclCommand_addActuator;
 Tcl_CmdProc TclCommand_addActuatorCorot;
 Tcl_CmdProc TclCommand_addAdapter;
+// Bearing
+Tcl_CmdProc TclCommand_addFlatSliderBearing;
+Tcl_CmdProc TclCommand_addSingleFPBearing;
 Tcl_CmdProc TclBasicBuilder_addRJWatsonEqsBearing;
+Tcl_CmdProc TclBasicBuilder_addYamamotoBiaxialHDR;
+extern OPS_Routine OPS_ElastomericBearingPlasticity2d;
+extern OPS_Routine OPS_ElastomericBearingPlasticity3d;
+extern OPS_Routine OPS_ElastomericBearingBoucWen2d;
+extern OPS_Routine OPS_ElastomericBearingBoucWen3d;
+extern OPS_Routine OPS_ElastomericBearingUFRP2d;
+extern OPS_Routine OPS_ElastomericBearingBoucWenMod3d;
+extern OPS_Routine OPS_TripleFrictionPendulum;
+extern OPS_Routine OPS_TripleFrictionPendulumX;
+extern OPS_Routine OPS_HDR;
+extern OPS_Routine OPS_LeadRubberX;
+extern OPS_Routine OPS_LeadRubberY;
+extern OPS_Routine OPS_ElastomericX;
+// Joint
+Tcl_CmdProc TclBasicBuilder_addJoint2D;
+Tcl_CmdProc TclBasicBuilder_addJoint3D;
+Tcl_CmdProc TclBasicBuilder_addBeamColumnJoint;
+// Other
+Tcl_CmdProc TclBasicBuilder_addWheelRail;
+Tcl_CmdProc TclBasicBuilder_addElement2dYS;
+Tcl_CmdProc TclBasicBuilder_addElastic2dGNL;
+Tcl_CmdProc TclBasicBuilder_addKikuchiBearing;
+Tcl_CmdProc TclBasicBuilder_addGenericCopy;
+Tcl_CmdProc TclBasicBuilder_addGenericClient;
+
+namespace OpenSees {
+
+namespace Library {
 
 const static
 std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
-element_dispatch_tcl = {
+ElementLibrary = {
+// Link
   {"twoNodeLink",               TclCommand_addTwoNodeLink},
   {"Link",                      TclCommand_addTwoNodeLink},
   {"twoNodeLinkSection",        TclCommand_addTwoNodeLinkSection},
+// Truss
   {"Truss",                     TclCommand_addTruss},
   {"TrussSection",              TclCommand_addTruss},
   {"CorotTruss",                TclCommand_addTruss},
@@ -196,6 +243,39 @@ element_dispatch_tcl = {
 
   {"tri6n",                     TclBasicBuilder_addSixNodeTri},
   {"tri31",                     TclBasicBuilder_addFourNodeQuad},
+//
+// Frame
+//
+  {"elasticBeamColumn",            TclBasicBuilder_addElasticBeam},
+  {"elasticBeam",                  TclBasicBuilder_addElasticBeam},
+  {"PrismFrame",                   TclBasicBuilder_addElasticBeam},
+  // Nonlinear, nonstandard
+  {"BeamWithHinges",               TclBasicBuilder_addBeamWithHinges},
+  {"dispBeamColumnInt",            TclBasicBuilder_addDispBeamColumnInt},
+  {"gradientInelasticBeamColumn",  TclBasicBuilder_addGradientInelasticBeamColumn},
+  // Nonlinear
+  {"DisplFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"CubicFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"EulerFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"ForceFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"MixedFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"ExactFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"ShearFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"ForceDeltaFrame",              TclBasicBuilder_addForceBeamColumn},
+  {"ForceBeamColumn",              TclBasicBuilder_addForceBeamColumn},
+  {"DispBeamColumn",               TclBasicBuilder_addForceBeamColumn},
+  {"DispBeamColumnAsym",           TclBasicBuilder_addForceBeamColumn},
+  {"TimoshenkoBeamColumn",         TclBasicBuilder_addForceBeamColumn},
+  {"ForceBeamColumnCBDI",          TclBasicBuilder_addForceBeamColumn},
+  {"ForceBeamColumnCSBDI",         TclBasicBuilder_addForceBeamColumn},
+  {"ForceBeamColumnWarping",       TclBasicBuilder_addForceBeamColumn},
+  {"ForceBeamColumnThermal",       TclBasicBuilder_addForceBeamColumn},
+  {"ElasticForceBeamColumnWarping",TclBasicBuilder_addForceBeamColumn},
+  {"DispBeamColumnNL",             TclBasicBuilder_addForceBeamColumn},
+  {"DispBeamColumnThermal",        TclBasicBuilder_addForceBeamColumn},
+  {"ElasticForceBeamColumn",       TclBasicBuilder_addForceBeamColumn},
+  {"nonlinearBeamColumn",          TclBasicBuilder_addForceBeamColumn},
+  {"DispBeamColumnWithSensitivity",TclBasicBuilder_addForceBeamColumn},
 
 // Shell
   {"ASDShellQ4",                   TclBasicBuilder_addShell},
@@ -205,25 +285,21 @@ element_dispatch_tcl = {
   {"ShellDKGT",                    TclBasicBuilder_addShell},
   {"ShellNLDKGQ",                  TclBasicBuilder_addShell},
   {"ShellNLDKGT",                  TclBasicBuilder_addShell},
-// {"ShellANDeS",                   TclBasicBuilder_addShell},
   {"ShellMITC4Thermal",            TclBasicBuilder_addShell},
   {"ShellNLDKGQThermal",           TclBasicBuilder_addShell},
+  {"ShellANDeS",                   TclDispatch_newShellANDeS},
 
 // U-P
   {"quadUP",                    TclBasicBuilder_addFourNodeQuadUP},
   {"SSPquadUP",                 TclCommand_SSP_Element},
   {"9_4_QuadUP",                TclBasicBuilder_addNineFourNodeQuadUP},
   {"bbarQuadUP",                TclBasicBuilder_addBBarFourNodeQuadUP},
-
 //
 // Brick
 //
   {"BrickUP",                   TclBasicBuilder_addBrickUP},
-
   {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
-
   {"20NodeBrick",               TclBasicBuilder_addTwentyNodeBrick},
-
   {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
 
   {"stdBrick",                  TclBasicBuilder_addBrick},
@@ -231,6 +307,20 @@ element_dispatch_tcl = {
   {"bbarBrickWithSensitivity",  TclBasicBuilder_addBrick},
   {"flBrick",                   TclBasicBuilder_addBrick},
   {"SSPbrick",                  TclCommand_SSP_Element},
+//
+// Joint
+//
+  {"Joint2D",                   TclBasicBuilder_addJoint2D},
+  {"Joint3D",                   TclBasicBuilder_addJoint3D},
+  {"BeamColumnJoint",           TclBasicBuilder_addBeamColumnJoint},
+
+// Zero-Length
+  {"zeroLength",                TclCommand_addZeroLength},
+  {"zeroLengthSection",         TclCommand_addZeroLengthSection},
+  {"zeroLengthRocking",         TclCommand_addZeroLengthRocking},
+  {"zeroLengthContact2D",       TclCommand_addZeroLengthContact2D},
+  {"zeroLengthContact3D",       TclCommand_addZeroLengthContact3D},
+  {"zeroLengthND",              TclCommand_addZeroLengthND},
 
 // Actuators
   {"actuator",                  TclCommand_addActuator},
@@ -241,7 +331,21 @@ element_dispatch_tcl = {
   {"RJWatsonEqsBearing",        TclBasicBuilder_addRJWatsonEqsBearing},
   {"RJWatsonBearing",           TclBasicBuilder_addRJWatsonEqsBearing},
   {"EQSBearing",                TclBasicBuilder_addRJWatsonEqsBearing},
+  {"KikuchiBearing",            TclBasicBuilder_addKikuchiBearing},
+  {"YamamotoBiaxialHDR",        TclBasicBuilder_addYamamotoBiaxialHDR},
+  {"FlatSliderBearing",         TclCommand_addFlatSliderBearing},
+  {"SingleFPBearing",           TclCommand_addSingleFPBearing},
+  {"SinglePFBearing",           TclCommand_addSingleFPBearing},
+  {"SFPBearing",                TclCommand_addSingleFPBearing},
+  {"SPFBearing",                TclCommand_addSingleFPBearing},
+
+// Other
+  {"WheelRail",                 TclBasicBuilder_addWheelRail},
 };
+
+} // namespace OpenSees 
+} // namespace ModelingCommands
+
 
 static
 std::unordered_map<std::string, OPS_Routine *, CaseInsensitive, CaseInsensitive> 
@@ -261,19 +365,21 @@ element_dispatch = {
   {"zeroLengthInterface2D",        OPS_ZeroLengthInterface2D},
   {"zeroLengthImpact3D",           OPS_ZeroLengthImpact3D},
 
+// Frame
   {"componentElement2d",           OPS_ComponentElement2d},
   {"componentElement3d",           OPS_ComponentElement3d},
-
 #if 0
-  {"componentElementDamp2d", OPS_ComponentElementDamp2d},
+  {"componentElementDamp2d",       OPS_ComponentElementDamp2d},
 #endif
-
   {"ModElasticBeam2d",             OPS_ModElasticBeam2d},
   {"ModElasticBeam3d",             OPS_ModElasticBeam3d},
 
+// Solid
+  {"FourNodeTetrahedron",          OPS_FourNodeTetrahedron},
+  {"TenNodeTetrahedron",           OPS_TenNodeTetrahedron},
 
+// Bearing
   {"FPBearingPTV",                 OPS_FPBearingPTV},
-
   {"TripleFrictionPendulum",       OPS_TripleFrictionPendulum},
   {"TripleFrictionPendulumX",      OPS_TripleFrictionPendulumX},
   {"HDR",                          OPS_HDR},
@@ -323,8 +429,6 @@ element_dispatch = {
   {"ASDAbsorbingBoundary2D",       OPS_ASDAbsorbingBoundary2D},
   {"ASDAbsorbingBoundary3D",       OPS_ASDAbsorbingBoundary3D},
 
-  {"FourNodeTetrahedron",          OPS_FourNodeTetrahedron},
-  {"TenNodeTetrahedron",           OPS_TenNodeTetrahedron},
 
   {"LinearElasticSpring",          OPS_LinearElasticSpring},
   {"Inerter",                      OPS_Inerter},

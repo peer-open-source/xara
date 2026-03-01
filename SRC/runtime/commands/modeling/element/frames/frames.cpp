@@ -35,15 +35,8 @@
 #endif
 #define strcmp strcasecmp
 
-// Maximum number of integration points. 
-// Large values can noticeably impact compile time.
-#ifdef _DEBUG
- #define MAX_NIP 8
-#elif defined(XARA_RELEASE)
- #define MAX_NIP 30
-#else
- #define MAX_NIP 15
-#endif
+
+#include "frames.hpp"
 
 // Parsing
 #include <Logging.h>
@@ -111,15 +104,10 @@
 
 using namespace OpenSees;
 
-struct Options {
-  int mass_flag;
-  int use_mass;
-  int shear_flag;
-  int geom_flag;
-};
 
 enum class FrameClass {
   ForceFrame3d,
+  MixedFrame3d02,
   ForceDeltaFrame3d,
   EulerFrame3d,
   EulerDeltaFrame3d,
@@ -225,6 +213,17 @@ CreateFrame(ModelRegistry& builder,
            << "transformation not found with tag " 
            << transfTag 
            << OpenSees::SignalMessageEnd;
+    return nullptr;
+  }
+
+  int ndf = builder.getNDF();
+
+  //
+  if (sections.size() > MAX_NIP) {
+    opserr << OpenSees::PromptValueError 
+            << "too many sections for element: " 
+            << static_cast<int>(sections.size())
+            << OpenSees::SignalMessageEnd;
     return nullptr;
   }
 
@@ -347,11 +346,12 @@ CreateFrame(ModelRegistry& builder,
             return nullptr;
           }
 
-          int ndf = builder.getNDF();
+          // Require at least as many sections as nodes-1 since element
+          // chooses its own quadrature points;
           if (sections.size() < nodev.size()-1)
             for (unsigned i = 0; i < nodev.size()-1; ++i)
               sections.push_back(sections[0]);
-          
+
           unsigned nen = nodev.size();
           static_loop<2,6>([&](auto nn) constexpr {
             if (nn.value == nen) {
@@ -359,7 +359,7 @@ CreateFrame(ModelRegistry& builder,
               std::copy_n(nodev.begin(), nn.value, nodes.begin());
               static_loop<0,4>([&](auto nwm) constexpr {
                 if (nwm.value+6 == ndf)
-                  theElement = new ShearFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *theTransf);
+                  theElement = new ShearFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *tb);
               });
             }
           });
@@ -371,14 +371,8 @@ CreateFrame(ModelRegistry& builder,
           }
         }
         else if ((strstr(name, "Force") != 0) ||
-                (strcmp(name, "MixedFrame") == 0)) {
+                 (strcmp(name, "MixedFrame") == 0)) {
           if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
-            if (sections.size() > MAX_NIP) {
-              opserr << OpenSees::PromptValueError 
-                     << "too many sections for ForceDeltaFrame3d: " << static_cast<int>(sections.size())
-                     << OpenSees::SignalMessageEnd;
-              return nullptr;
-            }
             if (!options.shear_flag)
               static_loop<2,MAX_NIP>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
@@ -403,15 +397,12 @@ CreateFrame(ModelRegistry& builder,
                                                 options.shear_flag
                                                 );
               });
-          } else {
-            int ndf = builder.getNDF();
-            if (sections.size() > MAX_NIP) {
-              opserr << OpenSees::PromptValueError 
-                     << "too many sections for element: " 
-                     << static_cast<int>(sections.size())
-                     << OpenSees::SignalMessageEnd;
-              return nullptr;
-            }
+          } 
+
+          else if (getenv("ForceMixed02") != 0) {
+            theElement = CreateMixedFrame(tag, ndf, nodes, sections, beamIntegr, *tb, options, mass, max_iter, tol);
+          }
+          else {
             static_loop<0, 3>([&](auto nwm) constexpr {
               if (nwm.value + 6 == ndf) {
                 if (!options.shear_flag) {

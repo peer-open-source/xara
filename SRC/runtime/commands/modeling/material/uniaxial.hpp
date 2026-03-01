@@ -238,7 +238,12 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
   return fn( clientData, interp, argc, argv );
 }
 
-std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
+
+namespace OpenSees {
+namespace Library {
+
+std::unordered_map<std::string, Tcl_CmdProc*> 
+UniaxialLibrary {
 
     {"Elastic",                  dispatch<TclCommand_newElasticUniaxialMaterial>},
 //
@@ -500,3 +505,5 @@ std::unordered_map<std::string, Tcl_CmdProc*> uniaxial_dispatch {
     {"Concrete01WithSITC",     TclDispatch_LegacyUniaxials             },
 };
 
+} // namespace Library
+} // namespace OpenSees

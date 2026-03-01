@@ -379,13 +379,13 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
 
 
 #include <elementAPI.h>
-Element*
-TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
+int
+TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, TCL_Char** const argv)
 {
 
   if (argc < 6) {
     opserr << "Want: element ShellANDeS $tag $iNode $jNode $kNode $thick $E $nu $rho";
-    return nullptr;
+    return TCL_ERROR;
   }
 
   int numArgs = OPS_GetNumRemainingInputArgs();
@@ -394,14 +394,14 @@ TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, int argc, T
   int numData = 4;
   if (OPS_GetIntInput(&numData, iData) != 0) {
     opserr << "WARNING invalid integer tag\n";
-    return nullptr;
+    return TCL_ERROR;
   }
 
   double dData[11];
   numArgs = OPS_GetNumRemainingInputArgs();
   if (OPS_GetDoubleInput(&numArgs, dData) != 0) {
     opserr << "WARNING invalid double thickness: element ShellANDeS \n";
-    return nullptr;
+    return TCL_ERROR;
   }
 
   Element *theElement = nullptr;
@@ -416,7 +416,14 @@ TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, int argc, T
                        dData[6], dData[7], dData[8], dData[9], dData[10]);
   }
 
-  return theElement;
+
+  ModelRegistry& builder = *static_cast<ModelRegistry*>(clientData);
+  if (builder.getDomain()->addElement(theElement) == false) {
+    opserr << "WARNING could not add element to the domain\n";
+    delete theElement;
+    return TCL_ERROR;
+  }
+  return TCL_OK;
 }
 
 #if 0

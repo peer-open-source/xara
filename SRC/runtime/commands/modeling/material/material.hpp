@@ -138,6 +138,7 @@ int OPS_ResetInputNoBuilder(ClientData, Tcl_Interp *, int cArg,
                             int mArg, TCL_Char ** const argv, Domain *);
 
 
+namespace {
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
 {
@@ -166,8 +167,11 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
   assert(clientData != nullptr);
   return fn( clientData, interp, argc, argv );
 }
+}
 
 namespace OpenSees {
+namespace Library {
+
 static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
 //
 // Elastic 
@@ -225,17 +229,17 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"Series3DMaterial",                 dispatch<OPS_Series3DMaterial>},
   {"Parallel3DMaterial",               dispatch<OPS_Parallel3DMaterial>},
   {"Parallel3D",                       dispatch<OPS_Parallel3DMaterial>},
-  // Beam fiber (             22, 33, and 23 == 0)
+// Beam fiber (             22, 33, and 23 == 0)
   {"BeamFiber",                        dispatch<TclCommand_newPlateFiber>},
   {"BeamFiber2d",                      dispatch<TclCommand_newPlateFiber>},
   {"BeamFiber2dPS",                    dispatch<TclCommand_newPlateFiber>},
-  // Plane 
+// Plane 
   {"PlaneStressMaterial",              dispatch<TclCommand_addPlaneWrapper>},
   {"PlaneStress",                      dispatch<TclCommand_addPlaneWrapper>},
   {"PlaneStrainMaterial",              dispatch<TclCommand_addPlaneWrapper>},
   {"PlaneStrain",                      dispatch<TclCommand_addPlaneWrapper>},
   {"PlaneStressRebarMaterial",         dispatch<TclCommand_newPlateRebar>},
-  // Plate  (constrain stress 33 == 13 == 23 == 0) 
+// Plate  (constrain stress 33 == 13 == 23 == 0) 
   {"PlateRebarMaterial",               dispatch<TclCommand_newPlateRebar>},
   {"PlateRebar",                       dispatch<TclCommand_newPlateRebar>},
   {"PlateFiberMaterial",               dispatch<TclCommand_newPlateFiber>},
@@ -250,6 +254,8 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"FariaPlasticDamage",               dispatch<TclCommand_newConcreteMaterial>},
   {"PlasticDamageConcretePlaneStress", dispatch<OPS_NewPlasticDamageConcretePlaneStress>},
 };
+
+} // namespace Library
 
 static std::unordered_map<std::string, OPS_Routine*> OldMaterialCommands = {
 #ifdef OPS_USE_ASDPlasticMaterials
