@@ -31,7 +31,6 @@
 #include <Channel.h>
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <TCP_Socket.h>
@@ -787,26 +786,6 @@ int GenericClient::recvSelf(int commitTag, Channel &rChannel,
     return 0;
 }
 
-
-int GenericClient::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    int rValue = 0;
-    
-    if (numExternalNodes > 1)  {
-        for (int i = 0; i < numExternalNodes - 1; i++) {
-            static Vector v1(3);
-            static Vector v2(3);
-
-            theNodes[i]->getDisplayCrds(v1, fact, displayMode);
-            theNodes[i + 1]->getDisplayCrds(v2, fact, displayMode);
-
-            rValue += theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag(), 0);
-        }
-    }
-
-    return rValue;
-}
 
 
 void GenericClient::Print(OPS_Stream &s, int flag)
