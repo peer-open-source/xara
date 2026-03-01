@@ -20,8 +20,7 @@
 //                                                                       
 // Description: This file contains the class definition for 
 // Linear. Linear is a class which performs a linear solution algorithm
-// to solve the equations. No member functions are declared as virtual as 
-// it is not expected that this class will be subclassed.
+// to solve the equations.
 // 
 // File: ~/OOP/analysis/algorithm/Linear.C 
 // 
@@ -62,28 +61,28 @@ Linear::solveCurrentStep()
   IncrementalIntegrator  *theIncIntegrator = this->getIncrementalIntegratorPtr(); 
 
   if ((theIncIntegrator ==0 ) || (theSOE == 0)) {
-      return SolutionAlgorithm::BadAlgorithm;
+    return SolutionAlgorithm::BadAlgorithm;
   }
 
   if (factorOnce != 2) {
-      if (theIncIntegrator->formTangent(incrTangent) < 0)
-        return SolutionAlgorithm::BadFormTangent;
+    if (theIncIntegrator->formTangent(incrTangent) < 0)
+      return SolutionAlgorithm::BadFormTangent;
 
-      if (factorOnce == 1)
-          factorOnce = 2;
+    if (factorOnce == 1)
+        factorOnce = 2;
   }
 
   
   if (theIncIntegrator->formUnbalance() < 0)
-      return SolutionAlgorithm::BadFormResidual;
+    return SolutionAlgorithm::BadFormResidual;
 
 
   if (theSOE->solve() < 0)
-      return SolutionAlgorithm::BadLinearSolve;
+    return SolutionAlgorithm::BadLinearSolve;
 
 
   if (theIncIntegrator->update(theSOE->getX()) < 0)
-      return SolutionAlgorithm::BadStepUpdate;
+    return SolutionAlgorithm::BadStepUpdate;
 
   return 0;
 }

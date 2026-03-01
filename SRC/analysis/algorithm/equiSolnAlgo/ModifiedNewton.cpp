@@ -20,9 +20,7 @@
 //
 // Description: This file contains the class definition for 
 // ModifiedNewton. ModifiedNewton is a class which uses the
-// Newton-Raphson solution algorithm
-// to solve the equations. No member functions are declared as virtual as 
-// it is not expected that this class will be subclassed.
+// Newton-Raphson solution algorithm to solve the equations. 
 // 
 // Written: fmk 
 // Created: 11/96 

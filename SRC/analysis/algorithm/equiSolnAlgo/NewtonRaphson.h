@@ -36,8 +36,6 @@
 // Description: This file contains the class definition for 
 // NewtonRaphson. NewtonRaphson is a class which performs a Newton-Raphson 
 // solution algorithm in solving the equations.
-// No member functions are declared as virtual as 
-// it is not expected that this class will be subclassed.
 // 
 // What: "@(#)NewtonRaphson.h, revA"
 

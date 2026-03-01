@@ -32,8 +32,7 @@
 
 // Description: This file contains the class definition for 
 // Linear. Linear is a class which performs a linear solution algorithm
-// to solve the equations. No member functions are declared as virtual as 
-// it is not expected that this class will be subclassed.
+// to solve the equations.
 // 
 // What: "@(#)Linear.h, revA"
 
@@ -44,23 +43,22 @@
 
 class Linear: public EquiSolnAlgo
 {
-  public:
-    Linear(int theTangent = CURRENT_TANGENT, int factorOnce = 0);
-    ~Linear();
+public:
+  Linear(int theTangent = CURRENT_TANGENT, int factorOnce = 0);
+  ~Linear();
 
-    int solveCurrentStep(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
-    
-    void Print(OPS_Stream &, int flag) const final;    
-    
-  protected:
-    
-  private:
-    int incrTangent;
-    int factorOnce;
+  int solveCurrentStep(void);
+
+  virtual int sendSelf(int commitTag, Channel &);
+  virtual int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &);
+  
+  void Print(OPS_Stream &, int flag) const final;    
+
+protected:
+  
+private:
+  int incrTangent;
+  int factorOnce;
 };
 
 #endif

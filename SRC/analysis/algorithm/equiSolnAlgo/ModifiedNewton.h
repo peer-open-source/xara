@@ -21,8 +21,6 @@
 // Description: This file contains the class definition for 
 // ModifiedNewton. ModifiedNewton is a class which performs a modified 
 // Newton-Raphson solution algorithm in solving the equations.
-// No member functions are declared as virtual as 
-// it is not expected that this class will be subclassed.
 // 
 // Written: fmk 
 // Created: 11/96 
@@ -38,17 +36,17 @@ class ConvergenceTest;
 
 class ModifiedNewton: public EquiSolnAlgo
 {
-  public:
+public:
   ModifiedNewton(int tangent, double iFactor = 0.0, double cFactor = 1.0);
   ~ModifiedNewton();
 
-    int solveCurrentStep();    
-    int getNumIterations() const override;
+  int solveCurrentStep();    
+  int getNumIterations() const override;
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  virtual int sendSelf(int commitTag, Channel &);
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    void Print(OPS_Stream &, int flag) const final;    
+  void Print(OPS_Stream &, int flag) const final;
     
   protected:
     

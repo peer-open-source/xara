@@ -1,8 +1,21 @@
-
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 #define ALLOW_IMPLICIT_MATRIX
 #include "frames.hpp"
 #include <for_int.tpp>
-// #include <ForceFrame3d.h>
 #include <MixedFrame3d02.h>
 
 
