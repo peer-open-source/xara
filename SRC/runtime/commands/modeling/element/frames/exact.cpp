@@ -1,0 +1,52 @@
+
+#define ALLOW_IMPLICIT_MATRIX
+#include "frames.hpp"
+#include <for_int.tpp>
+#include <ExactFrame3d.h>
+#include <vector>
+
+Element*
+CreateExactFrame(int tag,
+                 int ndf,
+                 std::vector<int>& nodev,
+                 std::vector<FrameSection*>& sections,
+                 BeamIntegration& beamIntegr,
+                 FrameTransformBuilder& tb,
+                 Options& options,
+                 double mass, int max_iter, double tol)
+{
+  bool use_mass = false;
+
+  Element* element = nullptr;
+
+  if (!options.shear_flag) {
+      opserr << OpenSees::PromptValueError 
+              << "ExactFrame3d requires shear formulation"
+              << OpenSees::SignalMessageEnd;
+      return nullptr;
+  }
+
+  if (sections.size() < nodev.size()-1)
+    for (unsigned i = 0; i < nodev.size()-1; ++i)
+      sections.push_back(sections[0]);
+
+  unsigned nen = nodev.size();
+  static_loop<2,6>([&](auto nn) constexpr {
+      if (nn.value == nen) {
+      std::array<int, nn.value> nodes;
+      std::copy_n(nodev.begin(), nn.value, nodes.begin());
+      static_loop<0,4>([&](auto nwm) constexpr {
+          if (nwm.value+6 == ndf)
+          element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *theTransf);
+      });
+      }
+  });
+  if (element == nullptr) {
+      opserr << OpenSees::PromptValueError 
+              << "invalid number of dofs for ExactFrame; got " << ndf 
+              << OpenSees::SignalMessageEnd;
+      return nullptr;
+  }
+
+  return element;
+}
