@@ -19,6 +19,12 @@ CreateForceFrame(int tag,
 
   Element* element = nullptr;
 
+  if (sections.size() > MAX_NIP) {
+    opserr << OpenSees::PromptValueError
+           << "number of sections (" << sections.size() << ") exceeds maximum (" << MAX_NIP << ")\n";
+    return nullptr;
+  }
+
   static_loop<0, 3>([&](auto nwm) constexpr {
     if (nwm.value + 6 == ndf) {
       if (!options.shear_flag) {
@@ -47,6 +53,8 @@ CreateForceFrame(int tag,
       }
     }
   });
+
+
 
   return element;
 }
