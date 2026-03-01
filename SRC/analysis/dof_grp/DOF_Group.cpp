@@ -61,10 +61,10 @@ DOF_Group::DOF_Group(int tag, Node *node)
   for (int i=0; i<numDOF; i++)
     myID(i) = -2;
 
-    // if this is the first DOF_Group we now
-    // create the arrays used to store pointers to class wide
-    // matrix and vector objects used to return tangent and residual
-    if (numDOFs == 0) {
+  // if this is the first DOF_Group we now
+  // create the arrays used to store pointers to class wide
+  // matrix and vector objects used to return tangent and residual
+  if (numDOFs == 0) {
     theMatrices = new Matrix *[MAX_NUM_DOF+1];
     theVectors  = new Vector *[MAX_NUM_DOF+1];
     
