@@ -30,7 +30,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 
@@ -454,26 +453,6 @@ int GenericCopy::recvSelf(int commitTag, Channel &rChannel,
 }
 
 
-int GenericCopy::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    int rValue = 0;
-
-    if (numExternalNodes > 1) {
-        for (int i = 0; i < numExternalNodes - 1; i++) {
-            static Vector v1(3);
-            static Vector v2(3);
-
-            theNodes[i]->getDisplayCrds(v1, fact, displayMode);
-            theNodes[i + 1]->getDisplayCrds(v2, fact, displayMode);
-
-            rValue += theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag(), 0);
-        }
-    }
-
-    return rValue;
-}
-
 
 void GenericCopy::Print(OPS_Stream &s, int flag)
 {
@@ -494,18 +473,18 @@ void GenericCopy::Print(OPS_Stream &s, int flag)
 }
 
 
-Response* GenericCopy::setResponse(const char **argv, int argc,
+Response* 
+GenericCopy::setResponse(const char **argv, int argc,
     OPS_Stream &output)
 {
     Response *theResponse = 0;
 
-    int i;
-    char outputData[10];
+    char outputData[256];
 
     output.tag("ElementOutput");
     output.attr("eleType","GenericCopy");
     output.attr("eleTag",this->getTag());
-    for (i=0; i<numExternalNodes; i++ )  {
+    for (int i=0; i<numExternalNodes; i++ )  {
         sprintf(outputData,"node%d",i+1);
         output.attr(outputData,connectedExternalNodes[i]);
     }
@@ -514,7 +493,7 @@ Response* GenericCopy::setResponse(const char **argv, int argc,
     if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0 ||
         strcmp(argv[0],"globalForce") == 0 || strcmp(argv[0],"globalForces") == 0)
     {
-         for (i=0; i<numDOF; i++)  {
+         for (int i=0; i<numDOF; i++)  {
             sprintf(outputData,"P%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -523,7 +502,7 @@ Response* GenericCopy::setResponse(const char **argv, int argc,
     // local forces
     else if (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)
     {
-        for (i=0; i<numDOF; i++)  {
+        for (int i=0; i<numDOF; i++)  {
             sprintf(outputData,"p%d",i+1);
             output.tag("ResponseType",outputData);
         }
