@@ -33,7 +33,7 @@
 // Description: This file contains the class implementation for NDMaterial.
 //
 #include <NDMaterial.h>
-#include <FrameWrapper.h>
+// #include <FrameWrapper.h>
 #include <Information.h>
 #include <Matrix.h>
 #include <Vector.h>
