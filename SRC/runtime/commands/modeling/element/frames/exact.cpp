@@ -18,6 +18,7 @@
 #include <for_int.tpp>
 #include <ExactFrame3d.h>
 #include <vector>
+#include <algorithm>
 class CrdTransf;
 
 Element*
