@@ -30,18 +30,18 @@ constexpr int SEC_TAG_ElasticLinearFrame3d = 0;
 namespace {
 
 static int layout_array[] = {
-    FrameStress::N,
-    FrameStress::Vy,
-    FrameStress::Vz,
-    FrameStress::T,
-    FrameStress::My,
-    FrameStress::Mz,
-    FrameStress::Bimoment,
-    FrameStress::By,
-    FrameStress::Bz,
-    FrameStress::Bishear,
-    FrameStress::Qy,
-    FrameStress::Qz
+  FrameStress::N,
+  FrameStress::Vy,
+  FrameStress::Vz,
+  FrameStress::T,
+  FrameStress::My,
+  FrameStress::Mz,
+  FrameStress::Bimoment,
+  FrameStress::By,
+  FrameStress::Bz,
+  FrameStress::Bishear,
+  FrameStress::Qy,
+  FrameStress::Qz
 };
 
 enum class Parameters : int {
@@ -200,29 +200,6 @@ ElasticLinearFrameSection3d::getConstants(Frame::Shape& consts) const
 {
   consts = *shape_data;
   return;
-  // const MatrixND<nr,nr>& K = *Ks;
-  // // TODO
-  // consts.A   =  K(0,0)/E;
-  // consts.J   =  K(3,3)/G;
-  // consts.Iy  =  K(4,4)/E;
-  // consts.Iyz = -K(4,5)/E;
-  // consts.Iz  =  K(5,5)/E;
-  // consts.Cw  =  K(6,6)/E;
-  // consts.Rw  =  K(0,6)/E;
-  // consts.Qy  =  K(0,4)/E;
-  // consts.Qz  = -K(0,5)/E;
-
-  // if (G != 0) {
-  //   consts.Ay  =  (K(1,10) + K(1,1))/G;
-  //   consts.Az  =  (K(2,11) + K(2,2))/G;
-  //   consts.Ca  =  K(9,9)/G;
-  //   consts.Sa  =  K(3,9)/G;
-  // } else {
-  //   consts.Ay  =  0;
-  //   consts.Az  =  0;
-  //   consts.Ca  =  0;
-  //   consts.Sa  =  0;
-  // }
 }
 
 int
