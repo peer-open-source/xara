@@ -52,7 +52,7 @@ CreateExactFrame(int tag,
       if (nn.value == nen) {
       std::array<int, nn.value> nodes;
       std::copy_n(nodev.begin(), nn.value, nodes.begin());
-      static_loop<0,4>([&](auto nwm) constexpr {
+      static_loop<0,2>([&](auto nwm) constexpr {
           if (nwm.value+6 == ndf)
           element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
       });

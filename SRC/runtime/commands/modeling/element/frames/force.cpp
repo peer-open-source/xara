@@ -31,7 +31,6 @@ CreateForceFrame(int tag,
                  Options& options,
                  double mass, int max_iter, double tol)
 {
-  bool use_mass = false;
 
   Element* element = nullptr;
 
@@ -43,7 +42,7 @@ CreateForceFrame(int tag,
     return nullptr;
   }
 
-  static_loop<0, 3>([&](auto nwm) constexpr {
+  static_loop<0, 2>([&](auto nwm) constexpr {
     if (nwm.value + 6 == ndf) {
       if (!options.shear_flag) {
         static_loop<2,MAX_NIP>([&](auto nip) constexpr {
@@ -52,7 +51,9 @@ CreateForceFrame(int tag,
                                           nodes,
                                           sections,
                                           beamIntegr, tb,
-                                          mass, options.mass_flag, use_mass,
+                                          mass, 
+                                          options.mass_flag, 
+                                          options.use_mass,
                                           max_iter, tol
                                           );
           });
@@ -64,7 +65,8 @@ CreateForceFrame(int tag,
                                           nodes,
                                           sections,
                                           beamIntegr, tb,
-                                          mass, options.mass_flag, use_mass,
+                                          mass, options.mass_flag, 
+                                          options.use_mass,
                                           max_iter, tol
                                           );
         });
