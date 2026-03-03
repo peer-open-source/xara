@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cmath>
+#include <atomic>
 #include <array>
 #include <Channel.h>
 #include <Vector.h>
@@ -375,7 +376,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
 
   const int nf = fibers->size();
-  int res = 0;
+  std::atomic<int> res = 0;
 
   struct ThreadData {
     MatrixND<3,6> Kae;
@@ -415,10 +416,10 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       NDMaterial &theMat = *materials[i];
       auto & fiber = (*fibers)[i];
       const Vector3D r = {0.0, fiber.r[0], fiber.r[1]};
-      double tr2 = 0;
+      double tr2 = wagner? r.dot(r)*kappa[0] : 0.0;
 
       // NOTE: Matrix 3D is column major so these are transposed.
-      const double aw = 0.0;
+      const double aw = tr2;
 
       MatrixND<3,6> Aer{};
       RigidShape(fiber, aw, Aer);
@@ -469,6 +470,11 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
       return res;
     }).wait();
+
+    if (res < 0) {
+      opserr << "  Failed to compute fiber response\n";
+      break;
+    }
 
 
     //
@@ -528,6 +534,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     eta_u -= Knn_inv*r_mixed;
 
   } while (++iter < 25); //&& converged == false);
+
 
   if (!converged) {
     opserr << "  Failed to converge in section\n";
@@ -603,7 +610,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
     double tr2 = wagner? r.dot(r)*kappa[0] : 0.0;
 
     // NOTE: Matrix 3D is column major so these are transposed.
-    const double aw = 0.0;
+    const double aw = 0; //tr2;
     MatrixND<3,6> Aer{};
     RigidShape(fiber, aw, Aer);
 
