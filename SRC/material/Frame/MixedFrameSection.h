@@ -213,10 +213,12 @@ class MixedFrameSection : public FrameSection
       Ae(0,0) = 1.0;
       Ae(1,1) = 1.0;
       Ae(2,2) = 1.0;
+      Ae(0,3) =  aw;
       Ae(0,4) =  r[1];
       Ae(0,5) = -r[0];
       Ae(1,3) = -r[1];
       Ae(2,3) =  r[0];
+
       return 0;
     }
 
