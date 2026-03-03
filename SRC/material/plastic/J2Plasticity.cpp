@@ -56,8 +56,6 @@
 
 extern double ops_Dt;
 
-// using OpenSees::J2Plasticity;
-
 const double J2Plasticity ::root23 = sqrt(2.0 / 3.0);
 
 double J2Plasticity::initialTangent[3][3][3][3]; //material tangent
