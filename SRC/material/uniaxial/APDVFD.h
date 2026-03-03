@@ -17,14 +17,23 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-
+//
+// An asynchronous parallel double-stage viscous fluid damper model #1388
+//
+// uniaxialMaterial model that simulates the hysteretic responses (axial load-deformation) 
+// of an asynchronous parallel double-stage viscous fluid damper (APDVFD).
+//
 // $LGap: gap length to simulate the gap length due to the pin tolerance
 // $NM:	Employed adaptive numerical algorithm (default value NM = 1; 1 = Dormand-Prince54, 2=6th order Adams-Bashforth-Moulton, 3=modified Rosenbrock Triple)
 // $RelTol:	Tolerance for absolute relative error control of the adaptive iterative algorithm (default value 10^-6)
 // $AbsTol:	Tolerance for absolute error control of adaptive iterative algorithm (default value 10^-6)
 // $MaxHalf: Maximum number of sub-step iterations within an integration step, h=dt*(0.5)^MaxHalf (default value 15)
 
+//
+// Linlin Xie (xielinlin@bucea.edu.cn)   
+// Cantian Yang (yangcantian@bucea.edu.cn)
+// Haoxiang Wang (buceawhx@163.com)
+//
 #ifndef APDVFD_h
 #define APDVFD_h
 
@@ -34,11 +43,11 @@
 class APDVFD : public UniaxialMaterial
 {
   public: 
-      APDVFD(int tag, double K, double G1,double G2,double Alpha, double L ,double LC, double DP, double DG, double N1,double N2, double DO1, double DO2, double DC, double S, double HP, double HC, double LGap, double NM, double RelTol, double AbsTol, double MaxHalf);
-      APDVFD();
+    APDVFD(int tag, double K, double G1,double G2,double Alpha, double L ,double LC, double DP, double DG, double N1,double N2, double DO1, double DO2, double DC, double S, double HP, double HC, double LGap, double NM, double RelTol, double AbsTol, double MaxHalf);
+    APDVFD();
     ~APDVFD();
 
-    const char *getClassType(void) const {return "APDVFD";};
+    const char *getClassType(void) const {return "APDVFD";}
 
     int setTrialStrain(double strain, double strainRate); 
     double getStrain(void); 
@@ -51,31 +60,32 @@ class APDVFD : public UniaxialMaterial
 
 
     int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
-    double sgn(double dVariable);
-    int DormandPrince(double vel0, double vel1, double y0, double h, double& yt, double& eps, double& error);
-    int ABM6(double vel0, double vel1, double y0, double h, double& yt, double& eps, double& error);
-    int ROS(double vel0, double vel1, double y0, double h, double& y2, double& eps, double& error);
-    double f(double v, double fd);
+    int revertToLastCommit(void);
+    int revertToStart(void);
 
 
         
     UniaxialMaterial *getCopy(void);
 
     int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int updateParameter(int parameterID, Information &);
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-                 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     
   protected:
     
   private:
-        // Fixed Input Material Variables
+  
+    double sgn(double dVariable);
+    int DormandPrince(double vel0, double vel1, double y0, double h, double& yt, double& eps, double& error);
+    int ABM6(double vel0, double vel1, double y0, double h, double& yt, double& eps, double& error);
+    int ROS(double vel0, double vel1, double y0, double h, double& y2, double& eps, double& error);
+    double f(double v, double fd);
+
+    // Fixed Input Material Variables
     double K;
     double G1;
     double G2;

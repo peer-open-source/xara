@@ -31,17 +31,21 @@
 #include <APDVFD.h>
 #include <Vector.h>
 #include <Channel.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <Parameter.h>
 #define PI acos(-1)
 
 void *
 OPS_ADD_RUNTIME_VPV(OPS_APDVFD)
 {
+  //
+  // uniaxialMaterial APDVFD tag K? G1? G2? Alpha? L? LC? DP?
+  //                         DG? N1? N2?DO1? DO2? DC? S? HP? HC? 
+  //                         <LGap?> <NM? RelTol? AbsTol? MaxHalf?>
   static int numAPDVFD = 0;
   if (numAPDVFD == 0) {
     numAPDVFD++;
-    opserr << "APDVFD Model by BUCEA\n";
+    opslog << "APDVFD Model by BUCEA\n";
   }
   
   // Pointer to a uniaxial material that will be returned
@@ -52,21 +56,19 @@ OPS_ADD_RUNTIME_VPV(OPS_APDVFD)
   int numData = 1;
         // Check tag
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial  APDVFD tag" << endln;
+    opserr << "WARNING invalid tag\n";
     return 0;
   }
 
   numData = OPS_GetNumRemainingInputArgs();
 
   if (numData != 16 && numData != 17 && numData != 21) {
-    opserr << "Invalid #args, want: uniaxialMaterial APDVFD " << iData[0] << "K?G1?G2?Alpha?L?LC?DP?DG?N1?N2?DO1?DO2?DC?S?HP?HC?<LGap?> <NM? RelTol? AbsTol? MaxHalf?>" << endln;
-       
+    opserr << "Invalid #args\n";       
     return 0;
   }
   
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid #args want: uniaxialMaterial APDVFD " << iData[0] << "K?G1?G2?Alpha?L?LC?DP?DG?N1?N2?DO1?DO2?DC?S?HP?HC?<LGap?> <NM? RelTol? AbsTol? MaxHalf?>" << endln;
-    
+    opserr << "Invalid #args\n ";
     return 0;   
   }
   
@@ -90,27 +92,22 @@ OPS_ADD_RUNTIME_VPV(OPS_APDVFD)
   // Parsing was successful, allocate the material with zero index
   theMaterial = new APDVFD(iData[0], 
                            dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7], dData[8], dData[9], dData[10], dData[11], dData[12], dData[13], dData[14], dData[15], dData[16], dData[17], dData[18], dData[19], dData[20]);
-  
-                                 
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type APDVFD Material\n";
-    return 0;
-  }
-  
+
   return theMaterial;
 }
+
 
 APDVFD::APDVFD(int tag, double k, double g1, double g2, double a, double l, double lc, double dp, double dg, double n1, double n2, double do1, double do2, double dc, double s, double hp, double hc, double lgap, double nm, double reltol, double abstol, double maxhalf)
 :UniaxialMaterial(tag,MAT_TAG_APDVFD), K(k), G1(g1), G2(g2), Alpha(a), L(l), LC(lc), DP(dp), DG(dg), N1(n1), N2(n2), DO1(do1), DO2(do2), DC(dc), S(s), HP(hp), HC(hc), LGap(lgap), NM(nm), RelTol(reltol), AbsTol(abstol), MaxHalf(maxhalf)
 {
-    if (Alpha < 0.0) {
-      opserr << "APDVFD::APDVFD -- Alpha < 0.0, setting to 1.0\n";
-      Alpha = 1.0;
-    }
-    
-        
-    //initialize variables
-    this->revertToStart();
+  if (Alpha < 0.0) {
+    opserr << "APDVFD::APDVFD -- Alpha < 0.0, setting to 1.0\n";
+    Alpha = 1.0;
+  }
+
+      
+  //initialize variables
+  this->revertToStart();
 }
 
 
@@ -118,7 +115,7 @@ APDVFD::APDVFD()
 :UniaxialMaterial(0,MAT_TAG_APDVFD),
  K(0.0), G1(0.0), G2(0.0), Alpha(0.0), L(0.0), LC(0.0), DP(0.0), DG(0.0), N1(0.0), N2(0.0), DO1(0.0), DO2(0.0), DC(0.0), S(0.0), HP(0.0), HC(0.0), LGap(0.0),  NM(0.0), RelTol(0.0), AbsTol(0.0), MaxHalf(0.0)
 {
-        this->revertToStart();
+  this->revertToStart();
 }
 
 APDVFD::~APDVFD()
@@ -129,144 +126,144 @@ APDVFD::~APDVFD()
 int
 APDVFD::setTrialStrain(double strain, double strainRate)
 {
-    //all variables to the last commit
-    double C;
-    double Alpha;
-   
+  // all variables to the last commit
+  double C;
+  double Alpha;
+  
 
 
-    this->revertToLastCommit();
-
- 
-    // Determine the strain rate and acceleration 
-
-    double Vel, fd0, acc, vel1, vel0;
-    if (fabs(strainRate) == 0.0) { //static analysis
-        Vel = 0.0;
-        acc = 0.0;
-
-    }
-    else {
-        Vel = strainRate;
-        acc = (Vel - TVel) / ops_Dt;
-    }
-
-    double smin = pow(0.5, MaxHalf);
-    double s = 1.0;
-    double stot = 0.0;
-    double it = 0.0;
-    fd0 = Tstress;
-
-    double h, yt, eps, error;
-    vel0 = TVel;  // Velocity of the previous step.
+  this->revertToLastCommit();
 
 
-    while (it < 1.0) { //iteration
-        h = s * ops_Dt; // Time step 
-        vel1 = vel0 + acc * h; // Velocity at the time step h
+  // Determine the strain rate and acceleration 
+
+  double Vel, fd0, acc, vel1, vel0;
+  if (fabs(strainRate) == 0.0) { //static analysis
+      Vel = 0.0;
+      acc = 0.0;
+
+  }
+  else {
+      Vel = strainRate;
+      acc = (Vel - TVel) / ops_Dt;
+  }
+
+  double smin = pow(0.5, MaxHalf);
+  double s = 1.0;
+  double stot = 0.0;
+  double it = 0.0;
+  fd0 = Tstress;
+
+  double h, yt, eps, error;
+  vel0 = TVel;  // Velocity of the previous step.
 
 
-        // Selection of Numerical Method to solve the ODE
-        if (NM == 1.0) {
-            DormandPrince(vel0, vel1, fd0, h, yt, eps, error);
-        }
-        if (NM == 2.0) {
-            ABM6(vel0, vel1, fd0, h, yt, eps, error);
-        }
-        if (NM == 3.0) {
-            ROS(vel0, vel1, fd0, h, yt, eps, error);
-        }
-
-        // Error check: Adaptive Step Size
-        if ((eps <= RelTol) || (s == smin) || (fabs(error) <= AbsTol)) {
-            vel0 = vel1;
-            fd0 = yt;
-            stot = stot + s;
-        }
-        else {
-            if (s > smin) {
-                s = 0.5 * s; // step gets smaller -now try this step again.
-            }
-            else {
-                s = smin;
-            }
-        }
-
-        if (stot == 1.0) { // The total internal stepsize reached dt
-            it = 1.0;
-        }
-    }
-
-    // Effect of gap start 
-
-    if (LGap > 0.) {
-
-        double dStrain = (strain - Tstrain);
-
-        if ((fd0 > 0) && (Tstress < 0)) {  //from negtive to positive
-            Tpugr = Tstrain + dStrain * fabs(fd0) / fabs(fd0 - Tstress);  // aproximate displacement for gap initiation
-            Tnugr = 0.;
-
-            if (fabs(strain - Tpugr) < LGap) {
-                fd0 = 0.;
-            }
-        }
-
-        if ((fd0 < 0) && (Tstress > 0)) {  //from positive to negative
-
-            Tnugr = Tstrain + dStrain * fabs(fd0) / fabs(fd0 - Tstress);  // aproximate displacement for gap initiation
-            Tpugr = 0.;
-
-            if (fabs(strain - Tnugr) < LGap) {
-                fd0 = 0.;
-            }
-        }
-
-        // After gap inititon
-
-        if ((fabs(Tpugr) > 0.) && (Tstress == 0)) {   //from negtive to positive
-
-            if ((strain > Tpugr) && ((strain - Tpugr) < LGap)) {
-                fd0 = 0.;
-            }
-        }
+  while (it < 1.0) { //iteration
+      h = s * ops_Dt; // Time step 
+      vel1 = vel0 + acc * h; // Velocity at the time step h
 
 
+      // Selection of Numerical Method to solve the ODE
+      if (NM == 1.0) {
+          DormandPrince(vel0, vel1, fd0, h, yt, eps, error);
+      }
+      if (NM == 2.0) {
+          ABM6(vel0, vel1, fd0, h, yt, eps, error);
+      }
+      if (NM == 3.0) {
+          ROS(vel0, vel1, fd0, h, yt, eps, error);
+      }
 
-        if ((fabs(Tnugr) > 0.) && (Tstress == 0)) {   //from positive to negative
+      // Error check: Adaptive Step Size
+      if ((eps <= RelTol) || (s == smin) || (fabs(error) <= AbsTol)) {
+          vel0 = vel1;
+          fd0 = yt;
+          stot = stot + s;
+      }
+      else {
+          if (s > smin) {
+              s = 0.5 * s; // step gets smaller -now try this step again.
+          }
+          else {
+              s = smin;
+          }
+      }
 
-            if ((strain < Tnugr) && ((strain - Tnugr) > -LGap)) {
-                fd0 = 0.;
-            }
-        }
+      if (stot == 1.0) { // The total internal stepsize reached dt
+          it = 1.0;
+      }
+  }
 
-    }
-    // Effect of gap end 
+  // Effect of gap start 
+
+  if (LGap > 0.) {
+
+      double dStrain = (strain - Tstrain);
+
+      if ((fd0 > 0) && (Tstress < 0)) {  //from negtive to positive
+          Tpugr = Tstrain + dStrain * fabs(fd0) / fabs(fd0 - Tstress);  // aproximate displacement for gap initiation
+          Tnugr = 0.;
+
+          if (fabs(strain - Tpugr) < LGap) {
+              fd0 = 0.;
+          }
+      }
+
+      if ((fd0 < 0) && (Tstress > 0)) {  //from positive to negative
+
+          Tnugr = Tstrain + dStrain * fabs(fd0) / fabs(fd0 - Tstress);  // aproximate displacement for gap initiation
+          Tpugr = 0.;
+
+          if (fabs(strain - Tnugr) < LGap) {
+              fd0 = 0.;
+          }
+      }
+
+      // After gap inititon
+
+      if ((fabs(Tpugr) > 0.) && (Tstress == 0)) {   //from negtive to positive
+
+          if ((strain > Tpugr) && ((strain - Tpugr) < LGap)) {
+              fd0 = 0.;
+          }
+      }
 
 
-    Tstress = fd0; // Stress 
-    TVel = Vel;
-    Tstrain = strain;
 
-    return 0;
+      if ((fabs(Tnugr) > 0.) && (Tstress == 0)) {   //from positive to negative
+
+          if ((strain < Tnugr) && ((strain - Tnugr) > -LGap)) {
+              fd0 = 0.;
+          }
+      }
+
+  }
+  // Effect of gap end 
+
+
+  Tstress = fd0; // Stress 
+  TVel = Vel;
+  Tstrain = strain;
+
+  return 0;
 }
 
-double APDVFD::getStress(void)
+double APDVFD::getStress()
 {
   return  Tstress;
 }
 
-double APDVFD::getTangent(void)
+double APDVFD::getTangent()
 {
   return 0;
 }
 
-double APDVFD::getInitialTangent(void)
+double APDVFD::getInitialTangent()
 {
   return 0;
 }
 
-double APDVFD::getDampTangent(void)
+double APDVFD::getDampTangent()
 {
   
   return 0; 
@@ -274,19 +271,19 @@ double APDVFD::getDampTangent(void)
 
 
 double 
-APDVFD::getStrain(void)
+APDVFD::getStrain()
 {
-    return Tstrain;
+  return Tstrain;
 }
 
 double 
-APDVFD::getStrainRate(void)
+APDVFD::getStrainRate()
 {
   return TVel;
 }
 
 int 
-APDVFD::commitState(void)
+APDVFD::commitState()
 {
   //commit trial  variables
   Cstrain = Tstrain;
@@ -374,49 +371,49 @@ int
 APDVFD::ABM6(double vel0, double vel1, double y0, double h, double& y6, double& eps, double& error){
  double f0, f1, f2, f3, f4, f5, f6, y11, y2, y3, y4, y5, yp6;
  //int f(int vel0, int y0);
-    h = h/6.0;
+  h = h/6.0;
 
-    f0 = f((vel1 - vel0)*(0./6.) + vel0, y0);
+  f0 = f((vel1 - vel0)*(0./6.) + vel0, y0);
 
-    y11 = y0 + h*f0; //predictor
+  y11 = y0 + h*f0; //predictor
 
-    f1 = f((vel1 - vel0)*(1./6.) + vel0, y11);
+  f1 = f((vel1 - vel0)*(1./6.) + vel0, y11);
 
-    y11 = y0 + h*f1; //corrector
+  y11 = y0 + h*f1; //corrector
 
-    y2 = y11 + 0.5*h*(3.*f1 - 1.*f0); //predictor
+  y2 = y11 + 0.5*h*(3.*f1 - 1.*f0); //predictor
 
-    f2 = f((vel1 - vel0)*(2./6.) + vel0, y2);
+  f2 = f((vel1 - vel0)*(2./6.) + vel0, y2);
 
-    y2 = y11 + 0.5*h*(f2 + f1);  //corrector
+  y2 = y11 + 0.5*h*(f2 + f1);  //corrector
 
-    y3 = y2 + h/12.*(23.*f2 - 16.*f1 + 5.*f0); //predictor
+  y3 = y2 + h/12.*(23.*f2 - 16.*f1 + 5.*f0); //predictor
 
-    f3 = f((vel1 - vel0)*(3./6.) + vel0, y3);
+  f3 = f((vel1 - vel0)*(3./6.) + vel0, y3);
 
-    y3 = y2 + h/12.*(5.*f3 + 8.*f2 - 1.*f1); //corrector
+  y3 = y2 + h/12.*(5.*f3 + 8.*f2 - 1.*f1); //corrector
 
-    y4 = y3 + h/24.*(55.*f3 - 59.*f2 + 37.*f1 - 9.*f0); //predictor
+  y4 = y3 + h/24.*(55.*f3 - 59.*f2 + 37.*f1 - 9.*f0); //predictor
 
-    f4 = f((vel1 - vel0)*(4./6.) + vel0, y4);
+  f4 = f((vel1 - vel0)*(4./6.) + vel0, y4);
 
-    y4 = y3 + h/24.*(9.*f4 + 19.*f3 -5.*f2 + f1); // corrector
+  y4 = y3 + h/24.*(9.*f4 + 19.*f3 -5.*f2 + f1); // corrector
 
-    y5 = y4 + h/720.*(1901.*f4 - 2774.*f3 + 2616.*f2 - 1274.*f1 + 251.*f0); // predictor
+  y5 = y4 + h/720.*(1901.*f4 - 2774.*f3 + 2616.*f2 - 1274.*f1 + 251.*f0); // predictor
 
-    f5 = f((vel1 - vel0)*(5./6.) + vel0, y5);
+  f5 = f((vel1 - vel0)*(5./6.) + vel0, y5);
 
-    y5 = y4 + h/720.*(251.*f5 + 646.*f4 -264.*f3 + 106.*f2 -19.*f1); // corrector
+  y5 = y4 + h/720.*(251.*f5 + 646.*f4 -264.*f3 + 106.*f2 -19.*f1); // corrector
 
-    yp6 = y5 + h/1440.*(4277.*f5 -7923.*f4 +9982.*f3 -7298.*f2 + 2877.*f1 -475.*f0); // predictor
+  yp6 = y5 + h/1440.*(4277.*f5 -7923.*f4 +9982.*f3 -7298.*f2 + 2877.*f1 -475.*f0); // predictor
 
-    f6 = f((vel1 - vel0)*(6./6.) + vel0, yp6);
+  f6 = f((vel1 - vel0)*(6./6.) + vel0, yp6);
 
-    y6 = y5 + (h/1440.)*(475.*f6 +1427.*f5  -798.*f4 + 482.*f3 -173.*f2 + 27.*f1); // corrector
+  y6 = y5 + (h/1440.)*(475.*f6 +1427.*f5  -798.*f4 + 482.*f3 -173.*f2 + 27.*f1); // corrector
 
 	error = (yp6-y6);
 
-    eps = fabs(error/y6);
+  eps = fabs(error/y6);
 
 
  return 0;
@@ -453,53 +450,52 @@ APDVFD::ROS(double vel0, double vel1, double y0, double h, double& y2, double& e
 double
 APDVFD::f(double v, double fd) {
 
+  void setTrialStrain(double strain);
+  double strain{};
 
-    void setTrialStrain(double strain);
-    double strain{};
+  double i = G1 * L * PI * (pow(DP, 2) - pow(DG, 2));
+  double ii = 2 * (3 * Alpha + 1) * (pow(DP, 2) - pow(DG, 2));
+  double iii = N1 * Alpha * pow(DO1, (3 * Alpha + 1) / Alpha);
+  double C1 = i * pow(ii / iii, Alpha)/1000;
 
-    double i = G1 * L * PI * (pow(DP, 2) - pow(DG, 2));
-    double ii = 2 * (3 * Alpha + 1) * (pow(DP, 2) - pow(DG, 2));
-    double iii = N1 * Alpha * pow(DO1, (3 * Alpha + 1) / Alpha);
-    double C1 = i * pow(ii / iii, Alpha)/1000;
+  // double j = pow(PI * (pow(DP, 2) - pow(DG, 2)) / 4, Alpha2 + 1);
+  //double jj = ((N2 * Alpha2 * PI * pow(DO2 / 2, (3 * Alpha2 + 1) / Alpha2)) / (3 * Alpha2 + 1)) * pow(1 / 2 * G2 * L, 1 / Alpha2);
+  // double jjj = (Alpha2 * PI * pow(HP, (2 * Alpha2 + 1) / Alpha2) * (DC + DP) / (4 * (2 * Alpha2 + 1))) * pow(1 / 2 * G2 * (fabs(Tstrain) - S), 1 / Alpha2);
+  // double C2 = (j / pow(jj + jjj, Alpha2))/1000 + C1;
+  
+  double j = PI * (pow(DP, 2) - pow(DG, 2)) / 4;
+  double jj = pow(j, Alpha + 1);
+  double mm = N2 * Alpha * PI * pow(DO2 / 2, (3 * Alpha + 1) / Alpha);
+  double mmm = mm / (3 * Alpha + 1);
+  double mmmm = mmm * pow(1 / (2 * G2 * L), 1 / Alpha);
+  double nn = Alpha * PI * pow(HC, (2 * Alpha) / Alpha) * (DP + DC);
+  double ttt = Alpha * PI * pow(HP, (2 * Alpha) / Alpha) * (DP + DC);
+  double nnn = 4 * (2 * Alpha + 1);
+  double nnnn = pow(1 / (2 * G2 * (fabs(Tstrain) - S)), 1 / Alpha);
+  double nnnnn = pow(1 / (2 * G2 * L), 1 / Alpha);
+  double gg1 = (nn / nnn) * nnnn;
+  double gg2 = (ttt / nnn) * nnnn;
+  double gg3 = (ttt / nnn) * nnnnn;
 
-   // double j = pow(PI * (pow(DP, 2) - pow(DG, 2)) / 4, Alpha2 + 1);
-    //double jj = ((N2 * Alpha2 * PI * pow(DO2 / 2, (3 * Alpha2 + 1) / Alpha2)) / (3 * Alpha2 + 1)) * pow(1 / 2 * G2 * L, 1 / Alpha2);
-   // double jjj = (Alpha2 * PI * pow(HP, (2 * Alpha2 + 1) / Alpha2) * (DC + DP) / (4 * (2 * Alpha2 + 1))) * pow(1 / 2 * G2 * (fabs(Tstrain) - S), 1 / Alpha2);
-   // double C2 = (j / pow(jj + jjj, Alpha2))/1000 + C1;
-   
-    double j = PI * (pow(DP, 2) - pow(DG, 2)) / 4;
-    double jj = pow(j, Alpha + 1);
-    double mm = N2 * Alpha * PI * pow(DO2 / 2, (3 * Alpha + 1) / Alpha);
-    double mmm = mm / (3 * Alpha + 1);
-    double mmmm = mmm * pow(1 / (2 * G2 * L), 1 / Alpha);
-    double nn = Alpha * PI * pow(HC, (2 * Alpha) / Alpha) * (DP + DC);
-    double ttt = Alpha * PI * pow(HP, (2 * Alpha) / Alpha) * (DP + DC);
-    double nnn = 4 * (2 * Alpha + 1);
-    double nnnn = pow(1 / (2 * G2 * (fabs(Tstrain) - S)), 1 / Alpha);
-    double nnnnn = pow(1 / (2 * G2 * L), 1 / Alpha);
-    double gg1 = (nn / nnn) * nnnn;
-    double gg2 = (ttt / nnn) * nnnn;
-    double gg3 = (ttt / nnn) * nnnnn;
-
-    double C4 = (jj / pow(mmmm + gg3, Alpha) / 1000)+C1;
-    double C2 = (jj / pow(mmmm + gg1, Alpha)/1000) + C1;
-    double C3 = (jj / pow(mmmm + gg2, Alpha)/1000) + C1;
-    //double jjjj = (Alpha2 * PI * pow(HP, (2 * Alpha2 + 1) / Alpha2) * (DC + DP) / (4 * (2 * Alpha2 + 1))) * pow(1 / 2 * G2 * L, 1 / Alpha2);
-    //double C3 = (j / pow(jj + jjjj, Alpha2))/1000 + C1;
-    //double C3 = C1 + C1;
-    //return (v - sgn(fd) * pow(fabs(fd) / C, 1.0 / Alpha)) * K;
+  double C4 = (jj / pow(mmmm + gg3, Alpha) / 1000)+C1;
+  double C2 = (jj / pow(mmmm + gg1, Alpha)/1000) + C1;
+  double C3 = (jj / pow(mmmm + gg2, Alpha)/1000) + C1;
+  //double jjjj = (Alpha2 * PI * pow(HP, (2 * Alpha2 + 1) / Alpha2) * (DC + DP) / (4 * (2 * Alpha2 + 1))) * pow(1 / 2 * G2 * L, 1 / Alpha2);
+  //double C3 = (j / pow(jj + jjjj, Alpha2))/1000 + C1;
+  //double C3 = C1 + C1;
+  //return (v - sgn(fd) * pow(fabs(fd) / C, 1.0 / Alpha)) * K;
 //}
   if (fabs(Tstrain) <= S){
-      return (v - sgn(fd) * pow(fabs(fd) / C1, 1.0 / Alpha)) * K;
+    return (v - sgn(fd) * pow(fabs(fd) / C1, 1.0 / Alpha)) * K;
   }
   else if (fabs(Tstrain) > S && fabs(Tstrain) < S + LC) {
-      return (v - sgn(fd) * pow(fabs(fd) / C2, 1.0 / Alpha)) * K;
+    return (v - sgn(fd) * pow(fabs(fd) / C2, 1.0 / Alpha)) * K;
   }
   else if (fabs(Tstrain) >= S + LC && fabs(Tstrain) < S + L) {
-      return (v - sgn(fd) * pow(fabs(fd) / C3, 1.0 / Alpha)) * K;
+    return (v - sgn(fd) * pow(fabs(fd) / C3, 1.0 / Alpha)) * K;
   }
-  else if (fabs(Tstrain) >= S + L) {
-      return (v - sgn(fd) * pow(fabs(fd) / C4, 1.0 / Alpha)) * K;
+  else {// if (fabs(Tstrain) >= S + L) {
+    return (v - sgn(fd) * pow(fabs(fd) / C4, 1.0 / Alpha)) * K;
   }
 }
 
@@ -508,23 +504,23 @@ APDVFD::f(double v, double fd) {
 UniaxialMaterial *
 APDVFD::getCopy(void)
 {
-    APDVFD *theCopy = new APDVFD(this->getTag(), K, G1, G2, Alpha, L, LC, DP, DG, N1, N2, DO1, DO2, DC, S, HP, HC, LGap, NM, RelTol, AbsTol, MaxHalf);
-    // Converged state variables
-        theCopy->Cstrain = Cstrain;
-        theCopy->Cstress = Cstress;
-        theCopy->Ctangent = Ctangent;
-        theCopy->CVel = CVel;
-		theCopy->Cpugr = Cpugr;
-		theCopy->Cnugr = Cnugr; 
-        
-        // Trial state variables
-		theCopy->Tstrain = Tstrain;
-		theCopy->Tstress = Tstress; 
-        theCopy->Ttangent = Ttangent;
-        theCopy->TVel = TVel;
-		theCopy->Tpugr = Tpugr;
-		theCopy->Tnugr = Tnugr;        
-    return theCopy;
+  APDVFD *theCopy = new APDVFD(this->getTag(), K, G1, G2, Alpha, L, LC, DP, DG, N1, N2, DO1, DO2, DC, S, HP, HC, LGap, NM, RelTol, AbsTol, MaxHalf);
+  // Converged state variables
+  theCopy->Cstrain = Cstrain;
+  theCopy->Cstress = Cstress;
+  theCopy->Ctangent = Ctangent;
+  theCopy->CVel = CVel;
+  theCopy->Cpugr = Cpugr;
+  theCopy->Cnugr = Cnugr; 
+      
+      // Trial state variables
+  theCopy->Tstrain = Tstrain;
+  theCopy->Tstress = Tstress; 
+  theCopy->Ttangent = Ttangent;
+  theCopy->TVel = TVel;
+  theCopy->Tpugr = Tpugr;
+  theCopy->Tnugr = Tnugr;        
+  return theCopy;
 }
 
 int 
