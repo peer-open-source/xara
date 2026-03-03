@@ -200,7 +200,7 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
     Tcl_CreateCommand(interp, "modalProperties",     &modalProperties,     domain, nullptr);
   }
 
-  for (int i = 0; i < sizeof(domainCommands) / sizeof(domainCommands[0]); ++i) {
+  for (size_t i = 0; i < sizeof(domainCommands) / sizeof(domainCommands[0]); ++i) {
     Tcl_CreateCommand(interp, domainCommands[i].name,
                       domainCommands[i].func, domain, nullptr);
   }
