@@ -39,8 +39,7 @@ SecantAccelerator1::SecantAccelerator1(int maxIter, int tangent)
 
 }
 
-SecantAccelerator1::SecantAccelerator1(int maxIter, int tangent,
-				       double r1, double r2)
+SecantAccelerator1::SecantAccelerator1(int maxIter, int tangent, double r1, double r2)
   :Accelerator(ACCELERATOR_TAGS_Secant),
    iteration(0), numEqns(0), R1(r1), R2(r2),
    vOld(0), rOld(0), maxIterations(maxIter), theTangent(tangent),

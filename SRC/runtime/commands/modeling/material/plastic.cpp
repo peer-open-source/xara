@@ -32,6 +32,7 @@
 #if defined(XARA_HAVE_GENERALIZEDJ2)
 #include <GeneralizedJ2.h>
 #endif
+#include <NonlinearJ2.h>
 #include <PlaneStressSimplifiedJ2.h>
 #include <J2Plasticity.h>
 #include <J2PlasticityThermal.h>
@@ -39,6 +40,9 @@
 #include <DruckerPrager.h>
 #include <J2BeamFiber2d.h>
 #include <J2BeamFiber3d.h>
+#include <J2BeamThread3d.h>
+#include <J2PlateFiber.h>
+#include <J2PlateFibre.h>
 
 
 using namespace OpenSees;
@@ -75,11 +79,20 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   // Plasticity
   double Fy, Fsat = 0, Fo = 0;
   // Hardening
-  double Hiso=0,
-         Hkin=0;
+  struct {
+    std::vector<double> C{0.0}, gamma{0.0};
+  } kinematic;
+  struct {
+    std::vector<double> Q{0.0}, b{0.0};
+  } isotropic;
+  struct {
+    double speed = 0.0,
+           limit = 0.0;
+  } overstress;
+  double Hiso=0.0;
+
   struct {
     double theta = 1.0;
-    double Hsat  = 0;
     double Hmix  = 0;
   } hard{};
   bool mix = Position::Theta < Position::End;
@@ -112,12 +125,12 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
 
     else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
-          opserr << "Invalid density value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid density value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
     }
     // Yielding
@@ -125,24 +138,31 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
              strcmp(argv[i], "-fy") == 0 ||
              strcmp(argv[i], "-yield-stress") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptParseError
+               << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Fy) != TCL_OK) {
-          opserr << "Invalid yield stress value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Invalid yield stress value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::YieldStress);
     }
     else if ((strcmp(argv[i], "-Fo") == 0) || 
              (strcmp(argv[i], "-Ko") == 0)) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptParseError
+               << "Missing value for option " << argv[i-1] 
+               << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Fo) != TCL_OK) {
-          opserr << "Invalid initial saturation stress value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptValueError
+               << "Invalid initial saturation stress value " 
+               << argv[i] 
+               << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::SatStress0);
     }
@@ -150,50 +170,190 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
              (strcmp(argv[i], "-Fsat") == 0) ||
              (strcmp(argv[i], "-fsat") == 0)) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Fsat) != TCL_OK) {
-          opserr << "Invalid saturation stress value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid saturation stress value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
+      isotropic.Q[0] = Fsat - Fy;
       tracker.consume(Position::SatStress);
+    }
+    else if (strcmp(argv[i], "-overstress") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &overstress.limit) != TCL_OK) {
+        opserr << "Invalid overstress limit value " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+    }
+    else if (strcmp(argv[i], "-transition") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &overstress.speed) != TCL_OK) {
+        opserr << "Invalid overstress speed value " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
     }
     //
     // Hardening
     //
-    else if (strcmp(argv[i], "-Hiso") == 0 || strcmp(argv[i], "-isotropic-hardening") == 0) {
+    else if (strcmp(argv[i], "-Q") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
-      if (Tcl_GetDouble(interp, argv[i], &Hiso) != TCL_OK) {
+      int argc_iso;
+      TCL_Char** argv_iso;
+      if (Tcl_SplitList(interp, argv[i], &argc_iso, &argv_iso) != TCL_OK) {
+        if (Tcl_GetDouble(interp, argv[i], &isotropic.Q[0]) != TCL_OK) {
           opserr << "Invalid value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
+        }
       }
-      mix = false;
-      tracker.consume(Position::Hiso);
+      else {
+        isotropic.Q.resize(argc_iso);
+        for (int j=0; j<argc_iso; j++) {
+          double val;
+          if (Tcl_GetDouble(interp, argv_iso[j], &val) != TCL_OK) {
+            opserr << "Invalid value for option " << argv[i-1] << "\n";
+            return TCL_ERROR;
+          }
+          isotropic.Q[j] = val;
+        }
+        Tcl_Free((char*)argv_iso);
+      }
     }
-    else if (strcmp(argv[i], "-Hkin") == 0 || strcmp(argv[i], "-kinematic-hardening") == 0) {
+    else if ((strcmp(argv[i], "-b") == 0) || 
+             (strcmp(argv[i], "-delta") == 0) || 
+             (strcmp(argv[i], "-Hsat") == 0)) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
-      if (Tcl_GetDouble(interp, argv[i], &Hkin) != TCL_OK) {
+      int argc_iso;
+      TCL_Char** argv_iso;
+      if (Tcl_SplitList(interp, argv[i], &argc_iso, &argv_iso) != TCL_OK) {
+        if (Tcl_GetDouble(interp, argv[i], &isotropic.b[0]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for option " << argv[i-1] 
+                 << " " << argv[i]
+                 << "\n";
+          return TCL_ERROR;
+        }
+      }
+      else {
+        isotropic.b.resize(argc_iso);
+        for (int j=0; j<argc_iso; j++) {
+          double val;
+          if (Tcl_GetDouble(interp, argv_iso[j], &val) != TCL_OK) {
+            opserr << "Invalid value for option " << argv[i-1] << "\n";
+            return TCL_ERROR;
+          }
+          isotropic.b[j] = val;
+        }
+        Tcl_Free((char*)argv_iso);
+      }
+      tracker.consume(Position::Hsat);
+    }
+    else if ((strcmp(argv[i], "-C") == 0) || 
+             (strcmp(argv[i], "-Hkin") == 0) || 
+             (strcmp(argv[i], "-kinematic-hardening") == 0)) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      
+      int argc_kin;
+      TCL_Char** argv_kin;
+      if (Tcl_SplitList(interp, argv[i], &argc_kin, &argv_kin) != TCL_OK) {
+        if (Tcl_GetDouble(interp, argv[i], &kinematic.C[0]) != TCL_OK) {
           opserr << "Invalid value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
+        }
+      }
+      else {
+        kinematic.C.resize(argc_kin);
+        for (int j=0; j<argc_kin; j++) {
+          double val;
+          if (Tcl_GetDouble(interp, argv_kin[j], &val) != TCL_OK) {
+            opserr << "Invalid value for option " << argv[i-1] << "\n";
+            return TCL_ERROR;
+          }
+          kinematic.C[j] = val;
+        }
+        Tcl_Free((char*)argv_kin);
       }
       mix = false;
       tracker.consume(Position::Hkin);
     }
-    else if (strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "-Hmix") == 0) {
+    else if (strcmp(argv[i], "-gamma") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
-      if (Tcl_GetDouble(interp, argv[i], &hard.Hmix) != TCL_OK) {
+      int argc_kin;
+      TCL_Char** argv_kin;
+      if (Tcl_SplitList(interp, argv[i], &argc_kin, &argv_kin) != TCL_OK) {
+        if (Tcl_GetDouble(interp, argv[i], &kinematic.gamma[0]) != TCL_OK) {
           opserr << "Invalid value for option " << argv[i-1] << "\n";
           return TCL_ERROR;
+        }
+      }
+      else {
+        kinematic.gamma.resize(argc_kin);
+        for (int j=0; j<argc_kin; j++) {
+          double val;
+          if (Tcl_GetDouble(interp, argv_kin[j], &val) != TCL_OK) {
+            opserr << "Invalid value for option " << argv[i-1] << "\n";
+            return TCL_ERROR;
+          }
+          kinematic.gamma[j] = val;
+        }
+        Tcl_Free((char*)argv_kin);
+      }
+    }
+    else if (strcmp(argv[i], "-Hiso") == 0 || 
+             strcmp(argv[i], "-isotropic-hardening") == 0) {
+      if (++i >= argc) {
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &Hiso) != TCL_OK) {
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      mix = false;
+      tracker.consume(Position::Hiso);
+    }
+    // else if (strcmp(argv[i], "-Hkin") == 0 || 
+    //          strcmp(argv[i], "-kinematic-hardening") == 0) {
+    //   if (++i >= argc) {
+    //     opserr << "Missing value for option " << argv[i-1] << "\n";
+    //     return TCL_ERROR;
+    //   }
+    //   if (Tcl_GetDouble(interp, argv[i], &kinematic.C[0]) != TCL_OK) {
+    //     opserr << "Invalid value for option " << argv[i-1] << "\n";
+    //     return TCL_ERROR;
+    //   }
+    //   mix = false;
+    //   tracker.consume(Position::Hkin);
+    // }
+    else if (strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "-Hmix") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &hard.Hmix) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       mix = true;
       tracker.consume(Position::Hmix);
@@ -203,84 +363,84 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
 
     else if (strcmp(argv[i], "-theta") == 0 || strcmp(argv[i], "-mix") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &hard.theta) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Theta);
     }
-    else if (strcmp(argv[i], "-Hsat") == 0 || 
-             strcmp(argv[i], "-delta") == 0 || 
-             strcmp(argv[i], "-delta1") == 0) {
-      if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
-      }
-      if (Tcl_GetDouble(interp, argv[i], &hard.Hsat) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
-      }
-      tracker.consume(Position::Hsat);
-    }
+    // else if (strcmp(argv[i], "-Hsat") == 0 || 
+    //          strcmp(argv[i], "-delta") == 0 || 
+    //          strcmp(argv[i], "-delta1") == 0) {
+    //   if (++i >= argc) {
+    //     opserr << "Missing value for option " << argv[i-1] << "\n";
+    //     return TCL_ERROR;
+    //   }
+    //   if (Tcl_GetDouble(interp, argv[i], &isotropic.b[0]) != TCL_OK) {
+    //     opserr << "Invalid value for option " << argv[i-1] << "\n";
+    //     return TCL_ERROR;
+    //   }
+    //   tracker.consume(Position::Hsat);
+    // }
     // Drucker-Prager
     else if (strcmp(argv[i], "-delta2") == 0 ||
              strcmp(argv[i], "-Hten") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &delta2) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Delta2);
     }
     else if (strcmp(argv[i], "-atm") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &atm) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Atm);
     }
     else if (strcmp(argv[i], "-Rvol") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &rho) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Rho);
     }
     else if (strcmp(argv[i], "-Rbar") == 0 ||
              strcmp(argv[i], "-rhoBar") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &rho_bar) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::RhoBar);
     }
     // Viscosity
     else if (strcmp(argv[i], "-eta") == 0 || strcmp(argv[i], "-viscosity") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &eta) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
       }
       tracker.consume(Position::Eta);
     }
@@ -364,7 +524,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       // Yielding
       case Position::YieldStress:
         if (Tcl_GetDouble(interp, argv[i], &Fy) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid yield stress.\n";
+            opserr << OpenSees::PromptParseError 
+                   << "invalid yield stress."
+                   << OpenSees::SignalMessageEnd;
             return TCL_ERROR;           
         } else {
           tracker.increment();
@@ -372,11 +534,11 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         }
       case Position::SatStress:
         if (Tcl_GetDouble (interp, argv[i], &Fsat) != TCL_OK) {
-            opserr << OpenSees::PromptParseError 
-                   << "invalid saturation stress " 
-                   << argv[i]
-                   << OpenSees::SignalMessageEnd;
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                  << "invalid saturation stress " 
+                  << argv[i]
+                  << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
@@ -384,8 +546,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       
       case Position::SatStress0:
         if (Tcl_GetDouble (interp, argv[i], &Fo) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid initial saturation stress.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                  << "invalid initial saturation stress.\n";
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
@@ -393,34 +556,38 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       // Hardening
       case Position::Hiso:
         if (Tcl_GetDouble (interp, argv[i], &Hiso) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid Hiso.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                  << "invalid Hiso.\n";
+          return TCL_ERROR;
         } else {
           tracker.consume(Position::Hiso);
           tracker.consume(Position::Theta);
           break;
         }
       case Position::Hkin:
-        if (Tcl_GetDouble (interp, argv[i], &Hkin) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid Hkin.\n";
-            return TCL_ERROR;
+        if (Tcl_GetDouble (interp, argv[i], &kinematic.C[0]) != TCL_OK) {
+          opserr << OpenSees::PromptParseError
+                 << "invalid Hkin.\n";
+          return TCL_ERROR;
         } else {
           tracker.consume(Position::Hkin);
           tracker.consume(Position::Theta);
           break;
         }
       case Position::Hsat:
-        if (Tcl_GetDouble (interp, argv[i], &hard.Hsat) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid Hsat.\n";
-            return TCL_ERROR;
+        if (Tcl_GetDouble (interp, argv[i], &isotropic.b[0]) != TCL_OK) {
+          opserr << OpenSees::PromptParseError
+                 << "invalid Hsat.\n";
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
         }
       case Position::Hmix:
         if (Tcl_GetDouble (interp, argv[i], &hard.Hmix) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid Hmix.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError
+                 << "invalid Hmix.\n";
+          return TCL_ERROR;
         } else {
           mix = true;
           tracker.consume(Position::Hmix);
@@ -430,8 +597,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         }
       case Position::Theta:
         if (Tcl_GetDouble (interp, argv[i], &hard.theta) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid hardening theta.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                 << "invalid hardening theta.\n";
+          return TCL_ERROR;
         } else {
           tracker.consume(Position::Theta);
           break;
@@ -440,32 +608,36 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       // Drucker 
       case Position::Delta2:
         if (Tcl_GetDouble (interp, argv[i], &delta2) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid delta2.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                 << "invalid delta2.\n";
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
         }
       case Position::Rho:
         if (Tcl_GetDouble (interp, argv[i], &rho) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid Rvol.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                  << "invalid Rvol.\n";
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
         }
       case Position::Atm:
         if (Tcl_GetDouble (interp, argv[i], &atm) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid atm.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                  << "invalid atm.\n";
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
         }
       case Position::RhoBar:
         if (Tcl_GetDouble (interp, argv[i], &rho_bar) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid Rbar.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                 << "invalid Rbar.\n";
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
@@ -473,8 +645,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       // Viscosity
       case Position::Eta:
         if (Tcl_GetDouble (interp, argv[i], &eta) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid eta.\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptParseError 
+                 << "invalid eta.\n";
+          return TCL_ERROR;
         } else {
           tracker.increment();
           break;
@@ -485,14 +658,15 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         break;
 
       case Position::End:
-        opserr << OpenSees::PromptParseError << "unexpected argument " << argv[i] << ".\n";
+        opserr << OpenSees::PromptParseError 
+               << "unexpected argument " << argv[i] << ".\n";
         return TCL_ERROR;
     }
   }
 
   if (mix) {
-    Hiso =        hard.theta  * hard.Hmix;
-    Hkin = (1.0 - hard.theta) * hard.Hmix;
+    Hiso = hard.theta  * hard.Hmix;
+    kinematic.C[0] = (1.0 - hard.theta) * hard.Hmix;
   }
 
   //
@@ -586,7 +760,8 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   if ((strcmp(argv[1], "Hardening") == 0) ||
       (strcmp(argv[1], "Steel") == 0)) {
 
-    UniaxialMaterial* theMaterial = new HardeningMaterial(tag, consts.E, Fy, Hiso, Hkin, eta);
+    UniaxialMaterial* theMaterial = new HardeningMaterial(tag, consts.E, Fy, 
+                                                          Hiso, kinematic.C[0], eta);
     if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -597,10 +772,32 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "J2BeamFiber") == 0) {
     NDMaterial* theMaterial = nullptr;
     if (builder->getNDM() == 2)
-      theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, Hkin, Hiso);
+      theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
     else 
-      theMaterial = new J2BeamFiber3d(tag, consts.E, consts.nu, Fy, Hkin, Hiso);
+      theMaterial = new J2BeamFiber3d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
 
+    if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+      delete theMaterial;
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  }
+  else if (strcmp(argv[1], "J2BeamThread") == 0) {
+    NDMaterial* theMaterial = nullptr;
+    if (builder->getNDM() == 2)
+      theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
+    else 
+      theMaterial = new J2BeamThread3d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
+
+    if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+      delete theMaterial;
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  }
+
+  else if ((strcmp(argv[1], "J2PlateFibre") == 0)) {
+    NDMaterial* theMaterial = new J2PlateFibre(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -615,7 +812,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
            (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) ||
            (strcmp(argv[1], "3DJ2") == 0)) {
 
-    NDMaterial* theMaterial = new SimplifiedJ2(tag, 3, consts.G, consts.K, Fy, Hkin, Hiso, density);
+    NDMaterial* theMaterial = new SimplifiedJ2(tag, 3, consts.G, consts.K, 
+                                               Fy, kinematic.C[0], 
+                                               Hiso, density);
     if (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) {
       theMaterial = new PlaneStressSimplifiedJ2(tag, 2, *theMaterial);
     }
@@ -631,7 +830,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
            (strcmp(argv[1], "J2Plasticity")  == 0)) {
 
     NDMaterial* theMaterial = new J2Plasticity(tag, 0, consts.K, consts.G, 
-                                               Fy, Fsat, hard.Hsat, Hiso, eta, density);
+                                               Fy, Fsat, 
+                                               isotropic.b[0], 
+                                               Hiso, eta, density);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -647,9 +848,13 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
 #else
     NDMaterial* theMaterial = new GeneralizedJ2(tag,
                                                consts.E, consts.nu,
-                                               Fy, Fsat,
-                                               Hiso, Hkin, hard.Hsat, density, 
-                                              GeneralizedJ2::HRule::GP);
+                                               Fy,
+                                               overstress.limit,
+                                               Hiso, 
+                                               kinematic.C[0],
+                                               overstress.speed,
+                                               density, 
+                                               GeneralizedJ2::HRule::GP);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -658,10 +863,40 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
 #endif
   }
 
+  else if (strcmp(argv[1], "NonlinearJ2") == 0) {
+    double b[2]{};
+    double Q[2]{};
+
+    if (isotropic.b.size() > 0)
+      b[0] = isotropic.b[0];
+    if (isotropic.b.size() > 1)
+      b[1] = isotropic.b[1];
+    if (isotropic.Q.size() > 0)
+      Q[0] = isotropic.Q[0];
+    if (isotropic.Q.size() > 1)
+      Q[1] = isotropic.Q[1];
+
+    NDMaterial* theMaterial = new NonlinearJ2(tag, consts.E, consts.nu,
+                                            Fy, density,
+                                            Hiso,
+                                            b[0], Q[0],
+                                            b[1], Q[1],
+                                            kinematic.C,
+                                            kinematic.gamma);
+    if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+      delete theMaterial;
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  }
+
   else if ((strcmp(argv[1], "J2PlasticityThermal") == 0) ||
            (strcmp(argv[1], "J2Thermal") == 0)) {
     NDMaterial* theMaterial = new J2PlasticityThermal(tag, 0, consts.K, consts.G, 
-              Fy, Fsat, hard.Hsat, Hiso, eta, density);
+              Fy, 
+              Fsat,
+              isotropic.b[0],
+              Hiso, eta, density);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
     delete theMaterial;
     return TCL_ERROR;
@@ -671,9 +906,11 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "DruckerPrager") == 0 ||
            strcmp(argv[1], "DP") == 0) {
 
-    NDMaterial* theMaterial = new DruckerPrager(tag, 0, consts.K, consts.G,
-                  Fy, rho, rho_bar, Fsat, Fo,
-                  hard.Hsat, delta2, hard.Hmix, hard.theta, density, atm);
+    NDMaterial* theMaterial = new DruckerPrager(
+                                    tag, 0, consts.K, consts.G,
+                                    Fy, rho, rho_bar, Fsat, Fo,
+                                    isotropic.b[0], delta2, hard.Hmix, hard.theta,
+                                    density, atm);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -698,7 +935,7 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
 
     // "SimplifiedJ2"  tag?  G?  K?  Fy? Hkin?  Hiso?
     enum class Position : int {
-      Tag, G, K, YieldStress, EndRequired, 
+      Tag, G, K, YieldStress, EndRequired,
       Hkin, Hiso,
       End,
       E, Nu, Lambda, Eta, Theta, Hmix, Hsat,
@@ -708,8 +945,22 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
     };
     return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
-  else if (strcmp(argv[1], "J2BeamFiber") == 0) {
+  else if ((strcmp(argv[1], "J2BeamFiber") == 0) ||
+           (strcmp(argv[1], "J2BeamThread") == 0)) {
     // J2BeamFiber $tag $E $v $sigmaY $Hiso $Hkin <$rho>
+    enum class Position : int {
+      Tag, E, G, YieldStress, EndRequired,
+      Hkin, Hiso,
+      Density,
+      End,
+      Nu, K, Eta, Lambda, Theta, Hmix, Hsat,
+      SatStress, SatStress0,
+      Delta2, Rho, RhoBar, Atm
+    };
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
+  }
+  else if ((strcmp(argv[1], "J2PlateFibre") == 0)) {
+    // J2PlateFibre $tag $E $v $sigmaY $Hiso $Hkin <$rho>
     enum class Position : int {
       Tag, E, G, YieldStress, EndRequired,
       Hkin, Hiso,
@@ -769,6 +1020,18 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
       End,
       G, K, Lambda, Eta, Theta, Hmix, Hsat, SatStress0,
       Delta2, Rho, RhoBar, Atm
+    };
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
+  }
+  else if (strcmp(argv[1], "NonlinearJ2") == 0) {
+
+    // "NonlinearJ2" tag? E? nu?
+    enum class Position : int {
+      Tag, E, Nu, YieldStress, EndRequired, 
+      End,
+      G, K, Lambda, Eta, Theta, Hmix, Hsat, SatStress0,
+      Delta2, Rho, RhoBar, Atm,
+      Hiso, Hkin,  SatStress, Density,
     };
     return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }

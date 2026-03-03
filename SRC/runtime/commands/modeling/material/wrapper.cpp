@@ -111,8 +111,8 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
         
         inside = inside->getCopy("ThreeDimensional");
         if (!inside || strcmp(inside->getType(), "ThreeDimensional") != 0) {
-            opserr << OpenSees::PromptValueError << "InitStressNDMaterial only works with 3D materials\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptValueError << "InitStressNDMaterial only works with 3D materials\n";
+          return TCL_ERROR;
         }
 
         if (argc == 5) {

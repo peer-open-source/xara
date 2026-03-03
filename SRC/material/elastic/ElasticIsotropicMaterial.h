@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.13 $
-// $Date: 2006-09-05 21:21:52 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticIsotropicMaterial.h,v $
-                                                                        
-                                                                        
+                       
 #ifndef ElasticIsotropicMaterial_h
 #define ElasticIsotropicMaterial_h
 
@@ -43,6 +38,7 @@
 #include <Vector.h>
 #include <ID.h>
 
+namespace OpenSees {
 class ElasticIsotropicMaterial : public NDMaterial
 {
   public:
@@ -55,9 +51,9 @@ class ElasticIsotropicMaterial : public NDMaterial
     // For parallel processing
     ElasticIsotropicMaterial (void);
 
-    virtual ~ElasticIsotropicMaterial (void);
+    virtual ~ElasticIsotropicMaterial();
 
-    virtual const char *getClassType(void) const {return "ElasticIsotropicMaterial";};
+    virtual const char *getClassType() const {return "ElasticIsotropicMaterial";}
 
     virtual double getRho( ) ;
 
@@ -65,37 +61,38 @@ class ElasticIsotropicMaterial : public NDMaterial
     virtual int setTrialStrain (const Vector &v, const Vector &r);
     virtual int setTrialStrainIncr (const Vector &v);
     virtual int setTrialStrainIncr (const Vector &v, const Vector &r);
-    virtual const Matrix &getTangent (void);
-    virtual const Matrix &getInitialTangent (void);
-    virtual const Vector &getStress (void);
-    virtual const Vector &getStrain (void);
+    virtual const Matrix &getTangent(void);
+    virtual const Matrix &getInitialTangent(void);
+    virtual const Vector &getStress();
+    virtual const Vector &getStrain();
 
-    virtual int commitState (void);
+    virtual int commitState(void);
     virtual int revertToLastCommit (void);
-    virtual int revertToStart (void);
+    virtual int revertToStart();
     
     // Create a copy of material parameters AND state variables
     // Called by GenericSectionXD
-    virtual NDMaterial *getCopy (void);
+    NDMaterial *getCopy() override;
 
     // Create a copy of just the material parameters
     // Called by the continuum elements
-    virtual NDMaterial *getCopy (const char *type);
+    NDMaterial *getCopy (const char *type) override;
 
     // Return a string indicating the type of material model
-    virtual const char *getType (void) const;
+    virtual const char *getType() const;
 
-    virtual int getOrder (void) const;
+    virtual int getOrder() const;
     
-    virtual int sendSelf(int commitTag, Channel &theChannel);  
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    virtual int sendSelf(int commitTag, Channel &);  
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
     void Print(OPS_Stream &s, int flag = 0);
 
-    virtual int setParameter(const char **argv, int argc, Parameter &param);
-    virtual int updateParameter(int parameterID, Information &info);
+    virtual int setParameter(const char **argv, int argc, Parameter &);
+    virtual int updateParameter(int parameterID, Information &);
     virtual int activateParameter(int paramID);
+
+    friend class ElasticIsotropicBeamThread;
 
   protected:
     double E;	// Elastic modulus
@@ -106,6 +103,6 @@ class ElasticIsotropicMaterial : public NDMaterial
   private:
 
 };
-
+} //
 
 #endif

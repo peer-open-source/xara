@@ -872,7 +872,7 @@ void LinearElasticSpring::Print(OPS_Stream &s, int flag)
 Response* LinearElasticSpring::setResponse(const char **argv, int argc,
     OPS_Stream &output)
 {
-    Response *theResponse = 0;
+    Response *theResponse = nullptr;
     
     output.tag("ElementOutput");
     output.attr("eleType","LinearElasticSpring");
@@ -880,7 +880,7 @@ Response* LinearElasticSpring::setResponse(const char **argv, int argc,
     output.attr("node1",connectedExternalNodes[0]);
     output.attr("node2",connectedExternalNodes[1]);
     
-    char outputData[10];
+    char outputData[256];
     
     // global forces
     if (strcmp(argv[0],"force") == 0 || 

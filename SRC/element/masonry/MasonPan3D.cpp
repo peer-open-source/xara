@@ -1298,22 +1298,22 @@ MasonPan3D::setResponse(const char **argv, int argc, OPS_Stream &output)
     output.attr("node10",externalNodes[9]);
     output.attr("node11",externalNodes[10]);
     output.attr("node12",externalNodes[11]);  
-    char outputData[10];
+    char outputData[256];
 
     if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
         || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
 
-            char outputData[10];
- //           int numDOFperNode = numDOF/2;
-            for (int i=0; i<6; i++) {
-                sprintf(outputData,"P1_%d", i+1);
-                output.tag("ResponseType", outputData);
-            }
-            for (int j=0; j<6; j++) {
-                sprintf(outputData,"P2_%d", j+1);
-                output.tag("ResponseType", outputData);
-            }
-            theResponse = new ElementResponse(this, 1, Vector(36));
+        char outputData[256];
+//      int numDOFperNode = numDOF/2;
+        for (int i=0; i<6; i++) {
+            sprintf(outputData,"P1_%d", i+1);
+            output.tag("ResponseType", outputData);
+        }
+        for (int j=0; j<6; j++) {
+            sprintf(outputData,"P2_%d", j+1);
+            output.tag("ResponseType", outputData);
+        }
+        theResponse = new ElementResponse(this, 1, Vector(36));
 
     } else if ((strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) ||
          (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)) {

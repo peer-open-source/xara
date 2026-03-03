@@ -1186,9 +1186,9 @@ BbarBrick::recvSelf (int commitTag,
 Response*
 BbarBrick::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
-  Response *theResponse = 0;
+  Response *theResponse = nullptr;
 
-  char outputData[32];
+  char outputData[256];
 
   output.tag("ElementOutput");
   output.attr("eleType","BbarBrick");
@@ -1200,7 +1200,7 @@ BbarBrick::setResponse(const char **argv, int argc, OPS_Stream &output)
 
   if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0) {
 
-    char outputData[10];
+    char outputData[256];
     for (int i=1; i<=8; i++) {
       sprintf(outputData,"P1_%d",i);
       output.tag("ResponseType",outputData);

@@ -61,6 +61,7 @@ struct alignas(64) MatrixND {
   operator const Matrix() const { return Matrix(&(*this)(0,0), NR, NC);}
   #endif
   inline constexpr void zero() noexcept;
+  inline constexpr void Zero() noexcept { zero(); }
 
   constexpr T
   trace() const noexcept
@@ -90,7 +91,9 @@ struct alignas(64) MatrixND {
     void setMatrixProduct(const MatrixND<NR,nk,T>& A, const MatrixND<nk,NC,T>& B, double scale) noexcept;
 
   template <int nk> constexpr
-    void addMatrixProduct(const MatrixND<NR,nk,T>& A, const MatrixND<nk,NC>& B, double scale) noexcept;
+    void addMatrixProduct(const MatrixND<NR,nk,T>& A, 
+                          const MatrixND<nk,NC>& B, 
+                          double scale) noexcept;
 
   template <int nk> constexpr
     void addMatrixTransposeProduct(double scale, const MatrixND<nk,NR,T>& B,
@@ -100,34 +103,39 @@ struct alignas(64) MatrixND {
     void setMatrixTransposeProduct(const MatrixND<nk, NR, T>& B, const MatrixND<nk, NC, T>& C) noexcept;
 
   template <int nk> constexpr
-    void addMatrixTransposeProduct(const MatrixND<nk, NR, T>& B, const MatrixND<nk, NC, T>& C) noexcept;
+    void addMatrixTransposeProduct(const MatrixND<nk, NR, T>& B, 
+                                   const MatrixND<nk, NC, T>& C) noexcept;
 
   template <class VecA, class VecB>  constexpr MatrixND<NR,NC,T>& 
     addTensorProduct(const VecA& V, const VecB& W, const double scale) noexcept;
 
   template <class MatT, int nk> void 
-    addMatrixProduct(const MatrixND<NR, nk, T> &, const MatT&, double scale);
+    addMatrixProduct(const MatrixND<NR, nk, T> &, const MatT&, double scale) noexcept;
 
   template <class MatT, int nk> void 
-    addMatrixProduct(double, const MatrixND<NR, nk, T> &, const MatT&, double scale);
+    addMatrixProduct(double, const MatrixND<NR, nk, T> &, const MatT&, double scale) noexcept;
 
   // += A'B
   template <class MatT, int nk> void
-    addMatrixTransposeProduct(double thisFact, const MatrixND<nk, NR, T> &, const MatT&, double scale);
+    addMatrixTransposeProduct(double thisFact, 
+                              const MatrixND<nk, NR, T> &, 
+                              const MatT&, 
+                              double scale) noexcept;
 
   // += A'BA
   template <int nk> int 
     addMatrixTripleProduct(double thisFact, 
                            const MatrixND<nk, NR, T> &, 
                            const MatrixND<nk, nk, T>&, 
-                           double scale);
+                           double scale) noexcept;
 
   // += A'BC
   template <int nk, int nl> int 
     addMatrixTripleProduct(double thisFact, 
                            const MatrixND<nk,NR> &A, 
                            const MatrixND<nk,nl> &B, 
-                           const MatrixND<nl,NC> &C, double otherFact);
+                           const MatrixND<nl,NC> &C, 
+                           double otherFact) noexcept;
 
   template <typename F> void map(F func) const;
   template <typename F> void map(F func, MatrixND<NR,NC,T>& destination);
@@ -136,6 +144,10 @@ struct alignas(64) MatrixND {
   template<class VecT> inline constexpr MatrixND<NR,NC,T>& addSpin(const VecT& V, double scale) noexcept;
   template<class VecT> inline constexpr MatrixND<NR,NC,T>& addSpinSquare(const VecT& V, double scale) noexcept;
   template<class VecT> inline constexpr void addSpinProduct(const VecT& a, const VectorND<NR,T>& b, double scale) noexcept;
+
+  void addSpinAtRow(const VectorND<NR>& V, size_t row_index);
+  template<class TVec>
+  void addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index);
 
   template<class VecT> inline constexpr void 
     addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, double scale) noexcept;

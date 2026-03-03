@@ -75,8 +75,9 @@ int
 TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
                           Tcl_Size argc, TCL_Char ** const argv)
 {
-  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  using OpenSees::Library::MaterialLibrary;
 
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError
@@ -87,8 +88,8 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
 
   {
-    auto tcl_cmd = OpenSees::MaterialLibrary.find(std::string(argv[1]));
-    if (tcl_cmd != OpenSees::MaterialLibrary.end()) {
+    auto tcl_cmd = MaterialLibrary.find(std::string(argv[1]));
+    if (tcl_cmd != MaterialLibrary.end()) {
       return (*tcl_cmd->second)(clientData, interp, argc, &argv[0]);
     }
   }

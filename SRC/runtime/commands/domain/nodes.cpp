@@ -861,7 +861,7 @@ nodeDOFs(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** c
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
 
-  if (argc != 2) {
+  if (argc < 2) {
     opserr << OpenSees::PromptValueError 
            << "Missing required arguments"
            << OpenSees::SignalMessageEnd;
@@ -870,7 +870,9 @@ nodeDOFs(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** c
 
   int tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "nodeDOFs nodeTag?\n";
+    opserr << OpenSees::PromptValueError 
+           << "Failed to read nodeTag " << argv[1]
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

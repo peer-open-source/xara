@@ -244,19 +244,14 @@ ZeroLengthSection::revertToStart()
 }
 
 const Matrix &
-ZeroLengthSection::getTangentStiff(void)
+ZeroLengthSection::getTangentStiff()
 {
-	// Compute section deformation vector
-	// this->computeSectionDefs();	// MSN: commented out beause the method "update()" was added to the class
-
-	// Set trial section deformation
-	// theSection->setTrialSectionDeformation(*v);	// MSN: commented out beause the method "update()" was added to the class
-
 	// Get section tangent stiffness, the element basic stiffness
 	const Matrix &kb = theSection->getSectionTangent();
 
 	// Compute element stiffness ... K = A^*kb*A
 	K->addMatrixTripleProduct(0.0, *A, kb, 1.0);
+	// opserr << "K = " << *K;
 
 	return *K;
 }

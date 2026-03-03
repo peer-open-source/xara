@@ -1,3 +1,18 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once
 #include <array>
 
@@ -6,6 +21,7 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 #include <ID.h>
+#include <State.h>
 
 class Node;
 class Domain;
@@ -14,7 +30,6 @@ class Rotation;
 
 using namespace OpenSees;
 
-#include <State.h>
 
 template <int nen, int ndm, int ndf>
 class FiniteElement : public Element {

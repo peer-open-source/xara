@@ -40,7 +40,8 @@
 #include <stdlib.h>
 
 EarthquakePattern::EarthquakePattern(int tag, int _classTag)
-  :LoadPattern(tag, _classTag), theMotions(0), numMotions(0), uDotG(0), uDotDotG(0), currentTime(0.0), parameterID(0)
+  :LoadPattern(tag, _classTag, 1.0)
+  , theMotions(0), numMotions(0), uDotG(0), uDotDotG(0), currentTime(0.0), parameterID(0)
 {
 
 }
@@ -174,11 +175,6 @@ EarthquakePattern::addMotion(GroundMotion &theMotion)
     delete uDotDotG;
   uDotDotG = new Vector(numMotions);
 
-  if (uDotDotG == 0 || uDotDotG->Size() == 0 || uDotG == 0 || uDotG->Size() == 0) {
-    opserr << "EarthquakePattern::addMotion - ran out of memory creating vectors\n";
-    numMotions = 0;
-    return -2;
-  }
   return 0;
 }
 

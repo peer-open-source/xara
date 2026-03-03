@@ -72,6 +72,7 @@ public:
                double density);
 
   J2Plasticity(int tag, int classTag, double K, double G);
+  bool threadSafe() const override {return true;}
 
   virtual ~J2Plasticity();
 
@@ -137,18 +138,18 @@ protected:
   double rho;         // density
 
   // internal variables
-  Matrix epsilon_p_n;      // plastic strain time n
-  Matrix epsilon_p_nplus1; // plastic strain time n+1
+  Matrix3D epsilon_p_n;      // plastic strain time n
+  Matrix3D epsilon_p_nplus1; // plastic strain time n+1
   double xi_n;             // xi time n
   double xi_nplus1;        // xi time n+1
 
   // material response
-  Matrix stress;                            //stress tensor
-  double tangent[3][3][3][3];               //material tangent
-  static double initialTangent[3][3][3][3]; //material tangent
+  Matrix3D strain;                          //strain tensor
+  Matrix3D stress;                          // stress tensor
+  double tangent[3][3][3][3];               // material tangent
+  static double initialTangent[3][3][3][3]; // material tangent
 
   // material input
-  Matrix strain; //strain tensor
 
   // parameters
   int parameterID;

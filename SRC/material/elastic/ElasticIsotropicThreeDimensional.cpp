@@ -21,6 +21,7 @@
 #include <ElasticIsotropicThreeDimensional.h>           
 #include <Channel.h>
 
+using namespace OpenSees;
 
 Vector ElasticIsotropicThreeDimensional::sigma(6);
 Matrix ElasticIsotropicThreeDimensional::D(6,6);

@@ -12,6 +12,7 @@ target_sources(OPS_Material
     ElasticIsotropicPlaneStress2D.cpp
     ElasticIsotropicBeamFiber2d.cpp
     ElasticIsotropicBeamFiber.cpp
+    ElasticIsotropicBeamThread.cpp
     ElasticIsotropicAxiSymm.cpp
     ElasticIsotropicMaterial.cpp
     ElasticIsotropicPlateFiber.cpp

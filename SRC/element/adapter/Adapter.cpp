@@ -30,7 +30,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <TCP_Socket.h>
@@ -809,7 +808,7 @@ Response* Adapter::setResponse(const char **argv, int argc,
 {
     Response *theResponse = 0;
 
-    char outputData[13];
+    char outputData[256];
 
     output.tag("ElementOutput");
     output.attr("eleType","Adapter");

@@ -16,7 +16,7 @@
 // Claudio M. Perez
 //
 #pragma once
-#include "Prism.h"
+#include "Shape.h"
 #include <array>
 #include <vector>
 #include <Domain.h>

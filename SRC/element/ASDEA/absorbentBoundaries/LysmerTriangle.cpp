@@ -34,7 +34,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Logging.h>
 #include <NDMaterial.h>
 #include <ElementalLoad.h>
@@ -664,11 +663,6 @@ LysmerTriangle::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &t
   return 0;
 }
 
-int
-LysmerTriangle::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
-}
 
 void
 LysmerTriangle::Print(OPS_Stream &s, int flag)

@@ -1,5 +1,6 @@
 #include <BeamIntegration.h>
 #include <element/Frame/for_int.tpp>
+#include <typeinfo>
 
 template<typename T>
 class FrameQuadrature : public BeamIntegration
@@ -33,9 +34,10 @@ class FrameQuadrature : public BeamIntegration
     int sendSelf(int cTag, Channel &) {return 0;}
     int recvSelf(int cTag, Channel &, FEM_ObjectBroker &) {return 0;}
 
-    virtual void Print(OPS_Stream &s, int flag) override {
+    virtual void 
+    Print(OPS_Stream &s, int flag) override {
         if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-            s << "{\"type\": \"FrameQuadrature\"}";
+            s << "{\"type\": \"" << typeid(T).name() << "\"}";
         }
         else {
             s << "FrameQuadrature" << endln;

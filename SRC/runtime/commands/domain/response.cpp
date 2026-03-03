@@ -465,7 +465,8 @@ sectionStiffness(ClientData clientData, Tcl_Interp *interp, int argc,
   Domain *the_domain = (Domain*)clientData;
 
   if (argc < 3) {
-    opserr << OpenSees::PromptValueError << "want - sectionStiffness eleTag? secNum? \n";
+    opserr << OpenSees::PromptValueError 
+           << "want - sectionStiffness eleTag? secNum? \n";
     return TCL_ERROR;
   }
 

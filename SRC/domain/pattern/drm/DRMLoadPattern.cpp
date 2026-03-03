@@ -21,10 +21,9 @@
 #include <math.h>
 #include <iostream>
 
-//using namespace::std;
 
 DRMLoadPattern::DRMLoadPattern(int tag, double cfact, DRMInputHandler* my_handler, Domain* domain)
-:LoadPattern(tag, PATTERN_TAG_DRMLoadPattern)
+:LoadPattern(tag, PATTERN_TAG_DRMLoadPattern, 1.0)
 {
   this->factor = cfact;
 

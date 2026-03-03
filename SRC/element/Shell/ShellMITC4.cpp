@@ -484,7 +484,8 @@ ShellMITC4::getTangentStiff()
 }
 
 // return secant matrix
-const Matrix &ShellMITC4::getInitialStiff()
+const Matrix &
+ShellMITC4::getInitialStiff()
 {
   if (Ki != 0)
     return *Ki;
@@ -611,10 +612,10 @@ const Matrix &ShellMITC4::getInitialStiff()
     dvol[i] = wts[i] * xsj;
     volume += dvol[i];
 
-    Ms(1, 0) = 1 - pts[i][0];
-    Ms(0, 1) = 1 - pts[i][1];
-    Ms(1, 2) = 1 + pts[i][0];
-    Ms(0, 3) = 1 + pts[i][1];
+    Ms(1, 0) = 1.0 - pts[i][0];
+    Ms(0, 1) = 1.0 - pts[i][1];
+    Ms(1, 2) = 1.0 + pts[i][0];
+    Ms(0, 3) = 1.0 + pts[i][1];
     Bsv      = Ms * G;
 
     for (int j = 0; j < 12; j++) {
@@ -662,7 +663,6 @@ const Matrix &ShellMITC4::getInitialStiff()
       }
 
       // transpose
-      //BJtran = transpose( 8, ndf, BJ ) ;
       for (int p = 0; p < ndf; p++) {
         for (int q = 0; q < nstress; q++)
           BJtran(p, q) = BJ(q, p);
@@ -980,6 +980,27 @@ ShellMITC4::formResidAndTangent(int tang_flag)
     updateBasis();
   // end Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
 
+
+  const double Ax = -xl[0][0] + xl[0][1] + xl[0][2] - xl[0][3];
+  const double Bx =  xl[0][0] - xl[0][1] + xl[0][2] - xl[0][3];
+  const double Cx = -xl[0][0] - xl[0][1] + xl[0][2] + xl[0][3];
+
+  const double Ay = -xl[1][0] + xl[1][1] + xl[1][2] - xl[1][3];
+  const double By =  xl[1][0] - xl[1][1] + xl[1][2] - xl[1][3];
+  const double Cy = -xl[1][0] - xl[1][1] + xl[1][2] + xl[1][3];
+
+  MatrixND<2, 2> Rot;
+  {
+    double alph = std::atan(Ay / Ax);
+    double beta = 3.141592653589793 / 2 - std::atan(Cx / Cy);
+
+    Rot.zero();
+    Rot(0, 0) =  sin(beta);
+    Rot(0, 1) = -sin(alph);
+    Rot(1, 0) = -cos(beta);
+    Rot(1, 1) =  cos(alph);
+  }
+
   double dx34 = xl[0][2] - xl[0][3];
   double dy34 = xl[1][2] - xl[1][3];
 
@@ -991,26 +1012,6 @@ ShellMITC4::formResidAndTangent(int tang_flag)
 
   double dx41 = xl[0][3] - xl[0][0];
   double dy41 = xl[1][3] - xl[1][0];
-
-
-  double Ax = -xl[0][0] + xl[0][1] + xl[0][2] - xl[0][3];
-  double Bx =  xl[0][0] - xl[0][1] + xl[0][2] - xl[0][3];
-  double Cx = -xl[0][0] - xl[0][1] + xl[0][2] + xl[0][3];
-
-  double Ay = -xl[1][0] + xl[1][1] + xl[1][2] - xl[1][3];
-  double By =  xl[1][0] - xl[1][1] + xl[1][2] - xl[1][3];
-  double Cy = -xl[1][0] - xl[1][1] + xl[1][2] + xl[1][3];
-
-  double alph = atan(Ay / Ax);
-  double beta = 3.141592653589793 / 2 - atan(Cx / Cy);
-
-  MatrixND<2, 2> Rot;
-  Rot.zero();
-  Rot(0, 0) =  sin(beta);
-  Rot(0, 1) = -sin(alph);
-  Rot(1, 0) = -cos(beta);
-  Rot(1, 1) =  cos(alph);
-
   const MatrixND<4, 12> G = {{ // NOTE: initialization is transposed
          -0.50,        -0.50,          0.00,          0.00 ,
     -dy41*0.25, -dy21 * 0.25,          0.00,          0.00 ,
@@ -1025,8 +1026,6 @@ ShellMITC4::formResidAndTangent(int tang_flag)
     -dy41*0.25,         0.00,          0.00,  -dy34 * 0.25 ,
      dx41*0.25,         0.00,          0.00,   dx34 * 0.25 }};
 
-  MatrixND<2, 4> Ms;
-  Ms.zero();
 
   double r1 = 0;
   double r2 = 0;
@@ -1039,27 +1038,28 @@ ShellMITC4::formResidAndTangent(int tang_flag)
     r1 = Cx + pts[i][0] * Bx;
     r3 = Cy + pts[i][0] * By;
     r1 = r1 * r1 + r3 * r3;
-    r1 = sqrt(r1);
+    r1 = std::sqrt(r1);
     r2 = Ax + pts[i][1] * Bx;
     r3 = Ay + pts[i][1] * By;
     r2 = r2 * r2 + r3 * r3;
-    r2 = sqrt(r2);
-
+    r2 = std::sqrt(r2);
     // get shape functions
     shape2d(pts[i][0], pts[i][1], xl, shp, xsj);
     // volume element to also be saved
     dvol[i] = wts[i] * xsj;
     volume += dvol[i];
 
-    Ms(1, 0) = 1 - pts[i][0];
-    Ms(0, 1) = 1 - pts[i][1];
-    Ms(1, 2) = 1 + pts[i][0];
-    Ms(0, 3) = 1 + pts[i][1];
+    MatrixND<2, 4> Ms;
+    Ms.zero();
+    Ms(1, 0) = 1.0 - pts[i][0];
+    Ms(0, 1) = 1.0 - pts[i][1];
+    Ms(1, 2) = 1.0 + pts[i][0];
+    Ms(0, 3) = 1.0 + pts[i][1];
     auto Bsv      = Ms * G;
 
     for (int j = 0; j < 12; j++) {
-      Bsv(0, j) = Bsv(0, j) * r1 / (8 * xsj);
-      Bsv(1, j) = Bsv(1, j) * r2 / (8 * xsj);
+      Bsv(0, j) = Bsv(0, j) * r1 / (8.0 * xsj);
+      Bsv(1, j) = Bsv(1, j) * r2 / (8.0 * xsj);
     }
     auto Bs = Rot * Bsv;
 
@@ -1072,14 +1072,11 @@ ShellMITC4::formResidAndTangent(int tang_flag)
 
       // compute B matrix
       Bmembrane = computeBmembrane(j, shp);
-
       Bbend = computeBbend(j, shp);
-
       for (int p = 0; p < 3; p++) {
         Bshear(0, p) = Bs(0, j * 3 + p);
         Bshear(1, p) = Bs(1, j * 3 + p);
       }
-
       assembleB(Bmembrane, Bbend, Bshear, B[j]);
 
       // nodal "displacements"
@@ -1138,7 +1135,7 @@ ShellMITC4::formResidAndTangent(int tang_flag)
       }
 
 //    residJ.addMatrixTransposeVector(0.0, B[j], stress, 1.0);
-      residJ = BJtran * stress;
+      const VectorND<ndf> residJ = BJtran * stress;
 
       // drilling B matrix
       computeBdrill(j, shp, BdrillJ);
@@ -1163,12 +1160,12 @@ ShellMITC4::formResidAndTangent(int tang_flag)
 
           // stiffJK = BJtranD * BK  ;
           // +  transpose( 1,ndf,BdrillJ ) * BdrillK ;
-          MatrixND<ndf,ndf> stiffJK = BJtranD * B[k]; // .addMatrixProduct(0.0, BJtranD, BK, 1.0);
+          const MatrixND<ndf,ndf> stiffJK = BJtranD * B[k];
 
           for (int p = 0; p < ndf; p++) {
             for (int q = 0; q < ndf; q++) {
               stiff(jj + p, kk + q) +=
-                  stiffJK(p, q) + (BdrillJ[p] * BdrillK[q]);
+                  stiffJK(p, q) + BdrillJ[p]*BdrillK[q];
             }
           }
 
@@ -1227,7 +1224,8 @@ ShellMITC4::formResidAndTangent(int tang_flag)
 // ************************************************************************
 // compute local coordinates and basis
 
-void ShellMITC4::computeBasis()
+void
+ShellMITC4::computeBasis()
 {
   // could compute derivatives \frac{ \partial {\bf x} }{ \partial L_1 }
   //                     and  \frac{ \partial {\bf x} }{ \partial L_2 }
@@ -1299,6 +1297,7 @@ void ShellMITC4::computeBasis()
     g3[i] = v3(i);
   }
 }
+
 
 // start Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
 //************************************************************************
@@ -1378,8 +1377,8 @@ void ShellMITC4::updateBasis()
 
 //*************************************************************************
 // compute Bdrill
-inline
-double *ShellMITC4::computeBdrill(int node, const double shp[3][4], double Bdrill[6])
+inline double *
+ShellMITC4::computeBdrill(int node, const double shp[3][4], double Bdrill[6])
 {
 
   //---Bdrill Matrix in standard {1,2,3} mechanics notation---------
@@ -1494,6 +1493,7 @@ ShellMITC4::assembleB(const Matrix &Bmembrane,
 
   }
 }
+
 
 //
 // compute Bmembrane matrix

@@ -206,7 +206,7 @@ CayleyFromVersor(const Versor &q)
 
 // R = (q0^2 - q' * q)*I + 2 * q * q' + 2*q0*S(q);
 static inline Matrix3D
-MatrixFromVersor(const Versor &q)
+MatrixFromVersor(const Versor &q) noexcept
 {
   Matrix3D R{};
 
@@ -224,7 +224,7 @@ MatrixFromVersor(const Versor &q)
 
 // Form rotation axis vector from a quaternion
 static inline Vector3D
-VectorFromVersor(const Versor& q)
+VectorFromVersor(const Versor& q) noexcept
 {
   // Initialize to zero
   Vector3D theta{};
@@ -265,7 +265,7 @@ VectorFromVersor(const Versor& q)
 //
 
 static inline Matrix3D
-ExpSO3(const Vector3D &theta)
+ExpSO3(const Vector3D &theta) noexcept
 {
   // Form the first Gib coefficients
   double a[4];

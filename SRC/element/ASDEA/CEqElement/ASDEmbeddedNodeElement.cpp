@@ -33,7 +33,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
-#include <Renderer.h>
 #include <analysis/dof_grp/DOF_Group.h>
 
 #include <stdio.h>

@@ -56,19 +56,20 @@
 
 extern double ops_Dt;
 
-using OpenSees::J2Plasticity;
+// using OpenSees::J2Plasticity;
 
 const double J2Plasticity ::root23 = sqrt(2.0 / 3.0);
 
 double J2Plasticity::initialTangent[3][3][3][3]; //material tangent
 
+using namespace OpenSees;
 
 J2Plasticity::J2Plasticity()
  : NDMaterial(),
-   epsilon_p_n(3, 3),
-   epsilon_p_nplus1(3, 3),
-   stress(3, 3),
-   strain(3, 3),
+   epsilon_p_n(),
+   epsilon_p_nplus1(),
+   stress(),
+   strain(),
    parameterID(0)
 {
   bulk        = 0.0;
@@ -96,10 +97,10 @@ J2Plasticity::J2Plasticity(int tag,
                            double viscosity,
                            double density)
  : NDMaterial(tag, classTag),
-   epsilon_p_n(3, 3),
-   epsilon_p_nplus1(3, 3),
-   stress(3, 3),
-   strain(3, 3),
+   epsilon_p_n(),
+   epsilon_p_nplus1(),
+   stress(),
+   strain(),
    parameterID(0)
 {
   bulk        = K;
@@ -119,10 +120,10 @@ J2Plasticity::J2Plasticity(int tag,
 
 J2Plasticity::J2Plasticity(int tag, int classTag, double K, double G)
  : NDMaterial(tag, classTag),
-   epsilon_p_n(3, 3),
-   epsilon_p_nplus1(3, 3),
-   stress(3, 3),
-   strain(3, 3),
+   epsilon_p_n(),
+   epsilon_p_nplus1(),
+   stress(),
+   strain(),
    parameterID(0)
 {
   bulk        = K;
@@ -223,11 +224,11 @@ J2Plasticity::zero()
   xi_n      = 0.0;
   xi_nplus1 = 0.0;
 
-  epsilon_p_n.Zero();
-  epsilon_p_nplus1.Zero();
+  epsilon_p_n.zero();
+  epsilon_p_nplus1.zero();
 
-  stress.Zero();
-  strain.Zero();
+  stress.zero();
+  strain.zero();
 }
 
 
@@ -238,9 +239,9 @@ J2Plasticity::plastic_integrator()
   const double tolerance = 1.0e-10 * sigma_0;
   const double G = shear;
 
-  static Matrix dev_stress(3, 3); // deviatoric stress
+  thread_local Matrix3D dev_stress{}; // deviatoric stress
 
-  static Matrix normal(3, 3); // normal to yield surface
+  thread_local Matrix3D normal{}; // normal to yield surface
 
   double NbunN; // normal bun normal
   double inv_norm_tau = 0.0;
@@ -252,7 +253,7 @@ J2Plasticity::plastic_integrator()
 
   double trace = strain(0, 0) + strain(1, 1) + strain(2, 2);
 
-  static Matrix dev_strain(3, 3);
+  thread_local Matrix3D dev_strain{};
   dev_strain = strain;
   for (int i = 0; i < 3; i++)
     dev_strain(i, i) -= 1. / 3. * trace;
@@ -370,7 +371,6 @@ J2Plasticity::plastic_integrator()
     for (int jj = 0; jj < 6; jj++) {
 
       int i, j, k, l;
-
       this->index_map(ii, i, j);
       this->index_map(jj, k, l);
 

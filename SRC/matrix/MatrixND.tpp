@@ -468,13 +468,14 @@ MatrixND<nr, nc, T>::setMatrixProduct(const MatrixND<nr, nk, T>& B,
 template <index_t nr, index_t nc, typename T> 
 template <class MatT, int nk> inline
 void
-MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A, const MatT& B, double scale)
+MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A, 
+                                      const MatT& B, double scale) noexcept
 {
   if constexpr (nr*nc < BlasSize) {
     Repeat<nr> ([&](auto i_) {
-      constexpr static int i = i_.value;
+      constexpr int i = i_.value;
       Repeat<nc> ([&](auto j_) {
-        constexpr static int j = j_.value;
+        constexpr int j = j_.value;
         for (int k=0; k < nk; k++)
           (*this)(i,j) += scale*A(i,k)*B(k,j);
       });
@@ -502,7 +503,7 @@ template <class MatT, int nk> inline
 void
 MatrixND<nr, nc, T>::addMatrixProduct(double scale_this, 
                                       const MatrixND<nr, nk, T>& A, 
-                                      const MatT& B, double scale)
+                                      const MatT& B, double scale) noexcept
 {
   static_assert(std::is_same_v<T,double>, "Only double storage is supported");
 
@@ -558,9 +559,9 @@ MatrixND<nr, nc, T>::setMatrixTransposeProduct(const MatrixND<nk, nr, T>& B,
 #else 
     double *RESTRICT aij =this->data();
     Repeat<nc> ([&](auto j_) {
-      constexpr static int j = j_.value;
+      constexpr int j = j_.value;
       Repeat<nr> ([&](auto i_) {
-        constexpr static int i = i_.value;
+        constexpr int i = i_.value;
         const double *RESTRICT bki  = &(&B(0,0))[i*nk];
         const double *RESTRICT cjk  = &(&C(0,0))[j*nk];
         double sum = 0.0;
@@ -599,9 +600,9 @@ MatrixND<nr, nc, T>::addMatrixTransposeProduct(const MatrixND<nk, nr, T>& B,
   else {
     double *RESTRICT aijPtr =this->data();
     Repeat<nc> ([&](auto j_) {
-      constexpr static int j = j_.value;
+      constexpr int j = j_.value;
       Repeat<nr> ([&](auto i_) {
-        constexpr static int i = i_.value;
+        constexpr int i = i_.value;
         const double *RESTRICT bkiPtr  = &(&B(0,0))[i*nk];
         const double *RESTRICT cjkPtr  = &(&C(0,0))[j*nk];
         double sum = 0.0;
@@ -661,7 +662,7 @@ void
 MatrixND<nr, nc, T>::addMatrixTransposeProduct(double thisFact,
                                                const MatrixND<nk, nr, T>& B,
                                                const MatT& C,
-                                               double otherFact)
+                                               double otherFact) noexcept
 {
   if constexpr (nr*nk >= BlasSize) {
     int m = nr,
@@ -752,7 +753,7 @@ MatrixND<nr,nc,scalar_t>::addMatrixTripleProduct(
                                double thisFact,
                                const  MatrixND<ncB, nr, scalar_t> &T, 
                                const  MatrixND<ncB, ncB, scalar_t> &B, 
-                               double otherFact)
+                               double otherFact) noexcept
 {
 // #ifdef MATRIX_BRANCHING
   // if (otherFact == 0.0 && thisFact == 1.0)
@@ -771,7 +772,7 @@ template <int nk, int nl> inline int
 MatrixND<nr,nc,scalar_t>::addMatrixTripleProduct(double thisFact, 
                            const MatrixND<nk,nr> &A, 
                            const MatrixND<nk,nl> &B, 
-                           const MatrixND<nl,nc> &C, double otherFact)
+                           const MatrixND<nl,nc> &C, double otherFact) noexcept
 {
 // #ifdef MATRIX_BRANCHING
 //   if (otherFact == 0.0 && thisFact == 1.0)
@@ -848,6 +849,39 @@ MatrixND<NR,NC,T>::addSpinSquare(const VecT& v, const double scale) noexcept
   (*this)(1,2) += scale*(  v2*v3 );
   (*this)(2,1) += scale*(  v2*v3 );
   return *this;
+}
+
+template <int NR, int NC, typename T>
+inline void 
+MatrixND<NR,NC,T>::addSpinAtRow(const VectorND<NR>& V, size_t row_index)
+{
+  size_t i0 = row_index;
+  size_t i1 = 1 + row_index;
+  size_t i2 = 2 + row_index;
+  double v0 = V(i0);
+  double v1 = V(i1);
+  double v2 = V(i2);
+                            (*this)(i0, 1) += -v2;     (*this)(i0, 2) +=  v1;
+  (*this)(i1, 0) +=  v2;                               (*this)(i1, 2) += -v0;
+  (*this)(i2, 0) += -v1;    (*this)(i2, 1) +=  v0;                          ;
+}
+
+
+template <int NR, int NC, typename T>
+template< class TVec>
+inline void 
+MatrixND<NR,NC,T>::addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index)
+{
+  size_t i0 = matrix_row_index;
+  size_t i1 = 1 + matrix_row_index;
+  size_t i2 = 2 + matrix_row_index;
+  const double v0 = mult * V(vector_index);
+  const double v1 = mult * V(vector_index + 1);
+  const double v2 = mult * V(vector_index + 2);
+
+                              (*this)(i0, 1) += -v2;    (*this)(i0, 2) += v1;
+  (*this)(i1, 0) +=  v2;                               (*this)(i1, 2) += -v0;
+  (*this)(i2, 0) += -v1;     (*this)(i2, 1) +=  v0;
 }
 
 

@@ -170,7 +170,7 @@ Broyden::solveCurrentStep()
       temp = new Vector(systemSize) ;
 
     // initial displacement increment
-    if ( s[1] == 0 ) 
+    if ( s[1] == nullptr ) 
       s[1] = new Vector(systemSize) ;
 
     *s[1] = theSOE->getX( ) ;
@@ -231,7 +231,7 @@ Broyden::solveCurrentStep()
 
       *s[nBroyden] = *du ;
 
-      //swap residuals
+      // swap residuals
       *residOld = *residNew ;
 
       //form the residual again
@@ -306,16 +306,16 @@ void  Broyden::BroydenUpdate( IncrementalIntegrator *theIntegrator,
     *temp *= ( (1.0/p) * sdotz ) ;
     *z[nBroyden] += (*temp) ;
 
+  }
 
-  } //end for i
 
-
-  //broyden modifications to du
+  // broyden modifications to du
   for (int i=1; i<=nBroyden; i++ ) {
 
     double p = - ( (*s[i]) ^ (*z[i]) ) ;
 
-    if ( fabs(p) < eps ) break ;
+    if ( std::fabs(p) < eps )
+      break ;
 
     double sdotdu = (*s[i]) ^ du ;
 

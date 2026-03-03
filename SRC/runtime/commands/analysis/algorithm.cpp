@@ -87,6 +87,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
   {"NewtonHall",        TclCommand_newNewtonHallM},
   {"NewtonLineSearch",  TclCommand_newNewtonLineSearch},
 
+  {"QuasiNewton",       TclCommand_newAcceleratedNewton},
   {"SecantNewton",      TclCommand_newAcceleratedNewton},
   {"MillerAccelerator", TclCommand_newAcceleratedNewton},
   {"KrylovNewton",      TclCommand_newAcceleratedNewton},

@@ -11,7 +11,7 @@
 //
 // Written: cc,cmp 05/2024
 //
-#include <Frame/Prism.h>
+#include <Frame/Shape.h>
 #include <Vector.h>
 #include <VectorND.h>
 #include <Matrix.h>
@@ -125,16 +125,17 @@ PrismFrame2d::PrismFrame2d(int tag, int Nd1, int Nd2,
   }
   
 #else
-  Frame::Prism prism_props(section);
-  A  = *prism_props.A;
-  Iz = *prism_props.Iz;
-  E  = *prism_props.E;
-  G  = *prism_props.G;
+  Frame::Shape shape_data(2,3);
+  section.getShape(shape_data);
+  A  =  shape_data.A;
+  Iz = *shape_data.Iz;
+  E  = *shape_data.E;
+  G  = *shape_data.G;
   if (!shear_flag) {
     Ay = 0.0;
   } 
   else {
-    Ay = *prism_props.Ay;
+    Ay = *shape_data.Ay;
   }
 #endif
   connectedExternalNodes(0) = Nd1;

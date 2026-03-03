@@ -87,28 +87,6 @@ LoadPattern::LoadPattern()
   dLambdadh   = 0;
 }
 
-LoadPattern::LoadPattern(int tag, double fact)
-    : TaggedObject(tag), MovableObject(PATTERN_TAG_LoadPattern),
-    isConstant(false),
-    loadFactor(0.0), scaleFactor(fact), 
-    theSeries(nullptr), 
-    currentGeoTag(0), lastGeoSendTag(-1), 
-    dbSPs(0), dbNod(0), dbEle(0), theNodalLoads(0),
-    theElementalLoads(0), theSPs(0), theNodIter(0), theEleIter(0), theSpIter(0),
-    lastChannel(0)
-{
-  theNodalLoads     = new MapOfTaggedObjects();
-  theElementalLoads = new MapOfTaggedObjects();
-  theSPs            = new MapOfTaggedObjects();
-
-  theEleIter = new ElementalLoadIter(theElementalLoads);
-  theNodIter = new NodalLoadIter(theNodalLoads);
-  theSpIter  = new SingleDomSP_Iter(theSPs);
-
-  randomLoads = 0;
-  dLambdadh   = 0;
-}
-
 
 LoadPattern::~LoadPattern()
 {
@@ -869,18 +847,6 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
   }
 }
 
-
-LoadPattern *
-LoadPattern::getCopy()
-{
-  LoadPattern *theCopy = new LoadPattern(this->getTag());
-
-  theCopy->loadFactor  = loadFactor;
-  theCopy->scaleFactor = scaleFactor;
-  theCopy->isConstant  = isConstant;
-  theCopy->theSeries   = theSeries;
-  return theCopy;
-}
 
 int
 LoadPattern::addMotion(GroundMotion &theMotion, int tag)

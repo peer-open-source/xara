@@ -10,6 +10,7 @@ target_sources(OPS_Material
     FrameFiberSection3d.cpp
     FrameSolidSection3d.cpp
     FrameTraceSection3d.cpp
+    MixedFrameSection.cpp
     ElasticLinearFrameSection3d.cpp
   PUBLIC
     FrameFiberSection3d.h

@@ -31,7 +31,6 @@
 #include <Channel.h>
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <TCP_Socket.h>
@@ -788,35 +787,14 @@ int GenericClient::recvSelf(int commitTag, Channel &rChannel,
 }
 
 
-int GenericClient::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    int rValue = 0;
-    
-    if (numExternalNodes > 1)  {
-        for (int i = 0; i < numExternalNodes - 1; i++) {
-            static Vector v1(3);
-            static Vector v2(3);
-
-            theNodes[i]->getDisplayCrds(v1, fact, displayMode);
-            theNodes[i + 1]->getDisplayCrds(v2, fact, displayMode);
-
-            rValue += theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag(), 0);
-        }
-    }
-
-    return rValue;
-}
-
 
 void GenericClient::Print(OPS_Stream &s, int flag)
 {
-    int i;
     if (flag == OPS_PRINT_CURRENTSTATE) {
         // print everything
         s << "Element: " << this->getTag() << endln;
         s << "  type: GenericClient" << endln;
-        for (i=0; i<numExternalNodes; i++ )
+        for (int i=0; i<numExternalNodes; i++ )
             s << "  Node" << i+1 << ": " << connectedExternalNodes(i);
         s << endln;
         s << "  ipAddress: " << machineInetAddr
@@ -831,7 +809,7 @@ void GenericClient::Print(OPS_Stream &s, int flag)
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"GenericClient\", ";
         s << "\"nodes\": [";
-        for (i = 0; i < numExternalNodes - 1; i++)
+        for (int i = 0; i < numExternalNodes - 1; i++)
             s << connectedExternalNodes(i) << ", ";
         s << connectedExternalNodes(numExternalNodes) << "], ";
         s << "\"ipAddress\": " << machineInetAddr << ", ";
@@ -844,10 +822,9 @@ void GenericClient::Print(OPS_Stream &s, int flag)
 Response* GenericClient::setResponse(const char **argv, int argc,
     OPS_Stream &output)
 {
-    Response *theResponse = 0;
-    
-    int i;
-    char outputData[64];
+    Response *theResponse = nullptr;
+
+    char outputData[256];
     
     output.tag("ElementOutput");
     output.attr("eleType","GenericClient");
@@ -874,7 +851,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
     else if (strcmp(argv[0],"localForce") == 0 ||
         strcmp(argv[0],"localForces") == 0)
     {
-        for (i=0; i<numDOF; i++)  {
+        for (int i=0; i<numDOF; i++)  {
             sprintf(outputData,"p%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -887,7 +864,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"daqForce") == 0 ||
         strcmp(argv[0],"daqForces") == 0)
     {
-        for (i=0; i<numBasicDOF; i++)  {
+        for (int i=0; i<numBasicDOF; i++)  {
             sprintf(outputData,"q%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -905,7 +882,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"ctrlDisplacement") == 0 ||
         strcmp(argv[0],"ctrlDisplacements") == 0)
     {
-        for (i=0; i<numBasicDOF; i++)  {
+        for (int i=0; i<numBasicDOF; i++)  {
             sprintf(outputData,"db%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -917,7 +894,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"ctrlVelocity") == 0 ||
         strcmp(argv[0],"ctrlVelocities") == 0)
     {
-        for (i=0; i<numBasicDOF; i++)  {
+        for (int i=0; i<numBasicDOF; i++)  {
             sprintf(outputData,"vb%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -929,7 +906,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"ctrlAcceleration") == 0 ||
         strcmp(argv[0],"ctrlAccelerations") == 0)
     {
-        for (i=0; i<numBasicDOF; i++)  {
+        for (int i=0; i<numBasicDOF; i++)  {
             sprintf(outputData,"ab%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -941,7 +918,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"daqDisplacement") == 0 ||
         strcmp(argv[0],"daqDisplacements") == 0)
     {
-        for (i=0; i<numBasicDOF; i++)  {
+        for (int i=0; i<numBasicDOF; i++)  {
             sprintf(outputData,"dbm%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -953,7 +930,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"daqVelocity") == 0 ||
         strcmp(argv[0],"daqVelocities") == 0)
     {
-        for (i=0; i<numBasicDOF; i++)  {
+        for (int i=0; i<numBasicDOF; i++)  {
             sprintf(outputData,"vbm%d",i+1);
             output.tag("ResponseType",outputData);
         }
@@ -965,7 +942,7 @@ Response* GenericClient::setResponse(const char **argv, int argc,
         strcmp(argv[0],"daqAcceleration") == 0 ||
         strcmp(argv[0],"daqAccelerations") == 0)
     {
-        for (i=0; i<numBasicDOF; i++)  {
+        for (int i=0; i<numBasicDOF; i++)  {
             sprintf(outputData,"abm%d",i+1);
             output.tag("ResponseType",outputData);
         }

@@ -44,7 +44,7 @@ public:
   ShearFrame3d(int tag,
                std::array<int,nen>& nodes,
                FrameSection *section[nen-1], 
-               CrdTransf& transf
+               FrameTransformBuilder& transf
   );
 
   ~ShearFrame3d();
@@ -153,7 +153,7 @@ public:
 
     std::array<GaussPoint,nip> pres;
     std::array<GaussPoint,nip> past;
-    CrdTransf*       transform;
+    FrameTransform<nen,ndf>* transform;
     Logarithm               logarithm;
     BeamIntegration*        stencil;
 

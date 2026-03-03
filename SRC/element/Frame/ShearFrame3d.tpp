@@ -73,12 +73,12 @@ template<std::size_t nen, int nwm>
 ShearFrame3d<nen, nwm>::ShearFrame3d(int tag,
                                      std::array<int, nen>& nodes,
                                      FrameSection* section[nen - 1],
-                                     CrdTransf& transform)
+                                     FrameTransformBuilder& tb)
  : FiniteElement<nen, ndm, ndf>(tag, 0, nodes, 1),
    xn{0},
    jxs(0),
    R0(),
-   transform(&transform),
+   transform(tb.template create<nen,ndf>()),
    logarithm(Logarithm::None),
    stencil(nullptr),
    parameterID(0)
@@ -112,7 +112,7 @@ ShearFrame3d<nen,nwm>::setNodes()
 {
   auto& theNodes = this->FiniteElement<nen,3,6+nwm>::theNodes;
 
-  if (transform->initialize(theNodes[0], theNodes[nen-1]) != 0) {
+  if (transform->initialize(theNodes) != 0) {
     opserr << " -- Error initializing coordinate transformation\n";
     return -1;
   }
@@ -147,14 +147,7 @@ ShearFrame3d<nen,nwm>::revertToStart()
   if (transform->revertToStart() != 0)
     return -2;
 
-  Vector E1(3), E2(3), E3(3);
-  transform->getLocalAxes(E1, E2, E3);
-
-  for (int i=0; i<ndm; i++) {
-    R0(i,0) =  E1[i];
-    R0(i,1) =  E2[i];
-    R0(i,2) =  E3[i];
-  }
+  R0 = transform->getInitialRotation();
 
   // Revert the of the Gauss pres to start
   for (GaussPoint& point : pres) {
@@ -743,7 +736,7 @@ ShearFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
 
     Vector locs(pres.size());
     for (int i = 0; i < nip; i++)
-      locs[i] = pres[i].point * L;
+      locs[i] = pres[i].point;
 
     return info.setVector(locs);
   }

@@ -109,11 +109,11 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
                << "Iter: "            << pad(currentIter)
                << ", dX*dR/dX1*dR1: " << pad(product)
                << "\n"
-               << ", Norm deltaX: "   << pad(x.pNorm(nType))
-               << ", Norm deltaR: "   << pad(b.pNorm(nType)) 
+               << ", Norm dU: "   << pad(x.pNorm(nType))
+               << ", Norm dR: "   << pad(b.pNorm(nType)) 
                << "\n"
-               << "\tdeltaX: "        << x 
-               << "\tdeltaR: "        << b;
+               << "\tdU: "        << x 
+               << "\tdR: "        << b;
     }
 
     //

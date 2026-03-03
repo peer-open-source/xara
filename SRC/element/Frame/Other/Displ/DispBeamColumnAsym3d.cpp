@@ -48,12 +48,6 @@
 #include <Parameter.h>
 #include <math.h>
 
-#include <LobattoBeamIntegration.h>
-#include <LegendreBeamIntegration.h>
-#include <RadauBeamIntegration.h>
-#include <NewtonCotesBeamIntegration.h>
-#include <TrapezoidalBeamIntegration.h>
-#include <RegularizedHingeIntegration.h>
 
 Matrix DispBeamColumnAsym3d::K(12, 12);
 Vector DispBeamColumnAsym3d::P(12);
@@ -141,7 +135,6 @@ DispBeamColumnAsym3d::getExternalNodes()
 Node **
 DispBeamColumnAsym3d::getNodePtrs()
 {
-
   return theNodes;
 }
 

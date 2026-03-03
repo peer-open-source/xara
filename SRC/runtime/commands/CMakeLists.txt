@@ -18,22 +18,12 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/nodes.cpp"
     "modeling/constraint.cpp"
     "modeling/geomTransf.cpp"
-
-    "modeling/element.cpp"
-    "modeling/element/prism.cpp"
-    "modeling/element/frames.cpp"
-    "modeling/element/shells.cpp"
-    "modeling/element/brick.cpp"
-    "modeling/element/plane.cpp"
-    "modeling/element/truss.cpp"
     
     "modeling/section.cpp"
+    "modeling/section/shell.cpp"
     "modeling/section/plane.cpp"
     "modeling/section/frame.cpp"
     "modeling/section/truss.cpp"
-
-    "modeling/uniaxialMaterial.cpp"
-    "modeling/uniaxial.cpp"
 
     "modeling/printing.cpp"
 
