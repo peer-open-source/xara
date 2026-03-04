@@ -84,9 +84,7 @@ public:
   void	zeroLoad() override;
   int		addLoadVector(const Vector &load);
   int   addLoad(ElementalLoad *theLoad, double loadFactor) override { return -1;}
-  int     addInertiaLoadToUnbalance(const Vector &accel) override
-    { return -1;}
-  
+
   const Vector &getResistingForce() override;
   const	Vector &getResistingForceIncInertia() override;
 
