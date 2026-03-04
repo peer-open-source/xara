@@ -93,7 +93,7 @@ public :
 
     void zeroLoad( ) ;
     int addLoad(ElementalLoad *theLoad, double loadFactor) final;
-    int addInertiaLoadToUnbalance(const Vector &accel) final;
+    int addInertiaLoadToUnbalance(const Vector &accel);
 
     const Vector &getResistingForce( ) final;
     const Vector &getResistingForceIncInertia( ) final;
