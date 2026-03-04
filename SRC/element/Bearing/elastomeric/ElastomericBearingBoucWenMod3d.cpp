@@ -18,7 +18,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
@@ -29,7 +28,6 @@
 #include <string.h>
 
 #include <OPS_Globals.h>
-#include <Message.h>
 
 #include <iostream>
 
@@ -872,18 +870,6 @@ int ElastomericBearingBoucWenMod3d::recvSelf(int commitTag, Channel &rChannel,
     return -1;
 }
 
-
-int ElastomericBearingBoucWenMod3d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 
 void ElastomericBearingBoucWenMod3d::Print(OPS_Stream &s, int flag)
