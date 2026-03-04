@@ -134,12 +134,27 @@ int TrigSeries::recvSelf(int commitTag, Channel &theChannel,
 
 void TrigSeries::Print(OPS_Stream &s, int flag)
 {
-    s << "Trig Series" << endln;
-    s << "\tFactor: " << cFactor << endln;
-    s << "\ttStart: " << tStart << endln;
-    s << "\ttFinish: " << tFinish << endln;
-    s << "\tPeriod: " << period << endln;
-    s << "\tPhase Shift: " << phaseShift << endln;
-    s << "\tZero Shift: " << zeroShift << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"TrigSeries\", ";
+    s << "\"factor\": " << cFactor << ", ";
+    s << "\"tStart\": " << tStart << ", ";
+    s << "\"tFinish\": " << tFinish << ", ";
+    s << "\"period\": " << period << ", ";
+    s << "\"phaseShift\": " << phaseShift << ", ";
+    s << "\"zeroShift\": " << zeroShift;
+    s << "}";
+
+  }
+  else {
+    s << "Trig Series" << "\n";
+    s << "\tFactor: " << cFactor << "\n";
+    s << "\ttStart: " << tStart << "\n";
+    s << "\ttFinish: " << tFinish << "\n";
+    s << "\tPeriod: " << period << "\n";
+    s << "\tPhase Shift: " << phaseShift << "\n";
+    s << "\tZero Shift: " << zeroShift << "\n";
+  }
 }
 

@@ -51,7 +51,7 @@
 #include <ElementResponse.h>
 #include <MaterialResponse.h>
 #include <ElementalLoad.h>
-
+#include <Logging.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
@@ -116,7 +116,7 @@ IGAKLShell::IGAKLShell( int tag,
   connectedExternalNodes(nodes)
 {
   if (numIGAKLShell == 0) {
-    // opserr << "Using IGAKLShell - Developed by: Felipe Elgueta and Jose A. Abell (www.joseabell.com)\n";
+    opslog << "Using IGAKLShell - Developed by: Felipe Elgueta and Jose A. Abell (www.joseabell.com)\n";
     numIGAKLShell++;
   }
   // ngauss  = quadorder * quadorder;
@@ -1492,7 +1492,6 @@ const Matrix&  IGAKLShell::getTangentStiff( )
 
   //   if (nonLinearGeometry) // true if non-linear geometry
   //   {
-  //     // opserr << "Using nonLinearGeometry!" << endln;
   //     for (int ur = 0; ur < 3 * noFuncs; ++ur)
   //     {
   //       // Local node number kr and dof direction dirr
@@ -3781,7 +3780,6 @@ void IGAKLShell::formResidAndTangent( int tang_flag )
 
     if (nonLinearGeometry) // true if non-linear geometry
     {
-      // opserr << "Using nonLinearGeometry!" << endln;
       for (int ur = 0; ur < 3 * noFuncs; ++ur)
       {
         // Local node number kr and dof direction dirr

@@ -37,9 +37,10 @@
 #include <ID.h>
 #include <classTags.h>
 #include <elementAPI.h>
+#include <Message.h>
 #include <Pinching4Material.h>
 #include <ElasticMaterial.h>
-#include <Message.h>
+#include <Logging.h>
 #include <cmath>
 #include <limits>
 #include <sstream>
@@ -424,7 +425,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ASDCoupledHinge3D)
 {
     static bool first_done = false;
     if (!first_done) {
-        opserr << "Using ASDCoupledHinge3D - Developed by: Diego Talledo, Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+        opslog << "Using ASDCoupledHinge3D - Developed by: Diego Talledo, Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
         first_done = true;
     }
 

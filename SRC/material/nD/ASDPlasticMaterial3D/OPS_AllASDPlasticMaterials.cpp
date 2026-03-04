@@ -25,7 +25,7 @@
 // Fully general templated material class for plasticity modeling
 
 #ifdef OPS_USE_ASDPlasticMaterials // _EIGEN3
-
+#include <Logging.h>
 #include <FEM_ObjectBroker.h>
 #include <OPS_Globals.h>
 #include <elementAPI.h>
@@ -81,7 +81,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_AllASDPlasticMaterials)
     // some kudos
     static bool first_done = false;
     if (!first_done) {
-        opserr << "Using ASDPlasticMaterial - Developed by: Jose Abell (UANDES), Massimo Petracca and Guido Camata (ASDEA Software Technology)\n";
+        opslog << "Using ASDPlasticMaterial - Developed by: Jose Abell (UANDES), Massimo Petracca and Guido Camata (ASDEA Software Technology)\n";
         first_done = true;
     }
 

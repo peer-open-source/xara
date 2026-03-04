@@ -26,7 +26,7 @@
 //
 
 #include <ASDEmbeddedNodeElement.h>
-
+#include <Logging.h>
 #include <Domain.h>
 #include <Node.h>
 #include <ErrorHandler.h>
@@ -192,7 +192,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ASDEmbeddedNodeElement)
 {
     static bool first_done = false;
     if (!first_done) {
-        opserr << "Using ASDEmbeddedNodeElement - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+        opslog << "Using ASDEmbeddedNodeElement - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
         first_done = true;
     }
 

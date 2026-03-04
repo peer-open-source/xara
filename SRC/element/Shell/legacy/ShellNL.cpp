@@ -23,8 +23,9 @@
 
 #include <stdio.h> 
 #include <stdlib.h> 
-#include <math.h> 
+#include <math.h>
 
+#include <Logging.h>
 #include <ID.h> 
 #include <Vector.h>
 #include <Matrix.h>
@@ -43,13 +44,13 @@
 #include <elementAPI.h>
 #define min(a,b) ( (a)<(b) ? (a):(b) )
 
-static int numShellNL = 0;
 
 void *
 OPS_NewShellNL()
 {
+  static int numShellNL = 0;
   if (numShellNL == 0) {
-    opserr << "Using ShellNL - Developed by: Leopoldo Tesser and Diego A. Talledo\n";
+    opslog << "Using ShellNL - Developed by: Leopoldo Tesser and Diego A. Talledo\n";
     numShellNL++;
   }
 
