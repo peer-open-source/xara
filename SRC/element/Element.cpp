@@ -54,6 +54,7 @@ Element::Element(int tag, int cTag)
   , alphaM(0.0), betaK(0.0), betaK0(0.0), betaKc(0.0)
   , domain(nullptr)
   , Kc(0), previousK(0), numPreviousK(0), index(-1), nodeIndex(-1)
+  , m_FE(nullptr)
 {
   ops_TheActiveElement = this;
 }
@@ -98,11 +99,51 @@ Element::zeroLoad()
 
 }
 
+
+#if 0
 int 
 Element::addInertiaLoadToUnbalance(const Vector &accel)
 {
+#if 0
+// if (total_mass == 0.0)
+  //   return 0;
+
+  // add ( - fact * M R * accel ) to unbalance
+  // if (cMass == 0) {
+  //   // take advantage of lumped mass matrix
+  //   double m = 0.5*total_mass;
+  //   for (int i=0; i<nen; i++) {
+  //     const Vector& Raccel = theNodes[i]->getRV(accel);
+  //     for (int j=0; i<3; i++) {
+  //       p_iner[i*ndf+j] -= m * Raccel(j);
+  //     }
+  //   }
+  // }
+  // else
+  {
+    constexpr static int nrv = 6;
+
+    // use matrix vector multip. for consistent mass matrix
+    static VectorND<nen*ndf> Raccel;
+    for (int i=0; i<nen; i++) {
+      // get R * accel from the nodes
+      const Vector& rv = theNodes[i]->getRV(accel);
+      if (nrv != rv.Size()) {
+        opserr << "addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
+        return -1;
+      }
+      for (int j=0; j<nrv; j++)  {
+        Raccel[i*ndf+j] = rv[j];
+      }
+    }
+    p_iner.addMatrixVector(1.0, this->getMass(), Raccel, -1.0);
+  }
+
+  return 0;
+#endif
   return -1;
 }
+#endif
 
 
 int
@@ -241,7 +282,7 @@ Element::getResistingForceIncInertia()
   int i;
   for (int i=0; i<numNodes; i++) {
     const Vector &acc = theNodes[i]->getAccel();
-    for (int i=0; i<acc.Size(); i++) {
+    for (int i=0; i<acc.Size(); i++) { // TODO!!!!! Should i be j?????
       (*theVector2)(loc++) = acc(i);
     }
   }
