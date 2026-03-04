@@ -826,7 +826,7 @@ TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
            << "\n";
     return TCL_ERROR;
   }
-  dofId--; // DECREMENT THE DOF VALUE BY 1 TO GO TO OUR C++ INDEXING
+  dofId--; // DECREMENT TO GO TO C++ INDEXING
 
   if (Tcl_GetInt(interp, argv[3], &gMotionID) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid gMotionID: " << argv[3] << " -  imposedMotion ";
@@ -863,14 +863,12 @@ TclCommand_addImposedMotionSP(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  int loadPatternTag = thePattern->getTag();
-
   // create a new ImposedMotionSP
   SP_Constraint *theSP;
   if (alt == true) {
-    theSP = new ImposedMotionSP1(nodeId, dofId, loadPatternTag, gMotionID);
+    theSP = new ImposedMotionSP1(nodeId, dofId, *thePattern, gMotionID);
   } else {
-    theSP = new ImposedMotionSP(nodeId, dofId, loadPatternTag, gMotionID);
+    theSP = new ImposedMotionSP(nodeId, dofId, *thePattern, gMotionID);
   }
 
   if (thePattern->addSP_Constraint(theSP) == false) {

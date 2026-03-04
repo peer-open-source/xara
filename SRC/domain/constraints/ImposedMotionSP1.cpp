@@ -36,7 +36,7 @@
 #include <GroundMotion.h>
 #include <Node.h>
 #include <Domain.h>
-#include <LoadPattern.h>
+#include <MultiSupportPattern.h>
 #include <ID.h>
 
 // constructor for FEM_ObjectBroker
@@ -44,13 +44,15 @@ ImposedMotionSP1::ImposedMotionSP1()
 :SP_Constraint(CNSTRNT_TAG_ImposedMotionSP1),
  theGroundMotion(0), theNode(0), theGroundMotionResponse(3), destroyMotion(0)
 {
-    // does nothing else
+  // does nothing else
 }
 
 // constructor for a subclass to use
-ImposedMotionSP1::ImposedMotionSP1(int node, int ndof, int pattern, int motion)
-:SP_Constraint(node, ndof, CNSTRNT_TAG_ImposedMotionSP1),
- groundMotionTag(motion), patternTag(pattern),
+ImposedMotionSP1::ImposedMotionSP1(int node, int ndof, MultiSupportPattern& pattern, int motion)
+ : SP_Constraint(node, ndof, CNSTRNT_TAG_ImposedMotionSP1)
+ , groundMotionTag(motion)
+ , patternTag(pattern.getTag())
+ , thePattern(&pattern),
  theGroundMotion(0), theNode(0), theGroundMotionResponse(3)
 {
 
@@ -65,10 +67,10 @@ ImposedMotionSP1::~ImposedMotionSP1()
 
 
 double
-ImposedMotionSP1::getValue(void)
+ImposedMotionSP1::getValue()
 {
   // always return 0.0 - applyConstraint() sets the values at Node 
-    return theGroundMotionResponse(0);
+  return theGroundMotionResponse(0);
 }
 
 
@@ -80,28 +82,24 @@ ImposedMotionSP1::applyConstraint(double time)
     Domain *theDomain = this->getDomain();
     
     theNode = theDomain->getNode(nodeTag);
-    if (theNode == 0) {
-      
+    if (theNode == nullptr) {
       return -1;
     }
-    LoadPattern *theLoadPattern = theDomain->getLoadPattern(patternTag);
-    if (theLoadPattern == 0)
-      return -3;
     
-    theGroundMotion = theLoadPattern->getMotion(groundMotionTag);
-    if (theGroundMotion == 0)
+    theGroundMotion = thePattern->getMotion(groundMotionTag);
+    if (theGroundMotion == nullptr)
       return -4;
-    }
+  }
 
-    // now get the response from the ground motion
-    theGroundMotionResponse = theGroundMotion->getDispVelAccel(time);
+  // now get the response from the ground motion
+  theGroundMotionResponse = theGroundMotion->getDispVelAccel(time);
 
-    return 0;
+  return 0;
 }
 
 
 bool
-ImposedMotionSP1::isHomogeneous(void) const
+ImposedMotionSP1::isHomogeneous() const
 {
   return false;
 }

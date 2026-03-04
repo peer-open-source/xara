@@ -73,11 +73,7 @@ class LoadPattern : public TaggedObject, public MovableObject
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     virtual void Print(OPS_Stream &s, int flag);
 
-    // TODO: Move to subclass
-    virtual int addMotion(GroundMotion &theMotion, int tag);    
-    virtual GroundMotion *getMotion(int tag);        
 
-    // TODO: Move to subclass
     // methods to add loads
     virtual bool addSP_Constraint(SP_Constraint *);
     virtual bool addNodalLoad(NodalLoad *);

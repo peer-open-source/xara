@@ -24,6 +24,7 @@
 // Written: fmk 11/98
 // Revised:
 //
+#include <cassert>
 #include <UniformExcitation.h>
 #include <GroundMotion.h>
 #include <Domain.h>
@@ -36,19 +37,31 @@
 #include <SP_ConstraintIter.h>
 #include <SP_Constraint.h>
 
+#include <VectorND.h>
+#include <MatrixND.h>
+
+using namespace OpenSees;
+
 
 UniformExcitation::UniformExcitation()
 :EarthquakePattern(0, PATTERN_TAG_UniformExcitation), 
  theMotion(0), theDof(0), vel0(0.0), fact(0.0)
+, parameterID(0)
+, currentTime(0.0)
 {
 
 }
 
 
 UniformExcitation::UniformExcitation(GroundMotion &_theMotion, 
-                                     int dof, int tag, double velZero, double theFactor)
+                                     int ndm, 
+                                     int dof, 
+                                     int tag, 
+                                     double velZero, double theFactor)
 :EarthquakePattern(tag, PATTERN_TAG_UniformExcitation), 
  theMotion(&_theMotion), theDof(dof), vel0(velZero), fact(theFactor)
+, parameterID(0)
+, currentTime(0.0)
 {
   // add the motion to the list of ground motions
   this->addMotion(*theMotion);
@@ -73,7 +86,7 @@ UniformExcitation::setParameter(const char **argv, int argc, Parameter &param)
   return theMotion->setParameter(argv, argc, param);
 }
 
-/*
+
 int
 UniformExcitation::updateParameter(int parameterID, Information &info)
 {
@@ -83,9 +96,10 @@ UniformExcitation::updateParameter(int parameterID, Information &info)
 int
 UniformExcitation::activateParameter(int pparameterID)
 {
+  parameterID = pparameterID;
   return theMotion->activateParameter(pparameterID);
 }
-*/
+
 
 void
 UniformExcitation::setDomain(Domain *theDomain) 
@@ -128,72 +142,190 @@ UniformExcitation::setDomain(Domain *theDomain)
   }
 }
 
+
+static inline double 
+LeviCevita(int i, int j, int k)
+{
+  if (i == j || j == k || i == k)
+    return 0;
+  else if ((i == 0 && j == 1 && k == 2) ||
+           (i == 1 && j == 2 && k == 0) ||
+           (i == 2 && j == 0 && k == 1))
+    return 1;
+  else
+    return -1;
+}
+
+
+static inline double
+NodeAcceleration(Node& node, int NDM, int theDof, int dof, double uaccel)
+{
+  int irot = -1;
+  if (NDM < 2)
+    ;
+  else if (NDM == 2 && theDof == 2)
+    irot = 2;
+  else if (NDM == 3 && theDof >= 3)
+    irot = theDof - NDM;
+
+  const Vector &xyz = node.getCrds();
+  const int ndm = xyz.Size();
+  const int numDOF = node.getNumberDOF();
+
+  if (dof >= numDOF)
+    return 0.0;
+  
+  else if (irot == -1) {
+    // Translational excitation
+    return (dof == theDof)? uaccel : 0.0;
+  }
+  else if (theDof == dof) {
+    // Rotation is at dof
+    return uaccel;
+  }
+  else if (dof < NDM) {
+    // Rotational excitation at a translational dof
+    double accel = 0.0;
+    for (int j=0; j<ndm; j++)
+      accel += LeviCevita(irot, j, dof)*xyz(j);
+
+    return accel*uaccel;
+  }
+  return 0.0;
+}
+
+
 void
 UniformExcitation::applyLoad(double time)
 {
-    Domain *theDomain = this->getDomain();
-    if (theDomain == nullptr)
-        return;
-    
-    NodeIter &theNodes = theDomain->getNodes();
-    Node *theNode;
-    while ((theNode = theNodes()) != nullptr) {
-        theNode->setNumColR(1);
+  Domain *theDomain = this->getDomain();
+  if (theDomain == nullptr)
+      return;
 
-        const Vector &crds=theNode->getCrds();
-        int ndm = crds.Size();
-        
-        if (ndm == 1) {
-          if (theDof < 1)
+
+  double accel = 0.0;
+  if (theMotion != nullptr)
+    accel = theMotion->getAccel(time)*fact;
+
+
+  NodeIter &theNodes = theDomain->getNodes();
+  Node *theNode;
+  while ((theNode = theNodes()) != nullptr) {
+      int ndf = theNode->getNumberDOF();
+#if 1
+      for (int i=0; i<ndf; i++) {
+        double a = 0.0;
+        if ((a = NodeAcceleration(*theNode, NDM, theDof, i, accel)) != 0)
+          theNode->addResidualInertia(i, a);
+      }
+#else
+      theNode->setNumColR(1);
+
+      
+      if (ndm == 1) {
+        if (theDof < 1)
+          theNode->setR(theDof, 0, fact);
+      }
+      else if (ndm == 2) {
+          if (theDof < 2) {
             theNode->setR(theDof, 0, fact);
-        }
-        else if (ndm == 2) {
-            if (theDof < 2) {
-                theNode->setR(theDof, 0, fact);
-            }
-            else if (theDof == 2) {
-                double xCrd = crds(0);
-                double yCrd = crds(1);
-                theNode->setR(0, 0, -fact*yCrd);
-                theNode->setR(1, 0,  fact*xCrd);
-                theNode->setR(2, 0,  fact);
-            }
-        }
-        else if (ndm == 3) {
-            // Translational DOF
-            if (theDof < 3) {
-                theNode->setR(theDof, 0, fact);
-            }
+          }
+          else if (theDof == 2) {
+            double xCrd = crds(0);
+            double yCrd = crds(1);
+            theNode->setR(1, 0,  fact*xCrd);
+            theNode->setR(0, 0, -fact*yCrd);
+            theNode->setR(2, 0,  fact);
+          }
+      }
+      else if (ndm == 3) {
+          // Translational DOF
+          if (theDof < 3) {
+            theNode->setR(theDof, 0, fact);
+          }
 
-            // Rotational DOFs
-            else if (theDof == 3) {
-                double yCrd = crds(1);
-                double zCrd = crds(2);
-                theNode->setR(1, 0, -fact*zCrd);
-                theNode->setR(2, 0,  fact*yCrd);
-                theNode->setR(3, 0,  fact);
+          // Rotational DOFs
+          else if (theDof == 3) {
+            double yCrd = crds(1);
+            double zCrd = crds(2);
+            theNode->setR(1, 0, -fact*zCrd);
+            theNode->setR(2, 0,  fact*yCrd);
+            theNode->setR(3, 0,  fact);
+          }
+          else if (theDof == 4) {
+            double xCrd = crds(0);
+            double zCrd = crds(2);
+            theNode->setR(0, 0,  fact*zCrd);
+            theNode->setR(2, 0, -fact*xCrd);
+            theNode->setR(4, 0,  fact);
+          }
+          else if (theDof == 5) {
+            double xCrd = crds(0);
+            double yCrd = crds(1);
+            theNode->setR(0, 0, -fact*yCrd);
+            theNode->setR(1, 0,  fact*xCrd);
+            theNode->setR(5, 0,  fact);
+          }
+      }
+#endif
+  }
+
+#if 1
+  static VectorND<6> an{}, fn{};
+  static MatrixND<6,6> mn{}; // element mass at node
+
+
+  ElementIter &theElements = theDomain->getElements();
+  Element *theElement;
+  while ((theElement = theElements()) != nullptr) {
+    Node **theNodes = theElement->getNodePtrs();
+    int numNodes = theElement->getNumExternalNodes();
+    // assert(numNodes <= MaxNumNodesPerElement);
+
+    switch (theElement->getMassType()) {
+      case Element::MassType::Translation: {
+        break;
+      }
+      case Element::MassType::General: {
+        const Matrix &mass = theElement->getMass();
+
+        for (int i=0; i<numNodes; i++) {
+          // 1) Form nodal acceleration vector
+          // const Vector &crds = theNodes[i]->getCrds();
+          // int ndm = crds.Size();
+          int ndfi = std::min(theNodes[i]->getNumberDOF(), 6);
+          for (int j=0; j<ndfi; j++) {
+            double a = 0.0;
+            if ((a = NodeAcceleration(*theNodes[i], NDM, theDof, j, accel)) != 0)
+              an[j] = a;
+            else
+              an[j] = 0.0;
+          }
+
+
+          // 2) Compute nodal forces
+          for (int j=0; j<numNodes; j++) {
+            int ndfj = std::min(theNodes[j]->getNumberDOF(), 6);
+            fn.zero();
+            mn.zero();
+            for (int k=0; k<ndfj; k++) {
+              for (int l=0; l<ndfi; l++) {
+                mn(k,l) = mass(k + ndfj*j, l + ndfi*i);
+              }
             }
-            else if (theDof == 4) {
-                double xCrd = crds(0);
-                double zCrd = crds(2);
-                theNode->setR(0, 0,  fact*zCrd);
-                theNode->setR(2, 0, -fact*xCrd);
-                theNode->setR(4, 0,  fact);
-            }
-            else if (theDof == 5) {
-                double xCrd = crds(0);
-                double yCrd = crds(1);
-                theNode->setR(0, 0, -fact*yCrd);
-                theNode->setR(1, 0,  fact*xCrd);
-                theNode->setR(5, 0,  fact);
-            }
+            fn.addMatrixVector(0.0, mn, an, 1.0);
+            theNodes[j]->addResidual(fn, -1.0);
+          }
         }
+      }
     }
-    
-    this->EarthquakePattern::applyLoad(time);
-    
-    return;
+  }
+#else 
+  this->EarthquakePattern::applyLoad(time);
+#endif
+  return;
 }
+
 
 
 void
@@ -203,12 +335,13 @@ UniformExcitation::applyLoadSensitivity(double time)
   if (theDomain == nullptr)
     return;
 
-  NodeIter &theNodes = theDomain->getNodes();
-  Node *theNode;
-  while ((theNode = theNodes()) != nullptr) {
-    theNode->setNumColR(1);
-    theNode->setR(theDof, 0, 1.0);
-  }
+  // TODO(cmp)
+  // NodeIter &theNodes = theDomain->getNodes();
+  // Node *theNode;
+  // while ((theNode = theNodes()) != nullptr) {
+  //   theNode->setNumColR(1);
+  //   theNode->setR(theDof, 0, 1.0);
+  // }
 
   this->EarthquakePattern::applyLoadSensitivity(time);
 
@@ -324,7 +457,5 @@ UniformExcitation::Print(OPS_Stream &s, int flag)
 LoadPattern *
 UniformExcitation::getCopy()
 {
-  LoadPattern *theCopy = new UniformExcitation(*theMotion, theDof, this->getTag());
-   return theCopy;
+  return new UniformExcitation(*theMotion, theDof, NDM, this->getTag(), vel0, fact);
 }
-//  LocalWords:  OpenSees

@@ -38,8 +38,6 @@
 #include <SingleDomSP_Iter.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <GroundMotion.h>
-
 #include <OPS_Globals.h>
 
 
@@ -848,18 +846,9 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
 }
 
 
-int
-LoadPattern::addMotion(GroundMotion &theMotion, int tag)
-{
-  opserr << "LoadPattern::addMotion() - cannot add GroundMotion - use "
-            "MultiSupport Pattern instead\n";
-  return -1;
-}
 
-GroundMotion *LoadPattern::getMotion(int tag) { return 0; }
-
-// AddingSensitivity:BEGIN ////////////////////////////////////
-void LoadPattern::applyLoadSensitivity(double pseudoTime)
+void 
+LoadPattern::applyLoadSensitivity(double pseudoTime)
 {
   // P*dfactor/dh
   if (theSeries != 0 && isConstant != true) {

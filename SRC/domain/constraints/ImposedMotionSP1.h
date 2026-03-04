@@ -39,13 +39,16 @@
 #include <Vector.h>
 class GroundMotion;
 class Node;
+class MultiSupportPattern;
 
 class ImposedMotionSP1 : public SP_Constraint
 {
   public:
     // constructors    
     ImposedMotionSP1();        
-    ImposedMotionSP1(int nodeTag, int ndof, int patternTag, int groundMotionTag);
+    ImposedMotionSP1(int nodeTag, 
+                     int ndof, 
+                     MultiSupportPattern&, int groundMotionTag);
 
     // destructor
     ~ImposedMotionSP1();
@@ -58,13 +61,14 @@ class ImposedMotionSP1 : public SP_Constraint
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
   protected:
     
   private:
     int groundMotionTag;
     int patternTag;
+    MultiSupportPattern* thePattern;
 
     GroundMotion *theGroundMotion;  // pointer to ground motion
     Node *theNode;                  // pointer to node being constrained

@@ -56,6 +56,7 @@ MultiSupportPattern::MultiSupportPattern()
 
 }
 
+
 MultiSupportPattern::~MultiSupportPattern()
 {
   for (int i=0; i<numMotions; i++)
@@ -118,21 +119,18 @@ MultiSupportPattern::getMotion(int tag)
     return 0;
   else
     return theMotions[loc];
-
 }
 
 
 bool
 MultiSupportPattern::addNodalLoad(NodalLoad *)
 {
-  opserr << "MultiSupportPattern::addNodalLoad() - cannot add NodalLoad to EQ pattern\n";  
   return false;
 }
 
 bool
 MultiSupportPattern::addElementalLoad(ElementalLoad *)
 {
-  opserr << "MultiSupportPattern::addElementalLoad() - cannot add ElementalLoad to EQ pattern\n";    
   return false;
 }
 
@@ -173,9 +171,9 @@ MultiSupportPattern::sendSelf(int commitTag, Channel &theChannel)
       // if dbTag still 0 get one from Channel; 
       // if this tag != 0 set the dbTag in node
       if (dbTag == 0 && myDbTag != 0) {// go get a new tag and setDbTag in ele if this not 0 
-	dbTag = theChannel.getDbTag();
-	if (dbTag != 0)
-	  theMotion->setDbTag(dbTag);
+        dbTag = theChannel.getDbTag();
+        if (dbTag != 0)
+          theMotion->setDbTag(dbTag);
       }
       motionData(i*3+1) = dbTag;
       motionData(i*3+2) = theMotionTags(i);
@@ -293,7 +291,7 @@ MultiSupportPattern::Print(OPS_Stream &s, int flag)
 LoadPattern *
 MultiSupportPattern::getCopy()
 {
-  LoadPattern *theCopy = new MultiSupportPattern(this->getTag());
+  MultiSupportPattern *theCopy = new MultiSupportPattern(this->getTag());
   for (int i=0; i<numMotions; i++) {
     theCopy->addMotion(*theMotions[i], theMotionTags[i]);
   }  

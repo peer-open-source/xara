@@ -92,6 +92,8 @@ TclCommand_addPattern(ClientData clientData,
   Domain* domain = builder->getDomain();
   LoadPattern *thePattern = nullptr;
 
+  const int ndm = builder->getNDM();
+
   // make sure at least one other argument to contain integrator
   if (argc < 3) {
     opserr << OpenSees::PromptValueError 
@@ -202,7 +204,7 @@ TclCommand_addPattern(ClientData clientData,
         currentArg++;
         if ((currentArg < argc) &&
             (Tcl_GetDouble(interp, argv[currentArg], &fact) != TCL_OK)) {
-          opserr << OpenSees::PromptValueError << "invalid fact: pattern type UniformExcitation\n";
+          opserr << OpenSees::PromptValueError << "invalid factor\n";
           return TCL_ERROR;
         }
 
@@ -279,7 +281,7 @@ TclCommand_addPattern(ClientData clientData,
         new GroundMotion(dispSeries, velSeries, accelSeries, seriesIntegrator);
 
     // create the UniformExcitation Pattern
-    thePattern = new UniformExcitation(*theMotion, dir, patternID, vel0, fact);
+    thePattern = new UniformExcitation(*theMotion, ndm, dir, patternID, vel0, fact);
 
     builder->setCurrentPattern<LoadPattern>(thePattern);
     // Added by MHS to prevent call to Tcl_Eval at end of this function
@@ -356,14 +358,13 @@ TclCommand_addPattern(ClientData clientData,
     // Read in the ground motion
     if (accelFileName == 0) {
       opserr << OpenSees::PromptValueError << "No ground motion data provided\n";
-      opserr << "UniformExcitation tag: " << patternID << "\n";
       return TCL_ERROR;
     }
 
     theMotion = new GroundMotionRecord(accelFileName, dt, factor);
 
     // Create the UniformExcitation Pattern
-    thePattern = new UniformExcitation(*theMotion, dir, patternID);
+    thePattern = new UniformExcitation(*theMotion, ndm, dir, patternID);
     builder->setCurrentPattern<LoadPattern>(thePattern);
   }
 

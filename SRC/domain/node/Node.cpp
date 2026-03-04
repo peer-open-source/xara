@@ -61,7 +61,7 @@ Node::Node(int theClassTag)
 :TaggedObject(0),MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
  coord_data{0,0,0}, xyz(coord_data, 0), 
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
@@ -89,7 +89,7 @@ Node::Node(int tag, int theClassTag)
 :TaggedObject(tag), MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
  coord_data{0,0,0}, xyz(coord_data, 0),
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
@@ -114,7 +114,7 @@ Node::Node(int tag, int ndof, double Crd1)
 :TaggedObject(tag),MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, 0,0}, xyz(coord_data, 1),
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
@@ -145,7 +145,7 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, Crd2, 0}, xyz(coord_data, 2),
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
@@ -175,7 +175,7 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, Crd2, Crd3}, xyz(coord_data, 3), 
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0}, mass(0),
+ position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0}, mass(0),
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
@@ -206,7 +206,7 @@ Node::Node(const Node &otherNode, bool copyMass)
   :TaggedObject(otherNode.getTag()),MovableObject(otherNode.getClassTag()),
   numberDOF(otherNode.numberDOF), theDOF_GroupPtr(0),
   coord_data{}, xyz(coord_data, otherNode.getCrds().Size()),
-  position_inertia{}, rotation_inertia{0.0,0.0,0.0},
+  position_inertia{}, //rotation_inertia{0.0,0.0,0.0},
   commitDisp(0), commitVel(0), commitAccel(0),
   trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
   incrDeltaDisp(0),
@@ -652,11 +652,12 @@ Node::addUnbalancedLoad(const Vector &add, double fact)
     opserr << add.Size() << " should be " <<  numberDOF << endln;
     return -1;
   }
+
   // if no load yet create it and assign
-  if (unbalLoad == 0) {
+  if (unbalLoad == nullptr) {
     unbalLoad = new Vector(add);
     if (fact != 1.0)
-          (*unbalLoad) *= fact;
+      (*unbalLoad) *= fact;
     return 0;
   }
 
@@ -666,30 +667,70 @@ Node::addUnbalancedLoad(const Vector &add, double fact)
 }
 
 
-
-int
-Node::addInertiaLoadToUnbalance(const Vector &accelG, double fact)
+int 
+Node::addResidual(const Vector& v, double scale)
 {
-  // simply return if node has no mass or R matrix
-  if (mass == 0 || R == 0)
-    return 0;
+  // if no load yet create it
+  if (unbalLoad == nullptr) [[unlikely]]
+    unbalLoad = new Vector(numberDOF);
 
-  // otherwise we must determine MR accelG
-  assert(accelG.Size() == R->noCols());
-
-  // if no load yet create it and assign
-  if (unbalLoad == nullptr)
-      unbalLoad = new Vector(numberDOF);
-
-  // form - fact * M*R*accelG and add it to the unbalanced load
-  //(*unbalLoad) -= ((*mass) * (*R) * accelG)*fact;
-
-  Matrix MR(mass->noRows(), R->noCols());
-  MR.addMatrixProduct(0.0, *mass, *R, 1.0);
-  unbalLoad->addMatrixVector(1.0, MR, accelG, -fact);
-
+  assert(v.Size() == numberDOF);
+  unbalLoad->addVector(1.0, v, scale);
   return 0;
 }
+
+int 
+Node::addResidualInertia(int dof, double accel)
+{
+  if (accel == 0.0)
+    return 0;
+
+  // if no load yet create it
+  if (unbalLoad == nullptr) [[unlikely]]
+    unbalLoad = new Vector(numberDOF);
+
+  switch (mass_type) {
+    case MassType::Full: {
+      const Matrix& M = this->getMass();
+      for (int i=0; i<numberDOF; i++)
+        (*unbalLoad)(i) -= M(i, dof) * accel;
+      break;
+    }
+    // case MassType::Classical: {
+    //   const int ndm = xyz.Size();
+    //   if (dof < ndm)
+    //     (*unbalLoad)(dof) -= position_inertia * accel;
+    //   break;
+    // }
+    case MassType::None:
+      break;
+  }
+  return 0;
+}
+
+
+// int
+// Node::addInertiaLoadToUnbalance(const Vector &accelG, double fact)
+// {
+//   // simply return if node has no mass or R matrix
+//   if (mass == 0 || R == 0)
+//     return 0;
+
+//   // otherwise we must determine MR accelG
+//   assert(accelG.Size() == R->noCols());
+
+//   // if no load yet create it and assign
+//   if (unbalLoad == nullptr)
+//     unbalLoad = new Vector(numberDOF);
+
+//   // form - fact * M*R*accelG and add it to the unbalanced load
+//   //(*unbalLoad) -= ((*mass) * (*R) * accelG)*fact;
+
+//   Matrix MR(mass->noRows(), R->noCols());
+//   MR.addMatrixProduct(0.0, *mass, *R, 1.0);
+//   unbalLoad->addMatrixVector(1.0, MR, accelG, -fact);
+//   return 0;
+// }
 
 
 
@@ -705,7 +746,7 @@ Node::addInertiaLoadSensitivityToUnbalance(const Vector &accelG, double fact, bo
 
   // if no load yet create it and assign
   if (unbalLoad == nullptr)
-      unbalLoad = new Vector(numberDOF);
+    unbalLoad = new Vector(numberDOF);
 
   // form - fact * M*R*accelG and add it to the unbalanced load
   //(*unbalLoad) -= ((*mass) * (*R) * accelG)*fact;
@@ -874,23 +915,26 @@ Node::revertToStart()
 const Matrix &
 Node::getMass()
 {
-  if (index == -1) [[unlikely]] {
+  if (index == -1) [[unlikely]]
     setGlobalMatrices();
-  }
 
-  // make sure it was created before we return it
-  if (mass == 0) {
+
+  if (mass_type == MassType::Classical) {
     Matrix& Mass = *theMatrices[index];
     Mass.Zero();
     const int ndm = xyz.Size();
     for (int i=0; i<ndm; i++)
       Mass(i,i) = position_inertia;
-    for (int i=ndm; i<numberDOF; i++)
-      Mass(i,i) = rotation_inertia[i-ndm];
+    // for (int i=ndm; i<numberDOF; i++)
+    //   Mass(i,i) = rotation_inertia[i-ndm];
     return Mass;
-
-  } else
+  } else 
+  if (mass != nullptr) {
     return *mass;
+  } else {
+    theMatrices[index]->Zero();
+    return *theMatrices[index];
+  }
 }
 
 
@@ -924,9 +968,9 @@ Node::getDamp()
 const Matrix &
 Node::getDampSensitivity()
 {
-  if (index == -1) {
+  if (index == -1)
     setGlobalMatrices();
-  }
+
 
   // make sure it was created before we return it
   if (mass == 0 || alphaM == 0.0) {
@@ -948,6 +992,21 @@ Node::setMass(const Matrix &newMass)
   // check right size
   assert(newMass.noRows() == numberDOF && newMass.noCols() == numberDOF);
 
+  mass_type = MassType::Full;
+  // const int ndm = xyz.Size();
+  // for (int i=0; i<ndm; i++) {
+  //   if (newMass(i,i) != newMass(0,0)) {
+  //     mass_type = MassType::Full;
+  //     break;
+  //   }
+  // }
+  // // check rotational inertia is zero
+  // for (int i=ndm; i<numberDOF; i++) {
+  //   if (newMass(i,i) != 0.0) {
+  //     mass_type = MassType::Full;
+  //     break;
+  //   }
+  // }
 
   // create a matrix if no mass yet set
   if (mass == nullptr) {
@@ -955,9 +1014,17 @@ Node::setMass(const Matrix &newMass)
     return 0;
   }
 
-  // otherwise assign mass
-  (*mass) = newMass;
+  // if (mass_type != MassType::Full) {
+  //   mass_type = MassType::Classical;
+  //   position_inertia = newMass(0,0);
+  // }
 
+  else 
+  {
+    mass_type = MassType::Full;
+    // otherwise assign mass
+    (*mass) = newMass;
+  }
   return 0;
 }
 
@@ -966,9 +1033,17 @@ int
 Node::addPositionInertia(double value)
 {
 
-  position_inertia += value;
+  // position_inertia += value;
+  if (mass == nullptr) {
+    mass = new Matrix(numberDOF, numberDOF);
+    mass->Zero();
+  }
 
-  if (mass != nullptr) {
+  // if (mass_type == MassType::None)
+  //   mass_type = MassType::Classical;
+  // else if (mass_type == MassType::Full && mass != nullptr) 
+  {
+    mass_type = MassType::Full;
     const int ndm = xyz.Size();
     for (int i=0; i<ndm; i++)
       (*mass)(i,i) += value;
@@ -977,101 +1052,91 @@ Node::addPositionInertia(double value)
   return 0;
 }
 
-int
-Node::addRotationInertia(double value, unsigned int dof)
-{
-  if (dof >= 3) {
-    opserr << "Node::addRotationInertia - dof " 
-           << dof << " invalid for node " << this->getTag() << "\n";
-    return -1;
-  }
-  rotation_inertia[dof-1] += value;
-  return 0;
-}
 
 
 
-int
-Node::setNumColR(int numCol)
-{
-  if (R != 0) {
-    if (R->noCols() != numCol) {
-      delete R;
-      R = new Matrix(numberDOF, numCol);
-    }
-  } else
-    R = new Matrix(numberDOF, numCol);
 
-  R->Zero();
-  return 0;
-}
+// int
+// Node::setNumColR(int numCol)
+// {
+//   if (R != nullptr) {
+//     if (R->noCols() != numCol) {
+//       delete R;
+//       R = new Matrix(numberDOF, numCol);
+//     }
+//   } else
+//     R = new Matrix(numberDOF, numCol);
 
-int
-Node::setR(int row, int col, double Value)
-{
-  // ensure R had been set
-  if (R == nullptr) {
-    opserr << "Node:setR() - R has not been initialised\n";
-    return -1;
-  }
+//   R->Zero();
+//   return 0;
+// }
 
-  // ensure row, col in range (matrix assignment will catch this - extra work)
-  if (row < 0 || row > numberDOF || col < 0 || col > R->noCols()) {
-    opserr << "Node:setR() - row, col index out of range\n";
-    return -1;
-  }
+// int
+// Node::setR(int row, int col, double Value)
+// {
+//   // ensure R had been set
+//   if (R == nullptr) {
+//     opserr << "Node:setR() - R has not been initialised\n";
+//     return -1;
+//   }
 
-  // do the assignment
-  (*R)(row,col) = Value;
+//   // ensure row, col in range (matrix assignment will catch this - extra work)
+//   if (row < 0 || row > numberDOF || col < 0 || col > R->noCols()) {
+//     opserr << "Node:setR() - row, col index out of range\n";
+//     return -1;
+//   }
 
-  /*
-  // to test uniform excitation pattern with consistent mass matrices:
-  // found that the static application of a unit ground displacement
-  // needs to also be applied to the constrained DOFs
-  Domain *theDomain = this->getDomain();
-  SP_ConstraintIter &theSPs = theDomain->getSPs();
-  SP_Constraint *theSP;
-  // assign zero if there is a homogeneous SP
-  while ((theSP = theSPs()) != 0) {
-      if (theSP->getNodeTag() == this->getTag() &&
-          theSP->getDOF_Number() == row &&
-          theSP->isHomogeneous()) {
-              (*R)(row,col) = 0.0;
-      }
-  }
-  */
+//   // do the assignment
+//   (*R)(row,col) = Value;
 
-  return 0;
-}
+//   /*
+//   // to test uniform excitation pattern with consistent mass matrices:
+//   // found that the static application of a unit ground displacement
+//   // needs to also be applied to the constrained DOFs
+//   Domain *theDomain = this->getDomain();
+//   SP_ConstraintIter &theSPs = theDomain->getSPs();
+//   SP_Constraint *theSP;
+//   // assign zero if there is a homogeneous SP
+//   while ((theSP = theSPs()) != 0) {
+//       if (theSP->getNodeTag() == this->getTag() &&
+//           theSP->getDOF_Number() == row &&
+//           theSP->isHomogeneous()) {
+//               (*R)(row,col) = 0.0;
+//       }
+//   }
+//   */
+
+//   return 0;
+// }
 
 
 
 const Vector &
 Node::getRV(const Vector &V)
 {
-    // we store the product of RV in unbalLoadWithInertia
+  // we store the product of RV in unbalLoadWithInertia
 
-    // make sure unbalLoadWithInertia was created, if not create it
-    if (unbalLoadWithInertia == nullptr)
-      unbalLoadWithInertia = new Vector(numberDOF);
+  // make sure unbalLoadWithInertia was created, if not create it
+  if (unbalLoadWithInertia == nullptr)
+    unbalLoadWithInertia = new Vector(numberDOF);
 
-    // see if quick return , i.e. R == 0
-    if (R == 0) {
-      unbalLoadWithInertia->Zero();
-      return *unbalLoadWithInertia;
-    }
-
-    // check dimesions of R and V
-    if (R->noCols() != V.Size()) {
-      opserr << "WARNING Node::getRV() - R and V of incompatible dimesions\n";
-      opserr << "R: " << *R << "V: " << V;
-      unbalLoadWithInertia->Zero();
-      return *unbalLoadWithInertia;
-    }
-
-    // determine the product
-    unbalLoadWithInertia->addMatrixVector(0.0, *R, V, 1.0);
+  // see if quick return , i.e. R == 0
+  if (R == 0) {
+    unbalLoadWithInertia->Zero();
     return *unbalLoadWithInertia;
+  }
+
+  // check dimesions of R and V
+  if (R->noCols() != V.Size()) {
+    opserr << "WARNING Node::getRV() - R and V of incompatible dimesions\n";
+    opserr << "R: " << *R << "V: " << V;
+    unbalLoadWithInertia->Zero();
+    return *unbalLoadWithInertia;
+  }
+
+  // determine the product
+  unbalLoadWithInertia->addMatrixVector(0.0, *R, V, 1.0);
+  return *unbalLoadWithInertia;
 }
 
 
@@ -1471,10 +1536,13 @@ Node::Print(OPS_Stream &s, int flag)
         s << xyz(i) << ", ";
     s << xyz(numCrd - 1) << "]";
     if (mass != 0) {
-        s << ", \"mass\": [";
-        for (int i = 0; i < numberDOF - 1; i++)
-            s << (*mass)(i, i) << ", ";
-        s << (*mass)(numberDOF - 1, numberDOF - 1) << "]";
+      s << ", \"mass\": [";
+      for (int i = 0; i < numberDOF - 1; i++)
+          s << (*mass)(i, i) << ", ";
+      s << (*mass)(numberDOF - 1, numberDOF - 1) << "]";
+    }
+    if (position_inertia != 0.0) {
+      s << ", \"position_inertia\": " << position_inertia;
     }
     s << "}";
   }
