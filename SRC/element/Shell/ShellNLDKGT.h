@@ -73,7 +73,7 @@ class ShellNLDKGT : public Element {
   // methods for applying loads
   void zeroLoad( ) final;    
   int addLoad( ElementalLoad *theLoad, double loadFactor ) final;
-  int addInertiaLoadToUnbalance( const Vector &accel ) final;
+  int addInertiaLoadToUnbalance( const Vector &accel );
 
 
   // MovableObject
