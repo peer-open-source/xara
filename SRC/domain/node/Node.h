@@ -123,7 +123,7 @@ class Node :
     VIRTUAL const Matrix &getMass();
     // VIRTUAL int   addMass(int i, int j, double& value);
     VIRTUAL const Matrix &getDamp();
-    VIRTUAL int setMass(const Matrix &theMass);
+    VIRTUAL int setMass(const Matrix &);
     VIRTUAL int addPositionInertia(double value);
     // VIRTUAL int setNumColR(int numCol);
     // VIRTUAL int setR(int row, int col, double Value);
@@ -171,13 +171,13 @@ class Node :
     VIRTUAL void Print(OPS_Stream &s, int flag=0);
 
 
-    // AddingSensitivity:BEGIN /////////////////////////////////////////
+    // Sensitivity
     int addInertiaLoadSensitivityToUnbalance(const Vector &accel, 
                                              double fact = 1.0, 
                                              bool tag=false);
-    Matrix getMassSensitivity(void);
-    VIRTUAL const Matrix &getDampSensitivity(void);
-    int    getCrdsSensitivity(void);
+    Matrix getMassSensitivity();
+    VIRTUAL const Matrix &getDampSensitivity();
+    int    getCrdsSensitivity();
     int    saveDispSensitivity(const Vector &v, int gradNum, int numGrads);
     int    saveVelSensitivity(const Vector &vdot, int gradNum, int numGrads);
     int    saveAccelSensitivity(const Vector &vdot, int gradNum, int numGrads);
@@ -187,7 +187,6 @@ class Node :
     int    setParameter(const char **argv, int argc, Parameter &);
     int    updateParameter(int parameterID, Information &);
     int    activateParameter(int parameterID);
-    // AddingSensitivity:END ///////////////////////////////////////////
 
 #if 1
     //
