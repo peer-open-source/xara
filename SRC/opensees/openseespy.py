@@ -36,6 +36,18 @@ from .tcl import Interpreter, _lift
 # something to compare the output of model.analyze to:
 successful = 0
 
+_EXCLUDE_ECHO = {
+    "nodeCoord",
+    "nodeDisp",
+    "nodeVel",
+    "nodeReaction",
+    "getNodeTags",
+    "getEleTags",
+    "getNDM",
+    "getNDF",
+    "getTime"
+}
+
 
 def _split_iter(source, sep=None, regex=False):
     """
@@ -197,15 +209,6 @@ class OpenSeesPy:
         self.eval("pragma openseespy")
 
 
-    def _call(self, proc_name: str, *args, **kwds):
-        """
-        EXPERIMENTAL (2025-07-04)
-        """
-        if self._echo is not None:
-            print(_args_to_cmds(proc_name, *args, **kwds),
-                  file=self._echo)
-
-        return self._interp._tcl.call(proc_name, *args, **kwds)
 
     def _invoke_proc(self, proc_name: str, *args, _final=None, _return_string=False, **kwds)->object:
         """
@@ -219,6 +222,16 @@ class OpenSeesPy:
         strings.
 
         """
+        if False:
+            do_call = True 
+            for arg in args:
+                if isinstance(arg, (list, dict, tuple)):
+                    do_call = False
+                    break
+            
+            if do_call and len(kwds) == 0:
+                return self._call(proc_name, *args, **kwds)
+
         comment = ""
         if "comment" in kwds:
             comment = kwds.pop("comment")
@@ -264,12 +277,24 @@ class OpenSeesPy:
             self.eval(f'puts "{arg}"')
 
 
-    def eval(self, cmd: str) -> str:
+    def eval(self, cmd: str, echo: bool=None) -> str:
         "Evaluate a Tcl command"
-        if self._echo is not None:
-            print(cmd, file=self._echo)
+        try:
+            if self._echo is not None and cmd.split(" ")[0] not in _EXCLUDE_ECHO:
+                print(cmd, file=self._echo)
+        except:
+            pass
         return self._interp.eval(cmd)
 
+    def _call(self, proc_name: str, *args, **kwds):
+        """
+        EXPERIMENTAL (2025-07-04)
+        """
+        if self._echo is not None and proc_name not in _EXCLUDE_ECHO:
+            print(_args_to_cmds(proc_name, *args, **kwds),
+                  file=self._echo)
+
+        return self._interp._tcl.call(proc_name, *args, **kwds)
 
     def block3D(self, *args, **kwds):
         if isinstance(args[6], list) or isinstance(args[7], dict):
@@ -286,7 +311,7 @@ class OpenSeesPy:
         elem_args = args[6]
 
         nl  = '\n'
-        ndm = self._invoke_proc("getNDM")
+        ndm = self._call("getNDM")
 
         # loop over remaining args to form node coords
         node_args = f"""{{
@@ -327,7 +352,7 @@ class OpenSeesPy:
         elem_args = list(args[5:elem_argc])
 
         nl  = '\n'
-        ndm = self._invoke_proc("getNDM")
+        ndm = self._call("getNDM")
         # loop over remaining args to form node coords
         node_args = f"""{{
             {nl.join(" ".join(map(str,args[elem_argc+i*(ndm+1):elem_argc+(i+1)*(ndm+1)])) for i in range(int(len(args[elem_argc:])/(ndm+1))))}
@@ -452,10 +477,21 @@ class OpenSeesPy:
 
         self._mesh["line"][tag] = nodes
 
+    def material(self, type, tag: int, *args, **kwds):
+        if not isinstance(type, str):
+            return type._add_to_model(self, tag)
+        else:
+            return self._invoke_proc("material", type, tag, *args, **kwds)
 
     def section(self, type: str, sec_tag: int, *args, **kwds):
         self._current_section = sec_tag
         # TODO: error handling
+
+        if not isinstance(type, str):
+            return type._add_to_model(self, sec_tag)
+        elif len(args) > 0 and not isinstance(args[0], (int, float, str)):
+            # model.section(name, tag, shape, materials, args)
+            return self._add_section_shape(type, sec_tag, *args, **kwds)
 
         # Undocumented feature
         if "shape" in kwds:
@@ -473,6 +509,20 @@ class OpenSeesPy:
                 self._invoke_proc("fiber", *fiber.coord, fiber.area, fiber.material, section=sec_tag)
 
         return ret
+    
+    def _add_section_shape(self, name, tag, materials, shape=None,  **kwds):
+        from xara import Section, ShellSection
+        if shape is None:
+            shape = materials 
+            materials = None
+
+        if name in {"ShellFiber"}:
+            section = ShellSection(name, materials, shape, **kwds)
+        else:
+            section = Section(name, shape, materials, **kwds)
+
+        section._add_to_model(self, tag)
+        return section
 
     def patch(self, *args, **kwds):
         if "section" not in kwds:
@@ -483,8 +533,6 @@ class OpenSeesPy:
         if "section" not in kwds:
             kwds["section"] = self._current_section
         return self._invoke_proc("layer", *args, **kwds)
-        section = self._current_section
-        return self._invoke_proc("layer", *args, "-section", section, **kwds)
 
     def fiber(self, *args, **kwds):
         if "section" not in kwds:
@@ -546,6 +594,7 @@ class State:
 
     def time(self):
         return self._time
+
 
 
 class StateView:
@@ -611,11 +660,74 @@ class StateView:
     # def residual(self):
     #     return self._model.getResidual()
     
-    @property 
+    @property
     def reactions(self):
         return self._NodalVector(self._model, "reaction")
+    
+    def element(self, tag: int):
+        class ElementStateView:
+            def __init__(self, model, tag: int):
+                self._model = model
+                self._tag   = tag
+
+            def force(self, dof: int=None):
+                if dof is None:
+                    return self._model._call("eleForce", self._tag)
+                else:
+                    return self._model._call("eleForce", self._tag, dof)
+
+            def deformation(self, dof: int=None):
+                if dof is None:
+                    return self._model._call("eleDeformation", self._tag)
+                else:
+                    return self._model._call("eleDeformation", self._tag, dof)
+            
+            def section(self, tag: int):
+                class SectionStateView:
+                    def __init__(self, model, ele_tag: int, sec_tag: int):
+                        self._model   = model
+                        self._ele_tag = ele_tag
+                        self._sec_tag = sec_tag
+
+                    def tangent(self, expand=False):
+                        import numpy as np
+                        if not expand:
+                            K =  self._model._openseespy._invoke_proc(
+                                "eleResponse", 
+                                self._ele_tag,
+                                "section", self._sec_tag,
+                                "tangent"
+                            )
+                        else:
+                            K = self._model._openseespy._invoke_proc("sectionStiffness", 
+                                                                    self._ele_tag, self._sec_tag)
+                        Ka = np.array(K)
+                        Ka.shape = tuple([int(np.sqrt(len(Ka)))]*2)
+                        return Ka
+
+                    def stress(self):
+                        return self._model._openseespy._invoke_proc(
+                            "eleResponse", 
+                            self._ele_tag,
+                            "section", self._sec_tag,
+                            "resultant"
+                        )
+                    def strain(self):
+                        return self._model._openseespy._invoke_proc(
+                            "eleResponse", 
+                            self._ele_tag,
+                            "section", self._sec_tag,
+                            "deformation"
+                        )
+
+                return SectionStateView(self._model, self._tag, tag)
+        return ElementStateView(self._model, tag)
 
 
+    def print(self):
+        for node in self._model.getNodeTags():
+            u = self.u(node)
+            print(f"  {node}: " + "  ".join(f"{val:14.6g}" for val in u))
 
 class Model:
     def __init__(self, *args, echo_file=None, **kwds):
@@ -632,7 +744,6 @@ class Model:
     
     @property
     def state(self):
-
         return StateView(self)
 
 
@@ -660,6 +771,7 @@ class Model:
     #     else:
     #         return self._openseespy._invoke_proc(*args, **kwds)
 
+    
     def asdict(self):
         """April 2024"""
         return self._openseespy._interp.serialize()
@@ -723,7 +835,7 @@ class Model:
         symbols = []
         for k,v in kwds.items():
             self.eval(f"set {k} {v}")
-            symbols.append((f"-{k}", f"${k}"))
+            symbols.extend((f"-{k}", f"${k}"))
         return symbols
 
     def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
@@ -841,8 +953,11 @@ class Model:
     def __getattr__(self, name: str):
         if name in _OVERWRITTEN:
             return getattr(self._openseespy, name)
-        else:
+        elif name in __all__ or name in {"print"}:
             return self._openseespy._partial(self._openseespy._invoke_proc, name)
+        else:
+            raise AttributeError(f"class Model has no attribute '{name}'")
+
 
 
 
@@ -867,11 +982,49 @@ __all__ = [
     "wipe",
     "model",
     "node",
-    "fix",
     "element",
+    "section",
+    "fiber", "patch", "layer",
+    "geomTransf",
+    "transform",
+    "beamIntegration",
+    "nDMaterial",
+    "material",
+    "frictionModel",
+    "limitCurve",
+    # Constraints
+    "fix",
+    "sp",
+    "fixX",
+    "fixY",
+    "fixZ",
+    "mass",
+    "constrain",
+    "equalDOF",
+    "equalDOF_Mixed",
+    "rigidLink",
+    "rigidDiaphragm",
+    # Damping
+    "rayleigh",
+    "modalDamping",
+    "modalDampingQ",
+    "setElementRayleighDampingFactors",
+    # Meshing
+    "block2D",
+    "block3D",
+    "mesh",
+    "remesh",
+
+    # Loading
     "timeSeries",
     "pattern",
     "load",
+    "eleLoad",
+    "imposedMotion",
+    "imposedSupportMotion",
+    "groundMotion",
+    # Analysis
+    "loadConst",
     "system",
     "numberer",
     "constraints",
@@ -880,38 +1033,14 @@ __all__ = [
     "analysis",
     "analyze",
     "test",
-    "section",
-    "fiber",
-    "patch",
-    "layer",
-    "geomTransf",
-    "transform",
-    "beamIntegration",
-    "loadConst",
-    "eleLoad",
-    "reactions",
-    "nodeReaction",
-    "eigen",
     "modalProperties",
     "responseSpectrumAnalysis",
-    "nDMaterial",
-    "material",
-    "block2D",
-    "block3D",
-    "rayleigh",
-    "wipeAnalysis",
+    "eigen",
+    #
+    "reactions",
     "setTime",
     "remove",
-    "mass",
-    "equalDOF",
-    "nodeEigenvector",
-    "getTime",
     "setCreep",
-    "eleResponse",
-    "sp",
-    "fixX",
-    "fixY",
-    "fixZ",
     "reset",
     "initialize",
     "getLoadFactor",
@@ -927,27 +1056,25 @@ __all__ = [
     "database",
     "save",
     "restore",
-    "eleForce",
-    "eleDynamicalForce",
+
+    "getTime",
+    # node
     "nodeUnbalance",
     "nodeDisp",
     "nodeRotation",
-    "setNodeDisp",
+    "nodeEigenvector",
     "nodeVel",
-    "setNodeVel",
     "nodeAccel",
-    "setNodeAccel",
+    "nodeReaction",
     "nodeResponse",
     "nodeCoord",
-    "setNodeCoord",
-    "getPatterns",
-    "getFixedNodes",
-    "getFixedDOFs",
-    "getConstrainedNodes",
-    "getConstrainedDOFs",
-    "getRetainedNodes",
-    "getRetainedDOFs",
+    # element
+    "eleResponse",
+    "eleForce",
+    "eleDynamicalForce",
+
     "updateElementDomain",
+
     "getNDM",
     "getNDF",
     "eleNodes",
@@ -957,11 +1084,22 @@ __all__ = [
     "nodePressure",
     "setNodePressure",
     "nodeBounds",
+    "getPatterns",
+    "getFixedNodes",
+    "getFixedDOFs",
+    "getConstrainedNodes",
+    "getConstrainedDOFs",
+    "getRetainedNodes",
+    "getRetainedDOFs",
+    "getNodeTags",
+    # Setters
+    "setNodeCoord",
+    "setNodeVel",
+    "setNodeAccel",
+    "setNodeDisp",
+
     "start",
     "stop",
-    "modalDamping",
-    "modalDampingQ",
-    "setElementRayleighDampingFactors",
     "region",
     "setPrecision",
     "searchPeerNGA",
@@ -974,7 +1112,6 @@ __all__ = [
     "convertTextToBinary",
     "getEleTags",
     "getCrdTransfTags",
-    "getNodeTags",
     "getParamTags",
     "getParamValue",
     "sectionForce",
@@ -990,36 +1127,24 @@ __all__ = [
     "basicForce",
     "basicStiffness",
     "InitialStateAnalysis",
+    #
     "totalCPU",
     "solveCPU",
     "accelCPU",
     "numFact",
     "numIter",
+    "wipeAnalysis",
     "systemSize",
     "version",
     "setMaxOpenFiles",
-    "limitCurve",
-    "imposedMotion",
-    "imposedSupportMotion",
-    "groundMotion",
-    "equalDOF_Mixed",
-    "rigidLink",
-    "rigidDiaphragm",
     "ShallowFoundationGen",
     "setElementRayleighFactors",
-    "mesh",
-    "remesh",
+    # Parameters
     "parameter",
     "addToParameter",
     "updateParameter",
     "setParameter",
-    "getPID",
-    "getNP",
-    "barrier",
-    "send",
-    "recv",
-    "Bcast",
-    "frictionModel",
+    # Sensitivity
     "computeGradients",
     "sensitivityAlgorithm",
     "sensNodeDisp",
@@ -1028,6 +1153,7 @@ __all__ = [
     "sensLambda",
     "sensSectionForce",
     "sensNodePressure",
+    # Query
     "getNumElements",
     "getEleClassTags",
     "getEleLoadClassTags",
@@ -1035,6 +1161,16 @@ __all__ = [
     "getEleLoadData",
     "getNodeLoadTags",
     "getNodeLoadData",
+    "IGA",
+    "NDTest",
+    # Parallel
+    "getPID",
+    "getNP",
+    "barrier",
+    "send",
+    "recv",
+    "Bcast",
+    # Reliability
     "randomVariable",
     "getRVTags",
     "getRVParamTag",
@@ -1078,8 +1214,6 @@ __all__ = [
     "runFORMAnalysis",
     "getLSFTags",
     "runImportanceSamplingAnalysis",
-    "IGA",
-    "NDTest",
 ]
 
 
@@ -1089,6 +1223,7 @@ _OVERWRITTEN = {
     "timeSeries",
     "pattern", "load",
     "eval",
+    "material",
     "section", "patch", "layer", "fiber",
     "block2D",
     "block3D",
