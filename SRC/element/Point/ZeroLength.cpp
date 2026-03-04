@@ -709,18 +709,19 @@ ZeroLength::getResistingForceIncInertia()
   if (useRayleighDamping == 1) {
     if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0) {
       *theVector += this->getRayleighDampingForces();
-    }  
-  } else if (useRayleighDamping == 2) {
-      // loop over 1d materials
-      for (int mat=0; mat<numMaterials1d; mat++) {
-	
-	// get resisting force for material
-	double force = theMaterial1d[mat+numMaterials1d]->getStress();
-    
-	// compute residual due to resisting force
-	for (int i=0; i<numDOF; i++)
-	  (*theVector)(i)  += (*t1d)(mat,i) * force;
-      }
+    }
+  }
+  else if (useRayleighDamping == 2) {
+    // loop over 1d materials
+    for (int mat=0; mat<numMaterials1d; mat++) {
+      
+      // get resisting force for material
+      double force = theMaterial1d[mat+numMaterials1d]->getStress();
+        
+      // compute residual due to resisting force
+      for (int i=0; i<numDOF; i++)
+        (*theVector)(i)  += (*t1d)(mat,i) * force;
+    }
   }
 
   return *theVector;
