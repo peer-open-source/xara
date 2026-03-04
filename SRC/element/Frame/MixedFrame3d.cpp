@@ -62,7 +62,6 @@
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 #include <Node.h>
-#include <Message.h>
 #include <CrdTransf.h>
 
 #include <FrameSection.h>
