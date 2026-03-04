@@ -100,7 +100,7 @@ class Element : public TaggedObject, public MovableObject
     virtual int  addLoad(ElementalLoad *, double loadFactor);
     virtual int  addLoad(ElementalLoad *, const Vector &loadFactors);
 
-    // virtual int addInertiaLoadToUnbalance(const Vector &accel);
+    virtual int addInertiaLoadToUnbalance(const Vector &accel) {return -1;}
     virtual int setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc);
 
     // methods for obtaining resisting force (force includes elemental loads)
