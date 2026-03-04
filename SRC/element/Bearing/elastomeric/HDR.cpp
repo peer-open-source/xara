@@ -40,7 +40,6 @@
 #include <string.h>
 
 #include <OPS_Globals.h>
-#include <Message.h>
 #include <Logging.h>
 #include <elementAPI.h>
 #define PI 3.14159l
