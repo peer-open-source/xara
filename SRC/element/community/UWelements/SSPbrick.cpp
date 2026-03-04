@@ -38,7 +38,9 @@
 #include <ErrorHandler.h>
 #include <NDMaterial.h>
 #include <Parameter.h>
-
+#include <Vector3D.h>
+#include <MatrixND.h>
+using namespace OpenSees;
 #include <math.h>
 #include <stdlib.h>
 
@@ -1095,13 +1097,13 @@ SSPbrick::GetStab(void)
     double 	c7 = z^hstu;
 
 	// define coefficient vectors for jacobian determinant
-	Vector e1(3);
-	Vector e2(3);
-	Vector e3(3);
-	Vector e4(3);
-	Vector e5(3);
-	Vector e6(3);
-	Vector e7(3);
+	Vector3D e1{};
+	Vector3D e2{};
+	Vector3D e3{};
+	Vector3D e4{};
+	Vector3D e5{};
+	Vector3D e6{};
+	Vector3D e7{};
 
 	e1(0) = a1;  e1(1) = b1;  e1(2) = c1;
 	e2(0) = a2;  e2(1) = b2;  e2(2) = c2;
@@ -1112,29 +1114,29 @@ SSPbrick::GetStab(void)
 	e7(0) = a7;  e7(1) = b7;  e7(2) = c7;
 
 	// jacobian determinant terms
-	J[0] = e1^(CrossProduct(e2,e3));
-	J[1] = (e1^(CrossProduct(e2,e5))) + (e1^(CrossProduct(e6,e3)));
-    J[2] = (e1^(CrossProduct(e2,e4))) + (e6^(CrossProduct(e2,e3)));
-    J[3] = (e5^(CrossProduct(e2,e3))) + (e1^(CrossProduct(e4,e3)));
-	J[1] = 0.0;
-	J[2] = 0.0;
-	J[3] = 0.0;
-    J[4] = (e7^(CrossProduct(e2,e3))) + (e4^(CrossProduct(e5,e2))) + (e4^(CrossProduct(e3,e6)));
-    J[5] = (e1^(CrossProduct(e7,e3))) + (e4^(CrossProduct(e5,e1))) + (e3^(CrossProduct(e5,e6)));
-    J[6] = (e1^(CrossProduct(e2,e7))) + (e4^(CrossProduct(e1,e6))) + (e2^(CrossProduct(e5,e6)));
-    J[7] = -1.0*e1^(CrossProduct(e5,e6));
-    J[8] = -1.0*e4^(CrossProduct(e2,e6));
-    J[9] = -1.0*e4^(CrossProduct(e5,e3));
-    J[10] = e2^(CrossProduct(e4,e7));
-    J[11] = -1.0*e3^(CrossProduct(e4,e7));
-    J[12] = e3^(CrossProduct(e5,e7));
-    J[13] = -1.0*e1^(CrossProduct(e5,e7));
-    J[14] = e1^(CrossProduct(e6,e7));
-    J[15] = -1.0*e2^(CrossProduct(e6,e7));
-    J[16] = 2.0*e4^(CrossProduct(e5,e6));
-    J[17] = e7^(CrossProduct(e5,e6));
-    J[18] = e4^(CrossProduct(e7,e6));
-    J[19] = e4^(CrossProduct(e5,e7));
+	J[ 0] = e1.dot(e2.cross(e3));
+	J[ 1] = e1.dot(e2.cross(e5)) + e1.dot(e6.cross(e3));
+    J[ 2] = e1.dot(e2.cross(e4)) + e6.dot(e2.cross(e3));
+    J[ 3] = e5.dot(e2.cross(e3)) + e1.dot(e4.cross(e3));
+	J[ 1] = 0.0;
+	J[ 2] = 0.0;
+	J[ 3] = 0.0;
+    J[ 4] = e7.dot(e2.cross(e3)) + e4.dot(e5.cross(e2)) + e4.dot(e3.cross(e6));
+    J[ 5] = e1.dot(e7.cross(e3)) + e4.dot(e5.cross(e1)) + e3.dot(e5.cross(e6));
+    J[ 6] = e1.dot(e2.cross(e7)) + e4.dot(e1.cross(e6)) + e2.dot(e5.cross(e6));
+    J[ 7] = -1.0*e1.dot(e5.cross(e6));
+    J[ 8] = -1.0*e4.dot(e2.cross(e6));
+    J[ 9] = -1.0*e4.dot(e5.cross(e3));
+    J[10] =      e2.dot(e4.cross(e7));
+    J[11] = -1.0*e3.dot(e4.cross(e7));
+    J[12] =      e3.dot(e5.cross(e7));
+    J[13] = -1.0*e1.dot(e5.cross(e7));
+    J[14] =      e1.dot(e6.cross(e7));
+    J[15] = -1.0*e2.dot(e6.cross(e7));
+    J[16] =  2.0*e4.dot(e5.cross(e6));
+    J[17] = e7.dot(e5.cross(e6));
+    J[18] = e4.dot(e7.cross(e6));
+    J[19] = e4.dot(e5.cross(e7));
 
 	// combined jacobian terms
     double J0789  = 8.0*(J[0]/3.0 + J[7]/5.0 + J[8]/9.0 + J[9]/9.0);
@@ -1910,18 +1912,6 @@ SSPbrick::GetStab(void)
 	return;
 }
 
-Vector
-SSPbrick::CrossProduct(Vector v1, Vector v2)
-// computes the cross product of two 3x1 vectors,  v1 x v2
-{
-	Vector result(3);
-
-	result(0) = v1(1)*v2(2) - v1(2)*v2(1);
-	result(1) = v1(2)*v2(0) - v1(0)*v2(2);
-	result(2) = v1(0)*v2(1) - v1(1)*v2(0);
-
-	return result;
-}
 
 Matrix  
 SSPbrick::Transpose(int d1, int d2, const Matrix &M)
