@@ -43,7 +43,6 @@
 
 #include <OPS_Globals.h>
 #include <Logging.h>
-#include <Message.h>
 
 #define PI 3.14159l
 
