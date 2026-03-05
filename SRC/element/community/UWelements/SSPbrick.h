@@ -81,7 +81,7 @@ class SSPbrick : public Element
 	int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 	void Print(OPS_Stream &s, int flag);
 
-	Response *setResponse(const char **argv, int argc, OPS_Stream &eleInfo);
+	Response *setResponse(const char **argv, int argc, OPS_Stream &);
 	int getResponse(int responseID, Information &);
 
 	// public methods for material stage update
@@ -126,18 +126,81 @@ class SSPbrick : public Element
 	double mVol;                                        // element volume
 
 	bool mInitialize;
-	
+
 	Matrix Bnot;                                        // mapping matrix for membrane modes
 	Matrix Kstab;                                       // stabilization stiffness matrix
 	MatrixND<SSPB_NUM_DIM,SSPB_NUM_NODE> mNodeCrd;      // nodal coordinate array
 	
-	VectorND<8> xi;                                          // xi evaluated at the nodes
-	VectorND<8> et;                                          // eta evaluated at the nodes
-	VectorND<8> ze;                                          // zeta evaluated at the nodes
-	Vector hut;                                         // zeta*eta evaluated at the nodes
-	Vector hus;                                         // zeta*xi evaluated at the nodes
-	Vector hst;                                         // xi*eta evaluated at the nodes
-	Vector hstu;                                        // xi*eta*zeta evaluated at the nodes
+	static constexpr VectorND<8> xi{
+       -0.125,
+        0.125,
+        0.125,
+       -0.125,
+       -0.125,
+        0.125,
+        0.125,
+       -0.125
+	},
+	et { // xi evaluated at the nodes
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125,
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125
+	},
+    ze { // zeta evaluated at the nodes
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125,
+	    0.125,
+	    0.125
+	},
+    hst {
+        0.125,
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+       -0.125
+	},
+	hut { // zeta*eta evaluated at the nodes
+	    0.125,
+	    0.125,
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125
+	},
+	hus {  // zeta*xi evaluated at the nodes
+        0.125,
+       -0.125,
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+        0.125,
+       -0.125
+	},
+	hstu { // xi*eta*zeta evaluated at the nodes
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+        0.125,
+       -0.125,
+        0.125,
+       -0.125
+	};
 };
 
 #endif
