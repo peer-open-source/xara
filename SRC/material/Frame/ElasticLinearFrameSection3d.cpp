@@ -619,7 +619,6 @@ ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
 
   const Frame::Shape& consts = *shape_data;
 
-
   if (flag == OPS_PRINT_PRINTMODEL_SECTION) {
     s << "ElasticLinearFrameSection3d, tag: " << this->getTag() << "\n";
     s << "\t E: " << *consts.E << "\n";
@@ -633,7 +632,7 @@ ElasticLinearFrameSection3d::Print(OPS_Stream &s, int flag)
   else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"ElasticFrameSection3d\", ";
+    s << "\"type\": \"" << this->getClassType() <<"\", ";
     s << "\"E\": "   << *consts.E  << ", ";
     s << "\"G\": "   << *consts.G  << ", ";
     s << "\"A\": "   << consts.A   << ", ";
