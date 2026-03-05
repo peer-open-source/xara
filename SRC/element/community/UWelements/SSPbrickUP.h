@@ -61,14 +61,14 @@ class SSPbrickUP : public Element
     SSPbrickUP();
     ~SSPbrickUP();
 
-	const char* getClassType()  const { return "SSPbrickUP"; };
+	const char* getClassType() const override { return "SSPbrickUP";}
 
     // public methods to obtain information about dof and connectivity
     int getNumExternalNodes(void) const; 
     const ID &getExternalNodes(void);
 	Node **getNodePtrs(void);
 	int getNumDOF(void);
-	void setDomain(Domain *theDomain);
+	void setDomain(Domain *);
 
 	// public methods to set the state of the element
 	int commitState(void);
@@ -77,22 +77,21 @@ class SSPbrickUP : public Element
 	int update(void);
 
 	// public methods to obtain stiffness, mass, damping, and residual info
-	const Matrix &getTangentStiff(void);
-	const Matrix &getInitialStiff(void);
-	const Matrix &getDamp(void);
-	const Matrix &getMass(void);
+	const Matrix &getTangentStiff();
+	const Matrix &getInitialStiff();
+	const Matrix &getDamp();
+	const Matrix &getMass();
 
-	void zeroLoad(void);
+	void zeroLoad();
 	int addLoad(ElementalLoad *theLoad, double loadFactor);
 	int addInertiaLoadToUnbalance(const Vector &accel);
-	const Vector &getResistingForce(void);
-	const Vector &getResistingForceIncInertia(void);
+	const Vector &getResistingForce();
+	const Vector &getResistingForceIncInertia();
 
 	// public methods for element output
-	int sendSelf(int commitTag, Channel &theChannel);
-	int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-	int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-	void Print(OPS_Stream &s, int flag =0);
+	int sendSelf(int commitTag, Channel &);
+	int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+	void Print(OPS_Stream &s, int flag);
 
 	Response *setResponse(const char **argv, int argc, OPS_Stream &eleInfo);
 	int getResponse(int responseID, Information &eleInformation);
@@ -106,12 +105,11 @@ class SSPbrickUP : public Element
   private:
 
     // member functions
-	void GetStab(void);                                 // compute stabilization stiffness matrix
-	Vector CrossProduct(Vector v1, Vector v2);          // cross product for two 3x1 vectors
+	void GetStab();                                 // compute stabilization stiffness matrix
 	Matrix Transpose(int d1, int d2, const Matrix &M);  // transpose operation
-	void GetSolidStiffness(void);                       // compute solid phase stiffness matrix
+	void GetSolidStiffness();                       // compute solid phase stiffness matrix
 	void GetSolidMass(void);                            // compute soild phase mass matrix
-	void GetPermeabilityMatrix(void);                   // compute permeability matrix
+	void GetPermeabilityMatrix();                   // compute permeability matrix
 
 	// objects
 	NDMaterial *theMaterial;                            // pointer to NDMaterial object
