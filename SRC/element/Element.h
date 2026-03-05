@@ -47,11 +47,6 @@ class Element : public TaggedObject, public MovableObject
   public:
     Element(int tag, int classTag);    
     virtual ~Element();
-    enum class Status {
-        FE_NotImplemented = -2,
-        Failed = -1,
-        Success = 0,
-    };
     enum class MassType {
         Translation,
         General
@@ -60,6 +55,12 @@ class Element : public TaggedObject, public MovableObject
     // methods dealing with nodes and number of external dof
 
     //
+    virtual int getNumExternalNodes() const =0;
+    virtual const ID &getExternalNodes()  =0;	
+    virtual Node **getNodePtrs()  =0;	
+    virtual int    getNumDOF()    =0;
+    virtual double getCharacteristicLength();
+
     virtual int configure(Domain& domain) {
         this->setDomain(&domain);
         return 0;
@@ -70,23 +71,15 @@ class Element : public TaggedObject, public MovableObject
         this->link(*theDomain);
     }
 
-    virtual int getNumExternalNodes() const =0;
-    virtual const ID &getExternalNodes()  =0;	
-    virtual Node **getNodePtrs()  =0;	
-    virtual int    getNumDOF()    =0;
-    virtual double getCharacteristicLength();
-
     // methods dealing with committed state and update
     virtual int  commitState();
     virtual int  revertToLastCommit() = 0;
     virtual int  revertToStart();
     virtual int  update();
-    // virtual Status update(FE_Element&) {return Status::FE_NotImplemented;}
     virtual bool isSubdomain();
     
     // methods to return the current linearized stiffness,
     // damping and mass matrices
-    // virtual int getTangent(FE_Element&) {return -1;}
     virtual const Matrix &getTangentStiff() =0;
     virtual const Matrix &getInitialStiff() =0;
     virtual const Matrix &getDamp();
@@ -136,16 +129,6 @@ class Element : public TaggedObject, public MovableObject
     }
     int unlink(Domain& domain) {
         this->domain = nullptr;
-        return 0;
-    }
-
-    int link(FE_Element& fe) {
-        m_FE = &fe;
-        return 0;
-    }
-    int unlink(FE_Element& fe) {
-        if (m_FE == &fe)
-            m_FE = nullptr;
         return 0;
     }
     Domain* getDomain() const {
