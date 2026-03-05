@@ -39,6 +39,7 @@
 typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
+#include <domain/DomainStatus.h>
 
 
 #include <threads/thread_pool.hpp>
@@ -472,8 +473,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     }).wait();
 
     if (res < 0) {
-      opserr << "  Failed to compute fiber response\n";
-      break;
+      return int(DomainStatus::MaterialFailedToConverge);
     }
 
 
@@ -538,6 +538,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
   if (!converged) {
     opserr << "  Failed to converge in section\n";
+    return int(DomainStatus::SectionFailedToConverge);
   }
 
   return res;
@@ -601,7 +602,6 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
 
 
   thread_pool.submit_loop<unsigned int>(0, fibers->size(), [&](unsigned int i) {
-    int res = 0;
 
     NDMaterial &theMat = *materials[i];
     auto & fiber = (*fibers)[i];
@@ -701,7 +701,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
         (*s_trial)(imx) += tr2*sig0;
     }
 
-    return res;
+    return 0;
   }).wait();
 
   // Assemble final Ke an s
@@ -722,7 +722,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
   // 4) Add Kn to Ks
   //
   Ks.se.addMatrix(Knne,  1.0);
-  return res;
+  return 0;
 }
 
 
