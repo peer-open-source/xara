@@ -590,7 +590,7 @@ TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
             mass, use_mass
         );
 
-      if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
+      if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) != TCL_OK) {
         if (theSection != nullptr)
           delete theSection;
         return TCL_ERROR;
