@@ -22,7 +22,6 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 
-#include <Frame/FrameMass.hpp>
 #include <FrameSection.h>
 #include <FrameTransform.h>
 #include <Frame/FiniteElement.h>
