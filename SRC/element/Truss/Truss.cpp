@@ -523,9 +523,10 @@ Truss::zeroLoad()
 int
 Truss::addLoad(ElementalLoad* theLoad, double loadFactor)
 {
-  opserr << "Truss::addLoad - load type unknown for truss with tag: " << this->getTag() << endln;
+  opserr << "Truss::addLoad - load type unknown for truss with tag: " << this->getTag() << "\n";
   return -1;
 }
+
 
 int
 Truss::addInertiaLoadToUnbalance(const Vector& accel)
