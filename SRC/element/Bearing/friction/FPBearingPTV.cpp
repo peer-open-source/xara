@@ -47,9 +47,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <OPS_Globals.h>
-#include <Message.h>
-;
+#include <Logging.h>
+
 #include <iostream>
 #include <Vector.h>
 
