@@ -177,7 +177,6 @@ ElementFE::getTangent(Integrator *theNewIntegrator)
     theNewIntegrator->formEleTangent(this);
 
   return *theTangent;
-
 }
 
 
