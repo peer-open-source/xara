@@ -34,7 +34,6 @@
 #include <Domain.h>
 #include <Node.h>
 #include <Channel.h>
-#include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
 #include <Renderer.h>
