@@ -33,7 +33,7 @@
 #include <Domain.h>
 
 #include <ModelRegistry.h>
-
+#include <Logging.h>
 #include <Parsing.h> // For TCL_OK/ERROR
 
 using OpenSees::LoadCase;
@@ -189,7 +189,7 @@ ModelRegistry::getRegistryObject(const char* type, const char* specialize, int t
   auto iter_objs = iter->second.find(tag) ;
   if (iter_objs == iter->second.end()) {
     if (flags == 0)
-      opserr << "No object with tag \"" << tag << "\" in partition \"" 
+      opserr << "No object with tag \"" << tag << "\" of type \"" 
              << partition.c_str() << "\"\n";
     return nullptr;
   }
@@ -203,6 +203,18 @@ ModelRegistry::addRegistryObject(const char* type, const char* specialize, int t
   std::string partition = std::string{type};
   if (specialize)
     partition += std::string{specialize};
+
+  // check for clobbering an existing object
+  auto iter = m_registry.find(partition);
+  if (iter != m_registry.end()) {
+    auto iter_objs = iter->second.find(tag) ;
+    if (iter_objs != iter->second.end()) {
+      opserr << OpenSees::PromptValueError 
+             << "An object with tag \"" << tag << "\" of type \"" 
+             << partition.c_str() << "\" already exists.\n";
+      return TCL_ERROR;
+    }
+  }
 
   m_registry[partition][tag] = (TaggedObject*)obj;
   return TCL_OK;
