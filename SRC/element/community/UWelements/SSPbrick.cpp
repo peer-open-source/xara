@@ -51,7 +51,6 @@ using namespace OpenSees;
 OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPbrick)
 {
   static int num_SSPbrick = 0;
-
   if (num_SSPbrick == 0) {
     num_SSPbrick++;
     opslog << "SSPbrick element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
@@ -63,8 +62,8 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPbrick)
   int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
 
   if (numRemainingInputArgs < 10) {
-  opserr << "Invalid #args, want: element SSPbrick eleTag? iNode? jNode? kNode? lNode? mNode? nNode? pNode? qNode? matTag? <b1? b2? b3?>\n";
-          return 0;
+    opserr << "Invalid #args, want: element SSPbrick eleTag? iNode? jNode? kNode? lNode? mNode? nNode? pNode? qNode? matTag? <b1? b2? b3?>\n";
+    return 0;
   }
 
   int iData[10];
@@ -75,34 +74,29 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPbrick)
 
   int numData = 10;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-  opserr << "WARNING invalid integer data: element SSPbrick " << iData[0] << endln;
-          return 0;
+    opserr << "WARNING invalid integer data: element SSPbrick " << iData[0] << endln;
+    return 0;
   }
 
   int matID = iData[9];
   NDMaterial *theMaterial = OPS_getNDMaterial(matID);
   if (theMaterial == 0) {
-  opserr << "WARNING element SSPbrick " << iData[0] << endln;
-          opserr << " Material: " << matID << "not found\n";
-          return 0;
+    opserr << "WARNING element SSPbrick " << iData[0] << endln;
+    opserr << " Material: " << matID << "not found\n";
+    return 0;
   }
 
   if (numRemainingInputArgs == 13) {
-  numData = 3;
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-          opserr << "WARNING invalid optional data: element SSPbrick " << iData[0] << endln;
-                  return 0;
-  }
+    numData = 3;
+    if (OPS_GetDoubleInput(&numData, dData) != 0) {
+      opserr << "WARNING invalid optional data: element SSPbrick " << iData[0] << endln;
+      return 0;
+    }
   }
 
   // parsing was successful, allocate the element
   theElement = new SSPbrick(iData[0], iData[1], iData[2], iData[3], iData[4], iData[5], iData[6], iData[7], iData[8],
                             *theMaterial, dData[0], dData[1], dData[2]);
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type SSPbrick\n";
-            return 0;
-  }
 
   return theElement;
 }
@@ -120,14 +114,14 @@ SSPbrick::SSPbrick(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int Nd5, int Nd6
 	mNodeCrd(),
 	mVol(0),
 	Bnot(6,SSPB_NUM_DOF),
-	Kstab(SSPB_NUM_DOF,SSPB_NUM_DOF),
-	xi{},
-	et{},
-	ze{},
-	hut(8),
-	hus(8),
-	hst(8),
-	hstu(8)
+	Kstab(SSPB_NUM_DOF,SSPB_NUM_DOF)
+	// xi{},
+	// et{},
+	// ze{},
+	// hut(8),
+	// hus(8),
+	// hst(8),
+	// hstu(8)
 {
 	mExternalNodes(0) = Nd1;
 	mExternalNodes(1) = Nd2;
@@ -177,14 +171,14 @@ SSPbrick::SSPbrick()
 	mNodeCrd(),
 	mVol(0),
 	Bnot(6,SSPB_NUM_DOF),
-	Kstab(SSPB_NUM_DOF,SSPB_NUM_DOF),
-	xi{},
-	et{},
-	ze{},
-	hut(8),
-	hus(8),
-	hst(8),
-	hstu(8)
+	Kstab(SSPB_NUM_DOF,SSPB_NUM_DOF)
+	// xi{},
+	// et{},
+	// ze{},
+	// hut(8),
+	// hus(8),
+	// hst(8),
+	// hstu(8)
 {
 	b[0] = 0.0;
 	b[1] = 0.0;
@@ -199,7 +193,7 @@ SSPbrick::SSPbrick()
 	mInitialize = false;
 }
 
-// destructor
+
 SSPbrick::~SSPbrick()
 {
 }
@@ -207,13 +201,13 @@ SSPbrick::~SSPbrick()
 int 
 SSPbrick::getNumExternalNodes() const
 {
-    return SSPB_NUM_NODE;
+  return SSPB_NUM_NODE;
 }
 
 const ID &
 SSPbrick::getExternalNodes()
 {
-    return mExternalNodes;
+  return mExternalNodes;
 }
 
 Node **
@@ -245,118 +239,55 @@ SSPbrick::setDomain(Domain *theDomain)
 			return;  // don't go any further - otherwise segmentation fault
 		}
 	}
-	
-	xi(0) = -0.125;
-	xi(1) =  0.125;
-	xi(2) =  0.125;
-	xi(3) = -0.125;
-	xi(4) = -0.125;
-	xi(5) =  0.125;
-	xi(6) =  0.125;
-	xi(7) = -0.125;
-
-	et(0) = -0.125;
-	et(1) = -0.125;
-	et(2) =  0.125;
-	et(3) =  0.125;
-	et(4) = -0.125;
-	et(5) = -0.125;
-	et(6) =  0.125;
-	et(7) =  0.125;
-
-	ze(0) = -0.125;
-	ze(1) = -0.125;
-	ze(2) = -0.125;
-	ze(3) = -0.125;
-	ze(4) =  0.125;
-	ze(5) =  0.125;
-	ze(6) =  0.125;
-	ze(7) =  0.125;
-
-	hst(0) =  0.125;
-	hst(1) = -0.125;
-	hst(2) =  0.125;
-	hst(3) = -0.125;
-	hst(4) =  0.125;
-	hst(5) = -0.125;
-	hst(6) =  0.125;
-	hst(7) = -0.125;
-
-	hut(0) =  0.125;
-	hut(1) =  0.125;
-	hut(2) = -0.125;
-	hut(3) = -0.125;
-	hut(4) = -0.125;
-	hut(5) = -0.125;
-	hut(6) =  0.125;
-	hut(7) =  0.125;
-
-	hus(0) =  0.125;
-	hus(1) = -0.125;
-	hus(2) = -0.125;
-	hus(3) =  0.125;
-	hus(4) = -0.125;
-	hus(5) =  0.125;
-	hus(6) =  0.125;
-	hus(7) = -0.125;
-
-	hstu(0) = -0.125;
-	hstu(1) =  0.125;
-	hstu(2) = -0.125;
-	hstu(3) =  0.125;
-	hstu(4) =  0.125;
-	hstu(5) = -0.125;
-	hstu(6) =  0.125;
-	hstu(7) = -0.125;
 
 	if (mInitialize) {
 		Vector mIcrd_1(3);
-    	Vector mIcrd_2(3);
-    	Vector mIcrd_3(3);
-    	Vector mIcrd_4(3);
-    	Vector mIcrd_5(3);
-    	Vector mIcrd_6(3);
-    	Vector mIcrd_7(3);
-    	Vector mIcrd_8(3);
-    
-    	// initialize coordinate vectors
-    	mIcrd_1 = theNodes[0]->getCrds();
-    	mIcrd_2 = theNodes[1]->getCrds();
-    	mIcrd_3 = theNodes[2]->getCrds();
-    	mIcrd_4 = theNodes[3]->getCrds();
-    	mIcrd_5 = theNodes[4]->getCrds();
-    	mIcrd_6 = theNodes[5]->getCrds();
-    	mIcrd_7 = theNodes[6]->getCrds();
-    	mIcrd_8 = theNodes[7]->getCrds();
-    
-    	// initialize coordinate matrix
-    	mNodeCrd(0,0) = mIcrd_1(0);
-    	mNodeCrd(1,0) = mIcrd_1(1);
-    	mNodeCrd(2,0) = mIcrd_1(2);
-    	mNodeCrd(0,1) = mIcrd_2(0);
-    	mNodeCrd(1,1) = mIcrd_2(1);
-    	mNodeCrd(2,1) = mIcrd_2(2);
-    	mNodeCrd(0,2) = mIcrd_3(0);
-    	mNodeCrd(1,2) = mIcrd_3(1);
-    	mNodeCrd(2,2) = mIcrd_3(2);
-    	mNodeCrd(0,3) = mIcrd_4(0);
-    	mNodeCrd(1,3) = mIcrd_4(1);
-    	mNodeCrd(2,3) = mIcrd_4(2);
-    	mNodeCrd(0,4) = mIcrd_5(0);
-    	mNodeCrd(1,4) = mIcrd_5(1);
-    	mNodeCrd(2,4) = mIcrd_5(2);
-    	mNodeCrd(0,5) = mIcrd_6(0);
-    	mNodeCrd(1,5) = mIcrd_6(1);
-    	mNodeCrd(2,5) = mIcrd_6(2);
-    	mNodeCrd(0,6) = mIcrd_7(0);
-    	mNodeCrd(1,6) = mIcrd_7(1);
-    	mNodeCrd(2,6) = mIcrd_7(2);
-    	mNodeCrd(0,7) = mIcrd_8(0);
-    	mNodeCrd(1,7) = mIcrd_8(1);
-    	mNodeCrd(2,7) = mIcrd_8(2);
+    Vector mIcrd_2(3);
+    Vector mIcrd_3(3);
+    Vector mIcrd_4(3);
+    Vector mIcrd_5(3);
+    Vector mIcrd_6(3);
+    Vector mIcrd_7(3);
+    Vector mIcrd_8(3);
+  
+    // initialize coordinate vectors
+    mIcrd_1 = theNodes[0]->getCrds();
+    mIcrd_2 = theNodes[1]->getCrds();
+    mIcrd_3 = theNodes[2]->getCrds();
+    mIcrd_4 = theNodes[3]->getCrds();
+    mIcrd_5 = theNodes[4]->getCrds();
+    mIcrd_6 = theNodes[5]->getCrds();
+    mIcrd_7 = theNodes[6]->getCrds();
+    mIcrd_8 = theNodes[7]->getCrds();
+  
+    // initialize coordinate matrix
+    mNodeCrd(0,0) = mIcrd_1(0);
+    mNodeCrd(1,0) = mIcrd_1(1);
+    mNodeCrd(2,0) = mIcrd_1(2);
+    mNodeCrd(0,1) = mIcrd_2(0);
+    mNodeCrd(1,1) = mIcrd_2(1);
+    mNodeCrd(2,1) = mIcrd_2(2);
+    mNodeCrd(0,2) = mIcrd_3(0);
+    mNodeCrd(1,2) = mIcrd_3(1);
+    mNodeCrd(2,2) = mIcrd_3(2);
+    mNodeCrd(0,3) = mIcrd_4(0);
+    mNodeCrd(1,3) = mIcrd_4(1);
+    mNodeCrd(2,3) = mIcrd_4(2);
+    mNodeCrd(0,4) = mIcrd_5(0);
+    mNodeCrd(1,4) = mIcrd_5(1);
+    mNodeCrd(2,4) = mIcrd_5(2);
+    mNodeCrd(0,5) = mIcrd_6(0);
+    mNodeCrd(1,5) = mIcrd_6(1);
+    mNodeCrd(2,5) = mIcrd_6(2);
+    mNodeCrd(0,6) = mIcrd_7(0);
+    mNodeCrd(1,6) = mIcrd_7(1);
+    mNodeCrd(2,6) = mIcrd_7(2);
+    mNodeCrd(0,7) = mIcrd_8(0);
+    mNodeCrd(1,7) = mIcrd_8(1);
+    mNodeCrd(2,7) = mIcrd_8(2);
 
-	    // establish stabilization terms (based on initial state, only need to compute once)
-	    GetStab();
+    // establish stabilization terms (based on initial state, only need to compute once)
+    GetStab();
 	}
 
 	// call the base-class method
@@ -484,11 +415,13 @@ SSPbrick::getMass()
 	}
 	
 	// use jacobian determinant to get nodal mass values
-	double massTerm;
 	for (int i = 0; i < 8; i++) {
-		massTerm = density*J[0]*(1.0 + (J[1]*xi(i) + J[2]*et(i) + J[3]*ze(i) + J[7] + J[8] + J[9])/3.0
-                     + (J[4]*hut(i) + J[5]*hus(i) + J[6]*hst(i) + J[10]*ze(i) + J[11]*et(i) + J[12]*xi(i) + J[13]*ze(i) + J[14]*et(i) + J[15]*xi(i))/9.0
-					 + (J[16]*hstu(i) + J[17]*hut(i) + J[18]*hus(i) + J[19]*hst(i))/27.0);
+		double massTerm = density*J[0]*(
+                1.0 
+                + (J[1]*xi(i) + J[2]*et(i) + J[3]*ze(i) + J[7] + J[8] + J[9])/3.0
+                + (J[4]*hut(i) + J[5]*hus(i) + J[6]*hst(i) + J[10]*ze(i) + J[11]*et(i) + J[12]*xi(i) + J[13]*ze(i) + J[14]*et(i) + J[15]*xi(i))/9.0
+					      + (J[16]*hstu(i) + J[17]*hut(i) + J[18]*hus(i) + J[19]*hst(i))/27.0
+    );
 		mMass(3*i,3*i)     += massTerm;
 		mMass(3*i+1,3*i+1) += massTerm;
 		mMass(3*i+2,3*i+2) += massTerm;
@@ -510,6 +443,7 @@ SSPbrick::zeroLoad()
   return;
 }
 
+
 int
 SSPbrick::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
@@ -529,8 +463,8 @@ SSPbrick::addLoad(ElementalLoad *theLoad, double loadFactor)
     appliedB[1] += loadFactor*data(1)*b[1];
     appliedB[2] += loadFactor*data(2)*b[2];
     return 0;
-
-  } else {
+  } 
+  else {
     opserr << "SSPbrick::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
     return -1;
   } 
@@ -646,13 +580,16 @@ SSPbrick::getResistingForce()
 	mInternalForces.addMatrixTransposeVector(1.0, Bnot, mStress, mVol);
 
 	// subtract body forces from internal force vector
-	Vector body(3);
+	// Vector body(3);
 	if (applyLoad == 0) {
 		double polyJac = 0.0;
 		for (int i = 0; i < 8; i++) {
-			polyJac = J[0]*(1.0 + (J[1]*xi(i) + J[2]*et(i) + J[3]*ze(i) + J[7] + J[8] + J[9])/3.0
-                     + (J[4]*hut(i) + J[5]*hus(i) + J[6]*hst(i) + J[10]*ze(i) + J[11]*et(i) + J[12]*xi(i) + J[13]*ze(i) + J[14]*et(i) + J[15]*xi(i))/9.0
-					 + (J[16]*hstu(i) + J[17]*hut(i) + J[18]*hus(i) + J[19]*hst(i))/27.0);
+			polyJac = J[0]*(
+                1.0 
+                + (J[1]*xi(i) + J[2]*et(i) + J[3]*ze(i) + J[7] + J[8] + J[9])/3.0
+                + (J[4]*hut(i) + J[5]*hus(i) + J[6]*hst(i) + J[10]*ze(i) + J[11]*et(i) + J[12]*xi(i) + J[13]*ze(i) + J[14]*et(i) + J[15]*xi(i))/9.0
+					      + (J[16]*hstu(i) + J[17]*hut(i) + J[18]*hus(i) + J[19]*hst(i))/27.0
+      );
 			mInternalForces(3*i)   -= b[0]*polyJac;
 			mInternalForces(3*i+1) -= b[1]*polyJac;
 			mInternalForces(3*i+2) -= b[2]*polyJac;
@@ -674,6 +611,7 @@ SSPbrick::getResistingForce()
 
 	return mInternalForces;
 }
+
 
 const Vector &
 SSPbrick::getResistingForceIncInertia()
@@ -746,6 +684,7 @@ SSPbrick::getResistingForceIncInertia()
   
   return mInternalForces;
 }
+
 
 int
 SSPbrick::sendSelf(int commitTag, Channel &theChannel)
@@ -1037,9 +976,6 @@ SSPbrick::GetStab()
 	Jmat.invert(Jinv);
 
 	// nodal coordinate vectors
-	// Vector x(8);
-	// Vector y(8);
-	// Vector z(8);
 
 	const VectorND<nen> x {
 	  mNodeCrd(0,0),
@@ -1074,33 +1010,35 @@ SSPbrick::GetStab()
 	  mNodeCrd(2,7)
 	};
 
-	// define coefficient terms for jacobian determinant
-  const double 	a1 = x.dot(xi);
-  const double 	a2 = x.dot(et);
-  const double 	a3 = x.dot(ze);
-  const double 	a4 = x.dot(hut);
-  const double 	a5 = x.dot(hus);
-  const double 	a6 = x.dot(hst);
-  const double 	a7 = x.dot(hstu);
-
-  const double 	b1 = y.dot(xi);
-  const double 	b2 = y.dot(et);
-  const double 	b3 = y.dot(ze);
-  const double 	b4 = y.dot(hut);
-  const double 	b5 = y.dot(hus);
-  const double 	b6 = y.dot(hst);
-  const double 	b7 = y.dot(hstu);
-
-  const double 	c1 = z.dot(xi);
-  const double 	c2 = z.dot(et);
-  const double 	c3 = z.dot(ze);
-  const double 	c4 = z.dot(hut);
-  const double 	c5 = z.dot(hus);
-  const double 	c6 = z.dot(hst);
-  const double 	c7 = z.dot(hstu);
 
   // define coefficient vectors for jacobian determinant
+  MatrixND<8,3> dNmod{};
   {
+
+    // define coefficient terms for jacobian determinant
+    const double 	a1 = x.dot(xi);
+    const double 	a2 = x.dot(et);
+    const double 	a3 = x.dot(ze);
+    const double 	a4 = x.dot(hut);
+    const double 	a5 = x.dot(hus);
+    const double 	a6 = x.dot(hst);
+    const double 	a7 = x.dot(hstu);
+
+    const double 	b1 = y.dot(xi);
+    const double 	b2 = y.dot(et);
+    const double 	b3 = y.dot(ze);
+    const double 	b4 = y.dot(hut);
+    const double 	b5 = y.dot(hus);
+    const double 	b6 = y.dot(hst);
+    const double 	b7 = y.dot(hstu);
+
+    const double 	c1 = z.dot(xi);
+    const double 	c2 = z.dot(et);
+    const double 	c3 = z.dot(ze);
+    const double 	c4 = z.dot(hut);
+    const double 	c5 = z.dot(hus);
+    const double 	c6 = z.dot(hst);
+    const double 	c7 = z.dot(hstu);
     Vector3D e1{};
     Vector3D e2{};
     Vector3D e3{};
@@ -1141,9 +1079,28 @@ SSPbrick::GetStab()
     J[17] = e7.dot(e5.cross(e6));
     J[18] = e4.dot(e7.cross(e6));
     J[19] = e4.dot(e5.cross(e7));
+
+    // kinematic vectors 
+    VectorND<nen> bx{};
+    VectorND<nen> by{};
+    VectorND<nen> bz{};
+
+    bx = (8.0*((b2*c3-c2*b3)*xi + (b3*c1-c3*b1)*et + (b1*c2-c1*b2)*ze) 
+       + (8.0/3.0)*((b6*c5-c6*b5)*xi + (b4*c6-c4*b6)*et + (b5*c4-c5*b4)*ze 
+       + (b5*c1-c5*b1 + b2*c4-c2*b4)*hst + (b6*c2-c6*b2 + b3*c5-c3*b5)*hut + (b1*c6-c1*b6 + b4*c3-c4*b3)*hus))/mVol;
+    by = (8.0*((c2*a3-a2*c3)*xi + (c3*a1-a3*c1)*et + (c1*a2-a1*c2)*ze) + (8.0/3.0)*((c6*a5-a6*c5)*xi + (c4*a6-a4*c6)*et + (c5*a4-a5*c4)*ze 
+        + (c5*a1-a5*c1 + c2*a4-a2*c4)*hst + (c6*a2-a6*c2 + c3*a5-a3*c5)*hut + (c1*a6-a1*c6 + c4*a3-a4*c3)*hus))/mVol;
+    bz = (8.0*((a2*b3-b2*a3)*xi + (a3*b1-b3*a1)*et + (a1*b2-b1*a2)*ze) + (8.0/3.0)*((a6*b5-b6*a5)*xi + (a4*b6-b4*a6)*et + (a5*b4-b5*a4)*ze 
+        + (a5*b1-b5*a1 + a2*b4-b2*a4)*hst + (a6*b2-b6*a2 + a3*b5-b3*a5)*hut + (a1*b6-b1*a6 + a4*b3-b4*a3)*hus))/mVol;
+
+    for (int i = 0; i < 8; i++) {
+      dNmod(i,0) = bx(i);
+      dNmod(i,1) = by(i);
+      dNmod(i,2) = bz(i);
+    }
   }
 
-	// combined jacobian terms
+  // combined jacobian terms
   double J0789  = 8.0*(J[0]/3.0 + J[7]/5.0 + J[8]/9.0 + J[9]/9.0);
   double J0879  = 8.0*(J[0]/3.0 + J[8]/5.0 + J[7]/9.0 + J[9]/9.0);
   double J0978  = 8.0*(J[0]/3.0 + J[9]/5.0 + J[7]/9.0 + J[8]/9.0);
@@ -1164,31 +1121,10 @@ SSPbrick::GetStab()
   double J196   = 8.0*(J[6]/27.0 + 64.0*J[19]/45.0);
   double J16    = 8.0*J[16]/27.0;
 
-	// compute element volume 
-	mVol = 8.0*(J[0] + (J[7] + J[8] + J[9])/3.0);
-
-	// kinematic vectors 
-	VectorND<nen> bx{};
-	VectorND<nen> by{};
-	VectorND<nen> bz{};
-
-	bx = (8.0*((b2*c3-c2*b3)*xi + (b3*c1-c3*b1)*et + (b1*c2-c1*b2)*ze) + (8.0/3.0)*((b6*c5-c6*b5)*xi + (b4*c6-c4*b6)*et + (b5*c4-c5*b4)*ze 
-	     + (b5*c1-c5*b1 + b2*c4-c2*b4)*hst + (b6*c2-c6*b2 + b3*c5-c3*b5)*hut + (b1*c6-c1*b6 + b4*c3-c4*b3)*hus))/mVol;
-	by = (8.0*((c2*a3-a2*c3)*xi + (c3*a1-a3*c1)*et + (c1*a2-a1*c2)*ze) + (8.0/3.0)*((c6*a5-a6*c5)*xi + (c4*a6-a4*c6)*et + (c5*a4-a5*c4)*ze 
-	     + (c5*a1-a5*c1 + c2*a4-a2*c4)*hst + (c6*a2-a6*c2 + c3*a5-a3*c5)*hut + (c1*a6-a1*c6 + c4*a3-a4*c3)*hus))/mVol;
-	bz = (8.0*((a2*b3-b2*a3)*xi + (a3*b1-b3*a1)*et + (a1*b2-b1*a2)*ze) + (8.0/3.0)*((a6*b5-b6*a5)*xi + (a4*b6-b4*a6)*et + (a5*b4-b5*a4)*ze 
-	     + (a5*b1-b5*a1 + a2*b4-b2*a4)*hst + (a6*b2-b6*a2 + a3*b5-b3*a5)*hut + (a1*b6-b1*a6 + a4*b3-b4*a3)*hus))/mVol;
-
-  
-	MatrixND<8,3> dNmod{};
-	for (int i = 0; i < 8; i++) {
-		dNmod(i,0) = bx(i);
-		dNmod(i,1) = by(i);
-		dNmod(i,2) = bz(i);
-	}
+  // compute element volume 
+  mVol = 8.0*(J[0] + (J[7] + J[8] + J[9])/3.0);
 
 	// compute hourglass transformation matrix G
-
 	MatrixND<nen,nen> I8{};
 	I8(0,0) = 1.0;
 	I8(1,1) = 1.0;
@@ -1578,7 +1514,8 @@ SSPbrick::GetStab()
     FCF(11,7) = C3*IusYZ;
     FCF(11,8) = C3*(IusYY + IusXX);
 
-    /*// block44
+    /*
+    // block44
     FCF(9,9)   = C1*HstuXX + C3*(HstuYY + HstuZZ);
     FCF(9,10)  = C4*HstuXY;
     FCF(9,11)  = C4*HstuXZ;
@@ -1587,7 +1524,8 @@ SSPbrick::GetStab()
     FCF(10,11) = C4*HstuYZ;
     FCF(11,9)  = C4*HstuXZ;
     FCF(11,10) = C4*HstuYZ;
-    FCF(11,11) = C1*HstuZZ + C3*(HstuYY + HstuXX);*/
+    FCF(11,11) = C1*HstuZZ + C3*(HstuYY + HstuXX);
+    */
 
 	// block44
     FCF(9,9)   = C3*(HstuYY + HstuZZ);
@@ -1858,7 +1796,8 @@ SSPbrick::GetStab()
     FeCFhg(8,7) = CsuYZ*J0978 + CuuYZ*J518;
     FeCFhg(8,8) = CsuZZ*J0978 + CuuZZ*J518;
 
-    /*// off-diagonal enhanced strain matrix [Fe]^T[C][F] is same as [Fe]^T[C][Fhg] with exception of last three columns
+    /*
+    // off-diagonal enhanced strain matrix [Fe]^T[C][F] is same as [Fe]^T[C][Fhg] with exception of last three columns
     Matrix FeCF(9,12);
     FeCF = FeCFhg;
 
