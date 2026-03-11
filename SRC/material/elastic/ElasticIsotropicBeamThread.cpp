@@ -160,6 +160,13 @@ ElasticIsotropicBeamThread::getOrder() const
 }
 
 
+int
+ElasticIsotropicBeamThread::activateParameter(int paramID)
+{
+  parameterID = paramID;
+  return 0;
+}
+
 
 int
 ElasticIsotropicBeamThread::setParameter(const char **argv, int argc, Parameter &param)
