@@ -41,6 +41,7 @@ class FariaPlasticDamage3d : public NDMaterial
   ~FariaPlasticDamage3d();
 
   const char *getClassType() const override {return "FariaPlasticDamage";}
+  bool threadSafe() const override {return true;}
 
   int setTrialStrain(const Vector &v) override;
   int setTrialStrain(const Vector &v, const Vector &r);
