@@ -453,7 +453,7 @@ namespace OpenSees {
       if (Tcl_GetDouble(interp, arg, value) == TCL_OK)
         return TCL_OK;
 
-      // something like "parameter tag value"
+      // something like "Parameter tag value"
       int tag, argc;
       const char **argv;
       if (Tcl_SplitList(interp, arg, &argc, &argv) != TCL_OK)
