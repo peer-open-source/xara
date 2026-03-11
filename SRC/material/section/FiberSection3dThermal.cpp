@@ -46,73 +46,6 @@ namespace OpenSees {
 ID FiberSection3dThermal::code(4);
 
 
-#if 0
-// constructors:
-FiberSection3dThermal::FiberSection3dThermal(int tag, int num, Fiber **fibers,
-                                             UniaxialMaterial &torsion,  bool compCentroid):
-  FrameSection(tag, SEC_TAG_FiberSection3dThermal),
-  sizeFibers(num), theMaterials(0),
-  QzBar(0.0), QyBar(0.0), ABar(0.0), yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
-  e(4), eCommit(4), s(0), ks(0), theTorsion(0), sT(3), Fiber_T(0), Fiber_TMax(0),
-  parameterID(0), SHVs(0), AverageThermalElong(4)
-{
-  if (fibers.size() > 0) {
-    
-    for (int i = 0; i < fibers.size(); i++) {
-      Fiber *theFiber = fibers[i];
-      double yLoc, zLoc, Area;
-      theFiber->getFiberLocation(yLoc, zLoc);
-      Area = theFiber->getArea();
-      QzBar += yLoc*Area;
-      QyBar += zLoc*Area;
-      ABar  += Area;
-
-      fibers[i].y = -yLoc;
-      fibers[i].z = zLoc;
-      fibers[i].area = Area;
-      UniaxialMaterial *theMat = theFiber->getMaterial();
-      fibers[i].material = theMat->getCopy();
-
-      if (fibers[i].material == 0) {
-        opserr << "FiberSection3dThermal::FiberSection3dThermal -- failed to get copy of a Material\n";
-        exit(-1);
-      }
-
-      Fiber_T[i] = 0.0;
-      Fiber_TMax[i] = 0.0;
-    }
-
-    if (computeCentroid) {
-      yBar = QzBar/ABar;
-      zBar = QyBar/ABar;
-    }
-  }
-
-  theTorsion = torsion.getCopy();
-  if (theTorsion == 0)
-    opserr << "FiberSection3d::FiberSection3d -- failed to get copy of torsion material\n";
-
-  s = new Vector(sData, 3);
-  ks = new Matrix(kData, 3, 3);
-
-  sData[0] = 0.0;
-  sData[1] = 0.0;
-  sData[2] = 0.0;
-
-  for (int i=0; i<16; i++)
-    kData[i] = 0.0;
-
-  code(0) = SECTION_RESPONSE_P;
-  code(1) = SECTION_RESPONSE_MZ;
-  code(2) = SECTION_RESPONSE_MY;
-  code(3) = SECTION_RESPONSE_T;
-
- // AddingSensitivity:BEGIN ////////////////////////////////////
-  parameterID = 0;
-  SHVs=0;
-  // AddingSensitivity:END //////////////////////////////////////
-}
-#endif
 
 FiberSection3dThermal::FiberSection3dThermal(int tag, int num, UniaxialMaterial &torsion, bool compCentroid):
   FrameSection(tag, SEC_TAG_FiberSection3dThermal),
@@ -172,10 +105,8 @@ FiberSection3dThermal::FiberSection3dThermal():
   code(2) = SECTION_RESPONSE_MY;
   code(3) = SECTION_RESPONSE_T;
 
- // AddingSensitivity:BEGIN ////////////////////////////////////
   parameterID = 0;
   SHVs=0;
-  // AddingSensitivity:END //////////////////////////////////////
 }
 
 int
@@ -456,7 +387,7 @@ FiberSection3dThermal::getTemperatureStress(const Vector& dataMixed)
 }
 //JJadd--12.2010---to get section force due to thermal load----end-----
 
-//UoE group///Calculating Thermal stresses at each /////////////////////////////////////////////////////end
+//UoE group///Calculating Thermal stresses at each // end
 const Vector&
 FiberSection3dThermal::getThermalElong()
 {

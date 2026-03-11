@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Written: MHS
-// Created: Aug 2001
-//
 // Description: This file contains the class definition for 
 // WSection2d.h. WSection2d provides the abstraction of a 
 // wide-flange shear section discretized by multiaxial fibers. 
@@ -28,6 +25,9 @@
 // summing fiber contributions.
 // The fiber stresses are the 11, 12, and 13 components of stress, from
 // which all six beam stress resultants are obtained.
+//
+// Written: MHS
+// Created: Aug 2001
 //
 #include <stdlib.h>
 #include <math.h>
@@ -167,7 +167,7 @@ int WSection2d::setTrialSectionDeformation (const Vector &deforms)
 }
 
 const Vector&
-WSection2d::getSectionDeformation(void)
+WSection2d::getSectionDeformation()
 {
   return e;
 }
@@ -179,7 +179,7 @@ WSection2d::getSectionDeformation(void)
 //        0  0 0 sqrt(5/6)         0 -z
 //        0  0 0         0 sqrt(5/6)  y]
 const Matrix&
-WSection2d::getSectionTangent(void)
+WSection2d::getSectionTangent()
 {
   ks.Zero();
  

@@ -18,12 +18,11 @@
 **                                                                    **
 ** ****************************************************************** */
 //
+// Description: This file contains the class implementation for SectionForceDeformation.
+//
 // Written: MHS 
 // Created: Feb 2000
 // Revision: A
-//
-// Description: This file contains the class implementation for SectionForceDeformation.
-//
 //
 #include <SectionForceDeformation.h>
 #include <Information.h>
@@ -34,7 +33,6 @@
 typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
 
 #include <string.h>
-
 #include <TaggedObject.h>
 
 
@@ -110,8 +108,9 @@ SectionForceDeformation::getInitialFlexibility ()
   return *fDefault;
 }
 
+
 double 
-SectionForceDeformation::getRho(void) 
+SectionForceDeformation::getRho() 
 {
   return 0.0 ;
 }
@@ -522,7 +521,7 @@ SectionForceDeformation::commitSensitivity(const Vector& defSens,
 {
   return -1;
 }
-// AddingSensitivity:END ///////////////////////////////////////////
+
 
 //--- Adding Thermal Functions:[BEGIN]   by UoE OpenSees Group ----//
 int
@@ -551,7 +550,7 @@ SectionForceDeformation::getTemperatureStress(const Vector &tData) //PK
 }
 //--- Adding Thermal Functions:[END]   by UoE OpenSees Group ----//
 
-const Vector& SectionForceDeformation::getThermalElong(void)
+const Vector& SectionForceDeformation::getThermalElong()
 {
   errRes.resize(this->getStressResultant().Size());
   return errRes;

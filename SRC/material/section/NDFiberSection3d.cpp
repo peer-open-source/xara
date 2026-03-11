@@ -50,26 +50,26 @@ NDFiberSection3d::NDFiberSection3d(int tag, int num, double a, bool compCentroid
     alpha(a), e(6), s(0), ks(0), 
     parameterID(0), dedh(6)
 {
-    if (sizeFibers != 0) {
-	theMaterials = new NDMaterial *[sizeFibers]{};
-	matData = new double [sizeFibers*3]{};
-    }
+  if (sizeFibers != 0) {
+    theMaterials = new NDMaterial *[sizeFibers]{};
+    matData = new double [sizeFibers*3]{};
+  }
 
-    s = new Vector(sData, 6);
-    ks = new Matrix(kData, 6, 6);
+  s = new Vector(sData, 6);
+  ks = new Matrix(kData, 6, 6);
 
-    for (int i = 0; i < 6; i++)
-	sData[i] = 0.0;
+  for (int i = 0; i < 6; i++)
+    sData[i] = 0.0;
 
-    for (int i = 0; i < 6*6; i++)
-	kData[i] = 0.0;
+  for (int i = 0; i < 6*6; i++)
+    kData[i] = 0.0;
 
-    code(0) = SECTION_RESPONSE_P;
-    code(1) = SECTION_RESPONSE_MZ;
-    code(2) = SECTION_RESPONSE_MY;
-    code(3) = SECTION_RESPONSE_VY;
-    code(4) = SECTION_RESPONSE_VZ;
-    code(5) = SECTION_RESPONSE_T;
+  code(0) = SECTION_RESPONSE_P;
+  code(1) = SECTION_RESPONSE_MZ;
+  code(2) = SECTION_RESPONSE_MY;
+  code(3) = SECTION_RESPONSE_VY;
+  code(4) = SECTION_RESPONSE_VZ;
+  code(5) = SECTION_RESPONSE_T;
 }
 
 // constructor for blank object that recvSelf needs to be invoked upon
@@ -102,36 +102,36 @@ NDFiberSection3d::addFiber(NDMaterial& theMat, const double Area, const double y
 {
   // need to create larger arrays
   if(numFibers == sizeFibers) {
-      int newSize = 2*sizeFibers;
-      NDMaterial **newArray = new NDMaterial *[newSize]; 
-      double *newMatData = new double [3 * newSize];
+    int newSize = 2*sizeFibers;
+    NDMaterial **newArray = new NDMaterial *[newSize]; 
+    double *newMatData = new double [3 * newSize];
 
-      // copy the old pointers and data
-      for (int i = 0; i < numFibers; i++) {
-	  newArray[i] = theMaterials[i];
-	  newMatData[3*i] = matData[3*i];
-	  newMatData[3*i+1] = matData[3*i+1];
-	  newMatData[3*i+2] = matData[3*i+2];
-      }
+    // copy the old pointers and data
+    for (int i = 0; i < numFibers; i++) {
+      newArray[i] = theMaterials[i];
+      newMatData[3*i] = matData[3*i];
+      newMatData[3*i+1] = matData[3*i+1];
+      newMatData[3*i+2] = matData[3*i+2];
+    }
 
-      // initialize new memory
-      for (int i = numFibers; i < newSize; i++) {
-	  newArray[i]       = 0;
-	  newMatData[3*i]   = 0.0;
-	  newMatData[3*i+1] = 0.0;
-	  newMatData[3*i+2] = 0.0;
-      }
+    // initialize new memory
+    for (int i = numFibers; i < newSize; i++) {
+      newArray[i]       = 0;
+      newMatData[3*i]   = 0.0;
+      newMatData[3*i+1] = 0.0;
+      newMatData[3*i+2] = 0.0;
+    }
 
-      sizeFibers = newSize;
+    sizeFibers = newSize;
 
-      // set new memory
-      if (theMaterials != 0) {
-	  delete [] theMaterials;
-	  delete [] matData;
-      }
+    // set new memory
+    if (theMaterials != nullptr) {
+      delete [] theMaterials;
+      delete [] matData;
+    }
 
-      theMaterials = newArray;
-      matData = newMatData;
+    theMaterials = newArray;
+    matData = newMatData;
   }
 
   // set the new pointers and data

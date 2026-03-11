@@ -27,7 +27,6 @@
 // Created: 04/04
 //
 #include <stdlib.h>
-
 #include <Channel.h>
 #include <Vector.h>
 #include <Matrix.h>
@@ -41,124 +40,29 @@
 #include <math.h>
 #include <fstream>
 #include <string.h>
-#include <elementAPI.h>
+#include <Logging.h>
 #include <SensitiveResponse.h>
 typedef SensitiveResponse<FrameSection> SectionResponse;
 
 
 ID FiberSectionWarping3d::code(6);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_FiberSectionWarping3d)
+
+FiberSectionWarping3d::FiberSectionWarping3d(int tag, int num, UniaxialMaterial &torsion): 
+    FrameSection(tag, SEC_TAG_FiberSectionWarping3d),
+    numFibers(0), sizeFibers(num), theMaterials(0), matData(0),
+    yBar(0.0), zBar(0.0),
+    e(8), eCommit(8), s(0), ks(0), theTorsion(0)
 {
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-            opserr<<"insufficient arguments for FiberSectionWarping3d\n";
-            return 0;
-    }
-    
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData, &tag) < 0) return 0;
-
-    if (OPS_GetNumRemainingInputArgs() < 2) {
-      opserr << "WARNING torsion not specified for FiberSection\n";
-      opserr << "Use either -GJ $GJ or -torsion $matTag\n";
-      opserr << "\nFiberSection3d section: " << tag << endln;
-      return 0;
-    }
-    
-    UniaxialMaterial *torsion = 0;
-    bool deleteTorsion = false;
-    bool computeCentroid = true;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt,"-noCentroid") == 0) {
-        computeCentroid = false;
-      }
-      if (strcmp(opt, "-GJ") == 0 && OPS_GetNumRemainingInputArgs() > 0) {
-        numData = 1;
-        double GJ;
-        if (OPS_GetDoubleInput(&numData, &GJ) < 0) {
-          opserr << "WARNING: failed to read GJ\n";
-          return 0;
-        }
-        torsion = new ElasticMaterial(0,GJ);
-        deleteTorsion = true;
-      }
-      if (strcmp(opt, "-torsion") == 0 && OPS_GetNumRemainingInputArgs() > 0) {
-        numData = 1;
-        int torsionTag;
-        if (OPS_GetIntInput(&numData, &torsionTag) < 0) {
-          opserr << "WARNING: failed to read torsion\n";
-          return 0;
-        }
-        torsion = OPS_getUniaxialMaterial(torsionTag);
-      }
-    }
-
-    if (torsion == 0) {
-      opserr << "WARNING torsion not specified for FiberSection\n";
-      opserr << "\nFiberSection3d section: " << tag << endln;
-      return 0;
-    }
-    
-    int num = 30;
-    FrameSection *section = new FiberSectionWarping3d(tag, num, *torsion);
-    if (deleteTorsion)
-      delete torsion;
-    return section;
-}
-
-#if 0
-// constructors:
-FiberSectionWarping3d::FiberSectionWarping3d(int tag, int num, Fiber **fibers,
-                                             UniaxialMaterial &torsion): 
-  FrameSection(tag, SEC_TAG_FiberSectionWarping3d),
-  numFibers(num), sizeFibers(num),  theMaterials(0), matData(0),
-  yBar(0.0), zBar(0.0), e(8), eCommit(8), s(0), ks(0), theTorsion(0)
-{
-  if (numFibers != 0) {
-    theMaterials = new UniaxialMaterial *[numFibers];
-
-    matData = new double [numFibers*4];
-
-    double Qz = 0.0;
-    double Qy = 0.0;
-    double A  = 0.0;
-    double Heightt;
-    
-    for (int i = 0; i < numFibers; i++) {
-      UniaxialFiber3d *theFiber = (UniaxialFiber3d *)fibers[i];
-      double yLoc, zLoc, Area;
-      theFiber->getFiberLocation(yLoc, zLoc);
-      Area = theFiber->getArea();
-          Heightt = theFiber->getd();
-
-      Qz += yLoc*Area;
-      Qy += zLoc*Area;
-      A  += Area;
-
-      matData[i*4] = yLoc;
-      matData[i*4+1] = zLoc;
-      matData[i*4+2] = Area;
-          matData[i*4+3] = Heightt;
-      UniaxialMaterial *theMat = theFiber->getMaterial();
-      theMaterials[i] = theMat->getCopy();
-
-      if (theMaterials[i] == 0) {
-        opserr << "FiberSectionWarping3d::FiberSectionWarping3d -- failed to get copy of a Material\n";
-        exit(-1);
-      }
-    }
-
-    yBar = -Qz/A;
-    zBar = Qy/A;
+  if (sizeFibers != 0) {
+    theMaterials = new UniaxialMaterial *[sizeFibers]{};
+    matData = new double [sizeFibers*4]{};
   }
 
   theTorsion = torsion.getCopy();
-  if (theTorsion == 0)
+  if (theTorsion == 0) 
     opserr << "FiberSectionWarping3d::FiberSectionWarping3d -- failed to get copy of torsion material\n";
-  
+
   s = new Vector(sData, 6);
   ks = new Matrix(kData, 6, 6);
 
@@ -167,7 +71,7 @@ FiberSectionWarping3d::FiberSectionWarping3d(int tag, int num, Fiber **fibers,
   sData[2] = 0.0;
   sData[3] = 0.0;
   sData[4] = 0.0;
-  sData[5] = 0.0;  
+  sData[5] = 0.0;        
 
   for (int i=0; i<36; i++)
     kData[i] = 0.0;
@@ -177,50 +81,7 @@ FiberSectionWarping3d::FiberSectionWarping3d(int tag, int num, Fiber **fibers,
   code(2) = SECTION_RESPONSE_MY;
   code(3) = SECTION_RESPONSE_W;
   code(4) = SECTION_RESPONSE_B;  
-  code(5) = SECTION_RESPONSE_T;  
-
- // AddingSensitivity:BEGIN ////////////////////////////////////
-  parameterID = 0;
-  SHVs=0;
-  // AddingSensitivity:END //////////////////////////////////////
-}
-#endif
-
-FiberSectionWarping3d::FiberSectionWarping3d(int tag, int num, UniaxialMaterial &torsion): 
-    FrameSection(tag, SEC_TAG_FiberSectionWarping3d),
-    numFibers(0), sizeFibers(num), theMaterials(0), matData(0),
-    yBar(0.0), zBar(0.0),
-    e(8), eCommit(8), s(0), ks(0), theTorsion(0)
-{
-    if (sizeFibers != 0) {
-        theMaterials = new UniaxialMaterial *[sizeFibers]{};
-
-        matData = new double [sizeFibers*4]{};
-    }
-
-    theTorsion = torsion.getCopy();
-    if (theTorsion == 0) 
-      opserr << "FiberSectionWarping3d::FiberSectionWarping3d -- failed to get copy of torsion material\n";
-
-    s = new Vector(sData, 6);
-    ks = new Matrix(kData, 6, 6);
-
-    sData[0] = 0.0;
-    sData[1] = 0.0;
-    sData[2] = 0.0;
-    sData[3] = 0.0;
-    sData[4] = 0.0;
-    sData[5] = 0.0;        
-
-    for (int i=0; i<36; i++)
-        kData[i] = 0.0;
-
-    code(0) = SECTION_RESPONSE_P;
-    code(1) = SECTION_RESPONSE_MZ;
-    code(2) = SECTION_RESPONSE_MY;
-    code(3) = SECTION_RESPONSE_W;
-    code(4) = SECTION_RESPONSE_B;  
-    code(5) = SECTION_RESPONSE_T;    
+  code(5) = SECTION_RESPONSE_T;    
 }
 
 // constructor for blank object that recvSelf needs to be invoked upon
@@ -249,10 +110,8 @@ FiberSectionWarping3d::FiberSectionWarping3d():
   code(4) = SECTION_RESPONSE_B;  
   code(5) = SECTION_RESPONSE_T;  
 
- // AddingSensitivity:BEGIN ////////////////////////////////////
   parameterID = 0;
   SHVs=0;
-  // AddingSensitivity:END //////////////////////////////////////
 }
 
 int
@@ -1302,7 +1161,4 @@ FiberSectionWarping3d::commitSensitivity(const Vector& defSens, int gradIndex, i
 
   return 0;
 }
-
-// AddingSensitivity:END ///////////////////////////////////
-
 

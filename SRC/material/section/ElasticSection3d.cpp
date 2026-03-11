@@ -37,31 +37,6 @@ Vector ElasticSection3d::s(4);
 Matrix ElasticSection3d::ks(4,4);
 ID ElasticSection3d::code(4);
 
-#if 0 
-#include <elementAPI.h>
-void *
-OPS_ADD_RUNTIME_VPV(OPS_ElasticSection3d)
-{
-    if(OPS_GetNumRemainingInputArgs() < 7) {
-	opserr<<"insufficient arguments for ealstic 3d section\n";
-	return 0;
-    }
-
-    // get tag
-    int tag;
-    int numData = 1;
-    if(OPS_GetIntInput(&numData,&tag) < 0) return 0;
-
-    // get data
-    numData = 6;
-    double data[6];
-    if(OPS_GetDoubleInput(&numData,&data[0]) < 0) return 0;
-
-    return new ElasticSection3d(tag,data[0],data[1],data[2],
-				data[3],data[4],data[5]);
-}
-#endif
-
 
 ElasticSection3d::ElasticSection3d()
 :FrameSection(0, SEC_TAG_Elastic3d),
@@ -83,11 +58,11 @@ ElasticSection3d::ElasticSection3d
   if (E <= 0.0)  {
     //opserr << "ElasticSection3d::ElasticSection3d -- Input E <= 0.0\n";
   }
-  
+
   if (A <= 0.0)  {
     //opserr << "ElasticSection3d::ElasticSection3d -- Input A <= 0.0\n";
   }
-  
+
   if (Iz <= 0.0)  {
     //opserr << "ElasticSection3d::ElasticSection3d -- Input Iz <= 0.0\n";
   }
@@ -112,25 +87,25 @@ ElasticSection3d::ElasticSection3d
   }
 }
 
-ElasticSection3d::~ElasticSection3d(void)
+ElasticSection3d::~ElasticSection3d()
 {
-    return;
+  return;
 }
 
 int 
-ElasticSection3d::commitState(void)
-{
-  return 0;
-}
-
-int 
-ElasticSection3d::revertToLastCommit(void)
+ElasticSection3d::commitState()
 {
   return 0;
 }
 
 int 
-ElasticSection3d::revertToStart(void)
+ElasticSection3d::revertToLastCommit()
+{
+  return 0;
+}
+
+int 
+ElasticSection3d::revertToStart()
 {
   return 0;
 }
@@ -138,7 +113,6 @@ ElasticSection3d::revertToStart(void)
 int
 ElasticSection3d::setTrialSectionDeformation (const Vector &def)
 {
-
   e = def;
     
 	return 0;
@@ -162,7 +136,7 @@ ElasticSection3d::getStressResultant()
 }
 
 const Matrix &
-ElasticSection3d::getSectionTangent(void)
+ElasticSection3d::getSectionTangent()
 {
   ks(0,0) = E*A;
   ks(1,1) = E*Iz;
@@ -196,7 +170,7 @@ ElasticSection3d::getIntegral(Field field, State state, double& value) const
 }
 
 const Matrix &
-ElasticSection3d::getInitialTangent(void)
+ElasticSection3d::getInitialTangent()
 {
   ks(0,0) = E*A;
   ks(1,1) = E*Iz;
@@ -243,66 +217,66 @@ ElasticSection3d::getFrameCopy()
 const ID&
 ElasticSection3d::getType()
 {
-    return code;
+  return code;
 }
 
 int
 ElasticSection3d::getOrder() const
 {
-    return 4;
+  return 4;
 }
 
 int
 ElasticSection3d::sendSelf(int commitTag, Channel &theChannel)
 {
-    int res = 0;
+  int res = 0;
 
-    static Vector data(7);
+  static Vector data(7);
 
-    int dataTag = this->getDbTag();
-    
-	data(0) = this->getTag();
-    data(1) = E;
-    data(2) = A;    
-    data(3) = Iz;
-    data(4) = Iy;
-    data(5) = G;
-    data(6) = J;
-    
-    res += theChannel.sendVector(dataTag, commitTag, data);
-    if(res < 0) {
-      opserr << "ElasticSection3d::sendSelf -- failed to send data\n";
-      return res;
-    }
-    
+  int dataTag = this->getDbTag();
+  
+  data(0) = this->getTag();
+  data(1) = E;
+  data(2) = A;    
+  data(3) = Iz;
+  data(4) = Iy;
+  data(5) = G;
+  data(6) = J;
+  
+  res += theChannel.sendVector(dataTag, commitTag, data);
+  if(res < 0) {
+    opserr << "ElasticSection3d::sendSelf -- failed to send data\n";
     return res;
+  }
+  
+  return res;
 }
 
 int
 ElasticSection3d::recvSelf(int commitTag, Channel &theChannel,
 					 FEM_ObjectBroker &theBroker)
 {
-    int res = 0;
-    
-	static Vector data(7);
+  int res = 0;
+  
+  static Vector data(7);
 
-    int dataTag = this->getDbTag();
+  int dataTag = this->getDbTag();
 
-    res += theChannel.recvVector(dataTag, commitTag, data);
-    if(res < 0) {
-      opserr << "ElasticSection3d::recvSelf -- failed to receive data\n";
-      return res;
-    }
-
-	this->setTag((int)data(0));
-    E = data(1);
-    A = data(2);    
-    Iz = data(3);
-    Iy = data(4);
-    G = data(5);
-    J = data(6);    
-
+  res += theChannel.recvVector(dataTag, commitTag, data);
+  if(res < 0) {
+    opserr << "ElasticSection3d::recvSelf -- failed to receive data\n";
     return res;
+  }
+
+  this->setTag((int)data(0));
+  E = data(1);
+  A = data(2);    
+  Iz = data(3);
+  Iy = data(4);
+  G = data(5);
+  J = data(6);    
+
+  return res;
 }
  
 void
@@ -327,7 +301,8 @@ ElasticSection3d::Print(OPS_Stream &s, int flag)
 		s << "\"A\": " << A << ", ";
 		s << "\"Jx\": " << J << ", ";
 		s << "\"Iy\": " << Iy << ", ";
-		s << "\"Iz\": " << Iz << "}";
+		s << "\"Iz\": " << Iz ;
+    s << "}";
 	}
 }
 

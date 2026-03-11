@@ -26,6 +26,11 @@
 // Written: MHS
 // Created: 2012
 //
+// References
+//
+// - Scott, M. “Software Frameworks for the Computational Simulation of Structural Systems.” 
+//   University of California, Berkeley, 2004. 
+//
 #ifndef NDFiberSection3d_h
 #define NDFiberSection3d_h
 
@@ -40,7 +45,7 @@ class NDFiberSection3d : public FrameSection
 {
   public:
     NDFiberSection3d(); 
-    NDFiberSection3d(int tag, int numFibers, double a = 1.0, bool compCentroid=true);
+    NDFiberSection3d(int tag, int numFibers, double a, bool compCentroid);
     ~NDFiberSection3d();
 
     const char *getClassType(void) const {return "NDFiberSection3d";}

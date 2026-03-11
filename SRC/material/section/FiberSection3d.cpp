@@ -18,10 +18,10 @@
 **                                                                    **
 ** ****************************************************************** */
 //
+// Description: This file contains the class implementation of FiberSection3d.
+//
 // Written: fmk
 // Created: 04/04
-//
-// Description: This file contains the class implementation of FiberSection3d.
 //
 #include <memory>
 #include <math.h>
@@ -79,68 +79,6 @@ FiberSection3d::FiberSection3d(int tag, int num, UniaxialMaterial &torsion, bool
     code(3) = SECTION_RESPONSE_T;
 }
 
-#if 0
-FiberSection3d::FiberSection3d(int tag, int num, UniaxialMaterial **mats,
-                         SectionIntegration &si, UniaxialMaterial &torsion,
-                         bool compCentroid):
-  FrameSection(tag, SEC_TAG_FiberSection3d),
-  numFibers(num), sizeFibers(num), theMaterials(0), matData(0),
-  QzBar(0.0), QyBar(0.0), Abar(0.0), yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
-  e(4), s(0), ks(0), theTorsion(0)
-{
-  if (numFibers != 0) {
-    theMaterials = new UniaxialMaterial *[numFibers];
-//  matData      = new double [numFibers*3];
-    matData.reset(new double [numFibers*3]);
-  }
-
-  sectionIntegr = si.getCopy();
-  if (sectionIntegr == 0) {
-    opserr << "Error: FiberSection3d::FiberSection3d: could not create copy of section integration object" << endln;
-    exit(-1);
-  }
-
-  static double yLocs[10000];
-  static double zLocs[10000];
-  sectionIntegr->getFiberLocations(numFibers, yLocs, zLocs);
-  
-  static double fiberArea[10000];
-  sectionIntegr->getFiberWeights(numFibers, fiberArea);
-  
-  for (int i = 0; i < numFibers; i++) {
-    Abar  += fiberArea[i];
-    QzBar += yLocs[i]*fiberArea[i];
-    QyBar += zLocs[i]*fiberArea[i];
-
-    theMaterials[i] = mats[i]->getCopy();
-    
-    if (theMaterials[i] == 0) {
-      opserr << "FiberSection3d::FiberSection3d -- failed to get copy of a Material\n";
-      exit(-1);
-    }
-  }    
-
-  if (computeCentroid) {
-    yBar = QzBar/Abar;  
-    zBar = QyBar/Abar;  
-  }
-  
-  theTorsion = torsion.getCopy();
-  if (theTorsion == 0)
-    opserr << "FiberSection3d::FiberSection3d -- failed to get copy of torsion material\n";
-
-  s = new Vector(sData, 4);
-  ks = new Matrix(kData, 4, 4);
-  
-  s->Zero();
-  ks->Zero();
-  
-  code(0) = SECTION_RESPONSE_P;
-  code(1) = SECTION_RESPONSE_MZ;
-  code(2) = SECTION_RESPONSE_MY;
-  code(3) = SECTION_RESPONSE_T;
-}
-#endif
 
 // constructor for blank object that recvSelf needs to be invoked upon
 FiberSection3d::FiberSection3d():
@@ -760,8 +698,8 @@ FiberSection3d::recvSelf(int commitTag, Channel &theChannel,
   }
 
   if (theTorsion->recvSelf(commitTag, theChannel, theBroker) < 0) {
-         opserr << "FiberSection3d::recvSelf - torsion failed to recvSelf \n";
-       return -2;
+    opserr << "FiberSection3d::recvSelf - torsion failed to recvSelf \n";
+    return -2;
   }
   
   // recv data about materials objects, classTag and dbTag

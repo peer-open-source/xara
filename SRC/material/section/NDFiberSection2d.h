@@ -40,7 +40,7 @@ class NDFiberSection2d : public FrameSection
 {
   public:
     NDFiberSection2d(); 
-    NDFiberSection2d(int tag, int numFibers, double a = 1.0, bool compCentroid=true);
+    NDFiberSection2d(int tag, int numFibers, double a, bool compCentroid);
 #if 0
     NDFiberSection2d(int tag, int numFibers, Fiber **fibers, double a = 1.0, bool compCentroid=true);
     NDFiberSection2d(int tag, int numFibers, NDMaterial **mats,
@@ -48,7 +48,7 @@ class NDFiberSection2d : public FrameSection
 #endif
     ~NDFiberSection2d();
 
-    const char *getClassType(void) const {return "NDFiberSection2d";};
+    const char *getClassType(void) const {return "NDFiberSection2d";}
 
     int   setTrialSectionDeformation(const Vector &deforms); 
     const Vector &getSectionDeformation(void);
