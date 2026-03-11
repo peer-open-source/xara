@@ -160,8 +160,8 @@ DOF_Group::~DOF_Group()
 
   // delete tangent and residual if created specially
   if (numDOF > MAX_NUM_DOF) {
-      if (tangent != 0) delete tangent;
-      if (unbalance != 0) delete unbalance;
+    if (tangent != 0) delete tangent;
+    if (unbalance != 0) delete unbalance;
   }
 
   // if this is the last FE_Element, clean up the
