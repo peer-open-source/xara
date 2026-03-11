@@ -50,9 +50,13 @@ extern int init_g3_tcl_utils(Tcl_Interp*);
 static int
 version(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
 {
-  char buffer[20];
+  char buffer[40];
 
+#ifdef XARA_COMMIT_HASH
+  sprintf(buffer, "%s (commit %s)", OPENSEESRT_VERSION, XARA_COMMIT_HASH);
+#else
   sprintf(buffer, "%s", OPENSEESRT_VERSION);
+#endif
   Tcl_SetResult(interp, buffer, TCL_VOLATILE);
 
   return TCL_OK;
