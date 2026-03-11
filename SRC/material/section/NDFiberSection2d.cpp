@@ -39,33 +39,9 @@
 typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
-#include <elementAPI.h>
 
 ID NDFiberSection2d::code(3);
 Matrix NDFiberSection2d::fs(3,3);
-
-void * OPS_ADD_RUNTIME_VPV(OPS_NDFiberSection2d)
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-	opserr<<"insufficient arguments for NDFiberSection2d\n";
-	return 0;
-    }
-
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData,&tag) < 0) return 0;
-
-    bool computeCentroid = true;
-    if (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt, "-noCentroid") == 0)
-	computeCentroid = false;
-    }
-    
-    int num = 30;
-    return new NDFiberSection2d(tag, num, computeCentroid);
-}
 
 
 NDFiberSection2d::NDFiberSection2d(int tag, int num, double a, bool compCentroid): 
@@ -464,7 +440,7 @@ NDFiberSection2d::getStressResultant(void)
 FrameSection*
 NDFiberSection2d::getFrameCopy(void)
 {
-  NDFiberSection2d *theCopy = new NDFiberSection2d ();
+  NDFiberSection2d *theCopy = new NDFiberSection2d();
   theCopy->setTag(this->getTag());
 
   theCopy->numFibers = numFibers;
