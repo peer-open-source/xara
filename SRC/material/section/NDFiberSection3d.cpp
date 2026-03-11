@@ -39,89 +39,9 @@
 typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
-#include <elementAPI.h>
 
 ID NDFiberSection3d::code(6);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_NDFiberSection3d)
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-	opserr<<"insufficient arguments for NDFiberSection3d\n";
-	return 0;
-    }
-
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData,&tag) < 0) 
-      return 0;
-
-    bool computeCentroid = true;
-    if (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt, "-noCentroid") == 0)
-	computeCentroid = false;
-    }
-    
-    int num = 30;
-    return new NDFiberSection3d(tag, num, computeCentroid);
-}
-#if 0
-// constructors:
-NDFiberSection3d::NDFiberSection3d(int tag, int num, Fiber **fibers, double a, bool compCentroid): 
-  FrameSection(tag, SEC_TAG_NDFiberSection3d),
-  numFibers(num), sizeFibers(num), theMaterials(0), matData(0),
-  Abar(0.0), QyBar(0.0), QzBar(0.0), yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
-  alpha(a), e(6), s(0), ks(0), 
-  parameterID(0), dedh(6)
-{
-  if (numFibers != 0) {
-    theMaterials = new NDMaterial *[numFibers];
-    matData = new double [numFibers*3];
-
-    for (int i = 0; i < numFibers; i++) {
-      Fiber *theFiber = fibers[i];
-      double yLoc, zLoc, Area;
-      theFiber->getFiberLocation(yLoc, zLoc);
-      Area = theFiber->getArea();
-      Abar  += Area;
-      QzBar += yLoc*Area;
-      QyBar += zLoc*Area;
-      matData[i*3] = yLoc;
-      matData[i*3+1] = zLoc;
-      matData[i*3+2] = Area;
-      NDMaterial *theMat = theFiber->getNDMaterial();
-      theMaterials[i] = theMat->getCopy("BeamFiber");
-
-      if (theMaterials[i] == 0) {
-	opserr << "NDFiberSection3d::NDFiberSection3d -- failed to get copy of a Material\n";
-	exit(-1);
-      }
-    }    
-
-    if (computeCentroid) {
-      yBar = QzBar/Abar;  
-      zBar = QyBar/Abar;
-    }
-  }
-
-  s = new Vector(sData, 6);
-  ks = new Matrix(kData, 6, 6);
-
-  for (int i = 0; i < 6; i++)
-    sData[i] = 0.0;
-
-  for (int i = 0; i < 6*6; i++)
-    kData[i] = 0.0;
-
-  code(0) = SECTION_RESPONSE_P;
-  code(1) = SECTION_RESPONSE_MZ;
-  code(2) = SECTION_RESPONSE_MY;
-  code(3) = SECTION_RESPONSE_VY;
-  code(4) = SECTION_RESPONSE_VZ;
-  code(5) = SECTION_RESPONSE_T;
-}
-#endif
 
 NDFiberSection3d::NDFiberSection3d(int tag, int num, double a, bool compCentroid): 
     FrameSection(tag, SEC_TAG_NDFiberSection3d),
@@ -526,7 +446,7 @@ NDFiberSection3d::getStressResultant(void)
 FrameSection*
 NDFiberSection3d::getFrameCopy(void)
 {
-  NDFiberSection3d *theCopy = new NDFiberSection3d ();
+  NDFiberSection3d *theCopy = new NDFiberSection3d();
   theCopy->setTag(this->getTag());
 
   theCopy->numFibers = numFibers;

@@ -40,40 +40,9 @@
 typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
-#include <elementAPI.h>
 
 ID NDFiberSectionWarping2d::code(5);
 
-void* OPS_NDFiberSectionWarping2d()
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-	opserr<<"insufficient arguments for NDFiberSectionWarping2d\n";
-	return 0;
-    }
-
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData,&tag) < 0) return 0;
-
-    double alpha = 1.0;
-    bool computeCentroid = true;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt, "-noCentroid") == 0)
-	computeCentroid = false;
-      if (strcmp(opt, "-alpha") == 0 || strcmp(opt, "-shape") == 0) {
-	if (OPS_GetNumRemainingInputArgs() < 1)
-	  break;
-	numData = 1;
-	if (OPS_GetDoubleInput(&numData,&alpha) < 0)
-	  return 0;
-      }
-    }
-    
-    int num = 30;
-    return new NDFiberSectionWarping2d(tag, num, alpha);
-}
 
 NDFiberSectionWarping2d::NDFiberSectionWarping2d(int tag, int num, double a): 
     FrameSection(tag, SEC_TAG_NDFiberSectionWarping2d),
