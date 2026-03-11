@@ -53,8 +53,6 @@ public:
   const Vector& getStress() override;
   const Vector& getStrain() override;
   bool threadSafe() const override {return true;}
-  Vector3D getFrameStress();
-  OpenSees::Matrix3D getFrameTangent();
 
 
   int commitState() override;
@@ -80,6 +78,7 @@ public:
 
 
 private:
+  int returnMap();
   double E;
   double nu;
   double sigmaY;
@@ -96,6 +95,8 @@ private:
   Vector e_wrapper;
   Matrix D_wrapper;
 
+  Vector3D  xsi_n1;     // converged relative (shifted) stress
+  double    q_n1;       // converged equivalent stress  (scalar)
 
   double alphan;
   double alphan1;
