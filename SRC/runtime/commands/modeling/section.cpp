@@ -266,6 +266,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
       strcmp(argv[1], "FiberSection") == 0 ||
       //
       strcmp(argv[1], "ShearFiber") == 0 ||
+      strcmp(argv[1], "MixedFiber") == 0 ||
       // Shear
       strcmp(argv[1], "NDFiber") == 0 ||
       strcmp(argv[1], "NDFiberWarping") == 0 ||
@@ -501,6 +502,7 @@ struct FiberSectionConfig {
   bool isAsym          = false;
   bool isWarping       = false;
   bool isThermal       = false;
+  bool isMixed         = false;
   bool isNew           = false; // use new FrameFiberSection class
   bool computeCentroid = true;
   bool use_twist = false;
@@ -591,7 +593,12 @@ initSectionCommands(ClientData clientData,
   else if (ndm == 3) {
 
     if (options.isND) {
-      if (options.isNew) {
+      if (options.isMixed) {
+        auto sec = new MixedFrameSection(secTag, options.reserve, shape_data.mixed_form);
+        sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
+        section = sec;
+      }
+      else if (options.isNew) {
         if (getenv("XARA_FIBER_THREADS")) {
           auto sec = new MixedFrameSection(secTag, options.reserve, shape_data.mixed_form);
           sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
@@ -777,8 +784,12 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
 
   FiberSectionConfig options;
   if (strcmp(argv[1], "NDFiber") == 0 ||
-      strcmp(argv[1], "ShearFiber") == 0)
+      strcmp(argv[1], "ShearFiber") == 0 ||
+      strcmp(argv[1], "MixedFiber") == 0)
     options.isND = true;
+  
+  if (strcmp(argv[1], "MixedFiber") == 0)
+    options.isMixed = true;
 
   if (strcmp(argv[1], "NDFiberWarping") == 0) {
     options.isND = true;
@@ -787,7 +798,8 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   else if (strcmp(argv[1], "FrameFiber") == 0 ||
            strcmp(argv[1], "FiberFrame") == 0 ||
            strcmp(argv[1], "AxialFiber") == 0 ||
-           strcmp(argv[1], "ShearFiber") == 0 
+           strcmp(argv[1], "ShearFiber") == 0 ||
+           strcmp(argv[1], "MixedFiber") == 0
     )
     options.isNew = true;
 
