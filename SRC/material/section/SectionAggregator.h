@@ -23,6 +23,10 @@
 // section (couple bending and axial) with an uncoupled shear
 // relation.
 //
+// References:
+// - Scott, M. “Software Frameworks for the Computational Simulation of Structural Systems.” 
+//   University of California, Berkeley, 2004. 
+//
 // Written: MHS
 // Created: Jun 2000
 // Revision: A
@@ -53,7 +57,7 @@ class SectionAggregator : public FrameSection
 
     ~SectionAggregator();
 
-    const char *getClassType() const {return "SectionAggregator";};
+    const char *getClassType() const {return "SectionAggregator";}
 
     int   setTrialSectionDeformation(const Vector &deforms); 
     const Vector &getSectionDeformation();
@@ -119,10 +123,7 @@ class SectionAggregator : public FrameSection
     static double workArea[];
     static int codeArea[];
 
-// AddingSensitivity:BEGIN //////////////////////////////////////////
     Vector dedh; // MHS hack
-// AddingSensitivity:END ///////////////////////////////////////////
-
 };
 
 #endif
