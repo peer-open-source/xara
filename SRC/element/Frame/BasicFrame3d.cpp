@@ -274,7 +274,6 @@ void
 BasicFrame3d::addReactionGrad(double* dp0dh, int gradNumber, double dLdh)
 {
 
-
   for (auto[load, loadFactor] : eleLoads) {
 
 
