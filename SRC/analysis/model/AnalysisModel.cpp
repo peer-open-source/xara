@@ -56,6 +56,7 @@
 #define START_EQN_NUM 0
 #define START_VERTEX_NUM 0
 
+
 static int 
 ApproxDOF(Domain& domain)
 {
@@ -71,11 +72,13 @@ ApproxDOF(Domain& domain)
 
 AnalysisModel::AnalysisModel(Domain& domain)
 : MovableObject(AnaMODEL_TAGS_AnalysisModel),
-  myDomain(&domain), myHandler(nullptr),
-  myDOFGraph(0), myGroupGraph(0)
+  myDomain(&domain)
+ , myHandler(nullptr)
+ , myDOFGraph(0)
+ , myGroupGraph(0)
  , numFE_Ele(0), numDOF_Grp(0), numEqn(0)
  , eigenVectors(0), eigenValues(0), dampingForces(0)
- , isDiagonal(false),diagMass(0)
+ , isDiagonal(false), diagMass(0)
 {
   theFEs     = new VectorOfTaggedObjects(); // 256);
   theDOFs    = new VectorOfTaggedObjects(); // 256);
@@ -895,6 +898,7 @@ AnalysisModel::applyLoadDomain(double time)
   myDomain->applyLoad(time);
   myHandler->applyLoad();
 }
+
 
 int
 AnalysisModel::applyLoadGradient() 

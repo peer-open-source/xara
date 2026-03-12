@@ -1200,42 +1200,6 @@ TclCommand_createKRAlphaExplicit_TP(ClientData clientData, Tcl_Interp* interp, i
 
 
 
-#include <analysis/integrator/Static/LoadControl.h>
-int
-TclCommand_createLoadControlIntegrator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
-{
-  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
-
-  if (OPS_GetNumRemainingInputArgs() < 1) {
-    opserr << "LoadControl - insufficient arguments\n";
-    return TCL_ERROR;
-  }
-
-  double lambda;
-  int numData = 1;
-  if (OPS_GetDoubleInput(&numData, &lambda) < 0) {
-    opserr << "WARNING LoadControl - failed to read double lambda\n";
-    return TCL_ERROR;
-  }
-
-  int numIter = 1;
-  double mLambda[2] = {lambda, lambda};
-  if (OPS_GetNumRemainingInputArgs() > 2) {
-    if (OPS_GetIntInput(&numData, &numIter) < 0) {
-      opserr << "WARNING LoadControl - failed to read int numIter\n";
-      return TCL_ERROR;
-    }
-    numData = 2;
-    if (OPS_GetDoubleInput(&numData, &mLambda[0]) < 0) {
-      opserr << "WARNING LoadControl - failed to read double min and max\n";
-      return TCL_ERROR;
-    }
-  }
-
-  builder->set(*new LoadControl(lambda, numIter, mLambda[0], mLambda[1]));
-  return TCL_OK;
-}
-
 
 #include <analysis/integrator/Static/MinUnbalDispNorm.h>
 int

@@ -1586,32 +1586,32 @@ Domain::getElementResponse(int eleTag, const char **argv, int argc)
 
 
 
-Graph  &
+Graph&
 Domain::getNodeGraph()
 {
-    if (nodeGraphBuiltFlag == false) {
+  if (nodeGraphBuiltFlag == false) {
 	
-	// if the current graph is out of date .. delete it so we can start again
-	if (theNodeGraph != 0) {
-	    delete theNodeGraph;
-	    theNodeGraph = 0;
-	}
-
-	// try to get a graph as big as we should need
-	theNodeGraph = new Graph(this->getNumNodes()+START_VERTEX_NUM);	
-	if (theNodeGraph == 0) { // if still 0 try a smaller one
-	    theNodeGraph = new Graph();
-	}
-
-       // now build the graph
-	if (this->buildNodeGraph(theNodeGraph) == 0)
-	    nodeGraphBuiltFlag = true;
-	else
-	    opserr << "Domain::getNodeGraph() - failed to build the node graph\n";
+    // if the current graph is out of date .. delete it so we can start again
+    if (theNodeGraph != 0) {
+      delete theNodeGraph;
+      theNodeGraph = 0;
     }
 
-    // return the Graph
-    return *theNodeGraph;
+    // try to get a graph as big as we should need
+    theNodeGraph = new Graph(this->getNumNodes()+START_VERTEX_NUM);	
+    if (theNodeGraph == 0) { // if still 0 try a smaller one
+      theNodeGraph = new Graph();
+    }
+
+    // now build the graph
+    if (this->buildNodeGraph(theNodeGraph) == 0)
+        nodeGraphBuiltFlag = true;
+    else
+        opserr << "Domain::getNodeGraph() - failed to build the node graph\n";
+  }
+
+  // return the Graph
+  return *theNodeGraph;
 }
 
 void
@@ -1624,10 +1624,11 @@ Domain::clearElementGraph(void) {
 }
 
 void
-Domain::clearNodeGraph(void) {
-  if (theNodeGraph != 0)
+Domain::clearNodeGraph() 
+{
+  if (theNodeGraph != nullptr)
     delete theNodeGraph;
-  theNodeGraph = 0;
+  theNodeGraph = nullptr;
 
   nodeGraphBuiltFlag = false;
 }
@@ -1637,21 +1638,23 @@ Domain::clearNodeGraph(void) {
 void
 Domain::setCommitTag(int newTag)
 {
-    commitTag = newTag;
+  commitTag = newTag;
 }
+
 
 void
 Domain::setCurrentTime(double newTime)
 {
-    currentTime = newTime;
-    dT = currentTime - committedTime;
+  currentTime = newTime;
+  dT = currentTime - committedTime;
 }
+
 
 void
 Domain::setCommittedTime(double newTime)
 {
-    committedTime = newTime;
-    dT = currentTime - committedTime;
+  committedTime = newTime;
+  dT = currentTime - committedTime;
 }
 
 void
@@ -1687,7 +1690,7 @@ Domain::applyLoad(double scale)
   ElementIter &theElemIter = this->getElements();    
   while ((elePtr = theElemIter()) != nullptr)
     if (elePtr->isSubdomain() == false)
-        elePtr->zeroLoad();    
+      elePtr->zeroLoad();    
 
   //
   // now loop over load patterns, invoking applyLoad on them

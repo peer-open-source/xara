@@ -111,6 +111,7 @@ LoadPattern::~LoadPattern()
 
   if (randomLoads != 0)
     delete randomLoads;
+
   if (dLambdadh != 0)
     delete dLambdadh;
 }
@@ -118,7 +119,7 @@ LoadPattern::~LoadPattern()
 void LoadPattern::setTimeSeries(TimeSeries *theTimeSeries)
 {
   // invoke the destructor on the old TimeSeries
-  if (theSeries != 0)
+  if (theSeries != nullptr)
     delete theSeries;
 
   // set the pointer to the new series object
@@ -129,7 +130,7 @@ void
 LoadPattern::setDomain(Domain *theDomain)
 {
   // if subclass does not implement .. check for 0 pointer
-  if (theNodalLoads != 0) {
+  if (theNodalLoads != nullptr) {
     NodalLoad *nodLoad;
     NodalLoadIter &theNodalIter = this->getNodalLoads();
     while ((nodLoad = theNodalIter()) != nullptr)
@@ -177,7 +178,7 @@ LoadPattern::addElementalLoad(ElementalLoad *load)
 
   bool result = theElementalLoads->addComponent(load);
   if (result == true) {
-    if (theDomain != 0)
+    if (theDomain != nullptr)
       load->setDomain(theDomain);
     load->setLoadPatternTag(this->getTag());
     currentGeoTag++;
