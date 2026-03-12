@@ -345,9 +345,25 @@ InitialStrain<ns>::recvSelf(int cTag, Channel& theChannel, FEM_ObjectBroker& the
 void
 InitialStrain<ns>::Print(OPS_Stream& s, int flag)
 {
-    s << "InitStrainNDMaterial tag: " << this->getTag() << endln;
-    s << "\tMaterial: " << theMaterial->getTag() << endln;
-    s << "\tinitital strain: " << initial_strain << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ",";
+    s << "\"type\": \"" << this->getClassType() << "\",";
+    s << "\"material\": " << theMaterial->getTag() << ",";
+    s << "\"initial_strain\": [";
+    for (int i = 0; i < 6; ++i) {
+        s << initial_strain(i);
+        if (i < 5) s << ", ";
+    }
+    s << "]\n";
+    s << "}";
+
+  }
+  else {
+    s << "InitStrainNDMaterial tag: " << this->getTag() << "\n";
+    s << "\tMaterial: " << theMaterial->getTag() << "\n";
+    s << "\tinitital strain: " << initial_strain << "\n";
+  }
 }
 
 template <std::size_t ns>
