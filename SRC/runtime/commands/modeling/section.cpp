@@ -571,7 +571,7 @@ initSectionCommands(ClientData clientData,
         section = sec;
       }
       else {
-        auto sec = new NDFiberSection2d(secTag, options.computeCentroid);
+        auto sec = new NDFiberSection2d(secTag, options.reserve, shape_data.alpha, options.computeCentroid);
         sbuilder = new FiberSectionBuilder<2, NDMaterial, NDFiberSection2d>(*builder, *sec);
         section = sec;
       }
@@ -581,7 +581,7 @@ initSectionCommands(ClientData clientData,
         sbuilder = new FiberSectionBuilder<2, UniaxialMaterial, FiberSection2dThermal>(*builder, *sec);
         section = sec;
       } else {
-        auto sec = new FiberSection2d(secTag, options.computeCentroid);
+        auto sec = new FiberSection2d(secTag, options.reserve, options.computeCentroid);
         sbuilder = new FiberSectionBuilder<2, UniaxialMaterial, FiberSection2d>(*builder, *sec);
         section = sec;
       }
@@ -608,6 +608,7 @@ initSectionCommands(ClientData clientData,
       else {
         auto sec = new NDFiberSection3d(secTag,
                                         options.reserve,
+                                        shape_data.alpha,
                                         options.computeCentroid);
         sbuilder = new FiberSectionBuilder<3, NDMaterial, NDFiberSection3d>(*builder, *sec);
         section = sec;
@@ -1055,7 +1056,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
     }
   }
 
-  if (torsion == nullptr && ndm == 3 && !options.isNew) {
+  if (torsion == nullptr && ndm == 3 && !options.isNew && !options.isND) {
     opserr << OpenSees::PromptValueError
            << "missing required torsion for 3D fiber section, use -GJ or "
               "-torsion\n";
@@ -1635,7 +1636,7 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
   // Add fiber to section builder
   //
   int ndm = builder->getNDM();
-  int id = 0;
+  int id = -1;
   if (ndm == 2) {
     Vector pos(2);
     pos(0) = yLoc;
@@ -1661,6 +1662,7 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
     i_warp--;
   }
 
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(id));
 
   return TCL_OK;
 }
