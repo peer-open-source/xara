@@ -79,13 +79,12 @@ Concrete01::Concrete01(int tag, double FPC, double EPSC0, double FPCU, double EP
   // Set trial values
   this->revertToLastCommit();
   
-  // AddingSensitivity:BEGIN /////////////////////////////////////
   parameterID = 0;
   SHVs = 0;
-  // AddingSensitivity:END //////////////////////////////////////
 }
 
-Concrete01::Concrete01():UniaxialMaterial(0, MAT_TAG_Concrete01),
+Concrete01::Concrete01()
+:UniaxialMaterial(0, MAT_TAG_Concrete01),
  fpc(0.0), epsc0(0.0), fpcu(0.0), epscu(0.0),
  CminStrain(0.0), CunloadSlope(0.0), CendStrain(0.0),
  Cstrain(0.0), Cstress(0.0)
@@ -508,7 +507,7 @@ int Concrete01::recvSelf (int commitTag, Channel& theChannel,
    return res;
 }
 
-void Concrete01::Print (OPS_Stream& s, int flag)
+void Concrete01::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
     s << "Concrete01, tag: " << this->getTag() << endln;
@@ -521,7 +520,7 @@ void Concrete01::Print (OPS_Stream& s, int flag)
   
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"Concrete01\", ";
     s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
     s << "\"fc\": " << fpc << ", ";
@@ -703,8 +702,8 @@ Concrete01::getStressSensitivity(int gradIndex, bool conditional)
 			
 			}
 		}
-		else if (Tstrain < CendStrain) {	// reloading after an unloading that didn't go all the way to zero stress
-//cerr << "RELOADING AFTER AN UNLOADING THAT DIDN'T GO ALL THE WAY DOWN" << endl;
+		else if (Tstrain < CendStrain) {	
+      // reloading after an unloading that didn't go all the way to zero stress
 			TstressSensitivity = CunloadSlopeSensitivity * (Tstrain-CendStrain)
 				      + CunloadSlope * (TstrainSensitivity-CendStrainSensitivity);
 
@@ -717,8 +716,8 @@ Concrete01::getStressSensitivity(int gradIndex, bool conditional)
 
 		}
 	}
-	else if (Cstress+CunloadSlope*dStrain<0.0) {// unloading, but not all the way down to zero stress
-//cerr << "UNLOADING, BUT NOT ALL THE WAY DOWN" << endl;
+	else if (Cstress+CunloadSlope*dStrain<0.0) {
+    // unloading, but not all the way down to zero stress
 		TstressSensitivity = CstressSensitivity 
 			               + CunloadSlopeSensitivity*dStrain
 				           + CunloadSlope*(TstrainSensitivity-CstrainSensitivity);
