@@ -245,7 +245,11 @@ class OpenSeesPy:
 
         #
         #
-        ret = self.eval(cmd)
+        try:
+            ret = self.eval(cmd)
+        except Exception as e:
+            from .errors import XaraError
+            raise XaraError(f"{e}").with_traceback(None) from None
         #
         #
 
@@ -501,8 +505,12 @@ class OpenSeesPy:
             shape = from_shape(type, *kwds.pop("shape"), ndm=ndm)
         else:
             shape = None
-
-        ret = self._invoke_proc("section", type, sec_tag, *args, **kwds)
+        
+        try:
+            ret = self._invoke_proc("section", type, sec_tag, *args, **kwds)
+        except Exception as e:
+            from .errors import XaraError
+            raise XaraError(f"{e}").with_traceback(None) from None
 
         if shape is not None:
             for fiber in shape.fibers:
@@ -538,196 +546,6 @@ class OpenSeesPy:
         if "section" not in kwds:
             kwds["section"] = self._current_section
         return self._invoke_proc("fiber", *args, **kwds)
-
-
-class State:
-    class NodalVector:
-        def __init__(self, dofs, values=None):
-            self._dofs   = dofs
-            self._values = values
-
-        def __call__(self, node=None, dof=None):
-            if node is None:
-                return self._values
-    
-            elif dof is None:
-                ndofs = self._dofs.get(node)
-                if ndofs is None:
-                    return None
-                return self._values[node]
-
-            else:
-                ndofs = self._dofs.get(node)
-                if ndofs is None or dof > len(ndofs):
-                    return None
-                return self._values[node][dof-1]
-
-
-    def __init__(self, model,
-                 u=None,
-                 v=None,
-                 a=None,
-                 reactions=None,
-                 time=None):
-        self._nodes = {
-            node: model._call("nodeDOFs", node)
-                for node in model._call("getNodeTags") or []
-        }
-        self._u         = u
-        self._v         = v
-        self._a         = a
-        self._reactions = reactions
-        self._time      = time
-
-    @property
-    def u(self):
-        return self.NodalVector(self._nodes, self._u)
-
-    def v(self):
-        return self.NodalVector(self._nodes, self._v)
-
-    def a(self):
-        return self.NodalVector(self._nodes, self._a)
-
-    def reactions(self):
-        return self.NodalVector(self._nodes, self._reactions)
-
-    def time(self):
-        return self._time
-
-
-
-class StateView:
-    class _NodalVector:
-        def __init__(self, model, response: str):
-            self._model = model
-            self._response = response
-
-        def __call__(self, node=None, dof=None, element=None):
-            if dof is not None:
-                return self._model._call(f"node{self._response.capitalize()}", node, dof)
-            else:
-                return self._model._call(f"node{self._response.capitalize()}", node)
-        
-        def __getitem__(self, index):
-            if isinstance(index, tuple):
-                node, dof = index
-                return self._model._call(f"node{self._response.capitalize()}", node, dof)
-            else:
-                node = index
-                return self._model._call(f"node{self._response.capitalize()}", node)
-
-
-    def __init__(self, model):
-        self._model = model
-
-    def store(self, fields=None, file=None):
-        if fields is None:
-            fields = ["u", "v", "a", "reactions"]
-
-        data = {
-            key: getattr(self, key).values for key in fields
-        }
-
-        state = State(self._model, time=self.time, **data)
-        if file is None:
-            return state
-        else:
-            # TODO
-            pass
-
-    @property
-    def time(self):
-        return self._model._call("getTime")
-
-    @property
-    def u(self):
-        return self._NodalVector(self._model, "disp")
-    
-    @property
-    def v(self):
-        return self._NodalVector(self._model, "vel")
-    
-    @property
-    def a(self):
-        return self._NodalVector(self._model, "accel")
-
-    # @property
-    # def tangent(self):
-    #     return self._model.getTangent()
-    
-    # @property 
-    # def residual(self):
-    #     return self._model.getResidual()
-    
-    @property
-    def reactions(self):
-        return self._NodalVector(self._model, "reaction")
-    
-    def element(self, tag: int):
-        class ElementStateView:
-            def __init__(self, model, tag: int):
-                self._model = model
-                self._tag   = tag
-
-            def force(self, dof: int=None):
-                if dof is None:
-                    return self._model._call("eleForce", self._tag)
-                else:
-                    return self._model._call("eleForce", self._tag, dof)
-
-            def deformation(self, dof: int=None):
-                if dof is None:
-                    return self._model._call("eleDeformation", self._tag)
-                else:
-                    return self._model._call("eleDeformation", self._tag, dof)
-            
-            def section(self, tag: int):
-                class SectionStateView:
-                    def __init__(self, model, ele_tag: int, sec_tag: int):
-                        self._model   = model
-                        self._ele_tag = ele_tag
-                        self._sec_tag = sec_tag
-
-                    def tangent(self, expand=False):
-                        import numpy as np
-                        if not expand:
-                            K =  self._model._openseespy._invoke_proc(
-                                "eleResponse", 
-                                self._ele_tag,
-                                "section", self._sec_tag,
-                                "tangent"
-                            )
-                        else:
-                            K = self._model._openseespy._invoke_proc("sectionStiffness", 
-                                                                    self._ele_tag, self._sec_tag)
-                        Ka = np.array(K)
-                        Ka.shape = tuple([int(np.sqrt(len(Ka)))]*2)
-                        return Ka
-
-                    def stress(self):
-                        return self._model._openseespy._invoke_proc(
-                            "eleResponse", 
-                            self._ele_tag,
-                            "section", self._sec_tag,
-                            "resultant"
-                        )
-                    def strain(self):
-                        return self._model._openseespy._invoke_proc(
-                            "eleResponse", 
-                            self._ele_tag,
-                            "section", self._sec_tag,
-                            "deformation"
-                        )
-
-                return SectionStateView(self._model, self._tag, tag)
-        return ElementStateView(self._model, tag)
-
-
-    def print(self):
-        for node in self._model.getNodeTags():
-            u = self.u(node)
-            print(f"  {node}: " + "  ".join(f"{val:14.6g}" for val in u))
 
 class Model:
     def __init__(self, *args, echo_file=None, **kwds):
@@ -789,12 +607,17 @@ class Model:
             for existing_tag in ele_tags:
                 if tag <= existing_tag:
                     tag = existing_tag + 1
-
-        self._openseespy._invoke_proc("element", type, tag, *args, **kwds)
+        try:
+            self._openseespy._invoke_proc("element", type, tag, *args, **kwds)
+        except Exception as e:
+            raise e.with_traceback(None) from None
         return tag
 
     def getIterationCount(self):
         return self._openseespy._invoke_proc("numIter")
+    
+    def testNorms(self):
+        return self._call("testNorms")
 
     def getResidual(self):
         import numpy as np
@@ -1232,6 +1055,196 @@ _OVERWRITTEN = {
     "getEleTags",
 }
 
+
+
+class State:
+    class NodalVector:
+        def __init__(self, dofs, values=None):
+            self._dofs   = dofs
+            self._values = values
+
+        def __call__(self, node=None, dof=None):
+            if node is None:
+                return self._values
+    
+            elif dof is None:
+                ndofs = self._dofs.get(node)
+                if ndofs is None:
+                    return None
+                return self._values[node]
+
+            else:
+                ndofs = self._dofs.get(node)
+                if ndofs is None or dof > len(ndofs):
+                    return None
+                return self._values[node][dof-1]
+
+
+    def __init__(self, model,
+                 u=None,
+                 v=None,
+                 a=None,
+                 reactions=None,
+                 time=None):
+        self._nodes = {
+            node: model._call("nodeDOFs", node)
+                for node in model._call("getNodeTags") or []
+        }
+        self._u         = u
+        self._v         = v
+        self._a         = a
+        self._reactions = reactions
+        self._time      = time
+
+    @property
+    def u(self):
+        return self.NodalVector(self._nodes, self._u)
+
+    def v(self):
+        return self.NodalVector(self._nodes, self._v)
+
+    def a(self):
+        return self.NodalVector(self._nodes, self._a)
+
+    def reactions(self):
+        return self.NodalVector(self._nodes, self._reactions)
+
+    def time(self):
+        return self._time
+
+
+
+class StateView:
+    class _NodalVector:
+        def __init__(self, model, response: str):
+            self._model = model
+            self._response = response
+
+        def __call__(self, node=None, dof=None, element=None):
+            if dof is not None:
+                return self._model._call(f"node{self._response.capitalize()}", node, dof)
+            else:
+                return self._model._call(f"node{self._response.capitalize()}", node)
+        
+        def __getitem__(self, index):
+            if isinstance(index, tuple):
+                node, dof = index
+                return self._model._call(f"node{self._response.capitalize()}", node, dof)
+            else:
+                node = index
+                return self._model._call(f"node{self._response.capitalize()}", node)
+
+
+    def __init__(self, model):
+        self._model = model
+
+    def store(self, fields=None, file=None):
+        if fields is None:
+            fields = ["u", "v", "a", "reactions"]
+
+        data = {
+            key: getattr(self, key).values for key in fields
+        }
+
+        state = State(self._model, time=self.time, **data)
+        if file is None:
+            return state
+        else:
+            # TODO
+            pass
+
+    @property
+    def time(self):
+        return self._model._call("getTime")
+
+    @property
+    def u(self):
+        return self._NodalVector(self._model, "disp")
+    
+    @property
+    def v(self):
+        return self._NodalVector(self._model, "vel")
+    
+    @property
+    def a(self):
+        return self._NodalVector(self._model, "accel")
+
+    # @property
+    # def tangent(self):
+    #     return self._model.getTangent()
+    
+    # @property 
+    # def residual(self):
+    #     return self._model.getResidual()
+    
+    @property
+    def reactions(self):
+        return self._NodalVector(self._model, "reaction")
+    
+    def element(self, tag: int):
+        class ElementStateView:
+            def __init__(self, model, tag: int):
+                self._model = model
+                self._tag   = tag
+
+            def force(self, dof: int=None):
+                if dof is None:
+                    return self._model._call("eleForce", self._tag)
+                else:
+                    return self._model._call("eleForce", self._tag, dof)
+
+            def deformation(self, dof: int=None):
+                if dof is None:
+                    return self._model._call("eleDeformation", self._tag)
+                else:
+                    return self._model._call("eleDeformation", self._tag, dof)
+            
+            def section(self, tag: int):
+                class SectionStateView:
+                    def __init__(self, model, ele_tag: int, sec_tag: int):
+                        self._model   = model
+                        self._ele_tag = ele_tag
+                        self._sec_tag = sec_tag
+
+                    def tangent(self, expand=False):
+                        import numpy as np
+                        if not expand:
+                            K =  self._model._openseespy._invoke_proc(
+                                "eleResponse", 
+                                self._ele_tag,
+                                "section", self._sec_tag,
+                                "tangent"
+                            )
+                        else:
+                            K = self._model._openseespy._invoke_proc("sectionStiffness", 
+                                                                    self._ele_tag, self._sec_tag)
+                        Ka = np.array(K)
+                        Ka.shape = tuple([int(np.sqrt(len(Ka)))]*2)
+                        return Ka
+
+                    def stress(self):
+                        return self._model._openseespy._invoke_proc(
+                            "eleResponse", 
+                            self._ele_tag,
+                            "section", self._sec_tag,
+                            "resultant"
+                        )
+                    def strain(self):
+                        return self._model._openseespy._invoke_proc(
+                            "eleResponse", 
+                            self._ele_tag,
+                            "section", self._sec_tag,
+                            "deformation"
+                        )
+
+                return SectionStateView(self._model, self._tag, tag)
+        return ElementStateView(self._model, tag)
+
+
+    def print(self):
+        for node in self._model.getNodeTags():
+            u = self.u(node)
+            print(f"  {node}: " + "  ".join(f"{val:14.6g}" for val in u))
 
 
 # The global singleton, for backwards compatibility
