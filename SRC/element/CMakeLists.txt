@@ -25,6 +25,7 @@ target_include_directories(OPS_Element PUBLIC
   ${OPS_SRC_DIR}/element/Cable
   ${OPS_SRC_DIR}/element/Shell
   ${OPS_SRC_DIR}/element/Truss
+  ${OPS_SRC_DIR}/element/Loads
 
   ${OPS_SRC_DIR}/element/Frame/UpdatedLagrange
   ${OPS_SRC_DIR}/element/Frame/GradientInelastic
