@@ -525,7 +525,7 @@ namespace Utility {
 template<typename T, std::size_t N>
 constexpr T horner(T x2, const std::array<T,N>& c) noexcept
 {
-  // Evaluate  c0 + c1*x2 + c2*x2² + ...  with Horner's rule (and FMA if available).
+  // Evaluate  c0 + c1*x2 + c2*x2^2 + ...  with Horner's rule.
   T y = c.back();
   for (std::size_t i = N-1; i-- > 0; )
       y = std::fma(x2, y, c[i]);
