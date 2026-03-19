@@ -314,7 +314,7 @@ UniformExcitation::applyLoad(double time)
               }
             }
             fn.addMatrixVector(0.0, mn, an, 1.0);
-            theNodes[j]->addResidual(fn, -1.0);
+            theNodes[j]->addResidual(Vector(&fn[0],ndfj), -1.0);
           }
         }
       }
