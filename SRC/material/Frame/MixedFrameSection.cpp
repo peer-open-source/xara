@@ -16,6 +16,10 @@
 // Description: This file contains the class implementation of MixedFrameSection.
 // MixedFrameSection provides the abstraction of a 3D beam section discretized by fibers.
 //
+// Warp types:
+// - UT: enhanced, based on uniform torsion assumption
+// - U02: warping based on uniform torsion assumption, a la Simo and Gruttmann
+//
 // Written: cmp
 // Created: Jan. 2026
 //
@@ -51,7 +55,7 @@ using namespace OpenSees;
 
 ID MixedFrameSection::code(nsr);
 
-MixedFrameSection::MixedFrameSection(int tag, int num, MixedType type)
+MixedFrameSection::MixedFrameSection(int tag, int num, MixedType type, bool wagner)
   : FrameSection(tag, SEC_TAG_MixedFrameSection)
   , s{}, e{}
   , e_wrap(e)
@@ -63,10 +67,10 @@ MixedFrameSection::MixedFrameSection(int tag, int num, MixedType type)
   , mixed_type(type)
   , nubar(0.0)
   , parameterID(0), dedh(nsr)
-  , fibers(new std::vector<FiberData>)
+  , fibers(std::make_shared<std::vector<FiberData>>())
   , K_init(new Tangent)
   , fiber_state(FiberState::Clean)
-  , wagner(getenv("Wagner") != nullptr)
+  , wagner(wagner || (getenv("Wagner") != nullptr))
 #ifdef N_FIBER_THREADS
   , num_threads(N_FIBER_THREADS)
   , pool((void*)new OpenSees::thread_pool{N_FIBER_THREADS})
@@ -84,6 +88,9 @@ MixedFrameSection::MixedFrameSection(int tag, int num, MixedType type)
   code(ivx) = FrameStress::Bishear;
   code(ivy) = FrameStress::Qy;
   code(ivz) = FrameStress::Qz;
+
+  fibers->reserve(num);
+  materials.reserve(num);
 }
 
 
@@ -110,9 +117,9 @@ MixedFrameSection::MixedFrameSection(const MixedFrameSection &other)
     pool(other.pool)
 {
   materials.reserve(other.materials.size());
-  for (int i = 0; i < other.materials.size(); i++) {
+  for (int i = 0; i < other.materials.size(); i++)
     materials.push_back(other.materials[i]->getCopy("BeamFiber"));
-  }
+
   this->revertToStart();
 }
 
@@ -137,9 +144,9 @@ MixedFrameSection::getIntegral(Field field, State state, double& value) const
         return 0;
 
       for (int i=0; i<nf; i++) {
-        double density;
+        double density = materials[i]->getRho();
         const double A  = (*fibers)[i].area;
-        if (materials[i]->getRho() != 0)
+        if (density != 0)
           value += A*density;
         else
           return -1;
@@ -180,6 +187,7 @@ MixedFrameSection::getIntegral(Field field, State state, double& value) const
                         ; //- zBar*(Field::UnitCentroidZZ == field);
         value += A*z*z;
       }
+      return 0;
 
     default:
       return -1;
@@ -200,11 +208,15 @@ MixedFrameSection::addFiber(MaterialBuilder& theMat,
 
   materials.emplace_back(theMat.getCopy("BeamFiber"));
 
+  // Check for material that cant create BeamFiber copies
   if (materials[materials.size()-1] == nullptr)
     return -1;
 
-  if (!materials.back()->threadSafe())
+  if (!materials.back()->threadSafe()) {
+    opserr << "Material " << materials.back()->getClassType()
+           << " cannot be used with MixedFrameSection as it is not thread safe.\n";
     return -1;
+  }
 
   fiber_state = FiberState::Dirty;
   return materials.size()-1;
@@ -228,6 +240,7 @@ MixedFrameSection::setTrialSectionDeformation(const Vector &e_trial)
   s.zero();
   return stateDetermination(K_pres, &s, &e, CurrentTangent);
 }
+
 
 int 
 MixedFrameSection::checkFiberState()
@@ -277,7 +290,7 @@ MixedFrameSection::getFrameCopy()
 
 
 int 
-MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) const
+MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) //const
 {
   constexpr static Matrix3D oneS {{
     0.0, 0.0, 0.0,
@@ -298,6 +311,9 @@ MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) const
     for (int i = 0; i < nf; i++) {
       const auto & fiber = (*fibers)[i];
       const FiberData::WarpArray& w = fiber.warp;
+      const Matrix & tangent = materials[i]->getInitialTangent();
+      double E = tangent(0,0);
+      double G = tangent(1,1);
       Ja -= w[0][0]*w[1][0]*fiber.area;
       Jw += w[0][0]*w[0][0]*fiber.area;
     }
@@ -365,6 +381,9 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
                               Tangent & Ks)
 {
 
+  static constexpr double mixed_tol = 1e-14;
+  const bool iter_ut = getenv("MixedIterUT") != nullptr;
+
   const Vector3D 
     gamma { e_trial(inx), e_trial(iny), e_trial(inz) },
     kappa { e_trial(imx), e_trial(imy), e_trial(imz) },
@@ -377,27 +396,31 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
 
   const int nf = fibers->size();
+
   std::atomic<int> res = 0;
 
   struct ThreadData {
     MatrixND<3,6> Kae;
-    Matrix3D Knn, Kav;
+    Matrix3D Knn, Kav, Kaw;
     VectorND<3>   r_mixed;
   };
-  std::array<ThreadData, MaxThreads> thread_data;
+  static std::array<ThreadData, MaxThreads> thread_data;
 
   int iter = 0;
   bool converged = false;
   auto& thread_pool = *(OpenSees::thread_pool*)pool;
 
-  Vector3D eta_u{};
-  if (mixed_type != MixedType::None) {
-    eta_u = Vector3D {
-      gamma[1], gamma[2], kappa[0]
-    };
-  }
-  if (mixed_type == MixedType::Equilibrium)
-    eta_u[2] -= alpha[0];
+  Vector3D eta_u = eta_past;
+  // if (eta_u.norm() < 1e-14 && (mixed_type == MixedType::Equilibrium)) {
+    eta_u.zero();
+    if ((mixed_type != MixedType::None) && (mixed_type != MixedType::U02)) {
+      eta_u = Vector3D {
+        gamma[1], gamma[2], kappa[0]
+      };
+    }
+    if (mixed_type == MixedType::Equilibrium)
+      eta_u[2] -= alpha[0];
+  // }
 
   do {
 
@@ -406,20 +429,19 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       thread.Knn.zero();
       thread.Kav.zero();
       thread.Kae.zero();
+      thread.Kaw.zero();
       thread.r_mixed.zero();
     }
     //
     // 2. Loop over fibers to form Knn, Kne, and s_trial
     //
     thread_pool.submit_loop<unsigned int>(0, fibers->size(), [&](unsigned int i) {
-      int res = 0;
 
       NDMaterial &theMat = *materials[i];
       auto & fiber = (*fibers)[i];
       const Vector3D r = {0.0, fiber.r[0], fiber.r[1]};
       double tr2 = wagner? r.dot(r)*kappa[0] : 0.0;
 
-      // NOTE: Matrix 3D is column major so these are transposed.
       const double aw = tr2;
 
       MatrixND<3,6> Aer{};
@@ -429,7 +451,9 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       WarpShape(fiber, iow, iodw);
       MixedShape(fiber, Gr, Gw, An);
       // Form material strain
-      Vector3D eps = gamma + kappa.cross(r);
+      // Vector3D eps = gamma + kappa.cross(r);
+      Vector3D eps{};
+      eps.addMatrixVector(Aer, VectorND<6>{gamma[0], gamma[1], gamma[2], kappa[0], kappa[1], kappa[2]}, 1.0);
       eps.addMatrixVector(An,   eta_u, 1.0);
       eps.addMatrixVector(iow, dalpha, 1.0);
       eps.addMatrixVector(iodw, alpha, 1.0);
@@ -441,7 +465,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
       res += theMat.setTrialStrain(eps);
       if (res < 0)
-        return res;
+        return -1;
 
 
       //
@@ -457,19 +481,22 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       ThreadData& thread = thread_data[*OpenSees::this_thread::get_index()];
       Matrix3D&      Knn = thread.Knn;
       Matrix3D&      Kav = thread.Kav; //
+      Matrix3D&      Kaw = thread.Kaw; //
       MatrixND<3,6>& Kae = thread.Kae;
       VectorND<3>&   r_thread = thread.r_mixed;
 
       Kae.addMatrixTripleProduct(1.0, An, C, Aer, 1.0);
       Knn.addMatrixTripleProduct(1.0, An, C, 1.0);
       Kav.addMatrixTripleProduct(1.0, An, C, iodw, 1.0);
+      Kaw.addMatrixTripleProduct(1.0, An, C, iow,  1.0);
+
 
       //
       //
       //
       r_thread.addMatrixTransposeVector(An, stress, fiber.area);
 
-      return res;
+      return 0;
     }).wait();
 
     if (res < 0) {
@@ -482,18 +509,19 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     //
     Matrix3D Knn{};
     MatrixND<3,6> Kae{};
-    Matrix3D Kav{};
+    Matrix3D Kav{}, Kaw{};
     VectorND<3> r_mixed{};
     for (int t = 0; t < num_threads; t++) {
       Knn.addMatrix(thread_data[t].Knn, 1.0);
       Kae.addMatrix(thread_data[t].Kae, 1.0);
       Kav.addMatrix(thread_data[t].Kav, 1.0);
+      Kaw.addMatrix(thread_data[t].Kaw, 1.0);
       r_mixed += thread_data[t].r_mixed;
     }
 
 
     Matrix3D Knn_inv{};
-    if (mixed_type == MixedType::None) {
+    if ((mixed_type == MixedType::None) ||  (mixed_type == MixedType::U02)) {
       Knne.zero();
       converged = true;
       break;
@@ -512,21 +540,38 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       Knne.addMatrixTripleProduct(0.0, Kae, Knn_inv, -1.0);
     }
     else if (mixed_type == MixedType::UT) {
-      Knn_inv = Knn;
-      Knn_inv(2,2) = 1.0/Knn(2,2);
-      Knne.addMatrixTripleProduct(0.0, Kae, Knn_inv, -1.0);
+      Knn_inv.zero();// = Knn;
+      // Knn(2,2) is EIv
+      if (iter_ut) {
+        Knn_inv(2,2) = 1.0/Knn(2,2);
+        Knne.addMatrixTripleProduct(0.0, Kae, Knn_inv, -1.0);
+      } else {
+        MatrixND<3,6> Knn_inv_Kne{};
+        Knn_inv_Kne(0,1) =  1.0;
+        Knn_inv_Kne(1,2) =  1.0;
+        Knn_inv_Kne(2,3) =  1.0;
+        Knne = Kae^Knn_inv_Kne;
+        converged = true;
+        break;
+      }
     }
     else if (mixed_type == MixedType::Equilibrium) {
-      Knn_inv = Knn;
+      Knn_inv.zero();// = Knn;
       Knn_inv(2,2) = 1.0/Knn(2,2);
 
-      // Knn.invert(Knn_inv);
       Knne.addMatrixTripleProduct( 0.0, Kae, Knn_inv,   -1.0);
-      Ks.vv.addMatrixTripleProduct(0.0, Kav, Knn_inv,   -1.0);
-      Ks.sv.addMatrixTripleProduct(0.0, Kae, Knn_inv, Kav,  -1.0);
+      if (r_mixed.dot(r_mixed) < mixed_tol) {
+        Ks.vv.addMatrixTripleProduct(0.0, Kav, Knn_inv,   -1.0);
+        Ks.sv.addMatrixTripleProduct(0.0, Kae, Knn_inv, Kav,  -1.0);
+        Ks.sw.addMatrixTripleProduct(0.0, Kae, Knn_inv, Kaw,  -1.0);
+        Ks.ww.addMatrixTripleProduct(0.0, Kaw, Knn_inv,   -1.0);
+        Ks.wv.addMatrixTripleProduct(0.0, Kaw, Knn_inv, Kav,  -1.0);
+      }
+      // converged = true;
+      // break;
     }
 
-    if (r_mixed.dot(r_mixed) < 1e-12) {
+    if (r_mixed.dot(r_mixed) < mixed_tol) {
       converged = true;
       break;
     }
@@ -541,20 +586,26 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     return int(DomainStatus::SectionFailedToConverge);
   }
 
+  eta_past = eta_u;
   return res;
 }
 
 
 int
-MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag)
+MixedFrameSection::stateDetermination(Tangent& Ks, 
+                                      VectorND<nsr>* s_trial, 
+                                      const VectorND<nsr> * const e_trial, 
+                                      int tangentFlag)
 {
   
   if (fiber_state == FiberState::Dirty) [[unlikely]] {
     int res = this->checkFiberState();
   }
 
-  const bool do_aux_warp = (mixed_type != MixedType::Constant)
-                         &&(mixed_type != MixedType::Energetic);
+  const bool do_aux_warp = true;
+  // const bool do_aux_warp = (mixed_type != MixedType::Constant)
+  //                        &&(mixed_type != MixedType::Energetic)
+  //                        &&(mixed_type != MixedType::UT);
 
   
 
@@ -585,7 +636,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
 
 
   //
-  // 3) Form s, Ke
+  // 3) Form resultants s and tangent Ke
   //
   const int nf = fibers->size();
 
@@ -594,7 +645,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
     Tangent K;
     VectorND<nsr> s_trial;
   };
-  std::array<ThreadData, MaxThreads> thread_data;
+  static std::array<ThreadData, MaxThreads> thread_data;
   for (auto& thread : thread_data) {
     thread.K.zero();
     thread.s_trial.zero();
@@ -609,8 +660,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
     const Vector3D r = {0.0, fiber.r[0], fiber.r[1]};
     double tr2 = wagner? r.dot(r)*kappa[0] : 0.0;
 
-    // NOTE: Matrix 3D is column major so these are transposed.
-    const double aw = 0; //tr2;
+    const double aw = 0;//tr2;
     MatrixND<3,6> Aer{};
     RigidShape(fiber, aw, Aer);
 
@@ -633,7 +683,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
 
     K.se.addMatrixTripleProduct(1.0, Aer, C, 1.0);
 
-    if (do_aux_warp) {
+    if (do_aux_warp) [[unlikely]] {
       const Matrix3D Ciow  = C*iow;
       const Matrix3D Ciodw = C*iodw;
       {
@@ -665,9 +715,8 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
       K.se.assemble(ioiC*ioi, 3, 3, tr2*tr2);
       // K.mm.addMatrixProduct(ioiC, ioi, tr2*tr2);
 
-      // Geometric part,  equivalent to Kmm.addMatrix(ioi, r2*stress(0));
-      if (kappa[0] != 0) [[likely]]
-        K.se(3,3) += (tr2/kappa[0])*stress(0)*fiber.area;
+      // Geometric part;
+      K.se(3,3) += r.dot(r)*stress(0)*fiber.area;
 
       K.sw.assemble(ioiC*iow, 3, 0, tr2); // 6
       // K.mw.addMatrixProduct(ioiC, iow,  tr2);
@@ -691,14 +740,17 @@ MixedFrameSection::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const
       (*s_trial)(imz) += -y*sig0;
       for (int j=0; j<1; j++) { //nwm-nem
         // w += w[j]*s da
-        (*s_trial)(iwx+j) +=  iow(0,j)*sig0;//w[j][0]*sig0;
+        (*s_trial)(iwx+j) +=  iow(0,j)*sig0;// w[j][0]*sig0;
         // v += dw[j]*s da
-        (*s_trial)(ivx+j) += iodw(1,j)*sig1;//w[j][1]*sig1;
-        (*s_trial)(ivx+j) += iodw(2,j)*sig2;//w[j][2]*sig2;
+        (*s_trial)(ivx+j) += iodw(1,j)*sig1;// w[j][1]*sig1;
+        (*s_trial)(ivx+j) += iodw(2,j)*sig2;// w[j][2]*sig2;
       }
 
       if (wagner && e_trial != nullptr)
         (*s_trial)(imx) += tr2*sig0;
+      if (mixed_type == MixedType::U02) {
+        (*s_trial)(imx) += fiber.warp[0][1]*sig1 + fiber.warp[0][2]*sig2;
+      }
     }
 
     return 0;
@@ -757,11 +809,6 @@ MixedFrameSection::getFullTangent(State state)
   K.assembleTranspose(K_pres.sv, 9, 0, 1.0);
   K.assembleTranspose(K_pres.wv, 9, 6, 1.0);
 
-  // static bool once = true;
-  // if (mixed_type == MixedType::Equilibrium && once) {
-  //   opserr << "K = "<< Matrix(K);
-  //   once = false;
-  // }
   return K;
 }
 
@@ -772,9 +819,7 @@ MixedFrameSection::getSectionTangent()
   static MatrixND<nsr,nsr> K;
   static Matrix K_wrap(K);
   K_wrap.setData(K);
-
   K = this->getFullTangent(State::Pres);
-
   return K_wrap;
 }
 
@@ -784,7 +829,6 @@ MixedFrameSection::getInitialTangent()
 {
   static MatrixND<nsr,nsr> K;
   static Matrix wrap(K);
-
   K = this->getFullTangent(State::Init);
   return wrap;
 }
@@ -820,7 +864,6 @@ MixedFrameSection::commitState()
 
   for (auto& material: materials)
     err += material->commitState();
-
   return err;
 }
 
@@ -881,11 +924,13 @@ MixedFrameSection::setResponse(const char **argv, int argc,
     int key = fibers->size();
     int passarg = 2;
     
-    if (argc <= 3) { // fiber number was input directly
+    if (argc <= 3) {
+      // fiber number was input directly
       key = atoi(argv[1]);
     }
 
-    else if (argc > 4) {  // find fiber closest to coord. with mat tag
+    else if (argc > 4) {
+      // find fiber closest to coord. with mat tag
       
       int matTag    = atoi(argv[3]);
       double yCoord = atof(argv[1]);
@@ -997,6 +1042,32 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
     return param.addObject(Param::FiberFieldBase+fiberID*100+field, this);
   }
 
+  else if (strcmp(argv[0], "fiber") == 0) {
+    // ... fiber $fiberID $field
+    if (argc < 3) {
+      opserr << "MixedFrameSection::setParameter - fiberID is required\n";
+      return -1;
+    }
+    int fiberID = atoi(argv[1]);
+    if (fiberID < 0 || fiberID >= fibers->size()) {
+      opserr << "MixedFrameSection::setParameter - fiberID " << fiberID << " out of range\n";
+      return -1;
+    }
+
+    int field;
+    if (strcmp(argv[2], "y") == 0)
+      field = Param::FiberY;
+    else if (strcmp(argv[2], "z") == 0)
+      field = Param::FiberZ;
+    else if (strcmp(argv[2], "area") == 0)
+      field = Param::FiberArea;
+    else {
+      opserr << "MixedFrameSection::setParameter - invalid fiber field: " << argv[2] << "\n";
+      return -1;
+    }
+
+    return param.addObject(Param::FiberFieldBase+fiberID*100+field, this);
+  }
   else if (strcmp(argv[0], "shift_shear") == 0) {
     // ... shift_shear i j
     if (argc < 3) {
@@ -1201,128 +1272,83 @@ MixedFrameSection::getSectionDeformationSensitivity(int gradIndex)
 const Vector &
 MixedFrameSection::getStressResultantSensitivity(int gradIndex, bool conditional)
 {
-  static Vector ds(nsr);
-  
-  ds.Zero();
-  
-  static Vector stress(3);
-  static Vector dsigdh(3);
-  static Vector sig_dAdh(3);
-  static Matrix tangent(3,3);
+  VectorND<6> ds{};
+  const VectorND<6> e_rigid {
+    e(0), e(1), e(2), e(3), e(4), e(5)
+  };
+
+  const Vector3D dalpha { e(iwx), e(iwy), e(iwz) };
+  const Vector3D alpha  { e(ivx), e(ivy), e(ivz) };
+
+  // find deta
+  Vector3D deta{};
+  Matrix3D Gr{}, Gw{}, dGr{}, dGw{};
+  Vector3D dcentroid{};
+  double dnubar = 0.0;
+  {
+    double dnubar = 0.0;
+    this->formMixedUniformL(Gr, Gw);
+    this->formMixedUniformLSensitivity(dGr, dGw, dcentroid, dnubar);
+
+    const Vector3D eta = eta_past;
+
+    this->solveMixedSensitivity(gradIndex,
+                                e_rigid, dalpha, alpha,
+                                Gr, Gw, dGr, dGw, dcentroid, dnubar,
+                                eta, deta);
+  }
 
   const int nf = fibers->size();
 
   for (int i = 0; i < nf; i++) {
-    double dA = 0.0,
-           dy = 0.0,
-           dz = 0.0;
-    if (parameterID >= Param::FiberFieldBase) {
-      int fiberID = (parameterID - Param::FiberFieldBase) / 100;
-      int field   = (parameterID - Param::FiberFieldBase) % 100;
-      if (i == fiberID) {
-        switch (field) {
-          case Param::FiberArea:
-            dA = 1.0;
-            break;
-          case Param::FiberY:
-            dy = 1.0;
-            break;
-          case Param::FiberZ:
-            dz = 1.0;
-            break;
-          case Param::FiberWarpX:
-          case Param::FiberWarpXY:
-          case Param::FiberWarpXZ:
-          case Param::FiberWarpY:
-          case Param::FiberWarpYY:
-          case Param::FiberWarpYZ:
-          case Param::FiberWarpZ:
-          case Param::FiberWarpZY:
-          case Param::FiberWarpZZ:
-          default:
-            break;
-        }
-      }
-    }
+    const auto& fiber = (*fibers)[i];
+    double dA=0, dy=0, dz=0;
+    FiberData::WarpArray dw{};
+    FiberGrad(i, gradIndex, dA, dy, dz, dw);
+    MatrixND<3,6> Ae{}, dAe{};
+    RigidShape(fiber, 0.0, Ae);
+    RigidShapeGrad(fiber, 0.0, dAe, i);
 
-    const double y = (*fibers)[i].r[0]; // - yBar;
-    const double z = (*fibers)[i].r[1]; // - zBar;
-    const double A = (*fibers)[i].area;
+    //
+    Matrix3D An{}, dAn{}, iow{}, iodw{}, diow{}, diodw{};
+    WarpShape(fiber, iow, iodw);
+    WarpShapeGrad(fiber, diow, diodw, i);
+    MixedShape(fiber, Gr, Gw, An);
+    MixedShapeGrad(fiber, Gr, Gw, dGr, dGw, dcentroid, dnubar, dAn, i);
+    //
     
-    dsigdh = materials[i]->getStressSensitivity(gradIndex,true);
+    const Vector& dsigdh_ = materials[i]->getStressSensitivity(gradIndex,true);
+    const Vector&  stress_ = materials[i]->getStress();
+    const Matrix& tangent = materials[i]->getTangent();
+    const Vector3D dsigdh {dsigdh_(0), dsigdh_(1), dsigdh_(2)};
+    const Vector3D stress {stress_(0), stress_(1), stress_(2)};
 
-    ds[0] += dsigdh(0)*A;
-    ds[1] += -y*dsigdh(0)*A;
-    ds[2] +=  z*dsigdh(0)*A;
-    ds[3] +=  dsigdh(1)*A;
-    ds[4] +=  dsigdh(2)*A;
-    ds[5] += (-z*dsigdh(1)+y*dsigdh(2))*A;
+    Matrix3D C{};
+    C.addMatrix(tangent, 1.0);
 
-    if (dA != 0.0 || dy != 0.0 ||  dz != 0.0)
-      stress = materials[i]->getStress();
+    ds.addMatrixTransposeVector(Ae, dsigdh, fiber.area);
+    ds.addMatrixTransposeVector(Ae, stress, dA);
+    ds.addMatrixTransposeVector(dAe, stress, fiber.area);
 
-    if (dy != 0.0 || dz != 0.0)
-      tangent = materials[i]->getTangent();
 
-    if (dA != 0.0) {
-      sig_dAdh(0) = stress(0)*dA;
-      sig_dAdh(1) = stress(1)*dA;
-      sig_dAdh(2) = stress(2)*dA;
-      
-      ds[0] += sig_dAdh(0);
-      ds[1] += -y*sig_dAdh(0);
-      ds[2] +=  z*sig_dAdh(0);
-      ds[3] +=    sig_dAdh(1);
-      ds[4] +=    sig_dAdh(2);
-      ds[5] += -z*sig_dAdh(1)+y*sig_dAdh(2);
-    }
-
-    if (dy != 0.0) {
-      ds(1) += -dy * (stress(0)*A);
-      ds(5) +=  dy * (stress(2)*A);
-    }
-
-    if (dz != 0.0) {
-      ds[2] +=  dz * (stress(0)*A);
-      ds[5] += -dz * (stress(1)*A);
-    }
-
-    if (parameterID == 1) {
-      ds[3] += (stress(1)*A);
-      ds[4] += (stress(2)*A);
-    }
-
-    MatrixND<3,6> as{};
-    as(0,0) =  1;
-    as(1,3) =  1;
-    as(2,4) =  1;
-    as(0,1) = -y;
-    as(0,2) =  z;
-    as(1,5) = -z;
-    as(2,5) =  y;
+    MatrixND<6,6> tmpMatrix{};
+    tmpMatrix.addMatrixTripleProduct(0.0, Ae, C, dAe, 1.0);
     
-    MatrixND<3,nsr> dAe{};
-    dAe(0,1) = -dy;
-    dAe(0,2) =  dz;
-    dAe(1,3) =   0;
-    dAe(2,4) =   0;
-    dAe(1,5) = -dz;
-    dAe(2,5) =  dy;
-#if 0 // removed to eliminate implicit cast from MatrixND to Matrix
-    MatrixND<nsr,nsr> tmpMatrix{};
-    tmpMatrix.addMatrixTripleProduct(0.0, as, tangent, dAe, 1.0);
-    
-    ds.addMatrixVector(1.0, tmpMatrix, e, A);
-#endif
+    ds.addMatrixVector(1.0, tmpMatrix, e_rigid, fiber.area);
+
   }
 
-  return ds;
+  static Vector wrap(nsr);
+  wrap.Zero();
+  for (int i=0; i<6; i++)
+    wrap(i) = ds(i);
+  return wrap;
 }
 
 const Matrix &
 MixedFrameSection::getInitialTangentSensitivity(int gradIndex)
 {
-  static Matrix dksdh(6,6);
+  static Matrix dksdh(nsr,nsr);
   
   dksdh.Zero();
   return dksdh;
@@ -1330,40 +1356,255 @@ MixedFrameSection::getInitialTangentSensitivity(int gradIndex)
 
 
 int
-MixedFrameSection::commitSensitivity(const Vector& defSens,
-                                       int gradIndex, int numGrads)
+MixedFrameSection::commitSensitivity(const Vector& de,
+                                     int gradIndex, int numGrads)
 {
-  double d0 = defSens(0);
-  double d1 = defSens(1);
-  double d2 = defSens(2);
-  double d3 = defSens(3);
-  double d4 = defSens(4);
-  double d5 = defSens(5);
-
-  dedh = defSens;
+  VectorND<6> de_rigid{}, e_rigid{};
+  for (int i = 0; i < 6; i++) {
+    de_rigid(i) = de(i);
+    e_rigid(i) = e(i);
+  }
 
   const int nf = fibers->size();
 
-  static Vector depsdh(3);
-
-
   for (int i = 0; i < nf; i++) {
-    // TODO: implement dydh and dzdh
-    double dydh = 0.0;
-    double dzdh = 0.0;
+    double dA, dy, dz;
+    FiberData::WarpArray dw{};
+    FiberGrad(i, gradIndex, dA, dy, dz, dw);
     auto& fiber = (*fibers)[i];
-    const double y  = fiber.r[0];
-    const double z  = fiber.r[1];
+    MatrixND<3,6> Ae{}, dAe{};
+    RigidShape(fiber, 0.0, Ae);
+    RigidShapeGrad(fiber, 0.0, dAe, i);
 
     // determine material strain sensitivity
-    depsdh[0] = d0 - y*d1 + z*d2 - dydh*e(1) + dzdh*e(2);
-    depsdh[1] = d3 - z*d5 + e(3) - dzdh*e(5);
-    depsdh[2] = d4 + y*d5 + e(4) + dydh*e(5);
-
-    materials[i]->commitSensitivity(depsdh,gradIndex,numGrads);
+    VectorND<3> deps = Ae*de_rigid+ dAe*e_rigid;
+    materials[i]->commitSensitivity(deps,gradIndex,numGrads);
   }
 
   return 0;
+}
+
+
+inline void
+MixedFrameSection::formMixedUniformLSensitivity(Matrix3D& dGr, Matrix3D& dGw,
+                             Vector3D& dcentroid, double& dnubar) const noexcept
+{
+  dGr.zero();
+  dGw.zero();
+  dcentroid.zero();
+  dnubar = 0.0;
+}
+
+
+inline int
+MixedFrameSection::applyMixedInverse(const Matrix3D& Knn,
+                                     const Vector3D& rhs,
+                                     Vector3D& x) const
+{
+  x.zero();
+
+  if (mixed_type == MixedType::None || 
+      mixed_type == MixedType::Constant)
+    return 0;
+
+  if (mixed_type == MixedType::Energetic) {
+    Matrix3D KnnInv{};
+    Knn.invert(KnnInv);
+    x = KnnInv * rhs;
+    return 0;
+  }
+
+  // UT and Equilibrium: only the 3rd mixed component is active.
+  x(2) = rhs(2) / Knn(2,2);
+  return 0;
+}
+
+int
+MixedFrameSection::solveMixedSensitivity(int gradIndex,
+                                         const VectorND<6>& e_rigid,
+                                         const Vector3D& dalpha,
+                                         const Vector3D& alpha,
+                                         const Matrix3D& Gr,
+                                         const Matrix3D& Gw,
+                                         const Matrix3D& dGr,
+                                         const Matrix3D& dGw,
+                                         const Vector3D& dcentroid,
+                                         double dnubar,
+                                         const Vector3D& eta,
+                                         Vector3D& deta) const
+{
+  deta.zero();
+
+  if (mixed_type == MixedType::None || mixed_type == MixedType::Constant)
+    return 0;
+
+  Matrix3D Knn{};
+  Vector3D rhs{};
+
+  const int nf = fibers->size();
+  for (int i = 0; i < nf; ++i) {
+    const auto& fiber = (*fibers)[i];
+
+    double dA = 0.0, dy = 0.0, dz = 0.0;
+    FiberData::WarpArray dw{};
+    FiberGrad(i, 0, dA, dy, dz, dw);
+
+    MatrixND<3,6> Ae{}, dAe{};
+    Matrix3D An{}, dAn{}, iow{}, iodw{}, diow{}, diodw{};
+
+    RigidShape(fiber, 0.0, Ae);
+    RigidShapeGrad(fiber, 0.0, dAe, i);
+    WarpShape(fiber, iow, iodw);
+    WarpShapeGrad(fiber, diow, diodw, i);
+    MixedShape(fiber, Gr, Gw, An);
+    MixedShapeGrad(fiber, Gr, Gw, dGr, dGw, dcentroid, dnubar, dAn, i);
+
+    const Vector& stress_  = materials[i]->getStress();
+    const Vector& dsigdh_  = materials[i]->getStressSensitivity(gradIndex, true);
+    const Matrix& tangent_ = materials[i]->getTangent();
+
+    const Vector3D stress    {stress_(0), stress_(1), stress_(2)};
+    const Vector3D dsigdhMat {dsigdh_(0), dsigdh_(1), dsigdh_(2)};
+
+    Matrix3D C{}, CA{};
+    C.addMatrix(tangent_, 1.0);
+    CA.addMatrix(tangent_, fiber.area);
+
+    Vector3D depsExp{};
+    depsExp.addMatrixVector(dAe,   e_rigid, 1.0);
+    depsExp.addMatrixVector(dAn,   eta,     1.0);
+    depsExp.addMatrixVector(diow,  dalpha,  1.0);
+    depsExp.addMatrixVector(diodw, alpha,   1.0);
+
+    Vector3D dsig0 = dsigdhMat;
+    dsig0.addMatrixVector(C, depsExp, 1.0);
+
+    Knn.addMatrixTripleProduct(1.0, An, CA, 1.0);
+    rhs.addMatrixTransposeVector(An,  dsig0, fiber.area);
+    rhs.addMatrixTransposeVector(dAn, stress, fiber.area);
+    rhs.addMatrixTransposeVector(An,  stress, dA);
+  }
+
+  Vector3D tmp{};
+  this->applyMixedInverse(Knn, rhs, tmp);
+  deta = -1.0*tmp;
+  return 0;
+}
+
+ int
+MixedFrameSection::WarpShapeGrad(const FiberData& fiber,
+              Matrix3D& diow, Matrix3D& diodw,
+              int i) const noexcept
+{
+  diow.zero();
+  diodw.zero();
+
+  double dA = 0.0, dy = 0.0, dz = 0.0;
+  FiberData::WarpArray dw{};
+  FiberGrad(i,0, dA, dy, dz, dw);
+
+  switch (mixed_type) {
+    case MixedType::UT:
+    case MixedType::U02:
+    case MixedType::Energetic:
+    case MixedType::Constant:
+      return 0;
+
+    case MixedType::None:
+      diow(0,1)  = dw[1][0];
+      diow(0,2)  = dw[2][0];
+      diodw(1,1) = dw[1][1];
+      diodw(2,1) = dw[1][2];
+      diodw(1,2) = dw[2][1];
+      diodw(2,2) = dw[2][2];
+      [[fallthrough]];
+
+    case MixedType::Equilibrium:
+      diow(0,0)  = dw[0][0];
+      diodw(1,0) = dw[0][1];
+      diodw(2,0) = dw[0][2];
+      return 1;
+  }
+  return 0;
+}
+
+
+inline void
+MixedFrameSection::MixedShapeGrad(const FiberData& fiber,
+               const Matrix3D& Gr,  const Matrix3D& Gw,
+               const Matrix3D& dGr, const Matrix3D& dGw,
+               const Vector3D& dcentroid, double dnubar,
+               Matrix3D& dAn, int i) const noexcept
+{
+  dAn.zero();
+
+  double dA = 0.0, dy = 0.0, dz = 0.0;
+  FiberData::WarpArray dw{};
+  FiberGrad(i, 0, dA, dy, dz, dw);
+
+  if (mixed_type == MixedType::None)
+    return;
+
+  if (mixed_type == MixedType::UT) {
+    dAn(1,2) = dw[0][1];
+    dAn(2,2) = dw[0][2];
+    return;
+  }
+
+  if (mixed_type == MixedType::Equilibrium) {
+    const double b  = Gw(2,2);
+    const double db = dGw(2,2);
+    dAn(1,2) = dw[0][1] + db*fiber.warp[1][1] + b*dw[1][1];
+    dAn(2,2) = dw[0][2] + db*fiber.warp[1][2] + b*dw[1][2];
+    return;
+  }
+
+  constexpr static Matrix3D oneS {{
+    0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0
+  }};
+
+  const Vector3D r  {0.0, fiber.r[0], fiber.r[1]};
+  const Vector3D dr {0.0, dy,        dz       };
+
+  Matrix3D Anr {{
+    0.0,   1.0,  0.0,
+    0.0,   0.0,  1.0,
+    0.0, -r[2],  r[1]
+  }};
+  Matrix3D dAnr{};
+  dAnr(2,1) = -dz;
+  dAnr(2,2) =  dy;
+
+  Matrix3D Anwo {{
+    0.0, fiber.warp[0][1], fiber.warp[0][2],
+    0.0, fiber.warp[1][1], fiber.warp[1][2],
+    0.0, fiber.warp[2][1], fiber.warp[2][2]
+  }};
+  Anwo.addTensorProduct(r, r, -nubar);
+  Anwo.addMatrix(oneS, 0.5*r.dot(r)*nubar);
+  Anwo.addTensorProduct(r, centroid, nubar);
+
+  Matrix3D dAnwo {{
+    0.0, dw[0][1], dw[0][2],
+    0.0, dw[1][1], dw[1][2],
+    0.0, dw[2][1], dw[2][2]
+  }};
+  dAnwo.addTensorProduct(dr, r, -nubar);
+  dAnwo.addTensorProduct(r, dr, -nubar);
+  dAnwo.addMatrix(oneS, nubar*r.dot(dr));
+  dAnwo.addTensorProduct(dr, centroid, nubar);
+
+  dAnwo.addTensorProduct(r, r, -dnubar);
+  dAnwo.addMatrix(oneS, 0.5*r.dot(r)*dnubar);
+  dAnwo.addTensorProduct(r, centroid, dnubar);
+  dAnwo.addTensorProduct(r, dcentroid, nubar);
+
+  dAn.addMatrixProduct(dAnr, Gr, 1.0);
+  dAn.addMatrixProduct(Anr, dGr, 1.0);
+  dAn.addMatrixProduct(dAnwo, Gw, 1.0);
+  dAn.addMatrixProduct(Anwo, dGw, 1.0);
 }
 
 
@@ -1380,10 +1621,12 @@ MixedFrameSection::Print(OPS_Stream &s, int flag)
     if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0)
       s << "\"mass\": " << mass << ", ";
 
+    s << "\"wagner\": " << (wagner ? "true" : "false") << ", ";
     s << "\"warp_type\": \"";
     switch (mixed_type) {
       case MixedType::None:        s << "None"; break;
       case MixedType::UT:          s << "UT"; break;
+      case MixedType::U02:         s << "U02"; break;
       case MixedType::Equilibrium: s << "NR"; break;
       case MixedType::Energetic:   s << "UE"; break;
       case MixedType::Constant:    s << "UG"; break;
