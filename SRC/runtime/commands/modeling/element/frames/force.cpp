@@ -28,7 +28,7 @@ CreateForceFrame(int tag,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
                  FrameTransformBuilder& tb,
-                 Options& options,
+                 FrameOptions& options,
                  double mass, int max_iter, double tol)
 {
 
