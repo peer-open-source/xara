@@ -46,6 +46,29 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
   Domain *theNewDomain = (Domain*)clientData;
 
   ModelRegistry *theNewBuilder = nullptr;
+  Rotations::Parameters rotationType = Rotations::Parameters::None;
+  {
+    const char* rotation_name = getenv("XARA_ROTATE");
+    if (rotation_name != nullptr) {
+      if (strcmp(rotation_name, "none") == 0) {
+        rotationType = Rotations::Parameters::None;
+      }
+      else if (strcmp(rotation_name, "iter") == 0) {
+        rotationType = Rotations::Parameters::Iter;
+      }
+      else if (strcmp(rotation_name, "incr") == 0) {
+        rotationType = Rotations::Parameters::Incr;
+      }
+      else if (strcmp(rotation_name, "init") == 0) {
+        rotationType = Rotations::Parameters::Init;
+      }
+      else {
+        opserr << OpenSees::PromptValueError 
+               << "invalid rotation type in environment variable XARA_ROTATE: '" << rotation_name << "'\n";
+        return TCL_ERROR;
+      }
+    }
+  }
 
   //
   //
@@ -110,16 +133,39 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
           }
         argPos++;
         posArg++;
-
-      } else if (posArg == 1) {
+      }
+      else if (strcmp(argv[argPos], "-rotation") == 0) {
+        argPos++;
+        if (argPos >= argc) {
+          opserr << OpenSees::PromptValueError << "missing rotation type after -rotation\n";
+          return TCL_ERROR;
+        }
+        if (strcmp(argv[argPos], "none") == 0) {
+          rotationType = Rotations::Parameters::None;
+        }
+        else if (strcmp(argv[argPos], "iter") == 0) {
+          rotationType = Rotations::Parameters::Iter;
+        }
+        else if (strcmp(argv[argPos], "incr") == 0) {
+          rotationType = Rotations::Parameters::Incr;
+        }
+        else if (strcmp(argv[argPos], "init") == 0) {
+          rotationType = Rotations::Parameters::Init;
+        }
+        else {
+          opserr << OpenSees::PromptValueError << "invalid rotation type '" << argv[argPos] << "'\n";
+          return TCL_ERROR;
+        }
+      } 
+      else if (posArg == 1) {
         if (Tcl_GetInt(interp, argv[argPos], &ndm) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid parameter ndm";
           return TCL_ERROR;
         }
         argPos++;
         posArg++;
-
-      } else if (posArg == 2) {
+      }
+      else if (posArg == 2) {
         if (Tcl_GetInt(interp, argv[argPos], &ndf) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "error reading ndf: " << argv[argPos] << "\n";
           return TCL_ERROR;
@@ -159,7 +205,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     int G3_setDomain(G3_Runtime*, Domain*);
     G3_setDomain(rt, theNewDomain);
     // create the model builder
-    theNewBuilder = new ModelRegistry(*theNewDomain, ndm, ndf);
+    theNewBuilder = new ModelRegistry(*theNewDomain, ndm, ndf, rotationType);
     //
     // Add model commands
     //
