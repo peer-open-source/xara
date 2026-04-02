@@ -29,13 +29,13 @@
 #include <element/Shell/ShellMITC4Thermal.h>
 #include <element/Shell/ShellNLDKGQThermal.h>
 #include <element/Shell/ShellNLDKGT.h>
-#if 0
+#ifdef XARA_HAVE_THICK_SHELLS
 #include <element/Shell/ThickShell01.h>
 #include <element/Shell/GeomExactShell4.h>
 #include <element/Shell/ThickShell03.h>
 #include <element/Shell/ThickShell04.h>
-#endif
 #include <element/Shell/ThickShell05.h>
+#endif
 
 using namespace OpenSees;
 
@@ -94,11 +94,11 @@ NodeCounts = {
   {"ShellANDeS",         4},
   {"ShellMITC4Thermal",  4},
   {"ShellNLDKGQThermal", 4},
-  {"ThickShell01",    4},
-  {"ThickShell02",    4},
-  {"ThickShell03",    4},
-  {"ThickShell04",    4},
-  {"ThickShell05",    4}
+  {"ThickShell01",       4},
+  {"ThickShell02",       4},
+  {"ThickShell03",       4},
+  {"ThickShell04",       4},
+  {"ThickShell05",       4}
 };
 
 int
@@ -347,7 +347,7 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
       theElement = new ShellDKGQ(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
 
     }
-#if 0
+#ifdef XARA_HAVE_THICK_SHELLS
     else if (strcasecmp(argv[1], "ThickShell01") == 0) {
       theElement = new ThickShell01(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
     } else if (strcasecmp(argv[1], "ThickShell02") == 0) {
@@ -359,11 +359,12 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
     } else if (strcasecmp(argv[1], "ThickShell04") == 0) {
       theElement = new ThickShell04(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
     }
-#endif
     else if (strcasecmp(argv[1], "ThickShell05") == 0) {
       theElement = new ThickShell05(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
 
-    } else if (strcasecmp(argv[1], "ShellNLDKGQ") == 0) {
+    }
+#endif
+    else if (strcasecmp(argv[1], "ShellNLDKGQ") == 0) {
       theElement = new ShellNLDKGQ(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
 
     } else if (strcasecmp(argv[1], "ASDShellQ4") == 0) {
