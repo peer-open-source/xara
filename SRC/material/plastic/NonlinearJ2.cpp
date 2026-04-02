@@ -151,9 +151,9 @@ NonlinearJ2::updateState()
 
   this->newton_update(s_tr,lamda,  m,g,Dg,phi_a);
 
-  if constexpr (true) {
+  if constexpr (false) {
 
-    // Build a left bracket at λ=0 for optional bisection fallback
+    // Build a left bracket at lambda=0 for bisection fallback
     double g_lo, Dg_lo, phi_lo;
     VectorND<9> m_lo;
     this->newton_update(s_tr, 0.0, m_lo, g_lo, Dg_lo, phi_lo);
@@ -195,6 +195,7 @@ NonlinearJ2::updateState()
           break;  // accept damped step
         }
         alpha *= 0.5; // backtrack
+        // opserr << "Backtracking step " << bt+1 << ", alpha = " << alpha << ", |g| = " << std::abs(g_trial) << "\n";
       }
 
       if (!accepted) {
