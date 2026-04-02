@@ -87,7 +87,7 @@ Openseesrt_Init(Tcl_Interp *interp)
   G3_InitTclSequentialAPI(interp); // Add sequential API
   init_g3_tcl_utils(interp);       // Add utility commands (linspace, range, etc.)
 
-  char* verbosity = getenv("OPENSEESRT_VERBOSITY");
+  char* verbosity = getenv("XARA_VERBOSITY"); // Was OPENSEESRT_VERBOSITY
   if (verbosity != nullptr) {
     if (strcmp(verbosity, "DEBUG") == 0) {
       G3_SetStreamLevel(G3_LevelDebug, true);
