@@ -30,8 +30,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 
-// Tolerance for zero length of element
-#define	LENTOL 1.0e-6
 
 class Node;
 class Channel;
@@ -47,7 +45,8 @@ class ZeroLengthImpact3D : public Element
 	    int direction, 
 		double initGapInput, double fRatio, double Kt, 
 		double Kn, double Kn2Input, double Delta_yInput, 
-		double c);
+		double c
+  );
 
     ZeroLengthImpact3D();    
     
