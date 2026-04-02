@@ -396,12 +396,7 @@ MVLEM::MVLEM(int tag,
   
   // Allocate memory for the Shear uniaxial materials
   theMaterialsShear = new UniaxialMaterial*[1];
-  if (theMaterialsShear == 0)
-    {
-      opserr << "MVLEM::MVLEM() - "
-	     << "failed to allocate pointers for Shear uniaxial materials.\n";
-      exit(-1);
-    }
+
   
   // Get copies of the uniaxial materials
   for (int i = 0; i < 1; i++)
