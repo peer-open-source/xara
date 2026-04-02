@@ -1,7 +1,8 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//        OpenSees - Open System for Earthquake Engineering Simulation
+//
+//===----------------------------------------------------------------------===//
 //
 // Description: This file contains the class definition for LagrangeQuad.
 // See https://portwooddigital.com/2022/09/11/unrolling-the-four-node-quad/
@@ -800,7 +801,8 @@ LagrangeQuad<NEN,NIP,enh>::setResponse(const char** argv, int argc, OPS_Stream& 
   output.attr("node4", connectedExternalNodes[3]);
 
   char dataOut[80];
-  if (strcmp(argv[0], "force") == 0 || strcmp(argv[0], "forces") == 0) {
+  if (strcmp(argv[0], "force") == 0 || 
+      strcmp(argv[0], "forces") == 0) {
 
     for (int i = 1; i <= 4; i++) {
       sprintf(dataOut, "P1_%d", i);
