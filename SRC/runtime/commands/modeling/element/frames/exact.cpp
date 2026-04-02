@@ -17,9 +17,14 @@
 #include "frames.hpp"
 #include <for_int.tpp>
 #include <ExactFrame3d.h>
+#include <ExactFrame02.h>
+// #include <ExactFrame03.h>
+#include <stdlib.h>
 #include <vector>
 #include <algorithm>
 class CrdTransf;
+
+#define MAX_NEN 6
 
 Element*
 CreateExactFrame(int tag,
@@ -28,7 +33,7 @@ CreateExactFrame(int tag,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
                  CrdTransf& theTransf,
-                 const Options& options,
+                 const FrameOptions& options,
                  double mass
                 )
 {
@@ -42,22 +47,44 @@ CreateExactFrame(int tag,
               << OpenSees::SignalMessageEnd;
       return nullptr;
   }
+  int exact_version = 0;
+  if (getenv("ExactFrame")) {
+    exact_version = atoi(getenv("ExactFrame"));
+  }
+  if ((options.rotation_type != Rotations::Parameters::Iter) && 
+      (options.rotation_type != Rotations::Parameters::None) &&
+      (options.rotation_type != Rotations::Parameters::Init)) {
+    exact_version = 2;
+  }
 
   if (sections.size() < nodev.size()-1)
     for (unsigned i = 0; i < nodev.size()-1; ++i)
       sections.push_back(sections[0]);
 
   unsigned nen = nodev.size();
-  static_loop<2,6>([&](auto nn) constexpr {
-      if (nn.value == nen) {
+  static_loop<2,MAX_NEN>([&](auto nn) constexpr {
+    if (nn.value == nen) {
       std::array<int, nn.value> nodes;
       std::copy_n(nodev.begin(), nn.value, nodes.begin());
       static_loop<0,2>([&](auto nwm) constexpr {
-          if (nwm.value+6 == ndf)
-          element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
+        if (nwm.value+6 == ndf) {
+          // element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
+          if (!exact_version) {
+            element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
+            return;
+          } else if (exact_version == 2) {
+            element = new ExactFrame02<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
+            return;
+          }
+          // else if (exact_version == 3 && nwm.value == 0) {
+          //   element = new ExactFrame03<nn.value>(tag, nodes, sections.data(), theTransf);
+          //   return;
+          // }
+        }
       });
-      }
+    }
   });
+
   if (element == nullptr) {
       opserr << OpenSees::PromptValueError 
               << "invalid number of dofs for ExactFrame; got " << ndf 
