@@ -177,13 +177,15 @@ void ShellMITC4::setDomain(Domain *theDomain)
 }
 
 
-int ShellMITC4::getNumExternalNodes() const 
+int 
+ShellMITC4::getNumExternalNodes() const 
 {
   return NEN; 
 }
 
 
-const ID &ShellMITC4::getExternalNodes() 
+const ID &
+ShellMITC4::getExternalNodes() 
 {
   return connectedExternalNodes; 
 }
@@ -309,10 +311,10 @@ void ShellMITC4::Print(OPS_Stream &s, int flag)
 
     s << endln;
   }
-
 }
 
-Response *ShellMITC4::setResponse(const char **argv, int argc,
+Response *
+ShellMITC4::setResponse(const char **argv, int argc,
                                   OPS_Stream &output)
 {
   Response *theResponse = nullptr;
@@ -482,6 +484,7 @@ ShellMITC4::getTangentStiff()
 
   return stiff;
 }
+
 
 // return secant matrix
 const Matrix &
