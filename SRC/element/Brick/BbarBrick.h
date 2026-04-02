@@ -24,13 +24,13 @@
 
 // Ed "C++" Love
 //
-// Eight node BbarBrick element 
+// Mean-dilatation B-bar Hex8 element.
 //
 
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <cmath> 
-
+#include <array>
 #include <ID.h> 
 #include <Vector.h>
 #include <Matrix.h>
@@ -38,38 +38,31 @@
 #include <Element.h>
 #include <Node.h>
 #include <NDMaterial.h>
+#include <State.h>
 
 class BbarBrick : public Element {
 
   public :
     
-    //null constructor
-    BbarBrick( ) ;
+    // null constructor
+    BbarBrick();
   
     //full constructor
-    BbarBrick( int tag, 
-			int node1,
-			int node2,
-		        int node3,
-			int node4,
-			int node5,
-			int node6,
-			int node7,
-			int node8,
-			NDMaterial &theMaterial, 
-			double b1 = 0.0, double b2 = 0.0, double b3 = 0.0 ) ;
+    BbarBrick(int tag, 
+              const std::array<int, 8>& nodes,
+              NDMaterial &theMaterial, 
+              double b1 = 0.0, double b2 = 0.0, double b3 = 0.0 ) ;
 
     virtual ~BbarBrick( ) ;
 
-    const char *getClassType(void) const {return "BbarBrick";}
+    const char *getClassType() const {return "BbarBrick";}
 
     //set domain 
-    void setDomain( Domain *theDomain ) ;
+    void setDomain( Domain *);
 
     //get the number of external nodes
-    int getNumExternalNodes( ) const ;
+    int getNumExternalNodes() const ;
  
-    //return connected external nodes
     const ID &getExternalNodes( ) ;
     Node **getNodePtrs();
     int getNumDOF( ) ;
@@ -87,7 +80,8 @@ class BbarBrick : public Element {
     void zeroLoad( ) ;
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
-
+    
+    int update();
     const Vector &getResistingForce() override;
     const Vector &getResistingForceIncInertia() override;
 
@@ -107,9 +101,13 @@ class BbarBrick : public Element {
     constexpr static int NEN = 8; // number of element nodes
     constexpr static int NST = 6; // number of stress components
     constexpr static int NIP = 8; // number of integration points
+    constexpr static int NDF = 3; // number of degrees of freedom per node
     //static data
-    static Matrix stiff ;
-    static Vector resid ;
+    // static Matrix stiff ;
+    // static Vector resid ;
+    MatrixND<NDF*NEN, NDF*NEN> stiff;
+    VectorND<NDF*NEN> resid;
+
     static Matrix mass ;
     static Matrix damping ;
 
@@ -117,34 +115,36 @@ class BbarBrick : public Element {
     static const double root3 ;
     static const double one_over_root3 ;    
     static const double sg[2] ;
-    static const double wg[8] ;
+    static const double wg[NIP] ;
 
   
     // node information
     ID connectedExternalNodes ;  //four node numbers
-    Node *nodePointers[8] ;      //pointers to four nodes
+    Node *nodePointers[NEN] ;      //pointers to four nodes
 
+    
+    std::array<NDMaterial*, NIP> materialPointers; //pointers to materials
+    // NDMaterial *materialPointers[NIP] ; //pointers to eight materials
 
-    NDMaterial *materialPointers[NIP] ; //pointers to eight materials
-					  
-  // local nodal coordinates, three coordinates for each node
-  double xl[3][8] ; 
+    // local nodal coordinates
+    double xl[3][NEN] ; 
 
-	double b[3];		// Body forces
-	
-	double appliedB[3]; // Body forces applied with load pattern, C.McGann, U.Washington
-	int applyLoad;      // flag for body force in load, C.McGann, U.Washington
+    double b[3];		// Body forces
+    
+    double appliedB[3]; // Body forces applied with load pattern, C.McGann, U.Washington
+    int applyLoad;      // flag for body force in load, C.McGann, U.Washington
 
     //inertia terms
     void formInertiaTerms( int tangFlag ) ;
 
     //form residual and tangent					  
-    void formResidAndTangent( int tang_flag ) ;
+    void formResidAndTangent( int tang_flag, State state_flag ) ;
 
     //compute coordinate system
     void computeBasis( ) ;
 
-    OpenSees::MatrixND<6,3> computeBbar( int node, 
+    inline OpenSees::MatrixND<6,3> 
+    computeBbar( int node, 
 			       const double shp[4][8], 
 			       const double shpBar[4][8] ) ;
   
