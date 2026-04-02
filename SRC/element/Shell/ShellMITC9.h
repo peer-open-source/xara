@@ -29,6 +29,7 @@
 #include <ID.h> 
 #include <Vector.h>
 #include <Matrix.h>
+#include <MatrixND.h>
 #include <Element.h>
 #include <Node.h>
 #include <SectionForceDeformation.h>
@@ -119,7 +120,6 @@ class ShellMITC9 : public Element,
     static const double root3_over_root5 ;
     static double sg[9] ;
     static double tg[9] ;
-    // static double wg[9] ;
     static constexpr double wg[9] = {
         25.0 / 81.0,
         40.0 / 81.0,
@@ -143,7 +143,7 @@ class ShellMITC9 : public Element,
     //material information: pointers to four materials
     SectionForceDeformation *materialPointers[9] ;
                                           
-    //local nodal coordinates, two coordinates for each of nine nodes
+    // local nodal coordinates, two coordinates for each of nine nodes
     //static double xl[][9] ; 
     double xl[2][9] ;
 
@@ -152,8 +152,8 @@ class ShellMITC9 : public Element,
     double g2[3] ;
     double g3[3] ;
 
-    //compute local coordinates and basis
-    void computeBasis( ) ;
+    // Compute local coordinates and basis
+    void computeBasis();
         
     //inertia terms
     void formInertiaTerms( int tangFlag ) ;
@@ -168,18 +168,17 @@ class ShellMITC9 : public Element,
     //compute Bdrill matrix
     double* computeBdrill( int node, const double shp[3][9] ) ;
 
-    //assemble a B matrix 
-    const Matrix& assembleB( const Matrix &Bmembrane,
-                             const Matrix &Bbend, 
-                             const Matrix &Bshear ) ;
+    // assemble a B matrix 
+    void  assembleB( const Matrix &Bmembrane,
+                     const Matrix &Bbend, 
+                     const Matrix &Bshear,
+                     OpenSees::MatrixND<8,6> &B ) ;
+    const Matrix& computeBmembrane( int node, const double shp[3][9]) ;
     
-    //compute Bmembrane matrix
-    const Matrix& computeBmembrane( int node, const double shp[3][9] ) ;
-    
-    //compute Bbend matrix
+    // compute Bbend matrix
     const Matrix& computeBbend( int node, const double shp[3][9] ) ;
     
-    //compute standard Bshear matrix
+    // compute standard Bshear matrix
     const Matrix&  computeBshear( int node, const double shp[3][9] ) ;
     
     //shape function routine for four node quads
