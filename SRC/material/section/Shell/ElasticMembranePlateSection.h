@@ -69,18 +69,18 @@ public:
   getClassType(void) const
   {
     return "ElasticMembranePlate";
-  };
+  }
 
-    int getOrder() const;
+  int getOrder() const;
 
-    const ID& getType();
+  const ID& getType();
 
   //swap history variables
   int commitState();
 
-    int revertToLastCommit();
+  int revertToLastCommit();
 
-    int revertToStart();
+  int revertToStart();
 
   //get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);
