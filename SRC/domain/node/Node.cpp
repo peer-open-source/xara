@@ -39,8 +39,8 @@
 #include <Information.h>
 #include <Parameter.h>
 #include <GroupSO3.h>
+#include <Matrix3D.h>
 
-// AddingSensitivity:BEGIN //////////////////////////
 #include <Domain.h>
 #include <Element.h>
 #include <ElementIter.h>
@@ -49,7 +49,6 @@
 
 #include <NodalLoad.h>
 
-#include <OPS_Globals.h>
 
 using namespace OpenSees;
 Matrix **Node::theMatrices = nullptr;
@@ -61,7 +60,7 @@ Node::Node(int theClassTag)
 :TaggedObject(0),MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
  coord_data{0,0,0}, xyz(coord_data, 0), 
- position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
@@ -81,7 +80,7 @@ Node::Node(int theClassTag)
   parameterID     = 0;
 
 
-  theNodalThermalActionPtr = 0; //Added by Liming for initializing NodalLoadPointer, [SIF]
+  theNodalThermalActionPtr = 0; // Added by Liming for initializing NodalLoadPointer, [SIF]
 }
 
 
@@ -89,7 +88,7 @@ Node::Node(int tag, int theClassTag)
 :TaggedObject(tag), MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
  coord_data{0,0,0}, xyz(coord_data, 0),
- position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
@@ -114,7 +113,7 @@ Node::Node(int tag, int ndof, double Crd1)
 :TaggedObject(tag),MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, 0,0}, xyz(coord_data, 1),
- position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
@@ -133,9 +132,6 @@ Node::Node(int tag, int ndof, double Crd1)
   parameterID     = 0;
 
   theNodalThermalActionPtr = 0;
-
-  // Crd = new Vector(1);
-  // xyz(0) = Crd1;
 }
 
 
@@ -145,7 +141,7 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, Crd2, 0}, xyz(coord_data, 2),
- position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
@@ -171,17 +167,18 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 //  Node(int tag, int ndof, double Crd1, double Crd2, double zCrd);
 //      constructor for 3d nodes
 
- Node::Node(int tag, int ndof, double Crd1, double Crd2, double Crd3)
+ Node::Node(int tag, int ndof, double Crd1, double Crd2, double Crd3, Rotations::Parameters rotationType)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, Crd2, Crd3}, xyz(coord_data, 3), 
- position_inertia{0.0}, //rotation_inertia{0.0,0.0,0.0}, mass(0),
+ position_inertia{0.0},  mass(0),
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
+ rotationType(rotationType),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), 
  unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
@@ -196,6 +193,11 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
+  if (rotationType != Rotations::Parameters::None) {
+    rotation = new Versor[2];
+    rotation[0] = Versor{{0.0, 0.0, 0.0}, 1.0};
+    rotation[1] = Versor{{0.0, 0.0, 0.0}, 1.0};
+  }
 }
 
 
@@ -206,7 +208,7 @@ Node::Node(const Node &otherNode, bool copyMass)
   :TaggedObject(otherNode.getTag()),MovableObject(otherNode.getClassTag()),
   numberDOF(otherNode.numberDOF), theDOF_GroupPtr(0),
   coord_data{}, xyz(coord_data, otherNode.getCrds().Size()),
-  position_inertia{}, //rotation_inertia{0.0,0.0,0.0},
+  position_inertia{}, 
   commitDisp(0), commitVel(0), commitAccel(0),
   trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
   incrDeltaDisp(0),
@@ -318,14 +320,12 @@ Node::~Node()
   if (theEigenvectors != 0)
     delete theEigenvectors;
 
-  // AddingSensitivity:BEGIN ///////////////////////////////////////
   if (dispSensitivity != 0)
     delete dispSensitivity;
   if (velSensitivity != 0)
     delete velSensitivity;
   if (accSensitivity != 0)
     delete accSensitivity;
-  // AddingSensitivity:END /////////////////////////////////////////
 
   if (reaction != 0)
     delete reaction;
@@ -443,6 +443,42 @@ Node::getTrialRotation()
   return rotation[1];
 }
 
+Versor
+Node::getCommitRotation()
+{
+  if (rotation == nullptr) [[unlikely]] {
+    rotation = new Versor[2];
+    rotation[0] = Versor{{0.0, 0.0, 0.0}, 1.0};
+    rotation[1] = Versor{{0.0, 0.0, 0.0}, 1.0};
+  }
+  return rotation[0];
+}
+
+
+Matrix3D
+Node::getRotationTangent(Rotations::Parameters)
+{
+  Vector3D theta{};
+  switch (rotationType) {
+    case Rotations::Parameters::None:
+    case Rotations::Parameters::Iter:
+      break;
+    case Rotations::Parameters::Incr: {
+      const Vector &incrDisp = this->getIncrDisp();
+      for (int i = 0; i < 3; i++)
+        theta[i] += incrDisp(i+3);
+      break;
+    }
+    case Rotations::Parameters::Init: {
+      const Vector &trialDisp = this->getTrialDisp();
+      for (int i = 0; i < 3; i++)
+        theta[i] += trialDisp(i+3);
+      break;
+    }
+  }
+  return dLogSO3(theta);
+}
+
 
 const Vector &
 Node::getTrialVel()
@@ -533,7 +569,7 @@ Node::setTrialVel(const Vector &newTrialVel)
 }
 
 int
-Node::incrTrialDisp(const Vector &incrDispl)
+Node::incrTrialDisp(const Vector &incrDispl) noexcept
 {
   // check vector arg is of correct size
   assert(incrDispl.Size() == numberDOF);
@@ -564,9 +600,28 @@ Node::incrTrialDisp(const Vector &incrDispl)
     //   theta[i] = disp[3*numberDOF+3+i];
     // Matrix3D R = ExpSO3(theta)*MatrixFromVersor(rotation[1]);
     // rotation[1] = Versor::from_matrix(R);
-
-    rotation[1] = Versor::from_vector(&disp[3*numberDOF+3]) * rotation[1];
-    rotation[1].normalize();
+    switch (rotationType) {
+      case Rotations::Parameters::None:
+      case Rotations::Parameters::Iter:
+        rotation[1] = Versor::from_vector(&disp[3*numberDOF+3]) * rotation[1];
+        rotation[1].normalize();
+        break;
+      case Rotations::Parameters::Incr: {
+        Vector3D theta{};
+        for (int i = 0; i < 3; i++)
+          theta[i] += incrDispl(i+3);
+        rotation[1] = Versor::from_matrix(ExpSO3(theta)*MatrixFromVersor(rotation[0]));
+        rotation[1].normalize();
+        break;
+      }
+      case Rotations::Parameters::Init: {
+        Vector3D theta = VectorFromVersor(rotation[0]);
+        for (int i = 0; i < 3; i++)
+          theta[i] += incrDispl(i+3);
+        rotation[1] = Versor::from_matrix(ExpSO3(theta)*MatrixFromVersor(rotation[0]));
+        break;
+      }
+    }
   }
 
   return 0;
@@ -621,11 +676,11 @@ Node::incrTrialAccel(const Vector &incrAccel)
 
   // create a copy if no trial exists and add committed
   if (trialAccel == 0) {
-      this->createAccel();
+    this->createAccel();
     for (int i = 0; i<numberDOF; i++)
-          accel[i] = incrAccel(i);
+      accel[i] = incrAccel(i);
 
-      return 0;
+    return 0;
   }
 
   // otherwise set trial = incr + trial
@@ -649,7 +704,7 @@ Node::addUnbalancedLoad(const Vector &add, double fact)
   // check vector arg is of correct size
   if (add.Size() != numberDOF) {
     opserr << "Node::addunbalLoad - load to add of incorrect size ";
-    opserr << add.Size() << " should be " <<  numberDOF << endln;
+    opserr << add.Size() << " should be " <<  numberDOF << "\n";
     return -1;
   }
 
@@ -707,30 +762,6 @@ Node::addResidualInertia(int dof, double accel)
   }
   return 0;
 }
-
-
-// int
-// Node::addInertiaLoadToUnbalance(const Vector &accelG, double fact)
-// {
-//   // simply return if node has no mass or R matrix
-//   if (mass == 0 || R == 0)
-//     return 0;
-
-//   // otherwise we must determine MR accelG
-//   assert(accelG.Size() == R->noCols());
-
-//   // if no load yet create it and assign
-//   if (unbalLoad == nullptr)
-//     unbalLoad = new Vector(numberDOF);
-
-//   // form - fact * M*R*accelG and add it to the unbalanced load
-//   //(*unbalLoad) -= ((*mass) * (*R) * accelG)*fact;
-
-//   Matrix MR(mass->noRows(), R->noCols());
-//   MR.addMatrixProduct(0.0, *mass, *R, 1.0);
-//   unbalLoad->addMatrixVector(1.0, MR, accelG, -fact);
-//   return 0;
-// }
 
 
 
@@ -831,8 +862,9 @@ Node::commitState() noexcept
     accel[i+numberDOF] = accel[i];
   }
 
-  if (rotation != nullptr)
+  if (rotation != nullptr) {
     rotation[0] = rotation[1];
+  }
 
   return 0;
 }
@@ -978,7 +1010,7 @@ Node::getDampSensitivity()
     return *theMatrices[index];
   } else {
     Matrix &result = *theMatrices[index];
-      result.Zero();
+    result.Zero();
     //result = *mass;
     //result *= alphaM;
     return result;
@@ -993,32 +1025,12 @@ Node::setMass(const Matrix &newMass)
   assert(newMass.noRows() == numberDOF && newMass.noCols() == numberDOF);
 
   mass_type = MassType::Full;
-  // const int ndm = xyz.Size();
-  // for (int i=0; i<ndm; i++) {
-  //   if (newMass(i,i) != newMass(0,0)) {
-  //     mass_type = MassType::Full;
-  //     break;
-  //   }
-  // }
-  // // check rotational inertia is zero
-  // for (int i=ndm; i<numberDOF; i++) {
-  //   if (newMass(i,i) != 0.0) {
-  //     mass_type = MassType::Full;
-  //     break;
-  //   }
-  // }
 
   // create a matrix if no mass yet set
   if (mass == nullptr) {
     mass = new Matrix(newMass);
     return 0;
   }
-
-  // if (mass_type != MassType::Full) {
-  //   mass_type = MassType::Classical;
-  //   position_inertia = newMass(0,0);
-  // }
-
   else 
   {
     mass_type = MassType::Full;
@@ -1433,8 +1445,8 @@ Node::recvSelf(int cTag, Channel &theChannel,
   if (numMatrices != 0) {
     for (int i=0; i<numMatrices; i++)
       if (theMatrices[i]->noRows() == numberDOF) {
-      index = i;
-      i = numMatrices;
+        index = i;
+        i = numMatrices;
       }
   }
   if (index == -1) {
@@ -1549,8 +1561,9 @@ Node::Print(OPS_Stream &s, int flag)
 }
 
 
-// AddingSensitivity:BEGIN ///////////////////////////////////////
-
+//
+// Sensitivity
+//
 Matrix
 Node::getMassSensitivity()
 {
@@ -1776,7 +1789,6 @@ Node::getAccSensitivity(int dof, int gradIndex)
   else
     return 0.0;
 }
-// AddingSensitivity:END /////////////////////////////////////////
 
 
 
@@ -1785,8 +1797,6 @@ Node::getReaction()
 {
   if (reaction == nullptr)
     reaction = new Vector(numberDOF);
-
-  // TODO; zero this?
 
   return *reaction;
 }
@@ -1991,7 +2001,6 @@ Node::setNodalThermalActionPtr(NodalThermalAction* theAction)
 {
   theNodalThermalActionPtr = theAction;
 }
-// Add Pointer to NodalThermalAction id applicable-----end------L.Jiang, {SIF]
 
 
 int
