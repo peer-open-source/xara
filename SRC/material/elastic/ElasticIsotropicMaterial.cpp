@@ -48,6 +48,7 @@
 #include <assert.h>
 #include <Logging.h>
 #include <stdlib.h>
+
 using namespace OpenSees;
 
 
@@ -110,10 +111,10 @@ ElasticIsotropicMaterial::getCopy(const char *type)
 
   else if (strcmp(type,"BeamFiber") == 0) {
     ElasticIsotropicBeamFiber *theModel;
-    if (getenv("XARA_FIBER_THREADS") != nullptr)
-      return new ElasticIsotropicBeamThread(*this);
-    else
+    if (getenv("XARA_STATIC_MATERIALS") != nullptr)
       return new ElasticIsotropicBeamFiber(this->getTag(), E, v, rho);
+    else
+      return new ElasticIsotropicBeamThread(*this);
   }
 
   else if (strcmp(type,"BeamFiber2d") == 0) {
@@ -344,6 +345,7 @@ ElasticIsotropicMaterial::updateParameter(int parameterID, Information &info)
     return -1;
   }
 }
+
 
 int
 ElasticIsotropicMaterial::activateParameter(int paramID)
