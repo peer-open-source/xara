@@ -43,9 +43,7 @@
 
 
 using namespace OpenSees;
-//static data
-double  Brick::xl[3][8] ;
-
+// static data
 Matrix  Brick::stiff(24,24) ;
 Vector  Brick::resid(24) ;
 Matrix  Brick::mass(24,24) ;
@@ -81,34 +79,20 @@ Brick::Brick()
 
 
 Brick::Brick(int tag, 
-            int node1,
-            int node2,
-            int node3,
-            int node4,
-            int node5,
-            int node6,
-            int node7,
-            int node8,
+            const std::array<int, 8>& node_tags,
             NDMaterial &theMaterial,
             double b1, double b2, double b3)
   : Element(tag, ELE_TAG_Brick),
    connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
 {
   B.Zero();
-
-  connectedExternalNodes(0) = node1 ;
-  connectedExternalNodes(1) = node2 ;
-  connectedExternalNodes(2) = node3 ;
-  connectedExternalNodes(3) = node4 ;
-
-  connectedExternalNodes(4) = node5 ;
-  connectedExternalNodes(5) = node6 ;
-  connectedExternalNodes(6) = node7 ;
-  connectedExternalNodes(7) = node8 ;
+  for (int i=0; i<NEN; i++) {
+    connectedExternalNodes(i) = node_tags[i];
+    theNodes[i] = nullptr;
+  }
 
   for (int i=0; i<8; i++ ) {
-      materialPointers[i] = theMaterial.getCopy("ThreeDimensional");
-      theNodes[i] = nullptr;
+    materialPointers[i] = theMaterial.getCopy("ThreeDimensional");
   }
 
   // Body forces
@@ -136,21 +120,22 @@ Brick::~Brick()
 
 
 void
-Brick::setDomain( Domain *theDomain ) 
+Brick::setDomain(Domain *theDomain ) 
 {
-  for (int i=0; i<8; i++ ) 
+  for (int i=0; i<NEN; i++ ) 
     theNodes[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
   if (theDomain != nullptr)
     this->Element::link(*theDomain);
 
+  computeBasis();
 }
 
 
 int
 Brick::getNumExternalNodes() const
 {
-  return 8 ;
+  return NEN;
 } 
  
 
@@ -311,7 +296,7 @@ Brick::Print(OPS_Stream &s, int flag)
  
  
 const Matrix&
-Brick::getTangentStiff( ) 
+Brick::getTangentStiff() 
 {
   int tang_flag = 1 ; //get the tangent 
 
@@ -321,7 +306,7 @@ Brick::getTangentStiff( )
 }
 
 const Matrix&
-Brick::getInitialStiff( ) 
+Brick::getInitialStiff() 
 {
   if (Ki != 0)
     return *Ki;
@@ -361,7 +346,7 @@ Brick::getInitialStiff( )
   //zero stiffness and residual 
   stiff.Zero( ) ;
 
-  //compute basis vectors and local nodal coordinates
+  // compute basis vectors and local nodal coordinates
   computeBasis( ) ;
 
   // gauss loop to compute and save shape functions 
@@ -617,7 +602,7 @@ Brick::formInertiaTerms( int tangFlag )
   mass.Zero();
 
   // compute basis vectors and local nodal coordinates
-  computeBasis( ) ;
+  // computeBasis( ) ;
 
   //gauss loop to compute and save shape functions 
 
@@ -714,12 +699,12 @@ Brick::formInertiaTerms( int tangFlag )
 
 
 
-//form residual and tangent
+// form residual and tangent
 int  
 Brick::update() 
 {
 
-  //strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31 
+  // strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31 
 
   static constexpr int ndm = 3 ;
   static constexpr int ndf = 3 ; 
@@ -743,8 +728,8 @@ Brick::update()
   //-------------------------------------------------------
 
   
-  //compute basis vectors and local nodal coordinates
-  computeBasis();
+  // compute basis vectors and local nodal coordinates
+  // computeBasis();
 
   // gauss loop to compute and save shape functions 
 
@@ -879,8 +864,8 @@ Brick::formResidAndTangent( int tang_flag )
   stiff.Zero( ) ;
   resid.Zero( ) ;
 
-  //compute basis vectors and local nodal coordinates
-  computeBasis();
+  // compute basis vectors and local nodal coordinates
+  // computeBasis();
 
   // gauss loop to compute and save shape functions 
 
@@ -900,8 +885,8 @@ Brick::formResidAndTangent( int tang_flag )
         shp3d( xi, xsj, shp, xl ) ;
 
         // save shape functions
-        for ( p = 0; p < nShape; p++ ) {
-          for ( q = 0; q < numberNodes; q++ )
+        for (int p = 0; p < nShape; p++ ) {
+          for (int q = 0; q < numberNodes; q++ )
             Shape[p][q][count] = shp[p][q] ;
         }
 
@@ -943,7 +928,7 @@ Brick::formResidAndTangent( int tang_flag )
     double stress4 = stress(4);
     double stress5 = stress(5);
 
-    //residual and tangent calculations node loops
+    // residual and tangent calculations node loops
 
     int jj = 0 ;
     for (int j = 0; j < numberNodes; j++ ) {
@@ -1027,10 +1012,8 @@ Brick::formResidAndTangent( int tang_flag )
 void
 Brick::computeBasis( ) 
 {
-
-  //nodal coordinates 
-
-  for (int i = 0; i < 8; i++ ) {
+  // nodal coordinates 
+  for (int i = 0; i < NEN; i++ ) {
     const Vector &coorI = theNodes[i]->getCrds( ) ;
 
     xl[0][i] = coorI(0) ;
@@ -1074,13 +1057,12 @@ Brick::computeB( int node, const double shp[4][8] )
   B(5,2) = shp[0][node] ;
 
   return B ;
-
 }
 
 //**********************************************************************
 
 int
-Brick::sendSelf (int commitTag, Channel &theChannel)
+Brick::sendSelf(int commitTag, Channel &theChannel)
 {
   int res = 0;
   
@@ -1463,7 +1445,7 @@ Brick::setParameter(const char **argv, int argc, Parameter &param)
 int
 Brick::updateParameter(int parameterID, Information &info)
 {
-    int res = -1;
+  int res = -1;
 	int matRes = res;
 
     if (parameterID == res) {
