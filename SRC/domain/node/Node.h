@@ -41,6 +41,8 @@
 // TODO: Remove include of NodeData
 #include "NodeData.h"
 #include <Vector.h>
+#include <Matrix3D.h>
+#include <Rotations.h>
 
 class Vector;
 class Matrix;
@@ -53,6 +55,7 @@ namespace OpenSees {
   struct Versor;
 }
 using OpenSees::Versor;
+using OpenSees::Matrix3D;
 
 class Node :
   public TaggedObject,
@@ -68,7 +71,7 @@ class Node :
     Node(int tag, int classTag);
     Node(int tag, int ndof, double Crd1);
     Node(int tag, int ndof, double Crd1, double Crd2);
-    Node(int tag, int ndof, double Crd1, double Crd2, double Crd3);
+    Node(int tag, int ndof, double Crd1, double Crd2, double Crd3, Rotations::Parameters rotationType = Rotations::Parameters::None);
     Node(const Node &theCopy, bool copyMass = true);
     
     // destructor
@@ -76,7 +79,7 @@ class Node :
 
     // public methods dealing with the DOF at the node
     VIRTUAL int  getNumberDOF() const;
-    VIRTUAL void setDOF_GroupPtr(DOF_Group *theDOF_Grp);
+    VIRTUAL void setDOF_GroupPtr(DOF_Group *);
     VIRTUAL DOF_Group *getDOF_GroupPtr();
 
     // public methods for obtaining the nodal coordinates
@@ -104,6 +107,8 @@ class Node :
     VIRTUAL const Vector &getIncrDeltaDisp() noexcept;
     VIRTUAL const Vector &getTrialDisp() noexcept {return *trialDisp;}
     VIRTUAL       Versor  getTrialRotation();
+    VIRTUAL       Matrix3D  getRotationTangent(Rotations::Parameters);
+    VIRTUAL       Versor  getCommitRotation();
 
     VIRTUAL const Vector &getVel();
     VIRTUAL const Vector &getAccel();
@@ -113,7 +118,7 @@ class Node :
     // public methods for updating the trial response quantities
     virtual int setTrialDisp  (double value, int dof) noexcept;
     virtual int setTrialDisp  (const Vector &) noexcept;
-    virtual int incrTrialDisp (const Vector &);
+    virtual int incrTrialDisp (const Vector &) noexcept;
     VIRTUAL int setTrialVel   (const Vector &);
     VIRTUAL int setTrialAccel (const Vector &);
     VIRTUAL int incrTrialVel  (const Vector &);
@@ -121,12 +126,9 @@ class Node :
 
     // Dynamics
     VIRTUAL const Matrix &getMass();
-    // VIRTUAL int   addMass(int i, int j, double& value);
     VIRTUAL const Matrix &getDamp();
     VIRTUAL int setMass(const Matrix &);
     VIRTUAL int addPositionInertia(double value);
-    // VIRTUAL int setNumColR(int numCol);
-    // VIRTUAL int setR(int row, int col, double Value);
     VIRTUAL const Vector &getRV(const Vector &V);
     VIRTUAL int setRayleighDampingFactor(double alphaM);
 
@@ -209,6 +211,7 @@ class Node :
     Vector *trialVel,  *trialAccel;   // trial quantities
     Vector *unbalLoad;                // unbalanced load
     Versor *rotation;
+    Rotations::Parameters rotationType;
 
   private:
     double *disp;
