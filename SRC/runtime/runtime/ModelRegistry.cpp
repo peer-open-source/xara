@@ -39,13 +39,14 @@
 using OpenSees::LoadCase;
 
 ModelRegistry::ModelRegistry(Domain &domain,
-                             int NDM, int NDF)
+                             int NDM, int NDF, 
+                             Rotations::Parameters rotation_type)
   : ndm(NDM), ndf(NDF),
+    rotation_type(rotation_type),
     section_builder_is_set(false),
     theDomain(&domain),
     tclEnclosingPattern(nullptr),
     next_node_load(0)
-    // , next_elem_load(0)
 {
 
 }
