@@ -145,9 +145,9 @@ struct alignas(64) MatrixND {
   template<class VecT> inline constexpr MatrixND<NR,NC,T>& addSpinSquare(const VecT& V, double scale) noexcept;
   template<class VecT> inline constexpr void addSpinProduct(const VecT& a, const VectorND<NR,T>& b, double scale) noexcept;
 
-  void addSpinAtRow(const VectorND<NR>& V, size_t row_index);
+  void addSpinAtRow(const VectorND<NR>& V, size_t row_index) noexcept;
   template<class TVec>
-  void addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index);
+  void addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index) noexcept;
 
   template<class VecT> inline constexpr void 
     addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, double scale) noexcept;
@@ -395,7 +395,7 @@ struct alignas(64) MatrixND {
 
   template <index_t K>
   inline constexpr friend MatrixND<NC,K>
-  operator^(const MatrixND<NR, NC> &left, const MatrixND<NR, K> &right) {
+  operator^(const MatrixND<NR, NC> &left, const MatrixND<NR, K> &right) noexcept {
     MatrixND<NC, K> prod;
     if constexpr (NR*NC > 16) {
       prod.setMatrixTransposeProduct(left, right);
