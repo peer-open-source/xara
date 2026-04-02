@@ -359,41 +359,41 @@ NineNodeQuad::getInitialStiff()
 const Matrix&
 NineNodeQuad::getMass()
 {
-    K.Zero();
+  K.Zero();
 
-    int i;
-    static double rhoi[nip];
-    double sum = 0.0;
-    for (int i = 0; i < nip; i++) {
-      if (rho == 0)
-        rhoi[i] = theMaterial[i]->getRho();
-      else
-        rhoi[i] = rho;
-      sum += rhoi[i];
-    }
+  int i;
+  static double rhoi[nip];
+  double sum = 0.0;
+  for (int i = 0; i < nip; i++) {
+    if (rho == 0)
+      rhoi[i] = theMaterial[i]->getRho();
+    else
+      rhoi[i] = rho;
+    sum += rhoi[i];
+  }
 
-    if (sum == 0.0)
-      return K;
-
-    double rhodvol, Nrho;
-
-    // Compute a lumped mass matrix
-    for (int i = 0; i < nip; i++) {
-        // Determine Jacobian for this integration point
-        rhodvol = this->shapeFunction(pts[i][0], pts[i][1]);
-
-        // Element plus material density ... MAY WANT TO REMOVE ELEMENT DENSITY
-        rhodvol *= (rhoi[i]*thickness*wts[i]);
-
-        for (int alpha = 0, ia = 0; alpha < NEN; alpha++, ia++) {
-            Nrho = shp[2][alpha]*rhodvol;
-            K(ia,ia) += Nrho;
-            ia++;
-            K(ia,ia) += Nrho;
-        }
-    }
-
+  if (sum == 0.0)
     return K;
+
+  double rhodvol, Nrho;
+
+  // Compute a lumped mass matrix
+  for (int i = 0; i < nip; i++) {
+    // Determine Jacobian for this integration point
+    rhodvol = this->shapeFunction(pts[i][0], pts[i][1]);
+
+    // Element plus material density ... MAY WANT TO REMOVE ELEMENT DENSITY
+    rhodvol *= (rhoi[i]*thickness*wts[i]);
+
+    for (int alpha = 0, ia = 0; alpha < NEN; alpha++, ia++) {
+        Nrho = shp[2][alpha]*rhodvol;
+        K(ia,ia) += Nrho;
+        ia++;
+        K(ia,ia) += Nrho;
+    }
+  }
+
+  return K;
 }
 
 void
@@ -568,9 +568,9 @@ NineNodeQuad::getResistingForceIncInertia()
 
     double a[NDF*NEN];
     for (int i=0; i<NEN; i++) {
-        const Vector &accel = theNodes[i]->getTrialAccel();
-        for (int j=0; j<NDF; j++)
-          a[i*NDF+j] = accel[j];
+      const Vector &accel = theNodes[i]->getTrialAccel();
+      for (int j=0; j<NDF; j++)
+        a[i*NDF+j] = accel[j];
     }
 
     // Compute the current resisting force
