@@ -102,6 +102,8 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   double rho = 0, rho_bar = 0;
   double atm = 101.0;
   double delta2 = 0.0;
+  double yield_tol = 1e-16;
+  int max_iter = 15;
 
   //
   // 1. Keyword arguments
@@ -197,6 +199,16 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       }
       if (Tcl_GetDouble(interp, argv[i], &overstress.speed) != TCL_OK) {
         opserr << "Invalid overstress speed value " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+    }
+    else if (strcmp(argv[i], "-tol") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &yield_tol) != TCL_OK) {
+        opserr << "Invalid yield tolerance value " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
     }
@@ -882,7 +894,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
                                             b[0], Q[0],
                                             b[1], Q[1],
                                             kinematic.C,
-                                            kinematic.gamma);
+                                            kinematic.gamma,
+                                            yield_tol,
+                                            max_iter);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
