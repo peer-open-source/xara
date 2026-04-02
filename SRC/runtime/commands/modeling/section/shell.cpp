@@ -39,61 +39,64 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
                                   int argc, TCL_Char** const argv)
 {
 
-    ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
-    if (argc < 5) {
-      opserr << OpenSees::PromptValueError
-             << "insufficient arguments\n";
-      opserr << "Want: section ElasticMembranePlateSection tag? E? nu? h? "
-                "<rho?> <Ep_mod?>"
-             << "\n";
-      return TCL_ERROR;
-    }
+  // section ElasticMembranePlateSection tag? E? nu? h? <rho?> <Ep_mod?>
 
-    int tag;
-    double E, nu, h;
-    double rho = 0.0;
-    double Ep_mod = 1.0;
+  int tag;
+  double E, nu, h;
+  double rho = 0.0;
+  double Ep_mod = 1.0;
 
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid section ElasticMembranePlateSection tag"
-             << "\n";
-      return TCL_ERROR;
-    }
+  if (argc < 6) {
+    opserr << OpenSees::PromptValueError 
+            << "insufficient arguments " << "\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+            << "invalid section tag" << argv[2]
+            << "\n";
+    return TCL_ERROR;
+  }
 
-    if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid E" << "\n";
-      return TCL_ERROR;
-    }
+  if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+            << "invalid E" << "\n";
+    return TCL_ERROR;
+  }
 
-    if (Tcl_GetDouble(interp, argv[4], &nu) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid nu" << "\n";
-      return TCL_ERROR;
-    }
+  if (Tcl_GetDouble(interp, argv[4], &nu) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+            << "invalid nu" << "\n";
+    return TCL_ERROR;
+  }
 
-    if (Tcl_GetDouble(interp, argv[5], &h) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid h" << "\n";
-      return TCL_ERROR;
-    }
+  if (Tcl_GetDouble(interp, argv[5], &h) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+            << "invalid h" << "\n";
+    return TCL_ERROR;
+  }
 
-    if (argc > 6 && Tcl_GetDouble(interp, argv[6], &rho) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid rho" << "\n";
-      return TCL_ERROR;
-    }
+  if (argc > 6 && Tcl_GetDouble(interp, argv[6], &rho) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+            << "invalid rho" << "\n";
+    return TCL_ERROR;
+  }
 
-    if (argc > 7 && Tcl_GetDouble(interp, argv[7], &Ep_mod) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid Ep_mod" << "\n";
-      return TCL_ERROR;
-    }
+  if (argc > 7 && Tcl_GetDouble(interp, argv[7], &Ep_mod) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+            << "invalid Ep_mod" << "\n";
+    return TCL_ERROR;
+  }
 
-    builder->addTaggedObject<SectionForceDeformation>(*new ElasticMembranePlateSection(tag, E, nu, h, rho, Ep_mod));
-    return TCL_OK;
+  SectionForceDeformation* section =
+      new ElasticMembranePlateSection(tag, E, nu, h, rho, Ep_mod);
+
+  if (!builder->addTaggedObject<SectionForceDeformation>(*section) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  return TCL_OK;
 }
 
 
@@ -240,7 +243,7 @@ cleanup:
 
 
   // Now add the material to the modelBuilder
-  if (builder->addTaggedObject<ShellSection>(*theSection) < 0) {
+  if (builder->addTaggedObject<ShellSection>(*theSection) != TCL_OK) {
     opserr << "WARNING could not add section to the domain\n";
     opserr << *theSection << "\n";
     delete theSection;
