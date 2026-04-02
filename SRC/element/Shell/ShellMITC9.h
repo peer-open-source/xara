@@ -133,18 +133,17 @@ class ShellMITC9 : public Element,
     };
 
     //node information
-    ID connectedExternalNodes ;  //nine node numbers
-    //pointers to nine nodes
+    ID connectedExternalNodes ;  // node tags
     Node *theNodes[NEN] ;
 
-    //drilling stiffness
+    // drilling stiffness
     double Ktt ;
 
     //material information: pointers to four materials
-    SectionForceDeformation *materialPointers[9] ;
+    SectionForceDeformation *materialPointers[9];
                                           
     // local nodal coordinates, two coordinates for each of nine nodes
-    //static double xl[][9] ; 
+    //static double xl[][9] ;
     double xl[2][9] ;
 
     //shell basis vectors
@@ -154,12 +153,9 @@ class ShellMITC9 : public Element,
 
     // Compute local coordinates and basis
     void computeBasis();
-        
-    //inertia terms
-    void formInertiaTerms( int tangFlag ) ;
-
-    //form residual and tangent                                          
-    void formResidAndTangent( int tang_flag ) ;
+    // State determination
+    void formInertiaTerms( int tangFlag ) ;                                    
+    void formResidAndTangent(int tang_flag) ;
 
     //compute Jacobian matrix and inverse at point {L1,L2}
     //void  computeJacobian( double L1, double L2,const double x[2][9], 
@@ -168,7 +164,7 @@ class ShellMITC9 : public Element,
     //compute Bdrill matrix
     double* computeBdrill( int node, const double shp[3][9] ) ;
 
-    // assemble a B matrix 
+    // assemble B matrix 
     void  assembleB( const Matrix &Bmembrane,
                      const Matrix &Bbend, 
                      const Matrix &Bshear,
