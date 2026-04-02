@@ -31,7 +31,7 @@ public:
     return 0;
   }
 
-  int incrTrialDisp (const Vector &incrDispl) final {
+  int incrTrialDisp (const Vector &incrDispl) noexcept final {
     assert(incrDispl.Size() == ndf);
     // set trial = incr + trial
     for (int i = 0; i<ndf; i++) {
