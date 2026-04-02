@@ -799,7 +799,7 @@ LagrangeQuad<NEN,NIP,enh>::setResponse(const char** argv, int argc, OPS_Stream& 
   output.attr("node3", connectedExternalNodes[2]);
   output.attr("node4", connectedExternalNodes[3]);
 
-  char dataOut[10];
+  char dataOut[80];
   if (strcmp(argv[0], "force") == 0 || strcmp(argv[0], "forces") == 0) {
 
     for (int i = 1; i <= 4; i++) {
