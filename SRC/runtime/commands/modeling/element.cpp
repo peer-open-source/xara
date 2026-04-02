@@ -1347,8 +1347,10 @@ TclBasicBuilder_addKikuchiBearing(ClientData clientData, Tcl_Interp *interp,
 
   // now create the KikuchiBearing
   theElement = new KikuchiBearing(
-      eleTag, iNode, jNode, shape, size, totalRubber, totalHeight, nMSS, matMSS,
-      limDisp, nMNS, matMNS, lambda, oriYp, oriX, mass, ifPDInput, ifTilt,
+      eleTag, iNode, jNode, shape, size, totalRubber, totalHeight, 
+      nMSS, *matMSS,
+      limDisp, 
+      nMNS, *matMNS, lambda, oriYp, oriX, mass, ifPDInput, ifTilt,
       adjCi, adjCj, ifBalance, limFo, limFi, nIter);
 
   // then add the KikuchiBearing to the domain

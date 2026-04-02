@@ -51,7 +51,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
@@ -61,14 +60,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <elementAPI.h>
 
 
 // Bessel function, Copyright(C) 1996 Takuya OOURA
 extern "C" double dbesi0(double);
 extern "C" double dbesi1(double);
 
-
+#if 0
+#include <elementAPI.h>
 static bool errDetected(bool ifNoError, const char *msg){
   if (ifNoError){
     opserr << "" << endln;
@@ -501,7 +500,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_KikuchiBearing)
     return theElement;
 
 }
-
+#endif
 
 // initialize the class wide variables
 Matrix KikuchiBearing::theMatrix(12,12);
@@ -534,8 +533,12 @@ Vector KikuchiBearing::dspCpnt(9);
 
 KikuchiBearing::KikuchiBearing(int Tag, int Nd1, int Nd2,
 			       int Shape, double Size, double TotalRubber, double TotalHeight,
-			       int NMSS, UniaxialMaterial *MatMSS, double LimDisp,
-			       int NMNS, UniaxialMaterial *MatMNS, double Lambda,
+			       int NMSS, 
+             UniaxialMaterial &MatMSS, 
+             double LimDisp,
+			       int NMNS, 
+             UniaxialMaterial &MatMNS, 
+             double Lambda,
 			       const Vector OriYp, const Vector OriX, double Mass,
 			       bool IfPDInput, bool IfTilt,
 			       double AdjCi, double AdjCj,
@@ -553,111 +556,68 @@ KikuchiBearing::KikuchiBearing(int Tag, int Nd1, int Nd2,
     basicDisp(6), localDisp(12), basicForce(6),
     localIncrDisp(12),incrDispij(12),incrDispmn(6),localForceij(12)
 {
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "KikuchiBearing::setUp() - element: "
-	   << this->getTag() << " failed to create an ID of size 2\n";
-  }
   
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
   
   // set node pointers to NULL
   for (int i=0; i<2; i++)
-    theNodes[i] = 0;
+    theNodes[i] = nullptr;
   
   // check material input
 
-  //MNS
-  if (MatMNS == 0)  {
-    opserr << "KikuchiBearing::KikuchiBearing() - "
-	   << "null uniaxial material pointer passed.\n";
-    exit(-1);
-  }
-
+  // MNS
   theINodeMNSMaterials = new UniaxialMaterial* [nMNS*nMNS]; // nMNS^2 materials, MNS(i-Node)
   theJNodeMNSMaterials = new UniaxialMaterial* [nMNS*nMNS]; // nMNS^2 materials, MNS(j-Node)
 
-  //MSS
-  if (MatMSS == 0)  {
-    opserr << "KikuchiBearing::KikuchiBearing() - "
-	   << "null uniaxial material pointer passed.\n";
-    exit(-1);
-  }
-
+  // MSS
   theMidMSSMaterials = new UniaxialMaterial* [nMSS]; // nMSS materials, MSS(mid-height)
-
-
 
   // get copies of the uniaxial materials
   //MNS
   for (int i=0; i<nMNS*nMNS; i++)  {
-    theINodeMNSMaterials[i] = MatMNS->getCopy();
-    if (theINodeMNSMaterials[i] == 0) {
-      opserr << "KikuchiBearing::KikuchiBearing() - "
- 	     << "failed to copy uniaxial material.\n";
-      exit(-1);
-    }
-
-    theJNodeMNSMaterials[i] = MatMNS->getCopy();
-    if (theJNodeMNSMaterials[i] == 0) {
-      opserr << "KikuchiBearing::KikuchiBearing() - "
- 	     << "failed to copy uniaxial material.\n";
-      exit(-1);
-    }
+    theINodeMNSMaterials[i] = MatMNS.getCopy();
+    theJNodeMNSMaterials[i] = MatMNS.getCopy();
   }
   
-  //MSS
+  // MSS
   for (int i=0; i<nMSS; i++)  {
-    theMidMSSMaterials[i] = MatMSS->getCopy();
-
-    if (theMidMSSMaterials[i] == 0) {
-      opserr << "KikuchiBearing::KikuchiBearing() - "
- 	     << "failed to copy uniaxial material.\n";
-      exit(-1);
-    }
+    theMidMSSMaterials[i] = MatMSS.getCopy();
   }
 
-
-  //material to calculate Feq and Seq
-  dmyMSSMaterial = MatMSS->getCopy();
-  if (dmyMSSMaterial == 0) {
-    opserr << "KikuchiBearing::KikuchiBearing() - "
-	   << "failed to copy uniaxial material.\n";
-    exit(-1);
-  }
+  // material to calculate Feq and Seq
+  dmyMSSMaterial = MatMSS.getCopy();
 
 
-  //MNS
-  //position of centroid, distribution factor
+  // MNS
+  // position of centroid, distribution factor
   posLy = new double [nMNS*nMNS]; //local-y position
   posLz = new double [nMNS*nMNS]; //local-z position
   distFct = new double [nMNS*nMNS]; //distribution factor
-  if (shape == 1){//round shape
 
+  if (shape == 1) {//round shape
     incA = (M_PI*size*size)/(4.0*nMNS*nMNS); //area of each normal spring
 
     int p = nMNS%2;
     int k = -1; //index
   
-    for(int i=1; i<=((nMNS+p)/2); i++) {
+    for (int i=1; i<=((nMNS+p)/2); i++) {
       //circle
-      if(i==1 && p==1) {
-	k++; //k=0
-	double r = 0.0;
-	posLy[k] = 0.0;
-	posLz[k] = 0.0;
-	
-	//distribution factor
-	if(lambda < 0) { //uniform
-	  distFct[k] = 1.0;
-	} else if(lambda == 0) { //parabolic
-	  distFct[k] = 2.0;
-	} else {
-	  distFct[k] = (1.0-1.0/dbesi0(lambda));
-	}
+      if (i==1 && p==1) {
+        k++; //k=0
+        double r = 0.0;
+        posLy[k] = 0.0;
+        posLz[k] = 0.0;
 
-	continue;
+        //distribution factor
+        if (lambda < 0) { //uniform
+          distFct[k] = 1.0;
+        } else if (lambda == 0) { //parabolic
+          distFct[k] = 2.0;
+        } else {
+          distFct[k] = (1.0-1.0/dbesi0(lambda));
+        }
+        continue;
       }
 
       //circular sector
@@ -665,24 +625,24 @@ KikuchiBearing::KikuchiBearing(int Tag, int Nd1, int Nd2,
       double r1 = ((2.0*i-2-p)/(2.0*nMNS))*size;
       double r2 = ((2.0*i-p)/(2.0*nMNS))*size;
       double r = (2.0/3.0)*(sin(tht)/tht)*((r1*r1+r1*r2+r2*r2)/(r1+r2));
-      for(int j=1; j<=(4*(2*i-1-p)); j++){
-	k++; //k=(2*i-2-p)^2+j
-	double alp = (2*j-1)*tht;
-	posLy[k] = r*cos(alp);
-	posLz[k] = r*sin(alp);
+      for (int j=1; j<=(4*(2*i-1-p)); j++){
+        k++; //k=(2*i-2-p)^2+j
+        double alp = (2*j-1)*tht;
+        posLy[k] = r*cos(alp);
+        posLz[k] = r*sin(alp);
 
-	//distribution factor
-	if(lambda < 0) {
-	  distFct[k] = 1.0; //uniform
-	} else if(lambda == 0) {
-	  distFct[k] = 2.0*(1.0-r/(size/2)*r/(size/2)); //parabolic
-	} else {
-	  distFct[k] = (1.0-dbesi0(lambda*r/(size/2))/dbesi0(lambda));
-	}
+        //distribution factor
+        if (lambda < 0) {
+          distFct[k] = 1.0; //uniform
+        } else if (lambda == 0) {
+          distFct[k] = 2.0*(1.0-r/(size/2)*r/(size/2)); //parabolic
+        } else {
+          distFct[k] = (1.0-dbesi0(lambda*r/(size/2))/dbesi0(lambda));
+        }
       }
     }
-
-  } else { //square shape
+  } 
+  else { //square shape
 
     incA = (size*size)/(nMNS*nMNS); //area of each normal spring
 
@@ -690,28 +650,26 @@ KikuchiBearing::KikuchiBearing(int Tag, int Nd1, int Nd2,
  
     for(int i=0; i<nMNS; i++) {
       for(int j=0; j<nMNS; j++) {
+        k++;
 
-	k++;
+        posLy[k] = (2.0*i-nMNS+1)/nMNS * (size/2);
+        posLz[k] = (2.0*j-nMNS+1)/nMNS * (size/2);
 
-	posLy[k] = (2.0*i-nMNS+1)/nMNS * (size/2);
-	posLz[k] = (2.0*j-nMNS+1)/nMNS * (size/2);
-
-	double ry = posLy[k]/(size/2);
-	double rz = posLz[k]/(size/2);
-	
-	//distribution factor
-	if(lambda < 0) { //uniform
-	  distFct[k] = 1.0;
-	} else {
-	  distFct[k] = 0.0;
-	  for (int m=1; m<=19; m+=2) {
-	    double alpha = sqrt(lambda*lambda + (m*M_PI/2.0)*(m*M_PI/2.0));
-	    distFct[k] += sin(m*M_PI/2.0) * 4/(m*M_PI) * (lambda*lambda)/(alpha*alpha) * (1.0 - cosh(alpha*rz)/cosh(alpha)) * cos(m*M_PI/2.0*ry);
-	  }
-	}
+        double ry = posLy[k]/(size/2);
+        double rz = posLz[k]/(size/2);
+        
+        //distribution factor
+        if (lambda < 0) { //uniform
+          distFct[k] = 1.0;
+        } else {
+          distFct[k] = 0.0;
+          for (int m=1; m<=19; m+=2) {
+            double alpha = sqrt(lambda*lambda + (m*M_PI/2.0)*(m*M_PI/2.0));
+            distFct[k] += sin(m*M_PI/2.0) * 4/(m*M_PI) * (lambda*lambda)/(alpha*alpha) * (1.0 - cosh(alpha*rz)/cosh(alpha)) * cos(m*M_PI/2.0*ry);
+          }
+        }
       }
     }
-    
   }
 
   //ave(distFct) = 1.0
@@ -773,7 +731,6 @@ KikuchiBearing::KikuchiBearing(int Tag, int Nd1, int Nd2,
 
   // initialize variables
   this->revertToStart();
-  
 }
 
 
@@ -790,9 +747,7 @@ KikuchiBearing::KikuchiBearing()
     Tgl(12,12), Tlb(6,12),
     basicDisp(6), localDisp(12), basicForce(6),
     localIncrDisp(12),incrDispij(12),incrDispmn(6),localForceij(12)
-{	
-
-
+{
   // ensure the connectedExternalNode ID is of correct size & set values
   if (connectedExternalNodes.Size() != 2)  {
     opserr << "KikuchiBearing::KikuchiBearing() - "
@@ -873,37 +828,41 @@ KikuchiBearing::~KikuchiBearing()
 }
 
 
-int KikuchiBearing::getNumExternalNodes() const
+int 
+KikuchiBearing::getNumExternalNodes() const
 {
   return 2;
 }
 
 
-const ID& KikuchiBearing::getExternalNodes() 
+const ID& 
+KikuchiBearing::getExternalNodes() 
 {
   return connectedExternalNodes;
 }
 
 
-Node** KikuchiBearing::getNodePtrs() 
+Node** 
+KikuchiBearing::getNodePtrs() 
 {
   return theNodes;
 }
 
 
-int KikuchiBearing::getNumDOF() 
+int 
+KikuchiBearing::getNumDOF() 
 {
   return 12;
 }
 
 
-void KikuchiBearing::setDomain(Domain *theDomain)
+void 
+KikuchiBearing::setDomain(Domain *theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
   if (!theDomain)  {
     theNodes[0] = 0;
     theNodes[1] = 0;
-    
     return;
   }
   
@@ -950,14 +909,15 @@ void KikuchiBearing::setDomain(Domain *theDomain)
 }   	 
 
 
-int KikuchiBearing::commitState()
+int 
+KikuchiBearing::commitState()
 {
   int errCode = 0;
 
   //get rid of internal unbalanced force
   int iite = 0;
 
-  while(ifBalance){
+  while (ifBalance){
     //number of iterations
     if(iite>=nIter){
       opserr << "KikuchiBearing::KikuchiBearing() - "
@@ -965,22 +925,22 @@ int KikuchiBearing::commitState()
       break;
     }
     
-    //refer to finite displacement in the element (trial)
+    // refer to finite displacement in the element (trial)
     subRefFntDisp(false);
     
-    //calculate stiffness components
+    // calculate stiffness components
     subCalcStfCpnt();
     
-    //calculate force components
+    // calculate force components
     subCalcFrcCpnt();
 
-    //make K18 matrix (full)
+    // make K18 matrix (full)
     subMakeKij18();
 
-    //make submatrices
+    // make submatrices
     subSubmatKij18();
     
-    //calculate Fmn (and Fij)
+    // calculate Fmn (and Fij)
     subMakeFijFmn();
 
     //incrDispij is 0
@@ -997,11 +957,11 @@ int KikuchiBearing::commitState()
     incrDispij.Zero();
     subSetMaterialStrains(false);
 
-    //calculate stiffness components and force components again
+    // calculate stiffness components and force components again
     subCalcStfCpnt();
     subCalcFrcCpnt();
 
-    //make K18 matrix (full)
+    // make K18 matrix (full)
     subMakeKij18();
     
     //make submatrices
@@ -1026,8 +986,8 @@ int KikuchiBearing::commitState()
     //internal unbalanced force
     bool ifContinue = false;
     for (int i=0; i<=5; i++)  {
-      if(fabs(Fmn(i))>limFi){
-	ifContinue = true;
+      if (fabs(Fmn(i))>limFi){
+        ifContinue = true;
       }
     }
 
@@ -1039,7 +999,6 @@ int KikuchiBearing::commitState()
       opserr << "inner iteration done\n";
       break;
     }
-
   }
   
 
@@ -1075,12 +1034,12 @@ int KikuchiBearing::commitState()
   commitFrcMidRX = trialFrcMidRX;
 
 
-  //Dij, Fij
+  // Dij, Fij
   commitDij18 = trialDij18;
   commitFij = trialFij;
   
   
-  //equivalent coefficient for MSS
+  // equivalent coefficient for MSS
   subCalcMSSFeqSeq();
 
   return errCode;
@@ -1088,7 +1047,8 @@ int KikuchiBearing::commitState()
 }
 
 
-int KikuchiBearing::revertToLastCommit()
+int
+KikuchiBearing::revertToLastCommit()
 {
   int errCode = 0;
   
@@ -1107,7 +1067,8 @@ int KikuchiBearing::revertToLastCommit()
 }
 
 
-int KikuchiBearing::revertToStart()
+int
+KikuchiBearing::revertToStart()
 {   
 
   int errCode=0;
@@ -1272,7 +1233,7 @@ int KikuchiBearing::update()
   }
   
 
-  //reduct K18 matrix
+  // reduct K18 matrix
   subReductKij();
 
 
@@ -1327,7 +1288,8 @@ const Matrix& KikuchiBearing::getInitialStiff()
 }
 
 
-const Matrix& KikuchiBearing::getMass()
+const Matrix& 
+KikuchiBearing::getMass()
 {
   // zero the matrix
   theMatrix.Zero();
@@ -1353,7 +1315,8 @@ void KikuchiBearing::zeroLoad()
 }
 
 
-int KikuchiBearing::addLoad(ElementalLoad *theLoad, double loadFactor)
+int 
+KikuchiBearing::addLoad(ElementalLoad *theLoad, double loadFactor)
 {  
   opserr <<"KikuchiBearing::addLoad() - "
 	 << "load type unknown for element: "
@@ -1363,7 +1326,8 @@ int KikuchiBearing::addLoad(ElementalLoad *theLoad, double loadFactor)
 }
 
 
-int KikuchiBearing::addInertiaLoadToUnbalance(const Vector &accel)
+int 
+KikuchiBearing::addInertiaLoadToUnbalance(const Vector &accel)
 {
   // check for quick return
   if (mass == 0.0)  {
@@ -1392,7 +1356,8 @@ int KikuchiBearing::addInertiaLoadToUnbalance(const Vector &accel)
 }
 
 
-const Vector& KikuchiBearing::getResistingForce()
+const Vector& 
+KikuchiBearing::getResistingForce()
 {
   // zero the residual
   theVector.Zero();
@@ -1407,12 +1372,12 @@ const Vector& KikuchiBearing::getResistingForce()
   // subtract external load
   theVector.addVector(1.0, theLoad, -1.0);
 
-  
   return theVector;
 }
 
 
-const Vector& KikuchiBearing::getResistingForceIncInertia()
+const Vector&
+KikuchiBearing::getResistingForceIncInertia()
 {	
   theVector = this->getResistingForce();
   
@@ -1436,31 +1401,20 @@ const Vector& KikuchiBearing::getResistingForceIncInertia()
 }
 
 
-int KikuchiBearing::sendSelf(int commitTag, Channel &sChannel)
+int 
+KikuchiBearing::sendSelf(int commitTag, Channel &sChannel)
 {
   return -1;
 }
 
 
-int KikuchiBearing::recvSelf(int commitTag, Channel &rChannel,
+int
+KikuchiBearing::recvSelf(int commitTag, Channel &rChannel,
 				  FEM_ObjectBroker &theBroker)
 {
   return -1;
 }
 
-
-int KikuchiBearing::displaySelf(Renderer &theViewer,
-				int displayMode, float fact,
-				const char **modes, int numMode)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 
 void KikuchiBearing::Print(OPS_Stream &s, int flag)
@@ -1847,7 +1801,7 @@ void KikuchiBearing::subSetMaterialStrains(bool ifCommit)
 }
 
 
-//calculate force components
+// calculate force components
 void KikuchiBearing::subCalcFrcCpnt()
 {
 
@@ -1904,7 +1858,7 @@ void KikuchiBearing::subCalcFrcCpnt()
   frz = trialFrcMidRZ;
   frx = trialFrcMidRX;
 
-  //frcCpnt output
+  // frcCpnt output
   frcCpnt(0)  = fsy ;
   frcCpnt(1)  = fsz ;
   frcCpnt(2)  = fn  ;
@@ -1926,6 +1880,7 @@ void KikuchiBearing::subCalcFrcCpnt()
 //calculate stiffness components
 void KikuchiBearing::subCalcStfCpnt(){subCalcStfCpnt_main(false); return;}
 void KikuchiBearing::subCalcStfCpntInit(){subCalcStfCpnt_main(true); return;}
+
 void KikuchiBearing::subCalcStfCpnt_main(bool ifInit)
 {
 
@@ -1997,7 +1952,7 @@ void KikuchiBearing::subCalcStfCpnt_main(bool ifInit)
   krx = stfMidRX;
   
 
-  //stfCpnt output
+  // stfCpnt output
   stfCpnt(0)  = kscc;
   stfCpnt(1)  = kscs;
   stfCpnt(2)  = ksss;
@@ -2022,8 +1977,9 @@ void KikuchiBearing::subCalcStfCpnt_main(bool ifInit)
 }
 
 
-//make K18 matrix (full)
-void KikuchiBearing::subMakeKij18()
+// make K18 matrix (full)
+void 
+KikuchiBearing::subMakeKij18()
 {
   //localLocalStiff
   static Matrix Kim(6,6)   ;//i-m
@@ -2193,7 +2149,7 @@ void KikuchiBearing::subMakeKij18()
     }
   }
 
-  //Kjn
+  // Kjn
   Kjn(0,0) =  kj;
   Kjn(0,1) =  kjz;
   Kjn(0,2) = -kjy;
@@ -2459,7 +2415,7 @@ void KikuchiBearing::subSubmatKij18()
   return;
 }
 
-//reduct K18 matrix
+// reduct K18 matrix
 void KikuchiBearing::subReductKij()
 {
   //reduction
@@ -2560,45 +2516,45 @@ void KikuchiBearing::subMakeFijFmn()
   return;
 }
 
-//calculate Feq and Seq
-void KikuchiBearing::subCalcMSSFeqSeq()
+// calculate Feq and Seq
+void
+KikuchiBearing::subCalcMSSFeqSeq()
 {
+  // equivalent coefficient for force and stiffness
+  if (limDisp >= 0) {
+    double uRef, fRef, sRef;//deformation, force, stiffness
+    double uCmp, fSum, sSum;
+    double refDisp;
+    
+    //reference disp
+    refDisp = sqrt(basicDisp(1)*basicDisp(1)+basicDisp(2)*basicDisp(2));
+    uRef = (refDisp>limDisp) ? refDisp : limDisp;
 
-    //equivalent coefficient for force and stiffness
-    if (limDisp >= 0) {
-      double uRef, fRef, sRef;//deformation, force, stiffness
-      double uCmp, fSum, sSum;
-      double refDisp;
-      
-      //reference disp
-      refDisp = sqrt(basicDisp(1)*basicDisp(1)+basicDisp(2)*basicDisp(2));
-      uRef = (refDisp>limDisp) ? refDisp : limDisp;
-
-      //material to calculate Feq and Seq
-      dmyMSSMaterial->setTrialStrain(uRef,0);
-      fRef = dmyMSSMaterial->getStress();
-      sRef = dmyMSSMaterial->getTangent();
-      
-      //total force, total stiffness
-      fSum = 0.0;
-      sSum = 0.0;
-      for (int i=0; i<nMSS; i++)  {
-        uCmp = uRef * cosTht[i];
-        dmyMSSMaterial->setTrialStrain(uCmp,0);
-    	fSum += dmyMSSMaterial->getStress() * cosTht[i];
-    	sSum += dmyMSSMaterial->getTangent() * cosTht[i] * cosTht[i];
-      }
-
-      //Feq, Seq
-      mssFeq = fRef/fSum;
-      mssSeq = sRef/sSum;
-      
-    } else {
-
-      mssFeq = 1.0;
-      mssSeq = 1.0;
-      
+    //material to calculate Feq and Seq
+    dmyMSSMaterial->setTrialStrain(uRef,0);
+    fRef = dmyMSSMaterial->getStress();
+    sRef = dmyMSSMaterial->getTangent();
+    
+    //total force, total stiffness
+    fSum = 0.0;
+    sSum = 0.0;
+    for (int i=0; i<nMSS; i++)  {
+      uCmp = uRef * cosTht[i];
+      dmyMSSMaterial->setTrialStrain(uCmp,0);
+      fSum += dmyMSSMaterial->getStress() * cosTht[i];
+      sSum += dmyMSSMaterial->getTangent() * cosTht[i] * cosTht[i];
     }
+
+    //Feq, Seq
+    mssFeq = fRef/fSum;
+    mssSeq = sRef/sSum;
+    
+  } else {
+
+    mssFeq = 1.0;
+    mssSeq = 1.0;
+    
+  }
     
 }
 
