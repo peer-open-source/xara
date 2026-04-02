@@ -110,7 +110,7 @@ SetupTangent(MatrixND<12,12>& Ks, const Frame::Shape& cons)
   double GSz   = -GSnzz;
 
   double GAy,GAz,GJ;
-  if (getenv("XARA_FIBER_THREADS")) {
+  if (!getenv("XARA_OLD_WARP")) {
     switch (cons.mixed_form) {
       case Frame::Shape::MixedType::Equilibrium:
       case Frame::Shape::MixedType::None:
@@ -164,17 +164,6 @@ SetupTangent(MatrixND<12,12>& Ks, const Frame::Shape& cons)
 
 ID ElasticLinearFrameSection3d::layout(layout_array, nr);
 
-ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(ElasticLinearFrameSection3d& other)
-: FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
-  shape_data(other.shape_data),
-  Ks(other.Ks),
-  Ksen(nullptr),
-  e{},
-  s{},
-  parameterID(0)
-{
-
-}
 
 
 ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
@@ -194,6 +183,20 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
               shape.Qy/shape.A};
   SetupTangent(*Ks, shape);
 }
+
+
+ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(ElasticLinearFrameSection3d& other)
+: FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
+  shape_data(other.shape_data),
+  Ks(other.Ks),
+  Ksen(nullptr),
+  e{},
+  s{},
+  parameterID(0)
+{
+
+}
+
 
 void
 ElasticLinearFrameSection3d::getConstants(Frame::Shape& consts) const
