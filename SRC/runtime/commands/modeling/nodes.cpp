@@ -149,7 +149,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       }
     } else
 #endif
-      theNode = new HeapNode(nodeId, ndf, xLoc, yLoc, zLoc);
+      theNode = new HeapNode(nodeId, ndf, xLoc, yLoc, zLoc, builder->getRotationType());
     break;
   }
 
