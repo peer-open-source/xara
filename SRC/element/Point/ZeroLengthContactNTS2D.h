@@ -132,8 +132,6 @@ class ZeroLengthContactNTS2D: public Element
   Response *setResponse(const char **argv, int argc, OPS_Stream &output);
   int getResponse(int responseID, Information &eleInformation);
 
-  //void updateDir (const Vector& x, const Vector& y);
-
  protected:
 
  private:
