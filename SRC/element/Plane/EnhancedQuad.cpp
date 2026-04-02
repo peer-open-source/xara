@@ -542,7 +542,7 @@ EnhancedQuad::formResidAndTangent( int tang_flag )
 
   // -------------------------------------------------------------------
   // Newton loop to solve for enhanced strain parameters
-  
+  //
   static Matrix Kee(nEnhanced,nEnhanced) ;
   Kee.Zero();
   VectorND<NDF> residJ{}; // nodeJ residual
@@ -572,7 +572,7 @@ EnhancedQuad::formResidAndTangent( int tang_flag )
         const Vector &ul = theNodes[j]->getTrialDisp( ) ;
 
         // compute the strain
-        // strain += (BJ*ul) ; 
+        // strain += (BJ*ul) ;
         strain.addMatrixVector(1.0, B[j], ul, 1.0) ;
 
       }
