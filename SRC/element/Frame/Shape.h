@@ -70,6 +70,7 @@ struct Shape {
   enum class MixedType {
     None,
     UT,
+    U02,
     Constant,
     Energetic,
     Equilibrium
@@ -89,7 +90,8 @@ struct Shape {
    {
    }
   
-  void print() const {
+  void print(OPS_Stream &s, int flag) const
+  {
     opserr << "Shape: ndm=" << ndm << " ndf=" << ndf << "\n"
            << "  A=" << A 
            << " Ay=" << (Ay ? std::to_string(*Ay) : "n/a")
@@ -106,11 +108,16 @@ struct Shape {
     switch (mixed_form) {
       case MixedType::None:        opserr << "None"; break;
       case MixedType::UT:          opserr << "UT"; break;
+      case MixedType::U02:         opserr << "U02"; break;
       case MixedType::Constant:    opserr << "UG"; break;
       case MixedType::Energetic:   opserr << "UE"; break;
       case MixedType::Equilibrium: opserr << "NR"; break;
     }
     opserr << "\n";
+  }
+
+  void print() const {
+    this->print(opserr,0);
   }
 
   int validate()
