@@ -853,7 +853,7 @@ MatrixND<NR,NC,T>::addSpinSquare(const VecT& v, const double scale) noexcept
 
 template <int NR, int NC, typename T>
 inline void 
-MatrixND<NR,NC,T>::addSpinAtRow(const VectorND<NR>& V, size_t row_index)
+MatrixND<NR,NC,T>::addSpinAtRow(const VectorND<NR>& V, size_t row_index) noexcept
 {
   size_t i0 = row_index;
   size_t i1 = 1 + row_index;
@@ -870,7 +870,7 @@ MatrixND<NR,NC,T>::addSpinAtRow(const VectorND<NR>& V, size_t row_index)
 template <int NR, int NC, typename T>
 template< class TVec>
 inline void 
-MatrixND<NR,NC,T>::addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index)
+MatrixND<NR,NC,T>::addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index) noexcept
 {
   size_t i0 = matrix_row_index;
   size_t i1 = 1 + matrix_row_index;
@@ -879,7 +879,7 @@ MatrixND<NR,NC,T>::addSpinAtRow(const TVec& V, double mult, size_t vector_index,
   const double v1 = mult * V(vector_index + 1);
   const double v2 = mult * V(vector_index + 2);
 
-                              (*this)(i0, 1) += -v2;    (*this)(i0, 2) += v1;
+                             (*this)(i0, 1) += -v2;    (*this)(i0, 2) += v1;
   (*this)(i1, 0) +=  v2;                               (*this)(i1, 2) += -v0;
   (*this)(i2, 0) += -v1;     (*this)(i2, 1) +=  v0;
 }
