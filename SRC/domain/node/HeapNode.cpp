@@ -342,7 +342,7 @@ HeapNode::getCrds() const
 
 
 const Vector &
-HeapNode::getDisp()
+HeapNode::getDisp() noexcept
 {
   // return the committed disp
   return *commitDisp;
@@ -382,19 +382,19 @@ HeapNode::getAccel()
 ** *********************************************************************/
 
 const Vector &
-HeapNode::getTrialDisp()
+HeapNode::getTrialDisp() noexcept
 {
   return *trialDisp;
 }
 
 const Vector &
-HeapNode::getIncrDisp()
+HeapNode::getIncrDisp() noexcept
 {
   return *incrDisp;
 }
 
 const Vector &
-HeapNode::getIncrDeltaDisp()
+HeapNode::getIncrDeltaDisp() noexcept
 {
   return *incrDeltaDisp;
 }
@@ -748,32 +748,32 @@ HeapNode::getUnbalancedLoadIncInertia()
 }
 
 int
-HeapNode::commitState()
+HeapNode::commitState() noexcept
 {
-    // check disp exists, 
-    if (trialDisp != 0) {
-      // set commit = trial, incr = 0.0
-      for (int i=0; i<numberDOF; i++) {
-        disp[i+numberDOF]   = disp[i]; // commit
-        disp[i+2*numberDOF] = 0.0;     // incr
-        disp[i+3*numberDOF] = 0.0;     // incrDelta
-      }
+  // check disp exists, 
+  if (trialDisp != 0) {
+    // set commit = trial, incr = 0.0
+    for (int i=0; i<numberDOF; i++) {
+      disp[i+numberDOF]   = disp[i]; // commit
+      disp[i+2*numberDOF] = 0.0;     // incr
+      disp[i+3*numberDOF] = 0.0;     // incrDelta
     }
+  }
 
-    // check vel exists, if does set commit = trial
-    if (trialVel != 0) {
-      for (int i=0; i<numberDOF; i++)
-      vel[i+numberDOF] = vel[i];
-    }
+  // check vel exists, if does set commit = trial
+  if (trialVel != 0) {
+    for (int i=0; i<numberDOF; i++)
+    vel[i+numberDOF] = vel[i];
+  }
 
-    // check accel exists, if does set commit = trial
-    if (trialAccel != 0) {
-      for (int i=0; i<numberDOF; i++)
-      accel[i+numberDOF] = accel[i];
-    }
+  // check accel exists, if does set commit = trial
+  if (trialAccel != 0) {
+    for (int i=0; i<numberDOF; i++)
+    accel[i+numberDOF] = accel[i];
+  }
 
-    // if we get here we are done
-    return 0;
+  // if we get here we are done
+  return 0;
 }
 
 
