@@ -381,7 +381,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
                               Tangent & Ks)
 {
 
-  static constexpr double mixed_tol = 1e-14;
+  static constexpr double mixed_tol = 1e-16;
   const bool iter_ut = getenv("MixedIterUT") != nullptr;
 
   const Vector3D 
@@ -453,7 +453,12 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       // Form material strain
       // Vector3D eps = gamma + kappa.cross(r);
       Vector3D eps{};
-      eps.addMatrixVector(Aer, VectorND<6>{gamma[0], gamma[1], gamma[2], kappa[0], kappa[1], kappa[2]}, 1.0);
+      {
+        // temp: reform Aer to avoid double-counting wagner term
+        MatrixND<3,6> Aer{};
+        RigidShape(fiber, 0.0, Aer);
+        eps.addMatrixVector(Aer, VectorND<6>{gamma[0], gamma[1], gamma[2], kappa[0], kappa[1], kappa[2]}, 1.0);
+      }
       eps.addMatrixVector(An,   eta_u, 1.0);
       eps.addMatrixVector(iow, dalpha, 1.0);
       eps.addMatrixVector(iodw, alpha, 1.0);
@@ -748,9 +753,9 @@ MixedFrameSection::stateDetermination(Tangent& Ks,
 
       if (wagner && e_trial != nullptr)
         (*s_trial)(imx) += tr2*sig0;
-      if (mixed_type == MixedType::U02) {
-        (*s_trial)(imx) += fiber.warp[0][1]*sig1 + fiber.warp[0][2]*sig2;
-      }
+      // if (mixed_type == MixedType::U02) {
+      //   (*s_trial)(imx) += fiber.warp[0][1]*sig1 + fiber.warp[0][2]*sig2;
+      // }
     }
 
     return 0;
@@ -786,7 +791,7 @@ MixedFrameSection::getSectionDeformation()
 
 
 MatrixND<12,12>
-MixedFrameSection::getFullTangent(State state)
+MixedFrameSection::getFullTangent(State state) noexcept
 {
   static MatrixND<12,12> K{};
   K.zero();
