@@ -82,17 +82,26 @@ static std::unordered_map<std::string, int, CaseInsensitive, CaseInsensitive>
 NodeCounts = {
   {"Quad",                        4},
   {"FourNodeQuad",                4},
+
   {"quad8n",                      8},
   {"EightNodeQuad",               8},
+
   {"FourNodeQuad3d",              4},
   {"FourNodeQuadWithSensitivity", 4},
+
+  {"Q1/P0",                       4},
   {"ConstantPressureVolumeQuad",  4},
+
+  {"Q/E4",                        4},
+  {"Q1/E4",                       4},
   {"EnhancedQuad",                4},
+
   {"NineNodeQuad",                9},
   {"quad9n",                      9},
   {"SSPquad",                     4},
   {"NineNodeMixedQuad",           9},
   {"LagrangeQuad",                4},
+
   {"Tri31",                       3},
   {"CST",                         3},
   {"T3",                          3},
