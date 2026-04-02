@@ -31,6 +31,7 @@
 #include <TaggedObject.h>
 #include <StaticPattern.h>
 #include <MultiSupportPattern.h>
+#include <Rotations.h>
 class LoadPattern;
 class StaticPattern;
 class MultiSupportPattern;
@@ -42,7 +43,7 @@ class Domain;
 class ModelRegistry {
 public:
 
-  ModelRegistry(Domain &domain, int ndm, int ndf);
+  ModelRegistry(Domain &domain, int ndm, int ndf, Rotations::Parameters);
   ~ModelRegistry();
 
 
@@ -115,6 +116,8 @@ public:
     return 0;
   }
 
+  Rotations::Parameters getRotationType() const {return rotation_type;}
+
   int incrNodalLoadTag();
   int decrNodalLoadTag();
   int getNodalLoadTag();
@@ -153,6 +156,8 @@ private:
 
   bool  section_builder_is_set   = false;
   int   current_section_builder  = 0;
+
+  Rotations::Parameters rotation_type;
 
 // OBJECT CONTAINERS
   std::unordered_map<std::string, std::unordered_map<int, TaggedObject*>> m_registry;
