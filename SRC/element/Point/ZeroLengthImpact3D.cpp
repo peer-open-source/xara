@@ -26,6 +26,7 @@
 
 // we specify what header files we need
 #include "ZeroLengthImpact3D.h"
+#include <ZeroLength.h>
 #include <elementAPI.h>
 #include <Logging.h>
 
@@ -42,7 +43,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+using namespace OpenSees;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthImpact3D)
 {
@@ -314,7 +315,7 @@ ZeroLengthImpact3D::setDomain(Domain *theDomain)
     
     vm = (v1<v2) ? v2 : v1;
 
-    if (L > LENTOL*vm)
+    if (L > ZeroLength::MaxLength*vm)
       opserr << "WARNING ZeroLengthContact3D::setDomain(): Element " << this->getTag() << " has L= " << L << 
 	", which is greater than the tolerance\n";
         
