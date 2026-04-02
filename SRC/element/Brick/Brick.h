@@ -52,31 +52,24 @@ class Brick : public Element {
   
     //full constructor
     Brick(int tag, 
-	  int node1,
-	  int node2,
-	  int node3,
-	  int node4,
-	  int node5,
-	  int node6,
-	  int node7,
-	  int node8,
-	  NDMaterial &theMaterial,
-	  double b1 = 0.0, double b2 = 0.0, double b3 = 0.0);
+          const std::array<int, 8>& node_tags,
+          NDMaterial &theMaterial,
+          double b1 = 0.0, double b2 = 0.0, double b3 = 0.0);
     
     //destructor 
     virtual ~Brick( ) ;
 
-    const char *getClassType(void) const {return "Brick";};
+    const char *getClassType(void) const {return "Brick";}
     static constexpr const char* class_name = "Brick";
 
     //set domain
-    void setDomain( Domain *theDomain ) ;
+    void setDomain( Domain *) ;
 
     //get the number of external nodes
     int getNumExternalNodes( ) const ;
 
     //return connected external nodes
-    const ID &getExternalNodes( ) ;
+    const ID &getExternalNodes( );
     Node **getNodePtrs(void);
 
     //return number of dofs
@@ -173,8 +166,8 @@ class Brick : public Element {
     static const double sg[2] ;
     static const double wg[NIP] ;
   
-    //local nodal coordinates, three coordinates for each of four nodes
-    static double xl[3][8]; 
+    // local nodal coordinates, three coordinates for each node
+    double xl[3][8]; 
 
 }; 
 
