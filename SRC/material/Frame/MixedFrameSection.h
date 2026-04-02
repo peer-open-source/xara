@@ -60,7 +60,7 @@ class MixedFrameSection : public FrameSection
     const Vector &getStressResultant() override;
     const Matrix &getSectionTangent() override;
     const Matrix &getInitialTangent() override;
-    MatrixND<12,12> getFullTangent(State state) override;
+    MatrixND<12,12> getFullTangent(State state) noexcept override;
 
     int   commitState() override;
     int   revertToLastCommit() override;    
@@ -315,10 +315,10 @@ class MixedFrameSection : public FrameSection
 
       const FiberData::WarpArray& w = fiber.warp;
 
-      // iow(0,0)  = w[0][0];
-      // iodw(1,0) = w[0][1];
-      // iodw(2,0) = w[0][2];
-      // return 1;
+      iow(0,0)  = w[0][0];
+      iodw(1,0) = w[0][1];
+      iodw(2,0) = w[0][2];
+      return 1;
 
       switch (mixed_type) {
         case MixedType::UT:
@@ -343,7 +343,7 @@ class MixedFrameSection : public FrameSection
     }
 
     inline void 
-    MixedShape(const FiberData& fiber, const Matrix3D& Gr, const Matrix3D& Gw, Matrix3D& An) const {
+    MixedShape(const FiberData& fiber, const Matrix3D& Gr, const Matrix3D& Gw, Matrix3D& An) const noexcept {
       
       constexpr static Matrix3D oneS {{
         0.0, 0.0, 0.0,
