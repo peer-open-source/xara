@@ -721,10 +721,6 @@ CoupledZeroLength::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
       delete theMaterial;
 
     theMaterial = theBroker.getNewUniaxialMaterial(matClassTag);
-    if (theMaterial == 0) {
-	opserr << "CoupledZeroLength::recvSelf  -- failed to allocate new Material " << endln;
-	return -1;
-    }
   }
 
   // Receive the materials
