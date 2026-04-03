@@ -182,7 +182,8 @@ ParseLinkAxes(Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv,
       e_y = Ey;
     else  if (ndm == 2) {
       // if (length > 1e-12)
-      e_y = Vector3D{-(*e_x)[1], (*e_x)[0], 0.0};
+      // e_y = Vector3D{-(*e_x)[1], (*e_x)[0], 0.0};
+      e_y = Ez.cross(*e_x);
       // else
       //   e_y = Ey;
     }

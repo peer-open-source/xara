@@ -816,7 +816,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   // FiberSectionData data;
   Frame::Shape shape_data(builder->getNDM(), builder->getNDF());
 
-  bool shape_done = false;
+  // bool shape_done = false;
 
   if (builder->getNDF() <= 6)
     shape_data.mixed_form = MixedFrameSection::MixedType::UT;//Energetic;
