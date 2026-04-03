@@ -30,11 +30,8 @@
 #include <Matrix.h>
 
 // Tolerance for zero length of element
-#define	LENTOL 1.0e-6
+#define        LENTOL 1.0e-6
 
-// Type of dimension of element NxDy has dimension x=1,2,3 and
-// y=2,4,6,12 degrees-of-freedom for the element
-enum Etype { D1N2, D2N4, D2N6, D3N6, D3N12 };
 
 class Node;
 class Channel;
@@ -44,29 +41,32 @@ class Response;
 class ZeroLengthVG_HG : public Element
 {
   public:
-    
-  ZeroLengthVG_HG(int tag, 			      
-		  int dimension,
-		  int Nd1, int Nd2, int Nd3, 
-		  const Vector& x,
-		  const Vector& yprime,
-		  int n1dMat,
-		  UniaxialMaterial** theMaterial,  
-		  const ID& direction,
-		  double tol,
-		  int doRaylieghDamping = 0);
+  // Type of dimension of element NxDy has dimension x=1,2,3 and
+  // y=2,4,6,12 degrees-of-freedom for the element
+  enum Etype { D1N2, D2N4, D2N6, D3N6, D3N12 };
+
+  ZeroLengthVG_HG(int tag,                               
+                  int dimension,
+                  int Nd1, int Nd2, int Nd3, 
+                  const Vector& x,
+                  const Vector& yprime,
+                  int n1dMat,
+                  UniaxialMaterial** theMaterial,  
+                  const ID& direction,
+                  double tol,
+                  int doRaylieghDamping = 0);
   
-  ZeroLengthVG_HG(int tag, 			      
-		  int dimension,
-		  int Nd1, int Nd2, int Nd3,
-		  const Vector& x,
-		  const Vector& yprime,
-		  int n1dMat,
-		  UniaxialMaterial** theMaterial,  
-		  UniaxialMaterial** theDampMaterial,  
-		  const ID& direction,
-		  double tol,
-		  int doRaylieghDamping = 0);
+  ZeroLengthVG_HG(int tag,                               
+                  int dimension,
+                  int Nd1, int Nd2, int Nd3,
+                  const Vector& x,
+                  const Vector& yprime,
+                  int n1dMat,
+                  UniaxialMaterial** theMaterial,  
+                  UniaxialMaterial** theDampMaterial,  
+                  const ID& direction,
+                  double tol,
+                  int doRaylieghDamping = 0);
 
     ZeroLengthVG_HG();    
     ~ZeroLengthVG_HG();
@@ -79,7 +79,7 @@ class ZeroLengthVG_HG : public Element
     const ID &getExternalNodes(void);
     Node **getNodePtrs(void);
 
-    int getNumDOF(void);	
+    int getNumDOF(void);        
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element    
@@ -94,7 +94,7 @@ class ZeroLengthVG_HG : public Element
     const Matrix &getDamp(void);
     const Matrix &getMass(void);
 
-    void zeroLoad(void);	
+    void zeroLoad(void);        
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);    
 
@@ -102,10 +102,9 @@ class ZeroLengthVG_HG : public Element
     const Vector &getResistingForceIncInertia(void);            
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);    
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);    
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
@@ -134,26 +133,26 @@ class ZeroLengthVG_HG : public Element
     // private attributes - a copy for each object of the class
     ID  connectedExternalNodes;         // contains the tags of the end nodes
     int dimension;                      // = 1, 2, or 3 dimensions
-    int numDOF;	                        // number of dof for ZeroLengthVG_HG
-    Matrix transformation;		// transformation matrix for orientation
+    int numDOF;                                // number of dof for ZeroLengthVG_HG
+    Matrix transformation;                // transformation matrix for orientation
     int useRayleighDamping;
-	
+        
     Node *theNodes[2];
         
-    Matrix *theMatrix; 	    	// pointer to objects matrix (a class Matrix)
-    Vector *theVector;      	// pointer to objects vector (a class Vector)
+    Matrix *theMatrix;                     // pointer to objects matrix (a class Matrix)
+    Vector *theVector;              // pointer to objects vector (a class Vector)
 
     // Storage for uniaxial material models
-    int numMaterials1d;			   // number of 1d materials
+    int numMaterials1d;                           // number of 1d materials
     UniaxialMaterial **theMaterial1d;      // array of pointers to 1d materials
-    ID               *dir1d;     	   // array of directions 0-5 for 1d materials
-    Matrix           *t1d; 	   // hold the transformation matrix
+    ID               *dir1d;                // array of directions 0-5 for 1d materials
+    Matrix           *t1d;            // hold the transformation matrix
 
     // vector pointers to initial disp and vel if present
     Vector *d0;
     Vector *v0;
 
-    // static data - single copy for all objects of the class	
+    // static data - single copy for all objects of the class        
     static Matrix ZeroLengthVG_HGM6;   // class wide matrix for 6*6
     static Vector ZeroLengthVG_HGV6;   // class wide Vector for size 6
 
