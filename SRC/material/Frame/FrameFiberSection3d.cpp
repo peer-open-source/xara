@@ -85,7 +85,9 @@ FrameFiberSection3d::FrameFiberSection3d(const FrameFiberSection3d &other)
 
 FrameFiberSection3d::~FrameFiberSection3d()
 {
-
+  // Clean up the materials
+  for (auto& material : materials)
+    delete material;
 }
 
 
