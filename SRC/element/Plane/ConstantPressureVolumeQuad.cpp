@@ -231,7 +231,7 @@ ConstantPressureVolumeQuad :: update( )
   }
 
 
-  // gauss loop to compute volume averaged shape functions
+  // 1) Compute volume averaged shape functions
 
   double volume = 0.0 ;
   double dvol[4] ; // volume elements
