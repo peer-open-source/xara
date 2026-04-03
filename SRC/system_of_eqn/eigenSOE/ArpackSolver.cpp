@@ -256,7 +256,7 @@ struct ArpackWorkspace {
     assert(n >=0);
     assert(ncv <= n);
     if (symm == ArpackWorkspace::NonSymmetric) {
-      assert(ncv > nev + 2);
+      assert(ncv >= nev + 2);
     }
     else {
       assert(ncv > nev);
@@ -277,7 +277,7 @@ struct ArpackWorkspace {
   ArpackWorkspace& operator=(ArpackWorkspace&&) = delete;
 
   enum { Symmetric = 1, NonSymmetric = 2 };
-  int getNCV(int n, int nev, int driver)
+  int getNCV(int n, int nev, int driver) const
   {
     // compute the number of Arnoldi vectors to use
     // n is the system size, nev is the number of eigenvectors.
@@ -293,7 +293,7 @@ struct ArpackWorkspace {
     //    TR95-13, Department of Computational and Applied Mathematics.
     //
     // Scipy uses min(max(2 * n + 1, 20), n)
-  #if 1
+  #if 0
     int result;
     if (2*nev > nev+8) {
       result = nev+8;
@@ -307,7 +307,10 @@ struct ArpackWorkspace {
     
     return result;
   #elif 1
-    return std::min(std::max(2*nev + 1, 20), n);
+    int ncv = std::min(n, std::max(2*nev + 1, 20));
+    // const int lower = std::min(n,driver == Symmetric ? nev + 1 : nev + 2);
+    const int lower = driver == Symmetric ? nev + 1 : nev + 2;
+    return std::max(ncv, lower);
   #else
     // ensure headroom and a sensible floor
     int ncv = std::max({2*nev + 8, nev + 20, 20});
@@ -402,8 +405,8 @@ char which[3];
 
 #else
   arpack::which  which = findSmallest
-                      ? arpack::which::largest_magnitude
-                      : arpack::which::smallest_magnitude; 
+                       ? arpack::which::largest_magnitude
+                       : arpack::which::smallest_magnitude; 
 
   arpack::bmat   bmat  = arpack::bmat::generalized; // 'G'
   arpack::howmny howmy = arpack::howmny::ritz_vectors; // 'A'
@@ -424,7 +427,7 @@ char which[3];
     for (int i = 0; i < n; ++i)
       if (std::abs(mdiag[i]) > tau) keep.push_back(i);  // translational DOFs
 
-#if 1
+#if 0
     info = 1; // user supplies resid
     std::mt19937_64 rng(1234567);
     std::normal_distribution<double> N(0.0, 1.0);
@@ -589,7 +592,7 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
   numMode = 0;
   int n = theArpackSOE->getNumEqn(); // size;
 
-  if (n < numModes || numModes < 1) {
+  if (!(numModes < n-1) || numModes < 1) {
     opserr << "ArpackSolver::solve - no. of modes requested is invalid\n";
     return -1;
   }
@@ -623,7 +626,9 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
                   work.resid, ncv, 
                   work.v, work.ldv, 
                   iparam, ipntr,
-                  work.workd, work.workl, work.lworkl, 
+                  work.workd, 
+                  work.workl, 
+                  work.lworkl, 
                   info);
 
     assert(ipntr[0] >= 1 && ipntr[0] <= 3*n);
