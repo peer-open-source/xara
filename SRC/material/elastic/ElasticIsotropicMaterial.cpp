@@ -118,9 +118,7 @@ ElasticIsotropicMaterial::getCopy(const char *type)
   }
 
   else if (strcmp(type,"BeamFiber2d") == 0) {
-    ElasticIsotropicBeamFiber2d *theModel;
-    theModel = new ElasticIsotropicBeamFiber2d(this->getTag(), E, v, rho);
-    return theModel;
+    return new ElasticIsotropicBeamFiber2d(this->getTag(), E, v, rho);
   }
 
   // Handle other cases
@@ -283,7 +281,6 @@ ElasticIsotropicMaterial::recvSelf(int commitTag, Channel &theChannel, FEM_Objec
   E = data(1);
   v = data(2);
   rho = data(3);
-  
   return res;
 }
 
@@ -291,20 +288,20 @@ void
 ElasticIsotropicMaterial::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-      s << "Elastic Isotropic Material Model" << endln;
-      s << "\tE:  " << E << endln;
-      s << "\tv:  " << v << endln;
-      s << "\trho:  " << rho << endln;
-      return;
+    s << "Elastic Isotropic Material Model" << endln;
+    s << "\tE:  " << E << endln;
+    s << "\tv:  " << v << endln;
+    s << "\trho:  " << rho << endln;
+    return;
   } 
   else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-      s << "\"name\": \"" << this->getTag() << "\", ";
-      s << "\"type\": \"" << this->getClassType() << "\", ";
-      s << "\"E\": "   << E   << ", ";
-      s << "\"nu\": "  << v   << ", ";
-      s << "\"rho\": " << rho << "}";
-      return;
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"E\": "   << E   << ", ";
+    s << "\"nu\": "  << v   << ", ";
+    s << "\"rho\": " << rho << "}";
+    return;
   }
 }
 
