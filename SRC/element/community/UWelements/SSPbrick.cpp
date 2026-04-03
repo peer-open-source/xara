@@ -150,12 +150,6 @@ SSPbrick::SSPbrick(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int Nd5, int Nd6
 		opserr << "SSPbrick::SSPbrick - failed to get copy of material model\n";;
 	}
 
-	// check material
-	if (theMaterial == 0) {
-		opserr << "SSPbrick::SSPbrick - failed to allocate material model pointer\n";
-		exit(-1);
-	}
-
 	mInitialize = true;
 }
 
@@ -196,6 +190,8 @@ SSPbrick::SSPbrick()
 
 SSPbrick::~SSPbrick()
 {
+  if (theMaterial != nullptr)
+    delete theMaterial;
 }
 
 int 
