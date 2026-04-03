@@ -55,16 +55,6 @@ otherDbTag(0), theModel(0), code(0)
 	order = theModel->getOrder();
 
 	code = new ID(mCode);
-
-	if (code == 0) {
-		g3ErrorHandler->fatal("%s -- failed to allocate section ID",
-			"GenericSectionNd::GenericSectionNd");
-	}
-
-    if (order != code->Size()) {
-		g3ErrorHandler->warning("%s -- code size does not match order of material model",
-			"GenericSectionNd::GenericSectionNd");
-    }
 }
 
 GenericSectionNd::GenericSectionNd()
