@@ -49,14 +49,16 @@ public:
     enum Etype { D1N2, D2N4, D2N6, D3N6, D3N12 };
 
     TwoNodeLink(int tag, int dimension, int Nd1, int Nd2,
-        const ID &direction, UniaxialMaterial **theMaterials,
-        const Vector3D& y, const Vector3D& x,
-        const Vector Mratio = 0, const Vector shearDistI = 0,
+        const ID &direction, 
+        UniaxialMaterial **theMaterials,
+        const Matrix3D& T,
+        const Vector Mratio = 0, 
+        const Vector shearDistI = 0,
         int addRayleigh = 0, double mass = 0.0);
     TwoNodeLink();
 
     ~TwoNodeLink();
-    
+
     // method to get class type
     const char *getClassType() const override {return "TwoNodeLink";}
     
@@ -94,15 +96,13 @@ public:
     
     // public methods for element recorder
     Response *setResponse(const char **argv, int argc, OPS_Stream &);
-    int getResponse(int responseID, Information &eleInfo);
+    int getResponse(int responseID, Information &);
     
-    int setParameter(const char **argv, int argc, Parameter &param);
+    int setParameter(const char **argv, int argc, Parameter &);
 
 private:
     Etype elemType;
-    
-    // private methods
-    void setUp();
+
     void setTranGlobalLocal();
     void setTranLocalBasic();
     void addPDeltaForces(Vector &pLocal, const Vector &qBasic);
@@ -118,9 +118,7 @@ private:
     // parameters
     int numDIR;         // number of directions
     ID *dir;            // array of directions 0-5
-    Matrix trans;       // transformation matrix for orientation
-    Vector3D x;           // local x direction
-    Vector3D y;           // local y direction
+    Matrix3D trans;       // transformation matrix for orientation
     Vector Mratio;      // p-delta moment distribution ratios
     Vector shearDistI;  // shear distance from node I as fraction of length
     int addRayleigh;    // flag to add Rayleigh damping
