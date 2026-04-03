@@ -877,7 +877,7 @@ double PySimple1Gen::GetPult(const char *type)
         alpha = phi/2;
         beta = 45 + phi/2;
         // convert phi, alpha and beta from degrees to radians
-        phi = phi;
+        // phi = phi;
         alpha = alpha;
         beta = beta;
         Ko = 0.4; // Use 0.4 like LPile
@@ -923,9 +923,9 @@ double PySimple1Gen::GetPult(const char *type)
         alpha = phi/2;
         beta = 45 + phi/2;
         // convert phi, alpha and beta from degrees to radians
-        phi = phi;
-        alpha = alpha;
-        beta = beta;
+        // phi = phi;
+        // alpha = alpha;
+        // beta = beta;
         Ko = 0.4; // Use 0.4 like LPile
         Ka = pow(tan(45*deg - alpha*deg),2.0);
         pu1 = stress*(Ko*tan(phi*deg)*sin(beta*deg)/(tan(beta*deg-phi*deg)*cos(alpha*deg))+tan(beta*deg)/(tan(beta*deg-phi*deg))*(b+depth*tan(beta*deg)*tan(alpha*deg))+Ko*depth*tan(beta*deg)*(tan(phi*deg)*sin(beta*deg) - tan(alpha*deg)) - Ka*b);
