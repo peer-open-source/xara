@@ -95,7 +95,7 @@ CircPatch::getCells() const
       }
     }
   } else
-    return 0;
+    return nullptr;
 
   return cells;
 }
