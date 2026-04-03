@@ -58,12 +58,7 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
                  int geom,
                  int shear_flag);
 
-    ~PrismFrame3d() {
-      if (basic_system != nullptr) {
-        delete basic_system;
-        basic_system = nullptr;
-      }
-    }
+    ~PrismFrame3d();
 
     const char *getClassType() const override {
       return "PrismFrame3d";
