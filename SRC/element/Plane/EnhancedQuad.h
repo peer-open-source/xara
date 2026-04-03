@@ -44,7 +44,7 @@ class EnhancedQuad : public Element,
     int revertToLastCommit( ) ;
     int revertToStart( ) ;
     int update();
-	
+
     //return stiffness matrix 
     const Matrix &getTangentStiff();
     const Matrix &getInitialStiff();
@@ -60,9 +60,9 @@ class EnhancedQuad : public Element,
     const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
 
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
     int sendSelf (int commitTag, Channel &);
     int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
 
@@ -101,9 +101,9 @@ class EnhancedQuad : public Element,
     double thickness ;
 
     //material information
-    NDMaterial *materialPointers[4] ; //pointers to four materials
-					  
-    //local nodal coordinates, two coordinates for each of four nodes
+    NDMaterial *materialPointers[4] ; //pointers to materials
+
+    //local nodal coordinates, two coordinates for each node
     //    static double xl[2][4] ; 
     static double xl[][4] ; 
 
@@ -120,9 +120,9 @@ class EnhancedQuad : public Element,
 
     //shape function routine for four node quads
     void shape2d( double ss, double tt, 
-		  const double x[2][4], 
-		  double shp[3][4], 
-		  double &xsj ) ;
+                  const double x[2][4], 
+                  double shp[3][4], 
+                  double &xsj ) ;
 
     Vector *load;
     Matrix *Ki;
