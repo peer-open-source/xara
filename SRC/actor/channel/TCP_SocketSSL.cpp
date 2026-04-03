@@ -34,7 +34,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Message.h>
 #include <ChannelAddress.h>
 #include <MovableObject.h>
 #include <SocketAddress.h>
