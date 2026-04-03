@@ -96,17 +96,7 @@ NDFiberSection2d::NDFiberSection2d(int tag, int num, NDMaterial **mats,
 {
   if (numFibers != 0) {
     theMaterials = new NDMaterial *[numFibers];
-
-    if (theMaterials == 0) {
-      opserr << "NDFiberSection2d::NDFiberSection2d -- failed to allocate Material pointers";
-      exit(-1);
-    }
     matData = new double [numFibers*2];
-
-    if (matData == 0) {
-      opserr << "NDFiberSection2d::NDFiberSection2d -- failed to allocate double array for material data\n";
-      exit(-1);
-    }
   }
 
   sectionIntegr = si.getCopy();
@@ -448,27 +438,17 @@ NDFiberSection2d::getFrameCopy(void)
 
   if (numFibers != 0) {
     theCopy->theMaterials = new NDMaterial *[numFibers];
-
-    if (theCopy->theMaterials == 0) {
-      opserr <<"NDFiberSection2d::getFrameCopy -- failed to allocate Material pointers\n";
-      exit(-1);
-    }
   
     theCopy->matData = new double [numFibers*2];
 
-    if (theCopy->matData == 0) {
-      opserr << "NDFiberSection2d::getFrameCopy -- failed to allocate double array for material data\n";
-      exit(-1);
-    }
-			    
     for (int i = 0; i < numFibers; i++) {
       theCopy->matData[i*2] = matData[i*2];
       theCopy->matData[i*2+1] = matData[i*2+1];
       theCopy->theMaterials[i] = theMaterials[i]->getCopy("BeamFiber2d");
 
       if (theCopy->theMaterials[i] == 0) {
-	opserr <<"NDFiberSection2d::getFrameCopy -- failed to get copy of a Material";
-	exit(-1);
+        opserr <<"NDFiberSection2d::getFrameCopy -- failed to get copy of a Material";
+        exit(-1);
       }
     }  
   }
@@ -775,21 +755,12 @@ NDFiberSection2d::recvSelf(int commitTag, Channel &theChannel,
       sizeFibers = data(1);
       if (numFibers != 0) {
 	theMaterials = new NDMaterial *[numFibers];
-	
-	if (theMaterials == 0) {
-	  opserr <<"NDFiberSection2d::recvSelf -- failed to allocate Material pointers\n";
-	  exit(-1);
-	}
+
 	
 	for (int j=0; j<numFibers; j++)
 	  theMaterials[j] = 0;
 
 	matData = new double [numFibers*2];
-
-	if (matData == 0) {
-	  opserr <<"NDFiberSection2d::recvSelf  -- failed to allocate double array for material data\n";
-	  exit(-1);
-	}
       }
     }
 
@@ -808,16 +779,12 @@ NDFiberSection2d::recvSelf(int commitTag, Channel &theChannel,
       // if material pointed to is blank or not of corrcet type, 
       // release old and create a new one
       if (theMaterials[i] == 0)
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);
       else if (theMaterials[i]->getClassTag() != classTag) {
-	delete theMaterials[i];
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
+        delete theMaterials[i];
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
       }
 
-      if (theMaterials[i] == 0) {
-	opserr <<"NDFiberSection2d::recvSelf -- failed to allocate double array for material data\n";
-	exit(-1);
-      }
 
       theMaterials[i]->setDbTag(dbTag);
       res += theMaterials[i]->recvSelf(commitTag, theChannel, theBroker);
