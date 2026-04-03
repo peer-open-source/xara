@@ -31,6 +31,10 @@ class PlaneSection: public TaggedObject {
     {
     }
 
+    ~PlaneSection() {
+      delete material;
+    }
+
     double getThickness() const
     {
       return thickness;
