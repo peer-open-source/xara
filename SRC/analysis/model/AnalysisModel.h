@@ -155,7 +155,7 @@ class AnalysisModel: public MovableObject
     Vector   *dampingForces;
     bool      isDiagonal;
     double   *diagMass;
-    Vector   *work_vector;
+    Vector   *work_vector = nullptr;
 };
 
 #endif
