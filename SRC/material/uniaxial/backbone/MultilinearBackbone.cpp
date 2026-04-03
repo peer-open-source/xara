@@ -83,21 +83,10 @@ MultilinearBackbone::MultilinearBackbone(int tag, int num,
   E(0), e(0), s(0), c(0), numPoints(num)
 {
   E = new double [numPoints];
-  if (E == 0)
-    opserr << "MultilinearBackbone::MultilinearBackbone -- failed to allocate tangent array" << endln;
-  
   e = new double [numPoints+1];
-  if (e == 0)
-    opserr << "MultilinearBackbone::MultilinearBackbone -- failed to allocate strain array" << endln;
-  
   s = new double [numPoints+1];
-  if (s == 0)
-    opserr << "MultilinearBackbone::MultilinearBackbone -- failed to allocate stress array" << endln;
-  
   c = new double [numPoints+1];
-  if (c == 0)
-    opserr << "MultilinearBackbone::MultilinearBackbone -- failed to allocate energy array" << endln;
-  
+
   e[0] = s[0] = c[0] = 0.0;
   
   bool error = false;
