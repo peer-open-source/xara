@@ -87,10 +87,6 @@ SectionForceDeformation::getInitialFlexibility ()
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getInitialFlexibility -- failed to allocate flexibility matrix\n";
-      exit(-1);
-    }
   }
   
   const Matrix &k = this->getInitialTangent();
@@ -412,7 +408,7 @@ SectionForceDeformation::getResponseSensitivity(int responseID, int gradIndex,
   }
 }
 
-// AddingSensitivity:BEGIN ////////////////////////////////////////
+// Sensitivity
 const Vector &
 SectionForceDeformation::getStressResultantSensitivity(int gradIndex, bool conditional)
 {
@@ -436,10 +432,6 @@ SectionForceDeformation::getSectionTangentSensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getSectionTangentSensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
 
   fDefault->Zero();
@@ -454,10 +446,6 @@ SectionForceDeformation::getInitialTangentSensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getInitialTangentSensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
 
   fDefault->Zero();
@@ -472,10 +460,6 @@ SectionForceDeformation::getSectionFlexibilitySensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getSectionFlexibilitySensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
 
   const Matrix &dksdh = this->getSectionTangentSensitivity(gradIndex);
@@ -494,10 +478,6 @@ SectionForceDeformation::getInitialFlexibilitySensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getInitialFlexibilitySensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
   
   const Matrix &dksdh = this->getInitialTangentSensitivity(gradIndex);
