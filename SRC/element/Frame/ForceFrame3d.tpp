@@ -104,11 +104,13 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::ForceFrame3d(int tag,
   K_save.zero();
   q_save.zero();
   q_pres.zero();
+  v_past.zero();
 
   stencil = bi.getCopy();
 
   this->setSectionPointers(sec);
 }
+
 
 template <int NIP, int nsr, int nwm, int shear_flag>
 int
@@ -331,6 +333,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::revertToStart()
 
   // Revert the element state to start
   q_save.zero();
+  v_past.zero();
   K_save.zero();
 
   q_pres.zero();
@@ -500,18 +503,19 @@ public:
   const MatrixND<nsr,NBV> &
   b(double xL, double L) 
   {
+    double jsx = (L==0.0) ? 0.0 : 1.0/L;
     for (int i = 0; i < nsr; i++) {
       switch (scheme[i]) {
       case FrameStress::N:
         B(i, jnx) = 1.0;
         break;
       case FrameStress::Vy:
-        B(i, imz) = -1.0/L;
-        B(i, jmz) = -1.0/L;
+        B(i, imz) = -jsx;
+        B(i, jmz) = -jsx;
         break;
       case FrameStress::Vz:
-        B(i, imy) =  1.0/L;
-        B(i, jmy) =  1.0/L;
+        B(i, imy) =  jsx;
+        B(i, jmy) =  jsx;
         break;
       case FrameStress::T:
         B(i, jmx) = 1.0;
@@ -529,8 +533,49 @@ public:
         B(i, jwx) = xL;
         break;
       case FrameStress::Bishear:
-        B(i, iwx) = 1.0/L;
-        B(i, jwx) = 1.0/L;
+        B(i, iwx) = jsx;
+        B(i, jwx) = jsx;
+        break;
+      }
+    }
+    return B;
+  }
+
+  const MatrixND<nsr,NBV> &
+  getDB(double dxLdh, double d1oLdh) 
+  {
+    B.zero();
+    for (int i = 0; i < nsr; i++) {
+      switch (scheme[i]) {
+      case FrameStress::N:
+        B(i, jnx) = 0.0;
+        break;
+      case FrameStress::Vy:
+        B(i, imz) = -d1oLdh;
+        B(i, jmz) = -d1oLdh;
+        break;
+      case FrameStress::Vz:
+        B(i, imy) =  d1oLdh;
+        B(i, jmy) =  d1oLdh;
+        break;
+      case FrameStress::T:
+        B(i, jmx) = 0.0;
+        break;
+      case FrameStress::My:
+        B(i, imy) = dxLdh;
+        B(i, jmy) = dxLdh;
+        break;
+      case FrameStress::Mz:
+        B(i, imz) = dxLdh;
+        B(i, jmz) = dxLdh;
+        break;
+      case FrameStress::Bimoment: 
+        B(i, iwx) = dxLdh;
+        B(i, jwx) = dxLdh;
+        break;
+      case FrameStress::Bishear:
+        B(i, iwx) = d1oLdh;
+        B(i, jwx) = d1oLdh;
         break;
       }
     }
@@ -650,7 +695,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update01()
 
 
   // If we have completed a recvSelf() do a revertToLastCommit()
-  // to get sr, etc. set correctly
+  // to get sr, etc. set
   if (state_flag == 2)
     this->revertToLastCommit();
 
@@ -894,7 +939,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update01()
         dv -= vr;
 
         //
-        // Finalize trial element state 
+        // Finalize trial element state
         //
         //    K_trial  = inv(F)
         //    q_trial += K * (Dv + dv_trial - vr)
@@ -903,12 +948,12 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::update01()
 
         VectorND<NBV> dqe{};
         if (cholF.solve(&dv[0], &dqe[0]) < 0) [[unlikely]] {
-          opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
+          // opserr << "ForceFrame3d: Failed to solve for dqe with Cholesky\n";
           if (F.solve(dv, dqe) < 0)
             return -1;
         }
 
-        dW = dqe.dot(dv)+DWi;
+        dW = dqe.dot(dv) + DWi;
         if (dW0 == 0.0)
           dW0 = dW;
 
@@ -1027,7 +1072,6 @@ int
 ForceFrame3d<NIP,nsr,nwm,shear_flag>::update02()
 {
   constexpr static double TOL_SUBDIV = DBL_EPSILON*10;
-
 
   // If we have completed a recvSelf() do a revertToLastCommit()
   // to get sr, etc. set correctly
@@ -1354,14 +1398,13 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getTangentStiff()
 
   VectorND<NDF*2> pl{};
 
-
   static MatrixND<2*NDF,2*NDF> kl{};
   static Matrix Wrapper(kl);
 
 #if BASIC_TRANSFORM == 1
   
   ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
-  const MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix(); //FormBasicTransform();
+  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix();
   kl = Tb*kb * Tb.transpose();
   pl = Tb * q_pres;
 #else
@@ -1467,24 +1510,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, d
 
   MatrixND<2*NDF,2*NDF> Kf{};
 
-#if BASIC_TRANSFORM == 1
-  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix(); // FormBasicTransform();
+  const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix();
   Kf = Tb*F;
-#else
-  for (int i=0; i<NDF*2; i++) {
-    int ii = std::abs(iq[i]);
-    if (ii >= NBV)
-      continue;
-    for (int j=0; j<NDF*2; j++) {
-      Kf(i,j) = F(ii, j);
-    }
-  }
-
-  for (int i = 0; i < 2*NDF; i++) {
-    Kf(0*NDF+0, i) = Kf(i, 0*NDF+0) =  i==0? Kf(NDF+0, NDF+0): (i==3? Kf(NDF+0, NDF+3) : -Kf( NDF+0, i));
-    Kf(0*NDF+3, i) = Kf(i, 0*NDF+3) =  i==0? Kf(NDF+3, NDF+0): (i==3? Kf(NDF+3, NDF+3) : -Kf( NDF+3, i));
-  }
-#endif
   //
   basic_system->t.push(Kf, pf, Transform::Bubnov);
 
@@ -2273,6 +2300,7 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponse(int responseID, Information& i
   else if (responseID == Respond::BasicForce)
     return info.setVector(q_pres);
 
+  //
   else if (responseID == 19)
     return info.setMatrix(K_pres);
 
@@ -2474,7 +2502,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponseSensitivity(int responseID, int
 
   // dsdh
   else if (responseID == Respond::ResultantGradient) {
-
     int sectionNum = info.theInt;
 
     VectorND<nsr> dsdh{};
@@ -2536,31 +2563,6 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResponseSensitivity(int responseID, int
     }
     return info.setVector(dsdh);
   }
-
-  // Plastic deformation sensitivity
-  else if (responseID == 4) {
-    VectorND<6+nwm*2> dvpdh{};
-
-    VectorND<6+nwm*2> dvdh = basic_system->getBasicDisplTotalGrad(gradNumber);
-
-    dvpdh = dvdh;
-
-    MatrixND<NBV,NBV> fe;
-    this->getInitialFlexibility(fe);
-
-    const VectorND<6+nwm*2> dqdh = this->getBasicForceGrad(gradNumber);
-
-    dvpdh.addMatrixVector(1.0, fe, dqdh, -1.0);
-
-    dvpdh.addMatrixVector(1.0, fe*K_pres, dvdh, -1.0);
-
-    const MatrixND<NBV,NBV> dfedh = this->computedfedh(gradNumber);
-
-    dvpdh.addMatrixVector(1.0, dfedh, q_pres, -1.0);
-
-    return info.setVector(dvpdh);
-  }
-
   else
     return -1;
 }
@@ -2795,11 +2797,11 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::commitSensitivity(int gradNumber, int numG
       }
     }
 
-    Vector de(nsr);
-    const Matrix& fs = points[i].material->template getFlexibility<nsr,scheme>();
-    de.addMatrixVector(0.0, fs, ds, 1.0);
+    VectorND<nsr> de{};
+    const MatrixND<nsr,nsr> Fs = points[i].material->template getFlexibility<nsr,scheme>();
+    de.addMatrixVector(0.0, Fs, ds, 1.0);
 
-    err += points[i].material->commitSensitivity(de, gradNumber, numGrads);
+    err += points[i].material->template commitGradient<nsr, scheme>(de, gradNumber, numGrads);
   }
 
   return err;
@@ -2810,9 +2812,9 @@ template <int NIP, int nsr, int nwm, int shear_flag>
 VectorND<6+nwm*2>
 ForceFrame3d<NIP,nsr,nwm,shear_flag>::getBasicForceGrad(int gradNumber)
 {
-
+  // computedqdh
   double L   = basic_system->getInitialLength();
-  double jsx = 1.0 / L;
+  // double jsx = 1.0 / L;
 
   const int numSections = points.size();
   // double wts[NIP];
@@ -2828,14 +2830,17 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getBasicForceGrad(int gradNumber)
 
   double d1oLdh = basic_system->getd1overLdh();
 
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
+
   //
   // Integrate dvdh
   //
   VectorND<NBV> dvdh{};
   for (int i = 0; i < numSections; i++) {
     double xL  = points[i].point;
-    double xL1 = xL - 1.0;
+    // double xL1 = xL - 1.0;
     double wtL = points[i].weight * L;
+
 
     double dxLdh  = dptsdh[i]; // - xL/L*dLdh;
     double dwtLdh = points[i].weight*dLdh  +  dwtsdh[i] * L;
@@ -2852,212 +2857,25 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getBasicForceGrad(int gradNumber)
     VectorND<nsr> dsdh = points[i].material->template getResultantGradient<nsr,scheme>(gradNumber, true);
     dsdh -= dspdh;
 
-
-    for (int j = 0; j < nsr; j++) {
-      switch (scheme[j]) {
-      case FrameStress::Vy: dsdh(j) -= d1oLdh * (q_pres[imz] + q_pres[jmz]); break;
-      case FrameStress::Vz: dsdh(j) -= d1oLdh * (q_pres[imy] + q_pres[jmy]); break;
-      case FrameStress::My: dsdh(j) -= dxLdh  * (q_pres[imy] + q_pres[jmy]); break;
-      case FrameStress::Mz: dsdh(j) -= dxLdh  * (q_pres[imz] + q_pres[jmz]); break;
-      default: break;
-      }
+    {
+      const MatrixND<nsr,NBV>& dB = interp.getDB(dxLdh, d1oLdh);
+      dsdh.addMatrixVector(1.0, dB, dvdh, -wtL);
     }
 
     const MatrixND<nsr,nsr> fs = points[i].material->template getFlexibility<nsr,scheme>();
 
     VectorND<nsr> dedh = fs*dsdh;
-
-    for (int j = 0; j < nsr; j++) {
-      double dei = dedh(j) * wtL;
-      switch (scheme[j]) {
-      case FrameStress::N:
-        dvdh(jnx) += dei;
-        break;
-      case FrameStress::Vy:
-        dei = jsx * dei;
-        dvdh(imz) += dei;
-        dvdh(jmz) += dei;
-        break;
-      case FrameStress::Vz:
-        dei = jsx * dei;
-        dvdh(imy) += dei;
-        dvdh(jmy) += dei;
-        break;
-      case FrameStress::T:
-        dvdh(jmx) += dei;
-        break;
-      case FrameStress::My:
-        dvdh(imy) += xL1 * dei;
-        dvdh(jmy) += xL * dei;
-        break;
-      case FrameStress::Mz:
-        dvdh(imz) += xL1 * dei;
-        dvdh(jmz) += xL * dei;
-        break;
-      default:
-        break;
-      }
-    }
+    const MatrixND<nsr,NBV>& B = interp.b(xL, L);
+    dvdh.addMatrixTransposeVector(B, dedh, wtL);
 
     const VectorND<nsr>& e = points[i].es;
-    for (int j = 0; j < nsr; j++) {
-      switch (scheme[j]) {
-      case FrameStress::N:
-        dvdh(0) -= e(j) * dwtLdh; 
-        break;
-      case FrameStress::Vy:
-        dvdh(1) -= jsx * e(j) * dwtLdh;
-        dvdh(2) -= jsx * e(j) * dwtLdh;
+    dvdh.addMatrixTransposeVector(B, e, -dwtLdh);
 
-        dvdh(1) -= d1oLdh * e(j) * wtL;
-        dvdh(2) -= d1oLdh * e(j) * wtL;
-          break;
-      case FrameStress::Vz:
-        dvdh(3) -= jsx * e(j) * dwtLdh;
-        dvdh(4) -= jsx * e(j) * dwtLdh;
-
-        dvdh(3) -= d1oLdh * e(j) * wtL;
-        dvdh(4) -= d1oLdh * e(j) * wtL;
-        break;
-      case FrameStress::T:
-        dvdh(5) -= e(j) * dwtLdh; 
-        break;
-      case FrameStress::Mz:
-        dvdh(1) -= xL1 * e(j) * dwtLdh;
-        dvdh(2) -= xL * e(j) * dwtLdh;
-
-        dvdh(1) -= dxLdh * e(j) * wtL;
-        dvdh(2) -= dxLdh * e(j) * wtL;
-        break;
-      case FrameStress::My:
-        dvdh(3) -= xL1 * e(j) * dwtLdh;
-        dvdh(4) -= xL * e(j) * dwtLdh;
-
-        dvdh(3) -= dxLdh * e(j) * wtL;
-        dvdh(4) -= dxLdh * e(j) * wtL;
-        break;
-
-      default:
-        break;
-      }
-    }
+    const MatrixND<nsr,NBV>& dB = interp.getDB(dxLdh, d1oLdh);
+    dvdh.addMatrixTransposeVector(dB, e, -wtL);
   }
 
   return K_pres*dvdh;
-}
-
-
-template <int NIP, int nsr, int nwm, int shear_flag>
-MatrixND<6+2*nwm,6+2*nwm>
-ForceFrame3d<NIP,nsr,nwm,shear_flag>::computedfedh(int gradNumber)
-{
-  MatrixND<NBV,NBV> dfedh{};
-
-#if 0
-  double L   = basic_system->getInitialLength();
-  double jsx = 1.0 / L;
-
-  const int numSections = points.size();
-  double dLdh   = basic_system->getLengthGrad();
-  double d1oLdh = basic_system->getd1overLdh();
-
-  double dptsdh[NIP];
-  double dwtsdh[NIP];
-  stencil->getLocationsDeriv(numSections, L, dLdh, dptsdh);
-  stencil->getWeightsDeriv(numSections, L, dLdh, dwtsdh);
-
-  for (int i = 0; i < numSections; i++) {
-
-    Matrix fb(nsr, NBV);
-    Matrix fb2(nsr, NBV);
-
-    double xL  = points[i].point;
-    double xL1 = xL - 1.0;
-    double wtL = points[i].weight * L;
-
-    double dxLdh  = dptsdh[i];
-    double dwtLdh = points[i].weight * dLdh + dwtsdh[i] * L;
-
-    const Matrix& fs    = points[i].material->getInitialFlexibility();
-    const Matrix& dfsdh = points[i].material->getInitialFlexibilitySensitivity(gradNumber);
-    fb.Zero();
-    fb2.Zero();
-
-    double tmp;
-    for (int ii = 0; ii < nsr; ii++) {
-      switch (scheme[ii]) {
-      case FrameStress::N:
-        for (int jj = 0; jj < nsr; jj++) {
-          fb(jj, 0) += dfsdh(jj, ii) * wtL; // 1
-
-          //fb(jj,0) += fs(jj,ii)*dwtLdh; // 3
-
-          //fb2(jj,0) += fs(jj,ii)*wtL; // 4
-        }
-        break;
-      case FrameStress::Mz:
-        for (int jj = 0; jj < nsr; jj++) {
-          tmp = dfsdh(jj, ii) * wtL; // 1
-          fb(jj, 1) += xL1 * tmp;
-          fb(jj, 2) += xL * tmp;
-
-          tmp = fs(jj, ii) * wtL; // 2
-          //fb(jj,1) += dxLdh*tmp;
-          //fb(jj,2) += dxLdh*tmp;
-
-          tmp = fs(jj, ii) * dwtLdh; // 3
-          //fb(jj,1) += xL1*tmp;
-          //fb(jj,2) += xL*tmp;
-
-          tmp = fs(jj, ii) * wtL; // 4
-          //fb2(jj,1) += xL1*tmp;
-          //fb2(jj,2) += xL*tmp;
-        }
-        break;
-      case FrameStress::Vy:
-        for (int jj = 0; jj < nsr; jj++) {
-          tmp = jsx * dfsdh(jj, ii) * wtL;
-          fb(jj, 1) += tmp;
-          fb(jj, 2) += tmp;
-          // TODO: Need to complete for dLdh != 0
-        }
-        break;
-      default:
-        break;
-      }
-    }
-    for (int ii = 0; ii < nsr; ii++) {
-      switch (scheme[ii]) {
-      case FrameStress::N:
-        for (int jj = 0; jj < NBV; jj++)
-          dfedh(0, jj) += fb(ii, jj);
-        break;
-      case FrameStress::Mz:
-        for (int jj = 0; jj < NBV; jj++) {
-          tmp = fb(ii, jj); // 1,2,3
-          dfedh(1, jj) += xL1 * tmp;
-          dfedh(2, jj) += xL * tmp;
-
-          tmp = fb2(ii, jj); // 4
-          //dfedh(1,jj) += dxLdh*tmp;
-          //dfedh(2,jj) += dxLdh*tmp;
-        }
-        break;
-      case FrameStress::Vy:
-        for (int jj = 0; jj < NBV; jj++) {
-          tmp = jsx * fb(ii, jj);
-          dfedh(1, jj) += tmp;
-          dfedh(2, jj) += tmp;
-          // TODO: Need to complete for dLdh != 0
-        }
-        break;
-      default:
-        break;
-      }
-    }
-  }
-#endif
-  return dfedh;
 }
 
 
