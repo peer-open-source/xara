@@ -50,6 +50,10 @@ Repeat(F func) noexcept
 }
 #endif 
 
+
+// Unroll<3, 3>(func); // generates nothing
+// Unroll<3, 4>(func); // generates 3
+// Unroll<3, 7>(func); // generates 3,4,5,6
 template <std::size_t Start, std::size_t Stop, class F>
 inline constexpr void
 Unroll(F func) noexcept
