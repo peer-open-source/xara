@@ -145,22 +145,24 @@ ID::setData(int *newData, int size, bool cleanIt){
     delete [] data;
 
   sz = size;
+  arraySize = size;
   data = newData;
   
   if (cleanIt == false)
     fromFree = 1;
-
   else
     fromFree = 0;
 
   assert(sz > 0);
+  if (sz < 0)
+    sz = 0;
 
   return 0;
 }
 
 
 void
-ID::Zero(void)
+ID::Zero()
 {
   for (int i=0; i<sz; i++)
     data[i] = 0;
@@ -220,7 +222,7 @@ ID::removeValue(int value)
 
 
 int
-ID::unique(void)
+ID::unique()
 {
     // preserve order method, runs in O(nlogn)
     // order is preserved via list O(1)
@@ -321,7 +323,8 @@ ID::resize(int newSize, int fill_value){
     // is size smaller than current, simply reset sz
     sz = newSize;
 
-  } else if (newSize <= arraySize) {
+  }
+  else if (newSize <= arraySize) {
 
     // see if we can just enlarge the array
     // without having to go get more space 
@@ -486,25 +489,11 @@ ID::operator<(const ID &V) const
 
 OPS_Stream &operator<<(OPS_Stream &s, const ID &V)
 {
-    for (int i=0; i<V.Size(); i++) {
-	s << V(i) << " ";
-    }
-    return s << "\n";
+  for (int i=0; i<V.Size(); i++) {
+    s << V(i) << " ";
+  }
+  return s << "\n";
 }
-
-// friend istream &operator>>(istream &s, ID &V)
-//	A function is defined to allow user to input the data into a ID which has already
-//	been constructed with data, i.e. ID(int) or ID(const ID &) constructors.
-
-/*
-istream &operator>>(istream &s, ID &V)
-{
-    for (int i=0; i<V.Size(); i++) 
-	s >> V(i);
-
-    return s;
-}
-*/
 
 
 
@@ -519,11 +508,11 @@ ID::insert(int x)
       middle = (left + right)/2;
       double dataMiddle = data[middle];
       if (x == dataMiddle)
-	return 1;   // already there
+        return 1;   // already there
       else if (x > dataMiddle)
-	left = middle + 1;
+        left = middle + 1;
       else 
-	right = middle-1;
+        right = middle-1;
     }
   }
 
