@@ -64,8 +64,7 @@ computeJacobian(double L1, double L2,
     for (int j = 0; j < 2; j++ ) {
       JJ(i,j) = 0.0;
       for (int k = 0; k < 4; k++ )
-          JJ(i,j) +=  x[i][k] * shp[j][k] ;
-
+        JJ(i,j) +=  x[i][k] * shp[j][k] ;
     }
   }
 
@@ -155,9 +154,9 @@ computeBenhanced(int node,
   B(0,1) = 0.0;
   B(1,1) = shape[1] ;
   B(2,1) = shape[0] ;
-  
   return;
 }
+
 
 EnhancedQuad::EnhancedQuad() :
 Element( 0, ELE_TAG_EnhancedQuad ),
@@ -189,7 +188,7 @@ EnhancedQuad::EnhancedQuad(int tag,
 
 
   for (int i = 0 ;  i < nip; i++ )
-      materialPointers[i] = theMaterial.getCopy() ;
+    materialPointers[i] = theMaterial.getCopy() ;
 
   // zero enhanced parameters
   alpha.Zero( ) ;
@@ -275,7 +274,7 @@ EnhancedQuad::commitState()
 
 
 int
-EnhancedQuad::revertToLastCommit( ) 
+EnhancedQuad::revertToLastCommit() 
 {
   int success = 0 ;
 
@@ -345,12 +344,14 @@ EnhancedQuad::zeroLoad()
   return ;
 }
 
+
 int 
 EnhancedQuad::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
   opserr << "EnhancedQuad::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
   return -1;
 }
+
 
 int
 EnhancedQuad::addInertiaLoadToUnbalance(const Vector &accel)
@@ -983,7 +984,7 @@ EnhancedQuad::getResponse(int responseID, Information &eleInfo)
 }
 
 int
-EnhancedQuad::sendSelf (int commitTag, Channel &theChannel)
+EnhancedQuad::sendSelf(int commitTag, Channel &theChannel)
 {
   int res = 0;
   
@@ -1050,6 +1051,7 @@ EnhancedQuad::sendSelf (int commitTag, Channel &theChannel)
   
   return res;
 }
+
 
 int
 EnhancedQuad::recvSelf(int commitTag, Channel &theChannel, 
@@ -1141,17 +1143,17 @@ void
 EnhancedQuad::Print( OPS_Stream &s, int flag )
 {
   if (flag == OPS_PRINT_CURRENTSTATE) {
-      s << "\n";
-      s << "Enhanced Strain Four Node Quad \n";
-      s << "Element Number: " << this->getTag() << "\n";
-      s << "Node 1 : " << connectedExternalNodes(0) << "\n";
-      s << "Node 2 : " << connectedExternalNodes(1) << "\n";
-      s << "Node 3 : " << connectedExternalNodes(2) << "\n";
-      s << "Node 4 : " << connectedExternalNodes(3) << "\n";
-      s << "thickness : " << thickness << "\n";
-      s << "Material Information : \n ";
-      materialPointers[0]->Print(s, flag);
-      s << "\n";
+    s << "\n";
+    s << "Enhanced Strain Four Node Quad \n";
+    s << "Element Number: " << this->getTag() << "\n";
+    s << "Node 1 : " << connectedExternalNodes(0) << "\n";
+    s << "Node 2 : " << connectedExternalNodes(1) << "\n";
+    s << "Node 3 : " << connectedExternalNodes(2) << "\n";
+    s << "Node 4 : " << connectedExternalNodes(3) << "\n";
+    s << "thickness : " << thickness << "\n";
+    s << "Material Information : \n ";
+    materialPointers[0]->Print(s, flag);
+    s << "\n";
   }
   
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
