@@ -49,7 +49,7 @@ Vector Twenty_Node_Brick::resid(60);
 Matrix Twenty_Node_Brick::mass(60, 60);
 Matrix Twenty_Node_Brick::damp(60, 60);
 
-const int Twenty_Node_Brick::nintu = 27;
+// const int Twenty_Node_Brick::nintu = 27;
 double Twenty_Node_Brick::shgu[4][20][27];
 double Twenty_Node_Brick::shlu[4][20][27];
 double Twenty_Node_Brick::wu[27];
@@ -73,10 +73,8 @@ Twenty_Node_Brick::Twenty_Node_Brick()
 }
 
 
-Twenty_Node_Brick::Twenty_Node_Brick(int tag, int node1, int node2, int node3, int node4, int node5,
-                                     int node6, int node7, int node8, int node9, int node10,
-                                     int node11, int node12, int node13, int node14, int node15,
-                                     int node16, int node17, int node18, int node19, int node20,
+Twenty_Node_Brick::Twenty_Node_Brick(int tag, 
+                                    const std::array<int, 20>& node_tags,
                                      NDMaterial& theMaterial, double b1, double b2, double b3)
  : Element(tag, ELE_TAG_Twenty_Node_Brick),
    connectedExternalNodes(20),
@@ -84,29 +82,15 @@ Twenty_Node_Brick::Twenty_Node_Brick(int tag, int node1, int node2, int node3, i
    load(0),
    Ki(0) //, kc(bulk), rho(rhof)
 {
-  connectedExternalNodes(0)  = node1;
-  connectedExternalNodes(1)  = node2;
-  connectedExternalNodes(2)  = node3;
-  connectedExternalNodes(3)  = node4;
-  connectedExternalNodes(4)  = node5;
-  connectedExternalNodes(5)  = node6;
-  connectedExternalNodes(6)  = node7;
-  connectedExternalNodes(7)  = node8;
-  connectedExternalNodes(8)  = node9;
-  connectedExternalNodes(9)  = node10;
-  connectedExternalNodes(10) = node11;
-  connectedExternalNodes(11) = node12;
-  connectedExternalNodes(12) = node13;
-  connectedExternalNodes(13) = node14;
-  connectedExternalNodes(14) = node15;
-  connectedExternalNodes(15) = node16;
-  connectedExternalNodes(16) = node17;
-  connectedExternalNodes(17) = node18;
-  connectedExternalNodes(18) = node19;
-  connectedExternalNodes(19) = node20;
+  for (int i = 0; i < NEN; i++)
+    nodePointers[i] = nullptr;
+
+  for (int i=0; i<NEN; i++)
+    connectedExternalNodes(i) = node_tags[i];
+
 
   // Allocate arrays of pointers to NDMaterials
-  materialPointers = new NDMaterial*[nintu];
+  // materialPointers = new NDMaterial*[nintu];
 
   for (int i = 0; i < nintu; i++) {
     materialPointers[i] = theMaterial.getCopy("ThreeDimensional");
@@ -116,14 +100,12 @@ Twenty_Node_Brick::Twenty_Node_Brick(int tag, int node1, int node2, int node3, i
   b[0] = b1;
   b[1] = b2;
   b[2] = b3;
-  //	printf("b %15.6e %15.6e %15.6e \n", b1, b2,b3);
   // calculate local shape functions and derivatives
   compuLocalShapeFunction();
 }
-//******************************************************************
 
 
-//destructor
+// destructor
 Twenty_Node_Brick::~Twenty_Node_Brick()
 {
   for (int i = 0; i < nintu; i++) {
@@ -132,11 +114,11 @@ Twenty_Node_Brick::~Twenty_Node_Brick()
   }
 
   // Delete the array of pointers to NDMaterial pointer arrays
-  if (materialPointers)
-    delete[] materialPointers;
+  // if (materialPointers)
+  //   delete[] materialPointers;
 
   for (int i = 0; i < NEN; i++) {
-    nodePointers[i] = 0;
+    nodePointers[i] = nullptr;
   }
 
   if (load != nullptr)
@@ -291,15 +273,7 @@ Twenty_Node_Brick::Print(OPS_Stream& s, int flag)
     s << "#AVERAGE_STRAIN ";
     for (i = 0; i < nstress; i++)
       s << avgStrain(i) << " ";
-    s << endln;
-
-    /*
-        for (i=0; i<numMaterials; i++) {
-        s << "#MATERIAL\n";
-        //      materialPointers[i]->Print(s, flag);
-        s << materialPointers[i]->getStress();
-        }
-        */
+    s << "\n";
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
@@ -807,9 +781,9 @@ Twenty_Node_Brick::getResistingForce()
 
       // Subtract equiv. body forces from the nodes
 
-      //P = P - (N^ b) * intWt(i)*intWt(j) * detJ;
+      // P = P - (N^ b) * intWt(i)*intWt(j) * detJ;
 
-      //P.addMatrixTransposeVector(1.0, N, b, -intWt(i)*intWt(j)*detJ);
+      // P.addMatrixTransposeVector(1.0, N, b, -intWt(i)*intWt(j)*detJ);
 
       double r = mixtureRho(i);
 
@@ -937,9 +911,9 @@ Twenty_Node_Brick::formInertiaTerms(int tangFlag)
 
   computeBasis();
 
-  //gauss loop to compute and save shape functions
+  // gauss loop to compute and save shape functions
 
-  for (i = 0; i < nintu; i++) {
+  for (int i = 0; i < nintu; i++) {
 
     // compute Jacobian and global shape functions
 
@@ -953,15 +927,15 @@ Twenty_Node_Brick::formInertiaTerms(int tangFlag)
 
   // Compute consistent mass matrix
 
-  for (i = 0; i < NEN; i++) {
+  for (int i = 0; i < NEN; i++) {
 
-    for (j = 0; j < NEN; j++) {
+    for (int j = 0; j < NEN; j++) {
 
       for (m = 0; m < nintu; m++) {
 
         Nrho = dvolu[m] * mixtureRho(m) * shgu[3][i][m] * shgu[3][j][m];
 
-        for (k = 0; k < 3; k++) {
+        for (int k = 0; k < 3; k++) {
 
           mass(i * 3 + k, j * 3 + k) += Nrho;
         }
@@ -1447,7 +1421,6 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
     for (i = 0; i < nen; i++) {
 
       printf("%5d %15.6e %15.6e %15.6e %15.6e\n", i,
-
              shp[0][i], shp[1][i], shp[2][i], shp[3][i]);
     }
 
@@ -1471,26 +1444,22 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
   }
 
 
-  //Compute derivatives with repect to global coords.
+  // Compute derivatives with repect to global coords.
 
 
   for (k = 0; k < nen; k++) {
 
     c1 = shp[0][k] * xs[0][0] + shp[1][k] * xs[1][0] + shp[2][k] * xs[2][0];
-
     c2 = shp[0][k] * xs[0][1] + shp[1][k] * xs[1][1] + shp[2][k] * xs[2][1];
-
     c3 = shp[0][k] * xs[0][2] + shp[1][k] * xs[1][2] + shp[2][k] * xs[2][2];
 
 
     shp[0][k] = c1;
-
     shp[1][k] = c2;
-
     shp[2][k] = c3;
 
 
-  } //end for k
+  } // end for k
 
 
   for (j = 0; j < nen; j++) {
