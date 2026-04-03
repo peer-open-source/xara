@@ -29,7 +29,6 @@
 #include <Matrix.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
-#include <classTags.h>
 #include "FrameTraceSection3d.h"
 #include <ID.h>
 #include <FEM_ObjectBroker.h>
@@ -40,25 +39,34 @@ typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
 
+
+// #include <threads/thread_pool.hpp>
+// #define N_FIBER_THREADS 6
+
 #define SEC_TAG_FrameTraceSection3d 0
 
 using namespace OpenSees;
 
 ID FrameTraceSection3d::code(nsr);
 
-FrameTraceSection3d::FrameTraceSection3d(int tag, int num): 
-    FrameSection(tag, SEC_TAG_FrameTraceSection3d),
-    s{}, e{},
-    e_wrap(e), s_wrap(s),
-    shear_align{},
-    shift_twist{},
-    shift_axial{},
-    centroid{},
-    nubar(0.0),
-    parameterID(0), dedh(nsr),
-    fibers(new std::vector<FiberData>),
-    K_init(new Tangent),
-    fiber_state(FiberState::Clean)
+FrameTraceSection3d::FrameTraceSection3d(int tag, int reserve, bool wagner)
+  : FrameSection(tag, SEC_TAG_FrameTraceSection3d)
+  , s{}, e{}
+  , e_wrap(e)
+  , s_wrap(s)
+  , shear_align{}
+  , shift_twist{}
+  , shift_axial{}
+  , centroid{}
+  , nubar(0.0)
+  , parameterID(0), dedh(nsr)
+  , fibers(new std::vector<FiberData>)
+  , K_init(new Tangent)
+  , fiber_state(FiberState::Clean)
+  , wagner(wagner || (getenv("Wagner") != nullptr))
+#ifdef N_FIBER_THREADS
+  , pool((void*)new OpenSees::thread_pool{N_FIBER_THREADS})
+#endif
 {
   code(inx) = FrameStress::N;
   code(iny) = FrameStress::Vy;
@@ -73,38 +81,10 @@ FrameTraceSection3d::FrameTraceSection3d(int tag, int num):
   code(ivy) = FrameStress::Qy;
   code(ivz) = FrameStress::Qz;
 
-  wagner = getenv("Wagner") != nullptr;
+  fibers->reserve(reserve);
+  materials.reserve(reserve);
 }
 
-
-// for recvSelf
-FrameTraceSection3d::FrameTraceSection3d():
-  FrameSection(0, SEC_TAG_FrameTraceSection3d),
-  s(), e(),
-  e_wrap(e), s_wrap(s),
-  shear_align{},
-  shift_twist{},
-  shift_axial{},
-  centroid{},
-  nubar(0.0),
-  parameterID(0), dedh(nsr),
-  fibers(new std::vector<FiberData>),
-  fiber_state(FiberState::Clean)
-{
-  code(inx) = FrameStress::N;
-  code(iny) = SECTION_RESPONSE_VY;
-  code(inz) = SECTION_RESPONSE_VZ;
-  code(imx) = SECTION_RESPONSE_T;
-  code(imy) = SECTION_RESPONSE_MY;
-  code(imz) = SECTION_RESPONSE_MZ;
-  code(iwx) = FrameStress::Bimoment;
-  code(iwy) = FrameStress::By;
-  code(iwz) = FrameStress::Bz;
-  code(ivx) = FrameStress::Bishear;
-  code(ivy) = FrameStress::Qy;
-  code(ivz) = FrameStress::Qz;
-  wagner = getenv("Wagner") != nullptr;
-}
 
 // Used in getCopy to create an element instance from a reference instance
 FrameTraceSection3d::FrameTraceSection3d(const FrameTraceSection3d &other)
@@ -123,12 +103,14 @@ FrameTraceSection3d::FrameTraceSection3d(const FrameTraceSection3d &other)
     nubar(other.nubar),
     wagner(other.wagner),
     fiber_state(FiberState::Clean),
-    parameterID(0)
+    parameterID(0),
+    pool(other.pool)
 {
   materials.reserve(other.materials.size());
-  for (int i = 0; i < other.materials.size(); i++)
+  for (int i = 0; i < other.materials.size(); i++) {
     materials.push_back(other.materials[i]->getCopy("BeamFiber"));
-    // materials[i] = other.materials[i]->getCopy("BeamFiber");
+    thread_safe &= other.materials[i]->threadSafe();
+  }
 
   this->revertToStart();
 }
@@ -206,12 +188,12 @@ FrameTraceSection3d::getIntegral(Field field, State state, double& value) const
 
 
 int
-FrameTraceSection3d::addFiber(NDMaterial& theMat, 
+FrameTraceSection3d::addFiber(MaterialBuilder& theMat, 
                               double Area, 
                               double yLoc, 
                               double zLoc)
 {
-  std::array<std::array<double,3>,3> warp{0};
+  std::array<std::array<double,3>,nwm> warp{0};
   FiberData fiber {Area, warp, {yLoc, zLoc}};
   fibers->emplace_back(fiber);
 
@@ -280,7 +262,6 @@ FrameTraceSection3d::form_shifts(MatrixND<3,6>& Lw, MatrixND<6,6>& Lr) const
     0.0, 1.0, 0.0,
     0.0, 0.0, 1.0
   }};
-  // iesan_center
 
   Vector3D iesan_center{};
 
@@ -295,11 +276,7 @@ FrameTraceSection3d::form_shifts(MatrixND<3,6>& Lw, MatrixND<6,6>& Lr) const
       0.0, w[1][1], w[1][2],
       0.0, w[2][1], w[2][2]
     }};
-    const Vector3D rxi {
-      0.0,
-      r[2],
-      -r[1]
-    };
+    const Vector3D rxi {0.0,  r[2], -r[1]};
 
     Aw.addTensorProduct(r, r, -nubar);
     Aw.addMatrix(oneS, 0.5*r.dot(r)*nubar);
@@ -315,18 +292,18 @@ FrameTraceSection3d::form_shifts(MatrixND<3,6>& Lw, MatrixND<6,6>& Lr) const
   
   const Vector3D zg = -1.0*(shear_align*shift_twist);
 
+  const Vector3D a = shear_align^iesan_center;
+  const Vector3D b = (shear_align*shift_axial);
 
   Lr.assemble(oneS, 0,0, -1.0);
   {
-    const Vector3D a = shear_align^iesan_center;
-    Vector3D b = (shear_align*shift_axial);
     Lr(3,1) =  a[1]-b[1];
     Lr(3,2) =  a[2]-b[2];
     Lr(3,3) = zg.dot(iesan_center - shift_axial);
     Lw(0,1) =  a[1]-b[1];
     Lw(0,2) =  a[2]-b[2];
   }
-  // Lw 
+  // Lw
   Lw(0,3) = 1.0 + zg.dot(iesan_center - shift_axial);
   Lw.assemble(shear_align, 0,0, 1.0);
   Lw(1, 3) = zg[1];
@@ -336,11 +313,10 @@ FrameTraceSection3d::form_shifts(MatrixND<3,6>& Lw, MatrixND<6,6>& Lr) const
 
 
 int
-FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag)
+FrameTraceSection3d::stateDetermination(Tangent& Ks, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag)
 {
 
-  const bool do_shift = shear_align.norm() != 0.0;
-
+  const bool do_shift = false; //shear_align.norm() != 0.0;
 
   Vector3D gamma{}, kappa{}, dalpha{}, alpha{};
   if (e_trial != nullptr) {
@@ -349,7 +325,7 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     dalpha = Vector3D { (*e_trial)(iwx), (*e_trial)(iwy), (*e_trial)(iwz) };
     alpha  = Vector3D { (*e_trial)(ivx), (*e_trial)(ivy), (*e_trial)(ivz) };
   }
-  const VectorND<6> enm{
+  /*const*/ VectorND<6> enm{
     gamma[0],
     gamma[1],
     gamma[2],
@@ -374,15 +350,26 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
   if (s_trial != nullptr)
     s_trial->zero();
 
-  K.zero();
-
+  Ks.zero();
+  MatrixND<6,6> Kr{};
   //
   // integrate over fibers
   //
-  int res = 0;
   const int nf = fibers->size();
+  int res = 0;
+#ifdef N_FIBER_THREADS
+  static std::array<Tangent,       MaxThreads> K_thread;
+  static std::array<VectorND<nsr>, MaxThreads> s_thread;
+  for (auto& Kt : K_thread)
+    Kt.zero();
+  for (auto& st : s_thread)
+    st.zero();
+  auto& thread_pool = *(OpenSees::thread_pool*)pool;
+  thread_pool.submit_loop<unsigned int>(0, fibers->size(), [&](unsigned int i) {
+    int res = 0;
+#else
   for (int i = 0; i < nf; i++) {
-
+#endif
     NDMaterial &theMat = *materials[i];
     auto & fiber = (*fibers)[i];
     const FiberData::WarpArray& w = fiber.warp;
@@ -400,7 +387,6 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
       w[1][0],     0.0,     0.0,
       w[2][0],     0.0,     0.0
     }};
-
     const Matrix3D iodw {{
       0.0, w[0][1], w[0][2],
       0.0, w[1][1], w[1][2],
@@ -441,6 +427,7 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
         return res;
     }
 
+    const Vector &stress  = theMat.getStress();
     const Matrix &tangent = tangentFlag==CurrentTangent
                           ? theMat.getTangent()
                           : theMat.getInitialTangent();
@@ -448,24 +435,27 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     Matrix3D C{};
     C.addMatrix(tangent, fiber.area);
 
-
+#ifdef N_FIBER_THREADS
+    Tangent& K = K_thread[*OpenSees::this_thread::get_index()];
+    VectorND<nsr>* s_trial = &s_thread[*OpenSees::this_thread::get_index()];
+#else 
+    Tangent& K = Ks;
+#endif
     K.se.addMatrix(As*(C*Ae), 1.0);
+    Kr.addMatrixTripleProduct(1.0, As.transpose(), C, 1.0);
     if (!do_shift) {
       const Matrix3D Ciow  = C*iow;
       const Matrix3D Ciodw = C*iodw;
       {
         K.sw.assemble(Ciow,  0, 0, 1.0);
         K.sv.assemble(Ciodw, 0, 0, 1.0);
-      }
-      {
+        //
         K.sw.assemble(Hat(r)*Ciow,  3, 0, 1.0);
         K.sv.assemble(Hat(r)*Ciodw, 3, 0, 1.0);
-      }
-      {
+        //
         K.ww.addMatrixTransposeProduct(1.0, iow,  Ciow, 1.0);
         K.wv.addMatrixTransposeProduct(1.0, iow,  Ciodw, 1.0);
-      }
-      {
+        //
         K.vv.addMatrixTransposeProduct(1.0, iodw,  Ciodw, 1.0);
       }
     }
@@ -473,8 +463,6 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
     //
     //
     //
-    const Vector &stress  = theMat.getStress();
-
     if (wagner && (e_trial != nullptr)) {
       constexpr Matrix3D ioi {{ 1, 0, 0 ,
                                 0, 0, 0 ,
@@ -522,9 +510,26 @@ FrameTraceSection3d::stateDetermination(Tangent& K, VectorND<nsr>* s_trial, cons
       }
 
       if (wagner && e_trial != nullptr)
-        (*s_trial)(imx) += tr2*sig0;
+        (*s_trial)(imx) += sig0* tr2;//*r.dot(r); //
+    }
+#ifdef N_FIBER_THREADS
+    return res;
+  }).wait();
+  for (int t = 0; t < N_FIBER_THREADS; t++) {
+    Ks.se.addMatrix(K_thread[t].se, 1.0);
+    Ks.sw.addMatrix(K_thread[t].sw, 1.0);
+    Ks.sv.addMatrix(K_thread[t].sv, 1.0);
+    Ks.ww.addMatrix(K_thread[t].ww, 1.0);
+    Ks.wv.addMatrix(K_thread[t].wv, 1.0);
+    Ks.vv.addMatrix(K_thread[t].vv, 1.0);
+    if (s_trial != nullptr) {
+      for (int j = 0; j < nsr; j++)
+        (*s_trial)(j) += s_thread[t](j);
     }
   }
+#else
+  }
+#endif
   return res;
 }
 
@@ -536,14 +541,12 @@ FrameTraceSection3d::getSectionDeformation()
 }
 
 MatrixND<12,12>
-FrameTraceSection3d::getFullTangent(State state)
+FrameTraceSection3d::getFullTangent(State state) noexcept
 {
   MatrixND<12,12> K{};
 
   if (state == State::Init)
     this->stateDetermination(K_pres, nullptr, nullptr, InitialTangent);
-  // else
-  //   this->stateDetermination(K_pres, nullptr, nullptr, CurrentTangent);
 
   K.assemble(K_pres.se, 0, 0, 1.0);
   K.assemble(K_pres.sw, 0, 6, 1.0);
@@ -558,6 +561,7 @@ FrameTraceSection3d::getFullTangent(State state)
   K.assembleTranspose(K_pres.wv, 9, 6, 1.0);
   return K;
 }
+
 
 const Matrix&
 FrameTraceSection3d::getSectionTangent()
@@ -578,24 +582,9 @@ const Matrix&
 FrameTraceSection3d::getInitialTangent()
 {
   static MatrixND<nsr,nsr> K;
-  static Matrix wrap(K); //, nsr, nsr);
+  static Matrix wrap(K);
 
   K = this->getFullTangent(State::Init);
-  // K_pres.zero();
-  // this->stateDetermination(K_pres, nullptr, nullptr, InitialTangent);
-
-  // K.zero();
-  // K.assemble(K_pres.se, 0, 0, 1.0);
-  // K.assemble(K_pres.sw, 0, 6, 1.0);
-  // K.assemble(K_pres.sv, 0, 9, 1.0);
-
-  // K.assemble(K_pres.ww, 6, 6, 1.0);
-  // K.assemble(K_pres.wv, 6, 9, 1.0);
-  // K.assemble(K_pres.vv, 9, 9, 1.0);
-  
-  // K.assembleTranspose(K_pres.sw, 6, 0, 1.0);
-  // K.assembleTranspose(K_pres.sv, 9, 0, 1.0);
-  // K.assembleTranspose(K_pres.wv, 9, 6, 1.0);
   return wrap;
 }
 
@@ -633,6 +622,7 @@ FrameTraceSection3d::commitState()
 
   return err;
 }
+
 
 int
 FrameTraceSection3d::revertToLastCommit()
@@ -672,8 +662,7 @@ FrameTraceSection3d::sendSelf(int commitTag, Channel &)
 }
 
 int
-FrameTraceSection3d::recvSelf(int , Channel &,
-                              FEM_ObjectBroker &)
+FrameTraceSection3d::recvSelf(int , Channel &,  FEM_ObjectBroker &)
 {
   return -1;
 }
@@ -990,7 +979,6 @@ int
 FrameTraceSection3d::activateParameter(int paramID)
 {
   parameterID = paramID;
-
   return 0;
 }
 
@@ -1012,7 +1000,6 @@ FrameTraceSection3d::getStressResultantSensitivity(int gradIndex, bool condition
   static Vector sig_dAdh(3);
   static Matrix tangent(3,3);
 
-  static double areaDeriv[10000];
   const int nf = fibers->size();
 
   for (int i = 0; i < nf; i++) {
@@ -1145,29 +1132,23 @@ FrameTraceSection3d::commitSensitivity(const Vector& defSens,
 
   dedh = defSens;
 
-  static double dydh[10000];
-  static double dzdh[10000];
   const int nf = fibers->size();
-  
-  { // TODO
-    for (int i = 0; i < nf; i++) {
-      dydh[i] = 0.0;
-      dzdh[i] = 0.0;
-    }
-  }
 
   static Vector depsdh(3);
 
 
   for (int i = 0; i < nf; i++) {
+    // TODO: implement dydh and dzdh
+    double dydh = 0.0;
+    double dzdh = 0.0;
     auto& fiber = (*fibers)[i];
     const double y  = fiber.r[0];
     const double z  = fiber.r[1];
 
     // determine material strain sensitivity
-    depsdh[0] = d0 - y*d1 + z*d2 - dydh[i]*e(1) + dzdh[i]*e(2);
-    depsdh[1] = d3 - z*d5 + e(3) - dzdh[i]*e(5);
-    depsdh[2] = d4 + y*d5 + e(4) + dydh[i]*e(5);
+    depsdh[0] = d0 - y*d1 + z*d2 - dydh*e(1) + dzdh*e(2);
+    depsdh[1] = d3 - z*d5 + e(3) - dzdh*e(5);
+    depsdh[2] = d4 + y*d5 + e(4) + dydh*e(5);
 
     materials[i]->commitSensitivity(depsdh,gradIndex,numGrads);
   }
@@ -1189,7 +1170,7 @@ FrameTraceSection3d::Print(OPS_Stream &s, int flag)
     if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0)
       s << "\"mass\": " << mass << ", ";
 
-
+    s << "\"wagner\": " << (wagner ? "true" : "false") << ", ";
     s << "\"shear_align\": [";
     for (int i = 1; i < 3; i++) {
       s << "[";
