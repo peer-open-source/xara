@@ -672,17 +672,17 @@ NodeRecorderRMS::initialize(void)
     int numNodes = theDomain->getNumNodes();
     if (numNodes != 0) {
       theNodes = new Node *[numNodes];
-      
+
       if (theNodes == 0) {
-	opserr << "NodeRecorder::domainChanged - out of memory\n";
-	return -1;
+        opserr << "NodeRecorder::domainChanged - out of memory\n";
+        return -1;
       }
       NodeIter &theDomainNodes = theDomain->getNodes();
       Node *theNode;
       numValidNodes = 0;
       while (((theNode = theDomainNodes()) != 0) && (numValidNodes < numNodes)) {
-	theNodes[numValidNodes] = theNode;
-	numValidNodes++;
+        theNodes[numValidNodes] = theNode;
+        numValidNodes++;
       }
     } else
       numValidNodes = 0;
