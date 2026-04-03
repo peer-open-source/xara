@@ -335,7 +335,8 @@ int G3_addTimeSeries(G3_Runtime *rt, TimeSeries *series)
 }
 
 
-TimeSeries *G3_getTimeSeries(G3_Runtime *rt, int tag)
+TimeSeries *
+G3_getTimeSeries(G3_Runtime *rt, int tag)
 {
   TimeSeries *series;
   ModelRegistry *builder = G3_getSafeBuilder(rt);
