@@ -32,6 +32,7 @@
 
 
 #include "ZeroLengthContact3D.h"
+#include <ZeroLength.h>
 #include <Information.h>
 
 #include <Domain.h>
@@ -46,9 +47,9 @@
 
 #include <ElementResponse.h>
 #include <elementAPI.h>
- 
-//static data
-const int ZeroLengthContact3D::numberNodes = 2 ;
+
+using namespace OpenSees;
+
 
 // static data for 3D
 Matrix  ZeroLengthContact3D::stiff(3*numberNodes,3*numberNodes) ;
@@ -277,7 +278,7 @@ ZeroLengthContact3D::setDomain(Domain *theDomain)
     
     vm = (v1<v2) ? v2 : v1;
 
-    if (L > LENTOL*vm)
+    if (L > ZeroLength::MaxLength*vm)
       opserr << "WARNING ZeroLengthContact3D::setDomain(): Element " << this->getTag() << " has L= " << L << 
 	", which is greater than the tolerance\n";
         
