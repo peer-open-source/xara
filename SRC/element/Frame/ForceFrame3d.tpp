@@ -140,6 +140,8 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::~ForceFrame3d()
     if (point.material != nullptr)
       delete point.material;
 
+  delete basic_system;
+
   delete stencil;
 
   delete Ki;
@@ -678,6 +680,9 @@ template <int NIP, int nsr, int nwm, int shear_flag>
 int
 ForceFrame3d<NIP,nsr,nwm,shear_flag>::update()
 {
+  // if (getenv("ForceMixed"))
+  //   return this->updateMixed02();
+  // else 
   if (!getenv("Force02"))
     return this->update01();
   else
