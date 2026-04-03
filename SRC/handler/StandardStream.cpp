@@ -247,6 +247,7 @@ StandardStream::operator<<(unsigned char c)
 
  return *this;
 }
+
 OPS_Stream& 
 StandardStream::operator<<(signed char c)
 {
@@ -258,6 +259,7 @@ StandardStream::operator<<(signed char c)
 
   return *this;
 }
+
 OPS_Stream& 
 StandardStream::operator<<(const char *s)
 {
