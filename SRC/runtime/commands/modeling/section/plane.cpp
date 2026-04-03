@@ -126,6 +126,6 @@ TclCommand_addPlaneSection(ClientData clientData, Tcl_Interp *interp,
   PlaneSection<NDMaterial>* section = new PlaneSection<NDMaterial>(tag, *pptr, thickness);
   int status = builder->addTaggedObject<PlaneSection<NDMaterial>>(*section);
 
-  delete pptr;
+  // delete pptr;
   return status;
 }
