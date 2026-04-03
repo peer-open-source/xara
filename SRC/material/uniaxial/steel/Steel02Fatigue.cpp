@@ -916,7 +916,7 @@ Steel02Fatigue::commitState(void) // Added Fatigue
 			}
 
 			if (fabs(Fatigue_Y) < 1e-10) {
-				Fatigue_DL = Fatigue_DL;
+				// Fatigue_DL = Fatigue_DL;
 				// added 6/9/2006
 				//values for recorder
 				Fatigue_SR3 = 0.0;
@@ -961,7 +961,7 @@ Steel02Fatigue::commitState(void) // Added Fatigue
 				}
 
 				if (fabs(Fatigue_X) < 1e-10) {
-					Fatigue_DL = Fatigue_DL;
+					// Fatigue_DL = Fatigue_DL;
 					// added 6/9/2006
 					//values for recorder
 					Fatigue_SR2 = 0.0;
@@ -996,7 +996,7 @@ Steel02Fatigue::commitState(void) // Added Fatigue
 				}
 
 				if (fabs(Fatigue_A - Fatigue_B) < 1e-10) {
-					Fatigue_DL = Fatigue_DL;
+					// Fatigue_DL = Fatigue_DL;
 					// added 6/9/2006
 					//values for recorder
 					Fatigue_SR2 = 0.0;
