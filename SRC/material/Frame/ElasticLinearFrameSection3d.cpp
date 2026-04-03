@@ -162,7 +162,7 @@ SetupTangent(MatrixND<12,12>& Ks, const Frame::Shape& cons)
 }
 }
 
-ID ElasticLinearFrameSection3d::layout(layout_array, nr);
+ID ElasticLinearFrameSection3d::layout(layout_array, nr, false);
 
 
 
