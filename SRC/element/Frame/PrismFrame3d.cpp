@@ -169,6 +169,14 @@ PrismFrame3d::PrismFrame3d(int tag,
   }
 }
 
+PrismFrame3d::~PrismFrame3d() 
+{
+  if (basic_system != nullptr) {
+    delete basic_system;
+    basic_system = nullptr;
+  }
+}
+
 int
 PrismFrame3d::setNodes()
 {
