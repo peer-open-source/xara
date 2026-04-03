@@ -28,8 +28,10 @@
 
 using namespace OpenSees;
 
-CircPatch::CircPatch(int materialID, int numSubdivCircunf, int numSubdivRadial,
-                     const VectorND<2>& centerPosition, double internRadius, double externRadius,
+CircPatch::CircPatch(int materialID, 
+                     int numSubdivCircunf, int numSubdivRadial,
+                     const VectorND<2>& centerPosition,
+                     double internRadius, double externRadius,
                      double initialAngle, double finalAngle)
  : matID(materialID),
    nDivCirc(numSubdivCircunf),
