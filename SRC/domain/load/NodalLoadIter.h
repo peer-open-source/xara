@@ -18,12 +18,14 @@
 #define NodalLoadIter_h
 
 #include <TaggedIterator.hpp>
+#include <MapOfTaggedObjects.h>
 
 class NodalLoad;
 
-class NodalLoadIter: public TaggedIterator<NodalLoad> {
+class NodalLoadIter: public TaggedIterator<NodalLoad,MapOfTaggedObjects> 
+{
   public:
-  using TaggedIterator<NodalLoad>::TaggedIterator;
+  using TaggedIterator<NodalLoad,MapOfTaggedObjects>::TaggedIterator;
 };
 
 #endif
