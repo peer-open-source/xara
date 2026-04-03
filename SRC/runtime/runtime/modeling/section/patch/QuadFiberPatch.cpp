@@ -66,9 +66,6 @@ QuadFiberPatch::getCells() const
 
     cells = new FiberCell*[numCells];
 
-    if (!cells)
-      return 0;
-
     double deltaXi  = 2.0 / nDivIJ;
     double deltaEta = 2.0 / nDivJK;
 
