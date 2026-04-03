@@ -27,6 +27,7 @@ class ElementalLoadIter;
 class SingleDomSP_Iter;
 class SP_ConstraintIter;
 class TaggedObjectStorage;
+class MapOfTaggedObjects;
 class GroundMotion;
 
 
@@ -58,7 +59,7 @@ private:
 #endif
 private:
     // storage objects for the loads and constraints
-    TaggedObjectStorage  *theNodalLoads;
+    MapOfTaggedObjects  *theNodalLoads;
     TaggedObjectStorage  *theElementalLoads;
     TaggedObjectStorage  *theSPs;
 
