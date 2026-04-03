@@ -244,7 +244,7 @@ TransformationFE::getTangent(Integrator *theNewIntegrator)
 {
   const Matrix &theTangent = this->ElementFE::getTangent(theNewIntegrator);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
   
   // DO THE SP STUFF TO THE TANGENT 
@@ -411,7 +411,7 @@ TransformationFE::getK_Force(const Vector &accel, double fact)
   this->ElementFE::addKtToTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
@@ -526,7 +526,7 @@ TransformationFE::getKi_Force(const Vector &accel, double fact)
   this->ElementFE::addKiToTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
@@ -640,7 +640,7 @@ TransformationFE::getM_Force(const Vector &accel, double fact)
   this->ElementFE::addMtoTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
@@ -754,7 +754,7 @@ TransformationFE::getC_Force(const Vector &accel, double fact)
   this->ElementFE::addCtoTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
