@@ -39,7 +39,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -48,6 +47,9 @@
 #include <ElementResponse.h>
 #include <elementAPI.h>
 
+// Tolerance for zero length of element
+#define	LENTOL 1.0e-6
+using namespace OpenSees;
 //static data
 const int ZeroLengthContact2D::numberNodes = 2 ;
 
@@ -738,12 +740,6 @@ ZeroLengthContact2D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBrok
  
 }
 
-
-int
-ZeroLengthContact2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{ // nothing to display
-    return 0;
-}
 
 
 void
