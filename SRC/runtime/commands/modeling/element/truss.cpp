@@ -338,8 +338,6 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
     }
     const int stag = 0;
     const int numFibers = 1;
-    UniaxialMaterial *torsion = nullptr;
-    const bool compCentroid = true;
     const double smass = 0.0;
     const bool use_mass = false;
     Frame::Shape shape(1,1);
