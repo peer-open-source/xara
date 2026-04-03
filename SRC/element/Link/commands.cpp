@@ -39,12 +39,213 @@
 #include <UniaxialMaterial.h>
 #include <FrameSection.h>
 #include <ModelRegistry.h>
+#include <VectorND.h>
+#include <Parsing.h>
+#include <Logging.h>
+#include <optional>
+
 #include <TwoNodeLink.h>
 #include <TwoNodeLinkSection.h>
-#include <VectorND.h>
 
-using OpenSees::VectorND;
+using namespace OpenSees;
 
+
+int
+ParseLinkAxes(Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv, 
+              int ndm, const Vector3D& dx, Matrix3D& R)
+{
+  const Vector3D Ex{1.0, 0.0, 0.0},
+                 Ey{0.0, 1.0, 0.0},
+                 Ez{0.0, 0.0, 1.0};
+
+  std::optional<Vector3D> e_x;
+  std::optional<Vector3D> e_y;
+  std::optional<Vector3D> e_z;
+  enum class VectorSource {User, Global, Nodes, None} 
+    x_source = VectorSource::None, 
+    y_source = VectorSource::None;
+
+  const double length = dx.norm();
+
+
+  Vector3D v1, v2;
+  int n_orient = 0;
+  for (int i=0; i<argc; ++i) {
+    if (strcmp(argv[i], "-orient") == 0) {
+
+      for (int k=0; k<3; ++k) {
+        if (i + 1 >= argc) {
+          opserr << OpenSees::PromptValueError
+                  << "insufficient arguments after -orient\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[++i], &v1(k)) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                  << "invalid -orient vector component\n";
+          return TCL_ERROR;
+        }
+      }
+      n_orient++;
+      if (i +3 < argc) {
+        for (int k=0; k<3; ++k) {
+          if (Tcl_GetDouble(interp, argv[++i], &v2[k]) != TCL_OK) {
+            if (k == 0) {
+              break;
+            } else {
+              // If we got some components but then failed, treat as error
+              opserr << OpenSees::PromptValueError
+                      << "invalid -orient y component\n";
+              return TCL_ERROR;
+            }
+          }
+          if (k == 2) {
+            // Successfully read 3 values for second vector
+            n_orient++;
+            break;
+          }
+        }
+      }
+    }
+    else if (strcmp(argv[i], "-x") == 0) {
+      Vector3D v;
+      for (int k=0; k<3; ++k) {
+        if (i + 1 >= argc) {
+          opserr << OpenSees::PromptValueError
+                  << "insufficient arguments after -x\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[++i], &v[k]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                  << "invalid -x component\n";
+          return TCL_ERROR;
+        }
+      }
+      e_x = v;
+    }
+    else if (strcmp(argv[i], "-y") == 0) {
+      Vector3D v;
+      for (int k=0; k<3; ++k) {
+        if (i + 1 >= argc) {
+          opserr << OpenSees::PromptValueError
+                  << "insufficient arguments after -y\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[++i], &v[k]) != TCL_OK) {
+          opserr << OpenSees::PromptValueError
+                  << "invalid -y component\n";
+          return TCL_ERROR;
+        }
+      }
+      e_y = v;
+    }
+
+    // else if (strcmp(argv[i], "-angle") == 0) {
+    //   if (i + 1 >= argc || Tcl_GetDouble(interp, argv[++i], &angle.emplace()) != TCL_OK) {
+    //     opserr << OpenSees::PromptValueError
+    //             << "invalid angle\n";
+    //     return TCL_ERROR;
+    //   }
+    // }
+  }
+
+
+  if (length > 1e-12) {
+    if (n_orient == 2 || e_x.has_value()) {
+      opserr << OpenSees::PromptValueError
+              << "x orientation not allowed for non zero-length link\n";
+    }
+    e_x = dx;
+    x_source = VectorSource::Nodes;
+  }
+  else {
+    // zero-length; ex required
+    if (!e_x.has_value()) {
+      if (n_orient > 0) {
+        e_x = v1;
+        x_source = VectorSource::User;
+      } else {
+        e_x = Ex;
+        x_source = VectorSource::Global;
+        // opserr << OpenSees::PromptValueError
+        //         << "x orientation required for zero-length link\n";
+        // return TCL_ERROR;
+      }
+    }
+  }
+  e_x = (*e_x)/e_x->norm();
+
+  // e_y
+  if (!e_y.has_value()) {
+    if (n_orient == 2)
+      e_y = v2;
+    else if (ndm == 1)
+      e_y = Ey;
+    else  if (ndm == 2) {
+      // if (length > 1e-12)
+      e_y = Vector3D{-(*e_x)[1], (*e_x)[0], 0.0};
+      // else
+      //   e_y = Ey;
+    }
+    else if (ndm == 3) {
+      if (x_source == VectorSource::Global) {
+        e_y = Ey;
+      }
+      // else if (x_source == VectorSource::Nodes) {
+      //   // For nodal dx, use global vertical as secondary if not colinear
+      //   Vector3D globalY{0.0, 1.0, 0.0};
+      //   if (std::abs(e_x->dot(globalY)) < 0.99)
+      //     e_y = globalY;
+      //   else
+      //     e_y = Vector3D{1.0, 0.0, 0.0};
+      // }
+      // else {
+      //   opserr << OpenSees::PromptValueError
+      //           << "y orientation required for 3D link\n";
+      //   return TCL_ERROR;
+      // }
+      else {
+        opserr << OpenSees::PromptValueError
+                << "y orientation required for 3D link\n";
+        return TCL_ERROR;
+      }
+    }
+  }
+
+  e_y = (*e_y)/e_y->norm();
+  e_z = e_x->cross(*e_y);
+  e_y = e_z->cross(*e_x);
+
+  //
+  // Validate
+  //
+  if (e_z->norm() < 1e-12) {
+    opserr << OpenSees::PromptValueError
+            << "invalid orientation, x and y are parallel\n";
+    return TCL_ERROR;
+  }
+  if (e_x->dot(*e_y) > 1e-12) {
+    opserr << OpenSees::PromptValueError
+            << "invalid orientation, ex and ey are not orthogonal\n";
+    return TCL_ERROR;
+  }
+  if (e_x->dot(*e_z) > 1e-12) {
+    opserr << OpenSees::PromptValueError
+            << "invalid orientation, ex and ez are not orthogonal\n";
+    return TCL_ERROR;
+  }
+  if (e_y->dot(*e_z) > 1e-12) {
+    opserr << OpenSees::PromptValueError
+            << "invalid orientation, ey and ez are not orthogonal\n";
+    return TCL_ERROR;
+  }
+
+  for (int i=0; i<3; ++i) {
+    R(0,i) = (*e_x)[i];
+    R(1,i) = (*e_y)[i];
+    R(2,i) = (*e_z)[i];
+  }
+  return TCL_OK;
+}
 
 int
 TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
@@ -84,11 +285,12 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
 
   int argi = 5;
 
-  // Defaults
-  Vector3D x{};
-  Vector3D y{0, 1, 0};
-
+  //
+  // Orientation
+  //
+  Matrix3D T{};
   {
+    Vector3D dx{};
     Domain *theDomain = builder->getDomain();
     Node *ndI = theDomain->getNode(iNode);
     Node *ndJ = theDomain->getNode(jNode);
@@ -99,18 +301,10 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
     const Vector &end1 = ndI->getCrds();
     const Vector &end2 = ndJ->getCrds();
     for (int i=0; i<ndm; ++i)
-      x(i) = end2(i) - end1(i);
-
-    if (x.norm() < DBL_EPSILON) {
-      x(0) = 1.0;
-      x(1) = 0.0;
-      x(2) = 0.0;
-    }
-    else {
-      y(0) = -x(1);
-      y(1) =  x(0);
-      y(2) =  0.0;
-    }
+      dx(i) = end2(i) - end1(i);
+    
+    if (ParseLinkAxes(interp, argc-5, argv+5, ndm, dx, T) != TCL_OK)
+      return TCL_ERROR;
   }
 
   std::vector<UniaxialMaterial*> mats;
@@ -235,48 +429,6 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
       }
     }
 
-    else if (strcmp(argv[argi], "-orient") == 0) {
-      argi++;
-      int remaining = argc - argi;
-      if (remaining < 3) {
-        opserr << OpenSees::PromptValueError
-               << "insufficient arguments after -orient\n";
-        return TCL_ERROR;
-      }
-      if (remaining >= 6) {
-        for (int k=0; k<3; ++k) {
-          if (Tcl_GetDouble(interp, argv[argi++], &x(k)) != TCL_OK) {
-            opserr << OpenSees::PromptValueError
-                   << "invalid -orient x component\n";
-            return TCL_ERROR;
-          }
-        }
-        for (int k=0; k<3; ++k) {
-          if (Tcl_GetDouble(interp, argv[argi++], &y(k)) != TCL_OK) {
-            opserr << OpenSees::PromptValueError
-                   << "invalid -orient y component\n";
-            return TCL_ERROR;
-          }
-        }
-      } else {
-        if (ndm == 1 || ndm == 2) {
-          for (int k=0; k<3; ++k) {
-            if (Tcl_GetDouble(interp, argv[argi++], &x(k)) != TCL_OK) {
-              opserr << OpenSees::PromptValueError << "invalid -orient x component\n";
-              return TCL_ERROR;
-            }
-          }
-        } else {
-          for (int k=0; k<3; ++k) {
-            if (Tcl_GetDouble(interp, argv[argi++], &y(k)) != TCL_OK) {
-              opserr << OpenSees::PromptValueError << "invalid -orient y component\n";
-              return TCL_ERROR;
-            }
-          }
-        }
-      }
-    }
-
     else if (strcmp(argv[argi], "-pDelta") == 0) {
       argi++;
       Mratio.resize(4); Mratio.Zero();
@@ -348,8 +500,9 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
     }
 
     else {
-      opserr << OpenSees::PromptParseError << "unexpected option " << argv[argi] << "\n";
-      return TCL_ERROR;
+      argi++;
+      // opserr << OpenSees::PromptParseError << "unexpected option " << argv[argi] << "\n";
+      // return TCL_ERROR;
     }
   }
 
@@ -375,7 +528,7 @@ TclCommand_addTwoNodeLink(ClientData clientData, Tcl_Interp *interp,
   //
   Element *theEle = new TwoNodeLink(tag, ndm, iNode, jNode,
                                     dirs, &mats[0],
-                                    y, x,
+                                    T,// y, x,
                                     Mratio, sDistI,
                                     doRayleigh, mass);
 
@@ -439,9 +592,7 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp,
   }
 
   // Default orientation: x = end2 - end1; y = (0,1,0)
-  Vector x(3); x.Zero();
-  Vector y(3); y(0)=0.0; y(1)=1.0; y(2)=0.0;
-
+  Matrix3D T{};
   {
     Domain *theDomain = builder->getDomain();
     Node *ndI = theDomain->getNode(iNode);
@@ -452,82 +603,25 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp,
     }
     const Vector &end1 = ndI->getCrds();
     const Vector &end2 = ndJ->getCrds();
+    Vector3D dx{};
     for (int i=0; i<ndm; ++i)
-      x(i) = end2(i) - end1(i);
+      dx(i) = end2(i) - end1(i);
+    if (ParseLinkAxes(interp, argc-6, argv+6, ndm, dx, T) != TCL_OK)
+      return TCL_ERROR;
   }
 
+  //
   // Options
+  //
   Vector Mratio;   // will be resized on demand
   Vector sDistI;   // will be resized on demand
   int doRayleigh = 0;
   double mass = 0.0;
 
-  // If only required args are present, construct minimal element
-  if (argc == 6) {
-    Element *theEle = new TwoNodeLinkSection(tag, ndm, iNode, jNode, *theSection);
-    if (!builder->getDomain()->addElement(theEle)) {
-      opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-      delete theEle;
-      return TCL_ERROR;
-    }
-    return TCL_OK;
-  }
-
   // Parse keyword options
   int i = 6;
   while (i < argc) {
-    if (strcmp(argv[i], "-orient") == 0) {
-      i++;
-      // Read 6 doubles (x then y) if available; otherwise follow NDM logic
-      int remaining = argc - i;
-      if (remaining >= 6) {
-        // x
-        for (int k=0; k<3; ++k) {
-          if (Tcl_GetDouble(interp, argv[i++], &x(k)) != TCL_OK) {
-            opserr << OpenSees::PromptValueError
-                   << "invalid orient x component"
-                   << OpenSees::SignalMessageEnd;
-            return TCL_ERROR;
-          }
-        }
-        // y
-        for (int k=0; k<3; ++k) {
-          if (Tcl_GetDouble(interp, argv[i++], &y[k]) != TCL_OK) {
-            opserr << OpenSees::PromptValueError
-                   << "invalid orient y component"
-                   << OpenSees::SignalMessageEnd;
-            return TCL_ERROR;
-          }
-        }
-      } else {
-        // Only one vector provided: if NDM=1,2 treat as x; if NDM=3 treat as y.
-        if (remaining < 3) {
-          opserr << OpenSees::PromptValueError
-                 << "insufficient arguments for orient"
-                 << OpenSees::SignalMessageEnd;
-          return TCL_ERROR;
-        }
-        if (ndm == 1 || ndm == 2) {
-          for (int k=0; k<3; ++k) {
-            if (Tcl_GetDouble(interp, argv[i++], &x[k]) != TCL_OK) {
-              opserr << OpenSees::PromptValueError
-                     << "invalid orient x component"
-                     << OpenSees::SignalMessageEnd;
-              return TCL_ERROR;
-            }
-          }
-        } else {
-          for (int k=0; k<3; ++k) {
-            if (Tcl_GetDouble(interp, argv[i++], &y(k)) != TCL_OK) {
-              opserr << OpenSees::PromptValueError << "invalid -orient y component\n";
-              return TCL_ERROR;
-            }
-          }
-        }
-      }
-    }
-
-    else if (strcmp(argv[i], "-pDelta") == 0) {
+    if (strcmp(argv[i], "-pDelta") == 0) {
       i++;
       Mratio.resize(4); Mratio.Zero();
       if (ndm == 2) {
@@ -612,16 +706,19 @@ TclCommand_addTwoNodeLinkSection(ClientData clientData, Tcl_Interp *interp,
     }
 
     else {
-      opserr << OpenSees::PromptParseError
-             << "unexpected option " << argv[i]
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
+      i++;
+      // opserr << OpenSees::PromptParseError
+      //        << "unexpected option " << argv[i]
+      //        << OpenSees::SignalMessageEnd;
+      // return TCL_ERROR;
     }
   }
 
   // Create element (full signature)
   Element *theEle = new TwoNodeLinkSection(tag, ndm, iNode, jNode,
-                                           *theSection, y, x, Mratio, sDistI,
+                                           *theSection, 
+                                           T,
+                                           Mratio, sDistI,
                                            doRayleigh, mass);
 
   if (!builder->getDomain()->addElement(theEle)) {
