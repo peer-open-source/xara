@@ -48,6 +48,7 @@ class SingleDomSP_Iter;
 class SP_ConstraintIter;
 class TaggedObjectStorage;
 class GroundMotion;
+class MapOfTaggedObjects;
 
 class LoadPattern : public TaggedObject, public MovableObject
 {
@@ -116,7 +117,7 @@ class LoadPattern : public TaggedObject, public MovableObject
     int    dbSPs, dbNod, dbEle; // database tags for storing info about components
     
     // storage objects for the loads and constraints
-    TaggedObjectStorage  *theNodalLoads;
+    MapOfTaggedObjects  *theNodalLoads;
     TaggedObjectStorage  *theElementalLoads;
     TaggedObjectStorage  *theSPs;
 
