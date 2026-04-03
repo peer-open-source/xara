@@ -93,27 +93,27 @@ AnalysisModel::AnalysisModel(Domain& domain)
 
 AnalysisModel::~AnalysisModel()
 {
-  if (theFEs != 0) {
+  if (theFEs != nullptr) {
     theFEs->clearAll();
     delete theFEs;
   }
 
-  if (theDOFs != 0) {
+  if (theDOFs != nullptr) {
     theDOFs->clearAll();
     delete theDOFs;
   }
 
-  if (theFEiter != 0)
+  if (theFEiter != nullptr)
     delete theFEiter;
 
-  if (theDOFiter != 0)
+  if (theDOFiter != nullptr)
     delete theDOFiter;
 
-  if (myGroupGraph != 0) {
+  if (myGroupGraph != nullptr) {
     delete myGroupGraph;    
   }        
   
-  if (myDOFGraph != 0) {
+  if (myDOFGraph != nullptr) {
     delete myDOFGraph;
   }
 }    
