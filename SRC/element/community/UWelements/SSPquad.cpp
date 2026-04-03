@@ -37,7 +37,6 @@
 #include <Channel.h>
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <NDMaterial.h>
@@ -115,25 +114,25 @@ SSPquad::~SSPquad()
 }
 
 int 
-SSPquad::getNumExternalNodes(void) const
+SSPquad::getNumExternalNodes() const
 {
     return SSPQ_NUM_NODE;
 }
 
 const ID &
-SSPquad::getExternalNodes(void)
+SSPquad::getExternalNodes()
 {
     return mExternalNodes;
 }
 
 Node **
-SSPquad::getNodePtrs(void)
+SSPquad::getNodePtrs()
 {
     return theNodes;
 }
 
 int
-SSPquad::getNumDOF(void)
+SSPquad::getNumDOF()
 {
     return SSPQ_NUM_DOF;
 }
@@ -182,7 +181,7 @@ SSPquad::setDomain(Domain *theDomain)
 }
 
 int
-SSPquad::commitState(void)
+SSPquad::commitState()
 {
     int retVal = 0;
     // call element commitState to do any base class stuff
@@ -195,19 +194,19 @@ SSPquad::commitState(void)
 }
 
 int
-SSPquad::revertToLastCommit(void)
+SSPquad::revertToLastCommit()
 {
     return theMaterial->revertToLastCommit();
 }
 
 int
-SSPquad::revertToStart(void)
+SSPquad::revertToStart()
 {
     return theMaterial->revertToStart();
 }
 
 int
-SSPquad::update(void)
+SSPquad::update()
 // this function updates variables for an incremental step n to n+1
 {
     // get trial displacement
@@ -235,7 +234,7 @@ SSPquad::update(void)
 }
 
 const Matrix &
-SSPquad::getTangentStiff(void)
+SSPquad::getTangentStiff()
 // this function computes the tangent stiffness matrix for the element
 {
     // get material tangent
@@ -249,14 +248,14 @@ SSPquad::getTangentStiff(void)
 }
 
 const Matrix &
-SSPquad::getInitialStiff(void)
+SSPquad::getInitialStiff()
 // this function computes the initial tangent stiffness matrix for the element
 {
     return getTangentStiff();
 }
 
 const Matrix &
-SSPquad::getMass(void)
+SSPquad::getMass()
 {
     mMass.Zero();
 
@@ -285,7 +284,7 @@ SSPquad::getMass(void)
 }
 
 void
-SSPquad::zeroLoad(void)
+SSPquad::zeroLoad()
 {
   applyLoad = 0;
   appliedB[0] = 0.0;
@@ -359,7 +358,7 @@ SSPquad::addInertiaLoadToUnbalance(const Vector &accel)
 }
 
 const Vector &
-SSPquad::getResistingForce(void)
+SSPquad::getResistingForce()
 // this function computes the resisting force vector for the element
 {
     // get stress from the material
@@ -520,6 +519,7 @@ SSPquad::sendSelf(int commitTag, Channel &theChannel)
   return 0;
 }
 
+
 int
 SSPquad::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
@@ -586,36 +586,6 @@ SSPquad::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroke
   return 0; 
 }
 
-int
-SSPquad::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // get the end point display coords
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-    theNodes[2]->getDisplayCrds(v3, fact, displayMode);
-    theNodes[3]->getDisplayCrds(v4, fact, displayMode);
-
-    // place values in coords matrix
-    static Matrix coords(4, 3);
-    for (int i = 0; i < 3; i++) {
-        coords(0, i) = v1(i);
-        coords(1, i) = v2(i);
-        coords(2, i) = v3(i);
-        coords(3, i) = v4(i);
-    }
-
-    // fill RGB vector
-    static Vector values(4);
-    for (int i = 0; i < 4; i++)
-        values(i) = 1.0;
-
-    // draw the polygon
-    return theViewer.drawPolygon(coords, values, this->getTag());
-}
 
 void
 SSPquad::Print(OPS_Stream &s, int flag)
@@ -693,28 +663,10 @@ SSPquad::updateParameter(int parameterID, Information &info)
     }
 }
 
-Matrix 
-SSPquad::DyadicProd(Vector v1, Vector v2)
-// computes dyadic product for two vectors (2x1)
-{
-    Matrix result(2,2);
-    result.Zero();
-
-    for (int i = 0; i < v1.Size(); i++) {
-        for (int j = 0; j < v2.Size(); j++) 
-            result(i,j) = v1(i) * v2(j);
-    }
-    
-    return result;
-}
-
 void
-SSPquad::GetStab(void)
+SSPquad::GetStab()
 // this function computes the stabilization stiffness matrix for the element
 {
-    Vector g1(SSPQ_NUM_DIM);
-    Vector g2(SSPQ_NUM_DIM);
-    Matrix I(SSPQ_NUM_DIM,SSPQ_NUM_DIM);
     Matrix FCF(SSPQ_NUM_DIM,SSPQ_NUM_DIM);
     Matrix Jmat(SSPQ_NUM_DIM,SSPQ_NUM_DIM);
     Matrix Jinv(SSPQ_NUM_DIM,SSPQ_NUM_DIM);
@@ -766,17 +718,22 @@ SSPquad::GetStab(void)
     }
 
     // base vectors
+    VectorND<SSPQ_NUM_DIM> g1{};
+    VectorND<SSPQ_NUM_DIM> g2{};
     g1(0) = Jmat(0,0);
     g1(1) = Jmat(1,0);
     g2(0) = Jmat(0,1);
     g2(1) = Jmat(1,1);
     // normalize base vectors
-    g1.Normalize();
-    g2.Normalize();
+    g1 /= g1.norm();
+    g2 /= g2.norm();
     
     // compute second moment of area tensor
-    double fourThree = 4.0/3.0;
-    I = fourThree*mThickness*J0*(DyadicProd(g1,g1) + DyadicProd(g2,g2));
+    // double fourThree = 4.0/3.0;
+    MatrixND< SSPQ_NUM_DIM, SSPQ_NUM_DIM > I{};
+    // I = fourThree*mThickness*J0*(DyadicProd(g1,g1) + DyadicProd(g2,g2));
+    I.addTensorProduct(g1, g1, 4.0/3.0*mThickness*J0);
+    I.addTensorProduct(g2, g2, 4.0/3.0*mThickness*J0);
 
     // stabilization terms
     Hss = (I(0,0)*Jinv(1,0)*Jinv(1,0) + I(0,1)*Jinv(0,0)*Jinv(1,0) + I(1,1)*Jinv(0,0)*Jinv(0,0))*0.25;
