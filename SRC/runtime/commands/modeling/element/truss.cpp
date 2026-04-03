@@ -342,10 +342,10 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
     const bool compCentroid = true;
     const double smass = 0.0;
     const bool use_mass = false;
+    Frame::Shape shape(1,1);
     auto fiber_section = new FrameFiberSection3d(stag, 
                                                  numFibers, 
-                                                 torsion, 
-                                                 compCentroid, 
+                                                 shape,
                                                  smass, 
                                                  use_mass);
     fiber_section->addFiber(*material, area, 0, 0);
