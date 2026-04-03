@@ -75,8 +75,8 @@ class StandardStream : public OPS_Stream
   OPS_Stream& operator<<(float n);
   OPS_Stream& operator<<(std::string const&);
 
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
  private:
   ofstream theFile;
