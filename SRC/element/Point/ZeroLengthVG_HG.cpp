@@ -38,7 +38,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -1090,33 +1089,6 @@ ZeroLengthVG_HG::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &
   return res;
 }
 
-
-int
-ZeroLengthVG_HG::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // ensure setDomain() worked
-    if (theNodes[0] == 0 || theNodes[1] == 0 )
-       return 0;
-
-    // get the end point display coords    
-    static Vector v1(3);
-    static Vector v2(3);
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    // get the color
-    float d1 = 1.0;
-    if (displayMode == 1)
-        d1 = theMaterial1d[0]->getStress();
-    else if (displayMode == 2)
-        d1 = theMaterial1d[0]->getStrain();
-
-    // draw the line
-    if (v1 != v2)
-        return theViewer.drawLine(v1, v2, d1, d1, this->getTag());
-    else
-        return 0; // no need to draw a point, as was done before. There will be points for the nodes.
-}
 
 
 void
