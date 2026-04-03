@@ -127,11 +127,7 @@ public:
       FrameStress::My,
       FrameStress::Mz,
       FrameStress::Bimoment,
-  //  FrameStress::By,
-  //  FrameStress::Bz,
       FrameStress::Bishear,
-  //  FrameStress::Qy,
-  //  FrameStress::Qz
     };
 
     //
