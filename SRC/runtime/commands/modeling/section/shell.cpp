@@ -93,7 +93,7 @@ TclCommand_addElasticShellSection(ClientData clientData, Tcl_Interp* interp,
   SectionForceDeformation* section =
       new ElasticMembranePlateSection(tag, E, nu, h, rho, Ep_mod);
 
-  if (!builder->addTaggedObject<SectionForceDeformation>(*section) != TCL_OK) {
+  if (builder->addTaggedObject<SectionForceDeformation>(*section) != TCL_OK) {
     return TCL_ERROR;
   }
   return TCL_OK;
