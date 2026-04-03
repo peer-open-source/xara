@@ -701,11 +701,6 @@ ZeroLengthND::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &the
 		theNDMaterial = theBroker.getNewNDMaterial(classTag);
 	}
 
-	// Check if either allocation failed from broker
-	if (theNDMaterial == 0) {
-		opserr << "ZeroLengthND::  -- failed to allocate new NDMaterial\n";
-		return -1;
-	}
 
 	// Receive the NDMaterial
 	theNDMaterial->setDbTag(idData(8));
@@ -729,11 +724,6 @@ ZeroLengthND::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &the
 			the1DMaterial = theBroker.getNewUniaxialMaterial(classTag);
 		}
 
-		// Check if either allocation failed from broker
-		if (the1DMaterial == 0) {
-			opserr << "ZeroLengthND::  -- failed to allocate new UniaxialMaterial\n";
-			return -1;
-		}
 
 		// Receive the UniaxialMaterial
 		the1DMaterial->setDbTag(idData(10));
