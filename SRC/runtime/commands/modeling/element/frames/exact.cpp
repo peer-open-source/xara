@@ -17,7 +17,11 @@
 #include "frames.hpp"
 #include <for_int.tpp>
 #include <ExactFrame3d.h>
+// #define XARA_ExactFrame02
+
+#ifdef XARA_ExactFrame02
 #include <ExactFrame02.h>
+#endif
 // #include <ExactFrame03.h>
 #include <stdlib.h>
 #include <vector>
@@ -72,14 +76,13 @@ CreateExactFrame(int tag,
           if (!exact_version) {
             element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
             return;
-          } else if (exact_version == 2) {
+          }
+#ifdef XARA_ExactFrame02
+          else if (exact_version == 2) {
             element = new ExactFrame02<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
             return;
           }
-          // else if (exact_version == 3 && nwm.value == 0) {
-          //   element = new ExactFrame03<nn.value>(tag, nodes, sections.data(), theTransf);
-          //   return;
-          // }
+#endif
         }
       });
     }
