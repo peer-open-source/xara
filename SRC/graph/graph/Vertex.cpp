@@ -33,15 +33,17 @@
 
 Vertex::Vertex(int tag, int ref, double weight, int color)
 :TaggedObject(tag), myRef(ref), myWeight(weight), myColor(color), 
- myDegree(0), myTmp(0), myAdjacency(0, 8)
+ myDegree(0), myTmp(0)
+ , myAdjacency(0, 8)
 {
 
-}    
+}
 
 
 Vertex::Vertex(const Vertex &other) 
 :TaggedObject(other.getTag()), myRef(other.myRef), myWeight(other.myWeight), myColor(other.myColor), 
- myDegree(other.myDegree), myTmp(0), myAdjacency(other.myAdjacency)
+ myDegree(other.myDegree), myTmp(0)
+ , myAdjacency(other.myAdjacency)
 {
 
 }
@@ -54,67 +56,67 @@ Vertex::~Vertex()
 void 
 Vertex::setWeight(double newWeight) 
 { 
-    myWeight = newWeight;
+  myWeight = newWeight;
 }
 
 void 
 Vertex::setColor(int newColor) 
 {
-    myColor = newColor;
+  myColor = newColor;
 }
 
 void 
 Vertex::setTmp(int newTmp) 
 {
-    myTmp = newTmp;
+  myTmp = newTmp;
 }
 
 int 
-Vertex::getRef(void) const 
+Vertex::getRef() const 
 {
-    return myRef;
+  return myRef;
 }
 
 double
-Vertex::getWeight(void) const 
+Vertex::getWeight() const 
 {
-    return myWeight;
+  return myWeight;
 }
 
 int 
-Vertex::getColor(void) const
+Vertex::getColor() const
 {
-    return myColor;
+  return myColor;
 }
 
 int 
-Vertex::getTmp(void) const
+Vertex::getTmp() const
 {
-    return myTmp;
+  return myTmp;
 }
 
 int 
 Vertex::addEdge(int otherTag)
 {
-    // don't allow itself to be added
-    if (otherTag == this->getTag())
-      return 0;
+  // don't allow itself to be added
+  if (otherTag == this->getTag())
+    return 0;
 
-    // check the otherVertex has not already been added
-    return myAdjacency.insert(otherTag);
+  // check the otherVertex has not already been added
+  return myAdjacency.insert(otherTag);
 }
 
 
 int 
-Vertex::getDegree(void) const
+Vertex::getDegree() const
 {
-    return myDegree;
+  return myDegree;
 }
 
 const ID &
-Vertex::getAdjacency(void) const
+Vertex::getAdjacency() const
 {
-    return myAdjacency;
+  return myAdjacency;
 }
 
 void
