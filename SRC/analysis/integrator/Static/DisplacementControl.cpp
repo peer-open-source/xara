@@ -36,7 +36,7 @@
 #include <LinearSOE.h>
 #include <Vector.h>
 #include <Channel.h>
-#include <math.h>
+#include <cmath>
 #include <Domain.h>
 #include <Node.h>
 #include <DOF_Group.h>
@@ -82,39 +82,38 @@ DisplacementControl::DisplacementControl(int node, int dof,
       specNumIncrStep = 1.0;
       numIncrLastStep = 1.0;
    }
-
 }
 
 DisplacementControl::~DisplacementControl()
 {
-    // delete any vector object created
-   if (deltaUhat != 0)
-      delete deltaUhat;
-   if (deltaU != 0)
-     delete deltaU;
-   if (deltaUstep != 0)
-     delete deltaUstep;
-   if (deltaUbar != 0)
-     delete deltaUbar;
-   if (phat != 0)
-     delete phat;
-   if(dUhatdh !=0)
-     delete dUhatdh;
-   if(dUIJdh !=0)
-     delete dUIJdh; 
-   if(Residual !=0)
-     delete Residual;
-   if(sensU !=0)
-     delete sensU;
-   if(Residual2 !=0)
-     delete Residual2;
-   if(dLAMBDAdh !=0) 
-     delete dLAMBDAdh;
-   if(dphatdh !=0)
-      delete dphatdh;
+  // delete any vector object created
+  if (deltaUhat != 0)
+    delete deltaUhat;
+  if (deltaU != 0)
+    delete deltaU;
+  if (deltaUstep != 0)
+    delete deltaUstep;
+  if (deltaUbar != 0)
+    delete deltaUbar;
+  if (phat != 0)
+    delete phat;
+  if(dUhatdh !=0)
+    delete dUhatdh;
+  if(dUIJdh !=0)
+    delete dUIJdh; 
+  if(Residual !=0)
+    delete Residual;
+  if(sensU !=0)
+    delete sensU;
+  if(Residual2 !=0)
+    delete Residual2;
+  if(dLAMBDAdh !=0) 
+    delete dLAMBDAdh;
+  if(dphatdh !=0)
+    delete dphatdh;
 
-   dLAMBDAdh=0;
-   dUhatdh=0;
+  dLAMBDAdh=0;
+  dUhatdh=0;
 }
  
 int
@@ -136,8 +135,8 @@ DisplacementControl::newStep()
   }
 
   // determine increment for this step
-  double gamma = 1.0;
-  double factor = pow(specNumIncrStep/numIncrLastStep, gamma);
+//   double gamma = 1.0;
+  double factor = double(specNumIncrStep)/numIncrLastStep;//std::pow(specNumIncrStep/numIncrLastStep, gamma);
   theIncrement *= factor;
 
   if (theIncrement < minIncrement)
@@ -182,8 +181,8 @@ DisplacementControl::newStep()
 
 
 
- if (this->activateSensitivity()==true) { 
-   Domain *theDomain=theModel->getDomainPtr();
+ if (this->activateSensitivity() == true) { 
+   // Domain *theDomain=theModel->getDomainPtr();
    ParameterIter &paramIter = theDomain->getParameters();
    Parameter *theParam;
 
@@ -298,10 +297,10 @@ DisplacementControl::domainChanged()
 
    if (deltaUhat == 0 || deltaUhat->Size() != size) {
       if (deltaUhat != 0)
-         delete deltaUhat;   // delete the old
+         delete deltaUhat;
       deltaUhat = new Vector(size);
    }
-  
+
    if (deltaUbar == 0 || deltaUbar->Size() != size) {
       if (deltaUbar != 0)
          delete deltaUbar;   // delete the old
@@ -360,10 +359,10 @@ DisplacementControl::domainChanged()
       if (sensU != nullptr)
          delete sensU;  
       sensU = new Vector(size);
-   } 
+   }
 
 
-   Domain *theDomain = theModel->getDomainPtr();//Abbas
+   // Domain *theDomain = theModel->getDomainPtr();
    int numGrads = theDomain->getNumParameters();
 
    if (dLAMBDAdh == 0 || dLAMBDAdh->Size() != (numGrads)) { 
@@ -414,9 +413,9 @@ DisplacementControl::domainChanged()
    return 0;
 }
 
+
 int
-DisplacementControl::sendSelf(int cTag,
-      Channel &theChannel)
+DisplacementControl::sendSelf(int cTag, Channel &theChannel)
 {
    // TODO: sendSelf
    return 0;
@@ -424,24 +423,28 @@ DisplacementControl::sendSelf(int cTag,
 
 
 int
-DisplacementControl::recvSelf(int cTag,
-      Channel &theChannel, FEM_ObjectBroker &theBroker)
+DisplacementControl::recvSelf(int cTag,  Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-   // TODO: recvSelf
    return 0;
 }
 
 void
 DisplacementControl::Print(OPS_Stream &s, int flag)
 {
-   // TODO: Print
+   s << "DisplacementControl -  node: " << theNode;
+   s << " dof: " << theDof+1;
+   s << " increment: " << theIncrement;
+   s << " numIncr: " << specNumIncrStep;
+   s << " min: " << minIncrement;
+   s << " max: " << maxIncrement;
+   s << "\n";
 }
 
 
 ///////////////////////////Sensitivity Begin///////////////////////////////////
 //Added by Abbas
 //obtain the derivative of the tangent displacement (dUhatdh)
-   Vector *
+Vector*
 DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
 {
    LinearSOE *theLinSOE = this->getLinearSOE(); 
@@ -483,19 +486,15 @@ DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
    int nodeNumber, dofNumber, relevantID, i, sizeRandomLoads, numRandomLoads;
    
    LoadPattern *loadPatternPtr;
-   AnalysisModel *theModel = this->getAnalysisModel();
-   Domain *theDomain = theModel->getDomainPtr();
    LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
   
    while ((loadPatternPtr = thePatterns()) != nullptr) {
      const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
       sizeRandomLoads = randomLoads.Size();
       if (sizeRandomLoads == 1) {
-         // No random loads in this load pattern
-
+         ; // No random loads in this load pattern
       }
       else {
-        // opserr<<"there is sensitivity load parameter"<<endln;//Abbas.............
          // Random loads: add contributions to the 'B' vector
          numRandomLoads = (int)(sizeRandomLoads/2);
          for (i=0; i<numRandomLoads*2; i=i+2) {
@@ -514,12 +513,12 @@ DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
       }
    }
 
- if(theLinSOE->solve()<0) {
-   opserr<<"SOE failed to obtained dUhatdh ";
-   exit(-1);
- }
+   if(theLinSOE->solve()<0) {
+      opserr<<"SOE failed to obtained dUhatdh ";
+      exit(-1);
+   }
 
-    (*dUhatdh)=theLinSOE->getX();
+   (*dUhatdh)=theLinSOE->getX();
 
 
 /////////////////////////////////////////////////////////
