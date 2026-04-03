@@ -728,8 +728,6 @@ static EquiSolnAlgo *
 G3_newBroyden(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
               TCL_Char ** const argv)
 {
-  assert(clientData != nullptr);
-  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
 
   int correction_tangent = CURRENT_TANGENT;
   int count = -1;
