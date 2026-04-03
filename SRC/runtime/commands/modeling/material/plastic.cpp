@@ -781,7 +781,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
   }
 
-  else if (strcmp(argv[1], "J2BeamFiber") == 0) {
+  else if ((strcmp(argv[1], "J2BeamFiber") == 0) && (getenv("XARA_STATIC_MATERIALS") != nullptr)) {
     NDMaterial* theMaterial = nullptr;
     if (builder->getNDM() == 2)
       theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
@@ -794,7 +794,8 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
     }
     return TCL_OK;
   }
-  else if (strcmp(argv[1], "J2BeamThread") == 0) {
+  else if ((strcmp(argv[1], "J2BeamThread") == 0) ||
+           (strcmp(argv[1], "J2BeamFiber") == 0)) {
     NDMaterial* theMaterial = nullptr;
     if (builder->getNDM() == 2)
       theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
