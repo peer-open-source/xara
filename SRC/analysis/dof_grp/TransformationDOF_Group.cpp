@@ -93,14 +93,6 @@ if (sp->getNodeTag() == nodeTag) {
   modID = new ID(modNumDOF);
   Trans = new Matrix(numNodalDOF, modNumDOF);
 
-  if (modID == 0 || modID->Size() == 0 ||
-    Trans == 0 || Trans->noRows() == 0) {
-    
-    opserr << "FATAL TransformationDOF_Group::TransformationDOF_Group() -";
-    opserr << " ran out of memory for size: " << modNumDOF << endln;
-    exit(-1);
-  }
-
   // initially set the id values to -2 for any dof still due to constrained node
   for (int i=0; i<numConstrainedNodeRetainedDOF; i++)
     (*modID)(i) = -2;
@@ -118,51 +110,34 @@ if (sp->getNodeTag() == nodeTag) {
   // create the arrays used to store pointers to class wide
   // matrix and vector objects used to return modTangent and residual
   if (numTransDOFs == 0) {
-    modMatrices = new Matrix *[MAX_NUM_DOF+1];
-    modVectors  = new Vector *[MAX_NUM_DOF+1];
-    
-    if (modMatrices == 0 || modVectors == 0) {
-        opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
-        opserr << " ran out of memory";	    
-    }
+    modMatrices = new Matrix *[MAX_NUM_DOF];
+    modVectors  = new Vector *[MAX_NUM_DOF];
+
     for (int i=0; i<MAX_NUM_DOF; i++) {
-        modMatrices[i] = 0;
-        modVectors[i] = 0;
+        modMatrices[i] = nullptr;
+        modVectors[i] = nullptr;
     }
   }
 
   // set the pointers for the modTangent and residual
-  if (modNumDOF <= MAX_NUM_DOF) {
+  if (modNumDOF < MAX_NUM_DOF) {
     // use class wide objects
-    if (modVectors[modNumDOF] == 0) {
+    if (modVectors[modNumDOF] == nullptr) {
 	    // have to create matrix and vector of size as none yet created
 	    modVectors[modNumDOF] = new Vector(modNumDOF);
 	    modMatrices[modNumDOF] = new Matrix(modNumDOF,modNumDOF);
 	    modUnbalance = modVectors[modNumDOF];
 	    modTangent = modMatrices[modNumDOF];
-	    if (modUnbalance == 0 || modUnbalance->Size() != modNumDOF ||	
-        modTangent == 0 || modTangent->noCols() != modNumDOF)	{  
-        opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
-        opserr << " ran out of memory for vector/Matrix of size :";
-        opserr << modNumDOF << endln;
-        exit(-1);
-	    }
-    } else {
-        modUnbalance = modVectors[modNumDOF];
-        modTangent = modMatrices[modNumDOF];
     }
-  } else {
+    else {
+      modUnbalance = modVectors[modNumDOF];
+      modTangent = modMatrices[modNumDOF];
+    }
+  }
+  else {
     // create matrices and vectors for each object instance
     modUnbalance = new Vector(modNumDOF);
     modTangent = new Matrix(modNumDOF, modNumDOF);
-    if (modUnbalance == 0 || modTangent ==0 ||
-        modTangent ==0 || modTangent->noRows() ==0) {
-        
-        opserr << "TransformationDOF_Group::TransformationDOF_Group(Node *) ";
-        opserr << " ran out of memory for vector/Matrix of size :";
-        opserr << modNumDOF << endln;
-        exit(-1);
-    }
   }
 
 #ifdef TRANSF_INCREMENTAL_MP
@@ -177,11 +152,10 @@ if (sp->getNodeTag() == nodeTag) {
 void 
 TransformationDOF_Group::setID(int dof, int value)
 {
-    if (theMP == 0)
-	this->DOF_Group::setID(dof,value);
-
-    else
-	(*modID)(dof) = value;
+  if (theMP == 0)
+    this->DOF_Group::setID(dof,value);
+  else
+    (*modID)(dof) = value;
 }
 	
 
@@ -236,46 +210,45 @@ TransformationDOF_Group::TransformationDOF_Group(int tag,
     theHandler = theTHandler;
 }
 
-
-// ~TransformationDOF_Group();    
+  
 //	destructor.
 
 TransformationDOF_Group::~TransformationDOF_Group()
 {
-    numTransDOFs--;
+  numTransDOFs--;
 
-    // delete modTangent and residual if created specially
-    if (modNumDOF > MAX_NUM_DOF) {
-	if (modTangent != 0) delete modTangent;
-	if (modUnbalance != 0) delete modUnbalance;
-    }
-    
-    if (modID != 0) delete modID;
-    if (Trans != 0) delete Trans;
-    if (theSPs != 0) delete [] theSPs;
+  // delete modTangent and residual if created specially
+  if (modNumDOF > MAX_NUM_DOF) {
+    if (modTangent != 0) delete modTangent;
+    if (modUnbalance != 0) delete modUnbalance;
+  }
+  
+  if (modID != 0) delete modID;
+  if (Trans != 0) delete Trans;
+  if (theSPs != 0) delete [] theSPs;
 
-    // if this is the last FE_Element, clean up the
-    // storage for the matrix and vector objects
-    if (numTransDOFs == 0) {
-	for (int i=0; i<MAX_NUM_DOF; i++) {
-	    if (modVectors[i] != 0)
-		delete modVectors[i];
-	    if (modMatrices[i] != 0)
-		delete modMatrices[i];
-	}	
-	delete [] modMatrices;
-	delete [] modVectors;
-    }    
+  // if this is the last FE_Element, clean up the
+  // storage for the matrix and vector objects
+  if (numTransDOFs == 0) {
+    for (int i=0; i<MAX_NUM_DOF; i++) {
+      if (modVectors[i] != nullptr)
+        delete modVectors[i];
+      if (modMatrices[i] != nullptr)
+        delete modMatrices[i];
+    }	
+    delete [] modMatrices;
+    delete [] modVectors;
+  }
 }    
 
 
 const ID &
-TransformationDOF_Group::getID(void) const
+TransformationDOF_Group::getID() const
 {
-  if (modID != 0) 
-	return *modID;
-    else
-	return this->DOF_Group::getID();
+  if (modID != 0)
+    return *modID;
+  else
+    return this->DOF_Group::getID();
 }
 
 int
