@@ -225,10 +225,9 @@ TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
   if (material == nullptr) {
     return TCL_ERROR;
   }
-  auto fiber_section = new FrameFiberSection3d(tag, 1, 
-                                               nullptr, 
-                                               true, 
-                                               0.0, 
+  auto fiber_section = new FrameFiberSection3d(tag, 1,
+                                               Frame::Shape(1,1),
+                                               0.0,
                                                false);
   fiber_section->addFiber(*material, area, 0.0, 0.0);
   return builder->addTaggedObject<FrameSection>(*fiber_section);
@@ -507,7 +506,8 @@ struct FiberSectionConfig {
   bool computeCentroid = true;
   bool use_twist = false;
   bool use_density = false;
-  int reserve = 30;
+  int  reserve = 30;
+  bool wagner = false;
 };
 
 
@@ -594,17 +594,17 @@ initSectionCommands(ClientData clientData,
 
     if (options.isND) {
       if (options.isMixed) {
-        auto sec = new MixedFrameSection(secTag, options.reserve, shape_data.mixed_form);
+        auto sec = new MixedFrameSection(secTag, options.reserve, shape_data.mixed_form, options.wagner);
         sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
         section = sec;
       }
       else if (options.isNew) {
-        if (getenv("XARA_FIBER_THREADS")) {
-          auto sec = new MixedFrameSection(secTag, options.reserve, shape_data.mixed_form);
+        if (!getenv("XARA_OLD_WARP")) {
+          auto sec = new MixedFrameSection(secTag, options.reserve, shape_data.mixed_form, options.wagner);
           sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
           section = sec;
         } else {
-          auto sec = new FrameTraceSection3d(secTag, options.reserve);
+          auto sec = new FrameTraceSection3d(secTag, options.reserve, options.wagner);
           sbuilder = new FiberSectionBuilder<3, NDMaterial, FrameTraceSection3d>(*builder, *sec);
           section = sec;
           // auto sec = new FrameSolidSection3d(secTag, options.reserve);
@@ -620,8 +620,8 @@ initSectionCommands(ClientData clientData,
         sbuilder = new FiberSectionBuilder<3, NDMaterial, NDFiberSection3d>(*builder, *sec);
         section = sec;
       }
-    } else {
-
+    } 
+    else {
 
       if (options.isThermal) {
         if (theTorsion == nullptr) {
@@ -650,8 +650,9 @@ initSectionCommands(ClientData clientData,
           return TCL_ERROR;
         }
         if (options.isNew) {
-          auto sec = new FrameFiberSection3d(secTag, 30,  theTorsion,
-                                             options.computeCentroid, 
+          auto sec = new FrameFiberSection3d(secTag, 
+                                             30,
+                                             shape_data,
                                              *shape_data.density, 
                                              options.use_density);
           sbuilder = new FiberSectionBuilder<3, UniaxialMaterial, FrameFiberSection3d>(*builder, *sec);
@@ -815,6 +816,8 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   // FiberSectionData data;
   Frame::Shape shape_data(builder->getNDM(), builder->getNDF());
 
+  bool shape_done = false;
+
   if (builder->getNDF() <= 6)
     shape_data.mixed_form = MixedFrameSection::MixedType::UT;//Energetic;
   else 
@@ -832,6 +835,11 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
 
     if (strcmp(argv[iarg], "-noCentroid") == 0) {
       options.computeCentroid = false;
+      iarg += 1;
+    }
+
+    else if (strcmp(argv[iarg], "-wagner") == 0) {
+      options.wagner = true;
       iarg += 1;
     }
 
@@ -900,6 +908,8 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
         shape_data.mixed_form = MixedFrameSection::MixedType::Constant;
       } else if (strcmp(argv[iarg + 1],  "UT") == 0) {
         shape_data.mixed_form = MixedFrameSection::MixedType::UT;
+      } else if (strcmp(argv[iarg + 1],  "U02") == 0) {
+        shape_data.mixed_form = MixedFrameSection::MixedType::U02;
       } else if ((strcmp(argv[iarg + 1], "energetic") == 0) || 
                  (strcmp(argv[iarg + 1], "UE") == 0) ) {
         shape_data.mixed_form = MixedFrameSection::MixedType::Energetic;
