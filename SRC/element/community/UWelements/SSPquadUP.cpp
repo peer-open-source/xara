@@ -206,12 +206,6 @@ SSPquadUP::SSPquadUP(int tag, int Nd1, int Nd2, int Nd3, int Nd4, NDMaterial &th
     } else {
         opserr << "SSPquadUP::SSPquadUP - failed to get copy of material model\n";;
     }
-
-    // check material
-    if (theMaterial == 0) {
-        opserr << "SSPquadUP::SSPquadUP - failed to allocate material model pointer\n";
-        exit(-1);
-    }
 }
 
 // null constructor
