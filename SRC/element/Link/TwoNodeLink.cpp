@@ -43,36 +43,38 @@
 
 
 TwoNodeLink::TwoNodeLink(int tag, int dim, 
-    int Nd1, int Nd2, 
-    const ID &direction, 
-    UniaxialMaterial **materials,
-    const Vector3D &y, const Vector3D &x, 
-    const Vector Mr,
-    const Vector sdI, int addRay, double mass)
-  : Element(tag, ELE_TAG_TwoNodeLink),
-    numDIM(dim), numDOF(0), connectedExternalNodes(2),
-    theMaterials(0), numDIR(direction.Size()), dir(0), trans(3,3),
-    x(x), y(y)
-  , Mratio(Mr), shearDistI(sdI), addRayleigh(addRay),
-    mass(mass), L(0.0), 
-    onP0(true),
-    ub(0), ubdot(0), qb(0), ul(0),
-    Tgl(0,0), Tlb(0,0)
+                        int Nd1, int Nd2, 
+                        const ID &direction, 
+                        UniaxialMaterial **materials,
+                        const Matrix3D& T,
+                        const Vector Mr,
+                        const Vector sdI, 
+                        int addRay, 
+                        double mass)
+  : Element(tag, ELE_TAG_TwoNodeLink)
+  , numDIM(dim), numDOF(0), connectedExternalNodes(2)
+  , theMaterials(0), numDIR(direction.Size()), dir(0)
+  , trans(T)
+  , Mratio(Mr), shearDistI(sdI)
+  , addRayleigh(addRay)
+  , mass(mass), L(0.0)
+  , onP0(true)
+  , ub(0), ubdot(0), qb(0), ul(0)
+  , Tgl(0,0), Tlb(0,0)
   , theMatrix(0), theVector(0), theLoad(0)
 {
   assert(materials != nullptr);
 
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
-  
-  // set node pointers to NULL
+
   for (int i=0; i<2; i++)
-    theNodes[i] = 0;
+    theNodes[i] = nullptr;
   
   // check the number of directions
   if (numDIR < 1 || numDIR > 6)  {
     opserr << "TwoNodeLink::TwoNodeLink() - element: "
-        << this->getTag() << " wrong number of directions\n";
+           << this->getTag() << " wrong number of directions\n";
     exit(-1);
   }
   
@@ -84,13 +86,13 @@ TwoNodeLink::TwoNodeLink(int tag, int dim,
 
   for (int i=0; i<numDIR; i++)  {
     if ((*dir)(i) < 0 ||
-        (numDIM == 1 && (*dir)(i) > 0) ||
-        (numDIM == 2 && (*dir)(i) > 2) ||
-        (numDIM == 3 && (*dir)(i) > 5))  {
-        opserr << "TwoNodeLink::TwoNodeLink() - "
-            << "incorrect direction " << (*dir)(i)
-            << " is set to 0\n";
-        (*dir)(i) = 0;
+      (numDIM == 1 && (*dir)(i) > 0) ||
+      (numDIM == 2 && (*dir)(i) > 2) ||
+      (numDIM == 3 && (*dir)(i) > 5))  {
+      opserr << "TwoNodeLink::TwoNodeLink() - "
+          << "incorrect direction " << (*dir)(i)
+          << " is set to 0\n";
+      (*dir)(i) = 0;
     }
   }
   
@@ -111,37 +113,37 @@ TwoNodeLink::TwoNodeLink(int tag, int dim,
         exit(-1);
     }
     if (Mratio(0)+Mratio(1) > 1.0)  {
-        opserr << "TwoNodeLink::TwoNodeLink() - "
-            << "incorrect p-delta moment ratios:\nrMy1 + rMy2 = "
-            << Mratio(0)+Mratio(1) << " > 1.0\n";
-        exit(-1);
+      opserr << "TwoNodeLink::TwoNodeLink() - "
+          << "incorrect p-delta moment ratios:\nrMy1 + rMy2 = "
+          << Mratio(0)+Mratio(1) << " > 1.0\n";
+      exit(-1);
     }
     if (Mratio(2)+Mratio(3) > 1.0)  {
-        opserr << "TwoNodeLink::TwoNodeLink() - "
-            << "incorrect p-delta moment ratios:\nrMz1 + rMz2 = "
-            << Mratio(2)+Mratio(3) << " > 1.0\n";
-        exit(-1);
+      opserr << "TwoNodeLink::TwoNodeLink() - "
+          << "incorrect p-delta moment ratios:\nrMz1 + rMz2 = "
+          << Mratio(2)+Mratio(3) << " > 1.0\n";
+      exit(-1);
     }
   }
 
   // check or initialize shear distance ratios
   if (shearDistI.Size() == 2)  {
     if (shearDistI(0) < 0.0 || shearDistI(0) > 1.0)  {
-        opserr << "TwoNodeLink::TwoNodeLink() - "
-            << "incorrect shear distance ratio:\n shearDistIy = "
-            << shearDistI(0) << " < 0.0 or > 1.0\n";
-        exit(-1);
+      opserr << "TwoNodeLink::TwoNodeLink() - "
+          << "incorrect shear distance ratio:\n shearDistIy = "
+          << shearDistI(0) << " < 0.0 or > 1.0\n";
+      exit(-1);
     }
     if (shearDistI(1) < 0.0 || shearDistI(1) > 1.0)  {
-        opserr << "TwoNodeLink::TwoNodeLink() - "
-            << "incorrect shear distance ratio:\n shearDistIz = "
-            << shearDistI(1) << " < 0.0 or > 1.0\n";
-        exit(-1);
+      opserr << "TwoNodeLink::TwoNodeLink() - "
+          << "incorrect shear distance ratio:\n shearDistIz = "
+          << shearDistI(1) << " < 0.0 or > 1.0\n";
+      exit(-1);
     }
   } else  {
-      shearDistI.resize(2);
-      shearDistI(0) = 0.5;
-      shearDistI(1) = 0.5;
+    shearDistI.resize(2);
+    shearDistI(0) = 0.5;
+    shearDistI(1) = 0.5;
   }
   
   // initialize response vectors in basic system
@@ -155,10 +157,12 @@ TwoNodeLink::TwoNodeLink(int tag, int dim,
 TwoNodeLink::TwoNodeLink()
   : Element(0, ELE_TAG_TwoNodeLink),
     numDIM(0), numDOF(0), connectedExternalNodes(2),
-    theMaterials(0), numDIR(0), dir(0), trans(3,3)
-    , x{}, y{},
-    Mratio(0), shearDistI(0), addRayleigh(0), mass(0.0), L(0.0),
-    onP0(false), ub(0), ubdot(0), qb(0), ul(0), Tgl(0,0), Tlb(0,0),
+    theMaterials(0), numDIR(0), dir(0)
+  , trans{}
+  , Mratio(0), shearDistI(0)
+  , addRayleigh(0), mass(0.0)
+  , L(0.0)
+  , onP0(false), ub(0), ubdot(0), qb(0), ul(0), Tgl(0,0), Tlb(0,0),
     theMatrix(0), theVector(0), theLoad(0)
 {    
   // set node pointers to NULL
@@ -173,16 +177,16 @@ TwoNodeLink::~TwoNodeLink()
   // invoke the destructor on any objects created by the object
   // that the object still holds a pointer to
   if (dir != nullptr)
-      delete dir;
+    delete dir;
 
   if (theLoad != nullptr)
-      delete theLoad;
+    delete theLoad;
   
   // delete the materials
   if (theMaterials != nullptr)  {
     for (int i=0; i<numDIR; i++)
-        if (theMaterials[i] != 0)
-            delete theMaterials[i];
+      if (theMaterials[i] != nullptr)
+        delete theMaterials[i];
     delete [] theMaterials;
   }
 }
@@ -221,9 +225,9 @@ TwoNodeLink::setDomain(Domain *theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
   if (theDomain == nullptr)  {
-      theNodes[0] = nullptr;
-      theNodes[1] = nullptr;
-      return;
+    theNodes[0] = nullptr;
+    theNodes[1] = nullptr;
+    return;
   }
   
   static Matrix TwoNodeLinkM2( 2, 2);   // class wide matrix for 2*2
@@ -311,8 +315,10 @@ TwoNodeLink::setDomain(Domain *theDomain)
   }
   
   // setup the transformation matrix for orientation
-  this->setUp();
-  
+  const Vector &end1Crd = theNodes[0]->getCrds();
+  const Vector &end2Crd = theNodes[1]->getCrds();	
+  Vector xp = end2Crd - end1Crd;
+  L = xp.Norm();
   // set transformation matrix from global to local system
   this->setTranGlobalLocal();
   
@@ -367,7 +373,8 @@ TwoNodeLink::revertToStart()
 }
 
 
-int TwoNodeLink::update()
+int
+TwoNodeLink::update()
 {
   int errCode = 0;
   
@@ -405,23 +412,24 @@ int TwoNodeLink::update()
 const Matrix&
 TwoNodeLink::getTangentStiff()
 {
+  static double kb_data[36], kl_data[144], kg_data[144];
   // zero the matrix
   theMatrix->Zero();
-  
+
   // get resisting force and stiffness
-  Matrix kb(numDIR,numDIR);
+  Matrix kb(kb_data,numDIR,numDIR);
   for (int i=0; i<numDIR; i++)  {
     qb(i) = theMaterials[i]->getStress();
     kb(i,i) = theMaterials[i]->getTangent();
   }
   
   // transform stiffness from basic to local system
-  Matrix kl(numDOF,numDOF);
+  Matrix kl(kl_data,numDOF,numDOF);
   kl.addMatrixTripleProduct(0.0, Tlb, kb, 1.0);
   
   // add P-Delta effects to local stiffness
   if (Mratio.Size() == 4)
-      this->addPDeltaStiff(kl, qb);
+    this->addPDeltaStiff(kl, qb);
   
   // transform stiffness from local to global system
   theMatrix->addMatrixTripleProduct(0.0, Tgl, kl, 1.0);
@@ -442,7 +450,7 @@ TwoNodeLink::getInitialStiff()
   // get initial stiffness
   Matrix kbInit(numDIR,numDIR);
   for (int i=0; i<numDIR; i++)  {
-      kbInit(i,i) = theMaterials[i]->getInitialTangent();
+    kbInit(i,i) = theMaterials[i]->getInitialTangent();
   }
   
   // transform stiffness from basic to local system
@@ -512,7 +520,8 @@ TwoNodeLink::getMass()
 }
 
 
-void TwoNodeLink::zeroLoad()
+void 
+TwoNodeLink::zeroLoad()
 {
   theLoad->Zero();
 }
@@ -529,11 +538,12 @@ TwoNodeLink::addLoad(ElementalLoad *theLoad, double loadFactor)
 }
 
 
-int TwoNodeLink::addInertiaLoadToUnbalance(const Vector &accel)
+int 
+TwoNodeLink::addInertiaLoadToUnbalance(const Vector &accel)
 {
   // check for quick return
   if (mass == 0.0)  {
-      return 0;
+    return 0;
   }
   
   // get R * accel from the nodes
@@ -542,9 +552,9 @@ int TwoNodeLink::addInertiaLoadToUnbalance(const Vector &accel)
   
   int numDOF2 = numDOF/2;
   if (numDOF2 != Raccel1.Size() || numDOF2 != Raccel2.Size())  {
-      opserr << "TwoNodeLink::addInertiaLoadToUnbalance() - "
-          << "matrix and vector sizes are incompatible\n";
-      return -1;
+    opserr << "TwoNodeLink::addInertiaLoadToUnbalance() - "
+        << "matrix and vector sizes are incompatible\n";
+    return -1;
   }
   
   // want to add ( - fact * M R * accel ) to unbalance
@@ -562,25 +572,25 @@ int TwoNodeLink::addInertiaLoadToUnbalance(const Vector &accel)
 const Vector&
 TwoNodeLink::getResistingForce()
 {
-    // zero the residual
-    theVector->Zero();
-    
-    // get resisting force
-    for (int i=0; i<numDIR; i++)
-        qb(i) = theMaterials[i]->getStress();
-    
-    // determine resisting force in local system
-    Vector ql(numDOF);
-    ql.addMatrixTransposeVector(0.0, Tlb, qb, 1.0);
-    
-    // add P-Delta effects to local force
-    if (Mratio.Size() == 4)
-        this->addPDeltaForces(ql, qb);
-    
-    // determine resisting force in global system
-    theVector->addMatrixTransposeVector(0.0, Tgl, ql, 1.0);
-    
-    return *theVector;
+  // zero the residual
+  theVector->Zero();
+  
+  // get resisting force
+  for (int i=0; i<numDIR; i++)
+    qb(i) = theMaterials[i]->getStress();
+
+  // determine resisting force in local system
+  Vector ql(numDOF);
+  ql.addMatrixTransposeVector(0.0, Tlb, qb, 1.0);
+  
+  // add P-Delta effects to local force
+  if (Mratio.Size() == 4)
+      this->addPDeltaForces(ql, qb);
+  
+  // determine resisting force in global system
+  theVector->addMatrixTransposeVector(0.0, Tgl, ql, 1.0);
+
+  return *theVector;
 }
 
 
@@ -616,179 +626,172 @@ TwoNodeLink::getResistingForceIncInertia()
 }
 
 
-int TwoNodeLink::sendSelf(int commitTag, Channel &sChannel)
+int
+TwoNodeLink::sendSelf(int commitTag, Channel &sChannel)
 {
-    // send element parameters
-    static Vector data(14);
-    data(0) = this->getTag();
-    data(1) = numDIM;
-    data(2) = numDOF;
-    data(3) = numDIR;
-    data(4) = 3;
-    data(5) = 3;
-    data(6) = Mratio.Size();
-    data(7) = shearDistI.Size();
-    data(8) = addRayleigh;
-    data(9) = mass;
-    data(10) = alphaM;
-    data(11) = betaK;
-    data(12) = betaK0;
-    data(13) = betaKc;
-    sChannel.sendVector(0, commitTag, data);
-    
-    // send the two end nodes
-    sChannel.sendID(0, commitTag, connectedExternalNodes);
-    
-    // send the direction array
-    sChannel.sendID(0, commitTag, *dir);
-    
-    // send the material class tags
-    ID matClassTags(numDIR);
-    for (int i=0; i<numDIR; i++)
-        matClassTags(i) = theMaterials[i]->getClassTag();
-    sChannel.sendID(0, commitTag, matClassTags);
-    
-    // send the material models
-    for (int i=0; i<numDIR; i++)
-        theMaterials[i]->sendSelf(commitTag, sChannel);
-    
-    // send remaining data
-    sChannel.sendVector(0, commitTag, x);
-    sChannel.sendVector(0, commitTag, y);
-    if (Mratio.Size() == 4)
-        sChannel.sendVector(0, commitTag, Mratio);
-    if (shearDistI.Size() == 2)
-        sChannel.sendVector(0, commitTag, shearDistI);
-    
-    return 0;
+  // send element parameters
+  static Vector data(14);
+  data(0) = this->getTag();
+  data(1) = numDIM;
+  data(2) = numDOF;
+  data(3) = numDIR;
+  data(4) = 3;
+  data(5) = 3;
+  data(6) = Mratio.Size();
+  data(7) = shearDistI.Size();
+  data(8) = addRayleigh;
+  data(9) = mass;
+  data(10) = alphaM;
+  data(11) = betaK;
+  data(12) = betaK0;
+  data(13) = betaKc;
+  sChannel.sendVector(0, commitTag, data);
+  
+  // send the two end nodes
+  sChannel.sendID(0, commitTag, connectedExternalNodes);
+  
+  // send the direction array
+  sChannel.sendID(0, commitTag, *dir);
+  
+  // send the material class tags
+  ID matClassTags(numDIR);
+  for (int i=0; i<numDIR; i++)
+      matClassTags(i) = theMaterials[i]->getClassTag();
+  sChannel.sendID(0, commitTag, matClassTags);
+  
+  // send the material models
+  for (int i=0; i<numDIR; i++)
+      theMaterials[i]->sendSelf(commitTag, sChannel);
+  
+  // send remaining data
+  // sChannel.sendVector(0, commitTag, x);
+  // sChannel.sendVector(0, commitTag, y);
+  if (Mratio.Size() == 4)
+      sChannel.sendVector(0, commitTag, Mratio);
+  if (shearDistI.Size() == 2)
+      sChannel.sendVector(0, commitTag, shearDistI);
+  
+  return 0;
 }
 
 
 int
-TwoNodeLink::recvSelf(int commitTag, Channel &rChannel,
-    FEM_ObjectBroker &theBroker)
+TwoNodeLink::recvSelf(int commitTag, Channel &rChannel, FEM_ObjectBroker &theBroker)
 {
-    // delete dynamic memory
-    if (dir != 0)
-        delete dir;
-    if (theMaterials != 0)  {
-        for (int i=0; i<numDIR; i++)
-            if (theMaterials[i] != 0)
-                delete theMaterials[i];
-        delete [] theMaterials;
+  // delete dynamic memory
+  if (dir != 0)
+    delete dir;
+
+  if (theMaterials != 0)  {
+    for (int i=0; i<numDIR; i++)
+      if (theMaterials[i] != 0)
+          delete theMaterials[i];
+    delete [] theMaterials;
+  }
+  
+  // receive element parameters
+  static Vector data(14);
+  rChannel.recvVector(0, commitTag, data);
+  this->setTag((int)data(0));
+  numDIM = (int)data(1);
+  numDOF = (int)data(2);
+  numDIR = (int)data(3);
+  addRayleigh = (int)data(8);
+  mass = data(9);
+  alphaM = data(10);
+  betaK = data(11);
+  betaK0 = data(12);
+  betaKc = data(13);
+  
+  // receive the two end nodes
+  rChannel.recvID(0, commitTag, connectedExternalNodes);
+  
+  // allocate memory for direction array and receive it
+  dir = new ID(numDIR);
+  rChannel.recvID(0, commitTag, *dir);
+  
+  // receive the material class tags
+  ID matClassTags(numDIR);
+  rChannel.recvID(0, commitTag, matClassTags);
+  
+  // allocate memory for the uniaxial materials
+  theMaterials = new UniaxialMaterial* [numDIR];
+  // receive the material models
+  for (int i=0; i<numDIR; i++)  {
+    theMaterials[i] = theBroker.getNewUniaxialMaterial(matClassTags(i));
+    if (theMaterials[i] == 0) {
+      opserr << "TwoNodeLink::recvSelf() - "
+          << "failed to get blank uniaxial material.\n";
+      return -3;
     }
-    
-    // receive element parameters
-    static Vector data(14);
-    rChannel.recvVector(0, commitTag, data);
-    this->setTag((int)data(0));
-    numDIM = (int)data(1);
-    numDOF = (int)data(2);
-    numDIR = (int)data(3);
-    addRayleigh = (int)data(8);
-    mass = data(9);
-    alphaM = data(10);
-    betaK = data(11);
-    betaK0 = data(12);
-    betaKc = data(13);
-   
-    // receive the two end nodes
-    rChannel.recvID(0, commitTag, connectedExternalNodes);
-    
-    // allocate memory for direction array and receive it
-    dir = new ID(numDIR);
-    if (dir == 0)  {
-        opserr << "TwoNodeLink::recvSelf() - "
-            << "failed to create direction array\n";
-        return -1;
-    }
-    rChannel.recvID(0, commitTag, *dir);
-    
-    // receive the material class tags
-    ID matClassTags(numDIR);
-    rChannel.recvID(0, commitTag, matClassTags);
-    
-    // allocate memory for the uniaxial materials
-    theMaterials = new UniaxialMaterial* [numDIR];
-    if (theMaterials == 0)  {
-        opserr << "TwoNodeLink::recvSelf() - "
-            << "failed to allocate pointers for uniaxial materials.\n";
-        return -2;
-    }
-    // receive the material models
-    for (int i=0; i<numDIR; i++)  {
-        theMaterials[i] = theBroker.getNewUniaxialMaterial(matClassTags(i));
-        if (theMaterials[i] == 0) {
-            opserr << "TwoNodeLink::recvSelf() - "
-                << "failed to get blank uniaxial material.\n";
-            return -3;
-        }
-        theMaterials[i]->recvSelf(commitTag, rChannel, theBroker);
-    }
-    
-    // receive remaining data
-    if ((int)data(4) == 3)  {
-        Vector wrapper(x);
-        rChannel.recvVector(0, commitTag, wrapper);
-    }
-    if ((int)data(5) == 3)  {
-        Vector wrapper(y);
-        rChannel.recvVector(0, commitTag, wrapper);
-    }
-    if ((int)data(6) == 4)  {
-        Mratio.resize(4);
-        rChannel.recvVector(0, commitTag, Mratio);
-        // check p-delta moment distribution ratios
-        if (Mratio(0) < 0.0 || Mratio(1) < 0.0 ||
-            Mratio(2) < 0.0 || Mratio(3) < 0.0) {
-            opserr << "TwoNodeLink::recvSelf() - "
-                << "p-delta moment ratios can not be negative\n";
-            return -4;
-        }
-        if (Mratio(0)+Mratio(1) > 1.0)  {
-            opserr << "TwoNodeLink::recvSelf() - "
-                << "incorrect p-delta moment ratios:\nrMy1 + rMy2 = "
-                << Mratio(0)+Mratio(1) << " > 1.0\n";
-            return -4;
-        }
-        if (Mratio(2)+Mratio(3) > 1.0)  {
-            opserr << "TwoNodeLink::recvSelf() - "
-                << "incorrect p-delta moment ratios:\nrMz1 + rMz2 = "
-                << Mratio(2)+Mratio(3) << " > 1.0\n";
-            return -4;
-        }
-    }
-    if ((int)data(7) == 2)  {
-        shearDistI.resize(2);
-        rChannel.recvVector(0, commitTag, shearDistI);
-        // check shear distance ratios
-        if (shearDistI(0) < 0.0 || shearDistI(0) > 1.0)  {
-            opserr << "TwoNodeLink::recvSelf() - "
-                << "incorrect shear distance ratio:\n shearDistIy = "
-                << shearDistI(0) << " < 0.0 or > 1.0\n";
-            return -5;
-        }
-        if (shearDistI(1) < 0.0 || shearDistI(1) > 1.0)  {
-            opserr << "TwoNodeLink::recvSelf() - "
-                << "incorrect shear distance ratio:\n shearDistIz = "
-                << shearDistI(1) << " < 0.0 or > 1.0\n";
-            return -5;
-        }
-    } else  {
-        // initialize shear distance ratios
-        shearDistI.resize(2);
-        shearDistI(0) = 0.5;
-        shearDistI(1) = 0.5;
-    }
-    onP0 = false;
-    
-    // initialize response vectors in basic system
-    ub.resize(numDIR);
-    ubdot.resize(numDIR);
-    qb.resize(numDIR);
-    this->revertToStart();
-    
-    return 0;
+    theMaterials[i]->recvSelf(commitTag, rChannel, theBroker);
+  }
+  
+  // receive remaining data
+  if ((int)data(4) == 3)  {
+    Vector x;
+    rChannel.recvVector(0, commitTag, x);
+    // TODO: set Transformation matrix from x
+  }
+  if ((int)data(5) == 3)  {
+    Vector y;
+    rChannel.recvVector(0, commitTag, y);
+    // TODO: set Transformation matrix from y
+  }
+  if ((int)data(6) == 4)  {
+      Mratio.resize(4);
+      rChannel.recvVector(0, commitTag, Mratio);
+      // check p-delta moment distribution ratios
+      if (Mratio(0) < 0.0 || Mratio(1) < 0.0 ||
+          Mratio(2) < 0.0 || Mratio(3) < 0.0) {
+          opserr << "TwoNodeLink::recvSelf() - "
+              << "p-delta moment ratios can not be negative\n";
+          return -4;
+      }
+      if (Mratio(0)+Mratio(1) > 1.0)  {
+          opserr << "TwoNodeLink::recvSelf() - "
+              << "incorrect p-delta moment ratios:\nrMy1 + rMy2 = "
+              << Mratio(0)+Mratio(1) << " > 1.0\n";
+          return -4;
+      }
+      if (Mratio(2)+Mratio(3) > 1.0)  {
+          opserr << "TwoNodeLink::recvSelf() - "
+              << "incorrect p-delta moment ratios:\nrMz1 + rMz2 = "
+              << Mratio(2)+Mratio(3) << " > 1.0\n";
+          return -4;
+      }
+  }
+  if ((int)data(7) == 2)  {
+      shearDistI.resize(2);
+      rChannel.recvVector(0, commitTag, shearDistI);
+      // check shear distance ratios
+      if (shearDistI(0) < 0.0 || shearDistI(0) > 1.0)  {
+          opserr << "TwoNodeLink::recvSelf() - "
+              << "incorrect shear distance ratio:\n shearDistIy = "
+              << shearDistI(0) << " < 0.0 or > 1.0\n";
+          return -5;
+      }
+      if (shearDistI(1) < 0.0 || shearDistI(1) > 1.0)  {
+          opserr << "TwoNodeLink::recvSelf() - "
+              << "incorrect shear distance ratio:\n shearDistIz = "
+              << shearDistI(1) << " < 0.0 or > 1.0\n";
+          return -5;
+      }
+  } else  {
+      // initialize shear distance ratios
+      shearDistI.resize(2);
+      shearDistI(0) = 0.5;
+      shearDistI(1) = 0.5;
+  }
+  onP0 = false;
+  
+  // initialize response vectors in basic system
+  ub.resize(numDIR);
+  ubdot.resize(numDIR);
+  qb.resize(numDIR);
+  this->revertToStart();
+  
+  return 0;
 }
 
 
@@ -873,8 +876,7 @@ TwoNodeLink::Print(OPS_Stream &s, int flag)
 
 
 Response* 
-TwoNodeLink::setResponse(const char **argv, int argc,
-    OPS_Stream &output)
+TwoNodeLink::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
   Response *theResponse = 0;
   
@@ -887,26 +889,30 @@ TwoNodeLink::setResponse(const char **argv, int argc,
   char outputData[64];
   
   // global forces
-  if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0 ||
-      strcmp(argv[0],"globalForce") == 0 || strcmp(argv[0],"globalForces") == 0)
+  if (strcmp(argv[0],"force") == 0 || 
+      strcmp(argv[0],"forces") == 0 ||
+      strcmp(argv[0],"globalForce") == 0 || 
+      strcmp(argv[0],"globalForces") == 0)
   {
-      for (int i=0; i<numDOF; i++)  {
-          sprintf(outputData,"P%d",i+1);
-          output.tag("ResponseType",outputData);
-      }
-      theResponse = new ElementResponse(this, 1, *theVector);
+    for (int i=0; i<numDOF; i++)  {
+      sprintf(outputData,"P%d",i+1);
+      output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 1, *theVector);
   }
   // local forces
-  else if (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)
+  else if (strcmp(argv[0],"localForce") == 0 || 
+           strcmp(argv[0],"localForces") == 0)
   {
-      for (int i=0; i<numDOF; i++)  {
-          sprintf(outputData,"p%d",i+1);
-          output.tag("ResponseType",outputData);
-      }
-      theResponse = new ElementResponse(this, 2, *theVector);
+    for (int i=0; i<numDOF; i++)  {
+        sprintf(outputData,"p%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 2, *theVector);
   }
   // basic forces
-  else if (strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0)
+  else if (strcmp(argv[0],"basicForce") == 0 || 
+           strcmp(argv[0],"basicForces") == 0)
   {
       for (int i=0; i<numDIR; i++)  {
           sprintf(outputData,"q%d",i+1);
@@ -916,28 +922,32 @@ TwoNodeLink::setResponse(const char **argv, int argc,
   }
   // local displacements
   else if (strcmp(argv[0],"localDisplacement") == 0 ||
-      strcmp(argv[0],"localDisplacements") == 0)
+           strcmp(argv[0],"localDisplacements") == 0)
   {
-      for (int i=0; i<numDOF; i++)  {
-          sprintf(outputData,"dl%d",i+1);
-          output.tag("ResponseType",outputData);
-      }
-      theResponse = new ElementResponse(this, 4, Vector(numDOF));
+    for (int i=0; i<numDOF; i++)  {
+        sprintf(outputData,"dl%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 4, Vector(numDOF));
   }
   // basic displacements
-  else if (strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"deformations") == 0 || 
-      strcmp(argv[0],"basicDeformation") == 0 || strcmp(argv[0],"basicDeformations") == 0 ||
-      strcmp(argv[0],"basicDisplacement") == 0 || strcmp(argv[0],"basicDisplacements") == 0)
+  else if (strcmp(argv[0],"deformation") == 0 || 
+           strcmp(argv[0],"deformations") == 0 || 
+           strcmp(argv[0],"basicDeformation") == 0 || 
+           strcmp(argv[0],"basicDeformations") == 0 ||
+           strcmp(argv[0],"basicDisplacement") == 0 || 
+           strcmp(argv[0],"basicDisplacements") == 0)
   {
-      for (int i=0; i<numDIR; i++)  {
-          sprintf(outputData,"db%d",i+1);
-          output.tag("ResponseType",outputData);
-      }
-      theResponse = new ElementResponse(this, 5, Vector(numDIR));
+    for (int i=0; i<numDIR; i++)  {
+      sprintf(outputData,"db%d",i+1);
+      output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 5, Vector(numDIR));
   }
   // basic deformations and basic forces
-  else if (strcmp(argv[0],"defoANDforce") == 0 || strcmp(argv[0],"deformationANDforce") == 0 ||
-      strcmp(argv[0],"deformationsANDforces") == 0)
+  else if (strcmp(argv[0],"defoANDforce") == 0 || 
+           strcmp(argv[0],"deformationANDforce") == 0 ||
+           strcmp(argv[0],"deformationsANDforces") == 0)
   {
       int i;
       for (i=0; i<numDIR; i++)  {
@@ -952,11 +962,11 @@ TwoNodeLink::setResponse(const char **argv, int argc,
   }
   // material output
   else if (strcmp(argv[0],"material") == 0)  {
-      if (argc > 2)  {
-          int matNum = atoi(argv[1]);
-          if (matNum >= 1 && matNum <= numDIR)
-              theResponse =  theMaterials[matNum-1]->setResponse(&argv[2], argc-2, output);
-      }
+    if (argc > 2)  {
+      int matNum = atoi(argv[1]);
+      if (matNum >= 1 && matNum <= numDIR)
+        theResponse =  theMaterials[matNum-1]->setResponse(&argv[2], argc-2, output);
+    }
   }
   
   output.endTag(); // ElementOutput
@@ -969,12 +979,12 @@ int
 TwoNodeLink::getResponse(int responseID, Information &eleInfo)
 {
   Vector defoAndForce(numDIR*2);
-  
+
   switch (responseID)  {
-  case 1:  // global forces
+    case 1:  // global forces
       return eleInfo.setVector(this->getResistingForce());
       
-  case 2:  // local forces
+    case 2:  // local forces
       theVector->Zero();
       // determine resisting forces in local system
       theVector->addMatrixTransposeVector(0.0, Tlb, qb, 1.0);
@@ -984,29 +994,30 @@ TwoNodeLink::getResponse(int responseID, Information &eleInfo)
       
       return eleInfo.setVector(*theVector);
       
-  case 3:  // basic forces
+    case 3:  // basic forces
       return eleInfo.setVector(qb);
       
-  case 4:  // local displacements
+    case 4:  // local displacements
       return eleInfo.setVector(ul);
       
-  case 5:  // basic displacements
+    case 5:  // basic displacements
       return eleInfo.setVector(ub);
       
-  case 6:  // basic deformations and basic forces
+    case 6:  // basic deformations and basic forces
       defoAndForce.Zero();
       defoAndForce.Assemble(ub,0);
       defoAndForce.Assemble(qb,numDIR);
       
       return eleInfo.setVector(defoAndForce);
       
-  default:
+    default:
       return 0;
   }
 }
 
 
 // set up the transformation matrix for orientation
+#if 0
 void
 TwoNodeLink::setUp()
 {
@@ -1070,7 +1081,7 @@ TwoNodeLink::setUp()
           << "invalid orientation vectors, got "
           << "x = " << Vector(x) << " and y = " << Vector(y)
           << "\n";
-      exit(-1);
+    //   exit(-1);
   }
 
   // create transformation matrix of direction cosines
@@ -1080,7 +1091,7 @@ TwoNodeLink::setUp()
     trans(2,i) = z(i)/zn;
   }
 }
-
+#endif
 
 // set transformation matrix from global to local system
 void 
@@ -1135,40 +1146,40 @@ TwoNodeLink::setTranGlobalLocal()
 
 
 // set transformation matrix from local to basic system
-void TwoNodeLink::setTranLocalBasic()
+void 
+TwoNodeLink::setTranLocalBasic()
 {
   // resize transformation matrix and zero it
   Tlb.resize(numDIR,numDOF);
   Tlb.Zero();
   
   for (int i=0; i<numDIR; i++)  {
-      
-      int dirID = (*dir)(i);     // direction 0 to 5;
-      Tlb(i,dirID) = -1.0;
-      Tlb(i,dirID+numDOF/2) = 1.0;
-      
-      // switch on dimensionality of element
-      switch (elemType)  {
+    int dirID = (*dir)(i);     // direction 0 to 5;
+    Tlb(i,dirID) = -1.0;
+    Tlb(i,dirID+numDOF/2) = 1.0;
+    
+    // switch on dimensionality of element
+    switch (elemType)  {
       case D2N6:
-          if (dirID == 1)  {
-              Tlb(i,2) = -shearDistI(0)*L;
-              Tlb(i,5) = -(1.0 - shearDistI(0))*L;
-          }
-          break;
+        if (dirID == 1)  {
+            Tlb(i,2) = -shearDistI(0)*L;
+            Tlb(i,5) = -(1.0 - shearDistI(0))*L;
+        }
+        break;
       case D3N12:
-          if (dirID == 1)  {
-              Tlb(i,5)  = -shearDistI(0)*L;
-              Tlb(i,11) = -(1.0-shearDistI(0))*L;
-          }
-          else if (dirID == 2)  {
-              Tlb(i,4)  = shearDistI(1)*L;
-              Tlb(i,10) = (1.0-shearDistI(1))*L;
-          }
-          break;
+        if (dirID == 1)  {
+            Tlb(i,5)  = -shearDistI(0)*L;
+            Tlb(i,11) = -(1.0-shearDistI(0))*L;
+        }
+        else if (dirID == 2)  {
+            Tlb(i,4)  = shearDistI(1)*L;
+            Tlb(i,10) = (1.0-shearDistI(1))*L;
+        }
+        break;
       default :
-          // do nothing
-          break;
-      }
+        // do nothing
+        break;
+    }
   }
 }
 
@@ -1195,175 +1206,176 @@ TwoNodeLink::addPDeltaForces(Vector &pLocal, const Vector& qBasic)
   
   if (N != 0.0 && (deltal1 != 0.0 || deltal2 != 0.0))  {
     for (int i=0; i<numDIR; i++)  {
-        dirID = (*dir)(i);  // direction 0 to 5;
-        
-        // switch on dimensionality of element
-        switch (elemType)  {
+      dirID = (*dir)(i);  // direction 0 to 5;
+
+      // switch on dimensionality of element
+      switch (elemType)  {
         case D2N4:
-            if (dirID == 1)  {
-                double VpDelta = N*deltal1/L;
-                VpDelta *= 1.0-Mratio(2)-Mratio(3);
-                pLocal(1) -= VpDelta;
-                pLocal(3) += VpDelta;
-            }
-            break;
+          if (dirID == 1)  {
+              double VpDelta = N*deltal1/L;
+              VpDelta *= 1.0-Mratio(2)-Mratio(3);
+              pLocal(1) -= VpDelta;
+              pLocal(3) += VpDelta;
+          }
+          break;
         case D2N6: 
-            if (dirID == 1)  {
-                double VpDelta = N*deltal1/L;
-                VpDelta *= 1.0-Mratio(2)-Mratio(3);
-                pLocal(1) -= VpDelta;
-                pLocal(4) += VpDelta;
-            }
-            else if (dirID == 2)  {
-                double MpDelta = N*deltal1;
-                pLocal(2) += Mratio(2)*MpDelta;
-                pLocal(5) += Mratio(3)*MpDelta;
-            }
-            break;
+          if (dirID == 1)  {
+              double VpDelta = N*deltal1/L;
+              VpDelta *= 1.0-Mratio(2)-Mratio(3);
+              pLocal(1) -= VpDelta;
+              pLocal(4) += VpDelta;
+          }
+          else if (dirID == 2)  {
+              double MpDelta = N*deltal1;
+              pLocal(2) += Mratio(2)*MpDelta;
+              pLocal(5) += Mratio(3)*MpDelta;
+          }
+          break;
         case D3N6:
-            if (dirID == 1)  {
-                double VpDelta = N*deltal1/L;
-                VpDelta *= 1.0-Mratio(2)-Mratio(3);
-                pLocal(1) -= VpDelta;
-                pLocal(4) += VpDelta;
-            }
-            else if (dirID == 2)  {
-                double VpDelta = N*deltal2/L;
-                VpDelta *= 1.0-Mratio(0)-Mratio(1);
-                pLocal(2) -= VpDelta;
-                pLocal(5) += VpDelta;
-            }
-            break;
+          if (dirID == 1)  {
+              double VpDelta = N*deltal1/L;
+              VpDelta *= 1.0-Mratio(2)-Mratio(3);
+              pLocal(1) -= VpDelta;
+              pLocal(4) += VpDelta;
+          }
+          else if (dirID == 2)  {
+              double VpDelta = N*deltal2/L;
+              VpDelta *= 1.0-Mratio(0)-Mratio(1);
+              pLocal(2) -= VpDelta;
+              pLocal(5) += VpDelta;
+          }
+          break;
         case D3N12:
-            if (dirID == 1)  {
-                double VpDelta = N*deltal1/L;
-                VpDelta *= 1.0-Mratio(2)-Mratio(3);
-                pLocal(1) -= VpDelta;
-                pLocal(7) += VpDelta;
-            }
-            else if (dirID == 2)  {
-                double VpDelta = N*deltal2/L;
-                VpDelta *= 1.0-Mratio(0)-Mratio(1);
-                pLocal(2) -= VpDelta;
-                pLocal(8) += VpDelta;
-            }
-            else if (dirID == 4)  {
-                double MpDelta = N*deltal2;
-                pLocal(4) -= Mratio(0)*MpDelta;
-                pLocal(10) -= Mratio(1)*MpDelta;
-            }
-            else if (dirID == 5)  {
-                double MpDelta = N*deltal1;
-                pLocal(5) += Mratio(2)*MpDelta;
-                pLocal(11) += Mratio(3)*MpDelta;
-            }
-            break;
+          if (dirID == 1)  {
+              double VpDelta = N*deltal1/L;
+              VpDelta *= 1.0-Mratio(2)-Mratio(3);
+              pLocal(1) -= VpDelta;
+              pLocal(7) += VpDelta;
+          }
+          else if (dirID == 2)  {
+              double VpDelta = N*deltal2/L;
+              VpDelta *= 1.0-Mratio(0)-Mratio(1);
+              pLocal(2) -= VpDelta;
+              pLocal(8) += VpDelta;
+          }
+          else if (dirID == 4)  {
+              double MpDelta = N*deltal2;
+              pLocal(4) -= Mratio(0)*MpDelta;
+              pLocal(10) -= Mratio(1)*MpDelta;
+          }
+          else if (dirID == 5)  {
+              double MpDelta = N*deltal1;
+              pLocal(5) += Mratio(2)*MpDelta;
+              pLocal(11) += Mratio(3)*MpDelta;
+          }
+          break;
         default :
-            // do nothing
-            break;
-        }
+          // do nothing
+          break;
+      }
     }
   }
 }
 
 
-void TwoNodeLink::addPDeltaStiff(Matrix &kLocal, const Vector& qBasic)
+void 
+TwoNodeLink::addPDeltaStiff(Matrix &kLocal, const Vector& qBasic)
 {
-    int dirID;
-    double N = 0.0;
-    
-    // get axial force
+  int dirID;
+  double N = 0.0;
+  
+  // get axial force
+  for (int i=0; i<numDIR; i++)  {
+      if ((*dir)(i) == 0)
+          N = qBasic(i);
+  }
+  
+  if (N != 0.0)  {
     for (int i=0; i<numDIR; i++)  {
-        if ((*dir)(i) == 0)
-            N = qBasic(i);
+      dirID = (*dir)(i);  // direction 0 to 5;
+
+      // switch on dimensionality of element
+      switch (elemType)  {
+        case D2N4:
+          if (dirID == 1)  {
+              double NoverL = N/L;
+              NoverL *= 1.0-Mratio(2)-Mratio(3);
+              kLocal(1,1) += NoverL;
+              kLocal(1,3) -= NoverL;
+              kLocal(3,1) -= NoverL;
+              kLocal(3,3) += NoverL;
+          }
+          break;
+        case D2N6: 
+          if (dirID == 1)  {
+              double NoverL = N/L;
+              NoverL *= 1.0-Mratio(2)-Mratio(3);
+              kLocal(1,1) += NoverL;
+              kLocal(1,4) -= NoverL;
+              kLocal(4,1) -= NoverL;
+              kLocal(4,4) += NoverL;
+          }
+          else if (dirID == 2)  {
+              kLocal(2,1) -= Mratio(2)*N;
+              kLocal(2,4) += Mratio(2)*N;
+              kLocal(5,1) -= Mratio(3)*N;
+              kLocal(5,4) += Mratio(3)*N;
+          }
+          break;
+        case D3N6:
+          if (dirID == 1)  {
+              double NoverL = N/L;
+              NoverL *= 1.0-Mratio(2)-Mratio(3);
+              kLocal(1,1) += NoverL;
+              kLocal(1,4) -= NoverL;
+              kLocal(4,1) -= NoverL;
+              kLocal(4,4) += NoverL;
+          }
+          else if (dirID == 2)  {
+              double NoverL = N/L;
+              NoverL *= 1.0-Mratio(0)-Mratio(1);
+              kLocal(2,2) += NoverL;
+              kLocal(2,5) -= NoverL;
+              kLocal(5,2) -= NoverL;
+              kLocal(5,5) += NoverL;
+          }
+          break;
+        case D3N12:
+          if (dirID == 1)  {
+              double NoverL = N/L;
+              NoverL *= 1.0-Mratio(2)-Mratio(3);
+              kLocal(1,1) += NoverL;
+              kLocal(1,7) -= NoverL;
+              kLocal(7,1) -= NoverL;
+              kLocal(7,7) += NoverL;
+          }
+          else if (dirID == 2)  {
+              double NoverL = N/L;
+              NoverL *= 1.0-Mratio(0)-Mratio(1);
+              kLocal(2,2) += NoverL;
+              kLocal(2,8) -= NoverL;
+              kLocal(8,2) -= NoverL;
+              kLocal(8,8) += NoverL;
+          }
+          else if (dirID == 4)  {
+              kLocal(4,2) += Mratio(0)*N;
+              kLocal(4,8) -= Mratio(0)*N;
+              kLocal(10,2) += Mratio(1)*N;
+              kLocal(10,8) -= Mratio(1)*N;
+          }
+          else if (dirID == 5)  {
+              kLocal(5,1) -= Mratio(2)*N;
+              kLocal(5,7) += Mratio(2)*N;
+              kLocal(11,1) -= Mratio(3)*N;
+              kLocal(11,7) += Mratio(3)*N;
+          }
+          break;
+        default :
+          // do nothing
+          break;
+      }
     }
-    
-    if (N != 0.0)  {
-        for (int i=0; i<numDIR; i++)  {
-            dirID = (*dir)(i);  // direction 0 to 5;
-            
-            // switch on dimensionality of element
-            switch (elemType)  {
-            case D2N4:
-                if (dirID == 1)  {
-                    double NoverL = N/L;
-                    NoverL *= 1.0-Mratio(2)-Mratio(3);
-                    kLocal(1,1) += NoverL;
-                    kLocal(1,3) -= NoverL;
-                    kLocal(3,1) -= NoverL;
-                    kLocal(3,3) += NoverL;
-                }
-                break;
-            case D2N6: 
-                if (dirID == 1)  {
-                    double NoverL = N/L;
-                    NoverL *= 1.0-Mratio(2)-Mratio(3);
-                    kLocal(1,1) += NoverL;
-                    kLocal(1,4) -= NoverL;
-                    kLocal(4,1) -= NoverL;
-                    kLocal(4,4) += NoverL;
-                }
-                else if (dirID == 2)  {
-                    kLocal(2,1) -= Mratio(2)*N;
-                    kLocal(2,4) += Mratio(2)*N;
-                    kLocal(5,1) -= Mratio(3)*N;
-                    kLocal(5,4) += Mratio(3)*N;
-                }
-                break;
-            case D3N6:
-                if (dirID == 1)  {
-                    double NoverL = N/L;
-                    NoverL *= 1.0-Mratio(2)-Mratio(3);
-                    kLocal(1,1) += NoverL;
-                    kLocal(1,4) -= NoverL;
-                    kLocal(4,1) -= NoverL;
-                    kLocal(4,4) += NoverL;
-                }
-                else if (dirID == 2)  {
-                    double NoverL = N/L;
-                    NoverL *= 1.0-Mratio(0)-Mratio(1);
-                    kLocal(2,2) += NoverL;
-                    kLocal(2,5) -= NoverL;
-                    kLocal(5,2) -= NoverL;
-                    kLocal(5,5) += NoverL;
-                }
-                break;
-            case D3N12:
-                if (dirID == 1)  {
-                    double NoverL = N/L;
-                    NoverL *= 1.0-Mratio(2)-Mratio(3);
-                    kLocal(1,1) += NoverL;
-                    kLocal(1,7) -= NoverL;
-                    kLocal(7,1) -= NoverL;
-                    kLocal(7,7) += NoverL;
-                }
-                else if (dirID == 2)  {
-                    double NoverL = N/L;
-                    NoverL *= 1.0-Mratio(0)-Mratio(1);
-                    kLocal(2,2) += NoverL;
-                    kLocal(2,8) -= NoverL;
-                    kLocal(8,2) -= NoverL;
-                    kLocal(8,8) += NoverL;
-                }
-                else if (dirID == 4)  {
-                    kLocal(4,2) += Mratio(0)*N;
-                    kLocal(4,8) -= Mratio(0)*N;
-                    kLocal(10,2) += Mratio(1)*N;
-                    kLocal(10,8) -= Mratio(1)*N;
-                }
-                else if (dirID == 5)  {
-                    kLocal(5,1) -= Mratio(2)*N;
-                    kLocal(5,7) += Mratio(2)*N;
-                    kLocal(11,1) -= Mratio(3)*N;
-                    kLocal(11,7) += Mratio(3)*N;
-                }
-                break;
-            default :
-                // do nothing
-                break;
-            }
-        }
-    }
+  }
 }
 
 
@@ -1373,7 +1385,7 @@ TwoNodeLink::setParameter(const char **argv, int argc, Parameter &param)
   int result = -1;
   
   if (argc < 1)
-      return -1;
+    return -1;
   
   if (strcmp(argv[0], "material") == 0) {
     if (argc > 2) {
@@ -1389,7 +1401,7 @@ TwoNodeLink::setParameter(const char **argv, int argc, Parameter &param)
   for (int i = 0; i < numDIR; i++) {
     int res = theMaterials[i]->setParameter(argv, argc, param);
     if (res != -1) {
-        result = res;
+      result = res;
     }
   }
   
