@@ -759,11 +759,6 @@ FiberSection3dThermal::recvSelf(int commitTag, Channel &theChannel,
         fibers[i].material = theBroker.getNewUniaxialMaterial(classTag);      
       }
 
-      if (fibers[i].material == 0) {
-        opserr << "FiberSection3d::recvSelf -- failed to allocate double array for material data\n";
-        exit(-1);
-      }
-
       fibers[i].material->setDbTag(dbTag);
       res += fibers[i].material->recvSelf(commitTag, theChannel, theBroker);
     }
