@@ -253,7 +253,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                         TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
