@@ -32,8 +32,6 @@
 #include <Element.h>
 #include <Matrix.h>
 
-// Tolerance for zero length of element
-#define	LENTOL 1.0e-6
 
 class Node;
 class Channel;
@@ -44,55 +42,54 @@ class ZeroLengthSection : public Element
 {
   public:
     
-    ZeroLengthSection(int tag, 			      
-		      int dimension,
-		      int Nd1, int Nd2, 
-		      const Vector& x,
-		      const Vector& yprime,
-		      SectionForceDeformation& theSection,
-		      int doRayleighDamping = 0);
+    ZeroLengthSection(int tag,                               
+                      int dimension,
+                      int Nd1, int Nd2, 
+                      const Vector& x,
+                      const Vector& yprime,
+                      SectionForceDeformation& theSection,
+                      int doRayleighDamping = 0);
 
     ZeroLengthSection();
     ~ZeroLengthSection();
 
-    const char *getClassType(void) const {return "ZeroLengthSection";}
-    static constexpr const char* class_name = "ZeroLengthSection";
+    const char *getClassType() const {return "ZeroLengthSection";}
 
     // public methods to obtain information about dof & connectivity    
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
 
-    int getNumDOF(void);	
-    void setDomain(Domain *theDomain);
+    int getNumDOF();        
+    void setDomain(Domain *);
 
     // public methods to set the state of the element    
-    int update(void);       // added by MSN to allow errors in setting section trial deformation
-    int commitState(void);
-    int revertToLastCommit(void);        
-    int revertToStart(void);        
+    int update();       // added by MSN to allow errors in setting section trial deformation
+    int commitState();
+    int revertToLastCommit();        
+    int revertToStart();        
 
     // public methods to obtain stiffness, mass, damping and residual information    
-    const Matrix &getTangentStiff(void);
-    const Matrix &getDamp(void);
-    const Matrix &getInitialStiff(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getDamp();
+    const Matrix &getInitialStiff();
 
-    void zeroLoad(void);	
+    void zeroLoad();        
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);    
 
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);            
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();            
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag =0);    
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);    
 
-    Response *setResponse(const char **argv, int argc, OPS_Stream &output);
-    int getResponse(int responseID, Information &eleInformation);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    int getResponse(int responseID, Information &);
     
-    int setParameter(const char **argv, int argc, Parameter &param);
+    int setParameter(const char **argv, int argc, Parameter &);
 
 // AddingSensitivity:BEGIN //////////////////////////////////////////
     const Vector &getResistingForceSensitivity(int gradIndex);
@@ -102,28 +99,29 @@ class ZeroLengthSection : public Element
   protected:
     
   private:
+
     // private methods
     void setUp (int Nd1, int Nd2, const Vector& x, const Vector& y);
-    void setTransformation(void);
-    void computeSectionDefs(void);
+    void setTransformation();
+    void computeSectionDefs();
 
     // private attributes - a copy for each object of the class
     ID  connectedExternalNodes;         // contains the tags of the end nodes
     int dimension;                      // = 2 or 3 dimensions
-    int numDOF;	                        // number of dof for ZeroLengthSection
-    Matrix transformation;		// transformation matrix for orientation
+    int numDOF;                                // number of dof for ZeroLengthSection
+    Matrix transformation;                // transformation matrix for orientation
     int useRayleighDamping;
-	
-    Matrix *A;	// Transformation matrix ... e = A*(u2-u1)
-    Vector *v;	// Section deformation vector, the element basic deformations
+        
+    Matrix *A;        // Transformation matrix ... e = A*(u2-u1)
+    Vector *v;        // Section deformation vector, the element basic deformations
     
-    Matrix *K;	// Pointer to element stiffness matrix
-    Vector *P;	// Pointer to element force vector
+    Matrix *K;        // Pointer to element stiffness matrix
+    Vector *P;        // Pointer to element force vector
     
     Node *theNodes[2];
     
-    SectionForceDeformation *theSection;	// Pointer to section object
-    int order;		// Order of the section model
+    SectionForceDeformation *theSection;        // Pointer to section object
+    int order;                // Order of the section model
     
     // Class wide matrices for return
     static Matrix K6;
