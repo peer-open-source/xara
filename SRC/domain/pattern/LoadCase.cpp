@@ -2,7 +2,6 @@
 
 #include "LoadCase.h"
 #include <MapOfTaggedObjects.h>
-#include <TaggedIterator.hpp>
 #include <LoadPattern.h>
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
