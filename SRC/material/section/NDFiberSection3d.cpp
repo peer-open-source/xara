@@ -785,9 +785,9 @@ NDFiberSection3d::sendSelf(int commitTag, Channel &theChannel)
       materialData(2*i) = theMat->getClassTag();
       int matDbTag = theMat->getDbTag();
       if (matDbTag == 0) {
-	matDbTag = theChannel.getDbTag();
-	if (matDbTag != 0)
-	  theMat->setDbTag(matDbTag);
+        matDbTag = theChannel.getDbTag();
+        if (matDbTag != 0)
+          theMat->setDbTag(matDbTag);
       }
       materialData(2*i+1) = matDbTag;
     }    
@@ -844,35 +844,26 @@ NDFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
     if (theMaterials == 0 || numFibers != data(1)) {
       // delete old stuff if outa date
       if (theMaterials != 0) {
-	for (int i=0; i<numFibers; i++)
-	  delete theMaterials[i];
-	delete [] theMaterials;
-	if (matData != 0)
-	  delete [] matData;
-	matData = 0;
-	theMaterials = 0;
+        for (int i=0; i<numFibers; i++)
+          delete theMaterials[i];
+        delete [] theMaterials;
+        if (matData != 0)
+          delete [] matData;
+        matData = 0;
+        theMaterials = 0;
       }
 
       // create memory to hold material pointers and fiber data
       numFibers = data(1);
       sizeFibers = data(1);
       if (numFibers != 0) {
-	theMaterials = new NDMaterial *[numFibers];
-	
-	if (theMaterials == 0) {
-	  opserr <<"NDFiberSection3d::recvSelf -- failed to allocate Material pointers\n";
-	  exit(-1);
-	}
-	
-	for (int j=0; j<numFibers; j++)
-	  theMaterials[j] = 0;
+        theMaterials = new NDMaterial *[numFibers];
+        
+        
+        for (int j=0; j<numFibers; j++)
+          theMaterials[j] = 0;
 
-	matData = new double [numFibers*2];
-
-	if (matData == 0) {
-	  opserr <<"NDFiberSection3d::recvSelf  -- failed to allocate double array for material data\n";
-	  exit(-1);
-	}
+        matData = new double [numFibers*2];
       }
     }
 
@@ -891,15 +882,10 @@ NDFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
       // if material pointed to is blank or not of corrcet type, 
       // release old and create a new one
       if (theMaterials[i] == 0)
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);
       else if (theMaterials[i]->getClassTag() != classTag) {
-	delete theMaterials[i];
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
-      }
-
-      if (theMaterials[i] == 0) {
-	opserr <<"NDFiberSection3d::recvSelf -- failed to allocate double array for material data\n";
-	exit(-1);
+        delete theMaterials[i];
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
       }
 
       theMaterials[i]->setDbTag(dbTag);
