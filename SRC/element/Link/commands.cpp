@@ -62,8 +62,7 @@ ParseLinkAxes(Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv,
   std::optional<Vector3D> e_y;
   std::optional<Vector3D> e_z;
   enum class VectorSource {User, Global, Nodes, None} 
-    x_source = VectorSource::None, 
-    y_source = VectorSource::None;
+    x_source = VectorSource::None;
 
   const double length = dx.norm();
 
