@@ -77,7 +77,7 @@ class Domain
     Domain();
     Domain(int numNodes, int numElements, int numSPs, int numMPs, int numLoadPatterns);
 
-    virtual ~Domain();    
+    virtual ~Domain();
 
 
     using NodeStorage = MapOfTaggedObjects;
