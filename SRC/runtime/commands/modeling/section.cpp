@@ -838,6 +838,16 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
       iarg += 1;
     }
 
+    else if (strcmp(argv[iarg], "-reserve") == 0 && iarg + 1 < argc) {
+      int reserve;
+      if (Tcl_GetInt(interp, argv[iarg + 1], &reserve) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "invalid reserve" << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      options.reserve = reserve;
+      iarg += 2;
+    }
+
     else if (strcmp(argv[iarg], "-wagner") == 0) {
       options.wagner = true;
       iarg += 1;
