@@ -65,7 +65,7 @@ class TPB1D : public Element
   TPB1D();    
   ~TPB1D();
   
-  const char *getClassType(void) const {return "TPB1D";};
+  const char *getClassType(void) const {return "TPB1D";}
   
   // public methods to obtain information about dof & connectivity    
   int getNumExternalNodes(void) const;
