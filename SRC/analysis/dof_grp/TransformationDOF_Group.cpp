@@ -290,16 +290,15 @@ TransformationDOF_Group::getNumConstrainedDOF() const
 const Matrix &
 TransformationDOF_Group::getTangent(Integrator *theIntegrator) 
 {
+  const Matrix &unmodTangent = this->DOF_Group::getTangent(theIntegrator);
+  Matrix *T = this->getT();
+  if (T != 0) {
+    // *modTangent = (*T) ^ unmodTangent * (*T);
+    modTangent->addMatrixTripleProduct(0.0, *T, unmodTangent, 1.0);
+    return *modTangent;
 
-    const Matrix &unmodTangent = this->DOF_Group::getTangent(theIntegrator);
-    Matrix *T = this->getT();
-    if (T != 0) {
-	// *modTangent = (*T) ^ unmodTangent * (*T);
-	modTangent->addMatrixTripleProduct(0.0, *T, unmodTangent, 1.0);
-	return *modTangent;
-	
-    } else 
-      return unmodTangent;
+  } else 
+    return unmodTangent;
 }
  
 
@@ -307,69 +306,67 @@ TransformationDOF_Group::getTangent(Integrator *theIntegrator)
 const Matrix &
 TransformationDOF_Group::getEigenvectors() 
 {
-    const Matrix &unmodTangent = this->DOF_Group::getEigenvectors();
-    Matrix *T = this->getT();
+  const Matrix &unmodTangent = this->DOF_Group::getEigenvectors();
+  Matrix *T = this->getT();
 
-    if (T != 0) {
-	// *modTangent = (*T) ^ unmodTangent * (*T);
-      static Matrix res;
-      res = (*T) ^ unmodTangent;
-      return res;
-      // modTangent->addMatrixTripleProduct(0.0, *T, unmodTangent, 1.0);
-      // return *modTangent;
-	
-    } else 
-      return unmodTangent;
+  if (T != nullptr) {
+// *modTangent = (*T) ^ unmodTangent * (*T);
+    static Matrix res;
+    res = (*T) ^ unmodTangent;
+    return res;
+    // modTangent->addMatrixTripleProduct(0.0, *T, unmodTangent, 1.0);
+    // return *modTangent;
+
+  } else 
+    return unmodTangent;
 }
 
 const Vector &
 TransformationDOF_Group::getUnbalance(Integrator *theIntegrator)
 {
-    const Vector &unmodUnbalance = 
-	this->DOF_Group::getUnbalance(theIntegrator);
+  const Vector &unmodUnbalance = this->DOF_Group::getUnbalance(theIntegrator);
 
-    Matrix *T = this->getT();
-    if (T != 0) {
-	// *modUnbalance = (*T) ^ unmodUnbalance;
-	modUnbalance->addMatrixTransposeVector(0.0, *T, unmodUnbalance, 1.0);
-	return *modUnbalance;    
-    } else
-	return unmodUnbalance;
+  Matrix *T = this->getT();
+  if (T != nullptr) {
+    // *modUnbalance = (*T) ^ unmodUnbalance;
+    modUnbalance->addMatrixTransposeVector(0.0, *T, unmodUnbalance, 1.0);
+    return *modUnbalance;    
+  } else
+    return unmodUnbalance;
 }
 
 
 const Vector & 
 TransformationDOF_Group::getCommittedDisp()
 {
-    const Vector &responseC = myNode->getDisp();
-    
-    if (theMP == 0)
-	return responseC;
-    else {
-	int retainedNode = theMP->getNodeRetained();
-	Domain *theDomain = myNode->getDomain();
-	Node *retainedNodePtr = theDomain->getNode(retainedNode);
-	const Vector &responseR = retainedNodePtr->getDisp();
-	const ID &retainedDOF = theMP->getRetainedDOFs();
-	const ID &constrainedDOF = theMP->getConstrainedDOFs();    	
-	int numCNodeDOF = myNode->getNumberDOF();
-	int numRetainedNodeDOF = retainedDOF.Size();
+  const Vector &responseC = myNode->getDisp();
+  
+  if (theMP == 0)
+    return responseC;
+  else {
+    int retainedNode = theMP->getNodeRetained();
+    Domain *theDomain = myNode->getDomain();
+    Node *retainedNodePtr = theDomain->getNode(retainedNode);
+    const Vector &responseR = retainedNodePtr->getDisp();
+    const ID &retainedDOF = theMP->getRetainedDOFs();
+    const ID &constrainedDOF = theMP->getConstrainedDOFs();    	
+    int numCNodeDOF = myNode->getNumberDOF();
+    int numRetainedNodeDOF = retainedDOF.Size();
 
-	int loc = 0;
-	for (int i=0; i<numCNodeDOF; i++) {
-	    if (constrainedDOF.getLocation(i) < 0) {
-		(*modUnbalance)(loc) = responseC(i);
-		loc++;
-	    } 
-	}
-	for (int j=0; j<numRetainedNodeDOF; j++) {
-	    int dof = retainedDOF(j);
-	    (*modUnbalance)(loc) = responseR(dof);
-	    loc++;
-	}
-
-	return *modUnbalance;
+    int loc = 0;
+    for (int i=0; i<numCNodeDOF; i++) {
+      if (constrainedDOF.getLocation(i) < 0) {
+        (*modUnbalance)(loc) = responseC(i);
+        loc++;
+      }
     }
+    for (int j=0; j<numRetainedNodeDOF; j++) {
+      int dof = retainedDOF(j);
+      (*modUnbalance)(loc) = responseR(dof);
+      loc++;
+    }
+    return *modUnbalance;
+  }
 }
 
 const Vector & 
