@@ -58,14 +58,14 @@ class SSPquad : public Element
     SSPquad();
     ~SSPquad();
 
-    const char* getClassType()  const { return "SSPquad"; };
+    const char* getClassType()  const { return "SSPquad"; }
 
     // public methods to obtain information about dof and connectivity
     int getNumExternalNodes() const; 
     const ID &getExternalNodes();
     Node **getNodePtrs();
     int getNumDOF();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *);
 
     // public methods to set the state of the element
     int commitState();
@@ -85,17 +85,16 @@ class SSPquad : public Element
     const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag =0);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);
 
-    Response *setResponse(const char **argv, int argc, OPS_Stream &eleInfo);
-    int getResponse(int responseID, Information &eleInformation);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    int getResponse(int responseID, Information &);
 
     // public methods for material stage update
-    int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int setParameter(const char **argv, int argc, Parameter &);
+    int updateParameter(int parameterID, Information &);
 
     // allow PyLiq1 and TzLiq1 classes to get stresses from SSPquadUP class
     friend class PyLiq1;
@@ -107,8 +106,7 @@ class SSPquad : public Element
   private:
 
     // member functions
-    Matrix DyadicProd(Vector v1, Vector v2);            // dyadic product for two 2x1 vectors
-    void GetStab();                                 // compute stabilization stiffness matrix
+    void GetStab();                                     // compute stabilization stiffness matrix
 
     // objects
     NDMaterial *theMaterial;                            // pointer to NDMaterial object
