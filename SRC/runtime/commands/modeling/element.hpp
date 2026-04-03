@@ -235,6 +235,7 @@ ElementLibrary = {
 
   {"quadWithSensitivity",       TclBasicBuilder_addFourNodeQuadWithSensitivity},
 
+  {"Q1/P0",                     TclBasicBuilder_addConstantPressureVolumeQuad},
   {"bbarQuad",                  TclBasicBuilder_addConstantPressureVolumeQuad},
   {"mixedQuad",                 TclBasicBuilder_addConstantPressureVolumeQuad},
 
@@ -278,6 +279,11 @@ ElementLibrary = {
   {"DispBeamColumnWithSensitivity",TclBasicBuilder_addForceBeamColumn},
 
 // Shell
+  {"ThickShell01",                 TclBasicBuilder_addShell},
+  {"ThickShell02",                 TclBasicBuilder_addShell},
+  {"ThickShell03",                 TclBasicBuilder_addShell},
+  {"ThickShell04",                 TclBasicBuilder_addShell},
+  {"ThickShell05",                 TclBasicBuilder_addShell},
   {"ASDShellQ4",                   TclBasicBuilder_addShell},
   {"ShellMITC4",                   TclBasicBuilder_addShell},
   {"ShellMITC9",                   TclBasicBuilder_addShell},
@@ -303,6 +309,7 @@ ElementLibrary = {
   {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
 
   {"stdBrick",                  TclBasicBuilder_addBrick},
+  {"H8E12",                     TclBasicBuilder_addBrick},
   {"bbarBrick",                 TclBasicBuilder_addBrick},
   {"bbarBrickWithSensitivity",  TclBasicBuilder_addBrick},
   {"flBrick",                   TclBasicBuilder_addBrick},
@@ -389,6 +396,7 @@ element_dispatch = {
 
   {"AxEqDispBeamColumn2d",         OPS_AxEqDispBeamColumn2d},
 
+#ifdef XARA_HAVE_MVLEM
 // MVLEM
   {"MVLEM",                        OPS_MVLEM},        // Kristijan Kolozvari
   {"SFI_MVLEM",                    OPS_SFI_MVLEM},    // Kristijan Kolozvari
@@ -397,6 +405,7 @@ element_dispatch = {
   {"E_SFI_MVLEM_3D",               OPS_E_SFI_MVLEM_3D},
   {"E_SFI",                        OPS_E_SFI},
   {"MEFI",                         OPS_MEFI},
+#endif
 
 // Fluid
   {"FSIFluidElement2D",            OPS_FSIFluidElement2D },
