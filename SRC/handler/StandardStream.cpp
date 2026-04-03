@@ -37,7 +37,9 @@ StandardStream::StandardStream(int indent, bool echo)
   :OPS_Stream(OPS_STREAM_TAGS_FileStream), 
    fileOpen(0), echoApplication(echo),  indentSize(indent), numIndent(-1)
 {
-  if (indentSize < 1) indentSize = 1;
+  if (indentSize < 1)
+    indentSize = 1;
+
   indentString = new char[indentSize+1];
   for (int i=0; i<indentSize; i++)
     strcpy(indentString, " ");
@@ -47,6 +49,8 @@ StandardStream::~StandardStream()
 {
   if (fileOpen == 1)
     theFile.close();
+  if (indentString != nullptr)
+    delete [] indentString;
 }
 
 int 
@@ -283,6 +287,8 @@ StandardStream::operator<<(const unsigned char *s)
 
   return *this;
 }
+
+
 OPS_Stream& 
 StandardStream::operator<<(const signed char *s)
 {
@@ -294,6 +300,7 @@ StandardStream::operator<<(const signed char *s)
 
   return *this;
 }
+
 OPS_Stream& 
 StandardStream::operator<<(const void *p)
 {
@@ -429,7 +436,7 @@ StandardStream::operator<<(std::string const&s)
 }
 
 void
-StandardStream::indent(void)
+StandardStream::indent()
 {
   for (int i=0; i<numIndent; i++) {
     OPS_CONSOLE << indentString;
@@ -448,7 +455,6 @@ int
 StandardStream::recvSelf(int commitTag, Channel &theChannel, 
              FEM_ObjectBroker &theBroker)
 {
-
   return 0;
 }
 
