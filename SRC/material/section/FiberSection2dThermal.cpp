@@ -151,17 +151,10 @@ FiberSection2dThermal::FiberSection2dThermal(int tag, int num, bool compCentroid
     if(sizeFibers > 0) {
 	theMaterials = new UniaxialMaterial *[sizeFibers];
 
-	if(theMaterials == 0) {
-	    opserr << "FiberSection2d::FiberSection2d -- failed to allocate Material pointers";
-	    exit(-1);
-	}
+
 
 	matData = new double [sizeFibers*2];
 
-	if(matData == 0) {
-	    opserr << "FiberSection2d::FiberSection2d -- failed to allocate double array for material data\n";
-	    exit(-1);
-	}
 
 	for(int i = 0; i < sizeFibers; i++) {
 	    matData[i*2] = 0.0;
@@ -583,7 +576,7 @@ FiberSection2dThermal::getThermalElong(void)
 
 
 FrameSection*
-FiberSection2dThermal::getFrameCopy(void)
+FiberSection2dThermal::getFrameCopy()
 {
   FiberSection2dThermal *theCopy = new FiberSection2dThermal ();
   theCopy->setTag(this->getTag());
@@ -593,27 +586,12 @@ FiberSection2dThermal::getFrameCopy(void)
   if (numFibers != 0) {
     theCopy->theMaterials = new UniaxialMaterial *[numFibers];
 
-    if (theCopy->theMaterials == 0) {
-      opserr <<"FiberSection2dThermal::getFrameCopy -- failed to allocate Material pointers\n";
-      exit(-1);
-    }
-
     theCopy->matData = new double [numFibers*2];
-
-    if (theCopy->matData == 0) {
-      opserr << "FiberSection2dThermal::getFrameCopy -- failed to allocate double array for material data\n";
-      exit(-1);
-    }
 
     for (int i = 0; i < numFibers; i++) {
       theCopy->matData[i*2] = matData[i*2];
       theCopy->matData[i*2+1] = matData[i*2+1];
       theCopy->theMaterials[i] = theMaterials[i]->getCopy();
-
-      if (theCopy->theMaterials[i] == 0) {
-	opserr <<"FiberSection2dThermal::getFrameCopy -- failed to get copy of a Material";
-	exit(-1);
-      }
     }
     //retrieve temperatures
 	//theCopy->theTemperatures = theTemperatures->getCopy();
