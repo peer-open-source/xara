@@ -124,6 +124,15 @@ MixedFrameSection::MixedFrameSection(const MixedFrameSection &other)
 }
 
 
+MixedFrameSection::~MixedFrameSection()
+{
+  for (auto material : materials) {
+    if (material != nullptr)
+      delete material;
+  }
+}
+
+
 int
 MixedFrameSection::getIntegral(Field field, State state, double& value) const
 {
@@ -222,15 +231,6 @@ MixedFrameSection::addFiber(MaterialBuilder& theMat,
   return materials.size()-1;
 }
 
-
-
-MixedFrameSection::~MixedFrameSection()
-{
-  for (auto material : materials) {
-    if (material != nullptr)
-      delete material;
-  }
-}
 
 
 int
