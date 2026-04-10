@@ -189,7 +189,7 @@ Matrix::setData(double *theData, int row, int col)
 }
 
 void
-Matrix::Zero(void)
+Matrix::Zero()
 {
   double *dataPtr = data;
   for (int i=0; i<dataSize; i++)
@@ -198,7 +198,8 @@ Matrix::Zero(void)
 
 
 int
-Matrix::resize(int rows, int cols) {
+Matrix::resize(int rows, int cols) 
+{
 
   int newSize = rows*cols;
   assert(newSize >= 0);
