@@ -24,7 +24,6 @@
 
 #include "SSPbrick.h"
 #include <Logging.h>
-#include <elementAPI.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
@@ -45,67 +44,12 @@ using namespace OpenSees;
 #include <math.h>
 #include <stdlib.h>
 
-#define OPS_Export
-
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPbrick)
-{
-  static int num_SSPbrick = 0;
-  if (num_SSPbrick == 0) {
-    num_SSPbrick++;
-    opslog << "SSPbrick element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
-  }
-  
-  // Pointer to an element that will be returned
-  Element *theElement = 0;
-
-  int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
-
-  if (numRemainingInputArgs < 10) {
-    opserr << "Invalid #args, want: element SSPbrick eleTag? iNode? jNode? kNode? lNode? mNode? nNode? pNode? qNode? matTag? <b1? b2? b3?>\n";
-    return 0;
-  }
-
-  int iData[10];
-  double dData[3];
-  dData[0] = 0.0;
-  dData[1] = 0.0;
-  dData[2] = 0.0;
-
-  int numData = 10;
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer data: element SSPbrick " << iData[0] << endln;
-    return 0;
-  }
-
-  int matID = iData[9];
-  NDMaterial *theMaterial = OPS_getNDMaterial(matID);
-  if (theMaterial == 0) {
-    opserr << "WARNING element SSPbrick " << iData[0] << endln;
-    opserr << " Material: " << matID << "not found\n";
-    return 0;
-  }
-
-  if (numRemainingInputArgs == 13) {
-    numData = 3;
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "WARNING invalid optional data: element SSPbrick " << iData[0] << endln;
-      return 0;
-    }
-  }
-
-  // parsing was successful, allocate the element
-  theElement = new SSPbrick(iData[0], iData[1], iData[2], iData[3], iData[4], iData[5], iData[6], iData[7], iData[8],
-                            *theMaterial, dData[0], dData[1], dData[2]);
-
-  return theElement;
-}
 
 // full constructor
 SSPbrick::SSPbrick(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int Nd5, int Nd6, int Nd7, int Nd8,
                       NDMaterial &theMat, double b1, double b2, double b3)
   :Element(tag,ELE_TAG_SSPbrick),
-  	theMaterial(0),
+  	theMaterial(nullptr),
 	mExternalNodes(SSPB_NUM_NODE),
 	mTangentStiffness(SSPB_NUM_DOF,SSPB_NUM_DOF),
 	mInternalForces(SSPB_NUM_DOF),
@@ -115,13 +59,6 @@ SSPbrick::SSPbrick(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int Nd5, int Nd6
 	mVol(0),
 	Bnot(6,SSPB_NUM_DOF),
 	Kstab(SSPB_NUM_DOF,SSPB_NUM_DOF)
-	// xi{},
-	// et{},
-	// ze{},
-	// hut(8),
-	// hus(8),
-	// hst(8),
-	// hstu(8)
 {
 	mExternalNodes(0) = Nd1;
 	mExternalNodes(1) = Nd2;
@@ -156,7 +93,7 @@ SSPbrick::SSPbrick(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int Nd5, int Nd6
 // null constructor
 SSPbrick::SSPbrick()
   :Element(0,ELE_TAG_SSPbrick),
-  	theMaterial(0),
+  	theMaterial(nullptr),
 	mExternalNodes(SSPB_NUM_NODE),
 	mTangentStiffness(SSPB_NUM_DOF,SSPB_NUM_DOF),
 	mInternalForces(SSPB_NUM_DOF),
@@ -166,13 +103,6 @@ SSPbrick::SSPbrick()
 	mVol(0),
 	Bnot(6,SSPB_NUM_DOF),
 	Kstab(SSPB_NUM_DOF,SSPB_NUM_DOF)
-	// xi{},
-	// et{},
-	// ze{},
-	// hut(8),
-	// hus(8),
-	// hst(8),
-	// hstu(8)
 {
 	b[0] = 0.0;
 	b[1] = 0.0;
@@ -221,17 +151,11 @@ SSPbrick::getNumDOF()
 void
 SSPbrick::setDomain(Domain *theDomain)
 {
-	theNodes[0] = theDomain->getNode(mExternalNodes(0));
-	theNodes[1] = theDomain->getNode(mExternalNodes(1));
-	theNodes[2] = theDomain->getNode(mExternalNodes(2));
-	theNodes[3] = theDomain->getNode(mExternalNodes(3));
-	theNodes[4] = theDomain->getNode(mExternalNodes(4));
-	theNodes[5] = theDomain->getNode(mExternalNodes(5));
-	theNodes[6] = theDomain->getNode(mExternalNodes(6));
-	theNodes[7] = theDomain->getNode(mExternalNodes(7));
+  for (int i=0; i<SSPB_NUM_NODE; i++)
+    theNodes[i] = theDomain->getNode(mExternalNodes(i));
 
 	for (int i = 0; i < 8; i++) {
-		if (theNodes[i] == 0) {
+		if (theNodes[i] == nullptr) {
 			return;  // don't go any further - otherwise segmentation fault
 		}
 	}
@@ -342,7 +266,7 @@ SSPbrick::update()
 	const Vector &mDisp_8 = theNodes[7]->getTrialDisp();
 	
 	// assemble displacement vector
-	Vector u(24);
+	static Vector u(24);
 	u(0) =  mDisp_1(0);
 	u(1) =  mDisp_1(1);
 	u(2) =  mDisp_1(2);
@@ -369,8 +293,8 @@ SSPbrick::update()
 	u(23) = mDisp_8(2);
 
 	// compute strain and send it to the material
-	Vector strain(6);
-	strain = Bnot*u;
+	static Vector strain(6);
+  strain.addMatrixVector(0.0, Bnot, u, 1.0);
 	theMaterial->setTrialStrain(strain);
 
 	return 0;
@@ -543,17 +467,17 @@ SSPbrick::getResistingForce()
 	const Vector &mDisp_8 = theNodes[7]->getTrialDisp();
 	
 	// assemble displacement vector
-	Vector d(24);
-	d(0) =  mDisp_1(0);
-	d(1) =  mDisp_1(1);
-	d(2) =  mDisp_1(2);
-	d(3) =  mDisp_2(0);
-	d(4) =  mDisp_2(1);
-	d(5) =  mDisp_2(2);
-	d(6) =  mDisp_3(0);
-	d(7) =  mDisp_3(1);
-	d(8) =  mDisp_3(2);
-	d(9) =  mDisp_4(0);
+	static Vector d(24);
+	d( 0) = mDisp_1(0);
+	d( 1) = mDisp_1(1);
+	d( 2) = mDisp_1(2);
+	d( 3) = mDisp_2(0);
+	d( 4) = mDisp_2(1);
+	d( 5) = mDisp_2(2);
+	d( 6) = mDisp_3(0);
+	d( 7) = mDisp_3(1);
+	d( 8) = mDisp_3(2);
+	d( 9) = mDisp_4(0);
 	d(10) = mDisp_4(1);
 	d(11) = mDisp_4(2);
 	d(12) = mDisp_5(0);
@@ -570,7 +494,7 @@ SSPbrick::getResistingForce()
 	d(23) = mDisp_8(2);
 
 	// add stabilization force to internal force vector
-	mInternalForces = Kstab*d;
+  mInternalForces.addMatrixVector(0.0, Kstab, d, 1.0);
 
 	// add internal force from the stress  ->  fint = Kstab*d + 8*Jo*Bnot'*stress
 	mInternalForces.addMatrixTransposeVector(1.0, Bnot, mStress, mVol);
@@ -914,15 +838,16 @@ SSPbrick::updateParameter(int parameterID, Information &info)
 	int res = -1;
 	int matRes = res;
 
-    if (parameterID == res) {
-        return -1;
-    } else {
-        matRes = theMaterial->updateParameter(parameterID, info);
-		if (matRes != -1) {
-			res = matRes;
-		}
-		return res;
-    }    
+  if (parameterID == res) {
+      return -1;
+  }
+  else {
+    matRes = theMaterial->updateParameter(parameterID, info);
+    if (matRes != -1) {
+      res = matRes;
+    }
+    return res;
+  }
 }
 
 void
