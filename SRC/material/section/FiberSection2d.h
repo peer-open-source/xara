@@ -48,7 +48,9 @@ class FiberSection2d : public FrameSection
     FiberSection2d(const FiberSection2d&);
   public:
     ~FiberSection2d();
-    void operator=(const FiberSection2d&) = delete;
+    FiberSection2d& operator=(const FiberSection2d&) = delete;
+    FiberSection2d(FiberSection2d&&) = delete;
+    FiberSection2d& operator=(FiberSection2d&&) = delete;
 
     const char *getClassType() const {return "FiberSection2d";}
 
