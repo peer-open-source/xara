@@ -18,6 +18,12 @@
 #include <Logging.h>
 #include <ArgumentTracker.h>
 
+#include <set>
+#include <assert.h>
+#include <string.h>
+#include <algorithm>
+#include <string_view>
+
 #include <QuadFiberPatch.h>
 #include <CircPatch.h>
 #include <StraightFiberLayer.h>
@@ -1068,7 +1074,8 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
       }
 
       if (split_argc != 3) {
-        opserr << "WARNING warp parameter expected list of 3 floats\n";
+        opserr << OpenSees::PromptValueError
+               << "warp parameter expected list of 3 floats\n";
           Tcl_Free((char *) split_argv);
           return TCL_ERROR;
       }
