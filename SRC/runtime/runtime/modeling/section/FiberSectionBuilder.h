@@ -37,7 +37,7 @@ public:
                        const Vector& cPos) =0;
 
   virtual int addHFiber(int tag, int mat, double area, const Vector& cPos)=0;
-  virtual int setWarping(int tag, int field, double w[3]) =0;
+  virtual int setWarping(int tag, int field, const Vector3D& w) =0;
 
   int addPatch(const FiberPatch& patch) {
     FiberCell**  cells  = patch.getCells();
@@ -86,7 +86,7 @@ public:
 
   virtual int addHFiber(int tag, int mat, double area, const Vector& cPos);
 
-  int setWarping(int tag, int field, double w[3]) {
+  int setWarping(int tag, int field, const Vector3D& w) {
     // Warping is set using the setParameter interface
 
     std::string ts = std::to_string(tag);

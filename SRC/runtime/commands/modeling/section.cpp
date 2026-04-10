@@ -1502,7 +1502,7 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
   int matTag;
   bool warn_2d_z = false;
   static constexpr int WarpModeCount = 3;
-  double warp[WarpModeCount][3]{};
+  Vector3D warp[WarpModeCount]{};
   int warp_arg = -1;
   for (int i=1; i<argc; i++) {
     if (strcmp(argv[i], "-section") == 0) {
@@ -1652,18 +1652,21 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
       }
 
       for (int j = 0; j < 3; j++) {
-        if (Tcl_GetDouble(interp, split_argv[j], &warp[i_warp][j]) != TCL_OK) {
+        double val;
+        if (Tcl_GetDouble(interp, split_argv[j], &val) != TCL_OK) {
           opserr << OpenSees::PromptValueError << "invalid warp\n";
           Tcl_Free((char *) split_argv);
           return TCL_ERROR;
         }
+        warp[i_warp][j] = val;
       }
 
       // Free memory allocated by Tcl_SplitList.
       Tcl_Free((char *) split_argv);
       argi++;
     }
-}
+  }
+
   //
   // Add fiber to section builder
   //
@@ -1698,6 +1701,7 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
 
   return TCL_OK;
 }
+
 
 // add Hfiber to fiber section
 int
