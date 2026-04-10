@@ -1535,104 +1535,107 @@ void BarSlipMaterial::getState4(Vector& state4Strain,Vector& state4Stress, doubl
     }
 }
 
-double BarSlipMaterial::Envlp3Tangent(Vector s3Strain, Vector s3Stress, double u)
-      {
-        double k = 0.0;
-        int i = 0;
-        while ((k==0.0||i<=2) && (i<=2)) 
-        {
-          if (u>= s3Strain(i)) {
-            k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
-          }
-          i++;
-        }
-        if (k==0.0) {
-          if (u<s3Strain(0)) {
-            i = 0;
-          }
-          else {
-            i = 2;
-          }
-          k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
-          
-        }
-        return k;
+double 
+BarSlipMaterial::Envlp3Tangent(Vector s3Strain, Vector s3Stress, double u)
+{
+  double k = 0.0;
+  int i = 0;
+  while ((k==0.0||i<=2) && (i<=2)) 
+  {
+    if (u>= s3Strain(i)) {
+      k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
+    }
+    i++;
+  }
+  if (k==0.0) {
+    if (u<s3Strain(0)) {
+      i = 0;
+    }
+    else {
+      i = 2;
+    }
+    k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
+    
+  }
+  return k;
 }
 
-double BarSlipMaterial::Envlp4Tangent(Vector s4Strain, Vector s4Stress, double u)
-      {
-        double k = 0.0;
-        int i = 0;
-        while ((k==0.0||i<=2) && (i<=2)) 
-        {
-          if (u>= s4Strain(i)) {
-            k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
-          }
-          i++;
-        }
-        if (k==0.0) {
-          if (u<s4Strain(0)) {
-            i = 0;
-          }
-          else {
-            i = 2;
-          }
-          k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
-          
-        }
-        return k;
+double 
+BarSlipMaterial::Envlp4Tangent(Vector s4Strain, Vector s4Stress, double u)
+{
+  double k = 0.0;
+  int i = 0;
+  while ((k==0.0||i<=2) && (i<=2)) 
+  {
+    if (u>= s4Strain(i)) {
+      k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
+    }
+    i++;
+  }
+  if (k==0.0) {
+    if (u<s4Strain(0)) {
+      i = 0;
+    }
+    else {
+      i = 2;
+    }
+    k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
+    
+  }
+  return k;
 }
 
 double BarSlipMaterial::Envlp3Stress(Vector s3Strain, Vector s3Stress, double u)
-      {
-        double k = 0.0;
-        int i = 0;
-        double f = 0.0;
-        while ((k==0.0||i<=2) && (i<=2)) 
-        {
-          if (u>= s3Strain(i)) {
-            k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
-            f = s3Stress(i)+(u-s3Strain(i))*k;
-          }
-          i++;
-        }
-        if (k==0.0) {
-          if (u<s3Strain(0)) {
-            i = 0;
-          }
-          else {
-            i = 2;
-          }
-          k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
-          f = s3Stress(i)+(u-s3Strain(i))*k;
-        }
-        return f;
+{
+  double k = 0.0;
+  int i = 0;
+  double f = 0.0;
+  while ((k==0.0||i<=2) && (i<=2)) 
+  {
+    if (u>= s3Strain(i)) {
+      k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
+      f = s3Stress(i)+(u-s3Strain(i))*k;
+    }
+    i++;
+  }
+  if (k==0.0) {
+    if (u<s3Strain(0)) {
+      i = 0;
+    }
+    else {
+      i = 2;
+    }
+    k = (s3Stress(i+1)-s3Stress(i))/(s3Strain(i+1)-s3Strain(i));
+    f = s3Stress(i)+(u-s3Strain(i))*k;
+  }
+  return f;
 }
 
-double BarSlipMaterial::Envlp4Stress(Vector s4Strain, Vector s4Stress, double u)
-      {
-        double k = 0.0;
-        int i = 0;
-        double f = 0.0;
-        while ((k==0.0||i<=2) && (i<=2)) 
-        {
-          if (u>= s4Strain(i)) {
-            k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
-            f = s4Stress(i)+(u-s4Strain(i))*k;
-          }
-          i++;
-        }
-        if (k==0.0) {
-          if (u<s4Strain(0)) {
-            i = 0;
-          }
-          else {
-            i = 2;
-          }
-          k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
-          f = s4Stress(i)+(u-s4Strain(i))*k;
-        }
-        return f;
+double 
+BarSlipMaterial::Envlp4Stress(Vector s4Strain, Vector s4Stress, double u)
+{
+  double k = 0.0;
+  int i = 0;
+  double f = 0.0;
+  while ((k==0.0||i<=2) && (i<=2)) 
+  {
+    if (u>= s4Strain(i)) {
+      k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
+      f = s4Stress(i)+(u-s4Strain(i))*k;
+    }
+    i++;
+  }
+  if (k==0.0) {
+    if (u<s4Strain(0)) {
+      i = 0;
+    }
+    else {
+      i = 2;
+    }
+    k = (s4Stress(i+1)-s4Stress(i))/(s4Strain(i+1)-s4Strain(i));
+    f = s4Stress(i)+(u-s4Strain(i))*k;
+  }
+  return f;
 }  
 
 void BarSlipMaterial::updateDmg(double strain)
@@ -1658,7 +1661,7 @@ void BarSlipMaterial::updateDmg(double strain)
       }
     }
 
-    if (Tenergy>elasticStrainEnergy) {
+    if (Tenergy > elasticStrainEnergy) {
       TgammaK = TgammaK + gammaK2*pow(((Tenergy-elasticStrainEnergy)/energyCapacity),gammaK4);
       TgammaD = TgammaD + gammaD2*pow(((Tenergy-elasticStrainEnergy)/energyCapacity),gammaD4);
       TgammaF = TgammaF + gammaF2*pow(((Tenergy-elasticStrainEnergy)/energyCapacity),gammaF4);

@@ -39,7 +39,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -503,11 +502,6 @@ ZeroLengthContact3D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBrok
 }
 
 
-int
-ZeroLengthContact3D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{ // nothing to display
-    return 0;
-}
 
 
 void
@@ -518,7 +512,7 @@ ZeroLengthContact3D::Print(OPS_Stream &s, int flag)
 	s << " type: ZeroLengthContact3D  iNode: " << connectedExternalNodes(0);
 	s << " jNode: " << connectedExternalNodes(1) << endln;
     } else if (flag == 1) {
-	s << this->getTag() << endln;
+	  s << this->getTag() << endln;
     } 
 
 }

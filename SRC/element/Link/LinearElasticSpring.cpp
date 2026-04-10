@@ -222,12 +222,6 @@ LinearElasticSpring::LinearElasticSpring(int tag, int dim,
     trans(3, 3), ub(0), ubdot(0), qb(0), ul(0),
     Tgl(0,0), Tlb(0,0), theMatrix(0), theVector(0), theLoad(0)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "LinearElasticSpring::LinearElasticSpring() - element: "
-            << this->getTag() << " failed to create an ID of size 2\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -297,14 +291,7 @@ LinearElasticSpring::LinearElasticSpring()
     addRayleigh(0), L(0.0), onP0(false), trans(3, 3),
     ub(0), ubdot(0), qb(0), ul(0), Tgl(0,0), Tlb(0,0),
     theMatrix(0), theVector(0), theLoad(0)
-{
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "LinearElasticSpring::LinearElasticSpring() - "
-            << " failed to create an ID of size 2\n";
-        exit(-1);
-    }
-    
+{    
     // set node pointers to NULL
     for (int i=0; i<2; i++)
         theNodes[i] = 0;

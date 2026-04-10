@@ -96,8 +96,7 @@ class ZeroLengthContactNTS2D: public Element
   ZeroLengthContactNTS2D();
   ~ZeroLengthContactNTS2D();
 
-  const char *getClassType(void) const {return "ZeroLengthContactNTS2D";};
-    static constexpr const char* class_name = "ZeroLengthContactNTS2D";
+  const char *getClassType(void) const {return "ZeroLengthContactNTS2D";}
 
   // public methods to obtain information about dof & connectivity
   int getNumExternalNodes(void) const;
@@ -126,8 +125,7 @@ class ZeroLengthContactNTS2D: public Element
   // public methods for element output
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-  int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &s, int flag);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &output);
   int getResponse(int responseID, Information &eleInformation);

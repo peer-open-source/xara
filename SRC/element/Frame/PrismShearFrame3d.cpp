@@ -139,12 +139,6 @@ ElasticTimoshenkoBeam3d::ElasticTimoshenkoBeam3d()
    M(12, 12),
    theLoad(12)
 {
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2) {
-    opserr << "ElasticTimoshenkoBeam3d::ElasticTimoshenkoBeam3d() - element: " << this->getTag()
-           << " - failed to create an ID of size 2.\n";
-    exit(-1);
-  }
 
   // set node pointers to NULL
   for (int i = 0; i < 2; i++)

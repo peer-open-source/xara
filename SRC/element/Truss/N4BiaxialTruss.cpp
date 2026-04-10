@@ -196,12 +196,6 @@ dimension(0), numDOF(0), theLoad(0),
 theMatrix(0), theVector(0), theVector2(0),
 L(0.0), A(0.0), rho(0.0)
 {
-	// ensure the connectedExternalNode ID is of correct size 
-	if (connectedExternalNodes.Size() != 4) {
-		opserr << "FATAL N4BiaxialTruss::N4BiaxialTruss - failed to create an ID of size 2\n";
-		exit(-1);
-	}
-
 	for (int i=0; i<4; i++)
 	theNodes[i] = 0;
 

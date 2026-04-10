@@ -59,25 +59,24 @@ public :
 	BarSlipMaterial();
 	~BarSlipMaterial();
 
-    const char *getClassType(void) const {return "BarSlipMaterial";}
+    const char *getClassType() const {return "BarSlipMaterial";}
 
 	int setTrialStrain(double strain, double strainRate = 0.0);
-	double getStrain(void);
-	double getStress(void);
-	double getTangent(void);
-	double getInitialTangent(void);
+	double getStrain();
+	double getStress();
+	double getTangent();
+	double getInitialTangent();
 
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
 
-	UniaxialMaterial *getCopy(void);
+	UniaxialMaterial *getCopy();
 
-	int sendSelf(int commitTag, Channel &theChannel);
-	int recvSelf(int commitTag, Channel &theChannel,
-		FEM_ObjectBroker &theBroker);
+	int sendSelf(int commitTag, Channel &);
+	int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-	void Print(OPS_Stream &s, int flag = 0);
+	void Print(OPS_Stream &s, int flag);
 
 protected:
 
@@ -192,12 +191,12 @@ private:
 	double energyCapacity;
 //****************************************************************
 
-	void getBondStrength(void);
-	void getBarSlipEnvelope(void);
-	void createMaterial(void);
+	void getBondStrength();
+	void getBarSlipEnvelope();
+	void createMaterial();
 
 
-		void SetEnvelope(void);
+		void SetEnvelope();
 	void getstate(double, double);
 	double posEnvlpStress(double);
 	double posEnvlpTangent(double);

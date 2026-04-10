@@ -224,12 +224,6 @@ ElastomericBearingBoucWenMod3d::ElastomericBearingBoucWenMod3d(int tag,
     L(0.0), onP0(true), ub(6), z(2), dzdu(2,2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubC(6), zC(2), kbInit(6,6), theLoad(12)
 {
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "ElastomericBearingBoucWenMod3d::ElastomericBearingBoucWenMod3d() - element: "
-	   << this->getTag() << " - failed to create an ID of size 2.\n";
-    exit(-1);
-  }
   
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
@@ -288,12 +282,6 @@ ElastomericBearingBoucWenMod3d::ElastomericBearingBoucWenMod3d()
     L(0.0), onP0(false), ub(6), z(2), dzdu(2,2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubC(6), zC(2), kbInit(6,6), theLoad(12)
 {
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "ElastomericBearingBoucWenMod3d::ElastomericBearingBoucWenMod3d() - element: "
-	   << this->getTag() << " - failed to create an ID of size 2.\n";
-    exit(-1);
-  }
   
   // set node pointers to NULL
   for (int i=0; i<2; i++)

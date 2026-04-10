@@ -109,10 +109,6 @@ BeamColumnJoint2d::BeamColumnJoint2d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
   Uecommit(12), UeIntcommit(4), UeprCommit(12), UeprIntCommit(4), 
   BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(12,12), R(12)
 {
-	// ensure the connectedExternalNode ID is of correct size & set values
- 
-	if (connectedExternalNodes.Size() != 4)
-      opserr << "ERROR : BeamColumnJoint::BeamColumnJoint " << tag << "failed to create an ID of size 4" << endln;
 
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
@@ -203,9 +199,6 @@ BeamColumnJoint2d::BeamColumnJoint2d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
   BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(12,12), R(12)
 {
 	// ensure the connectedExternalNode ID is of correct size & set values
- 
-	if (connectedExternalNodes.Size() != 4)
-      opserr << "ERROR : BeamColumnJoint::BeamColumnJoint " << tag << "failed to create an ID of size 4" << endln;
 
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;

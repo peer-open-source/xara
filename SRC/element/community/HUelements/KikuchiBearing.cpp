@@ -313,13 +313,6 @@ KikuchiBearing::KikuchiBearing()
     basicDisp(6), localDisp(12), basicForce(6),
     localIncrDisp(12),incrDispij(12),incrDispmn(6),localForceij(12)
 {
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "KikuchiBearing::KikuchiBearing() - "
-	   <<  "failed to create an ID of size 2\n";
-    exit(-1);
-  }
-  
   // set node pointers to NULL
   for (int i=0; i<2; i++)
     theNodes[i] = nullptr;

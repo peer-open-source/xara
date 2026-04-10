@@ -194,13 +194,6 @@ HDR::HDR(int tag, int Nd1, int Nd2, double Gr, double kbulk, double Di, double D
     Fcrn(0.0), ucrn(0.0), Fcrmin(0.0), Fcn(0.0), ucn(0.0), Fmax(0.0), umax(0.0), F2(2),
     ub(6), ubdot(6), qb(6), kb(6,6), ul(12), Tgl(12,12), Tlb(6,12), ubC(6), F2C(2), kbInit(6,6), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "HDR::HDR() - element: "
-            << this->getTag() << " failed to create an ID of size 2\n";
-        exit(-1);
-    }
-    
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
     
@@ -277,13 +270,6 @@ HDR::HDR()
     DS(0.0), DM(0.0), Delta(0.0), F2(2), ub(6), ubdot(6), qb(6), kb(6,6), ul(6), Tgl(12,12), Tlb(6,12),
     ubC(6), DSplusC(0.0), DSminusC(0.0), DSC(0.0), DMC(0.0), F2C(2), kbInit(6,6), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "HDR::HDR() - "
-            <<  "failed to create an ID of size 2\n";
-        exit(-1);
-    }
-    
     // set node pointers to NULL
     for (int i=0; i<2; i++)
         theNodes[i] = 0;

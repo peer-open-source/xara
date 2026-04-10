@@ -35,7 +35,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -735,23 +734,6 @@ ZeroLengthRocking::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
     return res;
 }
 
-
-int
-ZeroLengthRocking::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // ensure setDomain() worked
-    if (theNodes[0] == 0 || theNodes[1] == 0 )
-       return 0;
-
-    // get the end point display coords    
-    static Vector v1(3);
-    static Vector v2(3);
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    // draw the line (don't display strain or force)
-    return theViewer.drawLine(v1, v2, 0.0, 0.0, this->getTag());
-}
 
 
 void

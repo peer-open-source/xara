@@ -63,45 +63,42 @@ public:
   const char* getClassType() const { return "Joint2D"; }
 
   // methods dealing with domain
-  int	getNumExternalNodes(void) const;
-  const	ID& getExternalNodes(void);
-  Node** getNodePtrs(void);
-  int	getNumDOF(void);
+  int	getNumExternalNodes() const;
+  const	ID& getExternalNodes();
+  Node** getNodePtrs();
+  int	getNumDOF();
 
   void	setDomain(Domain* theDomain);
-  bool	isSubdomain(void) { return false; };
+  bool	isSubdomain() { return false; };
 
   // methods dealing with committed state and update
-  int update(void);
-  int commitState(void);
-  int revertToLastCommit(void);
-  int revertToStart(void);
+  int update();
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
 
   // methods to return the current linearized stiffness,
   // damping and mass matrices
-  const	Matrix& getTangentStiff(void);
-  const Matrix& getInitialStiff(void);
-  const	Matrix& getDamp(void);
-  const	Matrix& getMass(void);
+  const	Matrix& getTangentStiff();
+  const Matrix& getInitialStiff();
+  const	Matrix& getDamp();
+  const	Matrix& getMass();
 
   // methods for returning and applying loads
   //virtual Vector &getUVLoadVector(double q1, double q2);
-  void	zeroLoad(void);
+  void	zeroLoad();
   int addLoad(ElementalLoad* theLoad, double loadFactor);
   int addInertiaLoadToUnbalance(const Vector& accel);
 
-  const	Vector& getResistingForce(void);
-  const	Vector& getResistingForceIncInertia(void);
-
-  // method for graphics
-  int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
+  const	Vector& getResistingForce();
+  const	Vector& getResistingForceIncInertia();
 
   // method for obtaining information specific to an element
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
   int getResponse(int responseID, Information& eleInformation);
   int sendSelf(int commitTag, Channel& theChannel);
   int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
-  void Print(OPS_Stream& s, int flag = 0);
+  void Print(OPS_Stream& s, int flag);
 
   // AddingSensitivity:BEGIN //////////////////////////////////////////
   int	  addInertiaLoadSensitivityToUnbalance(const Vector& accel, bool tag);

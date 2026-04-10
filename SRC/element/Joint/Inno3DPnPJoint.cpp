@@ -754,27 +754,11 @@ Inno3DPnPJoint::Inno3DPnPJoint(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int 
 	Uecommit(30), UeIntcommit(4), UeprCommit(30), UeprIntCommit(4),
 	matA(32,34), dg_df(4,32), dDef_du(32,4), K(30,30), R(34)
 {
-	// opserr << "Inno3DPnPJoint full constructor: START" << endln;
-	
-	// ensure the connectedExternalNode ID is of correct size & set values
-	if (ExternalNodes.Size() != 5)
-    opserr << "ERROR: Inno3DPnPJoint::Inno3DPnPJoint() " << tag << "failed to create an ID of size 5. " << endln;
-
 	ExternalNodes(0) = Nd1;
 	ExternalNodes(1) = Nd2;
 	ExternalNodes(2) = Nd3;
 	ExternalNodes(3) = Nd4;
 	ExternalNodes(4) = Nd5;
-	
-	// opserr << "node 0: " << ExternalNodes(0) << endln;
-	// opserr << "node 1: " << ExternalNodes(1) << endln;
-	// opserr << "node 2: " << ExternalNodes(2) << endln;
-	// opserr << "node 3: " << ExternalNodes(3) << endln;
-	// opserr << "node 4: " << ExternalNodes(4) << endln;
-	
-	// opserr << "nodeDbTag : " << nodeDbTag << endln;
-	// opserr << "dofDbTag : " << dofDbTag << endln;
-	// opserr << "ExternalNodes : " << ExternalNodes << endln;
 
 	nodePtr[0] = 0;
 	nodePtr[1] = 0;

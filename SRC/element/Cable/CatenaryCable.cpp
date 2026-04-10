@@ -85,7 +85,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CatenaryCableElement)
 
   if (num_CatenaryCableElement == 0) {
     num_CatenaryCableElement++;
-    opslog<<"CatenaryCableElement element - Written: P. Ibanez and J. A. Abell (UANDES). www.joseabell.com.\n";
+    opslog << "CatenaryCableElement element - Written: P. Ibanez and J. A. Abell (UANDES). www.joseabell.com.\n";
   }
 
   Element *theElement = 0;
@@ -165,12 +165,6 @@ CatenaryCable::CatenaryCable(int tag, int node1, int node2, double weight_, doub
   first_step(true),
   massType(massType_)
 {
-    
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2) {
-      opserr << "FATAL CatenaryCable::CatenaryCable - " <<  tag << "failed to create an ID of size 2\n";
-      exit(-1);
-    }
 
     connectedExternalNodes(0) = node1;
     connectedExternalNodes(1) = node2;        
@@ -202,11 +196,6 @@ CatenaryCable::CatenaryCable()
   first_step(true),
   massType(0)
 {
-    // ensure the connectedExternalNode ID is of correct size 
-  if (connectedExternalNodes.Size() != 2) {
-      opserr << "FATAL CatenaryCable::CatenaryCable - failed to create an ID of size 2\n";
-      exit(-1);
-  }
 
   for (int i=0; i<2; i++)
     theNodes[i] = 0;
@@ -227,7 +216,7 @@ CatenaryCable::~CatenaryCable()
 
 
 int
-CatenaryCable::getNumExternalNodes(void) const
+CatenaryCable::getNumExternalNodes() const
 {
     return 2;
 }

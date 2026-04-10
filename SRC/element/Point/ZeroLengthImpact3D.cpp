@@ -36,7 +36,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <math.h>
@@ -348,8 +347,6 @@ ZeroLengthImpact3D::commitState()
 	pressC = pressT;
 	gapC = gapT;
 
-
-
 	return 0;
 }
 
@@ -493,12 +490,6 @@ ZeroLengthImpact3D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
     return 0;
 }
 
-int
-ZeroLengthImpact3D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // nothing to display
-    return 0;
-}
 
 void
 ZeroLengthImpact3D::Print(OPS_Stream &s, int flag)

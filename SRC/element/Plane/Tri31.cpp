@@ -196,7 +196,8 @@ Tri31::revertToLastCommit()
     int retVal = 0;
 
     // Loop over the integration points and revert to last committed state
-    for (int i = 0; i < NIP; i++) retVal += theMaterial[i]->revertToLastCommit();
+    for (int i = 0; i < NIP; i++)
+      retVal += theMaterial[i]->revertToLastCommit();
 
     return retVal;
 }

@@ -136,13 +136,7 @@ Actuator::Actuator(int tag, int dim, int Nd1, int Nd2,
     tPast(0.0), theMatrix(0), theVector(0), theLoad(0), db(1), q(1),
     theChannel(0), rData(0), recvData(0), sData(0), sendData(0),
     ctrlDisp(0), ctrlForce(0), daqDisp(0), daqForce(0)
-{    
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "Actuator::Actuator() - element: "
-            <<  tag << " failed to create an ID of size 2\n";
-        exit(-1);
-    }
+{
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -167,12 +161,6 @@ Actuator::Actuator()
     theChannel(0), rData(0), recvData(0), sData(0), sendData(0),
     ctrlDisp(0), ctrlForce(0), daqDisp(0), daqForce(0)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "Actuator::Actuator() - "
-            <<  "failed to create an ID of size 2\n";
-        exit(-1);
-    }
     
     // set node pointers to NULL
     theNodes[0] = 0;

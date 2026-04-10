@@ -113,11 +113,7 @@ BeamColumnJoint3d::BeamColumnJoint3d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
   elemWidth(0.0), elemHeight(0.0), HgtFac(1.0), WdtFac(1.0),
   Uecommit(24), UeIntcommit(4), UeprCommit(24), UeprIntCommit(4),
   BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(24,24), R(24), Node1(3), Node2(3), Node3(3), Node4(3)
-{  
-// ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 4)
-         opserr << "ERROR : BeamColumnJoint::BeamColumnJoint - " << tag << "failed to create an ID of size 4" << endln;
-
+{
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
     connectedExternalNodes(2) = Nd3 ;
@@ -204,11 +200,7 @@ BeamColumnJoint3d::BeamColumnJoint3d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
   elemWidth(0), elemHeight(0), HgtFac(elHgtFac), WdtFac(elWdtFac),
   Uecommit(24), UeIntcommit(4), UeprCommit(24), UeprIntCommit(4),
   BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(24,24), R(24), Node1(3), Node2(3), Node3(3), Node4(3)
-{  
-// ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 4)
-         opserr << "ERROR : BeamColumnJoint::BeamColumnJoint - " << tag << "failed to create an ID of size 4" << endln;
-
+{
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
     connectedExternalNodes(2) = Nd3 ;

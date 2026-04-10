@@ -55,40 +55,39 @@ class ZeroLengthImpact3D : public Element
 
     
     // public methods to obtain information about dof & connectivity
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
-    int getNumDOF(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
+    int getNumDOF();
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);        
-    int revertToStart(void);        
-    //int update(void);
+    int commitState();
+    int revertToLastCommit();        
+    int revertToStart();        
+    //int update();
 
     // public methods to obtain stiffness
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getDamp(void);
-    const Matrix &getMass(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getDamp();
+    const Matrix &getMass();
     
-    void zeroLoad(void);
+    void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
     // public method to obtain resisting force
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for output    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);    
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);    
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
 
   protected:
     

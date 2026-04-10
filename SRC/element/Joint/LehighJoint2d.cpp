@@ -103,11 +103,6 @@ LehighJoint2d::LehighJoint2d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
   nodeDbTag(0), dofDbTag(0), elemWidth(0.0), elemHeight(0.0), numDOF(12), numBasicDOF(9),
   vs(9), vt(9), avp(9,12), apq(12,12),  K(12,12), R(12)
 {
-	// ensure the connectedExternalNode ID is of correct size & set values
- 
-	if (connectedExternalNodes.Size() != 4)
-      opserr << "ERROR : BeamColumnJoint::BeamColumnJoint " << tag << "failed to create an ID of size 4" << endln;
-
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
     connectedExternalNodes(2) = Nd3 ;

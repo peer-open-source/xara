@@ -82,37 +82,19 @@ MultipleNormalSpring::MultipleNormalSpring(int Tag, int Nd1, int Nd2,
     basicDisp(6), localDisp(12), basicForce(6), basicStiff(6,6), basicStiffInit(6,6)
 {
   
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "MultipleNormalSpring::setUp() - element: "
-	   << this->getTag() << " failed to create an ID of size 2\n";
-  }
-  
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
   
   // set node pointers to NULL
   for (int i=0; i<2; i++)
-    theNodes[i] = 0;
-  
-  // check material input
-  if (Material == 0)  {
-    opserr << "MultipleNormalSpring::MultipleNormalSpring() - "
-	   << "null uniaxial material pointer passed.\n";
-    exit(-1);
-  }
+    theNodes[i] = nullptr;
+
 
   theMaterials = new UniaxialMaterial* [nDivide*nDivide]; // materials
 
   // get copies of the uniaxial materials
   for (int i=0; i<nDivide*nDivide; i++)  {
     theMaterials[i] = Material->getCopy();
-
-    if (theMaterials[i] == 0) {
-      opserr << "MultipleNormalSpring::MultipleNormalSpring() - "
- 	     << "failed to copy uniaxial material.\n";
-      exit(-1);
-    }
   }
   
 
@@ -128,23 +110,23 @@ MultipleNormalSpring::MultipleNormalSpring(int Tag, int Nd1, int Nd2,
     int k = -1; //index
   
     for(int i=1; i<=((nDivide+p)/2); i++) {
-      //circle
+      // circle
       if(i==1 && p==1) {
-	k++; //k=1
-	double r = 0.0;
-	posLy[k] = 0.0;
-	posLz[k] = 0.0;
-	
-	//distribution factor
-	if(lambda < 0) { //uniform
-	  distFct[k] = 1.0;
-	} else if(lambda == 0) { //parabolic
-	  distFct[k] = 2.0;
-	} else {
-	  distFct[k] = (1.0-1.0/dbesi0(lambda))/(1.0-2.0/lambda*dbesi1(lambda)/dbesi0(lambda));
-	}
+        k++; //k=1
+        double r = 0.0;
+        posLy[k] = 0.0;
+        posLz[k] = 0.0;
+        
+        //distribution factor
+        if(lambda < 0) { //uniform
+          distFct[k] = 1.0;
+        } else if(lambda == 0) { //parabolic
+          distFct[k] = 2.0;
+        } else {
+          distFct[k] = (1.0-1.0/dbesi0(lambda))/(1.0-2.0/lambda*dbesi1(lambda)/dbesi0(lambda));
+        }
 
-	continue;
+        continue;
       }
 
       //circular sector
@@ -153,23 +135,23 @@ MultipleNormalSpring::MultipleNormalSpring(int Tag, int Nd1, int Nd2,
       double r2 = ((2.0*i-p)/(2.0*nDivide))*size;
       double r = (2.0/3.0)*(sin(tht)/tht)*((r1*r1+r1*r2+r2*r2)/(r1+r2)) ;
       for(int j=1; j<=(4*(2*i-1-p)); j++){
-	k++; //k=(2*i-2-p)^2+j
-	double alp = (2*j-1)*tht;
-	posLy[k] = r*cos(alp);
-	posLz[k] = r*sin(alp);
+        k++; //k=(2*i-2-p)^2+j
+        double alp = (2*j-1)*tht;
+        posLy[k] = r*cos(alp);
+        posLz[k] = r*sin(alp);
 
-	//distribution factor
-	if(lambda < 0) {
-	  distFct[k] = 1.0; //uniform
-	} else if(lambda == 0) {
-	  distFct[k] = 2.0*(1.0-r/(size/2)*r/(size/2)); //parabolic
-	} else {
-	  distFct[k] = (1.0-dbesi0(lambda*r/(size/2))/dbesi0(lambda))/(1.0-2.0/lambda*dbesi1(lambda)/dbesi0(lambda));
-	}
+        //distribution factor
+        if(lambda < 0) {
+          distFct[k] = 1.0; //uniform
+        } else if(lambda == 0) {
+          distFct[k] = 2.0*(1.0-r/(size/2)*r/(size/2)); //parabolic
+        } else {
+          distFct[k] = (1.0-dbesi0(lambda*r/(size/2))/dbesi0(lambda))/(1.0-2.0/lambda*dbesi1(lambda)/dbesi0(lambda));
+        }
       }
     }
-
-  } else {//square shape
+  } 
+  else {//square shape
     opserr << "MultipleNormalSpring::MultipleNormalSpring() - "
 	   << "square shape \n";
     exit(-1);
@@ -205,15 +187,7 @@ MultipleNormalSpring::MultipleNormalSpring()
     nDivide(0), shape(0), size(0), oriX(0), oriYp(0), mass(0.0),
     Tgl(12,12), Tlb(6,12),
     basicDisp(6), localDisp(12), basicForce(6), basicStiff(6,6), basicStiffInit(6,6)
-{	
-
-
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "MultipleNormalSpring::MultipleNormalSpring() - "
-	   <<  "failed to create an ID of size 2\n";
-    exit(-1);
-  }
+{
   
   // set node pointers to NULL
   for (int i=0; i<2; i++)

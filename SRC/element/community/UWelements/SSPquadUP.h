@@ -66,46 +66,45 @@ class SSPquadUP : public Element
     SSPquadUP();
     ~SSPquadUP();
 
-    const char* getClassType()  const { return "SSPquadUP"; };
+    const char* getClassType()  const { return "SSPquadUP"; }
     // LM change
 
     // public methods to obtain information about dof and connectivity
-    int getNumExternalNodes(void) const; 
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
-    int getNumDOF(void);
-    void setDomain(Domain *theDomain);
+    int getNumExternalNodes() const; 
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
-    int update(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+    int update();
 
     // public methods to obtain stiffness, mass, damping, and residual info
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getDamp(void);
-    const Matrix &getMass(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getDamp();
+    const Matrix &getMass();
 
-    void zeroLoad(void);
+    void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag =0);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);
 
-    Response *setResponse(const char **argv, int argc, OPS_Stream &eleInfo);
-    int getResponse(int responseID, Information &eleInformation);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    int getResponse(int responseID, Information &);
 
     // public methods for material stage update
-    int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int setParameter(const char **argv, int argc, Parameter &);
+    int updateParameter(int parameterID, Information &);
 
     // allow PyLiq1 and TzLiq1 classes to get stresses from SSPquadUP class
     friend class PyLiq1;
@@ -118,12 +117,12 @@ class SSPquadUP : public Element
 
     // member functions
     Matrix DyadicProd(Vector v1, Vector v2);   // dyadic product for two 2x1 vectors
-    void GetStab(void);                        // compute stabilization stiffness matrix
-    void GetSolidStiffness(void);              // compute solid phase stiffness matrix
-    void GetSolidMass(void);                   // compute solid phase mass matrix
-    void GetPermeabilityMatrix(void);          // compute permeability matrix
+    void GetStab();                        // compute stabilization stiffness matrix
+    void GetSolidStiffness();              // compute solid phase stiffness matrix
+    void GetSolidMass();                   // compute solid phase mass matrix
+    void GetPermeabilityMatrix();          // compute permeability matrix
     // LM change        
-	void setPressureLoadAtNodes(void);
+	void setPressureLoadAtNodes();
     // LM change
 		
     // objects

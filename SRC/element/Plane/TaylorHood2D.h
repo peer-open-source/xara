@@ -67,17 +67,14 @@ public:
 
     // MovableObject
     const char *getClassType() const;
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel,
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     // DomainComponent
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *);
 
     // TaggedObject
-    void Print(OPS_Stream &, int flag) final;
-    int displaySelf(Renderer &, int mode, float fact,
-		    const char **displayModes=0, int numModes=0);
+    void Print(OPS_Stream &, int flag);
 
 private:
 
@@ -85,8 +82,7 @@ private:
     int getX(Matrix& x);
     
     // Jacobian matrix
-    void Jacobian(Matrix& J, const Matrix& X,
-		  const Matrix& dNdL);
+    void Jacobian(Matrix& J, const Matrix& X,  const Matrix& dNdL);
 
     // shape functions
     void vshape(Vector& N, double l1, double l2, double l3);
@@ -95,16 +91,11 @@ private:
 
     // matrices
     double Mab(int a, int b, double detJ, const Vector& N);
-    double K11(int a, int b, double detJ,
-	       const Matrix& dNdx);
-    double K12(int a, int b, double detJ,
-	       const Matrix& dNdx);
-    double K21(int a, int b, double detJ,
-	       const Matrix& dNdx);
-    double K22(int a, int b, double detJ,
-	       const Matrix& dNdx);
-    double Gab(int a, int b, double detJ, const Matrix& dNdx,
-	       int i, const Vector& Np);
+    double K11(int a, int b, double detJ, const Matrix& dNdx);
+    double K12(int a, int b, double detJ, const Matrix& dNdx);
+    double K21(int a, int b, double detJ, const Matrix& dNdx);
+    double K22(int a, int b, double detJ, const Matrix& dNdx);
+    double Gab(int a, int b, double detJ, const Matrix& dNdx, int i, const Vector& Np);
     double Fa(int a, double detJ, const Vector& N, double bx);
     double Mpab(int a, int b, double detJ, const Vector& Np);
 

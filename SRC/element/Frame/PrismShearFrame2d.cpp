@@ -113,12 +113,6 @@ PrismShearFrame2d::PrismShearFrame2d()
    M(6, 6),
    theLoad(6)
 {
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2) {
-    opserr << "PrismShearFrame2d::PrismShearFrame2d() - element: " << this->getTag()
-           << " - failed to create an ID of size 2.\n";
-    exit(-1);
-  }
 
   // set node pointers to NULL
   for (int i = 0; i < 2; i++)

@@ -234,11 +234,6 @@ GradientInelasticBeamColumn2d::GradientInelasticBeamColumn2d(int tag, int nodeI,
 	iterNo(0), strIterNo(0), totStrIterNo(0), commitNo(0), iters(3)
 	// complete
 {
-	// Pointers to Nodes and Their IDs
-	if (connectedExternalNodes.Size() != 2) {
-		opserr << "WARNING! GradientInelasticBeamColumn2d::GradientInelasticBeamColumn2d() - element: " << this->getTag() << " - failed to create an ID of size 2\n";
-		exit(-1);
-	}
 
 	connectedExternalNodes(0) = nodeI;
 	connectedExternalNodes(1) = nodeJ;
@@ -249,10 +244,6 @@ GradientInelasticBeamColumn2d::GradientInelasticBeamColumn2d(int tag, int nodeI,
 	// Get Copy of Integration Method
 	beamIntegr = BI.getCopy();
 
-	if (!beamIntegr) {
-		opserr << "WARNING! GradientInelasticBeamColumn2d::GradientInelasticBeamColumn2d() - element: " << this->getTag() << " - could not create copy of beam integration object" << endln;
-		exit(-1);
-	}
 
 	// Get Copy of Sections
 	if (!endSec1) {

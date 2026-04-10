@@ -147,19 +147,8 @@ CorotTruss2::CorotTruss2(int tag, int dim,
 {
   // get a copy of the material and check we obtained a valid copy
   theMaterial = theMat.getCopy();
-  if (theMaterial == 0) {
-    opserr << "FATAL CorotTruss2::CorotTruss2 - " <<  tag <<
-      "failed to get a copy of material with tag " << theMat.getTag() << endln;
-    exit(-1);
-  } else if (theMaterial->getClassTag() == MAT_TAG_ConcretewBeta) {
-        theBetaMaterial = (ConcretewBeta *) theMaterial;
-  }
-  
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2 || connectedExternalOtherNodes.Size() != 2) {
-    opserr << "FATAL CorotTruss2::CorotTruss2 - " <<  tag <<
-      " failed to create an ID of size 2\n";
-    exit(-1);
+  if (theMaterial->getClassTag() == MAT_TAG_ConcretewBeta) {
+    theBetaMaterial = (ConcretewBeta *) theMaterial;
   }
   
   connectedExternalNodes(0) = Nd1;
@@ -187,12 +176,6 @@ CorotTruss2::CorotTruss2()
   A(0.0), rho(0.0), R(3,3),
   theMatrix(0), theVector(0)
 {
-  // ensure the connectedExternalNode ID is of correct size 
-  if (connectedExternalNodes.Size() != 2 || connectedExternalOtherNodes.Size() != 2) {
-    opserr << "FATAL CorotTruss2::CorotTruss2 - failed to create an ID of size 2\n";
-    exit(-1);
-  }
-
   // set node pointers to NULL
   theNodes[0] = 0;
   theNodes[1] = 0;

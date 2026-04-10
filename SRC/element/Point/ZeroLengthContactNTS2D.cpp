@@ -38,7 +38,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -441,12 +440,6 @@ ZeroLengthContactNTS2D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectB
 	return 0;
 }
 
-int
-ZeroLengthContactNTS2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{ 
- // nothing to display
-    return 0;
-}
 
 void
 ZeroLengthContactNTS2D::Print(OPS_Stream &s, int flag)

@@ -938,6 +938,7 @@ ZeroLength::Print(OPS_Stream &s, int flag)
     }
 }
 
+
 Response*
 ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
@@ -969,8 +970,11 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
     theResponse = new ElementResponse(this, 1, Vector(numDOF));
 
   } 
-  else if ((strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) ||
-        (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)) {
+  else if ((strcmp(argv[0],"basicForce") == 0) || 
+            (strcmp(argv[0],"stress") == 0) ||
+            (strcmp(argv[0],"basicForces") == 0) ||
+            (strcmp(argv[0],"localForce") == 0) || 
+            (strcmp(argv[0],"localForces") == 0)) {
 
     for (int i=0; i<numMaterials1d; i++) {
         sprintf(outputData,"P%d",i+1);
@@ -979,12 +983,15 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
     theResponse = new ElementResponse(this, 2, Vector(numMaterials1d));
 
   } 
-  else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
-        strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
+  else if (strcmp(argv[0],"defo") == 0 || 
+           strcmp(argv[0],"strain") == 0 ||
+           strcmp(argv[0],"deformations") == 0 ||
+           strcmp(argv[0],"deformation") == 0 || 
+           strcmp(argv[0],"basicDeformation") == 0) {
 
     for (int i=0; i<numMaterials1d; i++) {
-        sprintf(outputData,"e%d",i+1);
-        output.tag("ResponseType",outputData);
+      sprintf(outputData,"e%d",i+1);
+      output.tag("ResponseType",outputData);
     }
     theResponse = new ElementResponse(this, 3, Vector(numMaterials1d));
 
@@ -1002,20 +1009,17 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
            (strcmp(argv[0],"deformationANDforces") == 0) ||
            (strcmp(argv[0],"deformationsANDforces") == 0)) {
     
-    int i;
-    for (i=0; i<numMaterials1d; i++) {
+    for (int i=0; i<numMaterials1d; i++) {
       sprintf(outputData,"e%d",i+1);
       output.tag("ResponseType",outputData);
     }
-    for (i=0; i<numMaterials1d; i++) {
+    for (int i=0; i<numMaterials1d; i++) {
       sprintf(outputData,"P%d",i+1);
       output.tag("ResponseType",outputData);
     }
     theResponse = new ElementResponse(this, 4, Vector(2*numMaterials1d));
-    
-    
-  // a material quantity
   } 
+  // a material quantity
   else if (strcmp(argv[0],"material") == 0) {
     if (argc > 2) {
       int matNum = atoi(argv[1]);
@@ -1035,6 +1039,7 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
 
   return theResponse;
 }
+
 
 int 
 ZeroLength::getResponse(int responseID, Information &eleInformation)

@@ -233,11 +233,6 @@ GradientInelasticBeamColumn3d::GradientInelasticBeamColumn3d(int tag, int nodeI,
 	iterNo(0), strIterNo(0), totStrIterNo(0), commitNo(0), iters(3)
 	// complete
 {
-	// Pointers to Nodes and Their IDs
-	if (connectedExternalNodes.Size() != 2) {
-		opserr << "WARNING! GradientInelasticBeamColumn3d::GradientInelasticBeamColumn3d() - element: " << this->getTag() << " - failed to create an ID of size 2\n";
-		exit(-1);
-	}
 
 	connectedExternalNodes(0) = nodeI;
 	connectedExternalNodes(1) = nodeJ;

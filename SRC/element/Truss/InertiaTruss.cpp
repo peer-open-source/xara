@@ -130,23 +130,17 @@ InertiaTruss::InertiaTruss(int tag, int dim,
   theLoad(0), theMatrix(0), theVector(0),
   L(0.0),  mass(mr), initialDisp(0)
 {
-  
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2) {
-      opserr << "FATAL InertiaTruss::InertiaTruss - " <<  tag << "failed to create an ID of size 2\n";
-      exit(-1);
-    }
 
-    connectedExternalNodes(0) = Nd1;
-    connectedExternalNodes(1) = Nd2;        
+  connectedExternalNodes(0) = Nd1;
+  connectedExternalNodes(1) = Nd2;        
 
-    // set node pointers to NULL
-    for (int i=0; i<2; i++)
-      theNodes[i] = 0;
+  // set node pointers to NULL
+  for (int i=0; i<2; i++)
+    theNodes[i] = 0;
 
-    cosX[0] = 0.0;
-    cosX[1] = 0.0;
-    cosX[2] = 0.0;
+  cosX[0] = 0.0;
+  cosX[1] = 0.0;
+  cosX[2] = 0.0;
 
 // AddingSensitivity:BEGIN /////////////////////////////////////
 	parameterID = 0;
@@ -164,11 +158,6 @@ InertiaTruss::InertiaTruss()
  theLoad(0), theMatrix(0), theVector(0),
  L(0.0), mass(0.0)
 {
-    // ensure the connectedExternalNode ID is of correct size 
-  if (connectedExternalNodes.Size() != 2) {
-      opserr << "FATAL InertiaTruss::InertiaTruss - failed to create an ID of size 2\n";
-      exit(-1);
-  }
   for (int i=0; i<2; i++)
     theNodes[i] = 0;
 
