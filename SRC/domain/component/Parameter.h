@@ -81,8 +81,8 @@ class Parameter : public TaggedObject, public MovableObject
   Information theInfo;
   double currentValue;
 
-  enum {initialSize = 64};
-  enum {expandSize = 128};
+  static constexpr int initialSize = 64;
+  static constexpr int expandSize = 128;
 
   MovableObject **theComponents;
   int numComponents;
