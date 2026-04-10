@@ -42,6 +42,20 @@
 #include <ElasticMaterial.h>
 #include <FiberSectionBuilder.h>
 
+struct FiberSectionConfig {
+  bool isND            = false;
+  bool isAsym          = false;
+  bool isWarping       = false;
+  bool isThermal       = false;
+  bool isMixed         = false;
+  bool isNew           = false; // use new FrameFiberSection class
+  bool computeCentroid = true;
+  bool use_twist = false;
+  bool use_density = false;
+  int  reserve = 30;
+  bool wagner = false;
+};
+
 SectionBuilder* 
 findSectionBuilder(ModelRegistry* builder, Tcl_Interp *interp, int argc, const char** const argv)
 {
@@ -70,19 +84,6 @@ findSectionBuilder(ModelRegistry* builder, Tcl_Interp *interp, int argc, const c
   return builder->getTypedObject<SectionBuilder>(tag);
 }
 
-struct FiberSectionConfig {
-  bool isND            = false;
-  bool isAsym          = false;
-  bool isWarping       = false;
-  bool isThermal       = false;
-  bool isMixed         = false;
-  bool isNew           = false; // use new FrameFiberSection class
-  bool computeCentroid = true;
-  bool use_twist = false;
-  bool use_density = false;
-  int  reserve = 30;
-  bool wagner = false;
-};
 
 
 
@@ -515,6 +516,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
           (*shape_data.mixed.shear_align)(i, j) = val;
         }
       }
+      Tcl_Free((char*)argv_sa);
       iarg += 2;
     }
     else if (strcmp(argv[iarg], "-shiftTwist") == 0) {
@@ -552,6 +554,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
         }
         (*shape_data.mixed.shift_twist)(i) = val;
       }
+      Tcl_Free((char*)argv_st);
       iarg += 2;
     }
     else if (strcmp(argv[iarg], "-shiftAxial") == 0) {
@@ -589,6 +592,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
         }
         (*shape_data.mixed.shift_axial)(i) = val;
       }
+      Tcl_Free((char*)argv_sa);
       iarg += 2;
     }
 
@@ -1048,7 +1052,7 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
   //
   int i_warp = 0;
   int          split_1_argc;
-  const char **split_1_argv;
+  const char **split_1_argv = nullptr;
   if (warp_arg >= 0 && Tcl_SplitList(interp, argv[warp_arg], &split_1_argc, &split_1_argv) == TCL_OK) {
     int argi = 0;
     for (; i_warp<WarpModeCount; i_warp++) {
