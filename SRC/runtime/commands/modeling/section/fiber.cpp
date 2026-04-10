@@ -1087,6 +1087,7 @@ TclCommand_addFiber(ClientData clientData, Tcl_Interp *interp, int argc,
       Tcl_Free((char *) split_argv);
       argi++;
     }
+    Tcl_Free((char *) split_1_argv);
   }
 
   //
