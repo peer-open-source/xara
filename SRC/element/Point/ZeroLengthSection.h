@@ -31,12 +31,15 @@
 
 #include <Element.h>
 #include <Matrix.h>
+#include <Matrix3D.h>
 
 
 class Node;
 class Channel;
 class SectionForceDeformation;
 class Response;
+
+namespace OpenSees {
 
 class ZeroLengthSection : public Element
 {
@@ -45,8 +48,9 @@ class ZeroLengthSection : public Element
     ZeroLengthSection(int tag,                               
                       int dimension,
                       int Nd1, int Nd2, 
-                      const Vector& x,
-                      const Vector& yprime,
+                      // const Vector& x,
+                      // const Vector& yprime,
+                      const Matrix3D& T,
                       SectionForceDeformation& theSection,
                       int doRayleighDamping = 0);
 
@@ -101,7 +105,7 @@ class ZeroLengthSection : public Element
   private:
 
     // private methods
-    void setUp (int Nd1, int Nd2, const Vector& x, const Vector& y);
+    // void setUp (int Nd1, int Nd2, const Vector& x, const Vector& y);
     void setTransformation();
     void computeSectionDefs();
 
@@ -109,7 +113,7 @@ class ZeroLengthSection : public Element
     ID  connectedExternalNodes;         // contains the tags of the end nodes
     int dimension;                      // = 2 or 3 dimensions
     int numDOF;                                // number of dof for ZeroLengthSection
-    Matrix transformation;                // transformation matrix for orientation
+    Matrix3D transformation;                // transformation matrix for orientation
     int useRayleighDamping;
         
     Matrix *A;        // Transformation matrix ... e = A*(u2-u1)
@@ -131,7 +135,7 @@ class ZeroLengthSection : public Element
     static Vector P6;
     static Vector P12;
 };
-
+} // namespace OpenSees
 #endif
 
 
