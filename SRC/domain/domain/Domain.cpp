@@ -1088,7 +1088,7 @@ Domain::removeParameter(int tag)
     int index;
     for (index = 0; index < numParameters; index++) {
       if (paramIndex[index] == tag)
-	break;
+        break;
     }
 
     // Shift indices down by one
