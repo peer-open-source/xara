@@ -51,31 +51,31 @@ class BoundingCamClay : public NDMaterial
  
     NDMaterial *getCopy(const char *type);
 
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 	virtual int setTrialStrain(const Vector &v) {
 	  assert(false);
 	  return -1;
 	}
 
-    NDMaterial *getCopy(void);
-    const char *getType(void) const;
-    int getOrder(void) const;
+    NDMaterial *getCopy();
+    const char *getType() const;
+    int getOrder() const;
 
-    Response *setResponse (const char **argv, int argc, OPS_Stream &output);
-    int getResponse (int responseID, Information &matInformation);
+    Response *setResponse (const char **argv, int argc, OPS_Stream &);
+    int getResponse (int responseID, Information &);
 
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker); 
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &); 
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
 	int setParameter(const char **argv, int argc, Parameter &param);
-  	int updateParameter(int responseID, Information &eleInformation);
+  	int updateParameter(int responseID, Information &);
 
 	// send mass density to element in dynamic analysis
-	double getRho(void) {return massDen;};
+	double getRho() {return massDen;};
 
   protected:
 
@@ -135,9 +135,9 @@ class BoundingCamClay : public NDMaterial
 	Matrix GetCep(double kappa, double r, double R, double dgamma, double rho, double eta,
                         double nu, Vector SIGMAo, Vector xi, Vector df_dSigma, Matrix Dep);
 	Matrix GetComplianceOperator(double p, double ev, double es, Vector n);
-	double GetContraNorm(Vector v);
-	double GetCovariantNorm(Vector v); 
-	double GetTrace(Vector v);
+	double GetContraNorm(const Vector& v);
+	double GetCovariantNorm(const Vector& v); 
+	double GetTrace(const Vector& v);
 	Vector GetState(); 
 	Vector GetCenter();
 
