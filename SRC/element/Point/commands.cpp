@@ -370,7 +370,8 @@ TclCommand_addZeroLengthSection(ClientData clientData, Tcl_Interp *interp,
   // along the global x and y axis
   //
 
-  int eleTag, iNode, jNode;
+  int eleTag;
+  std::array<int, 2> nodes{};
 
   // a quick check on number of args
   if (argc < 6) {
@@ -389,13 +390,13 @@ TclCommand_addZeroLengthSection(ClientData clientData, Tcl_Interp *interp,
   }
 
   // get the two end nodes
-  if (Tcl_GetInt(interp, argv[3], &iNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[3], &nodes[0]) != TCL_OK) {
     opserr << "WARNING invalied iNode " << argv[3]
            << "\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[4], &jNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[4], &nodes[1]) != TCL_OK) {
     opserr << "WARNING invalid jNode " << argv[4]
            << "\n";
     return TCL_ERROR;
@@ -408,61 +409,82 @@ TclCommand_addZeroLengthSection(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  // create the vectors for the element orientation
-  Vector x(3);
-  x(0) = 1.0;
-  x(1) = 0.0;
-  x(2) = 0.0;
-  Vector y(3);
-  y(0) = 0.0;
-  y(1) = 1.0;
-  y(2) = 0.0;
+  Matrix3D T{};
+  {
+    Vector3D dx{};
+    Domain *theDomain = builder->getDomain();
+    Node *ndI = theDomain->getNode(nodes[0]);
+    Node *ndJ = theDomain->getNode(nodes[1]);
+    if (ndI == nullptr || ndJ == nullptr) {
+      opserr << OpenSees::PromptValueError << "invalid node tag(s)\n";
+      return TCL_ERROR;
+    }
+    const Vector &end1 = ndI->getCrds();
+    const Vector &end2 = ndJ->getCrds();
+    for (int i=0; i<ndm; ++i)
+      dx(i) = end2(i) - end1(i);
+    
+    if (ParseLinkAxes(interp, argc-5, argv+5, ndm, dx, T) != TCL_OK)
+      return TCL_ERROR;
+  }
+
+  // // create the vectors for the element orientation
+  // Vector x(3);
+  // x(0) = 1.0;
+  // x(1) = 0.0;
+  // x(2) = 0.0;
+  // Vector y(3);
+  // y(0) = 0.0;
+  // y(1) = 1.0;
+  // y(2) = 0.0;
 
   int argi = 6;
   int doRayleighDamping = 1;
 
   // finally check the command line to see if user specified orientation
   while (argi < argc) {
-    if (strcmp(argv[argi], "-orient") == 0) {
-      if (argc < (argi + 7)) {
-        opserr << "WARNING not enough parameters after -orient flag for ele "
-               << eleTag
-               << "- element zeroLengthSection eleTag? iNode? jNode? secTag? "
-               << "<-orient x1? x2? x3? y1? y2? y3?>\n";
-        return TCL_ERROR;
-      } else {
-        argi++;
-        double value;
-        // read the x values
-        for (int i = 0; i < 3; i++) {
-          if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
-            opserr
-                << "WARNING invalid -orient value for ele  " << eleTag
-                << argv[argi]
-                << "- element zeroLengthSection eleTag? iNode? jNode secTag? "
-                << "<-orient x1? x2? x3? y1? y2? y3?>\n";
-            return TCL_ERROR;
-          } else {
-            argi++;
-            x(i) = value;
-          }
-        }
-        // read the y values
-        for (int j = 0; j < 3; j++) {
-          if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
-            opserr
-                << "WARNING invalid -orient value for ele  " << eleTag
-                << argv[argi]
-                << "- element zeroLengthSection eleTag? iNode? jNode? secTag? "
-                << "<-orient x1? x2? x3? y1? y2? y3?>\n";
-            return TCL_ERROR;
-          } else {
-            argi++;
-            y(j) = value;
-          }
-        }
-      }
-    } else if (strcmp(argv[argi], "-doRayleigh") == 0) {
+    // if (strcmp(argv[argi], "-orient") == 0) {
+    //   if (argc < (argi + 7)) {
+    //     opserr << "WARNING not enough parameters after -orient flag for ele "
+    //            << eleTag
+    //            << "- element zeroLengthSection eleTag? iNode? jNode? secTag? "
+    //            << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+    //     return TCL_ERROR;
+    //   } else {
+    //     argi++;
+    //     double value;
+    //     // read the x values
+    //     for (int i = 0; i < 3; i++) {
+    //       if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
+    //         opserr
+    //             << "WARNING invalid -orient value for ele  " << eleTag
+    //             << argv[argi]
+    //             << "- element zeroLengthSection eleTag? iNode? jNode secTag? "
+    //             << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+    //         return TCL_ERROR;
+    //       } else {
+    //         argi++;
+    //         x(i) = value;
+    //       }
+    //     }
+    //     // read the y values
+    //     for (int j = 0; j < 3; j++) {
+    //       if (Tcl_GetDouble(interp, argv[argi], &value) != TCL_OK) {
+    //         opserr
+    //             << "WARNING invalid -orient value for ele  " << eleTag
+    //             << argv[argi]
+    //             << "- element zeroLengthSection eleTag? iNode? jNode? secTag? "
+    //             << "<-orient x1? x2? x3? y1? y2? y3?>\n";
+    //         return TCL_ERROR;
+    //       } else {
+    //         argi++;
+    //         y(j) = value;
+    //       }
+    //     }
+    //   }
+    // }
+    // else 
+    if (strcmp(argv[argi], "-doRayleigh") == 0) {
       doRayleighDamping = 1;
       argi++;
       if (argi < argc)
@@ -479,7 +501,7 @@ TclCommand_addZeroLengthSection(ClientData clientData, Tcl_Interp *interp,
   if (theSection == nullptr)
     return TCL_ERROR;
 
-  Element *theEle = new ZeroLengthSection(eleTag, ndm, iNode, jNode, x, y,
+  Element *theEle = new ZeroLengthSection(eleTag, ndm, nodes[0], nodes[1], T,
                                           *theSection, doRayleighDamping);
 
   if (domain->addElement(theEle) == false)
