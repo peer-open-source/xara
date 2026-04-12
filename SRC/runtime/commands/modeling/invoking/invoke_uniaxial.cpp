@@ -145,7 +145,8 @@ TclCommand_setStrainUniaxialMaterial(ClientData clientData,
   return TCL_OK;
 }
 
-int TclCommand_commitState(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+int 
+TclCommand_commitState(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   UniaxialMaterial* theMaterial = (UniaxialMaterial*)clientData;
