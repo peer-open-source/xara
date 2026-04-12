@@ -52,46 +52,56 @@ Vector ZeroLengthSection::P6(6);
 Vector ZeroLengthSection::P12(12);
 
 ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2, 
-                                     const Vector& x, const Vector& yprime, 
+                                     const Matrix3D& T,
+                                    //  const Vector& x, const Vector& yprime, 
                                      SectionForceDeformation& sec,
                                      int doRayleigh) 
- :Element(tag, ELE_TAG_ZeroLengthSection),
-  connectedExternalNodes(2),
-  dimension(dim), numDOF(0), 
-  transformation(3,3), useRayleighDamping(doRayleigh), A(0), v(0), K(0), P(0),
-  theSection(0), order(0)
+  : Element(tag, ELE_TAG_ZeroLengthSection)
+  , connectedExternalNodes(2)
+  , dimension(dim)
+  , numDOF(0)
+  , transformation{T}
+  , useRayleighDamping(doRayleigh)
+  , A(0), v(0), K(0), P(0),
+  theSection(nullptr)
+  , order(0)
 {
-        // Obtain copy of section model
-        theSection = sec.getCopy();
+  // Obtain copy of section model
+  theSection = sec.getCopy();
 
-        // Get the section order
-        order = theSection->getOrder();
+  // Get the section order
+  order = theSection->getOrder();
 
-        // Set up the transformation matrix of direction cosines
-        this->setUp(Nd1, Nd2, x, yprime);
+  connectedExternalNodes(0) = Nd1;
+  connectedExternalNodes(1) = Nd2;
+
+  for (int i=0; i<2; i++)
+    theNodes[i] = nullptr;
+  // Set up the transformation matrix of direction cosines
+  // this->setUp(Nd1, Nd2, x, yprime);
 }
 
 ZeroLengthSection::ZeroLengthSection() : 
 Element(0, ELE_TAG_ZeroLengthSection),
 connectedExternalNodes(2),
 dimension(0), numDOF(0), 
-transformation(3,3), A(0), v(0), K(0), P(0),
-theSection(0), order(0)
+transformation{}, A(0), v(0), K(0), P(0),
+theSection(nullptr), order(0)
 {
 
 }
 
 ZeroLengthSection::~ZeroLengthSection()
 {
-    // invoke the destructor on any objects created by the object
-    // that the object still holds a pointer to
-    
-        if (theSection != 0)
-                delete theSection;
-        if (A != 0)
-                delete A;
-        if (v != 0)
-                delete v;
+  // invoke the destructor on any objects created by the object
+  // that the object still holds a pointer to
+
+  if (theSection != 0)
+    delete theSection;
+  if (A != 0)
+    delete A;
+  if (v != 0)
+    delete v;
 }
 
 int
@@ -371,7 +381,8 @@ ZeroLengthSection::sendSelf(int commitTag, Channel &theChannel)
 
   // Send the 3x3 direction cosine matrix, have to send it since it is only set
   // in the constructor and not setDomain()
-  res += theChannel.sendMatrix(dataTag, commitTag, transformation);
+  // TODO(cmp): send Matrix3D
+  // res += theChannel.sendMatrix(dataTag, commitTag, transformation);
   if (res < 0) {
     opserr << "ZeroLengthSection::sendSelf -- failed to send transformation Matrix\n";
     return res;
@@ -405,7 +416,8 @@ ZeroLengthSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
     return res;
   }
 
-  res += theChannel.recvMatrix(dataTag, commitTag, transformation);
+  // TODO(cmp): receive Matrix3D
+  // res += theChannel.recvMatrix(dataTag, commitTag, transformation);
   if (res < 0) {
     opserr << "ZeroLengthSection::recvSelf -- failed to receive transformation Matrix\n";
     return res;
@@ -585,6 +597,7 @@ ZeroLengthSection::getResponse(int responseID, Information &eleInfo)
     }
 }
 
+#if 0
 // Private methods
 
 // Establish the external nodes and set up the transformation matrix
@@ -592,8 +605,6 @@ ZeroLengthSection::getResponse(int responseID, Information &eleInfo)
 void
 ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
 { 
-    // ensure the connectedExternalNode ID is of correct size & set values
-    assert(connectedExternalNodes.Size() == 2);
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -636,6 +647,7 @@ ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
                 transformation(2,i) = z(i)/zn;
         }
 }
+#endif
 
 // Set basic deformation-displacement transformation matrix for section
 void 
@@ -675,7 +687,7 @@ ZeroLengthSection::setTransformation()
               tran(i,5) = transformation(2,2);
       }
       else if (numDOF == 12) {
-              tran(i,9) = transformation(2,0);
+              tran(i,9)  = transformation(2,0);
               tran(i,10) = transformation(2,1);
               tran(i,11) = transformation(2,2);
       }
@@ -735,7 +747,7 @@ ZeroLengthSection::setTransformation()
 
     // Fill in first half of transformation matrix with negative sign
     for (int j = 0; j < numDOF/2; j++ )
-            tran(i,j) = -tran(i,j+numDOF/2);
+      tran(i,j) = -tran(i,j+numDOF/2);
   }
 }
                      
