@@ -5,397 +5,210 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
-
-
-// ============================================================================
-// 2021 By Jose Abell @ Universidad de los Andes, Chile
-// www.joseabell.com | https://github.com/jaabell | jaabell@miuandes.cl
-// ============================================================================
-// Implements simple routines to test nDMaterials using direct strains.
 //
-// ============================================================================
+// Written: cmp
+//
 
-#include <TimeSeries.h>
-#include <map>
+#include <Parsing.h>
+#include <Logging.h>
 #include <string.h>
-#include <elementAPI.h>
-#include <vector>
-#include <PathTimeSeries.h>
-#include <PathSeries.h>
+#include <assert.h>
+
+#include <tcl.h>
 #include <Vector.h>
-#include <Matrix.h>
-#include <NDMaterial.h>
-#include <Information.h>
+#include <VectorND.h>
+#include <DummyStream.h>
+#include <Logging.h>
 #include <Response.h>
-#include <MaterialResponse.h>
-
-//Forward declaration for indexing purposes
-Tcl_CmdProc OPS_NDSetStrain;               // To set a trial strain on the material
-Tcl_CmdProc OPS_NDPrintStrain;             // Printing strains to the screen
-Tcl_CmdProc OPS_NDPrintStress;             // Printing strains to the screen
-Tcl_CmdProc OPS_NDGetStrain;               // Return current strains to a list variable
-Tcl_CmdProc OPS_NDGetStress;               // Return current stresses to a list variable
-Tcl_CmdProc OPS_NDGetTangentStiffness;     // Return current tangent stiffness to a list variable
-Tcl_CmdProc OPS_NDCommitState;             // To commit the state of the material after last trial strain
-Tcl_CmdProc OPS_NDUpdateIntegerParameter;  // To change an integer parameter in the material
-Tcl_CmdProc OPS_NDUpdateDoubleParameter;   // To change a double parameter in the material
-Tcl_CmdProc OPS_NDGetResponse;             // To get other responses
-
-int OPS_NDSetStrain(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-    double strains[6];
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0)
-    {
-        opserr << "OPS_NDSetStrain - got incorrect integer tag for material" << "\n";
-        return 0;
-    }
-
-
-    numdata = 6;
-    if (OPS_GetDoubleInput(&numdata, strains) < 0) {
-        opserr << "OPS_NDSetStrain - need 6 components of floating-point strains" << "\n";
-        return 0;
-    }
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDSetStrain - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-
-    Vector new_strain(6);
-
-    new_strain(0) = strains[0];
-    new_strain(1) = strains[1];
-    new_strain(2) = strains[2];
-    new_strain(3) = strains[3];
-    new_strain(4) = strains[4];
-    new_strain(5) = strains[5];
-
-    mat->setTrialStrain(new_strain);
-
-    return 0;
-}
-
-int OPS_NDPrintStrain(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) return 0;
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDPrintStrain - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-    const Vector &strain = mat->getStrain();
-
-    return 0;
-}
-
-int OPS_NDPrintStress(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) return 0;
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDPrintStress - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-    const Vector &stress = mat->getStress();
-
-    return 0;
-}
-
-
-int OPS_NDGetStrain(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-    int size = 6;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) return 0;
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDGetStrain - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-    const Vector &strain = mat->getStrain();
-
-    std::vector<double> values(size);
-    for (int i = 0; i < 6; i++) {
-        values[i] = strain(i);
-    }
-    if (OPS_SetDoubleOutput(&size, &values[0], false) < 0) {
-        opserr << "WARNING OPS_NDGetStress - failed to set double inputs\n";
-        return 0;
-    }
-
-
-    return 0;
-}
-
-
-
-int OPS_NDGetStress(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-    int size = 6;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0)
-    {
-        return 0;
-    }
-
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDGetStress() - Material tag " << tag << " not declared" << "\n";
-    }
-
-    const Vector &stress = mat->getStress();
-
-    std::vector<double> values(size);
-    for (int i = 0; i < 6; i++) {
-        values[i] = stress(i);
-    }
-    if (OPS_SetDoubleOutput(&size, &values[0], false) < 0) {
-        opserr << "WARNING OPS_NDGetStress - failed to set double inputs\n";
-        return 0;
-    }
-
-
-    return 0;
-}
-
-int OPS_NDGetResponse(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0)
-    {
-        return 0;
-    }
-
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDGetStress() - Material tag " << tag << " not declared" << "\n";
-    }
-
-
-    const char* response_type = OPS_GetString();
-
-    Response* theResponse = mat->setResponse(&response_type, 1, opserr);
-    theResponse->getResponse();
-    Information& theInformation = theResponse->getInformation();
-
-    const Vector &respose = *theInformation.theVector;
-
-    int size = respose.Size();
-    std::vector<double> values(size);
-    for (int i = 0; i < size; i++) {
-        values[i] = respose(i);
-    }
-    if (OPS_SetDoubleOutput(&size, &values[0], false) < 0) {
-        opserr << "WARNING OPS_NDGetStress - failed to set double inputs\n";
-        return 0;
-    }
-
-
-    return 0;
-}
-
-
-
-int OPS_NDGetTangentStiffness(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-    int size = 36;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) return 0;
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDGetTangentStiffness - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-    const Matrix &stiffness = mat->getTangent();
-
-    std::vector<double> values(size);
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 6; j++)
-        {
-            double one_value = stiffness(i, j);
-            values[6 * i + j] = one_value;
-        }
-    }
-    if (OPS_SetDoubleOutput(&size, &values[0], false) < 0) {
-        opserr << "WARNING OPS_NDGetStress - failed to set double inputs\n";
-        return 0;
-    }
-
-
-    return 0;
-}
-
-
-
-int OPS_NDCommitState(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-    double strains[6];
-    int size = 6;
-    double stressdata[6] = {1 , 2 , 3, 4, 5, 6};
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) return 0;
-
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDCommitState - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-
-    mat->commitState();
-
-    return 0;
-}
-
-
-int OPS_NDUpdateIntegerParameter(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-
-    opserr << "OPS_NDUpdateIntegerParameter" << "\n";
-
-    int tag = 0;
-    int responseID = 0;
-    int theNewIntegerParameterValue = 0;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) return 0;
-    opserr << "tag = " << tag  << "\n";
-    if (OPS_GetIntInput(&numdata, &responseID) < 0) return 0;
-    opserr << "responseID = " << responseID  << "\n";
-    if (OPS_GetIntInput(&numdata, &theNewIntegerParameterValue) < 0) return 0;
-    opserr << "theNewIntegerParameterValue = " << theNewIntegerParameterValue  << "\n";
-
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_getNDMaterial - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-    Information info;
-
-    info.theInt = theNewIntegerParameterValue;
-
-    mat->updateParameter(responseID, info);
-
-    return 0;
-}
-
-
-int OPS_NDUpdateDoubleParameter(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
-{
-    int tag = 0;
-    int responseID = 0;
-    double theNewDoubleParameterValue = 0;
-
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) return 0;
-    if (OPS_GetIntInput(&numdata, &responseID) < 0) return 0;
-    if (OPS_GetDoubleInput(&numdata, &theNewDoubleParameterValue) < 0) return 0;
-
-
-    NDMaterial* mat = OPS_getNDMaterial(tag);
-
-    if (mat == nullptr)
-    {
-        opserr << "OPS_NDUpdateDoubleParameter - material with tag " << tag << " does not exist" << "\n";
-        return 0;
-    }
-
-    Information info;
-
-    info.theDouble = theNewDoubleParameterValue;
-
-    mat->updateParameter(responseID, info);
-
-    return 0;
-}
-
-typedef std::unordered_map<std::string, Tcl_CmdProc> invoke_material_dispatch {
-    {"SetStrain",              &OPS_NDSetStrain},
-    {"CommitState",            &OPS_NDCommitState},
-    {"PrintStress",            &OPS_NDPrintStress},
-    {"PrintStrain",            &OPS_NDPrintStrain},
-    {"GetStrain",              &OPS_NDGetStrain},
-    {"GetStress",              &OPS_NDGetStress},
-    {"GetTangentStiffness",    &OPS_NDGetTangentStiffness},
-    {"UpdateIntegerParameter", &OPS_NDUpdateIntegerParameter},
-    {"UpdateDoubleParameter",  &OPS_NDUpdateDoubleParameter},
-    {"GetResponse",            &OPS_NDGetResponse}
+#include <NDMaterial.h>
+#include <ModelRegistry.h>
+
+static Tcl_CmdProc MaterialTest_setStrainSection;
+static Tcl_CmdProc MaterialTest_getStressSection;
+static Tcl_CmdProc MaterialTest_getTangent;
+static Tcl_CmdProc MaterialTest_getResponse;
+static Tcl_CmdProc MaterialTest_Commit;
+
+
+using namespace OpenSees;
+
+const struct {const char*name; Tcl_CmdProc*func;} MaterialTestCommands[] = {
+  {"material::update",     MaterialTest_setStrainSection },
+  {"material::stress",     MaterialTest_getStressSection },
+  {"material::tangent",    MaterialTest_getTangent       },
+  {"material::response",   MaterialTest_getResponse      },
+  {"material::commit",     MaterialTest_Commit           },
 };
 
-
+// invoke Material $tag $commands
 int
-OPS_NDTest(ClientData clientData, Tcl_Interp *interp, int argc, const char** const argv)
+TclCommand_useMaterial(ClientData clientData, Tcl_Interp *interp, 
+                       Tcl_Size argc, TCL_Char ** const argv)
 {
 
-    // Identify what specific command of Patch we're calling
-    if (OPS_GetNumRemainingInputArgs() < 1) {
-        opserr << "WARNING too few arguments: NDTest cmd? \n";
-        opserr << " available commands: SetStrain|CommitState|GetStrain|GetStress \n";
-        return -1;
+  assert(clientData != nullptr);
+  // TODO: Parse tag properly
+  NDMaterial *theMaterial = 
+    ((ModelRegistry*)clientData)->getTypedObject<NDMaterial>(std::atoi(argv[2]));
+
+  if (theMaterial == nullptr) {
+    opserr << OpenSees::PromptValueError << "no material found with tag '" << argv[2] << "'\n";
+    return TCL_ERROR;
+  }
+
+  //
+  //
+  //
+  const int ncmd = sizeof(MaterialTestCommands) / sizeof(MaterialTestCommands[0]);
+  for (int i = 0; i < ncmd; ++i) {
+    Tcl_CreateCommand(interp, MaterialTestCommands[i].name,
+                      MaterialTestCommands[i].func,
+                      (ClientData)theMaterial, nullptr);
+  }
+
+  //
+  //
+  int status = Tcl_Eval(interp, argv[3]);
+  //
+  //
+
+  for (int i = 0; i < ncmd; ++i) {
+    Tcl_DeleteCommand(interp, MaterialTestCommands[i].name);
+  }
+//   Tcl_DeleteCommand(interp, "material::update");
+//   Tcl_DeleteCommand(interp, "material::stress");
+//   Tcl_DeleteCommand(interp, "material::tangent");
+//   Tcl_DeleteCommand(interp, "material::commit");
+//   Tcl_DeleteCommand(interp, "material::response");
+
+  return status;
+}
+
+
+static int
+MaterialTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
+                              Tcl_Size argc, TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  NDMaterial *theMaterial = (NDMaterial*)clientData;
+
+  // check number of arguments in command line
+  if (argc < 2) {
+    opserr << OpenSees::PromptValueError 
+           << "insufficient arguments"
+           << "\n";
+    return TCL_ERROR;
+  }
+
+  // get the sectionID form command line
+  // Need to set the data based on argc, otherwise it crashes when setting
+  // "data(i-1) = strain"
+  // VectorND<12> e{};
+  int order = theMaterial->getOrder();
+  if (order != argc - 1) {
+    opserr << OpenSees::PromptValueError 
+           << "expected " << order << " strain values, but got " << argc - 1 << "\n";
+    return TCL_ERROR;
+  }
+  Vector data(order);
+  for (int i = 1; i < argc && i < order; ++i) {
+    double strain;
+    if (Tcl_GetDouble(interp, argv[i], &strain) != TCL_OK) {
+      opserr << OpenSees::PromptValueError 
+             << "could not read strain: strainSectionTest strain1? "
+                "strain2? ... strainN?"
+             << "\n";
+      return TCL_ERROR;
     }
+    data(i - 1) = strain;
+  }
 
-    const char* type = OPS_GetString();
+  if (theMaterial->setTrialStrain(data) != 0) {
+    opserr << OpenSees::PromptValueError 
+           << "failed to set trial strain\n";
+    return TCL_ERROR;
+  }
 
-    OPS_ParsingFunctionMap::const_iterator iter = functionMap.find(type);
-    if (iter == functionMap.end()) {
-        opserr << "WARNING NDTest type " << type << " is unknown\n";
-        return -1;
+  return TCL_OK;
+}
+
+
+static int
+MaterialTest_Commit(ClientData clientData, Tcl_Interp *interp,
+                    Tcl_Size argc, TCL_Char ** const argv)
+{
+  NDMaterial *theMaterial = (NDMaterial*)clientData;
+  const int status = theMaterial->commitState();
+  return TCL_OK;
+}
+
+
+static int
+MaterialTest_getStressSection(ClientData clientData, Tcl_Interp *interp,
+                             Tcl_Size argc, TCL_Char ** const argv)
+{
+  NDMaterial *theMaterial = (NDMaterial*)clientData;
+  const Vector &stress = theMaterial->getStress();
+  const int nsr = stress.Size();
+  Tcl_Obj* list = Tcl_NewListObj(nsr, nullptr);
+  for (int i = 0; i < nsr; ++i) {
+    Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(stress(i)));
+  }
+  Tcl_SetObjResult(interp, list);
+  return TCL_OK;
+}
+
+
+static int
+MaterialTest_getTangent(ClientData clientData, Tcl_Interp *interp,
+                        Tcl_Size argc, TCL_Char ** const argv)
+{
+  NDMaterial *theMaterial = (NDMaterial*)clientData;
+
+  const Matrix &tangent = theMaterial->getTangent();
+  const int nr = tangent.noRows();
+  const int nc = tangent.noCols();
+  Tcl_Obj* list = Tcl_NewListObj(nr * nc, nullptr);
+  for (int i = 0; i < nr; ++i)
+    for (int j = 0; j < nc; j++) {
+      Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(tangent(i, j)));
     }
+  Tcl_SetObjResult(interp, list);
+  return TCL_OK;
+}
 
-    // Call the function
-    (*iter->second)();
 
-    return 0;
+static int
+MaterialTest_getResponse(ClientData clientData, Tcl_Interp *interp,
+                                Tcl_Size argc, TCL_Char ** const argv)
+{
+  NDMaterial *theMaterial = (NDMaterial*)clientData;
+  DummyStream dummy;
+  Response *theResponse =
+      theMaterial->setResponse(argv + 1, argc - 1, dummy);
 
+  if (theResponse == nullptr) {
+    opserr << OpenSees::PromptValueError 
+           << "Response returned a null pointer\n";
+    return TCL_ERROR;
+  }
+
+  if (theResponse->getResponse() < 0) {
+    delete theResponse;
+    opserr << OpenSees::PromptValueError << "Failed to get response\n";
+    return TCL_ERROR;
+  }
+
+  Information &eleInfo = theResponse->getInformation();
+  const Vector &data = eleInfo.getData();
+  const int ni = data.Size();
+  Tcl_Obj* list = Tcl_NewListObj(ni, nullptr);
+
+  for (int i = 0; i < ni; ++i) {
+    Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(data(i)));
+  }
+
+  Tcl_SetObjResult(interp, list);
+  delete theResponse;
+  return TCL_OK;
 }
