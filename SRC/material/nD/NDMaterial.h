@@ -70,6 +70,9 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     NDMaterial();
     virtual ~NDMaterial();
 
+    virtual NDMaterial *getCopy() = 0;
+    virtual NDMaterial *getCopy(const char *type) override;
+
     // methods to set state and retrieve state
     virtual double getRho();
 
@@ -88,15 +91,12 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     virtual const Vector &getStrain();
     virtual bool threadSafe() const {return false;}
 
-    virtual int commitState() = 0;
-
-    // Revert the stress/strain states to the last committed states.
+    // State management
     // Return 0 on success.
+    virtual int commitState() = 0;
     virtual int revertToLastCommit() = 0;
     virtual int revertToStart() = 0;
 
-    virtual NDMaterial *getCopy() = 0;
-    virtual NDMaterial *getCopy(const char *type) override;
 
     virtual const char *getType() const = 0;
     virtual int getOrder() const {return 0;};  //??
