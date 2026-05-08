@@ -41,7 +41,7 @@
 #include <Matrix.h>
 #include <ID.h>
 
-#include <SectionForceDeformation.h>
+#include <ShellSection.h>
 
 
 class ElasticMembranePlateSection : public SectionForceDeformation {
@@ -60,10 +60,9 @@ public:
                               double rho    = 0.0,
                               double Ep_mod = 1.0);
 
-  //destructor
   ~ElasticMembranePlateSection();
 
-    SectionForceDeformation* getCopy();
+  SectionForceDeformation* getCopy();
 
   const char*
   getClassType(void) const
@@ -99,8 +98,8 @@ public:
   //density per unit area
   double getRho();
 
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+  int sendSelf(int commitTag, Channel&);
+  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
 
 private:
