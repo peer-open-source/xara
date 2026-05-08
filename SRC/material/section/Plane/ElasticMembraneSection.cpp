@@ -16,6 +16,7 @@
 //
 // Rev: 1.0
 //
+#include <ShellSection.h>
 #include <ElasticMembraneSection.h>
 #include <Vector.h>
 #include <Matrix.h>
@@ -27,44 +28,6 @@ using namespace std;
 
 ID ElasticMembraneSection::array(3);
 
-#include <elementAPI.h>
-// Read input parameters and build the section
-void* OPS_ElasticMembraneSection()
-{
-	int numArgs = OPS_GetNumRemainingInputArgs();
-
-	// Parse the script for material parameters
-	if (numArgs < 4) {
-		opserr << "Want: ElasticMembraneSection $secTag $E $nu $t <$rho>" << endln;
-		return 0;
-	}
-
-	int tag;						// section tag
-	double dData[4];				// # of material parameters
-	dData[3] = 0.0;
-
-	// section tag
-	int numdata = 1;
-	if (OPS_GetIntInput(&numdata, &tag) < 0) {
-		opserr << "WARNING invalid section ElasticMembraneSection tag" << endln;
-		return 0;
-	}
-	
-	// section parameters
-	if (numArgs > 4)
-		numdata = 4;
-	else
-		numdata = 3;
-
-	if (OPS_GetDouble(&numdata, dData) < 0) {
-		opserr << "Invalid section parameters for ElasticMembraneSection " << tag << endln;
-		return 0;
-	}
-
-	SectionForceDeformation* theSection = new ElasticMembraneSection(tag, dData[0], dData[1], dData[2], dData[3]);
-
-	return theSection;
-}
 
 
 ElasticMembraneSection::ElasticMembraneSection(int tag,		// section tag
@@ -225,9 +188,9 @@ ElasticMembraneSection::getType()
 {
 	static bool initialized = false;
 	if (!initialized) {
-		array(0) = SECTION_RESPONSE_FXX;
-		array(1) = SECTION_RESPONSE_FYY;
-		array(2) = SECTION_RESPONSE_FXY;
+		array(0) = ShellStress::Fxx;
+		array(1) = ShellStress::Fyy;
+		array(2) = ShellStress::Fxy;
 		initialized = true;
 	}
 	return array;
