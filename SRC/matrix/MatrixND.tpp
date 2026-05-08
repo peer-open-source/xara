@@ -47,23 +47,23 @@ MatrixND<nr, nc, T>::norm() const noexcept
   return std::sqrt(sum);
 }
 
-#if 0
+
 template <index_t nr, index_t nc, typename T>
 constexpr double
 MatrixND<nr, nc, T>::determinant() const
 {
   static_assert(nr == nc, "Matrix must be square");
-  static_assert(nr > 1 && nr < 4, "Matrix must be between 2x2 and 3x3");
+  static_assert(nr > 1 && nr < 3, "Matrix must be 2x2");
   if constexpr (nr == 2) {
-    return values[0][0] * values[1][1] - values[0][1] * values[1][0];
+    return (*this)(0,0) * (*this)(1,1) - (*this)(0,1) * (*this)(1,0);
   }
-  if constexpr (nr == 3) {
-    return values[0][0] * (values[1][1] * values[2][2] - values[1][2] * values[2][1]) -
-           values[0][1] * (values[1][0] * values[2][2] - values[1][2] * values[2][0]) +
-           values[0][2] * (values[1][0] * values[2][1] - values[1][1] * values[2][0]);
-  }
+  // if constexpr (nr == 3) {
+  //   return values[0][0] * (values[1][1] * values[2][2] - values[1][2] * values[2][1]) -
+  //          values[0][1] * (values[1][0] * values[2][2] - values[1][2] * values[2][0]) +
+  //          values[0][2] * (values[1][0] * values[2][1] - values[1][1] * values[2][0]);
+  // }
 }
-#endif
+
 
 template <index_t nr, index_t nc, typename T>
 constexpr MatrixND<nc, nr>
