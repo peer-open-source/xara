@@ -148,14 +148,14 @@ SectionForceDeformation::setResponse(const char **argv, int argc,
         output.tag("ResponseType","theta");
         break;
       case SECTION_RESPONSE_FXX:
-          output.tag("ResponseType", "epsXX");
-          break;
+        output.tag("ResponseType", "epsXX");
+        break;
       case SECTION_RESPONSE_FYY:
-          output.tag("ResponseType", "epsYY");
-          break;
+        output.tag("ResponseType", "epsYY");
+        break;
       case SECTION_RESPONSE_FXY:
-          output.tag("ResponseType", "epsXY");
-          break;
+        output.tag("ResponseType", "epsXY");
+        break;
       case SECTION_RESPONSE_MXX:
           output.tag("ResponseType", "kappaXX");
           break;
