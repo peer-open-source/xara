@@ -398,15 +398,15 @@ void
 Concrete02::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
-    s << "Concrete02:(strain, stress, tangent) " << eps << " " << sig << " " << e << endln;
+    s << "Concrete02:(strain, stress, tangent) " << eps << " " << sig << " " << e << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-	s << "\"name\": \"" << this->getTag() << "\", ";
-	s << "\"type\": \"Concrete02\", ";
-	s << "\"Ec\": " << 2.0*fc/epsc0 << ", ";
-	s << "\"fc\": " << fc << ", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"Concrete02\", ";
+    s << "\"Ec\": " << 2.0*fc/epsc0 << ", ";
+    s << "\"fc\": " << fc << ", ";
     s << "\"epsc\": " << epsc0 << ", ";
     s << "\"fcu\": " << fcu << ", ";
     s << "\"epscu\": " << epscu << ", ";
