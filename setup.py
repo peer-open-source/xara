@@ -11,7 +11,7 @@ import setuptools
 
 #--------------------------------------------------
 
-version    = "0.1.24"
+version    = "0.1.28"
 build_type = os.environ.get("OPENSEESRT_BUILD", "release")
 
 #--------------------------------------------------
