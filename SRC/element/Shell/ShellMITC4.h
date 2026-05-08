@@ -21,7 +21,7 @@
 // Original implementation: Ed "C++" Love
 // Reimplementation: Leopoldo Tesser, Diego A. Talledo, V�ronique Le Corvec
 //
-// Bathe MITC 4 four node shell element with membrane and drill
+// Bathe MITC 4 four node *flat* shell element with membrane and drill
 // Ref: Dvorkin,Bathe, A continuum mechanics based four node shell
 //      element for general nonlinear analysis,
 //      Eng.Comput.,1,77-88,1984
@@ -58,51 +58,40 @@ class ShellMITC4 : public    Element,
                 SectionForceDeformation &theMaterial,
                 bool updateBasis=false) ;
     
-    virtual ~ShellMITC4( ) ;
+    virtual ~ShellMITC4();
 
     const char* getClassType() const final {
       return "ShellMITC4";
     }
 
-    void setDomain( Domain *theDomain ) ;
-    
-    // get the number of external nodes
-    int getNumExternalNodes( ) const ;
-    
-    // return connected external nodes
-    const ID &getExternalNodes( ) ;
-    Node **getNodePtrs( );
+    void setDomain( Domain *theDomain );
 
-    // return number of dofs
-    int getNumDOF( ) ;
+    int getNumExternalNodes( ) const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
+    int getNumDOF();
 
-    // commit state
-    int commitState( ) ;
-    
-    // revert to last commit 
-    int revertToLastCommit( ) ;
-    
-    // revert to start 
-    int revertToStart( ) ;
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
-    //print out element data
-    void Print( OPS_Stream &s, int flag ) ;
+    void Print(OPS_Stream &s, int flag);
 	
-    //return stiffness matrix 
-    const Matrix &getTangentStiff( ) ;
-    const Matrix &getInitialStiff( );
-    const Matrix &getMass( );
+
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getMass();
 
     // methods for applying loads
-    void zeroLoad( void );	
-    int addLoad( ElementalLoad *theLoad, double loadFactor );
+    void zeroLoad();
+    int addLoad( ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance( const Vector &accel );
 
     //get residual
-    const Vector &getResistingForce( ) ;
+    const Vector &getResistingForce();
     
     //get residual with inertia terms
-    const Vector &getResistingForceIncInertia( ) ;
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
     int sendSelf ( int commitTag, Channel &theChannel );
@@ -151,10 +140,10 @@ class ShellMITC4 : public    Element,
 
 
     //compute local coordinates and basis
-    void computeBasis( ) ;
+    void computeBasis();
     //start Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
     bool doUpdateBasis;
-    void updateBasis( ) ;
+    void updateBasis();
     //end Yuli Huang (yulihuang@gmail.com) & Xinzheng Lu (luxz@tsinghua.edu.cn)
         
     // inertia terms
