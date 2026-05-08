@@ -907,7 +907,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     // Here we create a BeamIntegrationRule (theRule) which is a pair of
     // section tags and a BeamIntegration. In this case we do not
     // delete the BeamIntegration because it is owned by theRule.
-    deleteBeamIntegr = false;
+    if (syntax == FrameSyntax::B)
+      deleteBeamIntegr = false;
 
 
     // Geometric transformation
