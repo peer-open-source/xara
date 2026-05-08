@@ -31,7 +31,6 @@
 #include <MembranePlateFiberSection.h>
 #include <LayeredShellFiberSection.h>
 
-typedef SectionForceDeformation ShellSection;
 
 
 int
@@ -223,7 +222,7 @@ TclCommand_ShellSection(ClientData clientData, Tcl_Interp* interp,
     theSection = new LayeredShellFiberSection(tag, nLayers, thickness, theMats);
 
 
-    if (builder->addTaggedObject<ShellSection>(*theSection) == TCL_OK) {
+    if (builder->addTaggedObject<SectionForceDeformation>(*theSection) == TCL_OK) {
       status = TCL_OK;
     }
 
@@ -243,7 +242,7 @@ cleanup:
 
 
   // Now add the material to the modelBuilder
-  if (builder->addTaggedObject<ShellSection>(*theSection) != TCL_OK) {
+  if (builder->addTaggedObject<SectionForceDeformation>(*theSection) != TCL_OK) {
     opserr << "WARNING could not add section to the domain\n";
     opserr << *theSection << "\n";
     delete theSection;
