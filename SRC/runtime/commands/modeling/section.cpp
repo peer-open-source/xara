@@ -75,9 +75,7 @@ extern OPS_Routine OPS_Bidirectional;
 extern OPS_Routine OPS_Elliptical2;
 extern OPS_Routine OPS_ReinforcedConcreteLayeredMembraneSection; // M. J. Nunez - UChile
 extern OPS_Routine OPS_LayeredMembraneSection; // M. J. Nunez - UChile
-
-// TODO: Make OPS_Routine
-extern void *OPS_ElasticMembraneSection(); // M. J. Nunez - UChile
+// extern void *OPS_ElasticMembraneSection(); // M. J. Nunez - UChile
 
 Tcl_CmdProc TclCommand_newElasticSection;
 Tcl_CmdProc TclCommand_addFiberSection;
