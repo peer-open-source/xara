@@ -28,6 +28,7 @@ static Tcl_CmdProc MaterialTest_getStressSection;
 static Tcl_CmdProc MaterialTest_getTangent;
 static Tcl_CmdProc MaterialTest_getResponse;
 static Tcl_CmdProc MaterialTest_Commit;
+static Tcl_CmdProc MaterialTest_getStrain;
 
 
 using namespace OpenSees;
@@ -35,6 +36,7 @@ using namespace OpenSees;
 const struct {const char*name; Tcl_CmdProc*func;} MaterialTestCommands[] = {
   {"material::update",     MaterialTest_setStrainSection },
   {"material::stress",     MaterialTest_getStressSection },
+  {"material::strain",     MaterialTest_getStrain },
   {"material::tangent",    MaterialTest_getTangent       },
   {"material::response",   MaterialTest_getResponse      },
   {"material::commit",     MaterialTest_Commit           },
@@ -153,6 +155,21 @@ MaterialTest_getStressSection(ClientData clientData, Tcl_Interp *interp,
   Tcl_Obj* list = Tcl_NewListObj(nsr, nullptr);
   for (int i = 0; i < nsr; ++i) {
     Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(stress(i)));
+  }
+  Tcl_SetObjResult(interp, list);
+  return TCL_OK;
+}
+
+static int 
+MaterialTest_getStrain(ClientData clientData, Tcl_Interp *interp,
+                             Tcl_Size argc, TCL_Char ** const argv)
+{
+  NDMaterial *theMaterial = (NDMaterial*)clientData;
+  const Vector &strain = theMaterial->getStrain();
+  const int nsr = strain.Size();
+  Tcl_Obj* list = Tcl_NewListObj(nsr, nullptr);
+  for (int i = 0; i < nsr; ++i) {
+    Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(strain(i)));
   }
   Tcl_SetObjResult(interp, list);
   return TCL_OK;
