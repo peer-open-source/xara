@@ -115,7 +115,7 @@ public:
   
   bool operator( ) ( const std::string & lhs, const std::string & rhs ) const
   {
-      return equalsIgnoreCase( lhs, rhs );
+    return equalsIgnoreCase( lhs, rhs );
   }
 };
 }
@@ -294,6 +294,14 @@ ElementLibrary = {
   {"ShellMITC4Thermal",            TclBasicBuilder_addShell},
   {"ShellNLDKGQThermal",           TclBasicBuilder_addShell},
   {"ShellANDeS",                   TclDispatch_newShellANDeS},
+  {"ShellQ4/F",                    TclBasicBuilder_addShell},
+  {"ShellQ4/S",                    TclBasicBuilder_addShell},
+  {"ShellQ4/U",                    TclBasicBuilder_addShell},
+  {"ShellQ4/L01",                  TclBasicBuilder_addShell},
+  {"ShellQ4/L02",                  TclBasicBuilder_addShell},
+  {"ShellQ4/E5",                   TclBasicBuilder_addShell},
+  {"ShellQ4/P0",                   TclBasicBuilder_addShell},
+  {"HeterosisPlate",               TclBasicBuilder_addShell},
 
 // U-P
   {"quadUP",                    TclBasicBuilder_addFourNodeQuadUP},
