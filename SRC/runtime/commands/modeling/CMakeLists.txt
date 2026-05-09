@@ -6,3 +6,4 @@ target_sources(OPS_Runtime PRIVATE
 
 add_subdirectory(material)
 add_subdirectory(element)
+add_subdirectory(invoking)
