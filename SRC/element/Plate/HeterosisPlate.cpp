@@ -465,8 +465,16 @@ HeterosisPlate::shell_to_python_displacements(const VectorND<nxe>& u) const
   VectorND<ndof> u_python;
   u_python.zero();
 
-  for (int i = 0; i < ndof; i++)
-    u_python[i] = u[plate_dof_to_shell_dof(i)];
+  for (int i = 0; i < nq8; i++)
+    u_python[i] = u[i * ndf + 2];
+
+  for (int i = 0; i < nq9; i++) {
+    const int theta_x_dof = 8 + 2 * i;
+    const int theta_y_dof = theta_x_dof + 1;
+
+    u_python[theta_x_dof] = -u[i * ndf + 4];
+    u_python[theta_y_dof] =  u[i * ndf + 3];
+  }
 
   return u_python;
 }
@@ -481,7 +489,10 @@ HeterosisPlate::plate_dof_to_shell_dof(int python_dof)
   int local_node_id = theta_dof / 2;
   int component = theta_dof % 2;
 
-  return local_node_id * ndf + 3 + component;
+  if (component == 0)
+    return local_node_id * ndf + 4;
+
+  return local_node_id * ndf + 3;
 }
 
 
@@ -489,8 +500,16 @@ void
 HeterosisPlate::assemble_python_vector(const VectorND<ndof>& python_vector,
                                        VectorND<nxe>& shell_vector)
 {
-  for (int i = 0; i < ndof; i++)
-    shell_vector[plate_dof_to_shell_dof(i)] += python_vector[i];
+  for (int i = 0; i < nq8; i++)
+    shell_vector[i * ndf + 2] += python_vector[i];
+
+  for (int i = 0; i < nq9; i++) {
+    const int theta_x_dof = 8 + 2 * i;
+    const int theta_y_dof = theta_x_dof + 1;
+
+    shell_vector[i * ndf + 4] += -python_vector[theta_x_dof];
+    shell_vector[i * ndf + 3] +=  python_vector[theta_y_dof];
+  }
 }
 
 
@@ -621,9 +640,13 @@ HeterosisPlate::assemble_python_matrix(const MatrixND<ndof, ndof>& python_matrix
 {
   for (int i = 0; i < ndof; i++) {
     const int ii = plate_dof_to_shell_dof(i);
+    const double sign_i = (i >= 8 && ((i - 8) % 2 == 0)) ? -1.0 : 1.0;
+
     for (int j = 0; j < ndof; j++) {
       const int jj = plate_dof_to_shell_dof(j);
-      shell_matrix(ii, jj) += python_matrix(i, j);
+      const double sign_j = (j >= 8 && ((j - 8) % 2 == 0)) ? -1.0 : 1.0;
+
+      shell_matrix(ii, jj) += sign_i * python_matrix(i, j) * sign_j;
     }
   }
 }
