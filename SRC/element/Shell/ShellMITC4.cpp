@@ -1058,7 +1058,7 @@ ShellMITC4::formResidAndTangent(int tang_flag)
     Ms(0, 1) = 1.0 - pts[i][1];
     Ms(1, 2) = 1.0 + pts[i][0];
     Ms(0, 3) = 1.0 + pts[i][1];
-    auto Bsv      = Ms * G;
+    auto Bsv = Ms * G;
 
     for (int j = 0; j < 12; j++) {
       Bsv(0, j) = Bsv(0, j) * r1 / (8.0 * xsj);
@@ -1077,8 +1077,8 @@ ShellMITC4::formResidAndTangent(int tang_flag)
       Bmembrane = computeBmembrane(j, shp);
       Bbend = computeBbend(j, shp);
       for (int p = 0; p < 3; p++) {
-        Bshear(0, p) = Bs(0, j * 3 + p);
-        Bshear(1, p) = Bs(1, j * 3 + p);
+        Bshear(0, p) = Bs(0, j*3 + p);
+        Bshear(1, p) = Bs(1, j*3 + p);
       }
       assembleB(Bmembrane, Bbend, Bshear, B[j]);
 
@@ -1231,7 +1231,7 @@ void
 ShellMITC4::computeBasis()
 {
   // could compute derivatives \frac{ \partial {\bf x} }{ \partial L_1 }
-  //                     and  \frac{ \partial {\bf x} }{ \partial L_2 }
+  //                      and  \frac{ \partial {\bf x} }{ \partial L_2 }
   // and use those as basis vectors but this is easier
   // and the shell is flat anyway.
 
@@ -1293,7 +1293,7 @@ ShellMITC4::computeBasis()
 
   } // end for i
 
-  // basis vectors stored as array of doubles
+  // basis vectors
   for (int i = 0; i < 3; i++) {
     g1[i] = v1(i);
     g2[i] = v2(i);
