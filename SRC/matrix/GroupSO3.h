@@ -83,9 +83,14 @@ template <typename Vec3Type>
 static inline constexpr Matrix3D
 Hat(const Vec3Type &u) noexcept
 {
-  return Matrix3D {{  0  ,  u[2], -u[1],
-                    -u[2],   0  ,  u[0],
-                     u[1], -u[0],   0  }};
+  Matrix3D H{};
+  H(0,1) = -u[2];  H(0,2) =  u[1];
+  H(1,0) =  u[2];  H(1,2) = -u[0];
+  H(2,0) = -u[1];  H(2,1) =  u[0];
+  return H;
+  // return Matrix3D {{  0  ,  u[2], -u[1],
+  //                   -u[2],   0  ,  u[0],
+  //                    u[1], -u[0],   0  }};
 }
 
 
@@ -125,7 +130,7 @@ GibSO3(const Vector3D &vec, double *a, double *b=nullptr, double *c=nullptr) noe
 //
   double angle2 =  vec.dot(vec);
 
-  if (angle2  <= 1e-12) {
+  if (angle2  < 1e-12) {
     //
     // Maclaurin series in Horner form
     //
@@ -271,7 +276,7 @@ ExpSO3(const Vector3D &theta) noexcept
   double a[4];
 
   Matrix3D R = Eye3;
-  if (GibSO3(theta, a) > 1e-16) {
+  if (GibSO3(theta, a) > 1e-14) {
     R.addSpin(theta, a[1]);
     R.addSpinSquare(theta, a[2]);
   }
@@ -350,7 +355,7 @@ TanSO3(const Vector3D &vec, char repr='L')
 
 
 inline Matrix3D
-TExpSO3(const Vector3D &v)
+TExpSO3(const Vector3D &v) noexcept
 {
 // Compute the right differential of the exponential on SO(3) using the formula in
 // Equation (A11) in [1]:
@@ -373,7 +378,7 @@ TExpSO3(const Vector3D &v)
 
 
 inline Matrix3D
-ddTanSO3(const Vector3D &v, const Vector3D &p, const Vector3D &q)
+ddTanSO3(const Vector3D &v, const Vector3D &p, const Vector3D &q) noexcept
 {
   //
   //    return a[3]*psq + b[1]*p.dot(q)*Eye3
@@ -455,7 +460,7 @@ dExpSO3(const Vector3D &v, const Vector3D &p)
 
 
 inline Vector3D
-LogSO3(const Matrix3D &R)
+LogSO3(const Matrix3D &R) noexcept
 {
   //===--------------------------------------------------------------------===//
   //
@@ -533,7 +538,7 @@ constexpr T horner(T x2, const std::array<T,N>& c) noexcept
 }
 
 static inline double 
-dLogConst(double angle, double& a3, double& b3)
+dLogConst(double angle, double& a3, double& b3) noexcept
 {
   //
   // a3 == eta
@@ -552,6 +557,7 @@ dLogConst(double angle, double& a3, double& b3)
     // a0 = 1.0 + angle2/2.0;
     a1 = ahalf/std::tan(ahalf);
 
+    // eta
     a3 = (1.0 - a1)/angle2;
     // a3 = (2.0*sn - angle*(1.0+cs))/(2.0*angle2*sn);
     // a3 = (1.0 - 0.5*angle*cot(0.5*angle))/angle2;
@@ -560,6 +566,7 @@ dLogConst(double angle, double& a3, double& b3)
     // b3 = (angle*(angle + std::sin(angle)) - 8.0*hsn*hsn)/(4.0*angle4*hsn*hsn);
     // b3 = std::fma(angle, angle + sn, 4.0*(cs - 1.0))/(2.0*angle4*(1.0 - cs));
     // b3 = std::fma(angle, angle + 2.0*hsn*hcs, -8.0*hsn*hsn)/(4.0*angle4*hsn*hsn);
+    // mu
     b3 = std::fma(a1, a1 + 1.0, 0.25 * angle2 - 2.0)/angle4;
   }
   else {
@@ -616,7 +623,7 @@ RescaleVector(const Vector3D &v, double &angle)
 }
 
 inline Matrix3D
-dLogSO3(const Vector3D &v, double* a=nullptr)
+dLogSO3(const Vector3D &v, double* a=nullptr) noexcept
 {
   //===--------------------------------------------------------------------===//
   //
@@ -638,7 +645,7 @@ dLogSO3(const Vector3D &v, double* a=nullptr)
 }
 
 inline Matrix3D 
-ddLogSO3(const Vector3D& u, const Vector3D& p)
+ddLogSO3(const Vector3D& u, const Vector3D& p) noexcept
 {
   //
   // -0.5*Hat(v) + eta*(Eye3*th.dot(v) + th.bun(v) - 2.*v.bun(th)) + mu*St2*v.bun(th);
