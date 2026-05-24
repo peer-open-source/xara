@@ -51,6 +51,14 @@ struct VectorND {
 
   template<int n, int m, typename> friend struct MatrixND;
 
+  static VectorND<N> 
+  Basis(int i) 
+  {
+    VectorND<N> v{};
+    v(i) = 1.0;
+    return v;
+  }
+
   //
   template <int ir, int nr> inline void
   assemble(const VectorND<nr> &v, double fact=1);
