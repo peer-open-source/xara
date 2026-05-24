@@ -72,10 +72,6 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
     int addLoad(ElementalLoad *theLoad, double loadFactor) override {
       return this->BasicFrame3d::addLoad(theLoad, loadFactor);
     }
-/*
-//  int addLoad(ElementalLoad *theLoad, double loadFactor);
-//  int addInertiaLoadToUnbalance(const Vector &accel);
-*/
 
     int update() override;
     int commitState() override;
@@ -125,7 +121,7 @@ class PrismFrame3d : public BasicFrame3d, public FiniteElement<2, 3, 6>
     void formBasicStiffness(OpenSees::MatrixND<6,6>& kb) const;
     VectorND<NBV> getBasicForceGrad(int grad);
 
-    double E,G;    // elastic properties
+    double E,G;  // elastic properties
 
     double A;    // cross sectional area
     double Ay;   // shear area along local y axis
