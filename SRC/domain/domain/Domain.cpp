@@ -3337,6 +3337,7 @@ Domain::setMass(const Matrix &mass, int nodeTag)
   return theNode->setMass(mass);  
 }
 
+
 int
 Domain::calculateNodalReactions(int flag)
 {
