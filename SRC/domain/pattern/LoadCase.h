@@ -22,6 +22,7 @@ class SP_Constraint;
 class SP_ConstraintIter;
 
 namespace OpenSees {
+
 class LoadCase {
 public:
     LoadCase(Domain& domain);
