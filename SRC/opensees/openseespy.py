@@ -98,7 +98,7 @@ def _split_iter(source, sep=None, regex=False):
             start = idx + sepsize
 
 
-def _obj_to_tcl(arg, name: str = None):
+def _obj_to_tcl(arg, name: str = None)->str:
     """
     Convert arg to a string that represents
     Tcl semantics.
@@ -117,8 +117,12 @@ def _obj_to_tcl(arg, name: str = None):
               for cmd, val in arg.items()
         ]) + "}"
 
+    elif hasattr(arg, "tag"):
+        return str(arg.tag)
+
     else:
         return str(arg)
+
 
 def _args_to_cmds(proc_name: str, *args, _final=None, **kwds):
 
@@ -134,6 +138,16 @@ def _args_to_cmds(proc_name: str, *args, _final=None, **kwds):
         cmd += _obj_to_tcl(_final)
     return cmd
 
+
+class _ModelObject:
+    _tag_space: str = None 
+    tag: int = None
+
+    def _add_to_model(self, model: "OpenSeesPy", tag: int):
+        raise NotImplementedError("Must be implemented by subclass")
+
+def _is_model_object(obj):
+    return hasattr(obj, "_add_to_model") and hasattr(obj, "_tag_space")
 
 class _Surface:
     def __init__(self, nodes, cells, child, points, split):
@@ -175,6 +189,40 @@ class _Surface:
                 yield tuple(find_node(self.outline.coord(xn)) for xn in edge[j*(nen-1):j*(nen-1)+nen])
 
 
+
+class _TagRegistry:
+    def __init__(self):
+        self._tags =  {
+            "uniaxialMaterial": set(),
+            "nDMaterial": set(),
+            "section": set(),
+            "pattern": set(),
+            "timeSeries": set(),
+            # "frame_section": set(),
+            # "shell_section": set(),
+            # "plane_section": set(),
+            # Dont do elements because they can be added in block2D and block3D without going through the element() method
+        }
+
+        self._objects = {
+            k: {} for k in self._tags.keys()
+        }
+
+    def add(self, type_name: str, tag: int, obj=None):
+        self._tags[type_name].add(tag)
+    
+    def set(self, type_name: str, obj, tag: int):
+        # self._objects[type_name][id(obj)] = tag
+        pass
+
+    def get(self, type_name: str)->int:
+        tag = 1
+        while tag in self._tags[type_name]:
+            tag += 1
+        self._tags[type_name].add(tag)
+        return tag
+
+
 class OpenSeesPy:
     """
     This class is meant to be instantiated as a global singleton
@@ -205,8 +253,11 @@ class OpenSeesPy:
 
         self._mesh = {"line": {}, "quad": {}}
 
+        self._tags = _TagRegistry()
+
         # Enable OpenSeesPy command behaviors
         self.eval("pragma openseespy")
+        self.eval("set tcl_precision 17")
 
 
 
@@ -328,41 +379,8 @@ class OpenSeesPy:
     def block2D(self, *args, **kwds):
         if isinstance(args[5], list):
             return self._invoke_proc("block2D", *args, **kwds)
-
-        # We have to imitate the OpenSeesPy parser, which
-        # *requires* hard-coding the number of element args
-        # expected by each element type. This is terribly
-        # unstable and limited and should only be used when 
-        # backwards compatibility with the original OpenSeesPy 
-        # is absolutely necessary.
-        elem_name = args[4]
-        elem_argc = {
-            "quad":         9,
-            "stdquad":      9,
-
-            "shell":        7,
-            "shellmitc4":   7,
-
-            "shellnldkgq":  7,
-            "shelldkgq":    7,
-
-            "bbarquad":     8,
-
-            "enhancedquad": 9,
-
-            "sspquad":      9
-        }[elem_name.lower()] -1
-
-        elem_args = list(args[5:elem_argc])
-
-        nl  = '\n'
-        ndm = self._call("getNDM")
-        # loop over remaining args to form node coords
-        node_args = f"""{{
-            {nl.join(" ".join(map(str,args[elem_argc+i*(ndm+1):elem_argc+(i+1)*(ndm+1)])) for i in range(int(len(args[elem_argc:])/(ndm+1))))}
-        }}"""
-
-        return self._invoke_proc("block2D", *args[:5], elem_args, node_args)
+        from ._model.block import block2D
+        return block2D(self, *args, **kwds)
 
     def getNodeTags(self)->list[int]:
         tags = self._call("getNodeTags")
@@ -418,7 +436,9 @@ class OpenSeesPy:
 
         return self._invoke_proc("timeSeries", *args, **kwds)
 
+
     def pattern(self, *args, load=None, **kwds):
+
         self._current_pattern = args[1]
 
         if load is None and "loads" in kwds:
@@ -435,7 +455,6 @@ class OpenSeesPy:
     def load(self, *args, pattern=None, load=None, **kwds):
         if pattern is None:
             pattern = self._current_pattern
-
         return self._invoke_proc("nodalLoad", *args, "-pattern", pattern, **kwds)
 
 
@@ -481,6 +500,18 @@ class OpenSeesPy:
 
         self._mesh["line"][tag] = nodes
 
+
+    def add_object(self, obj: _ModelObject, tag: int=None):
+        if tag is None:
+            if hasattr(obj, "tag") and obj.tag is not None:
+                tag = obj.tag
+            else:
+                tag = self._tags.get(obj._tag_space)
+
+        self._tags.set(obj._tag_space, obj, tag)
+        obj._add_to_model(self, tag)
+
+
     def material(self, type, tag: int, *args, **kwds):
         if not isinstance(type, str):
             return type._add_to_model(self, tag)
@@ -489,6 +520,7 @@ class OpenSeesPy:
 
     def section(self, type: str, sec_tag: int, *args, **kwds):
         self._current_section = sec_tag
+
         # TODO: error handling
 
         if not isinstance(type, str):
@@ -547,6 +579,8 @@ class OpenSeesPy:
             kwds["section"] = self._current_section
         return self._invoke_proc("fiber", *args, **kwds)
 
+from collections import defaultdict
+
 class Model:
     def __init__(self, *args, echo_file=None, **kwds):
         self._openseespy = OpenSeesPy(echo_file=echo_file)
@@ -554,11 +588,13 @@ class Model:
             self._openseespy._invoke_proc("model", *args, **kwds)
 
         self._parameters = {
-            
         }
 
         # Aug 2025, for xara._analysis
         self._patterns = {}
+
+        # Apr 2026
+        self._objects = defaultdict(dict)
     
     @property
     def state(self):
@@ -567,7 +603,6 @@ class Model:
 
     def eval(self, *args, **kwds):
         return self._openseespy.eval(*args, **kwds)
-
 
     def _call(self, proc_name: str, *args, **kwds):
         """
@@ -582,6 +617,7 @@ class Model:
     def lift(self, type_name: str, tag: int):
         return _lift(self._openseespy._interp._tcl.interpaddr(), type_name, tag)
 
+
     # def invoke(self, *args, **kwds):
     #     if len(args) == 2:
     #         from ._invoke import _Handle
@@ -593,6 +629,29 @@ class Model:
     def asdict(self):
         """April 2024"""
         return self._openseespy._interp.serialize()
+
+
+    def node(self, tag: int, *args, **kwds):
+        return self._openseespy._invoke_proc("node", tag, *args, **kwds)
+    
+    def add_object(self, obj, tag: int=None):
+        r = self._openseespy.add_object(obj, tag)
+        self._objects[obj._tag_space][obj.tag] = obj
+        return r
+
+    def material(self, type_or_object, *args, **kwds):
+        if _is_model_object(type_or_object):
+            # return self._openseespy.add_object(type_or_object)
+            return self.add_object(type_or_object)
+        else:
+            return self._openseespy.material(type_or_object, *args, **kwds)
+    
+    def section(self, type_or_object, *args, **kwds):
+        if _is_model_object(type_or_object):
+            # return self._openseespy.add_object(type_or_object)
+            return self.add_object(type_or_object)
+        else:
+            return self._openseespy.section(type_or_object, *args, **kwds)
 
 
     def element(self, type, tag, *args, **kwds):
@@ -613,53 +672,13 @@ class Model:
             raise e.with_traceback(None) from None
         return tag
 
-    def getIterationCount(self):
-        return self._openseespy._invoke_proc("numIter")
-    
-    def testNorms(self):
-        return self._call("testNorms")
-
-    def getResidual(self):
-        import numpy as np
-        residual_string = self._openseespy._invoke_proc("printB", "-ret", _return_string=True)
-        n = sum(1 for _ in _split_iter(residual_string))
-        return np.fromiter(map(float, _split_iter(residual_string)), count=n, dtype=float)
-
-
-    def getTangent(self, **kwds):
-        import numpy as np
-
-        tangent_string = self._openseespy._invoke_proc("printA", "-ret", _return_string=True, **kwds)
-
-        nn = sum(1 for _ in _split_iter(tangent_string))
-
-        A  = np.fromiter(
-
-                map(float, _split_iter(
-                    tangent_string
-                )),
-
-                count=nn,
-                dtype=float
-        )
-
-        # Assigning to .shape as opposed to calling .reshape()
-        # should enforce no copying
-        A.shape = tuple([int(np.sqrt(len(A)))]*2)
-
-        # For large systems, avoid clogging memory
-        if nn > 100:
-            import gc
-            del tangent_string
-            gc.collect()
-        return A
-
     def symbols(self, **kwds):
         symbols = []
         for k,v in kwds.items():
             self.eval(f"set {k} {v}")
             symbols.extend((f"-{k}", f"${k}"))
         return symbols
+
 
     def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
         """
@@ -732,8 +751,8 @@ class Model:
             m_nodes = {m_nodes}
         if m_nodes is not None:
             m_nodes = {
-                    int(tag): self._openseespy._invoke_proc("nodeCoord", f"{tag}")
-                    for tag in m_nodes
+                int(tag): self._openseespy._invoke_proc("nodeCoord", f"{tag}")
+                for tag in m_nodes
             }
 
         if m_nodes is not None and len(m_nodes) > 0:
@@ -771,7 +790,59 @@ class Model:
                         child=cell_type,
                         points=points,
                         split=split)
+    #
+    # Loading
+    #
 
+    def pattern(self, *args, **kwds):
+        if _is_model_object(args[0]):
+            return self.add_object(args[0])
+        else:
+            return self._openseespy.pattern(*args, **kwds)
+
+    # 
+    # Analysis 
+    #
+    def getIterationCount(self):
+        return self._openseespy._invoke_proc("numIter")
+    
+    def testNorms(self):
+        return self._call("testNorms")
+
+    def getResidual(self):
+        import numpy as np
+        residual_string = self._openseespy._invoke_proc("printB", "-ret", _return_string=True)
+        n = sum(1 for _ in _split_iter(residual_string))
+        return np.fromiter(map(float, _split_iter(residual_string)), count=n, dtype=float)
+
+
+    def getTangent(self, **kwds):
+        import numpy as np
+
+        tangent_string = self._openseespy._invoke_proc("printA", "-ret", _return_string=True, **kwds)
+
+        nn = sum(1 for _ in _split_iter(tangent_string))
+
+        A  = np.fromiter(
+
+                map(float, _split_iter(
+                    tangent_string
+                )),
+
+                count=nn,
+                dtype=float
+        )
+
+        # Assigning to .shape as opposed to calling .reshape()
+        # should enforce no copying
+        A.shape = tuple([int(np.sqrt(len(A)))]*2)
+
+        # For large systems, avoid clogging memory
+        if nn > 100:
+            import gc
+            del tangent_string
+            gc.collect()
+        return A
 
     def __getattr__(self, name: str):
         if name in _OVERWRITTEN:
