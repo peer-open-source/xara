@@ -96,7 +96,8 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (ndm >= 2 && argc >= 4) {
-    if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
+    if (GetDoubleParam(interp, *theTclDomain, argv[3], &yLoc, coord_params[1]) != TCL_OK) {
+    // if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
              << "invalid 2nd coordinate " << argv[3]
              << OpenSees::SignalMessageEnd;
@@ -105,7 +106,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (ndm >= 3 && argc >= 5) {
-    if (Tcl_GetDouble(interp, argv[4], &zLoc) != TCL_OK) {
+    if (GetDoubleParam(interp, *theTclDomain, argv[4], &zLoc, coord_params[2]) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
              << "invalid 3rd coordinate " << argv[4]
              << OpenSees::SignalMessageEnd;
