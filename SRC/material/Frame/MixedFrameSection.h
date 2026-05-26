@@ -217,7 +217,8 @@ class MixedFrameSection : public FrameSection
     };
     int mixed_shapes = 0;
     Matrix3D    shear_align;
-    VectorND<3> shift_twist{}, shift_axial{};
+    VectorND<3> shift_twist{}, 
+                shift_axial{};
     VectorND<3> eta_past{}, deta{};
 
     // Centroid
