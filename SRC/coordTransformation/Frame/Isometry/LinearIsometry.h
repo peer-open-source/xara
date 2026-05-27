@@ -48,9 +48,10 @@ public:
   {
   }
 
-  void
-  setOffsets(std::array<Vector3D, nn>* offsets) {
+  int
+  setOffsets(std::array<Vector3D, nn>* offsets) final {
     this->offsets = offsets;
+    return 0;
   }
 
 
@@ -98,7 +99,8 @@ public:
   }
 
   virtual
-  int update(std::array<Node*,nn>& nodes) final {
+  int
+  update(std::array<Node*,nn>& nodes) final {
 
     return 0;
   }
@@ -132,6 +134,12 @@ public:
   getRotationVariation(int ndf, double* du) final {
     // psi_r = omega
     return Vector3D {};
+  }
+
+  virtual Matrix3D
+  getRotationSensitivity(std::array<Node*,nn> nodes) final {
+    Matrix3D dR{};
+    return dR;
   }
 
   double
