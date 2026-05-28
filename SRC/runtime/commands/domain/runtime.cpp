@@ -21,48 +21,65 @@
 #include <Domain.h>
 #include <Parsing.h>
 #include <Logging.h>
+#include <LoadPattern.h>
 
 int
 TclCommand_setLoadConst(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain* domain = (Domain*)clientData;
-  
-  domain->setLoadConstant();
-  if (argc == 3) {
-    if (strcmp(argv[1], "-time") == 0) {
+
+  bool const_done = false;
+
+  int argi = 1;
+  while (argi < argc) {
+    if (strcmp(argv[argi], "-time") == 0) {
+      argi++;
+      if (argi == argc) {
+        opserr << OpenSees::PromptValueError << "no time value after -time flag\n";
+        return TCL_ERROR;
+      }
       double newTime;
-      if (Tcl_GetDouble(interp, argv[2], &newTime) != TCL_OK) {
+      if (Tcl_GetDouble(interp, argv[argi], &newTime) != TCL_OK) {
         opserr << "WARNING readingvalue - loadConst -time value \n";
         return TCL_ERROR;
-      } else {
-        domain->setCurrentTime(newTime);
-        domain->setCommittedTime(newTime);
       }
+      argi++;
+      domain->setCurrentTime(newTime);
+      domain->setCommittedTime(newTime);
+    }
+    else if (strcmp(argv[argi], "-pattern") == 0) {
+      argi++;
+      if (argi == argc) {
+        opserr << OpenSees::PromptValueError << "no load pattern tag after -pattern flag\n";
+        return TCL_ERROR;
+      }
+      int loadPatternTag;
+      if (Tcl_GetInt(interp, argv[argi], &loadPatternTag) != TCL_OK) {
+        opserr << "WARNING reading value - loadConst -pattern tag \n";
+        return TCL_ERROR;
+      }
+      argi++;
+      LoadPattern* thePattern = domain->getLoadPattern(loadPatternTag);
+      if (thePattern == nullptr) {
+        opserr << "WARNING no load pattern with tag " << loadPatternTag << "\n";
+        return TCL_ERROR;
+      }
+      thePattern->setLoadConstant();
+      const_done = true;
+    }
+    else {
+      opserr << OpenSees::PromptValueError << "invalid argument: " << argv[argi] << "\n";
+      return TCL_ERROR;
     }
   }
+
+  if (const_done == false)
+    domain->setLoadConstant();
+
   return TCL_OK;
 }
 
-int
-TclCommand_setCreep(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
-{
-  assert(clientData != nullptr);
-  Domain* the_domain = (Domain*)clientData;
-
-  if (argc < 2) {
-    opserr << "WARNING illegal command - setCreep value? \n";
-    return TCL_ERROR;
-  }
-  int newFlag;
-  if (Tcl_GetInt(interp, argv[1], &newFlag) != TCL_OK) {
-    opserr << "WARNING reading creep value - setCreep newFlag? \n";
-    return TCL_ERROR;
-  } else {
-    the_domain->setCreep(newFlag);
-  }
-  return TCL_OK;
-}
 
 int
 TclCommand_setTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
@@ -71,19 +88,22 @@ TclCommand_setTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char
   Domain* domain = (Domain*)clientData;
 
   if (argc < 2) {
-    opserr << "WARNING illegal command - time pseudoTime? \n";
+    opserr << OpenSees::PromptValueError 
+           << "missing required argument: time\n";
     return TCL_ERROR;
   }
   double newTime;
   if (Tcl_GetDouble(interp, argv[1], &newTime) != TCL_OK) {
-    opserr << "WARNING reading time value - time pseudoTime? \n";
+    opserr << OpenSees::PromptValueError 
+           << "invalid time value: " << argv[1] << "\n";
     return TCL_ERROR;
-  } else {
-    domain->setCurrentTime(newTime);
-    domain->setCommittedTime(newTime);
   }
+
+  domain->setCurrentTime(newTime);
+  domain->setCommittedTime(newTime);
   return TCL_OK;
 }
+
 
 int
 TclCommand_getTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
@@ -95,3 +115,26 @@ TclCommand_getTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char
   return TCL_OK;
 }
 
+
+
+int
+TclCommand_setCreep(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  Domain* the_domain = (Domain*)clientData;
+
+  if (argc < 2) {
+    opserr << OpenSees::PromptValueError 
+           << "missing required argument: creep value\n";
+    return TCL_ERROR;
+  }
+  int newFlag;
+  if (Tcl_GetInt(interp, argv[1], &newFlag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+           << "invalid creep value: " << argv[1] << "\n";
+    return TCL_ERROR;
+  }
+  the_domain->setCreep(newFlag);
+
+  return TCL_OK;
+}
