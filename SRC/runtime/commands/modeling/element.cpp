@@ -39,7 +39,7 @@
 #include <NDMaterial.h>
 
 
-
+#if 0
 typedef struct elementPackageCommand {
   char *funcName;
   void *(*funcPtr)();
@@ -47,6 +47,7 @@ typedef struct elementPackageCommand {
 } ElementPackageCommand;
 
 static ElementPackageCommand *theElementPackageCommands = nullptr;
+#endif
 
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp, int cArg,
                           int mArg, TCL_Char ** const argv, Domain *);
@@ -92,7 +93,6 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
 
   // Try OPS element library
   void* theEle = nullptr;
-  Element *theElement = nullptr;
   auto cmd = element_dispatch.find(std::string(argv[1]));
   if (cmd != element_dispatch.end()) {
     theEle = (*cmd->second)(rt, argc, &argv[0]);
@@ -180,11 +180,12 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
 
 
   // if one of the above worked
-  theElement = (Element*)theEle;
+  Element* theElement = (Element*)theEle;
 
   if (theElement != nullptr) {
     if (theTclDomain->addElement(theElement) == false) {
-      opserr << OpenSees::PromptValueError << "could not add element of with tag: "
+      opserr << OpenSees::PromptValueError 
+             << "could not add element of with tag: "
              << theElement->getTag()
              << " and of type: " << theElement->getClassType()
              << " to the Domain\n";
@@ -237,7 +238,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
            (strcmp(argv[1], "MNS") == 0)) {
     return TclBasicBuilder_addMultipleNormalSpring(clientData, interp, argc, argv, theTclDomain, theTclBuilder);
   }
-
+#if 0
   else {
 
     //
@@ -268,78 +269,14 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
       } else
         eleCommands = eleCommands->next;
     }
-
-#if 0
-    //
-    // maybe element in a routine, check existing ones or try loading new ones
-    //
-
-    char *eleType = new char[strlen(argv[1]) + 1];
-    strcpy(eleType, argv[1]);
-    eleObj *eleObject = OPS_GetElementType(eleType, (int)strlen(eleType));
-
-    delete[] eleType;
-
-    if (eleObject != 0) {
-
-      int result = Tcl_addWrapperElement(eleObject, clientData, interp, argc, argv,
-                                         theTclDomain, theTclBuilder);
-
-      if (result != 0)
-        delete eleObject;
-      else
-        return result;
-    }
 #endif
-    //
-    // try loading new dynamic library containing a C++ class
-    //
-
-    void *libHandle;
-    void *(*funcPtr)();
-    int eleNameLength = (int)strlen(argv[1]);
-    char *tclFuncName = new char[eleNameLength + 5];
-    strcpy(tclFuncName, "OPS_");
-
-    strcpy(&tclFuncName[4], argv[1]);
-
-    opserr << "checking library: " << tclFuncName << OpenSees::SignalMessageEnd;
-    int res =
-        getLibraryFunction(argv[1], tclFuncName, &libHandle, (void **)&funcPtr);
-
-    delete[] tclFuncName;
-
-    if (res == 0) {
-
-      char *eleName = new char[eleNameLength + 1];
-      strcpy(eleName, argv[1]);
-      ElementPackageCommand *theEleCommand = new ElementPackageCommand;
-      theEleCommand->funcPtr = funcPtr;
-      theEleCommand->funcName = eleName;
-      theEleCommand->next = theElementPackageCommands;
-      theElementPackageCommands = theEleCommand;
-
-      // OPS_ResetInput(clientData, interp, 2, argc, argv, theTclDomain,
-      //                theTclBuilder);
-
-      OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theTclDomain);
-      void *theRes = (*funcPtr)();
-
-      if (theRes != 0) {
-        Element *theEle = (Element *)theRes;
-        result = theTclDomain->addElement(theEle);
-        if (result >= 0)
-          return TCL_OK;
-        else
-          return TCL_ERROR;
-      } else {
-        return TCL_ERROR;
-      }
-    }
-  }
 
   // If we get here, the element type is unknown
-  opserr << "ERROR -- element of type " << argv[1] << " not known" << OpenSees::SignalMessageEnd;
+  opserr << OpenSees::PromptValueError
+         << "element of type " 
+         << argv[1] 
+         << " not known" 
+         << OpenSees::SignalMessageEnd;
   return TCL_ERROR;
 }
 
@@ -406,7 +343,8 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
   if (argc < 8) { // element multipleShearSpring eleTag? iNode? jNode? nSpring?
                   // -mat matTag?
 
-    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
+    opserr << OpenSees::PromptValueError 
+           << "insufficient arguments\n";
     ifNoError = false;
 
   } else {
@@ -465,9 +403,6 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
           theMaterials[j] = builder->getTypedObject<UniaxialMaterial>(matTag);
           if (theMaterials[j] == 0) {
-            opserr << OpenSees::PromptValueError << "material model not found\n";
-            opserr << "uniaxialMaterial: " << matTag << OpenSees::SignalMessageEnd;
-            opserr << "multipleShearSpring element: " << eleTag << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
         }
@@ -548,8 +483,9 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
 
   // confirm material
   if (recvMat != 1) {
-    opserr << OpenSees::PromptValueError << "wrong number of -mat inputs\n";
-    opserr << "got " << recvMat << " inputs, but want 1 input\n";
+    opserr << OpenSees::PromptValueError 
+           << "wrong number of -mat inputs. ";
+    opserr << "Got " << recvMat << " inputs, but want 1 input\n";
     ifNoError = false;
   }
 
@@ -579,8 +515,6 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
     return TCL_ERROR;
   }
 
-  // if get here we have successfully created the multipleShearSpring and added
-  // it to the domain
   return TCL_OK;
 }
 
@@ -613,7 +547,8 @@ TclBasicBuilder_addMultipleNormalSpring(ClientData clientData, Tcl_Interp *inter
   int ndf = builder->getNDF();
 
   if (ndm != 3 || ndf != 6) {
-    opserr << OpenSees::PromptValueError << "multipleNormalSpring command only works when ndm is 3 "
+    opserr << OpenSees::PromptValueError 
+           << "multipleNormalSpring command only works when ndm is 3 "
               "and ndf is 6"
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
@@ -887,9 +822,9 @@ TclBasicBuilder_addKikuchiBearing(ClientData clientData, Tcl_Interp *interp,
   int ndf = builder->getNDF();
 
   if (ndm != 3 || ndf != 6) {
-    opserr << "ndm=" << ndm << ", ndf=" << ndf << OpenSees::SignalMessageEnd;
-    opserr << OpenSees::PromptValueError << "KikuchiBearing command only works when ndm is 3 and ndf "
-              "is 6"
+    opserr << OpenSees::PromptValueError 
+           << "KikuchiBearing command only works when ndm is 3 and ndf "
+              "is 6. "
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
@@ -1562,14 +1497,12 @@ TclBasicBuilder_addYamamotoBiaxialHDR(ClientData clientData, Tcl_Interp *interp,
 
   // then add the YamamotoBiaxialHDR to the domain
   if (theTclDomain->addElement(theElement) == false) {
-    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
+    opserr << OpenSees::PromptValueError 
+           << "could not add element to the domain\n";
     opserr << "YamamotoBiaxialHDR element: " << eleTag << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
   }
-
-  // if get here we have successfully created the YamamotoBiaxialHDR and added
-  // it to the domain
   return TCL_OK;
 }
 
@@ -1629,7 +1562,8 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
     }
 
     if (Tcl_GetDouble(interp, argv[4 + eleArgStart], &pInitLocation) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid pInitLocation - WheelRail " << pTag
+      opserr << OpenSees::PromptValueError 
+             << "invalid pInitLocation - WheelRail " << pTag
              << " iNode jNode A E I\n";
       return TCL_ERROR;
     }
@@ -1766,8 +1700,9 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
 
   // add the WheelRail element to the Domain
   if (builder->getDomain()->addElement(theElement) == false) {
-    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    opserr << "YamamotoBiaxialHDR element: " << pTag << OpenSees::SignalMessageEnd;
+    opserr << OpenSees::PromptValueError 
+           << "could not add element to the domain\n";
+    opserr << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
   }
