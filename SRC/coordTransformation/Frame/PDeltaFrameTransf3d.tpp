@@ -111,6 +111,7 @@ PDeltaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int op)
   //
   if (op & Transform::Adjoint) {
 
+    linear.push(pl, Transform::Adjoint);
     // Include leaning column effects (P-Delta)
 
     const Vector3D Du = linear.getDelta()/linear.getInitialLength();
@@ -120,7 +121,6 @@ PDeltaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int op)
 
     pl[0*ndf+2] -= Du[2] * N;
     pl[1*ndf+2] += Du[2] * N;
-    linear.push(pl, Transform::Adjoint);
   }
 
   linear.push(pl, op&~Transform::Adjoint);
@@ -130,7 +130,6 @@ PDeltaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int op)
 
 
 template <int nn, int ndf>
-// MatrixND<nn*ndf,nn*ndf>
 int
 PDeltaFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>& kl, 
                                 const VectorND<nn*ndf> &pl, int op)
