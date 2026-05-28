@@ -229,45 +229,45 @@ Graph::startAddEdge() {
 int 
 Graph::addEdgeFast(int vertexTag, int otherVertexTag)
 {
-    // get pointers to the vertices, if one does not exist return
-    if ((int)vertices.size()<=vertexTag ||
-    vertices.size()<=otherVertexTag) {
-      opserr << "WARNING: the size of vertices is not correct\n";
-      return -1;
-    }
-    Vertex *vertex1 = vertices[vertexTag];
-    Vertex *vertex2 = vertices[otherVertexTag];
-    if ((vertex1 == 0) || (vertex2 == 0)) {
-	opserr << "WARNING Graph::addEdge() - one or both of the vertices ";
-	opserr << vertexTag << " " << otherVertexTag << " not in Graph\n";
-	return -1;
-    }
+  // get pointers to the vertices, if one does not exist return
+  if ((int)vertices.size()<=vertexTag ||
+      (int)vertices.size()<=otherVertexTag) {
+    opserr << "WARNING: the size of vertices is not correct\n";
+    return -1;
+  }
+  Vertex *vertex1 = vertices[vertexTag];
+  Vertex *vertex2 = vertices[otherVertexTag];
+  if ((vertex1 == 0) || (vertex2 == 0)) {
+    opserr << "WARNING Graph::addEdge() - one or both of the vertices ";
+    opserr << vertexTag << " " << otherVertexTag << " not in Graph\n";
+    return -1;
+  }
 
-    // add an edge to each vertex
-    int result = vertex1->addEdge(otherVertexTag);
-	if (result == 1)
-		return 0;  // already there
-	else if (result == 0) {  // added to vertexTag now add to other
-		if ((result = vertex2->addEdge(vertexTag)) == 0) {
-			numEdge++;
-		}
-		else {
-			opserr << " WARNING Graph::addEdge() - " << vertexTag;
-			opserr << " added to " << otherVertexTag;
-			opserr << " adjacency - but already there in otherVertexTag!.\n";
-			opserr << *this; 
+  // add an edge to each vertex
+  int result = vertex1->addEdge(otherVertexTag);
+  if (result == 1)
+    return 0;  // already there
+  else if (result == 0) {  // added to vertexTag now add to other
+    if ((result = vertex2->addEdge(vertexTag)) == 0) {
+      numEdge++;
+    }
+    else {
+      opserr << " WARNING Graph::addEdge() - " << vertexTag;
+      opserr << " added to " << otherVertexTag;
+      opserr << " adjacency - but already there in otherVertexTag!.\n";
+      opserr << *this; 
       exit(0);
-			return -2;
-		}
-	} else {
-			opserr << " WARNING Graph::addEdge() - " << vertexTag;
-			opserr << " added to " << otherVertexTag;
-			opserr << " adjacency - but not vica versa!.\n";
-			opserr << *this; 
+      return -2;
+    }
+  } else {
+      opserr << " WARNING Graph::addEdge() - " << vertexTag;
+      opserr << " added to " << otherVertexTag;
+      opserr << " adjacency - but not vica versa!.\n";
+      opserr << *this; 
       exit(0);
-			return -2;
-	}
-    return result;
+      return -2;
+  }
+  return result;
 }
 
 Vertex *

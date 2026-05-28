@@ -252,7 +252,9 @@ class Node :
     double alphaM;                      // rayleigh damping factor 
     double position_inertia;
     enum class MassType {
-      Full, Classical, None
+      Full,
+      Classical, 
+      None
     } mass_type = MassType::None;
 
 
@@ -264,7 +266,6 @@ class Node :
     Matrix *velSensitivity;
     Matrix *accSensitivity;
     int parameterID;
-    // AddingSensitivity:END ///////////////////////////////////////////
 
     Vector *reaction;
 };

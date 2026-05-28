@@ -64,9 +64,9 @@ Node::Node(int theClassTag)
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
- disp(0), vel(0), accel(0), dbTag1(0), 
+ disp(0), vel(0), accel(0), 
  rotation(nullptr),
- dbTag2(0), dbTag3(0), dbTag4(0),
+ dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
  index(-1), 
  reaction(nullptr)
@@ -950,7 +950,6 @@ Node::getMass()
   if (index == -1) [[unlikely]]
     setGlobalMatrices();
 
-
   if (mass_type == MassType::Classical) {
     Matrix& Mass = *theMatrices[index];
     Mass.Zero();
@@ -1315,130 +1314,130 @@ int
 Node::recvSelf(int cTag, Channel &theChannel,
              FEM_ObjectBroker &theBroker)
 {
-    int res = 0;
-    int dataTag = this->getDbTag();
+  int res = 0;
+  int dataTag = this->getDbTag();
 
 
-    ID data(14);
-    res = theChannel.recvID(dataTag, cTag, data);
-    if (res < 0) {
-      opserr << "Node::recvSelf() - failed to receive ID data\n";
-      return res;
-    }
+  ID data(14);
+  res = theChannel.recvID(dataTag, cTag, data);
+  if (res < 0) {
+    opserr << "Node::recvSelf() - failed to receive ID data\n";
+    return res;
+  }
 
-    this->setTag(data(0));
-    numberDOF = data(1);
-    int numberCrd = data(7);
+  this->setTag(data(0));
+  numberDOF = data(1);
+  int numberCrd = data(7);
 
-    dbTag1 = data(8);
-    dbTag2 = data(9);
-    dbTag3 = data(10);
-    dbTag4 = data(11);
+  dbTag1 = data(8);
+  dbTag2 = data(9);
+  dbTag3 = data(10);
+  dbTag4 = data(11);
 
-    // create a Vector to hold coordinates IF one needed
-    xyz.setData(coord_data, numberCrd);
+  // create a Vector to hold coordinates IF one needed
+  xyz.setData(coord_data, numberCrd);
 
-    if (theChannel.recvVector(dataTag, cTag, xyz) < 0) {
-      opserr << "Node::recvSelf() - failed to receive the Coordinate vector\n";
-      return -2;
-    }
+  if (theChannel.recvVector(dataTag, cTag, xyz) < 0) {
+    opserr << "Node::recvSelf() - failed to receive the Coordinate vector\n";
+    return -2;
+  }
 
-    if (commitDisp == nullptr)
-      this->createDisp();
+  if (commitDisp == nullptr)
+    this->createDisp();
 
-    if (data(2) == 0) {
-      // create the disp vectors if node is a total blank
+  if (data(2) == 0) {
+    // create the disp vectors if node is a total blank
 //    if (commitDisp == 0)
 //       this->createDisp();
 
-      // recv the committed disp
-      if (theChannel.recvVector(dbTag1, cTag, *commitDisp) < 0) {
-      opserr << "Node::recvSelf - failed to receive Disp data\n";
+    // recv the committed disp
+    if (theChannel.recvVector(dbTag1, cTag, *commitDisp) < 0) {
+    opserr << "Node::recvSelf - failed to receive Disp data\n";
+    return res;
+    }
+
+    // set the trial quantities equal to committed
+    for (int i=0; i<numberDOF; i++)
+    disp[i] = disp[i+numberDOF];  // set trial equal committed
+
+  } else if (commitDisp != nullptr) {
+    // if going back to initial we will just zero the vectors
+    commitDisp->Zero();
+    trialDisp->Zero();
+  }
+
+
+  if (data(3) == 0) {
+    // create the vel vectors if node is a total blank
+    if (commitVel == nullptr)
+    this->createVel();
+
+    // recv the committed vel
+    if (theChannel.recvVector(dbTag2, cTag, *commitVel) < 0) {
+    opserr << "Node::recvSelf - failed to receive Velocity data\n";
+    return -3;
+    }
+
+    // set the trial quantity
+    for (int i=0; i<numberDOF; i++)
+    vel[i] = vel[i+numberDOF];  // set trial equal committed
+  }
+
+  if (data(4) == 0) {
+    // create the vel vectors if node is a total blank
+    if (commitAccel == 0)
+    this->createAccel();
+
+    // recv the committed accel
+    if (theChannel.recvVector(dbTag3, cTag, *commitAccel) < 0) {
+    opserr << "Node::recvSelf - failed to receive Acceleration data\n";
+    return -4;
+    }
+
+    // set the trial values
+    for (int i=0; i<numberDOF; i++)
+    accel[i] = accel[i+numberDOF];  // set trial equal committed
+  }
+
+  if (data(5) == 0) {
+    // make some room and read in the vector
+    if (mass == 0) {
+    mass = new Matrix(numberDOF,numberDOF);
+    }
+    if (theChannel.recvMatrix(dataTag, cTag, *mass) < 0) {
+    opserr << "Node::recvSelf() - failed to receive Mass data\n";
+    return -6;
+    }
+  }
+
+  if (data(12) == 0) {
+    // create a matrix for R
+    int noCols = data(13);
+    if (R == nullptr) {
+      R = new Matrix(numberDOF, noCols);
+    }
+    // now recv the R matrix
+    if (theChannel.recvMatrix(dbTag2, cTag, *R) < 0) {
+      opserr << "Node::recvSelf() - failed to receive R data\n";
       return res;
-      }
-
-      // set the trial quantities equal to committed
-      for (int i=0; i<numberDOF; i++)
-      disp[i] = disp[i+numberDOF];  // set trial equal committed
-
-    } else if (commitDisp != nullptr) {
-      // if going back to initial we will just zero the vectors
-      commitDisp->Zero();
-      trialDisp->Zero();
     }
+  }
 
 
-    if (data(3) == 0) {
-      // create the vel vectors if node is a total blank
-      if (commitVel == nullptr)
-      this->createVel();
-
-      // recv the committed vel
-      if (theChannel.recvVector(dbTag2, cTag, *commitVel) < 0) {
-      opserr << "Node::recvSelf - failed to receive Velocity data\n";
-      return -3;
-      }
-
-      // set the trial quantity
-      for (int i=0; i<numberDOF; i++)
-      vel[i] = vel[i+numberDOF];  // set trial equal committed
+  if (data(6) == 0) {
+    // create a vector for the load
+    if (unbalLoad == 0) {
+    unbalLoad = new Vector(numberDOF);
+    if (unbalLoad == 0) {
+      opserr << "Node::recvData -- ran out of memory\n";
+      return -10;
     }
-
-    if (data(4) == 0) {
-      // create the vel vectors if node is a total blank
-      if (commitAccel == 0)
-      this->createAccel();
-
-      // recv the committed accel
-      if (theChannel.recvVector(dbTag3, cTag, *commitAccel) < 0) {
-      opserr << "Node::recvSelf - failed to receive Acceleration data\n";
-      return -4;
-      }
-
-      // set the trial values
-      for (int i=0; i<numberDOF; i++)
-      accel[i] = accel[i+numberDOF];  // set trial equal committed
     }
-
-    if (data(5) == 0) {
-      // make some room and read in the vector
-      if (mass == 0) {
-      mass = new Matrix(numberDOF,numberDOF);
-      }
-      if (theChannel.recvMatrix(dataTag, cTag, *mass) < 0) {
-      opserr << "Node::recvSelf() - failed to receive Mass data\n";
-      return -6;
-      }
+    if (theChannel.recvVector(dbTag4, cTag, *unbalLoad) < 0) {
+    opserr << "Node::recvSelf() - failed to receive Load data\n";
+    return res;
     }
-
-    if (data(12) == 0) {
-      // create a matrix for R
-      int noCols = data(13);
-      if (R == nullptr) {
-        R = new Matrix(numberDOF, noCols);
-      }
-      // now recv the R matrix
-      if (theChannel.recvMatrix(dbTag2, cTag, *R) < 0) {
-        opserr << "Node::recvSelf() - failed to receive R data\n";
-        return res;
-      }
-    }
-
-
-    if (data(6) == 0) {
-      // create a vector for the load
-      if (unbalLoad == 0) {
-      unbalLoad = new Vector(numberDOF);
-      if (unbalLoad == 0) {
-        opserr << "Node::recvData -- ran out of memory\n";
-        return -10;
-      }
-      }
-      if (theChannel.recvVector(dbTag4, cTag, *unbalLoad) < 0) {
-      opserr << "Node::recvSelf() - failed to receive Load data\n";
-      return res;
-      }
-    }
+  }
 
 
   index = -1;

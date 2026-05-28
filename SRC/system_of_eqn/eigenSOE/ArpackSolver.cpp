@@ -167,7 +167,7 @@ static const ErrorEntry DnaupdErrors[] = {
   { -11,   "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
   { -12,   "IPARAM(1) must be equal to 0 or 1." },
   { -13,   "NEV and WHICH = 'BE' are incompatible." },
-  { -9999, "Could not build an Arnoldi factorization. IPARAM(5) returns the size of the current Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
+  { -9999, "Could not build an Arnoldi factorization. Check that enough workspace and array storage has been allocated." }
 };
 // static const size_t DnaupdErrorsCount = sizeof(DnaupdErrors)/sizeof(DnaupdErrors[0]);
 
@@ -277,7 +277,8 @@ struct ArpackWorkspace {
   ArpackWorkspace& operator=(ArpackWorkspace&&) = delete;
 
   enum { Symmetric = 1, NonSymmetric = 2 };
-  int getNCV(int n, int nev, int driver) const
+
+  static int getNCV(int n, int nev, int driver)
   {
     // compute the number of Arnoldi vectors to use
     // n is the system size, nev is the number of eigenvectors.
@@ -294,19 +295,11 @@ struct ArpackWorkspace {
     //
     // Scipy uses min(max(2 * n + 1, 20), n)
   #if 0
-    int result;
-    if (2*nev > nev+8) {
-      result = nev+8;
-    } else {
-      result = 2*nev;
-    }
-    
-    if (result >= n) {
-      result = n;
-    }
-    
-    return result;
+    return opsGetNCV(n, nev);
   #elif 1
+    if (driver == Symmetric) {
+      return opsGetNCV(n, nev);
+    }
     int ncv = std::min(n, std::max(2*nev + 1, 20));
     // const int lower = std::min(n,driver == Symmetric ? nev + 1 : nev + 2);
     const int lower = driver == Symmetric ? nev + 1 : nev + 2;
@@ -320,6 +313,29 @@ struct ArpackWorkspace {
       ncv = std::min(n, nev + 2);
     return ncv;
   #endif
+  }
+
+  static int opsGetNCV(int n, int nev) {
+    int result;
+    if (2*nev > nev+8) {
+      result = nev+8;
+    } else {
+      result = 2*nev;
+    }
+    
+    if (result >= n) {
+      result = n;
+    }
+
+    return result;
+  }
+
+  void print(OPS_Stream &s) const {
+    s << "ArpackWorkspace: size=" << size 
+      << " nev=" << nev 
+      << " ncv=" << ncv 
+      << " lworkl=" << lworkl 
+      << "\n";
   }
 
   int size; // ldv
