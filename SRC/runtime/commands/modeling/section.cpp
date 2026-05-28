@@ -252,6 +252,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
       strcmp(argv[1], "FiberSection") == 0 ||
       //
       strcmp(argv[1], "ShearFiber") == 0 ||
+      strcmp(argv[1], "MultiaxialFiber") == 0 ||
       strcmp(argv[1], "MixedFiber") == 0 ||
       // Shear
       strcmp(argv[1], "NDFiber") == 0 ||
