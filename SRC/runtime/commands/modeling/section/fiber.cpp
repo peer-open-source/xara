@@ -338,6 +338,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   FiberSectionConfig options;
   if (strcmp(argv[1], "NDFiber") == 0 ||
       strcmp(argv[1], "ShearFiber") == 0 ||
+      strcmp(argv[1], "MultiaxialFiber") == 0 ||
       strcmp(argv[1], "MixedFiber") == 0)
     options.isND = true;
   
@@ -351,6 +352,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   else if (strcmp(argv[1], "FrameFiber") == 0 ||
            strcmp(argv[1], "FiberFrame") == 0 ||
            strcmp(argv[1], "AxialFiber") == 0 ||
+           strcmp(argv[1], "MultiaxialFiber") == 0 ||
            strcmp(argv[1], "ShearFiber") == 0 ||
            strcmp(argv[1], "MixedFiber") == 0
     )
