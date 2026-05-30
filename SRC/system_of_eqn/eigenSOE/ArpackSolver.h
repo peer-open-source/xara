@@ -113,7 +113,7 @@ class ArpackSolver : public EigenSolver
 
     double shift;
     int iparam[11];
-    int ipntr[11];
+    int ipntr[14];
 
     void myCopy(int n, double *v, double *result);
     int  getNCV(int n, int nev);
@@ -121,5 +121,3 @@ class ArpackSolver : public EigenSolver
 };
 
 #endif
-
-
