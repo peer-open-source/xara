@@ -91,13 +91,13 @@ CTestRelativeNormUnbalance::test(LinearSOE& theSOE)
         pstream << LOG_ITERATE 
                << "Iter: "    << pad(currentIter)
                << ", |dR|/|dR0|: " << pad(norm) 
-               << "\n"; // << " (max: " << tol << ")\n";
+               << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {
         pstream << LOG_ITERATE 
                << "Iter: "     << pad(currentIter)
                << ", |dR|/|dR0|: "  << pad(norm) 
-               << "\n" //" (max: " << tol << ")\n"
+               << "\n"
                << "\tNorm deltaX: " << pad(theSOE.getX().pNorm(nType)) 
                << ", Norm deltaR: " << pad(norm) 
                << "\n"
