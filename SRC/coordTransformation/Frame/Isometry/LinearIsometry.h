@@ -100,13 +100,14 @@ public:
 
   virtual
   int
-  update(std::array<Node*,nn>& nodes) final {
-
+  update(std::array<Node*,nn>& nodes) noexcept final 
+  {
     return 0;
   }
 
   int
-  update(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx, std::array<Node*,nn>& nodes) final 
+  update(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx, std::array<Node*,nn>& nodes) 
+  noexcept final 
   {
     return 0;
   }
