@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.14 $
-// $Date: 2008-08-26 16:35:21 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/Steel01.h,v $
-                                                                        
-                                                                        
 #ifndef Steel01_h
 #define Steel01_h
 
@@ -34,10 +29,6 @@
 // Steel01.h
 // 
 //
-//
-// What: "@(#) Steel01.h, revA"
-
-
 #include <UniaxialMaterial.h>
 
 // Default values for isotropic hardening parameters a1, a2, a3, and a4
@@ -55,26 +46,25 @@ class Steel01 : public UniaxialMaterial
     Steel01();
     ~Steel01();
 
-    const char *getClassType(void) const {return "Steel01";};
+    const char *getClassType() const {return "Steel01";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
     int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
-    double getStrain(void);              
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void) {return E0;};
+    double getStrain();              
+    double getStress();
+    double getTangent();
+    double getInitialTangent() {return E0;};
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
     int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     
 // AddingSensitivity:BEGIN //////////////////////////////////////////
     int setParameter(const char **argv, int argc, Parameter &param);
