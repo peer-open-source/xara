@@ -386,8 +386,7 @@ UniformExcitation::sendSelf(int commitTag, Channel &theChannel)
 
 
 int 
-UniformExcitation::recvSelf(int commitTag, Channel &theChannel, 
-			   FEM_ObjectBroker &theBroker)
+UniformExcitation::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
   int dbTag = this->getDbTag();
 
