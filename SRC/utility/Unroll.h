@@ -22,13 +22,13 @@ namespace
     (func(num<Is>{}), ...);
   }
 
-    // Helper that unpacks the index_sequence into calls to func, offset by Start
-    template <std::size_t Start, class F, std::size_t... Is>
-    [[gnu::always_inline]] inline constexpr void 
-    unroll_impl(F func, std::index_sequence<Is...>) noexcept
-    {
-        (func(num<Start + Is>{}), ...);
-    }
+  // Helper that unpacks the index_sequence into calls to func, offset by Start
+  template <std::size_t Start, class F, std::size_t... Is>
+  [[gnu::always_inline]] inline constexpr void 
+  unroll_impl(F func, std::index_sequence<Is...>) noexcept
+  {
+      (func(num<Start + Is>{}), ...);
+  }
 }
 
 #if 0 //  __cplusplus >= 202002L
