@@ -184,7 +184,6 @@ template <index_t NR, index_t NC, typename T>
 template <int nr> inline void
 MatrixND<NR,NC,T>::assemble(const VectorND<nr> &v, int init_row, int init_col, double fact) noexcept
 {
-
   [[maybe_unused]] int final_row = init_row + nr - 1;
   assert((init_row >= 0) && (final_row < NR));
 
@@ -232,7 +231,6 @@ template <index_t nr, index_t nc, typename T> inline int
 MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 {
   static_assert(nr == nc, "Matrix must be square");
-  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
 
   int status = -1;
   if constexpr (nr == 2) {
