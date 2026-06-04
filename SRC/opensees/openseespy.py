@@ -806,8 +806,8 @@ class Model:
     def getIterationCount(self):
         return self._openseespy._invoke_proc("numIter")
     
-    def testNorms(self):
-        return self._call("testNorms")
+    def testNorms(self, *args):
+        return self._call("testNorms", *args)
 
     def getResidual(self):
         import numpy as np
