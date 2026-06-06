@@ -153,7 +153,7 @@ PlaneStrainMaterial::setTrialStrain( const Vector &strainFromElement )
   threeDstrain[5] = 0.0 ;
 
   if (theMaterial->setTrialStrain( threeDstrain ) < 0) {
-    opserr << "PlaneStrainMaterial::setTrialStrain() - setTrialStrain in material failed with strain " ; // << threeDstrain;
+    opserr << "PlaneStrainMaterial::setTrialStrain() - setTrialStrain in material failed\n" ; // << threeDstrain;
     return -1;
   }
 
@@ -162,7 +162,7 @@ PlaneStrainMaterial::setTrialStrain( const Vector &strainFromElement )
 
 
 const Vector& 
-PlaneStrainMaterial::getStrain( )
+PlaneStrainMaterial::getStrain()
 {
   return this->strain ;
 }
@@ -183,7 +183,7 @@ PlaneStrainMaterial::getStress( )
 
 
 const Matrix&  
-PlaneStrainMaterial::getTangent( )
+PlaneStrainMaterial::getTangent()
 {
 
 //static Matrix threeDtangentCopy(6,6);
@@ -206,7 +206,7 @@ PlaneStrainMaterial::getTangent( )
 
 // AV not sure if it actually works
 const Matrix&  
-PlaneStrainMaterial::getInitialTangent( )
+PlaneStrainMaterial::getInitialTangent()
 {
 //static Matrix dd11(3,3) ;
 
