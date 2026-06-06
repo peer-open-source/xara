@@ -44,7 +44,7 @@ class DruckerPragerPlaneStrain : public DruckerPrager {
 		  double d1, double d2, double H, double t, double massDens, double atm);
 
 
-  //destructor
+  // destructor
   ~DruckerPragerPlaneStrain();
 
   NDMaterial* getCopy();
