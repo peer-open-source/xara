@@ -64,6 +64,7 @@
 
 class TimeSeries;
 
+namespace OpenSees {
 class PyLiq1 : public PySimple1
 {
   public:
@@ -136,7 +137,7 @@ class PyLiq1 : public PySimple1
   double getEffectiveStress(TimeSeries *theSeries);
   static Vector stressV3;
 };
-
+}
 #endif // PYLIQ1_H
 
 
