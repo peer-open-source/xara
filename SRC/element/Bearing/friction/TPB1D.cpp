@@ -38,7 +38,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <ElasticMaterial.h>
 #include <ElasticPPMaterial.h>
@@ -732,10 +731,3 @@ TPB1D::activateParameter(int passedParameterID)
 }
 
 
-
-int 
-TPB1D::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
-}
