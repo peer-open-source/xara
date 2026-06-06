@@ -59,7 +59,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
   double Ec = 0.0;
   //
   double rat=0.1, ft=0, Ets=0;
-  double beta =0.1, epstu = 0.0;
+  // double beta =0.1, epstu = 0.0;
 
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial tag\n";
