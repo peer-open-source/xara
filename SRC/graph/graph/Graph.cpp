@@ -82,10 +82,6 @@ Graph::Graph(Graph &other)
     int vertexTag = vertexPtr->getTag();
     int vertexRef = vertexPtr->getRef();
     vertexPtr = new Vertex(vertexTag, vertexRef);
-    if (vertexPtr == 0) {
-      opserr << "Graph::Graph - out of memory\n";
-      return;
-    }
     this->addVertex(vertexPtr, false);
   }
 
@@ -96,23 +92,24 @@ Graph::Graph(Graph &other)
     const ID &adjacency = vertexPtr->getAdjacency();
     for (int i=0; i<adjacency.Size(); i++) {
       if (this->addEdge(vertexTag, adjacency(i)) < 0) {
-	opserr << "Graph::merge - could not add an edge!\n";
-	return;
+        opserr << "Graph::merge - could not add an edge!\n";
+        return;
       }
     }
   }
 }
 
+
 Graph::~Graph()
 {
-    // invoke delete on the Vertices
-    myVertices->clearAll();
+  // invoke delete on the Vertices
+  myVertices->clearAll();
+  
+  if (myVertices != 0)
+    delete myVertices;
     
-    if (myVertices != 0)
-	delete myVertices;
-    
-    if (theVertexIter != 0)
-	delete theVertexIter;
+  if (theVertexIter != 0)
+    delete theVertexIter;
 }
 
 
@@ -126,43 +123,38 @@ Graph::~Graph()
 bool
 Graph::addVertex(Vertex *vertexPtr, bool checkAdjacency)
 {
-    // check the vertex * and its adjacency list
-    if (vertexPtr == 0) {
-	opserr << "WARNING Graph::addVertex";
-	opserr << " - attempting to add a NULL vertex*\n";
-	return false;
+  // check the vertex * and its adjacency list
+  if (vertexPtr == 0) {
+    opserr << "WARNING Graph::addVertex";
+    opserr << " - attempting to add a NULL vertex*\n";
+    return false;
+  }
+
+  if (checkAdjacency == true) {
+    if (vertexPtr->getDegree() != 0) {
+        const ID &adjacency = vertexPtr->getAdjacency();
+        int size = adjacency.Size();
+        for (int i=0; i<size; i++) {
+          Vertex *other = this->getVertexPtr(adjacency(i));
+          if (other == 0) {
+              opserr << "WARNING Graph::addVertex";
+              opserr << " - vertex with adjacent vertex not in graph\n";
+              return false;
+          }		
+        }
     }
-
-    if (checkAdjacency == true) {
-	if (vertexPtr->getDegree() != 0) {
-	    const ID &adjacency = vertexPtr->getAdjacency();
-	    int size = adjacency.Size();
-	    for (int i=0; i<size; i++) {
-		Vertex *other = this->getVertexPtr(adjacency(i));
-		if (other == 0) {
-		    opserr << "WARNING Graph::addVertex";
-		    opserr << " - vertex with adjacent vertex not in graph\n";
-		    return false;
-		}		
-	    }
-	}
-    }
+  }
 
 
-    bool result = myVertices->addComponent(vertexPtr);
-    if (result == false) {
-      opserr << *this;
-      opserr << "BAD VERTEX\n: " << *vertexPtr;
-	opserr << "WARNING Graph::addVertex";
-	opserr << " - vertex could not be stored in TaggedObjectStorage object\n";
-    }
+  bool result = myVertices->addComponent(vertexPtr);
+  assert(result == true);
 
 
-    // check nextFreeTag
-    if (vertexPtr->getTag() >= nextFreeTag)
-      nextFreeTag = vertexPtr->getTag() + 1;
+  // check nextFreeTag
+  if (vertexPtr->getTag() >= nextFreeTag)
+    nextFreeTag = vertexPtr->getTag() + 1;
 
-    return result;
+  return result;
 }
 
 
@@ -177,47 +169,48 @@ Graph::addVertex(Vertex *vertexPtr, bool checkAdjacency)
 int 
 Graph::addEdge(int vertexTag, int otherVertexTag)
 {
-    // get pointers to the vertices, if one does not exist return
+  // get pointers to the vertices, if one does not exist return
 
-    Vertex *vertex1 = this->getVertexPtr(vertexTag);
-    Vertex *vertex2 = this->getVertexPtr(otherVertexTag);
-    if ((vertex1 == 0) || (vertex2 == 0)) {
-	opserr << "WARNING Graph::addEdge() - one or both of the vertices ";
-	opserr << vertexTag << " " << otherVertexTag << " not in Graph\n";
-	return -1;
+  Vertex *vertex1 = this->getVertexPtr(vertexTag);
+  Vertex *vertex2 = this->getVertexPtr(otherVertexTag);
+  if ((vertex1 == 0) || (vertex2 == 0)) {
+    opserr << "WARNING Graph::addEdge() - one or both of the vertices ";
+    opserr << vertexTag << " " << otherVertexTag << " not in Graph\n";
+    return -1;
+  }
+
+  // add an edge to each vertex
+  int result = vertex1->addEdge(otherVertexTag);
+  if (result == 1)
+    return 0;  // already there
+  else if (result == 0) {  // added to vertexTag now add to other
+    if ((result = vertex2->addEdge(vertexTag)) == 0) {
+      numEdge++;
     }
-
-    // add an edge to each vertex
-    int result = vertex1->addEdge(otherVertexTag);
-	if (result == 1)
-		return 0;  // already there
-	else if (result == 0) {  // added to vertexTag now add to other
-		if ((result = vertex2->addEdge(vertexTag)) == 0) {
-			numEdge++;
-		}
-		else {
-			opserr << " WARNING Graph::addEdge() - " << vertexTag;
-			opserr << " added to " << otherVertexTag;
-			opserr << " adjacency - but already there in otherVertexTag!.\n";
-			opserr << *this; exit(0);
-			return -2;
-		}
-	} else {
-			opserr << " WARNING Graph::addEdge() - " << vertexTag;
-			opserr << " added to " << otherVertexTag;
-			opserr << " adjacency - but not vica versa!.\n";
-			opserr << *this; exit(0);
-			return -2;
-	}
-    return result;
+    else {
+      opserr << " WARNING Graph::addEdge() - " << vertexTag;
+      opserr << " added to " << otherVertexTag;
+      opserr << " adjacency - but already there in otherVertexTag!.\n";
+      exit(0);
+      return -2;
+    }
+  } else {
+      opserr << " WARNING Graph::addEdge() - " << vertexTag;
+      opserr << " added to " << otherVertexTag;
+      opserr << " adjacency - but not vica versa!.\n";
+      exit(0);
+      return -2;
+  }
+  return result;
 }
 
 void
-Graph::startAddEdge() {
+Graph::startAddEdge()
+{
   vertices.clear();
   VertexIter& iter = getVertices();
-  Vertex* v = 0;
-  while ((v = iter()) != 0) {
+  Vertex* v = nullptr;
+  while ((v = iter()) != nullptr) {
     int tag = v->getTag();
     if (tag >= 0) {
       vertices.resize(tag+1);
@@ -255,17 +248,15 @@ Graph::addEdgeFast(int vertexTag, int otherVertexTag)
       opserr << " WARNING Graph::addEdge() - " << vertexTag;
       opserr << " added to " << otherVertexTag;
       opserr << " adjacency - but already there in otherVertexTag!.\n";
-      opserr << *this; 
       exit(0);
       return -2;
     }
   } else {
-      opserr << " WARNING Graph::addEdge() - " << vertexTag;
-      opserr << " added to " << otherVertexTag;
-      opserr << " adjacency - but not vica versa!.\n";
-      opserr << *this; 
-      exit(0);
-      return -2;
+    opserr << " WARNING Graph::addEdge() - " << vertexTag;
+    opserr << " added to " << otherVertexTag;
+    opserr << " adjacency - but not vica versa!.\n";
+    exit(0);
+    return -2;
   }
   return result;
 }
@@ -274,7 +265,8 @@ Vertex *
 Graph::getVertexPtr(int vertexTag)
 {
   TaggedObject *res = myVertices->getComponentPtr(vertexTag);
-  if (res == 0) return 0;
+  if (res == 0)
+    return 0;
   Vertex *result = (Vertex *)res;
   return result;
 }
@@ -307,19 +299,22 @@ Graph::getFreeTag()
   return nextFreeTag;
 }
 
+
 Vertex *
 Graph::removeVertex(int tag, bool flag)
 {
-    TaggedObject *mc = myVertices->removeComponent(tag);
-    if (mc == 0) return 0;
-    Vertex *result = (Vertex *)mc;
-    
-    if (flag == true) { // remove all edges associated with the vertex
-	opserr << "Graph::removeVertex(int tag, bool flag = true)";
-	opserr << " - no code to remove edges yet\n";
-	return 0;
-    }
-    return result;
+  TaggedObject *mc = myVertices->removeComponent(tag);
+  if (mc == nullptr)
+    return 0;
+
+  Vertex *result = (Vertex *)mc;
+
+  if (flag == true) { // remove all edges associated with the vertex
+    opserr << "Graph::removeVertex(int tag, bool flag = true)";
+    opserr << " - no code to remove edges yet\n";
+    return 0;
+  }
+  return result;
 }
 
 
@@ -334,13 +329,9 @@ Graph::merge(Graph &other) {
   while ((vertexPtrOther = otherVertices()) != 0) {
     int vertexTag = vertexPtrOther->getTag();
     Vertex *vertexPtr = this->getVertexPtr(vertexTag);
-    if (vertexPtr == 0) {
+    if (vertexPtr == nullptr) {
       int vertexRef = vertexPtrOther->getRef();
       vertexPtr = new Vertex(vertexTag, vertexRef);
-      if (vertexPtr == 0) {
-	opserr << "Graph::merge - out of memory\n";
-	return -1;
-      }
       this->addVertex(vertexPtr, false);
     }
   }
@@ -353,8 +344,8 @@ Graph::merge(Graph &other) {
     const ID &adjacency = vertexPtrOther->getAdjacency();
     for (int i=0; i<adjacency.Size(); i++) {
       if (this->addEdge(vertexTag, adjacency(i)) < 0) {
-	opserr << "Graph::merge - could not add an edge!\n";
-	return -2;	
+        opserr << "Graph::merge - could not add an edge!\n";
+        return -2;	
       }
     }
   }
@@ -366,15 +357,9 @@ Graph::merge(Graph &other) {
 void 
 Graph::Print(OPS_Stream &s, int flag)
 {
-    myVertices->Print(s, flag);
+  myVertices->Print(s, flag);
 }
 
-
-OPS_Stream &operator<<(OPS_Stream &s, Graph &M)
-{
-  M.Print(s);
-  return s;
-}
 
 
 int 
@@ -401,40 +386,38 @@ Graph::sendSelf(int commitTag, Channel &theChannel)
   if (numVertex != 0) {
     int *vertexData = new int[5 * numVertex + 2 * numEdge];
     Vector vertexWeights(numVertex);
-    if (vertexData != 0) {
-      VertexIter &theVertices = this->getVertices();
-      Vertex *vertexPtr;
-      int adjacencyLocation = 5 * numVertex;
-      int vertexLocation = 0;
-      int weightLoc = 0;
-      while ((vertexPtr = theVertices()) != 0) {
-	int tag = vertexPtr->getTag();
-	int color = vertexPtr->getColor();
-	int ref = vertexPtr->getRef();
-	int tmp = vertexPtr->getTmp();
-	const ID &adjacency = vertexPtr->getAdjacency();
-	int adjSize = adjacency.Size();
-	vertexData[vertexLocation++] = tag;
-	vertexData[vertexLocation++] = ref;
-	vertexData[vertexLocation++] = color;
-	vertexData[vertexLocation++] = tmp;
-	vertexData[vertexLocation++] = adjSize;
-	for (int i=0; i<adjSize; i++)
-	  vertexData[adjacencyLocation++] = adjacency(i);	  
-	vertexWeights[weightLoc++] = vertexPtr->getWeight();
 
-      }  
+    VertexIter &theVertices = this->getVertices();
+    Vertex *vertexPtr;
+    int adjacencyLocation = 5 * numVertex;
+    int vertexLocation = 0;
+    int weightLoc = 0;
+    while ((vertexPtr = theVertices()) != 0) {
+      int tag = vertexPtr->getTag();
+      int color = vertexPtr->getColor();
+      int ref = vertexPtr->getRef();
+      int tmp = vertexPtr->getTmp();
+      const ID &adjacency = vertexPtr->getAdjacency();
+      int adjSize = adjacency.Size();
+      vertexData[vertexLocation++] = tag;
+      vertexData[vertexLocation++] = ref;
+      vertexData[vertexLocation++] = color;
+      vertexData[vertexLocation++] = tmp;
+      vertexData[vertexLocation++] = adjSize;
+      for (int i=0; i<adjSize; i++)
+        vertexData[adjacencyLocation++] = adjacency(i);	  
+      vertexWeights[weightLoc++] = vertexPtr->getWeight();
+    }  
 
-      ID verticesData(vertexData, 5*numVertex + 2*numEdge, true);
-      if (theChannel.sendID(0, commitTag, verticesData) < 0) {
-	opserr << "Graph::sendSelf() - failed to send the id\n";
-	return -3;
-      }
+    ID verticesData(vertexData, 5*numVertex + 2*numEdge, true);
+    if (theChannel.sendID(0, commitTag, verticesData) < 0) {
+      opserr << "Graph::sendSelf() - failed to send the id\n";
+      return -3;
+    }
 
-      if (theChannel.sendVector(0, commitTag, vertexWeights) < 0) {
-	opserr << "Graph::sendSelf() - failed to send the id\n";
-	return -3;
-      }
+    if (theChannel.sendVector(0, commitTag, vertexWeights) < 0) {
+      opserr << "Graph::sendSelf() - failed to send the id\n";
+      return -3;
     }
   }
 
@@ -481,45 +464,36 @@ Graph::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
   int numVertex = idData(1);
 
   if (numVertex != 0) {
-    
     int *vertexData = new int[5 * numVertex + 2 * numEdge];
-    if (vertexData != 0) {
-      ID verticesData(vertexData, 5*numVertex + 2 * numEdge, true);
-      if (theChannel.recvID(0, commitTag, verticesData) < 0) {
-	opserr << "Graph::recvSelf() - failed to receive the id\n";
-	return -3;
+
+    ID verticesData(vertexData, 5*numVertex + 2 * numEdge, true);
+    if (theChannel.recvID(0, commitTag, verticesData) < 0) {
+      opserr << "Graph::recvSelf() - failed to receive the id\n";
+      return -3;
+    }
+    Vector vertexWeights(numVertex);
+    if (theChannel.recvVector(0, commitTag, vertexWeights) < 0) {
+      opserr << "Graph::recvSelf() - failed to receive the weights\n";
+      return -3;
+    }
+
+    int adjacencyLocation = 5 * numVertex;
+    int vertexLocation = 0;
+    for (int i=0; i<numVertex; i++) {
+      int tag = vertexData[vertexLocation++];
+      int ref = vertexData[vertexLocation++];
+      int color = vertexData[vertexLocation++];
+      int tmp = vertexData[vertexLocation++];
+      int adjSize = vertexData[vertexLocation++];
+      Vertex *theVertex = new Vertex(tag, ref);
+      theVertex->setColor(color);
+      theVertex->setTmp(tmp);
+      theVertex->setWeight(vertexWeights(i));
+      for (int i=0; i<adjSize; i++) {
+        int edge = vertexData[adjacencyLocation++];
+        theVertex->addEdge(edge);
       }
-      Vector vertexWeights(numVertex);
-      if (theChannel.recvVector(0, commitTag, vertexWeights) < 0) {
-	opserr << "Graph::recvSelf() - failed to receive the weights\n";
-	return -3;
-      }
-      
-      int adjacencyLocation = 5 * numVertex;
-      int vertexLocation = 0;
-      for (int i=0; i<numVertex; i++) {
-	int tag = vertexData[vertexLocation++];
-	int ref = vertexData[vertexLocation++];
-	int color = vertexData[vertexLocation++];
-	int tmp = vertexData[vertexLocation++];
-	int adjSize = vertexData[vertexLocation++];
-	Vertex *theVertex = new Vertex(tag, ref);
-	if (theVertex == 0) {
-	  opserr << "Graph::recvSelf() - out of memory\n";
-	  return -4;
-	}
-	theVertex->setColor(color);
-	theVertex->setTmp(tmp);
-	theVertex->setWeight(vertexWeights(i));
-	for (int i=0; i<adjSize; i++) {
-	  int edge = vertexData[adjacencyLocation++];
-	  theVertex->addEdge(edge);
-	}
-	this->addVertex(theVertex, false);
-      }
-    } else {
-      opserr << "Graph::recvSelf() - out of memory\n";
-      return -5;
+      this->addVertex(theVertex, false);
     }
   }
   /* ************ OLD --- RECEIVING IND VERTICES *********************
