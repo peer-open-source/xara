@@ -79,6 +79,9 @@ public:
 
   virtual Vector3D  getNodePosition(int tag) =0;
   virtual Vector3D  getNodeRotationLogarithm(int tag) =0;
+  virtual Vector3D getNodeRotationUpdateLogarithm(int tag) {
+    return Vector3D{};
+  }
 #if 0
   virtual Versor         getNodeRotation(int tag);
   virtual Vector3D       getNodeRotationVariation(int tag);
@@ -87,8 +90,10 @@ public:
   virtual VectorND<ndf>  getNodeLogarithm(int tag) =0;
   virtual VectorND<ndf>  getNodeVariation(int tag) =0;
   virtual VectorND<ndf>  getNodeVelocity(int tag);
-  virtual VectorND<ndm>  getNodeLocation(int tag);
 #endif
+  // \bar{x}
+  virtual Vector3D  getNodeLocation(int tag) {return Vector3D{};}
+
   virtual int initialize(std::array<Node*, nn>& nodes)=0;
   virtual int update() noexcept =0;
   virtual int commit() =0;
@@ -136,7 +141,8 @@ public:
 
   virtual Matrix3D getRotation() const noexcept =0;
 
-  virtual MatrixND<3,nn*ndf> getRotationTangent() {
+  virtual MatrixND<3,nn*ndf> 
+  getRotationTangent() {
     MatrixND<3,nn*ndf> dR{};
     return dR;
   }
@@ -161,9 +167,6 @@ public:
   }
 
   // Sensitivity
-  // virtual const Vector &getBasicDisplTotalGrad(int grad)=0;
-  // virtual const Vector &getBasicDisplFixedGrad()=0;
-  // virtual const Vector &getGlobalResistingForceShapeSensitivity(const Vector &pb, const Vector &p0, int grad)=0;
 
   virtual void   pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl) {}
   virtual void   pullFixedGrad(VectorND<nn*ndf>&) {}
@@ -172,6 +175,9 @@ public:
   virtual double getLengthGrad() {return 0.0;}
   virtual double getd1overLdh() {return 0.0;}
 
+  virtual Matrix3D getRotationSensitivity() {
+    return Matrix3D{};
+  }
 
 protected:
   constexpr static int ndm = 3;
@@ -207,47 +213,13 @@ protected:
     }
     return 0;
   }
-
+#if 0
   VectorND<nn*ndf>    pushConstant(const VectorND<nn*ndf>&pl);
   MatrixND<nn*ndf,nn*ndf> pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl);
+#endif
 
+  void pushRotationOffset(VectorND<nn*ndf>&pl, const Matrix3D& R);
 };
-
-// namespace {
-// constexpr std::uint32_t to_u(Transform op) noexcept {
-//   return static_cast<std::uint32_t>(op);
-// }
-
-// constexpr Transform op_from_u(std::uint32_t v) noexcept {
-//   return static_cast<Transform>(v);
-// }
-// }
-
-// constexpr Transform operator|(Transform a, Transform b) noexcept {
-//   return op_from_u(to_u(a) | to_u(b));
-// }
-// constexpr Transform operator&(Transform a, Transform b) noexcept {
-//   return op_from_u(to_u(a) & to_u(b));
-// }
-// constexpr Transform operator^(Transform a, Transform b) noexcept {
-//   return op_from_u(to_u(a) ^ to_u(b));
-// }
-
-// constexpr Transform& operator|=(Transform& a, Transform b) noexcept {
-//   a = a | b; return a;
-// }
-// constexpr Transform& operator&=(Transform& a, Transform b) noexcept {
-//   a = a & b; return a;
-// }
-// constexpr Transform& operator^=(Transform& a, Transform b) noexcept {
-//   a = a ^ b; return a;
-// }
-
-// // IMPORTANT: mask ~ so we don't turn on undefined bits.
-// constexpr Transform operator~(Transform a) noexcept {
-//   constexpr std::uint32_t mask = to_u(Transform::Total);
-//   return op_from_u(mask & ~to_u(a));
-// }
 
 }
 #include "FrameTransform.tpp"
