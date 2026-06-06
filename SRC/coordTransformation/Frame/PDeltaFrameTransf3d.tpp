@@ -170,16 +170,16 @@ PDeltaFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>& kl,
   static_assert(ndf >= 6, "PDeltaFrameTransf requires at least 6 dofs per node.");
 
   if (op & Transform::Adjoint) {
-    const int i  = 0;
-    const int j  = 1;
+    constexpr int i  = 0;
+    constexpr int j  = 1;
 
-    const int ix = i*ndf + 0;
-    const int iy = i*ndf + 1;
-    const int iz = i*ndf + 2;
+    // const int ix = i*ndf + 0;
+    constexpr int iy = i*ndf + 1;
+    constexpr int iz = i*ndf + 2;
 
-    const int jx = j*ndf + 0;
-    const int jy = j*ndf + 1;
-    const int jz = j*ndf + 2;
+    constexpr int jx = j*ndf + 0;
+    constexpr int jy = j*ndf + 1;
+    constexpr int jz = j*ndf + 2;
 
     const double L = linear.getInitialLength();
     const double N = pl[jx];
@@ -192,7 +192,7 @@ PDeltaFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>& kl,
     for (int a = 0; a < nn*ndf; ++a)
       dNdu[a] = kl(jx, a);
 
-    // Existing OpenSees geometric stiffness term:
+    // Classical geometric stiffness:
     // (N/L) * (hy hy^T + hz hz^T).
     const double NoverL = N / L;
 
@@ -207,7 +207,6 @@ PDeltaFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>& kl,
     kl(jz, iz) -= NoverL;
 
     if (consistent_tangent) {
-      // Missing consistent term:
       // ((Delta_y/L) hy + (Delta_z/L) hz) * dN/du_l.
       //
       // linear.getDelta()/L is (u_j - u_i)/L, so
