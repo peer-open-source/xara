@@ -27,10 +27,6 @@
 #ifndef NineNodeQuad_h
 #define NineNodeQuad_h
 
-#ifndef _bool_h
-# include <stdbool.h>
-#endif
-
 #include <array>
 #include <Element.h>
 #include <ID.h>
@@ -43,6 +39,8 @@
 class Node;
 class NDMaterial;
 class Response;
+
+namespace OpenSees {
 
 class NineNodeQuad : public Element ,
                    protected LegendreFixedQuadrilateral<9>
@@ -86,17 +84,17 @@ public:
   const Vector &getResistingForceIncInertia();
 
   // public methods for element output
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
   void Print(OPS_Stream &s, int flag);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
-  int getResponse(int responseID, Information &eleInformation);
+  int getResponse(int responseID, Information &);
 
-  int setParameter(const char **argv, int argc, Parameter &param);
-  int updateParameter(int parameterID, Information &info);
+  int setParameter(const char **argv, int argc, Parameter &);
+  int updateParameter(int parameterID, Information &);
 
   // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial
   // stresses.
@@ -143,5 +141,5 @@ private:
 
   Matrix *Ki;
 };
-
+}
 #endif
