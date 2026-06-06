@@ -46,10 +46,7 @@
 class Brick : public Element {
 
   public :
-    
-    //null constructor
     Brick();
-
     Brick(int tag, 
           const std::array<int, 8>& node_tags,
           NDMaterial &theMaterial,
@@ -60,16 +57,10 @@ class Brick : public Element {
 
     const char *getClassType() const {return "Brick";}
 
-    //set domain
     void setDomain( Domain *) ;
-
-    //get the number of external nodes
     int getNumExternalNodes( ) const ;
-
-    //return connected external nodes
     const ID &getExternalNodes( );
     Node **getNodePtrs();
-
     int getNumDOF( ) ;
 
 
@@ -95,7 +86,7 @@ class Brick : public Element {
     int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &);
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
 
 
     int setParameter(const char **argv, int argc, Parameter &);
@@ -124,11 +115,11 @@ class Brick : public Element {
                          NIP = 8,  // number of integration points
                          NST = 6;  // number of stress components
 
-    ID connectedExternalNodes ;  // four node tags
-    std::array<Node *, 8> theNodes;      //pointers to eight nodes
+    ID connectedExternalNodes ;  // node tags
+    std::array<Node *, 8> theNodes;      // pointers to nodes
 
     // material information
-    NDMaterial *materialPointers[NIP]; //pointers to eight materials
+    NDMaterial *materialPointers[NIP]; // pointers to materials
 
     double b[3];		// Body forces
     double appliedB[3];		// Body forces applied with load
@@ -144,7 +135,6 @@ class Brick : public Element {
     static Matrix stiff ;
     static Vector resid ;
     static Matrix mass ;
-    static Matrix damping ;
 
     //quadrature data
     static const double root3 ;
