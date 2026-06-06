@@ -33,6 +33,8 @@
 #include <Plane/Nine_Four_Node_QuadUP.h>
 #include <TimeSeries.h>
 
+namespace OpenSees {
+
 class FourNodeQuad;
 
 class QzLiq1 : public QzSimple1
@@ -45,7 +47,7 @@ class QzLiq1 : public QzSimple1
     QzLiq1();
     ~QzLiq1();
 
-    const char *getClassType(void) const {return "QzLiq1";};
+    const char *getClassType(void) const {return "QzLiq1";}
 
     int setTrialStrain(double y, double yRate); 
     double getStrain(void);          
@@ -114,8 +116,8 @@ class QzLiq1 : public QzSimple1
 	static Vector stressV3;
 	
 };
+} 
 
 #endif // QZLIQ1_H
-
 
 
