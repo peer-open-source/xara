@@ -36,6 +36,7 @@
 #include <elementAPI.h>
 #include <Plane/FourNodeQuad.h>
 #include <Plane/FourNodeQuadUP.h>
+using namespace OpenSees;
 
 // Control on internal iteration between spring components
 
@@ -118,6 +119,7 @@ solidElem1(solid_elem1), solidElem2(solid_elem2), theDomain(the_Domain)
     initialTangent = Tangent;
 	QzConstructorType = 1;
 }
+
 QzLiq1::QzLiq1(int tag, int qz_type, double q_ult, double z_50, double suction,
 		double dash_pot, double alpha, Domain *the_Domain, TimeSeries *the_Series)
 :QzSimple1(tag, qz_type, q_ult, z_50, suction, dash_pot),alpha(alpha),
@@ -129,6 +131,7 @@ theDomain(the_Domain), theSeries(the_Series)
     initialTangent = Tangent;
 	QzConstructorType = 2;
 }
+
 /////////////////////////////////////////////////////////////////////
 //	Default constructor
 
@@ -208,16 +211,16 @@ QzLiq1::setTrialStrain (double newz, double zRate)
 	//   between the old and new scaled q-z relations. This avoids illogical
 	//   hardening of the q-z relation (i.e., negative stiffnesses).
 	//
-	if (Tru < Cru){
+	if (Tru < Cru) {
 
 		maxTangent = (QzSimple1::Qult/QzSimple1::z50)*pow(1.0-Cru,alpha);
 
 		//  If unloading, follow the old scaled q-z relation until t=0.
 		//
-		if(Cz>0.0 && Tz<Cz && baseT>0.0){
+		if (Cz>0.0 && Tz<Cz && baseT>0.0){
 			Hru = Cru;
 		}
-		if(Cz<0.0 && Tz>Cz && baseT<0.0){
+		if (Cz<0.0 && Tz>Cz && baseT<0.0){
 			Hru = Cru;
 		}
 		
