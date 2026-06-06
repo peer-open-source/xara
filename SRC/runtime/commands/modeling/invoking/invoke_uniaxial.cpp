@@ -227,8 +227,7 @@ fsdof_integrate(struct generalized_alpha* conf,
     // const double C = material.getDampTangent() ;
     a[pres] = (p[i] - C*v[pres] - material.getStress())/M;
 
-    enum {Accel, Veloc, Displ} init = Accel, 
-                               form = Veloc;
+    enum {Accel, Veloc, Displ} init = Accel;
 
     for (i = 1; i < n; ++i) {
       u += 3; v += 3; a += 3;
