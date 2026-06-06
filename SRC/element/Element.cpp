@@ -54,7 +54,6 @@ Element::Element(int tag, int cTag)
   , alphaM(0.0), betaK(0.0), betaK0(0.0), betaKc(0.0)
   , domain(nullptr)
   , Kc(0), previousK(0), numPreviousK(0), index(-1), nodeIndex(-1)
-  , m_FE(nullptr)
 {
   ops_TheActiveElement = this;
 }
