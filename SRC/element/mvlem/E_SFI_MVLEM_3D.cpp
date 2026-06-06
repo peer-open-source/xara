@@ -2202,7 +2202,7 @@ int E_SFI_MVLEM_3D::addInertiaLoadToUnbalance(const Vector& accel)
 	const Vector& Raccel4 = theNodes[3]->getRV(accel);
 
 	if (6 != Raccel1.Size() || 6 != Raccel2.Size() || 6 != Raccel3.Size() || 6 != Raccel4.Size()) {
-		opserr << "FourNodeQuad::addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
+		opserr << "::addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
 		return -1;
 	}
 
