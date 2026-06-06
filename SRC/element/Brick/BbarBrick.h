@@ -27,7 +27,6 @@
 // Mean-dilatation B-bar Hex8 element.
 //
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <cmath> 
 #include <array>
@@ -119,8 +118,8 @@ class BbarBrick : public Element {
 
   
     // node information
-    ID connectedExternalNodes ;  //four node numbers
-    Node *nodePointers[NEN] ;      //pointers to four nodes
+    ID connectedExternalNodes ;  // node tags
+    Node *nodePointers[NEN] ;    // pointers to nodes
 
     
     std::array<NDMaterial*, NIP> materialPointers; //pointers to materials
@@ -134,14 +133,9 @@ class BbarBrick : public Element {
     double appliedB[3]; // Body forces applied with load pattern, C.McGann, U.Washington
     int applyLoad;      // flag for body force in load, C.McGann, U.Washington
 
-    //inertia terms
-    void formInertiaTerms( int tangFlag ) ;
-
-    //form residual and tangent					  
+    void formInertiaTerms( int tangFlag ) ; 
     void formResidAndTangent( int tang_flag, State state_flag ) ;
-
-    //compute coordinate system
-    void computeBasis( ) ;
+    void computeBasis( );
 
     inline OpenSees::MatrixND<6,3> 
     computeBbar( int node, 
