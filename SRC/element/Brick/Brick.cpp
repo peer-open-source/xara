@@ -100,7 +100,6 @@ Brick::Brick(int tag,
   b[1] = b2;
   b[2] = b3;
 }
-//******************************************************************
 
 
 Brick::~Brick()
@@ -156,19 +155,19 @@ Brick::getNodePtrs()
 int
 Brick::getNumDOF() 
 {
-  return 24 ;
+  return 24;
 }
 
 
 int
-Brick::commitState( )
+Brick::commitState()
 {
-  int success = 0 ;
+  int success = 0;
 
 
   if ((success = this->Element::commitState()) != 0) {
     opserr << "Brick::commitState () - failed in base class";
-  }    
+  }
 
   for (int i=0; i<8; i++ ) 
     success += materialPointers[i]->commitState( ) ;
@@ -192,7 +191,7 @@ Brick::revertToLastCommit()
 
 
 int
-Brick::revertToStart( ) 
+Brick::revertToStart()
 {
   int success = 0 ;
 
@@ -213,7 +212,7 @@ Brick::Print(OPS_Stream &s, int flag)
     s << "\"nodes\": ["
       << connectedExternalNodes(0) << ", ";
     for (int i = 1; i < 7; i++)
-        s << connectedExternalNodes(i) << ", ";
+      s << connectedExternalNodes(i) << ", ";
     s << connectedExternalNodes(7) << "], ";
     s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
     s << "\"material\": [" << materialPointers[0]->getTag() << "]}";
@@ -244,8 +243,8 @@ Brick::Print(OPS_Stream &s, int flag)
     avgStress.Zero();
     avgStrain.Zero();
     for (i = 0; i < numMaterials; i++) {
-        avgStress += materialPointers[i]->getStress();
-        avgStrain += materialPointers[i]->getStrain();
+      avgStress += materialPointers[i]->getStress();
+      avgStrain += materialPointers[i]->getStrain();
     }
     avgStress /= numMaterials;
     avgStrain /= numMaterials;
@@ -259,38 +258,29 @@ Brick::Print(OPS_Stream &s, int flag)
     for (i = 0; i < nstress; i++)
         s << avgStrain(i) << " ";
     s << "\n";
-    
-    /*
-    for (i=0; i<numMaterials; i++) {
-      s << "#MATERIAL\n";
-      //      materialPointers[i]->Print(s, flag);
-      s << materialPointers[i]->getStress();
-    }
-    */
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
-      
-      s << "Standard Eight Node Brick \n";
-      s << "Element Number: " << this->getTag() << "\n";
-      s << "Nodes: " << connectedExternalNodes;
-      
-      s << "Material Information : \n ";
-      materialPointers[0]->Print(s, flag);
-      
-      s << "\n";
-      s << this->getTag() << " " << connectedExternalNodes(0)
-          << " " << connectedExternalNodes(1)
-          << " " << connectedExternalNodes(2)
-          << " " << connectedExternalNodes(3)
-          << " " << connectedExternalNodes(4)
-          << " " << connectedExternalNodes(5)
-          << " " << connectedExternalNodes(6)
-          << " " << connectedExternalNodes(7)
-          << "\n";
-      
-      s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << "\n";
-      s << "Resisting Force (no inertia): " << this->getResistingForce();
+    s << "Standard Eight Node Brick \n";
+    s << "Element Number: " << this->getTag() << "\n";
+    s << "Nodes: " << connectedExternalNodes;
+    
+    s << "Material Information : \n ";
+    materialPointers[0]->Print(s, flag);
+    
+    s << "\n";
+    s << this->getTag() << " " << connectedExternalNodes(0)
+        << " " << connectedExternalNodes(1)
+        << " " << connectedExternalNodes(2)
+        << " " << connectedExternalNodes(3)
+        << " " << connectedExternalNodes(4)
+        << " " << connectedExternalNodes(5)
+        << " " << connectedExternalNodes(6)
+        << " " << connectedExternalNodes(7)
+        << "\n";
+    
+    s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << "\n";
+    s << "Resisting Force (no inertia): " << this->getResistingForce();
   }
 }
  
@@ -486,7 +476,8 @@ Brick::addLoad(ElementalLoad *theLoad, double loadFactor)
       appliedB[2] += loadFactor*data(2)*b[2];
       return 0;
   } else {
-    opserr << "Brick::addLoad() - ele with tag: " << this->getTag() << " does not deal with load type: " << type << "\n";
+    opserr << "Brick::addLoad() - ele with tag: " << this->getTag()
+           << " does not deal with load type: " << type << "\n";
     return -1;
   }
 
@@ -505,7 +496,7 @@ Brick::addInertiaLoadToUnbalance(const Vector &accel)
 
   // check to see if have mass
   int haveRho = 0;
-  for (i = 0; i < numberGauss; i++) {
+  for (int i = 0; i < numberGauss; i++) {
     if (materialPointers[i]->getRho() != 0.0)
       haveRho = 1;
   }
@@ -537,7 +528,7 @@ Brick::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 const Vector&
-Brick::getResistingForce( ) 
+Brick::getResistingForce()
 {
   int tang_flag = 0 ; // don't get the tangent
 
@@ -1133,7 +1124,6 @@ Brick::sendSelf(int commitTag, Channel &theChannel)
   }
   
   return res;
-
 }
     
 int  Brick::recvSelf (int commitTag, 
@@ -1441,18 +1431,19 @@ int
 Brick::updateParameter(int parameterID, Information &info)
 {
   int res = -1;
-	int matRes = res;
+  int matRes = res;
 
-    if (parameterID == res) {
-        return -1;
-    } else {
-        for (int i = 0; i<8; i++) {
-            matRes = materialPointers[i]->updateParameter(parameterID, info);
-        }
-		if (matRes != -1) {
-			res = matRes;
-		}
-		return res;
+  if (parameterID == res) {
+    return -1;
+  } 
+  else {
+    for (int i = 0; i<8; i++) {
+      matRes = materialPointers[i]->updateParameter(parameterID, info);
     }
+    if (matRes != -1) {
+      res = matRes;
+    }
+    return res;
+  }
 }
 
