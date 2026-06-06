@@ -70,6 +70,7 @@
 #include <Plane/Nine_Four_Node_QuadUP.h>
 #include <FluidSolidPorousMaterial.h>
 #include <PressureDependMultiYield.h>
+using namespace OpenSees;
 
 int PyLiq1::loadStage = 0;
 int PyConstructorType = 1;
