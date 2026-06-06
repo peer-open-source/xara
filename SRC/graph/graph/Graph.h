@@ -56,19 +56,17 @@ class Graph
     virtual int addEdgeFast(int vertexTag, int otherVertexTag);
     
     virtual Vertex *getVertexPtr(int vertexTag);
-    virtual VertexIter &getVertices(void);
-    virtual int getNumVertex(void) const;
-    virtual int getNumEdge(void) const;
-    virtual int getFreeTag(void);
+    virtual VertexIter &getVertices();
+    virtual int getNumVertex() const;
+    virtual int getNumEdge() const;
+    virtual int getFreeTag();
     virtual Vertex *removeVertex(int tag, bool removeEdgeFlag = true);
 
     virtual int merge(Graph &other);
     
-    virtual void Print(OPS_Stream &s, int flag =0);
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-
-    friend OPS_Stream &operator<<(OPS_Stream &s, Graph &M);    
+    virtual void Print(OPS_Stream &s, int flag);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
   protected:
     
