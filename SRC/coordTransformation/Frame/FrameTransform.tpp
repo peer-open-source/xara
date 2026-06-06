@@ -25,6 +25,7 @@
 
 namespace OpenSees {
 
+#if 0
 template <int nn, int ndf>
 VectorND<nn*ndf> 
 FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl) 
@@ -75,6 +76,34 @@ FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl)
   return pg;
 }
 
+template<int nn, int ndf>
+MatrixND<nn*ndf,nn*ndf>
+FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
+{
+  //
+  // Do diag(R)*M*diag(R)'
+  //
+  static MatrixND<nn*ndf,nn*ndf> Kg;
+  Kg = kl;
+
+  Matrix3D R;
+  Vector3D x, y, z;
+  getLocalAxes(x, y, z);
+  for (int i=0; i<3; i++) {
+    R(i,0) = x[i];
+    R(i,1) = y[i];
+    R(i,2) = z[i];
+  }
+  
+  this->pushRotation(Kg, R);
+
+  const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
+  if (offset) [[unlikely]] {
+    this->pushOffsets(Kg, *offset);
+  }
+  return Kg;
+}
+#endif
 
 template <int nn, int ndf>
 void
@@ -114,33 +143,6 @@ FrameTransform<nn,ndf>::pushRotationOffset(VectorND<nn*ndf>& pl, const Matrix3D&
   }
 }
 
-template<int nn, int ndf>
-MatrixND<nn*ndf,nn*ndf>
-FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
-{
-  //
-  // Do diag(R)*M*diag(R)'
-  //
-  static MatrixND<nn*ndf,nn*ndf> Kg;
-  Kg = kl;
-
-  Matrix3D R;
-  Vector3D x, y, z;
-  getLocalAxes(x, y, z);
-  for (int i=0; i<3; i++) {
-    R(i,0) = x[i];
-    R(i,1) = y[i];
-    R(i,2) = z[i];
-  }
-  
-  this->pushRotation(Kg, R);
-
-  const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
-  if (offset) [[unlikely]] {
-    this->pushOffsets(Kg, *offset);
-  }
-  return Kg;
-}
 
 template<int nn, int ndf>
 constexpr void
