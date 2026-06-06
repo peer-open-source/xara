@@ -21,7 +21,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -516,21 +515,6 @@ tensor TwentyNodeBrick::dh_drst_at(double r1, double r2, double r3)
 }
 
 
-
-TwentyNodeBrick & TwentyNodeBrick::operator[](int subscript)
-  {
-    return ( *(this+subscript) );
-  }
-
-//Finite_Element & TwentyNodeBrick::operator[](short subscript)
-//  {
-//    return ( *(this+subscript) );
-//  }
-
-//Finite_Element & TwentyNodeBrick::operator[](unsigned subscript)
-//  {
-//    return ( *(this+subscript) );
-//  }
 
 
 tensor TwentyNodeBrick::getStiffnessTensor()
@@ -3214,73 +3198,6 @@ int TwentyNodeBrick::recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBro
 }
 
 
-//=============================================================================
-int TwentyNodeBrick::displaySelf (Renderer &theViewer, int displayMode, float fact)
-{
-    //needs more work...Zhaohui 08-19-2001
-
-    // first determine the end points of the quad based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 4 3d vectors v1 through v4
-    const Vector &end1Crd = theNodes[0]->getCrds();
-    const Vector &end2Crd = theNodes[1]->getCrds();
-    const Vector &end3Crd = theNodes[2]->getCrds();
-    const Vector &end4Crd = theNodes[3]->getCrds();
-    const Vector &end5Crd = theNodes[4]->getCrds();
-    const Vector &end6Crd = theNodes[5]->getCrds();
-    const Vector &end7Crd = theNodes[6]->getCrds();
-    const Vector &end8Crd = theNodes[7]->getCrds();
-
-    const Vector &end1Disp = theNodes[0]->getDisp();
-    const Vector &end2Disp = theNodes[1]->getDisp();
-    const Vector &end3Disp = theNodes[2]->getDisp();
-    const Vector &end4Disp = theNodes[3]->getDisp();
-    const Vector &end5Disp = theNodes[4]->getDisp();
-    const Vector &end6Disp = theNodes[5]->getDisp();
-    const Vector &end7Disp = theNodes[6]->getDisp();
-    const Vector &end8Disp = theNodes[7]->getDisp();
-
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-    static Vector v5(3);
-    static Vector v6(3);
-    static Vector v7(3);
-    static Vector v8(3);
-
-    for (int i = 0; i < 2; i++)
-    {
-     v1(i) = end1Crd(i) + end1Disp(i)*fact;
-     v2(i) = end2Crd(i) + end2Disp(i)*fact;
-     v3(i) = end3Crd(i) + end3Disp(i)*fact;
-     v4(i) = end4Crd(i) + end4Disp(i)*fact;
-     v5(i) = end5Crd(i) + end5Disp(i)*fact;
-     v6(i) = end6Crd(i) + end6Disp(i)*fact;
-     v7(i) = end7Crd(i) + end7Disp(i)*fact;
-     v8(i) = end8Crd(i) + end8Disp(i)*fact;
-    }
-
-    int error = 0;
-
-    error += theViewer.drawLine (v1, v2, 1.0, 1.0);
-    error += theViewer.drawLine (v2, v3, 1.0, 1.0);
-    error += theViewer.drawLine (v3, v4, 1.0, 1.0);
-    error += theViewer.drawLine (v4, v1, 1.0, 1.0);
-
-    error += theViewer.drawLine (v5, v6, 1.0, 1.0);
-    error += theViewer.drawLine (v6, v7, 1.0, 1.0);
-    error += theViewer.drawLine (v7, v8, 1.0, 1.0);
-    error += theViewer.drawLine (v8, v5, 1.0, 1.0);
-
-    error += theViewer.drawLine (v1, v5, 1.0, 1.0);
-    error += theViewer.drawLine (v2, v6, 1.0, 1.0);
-    error += theViewer.drawLine (v3, v7, 1.0, 1.0);
-    error += theViewer.drawLine (v4, v8, 1.0, 1.0);
-
-    return error;
-
-}
 
 //=============================================================================
 void TwentyNodeBrick::Print(OPS_Stream &s, int flag)

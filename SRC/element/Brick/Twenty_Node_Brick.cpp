@@ -23,7 +23,6 @@
 // 20NodeBrick element
 
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <ID.h>
@@ -233,92 +232,6 @@ Twenty_Node_Brick::revertToStart()
 }
 
 
-void
-Twenty_Node_Brick::Print(OPS_Stream& s, int flag)
-{
-
-  if (flag == 2) {
-    s << "#20NodeBrick\n";
-
-    int i;
-    const int numNodes = 20;
-    const int nstress  = 6;
-
-    for (i = 0; i < numNodes; i++) {
-      const Vector& nodeCrd  = nodePointers[i]->getCrds();
-      const Vector& nodeDisp = nodePointers[i]->getDisp();
-      s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2) << " " << nodeDisp(0)
-        << " " << nodeDisp(1) << " " << nodeDisp(2) << endln;
-    }
-
-    // spit out the section location & invoke print on the scetion
-    const int numMaterials = nintu;
-
-    static Vector avgStress(7);
-    static Vector avgStrain(nstress);
-    avgStress.Zero();
-    avgStrain.Zero();
-    for (i = 0; i < numMaterials; i++) {
-      avgStress += materialPointers[i]->getStress();
-      avgStrain += materialPointers[i]->getStrain();
-    }
-    avgStress /= numMaterials;
-    avgStrain /= numMaterials;
-
-    s << "#AVERAGE_STRESS ";
-    for (i = 0; i < 7; i++)
-      s << avgStress(i) << " ";
-    s << endln;
-
-    s << "#AVERAGE_STRAIN ";
-    for (i = 0; i < nstress; i++)
-      s << avgStrain(i) << " ";
-    s << "\n";
-  }
-
-  if (flag == OPS_PRINT_CURRENTSTATE) {
-    s << endln;
-    s << "20NodeBrick Twenty_Node_Brick \n";
-    s << "Element Number: " << this->getTag() << endln;
-    s << "Node 1 : " << connectedExternalNodes(0) << endln;
-    s << "Node 2 : " << connectedExternalNodes(1) << endln;
-    s << "Node 3 : " << connectedExternalNodes(2) << endln;
-    s << "Node 4 : " << connectedExternalNodes(3) << endln;
-    s << "Node 5 : " << connectedExternalNodes(4) << endln;
-    s << "Node 6 : " << connectedExternalNodes(5) << endln;
-    s << "Node 7 : " << connectedExternalNodes(6) << endln;
-    s << "Node 8 : " << connectedExternalNodes(7) << endln;
-    s << "Node 9 : " << connectedExternalNodes(8) << endln;
-    s << "Node 10 : " << connectedExternalNodes(9) << endln;
-    s << "Node 11 : " << connectedExternalNodes(10) << endln;
-    s << "Node 12 : " << connectedExternalNodes(11) << endln;
-    s << "Node 13 : " << connectedExternalNodes(12) << endln;
-    s << "Node 14 : " << connectedExternalNodes(13) << endln;
-    s << "Node 15 : " << connectedExternalNodes(14) << endln;
-    s << "Node 16 : " << connectedExternalNodes(15) << endln;
-    s << "Node 17 : " << connectedExternalNodes(16) << endln;
-    s << "Node 18 : " << connectedExternalNodes(17) << endln;
-    s << "Node 19 : " << connectedExternalNodes(18) << endln;
-    s << "Node 20 : " << connectedExternalNodes(19) << endln;
-
-    s << "Material Information : \n ";
-    materialPointers[0]->Print(s, flag);
-
-    s << endln;
-  }
-
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"20NodeBrick\", ";
-    s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-    for (int i = 1; i < 19; i++)
-      s << connectedExternalNodes(i) << ", ";
-    s << connectedExternalNodes(19) << "], ";
-    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
-    s << "\"material\": \"" << materialPointers[0]->getTag() << "\"}";
-  }
-}
 
 int
 Twenty_Node_Brick::update()
@@ -560,7 +473,6 @@ void
 Twenty_Node_Brick::formDampingTerms(int tangFlag)
 {
 
-  static double xsj; // determinant jacaobian matrix
 
   int i, j, k, m, ik, jk;
   double volume = 0.;
@@ -636,8 +548,7 @@ Twenty_Node_Brick::addLoad(ElementalLoad* theLoad, double loadFactor)
   }
   
   else {
-    opserr << "Twenty_Node_Brick::addLoad - load type unknown for truss with tag: "
-           << this->getTag() << endln;
+    opserr << "Load type unknown\n";
     return -1;
   }
 
@@ -683,7 +594,6 @@ Twenty_Node_Brick::addInertiaLoadToUnbalance(const Vector& accel)
   // create the load vector if one does not exist
 
   if (load == 0)
-
     load = new Vector(60);
 
 
@@ -695,16 +605,14 @@ Twenty_Node_Brick::addInertiaLoadToUnbalance(const Vector& accel)
 }
 
 
-//get residual
 
 const Vector&
 Twenty_Node_Brick::getResistingForce()
 
 {
 
-  int i, j, jk, k, k1;
+  int jk, k, k1;
 
-  double xsj;
   static Matrix B(6, 3);
   double volume = 0.;
   resid.Zero();
@@ -719,7 +627,7 @@ Twenty_Node_Brick::getResistingForce()
   for (int i = 0; i < nintu; i++) {
 
     // compute Jacobian and global shape functions
-
+    double xsj;
     Jacobian3d(i, xsj, 0);
 
     // volume element to also be saved
@@ -733,7 +641,7 @@ Twenty_Node_Brick::getResistingForce()
 
   // Loop over the integration points
 
-  for (i = 0; i < nintu; i++) {
+  for (int i = 0; i < nintu; i++) {
 
     // Get material stress response
 
@@ -825,13 +733,7 @@ Twenty_Node_Brick::getResistingForceIncInertia()
 
     const Vector& accel = nodePointers[i]->getTrialAccel();
 
-    if (3 != accel.Size()) {
-
-      opserr << "Twenty_Node_Brick::getResistingForceIncInertia matrix and vector sizes are "
-                "incompatible\n";
-
-      exit(-1);
-    }
+    assert(accel.Size() >= 3);
 
     a[i * 3]     = accel(0);
     a[i * 3 + 1] = accel(1);
@@ -847,26 +749,19 @@ Twenty_Node_Brick::getResistingForceIncInertia()
   this->getMass();
 
 
-  for (i = 0; i < 60; i++) {
-    for (j = 0; j < 60; j++) {
+  for (int i = 0; i < 60; i++) {
+    for (int j = 0; j < 60; j++) {
       resid(i) += mass(i, j) * a[j];
     }
   }
 
 
-  for (i = 0; i < NEN; i++) {
+  for (int i = 0; i < NEN; i++) {
 
     const Vector& vel = nodePointers[i]->getTrialVel();
+    assert(vel.Size() >= 3);
 
-    if (3 != vel.Size()) {
-
-      opserr << "Twenty_Node_Brick::getResistingForceIncInertia matrix and vector sizes are "
-                "incompatible\n";
-
-      exit(-1);
-    }
-
-    a[i * 3] = vel(0);
+    a[i * 3]     = vel(0);
     a[i * 3 + 1] = vel(1);
     a[i * 3 + 2] = vel(2);
   }
@@ -875,10 +770,8 @@ Twenty_Node_Brick::getResistingForceIncInertia()
   this->getDamp();
 
 
-  for (i = 0; i < 60; i++) {
-
-    for (j = 0; j < 60; j++) {
-
+  for (int i = 0; i < 60; i++) {
+    for (int j = 0; j < 60; j++) {
       resid(i) += damp(i, j) * a[j];
     }
   }
@@ -892,16 +785,7 @@ Twenty_Node_Brick::getResistingForceIncInertia()
 
 void
 Twenty_Node_Brick::formInertiaTerms(int tangFlag)
-
 {
-
-  static double xsj; // determinant jacaobian matrix
-
-  int i, j, k, ik, m, jk;
-
-  double Nrho;
-
-
   // zero mass
 
   mass.Zero();
@@ -916,7 +800,7 @@ Twenty_Node_Brick::formInertiaTerms(int tangFlag)
   for (int i = 0; i < nintu; i++) {
 
     // compute Jacobian and global shape functions
-
+    double xsj;
     Jacobian3d(i, xsj, 0);
 
     // volume element to also be saved
@@ -931,9 +815,9 @@ Twenty_Node_Brick::formInertiaTerms(int tangFlag)
 
     for (int j = 0; j < NEN; j++) {
 
-      for (m = 0; m < nintu; m++) {
+      for (int m = 0; m < nintu; m++) {
 
-        Nrho = dvolu[m] * mixtureRho(m) * shgu[3][i][m] * shgu[3][j][m];
+        double Nrho = dvolu[m] * mixtureRho(m) * shgu[3][i][m] * shgu[3][j][m];
 
         for (int k = 0; k < 3; k++) {
 
@@ -966,9 +850,7 @@ Twenty_Node_Brick::computeBasis()
     const Vector& coorI = nodePointers[i]->getCrds();
 
     xl[0][i] = coorI(0);
-
     xl[1][i] = coorI(1);
-
     xl[2][i] = coorI(2);
   }
 }
@@ -1251,27 +1133,22 @@ Twenty_Node_Brick::getResponse(int responseID, Information& eleInfo)
 
 
   if (responseID == 1)
-
     return eleInfo.setVector(this->getResistingForce());
 
 
   else if (responseID == 2)
-
     return eleInfo.setMatrix(this->getTangentStiff());
 
 
   else if (responseID == 3)
-
     return eleInfo.setMatrix(this->getMass());
 
 
   else if (responseID == 4)
-
     return eleInfo.setMatrix(this->getDamp());
 
 
   else if (responseID == 5) {
-
 
     // Loop over the integration points
 
@@ -1285,21 +1162,14 @@ Twenty_Node_Brick::getResponse(int responseID, Information& eleInfo)
       const Vector& sigma = materialPointers[i]->getStress();
 
       stresses(cnt++) = sigma(0);
-
       stresses(cnt++) = sigma(1);
-
       stresses(cnt++) = sigma(2);
-
       stresses(cnt++) = sigma(3);
-
       stresses(cnt++) = sigma(4);
-
       stresses(cnt++) = sigma(5);
     }
 
     return eleInfo.setVector(stresses);
-
-
   }
 
   else
@@ -1478,5 +1348,93 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
 
       } //end if
     }
+  }
+}
+
+
+void
+Twenty_Node_Brick::Print(OPS_Stream& s, int flag)
+{
+
+  if (flag == 2) {
+    s << "#20NodeBrick\n";
+
+    int i;
+    const int numNodes = 20;
+    const int nstress  = 6;
+
+    for (i = 0; i < numNodes; i++) {
+      const Vector& nodeCrd  = nodePointers[i]->getCrds();
+      const Vector& nodeDisp = nodePointers[i]->getDisp();
+      s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2) << " " << nodeDisp(0)
+        << " " << nodeDisp(1) << " " << nodeDisp(2) << endln;
+    }
+
+    // spit out the section location & invoke print on the scetion
+    const int numMaterials = nintu;
+
+    static Vector avgStress(7);
+    static Vector avgStrain(nstress);
+    avgStress.Zero();
+    avgStrain.Zero();
+    for (i = 0; i < numMaterials; i++) {
+      avgStress += materialPointers[i]->getStress();
+      avgStrain += materialPointers[i]->getStrain();
+    }
+    avgStress /= numMaterials;
+    avgStrain /= numMaterials;
+
+    s << "#AVERAGE_STRESS ";
+    for (i = 0; i < 7; i++)
+      s << avgStress(i) << " ";
+    s << endln;
+
+    s << "#AVERAGE_STRAIN ";
+    for (i = 0; i < nstress; i++)
+      s << avgStrain(i) << " ";
+    s << "\n";
+  }
+
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << endln;
+    s << "20NodeBrick Twenty_Node_Brick \n";
+    s << "Element Number: " << this->getTag() << endln;
+    s << "Node 1 : " << connectedExternalNodes(0) << endln;
+    s << "Node 2 : " << connectedExternalNodes(1) << endln;
+    s << "Node 3 : " << connectedExternalNodes(2) << endln;
+    s << "Node 4 : " << connectedExternalNodes(3) << endln;
+    s << "Node 5 : " << connectedExternalNodes(4) << endln;
+    s << "Node 6 : " << connectedExternalNodes(5) << endln;
+    s << "Node 7 : " << connectedExternalNodes(6) << endln;
+    s << "Node 8 : " << connectedExternalNodes(7) << endln;
+    s << "Node 9 : " << connectedExternalNodes(8) << endln;
+    s << "Node 10 : " << connectedExternalNodes(9) << endln;
+    s << "Node 11 : " << connectedExternalNodes(10) << endln;
+    s << "Node 12 : " << connectedExternalNodes(11) << endln;
+    s << "Node 13 : " << connectedExternalNodes(12) << endln;
+    s << "Node 14 : " << connectedExternalNodes(13) << endln;
+    s << "Node 15 : " << connectedExternalNodes(14) << endln;
+    s << "Node 16 : " << connectedExternalNodes(15) << endln;
+    s << "Node 17 : " << connectedExternalNodes(16) << endln;
+    s << "Node 18 : " << connectedExternalNodes(17) << endln;
+    s << "Node 19 : " << connectedExternalNodes(18) << endln;
+    s << "Node 20 : " << connectedExternalNodes(19) << endln;
+
+    s << "Material Information : \n ";
+    materialPointers[0]->Print(s, flag);
+
+    s << endln;
+  }
+
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "\t\t\t{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"20NodeBrick\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+    for (int i = 1; i < 19; i++)
+      s << connectedExternalNodes(i) << ", ";
+    s << connectedExternalNodes(19) << "], ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
+    s << "\"material\": \"" << materialPointers[0]->getTag() << "\"}";
   }
 }

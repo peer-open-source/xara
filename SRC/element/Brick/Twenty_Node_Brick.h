@@ -25,7 +25,6 @@
 #ifndef TWENTY_NODE_BRICK_H
 #define TWENTY_NODE_BRICK_H
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <array>
 #include <ID.h>
