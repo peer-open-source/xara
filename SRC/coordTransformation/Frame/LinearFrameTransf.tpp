@@ -35,7 +35,8 @@
 namespace OpenSees {
 
 static inline MatrixND<3,3>
-FrameOrientationGradient(const Vector3D& xi, const Vector3D& xj, 
+FrameOrientationGradient(const Vector3D& xi, 
+                         const Vector3D& xj, 
                          const Vector3D& vz,
                          int di, int dj, int dv)
 {
@@ -418,11 +419,15 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, int op)
 
   // 2) Rotate and do joint offsets
   if (op & Transform::Rotation)
-    p = this->FrameTransform<nn,ndf>::pushConstant(pa);
+    this->FrameTransform<nn,ndf>::pushRotationOffset(pa, R);
+    // p = this->FrameTransform<nn,ndf>::pushConstant(pa);
   return 0;
 }
 
 
+#if 0
+
+#else
 template <int nn, int ndf>
 int
 LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb, 
@@ -478,7 +483,7 @@ LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb,
 
   return 0;
 }
-
+#endif
 
 template <int nn, int ndf>
 FrameTransform<nn,ndf> *
@@ -590,7 +595,7 @@ LinearFrameTransf<nn,ndf>::pushGrad(VectorND<nn*ndf>& dp,
     dp.assemble(base+3,  R*Vector3D{dp[base+3], dp[base+4], dp[base+5]}, 1.0);
   }
 
-  this->push(pl, Transform::Isometry);
+  this->push(pl, Transform::Adjoint); //Isometry); //
   Matrix3D dR = FrameOrientationGradient(xi, xj, vz, di, dj, dv);
   
   for (int i=0; i<nn; i++) {
