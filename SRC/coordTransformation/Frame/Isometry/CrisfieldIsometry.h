@@ -79,7 +79,8 @@ public:
   }
 
   Matrix3D
-  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx)
+  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) 
+  noexcept final
   {
     // Ln = dx.norm();
     this->AlignedIsometry<nn>::Ln = dx.norm();
