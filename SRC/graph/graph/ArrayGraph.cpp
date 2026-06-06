@@ -238,9 +238,3 @@ ArrayGraph::Print(OPS_Stream &s) const
     }
 }
 
-OPS_Stream &operator<<(OPS_Stream &s, const ArrayGraph &M)
-{
-  M.Print(s);
-  return s;
-}
-
