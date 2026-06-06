@@ -45,17 +45,16 @@ class ArrayGraph: public Graph
     virtual int addEdge(int vertexTag, int otherVertexTag);
     
     virtual Vertex *getVertexPtr(int vertexTag);
-    virtual VertexIter &getVertices(void);
-    int getNumVertex(void) const;
-    int getNumEdge(void) const;
+    virtual VertexIter &getVertices();
+    int getNumVertex() const;
+    int getNumEdge() const;
 
     virtual void Print(OPS_Stream &s) const;
-    friend OPS_Stream &operator<<(OPS_Stream &s, const ArrayGraph &M);    
     
     friend class ArrayVertexIter;    
     
   protected:
-    int getArraySize(void) const;
+    int getArraySize() const;
     
   private:
     int numVertex;
