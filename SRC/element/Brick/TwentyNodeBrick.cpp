@@ -4009,68 +4009,8 @@ TwentyNodeBrick::getWeightofGP()
 //}
 //
 //
-//int
-//TwentyNodeBrick::displaySelf (Renderer &theViewer, int displayMode, float fact)
-//{
-    // first determine the end points of the quad based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 2 3d vectors v1 and v2
-//        const Vector &end1Crd = theNodes[0]->getCrds();
-//        const Vector &end2Crd = theNodes[1]->getCrds();
-// const Vector &end3Crd = theNodes[2]->getCrds();
-// const Vector &end4Crd = theNodes[3]->getCrds();
-// // 5-8 were added by Xiaoyan
-//        const Vector &end5Crd = theNodes[4]->getCrds();
-//        const Vector &end6Crd = theNodes[5]->getCrds();
-// const Vector &end7Crd = theNodes[6]->getCrds();
-// const Vector &end8Crd = theNodes[7]->getCrds();
-//     const Vector &end1Disp = theNodes[0]->getDisp();
-// const Vector &end2Disp = theNodes[1]->getDisp();
-// const Vector &end3Disp = theNodes[2]->getDisp();
-// const Vector &end4Disp = theNodes[3]->getDisp();
-//
- // 5-8 were added by Xiaoyan
-//        const Vector &end5Disp = theNodes[4]->getDisp();
-// const Vector &end6Disp = theNodes[5]->getDisp();
-// const Vector &end7Disp = theNodes[6]->getDisp();
-// const Vector &end8Disp = theNodes[7]->getDisp();
-//
-// Vector v1(3);
-// Vector v2(3);
-// Vector v3(3);
-// Vector v4(3);
-// //5-8 added by Xiaoyan 07/06/00
-// Vector v5(3);
-// Vector v6(3);
-// Vector v7(3);
-// Vector v8(3);
-//
-// for (int i = 0; i < 3; i++)     //Changed from i<2 to i<3, Xiaonyan 07/06/00
-// {
-//  v1(i) = end1Crd(i) + end1Disp(i)*fact;
-//  v2(i) = end2Crd(i) + end2Disp(i)*fact;
-//  v3(i) = end3Crd(i) + end3Disp(i)*fact;
-//  v4(i) = end4Crd(i) + end4Disp(i)*fact;
-//
-//  //5-8 added by Xiaoyan 07/06/00
-//     v5(i) = end5Crd(i) + end1Disp(i)*fact;
-//  v6(i) = end6Crd(i) + end2Disp(i)*fact;
-//  v7(i) = end7Crd(i) + end3Disp(i)*fact;
-//  v8(i) = end8Crd(i) + end4Disp(i)*fact;
-// }
-// int error = 0;
-//
-// error += theViewer.drawLine (v1, v2, 1.0, 1.0);
-// error += theViewer.drawLine (v2, v3, 1.0, 1.0);
-// error += theViewer.drawLine (v3, v4, 1.0, 1.0);
-// error += theViewer.drawLine (v4, v5, 1.0, 1.0);   // 5-8 added by Xiaoyan 07/06/00
-// error += theViewer.drawLine (v5, v6, 1.0, 1.0);
-// error += theViewer.drawLine (v6, v7, 1.0, 1.0);
-// error += theViewer.drawLine (v7, v8, 1.0, 1.0);
-// error += theViewer.drawLine (v8, v1, 1.0, 1.0);
-//
-// return error;
-//}
+
+
 // The following are all commented by  Xiaoyan. We use the Brick3D to form these
 
 //
