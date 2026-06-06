@@ -37,7 +37,6 @@ public:
   TwoNodeLinkSection(int tag, int dimension, int Nd1, int Nd2,
                       SectionForceDeformation &section,
                       const Matrix3D &T,
-                      // const Vector y = 0, const Vector x = 0,
                       const Vector Mratio = 0, 
                       const Vector shearDistI = 0,
                       int addRayleigh = 0, double mass = 0.0);
@@ -103,7 +102,6 @@ private:
   }
   Etype elemType;
 
-  // void setUp();
   void setTranGlobalLocal();
   void setTranLocalBasic();
   void addPDeltaForces(Vector &pLocal, const Vector &qBasic);
@@ -119,8 +117,6 @@ private:
 
   // parameters
   Matrix3D trans;       // transformation matrix for orientation
-  // Vector x;           // local x direction
-  // Vector y;           // local y direction
   Vector Mratio;      // p-delta moment distribution ratios
   Vector shearDistI;  // shear distance from node I as fraction of length
   int addRayleigh;    // flag to add Rayleigh damping
