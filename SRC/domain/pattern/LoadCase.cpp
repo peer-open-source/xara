@@ -42,32 +42,32 @@ LoadCase::clearAll()
 bool 
 LoadCase::addLoadPattern(LoadPattern *load)
 {
-    // first check if a load pattern with a similar tag exists
-    int tag = load->getTag();
-    TaggedObject *other = theLoadPatterns->getComponentPtr(tag);
-    if (other != nullptr) {
-      opserr << "LoadCase::addLoadPattern - cannot add as LoadPattern with tag "
-             << tag << " already exists in model\n";
-      return false;
-    }    
+  // first check if a load pattern with a similar tag exists
+  int tag = load->getTag();
+  TaggedObject *other = theLoadPatterns->getComponentPtr(tag);
+  if (other != nullptr) {
+    opserr << "LoadCase::addLoadPattern - cannot add as LoadPattern with tag "
+            << tag << " already exists in model\n";
+    return false;
+  }    
 
-    int numSPs = 0;
-    SP_Constraint *theSP_Constraint;
-    SP_ConstraintIter &theSP_Constraints = load->getSPs();
-    while ((theSP_Constraint = theSP_Constraints()) != nullptr)
-      numSPs++;
-    
-    // now we add the load pattern to the container for load patterns
-    bool result = theLoadPatterns->addComponent(load);
-    if (result == true) {
-      load->setDomain(&domain);
-      if (numSPs > 0)
-        domain.domainChange();
-    }
-    else 
-      opserr << "cannot add LoadPattern with tag " 
-             << tag << " to the container\n";              	
-    return result;
+  int numSPs = 0;
+  SP_Constraint *theSP_Constraint;
+  SP_ConstraintIter &theSP_Constraints = load->getSPs();
+  while ((theSP_Constraint = theSP_Constraints()) != nullptr)
+    numSPs++;
+  
+  // now we add the load pattern to the container for load patterns
+  bool result = theLoadPatterns->addComponent(load);
+  if (result == true) {
+    load->setDomain(&domain);
+    if (numSPs > 0)
+      domain.domainChange();
+  }
+  else 
+    opserr << "cannot add LoadPattern with tag " 
+            << tag << " to the container\n";              	
+  return result;
 }    
 
 
