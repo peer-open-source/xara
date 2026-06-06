@@ -391,7 +391,7 @@ BbarBrick::getInitialStiff()
 
         const MatrixND<6,3> BK = computeBbar(k, shp, shpBar);
 
-        MatrixND<ndf,ndf> stiffJK =  BJtranD * BK;
+        const MatrixND<ndf,ndf> stiffJK =  BJtranD * BK;
         // stiffJK.addMatrixProduct(0.0,  BJtranD,BK,1.0) ;
 
         for (int p = 0; p < ndf; p++ )  {
@@ -543,7 +543,7 @@ BbarBrick::getResistingForceIncInertia()
 
   // add the damping forces if rayleigh damping
   if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-      res += this->getRayleighDampingForces();
+    res += this->getRayleighDampingForces();
 
 
   return res ;
