@@ -774,7 +774,6 @@ Brick::update()
     }
 
 
-    //zero the strains
     strain.Zero( ) ;
 
     // j-node loop to compute strain 
@@ -803,9 +802,9 @@ Brick::update()
 
       const Vector &ul = theNodes[j]->getTrialDisp();
 
-      double ul0 = ul(0);
-      double ul1 = ul(1);
-      double ul2 = ul(2);
+      const double ul0 = ul(0);
+      const double ul1 = ul(1);
+      const double ul2 = ul(2);
 
       strain(0) += b00 * ul0;
       strain(1) += b11 * ul1;
@@ -842,16 +841,13 @@ Brick::formResidAndTangent( int tang_flag )
   static double shp[nShape][NEN] ;  // shape functions at a gauss point
   static double Shape[nShape][NEN][NIP]; // all the shape functions
 
-  static Vector residJ(ndf) ; // nodeJ residual 
-  static Matrix stiffJK(ndf,ndf) ; // nodeJK stiffness 
-  static Vector stress(nstress) ;  // stress
-  static Matrix dd(nstress,nstress) ;  //material tangent
+  // static Vector residJ(ndf) ; // nodeJ residual 
+  static Matrix stiffJK(ndf,ndf) ; // nodeJK stiffness
 
 
   //---------B-matrices------------------------------------
 
   static Matrix BJ(nstress,ndf) ;      // B matrix node J
-  static Matrix BJtran(ndf,nstress) ;
   static Matrix BK(nstress,ndf) ;      // B matrix node k
   static Matrix BJtranD(ndf,nstress) ;
 
@@ -874,7 +870,6 @@ Brick::formResidAndTangent( int tang_flag )
   for (int i = 0; i < 2; i++ ) {
     for (int j = 0; j < 2; j++ ) {
       for (int k = 0; k < 2; k++ ) {
-
 
         // Evaluate shape functions
         double xsj ;  // determinant jacaobian matrix
@@ -908,23 +903,24 @@ Brick::formResidAndTangent( int tang_flag )
     }
 
     // compute the stress
-    stress = materialPointers[i]->getStress( ) ;
+    const Vector& stress = materialPointers[i]->getStress();
 
-    stress  *= dvol[i] ;
+    // stress  *= dvol[i] ;
   
   
-    if ( tang_flag == 1 ) {
-      dd = materialPointers[i]->getTangent( ) ;
-      dd *= dvol[i];
-    }
+    // if ( tang_flag == 1 ) {
+    //   dd = materialPointers[i]->getTangent( ) ;
+    //   dd *= dvol[i];
+    // }
+    const Matrix & D = materialPointers[i]->getTangent();
 
 
-    double stress0 = stress(0);
-    double stress1 = stress(1);
-    double stress2 = stress(2);
-    double stress3 = stress(3);
-    double stress4 = stress(4);
-    double stress5 = stress(5);
+    const double stress0 = stress(0)*dvol[i];
+    const double stress1 = stress(1)*dvol[i];
+    const double stress2 = stress(2)*dvol[i];
+    const double stress3 = stress(3)*dvol[i];
+    const double stress4 = stress(4)*dvol[i];
+    const double stress5 = stress(5)*dvol[i];
 
     // residual and tangent calculations node loops
 
@@ -941,27 +937,29 @@ Brick::formResidAndTangent( int tang_flag )
       //               |   0     N,3    N,2  |
       //               | N,3      0     N,1  |
 
-      double b00 = shp[0][j];
-      double b11 = shp[1][j];
-      double b22 = shp[2][j];
-      double b30 = shp[1][j];
-      double b31 = shp[0][j];
-      double b41 = shp[2][j];
-      double b42 = shp[1][j];
-      double b50 = shp[2][j];
-      double b52 = shp[0][j];
+      const double b00 = shp[0][j];
+      const double b11 = shp[1][j];
+      const double b22 = shp[2][j];
+      const double b30 = shp[1][j];
+      const double b31 = shp[0][j];
+      const double b41 = shp[2][j];
+      const double b42 = shp[1][j];
+      const double b50 = shp[2][j];
+      const double b52 = shp[0][j];
 
-      residJ(0) = b00 * stress0 + b30 * stress3 + b50 * stress5;
-      residJ(1) = b11 * stress1 + b31 * stress3 + b41 * stress4;
-      residJ(2) = b22 * stress2 + b42 * stress4 + b52 * stress5;
+      const Vector3D residJ {
+          b00 * stress0 + b30 * stress3 + b50 * stress5,
+          b11 * stress1 + b31 * stress3 + b41 * stress4,
+          b22 * stress2 + b42 * stress4 + b52 * stress5,
+      };
       
       BJ = computeB( j, shp ) ;
    
-      //transpose
-      for (int p=0; p<ndf; p++) {
-        for (int q=0; q<nstress; q++) 
-          BJtran(p,q) = BJ(q,p) ;
-      }
+      // //transpose
+      // for (int p=0; p<ndf; p++) {
+      //   for (int q=0; q<nstress; q++) 
+      //     BJtran(p,q) = BJ(q,p) ;
+      // }
 
       // residual 
       for (int p = 0; p < ndf; p++ ) {
@@ -974,23 +972,22 @@ Brick::formResidAndTangent( int tang_flag )
 
       if ( tang_flag == 1 ) {
 
-        //BJtranD = BJtran * dd ;
-        BJtranD.addMatrixProduct(0.0,  BJtran,dd,1.0) ;
+        BJtranD.addMatrixTransposeProduct(0.0,  BJ, D, dvol[i]) ;
 
         int kk = 0 ;
         for (int k = 0; k < numberNodes; k++ ) {
 
-            BK = computeB( k, shp ) ;
-            //stiffJK =  BJtranD * BK  ;
-            stiffJK.addMatrixProduct(0.0,  BJtranD, BK,1.0) ;
+          BK = computeB( k, shp ) ;
+          //stiffJK =  BJtranD * BK  ;
+          stiffJK.addMatrixProduct(0.0,  BJtranD, BK,1.0) ;
 
-            for (int p = 0; p < ndf; p++ )  {
-              for (int q = 0; q < ndf; q++ )
-                  stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-            }
+          for (int p = 0; p < ndf; p++ )  {
+            for (int q = 0; q < ndf; q++ )
+              stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
+          }
 
-            kk += ndf ;
-          } // end for k loop
+          kk += ndf ;
+        } // end for k loop
 
       } // end if tang_flag 
 
@@ -1008,7 +1005,7 @@ Brick::formResidAndTangent( int tang_flag )
 //compute local coordinates and basis
 
 void
-Brick::computeBasis( ) 
+Brick::computeBasis()
 {
   // nodal coordinates 
   for (int i = 0; i < NEN; i++ ) {
@@ -1092,7 +1089,7 @@ Brick::sendSelf(int commitTag, Channel &theChannel)
     if (matDbTag == 0) {
       matDbTag = theChannel.getDbTag();
       if (matDbTag != 0)
-	materialPointers[i]->setDbTag(matDbTag);
+        materialPointers[i]->setDbTag(matDbTag);
     }
     idData(i+8) = matDbTag;
   }
@@ -1187,8 +1184,8 @@ int  Brick::recvSelf (int commitTag,
       // Allocate new material with the sent class tag
       materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
       if (materialPointers[i] == 0) {
-	opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << "\n";
-	return -1;
+        opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << "\n";
+        return -1;
       }
       // Now receive materials into the newly allocated space
       materialPointers[i]->setDbTag(matDbTag);
