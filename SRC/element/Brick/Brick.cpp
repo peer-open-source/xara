@@ -106,7 +106,7 @@ Brick::Brick(int tag,
 Brick::~Brick()
 {
 
-  for (int i=0 ; i<8; i++ ) {
+  for (int i=0 ; i<NIP; i++ ) {
     delete materialPointers[i] ;
   }
 
@@ -179,7 +179,7 @@ Brick::commitState( )
 
 
 int
-Brick::revertToLastCommit( ) 
+Brick::revertToLastCommit() 
 {
   int success = 0 ;
 
@@ -466,7 +466,7 @@ Brick::zeroLoad( )
 }
 
 
-int 
+int
 Brick::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
   int type;
@@ -567,7 +567,7 @@ Brick::getResistingForceIncInertia( )
 
   // add the damping forces if rayleigh damping
   if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-      res += this->getRayleighDampingForces();
+    res += this->getRayleighDampingForces();
 
   if (load != 0)
     res -= *load;
@@ -657,14 +657,13 @@ Brick::formInertiaTerms( int tangFlag )
 
 
     // density
-    rho = materialPointers[i]->getRho() ;
-
+    rho = materialPointers[i]->getRho();
 
     // multiply acceleration by density to form momentum
     momentum *= rho;
 
 
-    //residual and tangent calculations node loops
+    // residual and tangent calculations node loops
     int jj = 0 ;
     for (int j = 0; j < numberNodes; j++ ) {
 
@@ -762,16 +761,16 @@ Brick::update()
     }
   }
 
-  int success = -1;
+  int success = 0;
 
   // Gauss loop 
-  for (int i = 0; i < numberGauss; i++ ) {
+  for (int i = 0; i < NIP; i++ ) {
 
     // extract shape functions from saved array
-    double shp[nShape][numberNodes];
+    double shp[nShape][NEN];
     for (int p = 0; p < nShape; p++ ) {
       for (int q = 0; q < numberNodes; q++ )
-        shp[p][q]  = Shape[p][q][i] ;
+        shp[p][q]  = Shape[p][q][i];
     }
 
 
@@ -817,8 +816,7 @@ Brick::update()
     }
     
     //
-    success = materialPointers[i]->setTrialStrain(strain);
-
+    success += materialPointers[i]->setTrialStrain(strain);
   }
 
   return 0;
@@ -840,13 +838,13 @@ Brick::formResidAndTangent( int tang_flag )
 
 
 
-  static double dvol[numberGauss] ; //volume element
-  static double shp[nShape][numberNodes] ;  //shape functions at a gauss point
-  static double Shape[nShape][numberNodes][numberGauss] ; //all the shape functions
+  static double dvol[NIP] ; // volume element
+  static double shp[nShape][NEN] ;  // shape functions at a gauss point
+  static double Shape[nShape][NEN][NIP]; // all the shape functions
 
-  static Vector residJ(ndf) ; //nodeJ residual 
-  static Matrix stiffJK(ndf,ndf) ; //nodeJK stiffness 
-  static Vector stress(nstress) ;  //stress
+  static Vector residJ(ndf) ; // nodeJ residual 
+  static Matrix stiffJK(ndf,ndf) ; // nodeJK stiffness 
+  static Vector stress(nstress) ;  // stress
   static Matrix dd(nstress,nstress) ;  //material tangent
 
 
@@ -860,9 +858,9 @@ Brick::formResidAndTangent( int tang_flag )
   //-------------------------------------------------------
 
   
-  //zero stiffness and residual 
-  stiff.Zero( ) ;
-  resid.Zero( ) ;
+  // zero stiffness and residual 
+  stiff.Zero();
+  resid.Zero();
 
   // compute basis vectors and local nodal coordinates
   // computeBasis();
