@@ -20,6 +20,7 @@ class MultiYieldSurface;
 
 class Response;
 
+namespace OpenSees {
 class FluidSolidPorousMaterial : public NDMaterial
 {
   public:
@@ -121,6 +122,6 @@ class FluidSolidPorousMaterial : public NDMaterial
      static Matrix workM3;
      static Matrix workM6;
 };
-
+} 
 #endif
 
