@@ -31,6 +31,12 @@
 // Written: fmk
 // Created: 03/06
 //
+// References
+// [1] Filippou, Filip C. 
+//     “Effects of Bond Deterioration on Seismic Response of Reinforced Concrete Frames.” 
+//     Ph.D., University of California, Berkeley, 1983. 
+//     https://www.proquest.com/docview/303126843/abstract/2FA827B6AB98404DPQ/1.
+//
 #include <math.h>
 
 #include <stdlib.h>
