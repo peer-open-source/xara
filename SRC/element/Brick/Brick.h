@@ -49,18 +49,16 @@ class Brick : public Element {
     
     //null constructor
     Brick();
-  
-    //full constructor
+
     Brick(int tag, 
           const std::array<int, 8>& node_tags,
           NDMaterial &theMaterial,
           double b1 = 0.0, double b2 = 0.0, double b3 = 0.0);
     
-    //destructor 
-    virtual ~Brick( ) ;
+    // destructor 
+    virtual ~Brick();
 
-    const char *getClassType(void) const {return "Brick";}
-    static constexpr const char* class_name = "Brick";
+    const char *getClassType() const {return "Brick";}
 
     //set domain
     void setDomain( Domain *) ;
@@ -70,52 +68,40 @@ class Brick : public Element {
 
     //return connected external nodes
     const ID &getExternalNodes( );
-    Node **getNodePtrs(void);
+    Node **getNodePtrs();
 
-    //return number of dofs
     int getNumDOF( ) ;
 
-    //commit state
-    int commitState( ) ;
-    
-    //revert to last commit 
-    int revertToLastCommit( ) ;
-    
-    //revert to start 
-    int revertToStart( ) ;
 
-    // update
-    int update(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+    int update();
 
-    //print out element data
-    void Print( OPS_Stream &s, int flag ) ;
-	
     //return stiffness matrix 
     const Matrix &getTangentStiff();
     const Matrix &getInitialStiff();    
     const Matrix &getMass();    
 
-    void zeroLoad( ) ;
+    void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    //get residual
-    const Vector &getResistingForce( ) ;
-    
-    //get residual with inertia terms
-    const Vector &getResistingForceIncInertia( ) ;
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
-      
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
+
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
     int getResponse(int responseID, Information &eleInformation);
 
 
-    int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int setParameter(const char **argv, int argc, Parameter &);
+    int updateParameter(int parameterID, Information &);
+
+    void Print( OPS_Stream &s, int flag);
 
   private :
 
