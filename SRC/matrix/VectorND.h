@@ -37,6 +37,15 @@
 #define XARA_VECTOR_FRIENDS
 #endif
 
+
+#if defined(__GNUC__) || defined(__clang__)
+#  define XARA_VECTOR_INLINE [[gnu::always_inline]] inline
+#elif defined(_MSC_VER)
+#  define XARA_VECTOR_INLINE __forceinline
+#else
+#  define XARA_VECTOR_INLINE inline
+#endif
+
 namespace OpenSees {
 
 typedef int index_t;
@@ -76,10 +85,10 @@ struct VectorND {
   VectorND<nr> 
   extract(int a) noexcept;
 
-  int
+  XARA_VECTOR_INLINE int
   addVector(const T thisFact, const VectorND<N> &other, const T otherFact) noexcept;
 
-  inline VectorND<N> &
+  XARA_VECTOR_INLINE VectorND<N> &
   addCrossProduct(const VectorND<N>& a, const VectorND<N> &b, double fact = 1.0) noexcept {
     static_assert(N == 3);
     values[0] += fact * (a.values[1] * b.values[2] - a.values[2] * b.values[1]);
@@ -89,11 +98,11 @@ struct VectorND {
   }
 
   template <int NC>
-  inline void
+  XARA_VECTOR_INLINE  void
   addMatrixVector(const MatrixND<N, NC, double> &m, const VectorND<NC>& v, double otherFact) noexcept;
 
   template <int NC>
-  inline void
+  XARA_VECTOR_INLINE  void
   addMatrixVector(double thisFact, const MatrixND<N, NC, double> &m, const VectorND<NC>& v, double otherFact) noexcept;
 
 #ifdef XARA_VECTOR_FRIENDS
@@ -129,7 +138,7 @@ struct VectorND {
       item = value;
   }
 
-  constexpr inline void
+  XARA_VECTOR_INLINE constexpr void
   zero() {
     for (T& item : values )
       item = 0.0;
@@ -138,7 +147,7 @@ struct VectorND {
   inline constexpr T sum() const noexcept;
 
   template<typename VecT>
-  constexpr T
+  XARA_VECTOR_INLINE constexpr T
   dot(const VecT &other) const noexcept {
     T sum = 0.0;
     for (index_t i = 0; i < N; ++i)
@@ -149,7 +158,7 @@ struct VectorND {
 
   // Tensor product, also known as the "bun" product
   template <int nc>
-  constexpr inline MatrixND<N,nc,double>
+  XARA_VECTOR_INLINE constexpr MatrixND<N,nc,double>
   bun(const VectorND<nc> &other) const noexcept {
     if constexpr (N == 3 && nc == 3)
       return MatrixND<N,nc,double> {{
@@ -170,7 +179,7 @@ struct VectorND {
   }
 
   template <int nc>
-  constexpr inline MatrixND<N,nc,double>
+  XARA_VECTOR_INLINE constexpr MatrixND<N,nc,double>
   bun(const VectorND<nc> &other, double scale) const noexcept {
 
     MatrixND<N,nc,double> prod;
@@ -184,7 +193,7 @@ struct VectorND {
 
   // Return the cross product this vector with another vector, b.
   template <class VecB, class VecC>
-  constexpr void 
+  XARA_VECTOR_INLINE constexpr void 
   cross(const VecB& b, VecC& c) const noexcept {
     static_assert(N == 3, "Cross product is only defined for 3D vectors.");
     c[0] = values[1] * b[2] - values[2] * b[1];
@@ -214,9 +223,9 @@ struct VectorND {
   
   inline double 
   normalize() {
-    double n = norm();
+    const double n = norm();
 
-    if (n != 0.0)
+    if (n != 0.0) [[unlikely]]
       for (index_t i=0; i<N; i++)
         values[i] /= n;
 
@@ -238,11 +247,13 @@ struct VectorND {
 
   inline constexpr T&
   operator()(index_t index) noexcept {
+    assert(index >= 0 && index < N);
     return values[index];
   }
 
   inline constexpr const T&
   operator()(index_t index) const noexcept {
+    assert(index >= 0 && index < N);
     return values[index];
   }
 
