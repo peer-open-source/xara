@@ -45,11 +45,15 @@ class FE_Element;
 class Element : public TaggedObject, public MovableObject
 {
   public:
-    Element(int tag, int classTag);    
+    Element(int tag, int classTag);
     virtual ~Element();
     enum class MassType {
         Translation,
         General
+    };
+    enum class MassSource {
+        Element,
+        Material
     };
 
     // methods dealing with nodes and number of external dof
@@ -85,6 +89,7 @@ class Element : public TaggedObject, public MovableObject
     virtual const Matrix &getDamp();
     virtual const Matrix &getMass();
     virtual MassType getMassType() const {return MassType::General;}
+    virtual bool hasMass() const {return true;}
     virtual double getPositionInertia(int node) const {return 0.0;}
     
 
@@ -146,9 +151,6 @@ protected:
 
 
 private:
-//  std::vector<Node*> nodes;
-    bool is_this_element_active;
-    FE_Element* m_FE;
 
     int index, nodeIndex;
     static Matrix ** theMatrices; 
