@@ -40,7 +40,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <math.h>
@@ -502,40 +501,33 @@ ElasticTubularJoint::recvSelf(int Tag, Channel &theChannel, FEM_ObjectBroker &th
 
 
 
-
-
 void
 ElasticTubularJoint::Print(OPS_Stream &s, int flag)
 {
-  s << " Element tag:" << this->getTag() << endln;
-  s << "  iNode : " << this->connectedExternalNodes(0) << endln;
-  s << "  jNode : " << this->connectedExternalNodes(1) << endln ;
-  s << "  E : " << this->E << endln;
-  s << "   Axial Stiffness =" <<1/( this->TangLJFv*pow(sin(braceangle),2));
-  s << " In Plane Bending Stiffness = "  << 1/(this->TangLJFipb) << endln;
-  
-  s << " End 1 Forces (P,V,M) : " << " (" << p(0) << " , " << p(1) << " , " << p(2) << " )" << endln;
-  
-  s << " End 2 Forces (P,V,M) :" << " (" << p(3) << " ," << p(4) << " ," << p(5) << " )" << endln;
-}
-
-
-
-
-
-
-int ElasticTubularJoint::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  // ensure setDomain() worked
-  if (l == 0.0)
-    return 0;
-  
-  static Vector v1(3);
-  static Vector v2(3);
-
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-  return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << TaggedObject::JsonGeometryIndent << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"ElasticTubularJoint\", ";
+    s << "\"nodes\": [" << this->connectedExternalNodes(0) << ", " << this->connectedExternalNodes(1) << "], ";
+    s << "\"E\": " << this->E << ", ";
+    s << "\"braceDiameter\": " << this->braceD << ", ";
+    s << "\"braceAngle\": " << this->braceangle << ", ";
+    s << "\"chordDiameter\": " << this->chordD << ", ";
+    s << "\"chordThickness\": " << this->chordT << ", ";
+    s << "\"chordAngle\": " << this->chordangle;
+    s << "}";
+  } 
+  else {
+    s << " Element tag:" << this->getTag() << endln;
+    s << "  iNode : " << this->connectedExternalNodes(0) << endln;
+    s << "  jNode : " << this->connectedExternalNodes(1) << endln ;
+    s << "  E : " << this->E << endln;
+    s << "   Axial Stiffness =" <<1/( this->TangLJFv*pow(sin(braceangle),2));
+    s << " In Plane Bending Stiffness = "  << 1/(this->TangLJFipb) << endln;
+    
+    s << " End 1 Forces (P,V,M) : " << " (" << p(0) << " , " << p(1) << " , " << p(2) << " )" << endln;
+    
+    s << " End 2 Forces (P,V,M) :" << " (" << p(3) << " ," << p(4) << " ," << p(5) << " )" << endln;
+  }
 }
 

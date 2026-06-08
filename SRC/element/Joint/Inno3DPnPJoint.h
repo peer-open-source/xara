@@ -55,7 +55,6 @@ class Node;
 class Channel;
 class FEM_ObjectBroker;
 class Response;
-class Renderer;
 class UniaxialMaterial;
 
 class Inno3DPnPJoint : public Element
@@ -104,10 +103,9 @@ class Inno3DPnPJoint : public Element
     // default destructor
     ~Inno3DPnPJoint();
 
+    const char *getClassType() const override {return "Inno3DPnPJoint";}
 	//####### public methods to obtain information about dof & connectivity
-	
-    bool isSubdomain(void) { return false; } ;
-    
+
     // get number of external nodes
     int getNumExternalNodes(void) const;
     
@@ -160,15 +158,9 @@ class Inno3DPnPJoint : public Element
     // public methods for element output for parallel and database processing
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-    // display element graphically
-	int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-    
+
     // print out element data
-    void Print(OPS_Stream &, int flag) final;        
-    
-    // implemented to print into file
-    const char *getClassType(void) const {return "Inno3DPnPJoint";};
+    void Print(OPS_Stream &, int flag) final;
 	
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);

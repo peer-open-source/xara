@@ -39,7 +39,6 @@ class Node;
 class Channel;
 class FEM_ObjectBroker;
 class Response;
-class Renderer;
 class UniaxialMaterial;
 
 class LehighJoint2d: public Element
@@ -61,9 +60,8 @@ class LehighJoint2d: public Element
    ~LehighJoint2d();
 
   
-  ////////////// public methods to obtain information about dof & connectivity    
-  bool	isSubdomain(void) { return false; } ;
-  
+  const char *getClassType(void) const {return " LehighJoint2d";}
+
   // get number of external nodes
   int getNumExternalNodes(void) const;
   
@@ -114,15 +112,10 @@ class LehighJoint2d: public Element
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);
-  
-  // display element graphically
-  int displaySelf(Renderer &theViewer, int displayMode, float fact);    
-  
+
   // print out element data
-  void Print(OPS_Stream &s, int flag =0);    
-  
-  // implemented to print into file
-  const char *getClassType(void) const {return " LehighJoint2d";};
+  void Print(OPS_Stream &s, int flag);    
+
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &eleInformation);

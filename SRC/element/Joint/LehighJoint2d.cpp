@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <math.h>
 
 #include <UniaxialMaterial.h>
@@ -703,41 +702,6 @@ LehighJoint2d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &th
   return 0;
 }
 
-int
-LehighJoint2d::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-	// get coordinates for connecting nodes
-	static Vector v1(3);
-	static Vector v2(3);
-	static Vector v3(3);
-	static Vector v4(3);
-
-	nodePtr[0]->getDisplayCrds(v1, fact, displayMode);
-	nodePtr[1]->getDisplayCrds(v2, fact, displayMode);
-	nodePtr[2]->getDisplayCrds(v3, fact, displayMode);
-	nodePtr[3]->getDisplayCrds(v4, fact, displayMode);
-
-	// calculate four corners of the element
-	Vector w(3); // width vector
-	Vector c1(3);
-	Vector c2(3);
-	Vector c3(3);
-	Vector c4(3);
-
-	w = v2 - v4;
-	c1 = v1 - 0.5 * w;
-	c2 = v1 + 0.5 * w;
-	c3 = v3 + 0.5 * w;
-	c4 = v3 - 0.5 * w;
-
-	int res = 0;
-	res += theViewer.drawLine(c1, c2, 1.0, 1.0, this->getTag());
-	res += theViewer.drawLine(c2, c3, 1.0, 1.0, this->getTag());
-	res += theViewer.drawLine(c3, c4, 1.0, 1.0, this->getTag());
-	res += theViewer.drawLine(c4, c1, 1.0, 1.0, this->getTag());
-
-	return res;
-}
 
 void
 LehighJoint2d::Print(OPS_Stream &s, int flag)
