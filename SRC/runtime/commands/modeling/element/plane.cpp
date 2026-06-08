@@ -202,6 +202,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
   double b1 = 0.0;
   double b2 = 0.0;
   TCL_Char *type = nullptr;
+  Element::MassSource mass_source = Element::MassSource::Material;
+
   if (true) {
     enum class Position : int {
       Thickness, Type, Material, Pressure, Density, B1, B2, End
@@ -218,15 +220,16 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
         if (i== argc) {
           opserr << OpenSees::PromptValueError 
                  << "-section requires argument"
-                 << "\n";
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
 
         int stag;
         if (Tcl_GetInt(interp, argv[i], &stag) != TCL_OK) {
           opserr << OpenSees::PromptValueError 
-                 << "failed to read section tag"
-                 << "\n";
+                 << "failed to read section tag "
+                 << argv[i]
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         PlaneSection<NDMaterial>* section = builder->getTypedObject<PlaneSection<NDMaterial>>(stag);
@@ -240,6 +243,23 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
         tracker.consume(Position::Type);
         tracker.consume(Position::Thickness);
       }
+      else if (strcmp(argv[i], "-density") == 0) {
+        i++;
+        if (i== argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "-density requires argument"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[i], &rho) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "invalid density " << argv[i] 
+                 << "\n";
+          return TCL_ERROR;
+        }
+        tracker.consume(Position::Density);
+        mass_source = Element::MassSource::Element;
+      }
       else
         // continue;
         positional.insert(i);
@@ -252,7 +272,9 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
       switch (tracker.current()) {
         case Position::Material:
           if (Tcl_GetInt(interp, argv[i], &mat_tag) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "invalid material tag " << argv[i] << "\n";
+            opserr << OpenSees::PromptValueError 
+                   << "invalid material tag " << argv[i] 
+                   << "\n";
             return TCL_ERROR;
           } else {
             nd_mat = builder->getTypedObject<NDMaterial>(mat_tag);
@@ -303,6 +325,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
             opserr << OpenSees::PromptValueError << "invalid density\n";
             return TCL_ERROR;
           }
+          mass_source = Element::MassSource::Element;
           tracker.increment();
           break;
 
@@ -400,7 +423,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
       }
       else if (strcasecmp(argv[1], "bbarQuad") == 0 || 
                strcasecmp(argv[1], "mixedQuad") == 0) {
-        theElement = new ConstantPressureVolumeQuad(tag, nodes[0], nodes[1], nodes[2], nodes[3], *nd_mat, thickness);
+        theElement = new ConstantPressureVolumeQuad(tag, nodes, *nd_mat, thickness, mass_source);
 
       }
       else if (strcasecmp(argv[1], "sspquad") == 0) {
@@ -412,7 +435,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
       // }
       else 
         theElement =
-            new FourNodeQuad(tag, nodes, *nd_mat, thickness, p, rho, b1, b2);
+            new FourNodeQuad(tag, nodes, *nd_mat, thickness, p, rho, b1, b2, mass_source);
     }
   }
 
@@ -472,6 +495,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
 }
 
 
+#if 1
 int
 TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
                                               Tcl_Interp *interp, 
@@ -498,29 +522,30 @@ TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
   }
 
   // get the id and end nodes
-  int tag, iNode, jNode, kNode, lNode, matID;
+  int tag, matID;
+  std::array<int, 4> nodes;
   double thickness = 1.0;
 
   if (Tcl_GetInt(interp, argv[argStart], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid eleTag" << "\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[1 + argStart], &nodes[0]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid iNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[2 + argStart], &nodes[1]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid jNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[3 + argStart], &nodes[2]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid kNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[4 + argStart], &nodes[3]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid lNode\n";
     return TCL_ERROR;
   }
@@ -543,7 +568,8 @@ TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
   // now create the ConstantPressureVolumeQuad and add it to the Domain
   ConstantPressureVolumeQuad *theConstantPressureVolumeQuad =
       new ConstantPressureVolumeQuad(tag, 
-                                     iNode, jNode, kNode, lNode, *theMaterial, thickness);
+                                     nodes, *theMaterial, thickness, 
+                                     Element::MassSource::Material);
 
 
   if (builder->getDomain()->addElement(theConstantPressureVolumeQuad) == false) {
@@ -554,6 +580,7 @@ TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
 
   return TCL_OK;
 }
+#endif
 
 
 /*  *****************************************************************************
@@ -586,9 +613,8 @@ TclBasicBuilder_addNineNodeMixedQuad(ClientData clientData, Tcl_Interp *interp,
   }
 
   // get the id and end nodes
-  int tag, iNode, jNode, kNode, lNode;
-  int mNode, nNode, pNode, qNode;
-  int centerNode;
+  int tag;
+  std::array<int, 9> nodes;
   int matID;
 
   if (Tcl_GetInt(interp, argv[argStart], &tag) != TCL_OK) {
@@ -596,47 +622,47 @@ TclBasicBuilder_addNineNodeMixedQuad(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[1 + argStart], &nodes[0]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid iNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[2 + argStart], &nodes[1]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid jNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[3 + argStart], &nodes[2]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid kNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[4 + argStart], &nodes[3]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid lNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[5 + argStart], &mNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[5 + argStart], &nodes[4]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid mNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[6 + argStart], &nNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[6 + argStart], &nodes[5]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid nNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[7 + argStart], &pNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[7 + argStart], &nodes[6]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid pNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[8 + argStart], &qNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[8 + argStart], &nodes[7]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid qNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[9 + argStart], &centerNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[9 + argStart], &nodes[8]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid centerNode\n";
     return TCL_ERROR;
   }
@@ -652,9 +678,7 @@ TclBasicBuilder_addNineNodeMixedQuad(ClientData clientData, Tcl_Interp *interp,
 
 
   // now create the NineNodeMixedQuad and add it to the Domain
-  NineNodeMixedQuad *theNineNodeMixed = new NineNodeMixedQuad(
-      tag, iNode, jNode, kNode, lNode, mNode, nNode, pNode,
-      qNode, centerNode, *theMaterial);
+  NineNodeMixedQuad *theNineNodeMixed = new NineNodeMixedQuad(tag, nodes, *theMaterial);
 
   if (builder->getDomain()->addElement(theNineNodeMixed) == false) {
     opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
@@ -664,6 +688,7 @@ TclBasicBuilder_addNineNodeMixedQuad(ClientData clientData, Tcl_Interp *interp,
 
   return TCL_OK;
 }
+
 
 int
 TclBasicBuilder_addFourNodeQuadWithSensitivity(ClientData clientData,
