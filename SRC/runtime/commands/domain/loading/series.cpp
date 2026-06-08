@@ -755,6 +755,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
   return theSeries;
 }
 
+
 TimeSeries *
 TclSeriesCommand(ClientData clientData, Tcl_Interp *interp, TCL_Char * const arg)
 {
@@ -780,6 +781,7 @@ TclSeriesCommand(ClientData clientData, Tcl_Interp *interp, TCL_Char * const arg
   Tcl_Free((char *)argv);
   return theSeries;
 }
+
 
 int
 TclCommand_addTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc,
