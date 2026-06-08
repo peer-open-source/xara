@@ -158,7 +158,7 @@ int KRAlphaExplicit_TP::newStep(double _deltaT)
         int size = theLinSOE->getNumEqn();
         FullGenLinSolver *theFullLinSolver = new FullGenLinLapackSolver();
         LinearSOE *theFullLinSOE = new FullGenLinSOE(size, *theFullLinSolver);
-        theFullLinSOE->setLinks(*theModel);
+        // theFullLinSOE->setLinks(*theModel);
         
         // now switch the SOE to the FullLinearSOE
         this->IncrementalIntegrator::setLinks(*theModel, *theFullLinSOE, theTest);
@@ -337,7 +337,8 @@ int KRAlphaExplicit_TP::formUnbalance()
 }
 
 
-int KRAlphaExplicit_TP::formEleTangent(FE_Element *theEle)
+int
+KRAlphaExplicit_TP::formEleTangent(FE_Element *theEle)
 {
     theEle->zeroTangent();
     
