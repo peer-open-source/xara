@@ -47,7 +47,10 @@ class Steel02 : public UniaxialMaterial
     Steel02(int tag,
             double fy, double E0, double b,
             double R0, double cR1, double cR2,
-            double a1, double a2, double a3, double a4, double sigInit =0.0);
+            double a1, double a2, double a3, double a4, 
+            double sigInit,
+            double density
+          );
 
     Steel02();
     virtual ~Steel02();
@@ -57,6 +60,7 @@ class Steel02 : public UniaxialMaterial
 
     double getInitialTangent();
     UniaxialMaterial *getCopy();
+    double getRho() override { return density; }
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
     double getStrain();      
@@ -94,6 +98,7 @@ class Steel02 : public UniaxialMaterial
     double a3;  //  = matpar(9)  : coefficient for isotropic hardening in tension
     double a4;  //  = matpar(10) : coefficient for isotropic hardening in tension
     double sigini; // initial 
+    double density; // mass per unit volume
     // hstvP : STEEL HISTORY VARIABLES
     double epsminP; //  = hstvP(1) : max eps in compression
     double epsmaxP; //  = hstvP(2) : max eps in tension

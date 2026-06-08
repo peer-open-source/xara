@@ -50,10 +50,15 @@
 Steel02::Steel02(int tag,
      double _Fy, double _E0, double _b,
      double _R0, double _cR1, double _cR2,
-     double _a1, double _a2, double _a3, double _a4, double sigInit):
+     double _a1, double _a2, double _a3, double _a4, 
+     double sigInit,
+     double density
+  ):
   UniaxialMaterial(tag, MAT_TAG_Steel02),
-  Fy(_Fy), E0(_E0), b(_b), R0(_R0), cR1(_cR1), cR2(_cR2), a1(_a1), a2(_a2), a3(_a3), a4(_a4), 
-  sigini(sigInit)
+  Fy(_Fy), E0(_E0), b(_b), 
+  R0(_R0), cR1(_cR1), cR2(_cR2), 
+  a1(_a1), a2(_a2), a3(_a3), a4(_a4), 
+  sigini(sigInit), density(density)
 {
   this->revertToStart();
 }
@@ -104,9 +109,11 @@ Steel02::revertToStart()
 UniaxialMaterial*
 Steel02::getCopy()
 {
-  Steel02 *theCopy = new Steel02(this->getTag(), Fy, E0, b, R0, cR1, cR2, a1, a2, a3, a4, sigini);
-  
-  return theCopy;
+  return new Steel02(this->getTag(), 
+                     Fy, E0, b, 
+                     R0, cR1, cR2, 
+                     a1, a2, a3, a4, 
+                     sigini, density);
 }
 
 double
