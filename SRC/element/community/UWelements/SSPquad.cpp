@@ -234,6 +234,7 @@ SSPquad::update()
     return 0;
 }
 
+
 const Matrix &
 SSPquad::getTangentStiff()
 // this function computes the tangent stiffness matrix for the element

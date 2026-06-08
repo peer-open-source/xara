@@ -87,7 +87,7 @@ class CorotTruss2 : public Element
   protected:
     
   private:
-        double computeCurrentNormalStrain(void);
+        double computeCurrentNormalStrain();
    
     // private attributes - a copy for each object of the class
     UniaxialMaterial *theMaterial;  // pointer to a material
