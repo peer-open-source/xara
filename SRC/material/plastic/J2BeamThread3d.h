@@ -40,7 +40,7 @@ namespace OpenSees {
 
 class J2BeamThread3d : public NDMaterial {
 public:
-  J2BeamThread3d(int tag, double E, double nu, double sigY, double Hi, double Hk);
+  J2BeamThread3d(int tag, double E, double nu, double sigY, double Hi, double Hk, double density);
   J2BeamThread3d();
   ~J2BeamThread3d();
 
@@ -53,6 +53,7 @@ public:
   const Vector& getStress() override;
   const Vector& getStrain() override;
   bool threadSafe() const override {return true;}
+  double getRho() override { return density; }
 
 
   int commitState() override;
@@ -84,6 +85,7 @@ private:
   double sigmaY;
   double Hiso;
   double Hkin;
+  double density;
 
   int parameterID;
   Matrix* SHVs;

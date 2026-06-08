@@ -178,7 +178,9 @@ ReturnMap(const J2Parameters& params,
 #endif
 
 J2BeamThread3d::J2BeamThread3d(int tag, 
-          double e, double g, double sy, double hi, double hk)
+          double e, double g, double sy, double hi, double hk,
+          double Density
+        )
  : NDMaterial(tag, ND_TAG_J2BeamThread3d),
    E(e),
    nu(g),
@@ -194,7 +196,8 @@ J2BeamThread3d::J2BeamThread3d(int tag,
    e_wrapper(Tepsilon),
    alphan(0.0),
    alphan1(0.0),
-   dg_n1(0.0)
+   dg_n1(0.0),
+   density(Density)
 {
   epsPn[0] = 0.0;
   epsPn[1] = 0.0;
@@ -219,7 +222,8 @@ J2BeamThread3d::J2BeamThread3d()
    e_wrapper(Tepsilon),
    alphan(0.0),
    alphan1(0.0),
-   dg_n1(0.0)
+   dg_n1(0.0),
+   density(0.0)
 {
   epsPn[0] = 0.0;
   epsPn[1] = 0.0;
@@ -634,7 +638,7 @@ J2BeamThread3d::revertToStart()
 NDMaterial*
 J2BeamThread3d::getCopy()
 {
-  return new J2BeamThread3d(this->getTag(), E, nu, sigmaY, Hiso, Hkin);
+  return new J2BeamThread3d(this->getTag(), E, nu, sigmaY, Hiso, Hkin, density);
 }
 
 NDMaterial*
