@@ -848,33 +848,34 @@ TclBasicBuilder_addFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
   }
 
   // get the id and end nodes
-  int tag, iNode, jNode, kNode, lNode, matID;
+  int tag, matID;
   double thickness, bk, r, perm1, perm2;
   double p = 0.0; // uniform normal traction (pressure)
   double b1 = 0.0;
   double b2 = 0.0;
+  std::array<int, 4> nodes;
 
   // TCL_Char *type;
   if (Tcl_GetInt(interp, argv[argStart], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid FourNodeQuadUP eleTag" << "\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[1 + argStart], &nodes[0]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid iNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[2 + argStart], &nodes[1]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid jNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[3 + argStart], &nodes[2]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid kNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[4 + argStart], &nodes[3]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid lNode\n";
     return TCL_ERROR;
   }
@@ -935,7 +936,7 @@ TclBasicBuilder_addFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
 
   // now create the FourNodeQuadUP and add it to the Domain
   FourNodeQuadUP *theFourNodeQuadUP = new FourNodeQuadUP(
-      tag, iNode, jNode, kNode, lNode, *theMaterial, "PlaneStrain",
+      tag, nodes, *theMaterial, "PlaneStrain",
       thickness, bk, r, perm1, perm2, b1, b2, p);
 
   if (builder->getDomain()->addElement(theFourNodeQuadUP) == false) {

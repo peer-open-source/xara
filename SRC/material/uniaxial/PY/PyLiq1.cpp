@@ -401,7 +401,7 @@ PyLiq1::getEffectiveStress(TimeSeries *theSeries)
 }
 double 
 
-PyLiq1::getEffectiveStress(void)
+PyLiq1::getEffectiveStress()
 {
 
 	// Default value for meanStress
@@ -422,13 +422,13 @@ PyLiq1::getEffectiveStress(void)
 
 		// Check that the class tags for the solid elements are either for a FourNodeQuad object, a FourNodeQuadUP object, 
 		// a 9_4_QuadUP object, a SSPquadUP object, or a SSPquad object
-		if(theElement1->getClassTag()!=ELE_TAG_FourNodeQuad && theElement1->getClassTag()!=ELE_TAG_FourNodeQuadUP && 
+		if (theElement1->getClassTag()!=ELE_TAG_FourNodeQuad && theElement1->getClassTag()!=ELE_TAG_FourNodeQuadUP && 
 		   theElement1->getClassTag()!=ELE_TAG_Nine_Four_Node_QuadUP && theElement1->getClassTag()!=ELE_TAG_SSPquadUP && theElement1->getClassTag()!=ELE_TAG_SSPquad)
 		{
 			opserr << "Element: " << theElement1->getTag() << " cannot be used to read effective stress for a PyLiq1 material." << endln;
 			exit(-1);
 		}
-		if(theElement2->getClassTag()!=ELE_TAG_FourNodeQuad && theElement2->getClassTag()!=ELE_TAG_FourNodeQuadUP && 
+		if (theElement2->getClassTag()!=ELE_TAG_FourNodeQuad && theElement2->getClassTag()!=ELE_TAG_FourNodeQuadUP && 
 		   theElement2->getClassTag()!=ELE_TAG_Nine_Four_Node_QuadUP && theElement2->getClassTag()!=ELE_TAG_SSPquadUP && theElement2->getClassTag()!=ELE_TAG_SSPquad)
 		{
 			opserr << "Element: " << theElement2->getTag() << " cannot be used to read effective stress for a PyLiq1 material." << endln;
@@ -439,7 +439,7 @@ PyLiq1::getEffectiveStress(void)
 		meanStress = 0.0;
 		
 		// get mean stress from element1 if it is a FourNodeQuad object
-		if(theElement1->getClassTag()==ELE_TAG_FourNodeQuad)
+		if (theElement1->getClassTag()==ELE_TAG_FourNodeQuad)
 		{
 			// It's safe to cast *theElement1 onto the FourNodeQuad class because we already
 			// checked the class tags.
@@ -459,7 +459,7 @@ PyLiq1::getEffectiveStress(void)
 			}
 		}
 		// get mean stress from element2 if it is a FourNodeQuad object
-		if(theElement2->getClassTag()==ELE_TAG_FourNodeQuad)
+		if (theElement2->getClassTag()==ELE_TAG_FourNodeQuad)
 		{
 			// It's safe to cast *theElement1 onto the FourNodeQuad class because we already
 			// checked the class tags.
@@ -472,12 +472,13 @@ PyLiq1::getEffectiveStress(void)
 					exit(-1);
 				}
 				FluidSolidPorousMaterial *theFSPM = (FluidSolidPorousMaterial *)(NDM);
-				meanStress += 1.0/8.0*(2.0/3.0*(NDM->getStress())[0] + 1.0/3.0*(NDM->getStress())[1] - theFSPM->trialExcessPressure);
+				meanStress += 1.0/8.0*(2.0/3.0*(NDM->getStress())[0] 
+				           + 1.0/3.0*(NDM->getStress())[1] - theFSPM->trialExcessPressure);
 			}
 		}
 
 		// get mean stress from element1 if it is a FourNodeQuadUP object
-		if(theElement1->getClassTag()==ELE_TAG_FourNodeQuadUP) {
+		if (theElement1->getClassTag() == ELE_TAG_FourNodeQuadUP) {
 			// It's safe to cast *theElement1 onto the FourNodeQuadUP class because we already checked the class tags.
 			FourNodeQuadUP *theElement1 = (FourNodeQuadUP *)(theDomain->getElement(solidElem1));
 			meanStress=0.0;
@@ -518,7 +519,7 @@ PyLiq1::getEffectiveStress(void)
 		}
 
 		// get mean stress from element1 if it is a 9_4_QuadUP object
-		if(theElement1->getClassTag()==ELE_TAG_Nine_Four_Node_QuadUP) {
+		if (theElement1->getClassTag()==ELE_TAG_Nine_Four_Node_QuadUP) {
 			// It's safe to cast *theElement1 onto the 9_4_QuadUP class because we already checked the class tags.
 			NineFourNodeQuadUP *theElement1 = (NineFourNodeQuadUP *)(theDomain->getElement(solidElem1));
 			meanStress=0.0;
@@ -565,7 +566,7 @@ PyLiq1::getEffectiveStress(void)
 			meanStress = 0.0;
 			
 			NDMaterial *NDM = theElement1->theMaterial;
-			if(NDM->getClassTag()==ND_TAG_InitialStateAnalysisWrapper) {
+			if (NDM->getClassTag()==ND_TAG_InitialStateAnalysisWrapper) {
 				InitialStateAnalysisWrapper *NDM = (InitialStateAnalysisWrapper *)(theElement1->theMaterial);
 				if(NDM->getMainClassTag()!=ND_TAG_PressureDependMultiYield && NDM->getMainClassTag()!=ND_TAG_PressureDependMultiYield02) {
 					opserr << "Material: " << NDM->getTag() << " cannot be used to read effective stress for a PyLiq1 material." << endln;

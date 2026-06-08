@@ -23,6 +23,7 @@
 #include <FEM_ObjectBroker.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
+using namespace OpenSees;
 
 Matrix FourNodeQuadUP::K(12,12);
 Vector FourNodeQuadUP::P(12);
@@ -32,14 +33,15 @@ double FourNodeQuadUP::shpBar[3][4];
 Node *FourNodeQuadUP::theNodes[4];
 
 
-FourNodeQuadUP::FourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
+FourNodeQuadUP::FourNodeQuadUP(int tag, 
+             std::array<int, 4>& nodes,
              NDMaterial &m, const char *type, double t, double bulk, 
              double r, double p1, double p2, double b1, double b2, double p)
 :Element (tag, ELE_TAG_FourNodeQuadUP),
   theMaterial(0), connectedExternalNodes(4),
-  nd1Ptr(0), nd2Ptr(0), nd3Ptr(0), nd4Ptr(0), Ki(0),
- Q(12), pressureLoad(12), applyLoad(0), thickness(t), kc(bulk), rho(r), pressure(p),
- end1InitDisp(0),end2InitDisp(0),end3InitDisp(0),end4InitDisp(0)
+  Ki(0),
+  Q(12), pressureLoad(12), applyLoad(0), thickness(t), kc(bulk), rho(r), pressure(p),
+  end1InitDisp(0),end2InitDisp(0),end3InitDisp(0),end4InitDisp(0)
 {
   // pts[0][0] = -0.5773502691896258;
   // pts[0][1] = -0.5773502691896258;
@@ -71,18 +73,16 @@ FourNodeQuadUP::FourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
   }
 
   // Set connected external node IDs
-  connectedExternalNodes(0) = nd1;
-  connectedExternalNodes(1) = nd2;
-  connectedExternalNodes(2) = nd3;
-  connectedExternalNodes(3) = nd4;
+  for (int i = 0; i < 4; i++)
+    connectedExternalNodes(i) = nodes[i];
 }
 
 FourNodeQuadUP::FourNodeQuadUP()
-:Element (0,ELE_TAG_FourNodeQuadUP),
+: Element (0,ELE_TAG_FourNodeQuadUP),
   theMaterial(0), connectedExternalNodes(4),
- nd1Ptr(0), nd2Ptr(0), nd3Ptr(0), nd4Ptr(0), Ki(0),
- Q(12), pressureLoad(12), applyLoad(0), thickness(0.0), kc(0.0), rho(0.0), pressure(0.0),
- end1InitDisp(0),end2InitDisp(0),end3InitDisp(0),end4InitDisp(0)
+  Ki(nullptr),
+  Q(12), pressureLoad(12), applyLoad(0), thickness(0.0), kc(0.0), rho(0.0), pressure(0.0),
+  end1InitDisp(0),end2InitDisp(0),end3InitDisp(0),end4InitDisp(0)
 {
 }
 
@@ -124,11 +124,6 @@ FourNodeQuadUP::getExternalNodes()
 Node **
 FourNodeQuadUP::getNodePtrs()
 {
-  theNodes[0] = nd1Ptr;
-  theNodes[1] = nd2Ptr;
-  theNodes[2] = nd3Ptr;
-  theNodes[3] = nd4Ptr;
-
   return theNodes;
 }
 
@@ -143,48 +138,27 @@ FourNodeQuadUP::setDomain(Domain *theDomain)
 {
   // Check Domain is not null - invoked when object removed from a domain
   if (theDomain == nullptr) {
-    nd1Ptr = 0;
-    nd2Ptr = 0;
-    nd3Ptr = 0;
-    nd4Ptr = 0;
+    for (int i=0; i<4; i++)
+      theNodes[i] = nullptr;
     return;
   }
-  
-  int Nd1 = connectedExternalNodes(0);
-  int Nd2 = connectedExternalNodes(1);
-  int Nd3 = connectedExternalNodes(2);
-  int Nd4 = connectedExternalNodes(3);
-  
-  nd1Ptr = theDomain->getNode(Nd1);
-  nd2Ptr = theDomain->getNode(Nd2);
-  nd3Ptr = theDomain->getNode(Nd3);
-  nd4Ptr = theDomain->getNode(Nd4);
-  
-  if (nd1Ptr == 0 || nd2Ptr == 0 || nd3Ptr == 0 || nd4Ptr == 0) {
-    //opserr << "FATAL ERROR FourNodeQuadUP (tag: %d), node not found in domain",
-    //  this->getTag());
-    
-    return;
+  for (int i=0; i<4; i++) {
+    theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
+    if (theNodes[i] == nullptr) {
+      return;
+    }
+    if (theNodes[i]->getNumberDOF() != 3) {
+      return;
+    }
   }
-  
-  int dofNd1 = nd1Ptr->getNumberDOF();
-  int dofNd2 = nd2Ptr->getNumberDOF();
-  int dofNd3 = nd3Ptr->getNumberDOF();
-  int dofNd4 = nd4Ptr->getNumberDOF();
-  
-  if (dofNd1 != 3 || dofNd2 != 3 || dofNd3 != 3 || dofNd4 != 3) {
-    //opserr << "FATAL ERROR FourNodeQuadUP (tag: %d), has differing number of DOFs at its nodes",
-    //  this->getTag());
-    
-    return;
-  }
+
   if (theDomain != nullptr)
     this->Element::link(*theDomain);
   
   // Compute consistent nodal loads due to pressure
   this->setPressureLoadAtNodes();
   
-  const Vector &disp1 = nd1Ptr->getDisp();
+  const Vector &disp1 = theNodes[0]->getDisp();
   if (disp1.Norm() != 0.0) {
     end1InitDisp = new double[2];
     for (int i=0; i<2; i++) {
@@ -192,7 +166,7 @@ FourNodeQuadUP::setDomain(Domain *theDomain)
     }
   }
     
-  const Vector &disp2 = nd2Ptr->getDisp();
+  const Vector &disp2 = theNodes[1]->getDisp();
   if (disp2.Norm() != 0.0) {
     end2InitDisp = new double[2];
     for (int i=0; i<2; i++) {
@@ -200,7 +174,7 @@ FourNodeQuadUP::setDomain(Domain *theDomain)
     }
   }
 
-  const Vector &disp3 = nd3Ptr->getDisp();
+  const Vector &disp3 = theNodes[2]->getDisp();
   if (disp3.Norm() != 0.0) {
     end3InitDisp = new double[2];
     for (int i=0; i<2; i++) {
@@ -208,7 +182,7 @@ FourNodeQuadUP::setDomain(Domain *theDomain)
     }
   }
 
-  const Vector &disp4 = nd4Ptr->getDisp();
+  const Vector &disp4 = theNodes[3]->getDisp();
   if (disp4.Norm() != 0.0) {
     end4InitDisp = new double[2];
     for (int i=0; i<2; i++) {
@@ -261,10 +235,10 @@ FourNodeQuadUP::revertToStart()
 int
 FourNodeQuadUP::update()
 {
-  const Vector &disp1 = nd1Ptr->getTrialDisp();
-  const Vector &disp2 = nd2Ptr->getTrialDisp();
-  const Vector &disp3 = nd3Ptr->getTrialDisp();
-  const Vector &disp4 = nd4Ptr->getTrialDisp();
+  const Vector &disp1 = theNodes[0]->getTrialDisp();
+  const Vector &disp2 = theNodes[1]->getTrialDisp();
+  const Vector &disp3 = theNodes[2]->getTrialDisp();
+  const Vector &disp4 = theNodes[3]->getTrialDisp();
   
   static double u[2][4];
   if (end1InitDisp == 0) {
@@ -567,7 +541,7 @@ FourNodeQuadUP::addLoad(ElementalLoad *theLoad, double loadFactor)
   return -1;
 }
 
-
+#if 0
 int
 FourNodeQuadUP::addInertiaLoadToUnbalance(const Vector &accel)
 {
@@ -612,6 +586,7 @@ FourNodeQuadUP::addInertiaLoadToUnbalance(const Vector &accel)
 
   return 0;
 }
+#endif
 
 const Vector&
 FourNodeQuadUP::getResistingForce()
@@ -685,12 +660,11 @@ FourNodeQuadUP::getResistingForce()
 const Vector&
 FourNodeQuadUP::getResistingForceIncInertia()
 {
-  int i, j, k;
 
-  const Vector &accel1 = nd1Ptr->getTrialAccel();
-  const Vector &accel2 = nd2Ptr->getTrialAccel();
-  const Vector &accel3 = nd3Ptr->getTrialAccel();
-  const Vector &accel4 = nd4Ptr->getTrialAccel();
+  const Vector &accel1 = theNodes[0]->getTrialAccel();
+  const Vector &accel2 = theNodes[1]->getTrialAccel();
+  const Vector &accel3 = theNodes[2]->getTrialAccel();
+  const Vector &accel4 = theNodes[3]->getTrialAccel();
 
   static double a[12];
 
@@ -728,10 +702,10 @@ FourNodeQuadUP::getResistingForceIncInertia()
   }*/
 
 
-  const Vector &vel1 = nd1Ptr->getTrialVel();
-  const Vector &vel2 = nd2Ptr->getTrialVel();
-  const Vector &vel3 = nd3Ptr->getTrialVel();
-  const Vector &vel4 = nd4Ptr->getTrialVel();
+  const Vector &vel1 = theNodes[0]->getTrialVel();
+  const Vector &vel2 = theNodes[1]->getTrialVel();
+  const Vector &vel3 = theNodes[2]->getTrialVel();
+  const Vector &vel4 = theNodes[3]->getTrialVel();
 
   a[0]  = vel1(0);
   a[1]  = vel1(1);
@@ -963,10 +937,10 @@ FourNodeQuadUP::setResponse(const char **argv, int argc, OPS_Stream &output)
   output.tag("ElementOutput");
   output.attr("eleType","BrickUP");
   output.attr("eleTag",this->getTag());
-  output.attr("node1",nd1Ptr->getTag());
-  output.attr("node2",nd2Ptr->getTag());
-  output.attr("node3",nd3Ptr->getTag());
-  output.attr("node4",nd4Ptr->getTag());
+  output.attr("node1", theNodes[0]->getTag());
+  output.attr("node2", theNodes[1]->getTag());
+  output.attr("node3", theNodes[2]->getTag());
+  output.attr("node4", theNodes[3]->getTag());
 
   if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0) {
 
@@ -1137,10 +1111,10 @@ void FourNodeQuadUP::shapeFunction()
   for (int i=0; i<4; i++) {
     xi = pts[i][0];
     eta = pts[i][1];
-    const Vector &nd1Crds = nd1Ptr->getCrds();
-    const Vector &nd2Crds = nd2Ptr->getCrds();
-    const Vector &nd3Crds = nd3Ptr->getCrds();
-    const Vector &nd4Crds = nd4Ptr->getCrds();
+    const Vector &nd1Crds = theNodes[0]->getCrds();
+    const Vector &nd2Crds = theNodes[1]->getCrds();
+    const Vector &nd3Crds = theNodes[2]->getCrds();
+    const Vector &nd4Crds = theNodes[3]->getCrds();
 
     oneMinuseta = 1.0-eta;
     onePluseta = 1.0+eta;
@@ -1235,10 +1209,10 @@ void FourNodeQuadUP::setPressureLoadAtNodes()
   if (pressure == 0.0)
     return;
 
-  const Vector &node1 = nd1Ptr->getCrds();
-  const Vector &node2 = nd2Ptr->getCrds();
-  const Vector &node3 = nd3Ptr->getCrds();
-  const Vector &node4 = nd4Ptr->getCrds();
+  const Vector &node1 = theNodes[0]->getCrds();
+  const Vector &node2 = theNodes[1]->getCrds();
+  const Vector &node3 = theNodes[2]->getCrds();
+  const Vector &node4 = theNodes[3]->getCrds();
 
   double x1 = node1(0);
   double y1 = node1(1);

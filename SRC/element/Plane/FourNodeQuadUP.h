@@ -18,16 +18,20 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
+#include <array>
 
 class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
+
 class FourNodeQuadUP : public Element,
                      protected LegendreFixedQuadrilateral<4>
 {
   public:
-    FourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
+    FourNodeQuadUP(int tag, 
+      std::array<int, 4>& nodes,
 		  NDMaterial &m, const char *type,
 		  double t, double bulk, double rhof, double perm1, double perm2,
 		   double b1 = 0.0, double b2 = 0.0, double p = 0.0);
@@ -35,7 +39,6 @@ class FourNodeQuadUP : public Element,
     FourNodeQuadUP();
     virtual ~FourNodeQuadUP();
     const char *getClassType() const {return "FourNodeQuadUP";}
-    static constexpr const char* class_name = "FourNodeQuadUP";
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
@@ -57,7 +60,7 @@ class FourNodeQuadUP : public Element,
 
     void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
-    int addInertiaLoadToUnbalance(const Vector &accel);
+    // int addInertiaLoadToUnbalance(const Vector &accel);
 
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();
@@ -82,17 +85,13 @@ class FourNodeQuadUP : public Element,
     // private attributes - a copy for each object of the class
     NDMaterial **theMaterial; // pointer to the ND material objects
     ID connectedExternalNodes; // Tags of quad nodes
-    Node *nd1Ptr;		// Pointers to quad nodes
-    Node *nd2Ptr;
-    Node *nd3Ptr;
-    Node *nd4Ptr;
 
     static Matrix K;		// Element stiffness, damping, and mass Matrix
     static Vector P;		// Element resisting force vector
     Vector Q;		// Applied nodal loads
     double b[2];		// Body forces
-	double appliedB[2]; // Body forces applied with load pattern, C.McGann, U.Washington
-	int applyLoad;      // flag for body force in load, C.McGann, U.Washington
+    double appliedB[2]; // Body forces applied with load pattern, C.McGann, U.Washington
+    int applyLoad;      // flag for body force in load, C.McGann, U.Washington
     Vector pressureLoad;	// Pressure load at nodes
 
     double thickness;	// Element thickness
@@ -121,4 +120,5 @@ class FourNodeQuadUP : public Element,
     double *end4InitDisp;
 };
 
+} // namespace OpenSees
 #endif
