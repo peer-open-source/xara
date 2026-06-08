@@ -29,21 +29,25 @@ class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
+
 class BBarFourNodeQuadUP : public Element,
                            protected LegendreFixedQuadrilateral<4>
 {
   public:
 
-    BBarFourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
+    BBarFourNodeQuadUP(int tag, 
+                       std::array<int,4>& nodes,
                        NDMaterial &m, const char *type,
-                       double t, double bulk, double rhof, double perm1, double perm2,
-                       double b1 = 0.0, double b2 = 0.0, double p = 0.0);
+                       double t, double bulk, double rhof, 
+                       double perm1, double perm2,
+                       double b1 = 0.0, double b2 = 0.0, 
+                       double p = 0.0);
 
     BBarFourNodeQuadUP();
     virtual ~BBarFourNodeQuadUP();
 
-    const char *getClassType() const {return "BBarFourNodeQuadUP";};
-    static constexpr const char* class_name = "BBarFourNodeQuadUP";
+    const char *getClassType() const {return "BBarFourNodeQuadUP";}
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
@@ -65,7 +69,7 @@ class BBarFourNodeQuadUP : public Element,
 
     void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
-    int addInertiaLoadToUnbalance(const Vector &accel);
+    // int addInertiaLoadToUnbalance(const Vector &accel);
     const Vector &getResistingForce() final;
     const Vector &getResistingForceIncInertia() final;
 
@@ -137,11 +141,7 @@ class BBarFourNodeQuadUP : public Element,
     static Matrix K;        // Element stiffness, damping, and mass Matrix
     static Vector P;        // Element resisting force vector
 
-    static Node *theNodes[NEN];
-    Node *nd1Ptr;               // Pointers to quad nodes
-    Node *nd2Ptr;
-    Node *nd3Ptr;
-    Node *nd4Ptr;
+    Node *theNodes[NEN];
 };
-
+} // namespace OpenSees
 #endif

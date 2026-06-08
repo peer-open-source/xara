@@ -30,7 +30,6 @@ Vector FourNodeQuadUP::P(12);
 double FourNodeQuadUP::shp[3][4][4];
 double FourNodeQuadUP::dvol[4];
 double FourNodeQuadUP::shpBar[3][4];
-Node *FourNodeQuadUP::theNodes[4];
 
 
 FourNodeQuadUP::FourNodeQuadUP(int tag, 

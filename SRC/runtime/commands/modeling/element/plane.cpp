@@ -1106,7 +1106,8 @@ TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
   }
 
   // get the id and end nodes
-  int BBartag, iNode, jNode, kNode, lNode, matID;
+  int BBartag, matID;
+  std::array<int, 4> nodes;
   double thickness, bk, r, perm1, perm2;
   double p = 0.0; // uniform normal traction (pressure)
   double b1 = 0.0;
@@ -1116,22 +1117,22 @@ TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
     opserr << OpenSees::PromptValueError << "invalid BBarFourNodeQuadUP eleTag" << "\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[1 + argStart], &nodes[0]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid iNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[2 + argStart], &nodes[1]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid jNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[3 + argStart], &nodes[2]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid kNode\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[4 + argStart], &nodes[3]) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid lNode\n";
     return TCL_ERROR;
   }
@@ -1192,13 +1193,9 @@ TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
 
   // now create the BBarFourNodeQuadUP and add it to the Domain
   BBarFourNodeQuadUP *theBBarFourNodeQuadUP = new BBarFourNodeQuadUP(
-      BBartag, iNode, jNode, kNode, lNode, *theMaterial,
+      BBartag, nodes, *theMaterial,
       "PlaneStrain", thickness, bk, r, perm1, perm2, b1, b2, p);
 
-  if (theBBarFourNodeQuadUP == nullptr) {
-    opserr << OpenSees::PromptValueError << "ran out of memory creating element\n";
-    return TCL_ERROR;
-  }
 
   if (builder->getDomain()->addElement(theBBarFourNodeQuadUP) == false) {
     opserr << OpenSees::PromptValueError << "could not add element to the domain\n";

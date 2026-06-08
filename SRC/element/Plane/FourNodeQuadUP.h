@@ -82,6 +82,7 @@ class FourNodeQuadUP : public Element,
   protected:
 
   private:
+    constexpr static int NEN = 4;
     // private attributes - a copy for each object of the class
     NDMaterial **theMaterial; // pointer to the ND material objects
     ID connectedExternalNodes; // Tags of quad nodes
@@ -112,7 +113,7 @@ class FourNodeQuadUP : public Element,
     void setPressureLoadAtNodes();
 
     Matrix *Ki;
-    static Node *theNodes[4];
+    Node *theNodes[NEN];
 
     double *end1InitDisp;
     double *end2InitDisp;
