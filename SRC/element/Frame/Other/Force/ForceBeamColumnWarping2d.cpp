@@ -2518,13 +2518,13 @@ ForceBeamColumnWarping2d::setSectionPointers(int numSec, SectionForceDeformation
 int
 ForceBeamColumnWarping2d::displaySelf(Renderer &theViewer, int displayMode, float fact, const char** modes, int numMode)
 {
-    static Vector v1(3);
-    static Vector v2(3);
+  static Vector v1(3);
+  static Vector v2(3);
 
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
+  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
+  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
 
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
+  return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
 }
 
 Response*
@@ -2551,8 +2551,8 @@ ForceBeamColumnWarping2d::setResponse(const char **argv, int argc, OPS_Stream &o
     output.tag("ResponseType","Px_2");
     output.tag("ResponseType","Py_2");
     output.tag("ResponseType","Mz_2");
-        output.tag("ResponseType","R_2");
-        output.tag("ResponseType","Q_2");
+    output.tag("ResponseType","R_2");
+    output.tag("ResponseType","Q_2");
 
     theResponse =  new ElementResponse(this, 1, theVector);
   

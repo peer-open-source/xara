@@ -48,7 +48,6 @@ class Node;
 class Channel;
 class FEM_ObjectBroker;
 class Response;
-class Renderer;
 class UniaxialMaterial;
 
 class BeamColumnJoint2d : public Element
@@ -137,15 +136,11 @@ class BeamColumnJoint2d : public Element
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);
-  
-  // display element graphically
-  int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-  
+
   // print out element data
   void Print(OPS_Stream &, int flag) final;    
-  
-  // implemented to print into file
-  const char *getClassType(void) const {return "BeamColumnJoint2d";};
+
+  const char *getClassType(void) const {return "BeamColumnJoint2d";}
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &eleInformation);
