@@ -32,6 +32,7 @@
 //
 #include "Element.h"
 #include <Matrix.h>
+#include <Vector.h>
 
 class Channel;
 class UniaxialMaterial;

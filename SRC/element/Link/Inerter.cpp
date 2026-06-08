@@ -33,6 +33,8 @@
 #include <FEM_ObjectBroker.h>
 #include <Information.h>
 #include <ElementResponse.h>
+#include <Vector.h>
+#include <Matrix.h>
 
 #include <float.h>
 #include <math.h>
