@@ -30,9 +30,11 @@
 #ifndef Element_h
 #define Element_h
 
-#include <DomainComponent.h>
+#include <MovableObject.h>
+#include <TaggedObject.h>
 #include <ID.h>
-#include <vector>
+#include <Vector.h>
+#include <Matrix.h>
 
 class Matrix;
 class Vector;
@@ -41,6 +43,7 @@ class Response;
 class ElementalLoad;
 class Node;
 class FE_Element;
+class Renderer;
 
 class Element : public TaggedObject, public MovableObject
 {
@@ -107,7 +110,7 @@ class Element : public TaggedObject, public MovableObject
 
     // method for obtaining information specific to an element
     virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
-    virtual int getResponse(int responseID, Information &eleInformation);
+    virtual int getResponse(int responseID, Information &);
 
     //
     // Sensitivity
