@@ -89,7 +89,13 @@ exclude = ["SRC*", "site*", "test*"]
 opensees = ["*.py", "*.so", "*.dll", "*.dylib"]
 
 [tool.setuptools.exclude-package-data]
-opensees = ["site*", "docs*", "tools", "*.html", ".git*", "*.[htc]pp", "*.[ch]", "*.cmake", "*.tex", "*.txt"]
+opensees = ["site*", 
+            "docs*", 
+            "tools", 
+            "*.html", 
+            ".git*", 
+            "*.[htc]pp", "*.[ch]", "*.cmake", "*.tex", "*.txt"
+]
 
 
 [tool.cibuildwheel]
