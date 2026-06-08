@@ -52,12 +52,12 @@ class CapPlasticity : public NDMaterial {
 		 double T, 
 		 int ndm,
 		 double pTol_k
-		 ) ;
+		 );
   CapPlasticity( const CapPlasticity & a);
   
-  ~CapPlasticity( ) ;
+  ~CapPlasticity( );
   
-  double getRho(void);
+  double getRho();
   int setTrialStrain(const Vector &v);
   int setTrialStrain(const Vector &v, const Vector &r);
   int setTrialStrainIncr(const Vector &v);
