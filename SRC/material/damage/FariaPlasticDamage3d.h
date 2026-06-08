@@ -42,6 +42,7 @@ class FariaPlasticDamage3d : public NDMaterial
 
   const char *getClassType() const override {return "FariaPlasticDamage";}
   bool threadSafe() const override {return true;}
+  double getRho() override { return density; }
 
   int setTrialStrain(const Vector &v) override;
   int setTrialStrain(const Vector &v, const Vector &r);
