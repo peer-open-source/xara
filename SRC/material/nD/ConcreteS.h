@@ -39,48 +39,43 @@
 
 
 
-class ConcreteS: public NDMaterial{
+class ConcreteS: public NDMaterial {
   public : 
     ConcreteS( ) ;
     ConcreteS(int tag, double rE, double rnu, double rfc, double rft, double rEs) ;
 
-    virtual ~ConcreteS( ) ;
+    virtual ~ConcreteS();
 
-        NDMaterial *getCopy( ) ;
+    NDMaterial *getCopy();
     NDMaterial *getCopy( const char *type ) ;
 
-        int getOrder( ) const ;
+    int getOrder() const;
 
-        const char *getType( ) const ;
+    const char *getType() const;
 
-    void setInitials() ;
+    void setInitials();
 
     //swap history variables
-    int commitState( ) ; 
-
-        int revertToLastCommit( ) ;
-
-        int revertToStart( ) ;
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
     //get the strain 
     int setTrialStrain( const Vector &strainFromElement ) ;
 
-    const Vector& getStrain( ) ;
+    const Vector& getStrain();
+    const Vector& getStress();
+    const Matrix& getTangent();
 
-    const Vector& getStress( ) ;
+    const Matrix& getInitialTangent();
 
-    const Matrix& getTangent( ) ;
+    void Print(OPS_Stream &s, int flag);
 
-    const Matrix& getInitialTangent( ) ;
-
-    void Print( OPS_Stream &s, int flag ) ;
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
 private :
     Matrix tangent, eTangent ;
     Vector strain0, strain, stress0, stress, stressd;
     double E, nu, fc, ft, Es, EmEp1, Ep, beta, ftmin, cStrain0, cStrain;
-
-} ;
+};
