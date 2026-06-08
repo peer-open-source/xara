@@ -63,8 +63,8 @@ static int num_SSPquadUP = 0;
 OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPquadUP)
 {
     if (num_SSPquadUP == 0) {
-        num_SSPquadUP++;
-        opslog<<"SSPquadUP element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+      num_SSPquadUP++;
+      opslog << "SSPquadUP element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
     }
 
     // Pointer to an element that will be returned
@@ -73,8 +73,8 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPquadUP)
     int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
     // LM change	
     if (numRemainingInputArgs < 13) {
-        opserr << "Invalid #args, want: element SSPquadUP eleTag? iNode? jNode? kNode? lNode? matTag? t? fBulk? fDen? k1? k2? e? alpha? <b1? b2?> <Pup? Plow? Pleft? Pright?>?\n";
-        return 0;
+      opserr << "Invalid #args, want: element SSPquadUP eleTag? iNode? jNode? kNode? lNode? matTag? t? fBulk? fDen? k1? k2? e? alpha? <b1? b2?> <Pup? Plow? Pleft? Pright?>?\n";
+      return 0;
     }
         
     int iData[6];
