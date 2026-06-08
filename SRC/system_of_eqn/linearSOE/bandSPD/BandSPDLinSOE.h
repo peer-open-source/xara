@@ -64,16 +64,15 @@ class BandSPDLinSOE : public LinearSOE
     virtual void zeroA();
     virtual void zeroB();
     
-    virtual const Vector &getX();
+    const Vector &getX() override;
     virtual const Vector &getB();    
     virtual double normRHS();
 
     virtual void setX(int loc, double value);    
-    virtual void setX(const Vector &x);    
-    virtual int setBandSPDSolver(BandSPDLinSolver &newSolver);    
+    virtual void setX(const Vector &x);
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
     friend class BandSPDLinSolver;
     friend class BandSPDLinLapackSolver;    
