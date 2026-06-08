@@ -351,16 +351,6 @@ PFEMIntegrator::formTangent(int statFlag)
 
     theLinSOE->zeroA();
 
-    // do modal damping
-    bool inclModalMatrix=theModel->inclModalDampingMatrix();
-    if (inclModalMatrix == true) {
-        const Vector *modalValues = theModel->getModalDampingFactors();
-        if (modalValues != 0) {
-            this->addModalDampingMatrix(modalValues);
-        }
-    }
-
-
     // loop through the DOF_Groups and add the unbalance
     DOF_GrpIter &theDOFs = theModel->getDOFs();
     DOF_Group *dofPtr;
