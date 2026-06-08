@@ -85,14 +85,14 @@ ElementFE::ElementFE(int tag, Element *ele)
   if (numDOF <= MAX_NUM_DOF) {
     // use class wide objects
     if (theVectors[numDOF] == nullptr) {
-        theVectors[numDOF] = new Vector(numDOF);
-        theMatrices[numDOF] = new Matrix(numDOF,numDOF);
-        theResidual = theVectors[numDOF];
-        theTangent  = theMatrices[numDOF];
+      theVectors[numDOF] = new Vector(numDOF);
+      theMatrices[numDOF] = new Matrix(numDOF,numDOF);
+      theResidual = theVectors[numDOF];
+      theTangent  = theMatrices[numDOF];
 
     } else {
-        theResidual = theVectors[numDOF];
-        theTangent  = theMatrices[numDOF];
+      theResidual = theVectors[numDOF];
+      theTangent  = theMatrices[numDOF];
     }
   }
 
@@ -159,6 +159,7 @@ ElementFE::setID(AnalysisModel &theModel)
   }
   return 0;
 }
+
 
 int
 ElementFE::updateElement()
@@ -373,19 +374,20 @@ ElementFE::getKi_Force(const Vector &disp, double fact)
   return *theResidual;
 }
 
+
 const Vector &
 ElementFE::getM_Force(const Vector &disp, double fact)
 {
-
   // zero out the force vector
   theResidual->Zero();
 
   if (fact == 0.0)
-      return *theResidual;
+    return *theResidual;
 
   // get the components we need out of the vector
   // and place in a temporary vector
-  Vector tmp(numDOF);
+  static Vector tmp(0);
+  tmp.resize(numDOF);
   for (int i=0; i<numDOF; i++) {
     int dof = myID(i);
     if (dof >= 0)
@@ -398,6 +400,7 @@ ElementFE::getM_Force(const Vector &disp, double fact)
 
   return *theResidual;
 }
+
 
 const Vector &
 ElementFE::getC_Force(const Vector &disp, double fact)
