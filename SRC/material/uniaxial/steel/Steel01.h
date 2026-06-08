@@ -41,8 +41,12 @@ class Steel01 : public UniaxialMaterial
 {
   public:
     Steel01(int tag, double fy, double E0, double b,
-       double a1 = STEEL_01_DEFAULT_A1, double a2 = STEEL_01_DEFAULT_A2,
-       double a3 = STEEL_01_DEFAULT_A3, double a4 = STEEL_01_DEFAULT_A4);
+       double a1 = STEEL_01_DEFAULT_A1, 
+       double a2 = STEEL_01_DEFAULT_A2,
+       double a3 = STEEL_01_DEFAULT_A3, 
+       double a4 = STEEL_01_DEFAULT_A4,
+       double density = 0.0
+    );
     Steel01();
     ~Steel01();
 
@@ -60,9 +64,10 @@ class Steel01 : public UniaxialMaterial
     int revertToStart();        
 
     UniaxialMaterial *getCopy();
+    double getRho() override { return density; }
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
     void Print(OPS_Stream &s, int flag);
     
@@ -80,16 +85,18 @@ class Steel01 : public UniaxialMaterial
  protected:
     
  private:
-	 double Energy;	//by SAJalali
-	/*** Material Properties ***/
+	// Material Properties
     double fy;  // Yield stress
     double E0;  // Initial stiffness
     double b;   // Hardening ratio (b = Esh/E0)
     double a1;
     double a2;
     double a3;
-    double a4;  // a1 through a4 are coefficients for isotropic hardening
+    double a4;      // a1 through a4 are coefficients for isotropic hardening
+    double density; // mass per unit volume
     
+	double Energy;	//by SAJalali
+
     /*** CONVERGED History Variables ***/
     double CminStrain;  // Minimum strain in compression
     double CmaxStrain;  // Maximum strain in tension

@@ -44,9 +44,13 @@
 
 
 Steel01::Steel01(int tag, double FY, double E, double B,
-                double A1, double A2, double A3, double A4):
+                double A1, double A2, double A3, double A4,
+                double Density
+                ):
    UniaxialMaterial(tag,MAT_TAG_Steel01),
-   fy(FY), E0(E), b(B), a1(A1), a2(A2), a3(A3), a4(A4)
+   fy(FY), E0(E), b(B), 
+   a1(A1), a2(A2), a3(A3), a4(A4),
+   density(Density)
 {
    // Sets all history and state variables to initial values
 
