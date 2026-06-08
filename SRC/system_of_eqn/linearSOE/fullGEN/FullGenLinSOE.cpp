@@ -71,8 +71,10 @@ FullGenLinSOE::FullGenLinSOE(int N, FullGenLinSolver &theSolvr)
     
 FullGenLinSOE::~FullGenLinSOE()
 {
-  if (A != 0) delete [] A;     
-  if (matA != 0) delete matA;        
+  if (A != 0)
+    delete [] A;     
+  if (matA != 0)
+    delete matA;        
 }
 
 
@@ -85,44 +87,44 @@ FullGenLinSOE::getNumEqn() const
 int 
 FullGenLinSOE::setSize(Graph &theGraph)
 {
-    int result = 0;
-    int oldSize = size;
-    size = theGraph.getNumVertex();
+  int result = 0;
+  int oldSize = size;
+  size = theGraph.getNumVertex();
 
-    if (size > oldSize) { // we have to get another space for A
+  if (size > oldSize) { // we have to get another space for A
 
-        if (A != nullptr) 
-            delete [] A;
+    if (A != nullptr) 
+      delete [] A;
 
-        A = new double[size*size];
-    }
+    A = new double[size*size];
+  }
 
-    factored = false;
+  factored = false;
 
-    B.resize(size);
-    B.Zero();
-    X.resize(size);
-    X.Zero();
+  B.resize(size);
+  B.Zero();
+  X.resize(size);
+  X.Zero();
 
 
-    // create new Vectors
-    if (size != oldSize || matA == nullptr) {
-        if (matA != nullptr)
-            delete matA;
-        matA  = new Matrix(A, size, size);	
-    }
-    matA->Zero();
+  // create new Vectors
+  if (size != oldSize || matA == nullptr) {
+      if (matA != nullptr)
+          delete matA;
+      matA  = new Matrix(A, size, size);	
+  }
+  matA->Zero();
 
-    // invoke setSize() on the Solver    
-    LinearSOESolver *theSolvr = this->getSolver();
-    int solverOK = theSolvr->setSize();
-    if (solverOK < 0) {
-        // opserr << "WARNING:FullGenLinSOE::setSize :";
-        // opserr << " solver failed setSize()\n";
-        return solverOK;
-    }    
-    
-    return result;
+  // invoke setSize() on the Solver    
+  LinearSOESolver *theSolvr = this->getSolver();
+  int solverOK = theSolvr->setSize();
+  if (solverOK < 0) {
+      // opserr << "WARNING:FullGenLinSOE::setSize :";
+      // opserr << " solver failed setSize()\n";
+      return solverOK;
+  }    
+  
+  return result;
 }
 
 int 
@@ -205,33 +207,33 @@ FullGenLinSOE::addColA(const Vector &colData, int col, double fact)
 int 
 FullGenLinSOE::addB(const Vector &v, const ID &id, double fact)
 {
-    // check for a quick return 
-    if (fact == 0.0)  return 0;
+  // check for a quick return 
+  if (fact == 0.0)  return 0;
 
-    int idSize = id.Size();    
-    // check that m and id are of similar size
-    assert(idSize == v.Size() );
+  int idSize = id.Size();    
+  // check that m and id are of similar size
+  assert(idSize == v.Size() );
 
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		B[pos] += v(i);
-	}
-    } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		B[pos] -= v(i);
-	}
-    } else {
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		B[pos] += v(i) * fact;
-	}
-    }	
-    return 0;
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+      B[pos] += v(i);
+    }
+  } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
+    for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+      B[pos] -= v(i);
+    }
+  } else {
+    for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+      B[pos] += v(i) * fact;
+    }
+  }	
+  return 0;
 }
 
 
@@ -239,43 +241,43 @@ FullGenLinSOE::addB(const Vector &v, const ID &id, double fact)
 int
 FullGenLinSOE::setB(const Vector &v, double fact)
 {
-    assert (v.Size() == size);
+  assert (v.Size() == size);
 
-    // check for a quick return 
-    if (fact == 0.0)
-      return 0;
-
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-        for (int i=0; i<size; i++) {
-            B[i] = v(i);
-        }
-    } else if (fact == -1.0) {
-        for (int i=0; i<size; i++) {
-            B[i] = -v(i);
-        }
-    } else {
-        for (int i=0; i<size; i++) {
-            B[i] = v(i) * fact;
-        }
-    }	
+  // check for a quick return 
+  if (fact == 0.0)
     return 0;
+
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i=0; i<size; i++) {
+      B[i] = v(i);
+    }
+  } else if (fact == -1.0) {
+    for (int i=0; i<size; i++) {
+      B[i] = -v(i);
+    }
+  } else {
+    for (int i=0; i<size; i++) {
+      B[i] = v(i) * fact;
+    }
+  }	
+  return 0;
 }
 
 void 
 FullGenLinSOE::zeroA()
 {
-    double *Aptr = A;
-    int theSize = size*size;
-    for (int i=0; i<theSize; i++)
-        *Aptr++ = 0;
+  double *Aptr = A;
+  int theSize = size*size;
+  for (int i=0; i<theSize; i++)
+      *Aptr++ = 0;
 
-    factored = false;
+  factored = false;
 }
 	
 void 
 FullGenLinSOE::zeroB()
 {
-    B.Zero();
+  B.Zero();
 }
 
 int
@@ -301,7 +303,7 @@ void
 FullGenLinSOE::setX(int loc, double value)
 {
   if (loc < size && loc >=0)
-	X[loc] = value;
+    X[loc] = value;
 }
 
 void 
@@ -335,29 +337,12 @@ FullGenLinSOE::normRHS()
 {
   double norm =0.0;
   for (int i=0; i<size; i++) {
-      double Yi = B[i];
-      norm += Yi*Yi;
+    double Yi = B[i];
+    norm += Yi*Yi;
   }
   return sqrt(norm);
 }    
 
-
-int
-FullGenLinSOE::setFullGenSolver(FullGenLinSolver &newSolver)
-{
-    newSolver.setLinearSOE(*this);
-
-    if (size != 0) {
-        int solverOK = newSolver.setSize();
-        if (solverOK < 0) {
-                // opserr << "WARNING:FullGenLinSOE::setSolver :";
-                // opserr << "the new solver could not setSize() - staying with old\n";
-                return -1;
-            }
-    }
-    
-    return this->LinearSOE::setSolver(newSolver);
-}
 
 
 int 
