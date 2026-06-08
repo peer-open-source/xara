@@ -59,7 +59,7 @@ class ElementFE: public FE_Element
     // methods used by integrator to build residual    
     virtual void  zeroResidual();    
     virtual void  addRtoResidual(double fact = 1.0);
-    virtual void  addRIncInertiaToResidual(double fact);    
+    void  addRIncInertiaToResidual(double fact) override;    
 
     // methods for ele-by-ele strategies
     virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
