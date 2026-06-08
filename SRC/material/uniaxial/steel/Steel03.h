@@ -67,24 +67,23 @@ class Steel03 : public UniaxialMaterial
     Steel03();
     ~Steel03();
 
-    const char *getClassType(void) const {return "Steel03";};
+    const char *getClassType(void) const {return "Steel03";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
     int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
     double getStrain(void);              
     double getStress(void);
     double getTangent(void);
-    double getInitialTangent(void) {return E0;};
+    double getInitialTangent(void) {return E0;}
 
     int commitState(void);
     int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int revertToStart();        
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
     void Print(OPS_Stream &, int flag) final;
     
