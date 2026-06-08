@@ -65,7 +65,6 @@
 
 extern Tcl_CmdProc TclCommand_addPlaneWrapper;
 extern Tcl_CmdProc TclCommand_newJ2Material;
-// extern Tcl_CmdProc TclCommand_newJ2Simplified;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 extern Tcl_CmdProc TclCommand_newConcreteMaterial;
 extern Tcl_CmdProc TclCommand_newElasticMaterial;
