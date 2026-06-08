@@ -1071,11 +1071,9 @@ SSPquadUP::DyadicProd(Vector v1, Vector v2)
 }
 
 void
-SSPquadUP::GetStab(void)
+SSPquadUP::GetStab()
 // this function computes the stabilization stiffness matrix for the element
 {
-	Vector g1(SQUP_NUM_DIM);
-	Vector g2(SQUP_NUM_DIM);
 	Matrix I(SQUP_NUM_DIM,SQUP_NUM_DIM);
 	Matrix FCF(SQUP_NUM_DIM,SQUP_NUM_DIM);
 	Matrix Jmat(SQUP_NUM_DIM,SQUP_NUM_DIM);
@@ -1127,6 +1125,8 @@ SSPquadUP::GetStab(void)
 	}
 
 	// base vectors
+	Vector g1(SQUP_NUM_DIM);
+	Vector g2(SQUP_NUM_DIM);
 	g1(0) = Jmat(0,0);
 	g1(1) = Jmat(1,0);
 	g2(0) = Jmat(0,1);

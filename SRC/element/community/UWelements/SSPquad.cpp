@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <array>
 
+using namespace OpenSees;
 
 SSPquad::SSPquad(int tag,
                  const std::array<int, 4> &nodes,

@@ -46,6 +46,8 @@ class NDMaterial;
 class FEM_ObjectBroker;
 class Response;
 
+namespace OpenSees {
+
 class SSPquad : public Element
 {
   public:
@@ -136,5 +138,5 @@ class SSPquad : public Element
     Matrix mNodeCrd;                                    // nodal coordinate array
     double density;                                     // mass density
 };
-
+} // namespace OpenSees
 #endif
