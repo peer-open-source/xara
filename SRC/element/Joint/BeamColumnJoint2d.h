@@ -65,7 +65,7 @@ class BeamColumnJoint2d : public Element
 		    UniaxialMaterial& theMat9, UniaxialMaterial& theMat10,
 		    UniaxialMaterial& theMat11, UniaxialMaterial& theMat12,
 		    UniaxialMaterial& theMat13);
-  
+
   BeamColumnJoint2d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
 		    UniaxialMaterial& theMat1, UniaxialMaterial& theMat2,
 		    UniaxialMaterial& theMat3, UniaxialMaterial& theMat4,
@@ -80,18 +80,16 @@ class BeamColumnJoint2d : public Element
 
 
   
-  ////////////// public methods to obtain information about dof & connectivity    
-  bool	isSubdomain(void) { return false; } ;
-  
+  ////////////// public methods to obtain information about dof & connectivity  
   // get number of external nodes
-  int getNumExternalNodes(void) const;
+  int getNumExternalNodes() const;
   
   // return connected external nodes
-  const ID &getExternalNodes(void);
-  Node **getNodePtrs(void);
+  const ID &getExternalNodes();
+  Node **getNodePtrs();
   
   // return number of DOFs
-  int getNumDOF(void);	
+  int getNumDOF();	
   
   // set domain performs check on dof and associativity with node
   void setDomain(Domain *theDomain);
@@ -99,23 +97,23 @@ class BeamColumnJoint2d : public Element
   //////////////////////////// public methods to set the state of the element    
   
   // commit state
-  int commitState(void);
+  int commitState();
   
   // revert to last commit
-  int revertToLastCommit(void);        
+  int revertToLastCommit();        
   
   // revert to start
-  int revertToStart(void);        
+  int revertToStart();        
   
   // determine current strain and set strain in material
-  int update(void);
+  int update();
   
   //////////////////////// public methods to obtain stiffness, mass, damping and 
   ////////////////////////////////////// residual information    
   
   // returns converged tangent stiffness matrix
-  const Matrix &getTangentStiff(void);
-  const Matrix &getInitialStiff(void);   
+  const Matrix &getTangentStiff();
+  const Matrix &getInitialStiff();   
   
   // not required for this element formulation
   const Matrix &getDamp(void);    
