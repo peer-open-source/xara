@@ -54,7 +54,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h>
+using namespace OpenSees;
 
 #define OPS_Export
 
@@ -247,39 +247,46 @@ SSPquadUP::~SSPquadUP()
 }
 
 int 
-SSPquadUP::getNumExternalNodes(void) const
+SSPquadUP::getNumExternalNodes() const
 {
     return SQUP_NUM_NODE;
 }
 
 const ID &
-SSPquadUP::getExternalNodes(void)
+SSPquadUP::getExternalNodes()
 {
-    return mExternalNodes;
+  return mExternalNodes;
 }
 
 Node **
-SSPquadUP::getNodePtrs(void)
+SSPquadUP::getNodePtrs()
 {
-    return theNodes;
+  return theNodes;
 }
 
 int
-SSPquadUP::getNumDOF(void)
+SSPquadUP::getNumDOF()
 {
-    return SQUP_NUM_DOF;
+  return SQUP_NUM_DOF;
 }
 
 void
 SSPquadUP::setDomain(Domain *theDomain)
 {
+    if (theDomain == nullptr) {
+        for (int i = 0; i < 4; i++) {
+            theNodes[i] = nullptr;
+        }
+        return;
+    }
+
     theNodes[0] = theDomain->getNode(mExternalNodes(0));
     theNodes[1] = theDomain->getNode(mExternalNodes(1));
     theNodes[2] = theDomain->getNode(mExternalNodes(2));
     theNodes[3] = theDomain->getNode(mExternalNodes(3));
 
     for (int i = 0; i < 4; i++) {
-        if (theNodes[i] == 0) {
+        if (theNodes[i] == nullptr) {
             return;  // don't go any further - otherwise segmentation fault
         }
     }
@@ -325,247 +332,247 @@ SSPquadUP::setDomain(Domain *theDomain)
 }
 
 int
-SSPquadUP::commitState(void)
+SSPquadUP::commitState()
 {
-    int retVal = 0;
-    // call element commitState to do any base class stuff
-    if ((retVal = this->Element::commitState()) != 0) {
-        opserr << "SSPquadUP::commitState() - failed in base class\n";
-    }
-    retVal = theMaterial->commitState();
+  int retVal = 0;
+  // call element commitState to do any base class stuff
+  if ((retVal = this->Element::commitState()) != 0) {
+      opserr << "SSPquadUP::commitState() - failed in base class\n";
+  }
+  retVal = theMaterial->commitState();
 
-    return retVal;
+  return retVal;
 }
 
 int
-SSPquadUP::revertToLastCommit(void)
+SSPquadUP::revertToLastCommit()
 {
-    return theMaterial->revertToLastCommit();
+  return theMaterial->revertToLastCommit();
 }
 
 int
-SSPquadUP::revertToStart(void)
+SSPquadUP::revertToStart()
 {
-    return theMaterial->revertToStart();
+  return theMaterial->revertToStart();
 }
 
 int
-SSPquadUP::update(void)
+SSPquadUP::update()
 // this function updates variables for an incremental step n to n+1
 {
-    // get trial displacement
-    const Vector &mDisp_1 = theNodes[0]->getTrialDisp();
-    const Vector &mDisp_2 = theNodes[1]->getTrialDisp();
-    const Vector &mDisp_3 = theNodes[2]->getTrialDisp();
-    const Vector &mDisp_4 = theNodes[3]->getTrialDisp();
-        
-    // assemble displacement vector
-    Vector u(8);
-    u(0) = mDisp_1(0);
-    u(1) = mDisp_1(1);
-    u(2) = mDisp_2(0);
-    u(3) = mDisp_2(1);
-    u(4) = mDisp_3(0);
-    u(5) = mDisp_3(1);
-    u(6) = mDisp_4(0);
-    u(7) = mDisp_4(1);
+  // get trial displacement
+  const Vector &mDisp_1 = theNodes[0]->getTrialDisp();
+  const Vector &mDisp_2 = theNodes[1]->getTrialDisp();
+  const Vector &mDisp_3 = theNodes[2]->getTrialDisp();
+  const Vector &mDisp_4 = theNodes[3]->getTrialDisp();
+      
+  // assemble displacement vector
+  Vector u(8);
+  u(0) = mDisp_1(0);
+  u(1) = mDisp_1(1);
+  u(2) = mDisp_2(0);
+  u(3) = mDisp_2(1);
+  u(4) = mDisp_3(0);
+  u(5) = mDisp_3(1);
+  u(6) = mDisp_4(0);
+  u(7) = mDisp_4(1);
 
-    Vector strain(3);
-    strain = Mmem*u;
-    theMaterial->setTrialStrain(strain);
+  Vector strain(3);
+  strain = Mmem*u;
+  theMaterial->setTrialStrain(strain);
 
-    return 0;
+  return 0;
 }
 
 const Matrix &
-SSPquadUP::getTangentStiff(void)
+SSPquadUP::getTangentStiff()
 // this function computes the tangent stiffness matrix for the element
 {
-    // solid phase stiffness matrix
-    GetSolidStiffness();
+  // solid phase stiffness matrix
+  GetSolidStiffness();
 
-    // assemble full element stiffness matrix [ K  0 ]
-    // comprised of K submatrix               [ 0  0 ]
-    mTangentStiffness.Zero();
-    for (int i = 0; i < 4; i++) {
+  // assemble full element stiffness matrix [ K  0 ]
+  // comprised of K submatrix               [ 0  0 ]
+  mTangentStiffness.Zero();
+  for (int i = 0; i < 4; i++) {
 
-        int I    = 2*i;
-        int Ip1  = 2*i+1;
-        int II   = 3*i;
-        int IIp1 = 3*i+1;
+      int I    = 2*i;
+      int Ip1  = 2*i+1;
+      int II   = 3*i;
+      int IIp1 = 3*i+1;
 
-        for (int j = 0; j < 4; j++) {
+      for (int j = 0; j < 4; j++) {
 
-            int J    = 2*j;
-            int Jp1  = 2*j+1;
-            int JJ   = 3*j;
-            int JJp1 = 3*j+1;
+          int J    = 2*j;
+          int Jp1  = 2*j+1;
+          int JJ   = 3*j;
+          int JJp1 = 3*j+1;
 
-            // contribution of solid phase stiffness matrix
-            mTangentStiffness(II,JJ)     = mSolidK(I,J);
-            mTangentStiffness(IIp1,JJ)   = mSolidK(Ip1,J);
-            mTangentStiffness(IIp1,JJp1) = mSolidK(Ip1,Jp1);
-            mTangentStiffness(II,JJp1)   = mSolidK(I,Jp1);
-        }
-    }
+          // contribution of solid phase stiffness matrix
+          mTangentStiffness(II,JJ)     = mSolidK(I,J);
+          mTangentStiffness(IIp1,JJ)   = mSolidK(Ip1,J);
+          mTangentStiffness(IIp1,JJp1) = mSolidK(Ip1,Jp1);
+          mTangentStiffness(II,JJp1)   = mSolidK(I,Jp1);
+      }
+  }
 
-    return mTangentStiffness;
+  return mTangentStiffness;
 }
 
 const Matrix &
-SSPquadUP::getInitialStiff(void)
+SSPquadUP::getInitialStiff()
 // this function computes the initial tangent stiffness matrix for the element
 {
-    return getTangentStiff();
+  return getTangentStiff();
 }
 
 const Matrix &
-SSPquadUP::getDamp(void)
+SSPquadUP::getDamp()
 {
-    Matrix dampC(8,8);
+  Matrix dampC(8,8);
 
-    // solid phase stiffness matrix
-    GetSolidStiffness();
+  // solid phase stiffness matrix
+  GetSolidStiffness();
 
-    // contribution of stiffness matrix for Rayleigh damping
-    if (betaK != 0.0) {
-        dampC.addMatrix(1.0, mSolidK, betaK);
-    } if (betaK0 != 0.0) {
-        dampC.addMatrix(1.0, mSolidK, betaK0);
-    } if (betaKc != 0.0) {
-        dampC.addMatrix(1.0, mSolidK, betaKc);
-    }
+  // contribution of stiffness matrix for Rayleigh damping
+  if (betaK != 0.0) {
+      dampC.addMatrix(1.0, mSolidK, betaK);
+  } if (betaK0 != 0.0) {
+      dampC.addMatrix(1.0, mSolidK, betaK0);
+  } if (betaKc != 0.0) {
+      dampC.addMatrix(1.0, mSolidK, betaKc);
+  }
 
-    // contribution of mass matrix for Rayleigh damping
-    if (alphaM != 0.0) {
-        dampC.addMatrix(1.0, mSolidM, alphaM);
-    }
+  // contribution of mass matrix for Rayleigh damping
+  if (alphaM != 0.0) {
+      dampC.addMatrix(1.0, mSolidM, alphaM);
+  }
 
-    // assemble full element damping matrix   [  C  -Q ]
-    // comprised of C, Q, and H submatrices   [ -Q' -H ]
-    mDamp.Zero();
-    for (int i = 0; i < 4; i++) {
+  // assemble full element damping matrix   [  C  -Q ]
+  // comprised of C, Q, and H submatrices   [ -Q' -H ]
+  mDamp.Zero();
+  for (int i = 0; i < 4; i++) {
 
-        int I    = 2*i;
-        int Ip1  = 2*i+1;
-        int II   = 3*i;
-        int IIp1 = 3*i+1;
-        int IIp2 = 3*i+2;
+      int I    = 2*i;
+      int Ip1  = 2*i+1;
+      int II   = 3*i;
+      int IIp1 = 3*i+1;
+      int IIp2 = 3*i+2;
 
-        for (int j = 0; j < 4; j++) {
+      for (int j = 0; j < 4; j++) {
 
-            int J    = 2*j;
-            int Jp1  = 2*j+1;
-            int JJ   = 3*j;
-            int JJp1 = 3*j+1;
-            int JJp2 = 3*j+2;
+          int J    = 2*j;
+          int Jp1  = 2*j+1;
+          int JJ   = 3*j;
+          int JJp1 = 3*j+1;
+          int JJp2 = 3*j+2;
 
-            // contribution of solid phase damping matrix
-            mDamp(II,JJ)     = dampC(I,J);
-            mDamp(IIp1,JJ)   = dampC(Ip1,J);
-            mDamp(IIp1,JJp1) = dampC(Ip1,Jp1);
-            mDamp(II,JJp1)   = dampC(I,Jp1);
+          // contribution of solid phase damping matrix
+          mDamp(II,JJ)     = dampC(I,J);
+          mDamp(IIp1,JJ)   = dampC(Ip1,J);
+          mDamp(IIp1,JJp1) = dampC(Ip1,Jp1);
+          mDamp(II,JJp1)   = dampC(I,Jp1);
 
-            // contribution of solid-fluid coupling matrix
-            mDamp(JJp2,II)   = -J0*mThickness*Mmem(0,I);
-            mDamp(JJp2,IIp1) = -J0*mThickness*Mmem(1,Ip1);
-            mDamp(II,JJp2)   = -J0*mThickness*Mmem(0,I);
-            mDamp(IIp1,JJp2) = -J0*mThickness*Mmem(1,Ip1);
-                        
-            // contribution of permeability matrix
-            mDamp(IIp2,JJp2) = -mPerm(i,j);
-        }
-    }
+          // contribution of solid-fluid coupling matrix
+          mDamp(JJp2,II)   = -J0*mThickness*Mmem(0,I);
+          mDamp(JJp2,IIp1) = -J0*mThickness*Mmem(1,Ip1);
+          mDamp(II,JJp2)   = -J0*mThickness*Mmem(0,I);
+          mDamp(IIp1,JJp2) = -J0*mThickness*Mmem(1,Ip1);
+                      
+          // contribution of permeability matrix
+          mDamp(IIp2,JJp2) = -mPerm(i,j);
+      }
+  }
 
-    return mDamp;
+  return mDamp;
 }
 
 const Matrix &
-SSPquadUP::getMass(void)
+SSPquadUP::getMass()
 {
-    mMass.Zero();
+  mMass.Zero();
 
-    // compute compressibility matrix term
-    double oneOverQ = -0.25*J0*mThickness*mPorosity/fBulk;
+  // compute compressibility matrix term
+  double oneOverQ = -0.25*J0*mThickness*mPorosity/fBulk;
 
-    // get mass density from the material
-    double density = theMaterial->getRho();
+  // get mass density from the material
+  double density = theMaterial->getRho();
 
-    // transpose the shape function derivative array
-    Matrix dNp(2,4);
-    dNp(0,0) = dN(0,0); dNp(0,1) = dN(1,0); dNp(0,2) = dN(2,0); dNp(0,3) = dN(3,0);
-    dNp(1,0) = dN(0,1); dNp(1,1) = dN(1,1); dNp(1,2) = dN(2,1); dNp(1,3) = dN(3,1);
+  // transpose the shape function derivative array
+  Matrix dNp(2,4);
+  dNp(0,0) = dN(0,0); dNp(0,1) = dN(1,0); dNp(0,2) = dN(2,0); dNp(0,3) = dN(3,0);
+  dNp(1,0) = dN(0,1); dNp(1,1) = dN(1,1); dNp(1,2) = dN(2,1); dNp(1,3) = dN(3,1);
 
-    // compute stabilization matrix for incompressible problems
-    Matrix Kp(4,4);
-    Kp = -4.0*mAlpha*J0*mThickness*dN*dNp;
+  // compute stabilization matrix for incompressible problems
+  Matrix Kp(4,4);
+  Kp = -4.0*mAlpha*J0*mThickness*dN*dNp;
 
-    // return zero matrix if density is zero
-    if (density == 0.0) {
-        return mMass;
-    }
+  // return zero matrix if density is zero
+  if (density == 0.0) {
+      return mMass;
+  }
 
-    // full mass matrix for the element [ M  0 ]
-    //  includes M and S submatrices    [ 0 -S ]
-    for (int i = 0; i < 4; i++) {
+  // full mass matrix for the element [ M  0 ]
+  //  includes M and S submatrices    [ 0 -S ]
+  for (int i = 0; i < 4; i++) {
 
-        int I    = 2*i;
-        int Ip1  = 2*i+1;
-        int II   = 3*i;
-        int IIp1 = 3*i+1;
-        int IIp2 = 3*i+2;
+      int I    = 2*i;
+      int Ip1  = 2*i+1;
+      int II   = 3*i;
+      int IIp1 = 3*i+1;
+      int IIp2 = 3*i+2;
 
-        for (int j = 0; j < 4; j++) {
+      for (int j = 0; j < 4; j++) {
 
-            int J    = 2*j;
-            int Jp1  = 2*j+1;
-            int JJ   = 3*j;
-            int JJp1 = 3*j+1;
-            int JJp2 = 3*j+2;
+          int J    = 2*j;
+          int Jp1  = 2*j+1;
+          int JJ   = 3*j;
+          int JJp1 = 3*j+1;
+          int JJp2 = 3*j+2;
 
-            mMass(II,JJ)     = mSolidM(I,J);
-            mMass(IIp1,JJ)   = mSolidM(Ip1,J);
-            mMass(IIp1,JJp1) = mSolidM(Ip1,Jp1);
-            mMass(II,JJp1)   = mSolidM(I,Jp1);
+          mMass(II,JJ)     = mSolidM(I,J);
+          mMass(IIp1,JJ)   = mSolidM(Ip1,J);
+          mMass(IIp1,JJp1) = mSolidM(Ip1,Jp1);
+          mMass(II,JJp1)   = mSolidM(I,Jp1);
 
-            // contribution of compressibility matrix
-            mMass(IIp2,JJp2) = Kp(i,j) + oneOverQ;
-        }
-    }
+          // contribution of compressibility matrix
+          mMass(IIp2,JJp2) = Kp(i,j) + oneOverQ;
+      }
+  }
 
-    return mMass;
+  return mMass;
 }
 
 void
-SSPquadUP::zeroLoad(void)
+SSPquadUP::zeroLoad()
 {
-    applyLoad = 0;
-    appliedB[0] = 0.0;
-    appliedB[1] = 0.0;
-  
-    Q.Zero();
+  applyLoad = 0;
+  appliedB[0] = 0.0;
+  appliedB[1] = 0.0;
 
-    return;
+  Q.Zero();
+
+  return;
 }
 
 int
 SSPquadUP::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-    // body forces can be applied in a load pattern
-    int type;
-    const Vector &data = theLoad->getData(type, loadFactor);
+  // body forces can be applied in a load pattern
+  int type;
+  const Vector &data = theLoad->getData(type, loadFactor);
 
-    if (type == LOAD_TAG_SelfWeight) {
-        applyLoad = 1;
-        appliedB[0] += loadFactor*data(0)*b[0];
-        appliedB[1] += loadFactor*data(1)*b[1];
-        return 0;
-    } else {
-        opserr << "SSPquadUP::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
-        return -1;
-    } 
+  if (type == LOAD_TAG_SelfWeight) {
+      applyLoad = 1;
+      appliedB[0] += loadFactor*data(0)*b[0];
+      appliedB[1] += loadFactor*data(1)*b[1];
+      return 0;
+  } else {
+      opserr << "SSPquadUP::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
+      return -1;
+  } 
 
-    return -1;
+  return -1;
 }
 
 int

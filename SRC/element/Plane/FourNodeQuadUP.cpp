@@ -72,7 +72,7 @@ FourNodeQuadUP::FourNodeQuadUP(int tag,
   }
 
   // Set connected external node IDs
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < NEN; i++)
     connectedExternalNodes(i) = nodes[i];
 }
 
@@ -129,7 +129,7 @@ FourNodeQuadUP::getNodePtrs()
 int
 FourNodeQuadUP::getNumDOF()
 {
-    return 12;
+  return 12;
 }
 
 void
@@ -137,11 +137,11 @@ FourNodeQuadUP::setDomain(Domain *theDomain)
 {
   // Check Domain is not null - invoked when object removed from a domain
   if (theDomain == nullptr) {
-    for (int i=0; i<4; i++)
+    for (int i=0; i<NEN; i++)
       theNodes[i] = nullptr;
     return;
   }
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<NEN; i++) {
     theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
     if (theNodes[i] == nullptr) {
       return;
@@ -192,43 +192,44 @@ FourNodeQuadUP::setDomain(Domain *theDomain)
 }
 
 int
-FourNodeQuadUP::commitState() {
-    int retVal = 0;
+FourNodeQuadUP::commitState()
+{
+  int retVal = 0;
 
-    // call element commitState to do any base class stuff
-    if ((retVal = this->Element::commitState()) != 0) {
-      opserr << "FourNodeQuad_UP::commitState () - failed in base class";
-    }
+  // call element commitState to do any base class stuff
+  if ((retVal = this->Element::commitState()) != 0) {
+    opserr << "FourNodeQuad_UP::commitState () - failed in base class";
+  }
 
-    // Loop over the integration points and commit the material states
-    for (int i = 0; i < 4; i++)
-      retVal += theMaterial[i]->commitState();
+  // Loop over the integration points and commit the material states
+  for (int i = 0; i < 4; i++)
+    retVal += theMaterial[i]->commitState();
 
-    return retVal;
+  return retVal;
 }
 
 int
 FourNodeQuadUP::revertToLastCommit()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert to last committed state
-    for (int i = 0; i < 4; i++)
+  // Loop over the integration points and revert to last committed state
+  for (int i = 0; i < nip; i++)
     retVal += theMaterial[i]->revertToLastCommit();
 
-    return retVal;
+  return retVal;
 }
 
 int
 FourNodeQuadUP::revertToStart()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert states to start
-    for (int i = 0; i < nip; i++)
+  // Loop over the integration points and revert states to start
+  for (int i = 0; i < nip; i++)
     retVal += theMaterial[i]->revertToStart();
 
-    return retVal;
+  return retVal;
 }
 
 int
@@ -342,7 +343,8 @@ FourNodeQuadUP::getTangentStiff()
 }
 
 
-const Matrix &FourNodeQuadUP::getInitialStiff ()
+const Matrix &
+FourNodeQuadUP::getInitialStiff ()
 {
   if (Ki != 0) return *Ki;
 
@@ -596,9 +598,8 @@ FourNodeQuadUP::getResistingForce()
   this->shapeFunction();
   double vol = dvol[0] + dvol[1] + dvol[2] + dvol[3];
 
-  int i;
   // Loop over the integration points
-  for (i = 0; i < 4; i++) {
+  for (int i = 0; i < nip; i++) {
 
     // Get material stress response
     const Vector &sigma = theMaterial[i]->getStress();
@@ -632,7 +633,7 @@ FourNodeQuadUP::getResistingForce()
     //P(ia+2) += vol*rho*(perm[0]*b[0]*shpBar[0][alpha]
   //    +perm[1]*b[1]*shpBar[1][alpha]);
 
-    for (i = 0; i < nip; i++) {
+    for (int i = 0; i < nip; i++) {
       if (applyLoad == 0) {
         P(ia+2) += dvol[i]*rho*(perm[0]*b[0]*shp[0][alpha][i]
                                +perm[1]*b[1]*shp[1][alpha][i]);
@@ -684,11 +685,11 @@ FourNodeQuadUP::getResistingForceIncInertia()
   this->getResistingForce();
 
   // Compute the mass matrix
-  this->getMass();
+  const Matrix &M = this->getMass();
 
   for (int i = 0; i < 12; i++) {
     for (int j = 0; j < 12; j++)
-      P(i) += K(i,j)*a[j];
+      P(i) += M(i,j)*a[j];
   }
 
   // dynamic seepage force
@@ -719,11 +720,11 @@ FourNodeQuadUP::getResistingForceIncInertia()
   a[10] = vel4(1);
   a[11] = vel4(2);
 
-  this->getDamp();
+  const Matrix &D = this->getDamp();
 
   for (int i = 0; i < 12; i++) {
     for (int j = 0; j < 12; j++) {
-      P(i) += K(i,j)*a[j];
+      P(i) += D(i,j)*a[j];
     }
   }
 
@@ -770,8 +771,8 @@ FourNodeQuadUP::sendSelf(int commitTag, Channel &theChannel)
 
   static ID idData(12);
 
-  int i;
-  for (i = 0; i < 4; i++) {
+
+  for (int i = 0; i < nip; i++) {
     idData(i) = theMaterial[i]->getClassTag();
     matDbTag = theMaterial[i]->getDbTag();
     // NOTE: we do have to ensure that the material has a database
@@ -796,7 +797,7 @@ FourNodeQuadUP::sendSelf(int commitTag, Channel &theChannel)
   }
 
   // Finally, quad asks its material objects to send themselves
-  for (i = 0; i < 4; i++) {
+  for (int i = 0; i < nip; i++) {
     res += theMaterial[i]->sendSelf(commitTag, theChannel);
     if (res < 0) {
       opserr << "WARNING FourNodeQuadUP::sendSelf() - " << this->getTag() << " failed to send its Material\n";
