@@ -26,9 +26,6 @@
 #ifndef Tri31_h
 #define Tri31_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <array>
 #include <Element.h>

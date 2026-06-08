@@ -34,7 +34,6 @@
 #ifndef TCP_SocketSSL_h
 #define TCP_SocketSSL_h
 
-#include <stdbool.h>
 #include <Socket.h>
 #include <Channel.h>
 

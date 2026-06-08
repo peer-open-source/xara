@@ -28,7 +28,6 @@
 #ifndef SixNodeTri_h
 #define SixNodeTri_h
 
-#include <stdbool.h>
 #include <array>
 #include <Element.h>
 #include <ID.h>

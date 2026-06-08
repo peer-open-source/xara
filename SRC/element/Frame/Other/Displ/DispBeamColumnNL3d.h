@@ -13,9 +13,6 @@
 #ifndef DispBeamColumnNL3d_h
 #define DispBeamColumnNL3d_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <Element.h>
 #include <Matrix.h>

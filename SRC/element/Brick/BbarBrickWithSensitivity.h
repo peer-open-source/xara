@@ -58,7 +58,7 @@ class BbarBrickWithSensitivity : public Element {
 			NDMaterial &theMaterial,
 			double b1 = 0.0, double b2 = 0.0, double b3 = 0.0 ) ;
 
-    //destructor
+
     virtual ~BbarBrickWithSensitivity();
 
     const char* getClassType() const {
@@ -84,7 +84,7 @@ class BbarBrickWithSensitivity : public Element {
     //revert to last commit
     int revertToLastCommit( ) ;
 
-        int revertToStart( ) ;
+    int revertToStart( ) ;
 
     //print out element data
     void Print( OPS_Stream &s, int flag ) ;
@@ -105,15 +105,12 @@ class BbarBrickWithSensitivity : public Element {
     const Vector &getResistingForceIncInertia( ) ;
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-		  &theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
 
-    Response *setResponse(const char **argv, int argc, OPS_Stream &output);
-    int getResponse(int responseID, Information &eleInformation);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    int getResponse(int responseID, Information &);
 
-    //plotting
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
 
 // AddingSensitivity:BEGIN //////////////////////////////////////////
     int            setParameter                (const char **argv, int argc, Parameter &param);

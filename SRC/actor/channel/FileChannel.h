@@ -27,9 +27,7 @@
 #ifndef FileChannel_h
 #define FileChannel_h
 
-#include <stdbool.h>
 #include <Channel.h>
-#include <stdio.h>
 #include <MovableObject.h>
 #include <ID.h>
 #include <Vector.h>

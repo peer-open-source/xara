@@ -44,9 +44,6 @@
 
 #include <GraphNumberer.h>
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 class RCM: public GraphNumberer
 {

@@ -31,7 +31,6 @@
 #define CTestNormDispIncr_h
 
 #include <ConvergenceTest.h>
-#include <stdbool.h>
 class EquiSolnAlgo;
 class LinearSOE;
 

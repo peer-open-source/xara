@@ -32,7 +32,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <elementAPI.h>
 #include <string.h>
@@ -1353,30 +1352,6 @@ DispBeamColumnWarping3d::Print(OPS_Stream &s, int flag)
   //theSections[i]->Print(s,flag);
 }
 
-int
-DispBeamColumnWarping3d::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-  // first determine the end points of the quad based on
-  // the display factor (a measure of the distorted image)
-  const Vector &end1Crd = theNodes[0]->getCrds();
-  const Vector &end2Crd = theNodes[1]->getCrds();
-
-  static Vector v1(3);
-  static Vector v2(3);
-
-  if (displayMode >= 0) {
-    const Vector &end1Disp = theNodes[0]->getDisp();
-    const Vector &end2Disp = theNodes[1]->getDisp();
-
-    for (int i = 0; i < 3; i++) {
-      v1(i) = end1Crd(i) + end1Disp(i) * fact;
-      v2(i) = end2Crd(i) + end2Disp(i) * fact;
-    }
-  } else {
-    // cmp
-  }
-  return theViewer.drawLine(v1, v2, 1.0, 1.0);
-}
 
 Response *
 DispBeamColumnWarping3d::setResponse(const char **argv, int argc, OPS_Stream &output)

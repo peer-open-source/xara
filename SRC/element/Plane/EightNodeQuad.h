@@ -12,9 +12,6 @@
 #ifndef EightNodeQuad_h
 #define EightNodeQuad_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 #include <array>
 
 #include <Element.h>
@@ -35,12 +32,13 @@ public:
                const std::array<int,8> &nodes, 
                NDMaterial &m, 
                double t,
-               double pressure = 0.0, double rho = 0.0, double b1 = 0.0,
+               double pressure = 0.0, double rho = 0.0, 
+               double b1 = 0.0,
                double b2 = 0.0);
   EightNodeQuad();
   ~EightNodeQuad();
 
-  const char *getClassType(void) const { return "EightNodeQuad"; };
+  const char *getClassType(void) const { return "EightNodeQuad"; }
 
   int getNumExternalNodes(void) const;
   const ID &getExternalNodes();   
@@ -68,10 +66,10 @@ public:
   const Vector &getResistingForceIncInertia();   
 
   // public methods for element output
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-  void Print(OPS_Stream &s, int flag = 0);
+  void Print(OPS_Stream &s, int flag);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
