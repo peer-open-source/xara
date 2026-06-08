@@ -74,7 +74,7 @@ TclDispatch_newSeriesIntegrator(ClientData clientData,
 extern TimeSeries *
 TclSeriesCommand(ClientData clientData,
                  Tcl_Interp *interp,
-                  TCL_Char * const arg);
+                 TCL_Char * const arg);
 
 //
 // This command creates a scope where the following commands
