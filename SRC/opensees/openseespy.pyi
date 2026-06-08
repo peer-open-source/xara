@@ -1,5 +1,6 @@
 from typing import overload, Literal
 
+from xara import UniaxialMaterial, Material, Section, ShellSection, PlaneSection
 
 class _Materials:
     def material(self, type: str, tag: int, *args, **kwargs):
