@@ -348,6 +348,8 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
   double   R0 = 15.0,
           cR1 = 0.925,
           cR2 = 0.15;
+  
+  double sigini = 0.0, density = 0.0;
 
   for (int i=2; i<argc; i++) {
     if ((strcasecmp(argv[i], "-fy") == 0) ||
@@ -460,6 +462,27 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
         return TCL_ERROR;
       }
       tracker.consume(Positions::a4);
+    }
+    else if (strcmp(argv[i], "-sig0") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &sigini) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::sig0);
+    }
+    else if (strcmp(argv[i], "-density") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
     }
     else
       positional.insert(i);
@@ -589,7 +612,7 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
         case Positions::Tag :
           opserr << "tag ";
           break;
-        case Positions::fy :
+        case Positions::fy:
           opserr << "Fy ";
           break;
         case Positions::E:
@@ -643,7 +666,7 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
 
   if (strcmp(argv[1], "Steel1") == 0 || 
       strcmp(argv[1], "Steel01") == 0) {
-    theMaterial = new Steel01(tag, fy, E, b, a1, a2, a3, a4);
+    theMaterial = new Steel01(tag, fy, E, b, a1, a2, a3, a4, density);
   }
 
   else if (strcmp(argv[1], "Steel01Thermal") == 0) {
@@ -655,7 +678,11 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
   }
 
   else if ((strcmp(argv[1], "Steel02") == 0)) {
-    theMaterial = new Steel02(tag, fy, E, b, R0, cR1, cR2, a1, a2, a3, a4);
+    theMaterial = new Steel02(tag, 
+                              fy, E, b, 
+                              R0, cR1, cR2,
+                              a1, a2, a3, a4, 
+                              sigini, density);
   }
 
   else if ((strcmp(argv[1], "Steel02Thermal") == 0)) {
@@ -698,8 +725,10 @@ TclCommand_newFedeasSteel(ClientData clientData, Tcl_Interp *interp,
     // uniaxialMaterial Steel02 $tag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
     enum class Positions: int {
       Tag,
-      fy, E, b,                           EndRequired, 
-      R0, cR1, cR2, a1, a2, a3, a4, sig0, End
+        fy, E, b,
+      EndRequired, 
+        R0, cR1, cR2, a1, a2, a3, a4, sig0,
+      End
     };
     return FedeasSteelParse<Positions>(clientData, interp, argc, argv);
   }
