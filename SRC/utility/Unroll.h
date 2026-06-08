@@ -8,6 +8,14 @@
 #include <utility>
 #include <cstddef>
 
+#if defined(__GNUC__) || defined(__clang__)
+#  define XARA_UNROLL_INLINE [[gnu::always_inline]] inline
+#elif defined(_MSC_VER)
+#  define XARA_UNROLL_INLINE __forceinline
+#else
+#  define XARA_UNROLL_INLINE inline
+#endif
+
 namespace OpenSees {
 namespace
 {
@@ -16,7 +24,7 @@ namespace
 
   // Helper that unpacks the index_sequence into calls to func
   template <class F, std::size_t... Is>
-  [[gnu::always_inline]] inline constexpr void 
+  XARA_UNROLL_INLINE constexpr void 
   repeat_impl(F func, std::index_sequence<Is...>) noexcept
   {
     (func(num<Is>{}), ...);
@@ -24,7 +32,7 @@ namespace
 
   // Helper that unpacks the index_sequence into calls to func, offset by Start
   template <std::size_t Start, class F, std::size_t... Is>
-  [[gnu::always_inline]] inline constexpr void 
+  XARA_UNROLL_INLINE constexpr void 
   unroll_impl(F func, std::index_sequence<Is...>) noexcept
   {
       (func(num<Start + Is>{}), ...);
