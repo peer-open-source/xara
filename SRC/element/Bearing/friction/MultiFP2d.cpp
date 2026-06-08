@@ -36,7 +36,6 @@
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <ENTMaterial.h>
 #include <MultiLinear.h>
@@ -560,11 +559,4 @@ MultiFP2d::getResponse(int responseID, Information &eleInfo)
   default:
     return 0;
   }
-}
-
-int 
-MultiFP2d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
 }

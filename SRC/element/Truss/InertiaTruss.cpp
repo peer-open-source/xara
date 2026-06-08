@@ -40,7 +40,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -708,19 +707,6 @@ InertiaTruss::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &the
   return 0;
 }
 
-int
-InertiaTruss::displaySelf(Renderer &theViewer, int displayMode, float fact, 
-		   const char **displayModes, int numModes)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-    int res = 0;
-    if (L == 0.0)
-        return res;
-    theNodes[0]->getDisplayCrds(v1, fact);
-    theNodes[1]->getDisplayCrds(v2, fact);  
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag(),0);
-}
 
 
 

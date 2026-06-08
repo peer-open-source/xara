@@ -38,7 +38,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <limits>
 #include <algorithm>
 #include <string.h>
@@ -613,19 +612,6 @@ int ZeroLengthContactASDimplex::recvSelf(int commitTag, Channel& theChannel, FEM
     return 0;
 }
 
-int ZeroLengthContactASDimplex::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** modes, int numMode)
-{
-    if (theNodes[0] == 0 || theNodes[1] == 0)
-        return 0;
-
-    static Vector v1(3);
-    static Vector v2(3);
-    float d1 = 1.0;
-
-    theNodes[0]->getDisplayCrds(v1, 0.);
-    theNodes[1]->getDisplayCrds(v2, 0.);
-    return theViewer.drawPoint(v1, d1, 10);
-}
 
 void ZeroLengthContactASDimplex::Print(OPS_Stream& strm, int flag) {
 
