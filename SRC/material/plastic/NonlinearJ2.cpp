@@ -398,7 +398,8 @@ NonlinearJ2::revertToStart()
 NDMaterial *
 NonlinearJ2::getCopy()
 {
-  auto *m = new NonlinearJ2(this->getTag(), E, nu, 
+  auto *m = new NonlinearJ2(this->getTag(),
+                          E, nu, 
                           fy, density_, 
                           Hiso_,
                           a_, DInf_, b_, QInf_,

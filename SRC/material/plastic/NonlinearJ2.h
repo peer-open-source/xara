@@ -48,6 +48,7 @@ public:
   const char *getClassType() const override {return "NonlinearJ2";}
   const char *getType() const override {return "ThreeDimensional";}
   int getOrder() const override { return 6; }
+  double getRho() override { return density_; }
 
   // State setting
   int setTrialStrain (const Vector &v) override;
