@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 
@@ -874,18 +873,6 @@ int Inerter::recvSelf(int commitTag, Channel &rChannel,
     return 0;
 }
 
-
-int Inerter::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 
 void Inerter::Print(OPS_Stream &s, int flag)
