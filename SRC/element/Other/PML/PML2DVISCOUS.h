@@ -83,7 +83,7 @@ public:
 	PML2DVISCOUS();                                                                         //null constructor
 	PML2DVISCOUS(int tag, int* nodeTags, double* newmarks, double* dData);                  // full constructor
 	virtual ~PML2DVISCOUS();                                                                //destructor
-	const char* getClassType(void) const { return "PML2DVISCOUS"; };                        //return class type
+	const char* getClassType(void) const { return "PML2DVISCOUS"; }                         //return class type
 	void setDomain(Domain* theDomain);                                               // set domain
 	int getNumExternalNodes() const; 	   						                     // get number of external nodes
 	const ID& getExternalNodes(); 								                     // get external nodes
@@ -108,7 +108,6 @@ public:
 	int getResponse(int responseID, Information& eleInformation);                    // get response
 	int setParameter(const char** argv, int argc, Parameter& param);
 	int updateParameter(int parameterID, Information& info);                         // update parameter
-	int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
 
 private:
 

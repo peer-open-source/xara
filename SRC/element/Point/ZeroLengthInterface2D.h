@@ -81,6 +81,7 @@
 
 #include <Element.h>
 #include <Matrix.h>
+#include <Vector.h>
 
 class Node;
 class Channel;

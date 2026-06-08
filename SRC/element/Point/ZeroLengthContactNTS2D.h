@@ -79,6 +79,7 @@
 
 #include <Element.h>
 #include <Matrix.h>
+#include <Vector.h>
 
 // Tolerance for zero length of element
 //#define	LENTOL 1.0e-6

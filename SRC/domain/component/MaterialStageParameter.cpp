@@ -24,7 +24,6 @@
 
 #include <classTags.h>
 #include <MaterialStageParameter.h>
-#include <DomainComponent.h>
 
 #include <Domain.h>
 #include <Element.h>

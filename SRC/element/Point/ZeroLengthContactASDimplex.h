@@ -109,6 +109,7 @@
 
 #include <Element.h>
 #include <Matrix.h>
+#include <Vector.h>
 #include <array>
 
 class Node;

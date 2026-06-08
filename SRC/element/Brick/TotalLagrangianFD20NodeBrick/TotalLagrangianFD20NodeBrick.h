@@ -27,12 +27,8 @@
 #ifndef TOTALLAGRANGIANFD20BRICK_H
 #define TOTALLAGRANGIANFD20BRICK_H
 
-#ifndef _bool_h
-#include "bool.h"
-#endif
 
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <Element.h>
 #include <Node.h>
@@ -97,8 +93,7 @@ class TotalLagrangianFD20NodeBrick: public Element
     // public methods for element output
     int sendSelf (int commitTag, Channel &theChannel);
     int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf (Renderer &theViewer, int displayMode, float fact);
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
     Response *setResponse (const char **argv, int argc, OPS_Stream &s);
     int getResponse (int responseID, Information &eleInformation);

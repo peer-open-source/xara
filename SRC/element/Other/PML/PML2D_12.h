@@ -105,7 +105,6 @@ public:
 	int getResponse(int responseID, Information& eleInformation);                    // get response
 	int setParameter(const char** argv, int argc, Parameter& param);
 	int updateParameter(int parameterID, Information& info);                         // update parameter
-	int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
 	void ComputeK(double* K,double* XYelement, double beta_0_x, double beta_0_y, double L_PML_x,
                                 double L_PML_y, double xi, double yj, double rho, double E, double nu);
 	void ComputeM(double* M,double* XYelement, double alpha_0_x, double alpha_0_y, double L_PML_x,

@@ -319,7 +319,7 @@ void TripleFrictionPendulumX::setDomain(Domain* theDomain)
     theNodes[0] = end1Ptr;
     theNodes[1] = end2Ptr;
 
-    // call the DomainComponent class method THIS IS VERY IMPORTANT
+    // call the base class method THIS IS VERY IMPORTANT
     if (theDomain != nullptr)
       this->Element::link(*theDomain);
 

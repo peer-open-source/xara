@@ -40,7 +40,6 @@
 #include <CrdTransf.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <ElementResponse.h>

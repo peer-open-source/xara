@@ -535,7 +535,7 @@ TclCommand_addZeroLengthContact2D(ClientData clientData, Tcl_Interp *interp,
 
   // a quick check on number of args
   if (argc < 11) {
-    opserr << "ZeroLengthContact2D::WARNING too few arguments "
+    opserr << "WARNING too few arguments "
            << "want - element ZeroLengthContact2D eleTag? iNode? jNode? Kn? "
               "Kt? fs? -normal Nx? Ny?";
     return TCL_ERROR;

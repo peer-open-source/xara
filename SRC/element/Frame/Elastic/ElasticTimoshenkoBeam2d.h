@@ -31,6 +31,7 @@
 //
 #include <Element.h>
 #include <Matrix.h>
+#include <Vector.h>
 
 class CrdTransf;
 
@@ -42,12 +43,12 @@ public:
         double A, double Iz, double Avy, CrdTransf &theTransf,
         double rho = 0.0, int cMass = 0);
     ElasticTimoshenkoBeam2d();
-    
+
     // destructor
     ~ElasticTimoshenkoBeam2d();
     
     // method to get class type
-    const char *getClassType() const {return "ElasticTimoshenkoBeam2d";};
+    const char *getClassType() const {return "ElasticTimoshenkoBeam2d";}
     
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
