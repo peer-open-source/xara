@@ -423,8 +423,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData, Tcl_Interp *interp, Tcl_S
       }
       else if (strcasecmp(argv[1], "bbarQuad") == 0 || 
                strcasecmp(argv[1], "mixedQuad") == 0) {
-        theElement = new ConstantPressureVolumeQuad(tag, nodes, *nd_mat, thickness, mass_source);
-
+        theElement = new ConstantPressureVolumeQuad(tag, nodes, *nd_mat, thickness);
       }
       else if (strcasecmp(argv[1], "sspquad") == 0) {
         theElement = new SSPquad(tag, nodes, *nd_mat, thickness, rho, b1, b2);
@@ -568,8 +567,7 @@ TclBasicBuilder_addConstantPressureVolumeQuad(ClientData clientData,
   // now create the ConstantPressureVolumeQuad and add it to the Domain
   ConstantPressureVolumeQuad *theConstantPressureVolumeQuad =
       new ConstantPressureVolumeQuad(tag, 
-                                     nodes, *theMaterial, thickness, 
-                                     Element::MassSource::Material);
+                                     nodes, *theMaterial, thickness);
 
 
   if (builder->getDomain()->addElement(theConstantPressureVolumeQuad) == false) {

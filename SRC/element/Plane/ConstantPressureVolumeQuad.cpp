@@ -68,20 +68,18 @@ connectedExternalNodes(4), thickness(0.0), load(0)
     materialPointers[i] = nullptr;
 }
 
-ConstantPressureVolumeQuad::ConstantPressureVolumeQuad(int tag, 
-                                                       int node1,
-                                                       int node2,
-                                                       int node3,
-                                                       int node4,
-                                                       NDMaterial &theMaterial,
-                                                       double thickness) :
-Element( tag, ELE_TAG_ConstantPressureVolumeQuad ),
-connectedExternalNodes(4), thickness(thickness), load(0)
+ConstantPressureVolumeQuad::ConstantPressureVolumeQuad(
+  int tag, 
+  std::array<int,4>& nodes,
+  NDMaterial &theMaterial,
+  double thickness
+)
+ : Element( tag, ELE_TAG_ConstantPressureVolumeQuad ),
+   connectedExternalNodes(4), thickness(thickness), 
+   load(nullptr)
 {
-  connectedExternalNodes(0) = node1 ;
-  connectedExternalNodes(1) = node2 ;
-  connectedExternalNodes(2) = node3 ;
-  connectedExternalNodes(3) = node4 ;
+  for (int i = 0; i < NEN; i++ ) 
+    connectedExternalNodes(i) = nodes[i];
 
   for (int i = 0 ;  i < 4; i++ ) {
     materialPointers[i] = theMaterial.getCopy("AxiSymmetric2D") ;
@@ -91,13 +89,13 @@ connectedExternalNodes(4), thickness(thickness), load(0)
 
 ConstantPressureVolumeQuad::~ConstantPressureVolumeQuad()
 {
-  for (int i = 0 ;  i < 4; i++ ) {
-
+  for (int i = 0 ;  i < NIP; i++ ) {
     delete materialPointers[i];
-    materialPointers[i] = 0; 
-
-    nodePointers[i] = nullptr;
+    materialPointers[i] = nullptr; 
   }
+
+  for (int i = 0; i < NEN; i++ )
+    nodePointers[i] = nullptr;
 
   if (load != 0)
     delete load;
@@ -289,7 +287,7 @@ ConstantPressureVolumeQuad :: update( )
     strain.Zero( ) ;
 
     // node loop to compute strain
-    for (int node = 0; node < 4; node++ ) {
+    for (int node = 0; node < NEN; node++ ) {
 
       const Vector &ul = nodePointers[node]->getTrialDisp() ;
 
@@ -304,10 +302,10 @@ ConstantPressureVolumeQuad :: update( )
     double trace = strain(0) + strain(1) + strain(2) ;
 
     // strain -= (one3*trace)*one ;
-    strain.addVector(1.0,  one, -one3*trace ) ;
+    strain.addVector(1.0,  one, -trace/3.0 ) ;
 
     // strain += (one3*theta)*one ;
-    strain.addVector(1.0,  one, one3*theta ) ;
+    strain.addVector(1.0,  one, theta/3.0 ) ;
 
     success += materialPointers[i]->setTrialStrain( strain );
   }
@@ -320,27 +318,27 @@ void
 ConstantPressureVolumeQuad::Print( OPS_Stream &s, int flag )
 {
   if (flag == OPS_PRINT_CURRENTSTATE) {
-      s << endln;
-      s << "Four Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
-      s << "Element Number " << this->getTag() << endln;
-      s << "Node 1 : " << connectedExternalNodes(0) << endln;
-      s << "Node 2 : " << connectedExternalNodes(1) << endln;
-      s << "Node 3 : " << connectedExternalNodes(2) << endln;
-      s << "Node 4 : " << connectedExternalNodes(3) << endln;
-      s << "Material Information : \n ";
-      materialPointers[0]->Print(s, flag);
-      s << endln;
+    s << endln;
+    s << "Four Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
+    s << "Element Number " << this->getTag() << endln;
+    s << "Node 1 : " << connectedExternalNodes(0) << endln;
+    s << "Node 2 : " << connectedExternalNodes(1) << endln;
+    s << "Node 3 : " << connectedExternalNodes(2) << endln;
+    s << "Node 4 : " << connectedExternalNodes(3) << endln;
+    s << "Material Information : \n ";
+    materialPointers[0]->Print(s, flag);
+    s << endln;
   }
   
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << "\t\t\t{";
-      s << "\"name\": " << this->getTag() << ", ";
-      s << "\"type\": \"bbarQuad\", ";
-      s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-      s << connectedExternalNodes(1) << ", ";
-      s << connectedExternalNodes(2) << ", ";
-      s << connectedExternalNodes(3) << "], ";
-      s << "\"material\": " << materialPointers[0]->getTag() << "}";
+    s << "\t\t\t{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"bbarQuad\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+    s << connectedExternalNodes(1) << ", ";
+    s << connectedExternalNodes(2) << ", ";
+    s << connectedExternalNodes(3) << "], ";
+    s << "\"material\": " << materialPointers[0]->getTag() << "}";
   }
 }
 
@@ -418,7 +416,7 @@ ConstantPressureVolumeQuad::getInitialStiff( )
   //zero stiffness and residual 
   stiff.Zero();
 
-  //one vector
+  // one vector
   one(0) = 1.0 ;
   one(1) = 1.0 ;
   one(2) = 1.0 ;
@@ -428,15 +426,15 @@ ConstantPressureVolumeQuad::getInitialStiff( )
   Pdev.Zero( ) ;
 
   Pdev(0,0) =  two3 ;
-  Pdev(0,1) = -one3 ;
-  Pdev(0,2) = -one3 ;
+  Pdev(0,1) = -1.0/3.0;
+  Pdev(0,2) = -1.0/3.0;
 
-  Pdev(1,0) = -one3 ;
+  Pdev(1,0) = -1.0/3.0;
   Pdev(1,1) =  two3 ;
-  Pdev(1,2) = -one3 ;
+  Pdev(1,2) = -1.0/3.0;
 
-  Pdev(2,0) = -one3 ;
-  Pdev(2,1) = -one3 ;
+  Pdev(2,0) = -1.0/3.0;
+  Pdev(2,1) = -1.0/3.0;
   Pdev(2,2) =  two3 ;
 
   Pdev(3,3) = 1.0 ;
@@ -496,7 +494,7 @@ ConstantPressureVolumeQuad::getInitialStiff( )
                                         dd,
                                         1.0) ;
       
-    //Pdev_dd_one  = one3 * ( Pdev * dd * oneMatrix ) ;
+    // Pdev_dd_one  = one3 * ( Pdev * dd * oneMatrix ) ;
     PdevDD.addMatrixProduct(0.0, Pdev, dd, 1.0) ;
     Pdev_dd_one(0,0) = one3 * (PdevDD(0,0) + PdevDD(0,1) + PdevDD(0,2));
     Pdev_dd_one(1,0) = one3 * (PdevDD(1,0) + PdevDD(1,1) + PdevDD(1,2));
@@ -898,7 +896,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   }
 
 
-  //gauss loop to compute volume averaged shape functions
+  // Gauss loop to compute volume averaged shape functions
 
   for ( i = 0; i < 4; i++ ){
     
@@ -920,37 +918,39 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   }
 
 
-  //compute volume averaged shape functions
+  // compute volume averaged shape functions
   for ( k = 0; k < 3; k++ ){
     for ( l = 0; l < 4; l++ ) 
       vol_avg_shp[k][l] /= volume ; 
   }
 
-  //compute pressure if residual calculation
+  // compute pressure if residual calculation
   if (tang_flag != 1) {
     pressure = 0.0 ;
     for (int i = 0; i < 4; i++ ) {
 
-      const Vector &sigBar = materialPointers[i]->getStress( ) ;
+      const Vector &sigBar = materialPointers[i]->getStress();
 
       pressure +=  one3 * ( sigBar(0) + sigBar(1) + sigBar(2) ) * dvol[i] ;
       
     } // end for i
 
-    pressure /= volume ;
+    pressure /= volume;
   } // end if != tang_flag
 
-  //residual and tangent calculations gauss loop
+  //
+  // residual and tangent calculations gauss loop
+  //
   
   for (int i = 0; i < 4; i++ ) {
 
     if ( tang_flag == 1 ) {    // compute matrices for stiffness calculation
-      
+
       static Matrix dd(4,4);
-      dd = materialPointers[i]->getTangent( ) ;
+      dd = materialPointers[i]->getTangent();
       
-      dd *= dvol[i] ;
-      
+      dd *= dvol[i];
+
       //Pdev_dd_Pdev = Pdev * dd * Pdev ;
       Pdev_dd_Pdev.addMatrixTripleProduct(0.0,
                                           Pdev,
@@ -964,7 +964,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
       Pdev_dd_one(2,0) = one3 * (PdevDD(2,0) + PdevDD(2,1) + PdevDD(2,2));
       Pdev_dd_one(3,0) = one3 * (PdevDD(3,0) + PdevDD(3,1) + PdevDD(3,2));
       
-      //one_dd_Pdev  = one3 * ( oneTran * dd * Pdev ) ;
+      // one_dd_Pdev  = one3 * ( oneTran * dd * Pdev ) ;
       ddPdev.addMatrixProduct(0.0, dd, Pdev, 1.0) ;
       one_dd_Pdev(0,0) = one3 * (ddPdev(0,0) + ddPdev(1,0) + ddPdev(2,0));
       one_dd_Pdev(0,1) = one3 * (ddPdev(0,1) + ddPdev(1,1) + ddPdev(2,1));
@@ -989,7 +989,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
       sig *= dvol[i] ;
     }
         
-    //residual and tangent loop over nodes
+    // residual and tangent loop over nodes
     jj = 0 ;
     for ( j = 0; j < 4; j++ ) {
 

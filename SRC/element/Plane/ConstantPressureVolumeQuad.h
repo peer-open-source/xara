@@ -23,16 +23,13 @@ class ConstantPressureVolumeQuad : public Element
     
     ConstantPressureVolumeQuad( ) ;
     ConstantPressureVolumeQuad(int tag, 
-			        int node1,
-			        int node2,
-			        int node3,
-			        int node4,
+              std::array<int,4>& nodes,
 			        NDMaterial &theMaterial,
-                    double thickness);
+              double thickness
+            );
     virtual ~ConstantPressureVolumeQuad();
 
-    const char *getClassType(void) const {return "ConstantPressureVolumeQuad";}
-    static constexpr const char* class_name = "ConstantPressureVolumeQuad";
+    const char *getClassType() const {return "ConstantPressureVolumeQuad";}
 
     int getNumExternalNodes( ) const ;
     const ID &getExternalNodes( ) ;
@@ -71,6 +68,8 @@ class ConstantPressureVolumeQuad : public Element
 
   
   private : 
+    static constexpr int NEN = 4; // number of element nodes
+    static constexpr int NIP = 4; // number of dimensions in the problem
 
     //static data
     static double matrixData[64];  // array data for matrix
