@@ -204,7 +204,8 @@ ModalDamping::applyResidual(TransientIntegrator &integrator, LinearSOE &theSOE)
     }
   }
 
-  // why setB, not addB?
+  // NOTE: cannot addB, so this must be invoked before anything else 
+  // populates theSOE::B.
   theSOE.setB(*dampingForces);
   
   return res;
