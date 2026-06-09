@@ -110,7 +110,6 @@ class IncrementalIntegrator : protected Integrator, public MovableObject
     virtual int  formElementResidual() final;
 
     int addModalDampingForce(const Vector *modalDampingValues);
-    int addModalDampingMatrix(const Vector *modalDampingValues);
 
   
     LinearSOE       *getLinearSOE() const;
