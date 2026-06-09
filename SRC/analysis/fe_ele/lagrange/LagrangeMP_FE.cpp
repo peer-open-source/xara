@@ -144,32 +144,32 @@ LagrangeMP_FE::setID(AnalysisModel& theModel)
   
   int size1 = constrainedDOFs.Size();
   for (int i=0; i<size1; i++) {
-      int constrained = constrainedDOFs(i);
-      if (constrained < 0 || 
-        constrained >= theConstrainedNode->getNumberDOF()) {
-        
-        opserr << "WARNING LagrangeMP_FE::setID(void) - unknown DOF ";
-        opserr << constrained << " at Node\n";
+    int constrained = constrainedDOFs(i);
+    if (constrained < 0 || 
+      constrained >= theConstrainedNode->getNumberDOF()) {
+      
+      opserr << "WARNING LagrangeMP_FE::setID(void) - unknown DOF ";
+      opserr << constrained << " at Node\n";
+      myID(i) = -1; // modify so nothing will be added to equations
+      result = -3;
+    }            
+    else {
+      if (constrained >= theConstrainedNodesID.Size()) {
+        opserr << "WARNING LagrangeMP_FE::setID(void) - ";
+        opserr << " Nodes DOF_Group too small\n";
         myID(i) = -1; // modify so nothing will be added to equations
-        result = -3;
-      }            
-      else {
-        if (constrained >= theConstrainedNodesID.Size()) {
-          opserr << "WARNING LagrangeMP_FE::setID(void) - ";
-          opserr << " Nodes DOF_Group too small\n";
-          myID(i) = -1; // modify so nothing will be added to equations
-          result = -4;
-        }
-        else
-          myID(i) = theConstrainedNodesID(constrained);
+        result = -4;
       }
+      else
+        myID(i) = theConstrainedNodesID(constrained);
+    }
   }
-  
+
   // now determine the IDs for the retained dof's
   if (theRetainedNode == nullptr) {
-      opserr << "WARNING LagrangeMP_FE::setID(void)";
-      opserr << "- no asscoiated Retained Node\n";
-      return -1;
+    opserr << "WARNING LagrangeMP_FE::setID(void)";
+    opserr << "- no asscoiated Retained Node\n";
+    return -1;
   }
   DOF_Group *theRetainedNodesDOFs = theRetainedNode->getDOF_GroupPtr();
   if (theRetainedNodesDOFs == nullptr) {
@@ -265,6 +265,7 @@ LagrangeMP_FE::getResidual(Integrator *theNewIntegrator)
   | Ru |    | 0  A | | u |   | 0 |
   |    | = -|      |*|   | + |   |
   | Rl |    | A  0 | | l |   | g |
+
   */
 
   // compute residual
