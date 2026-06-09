@@ -19,6 +19,8 @@
 
 class MultiYieldSurface;
 
+namespace OpenSees {
+
 class PressureDependMultiYield03 : public NDMaterial
 {
 public:
@@ -238,10 +240,12 @@ private:
      void updateInnerSurface(void);
 
      // Return 1 if crossing the active surface; return 0 o/w
-     int  isCrossingNextSurface(void);
+     int  isCrossingNextSurface();
 
-	 double ContractionFactorC(void); // new calibration for sand3
+	 double ContractionFactorC(); // new calibration for sand3
 };
+
+} // namespace OpenSees
 
 #endif
 

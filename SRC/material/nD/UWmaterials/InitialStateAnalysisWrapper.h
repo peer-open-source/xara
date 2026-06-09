@@ -35,6 +35,8 @@
 #include <Vector.h>
 #include <ID.h>
 
+namespace OpenSees {
+
 class InitialStateAnalysisWrapper : public NDMaterial
 {
 	public:
@@ -101,4 +103,7 @@ class InitialStateAnalysisWrapper : public NDMaterial
 		Vector mEpsilon_o;               // initial strain stored here
 		Vector mStrain;                  // strain sent to the main material
 };
+
+} // namespace OpenSees
+
 #endif

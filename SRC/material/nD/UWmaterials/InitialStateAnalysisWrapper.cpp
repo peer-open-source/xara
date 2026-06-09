@@ -35,8 +35,10 @@
 #include <string.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
+#include <Logging.h>
 
 #include <elementAPI.h>
+using namespace OpenSees;
 
 static int numInitialStateAnalysisWrapperMaterials = 0;
 
@@ -44,10 +46,10 @@ void * OPS_ADD_RUNTIME_VPV(OPS_InitialStateAnalysisWrapperMaterial)
 {
 	if (numInitialStateAnalysisWrapperMaterials == 0) {
 		numInitialStateAnalysisWrapperMaterials++;
-		opserr << "InitialStateAnalysisWrapper nDmaterial - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+		opslog << "InitialStateAnalysisWrapper nDmaterial - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   	}
 
-  	NDMaterial *theMaterial = 0;
+  	NDMaterial *theMaterial = nullptr;
 
   	int numArgs = OPS_GetNumRemainingInputArgs();
 

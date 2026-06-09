@@ -21,6 +21,7 @@ class MultiYieldSurface;
 class Response;
 
 namespace OpenSees {
+
 class FluidSolidPorousMaterial : public NDMaterial
 {
   public:
@@ -37,7 +38,7 @@ class FluidSolidPorousMaterial : public NDMaterial
      // Destructor: clean up memory storage space.
      virtual ~FluidSolidPorousMaterial ();
 
-     const char *getClassType(void) const {return "FluidSolidPorousMaterial";};
+     const char *getClassType(void) const {return "FluidSolidPorousMaterial";}
 
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);
@@ -49,35 +50,34 @@ class FluidSolidPorousMaterial : public NDMaterial
      int setTrialStrainIncr(const Vector &v, const Vector &r);
 
      // Calculates current tangent stiffness.
-     const Matrix &getTangent (void);
-     const Matrix &getInitialTangent (void);
+     const Matrix &getTangent();
+     const Matrix &getInitialTangent();
 
-     double getRho(void);
+     double getRho();
 
      // Calculates the corresponding stress increment (rate), for a given strain increment. 
-     const Vector &getStress (void);
-     const Vector &getStrain (void);
-     const Vector &getCommittedStress (void);
-     const Vector &getCommittedStrain (void);
-     const Vector &getCommittedPressure (void);
+     const Vector &getStress();
+     const Vector &getStrain();
+     const Vector &getCommittedStress();
+     const Vector &getCommittedStrain();
+     const Vector &getCommittedPressure();
 
      // Accepts the current trial strain values as being on the solution path, and updates 
      // all model parameters related to stress/strain states. Return 0 on success.
-     int commitState (void);
+     int commitState();
 
      // Revert the stress/strain states to the last committed states. Return 0 on success.
-     int revertToLastCommit (void);
-
-     int revertToStart(void);
+     int revertToLastCommit();
+     int revertToStart();
 
      // Return an exact copy of itself.
-     NDMaterial *getCopy (void);
+     NDMaterial *getCopy(void);
 
      // Return a copy of itself if "code"="PlainStrain" or "ThreeDimensional", otherwise return null.
-     NDMaterial *getCopy (const char *code);
+     NDMaterial *getCopy(const char *code);
 
      // Return the string "PlaneStrain" or "ThreeDimensional".
-     const char *getType (void) const ;
+     const char *getType() const ;
 
      // Return 3 or 6.
      int getOrder (void) const ;

@@ -19,6 +19,8 @@
 
 class MultiYieldSurface;
 
+namespace OpenSees {
+
 class PressureDependMultiYield02 : public NDMaterial
 {
 public:
@@ -239,6 +241,8 @@ private:
      // Return 1 if crossing the active surface; return 0 o/w
      int  isCrossingNextSurface(void);
 };
+
+} // namespace OpenSees
 
 #endif
 

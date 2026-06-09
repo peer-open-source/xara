@@ -30,6 +30,7 @@
 #include <MaterialResponse.h>
 #include <string.h>
 #include <elementAPI.h>
+using namespace OpenSees;
 
 Matrix MultiYieldSurfaceClay::theTangent(6,6);
 Matrix MultiYieldSurfaceClay::dTrialStressdStrain(6,6);    //classwide matrix

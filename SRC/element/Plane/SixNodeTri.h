@@ -38,6 +38,8 @@ class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
+
 class SixNodeTri : public Element {
 public:
   SixNodeTri(int tag,
@@ -135,5 +137,5 @@ private:
 
   Matrix *Ki;
 };
-
+} // namespace OpenSees
 #endif

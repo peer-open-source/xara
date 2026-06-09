@@ -37,6 +37,8 @@ class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
+
 class Tri31 : public Element
 {
   public:
@@ -53,14 +55,13 @@ class Tri31 : public Element
     const char *getClassType() const {
       return "Tri31";
     }
-    static constexpr const char* class_name = "Tri31";
 
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
 
     int getNumDOF();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *);
 
     // public methods to set the state of the element    
     int commitState();
@@ -81,17 +82,17 @@ class Tri31 : public Element
     const Vector &getResistingForceIncInertia();            
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     void Print(OPS_Stream &, int flag) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
 
     int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int updateParameter(int parameterID, Information &);
 
     // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial stresses.
     friend class PyLiq1;
@@ -139,6 +140,7 @@ class Tri31 : public Element
 
     Matrix *Ki;
 };
+} // namespace OpenSees
 
 #endif
 

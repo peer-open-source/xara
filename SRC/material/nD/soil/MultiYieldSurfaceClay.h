@@ -24,22 +24,24 @@ class MultiYieldSurface;
 
 #define ND_TAG_MultiYieldSurfaceClay   10284765
 
+namespace OpenSees {
+
 class MultiYieldSurfaceClay : public NDMaterial
 {
 public:
-     // Initialization constructor
-     MultiYieldSurfaceClay (int tag, 
-				 int nd,
-				 double rho, 
-				 double refShearModul,
-				 double refBulkModul,
-				 double cohesi,
-				 double peakShearStra,
-				 double frictionAng = 0.,
-				 double refPress = 100, 
-				 double pressDependCoe = 0.0,
-				 int   numberOfYieldSurf = 20,
-				 double * gredu = 0);
+	// Initialization constructor
+	MultiYieldSurfaceClay (int tag, 
+				int nd,
+				double rho, 
+				double refShearModul,
+				double refBulkModul,
+				double cohesi,
+				double peakShearStra,
+				double frictionAng = 0.,
+				double refPress = 100, 
+				double pressDependCoe = 0.0,
+				int   numberOfYieldSurf = 20,
+				double * gredu = 0);
 
      // Default constructor
      MultiYieldSurfaceClay ();
@@ -74,7 +76,7 @@ public:
 
      // Accepts the current trial strain values as being on the solution path, and updates 
      // all model parameters related to stress/strain states. Return 0 on success.
-     int commitState (void);
+     int commitState();
 
      // Revert the stress/strain states to the last committed states. Return 0 on success.
      int revertToLastCommit (void);
@@ -253,11 +255,9 @@ private:
 	static Vector     temp;           // classwide Vector
 	static Vector     devia;          // classwide Vector
 
-
-
 };
 
+} // namespace OpenSees
+
 #endif
-
-
 
