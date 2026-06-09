@@ -38,7 +38,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <ElasticMaterial.h>
 #include <ElasticPPMaterial.h>
@@ -365,11 +364,11 @@ TPB1D::setDomain(Domain *theDomain)
 
     vm = (v1<v2) ? v2 : v1;
 
-    double LENTOL = 1.0e-12;
+    static constexpr double LENTOL = 1.0e-12;
 
     if (L > LENTOL*vm)
       opserr << "WARNING TPB1D::setDomain(): Element " << this->getTag() << " has L= " << L << 
-	", which is greater than the tolerance\n";
+            ", which is greater than the tolerance\n";
         
     // call the base class method
     if (theDomain != nullptr)
@@ -380,14 +379,14 @@ TPB1D::setDomain(Domain *theDomain)
     
     // set the number of dof for element and set matrix and vector pointer
     if (dimension == 1 && dofNd1 == 1 && direction == 0) {
-	numDOF = 2;    
-	theMatrix = &TPB1DM2;
-	theVector = &TPB1DV2;
+      numDOF = 2;    
+      theMatrix = &TPB1DM2;
+      theVector = &TPB1DV2;
     }
     else if (dimension == 2 && dofNd1 == 2 && direction < 2) {
-	numDOF = 4;
-	theMatrix = &TPB1DM4;
-	theVector = &TPB1DV4;
+      numDOF = 4;
+      theMatrix = &TPB1DM4;
+      theVector = &TPB1DV4;
     }
     else if (dimension == 2 && dofNd1 == 3 && direction < 3) {
 	numDOF = 6;	
@@ -732,10 +731,3 @@ TPB1D::activateParameter(int passedParameterID)
 }
 
 
-
-int 
-TPB1D::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
-}

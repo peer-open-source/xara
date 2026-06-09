@@ -36,7 +36,6 @@
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <math.h>
@@ -811,10 +810,3 @@ TFP_Bearing2d::getResponse(int responseID, Information &eleInfo)
   }
 }
 
-
-int 
-TFP_Bearing2d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
-}

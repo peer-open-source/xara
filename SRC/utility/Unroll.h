@@ -8,6 +8,14 @@
 #include <utility>
 #include <cstddef>
 
+#if defined(__GNUC__) || defined(__clang__)
+#  define XARA_UNROLL_INLINE [[gnu::always_inline]] inline
+#elif defined(_MSC_VER)
+#  define XARA_UNROLL_INLINE __forceinline
+#else
+#  define XARA_UNROLL_INLINE inline
+#endif
+
 namespace OpenSees {
 namespace
 {
@@ -16,19 +24,19 @@ namespace
 
   // Helper that unpacks the index_sequence into calls to func
   template <class F, std::size_t... Is>
-  [[gnu::always_inline]] inline constexpr void 
+  XARA_UNROLL_INLINE constexpr void 
   repeat_impl(F func, std::index_sequence<Is...>) noexcept
   {
     (func(num<Is>{}), ...);
   }
 
-    // Helper that unpacks the index_sequence into calls to func, offset by Start
-    template <std::size_t Start, class F, std::size_t... Is>
-    [[gnu::always_inline]] inline constexpr void 
-    unroll_impl(F func, std::index_sequence<Is...>) noexcept
-    {
-        (func(num<Start + Is>{}), ...);
-    }
+  // Helper that unpacks the index_sequence into calls to func, offset by Start
+  template <std::size_t Start, class F, std::size_t... Is>
+  XARA_UNROLL_INLINE constexpr void 
+  unroll_impl(F func, std::index_sequence<Is...>) noexcept
+  {
+      (func(num<Start + Is>{}), ...);
+  }
 }
 
 #if 0 //  __cplusplus >= 202002L
@@ -50,6 +58,10 @@ Repeat(F func) noexcept
 }
 #endif 
 
+
+// Unroll<3, 3>(func); // generates nothing
+// Unroll<3, 4>(func); // generates 3
+// Unroll<3, 7>(func); // generates 3,4,5,6
 template <std::size_t Start, std::size_t Stop, class F>
 inline constexpr void
 Unroll(F func) noexcept

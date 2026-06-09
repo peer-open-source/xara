@@ -588,7 +588,8 @@ FiberSection2dInt::getSectionDeformation (void)
   return e;
 }
 
-int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, double L)
+int 
+FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, double L)
 {
   int res = 0;
 
@@ -668,29 +669,28 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
       root = sqrt(pow(-ex + ey,2) + pow(gamma,2));
 
       if (std::fabs(gamma) <= DBL_EPSILON) {
-    if ((ey - ex)*eCommit(2) > 0) {
-      alfa[jj]=PI/2.0;
-      e1 = ex; 
-      e2 = ey; 
-    }
-    else {
-      alfa[jj]=0.0;
-      e1 = ey; 
-      e2 = ex; 
-    }
+        if ((ey - ex)*eCommit(2) > 0) {
+          alfa[jj]=PI/2.0;
+          e1 = ex; 
+          e2 = ey; 
+        }
+        else {
+          alfa[jj]=0.0;
+          e1 = ey; 
+          e2 = ex; 
+        }
       }
       else {
-    alfa[jj]=atan((-ex + ey)/gamma + sqrt(pow((-ex + ey)/gamma,2) + 1));
+        alfa[jj]=atan((-ex + ey)/gamma + sqrt(pow((-ex + ey)/gamma,2) + 1));
 
-    if (std::fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON) {
-      e1 = ex; 
-      e2 = ey; 
-    }
-    else {
-      e1 = ey - gamma/2.0*tan(alfa[jj]);                          
-      e2 = ex + gamma/2.0*tan(alfa[jj]);
-    }
-
+        if (std::fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON) {
+          e1 = ex; 
+          e2 = ey; 
+        }
+        else {
+          e1 = ey - gamma/2.0*tan(alfa[jj]);                          
+          e2 = ex + gamma/2.0*tan(alfa[jj]);
+        }
       }
 
 
@@ -716,81 +716,76 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
       Fcu1F =0.0;
       Fcu2F =0.0;
 
-
       for (int i = 2; i <= StripLoc(jj,0)+1; i++) {
+        int fibNum=StripLoc(jj,i);
+        UniaxialMaterial *theMat1 = theMaterials1[fibNum];  
+        UniaxialMaterial *theMat2 = theMaterials2[fibNum];  
 
-    int fibNum=StripLoc(jj,i);
-    UniaxialMaterial *theMat1 = theMaterials1[fibNum];  
-    UniaxialMaterial *theMat2 = theMaterials2[fibNum];  
+        int tag=theMat1->getTag();
+        double tsy, ssy;
+        double tc1, sc1, tc2, sc2;
+        double tc12=0.0;
+        double tc21=0.0;
+        double beta1, beta2;
 
-    int tag=theMat1->getTag();
-    double tsy, ssy;
-    double tc1, sc1, tc2, sc2;
-    double tc12=0.0;
-    double tc21=0.0;
-    double beta1, beta2;
+        if (tag>1000){            // to distinguish concrete & steel tag>1000 => steel
+          //      double y = matData[2*fibNum] - yBar;        
+          double A = matData[2*fibNum+1];    
+          res = theMat1->setTrial(ey, ssy, tsy);
 
-    if (tag>1000){            // to distinguish concrete & steel tag>1000 => steel
-      //      double y = matData[2*fibNum] - yBar;        
-      double A = matData[2*fibNum+1];    
-      res = theMat1->setTrial(ey, ssy, tsy);
+          fx += 0.0;
+          Fy += ssy*A;
+          Fxy += 0.0;
+          syCommit[jj] += ssy*A;
+          Atot += A; 
+          stifstyF +=tsy*A;
 
-      fx += 0.0;
-      Fy += ssy*A;
-      Fxy += 0.0;
-      syCommit[jj] += ssy*A;
-      Atot += A; 
-      stifstyF +=tsy*A;
+        }
+        else {            // concrete
+          //double y = matData[2*fibNum] - yBar;
+          double A = matData[2*fibNum+1];    
+          res = theMat1->setTrial(e1, sc1, tc1);
+          res = theMat2->setTrial(e2, sc2, tc2);
 
-    }
-    else{            // concrete
-      //double y = matData[2*fibNum] - yBar;
-      double A = matData[2*fibNum+1];    
-      res = theMat1->setTrial(e1, sc1, tc1);
-      res = theMat2->setTrial(e2, sc2, tc2);
+          static Information theInfo;
+          double e0 = 0.0;
 
-      static Information theInfo;
-      double e0 = 0.0;
+          const char *theData = "ec";
+          if (theMat1->getVariable(theData, theInfo) == 0)
+            e0 = theInfo.theDouble;
 
-      const char *theData = "ec";
-      if (theMat1->getVariable(theData, theInfo) == 0)
-        e0 = theInfo.theDouble;
+          this -> beta(e0, e2, sc1, tc1, tc12, beta1);
+          this -> beta(e0, e1, sc2, tc2, tc21, beta2);
 
-      this -> beta(e0, e2, sc1, tc1, tc12, beta1);
-      this -> beta(e0, e1, sc2, tc2, tc21, beta2);
+          s1Commit[jj] += sc1*A;
+          s2Commit[jj] += sc2*A;
+          Actot += A; 
 
-      s1Commit[jj] += sc1*A;
-      s2Commit[jj] += sc2*A;
-      Actot += A; 
+          fx += ((sc1+sc2)*0.5-(sc1-sc2)*0.5*cos(2.0*alfa[jj]))*A;
+          Fy += ((sc1+sc2)*0.5+(sc1-sc2)*0.5*cos(2.0*alfa[jj]))*A;
+          Fxy += -((sc1-sc2)*0.5*sin(2.0*alfa[jj]))*A;
 
-      fx += ((sc1+sc2)*0.5-(sc1-sc2)*0.5*cos(2.0*alfa[jj]))*A;
-      Fy += ((sc1+sc2)*0.5+(sc1-sc2)*0.5*cos(2.0*alfa[jj]))*A;
-      Fxy += -((sc1-sc2)*0.5*sin(2.0*alfa[jj]))*A;
+          stifcu11F +=tc1*A;
+          stifcu12F +=tc12*A; 
+          stifcu22F +=tc2*A;
+          stifcu21F +=tc21*A; 
 
-      stifcu11F +=tc1*A;
-      stifcu12F +=tc12*A; 
-      stifcu22F +=tc2*A;
-      stifcu21F +=tc21*A; 
-
-      Fcu1F += sc1*A;
-      Fcu2F += sc2*A;
-
-    }
-
+          Fcu1F += sc1*A;
+          Fcu2F += sc2*A;
+        }
       }
 
       int Hloc = 0;
       for (int H = 0; H < numHFibers; H++) {                
-    UniaxialMaterial *theHMat = theHMaterials[H*numHFibers + jj];
-    double Hy = matHData[Hloc++];    
-    double HA = matHData[Hloc++];
-    double Ht, Hs;
-    res = theHMat->setTrial(ex, Hs, Ht);    
-    fx += Hs*HA*StripLoc(jj,1)/(L*tavg);
-    HAtot += HA;
-    sxCommit[jj] += Hs*HA*StripLoc(jj,1)/(L*tavg);
-    stifstxF += Ht*HA*StripLoc(jj,1)/(L*tavg);
-
+        UniaxialMaterial *theHMat = theHMaterials[H*numHFibers + jj];
+        double Hy = matHData[Hloc++];    
+        double HA = matHData[Hloc++];
+        double Ht, Hs;
+        res = theHMat->setTrial(ex, Hs, Ht);    
+        fx += Hs*HA*StripLoc(jj,1)/(L*tavg);
+        HAtot += HA;
+        sxCommit[jj] += Hs*HA*StripLoc(jj,1)/(L*tavg);
+        stifstxF += Ht*HA*StripLoc(jj,1)/(L*tavg);
       }
 
       sxCommit[jj] = sxCommit[jj]/HAtot;
@@ -810,7 +805,7 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
       double de1 = (1.0 + (-ex + ey)*signGamma/root)*0.5;
       double dalfa = -gamma*0.5/pow(root,2.0);
 
-      double Bgrad=stifstxF + ((stifcu11F*de1+stifcu12F*de2+stifcu22F*de2+stifcu21F*de1)/2.0-
+      double Bgrad = stifstxF + ((stifcu11F*de1+stifcu12F*de2+stifcu22F*de2+stifcu21F*de1)/2.0-
                    (stifcu11F*de1+stifcu12F*de2-(stifcu22F*de2+stifcu21F*de1))/2.0*cos(2.0*alfa[jj])+
                    (Fcu1F-Fcu2F)*sin(2.0*alfa[jj])*dalfa);                   
 
@@ -825,17 +820,16 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
       else XPrevNeg=ex;
 
       if (!(XPrevPos == -1.0) && !(XPrevNeg == -1.0)) { // assumes 1 solution available
-
-    Xmax=MyMIN(MyMAX(XPrevPos,XPrevNeg),Xmax);
-    Xmin=MyMAX(MyMIN(XPrevPos,XPrevNeg),Xmin);
+        Xmax=MyMIN(MyMAX(XPrevPos,XPrevNeg),Xmax);
+        Xmin=MyMAX(MyMIN(XPrevPos,XPrevNeg),Xmin);
       }
 
       if ((iter>50) && (!(XPrevPos == -1.0) && !(XPrevNeg == -1.0))) {    
-    ex = (Xmax + Xmin)/2.0;
+        ex = (Xmax + Xmin)/2.0;
       }                                                        // midpoint
       else {                                                         
-    double dex = -fx/Bgrad ;                                    
-    ex = ex + dex;
+        double dex = -fx/Bgrad ;                                    
+        ex = ex + dex;
       }
     }
 
@@ -858,18 +852,19 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
     }
     else {
 
-      double R2=sqrt(1.0 + pow(ex - ey,2)/pow(gamma,2));
+      double R2 = sqrt(1.0 + pow(ex - ey,2)/pow(gamma,2));
 
       dTdEy = (-((Fcu1F - Fcu2F)*(pow(ex,2) - 2*ex*ey + pow(ey,2) + pow(gamma,2))*
-         (stifcu11F + stifcu12F - 3*stifcu21F - 3*stifcu22F - 2*stifstxF)) + 
-           4*(Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*(stifcu21F + stifcu22F + stifstxF)*cos(2*alfa[jj]) + 
-           (Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + 2*stifstxF)*cos(4*alfa[jj]) + 
-           2*gamma*(pow(ex - ey,2) + pow(gamma,2))*(stifcu11F + stifcu12F - stifcu21F - stifcu22F)*stifstxF*sin(2*alfa[jj]) + 
-           (-ex + ey)*gamma*R2*((-Fcu1F + Fcu2F)*(stifcu11F + stifcu12F - 3*stifcu21F - 3*stifcu22F - 2*stifstxF) + 
-                    4*(Fcu1F - Fcu2F)*(stifcu21F + stifcu22F + stifstxF)*cos(2*alfa[jj]) + 
-                    (Fcu1F - Fcu2F)*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + 2*stifstxF)*cos(4*alfa[jj]) + 
-                    2*gamma*(2*stifcu12F*stifcu21F - 2*stifcu11F*stifcu22F + (-stifcu11F + stifcu12F + stifcu21F - stifcu22F)*stifstxF)*
-                    sin(2*alfa[jj])))/(2.*(-2*gamma*(pow(ex - ey,2) + pow(gamma,2))*stifcu21F*pow(cos(alfa[jj]),2) + 
+                (stifcu11F + stifcu12F - 3*stifcu21F - 3*stifcu22F - 2*stifstxF)) + 
+                  4*(Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*(stifcu21F + stifcu22F + stifstxF)*cos(2*alfa[jj]) + 
+                  (Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + 2*stifstxF)*cos(4*alfa[jj]) + 
+                  2*gamma*(pow(ex - ey,2) + pow(gamma,2))*(stifcu11F + stifcu12F - stifcu21F - stifcu22F)*stifstxF*sin(2*alfa[jj]) + 
+                  (-ex + ey)*gamma*R2*((-Fcu1F + Fcu2F)*(stifcu11F + stifcu12F - 3*stifcu21F - 3*stifcu22F - 2*stifstxF) + 
+                            4*(Fcu1F - Fcu2F)*(stifcu21F + stifcu22F + stifstxF)*cos(2*alfa[jj]) + 
+                            (Fcu1F - Fcu2F)*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + 2*stifstxF)*cos(4*alfa[jj]) + 
+                            2*gamma*(2*stifcu12F*stifcu21F - 2*stifcu11F*stifcu22F + (-stifcu11F + stifcu12F + stifcu21F - stifcu22F)*stifstxF)*
+                            sin(2*alfa[jj]))
+                  )/(2.*(-2*gamma*(pow(ex - ey,2) + pow(gamma,2))*stifcu21F*pow(cos(alfa[jj]),2) + 
                                (-ex + ey)*gamma*R2*(2*gamma*(-stifcu21F + stifcu22F)*pow(cos(alfa[jj]),2) 
                                         + 8*(Fcu1F - Fcu2F)*pow(cos(alfa[jj]),3)*sin(alfa[jj]) + 
                                         2*gamma*(-stifcu11F + stifcu12F)*pow(sin(alfa[jj]),2)) + 
@@ -914,21 +909,20 @@ int FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, doubl
 
       dSydEy = (-(gamma*(pow(ex - ey,2) + pow(gamma,2))*((stifcu11F + stifcu12F + stifcu21F + stifcu22F)*stifstyF + 
                              stifstxF*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + 4*stifstyF))) + 
-        gamma*(pow(ex - ey,2) + pow(gamma,2))*(-stifcu11F - stifcu12F + stifcu21F + stifcu22F)*(stifstxF - stifstyF)*cos(2*alfa[jj]) + 
-        2*(Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*
-        sin(2*alfa[jj]) + (Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*
-        (stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*sin(4*alfa[jj]) + 
-        (-ex + ey)*gamma*R2*(gamma*(stifcu11F - stifcu12F + stifcu21F - stifcu22F)*(stifstxF - stifstyF) + 
-                     gamma*(-((stifcu21F - stifcu22F)*(stifstxF + stifstyF)) - stifcu12F*(4*stifcu21F + stifstxF + stifstyF) + 
-                        stifcu11F*(4*stifcu22F + stifstxF + stifstyF))*cos(2*alfa[jj]) + 
-                     2*(Fcu1F - Fcu2F)*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*sin(2*alfa[jj]) + 
-                     (Fcu1F - Fcu2F)*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*sin(4*alfa[jj])))/
-    (-2*gamma*(pow(ex - ey,2) + pow(gamma,2))*stifcu21F*pow(cos(alfa[jj]),2) + 
-     (-ex + ey)*gamma*R2*(2*gamma*(-stifcu21F + stifcu22F)*pow(cos(alfa[jj]),2) + 8*(Fcu1F - Fcu2F)*pow(cos(alfa[jj]),3)*sin(alfa[jj]) + 
-                  2*gamma*(-stifcu11F + stifcu12F)*pow(sin(alfa[jj]),2)) + 
-     (-pow(-ex + ey,2) - pow(gamma,2))*(8*(-Fcu1F + Fcu2F)*pow(cos(alfa[jj]),3)*sin(alfa[jj]) + 
-                        2*gamma*(2*stifstxF + stifcu22F*pow(cos(alfa[jj]),2) + (stifcu11F + stifcu12F)*pow(sin(alfa[jj]),2))));
-
+            gamma*(pow(ex - ey,2) + pow(gamma,2))*(-stifcu11F - stifcu12F + stifcu21F + stifcu22F)*(stifstxF - stifstyF)*cos(2*alfa[jj]) + 
+            2*(Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*
+            sin(2*alfa[jj]) + (Fcu1F - Fcu2F)*(pow(ex - ey,2) + pow(gamma,2))*
+            (stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*sin(4*alfa[jj]) + 
+            (-ex + ey)*gamma*R2*(gamma*(stifcu11F - stifcu12F + stifcu21F - stifcu22F)*(stifstxF - stifstyF) + 
+                        gamma*(-((stifcu21F - stifcu22F)*(stifstxF + stifstyF)) - stifcu12F*(4*stifcu21F + stifstxF + stifstyF) + 
+                            stifcu11F*(4*stifcu22F + stifstxF + stifstyF))*cos(2*alfa[jj]) + 
+                        2*(Fcu1F - Fcu2F)*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*sin(2*alfa[jj]) + 
+                        (Fcu1F - Fcu2F)*(stifcu11F + stifcu12F + stifcu21F + stifcu22F + stifstxF + stifstyF)*sin(4*alfa[jj]))
+        )/(-2*gamma*(pow(ex - ey,2) + pow(gamma,2))*stifcu21F*pow(cos(alfa[jj]),2) + 
+          (-ex + ey)*gamma*R2*(2*gamma*(-stifcu21F + stifcu22F)*pow(cos(alfa[jj]),2) + 8*(Fcu1F - Fcu2F)*pow(cos(alfa[jj]),3)*sin(alfa[jj]) + 
+                        2*gamma*(-stifcu11F + stifcu12F)*pow(sin(alfa[jj]),2)) + 
+          (-pow(-ex + ey,2) - pow(gamma,2))*(8*(-Fcu1F + Fcu2F)*pow(cos(alfa[jj]),3)*sin(alfa[jj]) + 
+                              2*gamma*(2*stifstxF + stifcu22F*pow(cos(alfa[jj]),2) + (stifcu11F + stifcu12F)*pow(sin(alfa[jj]),2))));
     }
 
     kData[0] += dSydEy;
@@ -1004,20 +998,20 @@ FiberSection2dInt::getInitialTangent(void)
 }
 
 const Matrix&
-FiberSection2dInt::getSectionTangent(void)    
+FiberSection2dInt::getSectionTangent()    
 {
 
   return *ks;
 }
 
 const Vector&
-FiberSection2dInt::getStressResultant(void)    
+FiberSection2dInt::getStressResultant()    
 {
   return *s;
 }
 
 FrameSection*
-FiberSection2dInt::getFrameCopy(void)
+FiberSection2dInt::getFrameCopy()
 {
   FiberSection2dInt *theCopy = new FiberSection2dInt ();
   theCopy->setTag(this->getTag());
@@ -1028,28 +1022,13 @@ FiberSection2dInt::getFrameCopy(void)
     theCopy->theMaterials1 = new UniaxialMaterial *[numFibers];
     theCopy->theMaterials2 = new UniaxialMaterial *[numFibers];
 
-    if (theCopy->theMaterials1 == 0) {
-      opserr <<"FiberSection2dInt::getFrameCopy -- failed to allocate Material pointers\n";
-      exit(-1);
-    }
-
     theCopy->matData = new double [numFibers*2];
-
-    if (theCopy->matData == 0) {
-      opserr << "FiberSection2dInt::getFrameCopy -- failed to allocate double array for material data\n";
-      exit(-1);
-    }
 
     for (int i = 0; i < numFibers; i++) {
       theCopy->matData[i*2] = matData[i*2];
       theCopy->matData[i*2+1] = matData[i*2+1];
       theCopy->theMaterials1[i] = theMaterials1[i]->getCopy();
       theCopy->theMaterials2[i] = theMaterials2[i]->getCopy();
-
-      if (theCopy->theMaterials1[i] == 0) {
-    opserr <<"FiberSection2dInt::getFrameCopy -- failed to get copy of a Material";
-    exit(-1);
-      }
     }  
   }
 
@@ -1059,28 +1038,14 @@ FiberSection2dInt::getFrameCopy(void)
   if (numHFibers != 0) {
     theCopy->theHMaterials = new UniaxialMaterial *[numHFibers * NStrip];
 
-    if (theCopy->theHMaterials == 0) {
-      opserr <<"FiberSection2dInt::getFrameCopy -- failed to allocate HMaterial pointers\n";
-      exit(-1);
-    }
-
     theCopy->matHData = new double [numHFibers*2];
 
-    if (theCopy->matHData == 0) {
-      opserr << "FiberSection2dInt::getFrameCopy -- failed to allocate double array for Hmaterial data\n";
-      exit(-1);
-    }
 
     for (int i = 0; i < numHFibers; i++) {
       theCopy->matHData[i*2] = matHData[i*2];
       theCopy->matHData[i*2+1] = matHData[i*2+1];
       for (int jj = 0; jj < NStrip; jj++) {
-    theCopy->theHMaterials[i * numHFibers + jj] = theHMaterials[i * numHFibers + jj]->getCopy();
-
-    if (theCopy->theHMaterials[i * numHFibers + jj] == 0) {
-      opserr <<"FiberSection2dInt::getFrameCopy -- failed to get copy of a HMaterial";
-      exit(-1);
-    }
+        theCopy->theHMaterials[i * numHFibers + jj] = theHMaterials[i * numHFibers + jj]->getCopy();
       }
     }  
   }
@@ -1093,23 +1058,23 @@ FiberSection2dInt::getFrameCopy(void)
   theCopy->tavg2 = tavg2;
   theCopy->tavg3 = tavg3;
 
-for (int j = 0; j < NStrip; j++) {
-  theCopy->sy[j] = sy[j];
-  theCopy->txy[j] = txy[j];
-  theCopy->alfa[j] = alfa[j]; 
-  theCopy->alfaCommit[j] = alfaCommit[j];
-  theCopy->iterOut[j] = iterOut[j];
-  theCopy->iterCommit[j] = iterCommit[j];
-  theCopy->exOut[j] = exOut[j];
-  theCopy->exCommit[j] = exCommit[j];
-  theCopy->eyCommit[j] = eyCommit[j];
-  theCopy->e1Commit[j] = e1Commit[j];
-  theCopy->e2Commit[j] = e2Commit[j];
-  theCopy->sxCommit[j] = sxCommit[j];
-  theCopy->syCommit[j] = syCommit[j];
-  theCopy->s1Commit[j] = s1Commit[j];
-  theCopy->s2Commit[j] = s2Commit[j];
-}
+  for (int j = 0; j < NStrip; j++) {
+    theCopy->sy[j] = sy[j];
+    theCopy->txy[j] = txy[j];
+    theCopy->alfa[j] = alfa[j]; 
+    theCopy->alfaCommit[j] = alfaCommit[j];
+    theCopy->iterOut[j] = iterOut[j];
+    theCopy->iterCommit[j] = iterCommit[j];
+    theCopy->exOut[j] = exOut[j];
+    theCopy->exCommit[j] = exCommit[j];
+    theCopy->eyCommit[j] = eyCommit[j];
+    theCopy->e1Commit[j] = e1Commit[j];
+    theCopy->e2Commit[j] = e2Commit[j];
+    theCopy->sxCommit[j] = sxCommit[j];
+    theCopy->syCommit[j] = syCommit[j];
+    theCopy->s1Commit[j] = s1Commit[j];
+    theCopy->s2Commit[j] = s2Commit[j];
+  }
 
   theCopy->StripCenterLoc = StripCenterLoc;
   theCopy->StripLoc = StripLoc;
@@ -1192,7 +1157,7 @@ FiberSection2dInt::revertToLastCommitB(double L)
 
   double gamma = e(2);                        
 
-for (int jj = 0; jj < NStrip; jj++) {
+  for (int jj = 0; jj < NStrip; jj++) {
     double tavg;
     if (jj<NStrip1)
         tavg=tavg1;
@@ -1412,7 +1377,7 @@ for (int jj = 0; jj < NStrip; jj++) {
     sy[jj] = Fy/StripLoc(jj,1); // avg stresses 
     txy[jj] = Fxy/StripLoc(jj,1);
 
- }
+  }
 
   return err;
 }
@@ -1420,7 +1385,7 @@ for (int jj = 0; jj < NStrip; jj++) {
 
 
 int
-FiberSection2dInt::revertToStartB(void)        
+FiberSection2dInt::revertToStartB()        
 {
   // revert the fibers to start    
   int err = 0;
@@ -1433,58 +1398,58 @@ FiberSection2dInt::revertToStartB(void)
 
   for (int i = 0; i < numFibers; i++) {
 
-        double stifstyF, stifcu22F;
-        stifstyF =0.0;
-        stifcu22F =0.0;
-        UniaxialMaterial *theMat1 = theMaterials1[i];  
+      double stifstyF, stifcu22F;
+      stifstyF =0.0;
+      stifcu22F =0.0;
+      UniaxialMaterial *theMat1 = theMaterials1[i];  
 
-        int tag=theMat1->getTag();
-        double y = StripCenterLoc(FiberLoc(i));
-        double A = matData[2*i+1];    
+      int tag=theMat1->getTag();
+      double y = StripCenterLoc(FiberLoc(i));
+      double A = matData[2*i+1];    
 
-        if (tag>1000){            // to distinguish concrete & steel tag>1000 => steel
-            err += theMat1->revertToStart();
+      if (tag>1000){            // to distinguish concrete & steel tag>1000 => steel
+          err += theMat1->revertToStart();
 
-            // get material stress & tangent for this strain and determine ks and fs
-            double tsy = theMat1->getTangent();
-            double ssy = theMat1->getStress();
-            stifstyF =tsy*A;
-        }
-        else{            // concrete
-            err += theMat1->revertToStart();
-            double tc1 = theMat1->getTangent();
-            stifcu22F =tc1*A;
-        }
+          // get material stress & tangent for this strain and determine ks and fs
+          double tsy = theMat1->getTangent();
+          double ssy = theMat1->getStress();
+          stifstyF =tsy*A;
+      }
+      else{            // concrete
+          err += theMat1->revertToStart();
+          double tc1 = theMat1->getTangent();
+          stifcu22F =tc1*A;
+      }
 
-        double dTdEy = 0.0;
-        double dTdGamma = stifcu22F/2.0;
-        double dSydGamma = 0.0;
-        double dSydEy = stifcu22F + stifstyF;
+      double dTdEy = 0.0;
+      double dTdGamma = stifcu22F/2.0;
+      double dSydGamma = 0.0;
+      double dSydEy = stifcu22F + stifstyF;
 
-        kData[0] += dSydEy;
-        kData[1] += dSydEy*y;
-        kData[2] += dSydGamma;
-        kData[3] += dSydEy*y;
-        kData[4] += dSydEy*y*y;
-        kData[5] += dSydGamma*y;
-        kData[6] += dTdEy;
-        kData[7] += dTdEy*y;
-        kData[8] += dTdGamma;
+      kData[0] += dSydEy;
+      kData[1] += dSydEy*y;
+      kData[2] += dSydGamma;
+      kData[3] += dSydEy*y;
+      kData[4] += dSydEy*y*y;
+      kData[5] += dSydGamma*y;
+      kData[6] += dTdEy;
+      kData[7] += dTdEy*y;
+      kData[8] += dTdGamma;
 
-        sData[0] += 0.0; 
-        sData[1] += 0.0; 
-        sData[2] += 0.0; 
+      sData[0] += 0.0; 
+      sData[1] += 0.0; 
+      sData[2] += 0.0; 
     }
 
     for (int jj = 0; jj < NStrip; jj++) {
-        int Hloc = 0;
-        for (int H = 0; H < numHFibers; H++) {                
-            UniaxialMaterial *theHMat = theHMaterials[H * numHFibers + jj];
-            double Hy = matHData[Hloc++];    
-            double HA = matHData[Hloc++];
-            err += theHMat->revertToStart();
-            double Ht = theHMat->getTangent();
-        }
+      int Hloc = 0;
+      for (int H = 0; H < numHFibers; H++) {                
+          UniaxialMaterial *theHMat = theHMaterials[H * numHFibers + jj];
+          double Hy = matHData[Hloc++];    
+          double HA = matHData[Hloc++];
+          err += theHMat->revertToStart();
+          double Ht = theHMat->getTangent();
+      }
     }
   return err;
 }

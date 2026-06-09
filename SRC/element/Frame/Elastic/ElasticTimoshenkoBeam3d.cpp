@@ -40,7 +40,6 @@
 #include <CrdTransf.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <ElementResponse.h>
@@ -182,12 +181,6 @@ ElasticTimoshenkoBeam3d::ElasticTimoshenkoBeam3d()
     nlGeo(0), phiY(0.0), phiZ(0.0), L(0.0), ul(12), ql(12), ql0(12),
     kl(12,12), klgeo(12,12), Tgl(12,12), Ki(12,12), M(12,12), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "ElasticTimoshenkoBeam3d::ElasticTimoshenkoBeam3d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     // set node pointers to NULL
     for (int i=0; i<2; i++)

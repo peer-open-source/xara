@@ -83,16 +83,16 @@ public:
 	PML3D();                                                                         //null constructor
 	PML3D(int tag, int* nodeTags, double* newmarks, double* dData);                  // full constructor
 	virtual ~PML3D();                                                                //destructor
-	const char* getClassType(void) const { return "PML3D"; };                        //return class type
+	const char* getClassType(void) const { return "PML3D"; }                         //return class type
 	void setDomain(Domain* theDomain);                                               // set domain
 	int getNumExternalNodes() const; 	   						                     // get number of external nodes
 	const ID& getExternalNodes(); 								                     // get external nodes
-	Node** getNodePtrs(void); 									                     // get external nodes
+	Node** getNodePtrs(); 									                     // get external nodes
 	int getNumDOF(); 											                     // get number of DOF
 	int commitState(); 											                     // commit state
 	int revertToLastCommit(); 									                     // revert to last commit
 	int revertToStart(); 										                     // revert to start
-	int update(void); 											                     // update
+	int update(); 											                     // update
 	void Print(OPS_Stream& s, int flag); 							                 // print out element data
 	const Matrix& getTangentStiff(); 							                     // get stiffness matrix
 	const Matrix& getInitialStiff(); 							                     // get initial stiffness matrix
@@ -108,7 +108,6 @@ public:
 	int getResponse(int responseID, Information& eleInformation);                    // get response
 	int setParameter(const char** argv, int argc, Parameter& param);
 	int updateParameter(int parameterID, Information& info);                         // update parameter
-	int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
 
 private:
 

@@ -33,6 +33,10 @@
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
+#include <analysis/damping/ModalDamping.h>
+#include <Domain.h>
+#include <LoadPattern.h>
+#include <LoadPatternIter.h>
 
 TransientIntegrator::TransientIntegrator(int clasTag)
  : IncrementalIntegrator(clasTag)
@@ -42,7 +46,6 @@ TransientIntegrator::TransientIntegrator(int clasTag)
 
 TransientIntegrator::~TransientIntegrator()
 {
-
 }
 
 #if 1
@@ -54,6 +57,7 @@ TransientIntegrator::formTangent(int statFlag, double iFact, double cFact)
   return this->formTangent(statFlag);
 }
 #endif
+
 
 int 
 TransientIntegrator::formTangent(int statFlag)
@@ -74,8 +78,8 @@ TransientIntegrator::formTangent(int statFlag)
   // efficiency when performing parallel computations
   
   theLinSOE->zeroA();
-
-  // do modal damping
+#if 0
+  // old modal damping
   bool inclModalMatrix = theModel->inclModalDampingMatrix();
   if (inclModalMatrix == true) {
     const Vector *modalValues = theModel->getModalDampingFactors();
@@ -83,27 +87,34 @@ TransientIntegrator::formTangent(int statFlag)
       this->addModalDampingMatrix(modalValues);
     }
   }
-
+#endif
+  
 
   // loop through the DOF_Groups and add the unbalance
   DOF_GrpIter &theDOFs = theModel->getDOFs();
   DOF_Group *dofPtr; 
   while ((dofPtr = theDOFs()) != nullptr) {
-    if (theLinSOE->addA(dofPtr->getTangent(this),dofPtr->getID()) <0) {
+    if (theLinSOE->addA(dofPtr->getTangent(this),dofPtr->getID()) <0) [[unlikely]] {
       opserr << "TransientIntegrator::formTangent() - failed to addA:dof\n";
       result = -1;
     }
   }
 
-  // loop through the FE_Elements getting them to add the tangent    
+  // loop through the FE_Elements getting them to add the tangent 
   FE_EleIter &theEles2 = theModel->getFEs();    
   FE_Element *elePtr;    
   while((elePtr = theEles2()) != nullptr) {
-    if (theLinSOE->addA(elePtr->getTangent(this),elePtr->getID()) < 0) {
+    if (theLinSOE->addA(elePtr->getTangent(this),elePtr->getID()) < 0) [[unlikely]] {
       opserr << "TransientIntegrator::formTangent() - failed to addA:ele\n";
       result = -2;
     }
   }
+
+  ModalDamping *modalDamping = theModel->getModalDamping();
+  if (modalDamping != nullptr) {
+    result += modalDamping->update(*this, *theLinSOE);
+  }
+
   return result;
 }
 
@@ -129,10 +140,25 @@ TransientIntegrator::formUnbalance()
   theLinSOE->zeroB();
 
   // do modal damping
-  const Vector *modalValues = theModel->getModalDampingFactors();
-  if (modalValues != nullptr)
-    this->addModalDampingForce(modalValues);
-
+  ModalDamping *modalDamping = theModel->getModalDamping();
+  if (modalDamping != nullptr) {
+    modalDamping->applyResidual(*this, *theLinSOE);
+  }
+  // const Vector *modalValues = theModel->getModalDampingFactors();
+  // if (modalValues != nullptr)
+  //   this->addModalDampingForce(modalValues);
+#if 1
+  {
+    Domain *theDomain = theModel->getDomainPtr();
+    if (theDomain != nullptr) {
+      LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
+      LoadPattern *thePattern;
+      while ((thePattern = thePatterns()) != nullptr) {
+        thePattern->applyResidual(*theModel, *theLinSOE, 1.0);//this->getCFactor());
+      }
+    }
+  }
+#endif
   if (this->formElementResidual() < 0)
     return -1;
 

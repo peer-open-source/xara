@@ -37,7 +37,6 @@
 #include <Node.h>
 #include <Domain.h>
 #include <ErrorHandler.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <Parameter.h>
 #include <ElementalLoad.h>
@@ -628,39 +627,6 @@ int  PML2D_5::recvSelf(int commitTag,
 }
 
 
-// =======================================================================
-// display
-// =======================================================================
-int PML2D_5::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** modes, int numMode)
-{
-	// Get the end point display coords
-	static Vector v1(3);
-	static Vector v2(3);
-	static Vector v3(3);
-	static Vector v4(3);
-	nodePointers[0]->getDisplayCrds(v1, fact, displayMode);
-	nodePointers[1]->getDisplayCrds(v2, fact, displayMode);
-	nodePointers[2]->getDisplayCrds(v3, fact, displayMode);
-	nodePointers[3]->getDisplayCrds(v4, fact, displayMode);
-
-
-	// place values in coords matrix
-	static Matrix coords(4, 2);
-	for (int i = 0; i < 3; i++) {
-		coords(0, i) = v1(i);
-		coords(1, i) = v2(i);
-		coords(2, i) = v3(i);
-		coords(3, i) = v4(i);
-	}
-
-	// fill RGB vector
-	static Vector values(4);
-	for (int i = 0; i < 8; i++)
-		values(i) = 1.0;
-
-	// draw the cube
-	return theViewer.drawCube(coords, values, this->getTag());
-}
 
 // =======================================================================
 // setresponse

@@ -37,7 +37,7 @@ struct IsotropicParse {
 //   (flag1, in1) and (flag2, in2)—compute the requested output property,
 //   as indicated by flag_out. If one of the outputs is already among the
 //   inputs its value is returned; otherwise the function first converts
-//   the pair to the canonical pair (E, ν) and then computes the desired value.
+//   the pair to the canonical pair (E, nu) and then computes the desired value.
 //
 //   The function returns 0 on success and a nonzero value if the conversion
 //   cannot be performed (for example, due to an unrecognized combination or

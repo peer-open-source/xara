@@ -30,9 +30,6 @@
 #ifndef MembranePlateFiberSection_h
 #define MembranePlateFiberSection_h
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -45,15 +42,12 @@
 class MembranePlateFiberSection : public SectionForceDeformation {
 
 public:
-  //null constructor
   MembranePlateFiberSection();
-
-  //full constructor
   MembranePlateFiberSection(int tag, double thickness, NDMaterial& Afiber);
 
 
   const char*
-  getClassType(void) const
+  getClassType() const
   {
     return "MembranePlateFiberSection";
   }
@@ -67,16 +61,14 @@ public:
   // mass per unit area
   double getRho();
 
-    int getOrder() const;
+  int getOrder() const;
 
-    const ID& getType();
+  const ID& getType();
 
-  //swap history variables
+  // history variables
   int commitState();
-
-    int revertToLastCommit();
-
-    int revertToStart();
+  int revertToLastCommit();
+  int revertToStart();
 
   //get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);

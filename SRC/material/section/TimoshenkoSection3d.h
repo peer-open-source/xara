@@ -25,7 +25,11 @@
 // TimoshenkoSection3d.h. TimoshenkoSection3d provides the abstraction of a 
 // 3d beam section discretized by fibers. The section stiffness and
 // stress resultants are obtained by summing fiber contributions.
-
+//
+// References
+// - Scott, M. “Software Frameworks for the Computational Simulation of Structural Systems.” 
+//   University of California, Berkeley, 2004. 
+//
 #ifndef TimoshenkoSection3d_h
 #define TimoshenkoSection3d_h
 

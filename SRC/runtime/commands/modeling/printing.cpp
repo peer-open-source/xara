@@ -127,6 +127,17 @@ printRegistryObject(const ModelRegistry& builder, int tag, int flag, OPS_Stream 
   return TCL_OK;
 }
 
+
+static int
+printShapeData(const ModelRegistry& builder, int tag, int flag, OPS_Stream *output)
+{
+  FrameSection* object = builder.getTypedObject<FrameSection>(tag);
+  Frame::Shape shape(3,6);
+  object->getShape(shape);
+  shape.print(*output, flag);
+  return TCL_OK;
+}
+
 static int
 printRegistry(const ModelRegistry& builder, TCL_Char* type, int flag, OPS_Stream *output)
 {
@@ -380,7 +391,7 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
       done = true;
     }
 
-    // if 'print material i j k ..' print out some nodes
+    // if 'print material i j k ..' print out some materials
     else if ((strcmp(argv[currentArg], "-material") == 0)) {
       currentArg++;
       if (currentArg == argc) {
@@ -395,6 +406,25 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
           return TCL_ERROR;
         }
         res += printRegistryObject<NDMaterial>(*((ModelRegistry*)clientData), tag, OPS_PRINT_PRINTMODEL_JSON, output);
+      }
+      done = true;
+    }
+
+    // if 'print shape i j k ..' print out some shapes
+    else if ((strcmp(argv[currentArg], "-shape") == 0)) {
+      currentArg++;
+      if (currentArg == argc) {
+        opserr << OpenSees::PromptValueError << "print -shape <tag> .. - no tag specified\n";
+        return TCL_ERROR;
+      }
+      for (int i = currentArg; i < argc; i++) {
+        int tag;
+        if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "print -shape failed to get integer tag: " << argv[i]
+                 << "\n";
+          return TCL_ERROR;
+        }
+        res += printShapeData(*((ModelRegistry*)clientData), tag, OPS_PRINT_PRINTMODEL_JSON, output);
       }
       done = true;
     }

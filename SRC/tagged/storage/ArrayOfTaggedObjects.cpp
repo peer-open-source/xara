@@ -166,11 +166,11 @@ ArrayOfTaggedObjects::addComponent(TaggedObject *newComponent)
   
   if ((newComponentTag >= 0) && (newComponentTag < sizeComponentArray)) {
     if (theComponents[newComponentTag] == 0)   { // it will go in nicely
-        theComponents[newComponentTag] = newComponent;
-        numComponents ++;
-        if (newComponentTag > positionLastEntry)
-          positionLastEntry = newComponentTag;
-        return true;
+      theComponents[newComponentTag] = newComponent;
+      numComponents ++;
+      if (newComponentTag > positionLastEntry)
+        positionLastEntry = newComponentTag;
+      return true;
     }
   }
 

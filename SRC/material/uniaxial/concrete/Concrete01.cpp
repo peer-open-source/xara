@@ -79,13 +79,12 @@ Concrete01::Concrete01(int tag, double FPC, double EPSC0, double FPCU, double EP
   // Set trial values
   this->revertToLastCommit();
   
-  // AddingSensitivity:BEGIN /////////////////////////////////////
   parameterID = 0;
   SHVs = 0;
-  // AddingSensitivity:END //////////////////////////////////////
 }
 
-Concrete01::Concrete01():UniaxialMaterial(0, MAT_TAG_Concrete01),
+Concrete01::Concrete01()
+:UniaxialMaterial(0, MAT_TAG_Concrete01),
  fpc(0.0), epsc0(0.0), fpcu(0.0), epscu(0.0),
  CminStrain(0.0), CunloadSlope(0.0), CendStrain(0.0),
  Cstrain(0.0), Cstress(0.0)
@@ -169,7 +168,7 @@ int Concrete01::setTrialStrain(double strain, double strainRate)
 
 
 int 
-Concrete01::setTrial (double strain, double &stress, double &tangent, double strainRate)
+Concrete01::setTrial(double strain, double &stress, double &tangent, double strainRate)
 {
 	 // Reset trial history variables to last committed state
    TminStrain = CminStrain;
@@ -231,9 +230,7 @@ Concrete01::setTrial (double strain, double &stress, double &tangent, double str
     Tstress = 0.0;
     Ttangent = 0.0;
   }
-  
-  //opserr << "Concrete01::setTrial() " << strain << " " << tangent << " " << strain << endln;
-  
+
   stress = Tstress;
   tangent =  Ttangent;
   
@@ -273,7 +270,7 @@ void Concrete01::determineTrialState (double dStrain)
   
 }
 
-void Concrete01::reload ()
+void Concrete01::reload()
 {
   if (Tstrain <= TminStrain) {
     
@@ -286,7 +283,7 @@ void Concrete01::reload ()
   }
   else if (Tstrain <= TendStrain) {
     Ttangent = TunloadSlope;
-    Tstress = Ttangent*(Tstrain-TendStrain);
+    Tstress = Ttangent*(Tstrain - TendStrain);
   }
   else {
     Tstress = 0.0;
@@ -294,7 +291,8 @@ void Concrete01::reload ()
   }
 }
 
-void Concrete01::envelope ()
+void
+Concrete01::envelope()
 {
   if (Tstrain > epsc0) {
     double eta = Tstrain/epsc0;
@@ -312,7 +310,8 @@ void Concrete01::envelope ()
   }
 }
 
-void Concrete01::unload ()
+void
+Concrete01::unload()
 {
   double tempStrain = TminStrain;
   
@@ -347,22 +346,22 @@ void Concrete01::unload ()
   }
 }
 
-double Concrete01::getStress ()
+double Concrete01::getStress()
 {
-   return Tstress;
+  return Tstress;
 }
 
-double Concrete01::getStrain ()
+double Concrete01::getStrain()
 {
-   return Tstrain;
+  return Tstrain;
 }
 
-double Concrete01::getTangent ()
+double Concrete01::getTangent()
 {
-   return Ttangent;
+  return Ttangent;
 }
 
-int Concrete01::commitState ()
+int Concrete01::commitState()
 {
    // History variables
    CminStrain = TminStrain;
@@ -380,7 +379,8 @@ int Concrete01::commitState ()
    return 0;
 }
 
-int Concrete01::revertToLastCommit ()
+int
+Concrete01::revertToLastCommit()
 {
    // Reset trial history variables to last committed state
    TminStrain = CminStrain;
@@ -395,28 +395,29 @@ int Concrete01::revertToLastCommit ()
    return 0;
 }
 
-int Concrete01::revertToStart ()
+int
+Concrete01::revertToStart()
 {
 	double Ec0 = 2.0*fpc/epsc0;
 
-   // History variables
-   CminStrain = 0.0;
-   CunloadSlope = Ec0;
-   CendStrain = 0.0;
+  // History variables
+  CminStrain = 0.0;
+  CunloadSlope = Ec0;
+  CendStrain = 0.0;
 
-   // State variables
-   Cstrain = 0.0;
-   Cstress = 0.0;
-   Ctangent = Ec0;
+  // State variables
+  Cstrain = 0.0;
+  Cstress = 0.0;
+  Ctangent = Ec0;
 
-   // Reset trial variables and state
-   this->revertToLastCommit();
+  // Reset trial variables and state
+  this->revertToLastCommit();
 
-   // Quan April 2006---
-   if (SHVs !=0) {SHVs->Zero();}
-   parameterID=0;
+  // Quan April 2006---
+  if (SHVs !=0) {SHVs->Zero();}
+  parameterID=0;
 
-   return 0;
+  return 0;
 }
 
 UniaxialMaterial* Concrete01::getCopy ()
@@ -508,7 +509,7 @@ int Concrete01::recvSelf (int commitTag, Channel& theChannel,
    return res;
 }
 
-void Concrete01::Print (OPS_Stream& s, int flag)
+void Concrete01::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
     s << "Concrete01, tag: " << this->getTag() << endln;
@@ -521,7 +522,7 @@ void Concrete01::Print (OPS_Stream& s, int flag)
   
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"Concrete01\", ";
     s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
     s << "\"fc\": " << fpc << ", ";
@@ -601,7 +602,7 @@ Concrete01::updateParameter(int parameterID, Information &info)
 	Ctangent = Ec0;
 	CunloadSlope = Ec0;
 	Ttangent = Ec0;
-   	TunloadSlope = CunloadSlope;
+  TunloadSlope = CunloadSlope;
 
 	return 0;
 }
@@ -682,7 +683,6 @@ Concrete01::getStressSensitivity(int gradIndex, bool conditional)
 					  / (epsc0*epsc0);
 			}
 			else if (Tstrain > epscu) {		// on the straight inclined line
-//cerr << "ON THE STRAIGHT INCLINED LINE" << endl;
 
 				dktdh = ( (fpcSensitivity-fpcuSensitivity)
 					  * (epsc0-epscu) 
@@ -696,15 +696,15 @@ Concrete01::getStressSensitivity(int gradIndex, bool conditional)
 					      + dktdh*(Tstrain-epsc0)
 						  + kt*(TstrainSensitivity-epsc0Sensitivity);
 			}
-			else {							// on the horizontal line
-//cerr << "ON THE HORIZONTAL LINES" << endl;
+			else {
+        // on the horizontal line
 				TstressSensitivity = fpcuSensitivity;
 				dktdh = 0.0;
 			
 			}
 		}
-		else if (Tstrain < CendStrain) {	// reloading after an unloading that didn't go all the way to zero stress
-//cerr << "RELOADING AFTER AN UNLOADING THAT DIDN'T GO ALL THE WAY DOWN" << endl;
+		else if (Tstrain < CendStrain) {	
+      // reloading after an unloading that didn't go all the way to zero stress
 			TstressSensitivity = CunloadSlopeSensitivity * (Tstrain-CendStrain)
 				      + CunloadSlope * (TstrainSensitivity-CendStrainSensitivity);
 
@@ -717,8 +717,8 @@ Concrete01::getStressSensitivity(int gradIndex, bool conditional)
 
 		}
 	}
-	else if (Cstress+CunloadSlope*dStrain<0.0) {// unloading, but not all the way down to zero stress
-//cerr << "UNLOADING, BUT NOT ALL THE WAY DOWN" << endl;
+	else if (Cstress+CunloadSlope*dStrain<0.0) {
+    // unloading, but not all the way down to zero stress
 		TstressSensitivity = CstressSensitivity 
 			               + CunloadSlopeSensitivity*dStrain
 				           + CunloadSlope*(TstrainSensitivity-CstrainSensitivity);

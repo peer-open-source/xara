@@ -28,11 +28,6 @@
 extern "C" {
 #include <tcl.h>
 #include <tclDecls.h>
- #ifdef _TCL85
- #define TclFormatInt(buf, n)   sprintf((buf),"%ld", (long)(n))
- #else
- EXTERN int  TclFormatInt _ANSI_ARGS_((char *buffer, long n));
- #endif
  EXTERN int  TclObjCommandComplete _ANSI_ARGS_((Tcl_Obj *cmdPtr));
 }
 

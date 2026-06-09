@@ -43,7 +43,7 @@ class ElasticIsotropicBeamThread : public NDMaterial
   public:
     ~ElasticIsotropicBeamThread();
     const char *getClassType() const override {
-      return "ElasticIsotropic<BeamFiber>";
+      return "ElasticIsotropic<BeamThread>";
     }
 
     int setTrialStrain(const Vector &v) override;
@@ -66,6 +66,8 @@ class ElasticIsotropicBeamThread : public NDMaterial
 
     int setParameter(const char **argv, int argc, Parameter &param) override;
     const Vector& getStressSensitivity(int gradIndex, bool conditional) override;
+    int activateParameter(int paramID) override;
+
 
     int sendSelf(int commitTag, Channel &) override {return -1;};
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override {return -1;}

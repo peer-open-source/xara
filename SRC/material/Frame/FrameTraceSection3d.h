@@ -30,20 +30,20 @@
 #include <Matrix3D.h>
 
 class NDMaterial;
+class MaterialBuilder;
 class Response;
 
 namespace OpenSees {
 class FrameTraceSection3d : public FrameSection
 {
   public:
-    FrameTraceSection3d(); 
-    FrameTraceSection3d(int tag, int numFibers);
+    FrameTraceSection3d(int tag, int reserve, bool wagner);
   private:
     FrameTraceSection3d(const FrameTraceSection3d &);
   public:
     ~FrameTraceSection3d();
 
-    int addFiber(NDMaterial&, double area, double y, double z=0.0);
+    int addFiber(MaterialBuilder&, double area, double y, double z=0.0);
 
     //
     const char *getClassType() const {
@@ -57,7 +57,7 @@ class FrameTraceSection3d : public FrameSection
     const Vector &getStressResultant() override;
     const Matrix &getSectionTangent() override;
     const Matrix &getInitialTangent() override;
-    MatrixND<12,12> getFullTangent(State state) override;
+    MatrixND<12,12> getFullTangent(State state) noexcept override;
 
     int   commitState() override;
     int   revertToLastCommit() override;    
@@ -167,20 +167,27 @@ class FrameTraceSection3d : public FrameSection
 
     VectorND<nsr> s, e;
     Vector s_wrap, e_wrap;
-    Matrix3D shear_align;
+    // Trace matrix blocks
+    Matrix3D    shear_align;
     VectorND<3> shift_twist, shift_axial;
+    // Centroid
     Vector3D centroid;
+    // Average material Poisson's ratio
     double nubar;
     enum class FiberState {
       Dirty, Clean
     } fiber_state;
 
-    bool wagner;
+    const bool wagner;
     int parameterID;
 
     static ID code;
 
     Vector dedh;
+
+    static constexpr int MaxThreads = 12;
+    void *pool;        // thread pool
+    bool thread_safe = true;
 };
 
 #endif

@@ -253,7 +253,6 @@ BasicAnalysisBuilder::number()
       return -2;
     }
   }
-
   return 0;
 }
 
@@ -369,6 +368,8 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     int stamp = theDomain->hasDomainChanged();
 
     if (stamp != domainStamp) {
+      opsdbg << G3_DEBUG_PROMPT 
+             << "Domain changed during static analysis at step " << i+1 << "\n";
       domainStamp = stamp;
       result = this->domainChanged();
       if (result < 0) {
@@ -379,7 +380,10 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     }
 
     if (flag & Increment) {
-      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: New Step " << i+1 << "\n";
+      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: New Step " 
+             << i+1 
+             << " time = " << theDomain->getCurrentTime()
+             << "\n";
 
       result = theStaticIntegrator->newStep();
       if (result < 0) {
@@ -393,7 +397,10 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     }
 
     if (flag & Iterate) {
-      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: Iterate Step " << i+1 << "\n";
+      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: Iterate Step " 
+             << i+1 
+             << " time = " << theDomain->getCurrentTime()
+             << "\n";
 
       result = theAlgorithm->solveCurrentStep();
       if (result < 0) {
@@ -422,6 +429,10 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
 
     if (flag & Commit) {
       result = theStaticIntegrator->commit();
+      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: Commit Step " 
+             << i+1 
+             << " time = " << theDomain->getCurrentTime()
+             << "\n";
       if (result < 0) {
         opserr << "StaticAnalysis::analyze - ";
         opserr << "the Integrator failed to commit";

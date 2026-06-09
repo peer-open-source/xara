@@ -38,10 +38,6 @@
 #include <MP_Constraint.h>
 #include <MP_ConstraintIter.h>
 
-// TODO(cmp): Remove global vars
-static char *resDataPtr  = nullptr;
-static int   resDataSize = 0;
-
 
 int
 getNodeTags(ClientData clientData,
@@ -64,6 +60,7 @@ getNodeTags(ClientData clientData,
 
   return TCL_OK;
 }
+
 
 int
 findID(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
@@ -242,25 +239,21 @@ nodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** co
 {
   return nodeResponseTemplate<NodeData::Vel>(clientData, interp, argc, argv);
 }
-
 int 
 nodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::Accel>(clientData, interp, argc, argv);
 }
-
 int
 nodeUnbalance(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::UnbalancedLoad>(clientData, interp, argc, argv);
 }
-
 int 
 nodeReaction(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::Reaction>(clientData, interp, argc, argv);
 }
-
 
 int
 nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
@@ -276,11 +269,15 @@ nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** c
   int tag, dof;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << "WARNING nodeMass nodeTag? nodeDOF? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid tag " << argv[1] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &dof) != TCL_OK) {
-    opserr << "WARNING nodeMass nodeTag? nodeDOF? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid dof " << argv[2] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -288,12 +285,16 @@ nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** c
 
   Node *theNode = the_domain->getNode(tag);
   if (theNode == nullptr) {
-    opserr << "WARNING nodeMass node " << tag << " not found" << "\n";
+    opserr << OpenSees::PromptValueError
+           << "Node with tag " << tag << " not found"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   int numDOF = theNode->getNumberDOF();
   if (dof < 1 || dof > numDOF) {
-    opserr << "WARNING nodeMass dof " << dof << " not in range" << "\n";
+    opserr << OpenSees::PromptValueError
+           << "dof " << dof << " not in range [1, " << numDOF << "]"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   } else {
     const Matrix &mass = theNode->getMass();
@@ -317,7 +318,9 @@ nodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
   int tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << "WARNING: nodePressure " << argv[1] << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid tag " << argv[1] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   double pressure = 0.0;
@@ -329,11 +332,16 @@ nodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+
 int
 nodeBounds(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
+
+  // TODO: Clean these up
+  char *resDataPtr  = nullptr;
+  int   resDataSize = 0;
 
   const int requiredDataSize = 20*6;
   if (requiredDataSize > resDataSize) {
@@ -384,18 +392,22 @@ setNodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
 
   Node *theNode = the_domain->getNode(tag);
   if (theNode == nullptr) {
-    opserr << "WARNING setNodeVel -- node with tag " << tag << " not found"
-           << "\n";
+    opserr << OpenSees::PromptValueError
+           << "node with tag " << tag << " not found"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2], &dof) != TCL_OK) {
-    opserr << "WARNING setNodeVel nodeTag? dof? value?- could not read dof? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid dof " << argv[2] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[3], &value) != TCL_OK) {
-    opserr
-        << "WARNING setNodeVel nodeTag? dof? value?- could not read value? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid value " << argv[3] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (argc > 4 && strcmp(argv[4], "-commit") == 0)
@@ -442,19 +454,22 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   Node *theNode = the_domain->getNode(tag);
   if (theNode == nullptr) {
-    opserr << "WARNING setNodeDisp -- node with tag " << tag << " not found"
-           << "\n";
+    opserr << OpenSees::PromptValueError
+           << "node with tag " << tag << " not found"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2], &dof) != TCL_OK) {
-    opserr
-        << "WARNING setNodeDisp nodeTag? dof? value?- could not read dof? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid dof " << argv[2] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[3], &value) != TCL_OK) {
-    opserr
-        << "WARNING setNodeDisp nodeTag? dof? value?- could not read value? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid value " << argv[3] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (argc > 4 && strcmp(argv[4], "-commit") == 0)
@@ -503,21 +518,25 @@ setNodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   Node *theNode = the_domain->getNode(tag);
   if (theNode == nullptr) {
-    opserr << "WARNING setNodeAccel -- node with tag " << tag << " not found"
-           << "\n";
+    opserr << OpenSees::PromptValueError
+           << "node with tag " << tag << " not found"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2], &dof) != TCL_OK) {
-    opserr
-        << "WARNING setNodeDisp nodeTag? dof? value?- could not read dof? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid dof " << argv[2] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetDouble(interp, argv[3], &value) != TCL_OK) {
-    opserr << "WARNING setNodeAccel nodeTag? dof? value?- could not read "
-              "value? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid value " << argv[3] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
+
   if (argc > 4 && strcmp(argv[4], "-commit") == 0)
     commit = true;
 
@@ -553,7 +572,9 @@ nodeRotation(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   int tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << "WARNING could not read nodeTag? \n";
+    opserr << OpenSees::PromptValueError
+           << "Invalid tag " << argv[1] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -589,11 +610,15 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   int tag, dof, responseID;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << "WARNING could not read nodeTag? \n";
+    opserr << OpenSees::PromptValueError
+           << "Invalid tag " << argv[1] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &dof) != TCL_OK) {
-    opserr << "WARNING could not read dof? \n";
+    opserr << OpenSees::PromptValueError
+           << "Invalid dof " << argv[2] 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -604,7 +629,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       responseID = (int)NodeData::Vel;
     else if (strcmp(argv[3], "acceleration") == 0)
       responseID = (int)NodeData::Accel;
-    else if (strcmp(argv[3], "resiudal") == 0)
+    else if (strcmp(argv[3], "residual") == 0)
       responseID = (int)NodeData::UnbalancedLoad;
     else if (strcmp(argv[3], "reactionForce") == 0)
       responseID = (int)NodeData::Reaction;
@@ -754,7 +779,6 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** 
   }
 
   int tag;
-
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "nodeCoord nodeTag? dim? - could not read nodeTag? \n";
     return TCL_ERROR;
@@ -819,7 +843,7 @@ retainedNodes(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   int cNode;
   if (argc > 1) {
     if (Tcl_GetInt(interp, argv[1], &cNode) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "retainedNodes <cNode?> - could not read cNode? \n";
+      opserr << OpenSees::PromptValueError << "Invalid cNode \n";
       return TCL_ERROR;
     }
     all = 0;

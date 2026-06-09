@@ -18,6 +18,7 @@ target_link_libraries(OPS_Element
 target_include_directories(OPS_Element PUBLIC
   ${OPS_SRC_DIR}/element/Boundary
   ${OPS_SRC_DIR}/element/Plane
+  ${OPS_SRC_DIR}/element/Plate
   ${OPS_SRC_DIR}/element/tetrahedron
   ${OPS_SRC_DIR}/element/adapter
   ${OPS_SRC_DIR}/element/Brick
@@ -25,6 +26,7 @@ target_include_directories(OPS_Element PUBLIC
   ${OPS_SRC_DIR}/element/Cable
   ${OPS_SRC_DIR}/element/Shell
   ${OPS_SRC_DIR}/element/Truss
+  ${OPS_SRC_DIR}/element/Loads
 
   ${OPS_SRC_DIR}/element/Frame/UpdatedLagrange
   ${OPS_SRC_DIR}/element/Frame/GradientInelastic
@@ -78,6 +80,7 @@ add_subdirectory(Link)
 add_subdirectory(tetrahedron)
 add_subdirectory(Plane)
 add_subdirectory(Shell)
+add_subdirectory(Plate)
 add_subdirectory(Brick)
 add_subdirectory(Truss)
 add_subdirectory(Cable)

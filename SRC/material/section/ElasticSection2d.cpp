@@ -33,7 +33,6 @@
 #include <string.h>
 
 #include <classTags.h>
-#include <elementAPI.h>
 
 Vector ElasticSection2d::s(2);
 Matrix ElasticSection2d::ks(2,2);
@@ -72,7 +71,7 @@ ElasticSection2d::ElasticSection2d
   }
 }
 
-ElasticSection2d::~ElasticSection2d(void)
+ElasticSection2d::~ElasticSection2d()
 {
   return;
 }
@@ -108,19 +107,19 @@ ElasticSection2d::getIntegral(Field field, State state, double& value) const
 }
 
 int 
-ElasticSection2d::commitState(void)
+ElasticSection2d::commitState()
 {
   return 0;
 }
 
 int 
-ElasticSection2d::revertToLastCommit(void)
+ElasticSection2d::revertToLastCommit()
 {
   return 0;
 }
 
 int 
-ElasticSection2d::revertToStart(void)
+ElasticSection2d::revertToStart()
 {
   return 0;
 }
@@ -128,13 +127,13 @@ ElasticSection2d::revertToStart(void)
 int
 ElasticSection2d::setTrialSectionDeformation(const Vector &def)
 {
-    e = def;
+  e = def;
 
-    return 0;
+  return 0;
 }
 
 const Vector &
-ElasticSection2d::getSectionDeformation(void)
+ElasticSection2d::getSectionDeformation()
 {
     return e;
 }

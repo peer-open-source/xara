@@ -397,9 +397,14 @@ PrismDeltaFrame3d::getResistingForce()
 
   thread_local VectorND<12> pg;
   thread_local Vector wrapper(pg);
+  // TODO(a)
+  pl += pf;
 
+  //
   pg  = theCoordTransf->pushResponse(pl);
-  pg += theCoordTransf->pushConstant(pf);
+
+  // TODO(b)
+  // pg += theCoordTransf->pushConstant(pf);
 
   // Subtract other external nodal loads ... P_res = P_int - P_ext
   if (total_mass != 0.0)

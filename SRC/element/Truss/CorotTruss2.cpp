@@ -31,7 +31,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -147,19 +146,8 @@ CorotTruss2::CorotTruss2(int tag, int dim,
 {
   // get a copy of the material and check we obtained a valid copy
   theMaterial = theMat.getCopy();
-  if (theMaterial == 0) {
-    opserr << "FATAL CorotTruss2::CorotTruss2 - " <<  tag <<
-      "failed to get a copy of material with tag " << theMat.getTag() << endln;
-    exit(-1);
-  } else if (theMaterial->getClassTag() == MAT_TAG_ConcretewBeta) {
-        theBetaMaterial = (ConcretewBeta *) theMaterial;
-  }
-  
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2 || connectedExternalOtherNodes.Size() != 2) {
-    opserr << "FATAL CorotTruss2::CorotTruss2 - " <<  tag <<
-      " failed to create an ID of size 2\n";
-    exit(-1);
+  if (theMaterial->getClassTag() == MAT_TAG_ConcretewBeta) {
+    theBetaMaterial = (ConcretewBeta *) theMaterial;
   }
   
   connectedExternalNodes(0) = Nd1;
@@ -187,12 +175,6 @@ CorotTruss2::CorotTruss2()
   A(0.0), rho(0.0), R(3,3),
   theMatrix(0), theVector(0)
 {
-  // ensure the connectedExternalNode ID is of correct size 
-  if (connectedExternalNodes.Size() != 2 || connectedExternalOtherNodes.Size() != 2) {
-    opserr << "FATAL CorotTruss2::CorotTruss2 - failed to create an ID of size 2\n";
-    exit(-1);
-  }
-
   // set node pointers to NULL
   theNodes[0] = 0;
   theNodes[1] = 0;
@@ -846,50 +828,35 @@ CorotTruss2::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theB
   return 0;
 }
 
-int
-CorotTruss2::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-        // ensure setDomain() worked
-        if (Ln == 0.0)
-                return 0;
-
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 void
 CorotTruss2::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << "\nCorotTruss2, tag: " << this->getTag() << endln;
-        s << "\tConnected Nodes: " << connectedExternalNodes;
-        s << "\tSection Area: " << A << endln;
-        s << "\tUndeformed Length: " << Lo << endln;
-        s << "\tCurrent Length: " << Ln << endln;
-        s << "\tMass Density/Length: " << rho << endln;
-        s << "\tRotation matrix: " << endln;
-        
-        if (theMaterial) {
-            s << "\tAxial Force: " << A*theMaterial->getStress() << endln;
-            s << "\tUniaxialMaterial, tag: " << theMaterial->getTag() << endln;
-            theMaterial->Print(s, flag);
-        }
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"CorotTruss2\", ";
-        s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
-        s << "\"A\": " << A << ", ";
-        s << "\"massperlength\": " << rho << ", ";
-        s << "\"material\": \"" << theMaterial->getTag() << "\"}";
-    }
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+      s << "\nCorotTruss2, tag: " << this->getTag() << endln;
+      s << "\tConnected Nodes: " << connectedExternalNodes;
+      s << "\tSection Area: " << A << endln;
+      s << "\tUndeformed Length: " << Lo << endln;
+      s << "\tCurrent Length: " << Ln << endln;
+      s << "\tMass Density/Length: " << rho << endln;
+      s << "\tRotation matrix: " << endln;
+      
+      if (theMaterial) {
+          s << "\tAxial Force: " << A*theMaterial->getStress() << endln;
+          s << "\tUniaxialMaterial, tag: " << theMaterial->getTag() << endln;
+          theMaterial->Print(s, flag);
+      }
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "\t\t\t{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"CorotTruss2\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
+    s << "\"A\": " << A << ", ";
+    s << "\"massperlength\": " << rho << ", ";
+    s << "\"material\": \"" << theMaterial->getTag() << "\"}";
+  }
 }
 
 Response*

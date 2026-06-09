@@ -199,7 +199,7 @@ class Interpreter:
 
             err = self._tcl.getvar("errorInfo")
 
-            if self._err_file is not None:
+            if self._err_file is not None and os.path.exists(self._err_file):
                 with open(self._err_file, "r") as f:
                     err = f.read().replace("ERROR", "").strip()
                 try:

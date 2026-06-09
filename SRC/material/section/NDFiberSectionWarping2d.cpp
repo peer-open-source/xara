@@ -40,40 +40,9 @@
 typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
-#include <elementAPI.h>
 
 ID NDFiberSectionWarping2d::code(5);
 
-void* OPS_NDFiberSectionWarping2d()
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-	opserr<<"insufficient arguments for NDFiberSectionWarping2d\n";
-	return 0;
-    }
-
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData,&tag) < 0) return 0;
-
-    double alpha = 1.0;
-    bool computeCentroid = true;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt, "-noCentroid") == 0)
-	computeCentroid = false;
-      if (strcmp(opt, "-alpha") == 0 || strcmp(opt, "-shape") == 0) {
-	if (OPS_GetNumRemainingInputArgs() < 1)
-	  break;
-	numData = 1;
-	if (OPS_GetDoubleInput(&numData,&alpha) < 0)
-	  return 0;
-      }
-    }
-    
-    int num = 30;
-    return new NDFiberSectionWarping2d(tag, num, alpha);
-}
 
 NDFiberSectionWarping2d::NDFiberSectionWarping2d(int tag, int num, double a): 
     FrameSection(tag, SEC_TAG_NDFiberSectionWarping2d),
@@ -173,54 +142,54 @@ FrameSection(0, SEC_TAG_NDFiberSectionWarping2d),
 int
 NDFiberSectionWarping2d::addFiber(NDMaterial &theMat, const double Area, const double yLoc)
 {
-    // need to create larger arrays
-    int newSize = numFibers+1;
-    NDMaterial **newArray = new NDMaterial *[newSize]; 
-    double *newMatData = new double [2 * newSize];
+  // need to create larger arrays
+  int newSize = numFibers+1;
+  NDMaterial **newArray = new NDMaterial *[newSize]; 
+  double *newMatData = new double [2 * newSize];
 
-    // copy the old pointers and data
-    for (int i = 0; i < numFibers; i++) {
-        newArray[i] = theMaterials[i];
-        newMatData[2*i] = matData[2*i];
-        newMatData[2*i+1] = matData[2*i+1];
-    }
+  // copy the old pointers and data
+  for (int i = 0; i < numFibers; i++) {
+    newArray[i] = theMaterials[i];
+    newMatData[2*i] = matData[2*i];
+    newMatData[2*i+1] = matData[2*i+1];
+  }
 
-    // set the new pointers and data
-    newMatData[numFibers*2] = yLoc;
-    newMatData[numFibers*2+1] = Area;
-    newArray[numFibers] = theMat.getCopy("BeamFiber2d");
+  // set the new pointers and data
+  newMatData[numFibers*2] = yLoc;
+  newMatData[numFibers*2+1] = Area;
+  newArray[numFibers] = theMat.getCopy("BeamFiber2d");
 
-    if (newArray[numFibers] == 0) {
-        opserr <<"NDFiberSectionWarping2d::addFiber -- failed to get copy of a Material\n";
-        delete [] newMatData;
-        return -1;
-    }
+  if (newArray[numFibers] == 0) {
+    opserr <<"NDFiberSectionWarping2d::addFiber -- failed to get copy of a Material\n";
+    delete [] newMatData;
+    return -1;
+  }
 
-    numFibers++;
+  numFibers++;
 
-    if (theMaterials != 0) {
-        delete [] theMaterials;
-        delete [] matData;
-    }
+  if (theMaterials != nullptr) {
+    delete [] theMaterials;
+    delete [] matData;
+  }
 
-    theMaterials = newArray;
-    matData = newMatData;
+  theMaterials = newArray;
+  matData = newMatData;
 
-    double Qz = 0.0;
-    double A  = 0.0;
+  double Qz = 0.0;
+  double A  = 0.0;
 
-    // Recompute centroid
-    for (int i = 0; i < numFibers; i++) {
-        double yLoc = -matData[2*i];
-        double Area = matData[2*i+1];
-        A  += Area;
-        Qz += yLoc*Area;
-    }
+  // Recompute centroid
+  for (int i = 0; i < numFibers; i++) {
+    double yLoc = -matData[2*i];
+    double Area = matData[2*i+1];
+    A  += Area;
+    Qz += yLoc*Area;
+  }
 
-    yBar = Qz/A;
-    yBarZero = Qz/A;
+  yBar = Qz/A;
+  yBarZero = Qz/A;
 
-    return 0;
+  return 0;
 }
 
 
@@ -312,7 +281,7 @@ NDFiberSectionWarping2d::setTrialSectionDeformation(const Vector &deforms)
           minLoc = fiberLocs[i] - yBarZero;
 
     }
-    double h (maxLoc);  //opserr<<"   h:   "<<h<<endln;
+    double h (maxLoc);
 
     for (int i = 0; i < numFibers; i++) {
 
@@ -422,220 +391,220 @@ NDFiberSectionWarping2d::setTrialSectionDeformation(const Vector &deforms)
 }
 
 const Vector&
-NDFiberSectionWarping2d::getSectionDeformation(void)
+NDFiberSectionWarping2d::getSectionDeformation()
 {
-    return e;
+  return e;
 }
 
 double
-NDFiberSectionWarping2d::getRho(void)
+NDFiberSectionWarping2d::getRho()
 {
-    return 0.0;
+  return 0.0;
 }
 
 const Matrix&
-NDFiberSectionWarping2d::getInitialTangent(void)
+NDFiberSectionWarping2d::getInitialTangent()
 {
-    static double kInitial[25];
-    static Matrix kInitialMatrix(kInitial, 5, 5);
-    kInitial[0] = 0.0; 
-    kInitial[1] = 0.0;
-    kInitial[2] = 0.0;
-    kInitial[3] = 0.0;
-    kInitial[4] = 0.0;
-    kInitial[5] = 0.0;
-    kInitial[6] = 0.0;
-    kInitial[7] = 0.0;
-    kInitial[8] = 0.0;
-    kInitial[9] = 0.0;
-    kInitial[10] = 0.0;
-    kInitial[11] = 0.0;
-    kInitial[12] = 0.0;
-    kInitial[13] = 0.0;
-    kInitial[14] = 0.0;
-    kInitial[15] = 0.0;
-    kInitial[16] = 0.0;
-    kInitial[17] = 0.0;
-    kInitial[18] = 0.0;
-    kInitial[19] = 0.0;
-    kInitial[20] = 0.0;
-    kInitial[21] = 0.0;
-    kInitial[22] = 0.0;
-    kInitial[23] = 0.0;
-    kInitial[24] = 0.0;
+  static double kInitial[25];
+  static Matrix kInitialMatrix(kInitial, 5, 5);
+  kInitial[0] = 0.0; 
+  kInitial[1] = 0.0;
+  kInitial[2] = 0.0;
+  kInitial[3] = 0.0;
+  kInitial[4] = 0.0;
+  kInitial[5] = 0.0;
+  kInitial[6] = 0.0;
+  kInitial[7] = 0.0;
+  kInitial[8] = 0.0;
+  kInitial[9] = 0.0;
+  kInitial[10] = 0.0;
+  kInitial[11] = 0.0;
+  kInitial[12] = 0.0;
+  kInitial[13] = 0.0;
+  kInitial[14] = 0.0;
+  kInitial[15] = 0.0;
+  kInitial[16] = 0.0;
+  kInitial[17] = 0.0;
+  kInitial[18] = 0.0;
+  kInitial[19] = 0.0;
+  kInitial[20] = 0.0;
+  kInitial[21] = 0.0;
+  kInitial[22] = 0.0;
+  kInitial[23] = 0.0;
+  kInitial[24] = 0.0;
 
-    static double fiberLocs[10000];
-    static double fiberArea[10000];
+  static double fiberLocs[10000];
+  static double fiberArea[10000];
 
-    { // TODO
-        for (int i = 0; i < numFibers; i++) {
-            fiberLocs[i] = matData[2*i];
-            fiberArea[i] = matData[2*i+1];
-        }
-    }
+  { // TODO
+      for (int i = 0; i < numFibers; i++) {
+          fiberLocs[i] = matData[2*i];
+          fiberArea[i] = matData[2*i+1];
+      }
+  }
 
+  for (int i = 0; i < numFibers; i++) {
+    NDMaterial *theMat = theMaterials[i];
+    double y = fiberLocs[i] - yBar;
+    double A = fiberArea[i];
+
+    const Matrix &tangent = theMat->getInitialTangent();
+
+    double d00 = tangent(0,0)*A;
+    double d01 = tangent(0,1)*A;
+    double d10 = tangent(1,0)*A;
+    double d11 = tangent(1,1)*A;
+
+    // h ~ section height / 2 in Linear case
+    double maxLoc(fiberLocs[1] - yBarZero), minLoc(fiberLocs[1] - yBarZero);
     for (int i = 0; i < numFibers; i++) {
-        NDMaterial *theMat = theMaterials[i];
-        double y = fiberLocs[i] - yBar;
-        double A = fiberArea[i];
-
-        const Matrix &tangent = theMat->getInitialTangent();
-
-        double d00 = tangent(0,0)*A;
-        double d01 = tangent(0,1)*A;
-        double d10 = tangent(1,0)*A;
-        double d11 = tangent(1,1)*A;
-
-        // h ~ section height / 2 in Linear case
-        double maxLoc(fiberLocs[1] - yBarZero), minLoc(fiberLocs[1] - yBarZero);
-        for (int i = 0; i < numFibers; i++) {
-            if (fiberLocs[i] - yBarZero > maxLoc) { maxLoc = fiberLocs[i] - yBarZero;}
-            if (fiberLocs[i] - yBarZero < minLoc) { minLoc = fiberLocs[i] - yBarZero;}
-        }
-        double h (maxLoc);
-        double omega      = y*y*y/(h*h*h)-0.6*y/h;
-        double omegaprime = 3*y*y/(h*h*h)-0.6/h;
-
-        kInitial[0] += d00;
-        kInitial[1] += -y * d00;
-        kInitial[2] += d01;
-        kInitial[3] += omegaprime * d01;
-        kInitial[4] += omega * d00;
-
-        kInitial[5] += -y * d00;
-        kInitial[6] +=  y * y * d00;
-        kInitial[7] += -y * d01;
-        kInitial[8] += -y * omegaprime * d01;
-        kInitial[9] += -y * omega * d00;
-
-        kInitial[10] += d10;
-        kInitial[11] += -y * d10;
-        kInitial[12] += d11;
-        kInitial[13] += omegaprime * d11;
-        kInitial[14] += omega * d10;
-
-        kInitial[15] += omegaprime * d10;
-        kInitial[16] += -y * omegaprime * d10;
-        kInitial[17] += omegaprime * d11;
-        kInitial[18] += omegaprime * omegaprime * d11;
-        kInitial[19] += omega * omegaprime * d10;
-
-        kInitial[20] += omega * d00;
-        kInitial[21] += -y * omega * d00;
-        kInitial[22] += omega * d01;
-        kInitial[23] += omegaprime * omega * d01;
-        kInitial[24] += omega * omega * d00;
+        if (fiberLocs[i] - yBarZero > maxLoc) { maxLoc = fiberLocs[i] - yBarZero;}
+        if (fiberLocs[i] - yBarZero < minLoc) { minLoc = fiberLocs[i] - yBarZero;}
     }
+    double h (maxLoc);
+    double omega      = y*y*y/(h*h*h)-0.6*y/h;
+    double omegaprime = 3*y*y/(h*h*h)-0.6/h;
 
-    if (alpha != 1.0) {
-        double rootAlpha = sqrt(alpha);
+    kInitial[0] += d00;
+    kInitial[1] += -y * d00;
+    kInitial[2] += d01;
+    kInitial[3] += omegaprime * d01;
+    kInitial[4] += omega * d00;
 
-        kInitial[2] *= rootAlpha;
-        kInitial[3] *= rootAlpha;
+    kInitial[5] += -y * d00;
+    kInitial[6] +=  y * y * d00;
+    kInitial[7] += -y * d01;
+    kInitial[8] += -y * omegaprime * d01;
+    kInitial[9] += -y * omega * d00;
 
-        kInitial[7] *= rootAlpha;
-        kInitial[8] *= rootAlpha;
+    kInitial[10] += d10;
+    kInitial[11] += -y * d10;
+    kInitial[12] += d11;
+    kInitial[13] += omegaprime * d11;
+    kInitial[14] += omega * d10;
 
-        kInitial[10] *= rootAlpha;
-        kInitial[11] *= rootAlpha;
-        kInitial[14] *= rootAlpha;
+    kInitial[15] += omegaprime * d10;
+    kInitial[16] += -y * omegaprime * d10;
+    kInitial[17] += omegaprime * d11;
+    kInitial[18] += omegaprime * omegaprime * d11;
+    kInitial[19] += omega * omegaprime * d10;
 
-        kInitial[15] *= rootAlpha;
-        kInitial[16] *= rootAlpha;
-        kInitial[19] *= rootAlpha;
+    kInitial[20] += omega * d00;
+    kInitial[21] += -y * omega * d00;
+    kInitial[22] += omega * d01;
+    kInitial[23] += omegaprime * omega * d01;
+    kInitial[24] += omega * omega * d00;
+  }
 
-        kInitial[22] *= rootAlpha;
-        kInitial[23] *= rootAlpha;
+  if (alpha != 1.0) {
+    double rootAlpha = sqrt(alpha);
 
-        kInitial[12] *= alpha;
-        kInitial[13] *= alpha;
+    kInitial[2] *= rootAlpha;
+    kInitial[3] *= rootAlpha;
 
-        kInitial[17] *= alpha;
-        kInitial[18] *= alpha;
-    }
+    kInitial[7] *= rootAlpha;
+    kInitial[8] *= rootAlpha;
 
-    return kInitialMatrix;
+    kInitial[10] *= rootAlpha;
+    kInitial[11] *= rootAlpha;
+    kInitial[14] *= rootAlpha;
+
+    kInitial[15] *= rootAlpha;
+    kInitial[16] *= rootAlpha;
+    kInitial[19] *= rootAlpha;
+
+    kInitial[22] *= rootAlpha;
+    kInitial[23] *= rootAlpha;
+
+    kInitial[12] *= alpha;
+    kInitial[13] *= alpha;
+
+    kInitial[17] *= alpha;
+    kInitial[18] *= alpha;
+  }
+
+  return kInitialMatrix;
 }
 
 const Matrix&
-NDFiberSectionWarping2d::getSectionTangent(void)
+NDFiberSectionWarping2d::getSectionTangent()
 {
-    return *ks;
+  return *ks;
 }
 
 const Vector&
-NDFiberSectionWarping2d::getStressResultant(void)
+NDFiberSectionWarping2d::getStressResultant()
 {
-    return *s;
+  return *s;
 }
 
 FrameSection*
-NDFiberSectionWarping2d::getFrameCopy(void)
+NDFiberSectionWarping2d::getFrameCopy()
 {
-    NDFiberSectionWarping2d *theCopy = new NDFiberSectionWarping2d ();
-    theCopy->setTag(this->getTag());
+  NDFiberSectionWarping2d *theCopy = new NDFiberSectionWarping2d ();
+  theCopy->setTag(this->getTag());
 
-    theCopy->numFibers = numFibers;
+  theCopy->numFibers = numFibers;
 
-    if (numFibers != 0) {
-        theCopy->theMaterials = new NDMaterial *[numFibers];
+  if (numFibers != 0) {
+      theCopy->theMaterials = new NDMaterial *[numFibers];
 
-        theCopy->matData = new double [numFibers*2];
+      theCopy->matData = new double [numFibers*2];
 
-        for (int i = 0; i < numFibers; i++) {
-            theCopy->matData[i*2] = matData[i*2];
-            theCopy->matData[i*2+1] = matData[i*2+1];
-            theCopy->theMaterials[i] = theMaterials[i]->getCopy("BeamFiber2d");
+      for (int i = 0; i < numFibers; i++) {
+          theCopy->matData[i*2] = matData[i*2];
+          theCopy->matData[i*2+1] = matData[i*2+1];
+          theCopy->theMaterials[i] = theMaterials[i]->getCopy("BeamFiber2d");
 
-            if (theCopy->theMaterials[i] == nullptr) {
-                opserr <<"NDFiberSectionWarping2d::getFrameCopy -- failed to get copy of a Material";
-                delete theCopy;
-                return nullptr;
-            }
-        }  
-    }
+          if (theCopy->theMaterials[i] == nullptr) {
+              opserr <<"NDFiberSectionWarping2d::getFrameCopy -- failed to get copy of a Material";
+              delete theCopy;
+              return nullptr;
+          }
+      }  
+  }
 
-    theCopy->eCommit = eCommit;
-    theCopy->e = e;
-    theCopy->yBar = yBar;
+  theCopy->eCommit = eCommit;
+  theCopy->e = e;
+  theCopy->yBar = yBar;
 
-    theCopy->alpha = alpha;
-    theCopy->parameterID = parameterID;
+  theCopy->alpha = alpha;
+  theCopy->parameterID = parameterID;
 
-    theCopy->kData[ 0] = kData[0];
-    theCopy->kData[ 1] = kData[1];
-    theCopy->kData[ 2] = kData[2];
-    theCopy->kData[ 3] = kData[3];
-    theCopy->kData[ 4] = kData[4];
-    theCopy->kData[ 5] = kData[5];
-    theCopy->kData[ 6] = kData[6];
-    theCopy->kData[ 7] = kData[7];
-    theCopy->kData[ 8] = kData[8];
-    theCopy->kData[ 9] = kData[9];
-    theCopy->kData[10] = kData[10];
-    theCopy->kData[11] = kData[11];
-    theCopy->kData[12] = kData[12];
-    theCopy->kData[13] = kData[13];
-    theCopy->kData[14] = kData[14];
-    theCopy->kData[15] = kData[15];
-    theCopy->kData[16] = kData[16];
-    theCopy->kData[17] = kData[17];
-    theCopy->kData[18] = kData[18];
-    theCopy->kData[19] = kData[19];
-    theCopy->kData[20] = kData[20];
-    theCopy->kData[21] = kData[21];
-    theCopy->kData[22] = kData[22];
-    theCopy->kData[23] = kData[23];
-    theCopy->kData[24] = kData[24];
+  theCopy->kData[ 0] = kData[0];
+  theCopy->kData[ 1] = kData[1];
+  theCopy->kData[ 2] = kData[2];
+  theCopy->kData[ 3] = kData[3];
+  theCopy->kData[ 4] = kData[4];
+  theCopy->kData[ 5] = kData[5];
+  theCopy->kData[ 6] = kData[6];
+  theCopy->kData[ 7] = kData[7];
+  theCopy->kData[ 8] = kData[8];
+  theCopy->kData[ 9] = kData[9];
+  theCopy->kData[10] = kData[10];
+  theCopy->kData[11] = kData[11];
+  theCopy->kData[12] = kData[12];
+  theCopy->kData[13] = kData[13];
+  theCopy->kData[14] = kData[14];
+  theCopy->kData[15] = kData[15];
+  theCopy->kData[16] = kData[16];
+  theCopy->kData[17] = kData[17];
+  theCopy->kData[18] = kData[18];
+  theCopy->kData[19] = kData[19];
+  theCopy->kData[20] = kData[20];
+  theCopy->kData[21] = kData[21];
+  theCopy->kData[22] = kData[22];
+  theCopy->kData[23] = kData[23];
+  theCopy->kData[24] = kData[24];
 
 
-    theCopy->sData[0] = sData[0];
-    theCopy->sData[1] = sData[1];
-    theCopy->sData[2] = sData[2];
-    theCopy->sData[3] = sData[3];
-    theCopy->sData[4] = sData[4];
+  theCopy->sData[0] = sData[0];
+  theCopy->sData[1] = sData[1];
+  theCopy->sData[2] = sData[2];
+  theCopy->sData[3] = sData[3];
+  theCopy->sData[4] = sData[4];
 
-    return theCopy;
+  return theCopy;
 }
 
 const ID&
@@ -651,323 +620,323 @@ NDFiberSectionWarping2d::getOrder() const
 }
 
 int
-NDFiberSectionWarping2d::commitState(void)
+NDFiberSectionWarping2d::commitState()
 {
-    int err = 0;
+  int err = 0;
 
-    for (int i = 0; i < numFibers; i++)
-        err += theMaterials[i]->commitState();
+  for (int i = 0; i < numFibers; i++)
+    err += theMaterials[i]->commitState();
 
-    eCommit = e;
+  eCommit = e;
 
-    return err;
+  return err;
 }
 
 int
-NDFiberSectionWarping2d::revertToLastCommit(void)
+NDFiberSectionWarping2d::revertToLastCommit()
 {
-    int err = 0;
+  int err = 0;
 
-    // Last committed section deformations
-    e = eCommit;
+  // Last committed section deformations
+  e = eCommit;
 
-    kData[0] = 0.0;
-    kData[1] = 0.0;
-    kData[2] = 0.0;
-    kData[3] = 0.0;
-    kData[4] = 0.0;
-    kData[5] = 0.0;
-    kData[6] = 0.0;
-    kData[7] = 0.0;
-    kData[8] = 0.0;
-    kData[9] = 0.0;
-    kData[10] = 0.0;
-    kData[11] = 0.0;
-    kData[12] = 0.0;
-    kData[13] = 0.0;
-    kData[14] = 0.0;
-    kData[15] = 0.0;
-    kData[16] = 0.0;
-    kData[17] = 0.0;
-    kData[18] = 0.0;
-    kData[19] = 0.0;
-    kData[20] = 0.0;
-    kData[21] = 0.0;
-    kData[22] = 0.0;
-    kData[23] = 0.0;
-    kData[24] = 0.0;
+  kData[0] = 0.0;
+  kData[1] = 0.0;
+  kData[2] = 0.0;
+  kData[3] = 0.0;
+  kData[4] = 0.0;
+  kData[5] = 0.0;
+  kData[6] = 0.0;
+  kData[7] = 0.0;
+  kData[8] = 0.0;
+  kData[9] = 0.0;
+  kData[10] = 0.0;
+  kData[11] = 0.0;
+  kData[12] = 0.0;
+  kData[13] = 0.0;
+  kData[14] = 0.0;
+  kData[15] = 0.0;
+  kData[16] = 0.0;
+  kData[17] = 0.0;
+  kData[18] = 0.0;
+  kData[19] = 0.0;
+  kData[20] = 0.0;
+  kData[21] = 0.0;
+  kData[22] = 0.0;
+  kData[23] = 0.0;
+  kData[24] = 0.0;
 
-    sData[0] = 0.0;
-    sData[1] = 0.0;
-    sData[2] = 0.0;
-    sData[3] = 0.0;
-    sData[4] = 0.0;
+  sData[0] = 0.0;
+  sData[1] = 0.0;
+  sData[2] = 0.0;
+  sData[3] = 0.0;
+  sData[4] = 0.0;
 
-    static double fiberLocs[10000];
-    static double fiberArea[10000];
+  static double fiberLocs[10000];
+  static double fiberArea[10000];
 
-    { // TODO
-        for (int i = 0; i < numFibers; i++) {
-            fiberLocs[i] = matData[2*i];
-            fiberArea[i] = matData[2*i+1];
-        }
-    }
+  { // TODO
+      for (int i = 0; i < numFibers; i++) {
+          fiberLocs[i] = matData[2*i];
+          fiberArea[i] = matData[2*i+1];
+      }
+  }
 
-    // h ~ section height / 2 in Linear case
-    double maxLoc(fiberLocs[1] - yBarZero), minLoc(fiberLocs[1] - yBarZero);
-    for (int i = 0; i < numFibers; i++) {
-        if (fiberLocs[i] - yBarZero > maxLoc) {
-          maxLoc = fiberLocs[i] - yBarZero;
-        }
-        if (fiberLocs[i] - yBarZero < minLoc) {
-          minLoc = fiberLocs[i] - yBarZero;
-        }
-    }
-    double h (maxLoc);
+  // h ~ section height / 2 in Linear case
+  double maxLoc(fiberLocs[1] - yBarZero), minLoc(fiberLocs[1] - yBarZero);
+  for (int i = 0; i < numFibers; i++) {
+      if (fiberLocs[i] - yBarZero > maxLoc) {
+        maxLoc = fiberLocs[i] - yBarZero;
+      }
+      if (fiberLocs[i] - yBarZero < minLoc) {
+        minLoc = fiberLocs[i] - yBarZero;
+      }
+  }
+  double h (maxLoc);
 
-    for (int i = 0; i < numFibers; i++) {
-        NDMaterial *theMat = theMaterials[i];
-        double y = fiberLocs[i] - yBar;
-        double A = fiberArea[i];
+  for (int i = 0; i < numFibers; i++) {
+      NDMaterial *theMat = theMaterials[i];
+      double y = fiberLocs[i] - yBar;
+      double A = fiberArea[i];
 
-        // invoke revertToLast on the material
-        err += theMat->revertToLastCommit();
+      // invoke revertToLast on the material
+      err += theMat->revertToLastCommit();
 
-        // get material stress & tangent for this strain and determine ks and fs
-        const Matrix &tangent = theMat->getTangent();
-        const Vector &stress = theMat->getStress();
+      // get material stress & tangent for this strain and determine ks and fs
+      const Matrix &tangent = theMat->getTangent();
+      const Vector &stress = theMat->getStress();
 
-        double d00 = tangent(0,0)*A;
-        double d01 = tangent(0,1)*A;
-        double d10 = tangent(1,0)*A;
-        double d11 = tangent(1,1)*A;
+      double d00 = tangent(0,0)*A;
+      double d01 = tangent(0,1)*A;
+      double d10 = tangent(1,0)*A;
+      double d11 = tangent(1,1)*A;
 
-        double omega      = y*y*y/(h*h*h) - 0.6*y/h;
-        double omegaprime = 3*y*y/(h*h*h) - 0.6/h;
+      double omega      = y*y*y/(h*h*h) - 0.6*y/h;
+      double omegaprime = 3*y*y/(h*h*h) - 0.6/h;
 
-        kData[0] += d00;
-        kData[1] += -y * d00;
-        kData[2] += d01;
-        kData[3] += omegaprime * d01;
-        kData[4] += omega * d00;
+      kData[0] += d00;
+      kData[1] += -y * d00;
+      kData[2] += d01;
+      kData[3] += omegaprime * d01;
+      kData[4] += omega * d00;
 
-        kData[5] += -y * d00;
-        kData[6] += y * y * d00;
-        kData[7] += -y * d01;
-        kData[8] += -y * omegaprime * d01;
-        kData[9] += -y * omega * d00;
+      kData[5] += -y * d00;
+      kData[6] += y * y * d00;
+      kData[7] += -y * d01;
+      kData[8] += -y * omegaprime * d01;
+      kData[9] += -y * omega * d00;
 
-        kData[10] += d10;
-        kData[11] += -y * d10;
-        kData[12] += d11;
-        kData[13] += omegaprime * d11;
-        kData[14] += omega * d10;
+      kData[10] += d10;
+      kData[11] += -y * d10;
+      kData[12] += d11;
+      kData[13] += omegaprime * d11;
+      kData[14] += omega * d10;
 
-        kData[15] += omegaprime * d10;
-        kData[16] += -y * omegaprime * d10;
-        kData[17] += omegaprime * d11;
-        kData[18] += omegaprime * omegaprime * d11;
-        kData[19] += omega * omegaprime * d10;
+      kData[15] += omegaprime * d10;
+      kData[16] += -y * omegaprime * d10;
+      kData[17] += omegaprime * d11;
+      kData[18] += omegaprime * omegaprime * d11;
+      kData[19] += omega * omegaprime * d10;
 
-        kData[20] += omega * d00;
-        kData[21] += -y * omega * d00;
-        kData[22] += omega * d01;
-        kData[23] += omegaprime * omega * d01;
-        kData[24] += omega * omega * d00;
+      kData[20] += omega * d00;
+      kData[21] += -y * omega * d00;
+      kData[22] += omega * d01;
+      kData[23] += omegaprime * omega * d01;
+      kData[24] += omega * omega * d00;
 
-        double fs0 = stress(0)*A;
-        double fs1 = stress(1)*A;
+      double fs0 = stress(0)*A;
+      double fs1 = stress(1)*A;
 
-        sData[0] += fs0;
-        sData[1] += fs0*-y;
-        sData[2] += fs1;
-        sData[3] += fs1*omegaprime;
-        sData[4] += fs0*omega;
+      sData[0] += fs0;
+      sData[1] += fs0*-y;
+      sData[2] += fs1;
+      sData[3] += fs1*omegaprime;
+      sData[4] += fs0*omega;
 
-    }
+  }
 
 
-    double rootAlpha = 1.0;
+  double rootAlpha = 1.0;
 
-    if (alpha != 1.0) {
-        rootAlpha = sqrt(alpha);
+  if (alpha != 1.0) {
+      rootAlpha = sqrt(alpha);
 
-        sData[2] *= rootAlpha;
-        sData[3] *= rootAlpha;
+      sData[2] *= rootAlpha;
+      sData[3] *= rootAlpha;
 
-        kData[2] *= rootAlpha;
-        kData[3] *= rootAlpha;
+      kData[2] *= rootAlpha;
+      kData[3] *= rootAlpha;
 
-        kData[7] *= rootAlpha;
-        kData[8] *= rootAlpha;
+      kData[7] *= rootAlpha;
+      kData[8] *= rootAlpha;
 
-        kData[10] *= rootAlpha;
-        kData[11] *= rootAlpha;
-        kData[14] *= rootAlpha;
+      kData[10] *= rootAlpha;
+      kData[11] *= rootAlpha;
+      kData[14] *= rootAlpha;
 
-        kData[15] *= rootAlpha;
-        kData[16] *= rootAlpha;
-        kData[19] *= rootAlpha;
+      kData[15] *= rootAlpha;
+      kData[16] *= rootAlpha;
+      kData[19] *= rootAlpha;
 
-        kData[22] *= rootAlpha;
-        kData[23] *= rootAlpha;
+      kData[22] *= rootAlpha;
+      kData[23] *= rootAlpha;
 
-        kData[12] *= alpha;
-        kData[13] *= alpha;
+      kData[12] *= alpha;
+      kData[13] *= alpha;
 
-        kData[17] *= alpha;
-        kData[18] *= alpha;
-    }
+      kData[17] *= alpha;
+      kData[18] *= alpha;
+  }
 
-    return err;
+  return err;
 }
 
 int
-NDFiberSectionWarping2d::revertToStart(void)
+NDFiberSectionWarping2d::revertToStart()
 {
-    // revert the fibers to start    
-    int err = 0;
+  // revert the fibers to start    
+  int err = 0;
 
-    kData[0] = 0.0;
-    kData[1] = 0.0;
-    kData[2] = 0.0;
-    kData[3] = 0.0;
-    kData[4] = 0.0;
-    kData[5] = 0.0;
-    kData[6] = 0.0;
-    kData[7] = 0.0;
-    kData[8] = 0.0;
-    kData[9] = 0.0;
-    kData[10] = 0.0;
-    kData[11] = 0.0;
-    kData[12] = 0.0;
-    kData[13] = 0.0;
-    kData[14] = 0.0;
-    kData[15] = 0.0;
-    kData[16] = 0.0;
-    kData[17] = 0.0;
-    kData[18] = 0.0;
-    kData[19] = 0.0;
-    kData[20] = 0.0;
-    kData[21] = 0.0;
-    kData[22] = 0.0;
-    kData[23] = 0.0;
-    kData[24] = 0.0;
+  kData[0] = 0.0;
+  kData[1] = 0.0;
+  kData[2] = 0.0;
+  kData[3] = 0.0;
+  kData[4] = 0.0;
+  kData[5] = 0.0;
+  kData[6] = 0.0;
+  kData[7] = 0.0;
+  kData[8] = 0.0;
+  kData[9] = 0.0;
+  kData[10] = 0.0;
+  kData[11] = 0.0;
+  kData[12] = 0.0;
+  kData[13] = 0.0;
+  kData[14] = 0.0;
+  kData[15] = 0.0;
+  kData[16] = 0.0;
+  kData[17] = 0.0;
+  kData[18] = 0.0;
+  kData[19] = 0.0;
+  kData[20] = 0.0;
+  kData[21] = 0.0;
+  kData[22] = 0.0;
+  kData[23] = 0.0;
+  kData[24] = 0.0;
 
-    sData[0] = 0.0;
-    sData[1] = 0.0;
-    sData[2] = 0.0;
-    sData[3] = 0.0;
-    sData[4] = 0.0;
+  sData[0] = 0.0;
+  sData[1] = 0.0;
+  sData[2] = 0.0;
+  sData[3] = 0.0;
+  sData[4] = 0.0;
 
-    static double fiberLocs[10000];
-    static double fiberArea[10000];
+  static double fiberLocs[10000];
+  static double fiberArea[10000];
 
-    { // TODO
-        for (int i = 0; i < numFibers; i++) {
-            fiberLocs[i] = matData[2*i];
-            fiberArea[i] = matData[2*i+1];
-        }
-    }
+  { // TODO
+      for (int i = 0; i < numFibers; i++) {
+          fiberLocs[i] = matData[2*i];
+          fiberArea[i] = matData[2*i+1];
+      }
+  }
 
-    for (int i = 0; i < numFibers; i++) {
-        NDMaterial *theMat = theMaterials[i];
-        double y = fiberLocs[i] - yBar;
-        double A = fiberArea[i];
+  for (int i = 0; i < numFibers; i++) {
+      NDMaterial *theMat = theMaterials[i];
+      double y = fiberLocs[i] - yBar;
+      double A = fiberArea[i];
 
-        // invoke revertToLast on the material
-        err += theMat->revertToStart();
+      // invoke revertToLast on the material
+      err += theMat->revertToStart();
 
-        // get material stress & tangent for this strain and determine ks and fs
-        const Matrix &tangent = theMat->getTangent();
-        const Vector &stress = theMat->getStress();
+      // get material stress & tangent for this strain and determine ks and fs
+      const Matrix &tangent = theMat->getTangent();
+      const Vector &stress = theMat->getStress();
 
-        double d00 = tangent(0,0)*A;
-        double d01 = tangent(0,1)*A;
-        double d10 = tangent(1,0)*A;
-        double d11 = tangent(1,1)*A;
+      double d00 = tangent(0,0)*A;
+      double d01 = tangent(0,1)*A;
+      double d10 = tangent(1,0)*A;
+      double d11 = tangent(1,1)*A;
 
-        // h ~ section height / 2 in Linear case
-        double maxLoc(fiberLocs[1] - yBarZero), minLoc(fiberLocs[1] - yBarZero);
-        for (int i = 0; i < numFibers; i++) {
-            if (fiberLocs[i] - yBarZero > maxLoc) { maxLoc = fiberLocs[i] - yBarZero;}
-            if (fiberLocs[i] - yBarZero < minLoc) { minLoc = fiberLocs[i] - yBarZero;}
-        }
-        double h (maxLoc);
-        double omega      = y*y*y/(h*h*h) - 0.6*y/h;
-        double omegaprime = 3*y*y/(h*h*h) - 0.6/h;
+      // h ~ section height / 2 in Linear case
+      double maxLoc(fiberLocs[1] - yBarZero), minLoc(fiberLocs[1] - yBarZero);
+      for (int i = 0; i < numFibers; i++) {
+          if (fiberLocs[i] - yBarZero > maxLoc) { maxLoc = fiberLocs[i] - yBarZero;}
+          if (fiberLocs[i] - yBarZero < minLoc) { minLoc = fiberLocs[i] - yBarZero;}
+      }
+      double h (maxLoc);
+      double omega      = y*y*y/(h*h*h) - 0.6*y/h;
+      double omegaprime = 3*y*y/(h*h*h) - 0.6/h;
 
-        kData[0] += d00;
-        kData[1] += -y * d00;
-        kData[2] += d01;
-        kData[3] += omegaprime * d01;
-        kData[4] += omega * d00;
+      kData[0] += d00;
+      kData[1] += -y * d00;
+      kData[2] += d01;
+      kData[3] += omegaprime * d01;
+      kData[4] += omega * d00;
 
-        kData[5] += -y * d00;
-        kData[6] += y * y * d00;
-        kData[7] += -y * d01;
-        kData[8] += -y * omegaprime * d01;
-        kData[9] += -y * omega * d00;
+      kData[5] += -y * d00;
+      kData[6] += y * y * d00;
+      kData[7] += -y * d01;
+      kData[8] += -y * omegaprime * d01;
+      kData[9] += -y * omega * d00;
 
-        kData[10] += d10;
-        kData[11] += -y * d10;
-        kData[12] += d11;
-        kData[13] += omegaprime * d11;
-        kData[14] += omega * d10;
+      kData[10] += d10;
+      kData[11] += -y * d10;
+      kData[12] += d11;
+      kData[13] += omegaprime * d11;
+      kData[14] += omega * d10;
 
-        kData[15] += omegaprime * d10;
-        kData[16] += -y * omegaprime * d10;
-        kData[17] += omegaprime * d11;
-        kData[18] += omegaprime * omegaprime * d11;
-        kData[19] += omega * omegaprime * d10;
+      kData[15] += omegaprime * d10;
+      kData[16] += -y * omegaprime * d10;
+      kData[17] += omegaprime * d11;
+      kData[18] += omegaprime * omegaprime * d11;
+      kData[19] += omega * omegaprime * d10;
 
-        kData[20] += omega * d00;
-        kData[21] += -y * omega * d00;
-        kData[22] += omega * d01;
-        kData[23] += omegaprime * omega * d01;
-        kData[24] += omega * omega * d00;
+      kData[20] += omega * d00;
+      kData[21] += -y * omega * d00;
+      kData[22] += omega * d01;
+      kData[23] += omegaprime * omega * d01;
+      kData[24] += omega * omega * d00;
 
-        double fs0 = stress(0)*A;
-        double fs1 = stress(1)*A;
+      double fs0 = stress(0)*A;
+      double fs1 = stress(1)*A;
 
-        sData[0] += fs0;
-        sData[1] += fs0*-y;
-        sData[2] += fs1;
-        sData[3] += fs1*omegaprime;
-        sData[4] += fs0*omega;
-    }
+      sData[0] += fs0;
+      sData[1] += fs0*-y;
+      sData[2] += fs1;
+      sData[3] += fs1*omegaprime;
+      sData[4] += fs0*omega;
+  }
 
-    if (alpha != 1.0) {
-        double rootAlpha = sqrt(alpha);
+  if (alpha != 1.0) {
+      double rootAlpha = sqrt(alpha);
 
-        sData[2] *= rootAlpha;
-        sData[3] *= rootAlpha;
+      sData[2] *= rootAlpha;
+      sData[3] *= rootAlpha;
 
-        kData[2] *= rootAlpha;
-        kData[3] *= rootAlpha;
+      kData[2] *= rootAlpha;
+      kData[3] *= rootAlpha;
 
-        kData[7] *= rootAlpha;
-        kData[8] *= rootAlpha;
+      kData[7] *= rootAlpha;
+      kData[8] *= rootAlpha;
 
-        kData[10] *= rootAlpha;
-        kData[11] *= rootAlpha;
-        kData[14] *= rootAlpha;
+      kData[10] *= rootAlpha;
+      kData[11] *= rootAlpha;
+      kData[14] *= rootAlpha;
 
-        kData[15] *= rootAlpha;
-        kData[16] *= rootAlpha;
-        kData[19] *= rootAlpha;
+      kData[15] *= rootAlpha;
+      kData[16] *= rootAlpha;
+      kData[19] *= rootAlpha;
 
-        kData[22] *= rootAlpha;
-        kData[23] *= rootAlpha;
+      kData[22] *= rootAlpha;
+      kData[23] *= rootAlpha;
 
-        kData[12] *= alpha;
-        kData[13] *= alpha;
+      kData[12] *= alpha;
+      kData[13] *= alpha;
 
-        kData[17] *= alpha;
-        kData[18] *= alpha;
-    }
+      kData[17] *= alpha;
+      kData[18] *= alpha;
+  }
 
-    return err;
+  return err;
 }
 
 int
@@ -1069,20 +1038,10 @@ NDFiberSectionWarping2d::recvSelf(int commitTag, Channel &theChannel,
             if (numFibers != 0) {
                 theMaterials = new NDMaterial *[numFibers];
 
-                if (theMaterials == 0) {
-                    opserr <<"NDFiberSectionWarping2d::recvSelf -- failed to allocate Material pointers\n";
-                    exit(-1);
-                }
-
                 for (int j=0; j<numFibers; j++)
                     theMaterials[j] = 0;
 
                 matData = new double [numFibers*2];
-
-                if (matData == 0) {
-                    opserr <<"NDFiberSectionWarping2d::recvSelf  -- failed to allocate double array for material data\n";
-                    exit(-1);
-                }
             }
         }
 

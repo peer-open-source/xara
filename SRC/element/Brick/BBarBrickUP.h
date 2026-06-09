@@ -39,8 +39,7 @@
 //
 // Eight node BBarBrickUP element
 //
-
-#include <stdio.h>
+#pragma once
 #include <stdlib.h>
 #include <cmath>
 
@@ -50,6 +49,8 @@
 #include <Element.h>
 #include <Node.h>
 #include <NDMaterial.h>
+
+namespace OpenSees {
 
 class BBarBrickUP : public Element {
 
@@ -215,9 +216,9 @@ class BBarBrickUP : public Element {
     //compute B matrix
     const Matrix& computeB( int node, int Guass ) ;
 
-    //Matrix transpose
-    Matrix transpose( int dim1, int dim2, const Matrix &M ) ;
 
     Vector *load;
     Matrix *Ki;
 } ;
+
+} // namespace OpenSees

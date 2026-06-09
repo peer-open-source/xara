@@ -43,7 +43,6 @@
 #include <iostream>
 #include <fstream>
 #include <Node.h>
-#include <Message.h>
 
 #include <LobattoBeamIntegration.h>
 #include <LegendreBeamIntegration.h>

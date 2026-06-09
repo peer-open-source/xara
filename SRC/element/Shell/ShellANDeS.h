@@ -68,10 +68,6 @@ These documents all mirror published works in indexed journals.
 #define ShellANDeS_H
 
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
-
 #include <Information.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -83,7 +79,6 @@ These documents all mirror published works in indexed journals.
 #include <Matrix.h>
 #include <Vector.h>
 #include <ElementalLoad.h>
-// #include <ElasticMembranePlateSection.h>
 // #include <SectionForceDeformation.h>
 
 class Node;
@@ -94,9 +89,12 @@ class ShellANDeS: public Element
 public:
 
     ShellANDeS ();
-
-    ShellANDeS(int element_number, int node_numb_1, int node_numb_2, int node_numb_3, double t, double E, double nu, double rho);
-    ShellANDeS(int element_number, int node_numb_1, int node_numb_2, int node_numb_3, double t, double E11, double E22,
+    ShellANDeS(int element_number, 
+               int node_numb_1, int node_numb_2, int node_numb_3, 
+               double t, double E, double nu, double rho);
+    ShellANDeS(int element_number, 
+               int node_numb_1, int node_numb_2, int node_numb_3, 
+               double t, double E11, double E22,
     double E33, double E12, double E13, double E23, double n1, double n2, double n3, double rho);
     
     // ShellANDeS(int element_number,
@@ -105,11 +103,16 @@ public:
 
     ~ShellANDeS();
 
+    const char* getClassType() const final
+    {
+        return "ShellANDeS";
+    }
+
     int getNumExternalNodes () const;
     const ID &getExternalNodes ();
-    Node **getNodePtrs(void);
+    Node **getNodePtrs();
     int getNumDOF ();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *);
 
     int commitState ();
     int revertToLastCommit ();
@@ -137,6 +140,15 @@ public:
 
     Matrix returnMass();
 
+    //Utility
+    bool gotMass() const;           // Got Mass?  (check for rho value)
+
+
+
+
+private:
+
+
     void useThisCoordinateSystem(Vector e1, Vector e2, Vector e3);
 
     double getArea() const;
@@ -144,26 +156,16 @@ public:
     const Vector &getBodyForce(double loadFactor, const Vector &data);
     const Vector FormEquiBodyForce(void);
 
-    //For stress recovery
+    // For stress recovery
     const Vector & get_bending_moment_field();
-
-    //Utility
-    bool gotMass() const;           // Got Mass?  (check for rho value)
-
-    std::string getElementName() const
-    {
-        return "ShellANDeS";
-    }
-
-
-
-private:
+    
+    // Strain matrix
     const Matrix &getBendingTangentStiffness();
     const Matrix &getMembraneTangentStiffness();
     const Matrix &getMembraneMass ();
     const Matrix &getBendingMass ();
     
-    //Membrane functions
+    // Membrane functions
     void initializeGeometry(double n1, double n2, double n3);                              // Calculates all geometry related internal variables
     void calculate_E_planestress_and_beta0();
     void initializeBetaArrays();

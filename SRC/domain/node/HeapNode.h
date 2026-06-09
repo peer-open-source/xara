@@ -42,7 +42,7 @@ class HeapNode : public Node
     // State
     //
     // public methods dealing with the committed state of the node
-    virtual int commitState();
+    virtual int commitState() noexcept;
     virtual int revertToLastCommit();
     virtual int revertToStart();
 
@@ -51,10 +51,10 @@ class HeapNode : public Node
     //
     // public methods for obtaining committed and trial 
     // response quantities of the node
-    virtual const Vector &getDisp();
-    virtual const Vector &getIncrDisp();
-    virtual const Vector &getIncrDeltaDisp();
-    virtual const Vector &getTrialDisp();
+    virtual const Vector &getDisp() noexcept;
+    virtual const Vector &getIncrDisp() noexcept;
+    virtual const Vector &getIncrDeltaDisp() noexcept;
+    virtual const Vector &getTrialDisp() noexcept;
 
     virtual const Vector &getVel();
     virtual const Vector &getAccel();
@@ -64,8 +64,8 @@ class HeapNode : public Node
 //  virtual const Vector &getRigidAccel();
 
     // public methods for updating the trial response quantities
-    virtual int setTrialDisp  (double value, int dof) final;
-    virtual int setTrialDisp  (const Vector &) final;
+    virtual int setTrialDisp  (double value, int dof) noexcept final;
+    virtual int setTrialDisp  (const Vector &) noexcept final;
     virtual int incrTrialDisp (const Vector &) final;
     virtual int setTrialVel   (const Vector &) ;
     virtual int setTrialAccel (const Vector &) ;
@@ -89,7 +89,7 @@ class HeapNode : public Node
     //
     // Load information
     //
-    virtual void zeroUnbalancedLoad();
+    virtual void zeroUnbalancedLoad() noexcept;
     virtual int addRigidAccleration(const Vector& accel, double fact);
     virtual int addUnbalancedLoad(const Vector &load, double fact = 1.0);
     virtual int addInertiaLoadToUnbalance(const Vector &accel, double fact = 1.0);

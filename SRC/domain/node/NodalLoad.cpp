@@ -98,7 +98,7 @@ NodalLoad::applyLoad(double loadFactor)
 {
   if (myNodePtr == nullptr) {
     Domain *theDomain=this->getDomain();
-    if ((theDomain == 0) || 
+    if ((theDomain == nullptr) || 
         (myNodePtr = theDomain->getNode(myNode)) == 0) {
       opserr << "WARNING NodalLoad::applyLoad() - No associated Node node " ;
       opserr << " for NodalLoad " << *this;

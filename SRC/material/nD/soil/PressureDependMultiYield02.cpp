@@ -21,6 +21,8 @@
 #include <elementAPI.h>
 #include <MultiYieldSurface.h>
 
+using namespace OpenSees;
+
 int PressureDependMultiYield02::matCount=0;
 int* PressureDependMultiYield02::loadStagex = 0;  //=0 if elastic; =1 if plastic
 int* PressureDependMultiYield02::ndmx=0;  //num of dimensions (2 or 3)

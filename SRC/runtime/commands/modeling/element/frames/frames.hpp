@@ -27,6 +27,7 @@
 // #define MAX_NIP 6
 #include <array>
 #include <vector>
+#include <Rotations.h>
 
 #include <FrameSection.h>
 class Element;
@@ -37,11 +38,12 @@ class FrameTransformBuilder;
 }
 
 using namespace OpenSees;
-struct Options {
+struct FrameOptions {
   int mass_flag;
   int use_mass;
   int shear_flag;
   int geom_flag;
+  Rotations::Parameters rotation_type;
 };
 
 
@@ -55,7 +57,7 @@ CreateMixedFrame(int tag,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
                  FrameTransformBuilder& tb,
-                 Options& options,
+                 FrameOptions& options,
                  double mass, int max_iter, double tol);
 
 
@@ -66,7 +68,7 @@ CreateForceFrame(int tag,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
                  FrameTransformBuilder& tb,
-                 Options& options,
+                 FrameOptions& options,
                  double mass, int max_iter, double tol);
 
 
@@ -77,5 +79,5 @@ CreateExactFrame(int tag,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
                  CrdTransf& theTransf,
-                 const Options& options,
+                 const FrameOptions& options,
                  double mass);

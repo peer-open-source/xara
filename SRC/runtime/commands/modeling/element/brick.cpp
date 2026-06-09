@@ -14,6 +14,10 @@
 #include <ModelRegistry.h>
 
 #include <Brick.h>
+// #define XARA_HAVE_H8E12
+#ifdef XARA_HAVE_H8E12
+# include <H8E12.h>
+#endif
 #include <BbarBrick.h>
 #include <BbarBrickWithSensitivity.h>
 
@@ -41,44 +45,43 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
   // get the id and end nodes
   int BrickId;
   int matID;
-  int Node1, Node2, Node3, Node4,
-      Node5, Node6, Node7, Node8;
+  std::array<int, 8> node_tags;
 
   if (Tcl_GetInt(interp, argv[1 + eleArgStart], &BrickId) != TCL_OK) {
     opserr << "WARNING invalid Brick eleTag" << "\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[2 + eleArgStart], &Node1) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[2 + eleArgStart], &node_tags[0]) != TCL_OK) {
     opserr << "WARNING invalid Node1\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[3 + eleArgStart], &Node2) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[3 + eleArgStart], &node_tags[1]) != TCL_OK) {
     opserr << "WARNING invalid Node2\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[4 + eleArgStart], &Node3) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[4 + eleArgStart], &node_tags[2]) != TCL_OK) {
     opserr << "WARNING invalid Node3\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[5 + eleArgStart], &Node4) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[5 + eleArgStart], &node_tags[3]) != TCL_OK) {
     opserr << "WARNING invalid Node4\n";
     return TCL_ERROR;
   }
 
-  if (Tcl_GetInt(interp, argv[6 + eleArgStart], &Node5) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[6 + eleArgStart], &node_tags[4]) != TCL_OK) {
     opserr << "WARNING invalid Node5\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[7 + eleArgStart], &Node6) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[7 + eleArgStart], &node_tags[5]) != TCL_OK) {
     opserr << "WARNING invalid Node6\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[8 + eleArgStart], &Node7) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[8 + eleArgStart], &node_tags[6]) != TCL_OK) {
     opserr << "WARNING invalid Node7\n";
     return TCL_ERROR;
   }
-  if (Tcl_GetInt(interp, argv[9 + eleArgStart], &Node8) != TCL_OK) {
+  if (Tcl_GetInt(interp, argv[9 + eleArgStart], &node_tags[7]) != TCL_OK) {
     opserr << "WARNING invalid Node8\n";
     return TCL_ERROR;
   }
@@ -124,27 +127,30 @@ TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
   // now create the Brick and add it to the Domain
   Element *theBrick = nullptr;
   if (strcmp(argv[1], "stdBrick") == 0) {
-    theBrick = new Brick(BrickId, Node1, Node2, Node3, Node4, Node5, Node6,
-                         Node7, Node8, *theMaterial, b1, b2, b3);
+    theBrick = new Brick(BrickId, node_tags, *theMaterial, b1, b2, b3);
 
   } else if (strcmp(argv[1], "bbarBrickWithSensitivity") == 0) {
-    theBrick = new BbarBrickWithSensitivity(BrickId, Node1, Node2, Node3, Node4,
-                                            Node5, Node6, Node7, Node8,
+    theBrick = new BbarBrickWithSensitivity(BrickId, 
+                                            node_tags[0], node_tags[1], node_tags[2], node_tags[3],
+                                            node_tags[4], node_tags[5], node_tags[6], node_tags[7],
                                             *theMaterial, b1, b2, b3);
   } else if (strcmp(argv[1], "bbarBrick") == 0) {
-    theBrick = new BbarBrick(BrickId, Node1, Node2, Node3, Node4, Node5, Node6,
-                             Node7, Node8, *theMaterial, b1, b2, b3);
+    theBrick = new BbarBrick(BrickId, node_tags, *theMaterial, b1, b2, b3);
   }
-
+#ifdef XARA_HAVE_H8E12
+  else if (strcmp(argv[1], "H8E12") == 0) {
+    theBrick = new H8E12(BrickId, node_tags, *theMaterial, b1, b2, b3);
+  }
+#endif
 #ifdef _FLBrick
   else if (strcmp(argv[1], "flBrick") == 0) {
-    theBrick = new FLBrick(BrickId, Node1, Node2, Node3, Node4, Node5, Node6,
-                           Node7, Node8, *theMaterial, b1, b2, b3);
+    theBrick = new FLBrick(BrickId, node_tags[0], node_tags[1], node_tags[2], node_tags[3], node_tags[4], node_tags[5],
+                           node_tags[6], node_tags[7], *theMaterial, b1, b2, b3);
   }
 #endif
 
   else {
-    opserr << "WARNING element " << argv[1] << " type not recognized\n";
+    opserr << "WARNING brick element " << argv[1] << " type not recognized\n";
     return TCL_ERROR;
   }
 
@@ -207,7 +213,8 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
   // get the id and end nodes
-  int brickId, Nod[20], matID;
+  int brickId, matID;
+  std::array<int, 20> Nod{};
   double b1 = 0.0;
   double b2 = 0.0;
   double b3 = 0.0;
@@ -250,11 +257,8 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
 
   // now create the brick and add it to the Domain
   Twenty_Node_Brick *theTwentyNodeBrick =
-      new Twenty_Node_Brick(brickId, Nod[0], Nod[1], Nod[2], Nod[3], Nod[4],
-                            Nod[5], Nod[6], Nod[7],
-                            Nod[8], Nod[9], Nod[10], Nod[11], Nod[12], Nod[13],
-                            Nod[14],
-                            Nod[15], Nod[16], Nod[17], Nod[18], Nod[19],
+      new Twenty_Node_Brick(brickId, 
+                            Nod,
                             *theMaterial, b1, b2, b3);
 
   if (theTclDomain->addElement(theTwentyNodeBrick) == false) {

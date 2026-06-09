@@ -879,7 +879,7 @@ BoundingCamClay::GetCep(double kappa, double r, double R, double dgamma, double 
 }
 
 double
-BoundingCamClay::GetContraNorm(Vector v)
+BoundingCamClay::GetContraNorm(const Vector& v)
 // computes contravariant (stress-type) norm of input 6x1 tensor
 {
 	double result = 0.0;
@@ -895,7 +895,7 @@ BoundingCamClay::GetContraNorm(Vector v)
 }
 		
 double
-BoundingCamClay::GetCovariantNorm(Vector v) 
+BoundingCamClay::GetCovariantNorm(const Vector& v) 
 // computes the norm of the input argument (for strain-type storage)
 {
 	if (v.Size() != 6) {
@@ -914,7 +914,7 @@ BoundingCamClay::GetCovariantNorm(Vector v)
 }
 
 double
-BoundingCamClay::GetTrace(Vector v) 
+BoundingCamClay::GetTrace(const Vector& v) 
 // computes the trace of the input argument
 {
 	if (v.Size() != 6)

@@ -269,9 +269,12 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
   return TCL_ERROR;
 }
 
+
 int
-TclCommand_newElasticMaterial(ClientData clientData, Tcl_Interp *interp,
-                              Tcl_Size argc, TCL_Char ** const argv)
+TclCommand_newElasticMaterial(ClientData clientData, 
+                              Tcl_Interp *interp,
+                              Tcl_Size argc, 
+                              TCL_Char ** const argv)
 {
   //
   if (strcmp(argv[1], "ElasticIsotropic") == 0 ||
@@ -290,8 +293,10 @@ TclCommand_newElasticMaterial(ClientData clientData, Tcl_Interp *interp,
   return TCL_ERROR;
 }
 
+
 int
-TclCommand_newElasticUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
+TclCommand_newElasticUniaxialMaterial(ClientData clientData, 
+                                      Tcl_Interp *interp,
                                       Tcl_Size argc, TCL_Char ** const argv)
 {
   enum class Position : int {

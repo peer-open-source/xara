@@ -21,6 +21,7 @@
 // Written: Shuhao Zhang & Xinzheng Lu
 //
 // Three node flat shell element with membrane and drill DOF
+//
 // Ref: Plate Bending Part - DKT, thin plate element
 //      Membrane Part - GT9, a membrane element with drilling DOF
 

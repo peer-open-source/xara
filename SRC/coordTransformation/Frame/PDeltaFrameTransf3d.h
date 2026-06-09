@@ -40,8 +40,10 @@ public:
 
   PDeltaFrameTransf(int tag, 
                     const Vector3D &vecxz,
-                    const std::array<Vector3D, nn> *offset=nullptr,
-                    int offset_flags = 0);
+                    const std::array<Vector3D, nn> *offset,
+                    int offset_flags,
+                    bool consistent_tangent
+                  );
 
   ~PDeltaFrameTransf();
   
@@ -82,6 +84,7 @@ public:
 private:
   int offset_flags;
   LinearFrameTransf<nn,ndf> linear;
+  bool consistent_tangent;
 };
 
 } // namespace OpenSees

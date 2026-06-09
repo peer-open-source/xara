@@ -95,11 +95,6 @@ FORMAnalysis::initStorage()
 {
     // initialize storage
     storage = new ReliabilityStorage *[numLsf];
-    if (storage == 0) {
-        opserr << "FORMAnalysis:: failed to allocate storage pointers" << endln;
-        exit(-1);
-    }
-    
     for (int i = 0; i < numLsf; i++) {
         storage[i] = new FORMStorage();
         if (storage[i] == 0) {

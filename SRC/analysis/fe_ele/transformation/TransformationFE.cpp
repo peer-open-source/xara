@@ -244,7 +244,7 @@ TransformationFE::getTangent(Integrator *theNewIntegrator)
 {
   const Matrix &theTangent = this->ElementFE::getTangent(theNewIntegrator);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
   
   // DO THE SP STUFF TO THE TANGENT 
@@ -411,7 +411,7 @@ TransformationFE::getK_Force(const Vector &accel, double fact)
   this->ElementFE::addKtToTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
@@ -526,7 +526,7 @@ TransformationFE::getKi_Force(const Vector &accel, double fact)
   this->ElementFE::addKiToTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
@@ -569,8 +569,8 @@ TransformationFE::getKi_Force(const Vector &accel, double fact)
       // copy K(i,j) into localK matrix
       // CHECK SIZE OF BUFFER
       for (int a=0; a<numDOFi; a++)
-	for (int b=0; b<numDOFj; b++)
-	  localK(a,b) = theTangent(noRowsOriginal+a, noColsOriginal+b);
+        for (int b=0; b<numDOFj; b++)
+          localK(a,b) = theTangent(noRowsOriginal+a, noColsOriginal+b);
       
       // now perform the matrix computation T(i)^T localK T(j)
       // note: if T == 0 then the Identity is assumed
@@ -640,11 +640,11 @@ TransformationFE::getM_Force(const Vector &accel, double fact)
   this->ElementFE::addMtoTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
-  
+
   // get the transformation matrix from each dof group & number of local dof
   // for original node.
   int numNode = numGroups;
@@ -683,8 +683,8 @@ TransformationFE::getM_Force(const Vector &accel, double fact)
       // copy K(i,j) into localK matrix
       // CHECK SIZE OF BUFFER
       for (int a=0; a<numDOFi; a++)
-	for (int b=0; b<numDOFj; b++)
-	  localK(a,b) = theTangent(noRowsOriginal+a, noColsOriginal+b);
+        for (int b=0; b<numDOFj; b++)
+          localK(a,b) = theTangent(noRowsOriginal+a, noColsOriginal+b);
       
       // now perform the matrix computation T(i)^T localK T(j)
       // note: if T == 0 then the Identity is assumed
@@ -754,7 +754,7 @@ TransformationFE::getC_Force(const Vector &accel, double fact)
   this->ElementFE::addCtoTang();    
   const Matrix &theTangent = this->ElementFE::getTangent(0);
 
-  static ID numDOFs(dofData, 1);
+  static ID numDOFs(dofData, 1, false);
   numDOFs.setData(dofData, numGroups);
     
   // DO THE SP STUFF TO THE TANGENT 
@@ -894,9 +894,9 @@ TransformationFE::addM_Force(const Vector &disp,  double fact)
   for (int i=0; i<numTransformedDOF; i++) {
     int loc = (*modID)(i);
     if (loc >= 0)
-        (*modResidual)(i) = disp(loc);
+      (*modResidual)(i) = disp(loc);
     else
-        (*modResidual)(i) = 0.0;
+      (*modResidual)(i) = 0.0;
   }
   transformResponse(*modResidual, response);
   this->addLocalM_Force(response, fact);
@@ -962,7 +962,7 @@ TransformationFE::transformResponse(const Vector &modResp, Vector &unmodResp)
 }
 
 
-// AddingSensitivity:BEGIN /////////////////////////////////
+// AddingSensitivity:BEGIN 
 void  
 TransformationFE::addD_ForceSensitivity(int gradNumber, const Vector &disp,  double fact)
 {
@@ -973,11 +973,11 @@ TransformationFE::addD_ForceSensitivity(int gradNumber, const Vector &disp,  dou
     response.setData(dataBuffer, numOriginalDOF);
 
     for (int i=0; i<numTransformedDOF; i++) {
-	int loc = (*modID)(i);
-	if (loc >= 0)
-	    (*modResidual)(i) = disp(loc);
-	else
-	    (*modResidual)(i) = 0.0;
+      int loc = (*modID)(i);
+      if (loc >= 0)
+        (*modResidual)(i) = disp(loc);
+      else
+        (*modResidual)(i) = 0.0;
     }
     transformResponse(*modResidual, response);
     this->addLocalD_ForceSensitivity(gradNumber, response, fact);
@@ -993,11 +993,11 @@ TransformationFE::addM_ForceSensitivity(int gradNumber, const Vector &disp,  dou
     response.setData(dataBuffer, numOriginalDOF);
 
     for (int i=0; i<numTransformedDOF; i++) {
-	int loc = (*modID)(i);
-	if (loc >= 0)
-	    (*modResidual)(i) = disp(loc);
-	else
-	    (*modResidual)(i) = 0.0;
+      int loc = (*modID)(i);
+      if (loc >= 0)
+          (*modResidual)(i) = disp(loc);
+      else
+          (*modResidual)(i) = 0.0;
     }
     transformResponse(*modResidual, response);
     this->addLocalM_ForceSensitivity(gradNumber, response, fact);

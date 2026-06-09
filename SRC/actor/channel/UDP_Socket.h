@@ -34,7 +34,6 @@
 #ifndef UDP_Socket_h
 #define UDP_Socket_h
 
-#include <stdbool.h>
 #include <Socket.h>
 #include <Channel.h>
 

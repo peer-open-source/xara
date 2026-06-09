@@ -167,7 +167,7 @@ static const ErrorEntry DnaupdErrors[] = {
   { -11,   "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
   { -12,   "IPARAM(1) must be equal to 0 or 1." },
   { -13,   "NEV and WHICH = 'BE' are incompatible." },
-  { -9999, "Could not build an Arnoldi factorization. IPARAM(5) returns the size of the current Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
+  { -9999, "Could not build an Arnoldi factorization. Check that enough workspace and array storage has been allocated." }
 };
 // static const size_t DnaupdErrorsCount = sizeof(DnaupdErrors)/sizeof(DnaupdErrors[0]);
 
@@ -209,7 +209,7 @@ static const ErrorEntry DsaupdErrors[] = {
   { -11,   "IPARAM(7) = 1 and BMAT = 'G' are incompatible." },
   { -12,   "IPARAM(1) must be equal to 0 or 1." },
   { -13,   "NEV and WHICH = 'BE' are incompatible." },
-  { -9999, "Could not build an Arnoldi factorization. IPARAM(5) returns the size of the current Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
+  { -9999, "Could not build an Arnoldi factorization. The user is advised to check that enough workspace and array storage has been allocated." }
 };
 
 static const ErrorEntry DseupdErrors[] = {
@@ -256,7 +256,7 @@ struct ArpackWorkspace {
     assert(n >=0);
     assert(ncv <= n);
     if (symm == ArpackWorkspace::NonSymmetric) {
-      assert(ncv > nev + 2);
+      assert(ncv >= nev + 2);
     }
     else {
       assert(ncv > nev);
@@ -277,9 +277,11 @@ struct ArpackWorkspace {
   ArpackWorkspace& operator=(ArpackWorkspace&&) = delete;
 
   enum { Symmetric = 1, NonSymmetric = 2 };
-  int getNCV(int n, int nev, int driver)
+
+  static int 
+  getNCV(int n, int nev, int driver)
   {
-    // compute the number of Arnoldi vectors to use
+  // compute the number of Arnoldi vectors to use
     // n is the system size, nev is the number of eigenvectors.
     // dsaupd: NCV must be greater than NEV and less than or equal to N.
 
@@ -293,7 +295,7 @@ struct ArpackWorkspace {
     //    TR95-13, Department of Computational and Applied Mathematics.
     //
     // Scipy uses min(max(2 * n + 1, 20), n)
-  #if 1
+  #if 0
     int result;
     if (2*nev > nev+8) {
       result = nev+8;
@@ -306,9 +308,12 @@ struct ArpackWorkspace {
     }
     
     return result;
-  #elif 1
+  #elif 0
+    // scipy
     return std::min(std::max(2*nev + 1, 20), n);
-  #else
+  #elif 1
+    if (driver == Symmetric)
+      return opsGetNCV(n, nev);
     // ensure headroom and a sensible floor
     int ncv = std::max({2*nev + 8, nev + 20, 20});
     ncv = std::min(ncv, n);
@@ -316,7 +321,83 @@ struct ArpackWorkspace {
     if (ncv <= nev + 1 && n > nev + 1) 
       ncv = std::min(n, nev + 2);
     return ncv;
-  #endif
+  #else
+    // Match the checks in SRC/dsaupd.f and SRC/dnaupd.f:
+    // symmetric:    nev < ncv <= n
+    // nonsymmetric: nev + 1 < ncv <= n
+    if (n <= 0 || nev <= 0)
+      return 0;
+
+    const int lower = driver == Symmetric ? nev + 1 : nev + 2;
+    int ncv = 0;
+    if (driver == Symmetric) {
+      ncv = opsGetNCV(n, nev);
+    } else {
+      ncv = std::max(2*nev + 1, 20);
+    }
+
+    ncv = std::max(ncv, lower);
+    ncv = std::min(ncv, n);
+    return ncv;
+#endif
+  }
+
+  static int 
+  opsGetNCV(int n, int nev) {
+    int result;
+    if (2*nev > nev+8) {
+      result = nev+8;
+    } else {
+      result = 2*nev;
+    }
+    
+    if (result >= n) {
+      result = n;
+    }
+
+    return result;
+  }
+
+  void
+  initialize(ArpackSOE& theArpackSOE, int seed=1234567) 
+  {
+
+    std::vector<double> ones(size, 1.0), mdiag(size);
+    theArpackSOE.opM(size, ones.data(), mdiag.data());  // mdiag[i] == M_ii
+
+    double mmax = 0.0;
+    for (double mi : mdiag) mmax = std::max(mmax, std::abs(mi));
+    const double tau = (mmax > 0 ? 1e-12 * mmax : 0.0);
+
+    std::vector<int> keep; keep.reserve(size);
+    for (int i = 0; i < size; ++i)
+      if (std::abs(mdiag[i]) > tau) keep.push_back(i);  // translational DOFs
+
+    // info = 1; // user supplies resid
+    std::mt19937_64 rng(seed);
+    std::normal_distribution<double> N(0.0, 1.0);
+
+    std::vector<double> x(size), r(size);
+    for (int i = 0; i < size; ++i)
+      x[i] = N(rng);
+
+    // Project into Range(M): r = M * x
+    theArpackSOE.opM(size, x.data(), r.data());
+
+    // Zero out entries known to be zero-mass (helps numerically)
+    for (int i = 0; i < size; ++i)
+      if (std::abs(mdiag[i]) <= tau) 
+        r[i] = 0.0;
+
+    std::memcpy(resid, r.data(), size*sizeof(double));
+  }
+
+  void print(OPS_Stream &s) const {
+    s << "  ArpackWorkspace: size=" << size 
+      << " nev=" << nev 
+      << " ncv=" << ncv 
+      << " lworkl=" << lworkl 
+      << "\n";
   }
 
   int size; // ldv
@@ -371,7 +452,7 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
   
   int n = theArpackSOE->getNumEqn(); // size;
   const int nev = numModes;
-  if (n < nev || nev < 1) {
+  if (nev < 1 || nev >= n) {
     opserr << "ArpackSolver::solve - no. of modes requested is invalid\n";
     return -1;
   }
@@ -382,6 +463,8 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
   int info = 0;
   int maxitr = 1000;
   int mode = 3; //
+  std::memset(iparam, 0, sizeof(iparam));
+  std::memset(ipntr, 0, sizeof(ipntr));
   iparam[0] = 1; // exact shifts
   iparam[1] = 0; // not used by ARPACK
   iparam[2] = maxitr;
@@ -402,8 +485,8 @@ char which[3];
 
 #else
   arpack::which  which = findSmallest
-                      ? arpack::which::largest_magnitude
-                      : arpack::which::smallest_magnitude; 
+                       ? arpack::which::largest_magnitude
+                       : arpack::which::smallest_magnitude; 
 
   arpack::bmat   bmat  = arpack::bmat::generalized; // 'G'
   arpack::howmny howmy = arpack::howmny::ritz_vectors; // 'A'
@@ -418,13 +501,13 @@ char which[3];
 
     double mmax = 0.0;
     for (double mi : mdiag) mmax = std::max(mmax, std::abs(mi));
-    const double tau = (mmax > 0 ? 1e-12 * mmax : 0.0); // tune as needed
+    const double tau = (mmax > 0 ? 1e-12 * mmax : 0.0);
 
     std::vector<int> keep; keep.reserve(n);
     for (int i = 0; i < n; ++i)
       if (std::abs(mdiag[i]) > tau) keep.push_back(i);  // translational DOFs
 
-#if 1
+#if 0
     info = 1; // user supplies resid
     std::mt19937_64 rng(1234567);
     std::normal_distribution<double> N(0.0, 1.0);
@@ -528,6 +611,8 @@ char which[3];
     opserr << LookupArpackError(DsaupdErrors, sizeof(DsaupdErrors) / sizeof(ErrorEntry), info);
     opserr << OpenSees::SignalMessageEnd;
     if (info == -9999) {
+      opserr << "  Current size of factorization: " << iparam[4] << "\n";
+      w.print(opserr);
       return this->solveI(numModes, generalized, findSmallest);
     }
   
@@ -578,7 +663,7 @@ char which[3];
 }
 
 
-#if 1
+
 int
 ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
 {
@@ -589,7 +674,7 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
   numMode = 0;
   int n = theArpackSOE->getNumEqn(); // size;
 
-  if (n < numModes || numModes < 1) {
+  if (numModes < 1 || numModes >= n - 1) {
     opserr << "ArpackSolver::solve - no. of modes requested is invalid\n";
     return -1;
   }
@@ -603,9 +688,14 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
   int  maxitr = 1000;
   int  mode = 1;
   double sigma = shift;
+  std::memset(iparam, 0, sizeof(iparam));
+  std::memset(ipntr, 0, sizeof(ipntr));
 
   int nev = numModes;
   ArpackWorkspace work(n, nev, ArpackWorkspace::NonSymmetric);
+  work.initialize(*theArpackSOE);
+  info = 1;
+
   int ncv = work.ncv;
 
   arpack::bmat  bmat   = arpack::bmat::identity;
@@ -623,7 +713,9 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
                   work.resid, ncv, 
                   work.v, work.ldv, 
                   iparam, ipntr,
-                  work.workd, work.workl, work.lworkl, 
+                  work.workd, 
+                  work.workl, 
+                  work.lworkl, 
                   info);
 
     assert(ipntr[0] >= 1 && ipntr[0] <= 3*n);
@@ -669,43 +761,46 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
   else {
     bool rvec = true;
     arpack::howmny howmny = arpack::howmny::ritz_vectors;
-    double* di = new double[nev]{};
-    double* workev = new double[3*ncv]{};
-    double* z = new double[n*(nev+1)]{};
+    std::vector<double> dr(nev + 1);
+    std::vector<double> di(nev + 1);
+    std::vector<double> workev(3*ncv);
+    std::vector<double> z(n*(nev+1));
 
     arpack::neupd(rvec, 
                   howmny, 
                   work.select, 
-                  solution.eigenvalues, di, z, 
+                  dr.data(), di.data(), z.data(), 
                   work.ldv,
-                  sigma, 0.0, workev,
+                  sigma, 0.0, workev.data(),
                   bmat, n, which, nev, tol, 
                   work.resid, work.ncv, work.v, work.ldv,
                   iparam, ipntr, 
                   work.workd, work.workl, work.lworkl, info);
     
     if (info == 0) {
-      numMode = iparam[4];
-      for (int i=0; i<nev; i++) {
-        if (std::abs(solution.eigenvalues[i]) < 1e-16)
-          solution.eigenvalues[i] = 0.0;
+      numMode = std::min(iparam[4], nev);
+      std::vector<double> lambda(numMode);
+      std::vector<int> order(numMode);
+      for (int i=0; i<numMode; i++) {
+        if (std::abs(dr[i]) < 1e-16)
+          lambda[i] = 0.0;
         else
-          solution.eigenvalues[i] = sigma + 1.0/solution.eigenvalues[i];
+          lambda[i] = sigma + 1.0/dr[i];
+        order[i] = i;
       }
 
-      // populate eigenvectors (all real)
-      {
-        const int ldz = work.ldv;  // leading dimension of z from neupd
-        for (int j = 0; j < nev; ++j) {
-          const double* zj = &z[j * ldz];     // column j of z
-          double* vj       = &solution.eigenvectors[j * n]; // column j of output
-          std::memcpy(vj, zj, sizeof(double) * n);
-        }
+      std::stable_sort(order.begin(), order.end(),
+        [&lambda](int i, int j) { return lambda[i] < lambda[j]; });
+
+      const int ldz = work.ldv;
+      for (int j = 0; j < numMode; ++j) {
+        const int from = order[j];
+        solution.eigenvalues[j] = lambda[from];
+        const double* zj = &z[from * ldz];
+        double* vj       = &solution.eigenvectors[j * n];
+        std::memcpy(vj, zj, sizeof(double) * n);
       }
     }
-    delete [] z;
-    delete [] di;
-    delete [] workev;
   }
 
   if (info != 0) {
@@ -717,7 +812,6 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
 
   return info;
 }
-#endif
 
 
 
@@ -798,5 +892,3 @@ ArpackSolver::recvSelf(int commitTag, Channel &, FEM_ObjectBroker &)
 {
   return 0;
 }
-
-

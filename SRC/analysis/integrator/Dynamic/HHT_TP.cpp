@@ -189,7 +189,8 @@ HHT_TP::newStep(double _deltaT)
 }
 
 
-int HHT_TP::revertToLastStep()
+int
+HHT_TP::revertToLastStep()
 {
     // set response at t+deltaT to be that at t .. for next step
     if (U != 0)  {
@@ -202,7 +203,8 @@ int HHT_TP::revertToLastStep()
 }
 
 
-int HHT_TP::formUnbalance()
+int
+HHT_TP::formUnbalance()
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
@@ -237,7 +239,8 @@ int HHT_TP::formUnbalance()
 }
 
 
-int HHT_TP::formEleTangent(FE_Element *theEle)
+int
+HHT_TP::formEleTangent(FE_Element *theEle)
 {
     theEle->zeroTangent();
     

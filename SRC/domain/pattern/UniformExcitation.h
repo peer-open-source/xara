@@ -42,24 +42,30 @@ class UniformExcitation : public EarthquakePattern
   public:
     UniformExcitation();  
     UniformExcitation(GroundMotion &theMotion, 
-                      int dof, int tag, double vel0 = 0.0, double fact = 1.0);  
+                      int ndm,
+                      int dof, 
+                      int tag, 
+                      double vel0 = 0.0, 
+                      double fact = 1.0);  
     ~UniformExcitation();
 
     const char* getClassType() const override {return "UniformExcitation";}
 
     void setDomain(Domain *);    
     void applyLoad(double time);
+    int applyResidual(AnalysisModel &, LinearSOE &, double) override;
     int getDirection() {return theDof;}
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
     int sendSelf(int tag, Channel &) override;
     int recvSelf(int tag, Channel &, FEM_ObjectBroker &) override;    
     
     LoadPattern *getCopy();
 
-    virtual int setParameter(const char **argv, int argc, Parameter &param);
-
+    virtual int setParameter(const char **argv, int argc, Parameter &);
+    virtual int  updateParameter(int parameterID, Information &);
+    virtual int  activateParameter(int parameterID);
     void applyLoadSensitivity(double time);
     
     const GroundMotion *getGroundMotion();
@@ -71,6 +77,9 @@ class UniformExcitation : public EarthquakePattern
     int theDof;      // the dof corrseponding to the ground motion
     double vel0;     // the initial velocity, should be neg of ug dot(0)
     double fact;
+    int NDM;
+    double currentTime;
+    int parameterID;
 };
 
 #endif

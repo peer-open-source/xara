@@ -26,6 +26,7 @@ class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
 class NineFourNodeQuadUP : public Element
 {
   public:
@@ -127,5 +128,5 @@ class NineFourNodeQuadUP : public Element
 
     double *initNodeDispl;
 };
-
+}
 #endif

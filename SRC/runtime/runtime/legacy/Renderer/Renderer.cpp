@@ -3,6 +3,8 @@
 **          Pacific Earthquake Engineering Research Center            **
 ** ****************************************************************** */
 //
+// DEPRECATED
+//
 // Written: fmk 
 // Created: 10/98
 // Revision: A
@@ -13,7 +15,6 @@
 //
 #include "Renderer.h"
 #include "ColorMap.h"
-#include <Domain.h>
 #include <string.h>
 
 #include <Matrix.h>
@@ -104,102 +105,19 @@ Renderer::saveImage(const char *rendererTitle, const char *fileName)
 int
 Renderer::drawVector(const Vector &position, const Vector &value, double factor, int tag)
 {
-    return 0;
+  return 0;
 }
 
 
 void
 Renderer::setColorMap(ColorMap &map)
 {
-    theMap = &map;
+  theMap = &map;
 }
 
 int 
 Renderer::drawCube(const Matrix &points, const Vector &values, int tag, int mode)
 {
-
-  static Matrix polyData(4,3);
-  static Vector polyValues(4);
-  // draw the 6 faces
-
-  int a,b,c,d;
-
-  a=2; b=3; c=7; d=6;
-  for (int i=0; i<3; i++) {
-    polyData(0,i) = points(a,i);
-    polyData(1,i) = points(b,i);
-    polyData(2,i) = points(c,i);
-    polyData(3,i) = points(d,i);
-  }
-  polyValues(0) = values(a);
-  polyValues(1) = values(b);
-  polyValues(2) = values(c);
-  polyValues(3) = values(d);
-  this->drawPolygon(polyData, polyValues, tag, mode);
-
-  a=5; b=4; c=0; d=1;
-  for (int i=0; i<3; i++) {
-    polyData(0,i) = points(a,i);
-    polyData(1,i) = points(b,i);
-    polyData(2,i) = points(c,i);
-    polyData(3,i) = points(d,i);
-  }
-  polyValues(0) = values(a);
-  polyValues(1) = values(b);
-  polyValues(2) = values(c);
-  polyValues(3) = values(d);
-  this->drawPolygon(polyData, polyValues, tag, mode);
-
-  a=6; b=7; c=4; d=5;
-  for (int i=0; i<3; i++) {
-    polyData(0,i) = points(a,i);
-    polyData(1,i) = points(b,i);
-    polyData(2,i) = points(c,i);
-    polyData(3,i) = points(d,i);
-  }
-  polyValues(0) = values(a);
-  polyValues(1) = values(b);
-  polyValues(2) = values(c);
-  polyValues(3) = values(d);
-  this->drawPolygon(polyData, polyValues, tag, mode);
-
-  a=1; b=0; c=3; d=2;
-  for (int i=0; i<3; i++) {
-    polyData(0,i) = points(a,i);
-    polyData(1,i) = points(b,i);
-    polyData(2,i) = points(c,i);
-    polyData(3,i) = points(d,i);
-  }
-  polyValues(0) = values(a);
-  polyValues(1) = values(b);
-  polyValues(2) = values(c);
-  polyValues(3) = values(d);
-  this->drawPolygon(polyData, polyValues, tag, mode);
-
-  a=7; b=3; c=0; d=4;
-  for (int i=0; i<3; i++) {
-    polyData(0,i) = points(a,i);
-    polyData(1,i) = points(b,i);
-    polyData(2,i) = points(c,i);
-    polyData(3,i) = points(d,i);
-  }
-  polyValues(0) = values(a);
-  polyValues(1) = values(b);
-  polyValues(2) = values(c);
-  polyValues(3) = values(d);
-  this->drawPolygon(polyData, polyValues, tag, mode);
-
-  a=2; b=6; c=5; d=1;
-  for (int i=0; i<3; i++) {
-    polyData(0,i) = points(a,i);
-    polyData(1,i) = points(b,i);
-    polyData(2,i) = points(c,i);
-    polyData(3,i) = points(d,i);
-  }
-  polyValues(0) = values(a);
-  polyValues(1) = values(b);
-  polyValues(2) = values(c);
-  polyValues(3) = values(d);
-  return this->drawPolygon(polyData, polyValues, tag, mode);
+  return -1;
 }
 

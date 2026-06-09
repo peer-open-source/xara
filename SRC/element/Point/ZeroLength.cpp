@@ -42,6 +42,8 @@
 #include <ElementResponse.h>
 #include <vector>
 
+using namespace OpenSees;
+
 // initialise the class wide variables
 Matrix ZeroLength::ZeroLengthM2(2,2);
 Matrix ZeroLength::ZeroLengthM4(4,4);
@@ -53,164 +55,93 @@ Vector ZeroLength::ZeroLengthV6(6);
 Vector ZeroLength::ZeroLengthV12(12);
 
 
-//  Construct element with one unidirectional material (numMaterials1d=1)
+
+//  Construct element with multiple uniaxial materials
 ZeroLength::ZeroLength(int tag,
-		       int dim,
-		       int Nd1, int Nd2, 
-		       const Vector &x, const Vector &yp,
-		       UniaxialMaterial &theMat,
-		       int direction,
-		       int doRayleigh)
- :Element(tag,ELE_TAG_ZeroLength),     
-  connectedExternalNodes(2),
-  dimension(dim), numDOF(0), transformation(3,3), useRayleighDamping(doRayleigh),
-  theMatrix(0), theVector(0),
-  numMaterials1d(1), theMaterial1d(0), dir1d(0), t1d(0), d0(0), v0(0)
-{
-  // allocate memory for numMaterials1d uniaxial material models
-  theMaterial1d = new UniaxialMaterial*  [numMaterials1d];
-  dir1d	  = new ID(numMaterials1d);
-
-  // initialize uniaxial materials and directions and check for valid values
-  if (direction == 2 && dim == 2) // For Keri Ryan
-    direction = 5;
-
-  (*dir1d)(0) = direction;
-  this->checkDirection( *dir1d );
-  
-  // get a copy of the material and check we obtained a valid copy
-  theMaterial1d[0] = theMat.getCopy();
-
-
-  // establish the connected nodes and set up the transformation matrix for orientation
-  this->setUp( Nd1, Nd2, x, yp);
-
-  // designate to setDomain that this is the initial construction of the element
-  mInitialize = 1;
-}
-
-
-ZeroLength::ZeroLength(int tag,
-		       int dim,
-		       int Nd1, int Nd2, 
-		       const Vector &x, const Vector &yp,
-		       UniaxialMaterial &theMat,
-		       UniaxialMaterial &theDampMat,
-		       int direction)
+                       int dim,
+                       int Nd1, int Nd2, 
+           const Matrix3D& T,
+                       int n1dMat,
+                       UniaxialMaterial** theMat,
+                       const ID& direction,
+                       int doRayleigh)
  : Element(tag,ELE_TAG_ZeroLength),     
-   connectedExternalNodes(2),
-   dimension(dim), numDOF(0), transformation(3,3), useRayleighDamping(2),
-   theMatrix(0), theVector(0),
-   numMaterials1d(1), theMaterial1d(0), dir1d(0), t1d(0), d0(0), v0(0)
+  connectedExternalNodes(2),
+  dimension(dim), numDOF(0)
+ , transformation{T}, useRayleighDamping(doRayleigh),
+  theMatrix(0), theVector(0),
+  numMaterials1d(n1dMat), theMaterial1d(0)
+ , dir1d(0), t1d(0), d0(0), v0(0)
 {
+
   // allocate memory for numMaterials1d uniaxial material models
-  theMaterial1d = new UniaxialMaterial*[2];
-  dir1d	  = new ID(numMaterials1d);
+  theMaterial1d = new UniaxialMaterial* [numMaterials1d];
+  dir1d         = new ID(numMaterials1d);
 
   // initialize uniaxial materials and directions and check for valid values
-  if (direction == 2 && dim == 2) // For Keri Ryan
-    direction = 5;
-
-  (*dir1d)(0) = direction;
+  *dir1d = direction;
+  for (int i = 0; i < n1dMat; i++) {
+    if ((*dir1d)(i) == 2 && dim == 2) // For Keri Ryan
+      (*dir1d)(i) = 5;
+  }
   this->checkDirection( *dir1d );
   
-  // get a copy of the material and check we obtained a valid copy
-
-  theMaterial1d[0] = theMat.getCopy();
-  theMaterial1d[1] = theDampMat.getCopy();
-
+  // get a copy of the material objects and check we obtained a valid copy
+  for (int i=0; i<numMaterials1d; i++) {
+    theMaterial1d[i] = theMat[i]->getCopy();
+  }
+      
   // establish the connected nodes and set up the transformation matrix for orientation
-  this->setUp( Nd1, Nd2, x, yp);
+  this->setUp( Nd1, Nd2);
 
   // designate to setDomain that this is the initial construction of the element
   mInitialize = 1;
 }
 
 
-
-
 //  Construct element with multiple unidirectional materials
 ZeroLength::ZeroLength(int tag,
-		       int dim,
-		       int Nd1, int Nd2, 
-		       const Vector& x, const Vector& yp,
-		       int n1dMat,
-		       UniaxialMaterial** theMat,
-		       const ID& direction,
-		       int doRayleigh)
+                       int dim,
+                       int Nd1, int Nd2,
+                       const Matrix3D& T,
+                       int n1dMat,
+                       UniaxialMaterial** theMat,
+                       UniaxialMaterial** theDampMat,
+                       const ID& direction,
+                       int doRayleigh)
  :Element(tag,ELE_TAG_ZeroLength),     
   connectedExternalNodes(2),
-  dimension(dim), numDOF(0), transformation(3,3), useRayleighDamping(doRayleigh),
+  dimension(dim), numDOF(0)
+  , transformation{T}
+  , useRayleighDamping(doRayleigh),
   theMatrix(0), theVector(0),
   numMaterials1d(n1dMat), theMaterial1d(0), dir1d(0), t1d(0), d0(0), v0(0)
 {
 
-    // allocate memory for numMaterials1d uniaxial material models
-    theMaterial1d = new UniaxialMaterial*  [numMaterials1d];
-    dir1d	  = new ID(numMaterials1d);
+  // allocate memory for numMaterials1d uniaxial material models
+  theMaterial1d = new UniaxialMaterial*  [2*numMaterials1d];
+  dir1d         = new ID(numMaterials1d);
 
-    // initialize uniaxial materials and directions and check for valid values
-    *dir1d = direction;
-    for (int i = 0; i < n1dMat; i++) {
-      if ((*dir1d)(i) == 2 && dim == 2) // For Keri Ryan
-	(*dir1d)(i) = 5;
-    }
-    this->checkDirection( *dir1d );
-    
-    // get a copy of the material objects and check we obtained a valid copy
-    for (int i=0; i<numMaterials1d; i++) {
-      theMaterial1d[i] = theMat[i]->getCopy();
-    }
-	
-    // establish the connected nodes and set up the transformation matrix for orientation
-    this->setUp( Nd1, Nd2, x, yp);
+  
+  // initialize uniaxial materials and directions and check for valid values
+  *dir1d = direction;
+  for (int i = 0; i < n1dMat; i++) {
+    if ((*dir1d)(i) == 2 && dim == 2) // For Keri Ryan
+      (*dir1d)(i) = 5;
+  }
+  this->checkDirection( *dir1d );
+  
+  // get a copy of the material objects and check we obtained a valid copy
+  for (int i=0; i<numMaterials1d; i++) {
+    theMaterial1d[i] = theMat[i]->getCopy();
+    theMaterial1d[i+numMaterials1d] = theDampMat[i]->getCopy();
+  }
+      
+  // establish the connected nodes and set up the transformation matrix for orientation
+  this->setUp( Nd1, Nd2);//, x, yp);
 
-    // designate to setDomain that this is the initial construction of the element
-    mInitialize = 1;
-}
-
-
-//  Construct element with multiple unidirectional materials
-ZeroLength::ZeroLength(int tag,
-		       int dim,
-		       int Nd1, int Nd2, 
-		       const Vector& x, const Vector& yp,
-		       int n1dMat,
-		       UniaxialMaterial** theMat,
-		       UniaxialMaterial** theDampMat,
-		       const ID& direction,
-		       int doRayleigh)
- :Element(tag,ELE_TAG_ZeroLength),     
-  connectedExternalNodes(2),
-  dimension(dim), numDOF(0), transformation(3,3), useRayleighDamping(doRayleigh),
-  theMatrix(0), theVector(0),
-  numMaterials1d(n1dMat), theMaterial1d(0), dir1d(0), t1d(0), d0(0), v0(0)
-{
-
-    // allocate memory for numMaterials1d uniaxial material models
-    theMaterial1d = new UniaxialMaterial*  [2*numMaterials1d];
-    dir1d	  = new ID(numMaterials1d);
-
-    
-    // initialize uniaxial materials and directions and check for valid values
-    *dir1d = direction;
-    for (int i = 0; i < n1dMat; i++) {
-      if ((*dir1d)(i) == 2 && dim == 2) // For Keri Ryan
-	(*dir1d)(i) = 5;
-    }
-    this->checkDirection( *dir1d );
-    
-    // get a copy of the material objects and check we obtained a valid copy
-    for (int i=0; i<numMaterials1d; i++) {
-      theMaterial1d[i] = theMat[i]->getCopy();
-      theMaterial1d[i+numMaterials1d] = theDampMat[i]->getCopy();
-     }
-	
-    // establish the connected nodes and set up the transformation matrix for orientation
-    this->setUp( Nd1, Nd2, x, yp);
-
-    // designate to setDomain that this is the initial construction of the element
-    mInitialize = 1;
+  // designate to setDomain that this is the initial construction of the element
+  mInitialize = 1;
 }
 
 
@@ -220,7 +151,8 @@ ZeroLength::ZeroLength(int tag,
 ZeroLength::ZeroLength(void)
   :Element(0,ELE_TAG_ZeroLength),     
   connectedExternalNodes(2),
-  dimension(0), numDOF(0), transformation(3,3),
+  dimension(0), numDOF(0)
+  , transformation{},
   theMatrix(0), theVector(0),
   numMaterials1d(0), theMaterial1d(0),
   dir1d(0), t1d(0), d0(0), v0(0)
@@ -316,7 +248,7 @@ ZeroLength::setDomain(Domain *theDomain)
     int Nd1 = connectedExternalNodes(0);
     int Nd2 = connectedExternalNodes(1);
     theNodes[0] = theDomain->getNode(Nd1);
-    theNodes[1] = theDomain->getNode(Nd2);	
+    theNodes[1] = theDomain->getNode(Nd2);        
 
     // if can't find both - send a warning message
     if ( theNodes[0] == 0 || theNodes[1] == 0 ) {
@@ -332,18 +264,18 @@ ZeroLength::setDomain(Domain *theDomain)
 
     // now determine the number of dof and the dimension    
     int dofNd1 = theNodes[0]->getNumberDOF();
-    int dofNd2 = theNodes[1]->getNumberDOF();	
+    int dofNd2 = theNodes[1]->getNumberDOF();        
 
     // if differing dof at the ends - print a warning message
     if ( dofNd1 != dofNd2 ) {
       opserr << "WARNING ZeroLength::setDomain(): nodes " << Nd1 << " and " << Nd2 <<
-	"have differing dof at ends for ZeroLength " << this->getTag() << endln;
+        "have differing dof at ends for ZeroLength " << this->getTag() << endln;
       return;
-    }	
+    }        
 
     // Check that length is zero within tolerance
     const Vector &end1Crd = theNodes[0]->getCrds();
-    const Vector &end2Crd = theNodes[1]->getCrds();	
+    const Vector &end2Crd = theNodes[1]->getCrds();        
     Vector diff = end1Crd - end2Crd;
     double L  = diff.Norm();
     double v1 = end1Crd.Norm();
@@ -353,9 +285,9 @@ ZeroLength::setDomain(Domain *theDomain)
     vm = (v1<v2) ? v2 : v1;
 
 
-    if (L > LENTOL*vm)
+    if (L > MaxLength*vm)
       opserr << "WARNING ZeroLength::setDomain(): Element " << this->getTag() << " has L= " << L << 
-	", which is greater than the tolerance\n";
+        ", which is greater than the tolerance\n";
         
     // call the base class method
     if (theDomain != nullptr)
@@ -375,19 +307,19 @@ ZeroLength::setDomain(Domain *theDomain)
       elemType  = D2N4;
     }
     else if (dimension == 2 && dofNd1 == 3) {
-      numDOF = 6;	
+      numDOF = 6;        
       theMatrix = &ZeroLengthM6;
       theVector = &ZeroLengthV6;
       elemType  = D2N6;
     }
     else if (dimension == 3 && dofNd1 == 3) {
-      numDOF = 6;	
+      numDOF = 6;        
       theMatrix = &ZeroLengthM6;
       theVector = &ZeroLengthV6;
       elemType  = D3N6;
     }
     else if (dimension == 3 && dofNd1 == 6) {
-      numDOF = 12;	    
+      numDOF = 12;            
       theMatrix = &ZeroLengthM12;
       theVector = &ZeroLengthV12;
       elemType  = D3N12;
@@ -420,7 +352,7 @@ ZeroLength::setDomain(Domain *theDomain)
       if (diffV != 0)
         v0 = new Vector(diffV);
     }      
-}   	 
+}            
 
 
 
@@ -506,7 +438,7 @@ ZeroLength::update()
     strainRate = this->computeCurrentStrain1d(mat,diffv);
     ret += theMaterial1d[mat]->setTrialStrain(strain,strainRate);
     if (useRayleighDamping == 2) {
-      ret += theMaterial1d[mat+numMaterials1d]->setTrialStrain(strainRate);	  
+      ret += theMaterial1d[mat+numMaterials1d]->setTrialStrain(strainRate);          
     }
   }
 
@@ -581,72 +513,72 @@ ZeroLength::getInitialStiff()
     // complete symmetric stiffness matrix
     for (int i=0; i<numDOF; i++)
       for(int j=0; j<i; j++)
-	stiff(j,i) = stiff(i,j);
+        stiff(j,i) = stiff(i,j);
 
     return stiff;
 }
-    
+
 
 const Matrix &
-ZeroLength::getDamp(void)
+ZeroLength::getDamp()
 {
-    // damp is a reference to the matrix holding the damping matrix
-    Matrix& damp = *theMatrix;
+  // damp is a reference to the matrix holding the damping matrix
+  Matrix& damp = *theMatrix;
 
-    // zero damping matrix
-    damp.Zero();
+  // zero damping matrix
+  damp.Zero();
 
-    // get Rayleigh damping matrix 
+  // get Rayleigh damping matrix 
+  
+  if (useRayleighDamping == 1) {
+
+    damp = this->Element::getDamp();
+
+  } else if (useRayleighDamping == 2) {
     
-    if (useRayleighDamping == 1) {
+    // loop over 1d materials and add their damping tangents
+    double eta;
+    Matrix& tran = *t1d;;
+    for (int mat=0; mat<numMaterials1d; mat++) {
 
-        damp = this->Element::getDamp();
+      // get tangent for material
+      eta = theMaterial1d[mat+numMaterials1d]->getTangent();
 
-    } else if (useRayleighDamping == 2) {
-      
-      // loop over 1d materials and add their damping tangents
-      double eta;
-      Matrix& tran = *t1d;;
-      for (int mat=0; mat<numMaterials1d; mat++) {
-	
-        // get tangent for material
-        eta = theMaterial1d[mat+numMaterials1d]->getTangent();
-	
-        // compute contribution of material to tangent matrix
-        for (int i=0; i<numDOF; i++)
-	  for(int j=0; j<i+1; j++)
-	    damp(i,j) +=  tran(mat,i) * eta * tran(mat,j);
-      }
-
-    } else {
-
-      // loop over 1d materials and add their damping tangents
-      double eta;
-      Matrix& tran = *t1d;;
-      for (int mat=0; mat<numMaterials1d; mat++) {
-	
-        // get tangent for material
-        eta = theMaterial1d[mat]->getDampTangent();
-	
-        // compute contribution of material to tangent matrix
-        for (int i=0; i<numDOF; i++)
-	  for(int j=0; j<i+1; j++)
-	    damp(i,j) +=  tran(mat,i) * eta * tran(mat,j);
-	
-      } // end loop over 1d materials 
+      // compute contribution of material to tangent matrix
+      for (int i=0; i<numDOF; i++)
+        for(int j=0; j<i+1; j++)
+          damp(i,j) +=  tran(mat,i) * eta * tran(mat,j);
     }
 
-    // complete symmetric damping matrix
-    for (int i=0; i<numDOF; i++)
-      for(int j=0; j<i; j++)
-	damp(j,i) = damp(i,j);
-    
-    return damp;
+  } else {
+
+    // loop over 1d materials and add their damping tangents
+    double eta;
+    Matrix& tran = *t1d;;
+    for (int mat=0; mat<numMaterials1d; mat++) {
+
+      // get tangent for material
+      eta = theMaterial1d[mat]->getDampTangent();
+
+      // compute contribution of material to tangent matrix
+      for (int i=0; i<numDOF; i++)
+        for(int j=0; j<i+1; j++)
+          damp(i,j) +=  tran(mat,i) * eta * tran(mat,j);
+
+    } // end loop over 1d materials 
+  }
+
+  // complete symmetric damping matrix
+  for (int i=0; i<numDOF; i++)
+    for(int j=0; j<i; j++)
+      damp(j,i) = damp(i,j);
+  
+  return damp;
 }
 
 
 const Matrix &
-ZeroLength::getMass(void)
+ZeroLength::getMass()
 {
   // no mass 
   theMatrix->Zero();    
@@ -701,7 +633,7 @@ ZeroLength::getResistingForce()
 
 const Vector &
 ZeroLength::getResistingForceIncInertia()
-{	
+{        
   // this already includes damping forces from materials
   this->getResistingForce();
   
@@ -709,18 +641,19 @@ ZeroLength::getResistingForceIncInertia()
   if (useRayleighDamping == 1) {
     if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0) {
       *theVector += this->getRayleighDampingForces();
-    }  
-  } else if (useRayleighDamping == 2) {
-      // loop over 1d materials
-      for (int mat=0; mat<numMaterials1d; mat++) {
-	
-	// get resisting force for material
-	double force = theMaterial1d[mat+numMaterials1d]->getStress();
-    
-	// compute residual due to resisting force
-	for (int i=0; i<numDOF; i++)
-	  (*theVector)(i)  += (*t1d)(mat,i) * force;
-      }
+    }
+  }
+  else if (useRayleighDamping == 2) {
+    // loop over 1d materials
+    for (int mat=0; mat<numMaterials1d; mat++) {
+      
+      // get resisting force for material
+      double force = theMaterial1d[mat+numMaterials1d]->getStress();
+        
+      // compute residual due to resisting force
+      for (int i=0; i<numDOF; i++)
+        (*theVector)(i)  += (*t1d)(mat,i) * force;
+    }
   }
 
   return *theVector;
@@ -730,78 +663,79 @@ ZeroLength::getResistingForceIncInertia()
 int
 ZeroLength::sendSelf(int commitTag, Channel &theChannel)
 {
-	int res = 0;
+        int res = 0;
 
-	// note: we don't check for dataTag == 0 for Element
-	// objects as that is taken care of in a commit by the Domain
-	// object - don't want to have to do the check if sending data
-	int dataTag = this->getDbTag();
+        // note: we don't check for dataTag == 0 for Element
+        // objects as that is taken care of in a commit by the Domain
+        // object - don't want to have to do the check if sending data
+        int dataTag = this->getDbTag();
 
-	// ZeroLength packs its data into an ID and sends this to theChannel
-	// along with its dbTag and the commitTag passed in the arguments
+        // ZeroLength packs its data into an ID and sends this to theChannel
+        // along with its dbTag and the commitTag passed in the arguments
 
-	// Make one size bigger so not a multiple of 3, otherwise will conflict
-	// with classTags ID
-	static ID idData(10);
+        // Make one size bigger so not a multiple of 3, otherwise will conflict
+        // with classTags ID
+        static ID idData(10);
 
-	idData(0) = this->getTag();
-	idData(1) = dimension;
-	idData(2) = numDOF;
-	idData(3) = numMaterials1d;
-	idData(4) = connectedExternalNodes(0);
-	idData(5) = connectedExternalNodes(1);
-	idData(6) = useRayleighDamping;
+        idData(0) = this->getTag();
+        idData(1) = dimension;
+        idData(2) = numDOF;
+        idData(3) = numMaterials1d;
+        idData(4) = connectedExternalNodes(0);
+        idData(5) = connectedExternalNodes(1);
+        idData(6) = useRayleighDamping;
 
-	res += theChannel.sendID(dataTag, commitTag, idData);
-	if (res < 0) {
-	  opserr << "ZeroLength::sendSelf -- failed to send ID data\n";
-	  return res;
-	}
+        res += theChannel.sendID(dataTag, commitTag, idData);
+        if (res < 0) {
+          opserr << "ZeroLength::sendSelf -- failed to send ID data\n";
+          return res;
+        }
 
-	// Send the 3x3 direction cosine matrix, have to send it since it is only set
-	// in the constructor and not setDomain()
-	res += theChannel.sendMatrix(dataTag, commitTag, transformation);
-	if (res < 0) {
-	  opserr <<  "ZeroLength::sendSelf -- failed to send transformation Matrix\n";
-	  return res;
-	}
+        // Send the 3x3 direction cosine matrix, have to send it since it is only set
+        // in the constructor and not setDomain()
+  // TODO(cmp)
+        // res += theChannel.sendMatrix(dataTag, commitTag, transformation);
+        if (res < 0) {
+          opserr <<  "ZeroLength::sendSelf -- failed to send transformation Matrix\n";
+          return res;
+        }
 
-	if (numMaterials1d < 1)
-	  return res;
-	else {
-	  ID classTags(numMaterials1d*3);
-	  
-	  int i;
-	  // Loop over the materials and send them
-	  for (i = 0; i < numMaterials1d; i++) {
-	    int matDbTag = theMaterial1d[i]->getDbTag();
-	    if (matDbTag == 0) {
-	      matDbTag = theChannel.getDbTag();
-	      if (matDbTag != 0)
-		theMaterial1d[i]->setDbTag(matDbTag);
-	    }
-	    classTags(i) = matDbTag;
-	    classTags(numMaterials1d+i) = theMaterial1d[i]->getClassTag();
-	    classTags(2*numMaterials1d+i) = (*dir1d)(i);
-	  }
-	  
-	  res += theChannel.sendID(dataTag, commitTag, classTags);
-	  if (res < 0) {
-	    opserr << " ZeroLength::sendSelf -- failed to send classTags ID\n";
-	    return res;
-	  }
-	
-	  for (i = 0; i < numMaterials1d; i++) {
-	    res += theMaterial1d[i]->sendSelf(commitTag, theChannel);
-	    if (res < 0) {
-	      opserr << "ZeroLength::sendSelf -- failed to send Material1d " << i << endln;
-		
-	      return res;
-	  }
-		}
-	}
+        if (numMaterials1d < 1)
+          return res;
+        else {
+          ID classTags(numMaterials1d*3);
+          
+          int i;
+          // Loop over the materials and send them
+          for (i = 0; i < numMaterials1d; i++) {
+            int matDbTag = theMaterial1d[i]->getDbTag();
+            if (matDbTag == 0) {
+              matDbTag = theChannel.getDbTag();
+              if (matDbTag != 0)
+                theMaterial1d[i]->setDbTag(matDbTag);
+            }
+            classTags(i) = matDbTag;
+            classTags(numMaterials1d+i) = theMaterial1d[i]->getClassTag();
+            classTags(2*numMaterials1d+i) = (*dir1d)(i);
+          }
+          
+          res += theChannel.sendID(dataTag, commitTag, classTags);
+          if (res < 0) {
+            opserr << " ZeroLength::sendSelf -- failed to send classTags ID\n";
+            return res;
+          }
+        
+          for (i = 0; i < numMaterials1d; i++) {
+            res += theMaterial1d[i]->sendSelf(commitTag, theChannel);
+            if (res < 0) {
+              opserr << "ZeroLength::sendSelf -- failed to send Material1d " << i << endln;
+                
+              return res;
+          }
+                }
+        }
 
-	return res;
+        return res;
 }
 
 int
@@ -819,14 +753,14 @@ ZeroLength::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBr
   res += theChannel.recvID(dataTag, commitTag, idData);
   if (res < 0) {
     opserr << "ZeroLength::recvSelf -- failed to receive ID data\n";
-			    
+                            
     return res;
   }
-
-  res += theChannel.recvMatrix(dataTag, commitTag, transformation);
+  // TODO(cmp)
+  // res += theChannel.recvMatrix(dataTag, commitTag, transformation);
   if (res < 0) {
     opserr << "ZeroLength::recvSelf -- failed to receive transformation Matrix\n";
-			    
+                            
     return res;
   }
 
@@ -850,26 +784,26 @@ ZeroLength::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBr
     if (numMaterials1d != idData(3)) {
       int i;
       if (theMaterial1d != 0) {
-	for (i = 0; i < numMaterials1d; i++)
-	  delete theMaterial1d[i];
-	delete [] theMaterial1d;
-	theMaterial1d = 0;
+        for (i = 0; i < numMaterials1d; i++)
+          delete theMaterial1d[i];
+        delete [] theMaterial1d;
+        theMaterial1d = nullptr;
       }
       
       numMaterials1d = idData(3);
       
       theMaterial1d = new UniaxialMaterial *[numMaterials1d];
       if (theMaterial1d == 0) {
-	opserr << "ZeroLength::recvSelf -- failed to new Material1d array\n";
-	return -1;
+        opserr << "ZeroLength::recvSelf -- failed to new Material1d array\n";
+        return -1;
       }
       
       for (i = 0; i < numMaterials1d; i++)
-	theMaterial1d[i] = 0;
-      
+        theMaterial1d[i] = nullptr;
+
       // Allocate ID array for directions
       if (dir1d != 0)
-	delete dir1d;
+        delete dir1d;
       dir1d = new ID(numMaterials1d);
       if (dir1d == 0) {
         opserr << "ZeroLength::recvSelf -- failed to new dir ID\n";
@@ -889,26 +823,26 @@ ZeroLength::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBr
       
       // If null, get a new one from the broker
       if (theMaterial1d[i] == 0)
-	theMaterial1d[i] = theBroker.getNewUniaxialMaterial(matClassTag);
+        theMaterial1d[i] = theBroker.getNewUniaxialMaterial(matClassTag);
       
       // If wrong type, get a new one from the broker
       if (theMaterial1d[i]->getClassTag() != matClassTag) {
-	delete theMaterial1d[i];
-	theMaterial1d[i] = theBroker.getNewUniaxialMaterial(matClassTag);
+        delete theMaterial1d[i];
+        theMaterial1d[i] = theBroker.getNewUniaxialMaterial(matClassTag);
       }
       
       // Check if either allocation failed from broker
       if (theMaterial1d[i] == 0) {
-	opserr << "ZeroLength::recvSelf  -- failed to allocate new Material1d " << i << endln;
-	return -1;
+        opserr << "ZeroLength::recvSelf  -- failed to allocate new Material1d " << i << endln;
+        return -1;
       }
       
       // Receive the materials
       theMaterial1d[i]->setDbTag(classTags(i));
       res += theMaterial1d[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "ZeroLength::recvSelf  -- failed to receive new Material1d " << i << endln;
-	return res;
+        opserr << "ZeroLength::recvSelf  -- failed to receive new Material1d " << i << endln;
+        return res;
       }
       
       // Set material directions
@@ -932,26 +866,26 @@ ZeroLength::Print(OPS_Stream &s, int flag)
       (*theVector)(i) = (*t1d)(0,i)*force;
     
     if (flag == OPS_PRINT_CURRENTSTATE) { // print everything
-        s << "Element: " << this->getTag();
-        s << " type: ZeroLength  iNode: " << connectedExternalNodes(0);
-        s << " jNode: " << connectedExternalNodes(1) << endln;
-        for (int j = 0; j < numMaterials1d; j++) {
-            s << "\tMaterial1d, tag: " << theMaterial1d[j]->getTag()
-                << ", dir: " << (*dir1d)(j) << endln;
-            s << *(theMaterial1d[j]);
+      s << "Element: " << this->getTag();
+      s << " type: ZeroLength  iNode: " << connectedExternalNodes(0);
+      s << " jNode: " << connectedExternalNodes(1) << endln;
+      for (int j = 0; j < numMaterials1d; j++) {
+          s << "\tMaterial1d, tag: " << theMaterial1d[j]->getTag()
+              << ", dir: " << (*dir1d)(j) << endln;
+          s << *(theMaterial1d[j]);
+      }
+      if (useRayleighDamping == 2) {
+        s << "Damping Materials:\n";
+        for (int j = numMaterials1d; j < 2 * numMaterials1d; j++) {
+          s << "\tMaterial1d, tag: " << theMaterial1d[j]->getTag()
+              << ", dir: " << (*dir1d)(j) << endln;
+          s << *(theMaterial1d[j]);
         }
-        if (useRayleighDamping == 2) {
-            s << "Damping Materials:\n";
-            for (int j = numMaterials1d; j < 2 * numMaterials1d; j++) {
-                s << "\tMaterial1d, tag: " << theMaterial1d[j]->getTag()
-                    << ", dir: " << (*dir1d)(j) << endln;
-                s << *(theMaterial1d[j]);
-            }
-        }
+      }
     }
      
     else if (flag == 1) {
-        s << this->getTag() << "  " << strain << "  ";
+      s << this->getTag() << "  " << strain << "  ";
     }
 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
@@ -992,17 +926,18 @@ ZeroLength::Print(OPS_Stream &s, int flag)
             s << "\"Mz\"], ";
         s << "\"transMatrix\": [[";
         for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (j < 2)
-                    s << transformation(i, j) << ", ";
-                else if (j == 2 && i < 2)
-                    s << transformation(i, j) << "], [";
-                else if (j == 2 && i == 2)
-                    s << transformation(i, j) << "]]}";
-            }
+          for (int j = 0; j < 3; j++) {
+            if (j < 2)
+                s << transformation(i, j) << ", ";
+            else if (j == 2 && i < 2)
+                s << transformation(i, j) << "], [";
+            else if (j == 2 && i == 2)
+                s << transformation(i, j) << "]]}";
+          }
         }
     }
 }
+
 
 Response*
 ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
@@ -1035,8 +970,11 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
     theResponse = new ElementResponse(this, 1, Vector(numDOF));
 
   } 
-  else if ((strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) ||
-        (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)) {
+  else if ((strcmp(argv[0],"basicForce") == 0) || 
+            (strcmp(argv[0],"stress") == 0) ||
+            (strcmp(argv[0],"basicForces") == 0) ||
+            (strcmp(argv[0],"localForce") == 0) || 
+            (strcmp(argv[0],"localForces") == 0)) {
 
     for (int i=0; i<numMaterials1d; i++) {
         sprintf(outputData,"P%d",i+1);
@@ -1045,43 +983,43 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
     theResponse = new ElementResponse(this, 2, Vector(numMaterials1d));
 
   } 
-  else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
-        strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
+  else if (strcmp(argv[0],"defo") == 0 || 
+           strcmp(argv[0],"strain") == 0 ||
+           strcmp(argv[0],"deformations") == 0 ||
+           strcmp(argv[0],"deformation") == 0 || 
+           strcmp(argv[0],"basicDeformation") == 0) {
 
     for (int i=0; i<numMaterials1d; i++) {
-        sprintf(outputData,"e%d",i+1);
-        output.tag("ResponseType",outputData);
+      sprintf(outputData,"e%d",i+1);
+      output.tag("ResponseType",outputData);
     }
     theResponse = new ElementResponse(this, 3, Vector(numMaterials1d));
 
   } 
   else if (strcmp(argv[0],"basicStiffness") == 0) {
 
-          for (int i=0; i<numMaterials1d; i++) {
-              sprintf(outputData,"e%d",i+1);
-              output.tag("ResponseType",outputData);
-          }
-          theResponse = new ElementResponse(this, 13, Matrix(numMaterials1d,numMaterials1d));
+    for (int i=0; i<numMaterials1d; i++) {
+        sprintf(outputData,"e%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 13, Matrix(numMaterials1d,numMaterials1d));
 
   } 
   else if ((strcmp(argv[0],"defoANDforce") == 0) ||
            (strcmp(argv[0],"deformationANDforces") == 0) ||
            (strcmp(argv[0],"deformationsANDforces") == 0)) {
     
-    int i;
-    for (i=0; i<numMaterials1d; i++) {
+    for (int i=0; i<numMaterials1d; i++) {
       sprintf(outputData,"e%d",i+1);
       output.tag("ResponseType",outputData);
     }
-    for (i=0; i<numMaterials1d; i++) {
+    for (int i=0; i<numMaterials1d; i++) {
       sprintf(outputData,"P%d",i+1);
       output.tag("ResponseType",outputData);
     }
     theResponse = new ElementResponse(this, 4, Vector(2*numMaterials1d));
-    
-    
-  // a material quantity
   } 
+  // a material quantity
   else if (strcmp(argv[0],"material") == 0) {
     if (argc > 2) {
       int matNum = atoi(argv[1]);
@@ -1099,11 +1037,9 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
 
   output.endTag();
 
-
-
-
   return theResponse;
 }
+
 
 int 
 ZeroLength::getResponse(int responseID, Information &eleInformation)
@@ -1154,7 +1090,7 @@ ZeroLength::getResponse(int responseID, Information &eleInformation)
     case 13:
         if (eleInformation.theMatrix != 0) {
             for (int i = 0; i < numMaterials1d; i++)
-	      (*(eleInformation.theMatrix))(i,i) = theMaterial1d[i]->getTangent();
+              (*(eleInformation.theMatrix))(i,i) = theMaterial1d[i]->getTangent();
         }
         return 0;
 
@@ -1181,13 +1117,13 @@ ZeroLength::setParameter(const char **argv, int argc, Parameter &param)
     return -1;
 
   if (strcmp(argv[0], "material") == 0) {
-      if (argc > 2) {
-	int matNum = atoi(argv[1]);
-	if (matNum >= 1 && matNum <= numMaterials1d)    
-	  return theMaterial1d[matNum-1]->setParameter(&argv[2], argc-2, param);
-      } else {
-	return -1;
-      }
+    if (argc > 2) {
+      int matNum = atoi(argv[1]);
+      if (matNum >= 1 && matNum <= numMaterials1d)    
+        return theMaterial1d[matNum-1]->setParameter(&argv[2], argc-2, param);
+    } else {
+      return -1;
+    }
   }
 
   for (int i=0; i<numMaterials1d; i++) {
@@ -1254,9 +1190,7 @@ ZeroLength::commitSensitivity(int gradIndex, int numGrads)
 // Establish the external nodes and set up the transformation matrix
 // for orientation
 void
-ZeroLength::setUp( int Nd1, int Nd2,
-		   const Vector &x,
-		   const Vector &yp )
+ZeroLength::setUp( int Nd1, int Nd2)
 { 
   // ensure the connectedExternalNode ID is of correct size & set values
   if (connectedExternalNodes.Size() != 2)
@@ -1265,10 +1199,9 @@ ZeroLength::setUp( int Nd1, int Nd2,
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
 
-	int i;
-  for (i=0; i<2; i++)
-    theNodes[i] = 0;
-
+  for (int i=0; i<2; i++)
+    theNodes[i] = nullptr;
+#if 0
   // check that vectors for orientation are correct size
   if ( x.Size() != 3 || yp.Size() != 3 )
     opserr << "FATAL ZeroLength::setUp - incorrect dimension of orientation vectors\n";
@@ -1297,12 +1230,12 @@ ZeroLength::setUp( int Nd1, int Nd2,
   }
   
   // create transformation matrix of direction cosines
-  for ( i=0; i<3; i++ ) {
+  for (int i=0; i<3; i++ ) {
     transformation(0,i) = x(i)/xn;
     transformation(1,i) = y(i)/yn;
     transformation(2,i) = z(i)/zn;
   }
-
+#endif
 }
 
 
@@ -1322,123 +1255,111 @@ ZeroLength::checkDirection( ID &dir ) const
 // Set basic deformation-displacement transformation matrix for 1d
 // uniaxial materials
 void
-ZeroLength::setTran1d( Etype elemType,
-		       int   numMat )
+ZeroLength::setTran1d( Etype elemType, int   numMat )
 {
-    enum Dtype { TRANS, ROTATE };
+  enum Dtype { TRANS, ROTATE };
+  
+  int   indx, dir;
+  Dtype dirType;
+  
+  // Create 1d transformation matrix
+  t1d = new Matrix(numMat,numDOF);
+
+  
+  // Use reference for convenience and zero matrix.
+  Matrix& tran = *t1d;
+  tran.Zero();
+  
+  // loop over materials, setting row in tran for each material depending on dimensionality of element
+  
+  for (int i=0; i<numMat; i++ ) {
     
-    int   indx, dir;
-    Dtype dirType;
+    dir  = (*dir1d)(i);        // direction 0 to 5;
+    indx = dir % 3;                // direction 0, 1, 2 for axis of translation or rotation
     
-    // Create 1d transformation matrix
-    t1d = new Matrix(numMat,numDOF);
+    // set direction type to translation or rotation
+    dirType = (dir<3) ? TRANS : ROTATE;
     
-    if (t1d == 0)
-	opserr << "FATAL ZeroLength::setTran1d - can't allocate 1d transformation matrix\n";
+    // now switch on dimensionality of element
     
-    // Use reference for convenience and zero matrix.
-    Matrix& tran = *t1d;
-    tran.Zero();
+    switch (elemType) {
+            
+      case D1N2:
+        if (dirType == TRANS)
+          tran(i,1) = transformation(indx,0);
+        break;
+
+      case D2N4:
+        if (dirType == TRANS) {
+          tran(i,2) = transformation(indx,0);  
+          tran(i,3) = transformation(indx,1);
+        }
+        break;
+      
+      case D2N6: 
+        if (dirType == TRANS) {
+            tran(i,3) = transformation(indx,0);  
+            tran(i,4) = transformation(indx,1);
+            tran(i,5) = 0.0;
+        } else if (dirType == ROTATE) {
+            tran(i,3) = 0.0;
+            tran(i,4) = 0.0;
+            tran(i,5) = transformation(indx,2);
+        }
+        break;
+          
+      case D3N6:
+        if (dirType == TRANS) {
+            tran(i,3) = transformation(indx,0);  
+            tran(i,4) = transformation(indx,1);
+            tran(i,5) = transformation(indx,2);
+        }
+        break;
+      
+      case D3N12:
+        if (dirType == TRANS) {
+            tran(i,6)  = transformation(indx,0);  
+            tran(i,7)  = transformation(indx,1);
+            tran(i,8)  = transformation(indx,2);
+            tran(i,9)  = 0.0;
+            tran(i,10) = 0.0;
+            tran(i,11) = 0.0;
+        } else if (dirType == ROTATE) {
+            tran(i,6)  = 0.0;
+            tran(i,7)  = 0.0;
+            tran(i,8)  = 0.0;
+            tran(i,9)  = transformation(indx,0);
+            tran(i,10) = transformation(indx,1);
+            tran(i,11) = transformation(indx,2);
+        }
+        break;
+      
+    } // end switch
     
-    // loop over materials, setting row in tran for each material depending on dimensionality of element
+    // fill in first half of transformation matrix with
+    // negative sign
     
-    for ( int i=0; i<numMat; i++ ) {
-	
-	dir  = (*dir1d)(i);	// direction 0 to 5;
-	indx = dir % 3;		// direction 0, 1, 2 for axis of translation or rotation
-	
-	// set direction type to translation or rotation
-	dirType = (dir<3) ? TRANS : ROTATE;
-	
-	// now switch on dimensionality of element
-	
-	switch (elemType) {
-	  	    
-	  case D1N2:
-	    if (dirType == TRANS)
-		tran(i,1) = transformation(indx,0);
-	    break;
-		 
-	  case D2N4:
-	    if (dirType == TRANS) {
-		tran(i,2) = transformation(indx,0);  
-	        tran(i,3) = transformation(indx,1);
-	    }
-	    break;
-		 
-          case D2N6: 
-	    if (dirType == TRANS) {
-		tran(i,3) = transformation(indx,0);  
-	        tran(i,4) = transformation(indx,1);
-	        tran(i,5) = 0.0;
-	    } else if (dirType == ROTATE) {
-		tran(i,3) = 0.0;
-		tran(i,4) = 0.0;
-		tran(i,5) = transformation(indx,2);
-	    }
-	    break;
-		    
-	  case D3N6:
-	    if (dirType == TRANS) {
-		tran(i,3) = transformation(indx,0);  
-	        tran(i,4) = transformation(indx,1);
-	        tran(i,5) = transformation(indx,2);
-	    }
-	    break;
-		 
-	  case D3N12:
-	    if (dirType == TRANS) {
-		tran(i,6)  = transformation(indx,0);  
-	        tran(i,7)  = transformation(indx,1);
-	        tran(i,8)  = transformation(indx,2);
-		tran(i,9)  = 0.0;
-		tran(i,10) = 0.0;
-		tran(i,11) = 0.0;
-	    } else if (dirType == ROTATE) {
-		tran(i,6)  = 0.0;
-	        tran(i,7)  = 0.0;
-	        tran(i,8)  = 0.0;
-		tran(i,9)  = transformation(indx,0);
-		tran(i,10) = transformation(indx,1);
-		tran(i,11) = transformation(indx,2);
-	    }
-	    break;
-		 
-	} // end switch
-	
-	// fill in first half of transformation matrix with
-	// negative sign
-	
-	for (int j=0; j < numDOF/2; j++ )
-	    tran(i,j) = -tran(i,j+numDOF/2);
-	
-    } // end loop over 1d materials
+    for (int j=0; j < numDOF/2; j++ )
+      tran(i,j) = -tran(i,j+numDOF/2);
+
+  } // end loop over 1d materials
 }
-		     
+
 
 // Compute current strain for 1d material mat
 // dispDiff are the displacements of node 2 minus those
 // of node 1
 double
-ZeroLength::computeCurrentStrain1d( int mat,
-				    const Vector& dispDiff ) const
+ZeroLength::computeCurrentStrain1d( int mat, const Vector& dispDiff ) const
 {
-    double strain = 0.0;
+  double strain = 0.0;
 
-    for (int i=0; i<numDOF/2; i++){
-	strain += -dispDiff(i) * (*t1d)(mat,i);
-    }
+  for (int i=0; i<numDOF/2; i++){
+    strain += -dispDiff(i) * (*t1d)(mat,i);
+  }
 
-    return strain;
+  return strain;
 }
-	      
-void
-ZeroLength::updateDir(const Vector& x, const Vector& y)
-{
-	this->setUp(connectedExternalNodes(0), connectedExternalNodes(1), x, y);
-	this->setTran1d(elemType, numMaterials1d);
-}
-
 
 void
 ZeroLength::onActivate()

@@ -43,49 +43,48 @@ class FiberSection2d : public FrameSection
 {
   public:
     FiberSection2d(); 
-    FiberSection2d(int tag, int numFibers, bool compCentroid=true);
-#if 0
-    FiberSection2d(int tag, int numFibers, Fiber **fibers, bool compCentroid=true);
-    FiberSection2d(int tag, int numFibers, UniaxialMaterial **mats,
-		   SectionIntegration &si, bool compCentroid=true);
-#endif
+    FiberSection2d(int tag, int numFibers, bool compCentroid);
+  private:
+    FiberSection2d(const FiberSection2d&);
+  public:
     ~FiberSection2d();
+    FiberSection2d& operator=(const FiberSection2d&) = delete;
+    FiberSection2d(FiberSection2d&&) = delete;
+    FiberSection2d& operator=(FiberSection2d&&) = delete;
 
-    const char *getClassType(void) const {return "FiberSection2d";}
+    const char *getClassType() const {return "FiberSection2d";}
 
     int   setTrialSectionDeformation(const Vector &deforms); 
-    const Vector &getSectionDeformation(void);
+    const Vector &getSectionDeformation();
 
-    const Vector &getStressResultant(void);
-    const Matrix &getSectionTangent(void);
-    const Matrix &getInitialTangent(void);
+    const Vector &getStressResultant();
+    const Matrix &getSectionTangent();
+    const Matrix &getInitialTangent();
 
-    int   commitState(void);
-    int   revertToLastCommit(void);    
-    int   revertToStart(void);
+    int   commitState();
+    int   revertToLastCommit();    
+    int   revertToStart();
  
     FrameSection *getFrameCopy();
-    const ID &getType(void);
-    int getOrder (void) const;
+    const ID &getType();
+    int getOrder () const;
     
-    int sendSelf(int cTag, Channel &theChannel);
-    int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &);
+    int sendSelf(int cTag, Channel &);
+    int recvSelf(int cTag, Channel &, FEM_ObjectBroker &);
     void Print(OPS_Stream &s, int flag);
-	    
-    Response *setResponse(const char **argv, int argc, 
-			  OPS_Stream &s);
-    int getResponse(int responseID, Information &info);
+
+    Response *setResponse(const char **argv, int argc,  OPS_Stream &s);
+    int getResponse(int responseID, Information &);
 
     int addFiber(UniaxialMaterial &theMat, const double area, const double yLoc);
 
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
-    int setParameter(const char **argv, int argc, Parameter &param);
-    const Vector& getStressResultantSensitivity(int gradIndex,	bool conditional);
+    // Sensitivity
+    int setParameter(const char **argv, int argc, Parameter &);
+    const Vector& getStressResultantSensitivity(int gradIndex, bool conditional);
     const Vector& getSectionDeformationSensitivity(int gradIndex);
     const Matrix& getInitialTangentSensitivity(int gradIndex);
-    int commitSensitivity(const Vector& sectionDeformationGradient,
-			  int gradIndex, int numGrads);
-    // AddingSensitivity:END ///////////////////////////////////////////
+    int commitSensitivity(const Vector& sectionDeformationGradient,  int gradIndex, int numGrads);
+
 
     double getEnergy() const; // by SAJalali
     int   getIntegral(Field field, State state, double& value) const final;
@@ -97,16 +96,11 @@ class FiberSection2d : public FrameSection
       double area;
       double y;
     };
-    const std::shared_ptr<std::vector<FiberData>> fibers;
-    int numFibers, sizeFibers;         // number of fibers in the section
-    UniaxialMaterial **theMaterials;   // array of pointers to materials
-#ifdef SHARE_FIBERS
-    std::shared_ptr<double[]> matData;
-#else
-    double* matData; // data for the materials [yloc and area]
-#endif
+    std::shared_ptr<std::vector<FiberData>> fibers;
+    std::vector<UniaxialMaterial*> theMaterials; // array of pointers to the materials of the fibers
     double   kData[4];                 // data for ks matrix 
-    double   sData[2];                 // data for s vector 
+    double   sData[2];                 // data for s vector
+
     
     double QzBar, ABar, yBar;       // Section centroid
     bool computeCentroid;
@@ -114,12 +108,11 @@ class FiberSection2d : public FrameSection
     static ID code;
 
     Vector  e;         // trial section deformations 
-    Vector *s;         // section resisting forces  (axial force, bending moment)
-    Matrix *ks;        // section stiffness
+    Vector  s;         // section resisting forces  (axial force, bending moment)
+    Matrix  ks;        // section stiffness
 
-// AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     Vector dedh; // MHS hack
-// AddingSensitivity:END ///////////////////////////////////////////
 };
 
 #endif

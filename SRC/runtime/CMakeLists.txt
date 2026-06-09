@@ -71,3 +71,26 @@ target_link_libraries(OpenSeesRT_Static
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/packages/UCSD_CompGeoMech/CMakeLists.txt)
   add_subdirectory(packages/UCSD_CompGeoMech)
 endif ()
+
+
+# Get git hash for versioning
+set(GIT_HASH "unknown")
+find_package(Git QUIET)
+if(Git_FOUND)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE GIT_HASH
+    RESULT_VARIABLE GIT_HASH_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+  if(NOT GIT_HASH_RESULT EQUAL 0)
+    set(GIT_HASH "unknown")
+  endif()
+  set_property(
+    SOURCE OpenSeesRT.cpp
+    APPEND PROPERTY COMPILE_DEFINITIONS 
+           "XARA_COMMIT_HASH=\"${GIT_HASH}\""
+  )
+endif()

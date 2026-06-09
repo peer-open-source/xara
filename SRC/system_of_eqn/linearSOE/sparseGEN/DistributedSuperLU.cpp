@@ -31,7 +31,6 @@
 
 #include <DistributedSuperLU.h>
 #include <SparseGenColLinSOE.h>
-#include <f2c.h>
 #include <math.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>

@@ -171,12 +171,11 @@ SymBandEigenSolver::solve(int nModes, bool generalized, bool findSmallest)
   int numSuperD = theSOE->numSuperD;
   int size = n;
   if (M != 0) {
-    int i,j;
-    bool singular = false;
+    // bool singular = false;
     // form M^(-1/2) and check for singular mass matrix
     for (int k=0; k<size; k++) {
       if (M[k] == 0.0) {
-        singular = true;
+        // singular = true;
         // alternative is to set as a small no ~ 1e-10 times smallest m(i,i) != 0.0
         opserr << "SymBandEigenSolver::solve() - M matrix singular\n";
         return -1;
@@ -187,6 +186,7 @@ SymBandEigenSolver::solve(int nModes, bool generalized, bool findSmallest)
 
     // make modifications to A
     //   Aij -> Mi Aij Mj  (based on new M)
+    int i,j;
     for (i=0; i<size; i++) {
       double *AijPtr = A +(i+1)*(numSuperD+1) - 1;
       int minColRow = i - numSuperD;

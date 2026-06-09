@@ -34,26 +34,7 @@
 #include <ID.h>
 #include <cmath>
 #include <string>
-
-// interface to LAPACK
-#ifdef _WIN32
-
-extern "C" int  DGETRF(int* M, int* N, double* A, int* LDA,
-	int* iPiv, int* INFO);
-
-extern "C" int  DGETRS(char* TRANS,
-	int* N, int* NRHS, double* A, int* LDA,
-	int* iPiv, double* B, int* LDB, int* INFO);
-
-#else
-
-extern "C" int dgetrf_(int* M, int* N, double* A, int* LDA,
-	int* iPiv, int* INFO);
-
-extern "C" int dgetrs_(char* TRANS, int* N, int* NRHS, double* A, int* LDA,
-	int* iPiv, double* B, int* LDB, int* INFO);
-
-#endif
+#include <routines/xblas.h>
 
 // namespace for utilities
 namespace Series3DUtils {
@@ -76,11 +57,7 @@ namespace Series3DUtils {
 					A[static_cast<std::size_t>(j * n + i)] = M(i, j);
 			IPIV.resize(static_cast<std::size_t>(n));
 			int info;
-#ifdef _WIN32
 			DGETRF(&n, &n, A.data(), &n, IPIV.data(), &info);
-#else
-			dgetrf_(&n, &n, A.data(), &n, IPIV.data(), &info);
-#endif
 			return (info == 0);
 		}
 
@@ -91,11 +68,7 @@ namespace Series3DUtils {
 			X = B;
 			int nrhs = 1;
 			int info;
-#ifdef _WIN32
 			DGETRS((char*)"N", &n, &nrhs, A.data(), &n, IPIV.data(), &X(0), &n, &info);
-#else
-			dgetrs_("N", &n, &nrhs, A.data(), &n, IPIV.data(), &X(0), &n, &info);
-#endif
 			return (info == 0);
 		}
 	};

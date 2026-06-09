@@ -31,8 +31,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <FE_EleIter.h>
-#include <DOF_GrpIter.h>
 #include <cmath>
 
 IncrementalIntegrator::IncrementalIntegrator(int clasTag)
@@ -41,7 +39,6 @@ IncrementalIntegrator::IncrementalIntegrator(int clasTag)
  , eigenVectors(0), eigenValues(0), dampingForces(0)
  , isDiagonal(false),diagMass(0)
  , mV(0),tmpV1(0),tmpV2(0),
-
    theSOE(0), theAnalysisModel(0), theTest(0)
  // sensitivity 
  , analysisTypeTag(0)
@@ -382,69 +379,8 @@ IncrementalIntegrator::addModalDampingForce(const Vector *modalDampingValues)
     }
   }
 
-  // why setB, not addB?
   theSOE->setB(*dampingForces);
   
-  return res;
-}
-
-
-int
-IncrementalIntegrator::addModalDampingMatrix(const Vector *modalDampingValues) {
-  int res = 0;
-
-  if (modalDampingValues == 0)
-    return 0;
-
-  double cFactor = this->getCFactor();
-  if (cFactor == 0)
-    return 0;
-
-  int numModes = modalDampingValues->Size();
-
-  const Vector &eigenvalues = theAnalysisModel->getEigenvalues();
-  int numEigen = eigenvalues.Size();
-
-  if (numEigen < numModes) 
-    numModes = numEigen;
-
-  int numDOF = theSOE->getNumEqn();
-
-  if (eigenValues == 0 || *eigenValues != eigenvalues) {
-    this->setupModal(modalDampingValues);
-  }
-
-  for (int dof = 0; dof<numDOF; dof++) {
-    dampingForces->Zero();
-    bool zeroCol = true;
-
-    for (int i=0; i<numModes; i++) {
-
-      double eigenvalue = (*eigenValues)(i);
-      double modalDampingValue = (*modalDampingValues)(i);      
-      if (eigenvalue > 0 && modalDampingValue != 0.0) {
-        double wn = sqrt(eigenvalue);
-        double *eigenVectorI = &eigenVectors[numDOF*i];
-        double ei_dof = eigenVectors[numDOF*i+dof];
-        
-        if (ei_dof != 0.0) {
-          zeroCol = false;
-        
-          double beta = 2.0 * modalDampingValue * wn * ei_dof * cFactor;
-          
-          for (int j=0; j<numDOF; j++) {
-            double eij = eigenVectorI[j];
-            if (eij != 0)
-              (*dampingForces)(j) += beta * eij;
-          }
-        }
-      }
-    }
-    
-    if (zeroCol == false)
-      theSOE->addColA(*dampingForces, dof, 1.0);
-
-  }
   return res;
 }
 

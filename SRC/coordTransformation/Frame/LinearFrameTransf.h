@@ -63,7 +63,8 @@ public:
   VectorND<nn*ndf> getStateVariation() final;
 
   Matrix3D getRotation() const noexcept final {
-    return this->getInitialRotation();
+    // return this->getInitialRotation();
+    return R;
   }
 
 

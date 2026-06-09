@@ -88,12 +88,12 @@ ShellNLDKGQ::ShellNLDKGQ()
 }
 
 //*********************************************************************
-//full constructor
+// full constructor
 ShellNLDKGQ::ShellNLDKGQ(int tag, int node1, int node2, int node3, int node4,
                          SectionForceDeformation &theMaterial)
     : Element(tag, ELE_TAG_ShellNLDKGQ), connectedExternalNodes(4),
       CstrainGauss(32), TstrainGauss(32), load(0),
-      Ki(0) //modify for geometric nonlinearity
+      Ki(0) // modify for geometric nonlinearity
 {
   int i;
 
@@ -514,8 +514,7 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
 
   static double shp[3][numnodes]; //shape function 2d at a gauss point
 
-  static double
-      shpDrill[4][numnodes]; //shape function drilling dof at a gauss point
+  static double shpDrill[4][numnodes]; //shape function drilling dof at a gauss point
 
   static double shpBend[6][12]; //shape function - bending part at a gauss point
 
@@ -526,15 +525,10 @@ const Matrix &ShellNLDKGQ::getInitialStiff()
   //static Vector residJlocal(ndf); //nodeJ residual, local coordinates
 
   static Matrix stiffJKlinear(ndf, ndf); //nodeJK stiffness,for linear part
-
   static Matrix stiffJKgeo(3, 3); //nodeJK stiffness,for geometric nonlinearity
-
   static Matrix stiffJKlocal(ndf, ndf); //nodeJK stiffness, local coordinates
-
   static Matrix stiffJK1(ndf, ndf);
-
   static Matrix stiffJK2(ndf, ndf);
-
   static Matrix stiffJK3(ndf, ndf);
 
   //static Vector residJ1(ndf);

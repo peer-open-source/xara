@@ -38,7 +38,7 @@
 #include <ID.h>
 #include <NDMaterial.h>
 
-#include <SectionForceDeformation.h>
+#include <ShellSection.h>
 
 
 class DoubleMembranePlateFiberSection : public SectionForceDeformation {
@@ -46,12 +46,11 @@ class DoubleMembranePlateFiberSection : public SectionForceDeformation {
   //-------------------Declarations-------------------------------
 
 public:
-  //null constructor
   DoubleMembranePlateFiberSection();
-
-  //full constructor
   DoubleMembranePlateFiberSection(int tag, double thickness, double distance, NDMaterial& Afiber);
 
+
+  virtual ~DoubleMembranePlateFiberSection();
 
   const char*
   getClassType(void) const
@@ -59,24 +58,20 @@ public:
     return "DoubleMembranePlateFiberSection";
   };
 
-  //destructor
-  virtual ~DoubleMembranePlateFiberSection();
 
-    SectionForceDeformation* getCopy();
+  SectionForceDeformation* getCopy();
 
-  //mass per unit area
+  // mass per unit area
   double getRho();
 
-    int getOrder() const;
+  int getOrder() const;
 
-    const ID& getType();
+  const ID& getType();
 
   //swap history variables
   int commitState();
-
-    int revertToLastCommit();
-
-    int revertToStart();
+  int revertToLastCommit();
+  int revertToStart();
 
   //get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);
@@ -124,4 +119,4 @@ private:
 
   static ID array;
 
-}; //end of DoubleMembranePlateFiberSection declarations
+};

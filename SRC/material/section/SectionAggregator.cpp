@@ -74,10 +74,6 @@ SectionAggregator::SectionAggregator (int tag, FrameSection &theSec,
     }
     theAdditions = new UniaxialMaterial *[numMats];
 
-    if (!theAdditions) {
-      opserr << "SectionAggregator::SectionAggregator " << tag << "  -- failed to allocate pointers\n";
-      exit(-1);
-    }    
     int i;
     
     for (i = 0; i < numMats; i++) {
@@ -87,12 +83,6 @@ SectionAggregator::SectionAggregator (int tag, FrameSection &theSec,
       }        
       //theAdditions[i] = theAdds[i]->getCopy(this);
       theAdditions[i] = theAdds[i]->getCopy();
-      
-      if (!theAdditions[i]) {
-        opserr << "SectionAggregator::SectionAggregator " << tag << " -- failed to copy uniaxial material\n";
-        opserr << theAdds[i];
-        exit(-1);
-      }
     }
 
     int order = theSec.getOrder()+numAdds;
@@ -103,17 +93,12 @@ SectionAggregator::SectionAggregator (int tag, FrameSection &theSec,
       exit(-1);
     }
 
-    theCode = new ID(codeArea, order);
+    theCode = new ID(codeArea, order, false);
     e = new Vector(workArea, order);
     s = new Vector(&workArea[MAX_ORDER], order);
     ks = new Matrix(&workArea[2*MAX_ORDER], order, order);
     fs = new Matrix(&workArea[MAX_ORDER*(MAX_ORDER+2)], order, order);
-    matCodes = new ID(addCodes);
-
-    if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0 || matCodes == 0) {
-      opserr << "SectionAggregator::SectionAggregator   " << tag << " -- out of memory\n";
-      exit(-1);
-    }        
+    matCodes = new ID(addCodes);   
 }
 
 SectionAggregator::SectionAggregator (int tag, int numAdds,
@@ -131,46 +116,37 @@ SectionAggregator::SectionAggregator (int tag, int numAdds,
 
   theAdditions = new UniaxialMaterial *[numMats];
 
-  if (!theAdditions) {
-    opserr << "SectionAggregator::SectionAggregator " << tag << " -- failed to allocate pointers\n";
-    exit(-1);
-  }    
-    int i;
-    
-    for (i = 0; i < numMats; i++) {
-      if (!theAdds[i]) {
-        opserr << "SectionAggregator::SectionAggregator   " << tag << " -- null uniaxial material pointer passed\n";
-        exit(-1);
-      }                
-        
-      //      theAdditions[i] = theAdds[i]->getCopy(this);
-      theAdditions[i] = theAdds[i]->getCopy();
+  int i;
+  
+  for (i = 0; i < numMats; i++) {
+    if (!theAdds[i]) {
+      opserr << "SectionAggregator::SectionAggregator   " << tag << " -- null uniaxial material pointer passed\n";
+      exit(-1);
+    }                
       
-      if (!theAdditions[i]) {
-        opserr << "SectionAggregator::SectionAggregator   " << tag << " -- failed to copy uniaxial material\n";
-        opserr << theAdds[i];
-        exit(-1);
-      }
-    }
-
-    int order = numAdds;
-
-    if (order > MAX_ORDER) {
-      opserr << "SectionAggregator::SectionAggregator   " << tag << " -- order too big, need to modify the #define in SectionAggregator.cpp to %d\n";
+    //      theAdditions[i] = theAdds[i]->getCopy(this);
+    theAdditions[i] = theAdds[i]->getCopy();
+    
+    if (!theAdditions[i]) {
+      opserr << "SectionAggregator::SectionAggregator   " << tag << " -- failed to copy uniaxial material\n";
+      opserr << theAdds[i];
       exit(-1);
     }
+  }
 
-    theCode = new ID(codeArea, order);
-    e = new Vector(workArea, order);
-    s = new Vector(&workArea[MAX_ORDER], order);
-    ks = new Matrix(&workArea[2*MAX_ORDER], order, order);
-    fs = new Matrix(&workArea[MAX_ORDER*(MAX_ORDER+2)], order, order);
-    matCodes = new ID(addCodes);
+  int order = numAdds;
 
-    if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0 || matCodes == 0) {
-      opserr << "SectionAggregator::SectionAggregator   " << tag << " -- out of memory\n";
-      exit(-1);
-    }
+  if (order > MAX_ORDER) {
+    opserr << "SectionAggregator::SectionAggregator   " << tag << " -- order too big, need to modify the #define in SectionAggregator.cpp to %d\n";
+    exit(-1);
+  }
+
+  theCode = new ID(codeArea, order, false);
+  e = new Vector(workArea, order);
+  s = new Vector(&workArea[MAX_ORDER], order);
+  ks = new Matrix(&workArea[2*MAX_ORDER], order, order);
+  fs = new Matrix(&workArea[MAX_ORDER*(MAX_ORDER+2)], order, order);
+  matCodes = new ID(addCodes);
 }
 
 SectionAggregator::SectionAggregator (int tag, FrameSection &theSec,
@@ -206,7 +182,7 @@ SectionAggregator::SectionAggregator (int tag, FrameSection &theSec,
     exit(-1);
   }
   
-  theCode = new ID(codeArea, order);
+  theCode = new ID(codeArea, order, false);
   e = new Vector(workArea, order);
   s = new Vector(&workArea[MAX_ORDER], order);
   ks = new Matrix(&workArea[2*MAX_ORDER], order, order);
@@ -734,7 +710,7 @@ SectionAggregator::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &the
       s = new Vector(&workArea[MAX_ORDER], order);
       ks = new Matrix(&workArea[2*MAX_ORDER], order, order);
       fs = new Matrix(&workArea[MAX_ORDER*(MAX_ORDER+2)], order, order);
-      theCode = new ID(codeArea, order);
+      theCode = new ID(codeArea, order, false);
     }
   }
 

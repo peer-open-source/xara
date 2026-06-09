@@ -29,7 +29,7 @@
 
 #include <ASDConcrete1DMaterial.h>
 #include <Channel.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <elementAPI.h>
@@ -163,7 +163,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete1DMaterial)
 	// some kudos
 	static bool first_done = false;
 	if (!first_done) {
-		opserr << "Using ASDConcrete1D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+		opslog << "Using ASDConcrete1D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
 		first_done = true;
 	}
 
@@ -240,6 +240,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete1DMaterial)
 		}
 		return true;
 	};
+
 	auto lam_optional_list = [&numData](const char* variable, std::vector<double>& value) -> bool {
 		// first try expanded list like {*}$the_list,
 		// also used in python like *the_list
@@ -1520,7 +1521,7 @@ int ASDConcrete1DMaterial::getResponse(int responseID, Information& matInformati
 	return UniaxialMaterial::getResponse(responseID, matInformation);
 }
 
-double ASDConcrete1DMaterial::getEnergy(void)
+double ASDConcrete1DMaterial::getEnergy()
 {
 	return energy;
 }
@@ -1638,7 +1639,8 @@ Vector ASDConcrete1DMaterial::getHardeningLawVector(HardeningLawType ltype, Hard
 	return r;
 }
 
-const Vector& ASDConcrete1DMaterial::getStrainMeasure() const
+const Vector& 
+ASDConcrete1DMaterial::getStrainMeasure() const
 {
 	static Vector d(2);
 	d(0) = xt;
@@ -1646,7 +1648,8 @@ const Vector& ASDConcrete1DMaterial::getStrainMeasure() const
 	return d;
 }
 
-const Vector& ASDConcrete1DMaterial::getDamage() const
+const Vector& 
+ASDConcrete1DMaterial::getDamage() const
 {
 	static Vector d(2);
 	const Vector& x = getStrainMeasure();
@@ -1664,7 +1667,8 @@ const Vector& ASDConcrete1DMaterial::getEquivalentPlasticStrain() const
 	return d;
 }
 
-const Vector& ASDConcrete1DMaterial::getCrackWidth() const
+const Vector& 
+ASDConcrete1DMaterial::getCrackWidth() const
 {
 	static Vector d(1);
 	d.Zero();

@@ -55,7 +55,7 @@ class InertiaTruss : public Element
     InertiaTruss();    
     ~InertiaTruss();
 
-    const char *getClassType(void) const {return "InertiaTruss";};
+    const char *getClassType(void) const {return "InertiaTruss";}
 
     // public methods to obtain inforrmation about dof & connectivity    
     int getNumExternalNodes(void) const;
@@ -87,7 +87,6 @@ class InertiaTruss : public Element
     // public methods for element output
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
     void Print(OPS_Stream &s, int flag);    
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);

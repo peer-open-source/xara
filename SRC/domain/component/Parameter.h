@@ -37,12 +37,12 @@ class Parameter : public TaggedObject, public MovableObject
 	    const char **argv, 
 	    int argc);
 
-  Parameter(const Parameter &param);
+  Parameter(const Parameter &);
   Parameter(int tag, int classTag = PARAMETER_TAG_Parameter);
   Parameter();
   virtual ~Parameter();
   
-  virtual void Print(OPS_Stream &s, int flag =0);
+  virtual void Print(OPS_Stream &s, int flag);
   
   virtual int update(int newValue); 
   virtual int update(double newValue); 
@@ -81,8 +81,8 @@ class Parameter : public TaggedObject, public MovableObject
   Information theInfo;
   double currentValue;
 
-  enum {initialSize = 64};
-  enum {expandSize = 128};
+  static constexpr int initialSize = 64;
+  static constexpr int expandSize = 128;
 
   MovableObject **theComponents;
   int numComponents;

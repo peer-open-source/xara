@@ -120,56 +120,9 @@ Domain::Domain()
 }
 
 
-Domain::Domain(int numNodes,
-               int numElements, 
-               int numSPs, 
-               int numMPs,
-               int numLoadPatterns)
-:theRecorders(0), numRecorders(0),
- currentTime(0.0), committedTime(0.0), dT(0.0), currentGeoTag(0),
- hasDomainChangedFlag(false), theDbTag(0), lastGeoSendTag(-1),
- dbEle(0), dbNod(0), dbSPs(0), dbPCs(0), dbMPs(0), dbLPs(0), dbParam(0),
- eleGraphBuiltFlag(false), nodeGraphBuiltFlag(false), theNodeGraph(nullptr), 
- theElementGraph(nullptr),
- theRegions(0), numRegions(0), commitTag(0), initBounds(true), resetBounds(false),
- theBounds(6), theEigenvalues(0), theEigenvalueSetTime(0), 
- theModalDampingFactors(0), inclModalMatrix(false),
- lastChannel(0), paramIndex(0), paramSize(0), numParameters(0)
-{
-  // init the arrays for storing the domain components
-  theElements     = new MapOfTaggedObjects();
-  theNodes        = new NodeStorage();
-  theSPs          = new MapOfTaggedObjects();
-  thePCs          = new MapOfTaggedObjects();
-  theMPs          = new MapOfTaggedObjects();    
-  theLoadPatterns = new PatternStorage();
-  theParameters   = new MapOfTaggedObjects();
-  
-  // init the iters
-  theEleIter         = new SingleDomEleIter(theElements);    
-  theNodIter         = new SingleDomNodIter(theNodes);
-  theSP_Iter         = new SingleDomSP_Iter(theSPs);
-  thePC_Iter         = new SingleDomPC_Iter(thePCs);
-  theMP_Iter         = new SingleDomMP_Iter(theMPs);
-  theLoadPatternIter = new PatternIterator(theLoadPatterns);
-  allSP_Iter         = new SingleDomAllSP_Iter(*this);
-  theParamIter       = new SingleDomParamIter(theParameters); 
-  
-  theBounds(0) = 0;
-  theBounds(1) = 0;
-  theBounds(2) = 0;
-  theBounds(3) = 0;
-  theBounds(4) = 0;    
-  theBounds(5) = 0;            
-}
-
-
 // ~Domain();    
 //	destructor, this calls delete on all components of the model,
 //	i.e. calls delete on all that is added to the model.
-//	WARNING: if 3rd constructor, TaggedObjectStorage objects passed 
-//      must have been created with new and nowhere else must the
-//      destructor be called.
 
 Domain::~Domain()
 {
@@ -1088,7 +1041,7 @@ Domain::removeParameter(int tag)
     int index;
     for (index = 0; index < numParameters; index++) {
       if (paramIndex[index] == tag)
-	break;
+        break;
     }
 
     // Shift indices down by one
@@ -1586,32 +1539,32 @@ Domain::getElementResponse(int eleTag, const char **argv, int argc)
 
 
 
-Graph  &
+Graph&
 Domain::getNodeGraph()
 {
-    if (nodeGraphBuiltFlag == false) {
+  if (nodeGraphBuiltFlag == false) {
 	
-	// if the current graph is out of date .. delete it so we can start again
-	if (theNodeGraph != 0) {
-	    delete theNodeGraph;
-	    theNodeGraph = 0;
-	}
-
-	// try to get a graph as big as we should need
-	theNodeGraph = new Graph(this->getNumNodes()+START_VERTEX_NUM);	
-	if (theNodeGraph == 0) { // if still 0 try a smaller one
-	    theNodeGraph = new Graph();
-	}
-
-       // now build the graph
-	if (this->buildNodeGraph(theNodeGraph) == 0)
-	    nodeGraphBuiltFlag = true;
-	else
-	    opserr << "Domain::getNodeGraph() - failed to build the node graph\n";
+    // if the current graph is out of date .. delete it so we can start again
+    if (theNodeGraph != 0) {
+      delete theNodeGraph;
+      theNodeGraph = 0;
     }
 
-    // return the Graph
-    return *theNodeGraph;
+    // try to get a graph as big as we should need
+    theNodeGraph = new Graph(this->getNumNodes()+START_VERTEX_NUM);	
+    if (theNodeGraph == 0) { // if still 0 try a smaller one
+      theNodeGraph = new Graph();
+    }
+
+    // now build the graph
+    if (this->buildNodeGraph(theNodeGraph) == 0)
+        nodeGraphBuiltFlag = true;
+    else
+        opserr << "Domain::getNodeGraph() - failed to build the node graph\n";
+  }
+
+  // return the Graph
+  return *theNodeGraph;
 }
 
 void
@@ -1624,10 +1577,11 @@ Domain::clearElementGraph(void) {
 }
 
 void
-Domain::clearNodeGraph(void) {
-  if (theNodeGraph != 0)
+Domain::clearNodeGraph() 
+{
+  if (theNodeGraph != nullptr)
     delete theNodeGraph;
-  theNodeGraph = 0;
+  theNodeGraph = nullptr;
 
   nodeGraphBuiltFlag = false;
 }
@@ -1637,21 +1591,23 @@ Domain::clearNodeGraph(void) {
 void
 Domain::setCommitTag(int newTag)
 {
-    commitTag = newTag;
+  commitTag = newTag;
 }
+
 
 void
 Domain::setCurrentTime(double newTime)
 {
-    currentTime = newTime;
-    dT = currentTime - committedTime;
+  currentTime = newTime;
+  dT = currentTime - committedTime;
 }
+
 
 void
 Domain::setCommittedTime(double newTime)
 {
-    committedTime = newTime;
-    dT = currentTime - committedTime;
+  committedTime = newTime;
+  dT = currentTime - committedTime;
 }
 
 void
@@ -1687,7 +1643,7 @@ Domain::applyLoad(double scale)
   ElementIter &theElemIter = this->getElements();    
   while ((elePtr = theElemIter()) != nullptr)
     if (elePtr->isSubdomain() == false)
-        elePtr->zeroLoad();    
+      elePtr->zeroLoad();    
 
   //
   // now loop over load patterns, invoking applyLoad on them
@@ -1695,7 +1651,7 @@ Domain::applyLoad(double scale)
   LoadPattern *thePattern;
   LoadPatternIter &thePatterns = this->getLoadPatterns();
   while((thePattern = thePatterns()) != nullptr)
-    thePattern->applyLoad(scale);
+    thePattern->applyLoad(currentTime);
 
 
   //
@@ -1705,12 +1661,12 @@ Domain::applyLoad(double scale)
   MP_ConstraintIter &theMPs = this->getMPs();
   MP_Constraint *theMP;
   while ((theMP = theMPs()) != nullptr)
-    theMP->applyConstraint(scale);
+    theMP->applyConstraint(currentTime);
 
   SP_ConstraintIter &theSPs = this->getSPs();
   SP_Constraint *theSP;
   while ((theSP = theSPs()) != nullptr)
-    theSP->applyConstraint(scale);
+    theSP->applyConstraint(currentTime);
 
 }
 
@@ -2009,6 +1965,15 @@ Domain::getEigenvalues()
   return *theEigenvalues;
 }  
 
+int 
+Domain::getNumEigenvalues()  const
+{
+  if (theEigenvalues == nullptr)
+    return 0;
+  else
+    return theEigenvalues->Size();
+}
+
 double 
 Domain::getTimeEigenvaluesSet() 
 {
@@ -2043,13 +2008,13 @@ Domain::setModalDampingFactors(Vector *theValues, bool inclMatrix)
 }
 
 const Vector *
-Domain::getModalDampingFactors(void)
+Domain::getModalDampingFactors()
 {
   return theModalDampingFactors;
 }
 
 bool
-Domain::inclModalDampingMatrix(void)
+Domain::inclModalDampingMatrix()
 {
   return inclModalMatrix;
 }
@@ -2057,26 +2022,26 @@ Domain::inclModalDampingMatrix(void)
 void
 Domain::setDomainChangeStamp(int newStamp)
 {
-    currentGeoTag = newStamp;
+  currentGeoTag = newStamp;
 }
 
 
 void
-Domain::domainChange(void)
+Domain::domainChange()
 {
-    hasDomainChangedFlag = true;
+  hasDomainChangedFlag = true;
 }
 
 
 bool 
-Domain::getDomainChangeFlag(void)
+Domain::getDomainChangeFlag()
 {
   return hasDomainChangedFlag;
 }
 
 
 int
-Domain::hasDomainChanged(void)
+Domain::hasDomainChanged()
 {
     // if the flag indicating the domain has changed since the
     // last call to this method has changed, increment the integer
@@ -3333,6 +3298,7 @@ Domain::setMass(const Matrix &mass, int nodeTag)
     return -1;
   return theNode->setMass(mass);  
 }
+
 
 int
 Domain::calculateNodalReactions(int flag)

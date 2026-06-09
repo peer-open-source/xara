@@ -500,7 +500,8 @@ int AlphaOS::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker
 }
 
 
-void AlphaOS::Print(OPS_Stream &s, int flag)
+void 
+AlphaOS::Print(OPS_Stream &s, int flag)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel != 0)  {

@@ -1,5 +1,6 @@
 from typing import overload, Literal
 
+from xara import UniaxialMaterial, Material, Section, ShellSection, PlaneSection
 
 class _Materials:
     def material(self, type: str, tag: int, *args, **kwargs):
@@ -134,6 +135,11 @@ class _Algorithm:
 
 
 class _Output:
+    def nodeDOFs(self, node: int) -> list[int]:
+        """
+        Get the degrees of freedom for a node.
+        """
+
     def nodeDisp(self, node: int, dof: int) -> float:
         """
         Get the displacement of a node in a specified degree of freedom.

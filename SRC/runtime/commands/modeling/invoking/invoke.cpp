@@ -14,6 +14,7 @@
 
 #include <Logging.h>
 
+Tcl_CmdProc TclCommand_useMaterial;
 Tcl_CmdProc TclCommand_useUniaxialMaterial;
 Tcl_CmdProc TclCommand_useCrossSection;
 Tcl_CmdProc TclCommand_usePlaneStress;
@@ -25,8 +26,11 @@ const std::unordered_map<std::string, Tcl_CmdProc*> invoke_commands
   {"FrameSection",      &TclCommand_useCrossSection           },
   {"section",           &TclCommand_useCrossSection           },
 
-  {"PlaneStress",       &TclCommand_usePlaneStress            }
+  {"PlaneStress",         &TclCommand_usePlaneStress            },
+  {"Material",            &TclCommand_useMaterial               },
+  {"TriaxialMaterial",    &TclCommand_useMaterial               },
 };
+
 
 int
 TclCommand_invoke(ClientData clientData, Tcl_Interp* interp, int argc, char const** const argv)

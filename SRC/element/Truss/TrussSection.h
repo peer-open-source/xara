@@ -82,7 +82,7 @@ public:
 
   void zeroLoad() override;
   int addLoad(ElementalLoad* theLoad, double loadFactor) override;
-  int addInertiaLoadToUnbalance(const Vector& accel) override;
+  int addInertiaLoadToUnbalance(const Vector& accel);
 
   // MovableObject interface
   int sendSelf(int commitTag, Channel&) override;

@@ -795,7 +795,6 @@ const Matrix&  IGAKLShell_BendingStrip::getTangentStiff( )
 
   //   if (nonLinearGeometry) // true if non-linear geometry
   //   {
-  //     // opserr << "Using nonLinearGeometry!" << endln;
   //     for (int ur = 0; ur < 3 * noFuncs; ++ur)
   //     {
   //       // Local node number kr and dof direction dirr
@@ -2528,7 +2527,6 @@ void IGAKLShell_BendingStrip::formResidAndTangent( int tang_flag )
 
     if (nonLinearGeometry) // true if non-linear geometry
     {
-      // opserr << "Using nonLinearGeometry!" << endln;
       for (int ur = 0; ur < 3 * noFuncs; ++ur)
       {
         // Local node number kr and dof direction dirr

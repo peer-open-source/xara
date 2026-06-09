@@ -4,7 +4,7 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
-find_package(Eigen3 NO_MODULE)
+find_package(Eigen3 3.4.0 NO_MODULE)
 if (TARGET Eigen3::Eigen)
 
 target_compile_definitions(OPS_Material PRIVATE OPS_USE_ASDPlasticMaterials)

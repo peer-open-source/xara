@@ -38,8 +38,6 @@
 #include <SingleDomSP_Iter.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <GroundMotion.h>
-
 #include <OPS_Globals.h>
 
 
@@ -113,6 +111,7 @@ LoadPattern::~LoadPattern()
 
   if (randomLoads != 0)
     delete randomLoads;
+
   if (dLambdadh != 0)
     delete dLambdadh;
 }
@@ -120,7 +119,7 @@ LoadPattern::~LoadPattern()
 void LoadPattern::setTimeSeries(TimeSeries *theTimeSeries)
 {
   // invoke the destructor on the old TimeSeries
-  if (theSeries != 0)
+  if (theSeries != nullptr)
     delete theSeries;
 
   // set the pointer to the new series object
@@ -131,7 +130,7 @@ void
 LoadPattern::setDomain(Domain *theDomain)
 {
   // if subclass does not implement .. check for 0 pointer
-  if (theNodalLoads != 0) {
+  if (theNodalLoads != nullptr) {
     NodalLoad *nodLoad;
     NodalLoadIter &theNodalIter = this->getNodalLoads();
     while ((nodLoad = theNodalIter()) != nullptr)
@@ -179,7 +178,7 @@ LoadPattern::addElementalLoad(ElementalLoad *load)
 
   bool result = theElementalLoads->addComponent(load);
   if (result == true) {
-    if (theDomain != 0)
+    if (theDomain != nullptr)
       load->setDomain(theDomain);
     load->setLoadPatternTag(this->getTag());
     currentGeoTag++;
@@ -848,18 +847,9 @@ void LoadPattern::Print(OPS_Stream &s, int flag)
 }
 
 
-int
-LoadPattern::addMotion(GroundMotion &theMotion, int tag)
-{
-  opserr << "LoadPattern::addMotion() - cannot add GroundMotion - use "
-            "MultiSupport Pattern instead\n";
-  return -1;
-}
 
-GroundMotion *LoadPattern::getMotion(int tag) { return 0; }
-
-// AddingSensitivity:BEGIN ////////////////////////////////////
-void LoadPattern::applyLoadSensitivity(double pseudoTime)
+void 
+LoadPattern::applyLoadSensitivity(double pseudoTime)
 {
   // P*dfactor/dh
   if (theSeries != 0 && isConstant != true) {

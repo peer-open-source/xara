@@ -47,7 +47,7 @@
  +      Istituto Universitario di Studi Superiori di Pavia          (IUSS)        +
  |      Advanced Structural Design & Analysis Software Technology   (ASDEA)       |
  |		Universita degli Studi 'G. d'Annunzio' Chieti - Pescara	    (UNICH)       |
- |      Università degli Studi di Pavia                             (UNIPV)       |
+ |      Universitï¿½ degli Studi di Pavia                             (UNIPV)       |
  +			                                                                      +
  |                                                                                |
  |                    Email: onur.akan@iusspavia.it (O.D.A.)                      |
@@ -109,6 +109,7 @@
 
 #include <Element.h>
 #include <Matrix.h>
+#include <Vector.h>
 #include <array>
 
 class Node;
@@ -184,8 +185,7 @@ public:
     // public methods for element output
     int sendSelf(int commitTag, Channel& theChannel);
     int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
-    int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
-    void Print(OPS_Stream& s, int flag = 0);
+    void Print(OPS_Stream& s, int flag);
 
     Response* setResponse(const char** argv, int argc, OPS_Stream& output);
     int getResponse(int responseID, Information& eleInformation);

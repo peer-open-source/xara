@@ -46,7 +46,6 @@ class Node;
 class Channel;
 class FEM_ObjectBroker;
 class Response;
-class Renderer;
 class UniaxialMaterial;
 
 
@@ -74,12 +73,10 @@ class BeamColumnJoint3d : public Element
 		    UniaxialMaterial& theMat9, UniaxialMaterial& theMat10,
 		    UniaxialMaterial& theMat11, UniaxialMaterial& theMat12,
 		    UniaxialMaterial& theMat13, double Hgtfac, double Wdtfac);
-  
-  // default destructor
+
   ~BeamColumnJoint3d();
 
-    const char *getClassType(void) const {return "BeamColumnJoint3d";};
-    static constexpr const char* class_name = "BeamColumnJoint3d";
+  const char *getClassType(void) const {return "BeamColumnJoint3d";}
   
   ////////////// public methods to obtain information about dof & connectivity    
   bool	isSubdomain(void) { return false; } ;
@@ -106,24 +103,24 @@ class BeamColumnJoint3d : public Element
   int revertToLastCommit(void);        
   
   // revert to start
-  int revertToStart(void);        
+  int revertToStart();        
   
   // determine current strain and set strain in material
-  int update(void);
+  int update();
   
   //////////////////////// public methods to obtain stiffness, mass, damping and 
   ////////////////////////////////////// residual information    
   
   // returns converged tangent stiffness matrix
-  const Matrix &getTangentStiff(void);
-  const Matrix &getInitialStiff(void);           
+  const Matrix &getTangentStiff();
+  const Matrix &getInitialStiff();           
   
   // not required for this element formulation
-  const Matrix &getDamp(void);    
-  const Matrix &getMass(void);    
+  const Matrix &getDamp();    
+  const Matrix &getMass();    
   
   // not required for this element formulation
-  void zeroLoad(void);	
+  void zeroLoad();	
   int addLoad(ElementalLoad *theLoad, double loadFactor);
   int addInertiaLoadToUnbalance(const Vector &accel);
   
@@ -137,10 +134,7 @@ class BeamColumnJoint3d : public Element
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);
-  
-  // display element graphically
-  int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-  
+
   // print out element data
   void Print(OPS_Stream &, int flag) final;    
   

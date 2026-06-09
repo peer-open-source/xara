@@ -39,70 +39,20 @@
 typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
-#include <elementAPI.h>
 
 ID NDFiberSection3d::code(6);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_NDFiberSection3d)
+
+NDFiberSection3d::NDFiberSection3d(int tag, int num, double a, bool compCentroid): 
+    FrameSection(tag, SEC_TAG_NDFiberSection3d),
+    numFibers(0), sizeFibers(num), theMaterials(0), matData(0),
+    Abar(0.0), QyBar(0.0), QzBar(0.0), yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
+    alpha(a), e(6), s(0), ks(0), 
+    parameterID(0), dedh(6)
 {
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-	opserr<<"insufficient arguments for NDFiberSection3d\n";
-	return 0;
-    }
-
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData,&tag) < 0) 
-      return 0;
-
-    bool computeCentroid = true;
-    if (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt, "-noCentroid") == 0)
-	computeCentroid = false;
-    }
-    
-    int num = 30;
-    return new NDFiberSection3d(tag, num, computeCentroid);
-}
-#if 0
-// constructors:
-NDFiberSection3d::NDFiberSection3d(int tag, int num, Fiber **fibers, double a, bool compCentroid): 
-  FrameSection(tag, SEC_TAG_NDFiberSection3d),
-  numFibers(num), sizeFibers(num), theMaterials(0), matData(0),
-  Abar(0.0), QyBar(0.0), QzBar(0.0), yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
-  alpha(a), e(6), s(0), ks(0), 
-  parameterID(0), dedh(6)
-{
-  if (numFibers != 0) {
-    theMaterials = new NDMaterial *[numFibers];
-    matData = new double [numFibers*3];
-
-    for (int i = 0; i < numFibers; i++) {
-      Fiber *theFiber = fibers[i];
-      double yLoc, zLoc, Area;
-      theFiber->getFiberLocation(yLoc, zLoc);
-      Area = theFiber->getArea();
-      Abar  += Area;
-      QzBar += yLoc*Area;
-      QyBar += zLoc*Area;
-      matData[i*3] = yLoc;
-      matData[i*3+1] = zLoc;
-      matData[i*3+2] = Area;
-      NDMaterial *theMat = theFiber->getNDMaterial();
-      theMaterials[i] = theMat->getCopy("BeamFiber");
-
-      if (theMaterials[i] == 0) {
-	opserr << "NDFiberSection3d::NDFiberSection3d -- failed to get copy of a Material\n";
-	exit(-1);
-      }
-    }    
-
-    if (computeCentroid) {
-      yBar = QzBar/Abar;  
-      zBar = QyBar/Abar;
-    }
+  if (sizeFibers != 0) {
+    theMaterials = new NDMaterial *[sizeFibers]{};
+    matData = new double [sizeFibers*3]{};
   }
 
   s = new Vector(sData, 6);
@@ -120,36 +70,6 @@ NDFiberSection3d::NDFiberSection3d(int tag, int num, Fiber **fibers, double a, b
   code(3) = SECTION_RESPONSE_VY;
   code(4) = SECTION_RESPONSE_VZ;
   code(5) = SECTION_RESPONSE_T;
-}
-#endif
-
-NDFiberSection3d::NDFiberSection3d(int tag, int num, double a, bool compCentroid): 
-    FrameSection(tag, SEC_TAG_NDFiberSection3d),
-    numFibers(0), sizeFibers(num), theMaterials(0), matData(0),
-    Abar(0.0), QyBar(0.0), QzBar(0.0), yBar(0.0), zBar(0.0), computeCentroid(compCentroid),
-    alpha(a), e(6), s(0), ks(0), 
-    parameterID(0), dedh(6)
-{
-    if (sizeFibers != 0) {
-	theMaterials = new NDMaterial *[sizeFibers]{};
-	matData = new double [sizeFibers*3]{};
-    }
-
-    s = new Vector(sData, 6);
-    ks = new Matrix(kData, 6, 6);
-
-    for (int i = 0; i < 6; i++)
-	sData[i] = 0.0;
-
-    for (int i = 0; i < 6*6; i++)
-	kData[i] = 0.0;
-
-    code(0) = SECTION_RESPONSE_P;
-    code(1) = SECTION_RESPONSE_MZ;
-    code(2) = SECTION_RESPONSE_MY;
-    code(3) = SECTION_RESPONSE_VY;
-    code(4) = SECTION_RESPONSE_VZ;
-    code(5) = SECTION_RESPONSE_T;
 }
 
 // constructor for blank object that recvSelf needs to be invoked upon
@@ -182,36 +102,36 @@ NDFiberSection3d::addFiber(NDMaterial& theMat, const double Area, const double y
 {
   // need to create larger arrays
   if(numFibers == sizeFibers) {
-      int newSize = 2*sizeFibers;
-      NDMaterial **newArray = new NDMaterial *[newSize]; 
-      double *newMatData = new double [3 * newSize];
+    int newSize = 2*sizeFibers;
+    NDMaterial **newArray = new NDMaterial *[newSize]; 
+    double *newMatData = new double [3 * newSize];
 
-      // copy the old pointers and data
-      for (int i = 0; i < numFibers; i++) {
-	  newArray[i] = theMaterials[i];
-	  newMatData[3*i] = matData[3*i];
-	  newMatData[3*i+1] = matData[3*i+1];
-	  newMatData[3*i+2] = matData[3*i+2];
-      }
+    // copy the old pointers and data
+    for (int i = 0; i < numFibers; i++) {
+      newArray[i] = theMaterials[i];
+      newMatData[3*i] = matData[3*i];
+      newMatData[3*i+1] = matData[3*i+1];
+      newMatData[3*i+2] = matData[3*i+2];
+    }
 
-      // initialize new memory
-      for (int i = numFibers; i < newSize; i++) {
-	  newArray[i]       = 0;
-	  newMatData[3*i]   = 0.0;
-	  newMatData[3*i+1] = 0.0;
-	  newMatData[3*i+2] = 0.0;
-      }
+    // initialize new memory
+    for (int i = numFibers; i < newSize; i++) {
+      newArray[i]       = 0;
+      newMatData[3*i]   = 0.0;
+      newMatData[3*i+1] = 0.0;
+      newMatData[3*i+2] = 0.0;
+    }
 
-      sizeFibers = newSize;
+    sizeFibers = newSize;
 
-      // set new memory
-      if (theMaterials != 0) {
-	  delete [] theMaterials;
-	  delete [] matData;
-      }
+    // set new memory
+    if (theMaterials != nullptr) {
+      delete [] theMaterials;
+      delete [] matData;
+    }
 
-      theMaterials = newArray;
-      matData = newMatData;
+    theMaterials = newArray;
+    matData = newMatData;
   }
 
   // set the new pointers and data
@@ -526,7 +446,7 @@ NDFiberSection3d::getStressResultant(void)
 FrameSection*
 NDFiberSection3d::getFrameCopy(void)
 {
-  NDFiberSection3d *theCopy = new NDFiberSection3d ();
+  NDFiberSection3d *theCopy = new NDFiberSection3d();
   theCopy->setTag(this->getTag());
 
   theCopy->numFibers = numFibers;
@@ -865,9 +785,9 @@ NDFiberSection3d::sendSelf(int commitTag, Channel &theChannel)
       materialData(2*i) = theMat->getClassTag();
       int matDbTag = theMat->getDbTag();
       if (matDbTag == 0) {
-	matDbTag = theChannel.getDbTag();
-	if (matDbTag != 0)
-	  theMat->setDbTag(matDbTag);
+        matDbTag = theChannel.getDbTag();
+        if (matDbTag != 0)
+          theMat->setDbTag(matDbTag);
       }
       materialData(2*i+1) = matDbTag;
     }    
@@ -924,35 +844,26 @@ NDFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
     if (theMaterials == 0 || numFibers != data(1)) {
       // delete old stuff if outa date
       if (theMaterials != 0) {
-	for (int i=0; i<numFibers; i++)
-	  delete theMaterials[i];
-	delete [] theMaterials;
-	if (matData != 0)
-	  delete [] matData;
-	matData = 0;
-	theMaterials = 0;
+        for (int i=0; i<numFibers; i++)
+          delete theMaterials[i];
+        delete [] theMaterials;
+        if (matData != 0)
+          delete [] matData;
+        matData = 0;
+        theMaterials = 0;
       }
 
       // create memory to hold material pointers and fiber data
       numFibers = data(1);
       sizeFibers = data(1);
       if (numFibers != 0) {
-	theMaterials = new NDMaterial *[numFibers];
-	
-	if (theMaterials == 0) {
-	  opserr <<"NDFiberSection3d::recvSelf -- failed to allocate Material pointers\n";
-	  exit(-1);
-	}
-	
-	for (int j=0; j<numFibers; j++)
-	  theMaterials[j] = 0;
+        theMaterials = new NDMaterial *[numFibers];
+        
+        
+        for (int j=0; j<numFibers; j++)
+          theMaterials[j] = 0;
 
-	matData = new double [numFibers*2];
-
-	if (matData == 0) {
-	  opserr <<"NDFiberSection3d::recvSelf  -- failed to allocate double array for material data\n";
-	  exit(-1);
-	}
+        matData = new double [numFibers*2];
       }
     }
 
@@ -971,15 +882,10 @@ NDFiberSection3d::recvSelf(int commitTag, Channel &theChannel,
       // if material pointed to is blank or not of corrcet type, 
       // release old and create a new one
       if (theMaterials[i] == 0)
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);
       else if (theMaterials[i]->getClassTag() != classTag) {
-	delete theMaterials[i];
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
-      }
-
-      if (theMaterials[i] == 0) {
-	opserr <<"NDFiberSection3d::recvSelf -- failed to allocate double array for material data\n";
-	exit(-1);
+        delete theMaterials[i];
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
       }
 
       theMaterials[i]->setDbTag(dbTag);

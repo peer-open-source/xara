@@ -43,25 +43,101 @@ class Isometry
 public:
   virtual int initialize(std::array<Node*,nn>& nodes) =0;
   // Used by EuclidFrameTransf
-  virtual int update(std::array<Node*,nn>& nodes) =0;
+  virtual int update(std::array<Node*,nn>& nodes) noexcept =0;
   // Used by SouzaFrameTransf
   virtual int update(const Matrix3D& RI,
                      const Matrix3D& RJ,
                      const Vector3D& dx, 
                      std::array<Node*,nn>& nodes) =0;
 
+  virtual int 
+  setOffsets(std::array<Vector3D, nn>* offsets) {
+    return -1;
+  }
+
   virtual double    getLength() const =0;
 
   virtual const Matrix3D&  getRotation() const =0;
   virtual       Vector3D   getPosition() =0;
+  virtual       Vector3D   getLocation() =0;
+  virtual Matrix3D  getInitialRotation() const =0;
 
   virtual Vector3D  getPositionVariation(int ndf, double* du) =0; 
-  virtual Vector3D  getRotationVariation(int ndf, double* du) =0;
   virtual MatrixND<6*nn,6*nn> getRotationJacobian(const VectorND<6*nn>&pl) {
     return MatrixND<6*nn,6*nn> {};
   }
   virtual Matrix3D  getRotationDelta() =0;
+
+  // compute derivative of the rotation matrix with respect to
+  // nodal displacements and rotations.
   virtual MatrixND<3,6> getRotationGradient(int node) =0;
+  virtual MatrixND<3,6> getTranslationGradient(int node) const {
+    return MatrixND<3,6>{};
+  }
+
+  MatrixND<6,6>
+  getIsometryGradient(int node) //const
+  {
+    MatrixND<6,6> G{};
+    G.template insert<0,0>(getTranslationGradient(node));
+    G.template insert<3,0>(getRotationGradient(node));
+    return G;
+  }
+
+  virtual Vector3D
+  getRotationVariation(int ndf, double* du) {
+    // psi_r = omega
+    Vector3D w{};
+    for (int i=0; i<nn; i++) {
+      auto Wi = this->getRotationGradient(i);
+      for (int j=0; j<3; j++)
+        for (int k=0; k<6; k++)
+          w[j] += Wi(j,k) * du[ndf*i + k];
+    }
+    return w;
+  }
+
+  virtual MatrixND<6*nn,6*nn>
+  getHessian(const VectorND<6>& pw) 
+  {
+    return MatrixND<6*nn,6*nn>{};
+  }
+
+  // compute derivative of the rotation matrix with respect to 
+  // reference nodal coordinates.
+  // each element of ix is 1-3 for x,y,z sensitivity, or 0 for no sensitivity.
+  virtual Matrix3D
+  getRotationSensitivity(std::array<Node*,nn> nodes) {
+    Matrix3D dR{};
+    return dR;
+  }
+
+
+  template <int ndf>
+  inline MatrixND<nn*ndf,nn*ndf>
+  getProjection(FrameTransform<nn,ndf>& t)
+  {
+    MatrixND<nn*ndf,nn*ndf> A{};
+    A.addDiagonal(1.0);
+
+    for (int a = 0; a < nn; ++a) {
+      const Matrix3D Xa = Hat(t.getNodeLocation(a));
+
+      for (int b = 0; b < nn; ++b) {
+        MatrixND<3,ndf> Gv{};
+        MatrixND<3,ndf> Gw{};
+
+        Gv.template insert<0,0>(this->getTranslationGradient(b), 1.0);
+        Gw.template insert<0,0>(this->getRotationGradient(b),    1.0);
+
+        A.assemble(Gv,    a*ndf,   b*ndf, -1.0);
+        A.assemble(Xa*Gw, a*ndf,   b*ndf,  1.0);
+        A.assemble(Gw,    a*ndf+3, b*ndf, -1.0);
+      }
+    }
+
+    return A;
+  }
 };
 
 
@@ -75,9 +151,10 @@ public:
   {
   }
 
-  void
-  setOffsets(std::array<Vector3D, nn>* offsets) {
+  int
+  setOffsets(std::array<Vector3D, nn>* offsets) override {
     this->offsets = offsets;
+    return 0;
   }
 
 
@@ -125,8 +202,10 @@ public:
     return this->update(nodes);
   }
 
+
   virtual
-  int update(std::array<Node*,nn>& nodes) final {
+  int update(std::array<Node*,nn>& nodes) noexcept final 
+  {
     const Matrix3D RI = MatrixFromVersor(nodes[0]->getTrialRotation());
     const Matrix3D RJ = MatrixFromVersor(nodes[nn-1]->getTrialRotation());
 
@@ -195,6 +274,21 @@ public:
     return w;
   }
 
+
+  // MatrixND<3,6>
+  // getTranslationGradient(int node) const override
+  // {
+  //   MatrixND<3,6> Gv{};
+
+  //   if (node == ic) {
+  //     Gv(0,0) = 1.0;
+  //     Gv(1,1) = 1.0;
+  //     Gv(2,2) = 1.0;
+  //   }
+
+  //   return Gv;
+  // }
+
   double
   getLength() const override {
     return Ln;
@@ -206,14 +300,15 @@ public:
   }
 
   Matrix3D
-  getInitialRotation() const {
+  getInitialRotation() const override {
     return R[init];
   }
 
-  virtual Matrix3D 
+  Matrix3D 
   getRotationDelta() final {
     return R[pres] - R[init];
   }
+
 
   Vector3D
   getLocation() {
@@ -234,7 +329,7 @@ public:
 
   virtual
   Matrix3D
-  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) = 0;
+  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) noexcept = 0;
 
 protected:
   constexpr static int ic = 0; // std::floor(0.5*(nn+1));

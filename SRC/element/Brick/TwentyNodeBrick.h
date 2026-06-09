@@ -112,10 +112,8 @@ class TwentyNodeBrick: public Element
     const Vector &getResistingForceIncInertia ();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker 
-                  &theBroker);
-    int displaySelf (Renderer &theViewer, int displayMode, float fact);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker   &);
     void Print(OPS_Stream &s, int flag =0);   
     //    Do nothing with void Print (OPS_Stream &s, int flag =0);
     //    use Brick3D report.  08/16/00
@@ -180,9 +178,9 @@ class TwentyNodeBrick: public Element
     tensor dh_drst_at(double r, double s, double t);
 
 
-    TwentyNodeBrick & operator[](int subscript);
+    // TwentyNodeBrick & operator[](int subscript);
    
-    tensor getStiffnessTensor(void);
+    tensor getStiffnessTensor();
 
     void set_strain_stress_tensor(FILE *fp, double * u);
     tensor getMassTensor(void);
@@ -191,8 +189,8 @@ class TwentyNodeBrick: public Element
     tensor Jacobian_3Dinv(tensor dh);
     tensor Nodal_Coordinates(void);
 
-    tensor incr_disp(void);
-    tensor total_disp(void);
+    tensor incr_disp();
+    tensor total_disp();
 
     tensor total_disp(FILE *fp, double * u);
 

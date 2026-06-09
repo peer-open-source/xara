@@ -29,14 +29,9 @@
 #include <Node.h>
 #include <Vector.h>
 #include <Matrix.h>
+#include <VectorND.h>
+#include <MatrixND.h>
 #include <ID.h>
-
-// number of nodes per element
-#define SSPB_NUM_NODE 8
-// number of dimensions
-#define SSPB_NUM_DIM  3
-// degrees of freedom per element
-#define SSPB_NUM_DOF  24
 
 class Domain;
 class Node;
@@ -44,6 +39,8 @@ class Channel;
 class NDMaterial;
 class FEM_ObjectBroker;
 class Response;
+using OpenSees::VectorND;
+using OpenSees::MatrixND;
 
 class SSPbrick : public Element
 {
@@ -53,14 +50,14 @@ class SSPbrick : public Element
     SSPbrick();
     ~SSPbrick();
 
-	const char* getClassType()  const { return "SSPbrick"; };
+	const char* getClassType()  const override {return "SSPbrick";}
 
     // public methods to obtain information about dof and connectivity
     int getNumExternalNodes(void) const; 
     const ID &getExternalNodes(void);
 	Node **getNodePtrs(void);
-	int getNumDOF(void);
-	void setDomain(Domain *theDomain);
+	int getNumDOF();
+	void setDomain(Domain *);
 
 	// public methods to set the state of the element
 	int commitState();
@@ -69,35 +66,42 @@ class SSPbrick : public Element
 	int update();
 
 	// public methods to obtain stiffness, mass, damping, and residual info
-	const Matrix &getTangentStiff(void);
-	const Matrix &getInitialStiff(void);
-	const Matrix &getMass(void);
+	const Matrix &getTangentStiff();
+	const Matrix &getInitialStiff();
+	const Matrix &getMass();
 
-	void zeroLoad(void);
+	void zeroLoad();
 	int addLoad(ElementalLoad *theLoad, double loadFactor);
 	int addInertiaLoadToUnbalance(const Vector &accel);
-	const Vector &getResistingForce(void);
-	const Vector &getResistingForceIncInertia(void);
+	const Vector &getResistingForce();
+	const Vector &getResistingForceIncInertia();
 
 	// public methods for element output
 	int sendSelf(int commitTag, Channel &);
 	int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 	void Print(OPS_Stream &s, int flag);
 
-	Response *setResponse(const char **argv, int argc, OPS_Stream &eleInfo);
-	int getResponse(int responseID, Information &eleInformation);
+	Response *setResponse(const char **argv, int argc, OPS_Stream &);
+	int getResponse(int responseID, Information &);
 
 	// public methods for material stage update
-	int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+	int setParameter(const char **argv, int argc, Parameter &);
+    int updateParameter(int parameterID, Information &);
 
   protected:
 
   private:
 
+	static constexpr int nen = 8,
+	// number of nodes per element
+	 SSPB_NUM_NODE = 8,
+	// number of dimensions
+	 SSPB_NUM_DIM  = 3,
+	// degrees of freedom per element
+	 SSPB_NUM_DOF  = 24;
+
     // member functions
-	void GetStab(void);                                 // compute stabilization stiffness matrix
-	Vector CrossProduct(Vector v1, Vector v2);          // cross product for two 3x1 vectors
+	void GetStab();                                 // compute stabilization stiffness matrix
 	Matrix Transpose(int d1, int d2, const Matrix &M);  // transpose operation
 
 	// objects
@@ -122,18 +126,81 @@ class SSPbrick : public Element
 	double mVol;                                        // element volume
 
 	bool mInitialize;
-	
+
 	Matrix Bnot;                                        // mapping matrix for membrane modes
 	Matrix Kstab;                                       // stabilization stiffness matrix
-	Matrix mNodeCrd;                                    // nodal coordinate array
+	MatrixND<SSPB_NUM_DIM,SSPB_NUM_NODE> mNodeCrd;      // nodal coordinate array
 	
-	Vector xi;                                          // xi evaluated at the nodes
-	Vector et;                                          // eta evaluated at the nodes
-	Vector ze;                                          // zeta evaluated at the nodes
-	Vector hut;                                         // zeta*eta evaluated at the nodes
-	Vector hus;                                         // zeta*xi evaluated at the nodes
-	Vector hst;                                         // xi*eta evaluated at the nodes
-	Vector hstu;                                        // xi*eta*zeta evaluated at the nodes
+	static constexpr VectorND<8> xi{
+       -0.125,
+        0.125,
+        0.125,
+       -0.125,
+       -0.125,
+        0.125,
+        0.125,
+       -0.125
+	},
+	et { // xi evaluated at the nodes
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125,
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125
+	},
+    ze { // zeta evaluated at the nodes
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125,
+	    0.125,
+	    0.125
+	},
+    hst {
+        0.125,
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+       -0.125
+	},
+	hut { // zeta*eta evaluated at the nodes
+	    0.125,
+	    0.125,
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	   -0.125,
+	    0.125,
+	    0.125
+	},
+	hus {  // zeta*xi evaluated at the nodes
+        0.125,
+       -0.125,
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+        0.125,
+       -0.125
+	},
+	hstu { // xi*eta*zeta evaluated at the nodes
+       -0.125,
+        0.125,
+       -0.125,
+        0.125,
+        0.125,
+       -0.125,
+        0.125,
+       -0.125
+	};
 };
 
 #endif

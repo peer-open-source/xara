@@ -39,8 +39,8 @@
 #include <Information.h>
 #include <Parameter.h>
 #include <GroupSO3.h>
+#include <Matrix3D.h>
 
-// AddingSensitivity:BEGIN //////////////////////////
 #include <Domain.h>
 #include <Element.h>
 #include <ElementIter.h>
@@ -49,7 +49,6 @@
 
 #include <NodalLoad.h>
 
-#include <OPS_Globals.h>
 
 using namespace OpenSees;
 Matrix **Node::theMatrices = nullptr;
@@ -61,13 +60,13 @@ Node::Node(int theClassTag)
 :TaggedObject(0),MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
  coord_data{0,0,0}, xyz(coord_data, 0), 
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
- disp(0), vel(0), accel(0), dbTag1(0), 
+ disp(0), vel(0), accel(0), 
  rotation(nullptr),
- dbTag2(0), dbTag3(0), dbTag4(0),
+ dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
  index(-1), 
  reaction(nullptr)
@@ -81,7 +80,7 @@ Node::Node(int theClassTag)
   parameterID     = 0;
 
 
-  theNodalThermalActionPtr = 0; //Added by Liming for initializing NodalLoadPointer, [SIF]
+  theNodalThermalActionPtr = 0; // Added by Liming for initializing NodalLoadPointer, [SIF]
 }
 
 
@@ -89,7 +88,7 @@ Node::Node(int tag, int theClassTag)
 :TaggedObject(tag), MovableObject(theClassTag),
  numberDOF(0), theDOF_GroupPtr(0),
  coord_data{0,0,0}, xyz(coord_data, 0),
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
@@ -114,7 +113,7 @@ Node::Node(int tag, int ndof, double Crd1)
 :TaggedObject(tag),MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, 0,0}, xyz(coord_data, 1),
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
@@ -133,9 +132,6 @@ Node::Node(int tag, int ndof, double Crd1)
   parameterID     = 0;
 
   theNodalThermalActionPtr = 0;
-
-  // Crd = new Vector(1);
-  // xyz(0) = Crd1;
 }
 
 
@@ -145,7 +141,7 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, Crd2, 0}, xyz(coord_data, 2),
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0},
+ position_inertia{0.0}, 
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
@@ -171,17 +167,18 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 //  Node(int tag, int ndof, double Crd1, double Crd2, double zCrd);
 //      constructor for 3d nodes
 
- Node::Node(int tag, int ndof, double Crd1, double Crd2, double Crd3)
+ Node::Node(int tag, int ndof, double Crd1, double Crd2, double Crd3, Rotations::Parameters rotationType)
 :TaggedObject(tag), MovableObject(NOD_TAG_Node),
  numberDOF(ndof), theDOF_GroupPtr(0),
  coord_data{Crd1, Crd2, Crd3}, xyz(coord_data, 3), 
- position_inertia{0.0}, rotation_inertia{0.0,0.0,0.0}, mass(0),
+ position_inertia{0.0},  mass(0),
  // State
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
+ rotationType(rotationType),
  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), 
  unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
@@ -196,6 +193,11 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
 
   theNodalThermalActionPtr = 0;//Added by Liming for initializing NodalLoadPointer, [SIF]
 
+  if (rotationType != Rotations::Parameters::None) {
+    rotation = new Versor[2];
+    rotation[0] = Versor{{0.0, 0.0, 0.0}, 1.0};
+    rotation[1] = Versor{{0.0, 0.0, 0.0}, 1.0};
+  }
 }
 
 
@@ -206,7 +208,7 @@ Node::Node(const Node &otherNode, bool copyMass)
   :TaggedObject(otherNode.getTag()),MovableObject(otherNode.getClassTag()),
   numberDOF(otherNode.numberDOF), theDOF_GroupPtr(0),
   coord_data{}, xyz(coord_data, otherNode.getCrds().Size()),
-  position_inertia{}, rotation_inertia{0.0,0.0,0.0},
+  position_inertia{}, 
   commitDisp(0), commitVel(0), commitAccel(0),
   trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
   incrDeltaDisp(0),
@@ -318,14 +320,12 @@ Node::~Node()
   if (theEigenvectors != 0)
     delete theEigenvectors;
 
-  // AddingSensitivity:BEGIN ///////////////////////////////////////
   if (dispSensitivity != 0)
     delete dispSensitivity;
   if (velSensitivity != 0)
     delete velSensitivity;
   if (accSensitivity != 0)
     delete accSensitivity;
-  // AddingSensitivity:END /////////////////////////////////////////
 
   if (reaction != 0)
     delete reaction;
@@ -443,6 +443,42 @@ Node::getTrialRotation()
   return rotation[1];
 }
 
+Versor
+Node::getCommitRotation()
+{
+  if (rotation == nullptr) [[unlikely]] {
+    rotation = new Versor[2];
+    rotation[0] = Versor{{0.0, 0.0, 0.0}, 1.0};
+    rotation[1] = Versor{{0.0, 0.0, 0.0}, 1.0};
+  }
+  return rotation[0];
+}
+
+
+Matrix3D
+Node::getRotationTangent(Rotations::Parameters)
+{
+  Vector3D theta{};
+  switch (rotationType) {
+    case Rotations::Parameters::None:
+    case Rotations::Parameters::Iter:
+      break;
+    case Rotations::Parameters::Incr: {
+      const Vector &incrDisp = this->getIncrDisp();
+      for (int i = 0; i < 3; i++)
+        theta[i] += incrDisp(i+3);
+      break;
+    }
+    case Rotations::Parameters::Init: {
+      const Vector &trialDisp = this->getTrialDisp();
+      for (int i = 0; i < 3; i++)
+        theta[i] += trialDisp(i+3);
+      break;
+    }
+  }
+  return dLogSO3(theta);
+}
+
 
 const Vector &
 Node::getTrialVel()
@@ -533,7 +569,7 @@ Node::setTrialVel(const Vector &newTrialVel)
 }
 
 int
-Node::incrTrialDisp(const Vector &incrDispl)
+Node::incrTrialDisp(const Vector &incrDispl) noexcept
 {
   // check vector arg is of correct size
   assert(incrDispl.Size() == numberDOF);
@@ -564,9 +600,28 @@ Node::incrTrialDisp(const Vector &incrDispl)
     //   theta[i] = disp[3*numberDOF+3+i];
     // Matrix3D R = ExpSO3(theta)*MatrixFromVersor(rotation[1]);
     // rotation[1] = Versor::from_matrix(R);
-
-    rotation[1] = Versor::from_vector(&disp[3*numberDOF+3]) * rotation[1];
-    rotation[1].normalize();
+    switch (rotationType) {
+      case Rotations::Parameters::None:
+      case Rotations::Parameters::Iter:
+        rotation[1] = Versor::from_vector(&disp[3*numberDOF+3]) * rotation[1];
+        rotation[1].normalize();
+        break;
+      case Rotations::Parameters::Incr: {
+        Vector3D theta{};
+        for (int i = 0; i < 3; i++)
+          theta[i] += incrDispl(i+3);
+        rotation[1] = Versor::from_matrix(ExpSO3(theta)*MatrixFromVersor(rotation[0]));
+        rotation[1].normalize();
+        break;
+      }
+      case Rotations::Parameters::Init: {
+        Vector3D theta = VectorFromVersor(rotation[0]);
+        for (int i = 0; i < 3; i++)
+          theta[i] += incrDispl(i+3);
+        rotation[1] = Versor::from_matrix(ExpSO3(theta)*MatrixFromVersor(rotation[0]));
+        break;
+      }
+    }
   }
 
   return 0;
@@ -621,11 +676,11 @@ Node::incrTrialAccel(const Vector &incrAccel)
 
   // create a copy if no trial exists and add committed
   if (trialAccel == 0) {
-      this->createAccel();
+    this->createAccel();
     for (int i = 0; i<numberDOF; i++)
-          accel[i] = incrAccel(i);
+      accel[i] = incrAccel(i);
 
-      return 0;
+    return 0;
   }
 
   // otherwise set trial = incr + trial
@@ -649,14 +704,15 @@ Node::addUnbalancedLoad(const Vector &add, double fact)
   // check vector arg is of correct size
   if (add.Size() != numberDOF) {
     opserr << "Node::addunbalLoad - load to add of incorrect size ";
-    opserr << add.Size() << " should be " <<  numberDOF << endln;
+    opserr << add.Size() << " should be " <<  numberDOF << "\n";
     return -1;
   }
+
   // if no load yet create it and assign
-  if (unbalLoad == 0) {
+  if (unbalLoad == nullptr) {
     unbalLoad = new Vector(add);
     if (fact != 1.0)
-          (*unbalLoad) *= fact;
+      (*unbalLoad) *= fact;
     return 0;
   }
 
@@ -666,28 +722,44 @@ Node::addUnbalancedLoad(const Vector &add, double fact)
 }
 
 
-
-int
-Node::addInertiaLoadToUnbalance(const Vector &accelG, double fact)
+int 
+Node::addResidual(const Vector& v, double scale)
 {
-  // simply return if node has no mass or R matrix
-  if (mass == 0 || R == 0)
+  // if no load yet create it
+  if (unbalLoad == nullptr) [[unlikely]]
+    unbalLoad = new Vector(numberDOF);
+
+  assert(v.Size() == numberDOF);
+  unbalLoad->addVector(1.0, v, scale);
+  return 0;
+}
+
+int 
+Node::addResidualInertia(int dof, double accel)
+{
+  if (accel == 0.0)
     return 0;
 
-  // otherwise we must determine MR accelG
-  assert(accelG.Size() == R->noCols());
+  // if no load yet create it
+  if (unbalLoad == nullptr) [[unlikely]]
+    unbalLoad = new Vector(numberDOF);
 
-  // if no load yet create it and assign
-  if (unbalLoad == nullptr)
-      unbalLoad = new Vector(numberDOF);
-
-  // form - fact * M*R*accelG and add it to the unbalanced load
-  //(*unbalLoad) -= ((*mass) * (*R) * accelG)*fact;
-
-  Matrix MR(mass->noRows(), R->noCols());
-  MR.addMatrixProduct(0.0, *mass, *R, 1.0);
-  unbalLoad->addMatrixVector(1.0, MR, accelG, -fact);
-
+  switch (mass_type) {
+    case MassType::Full: {
+      const Matrix& M = this->getMass();
+      for (int i=0; i<numberDOF; i++)
+        (*unbalLoad)(i) -= M(i, dof) * accel;
+      break;
+    }
+    // case MassType::Classical: {
+    //   const int ndm = xyz.Size();
+    //   if (dof < ndm)
+    //     (*unbalLoad)(dof) -= position_inertia * accel;
+    //   break;
+    // }
+    case MassType::None:
+      break;
+  }
   return 0;
 }
 
@@ -705,7 +777,7 @@ Node::addInertiaLoadSensitivityToUnbalance(const Vector &accelG, double fact, bo
 
   // if no load yet create it and assign
   if (unbalLoad == nullptr)
-      unbalLoad = new Vector(numberDOF);
+    unbalLoad = new Vector(numberDOF);
 
   // form - fact * M*R*accelG and add it to the unbalanced load
   //(*unbalLoad) -= ((*mass) * (*R) * accelG)*fact;
@@ -790,8 +862,9 @@ Node::commitState() noexcept
     accel[i+numberDOF] = accel[i];
   }
 
-  if (rotation != nullptr)
+  if (rotation != nullptr) {
     rotation[0] = rotation[1];
+  }
 
   return 0;
 }
@@ -874,23 +947,25 @@ Node::revertToStart()
 const Matrix &
 Node::getMass()
 {
-  if (index == -1) [[unlikely]] {
+  if (index == -1) [[unlikely]]
     setGlobalMatrices();
-  }
 
-  // make sure it was created before we return it
-  if (mass == 0) {
+  if (mass_type == MassType::Classical) {
     Matrix& Mass = *theMatrices[index];
     Mass.Zero();
     const int ndm = xyz.Size();
     for (int i=0; i<ndm; i++)
       Mass(i,i) = position_inertia;
-    for (int i=ndm; i<numberDOF; i++)
-      Mass(i,i) = rotation_inertia[i-ndm];
+    // for (int i=ndm; i<numberDOF; i++)
+    //   Mass(i,i) = rotation_inertia[i-ndm];
     return Mass;
-
-  } else
+  } else 
+  if (mass != nullptr) {
     return *mass;
+  } else {
+    theMatrices[index]->Zero();
+    return *theMatrices[index];
+  }
 }
 
 
@@ -924,9 +999,9 @@ Node::getDamp()
 const Matrix &
 Node::getDampSensitivity()
 {
-  if (index == -1) {
+  if (index == -1)
     setGlobalMatrices();
-  }
+
 
   // make sure it was created before we return it
   if (mass == 0 || alphaM == 0.0) {
@@ -934,7 +1009,7 @@ Node::getDampSensitivity()
     return *theMatrices[index];
   } else {
     Matrix &result = *theMatrices[index];
-      result.Zero();
+    result.Zero();
     //result = *mass;
     //result *= alphaM;
     return result;
@@ -948,16 +1023,19 @@ Node::setMass(const Matrix &newMass)
   // check right size
   assert(newMass.noRows() == numberDOF && newMass.noCols() == numberDOF);
 
+  mass_type = MassType::Full;
 
   // create a matrix if no mass yet set
   if (mass == nullptr) {
     mass = new Matrix(newMass);
     return 0;
   }
-
-  // otherwise assign mass
-  (*mass) = newMass;
-
+  else 
+  {
+    mass_type = MassType::Full;
+    // otherwise assign mass
+    (*mass) = newMass;
+  }
   return 0;
 }
 
@@ -966,9 +1044,17 @@ int
 Node::addPositionInertia(double value)
 {
 
-  position_inertia += value;
+  // position_inertia += value;
+  if (mass == nullptr) {
+    mass = new Matrix(numberDOF, numberDOF);
+    mass->Zero();
+  }
 
-  if (mass != nullptr) {
+  // if (mass_type == MassType::None)
+  //   mass_type = MassType::Classical;
+  // else if (mass_type == MassType::Full && mass != nullptr) 
+  {
+    mass_type = MassType::Full;
     const int ndm = xyz.Size();
     for (int i=0; i<ndm; i++)
       (*mass)(i,i) += value;
@@ -977,101 +1063,91 @@ Node::addPositionInertia(double value)
   return 0;
 }
 
-int
-Node::addRotationInertia(double value, unsigned int dof)
-{
-  if (dof >= 3) {
-    opserr << "Node::addRotationInertia - dof " 
-           << dof << " invalid for node " << this->getTag() << "\n";
-    return -1;
-  }
-  rotation_inertia[dof-1] += value;
-  return 0;
-}
 
 
 
-int
-Node::setNumColR(int numCol)
-{
-  if (R != 0) {
-    if (R->noCols() != numCol) {
-      delete R;
-      R = new Matrix(numberDOF, numCol);
-    }
-  } else
-    R = new Matrix(numberDOF, numCol);
 
-  R->Zero();
-  return 0;
-}
+// int
+// Node::setNumColR(int numCol)
+// {
+//   if (R != nullptr) {
+//     if (R->noCols() != numCol) {
+//       delete R;
+//       R = new Matrix(numberDOF, numCol);
+//     }
+//   } else
+//     R = new Matrix(numberDOF, numCol);
 
-int
-Node::setR(int row, int col, double Value)
-{
-  // ensure R had been set
-  if (R == nullptr) {
-    opserr << "Node:setR() - R has not been initialised\n";
-    return -1;
-  }
+//   R->Zero();
+//   return 0;
+// }
 
-  // ensure row, col in range (matrix assignment will catch this - extra work)
-  if (row < 0 || row > numberDOF || col < 0 || col > R->noCols()) {
-    opserr << "Node:setR() - row, col index out of range\n";
-    return -1;
-  }
+// int
+// Node::setR(int row, int col, double Value)
+// {
+//   // ensure R had been set
+//   if (R == nullptr) {
+//     opserr << "Node:setR() - R has not been initialised\n";
+//     return -1;
+//   }
 
-  // do the assignment
-  (*R)(row,col) = Value;
+//   // ensure row, col in range (matrix assignment will catch this - extra work)
+//   if (row < 0 || row > numberDOF || col < 0 || col > R->noCols()) {
+//     opserr << "Node:setR() - row, col index out of range\n";
+//     return -1;
+//   }
 
-  /*
-  // to test uniform excitation pattern with consistent mass matrices:
-  // found that the static application of a unit ground displacement
-  // needs to also be applied to the constrained DOFs
-  Domain *theDomain = this->getDomain();
-  SP_ConstraintIter &theSPs = theDomain->getSPs();
-  SP_Constraint *theSP;
-  // assign zero if there is a homogeneous SP
-  while ((theSP = theSPs()) != 0) {
-      if (theSP->getNodeTag() == this->getTag() &&
-          theSP->getDOF_Number() == row &&
-          theSP->isHomogeneous()) {
-              (*R)(row,col) = 0.0;
-      }
-  }
-  */
+//   // do the assignment
+//   (*R)(row,col) = Value;
 
-  return 0;
-}
+//   /*
+//   // to test uniform excitation pattern with consistent mass matrices:
+//   // found that the static application of a unit ground displacement
+//   // needs to also be applied to the constrained DOFs
+//   Domain *theDomain = this->getDomain();
+//   SP_ConstraintIter &theSPs = theDomain->getSPs();
+//   SP_Constraint *theSP;
+//   // assign zero if there is a homogeneous SP
+//   while ((theSP = theSPs()) != 0) {
+//       if (theSP->getNodeTag() == this->getTag() &&
+//           theSP->getDOF_Number() == row &&
+//           theSP->isHomogeneous()) {
+//               (*R)(row,col) = 0.0;
+//       }
+//   }
+//   */
+
+//   return 0;
+// }
 
 
 
 const Vector &
 Node::getRV(const Vector &V)
 {
-    // we store the product of RV in unbalLoadWithInertia
+  // we store the product of RV in unbalLoadWithInertia
 
-    // make sure unbalLoadWithInertia was created, if not create it
-    if (unbalLoadWithInertia == nullptr)
-      unbalLoadWithInertia = new Vector(numberDOF);
+  // make sure unbalLoadWithInertia was created, if not create it
+  if (unbalLoadWithInertia == nullptr)
+    unbalLoadWithInertia = new Vector(numberDOF);
 
-    // see if quick return , i.e. R == 0
-    if (R == 0) {
-      unbalLoadWithInertia->Zero();
-      return *unbalLoadWithInertia;
-    }
-
-    // check dimesions of R and V
-    if (R->noCols() != V.Size()) {
-      opserr << "WARNING Node::getRV() - R and V of incompatible dimesions\n";
-      opserr << "R: " << *R << "V: " << V;
-      unbalLoadWithInertia->Zero();
-      return *unbalLoadWithInertia;
-    }
-
-    // determine the product
-    unbalLoadWithInertia->addMatrixVector(0.0, *R, V, 1.0);
+  // see if quick return , i.e. R == 0
+  if (R == 0) {
+    unbalLoadWithInertia->Zero();
     return *unbalLoadWithInertia;
+  }
+
+  // check dimesions of R and V
+  if (R->noCols() != V.Size()) {
+    opserr << "WARNING Node::getRV() - R and V of incompatible dimesions\n";
+    opserr << "R: " << *R << "V: " << V;
+    unbalLoadWithInertia->Zero();
+    return *unbalLoadWithInertia;
+  }
+
+  // determine the product
+  unbalLoadWithInertia->addMatrixVector(0.0, *R, V, 1.0);
+  return *unbalLoadWithInertia;
 }
 
 
@@ -1238,138 +1314,138 @@ int
 Node::recvSelf(int cTag, Channel &theChannel,
              FEM_ObjectBroker &theBroker)
 {
-    int res = 0;
-    int dataTag = this->getDbTag();
+  int res = 0;
+  int dataTag = this->getDbTag();
 
 
-    ID data(14);
-    res = theChannel.recvID(dataTag, cTag, data);
-    if (res < 0) {
-      opserr << "Node::recvSelf() - failed to receive ID data\n";
-      return res;
-    }
+  ID data(14);
+  res = theChannel.recvID(dataTag, cTag, data);
+  if (res < 0) {
+    opserr << "Node::recvSelf() - failed to receive ID data\n";
+    return res;
+  }
 
-    this->setTag(data(0));
-    numberDOF = data(1);
-    int numberCrd = data(7);
+  this->setTag(data(0));
+  numberDOF = data(1);
+  int numberCrd = data(7);
 
-    dbTag1 = data(8);
-    dbTag2 = data(9);
-    dbTag3 = data(10);
-    dbTag4 = data(11);
+  dbTag1 = data(8);
+  dbTag2 = data(9);
+  dbTag3 = data(10);
+  dbTag4 = data(11);
 
-    // create a Vector to hold coordinates IF one needed
-    xyz.setData(coord_data, numberCrd);
+  // create a Vector to hold coordinates IF one needed
+  xyz.setData(coord_data, numberCrd);
 
-    if (theChannel.recvVector(dataTag, cTag, xyz) < 0) {
-      opserr << "Node::recvSelf() - failed to receive the Coordinate vector\n";
-      return -2;
-    }
+  if (theChannel.recvVector(dataTag, cTag, xyz) < 0) {
+    opserr << "Node::recvSelf() - failed to receive the Coordinate vector\n";
+    return -2;
+  }
 
-    if (commitDisp == nullptr)
-      this->createDisp();
+  if (commitDisp == nullptr)
+    this->createDisp();
 
-    if (data(2) == 0) {
-      // create the disp vectors if node is a total blank
+  if (data(2) == 0) {
+    // create the disp vectors if node is a total blank
 //    if (commitDisp == 0)
 //       this->createDisp();
 
-      // recv the committed disp
-      if (theChannel.recvVector(dbTag1, cTag, *commitDisp) < 0) {
-      opserr << "Node::recvSelf - failed to receive Disp data\n";
+    // recv the committed disp
+    if (theChannel.recvVector(dbTag1, cTag, *commitDisp) < 0) {
+    opserr << "Node::recvSelf - failed to receive Disp data\n";
+    return res;
+    }
+
+    // set the trial quantities equal to committed
+    for (int i=0; i<numberDOF; i++)
+    disp[i] = disp[i+numberDOF];  // set trial equal committed
+
+  } else if (commitDisp != nullptr) {
+    // if going back to initial we will just zero the vectors
+    commitDisp->Zero();
+    trialDisp->Zero();
+  }
+
+
+  if (data(3) == 0) {
+    // create the vel vectors if node is a total blank
+    if (commitVel == nullptr)
+    this->createVel();
+
+    // recv the committed vel
+    if (theChannel.recvVector(dbTag2, cTag, *commitVel) < 0) {
+    opserr << "Node::recvSelf - failed to receive Velocity data\n";
+    return -3;
+    }
+
+    // set the trial quantity
+    for (int i=0; i<numberDOF; i++)
+    vel[i] = vel[i+numberDOF];  // set trial equal committed
+  }
+
+  if (data(4) == 0) {
+    // create the vel vectors if node is a total blank
+    if (commitAccel == 0)
+    this->createAccel();
+
+    // recv the committed accel
+    if (theChannel.recvVector(dbTag3, cTag, *commitAccel) < 0) {
+    opserr << "Node::recvSelf - failed to receive Acceleration data\n";
+    return -4;
+    }
+
+    // set the trial values
+    for (int i=0; i<numberDOF; i++)
+    accel[i] = accel[i+numberDOF];  // set trial equal committed
+  }
+
+  if (data(5) == 0) {
+    // make some room and read in the vector
+    if (mass == 0) {
+    mass = new Matrix(numberDOF,numberDOF);
+    }
+    if (theChannel.recvMatrix(dataTag, cTag, *mass) < 0) {
+    opserr << "Node::recvSelf() - failed to receive Mass data\n";
+    return -6;
+    }
+  }
+
+  if (data(12) == 0) {
+    // create a matrix for R
+    int noCols = data(13);
+    if (R == nullptr) {
+      R = new Matrix(numberDOF, noCols);
+    }
+    // now recv the R matrix
+    if (theChannel.recvMatrix(dbTag2, cTag, *R) < 0) {
+      opserr << "Node::recvSelf() - failed to receive R data\n";
       return res;
-      }
-
-      // set the trial quantities equal to committed
-      for (int i=0; i<numberDOF; i++)
-      disp[i] = disp[i+numberDOF];  // set trial equal committed
-
-    } else if (commitDisp != nullptr) {
-      // if going back to initial we will just zero the vectors
-      commitDisp->Zero();
-      trialDisp->Zero();
     }
+  }
 
 
-    if (data(3) == 0) {
-      // create the vel vectors if node is a total blank
-      if (commitVel == nullptr)
-      this->createVel();
-
-      // recv the committed vel
-      if (theChannel.recvVector(dbTag2, cTag, *commitVel) < 0) {
-      opserr << "Node::recvSelf - failed to receive Velocity data\n";
-      return -3;
-      }
-
-      // set the trial quantity
-      for (int i=0; i<numberDOF; i++)
-      vel[i] = vel[i+numberDOF];  // set trial equal committed
+  if (data(6) == 0) {
+    // create a vector for the load
+    if (unbalLoad == 0) {
+    unbalLoad = new Vector(numberDOF);
+    if (unbalLoad == 0) {
+      opserr << "Node::recvData -- ran out of memory\n";
+      return -10;
     }
-
-    if (data(4) == 0) {
-      // create the vel vectors if node is a total blank
-      if (commitAccel == 0)
-      this->createAccel();
-
-      // recv the committed accel
-      if (theChannel.recvVector(dbTag3, cTag, *commitAccel) < 0) {
-      opserr << "Node::recvSelf - failed to receive Acceleration data\n";
-      return -4;
-      }
-
-      // set the trial values
-      for (int i=0; i<numberDOF; i++)
-      accel[i] = accel[i+numberDOF];  // set trial equal committed
     }
-
-    if (data(5) == 0) {
-      // make some room and read in the vector
-      if (mass == 0) {
-      mass = new Matrix(numberDOF,numberDOF);
-      }
-      if (theChannel.recvMatrix(dataTag, cTag, *mass) < 0) {
-      opserr << "Node::recvSelf() - failed to receive Mass data\n";
-      return -6;
-      }
+    if (theChannel.recvVector(dbTag4, cTag, *unbalLoad) < 0) {
+    opserr << "Node::recvSelf() - failed to receive Load data\n";
+    return res;
     }
-
-    if (data(12) == 0) {
-      // create a matrix for R
-      int noCols = data(13);
-      if (R == nullptr) {
-        R = new Matrix(numberDOF, noCols);
-      }
-      // now recv the R matrix
-      if (theChannel.recvMatrix(dbTag2, cTag, *R) < 0) {
-        opserr << "Node::recvSelf() - failed to receive R data\n";
-        return res;
-      }
-    }
-
-
-    if (data(6) == 0) {
-      // create a vector for the load
-      if (unbalLoad == 0) {
-      unbalLoad = new Vector(numberDOF);
-      if (unbalLoad == 0) {
-        opserr << "Node::recvData -- ran out of memory\n";
-        return -10;
-      }
-      }
-      if (theChannel.recvVector(dbTag4, cTag, *unbalLoad) < 0) {
-      opserr << "Node::recvSelf() - failed to receive Load data\n";
-      return res;
-      }
-    }
+  }
 
 
   index = -1;
   if (numMatrices != 0) {
     for (int i=0; i<numMatrices; i++)
       if (theMatrices[i]->noRows() == numberDOF) {
-      index = i;
-      i = numMatrices;
+        index = i;
+        i = numMatrices;
       }
   }
   if (index == -1) {
@@ -1471,18 +1547,22 @@ Node::Print(OPS_Stream &s, int flag)
         s << xyz(i) << ", ";
     s << xyz(numCrd - 1) << "]";
     if (mass != 0) {
-        s << ", \"mass\": [";
-        for (int i = 0; i < numberDOF - 1; i++)
-            s << (*mass)(i, i) << ", ";
-        s << (*mass)(numberDOF - 1, numberDOF - 1) << "]";
+      s << ", \"mass\": [";
+      for (int i = 0; i < numberDOF - 1; i++)
+          s << (*mass)(i, i) << ", ";
+      s << (*mass)(numberDOF - 1, numberDOF - 1) << "]";
+    }
+    if (position_inertia != 0.0) {
+      s << ", \"position_inertia\": " << position_inertia;
     }
     s << "}";
   }
 }
 
 
-// AddingSensitivity:BEGIN ///////////////////////////////////////
-
+//
+// Sensitivity
+//
 Matrix
 Node::getMassSensitivity()
 {
@@ -1708,7 +1788,6 @@ Node::getAccSensitivity(int dof, int gradIndex)
   else
     return 0.0;
 }
-// AddingSensitivity:END /////////////////////////////////////////
 
 
 
@@ -1717,8 +1796,6 @@ Node::getReaction()
 {
   if (reaction == nullptr)
     reaction = new Vector(numberDOF);
-
-  // TODO; zero this?
 
   return *reaction;
 }
@@ -1923,7 +2000,6 @@ Node::setNodalThermalActionPtr(NodalThermalAction* theAction)
 {
   theNodalThermalActionPtr = theAction;
 }
-// Add Pointer to NodalThermalAction id applicable-----end------L.Jiang, {SIF]
 
 
 int

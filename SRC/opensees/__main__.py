@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-#===----------------------------------------------------------------------===#
+#===----------------------------------------------------------------------===//
 #
-#         STAIRLab -- STructural Artificial Intelligence Laboratory
+#                                   xara
+#                              https://xara.so
 #
-#===----------------------------------------------------------------------===#
+#===----------------------------------------------------------------------===//
 #
+# Copyright (c) 2025, OpenSees/Xara Developers
+# All rights reserved.  No warranty, explicit or implicit, is provided.
+#
+# This source code is licensed under the BSD 2-Clause License.
+# See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+#
+#===----------------------------------------------------------------------===//
 """
 This file implements the primary command line interface for
 the package which is invoked by running:
@@ -39,19 +47,6 @@ Options
 
 
   --no-load                   Do not pre-load the OpenSeesRT library.
-"""
-
-"""
-                -trans        Transient analysis
-                -eigen        Eigenvalue analysis returning frequencies
-                -modes        Eigenvalue analysis returning modes
-                -displ        Displacement-controlled static analysis
-                -force        Force-controled static analysis
-                -modal        Modal response history
-
-       opensees -print
-       opensees -json
-       opensees -emit
 """
 
 

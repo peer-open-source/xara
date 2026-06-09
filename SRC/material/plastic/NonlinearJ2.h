@@ -48,6 +48,7 @@ public:
   const char *getClassType() const override {return "NonlinearJ2";}
   const char *getType() const override {return "ThreeDimensional";}
   int getOrder() const override { return 6; }
+  double getRho() override { return density_; }
 
   // State setting
   int setTrialStrain (const Vector &v) override;
@@ -183,15 +184,15 @@ private:
       for (size_t i=0;i<nc;i++) {
         // const double phi = 1.0/(1.0 + m.gammak_[i]*lamda);
         
-        double phi, dphi;
+        double phi; //, dphi;
         switch (m.bs_integration) {
           case BackStressIntegration::BackwardEuler:
             phi = 1.0/(1.0 + m.gammak_[i]*lamda);
-            dphi = -m.gammak_[i]*phi*phi;
+            // dphi = -m.gammak_[i]*phi*phi;
             break;
           case BackStressIntegration::Exponential:
             phi = std::exp(-m.gammak_[i]*lamda);
-            dphi = -m.gammak_[i]*phi;
+            // dphi = -m.gammak_[i]*phi;
             break;
         }
         x_phi.addVector(1.0, past.sig_b[i], phi);

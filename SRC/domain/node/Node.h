@@ -41,6 +41,8 @@
 // TODO: Remove include of NodeData
 #include "NodeData.h"
 #include <Vector.h>
+#include <Matrix3D.h>
+#include <Rotations.h>
 
 class Vector;
 class Matrix;
@@ -53,6 +55,7 @@ namespace OpenSees {
   struct Versor;
 }
 using OpenSees::Versor;
+using OpenSees::Matrix3D;
 
 class Node :
   public TaggedObject,
@@ -68,7 +71,7 @@ class Node :
     Node(int tag, int classTag);
     Node(int tag, int ndof, double Crd1);
     Node(int tag, int ndof, double Crd1, double Crd2);
-    Node(int tag, int ndof, double Crd1, double Crd2, double Crd3);
+    Node(int tag, int ndof, double Crd1, double Crd2, double Crd3, Rotations::Parameters rotationType = Rotations::Parameters::None);
     Node(const Node &theCopy, bool copyMass = true);
     
     // destructor
@@ -76,7 +79,7 @@ class Node :
 
     // public methods dealing with the DOF at the node
     VIRTUAL int  getNumberDOF() const;
-    VIRTUAL void setDOF_GroupPtr(DOF_Group *theDOF_Grp);
+    VIRTUAL void setDOF_GroupPtr(DOF_Group *);
     VIRTUAL DOF_Group *getDOF_GroupPtr();
 
     // public methods for obtaining the nodal coordinates
@@ -104,6 +107,8 @@ class Node :
     VIRTUAL const Vector &getIncrDeltaDisp() noexcept;
     VIRTUAL const Vector &getTrialDisp() noexcept {return *trialDisp;}
     VIRTUAL       Versor  getTrialRotation();
+    VIRTUAL       Matrix3D  getRotationTangent(Rotations::Parameters);
+    VIRTUAL       Versor  getCommitRotation();
 
     VIRTUAL const Vector &getVel();
     VIRTUAL const Vector &getAccel();
@@ -113,7 +118,7 @@ class Node :
     // public methods for updating the trial response quantities
     virtual int setTrialDisp  (double value, int dof) noexcept;
     virtual int setTrialDisp  (const Vector &) noexcept;
-    virtual int incrTrialDisp (const Vector &);
+    virtual int incrTrialDisp (const Vector &) noexcept;
     VIRTUAL int setTrialVel   (const Vector &);
     VIRTUAL int setTrialAccel (const Vector &);
     VIRTUAL int incrTrialVel  (const Vector &);
@@ -122,11 +127,8 @@ class Node :
     // Dynamics
     VIRTUAL const Matrix &getMass();
     VIRTUAL const Matrix &getDamp();
-    VIRTUAL int setMass(const Matrix &theMass);
+    VIRTUAL int setMass(const Matrix &);
     VIRTUAL int addPositionInertia(double value);
-    VIRTUAL int addRotationInertia(double value, unsigned dof);
-    VIRTUAL int setNumColR(int numCol);
-    VIRTUAL int setR(int row, int col, double Value);
     VIRTUAL const Vector &getRV(const Vector &V);
     VIRTUAL int setRayleighDampingFactor(double alphaM);
 
@@ -136,15 +138,17 @@ class Node :
     VIRTUAL const Matrix &getEigenvectors(void);
 
     // Thermodynamics
-    VIRTUAL NodalThermalAction* getNodalThermalActionPtr(void);
-    VIRTUAL void setNodalThermalActionPtr(NodalThermalAction* theAction);
+    VIRTUAL NodalThermalAction* getNodalThermalActionPtr();
+    VIRTUAL void setNodalThermalActionPtr(NodalThermalAction*);
     
     //
     // Load information
     //
     VIRTUAL void zeroUnbalancedLoad() noexcept;
     VIRTUAL int addUnbalancedLoad(const Vector &load, double fact = 1.0);
-    VIRTUAL int addInertiaLoadToUnbalance(const Vector &accel, double fact = 1.0);
+    // VIRTUAL int addInertiaLoadToUnbalance(const Vector &accel, double fact = 1.0);
+    VIRTUAL int addResidualInertia(int dof, double accel);
+    VIRTUAL int addResidual(const Vector &, double scale);
     VIRTUAL const Vector &getUnbalancedLoad() noexcept;
     VIRTUAL const Vector &getUnbalancedLoadIncInertia();
 
@@ -166,26 +170,25 @@ class Node :
     //
     // Misc
     //
-    VIRTUAL void Print(OPS_Stream &s, int flag = 0);
+    VIRTUAL void Print(OPS_Stream &s, int flag=0);
 
 
-    // AddingSensitivity:BEGIN /////////////////////////////////////////
+    // Sensitivity
     int addInertiaLoadSensitivityToUnbalance(const Vector &accel, 
                                              double fact = 1.0, 
                                              bool tag=false);
-    Matrix getMassSensitivity(void);
-    VIRTUAL const Matrix &getDampSensitivity(void);
-    int    getCrdsSensitivity(void);
+    Matrix getMassSensitivity();
+    VIRTUAL const Matrix &getDampSensitivity();
+    int    getCrdsSensitivity();
     int    saveDispSensitivity(const Vector &v, int gradNum, int numGrads);
     int    saveVelSensitivity(const Vector &vdot, int gradNum, int numGrads);
     int    saveAccelSensitivity(const Vector &vdot, int gradNum, int numGrads);
     double getDispSensitivity(int dof, int gradNum);
     double getVelSensitivity(int dof, int gradNum);
     double getAccSensitivity(int dof, int gradNum);
-    int    setParameter(const char **argv, int argc, Parameter &param);
-    int    updateParameter(int parameterID, Information &info);
+    int    setParameter(const char **argv, int argc, Parameter &);
+    int    updateParameter(int parameterID, Information &);
     int    activateParameter(int parameterID);
-    // AddingSensitivity:END ///////////////////////////////////////////
 
 #if 1
     //
@@ -198,8 +201,8 @@ class Node :
     static int resetGlobalMatrices();
 
 
-    Domain *getDomain() {return theDomain;};
-    void setDomain(Domain *model) {theDomain = model;};
+    Domain *getDomain() {return theDomain;}
+    void setDomain(Domain *model) {theDomain = model;}
 
   protected:
     double *vel, *accel;              // double arrays holding the vel and accel values
@@ -208,9 +211,14 @@ class Node :
     Vector *trialVel,  *trialAccel;   // trial quantities
     Vector *unbalLoad;                // unbalanced load
     Versor *rotation;
+    Rotations::Parameters rotationType;
 
   private:
     double *disp;
+
+    // State
+    Vector *unbalLoadWithInertia;
+    Matrix *theEigenvectors;
 
 #if 1
     Domain* theDomain;
@@ -235,8 +243,7 @@ class Node :
     DOF_Group *theDOF_GroupPtr;       // pointer to associated DOF_Group
     NodalThermalAction *theNodalThermalActionPtr; //Added by Liming Jiang for pointer to nodalThermalAction, [SIF]
 
-    Vector *Crd;                      // original nodal coords
-    Vector xyz;
+    Vector xyz;                       // coordinates in ref. configuration
     double coord_data[3];
     
 
@@ -244,10 +251,12 @@ class Node :
     Matrix *mass;                       // pointer to mass matrix
     double alphaM;                      // rayleigh damping factor 
     double position_inertia;
-    double rotation_inertia[3];
-    // State
-    Vector *unbalLoadWithInertia;
-    Matrix *theEigenvectors;
+    enum class MassType {
+      Full,
+      Classical, 
+      None
+    } mass_type = MassType::None;
+
 
 
     int dbTag1, dbTag2, dbTag3, dbTag4; // needed for database
@@ -257,7 +266,6 @@ class Node :
     Matrix *velSensitivity;
     Matrix *accSensitivity;
     int parameterID;
-    // AddingSensitivity:END ///////////////////////////////////////////
 
     Vector *reaction;
 };

@@ -39,33 +39,9 @@
 typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <NDMaterial.h>
 #include <Parameter.h>
-#include <elementAPI.h>
 
 ID NDFiberSection2d::code(3);
 Matrix NDFiberSection2d::fs(3,3);
-
-void * OPS_ADD_RUNTIME_VPV(OPS_NDFiberSection2d)
-{
-    int numData = OPS_GetNumRemainingInputArgs();
-    if(numData < 1) {
-	opserr<<"insufficient arguments for NDFiberSection2d\n";
-	return 0;
-    }
-
-    numData = 1;
-    int tag;
-    if (OPS_GetIntInput(&numData,&tag) < 0) return 0;
-
-    bool computeCentroid = true;
-    if (OPS_GetNumRemainingInputArgs() > 0) {
-      const char* opt = OPS_GetString();
-      if (strcmp(opt, "-noCentroid") == 0)
-	computeCentroid = false;
-    }
-    
-    int num = 30;
-    return new NDFiberSection2d(tag, num, computeCentroid);
-}
 
 
 NDFiberSection2d::NDFiberSection2d(int tag, int num, double a, bool compCentroid): 
@@ -120,17 +96,7 @@ NDFiberSection2d::NDFiberSection2d(int tag, int num, NDMaterial **mats,
 {
   if (numFibers != 0) {
     theMaterials = new NDMaterial *[numFibers];
-
-    if (theMaterials == 0) {
-      opserr << "NDFiberSection2d::NDFiberSection2d -- failed to allocate Material pointers";
-      exit(-1);
-    }
     matData = new double [numFibers*2];
-
-    if (matData == 0) {
-      opserr << "NDFiberSection2d::NDFiberSection2d -- failed to allocate double array for material data\n";
-      exit(-1);
-    }
   }
 
   sectionIntegr = si.getCopy();
@@ -464,7 +430,7 @@ NDFiberSection2d::getStressResultant(void)
 FrameSection*
 NDFiberSection2d::getFrameCopy(void)
 {
-  NDFiberSection2d *theCopy = new NDFiberSection2d ();
+  NDFiberSection2d *theCopy = new NDFiberSection2d();
   theCopy->setTag(this->getTag());
 
   theCopy->numFibers = numFibers;
@@ -472,27 +438,17 @@ NDFiberSection2d::getFrameCopy(void)
 
   if (numFibers != 0) {
     theCopy->theMaterials = new NDMaterial *[numFibers];
-
-    if (theCopy->theMaterials == 0) {
-      opserr <<"NDFiberSection2d::getFrameCopy -- failed to allocate Material pointers\n";
-      exit(-1);
-    }
   
     theCopy->matData = new double [numFibers*2];
 
-    if (theCopy->matData == 0) {
-      opserr << "NDFiberSection2d::getFrameCopy -- failed to allocate double array for material data\n";
-      exit(-1);
-    }
-			    
     for (int i = 0; i < numFibers; i++) {
       theCopy->matData[i*2] = matData[i*2];
       theCopy->matData[i*2+1] = matData[i*2+1];
       theCopy->theMaterials[i] = theMaterials[i]->getCopy("BeamFiber2d");
 
       if (theCopy->theMaterials[i] == 0) {
-	opserr <<"NDFiberSection2d::getFrameCopy -- failed to get copy of a Material";
-	exit(-1);
+        opserr <<"NDFiberSection2d::getFrameCopy -- failed to get copy of a Material";
+        exit(-1);
       }
     }  
   }
@@ -799,21 +755,12 @@ NDFiberSection2d::recvSelf(int commitTag, Channel &theChannel,
       sizeFibers = data(1);
       if (numFibers != 0) {
 	theMaterials = new NDMaterial *[numFibers];
-	
-	if (theMaterials == 0) {
-	  opserr <<"NDFiberSection2d::recvSelf -- failed to allocate Material pointers\n";
-	  exit(-1);
-	}
+
 	
 	for (int j=0; j<numFibers; j++)
 	  theMaterials[j] = 0;
 
 	matData = new double [numFibers*2];
-
-	if (matData == 0) {
-	  opserr <<"NDFiberSection2d::recvSelf  -- failed to allocate double array for material data\n";
-	  exit(-1);
-	}
       }
     }
 
@@ -832,16 +779,12 @@ NDFiberSection2d::recvSelf(int commitTag, Channel &theChannel,
       // if material pointed to is blank or not of corrcet type, 
       // release old and create a new one
       if (theMaterials[i] == 0)
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);
       else if (theMaterials[i]->getClassTag() != classTag) {
-	delete theMaterials[i];
-	theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
+        delete theMaterials[i];
+        theMaterials[i] = theBroker.getNewNDMaterial(classTag);      
       }
 
-      if (theMaterials[i] == 0) {
-	opserr <<"NDFiberSection2d::recvSelf -- failed to allocate double array for material data\n";
-	exit(-1);
-      }
 
       theMaterials[i]->setDbTag(dbTag);
       res += theMaterials[i]->recvSelf(commitTag, theChannel, theBroker);

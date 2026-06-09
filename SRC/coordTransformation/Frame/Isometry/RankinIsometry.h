@@ -58,7 +58,8 @@ public:
   using AlignedIsometry<nn>::pres;
 
   Matrix3D
-  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) final 
+  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) 
+  noexcept final 
   {
     Matrix3D R;
     {
@@ -84,6 +85,234 @@ public:
     return R;
   }
 
+  MatrixND<6*nn,6*nn>
+  getHessian(const VectorND<6>& pw) final
+  {
+    MatrixND<6*nn,6*nn> H{};
+
+    static_assert(nn >= 2, "Requires at least two nodes.");
+
+    constexpr int I = 0;
+    constexpr int J = nn - 1;
+
+    const double L = this->getLength();
+    if (L == 0.0)
+      return H;
+
+    const Vector3D m{pw[3], pw[4], pw[5]};
+    const double m1 = m[0];
+
+    const Vector3D e1{1.0, 0.0, 0.0};
+    const Vector3D e2{0.0, 1.0, 0.0};
+    const Vector3D e3{0.0, 0.0, 1.0};
+
+    auto sigma = [](int node) -> double {
+      if (node == I)
+        return -1.0;
+      if (node == J)
+        return  1.0;
+      return 0.0;
+    };
+
+    //
+    // B = ([e1]_x - n e1 e3^T) / L.
+    //
+    // Therefore:
+    //
+    //   B^T m = [ 0,
+    //             m3/L,
+    //            -(m2 + n m1)/L ].
+    //
+    const Vector3D Btm{
+      0.0,
+      m[2] / L,
+      -(m[1] + n*m[0]) / L
+    };
+
+    const double nfac = 1.0 + n*n;
+
+    const int end_nodes[2] = {I, J};
+
+    for (int ia = 0; ia < 2; ++ia) {
+      const int a = end_nodes[ia];
+      const double sa = sigma(a);
+
+      for (int ib = 0; ib < 2; ++ib) {
+        const int b = end_nodes[ib];
+        const double sb = sigma(b);
+
+        /*
+        * dn_b = dn_x^T v_b + dn_theta^T theta_b
+        *
+        * dn_x     = (1+n^2) sigma_b/L e2
+        * dn_theta = -(1+n^2) delta_{bI} e3
+        */
+        Vector3D dnx{};
+        Vector3D dnt{};
+
+        dnx[1] = nfac * sb / L;
+
+        if (b == I)
+          dnt[2] = -nfac;
+
+        Matrix3D Hxx{},Hxt{},Htx{},Htt{};
+
+        /*
+        * H_ab^{xx}
+        * =
+        * -sigma_a [
+        *   sigma_b/L (B^T m) e1^T
+        *   + m1/L e3 dn_x^T
+        * ].
+        */
+        Hxx.addTensorProduct(Btm, e1, -sa * sb / L);
+        Hxx.addTensorProduct(e3, dnx, -sa * m1 / L);
+
+        /*
+        * H_ab^{x theta}
+        * =
+        * -sigma_a m1/L e3 dn_theta^T.
+        */
+        Hxt.addTensorProduct(e3, dnt, -sa * m1 / L);
+
+        /*
+        * Rankin C_a is nonzero only for a = I:
+        *
+        * H_ab^{theta x} = -delta_{aI} m1 e2 dn_x^T
+        *
+        * H_ab^{theta theta}
+        * =
+        * -delta_{aI} m1 e2 dn_theta^T.
+        */
+        if (a == I) {
+          Htx.addTensorProduct(e2, dnx, -m1);
+          Htt.addTensorProduct(e2, dnt, -m1);
+        }
+
+        H.assemble(Hxx, 6*a + 0, 6*b + 0, 1.0);
+        H.assemble(Hxt, 6*a + 0, 6*b + 3, 1.0);
+        H.assemble(Htx, 6*a + 3, 6*b + 0, 1.0);
+        H.assemble(Htt, 6*a + 3, 6*b + 3, 1.0);
+      }
+    }
+
+    return H;
+  }
+
+  Matrix3D 
+  getRotationSensitivity(
+    std::array<Node*,nn> nodes
+  ) final {
+    Matrix3D dR{};
+
+    std::array<int,nn> ix{};
+    for (int i=0; i<nn; i++)
+      ix[i] = nodes[i]->getCrdsSensitivity();
+    const Matrix3D RI = MatrixFromVersor(nodes[0]->getTrialRotation());
+    //
+    // Coordinate sensitivity of the end-to-end reference chord.
+    // The current chord has the same direct coordinate sensitivity,
+    // with displacements, rotations, and offsets held fixed.
+    //
+    Vector3D dXdh{};
+
+    auto addCoordinateSensitivity = [](Vector3D& v, int dir, double scale) {
+      if (dir >= 1 && dir <= 3)
+        v[dir - 1] += scale;
+    };
+
+    addCoordinateSensitivity(dXdh, ix[nn-1],  1.0);
+    addCoordinateSensitivity(dXdh, ix[0],    -1.0);
+
+    auto dot = [](const Vector3D& a, const Vector3D& b) {
+      double s = 0.0;
+      for (int i = 0; i < 3; ++i)
+        s += a[i]*b[i];
+      return s;
+    };
+
+    auto projectNormal = [&](const Vector3D& v, const Vector3D& a) -> Vector3D {
+      Vector3D r = v;
+      const double av = dot(a, v);
+      for (int i = 0; i < 3; ++i)
+        r[i] -= a[i]*av;
+      return r;
+    };
+
+    if (dot(dXdh, dXdh) == 0.0)
+      return dR;
+
+    constexpr static Vector3D D1 {1,0,0};
+    constexpr static Vector3D D2 {0,1,0};
+    constexpr static Vector3D D3 {0,0,1};
+
+    const Matrix3D& R0 = this->R[init];
+    const Matrix3D& Rt = this->R[pres];
+
+    const Vector3D E1 = R0*D1;
+    const Vector3D E2 = R0*D2;
+
+    const Vector3D e1 = Rt*D1;
+    const Vector3D e3 = Rt*D3;
+
+    const double L0 = this->L;
+    const double Lt = this->getLength();
+
+    const Vector3D y0 = this->vz.cross(E1);
+    const double y0n = y0.norm();
+
+    const Vector3D s = e1.cross(q);
+    const double sn = s.norm();
+
+    if (L0 == 0.0 || Lt == 0.0 || y0n == 0.0 || sn == 0.0)
+      return dR;
+
+    //
+    // Initial basis sensitivity.
+    //
+    Vector3D dE1 = projectNormal(dXdh, E1);
+    for (int i = 0; i < 3; ++i)
+      dE1[i] /= L0;
+
+    Vector3D dE2 = projectNormal(this->vz.cross(dE1), E2);
+    for (int i = 0; i < 3; ++i)
+      dE2[i] /= y0n;
+
+    //
+    // Current basis sensitivity.
+    //
+    Vector3D de1 = projectNormal(dXdh, e1);
+    for (int i = 0; i < 3; ++i)
+      de1[i] /= Lt;
+
+    const Vector3D dq = RI*dE2;
+
+    const Vector3D ds_a = de1.cross(q);
+    const Vector3D ds_b = e1.cross(dq);
+
+    Vector3D ds{};
+    for (int i = 0; i < 3; ++i)
+      ds[i] = ds_a[i] + ds_b[i];
+
+    Vector3D de3 = projectNormal(ds, e3);
+    for (int i = 0; i < 3; ++i)
+      de3[i] /= sn;
+
+    const Vector3D de2_a = de3.cross(e1);
+    const Vector3D de2_b = e3.cross(de1);
+
+    Vector3D de2{};
+    for (int i = 0; i < 3; ++i)
+      de2[i] = de2_a[i] + de2_b[i];
+
+    for (int i = 0; i < 3; ++i) {
+      dR(i,0) = de1[i];
+      dR(i,1) = de2[i];
+      dR(i,2) = de3[i];
+    }
+
+    return dR;
+  }
 
   MatrixND<6*nn,6*nn>
   getRotationJacobian(const VectorND<6*nn>&pwx) final 

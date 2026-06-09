@@ -369,7 +369,7 @@ PFEMLinSOE::setB(const Vector &v, double fact)
 }
 
 void 
-PFEMLinSOE::zeroA(void)
+PFEMLinSOE::zeroA()
 {
     for (int i = 0; i < M->nzmax; i++)
         M->x[i] = 0.0;

@@ -7,8 +7,6 @@ extern "C"
 #endif
 double dbesi0(double x)
 {
-    int k;
-    double w, t, y;
     static double a[65] = {
         8.5246820682016865877e-11, 2.5966600546497407288e-9, 
         7.9689994568640180274e-8, 1.9906710409667748239e-6, 
@@ -111,7 +109,9 @@ double dbesi0(double x)
         0.05150322383300230775
     };
 
-    w = fabs(x);
+    int k;
+    double t, y;
+    double w = fabs(x);
     if (w < 8.5) {
         t = w * w * 0.0625;
         k = 13 * ((int) t);

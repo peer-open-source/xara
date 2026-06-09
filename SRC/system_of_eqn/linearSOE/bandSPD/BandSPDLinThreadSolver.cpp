@@ -37,7 +37,6 @@
 
 #include <BandSPDLinThreadSolver.h>
 #include <BandSPDLinSOE.h>
-#include <f2c.h>
 #include <math.h>
 #include <thread.h>
 

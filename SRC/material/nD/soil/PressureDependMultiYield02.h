@@ -19,6 +19,8 @@
 
 class MultiYieldSurface;
 
+namespace OpenSees {
+
 class PressureDependMultiYield02 : public NDMaterial
 {
 public:
@@ -126,7 +128,7 @@ protected:
 
 private:
   // user supplied
-	 static int matCount;
+	static int matCount;
      static int* ndmx;  //num of dimensions (2 or 3)
      static int* loadStagex;  //=0 if elastic; =1 or 2 if plastic
      static double* rhox;  //mass density
@@ -152,8 +154,8 @@ private:
      static double* volLimit2x;
      static double* volLimit3x;
      static double pAtm;
-	 static double* Hvx;
-	 static double* Pvx;
+     static double* Hvx;
+     static double* Pvx;
 
      // internal
      static double* residualPressx;
@@ -161,16 +163,16 @@ private:
      static Matrix theTangent;
      double * mGredu;
 
-	 int matN;
+     int matN;
      int e2p;
      MultiYieldSurface * theSurfaces; // NOTE: surfaces[0] is not used
      MultiYieldSurface * committedSurfaces;
      int    activeSurfaceNum;
      int    committedActiveSurf;
      double modulusFactor;
-	 double initPress;
-	 double damage;
-	 double check;
+     double initPress;
+     double damage;
+     double check;
      T2Vector currentStress;
      T2Vector trialStress;
      T2Vector updatedTrialStress;
@@ -239,6 +241,8 @@ private:
      // Return 1 if crossing the active surface; return 0 o/w
      int  isCrossingNextSurface(void);
 };
+
+} // namespace OpenSees
 
 #endif
 

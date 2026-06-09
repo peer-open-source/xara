@@ -18,7 +18,8 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-//  four node flat shell element with membrane and drill DOF
+// four node flat shell element with membrane and drill DOF
+//
 // Ref: Plate Bending Part - DKQ, thin plate element
 //      Membrane Part - GQ12, a membrane element with drilling DOF
 //

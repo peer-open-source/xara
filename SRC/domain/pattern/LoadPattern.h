@@ -48,6 +48,11 @@ class SingleDomSP_Iter;
 class SP_ConstraintIter;
 class TaggedObjectStorage;
 class GroundMotion;
+class MapOfTaggedObjects;
+
+// for applyResidual
+class AnalysisModel;
+class LinearSOE;
 
 class LoadPattern : public TaggedObject, public MovableObject
 {
@@ -63,7 +68,10 @@ class LoadPattern : public TaggedObject, public MovableObject
     Domain* getDomain() {return theDomain;}
 
     // methods to apply loads
+
+    // apply load at start of a step.
     virtual void applyLoad(double pseudoTime = 0.0);
+    virtual int applyResidual(AnalysisModel&, LinearSOE&, double) {return 0;};
     void setLoadConstant();
     void unsetLoadConstant();
     double getLoadFactor();
@@ -73,11 +81,7 @@ class LoadPattern : public TaggedObject, public MovableObject
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     virtual void Print(OPS_Stream &s, int flag);
 
-    // TODO: Move to subclass
-    virtual int addMotion(GroundMotion &theMotion, int tag);    
-    virtual GroundMotion *getMotion(int tag);        
 
-    // TODO: Move to subclass
     // methods to add loads
     virtual bool addSP_Constraint(SP_Constraint *);
     virtual bool addNodalLoad(NodalLoad *);
@@ -120,7 +124,7 @@ class LoadPattern : public TaggedObject, public MovableObject
     int    dbSPs, dbNod, dbEle; // database tags for storing info about components
     
     // storage objects for the loads and constraints
-    TaggedObjectStorage  *theNodalLoads;
+    MapOfTaggedObjects  *theNodalLoads;
     TaggedObjectStorage  *theElementalLoads;
     TaggedObjectStorage  *theSPs;
 

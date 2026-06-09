@@ -3,7 +3,7 @@
 package:
   name: opensees
     #version: "{{ data.get('version') }}"
-  version: 0.0.26
+  version: 0.1.14
 
 source:
   path: ../..
@@ -19,7 +19,7 @@ requirements:
     - "{{ compiler('cxx') }}"
     - "{{ compiler('fortran') }}"
     - cmake
-    - amoeba-build
+    - "opensees:amoeba-build"
     - setuptools
 
   host:
@@ -32,7 +32,7 @@ requirements:
     - python
     - pybind11
     - pip !=22.1.0
-    - amoeba-build
+    - "opensees:amoeba-build"
 
   run:
     - python
@@ -54,11 +54,11 @@ requirements:
 
 
 about:
-  summary: "Idiomatic and idempotent bindings to the OpenSees framework."
+  summary: "Nonlinear finite element analysis."
   license: UNKNOWN
   license_family: OTHER
-  doc_url: https://brace2.github.io/OpenSeesRT
-  dev_url: https://github.com/BRACE2/OpenSeesRT
+  doc_url: "https://opensees.stairlab.io"
+  dev_url: "https://github.com/STAIRLab/OpenSeesRT"
 
   description: |
     Nonlinear structural analysis.

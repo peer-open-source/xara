@@ -102,18 +102,6 @@ TclCommand_addPlaneSection(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
-  // if (Tcl_GetInt(interp, argv[3], &mtag) != TCL_OK) {
-  //   opserr << OpenSees::PromptValueError
-  //          << "failed to read integer material tag\n";
-  //   return TCL_ERROR;
-  // }
-
-  // if (Tcl_GetDouble(interp, argv[4], &thickness) != TCL_OK) {
-  //   opserr << OpenSees::PromptValueError
-  //          << "failed to read thickness\n";
-  //   return TCL_ERROR;
-  // }
-
   NDMaterial* mptr = builder->getTypedObject<NDMaterial>(mtag);
   if (mptr == nullptr)
     return TCL_ERROR;
@@ -135,7 +123,9 @@ TclCommand_addPlaneSection(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  builder->addTaggedObject<PlaneSection<NDMaterial>>(*(new PlaneSection<NDMaterial>(tag, *pptr, thickness)));
+  PlaneSection<NDMaterial>* section = new PlaneSection<NDMaterial>(tag, *pptr, thickness);
+  int status = builder->addTaggedObject<PlaneSection<NDMaterial>>(*section);
 
-  return TCL_OK;
+  // delete pptr;
+  return status;
 }

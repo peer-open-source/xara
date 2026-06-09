@@ -48,10 +48,7 @@ InitStrainNDMaterial::InitStrainNDMaterial(int tag, NDMaterial& material, const 
 {
     // get copy of the main material
     theMaterial = material.getCopy("ThreeDimensional");
-    if (theMaterial == nullptr) {
-        opserr << "InitStrainNDMaterial::InitStrainNDMaterial -- failed to get copy of material (a 3D material is required)\n";
-        exit(-1);
-    }
+    assert(theMaterial != nullptr);
 
     // make sure the input strain vector is of correct size
     assert(epsInit.Size() == 6);
@@ -63,10 +60,7 @@ InitStrainNDMaterial::InitStrainNDMaterial(int tag, NDMaterial& material, double
 {
     // get copy of the main material
     theMaterial = material.getCopy("ThreeDimensional");
-    if (theMaterial == nullptr) {
-        opserr << "InitStrainNDMaterial::InitStrainNDMaterial -- failed to get copy of material (a 3D material is required)\n";
-        exit(-1);
-    }
+    assert(theMaterial != nullptr);
 
     // initialize epsInit
     epsInit.resize(6);
@@ -129,7 +123,7 @@ InitStrainNDMaterial::getStress()
 const Matrix&
 InitStrainNDMaterial::getTangent()
 {
-    return theMaterial->getTangent();
+  return theMaterial->getTangent();
 }
 
 const Matrix&
@@ -140,8 +134,12 @@ InitStrainNDMaterial::getInitialTangent()
 
 const Vector&
 InitStrainNDMaterial::getStrain()
-{
-    return theMaterial->getStrain();
+{ 
+//   static Vector strain(6);
+//   strain = theMaterial->getStrain();
+//   strain.addVector(1.0, epsInit, -1.0);
+//   return strain;
+  return theMaterial->getStrain();
 }
 
 int
@@ -279,10 +277,16 @@ InitStrainNDMaterial::Print(OPS_Stream& s, int flag)
         s << "\"name\": \"" << this->getTag() << "\", ";
         s << "\"type\": \"InitialStrain\", ";
         if (theMaterial)
-          s << "\"Material\": " << theMaterial->getTag() << ", ";
+          s << "\"material\": " << theMaterial->getTag() << ", ";
         else
           s << "\"Material\": " << "null" << ", ";
-        s << "\"initial_strain\": " << epsInit;
+        s << "\"initial_strain\": [";
+        for (int i = 0; i < epsInit.Size(); ++i) {
+            s << epsInit(i);
+            if (i < epsInit.Size() - 1)
+                s << ", ";
+        }
+        s << "]";
         s <<  "}";
         return;
     }

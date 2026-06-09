@@ -110,7 +110,7 @@ FrameSection::getTangent(State state) noexcept
   OpenSees::MatrixND<12,12> Ks = this->getFullTangent(state);
 
 
-  if (!getenv("XARA_FIBER_THREADS")) {
+  if (getenv("XARA_OLD_WARP")) [[unlikely]] {
     constexpr FrameLayout iw = WarpIndex(n, scheme);
     constexpr
     OpenSees::MatrixND<12,12> L  = ConstraintMatrix(iw);
@@ -142,7 +142,7 @@ int
 FrameSection::setTrialState(const OpenSees::VectorND<n>& e) noexcept
 {
   double strain_data[FrameStress::Max]{};
-
+#if 1
   const int m = this->getOrder();
   Vector trial(strain_data, m);
   trial.Zero();
@@ -156,7 +156,20 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) noexcept
       if (layout(j) == scheme[i])
         trial[j] = e[i];
   }
+#else
+  constexpr static int m = 12;
+  VectorND<12> trial{};
+  trial.zero();
 
+
+  constexpr FrameLayout l = WarpIndex(n, scheme);
+
+  for (int i=0; i<n; i++) {
+    for (int j=0; j<m; j++)
+      if (FullLayout[j] == scheme[i])
+        trial[j] = e[i];
+  }
+#endif
   // Case 2 and 3
   // If element has a twisting DOF and no Bishear
   // DOF, then twist == alpha, where alpha is the
@@ -166,7 +179,7 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) noexcept
   // optimized out by the compiler, however this might be 
   // optimistic
   //
-  if ((l.v[0] == -1) && !getenv("XARA_FIBER_THREADS")) 
+  if ((l.v[0] == -1) && getenv("XARA_OLD_WARP")) [[unlikely]]
   {
     for (int j=0; j<m; j++)
       switch (layout(j)) {

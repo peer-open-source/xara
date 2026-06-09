@@ -22,13 +22,13 @@
 // $Date: 2013-07-31 00:00:00 $
 // $Source: /usr/local/cvs/OpenSees/SRC/element/KikuchiBearing/KikuchiBearing.h,v $
 
-// Written: Ken Ishii
-// Created: Jan 2013
-// Modified: Feb 17, 2015
-//
 // KikuchiBearing model
 //
 // Description: This file contains the class definition for KikuchiBearing.
+//
+// Written: Ken Ishii
+// Created: Jan 2013
+// Modified: Feb 17, 2015
 //
 
 #ifndef KikuchiBearing_h
@@ -47,20 +47,18 @@ class KikuchiBearing : public Element
   // constructor
   KikuchiBearing(int Tag, int Nd1, int Nd2,
 		 int Shape, double Size, double TotalRubber, double TotalHeight,
-		 int NMSS, UniaxialMaterial *MatMSS, double LimDisp,
-		 int NMNS, UniaxialMaterial *MatMNS, double Lambda,
+		 int NMSS, UniaxialMaterial &MatMSS, double LimDisp,
+		 int NMNS, UniaxialMaterial &MatMNS, double Lambda,
 		 const Vector OriYp, const Vector OriX, double Mass,
 		 bool IfPDInput, bool IfTilt,
 		 double AdjCi, double AdjCj,
 		 bool IfBalance, double LimFo, double LimFi, int NIter);
   
   KikuchiBearing();
-  
-  // destructor
   ~KikuchiBearing();
   
   // method to get class type
-  const char *getClassType() const {return "KikuchiBearing";};
+  const char *getClassType() const {return "KikuchiBearing";}
   
   // public methods to obtain information about dof & connectivity    
   int getNumExternalNodes() const;
@@ -88,17 +86,15 @@ class KikuchiBearing : public Element
   const Vector &getResistingForceIncInertia();
   
   // public methods for element output
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-  int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-  void Print(OPS_Stream &s, int flag = 0);    
+  void Print(OPS_Stream &s, int flag);    
   
   // public methods for element recorder
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-  int getResponse(int responseID, Information &eleInfo);
-  
- protected:
+  int getResponse(int responseID, Information &);
+
   
  private:
   // private methods

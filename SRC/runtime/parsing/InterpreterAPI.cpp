@@ -335,7 +335,8 @@ int G3_addTimeSeries(G3_Runtime *rt, TimeSeries *series)
 }
 
 
-TimeSeries *G3_getTimeSeries(G3_Runtime *rt, int tag)
+TimeSeries *
+G3_getTimeSeries(G3_Runtime *rt, int tag)
 {
   TimeSeries *series;
   ModelRegistry *builder = G3_getSafeBuilder(rt);
@@ -453,7 +454,7 @@ namespace OpenSees {
       if (Tcl_GetDouble(interp, arg, value) == TCL_OK)
         return TCL_OK;
 
-      // something like "parameter tag value"
+      // something like "Parameter tag value"
       int tag, argc;
       const char **argv;
       if (Tcl_SplitList(interp, arg, &argc, &argv) != TCL_OK)

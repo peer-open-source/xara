@@ -24,7 +24,7 @@ modalProperties(ClientData clientData,
   // some kudos
   static bool first_done = false;
   if (!first_done) {
-      opserr << "Using DomainModalProperties - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+      opslog << "Using DomainModalProperties - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
       first_done = true;
   }
 

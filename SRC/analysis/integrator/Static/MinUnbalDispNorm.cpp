@@ -78,23 +78,23 @@ MinUnbalDispNorm::~MinUnbalDispNorm()
     if (phat != nullptr)
 	delete phat;
 
-    if (dUhatdh !=0)
-      delete dUhatdh;
-    if (dUIJdh !=0)
-      delete dUIJdh; 
-    if (Residual !=0)
-      delete Residual;
-    if (sensU !=0)
-      delete sensU;
-    if (Residual2 !=0)
-      delete Residual2;
-    if (dLAMBDAdh !=0) 
-      delete dLAMBDAdh;
-    if (dphatdh !=0)
-      delete dphatdh;
+  if (dUhatdh !=0)
+    delete dUhatdh;
+  if (dUIJdh !=0)
+    delete dUIJdh; 
+  if (Residual !=0)
+    delete Residual;
+  if (sensU !=0)
+    delete sensU;
+  if (Residual2 !=0)
+    delete Residual2;
+  if (dLAMBDAdh !=0) 
+    delete dLAMBDAdh;
+  if (dphatdh !=0)
+    delete dphatdh;
 
-    dLAMBDAdh=0;
-    dUhatdh=0;
+  dLAMBDAdh=0;
+  dUhatdh=0;
 }
 
 int
@@ -216,8 +216,7 @@ MinUnbalDispNorm::newStep()
 
 int
 MinUnbalDispNorm::update(const Vector &dU)
-{ 
-  
+{
    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();    
     if (theModel == 0 || theLinSOE == 0) {
@@ -283,35 +282,35 @@ MinUnbalDispNorm::domainChanged()
    }    
    int size = theModel->getNumEqn(); // ask model in case N+1 space
 
-   if (deltaUhat == 0 || deltaUhat->Size() != size) { // create new Vector
-       if (deltaUhat != 0)
-           delete deltaUhat;   // delete the old
-       deltaUhat = new Vector(size);
+   if (deltaUhat == 0 || deltaUhat->Size() != size) {
+      if (deltaUhat != 0)
+          delete deltaUhat;   // delete the old
+      deltaUhat = new Vector(size);
    }
 
-   if (deltaUbar == 0 || deltaUbar->Size() != size) { // create new Vector
-       if (deltaUbar != 0)
-           delete deltaUbar;   // delete the old
-       deltaUbar = new Vector(size);
+   if (deltaUbar == 0 || deltaUbar->Size() != size) {
+      if (deltaUbar != 0)
+          delete deltaUbar;   // delete the old
+      deltaUbar = new Vector(size);
    }
 
    
-   if (deltaU == 0 || deltaU->Size() != size) { // create new Vector
-       if (deltaU != 0)
-           delete deltaU;   // delete the old
-       deltaU = new Vector(size);
+   if (deltaU == 0 || deltaU->Size() != size) {
+      if (deltaU != 0)
+          delete deltaU;   // delete the old
+      deltaU = new Vector(size);
    }
 
    if (deltaUstep == 0 || deltaUstep->Size() != size) { 
-       if (deltaUstep != 0)
-           delete deltaUstep;  
-       deltaUstep = new Vector(size);
+      if (deltaUstep != 0)
+          delete deltaUstep;  
+      deltaUstep = new Vector(size);
    }
 
    if (phat == nullptr || phat->Size() != size) { 
-       if (phat != nullptr)
-           delete phat;  
-       phat = new Vector(size);
+      if (phat != nullptr)
+          delete phat;  
+      phat = new Vector(size);
    }    
 
    if (dphatdh == 0 || dphatdh->Size() != size) { 
@@ -400,8 +399,7 @@ MinUnbalDispNorm::domainChanged()
 }
 
 int
-MinUnbalDispNorm::sendSelf(int cTag,
-		    Channel &theChannel)
+MinUnbalDispNorm::sendSelf(int cTag, Channel &theChannel)
 {
   Vector data(8);
   data(0) = dLambda1LastStep;

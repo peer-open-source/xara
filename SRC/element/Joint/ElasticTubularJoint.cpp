@@ -38,10 +38,8 @@
 #include <Domain.h>
 #include <Node.h>
 #include <Channel.h>
-#include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <math.h>
@@ -63,7 +61,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticTubularJoint)
 
   if (numElasticTubularJoint == 0) {
     numElasticTubularJoint++;
-    opslog<<"ElasticTubularJoint element - Written by Kia & Alanjari\n";
+    opslog << "ElasticTubularJoint element - Written by Kia & Alanjari\n";
   }
 
   // get the id and end nodes 
@@ -73,38 +71,38 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticTubularJoint)
   
   numData = 1;
   if (OPS_GetIntInput(&numData, &iData[0]) != 0) {
-    opserr << "\n WARNING invalid ElasticTubularJoint Tag" << endln;
+    opserr << "\n WARNING invalid ElasticTubularJoint Tag" << "\n";
     return 0;
   }
   
   
   numData = 1;
   if (OPS_GetIntInput(&numData, &iData[1]) != 0) {
-    opserr << "\n WARNING invalid iNode for ElasticTubularJoint " << iData[0] << endln;
+    opserr << "\n WARNING invalid iNode " << iData[0] << "\n";
     return 0;
   }
  
  numData = 1;
  if (OPS_GetIntInput(&numData, &iData[2]) != 0) {
-   opserr << "\n WARNING invalid jNode for ElasticTubularJoint " << iData[0] << endln;
+   opserr << "\n WARNING invalid jNode " << iData[0] << "\n";
    return 0;
  }
  
  numData = 1;
  if (OPS_GetDoubleInput(&numData, &dData[0]) != 0) {
-   opserr << "\n WARNING invalid  brace diameter for ElasticTubularJoint " << iData[0] << endln;
+   opserr << "\n WARNING invalid  brace diameter " << iData[0] << "\n";
    return 0;
  }
  
  numData = 1;
  if (OPS_GetDoubleInput(&numData, &dData[1]) != 0) {
-   opserr  << "\n WARNING invalid  brace_angle for ElasticTubularJoint " << iData[0] << endln ;
+   opserr  << "\n WARNING invalid  brace_angle " << iData[0] << "\n" ;
    return 0;
  }
  
  numData = 1;
  if (OPS_GetDoubleInput(&numData, &dData[2]) != 0) {
-   opserr << "\n WARNING invalid E  for ElasticTubularJoint " << iData[0] << endln ;
+   opserr << "\n WARNING invalid E " << iData[0] << "\n";
    return 0;
  }
  
@@ -150,13 +148,7 @@ ElasticTubularJoint::ElasticTubularJoint(int tag,int iNode , int jNode,
   chordD(Chord_Diameter),chordT(Chord_Thickness),chordangle(Chord_Angle),
   k(6,6),p(6),displacement(6),
   connectedExternalNodes(NUM_NODE)
-{	
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2) 
-    {
-      opserr << "FATAl ElasticTubularJoint::ElasticTubularJoint - " <<  tag << "failed to create an ID of size 2\n";
-      exit(-1);
-    }
+{
   connectedExternalNodes(0)=iNode;
   connectedExternalNodes(1)=jNode;
   
@@ -176,8 +168,8 @@ ElasticTubularJoint::ElasticTubularJoint()
 {   
   connectedExternalNodes(0)=0;
   connectedExternalNodes(1)=0;
-  theNodes[0]=0;
-  theNodes[1]= 0;
+  theNodes[0] = 0;
+  theNodes[1] = 0;
 }
 
 //  destructor - provided to clean up any memory
@@ -187,25 +179,26 @@ ElasticTubularJoint::~ElasticTubularJoint()
 }
 
 int
-ElasticTubularJoint::getNumExternalNodes(void) const
+ElasticTubularJoint::getNumExternalNodes() const
 {
   return NUM_NODE;
 }
 
 const ID &
-ElasticTubularJoint::getExternalNodes(void) 
+ElasticTubularJoint::getExternalNodes() 
 {
   return this->connectedExternalNodes;
 }
 
 Node **
-ElasticTubularJoint::getNodePtrs(void) 
+ElasticTubularJoint::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-ElasticTubularJoint::getNumDOF(void) {
+ElasticTubularJoint::getNumDOF()
+{
   return NUM_DOF ;
 }
 
@@ -308,7 +301,7 @@ ElasticTubularJoint::update()
 
 
 const Matrix &
-ElasticTubularJoint::getTangentStiff(void)
+ElasticTubularJoint::getTangentStiff()
 {	
 	
   if (l == 0.0)
@@ -508,40 +501,33 @@ ElasticTubularJoint::recvSelf(int Tag, Channel &theChannel, FEM_ObjectBroker &th
 
 
 
-
-
 void
 ElasticTubularJoint::Print(OPS_Stream &s, int flag)
 {
-  s << " Element tag:" << this->getTag() << endln;
-  s << "  iNode : " << this->connectedExternalNodes(0) << endln;
-  s << "  jNode : " << this->connectedExternalNodes(1) << endln ;
-  s << "  E : " << this->E << endln;
-  s << "   Axial Stiffness =" <<1/( this->TangLJFv*pow(sin(braceangle),2));
-  s << " In Plane Bending Stiffness = "  << 1/(this->TangLJFipb) << endln;
-  
-  s << " End 1 Forces (P,V,M) : " << " (" << p(0) << " , " << p(1) << " , " << p(2) << " )" << endln;
-  
-  s << " End 2 Forces (P,V,M) :" << " (" << p(3) << " ," << p(4) << " ," << p(5) << " )" << endln;
-}
-
-
-
-
-
-
-int ElasticTubularJoint::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  // ensure setDomain() worked
-  if (l == 0.0)
-    return 0;
-  
-  static Vector v1(3);
-  static Vector v2(3);
-
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-  return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << TaggedObject::JsonGeometryIndent << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"ElasticTubularJoint\", ";
+    s << "\"nodes\": [" << this->connectedExternalNodes(0) << ", " << this->connectedExternalNodes(1) << "], ";
+    s << "\"E\": " << this->E << ", ";
+    s << "\"braceDiameter\": " << this->braceD << ", ";
+    s << "\"braceAngle\": " << this->braceangle << ", ";
+    s << "\"chordDiameter\": " << this->chordD << ", ";
+    s << "\"chordThickness\": " << this->chordT << ", ";
+    s << "\"chordAngle\": " << this->chordangle;
+    s << "}";
+  } 
+  else {
+    s << " Element tag:" << this->getTag() << endln;
+    s << "  iNode : " << this->connectedExternalNodes(0) << endln;
+    s << "  jNode : " << this->connectedExternalNodes(1) << endln ;
+    s << "  E : " << this->E << endln;
+    s << "   Axial Stiffness =" <<1/( this->TangLJFv*pow(sin(braceangle),2));
+    s << " In Plane Bending Stiffness = "  << 1/(this->TangLJFipb) << endln;
+    
+    s << " End 1 Forces (P,V,M) : " << " (" << p(0) << " , " << p(1) << " , " << p(2) << " )" << endln;
+    
+    s << " End 2 Forces (P,V,M) :" << " (" << p(3) << " ," << p(4) << " ," << p(5) << " )" << endln;
+  }
 }
 

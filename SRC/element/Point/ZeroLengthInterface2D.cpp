@@ -38,7 +38,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -351,12 +350,6 @@ ZeroLengthInterface2D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBr
   return 0;
 }
 
-int
-ZeroLengthInterface2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{ 
-  // nothing to display
-  return 0;
-}
 
 void
 ZeroLengthInterface2D::Print(OPS_Stream &s, int flag)
@@ -755,8 +748,8 @@ OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthInterface2D) {
 
   // read the Nodes values
   numData = sNdNum+pNdNum;
-  int *theNodeData = new int[numData];
-  ID  Nodes(theNodeData, numData);
+  int *theNodeData = new int[numData];// TODO: memleak?
+  ID  Nodes(theNodeData, numData, false); 
 
   if (OPS_GetInt(&numData, theNodeData) != 0) {
     opserr << "ZeroLengthInterface2D:: not enough node tags provided for ele: ";

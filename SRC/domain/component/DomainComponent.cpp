@@ -58,7 +58,7 @@ DomainComponent::setDomain(Domain *model)
 
 
 Domain *
-DomainComponent::getDomain(void) const
+DomainComponent::getDomain() const
 {
   // returns the current pointer
   return theDomain;

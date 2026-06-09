@@ -325,6 +325,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
   //
   //
   //
+  bool free_section = false;
   if (section == nullptr) {
     if (tracker.contains(Positions::Area)) {
         opserr << OpenSees::PromptValueError
@@ -338,23 +339,23 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
     }
     const int stag = 0;
     const int numFibers = 1;
-    UniaxialMaterial *torsion = nullptr;
-    const bool compCentroid = true;
     const double smass = 0.0;
     const bool use_mass = false;
+    Frame::Shape shape(1,1);
     auto fiber_section = new FrameFiberSection3d(stag, 
                                                  numFibers, 
-                                                 torsion, 
-                                                 compCentroid, 
+                                                 shape,
                                                  smass, 
                                                  use_mass);
     fiber_section->addFiber(*material, area, 0, 0);
     section = fiber_section;
+    free_section = true;
   }
 
   //
   //
   //
+  int status = TCL_ERROR;
   if (strstr(argv[1], "Corot") != nullptr && strstr(argv[1], "2") == nullptr) {
     if (ndm != 3) {
       opserr << OpenSees::PromptValueError
@@ -362,13 +363,20 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
       return TCL_ERROR;
     }
 
-    builder->getDomain()->addElement(new CorotTrussSection(tag, ndm, nodes[0], nodes[1], *section, rho, cMass, doRayleigh));
+    if (builder->getDomain()->addElement(new CorotTrussSection(tag, ndm, nodes[0], nodes[1], *section, rho, cMass, doRayleigh))) {
+      status = TCL_OK;
+    }
   }
 
-  else if (strstr(argv[1], "Corot") == nullptr && strstr(argv[1], "2") == nullptr) {
-    builder->getDomain()->addElement(new TrussSection(tag, ndm, nodes[0], nodes[1], *section, rho, cMass, doRayleigh));
+  else if ((strstr(argv[1], "Corot") == nullptr) && strstr(argv[1], "2") == nullptr) {
+    if (builder->getDomain()->addElement(new TrussSection(tag, ndm, nodes[0], nodes[1], *section, rho, cMass, doRayleigh))) {
+      status = TCL_OK;
+    }
   }
-  return TCL_OK;
+
+  if (free_section)
+    delete section;
+  return status;
 }
 
 

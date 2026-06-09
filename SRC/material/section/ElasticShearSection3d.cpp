@@ -40,14 +40,15 @@ ElasticShearSection3d::ElasticShearSection3d()
  alphaY(0.0), alphaZ(0.0), e(6)
 {
   if (code(0) != SECTION_RESPONSE_P) {
-      code(0) = SECTION_RESPONSE_P; 
-      code(1) = SECTION_RESPONSE_MZ;
-      code(2) = SECTION_RESPONSE_VY;
-      code(3) = SECTION_RESPONSE_MY;
-      code(4) = SECTION_RESPONSE_VZ;
-      code(5) = SECTION_RESPONSE_T; 
+    code(0) = SECTION_RESPONSE_P; 
+    code(1) = SECTION_RESPONSE_MZ;
+    code(2) = SECTION_RESPONSE_VY;
+    code(3) = SECTION_RESPONSE_MY;
+    code(4) = SECTION_RESPONSE_VZ;
+    code(5) = SECTION_RESPONSE_T; 
   }
 }
+
 
 ElasticShearSection3d::ElasticShearSection3d
 (int tag, double E_in, double A_in, double Iz, double Iy_in,
@@ -98,19 +99,20 @@ ElasticShearSection3d::ElasticShearSection3d
   }
 }
 
-ElasticShearSection3d::~ElasticShearSection3d(void)
+
+ElasticShearSection3d::~ElasticShearSection3d()
 {
-    return;
+  return;
 }
 
 int 
-ElasticShearSection3d::commitState(void)
+ElasticShearSection3d::commitState()
 {
   return 0;
 }
 
 int 
-ElasticShearSection3d::revertToLastCommit(void)
+ElasticShearSection3d::revertToLastCommit()
 {
   return 0;
 }

@@ -1,15 +1,14 @@
-// Code written/implemented by:	Kristijan Kolozvari (kkolozvari@fullerton.edu)
-//								California State University, Fullerton 
-//								Kutay Orakcal
-//								Bogazici University, Istanbul, Turkey
-//								John Wallace
-//								University of California, Los Angeles
+// Code written/implemented by:  Kristijan Kolozvari (kkolozvari@fullerton.edu)
+//                California State University, Fullerton 
+//                Kutay Orakcal
+//                Bogazici University, Istanbul, Turkey
+//                John Wallace
+//                University of California, Los Angeles
 //
 // Created: 07/2015
 //
-// Description: This file contains the class implementation for 
-// uniaxialMaterial ConcreteCM, which is a uniaxial hysteretic 
-// constitutive model for concrete developed by Chang and Mander(1994).
+// Description:  ConcreteCM is a uniaxial hysteretic 
+// constitutive model for concrete developed by Chang and Mander (1994).
 // This model is a refined, rule - based, generalized, and non - dimensional 
 // constitutive model that allows calibration of the monotonic and hysteretic 
 // material modeling parameters, and can simulate the hysteretic behavior of 
@@ -113,8 +112,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ConcreteCM)
     // OPS_GetStringCopy(&str);
     if (strcmp(str, "-GapClose") == 0) {
       if (OPS_GetIntInput(&numData, &gap) != 0) {
-		opserr << "Invalid $gap parameter for uniaxialMaterial ConcreteCM with tag  " << iData[0] << endln;
-		return 0;
+    opserr << "Invalid $gap parameter for uniaxialMaterial ConcreteCM with tag  " << iData[0] << endln;
+    return 0;
       }
     } else {
       opserr << "Invalid input parameter for uniaxialMaterial ConcreteCM with tag  " << iData[0] << ", want: -GapClose"<< endln;
@@ -145,15 +144,12 @@ Cfr0n(0.0), Cer0p(0.0), Cfr0p(0.0), Ce0(0.0), Cea(0.0), Ceb(0.0), Ced(0.0), Cinc
 Crule(0.0), Cstrain(0.0), Cstress(0.0), Ctangent(0.0) 
 
 {
+  // Set trial values
+  this->revertToLastCommit();
 
-	// Set trial values
-	this->revertToLastCommit();
-
-	// AddingSensitivity:BEGIN /////////////////////////////////////
-	parameterID = 0;
-	SHVs = 0;
-	// AddingSensitivity:END //////////////////////////////////////
-
+  // AddingSensitivity:BEGIN /////////////////////////////////////
+  parameterID = 0;
+  SHVs = 0;
 }
 
 // Constructor for monotonic stress-strain relationship only:  mon=1 (invoked in FSAM only), Gap=0 (no impact since monotonic)
@@ -166,15 +162,12 @@ Cfr0n(0.0), Cer0p(0.0), Cfr0p(0.0), Ce0(0.0), Cea(0.0), Ceb(0.0), Ced(0.0), Cinc
 Crule(0.0), Cstrain(0.0), Cstress(0.0), Ctangent(0.0) 
 
 {
+  // Set trial values
+  this->revertToLastCommit();
 
-	// Set trial values
-	this->revertToLastCommit();
-
-	// AddingSensitivity:BEGIN /////////////////////////////////////
-	parameterID = 0;
-	SHVs = 0;
-	// AddingSensitivity:END ///////////////////////////////////////
-
+  // AddingSensitivity:BEGIN /////////////////////////////////////
+  parameterID = 0;
+  SHVs = 0;
 }
 
 // Constructor for optional gradual gap closure: mon=0 (default), Gap=0 or 1 (optional user-generated input, see Eplpf member function)
@@ -188,14 +181,12 @@ Crule(0.0), Cstrain(0.0), Cstress(0.0), Ctangent(0.0)
 
 {
 
-	// Set trial values
-	this->revertToLastCommit();
+  // Set trial values
+  this->revertToLastCommit();
 
-	// AddingSensitivity:BEGIN /////////////////////////////////////
-	parameterID = 0;
-	SHVs = 0;
-	// AddingSensitivity:END //////////////////////////////////////
-
+  // AddingSensitivity:BEGIN /////////////////////////////////////
+  parameterID = 0;
+  SHVs = 0;
 }
 
 ConcreteCM::ConcreteCM():UniaxialMaterial(0, MAT_TAG_ConcreteCM),
@@ -205,4324 +196,4366 @@ Cfr0n(0.0), Cer0p(0.0), Cfr0p(0.0), Ce0(0.0), Cea(0.0), Ceb(0.0), Ced(0.0), Cinc
 Crule(0.0), Cstrain(0.0), Cstress(0.0), Ctangent(0.0) 
 
 {
-	// Set trial values
-	this->revertToLastCommit();
+  // Set trial values
+  this->revertToLastCommit();
 
-	// AddingSensitivity:BEGIN /////////////////////////////////////
-	parameterID = 0;
-	SHVs = 0;
-	// AddingSensitivity:END //////////////////////////////////////
+  // AddingSensitivity:BEGIN /////////////////////////////////////
+  parameterID = 0;
+  SHVs = 0;
 }
 
 ConcreteCM::ConcreteCM(int tag)
-	:UniaxialMaterial(tag, MAT_TAG_ConcreteCM)
+  :UniaxialMaterial(tag, MAT_TAG_ConcreteCM)
 {
-	// Set trial values
-	this->revertToLastCommit();
+  // Set trial values
+  this->revertToLastCommit();
 
-	// AddingSensitivity:BEGIN /////////////////////////////////////
-	parameterID = 0;
-	SHVs = 0;
-	// AddingSensitivity:END //////////////////////////////////////
+  parameterID = 0;
+  SHVs = 0;
 }
 
-ConcreteCM::~ConcreteCM ()
+ConcreteCM::~ConcreteCM()
 {
-	// Does nothing
+  // Does nothing
 }
 
-int ConcreteCM::setTrialStrain (double strain, double strainRate)
-
+int 
+ConcreteCM::setTrialStrain (double strain, double strainRate)
 {
 
-	// Set trial strain
-	this->revertToLastCommit();
-	Tstrain = strain;
-
-	if (mon == 1) { // switch to monotonic material ONLY (invoked in FSAM)
-
-		if (Tstrain < 0.0)   {	        // negative envelope  
-			fcEtnf(Tstrain);
-			Tinc=-1.0;
-		}	  
-		else if (Tstrain > 0.0)	{  
-			fcEtpf(Tstrain,Ce0);
-			Tinc=1.0;
-		}
-		else	{
-			Tstress=0.0;
-			Ttangent=Ec;
-			Trule=0.0;
-			Tinc=0.0;
-		}
-
-		Teunn=0.0;	
-		Tfunn=0.0;
-		Teunp=0.0;
-		Tfunp=0.0;
-		Ter=0.0;
-		Tfr=0.0;
-		Ter0n=0.0;
-		Tfr0n=0.0;
-		Ter0p=0.0;
-		Tfr0p=0.0;
-		Te0=0.0;
-		Tea=0.0;
-		Teb=0.0;
-		Ted=0.0;
-
-	}
-
-	else if (Cinc==0.0)	{		// monotonic, first data point
-		if (Tstrain < 0.0)   {	// negative envelope,	  
-			fcEtnf(Tstrain);
-			Tinc=-1.0;
-		}	  
-		else if (Tstrain > 0.0)	{  
-			fcEtpf(Tstrain,Ce0);
-			Tinc=1.0;
-		}
-		else	{
-			Tstress=0.0;
-			Ttangent=Ec;
-			Trule=0.0;
-			Tinc=0.0;
-		}
-
-		Teunn=0.0;	
-		Tfunn=0.0;
-		Teunp=0.0;
-		Tfunp=0.0;
-		Ter=0.0;
-		Tfr=0.0;
-		Ter0n=0.0;
-		Tfr0n=0.0;
-		Ter0p=0.0;
-		Tfr0p=0.0;
-		Te0=0.0;
-		Tea=0.0;
-		Teb=0.0;
-		Ted=0.0;
-	}
-
-	else	{	//cyclic
-
-		if (Tstrain > Cstrain)	{
-			Tinc=1.0;
-		}
-		else if (Tstrain < Cstrain)	{
-			Tinc=-1.0;
-		}
-		else	{
-			Tinc=Cinc;
-		}
-
-		Teunn=Ceunn;
-		Tfunn=Cfunn;
-		Teunp=Ceunp;
-		Tfunp=Cfunp;
-		Ter=Cer;
-		Tfr=Cfr;
-		Ter0n=Cer0n;
-		Tfr0n=Cfr0n;
-		Ter0p=Cer0p;
-		Tfr0p=Cfr0p;
-		Te0=Ce0;
-		Tea=Cea;
-		Teb=Ceb;
-		Ted=Ced;
-		Trule=Crule;
-
-		esplnf(Teunn,Tfunn);
-		Eplnf(Teunn);
-		Esecnf(Teunn,Tfunn);
-		delenf(Teunn);
-		delfnf(Teunn,Tfunn);
-		fnewnf(Teunn,Tfunn);
-		Enewnf(Teunn,Tfunn);
-		esrenf(Teunn);
-		freErenf(Teunn);
-		fnewstnf(Tfunn,delfn,Teunn,Ter0n,espln);
-		Enewstnf(fnewstn,Tfr0n,Teunn,Ter0n);
-		esrestnf(Teunn,delen,Ter0n,espln);   
-		freErestnf(Teunn,Tfunn,Ter0n);
+  // Set trial strain
+  this->revertToLastCommit();
+  Tstrain = strain;
+
+  if (mon == 1) { // switch to monotonic material ONLY (invoked in FSAM)
+
+    if (Tstrain < 0.0)   {          // negative envelope  
+      fcEtnf(Tstrain);
+      Tinc=-1.0;
+    }    
+    else if (Tstrain > 0.0)  {  
+      fcEtpf(Tstrain,Ce0);
+      Tinc=1.0;
+    }
+    else  {
+      Tstress=0.0;
+      Ttangent=Ec;
+      Trule=0.0;
+      Tinc=0.0;
+    }
+
+    Teunn=0.0;  
+    Tfunn=0.0;
+    Teunp=0.0;
+    Tfunp=0.0;
+    Ter=0.0;
+    Tfr=0.0;
+    Ter0n=0.0;
+    Tfr0n=0.0;
+    Ter0p=0.0;
+    Tfr0p=0.0;
+    Te0=0.0;
+    Tea=0.0;
+    Teb=0.0;
+    Ted=0.0;
+  }
+
+  else if (Cinc==0.0)  {    // monotonic, first data point
+    if (Tstrain < 0.0)   {  // negative envelope,    
+      fcEtnf(Tstrain);
+      Tinc=-1.0;
+    }    
+    else if (Tstrain > 0.0)  {  
+      fcEtpf(Tstrain,Ce0);
+      Tinc=1.0;
+    }
+    else  {
+      Tstress=0.0;
+      Ttangent=Ec;
+      Trule=0.0;
+      Tinc=0.0;
+    }
+
+    Teunn=0.0;  
+    Tfunn=0.0;
+    Teunp=0.0;
+    Tfunp=0.0;
+    Ter=0.0;
+    Tfr=0.0;
+    Ter0n=0.0;
+    Tfr0n=0.0;
+    Ter0p=0.0;
+    Tfr0p=0.0;
+    Te0=0.0;
+    Tea=0.0;
+    Teb=0.0;
+    Ted=0.0;
+  }
+
+  else  {  //cyclic
+
+    if (Tstrain > Cstrain)  {
+      Tinc=1.0;
+    }
+    else if (Tstrain < Cstrain)  {
+      Tinc=-1.0;
+    }
+    else  {
+      Tinc=Cinc;
+    }
+
+    Teunn=Ceunn;
+    Tfunn=Cfunn;
+    Teunp=Ceunp;
+    Tfunp=Cfunp;
+    Ter=Cer;
+    Tfr=Cfr;
+    Ter0n=Cer0n;
+    Tfr0n=Cfr0n;
+    Ter0p=Cer0p;
+    Tfr0p=Cfr0p;
+    Te0=Ce0;
+    Tea=Cea;
+    Teb=Ceb;
+    Ted=Ced;
+    Trule=Crule;
+
+    esplnf(Teunn,Tfunn);
+    Eplnf(Teunn);
+    Esecnf(Teunn,Tfunn);
+    delenf(Teunn);
+    delfnf(Teunn,Tfunn);
+    fnewnf(Teunn,Tfunn);
+    Enewnf(Teunn,Tfunn);
+    esrenf(Teunn);
+    freErenf(Teunn);
+    fnewstnf(Tfunn,delfn,Teunn,Ter0n,espln);
+    Enewstnf(fnewstn,Tfr0n,Teunn,Ter0n);
+    esrestnf(Teunn,delen,Ter0n,espln);   
+    freErestnf(Teunn,Tfunn,Ter0n);
 
-		esplpf(Teunp,Tfunp,Te0,espln);
-		Eplpf(Te0,Teunp);
-		Esecpf(Te0,Teunp,Tfunp,espln);  
-		delepf(Teunp,Te0);
-		delfpf(Tfunp,Teunp,Te0); 
-		fnewpf(Tfunp,Teunp,Te0);
-		Enewpf(Teunp,Tfunp,Te0,espln);
-		esrepf(Teunp,Te0);
-		freErepf(Teunp,Te0);
-		fnewstpf(Tfunp,delfp,Teunp,Ter0p,esplp,Te0);
-		Enewstpf(fnewstp,Tfr0p,Teunp,Ter0p);
-		esrestpf(Teunp,delep,Ter0p,esplp);
-		freErestpf(Teunp,Tfunp,Ter0p,Te0,espln);
+    esplpf(Teunp,Tfunp,Te0,espln);
+    Eplpf(Te0,Teunp);
+    Esecpf(Te0,Teunp,Tfunp,espln);  
+    delepf(Teunp,Te0);
+    delfpf(Tfunp,Teunp,Te0); 
+    fnewpf(Tfunp,Teunp,Te0);
+    Enewpf(Teunp,Tfunp,Te0,espln);
+    esrepf(Teunp,Te0);
+    freErepf(Teunp,Te0);
+    fnewstpf(Tfunp,delfp,Teunp,Ter0p,esplp,Te0);
+    Enewstpf(fnewstp,Tfr0p,Teunp,Ter0p);
+    esrestpf(Teunp,delep,Ter0p,esplp);
+    freErestpf(Teunp,Tfunp,Ter0p,Te0,espln);
 
-		// [1]
-		if (Cinc==-1.0)	{
+    // [1]
+    if (Cinc==-1.0)  {
 
-			if (Tstrain > Cstrain)	{	// Start reversal from negative direction to positive direction		
+      if (Tstrain > Cstrain)  {  // Start reversal from negative direction to positive direction    
 
-				if (Crule==1.0 || Crule==5.0 || Crule==7.0)	{	// Rules [3,9,8,2,6]
+        if (Crule==1.0 || Crule==5.0 || Crule==7.0)  {  // Rules [3,9,8,2,6]
 
-					Teunn=Cstrain;
-					Tfunn=Cstress;
+          Teunn=Cstrain;
+          Tfunn=Cstress;
 
-					e0eunpfunpf(Te0,Teunp,Tfunp,Teunn,Tfunn);
+          e0eunpfunpf(Te0,Teunp,Tfunp,Teunn,Tfunn);
 
-					esplnf(Teunn,Tfunn);
-					Eplnf(Teunn);				
-					fnewpf(Tfunp,Teunp,Te0);
-					Enewpf(Teunp,Tfunp,Te0,espln);
+          esplnf(Teunn,Tfunn);
+          Eplnf(Teunn);        
+          fnewpf(Tfunp,Teunp,Te0);
+          Enewpf(Teunp,Tfunp,Te0,espln);
 
-					esrepf(Teunp,Te0);
-					freErepf(Teunp,Te0);
+          esrepf(Teunp,Te0);
+          freErepf(Teunp,Te0);
 
-					if (Tstrain<=espln)	{				// Rule 3
-						r3f(Teunn,Tfunn,espln,Epln);
-						Trule=3.0;
+          if (Tstrain<=espln)  {        // Rule 3
+            r3f(Teunn,Tfunn,espln,Epln);
+            Trule=3.0;
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
+            Tstress=fc;
+            Ttangent=Et;
+          }
 
-					else if (Tstrain<=Teunp)	{		// Rule 9
-						r9f(espln,Epln,Teunp,fnewp,Enewp);
-						Trule=9.0;
+          else if (Tstrain<=Teunp)  {    // Rule 9
+            r9f(espln,Epln,Teunp,fnewp,Enewp);
+            Trule=9.0;
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            RAf(esi,fi,Ei,esf,ff,Ef);
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain<=esrep)  {    // Rule 8
 
-						Tstress=fc;
-						Ttangent=Et;
+            r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+            Trule=8.0;
 
-					}
-					else if (Tstrain<=esrep)	{		// Rule 8
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-						Trule=8.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {              // Rules 2 and 6
+            fcEtpf(Tstrain,Te0);
+          }
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
+        }  // if (Crule=1.0) or 5 or 7
 
-					else	{							// Rules 2 and 6
-						fcEtpf(Tstrain,Te0);
-					}
+        else if (Crule==10.0)  {
 
-				}	// if (Crule=1.0) or 5 or 7
+          Ter=Cstrain;
+          Tfr=Cstress;
 
-				else if (Crule==10.0)	{
+          Teb=Ter;
+          fb=Tfr;
 
-					Ter=Cstrain;
-					Tfr=Cstress;
+          ea1112f(Teb,espln,esplp,Teunn,Teunp);
 
-					Teb=Ter;
-					fb=Tfr;
+          if (Tea<=espln)  {
 
-					ea1112f(Teb,espln,esplp,Teunn,Teunp);
+            if (Tstrain<=Tea)  {        // Rule 12 targeting for ea on 3
 
-					if (Tea<=espln)	{
+              r3f(Teunn, Tfunn, espln, Epln);
 
-						if (Tstrain<=Tea)	{				// Rule 12 targeting for ea on 3
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r3f(Teunn, Tfunn, espln, Epln);
+              fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              fca=fc;
+              Eta=Et;
 
-							fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Tea;
 
-							fca=fc;
-							Eta=Et;
+              RAf(esi,fi,Ei,esf,fca,Eta);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Tea;
+              r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+              Trule=12.0;
 
-							RAf(esi,fi,Ei,esf,fca,Eta);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-							Trule=12.0;
+              Tstress=fc;
+              Ttangent=Et;
+            }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tstrain<=espln)  {  // Rule 3
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
+              r3f(Teunn,Tfunn,espln,Epln);
+              Trule=3.0;
 
-						else if (Tstrain<=espln)	{	// Rule 3
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r3f(Teunn,Tfunn,espln,Epln);
-							Trule=3.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else if (Tstrain<=Teunp)  {  // Rule 9
+              r9f(espln,Epln,Teunp,fnewp,Enewp);
+              Trule=9.0;
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else if (Tstrain<=Teunp)	{	// Rule 9
-							r9f(espln,Epln,Teunp,fnewp,Enewp);
-							Trule=9.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tstrain<=esrep)  {  // Rule 8              
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
+              r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+              Trule=8.0;
 
-						else if (Tstrain<=esrep)	{	// Rule 8						  
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-							Trule=8.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else  {            // Rules 2 and 6
+              fcEtpf(Tstrain,Te0);
+            }
+          }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else if (Tea<=Teunp)  {      // and Tea>espln
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else	{						// Rules 2 and 6
-							fcEtpf(Tstrain,Te0);
-						}
-					}
+            if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 9
 
-					else if (Tea<=Teunp)	{			// and Tea>espln
+              r9f(espln,Epln,Teunp,fnewp,Enewp); 
 
-						if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 9
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r9f(espln,Epln,Teunp,fnewp,Enewp); 
+              fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              fca=fc;
+              Eta=Et;
 
-							fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Tea;
 
-							fca=fc;
-							Eta=Et;
+              RAf(esi,fi,Ei,esf,fca,Eta);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Tea;
+              r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+              Trule=12.0;
 
-							RAf(esi,fi,Ei,esf,fca,Eta);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-							Trule=12.0;
+              Tstress=fc;
+              Ttangent=Et;
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            }
+            else if (Tstrain<=Teunp)  {  // Rule 9
 
-							Tstress=fc;
-							Ttangent=Et;
+              r9f(espln,Epln,Teunp,fnewp,Enewp);
+              Trule=9.0;
 
-						}
-						else if (Tstrain<=Teunp)	{	// Rule 9
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r9f(espln,Epln,Teunp,fnewp,Enewp);
-							Trule=9.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            }
+            else if (Tstrain<=esrep)  {  // Rule 8              
 
-							Tstress=fc;
-							Ttangent=Et;
+              r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+              Trule=8.0;
 
-						}
-						else if (Tstrain<=esrep)	{	// Rule 8						  
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-							Trule=8.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else  {            // Rules 2 and 6
+              fcEtpf(Tstrain,Te0);
+            }
+          }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else if (Tea<=esrep)  {  
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else	{						// Rules 2 and 6
-							fcEtpf(Tstrain,Te0);
-						}
-					}
+            if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 8
 
-					else if (Tea<=esrep)	{	
+              r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
 
-						if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 8
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+              fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              fca=fc;
+              Eta=Et;
 
-							fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Tea;
 
-							fca=fc;
-							Eta=Et;
+              RAf(esi,fi,Ei,esf,fca,Eta);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Tea;
+              r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+              Trule=12.0;
 
-							RAf(esi,fi,Ei,esf,fca,Eta);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-							Trule=12.0;
+              Tstress=fc;
+              Ttangent=Et;
+            }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tstrain<=esrep)  {  // Rule 8              
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
+              r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+              Trule=8.0;
 
-						else if (Tstrain<=esrep)	{	// Rule 8						  
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-							Trule=8.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else  {            // Rules 2 and 6
+              fcEtpf(Tstrain,Te0);
+            }
+          }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {    // (Tea>esrep)
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else	{						// Rules 2 and 6
-							fcEtpf(Tstrain,Te0);
-						}
-					}
+            if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 2 or 6
 
-					else	{		// (Tea>esrep)
+              fcEtpf(Tea,Te0);
 
-						if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 2 or 6
+              fca=Tstress;
+              Eta=Ttangent;
 
-							fcEtpf(Tea,Te0);
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Tea;
 
-							fca=Tstress;
-							Eta=Ttangent;
+              RAf(esi,fi,Ei,esf,fca,Eta);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Tea;
+              r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+              Trule=12.0;
 
-							RAf(esi,fi,Ei,esf,fca,Eta);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-							Trule=12.0;
+              Tstress=fc;
+              Ttangent=Et;            
+            }
+            else  {            // Rules 2 and 6
+              fcEtpf(Tstrain,Te0);
+            }
+          }
+        } // if (Crule=10.0)
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==11.0)  {
 
-							Tstress=fc;
-							Ttangent=Et;					  
-						}
-						else	{						// Rules 2 and 6
-							fcEtpf(Tstrain,Te0);
-						}
-					}
-				} // if (Crule=10.0)
+          Ter=Cstrain;
+          Tfr=Cstress;
 
-				else if (Crule==11.0)	{
+          if (Teb!=Ter0p)  {
 
-					Ter=Cstrain;
-					Tfr=Cstress;
+            if (Tea<=espln)  {
 
-					if (Teb!=Ter0p)	{
+              if (Tstrain<=Tea)  {  // Rule 12 targeting for ea on 3                
 
-						if (Tea<=espln)	{
+                r3f(Teunn,Tfunn,espln,Epln);   
 
-							if (Tstrain<=Tea)	{	// Rule 12 targeting for ea on 3							  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r3f(Teunn,Tfunn,espln,Epln);   
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
+                esi=Ter;
+                fi=Tfr;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
-								esi=Ter;
-								fi=Tfr;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              else if (Tstrain<=espln)  {  // Rule 3
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}
+                r3f(Teunn,Tfunn,espln,Epln);
+                Trule=3.0;
 
-							else if (Tstrain<=espln)	{	// Rule 3
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r3f(Teunn,Tfunn,espln,Epln);
-								Trule=3.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain<=Teunp)  {  // Rule 9
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r9f(espln,Epln,Teunp,fnewp,Enewp);
+                Trule=9.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain<=Teunp)	{	// Rule 9
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp);
-								Trule=9.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;      
+              }
+              else if (Tstrain<=esrep)  {  // Rule 8              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-								Tstress=fc;
-								Ttangent=Et;		  
-							}
-							else if (Tstrain<=esrep)	{	// Rule 8						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }      
+              else  {            // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tea<=Teunp)  {      // and Tea>espln
 
-								Tstress=fc;
-								Ttangent=Et;
-							}		  
-							else	{						// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 9              
 
-						else if (Tea<=Teunp)	{			// and Tea>espln
+                r9f(espln,Epln,Teunp,fnewp,Enewp); 
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 9						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp); 
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;        
+              }
+              else if (Tstrain<=Teunp)  {  // Rule 9              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r9f(espln,Epln,Teunp,fnewp,Enewp);
+                Trule=9.0;
 
-								Tstress=fc;
-								Ttangent=Et;			  
-							}
-							else if (Tstrain<=Teunp)	{	// Rule 9						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp);
-								Trule=9.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              }
 
-								Tstress=fc;
-								Ttangent=Et;
+              else if (Tstrain<=esrep)  {  // Rule 8              
 
-							}
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-							else if (Tstrain<=esrep)	{	// Rule 8						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 2 and 6        
+                fcEtpf(Tstrain,Te0);      
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tea<=esrep)  {  
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 2 and 6			  
-								fcEtpf(Tstrain,Te0);		  
-							}
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 8
 
-						else if (Tea<=esrep)	{	
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 8
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else if (Tstrain<=esrep)  {  // Rule 8              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else if (Tstrain<=esrep)	{	// Rule 8						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }            
+              else  {            // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }          
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {    // (Tea>esrep)
 
-								Tstress=fc;
-								Ttangent=Et;
-							}					  
-							else	{						// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}				  
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 2 or 6
 
-						else	{		// (Tea>esrep)
+                fcEtpf(Tea,Te0);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 2 or 6
+                fca=Tstress;
+                Eta=Ttangent;
 
-								fcEtpf(Tea,Te0);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=Tstress;
-								Eta=Ttangent;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else  {            // Rules 2 and 6
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
+          }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {  // if (Teb==Ter0p)
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else	{						// Rules 2 and 6
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
-					}
+            if (Tea<=esrestp)  {
 
-					else	{	// if (Teb==Ter0p)
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 88
 
-						if (Tea<=esrestp)	{
+                r88f(Tea,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 88
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r88f(Tea,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain<esrestp)  {  // Rule 88
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
+                Trule=88.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain<esrestp)	{	// Rule 88
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
-								Trule=88.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {  // if (Tea>esrestp)
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 2 or 6
 
-						else	{	// if (Tea>esrestp)
+                fcEtpf(Tea,Te0);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 2 or 6
+                fca=Tstress;
+                Eta=Ttangent;
 
-								fcEtpf(Tea,Te0);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=Tstress;
-								Eta=Ttangent;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else  {            // Rules 2 and 6
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
+          }
+        } // if (Crule==11.0)
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==13.0 || Crule==15.0)  {
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else	{						// Rules 2 and 6
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
-					}
-				} // if (Crule==11.0)
+          Ter=Cstrain;
+          Tfr=Cstress;
 
-				else if (Crule==13.0 || Crule==15.0)	{
+          if (Crule==13.0)  {
+            Tea=Ter;
+            fa=Tfr;
+            eb1415f(Tea,fa,Esecn);
+          }
 
-					Ter=Cstrain;
-					Tfr=Cstress;
+          else if (Crule==15.0)  {
+            Tea=Cea;
+            Teb=Ceb;
+          }
 
-					if (Crule==13.0)	{
-						Tea=Ter;
-						fa=Tfr;
-						eb1415f(Tea,fa,Esecn);
-					}
+          if (Tstrain<=Teb)  {          // Rule 14
 
-					else if (Crule==15.0)	{
-						Tea=Cea;
-						Teb=Ceb;
-					}
+            r14f(Ter,Tfr,Teb);
+            Trule=14.0;
 
-					if (Tstrain<=Teb)	{					// Rule 14
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r14f(Ter,Tfr,Teb);
-						Trule=14.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain<Teunp)  {      // Rule 66
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            r66f(Tstrain,Te0);
+            Trule=66.0;
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else if (Tstrain<Teunp)	{			// Rule 66
+          }
+          else  {              // Rule 6
+            fcEtpr6f(Tstrain,Te0);
+            Trule=6.0; 
+          }
+        } // if (Crule==13.0) or 15.0
 
-						r66f(Tstrain,Te0);
-						Trule=66.0;
+        else if (Crule==4.0)  {
 
-					}
-					else	{							// Rule 6
-						fcEtpr6f(Tstrain,Te0);
-						Trule=6.0; 
-					}
-				} // if (Crule==13.0) or 15.0
+          Ter0p=Cstrain;
+          Tfr0p=Cstress;
 
-				else if (Crule==4.0)	{
+          Teb=Ter0p;
 
-					Ter0p=Cstrain;
-					Tfr0p=Cstress;
+          fnewstpf(Tfunp,delfp,Teunp,Ter0p,esplp,Te0);
+          Enewstpf(fnewstp,Tfr0p,Teunp,Ter0p);
 
-					Teb=Ter0p;
+          esrestpf(Teunp,delep,Ter0p,esplp);
+          freErestpf(Teunp,Tfunp,Ter0p,Te0,espln);
 
-					fnewstpf(Tfunp,delfp,Teunp,Ter0p,esplp,Te0);
-					Enewstpf(fnewstp,Tfr0p,Teunp,Ter0p);
+          if (Tstrain<esrestp)  {        // Rule 88
 
-					esrestpf(Teunp,delep,Ter0p,esplp);
-					freErestpf(Teunp,Tfunp,Ter0p,Te0,espln);
+            r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
+            Trule=88.0;
 
-					if (Tstrain<esrestp)	{				// Rule 88
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
-						Trule=88.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          }
+          else  {                // Rules 2 and 6
 
-						Tstress=fc;
-						Ttangent=Et;
+            fcEtpf(Tstrain,Te0);
 
-					}
-					else	{								// Rules 2 and 6
+          }
 
-						fcEtpf(Tstrain,Te0);
+        } // if (Crule==4.0)
 
-					}
+        else if (Crule==77.0)  {          // Reversal from transition 77 [Rules 12,(3,9 or 9),8,2,6 or Rules 3,9,8,2,6] 
 
-				} // if (Crule==4.0)
+          if (Cstrain>=Teunn)  {      
 
-				else if (Crule==77.0)	{					// Reversal from transition 77 [Rules 12,(3,9 or 9),8,2,6 or Rules 3,9,8,2,6] 
+            Ter=Cstrain;
+            Tfr=Cstress;
 
-					if (Cstrain>=Teunn)	{			
+            Teb=Ter;
+            Tea=Ter0n;
 
-						Ter=Cstrain;
-						Tfr=Cstress;
+            if (Tea<=espln)  {        // Reversal from 77 by Rules [12,3,9,8,2,6]  
 
-						Teb=Ter;
-						Tea=Ter0n;
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 3
 
-						if (Tea<=espln)	{				// Reversal from 77 by Rules [12,3,9,8,2,6]	
+                r3f(Teunn,Tfunn,espln,Epln);   
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 3
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r3f(Teunn,Tfunn,espln,Epln);   
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;              
+              }             
+              else if (Tstrain<=espln)  {  // Rule 3
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r3f(Teunn,Tfunn,espln,Epln);
+                Trule=3.0;
 
-								Tstress=fc;
-								Ttangent=Et;						  
-							}					   
-							else if (Tstrain<=espln)	{	// Rule 3
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r3f(Teunn,Tfunn,espln,Epln);
-								Trule=3.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain<=Teunp)  {  // Rule 9
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r9f(espln,Epln,Teunp,fnewp,Enewp);
+                Trule=9.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain<=Teunp)	{	// Rule 9
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp);
-								Trule=9.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              }
+              else if (Tstrain<=esrep)  {  // Rule 8             
 
-								Tstress=fc;
-								Ttangent=Et;
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-							}
-							else if (Tstrain<=esrep)	{	// Rule 8						 
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }      
+              else  {            // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tea<=Teunp)  {      // Reversal from 77 by Rules [12,9,8,2,6]
 
-								Tstress=fc;
-								Ttangent=Et;
-							}		  
-							else	{						// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 9              
 
-						else if (Tea<=Teunp)	{			// Reversal from 77 by Rules [12,9,8,2,6]
+                r9f(espln,Epln,Teunp,fnewp,Enewp); 
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 9						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp); 
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;        
+              }
+              else if (Tstrain<=Teunp)  {  // Rule 9
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r9f(espln,Epln,Teunp,fnewp,Enewp);
+                Trule=9.0;
 
-								Tstress=fc;
-								Ttangent=Et;			  
-							}
-							else if (Tstrain<=Teunp)	{	// Rule 9
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp);
-								Trule=9.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain<=esrep)  {  // Rule 8              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain<=esrep)	{	// Rule 8						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 2 and 6        
+                fcEtpf(Tstrain,Te0);      
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tea<=esrep)  {      // Reversal from 77 by Rules [12,8,2,6]
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 2 and 6			  
-								fcEtpf(Tstrain,Te0);		  
-							}
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 8
 
-						else if (Tea<=esrep)	{			// Reversal from 77 by Rules [12,8,2,6]
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 8
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
+                esi=Ter;
+                fi=Tfr;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
-								esi=Ter;
-								fi=Tfr;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }
+              else if (Tstrain<=esrep)  {  // Rule 8
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}
-							else if (Tstrain<=esrep)	{	// Rule 8
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }            
+              else  {            // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }          
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {    // (Tea>esrep)    // Reversal from 88 by Rules [12,2,6]
 
-								Tstress=fc;
-								Ttangent=Et;
-							}					  
-							else	{						// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}				  
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 2 or 6
 
-						else	{		// (Tea>esrep)		// Reversal from 88 by Rules [12,2,6]
+                fcEtpf(Tea,Te0);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 2 or 6
+                fca=Tstress;
+                Eta=Ttangent;
 
-								fcEtpf(Tea,Te0);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=Tstress;
-								Eta=Ttangent;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }        
+              else  {            // Rules 2 and 6
+                fcEtpf(Tstrain,Te0);            
+              }
+            }          
+          }  // if (Cstrain>=Teunn)
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {  // if (Cstrain<Teunn)    // Reversal from transition 77 by Rules [3,9,8,2,6] 
 
-								Tstress=fc;
-								Ttangent=Et;
-							}				
-							else	{						// Rules 2 and 6
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}				  
-					}	// if (Cstrain>=Teunn)
+            Teunn=Cstrain;          
+            Tfunn=Cstress;
 
-					else	{	// if (Cstrain<Teunn)		// Reversal from transition 77 by Rules [3,9,8,2,6] 
+            e0eunpfunpf(Te0,Teunp,Tfunp,Teunn,Tfunn);
 
-						Teunn=Cstrain;				  
-						Tfunn=Cstress;
+            esplnf(Teunn,Tfunn);
+            Eplnf(Teunn);
 
-						e0eunpfunpf(Te0,Teunp,Tfunp,Teunn,Tfunn);
+            fnewpf(Tfunp,Teunp,Te0);
+            Enewpf(Teunp,Tfunp,Te0,espln);
 
-						esplnf(Teunn,Tfunn);
-						Eplnf(Teunn);
+            esrepf(Teunp,Te0);
+            freErepf(Teunp,Te0);
 
-						fnewpf(Tfunp,Teunp,Te0);
-						Enewpf(Teunp,Tfunp,Te0,espln);
+            if (Tstrain<=espln)  {        // Rule 3    
 
-						esrepf(Teunp,Te0);
-						freErepf(Teunp,Te0);
+              r3f(Teunn,Tfunn,espln,Epln);
+              Trule=3.0;
 
-						if (Tstrain<=espln)	{				// Rule 3	  
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r3f(Teunn,Tfunn,espln,Epln);
-							Trule=3.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }            
+            else if (Tstrain<=Teunp)  {    // Rule 9              
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              r9f(espln,Epln,Teunp,fnewp,Enewp);                  
+              Trule=9.0;                  
 
-							Tstress=fc;
-							Ttangent=Et;
-						}					  
-						else if (Tstrain<=Teunp)	{		// Rule 9						  
+              RAf(esi,fi,Ei,esf,ff,Ef);                
 
-							r9f(espln,Epln,Teunp,fnewp,Enewp);						  	  
-							Trule=9.0;						  	  
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);     
 
-							RAf(esi,fi,Ei,esf,ff,Ef);					  	  
+              Tstress=fc;     
+              Ttangent=Et;          
+            }
+            else if (Tstrain<=esrep)  {    // Rule 8                  
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R); 	  
+              r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);  
+              Trule=8.0;    
 
-							Tstress=fc; 	  
-							Ttangent=Et;		  	  
-						}
-						else if (Tstrain<=esrep)	{		// Rule 8						  	  
+              RAf(esi,fi,Ei,esf,ff,Ef);    
 
-							r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);  
-							Trule=8.0;	  
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);     
 
-							RAf(esi,fi,Ei,esf,ff,Ef);	  
+              Tstress=fc;      
+              Ttangent=Et;              
+            }              
+            else  {              // Rules 2 and 6                    
+              fcEtpf(Tstrain,Te0);                
+            }           
+          }  // if (Cstrain<Teunn)        
+        }  // if (Crule==77.0)
+      } // if (Tstrain>Cstrain)
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R); 	  
+      //////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////
 
-							Tstress=fc;  	  
-							Ttangent=Et;						  
-						}						  
-						else	{							// Rules 2 and 6						  		  
-							fcEtpf(Tstrain,Te0);					  	  
-						} 				  
-					}	// if (Cstrain<Teunn)			  
-				}	// if (Crule==77.0)
-			} // if (Tstrain>Cstrain)
+      else  {  //  if (Tstrain<=Cstrain)  // Continue going to negative direction
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			//////////////////////////////////////////////////////////////////////////////////////////
-			//////////////////////////////////////////////////////////////////////////////////////////
+        if (Crule==4.0 || Crule ==10.0 || Crule==7.0 )  {  // or 10.0 or 7.0
 
-			else	{	//	if (Tstrain<=Cstrain)	// Continue going to negative direction
+          if (Tstrain>=esplp)  {
 
-				if (Crule==4.0 || Crule ==10.0 || Crule==7.0 )	{	// or 10.0 or 7.0
+            r4f(Teunp,Tfunp,esplp,Eplp);
+            Trule=4.0;
 
-					if (Tstrain>=esplp)	{
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r4f(Teunp,Tfunp,esplp,Eplp);
-						Trule=4.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain>=Teunn)  {
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+            Trule=10.0;
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else if (Tstrain>=Teunn)	{
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-						Trule=10.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            // Fix 2
+            Esectest = (ff-fi)/(esf-esi);
+            if (Et==Esectest) {
+              if (Tstrain>=espln) {
+                fc=0;
+                Et=0;
+                Trule=10.0;
+              } else {
+                Et=Enewn;
+                fc=Et*(Tstrain-espln);
+                Trule=10.0;
+              }
+            }
+            // Fix 2
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            Tstress=fc;
+            Ttangent=Et;
 
-						// Fix 2
-						Esectest = (ff-fi)/(esf-esi);
-						if (Et==Esectest) {
-							if (Tstrain>=espln) {
-								fc=0;
-								Et=0;
-								Trule=10.0;
-							} else {
-								Et=Enewn;
-								fc=Et*(Tstrain-espln);
-								Trule=10.0;
-							}
-						}
-						// Fix 2
+          }
+          else if (Tstrain>=esren)  {
 
-						Tstress=fc;
-						Ttangent=Et;
+            r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+            Trule=7.0;
 
-					}
-					else if (Tstrain>=esren)	{
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-						Trule=7.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
+            fcEtnf(Tstrain);
+          }
 
-					else	{
+        }  // if (Crule==4.0)  // or 10.0 or 7.0
 
-						fcEtnf(Tstrain);
-					}
+        else if (Crule==1.0 || Crule==5.0)  {  // or 5.0
 
-				}	// if (Crule==4.0)	// or 10.0 or 7.0
+          fcEtnf(Tstrain);
 
-				else if (Crule==1.0 || Crule==5.0)	{	// or 5.0
+        }  // if (Crule==1.0)  // or 5.0 or 7.0
 
-					fcEtnf(Tstrain);
+        else if (Crule==77.0)  {      // Continue on transition 77 [Rules 77,1,5]
 
-				}	// if (Crule==1.0)	// or 5.0 or 7.0
+          if (Tstrain>esrestn)  {    // Rule 77
 
-				else if (Crule==77.0)	{			// Continue on transition 77 [Rules 77,1,5]
+            r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
+            Trule=77.0;
 
-					if (Tstrain>esrestn)	{		// Rule 77
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
-						Trule=77.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {            // Rules 1 and 5              
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
+            fcEtnf(Tstrain);
 
-					else	{						// Rules 1 and 5						  
+          }
 
-						fcEtnf(Tstrain);
+        }  // if (Crule==77.0)
 
-					}
+        else if (Crule==13.0)  {      // Continue on transition 13 [Rules 13,7,1,5]
 
-				}	// if (Crule==77.0)
+          if (Tstrain>=Teunn)  {  // Rule 13
 
-				else if (Crule==13.0)	{			// Continue on transition 13 [Rules 13,7,1,5]
+            r13f(Ted,Teunn,fnewn,Enewn);
+            Trule=13.0;
 
-					if (Tstrain>=Teunn)	{	// Rule 13
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r13f(Ted,Teunn,fnewn,Enewn);
-						Trule=13.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            // Fix 1
+            Esectest = (ff-fi) / (esf-esi);
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            if (Et==Esectest) { 
+              if (Tstrain>=espln) { 
+                fc=0.0;
+                Et=0.0;
+                Trule=13.0;
+              } else { 
+                Et=Enewn;
+                fc=Et*(Tstrain-espln);
+                Trule=13.0;
+              } 
+            } 
+            // Fix 1
 
-						// Fix 1
-						Esectest = (ff-fi) / (esf-esi);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain>=esren)  {  // Rule 7
 
-						if (Et==Esectest) { 
-							if (Tstrain>=espln) { 
-								fc=0.0;
-								Et=0.0;
-								Trule=13.0;
-							} else { 
-								Et=Enewn;
-								fc=Et*(Tstrain-espln);
-								Trule=13.0;
-							} 
-						} 
-						// Fix 1
+            r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+            Trule=7.0;
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else if (Tstrain>=esren)	{	// Rule 7
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-						Trule=7.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else  {            // Rules 1 and 5
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            fcEtnf(Tstrain);          
+          }
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else	{						// Rules 1 and 5
+        }  // if (Crule==13.0)
 
-						fcEtnf(Tstrain);					
-					}
+        else if (Crule==11.0)  {      // Continue on transition 11 [Rules 11,(4,10 or 10),7,1,5 or Rules 11,77,1,5] 
 
-				}	// if (Crule==13.0)
+          if (Tea!=Ter0n)  {
 
-				else if (Crule==11.0)	{			// Continue on transition 11 [Rules 11,(4,10 or 10),7,1,5 or Rules 11,77,1,5] 
+            if (Teb>=esplp)  {
 
-					if (Tea!=Ter0n)	{
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 4
 
-						if (Teb>=esplp)	{
+                r4f(Teunp,Tfunp,esplp,Eplp);  
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 4
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r4f(Teunp,Tfunp,esplp,Eplp);	
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+                            else if (Tstrain>=esplp)  {  // Rule 4
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r4f(Teunp,Tfunp,esplp,Eplp);
+                Trule=4.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-                            else if (Tstrain>=esplp)	{	// Rule 4
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r4f(Teunp,Tfunp,esplp,Eplp);
-								Trule=4.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=Teunn)  {  // Rule 10
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+                Trule=10.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=Teunn)	{	// Rule 10
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-								Trule=10.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                // Fix 2 
+                Esectest=(ff-fi)/(esf-esi);
+                if (Et==Esectest) {
+                  if (Tstrain>=espln) {
+                    fc=0;
+                    Et=0;
+                    Trule=10.0;
+                  } else {
+                    Et=Enewn;
+                    fc=Et*(Tstrain-espln);
+                    Trule=10.0;
+                  }
+                }
+                // Fix 2
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                Tstress=fc;
+                Ttangent=Et;
+              }
 
-								// Fix 2 
-								Esectest=(ff-fi)/(esf-esi);
-								if (Et==Esectest) {
-									if (Tstrain>=espln) {
-										fc=0;
-										Et=0;
-										Trule=10.0;
-									} else {
-										Et=Enewn;
-										fc=Et*(Tstrain-espln);
-										Trule=10.0;
-									}
-								}
-								// Fix 2
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                fcEtnf(Tstrain);
+              }
+            }
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
+            else if (Teb>=Teunn)  {      // and Teb<esplp
 
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 10
 
-						else if (Teb>=Teunn)	{			// and Teb<esplp
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn); 
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 10
+                esi10=esi; //KK     
+                fi10=fi;
+                Ei10=Ei;
+                esf10=esf;
+                ff10=ff;
+                Ef10=Ef;
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn); 
+                RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
 
-								esi10=esi; //KK     
-								fi10=fi;
-								Ei10=Ei;
-								esf10=esf;
-								ff10=ff;
-								Ef10=Ef;
+                R10=R; //KK     
+                A10=A;
 
-								RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
+                fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
 
-								R10=R; //KK     
-								A10=A;
+                fcb=fc; //KK    
+                Etb=Et; 
 
-								fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
+                // Fix 2 
+                Esectest10 = (ff10-fi10)/(esf10-esi10);
+                if (Etb==Esectest10) {
+                  if (Teb>=espln) {
+                    fcb=0;
+                    Etb=0;
+                  } else {
+                    Etb=Enewn;
+                    fcb=Etb*(Teb-espln);
+                  }
+                }
+                // Fix 2
 
-								fcb=fc; //KK    
-								Etb=Et; 
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								// Fix 2 
-								Esectest10 = (ff10-fi10)/(esf10-esi10);
-								if (Etb==Esectest10) {
-									if (Teb>=espln) {
-										fcb=0;
-										Etb=0;
-									} else {
-										Etb=Enewn;
-										fcb=Etb*(Teb-espln);
-									}
-								}
-								// Fix 2
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=Teunn)  {  // Rule 10
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+                Trule=10.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=Teunn)	{	// Rule 10
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-								Trule=10.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                // Fix 2  
+                Esectest = (ff-fi)/(esf-esi);
+                if (Et==Esectest) {
+                  if (Tstrain>=espln) {
+                    fc=0;
+                    Et=0;
+                    Trule=10.0;
+                  } else {
+                    Et=Enewn;
+                    fc=Et*(Tstrain-espln);
+                    Trule=10.0;
+                  }
+                }
+                // Fix 2
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                Tstress=fc;
+                Ttangent=Et;;
+              }
 
-								// Fix 2  
-								Esectest = (ff-fi)/(esf-esi);
-								if (Et==Esectest) {
-									if (Tstrain>=espln) {
-										fc=0;
-										Et=0;
-										Trule=10.0;
-									} else {
-										Et=Enewn;
-										fc=Et*(Tstrain-espln);
-										Trule=10.0;
-									}
-								}
-								// Fix 2
+              else if (Tstrain>=esren)  {  // Rule 7              
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-								Tstress=fc;
-								Ttangent=Et;;
-							}
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-							else if (Tstrain>=esren)	{	// Rule 7						  
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                fcEtnf(Tstrain);
+              }
+            }
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
+            else if (Teb>=esren)  {  
 
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 7
 
-						else if (Teb>=esren)	{	
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 7
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                fcEtnf(Tstrain);
+              }
+            }
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
+            else  {    // (Teb<esren)
 
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 1 or 5
 
-						else	{		// (Teb<esren)
+                fcEtnf(Teb);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 1 or 5
+                fcb=Tstress;
+                Etb=Ttangent;
 
-								fcEtnf(Teb);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=Tstress;
-								Etb=Ttangent;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Eta,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Eta,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;            
+              }
+              else  {            // Rules 1 and 5
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                fcEtnf(Tstrain);
+              }
+            }
+          }
 
-								Tstress=fc;
-								Ttangent=Et;					  
-							}
-							else	{						// Rules 1 and 5
+          else  {  // if (Tea==Ter0n)
 
-								fcEtnf(Tstrain);
-							}
-						}
-					}
+            if (Teb>=esrestn)  {
 
-					else	{	// if (Tea==Ter0n)
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 77
 
-						if (Teb>=esrestn)	{
+                r77f(Teb,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 77
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r77f(Teb,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>esrestn)  {  // Rule 77
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
+                Trule=77.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>esrestn)	{	// Rule 77
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
-								Trule=77.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                fcEtnf(Tstrain);            
+              }
+            }
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5						  
+            else  {  // if (Teb<esrestn)
 
-								fcEtnf(Tstrain);					  
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 1 or 5
 
-						else	{	// if (Teb<esrestn)
+                fcEtnf(Teb);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 1 or 5
+                fcb=Tstress;
+                Etb=Ttangent;
 
-								fcEtnf(Teb);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=Tstress;
-								Etb=Ttangent;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);            
+              }
+            }
+          }  
+        } // if (Crule==11.0)
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==15.0)  {          // Continue on transition 15 [Rules 15,13,7,1,5]
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);					  
-							}
-						}
-					}	
-				} // if (Crule==11.0)
+          if (Tstrain>=Tea)  {          // Rule 15 targeting for ea (ed) on 13
 
-				else if (Crule==15.0)	{					// Continue on transition 15 [Rules 15,13,7,1,5]
+            r13f(Ted,Teunn,fnewn,Enewn);
 
-					if (Tstrain>=Tea)	{					// Rule 15 targeting for ea (ed) on 13
+            esi13=esi; //KK
+            fi13=fi;
+            Ei13=Ei;
+            esf13=esf;
+            ff13=ff;
+            Ef13=Ef;
 
-						r13f(Ted,Teunn,fnewn,Enewn);
+            RAf(esi13,fi13,Ei13,esf13,ff13,Ef13);
 
-						esi13=esi; //KK
-						fi13=fi;
-						Ei13=Ei;
-						esf13=esf;
-						ff13=ff;
-						Ef13=Ef;
+            R13=R; // KK
+            A13=A;
 
-						RAf(esi13,fi13,Ei13,esf13,ff13,Ef13);
+            fcEturf(Tea,esi13,fi13,esf13,ff13,Ei13,Ef13,A13,R13);
 
-						R13=R; // KK
-						A13=A;
+            fca=fc; // KK
+            Eta=Et;
 
-						fcEturf(Tea,esi13,fi13,esf13,ff13,Ei13,Ef13,A13,R13);
+            // Fix 1 
+            Esectest13=(ff13-fi13)/(esf13-esi13); // KK
 
-						fca=fc; // KK
-						Eta=Et;
+            if (Eta==Esectest13) { 
+              if (Tea>=espln) { 
+                fca=0;
+                Eta=0;
+              } else { 
+                Eta=Enewn;
+                fca=Et*(Tea-espln);
+              } 
+            } 
+            // Fix 1
 
-						// Fix 1 
-						Esectest13=(ff13-fi13)/(esf13-esi13); // KK
+            esi=Ter;
+            fi=Tfr;
+            Ei=Ec;
+            esf=Tea;
 
-						if (Eta==Esectest13) { 
-							if (Tea>=espln) { 
-								fca=0;
-								Eta=0;
-							} else { 
-								Eta=Enewn;
-								fca=Et*(Tea-espln);
-							} 
-						} 
-						// Fix 1
+            RAf(esi,fi,Ei,esf,fca,Eta);
 
-						esi=Ter;
-						fi=Tfr;
-						Ei=Ec;
-						esf=Tea;
+            r15f(Ter,Tfr,Tea,fca,Eta,A,R);
+            Trule=15.0;
 
-						RAf(esi,fi,Ei,esf,fca,Eta);
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						r15f(Ter,Tfr,Tea,fca,Eta,A,R);
-						Trule=15.0;
+            Tstress=fc;
+            Ttangent=Et;
+          }
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else if (Tstrain>=Teunn)  {      // Rule 13
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
+            r13f(Ted,Teunn,fnewn,Enewn);
+            Trule=13.0;
 
-					else if (Tstrain>=Teunn)	{			// Rule 13
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r13f(Ted,Teunn,fnewn,Enewn);
-						Trule=13.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            // Fix 1 
+            Esectest=(ff-fi)/(esf-esi);
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            if (Et==Esectest) { 
+              if (Tstrain>=espln) { 
+                fc=0;
+                Et=0;
+                Trule=13.0;
 
-						// Fix 1 
-						Esectest=(ff-fi)/(esf-esi);
+              } else { 
 
-						if (Et==Esectest) { 
-							if (Tstrain>=espln) { 
-								fc=0;
-								Et=0;
-								Trule=13.0;
+                Et=Enewn;
+                fc=Et*(Tstrain-espln);
+                Trule=13.0;
+              } 
+            } 
+            // Fix 1
 
-							} else { 
+            Tstress=fc;
+            Ttangent=Et;
 
-								Et=Enewn;
-								fc=Et*(Tstrain-espln);
-								Trule=13.0;
-							} 
-						} 
-						// Fix 1
+          }
+          else if (Tstrain>=esren)  {      // Rule 7
 
-						Tstress=fc;
-						Ttangent=Et;
+            r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+            Trule=7.0;
 
-					}
-					else if (Tstrain>=esren)	{			// Rule 7
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-						Trule=7.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else  {                // Rules 1 and 5
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            fcEtnf(Tstrain);          
+          }
+        }  // if (Crule==15.0)
+      }    // if (Tstrain<=Cstrain)
+    }      // if (Cinc==-1.0)
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else	{								// Rules 1 and 5
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////
 
-						fcEtnf(Tstrain);					
-					}
-				}	// if (Crule==15.0)
-			}		// if (Tstrain<=Cstrain)
-		}			// if (Cinc==-1.0)
+    else  {  // if (Cinc==1.0)
 
-		//////////////////////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////////////////////
+      if (Tstrain<Cstrain) 
+      {    // Starts reversal from positive direction to negative direction
 
-		else	{	// if (Cinc==1.0)
+        if ( fabs(Cstress) == 0.0) 
+        {     // Gap Model 
 
-			if (Tstrain<Cstrain) 
-			{    // Starts reversal from positive direction to negative direction
+          Teunp=Cstrain;
+          Tfunp=Cstress;
 
-				if ( fabs(Cstress) == 0.0) 
-				{     // Gap Model 
+          fcEtnf(Teunn);
+          Tfunn=Tstress;
 
-					Teunp=Cstrain;
-					Tfunp=Cstress;
+          Ter=Cstrain;
+          Tfr=Cstress;          
 
-					fcEtnf(Teunn);
-					Tfunn=Tstress;
+          Ted=Ter;
 
-					Ter=Cstrain;
-					Tfr=Cstress;          
+          fnewnf(Teunn,Tfunn);
+          Enewnf(Teunn,Tfunn);
 
-					Ted=Ter;
+          if (Tstrain>=Teunn)  
+          {    // Rule 13
 
-					fnewnf(Teunn,Tfunn);
-					Enewnf(Teunn,Tfunn);
+            r13f(Ted,Teunn,fnewn,Enewn);
+            Trule=13.0;
 
-					if (Tstrain>=Teunn)	
-					{		// Rule 13
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r13f(Ted,Teunn,fnewn,Enewn);
-						Trule=13.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            // Fix 1  
+            Esectest=(ff-fi)/(esf-esi);
+            if ( Et==Esectest ) 
+            { 
+              if ( Tstrain>=espln ) { 
+                fc=0;
+                Et=0;
+                Trule=13.0;
+              } else { 
+                Et=Enewn;
+                fc=Et*(Tstrain-espln);
+                Trule=13.0;
+              } 
+            } 
+            // Fix 1
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            Tstress=fc;
+            Ttangent=Et;
+          } 
+          else if ( Tstrain>=esren ) 
+          { 
+            r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+            Trule=7.0;
 
-						// Fix 1  
-						Esectest=(ff-fi)/(esf-esi);
-						if ( Et==Esectest ) 
-						{ 
-							if ( Tstrain>=espln ) { 
-								fc=0;
-								Et=0;
-								Trule=13.0;
-							} else { 
-								Et=Enewn;
-								fc=Et*(Tstrain-espln);
-								Trule=13.0;
-							} 
-						} 
-						// Fix 1
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						Tstress=fc;
-						Ttangent=Et;
-					} 
-					else if ( Tstrain>=esren ) 
-					{ 
-						r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-						Trule=7.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          } 
+          else 
+          {
+            fcEtnf(Tstrain);
+          } 
+        } 
+        else if (Crule==2.0 || Crule==8.0) 
+        {   // Starts reversal from non-cracked envelope (Rule 2) or Rule 8 [Rules 4,10,7,1,5]
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          Teunp=Cstrain;
 
-						Tstress=fc;
-						Ttangent=Et;
-					} 
-					else 
-					{
-						fcEtnf(Tstrain);
-					} 
-				} 
-				else if (Crule==2.0 || Crule==8.0) 
-				{   // Starts reversal from non-cracked envelope (Rule 2) or Rule 8 [Rules 4,10,7,1,5]
+          fcEtpf(Teunp,Te0);  // need Tfunp only from fcEtpf
+          Tfunp=Tstress;
 
-					Teunp=Cstrain;
+          Esecpf(Te0,Teunp,Tfunp,espln);
 
-					fcEtpf(Teunp,Te0);	// need Tfunp only from fcEtpf
-					Tfunp=Tstress;
+          esplpf(Teunp,Tfunp,Te0,espln);
+          Eplpf(Te0,Teunp);         
 
-					Esecpf(Te0,Teunp,Tfunp,espln);
+          if (Tstrain>=esplp) 
+          {  
+            r4f(Teunp,Tfunp,esplp,Eplp);
+            Trule=4.0;
 
-					esplpf(Teunp,Tfunp,Te0,espln);
-					Eplpf(Te0,Teunp);         
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-					if (Tstrain>=esplp) 
-					{  
-						r4f(Teunp,Tfunp,esplp,Eplp);
-						Trule=4.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          } 
+          else if ( Tstrain>=Teunn ) 
+          { 
+            r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+            Trule=10.0;
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						Tstress=fc;
-						Ttangent=Et;
-					} 
-					else if ( Tstrain>=Teunn ) 
-					{ 
-						r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-						Trule=10.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            // Fix 2  
+            Esectest=(ff-fi)/(esf-esi);
+            if (Et==Esectest) {
+              if (Tstrain>=espln) {
+                fc=0;
+                Et=0;
+                Trule=10.0;
+              } else {
+                Et=Enewn;
+                fc=Et*(Tstrain-espln);
+                Trule=10.0;
+              }
+            }  
+            // Fix 2
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            Tstress=fc;
+            Ttangent=Et;
+          } 
+          else if ( Tstrain>=esren ) 
+          { 
+            r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+            Trule=7.0;
 
-						// Fix 2  
-						Esectest=(ff-fi)/(esf-esi);
-						if (Et==Esectest) {
-							if (Tstrain>=espln) {
-								fc=0;
-								Et=0;
-								Trule=10.0;
-							} else {
-								Et=Enewn;
-								fc=Et*(Tstrain-espln);
-								Trule=10.0;
-							}
-						}	
-						// Fix 2
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						Tstress=fc;
-						Ttangent=Et;
-					} 
-					else if ( Tstrain>=esren ) 
-					{ 
-						r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-						Trule=7.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          } 
+          else 
+          { 
+            fcEtnf(Tstrain);
+          } 
+        }
+        else if (Crule==9.0)  {
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          Ter=Cstrain;
+          Tfr=Cstress;
 
-						Tstress=fc;
-						Ttangent=Et;
-					} 
-					else 
-					{ 
-						fcEtnf(Tstrain);
-					} 
-				}
-				else if (Crule==9.0)	{
+          Tea=Ter;
+          fa=Tfr;
 
-					Ter=Cstrain;
-					Tfr=Cstress;
+          eb1112f(Tea,espln,esplp,Teunn,Teunp);
 
-					Tea=Ter;
-					fa=Tfr;
+          if (Teb>=esplp)  {
 
-					eb1112f(Tea,espln,esplp,Teunn,Teunp);
+            if (Tstrain>=Teb)  {        // Rule 11 targeting for eb on 4
 
-					if (Teb>=esplp)	{
+              r4f(Teunp,Tfunp,esplp,Eplp);
 
-						if (Tstrain>=Teb)	{				// Rule 11 targeting for eb on 4
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r4f(Teunp,Tfunp,esplp,Eplp);
+              fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              fcb=fc;
+              Etb=Et;
 
-							fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Teb;
 
-							fcb=fc;
-							Etb=Et;
+              RAf(esi,fi,Ei,esf,fcb,Etb);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Teb;
+              r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+              Trule=11.0;
 
-							RAf(esi,fi,Ei,esf,fcb,Etb);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-							Trule=11.0;
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else if (Tstrain>=esplp)  {  // Rule 4
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              r4f(Teunp,Tfunp,esplp,Eplp);
+              Trule=4.0;
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else if (Tstrain>=esplp)	{	// Rule 4
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r4f(Teunp,Tfunp,esplp,Eplp);
-							Trule=4.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else if (Tstrain>=Teunn)  {  // Rule 10
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+              Trule=10.0;
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else if (Tstrain>=Teunn)	{	// Rule 10
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-							Trule=10.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              // Fix 2  
+              Esectest=(ff-fi)/(esf-esi);
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              if (Et==Esectest) {
+                if (Tstrain>=espln) {
+                  fc=0;
+                  Et=0;
+                  Trule=10.0;
+                } else {
+                  Et=Enewn;
+                  fc=Et*(Tstrain-espln);
+                  Trule=10.0;
+                }
+              }
+              // Fix 2
 
-							// Fix 2  
-							Esectest=(ff-fi)/(esf-esi);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else if (Tstrain>=esren)  {  // Rule 7              
 
-							if (Et==Esectest) {
-								if (Tstrain>=espln) {
-									fc=0;
-									Et=0;
-									Trule=10.0;
-								} else {
-									Et=Enewn;
-									fc=Et*(Tstrain-espln);
-									Trule=10.0;
-								}
-							}
-							// Fix 2
+              r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+              Trule=7.0;
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else if (Tstrain>=esren)	{	// Rule 7						  
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-							Trule=7.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else  {            // Rules 1 and 5
+              fcEtnf(Tstrain);
+            }
+          }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else if (Teb>=Teunn)  {      // and Teb<esplp
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else	{						// Rules 1 and 5
-							fcEtnf(Tstrain);
-						}
-					}
+            if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 10
 
-					else if (Teb>=Teunn)	{			// and Teb<esplp
+              r10f(esplp,Eplp,Teunn,fnewn,Enewn);
 
-						if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 10
+              esi10=esi; //KK 
+              fi10=fi;
+              Ei10=Ei;
+              esf10=esf;
+              ff10=ff;
+              Ef10=Ef;
 
-							r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+              RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
 
-							esi10=esi; //KK 
-							fi10=fi;
-							Ei10=Ei;
-							esf10=esf;
-							ff10=ff;
-							Ef10=Ef;
+              R10=R; //KK 
+              A10=A;
 
-							RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
+              fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
 
-							R10=R; //KK 
-							A10=A;
+              fcb=fc; 
+              Etb=Et; 
 
-							fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
+              // Fix 2 
+              Esectest10=(ff10-fi10)/(esf10-esi10); 
+              if (Etb==Esectest10) {
+                if (Teb>=espln) {
+                  fcb=0;
+                  Etb=0;
+                } else {
+                  Etb=Enewn;
+                  fcb=Etb*(Teb-espln);
+                }
+              }
+              // Fix 2
 
-							fcb=fc; 
-							Etb=Et; 
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Teb;
 
-							// Fix 2 
-							Esectest10=(ff10-fi10)/(esf10-esi10); 
-							if (Etb==Esectest10) {
-								if (Teb>=espln) {
-									fcb=0;
-									Etb=0;
-								} else {
-									Etb=Enewn;
-									fcb=Etb*(Teb-espln);
-								}
-							}
-							// Fix 2
+              RAf(esi,fi,Ei,esf,fcb,Etb);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Teb;
+              r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+              Trule=11.0;
 
-							RAf(esi,fi,Ei,esf,fcb,Etb);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-							Trule=11.0;
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else if (Tstrain>=Teunn)  {  // Rule 10
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+              Trule=10.0;
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else if (Tstrain>=Teunn)	{	// Rule 10
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-							Trule=10.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              // Fix 2  
+              Esectest = (ff-fi)/(esf-esi);
+              if (Et==Esectest) {
+                if (Tstrain>=espln) {
+                  fc=0;
+                  Et=0;
+                  Trule=10.0;
+                } else {
+                  Et=Enewn;
+                  fc=Et*(Tstrain-espln);
+                  Trule=10.0;
+                }
+              }  
+              // Fix 2
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              Tstress=fc;
+              Ttangent=Et;;
+            }
+            else if (Tstrain>=esren)  {  // Rule 7              
 
-							// Fix 2  
-							Esectest = (ff-fi)/(esf-esi);
-							if (Et==Esectest) {
-								if (Tstrain>=espln) {
-									fc=0;
-									Et=0;
-									Trule=10.0;
-								} else {
-									Et=Enewn;
-									fc=Et*(Tstrain-espln);
-									Trule=10.0;
-								}
-							}	
-							// Fix 2
+              r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+              Trule=7.0;
 
-							Tstress=fc;
-							Ttangent=Et;;
-						}
-						else if (Tstrain>=esren)	{	// Rule 7						  
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-							Trule=7.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else  {            // Rules 1 and 5
+              fcEtnf(Tstrain);
+            }
+          }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else if (Teb>=esren)  {  
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else	{						// Rules 1 and 5
-							fcEtnf(Tstrain);
-						}
-					}
+            if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 7
 
-					else if (Teb>=esren)	{	
+              r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
 
-						if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 7
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+              fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              fcb=fc;
+              Etb=Et;
 
-							fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Teb;
 
-							fcb=fc;
-							Etb=Et;
+              RAf(esi,fi,Ei,esf,fcb,Etb);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Teb;
+              r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+              Trule=11.0;
 
-							RAf(esi,fi,Ei,esf,fcb,Etb);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-							Trule=11.0;
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else if (Tstrain>=esren)  {  // Rule 7              
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+              Trule=7.0;
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else if (Tstrain>=esren)	{	// Rule 7						  
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-							Trule=7.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else  {            // Rules 1 and 5
+              fcEtnf(Tstrain);
+            }
+          }
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {    // (Teb<esren)
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else	{						// Rules 1 and 5
-							fcEtnf(Tstrain);
-						}
-					}
+            if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 1 or 5
 
-					else	{		// (Teb<esren)
+              fcEtnf(Teb);
 
-						if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 1 or 5
+              fcb=Tstress;
+              Etb=Ttangent;
 
-							fcEtnf(Teb);
+              esi=Ter;
+              fi=Tfr;
+              Ei=Ec;
+              esf=Teb;
 
-							fcb=Tstress;
-							Etb=Ttangent;
+              RAf(esi,fi,Ei,esf,fcb,Etb);
 
-							esi=Ter;
-							fi=Tfr;
-							Ei=Ec;
-							esf=Teb;
+              r11f(Ter,Tfr,Teb,fcb,Eta,A,R);
+              Trule=11.0;
 
-							RAf(esi,fi,Ei,esf,fcb,Etb);
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							r11f(Ter,Tfr,Teb,fcb,Eta,A,R);
-							Trule=11.0;
+              Tstress=fc;
+              Ttangent=Et;            
+            }
+            else  {            // Rules 1 and 5
+              fcEtnf(Tstrain);
+            }
+          }
+        } // if (Crule=9.0)
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==12.0)  {
 
-							Tstress=fc;
-							Ttangent=Et;					  
-						}
-						else	{						// Rules 1 and 5
-							fcEtnf(Tstrain);
-						}
-					}
-				} // if (Crule=9.0)
+          Ter=Cstrain;
+          Tfr=Cstress;
 
-				else if (Crule==12.0)	{
+          if (Tea!=Ter0n)  {
 
-					Ter=Cstrain;
-					Tfr=Cstress;
+            if (Teb>=esplp)  {
 
-					if (Tea!=Ter0n)	{
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 4
 
-						if (Teb>=esplp)	{
+                r4f(Teunp,Tfunp,esplp,Eplp);  
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 4
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r4f(Teunp,Tfunp,esplp,Eplp);	
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                Trule=11.0;
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=esplp)  {  // Rule 4
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r4f(Teunp,Tfunp,esplp,Eplp);
+                Trule=4.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=esplp)	{	// Rule 4
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r4f(Teunp,Tfunp,esplp,Eplp);
-								Trule=4.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=Teunn)  {  // Rule 10
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+                Trule=10.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=Teunn)	{	// Rule 10
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-								Trule=10.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                // Fix 2  
+                Esectest=(ff-fi)/(esf-esi);
+                if (Et==Esectest) {
+                  if (Tstrain>=espln) {
+                    fc=0;
+                    Et=0;
+                    Trule=10.0;
+                  } else {
+                    Et=Enewn;
+                    fc=Et*(Tstrain-espln);
+                    Trule=10.0;
+                  }
+                }
+                // Fix 2
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                Tstress=fc;
+                Ttangent=Et;
 
-								// Fix 2  
-								Esectest=(ff-fi)/(esf-esi);
-								if (Et==Esectest) {
-									if (Tstrain>=espln) {
-										fc=0;
-										Et=0;
-										Trule=10.0;
-									} else {
-										Et=Enewn;
-										fc=Et*(Tstrain-espln);
-										Trule=10.0;
-									}
-								}
-								// Fix 2
+              }
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								Tstress=fc;
-								Ttangent=Et;
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-							}
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Teb>=Teunn)  {      // and Teb<esplp
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 10
 
-						else if (Teb>=Teunn)	{			// and Teb<esplp
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn); 
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 10
+                esi10=esi; //KK
+                fi10=fi;
+                Ei10=Ei;
+                esf10=esf;
+                ff10=ff;
+                Ef10=Ef;
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn); 
+                RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
 
-								esi10=esi; //KK
-								fi10=fi;
-								Ei10=Ei;
-								esf10=esf;
-								ff10=ff;
-								Ef10=Ef;
+                R10=R; //KK
+                A10=A;
 
-								RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
+                fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
 
-								R10=R; //KK
-								A10=A;
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
+                // Fix 2 
+                Esectest10 = (ff10-fi10)/(esf10-esi10);
+                if (Etb==Esectest10) {
+                  if (Teb>=espln) {
+                    fcb=0;
+                    Etb=0;
+                  } else {
+                    Etb=Enewn;
+                    fcb=Etb*(Teb-espln);
+                  }
+                }
+                // Fix 2
 
-								fcb=fc;
-								Etb=Et;
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								// Fix 2 
-								Esectest10 = (ff10-fi10)/(esf10-esi10);
-								if (Etb==Esectest10) {
-									if (Teb>=espln) {
-										fcb=0;
-										Etb=0;
-									} else {
-										Etb=Enewn;
-										fcb=Etb*(Teb-espln);
-									}
-								}
-								// Fix 2
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=Teunn)  {  // Rule 10
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+                Trule=10.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=Teunn)	{	// Rule 10
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-								Trule=10.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                // Fix 2 
+                Esectest = (ff-fi)/(esf-esi);
+                if (Et==Esectest) {
+                  if (Tstrain>=espln) {
+                    fc=0;
+                    Et=0;
+                    Trule=10.0;
+                  } else { 
+                    Et=Enewn;
+                    fc=Et*(Tstrain-espln);
+                    Trule=10.0;
+                  }
+                }
+                // Fix 2
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                Tstress=fc;
+                Ttangent=Et;;
+              }
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								// Fix 2 
-								Esectest = (ff-fi)/(esf-esi);
-								if (Et==Esectest) {
-									if (Tstrain>=espln) {
-										fc=0;
-										Et=0;
-										Trule=10.0;
-									} else { 
-										Et=Enewn;
-										fc=Et*(Tstrain-espln);
-										Trule=10.0;
-									}
-								}
-								// Fix 2
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-								Tstress=fc;
-								Ttangent=Et;;
-							}
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Teb>=esren)  {  
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 7
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
 
-						else if (Teb>=esren)	{	
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 7
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {    // (Teb<esren)
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 1 or 5
 
-						else	{		// (Teb<esren)
+                fcEtnf(Teb);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 1 or 5
+                fcb=Tstress;
+                Etb=Ttangent;
 
-								fcEtnf(Teb);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=Tstress;
-								Etb=Ttangent;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Eta,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Eta,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;            
+              }
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);
+              }
+            }
+          }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {  // if (Tea==Ter0n)
 
-								Tstress=fc;
-								Ttangent=Et;					  
-							}
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);
-							}
-						}
-					}
+            if (Teb>=esrestn)  {
 
-					else	{	// if (Tea==Ter0n)
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 77
 
-						if (Teb>=esrestn)	{
+                r77f(Teb,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 77
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r77f(Teb,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>esrestn)  {  // Rule 77
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
+                Trule=77.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>esrestn)	{	// Rule 77
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
-								Trule=77.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5              
+                fcEtnf(Tstrain);            
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {  // if (Teb<esrestn)
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5						  
-								fcEtnf(Tstrain);					  
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 1 or 5
 
-						else	{	// if (Teb<esrestn)
+                fcEtnf(Teb);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 1 or 5
+                fcb=Tstress;
+                Etb=Ttangent;
 
-								fcEtnf(Teb);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=Tstress;
-								Etb=Ttangent;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);            
+              }
+            }
+          }  
+        } // if (Crule==12.0)
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==14.0)  {      // Reversal from transition 14 [Rules 15,13,7,1,5]
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);					  
-							}
-						}
-					}	
-				} // if (Crule==12.0)
+          Ter=Cstrain;
+          Tfr=Cstress;
 
-				else if (Crule==14.0)	{			// Reversal from transition 14 [Rules 15,13,7,1,5]
+          if (Tstrain>=Tea)  {      // Rule 15 targeting for ea (ed) on 13
 
-					Ter=Cstrain;
-					Tfr=Cstress;
+            r13f(Ted,Teunn,fnewn,Enewn);
 
-					if (Tstrain>=Tea)	{			// Rule 15 targeting for ea (ed) on 13
+            esi13=esi; // KK
+            fi13=fi;
+            Ei13=Ei;
+            esf13=esf;
+            ff13=ff;
+            Ef13=Ef;
 
-						r13f(Ted,Teunn,fnewn,Enewn);
+            RAf(esi13,fi13,Ei13,esf13,ff13,Ef13);
 
-						esi13=esi; // KK
-						fi13=fi;
-						Ei13=Ei;
-						esf13=esf;
-						ff13=ff;
-						Ef13=Ef;
+            R13=R; // KK 
+            A13=A;
 
-						RAf(esi13,fi13,Ei13,esf13,ff13,Ef13);
+            fcEturf(Tea,esi13,fi13,esf13,ff13,Ei13,Ef13,A13,R13);
 
-						R13=R; // KK 
-						A13=A;
+            fca=fc;
+            Eta=Et;
 
-						fcEturf(Tea,esi13,fi13,esf13,ff13,Ei13,Ef13,A13,R13);
+            // Fix 1 
+            Esectest13=(ff13-fi13)/(esf13-esi13);
 
-						fca=fc;
-						Eta=Et;
+            if (Eta==Esectest13) { 
+              if (Tea>=espln) { 
+                fca=0;
+                Eta=0;
+              } else { 
+                Eta=Enewn;
+                fca=Et*(Tea-espln);
+              } 
+            } 
+            //Fix 1
 
-						// Fix 1 
-						Esectest13=(ff13-fi13)/(esf13-esi13);
+            esi=Ter;
+            fi=Tfr;
+            Ei=Ec;
+            esf=Tea;
 
-						if (Eta==Esectest13) { 
-							if (Tea>=espln) { 
-								fca=0;
-								Eta=0;
-							} else { 
-								Eta=Enewn;
-								fca=Et*(Tea-espln);
-							} 
-						} 
-						//Fix 1
+            RAf(esi,fi,Ei,esf,fca,Eta);
 
-						esi=Ter;
-						fi=Tfr;
-						Ei=Ec;
-						esf=Tea;
+            r15f(Ter,Tfr,Tea,fca,Eta,A,R);
+            Trule=15.0;
 
-						RAf(esi,fi,Ei,esf,fca,Eta);
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						r15f(Ter,Tfr,Tea,fca,Eta,A,R);
-						Trule=15.0;
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain>=Teunn)  {  // Rule 13
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            r13f(Ted,Teunn,fnewn,Enewn);
+            Trule=13.0;
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else if (Tstrain>=Teunn)	{	// Rule 13
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r13f(Ted,Teunn,fnewn,Enewn);
-						Trule=13.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            // Fix 1  
+            Esectest=(ff-fi)/(esf-esi);
+            if (Et==Esectest) { 
+              if (Tstrain>=espln) { 
+                fc=0;
+                Et=0;
+                Trule=13.0;
+              } else { 
+                Et=Enewn;
+                fc=Et*(Tstrain-espln);
+                Trule=13.0;
+              } 
+            } 
+            // Fix 1
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain>=esren)  {  // Rule 7
 
-						// Fix 1  
-						Esectest=(ff-fi)/(esf-esi);
-						if (Et==Esectest) { 
-							if (Tstrain>=espln) { 
-								fc=0;
-								Et=0;
-								Trule=13.0;
-							} else { 
-								Et=Enewn;
-								fc=Et*(Tstrain-espln);
-								Trule=13.0;
-							} 
-						} 
-						// Fix 1
+            r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+            Trule=7.0;
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else if (Tstrain>=esren)	{	// Rule 7
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-						Trule=7.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else  {            // Rules 1 and 5
+            fcEtnf(Tstrain);          
+          }
+        } // if (Crule==14.0)
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==3.0)  {
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else	{						// Rules 1 and 5
-						fcEtnf(Tstrain);					
-					}
-				} // if (Crule==14.0)
+          Ter0n=Cstrain;
+          Tfr0n=Cstress;
 
-				else if (Crule==3.0)	{
+          Tea=Ter0n;
 
-					Ter0n=Cstrain;
-					Tfr0n=Cstress;
+          fnewstnf(Tfunn,delfn,Teunn,Ter0n,espln);
+          Enewstnf(fnewstn,Tfr0n,Teunn,Ter0n);
 
-					Tea=Ter0n;
+          esrestnf(Teunn,delen,Ter0n,espln);   
+          freErestnf(Teunn,Tfunn,Ter0n);
 
-					fnewstnf(Tfunn,delfn,Teunn,Ter0n,espln);
-					Enewstnf(fnewstn,Tfr0n,Teunn,Ter0n);
+          if (Tstrain>esrestn)  {    // Rule 77
 
-					esrestnf(Teunn,delen,Ter0n,espln);   
-					freErestnf(Teunn,Tfunn,Ter0n);
+            r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
+            Trule=77.0;
 
-					if (Tstrain>esrestn)	{		// Rule 77
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r77f(Tstrain,Te0,Ter0n,Tfr0n,Teunn,fnewstn,Enewstn,esrestn,frestn,Erestn);
-						Trule=77.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else  {            // Rules 1 and 5              
+            fcEtnf(Tstrain);            
+          }
+        } // if (Crule==3.0)
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==88.0)  {      // Reversal from transition 88 [Rules 11,(4,10 or 10),7,1,5 or Rules 4,10,7,1,5] 
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else	{						// Rules 1 and 5						  
-						fcEtnf(Tstrain);					  
-					}
-				} // if (Crule==3.0)
+          if (Cstrain<=Teunp)  {      
 
-				else if (Crule==88.0)	{			// Reversal from transition 88 [Rules 11,(4,10 or 10),7,1,5 or Rules 4,10,7,1,5] 
+            Ter=Cstrain;
+            Tfr=Cstress;
 
-					if (Cstrain<=Teunp)	{			
+            Tea=Ter;
 
-						Ter=Cstrain;
-						Tfr=Cstress;
+            Teb=Ter0p;
 
-						Tea=Ter;
+            if (Teb>=esplp)  {        // Reversal from 88 by Rules [11,4,10,7,1,5]  
 
-						Teb=Ter0p;
+              if (Tstrain>=Teb)  {    // Rule 11 targeting for eb on 4
 
-						if (Teb>=esplp)	{				// Reversal from 88 by Rules [11,4,10,7,1,5]	
+                r4f(Teunp,Tfunp,esplp,Eplp);  
 
-							if (Tstrain>=Teb)	{		// Rule 11 targeting for eb on 4
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r4f(Teunp,Tfunp,esplp,Eplp);	
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=esplp)  {  // Rule 4
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r4f(Teunp,Tfunp,esplp,Eplp);
+                Trule=4.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=esplp)	{	// Rule 4
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r4f(Teunp,Tfunp,esplp,Eplp);
-								Trule=4.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=Teunn)  {  // Rule 10
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+                Trule=10.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=Teunn)	{	// Rule 10
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-								Trule=10.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                // Fix 2 
+                Esectest = (ff-fi)/(esf-esi);
+                if (Et==Esectest) {
+                  if (Tstrain>=espln) {
+                    fc=0;
+                    Et=0;
+                    Trule=10.0;
+                  } else {
+                    Et=Enewn;
+                    fc=Et*(Tstrain-espln);
+                    Trule=10.0;
+                  }
+                }
+                // Fix 2
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								// Fix 2 
-								Esectest = (ff-fi)/(esf-esi);
-								if (Et==Esectest) {
-									if (Tstrain>=espln) {
-										fc=0;
-										Et=0;
-										Trule=10.0;
-									} else {
-										Et=Enewn;
-										fc=Et*(Tstrain-espln);
-										Trule=10.0;
-									}
-								}
-								// Fix 2
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Teb>=Teunn)  {      // Reversal from 88 by Rules [11,10,7,1,5]
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 10
 
-						else if (Teb>=Teunn)	{			// Reversal from 88 by Rules [11,10,7,1,5]
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn); 
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 10
+                esi10=esi; // KK 
+                fi10=fi;
+                Ei10=Ei;
+                esf10=esf;
+                ff10=ff;
+                Ef10=Ef;
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn); 
+                RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
 
-								esi10=esi; // KK 
-								fi10=fi;
-								Ei10=Ei;
-								esf10=esf;
-								ff10=ff;
-								Ef10=Ef;
+                R10=R; // KK 
+                A10=A; 
 
-								RAf(esi10,fi10,Ei10,esf10,ff10,Ef10);
+                fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
 
-								R10=R; // KK 
-								A10=A; 
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi10,fi10,esf10,ff10,Ei10,Ef10,A10,R10);
+                // Fix 2
+                Esectest10 = (ff10-fi10)/(esf10-esi10);
+                if (Etb==Esectest10) {
+                  if (Teb>=espln) {
+                    fcb=0;
+                    Etb=0;
+                  } else {
+                    Etb=Enewn;
+                    fcb=Etb*(Teb-espln);
+                  }
+                }
+                // Fix 2
 
-								fcb=fc;
-								Etb=Et;
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								// Fix 2
-								Esectest10 = (ff10-fi10)/(esf10-esi10);
-								if (Etb==Esectest10) {
-									if (Teb>=espln) {
-										fcb=0;
-										Etb=0;
-									} else {
-										Etb=Enewn;
-										fcb=Etb*(Teb-espln);
-									}
-								}
-								// Fix 2
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Tea,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Tea,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=Teunn)  {  // Rule 10
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+                Trule=10.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=Teunn)	{	// Rule 10
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-								Trule=10.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                // Fix 2 
+                Esectest = (ff-fi)/(esf-esi);
+                if (Et==Esectest) {
+                  if (Tstrain>=espln) {
+                    fc=0;
+                    Et=0;
+                    Trule=10.0;
+                  } else {
+                    Et=Enewn;
+                    fc=Et*(Tstrain-espln);
+                    Trule=10.0;
+                  }
+                }
+                // Fix 2
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								// Fix 2 
-								Esectest = (ff-fi)/(esf-esi);
-								if (Et==Esectest) {
-									if (Tstrain>=espln) {
-										fc=0;
-										Et=0;
-										Trule=10.0;
-									} else {
-										Et=Enewn;
-										fc=Et*(Tstrain-espln);
-										Trule=10.0;
-									}
-								}
-								// Fix 2
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Teb>=esren)  {      // Reversal from 88 by Rules [11,7,1,5]
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);
-							}
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 7
 
-						else if (Teb>=esren)	{			// Reversal from 88 by Rules [11,7,1,5]
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 7
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fcb=fc;
+                Etb=Et;
 
-								fcEturf(Teb,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=fc;
-								Etb=Et;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain>=esren)  {  // Rule 7              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+                Trule=7.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain>=esren)	{	// Rule 7						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-								Trule=7.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);
+              }        
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {    // (Teb<esren)    // Reversal from 88 by Rules [11,1,5]
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);
-							}			  
-						}
+              if (Tstrain>=Teb)  {      // Rule 11 targeting for eb on 1 or 5
 
-						else	{		// (Teb<esren)		// Reversal from 88 by Rules [11,1,5]
+                fcEtnf(Teb);
 
-							if (Tstrain>=Teb)	{			// Rule 11 targeting for eb on 1 or 5
+                fcb=Tstress;
+                Etb=Ttangent;
 
-								fcEtnf(Teb);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Teb;
 
-								fcb=Tstress;
-								Etb=Ttangent;
+                RAf(esi,fi,Ei,esf,fcb,Etb);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Teb;
+                r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
+                Trule=11.0;
 
-								RAf(esi,fi,Ei,esf,fcb,Etb);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r11f(Ter,Tfr,Teb,fcb,Etb,A,R);
-								Trule=11.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else  {            // Rules 1 and 5
+                fcEtnf(Tstrain);            
+              }
+            }          
+          }  // if (Cstrain<=Teunp)
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {  // if (Cstrain>Teunp)    // Reversal from transition 88 by Rules [4,10,7,1,5] 
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else	{						// Rules 1 and 5
-								fcEtnf(Tstrain);					  
-							}
-						}				  
-					}	// if (Cstrain<=Teunp)
+            Teunp=Cstrain;          
+            fcEtpf(Teunp,Te0);
+            Tfunp=Tstress;
 
-					else	{	// if (Cstrain>Teunp)		// Reversal from transition 88 by Rules [4,10,7,1,5] 
+            esplpf(Teunp,Tfunp,Te0,espln);
+            Eplpf(Te0,Teunp);
 
-						Teunp=Cstrain;				  
-						fcEtpf(Teunp,Te0);
-						Tfunp=Tstress;
+            if (Tstrain>=esplp)  {
 
-						esplpf(Teunp,Tfunp,Te0,espln);
-						Eplpf(Te0,Teunp);
+              r4f(Teunp,Tfunp,esplp,Eplp);
+              Trule=4.0;
 
-						if (Tstrain>=esplp)	{
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r4f(Teunp,Tfunp,esplp,Eplp);
-							Trule=4.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else if (Tstrain>=Teunn)  {
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              r10f(esplp,Eplp,Teunn,fnewn,Enewn);
+              Trule=10.0;
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else if (Tstrain>=Teunn)	{
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r10f(esplp,Eplp,Teunn,fnewn,Enewn);
-							Trule=10.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              // Fix 2 
+              Esectest = (ff-fi)/(esf-esi);
+              if (Et==Esectest) {
+                if (Tstrain>=espln) {
+                  fc=0;
+                  Et=0;
+                  Trule=10.0;
+                } else {
+                  Et=Enewn;
+                  fc=Et*(Tstrain-espln);
+                  Trule=10.0;
+                }
+              }
+              // Fix 2
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+              Tstress=fc;
+              Ttangent=Et;
+            }
 
-							// Fix 2 
-							Esectest = (ff-fi)/(esf-esi);
-							if (Et==Esectest) {
-								if (Tstrain>=espln) {
-									fc=0;
-									Et=0;
-									Trule=10.0;
-								} else {
-									Et=Enewn;
-									fc=Et*(Tstrain-espln);
-									Trule=10.0;
-								}
-							}
-							// Fix 2
+            else if (Tstrain>=esren)  {
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
+              r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
+              Trule=7.0;
 
-						else if (Tstrain>=esren)	{
+              RAf(esi,fi,Ei,esf,ff,Ef);
 
-							r7f(Teunn,fnewn,Enewn,esren,fren,Eren);
-							Trule=7.0;
+              fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-							RAf(esi,fi,Ei,esf,ff,Ef);
+              Tstress=fc;
+              Ttangent=Et;
+            }
+            else  {
+              fcEtnf(Tstrain);
+            }          
+          }  // if (Cstrain<Teunn)        
+        }  // if (Crule==77.0)
+      }  // if (Tstrain<Cstrain)
 
-							fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+      //////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////
 
-							Tstress=fc;
-							Ttangent=Et;
-						}
-						else	{
-							fcEtnf(Tstrain);
-						}				  
-					}	// if (Cstrain<Teunn)			  
-				}	// if (Crule==77.0)
-			}	// if (Tstrain<Cstrain)
+      else  {  // if (Tstrain>=Cstrain)        // Continue going to positive direction  
 
-			//////////////////////////////////////////////////////////////////////////////////////////
-			//////////////////////////////////////////////////////////////////////////////////////////
-			//////////////////////////////////////////////////////////////////////////////////////////
-			//////////////////////////////////////////////////////////////////////////////////////////
-			//////////////////////////////////////////////////////////////////////////////////////////
-			//////////////////////////////////////////////////////////////////////////////////////////
+        if (Crule==3.0 || Crule==9.0 || Crule==8.0)  {  // Continue on transition 3 or 9 or 8 [Rules 3,9,8,2,6]
 
-			else	{	// if (Tstrain>=Cstrain)				// Continue going to positive direction	
+          if (Tstrain<=espln)  {
 
-				if (Crule==3.0 || Crule==9.0 || Crule==8.0)	{	// Continue on transition 3 or 9 or 8 [Rules 3,9,8,2,6]
+            r3f(Teunn,Tfunn,espln,Epln);
+            Trule=3.0;
 
-					if (Tstrain<=espln)	{
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r3f(Teunn,Tfunn,espln,Epln);
-						Trule=3.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain<=Teunp)  {
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            r9f(espln,Epln,Teunp,fnewp,Enewp);
+            Trule=9.0;
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else if (Tstrain<=Teunp)	{
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r9f(espln,Epln,Teunp,fnewp,Enewp);
-						Trule=9.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else if (Tstrain<=esrep)  {
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+            Trule=8.0;
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else if (Tstrain<=esrep)	{
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-						Trule=8.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
+          }
+          else  {
+            fcEtpf(Tstrain,Te0);
+          }
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        }  // if (Crule==3)  or 9 or 8
 
-						Tstress=fc;
-						Ttangent=Et;
-					}
-					else	{
-						fcEtpf(Tstrain,Te0);
-					}
+        else if (Crule==2.0)  {    // Continue on transition 2 [Rules 2,6]
 
-				}	// if (Crule==3)	or 9 or 8
+          fcEtpf(Tstrain,Te0);
+        }  // if (Crule==2)
 
-				else if (Crule==2.0)	{		// Continue on transition 2 [Rules 2,6]
+        else if (Crule==6.0)  {    // Continue on transition 6 [Rule 6]
 
-					fcEtpf(Tstrain,Te0);
-				}	// if (Crule==2)
+          fcEtpr6f(Tstrain,Te0);
+          Trule=6.0; 
 
-				else if (Crule==6.0)	{		// Continue on transition 6 [Rule 6]
+        }  // if (Crule==6)
 
-					fcEtpr6f(Tstrain,Te0);
-					Trule=6.0; 
+        else if (Crule==88.0)  {    // Continue on transition 88 [Rules 88,2,6]
 
-				}	// if (Crule==6)
+          if (Tstrain<esrestp)  {  // Rule 88                
 
-				else if (Crule==88.0)	{		// Continue on transition 88 [Rules 88,2,6]
+            r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
+            Trule=88.0;                
 
-					if (Tstrain<esrestp)	{	// Rule 88							  
+            RAf(esi,fi,Ei,esf,ff,Ef);                
 
-						r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
-						Trule=88.0;							  
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);                
 
-						RAf(esi,fi,Ei,esf,ff,Ef);							  
+            Tstress=fc;                
+            Ttangent=Et;              
+          }              
+          else  {              // Rules 2 and 6              
+            fcEtpf(Tstrain,Te0);                          
+          }
+        }
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);							  
+        else if (Crule==12.0)  {    // Continue on transition 12 [Rules 12,(3,9 or 9),8,2,6] or [Rules 12,88,2,6]  
 
-						Tstress=fc;							  
-						Ttangent=Et;						  
-					}						  
-					else	{							// Rules 2 and 6						  
-						fcEtpf(Tstrain,Te0);					  						  
-					}
-				}
+          if (Teb!=Ter0p)  {
 
-				else if (Crule==12.0)	{		// Continue on transition 12 [Rules 12,(3,9 or 9),8,2,6] or [Rules 12,88,2,6]	
+            if (Tea<=espln)  {
 
-					if (Teb!=Ter0p)	{
+              if (Tstrain<=Tea)  {  // Rule 12 targeting for ea on 3                
 
-						if (Tea<=espln)	{
+                r3f(Teunn,Tfunn,espln,Epln);   
 
-							if (Tstrain<=Tea)	{	// Rule 12 targeting for ea on 3							  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r3f(Teunn,Tfunn,espln,Epln);   
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }
+              else if (Tstrain<=espln)  {  // Rule 3
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r3f(Teunn,Tfunn,espln,Epln);
+                Trule=3.0;
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}
-							else if (Tstrain<=espln)	{	// Rule 3
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r3f(Teunn,Tfunn,espln,Epln);
-								Trule=3.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain<=Teunp)  {  // Rule 9
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r9f(espln,Epln,Teunp,fnewp,Enewp);
+                Trule=9.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain<=Teunp)	{	// Rule 9
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp);
-								Trule=9.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;      
+              }
+              else if (Tstrain<=esrep)  {  // Rule 8              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-								Tstress=fc;
-								Ttangent=Et;		  
-							}
-							else if (Tstrain<=esrep)	{	// Rule 8						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }      
+              else  {            // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tea<=Teunp)  {      // (Tea>espln)
 
-								Tstress=fc;
-								Ttangent=Et;
-							}		  
-							else	{						// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 9              
 
-						else if (Tea<=Teunp)	{			// (Tea>espln)
+                r9f(espln,Epln,Teunp,fnewp,Enewp); 
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 9						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp); 
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;        
+              }
+              else if (Tstrain<=Teunp)  {  // Rule 9              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r9f(espln,Epln,Teunp,fnewp,Enewp);
+                Trule=9.0;
 
-								Tstress=fc;
-								Ttangent=Et;			  
-							}
-							else if (Tstrain<=Teunp)	{	// Rule 9						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r9f(espln,Epln,Teunp,fnewp,Enewp);
-								Trule=9.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain<=esrep)  {  // Rule 8              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain<=esrep)	{	// Rule 8						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {            // Rules 2 and 6        
+                fcEtpf(Tstrain,Te0);      
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else if (Tea<=esrep)  {  
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{						// Rules 2 and 6			  
-								fcEtpf(Tstrain,Te0);		  
-							}
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 8
 
-						else if (Tea<=esrep)	{	
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 8
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                fca=fc;
+                Eta=Et;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=fc;
-								Eta=Et;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else if (Tstrain<=esrep)  {  // Rule 8              
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
+                Trule=8.0;
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else if (Tstrain<=esrep)	{	// Rule 8						  
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r8f(Teunp,fnewp,Enewp,esrep,frep,Erep);
-								Trule=8.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }            
+              else  {            // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }          
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {    // (Tea>esrep)
 
-								Tstress=fc;
-								Ttangent=Et;
-							}					  
-							else	{						// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}				  
-						}
+              if (Tstrain<=Tea)  {      // Rule 12 targeting for ea on 2 or 6
 
-						else	{		// (Tea>esrep)
+                fcEtpf(Tea,Te0);
 
-							if (Tstrain<=Tea)	{			// Rule 12 targeting for ea on 2 or 6
+                fca=Tstress;
+                Eta=Ttangent;
 
-								fcEtpf(Tea,Te0);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=Tstress;
-								Eta=Ttangent;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else  {            // Rules 2 and 6
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
+          }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          else  {  // if (Teb==Ter0p)
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else	{						// Rules 2 and 6
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
-					}
+            if (Tea<=esrestp)  {
 
-					else	{	// if (Teb==Ter0p)
+              if (Tstrain<=Tea)  {        // Rule 12 targeting for ea on 88
 
-						if (Tea<=esrestp)	{
+                r88f(Tea,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
 
-							if (Tstrain<=Tea)	{				// Rule 12 targeting for ea on 88
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r88f(Tea,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
+                fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fcEturf(Tea,esi,fi,esf,ff,Ei,Ef,A,R);
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else if (Tstrain<=esrestp)  {  // Rule 88
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+                r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
+                Trule=88.0;
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else if (Tstrain<=esrestp)	{	// Rule 88
+                RAf(esi,fi,Ei,esf,ff,Ef);
 
-								r88f(Tstrain,Te0,Ter0p,Tfr0p,Teunp,fnewstp,Enewstp,esrestp,frestp,Erestp);
-								Trule=88.0;
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								RAf(esi,fi,Ei,esf,ff,Ef);
+                Tstress=fc;
+                Ttangent=Et;
+              }
+              else  {              // Rules 2 and 6              
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+            else  {  // if (Tea>esrestp)
 
-								Tstress=fc;
-								Ttangent=Et;
-							}
-							else	{							// Rules 2 and 6						  
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
+              if (Tstrain<=Tea)  {        // Rule 12 targeting for ea on 2 or 6
 
-						else	{	// if (Tea>esrestp)
+                fcEtpf(Tea,Te0);
 
-							if (Tstrain<=Tea)	{				// Rule 12 targeting for ea on 2 or 6
+                fca=Tstress;
+                Eta=Ttangent;
 
-								fcEtpf(Tea,Te0);
+                esi=Ter;
+                fi=Tfr;
+                Ei=Ec;
+                esf=Tea;
 
-								fca=Tstress;
-								Eta=Ttangent;
+                RAf(esi,fi,Ei,esf,fca,Eta);
 
-								esi=Ter;
-								fi=Tfr;
-								Ei=Ec;
-								esf=Tea;
+                r12f(Ter,Tfr,Tea,fca,Eta,A,R);
+                Trule=12.0;
 
-								RAf(esi,fi,Ei,esf,fca,Eta);
+                fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-								r12f(Ter,Tfr,Tea,fca,Eta,A,R);
-								Trule=12.0;
+                Tstress=fc;
+                Ttangent=Et;          
+              }            
+              else  {              // Rules 2 and 6
+                fcEtpf(Tstrain,Te0);            
+              }
+            }
+          }
+        } // if (Crule==12.0)
 
-								fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+        else if (Crule==14.0)  {            // Continue on transition 14 [Rules 14,66,6]
 
-								Tstress=fc;
-								Ttangent=Et;				  
-							}					  
-							else	{							// Rules 2 and 6
-								fcEtpf(Tstrain,Te0);					  
-							}
-						}
-					}
-				} // if (Crule==12.0)
+          if (Tstrain<=Teb)  {            // Rule 14
 
-				else if (Crule==14.0)	{						// Continue on transition 14 [Rules 14,66,6]
+            r14f(Ter,Tfr,Teb);
+            Trule=14.0;
 
-					if (Tstrain<=Teb)	{						// Rule 14
+            RAf(esi,fi,Ei,esf,ff,Ef);
 
-						r14f(Ter,Tfr,Teb);
-						Trule=14.0;
+            fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
 
-						RAf(esi,fi,Ei,esf,ff,Ef);
+            Tstress=fc;
+            Ttangent=Et;
 
-						fcEturf(Tstrain,esi,fi,esf,ff,Ei,Ef,A,R);
+          }
+          else if (Tstrain<Teunp)  {        // Rule 66
 
-						Tstress=fc;
-						Ttangent=Et;
+            r66f(Tstrain,Te0);
+            Trule=66.0;
 
-					}
-					else if (Tstrain<Teunp)	{				// Rule 66
+          }
+          else  {                // Rule 6
 
-						r66f(Tstrain,Te0);
-						Trule=66.0;
+            fcEtpr6f(Tstrain,Te0);
+            Trule=6.0; 
+          }
+        }
 
-					}
-					else	{								// Rule 6
+        else if (Crule==66)  {            // Continue on transition 66 [Rules 66,6]
 
-						fcEtpr6f(Tstrain,Te0);
-						Trule=6.0; 
-					}
-				}
+          if (Tstrain<Teunp)  {
 
-				else if (Crule==66)	{						// Continue on transition 66 [Rules 66,6]
+            r66f(Tstrain,Te0);
+            Trule=66.0;
+          }
+          else  {                // Rule 6
+            fcEtpr6f(Tstrain,Te0);
+            Trule=6.0; 
+          }
 
-					if (Tstrain<Teunp)	{
+        }
 
-						r66f(Tstrain,Te0);
-						Trule=66.0;
-					}
-					else	{								// Rule 6
-						fcEtpr6f(Tstrain,Te0);
-						Trule=6.0; 
-					}
+      }  // if (Tstrain>=Cstrain)
 
-				}
+    }  //  if (Cinc==1.0)
 
-			}	// if (Tstrain>=Cstrain)
+  }  // if monotonic or cyclic 
 
-		}	//	if (Cinc==1.0)
+  return 0;
+}
 
-	}	// if monotonic or cyclic 
 
-	return 0;	}
+void 
+ConcreteCM::fcEtnf(double e)
+{
+  xn=fabs(e/epcc);
+  nn=fabs(Ec*epcc/fpcc);
+  yf(xcrn,nn,rc);
+  zf(xcrn,nn,rc);
+  xsp=fabs(xcrn-y/(nn*z));
 
+  if (xn<=xsp) {
+    r1f(xn,nn,rc);
+    Trule=1.0;
+    //    Ttangent=xsp;
+  }
+  else {
+    r5f(xn,nn,rc);
+    Trule=5.0;
+    //    Ttangent=xsp;
+  }
+}
 
-	void ConcreteCM::fcEtnf(double e)
-	{
-		xn=fabs(e/epcc);
-		nn=fabs(Ec*epcc/fpcc);
-		yf(xcrn,nn,rc);
-		zf(xcrn,nn,rc);
-		xsp=fabs(xcrn-y/(nn*z));
+void 
+ConcreteCM::fcEtpf(double e, double e0)
+{
+  xp=fabs((e-e0)/et);
+  np=Ec*et/ft;
+  yf(xcrp,np,rt);
+  zf(xcrp,np,rt);
+  xcrk=fabs(xcrp-y/(np*z));
 
-		if (xn<=xsp) {
-			r1f(xn,nn,rc);
-			Trule=1.0;
-			//		Ttangent=xsp;
-		}
-		else {
-			r5f(xn,nn,rc);
-			Trule=5.0;
-			//		Ttangent=xsp;
-		}
-	}
+  if (xp<=xcrk) {  
+    r2f(xp,np,rt);
+    Trule=2.0;
+    //    Ttangent=xcrk; 
+  }
+  else {
+    r6f(xp,np,rt);
+    Trule=6.0;
+    //    Ttangent=xcrk;  
+  }
+}
 
-	void ConcreteCM::fcEtpf(double e, double e0)
-	{
-		xp=fabs((e-e0)/et);
-		np=Ec*et/ft;
-		yf(xcrp,np,rt);
-		zf(xcrp,np,rt);
-		xcrk=fabs(xcrp-y/(np*z));
+void ConcreteCM::fcEtpr6f(double e, double e0)
+{
+  xp=fabs((e-e0)/et);
+  np=Ec*et/ft;
+  r6f(xp,np,rt);
+  Trule=6.0;
+}
 
-		if (xp<=xcrk) {	
-			r2f(xp,np,rt);
-			Trule=2.0;
-			//		Ttangent=xcrk; 
-		}
-		else {
-			r6f(xp,np,rt);
-			Trule=6.0;
-			//		Ttangent=xcrk;  
-		}
-	}
+void ConcreteCM::yf(double x, double n, double r)
+{
+  double D;
 
-	void ConcreteCM::fcEtpr6f(double e, double e0)
-	{
-		xp=fabs((e-e0)/et);
-		np=Ec*et/ft;
-		r6f(xp,np,rt);
-		Trule=6.0;
-	}
+  if (r!=1.0) {        
+    D = 1.0 + (n - r / (r - 1.0))*x + pow(x, r) / (r - 1.0);
+  }
+  else {
+    D = 1 + (n - 1 + log10(x))*x;;
+  }
 
-	void ConcreteCM::yf(double x, double n, double r)
-	{
-		double D;
+  y=n*x/D;
+}
 
-		if (r!=1.0) {				
-			D = 1.0 + (n - r / (r - 1.0))*x + pow(x, r) / (r - 1.0);
-		}
-		else {
-			D = 1 + (n - 1 + log10(x))*x;;
-		}
+void ConcreteCM::zf(double x, double n, double r)
+{
+  double D;
+  if (r!=1.0) {
+    D=1.0+(n-r/(r-1.0))*x+pow(x,r)/(r-1.0);
+  }
+  else {
+    D=1.0+(n-1.0+log10(x))*x;  //
+  }
 
-		y=n*x/D;
-	}
+  z=(1-pow(x,r))/pow(D,2.0);
+}
 
-	void ConcreteCM::zf(double x, double n, double r)
-	{
-		double D;
-		if (r!=1.0) {
-			D=1.0+(n-r/(r-1.0))*x+pow(x,r)/(r-1.0);
-		}
-		else {
-			D=1.0+(n-1.0+log10(x))*x;	//
-		}
+void ConcreteCM::esplnf(double eunn, double funn)
+{
+  Esecnf(eunn,funn);
+  espln=eunn-funn/Esecn;
+}
 
-		z=(1-pow(x,r))/pow(D,2.0);
-	}
+void 
+ConcreteCM::Eplnf(double eunn)
+{
+  Epln=0.1*Ec*exp(-2.0*fabs(eunn/epcc));
+}    
 
-	void ConcreteCM::esplnf(double eunn, double funn)
-	{
-		Esecnf(eunn,funn);
-		espln=eunn-funn/Esecn;
-	}
+void 
+ConcreteCM::Esecnf(double eunn, double funn)
+{
+  Esecn=Ec*((fabs(funn/(Ec*epcc))+0.57)/(fabs(eunn/epcc)+0.57));
+}    
 
-	void ConcreteCM::Eplnf(double eunn)
-	{
-		Epln=0.1*Ec*exp(-2.0*fabs(eunn/epcc));
-	}	  
+void 
+ConcreteCM::delenf(double eunn)
+{
+  delen=eunn/(1.15+2.75*fabs(eunn/epcc));
+}  
 
-	void ConcreteCM::Esecnf(double eunn, double funn)
-	{
-		Esecn=Ec*((fabs(funn/(Ec*epcc))+0.57)/(fabs(eunn/epcc)+0.57));
-	}	  
+void
+ConcreteCM::delfnf(double eunn, double funn)
+{
+  if (eunn<=epcc/10.0)  {
+      delfn=0.09*funn*pow(fabs(eunn/epcc),0.5);  
+  }
+  else  {
+        delfn=0.0;
+  }
+}
 
-	void ConcreteCM::delenf(double eunn)
-	{
-		   delen=eunn/(1.15+2.75*fabs(eunn/epcc));
-	}	
+void ConcreteCM::fnewnf(double eunn, double funn)
+{
+  delfnf(eunn,funn);
+  fnewn=funn-delfn;
+}
 
-	void ConcreteCM::delfnf(double eunn, double funn)
-	{
-		if (eunn<=epcc/10.0)	{
-			 delfn=0.09*funn*pow(fabs(eunn/epcc),0.5);  
-		}
-		else	{
-			   delfn=0.0;
-		}
-	}
+void ConcreteCM::Enewnf(double eunn, double funn)
+{
+  fnewnf(eunn,funn);
+  esplnf(eunn,funn);
+  Enewn=fmin(Ec,(fnewn/(eunn-espln))); 
 
-	void ConcreteCM::fnewnf(double eunn, double funn)
-	{
-		delfnf(eunn,funn);
-		fnewn=funn-delfn;
-	}
+  if (eunn == espln) {Enewn =  Ec;} 
+}
 
-	void ConcreteCM::Enewnf(double eunn, double funn)
-	{
-		fnewnf(eunn,funn);
-		esplnf(eunn,funn);
-		Enewn=fmin(Ec,(fnewn/(eunn-espln))); 
+void ConcreteCM::esrenf(double eunn)
+{
+  delenf(eunn);
+  esren=eunn+delen;
+}
 
-		if (eunn == espln) {Enewn =  Ec;} 
-	}
+void ConcreteCM::freErenf(double eunn) 
+{
+  esrenf(eunn);
 
-	void ConcreteCM::esrenf(double eunn)
-	{
-		delenf(eunn);
-		esren=eunn+delen;
-	}
+  xn=fabs(esren/epcc);
+  nn=fabs(Ec*epcc/fpcc);
+  yf(xcrn,nn,rc);     
+  zf(xcrn,nn,rc);     
+  xsp=fabs(xcrn-y/(nn*z));
 
-	void ConcreteCM::freErenf(double eunn) 
-	{
-		esrenf(eunn);
+  if (xn<=xsp) {
+    if (xn<xcrn) {
+      yf(xn,nn,rc);
+      zf(xn,nn,rc);
+      fren=fpcc*y;
+      Eren=Ec*z;
+    }
+    else {
+      yf(xcrn,nn,rc);
+      zf(xcrn,nn,rc);
+      fren=fpcc*(y+nn*z*(xn-xcrn));
+      Eren=Ec*z;
+    }
+  }
+  else {
+    fren=0.0;
+    Eren=0.0;
+  }
+}
 
-		xn=fabs(esren/epcc);
-		nn=fabs(Ec*epcc/fpcc);
-		yf(xcrn,nn,rc);     
-		zf(xcrn,nn,rc);     
-		xsp=fabs(xcrn-y/(nn*z));
+void ConcreteCM::fnewstnf(double funn, double delfn, double eunn, double er0n, double espln)
+{
+  fnewstn=funn-delfn*((eunn-er0n)/(eunn-espln));
+}
 
-		if (xn<=xsp) {
-			if (xn<xcrn) {
-				yf(xn,nn,rc);
-				zf(xn,nn,rc);
-				fren=fpcc*y;
-				Eren=Ec*z;
-			}
-			else {
-				yf(xcrn,nn,rc);
-				zf(xcrn,nn,rc);
-				fren=fpcc*(y+nn*z*(xn-xcrn));
-				Eren=Ec*z;
-			}
-		}
-		else {
-			fren=0.0;
-			Eren=0.0;
-		}
-	}
+void ConcreteCM::Enewstnf(double fnewstn, double fr0n, double eunn, double er0n)
+{
+  Enewstn = (fnewstn-fr0n)/(eunn-er0n);
+}
 
-	void ConcreteCM::fnewstnf(double funn, double delfn, double eunn, double er0n, double espln)
-	{
-		fnewstn=funn-delfn*((eunn-er0n)/(eunn-espln));
-	}
+void 
+ConcreteCM::esrestnf(double eunn, double delen, double er0n, double espln)
+{
+  esrestn=eunn+delen*(eunn-er0n)/(eunn-espln);
+}
 
-	void ConcreteCM::Enewstnf(double fnewstn, double fr0n, double eunn, double er0n)
-	{
-		Enewstn=(fnewstn-fr0n)/(eunn-er0n);
-	}
+void 
+ConcreteCM::freErestnf(double eunn, double funn, double er0n)
+{
+  delenf(eunn);
+  esplnf(eunn,funn);
+  esrestnf(eunn,delen,er0n,espln);
 
-	void ConcreteCM::esrestnf(double eunn, double delen, double er0n, double espln)
-	{
-		esrestn=eunn+delen*(eunn-er0n)/(eunn-espln);
-	}
+  xn=fabs(esrestn/epcc);
+  nn=fabs(Ec*epcc/fpcc);
+  yf(xcrn,nn,rc);
+  zf(xcrn,nn,rc);
+  xsp=fabs(xcrn-y/(nn*z));
 
-	void ConcreteCM::freErestnf(double eunn, double funn, double er0n)
-	{
-		delenf(eunn);
-		esplnf(eunn,funn);
-		esrestnf(eunn,delen,er0n,espln);
+  if (xn<=xsp) {  
+    if (xn<xcrn) {
+      yf(xn,nn,rc);
+      zf(xn,nn,rc);
+      frestn=fpcc*y;
+      Erestn=Ec*z;
+    }
+    else {
+      yf(xcrn,nn,rc);
+      zf(xcrn,nn,rc);
+      frestn=fpcc*(y+nn*z*(xn-xcrn));
+      Erestn=Ec*z;
+    }
+  }
+  else {
+    frestn=0.0;
+    Erestn=0.0;
+  }
+}
 
-		xn=fabs(esrestn/epcc);
-		nn=fabs(Ec*epcc/fpcc);
-		yf(xcrn,nn,rc);
-		zf(xcrn,nn,rc);
-		xsp=fabs(xcrn-y/(nn*z));
+void 
+ConcreteCM::esplpf(double eunp, double funp, double e0, double espln)
+{
+  Esecpf(e0,eunp,funp,espln);
+  esplp=eunp-funp/Esecp;
+}
 
-		if (xn<=xsp) {	
-			if (xn<xcrn) {
-				yf(xn,nn,rc);
-				zf(xn,nn,rc);
-				frestn=fpcc*y;
-				Erestn=Ec*z;
-			}
-			else {
-				yf(xcrn,nn,rc);
-				zf(xcrn,nn,rc);
-				frestn=fpcc*(y+nn*z*(xn-xcrn));
-				Erestn=Ec*z;
-			}
-		}
-		else {
-			frestn=0.0;
-			Erestn=0.0;
-		}
-	}
+void ConcreteCM::Eplpf(double e0, double eunp)
+{
+  if (Gap == 1){
+    Eplp = Ec / (pow((fabs((eunp - e0) / et)), 1.1) + 1.0);    // Less gradual gap closure (optional)
+  } else {    
+    Eplp=0.0;   // More gradual gap closure (default)
+  }
+}    
 
-	void ConcreteCM::esplpf(double eunp, double funp, double e0, double espln)
-	{
-		Esecpf(e0,eunp,funp,espln);
-		esplp=eunp-funp/Esecp;
-	}
+void 
+ConcreteCM::Esecpf(double e0, double eunp, double funp, double espln)
+{
+  Esecp=Ec*((fabs(funp/(Ec*et))+0.67)/(fabs((eunp-e0)/et)+0.67));
 
-	void ConcreteCM::Eplpf(double e0, double eunp)
-	{
-		if (Gap == 1){
-			Eplp = Ec / (pow((fabs((eunp - e0) / et)), 1.1) + 1.0);    // Less gradual gap closure (optional)
-		} else {		
-			Eplp=0.0;   // More gradual gap closure (default)
-		}
-	}	  
+  if (Esecp<(fabs(funp/(fabs(eunp-espln)))))  { 
 
-	void ConcreteCM::Esecpf(double e0, double eunp, double funp, double espln)
-	{
-		 Esecp=Ec*((fabs(funp/(Ec*et))+0.67)/(fabs((eunp-e0)/et)+0.67));
+    Esecp=fabs(funp/(fabs(eunp-espln)));
+  }
+}    
 
-		  if (Esecp<(fabs(funp/(fabs(eunp-espln)))))  { 
+void 
+ConcreteCM::delepf(double eunp, double e0)
+{
+  delep=0.22*fabs(eunp-e0);
+}  
+
+void ConcreteCM::delfpf(double funp, double eunp, double e0)
+{
+  if (eunp>=e0+et/2.0)  {
+    delfp=0.15*funp;  
+  }
+  else  {
+    delfp=0.0;
+  }
+}
+
+void 
+ConcreteCM::fnewpf(double funp, double eunp, double e0)
+{
+  delfpf(funp,eunp,e0);
+  fnewp=funp-delfp;
+}
+
+void 
+ConcreteCM::Enewpf(double eunp, double funp, double e0, double espln)
+{
+  fnewpf(funp,eunp,e0);
+  esplpf(eunp,funp,e0,espln);
+  Enewp=fmin(Ec,(fnewp/(eunp-esplp)));
+
+  if (eunp == esplp) {Enewp =  Ec;}
+}
+
+void ConcreteCM::esrepf(double eunp, double e0)
+{
+  delepf(eunp,e0);
+  esrep=eunp+delep;
+}
+
+void 
+ConcreteCM::freErepf(double eunp, double e0) 
+{
+  esrepf(eunp,e0);
+
+  xp=fabs((esrep-e0)/et);
+  np=Ec*et/ft;
+  yf(xcrp,np,rt);
+  zf(xcrp,np,rt);
+  xcrk=fabs(xcrp-y/(np*z));
+
+  if (xp<=xcrk) {    
+    if (xp<xcrp) {
+      yf(xp,np,rt);
+      zf(xp,np,rt);
+      frep=ft*y;
+      Erep=Ec*z;
+    }
+    else {
+      yf(xcrp,np,rt);
+      zf(xcrp,np,rt);
+      frep=ft*(y+np*z*(xp-xcrp));
+      Erep=Ec*z;  
+    }
+  }
+  else {
+    frep=0.0;
+    Erep=0.0;
+  }
+}
+
+void ConcreteCM::fnewstpf(double funp, double delfp, double eunp, double er0p, double esplp, double e0)
+{
+  fnewstp=funp-delfp*((eunp-er0p)/(eunp-esplp));
+}
+
+void ConcreteCM::Enewstpf(double fnewstp, double fr0p, double eunp, double er0p)
+{
+  Enewstp = (fnewstp-fr0p)/(eunp-er0p);
+}
+
+void ConcreteCM::esrestpf(double eunp, double delep, double er0p, double esplp)
+{
+  esrestp = eunp+delep*(eunp-er0p)/(eunp-esplp);
+}
+
+void 
+ConcreteCM::freErestpf(double eunp, double funp, double er0p, double e0, double espln)
+{
+  delepf(eunp,e0);
+  esplpf(eunp,funp,e0,espln);
+  esrestpf(eunp,delep,er0p,esplp);
+
+  xp=fabs((esrestp-e0)/et);
+  np=Ec*et/ft;
+  yf(xcrp,np,rt);
+  zf(xcrp,np,rt);
+  xcrk=fabs(xcrp-y/(np*z));
+
+  if (xp<=xcrk) {      
+    if (xp<xcrp) {
+      yf(xp,np,rt);
+      zf(xp,np,rt);
+      frestp=ft*y;
+      Erestp=Ec*z;
+    }
+    else {
+      yf(xcrp,np,rt);
+      zf(xcrp,np,rt);
+      frestp=ft*(y+np*z*(xp-xcrp));
+      Erestp=Ec*z;  
+    }
+  }
+  else {
+    frestp=0.0;
+    Erestp=0.0;
+  }
+}
+
+void 
+ConcreteCM::e0eunpfunpf(double e0,double eunp, double funp, double eunn, double funn)
+{
+  double xun=fabs(eunn/epcc);
+  double xup=fabs((eunp-e0)/et);
+
+  double e0ref;
+  double eunpref;
+  double funpref;
+
+  if (xup<xun)  {
+    xup=xun;
+    e0ref=0.0;
+    eunpref=xup*et;
+    fcEtpf(eunpref,e0ref);
+    funpref=Tstress;
+  }
+  else  {
+    xup=xup;
+    e0ref=e0;
+    eunpref=eunp;
+    funpref=funp;  
+  }
+
+  esplnf(eunn,funn);            
+  Eplnf(eunn);              
+  Esecpf(e0ref,eunpref,funpref,espln);  
+
+  double dele0=2.0*funpref/(Esecp+Epln);
+
+  Te0=espln+dele0-xup*et;
+  Teunp=xup*et+Te0;
+  fcEtpf(Teunp,Te0);
+  Tfunp=Tstress;
+
+}
+
+
+void 
+ConcreteCM::r1f(double x, double n, double r)
+{
+  if (x<xcrn) {
+    yf(x,n,r);
+    zf(x,n,r);
+    Tstress=fpcc*y;
+    Ttangent=Ec*z;
+  }
+  else {
+    yf(xcrn,n,r);
+    zf(xcrn,n,r);
+    Tstress=fpcc*(y+n*z*(x-xcrn));
+    Ttangent=Ec*z;
+  }
+}
+
+
+void 
+ConcreteCM::r5f(double x, double n, double r)
+{
+  Tstress=0.0;
+  Ttangent=0.0;
+}
+
+
+void 
+ConcreteCM::r2f(double x, double n, double r)
+{
+  if (x<xcrp) {
+    yf(x,n,r);
+    zf(x,n,r);
+    Tstress=ft*y;
+    Ttangent=Ec*z;
+  }
+  else {
+    yf(xcrp,n,r);
+    zf(xcrp,n,r);
+    Tstress=ft*(y+n*z*(x-xcrp));
+    Ttangent=Ec*z;
+  }
+}
+
+void ConcreteCM::r6f(double x, double n, double r)
+{
+  Tstress=0.0;
+  Ttangent=0.0;
+}
+
+void ConcreteCM::r3f(double eunn, double funn, double espln, double Epln)
+{
+  esi=eunn;
+  fi=funn;
+  Ei=Ec;
+  esf=espln;
+  ff=0.0;
+  Ef=Epln;
+}
+
+void ConcreteCM::r9f(double espln, double Epln, double eunp, double fnewp, double Enewp)
+{
+  esi=espln;
+  fi=0.0;
+  Ei=Epln;
+  esf=eunp;
+  ff=fnewp;
+  Ef=Enewp;
+}
+
+void ConcreteCM::r8f(double eunp, double fnewp, double Enewp, double esrep, double frep, double Erep)
+{
+  esi=eunp;
+  fi=fnewp;
+  Ei=Enewp;
+  esf=esrep;
+  ff=frep;
+  Ef=Erep;
+}
+
+void ConcreteCM::r4f(double eunp, double funp, double esplp, double Eplp)
+{
+  esi=eunp;
+  fi=funp;
+  Ei=Ec;
+  esf=esplp;
+  ff=0.0;
+  Ef=Eplp;
+}
+
+void ConcreteCM::r10f(double esplp, double Eplp, double eunn, double fnewn, double Enewn)
+{
+  esi=esplp;
+  fi=0.0;
+  Ei=Eplp;
+  esf=eunn;
+  ff=fnewn;
+  Ef=Enewn;
+}
+
+void ConcreteCM::r7f(double eunn, double fnewn, double Enewn, double esren, double fren, double Eren)
+{
+  esi=eunn;
+  fi=fnewn;
+  Ei=Enewn;
+  esf=esren;
+  ff=fren;
+  Ef=Eren;
+}
+
+void ConcreteCM::r12f(double er, double fr, double ea, double fca, double Eta, double A, double R)
+{
+  esi=er;
+  fi=fr;
+  Ei=Ec;
+  esf=ea;
+  ff=fca;
+  Ef=Eta;
+  fcEturf(ea,esi,fi,esf,ff,Ei,Ef,A,R);
+  ff=fc;
+  Ef=Et;
+}
+
+void ConcreteCM::r11f(double er, double fr, double eb, double fcb, double Etb, double A, double R)
+{
+  esi=er;
+  fi=fr;
+  Ei=Ec;
+  esf=eb;
+  ff=fcb;
+  Ef=Etb;
+  fcEturf(eb,esi,fi,esf,ff,Ei,Ef,A,R);
+  ff=fc;
+  Ef=Et;
+}
+
+void ConcreteCM::r13f(double ed, double eunn, double fnewn, double Enewn)
+{
+  esi=ed;
+  fi=0.0;
+  Ei=0.0;
+  esf=eunn;
+  ff=fnewn;
+  Ef=Enewn;
+}
+
+void ConcreteCM::r14f(double er, double fr, double eb)
+{
+  esi=er;
+  fi=fr;
+  Ei=Ec;
+  esf=eb;
+  ff=0.0;
+  Ef=0.0;
+}
+
+void ConcreteCM::r15f(double er, double fr, double ea, double fca, double Eta, double A, double R)
+{
+  esi=er;
+  fi=fr;
+  Ei=Ec;
+  esf=ea;
+  ff=fca;
+  Ef=Eta;
+  fcEturf(ea,esi,fi,esf,ff,Ei,Ef,A,R);
+  ff=fc;
+  Ef=Et;
+}
+
+void ConcreteCM::r66f(double e, double e0)
+{
+  Tstress=0.0;
+  Ttangent=0.0;
+}
+
+void ConcreteCM::r88f(double e, double e0, double er0p, double fr0p, double eunp, double fnewstp, double Enewstp, double esrestp, double frestp, double Erestp)
+{
+  if ((e-e0)>=(er0p-e0) && (e-e0)<=(eunp-e0))  {
+    esi=er0p;
+    fi=fr0p;
+    Ei=Ec;
+    esf=eunp;
+    ff=fnewstp;
+    Ef=Enewstp;
+  }
+  if ((e-e0)>(eunp-e0) && (e-e0)<(esrestp-e0))  {
+    esi=eunp;
+    fi=fnewstp;
+    Ei=Enewstp;
+    esf=esrestp;
+    ff=frestp;
+    Ef=Erestp; 
+  }
+}
+
+void 
+ConcreteCM::r77f(double e, double e0, double er0n, double fr0n, double eunn, double fnewstn, double Enewstn, double esrestn, double frestn, double Erestn)
+{
+  if (e<=er0n && e>=eunn)  {
+    esi=er0n;
+    fi=fr0n;
+    Ei=Ec;
+    esf=eunn;
+    ff=fnewstn;
+    Ef=Enewstn;
+  }
+  if (e<eunn && e>esrestn)  {
+    esi=eunn;
+    fi=fnewstn;
+    Ei=Enewstn;
+    esf=esrestn;
+    ff=frestn;
+    Ef=Erestn; 
+  }
+}
+
+void ConcreteCM::ea1112f(double eb, double espln, double esplp, double eunn, double eunp)
+{
+  Tea = espln + ((eunn-eb)/(eunn-esplp))*(eunp-espln);
+}
+
+void ConcreteCM::eb1112f(double ea, double espln, double esplp, double eunn, double eunp)
+{
+  Teb = eunn - ((ea-espln)/(eunp-espln))*(eunn-esplp);
+}
+
+void ConcreteCM::eb1415f(double ea, double fa, double Esecn)
+{
+  Teb = ea - fa/Esecn;
+}
+
+void 
+ConcreteCM::RAf(double esi, double fi, double Ei, double esf, double ff, double Ef)
+{
+  double Esec=(ff-fi)/(esf-esi);
+  R=(Ef-Esec)/(Esec-Ei);
+  double check=pow(fabs(esf-esi),R);
+
+
+  if (check==0.0 || check>1.797e308 || check<-1.797e308  || Esec==Ei)  {
+    A=1.0e-300;
+  }
+  else  {
+    A=(Esec-Ei)/pow(fabs(esf-esi),R);
+    if (A>1.797e308 || A<-1.797e308)  {
+      A=1.0e300;
+    }
+  }
+}
+
+void
+ConcreteCM::fcEturf(double es, double esi, double fi, double esf, double ff, double Ei, double Ef, double A, double R)
+{
+  double Esec=(ff-fi)/(esf-esi);
+
+  if (A==1.0e300 || A==0.0)  {
+    fc=fi+Esec*(es-esi);
+    Et=Esec;
+  }
+  else if (pow(fabs(es-esi),-R)==0.0 || pow(fabs(es-esi),-R)>1.797e308 || pow(fabs(es-esi),-R)<-1.797e308)  {
+    fc=fi+Esec*(es-esi);
+    Et=Esec;
+  }
+  else if (Ei>=Esec && Ef>=Esec)  {
+    fc=fi+Esec*(es-esi);
+    Et=Esec;
+  }
+  else if (Ei<=Esec && Ef<=Esec)  {
+    fc=fi+Esec*(es-esi);
+    Et=Esec;
+  }
+  else  {
+    fc=fi+(es-esi)*(Ei+A*pow(fabs(es-esi),R));
+    Et=Ei+A*(R+1)*pow(fabs(es-esi),R);
+    if (Et>1.797e308 || Et<-1.797e308)  {
+      fc=fi+Esec*(es-esi);
+      Et=Esec;
+    }
+  }
+}
+
+double 
+ConcreteCM::getStress ()
+{
+  return Tstress;
+}
+
+double 
+ConcreteCM::getStrain ()
+{
+  return Tstrain;
+}
+
+double 
+ConcreteCM::getTangent ()
+{
+  return Ttangent;
+}
+
+int 
+ConcreteCM::commitState ()
+{
+  // History variables
+  Ceunn=Teunn;
+  Cfunn=Tfunn;
+  Ceunp=Teunp;
+  Cfunp=Tfunp;
+  Cer=Ter;
+  Cfr=Tfr;
+  Cer0n=Ter0n;
+  Cfr0n=Tfr0n;
+  Cer0p=Ter0p;
+  Cfr0p=Tfr0p;
+  Ce0=Te0;
+  Cea=Tea;
+  Ceb=Teb;
+  Ced=Ted;
+  Cinc=Tinc;
+  Crule=Trule;
+
+  // State variables
+  Cstrain = Tstrain;
+  Cstress = Tstress;
+  Ctangent = Ttangent;  
+
+  return 0;
+}
+
+double ConcreteCM::getCommittedStrain() // KK
+{
+  return Cstrain;
+}
+
+double ConcreteCM::getCommittedStress() // KK
+{
+    return Cstress;
+}
+
+double ConcreteCM::getCommittedCyclicCrackingStrain() // KK
+{
+    return Ceunp;
+}
+
+int ConcreteCM::revertToLastCommit ()
+{
+  // Reset trial history variables to last committed state
+  Teunn=Ceunn;
+  Tfunn=Cfunn;
+  Teunp=Ceunp;
+  Tfunp=Cfunp;
+  Ter=Cer;
+  Tfr=Cfr;
+  Ter0n=Cer0n;
+  Tfr0n=Cfr0n;
+  Ter0p=Cer0p;
+  Tfr0p=Cfr0p;
+  Te0=Ce0;
+  Tea=Cea;
+  Teb=Ceb;
+  Ted=Ced;
+  Tinc=Cinc;         
+  Trule=Crule;
+
+  // Recompute trial stress and tangent
+  Tstrain = Cstrain;
+  Tstress = Cstress;
+  Ttangent = Ctangent;
+
+  return 0;
+}
+
+
+int ConcreteCM::revertToStart ()
+{
+  // Initial tangent
+  double Ec0 = Ec;
+
+  // History variables
+  Ceunn=0.0;
+  Cfunn=0.0;
+  Ceunp=0.0;
+  Cfunp=0.0;
+  Cer=0.0;
+  Cfr=0.0;
+  Cer0n=0.0;
+  Cfr0n=0.0;
+  Cer0p=0.0;
+  Cfr0p=0.0;
+  Ce0=0.0;
+  Cea=0.0;
+  Ceb=0.0;
+  Ced=0.0;
+  Cinc=0.0;
+  Crule=0.0;
+
+  // State variables
+  Cstrain = 0.0;
+  Cstress = 0.0;
+  Ctangent = Ec0;   
     
-			 Esecp=fabs(funp/(fabs(eunp-espln)));
-	     }
-	}	  
+  // Reset trial variables and state
+  this->revertToLastCommit();
 
-	void ConcreteCM::delepf(double eunp, double e0)
-	{
-		    delep=0.22*fabs(eunp-e0);
-	}	
+  return 0;
+}
 
-	void ConcreteCM::delfpf(double funp, double eunp, double e0)
-	{
-		if (eunp>=e0+et/2.0)	{
-			   delfp=0.15*funp;  
-		}
-		else	{
-		     delfp=0.0;
-		}
-	}
+UniaxialMaterial* ConcreteCM::getCopy ()
+{
 
-	void ConcreteCM::fnewpf(double funp, double eunp, double e0)
-	{
-		delfpf(funp,eunp,e0);
-		fnewp=funp-delfp;
-	}
+  ConcreteCM* theCopy = new ConcreteCM(this->getTag());
+  
+  // Input variables
+  theCopy->fpcc = fpcc;
+  theCopy->epcc = epcc;
+  theCopy->Ec = Ec;
+  theCopy->rc = rc;
+  theCopy->xcrn = xcrn;
+  theCopy->ft = ft;
+  theCopy->et = et;
+  theCopy->rt = rt;
+  theCopy->xcrp = xcrp;
+  theCopy->mon = mon;
+  theCopy->Gap = Gap;
+  
+  // Converged history variables
+  theCopy-> Ceunn=Ceunn;
+  theCopy-> Cfunn=Cfunn;
+  theCopy-> Ceunp=Ceunp;
+  theCopy-> Cfunp=Cfunp;
+  theCopy-> Cer=Cer;
+  theCopy-> Cfr=Cfr;
+  theCopy-> Cer0n=Cer0n;
+  theCopy-> Cfr0n=Cfr0n;
+  theCopy-> Cer0p=Cer0p;
+  theCopy-> Cfr0p=Cfr0p;
+  theCopy-> Ce0=Ce0;
+  theCopy-> Cea=Cea;
+  theCopy-> Ceb=Ceb;
+  theCopy-> Ced=Ced;
+  theCopy-> Cinc=Cinc;
+  theCopy-> Crule=Crule;
 
-	void ConcreteCM::Enewpf(double eunp, double funp, double e0, double espln)
-	{
-		fnewpf(funp,eunp,e0);
-		esplpf(eunp,funp,e0,espln);
-		Enewp=fmin(Ec,(fnewp/(eunp-esplp)));
+  // Converged state variables
+  theCopy->Cstrain = Cstrain;
+  theCopy->Cstress = Cstress;
+  theCopy->Ctangent = Ctangent;
 
-		if (eunp == esplp) {Enewp =  Ec;}
-	}
+  return theCopy;
+}
 
-	void ConcreteCM::esrepf(double eunp, double e0)
-	{
-		delepf(eunp,e0);
-		esrep=eunp+delep;
-	}
-	
-	void ConcreteCM::freErepf(double eunp, double e0) 
-	{
-		esrepf(eunp,e0);
+int ConcreteCM::sendSelf (int commitTag, Channel& theChannel)
+{
+  int res = 0;
+  static Vector data(31);
+  data(0) = this->getTag();
 
-		xp=fabs((esrep-e0)/et);
-		np=Ec*et/ft;
-		yf(xcrp,np,rt);
-		zf(xcrp,np,rt);
-		xcrk=fabs(xcrp-y/(np*z));
+  // Material properties
+  data(1) = fpcc;
+  data(2) = epcc;
+  data(3) = Ec;
+  data(4) = rc;
+  data(5) = xcrn;
+  data(6) = ft;
+  data(7) = et;
+  data(8) = rt;
+  data(9) = xcrp;
+  data(10) = mon;
+  data(11) = Gap;
 
-		if (xp<=xcrk) {		
-			if (xp<xcrp) {
-				yf(xp,np,rt);
-				zf(xp,np,rt);
-				frep=ft*y;
-				Erep=Ec*z;
-			}
-			else {
-				yf(xcrp,np,rt);
-				zf(xcrp,np,rt);
-				frep=ft*(y+np*z*(xp-xcrp));
-				Erep=Ec*z;	
-			}
-		}
-		else {
-			frep=0.0;
-			Erep=0.0;
+  // History variables from last converged state
+  data(12) = Ceunn;
+  data(13) = Cfunn;
+  data(14) = Ceunp;
+  data(15) = Cfunp;
+  data(16) = Cer;
+  data(17) = Cfr;
+  data(18) = Cer0n;
+  data(19) = Cfr0n;
+  data(20) = Cer0p;
+  data(21) = Cfr0p;
+  data(22) = Ce0;
+  data(23) = Cea;
+  data(24) = Ceb;
+  data(25) = Ced;
+  data(26) = Cinc;
+  data(27) = Crule;
+
+  // State variables from last converged state
+  data(28) = Cstrain;
+  data(29) = Cstress;
+  data(30) = Ctangent;
+
+  // Data is only sent after convergence, so no trial variables
+  // need to be sent through data vector
+
+  res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) 
+    opserr << "ConcreteCM::sendSelf() - failed to send data\n";
+
+  return res;
+}
+
+int ConcreteCM::recvSelf (int commitTag, Channel& theChannel,
+  FEM_ObjectBroker& theBroker)
+{
+  int res = 0;
+  static Vector data(31);
+  res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+
+  if (res < 0) {
+    opserr << "ConcreteCM::recvSelf() - failed to receive data\n";
+    this->setTag(0);      
+  }
+  else {
+    this->setTag(int(data(0)));
+
+    // Material properties 
+    fpcc = data(1);
+    epcc = data(2);
+    Ec = data(3); 
+    rc = data(4);
+    xcrn = data(5);
+    ft = data(6);
+    et = data(7);
+    rt = data(8);
+    xcrp = data(9);
+    mon = data(10);
+    Gap = data(11);
+
+    // History variables from last converged state
+    Ceunn = data(12);
+    Cfunn = data(13);
+    Ceunp = data(14);
+    Cfunp = data(15);
+    Cer = data(16);
+    Cfr = data(17);
+    Cer0n = data(18);
+    Cfr0n = data(19);
+    Cer0p = data(20);
+    Cfr0p = data(21);
+    Ce0 = data(22);
+    Cea = data(23);
+    Ceb = data(24);
+    Ced = data(25);
+    Cinc = data(26);
+    Crule = data(27);
+
+    // State variables from last converged state
+    Cstrain = data(28);
+    Cstress = data(29);
+    Ctangent = data(30);
+
+    // Set trial state variables
+    Tstrain = Cstrain;
+    Tstress = Cstress;
+    Ttangent = Ctangent;
+  }
+
+  return res;    //come back to what this means
+}
+
+// KK
+Response* 
+ConcreteCM::setResponse(const char **argv, int argc,  OPS_Stream &theOutput)
+{
+  Response *theResponse = 0;
+
+  if (strcmp(argv[0],"getCommittedConcreteStrain") == 0) {
+    double data = 0.0;
+    theResponse = new MaterialResponse(this, 100, data);
+  } else if (strcmp(argv[0],"getCommittedConcreteStress") == 0) {
+    double data1 = 0.0;
+    theResponse = new MaterialResponse(this, 101, data1);
+  } else if (strcmp(argv[0],"getCommittedCyclicCrackingConcreteStrain") == 0) {
+    double data2 = 0.0;
+    theResponse = new MaterialResponse(this, 102, data2);
+  } else if (strcmp(argv[0],"getInputParameters") == 0) {
+    Vector data3(11);
+    data3.Zero();
+    theResponse = new MaterialResponse(this, 103, data3);
+  } else
+    return this->UniaxialMaterial::setResponse(argv, argc, theOutput);
+
+  return theResponse;
+}
  
-		}
-	}
+// KK
+int 
+ConcreteCM::getResponse(int responseID, Information &matInfo)
+{
+  if (responseID == 100) {
+    matInfo.theDouble = this->getCommittedStrain();
 
-	void ConcreteCM::fnewstpf(double funp, double delfp, double eunp, double er0p, double esplp, double e0)
-	{
-		fnewstp=funp-delfp*((eunp-er0p)/(eunp-esplp));
-	}
+  } else if (responseID == 101){
+    matInfo.theDouble = this->getCommittedStress();
+  
+  } else if (responseID == 102){
+    matInfo.theDouble = this->getCommittedCyclicCrackingStrain();
+  
+  } else if (responseID == 103){
+    matInfo.setVector(this->getInputParameters()); 
 
-	void ConcreteCM::Enewstpf(double fnewstp, double fr0p, double eunp, double er0p)
-	{
-		Enewstp=(fnewstp-fr0p)/(eunp-er0p);
-	}
+  } else
 
-	void ConcreteCM::esrestpf(double eunp, double delep, double er0p, double esplp)
-	{
-		esrestp=eunp+delep*(eunp-er0p)/(eunp-esplp);
-	}
+    return this->UniaxialMaterial::getResponse(responseID, matInfo);
 
-	void ConcreteCM::freErestpf(double eunp, double funp, double er0p, double e0, double espln)
-	{
-		delepf(eunp,e0);
-		esplpf(eunp,funp,e0,espln);
-		esrestpf(eunp,delep,er0p,esplp);
+  return 0;
+}
 
-		xp=fabs((esrestp-e0)/et);
-		np=Ec*et/ft;
-		yf(xcrp,np,rt);
-		zf(xcrp,np,rt);
-		xcrk=fabs(xcrp-y/(np*z));
-
-		if (xp<=xcrk) {			
-			if (xp<xcrp) {
-				yf(xp,np,rt);
-				zf(xp,np,rt);
-				frestp=ft*y;
-				Erestp=Ec*z;
-			}
-			else {
-				yf(xcrp,np,rt);
-				zf(xcrp,np,rt);
-				frestp=ft*(y+np*z*(xp-xcrp));
-				Erestp=Ec*z;	
-			}
-		}
-		else {
-			frestp=0.0;
-			Erestp=0.0;
-		}
-	}
-
-	void ConcreteCM::e0eunpfunpf(double e0,double eunp, double funp, double eunn, double funn)
-	{
-		double xun=fabs(eunn/epcc);
-		double xup=fabs((eunp-e0)/et);
-
-		double e0ref;
-		double eunpref;
-		double funpref;
-
-		if (xup<xun)	{
-			xup=xun;
-			e0ref=0.0;
-			eunpref=xup*et;
-			fcEtpf(eunpref,e0ref);
-			funpref=Tstress;
-		}
-		else	{
-			xup=xup;
-			e0ref=e0;
-			eunpref=eunp;
-			funpref=funp;  
-		}
-
-		esplnf(eunn,funn);						
-		Eplnf(eunn);							
-		Esecpf(e0ref,eunpref,funpref,espln);	
-
-		double dele0=2.0*funpref/(Esecp+Epln);
-
-		Te0=espln+dele0-xup*et;
-		Teunp=xup*et+Te0;
-		fcEtpf(Teunp,Te0);
-		Tfunp=Tstress;
-
-	}
-
-
-	void ConcreteCM::r1f(double x, double n, double r)
-	{
-		if (x<xcrn) {
-			yf(x,n,r);
-			zf(x,n,r);
-			Tstress=fpcc*y;
-			Ttangent=Ec*z;
-		}
-		else {
-			yf(xcrn,n,r);
-			zf(xcrn,n,r);
-			Tstress=fpcc*(y+n*z*(x-xcrn));
-			Ttangent=Ec*z;
-		}
-	}
-
-
-	void ConcreteCM::r5f(double x, double n, double r)
-	{
-		Tstress=0.0;
-		Ttangent=0.0;
-	}
-
-
-	void ConcreteCM::r2f(double x, double n, double r)
-	{
-		if (x<xcrp) {
-			yf(x,n,r);
-			zf(x,n,r);
-			Tstress=ft*y;
-			Ttangent=Ec*z;
-		}
-		else {
-			yf(xcrp,n,r);
-			zf(xcrp,n,r);
-			Tstress=ft*(y+n*z*(x-xcrp));
-			Ttangent=Ec*z;
-		}
-	}
-
-	void ConcreteCM::r6f(double x, double n, double r)
-	{
-		Tstress=0.0;
-		Ttangent=0.0;
-	}
-
-	void ConcreteCM::r3f(double eunn, double funn, double espln, double Epln)
-	{
-		esi=eunn;
-		fi=funn;
-		Ei=Ec;
-		esf=espln;
-		ff=0.0;
-		Ef=Epln;
-	}
-
-	void ConcreteCM::r9f(double espln, double Epln, double eunp, double fnewp, double Enewp)
-	{
-		esi=espln;
-		fi=0.0;
-		Ei=Epln;
-		esf=eunp;
-		ff=fnewp;
-		Ef=Enewp;
-	}
-
-	void ConcreteCM::r8f(double eunp, double fnewp, double Enewp, double esrep, double frep, double Erep)
-	{
-		esi=eunp;
-		fi=fnewp;
-		Ei=Enewp;
-		esf=esrep;
-		ff=frep;
-		Ef=Erep;
-	}
-
-	void ConcreteCM::r4f(double eunp, double funp, double esplp, double Eplp)
-	{
-		esi=eunp;
-		fi=funp;
-		Ei=Ec;
-		esf=esplp;
-		ff=0.0;
-		Ef=Eplp;
-	}
-
-	void ConcreteCM::r10f(double esplp, double Eplp, double eunn, double fnewn, double Enewn)
-	{
-		esi=esplp;
-		fi=0.0;
-		Ei=Eplp;
-		esf=eunn;
-		ff=fnewn;
-		Ef=Enewn;
-	}
-
-	void ConcreteCM::r7f(double eunn, double fnewn, double Enewn, double esren, double fren, double Eren)
-	{
-		esi=eunn;
-		fi=fnewn;
-		Ei=Enewn;
-		esf=esren;
-		ff=fren;
-		Ef=Eren;
-	}
-
-	void ConcreteCM::r12f(double er, double fr, double ea, double fca, double Eta, double A, double R)
-	{
-		esi=er;
-		fi=fr;
-		Ei=Ec;
-		esf=ea;
-		ff=fca;
-		Ef=Eta;
-		fcEturf(ea,esi,fi,esf,ff,Ei,Ef,A,R);
-		ff=fc;
-		Ef=Et;
-	}
-
-	void ConcreteCM::r11f(double er, double fr, double eb, double fcb, double Etb, double A, double R)
-	{
-		esi=er;
-		fi=fr;
-		Ei=Ec;
-		esf=eb;
-		ff=fcb;
-		Ef=Etb;
-		fcEturf(eb,esi,fi,esf,ff,Ei,Ef,A,R);
-		ff=fc;
-		Ef=Et;
-	}
-
-	void ConcreteCM::r13f(double ed, double eunn, double fnewn, double Enewn)
-	{
-		esi=ed;
-		fi=0.0;
-		Ei=0.0;
-		esf=eunn;
-		ff=fnewn;
-		Ef=Enewn;
-	}
-
-	void ConcreteCM::r14f(double er, double fr, double eb)
-	{
-		esi=er;
-		fi=fr;
-		Ei=Ec;
-		esf=eb;
-		ff=0.0;
-		Ef=0.0;
-	}
-
-	void ConcreteCM::r15f(double er, double fr, double ea, double fca, double Eta, double A, double R)
-	{
-		esi=er;
-		fi=fr;
-		Ei=Ec;
-		esf=ea;
-		ff=fca;
-		Ef=Eta;
-		fcEturf(ea,esi,fi,esf,ff,Ei,Ef,A,R);
-		ff=fc;
-		Ef=Et;
-	}
-
-	void ConcreteCM::r66f(double e, double e0)
-	{
-		Tstress=0.0;
-		Ttangent=0.0;
-	}
-
-	void ConcreteCM::r88f(double e, double e0, double er0p, double fr0p, double eunp, double fnewstp, double Enewstp, double esrestp, double frestp, double Erestp)
-	{
-		if ((e-e0)>=(er0p-e0) && (e-e0)<=(eunp-e0))	{
-			esi=er0p;
-			fi=fr0p;
-			Ei=Ec;
-			esf=eunp;
-			ff=fnewstp;
-			Ef=Enewstp;
-		}
-		if ((e-e0)>(eunp-e0) && (e-e0)<(esrestp-e0))	{
-			esi=eunp;
-			fi=fnewstp;
-			Ei=Enewstp;
-			esf=esrestp;
-			ff=frestp;
-			Ef=Erestp; 
-		}
-	}
-
-	void ConcreteCM::r77f(double e, double e0, double er0n, double fr0n, double eunn, double fnewstn, double Enewstn, double esrestn, double frestn, double Erestn)
-	{
-
-		if (e<=er0n && e>=eunn)	{
-			esi=er0n;
-			fi=fr0n;
-			Ei=Ec;
-			esf=eunn;
-			ff=fnewstn;
-			Ef=Enewstn;
-		}
-		if (e<eunn && e>esrestn)	{
-			esi=eunn;
-			fi=fnewstn;
-			Ei=Enewstn;
-			esf=esrestn;
-			ff=frestn;
-			Ef=Erestn; 
-		}
-	}
-
-	void ConcreteCM::ea1112f(double eb, double espln, double esplp, double eunn, double eunp)
-	{
-		Tea=espln+((eunn-eb)/(eunn-esplp))*(eunp-espln);
-	}
-
-	void ConcreteCM::eb1112f(double ea, double espln, double esplp, double eunn, double eunp)
-	{
-		Teb=eunn-((ea-espln)/(eunp-espln))*(eunn-esplp);
-	}
-
-	void ConcreteCM::eb1415f(double ea, double fa, double Esecn)
-	{
-		Teb=ea-fa/Esecn;
-	}
-
-	void ConcreteCM::RAf(double esi, double fi, double Ei, double esf, double ff, double Ef)
-	{
-		double Esec=(ff-fi)/(esf-esi);
-		R=(Ef-Esec)/(Esec-Ei);
-		double check=pow(fabs(esf-esi),R);
-	
-
-		if (check==0.0 || check>1.797e308 || check<-1.797e308  || Esec==Ei)	{
-			A=1.0e-300;
-		}
-		else	{
-			A=(Esec-Ei)/pow(fabs(esf-esi),R);
-			if (A>1.797e308 || A<-1.797e308)	{
-				A=1.0e300;
-			}
-		}
-	}
-
-	void ConcreteCM::fcEturf(double es, double esi, double fi, double esf, double ff, double Ei, double Ef, double A, double R)
-	{
-		double Esec=(ff-fi)/(esf-esi);
-
-		if (A==1.0e300 || A==0.0)	{
-			fc=fi+Esec*(es-esi);
-			Et=Esec;
-		}
-		else if (pow(fabs(es-esi),-R)==0.0 || pow(fabs(es-esi),-R)>1.797e308 || pow(fabs(es-esi),-R)<-1.797e308)	{
-			fc=fi+Esec*(es-esi);
-			Et=Esec;
-		}
-		else if (Ei>=Esec && Ef>=Esec)	{
-			fc=fi+Esec*(es-esi);
-			Et=Esec;
-		}
-		else if (Ei<=Esec && Ef<=Esec)	{
-			fc=fi+Esec*(es-esi);
-			Et=Esec;
-		}
-		else	{
-			fc=fi+(es-esi)*(Ei+A*pow(fabs(es-esi),R));
-			Et=Ei+A*(R+1)*pow(fabs(es-esi),R);
-			if (Et>1.797e308 || Et<-1.797e308)	{
-				fc=fi+Esec*(es-esi);
-				Et=Esec;
-			}
-		}
-	}
-
-	double ConcreteCM::getStress ()
-	{
-		return Tstress;
-	}
-
-	double ConcreteCM::getStrain ()
-	{
-		return Tstrain;
-	}
-
-	double ConcreteCM::getTangent ()
-	{
-		return Ttangent;
-	}
-
-	int ConcreteCM::commitState ()
-	{
-		// History variables
-		Ceunn=Teunn;
-		Cfunn=Tfunn;
-		Ceunp=Teunp;
-		Cfunp=Tfunp;
-		Cer=Ter;
-		Cfr=Tfr;
-		Cer0n=Ter0n;
-		Cfr0n=Tfr0n;
-		Cer0p=Ter0p;
-		Cfr0p=Tfr0p;
-		Ce0=Te0;
-		Cea=Tea;
-		Ceb=Teb;
-		Ced=Ted;
-		Cinc=Tinc;
-		Crule=Trule;
-
-		// State variables
-		Cstrain = Tstrain;
-		Cstress = Tstress;
-		Ctangent = Ttangent;	
-
-		return 0;
-	}
-
-	double ConcreteCM::getCommittedStrain() // KK
-    {
-		return Cstrain;
+void 
+ConcreteCM::Print (OPS_Stream& s, int flag)
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"ConcreteCM\", ";
+    s << "\"fpcc\": " << fpcc << ", ";
+    s << "\"epcc\": " << epcc << ", ";
+    s << "\"Ec\": " << Ec << ", ";
+    s << "\"rc\": " << rc << ", ";
+    s << "\"xcrn\": " << xcrn << ", ";
+    s << "\"ft\": " << ft << ", ";
+    s << "\"et\": " << et << ", ";
+    s << "\"rt\": " << rt << ", ";
+    s << "\"xcrp\": " << xcrp;
+    if (mon == 1) {
+      s << ", \"mon\": 1";
     }
-
-	double ConcreteCM::getCommittedStress() // KK
-    {
-		return Cstress;
+    if (Gap == 1) {
+      s << ", \"Gap\": 1";
     }
-
-	double ConcreteCM::getCommittedCyclicCrackingStrain() // KK
-    {
-		return Ceunp;
-    }
-
-	int ConcreteCM::revertToLastCommit ()
-	{
-		// Reset trial history variables to last committed state
-		Teunn=Ceunn;
-		Tfunn=Cfunn;
-		Teunp=Ceunp;
-		Tfunp=Cfunp;
-		Ter=Cer;
-		Tfr=Cfr;
-		Ter0n=Cer0n;
-		Tfr0n=Cfr0n;
-		Ter0p=Cer0p;
-		Tfr0p=Cfr0p;
-		Te0=Ce0;
-		Tea=Cea;
-		Teb=Ceb;
-		Ted=Ced;
-		Tinc=Cinc;         
-		Trule=Crule;
-
-		// Recompute trial stress and tangent
-		Tstrain = Cstrain;
-		Tstress = Cstress;
-		Ttangent = Ctangent;
-
-		return 0;
-	}
+    s << "}";
+  }
+  else 
+    s << "ConcreteCM:(strain, stress, tangent) " << Cstrain << " " << Cstress << " " << Ctangent << endln;
+}
 
 
-	int ConcreteCM::revertToStart ()
-	{
-		// Initial tangent
-		double Ec0 = Ec;
-
-		// History variables
-		Ceunn=0.0;
-		Cfunn=0.0;
-		Ceunp=0.0;
-		Cfunp=0.0;
-		Cer=0.0;
-		Cfr=0.0;
-		Cer0n=0.0;
-		Cfr0n=0.0;
-		Cer0p=0.0;
-		Cfr0p=0.0;
-		Ce0=0.0;
-		Cea=0.0;
-		Ceb=0.0;
-		Ced=0.0;
-		Cinc=0.0;
-		Crule=0.0;
-
-		// State variables
-		Cstrain = 0.0;
-		Cstress = 0.0;
-		Ctangent = Ec0;   
-			
-		// Reset trial variables and state
-		this->revertToLastCommit();
-
-		return 0;
-	}
-	
-	UniaxialMaterial* ConcreteCM::getCopy ()
-	{
-
-		ConcreteCM* theCopy = new ConcreteCM(this->getTag());
-		
-		// Input variables
-		theCopy->fpcc = fpcc;
-		theCopy->epcc = epcc;
-		theCopy->Ec = Ec;
-		theCopy->rc = rc;
-		theCopy->xcrn = xcrn;
-		theCopy->ft = ft;
-		theCopy->et = et;
-		theCopy->rt = rt;
-		theCopy->xcrp = xcrp;
-		theCopy->mon = mon;
-		theCopy->Gap = Gap;
-		
-		// Converged history variables
-		theCopy-> Ceunn=Ceunn;
-		theCopy-> Cfunn=Cfunn;
-		theCopy-> Ceunp=Ceunp;
-		theCopy-> Cfunp=Cfunp;
-		theCopy-> Cer=Cer;
-		theCopy-> Cfr=Cfr;
-		theCopy-> Cer0n=Cer0n;
-		theCopy-> Cfr0n=Cfr0n;
-		theCopy-> Cer0p=Cer0p;
-		theCopy-> Cfr0p=Cfr0p;
-		theCopy-> Ce0=Ce0;
-		theCopy-> Cea=Cea;
-		theCopy-> Ceb=Ceb;
-		theCopy-> Ced=Ced;
-		theCopy-> Cinc=Cinc;
-		theCopy-> Crule=Crule;
-
-		// Converged state variables
-		theCopy->Cstrain = Cstrain;
-		theCopy->Cstress = Cstress;
-		theCopy->Ctangent = Ctangent;
-
-		return theCopy;
-	}
-
-	int ConcreteCM::sendSelf (int commitTag, Channel& theChannel)
-	{
-		int res = 0;
-		static Vector data(31);
-		data(0) = this->getTag();
-
-		// Material properties
-		data(1) = fpcc;
-		data(2) = epcc;
-		data(3) = Ec;
-		data(4) = rc;
-		data(5) = xcrn;
-		data(6) = ft;
-		data(7) = et;
-		data(8) = rt;
-		data(9) = xcrp;
-		data(10) = mon;
-		data(11) = Gap;
-
-		// History variables from last converged state
-		data(12) = Ceunn;
-		data(13) = Cfunn;
-		data(14) = Ceunp;
-		data(15) = Cfunp;
-		data(16) = Cer;
-		data(17) = Cfr;
-		data(18) = Cer0n;
-		data(19) = Cfr0n;
-		data(20) = Cer0p;
-		data(21) = Cfr0p;
-		data(22) = Ce0;
-		data(23) = Cea;
-		data(24) = Ceb;
-		data(25) = Ced;
-		data(26) = Cinc;
-		data(27) = Crule;
-
-		// State variables from last converged state
-		data(28) = Cstrain;
-		data(29) = Cstress;
-		data(30) = Ctangent;
-
-		// Data is only sent after convergence, so no trial variables
-		// need to be sent through data vector
-
-		res = theChannel.sendVector(this->getDbTag(), commitTag, data);
-		if (res < 0) 
-			opserr << "ConcreteCM::sendSelf() - failed to send data\n";
-
-		return res;
-	}
-
-	int ConcreteCM::recvSelf (int commitTag, Channel& theChannel,
-		FEM_ObjectBroker& theBroker)
-	{
-		int res = 0;
-		static Vector data(31);
-		res = theChannel.recvVector(this->getDbTag(), commitTag, data);
-
-		if (res < 0) {
-			opserr << "ConcreteCM::recvSelf() - failed to receive data\n";
-			this->setTag(0);      
-		}
-		else {
-			this->setTag(int(data(0)));
-
-			// Material properties 
-			fpcc = data(1);
-			epcc = data(2);
-			Ec = data(3); 
-			rc = data(4);
-			xcrn = data(5);
-			ft = data(6);
-			et = data(7);
-			rt = data(8);
-			xcrp = data(9);
-			mon = data(10);
-			Gap = data(11);
-
-			// History variables from last converged state
-			Ceunn = data(12);
-			Cfunn = data(13);
-			Ceunp = data(14);
-			Cfunp = data(15);
-			Cer = data(16);
-			Cfr = data(17);
-			Cer0n = data(18);
-			Cfr0n = data(19);
-			Cer0p = data(20);
-			Cfr0p = data(21);
-			Ce0 = data(22);
-			Cea = data(23);
-			Ceb = data(24);
-			Ced = data(25);
-			Cinc = data(26);
-			Crule = data(27);
-
-			// State variables from last converged state
-			Cstrain = data(28);
-			Cstress = data(29);
-			Ctangent = data(30);
-
-			// Set trial state variables
-			Tstrain = Cstrain;
-			Tstress = Cstress;
-			Ttangent = Ctangent;
-		}
-
-		return res;		//come back to what this means
-	}
-
-	// KK
-	Response* 
-	ConcreteCM::setResponse(const char **argv, int argc,
-				 OPS_Stream &theOutput)
-	{
-	Response *theResponse = 0;
-
-	if (strcmp(argv[0],"getCommittedConcreteStrain") == 0) {
-		double data = 0.0;
-		theResponse = new MaterialResponse(this, 100, data);
-	} else if (strcmp(argv[0],"getCommittedConcreteStress") == 0) {
-		double data1 = 0.0;
-		theResponse = new MaterialResponse(this, 101, data1);
-	} else if (strcmp(argv[0],"getCommittedCyclicCrackingConcreteStrain") == 0) {
-		double data2 = 0.0;
-		theResponse = new MaterialResponse(this, 102, data2);
-	} else if (strcmp(argv[0],"getInputParameters") == 0) {
-		Vector data3(11);
-		data3.Zero();
-		theResponse = new MaterialResponse(this, 103, data3);
-	} else
-		return this->UniaxialMaterial::setResponse(argv, argc, theOutput);
-
-	return theResponse;
-	}
- 
-	// KK
-	int 
-	ConcreteCM::getResponse(int responseID, Information &matInfo)
-	{
-	if (responseID == 100) {
-		matInfo.theDouble = this->getCommittedStrain();
-
-	} else if (responseID == 101){
-		matInfo.theDouble = this->getCommittedStress();
-	
-	} else if (responseID == 102){
-		matInfo.theDouble = this->getCommittedCyclicCrackingStrain();
-	
-	} else if (responseID == 103){
-		matInfo.setVector(this->getInputParameters()); 
-
-	} else
-
-		return this->UniaxialMaterial::getResponse(responseID, matInfo);
-
-	return 0;
-	}
-
-	void ConcreteCM::Print (OPS_Stream& s, int flag)
-	{
-		s << "ConcreteCM:(strain, stress, tangent) " << Cstrain << " " << Cstress << " " << Ctangent << endln;
-	}
+// AddingSensitivity:BEGIN ///////////////////////////////////
+int
+ConcreteCM::setParameter(const char **argv, int argc, Information &info)
+{
+  return -1;
+}
 
 
-	// AddingSensitivity:BEGIN ///////////////////////////////////
-	int
-		ConcreteCM::setParameter(const char **argv, int argc, Information &info)
-	{
-		return -1;
-	}
+int
+ConcreteCM::updateParameter(int parameterID, Information &info)
+{
+  return 0;
+}
 
 
-	int
-		ConcreteCM::updateParameter(int parameterID, Information &info)
-	{
-		return 0;
-	}
+int
+ConcreteCM::activateParameter(int passedParameterID)
+{
+  return 0;
+}
+
+double
+ConcreteCM::getStressSensitivity(int gradNumber, bool conditional)
+{
+  return 0;
+}
 
 
-	int
-		ConcreteCM::activateParameter(int passedParameterID)
-	{
-		return 0;
-	}
+int
+ConcreteCM::commitSensitivity(double TstrainSensitivity, int gradNumber, int numGrads)
+{
+  return 0;
+}
+// AddingSensitivity:END /////////////////////////////////////////////
 
-	double
-		ConcreteCM::getStressSensitivity(int gradNumber, bool conditional)
-	{
-		return 0;
-	}
+Vector 
+ConcreteCM::getInputParameters()
+{
+  Vector input_par(11); // size = max number of parameters (assigned + default)
 
+  input_par.Zero();
 
-	int
-		ConcreteCM::commitSensitivity(double TstrainSensitivity, int gradNumber, int numGrads)
-	{
-		return 0;
-	}
-	// AddingSensitivity:END /////////////////////////////////////////////
+  input_par(0) = this->getTag(); 
+  input_par(1) = fpcc; 
+  input_par(2) = epcc; 
+  input_par(3) = Ec; 
+  input_par(4) = rc; 
+  input_par(5) = xcrn; 
+  input_par(6) = ft; 
+  input_par(7) = et; 
+  input_par(8) = rt; 
+  input_par(9) = xcrp;
+  input_par(10) = Gap;
 
-	Vector ConcreteCM::getInputParameters(void)
-	{
-		Vector input_par(11); // size = max number of parameters (assigned + default)
-
-		input_par.Zero();
-
-		input_par(0) = this->getTag(); 
-		input_par(1) = fpcc; 
-		input_par(2) = epcc; 
-		input_par(3) = Ec; 
-		input_par(4) = rc; 
-		input_par(5) = xcrn; 
-		input_par(6) = ft; 
-		input_par(7) = et; 
-		input_par(8) = rt; 
-		input_par(9) = xcrp;
-		input_par(10) = Gap;
-
-		return input_par;
-	}
+  return input_par;
+}

@@ -176,11 +176,10 @@ int Newmark::newStep(double deltaT)
       // U  = Uc + dt Vc + a1 Ac
       //
       double a1 = deltaT*deltaT/2.0;
-      double a2 = beta*deltaT*deltaT;
+      // double a2 = beta*deltaT*deltaT;
 
       U->addVector(1.0, *Utdot,    deltaT); // buv
       U->addVector(1.0, *Utdotdot,     a1); // bua + c1
-//    opserr << "\t2\t" << *U << "\n";
     
 
       Udot->addVector(1.0, *Utdotdot, deltaT);

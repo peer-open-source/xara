@@ -79,7 +79,8 @@ public:
   }
 
   Matrix3D
-  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx)
+  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) 
+  noexcept final
   {
     // Ln = dx.norm();
     this->AlignedIsometry<nn>::Ln = dx.norm();
@@ -198,12 +199,12 @@ public:
     return E;
   }
 
-  MatrixND<nn*6,nn*6>
-  getRotationJacobian(const VectorND<nn*6>&pl) final {
-    MatrixND<nn*6,nn*6> dG{};
-    // TODO
-    return dG;
-  }
+  // MatrixND<nn*6,nn*6>
+  // getRotationJacobian(const VectorND<nn*6>&pl) final {
+  //   MatrixND<nn*6,nn*6> dG{};
+  //   // TODO
+  //   return dG;
+  // }
 
   MatrixND<3,6> 
   getRotationGradient(int node) final {

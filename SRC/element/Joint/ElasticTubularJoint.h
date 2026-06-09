@@ -58,7 +58,9 @@ class ElasticTubularJoint : public Element
     // destructor
     ~ElasticTubularJoint();
 
-    
+    const char *getClassType() const override {return "ElasticTubularJoint";}
+
+
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes(void) const;
     const ID &getExternalNodes(void);
@@ -78,11 +80,10 @@ class ElasticTubularJoint : public Element
     const Vector &getResistingForce(void);
     
     // public methods for output    
-    int sendSelf(int commitTag, Channel &theChannel) ;
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker) ;
+    int sendSelf(int commitTag, Channel &) ;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     void Print(OPS_Stream &, int flag) final; 
-    int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
- protected:
+
     
  private:
     double l;

@@ -29,8 +29,9 @@
 using namespace OpenSees;
 
 
-double FourNodeQuad::matrixData[64];
-Matrix FourNodeQuad::K(matrixData, 8, 8);
+// double FourNodeQuad::matrixData[64];
+MatrixND<8,8> FourNodeQuad::K_data{};
+Matrix FourNodeQuad::K(FourNodeQuad::K_data); // matrixData, 8, 8);
 Vector FourNodeQuad::P(8);
 
 FourNodeQuad::FourNodeQuad(int tag, 
@@ -39,14 +40,16 @@ FourNodeQuad::FourNodeQuad(int tag,
                            double thickness,
                            double pressure, 
                            double rho, 
-                           double b1, double b2)
+                           double b1, double b2,
+                           Element::MassSource mass_source)
  : Element(tag, ELE_TAG_FourNodeQuad), 
    connectedExternalNodes(4), 
    Q(8), pressureLoad(8), thickness(thickness), 
    applyLoad(0),
    pressure(pressure),
    rho(rho), 
-   Ki(nullptr)
+   Ki(nullptr),
+   mass_source(mass_source)
 {
   // Body forces
   b[0] = b1;
@@ -68,7 +71,8 @@ FourNodeQuad::FourNodeQuad()
  : Element (0,ELE_TAG_FourNodeQuad),
    connectedExternalNodes(4), 
    Q(8), pressureLoad(8), 
-   thickness(0.0), applyLoad(0), pressure(0.0), Ki(0)
+   thickness(0.0), applyLoad(0), pressure(0.0), Ki(0),
+   mass_source(Element::MassSource::Element)
 {
   for (int i=0; i<NEN; i++)
     theNodes[i] = nullptr;
@@ -137,6 +141,9 @@ FourNodeQuad::setDomain(Domain *theDomain)
              << theNodes[i]->getTag() << ".\n";
       return;
     }
+    const Vector& Xi = theNodes[i]->getCrds();
+    for (int j=0; j<NDM; j++)
+      Xn[i][j] = Xi(j);
   }
   if (theDomain != nullptr)
     this->Element::link(*theDomain);
@@ -145,13 +152,14 @@ FourNodeQuad::setDomain(Domain *theDomain)
   this->setPressureLoadAtNodes();
 }
 
+
 int
 FourNodeQuad::commitState()
 {
   int retVal = 0;
 
   // call element commitState to do any base class stuff
-  if ((retVal = this->Element::commitState()) != 0) {
+  if ((retVal = this->Element::commitState()) != 0) [[unlikely]] {
     opserr << "FourNodeQuad::commitState () - failed in base class";
   }    
 
@@ -162,65 +170,65 @@ FourNodeQuad::commitState()
   return retVal;
 }
 
+
 int
 FourNodeQuad::revertToLastCommit()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert to last committed state
-    for (int i = 0; i < NIP; i++)
-      retVal += theMaterial[i]->revertToLastCommit();
+  // Loop over the integration points and revert to last committed state
+  for (int i = 0; i < NIP; i++)
+    retVal += theMaterial[i]->revertToLastCommit();
 
-    return retVal;
+  return retVal;
 }
 
 int
 FourNodeQuad::revertToStart()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert states to start
-    for (int i = 0; i < 4; i++)
-      retVal += theMaterial[i]->revertToStart();
+  // Loop over the integration points and revert states to start
+  for (int i = 0; i < 4; i++)
+    retVal += theMaterial[i]->revertToStart();
 
-    return retVal;
+  return retVal;
 }
 
 
 int
 FourNodeQuad::update()
 {
-    // Collect displacements at each node into a local array
-    double u[NDM][NEN];
+  // Collect displacements at each node into a local array
+  thread_local double u[NDM][NEN];
 
-    for (int i=0; i<NEN; i++) {
-        const Vector &displ = theNodes[i]->getTrialDisp();
-        for (int j=0; j<NDM; j++) {
-           u[j][i] = displ[j];
-        }
+  for (int i=0; i<NEN; i++) {
+    const Vector &displ = theNodes[i]->getTrialDisp();
+    for (int j=0; j<NDM; j++) {
+      u[j][i] = displ[j];
+    }
+  }
+
+  int ret = 0;
+
+  // Loop over the integration points
+  for (int i = 0; i < nip; i++) {
+    // Determine Jacobian for this integration point
+    this->shapeFunction(pts[i][0], pts[i][1]);
+
+    // Interpolate strains
+    //   eps = B*u;
+    VectorND<3> eps{};
+    for (int beta = 0; beta < 4; beta++) {
+      eps[0] += shp[0][beta]*u[0][beta];
+      eps[1] += shp[1][beta]*u[1][beta];
+      eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
     }
 
-    int ret = 0;
+    ret += theMaterial[i]->setTrialStrain(eps);
+  }
 
-    // Loop over the integration points
-    for (int i = 0; i < nip; i++) {
-      // Determine Jacobian for this integration point
-      this->shapeFunction(pts[i][0], pts[i][1]);
-
-      // Interpolate strains
-      //   eps = B*u;
-      VectorND<3> eps;
-      eps.zero();
-      for (int beta = 0; beta < 4; beta++) {
-          eps[0] += shp[0][beta]*u[0][beta];
-          eps[1] += shp[1][beta]*u[1][beta];
-          eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
-      }
-
-      ret += theMaterial[i]->setTrialStrain(eps);
-    }
-
-    return ret;
+  return ret;
 }
 
 
@@ -285,69 +293,70 @@ FourNodeQuad::getTangentStiff()
 int
 FourNodeQuad::stateDetermination(Matrix* Kptr, Vector* pptr, int flag)
 {
-    int status = 0;
-    if (Kptr != nullptr) {
-      Matrix& K = *Kptr;
-      K.Zero();
+  int status = 0;
+  if (Kptr != nullptr) {
+    Matrix& K = *Kptr;
+    K.Zero();
 
-      // Loop over the integration points
-      for (int i = 0; i < nip; i++) {
+    // Loop over the integration points
+    for (int i = 0; i < nip; i++) {
 
-        // Determine Jacobian for this integration point
-        double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
-        dvol *= thickness*wts[i];
-        
-        // Get the material tangent
-        const Matrix &D = theMaterial[i]->getTangent();
+      // Determine Jacobian for this integration point
+      double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+      dvol *= thickness*wts[i];
+      
+      // Get the material tangent
+      const Matrix &D = theMaterial[i]->getTangent();
 
-        // Perform numerical integration
-        //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
-        
-        const double D00 = D(0,0),  D01 = D(0,1),  D02 = D(0,2),
-                    D10 = D(1,0),  D11 = D(1,1),  D12 = D(1,2),
-                    D20 = D(2,0),  D21 = D(2,1),  D22 = D(2,2);
+      // Perform numerical integration
+      //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
 
-        double DB[3][2];
-        for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia += 2) {
-          for (int beta = 0, ib = 0; beta < 4; beta++, ib += 2) {
-            
-            DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
-            DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
-            DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
-            DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
-            DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
-            DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
-            
+      const double D00 = D(0,0),  D01 = D(0,1),  D02 = D(0,2),
+                   D10 = D(1,0),  D11 = D(1,1),  D12 = D(1,2),
+                   D20 = D(2,0),  D21 = D(2,1),  D22 = D(2,2);
 
-            K(ia,ib)     += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-            K(ia,ib+1)   += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-            K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-            K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];       
-          }
+      double DB[3][2];
+      for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia += 2) {
+        for (int beta = 0, ib = 0; beta < 4; beta++, ib += 2) {
+          
+          DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
+          DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
+          DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
+          DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
+          DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
+          DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
+
+          K_data(ia,ib)     += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+          K_data(ia,ib+1)   += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+          K_data(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+          K_data(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];       
         }
       }
-      
     }
-    return status;
+    
+  }
+  return status;
 }
 
 
 const Matrix&
 FourNodeQuad::getInitialStiff()
 {
-  if (Ki != 0)
+  if (Ki !=  nullptr)
     return *Ki;
 
-  K.Zero();
-  
-  double dvol;
+  // K.Zero();
+
+  this->Ki = new Matrix(this->K);
+  Matrix& K = *Ki;
+
   double DB[3][2];
   
   // Loop over the integration points
   for (int i = 0; i < nip; i++) {
     
     // Determine Jacobian for this integration point
-    dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+    double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
     dvol *= (thickness*wts[i]);
     
     // Get the material tangent
@@ -373,69 +382,76 @@ FourNodeQuad::getInitialStiff()
         DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
         DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
         
-        matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-        matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-        matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-        matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+        K(ia,ib)     += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        K(ia,ib+1)   += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+        // matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        // matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        // matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        // matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
       }
     }
   }
 
-  Ki = new Matrix(K);
-  return K;
+  return *Ki;
 }
 
 const Matrix&
 FourNodeQuad::getMass()
 {
-    K.Zero();
+  K.Zero();
 
-    int i;
-    static double rhoi[4];
-    double sum = 0.0;
-    for (i = 0; i < nip; i++) {
-      if (rho == 0)
+  static double rhoi[NIP];
+  double sum = 0.0;
+  for (int i = 0; i < NIP; i++) {
+    switch (mass_source) {
+      case Element::MassSource::Material:
         rhoi[i] = theMaterial[i]->getRho();
-      else
-        rhoi[i] = rho;            
-      sum += rhoi[i];
-    }
+        break;
+      case Element::MassSource::Element:
+        rhoi[i] = rho;
+        break;
+      default:
+        rhoi[i] = 0.0;
+    }        
+    sum += rhoi[i];
+  }
 
-    if (sum == 0.0)
-      return K;
-
-    double rhodvol, Nrho;
-
-    // Compute a lumped mass matrix
-    for (int i = 0; i < 4; i++) {
-        // Determine Jacobian for this integration point
-        rhodvol = this->shapeFunction(pts[i][0], pts[i][1]);
-
-        // Element plus material density ... MAY WANT TO REMOVE ELEMENT DENSITY
-        rhodvol *= (rhoi[i]*thickness*wts[i]);
-
-        for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia++) {
-            Nrho = shp[2][alpha]*rhodvol;
-            K(ia,ia) += Nrho;
-            ia++;
-            K(ia,ia) += Nrho;
-        }
-    }
-
+  if (sum == 0.0)
     return K;
+
+
+  // Compute a lumped mass matrix
+  for (int i = 0; i < 4; i++) {
+    // Determine Jacobian for this integration point
+    double rhodvol = this->shapeFunction(pts[i][0], pts[i][1]);
+
+    // Element plus material density
+    rhodvol *= (rhoi[i]*thickness*wts[i]);
+
+    for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia++) {
+      double Nrho = shp[2][alpha]*rhodvol;
+      K(ia,ia) += Nrho;
+      ia++;
+      K(ia,ia) += Nrho;
+    }
+  }
+
+  return K;
 }
 
 void
 FourNodeQuad::zeroLoad()
 {
-    Q.Zero();
+  Q.Zero();
 
-    applyLoad = 0;
+  applyLoad = 0;
 
-    appliedB[0] = 0.0;
-    appliedB[1] = 0.0;
+  appliedB[0] = 0.0;
+  appliedB[1] = 0.0;
 
-    return;
+  return;
 }
 
 int 
@@ -461,9 +477,9 @@ FourNodeQuad::addLoad(ElementalLoad *theLoad, double loadFactor)
 int 
 FourNodeQuad::addInertiaLoadToUnbalance(const Vector &accel)
 {
-  static double rhoi[4];
+  static double rhoi[NIP];
   double sum = 0.0;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < NIP; i++) {
     rhoi[i] = theMaterial[i]->getRho();
     sum += rhoi[i];
   }
@@ -495,12 +511,12 @@ FourNodeQuad::addInertiaLoadToUnbalance(const Vector &accel)
   ra[7] = Raccel4(1);
   
   // Compute mass matrix
-  this->getMass();
+  const Matrix& M = this->getMass();
   
   // Want to add ( - fact * M R * accel ) to unbalance
   // Take advantage of lumped mass matrix
   for (int i = 0; i < 8; i++)
-    Q(i) += -K(i,i)*ra[i];
+    Q(i) += -M(i,i)*ra[i];
   
   return 0;
 }
@@ -508,105 +524,112 @@ FourNodeQuad::addInertiaLoadToUnbalance(const Vector &accel)
 const Vector&
 FourNodeQuad::getResistingForce()
 {
-    P.Zero();
+  P.Zero();
 
-    double dvol;
+  // Loop over the integration points
+  for (int i = 0; i < NIP; i++) {
+    // Determine Jacobian for this integration point
+    double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+    dvol *= (thickness*wts[i]);
 
-    // Loop over the integration points
-    for (int i = 0; i < 4; i++) {
-        // Determine Jacobian for this integration point
-        dvol = this->shapeFunction(pts[i][0], pts[i][1]);
-        dvol *= (thickness*wts[i]);
+    // Get material stress response
+    const Vector &sigma = theMaterial[i]->getStress();
 
-        // Get material stress response
-        const Vector &sigma = theMaterial[i]->getStress();
 
-        // Perform numerical integration on internal force
-        //P = P + (B^ sigma) * intWt(i)*intWt(j) * detJ;
-        //P.addMatrixTransposeVector(1.0, B, sigma, intWt(i)*intWt(j)*detJ);
-        for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia += 2) {            
-          P(ia)   += dvol*(shp[0][alpha]*sigma(0) + shp[1][alpha]*sigma(2)); 
-          P(ia+1) += dvol*(shp[1][alpha]*sigma(1) + shp[0][alpha]*sigma(2));
+    // Perform numerical integration on internal force
+    //P = P + (B^ sigma) * intWt(i)*intWt(j) * detJ;
+    //P.addMatrixTransposeVector(1.0, B, sigma, intWt(i)*intWt(j)*detJ);
+    for (int alpha = 0, ia = 0; alpha < 4; alpha++, ia += 2) {            
+      P(ia)   += dvol*(shp[0][alpha]*sigma(0) + shp[1][alpha]*sigma(2)); 
+      P(ia+1) += dvol*(shp[1][alpha]*sigma(1) + shp[0][alpha]*sigma(2));
 
-          // Subtract equiv. body forces from the nodes
-          //P = P - (N^ b) * intWt(i)*intWt(j) * detJ;
-          //P.addMatrixTransposeVector(1.0, N, b, -intWt(i)*intWt(j)*detJ);
-          if (applyLoad == 0) {
-            P(ia)   -= dvol*(shp[2][alpha]*b[0]);
-            P(ia+1) -= dvol*(shp[2][alpha]*b[1]);
-          } else {
-            P(ia)   -= dvol*(shp[2][alpha]*appliedB[0]);
-            P(ia+1) -= dvol*(shp[2][alpha]*appliedB[1]);
-          }
-        }
+      // Subtract equiv. body forces from the nodes
+      //P = P - (N^ b) * intWt(i)*intWt(j) * detJ;
+      //P.addMatrixTransposeVector(1.0, N, b, -intWt(i)*intWt(j)*detJ);
+      if (applyLoad == 0) {
+        P(ia)   -= dvol*(shp[2][alpha]*b[0]);
+        P(ia+1) -= dvol*(shp[2][alpha]*b[1]);
+      } else {
+        P(ia)   -= dvol*(shp[2][alpha]*appliedB[0]);
+        P(ia+1) -= dvol*(shp[2][alpha]*appliedB[1]);
+      }
     }
+  }
 
-    // Subtract pressure loading from resisting force
-    if (pressure != 0.0) {
-      //P = P - pressureLoad;
-      P.addVector(1.0, pressureLoad, -1.0);
-    }
-    
-    // Subtract other external nodal loads ... P_res = P_int - P_ext
-    // P = P - Q;
-    P.addVector(1.0, Q, -1.0);
+  // Subtract pressure loading from resisting force
+  if (pressure != 0.0) {
+    //P = P - pressureLoad;
+    P.addVector(1.0, pressureLoad, -1.0);
+  }
+  
+  // Subtract other external nodal loads ... P_res = P_int - P_ext
+  // P = P - Q;
+  // P.addVector(1.0, Q, -1.0);
 
-    return P;
+  return P;
 }
 
 const Vector&
 FourNodeQuad::getResistingForceIncInertia()
 {
-    int i;
-    static double rhoi[4];
-    double sum = 0.0;
-    for (int i = 0; i < 4; i++) {
-      rhoi[i] = theMaterial[i]->getRho();
-      sum += rhoi[i];
+  static double rhoi[NIP];
+  double sum = 0.0;
+  for (int i = 0; i < NIP; i++) {
+    switch (mass_source) {
+      case Element::MassSource::Material:
+        rhoi[i] = theMaterial[i]->getRho();
+        break;
+      case Element::MassSource::Element:
+        rhoi[i] = rho;
+        break;
+      default:
+        rhoi[i] = 0.0;
     }
+    sum += rhoi[i];
+  }
 
-    // if no mass terms .. just add damping terms
-    if (sum == 0.0) {
-      this->getResistingForce();
-
-      // add the damping forces if rayleigh damping
-      if (betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-        P += this->getRayleighDampingForces();
-
-      return P;
-    }
-
-    const Vector &accel1 = theNodes[0]->getTrialAccel();
-    const Vector &accel2 = theNodes[1]->getTrialAccel();
-    const Vector &accel3 = theNodes[2]->getTrialAccel();
-    const Vector &accel4 = theNodes[3]->getTrialAccel();
-    
-    double a[8];
-
-    a[0] = accel1(0);
-    a[1] = accel1(1);
-    a[2] = accel2(0);
-    a[3] = accel2(1);
-    a[4] = accel3(0);
-    a[5] = accel3(1);
-    a[6] = accel4(0);
-    a[7] = accel4(1);
-
-    // Compute the current resisting force
+  // if no mass terms .. just add damping terms
+  if (sum == 0.0) {
     this->getResistingForce();
 
-    // Compute the mass matrix
-    this->getMass();
-
-    // Take advantage of lumped mass matrix
-    for (int i = 0; i < 8; i++)
-        P(i) += K(i,i)*a[i];
-
     // add the damping forces if rayleigh damping
-    if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+    if (betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
       P += this->getRayleighDampingForces();
 
     return P;
+  }
+
+  const Vector &accel1 = theNodes[0]->getTrialAccel();
+  const Vector &accel2 = theNodes[1]->getTrialAccel();
+  const Vector &accel3 = theNodes[2]->getTrialAccel();
+  const Vector &accel4 = theNodes[3]->getTrialAccel();
+  
+  double a[8];
+
+  a[0] = accel1(0);
+  a[1] = accel1(1);
+  a[2] = accel2(0);
+  a[3] = accel2(1);
+  a[4] = accel3(0);
+  a[5] = accel3(1);
+  a[6] = accel4(0);
+  a[7] = accel4(1);
+
+  // Compute the current resisting force
+  this->getResistingForce();
+
+  // Compute the mass matrix
+  this->getMass();
+
+  // Take advantage of lumped mass matrix
+  for (int i = 0; i < 8; i++)
+    P(i) += K(i,i)*a[i];
+
+  // add the damping forces if rayleigh damping
+  if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+    P += this->getRayleighDampingForces();
+
+  return P;
 }
 
 int
@@ -658,7 +681,7 @@ FourNodeQuad::sendSelf(int commitTag, Channel &theChannel)
   }
 
   for (int i=0; i<NEN; i++)
-      idData(8+i) = connectedExternalNodes(i);
+    idData(8+i) = connectedExternalNodes(i);
 
   res += theChannel.sendID(dataTag, commitTag, idData);
   if (res < 0) {
@@ -737,7 +760,7 @@ FourNodeQuad::recvSelf(int commitTag, Channel &theChannel,
 
       if (res < 0) {
         opserr << "FourNodeQuad::recvSelf() - material " << i << "failed to recv itself\n";
-            return res;
+        return res;
       }
     }
   }
@@ -776,26 +799,26 @@ FourNodeQuad::Print(OPS_Stream &s, int flag)
   const ID& node_tags = this->getExternalNodes();
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-      s << "\"name\": " << this->getTag() << ", ";
-      s << "\"type\": \"" << this->getClassType() << "\", ";
-  
-      s << "\"nodes\": [";
-      for (int i=0; i < NEN-1; i++)
-          s << node_tags(i) << ", ";
-      s << node_tags(NEN-1) << "]";
-      s << ", ";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
 
-      s << "\"thickness\": " << thickness << ", ";
-      s << "\"surfacePressure\": " << pressure << ", ";
-      s << "\"density\": " << rho << ", ";
-      s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
-      s << "\"materials\": [";
-      for (int i = 0; i < nip - 1; i++)
-        s << theMaterial[i]->getTag() << ", ";
-      s << theMaterial[nip - 1]->getTag() << "]";
-      s << "}";
-      return;
+    s << "\"nodes\": [";
+    for (int i=0; i < NEN-1; i++)
+        s << node_tags(i) << ", ";
+    s << node_tags(NEN-1) << "]";
+    s << ", ";
+
+    s << "\"thickness\": " << thickness << ", ";
+    s << "\"surfacePressure\": " << pressure << ", ";
+    s << "\"density\": " << rho << ", ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
+    s << "\"materials\": [";
+    for (int i = 0; i < nip - 1; i++)
+      s << theMaterial[i]->getTag() << ", ";
+    s << theMaterial[nip - 1]->getTag() << "]";
+    s << "}";
+    return;
   }
 
   if (flag == 2) {
@@ -808,8 +831,7 @@ FourNodeQuad::Print(OPS_Stream &s, int flag)
     
     for (i=0; i<numNodes; i++) {
       const Vector &nodeCrd = theNodes[i]->getCrds();
-      // const Vector &nodeDisp = theNodes[i]->getDisp();
-      s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << endln;
+      s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << "\n";
      }
     
     // spit out the section location & invoke print on the scetion
@@ -839,15 +861,15 @@ FourNodeQuad::Print(OPS_Stream &s, int flag)
   
   if (flag == OPS_PRINT_CURRENTSTATE) {
     s << "\nFourNodeQuad, element id:  " << this->getTag() << endln;
-        s << "\tConnected external nodes:  " << connectedExternalNodes;
-        s << "\tthickness:  " << thickness << endln;
-        s << "\tsurface pressure:  " << pressure << endln;
-    s << "\tmass density:  " << rho << endln;
-    s << "\tbody forces:  " << b[0] << " " << b[1] << endln;
-        theMaterial[0]->Print(s,flag);
-        s << "\tStress (xx yy xy)" << endln;
-        for (int i = 0; i < 4; i++)
-                s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
+    s << "\tConnected external nodes:  " << connectedExternalNodes;
+    s << "\tthickness:  " << thickness << "\n";
+    s << "\tsurface pressure:  " << pressure << "\n";
+    s << "\tmass density:  " << rho << "\n";
+    s << "\tbody forces:  " << b[0] << " " << b[1] << "\n";
+    theMaterial[0]->Print(s,flag);
+    s << "\tStress (xx yy xy)" << "\n";
+    for (int i = 0; i < 4; i++)
+      s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
   }
   
 }
@@ -1127,74 +1149,75 @@ FourNodeQuad::updateParameter(int parameterID, Information &info)
   }
 }
 
-double FourNodeQuad::shapeFunction(double xi, double eta)
+double
+FourNodeQuad::shapeFunction(double xi, double eta)
 {
-    const Vector &nd1Crds = theNodes[0]->getCrds();
-    const Vector &nd2Crds = theNodes[1]->getCrds();
-    const Vector &nd3Crds = theNodes[2]->getCrds();
-    const Vector &nd4Crds = theNodes[3]->getCrds();
+  // const Vector &nd1Crds = theNodes[0]->getCrds();
+  // const Vector &nd2Crds = theNodes[1]->getCrds();
+  // const Vector &nd3Crds = theNodes[2]->getCrds();
+  // const Vector &nd4Crds = theNodes[3]->getCrds();
 
-    double oneMinuseta = 1.0-eta;
-    double onePluseta = 1.0+eta;
-    double oneMinusxi = 1.0-xi;
-    double onePlusxi = 1.0+xi;
+  const double oneMinuseta = 1.0-eta;
+  const double onePluseta = 1.0+eta;
+  const double oneMinusxi = 1.0-xi;
+  const double onePlusxi  = 1.0+xi;
 
-    shp[2][0] = 0.25*oneMinusxi*oneMinuseta;        // N_1
-    shp[2][1] = 0.25*onePlusxi*oneMinuseta;         // N_2
-    shp[2][2] = 0.25*onePlusxi*onePluseta;          // N_3
-    shp[2][3] = 0.25*oneMinusxi*onePluseta;         // N_4
+  shp[2][0] = 0.25*oneMinusxi*oneMinuseta;        // N_1
+  shp[2][1] = 0.25*onePlusxi*oneMinuseta;         // N_2
+  shp[2][2] = 0.25*onePlusxi*onePluseta;          // N_3
+  shp[2][3] = 0.25*oneMinusxi*onePluseta;         // N_4
 
-    double J[2][2];
+  double J[2][2];
 
-    J[0][0] = 0.25 * (-nd1Crds(0)*oneMinuseta + nd2Crds(0)*oneMinuseta +
-                            nd3Crds(0)*(onePluseta) - nd4Crds(0)*(onePluseta));
+  J[0][0] = 0.25 * (-Xn[0][0]*oneMinuseta  + Xn[1][0]*oneMinuseta +
+                     Xn[2][0]*(onePluseta) - Xn[3][0]*(onePluseta));
 
-    J[0][1] = 0.25 * (-nd1Crds(0)*oneMinusxi - nd2Crds(0)*onePlusxi +
-                            nd3Crds(0)*onePlusxi + nd4Crds(0)*oneMinusxi);
+  J[0][1] = 0.25 * (-Xn[0][0]*oneMinusxi - Xn[1][0]*onePlusxi +
+                          Xn[2][0]*onePlusxi + Xn[3][0]*oneMinusxi);
 
-    J[1][0] = 0.25 * (-nd1Crds(1)*oneMinuseta + nd2Crds(1)*oneMinuseta +
-                            nd3Crds(1)*onePluseta - nd4Crds(1)*onePluseta);
+  J[1][0] = 0.25 * (-Xn[0][1]*oneMinuseta + Xn[1][1]*oneMinuseta +
+                     Xn[2][1]*onePluseta  - Xn[3][1]*onePluseta);
 
-    J[1][1] = 0.25 * (-nd1Crds(1)*oneMinusxi - nd2Crds(1)*onePlusxi +
-                            nd3Crds(1)*onePlusxi + nd4Crds(1)*oneMinusxi);
+  J[1][1] = 0.25 * (-Xn[0][1]*oneMinusxi - Xn[1][1]*onePlusxi +
+                          Xn[2][1]*onePlusxi + Xn[3][1]*oneMinusxi);
 
-    double detJ = J[0][0]*J[1][1] - J[0][1]*J[1][0];
-    double oneOverdetJ = 1.0/detJ;
-    double L[2][2];
+  double detJ = J[0][0]*J[1][1] - J[0][1]*J[1][0];
+  double oneOverdetJ = 1.0/detJ;
+  double L[2][2];
 
-    // L = inv(J)
-    L[0][0] =  J[1][1]*oneOverdetJ;
-    L[1][0] = -J[0][1]*oneOverdetJ;
-    L[0][1] = -J[1][0]*oneOverdetJ;
-    L[1][1] =  J[0][0]*oneOverdetJ;
+  // L = inv(J)
+  L[0][0] =  J[1][1]*oneOverdetJ;
+  L[1][0] = -J[0][1]*oneOverdetJ;
+  L[0][1] = -J[1][0]*oneOverdetJ;
+  L[1][1] =  J[0][0]*oneOverdetJ;
 
-    double L00 = 0.25*L[0][0];
-    double L10 = 0.25*L[1][0];
-    double L01 = 0.25*L[0][1];
-    double L11 = 0.25*L[1][1];
-        
-    double L00oneMinuseta = L00*oneMinuseta;
-    double L00onePluseta  = L00*onePluseta;
-    double L01oneMinusxi  = L01*oneMinusxi;
-    double L01onePlusxi   = L01*onePlusxi;
+  double L00 = 0.25*L[0][0];
+  double L10 = 0.25*L[1][0];
+  double L01 = 0.25*L[0][1];
+  double L11 = 0.25*L[1][1];
+      
+  double L00oneMinuseta = L00*oneMinuseta;
+  double L00onePluseta  = L00*onePluseta;
+  double L01oneMinusxi  = L01*oneMinusxi;
+  double L01onePlusxi   = L01*onePlusxi;
 
-    double L10oneMinuseta = L10*oneMinuseta;
-    double L10onePluseta  = L10*onePluseta;
-    double L11oneMinusxi  = L11*oneMinusxi;
-    double L11onePlusxi   = L11*onePlusxi;
+  double L10oneMinuseta = L10*oneMinuseta;
+  double L10onePluseta  = L10*onePluseta;
+  double L11oneMinusxi  = L11*oneMinusxi;
+  double L11onePlusxi   = L11*onePlusxi;
 
-    // See Cook, Malkus, Plesha p. 169 for the derivation of these terms
-    shp[0][0] = -L00oneMinuseta - L01oneMinusxi;        // N_1,1
-    shp[0][1] =  L00oneMinuseta - L01onePlusxi;         // N_2,1
-    shp[0][2] =  L00onePluseta  + L01onePlusxi;         // N_3,1
-    shp[0][3] = -L00onePluseta  + L01oneMinusxi;        // N_4,1
-        
-    shp[1][0] = -L10oneMinuseta - L11oneMinusxi;        // N_1,2
-    shp[1][1] =  L10oneMinuseta - L11onePlusxi;         // N_2,2
-    shp[1][2] =  L10onePluseta  + L11onePlusxi;         // N_3,2
-    shp[1][3] = -L10onePluseta  + L11oneMinusxi;        // N_4,2
+  // See Cook, Malkus, Plesha p. 169 for the derivation of these terms
+  shp[0][0] = -L00oneMinuseta - L01oneMinusxi;        // N_1,1
+  shp[0][1] =  L00oneMinuseta - L01onePlusxi;         // N_2,1
+  shp[0][2] =  L00onePluseta  + L01onePlusxi;         // N_3,1
+  shp[0][3] = -L00onePluseta  + L01oneMinusxi;        // N_4,1
+      
+  shp[1][0] = -L10oneMinuseta - L11oneMinusxi;        // N_1,2
+  shp[1][1] =  L10oneMinuseta - L11onePlusxi;         // N_2,2
+  shp[1][2] =  L10onePluseta  + L11onePlusxi;         // N_3,2
+  shp[1][3] = -L10onePluseta  + L11oneMinusxi;        // N_4,2
 
-    return detJ;
+  return detJ;
 }
 
 int
@@ -1208,61 +1231,61 @@ FourNodeQuad::activateParameter(int param)
 void 
 FourNodeQuad::setPressureLoadAtNodes()
 {
-    pressureLoad.Zero();
+  pressureLoad.Zero();
 
-    if (pressure == 0.0)
-        return;
+  if (pressure == 0.0)
+      return;
 
-    const Vector &node1 = theNodes[0]->getCrds();
-    const Vector &node2 = theNodes[1]->getCrds();
-    const Vector &node3 = theNodes[2]->getCrds();
-    const Vector &node4 = theNodes[3]->getCrds();
+  const Vector &node1 = theNodes[0]->getCrds();
+  const Vector &node2 = theNodes[1]->getCrds();
+  const Vector &node3 = theNodes[2]->getCrds();
+  const Vector &node4 = theNodes[3]->getCrds();
 
-    double x1 = node1(0);
-    double y1 = node1(1);
-    double x2 = node2(0);
-    double y2 = node2(1);
-    double x3 = node3(0);
-    double y3 = node3(1);
-    double x4 = node4(0);
-    double y4 = node4(1);
+  double x1 = node1(0);
+  double y1 = node1(1);
+  double x2 = node2(0);
+  double y2 = node2(1);
+  double x3 = node3(0);
+  double y3 = node3(1);
+  double x4 = node4(0);
+  double y4 = node4(1);
 
-    double dx12 = x2-x1;
-    double dy12 = y2-y1;
-    double dx23 = x3-x2;
-    double dy23 = y3-y2;
-    double dx34 = x4-x3;
-    double dy34 = y4-y3;
-    double dx41 = x1-x4;
-    double dy41 = y1-y4;
+  double dx12 = x2-x1;
+  double dy12 = y2-y1;
+  double dx23 = x3-x2;
+  double dy23 = y3-y2;
+  double dx34 = x4-x3;
+  double dy34 = y4-y3;
+  double dx41 = x1-x4;
+  double dy41 = y1-y4;
 
-    double pressureOver2 = pressure/2.0;
+  double pressureOver2 = pressure/2.0;
 
-    // Contribution from side 12
-    pressureLoad(0) += pressureOver2*dy12;
-    pressureLoad(2) += pressureOver2*dy12;
-    pressureLoad(1) += pressureOver2*-dx12;
-    pressureLoad(3) += pressureOver2*-dx12;
+  // Contribution from side 12
+  pressureLoad(0) += pressureOver2*dy12;
+  pressureLoad(2) += pressureOver2*dy12;
+  pressureLoad(1) += pressureOver2*-dx12;
+  pressureLoad(3) += pressureOver2*-dx12;
 
-    // Contribution from side 23
-    pressureLoad(2) += pressureOver2*dy23;
-    pressureLoad(4) += pressureOver2*dy23;
-    pressureLoad(3) += pressureOver2*-dx23;
-    pressureLoad(5) += pressureOver2*-dx23;
+  // Contribution from side 23
+  pressureLoad(2) += pressureOver2*dy23;
+  pressureLoad(4) += pressureOver2*dy23;
+  pressureLoad(3) += pressureOver2*-dx23;
+  pressureLoad(5) += pressureOver2*-dx23;
 
-    // Contribution from side 34
-    pressureLoad(4) += pressureOver2*dy34;
-    pressureLoad(6) += pressureOver2*dy34;
-    pressureLoad(5) += pressureOver2*-dx34;
-    pressureLoad(7) += pressureOver2*-dx34;
+  // Contribution from side 34
+  pressureLoad(4) += pressureOver2*dy34;
+  pressureLoad(6) += pressureOver2*dy34;
+  pressureLoad(5) += pressureOver2*-dx34;
+  pressureLoad(7) += pressureOver2*-dx34;
 
-    // Contribution from side 41
-    pressureLoad(6) += pressureOver2*dy41;
-    pressureLoad(0) += pressureOver2*dy41;
-    pressureLoad(7) += pressureOver2*-dx41;
-    pressureLoad(1) += pressureOver2*-dx41;
+  // Contribution from side 41
+  pressureLoad(6) += pressureOver2*dy41;
+  pressureLoad(0) += pressureOver2*dy41;
+  pressureLoad(7) += pressureOver2*-dx41;
+  pressureLoad(1) += pressureOver2*-dx41;
 
-    //pressureLoad = pressureLoad*thickness;
+  //pressureLoad = pressureLoad*thickness;
 }
 
 const Vector &

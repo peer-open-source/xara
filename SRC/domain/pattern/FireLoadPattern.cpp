@@ -53,7 +53,7 @@
 #include <FEM_ObjectBroker.h>
 #include <GroundMotion.h>
 
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 
 static int numFireLoadPattern = 0;
 
@@ -67,7 +67,7 @@ FireLoadPattern::FireLoadPattern(int tag, int classTag)
 
   if (numFireLoadPattern == 0) {
     numFireLoadPattern++;
-    opserr << "Using OpenSees Thermal Extension \n\tfrom University of Edinburgh (UoE) OpenSees developers Group, Prof. Asif Usmani\n";
+    opslog << "Using OpenSees Thermal Extension \n\tfrom University of Edinburgh (UoE) OpenSees developers Group, Prof. Asif Usmani\n";
   }
 }
 
@@ -80,7 +80,7 @@ FireLoadPattern::FireLoadPattern(int tag)
 
   if (numFireLoadPattern == 0) {
     numFireLoadPattern++;
-    opserr << "Using OpenSees Thermal Extension \n\tfrom University of Edinburgh (UoE) OpenSees developers Group, Prof. Asif Usmani\n";
+    opslog << "Using OpenSees Thermal Extension \n\tfrom University of Edinburgh (UoE) OpenSees developers Group, Prof. Asif Usmani\n";
   }
 }
 

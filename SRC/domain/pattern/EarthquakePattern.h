@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2006-09-05 20:51:38 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/pattern/EarthquakePattern.h,v $
-                                                                        
-                                                                        
+
 #ifndef EarthquakePattern_h
 #define EarthquakePattern_h
 
@@ -50,20 +45,7 @@ class EarthquakePattern : public LoadPattern
     virtual bool addNodalLoad(NodalLoad *);
     virtual bool addElementalLoad(ElementalLoad *);
 
-    // methods for o/p
-    virtual int sendSelf(int commitTag, Channel &) =0;
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) =0;
-    virtual void Print(OPS_Stream &s, int flag);        
-
-    // method to obtain a blank copy of the LoadPattern
-    virtual LoadPattern *getCopy() =0;
-    
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
-    virtual void applyLoadSensitivity(double pseudoTime = 0.0);
-    virtual int setParameter(const char **argv, int argc, Parameter &param);
-    virtual int  updateParameter(int parameterID, Information &info);
-    virtual int  activateParameter(int parameterID);
-    // AddingSensitivity:END ///////////////////////////////////////////
+    virtual void applyLoadSensitivity(double pseudoTime = 0.0); //
     
  protected:
     int addMotion(GroundMotion &theMotion);
@@ -74,9 +56,7 @@ class EarthquakePattern : public LoadPattern
     Vector *uDotG, *uDotDotG;
     double currentTime;
 
-// AddingSensitivity:BEGIN //////////////////////////////////////////
     int parameterID;
-// AddingSensitivity:END ///////////////////////////////////////////
 };
 
 #endif

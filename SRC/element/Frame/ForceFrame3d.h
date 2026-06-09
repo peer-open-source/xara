@@ -119,8 +119,6 @@ public:
   // Constexpr
   //
 
-  int getIntegral(Field field, State state, double& total);
-
   constexpr static int NNW = 6; // number of non-warping basic DOFs
 
   // static constexpr int shear_flag = (nsr-2*nwm == 6) ? 1 : 0;
@@ -158,23 +156,6 @@ public:
     jwx =   7,
   };
 
-#if BASIC_TRANSFORM == 0
-  static constexpr std::array<int, NDF*2> make_iq() {
-    if constexpr (nwm) {
-      return {
-        inx, iny, inz, imx, imy, imz, iwx,
-        jnx, jny, jnz, jmx, jmy, jmz, jwx
-      };
-    } else {
-      return {
-        inx, iny, inz, imx, imy, imz,
-        jnx, jny, jnz, jmx, jmy, jmz
-      };
-    }
-  }
-  static constexpr auto iq = make_iq();
-#endif 
-
   enum Respond: int {
     GlobalForce = 1,
     BasicPlasticDeformation = 4,
@@ -185,11 +166,20 @@ public:
     ResultantStiffness=1001
   };
 
+  struct SectionState {
+      VectorND<nsr>       es;      // section deformations
+      MatrixND<nsr,nsr>   Fs;      // section flexibility
+  };
   //
   // Functions
   //
   int update01();
   int update02();
+  // int updateMixed02();
+  // int solveMixed02(const VectorND<NBV> &v_trial,
+  //                 VectorND<NBV> &q_pres,
+  //                 std::array<SectionState, NIP> &trial,
+  //                 double L) noexcept;
   int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 
@@ -198,11 +188,11 @@ public:
 
   int setSectionPointers(std::vector<FrameSection*>&);
   void initializeSectionHistoryVariables();
+  int getIntegral(Field field, State state, double& total);
 
   // Sensitivity
   int parameterID;
   VectorND<6+nwm*2> getBasicForceGrad(int gradNumber);
-  MatrixND<6+2*nwm,6+2*nwm> computedfedh(int gradNumber);
   void getStressGrad(VectorND<nsr> &dspdh, int isec, int gradNumber);
 
   //
@@ -227,7 +217,8 @@ public:
   MatrixND<NBV,NBV> K_pres,      // stiffness matrix in the basic system 
                     K_save;      // committed stiffness matrix in the basic system
   VectorND<NBV> q_pres,          // element resisting forces in the basic system
-                q_save;          // committed element end forces in the basic system
+                q_save,          // committed element end forces in the basic system
+                v_past;
   
   int    state_flag;             // indicate if the element has been initialized
 
@@ -239,7 +230,6 @@ public:
     double point,
            weight;
     FrameSection* material;
-
     MatrixND<nsr,nsr> Fs;         // Section flexibility
     VectorND<nsr>     es;         // Section deformations
     VectorND<nsr>     sr;         // Section stress resultants

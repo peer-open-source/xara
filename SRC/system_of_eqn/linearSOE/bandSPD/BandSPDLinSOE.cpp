@@ -371,24 +371,6 @@ BandSPDLinSOE::normRHS()
 }    
 
 
-int
-BandSPDLinSOE::setBandSPDSolver(BandSPDLinSolver &newSolver)
-{
-    newSolver.setLinearSOE(*this);
-    
-    if (size != 0) {
-        int solverOK = newSolver.setSize();
-        if (solverOK < 0) {
-            // opserr << "WARNING:BandSPDLinSOE::setSolver :";
-            // opserr << "the new solver could not setSeize() - staying with old\n";
-            return solverOK;
-        }
-    }
-
-    return this->LinearSOE::setSolver(newSolver);
-}
-
-
 int 
 BandSPDLinSOE::sendSelf(int tag, Channel &theChannel)
 {

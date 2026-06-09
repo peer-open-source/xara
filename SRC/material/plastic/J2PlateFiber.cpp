@@ -60,7 +60,8 @@ J2Plasticity( )
   commitEps22 =0.0;
 }
 
-J2PlateFiber::J2PlateFiber(   int    tag, 
+J2PlateFiber::J2PlateFiber(   
+                          int    tag, 
                           double K,
                           double G,
                           double yield0,

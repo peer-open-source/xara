@@ -29,8 +29,10 @@
 
 #include <string>
 
-class FourNodeQuad;
 class TimeSeries;
+
+namespace OpenSees {
+class FourNodeQuad;
 
 //#include <SSPquadUP.h>
 //#include <SSPquad.h>
@@ -112,6 +114,8 @@ class TzLiq1 : public TzSimple1 {
 	static Vector stressV3;
 	
 };
+
+}
 
 #endif // TZLIQ1_H
 

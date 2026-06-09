@@ -40,6 +40,7 @@
 #include <Plane/FourNodeQuadUP.h>
 #include <Plane/Nine_Four_Node_QuadUP.h>
 #include <TimeSeries.h>
+using namespace OpenSees;
 
 int TzLiq1::loadStage = 0;
 Vector TzLiq1::stressV3(3);

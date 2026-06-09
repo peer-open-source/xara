@@ -53,7 +53,7 @@ public:
   LayeredShellFiberSection(int tag, int iLayers, double* thickness, NDMaterial** fibers);
 
   const char*
-  getClassType(void) const
+  getClassType() const
   {
     return "LayeredShellFiberSection";
   }
@@ -91,8 +91,8 @@ public:
 
   void Print(OPS_Stream& s, int flag);
 
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+  int sendSelf(int commitTag, Channel&);
+  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
 
 private:

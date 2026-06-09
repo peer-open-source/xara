@@ -79,10 +79,6 @@ void *OPS_ADD_RUNTIME_VPV(OPS_OrthotropicMaterial)
 		dData[4], dData[5], dData[6], dData[7],
 		dData[8], dData[9], dData[10], dData[11],
 		dData[12], dData[13], dData[14]);
-	if (theOrthotropicMaterial == 0) {
-		opserr << "nDMaterial Orthotropic Error: failed to allocate a new material.\n";
-		return nullptr;
-	}
 
 	// done
 	return theOrthotropicMaterial;

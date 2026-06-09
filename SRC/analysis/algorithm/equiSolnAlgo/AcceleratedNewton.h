@@ -23,9 +23,12 @@
 // subspace accelerator on the modified Newton method.
 // The accelerator is described by Carlson and Miller in
 //
-// - "Design and Application of a 1D GWMFE Code"
+// - Carlson and Miller "Design and Application of a 1D GWMFE Code"
 //   from SIAM Journal of Scientific Computing (Vol. 19, No. 3,
 //   pp. 728-765, May 1998)
+//
+// - Scott, M. “Software Frameworks for the Computational Simulation of Structural Systems.” 
+//   University of California, Berkeley, 2004. 
 //
 // Written: MHS
 // Created: Oct 2001

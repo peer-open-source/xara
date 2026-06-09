@@ -130,6 +130,22 @@ public:
     return 0;
   }
 
+  template <int n, const FrameStressLayout& scheme>
+  int commitGradient(const VectorND<n>& de, int gradIndex, int numGrads) {
+    static double de_data[FrameStress::Max];
+    const ID& layout = this->getType();
+    const int m = this->getOrder();
+    Vector de_vec(de_data, m);
+    de_vec.Zero();
+    for (int i=0; i<m; i++) {
+      int k = layout(i);
+      for (int j=0; j<n; j++)
+        if (k == scheme[j])
+          de_vec(i) = de(j);
+    }
+    return this->commitSensitivity(de_vec, gradIndex, numGrads);
+  }
+
   virtual SectionForceDeformation* getCopy() {
     return this->getFrameCopy();
   }
@@ -152,6 +168,9 @@ public:
   template <int n, const FrameStressLayout& scheme>
   int setTrialState(const OpenSees::VectorND<n>& e) noexcept;
 
+
+  // virtual int setFullState(const OpenSees::VectorND<12>& e) noexcept=0;
+
   virtual OpenSees::VectorND<12>
   getFullStress() {
     const Vector& s = this->getStressResultant();
@@ -169,8 +188,9 @@ public:
     return S;
   }
 
-  virtual OpenSees::MatrixND<12,12>
-  getFullTangent(State state) {
+  virtual 
+  OpenSees::MatrixND<12,12>
+  getFullTangent(State state) noexcept {
     const Matrix& ks = (state == State::Init)
                       ? this->getInitialTangent()
                       : this->getSectionTangent();

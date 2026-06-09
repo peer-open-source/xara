@@ -30,9 +30,11 @@
 #ifndef Element_h
 #define Element_h
 
-#include <DomainComponent.h>
+#include <MovableObject.h>
+#include <TaggedObject.h>
 #include <ID.h>
-#include <vector>
+#include <Vector.h>
+#include <Matrix.h>
 
 class Matrix;
 class Vector;
@@ -40,16 +42,32 @@ class Info;
 class Response;
 class ElementalLoad;
 class Node;
+class FE_Element;
+class Renderer;
 
 class Element : public TaggedObject, public MovableObject
 {
   public:
-    Element(int tag, int classTag);    
+    Element(int tag, int classTag);
     virtual ~Element();
+    enum class MassType {
+        Translation,
+        General
+    };
+    enum class MassSource {
+        Element,
+        Material
+    };
 
     // methods dealing with nodes and number of external dof
 
     //
+    virtual int getNumExternalNodes() const =0;
+    virtual const ID &getExternalNodes()  =0;	
+    virtual Node **getNodePtrs()  =0;	
+    virtual int    getNumDOF()    =0;
+    virtual double getCharacteristicLength();
+
     virtual int configure(Domain& domain) {
         this->setDomain(&domain);
         return 0;
@@ -59,12 +77,6 @@ class Element : public TaggedObject, public MovableObject
         // DEPRECATED
         this->link(*theDomain);
     }
-
-    virtual int getNumExternalNodes() const =0;
-    virtual const ID &getExternalNodes()  =0;	
-    virtual Node **getNodePtrs()  =0;	
-    virtual int    getNumDOF()    =0;
-    virtual double getCharacteristicLength();
 
     // methods dealing with committed state and update
     virtual int  commitState();
@@ -79,13 +91,17 @@ class Element : public TaggedObject, public MovableObject
     virtual const Matrix &getInitialStiff() =0;
     virtual const Matrix &getDamp();
     virtual const Matrix &getMass();
+    virtual MassType getMassType() const {return MassType::General;}
+    virtual bool hasMass() const {return true;}
+    virtual double getPositionInertia(int node) const {return 0.0;}
+    
 
     // methods for applying loads
     virtual void zeroLoad();	
     virtual int  addLoad(ElementalLoad *, double loadFactor);
     virtual int  addLoad(ElementalLoad *, const Vector &loadFactors);
 
-    virtual int addInertiaLoadToUnbalance(const Vector &accel);
+    virtual int addInertiaLoadToUnbalance(const Vector &accel) {return -1;}
     virtual int setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc);
 
     // methods for obtaining resisting force (force includes elemental loads)
@@ -94,7 +110,7 @@ class Element : public TaggedObject, public MovableObject
 
     // method for obtaining information specific to an element
     virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
-    virtual int getResponse(int responseID, Information &eleInformation);
+    virtual int getResponse(int responseID, Information &);
 
     //
     // Sensitivity
@@ -126,6 +142,7 @@ class Element : public TaggedObject, public MovableObject
     Domain* getDomain() const {
       return this->domain;
     }
+
 protected:
     const Vector& getRayleighDampingForces();
 
@@ -137,8 +154,6 @@ protected:
 
 
 private:
-//  std::vector<Node*> nodes;
-    bool is_this_element_active;
 
     int index, nodeIndex;
     static Matrix ** theMatrices; 

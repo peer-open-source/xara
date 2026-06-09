@@ -20,6 +20,8 @@
 
 class MultiYieldSurface;
 
+namespace OpenSees {
+
 class PressureDependMultiYield : public NDMaterial
 {
 public:
@@ -114,8 +116,11 @@ public:
      void Print(OPS_Stream &s, int flag =0);
      //void setCurrentStress(const Vector stress) { currentStress=T2Vector(stress); }
      int setParameter(const char **argv, int argc, Parameter &param);
-     int updateParameter(int responseID, Information &eleInformation);
-    // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial stresses.    friend class PyLiq1;    friend class TzLiq1;
+     int updateParameter(int responseID, Information &);
+
+    // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial stresses.    
+    // friend class PyLiq1;
+    // friend class TzLiq1;
 protected:
 
 private:
@@ -197,15 +202,15 @@ private:
      static T2Vector workT2V;
 	 double maxPress;
      
-     void elast2Plast(void);
+     void elast2Plast();
      // Called by constructor
      void setUpSurfaces(double *);  
      double yieldFunc(const T2Vector & stress, const MultiYieldSurface * surfaces, 
 		      int surface_num);
      void deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces, 
 			  int surfaceNum);
-     void initSurfaceUpdate(void);
-     void initStrainUpdate(void);
+     void initSurfaceUpdate();
+     void initStrainUpdate();
 
      // Return num_strain_subincre
      int setSubStrainRate(void);
@@ -223,11 +228,11 @@ private:
 			   double plasticPotential,int crossedSurface);
      //return 1 if stress locked; o/w return 0.
      int stressCorrection(int crossedSurface);
-     void updateActiveSurface(void);
-     void updateInnerSurface(void);
+     void updateActiveSurface();
+     void updateInnerSurface();
 
      // Return 1 if crossing the active surface; return 0 o/w
-     int  isCrossingNextSurface(void);  
+     int  isCrossingNextSurface();  
 };
-
+} // namespace OpenSees
 #endif

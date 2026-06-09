@@ -456,7 +456,7 @@ TransientDomainDecompositionAnalysis::sendSelf(int commitTag, Channel &theChanne
     return -1;
   }
 
-  LinearSOESolver *theSolver = theSOE->getSolver();
+  LinearSOESolver *theSolver = nullptr;// TODO(cmp) theSOE->getSolver();
   
   data(0) = theConstraintHandler->getClassTag();
   data(1) = theDOF_Numberer->getClassTag();
@@ -602,7 +602,7 @@ TransientDomainDecompositionAnalysis::recvSelf(int commitTag, Channel &theChanne
   }
 
   theSOE->recvSelf(commitTag, theChannel, theBroker);
-  LinearSOESolver *theSolver = theSOE->getSolver();
+  LinearSOESolver *theSolver = nullptr;// TODO(cmp) theSOE->getSolver();
   if (theSolver == 0) {
       opserr << "StaticDomainDecompositionAnalysis::recvSelf";
       opserr << " - failed to get the Solver\n";

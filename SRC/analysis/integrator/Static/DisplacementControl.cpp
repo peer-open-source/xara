@@ -36,7 +36,7 @@
 #include <LinearSOE.h>
 #include <Vector.h>
 #include <Channel.h>
-#include <math.h>
+#include <cmath>
 #include <Domain.h>
 #include <Node.h>
 #include <DOF_Group.h>
@@ -82,41 +82,41 @@ DisplacementControl::DisplacementControl(int node, int dof,
       specNumIncrStep = 1.0;
       numIncrLastStep = 1.0;
    }
-
 }
 
 DisplacementControl::~DisplacementControl()
 {
-    // delete any vector object created
-   if (deltaUhat != 0)
-      delete deltaUhat;
-   if (deltaU != 0)
-     delete deltaU;
-   if (deltaUstep != 0)
-     delete deltaUstep;
-   if (deltaUbar != 0)
-     delete deltaUbar;
-   if (phat != 0)
-     delete phat;
-   if(dUhatdh !=0)
-     delete dUhatdh;
-   if(dUIJdh !=0)
-     delete dUIJdh; 
-   if(Residual !=0)
-     delete Residual;
-   if(sensU !=0)
-     delete sensU;
-   if(Residual2 !=0)
-     delete Residual2;
-   if(dLAMBDAdh !=0) 
-     delete dLAMBDAdh;
-   if(dphatdh !=0)
-      delete dphatdh;
+  // delete any vector object created
+  if (deltaUhat != 0)
+    delete deltaUhat;
+  if (deltaU != 0)
+    delete deltaU;
+  if (deltaUstep != 0)
+    delete deltaUstep;
+  if (deltaUbar != 0)
+    delete deltaUbar;
+  if (phat != 0)
+    delete phat;
+  if(dUhatdh !=0)
+    delete dUhatdh;
+  if(dUIJdh !=0)
+    delete dUIJdh; 
+  if(Residual !=0)
+    delete Residual;
+  if(sensU !=0)
+    delete sensU;
+  if(Residual2 !=0)
+    delete Residual2;
+  if(dLAMBDAdh !=0) 
+    delete dLAMBDAdh;
+  if(dphatdh !=0)
+    delete dphatdh;
 
-   dLAMBDAdh=0;
-   dUhatdh=0;
+  dLAMBDAdh=0;
+  dUhatdh=0;
 }
- 
+
+
 int
 DisplacementControl::newStep()
 {
@@ -130,21 +130,21 @@ DisplacementControl::newStep()
   AnalysisModel *theModel = this->getAnalysisModel();
   LinearSOE *theLinSOE = this->getLinearSOE();    
   if (theModel == 0 || theLinSOE == 0) {
-     opserr << "WARNING DisplacementControl::newStep ";
-     opserr << "No AnalysisModel or LinearSOE has been set\n";
-     return -1;
+    opserr << "WARNING DisplacementControl::newStep ";
+    opserr << "No AnalysisModel or LinearSOE has been set\n";
+    return -1;
   }
 
   // determine increment for this step
-  double gamma = 1.0;
-  double factor = pow(specNumIncrStep/numIncrLastStep, gamma);
+//   double gamma = 1.0;
+  double factor = double(specNumIncrStep)/numIncrLastStep;//std::pow(specNumIncrStep/numIncrLastStep, gamma);
   theIncrement *= factor;
 
   if (theIncrement < minIncrement)
-     theIncrement = minIncrement;
+    theIncrement = minIncrement;
 
   else if (theIncrement > maxIncrement)
-     theIncrement = maxIncrement;
+    theIncrement = maxIncrement;
 
 
   // get the current load factor
@@ -154,7 +154,7 @@ DisplacementControl::newStep()
   this->formTangent(tangFlag);
   theLinSOE->setB(*phat);
   if (theLinSOE->solve() < 0) {
-     opserr << "DisplacementControl::newStep(void) - failed in solver\n";
+     opserr << "DisplacementControl::newStep() - failed in solver\n";
      return -1;
   }
 
@@ -163,9 +163,9 @@ DisplacementControl::newStep()
   double dUahat = dUhat(theDofID);// this is the component of the Uft in our nonlinear lecture notes
 
   if (dUahat == 0.0) {
-     opserr << "WARNING DisplacementControl::newStep() ";
-     opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
-     return -1;
+    opserr << "WARNING DisplacementControl::newStep() ";
+    opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
+    return -1;
   }
 
   // determine delta lambda(1) == dlambda    
@@ -182,8 +182,8 @@ DisplacementControl::newStep()
 
 
 
- if (this->activateSensitivity()==true) { 
-   Domain *theDomain=theModel->getDomainPtr();
+ if (this->activateSensitivity() == true) { 
+   // Domain *theDomain=theModel->getDomainPtr();
    ParameterIter &paramIter = theDomain->getParameters();
    Parameter *theParam;
 
@@ -205,79 +205,80 @@ DisplacementControl::newStep()
      this->formdLambdaDh(grad);
      theParam->activate(false);
    } 
- }
+  }
  ///////////////Abbas/////////////////////////////
 
   // update model with delta lambda and delta U
   theModel->incrDisp(*deltaU); 
   theModel->applyLoadDomain(currentLambda);
   if (theModel->updateDomain() < 0) {
-     opserr << "DisplacementControl::newStep - model failed to update for new dU\n";
-     return -1;
+    opserr << "DisplacementControl::newStep - model failed to update for new dU\n";
+    return -1;
   }
 
   numIncrLastStep = 0;
   return 0;
 }
 
+
 // Update iteration
-int DisplacementControl::update(const Vector &dU)
+int
+DisplacementControl::update(const Vector &dU)
 {
+  if (theDofID == -1) {
+    opserr << "DisplacementControl::update() - domainChanged has not been called\n";
+    return -1;
+  }
+  AnalysisModel *theModel = this->getAnalysisModel();
+  LinearSOE *theLinSOE = this->getLinearSOE();    
+  if (theModel == 0 || theLinSOE == 0) {
+    opserr << "WARNING DisplacementControl::update() ";
+    opserr << "No AnalysisModel or LinearSOE has been set\n";
+    return -1;
+  }
 
-   if (theDofID == -1) {
-      opserr << "DisplacementControl::update() - domainChanged has not been called\n";
-      return -1;
-   }
-   AnalysisModel *theModel = this->getAnalysisModel();
-   LinearSOE *theLinSOE = this->getLinearSOE();    
-   if (theModel == 0 || theLinSOE == 0) {
-      opserr << "WARNING DisplacementControl::update() ";
-      opserr << "No AnalysisModel or LinearSOE has been set\n";
-      return -1;
-   }
+  (*deltaUbar) = dU; // have to do this as the SOE is gonna change
+  double dUabar = (*deltaUbar)(theDofID);//dUbar is the vector of residual displacement and dUabar is its component
 
-   (*deltaUbar) = dU; // have to do this as the SOE is gonna change
-   double dUabar = (*deltaUbar)(theDofID);//dUbar is the vector of residual displacement and dUabar is its component
+  // determine dUhat    
+  theLinSOE->setB(*phat);
+  theLinSOE->solve();
+  (*deltaUhat) = theLinSOE->getX();    
 
-   // determine dUhat    
-   theLinSOE->setB(*phat);
-   theLinSOE->solve();
-   (*deltaUhat) = theLinSOE->getX();    
+  double dUahat = (*deltaUhat)(theDofID);
+  if (dUahat == 0.0) {
+    opserr << "WARNING DisplacementControl::update() ";
+    opserr << "zero reference displacement at control node DOF\n";
+    return -1;
+  }
 
-   double dUahat = (*deltaUhat)(theDofID);
-   if (dUahat == 0.0) {
-      opserr << "WARNING DisplacementControl::update() ";
-      opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
-      return -1;
-   }
+  // determine delta lambda(1) == dlambda    
+  dLambda = -dUabar/dUahat;// this dLambda i,j
 
-   // determine delta lambda(1) == dlambda    
-   dLambda = -dUabar/dUahat;// this dLambda i,j
-
-   // determine delta U(i)
-   (*deltaU) = (*deltaUbar);   
-   deltaU->addVector(1.0, *deltaUhat,dLambda);
+  // determine delta U(i)
+  (*deltaU) = (*deltaUbar);   
+  deltaU->addVector(1.0, *deltaUhat,dLambda);
 
 
-   // update dU and dlambda
-   (*deltaUstep)   += *deltaU;
-   deltaLambdaStep += dLambda;
-   currentLambda   += dLambda;
+  // update dU and dlambda
+  (*deltaUstep)   += *deltaU;
+  deltaLambdaStep += dLambda;
+  currentLambda   += dLambda;
 
-   // update the model
-   theModel->incrDisp(*deltaU);    
-   theModel->applyLoadDomain(currentLambda);    
-   if (theModel->updateDomain() < 0) {
-      opserr << "DisplacementControl::update - model failed to update for new dU\n";
-      return -1;
-   }
+  // update the model
+  theModel->incrDisp(*deltaU);    
+  theModel->applyLoadDomain(currentLambda);    
+  if (theModel->updateDomain() < 0) {
+    opserr << "DisplacementControl::update - model failed to update for new dU\n";
+    return -1;
+  }
 
-   // set the X soln in linearSOE to be deltaU for convergence Test
-   theLinSOE->setX(*deltaU);
+  // set the X soln in linearSOE to be deltaU for convergence Test
+  theLinSOE->setX(*deltaU);
 
-   numIncrLastStep++;
+  numIncrLastStep++;
 
-   return 0;
+  return 0;
 }
 
 
@@ -298,10 +299,10 @@ DisplacementControl::domainChanged()
 
    if (deltaUhat == 0 || deltaUhat->Size() != size) {
       if (deltaUhat != 0)
-         delete deltaUhat;   // delete the old
+         delete deltaUhat;
       deltaUhat = new Vector(size);
    }
-  
+
    if (deltaUbar == 0 || deltaUbar->Size() != size) {
       if (deltaUbar != 0)
          delete deltaUbar;   // delete the old
@@ -360,10 +361,10 @@ DisplacementControl::domainChanged()
       if (sensU != nullptr)
          delete sensU;  
       sensU = new Vector(size);
-   } 
+   }
 
 
-   Domain *theDomain = theModel->getDomainPtr();//Abbas
+   // Domain *theDomain = theModel->getDomainPtr();
    int numGrads = theDomain->getNumParameters();
 
    if (dLAMBDAdh == 0 || dLAMBDAdh->Size() != (numGrads)) { 
@@ -414,34 +415,37 @@ DisplacementControl::domainChanged()
    return 0;
 }
 
+
 int
-DisplacementControl::sendSelf(int cTag,
-      Channel &theChannel)
+DisplacementControl::sendSelf(int cTag, Channel &theChannel)
 {
-   // TODO: sendSelf
-   return 0;
+  return 0;
 }
 
 
 int
-DisplacementControl::recvSelf(int cTag,
-      Channel &theChannel, FEM_ObjectBroker &theBroker)
+DisplacementControl::recvSelf(int cTag,  Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-   // TODO: recvSelf
-   return 0;
+  return 0;
 }
 
 void
 DisplacementControl::Print(OPS_Stream &s, int flag)
 {
-   // TODO: Print
+  s << "DisplacementControl -  node: " << theNode;
+  s << " dof: " << theDof+1;
+  s << " increment: " << theIncrement;
+  s << " numIncr: " << specNumIncrStep;
+  s << " min: " << minIncrement;
+  s << " max: " << maxIncrement;
+  s << "\n";
 }
 
 
 ///////////////////////////Sensitivity Begin///////////////////////////////////
 //Added by Abbas
 //obtain the derivative of the tangent displacement (dUhatdh)
-   Vector *
+Vector*
 DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
 {
    LinearSOE *theLinSOE = this->getLinearSOE(); 
@@ -483,19 +487,15 @@ DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
    int nodeNumber, dofNumber, relevantID, i, sizeRandomLoads, numRandomLoads;
    
    LoadPattern *loadPatternPtr;
-   AnalysisModel *theModel = this->getAnalysisModel();
-   Domain *theDomain = theModel->getDomainPtr();
    LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
   
    while ((loadPatternPtr = thePatterns()) != nullptr) {
      const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
       sizeRandomLoads = randomLoads.Size();
       if (sizeRandomLoads == 1) {
-         // No random loads in this load pattern
-
+         ; // No random loads in this load pattern
       }
       else {
-        // opserr<<"there is sensitivity load parameter"<<endln;//Abbas.............
          // Random loads: add contributions to the 'B' vector
          numRandomLoads = (int)(sizeRandomLoads/2);
          for (i=0; i<numRandomLoads*2; i=i+2) {
@@ -514,12 +514,12 @@ DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
       }
    }
 
- if(theLinSOE->solve()<0) {
-   opserr<<"SOE failed to obtained dUhatdh ";
-   exit(-1);
- }
+   if(theLinSOE->solve()<0) {
+      opserr<<"SOE failed to obtained dUhatdh ";
+      exit(-1);
+   }
 
-    (*dUhatdh)=theLinSOE->getX();
+   (*dUhatdh)=theLinSOE->getX();
 
 
 /////////////////////////////////////////////////////////
@@ -603,7 +603,7 @@ DisplacementControl::getLambdaSensitivity(int gradNumber)
 int
 DisplacementControl::formIndependentSensitivityRHS()
 {
-   return 0;
+  return 0;
 }
 
 
@@ -690,15 +690,15 @@ DisplacementControl::formSensitivityRHS(int grad)
 int
 DisplacementControl::saveSensitivity(const Vector &v, int gradNum, int numGrads)
 {
-   AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
-   DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
-   DOF_Group         *dofPtr;
+  DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
+  DOF_Group         *dofPtr;
 
-   while ( (dofPtr = theDOFGrps() ) != nullptr)
-      dofPtr->saveDispSensitivity(v,gradNum,numGrads);
+  while ( (dofPtr = theDOFGrps() ) != nullptr)
+    dofPtr->saveDispSensitivity(v,gradNum,numGrads);
 
-   return 0;
+  return 0;
 }
 
 int
@@ -719,15 +719,15 @@ DisplacementControl::saveLambdaSensitivity(double dlambdadh, int gradNum, int nu
 int 
 DisplacementControl::commitSensitivity(int gradNum, int numGrads)
 {
-   AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
-   // Loop through the FE_Elements and set unconditional sensitivities
-   FE_Element *elePtr;
-   FE_EleIter &theEles = theAnalysisModel->getFEs();    
-   while((elePtr = theEles()) != nullptr) {
-      elePtr->commitSensitivity(gradNum, numGrads);
-   }
-   return 0;
+  // Loop through the FE_Elements and set unconditional sensitivities
+  FE_Element *elePtr;
+  FE_EleIter &theEles = theAnalysisModel->getFEs();    
+  while((elePtr = theEles()) != nullptr) {
+    elePtr->commitSensitivity(gradNum, numGrads);
+  }
+  return 0;
 }
 
 

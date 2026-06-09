@@ -38,6 +38,7 @@
 #include <SP_Constraint.h>
 #include <Vector.h>
 class GroundMotion;
+class MultiSupportPattern;
 class Node;
 
 class ImposedMotionSP : public SP_Constraint
@@ -45,18 +46,20 @@ class ImposedMotionSP : public SP_Constraint
   public:
     // constructors    
     ImposedMotionSP();        
-    ImposedMotionSP(int nodeTag, int ndof, int patternTag, int theGroundMotionTag);
+    ImposedMotionSP(int nodeTag, 
+                    int ndof, 
+                    MultiSupportPattern&, 
+                    int theGroundMotionTag);
 
     // destructor
     ~ImposedMotionSP();
 
     int applyConstraint(double loadFactor);    
-    double getValue(void);
-    bool isHomogeneous(void) const;
+    double getValue();
+    bool isHomogeneous() const;
     
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     void Print(OPS_Stream &s, int flag =0);
 
@@ -65,6 +68,7 @@ class ImposedMotionSP : public SP_Constraint
   private:
     int groundMotionTag;
     int patternTag;
+    MultiSupportPattern* thePattern;
 
     GroundMotion *theGroundMotion;  // pointer to ground motion
     Node *theNode;                  // pointer to node being constrained

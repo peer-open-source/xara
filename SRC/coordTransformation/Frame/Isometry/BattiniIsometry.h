@@ -41,6 +41,7 @@
 #include <Vector3D.h>
 #include <Matrix3D.h>
 #include <MatrixND.h>
+#include <GroupSO3.h>
 #include "EuclidIsometry.h"
 
 class Node;
@@ -61,7 +62,8 @@ public:
   using AlignedIsometry<nn>::pres;
 
   Matrix3D
-  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) final
+  update_basis(const Matrix3D& RI, const Matrix3D& RJ, const Vector3D& dx) 
+  noexcept final
   {
     Matrix3D R;
     {
@@ -86,14 +88,24 @@ public:
       }
     
       const Vector3D Q = R^q;
-      n = Q[0]/Q[1];
+      const double Q2 = Q[1];
+
+      n = Q[0]/Q2;
+      // n = Q[0]/Q[1];
 
       Vector3D QI = R^(RI*E2);
       Vector3D QJ = R^(RJ*E2);
-      n11 = QI[0]/Q[1];
-      n12 = QI[1]/Q[1];
-      n21 = QJ[0]/Q[1];
-      n22 = QJ[1]/Q[1];
+      // n11 = QI[0]/Q[1];
+      // n12 = QI[1]/Q[1];
+      // n21 = QJ[0]/Q[1];
+      // n22 = QJ[1]/Q[1];
+      n11 = QI[0]/Q2;
+      n12 = QI[1]/Q2;
+      n13 = QI[2]/Q2;
+
+      n21 = QJ[0]/Q2;
+      n22 = QJ[1]/Q2;
+      n23 = QJ[2]/Q2;
     }
     return R;
   }
@@ -118,12 +130,26 @@ public:
       Gb.template insert<0,0>( ix,   1.0/Ln);
       Gb(0,2) = -  n/Ln;
       Gb(0,3) =  n22/2.0;
+#if 0 // TODO
+// original impl
       Gb(0,4) = -n12/2.0;
+#else
+      Gb(0,4) = -n21/2.0;
+#endif
     }
   
     return Gb;
   }
 
+
+  MatrixND<6*nn,6*nn>
+  getHessian(const VectorND<6>& pw) final
+  {
+    MatrixND<6*nn,6*nn> H{};
+
+
+    return H;
+  }
 
   MatrixND<nn*6,nn*6>
   getRotationJacobian(const VectorND<nn*6>&pwx) final 
@@ -161,10 +187,18 @@ public:
 
 private:
   Vector3D q {0,1,0};
+  // double n   = 0,
+  //        n11 = 0,
+  //        n12 = 1,
+  //        n21 = 0,
+  //        n22 = 1;
+
   double n   = 0,
          n11 = 0,
          n12 = 1,
+         n13 = 0,
          n21 = 0,
-         n22 = 1;
+         n22 = 1,
+         n23 = 0;
 };
 } // namespace OpenSees

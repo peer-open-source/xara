@@ -149,9 +149,6 @@ public:
 	int setParameter(const char** argv, int argc, Parameter& param);
 	int updateParameter(int parameterID, Information& info);
 
-	//plotting 
-	int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
-
 private:
 
 	//

@@ -121,10 +121,6 @@ ParallelSection::ParallelSection (int tag, int numSecs,
   }
   
   theSections = new SectionForceDeformation *[numSections];
-  if (theSections == 0) {
-    opserr << "ParallelSection::ParallelSection -- failed to allocate pointers\n";
-    exit(-1);
-  }    
 
   for (int i = 0; i < numSections; i++) {
     if (theSecs[i] == 0) {
@@ -184,16 +180,12 @@ ParallelSection::ParallelSection (int tag, int numSecs,
     exit(-1);
   }
 
-  theCode = new ID(codeArea, order);
+  theCode = new ID(codeArea, order, false);
   e = new Vector(workArea, order);
   s = new Vector(&workArea[maxOrder], order);
   ks = new Matrix(&workArea[2*maxOrder], order, order);
   fs = new Matrix(&workArea[maxOrder*(maxOrder+2)], order, order);
 
-  if (theCode == 0 || e == 0 || s == 0 || ks == 0 || fs == 0) {
-    opserr << "ParallelSection::ParallelSection -- out of memory\n";
-    exit(-1);
-  }
 
   int codeIndex = 0;
   if (haveP)
@@ -337,17 +329,12 @@ ParallelSection::getStressResultant(void)
 }
 
 SectionForceDeformation *
-ParallelSection::getCopy(void)
+ParallelSection::getCopy()
 {
   ParallelSection *theCopy = 0;
     
   theCopy = new ParallelSection(this->getTag(), numSections, theSections);
-  
-  if (theCopy == 0) {
-    opserr << "ParallelSection::getCopy -- failed to allocate copy\n";
-    exit(-1);
-  }
-			  
+
   return theCopy;
 }
 

@@ -54,16 +54,11 @@ DisplacementPath::DisplacementPath(int node, int dof,
       // get theIncrementVector
       theIncrementVector = new Vector(incrementVector);
       if ( theIncrementVector==0 || theIncrementVector->Size()==0 ) {
-              opserr << "DisplacementPath::DisplacementPath() - ran out of memory\n";
-              exit(-1);
+        opserr << "DisplacementPath::DisplacementPath() - ran out of memory\n";
+        exit(-1);
       }
-
-      //opserr << " theIncrementVector = \n";
-      //for (int i =0; i<theIncrementVector->Size(); i++) {        
-      //    opserr << (*theIncrementVector)(i) << endln;
-      //}
-
 }
+
 
 DisplacementPath::~DisplacementPath()
 {

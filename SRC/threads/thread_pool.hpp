@@ -289,7 +289,10 @@ public:
     // ============================
 
     /**
-     * @brief Construct a new thread pool. The number of threads will be the total number of hardware threads available, as reported by the implementation. This is usually determined by the number of cores in the CPU. If a core is hyperthreaded, it will count as two threads.
+     * @brief Construct a new thread pool. 
+     * The number of threads will be the total number of hardware threads available, as reported by the implementation. 
+     * This is usually determined by the number of cores in the CPU. 
+     * If a core is hyperthreaded, it will count as two threads.
      */
     thread_pool() : thread_pool(0, [] {}) {}
 

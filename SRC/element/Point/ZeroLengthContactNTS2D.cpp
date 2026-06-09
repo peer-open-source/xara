@@ -38,7 +38,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -120,8 +119,8 @@ OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthContactNTS2D)
 
   // read the Nodes values
   numData = sNdNum+pNdNum;
-  int *theNodeData = new int[numData];
-  ID  Nodes(theNodeData, numData);
+  int *theNodeData = new int[numData]; // TODO: memleak?
+  ID  Nodes(theNodeData, numData, false);
 
   if (OPS_GetInt(&numData, theNodeData) != 0) {
     opserr << "ZeroLengthContactNTS2D:: invalid Nodes number value for -Nodes ";
@@ -441,12 +440,6 @@ ZeroLengthContactNTS2D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectB
 	return 0;
 }
 
-int
-ZeroLengthContactNTS2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{ 
- // nothing to display
-    return 0;
-}
 
 void
 ZeroLengthContactNTS2D::Print(OPS_Stream &s, int flag)

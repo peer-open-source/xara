@@ -75,9 +75,7 @@ class Domain
 {
   public:
     Domain();
-    Domain(int numNodes, int numElements, int numSPs, int numMPs, int numLoadPatterns);
-
-    virtual ~Domain();    
+    virtual ~Domain();
 
 
     using NodeStorage = MapOfTaggedObjects;
@@ -189,6 +187,7 @@ class Domain
     // Eigenvalue analysis
     virtual int setEigenvalues(const Vector &theEigenvalues);
     virtual const Vector &getEigenvalues();
+    virtual int getNumEigenvalues() const;
     virtual double getTimeEigenvaluesSet();
 
     int setModalDampingFactors(Vector *, bool inclModalMatrix = false);

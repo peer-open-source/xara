@@ -22,7 +22,6 @@
 #include <VectorND.h>
 #include <MatrixND.h>
 
-#include <Frame/FrameMass.hpp>
 #include <FrameSection.h>
 #include <FrameTransform.h>
 #include <Frame/FiniteElement.h>
@@ -128,11 +127,7 @@ public:
       FrameStress::My,
       FrameStress::Mz,
       FrameStress::Bimoment,
-  //  FrameStress::By,
-  //  FrameStress::Bz,
       FrameStress::Bishear,
-  //  FrameStress::Qy,
-  //  FrameStress::Qz
     };
 
     //

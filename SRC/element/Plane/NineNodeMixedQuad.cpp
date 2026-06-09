@@ -22,7 +22,6 @@
 #include <Node.h>
 #include <NDMaterial.h>
 #include <Domain.h>
-#include <ErrorHandler.h>
 #include <NineNodeMixedQuad.h>
 #include <ElementResponse.h>
 
@@ -31,9 +30,9 @@
 
 
 //static data
-Matrix  NineNodeMixedQuad :: stiff(18,18)   ;
-Vector  NineNodeMixedQuad :: resid(18)     ;
-Matrix  NineNodeMixedQuad :: mass(18,18)    ;
+Matrix  NineNodeMixedQuad :: stiff(18,18);
+Vector  NineNodeMixedQuad :: resid(18);
+Matrix  NineNodeMixedQuad :: mass(18,18);
 double  NineNodeMixedQuad::xl[2][9];
  
 //quadrature data
@@ -42,43 +41,27 @@ double   NineNodeMixedQuad::sg[] = { -root06,   0.0,      root06  } ;
 double   NineNodeMixedQuad::wg[] = {  5.0/9.0,  8.0/9.0,  5.0/9.0 } ;
 
 
-//null constructor
-NineNodeMixedQuad :: NineNodeMixedQuad( ) :
+NineNodeMixedQuad::NineNodeMixedQuad( ) :
 Element( 0, ELE_TAG_NineNodeMixedQuad ),
 connectedExternalNodes(9) , load(0), Ki(0)
 { 
   for (int i=0; i<9; i++)
-    materialPointers[i] = 0;
+    materialPointers[i] = nullptr;
 }
 
 
-NineNodeMixedQuad :: NineNodeMixedQuad( int tag, 
-                                        int node1,
-                                        int node2,
-                                        int node3,
-                                        int node4,
-                                        int node5,
-                                        int node6,
-                                        int node7,
-                                        int node8,
-                                        int node9,
-                                        NDMaterial &theMaterial ) :
+NineNodeMixedQuad::NineNodeMixedQuad( int tag, 
+                                      std::array<int,9>& nodes,
+                                      NDMaterial &theMaterial ) :
 Element( tag, ELE_TAG_NineNodeMixedQuad ),
 connectedExternalNodes(9) , load(0), Ki(0)
 {
-  connectedExternalNodes(0) = node1 ;
-  connectedExternalNodes(1) = node2 ;
-  connectedExternalNodes(2) = node3 ;
-  connectedExternalNodes(3) = node4 ;
-  connectedExternalNodes(4) = node5 ;
-  connectedExternalNodes(5) = node6 ;
-  connectedExternalNodes(6) = node7 ;
-  connectedExternalNodes(7) = node8 ;
-  connectedExternalNodes(8) = node9 ;
+  for (int i=0; i<9; i++) {
+    connectedExternalNodes(i) = nodes[i];
+  }
 
 
   for (int i=0 ; i<9; i++ ) {
-
     materialPointers[i] = theMaterial.getCopy("AxiSymmetric2D") ;
     
     if (materialPointers[i] == 0) {
@@ -88,14 +71,16 @@ connectedExternalNodes(9) , load(0), Ki(0)
 }
 
 
-NineNodeMixedQuad :: ~NineNodeMixedQuad( )
+NineNodeMixedQuad::~NineNodeMixedQuad()
 {
-  for (int i=0 ; i<9; i++ ) {
+  for (int i=0 ; i<NEN; i++ ) {
+    nodePointers[i] = nullptr;
+  }
+  for (int i=0 ; i<NIP; i++ ) {
+    if (materialPointers[i] != nullptr)
+      delete materialPointers[i];
 
-    delete materialPointers[i] ;
-    materialPointers[i] = 0 ; 
-
-    nodePointers[i] = 0 ;
+    materialPointers[i] = nullptr;
   }
 
   if (load != 0)
@@ -109,7 +94,7 @@ NineNodeMixedQuad :: ~NineNodeMixedQuad( )
 void 
 NineNodeMixedQuad::setDomain( Domain *theDomain ) 
 {  
-  for ( int i = 0; i<9; i++ ) 
+  for ( int i = 0; i<NEN; i++ ) 
     nodePointers[i] = theDomain->getNode( connectedExternalNodes(i)  ) ;
   
   if (theDomain != nullptr)
@@ -117,15 +102,15 @@ NineNodeMixedQuad::setDomain( Domain *theDomain )
 }
 
 
-//get the number of external nodes
+// get the number of external nodes
 int 
 NineNodeMixedQuad::getNumExternalNodes( ) const
 {
-  return 9 ;
+  return NEN;
 } 
  
 
-//return connected external nodes
+// return connected external nodes
 const ID& 
 NineNodeMixedQuad::getExternalNodes( ) 
 {
@@ -139,26 +124,25 @@ NineNodeMixedQuad::getNodePtrs()
 } 
 
 
-//return number of dofs
 int 
-NineNodeMixedQuad::getNumDOF( ) 
+NineNodeMixedQuad::getNumDOF()
 {
   return 18 ; // 9 nodes * 2 dof per node
 }
 
 
 int 
-NineNodeMixedQuad::commitState( )
+NineNodeMixedQuad::commitState()
 {
   int success = 0 ;
 
   // call element commitState to do any base class stuff
   if ((success = this->Element::commitState()) != 0) {
     opserr << "NineNodeMixedQuad::commitState () - failed in base class\n";
-  }    
+  }
 
-  for (int i=0; i<9; i++ ) 
-    success += materialPointers[i]->commitState( ) ;
+  for (int i=0; i<NIP; i++ ) 
+    success += materialPointers[i]->commitState();
   
   return success ;
 }
@@ -177,9 +161,9 @@ NineNodeMixedQuad::revertToLastCommit( )
 }
     
 
-//revert to start 
+// revert to start 
 int 
-NineNodeMixedQuad::revertToStart( ) 
+NineNodeMixedQuad::revertToStart() 
 {
   int success = 0 ;
 
@@ -189,39 +173,40 @@ NineNodeMixedQuad::revertToStart( )
   return success ;
 }
 
+
 // print out element data
 void 
 NineNodeMixedQuad::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"NineNodeMixedQuad\", ";
-        s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-        for (int i = 1; i < 7; i++)
-            s << connectedExternalNodes(i) << ", ";
-        s << connectedExternalNodes(8) << "], ";
-        s << "\"material\": " << materialPointers[0]->getTag() << "}";
-        return;
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << "\t\t\t{";
+      s << "\"name\": " << this->getTag() << ", ";
+      s << "\"type\": \"NineNodeMixedQuad\", ";
+      s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+      for (int i = 1; i < 7; i++)
+          s << connectedExternalNodes(i) << ", ";
+      s << connectedExternalNodes(8) << "], ";
+      s << "\"material\": " << materialPointers[0]->getTag() << "}";
+      return;
+  }
 
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << endln;
-        s << "Nine Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
-        s << "Element Number " << this->getTag() << endln;
-        s << "Node 1 : " << connectedExternalNodes(0) << endln;
-        s << "Node 2 : " << connectedExternalNodes(1) << endln;
-        s << "Node 3 : " << connectedExternalNodes(2) << endln;
-        s << "Node 4 : " << connectedExternalNodes(3) << endln;
-        s << "Node 5 : " << connectedExternalNodes(4) << endln;
-        s << "Node 6 : " << connectedExternalNodes(5) << endln;
-        s << "Node 7 : " << connectedExternalNodes(6) << endln;
-        s << "Node 8 : " << connectedExternalNodes(7) << endln;
-        s << "Node 9 : " << connectedExternalNodes(8) << endln;
-        s << "Material Information : \n ";
-        materialPointers[0]->Print(s, flag);
-        s << endln;
-    }
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+      s << endln;
+      s << "Nine Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
+      s << "Element Number " << this->getTag() << endln;
+      s << "Node 1 : " << connectedExternalNodes(0) << endln;
+      s << "Node 2 : " << connectedExternalNodes(1) << endln;
+      s << "Node 3 : " << connectedExternalNodes(2) << endln;
+      s << "Node 4 : " << connectedExternalNodes(3) << endln;
+      s << "Node 5 : " << connectedExternalNodes(4) << endln;
+      s << "Node 6 : " << connectedExternalNodes(5) << endln;
+      s << "Node 7 : " << connectedExternalNodes(6) << endln;
+      s << "Node 8 : " << connectedExternalNodes(7) << endln;
+      s << "Node 9 : " << connectedExternalNodes(8) << endln;
+      s << "Material Information : \n ";
+      materialPointers[0]->Print(s, flag);
+      s << endln;
+  }
 }
 
 
@@ -246,17 +231,11 @@ NineNodeMixedQuad::getInitialStiff( )
     return *Ki;
 
   static const int ndm = 2 ;
-
   static const int ndf = 2 ; 
-
   static const int nstress = 4 ;
- 
   static const int numberNodes = 9 ;
-
   static const int numberGauss = 9 ;
-
   static const int nShape = 3 ;
-
   static const int nMixed = 3 ;
 
   int i, j, k, p, q, r, s ;
@@ -265,9 +244,7 @@ NineNodeMixedQuad::getInitialStiff( )
   static double xsj ;  // determinant jacaobian matrix 
 
   static double dvol[numberGauss] ; //volume element
-
   static double gaussPoint[ndm] ;
-
   static double natCoorArray[ndm][numberGauss] ;
 
   static Vector strain(nstress) ;  //strain
@@ -300,7 +277,7 @@ NineNodeMixedQuad::getInitialStiff( )
   //-------------------------------------------------------
 
   
-  //zero stiffness and residual 
+  // zero stiffness and residual 
   stiff.Zero( ) ;
 
   //node coordinates
@@ -321,7 +298,7 @@ NineNodeMixedQuad::getInitialStiff( )
   ProjInv.Zero( ) ;
 
   double volume = 0.0 ;
-  //gauss loop to compute and save shape functions 
+  // gauss loop to compute and save shape functions 
   int count = 0 ;
 
   for (int i = 0; i < 3; i++ ) {
@@ -394,11 +371,11 @@ NineNodeMixedQuad::getInitialStiff( )
           shpBar[p][q][r] += ( ProjInv(r,s) * rightHandSide[p][q][s] ) ;
       }//end for r
 
-    }//end for q
-  }//end for p
+    }
+  }
 
 
-  //gauss loop 
+  // gauss loop 
   for ( i=0; i<numberGauss; i++ ) {
     
     //extract gauss point location
@@ -406,10 +383,10 @@ NineNodeMixedQuad::getInitialStiff( )
     gaussPoint[1] = natCoorArray[1][i] ;
 
     //extract shape functions from saved array
-    for ( p=0; p<nShape; p++ ) {
-       for ( q=0; q<numberNodes; q++ )
-          shp[p][q]  = Shape[p][q][i] ;
-    } // end for p
+    for (int p=0; p<nShape; p++ ) {
+      for (int q=0; q<numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
+    }
 
     dd = materialPointers[i]->getInitialTangent( ) ;
     dd *= dvol[i] ;
@@ -450,8 +427,8 @@ NineNodeMixedQuad::getInitialStiff( )
       }
 
       jj += ndf ;
-    }//end for j loop
-  }//end for i gauss loop 
+    } //end for j loop
+  } //end for i gauss loop 
 
   Ki = new Matrix(stiff);
 
@@ -495,7 +472,6 @@ NineNodeMixedQuad::addInertiaLoadToUnbalance(const Vector &accel)
   static const int numberNodes = 9 ;
   static const int ndf = 2 ; 
 
-  int i;
 
   // check to see if have mass
   int haveRho = 0;
@@ -533,7 +509,7 @@ NineNodeMixedQuad::addInertiaLoadToUnbalance(const Vector &accel)
 
 //get residual
 const Vector& 
-NineNodeMixedQuad::getResistingForce( ) 
+NineNodeMixedQuad::getResistingForce() 
 {
   int tang_flag = 0 ; //don't get the tangent
 
@@ -549,16 +525,16 @@ NineNodeMixedQuad::getResistingForce( )
 
 //get residual with inertia terms
 const Vector& 
-NineNodeMixedQuad::getResistingForceIncInertia( )
+NineNodeMixedQuad::getResistingForceIncInertia()
 {
   int tang_flag = 0 ; //don't get the tangent
 
   static Vector res(18);
 
-  //do tangent and residual here 
+  // do tangent and residual 
   formResidAndTangent( tang_flag ) ;
 
-  //inertia terms
+  // inertia terms
   formInertiaTerms( tang_flag ) ;
 
   res = resid;
@@ -582,9 +558,7 @@ NineNodeMixedQuad::formInertiaTerms( int tangFlag )
 {
 
   static const int ndm = 2 ;
-
   static const int ndf = 2 ; 
-
   static const int numberNodes = 9 ;
 
   //  static const int numberGauss = 9 ;
@@ -593,7 +567,6 @@ NineNodeMixedQuad::formInertiaTerms( int tangFlag )
 
   static const int massIndex = nShape - 1 ;
 
-  double xsj ;  // determinant jacaobian matrix 
 
   double dvol ; //volume element
 
@@ -625,10 +598,11 @@ NineNodeMixedQuad::formInertiaTerms( int tangFlag )
     GaussPoint[0] = sg[p] ;
     GaussPoint[1] = sg[q] ;
 
-    //get shape functions    
+    //get shape functions
+    double xsj;
     shape2dNine( GaussPoint, xl, shp, xsj ) ;
 
-    //volume element
+    // volume element
     dvol = ( wg[p] * wg[q] ) * xsj ;
 
     //node loop to compute acceleration
@@ -700,12 +674,8 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
   static const int nShape = 3 ;
   static const int nMixed = 3 ;
 
-  int i, j, k, p, q, r, s ;
-  int jj, kk ;
 
   int success ;
-  
-  static double volume ;
 
   static double xsj ;  // determinant jacaobian matrix 
 
@@ -758,6 +728,9 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
   // node coordinates
   computeBasis() ;
 
+  int i, j, k, p, q, r, s ;
+  int jj, kk ;
+
   //zero mean shape functions
   for ( p=0; p<nShape; p++ ) {
     for ( q=0; q<numberNodes; q++ ) {
@@ -771,7 +744,7 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
 
 
   //zero volume
-  volume = 0.0 ;
+  double volume = 0.0 ;
 
   //zero projection matrix  
   Proj.Zero( ) ;
@@ -788,12 +761,12 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
         gaussPoint[1] = sg[j] ;        
 
 
-        //save gauss point locations
+        // save gauss point locations
         natCoorArray[0][count] = gaussPoint[0] ;
         natCoorArray[1][count] = gaussPoint[1] ;
 
 
-        //get shape functions    
+        // get shape functions    
         shape2dNine( gaussPoint, xl, shp, xsj ) ;
 
 
@@ -808,7 +781,7 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
         dvol[count] = ( wg[i]*wg[j] ) * xsj ;  
 
 
-        //add to projection matrix
+        // add to projection matrix
         interp[0] = 1.0 ;
         interp[1] = gaussPoint[0] ;
         interp[2] = gaussPoint[1] ;
@@ -890,23 +863,24 @@ NineNodeMixedQuad::formResidAndTangent( int tang_flag )
   
 
 
-    //send the strain to the material 
+    // send the strain to the material 
     success = materialPointers[i]->setTrialStrain( strain ) ;
 
-    //compute the stress
-    stress = materialPointers[i]->getStress( ) ;
+    // compute the stress
+    stress = materialPointers[i]->getStress( );
 
 
     // multiply by volume element
     stress  *= dvol[i] ;
 
     if ( tang_flag == 1 ) {
-      dd = materialPointers[i]->getTangent( ) ;
+      dd = materialPointers[i]->getTangent();
       dd *= dvol[i] ;
     }
 
-
-    //residual and tangent calculations node loops
+    //
+    // residual and tangent calculations node loops
+    //
 
     jj = 0 ;
     for ( j=0; j<numberNodes; j++ ) {
@@ -974,12 +948,10 @@ NineNodeMixedQuad::computeBasis( )
   //nodal coordinates 
 
   for ( int i = 0; i<9; i++ ) {
+    const Vector &coorI = nodePointers[i]->getCrds( ) ;
 
-       const Vector &coorI = nodePointers[i]->getCrds( ) ;
-
-       xl[0][i] = coorI(0) ;
-       xl[1][i] = coorI(1) ;
-
+    xl[0][i] = coorI(0) ;
+    xl[1][i] = coorI(1) ;
   }  //end for i 
 
 }
@@ -995,12 +967,10 @@ NineNodeMixedQuad::computeBbar( int node,
 {
 
   static Matrix Bbar(4,2) ;
-
   static double Bdev[3][2] ;
-
   static double BbarVol[3][2] ;
 
-  static const double one3 = 1.0/3.0 ;
+  static constexpr double one3 = 1.0/3.0 ;
 
   static double interp[3] ;
 
@@ -1051,7 +1021,7 @@ NineNodeMixedQuad::computeBbar( int node,
   interp[1] = natCoor[0] ;
   interp[2] = natCoor[1] ; 
 
-  //volumetric 
+  // volumetric 
   c0 = 0.0 ;
   c1 = 0.0 ;
 

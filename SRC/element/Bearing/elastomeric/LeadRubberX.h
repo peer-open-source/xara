@@ -79,14 +79,13 @@ public:
     const Vector &getResistingForceIncInertia();
     
     // Public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag = 0);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);
     
     // Public methods for element recorder
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInfo);
+    int getResponse(int responseID, Information &);
     
 protected:
 

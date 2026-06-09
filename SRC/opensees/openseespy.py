@@ -36,6 +36,18 @@ from .tcl import Interpreter, _lift
 # something to compare the output of model.analyze to:
 successful = 0
 
+_EXCLUDE_ECHO = {
+    "nodeCoord",
+    "nodeDisp",
+    "nodeVel",
+    "nodeReaction",
+    "getNodeTags",
+    "getEleTags",
+    "getNDM",
+    "getNDF",
+    "getTime"
+}
+
 
 def _split_iter(source, sep=None, regex=False):
     """
@@ -86,7 +98,7 @@ def _split_iter(source, sep=None, regex=False):
             start = idx + sepsize
 
 
-def _obj_to_tcl(arg, name: str = None):
+def _obj_to_tcl(arg, name: str = None)->str:
     """
     Convert arg to a string that represents
     Tcl semantics.
@@ -105,8 +117,12 @@ def _obj_to_tcl(arg, name: str = None):
               for cmd, val in arg.items()
         ]) + "}"
 
+    elif hasattr(arg, "tag"):
+        return str(arg.tag)
+
     else:
         return str(arg)
+
 
 def _args_to_cmds(proc_name: str, *args, _final=None, **kwds):
 
@@ -122,6 +138,16 @@ def _args_to_cmds(proc_name: str, *args, _final=None, **kwds):
         cmd += _obj_to_tcl(_final)
     return cmd
 
+
+class _ModelObject:
+    _tag_space: str = None 
+    tag: int = None
+
+    def _add_to_model(self, model: "OpenSeesPy", tag: int):
+        raise NotImplementedError("Must be implemented by subclass")
+
+def _is_model_object(obj):
+    return hasattr(obj, "_add_to_model") and hasattr(obj, "_tag_space")
 
 class _Surface:
     def __init__(self, nodes, cells, child, points, split):
@@ -163,6 +189,40 @@ class _Surface:
                 yield tuple(find_node(self.outline.coord(xn)) for xn in edge[j*(nen-1):j*(nen-1)+nen])
 
 
+
+class _TagRegistry:
+    def __init__(self):
+        self._tags =  {
+            "uniaxialMaterial": set(),
+            "nDMaterial": set(),
+            "section": set(),
+            "pattern": set(),
+            "timeSeries": set(),
+            # "frame_section": set(),
+            # "shell_section": set(),
+            # "plane_section": set(),
+            # Dont do elements because they can be added in block2D and block3D without going through the element() method
+        }
+
+        self._objects = {
+            k: {} for k in self._tags.keys()
+        }
+
+    def add(self, type_name: str, tag: int, obj=None):
+        self._tags[type_name].add(tag)
+    
+    def set(self, type_name: str, obj, tag: int):
+        # self._objects[type_name][id(obj)] = tag
+        pass
+
+    def get(self, type_name: str)->int:
+        tag = 1
+        while tag in self._tags[type_name]:
+            tag += 1
+        self._tags[type_name].add(tag)
+        return tag
+
+
 class OpenSeesPy:
     """
     This class is meant to be instantiated as a global singleton
@@ -193,19 +253,13 @@ class OpenSeesPy:
 
         self._mesh = {"line": {}, "quad": {}}
 
+        self._tags = _TagRegistry()
+
         # Enable OpenSeesPy command behaviors
         self.eval("pragma openseespy")
+        self.eval("set tcl_precision 17")
 
 
-    def _call(self, proc_name: str, *args, **kwds):
-        """
-        EXPERIMENTAL (2025-07-04)
-        """
-        if self._echo is not None:
-            print(_args_to_cmds(proc_name, *args, **kwds),
-                  file=self._echo)
-
-        return self._interp._tcl.call(proc_name, *args, **kwds)
 
     def _invoke_proc(self, proc_name: str, *args, _final=None, _return_string=False, **kwds)->object:
         """
@@ -219,6 +273,16 @@ class OpenSeesPy:
         strings.
 
         """
+        if False:
+            do_call = True 
+            for arg in args:
+                if isinstance(arg, (list, dict, tuple)):
+                    do_call = False
+                    break
+            
+            if do_call and len(kwds) == 0:
+                return self._call(proc_name, *args, **kwds)
+
         comment = ""
         if "comment" in kwds:
             comment = kwds.pop("comment")
@@ -232,7 +296,11 @@ class OpenSeesPy:
 
         #
         #
-        ret = self.eval(cmd)
+        try:
+            ret = self.eval(cmd)
+        except Exception as e:
+            from .errors import XaraError
+            raise XaraError(f"{e}").with_traceback(None) from None
         #
         #
 
@@ -264,12 +332,24 @@ class OpenSeesPy:
             self.eval(f'puts "{arg}"')
 
 
-    def eval(self, cmd: str) -> str:
+    def eval(self, cmd: str, echo: bool=None) -> str:
         "Evaluate a Tcl command"
-        if self._echo is not None:
-            print(cmd, file=self._echo)
+        try:
+            if self._echo is not None and cmd.split(" ")[0] not in _EXCLUDE_ECHO:
+                print(cmd, file=self._echo)
+        except:
+            pass
         return self._interp.eval(cmd)
 
+    def _call(self, proc_name: str, *args, **kwds):
+        """
+        EXPERIMENTAL (2025-07-04)
+        """
+        if self._echo is not None and proc_name not in _EXCLUDE_ECHO:
+            print(_args_to_cmds(proc_name, *args, **kwds),
+                  file=self._echo)
+
+        return self._interp._tcl.call(proc_name, *args, **kwds)
 
     def block3D(self, *args, **kwds):
         if isinstance(args[6], list) or isinstance(args[7], dict):
@@ -286,7 +366,7 @@ class OpenSeesPy:
         elem_args = args[6]
 
         nl  = '\n'
-        ndm = self._invoke_proc("getNDM")
+        ndm = self._call("getNDM")
 
         # loop over remaining args to form node coords
         node_args = f"""{{
@@ -299,41 +379,8 @@ class OpenSeesPy:
     def block2D(self, *args, **kwds):
         if isinstance(args[5], list):
             return self._invoke_proc("block2D", *args, **kwds)
-
-        # We have to imitate the OpenSeesPy parser, which
-        # *requires* hard-coding the number of element args
-        # expected by each element type. This is terribly
-        # unstable and limited and should only be used when 
-        # backwards compatibility with the original OpenSeesPy 
-        # is absolutely necessary.
-        elem_name = args[4]
-        elem_argc = {
-            "quad":         9,
-            "stdquad":      9,
-
-            "shell":        7,
-            "shellmitc4":   7,
-
-            "shellnldkgq":  7,
-            "shelldkgq":    7,
-
-            "bbarquad":     8,
-
-            "enhancedquad": 9,
-
-            "sspquad":      9
-        }[elem_name.lower()] -1
-
-        elem_args = list(args[5:elem_argc])
-
-        nl  = '\n'
-        ndm = self._invoke_proc("getNDM")
-        # loop over remaining args to form node coords
-        node_args = f"""{{
-            {nl.join(" ".join(map(str,args[elem_argc+i*(ndm+1):elem_argc+(i+1)*(ndm+1)])) for i in range(int(len(args[elem_argc:])/(ndm+1))))}
-        }}"""
-
-        return self._invoke_proc("block2D", *args[:5], elem_args, node_args)
+        from ._model.block import block2D
+        return block2D(self, *args, **kwds)
 
     def getNodeTags(self)->list[int]:
         tags = self._call("getNodeTags")
@@ -389,7 +436,9 @@ class OpenSeesPy:
 
         return self._invoke_proc("timeSeries", *args, **kwds)
 
+
     def pattern(self, *args, load=None, **kwds):
+
         self._current_pattern = args[1]
 
         if load is None and "loads" in kwds:
@@ -406,7 +455,6 @@ class OpenSeesPy:
     def load(self, *args, pattern=None, load=None, **kwds):
         if pattern is None:
             pattern = self._current_pattern
-
         return self._invoke_proc("nodalLoad", *args, "-pattern", pattern, **kwds)
 
 
@@ -453,9 +501,33 @@ class OpenSeesPy:
         self._mesh["line"][tag] = nodes
 
 
+    def add_object(self, obj: _ModelObject, tag: int=None):
+        if tag is None:
+            if hasattr(obj, "tag") and obj.tag is not None:
+                tag = obj.tag
+            else:
+                tag = self._tags.get(obj._tag_space)
+
+        self._tags.set(obj._tag_space, obj, tag)
+        obj._add_to_model(self, tag)
+
+
+    def material(self, type, tag: int, *args, **kwds):
+        if not isinstance(type, str):
+            return type._add_to_model(self, tag)
+        else:
+            return self._invoke_proc("material", type, tag, *args, **kwds)
+
     def section(self, type: str, sec_tag: int, *args, **kwds):
         self._current_section = sec_tag
+
         # TODO: error handling
+
+        if not isinstance(type, str):
+            return type._add_to_model(self, sec_tag)
+        elif len(args) > 0 and not isinstance(args[0], (int, float, str)):
+            # model.section(name, tag, shape, materials, args)
+            return self._add_section_shape(type, sec_tag, *args, **kwds)
 
         # Undocumented feature
         if "shape" in kwds:
@@ -465,14 +537,32 @@ class OpenSeesPy:
             shape = from_shape(type, *kwds.pop("shape"), ndm=ndm)
         else:
             shape = None
-
-        ret = self._invoke_proc("section", type, sec_tag, *args, **kwds)
+        
+        try:
+            ret = self._invoke_proc("section", type, sec_tag, *args, **kwds)
+        except Exception as e:
+            from .errors import XaraError
+            raise XaraError(f"{e}").with_traceback(None) from None
 
         if shape is not None:
             for fiber in shape.fibers:
                 self._invoke_proc("fiber", *fiber.coord, fiber.area, fiber.material, section=sec_tag)
 
         return ret
+    
+    def _add_section_shape(self, name, tag, materials, shape=None,  **kwds):
+        from xara import Section, ShellSection
+        if shape is None:
+            shape = materials 
+            materials = None
+
+        if name in {"ShellFiber"}:
+            section = ShellSection(name, materials, shape, **kwds)
+        else:
+            section = Section(name, shape, materials, **kwds)
+
+        section._add_to_model(self, tag)
+        return section
 
     def patch(self, *args, **kwds):
         if "section" not in kwds:
@@ -483,13 +573,575 @@ class OpenSeesPy:
         if "section" not in kwds:
             kwds["section"] = self._current_section
         return self._invoke_proc("layer", *args, **kwds)
-        section = self._current_section
-        return self._invoke_proc("layer", *args, "-section", section, **kwds)
 
     def fiber(self, *args, **kwds):
         if "section" not in kwds:
             kwds["section"] = self._current_section
         return self._invoke_proc("fiber", *args, **kwds)
+
+from collections import defaultdict
+
+class Model:
+    def __init__(self, *args, echo_file=None, **kwds):
+        self._openseespy = OpenSeesPy(echo_file=echo_file)
+        if len(args) > 0 or len(kwds) > 0:
+            self._openseespy._invoke_proc("model", *args, **kwds)
+
+        self._parameters = {
+        }
+
+        # Aug 2025, for xara._analysis
+        self._patterns = {}
+
+        # Apr 2026
+        self._objects = defaultdict(dict)
+    
+    @property
+    def state(self):
+        return StateView(self)
+
+
+    def eval(self, *args, **kwds):
+        return self._openseespy.eval(*args, **kwds)
+
+    def _call(self, proc_name: str, *args, **kwds):
+        """
+        EXPERIMENTAL (2025-07-04)
+        """
+        return self._openseespy._call(proc_name, *args, **kwds)
+
+
+    def export(self, *args, **kwds):
+        return self._openseespy._interp.export(*args, **kwds)
+
+    def lift(self, type_name: str, tag: int):
+        return _lift(self._openseespy._interp._tcl.interpaddr(), type_name, tag)
+
+
+    # def invoke(self, *args, **kwds):
+    #     if len(args) == 2:
+    #         from ._invoke import _Handle
+    #         return _Handle(self._openseespy, *args, **kwds)
+    #     else:
+    #         return self._openseespy._invoke_proc(*args, **kwds)
+
+    
+    def asdict(self):
+        """April 2024"""
+        return self._openseespy._interp.serialize()
+
+
+    def node(self, tag: int, *args, **kwds):
+        return self._openseespy._invoke_proc("node", tag, *args, **kwds)
+    
+    def add_object(self, obj, tag: int=None):
+        r = self._openseespy.add_object(obj, tag)
+        self._objects[obj._tag_space][obj.tag] = obj
+        return r
+
+    def material(self, type_or_object, *args, **kwds):
+        if _is_model_object(type_or_object):
+            # return self._openseespy.add_object(type_or_object)
+            return self.add_object(type_or_object)
+        else:
+            return self._openseespy.material(type_or_object, *args, **kwds)
+    
+    def section(self, type_or_object, *args, **kwds):
+        if _is_model_object(type_or_object):
+            # return self._openseespy.add_object(type_or_object)
+            return self.add_object(type_or_object)
+        else:
+            return self._openseespy.section(type_or_object, *args, **kwds)
+
+
+    def element(self, type, tag, *args, **kwds):
+        if tag is None:
+            tag = 1
+            ele_tags = self.getEleTags()
+            if ele_tags is None:
+                ele_tags = []
+            elif isinstance(ele_tags, int):
+                ele_tags = [ele_tags]
+
+            for existing_tag in ele_tags:
+                if tag <= existing_tag:
+                    tag = existing_tag + 1
+        try:
+            self._openseespy._invoke_proc("element", type, tag, *args, **kwds)
+        except Exception as e:
+            raise e.with_traceback(None) from None
+        return tag
+
+    def symbols(self, **kwds):
+        symbols = []
+        for k,v in kwds.items():
+            self.eval(f"set {k} {v}")
+            symbols.extend((f"-{k}", f"${k}"))
+        return symbols
+
+
+    def surface(self, split, 
+                element: str=None, 
+                args=None, 
+                points=None, 
+                name=None, 
+                kwds=None, 
+                order=None, 
+                shape=None):
+        """
+        Create a surface mesh of elements in the current model.
+
+        Parameters
+        ----------
+        :param split: tuple of integers
+            The number of elements in the x and y directions.
+        :param element: str
+            The name of the element type to use.
+        :param args: tuple
+            The arguments to pass to the element constructor.
+        :param points: list of tuples
+            The coordinates of the points in the mesh.
+        :param name: str
+            The name of the mesh.
+        :param kwds: dict
+            The keyword arguments to pass to the element constructor.
+        :param order: int
+            The order of the elements to use.
+        :param shape: str
+            The shape of the elements to use. Can be "Q" for quadrilateral or "T" for triangular.
+        :return: Surface
+        """
+        # anchor
+        # normal
+        import shps.plane, shps.block
+
+        add_node    = partial(self._openseespy._invoke_proc, "node")
+        add_element = partial(self._openseespy._invoke_proc, "element")
+
+        cell_type = None
+
+        if shape is None:
+            if element in {"ShellMITC4", "Q4", "Q8", "Q9"}:
+                cell_type = {
+                    "ShellMITC4": shps.plane.Q4,
+                    "Q4": shps.plane.Q4,
+                    "Q8": shps.plane.Q8,
+                    "Q9": shps.plane.Q9,
+                }[element]
+            else:
+                shape = "Q"
+
+        if cell_type is None:
+            if order == 1 and shape == "Q":
+                cell_type = shps.plane.Q4
+            elif order == 2 and shape == "Q":
+                cell_type = shps.plane.Q9
+            elif order == 2 and shape == "T":
+                cell_type = shps.plane.T6
+
+
+        if isinstance(element, str) and cell_type is None:
+            # element is an element name
+            cell_type = {
+                    "ShellMITC4": shps.plane.Q4,
+            }.get(element, shps.plane.Q4)
+
+        elif element is None and name is None:
+            cell_type = shps.plane.Q4
+            element = None
+
+        elif isinstance(name, str):
+            cell_type = element
+            element = name
+
+
+        m_elems = self._openseespy._invoke_proc("getEleTags")
+        if isinstance(m_elems, int):
+            m_elems = {m_elems}
+
+        elif m_elems is not None:
+            m_elems = {tag for tag in m_elems}
+
+        m_nodes = self._openseespy._invoke_proc("getNodeTags")
+        if isinstance(m_nodes, int):
+            m_nodes = {m_nodes}
+        if m_nodes is not None:
+            m_nodes = {
+                int(tag): self._openseespy._invoke_proc("nodeCoord", f"{tag}")
+                for tag in m_nodes
+            }
+
+        if m_nodes is not None and len(m_nodes) > 0:
+            join = dict(nodes=m_nodes, cells=m_elems)
+        else:
+            join = None
+
+        if kwds is None:
+            kwds = {}
+
+        nodes, elems = shps.block.block(split, cell_type, points=points,
+                                        append=False, join=join, **kwds)
+
+
+#       anchor_point, anchor_coord = next(iter(anchor.items()))
+#       if isinstance(anchor_coord, int):
+#           anchor_coord = self._openseespy._str_call("nodeCoord", f"{anchor_coord}")
+
+#       anchor_point = np.array([*nodes[anchor_point], 0.0])
+        for tag, coord in nodes.items():
+            add_node(tag, *coord)
+
+        if isinstance(args, dict):
+            ekwds = args
+            args = ()
+        else:
+            ekwds = {}
+
+        if element is not None:
+            for tag, elem_nodes in elems.items():
+                add_element(element, tag, list(map(int,elem_nodes)), *args, **ekwds)
+
+        return _Surface(nodes=nodes,
+                        cells=elems,
+                        child=cell_type,
+                        points=points,
+                        split=split)
+    #
+    # Loading
+    #
+
+    def pattern(self, *args, **kwds):
+        if _is_model_object(args[0]):
+            return self.add_object(args[0])
+        else:
+            return self._openseespy.pattern(*args, **kwds)
+
+    # 
+    # Analysis 
+    #
+    def getIterationCount(self):
+        return self._openseespy._invoke_proc("numIter")
+    
+    def testNorms(self, *args):
+        return self._call("testNorms", *args)
+
+    def getResidual(self):
+        import numpy as np
+        residual_string = self._openseespy._invoke_proc("printB", "-ret", _return_string=True)
+        n = sum(1 for _ in _split_iter(residual_string))
+        return np.fromiter(map(float, _split_iter(residual_string)), count=n, dtype=float)
+
+
+    def getTangent(self, **kwds):
+        import numpy as np
+
+        tangent_string = self._openseespy._invoke_proc("printA", "-ret", _return_string=True, **kwds)
+
+        nn = sum(1 for _ in _split_iter(tangent_string))
+
+        A  = np.fromiter(
+
+                map(float, _split_iter(
+                    tangent_string
+                )),
+
+                count=nn,
+                dtype=float
+        )
+
+        # Assigning to .shape as opposed to calling .reshape()
+        # should enforce no copying
+        A.shape = tuple([int(np.sqrt(len(A)))]*2)
+
+        # For large systems, avoid clogging memory
+        if nn > 100:
+            import gc
+            del tangent_string
+            gc.collect()
+        return A
+
+    def __getattr__(self, name: str):
+        if name in _OVERWRITTEN:
+            return getattr(self._openseespy, name)
+        elif name in __all__ or name in {"print"}:
+            return self._openseespy._partial(self._openseespy._invoke_proc, name)
+        else:
+            raise AttributeError(f"class Model has no attribute '{name}'")
+
+
+
+
+# A list of symbol names that are importable
+# from this module. All of these are dynamically
+# resolved by the function __getattr__ below.
+__all__ = [
+# 
+    "tcl",
+    "OpenSeesError",
+    "invoke",
+
+# OpenSeesPy attributes
+
+    "uniaxialMaterial",
+    "testUniaxialMaterial",
+    "setStrain",
+    "getStrain",
+    "getStress",
+    "getTangent",
+    "getDampTangent",
+    "wipe",
+    "model",
+    "node",
+    "element",
+    "section",
+    "fiber", "patch", "layer",
+    "geomTransf",
+    "transform",
+    "beamIntegration",
+    "nDMaterial",
+    "material",
+    "frictionModel",
+    "limitCurve",
+    # Constraints
+    "fix",
+    "sp",
+    "fixX",
+    "fixY",
+    "fixZ",
+    "mass",
+    "constrain",
+    "equalDOF",
+    "equalDOF_Mixed",
+    "rigidLink",
+    "rigidDiaphragm",
+    # Damping
+    "rayleigh",
+    "modalDamping",
+    "modalDampingQ",
+    "setElementRayleighDampingFactors",
+    # Meshing
+    "block2D",
+    "block3D",
+    "mesh",
+    "remesh",
+
+    # Loading
+    "timeSeries",
+    "pattern",
+    "load",
+    "eleLoad",
+    "imposedMotion",
+    "imposedSupportMotion",
+    "groundMotion",
+    # Analysis
+    "loadConst",
+    "system",
+    "numberer",
+    "constraints",
+    "integrator",
+    "algorithm",
+    "analysis",
+    "analyze",
+    "test",
+    "modalProperties",
+    "responseSpectrumAnalysis",
+    "eigen",
+    #
+    "reactions",
+    "setTime",
+    "remove",
+    "setCreep",
+    "reset",
+    "initialize",
+    "getLoadFactor",
+    "build",
+    "printModel",
+    "printA",
+    "printB",
+    "printGID",
+    "testNorm",
+    "testNorms",
+    "testIter",
+    "recorder",
+    "database",
+    "save",
+    "restore",
+
+    "getTime",
+    # node
+    "nodeUnbalance",
+    "nodeDisp",
+    "nodeRotation",
+    "nodeEigenvector",
+    "nodeVel",
+    "nodeAccel",
+    "nodeReaction",
+    "nodeResponse",
+    "nodeCoord",
+    # element
+    "eleResponse",
+    "eleForce",
+    "eleDynamicalForce",
+
+    "updateElementDomain",
+
+    "getNDM",
+    "getNDF",
+    "eleNodes",
+    "eleType",
+    "nodeDOFs",
+    "nodeMass",
+    "nodePressure",
+    "setNodePressure",
+    "nodeBounds",
+    "getPatterns",
+    "getFixedNodes",
+    "getFixedDOFs",
+    "getConstrainedNodes",
+    "getConstrainedDOFs",
+    "getRetainedNodes",
+    "getRetainedDOFs",
+    "getNodeTags",
+    # Setters
+    "setNodeCoord",
+    "setNodeVel",
+    "setNodeAccel",
+    "setNodeDisp",
+
+    "start",
+    "stop",
+    "region",
+    "setPrecision",
+    "searchPeerNGA",
+    "domainChange",
+    "record",
+    "metaData",
+    "defaultUnits",
+    "stripXML",
+    "convertBinaryToText",
+    "convertTextToBinary",
+    "getEleTags",
+    "getCrdTransfTags",
+    "getParamTags",
+    "getParamValue",
+    "sectionForce",
+    "sectionDeformation",
+    "sectionStiffness",
+    "sectionFlexibility",
+    "sectionLocation",
+    "sectionWeight",
+    "sectionTag",
+    "sectionDisplacement",
+    "cbdiDisplacement",
+    "basicDeformation",
+    "basicForce",
+    "basicStiffness",
+    "InitialStateAnalysis",
+    #
+    "totalCPU",
+    "solveCPU",
+    "accelCPU",
+    "numFact",
+    "numIter",
+    "wipeAnalysis",
+    "systemSize",
+    "version",
+    "setMaxOpenFiles",
+    "ShallowFoundationGen",
+    "setElementRayleighFactors",
+    # Parameters
+    "parameter",
+    "addToParameter",
+    "updateParameter",
+    "setParameter",
+    # Sensitivity
+    "computeGradients",
+    "sensitivityAlgorithm",
+    "sensNodeDisp",
+    "sensNodeVel",
+    "sensNodeAccel",
+    "sensLambda",
+    "sensSectionForce",
+    "sensNodePressure",
+    # Query
+    "getNumElements",
+    "getEleClassTags",
+    "getEleLoadClassTags",
+    "getEleLoadTags",
+    "getEleLoadData",
+    "getNodeLoadTags",
+    "getNodeLoadData",
+    "IGA",
+    "NDTest",
+    # Parallel
+    "getPID",
+    "getNP",
+    "barrier",
+    "send",
+    "recv",
+    "Bcast",
+    # Reliability
+    "randomVariable",
+    "getRVTags",
+    "getRVParamTag",
+    "getRVValue",
+    "getMean",
+    "getStdv",
+    "getPDF",
+    "getCDF",
+    "getInverseCDF",
+    "correlate",
+    "performanceFunction",
+    "gradPerformanceFunction",
+    "transformUtoX",
+    "wipeReliability",
+    "updateMaterialStage",
+    "sdfResponse",
+    "probabilityTransformation",
+    "startPoint",
+    "randomNumberGenerator",
+    "reliabilityConvergenceCheck",
+    "searchDirection",
+    "meritFunctionCheck",
+    "stepSizeRule",
+    "rootFinding",
+    "functionEvaluator",
+    "gradientEvaluator",
+    "getNumThreads",
+    "setNumThreads",
+    "logFile",
+    "setStartNodeTag",
+    "hystereticBackbone",
+    "stiffnessDegradation",
+    "strengthDegradation",
+    "strengthControl",
+    "unloadingRule",
+    "partition",
+    "pressureConstraint",
+    "domainCommitTag",
+#   "runFOSMAnalysis",
+    "findDesignPoint",
+    "runFORMAnalysis",
+    "getLSFTags",
+    "runImportanceSamplingAnalysis",
+]
+
+
+# Commands that are pre-processed in Python
+# before forwarding to the Tcl interpreter
+_OVERWRITTEN = {
+    "timeSeries",
+    "pattern", "load",
+    "eval",
+    "material",
+    "section", "patch", "layer", "fiber",
+    "block2D",
+    "block3D",
+    "mesh",
+    "getNodeTags",
+    "getEleTags",
+}
+
 
 
 class State:
@@ -546,6 +1198,7 @@ class State:
 
     def time(self):
         return self._time
+
 
 
 class StateView:
@@ -611,492 +1264,74 @@ class StateView:
     # def residual(self):
     #     return self._model.getResidual()
     
-    @property 
+    @property
     def reactions(self):
         return self._NodalVector(self._model, "reaction")
-
-
-
-class Model:
-    def __init__(self, *args, echo_file=None, **kwds):
-        self._openseespy = OpenSeesPy(echo_file=echo_file)
-        if len(args) > 0 or len(kwds) > 0:
-            self._openseespy._invoke_proc("model", *args, **kwds)
-
-        self._parameters = {
-            
-        }
-
-        # Aug 2025, for xara._analysis
-        self._patterns = {}
     
-    @property
-    def state(self):
+    def element(self, tag: int):
+        class ElementStateView:
+            def __init__(self, model, tag: int):
+                self._model = model
+                self._tag   = tag
 
-        return StateView(self)
+            def force(self, dof: int=None):
+                if dof is None:
+                    return self._model._call("eleForce", self._tag)
+                else:
+                    return self._model._call("eleForce", self._tag, dof)
 
+            def deformation(self, dof: int=None):
+                if dof is None:
+                    return self._model._call("eleDeformation", self._tag)
+                else:
+                    return self._model._call("eleDeformation", self._tag, dof)
+            
+            def section(self, tag: int):
+                class SectionStateView:
+                    def __init__(self, model, ele_tag: int, sec_tag: int):
+                        self._model   = model
+                        self._ele_tag = ele_tag
+                        self._sec_tag = sec_tag
 
-    def eval(self, *args, **kwds):
-        return self._openseespy.eval(*args, **kwds)
+                    def tangent(self, expand=False):
+                        import numpy as np
+                        if not expand:
+                            K =  self._model._openseespy._invoke_proc(
+                                "eleResponse", 
+                                self._ele_tag,
+                                "section", self._sec_tag,
+                                "tangent"
+                            )
+                        else:
+                            K = self._model._openseespy._invoke_proc("sectionStiffness", 
+                                                                    self._ele_tag, self._sec_tag)
+                        Ka = np.array(K)
+                        Ka.shape = tuple([int(np.sqrt(len(Ka)))]*2)
+                        return Ka
 
+                    def stress(self):
+                        return self._model._openseespy._invoke_proc(
+                            "eleResponse", 
+                            self._ele_tag,
+                            "section", self._sec_tag,
+                            "resultant"
+                        )
+                    def strain(self):
+                        return self._model._openseespy._invoke_proc(
+                            "eleResponse", 
+                            self._ele_tag,
+                            "section", self._sec_tag,
+                            "deformation"
+                        )
 
-    def _call(self, proc_name: str, *args, **kwds):
-        """
-        EXPERIMENTAL (2025-07-04)
-        """
-        return self._openseespy._call(proc_name, *args, **kwds)
-
-
-    def export(self, *args, **kwds):
-        return self._openseespy._interp.export(*args, **kwds)
-
-    def lift(self, type_name: str, tag: int):
-        return _lift(self._openseespy._interp._tcl.interpaddr(), type_name, tag)
-
-    # def invoke(self, *args, **kwds):
-    #     if len(args) == 2:
-    #         from ._invoke import _Handle
-    #         return _Handle(self._openseespy, *args, **kwds)
-    #     else:
-    #         return self._openseespy._invoke_proc(*args, **kwds)
-
-    def asdict(self):
-        """April 2024"""
-        return self._openseespy._interp.serialize()
-
-
-    def element(self, type, tag, *args, **kwds):
-        if tag is None:
-            tag = 1
-            ele_tags = self.getEleTags()
-            if ele_tags is None:
-                ele_tags = []
-            elif isinstance(ele_tags, int):
-                ele_tags = [ele_tags]
-
-            for existing_tag in ele_tags:
-                if tag <= existing_tag:
-                    tag = existing_tag + 1
-
-        self._openseespy._invoke_proc("element", type, tag, *args, **kwds)
-        return tag
-
-    def getIterationCount(self):
-        return self._openseespy._invoke_proc("numIter")
-
-    def getResidual(self):
-        import numpy as np
-        residual_string = self._openseespy._invoke_proc("printB", "-ret", _return_string=True)
-        n = sum(1 for _ in _split_iter(residual_string))
-        return np.fromiter(map(float, _split_iter(residual_string)), count=n, dtype=float)
-
-
-    def getTangent(self, **kwds):
-        import numpy as np
-
-        tangent_string = self._openseespy._invoke_proc("printA", "-ret", _return_string=True, **kwds)
-
-        nn = sum(1 for _ in _split_iter(tangent_string))
-
-        A  = np.fromiter(
-
-                map(float, _split_iter(
-                    tangent_string
-                )),
-
-                count=nn,
-                dtype=float
-        )
-
-        # Assigning to .shape as opposed to calling .reshape()
-        # should enforce no copying
-        A.shape = tuple([int(np.sqrt(len(A)))]*2)
-
-        # For large systems, avoid clogging memory
-        if nn > 100:
-            import gc
-            del tangent_string
-            gc.collect()
-        return A
-
-    def symbols(self, **kwds):
-        symbols = []
-        for k,v in kwds.items():
-            self.eval(f"set {k} {v}")
-            symbols.append((f"-{k}", f"${k}"))
-        return symbols
-
-    def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
-        """
-        Create a surface mesh of elements in the current model.
-
-        Parameters
-        ----------
-        :param split: tuple of integers
-            The number of elements in the x and y directions.
-        :param element: str
-            The name of the element type to use.
-        :param args: tuple
-            The arguments to pass to the element constructor.
-        :param points: list of tuples
-            The coordinates of the points in the mesh.
-        :param name: str
-            The name of the mesh.
-        :param kwds: dict
-            The keyword arguments to pass to the element constructor.
-        :param order: int
-            The order of the elements to use.
-        :param shape: str
-            The shape of the elements to use. Can be "Q" for quadrilateral or "T" for triangular.
-        :return: Surface
-        """
-        # anchor
-        # normal
-        import shps.plane, shps.block
-
-        add_node    = partial(self._openseespy._invoke_proc, "node")
-        add_element = partial(self._openseespy._invoke_proc, "element")
-
-        cell_type = None
-
-        if shape is None:
-            shape = "Q"
-
-        if order == 1 and shape == "Q":
-            cell_type = shps.plane.Q4
-        elif order == 2 and shape == "Q":
-            cell_type = shps.plane.Q9
-        elif order == 2 and shape == "T":
-            cell_type = shps.plane.T6
+                return SectionStateView(self._model, self._tag, tag)
+        return ElementStateView(self._model, tag)
 
 
-        if isinstance(element, str) and cell_type is None:
-            # element is an element name
-            cell_type = {
-                    "ShellMITC4": shps.plane.Q4,
-            }.get(element, shps.plane.Q4)
-
-        elif element is None and name is None:
-            cell_type = shps.plane.Q4
-            element = None
-
-        elif isinstance(name, str):
-            cell_type = element
-            element = name
-
-
-        m_elems = self._openseespy._invoke_proc("getEleTags")
-        if isinstance(m_elems, int):
-            m_elems = {m_elems}
-
-        elif m_elems is not None:
-            m_elems = {tag for tag in m_elems}
-
-        m_nodes = self._openseespy._invoke_proc("getNodeTags")
-        if isinstance(m_nodes, int):
-            m_nodes = {m_nodes}
-        if m_nodes is not None:
-            m_nodes = {
-                    int(tag): self._openseespy._invoke_proc("nodeCoord", f"{tag}")
-                    for tag in m_nodes
-            }
-
-        if m_nodes is not None and len(m_nodes) > 0:
-            join = dict(nodes=m_nodes, cells=m_elems)
-        else:
-            join = None
-
-        if kwds is None:
-            kwds = {}
-
-        nodes, elems = shps.block.block(split, cell_type, points=points,
-                                        append=False, join=join, **kwds)
-
-
-#       anchor_point, anchor_coord = next(iter(anchor.items()))
-#       if isinstance(anchor_coord, int):
-#           anchor_coord = self._openseespy._str_call("nodeCoord", f"{anchor_coord}")
-
-#       anchor_point = np.array([*nodes[anchor_point], 0.0])
-        for tag, coord in nodes.items():
-            add_node(tag, *coord)
-
-        if isinstance(args, dict):
-            ekwds = args
-            args = ()
-        else:
-            ekwds = {}
-
-        if element is not None:
-            for tag, elem_nodes in elems.items():
-                add_element(element, tag, list(map(int,elem_nodes)), *args, **ekwds)
-
-        return _Surface(nodes=nodes,
-                        cells=elems,
-                        child=cell_type,
-                        points=points,
-                        split=split)
-
-
-    def __getattr__(self, name: str):
-        if name in _OVERWRITTEN:
-            return getattr(self._openseespy, name)
-        else:
-            return self._openseespy._partial(self._openseespy._invoke_proc, name)
-
-
-
-# A list of symbol names that are importable
-# from this module. All of these are dynamically
-# resolved by the function __getattr__ below.
-__all__ = [
-# 
-    "tcl",
-    "OpenSeesError",
-    "invoke",
-
-# OpenSeesPy attributes
-
-    "uniaxialMaterial",
-    "testUniaxialMaterial",
-    "setStrain",
-    "getStrain",
-    "getStress",
-    "getTangent",
-    "getDampTangent",
-    "wipe",
-    "model",
-    "node",
-    "fix",
-    "element",
-    "timeSeries",
-    "pattern",
-    "load",
-    "system",
-    "numberer",
-    "constraints",
-    "integrator",
-    "algorithm",
-    "analysis",
-    "analyze",
-    "test",
-    "section",
-    "fiber",
-    "patch",
-    "layer",
-    "geomTransf",
-    "transform",
-    "beamIntegration",
-    "loadConst",
-    "eleLoad",
-    "reactions",
-    "nodeReaction",
-    "eigen",
-    "modalProperties",
-    "responseSpectrumAnalysis",
-    "nDMaterial",
-    "material",
-    "block2D",
-    "block3D",
-    "rayleigh",
-    "wipeAnalysis",
-    "setTime",
-    "remove",
-    "mass",
-    "equalDOF",
-    "nodeEigenvector",
-    "getTime",
-    "setCreep",
-    "eleResponse",
-    "sp",
-    "fixX",
-    "fixY",
-    "fixZ",
-    "reset",
-    "initialize",
-    "getLoadFactor",
-    "build",
-    "printModel",
-    "printA",
-    "printB",
-    "printGID",
-    "testNorm",
-    "testNorms",
-    "testIter",
-    "recorder",
-    "database",
-    "save",
-    "restore",
-    "eleForce",
-    "eleDynamicalForce",
-    "nodeUnbalance",
-    "nodeDisp",
-    "nodeRotation",
-    "setNodeDisp",
-    "nodeVel",
-    "setNodeVel",
-    "nodeAccel",
-    "setNodeAccel",
-    "nodeResponse",
-    "nodeCoord",
-    "setNodeCoord",
-    "getPatterns",
-    "getFixedNodes",
-    "getFixedDOFs",
-    "getConstrainedNodes",
-    "getConstrainedDOFs",
-    "getRetainedNodes",
-    "getRetainedDOFs",
-    "updateElementDomain",
-    "getNDM",
-    "getNDF",
-    "eleNodes",
-    "eleType",
-    "nodeDOFs",
-    "nodeMass",
-    "nodePressure",
-    "setNodePressure",
-    "nodeBounds",
-    "start",
-    "stop",
-    "modalDamping",
-    "modalDampingQ",
-    "setElementRayleighDampingFactors",
-    "region",
-    "setPrecision",
-    "searchPeerNGA",
-    "domainChange",
-    "record",
-    "metaData",
-    "defaultUnits",
-    "stripXML",
-    "convertBinaryToText",
-    "convertTextToBinary",
-    "getEleTags",
-    "getCrdTransfTags",
-    "getNodeTags",
-    "getParamTags",
-    "getParamValue",
-    "sectionForce",
-    "sectionDeformation",
-    "sectionStiffness",
-    "sectionFlexibility",
-    "sectionLocation",
-    "sectionWeight",
-    "sectionTag",
-    "sectionDisplacement",
-    "cbdiDisplacement",
-    "basicDeformation",
-    "basicForce",
-    "basicStiffness",
-    "InitialStateAnalysis",
-    "totalCPU",
-    "solveCPU",
-    "accelCPU",
-    "numFact",
-    "numIter",
-    "systemSize",
-    "version",
-    "setMaxOpenFiles",
-    "limitCurve",
-    "imposedMotion",
-    "imposedSupportMotion",
-    "groundMotion",
-    "equalDOF_Mixed",
-    "rigidLink",
-    "rigidDiaphragm",
-    "ShallowFoundationGen",
-    "setElementRayleighFactors",
-    "mesh",
-    "remesh",
-    "parameter",
-    "addToParameter",
-    "updateParameter",
-    "setParameter",
-    "getPID",
-    "getNP",
-    "barrier",
-    "send",
-    "recv",
-    "Bcast",
-    "frictionModel",
-    "computeGradients",
-    "sensitivityAlgorithm",
-    "sensNodeDisp",
-    "sensNodeVel",
-    "sensNodeAccel",
-    "sensLambda",
-    "sensSectionForce",
-    "sensNodePressure",
-    "getNumElements",
-    "getEleClassTags",
-    "getEleLoadClassTags",
-    "getEleLoadTags",
-    "getEleLoadData",
-    "getNodeLoadTags",
-    "getNodeLoadData",
-    "randomVariable",
-    "getRVTags",
-    "getRVParamTag",
-    "getRVValue",
-    "getMean",
-    "getStdv",
-    "getPDF",
-    "getCDF",
-    "getInverseCDF",
-    "correlate",
-    "performanceFunction",
-    "gradPerformanceFunction",
-    "transformUtoX",
-    "wipeReliability",
-    "updateMaterialStage",
-    "sdfResponse",
-    "probabilityTransformation",
-    "startPoint",
-    "randomNumberGenerator",
-    "reliabilityConvergenceCheck",
-    "searchDirection",
-    "meritFunctionCheck",
-    "stepSizeRule",
-    "rootFinding",
-    "functionEvaluator",
-    "gradientEvaluator",
-    "getNumThreads",
-    "setNumThreads",
-    "logFile",
-    "setStartNodeTag",
-    "hystereticBackbone",
-    "stiffnessDegradation",
-    "strengthDegradation",
-    "strengthControl",
-    "unloadingRule",
-    "partition",
-    "pressureConstraint",
-    "domainCommitTag",
-#   "runFOSMAnalysis",
-    "findDesignPoint",
-    "runFORMAnalysis",
-    "getLSFTags",
-    "runImportanceSamplingAnalysis",
-    "IGA",
-    "NDTest",
-]
-
-
-# Commands that are pre-processed in Python
-# before forwarding to the Tcl interpreter
-_OVERWRITTEN = {
-    "timeSeries",
-    "pattern", "load",
-    "eval",
-    "section", "patch", "layer", "fiber",
-    "block2D",
-    "block3D",
-    "mesh",
-    "getNodeTags",
-    "getEleTags",
-}
-
+    def print(self):
+        for node in self._model.getNodeTags():
+            u = self.u(node)
+            print(f"  {node}: " + "  ".join(f"{val:14.6g}" for val in u))
 
 
 # The global singleton, for backwards compatibility

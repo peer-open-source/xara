@@ -667,13 +667,6 @@ TaylorHood2D::Print(OPS_Stream &s, int flag)
     s << "kappa : " << kappa*kappa << "\n";
 }
 
-int
-TaylorHood2D::displaySelf(Renderer &, int mode, float fact,
-			  const char **displayModes,
-			  int numModes)
-{
-    return 0;
-}
 
 // get current coordinates
 int

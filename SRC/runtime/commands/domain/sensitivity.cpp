@@ -33,7 +33,7 @@
 
 
 int
-sensNodeDisp(ClientData clientData, Tcl_Interp *interp, int argc,
+sensNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -253,7 +253,8 @@ sensSectionForce(ClientData clientData, Tcl_Interp *interp, int argc,
   // make sure at least one other argument to contain type of system
   if (argc < 4) {
     opserr
-        << OpenSees::PromptValueError << "want - sensSectionForce eleTag? <secNum?> dof? paramTag?\n";
+        << OpenSees::PromptValueError 
+        << "want - sensSectionForce eleTag? <secNum?> dof? paramTag?\n";
     return TCL_ERROR;
   }
 
@@ -261,8 +262,8 @@ sensSectionForce(ClientData clientData, Tcl_Interp *interp, int argc,
   int secNum = 0;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "sensSectionForce eleTag? secNum? dof? paramTag?- could "
-              "not read eleTag? \n";
+    opserr << OpenSees::PromptValueError 
+           << "could not read eleTag? \n";
     return TCL_ERROR;
   }
 

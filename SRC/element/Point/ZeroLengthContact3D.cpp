@@ -32,13 +32,13 @@
 
 
 #include "ZeroLengthContact3D.h"
+#include <ZeroLength.h>
 #include <Information.h>
 
 #include <Domain.h>
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -46,9 +46,9 @@
 
 #include <ElementResponse.h>
 #include <elementAPI.h>
- 
-//static data
-const int ZeroLengthContact3D::numberNodes = 2 ;
+
+using namespace OpenSees;
+
 
 // static data for 3D
 Matrix  ZeroLengthContact3D::stiff(3*numberNodes,3*numberNodes) ;
@@ -277,7 +277,7 @@ ZeroLengthContact3D::setDomain(Domain *theDomain)
     
     vm = (v1<v2) ? v2 : v1;
 
-    if (L > LENTOL*vm)
+    if (L > ZeroLength::MaxLength*vm)
       opserr << "WARNING ZeroLengthContact3D::setDomain(): Element " << this->getTag() << " has L= " << L << 
 	", which is greater than the tolerance\n";
         
@@ -502,11 +502,6 @@ ZeroLengthContact3D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBrok
 }
 
 
-int
-ZeroLengthContact3D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{ // nothing to display
-    return 0;
-}
 
 
 void
@@ -517,7 +512,7 @@ ZeroLengthContact3D::Print(OPS_Stream &s, int flag)
 	s << " type: ZeroLengthContact3D  iNode: " << connectedExternalNodes(0);
 	s << " jNode: " << connectedExternalNodes(1) << endln;
     } else if (flag == 1) {
-	s << this->getTag() << endln;
+	  s << this->getTag() << endln;
     } 
 
 }

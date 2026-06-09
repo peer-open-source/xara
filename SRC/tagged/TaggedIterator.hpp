@@ -5,7 +5,8 @@
 template <typename T, typename StorageType=TaggedObjectStorage>
 class TaggedIterator {
   public:
-    TaggedIterator(StorageType* storage) : mIter(storage->getIterRef()) {}
+    // TaggedIterator(StorageType* storage) : mIter(storage->getIterRef()) {}
+    TaggedIterator(StorageType* storage) : mIter(storage->getIter()) {}
     
     void reset() {
       mIter.reset();
@@ -19,5 +20,6 @@ class TaggedIterator {
     }
 
   private:
-    StorageType::Iterator &mIter;
+    // StorageType::Iterator &mIter;
+    typename StorageType::Iterator mIter;
 };

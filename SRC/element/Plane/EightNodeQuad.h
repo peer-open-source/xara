@@ -12,9 +12,6 @@
 #ifndef EightNodeQuad_h
 #define EightNodeQuad_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 #include <array>
 
 #include <Element.h>
@@ -27,6 +24,8 @@ class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
+
 class EightNodeQuad : public Element,
                    protected LegendreFixedQuadrilateral<9>
 {
@@ -34,20 +33,24 @@ public:
   EightNodeQuad(int tag, 
                const std::array<int,8> &nodes, 
                NDMaterial &m, 
-               double t,
-               double pressure = 0.0, double rho = 0.0, double b1 = 0.0,
-               double b2 = 0.0);
+               double thickness,
+               double pressure,
+               double rho, 
+               double b1,
+               double b2,
+               Element::MassSource mass_source
+  );
   EightNodeQuad();
   ~EightNodeQuad();
 
-  const char *getClassType(void) const { return "EightNodeQuad"; };
+  const char *getClassType() const { return "EightNodeQuad"; }
 
-  int getNumExternalNodes(void) const;
+  int getNumExternalNodes() const;
   const ID &getExternalNodes();   
   Node **getNodePtrs();   
 
   int getNumDOF();   
-  void setDomain(Domain *theDomain);
+  void setDomain(Domain *);
 
   // public methods to set the state of the element
   int commitState();   
@@ -62,23 +65,24 @@ public:
 
   void zeroLoad();
   int addLoad(ElementalLoad *theLoad, double loadFactor);
-  int addInertiaLoadToUnbalance(const Vector &accel);
+  // int addInertiaLoadToUnbalance(const Vector &accel);
 
   const Vector &getResistingForce();   
   const Vector &getResistingForceIncInertia();   
 
-  // public methods for element output
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  // Methods of MovableObject
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-  void Print(OPS_Stream &s, int flag = 0);
+  // Methods of TaggedObject
+  void Print(OPS_Stream &s, int flag);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
-  int getResponse(int responseID, Information &eleInformation);
+  int getResponse(int responseID, Information &);
 
   int setParameter(const char **argv, int argc, Parameter &param);
-  int updateParameter(int parameterID, Information &info);
+  int updateParameter(int parameterID, Information &);
 
   // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial
   // stresses.
@@ -92,6 +96,7 @@ private:
 //static constexpr int nip = 9;    // number of integration/Gauss points
   static constexpr int NEN = 8;    // number of nodes
   static constexpr int NDM = 2;
+  static constexpr int NDF = 2;
 
   NDMaterial **theMaterial; // pointer to the ND material objects
 
@@ -115,6 +120,7 @@ private:
   double pressure;  // Normal surface traction (pressure) over entire element
                    // Note: positive for outward normal
   double rho;
+  Element::MassSource mass_source;
   static double shp[3][NEN]; // Stores shape functions and derivatives (overwritten)
 //static double pts[nip][2]; // Stores quadrature points
 //static double wts[nip];    // Stores quadrature weights
@@ -126,4 +132,5 @@ private:
   Matrix *Ki;
 };
 
+} // namespace OpenSees
 #endif

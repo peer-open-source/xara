@@ -57,547 +57,550 @@ static inline int
 TclCommand_newElasticSectionTemplate(ClientData clientData, Tcl_Interp *interp,
                                   int argc, TCL_Char ** const argv)
 {
-    assert(clientData != nullptr);
-    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
-    Frame::Shape shape_data(NDM, builder->getNDF());
+  assert(clientData != nullptr);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  Frame::Shape shape_data(NDM, builder->getNDF());
 
-    Domain& domain = *builder->getDomain();
+  Domain& domain = *builder->getDomain();
 
-    ArgumentTracker<Position> tracker;
-    std::set<int> positional;
+  ArgumentTracker<Position> tracker;
+  std::set<int> positional;
 
-    using namespace OpenSees::Parsing;
-    
-    Parameter* parameters[int(Position::Max)] = {};
+  using namespace OpenSees::Parsing;
+  
+  Parameter* parameters[int(Position::Max)] = {};
 
-    bool construct_full = false;
+  bool construct_full = false;
 
-    if (argc < 5) {
-        opserr << OpenSees::PromptParseError << "insufficient arguments\n";
-        opserr << "Want: section Elastic tag? E? A? Iz? <Iy? G? J?>.\n";
+  if (argc < 5) {
+      opserr << OpenSees::PromptParseError << "insufficient arguments\n";
+      opserr << "Want: section Elastic tag? E? A? Iz? <Iy? G? J?>.\n";
+      return TCL_ERROR;
+  }
+
+  int tag;
+  double E;
+
+  bool use_mass = false;
+  double mass=0.0;
+
+  // All 3D elements have been refactored to select shear themselves, but
+  // in 2D the element may check the section for shear.
+  bool use_shear = false ; // NDM == 3;
+
+  int i;
+  for (i=2; i<argc; i++) {
+
+    if (strcmp(argv[i], "-mass") == 0) {
+      if (argc == ++i || Tcl_GetDouble (interp, argv[i], &mass) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid mass.\n";
         return TCL_ERROR;
+      }
+      use_mass = true;
+    }
+    else if ((strcmp(argv[i], "-youngs-modulus") == 0) ||
+              (strcmp(argv[i], "-E") == 0)) {
+      if (argc == ++i) {
+        opserr << OpenSees::PromptParseError << "invalid Young's modulus.\n";
+        return TCL_ERROR;
+      }
+      if (GetDoubleParam(interp, domain, argv[i], &E, parameters[int(Position::E)]) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Young's modulus.\n";
+        return TCL_ERROR;
+      }
+      shape_data.E = E;
+      tracker.consume(Position::E);
+    }
+    else if ((strcmp(argv[i], "-shear-modulus") == 0) ||
+              (strcmp(argv[i], "-G") == 0)) {
+
+      if (argc == ++i) {
+        opserr << OpenSees::PromptParseError 
+                << "invalid shear modulus."
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      double G;
+      if (GetDoubleParam(interp, domain, argv[i], &G, parameters[int(Position::G)]) != TCL_OK) {
+        opserr << OpenSees::PromptParseError 
+                << "invalid shear modulus."
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      shape_data.G = G;
+      tracker.consume(Position::G);
+    }
+    //
+    // Section constants
+    //
+    else if ((strcmp(argv[i], "-area") == 0) ||
+              (strcmp(argv[i], "-A") == 0)) {
+      if (argc == ++i) {
+        opserr << OpenSees::PromptParseError 
+                << "invalid area: " << argv[i]
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      if ((GetDoubleParam(interp, domain, argv[i], &shape_data.A, parameters[int(Position::A)]) != TCL_OK)) {
+        opserr << OpenSees::PromptParseError 
+                << "invalid area: " << argv[i]
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      
+      // Default to A if Ay or Az is not specified
+      if (tracker.contains(Position::ky))
+        shape_data.Ay = shape_data.A;
+      if (tracker.contains(Position::kz))
+        shape_data.Az = shape_data.A;
+
+      tracker.consume(Position::A);
     }
 
-    int tag;
-    double E;
-
-    bool use_mass = false;
-    double mass=0.0;
-
-    // All 3D elements have been refactored to select shear themselves, but
-    // in 2D the element may check the section for shear.
-    bool use_shear = false ; // NDM == 3;
-
-    int i;
-    for (i=2; i<argc; i++) {
-
-      if (strcmp(argv[i], "-mass") == 0) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &mass) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid mass.\n";
-          return TCL_ERROR;
-        }
-        use_mass = true;
+    // Shear corrections
+    else if ((strcmp(argv[i], "-shear-y") == 0) ||
+              (strcmp(argv[i], "-Ay") == 0)) {
+      double Ay;
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &Ay) != TCL_OK) {
+        opserr << OpenSees::PromptParseError 
+                << "invalid shear area: " << argv[i]
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
       }
-      else if ((strcmp(argv[i], "-youngs-modulus") == 0) ||
-               (strcmp(argv[i], "-E") == 0)) {
-        if (argc == ++i) {
-          opserr << OpenSees::PromptParseError << "invalid Young's modulus.\n";
-          return TCL_ERROR;
+      shape_data.Ay = Ay;
+      use_shear = true;
+      construct_full = true;
+      tracker.consume(Position::ky);
+    }
+    else if ((strcmp(argv[i], "-shear-z") == 0) ||
+              (strcmp(argv[i], "-Az") == 0)) {
+      double Az;
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &Az) != TCL_OK) {
+        opserr << OpenSees::PromptParseError 
+                << "invalid shear area: " << argv[i]
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      shape_data.Az = Az;
+      use_shear = true;
+      construct_full = true;
+      tracker.consume(Position::kz);
+    }
+    else if ((strcmp(argv[i], "-ky") == 0) || (strcmp(argv[i], "-kz") == 0)) {
+      // Shear corrections as fraction of area
+      double k;
+      if (argc == ++i || Tcl_GetDouble (interp, argv[i], &k) != TCL_OK) {
+        opserr << OpenSees::PromptParseError 
+                << "invalid shear correction."
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      double A;
+      bool have_A = false;
+      // If we have already read A, use it; otherwise, find it. A is required.
+      if (tracker.contains(Position::A)) {
+        // Find A from parameters
+        for (int j=0; j<argc; j++) {
+          if ((strcmp(argv[j], "-area") == 0) || (strcmp(argv[j], "-A") == 0)) {
+            if ( argc <= ++j )
+              // -A flag without value; wait for area handler above to catch it
+              break;
+            if (Tcl_GetDouble(interp, argv[j], &A) != TCL_OK)
+              break;
+            have_A = true;
+            break;
+          }
         }
-        if (GetDoubleParam(interp, domain, argv[i], &E, parameters[int(Position::E)]) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Young's modulus.\n";
-          return TCL_ERROR;
+      }
+      else {
+        A = shape_data.A;
+        have_A = true;
+      }
+      if (!have_A || A <= 0.0)
+        continue; // Let area handler above catch missing/invalid A;
+
+      if (strcmp(argv[i-1], "-ky") == 0) {
+        shape_data.Ay = A * k;
+        tracker.consume(Position::ky);
+      }
+      else if (strcmp(argv[i-1], "-kz") == 0) {
+        shape_data.Az = A * k;
+        tracker.consume(Position::kz);
+      }
+      use_shear = true;
+      construct_full = true;
+    }
+
+    else if ((strcmp(argv[i], "-inertia") == 0) ||
+              (strcmp(argv[i], "-I") == 0) ||
+              (strcmp(argv[i], "-Iz") == 0)) {
+      if (argc == ++i) {
+        opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
+        return TCL_ERROR;
+      }
+      double Iz;
+      if ((GetDoubleParam(interp, domain, argv[i], &Iz, parameters[int(Position::Iz)]) != TCL_OK)) {
+        opserr << OpenSees::PromptParseError << "invalid inertia Iz\n";
+        return TCL_ERROR;
+      }
+      shape_data.Iz = Iz;
+      tracker.consume(Position::Iz);
+    }
+
+    else if ((strcmp(argv[i], "-inertia-y") == 0) ||
+              (strcmp(argv[i], "-Iy") == 0)) {
+      if (argc == ++i) {
+        opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
+        return TCL_ERROR;
+      }
+      double Iy;
+      if (GetDoubleParam(interp, domain, argv[i], &Iy, 
+                          parameters[int(Position::Iy)]) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
+        return TCL_ERROR;
+      }
+      shape_data.Iy = Iy;
+      tracker.consume(Position::Iy);
+    }
+
+    else if ((strcmp(argv[i], "-inertia-yz") == 0) ||
+              (strcmp(argv[i], "-Iyz") == 0)) {
+      if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Iyz) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid product of inertia\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Position::Iy);
+    }
+
+    else if ((strcmp(argv[i], "-venant") == 0) ||
+              (strcmp(argv[i], "-J") == 0)) {
+      double J;
+      if (argc == ++i || Tcl_GetDouble (interp, argv[i], &J) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid St. Venant constant.\n";
+        return TCL_ERROR;
+      }
+      shape_data.J = J;
+      tracker.consume(Position::J);
+    }
+
+    else if (strcmp(argv[i], "-Qy")==0) {
+      if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Qy) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Qy.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    else if (strcmp(argv[i], "-Qz")==0) {
+      if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Qz) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Qz.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    // else if (strcmp(argv[i], "-Sa")==0) {
+    //   if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Sa) != TCL_OK) {
+    //     opserr << OpenSees::PromptParseError << "invalid Sa.\n";
+    //     return TCL_ERROR;
+    //   }
+    //   construct_full = true;
+    // }
+    else if (strcmp(argv[i], "-Sy")==0) {
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Sy) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Sy.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    else if (strcmp(argv[i], "-Sz")==0) {
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Sz) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Sz.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    else if (strcmp(argv[i], "-Rw")==0) {
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Rw) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Rw.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    else if (strcmp(argv[i], "-Ry")==0) {
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Ry) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Ry.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    else if (strcmp(argv[i], "-Rz")==0) {
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Rz) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Rz.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    else if (strcmp(argv[i], "-Cw")==0) {
+      if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Cw) != TCL_OK) {
+        opserr << OpenSees::PromptParseError << "invalid Cw.\n";
+        return TCL_ERROR;
+      }
+      construct_full = true;
+    }
+    else
+      positional.insert(i);
+
+  }
+
+  //
+  // Positional arguments
+  //
+  for (int i : positional) {
+    if (tracker.current() == Position::EndRequired)
+      tracker.increment();
+
+    switch (tracker.current()) {
+      case Position::Tag :
+        if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid section Elastic tag.\n";
+            return TCL_ERROR;           
+        } else {
+          tracker.increment();
+          break;
+        }
+
+      case Position::E:
+        if (Tcl_GetDouble (interp, argv[i], &E) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid E.\n";
+            return TCL_ERROR;
         }
         shape_data.E = E;
-        tracker.consume(Position::E);
-      }
-      else if ((strcmp(argv[i], "-shear-modulus") == 0) ||
-               (strcmp(argv[i], "-G") == 0)) {
+        tracker.increment();
+        break;
 
-        if (argc == ++i) {
-          opserr << OpenSees::PromptParseError 
-                 << "invalid shear modulus."
-                 << OpenSees::SignalMessageEnd;
-          return TCL_ERROR;
+      case Position::A:
+        if (Tcl_GetDouble (interp, argv[i], &shape_data.A) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid A.\n";
+            return TCL_ERROR;
+        } else {
+          if (tracker.contains(Position::ky))
+            shape_data.Ay = shape_data.A; // Default to A if Ay is not specified
+          if (tracker.contains(Position::kz))
+            shape_data.Az = shape_data.A; // Default to A if Az is not specified
+          tracker.increment();
+          break;
         }
+
+      case Position::Iz: {
+        double Iz;
+        if ((GetDoubleParam(interp, domain, argv[i], &Iz, parameters[int(Position::Iz)]) != TCL_OK)) {
+            opserr << OpenSees::PromptParseError 
+                    << "invalid Iz"
+                    << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
+        }
+        else {
+          shape_data.Iz = Iz;
+          tracker.increment();
+          break;
+        }
+      }
+      case Position::Iy: {
+        double Iy;
+        if ((GetDoubleParam(interp, domain, argv[i], &Iy, parameters[int(Position::Iy)]) != TCL_OK)) {
+            opserr << OpenSees::PromptParseError 
+                    << "invalid Iy"
+                    << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
+        } else {
+          shape_data.Iy = Iy;
+          tracker.increment();
+          break;
+        }
+      }
+
+      case Position::G: {
         double G;
-        if (GetDoubleParam(interp, domain, argv[i], &G, parameters[int(Position::G)]) != TCL_OK) {
+        if ((GetDoubleParam(interp, domain, argv[i], &G, parameters[int(Position::G)]) != TCL_OK)) {
           opserr << OpenSees::PromptParseError 
-                 << "invalid shear modulus."
-                 << OpenSees::SignalMessageEnd;
+                  << "invalid G"
+                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         shape_data.G = G;
-        tracker.consume(Position::G);
+        tracker.increment();
+        break;
       }
-      //
-      // Section constants
-      //
-      else if ((strcmp(argv[i], "-area") == 0) ||
-               (strcmp(argv[i], "-A") == 0)) {
-        if (argc == ++i) {
-          opserr << OpenSees::PromptParseError 
-                 << "invalid area: " << argv[i]
-                 << OpenSees::SignalMessageEnd;
-          return TCL_ERROR;
-        }
-        if ((GetDoubleParam(interp, domain, argv[i], &shape_data.A, parameters[int(Position::A)]) != TCL_OK)) {
-          opserr << OpenSees::PromptParseError 
-                 << "invalid area: " << argv[i]
-                 << OpenSees::SignalMessageEnd;
-          return TCL_ERROR;
-        }
-        
-        // Default to A if Ay or Az is not specified
-        if (tracker.contains(Position::ky))
-          shape_data.Ay = shape_data.A;
-        if (tracker.contains(Position::kz))
-          shape_data.Az = shape_data.A;
-
-        tracker.consume(Position::A);
-      }
-
-      // Shear corrections
-      else if ((strcmp(argv[i], "-shear-y") == 0) ||
-               (strcmp(argv[i], "-Ay") == 0)) {
-        double Ay;
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &Ay) != TCL_OK) {
-          opserr << OpenSees::PromptParseError 
-                 << "invalid shear area: " << argv[i]
-                 << OpenSees::SignalMessageEnd;
-          return TCL_ERROR;
-        }
-        shape_data.Ay = Ay;
-        use_shear = true;
-        construct_full = true;
-        tracker.consume(Position::ky);
-      }
-      else if ((strcmp(argv[i], "-shear-z") == 0) ||
-               (strcmp(argv[i], "-Az") == 0)) {
-        double Az;
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &Az) != TCL_OK) {
-          opserr << OpenSees::PromptParseError 
-                 << "invalid shear area: " << argv[i]
-                 << OpenSees::SignalMessageEnd;
-          return TCL_ERROR;
-        }
-        shape_data.Az = Az;
-        use_shear = true;
-        construct_full = true;
-        tracker.consume(Position::kz);
-      }
-      else if ((strcmp(argv[i], "-ky") == 0) || (strcmp(argv[i], "-kz") == 0)) {
-        // Shear corrections as fraction of area
-        double k;
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &k) != TCL_OK) {
-          opserr << OpenSees::PromptParseError 
-                 << "invalid shear correction."
-                 << OpenSees::SignalMessageEnd;
-          return TCL_ERROR;
-        }
-
-        double A;
-        bool have_A = false;
-        // If we have already read A, use it; otherwise, find it. A is required.
-        if (tracker.contains(Position::A)) {
-          // Find A from parameters
-          for (int j=0; j<argc; j++) {
-            if ((strcmp(argv[j], "-area") == 0) || (strcmp(argv[j], "-A") == 0)) {
-              if ( argc <= ++j )
-                // -A flag without value; wait for area handler above to catch it
-                break;
-              if (Tcl_GetDouble(interp, argv[j], &A) != TCL_OK)
-                break;
-              have_A = true;
-              break;
-            }
-          }
-        }
-        else {
-          A = shape_data.A;
-          have_A = true;
-        }
-        if (!have_A || A <= 0.0)
-          continue; // Let area handler above catch missing/invalid A;
-
-        if (strcmp(argv[i-1], "-ky") == 0) {
-          shape_data.Ay = A * k;
-          tracker.consume(Position::ky);
-        }
-        else if (strcmp(argv[i-1], "-kz") == 0) {
-          shape_data.Az = A * k;
-          tracker.consume(Position::kz);
-        }
-        use_shear = true;
-        construct_full = true;
-      }
-
-      else if ((strcmp(argv[i], "-inertia") == 0) ||
-               (strcmp(argv[i], "-I") == 0) ||
-               (strcmp(argv[i], "-Iz") == 0)) {
-        if (argc == ++i) {
-          opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
-          return TCL_ERROR;
-        }
-        double Iz;
-        if ((GetDoubleParam(interp, domain, argv[i], &Iz, parameters[int(Position::Iz)]) != TCL_OK)) {
-          opserr << OpenSees::PromptParseError << "invalid inertia Iz\n";
-          return TCL_ERROR;
-        }
-        shape_data.Iz = Iz;
-        tracker.consume(Position::Iz);
-      }
-
-      else if ((strcmp(argv[i], "-inertia-y") == 0) ||
-               (strcmp(argv[i], "-Iy") == 0)) {
-        if (argc == ++i) {
-          opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
-          return TCL_ERROR;
-        }
-        double Iy;
-        if (GetDoubleParam(interp, domain, argv[i], &Iy, 
-                           parameters[int(Position::Iy)]) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid inertia Iy\n";
-          return TCL_ERROR;
-        }
-        shape_data.Iy = Iy;
-        tracker.consume(Position::Iy);
-      }
-
-      else if ((strcmp(argv[i], "-inertia-yz") == 0) ||
-               (strcmp(argv[i], "-Iyz") == 0)) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Iyz) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid product of inertia\n";
-          return TCL_ERROR;
-        }
-        tracker.consume(Position::Iy);
-      }
-
-      else if ((strcmp(argv[i], "-venant") == 0) ||
-               (strcmp(argv[i], "-J") == 0)) {
+      case Position::J: {
         double J;
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &J) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid St. Venant constant.\n";
+        if (Tcl_GetDouble (interp, argv[i], &J) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid J.\n";
           return TCL_ERROR;
         }
         shape_data.J = J;
-        tracker.consume(Position::J);
-      }
-
-      else if (strcmp(argv[i], "-Qy")==0) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Qy) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Qy.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      else if (strcmp(argv[i], "-Qz")==0) {
-        if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Qz) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Qz.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      // else if (strcmp(argv[i], "-Sa")==0) {
-      //   if (argc == ++i || Tcl_GetDouble (interp, argv[i], &shape_data.Sa) != TCL_OK) {
-      //     opserr << OpenSees::PromptParseError << "invalid Sa.\n";
-      //     return TCL_ERROR;
-      //   }
-      //   construct_full = true;
-      // }
-      else if (strcmp(argv[i], "-Sy")==0) {
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Sy) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Sy.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      else if (strcmp(argv[i], "-Sz")==0) {
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Sz) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Sz.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      else if (strcmp(argv[i], "-Rw")==0) {
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Rw) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Rw.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      else if (strcmp(argv[i], "-Ry")==0) {
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Ry) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Ry.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      else if (strcmp(argv[i], "-Rz")==0) {
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Rz) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Rz.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      else if (strcmp(argv[i], "-Cw")==0) {
-        if (argc == ++i || Tcl_GetDouble(interp, argv[i], &shape_data.Cw) != TCL_OK) {
-          opserr << OpenSees::PromptParseError << "invalid Cw.\n";
-          return TCL_ERROR;
-        }
-        construct_full = true;
-      }
-      else
-        positional.insert(i);
-
-    }
-
-    //
-    // Positional arguments
-    //
-    for (int i : positional) {
-      if (tracker.current() == Position::EndRequired)
         tracker.increment();
+        break;
+      }
 
+      case Position::ky: {
+        double ky;
+        if (Tcl_GetDouble (interp, argv[i], &ky) != TCL_OK) {
+            opserr << OpenSees::PromptParseError 
+                    << "invalid ky: " << argv[i]
+                    << "\n";
+            return TCL_ERROR;
+        } else {
+          use_shear = true;
+          shape_data.Ay = ky * shape_data.A;
+          tracker.increment();
+          break;
+        }
+      }
+      case Position::kz: {
+        double kz;
+        if (Tcl_GetDouble (interp, argv[i], &kz) != TCL_OK) {
+            opserr << OpenSees::PromptParseError << "invalid kz.\n";
+            return TCL_ERROR;
+        } else {
+          use_shear = true;
+          shape_data.Az = kz * shape_data.A;
+          tracker.increment();
+          break;
+        }
+      }
+
+      case Position::EndRequired:
+        // This will not be reached
+        break;
+
+      case Position::End:
+      default:
+        opserr << OpenSees::PromptParseError << "unexpected argument " << argv[i] << ".\n";
+        return TCL_ERROR;
+    }
+  }
+
+
+
+  if (tracker.current() < Position::EndRequired) {
+    opserr << OpenSees::PromptParseError
+            << "missing required arguments: ";
+    while (tracker.current() != Position::EndRequired) {
       switch (tracker.current()) {
         case Position::Tag :
-          if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid section Elastic tag.\n";
-              return TCL_ERROR;           
-          } else {
-            tracker.increment();
-            break;
-          }
-
+          opserr << "tag ";
+          break;
         case Position::E:
-          if (Tcl_GetDouble (interp, argv[i], &E) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid E.\n";
-              return TCL_ERROR;
-          }
-          shape_data.E = E;
-          tracker.increment();
+          opserr << "E ";
           break;
-
         case Position::A:
-          if (Tcl_GetDouble (interp, argv[i], &shape_data.A) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid A.\n";
-              return TCL_ERROR;
-          } else {
-            if (tracker.contains(Position::ky))
-              shape_data.Ay = shape_data.A; // Default to A if Ay is not specified
-            if (tracker.contains(Position::kz))
-              shape_data.Az = shape_data.A; // Default to A if Az is not specified
-            tracker.increment();
-            break;
-          }
-
-        case Position::Iz: {
-          double Iz;
-          if ((GetDoubleParam(interp, domain, argv[i], &Iz, parameters[int(Position::Iz)]) != TCL_OK)) {
-              opserr << OpenSees::PromptParseError 
-                     << "invalid Iz"
-                     << OpenSees::SignalMessageEnd;
-              return TCL_ERROR;
-          }
-          else {
-            shape_data.Iz = Iz;
-            tracker.increment();
-            break;
-          }
-        }
-        case Position::Iy: {
-          double Iy;
-          if ((GetDoubleParam(interp, domain, argv[i], &Iy, parameters[int(Position::Iy)]) != TCL_OK)) {
-              opserr << OpenSees::PromptParseError 
-                     << "invalid Iy"
-                     << OpenSees::SignalMessageEnd;
-              return TCL_ERROR;
-          } else {
-            shape_data.Iy = Iy;
-            tracker.increment();
-            break;
-          }
-        }
-
-        case Position::G: {
-          double G;
-          if ((GetDoubleParam(interp, domain, argv[i], &G, parameters[int(Position::G)]) != TCL_OK)) {
-            opserr << OpenSees::PromptParseError 
-                    << "invalid G"
-                    << OpenSees::SignalMessageEnd;
-            return TCL_ERROR;
-          }
-          shape_data.G = G;
-          tracker.increment();
+          opserr << "A ";
           break;
-        }
-        case Position::J: {
-          double J;
-          if (Tcl_GetDouble (interp, argv[i], &J) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid J.\n";
-            return TCL_ERROR;
-          }
-          shape_data.J = J;
-          tracker.increment();
+        case Position::Iz:
+          opserr << "Iz ";
           break;
-        }
+        case Position::Iy:
+          opserr << "Iy ";
+          break;
+        case Position::G:
+          opserr << "G ";
+          break;
+        case Position::J:
+          opserr << "J ";
+          break;
 
-        case Position::ky: {
-          double ky;
-          if (Tcl_GetDouble (interp, argv[i], &ky) != TCL_OK) {
-              opserr << OpenSees::PromptParseError 
-                     << "invalid ky: " << argv[i]
-                     << "\n";
-              return TCL_ERROR;
-          } else {
-            use_shear = true;
-            shape_data.Ay = ky * shape_data.A;
-            tracker.increment();
-            break;
-          }
-        }
-        case Position::kz: {
-          double kz;
-          if (Tcl_GetDouble (interp, argv[i], &kz) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid kz.\n";
-              return TCL_ERROR;
-          } else {
-            use_shear = true;
-            shape_data.Az = kz * shape_data.A;
-            tracker.increment();
-            break;
-          }
-        }
-
+        case Position::ky:
+        case Position::kz:
         case Position::EndRequired:
-          // This will not be reached
-          break;
-
         case Position::End:
         default:
-          opserr << OpenSees::PromptParseError << "unexpected argument " << argv[i] << ".\n";
-          return TCL_ERROR;
-      }
-    }
-
-    if (tracker.current() < Position::EndRequired) {
-      opserr << OpenSees::PromptParseError
-             << "missing required arguments: ";
-      while (tracker.current() != Position::EndRequired) {
-        switch (tracker.current()) {
-          case Position::Tag :
-            opserr << "tag ";
-            break;
-          case Position::E:
-            opserr << "E ";
-            break;
-          case Position::A:
-            opserr << "A ";
-            break;
-          case Position::Iz:
-            opserr << "Iz ";
-            break;
-          case Position::Iy:
-            opserr << "Iy ";
-            break;
-          case Position::G:
-            opserr << "G ";
-            break;
-          case Position::J:
-            opserr << "J ";
-            break;
-
-          case Position::ky:
-          case Position::kz:
-          case Position::EndRequired:
-          case Position::End:
-          default:
-            break;
-        }
-
-        if (tracker.current() == Position::EndRequired)
           break;
-
-        tracker.consume(tracker.current());
       }
 
-      opserr << "\n";
+      if (tracker.current() == Position::EndRequired)
+        break;
 
+      tracker.consume(tracker.current());
+    }
+
+    opserr << "\n";
+
+    return TCL_ERROR;
+  }
+
+  if (shape_data.validate() != 0) {
+    return TCL_ERROR;
+  }
+
+  //
+  // Create the section
+  //
+  if constexpr (NDM == 2) {
+
+    FrameSection* theSection = nullptr;
+    if (!use_shear)
+      theSection = new ElasticSection2d(tag, E, shape_data.A, *shape_data.Iz);
+
+    else
+      theSection = new ElasticShearSection2d(tag, E, shape_data.A, 
+                                              *shape_data.Iz,
+                                              *shape_data.G, 
+                                              *shape_data.Ay/shape_data.A);
+                                            
+    if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
+      if (theSection != nullptr)
+        delete theSection;
       return TCL_ERROR;
     }
 
-    if (shape_data.validate() != 0) {
-      return TCL_ERROR;
+    // For the elastic elements
+    // builder->addTaggedObject<FrameSection>(*new ElasticLinearFrameSection3d(tag,E,G,shape_data,mass,use_mass));
+
+    return TCL_OK;
+
+  } else {
+
+    FrameSection* theSection = nullptr;
+
+    shape_data.Ca =   *shape_data.Iy + *shape_data.Iz - *shape_data.J;
+    shape_data.Sa = -(*shape_data.Iy + *shape_data.Iz - *shape_data.J);
+    if (construct_full) {
+      theSection = new ElasticLinearFrameSection3d(tag,
+          shape_data,
+          mass, use_mass
+      );
     }
 
-    //
-    // Create the section
-    //
-    if constexpr (NDM == 2) {
-
-      FrameSection* theSection = nullptr;
-      if (!use_shear)
-        theSection = new ElasticSection2d(tag, E, shape_data.A, *shape_data.Iz);
-  
+    else if (strcmp(argv[1], "Elastic") == 0) {
+      if (use_shear)
+        theSection = new ElasticShearSection3d(tag, E, shape_data.A, 
+                                                *shape_data.Iz, 
+                                                *shape_data.Iy, 
+                                                *shape_data.G, 
+                                                *shape_data.J, 
+                                                *shape_data.Ay/shape_data.A, 
+                                                *shape_data.Az/shape_data.A);
       else
-        theSection = new ElasticShearSection2d(tag, E, shape_data.A, 
-                                               *shape_data.Iz,
-                                               *shape_data.G, 
-                                               *shape_data.Ay/shape_data.A);
-                                             
-      if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
-        if (theSection != nullptr)
-          delete theSection;
-        return TCL_ERROR;
-      }
-
-      // For the elastic elements
-      // builder->addTaggedObject<FrameSection>(*new ElasticLinearFrameSection3d(tag,E,G,shape_data,mass,use_mass));
-
-      return TCL_OK;
-
-    } else {
-
-      FrameSection* theSection = nullptr;
-
-      shape_data.Ca =   *shape_data.Iy + *shape_data.Iz - *shape_data.J;
-      shape_data.Sa = -(*shape_data.Iy + *shape_data.Iz - *shape_data.J);
-      if (construct_full) {
-        theSection = new ElasticLinearFrameSection3d(tag,
-            shape_data,
-            mass, use_mass
-        );
-      }
-
-      else if (strcmp(argv[1], "Elastic") == 0) {
-        if (use_shear)
-          theSection = new ElasticShearSection3d(tag, E, shape_data.A, 
-                                                 *shape_data.Iz, 
-                                                 *shape_data.Iy, 
-                                                 *shape_data.G, 
-                                                 *shape_data.J, 
-                                                 *shape_data.Ay/shape_data.A, 
-                                                 *shape_data.Az/shape_data.A);
-        else
-          theSection = new ElasticSection3d(tag, E, shape_data.A,
-                                            *shape_data.Iz, *shape_data.Iy, 
-                                            *shape_data.G, 
-                                            *shape_data.J);
-      }
-      else       
-        theSection = new ElasticLinearFrameSection3d(tag,
-            shape_data,
-            mass, use_mass
-        );
-
-      if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) < 0) {
-        if (theSection != nullptr)
-          delete theSection;
-        return TCL_ERROR;
-      } else
-        return TCL_OK;
+        theSection = new ElasticSection3d(tag, E, 
+                                           shape_data.A,
+                                          *shape_data.Iz,
+                                          *shape_data.Iy, 
+                                          *shape_data.G, 
+                                          *shape_data.J);
     }
+    else       
+      theSection = new ElasticLinearFrameSection3d(tag,
+          shape_data,
+          mass, use_mass
+      );
 
+    if (theSection == nullptr || builder->addTaggedObject<FrameSection>(*theSection) != TCL_OK) {
+      if (theSection != nullptr)
+        delete theSection;
+      return TCL_ERROR;
+    } else
+      return TCL_OK;
+  }
 }
 
 int

@@ -267,12 +267,6 @@ YamamotoBiaxialHDR::YamamotoBiaxialHDR(int Tag, int Nd1, int Nd2, int Tp, double
     basicDisp(6), localDisp(12), basicForce(6), basicStiff(6,6), basicStiffInit(6,6)
 {
   
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "YamamotoBiaxialHDR::setUp() - element: "
-	   << this->getTag() << " failed to create an ID of size 2\n";
-  }
-  
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
   
@@ -332,18 +326,11 @@ YamamotoBiaxialHDR::YamamotoBiaxialHDR()
     oriX(0), oriYp(0), mass(0.0),
     Tgl(12,12), Tlb(6,12),
     basicDisp(6), localDisp(12), basicForce(6), basicStiff(6,6), basicStiffInit(6,6)
-{	
-
-  // ensure the connectedExternalNode ID is of correct size & set values
-  if (connectedExternalNodes.Size() != 2)  {
-    opserr << "YamamotoBiaxialHDR::YamamotoBiaxialHDR() - "
-	   <<  "failed to create an ID of size 2\n";
-    exit(-1);
-  }
+{
   
   // set node pointers to NULL
   for (int i=0; i<2; i++)
-    theNodes[i] = 0;
+    theNodes[i] = nullptr;
 
 
   //
@@ -362,8 +349,6 @@ YamamotoBiaxialHDR::YamamotoBiaxialHDR()
     commitP[i]   = 0.0;
 
   }
-
-
 }
 
 

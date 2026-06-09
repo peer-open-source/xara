@@ -25,6 +25,7 @@
 
 namespace OpenSees {
 
+#if 0
 template <int nn, int ndf>
 VectorND<nn*ndf> 
 FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl) 
@@ -37,6 +38,7 @@ FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl)
     R(i,1) = y[i];
     R(i,2) = z[i];
   }
+  // const Matrix3D
 
   constexpr int N = nn * ndf;
 
@@ -55,7 +57,7 @@ FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl)
   // (B) Second pass: add offset cross product ( r x F ) into the
   //     rotational DOFs [3..5]
   const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
-  if (offset) {
+  if (offset) [[unlikely]] {
     const std::array<Vector3D, nn>& offsets = *offset;
     for (int i=0; i<nn; i++) {
 
@@ -73,7 +75,6 @@ FrameTransform<nn,ndf>::pushConstant(const VectorND<nn*ndf>& pl)
 
   return pg;
 }
-
 
 template<int nn, int ndf>
 MatrixND<nn*ndf,nn*ndf>
@@ -102,6 +103,46 @@ FrameTransform<nn,ndf>::pushConstant(const MatrixND<nn*ndf,nn*ndf>& kl)
   }
   return Kg;
 }
+#endif
+
+template <int nn, int ndf>
+void
+FrameTransform<nn,ndf>::pushRotationOffset(VectorND<nn*ndf>& pl, const Matrix3D& R) 
+{
+  constexpr int N = nn * ndf;
+
+  //
+  // Initialize
+  //
+  VectorND<N>& pg = pl;
+
+  // (A) First pass: just do the rotation
+  for (int i=0; i<nn; i++) {
+    const int base = i * ndf;
+    pg.insert(base,   R*Vector3D{pg[base  ], pg[base+1], pg[base+2]}, 1.0);
+    pg.insert(base+3, R*Vector3D{pg[base+3], pg[base+4], pg[base+5]}, 1.0);
+  }
+
+  // (B) Second pass: add offset cross product ( r x F ) into the
+  //     rotational DOFs
+  const std::array<Vector3D,nn> *offset = this->getRigidOffsets();
+  if (offset) [[unlikely]] {
+    const std::array<Vector3D, nn>& offsets = *offset;
+    for (int i=0; i<nn; i++) {
+
+      const int base = i * ndf;
+      const Vector3D ni {
+          pg[base+0],
+          pg[base+1],
+          pg[base+2]
+      };
+
+      // Add M = r x F
+      pg.assemble(base+3, offsets[i].cross(ni), 1.0);
+    }
+  }
+}
+
 
 template<int nn, int ndf>
 constexpr void

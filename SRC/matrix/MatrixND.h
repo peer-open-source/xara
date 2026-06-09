@@ -1,15 +1,20 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
-// 
+//
 // Desctiption: MatrixND is a fixed-size matrix class that is suitable for
 // stack-allocation.
-//
-//
 //
 //===----------------------------------------------------------------------===//
 //
@@ -35,12 +40,19 @@
   #define RESTRICT
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#  define XARA_MATRIX_INLINE [[gnu::always_inline]] inline
+#elif defined(_MSC_VER)
+#  define XARA_MATRIX_INLINE __forceinline
+#else
+#  define XARA_MATRIX_INLINE inline
+#endif
 
 namespace OpenSees {
 
 template <index_t NR, index_t NC, typename T=double>
 struct alignas(64) MatrixND {
-  static constexpr int BlasSize = 13*13;
+  static constexpr int BlasSize = 16*16;
   std::array<T, NR*NC> values;
 
   //
@@ -106,13 +118,13 @@ struct alignas(64) MatrixND {
     void addMatrixTransposeProduct(const MatrixND<nk, NR, T>& B, 
                                    const MatrixND<nk, NC, T>& C) noexcept;
 
-  template <class VecA, class VecB>  constexpr MatrixND<NR,NC,T>& 
+  template <class VecA, class VecB>  XARA_MATRIX_INLINE constexpr MatrixND<NR,NC,T>& 
     addTensorProduct(const VecA& V, const VecB& W, const double scale) noexcept;
 
-  template <class MatT, int nk> void 
+  template <class MatT, int nk> XARA_MATRIX_INLINE void 
     addMatrixProduct(const MatrixND<NR, nk, T> &, const MatT&, double scale) noexcept;
 
-  template <class MatT, int nk> void 
+  template <class MatT, int nk> XARA_MATRIX_INLINE void 
     addMatrixProduct(double, const MatrixND<NR, nk, T> &, const MatT&, double scale) noexcept;
 
   // += A'B
@@ -145,9 +157,9 @@ struct alignas(64) MatrixND {
   template<class VecT> inline constexpr MatrixND<NR,NC,T>& addSpinSquare(const VecT& V, double scale) noexcept;
   template<class VecT> inline constexpr void addSpinProduct(const VecT& a, const VectorND<NR,T>& b, double scale) noexcept;
 
-  void addSpinAtRow(const VectorND<NR>& V, size_t row_index);
+  void addSpinAtRow(const VectorND<NR>& V, size_t row_index) noexcept;
   template<class TVec>
-  void addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index);
+  void addSpinAtRow(const TVec& V, double mult, size_t vector_index, size_t matrix_row_index) noexcept;
 
   template<class VecT> inline constexpr void 
     addMatrixSpinProduct(const MatrixND<NR,NC,T>& A, const VecT& b, double scale) noexcept;
@@ -395,7 +407,7 @@ struct alignas(64) MatrixND {
 
   template <index_t K>
   inline constexpr friend MatrixND<NC,K>
-  operator^(const MatrixND<NR, NC> &left, const MatrixND<NR, K> &right) {
+  operator^(const MatrixND<NR, NC> &left, const MatrixND<NR, K> &right) noexcept {
     MatrixND<NC, K> prod;
     if constexpr (NR*NC > 16) {
       prod.setMatrixTransposeProduct(left, right);
@@ -423,3 +435,6 @@ struct alignas(64) MatrixND {
 
 } // namespace OpenSees
 #include "MatrixND.tpp"
+
+#undef RESTRICT
+#undef XARA_MATRIX_INLINE

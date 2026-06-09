@@ -26,7 +26,6 @@
 #ifndef TWENTYSEVENNODEBRICK_H
 #define TWENTYSEVENNODEBRICK_H
 
-#include "stdbool.h"
 
 #include <Element.h>
 #include <Node.h>

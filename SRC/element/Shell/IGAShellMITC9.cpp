@@ -6,9 +6,8 @@
 // Adapted from: Leopoldo Tesser, Diego Talledo
 // 9-node lagrandian shell element with membrane and drill
 //
-#include <stdio.h> 
 #include <stdlib.h> 
-#include <math.h> 
+#include <math.h>
 
 #include <ID.h> 
 #include <Vector.h>
@@ -98,16 +97,16 @@ IGAShellMITC9::IGAShellMITC9(int tag,
     double KnotVect_x1[] = { 0., 0., 0., 1., 1., 1. };
     KnotVect_y.resize(6);
     KnotVect_x.resize(6);
-    for (i = 0;i < 6;i++) {
-        KnotVect_y(i) = KnotVect_y1[i];
-        KnotVect_x(i) = KnotVect_x1[i];
+    for (int i = 0;i < 6;i++) {
+      KnotVect_y(i) = KnotVect_y1[i];
+      KnotVect_x(i) = KnotVect_x1[i];
     }
     stiff.resize(ndof, ndof);
     resid.resize(ndof);
     mass.resize(ndof,ndof);
     shp = new double* [3];
-    for (i = 0;i < 3;i++) {
-        shp[i] = new double[numCPs];
+    for (int i = 0;i < 3;i++) {
+      shp[i] = new double[numCPs];
     }
     eleIdInfo.resize(4);
     int nex = 20;
@@ -133,11 +132,11 @@ IGAShellMITC9::IGAShellMITC9(int tag,
     materialPointers = new SectionForceDeformation * [numCPs];
     nodePointers = new Node * [numCPs];
 
-    for (i = 0; i < 9; i++) {
-        materialPointers[i] = theMaterial.getCopy();
-        if (materialPointers[i] == 0) {
-            opserr << "ShellMITC9::constructor - failed to get a material of type: ShellSection\n";
-        } //end if
+    for (int i = 0; i < 9; i++) {
+      materialPointers[i] = theMaterial.getCopy();
+      if (materialPointers[i] == 0) {
+          opserr << "ShellMITC9::constructor - failed to get a material of type: ShellSection\n";
+      } //end if
     } //end for i
 
     sg[0] = -root3_over_root5;
@@ -170,6 +169,8 @@ IGAShellMITC9::IGAShellMITC9(int tag,
     wg[7] = 40.0 / 81.0;
     wg[8] = 64.0 / 81.0;
 }
+
+
 //******************************************************************
 
 //destructor 
@@ -202,15 +203,16 @@ IGAShellMITC9::~IGAShellMITC9()
 //**************************************************************************
 
 
-//set domain
-void  IGAShellMITC9::setDomain( Domain *theDomain ) 
+// set domain
+void
+IGAShellMITC9::setDomain( Domain *theDomain ) 
 {
   int i,j ;
   static Vector eig(3) ;
   static Matrix ddMembrane(3,3) ;
 
   //node pointers
-  for ( i = 0; i < 9; i++ ) {
+  for (int i = 0; i < 9; i++ ) {
      nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
      
      if (nodePointers[i] == 0) {
@@ -1507,232 +1509,224 @@ IGAShellMITC9::computeBshear( int node, double** shp )
 
 void IGAQuad::GaussRule(int NGPs1, Vector* Xg, Vector* WXg)//Verified
 {
-    double NGPs = (double)NGPs1;
-    Vector X(NGPs1), W(NGPs1);
-    Matrix result(NGPs1, 2);
-    int iter = 2;
-    double e1 = NGPs * (NGPs + 1);
-    int mm = (int)(trunc((NGPs + 1) / 2));
-    Vector tt(mm);
-    int kk = 1;
-    double PI = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679;
-    for (int i = 3; i <= 4 * mm - 1;i += 4) {
-        tt(kk - 1) = (double)i * PI / (4 * NGPs + 2);
-        kk++;
-    }
-    Vector x0(tt.Size());
-    Vector h(tt.Size()), d1(tt.Size()), pk(tt.Size()), dpn(tt.Size()), d2pn(tt.Size()), d3pn(tt.Size()), d4pn(tt.Size());
-    for (int i = 1; i <= tt.Size();i++) {
-        x0(i - 1) = (1 - (1 - 1 / NGPs) / (8 * NGPs * NGPs)) * cos(tt(i - 1));
-    }
-    for (int j = 1; j <= iter;j++) {
-        Vector pkm1(x0.Size());
-        pkm1.Zero();
-        pkm1 += 1;
-        pk = x0;
-        for (int k = 2; k <= NGPs1; k++) {
-            Vector pkp1 = 2 * dotProduct(x0, pk) - pkm1 - (dotProduct(x0, pk) - pkm1) / (double)k;
-            pkm1 = pk;
-            pk = pkp1;
-        }
-        //Vector Test = dotProduct(x0, x0);
-        Vector den = -1 * dotProduct(x0, x0) + 1;
-        d1 = NGPs * (pkm1 - dotProduct(x0, pk));
-        dpn = dotDivide(d1, den);
-        d2pn = dotDivide((2 * dotProduct(x0, dpn) - e1 * pk), den);
-        d3pn = dotDivide((4 * dotProduct(x0, d2pn) + (2 - e1) * dpn), den);
-        d4pn = dotDivide((6 * dotProduct(x0, d3pn) + (6 - e1) * d2pn), den);
-        Vector uu = dotDivide(pk, dpn);
-        Vector vv = dotDivide(d2pn, dpn);
-        //Initial approximation H
-        h = dotProduct(-1 * uu, 0.5 * dotProduct(uu, vv + dotProduct(uu, dotProduct(vv, vv) - dotDivide(dotProduct(uu, d3pn), 3 * dpn))) + 1);
-        //Refine H using one step of Newton's method
-        Vector p = pk + dotProduct(h, dpn + 0.5 * dotProduct(h, d2pn + dotProduct(h / 3, d3pn + 0.25 * dotProduct(h, d4pn))));
-        Vector dp = dpn + dotProduct(h, d2pn + 0.5 * dotProduct(h, d3pn + dotProduct(h, d4pn / 3)));
-        h -= dotDivide(p, dp);
-        x0 += h;
-    }
-    for (int i = 1; i <= x0.Size();i++) { X(i - 1) = -1 * x0(i - 1) - h(i - 1); }
-    Vector fx = d1 - dotProduct(h, e1 * (pk + 0.5 * dotProduct(h, dpn + dotProduct(h / 3, d2pn + 0.25 * dotProduct(h, d3pn + 0.2 * dotProduct(h, d4pn))))));
-    for (int i = 1;i <= x0.Size();i++) { W(i - 1) = 2 * (1 - X(i - 1) * X(i - 1)) / (fx(i - 1) * fx(i - 1)); }
-    if (mm + mm > NGPs) { X(mm - 1) = 0; }
-    if (mm + mm != NGPs) { mm = mm - 1; }
-    for (int i = 1;i <= mm;i++) {
-        X(NGPs1 - i) = -X(i - 1);
-        W(NGPs1 - i) = W(i - 1);
-    }
-    for (int i = 1; i <= NGPs; i++) {
-        (*Xg)(i - 1) = X(i - 1);
-        (*WXg)(i - 1) = W(i - 1);
-    }
-}
-Vector IGAQuad::dotProduct(Vector VecA, Vector VecB)
-{
-    Vector result(VecA.Size());
-    for (int i = 1; i <= VecA.Size();i++) {
-        result(i - 1) = VecA(i - 1) * VecB(i - 1);
-    }
-    return result;
+  double NGPs = (double)NGPs1;
+  Vector X(NGPs1), W(NGPs1);
+  Matrix result(NGPs1, 2);
+
+  int iter = 2;
+  double e1 = NGPs * (NGPs + 1);
+  int mm = (int)(trunc((NGPs + 1) / 2));
+  Vector tt(mm);
+  int kk = 1;
+  double PI = 3.14159265358979323846264338327950288419;
+  for (int i = 3; i <= 4 * mm - 1;i += 4) {
+    tt(kk - 1) = (double)i * PI / (4 * NGPs + 2);
+    kk++;
+  }
+  Vector x0(tt.Size());
+  Vector h(tt.Size()), d1(tt.Size()), pk(tt.Size()), dpn(tt.Size()), d2pn(tt.Size()), d3pn(tt.Size()), d4pn(tt.Size());
+  for (int i = 1; i <= tt.Size();i++) {
+      x0(i - 1) = (1 - (1 - 1 / NGPs) / (8 * NGPs * NGPs)) * cos(tt(i - 1));
+  }
+  for (int j = 1; j <= iter;j++) {
+      Vector pkm1(x0.Size());
+      pkm1.Zero();
+      pkm1 += 1;
+      pk = x0;
+      for (int k = 2; k <= NGPs1; k++) {
+          Vector pkp1 = 2 * IGA::Dot(x0, pk) - pkm1 - (IGA::Dot(x0, pk) - pkm1) / (double)k;
+          pkm1 = pk;
+          pk = pkp1;
+      }
+      //Vector Test = IGA::Dot(x0, x0);
+      Vector den = -1 * IGA::Dot(x0, x0) + 1;
+      d1 = NGPs * (pkm1 - IGA::Dot(x0, pk));
+      dpn  = IGA::DotDiv(d1, den);
+      d2pn = IGA::DotDiv((2 * IGA::Dot(x0, dpn) - e1 * pk), den);
+      d3pn = IGA::DotDiv((4 * IGA::Dot(x0, d2pn) + (2 - e1) * dpn), den);
+      d4pn = IGA::DotDiv((6 * IGA::Dot(x0, d3pn) + (6 - e1) * d2pn), den);
+      Vector uu = IGA::DotDiv(pk, dpn);
+      Vector vv = IGA::DotDiv(d2pn, dpn);
+      //Initial approximation H
+      h = IGA::Dot(-1 * uu, 0.5 * IGA::Dot(uu, vv + IGA::Dot(uu, IGA::Dot(vv, vv) - IGA::DotDiv(IGA::Dot(uu, d3pn), 3 * dpn))) + 1);
+      //Refine H using one step of Newton's method
+      Vector p = pk + IGA::Dot(h, dpn + 0.5 * IGA::Dot(h, d2pn + IGA::Dot(h / 3, d3pn + 0.25 * IGA::Dot(h, d4pn))));
+      Vector dp = dpn + IGA::Dot(h, d2pn + 0.5 * IGA::Dot(h, d3pn + IGA::Dot(h, d4pn / 3)));
+      h -= IGA::DotDiv(p, dp);
+      x0 += h;
+  }
+  for (int i = 1; i <= x0.Size();i++) {
+    X(i - 1) = -1 * x0(i - 1) - h(i - 1); 
+  }
+  Vector fx = d1 - IGA::Dot(h, e1 * (pk + 0.5 * IGA::Dot(h, dpn + IGA::Dot(h / 3, d2pn + 0.25 * IGA::Dot(h, d3pn + 0.2 * IGA::Dot(h, d4pn))))));
+  for (int i = 1;i <= x0.Size();i++) {
+    W(i - 1) = 2 * (1 - X(i - 1) * X(i - 1)) / (fx(i - 1) * fx(i - 1));
+  }
+  if (mm + mm > NGPs) { X(mm - 1) = 0; }
+  if (mm + mm != NGPs) { mm = mm - 1; }
+  for (int i = 1;i <= mm;i++) {
+    X(NGPs1 - i) = -X(i - 1);
+    W(NGPs1 - i) = W(i - 1);
+  }
+  for (int i = 1; i <= NGPs; i++) {
+    (*Xg)(i - 1) = X(i - 1);
+    (*WXg)(i - 1) = W(i - 1);
+  }
 }
 
-Vector IGAQuad::dotDivide(Vector VecA, Vector VecB)
+// The shape function should be revised for IGA, this is the 1d code
+void
+IGAQuad::DerBasisFuns(int Idx, Vector Pts, int obf, int n, Vector KnotVect, Matrix** N0n)
 {
-    Vector result(VecA.Size());
-    for (int i = 1; i <= VecA.Size();i++) {
-        result(i - 1) = VecA(i - 1) / VecB(i - 1);
-    }
-    return result;
-}
-//The shape function should be revised for IGA, this is the 1d code
-void IGAQuad::DerBasisFuns(int Idx, Vector Pts, int obf, int n, Vector KnotVect, Matrix** N0n)
-{
-    // Idx: span index of the parametric location; Pts: parametric points; obf: order of basis function;
-    // n: maximum order of derivatives; KnotVect: knot vector
-    int PtsSize = obf + 1;
-    double iXi;
-    double saved;
-    double temp;
-    int s1, s2;
-    double d;
-    int j1, j2;
-    //N0n.resize(PtsSize,PtsSize);
-    //N0n.Zero();
-    Matrix Ni(obf + 1, n + 1);
-    Matrix ndu(obf + 1, obf + 1);
-    Vector left(obf + 1); // more 1 space to avoid error
-    Vector right(obf + 1);
-    Matrix a(2, obf + 1);
-    for (int i = 1; i <= PtsSize; i++) {
-        iXi = Pts(i - 1);
-        ndu(0, 0) = 1.0;
-        for (int j = 1; j <= obf; j++) {
-            left(j) = iXi - KnotVect(Idx - j);
-            right(j) = KnotVect(Idx + j - 1) - iXi;
-            saved = 0;
-            for (int r = 0; r <= j - 1; r++) {
-                //lower triangle
-                ndu(j, r) = right(r + 1) + left(j - r);
-                temp = ndu(r, j - 1) / ndu(j, r);
-                //upper triangle
-                ndu(r, j) = saved + right(r + 1) * temp;
-                saved = left(j - r) * temp;
-            }
-            ndu(j, j) = saved;
-        }
-        for (int r = 1; r <= obf + 1;r++) {
-            Ni(r - 1, 0) = ndu(r - 1, obf);
-        }
-        //Ni.setData(ndu(:, p),[],0);//the syntax is wrong
-        for (int r = 0; r <= obf; r++) {
-            s1 = 0; s2 = 1;
-            a(0, 0) = 1;
-            for (int k = 1; k <= n; k++) {
-                d = 0;
-                int rk = r - k;
-                int pk = obf - k;
-                if (r >= k) {
-                    a(s2, 0) = a(s1, 0) / ndu(pk + 1, rk);
-                    d = a(s2, 0) * ndu(rk, pk);
-                }
-                if (rk >= -1) {
-                    j1 = 1;
-                }
-                else {
-                    j1 = -rk;
-                }
-                if ((r - 1) <= pk) {
-                    j2 = k - 1;
-                }
-                else {
-                    j2 = obf - r;
-                }
-                for (int j = j1; j <= j2; j++) {
-                    a(s2, j) = (a(s1, j) - a(s1, j - 1)) / ndu(pk + 1, rk + j);
-                    d += a(s2, j) * ndu(rk + j, pk);
-                }
-                if (r <= pk) {
-                    a(s2, k) = -a(s1, k - 1) / ndu(pk + 1, r);
-                    d += a(s2, k) * ndu(r, pk);
-                }
-                Ni(r, k) = d;
-                int j = s1;
-                s1 = s2;
-                s2 = j;//switch rows
-            }
-        }
-        int r = obf;
-        for (int k = 1;k <= n;k++) {
-            for (int rr = 1; rr <= obf + 1; rr++) {
-                Ni(rr - 1, k) *= r;// the syntax is also wrong
-            }
-            r = r * (obf - k);
-        }
-        (*N0n)[i - 1] = Ni;
-    }
+  // Idx: span index of the parametric location; Pts: parametric points; obf: order of basis function;
+  // n: maximum order of derivatives; KnotVect: knot vector
+  int PtsSize = obf + 1;
+  double iXi;
+  double saved;
+  double temp;
+  int s1, s2;
+  double d;
+  int j1, j2;
+  //N0n.resize(PtsSize,PtsSize);
+  //N0n.Zero();
+  Matrix Ni(obf + 1, n + 1);
+  Matrix ndu(obf + 1, obf + 1);
+  Vector left(obf + 1); // more 1 space to avoid error
+  Vector right(obf + 1);
+  Matrix a(2, obf + 1);
+  for (int i = 1; i <= PtsSize; i++) {
+      iXi = Pts(i - 1);
+      ndu(0, 0) = 1.0;
+      for (int j = 1; j <= obf; j++) {
+          left(j) = iXi - KnotVect(Idx - j);
+          right(j) = KnotVect(Idx + j - 1) - iXi;
+          saved = 0;
+          for (int r = 0; r <= j - 1; r++) {
+              //lower triangle
+              ndu(j, r) = right(r + 1) + left(j - r);
+              temp = ndu(r, j - 1) / ndu(j, r);
+              //upper triangle
+              ndu(r, j) = saved + right(r + 1) * temp;
+              saved = left(j - r) * temp;
+          }
+          ndu(j, j) = saved;
+      }
+      for (int r = 1; r <= obf + 1;r++) {
+          Ni(r - 1, 0) = ndu(r - 1, obf);
+      }
+      //Ni.setData(ndu(:, p),[],0);//the syntax is wrong
+      for (int r = 0; r <= obf; r++) {
+          s1 = 0; s2 = 1;
+          a(0, 0) = 1;
+          for (int k = 1; k <= n; k++) {
+              d = 0;
+              int rk = r - k;
+              int pk = obf - k;
+              if (r >= k) {
+                  a(s2, 0) = a(s1, 0) / ndu(pk + 1, rk);
+                  d = a(s2, 0) * ndu(rk, pk);
+              }
+              if (rk >= -1) {
+                  j1 = 1;
+              }
+              else {
+                  j1 = -rk;
+              }
+              if ((r - 1) <= pk) {
+                  j2 = k - 1;
+              }
+              else {
+                  j2 = obf - r;
+              }
+              for (int j = j1; j <= j2; j++) {
+                  a(s2, j) = (a(s1, j) - a(s1, j - 1)) / ndu(pk + 1, rk + j);
+                  d += a(s2, j) * ndu(rk + j, pk);
+              }
+              if (r <= pk) {
+                  a(s2, k) = -a(s1, k - 1) / ndu(pk + 1, r);
+                  d += a(s2, k) * ndu(r, pk);
+              }
+              Ni(r, k) = d;
+              int j = s1;
+              s1 = s2;
+              s2 = j;//switch rows
+          }
+      }
+      int r = obf;
+      for (int k = 1;k <= n;k++) {
+          for (int rr = 1; rr <= obf + 1; rr++) {
+              Ni(rr - 1, k) *= r;// the syntax is also wrong
+          }
+          r = r * (obf - k);
+      }
+      (*N0n)[i - 1] = Ni;
+  }
 }
 // to calculate the shape functions and derivatives of Gaussian points
 // 需要修改成单个单元的版本！
 void IGAQuad::calcDersBasisFunsAtGPs(int obf, int ncp, Vector KnotVect, int d, int NGPs, int Idx, double* J2, Vector* WXg, Matrix** N0n)
 {
-    // obf: order of basis function, ncp: number of control points;
-    // KnotVect: knot vector; d: degree of derivative; NGPs: number of gauss points; Idx: span index of the element;
-    Vector Xg(NGPs);
-    GaussRule(NGPs, &Xg, WXg);
-    Vector Xi_e(NGPs);
-    *J2 = (KnotVect(Idx) - KnotVect(Idx - 1)) / 2;
-    for (int ii = 1;ii <= NGPs;ii++) {
-        Xi_e(ii - 1) = (Xg(ii - 1) + 1) * (*J2) + KnotVect(Idx - 1);//Xi(ex,:)=(Xg+1)*J2(ex)+KnotVect(i);
-    }
-    this->DerBasisFuns(Idx, Xi_e, obf, d, KnotVect, N0n);//N(ex,:,:,:) = DersBasisFuns(i,Xi(ex,:),obf,d,KnotVect)
-
-
+  // obf: order of basis function, ncp: number of control points;
+  // KnotVect: knot vector; d: degree of derivative; NGPs: number of gauss points; Idx: span index of the element;
+  Vector Xg(NGPs);
+  GaussRule(NGPs, &Xg, WXg);
+  Vector Xi_e(NGPs);
+  *J2 = (KnotVect(Idx) - KnotVect(Idx - 1)) / 2;
+  for (int ii = 1;ii <= NGPs;ii++) {
+      Xi_e(ii - 1) = (Xg(ii - 1) + 1) * (*J2) + KnotVect(Idx - 1);//Xi(ex,:)=(Xg+1)*J2(ex)+KnotVect(i);
+  }
+  this->DerBasisFuns(Idx, Xi_e, obf, d, KnotVect, N0n);//N(ex,:,:,:) = DersBasisFuns(i,Xi(ex,:),obf,d,KnotVect)
 }
-void IGAQuad::Rationalize(Vector WeightsCP, Vector N0, Matrix N1, Vector* R0, Matrix* R1)
+
+
+void 
+IGAQuad::Rationalize(Vector WeightsCP, Vector N0, Matrix N1, Vector* R0, Matrix* R1)
 {
-    // convert B-spline to NURBS basis functions for 1D
-    Vector N0W(N0.Size());
-    double W0 = 0;
-    for (int i = 1; i <= N0.Size(); i++) {
-        N0W(i - 1) = N0(i - 1) * WeightsCP(i - 1);
-        W0 += N0W(i - 1);
-    }
-    *R0 = N0W / W0;
-    // First derivatives of NURBS basis functions
-    Matrix N1W(N1.noRows(), N1.noCols());
-    for (int i = 1; i <= N1.noRows(); i++) {
-        for (int j = 1;j <= N1.noCols();j++) {
-            N1W(i - 1, j - 1) = N1(i - 1, j - 1) * WeightsCP(j - 1);
-        }
-    }
-    Vector W1(N1.noRows());
-    Matrix Temp(N1W.noRows(), N1W.noCols());
-    for (int i = 1; i <= N1W.noRows();i++) {
-        for (int j = 1; j <= N1W.noCols();j++) {
-            W1(i - 1) += N1W(i - 1, j - 1);
-        }
-    }
-    for (int i = 1; i <= N1W.noRows();i++) {
-        for (int j = 1; j <= N1W.noCols();j++) {
-            Temp(i - 1, j - 1) = (*R0)(j - 1) * W1(i - 1);
-        }
-    }
-    Matrix N1WR0W1 = N1W - Temp;
-    *R1 = N1WR0W1 / W0;
+  // convert B-spline to NURBS basis functions for 1D
+  Vector N0W(N0.Size());
+  double W0 = 0;
+  for (int i = 1; i <= N0.Size(); i++) {
+      N0W(i - 1) = N0(i - 1) * WeightsCP(i - 1);
+      W0 += N0W(i - 1);
+  }
+  *R0 = N0W / W0;
+  // First derivatives of NURBS basis functions
+  Matrix N1W(N1.noRows(), N1.noCols());
+  for (int i = 1; i <= N1.noRows(); i++) {
+      for (int j = 1;j <= N1.noCols();j++) {
+          N1W(i - 1, j - 1) = N1(i - 1, j - 1) * WeightsCP(j - 1);
+      }
+  }
+  Vector W1(N1.noRows());
+  Matrix Temp(N1W.noRows(), N1W.noCols());
+  for (int i = 1; i <= N1W.noRows();i++) {
+      for (int j = 1; j <= N1W.noCols();j++) {
+          W1(i - 1) += N1W(i - 1, j - 1);
+      }
+  }
+  for (int i = 1; i <= N1W.noRows();i++) {
+      for (int j = 1; j <= N1W.noCols();j++) {
+          Temp(i - 1, j - 1) = (*R0)(j - 1) * W1(i - 1);
+      }
+  }
+  Matrix N1WR0W1 = N1W - Temp;
+  *R1 = N1WR0W1 / W0;
 }
 
 // calculate the shape function and derivatives of the quadrature point
-int IGAQuad::findSpan(int order, int ncp, int eleId, int nele, Vector KnotVect) {
-    ID Idxs(nele);
-    Idxs.Zero();
-    int iE = 1;
-    for (int i = order; i <= ncp; i++) {
-        if (abs(KnotVect(i - 1) - KnotVect(i)) > 1.4901e-08) {
-            Idxs(iE - 1) = i;
-            iE = iE + 1;
-        }
-    }
-    int Idx = Idxs(eleId - 1);
-    return Idx;
+int 
+IGAQuad::findSpan(int order, int ncp, int eleId, int nele, Vector KnotVect) {
+  ID Idxs(nele);
+  Idxs.Zero();
+  int iE = 1;
+  for (int i = order; i <= ncp; i++) {
+      if (abs(KnotVect(i - 1) - KnotVect(i)) > 1.4901e-08) {
+          Idxs(iE - 1) = i;
+          iE = iE + 1;
+      }
+  }
+  int Idx = Idxs(eleId - 1);
+  return Idx;
 }
 //************************************************************************
 //shape function subroutine
@@ -1774,12 +1768,12 @@ double IGAQuad::shape2d(int qx, int qy, ID eleIdInfo, Vector KnotVect_x, Vector 
     double DataJ;//J1 and J2 of the quadrature point
     int k = 1;
     for (int j = 1;j <= obf_y + 1;j++) {
-        for (int i = 1; i <= obf_x + 1;i++) {
-            N0(k - 1) = (N0nx[qx - 1])(i - 1, 0) * (N0ny[qy - 1])(j - 1, 0);//shape function
-            N1(0, k - 1) = (N0nx[qx - 1])(i - 1, 1) * (N0ny[qy - 1])(j - 1, 0);// 1st derivatives
-            N1(1, k - 1) = (N0nx[qx - 1])(i - 1, 0) * (N0ny[qy - 1])(j - 1, 1);
-            k++;
-        }
+      for (int i = 1; i <= obf_x + 1;i++) {
+          N0(k - 1) = (N0nx[qx - 1])(i - 1, 0) * (N0ny[qy - 1])(j - 1, 0);//shape function
+          N1(0, k - 1) = (N0nx[qx - 1])(i - 1, 1) * (N0ny[qy - 1])(j - 1, 0);// 1st derivatives
+          N1(1, k - 1) = (N0nx[qx - 1])(i - 1, 0) * (N0ny[qy - 1])(j - 1, 1);
+          k++;
+      }
     }
     Vector R0;
     Matrix R1;

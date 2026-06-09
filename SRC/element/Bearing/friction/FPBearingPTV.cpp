@@ -47,9 +47,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <OPS_Globals.h>
-#include <Message.h>
-;
+#include <Logging.h>
+
 #include <iostream>
 #include <Vector.h>
 
@@ -350,36 +349,8 @@ FPBearingPTV::FPBearingPTV(int tag, int Nd1, int Nd2, double MuReference, int Is
 	theMaterials[0] = theMatA.getCopy();
 	theMaterials[1] = theMatB.getCopy();
 	theMaterials[2] = theMatC.getCopy();
-	theMaterials[3] = theMatD.getCopy();	
+	theMaterials[3] = theMatD.getCopy();
 
-	// check material input
-    if (theMaterials[0] == 0)  {
-        opserr << "FPBearingPTV::FPBearingPTV() - "
-            << "null material array passed.\n";
-        exit(-1);
-    }
-	if (theMaterials[1] == 0)  {
-        opserr << "FPBearingPTV::FPBearingPTV() - "
-            << "null material array passed.\n";
-        exit(-1);
-    }
-	if (theMaterials[2] == 0)  {
-        opserr << "FPBearingPTV::FPBearingPTV() - "
-            << "null material array passed.\n";
-        exit(-1);
-    }
-	if (theMaterials[3] == 0)  {
-        opserr << "FPBearingPTV::FPBearingPTV() - "
-            << "null material array passed.\n";
-        exit(-1);
-    }	
-
-	// ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "FPBearingPTV::FPBearingPTV() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
 
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;	
@@ -423,14 +394,7 @@ FPBearingPTV::FPBearingPTV()
     Tgl(12,12), Tlb(6,12), ubPlasticC(2), kbInit(6,6), DomainTime(1), DomainHeatFlux(1), 
 	DomainTimeTemp(0), DomainHeatFluxTemp(0), iCountTime(0), kpFTemp(1), kTFTemp(1), kvFTemp(1),
 	DomainDisp(2,3), TemperatureCenter(1), MuFactors(3), MuAdjusted(1), HeatFluxCenter(1)
-{    
-
-	// ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "FPBearingPTV::FPBearingPTV() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
+{
     
     // set node pointers to NULL
     for (int i=0; i<2; i++)

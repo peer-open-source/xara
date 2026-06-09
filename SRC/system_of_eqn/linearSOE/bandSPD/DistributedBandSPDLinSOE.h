@@ -54,7 +54,7 @@ class DistributedBandSPDLinSOE : public BandSPDLinSOE
     void zeroB(void);
     int setSize(Graph &theGraph);
     int solve(void);
-    const Vector &getB(void);
+    const Vector &getB();
 
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    

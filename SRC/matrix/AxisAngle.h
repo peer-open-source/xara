@@ -50,6 +50,11 @@ public:
   }
 
   inline Matrix3D
+  matrix() const noexcept {
+    return ExpSO3(vector);
+  }
+
+  inline Matrix3D
   dLog() const
   {
     //

@@ -7,15 +7,10 @@
 #ifndef ASI3D8QuadWithSensitivity_H
 #define ASI3D8QuadWithSensitivity_H
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
-
 #include <Element.h>
 #include <Node.h>
 
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 

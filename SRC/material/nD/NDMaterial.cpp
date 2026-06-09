@@ -112,12 +112,6 @@ NDMaterial::getCopy(const char *type)
 }
 
 
-double
-NDMaterial::getRho()
-{
-  return 0.0;
-}
-
 
 int 
 NDMaterial::setTrialStrainIncr(const Vector &v)

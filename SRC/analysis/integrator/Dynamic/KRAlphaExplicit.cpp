@@ -170,22 +170,12 @@ int KRAlphaExplicit::newStep(double _deltaT)
         int size = theLinSOE->getNumEqn();
         FullGenLinSolver *theFullLinSolver = new FullGenLinLapackSolver();
         LinearSOE *theFullLinSOE = new FullGenLinSOE(size, *theFullLinSolver);
-        if (theFullLinSOE == 0)  {
-            opserr << "WARNING KRAlphaExplicit::newStep() - failed to create FullLinearSOE\n";
-            return -4;
-        }
-        theFullLinSOE->setLinks(*theModel);
         
         // now switch the SOE to the FullLinearSOE
         this->IncrementalIntegrator::setLinks(*theModel, *theFullLinSOE, theTest);
-        
+
         // get a pointer to the A matrix of the FullLinearSOE
         const Matrix *tmp = theFullLinSOE->getA();
-        if (tmp == 0)  {
-            opserr << "WARNING KRAlphaExplicit::newStep() - ";
-            opserr << "failed to get A matrix of FullGeneral LinearSOE\n";
-            return -5;
-        }
         
         // calculate the integration parameter matrices
         c1 = beta*deltaT*deltaT;

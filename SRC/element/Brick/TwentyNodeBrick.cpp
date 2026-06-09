@@ -21,7 +21,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -81,21 +80,21 @@ TwentyNodeBrick::TwentyNodeBrick(int element_number,
 
 
   if ( total_number_of_Gauss_points != 0 ) {
-      matpoint  = new MatPoint3D * [total_number_of_Gauss_points];
+    matpoint  = new MatPoint3D * [total_number_of_Gauss_points];
   } else {
-      matpoint  = 0;
+    matpoint  = 0;
   }
 
   short where = 0;
-  for( short GP_c_r = 1 ; GP_c_r <= r_integration_order ; GP_c_r++ ) {
+  for ( short GP_c_r = 1 ; GP_c_r <= r_integration_order ; GP_c_r++ ) {
       double r = get_Gauss_p_c( r_integration_order, GP_c_r );
       double rw = get_Gauss_p_w( r_integration_order, GP_c_r );
 
-      for( short GP_c_s = 1 ; GP_c_s <= s_integration_order ; GP_c_s++ ) {
+      for ( short GP_c_s = 1 ; GP_c_s <= s_integration_order ; GP_c_s++ ) {
           double s = get_Gauss_p_c( s_integration_order, GP_c_s );
           double sw = get_Gauss_p_w( s_integration_order, GP_c_s );
 
-          for( short GP_c_t = 1 ; GP_c_t <= t_integration_order ; GP_c_t++ ) {
+          for ( short GP_c_t = 1 ; GP_c_t <= t_integration_order ; GP_c_t++ ) {
               double t = get_Gauss_p_c( t_integration_order, GP_c_t );
               double tw = get_Gauss_p_w( t_integration_order, GP_c_t );
 
@@ -115,39 +114,39 @@ TwentyNodeBrick::TwentyNodeBrick(int element_number,
     //&( GPstress[where] ), //&( GPiterative_stress[where] ), //IN_q_ast_iterative[where] ,//&( GPstrain[where] ),  //&( GPtangent_E[where] ),
                                         //&( (matpoint)->operator[](where) )
                                         // ugly syntax but it works! Still don't know what's wrong   // with the old style matpoint[where]
-            }
-        }
-    }
+          }
+      }
+  }
 
-    // Set connected external node IDs
-    connectedExternalNodes( 0) = node_numb_1;
-    connectedExternalNodes( 1) = node_numb_2;
-    connectedExternalNodes( 2) = node_numb_3;
-    connectedExternalNodes( 3) = node_numb_4;
-    connectedExternalNodes( 4) = node_numb_5;
-    connectedExternalNodes( 5) = node_numb_6;
-    connectedExternalNodes( 6) = node_numb_7;
-    connectedExternalNodes( 7) = node_numb_8;
+  // Set connected external node IDs
+  connectedExternalNodes( 0) = node_numb_1;
+  connectedExternalNodes( 1) = node_numb_2;
+  connectedExternalNodes( 2) = node_numb_3;
+  connectedExternalNodes( 3) = node_numb_4;
+  connectedExternalNodes( 4) = node_numb_5;
+  connectedExternalNodes( 5) = node_numb_6;
+  connectedExternalNodes( 6) = node_numb_7;
+  connectedExternalNodes( 7) = node_numb_8;
 
-    connectedExternalNodes( 8) = node_numb_9;
-    connectedExternalNodes( 9) = node_numb_10;
-    connectedExternalNodes(10) = node_numb_11;
-    connectedExternalNodes(11) = node_numb_12;
+  connectedExternalNodes( 8) = node_numb_9;
+  connectedExternalNodes( 9) = node_numb_10;
+  connectedExternalNodes(10) = node_numb_11;
+  connectedExternalNodes(11) = node_numb_12;
 
-    connectedExternalNodes(12) = node_numb_13;
-    connectedExternalNodes(13) = node_numb_14;
-    connectedExternalNodes(14) = node_numb_15;
-    connectedExternalNodes(15) = node_numb_16;
+  connectedExternalNodes(12) = node_numb_13;
+  connectedExternalNodes(13) = node_numb_14;
+  connectedExternalNodes(14) = node_numb_15;
+  connectedExternalNodes(15) = node_numb_16;
 
-    connectedExternalNodes(16) = node_numb_17;
-    connectedExternalNodes(17) = node_numb_18;
-    connectedExternalNodes(18) = node_numb_19;
-    connectedExternalNodes(19) = node_numb_20;
+  connectedExternalNodes(16) = node_numb_17;
+  connectedExternalNodes(17) = node_numb_18;
+  connectedExternalNodes(18) = node_numb_19;
+  connectedExternalNodes(19) = node_numb_20;
 
-    for (int i=0; i<20; i++)
-      theNodes[i] = nullptr;
+  for (int i=0; i<20; i++)
+    theNodes[i] = nullptr;
 
-    nodes_in_brick = 20;
+  nodes_in_brick = 20;
 
 }
 
@@ -167,24 +166,23 @@ connectedExternalNodes(20), Ki(0), Q(60), bf(3), rho(0.0), pressure(0.0), mmodel
 
 TwentyNodeBrick::~TwentyNodeBrick()
 {
+  int total_number_of_Gauss_points = r_integration_order*s_integration_order*t_integration_order;
 
-    int total_number_of_Gauss_points = r_integration_order*s_integration_order*t_integration_order;
+  for (int i = 0; i < total_number_of_Gauss_points; i++) {
+    if (matpoint[i])
+      delete matpoint[i];
+  }
 
-    for (int i = 0; i < total_number_of_Gauss_points; i++) {
-      if (matpoint[i])
-        delete matpoint[i];
-    }
+  // Delete the array of pointers to NDMaterial pointer arrays
+  if (matpoint)
+    delete [] matpoint;
 
-    // Delete the array of pointers to NDMaterial pointer arrays
-    if (matpoint)
-     delete [] matpoint;
-
-    if (Ki != 0)
-      delete Ki;
-
+  if (Ki != 0)
+    delete Ki;
 }
 
-void TwentyNodeBrick::incremental_Update()
+void
+TwentyNodeBrick::incremental_Update()
 {
   double r  = 0.0;
   double s  = 0.0;
@@ -210,10 +208,10 @@ void TwentyNodeBrick::incremental_Update()
 
   incremental_displacements = incr_disp();
 
-  for( short GP_c_r = 1 ; GP_c_r <= r_integration_order ; GP_c_r++ )  {
+  for ( short GP_c_r = 1 ; GP_c_r <= r_integration_order ; GP_c_r++ )  {
       r = get_Gauss_p_c( r_integration_order, GP_c_r );
       //--        rw = get_Gauss_p_w( r_integration_order, GP_c_r );
-      for( short GP_c_s = 1 ; GP_c_s <= s_integration_order ; GP_c_s++ )
+      for ( short GP_c_s = 1 ; GP_c_s <= s_integration_order ; GP_c_s++ )
         {
           s = get_Gauss_p_c( s_integration_order, GP_c_s );
           //--            sw = get_Gauss_p_w( s_integration_order, GP_c_s );
@@ -275,55 +273,55 @@ tensor TwentyNodeBrick::H_3D(double r1, double r2, double r3)
   tensor H(2, dimension, 0.0);
 
   // influence of the node number 20
-      H.val(58,1)=(1.0+r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
-      H.val(59,2)=H.val(58,1); //(1.0+r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
-      H.val(60,3)=H.val(58,1); //(1.0+r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
+  H.val(58,1)=(1.0+r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
+  H.val(59,2)=H.val(58,1); //(1.0+r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
+  H.val(60,3)=H.val(58,1); //(1.0+r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
   // influence of the node number 19
-      H.val(55,1)=(1.0-r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
-      H.val(56,2)=H.val(55,1); //(1.0-r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
-      H.val(57,3)=H.val(55,1); //(1.0-r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
+  H.val(55,1)=(1.0-r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
+  H.val(56,2)=H.val(55,1); //(1.0-r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
+  H.val(57,3)=H.val(55,1); //(1.0-r1)*(1.0-r2)*(1.0-r3*r3)*0.25;
   // influence of the node number 18
-      H.val(52,1)=(1.0-r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
-      H.val(53,2)=H.val(52,1); //(1.0-r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
-      H.val(54,3)=H.val(52,1); //(1.0-r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
+  H.val(52,1)=(1.0-r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
+  H.val(53,2)=H.val(52,1); //(1.0-r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
+  H.val(54,3)=H.val(52,1); //(1.0-r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
   // influence of the node number 17
-      H.val(49,1)=(1.0+r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
-      H.val(50,2)=H.val(49,1); //(1.0+r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
-      H.val(51,3)=H.val(49,1); //(1.0+r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
+  H.val(49,1)=(1.0+r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
+  H.val(50,2)=H.val(49,1); //(1.0+r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
+  H.val(51,3)=H.val(49,1); //(1.0+r1)*(1.0+r2)*(1.0-r3*r3)*0.25;
 
   // influence of the node number 16
-      H.val(46,1)=(1.0+r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
-      H.val(47,2)=H.val(46,1); //(1.0+r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
-      H.val(48,3)=H.val(46,1); //(1.0+r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
+  H.val(46,1)=(1.0+r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
+  H.val(47,2)=H.val(46,1); //(1.0+r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
+  H.val(48,3)=H.val(46,1); //(1.0+r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
   // influence of the node number 15
-      H.val(43,1)=(1.0-r1*r1)*(1.0-r2)*(1.0-r3)*0.25;
-      H.val(44,2)=H.val(43,1); //(1.0-r1*r1)*(1.0-r2)*(1.0-r3)*0.25;
-      H.val(45,3)=H.val(43,1); //(1.0-r1*r1)*(1.0-r2)*(1.0-r3)*0.25;
+  H.val(43,1)=(1.0-r1*r1)*(1.0-r2)*(1.0-r3)*0.25;
+  H.val(44,2)=H.val(43,1); //(1.0-r1*r1)*(1.0-r2)*(1.0-r3)*0.25;
+  H.val(45,3)=H.val(43,1); //(1.0-r1*r1)*(1.0-r2)*(1.0-r3)*0.25;
   // influence of the node number 14
-      H.val(40,1)=(1.0-r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
-      H.val(41,2)=H.val(40,1); //(1.0-r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
-      H.val(42,3)=H.val(40,1); //(1.0-r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
+  H.val(40,1)=(1.0-r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
+  H.val(41,2)=H.val(40,1); //(1.0-r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
+  H.val(42,3)=H.val(40,1); //(1.0-r1)*(1.0-r2*r2)*(1.0-r3)*0.25;
   // influence of the node number 13
-      H.val(37,1)=(1.0-r1*r1)*(1.0+r2)*(1.0-r3)*0.25;
-      H.val(38,2)=H.val(37,1); //(1.0-r1*r1)*(1.0+r2)*(1.0-r3)*0.25;
-      H.val(39,3)=H.val(37,1); //(1.0-r1*r1)*(1.0+r2)*(1.0-r3)*0.25;
+  H.val(37,1)=(1.0-r1*r1)*(1.0+r2)*(1.0-r3)*0.25;
+  H.val(38,2)=H.val(37,1); //(1.0-r1*r1)*(1.0+r2)*(1.0-r3)*0.25;
+  H.val(39,3)=H.val(37,1); //(1.0-r1*r1)*(1.0+r2)*(1.0-r3)*0.25;
 
   // influence of the node number 12
-      H.val(34,1)=(1.0+r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
-      H.val(35,2)=H.val(34,1); //(1.0+r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
-      H.val(36,3)=H.val(34,1); //(1.0+r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
+  H.val(34,1)=(1.0+r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
+  H.val(35,2)=H.val(34,1); //(1.0+r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
+  H.val(36,3)=H.val(34,1); //(1.0+r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
   // influence of the node number 11
-      H.val(31,1)=(1.0-r1*r1)*(1.0-r2)*(1.0+r3)*0.25;
-      H.val(32,2)=H.val(31,1); //(1.0-r1*r1)*(1.0-r2)*(1.0+r3)*0.25;
-      H.val(33,3)=H.val(31,1); //(1.0-r1*r1)*(1.0-r2)*(1.0+r3)*0.25;
+  H.val(31,1)=(1.0-r1*r1)*(1.0-r2)*(1.0+r3)*0.25;
+  H.val(32,2)=H.val(31,1); //(1.0-r1*r1)*(1.0-r2)*(1.0+r3)*0.25;
+  H.val(33,3)=H.val(31,1); //(1.0-r1*r1)*(1.0-r2)*(1.0+r3)*0.25;
   // influence of the node number 10
-      H.val(28,1)=(1.0-r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
-      H.val(29,2)=H.val(28,1); //(1.0-r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
-      H.val(30,3)=H.val(28,1); //(1.0-r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
+  H.val(28,1)=(1.0-r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
+  H.val(29,2)=H.val(28,1); //(1.0-r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
+  H.val(30,3)=H.val(28,1); //(1.0-r1)*(1.0-r2*r2)*(1.0+r3)*0.25;
   // influence of the node number 9
-      H.val(25,1)=(1.0-r1*r1)*(1.0+r2)*(1.0+r3)*0.25;
-      H.val(26,2)=H.val(25,1); //(1.0-r1*r1)*(1.0+r2)*(1.0+r3)*0.25;
-      H.val(27,3)=H.val(25,1); //(1.0-r1*r1)*(1.0+r2)*(1.0+r3)*0.25;
+  H.val(25,1)=(1.0-r1*r1)*(1.0+r2)*(1.0+r3)*0.25;
+  H.val(26,2)=H.val(25,1); //(1.0-r1*r1)*(1.0+r2)*(1.0+r3)*0.25;
+  H.val(27,3)=H.val(25,1); //(1.0-r1*r1)*(1.0+r2)*(1.0+r3)*0.25;
 
 
   // 9-20 nodes
@@ -420,117 +418,102 @@ tensor TwentyNodeBrick::interp_poli_at(double r1, double r2, double r3)
 
 
 tensor TwentyNodeBrick::dh_drst_at(double r1, double r2, double r3)
-  {
+{
 
-    int dimensions[] = {20,3};  // Changed from{20,3} to {8,3} Xiaoyan 07/12
-    tensor dh(2, dimensions, 0.0);
+  int dimensions[] = {20,3};  // Changed from{20,3} to {8,3} Xiaoyan 07/12
+  tensor dh(2, dimensions, 0.0);
 
 
-    // influence of the node number 20
-        dh.val(20,1) =   (1.0-r2)*(1.0-r3*r3)*0.25; 
-        dh.val(20,2) = - (1.0+r1)*(1.0-r3*r3)*0.25; 
-        dh.val(20,3) = - (1.0+r1)*(1.0-r2)*r3*0.50; 
-    // influence of the node number 19
-        dh.val(19,1) = - (1.0-r2)*(1.0-r3*r3)*0.25; 
-        dh.val(19,2) = - (1.0-r1)*(1.0-r3*r3)*0.25; 
-        dh.val(19,3) = - (1.0-r1)*(1.0-r2)*r3*0.50; 
-    // influence of the node number 18
-        dh.val(18,1) = - (1.0+r2)*(1.0-r3*r3)*0.25; 
-        dh.val(18,2) =   (1.0-r1)*(1.0-r3*r3)*0.25; 
-        dh.val(18,3) = - (1.0-r1)*(1.0+r2)*r3*0.50; 
-    // influence of the node number 17
-        dh.val(17,1) =   (1.0+r2)*(1.0-r3*r3)*0.25; 
-        dh.val(17,2) =   (1.0+r1)*(1.0-r3*r3)*0.25; 
-        dh.val(17,3) = - (1.0+r1)*(1.0+r2)*r3*0.50; 
+  // influence of the node number 20
+  dh.val(20,1) =   (1.0-r2)*(1.0-r3*r3)*0.25; 
+  dh.val(20,2) = - (1.0+r1)*(1.0-r3*r3)*0.25; 
+  dh.val(20,3) = - (1.0+r1)*(1.0-r2)*r3*0.50; 
+  // influence of the node number 19
+  dh.val(19,1) = - (1.0-r2)*(1.0-r3*r3)*0.25;
+  dh.val(19,2) = - (1.0-r1)*(1.0-r3*r3)*0.25;
+  dh.val(19,3) = - (1.0-r1)*(1.0-r2)*r3*0.50;
+  // influence of the node number 18
+  dh.val(18,1) = - (1.0+r2)*(1.0-r3*r3)*0.25; 
+  dh.val(18,2) =   (1.0-r1)*(1.0-r3*r3)*0.25; 
+  dh.val(18,3) = - (1.0-r1)*(1.0+r2)*r3*0.50; 
+  // influence of the node number 17
+  dh.val(17,1) =   (1.0+r2)*(1.0-r3*r3)*0.25; 
+  dh.val(17,2) =   (1.0+r1)*(1.0-r3*r3)*0.25; 
+  dh.val(17,3) = - (1.0+r1)*(1.0+r2)*r3*0.50; 
 
-    // influence of the node number 16
-        dh.val(16,1) =   (1.0-r2*r2)*(1.0-r3)*0.25; 
-        dh.val(16,2) = - (1.0+r1)*r2*(1.0-r3)*0.50; 
-        dh.val(16,3) = - (1.0+r1)*(1.0-r2*r2)*0.25; 
-    // influnce of the node number 15
-        dh.val(15,1) = - r1*(1.0-r2)*(1.0-r3)*0.50; 
-        dh.val(15,2) = - (1.0-r1*r1)*(1.0-r3)*0.25; 
-        dh.val(15,3) = - (1.0-r1*r1)*(1.0-r2)*0.25; 
-    // influence of the node number 14
-        dh.val(14,1) = - (1.0-r2*r2)*(1.0-r3)*0.25; 
-        dh.val(14,2) = - (1.0-r1)*r2*(1.0-r3)*0.50; 
-        dh.val(14,3) = - (1.0-r1)*(1.0-r2*r2)*0.25; 
-    // influence of the node number 13
-        dh.val(13,1) = - r1*(1.0+r2)*(1.0-r3)*0.50; 
-        dh.val(13,2) =   (1.0-r1*r1)*(1.0-r3)*0.25; 
-        dh.val(13,3) = - (1.0-r1*r1)*(1.0+r2)*0.25; 
+  // influence of the node number 16
+  dh.val(16,1) =   (1.0-r2*r2)*(1.0-r3)*0.25; 
+  dh.val(16,2) = - (1.0+r1)*r2*(1.0-r3)*0.50; 
+  dh.val(16,3) = - (1.0+r1)*(1.0-r2*r2)*0.25; 
+  // influnce of the node number 15
+  dh.val(15,1) = - r1*(1.0-r2)*(1.0-r3)*0.50; 
+  dh.val(15,2) = - (1.0-r1*r1)*(1.0-r3)*0.25; 
+  dh.val(15,3) = - (1.0-r1*r1)*(1.0-r2)*0.25; 
+  // influence of the node number 14
+  dh.val(14,1) = - (1.0-r2*r2)*(1.0-r3)*0.25; 
+  dh.val(14,2) = - (1.0-r1)*r2*(1.0-r3)*0.50; 
+  dh.val(14,3) = - (1.0-r1)*(1.0-r2*r2)*0.25; 
+  // influence of the node number 13
+  dh.val(13,1) = - r1*(1.0+r2)*(1.0-r3)*0.50; 
+  dh.val(13,2) =   (1.0-r1*r1)*(1.0-r3)*0.25; 
+  dh.val(13,3) = - (1.0-r1*r1)*(1.0+r2)*0.25; 
 
-    // influence of the node number 12
-        dh.val(12,1) =   (1.0-r2*r2)*(1.0+r3)*0.25; 
-        dh.val(12,2) = - (1.0+r1)*r2*(1.0+r3)*0.50; 
-        dh.val(12,3) =   (1.0+r1)*(1.0-r2*r2)*0.25; 
-    // influence of the node number 11
-        dh.val(11,1) = - r1*(1.0-r2)*(1.0+r3)*0.50; 
-        dh.val(11,2) = - (1.0-r1*r1)*(1.0+r3)*0.25; 
-        dh.val(11,3) =   (1.0-r1*r1)*(1.0-r2)*0.25; 
-    // influence of the node number 10
-        dh.val(10,1) = - (1.0-r2*r2)*(1.0+r3)*0.25; 
-        dh.val(10,2) = - (1.0-r1)*r2*(1.0+r3)*0.50; 
-        dh.val(10,3) =   (1.0-r1)*(1.0-r2*r2)*0.25; 
-    // influence of the node number 9
-        dh.val(9,1)  = - r1*(1.0+r2)*(1.0+r3)*0.50; 
-        dh.val(9,2)  =   (1.0-r1*r1)*(1.0+r3)*0.25; 
-        dh.val(9,3)  =   (1.0-r1*r1)*(1.0+r2)*0.25; 
+  // influence of the node number 12
+  dh.val(12,1) =   (1.0-r2*r2)*(1.0+r3)*0.25; 
+  dh.val(12,2) = - (1.0+r1)*r2*(1.0+r3)*0.50; 
+  dh.val(12,3) =   (1.0+r1)*(1.0-r2*r2)*0.25; 
+  // influence of the node number 11
+  dh.val(11,1) = - r1*(1.0-r2)*(1.0+r3)*0.50; 
+  dh.val(11,2) = - (1.0-r1*r1)*(1.0+r3)*0.25; 
+  dh.val(11,3) =   (1.0-r1*r1)*(1.0-r2)*0.25; 
+  // influence of the node number 10
+  dh.val(10,1) = - (1.0-r2*r2)*(1.0+r3)*0.25; 
+  dh.val(10,2) = - (1.0-r1)*r2*(1.0+r3)*0.50; 
+  dh.val(10,3) =   (1.0-r1)*(1.0-r2*r2)*0.25; 
+  // influence of the node number 9
+  dh.val(9,1)  = - r1*(1.0+r2)*(1.0+r3)*0.50; 
+  dh.val(9,2)  =   (1.0-r1*r1)*(1.0+r3)*0.25; 
+  dh.val(9,3)  =   (1.0-r1*r1)*(1.0+r2)*0.25; 
 
-      // influence of the node number 8
-    //dh.val(8,1)= (1.0-r2)*(1.0-r3)/8.0 - (dh.val(15,1)+dh.val(16,1)+dh.val(20,1))/2.0;
-    dh.val(8,1)= (1.0-r2)*(1.0-r3)*0.125 - (dh.val(15,1)+dh.val(16,1)+dh.val(20,1))*0.50; 
-    dh.val(8,2)=-(1.0+r1)*(1.0-r3)*0.125 - (dh.val(15,2)+dh.val(16,2)+dh.val(20,2))*0.50; 
-    dh.val(8,3)=-(1.0+r1)*(1.0-r2)*0.125 - (dh.val(15,3)+dh.val(16,3)+dh.val(20,3))*0.50; 
-      // influence of the node number 7
-    dh.val(7,1)=-(1.0-r2)*(1.0-r3)*0.125 - (dh.val(14,1)+dh.val(15,1)+dh.val(19,1))*0.50; 
-    dh.val(7,2)=-(1.0-r1)*(1.0-r3)*0.125 - (dh.val(14,2)+dh.val(15,2)+dh.val(19,2))*0.50; 
-    dh.val(7,3)=-(1.0-r1)*(1.0-r2)*0.125 - (dh.val(14,3)+dh.val(15,3)+dh.val(19,3))*0.50; 
-      // influence of the node number 6
-    dh.val(6,1)=-(1.0+r2)*(1.0-r3)*0.125 - (dh.val(13,1)+dh.val(14,1)+dh.val(18,1))*0.50; 
-    dh.val(6,2)= (1.0-r1)*(1.0-r3)*0.125 - (dh.val(13,2)+dh.val(14,2)+dh.val(18,2))*0.50; 
-    dh.val(6,3)=-(1.0-r1)*(1.0+r2)*0.125 - (dh.val(13,3)+dh.val(14,3)+dh.val(18,3))*0.50; 
-      // influence of the node number 5
-    dh.val(5,1)= (1.0+r2)*(1.0-r3)*0.125 - (dh.val(13,1)+dh.val(16,1)+dh.val(17,1))*0.50; 
-    dh.val(5,2)= (1.0+r1)*(1.0-r3)*0.125 - (dh.val(13,2)+dh.val(16,2)+dh.val(17,2))*0.50; 
-    dh.val(5,3)=-(1.0+r1)*(1.0+r2)*0.125 - (dh.val(13,3)+dh.val(16,3)+dh.val(17,3))*0.50; 
+  // influence of the node number 8
+  //dh.val(8,1)= (1.0-r2)*(1.0-r3)/8.0 - (dh.val(15,1)+dh.val(16,1)+dh.val(20,1))/2.0;
+  dh.val(8,1)= (1.0-r2)*(1.0-r3)*0.125 - (dh.val(15,1)+dh.val(16,1)+dh.val(20,1))*0.50; 
+  dh.val(8,2)=-(1.0+r1)*(1.0-r3)*0.125 - (dh.val(15,2)+dh.val(16,2)+dh.val(20,2))*0.50; 
+  dh.val(8,3)=-(1.0+r1)*(1.0-r2)*0.125 - (dh.val(15,3)+dh.val(16,3)+dh.val(20,3))*0.50; 
+  // influence of the node number 7
+  dh.val(7,1)=-(1.0-r2)*(1.0-r3)*0.125 - (dh.val(14,1)+dh.val(15,1)+dh.val(19,1))*0.50; 
+  dh.val(7,2)=-(1.0-r1)*(1.0-r3)*0.125 - (dh.val(14,2)+dh.val(15,2)+dh.val(19,2))*0.50; 
+  dh.val(7,3)=-(1.0-r1)*(1.0-r2)*0.125 - (dh.val(14,3)+dh.val(15,3)+dh.val(19,3))*0.50; 
+  // influence of the node number 6
+  dh.val(6,1)=-(1.0+r2)*(1.0-r3)*0.125 - (dh.val(13,1)+dh.val(14,1)+dh.val(18,1))*0.50; 
+  dh.val(6,2)= (1.0-r1)*(1.0-r3)*0.125 - (dh.val(13,2)+dh.val(14,2)+dh.val(18,2))*0.50; 
+  dh.val(6,3)=-(1.0-r1)*(1.0+r2)*0.125 - (dh.val(13,3)+dh.val(14,3)+dh.val(18,3))*0.50; 
+  // influence of the node number 5
+  dh.val(5,1)= (1.0+r2)*(1.0-r3)*0.125 - (dh.val(13,1)+dh.val(16,1)+dh.val(17,1))*0.50; 
+  dh.val(5,2)= (1.0+r1)*(1.0-r3)*0.125 - (dh.val(13,2)+dh.val(16,2)+dh.val(17,2))*0.50; 
+  dh.val(5,3)=-(1.0+r1)*(1.0+r2)*0.125 - (dh.val(13,3)+dh.val(16,3)+dh.val(17,3))*0.50; 
 
-      // influence of the node number 4
-    dh.val(4,1)= (1.0-r2)*(1.0+r3)*0.125 - (dh.val(11,1)+dh.val(12,1)+dh.val(20,1))*0.50; 
-    dh.val(4,2)=-(1.0+r1)*(1.0+r3)*0.125 - (dh.val(11,2)+dh.val(12,2)+dh.val(20,2))*0.50; 
-    dh.val(4,3)= (1.0+r1)*(1.0-r2)*0.125 - (dh.val(11,3)+dh.val(12,3)+dh.val(20,3))*0.50; 
-      // influence of the node number 3
-    dh.val(3,1)=-(1.0-r2)*(1.0+r3)*0.125 - (dh.val(10,1)+dh.val(11,1)+dh.val(19,1))*0.50; 
-    dh.val(3,2)=-(1.0-r1)*(1.0+r3)*0.125 - (dh.val(10,2)+dh.val(11,2)+dh.val(19,2))*0.50; 
-    dh.val(3,3)= (1.0-r1)*(1.0-r2)*0.125 - (dh.val(10,3)+dh.val(11,3)+dh.val(19,3))*0.50; 
-      // influence of the node number 2
-    dh.val(2,1)=-(1.0+r2)*(1.0+r3)*0.125 - (dh.val(10,1)+dh.val(18,1)+dh.val( 9,1))*0.50; 
-    dh.val(2,2)= (1.0-r1)*(1.0+r3)*0.125 - (dh.val(10,2)+dh.val(18,2)+dh.val( 9,2))*0.50; 
-    dh.val(2,3)= (1.0-r1)*(1.0+r2)*0.125 - (dh.val(10,3)+dh.val(18,3)+dh.val( 9,3))*0.50; 
-      // influence of the node number 1
-    dh.val(1,1)= (1.0+r2)*(1.0+r3)*0.125 - (dh.val(12,1)+dh.val(17,1)+dh.val( 9,1))*0.50; 
-    dh.val(1,2)= (1.0+r1)*(1.0+r3)*0.125 - (dh.val(12,2)+dh.val(17,2)+dh.val( 9,2))*0.50; 
-    dh.val(1,3)= (1.0+r1)*(1.0+r2)*0.125 - (dh.val(12,3)+dh.val(17,3)+dh.val( 9,3))*0.50; 
+  // influence of the node number 4
+  dh.val(4,1)= (1.0-r2)*(1.0+r3)*0.125 - (dh.val(11,1)+dh.val(12,1)+dh.val(20,1))*0.50; 
+  dh.val(4,2)=-(1.0+r1)*(1.0+r3)*0.125 - (dh.val(11,2)+dh.val(12,2)+dh.val(20,2))*0.50; 
+  dh.val(4,3)= (1.0+r1)*(1.0-r2)*0.125 - (dh.val(11,3)+dh.val(12,3)+dh.val(20,3))*0.50; 
+  // influence of the node number 3
+  dh.val(3,1)=-(1.0-r2)*(1.0+r3)*0.125 - (dh.val(10,1)+dh.val(11,1)+dh.val(19,1))*0.50; 
+  dh.val(3,2)=-(1.0-r1)*(1.0+r3)*0.125 - (dh.val(10,2)+dh.val(11,2)+dh.val(19,2))*0.50; 
+  dh.val(3,3)= (1.0-r1)*(1.0-r2)*0.125 - (dh.val(10,3)+dh.val(11,3)+dh.val(19,3))*0.50; 
+  // influence of the node number 2
+  dh.val(2,1)=-(1.0+r2)*(1.0+r3)*0.125 - (dh.val(10,1)+dh.val(18,1)+dh.val( 9,1))*0.50; 
+  dh.val(2,2)= (1.0-r1)*(1.0+r3)*0.125 - (dh.val(10,2)+dh.val(18,2)+dh.val( 9,2))*0.50; 
+  dh.val(2,3)= (1.0-r1)*(1.0+r2)*0.125 - (dh.val(10,3)+dh.val(18,3)+dh.val( 9,3))*0.50; 
+  // influence of the node number 1
+  dh.val(1,1)= (1.0+r2)*(1.0+r3)*0.125 - (dh.val(12,1)+dh.val(17,1)+dh.val( 9,1))*0.50; 
+  dh.val(1,2)= (1.0+r1)*(1.0+r3)*0.125 - (dh.val(12,2)+dh.val(17,2)+dh.val( 9,2))*0.50; 
+  dh.val(1,3)= (1.0+r1)*(1.0+r2)*0.125 - (dh.val(12,3)+dh.val(17,3)+dh.val( 9,3))*0.50; 
 
-    return dh;
+  return dh;
 }
 
 
-
-TwentyNodeBrick & TwentyNodeBrick::operator[](int subscript)
-  {
-    return ( *(this+subscript) );
-  }
-
-//Finite_Element & TwentyNodeBrick::operator[](short subscript)
-//  {
-//    return ( *(this+subscript) );
-//  }
-
-//Finite_Element & TwentyNodeBrick::operator[](unsigned subscript)
-//  {
-//    return ( *(this+subscript) );
-//  }
 
 
 tensor TwentyNodeBrick::getStiffnessTensor()
@@ -952,96 +935,96 @@ tensor TwentyNodeBrick::stiffness_matrix(const tensor & K)
 //#############################################################################
 
 tensor TwentyNodeBrick::mass_matrix(const tensor & M)
-  {
-    //    int K_dim[] = {20,3,3,20};
-    //    tensor K(4,K_dim,0.0);
-    matrix Mmatrix(60,60,0.0);
+{
+  //    int K_dim[] = {20,3,3,20};
+  //    tensor K(4,K_dim,0.0);
+  matrix Mmatrix(60,60,0.0);
 
-    for ( int i=1 ; i<=60 ; i++ )
-      {
-        for ( int j=1 ; j<=60 ; j++ )
-          {
-             Mmatrix.val( i , j ) = M.cval(i,j);
-             //  ::printf("Mi Mj %d %d %+6.2e ",Mi,Mj,Mmatrix.val( Mi , Mj ) );
-          }
-      }
-    return Mmatrix;
-  }
+  for ( int i=1 ; i<=60 ; i++ )
+    {
+      for ( int j=1 ; j<=60 ; j++ )
+        {
+            Mmatrix.val( i , j ) = M.cval(i,j);
+            //  ::printf("Mi Mj %d %d %+6.2e ",Mi,Mj,Mmatrix.val( Mi , Mj ) );
+        }
+    }
+  return Mmatrix;
+}
 
 tensor TwentyNodeBrick::Jacobian_3D(tensor dh)
-  {
-     tensor N_C = Nodal_Coordinates();
-     tensor Jacobian_3D = dh("ij") * N_C("ik");
-     return Jacobian_3D;
-  }
+{
+  tensor N_C = Nodal_Coordinates();
+  tensor Jacobian_3D = dh("ij") * N_C("ik");
+  return Jacobian_3D;
+}
 
 //#############################################################################
 tensor TwentyNodeBrick::Jacobian_3Dinv(tensor dh)
-  {
-     tensor N_C = Nodal_Coordinates();
-     tensor Jacobian_3Dinv = (dh("ij") * N_C("ik")).inverse();
-     return Jacobian_3Dinv;
-  }
+{
+  tensor N_C = Nodal_Coordinates();
+  tensor Jacobian_3Dinv = (dh("ij") * N_C("ik")).inverse();
+  return Jacobian_3Dinv;
+}
 
 
 tensor TwentyNodeBrick::Nodal_Coordinates()
-  {
-    const int dimensions[] = {20,3};
-    tensor N_coord(2, dimensions, 0.0);
+{
+  const int dimensions[] = {20,3};
+  tensor N_coord(2, dimensions, 0.0);
 
-    //Zhaohui using node pointers, which come from the Domain
-    const Vector &nd1Crds = theNodes[0]->getCrds();
-    const Vector &nd2Crds = theNodes[1]->getCrds();
-    const Vector &nd3Crds = theNodes[2]->getCrds();
-    const Vector &nd4Crds = theNodes[3]->getCrds();
-    const Vector &nd5Crds = theNodes[4]->getCrds();
-    const Vector &nd6Crds = theNodes[5]->getCrds();
-    const Vector &nd7Crds = theNodes[6]->getCrds();
-    const Vector &nd8Crds = theNodes[7]->getCrds();
+  //Zhaohui using node pointers, which come from the Domain
+  const Vector &nd1Crds = theNodes[0]->getCrds();
+  const Vector &nd2Crds = theNodes[1]->getCrds();
+  const Vector &nd3Crds = theNodes[2]->getCrds();
+  const Vector &nd4Crds = theNodes[3]->getCrds();
+  const Vector &nd5Crds = theNodes[4]->getCrds();
+  const Vector &nd6Crds = theNodes[5]->getCrds();
+  const Vector &nd7Crds = theNodes[6]->getCrds();
+  const Vector &nd8Crds = theNodes[7]->getCrds();
 
-    const Vector &nd9Crds  =  theNodes[8]->getCrds();
-    const Vector &nd10Crds = theNodes[9]->getCrds();
-    const Vector &nd11Crds = theNodes[10]->getCrds();
-    const Vector &nd12Crds = theNodes[11]->getCrds();
+  const Vector &nd9Crds  =  theNodes[8]->getCrds();
+  const Vector &nd10Crds = theNodes[9]->getCrds();
+  const Vector &nd11Crds = theNodes[10]->getCrds();
+  const Vector &nd12Crds = theNodes[11]->getCrds();
 
-    const Vector &nd13Crds = theNodes[12]->getCrds();
-    const Vector &nd14Crds = theNodes[13]->getCrds();
-    const Vector &nd15Crds = theNodes[14]->getCrds();
-    const Vector &nd16Crds = theNodes[15]->getCrds();
+  const Vector &nd13Crds = theNodes[12]->getCrds();
+  const Vector &nd14Crds = theNodes[13]->getCrds();
+  const Vector &nd15Crds = theNodes[14]->getCrds();
+  const Vector &nd16Crds = theNodes[15]->getCrds();
 
 
-    const Vector &nd17Crds = theNodes[16]->getCrds();
-    const Vector &nd18Crds = theNodes[17]->getCrds();
-    const Vector &nd19Crds = theNodes[18]->getCrds();
-    const Vector &nd20Crds = theNodes[19]->getCrds();
+  const Vector &nd17Crds = theNodes[16]->getCrds();
+  const Vector &nd18Crds = theNodes[17]->getCrds();
+  const Vector &nd19Crds = theNodes[18]->getCrds();
+  const Vector &nd20Crds = theNodes[19]->getCrds();
 
-    N_coord.val(1,1)=nd1Crds(0); N_coord.val(1,2)=nd1Crds(1); N_coord.val(1,3)=nd1Crds(2);
-    N_coord.val(2,1)=nd2Crds(0); N_coord.val(2,2)=nd2Crds(1); N_coord.val(2,3)=nd2Crds(2);
-    N_coord.val(3,1)=nd3Crds(0); N_coord.val(3,2)=nd3Crds(1); N_coord.val(3,3)=nd3Crds(2);
-    N_coord.val(4,1)=nd4Crds(0); N_coord.val(4,2)=nd4Crds(1); N_coord.val(4,3)=nd4Crds(2);
-    N_coord.val(5,1)=nd5Crds(0); N_coord.val(5,2)=nd5Crds(1); N_coord.val(5,3)=nd5Crds(2);
-    N_coord.val(6,1)=nd6Crds(0); N_coord.val(6,2)=nd6Crds(1); N_coord.val(6,3)=nd6Crds(2);
-    N_coord.val(7,1)=nd7Crds(0); N_coord.val(7,2)=nd7Crds(1); N_coord.val(7,3)=nd7Crds(2);
-    N_coord.val(8,1)=nd8Crds(0); N_coord.val(8,2)=nd8Crds(1); N_coord.val(8,3)=nd8Crds(2);
+  N_coord.val(1,1)=nd1Crds(0); N_coord.val(1,2)=nd1Crds(1); N_coord.val(1,3)=nd1Crds(2);
+  N_coord.val(2,1)=nd2Crds(0); N_coord.val(2,2)=nd2Crds(1); N_coord.val(2,3)=nd2Crds(2);
+  N_coord.val(3,1)=nd3Crds(0); N_coord.val(3,2)=nd3Crds(1); N_coord.val(3,3)=nd3Crds(2);
+  N_coord.val(4,1)=nd4Crds(0); N_coord.val(4,2)=nd4Crds(1); N_coord.val(4,3)=nd4Crds(2);
+  N_coord.val(5,1)=nd5Crds(0); N_coord.val(5,2)=nd5Crds(1); N_coord.val(5,3)=nd5Crds(2);
+  N_coord.val(6,1)=nd6Crds(0); N_coord.val(6,2)=nd6Crds(1); N_coord.val(6,3)=nd6Crds(2);
+  N_coord.val(7,1)=nd7Crds(0); N_coord.val(7,2)=nd7Crds(1); N_coord.val(7,3)=nd7Crds(2);
+  N_coord.val(8,1)=nd8Crds(0); N_coord.val(8,2)=nd8Crds(1); N_coord.val(8,3)=nd8Crds(2);
 
-    N_coord.val(9 ,1)=nd9Crds(0);  N_coord.val(9 ,2)=nd9Crds(1);  N_coord.val(9 ,3)=nd9Crds(2);
-    N_coord.val(10,1)=nd10Crds(0); N_coord.val(10,2)=nd10Crds(1); N_coord.val(10,3)=nd10Crds(2);
-    N_coord.val(11,1)=nd11Crds(0); N_coord.val(11,2)=nd11Crds(1); N_coord.val(11,3)=nd11Crds(2);
-    N_coord.val(12,1)=nd12Crds(0); N_coord.val(12,2)=nd12Crds(1); N_coord.val(12,3)=nd12Crds(2);
+  N_coord.val(9 ,1)=nd9Crds(0);  N_coord.val(9 ,2)=nd9Crds(1);  N_coord.val(9 ,3)=nd9Crds(2);
+  N_coord.val(10,1)=nd10Crds(0); N_coord.val(10,2)=nd10Crds(1); N_coord.val(10,3)=nd10Crds(2);
+  N_coord.val(11,1)=nd11Crds(0); N_coord.val(11,2)=nd11Crds(1); N_coord.val(11,3)=nd11Crds(2);
+  N_coord.val(12,1)=nd12Crds(0); N_coord.val(12,2)=nd12Crds(1); N_coord.val(12,3)=nd12Crds(2);
 
-    N_coord.val(13,1)=nd13Crds(0); N_coord.val(13,2)=nd13Crds(1); N_coord.val(13,3)=nd13Crds(2);
-    N_coord.val(14,1)=nd14Crds(0); N_coord.val(14,2)=nd14Crds(1); N_coord.val(14,3)=nd14Crds(2);
-    N_coord.val(15,1)=nd15Crds(0); N_coord.val(15,2)=nd15Crds(1); N_coord.val(15,3)=nd15Crds(2);
-    N_coord.val(16,1)=nd16Crds(0); N_coord.val(16,2)=nd16Crds(1); N_coord.val(16,3)=nd16Crds(2);
+  N_coord.val(13,1)=nd13Crds(0); N_coord.val(13,2)=nd13Crds(1); N_coord.val(13,3)=nd13Crds(2);
+  N_coord.val(14,1)=nd14Crds(0); N_coord.val(14,2)=nd14Crds(1); N_coord.val(14,3)=nd14Crds(2);
+  N_coord.val(15,1)=nd15Crds(0); N_coord.val(15,2)=nd15Crds(1); N_coord.val(15,3)=nd15Crds(2);
+  N_coord.val(16,1)=nd16Crds(0); N_coord.val(16,2)=nd16Crds(1); N_coord.val(16,3)=nd16Crds(2);
 
-    N_coord.val(17,1)=nd17Crds(0); N_coord.val(17,2)=nd17Crds(1); N_coord.val(17,3)=nd17Crds(2);
-    N_coord.val(18,1)=nd18Crds(0); N_coord.val(18,2)=nd18Crds(1); N_coord.val(18,3)=nd18Crds(2);
-    N_coord.val(19,1)=nd19Crds(0); N_coord.val(19,2)=nd19Crds(1); N_coord.val(19,3)=nd19Crds(2);
-    N_coord.val(20,1)=nd20Crds(0); N_coord.val(20,2)=nd20Crds(1); N_coord.val(20,3)=nd20Crds(2);
+  N_coord.val(17,1)=nd17Crds(0); N_coord.val(17,2)=nd17Crds(1); N_coord.val(17,3)=nd17Crds(2);
+  N_coord.val(18,1)=nd18Crds(0); N_coord.val(18,2)=nd18Crds(1); N_coord.val(18,3)=nd18Crds(2);
+  N_coord.val(19,1)=nd19Crds(0); N_coord.val(19,2)=nd19Crds(1); N_coord.val(19,3)=nd19Crds(2);
+  N_coord.val(20,1)=nd20Crds(0); N_coord.val(20,2)=nd20Crds(1); N_coord.val(20,3)=nd20Crds(2);
 
-    return N_coord;
+  return N_coord;
 
-  }
+}
 
 tensor TwentyNodeBrick::incr_disp()
   {
@@ -1118,84 +1101,84 @@ tensor TwentyNodeBrick::incr_disp()
   }
 
 tensor TwentyNodeBrick::total_disp()
-  {
-    const int dimensions[] = {20,3};
-    tensor total_disp(2, dimensions, 0.0);
+{
+  const int dimensions[] = {20,3};
+  tensor total_disp(2, dimensions, 0.0);
 
-    //Zhaohui using node pointers, which come from the Domain
-    const Vector &TotDis1 = theNodes[0]->getTrialDisp();
-    opserr<<"\ntot node " << theNodes[0]->getTag() <<" x "<< TotDis1(0) <<" y "<< TotDis1(1) << " z "<< TotDis1(2) << endln;
-    const Vector &TotDis2 = theNodes[1]->getTrialDisp();
-    opserr << "tot node " << theNodes[1]->getTag() << " x " << TotDis2(0) <<" y "<< TotDis2(1) << " z "<< TotDis2(2) << endln;
-    const Vector &TotDis3 = theNodes[2]->getTrialDisp();
-    opserr << "tot node " << theNodes[2]->getTag() << " x " << TotDis3(0) <<" y "<< TotDis3(1) << " z "<< TotDis3(2) << endln;
-    const Vector &TotDis4 = theNodes[3]->getTrialDisp();
-    opserr << "tot node " << theNodes[3]->getTag() << " x " << TotDis4(0) <<" y "<< TotDis4(1) << " z "<< TotDis4(2) << endln;
-    const Vector &TotDis5 = theNodes[4]->getTrialDisp();
-    opserr << "tot node " << theNodes[4]->getTag() << " x " << TotDis5(0) <<" y "<< TotDis5(1) << " z "<< TotDis5(2) << endln;
-    const Vector &TotDis6 = theNodes[5]->getTrialDisp();
-    opserr << "tot node " << theNodes[5]->getTag() << " x " << TotDis6(0) <<" y "<< TotDis6(1) << " z "<< TotDis6(2) << endln;
-    const Vector &TotDis7 = theNodes[6]->getTrialDisp();
-    opserr << "tot node " << theNodes[6]->getTag() << " x " << TotDis7(0) <<" y "<< TotDis7(1) << " z "<< TotDis7(2) << endln;
-    const Vector &TotDis8 = theNodes[7]->getTrialDisp();
-    opserr << "tot node " << theNodes[7]->getTag() << " x " << TotDis8(0) <<" y "<< TotDis8(1) << " z "<< TotDis8(2) << endln;
+  //Zhaohui using node pointers, which come from the Domain
+  const Vector &TotDis1 = theNodes[0]->getTrialDisp();
+  opserr<<"\ntot node " << theNodes[0]->getTag() <<" x "<< TotDis1(0) <<" y "<< TotDis1(1) << " z "<< TotDis1(2) << endln;
+  const Vector &TotDis2 = theNodes[1]->getTrialDisp();
+  opserr << "tot node " << theNodes[1]->getTag() << " x " << TotDis2(0) <<" y "<< TotDis2(1) << " z "<< TotDis2(2) << endln;
+  const Vector &TotDis3 = theNodes[2]->getTrialDisp();
+  opserr << "tot node " << theNodes[2]->getTag() << " x " << TotDis3(0) <<" y "<< TotDis3(1) << " z "<< TotDis3(2) << endln;
+  const Vector &TotDis4 = theNodes[3]->getTrialDisp();
+  opserr << "tot node " << theNodes[3]->getTag() << " x " << TotDis4(0) <<" y "<< TotDis4(1) << " z "<< TotDis4(2) << endln;
+  const Vector &TotDis5 = theNodes[4]->getTrialDisp();
+  opserr << "tot node " << theNodes[4]->getTag() << " x " << TotDis5(0) <<" y "<< TotDis5(1) << " z "<< TotDis5(2) << endln;
+  const Vector &TotDis6 = theNodes[5]->getTrialDisp();
+  opserr << "tot node " << theNodes[5]->getTag() << " x " << TotDis6(0) <<" y "<< TotDis6(1) << " z "<< TotDis6(2) << endln;
+  const Vector &TotDis7 = theNodes[6]->getTrialDisp();
+  opserr << "tot node " << theNodes[6]->getTag() << " x " << TotDis7(0) <<" y "<< TotDis7(1) << " z "<< TotDis7(2) << endln;
+  const Vector &TotDis8 = theNodes[7]->getTrialDisp();
+  opserr << "tot node " << theNodes[7]->getTag() << " x " << TotDis8(0) <<" y "<< TotDis8(1) << " z "<< TotDis8(2) << endln;
 
-    const Vector &TotDis9 = theNodes[8]->getTrialDisp();
-    opserr << "tot node " << theNodes[8]->getTag() << " x " << TotDis9(0) <<" y "<< TotDis9(1) << " z "<< TotDis9(2) << endln;
-    const Vector &TotDis10 = theNodes[9]->getTrialDisp();
-    opserr << "tot node " << theNodes[9]->getTag() << " x " << TotDis10(0) <<" y "<< TotDis10(1) << " z "<< TotDis10(2) << endln;
-    const Vector &TotDis11 = theNodes[10]->getTrialDisp();
-    opserr << "tot node " << theNodes[10]->getTag() << " x " << TotDis11(0) <<" y "<< TotDis11(1) << " z "<< TotDis11(2) << endln;
-    const Vector &TotDis12 = theNodes[11]->getTrialDisp();
-    opserr << "tot node " << theNodes[11]->getTag() << " x " << TotDis12(0) <<" y "<< TotDis12(1) << " z "<< TotDis12(2) << endln;
+  const Vector &TotDis9 = theNodes[8]->getTrialDisp();
+  opserr << "tot node " << theNodes[8]->getTag() << " x " << TotDis9(0) <<" y "<< TotDis9(1) << " z "<< TotDis9(2) << endln;
+  const Vector &TotDis10 = theNodes[9]->getTrialDisp();
+  opserr << "tot node " << theNodes[9]->getTag() << " x " << TotDis10(0) <<" y "<< TotDis10(1) << " z "<< TotDis10(2) << endln;
+  const Vector &TotDis11 = theNodes[10]->getTrialDisp();
+  opserr << "tot node " << theNodes[10]->getTag() << " x " << TotDis11(0) <<" y "<< TotDis11(1) << " z "<< TotDis11(2) << endln;
+  const Vector &TotDis12 = theNodes[11]->getTrialDisp();
+  opserr << "tot node " << theNodes[11]->getTag() << " x " << TotDis12(0) <<" y "<< TotDis12(1) << " z "<< TotDis12(2) << endln;
 
-    const Vector &TotDis13 = theNodes[12]->getTrialDisp();
-    opserr << "tot node " << theNodes[12]->getTag() << " x " << TotDis13(0) <<" y "<< TotDis13(1) << " z "<< TotDis13(2) << endln;
-    const Vector &TotDis14 = theNodes[13]->getTrialDisp();
-    opserr << "tot node " << theNodes[13]->getTag() << " x " << TotDis14(0) <<" y "<< TotDis14(1) << " z "<< TotDis14(2) << endln;
-    const Vector &TotDis15 = theNodes[14]->getTrialDisp();
-    opserr << "tot node " << theNodes[14]->getTag() << " x " << TotDis15(0) <<" y "<< TotDis15(1) << " z "<< TotDis15(2) << endln;
-    const Vector &TotDis16 = theNodes[15]->getTrialDisp();
-    opserr << "tot node " << theNodes[15]->getTag() << " x " << TotDis16(0) <<" y "<< TotDis16(1) << " z "<< TotDis16(2) << endln;
+  const Vector &TotDis13 = theNodes[12]->getTrialDisp();
+  opserr << "tot node " << theNodes[12]->getTag() << " x " << TotDis13(0) <<" y "<< TotDis13(1) << " z "<< TotDis13(2) << endln;
+  const Vector &TotDis14 = theNodes[13]->getTrialDisp();
+  opserr << "tot node " << theNodes[13]->getTag() << " x " << TotDis14(0) <<" y "<< TotDis14(1) << " z "<< TotDis14(2) << endln;
+  const Vector &TotDis15 = theNodes[14]->getTrialDisp();
+  opserr << "tot node " << theNodes[14]->getTag() << " x " << TotDis15(0) <<" y "<< TotDis15(1) << " z "<< TotDis15(2) << endln;
+  const Vector &TotDis16 = theNodes[15]->getTrialDisp();
+  opserr << "tot node " << theNodes[15]->getTag() << " x " << TotDis16(0) <<" y "<< TotDis16(1) << " z "<< TotDis16(2) << endln;
 
-    const Vector &TotDis17 = theNodes[16]->getTrialDisp();
-    opserr << "tot node " << theNodes[16]->getTag() << " x " << TotDis17(0) <<" y "<< TotDis17(1) << " z "<< TotDis17(2) << endln;
-    const Vector &TotDis18 = theNodes[17]->getTrialDisp();
-    opserr << "tot node " << theNodes[17]->getTag() << " x " << TotDis18(0) <<" y "<< TotDis18(1) << " z "<< TotDis18(2) << endln;
-    const Vector &TotDis19 = theNodes[18]->getTrialDisp();
-    opserr << "tot node " << theNodes[18]->getTag() << " x " << TotDis19(0) <<" y "<< TotDis19(1) << " z "<< TotDis19(2) << endln;
-    const Vector &TotDis20 = theNodes[19]->getTrialDisp();
-    opserr << "tot node " << theNodes[19]->getTag() << " x " << TotDis20(0) <<" y "<< TotDis20(1) << " z "<< TotDis20(2) << endln;
-
-
+  const Vector &TotDis17 = theNodes[16]->getTrialDisp();
+  opserr << "tot node " << theNodes[16]->getTag() << " x " << TotDis17(0) <<" y "<< TotDis17(1) << " z "<< TotDis17(2) << endln;
+  const Vector &TotDis18 = theNodes[17]->getTrialDisp();
+  opserr << "tot node " << theNodes[17]->getTag() << " x " << TotDis18(0) <<" y "<< TotDis18(1) << " z "<< TotDis18(2) << endln;
+  const Vector &TotDis19 = theNodes[18]->getTrialDisp();
+  opserr << "tot node " << theNodes[18]->getTag() << " x " << TotDis19(0) <<" y "<< TotDis19(1) << " z "<< TotDis19(2) << endln;
+  const Vector &TotDis20 = theNodes[19]->getTrialDisp();
+  opserr << "tot node " << theNodes[19]->getTag() << " x " << TotDis20(0) <<" y "<< TotDis20(1) << " z "<< TotDis20(2) << endln;
 
 
-    total_disp.val(1,1)=TotDis1(0); total_disp.val(1,2)=TotDis1(1);total_disp.val(1,3)=TotDis1(2);
-    total_disp.val(2,1)=TotDis2(0); total_disp.val(2,2)=TotDis2(1);total_disp.val(2,3)=TotDis2(2);
-    total_disp.val(3,1)=TotDis3(0); total_disp.val(3,2)=TotDis3(1);total_disp.val(3,3)=TotDis3(2);
-    total_disp.val(4,1)=TotDis4(0); total_disp.val(4,2)=TotDis4(1);total_disp.val(4,3)=TotDis4(2);
-    total_disp.val(5,1)=TotDis5(0); total_disp.val(5,2)=TotDis5(1);total_disp.val(5,3)=TotDis5(2);
-    total_disp.val(6,1)=TotDis6(0); total_disp.val(6,2)=TotDis6(1);total_disp.val(6,3)=TotDis6(2);
-    total_disp.val(7,1)=TotDis7(0); total_disp.val(7,2)=TotDis7(1);total_disp.val(7,3)=TotDis7(2);
-    total_disp.val(8,1)=TotDis8(0); total_disp.val(8,2)=TotDis8(1);total_disp.val(8,3)=TotDis8(2);
 
-    total_disp.val(9,1)=TotDis9(0); total_disp.val(9,2)=TotDis9(1);total_disp.val(9,3)=TotDis9(2);
-    total_disp.val(10,1)=TotDis10(0); total_disp.val(10,2)=TotDis10(1);total_disp.val(10,3)=TotDis10(2);
-    total_disp.val(11,1)=TotDis11(0); total_disp.val(11,2)=TotDis11(1);total_disp.val(11,3)=TotDis11(2);
-    total_disp.val(12,1)=TotDis12(0); total_disp.val(12,2)=TotDis12(1);total_disp.val(12,3)=TotDis12(2);
 
-    total_disp.val(13,1)=TotDis13(0); total_disp.val(13,2)=TotDis13(1);total_disp.val(13,3)=TotDis13(2);
-    total_disp.val(14,1)=TotDis14(0); total_disp.val(14,2)=TotDis14(1);total_disp.val(14,3)=TotDis14(2);
-    total_disp.val(15,1)=TotDis15(0); total_disp.val(15,2)=TotDis15(1);total_disp.val(15,3)=TotDis15(2);
-    total_disp.val(16,1)=TotDis16(0); total_disp.val(16,2)=TotDis16(1);total_disp.val(16,3)=TotDis16(2);
+  total_disp.val(1,1)=TotDis1(0); total_disp.val(1,2)=TotDis1(1);total_disp.val(1,3)=TotDis1(2);
+  total_disp.val(2,1)=TotDis2(0); total_disp.val(2,2)=TotDis2(1);total_disp.val(2,3)=TotDis2(2);
+  total_disp.val(3,1)=TotDis3(0); total_disp.val(3,2)=TotDis3(1);total_disp.val(3,3)=TotDis3(2);
+  total_disp.val(4,1)=TotDis4(0); total_disp.val(4,2)=TotDis4(1);total_disp.val(4,3)=TotDis4(2);
+  total_disp.val(5,1)=TotDis5(0); total_disp.val(5,2)=TotDis5(1);total_disp.val(5,3)=TotDis5(2);
+  total_disp.val(6,1)=TotDis6(0); total_disp.val(6,2)=TotDis6(1);total_disp.val(6,3)=TotDis6(2);
+  total_disp.val(7,1)=TotDis7(0); total_disp.val(7,2)=TotDis7(1);total_disp.val(7,3)=TotDis7(2);
+  total_disp.val(8,1)=TotDis8(0); total_disp.val(8,2)=TotDis8(1);total_disp.val(8,3)=TotDis8(2);
 
-    total_disp.val(17,1)=TotDis17(0); total_disp.val(17,2)=TotDis17(1);total_disp.val(17,3)=TotDis17(2);
-    total_disp.val(18,1)=TotDis18(0); total_disp.val(18,2)=TotDis18(1);total_disp.val(18,3)=TotDis18(2);
-    total_disp.val(19,1)=TotDis19(0); total_disp.val(19,2)=TotDis19(1);total_disp.val(19,3)=TotDis19(2);
-    total_disp.val(20,1)=TotDis20(0); total_disp.val(20,2)=TotDis20(1);total_disp.val(20,3)=TotDis20(2);
+  total_disp.val(9,1)=TotDis9(0); total_disp.val(9,2)=TotDis9(1);total_disp.val(9,3)=TotDis9(2);
+  total_disp.val(10,1)=TotDis10(0); total_disp.val(10,2)=TotDis10(1);total_disp.val(10,3)=TotDis10(2);
+  total_disp.val(11,1)=TotDis11(0); total_disp.val(11,2)=TotDis11(1);total_disp.val(11,3)=TotDis11(2);
+  total_disp.val(12,1)=TotDis12(0); total_disp.val(12,2)=TotDis12(1);total_disp.val(12,3)=TotDis12(2);
 
-    return total_disp;
-  }
+  total_disp.val(13,1)=TotDis13(0); total_disp.val(13,2)=TotDis13(1);total_disp.val(13,3)=TotDis13(2);
+  total_disp.val(14,1)=TotDis14(0); total_disp.val(14,2)=TotDis14(1);total_disp.val(14,3)=TotDis14(2);
+  total_disp.val(15,1)=TotDis15(0); total_disp.val(15,2)=TotDis15(1);total_disp.val(15,3)=TotDis15(2);
+  total_disp.val(16,1)=TotDis16(0); total_disp.val(16,2)=TotDis16(1);total_disp.val(16,3)=TotDis16(2);
+
+  total_disp.val(17,1)=TotDis17(0); total_disp.val(17,2)=TotDis17(1);total_disp.val(17,3)=TotDis17(2);
+  total_disp.val(18,1)=TotDis18(0); total_disp.val(18,2)=TotDis18(1);total_disp.val(18,3)=TotDis18(2);
+  total_disp.val(19,1)=TotDis19(0); total_disp.val(19,2)=TotDis19(1);total_disp.val(19,3)=TotDis19(2);
+  total_disp.val(20,1)=TotDis20(0); total_disp.val(20,2)=TotDis20(1);total_disp.val(20,3)=TotDis20(2);
+
+  return total_disp;
+}
 
 
 tensor TwentyNodeBrick::total_disp(FILE *fp, double * u)
@@ -3214,73 +3197,6 @@ int TwentyNodeBrick::recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBro
 }
 
 
-//=============================================================================
-int TwentyNodeBrick::displaySelf (Renderer &theViewer, int displayMode, float fact)
-{
-    //needs more work...Zhaohui 08-19-2001
-
-    // first determine the end points of the quad based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 4 3d vectors v1 through v4
-    const Vector &end1Crd = theNodes[0]->getCrds();
-    const Vector &end2Crd = theNodes[1]->getCrds();
-    const Vector &end3Crd = theNodes[2]->getCrds();
-    const Vector &end4Crd = theNodes[3]->getCrds();
-    const Vector &end5Crd = theNodes[4]->getCrds();
-    const Vector &end6Crd = theNodes[5]->getCrds();
-    const Vector &end7Crd = theNodes[6]->getCrds();
-    const Vector &end8Crd = theNodes[7]->getCrds();
-
-    const Vector &end1Disp = theNodes[0]->getDisp();
-    const Vector &end2Disp = theNodes[1]->getDisp();
-    const Vector &end3Disp = theNodes[2]->getDisp();
-    const Vector &end4Disp = theNodes[3]->getDisp();
-    const Vector &end5Disp = theNodes[4]->getDisp();
-    const Vector &end6Disp = theNodes[5]->getDisp();
-    const Vector &end7Disp = theNodes[6]->getDisp();
-    const Vector &end8Disp = theNodes[7]->getDisp();
-
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-    static Vector v5(3);
-    static Vector v6(3);
-    static Vector v7(3);
-    static Vector v8(3);
-
-    for (int i = 0; i < 2; i++)
-    {
-     v1(i) = end1Crd(i) + end1Disp(i)*fact;
-     v2(i) = end2Crd(i) + end2Disp(i)*fact;
-     v3(i) = end3Crd(i) + end3Disp(i)*fact;
-     v4(i) = end4Crd(i) + end4Disp(i)*fact;
-     v5(i) = end5Crd(i) + end5Disp(i)*fact;
-     v6(i) = end6Crd(i) + end6Disp(i)*fact;
-     v7(i) = end7Crd(i) + end7Disp(i)*fact;
-     v8(i) = end8Crd(i) + end8Disp(i)*fact;
-    }
-
-    int error = 0;
-
-    error += theViewer.drawLine (v1, v2, 1.0, 1.0);
-    error += theViewer.drawLine (v2, v3, 1.0, 1.0);
-    error += theViewer.drawLine (v3, v4, 1.0, 1.0);
-    error += theViewer.drawLine (v4, v1, 1.0, 1.0);
-
-    error += theViewer.drawLine (v5, v6, 1.0, 1.0);
-    error += theViewer.drawLine (v6, v7, 1.0, 1.0);
-    error += theViewer.drawLine (v7, v8, 1.0, 1.0);
-    error += theViewer.drawLine (v8, v5, 1.0, 1.0);
-
-    error += theViewer.drawLine (v1, v5, 1.0, 1.0);
-    error += theViewer.drawLine (v2, v6, 1.0, 1.0);
-    error += theViewer.drawLine (v3, v7, 1.0, 1.0);
-    error += theViewer.drawLine (v4, v8, 1.0, 1.0);
-
-    return error;
-
-}
 
 //=============================================================================
 void TwentyNodeBrick::Print(OPS_Stream &s, int flag)
@@ -4009,68 +3925,8 @@ TwentyNodeBrick::getWeightofGP()
 //}
 //
 //
-//int
-//TwentyNodeBrick::displaySelf (Renderer &theViewer, int displayMode, float fact)
-//{
-    // first determine the end points of the quad based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 2 3d vectors v1 and v2
-//        const Vector &end1Crd = theNodes[0]->getCrds();
-//        const Vector &end2Crd = theNodes[1]->getCrds();
-// const Vector &end3Crd = theNodes[2]->getCrds();
-// const Vector &end4Crd = theNodes[3]->getCrds();
-// // 5-8 were added by Xiaoyan
-//        const Vector &end5Crd = theNodes[4]->getCrds();
-//        const Vector &end6Crd = theNodes[5]->getCrds();
-// const Vector &end7Crd = theNodes[6]->getCrds();
-// const Vector &end8Crd = theNodes[7]->getCrds();
-//     const Vector &end1Disp = theNodes[0]->getDisp();
-// const Vector &end2Disp = theNodes[1]->getDisp();
-// const Vector &end3Disp = theNodes[2]->getDisp();
-// const Vector &end4Disp = theNodes[3]->getDisp();
-//
- // 5-8 were added by Xiaoyan
-//        const Vector &end5Disp = theNodes[4]->getDisp();
-// const Vector &end6Disp = theNodes[5]->getDisp();
-// const Vector &end7Disp = theNodes[6]->getDisp();
-// const Vector &end8Disp = theNodes[7]->getDisp();
-//
-// Vector v1(3);
-// Vector v2(3);
-// Vector v3(3);
-// Vector v4(3);
-// //5-8 added by Xiaoyan 07/06/00
-// Vector v5(3);
-// Vector v6(3);
-// Vector v7(3);
-// Vector v8(3);
-//
-// for (int i = 0; i < 3; i++)     //Changed from i<2 to i<3, Xiaonyan 07/06/00
-// {
-//  v1(i) = end1Crd(i) + end1Disp(i)*fact;
-//  v2(i) = end2Crd(i) + end2Disp(i)*fact;
-//  v3(i) = end3Crd(i) + end3Disp(i)*fact;
-//  v4(i) = end4Crd(i) + end4Disp(i)*fact;
-//
-//  //5-8 added by Xiaoyan 07/06/00
-//     v5(i) = end5Crd(i) + end1Disp(i)*fact;
-//  v6(i) = end6Crd(i) + end2Disp(i)*fact;
-//  v7(i) = end7Crd(i) + end3Disp(i)*fact;
-//  v8(i) = end8Crd(i) + end4Disp(i)*fact;
-// }
-// int error = 0;
-//
-// error += theViewer.drawLine (v1, v2, 1.0, 1.0);
-// error += theViewer.drawLine (v2, v3, 1.0, 1.0);
-// error += theViewer.drawLine (v3, v4, 1.0, 1.0);
-// error += theViewer.drawLine (v4, v5, 1.0, 1.0);   // 5-8 added by Xiaoyan 07/06/00
-// error += theViewer.drawLine (v5, v6, 1.0, 1.0);
-// error += theViewer.drawLine (v6, v7, 1.0, 1.0);
-// error += theViewer.drawLine (v7, v8, 1.0, 1.0);
-// error += theViewer.drawLine (v8, v1, 1.0, 1.0);
-//
-// return error;
-//}
+
+
 // The following are all commented by  Xiaoyan. We use the Brick3D to form these
 
 //

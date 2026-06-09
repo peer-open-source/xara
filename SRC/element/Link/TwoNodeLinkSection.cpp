@@ -39,13 +39,14 @@
 
 TwoNodeLinkSection::TwoNodeLinkSection(int tag, int dim, int Nd1, int Nd2, 
                                        SectionForceDeformation &theSec,
-                                       const Vector y, const Vector x,
+                                       const Matrix3D &T,
                                        const Vector Mr,
                                        const Vector sdI, int addRay, double m)
   : Element(tag, ELE_TAG_TwoNodeLinkSection),
     numDIM(dim), numDOF(0), connectedExternalNodes(2),
-    theSection(0), trans(3,3),
-    x(x), y(y), Mratio(Mr), shearDistI(sdI), addRayleigh(addRay),
+    theSection(0)
+  , trans{T}
+  , Mratio(Mr), shearDistI(sdI), addRayleigh(addRay),
     mass(m), L(0.0), onP0(true), ub(0), ubdot(0), qb(0), ul(0),
     Tgl(0,0), Tlb(0,0), theMatrix(0), theVector(0), theLoad(0)
 {
@@ -71,17 +72,17 @@ TwoNodeLinkSection::TwoNodeLinkSection(int tag, int dim, int Nd1, int Nd2,
   if (Mratio.Size() == 4)  {
     for (int i = 0; i < 4; i++) {
       if (Mratio(i) < 0.0) {
-          opserr << "TwoNodeLinkSection::TwoNodeLinkSection() - "
-              << "P-Delta moment ratio " << i+1 << " is negative\n";
-          Mratio(i) = -Mratio(i);
-          opserr << "Making the value positive " << Mratio(i) << endln;
+        opserr << "TwoNodeLinkSection::TwoNodeLinkSection() - "
+            << "P-Delta moment ratio " << i+1 << " is negative\n";
+        Mratio(i) = -Mratio(i);
+        opserr << "Making the value positive " << Mratio(i) << endln;
       }
     }
     double sumRatio = Mratio(0)+Mratio(1);
     if (sumRatio > 1.0)  {
       opserr << "TwoNodeLink::TwoNodeLink() - "
-          << "incorrect P-Delta moment ratios:\nrMy1 + rMy2 = "
-          << sumRatio << " > 1.0\n";
+              << "incorrect P-Delta moment ratios:\nrMy1 + rMy2 = "
+              << sumRatio << " > 1.0\n";
       Mratio(0) = Mratio(0)/sumRatio;
       Mratio(1) = Mratio(1)/sumRatio;            
       opserr << "Scaling ratios down to " << Mratio(0) << " and " << Mratio(1) << endln;
@@ -141,14 +142,16 @@ TwoNodeLinkSection::TwoNodeLinkSection(int tag, int dim, int Nd1, int Nd2,
 TwoNodeLinkSection::TwoNodeLinkSection()
     : Element(0, ELE_TAG_TwoNodeLinkSection),
     numDIM(0), numDOF(0), connectedExternalNodes(2),
-    theSection(0), trans(3,3), x(0), y(0),
-    Mratio(0), shearDistI(0), addRayleigh(0), mass(0.0), L(0.0),
+    theSection(0)
+    , trans{}//(3,3)
+    // , x(0), y(0),
+    , Mratio(0), shearDistI(0), addRayleigh(0), mass(0.0), L(0.0),
     onP0(false), ub(0), ubdot(0), qb(0), ul(0), Tgl(0,0), Tlb(0,0),
     theMatrix(0), theVector(0), theLoad(0)
 {    
   // set node pointers to NULL
   for (int i=0; i<2; i++)
-      theNodes[i] = nullptr;
+    theNodes[i] = nullptr;
 }
 
 
@@ -198,9 +201,9 @@ TwoNodeLinkSection::setDomain(Domain *theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
   if (theDomain == nullptr)  {
-      theNodes[0] = nullptr;
-      theNodes[1] = nullptr;
-      return;
+    theNodes[0] = nullptr;
+    theNodes[1] = nullptr;
+    return;
   }
       
   static Matrix TwoNodeLinkSectionM2(2,2);
@@ -287,15 +290,14 @@ TwoNodeLinkSection::setDomain(Domain *theDomain)
       delete theLoad;
       theLoad = new Vector(numDOF);
   }
-  if (theLoad == 0)  {
-      opserr << "TwoNodeLinkSection::setDomain() - element: " << this->getTag()
-          << " out of memory creating vector of size: " << numDOF << endln;
-      return;
-  }
   
   // setup the transformation matrix for orientation
-  this->setUp();
+  // this->setUp();
   
+  const Vector &end1Crd = theNodes[0]->getCrds();
+  const Vector &end2Crd = theNodes[1]->getCrds();        
+  Vector xp = end2Crd - end1Crd;
+  L = xp.Norm();
   // set transformation matrix from global to local system
   this->setTranGlobalLocal();
   
@@ -304,7 +306,8 @@ TwoNodeLinkSection::setDomain(Domain *theDomain)
 }
 
 
-int TwoNodeLinkSection::commitState()
+int
+TwoNodeLinkSection::commitState()
 {
   int errCode = 0;
 
@@ -317,7 +320,8 @@ int TwoNodeLinkSection::commitState()
 }
 
 
-int TwoNodeLinkSection::revertToLastCommit()
+int
+TwoNodeLinkSection::revertToLastCommit()
 {
   int errCode = 0;
 
@@ -327,7 +331,8 @@ int TwoNodeLinkSection::revertToLastCommit()
 }
 
 
-int TwoNodeLinkSection::revertToStart()
+int
+TwoNodeLinkSection::revertToStart()
 {   
   int errCode = 0;
   
@@ -342,7 +347,8 @@ int TwoNodeLinkSection::revertToStart()
 }
 
 
-int TwoNodeLinkSection::update()
+int
+TwoNodeLinkSection::update()
 {
   int errCode = 0;
   
@@ -355,8 +361,10 @@ int TwoNodeLinkSection::update()
   int numDOF2 = numDOF/2;
   Vector ug(numDOF), ugdot(numDOF), uldot(numDOF);
   for (int i=0; i<numDOF2; i++)  {
-      ug(i)         = dsp1(i);  ugdot(i)         = vel1(i);
-      ug(i+numDOF2) = dsp2(i);  ugdot(i+numDOF2) = vel2(i);
+    ug(i)         = dsp1(i);  
+    ugdot(i)      = vel1(i);
+    ug(i+numDOF2) = dsp2(i);  
+    ugdot(i+numDOF2) = vel2(i);
   }
   
   // transform response from the global to the local system
@@ -393,6 +401,7 @@ TwoNodeLinkSection::getTangentStiff()
 
   // MHS hack
   Matrix kb = theSection->getSectionTangent();
+  // opserr << "kb = " << kb;
   kb(0,0) /= L;
   kb(1,1) /= L;
   //kb(2,2) *= L;
@@ -405,7 +414,7 @@ TwoNodeLinkSection::getTangentStiff()
   
   // add P-Delta effects to local stiffness
   if (Mratio.Size() == 4)
-      this->addPDeltaStiff(kl, qb);
+    this->addPDeltaStiff(kl, qb);
   
   // transform stiffness from local to global system
   theMatrix->addMatrixTripleProduct(0.0, Tgl, kl, 1.0);
@@ -417,7 +426,8 @@ TwoNodeLinkSection::getTangentStiff()
 }
 
 
-const Matrix& TwoNodeLinkSection::getInitialStiff()
+const Matrix&
+TwoNodeLinkSection::getInitialStiff()
 {
   // zero the matrix
   theMatrix->Zero();
@@ -450,8 +460,8 @@ TwoNodeLinkSection::getDamp()
   // call base class to set up Rayleigh damping
   double factThis = 0.0;
   if (addRayleigh == 1)  {
-      (*theMatrix) = this->Element::getDamp();
-      factThis = 1.0;
+    (*theMatrix) = this->Element::getDamp();
+    factThis = 1.0;
   }
 
   int numDIR = theSection->getOrder();
@@ -479,19 +489,18 @@ TwoNodeLinkSection::getDamp()
 const Matrix&
 TwoNodeLinkSection::getMass()
 {
-  // zero the matrix
   theMatrix->Zero();
   
   // form mass matrix
   if (mass != 0.0)  {
-      double m = 0.5*mass;
-      int numDOF2 = numDOF/2;
-      for (int i=0; i<numDIM; i++)  {
-        (*theMatrix)(i,i)                 = m;
-        (*theMatrix)(i+numDOF2,i+numDOF2) = m;
-      }
+    double m = 0.5*mass;
+    int numDOF2 = numDOF/2;
+    for (int i=0; i<numDIM; i++)  {
+      (*theMatrix)(i,i)                 = m;
+      (*theMatrix)(i+numDOF2,i+numDOF2) = m;
+    }
   }
-  
+
   return *theMatrix; 
 }
 
@@ -503,12 +512,11 @@ TwoNodeLinkSection::zeroLoad()
 }
 
 
-int TwoNodeLinkSection::addLoad(ElementalLoad *theLoad, double loadFactor)
+int
+TwoNodeLinkSection::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-  opserr <<"TwoNodeLinkSection::addLoad() - "
-      << "load type unknown for element: "
-      << this->getTag() << endln;
-  
+  opserr  << "load type unknown for element: "
+          << this->getTag() << endln;
   return -1;
 }
 
@@ -581,21 +589,21 @@ TwoNodeLinkSection::getResistingForceIncInertia()
   
   // add the damping force from Rayleigh damping
   if (addRayleigh == 1)  {
-      if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-          theVector->addVector(1.0, this->getRayleighDampingForces(), 1.0);
+    if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+        theVector->addVector(1.0, this->getRayleighDampingForces(), 1.0);
   }
   
   // add inertia force from element mass
   if (mass != 0.0)  {
-      const Vector &accel1 = theNodes[0]->getTrialAccel();
-      const Vector &accel2 = theNodes[1]->getTrialAccel();
-      
-      int numDOF2 = numDOF/2;
-      double m = 0.5*mass;
-      for (int i=0; i<numDIM; i++)  {
-          (*theVector)(i)         += m * accel1(i);
-          (*theVector)(i+numDOF2) += m * accel2(i);
-      }
+    const Vector &accel1 = theNodes[0]->getTrialAccel();
+    const Vector &accel2 = theNodes[1]->getTrialAccel();
+
+    int numDOF2 = numDOF/2;
+    double m = 0.5*mass;
+    for (int i=0; i<numDIM; i++)  {
+      (*theVector)(i)         += m * accel1(i);
+      (*theVector)(i+numDOF2) += m * accel2(i);
+    }
   }
   
   return *theVector;
@@ -611,8 +619,8 @@ TwoNodeLinkSection::sendSelf(int commitTag, Channel &sChannel)
   data(1) = numDIM;
   data(2) = numDOF;
   //data(3) = numDIR;
-  data(4) = x.Size();
-  data(5) = y.Size();
+  // data(4) = x.Size();
+  // data(5) = y.Size();
   data(6) = Mratio.Size();
   data(7) = shearDistI.Size();
   data(8) = addRayleigh;
@@ -634,10 +642,10 @@ TwoNodeLinkSection::sendSelf(int commitTag, Channel &sChannel)
   theSection->sendSelf(commitTag, sChannel);
   
   // send remaining data
-  if (x.Size() == 3)
-      sChannel.sendVector(0, commitTag, x);
-  if (y.Size() == 3)
-      sChannel.sendVector(0, commitTag, y);
+  // if (x.Size() == 3)
+  //     sChannel.sendVector(0, commitTag, x);
+  // if (y.Size() == 3)
+  //     sChannel.sendVector(0, commitTag, y);
   if (Mratio.Size() == 4)
       sChannel.sendVector(0, commitTag, Mratio);
   if (shearDistI.Size() == 2)
@@ -647,8 +655,8 @@ TwoNodeLinkSection::sendSelf(int commitTag, Channel &sChannel)
 }
 
 
-int TwoNodeLinkSection::recvSelf(int commitTag, Channel &rChannel,
-    FEM_ObjectBroker &theBroker)
+int 
+TwoNodeLinkSection::recvSelf(int commitTag, Channel &rChannel, FEM_ObjectBroker &theBroker)
 {
   // delete dynamic memory
   if (theSection != 0) 
@@ -685,14 +693,14 @@ int TwoNodeLinkSection::recvSelf(int commitTag, Channel &rChannel,
 
   
   // receive remaining data
-  if ((int)data(4) == 3)  {
-      x.resize(3);
-      rChannel.recvVector(0, commitTag, x);
-  }
-  if ((int)data(5) == 3)  {
-      y.resize(3);
-      rChannel.recvVector(0, commitTag, y);
-  }
+  // if ((int)data(4) == 3)  {
+  //     x.resize(3);
+  //     rChannel.recvVector(0, commitTag, x);
+  // }
+  // if ((int)data(5) == 3)  {
+  //     y.resize(3);
+  //     rChannel.recvVector(0, commitTag, y);
+  // }
   if ((int)data(6) == 4)  {
       Mratio.resize(4);
       rChannel.recvVector(0, commitTag, Mratio);
@@ -776,8 +784,19 @@ void TwoNodeLinkSection::Print(OPS_Stream &s, int flag)
     s << "\"sdI\": " << shearDistI << ", ";
     s << "\"addRayleigh\": " << addRayleigh << ", ";
     s << "\"mass\": " << mass << ", ";
-    s << "\"x\": " << x << ", ";
-    s << "\"y\": " << y;
+    s << "\"transMatrix\": [[";
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (j < 2)
+                s << trans(i, j) << ", ";
+            else if (j == 2 && i < 2)
+                s << trans(i, j) << "], [";
+            else if (j == 2 && i == 2)
+                s << trans(i, j) << "]]";
+        }
+    }
+    // s << "\"x\": " << x << ", ";
+    // s << "\"y\": " << y;
     s << "}";
   }
 }
@@ -800,20 +819,20 @@ TwoNodeLinkSection::setResponse(const char **argv, int argc, OPS_Stream &output)
   if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0 ||
       strcmp(argv[0],"globalForce") == 0 || strcmp(argv[0],"globalForces") == 0)
   {
-      for (int i=0; i<numDOF; i++)  {
-          sprintf(outputData,"P%d",i+1);
-          output.tag("ResponseType",outputData);
-      }
-      theResponse = new ElementResponse(this, 1, *theVector);
+    for (int i=0; i<numDOF; i++)  {
+        sprintf(outputData,"P%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 1, *theVector);
   }
   // local forces
   else if (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0)
   {
-      for (int i=0; i<numDOF; i++)  {
-          sprintf(outputData,"p%d",i+1);
-          output.tag("ResponseType",outputData);
-      }
-      theResponse = new ElementResponse(this, 2, *theVector);
+    for (int i=0; i<numDOF; i++)  {
+        sprintf(outputData,"p%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 2, *theVector);
   }
   // basic forces
   else if (strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0)
@@ -829,16 +848,16 @@ TwoNodeLinkSection::setResponse(const char **argv, int argc, OPS_Stream &output)
   else if (strcmp(argv[0],"localDisplacement") == 0 ||
       strcmp(argv[0],"localDisplacements") == 0)
   {
-      for (int i=0; i<numDOF; i++)  {
-          sprintf(outputData,"dl%d",i+1);
-          output.tag("ResponseType",outputData);
-      }
-      theResponse = new ElementResponse(this, 4, Vector(numDOF));
+    for (int i=0; i<numDOF; i++)  {
+        sprintf(outputData,"dl%d",i+1);
+        output.tag("ResponseType",outputData);
+    }
+    theResponse = new ElementResponse(this, 4, Vector(numDOF));
   }
   // basic displacements
   else if (strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"deformations") == 0 || 
-      strcmp(argv[0],"basicDeformation") == 0 || strcmp(argv[0],"basicDeformations") == 0 ||
-      strcmp(argv[0],"basicDisplacement") == 0 || strcmp(argv[0],"basicDisplacements") == 0)
+           strcmp(argv[0],"basicDeformation") == 0 || strcmp(argv[0],"basicDeformations") == 0 ||
+           strcmp(argv[0],"basicDisplacement") == 0 || strcmp(argv[0],"basicDisplacements") == 0)
   {
     int numDIR = theSection->getOrder();
     for (int i=0; i<numDIR; i++)  {
@@ -859,14 +878,14 @@ TwoNodeLinkSection::setResponse(const char **argv, int argc, OPS_Stream &output)
     for (int i=0; i<numDIR; i++)  {
       sprintf(outputData,"q%d",i+1);
       output.tag("ResponseType",outputData);
-      }
+    }
     theResponse = new ElementResponse(this, 6, Vector(numDIR*2));
   }
   // material output
   else if (strcmp(argv[0],"section") == 0)  {
-      if (argc > 1)  {
-        theResponse =  theSection->setResponse(&argv[1], argc-1, output);
-      }
+    if (argc > 1)  {
+      theResponse =  theSection->setResponse(&argv[1], argc-1, output);
+    }
   }
 
   if (strcmp(argv[0],"xaxis") == 0) {
@@ -945,98 +964,6 @@ int TwoNodeLinkSection::getResponse(int responseID, Information &eleInfo)
 }
 
 
-// set up the transformation matrix for orientation
-void 
-TwoNodeLinkSection::setUp()
-{
-  const Vector &end1Crd = theNodes[0]->getCrds();
-  const Vector &end2Crd = theNodes[1]->getCrds();        
-  Vector xp = end2Crd - end1Crd;
-  L = xp.Norm();
-  
-  // setup x and y orientation vectors
-  if (L > DBL_EPSILON)  {
-      if (x.Size() == 0)  {
-          x.resize(3);
-          x.Zero();
-          x(0) = xp(0);
-          if (xp.Size() > 1)
-              x(1) = xp(1);
-          if (xp.Size() > 2)
-              x(2) = xp(2);
-      } else if (onP0)  {
-          opserr << "WARNING TwoNodeLinkSection::setUp() - " 
-              << "element: " << this->getTag() << endln
-              << "ignoring nodes and using specified "
-              << "local x vector to determine orientation\n";
-      }
-      if (y.Size() == 0)  {
-          y.resize(3);
-          y.Zero();
-          if (xp.Size() == 1) // Make a 1D model work
-            y(1) = 1.0;
-          else
-            y(0) = -xp(1);
-          if (xp.Size() > 1)
-              y(1) = xp(0);
-          if (xp.Size() > 2)
-              opserr << "WARNING TwoNodeLinkSection::setUp() - " 
-                  << "element: " << this->getTag() << endln
-                  << "no local y vector specified\n";
-      }
-  } else  {
-      if (x.Size() == 0)  {
-          x.resize(3);
-          x(0) = 1.0; x(1) = 0.0; x(2) = 0.0;
-      }
-      if (y.Size() == 0)  {
-          y.resize(3);
-          y(0) = 0.0; y(1) = 1.0; y(2) = 0.0;
-      }
-  }
-  
-  // check that vectors for orientation are of correct size
-  if (x.Size() != 3 || y.Size() != 3)  {
-      opserr << "TwoNodeLinkSection::setUp() - "
-          << "element: " << this->getTag() << endln
-          << "incorrect dimension of orientation vectors\n";
-      exit(-1);
-  }
-  
-  // establish orientation of element for the transformation matrix
-  // z = x cross yp
-  static Vector z(3);
-  z(0) = x(1)*y(2) - x(2)*y(1);
-  z(1) = x(2)*y(0) - x(0)*y(2);
-  z(2) = x(0)*y(1) - x(1)*y(0);
-  
-  // y = z cross x
-  y(0) = z(1)*x(2) - z(2)*x(1);
-  y(1) = z(2)*x(0) - z(0)*x(2);
-  y(2) = z(0)*x(1) - z(1)*x(0);
-
-  // compute length(norm) of vectors
-  double xn = x.Norm();
-  double yn = y.Norm();
-  double zn = z.Norm();
-  
-  // check valid x and y vectors, i.e. not parallel and of zero length
-  if (xn == 0 || yn == 0 || zn == 0)  {
-      opserr << "TwoNodeLinkSection::setUp() - "
-          << "element: " << this->getTag() << endln
-          << "invalid orientation vectors\n";
-      exit(-1);
-  }
-  
-  // create transformation matrix of direction cosines
-  for (int i=0; i<3; i++)  {
-      trans(0,i) = x(i)/xn;
-      trans(1,i) = y(i)/yn;
-      trans(2,i) = z(i)/zn;
-  }
-}
-
-
 // set transformation matrix from global to local system
 void TwoNodeLinkSection::setTranGlobalLocal()
 {
@@ -1092,15 +1019,17 @@ void TwoNodeLinkSection::setTranGlobalLocal()
 void
 TwoNodeLinkSection::setTranLocalBasic()
 {
-  int numDIR = theSection->getOrder();
+  int nsr = theSection->getOrder();
   const ID &type = theSection->getType();
   
   // resize transformation matrix and zero it
-  Tlb.resize(numDIR,numDOF);
+  Tlb.resize(nsr,nsr);
   Tlb.Zero();
 
-  for (int i=0; i<numDIR; i++)  {
+  for (int i=0; i<nsr; i++)  {
     int dirID = this->getDirID(type(i));
+    if (dirID < 0)
+      continue;
 
     Tlb(i,dirID) = -1.0;
     Tlb(i,dirID+numDOF/2) = 1.0;

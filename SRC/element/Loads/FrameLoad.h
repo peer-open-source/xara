@@ -19,6 +19,7 @@
 #include "Shape.h"
 #include <array>
 #include <vector>
+#include <cassert>
 #include <Domain.h>
 #include <string.h>
 #include <Versor.h>
@@ -67,11 +68,16 @@ public:
     m(m),
     r(r)
   {
+    assert(r.size() == 1);
+    assert(p.size() == 1);
+    assert(m.size() == 1);
+
     switch (shape) {
       case Dirac:
           gauss = {{r[0][0], 1.0}};
           break;
       case Lagrange:
+        // Unimplemented
       case Heaviside:
         // 4-point Gauss-Legendre quadrature on [0, 1]
         gauss = {{0.069431844, 0.173927423},

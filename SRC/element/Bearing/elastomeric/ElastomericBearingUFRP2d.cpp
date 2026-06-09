@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
@@ -208,12 +207,6 @@ ElastomericBearingUFRP2d::ElastomericBearingUFRP2d(int tag,
       L(0.0), onP0(true), ub(3), z(0.0), dzdu(0.0), qb(3), kb(3,3), ul(6),
       Tgl(6,6), Tlb(3,6), ubC(3), zC(0.0), kbInit(3,3), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "ElastomericBearingUFRP2d::ElastomericBearingUFRP2d() - element: "
-	       << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -221,13 +214,6 @@ ElastomericBearingUFRP2d::ElastomericBearingUFRP2d(int tag,
     // set node pointers to NULL
     for (int i=0; i<2; i++)
         theNodes[i] = 0;
-    
-    // check material input
-    if (materials == 0)  {
-        opserr << "ElastomericBearingUFRP2d::ElastomericBearingUFRP2d() - "
-            << "null material array passed.\n";
-        exit(-1);
-    }
     
     // get copies of the uniaxial materials
     for (int i=0; i<2; i++)  {
@@ -263,12 +249,6 @@ ElastomericBearingUFRP2d::ElastomericBearingUFRP2d()
     L(0.0), onP0(false), ub(3), z(0.0), dzdu(0.0), qb(3), kb(3,3), ul(6),
     Tgl(6,6), Tlb(3,6), ubC(3), zC(0.0), kbInit(3,3), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "ElastomericBearingUFRP2d::ElastomericBearingUFRP2d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     // set node pointers to NULL
     for (int i=0; i<2; i++)
@@ -841,18 +821,6 @@ int ElastomericBearingUFRP2d::recvSelf(int commitTag, Channel &rChannel,
     return 0;
 }
 
-
-int ElastomericBearingUFRP2d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 
 void ElastomericBearingUFRP2d::Print(OPS_Stream &s, int flag)

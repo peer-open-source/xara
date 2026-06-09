@@ -44,25 +44,25 @@ class SectionForceDeformation;
 class ShellDKGQ : public Element,
                   protected LegendreFixedQuadrilateral<4>
 {
- public:  
-  //null constructor
+ public:
   ShellDKGQ( );
-  
-  //full constructor
   ShellDKGQ( int tag, 
              int node1,
              int node2,
              int node3,
              int node4,
-             SectionForceDeformation &theMaterial ) ;
-  
-  //destructor 
+             SectionForceDeformation & ) ;
+
   virtual ~ShellDKGQ( ) ;
+
+    const char* getClassType() const final {
+      return "ShellDKGQ";
+    }
 
   //set domain because frank is a dumb ass 
   void setDomain( Domain *theDomain ) ;
   
-  //get the number of external nodes
+  // get the number of external nodes
   int getNumExternalNodes( ) const ;
     
     //return connected external nodes
@@ -73,12 +73,8 @@ class ShellDKGQ : public Element,
     int getNumDOF( ) ;
 
     //commit state
-    int commitState( ) ;
-    
-    //revert to last commit 
-    int revertToLastCommit( ) ;
-    
-    //revert to start 
+    int commitState( );
+    int revertToLastCommit( );
     int revertToStart( ) ;
 
     //print out element data

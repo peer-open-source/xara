@@ -28,7 +28,6 @@
 
 #include "PML3D.h"
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -40,7 +39,6 @@
 #include <Node.h>
 #include <Domain.h>
 #include <ErrorHandler.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 #include <Parameter.h>
 #include <ElementalLoad.h>
@@ -552,50 +550,6 @@ int  PML3D::recvSelf(int commitTag,
 }
 
 
-// =======================================================================
-// display
-// =======================================================================
-int PML3D::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** modes, int numMode)
-{
-	// Get the end point display coords
-	static Vector v1(3);
-	static Vector v2(3);
-	static Vector v3(3);
-	static Vector v4(3);
-	static Vector v5(3);
-	static Vector v6(3);
-	static Vector v7(3);
-	static Vector v8(3);
-	nodePointers[0]->getDisplayCrds(v1, fact, displayMode);
-	nodePointers[1]->getDisplayCrds(v2, fact, displayMode);
-	nodePointers[2]->getDisplayCrds(v3, fact, displayMode);
-	nodePointers[3]->getDisplayCrds(v4, fact, displayMode);
-	nodePointers[4]->getDisplayCrds(v5, fact, displayMode);
-	nodePointers[5]->getDisplayCrds(v6, fact, displayMode);
-	nodePointers[6]->getDisplayCrds(v7, fact, displayMode);
-	nodePointers[7]->getDisplayCrds(v8, fact, displayMode);
-
-	// place values in coords matrix
-	static Matrix coords(8, 3);
-	for (int i = 0; i < 3; i++) {
-		coords(0, i) = v1(i);
-		coords(1, i) = v2(i);
-		coords(2, i) = v3(i);
-		coords(3, i) = v4(i);
-		coords(4, i) = v5(i);
-		coords(5, i) = v6(i);
-		coords(6, i) = v7(i);
-		coords(7, i) = v8(i);
-	}
-
-	// fill RGB vector
-	static Vector values(8);
-	for (int i = 0; i < 8; i++)
-		values(i) = 1.0;
-
-	// draw the cube
-	return theViewer.drawCube(coords, values, this->getTag());
-}
 
 // =======================================================================
 // setresponse

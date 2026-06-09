@@ -27,6 +27,8 @@
 #include <Vector.h>
 #include <Matrix.h>
 #include <VectorND.h>
+#include <MatrixND.h>
+#include <vector>
 #include <memory>
 #include <Frame/Shape.h>
 
@@ -38,12 +40,14 @@ namespace OpenSees {
 class FrameFiberSection3d : public FrameSection
 {
   public:
-    FrameFiberSection3d(); 
     explicit
-    FrameFiberSection3d(int tag, int numFibers, 
-                        UniaxialMaterial *shear,
-                        bool compCentroid,
+    FrameFiberSection3d(int tag,
+                        int numFibers,
+                        const Frame::Shape& shape,
                         double mass, bool use_mass);
+  private:
+    FrameFiberSection3d(const FrameFiberSection3d &); 
+  public:
     ~FrameFiberSection3d();
 
     const char *getClassType() const {
@@ -58,13 +62,25 @@ class FrameFiberSection3d : public FrameSection
     const Matrix &getSectionTangent();
     const Matrix &getInitialTangent();
 
+    MatrixND<12,12> getFullTangent(State state) noexcept override {
+      if (state == State::Pres)
+        return tangent.matrix;
+      else {
+        Tangent T{};
+        VectorND<nsr> s;
+        this->initializeShear(T, *shape);
+        this->updateAxial(state, T, s);
+        return T.matrix;
+      }
+    }
+
     int   commitState();
     int   revertToLastCommit();    
     int   revertToStart();
  
     FrameSection *getFrameCopy();
     const ID &getType();
-    int getOrder () const; //  {return 4;};
+    int getOrder () const; // {return 4;};
  
     int sendSelf(int cTag, Channel &) override;
     int recvSelf(int cTag, Channel &, FEM_ObjectBroker &) override;
@@ -76,7 +92,7 @@ class FrameFiberSection3d : public FrameSection
     int addFiber(UniaxialMaterial &theMat, double area, double y, double z=0.0);
 
     int setParameter(const char **argv, int argc, Parameter &);
-
+    int updateParameter(int id, Information &) override;
     const Vector & getStressResultantSensitivity(int gradIndex, bool conditional);
     const Matrix & getSectionTangentSensitivity(int gradIndex);
     int   commitSensitivity(const Vector& sectionDeformationGradient, int gradIndex, int numGrads);
@@ -87,29 +103,80 @@ class FrameFiberSection3d : public FrameSection
 
 
   protected:
-    constexpr static int nsr = 4;
+    constexpr static int nsr = 12;
     constexpr static int nwm = 3;
 
   private:
     struct FiberData {
       double y;
       double z;
-      double area,
-             warp[nwm][3];
+      double area;
     };
 
+    enum : int {
+      inx = 0, 
+      iny,
+      inz,
 
-    int numFibers, sizeFibers;         // number of fibers in the section
-    UniaxialMaterial **theMaterials;   // array of pointers to materials
-    std::shared_ptr<double[]> matData; // data for the materials [yloc, zloc, and area]
+      imx,
+      imy,
+      imz,
 
-    MatrixND<nsr,nsr> ks;
+      iwx,     
+      iwy,
+      iwz,
+
+      ivx,     
+      ivy,
+      ivz
+    };
+
+    struct Param {
+      enum : int {
+        FiberWarpX=0,
+        FiberWarpXY,
+        FiberWarpXZ,
+        FiberWarpY,
+        FiberWarpYY,
+        FiberWarpYZ,
+        FiberWarpZ,
+        FiberWarpZY,
+        FiberWarpZZ,
+        FiberY,
+        FiberZ,
+        FiberArea,
+        ShearAlignYY,
+        ShearAlignZZ,
+        ShearAlignYZ,
+        ShearAlignZY,
+        ShiftTwistY,
+        ShiftTwistZ,
+        ShiftAxialY,
+        ShiftAxialZ,
+        FiberFieldBase=10000
+      };
+    };
+
+    struct Tangent {
+      MatrixND<nsr,nsr> matrix;
+      void zeroAxial() noexcept {
+        matrix(inx, inx) = 0.0;
+        matrix(imz, imz) = 0.0;
+        matrix(imy, imy) = 0.0;
+      }
+      void zeroShear() noexcept {
+        matrix(iny, iny) = 0.0;
+        matrix(inz, inz) = 0.0;
+        matrix(imx, imx) = 0.0;
+      }
+    } tangent;
+    
+    std::shared_ptr<Frame::Shape> shape;
+    std::shared_ptr<std::vector<FiberData>> fibers;
+    std::vector<UniaxialMaterial*> materials;
+
     Matrix K_wrap;
 
-    double QzBar, QyBar, Abar;
-    double yBar;                       // Section centroid
-    double zBar;
-    bool computeCentroid;
 
     static ID code;
 
@@ -117,8 +184,30 @@ class FrameFiberSection3d : public FrameSection
     Vector  e;         // trial section deformations 
     Vector  s;         // section resisting forces  (axial force, bending moment)
 
-    UniaxialMaterial *shear;
-    void *pool;        // thread pool
+    int parameterID =0;
+
+    int updateAxial(const State, Tangent&, VectorND<nsr>& s) const;
+    static int initializeShear(Tangent&, Frame::Shape&);
+
+    inline int 
+    FiberGrad(int i, int j, double& dA, double& dy, double& dz) const noexcept
+    {
+      dA = 0.0; dy = 0.0; dz = 0.0;
+      if (parameterID >= Param::FiberFieldBase) {
+        int fiberID = (parameterID - Param::FiberFieldBase) / 100;
+        int field   = (parameterID - Param::FiberFieldBase) % 100;
+        if (i == fiberID) {
+          switch (field) {
+          case Param::FiberArea:   dA = 1.0; break;
+          case Param::FiberY:      dy = 1.0; break;
+          case Param::FiberZ:      dz = 1.0; break;
+          default:
+            break;
+          }
+        }
+      }
+      return 0;
+    }
 };
 
 } // namespace OpenSees

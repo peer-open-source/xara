@@ -714,17 +714,11 @@ int TotalLagrangianFD20NodeBrick::sendSelf (int commitTag, Channel &theChannel)
 int TotalLagrangianFD20NodeBrick::recvSelf (int commitTag, Channel &theChannel,
 FEM_ObjectBroker &theBroker)
 {
-     // Not implemtented yet
-     return 0;
+  // Not implemtented yet
+  return 0;
 }
 
 
-//=============================================================================
-int TotalLagrangianFD20NodeBrick::displaySelf (Renderer &theViewer, int displayMode, float fact)
-{
-     // Not implemtented yet
-     return 0;
-}
 
 //=============================================================================
 void TotalLagrangianFD20NodeBrick::Print(OPS_Stream &s, int flag)

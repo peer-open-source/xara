@@ -127,8 +127,8 @@ MumpsSolver::initializeMumps()
 
   int info = id.infog[0];
   if (info != 0) {
-    opserr << "WARNING MumpsSolver::setSize ";
-    opserr << " Error " << info << " returned in substitution dmumps\n";
+    // opserr << "WARNING MumpsSolver::setSize ";
+    // opserr << " Error " << info << " returned in substitution dmumps\n";
     return info;
   }
   
@@ -208,7 +208,7 @@ MumpsSolver::solveAfterInitialization()
   info = id.infog[0];
   if (info != 0) {	
     opserr << "WARNING MumpsSolver::solve - ";
-    opserr << " Error " << info << " returned in substitution dmumps()\n";
+    opserr << " Error " << info << ": "; // returned in substitution dmumps()\n";
 	switch(info) {
 	  case -5:
 		opserr << " out of memory allocation error\n";
@@ -223,7 +223,7 @@ MumpsSolver::solveAfterInitialization()
 	  case -10:  
 		opserr << " cause: Matrix is Singular Numerically\n";
 	  default:
-		  ;
+		  opserr << "\n";
 	}
     return info;
   }

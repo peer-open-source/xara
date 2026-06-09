@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <elementAPI.h>
@@ -42,7 +41,6 @@
 #include <string.h>
 
 #include <OPS_Globals.h>
-#include <Message.h>
 #include <Logging.h>
 #define PI 3.14159l
 
@@ -277,12 +275,6 @@ LeadRubberX::LeadRubberX(int eleTag, int Nd1, int Nd2, double qd, double alpha1,
     ub(6), ubdot(6), z(2), dzdu(2,2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubC(6), zC(2), kbInit(6,6), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "LeadRubberX::LeadRubberX() - element: "
-            << this->getTag() << " failed to create an ID of size 2\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -368,12 +360,6 @@ LeadRubberX::LeadRubberX()
     ub(6), ubdot(6), z(2), dzdu(2,2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubC(6), zC(2), kbInit(6,6), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "LeadRubberX::LeadRubberX() - "
-            <<  "failed to create an ID of size 2\n";
-        exit(-1);
-    }
     
     // set node pointers to NULL
     for (int i=0; i<2; i++)
@@ -1075,17 +1061,6 @@ int LeadRubberX::recvSelf(int commitTag, Channel &rChannel,
 }
 
 
-int LeadRubberX::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 
 void LeadRubberX::Print(OPS_Stream &s, int flag)

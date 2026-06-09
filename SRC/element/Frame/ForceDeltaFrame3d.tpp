@@ -943,8 +943,6 @@ ForceDeltaFrame3d<NIP,nsr>::getResistingForce()
   basic_system->linear.pushResponse(pf);
   pl += pf;
 #endif
-  if (total_mass != 0.0)
-    wrapper.addVector(1.0, p_iner, -1.0);
 
   return wrapper;
 }

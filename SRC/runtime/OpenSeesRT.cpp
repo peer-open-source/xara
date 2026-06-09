@@ -50,9 +50,13 @@ extern int init_g3_tcl_utils(Tcl_Interp*);
 static int
 version(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
 {
-  char buffer[20];
+  char buffer[40];
 
+#ifdef XARA_COMMIT_HASH
+  sprintf(buffer, "%s (commit %s)", OPENSEESRT_VERSION, XARA_COMMIT_HASH);
+#else
   sprintf(buffer, "%s", OPENSEESRT_VERSION);
+#endif
   Tcl_SetResult(interp, buffer, TCL_VOLATILE);
 
   return TCL_OK;
@@ -83,7 +87,7 @@ Openseesrt_Init(Tcl_Interp *interp)
   G3_InitTclSequentialAPI(interp); // Add sequential API
   init_g3_tcl_utils(interp);       // Add utility commands (linspace, range, etc.)
 
-  char* verbosity = getenv("OPENSEESRT_VERBOSITY");
+  char* verbosity = getenv("XARA_VERBOSITY"); // Was OPENSEESRT_VERBOSITY
   if (verbosity != nullptr) {
     if (strcmp(verbosity, "DEBUG") == 0) {
       G3_SetStreamLevel(G3_LevelDebug, true);

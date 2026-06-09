@@ -48,8 +48,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
-// #include <MatrixUtil.h>
 
 #include <UniaxialMaterial.h>
 #include <string.h>
@@ -754,27 +752,11 @@ Inno3DPnPJoint::Inno3DPnPJoint(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int 
 	Uecommit(30), UeIntcommit(4), UeprCommit(30), UeprIntCommit(4),
 	matA(32,34), dg_df(4,32), dDef_du(32,4), K(30,30), R(34)
 {
-	// opserr << "Inno3DPnPJoint full constructor: START" << endln;
-	
-	// ensure the connectedExternalNode ID is of correct size & set values
-	if (ExternalNodes.Size() != 5)
-    opserr << "ERROR: Inno3DPnPJoint::Inno3DPnPJoint() " << tag << "failed to create an ID of size 5. " << endln;
-
 	ExternalNodes(0) = Nd1;
 	ExternalNodes(1) = Nd2;
 	ExternalNodes(2) = Nd3;
 	ExternalNodes(3) = Nd4;
 	ExternalNodes(4) = Nd5;
-	
-	// opserr << "node 0: " << ExternalNodes(0) << endln;
-	// opserr << "node 1: " << ExternalNodes(1) << endln;
-	// opserr << "node 2: " << ExternalNodes(2) << endln;
-	// opserr << "node 3: " << ExternalNodes(3) << endln;
-	// opserr << "node 4: " << ExternalNodes(4) << endln;
-	
-	// opserr << "nodeDbTag : " << nodeDbTag << endln;
-	// opserr << "dofDbTag : " << dofDbTag << endln;
-	// opserr << "ExternalNodes : " << ExternalNodes << endln;
 
 	nodePtr[0] = 0;
 	nodePtr[1] = 0;
@@ -2662,84 +2644,6 @@ int Inno3DPnPJoint::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
 	return res;
 }
 
-int Inno3DPnPJoint::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	// opserr << "displaySelf: START" << endln;
-	
-	// get node coordinates
-    const Vector &node1Crd = nodePtr[0]->getCrds();
-    const Vector &node2Crd = nodePtr[1]->getCrds(); 
-    const Vector &node3Crd = nodePtr[2]->getCrds();
-    const Vector &node4Crd = nodePtr[3]->getCrds();
-	const Vector &node5Crd = nodePtr[4]->getCrds();
-
-	// get node disp
-    const Vector &node1Disp = nodePtr[0]->getDisp();
-    const Vector &node2Disp = nodePtr[1]->getDisp();    
-    const Vector &node3Disp = nodePtr[2]->getDisp();
-    const Vector &node4Disp = nodePtr[3]->getDisp();
-	const Vector &node5Disp = nodePtr[4]->getDisp();
-	
-	// define vector variables for node coord+disp.
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-    static Vector v4(3);
-	static Vector v5(3);
-    
-    // calculate the current coordinates of external nodes
-    for (int i=0; i<3; i++) 
-    {
-        v1(i) = node1Crd(i)+node1Disp(i)*fact;
-        v2(i) = node2Crd(i)+node2Disp(i)*fact;
-        v3(i) = node3Crd(i)+node3Disp(i)*fact;
-        v4(i) = node4Crd(i)+node4Disp(i)*fact;
-		v5(i) = node5Crd(i)+node5Disp(i)*fact;
-    }
-	
-	// draw the center lines 5-1, 5-2, 5-3, 5-4
-	int dummy;
-	dummy = theViewer.drawLine(v5, v1, 1.0, 1.0);
-	dummy = theViewer.drawLine(v5, v2, 1.0, 1.0);
-    dummy = theViewer.drawLine(v5, v3, 1.0, 1.0);
-	dummy = theViewer.drawLine(v5, v4, 1.0, 1.0);
-	
-	
-	// // draw diagonals 1-2, 1-4, 3-2, 3-4
-	// dummy = theViewer.drawLine(v1, v4, 0.0, 1.0);
-	// dummy = theViewer.drawLine(v1, v2, 0.0, 1.0);
-	
-	// dummy = theViewer.drawLine(v3, v2, 0.0, 1.0);
-	// dummy = theViewer.drawLine(v3, v4, 0.0, 1.0);
-	
-	
-	// identify corners of cross-section
-	static Vector v12(3);
-    static Vector v23(3);
-	static Vector v34(3);
-	static Vector v41(3);
-	
-	v12 = v1 + v2;
-	v23 = v2 + v3;
-	v34 = v3 + v4;
-	v41 = v4 + v1;
-	
-	// draw lines to corners 1-12, 2-12, 2-23, 3-23, 3-34, 4-34, 4-41, 1-41
-	dummy = theViewer.drawLine(v1, v12, 1.0, 1.0);
-	dummy = theViewer.drawLine(v2, v12, 1.0, 1.0);
-	
-	dummy = theViewer.drawLine(v2, v23, 1.0, 1.0);
-	dummy = theViewer.drawLine(v3, v23, 1.0, 1.0);
-	
-	dummy = theViewer.drawLine(v3, v34, 1.0, 1.0);
-	dummy = theViewer.drawLine(v4, v34, 1.0, 1.0);
-	
-	dummy = theViewer.drawLine(v4, v41, 1.0, 1.0);
-	dummy = theViewer.drawLine(v1, v41, 1.0, 1.0);
-	
-	// opserr << "displaySelf: END" << endln;
-	return 0;
-}
 
 
 void Inno3DPnPJoint::Print(OPS_Stream &s, int flag)

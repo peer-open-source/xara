@@ -29,7 +29,7 @@
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 
-using OpenSees::VectorND;
+using namespace OpenSees;
 
 Matrix BBarFourNodeQuadUP::K(12,12);
 Vector BBarFourNodeQuadUP::P(12);
@@ -38,16 +38,16 @@ double BBarFourNodeQuadUP::dvol[4];
 double BBarFourNodeQuadUP::shpBar[2][4];
 double BBarFourNodeQuadUP::B[4][2][4][4];
 double BBarFourNodeQuadUP::Bp[2][4][4];
-Node *BBarFourNodeQuadUP::theNodes[4];
 
 
-BBarFourNodeQuadUP::BBarFourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
-  NDMaterial &m, const char *type, double t, double bulk, double r,
+BBarFourNodeQuadUP::BBarFourNodeQuadUP(int tag, 
+      std::array<int,4>& nodes,
+      NDMaterial &m, const char *type, double t, double bulk, double r,
       double p1, double p2, double b1, double b2, double p)
 :Element (tag, ELE_TAG_BBarFourNodeQuadUP),
   theMaterial(0), 
   connectedExternalNodes(NEN),
-  nd1Ptr(0), nd2Ptr(0), nd3Ptr(0), nd4Ptr(0), Ki(0),
+  Ki(0),
   Q(12), pressureLoad(12), applyLoad(0), thickness(t), kc(bulk), rho(r), pressure(p)
 {
   // pts[0][0] = -0.5773502691896258;
@@ -85,21 +85,19 @@ BBarFourNodeQuadUP::BBarFourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int n
   }
 
   // Set connected external node IDs
-  connectedExternalNodes(0) = nd1;
-  connectedExternalNodes(1) = nd2;
-  connectedExternalNodes(2) = nd3;
-  connectedExternalNodes(3) = nd4;
+  for (int i = 0; i < NEN; i++)
+    connectedExternalNodes(i) = nodes[i];
 }
 
 BBarFourNodeQuadUP::BBarFourNodeQuadUP()
 :Element (0,ELE_TAG_BBarFourNodeQuadUP),
   theMaterial(0), 
   connectedExternalNodes(4),
-  nd1Ptr(0), nd2Ptr(0), nd3Ptr(0), nd4Ptr(0), 
   Ki(0),
   Q(12), pressureLoad(12), 
   applyLoad(0), thickness(0.0), kc(0.0), rho(0.0), pressure(0.0)
 {
+
 }
 
 BBarFourNodeQuadUP::~BBarFourNodeQuadUP()
@@ -132,11 +130,6 @@ BBarFourNodeQuadUP::getExternalNodes()
 Node **
 BBarFourNodeQuadUP::getNodePtrs()
 {
-  theNodes[0] = nd1Ptr;
-  theNodes[1] = nd2Ptr;
-  theNodes[2] = nd3Ptr;
-  theNodes[3] = nd4Ptr;
-
   return theNodes;
 }
 
@@ -150,48 +143,31 @@ void
 BBarFourNodeQuadUP::setDomain(Domain *theDomain)
 {
   // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == nullptr) {
-      nd1Ptr = nullptr;
-      nd2Ptr = nullptr;
-      nd3Ptr = nullptr;
-      nd4Ptr = nullptr;
+  if (theDomain == nullptr) {
+    for (int i = 0; i < NEN; i++)
+      theNodes[i] = nullptr;
+    return;
+  }
+  for (int i = 0; i < NEN; i++) {
+    int nodeID = connectedExternalNodes(i);
+    theNodes[i] = theDomain->getNode(nodeID);
+    if (theNodes[i] == nullptr) {
+      opserr << "BBarFourNodeQuadUP::setDomain() - node " << nodeID << " not found in domain\n";
       return;
     }
-
-    int Nd1 = connectedExternalNodes(0);
-    int Nd2 = connectedExternalNodes(1);
-    int Nd3 = connectedExternalNodes(2);
-    int Nd4 = connectedExternalNodes(3);
-
-    nd1Ptr = theDomain->getNode(Nd1);
-    nd2Ptr = theDomain->getNode(Nd2);
-    nd3Ptr = theDomain->getNode(Nd3);
-    nd4Ptr = theDomain->getNode(Nd4);
-
-    if (nd1Ptr == 0 || nd2Ptr == 0 || nd3Ptr == 0 || nd4Ptr == 0) {
-      //opserr << "FATAL ERROR BBarFourNodeQuadUP (tag: %d), node not found in domain",
-      //  this->getTag());
-
+    if (theNodes[i]->getNumberDOF() != 3) {
+      opserr << "BBarFourNodeQuadUP::setDomain() - node " << nodeID << " has incorrect number of DOFs\n";
       return;
     }
+  }
 
-    int dofNd1 = nd1Ptr->getNumberDOF();
-    int dofNd2 = nd2Ptr->getNumberDOF();
-    int dofNd3 = nd3Ptr->getNumberDOF();
-    int dofNd4 = nd4Ptr->getNumberDOF();
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
-    if (dofNd1 != 3 || dofNd2 != 3 || dofNd3 != 3 || dofNd4 != 3) {
-      //opserr << "FATAL ERROR BBarFourNodeQuadUP (tag: %d), has differing number of DOFs at its nodes",
-      //  this->getTag());
-
-      return;
-    }
-    if (theDomain != nullptr)
-      this->Element::link(*theDomain);
-
-    // Compute consistent nodal loads due to pressure
-    this->setPressureLoadAtNodes();
+  // Compute consistent nodal loads due to pressure
+  this->setPressureLoadAtNodes();
 }
+
 
 int
 BBarFourNodeQuadUP::commitState()
@@ -209,6 +185,7 @@ BBarFourNodeQuadUP::commitState()
 
     return retVal;
 }
+
 
 int
 BBarFourNodeQuadUP::revertToLastCommit()
@@ -553,6 +530,7 @@ BBarFourNodeQuadUP::addLoad(ElementalLoad *theLoad, double loadFactor)
 }
 
 
+#if 0
 int
 BBarFourNodeQuadUP::addInertiaLoadToUnbalance(const Vector &accel)
 {
@@ -596,6 +574,7 @@ BBarFourNodeQuadUP::addInertiaLoadToUnbalance(const Vector &accel)
 
   return 0;
 }
+#endif
 
 const Vector&
 BBarFourNodeQuadUP::getResistingForce()
@@ -671,10 +650,10 @@ const Vector&
 BBarFourNodeQuadUP::getResistingForceIncInertia()
 {
 
-  const Vector &accel1 = nd1Ptr->getTrialAccel();
-  const Vector &accel2 = nd2Ptr->getTrialAccel();
-  const Vector &accel3 = nd3Ptr->getTrialAccel();
-  const Vector &accel4 = nd4Ptr->getTrialAccel();
+  const Vector &accel1 = theNodes[0]->getTrialAccel();
+  const Vector &accel2 = theNodes[1]->getTrialAccel();
+  const Vector &accel3 = theNodes[2]->getTrialAccel();
+  const Vector &accel4 = theNodes[3]->getTrialAccel();
 
   static double a[12];
 
@@ -703,7 +682,6 @@ BBarFourNodeQuadUP::getResistingForceIncInertia()
       P(i) += K(i,j)*a[j];
   }
 
-  //opserr<<"K+M "<<P<<endln;
 
   // dynamic seepage force
   /*for (i = 0, k = 0; i < 4; i++, k += 3) {
@@ -713,12 +691,11 @@ BBarFourNodeQuadUP::getResistingForceIncInertia()
            +shp[2][i][j]*a[k+1]*perm[1]*shp[1][i][j]);
     }
   }*/
-  // opserr<<"K+M+fb "<<P<<endln;
 
-  const Vector &vel1 = nd1Ptr->getTrialVel();
-  const Vector &vel2 = nd2Ptr->getTrialVel();
-  const Vector &vel3 = nd3Ptr->getTrialVel();
-  const Vector &vel4 = nd4Ptr->getTrialVel();
+  const Vector &vel1 = theNodes[0]->getTrialVel();
+  const Vector &vel2 = theNodes[1]->getTrialVel();
+  const Vector &vel3 = theNodes[2]->getTrialVel();
+  const Vector &vel4 = theNodes[3]->getTrialVel();
 
   a[0] = vel1(0);
   a[1] = vel1(1);
@@ -965,10 +942,10 @@ BBarFourNodeQuadUP::setResponse(const char **argv, int argc, OPS_Stream &output)
   output.tag("ElementOutput");
   output.attr("eleType","BBarFourNodeQuadUP");
   output.attr("eleTag",this->getTag());
-  output.attr("node1",nd1Ptr->getTag());
-  output.attr("node2",nd2Ptr->getTag());
-  output.attr("node3",nd3Ptr->getTag());
-  output.attr("node4",nd4Ptr->getTag());
+  output.attr("node1",theNodes[0]->getTag());
+  output.attr("node2",theNodes[1]->getTag());
+  output.attr("node3",theNodes[2]->getTag());
+  output.attr("node4",theNodes[3]->getTag());
 
   if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0) {
 
@@ -1125,10 +1102,10 @@ BBarFourNodeQuadUP::shapeFunction()
   for (int i=0; i<4; i++) {
     double xi = pts[i][0];
     double eta = pts[i][1];
-    const Vector &nd1Crds = nd1Ptr->getCrds();
-    const Vector &nd2Crds = nd2Ptr->getCrds();
-    const Vector &nd3Crds = nd3Ptr->getCrds();
-    const Vector &nd4Crds = nd4Ptr->getCrds();
+    const Vector &nd1Crds = theNodes[0]->getCrds();
+    const Vector &nd2Crds = theNodes[1]->getCrds();
+    const Vector &nd3Crds = theNodes[2]->getCrds();
+    const Vector &nd4Crds = theNodes[3]->getCrds();
 
     double oneMinuseta, onePluseta, oneMinusxi, onePlusxi;
     oneMinuseta = 1.0-eta;
@@ -1245,10 +1222,10 @@ BBarFourNodeQuadUP::setPressureLoadAtNodes()
   if (pressure == 0.0)
     return;
 
-  const Vector &node1 = nd1Ptr->getCrds();
-  const Vector &node2 = nd2Ptr->getCrds();
-  const Vector &node3 = nd3Ptr->getCrds();
-  const Vector &node4 = nd4Ptr->getCrds();
+  const Vector &node1 = theNodes[0]->getCrds();
+  const Vector &node2 = theNodes[1]->getCrds();
+  const Vector &node3 = theNodes[2]->getCrds();
+  const Vector &node4 = theNodes[3]->getCrds();
 
   double x1 = node1(0);
   double y1 = node1(1);

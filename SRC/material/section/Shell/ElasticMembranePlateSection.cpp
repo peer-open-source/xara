@@ -10,10 +10,11 @@
 // Out-of-Plane stiffness modifier added by Pearl Ranchal
 // Supported by Degenkolb Engineers
 //
+#include <ShellSection.h>
 #include <ElasticMembranePlateSection.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-
+using namespace OpenSees;
 
 const double ElasticMembranePlateSection::five6 = 5.0 / 6.0; // shear correction
 
@@ -82,14 +83,14 @@ ElasticMembranePlateSection::getType()
 {
   static bool initialized = false;
   if (!initialized) {
-    array(0)    = SECTION_RESPONSE_FXX;
-    array(1)    = SECTION_RESPONSE_FYY;
-    array(2)    = SECTION_RESPONSE_FXY;
-    array(3)    = SECTION_RESPONSE_MXX;
-    array(4)    = SECTION_RESPONSE_MYY;
-    array(5)    = SECTION_RESPONSE_MXY;
-    array(6)    = SECTION_RESPONSE_VXZ;
-    array(7)    = SECTION_RESPONSE_VYZ;
+    array(0)    = ShellStress::Fxx;
+    array(1)    = ShellStress::Fyy;
+    array(2)    = ShellStress::Fxy;
+    array(3)    = ShellStress::Mxx;
+    array(4)    = ShellStress::Myy;
+    array(5)    = ShellStress::Mxy;
+    array(6)    = ShellStress::Vxz;
+    array(7)    = ShellStress::Vyz;
     initialized = true;
   }
   return array;

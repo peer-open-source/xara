@@ -241,6 +241,7 @@ ExactFrame3d<nen,nwm>::revertToLastCommit()
   return 0;
 }
 
+
 template<std::size_t nen, int nwm>
 int
 ExactFrame3d<nen,nwm>::update()
@@ -463,12 +464,14 @@ ExactFrame3d<nen,nwm>::getMass()
   return wrapper;
 }
 
+
 template<std::size_t nen, int nwm>
 const Vector &
 ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
 {
   static VectorND<ndf*nen> dp;
   static Vector wrapper(dp);
+
   dp.zero();
 
   auto& theNodes = this->FiniteElement<nen,3,ndf>::theNodes;
@@ -498,7 +501,7 @@ ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
 
     FrameSection& section = *pres[i].material;
 
-    VectorND<nsr> s = section.getResultantGradient<nsr,scheme>(grad, true);
+    VectorND<nsr> ds = section.getResultantGradient<nsr,scheme>(grad, true);
 
     //
     // A = diag(R, R);
@@ -523,7 +526,7 @@ ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
       B[j] = A^Bj;
 
       // p += B s w
-      VectorND<ndf> pj = B[j]^s;
+      VectorND<ndf> pj = B[j]^ds;
       for (int l=0; l<ndf; l++)
         dp[j*ndf+l] += pres[i].weight * pj[l];
     }

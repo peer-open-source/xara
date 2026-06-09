@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.14 $
-// $Date: 2008-08-26 16:35:21 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/Steel01.h,v $
-                                                                        
-                                                                        
 #ifndef Steel01_h
 #define Steel01_h
 
@@ -34,10 +29,6 @@
 // Steel01.h
 // 
 //
-//
-// What: "@(#) Steel01.h, revA"
-
-
 #include <UniaxialMaterial.h>
 
 // Default values for isotropic hardening parameters a1, a2, a3, and a4
@@ -50,31 +41,35 @@ class Steel01 : public UniaxialMaterial
 {
   public:
     Steel01(int tag, double fy, double E0, double b,
-       double a1 = STEEL_01_DEFAULT_A1, double a2 = STEEL_01_DEFAULT_A2,
-       double a3 = STEEL_01_DEFAULT_A3, double a4 = STEEL_01_DEFAULT_A4);
+       double a1 = STEEL_01_DEFAULT_A1, 
+       double a2 = STEEL_01_DEFAULT_A2,
+       double a3 = STEEL_01_DEFAULT_A3, 
+       double a4 = STEEL_01_DEFAULT_A4,
+       double density = 0.0
+    );
     Steel01();
     ~Steel01();
 
-    const char *getClassType(void) const {return "Steel01";};
+    const char *getClassType() const {return "Steel01";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
     int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
-    double getStrain(void);              
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void) {return E0;};
+    double getStrain();              
+    double getStress();
+    double getTangent();
+    double getInitialTangent() {return E0;};
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
+    double getRho() override { return density; }
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     
 // AddingSensitivity:BEGIN //////////////////////////////////////////
     int setParameter(const char **argv, int argc, Parameter &param);
@@ -90,16 +85,18 @@ class Steel01 : public UniaxialMaterial
  protected:
     
  private:
-	 double Energy;	//by SAJalali
-	/*** Material Properties ***/
+	// Material Properties
     double fy;  // Yield stress
     double E0;  // Initial stiffness
     double b;   // Hardening ratio (b = Esh/E0)
     double a1;
     double a2;
     double a3;
-    double a4;  // a1 through a4 are coefficients for isotropic hardening
+    double a4;      // a1 through a4 are coefficients for isotropic hardening
+    double density; // mass per unit volume
     
+	double Energy;	//by SAJalali
+
     /*** CONVERGED History Variables ***/
     double CminStrain;  // Minimum strain in compression
     double CmaxStrain;  // Maximum strain in tension

@@ -78,34 +78,34 @@ class SectionForceDeformation : public TaggedObject, public MovableObject
   SectionForceDeformation(int tag, int classTag);
   SectionForceDeformation();
   virtual ~SectionForceDeformation();
+  void operator=(const SectionForceDeformation&) = delete;
 
   //virtual int setTrialSectionDeformation (const Vector&) = 0;
   virtual int setTrialSectionDeformation (const Vector&) ; //the default value 0 is removeed byJZ ,UoE 
-  virtual const Vector &getSectionDeformation (void) = 0;
+  virtual const Vector &getSectionDeformation() = 0;
   
-  virtual const Vector &getStressResultant (void) = 0;
-  virtual const Matrix &getSectionTangent (void) = 0;
-  virtual const Matrix &getInitialTangent (void) = 0;
-  virtual const Matrix &getSectionFlexibility (void);
-  virtual const Matrix &getInitialFlexibility (void);
+  virtual const Vector &getStressResultant() = 0;
+  virtual const Matrix &getSectionTangent() = 0;
+  virtual const Matrix &getInitialTangent() = 0;
+  virtual const Matrix &getSectionFlexibility();
+  virtual const Matrix &getInitialFlexibility();
   
-  virtual double getRho(void);
+  virtual double getRho();
   
-  virtual int commitState (void) = 0;
-  virtual int revertToLastCommit (void) = 0;
-  virtual int revertToStart (void) = 0;
+  virtual int commitState() = 0;
+  virtual int revertToLastCommit() = 0;
+  virtual int revertToStart() = 0;
   
-  virtual SectionForceDeformation *getCopy (void) = 0;
-  virtual const ID &getType(void) = 0;
-  virtual int getOrder (void) const = 0;
+  virtual SectionForceDeformation *getCopy() = 0;
+  virtual const ID &getType() = 0;
+  virtual int getOrder() const = 0;
 
   virtual Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-  virtual int getResponse(int responseID, Information &info);
+  virtual int getResponse(int responseID, Information &);
 
-  virtual int getResponseSensitivity(int responseID, int gradIndex,
-				     Information &info);
 
-  // AddingSensitivity:BEGIN //////////////////////////////////////////
+  // Sensitivity
+  virtual int getResponseSensitivity(int responseID, int gradIndex,Information &);
   virtual const Vector &getStressResultantSensitivity(int gradIndex,
 						      bool conditional);
   virtual const Vector &getSectionDeformationSensitivity(int gradIndex);
@@ -123,8 +123,8 @@ class SectionForceDeformation : public TaggedObject, public MovableObject
   virtual const Vector &getTemperatureStress(const Vector &tData);//27 is for 'FireLoadPattern'
   //--- Adding Thermal Functions:[END]   by UoE OpenSees Group ----//
 
-  virtual const Vector& getThermalElong(void);
-  virtual double getEnergy() const { return 0; };		//by SAJalali
+  virtual const Vector& getThermalElong();
+  virtual double getEnergy() const { return 0; }
 
  protected:
   Matrix *fDefault;	// Default flexibility matrix

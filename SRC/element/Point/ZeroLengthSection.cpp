@@ -29,6 +29,7 @@
 // ZeroLengthSection class.
 
 #include <ZeroLengthSection.h>
+#include <ZeroLength.h>
 #include <Information.h>
 
 #include <Domain.h>
@@ -42,6 +43,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+using namespace OpenSees;
 
 Matrix ZeroLengthSection::K6(6,6);
 Matrix ZeroLengthSection::K12(12,12);
@@ -50,52 +52,62 @@ Vector ZeroLengthSection::P6(6);
 Vector ZeroLengthSection::P12(12);
 
 ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2, 
-				     const Vector& x, const Vector& yprime, 
-				     SectionForceDeformation& sec,
-				     int doRayleigh) 
- :Element(tag, ELE_TAG_ZeroLengthSection),
-  connectedExternalNodes(2),
-  dimension(dim), numDOF(0), 
-  transformation(3,3), useRayleighDamping(doRayleigh), A(0), v(0), K(0), P(0),
-  theSection(0), order(0)
+                                     const Matrix3D& T,
+                                    //  const Vector& x, const Vector& yprime, 
+                                     SectionForceDeformation& sec,
+                                     int doRayleigh) 
+  : Element(tag, ELE_TAG_ZeroLengthSection)
+  , connectedExternalNodes(2)
+  , dimension(dim)
+  , numDOF(0)
+  , transformation{T}
+  , useRayleighDamping(doRayleigh)
+  , A(0), v(0), K(0), P(0),
+  theSection(nullptr)
+  , order(0)
 {
-	// Obtain copy of section model
-	theSection = sec.getCopy();
+  // Obtain copy of section model
+  theSection = sec.getCopy();
 
-	// Get the section order
-	order = theSection->getOrder();
+  // Get the section order
+  order = theSection->getOrder();
 
-	// Set up the transformation matrix of direction cosines
-	this->setUp(Nd1, Nd2, x, yprime);
+  connectedExternalNodes(0) = Nd1;
+  connectedExternalNodes(1) = Nd2;
+
+  for (int i=0; i<2; i++)
+    theNodes[i] = nullptr;
+  // Set up the transformation matrix of direction cosines
+  // this->setUp(Nd1, Nd2, x, yprime);
 }
 
 ZeroLengthSection::ZeroLengthSection() : 
 Element(0, ELE_TAG_ZeroLengthSection),
 connectedExternalNodes(2),
 dimension(0), numDOF(0), 
-transformation(3,3), A(0), v(0), K(0), P(0),
-theSection(0), order(0)
+transformation{}, A(0), v(0), K(0), P(0),
+theSection(nullptr), order(0)
 {
 
 }
 
 ZeroLengthSection::~ZeroLengthSection()
 {
-    // invoke the destructor on any objects created by the object
-    // that the object still holds a pointer to
-    
-	if (theSection != 0)
-		delete theSection;
-	if (A != 0)
-		delete A;
-	if (v != 0)
-		delete v;
+  // invoke the destructor on any objects created by the object
+  // that the object still holds a pointer to
+
+  if (theSection != 0)
+    delete theSection;
+  if (A != 0)
+    delete A;
+  if (v != 0)
+    delete v;
 }
 
 int
 ZeroLengthSection::getNumExternalNodes() const
 {
-    return 2;
+  return 2;
 }
 
 const ID &
@@ -113,7 +125,7 @@ ZeroLengthSection::getNodePtrs()
 int
 ZeroLengthSection::getNumDOF() 
 {
-    return numDOF;
+  return numDOF;
 }
 
 // method: setDomain()
@@ -125,105 +137,107 @@ ZeroLengthSection::getNumDOF()
 void
 ZeroLengthSection::setDomain(Domain *theDomain)
 {
-    // check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
-		theNodes[0] = 0;
-		theNodes[1] = 0;
-		return;
-    }
+  // check Domain is not null - invoked when object removed from a domain
+  if (theDomain == 0) {
+    theNodes[0] = 0;
+    theNodes[1] = 0;
+    return;
+  }
 
-    // first set the node pointers
-    int Nd1 = connectedExternalNodes(0);
-    int Nd2 = connectedExternalNodes(1);
-    theNodes[0] = theDomain->getNode(Nd1);
-    theNodes[1] = theDomain->getNode(Nd2);	
+  // first set the node pointers
+  int Nd1 = connectedExternalNodes(0);
+  int Nd2 = connectedExternalNodes(1);
+  theNodes[0] = theDomain->getNode(Nd1);
+  theNodes[1] = theDomain->getNode(Nd2);        
 
-    // if can't find both - send a warning message
-    if (theNodes[0] == 0 || theNodes[1] == 0) {
-      if (theNodes[0] == 0) 
-	opserr << "ZeroLengthSection::setDomain() -- Nd2: " << Nd2 << " does not exist in ";
-      else
-	opserr << "ZeroLengthSection::setDomain() -- Nd2: " << Nd2 << " does not exist in ";
-		
-      opserr << "model for ZeroLengthSection with id " << this->getTag() << endln;
-		
-      return;
-    }
+  // if can't find both - send a warning message
+  if (theNodes[0] == 0 || theNodes[1] == 0) {
+    if (theNodes[0] == 0) 
+      opserr << "ZeroLengthSection::setDomain() -- Nd2: " << Nd2 << " does not exist in ";
+    else
+      opserr << "ZeroLengthSection::setDomain() -- Nd2: " << Nd2 << " does not exist in ";
+              
+    opserr << "model for ZeroLengthSection with id " << this->getTag() << endln;
+              
+    return;
+  }
 
-    // now determine the number of dof and the dimension    
-    int dofNd1 = theNodes[0]->getNumberDOF();
-    int dofNd2 = theNodes[1]->getNumberDOF();	
+  // now determine the number of dof and the dimension    
+  int dofNd1 = theNodes[0]->getNumberDOF();
+  int dofNd2 = theNodes[1]->getNumberDOF();        
 
-    // if differing dof at the ends - print a warning message
-    if (dofNd1 != dofNd2) {
-      opserr << "ZeroLengthSection::setDomain() -- nodes " << Nd1 << " and " << Nd2 << 
-	"have differing dof at ends for ZeroLengthSection " << this->getTag() << endln;
-      return;
-    }	
+  // if differing dof at the ends - print a warning message
+  if (dofNd1 != dofNd2) {
+    opserr << "ZeroLengthSection::setDomain() -- nodes " 
+            << Nd1 << " and " << Nd2 << "have differing dof at ends for ZeroLengthSection " 
+            << this->getTag() << "\n";
+    return;
+  }        
 
-    numDOF = 2*dofNd1;
+  numDOF = 2*dofNd1;
 
-    if (numDOF != 6 && numDOF != 12)
-      opserr << "ZeroLengthSection::setDomain() -- element only works for 3 (2d) or 6 (3d) dof per node\n";
-    
-    // Set pointers to class wide objects
-    if (numDOF == 6) {
-      P = &P6;
-      K = &K6;
-    }
-    else {
-      P = &P12;
-      K = &K12;
-    }
-    
-    // Check that length is zero within tolerance
-    const Vector &end1Crd = theNodes[0]->getCrds();
-    const Vector &end2Crd = theNodes[1]->getCrds();	
-    Vector diff = end1Crd - end2Crd;
-    double L  = diff.Norm();
-    double v1 = end1Crd.Norm();
-    double v2 = end2Crd.Norm();
-    double vm;
-    
-    vm = (v1<v2) ? v2 : v1;
-    
-    if (L > LENTOL*vm)
-      opserr << "ZeroLengthSection::setDomain() -- Element " << this->getTag() << 
-	"has L= " << L << ", which is greater than the tolerance\n";
-	
+  if (numDOF != 6 && numDOF != 12)
+    opserr << "ZeroLengthSection::setDomain() -- element only works for 3 (2d) or 6 (3d) dof per node\n";
+  
+  // Set pointers to class wide objects
+  if (numDOF == 6) {
+    P = &P6;
+    K = &K6;
+  }
+  else {
+    P = &P12;
+    K = &K12;
+  }
+  
+  // Check that length is zero within tolerance
+  const Vector &end1Crd = theNodes[0]->getCrds();
+  const Vector &end2Crd = theNodes[1]->getCrds();        
+  Vector diff = end1Crd - end2Crd;
+  double L  = diff.Norm();
+  double v1 = end1Crd.Norm();
+  double v2 = end2Crd.Norm();
+  double vm;
+  
+  vm = (v1<v2) ? v2 : v1;
+  
+  if (L > ZeroLength::MaxLength*vm)
+    opserr << "Element " 
+            << this->getTag() << "has L= " << L 
+            << ", which is greater than the tolerance\n";
+        
 
-// call the base class method
-if (theDomain != nullptr)
-  this->Element::link(*theDomain);
+  // call the base class method
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
 // Set up the A matrix
-	this->setTransformation();
+  this->setTransformation();
 }   
 
 int
-ZeroLengthSection::update()		// MSN: added to allow error identification in setTrialSectionDeformation()
+ZeroLengthSection::update() // MSN: added to allow error identification in setTrialSectionDeformation()
 {
-	// Compute section deformation vector
-	this->computeSectionDefs();
+  // Compute section deformation vector
+  this->computeSectionDefs();
 
-	// Set trial section deformation
-	if (theSection->setTrialSectionDeformation(*v) < 0) {
-		opserr << "WARNING! ZeroLengthSection::update() - element: " << this->getTag() << " failed in setTrialSectionDeformation\n";
-		return -1;
-	}
+  // Set trial section deformation
+  if (theSection->setTrialSectionDeformation(*v) < 0) {
+    opserr << "WARNING! ZeroLengthSection::update() - element: " << this->getTag() << " failed in setTrialSectionDeformation\n";
+    return -1;
+  }
 
-	return 0;
+  return 0;
 }
 
 int
 ZeroLengthSection::commitState()
 {
-    int retVal=0;
+  int retVal=0;
 
-    // call element commitState to do any base class stuff
-    if ((retVal = this->Element::commitState()) != 0) {
-      opserr << "ZeroLength::commitState () - failed in base class\n";
-    }    
+  // call element commitState to do any base class stuff
+  if ((retVal = this->Element::commitState()) != 0) {
+    opserr << "ZeroLength::commitState () - failed in base class\n";
+  }    
   // Commit the section
   retVal += theSection->commitState();
   return retVal;
@@ -246,19 +260,18 @@ ZeroLengthSection::revertToStart()
 const Matrix &
 ZeroLengthSection::getTangentStiff()
 {
-	// Get section tangent stiffness, the element basic stiffness
-	const Matrix &kb = theSection->getSectionTangent();
+  // Get section tangent stiffness, the element basic stiffness
+  const Matrix &kb = theSection->getSectionTangent();
 
-	// Compute element stiffness ... K = A^*kb*A
-	K->addMatrixTripleProduct(0.0, *A, kb, 1.0);
-	// opserr << "K = " << *K;
+  // Compute element stiffness ... K = A^*kb*A
+  K->addMatrixTripleProduct(0.0, *A, kb, 1.0);
 
-	return *K;
+  return *K;
 }
 
 const Matrix &
 ZeroLengthSection::getDamp()
-{	
+{        
   if (useRayleighDamping == 1)
     return this->Element::getDamp();
 
@@ -276,14 +289,14 @@ ZeroLengthSection::getInitialStiff()
   
   // Compute element stiffness ... K = A^*kb*A
   K->addMatrixTripleProduct(0.0, *A, kb, 1.0);
-	
+        
   return *K;
 }
 
 void 
 ZeroLengthSection::zeroLoad()
 {
-	// does nothing now
+        // does nothing now
 }
 
 int 
@@ -304,178 +317,169 @@ ZeroLengthSection::addInertiaLoadToUnbalance(const Vector &accel)
 const Vector &
 ZeroLengthSection::getResistingForce()
 {
-	// Compute section deformation vector
-	// this->computeSectionDefs();	// MSN: commented out beause the method "update()" was added to the class
+  // Get section stress resultants, the element basic forces
+  const Vector &q = theSection->getStressResultant();
 
-	// Set trial section deformation
-	// theSection->setTrialSectionDeformation(*v);	// MSN: commented out beause the method "update()" was added to the class
+  // Compute element resisting force ... P = A^*q
+  P->addMatrixTransposeVector(0.0, *A, q, 1.0);
 
-	// Get section stress resultants, the element basic forces
-	const Vector &q = theSection->getStressResultant();
-
-	// Compute element resisting force ... P = A^*q
-	P->addMatrixTransposeVector(0.0, *A, q, 1.0);
-
-	return *P;
+  return *P;
 }
 
 
 const Vector &
 ZeroLengthSection::getResistingForceIncInertia()
-{	
-    this->getResistingForce();
+{        
+  this->getResistingForce();
 
-    if (useRayleighDamping == 1)
-      if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-	*P += this->getRayleighDampingForces();
+  if (useRayleighDamping == 1)
+    if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+      *P += this->getRayleighDampingForces();
 
-    return *P;
+  return *P;
 }
 
 
 int
 ZeroLengthSection::sendSelf(int commitTag, Channel &theChannel)
 {
-	int res = 0;
+  int res = 0;
 
-	// note: we don't check for dataTag == 0 for Element
-	// objects as that is taken care of in a commit by the Domain
-	// object - don't want to have to do the check if sending data
-	int dataTag = this->getDbTag();
+  // note: we don't check for dataTag == 0 for Element
+  // objects as that is taken care of in a commit by the Domain
+  // object - don't want to have to do the check if sending data
+  int dataTag = this->getDbTag();
 
-	// ZeroLengthSection packs its data into an ID and sends this to theChannel
-	// along with its dbTag and the commitTag passed in the arguments
-	static ID idData(9);
+  // ZeroLengthSection packs its data into an ID and sends this to theChannel
+  // along with its dbTag and the commitTag passed in the arguments
+  static ID idData(9);
 
-	idData(0) = this->getTag();
-	idData(1) = dimension;
-	idData(2) = numDOF;
-	idData(3) = order;
-	idData(4) = connectedExternalNodes(0);
-	idData(5) = connectedExternalNodes(1);
-	idData(6) = theSection->getClassTag();
-	
-	int secDbTag = theSection->getDbTag();
-	if (secDbTag == 0) {
-		secDbTag = theChannel.getDbTag();
-		if (secDbTag != 0)
-			theSection->setDbTag(secDbTag);
-	}
-	idData(7) = secDbTag;
-	idData(8) = useRayleighDamping;
+  idData(0) = this->getTag();
+  idData(1) = dimension;
+  idData(2) = numDOF;
+  idData(3) = order;
+  idData(4) = connectedExternalNodes(0);
+  idData(5) = connectedExternalNodes(1);
+  idData(6) = theSection->getClassTag();
+  
+  int secDbTag = theSection->getDbTag();
+  if (secDbTag == 0) {
+          secDbTag = theChannel.getDbTag();
+          if (secDbTag != 0)
+                  theSection->setDbTag(secDbTag);
+  }
+  idData(7) = secDbTag;
+  idData(8) = useRayleighDamping;
 
 
-	res += theChannel.sendID(dataTag, commitTag, idData);
-	if (res < 0) {
-	  opserr << "ZeroLengthSection::sendSelf -- failed to send ID data\n";
-			
-		return res;
-	}
+  res += theChannel.sendID(dataTag, commitTag, idData);
+  if (res < 0) {
+    opserr << "ZeroLengthSection::sendSelf -- failed to send ID data\n";
+                  
+          return res;
+  }
 
-	// Send the 3x3 direction cosine matrix, have to send it since it is only set
-	// in the constructor and not setDomain()
-	res += theChannel.sendMatrix(dataTag, commitTag, transformation);
-	if (res < 0) {
-	  opserr << "ZeroLengthSection::sendSelf -- failed to send transformation Matrix\n";
-	  return res;
-	}
+  // Send the 3x3 direction cosine matrix, have to send it since it is only set
+  // in the constructor and not setDomain()
+  // TODO(cmp): send Matrix3D
+  // res += theChannel.sendMatrix(dataTag, commitTag, transformation);
+  if (res < 0) {
+    opserr << "ZeroLengthSection::sendSelf -- failed to send transformation Matrix\n";
+    return res;
+  }
 
-	// Send the section
-	res += theSection->sendSelf(commitTag, theChannel);
-	if (res < 0) {
-	  opserr << "ZeroLengthSection::sendSelf -- failed to send Section\n";
-	  return res;
-	}
+  // Send the section
+  res += theSection->sendSelf(commitTag, theChannel);
+  if (res < 0) {
+    opserr << "ZeroLengthSection::sendSelf -- failed to send Section\n";
+    return res;
+  }
 
-	return res;
+  return res;
 }
 
 int
 ZeroLengthSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-	int res = 0;
-  
-	int dataTag = this->getDbTag();
+  int res = 0;
 
-	// ZeroLengthSection creates an ID, receives the ID and then sets the 
-	// internal data with the data in the ID
+  int dataTag = this->getDbTag();
 
-	static ID idData(9);
+  // ZeroLengthSection creates an ID, receives the ID and then sets the 
+  // internal data with the data in the ID
 
-	res += theChannel.recvID(dataTag, commitTag, idData);
-	if (res < 0) {
-	  opserr << "ZeroLengthSection::recvSelf -- failed to receive ID data\n";
-	  return res;
-	}
+  static ID idData(9);
 
-	res += theChannel.recvMatrix(dataTag, commitTag, transformation);
-	if (res < 0) {
-	  opserr << "ZeroLengthSection::recvSelf -- failed to receive transformation Matrix\n";
-	  return res;
-	}
+  res += theChannel.recvID(dataTag, commitTag, idData);
+  if (res < 0) {
+    opserr << "ZeroLengthSection::recvSelf -- failed to receive ID data\n";
+    return res;
+  }
 
-	this->setTag(idData(0));
-	dimension = idData(1);
-	numDOF = idData(2);
-	connectedExternalNodes(0) = idData(4);
-	connectedExternalNodes(1) = idData(5);
-	useRayleighDamping =idData(8);
+  // TODO(cmp): receive Matrix3D
+  // res += theChannel.recvMatrix(dataTag, commitTag, transformation);
+  if (res < 0) {
+    opserr << "ZeroLengthSection::recvSelf -- failed to receive transformation Matrix\n";
+    return res;
+  }
 
-	// Check that there is correct number of materials, reallocate if needed
-	if (order != idData(3)) {
+  this->setTag(idData(0));
+  dimension = idData(1);
+  numDOF = idData(2);
+  connectedExternalNodes(0) = idData(4);
+  connectedExternalNodes(1) = idData(5);
+  useRayleighDamping =idData(8);
 
-		order = idData(3);
+  // Check that there is correct number of materials, reallocate if needed
+  if (order != idData(3)) {
 
-		// Allocate transformation matrix
-		if (A != 0)
-			delete A;
+          order = idData(3);
 
-		A = new Matrix(order, numDOF);
+          // Allocate transformation matrix
+          if (A != 0)
+                  delete A;
+
+          A = new Matrix(order, numDOF);
 
 
-		// Allocate section deformation vector
-		if (v != 0)
-			delete v;
+          // Allocate section deformation vector
+          if (v != 0)
+                  delete v;
 
-		v = new Vector(order);
+          v = new Vector(order);
 
-		if (numDOF == 6) {
-			P = &P6;
-			K = &K6;
-		}
-		else {
-			P = &P12;
-			K = &K12;
-		}
-	}
+          if (numDOF == 6) {
+                  P = &P6;
+                  K = &K6;
+          }
+          else {
+                  P = &P12;
+                  K = &K12;
+          }
+  }
 
-	int secClassTag = idData(6);
+  int secClassTag = idData(6);
 
-	// If null, get a new one from the broker
-	if (theSection == 0)
-		theSection = theBroker.getNewSection(secClassTag);
+  // If null, get a new one from the broker
+  if (theSection == 0)
+          theSection = theBroker.getNewSection(secClassTag);
 
-	// If wrong type, get a new one from the broker
-	if (theSection->getClassTag() != secClassTag) {
-		delete theSection;
-		theSection = theBroker.getNewSection(secClassTag);
-	}
+  // If wrong type, get a new one from the broker
+  if (theSection->getClassTag() != secClassTag) {
+    delete theSection;
+    theSection = theBroker.getNewSection(secClassTag);
+  }
 
-	// Check if either allocation failed from broker
-	if (theSection == 0) {
-	  opserr << "ZeroLengthSection::recvSelf -- failed to allocate new Section\n";
-	  return -1;
-	}
 
-	// Receive the section
-	theSection->setDbTag(idData(7));
-	res += theSection->recvSelf(commitTag, theChannel, theBroker);
-	if (res < 0) {
-	  opserr << "ZeroLengthSection::recvSelf -- failed to receive Section\n";
-	  return res;
-	}
+  // Receive the section
+  theSection->setDbTag(idData(7));
+  res += theSection->recvSelf(commitTag, theChannel, theBroker);
+  if (res < 0) {
+    opserr << "ZeroLengthSection::recvSelf -- failed to receive Section\n";
+    return res;
+  }
 
-	return res;
+  return res;
 }
 
 
@@ -532,7 +536,7 @@ ZeroLengthSection::setResponse(const char **argv, int argc, OPS_Stream &output)
             theResponse = new ElementResponse(this, 1, *P);
 
     } else if ((strcmp(argv[0],"basicForce") == 0) || (strcmp(argv[0],"basicForces") == 0) ||
-	       (strcmp(argv[0],"localForce") == 0) || (strcmp(argv[0],"localForces") == 0)) {
+               (strcmp(argv[0],"localForce") == 0) || (strcmp(argv[0],"localForces") == 0)) {
 
         for (int i=0; i<order; i++) {
             sprintf(outputData,"P%d",i+1);
@@ -593,6 +597,7 @@ ZeroLengthSection::getResponse(int responseID, Information &eleInfo)
     }
 }
 
+#if 0
 // Private methods
 
 // Establish the external nodes and set up the transformation matrix
@@ -600,8 +605,6 @@ ZeroLengthSection::getResponse(int responseID, Information &eleInfo)
 void
 ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
 { 
-    // ensure the connectedExternalNode ID is of correct size & set values
-    assert(connectedExternalNodes.Size() == 2);
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -612,7 +615,7 @@ ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
     // check that vectors for orientation are correct size
     if ( x.Size() != 3 || yp.Size() != 3 )
       opserr << "ZeroLengthSection::setUp -- incorrect dimension of orientation vectors\n";
-			
+                        
 
     // establish orientation of element for the transformation matrix
     // z = x cross yp
@@ -639,134 +642,135 @@ ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
 
     // create transformation matrix of direction cosines
     for (int i = 0; i < 3; i++) {
-		transformation(0,i) = x(i)/xn;
-		transformation(1,i) = y(i)/yn;
-		transformation(2,i) = z(i)/zn;
-	}
+                transformation(0,i) = x(i)/xn;
+                transformation(1,i) = y(i)/yn;
+                transformation(2,i) = z(i)/zn;
+        }
 }
+#endif
 
 // Set basic deformation-displacement transformation matrix for section
 void 
 ZeroLengthSection::setTransformation()
 {
-	// Allocate transformation matrix
-	if (A != 0)
-		delete A;
+  // Allocate transformation matrix
+  if (A != nullptr)
+    delete A;
 
-	A = new Matrix(order, numDOF);
+  A = new Matrix(order, numDOF);
 
-	// Allocate section deformation vector
-	if (v != nullptr)
-		delete v;
+  // Allocate section deformation vector
+  if (v != nullptr)
+    delete v;
 
-	v = new Vector(order);
+  v = new Vector(order);
 
-	// Get the section code
-	const ID &code = theSection->getType();
+  // Get the section code
+  const ID &code = theSection->getType();
 
-	// Set a reference to make the syntax nicer
-	Matrix &tran = *A;
-	
-	tran.Zero();
+  // Set a reference to make the syntax nicer
+  Matrix &tran = *A;
+  
+  tran.Zero();
 
-	// Loop over the section code
-	for (int i = 0; i < order; i++) {
+  // Loop over the section code
+  for (int i = 0; i < order; i++) {
 
-		// Fill in row i of A based on section code
-		switch(code(i)) {
+    // Fill in row i of A based on section code
+    switch(code(i)) {
 
-		// The in-plane transformations
-		case SECTION_RESPONSE_MZ:
-			if (numDOF == 6) {
-				tran(i,3) = 0.0;
-				tran(i,4) = 0.0;
-				tran(i,5) = transformation(2,2);
-			}
-			else if (numDOF == 12) {
-				tran(i,9) = transformation(2,0);
-				tran(i,10) = transformation(2,1);
-				tran(i,11) = transformation(2,2);
-			}
-			break;
-		case SECTION_RESPONSE_P:
-			if (numDOF == 6) {
-				tran(i,3) = transformation(0,0);
-				tran(i,4) = transformation(0,1);
-				tran(i,5) = 0.0;
-			}
-			else if (numDOF == 12) {
-				tran(i,6) = transformation(0,0);
-				tran(i,7) = transformation(0,1);
-				tran(i,8) = transformation(0,2);
-			}
-			break;
-		case SECTION_RESPONSE_VY:
-			if (numDOF == 6) {
-				tran(i,3) = transformation(1,0);
-				tran(i,4) = transformation(1,1);
-				tran(i,5) = 0.0;
-			}
-			else if (numDOF == 12) {
-				tran(i,6) = transformation(1,0);
-				tran(i,7) = transformation(1,1);
-				tran(i,8) = transformation(1,2);
-			}
-			break;
+    // The in-plane transformations
+    case SECTION_RESPONSE_MZ:
+      if (numDOF == 6) {
+              tran(i,3) = 0.0;
+              tran(i,4) = 0.0;
+              tran(i,5) = transformation(2,2);
+      }
+      else if (numDOF == 12) {
+              tran(i,9)  = transformation(2,0);
+              tran(i,10) = transformation(2,1);
+              tran(i,11) = transformation(2,2);
+      }
+      break;
+    case SECTION_RESPONSE_P:
+      if (numDOF == 6) {
+              tran(i,3) = transformation(0,0);
+              tran(i,4) = transformation(0,1);
+              tran(i,5) = 0.0;
+      }
+      else if (numDOF == 12) {
+              tran(i,6) = transformation(0,0);
+              tran(i,7) = transformation(0,1);
+              tran(i,8) = transformation(0,2);
+      }
+      break;
+    case SECTION_RESPONSE_VY:
+      if (numDOF == 6) {
+              tran(i,3) = transformation(1,0);
+              tran(i,4) = transformation(1,1);
+              tran(i,5) = 0.0;
+      }
+      else if (numDOF == 12) {
+              tran(i,6) = transformation(1,0);
+              tran(i,7) = transformation(1,1);
+              tran(i,8) = transformation(1,2);
+      }
+      break;
 
-		// The out-of-plane transformations
-		case SECTION_RESPONSE_MY:
-			if (numDOF == 12) {
-				tran(i,9) = transformation(1,0);
-				tran(i,10) = transformation(1,1);
-				tran(i,11) = transformation(1,2);
-			}
-			break;
+    // The out-of-plane transformations
+    case SECTION_RESPONSE_MY:
+      if (numDOF == 12) {
+        tran(i,9) = transformation(1,0);
+        tran(i,10) = transformation(1,1);
+        tran(i,11) = transformation(1,2);
+      }
+      break;
 
-		case SECTION_RESPONSE_VZ:
-			if (numDOF == 12) {
-				tran(i,6) = transformation(2,0);
-				tran(i,7) = transformation(2,1);
-				tran(i,8) = transformation(2,2);
-			}
-			break;
+    case SECTION_RESPONSE_VZ:
+      if (numDOF == 12) {
+        tran(i,6) = transformation(2,0);
+        tran(i,7) = transformation(2,1);
+        tran(i,8) = transformation(2,2);
+      }
+      break;
 
-		case SECTION_RESPONSE_T:
-			if (numDOF == 12) {
-				tran(i,9) = transformation(0,0);
-				tran(i,10) = transformation(0,1);
-				tran(i,11) = transformation(0,2);
-			}
-			break;
-		default:
-			break;
-		}
+    case SECTION_RESPONSE_T:
+            if (numDOF == 12) {
+                    tran(i,9) = transformation(0,0);
+                    tran(i,10) = transformation(0,1);
+                    tran(i,11) = transformation(0,2);
+            }
+            break;
+    default:
+            break;
+    }
 
-		// Fill in first half of transformation matrix with negative sign
-		for (int j = 0; j < numDOF/2; j++ )
-			tran(i,j) = -tran(i,j+numDOF/2);
-	}
+    // Fill in first half of transformation matrix with negative sign
+    for (int j = 0; j < numDOF/2; j++ )
+      tran(i,j) = -tran(i,j+numDOF/2);
+  }
 }
-		     
+                     
 void
 ZeroLengthSection::computeSectionDefs()
 {
-	// Get nodal displacements
-	const Vector &u1 = theNodes[0]->getTrialDisp();
-	const Vector &u2 = theNodes[1]->getTrialDisp();
+  // Get nodal displacements
+  const Vector &u1 = theNodes[0]->getTrialDisp();
+  const Vector &u2 = theNodes[1]->getTrialDisp();
 
-	// Compute differential displacements
-	Vector diff = u2 - u1;
+  // Compute differential displacements
+  Vector diff = u2 - u1;
 
-	// Set some references to make the syntax nicer
-	Vector &def = *v;
-	const Matrix &tran = *A;
+  // Set some references to make the syntax nicer
+  Vector &def = *v;
+  const Matrix &tran = *A;
 
-	def.Zero();
+  def.Zero();
 
-	// Compute element basic deformations ... v = A*(u2-u1)
-	for (int i = 0; i < order; i++)
-		for (int j = 0; j < numDOF/2; j++)
-			def(i) += -diff(j)*tran(i,j);
+  // Compute element basic deformations ... v = A*(u2-u1)
+  for (int i = 0; i < order; i++)
+    for (int j = 0; j < numDOF/2; j++)
+      def(i) += -diff(j)*tran(i,j);
 }
 
 int
@@ -782,10 +786,10 @@ const Vector &
 ZeroLengthSection::getResistingForceSensitivity(int gradIndex)
 {
   // Compute section deformation vector
-  // this->computeSectionDefs();	// MSN: commented out beause the method "update()" was added to the class
+  // this->computeSectionDefs();        // MSN: commented out beause the method "update()" was added to the class
 
   // Set trial section deformation
-  // theSection->setTrialSectionDeformation(*v);	// MSN: commented out beause the method "update()" was added to the class
+  // theSection->setTrialSectionDeformation(*v);        // MSN: commented out beause the method "update()" was added to the class
 
   // Get section stress resultants, the element basic forces
   const Vector &dqdh = theSection->getStressResultantSensitivity(gradIndex, true);

@@ -25,10 +25,8 @@
 #ifndef TWENTY_NODE_BRICK_H
 #define TWENTY_NODE_BRICK_H
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-
+#include <array>
 #include <ID.h>
 #include <Vector.h>
 #include <Matrix.h>
@@ -41,10 +39,9 @@ class Twenty_Node_Brick : public Element {
 public:
   Twenty_Node_Brick();
 
-  Twenty_Node_Brick(int tag, int node1, int node2, int node3, int node4, int node5, int node6,
-                    int node7, int node8, int node9, int node10, int node11, int node12, int node13,
-                    int node14, int node15, int node16, int node17, int node18, int node19,
-                    int node20, NDMaterial& theMaterial, double b1 = 0.0, double b2 = 0.0,
+  Twenty_Node_Brick(int tag, 
+                    const std::array<int, 20>& node_tags,
+                    NDMaterial& theMaterial, double b1 = 0.0, double b2 = 0.0,
                     double b3 = 0.0);
 
   virtual ~Twenty_Node_Brick();
@@ -54,9 +51,8 @@ public:
   {
     return "Twenty_Node_Brick";
   }
-  static constexpr const char* class_name = "Twenty_Node_Brick";
 
-  void setDomain(Domain* theDomain);
+  void setDomain(Domain*);
 
   int getNumExternalNodes() const;
 
@@ -114,15 +110,15 @@ private:
   static Matrix damp;
 
   // quadrature data
-  static const int nintu;
+  static constexpr int nintu = 27;
 
 
   //node information
   ID connectedExternalNodes; //eight node numbers
   Node* nodePointers[NEN];    //pointers to eight nodes
 
-
-  NDMaterial** materialPointers; // pointer to the ND material objects
+  std::array<NDMaterial*, nintu> materialPointers;
+  // NDMaterial** materialPointers; // pointer to the ND material objects
 
   //local nodal coordinates, three coordinates for each of twenty nodes
   //    static double xl[3][20] ;

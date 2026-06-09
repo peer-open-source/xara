@@ -88,10 +88,6 @@ MeshRegion::setNodes(const ID &theNods)
   int numNodes = theNods.Size();
   theNodes = new ID(0, numNodes);
   theElements = new ID(0, numNodes);
-  if (theNodes == 0 || theElements == 0) {
-    opserr << "MeshRegion::setNodes() - ran out of memory\n";
-    return -1;
-  }
 
   // add nodes to the node list if in the domain
   int loc = 0;

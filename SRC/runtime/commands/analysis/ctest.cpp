@@ -300,7 +300,8 @@ getCTestNorms(ClientData clientData, Tcl_Interp *interp,
 
   const Vector &data = theTest->getNorms();
 
-  int size = data.Size();
+  // int size = data.Size();
+  int size = theTest->getNumTests();
   Tcl_Obj *result = Tcl_NewListObj(size, NULL);
   for (int i = 0; i < size; ++i)
     Tcl_ListObjAppendElement(interp, result, Tcl_NewDoubleObj(data(i)));

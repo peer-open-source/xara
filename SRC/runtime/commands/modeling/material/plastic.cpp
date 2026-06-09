@@ -102,6 +102,8 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   double rho = 0, rho_bar = 0;
   double atm = 101.0;
   double delta2 = 0.0;
+  double yield_tol = 1e-16;
+  int max_iter = 15;
 
   //
   // 1. Keyword arguments
@@ -123,7 +125,8 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       continue;
     }
 
-    else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
+    else if (strcmp(argv[i], "-rho") == 0 || 
+             strcmp(argv[i], "-density") == 0) {
       if (++i >= argc) {
         opserr << "Missing value for option " << argv[i-1] << "\n";
         return TCL_ERROR;
@@ -197,6 +200,16 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       }
       if (Tcl_GetDouble(interp, argv[i], &overstress.speed) != TCL_OK) {
         opserr << "Invalid overstress speed value " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+    }
+    else if (strcmp(argv[i], "-tol") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &yield_tol) != TCL_OK) {
+        opserr << "Invalid yield tolerance value " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
     }
@@ -769,7 +782,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
   }
 
-  else if (strcmp(argv[1], "J2BeamFiber") == 0) {
+  else if ((strcmp(argv[1], "J2BeamFiber") == 0) && (getenv("XARA_STATIC_MATERIALS") != nullptr)) {
     NDMaterial* theMaterial = nullptr;
     if (builder->getNDM() == 2)
       theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
@@ -782,12 +795,14 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
     }
     return TCL_OK;
   }
-  else if (strcmp(argv[1], "J2BeamThread") == 0) {
+  else if ((strcmp(argv[1], "J2BeamThread") == 0) ||
+           (strcmp(argv[1], "J2BeamFiber") == 0)) {
     NDMaterial* theMaterial = nullptr;
     if (builder->getNDM() == 2)
       theMaterial = new J2BeamFiber2d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
     else 
-      theMaterial = new J2BeamThread3d(tag, consts.E, consts.nu, Fy, kinematic.C[0], Hiso);
+      theMaterial = new J2BeamThread3d(tag, consts.E, consts.nu, 
+                                       Fy, kinematic.C[0], Hiso, density);
 
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
@@ -882,7 +897,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
                                             b[0], Q[0],
                                             b[1], Q[1],
                                             kinematic.C,
-                                            kinematic.gamma);
+                                            kinematic.gamma,
+                                            yield_tol,
+                                            max_iter);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -1117,207 +1134,3 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
    return TCL_OK;
 }
 
-
-int
-TclCommand_newJ2Simplified(ClientData clientData, Tcl_Interp* interp, int argc, const char** const argv)
-{
-
-  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
-
-  if (argc < 8) {
-    opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: nDmaterial Simplified3DJ2  $matTag  $G  $K  $sig0 $Hkin  $Hiso"
-            << "\n";
-    return TCL_ERROR;
-  }
-
-  int tag;
-  double K, G, sig0, H_kin, H_iso;
-
-  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << "WARNING invalid tag" << "\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[3], &G) != TCL_OK) {
-    opserr << "WARNING invalid G\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[4], &K) != TCL_OK) {
-    opserr << "WARNING invalid K\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[5], &sig0) != TCL_OK) {
-    opserr << "WARNING invalid sig0\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[6], &H_kin) != TCL_OK) {
-    opserr << "WARNING invalid Hkin\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[7], &H_iso) != TCL_OK) {
-    opserr << "WARNING invalid Hiso\n";
-    return TCL_ERROR;
-  }
-
-  NDMaterial* theMaterial = nullptr;
-  
-  if ((strcmp(argv[1], "Simplified3DJ2") == 0) ||
-      (strcmp(argv[1], "3DJ2") == 0) ||
-      (strcmp(argv[1], "SimplifiedJ2") == 0) ||
-      (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0)) {
-    double density = 0.0;
-    theMaterial = new SimplifiedJ2(tag, 3, G, K, sig0, H_kin, H_iso, density);
-
-    if (strcmp(argv[1], "PlaneStressSimplifiedJ2") == 0) {
-      theMaterial = new PlaneStressSimplifiedJ2(tag, 2, *theMaterial);
-    }
-  }
-
-  //
-  if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
-    delete theMaterial;
-    return TCL_ERROR;
-  }
-  return TCL_OK;
-}
-
-
-#if 0
-
-int
-TclCommand_newJ2Material(ClientData clientData,
-                         Tcl_Interp* interp,
-                         int argc,
-                         const char** const argv)
-{
-  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
-
-  if (argc < 9) {
-    opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: nDMaterial J2Plasticity tag? K? G? sig0? sigInf? delta? H? <eta?>" << "\n";
-    return TCL_ERROR;
-  }
-
-  int tag;
-  double K, G, sig0, sigInf, delta, H;
-  double eta = 0.0;
-
-  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-    opserr << "WARNING invalid J2Plasticity tag" << "\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[3], &K) != TCL_OK) {
-    opserr << "WARNING invalid K\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[4], &G) != TCL_OK) {
-    opserr << "WARNING invalid G\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[5], &sig0) != TCL_OK) {
-    opserr << "WARNING invalid sig0\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[6], &sigInf) != TCL_OK) {
-    opserr << "WARNING invalid sigInf\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[7], &delta) != TCL_OK) {
-    opserr << "WARNING invalid delta\n";
-    return TCL_ERROR;
-  }
-  if (Tcl_GetDouble(interp, argv[8], &H) != TCL_OK) {
-    opserr << "WARNING invalid H\n";
-    return TCL_ERROR;
-  }
-  if (argc > 9 && Tcl_GetDouble(interp, argv[9], &eta) != TCL_OK) {
-    opserr << "WARNING invalid eta\n";
-    return TCL_ERROR;
-  }
-
-
-  //
-  NDMaterial* theMaterial = nullptr;
-
-  if ((strcmp(argv[1], "J2Plasticity") == 0) || 
-      (strcmp(argv[1], "J2") == 0)) {
-    theMaterial = new J2Plasticity(tag, 0, K, G, sig0, sigInf, delta, H, eta);
-  }
-  
-  if (theMaterial == nullptr)
-    return TCL_ERROR;
-
-  if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
-    delete theMaterial;
-    return TCL_ERROR;
-  }
-  return TCL_OK;
-}
-
-int
-TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp* interp, int argc, const char**const argv)
-{
-  if ((strcmp(argv[1], "J2Plasticity") == 0) || (strcmp(argv[1], "J2") == 0))
-  {
-    if (argc < 9) {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: nDMaterial J2Plasticity tag? K? G? sig0? sigInf? delta? H? <eta?>" << "\n";
-      return TCL_ERROR;
-    }
-
-    int tag;
-    double K, G, sig0, sigInf, delta, H;
-    double eta = 0.0;
-
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid J2Plasticity tag" << "\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[3], &K) != TCL_OK) {
-      opserr << "WARNING invalid K\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[4], &G) != TCL_OK) {
-      opserr << "WARNING invalid G\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[5], &sig0) != TCL_OK) {
-      opserr << "WARNING invalid sig0\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[6], &sigInf) != TCL_OK) {
-      opserr << "WARNING invalid sigInf\n";
-      return TCL_ERROR;
-    }
-
-    if (Tcl_GetDouble(interp, argv[7], &delta) != TCL_OK) {
-      opserr << "WARNING invalid delta\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[8], &H) != TCL_OK) {
-      opserr << "WARNING invalid H\n";
-      return TCL_ERROR;
-    }
-    if (argc > 9 && Tcl_GetDouble(interp, argv[9], &eta) != TCL_OK) {
-      opserr << "WARNING invalid eta\n";
-      return TCL_ERROR;
-    }
-
-    theMaterial = new J2Plasticity(tag, 0, K, G, sig0, sigInf, delta, H, eta);
-  }
-}
-#endif

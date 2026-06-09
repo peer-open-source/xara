@@ -55,7 +55,8 @@ PrismFrame2d::PrismFrame2d()
     theNodes[i] = nullptr;      
 }
 
-PrismFrame2d::PrismFrame2d(int tag, double a, double e, double i, 
+PrismFrame2d::PrismFrame2d(int tag, 
+                           double a, double e, double i, 
                            int Nd1, int Nd2, CrdTransf &coordTransf,
                            double Alpha, double depth_, double r, int cm,
                            int rel, int geom_flag_)
@@ -302,12 +303,15 @@ PrismFrame2d::update()
     case 0:
     break;
 
-    case 1:
-      kg.zero();
-      kg(1,1) = kg(2,2) =  4.0*N*L/30.0;
-      kg(1,2) = kg(2,1) = -1.0*N*L/30.0;
-      ke = km + kg;
-
+    case 1: {
+      ke = km;
+      if (std::fabs(N) > 1e-8) {
+        kg.zero();
+        kg(1,1) = kg(2,2) =  4.0*N*L/30.0;
+        kg(1,2) = kg(2,1) = -1.0*N*L/30.0;
+        ke += kg;
+      }
+    }
     case 2:
     {
       // initialize with linear coefficients

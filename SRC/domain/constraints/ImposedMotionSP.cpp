@@ -36,7 +36,7 @@
 #include <GroundMotion.h>
 #include <Node.h>
 #include <Domain.h>
-#include <LoadPattern.h>
+#include <MultiSupportPattern.h>
 #include <ID.h>
 
 // constructor for FEM_ObjectBroker
@@ -46,13 +46,13 @@ ImposedMotionSP::ImposedMotionSP()
  theGroundMotion(0), theNode(0), theNodeResponse(0), theGroundMotionResponse(3)
 
 {
-    // does nothing else
+  // does nothing else
 }
 
 // constructor for a subclass to use
-ImposedMotionSP::ImposedMotionSP(int node, int ndof, int pattern, int motion)
+ImposedMotionSP::ImposedMotionSP(int node, int ndof, MultiSupportPattern& pattern, int motion)
 :SP_Constraint(node, ndof, CNSTRNT_TAG_ImposedMotionSP),
- groundMotionTag(motion), patternTag(pattern),
+ groundMotionTag(motion), patternTag(pattern.getTag()), thePattern(&pattern),
  theGroundMotion(0), theNode(0), theNodeResponse(0), theGroundMotionResponse(3)
 {
 
@@ -68,10 +68,10 @@ ImposedMotionSP::~ImposedMotionSP()
 
 
 double
-ImposedMotionSP::getValue(void)
+ImposedMotionSP::getValue()
 {
   // no longer return 0 for TransformationConstraints also set response at nodes
-    return theGroundMotionResponse(0);    
+  return theGroundMotionResponse(0);    
 }
 
 
@@ -101,13 +101,7 @@ ImposedMotionSP::applyConstraint(double time)
       return -2;
     }
 
-    LoadPattern *theLoadPattern = theDomain->getLoadPattern(patternTag);
-    if (theLoadPattern == 0) {
-      opserr << "ImposedMotionSP::applyConstraint() - no load pattern\n";
-      return -3;
-    }
-
-    theGroundMotion = theLoadPattern->getMotion(groundMotionTag);
+    theGroundMotion = thePattern->getMotion(groundMotionTag);
     if (theGroundMotion == 0) {
       opserr << "ImposedMotionSP::applyConstraint() - no ground motion\n";
       return -4;
@@ -145,7 +139,7 @@ ImposedMotionSP::applyConstraint(double time)
 
 
 bool
-ImposedMotionSP::isHomogeneous(void) const
+ImposedMotionSP::isHomogeneous() const
 {
   return false;
 }
@@ -199,9 +193,9 @@ ImposedMotionSP::recvSelf(int cTag, Channel &theChannel,
 void
 ImposedMotionSP::Print(OPS_Stream &s, int flag) 
 {
-    s << "ImposedMotionSP: " << this->getTag();
-    s << "\t Node: " << this->getNodeTag();
-    s << " DOF: " << this->getDOF_Number() << endln;
+  s << "ImposedMotionSP: " << this->getTag();
+  s << "\t Node: " << this->getNodeTag();
+  s << " DOF: " << this->getDOF_Number() << "\n";
 }
 
 

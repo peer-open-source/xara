@@ -162,11 +162,6 @@ Truss2::Truss2(int tag,
 	  theBetaMaterial = (ConcretewBeta *) theMaterial;
 	}
 
-	// ensure the connectedExternalNode ID is of correct size & set values
-	if (connectedExternalNodes.Size() != 2 || connectedExternalOtherNodes.Size() != 2) {
-		opserr << "FATAL Truss2::Truss2 - " <<  tag << "failed to create an ID of size 2\n";
-		exit(-1);
-	}
 
 	connectedExternalNodes(0) = Nd1;
 	connectedExternalNodes(1) = Nd2; 
@@ -201,12 +196,6 @@ Truss2::Truss2()
 	theMatrix(0), theVector(0),
 	L(0.0), A(0.0), rho(0.0)
 {
-
-	// ensure the connectedExternalNode ID is of correct size 
-	if (connectedExternalNodes.Size() != 2 || connectedExternalOtherNodes.Size() != 2) {
-		opserr << "FATAL Truss2::Trus2s - failed to create an ID of size 2\n";
-		exit(-1);
-	}
 
 	for (int i=0; i<2; i++) {
 		theNodes[i] = 0;

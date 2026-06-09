@@ -34,6 +34,7 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
+using namespace OpenSees;
 
 void*
 OPS_ADD_RUNTIME_VPV(OPS_DoubleMembranePlateFiberSection)

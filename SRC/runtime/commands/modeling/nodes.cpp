@@ -73,8 +73,8 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   // read the node id
   int nodeId;
   if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid nodeTag\n";
-    opserr << "        Want: node nodeTag? [ndm coordinates?] <-mass [ndf values?]>"
+    opserr << OpenSees::PromptValueError 
+           << "invalid nodeTag " << argv[1]
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
@@ -96,7 +96,8 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (ndm >= 2 && argc >= 4) {
-    if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
+    if (GetDoubleParam(interp, *theTclDomain, argv[3], &yLoc, coord_params[1]) != TCL_OK) {
+    // if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
              << "invalid 2nd coordinate " << argv[3]
              << OpenSees::SignalMessageEnd;
@@ -105,7 +106,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (ndm >= 3 && argc >= 5) {
-    if (Tcl_GetDouble(interp, argv[4], &zLoc) != TCL_OK) {
+    if (GetDoubleParam(interp, *theTclDomain, argv[4], &zLoc, coord_params[2]) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
              << "invalid 3rd coordinate " << argv[4]
              << OpenSees::SignalMessageEnd;
@@ -149,7 +150,7 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
       }
     } else
 #endif
-      theNode = new HeapNode(nodeId, ndf, xLoc, yLoc, zLoc);
+      theNode = new HeapNode(nodeId, ndf, xLoc, yLoc, zLoc, builder->getRotationType());
     break;
   }
 
@@ -173,8 +174,8 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
         mass(i, i) = theMass;
       }
       theNode->setMass(mass);
-
-    } else if (strcmp(argv[currentArg], "-dispLoc") == 0) {
+    } 
+    else if (strcmp(argv[currentArg], "-dispLoc") == 0) {
       
       opswrn << G3_WARN_PROMPT
              << "-dispLoc option is no longer supported\n"
@@ -253,16 +254,32 @@ TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                         TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   Domain *theTclDomain = builder->getDomain();
 
-  int ndf = argc - 2;
 
-  // make sure at least one other argument
+  // get the id of the node
+  int nodeId;
+  if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+           << "invalid nodeId: " << argv[1]
+           << "\n";
+    return TCL_ERROR;
+  }
+
+  Node* node = theTclDomain->getNode(nodeId);
+  if (node == nullptr) {
+    opserr << OpenSees::PromptValueError 
+           << "node " << nodeId 
+           << " does not exist in domain\n";
+    return TCL_ERROR;
+  }
+
+  const int ndf = node->getNumberDOF();
   if (argc < 2 + 1) {
     opserr << OpenSees::PromptValueError 
            << "insufficient arguments, expected:\n"
@@ -270,29 +287,21 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  // get the id of the node
-  int nodeId;
-  if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-    opserr << OpenSees::PromptValueError 
-           << "invalid nodeId: " << argv[1];
-    opserr << " - mass nodeId " << ndf << " forces\n";
-    return TCL_ERROR;
-  }
-
-  Node* node = theTclDomain->getNode(nodeId);
-  if (node == nullptr) {
-    opserr << OpenSees::PromptValueError << "node " << nodeId << " does not exist in domain\n";
-    return TCL_ERROR;
-  }
-
   const int ndm = node->getCrds().Size();
   // check for mass terms
   bool equal_position = true;
 
+  Matrix mass(ndf,ndf);
   double position_inertia[3];
   int argi=2;
-  while (argi<argc) {
+  int n_mass = 0;
+  while (argi < argc) {
     if (strcmp(argv[argi], "-position")==0) {
+      if (n_mass > 0) {
+        opserr << OpenSees::PromptValueError 
+               << "cannot specify -position option after mass terms\n";
+        return TCL_ERROR;
+      }
       equal_position = true;
       if (argi + 1 >= argc) {
         opserr << OpenSees::PromptValueError 
@@ -305,55 +314,31 @@ TclCommand_addNodalMass(ClientData clientData, Tcl_Interp *interp, int argc,
           opserr << "node: " << nodeId << "\n";
           return TCL_ERROR;
       }
-      for (int j=1; j<ndm; ++j)
+      mass(0,0) = position_inertia[0];
+      for (int j=1; j<ndm; ++j) {
         position_inertia[j] = position_inertia[0];
-      argi += 2;
-    } else {
-      break;
-    }
-  }
-
-  if (argi < argc) {
-    if (argc - argi < ndm) {
-      opserr << OpenSees::PromptValueError 
-             << "insufficient nodal mass terms, need " << ndf << "\n";
-      return TCL_ERROR;
-    }
-    for (int i=0; i<ndm; ++i) {
-      double theMass;
-      if (Tcl_GetDouble(interp, argv[i+2], &theMass) != TCL_OK) {
-            opserr << OpenSees::PromptValueError 
-                  << "invalid nodal mass term\n";
-            opserr << "node: " << nodeId << ", dof: " << i+1 << "\n";
-            return TCL_ERROR;
-        }
-        position_inertia[i] = theMass;
-    }
-    for (int i=1; i<ndm; ++i) {
-      if (position_inertia[i] != position_inertia[0]) {
-        equal_position = false;
-        break;
+        mass(j,j) = position_inertia[j];
       }
+      argi += 2;
+    } 
+    else {
+      double theMass;
+      if (Tcl_GetDouble(interp, argv[argi], &theMass) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+                << "invalid nodal mass term "
+                << argv[argi]
+                << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      mass(n_mass,n_mass) = theMass;
+      if (n_mass < ndm)
+        position_inertia[n_mass] = theMass;
+      n_mass++;
+      argi++;
     }
   }
 
-  // set the mass
-  if (equal_position) {
-    node->addPositionInertia(position_inertia[0]);
-  }
-  else {
-    Matrix mass(ndf,ndf);
-    for (int i=0; i<ndf; ++i) {
-      double theMass;
-      if (Tcl_GetDouble(interp, argv[i+2], &theMass) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "invalid nodal mass term\n";
-            opserr << "node: " << nodeId << ", dof: " << i+1 << "\n";
-            return TCL_ERROR;
-        }
-        mass(i,i) = theMass;
-    }
-    node->setMass(mass);
-  }
+  node->setMass(mass);
 
   return TCL_OK;
 }

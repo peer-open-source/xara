@@ -46,8 +46,8 @@ class FullGenLinSolver;
 class FullGenLinSOE : public LinearSOE
 {
   public:
-    FullGenLinSOE(FullGenLinSolver &theSolver);        
-    FullGenLinSOE(int N, FullGenLinSolver &theSolver);        
+    FullGenLinSOE(FullGenLinSolver &);        
+    FullGenLinSOE(int N, FullGenLinSolver &);        
     FullGenLinSOE();
 
     ~FullGenLinSOE();
@@ -59,8 +59,8 @@ class FullGenLinSOE : public LinearSOE
     int setB(const Vector &, double fact = 1.0);        
     int addColA(const Vector &col, int colIndex, double fact = 1.0);
     
-    void zeroA(void);
-    void zeroB(void);
+    void zeroA();
+    void zeroB();
     
     int formAp(const Vector &p, Vector &Ap);
 
@@ -73,12 +73,10 @@ class FullGenLinSOE : public LinearSOE
     void setX(int loc, double value);        
     void setX(const Vector &x);        
 
-    int setFullGenSolver(FullGenLinSolver &newSolver);    
-
     friend class FullGenLinLapackSolver;    
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
   protected:
     

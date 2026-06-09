@@ -28,7 +28,6 @@
 #ifndef SixNodeTri_h
 #define SixNodeTri_h
 
-#include <stdbool.h>
 #include <array>
 #include <Element.h>
 #include <ID.h>
@@ -39,13 +38,19 @@ class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
+
 class SixNodeTri : public Element {
 public:
   SixNodeTri(int tag,
              const std::array<int,6> & nodes,
-             NDMaterial &m, const char *type, double t,
-             double pressure = 0.0, double rho = 0.0, double b1 = 0.0,
-             double b2 = 0.0);
+             NDMaterial &m, 
+             double t,
+             double pressure, 
+             double rho, 
+             double b1, double b2,
+             Element::MassSource mass_source
+            );
   SixNodeTri();
   ~SixNodeTri();
 
@@ -126,6 +131,8 @@ private:
   double pressure;  // Normal surface traction (pressure) over entire element
                     // Note: positive for outward normal
   double rho;
+  Element::MassSource mass_source;
+
   static double shp[3][NEN]; // shape functions and derivatives (overwritten)
   static double pts[nip][2];    // quadrature points
   static double wts[nip];       // quadrature weights
@@ -136,5 +143,5 @@ private:
 
   Matrix *Ki;
 };
-
+} // namespace OpenSees
 #endif

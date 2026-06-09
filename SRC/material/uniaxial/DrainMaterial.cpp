@@ -56,12 +56,6 @@ epsilon(0.0), epsilonDot(0.0), sigma(0.0), tangent(0.0)
   if (numHstv > 0) {
     // Allocate history array
     hstv = new double[2*numHstv];
-    if (hstv == 0) {
-      opserr << "DrainMaterial::DrainMaterial -- failed to allocate history array -- type : " <<
-	this->getClassTag() << endln;
-      exit(-1);
-    }
-			    
     
     // Initialize to zero
     for (int i = 0; i < 2*numHstv; i++)
@@ -74,11 +68,6 @@ epsilon(0.0), epsilonDot(0.0), sigma(0.0), tangent(0.0)
   if (numData > 0) {
     // Allocate material parameter array
     data = new double[numData];
-    if (data == 0) {
-      opserr << "DrainMaterial::DrainMaterial -- failed to allocate data array -- type: " <<
-	this->getClassTag() << endln;
-      exit(-1);
-    }
     
     // Initialize to zero
     for (int i = 0; i < numData; i++)

@@ -76,7 +76,7 @@ public:
 
   void zeroLoad() final;
   int addLoad(ElementalLoad*, double loadFactor) final;
-  int addInertiaLoadToUnbalance(const Vector& accel) final;
+  int addInertiaLoadToUnbalance(const Vector& accel);
 
   const Vector& getResistingForce() final;
   const Vector& getResistingForceIncInertia() final;

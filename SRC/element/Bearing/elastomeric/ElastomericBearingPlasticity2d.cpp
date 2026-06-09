@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
@@ -43,7 +42,8 @@
 
 #include <elementAPI.h>
 
-void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingPlasticity2d)
+void * 
+OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingPlasticity2d)
 {
     int ndf = OPS_GetNDF();
     if (ndf != 3)  {
@@ -201,12 +201,6 @@ ElastomericBearingPlasticity2d::ElastomericBearingPlasticity2d(int tag,
     L(0.0), onP0(true), ub(3), ubPlastic(0.0), qb(3), kb(3,3), ul(6),
     Tgl(6,6), Tlb(3,6), ubPlasticC(0.0), kbInit(3,3), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "ElastomericBearingPlasticity2d::ElastomericBearingPlasticity2d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -219,13 +213,6 @@ ElastomericBearingPlasticity2d::ElastomericBearingPlasticity2d(int tag,
     k0 = (1.0-alpha1)*kInit;
     k2 = alpha1*kInit;
     k3 = alpha2*kInit;
-    
-    // check material input
-    if (materials == 0)  {
-        opserr << "ElastomericBearingPlasticity2d::ElastomericBearingPlasticity2d() - "
-            << "null material array passed.\n";
-        exit(-1);
-    }
     
     // get copies of the uniaxial materials
     for (int i=0; i<2; i++)  {
@@ -260,12 +247,6 @@ ElastomericBearingPlasticity2d::ElastomericBearingPlasticity2d()
     L(0.0), onP0(false), ub(3), ubPlastic(0.0), qb(3), kb(3,3), ul(6),
     Tgl(6,6), Tlb(3,6), ubPlasticC(0.0), kbInit(3,3), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "ElastomericBearingPlasticity2d::ElastomericBearingPlasticity2d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     // set node pointers to NULL
     for (int i=0; i<2; i++)
@@ -792,18 +773,6 @@ int ElastomericBearingPlasticity2d::recvSelf(int commitTag, Channel &rChannel,
     return 0;
 }
 
-
-int ElastomericBearingPlasticity2d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 
 void ElastomericBearingPlasticity2d::Print(OPS_Stream &s, int flag)

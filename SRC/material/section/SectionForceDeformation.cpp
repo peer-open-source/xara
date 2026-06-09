@@ -18,12 +18,11 @@
 **                                                                    **
 ** ****************************************************************** */
 //
+// Description: This file contains the class implementation for SectionForceDeformation.
+//
 // Written: MHS 
 // Created: Feb 2000
 // Revision: A
-//
-// Description: This file contains the class implementation for SectionForceDeformation.
-//
 //
 #include <SectionForceDeformation.h>
 #include <Information.h>
@@ -34,7 +33,6 @@
 typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
 
 #include <string.h>
-
 #include <TaggedObject.h>
 
 
@@ -89,10 +87,6 @@ SectionForceDeformation::getInitialFlexibility ()
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getInitialFlexibility -- failed to allocate flexibility matrix\n";
-      exit(-1);
-    }
   }
   
   const Matrix &k = this->getInitialTangent();
@@ -110,8 +104,9 @@ SectionForceDeformation::getInitialFlexibility ()
   return *fDefault;
 }
 
+
 double 
-SectionForceDeformation::getRho(void) 
+SectionForceDeformation::getRho() 
 {
   return 0.0 ;
 }
@@ -153,14 +148,14 @@ SectionForceDeformation::setResponse(const char **argv, int argc,
         output.tag("ResponseType","theta");
         break;
       case SECTION_RESPONSE_FXX:
-          output.tag("ResponseType", "epsXX");
-          break;
+        output.tag("ResponseType", "epsXX");
+        break;
       case SECTION_RESPONSE_FYY:
-          output.tag("ResponseType", "epsYY");
-          break;
+        output.tag("ResponseType", "epsYY");
+        break;
       case SECTION_RESPONSE_FXY:
-          output.tag("ResponseType", "epsXY");
-          break;
+        output.tag("ResponseType", "epsXY");
+        break;
       case SECTION_RESPONSE_MXX:
           output.tag("ResponseType", "kappaXX");
           break;
@@ -413,7 +408,7 @@ SectionForceDeformation::getResponseSensitivity(int responseID, int gradIndex,
   }
 }
 
-// AddingSensitivity:BEGIN ////////////////////////////////////////
+// Sensitivity
 const Vector &
 SectionForceDeformation::getStressResultantSensitivity(int gradIndex, bool conditional)
 {
@@ -437,10 +432,6 @@ SectionForceDeformation::getSectionTangentSensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getSectionTangentSensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
 
   fDefault->Zero();
@@ -455,10 +446,6 @@ SectionForceDeformation::getInitialTangentSensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getInitialTangentSensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
 
   fDefault->Zero();
@@ -473,10 +460,6 @@ SectionForceDeformation::getSectionFlexibilitySensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getSectionFlexibilitySensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
 
   const Matrix &dksdh = this->getSectionTangentSensitivity(gradIndex);
@@ -495,10 +478,6 @@ SectionForceDeformation::getInitialFlexibilitySensitivity(int gradIndex)
   
   if (fDefault == 0) {                
     fDefault = new Matrix(order,order);
-    if (fDefault == 0) {
-      opserr << "SectionForceDeformation::getInitialFlexibilitySensitivity -- failed to allocate matrix\n";
-      exit(-1);
-    }
   }
   
   const Matrix &dksdh = this->getInitialTangentSensitivity(gradIndex);
@@ -522,7 +501,7 @@ SectionForceDeformation::commitSensitivity(const Vector& defSens,
 {
   return -1;
 }
-// AddingSensitivity:END ///////////////////////////////////////////
+
 
 //--- Adding Thermal Functions:[BEGIN]   by UoE OpenSees Group ----//
 int
@@ -551,7 +530,7 @@ SectionForceDeformation::getTemperatureStress(const Vector &tData) //PK
 }
 //--- Adding Thermal Functions:[END]   by UoE OpenSees Group ----//
 
-const Vector& SectionForceDeformation::getThermalElong(void)
+const Vector& SectionForceDeformation::getThermalElong()
 {
   errRes.resize(this->getStressResultant().Size());
   return errRes;

@@ -61,12 +61,6 @@ SingleFPSimple3d::SingleFPSimple3d(int tag, int Nd1, int Nd2,
     L(0.0), onP0(true), ub(6), ubPlastic(2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubPlasticC(2), kbInit(6,6), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "SingleFPSimple3d::SingleFPSimple3d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -127,13 +121,6 @@ SingleFPSimple3d::SingleFPSimple3d()
     L(0.0), onP0(false), ub(6), ubPlastic(2), qb(6), kb(6,6), ul(12),
     Tgl(12,12), Tlb(6,12), ubPlasticC(2), kbInit(6,6), theLoad(12)
 {
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "SingleFPSimple3d::SingleFPSimple3d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
-    
     // set node pointers to NULL
     for (int i=0; i<2; i++)
         theNodes[i] = 0;

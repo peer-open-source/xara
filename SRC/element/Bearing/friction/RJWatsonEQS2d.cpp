@@ -31,7 +31,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <FrictionModel.h>
@@ -239,12 +238,6 @@ RJWatsonEQS2d::RJWatsonEQS2d(int tag, int Nd1, int Nd2,
     L(0.0), onP0(true), ub(3), ubPlastic(0.0), qb(3), kb(3,3), ul(6),
     Tgl(6,6), Tlb(3,6), ubPlasticC(0.0), kbInit(3,3), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "RJWatsonEQS2d::RJWatsonEQS2d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -303,13 +296,6 @@ RJWatsonEQS2d::RJWatsonEQS2d()
     L(0.0), onP0(false), ub(3), ubPlastic(0.0), qb(3), kb(3,3), ul(6),
     Tgl(6,6), Tlb(3,6), ubPlasticC(0.0), kbInit(3,3), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "RJWatsonEQS2d::RJWatsonEQS2d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
-    
     // set node pointers to NULL
     for (int i=0; i<2; i++)
         theNodes[i] = 0;
@@ -909,28 +895,6 @@ int RJWatsonEQS2d::recvSelf(int commitTag, Channel &rChannel,
 }
 
 
-int RJWatsonEQS2d::displaySelf(Renderer &theViewer,
-    int displayMode, float fact, const char **modes, int numMode)
-{
-    int errCode = 0;
-
-    const Vector& end2Crd = theNodes[1]->getCrds();
-
-    static Vector v1(3);
-    static Vector v2(3);
-    static Vector v3(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    for (int i = 0; i < 2; i++)
-        v3(i) = v1(i) + v2(i) - end2Crd(i);
-
-    errCode += theViewer.drawLine(v1, v3, 1.0, 1.0, this->getTag(), 0);
-    errCode += theViewer.drawLine(v3, v2, 1.0, 1.0, this->getTag(), 0);
-
-    return errCode;
-}
 
 
 void RJWatsonEQS2d::Print(OPS_Stream &s, int flag)

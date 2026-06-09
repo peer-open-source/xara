@@ -41,7 +41,6 @@
 #include <fstream>
 using std::fstream;
 
-#include <stdbool.h>
 
 class NEES_table
 {

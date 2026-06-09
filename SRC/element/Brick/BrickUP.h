@@ -37,8 +37,7 @@
 //
 // Eight node BrickUP element
 //
-
-#include <stdio.h>
+#pragma once
 #include <stdlib.h>
 #include <cmath>
 
@@ -49,11 +48,12 @@
 #include <Node.h>
 #include <NDMaterial.h>
 
+namespace OpenSees {
+
 class BrickUP : public Element {
 
   public :
 
-    //null constructor
     BrickUP( ) ;
 
     //full constructor
@@ -73,11 +73,10 @@ class BrickUP : public Element {
     //destructor
     virtual ~BrickUP( ) ;
 
-    const char *getClassType(void) const {return "BrickUP";};
-    static constexpr const char* class_name = "BrickUP";
+    const char *getClassType(void) const {return "BrickUP";}
 
     //set domain
-    void setDomain( Domain *theDomain ) ;
+    void setDomain( Domain *);
 
     //get the number of external nodes
     int getNumExternalNodes( ) const ;
@@ -89,51 +88,43 @@ class BrickUP : public Element {
     //return number of dofs
     int getNumDOF( ) ;
 
-    //commit state
-    int commitState( ) ;
+    // State
+    int commitState();
+    int revertToLastCommit( );
+    int revertToStart();
 
-    //revert to last commit
-    int revertToLastCommit( ) ;
-
-        int revertToStart( ) ;
-
-    //print out element data
-    void Print( OPS_Stream &s, int flag ) ;
 
     //return stiffness matrix
     const Matrix &getTangentStiff( ) ;
     const Matrix &getInitialStiff( ) ;
-    const Matrix &getDamp(void);
+    const Matrix &getDamp();
     const Matrix &getMass( ) ;
 
     void zeroLoad( ) ;
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    //get residual
-    const Vector &getResistingForce( ) ;
-
-    //get residual with inertia terms
-    const Vector &getResistingForceIncInertia( ) ;
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-		  &theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
 
-    int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int setParameter(const char **argv, int argc, Parameter &);
+    int updateParameter(int parameterID, Information &);
 
+    void Print( OPS_Stream &s, int flag );
 
     // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial stresses.
     friend class PyLiq1;
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-  private :
+  private:
 
     //static data
     
@@ -193,16 +184,9 @@ class BrickUP : public Element {
     //compute B matrix
     const Matrix& computeB( int node, const double shp[4][8] ) ;
 
-    //Matrix transpose
-    Matrix transpose( int dim1, int dim2, const Matrix &M ) ;
-
     Vector *load;
     Matrix *Ki;
 } ;
 
-
-
-
-
-
+} // namespace OpenSees
 

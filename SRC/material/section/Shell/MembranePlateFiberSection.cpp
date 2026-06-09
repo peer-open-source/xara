@@ -26,10 +26,11 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <string.h>
-#include <elementAPI.h>
+#include <cmath>
 
+using namespace OpenSees;
 
-const double MembranePlateFiberSection::root56 = sqrt(5.0 / 6.0); //shear correction
+const double MembranePlateFiberSection::root56 = std::sqrt(5.0 / 6.0); //shear correction
 
 
 Vector MembranePlateFiberSection::stressResultant(8);
@@ -102,7 +103,7 @@ MembranePlateFiberSection::getType()
 }
 
 
-//swap history variables
+// history variables
 int
 MembranePlateFiberSection::commitState()
 {
@@ -139,7 +140,7 @@ MembranePlateFiberSection::revertToStart()
 }
 
 
-//mass per unit area
+// mass per unit area
 double
 MembranePlateFiberSection::getRho()
 {

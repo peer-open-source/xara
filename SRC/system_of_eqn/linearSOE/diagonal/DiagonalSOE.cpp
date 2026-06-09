@@ -255,21 +255,21 @@ DiagonalSOE::setX(const Vector &x)
 }
 
 const Vector &
-DiagonalSOE::getX(void)
+DiagonalSOE::getX()
 {
   assert(vectX != nullptr);
   return *vectX;
 }
 
 const Vector &
-DiagonalSOE::getB(void)
+DiagonalSOE::getB()
 {
   assert(vectB != nullptr);
   return *vectB;
 }
 
 double 
-DiagonalSOE::normRHS(void)
+DiagonalSOE::normRHS()
 {
   double norm =0.0;
   for (int i=0; i<size; i++) {

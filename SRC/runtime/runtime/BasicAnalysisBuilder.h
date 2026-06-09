@@ -70,7 +70,8 @@ public:
     enum Perform : int {
       Increment = 1<<0,
       Iterate   = 1<<1,
-      Commit    = 1<<2
+      Commit    = 1<<2,
+      Update    = 1<<3
     };
 
     void set(ConstraintHandler*);

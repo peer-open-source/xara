@@ -13,6 +13,7 @@ add_subdirectory(model)
 add_subdirectory(integrator)
 add_subdirectory(criteria)
 add_subdirectory(analysis)
+add_subdirectory(damping)
 
 
 target_link_libraries(OPS_Analysis 

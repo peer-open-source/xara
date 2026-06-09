@@ -65,7 +65,6 @@ extern "C" {
 }
 
 #include <OPS_Stream.h>
-#include <stdbool.h>
 
 #define MAX_UDP_DATAGRAM 9126
 #define MAX_INET_ADDR 28

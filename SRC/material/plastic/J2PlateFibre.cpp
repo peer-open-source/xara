@@ -856,7 +856,7 @@ J2PlateFibre::sendSelf (int commitTag, Channel &theChannel)
 }
 
 int
-J2PlateFibre::recvSelf (int commitTag, Channel &theChannel, 
+J2PlateFibre::recvSelf(int commitTag, Channel &theChannel, 
 				    FEM_ObjectBroker &theBroker)
 {
   int res = 0;

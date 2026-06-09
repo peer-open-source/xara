@@ -130,48 +130,26 @@ SeriesMaterial::SeriesMaterial(int tag, int num,
  stress(0), flex(0), strain(0), initialFlag(false),
  numMaterials(num), theModels(0)
 {
-    theModels = new UniaxialMaterial *[numMaterials];
+  theModels = new UniaxialMaterial *[numMaterials];
 
-    if (theModels == 0) {
-      opserr << "SeriesMaterial::SeriesMaterial -- failed to allocate material array" << endln;
-      exit(-1);
-    }
+  for (int i = 0; i < numMaterials; i++) {
+    theModels[i] = theMaterialModels[i]->getCopy();
+  }
 
-    int i;
-    for (i = 0; i < numMaterials; i++) {
-      theModels[i] = theMaterialModels[i]->getCopy();
-      if (theModels[i] == 0) {
-	opserr << "SeriesMaterial::SeriesMaterial -- failed to get copy of material: " << i << endln;
-	exit(-1);
-      }
-    }
+  strain = new double [numMaterials];
+  
+  stress = new double [numMaterials];
 
-    strain = new double [numMaterials];
-    if (strain == 0) {
-      opserr << "SeriesMaterial::SeriesMaterial -- failed to allocate strain array" << endln;
-      exit(-1);
-    }
-    
-    stress = new double [numMaterials];
-    if (stress == 0) {
-      opserr << "SeriesMaterial::SeriesMaterial -- failed to allocate stress array" << endln;
-      exit(-1);
-    }
+  flex = new double [numMaterials];
 
-    flex = new double [numMaterials];
-    if (flex == 0) {
-      opserr << "SeriesMaterial::SeriesMaterial -- failed to allocate flex array" << endln;
-      exit(-1);
-    }
+  for (int i = 0; i < numMaterials; i++) {
+    strain[i] = 0.0;
+    stress[i] = 0.0;
+    flex[i] = 0.0;
+  }
 
-    for (i = 0; i < numMaterials; i++) {
-      strain[i] = 0.0;
-      stress[i] = 0.0;
-      flex[i] = 0.0;
-    }
-
-    Ttangent = this->getInitialTangent();
-    Ctangent = Ttangent;
+  Ttangent = this->getInitialTangent();
+  Ctangent = Ttangent;
 }
 
 SeriesMaterial::SeriesMaterial()
@@ -540,31 +518,14 @@ SeriesMaterial::recvSelf(int cTag, Channel &theChannel,
     // allocate new memory for data
     numMaterials = (int)data(1);
     theModels = new UniaxialMaterial *[numMaterials];
-    if (theModels == 0) {
-      opserr << "SeriesMaterial::recvSelf -- failed to allocate UniaxialMaterial array" << endln;
-      return -2;
-    }
 
     for (int i = 0; i < numMaterials; i++)
       theModels[i] = 0;
 
     strain = new double [numMaterials];
-    if (strain == 0) {
-      opserr << "SeriesMaterial::recvSelf -- failed to allocate strain array" << endln;
-      return -3;
-    }
 
     stress = new double [numMaterials];
-    if (stress == 0) {
-      opserr << "SeriesMaterial::recvSelf -- failed to allocate stress array" << endln;
-      return -3;
-    }
-
     flex = new double [numMaterials];
-    if (flex == 0) {
-      opserr << "SeriesMaterial::recvSelf -- failed to allocate flex array" << endln;
-      return -3;
-    }
   }
 
   ID classTags(2*numMaterials);

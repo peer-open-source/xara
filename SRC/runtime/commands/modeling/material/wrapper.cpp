@@ -49,96 +49,103 @@ int
 TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
                                int argc, TCL_Char** const argv)
 {
-    //
-    //
-    //
-    ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  //
+  //
+  //
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
-    if (argc < 4) {
-        opserr << OpenSees::PromptValueError << " insufficient arguments\n";
+  if (argc < 4) {
+    opserr << OpenSees::PromptValueError << " insufficient arguments\n";
+    return TCL_ERROR;
+  }
+
+  int tago, tagi;
+  if (Tcl_GetInt(interp, argv[2], &tago) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "failed to read tag\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[3], &tagi) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "failed to read tag\n";
+    return TCL_ERROR;
+  }
+
+  if (strcmp(argv[1], "ContinuumWrapper") == 0 || strcmp(argv[1], "Continuum") == 0) {
+    NDMaterial* inside = builder->getTypedObject<NDMaterial>(tagi);
+    if (inside == nullptr) 
         return TCL_ERROR;
-    }
+    
+    return builder->addTypedObject<UniaxialMaterial>(tago, new ContinuumUniaxial(tago, *inside));
+  }
 
-    int tago, tagi;
-    if (Tcl_GetInt(interp, argv[2], &tago) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "failed to read tag\n";
+  else if (strcmp(argv[0], "uniaxialMaterial") == 0 && (
+            strstr(argv[1], "InitStress") != 0 || 
+            strstr(argv[1], "InitialStress") != 0 || 
+            strstr(argv[1], "InitialStrain") != 0 || 
+            strstr(argv[1], "InitStrain") != 0)) {
+          
+      double initial;
+      if (Tcl_GetDouble(interp, argv[4], &initial) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read initial value\n";
+          return TCL_ERROR;
+      }
+      UniaxialMaterial* inside = builder->getTypedObject<UniaxialMaterial>(tagi);
+      if (inside == nullptr) 
+          return TCL_ERROR;
+
+      if (strstr(argv[1], "Stress") != 0)
+          return builder->addTypedObject<UniaxialMaterial>(tago, new InitStressMaterial(tago, *inside, initial));
+      else if (strstr(argv[1], "Strain") != 0)
+          return builder->addTypedObject<UniaxialMaterial>(tago, new InitStrainMaterial(tago, *inside, initial));
+  }
+
+  else if (strcmp(argv[0], "nDMaterial") == 0 && (
+            strstr(argv[1], "InitStress") != 0 || 
+            strstr(argv[1], "InitialStress") != 0 || 
+            strstr(argv[1], "InitialStrain") != 0 || 
+            strstr(argv[1], "InitStrain") != 0)) {
+          
+      Vector initial(6);
+      NDMaterial* inside = builder->getTypedObject<NDMaterial>(tagi);
+      if (inside == nullptr) 
         return TCL_ERROR;
-    }
-    if (Tcl_GetInt(interp, argv[3], &tagi) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "failed to read tag\n";
+      
+      inside = inside->getCopy("ThreeDimensional");
+      if (!inside || strcmp(inside->getType(), "ThreeDimensional") != 0) {
+        opserr << OpenSees::PromptValueError 
+                << "InitStressNDMaterial only works with 3D materials\n";
         return TCL_ERROR;
-    }
+      }
 
-    if (strcmp(argv[1], "ContinuumWrapper") == 0 || strcmp(argv[1], "Continuum") == 0) {
-        NDMaterial* inside = builder->getTypedObject<NDMaterial>(tagi);
-        if (inside == nullptr) 
-            return TCL_ERROR;
-        
-        return builder->addTypedObject<UniaxialMaterial>(tago, new ContinuumUniaxial(tago, *inside));
-    }
-
-    else if (strcmp(argv[0], "uniaxialMaterial") == 0 && (
-             strstr(argv[1], "InitStress") != 0 || 
-             strstr(argv[1], "InitialStress") != 0 || 
-             strstr(argv[1], "InitialStrain") != 0 || 
-             strstr(argv[1], "InitStrain") != 0)) {
-            
-        double initial;
-        if (Tcl_GetDouble(interp, argv[4], &initial) != TCL_OK) {
+      if (argc == 5) {
+        double evol;
+        if (Tcl_GetDouble(interp, argv[4], &evol) != TCL_OK) {
             opserr << OpenSees::PromptValueError << "failed to read initial value\n";
             return TCL_ERROR;
         }
-        UniaxialMaterial* inside = builder->getTypedObject<UniaxialMaterial>(tagi);
-        if (inside == nullptr) 
-            return TCL_ERROR;
+        for (int i = 0; i < 3; ++i)
+          initial(i) = evol;
 
-        if (strstr(argv[1], "Stress") != 0)
-            return builder->addTypedObject<UniaxialMaterial>(tago, new InitStressMaterial(tago, *inside, initial));
-        else if (strstr(argv[1], "Strain") != 0)
-            return builder->addTypedObject<UniaxialMaterial>(tago, new InitStrainMaterial(tago, *inside, initial));
-    }
-
-    else if (strcmp(argv[0], "nDMaterial") == 0 && (
-             strstr(argv[1], "InitStress") != 0 || 
-             strstr(argv[1], "InitialStress") != 0 || 
-             strstr(argv[1], "InitialStrain") != 0 || 
-             strstr(argv[1], "InitStrain") != 0)) {
-            
-        Vector initial(6);
-        NDMaterial* inside = builder->getTypedObject<NDMaterial>(tagi);
-        if (inside == nullptr) 
-            return TCL_ERROR;
-        
-        inside = inside->getCopy("ThreeDimensional");
-        if (!inside || strcmp(inside->getType(), "ThreeDimensional") != 0) {
-          opserr << OpenSees::PromptValueError << "InitStressNDMaterial only works with 3D materials\n";
-          return TCL_ERROR;
-        }
-
-        if (argc == 5) {
-          double evol;
-          if (Tcl_GetDouble(interp, argv[4], &evol) != TCL_OK) {
+      } else {
+          for (int i=0; i<6; ++i) {
+            if (Tcl_GetDouble(interp, argv[4+i], &initial(i)) != TCL_OK) {
               opserr << OpenSees::PromptValueError << "failed to read initial value\n";
               return TCL_ERROR;
-          }
-          for (int i = 0; i < 3; ++i)
-            initial(i) = evol;
-
-        } else {
-            for (int i=0; i<6; ++i) {
-                if (Tcl_GetDouble(interp, argv[4+i], &initial(i)) != TCL_OK) {
-                    opserr << OpenSees::PromptValueError << "failed to read initial value\n";
-                    return TCL_ERROR;
-                }
             }
-        }
+          }
+      }
 
-        if (strstr(argv[1], "Strain") != 0)
-          return builder->addTypedObject<NDMaterial>(tago, new InitStrainNDMaterial(tago, *inside, initial));
-    }
+      NDMaterial* wrapper = nullptr;
+      if (strstr(argv[1], "Strain") != 0)
+        wrapper = new InitStrainNDMaterial(tago, *inside, initial);
+      
+      int status = builder->addTypedObject<NDMaterial>(tago, wrapper);
+
+      delete inside;
+      return status;
+  }
 
 
-    return TCL_ERROR;
+  return TCL_ERROR;
 }
 
 
@@ -259,6 +266,7 @@ TclCommand_newPlateFiber(ClientData clientData, Tcl_Interp* interp, int argc, G3
 
   if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK) {
     delete theMaterial;
+    delete threeDMaterial;
     return TCL_ERROR;
   }
 
@@ -266,7 +274,7 @@ TclCommand_newPlateFiber(ClientData clientData, Tcl_Interp* interp, int argc, G3
   return TCL_OK;
 }
 
-// nDMaterial type? tag? uni_tag? angle?
+
 int 
 TclCommand_newPlateRebar(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {

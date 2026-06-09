@@ -37,7 +37,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <UniaxialMaterial.h>
 #include <string.h>
@@ -109,10 +108,6 @@ BeamColumnJoint2d::BeamColumnJoint2d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
   Uecommit(12), UeIntcommit(4), UeprCommit(12), UeprIntCommit(4), 
   BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(12,12), R(12)
 {
-	// ensure the connectedExternalNode ID is of correct size & set values
- 
-	if (connectedExternalNodes.Size() != 4)
-      opserr << "ERROR : BeamColumnJoint::BeamColumnJoint " << tag << "failed to create an ID of size 4" << endln;
 
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
@@ -203,9 +198,6 @@ BeamColumnJoint2d::BeamColumnJoint2d(int tag,int Nd1, int Nd2, int Nd3, int Nd4,
   BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(12,12), R(12)
 {
 	// ensure the connectedExternalNode ID is of correct size & set values
- 
-	if (connectedExternalNodes.Size() != 4)
-      opserr << "ERROR : BeamColumnJoint::BeamColumnJoint " << tag << "failed to create an ID of size 4" << endln;
 
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
@@ -1217,41 +1209,6 @@ BeamColumnJoint2d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 	return -1;
 }
 
-int
-BeamColumnJoint2d::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	// get coordinates for connecting nodes
-	static Vector v1(3);
-	static Vector v2(3);
-	static Vector v3(3);
-	static Vector v4(3);
-
-	nodePtr[0]->getDisplayCrds(v1, fact, displayMode);
-	nodePtr[1]->getDisplayCrds(v2, fact, displayMode);
-	nodePtr[2]->getDisplayCrds(v3, fact, displayMode);
-	nodePtr[3]->getDisplayCrds(v4, fact, displayMode);
-	
-	// calculate four corners of the element
-	Vector w(3); // width vector
-	Vector c1(3);
-	Vector c2(3);
-	Vector c3(3);
-	Vector c4(3);
-
-	w = v2 - v4;
-	c1 = v1 - 0.5 * w;
-	c2 = v1 + 0.5 * w;
-	c3 = v3 + 0.5 * w;
-	c4 = v3 - 0.5 * w;
-	
-	int res = 0;
-	res += theViewer.drawLine(c1, c2, 1.0, 1.0, this->getTag());
-	res += theViewer.drawLine(c2, c3, 1.0, 1.0, this->getTag());
-	res += theViewer.drawLine(c3, c4, 1.0, 1.0, this->getTag());
-	res += theViewer.drawLine(c4, c1, 1.0, 1.0, this->getTag());
-
-	return res;
-}
 
 void
 BeamColumnJoint2d::Print(OPS_Stream &s, int flag)

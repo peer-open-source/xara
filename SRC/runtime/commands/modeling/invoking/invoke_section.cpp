@@ -5,6 +5,7 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
+//
 // Written: cmp
 //
 
@@ -30,12 +31,10 @@ static Tcl_CmdProc SectionTest_Commit;
 
 
 using namespace OpenSees;
-// static int count;
-// static int countsTillCommit;
 
 // invoke Section $tag $commands
 int
-TclCommand_useCrossSection(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+TclCommand_useCrossSection(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
 
   assert(clientData != nullptr);
@@ -87,7 +86,7 @@ TclCommand_useCrossSection(ClientData clientData, Tcl_Interp *interp, int argc, 
 
 static int
 SectionTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+                                  Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   SectionForceDeformation *theSection = (SectionForceDeformation*)clientData;
@@ -122,46 +121,49 @@ SectionTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
 
 static int
 SectionTest_Commit(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+                    Tcl_Size argc, TCL_Char ** const argv)
 {
   SectionForceDeformation *theSection = (SectionForceDeformation*)clientData;
-  const Vector &stress = theSection->commitState();
+  const int status = theSection->commitState();
   return TCL_OK;
 }
 
 static int
 SectionTest_getStressSection(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+                             Tcl_Size argc, TCL_Char ** const argv)
 {
   SectionForceDeformation *theSection = (SectionForceDeformation*)clientData;
   const Vector &stress = theSection->getStressResultant();
-  for (int i = 0; i < stress.Size(); ++i) {
-    char buffer[40];
-    sprintf(buffer, "%.10e ", stress(i));
-    Tcl_AppendResult(interp, buffer, NULL);
+  const int nsr = stress.Size();
+  Tcl_Obj* list = Tcl_NewListObj(nsr, nullptr);
+  for (int i = 0; i < nsr; ++i) {
+    Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(stress(i)));
   }
+  Tcl_SetObjResult(interp, list);
   return TCL_OK;
 }
 
 static int
 SectionTest_getTangSection(ClientData clientData, Tcl_Interp *interp,
-                                int argc, TCL_Char ** const argv)
+                                Tcl_Size argc, TCL_Char ** const argv)
 {
   SectionForceDeformation *theSection = (SectionForceDeformation*)clientData;
 
   const Matrix &tangent = theSection->getSectionTangent();
-  for (int i = 0; i < tangent.noRows(); ++i)
-    for (int j = 0; j < tangent.noCols(); j++) {
-      char buffer[40];
-      sprintf(buffer, "%.10e ", tangent(i, j));
-      Tcl_AppendResult(interp, buffer, NULL);
+  const int nr = tangent.noRows();
+  const int nc = tangent.noCols();
+  Tcl_Obj* list = Tcl_NewListObj(nr * nc, nullptr);
+  for (int i = 0; i < nr; ++i)
+    for (int j = 0; j < nc; j++) {
+      Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(tangent(i, j)));
     }
+  Tcl_SetObjResult(interp, list);
   return TCL_OK;
 }
 
 static int
 SectionTest_getResponseSection(ClientData clientData, Tcl_Interp *interp,
-                                    int argc, TCL_Char ** const argv)
+                                    Tcl_Size argc, TCL_Char ** const argv)
 {
   SectionForceDeformation *theSection = (SectionForceDeformation*)clientData;
   DummyStream dummy;
@@ -181,13 +183,14 @@ SectionTest_getResponseSection(ClientData clientData, Tcl_Interp *interp,
 
   Information &eleInfo = theResponse->getInformation();
   const Vector &data = eleInfo.getData();
+  const int ni = data.Size();
+  Tcl_Obj* list = Tcl_NewListObj(ni, nullptr);
 
-  for (int i = 0; i < data.Size(); ++i) {
-    char buffer[40];
-    sprintf(buffer, "%.10e ", data(i));
-    Tcl_AppendResult(interp, buffer, NULL);
+  for (int i = 0; i < ni; ++i) {
+    Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(data(i)));
   }
 
+  Tcl_SetObjResult(interp, list);
   delete theResponse;
   return TCL_OK;
 }

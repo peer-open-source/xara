@@ -39,13 +39,13 @@ class ID
     ID();
     ID(int);
     ID(int size, int arraySize);
-    ID(int *data, int size, bool cleanIt = false);
+    ID(int *data, int size, bool cleanIt);
     ID(const ID &);    
     ~ID();
  
     // utility methods
-    int Size(void) const;
-    void Zero(void);
+    int Size() const;
+    void Zero();
     int setData(int *newData, int size, bool cleanIt = false);
     int resize(int newSize, int fill_value=0);
     int fill(int fill_value);
@@ -90,7 +90,7 @@ class ID
 
 
 inline int 
-ID::Size(void) const {return sz;}
+ID::Size() const {return sz;}
 
 inline int &
 ID::operator()(int x) 

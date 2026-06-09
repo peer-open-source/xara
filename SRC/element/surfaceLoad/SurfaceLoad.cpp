@@ -34,7 +34,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <NDMaterial.h>
@@ -42,7 +41,6 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h> 
 
 double SurfaceLoad :: oneOverRoot3 = 1.0/sqrt(3.0);
 double SurfaceLoad :: GsPts[4][2];
@@ -149,48 +147,48 @@ SurfaceLoad::~SurfaceLoad()
 int
 SurfaceLoad::getNumExternalNodes(void) const
 {
-    return SL_NUM_NODE;
+  return SL_NUM_NODE;
 }
 
 const ID &
 SurfaceLoad::getExternalNodes(void) 
 {
-    return myExternalNodes;
+  return myExternalNodes;
 }
 
 Node **
 SurfaceLoad::getNodePtrs(void)
 {
-    return theNodes;                        
+  return theNodes;                        
 }
 
 int
 SurfaceLoad::getNumDOF(void) 
 {
-    return SL_NUM_DOF;
+  return SL_NUM_DOF;
 }
 
 void
 SurfaceLoad::setDomain(Domain *theDomain)
 {
-    theNodes[0] = theDomain->getNode(myExternalNodes(0));
-    theNodes[1] = theDomain->getNode(myExternalNodes(1));
-    theNodes[2] = theDomain->getNode(myExternalNodes(2));
-    theNodes[3] = theDomain->getNode(myExternalNodes(3));
+  theNodes[0] = theDomain->getNode(myExternalNodes(0));
+  theNodes[1] = theDomain->getNode(myExternalNodes(1));
+  theNodes[2] = theDomain->getNode(myExternalNodes(2));
+  theNodes[3] = theDomain->getNode(myExternalNodes(3));
 
-    for (int i = 0; i < 4; i++) {
-    	if (theNodes[i] == 0)
-        	return;  // don't go any further - otherwise segmentation fault
-    }
+  for (int i = 0; i < 4; i++) {
+    if (theNodes[i] == 0)
+        return;  // don't go any further - otherwise segmentation fault
+  }
 
-    dcrd1 = theNodes[0]->getCrds();
-    dcrd2 = theNodes[1]->getCrds();
-    dcrd3 = theNodes[2]->getCrds();
-    dcrd4 = theNodes[3]->getCrds();
+  dcrd1 = theNodes[0]->getCrds();
+  dcrd2 = theNodes[1]->getCrds();
+  dcrd3 = theNodes[2]->getCrds();
+  dcrd4 = theNodes[3]->getCrds();
 
-    // call the base class method
-    if (theDomain != nullptr)
-      this->Element::link(*theDomain);
+  // call the base class method
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 int
@@ -407,21 +405,16 @@ SurfaceLoad::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theB
   return 0;
 }
 
-int
-SurfaceLoad::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
-}
 
 void
 SurfaceLoad::Print(OPS_Stream &s, int flag)
 {
-    opserr << "SurfaceLoad, element id:  " << this->getTag() << endln;
-    opserr << "   Connected external nodes:  " ; 
-    for (int i = 0; i<SL_NUM_NODE; i++) {
-    	opserr << myExternalNodes(i)<< " ";
-    }
-    return;
+  opserr << "SurfaceLoad, element id:  " << this->getTag() << endln;
+  opserr << "   Connected external nodes:  " ; 
+  for (int i = 0; i<SL_NUM_NODE; i++) {
+    opserr << myExternalNodes(i)<< " ";
+  }
+  return;
 }
 
 Response*

@@ -41,7 +41,7 @@
 #include <ElementalLoad.h>
 #include <cassert>
 
-using OpenSees::VectorND;
+using namespace OpenSees;
 
 double SixNodeTri::matrixData[(NEN*NDF)*(NEN*NDF)];
 Matrix SixNodeTri::K(matrixData, NDF*NEN, NDF*NEN);
@@ -53,44 +53,48 @@ double SixNodeTri::wts[nip];
 SixNodeTri::SixNodeTri(int tag, 
                        const std::array<int,6> & nodes,
                        NDMaterial &m, 
-                       const char *type, 
                        double thickness,
-                       double pressure, double rho, double b1, double b2)
+                       double pressure, 
+                       double rho, 
+                       double b1, double b2,
+                       Element::MassSource mass_source
+)
 :Element (tag, ELE_TAG_SixNodeTri),
   connectedExternalNodes(NEN),
   Q(NDF*NEN), applyLoad(0),
   pressureLoad(NDF*NEN), 
   thickness(thickness), 
   pressure(pressure), 
-  rho(rho), 
+  rho(rho),
+  mass_source(mass_source),
   Ki(nullptr)
 {
-    pts[0][0] = 0.666666666666666667;
-    pts[0][1] = 0.166666666666666667;
-    pts[1][0] = 0.166666666666666667;
-    pts[1][1] = 0.666666666666666667;
-    pts[2][0] = 0.166666666666666667;
-    pts[2][1] = 0.166666666666666667;
+  pts[0][0] = 0.666666666666666667;
+  pts[0][1] = 0.166666666666666667;
+  pts[1][0] = 0.166666666666666667;
+  pts[1][1] = 0.666666666666666667;
+  pts[2][0] = 0.166666666666666667;
+  pts[2][1] = 0.166666666666666667;
 
-    wts[0]    = 0.166666666666666667;
-    wts[1]    = 0.166666666666666667;
-    wts[2]    = 0.166666666666666667;
+  wts[0]    = 0.166666666666666667;
+  wts[1]    = 0.166666666666666667;
+  wts[2]    = 0.166666666666666667;
 
-    // Body forces
-    b[0] = b1;
-    b[1] = b2;
+  // Body forces
+  b[0] = b1;
+  b[1] = b2;
 
-    for (int i = 0; i < nip; i++) {
-      // Get copies of the material model for each integration point
-      theMaterial[i] = m.getCopy(type);
-    }
+  for (int i = 0; i < nip; i++) {
+    // Get copies of the material model for each integration point
+    theMaterial[i] = m.getCopy();
+  }
 
 
-    // Set connected external node IDs
-    for (int i=0; i<NEN; i++) {
-      connectedExternalNodes(i) = nodes[i];
-      theNodes[i] = nullptr;
-    }
+  // Set connected external node IDs
+  for (int i=0; i<NEN; i++) {
+    connectedExternalNodes(i) = nodes[i];
+    theNodes[i] = nullptr;
+  }
 }
 
 SixNodeTri::SixNodeTri()
@@ -98,21 +102,21 @@ SixNodeTri::SixNodeTri()
   connectedExternalNodes(NEN),
  Q(2*NEN), applyLoad(0), pressureLoad(2*NEN), thickness(0.0), pressure(0.0), Ki(0)
 {
+  pts[0][0] = 0.666666666666666667;
+  pts[0][1] = 0.166666666666666667;
+  pts[1][0] = 0.166666666666666667;
+  pts[1][1] = 0.666666666666666667;
+  pts[2][0] = 0.166666666666666667;
+  pts[2][1] = 0.166666666666666667;
 
-    pts[0][0] = 0.666666666666666667;
-    pts[0][1] = 0.166666666666666667;
-    pts[1][0] = 0.166666666666666667;
-    pts[1][1] = 0.666666666666666667;
-    pts[2][0] = 0.166666666666666667;
-    pts[2][1] = 0.166666666666666667;
+  wts[0] = 0.166666666666666667;
+  wts[1] = 0.166666666666666667;
+  wts[2] = 0.166666666666666667;
 
-    wts[0] = 0.166666666666666667;
-    wts[1] = 0.166666666666666667;
-    wts[2] = 0.166666666666666667;
-
-    for (int i=0; i<NEN; i++)
-        theNodes[i] = 0;
+  for (int i=0; i<NEN; i++)
+    theNodes[i] = nullptr;
 }
+
 
 SixNodeTri::~SixNodeTri()
 {
@@ -193,30 +197,30 @@ SixNodeTri::setDomain(Domain *theDomain)
 int
 SixNodeTri::commitState()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // call element commitState to do any base class stuff
-    if ((retVal = this->Element::commitState()) != 0) {
-      opserr << "SixNodeTri::commitState () - failed in base class";
-    }
+  // call element commitState to do any base class stuff
+  if ((retVal = this->Element::commitState()) != 0) {
+    opserr << "SixNodeTri::commitState () - failed in base class";
+  }
 
-    // Loop over the integration points and commit the material states
-    for (int i = 0; i < nip; i++)
-      retVal += theMaterial[i]->commitState();
+  // Loop over the integration points and commit the material states
+  for (int i = 0; i < nip; i++)
+    retVal += theMaterial[i]->commitState();
 
-    return retVal;
+  return retVal;
 }
 
 int
 SixNodeTri::revertToLastCommit()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert to last committed state
-    for (int i = 0; i < nip; i++)
-        retVal += theMaterial[i]->revertToLastCommit();
+  // Loop over the integration points and revert to last committed state
+  for (int i = 0; i < nip; i++)
+    retVal += theMaterial[i]->revertToLastCommit();
 
-    return retVal;
+  return retVal;
 }
 
 int

@@ -21,6 +21,12 @@
 // Description: This file contains the class implementation for 
 // Steel01. 
 //
+// References
+// [1] Filippou, Filip C. 
+//     “Effects of Bond Deterioration on Seismic Response of Reinforced Concrete Frames.” 
+//     Ph.D., University of California, Berkeley, 1983. 
+//     https://www.proquest.com/docview/303126843/abstract/2FA827B6AB98404DPQ/1.
+//
 // Written: MHS 
 // Created: 06/99
 //
@@ -38,9 +44,13 @@
 
 
 Steel01::Steel01(int tag, double FY, double E, double B,
-                double A1, double A2, double A3, double A4):
+                double A1, double A2, double A3, double A4,
+                double Density
+                ):
    UniaxialMaterial(tag,MAT_TAG_Steel01),
-   fy(FY), E0(E), b(B), a1(A1), a2(A2), a3(A3), a4(A4)
+   fy(FY), E0(E), b(B), 
+   a1(A1), a2(A2), a3(A3), a4(A4),
+   density(Density)
 {
    // Sets all history and state variables to initial values
 
@@ -197,7 +207,8 @@ void Steel01::determineTrialState (double dStrain)
       }
 }
 
-void Steel01::detectLoadReversal (double dStrain)
+void
+Steel01::detectLoadReversal(double dStrain)
 {
    // Determine initial loading condition
    if (Tloading == 0 && dStrain != 0.0)
@@ -229,22 +240,26 @@ void Steel01::detectLoadReversal (double dStrain)
    }
 }
 
-double Steel01::getStrain ()
+double
+Steel01::getStrain()
 {
    return Tstrain;
 }
 
-double Steel01::getStress ()
+double
+Steel01::getStress()
 {
    return Tstress;
 }
 
-double Steel01::getTangent ()
+double
+Steel01::getTangent()
 {
    return Ttangent;
 }
 
-int Steel01::commitState ()
+int
+Steel01::commitState()
 {
    // History variables
    CminStrain = TminStrain;
@@ -264,7 +279,8 @@ int Steel01::commitState ()
    return 0;
 }
 
-int Steel01::revertToLastCommit ()
+int
+Steel01::revertToLastCommit()
 {
    // Reset trial history variables to last committed state
    TminStrain = CminStrain;
@@ -381,8 +397,8 @@ int Steel01::sendSelf (int commitTag, Channel& theChannel)
    return res;
 }
 
-int Steel01::recvSelf (int commitTag, Channel& theChannel,
-                                FEM_ObjectBroker& theBroker)
+int
+Steel01::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
    int res = 0;
    static Vector data(16);

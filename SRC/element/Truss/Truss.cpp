@@ -522,11 +522,11 @@ Truss::zeroLoad()
 
 int
 Truss::addLoad(ElementalLoad* theLoad, double loadFactor)
-
 {
-  opserr << "Truss::addLoad - load type unknown for truss with tag: " << this->getTag() << endln;
+  opserr << "Truss::addLoad - load type unknown for truss with tag: " << this->getTag() << "\n";
   return -1;
 }
+
 
 int
 Truss::addInertiaLoadToUnbalance(const Vector& accel)
@@ -540,13 +540,6 @@ Truss::addInertiaLoadToUnbalance(const Vector& accel)
   const Vector& Raccel2 = theNodes[1]->getRV(accel);
 
   int nodalDOF = numDOF / 2;
-
-#ifdef _G3DEBUG
-  if (nodalDOF != Raccel1.Size() || nodalDOF != Raccel2.Size()) {
-    opserr << "Truss::addInertiaLoadToUnbalance " << "matrix and vector sizes are incompatible\n";
-    return -1;
-  }
-#endif
 
   // want to add ( - fact * M R * accel ) to unbalance
   if (cMass == 0) {

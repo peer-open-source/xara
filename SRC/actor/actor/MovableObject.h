@@ -49,15 +49,18 @@ class MovableObject
     MovableObject(ClassTag classTag);    
     virtual ~MovableObject();
 
-    ClassTag getClassTag(void) const;
-    virtual const char *getClassType(void) const;
+    ClassTag getClassTag() const;
+    virtual const char *getClassType() const;
 
-    int getDbTag(void) const;
+    int getDbTag() const;
     void setDbTag(int dbTag);
 
-    virtual int sendSelf(int commitTag, Channel &theChannel) =0;  
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker) =0;
+    virtual int sendSelf(int commitTag, Channel &) {
+      return -1;
+    }
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) {
+      return -1;
+    }
     
     // methods for sensitivity studies
     virtual int setParameter(const char **argv, int argc, Parameter &param);

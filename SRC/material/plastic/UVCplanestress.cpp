@@ -13,7 +13,7 @@
 #include <Parameter.h>
 
 #include <elementAPI.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 
 static int numUVCplanestress = 0;
 
@@ -23,12 +23,11 @@ void*
 OPS_ADD_RUNTIME_VPV(OPS_UVCplanestress)
 {
   if (numUVCplanestress == 0) {
-    opserr << "Using the UVCplanestress material, see "
+    opslog << "Using the UVCplanestress material, see "
               "https://www.epfl.ch/labs/resslab/resslab-tools/"
-           << endln;
+           << "\n";
     numUVCplanestress++;
   }
-  NDMaterial* theMaterial = 0;
 
   // Parameters for parsing
   const unsigned int N_TAGS               = 1;
@@ -100,11 +99,10 @@ OPS_ADD_RUNTIME_VPV(OPS_UVCplanestress)
   }
 
   // Allocate the material
-  theMaterial =
+  return
       new UVCplanestress(materialTag[0], basicProps[0], basicProps[1], basicProps[2], basicProps[3],
                          basicProps[4], updProps[0], updProps[1], cK, gammaK);
 
-  return theMaterial;
 }
 
 

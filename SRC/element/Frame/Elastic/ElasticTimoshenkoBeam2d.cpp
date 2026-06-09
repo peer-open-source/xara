@@ -40,7 +40,6 @@
 #include <CrdTransf.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <ElementResponse.h>
@@ -139,12 +138,6 @@ ElasticTimoshenkoBeam2d::ElasticTimoshenkoBeam2d(int tag, int Nd1, int Nd2,
     Avy(avy), rho(r), cMass(cm), nlGeo(0), phi(0.0), L(0.0), ul(6), ql(6),
     ql0(6), kl(6,6), klgeo(6,6), Tgl(6,6), Ki(6,6), M(6,6), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "ElasticTimoshenkoBeam2d::ElasticTimoshenkoBeam2d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
@@ -185,12 +178,6 @@ ElasticTimoshenkoBeam2d::ElasticTimoshenkoBeam2d()
     Iz(0.0), Avy(0.0), rho(0.0), cMass(0), nlGeo(0), phi(0.0), L(0.0), ul(6),
     ql(6), ql0(6), kl(6,6), klgeo(6,6), Tgl(6,6), Ki(6,6), M(6,6), theLoad(6)
 {
-    // ensure the connectedExternalNode ID is of correct size & set values
-    if (connectedExternalNodes.Size() != 2)  {
-        opserr << "ElasticTimoshenkoBeam2d::ElasticTimoshenkoBeam2d() - element: "
-            << this->getTag() << " - failed to create an ID of size 2.\n";
-        exit(-1);
-    }
     
     // set node pointers to NULL
     for (int i=0; i<2; i++)

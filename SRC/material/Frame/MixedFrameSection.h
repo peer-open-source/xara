@@ -21,6 +21,7 @@
 #define MixedFrameSection_h
 #include <array>
 #include <memory>
+// #include <LegacyFrameSection.h>
 #include <FrameSection.h>
 #include <Vector.h>
 #include <vector>
@@ -39,7 +40,7 @@ class MixedFrameSection : public FrameSection
 {
   public:
     using MixedType = Frame::Shape::MixedType;
-    MixedFrameSection(int tag, int reserve, MixedType type);
+    MixedFrameSection(int tag, int reserve, MixedType type, bool wagner);
   private:
     MixedFrameSection(const MixedFrameSection &);
   public:
@@ -59,7 +60,7 @@ class MixedFrameSection : public FrameSection
     const Vector &getStressResultant() override;
     const Matrix &getSectionTangent() override;
     const Matrix &getInitialTangent() override;
-    MatrixND<12,12> getFullTangent(State state) override;
+    MatrixND<12,12> getFullTangent(State state) noexcept override;
 
     int   commitState() override;
     int   revertToLastCommit() override;    
@@ -109,14 +110,49 @@ class MixedFrameSection : public FrameSection
     };
     Tangent K_pres;
     std::shared_ptr<Tangent> K_init;
-
-    int formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) const;
+    struct FiberData {
+      double area;
+      using WarpArray = std::array<std::array<double,3>,nwm>;
+      WarpArray warp{{{0}}};
+      OpenSees::VectorND<2> r;
+    };
+    int formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) ;//const;
 
     int solveMixed(const VectorND<nsr>& e, MatrixND<6,6>& Kee, Tangent& Ks);
   
     int stateDetermination(Tangent& K, VectorND<nsr>* s_trial, const VectorND<nsr> * const e_trial, int tangentFlag);
 
     int checkFiberState();
+
+    void MixedShapeGrad(const FiberData& fiber,
+                        const Matrix3D& Gr,  const Matrix3D& Gw,
+                        const Matrix3D& dGr, const Matrix3D& dGw,
+                        const Vector3D& dcentroid, double dnubar,
+                        Matrix3D& dAn, int i) const noexcept;
+
+    inline int  WarpShapeGrad(const FiberData& fiber,
+                              Matrix3D& diow, Matrix3D& diodw,
+                              int i) const noexcept;
+    void
+    formMixedUniformLSensitivity(Matrix3D& dGr, Matrix3D& dGw,
+                                 Vector3D& dcentroid, double& dnubar) const noexcept;
+
+    int solveMixedSensitivity(int gradIndex,
+                              const VectorND<6>& e_rigid,
+                              const Vector3D& dalpha,
+                              const Vector3D& alpha,
+                              const Matrix3D& Gr,
+                              const Matrix3D& Gw,
+                              const Matrix3D& dGr,
+                              const Matrix3D& dGw,
+                              const Vector3D& dcentroid,
+                              double dnubar,
+                              const Vector3D& eta,
+                              Vector3D& deta) const;
+
+    int applyMixedInverse(const Matrix3D& Knn,
+                          const Vector3D& rhs,
+                          Vector3D& x) const;
 
     struct Param {
       enum : int {
@@ -166,27 +202,24 @@ class MixedFrameSection : public FrameSection
       ivz
     };
     
-    struct FiberData {
-      double area;
-      using WarpArray = std::array<std::array<double,3>,nwm>;
-      WarpArray warp{{{0}}};
-      OpenSees::VectorND<2> r;
-    };
-    const std::shared_ptr<std::vector<FiberData>> fibers;
+
+    std::shared_ptr<std::vector<FiberData>> fibers;
     std::vector<NDMaterial*> materials;
 
 
     // Mixed formulation data
     MixedType mixed_type;
     enum MixedShapes: int {
-      TwistX = 1<< 0,
-      ShearY = 1<< 1,
-      ShearZ = 1<< 2,
-      TwistE = 1<< 3,
+      TwistX = 1<< 0, // 1
+      ShearY = 1<< 1, // 2
+      ShearZ = 1<< 2, // 4
+      TwistE = 1<< 3, // 8
     };
     int mixed_shapes = 0;
     Matrix3D    shear_align;
-    VectorND<3> shift_twist, shift_axial;
+    VectorND<3> shift_twist{}, 
+                shift_axial{};
+    VectorND<3> eta_past{}, deta{};
 
     // Centroid
     Vector3D centroid;
@@ -213,10 +246,68 @@ class MixedFrameSection : public FrameSection
       Ae(0,0) = 1.0;
       Ae(1,1) = 1.0;
       Ae(2,2) = 1.0;
-      Ae(0,4) =  r[1];
-      Ae(0,5) = -r[0];
-      Ae(1,3) = -r[1];
-      Ae(2,3) =  r[0];
+      Ae(0,3) =  aw;
+      Ae(0,4) =  r[1]; //  z
+      Ae(0,5) = -r[0]; // -y
+      Ae(1,3) = -r[1]; // -z
+      Ae(2,3) =  r[0]; //  y
+      if (mixed_type == MixedType::U02) {
+        Ae(1,3)   += fiber.warp[0][1]; // w0,y
+        Ae(2,3)   += fiber.warp[0][2]; // w0,z
+      }
+
+      return 0;
+    }
+
+    inline int 
+    FiberGrad(int i, int j, double& dA, double& dy, double& dz, FiberData::WarpArray& dw) const noexcept
+    {
+      dA = 0.0; dy = 0.0; dz = 0.0;
+      if (parameterID >= Param::FiberFieldBase) {
+        int fiberID = (parameterID - Param::FiberFieldBase) / 100;
+        int field   = (parameterID - Param::FiberFieldBase) % 100;
+        if (i == fiberID) {
+          switch (field) {
+          case Param::FiberArea:   dA = 1.0; break;
+          case Param::FiberY:      dy = 1.0; break;
+          case Param::FiberZ:      dz = 1.0; break;
+
+          case Param::FiberWarpX:  dw[0][0] = 1.0; break;
+          case Param::FiberWarpXY: dw[0][1] = 1.0; break;
+          case Param::FiberWarpXZ: dw[0][2] = 1.0; break;
+
+          case Param::FiberWarpY:  dw[1][0] = 1.0; break;
+          case Param::FiberWarpYY: dw[1][1] = 1.0; break;
+          case Param::FiberWarpYZ: dw[1][2] = 1.0; break;
+
+          case Param::FiberWarpZ:  dw[2][0] = 1.0; break;
+          case Param::FiberWarpZY: dw[2][1] = 1.0; break;
+          case Param::FiberWarpZZ: dw[2][2] = 1.0; break;
+          default:
+            break;
+          }
+        }
+      }
+      return 0;
+    }
+
+    inline int 
+    RigidShapeGrad(const FiberData& fiber, double aw, MatrixND<3,6>& Ae, int i) const noexcept 
+    {
+        
+      double dA = 0.0,
+            dy = 0.0,
+            dz = 0.0;
+      FiberData::WarpArray dw{};
+      FiberGrad(i, parameterID, dA, dy, dz, dw);
+      // Ae(0,0) = 1.0;
+      // Ae(1,1) = 1.0;
+      // Ae(2,2) = 1.0;
+      Ae(0,3) =  aw;
+      Ae(0,4) =  dz;
+      Ae(0,5) = -dy;
+      Ae(1,3) = -dz;
+      Ae(2,3) =  dy;
       return 0;
     }
 
@@ -224,8 +315,15 @@ class MixedFrameSection : public FrameSection
     WarpShape(const FiberData& fiber, Matrix3D& iow, Matrix3D& iodw) const noexcept {
 
       const FiberData::WarpArray& w = fiber.warp;
+
+      iow(0,0)  = w[0][0];
+      iodw(1,0) = w[0][1];
+      iodw(2,0) = w[0][2];
+      return 1;
+
       switch (mixed_type) {
         case MixedType::UT:
+        case MixedType::U02:
         case MixedType::Energetic:
         case MixedType::Constant:
           return 0;
@@ -246,7 +344,7 @@ class MixedFrameSection : public FrameSection
     }
 
     inline void 
-    MixedShape(FiberData& fiber, const Matrix3D& Gr, const Matrix3D& Gw, Matrix3D& An) const {
+    MixedShape(const FiberData& fiber, const Matrix3D& Gr, const Matrix3D& Gw, Matrix3D& An) const noexcept {
       
       constexpr static Matrix3D oneS {{
         0.0, 0.0, 0.0,
@@ -255,8 +353,10 @@ class MixedFrameSection : public FrameSection
       }};
 
       const FiberData::WarpArray& w = fiber.warp;
-      if (mixed_type == MixedType::None)
+      if (mixed_type == MixedType::None || 
+          mixed_type == MixedType::U02)
         return;
+
       else if (mixed_type == MixedType::UT) {
         An(1,2) = w[0][1];
         An(2,2) = w[0][2];
@@ -268,6 +368,7 @@ class MixedFrameSection : public FrameSection
       }
       else {
         const Vector3D r = {0.0, fiber.r[0], fiber.r[1]};
+        // NOTE: Matrix 3D is column major so these are transposed.
         const Matrix3D Anr {{
           0.0,   1.0,  0.0, // Vy
           0.0,   0.0,  1.0, // Vz
@@ -281,6 +382,15 @@ class MixedFrameSection : public FrameSection
             0.0, w[1][1], w[1][2],
             0.0, w[2][1], w[2][2]
           }};
+          Anwo(0,0) = 0.0;
+          Anwo(1,0) = w[0][1];
+          Anwo(2,0) = w[0][2];
+          Anwo(0,1) = 0.0;
+          Anwo(1,1) = w[1][1];
+          Anwo(2,1) = w[1][2];
+          Anwo(0,2) = 0.0;
+          Anwo(1,2) = w[2][1];
+          Anwo(2,2) = w[2][2];
           // -(dev ror)Xi
           Anwo.addTensorProduct(r, r, -nubar);
           Anwo.addMatrix(oneS, 0.5*r.dot(r)*nubar);

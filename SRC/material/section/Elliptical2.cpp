@@ -22,7 +22,6 @@
 #include <Channel.h>
 #include <math.h>
 #include <float.h>
-#include <elementAPI.h>
 
 #include <SensitiveResponse.h>
 typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
@@ -33,81 +32,83 @@ Vector Elliptical2::s(2);
 Matrix Elliptical2::ks(2,2);
 ID Elliptical2::code(2);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_Elliptical2)
+#include <elementAPI.h>
+void * 
+OPS_ADD_RUNTIME_VPV(OPS_Elliptical2)
 {
-    if (OPS_GetNumRemainingInputArgs() < 8) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: section Elliptical tag? E1? E2? sigY1? sigY2? Hiso? Hkin1? Hkin2? <code1? code2?>" << endln;
-	return 0;
-    }    
+  if (OPS_GetNumRemainingInputArgs() < 8) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: section Elliptical tag? E1? E2? sigY1? sigY2? Hiso? Hkin1? Hkin2? <code1? code2?>" << endln;
+    return 0;
+  }    
 
-    int tag;
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) {
-	opserr << "WARNING invalid Elliptical tag" << endln;
-	return 0;
+  int tag;
+  int numdata = 1;
+  if (OPS_GetIntInput(&numdata, &tag) < 0) {
+    opserr << "WARNING invalid Elliptical tag" << endln;
+    return 0;
+  }
+
+  numdata = 7;
+  double data[7];
+  if (OPS_GetDoubleInput(&numdata, data) < 0) {
+    opserr << "WARNING invalid double inputs\n";
+    opserr << "section Elliptical: " << tag << endln;
+    return 0;
+  }
+  double E1 = data[0];
+  double E2 = data[1];    
+  double sigY1 = data[2];
+  double sigY2 = data[3];    
+  double Hi = data[4];
+  double Hk1 = data[5];
+  double Hk2 = data[6];    
+
+  if (OPS_GetNumRemainingInputArgs() > 1) {
+    int code1, code2;
+    const char* type1 = OPS_GetString();
+    const char* type2 = OPS_GetString();
+    if (strcmp(type1,"Mz") == 0)
+      code1 = SECTION_RESPONSE_MZ;
+    else if (strcmp(type1,"P") == 0)
+      code1 = SECTION_RESPONSE_P;
+    else if (strcmp(type1,"Vy") == 0)
+      code1 = SECTION_RESPONSE_VY;
+    else if (strcmp(type1,"My") == 0)
+      code1 = SECTION_RESPONSE_MY;
+    else if (strcmp(type1,"Vz") == 0)
+      code1 = SECTION_RESPONSE_VZ;
+    else if (strcmp(type1,"T") == 0)
+      code1 = SECTION_RESPONSE_T;
+    else {
+      opserr << "WARNING invalid code 1 " << type1 << endln;
+      opserr << "section Elliptical: " << tag << endln;
+      return 0;
     }
 
-    numdata = 7;
-    double data[7];
-    if (OPS_GetDoubleInput(&numdata, data) < 0) {
-	opserr << "WARNING invalid double inputs\n";
-	opserr << "section Elliptical: " << tag << endln;
-	return 0;
+    if (strcmp(type2,"Mz") == 0)
+      code2 = SECTION_RESPONSE_MZ;
+    else if (strcmp(type2,"P") == 0)
+      code2 = SECTION_RESPONSE_P;
+    else if (strcmp(type2,"Vy") == 0)
+      code2 = SECTION_RESPONSE_VY;
+    else if (strcmp(type2,"My") == 0)
+      code2 = SECTION_RESPONSE_MY;
+    else if (strcmp(type2,"Vz") == 0)
+      code2 = SECTION_RESPONSE_VZ;
+    else if (strcmp(type2,"T") == 0)
+      code2 = SECTION_RESPONSE_T;
+    else {
+      opserr << "WARNING invalid code 2 " << type2 << endln;
+      opserr << "section Elliptical: " << tag << endln;
+      return 0;
     }
-    double E1 = data[0];
-    double E2 = data[1];    
-    double sigY1 = data[2];
-    double sigY2 = data[3];    
-    double Hi = data[4];
-    double Hk1 = data[5];
-    double Hk2 = data[6];    
-
-    if (OPS_GetNumRemainingInputArgs() > 1) {
-      int code1, code2;
-      const char* type1 = OPS_GetString();
-      const char* type2 = OPS_GetString();
-      if (strcmp(type1,"Mz") == 0)
-	code1 = SECTION_RESPONSE_MZ;
-      else if (strcmp(type1,"P") == 0)
-	code1 = SECTION_RESPONSE_P;
-      else if (strcmp(type1,"Vy") == 0)
-	code1 = SECTION_RESPONSE_VY;
-      else if (strcmp(type1,"My") == 0)
-	code1 = SECTION_RESPONSE_MY;
-      else if (strcmp(type1,"Vz") == 0)
-	code1 = SECTION_RESPONSE_VZ;
-      else if (strcmp(type1,"T") == 0)
-	code1 = SECTION_RESPONSE_T;
-      else {
-	opserr << "WARNING invalid code 1 " << type1 << endln;
-	opserr << "section Elliptical: " << tag << endln;
-	return 0;
-      }
-      
-      if (strcmp(type2,"Mz") == 0)
-	code2 = SECTION_RESPONSE_MZ;
-      else if (strcmp(type2,"P") == 0)
-	code2 = SECTION_RESPONSE_P;
-      else if (strcmp(type2,"Vy") == 0)
-	code2 = SECTION_RESPONSE_VY;
-      else if (strcmp(type2,"My") == 0)
-	code2 = SECTION_RESPONSE_MY;
-      else if (strcmp(type2,"Vz") == 0)
-	code2 = SECTION_RESPONSE_VZ;
-      else if (strcmp(type2,"T") == 0)
-	code2 = SECTION_RESPONSE_T;
-      else {
-	opserr << "WARNING invalid code 2 " << type2 << endln;
-	opserr << "section Elliptical: " << tag << endln;
-	return 0;
-      }
-      return new Elliptical2(tag, E1, E2, sigY1, sigY2, Hi, Hk1, Hk2, code1, code2);
-    } else {
-      return new Elliptical2(tag, E1, E2, sigY1, sigY2, Hi, Hk1, Hk2);
-    }
-
+    return new Elliptical2(tag, E1, E2, sigY1, sigY2, Hi, Hk1, Hk2, code1, code2);
+  } else {
+    return new Elliptical2(tag, E1, E2, sigY1, sigY2, Hi, Hk1, Hk2);
+  }
 }
+
 
 Elliptical2::Elliptical2
 (int tag, double e1, double e2, double sy1, double sy2, double Hi, 
@@ -175,7 +176,7 @@ Elliptical2::setTrialSectionDeformation(const Vector &e)
 }
 
 const Matrix&
-Elliptical2::getSectionTangent(void)
+Elliptical2::getSectionTangent()
 {
   static Vector str(2);
 
@@ -308,7 +309,7 @@ Elliptical2::getSectionTangent(void)
 }
 
 const Matrix&
-Elliptical2::getInitialTangent(void)
+Elliptical2::getInitialTangent()
 {
   ks(0,0) = E[0];
   ks(1,1) = E[1];
@@ -318,11 +319,11 @@ Elliptical2::getInitialTangent(void)
 }
 
 const Vector&
-Elliptical2::getStressResultant(void)
+Elliptical2::getStressResultant()
 {
   // Compute trial stress using elastic tangent
-  s(0) = E[0]*(e_n1[0]-eP_n[0]);
-  s(1) = E[1]*(e_n1[1]-eP_n[1]);
+  s(0) = E[0]*(e_n1[0] - eP_n[0]);
+  s(1) = E[1]*(e_n1[1] - eP_n[1]);
 
   double xsi[2];
   xsi[0] = s(0) - Hkin[0]*eP_n[0];

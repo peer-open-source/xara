@@ -26,32 +26,30 @@
 
 // we specify what header files we need
 #include "ZeroLengthImpact3D.h"
+#include <ZeroLength.h>
 #include <elementAPI.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 
 #include <Information.h>
 #include <Domain.h>
 #include <Node.h>
 #include <Channel.h>
-#include <Message.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
-// initialise the class wide variables
-
-static int numMyZeroLengthImpact3D = 0;
+using namespace OpenSees;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ZeroLengthImpact3D)
 {
+  static int numMyZeroLengthImpact3D = 0;
   // print out a message about who wrote this element & any copyright info wanted
   if (numMyZeroLengthImpact3D == 0) {
-    opserr << "Using ZeroLengthImpact3D element - Developed by Prof. Arash E. Zaghi & Majid Cashany, University of Connecticut (UConn) Copyright 2012 - Use at your Own Peril\n";
+    opslog << "Using ZeroLengthImpact3D element - Developed by Prof. Arash E. Zaghi & Majid Cashany, University of Connecticut (UConn) Copyright 2012 - Use at your Own Peril\n";
     numMyZeroLengthImpact3D++;
   }
 
@@ -316,7 +314,7 @@ ZeroLengthImpact3D::setDomain(Domain *theDomain)
     
     vm = (v1<v2) ? v2 : v1;
 
-    if (L > LENTOL*vm)
+    if (L > ZeroLength::MaxLength*vm)
       opserr << "WARNING ZeroLengthContact3D::setDomain(): Element " << this->getTag() << " has L= " << L << 
 	", which is greater than the tolerance\n";
         
@@ -348,8 +346,6 @@ ZeroLengthImpact3D::commitState()
 
 	pressC = pressT;
 	gapC = gapT;
-
-
 
 	return 0;
 }
@@ -494,12 +490,6 @@ ZeroLengthImpact3D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
     return 0;
 }
 
-int
-ZeroLengthImpact3D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    // nothing to display
-    return 0;
-}
 
 void
 ZeroLengthImpact3D::Print(OPS_Stream &s, int flag)

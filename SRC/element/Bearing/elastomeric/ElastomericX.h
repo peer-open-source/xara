@@ -51,14 +51,14 @@ public:
     ~ElastomericX();
     
     // Method to get class type
-    const char *getClassType() const {return "ElastomericX";};
+    const char *getClassType() const {return "ElastomericX";}
     
     // Public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
     int getNumDOF();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *);
     
     // Public methods to set the state of the element
     int commitState();
@@ -80,10 +80,9 @@ public:
     const Vector &getResistingForceIncInertia();
     
     // Public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag = 0);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);
     
     // Public methods for element recorder
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);

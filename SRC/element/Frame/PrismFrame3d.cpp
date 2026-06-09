@@ -90,6 +90,7 @@ PrismFrame3d::PrismFrame3d(int tag,
     mass_flag(cMass), density(density),
     releasez(rz), releasey(ry),
     geom_flag(geom),
+    section_tag(section.getTag()),
     shear_flag(shear_flag)
 {
   q.zero();
@@ -169,10 +170,18 @@ PrismFrame3d::PrismFrame3d(int tag,
   }
 }
 
+
+PrismFrame3d::~PrismFrame3d() 
+{
+  if (basic_system != nullptr) {
+    delete basic_system;
+    basic_system = nullptr;
+  }
+}
+
 int
 PrismFrame3d::setNodes()
 {
-
   if (basic_system->initialize(theNodes[0], theNodes[1]) != 0) {
     return -1;
   }
@@ -833,6 +842,10 @@ PrismFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
     }   
   }
 
+  // 110-111: sections
+  else if ((strcmp(argv[0], "sectionTags") == 0) && section_tag > 0)
+    theResponse = new ElementResponse(this, 110, ID(1));
+
   if (theResponse == nullptr)
     theResponse = basic_system->setResponse(argv, argc, output);
 
@@ -910,6 +923,11 @@ PrismFrame3d::getResponse(int responseID, Information &info)
 
     return info.setVector(s);
   }
+  case 110: {
+    static ID tags(1);
+    tags(0) = section_tag;
+    return info.setID(tags);
+  }
   default:
     break;
   }
@@ -924,16 +942,10 @@ PrismFrame3d::getResistingForceSensitivity(int gradNumber)
   P.Zero();
 
   VectorND<NBV> dqdh = this->getBasicForceGrad(gradNumber);
-  double dLdh = basic_system->getLengthGrad();
+
   // Transform forces
-  double dp0dh[6];
-  dp0dh[0] = 0.0;
-  dp0dh[1] = 0.0;
-  dp0dh[2] = 0.0;
-  dp0dh[3] = 0.0;
-  dp0dh[4] = 0.0;
-  dp0dh[5] = 0.0;
-  this->addReactionGrad(dp0dh, gradNumber, dLdh);
+  double dp0dh[6]{};
+  this->addReactionGrad(dp0dh, gradNumber, basic_system->getLengthGrad());
   Vector dp0dhVec(dp0dh, 6);
 
   if (basic_system->isShapeSensitivity()) {
@@ -992,8 +1004,23 @@ PrismFrame3d::setParameter(const char **argv, int argc, Parameter &param)
 
   if (argc < 1)
     return -1;
+  
+  const char* name = argv[0];
+  if (strcmp(name,"section") == 0) {
+    if (argc < 3)
+      return -1;
+    else if (argc == 3) {
+      name = argv[2];
+    }
+    else if (strcmp(argv[2], "material") == 0) {
+      if (argc < 5)
+        return -1;
+      else
+        name = argv[4];
+    }
+  }
 
-  if (strcmp(argv[0],"E") == 0) {
+  if (strcmp(name,"E") == 0) {
     param.setValue(E);
     return param.addObject(Param::E,  this);
   }
@@ -1003,27 +1030,27 @@ PrismFrame3d::setParameter(const char **argv, int argc, Parameter &param)
     return param.addObject(Param::Rho, this);
   }
 
-  if (strcmp(argv[0],"A") == 0) {
+  if (strcmp(name,"A") == 0) {
     param.setValue(A);
     return param.addObject(Param::A,  this);
   }
 
-  if (strcmp(argv[0],"Ay") == 0) {
+  if (strcmp(name,"Ay") == 0) {
     param.setValue(Ay);
     return param.addObject(Param::Ay,  this);
   }
 
-  if (strcmp(argv[0],"Az") == 0) {
+  if (strcmp(name,"Az") == 0) {
     param.setValue(Az);
     return param.addObject(Param::Az,  this);
   }
 
-  if (strcmp(argv[0],"Iy") == 0) {
+  if (strcmp(name,"Iy") == 0) {
     param.setValue(Iy);
     return param.addObject(Param::Iy, this);
   }
 
-  if (strcmp(argv[0],"Iz") == 0) {
+  if (strcmp(name,"Iz") == 0) {
     param.setValue(Iz);
     return param.addObject(Param::Iz, this);
   }

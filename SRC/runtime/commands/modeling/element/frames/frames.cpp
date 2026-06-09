@@ -180,7 +180,7 @@ CreateFrame(ModelRegistry& builder,
             BeamIntegration& beamIntegr,
             double mass, int max_iter, double tol,
             const std::array<double,2>& shear_center,
-            Options& options) 
+            FrameOptions& options) 
 {
   std::vector<Section*> sections;
 
@@ -699,11 +699,12 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   // Defaults
   //
-  struct Options options;
+  struct FrameOptions options;
   options.mass_flag  =  0;
   options.shear_flag = -1;
   options.geom_flag  =  0;
   options.use_mass   =  0;
+  options.rotation_type = builder->getRotationType();
   switch (beam_type) {
     case FrameClass::DispBeamColumn2d:
     case FrameClass::DispBeamColumn3d:
@@ -906,7 +907,8 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     // Here we create a BeamIntegrationRule (theRule) which is a pair of
     // section tags and a BeamIntegration. In this case we do not
     // delete the BeamIntegration because it is owned by theRule.
-    deleteBeamIntegr = false;
+    if (syntax == FrameSyntax::B)
+      deleteBeamIntegr = false;
 
 
     // Geometric transformation
