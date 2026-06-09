@@ -74,7 +74,7 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     virtual NDMaterial *getCopy(const char *type) override;
 
     // methods to set state and retrieve state
-    virtual double getRho();
+    virtual double getRho() { return 0.0; }
 
     virtual int setTrialStrain(const Vector &) =0;
     virtual int setTrialStrainIncr(const Vector &);

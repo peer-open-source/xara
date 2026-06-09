@@ -680,7 +680,14 @@ class Model:
         return symbols
 
 
-    def surface(self, split, element: str=None, args=None, points=None, name=None, kwds=None, order=None, shape=None):
+    def surface(self, split, 
+                element: str=None, 
+                args=None, 
+                points=None, 
+                name=None, 
+                kwds=None, 
+                order=None, 
+                shape=None):
         """
         Create a surface mesh of elements in the current model.
 
@@ -714,14 +721,23 @@ class Model:
         cell_type = None
 
         if shape is None:
-            shape = "Q"
+            if element in {"ShellMITC4", "Q4", "Q8", "Q9"}:
+                cell_type = {
+                    "ShellMITC4": shps.plane.Q4,
+                    "Q4": shps.plane.Q4,
+                    "Q8": shps.plane.Q8,
+                    "Q9": shps.plane.Q9,
+                }[element]
+            else:
+                shape = "Q"
 
-        if order == 1 and shape == "Q":
-            cell_type = shps.plane.Q4
-        elif order == 2 and shape == "Q":
-            cell_type = shps.plane.Q9
-        elif order == 2 and shape == "T":
-            cell_type = shps.plane.T6
+        if cell_type is None:
+            if order == 1 and shape == "Q":
+                cell_type = shps.plane.Q4
+            elif order == 2 and shape == "Q":
+                cell_type = shps.plane.Q9
+            elif order == 2 and shape == "T":
+                cell_type = shps.plane.T6
 
 
         if isinstance(element, str) and cell_type is None:

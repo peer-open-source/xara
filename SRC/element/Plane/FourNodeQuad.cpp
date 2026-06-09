@@ -511,12 +511,12 @@ FourNodeQuad::addInertiaLoadToUnbalance(const Vector &accel)
   ra[7] = Raccel4(1);
   
   // Compute mass matrix
-  this->getMass();
+  const Matrix& M = this->getMass();
   
   // Want to add ( - fact * M R * accel ) to unbalance
   // Take advantage of lumped mass matrix
   for (int i = 0; i < 8; i++)
-    Q(i) += -K(i,i)*ra[i];
+    Q(i) += -M(i,i)*ra[i];
   
   return 0;
 }
@@ -1160,7 +1160,7 @@ FourNodeQuad::shapeFunction(double xi, double eta)
   const double oneMinuseta = 1.0-eta;
   const double onePluseta = 1.0+eta;
   const double oneMinusxi = 1.0-xi;
-  const double onePlusxi = 1.0+xi;
+  const double onePlusxi  = 1.0+xi;
 
   shp[2][0] = 0.25*oneMinusxi*oneMinuseta;        // N_1
   shp[2][1] = 0.25*onePlusxi*oneMinuseta;         // N_2
@@ -1176,7 +1176,7 @@ FourNodeQuad::shapeFunction(double xi, double eta)
                           Xn[2][0]*onePlusxi + Xn[3][0]*oneMinusxi);
 
   J[1][0] = 0.25 * (-Xn[0][1]*oneMinuseta + Xn[1][1]*oneMinuseta +
-                          Xn[2][1]*onePluseta - Xn[3][1]*onePluseta);
+                     Xn[2][1]*onePluseta  - Xn[3][1]*onePluseta);
 
   J[1][1] = 0.25 * (-Xn[0][1]*oneMinusxi - Xn[1][1]*onePlusxi +
                           Xn[2][1]*onePlusxi + Xn[3][1]*oneMinusxi);
@@ -1231,61 +1231,61 @@ FourNodeQuad::activateParameter(int param)
 void 
 FourNodeQuad::setPressureLoadAtNodes()
 {
-    pressureLoad.Zero();
+  pressureLoad.Zero();
 
-    if (pressure == 0.0)
-        return;
+  if (pressure == 0.0)
+      return;
 
-    const Vector &node1 = theNodes[0]->getCrds();
-    const Vector &node2 = theNodes[1]->getCrds();
-    const Vector &node3 = theNodes[2]->getCrds();
-    const Vector &node4 = theNodes[3]->getCrds();
+  const Vector &node1 = theNodes[0]->getCrds();
+  const Vector &node2 = theNodes[1]->getCrds();
+  const Vector &node3 = theNodes[2]->getCrds();
+  const Vector &node4 = theNodes[3]->getCrds();
 
-    double x1 = node1(0);
-    double y1 = node1(1);
-    double x2 = node2(0);
-    double y2 = node2(1);
-    double x3 = node3(0);
-    double y3 = node3(1);
-    double x4 = node4(0);
-    double y4 = node4(1);
+  double x1 = node1(0);
+  double y1 = node1(1);
+  double x2 = node2(0);
+  double y2 = node2(1);
+  double x3 = node3(0);
+  double y3 = node3(1);
+  double x4 = node4(0);
+  double y4 = node4(1);
 
-    double dx12 = x2-x1;
-    double dy12 = y2-y1;
-    double dx23 = x3-x2;
-    double dy23 = y3-y2;
-    double dx34 = x4-x3;
-    double dy34 = y4-y3;
-    double dx41 = x1-x4;
-    double dy41 = y1-y4;
+  double dx12 = x2-x1;
+  double dy12 = y2-y1;
+  double dx23 = x3-x2;
+  double dy23 = y3-y2;
+  double dx34 = x4-x3;
+  double dy34 = y4-y3;
+  double dx41 = x1-x4;
+  double dy41 = y1-y4;
 
-    double pressureOver2 = pressure/2.0;
+  double pressureOver2 = pressure/2.0;
 
-    // Contribution from side 12
-    pressureLoad(0) += pressureOver2*dy12;
-    pressureLoad(2) += pressureOver2*dy12;
-    pressureLoad(1) += pressureOver2*-dx12;
-    pressureLoad(3) += pressureOver2*-dx12;
+  // Contribution from side 12
+  pressureLoad(0) += pressureOver2*dy12;
+  pressureLoad(2) += pressureOver2*dy12;
+  pressureLoad(1) += pressureOver2*-dx12;
+  pressureLoad(3) += pressureOver2*-dx12;
 
-    // Contribution from side 23
-    pressureLoad(2) += pressureOver2*dy23;
-    pressureLoad(4) += pressureOver2*dy23;
-    pressureLoad(3) += pressureOver2*-dx23;
-    pressureLoad(5) += pressureOver2*-dx23;
+  // Contribution from side 23
+  pressureLoad(2) += pressureOver2*dy23;
+  pressureLoad(4) += pressureOver2*dy23;
+  pressureLoad(3) += pressureOver2*-dx23;
+  pressureLoad(5) += pressureOver2*-dx23;
 
-    // Contribution from side 34
-    pressureLoad(4) += pressureOver2*dy34;
-    pressureLoad(6) += pressureOver2*dy34;
-    pressureLoad(5) += pressureOver2*-dx34;
-    pressureLoad(7) += pressureOver2*-dx34;
+  // Contribution from side 34
+  pressureLoad(4) += pressureOver2*dy34;
+  pressureLoad(6) += pressureOver2*dy34;
+  pressureLoad(5) += pressureOver2*-dx34;
+  pressureLoad(7) += pressureOver2*-dx34;
 
-    // Contribution from side 41
-    pressureLoad(6) += pressureOver2*dy41;
-    pressureLoad(0) += pressureOver2*dy41;
-    pressureLoad(7) += pressureOver2*-dx41;
-    pressureLoad(1) += pressureOver2*-dx41;
+  // Contribution from side 41
+  pressureLoad(6) += pressureOver2*dy41;
+  pressureLoad(0) += pressureOver2*dy41;
+  pressureLoad(7) += pressureOver2*-dx41;
+  pressureLoad(1) += pressureOver2*-dx41;
 
-    //pressureLoad = pressureLoad*thickness;
+  //pressureLoad = pressureLoad*thickness;
 }
 
 const Vector &
