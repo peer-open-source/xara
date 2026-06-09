@@ -27,7 +27,6 @@
 // Eight node BbarBrickWithSensitivity element
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
 
@@ -84,7 +83,6 @@ connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
 }
 
 
-//*********************************************************************
 //full constructor
 BbarBrickWithSensitivity::BbarBrickWithSensitivity(  int tag,
                          int node1,
@@ -110,14 +108,13 @@ connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
   connectedExternalNodes(6) = node7 ;
   connectedExternalNodes(7) = node8 ;
 
-  int i ;
-  for ( i=0; i<8; i++ ) {
+  for (int i=0; i<8; i++ ) {
 
       materialPointers[i] = theMaterial.getCopy("ThreeDimensional") ;
 
       if (materialPointers[i] == 0) {
-	  opserr <<"BbarBrickWithSensitivity::constructor - failed to get a material of type: ThreeDimensional\n";
-	  exit(-1);
+        opserr <<"BbarBrickWithSensitivity::constructor - failed to get a material of type: ThreeDimensional\n";
+        exit(-1);
       } //end if
 
   } //end for i
@@ -131,14 +128,12 @@ connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
 	parameterID = 0;
 // AddingSensitivity:END /////////////////////////////////
 }
-//******************************************************************
 
 
 //destructor
 BbarBrickWithSensitivity::~BbarBrickWithSensitivity( )
 {
-  int i ;
-  for ( i=0 ; i<8; i++ ) {
+  for (int i=0 ; i<8; i++ ) {
 
     delete materialPointers[i] ;
     materialPointers[i] = 0 ;
@@ -156,51 +151,52 @@ BbarBrickWithSensitivity::~BbarBrickWithSensitivity( )
 
 
 //set domain
-void  BbarBrickWithSensitivity::setDomain( Domain *theDomain )
+void 
+BbarBrickWithSensitivity::setDomain( Domain *theDomain )
 {
-
-  int i ;
-
-  //node pointers
-  for ( i=0; i<8; i++ )
-     nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
+  // node pointers
+  for (int i=0; i<8; i++ )
+    nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
 
   if (theDomain != nullptr)
     this->Element::link(*theDomain);
-
 }
 
 
-//get the number of external nodes
-int  BbarBrickWithSensitivity::getNumExternalNodes( ) const
+// get the number of external nodes
+int
+BbarBrickWithSensitivity::getNumExternalNodes( ) const
 {
   return 8 ;
 }
 
 
 //return connected external nodes
-const ID&  BbarBrickWithSensitivity::getExternalNodes( )
+const ID&
+BbarBrickWithSensitivity::getExternalNodes( )
 {
   return connectedExternalNodes ;
 }
 
 //return connected external node
 Node **
-BbarBrickWithSensitivity::getNodePtrs(void)
+BbarBrickWithSensitivity::getNodePtrs()
 {
   return nodePointers ;
 }
 
 
 //return number of dofs
-int  BbarBrickWithSensitivity::getNumDOF( )
+int
+BbarBrickWithSensitivity::getNumDOF()
 {
   return 24 ;
 }
 
 
 //commit state
-int  BbarBrickWithSensitivity::commitState( )
+int
+BbarBrickWithSensitivity::commitState()
 {
   int success = 0 ;
 
@@ -218,65 +214,62 @@ int  BbarBrickWithSensitivity::commitState( )
 
 
 //revert to last commit
-int  BbarBrickWithSensitivity::revertToLastCommit( )
+int
+BbarBrickWithSensitivity::revertToLastCommit()
 {
-  int i ;
   int success = 0 ;
 
-  for ( i=0; i<8; i++ )
-    success += materialPointers[i]->revertToLastCommit( ) ;
+  for (int i=0; i<8; i++ )
+    success += materialPointers[i]->revertToLastCommit();
 
   return success ;
 }
 
 
-int  BbarBrickWithSensitivity::revertToStart( )
+int
+BbarBrickWithSensitivity::revertToStart()
 {
-  int i ;
   int success = 0 ;
 
-  for ( i=0; i<8; i++ )
+  for (int i=0; i<8; i++ )
     success += materialPointers[i]->revertToStart( ) ;
 
   return success ;
 }
 
 //print out element data
-void  BbarBrickWithSensitivity::Print( OPS_Stream &s, int flag )
+void
+BbarBrickWithSensitivity::Print( OPS_Stream &s, int flag )
 {
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << "Element Number: " << this->getTag();
-        s << "     Node 1 : " << connectedExternalNodes(0);
-        s << "     Node 2 : " << connectedExternalNodes(1);
-        s << "     Node 3 : " << connectedExternalNodes(2);
-        s << "     Node 4 : " << connectedExternalNodes(3);
-        s << "     Node 5 : " << connectedExternalNodes(4);
-        s << "     Node 6 : " << connectedExternalNodes(5);
-        s << "     Node 7 : " << connectedExternalNodes(6);
-        s << "     Node 8 : " << connectedExternalNodes(7) << endln;
-        
-        //s << "Material Information : \n " ;
-        //materialPointers[0]->Print( s, flag ) ;
-        
-        //s << endln ;
-    }
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "Element Number: " << this->getTag();
+    s << "     Node 1 : " << connectedExternalNodes(0);
+    s << "     Node 2 : " << connectedExternalNodes(1);
+    s << "     Node 3 : " << connectedExternalNodes(2);
+    s << "     Node 4 : " << connectedExternalNodes(3);
+    s << "     Node 5 : " << connectedExternalNodes(4);
+    s << "     Node 6 : " << connectedExternalNodes(5);
+    s << "     Node 7 : " << connectedExternalNodes(6);
+    s << "     Node 8 : " << connectedExternalNodes(7) << endln;
+  }
 
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"" << this->getClassType() << "\", ";
-        s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-        for (int i = 1; i < 7; i++)
-            s << connectedExternalNodes(i) << ", ";
-        s << connectedExternalNodes(7) << "], ";
-        s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
-        s << "\"material\": [" << materialPointers[0]->getTag() << "]";
-        s << "}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+    for (int i = 1; i < 7; i++)
+        s << connectedExternalNodes(i) << ", ";
+    s << connectedExternalNodes(7) << "], ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
+    s << "\"material\": [" << materialPointers[0]->getTag() << "]";
+    s << "}";
+  }
 }
 
 //return stiffness matrix
-const Matrix&  BbarBrickWithSensitivity::getTangentStiff( )
+const Matrix&
+BbarBrickWithSensitivity::getTangentStiff( )
 {
   int tang_flag = 1 ; //get the tangent
 
@@ -293,18 +286,13 @@ const Matrix&  BbarBrickWithSensitivity::getInitialStiff( )
   if (Ki != 0)
     return *Ki;
 
-  //strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31
+  // strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31
 
   static const int ndm = 3 ;
-
   static const int ndf = 3 ;
-
-  static const int nstress = 6 ;
-
+  static const int nstress = 6;
   static const int numberNodes = 8 ;
-
   static const int numberGauss = 8 ;
-
   static const int nShape = 4 ;
 
   int i, j, k, p, q ;
@@ -369,38 +357,38 @@ const Matrix&  BbarBrickWithSensitivity::getInitialStiff( )
       for ( k = 0; k < 2; k++ ) {
 
         gaussPoint[0] = sg[i] ;
-	gaussPoint[1] = sg[j] ;
-	gaussPoint[2] = sg[k] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-	//get shape functions
-	shp3d( gaussPoint, xsj, shp, xl ) ;
+        //get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-	//save shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-	    Shape[p][q][count] = shp[p][q] ;
-	} // end for p
+        //save shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+        } // end for p
 
-	//volume element to also be saved
-	dvol[count] = wg[count] * xsj ;
+        //volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
-        //add to volume
-	volume += dvol[count] ;
+              //add to volume
+        volume += dvol[count] ;
 
-	//add to mean shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-	    shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
-	} // end for p
+        //add to mean shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
+        } // end for p
 
-	count++ ;
+        count++ ;
 
       } //end for k
     } //end for j
   } // end for i
 
 
-  //mean value of shape functions
+  // mean value of shape functions
   for ( p = 0; p < nShape; p++ ) {
     for ( q = 0; q < numberNodes; q++ )
       shpBar[p][q] /= volume ;
@@ -412,8 +400,8 @@ const Matrix&  BbarBrickWithSensitivity::getInitialStiff( )
 
     //extract shape functions from saved array
     for ( p = 0; p < nShape; p++ ) {
-       for ( q = 0; q < numberNodes; q++ )
-	  shp[p][q]  = Shape[p][q][i] ;
+      for ( q = 0; q < numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
     } // end for p
 
     dd = materialPointers[i]->getInitialTangent( ) ;
@@ -426,12 +414,12 @@ const Matrix&  BbarBrickWithSensitivity::getInitialStiff( )
 
       BJ = computeBbar( j, shp, shpBar ) ;
 
-      //transpose
-      //BJtran = transpose( nstress, ndf, BJ ) ;
+      // transpose
+      // BJtran = transpose( nstress, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
-	for (q=0; q<nstress; q++)
-	  BJtran(p,q) = BJ(q,p) ;
-      }//end for p
+        for (q=0; q<nstress; q++)
+          BJtran(p,q) = BJ(q,p) ;
+      }
 
       //BJtranD = BJtran * dd ;
       BJtranD.addMatrixProduct(0.0,  BJtran,dd,1.0);
@@ -439,17 +427,17 @@ const Matrix&  BbarBrickWithSensitivity::getInitialStiff( )
       kk = 0 ;
       for ( k = 0; k < numberNodes; k++ ) {
 
-	BK = computeBbar( k, shp, shpBar ) ;
+        BK = computeBbar( k, shp, shpBar ) ;
 
-	//stiffJK =  BJtranD * BK  ;
-	stiffJK.addMatrixProduct(0.0,  BJtranD,BK,1.0) ;
+        //stiffJK =  BJtranD * BK  ;
+        stiffJK.addMatrixProduct(0.0,  BJtranD,BK,1.0) ;
 
-	for ( p = 0; p < ndf; p++ )  {
-	  for ( q = 0; q < ndf; q++ )
-	    stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-	} //end for p
+        for ( p = 0; p < ndf; p++ )  {
+          for ( q = 0; q < ndf; q++ )
+            stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
+        } //end for p
 
-	kk += ndf ;
+        kk += ndf ;
       } // end for k loop
 
       jj += ndf ;
@@ -464,7 +452,8 @@ const Matrix&  BbarBrickWithSensitivity::getInitialStiff( )
 
 
 //return mass matrix
-const Matrix&  BbarBrickWithSensitivity::getMass( )
+const Matrix&
+BbarBrickWithSensitivity::getMass()
 {
   int tangFlag = 1 ;
 
@@ -474,7 +463,8 @@ const Matrix&  BbarBrickWithSensitivity::getMass( )
 }
 
 
-void  BbarBrickWithSensitivity::zeroLoad( )
+void
+BbarBrickWithSensitivity::zeroLoad()
 {
   if (load != 0)
     load->Zero();
@@ -516,6 +506,7 @@ BbarBrickWithSensitivity::addLoad(ElementalLoad *theLoad, double loadFactor)
   return -1;
 }
 
+
 int
 BbarBrickWithSensitivity::addInertiaLoadToUnbalance(const Vector &accel)
 {
@@ -523,11 +514,10 @@ BbarBrickWithSensitivity::addInertiaLoadToUnbalance(const Vector &accel)
   static const int numberGauss = 8 ;
   static const int ndf = 3 ;
 
-  int i;
 
   // check to see if have mass
   int haveRho = 0;
-  for (i = 0; i < numberGauss; i++) {
+  for (int i = 0; i < numberGauss; i++) {
     if (materialPointers[i]->getRho() != 0.0)
       haveRho = 1;
   }
@@ -541,14 +531,14 @@ BbarBrickWithSensitivity::addInertiaLoadToUnbalance(const Vector &accel)
 
   // store computed RV for nodes in resid vector
   int count = 0;
-  for (i=0; i<numberNodes; i++) {
+  for (int i=0; i<numberNodes; i++) {
     const Vector &Raccel = nodePointers[i]->getRV(accel);
     for (int j=0; j<ndf; j++)
       resid(count++) = Raccel(j);
   }
 
   // create the load vector if one does not exist
-  if (load == 0)
+  if (load == nullptr)
     load = new Vector(numberNodes*ndf);
 
   // add -M * RV(accel) to the load vector
@@ -559,13 +549,14 @@ BbarBrickWithSensitivity::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 //get residual
-const Vector&  BbarBrickWithSensitivity::getResistingForce( )
+const Vector&
+BbarBrickWithSensitivity::getResistingForce( )
 {
   int tang_flag = 0 ; //don't get the tangent
 
   formResidAndTangent( tang_flag ) ;
 
-  if (load != 0)
+  if (load != nullptr)
     resid -= *load;
 
   return resid ;
@@ -590,29 +581,23 @@ const Vector&  BbarBrickWithSensitivity::getResistingForceIncInertia( )
   if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
       res += this->getRayleighDampingForces();
 
-  if (load != 0)
+  if (load != nullptr)
     res -= *load;
 
   return res ;
 }
 
 
-//*********************************************************************
-//form inertia terms
-
-void   BbarBrickWithSensitivity::formInertiaTerms( int tangFlag )
+// form inertia terms
+void
+BbarBrickWithSensitivity::formInertiaTerms( int tangFlag )
 {
 
   static const int ndm = 3 ;
-
   static const int ndf = 3 ;
-
   static const int numberNodes = 8 ;
-
   static const int numberGauss = 8 ;
-
   static const int nShape = 4 ;
-
   static const int massIndex = nShape - 1 ;
 
   double xsj ;  // determinant jacaobian matrix
@@ -648,22 +633,22 @@ void   BbarBrickWithSensitivity::formInertiaTerms( int tangFlag )
       for ( k = 0; k < 2; k++ ) {
 
         gaussPoint[0] = sg[i] ;
-	gaussPoint[1] = sg[j] ;
-	gaussPoint[2] = sg[k] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-	//get shape functions
-	shp3d( gaussPoint, xsj, shp, xl ) ;
+        //get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-	//save shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-	    Shape[p][q][count] = shp[p][q] ;
-	} // end for p
+        //save shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+        } // end for p
 
-	//volume element to also be saved
-	dvol[count] = wg[count] * xsj ;
+        //volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
-	count++ ;
+        count++ ;
 
       } //end for k
     } //end for j
@@ -676,8 +661,8 @@ void   BbarBrickWithSensitivity::formInertiaTerms( int tangFlag )
 
     //extract shape functions from saved array
     for ( p = 0; p < nShape; p++ ) {
-       for ( q = 0; q < numberNodes; q++ )
-	  shp[p][q]  = Shape[p][q][i] ;
+      for ( q = 0; q < numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
     } // end for p
 
 
@@ -709,20 +694,20 @@ void   BbarBrickWithSensitivity::formInertiaTerms( int tangFlag )
 
       if ( tangFlag == 1 ) {
 
-	 //multiply by density
-	 temp *= rho ;
+        //multiply by density
+        temp *= rho ;
 
-	 //node-node mass
-         kk = 0 ;
-         for ( k = 0; k < numberNodes; k++ ) {
+        //node-node mass
+        kk = 0 ;
+        for ( k = 0; k < numberNodes; k++ ) {
 
-	    massJK = temp * shp[massIndex][k] ;
+          massJK = temp * shp[massIndex][k] ;
 
-            for ( p = 0; p < ndf; p++ )
-	      mass( jj+p, kk+p ) += massJK ;
+          for ( p = 0; p < ndf; p++ )
+            mass( jj+p, kk+p ) += massJK ;
 
-            kk += ndf ;
-          } // end for k loop
+          kk += ndf ;
+        } // end for k loop
 
       } // end if tang_flag
 
@@ -734,9 +719,10 @@ void   BbarBrickWithSensitivity::formInertiaTerms( int tangFlag )
 
 }
 
-//*********************************************************************
+
 //form residual and tangent
-void  BbarBrickWithSensitivity::formResidAndTangent( int tang_flag )
+void
+BbarBrickWithSensitivity::formResidAndTangent( int tang_flag )
 {
 
 
@@ -750,15 +736,10 @@ if (tang_flag ==0) {// stress only
 		//strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31
 
   static const int ndm = 3 ;
-
   static const int ndf = 3 ;
-
   static const int nstress = 6 ;
-
   static const int numberNodes = 8 ;
-
   static const int numberGauss = 8 ;
-
   static const int nShape = 4 ;
 
   int i, j, k, p, q ;
@@ -767,27 +748,16 @@ if (tang_flag ==0) {// stress only
   int success ;
 
   static double volume ;
-
   static double xsj ;  // determinant jacaobian matrix
-
   static double dvol[numberGauss] ; //volume element
-
   static double gaussPoint[ndm] ;
-
   static Vector strain(nstress) ;  //strain
-
   static double shp[nShape][numberNodes] ;  //shape functions at a gauss point
-
   static double Shape[nShape][numberNodes][numberGauss] ; //all the shape functions
-
   static double shpBar[nShape][numberNodes] ;  //mean value of shape functions
-
   static Vector residJ(ndf) ; //nodeJ residual
-
   static Matrix stiffJK(ndf,ndf) ; //nodeJK stiffness
-
   static Vector stress(nstress) ;  //stress
-
   static Matrix dd(nstress,nstress) ;  //material tangent
 
 
@@ -814,8 +784,8 @@ if (tang_flag ==0) {// stress only
 
   //zero mean shape functions
   for ( p = 0; p < nShape; p++ ) {
-	for ( q = 0; q < numberNodes; q++ )
-	  shpBar[p][q] = 0.0 ;
+    for ( q = 0; q < numberNodes; q++ )
+      shpBar[p][q] = 0.0 ;
   } // end for p
 
   //zero volume
@@ -830,34 +800,34 @@ if (tang_flag ==0) {// stress only
       for ( k = 0; k < 2; k++ ) {
 
         gaussPoint[0] = sg[i] ;
-	gaussPoint[1] = sg[j] ;
-	gaussPoint[2] = sg[k] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-	//get shape functions
-	shp3d( gaussPoint, xsj, shp, xl ) ;
+        //get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-	//save shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-		Shape[p][q][count] = shp[p][q] ;
-	} // end for p
+        //save shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+        }
 
-	//volume element to also be saved
-	dvol[count] = wg[count] * xsj ;
+        //volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
-		//add to volume
-	volume += dvol[count] ;
+          //add to volume
+        volume += dvol[count] ;
 
-	//add to mean shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-		shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
-	} // end for p
+        //add to mean shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
+        }
 
-	count++ ;
+        count++ ;
 
-	  } //end for k
-	} //end for j
+      } //end for k
+    } //end for j
   } // end for i
 
 
@@ -1305,32 +1275,10 @@ BbarBrickWithSensitivity::computeBbar( int node,
 
 }
 
-//***********************************************************************
-
-Matrix  BbarBrickWithSensitivity::transpose( int dim1,
-                                       int dim2,
-		                       const Matrix &M )
-{
-  int i ;
-  int j ;
-
-  Matrix Mtran( dim2, dim1 ) ;
-
-  for ( i = 0; i < dim1; i++ ) {
-     for ( j = 0; j < dim2; j++ )
-         Mtran(j,i) = M(i,j) ;
-  } // end for i
-
-  return Mtran ;
-}
-
-//**********************************************************************
 
 
-
-
-
-int  BbarBrickWithSensitivity::sendSelf (int commitTag, Channel &theChannel)
+int
+BbarBrickWithSensitivity::sendSelf(int commitTag, Channel &theChannel)
 {
 
   int res = 0;
@@ -1392,7 +1340,8 @@ int  BbarBrickWithSensitivity::sendSelf (int commitTag, Channel &theChannel)
   return res;
 }
 
-int  BbarBrickWithSensitivity::recvSelf (int commitTag,
+int
+BbarBrickWithSensitivity::recvSelf (int commitTag,
 		       Channel &theChannel,
 		       FEM_ObjectBroker &theBroker)
 {
@@ -1427,17 +1376,17 @@ int  BbarBrickWithSensitivity::recvSelf (int commitTag,
       // Allocate new material with the sent class tag
       materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
       if (materialPointers[i] == 0) {
-	  opserr << "BbarBrickWithSensitivity::recvSelf() - Broker could not create NDMaterial of class type" <<
-	    matClassTag << endln;
-	  exit(-1);
+        opserr << "BbarBrickWithSensitivity::recvSelf() - Broker could not create NDMaterial of class type" <<
+          matClassTag << endln;
+        exit(-1);
       }
       // Now receive materials into the newly allocated space
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "NLBeamColumn3d::recvSelf() - material " <<
-	  i << "failed to recv itself\n";
-	return res;
+        opserr << "NLBeamColumn3d::recvSelf() - material " <<
+          i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -1449,29 +1398,29 @@ int  BbarBrickWithSensitivity::recvSelf (int commitTag,
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (materialPointers[i]->getClassTag() != matClassTag) {
-	delete materialPointers[i];
-	materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-	if (materialPointers[i] == 0) {
-	  opserr << "BbarBrickWithSensitivity::recvSelf() - Broker could not create NDMaterial of class type" <<
-	    matClassTag << endln;
-	  exit(-1);
-	}
-      materialPointers[i]->setDbTag(matDbTag);
+        delete materialPointers[i];
+        materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
+        if (materialPointers[i] == 0) {
+          opserr << "BbarBrickWithSensitivity::recvSelf() - Broker could not create NDMaterial of class type" <<
+            matClassTag << endln;
+          exit(-1);
+        }
+        materialPointers[i]->setDbTag(matDbTag);
       }
       // Receive the material
 
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "NLBeamColumn3d::recvSelf() - material " <<
-	  i << "failed to recv itself\n";
-	return res;
+        opserr << "NLBeamColumn3d::recvSelf() - material " <<
+          i << "failed to recv itself\n";
+        return res;
       }
     }
   }
 
   return res;
 }
-//**************************************************************************
+
 
 
 Response*
@@ -1609,8 +1558,6 @@ BbarBrickWithSensitivity::setParameter(const char **argv, int argc, Parameter &p
     // otherwise parameter is unknown for the Truss class
 	return -1;
 	}
-
-
 }
 
 
@@ -1694,15 +1641,10 @@ BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber)
 		//strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31
 
 	  static const int ndm = 3 ;
-
 	  static const int ndf = 3 ;
-
 	  static const int nstress = 6 ;
-
 	  static const int numberNodes = 8 ;
-
 	  static const int numberGauss = 8 ;
-
 	  static const int nShape = 4 ;
 
 	  int i, j, k, p, q ;
@@ -1713,11 +1655,8 @@ BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber)
 //	  int success ;
 
 	  static double volume ;
-
 	  static double xsj ;  // determinant jacaobian matrix
-
 	  static double dvol[numberGauss] ; //volume element
-
 	  static double gaussPoint[ndm] ;
 
 //	  static Vector strain(nstress) ;  //strain
@@ -1729,22 +1668,16 @@ BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber)
 	  static double shpBar[nShape][numberNodes] ;  //mean value of shape functions
 
 	  static Vector residJ(ndf) ; //nodeJ residual
-
 	  static Matrix stiffJK(ndf,ndf) ; //nodeJK stiffness
-
 	  static Vector stress(nstress) ;  //stress
-
 	  static Matrix dd(nstress,nstress) ;  //material tangent
 
 
 	  //---------B-matrices------------------------------------
 
 		static Matrix BJ(nstress,ndf) ;      // B matrix node J
-
 		static Matrix BJtran(ndf,nstress) ;
-
 		static Matrix BK(nstress,ndf) ;      // B matrix node k
-
 		static Matrix BJtranD(ndf,nstress) ;
 
 	  //-------------------------------------------------------
@@ -1760,67 +1693,67 @@ BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber)
 
 	  //zero mean shape functions
 	  for ( p = 0; p < nShape; p++ ) {
-		for ( q = 0; q < numberNodes; q++ )
-		  shpBar[p][q] = 0.0 ;
+      for ( q = 0; q < numberNodes; q++ )
+        shpBar[p][q] = 0.0 ;
 	  } // end for p
 
 	  //zero volume
 	  volume = 0.0 ;
 
 
-	  //gauss loop to compute and save shape functions
+	  // gauss loop to compute and save shape functions
 	  int count = 0 ;
 
 	  for ( i = 0; i < 2; i++ ) {
-		for ( j = 0; j < 2; j++ ) {
-		  for ( k = 0; k < 2; k++ ) {
+      for ( j = 0; j < 2; j++ ) {
+        for ( k = 0; k < 2; k++ ) {
 
-			gaussPoint[0] = sg[i] ;
-		gaussPoint[1] = sg[j] ;
-		gaussPoint[2] = sg[k] ;
+          gaussPoint[0] = sg[i] ;
+          gaussPoint[1] = sg[j] ;
+          gaussPoint[2] = sg[k] ;
 
-		//get shape functions
-		shp3d( gaussPoint, xsj, shp, xl ) ;
+          //get shape functions
+          shp3d( gaussPoint, xsj, shp, xl ) ;
 
-		//save shape functions
-		for ( p = 0; p < nShape; p++ ) {
-		  for ( q = 0; q < numberNodes; q++ )
-			Shape[p][q][count] = shp[p][q] ;
-		} // end for p
+          //save shape functions
+          for ( p = 0; p < nShape; p++ ) {
+            for ( q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+          } // end for p
 
-		//volume element to also be saved
-		dvol[count] = wg[count] * xsj ;
+          //volume element to also be saved
+          dvol[count] = wg[count] * xsj ;
 
-			//add to volume
-		volume += dvol[count] ;
+            //add to volume
+          volume += dvol[count] ;
 
-		//add to mean shape functions
-		for ( p = 0; p < nShape; p++ ) {
-		  for ( q = 0; q < numberNodes; q++ )
-			shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
-		} // end for p
+          // add to mean shape functions
+          for ( p = 0; p < nShape; p++ ) {
+            for ( q = 0; q < numberNodes; q++ )
+              shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
+          } // end for p
 
-		count++ ;
+          count++ ;
 
-		  } //end for k
-		} //end for j
+        } //end for k
+      } //end for j
 	  } // end for i
 
 
-	  //mean value of shape functions
+	  // mean value of shape functions
 	  for ( p = 0; p < nShape; p++ ) {
-		for ( q = 0; q < numberNodes; q++ )
-		  shpBar[p][q] /= volume ;
+      for ( q = 0; q < numberNodes; q++ )
+        shpBar[p][q] /= volume ;
 	  } // end for p
 
 
-	  //gauss loop
+	  // gauss loop
 	  for ( i = 0; i < numberGauss; i++ ) {
 
 		//extract shape functions from saved array
 		for ( p = 0; p < nShape; p++ ) {
-		   for ( q = 0; q < numberNodes; q++ )
-		  shp[p][q]  = Shape[p][q][i] ;
+      for ( q = 0; q < numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
 		} // end for p
 
 
@@ -1843,9 +1776,9 @@ BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber)
 		  //transpose
 		  //BJtran = transpose( nstress, ndf, BJ ) ;
 		  for (p=0; p<ndf; p++) {
-		for (q=0; q<nstress; q++)
-		  BJtran(p,q) = BJ(q,p) ;
-		  }//end for p
+        for (q=0; q<nstress; q++)
+          BJtran(p,q) = BJ(q,p) ;
+		  }
 
 
 		  //residual
@@ -1854,8 +1787,8 @@ BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber)
 
 		  //residual
 		  for ( p = 0; p < ndf; p++ ) {
-			resid( jj + p ) += residJ(p)  ;
-//			resid( jj + p ) -= dvol[i]*b[p]*shp[3][j];
+        resid( jj + p ) += residJ(p)  ;
+  //			resid( jj + p ) -= dvol[i]*b[p]*shp[3][j];
 		  }
 
 
@@ -1866,16 +1799,7 @@ BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber)
 	  } //end for i gauss loop
 
 
-
-
-
-//opserr<<"BbarBrickWithSensitivity::getResistingForceSensitivity(int gradNumber=" <<gradNumber<<") resid is: "<<resid<<endln;
-
-//if (fabs(resid(0)+6.918032043683422e-007)<1.e-22){
-//	opserr<<"mark passed!"<<endln; markGU=1;}
-
-return resid;
-
+  return resid;
 }
 
 
@@ -1917,43 +1841,28 @@ BbarBrickWithSensitivity::commitSensitivity(int gradNumber, int numGrads)
 	  static int markGUU=0;
 
 	   const int ndm = 3 ;
-
 	   const int ndf = 3 ;
-
 	   const int nstress = 6 ;
-
 	   const int numberNodes = 8 ;
-
 	   const int numberGauss = 8 ;
-
 	   const int nShape = 4 ;
 
 	  int i, j, k, p, q ;
 //	  int jj, kk ;
 
 	  int success ;
-
 	   double volume ;
-
 	   double xsj ;  // determinant jacaobian matrix
-
 	   double dvol[numberGauss] ; //volume element
-
 	   double gaussPoint[ndm] ;
-
 	  static Vector strain(nstress) ;  //strain
-
 	   double shp[nShape][numberNodes] ;  //shape functions at a gauss point
-
 	   double Shape[nShape][numberNodes][numberGauss] ; //all the shape functions
-
 	   double shpBar[nShape][numberNodes] ;  //mean value of shape functions
 
-//Quan	  static Vector residJ(ndf) ; //nodeJ residual
 
 	  static Matrix stiffJK(ndf,ndf) ; //nodeJK stiffness
 
-//Quan	  static Vector stress(nstress) ;  //stress
 
 	  static Matrix dd(nstress,nstress) ;  //material tangent
 
@@ -1973,13 +1882,13 @@ BbarBrickWithSensitivity::commitSensitivity(int gradNumber, int numGrads)
 
 
 	  //compute basis vectors and local nodal coordinates
-	  computeBasis( ) ;
+	  computeBasis();
 
 
-	  //zero mean shape functions
+	  // zero mean shape functions
 	  for ( p = 0; p < nShape; p++ ) {
-		for ( q = 0; q < numberNodes; q++ )
-		  shpBar[p][q] = 0.0 ;
+      for ( q = 0; q < numberNodes; q++ )
+        shpBar[p][q] = 0.0 ;
 	  } // end for p
 
 	  //zero volume
@@ -1990,45 +1899,45 @@ BbarBrickWithSensitivity::commitSensitivity(int gradNumber, int numGrads)
 	  int count = 0 ;
 
 	  for ( i = 0; i < 2; i++ ) {
-		for ( j = 0; j < 2; j++ ) {
-		  for ( k = 0; k < 2; k++ ) {
+      for ( j = 0; j < 2; j++ ) {
+        for ( k = 0; k < 2; k++ ) {
 
-			gaussPoint[0] = sg[i] ;
-			gaussPoint[1] = sg[j] ;
-			gaussPoint[2] = sg[k] ;
+        gaussPoint[0] = sg[i] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-			//get shape functions
-			shp3d( gaussPoint, xsj, shp, xl ) ;
+        //get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-			//save shape functions
-			for ( p = 0; p < nShape; p++ ) {
-			  for ( q = 0; q < numberNodes; q++ )
-				Shape[p][q][count] = shp[p][q] ;
-			} // end for p
+        //save shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+          Shape[p][q][count] = shp[p][q] ;
+        } // end for p
 
-			//volume element to also be saved
-			dvol[count] = wg[count] * xsj ;
+        //volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
-			//add to volume
-			volume += dvol[count] ;
+        //add to volume
+        volume += dvol[count] ;
 
-			//add to mean shape functions
-			for ( p = 0; p < nShape; p++ ) {
-			  for ( q = 0; q < numberNodes; q++ )
-				shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
-			} // end for p
+        //add to mean shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+          shpBar[p][q] += ( dvol[count] * shp[p][q] ) ;
+        } // end for p
 
-			count++ ;
+        count++ ;
 
-			  } //end for k
-			} //end for j
+          } //end for k
+        } //end for j
 		  } // end for i
 
 
 		  //mean value of shape functions
 		  for ( p = 0; p < nShape; p++ ) {
-			for ( q = 0; q < numberNodes; q++ )
-			  shpBar[p][q] /= volume ;
+        for ( q = 0; q < numberNodes; q++ )
+          shpBar[p][q] /= volume ;
 		  } // end for p
 
 
@@ -2037,8 +1946,8 @@ BbarBrickWithSensitivity::commitSensitivity(int gradNumber, int numGrads)
 
 		//extract shape functions from saved array
 		for ( p = 0; p < nShape; p++ ) {
-		   for ( q = 0; q < numberNodes; q++ )
-		  shp[p][q]  = Shape[p][q][i] ;
+      for ( q = 0; q < numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
 		} // end for p
 
 
@@ -2049,34 +1958,18 @@ BbarBrickWithSensitivity::commitSensitivity(int gradNumber, int numGrads)
 	// j-node loop to compute strain
 		for ( j = 0; j < numberNodes; j++ )  {
 
-			  //compute B matrix
+      //compute B matrix
 
-			  BJ = computeBbar( j, shp, shpBar ) ;
+      BJ = computeBbar( j, shp, shpBar ) ;
 
-			  //nodal displacements
-//			  const Vector &ul = nodePointers[j]->getDispSensitivity(gradNumber) ;
-
-
-     			ul(0) = nodePointers[j]->getDispSensitivity(1,gradNumber);
-				ul(1) = nodePointers[j]->getDispSensitivity(2,gradNumber);
-				ul(2) = nodePointers[j]->getDispSensitivity(3,gradNumber);
+      ul(0) = nodePointers[j]->getDispSensitivity(1,gradNumber);
+      ul(1) = nodePointers[j]->getDispSensitivity(2,gradNumber);
+      ul(2) = nodePointers[j]->getDispSensitivity(3,gradNumber);
 
 
-			  //compute the strain
-			  //strain += (BJ*ul) ;
-			  strain.addMatrixVector(1.0,  BJ,ul,1.0 ) ;
-
-
-
-/*			  if (markGUU==1){
-			  opserr<<"j is:"<<j<<endln;
-			  opserr<<"BJ:"<<BJ<<endln;
-			  opserr<<"ul"<<ul<<endln;
-			  opserr<<"strain"<<strain<<endln;
-			  }
-
-
-*/
+      //compute the strain
+      //strain += (BJ*ul) ;
+      strain.addMatrixVector(1.0,  BJ,ul,1.0 ) ;
 
 		} // end for j
 
@@ -2084,18 +1977,10 @@ BbarBrickWithSensitivity::commitSensitivity(int gradNumber, int numGrads)
 
 		//send the strain to the material
 
-//		opserr<< "bbarBrick commitSens. gradNumber="<<gradNumber<<". Gauss (" <<i<<") is:" <<strain<<endln;
-
-
-//		if (fabs(strain(0)-3.174725487662866e-011)<1.e-25){
-//			opserr<<"bbarBrick commitSens mark passed!"<<endln; markGUU=1;}
-
-
 		success = materialPointers[i]->commitSensitivity(strain,gradNumber,numGrads ) ;
 
 
 		//residual and tangent calculations node loops
-
 
 
 	  } //end for i gauss loop

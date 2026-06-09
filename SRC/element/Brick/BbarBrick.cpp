@@ -397,10 +397,10 @@ BbarBrick::getInitialStiff()
         for (int p = 0; p < ndf; p++ )  {
           for (int q = 0; q < ndf; q++ )
             stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-        } //end for p
+        }
 
         kk += ndf ;
-      } // end for k loop
+      }
 
       jj += ndf ;
 

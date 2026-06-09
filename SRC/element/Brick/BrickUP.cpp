@@ -553,29 +553,29 @@ void BrickUP::formDampingTerms( int tangFlag )
       for ( k = 0; k < 2; k++ ) {
 
         gaussPoint[0] = sg[i] ;
-	gaussPoint[1] = sg[j] ;
-	gaussPoint[2] = sg[k] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-	//get shape functions
-	shp3d( gaussPoint, xsj, shp, xl ) ;
+        //get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-	//save shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-	    Shape[p][q][count] = shp[p][q] ;
-	} // end for p
+        //save shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+        }
 
 
-	//volume element to also be saved
-	dvol[count] = wg[count] * xsj ;
+        //volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
-        //add to volume
-	volume += dvol[count] ;
+              //add to volume
+        volume += dvol[count] ;
 
-	count++ ;
+        count++ ;
 
-      } //end for k
-    } //end for j
+      }
+    } // end for j
   } // end for i
 
   if (betaK != 0.0)
@@ -585,17 +585,17 @@ void BrickUP::formDampingTerms( int tangFlag )
   if (betaKc != 0.0)
     damp.addMatrix(1.0, *Kc, betaKc);
 
-
   if (alphaM != 0.0) {
-	this->getMass();
+    this->getMass();
     for (i = 0; i < numberDOFs; i += ndff) {
       for (j = 0; j < numberDOFs; j += ndff) {
         damp(i,j) += mass(i,j)*alphaM;
         damp(i+1,j+1) += mass(i+1,j+1)*alphaM;
         damp(i+2,j+2) += mass(i+2,j+2)*alphaM;
-	  }
+      }
     }
   }
+
 
   // Compute coupling matrix
   for (i = 0; i < numberDOFs; i += ndff) {
@@ -619,28 +619,29 @@ void BrickUP::formDampingTerms( int tangFlag )
     for (j = 3; j < numberDOFs; j += ndff) {
       int j1 = (j-3) / ndff;
       for (m = 0; m < numberGauss; m++) {
-	    damp(i,j) -= dvol[m]*(perm[0]*Shape[0][i1][m]*Shape[0][j1][m] +
-	                          perm[1]*Shape[1][i1][m]*Shape[1][j1][m]+
-					          perm[2]*Shape[2][i1][m]*Shape[2][j1][m]);
-	  }
+        damp(i,j) -= dvol[m]*(perm[0]*Shape[0][i1][m]*Shape[0][j1][m] +
+                              perm[1]*Shape[1][i1][m]*Shape[1][j1][m]+
+                      perm[2]*Shape[2][i1][m]*Shape[2][j1][m]);
+      }
     }
   }
 
   if (tangFlag == 0) {
-    for ( k = 0; k < numberNodes; k++ ) {
+    for (int k = 0; k < numberNodes; k++ ) {
       const Vector &vel = nodePointers[k]->getTrialVel();
-	  for ( p = 0; p < ndff; p++ )
-		  a( k*ndff+p ) = vel(p);
-	} // end for k loop
+      for ( p = 0; p < ndff; p++ )
+        a( k*ndff+p ) = vel(p);
+    }
 
     resid.addMatrixVector(1.0,damp,a,1.0);
-  } // end if tang_flag
+  }
 
-  return ;
+  return;
 }
 
 
-void  BrickUP::zeroLoad( )
+void
+BrickUP::zeroLoad()
 {
   if (load != 0)
     load->Zero();
@@ -704,7 +705,7 @@ BrickUP::addInertiaLoadToUnbalance(const Vector &accel)
     for (int j=0; j<ndf; j++)
       resid(count++) = Raccel(j);
 
-	resid(count++) = 0.0;
+    resid(count++) = 0.0;
   }
 
   // create the load vector if one does not exist
@@ -719,7 +720,8 @@ BrickUP::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 //get residual
-const Vector&  BrickUP::getResistingForce( )
+const Vector&
+BrickUP::getResistingForce( )
 {
   int tang_flag = 0 ; //don't get the tangent
 
@@ -733,7 +735,8 @@ const Vector&  BrickUP::getResistingForce( )
 
 
 //get residual with inertia terms
-const Vector&  BrickUP::getResistingForceIncInertia( )
+const Vector&
+BrickUP::getResistingForceIncInertia()
 {
   static Vector res(32);
 
@@ -755,10 +758,10 @@ const Vector&  BrickUP::getResistingForceIncInertia( )
 }
 
 
-//*********************************************************************
-//form inertia terms
 
-void   BrickUP::formInertiaTerms( int tangFlag )
+// form inertia terms
+void
+BrickUP::formInertiaTerms( int tangFlag )
 {
   static const int ndm = 3 ;
   static const int ndf = 3 ;
@@ -799,42 +802,42 @@ void   BrickUP::formInertiaTerms( int tangFlag )
       for ( k = 0; k < 2; k++ ) {
 
         gaussPoint[0] = sg[i] ;
-	gaussPoint[1] = sg[j] ;
-	gaussPoint[2] = sg[k] ;
+        gaussPoint[1] = sg[j] ;
+        gaussPoint[2] = sg[k] ;
 
-	//get shape functions
-	shp3d( gaussPoint, xsj, shp, xl ) ;
+        //get shape functions
+        shp3d( gaussPoint, xsj, shp, xl ) ;
 
-	//save shape functions
-	for ( p = 0; p < nShape; p++ ) {
-	  for ( q = 0; q < numberNodes; q++ )
-	    Shape[p][q][count] = shp[p][q] ;
-	} // end for p
+        //save shape functions
+        for ( p = 0; p < nShape; p++ ) {
+          for ( q = 0; q < numberNodes; q++ )
+            Shape[p][q][count] = shp[p][q] ;
+        } // end for p
 
 
-	//volume element to also be saved
-	dvol[count] = wg[count] * xsj ;
+        //volume element to also be saved
+        dvol[count] = wg[count] * xsj ;
 
-        //add to volume
-	volume += dvol[count] ;
+              //add to volume
+        volume += dvol[count] ;
 
-	count++ ;
+        count++ ;
 
-      } //end for k
+      }
     } //end for j
   } // end for i
 
-  //gauss loop
+  // gauss loop
   for ( i = 0; i < numberGauss; i++ ) {
 
     //extract shape functions from saved array
     for ( p = 0; p < nShape; p++ ) {
-       for ( q = 0; q < numberNodes; q++ )
-	  shp[p][q]  = Shape[p][q][i] ;
-    } // end for p
+      for ( q = 0; q < numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
+    }
 
     // average material density
-      rhot = mixtureRho(i);
+    rhot = mixtureRho(i);
 
     //mass and compressibility calculations node loops
     jj = 0 ;
@@ -842,23 +845,23 @@ void   BrickUP::formInertiaTerms( int tangFlag )
 
       temp = shp[massIndex][j] * dvol[i] ;
 
-	 //multiply by density
-	 temp *= rhot ;
+      //multiply by density
+      temp *= rhot ;
 
-	 //node-node mass
-         kk = 0 ;
-         for ( k = 0; k < numberNodes; k++ ) {
+      //node-node mass
+      kk = 0 ;
+      for (int k = 0; k < numberNodes; k++ ) {
 
-	    massJK = temp * shp[massIndex][k] ;
+        massJK = temp * shp[massIndex][k] ;
 
-            for ( p = 0; p < ndf; p++ )
-	          mass( jj+p, kk+p ) += massJK ;
+        for ( p = 0; p < ndf; p++ )
+          mass( jj+p, kk+p ) += massJK ;
 
-            // Compute compressibility terms
-            mass( jj+3, kk+3 ) += -dvol[i]*Shape[3][j][i]*Shape[3][k][i]/kc;
+        // Compute compressibility terms
+        mass( jj+3, kk+3 ) += -dvol[i]*Shape[3][j][i]*Shape[3][k][i]/kc;
 
-            kk += ndff ;
-          } // end for k loop
+        kk += ndff ;
+      }
 
       jj += ndff ;
     } // end for j loop

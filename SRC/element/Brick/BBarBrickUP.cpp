@@ -270,86 +270,6 @@ int  BBarBrickUP::revertToStart( )
 }
 
 
-void
-BBarBrickUP::Print( OPS_Stream &s, int flag )
-{
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{" << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"BBarBrickUP\", ";
-    s << "\"nodes\": [";
-    for (int i=0; i<8; i++) {
-      s << connectedExternalNodes(i);
-      if (i < 7)
-        s << ", ";
-      else
-        s << "], ";
-    }
-    s << "\"material\": \"" << materialPointers[0]->getTag() << "\", ";
-    s << "\"bulk\": " << kc << ", ";
-    s << "\"rho\": " << rho << ", ";
-    s << "\"permeability\": [" << perm[0] << ", " << perm[1] << ", " << perm[2] << "], ";
-    s << "\"b\": [" << b[0] << ", " << b[1] << ", " << b[2] << "]}" << "\n";
-  }
-  else if (flag == 2) {
-
-    s << "#Brick\n";
-
-    int i;
-    const int numNodes = 8;
-    const int nstress = 6 ;
-
-    for (i=0; i<numNodes; i++) {
-      const Vector &nodeCrd = nodePointers[i]->getCrds();
-      const Vector &nodeDisp = nodePointers[i]->getDisp();
-      s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2)
-        << " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << "\n";
-    }
-
-    // spit out the section location & invoke print on the scetion
-    const int numMaterials = 8;
-
-    static Vector avgStress(7);
-    static Vector avgStrain(nstress);
-    avgStress.Zero();
-    avgStrain.Zero();
-    for (i=0; i<numMaterials; i++) {
-      avgStress += materialPointers[i]->getStress();
-      avgStrain += materialPointers[i]->getStrain();
-    }
-    avgStress /= numMaterials;
-    avgStrain /= numMaterials;
-
-    s << "#AVERAGE_STRESS ";
-    for (i=0; i<7; i++)
-      s << avgStress(i) << " " ;
-    s << endln;
-
-    s << "#AVERAGE_STRAIN ";
-    for (i=0; i<nstress; i++)
-      s << avgStrain(i) << " " ;
-    s << "\n";
-
-  }
-  else {
-    s << "\n";
-    s << "Eight Node BBarBrickUP \n" ;
-    s << "Element Number: " << this->getTag() << "\n" ;
-    s << "Node 1 : " << connectedExternalNodes(0) << "\n" ;
-    s << "Node 2 : " << connectedExternalNodes(1) << "\n" ;
-    s << "Node 3 : " << connectedExternalNodes(2) << "\n" ;
-    s << "Node 4 : " << connectedExternalNodes(3) << "\n" ;
-    s << "Node 5 : " << connectedExternalNodes(4) << "\n" ;
-    s << "Node 6 : " << connectedExternalNodes(5) << "\n" ;
-    s << "Node 7 : " << connectedExternalNodes(6) << "\n" ;
-    s << "Node 8 : " << connectedExternalNodes(7) << "\n" ;
-
-    s << "Material Information : \n " ;
-    materialPointers[0]->Print( s, flag ) ;
-
-    s << "\n" ;
-  }
-}
-
 
 //return stiffness matrix
 const Matrix&
@@ -459,7 +379,7 @@ BBarBrickUP::getInitialStiff( )
         for ( p = 0; p < ndf; p++ )  {
           for ( q = 0; q < ndf; q++ )
             stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-        } //end for p
+        }
 
         kk += ndff ;
 
@@ -530,7 +450,7 @@ void BBarBrickUP::formDampingTerms( int tangFlag )
         for ( p = 0; p < nShape; p++ ) {
           for ( q = 0; q < numberNodes; q++ )
             Shape[p][q][count] = shp[p][q] ;
-        } // end for p
+        }
 
         //volume element to also be saved
         dvol[count] = wg[count] * xsj ;
@@ -768,7 +688,7 @@ void   BBarBrickUP::formInertiaTerms( int tangFlag )
 	    for ( p = 0; p < nShape; p++ ) {
 	      for ( q = 0; q < numberNodes; q++ )
 	        Shape[p][q][count] = shp[p][q] ;
-	    } // end for p
+	    }
 
 
 	    //volume element to also be saved
@@ -892,7 +812,7 @@ void  BBarBrickUP::formResidAndTangent( int tang_flag )
 	    for ( p = 0; p < nShape; p++ ) {
 	      for ( q = 0; q < numberNodes; q++ )
 	        Shape[p][q][count] = shp[p][q] ;
-	    } // end for p
+	    }
 
     	//volume element to also be saved
     	dvol[count] = wg[count] * xsj ;
@@ -961,9 +881,9 @@ void  BBarBrickUP::formResidAndTangent( int tang_flag )
       //transpose
       //BJtran = transpose( nstress, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
-	    for (q=0; q<nstress; q++)
-	      BJtran(p,q) = BJ(q,p) ;
-      }//end for p
+        for (q=0; q<nstress; q++)
+          BJtran(p,q) = BJ(q,p) ;
+      }
 
       if ( tang_flag == 0 ) {
         //residual
@@ -973,44 +893,44 @@ void  BBarBrickUP::formResidAndTangent( int tang_flag )
         for ( p = 0; p < ndf; p++ ) {
           resid( jj + p ) += residJ(p)  ;
 
-          // Subtract equiv. body forces from the nodes
-	  if (applyLoad == 0) {
-	    resid( jj + p ) -= dvol[i]*rhot*b[p]*Shape[3][j][i];
-	  } else {
-	    resid( jj + p ) -= dvol[i]*rhot*appliedB[p]*Shape[3][j][i];
-	  }
-	}
+                // Subtract equiv. body forces from the nodes
+          if (applyLoad == 0) {
+            resid( jj + p ) -= dvol[i]*rhot*b[p]*Shape[3][j][i];
+          } else {
+            resid( jj + p ) -= dvol[i]*rhot*appliedB[p]*Shape[3][j][i];
+          }
+        }
 
         // Subtract fluid body force
-		if (applyLoad == 0) {
-			resid( jj + 3 ) += dvol[i]*rho*(perm[0]*b[0]*BBarp[0][j][i] +
-                                        perm[1]*b[1]*BBarp[1][j][i] +
-										perm[2]*b[2]*BBarp[2][j][i]);
-		} else {
-			resid( jj + 3 ) += dvol[i]*rho*(perm[0]*appliedB[0]*BBarp[0][j][i] +
-                                        perm[1]*appliedB[1]*BBarp[1][j][i] +
-										perm[2]*appliedB[2]*BBarp[2][j][i]);
-		}
+        if (applyLoad == 0) {
+          resid( jj + 3 ) += dvol[i]*rho*(perm[0]*b[0]*BBarp[0][j][i] +
+                                            perm[1]*b[1]*BBarp[1][j][i] +
+                        perm[2]*b[2]*BBarp[2][j][i]);
+        } else {
+          resid( jj + 3 ) += dvol[i]*rho*(perm[0]*appliedB[0]*BBarp[0][j][i] +
+                                            perm[1]*appliedB[1]*BBarp[1][j][i] +
+                        perm[2]*appliedB[2]*BBarp[2][j][i]);
+        }
       } // end if tang_flag
 
       if ( tang_flag == 1 ) {
-	     //BJtranD = BJtran * dd ;
-	     BJtranD.addMatrixProduct(0.0,  BJtran,dd,1.0) ;
+        //BJtranD = BJtran * dd ;
+        BJtranD.addMatrixProduct(0.0,  BJtran,dd,1.0) ;
 
          kk = 0 ;
          for ( k = 0; k < numberNodes; k++ ) {
 
-            BK = computeB( k, i ) ;
+          BK = computeB( k, i ) ;
 
-            //stiffJK =  BJtranD * BK  ;
+          // stiffJK =  BJtranD * BK  ;
 	        stiffJK.addMatrixProduct(0.0,  BJtranD,BK,1.0) ;
 
-            for ( p = 0; p < ndf; p++ )  {
-               for ( q = 0; q < ndf; q++ )
-                  stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-            } //end for p
+          for ( p = 0; p < ndf; p++ )  {
+              for ( q = 0; q < ndf; q++ )
+                stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
+          }
 
-            kk += ndff ;
+          kk += ndff ;
          } // end for k loop
 
       } // end if tang_flag
@@ -1024,7 +944,8 @@ void  BBarBrickUP::formResidAndTangent( int tang_flag )
 }
 
 
-double BBarBrickUP::mixtureRho(int i)
+double 
+BBarBrickUP::mixtureRho(int i)
 {
   double rhoi, e, n;
 
@@ -1035,25 +956,23 @@ double BBarBrickUP::mixtureRho(int i)
   return rhoi;
 }
 
-//************************************************************************
+
 //compute local coordinates and basis
 
-void   BBarBrickUP::computeBasis( )
+void
+BBarBrickUP::computeBasis( )
 {
 
-  //nodal coordinates
+  // nodal coordinates
 
-  int i ;
-  for ( i = 0; i < 8; i++ ) {
+  for (int i = 0; i < 8; i++ ) {
 
-       const Vector &coorI = nodePointers[i]->getCrds( ) ;
+    const Vector &coorI = nodePointers[i]->getCrds( ) ;
 
-       xl[0][i] = coorI(0) ;
-       xl[1][i] = coorI(1) ;
-       xl[2][i] = coorI(2) ;
-
-  }  //end for i
-
+    xl[0][i] = coorI(0);
+    xl[1][i] = coorI(1);
+    xl[2][i] = coorI(2);
+  }
 }
 
 
@@ -1066,25 +985,25 @@ void  BBarBrickUP::computeBBar()
   volume = 0;
 
   for (i=0; i<3; i++) {     // Directions iteration
-	 for (j=0; j<8; j++) {  // Nodes iteration
-		 shpBar[i][j] = 0.;
-	 }
+    for (j=0; j<8; j++) {  // Nodes iteration
+      shpBar[i][j] = 0.;
+    }
   }
 
   for (k=0; k<8; k++) {        // Gauss points iteration
-     for (i=0; i<3; i++) {     // Directions iteration
+    for (i=0; i<3; i++) {     // Directions iteration
 	    for (j=0; j<8; j++) {  // Nodes iteration
-	       shpBar[i][j] += Shape[i][j][k] * dvol[k];
+	      shpBar[i][j] += Shape[i][j][k] * dvol[k];
 	    }
-     }
+    }
 
-     volume += dvol[k];
+    volume += dvol[k];
   }
 
   for (i=0; i<3; i++) {
-	 for (j=0; j<8; j++) {
-	    shpBar[i][j] /= volume;
-	 }
+    for (j=0; j<8; j++) {
+      shpBar[i][j] /= volume;
+    }
   }
 
 
@@ -1114,56 +1033,48 @@ void  BBarBrickUP::computeBBar()
 //-------------------------------------------------------------------
 
   for (k=0; k<8; k++) {
-	 for (j=0; j<8; j++) {
+    for (j=0; j<8; j++) {
+      BBar[0][0][j][k] = (2*Shape[0][j][k] + shpBar[0][j]) / 3. ;
+      BBar[0][1][j][k] = (shpBar[1][j] - Shape[1][j][k]) / 3. ;
+      BBar[0][2][j][k] = (shpBar[2][j] - Shape[2][j][k]) / 3. ;
+      BBar[1][0][j][k] = (shpBar[0][j] - Shape[0][j][k]) / 3. ;
+      BBar[1][1][j][k] = (2*Shape[1][j][k] + shpBar[1][j]) / 3. ;
+      BBar[1][2][j][k] = BBar[0][2][j][k];
+      BBar[2][0][j][k] = BBar[1][0][j][k];
+      BBar[2][1][j][k] = BBar[0][1][j][k];
+      BBar[2][2][j][k] = (2*Shape[2][j][k] + shpBar[2][j]) / 3. ;
+      BBar[3][0][j][k] = Shape[1][j][k];
+      BBar[3][1][j][k] = Shape[0][j][k];
+      BBar[3][2][j][k] = 0;
+      BBar[4][0][j][k] = 0;
+      BBar[4][1][j][k] = Shape[2][j][k];
+      BBar[4][2][j][k] = Shape[1][j][k];
+      BBar[5][0][j][k] = Shape[2][j][k];
+      BBar[5][1][j][k] = 0;
+      BBar[5][2][j][k] = Shape[0][j][k];
 
-       BBar[0][0][j][k] = (2*Shape[0][j][k] + shpBar[0][j]) / 3. ;
-       BBar[0][1][j][k] = (shpBar[1][j] - Shape[1][j][k]) / 3. ;
-       BBar[0][2][j][k] = (shpBar[2][j] - Shape[2][j][k]) / 3. ;
-       BBar[1][0][j][k] = (shpBar[0][j] - Shape[0][j][k]) / 3. ;
-       BBar[1][1][j][k] = (2*Shape[1][j][k] + shpBar[1][j]) / 3. ;
-       BBar[1][2][j][k] = BBar[0][2][j][k];
-       BBar[2][0][j][k] = BBar[1][0][j][k];
-       BBar[2][1][j][k] = BBar[0][1][j][k];
-       BBar[2][2][j][k] = (2*Shape[2][j][k] + shpBar[2][j]) / 3. ;
-       BBar[3][0][j][k] = Shape[1][j][k];
-       BBar[3][1][j][k] = Shape[0][j][k];
-       BBar[3][2][j][k] = 0;
-       BBar[4][0][j][k] = 0;
-       BBar[4][1][j][k] = Shape[2][j][k];
-       BBar[4][2][j][k] = Shape[1][j][k];
-       BBar[5][0][j][k] = Shape[2][j][k];
-       BBar[5][1][j][k] = 0;
-       BBar[5][2][j][k] = Shape[0][j][k];
-
-       BBarp[0][j][k] = BBar[0][0][j][k];
-	   BBarp[1][j][k] = BBar[1][1][j][k];
-	   BBarp[2][j][k] = BBar[2][2][j][k];
-     }
-   }
-
+      BBarp[0][j][k] = BBar[0][0][j][k];
+      BBarp[1][j][k] = BBar[1][1][j][k];
+      BBarp[2][j][k] = BBar[2][2][j][k];
+    }
+  }
 }
 
 
 const Matrix&
 BBarBrickUP::computeB( int node, int Gauss )
 {
+  static Matrix B(6,3);
 
-  static Matrix B(6,3) ;
-
-  int i, j;
-
-  for (i=0; i<6; i++) {
-	 for (j=0; j<3; j++) {
-
-        B(i,j) = BBar[i][j][node][Gauss] ;
-	 }
+  for (int i=0; i<6; i++) {
+    for (int j=0; j<3; j++) {
+      B(i,j) = BBar[i][j][node][Gauss] ;
+    }
   }
 
   return B ;
-
 }
 
-//***********************************************************************
 
 
 int  BBarBrickUP::sendSelf (int commitTag, Channel &theChannel)
@@ -1522,3 +1433,83 @@ BBarBrickUP::updateParameter(int parameterID, Information &info)
   return -1;
 }
 
+
+void
+BBarBrickUP::Print( OPS_Stream &s, int flag )
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "\t\t\t{" << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"BBarBrickUP\", ";
+    s << "\"nodes\": [";
+    for (int i=0; i<8; i++) {
+      s << connectedExternalNodes(i);
+      if (i < 7)
+        s << ", ";
+      else
+        s << "], ";
+    }
+    s << "\"material\": \"" << materialPointers[0]->getTag() << "\", ";
+    s << "\"bulk\": " << kc << ", ";
+    s << "\"rho\": " << rho << ", ";
+    s << "\"permeability\": [" << perm[0] << ", " << perm[1] << ", " << perm[2] << "], ";
+    s << "\"b\": [" << b[0] << ", " << b[1] << ", " << b[2] << "]}" << "\n";
+  }
+  else if (flag == 2) {
+
+    s << "#Brick\n";
+
+    int i;
+    const int numNodes = 8;
+    const int nstress = 6 ;
+
+    for (i=0; i<numNodes; i++) {
+      const Vector &nodeCrd = nodePointers[i]->getCrds();
+      const Vector &nodeDisp = nodePointers[i]->getDisp();
+      s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2)
+        << " " << nodeDisp(0) << " " << nodeDisp(1) << " " << nodeDisp(2) << "\n";
+    }
+
+    // spit out the section location & invoke print on the scetion
+    const int numMaterials = 8;
+
+    static Vector avgStress(7);
+    static Vector avgStrain(nstress);
+    avgStress.Zero();
+    avgStrain.Zero();
+    for (i=0; i<numMaterials; i++) {
+      avgStress += materialPointers[i]->getStress();
+      avgStrain += materialPointers[i]->getStrain();
+    }
+    avgStress /= numMaterials;
+    avgStrain /= numMaterials;
+
+    s << "#AVERAGE_STRESS ";
+    for (i=0; i<7; i++)
+      s << avgStress(i) << " " ;
+    s << endln;
+
+    s << "#AVERAGE_STRAIN ";
+    for (i=0; i<nstress; i++)
+      s << avgStrain(i) << " " ;
+    s << "\n";
+
+  }
+  else {
+    s << "\n";
+    s << "Eight Node BBarBrickUP \n" ;
+    s << "Element Number: " << this->getTag() << "\n" ;
+    s << "Node 1 : " << connectedExternalNodes(0) << "\n" ;
+    s << "Node 2 : " << connectedExternalNodes(1) << "\n" ;
+    s << "Node 3 : " << connectedExternalNodes(2) << "\n" ;
+    s << "Node 4 : " << connectedExternalNodes(3) << "\n" ;
+    s << "Node 5 : " << connectedExternalNodes(4) << "\n" ;
+    s << "Node 6 : " << connectedExternalNodes(5) << "\n" ;
+    s << "Node 7 : " << connectedExternalNodes(6) << "\n" ;
+    s << "Node 8 : " << connectedExternalNodes(7) << "\n" ;
+
+    s << "Material Information : \n " ;
+    materialPointers[0]->Print( s, flag ) ;
+
+    s << "\n" ;
+  }
+}

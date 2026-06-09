@@ -56,7 +56,7 @@ public:
     ~SingleFPSimple2d();
     
     // method to get class type
-    const char *getClassType() const {return "SingleFPSimple2d";};
+    const char *getClassType() const {return "SingleFPSimple2d";}
     
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
@@ -87,8 +87,7 @@ public:
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
