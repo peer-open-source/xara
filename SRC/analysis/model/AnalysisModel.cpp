@@ -53,6 +53,8 @@
 #include <MapOfTaggedObjects.h>
 #include <VectorOfTaggedObjects.h>
 
+#include <analysis/damping/ModalDamping.h>
+
 #define START_EQN_NUM 0
 #define START_VERTEX_NUM 0
 
@@ -77,11 +79,17 @@ AnalysisModel::AnalysisModel(Domain& domain)
  , myDOFGraph(0)
  , myGroupGraph(0)
  , numFE_Ele(0), numDOF_Grp(0), numEqn(0)
- , eigenVectors(0), eigenValues(0), dampingForces(0)
- , isDiagonal(false), diagMass(0)
+ , eigenVectors(0), eigenValues(0)
+ , modalDamping(nullptr)
 {
+#if 0
   theFEs     = new VectorOfTaggedObjects(); // 256);
   theDOFs    = new VectorOfTaggedObjects(); // 256);
+#else 
+
+  theFEs     = new ArrayOfTaggedObjects(1024);
+  theDOFs    =  new ArrayOfTaggedObjects(1024);
+#endif
   theFEiter  = new FE_EleIter(theFEs);
   theDOFiter = new DOF_GrpIter(theDOFs);
 
@@ -116,6 +124,9 @@ AnalysisModel::~AnalysisModel()
   if (myDOFGraph != nullptr) {
     delete myDOFGraph;
   }
+
+  if (modalDamping != nullptr)
+    delete modalDamping;
 }    
 
 void
@@ -149,9 +160,7 @@ AnalysisModel::addFE_Element(FE_Element *theElement)
     theElement->setAnalysisModel(*this);
     numFE_Ele++;
     return true;  // o.k.
-
-  } else
-    return false;
+  }
 
   return result;
 }
@@ -202,6 +211,10 @@ AnalysisModel::clearAll()
 
   if (myHandler != nullptr)
     myHandler->clearAll();
+  
+  if (modalDamping != nullptr)
+    delete modalDamping;
+  modalDamping = nullptr;
 
   
   // for the nodes reset the DOF_Group pointers to 0
@@ -272,20 +285,25 @@ AnalysisModel::getDOFs()
 void 
 AnalysisModel::setNumEqn(int theNumEqn)
 {
+  if (modalDamping != nullptr && (numEqn != theNumEqn)) {
+    delete modalDamping;
+    modalDamping = nullptr;
+  }
+
   numEqn = theNumEqn;
 }
 
 int 
 AnalysisModel::getNumEqn() const
 {
-    return numEqn;
+  return numEqn;
 }
 
 
 Graph &
 AnalysisModel::getDOFGraph()
 {
-  if (myDOFGraph == 0) {
+  if (myDOFGraph == nullptr) {
     // int numVertex = this->getNumDOF_Groups();
     //    myDOFGraph = new Graph(numVertex);
     MapOfTaggedObjects *graphStorage = new MapOfTaggedObjects();
@@ -408,7 +426,7 @@ AnalysisModel::setResponse(const Vector &disp,
                            const Vector &accel)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
-  DOF_Group         *dofPtr;
+  DOF_Group   *dofPtr;
 
   while ((dofPtr = theDOFGrps()) != nullptr) {
     dofPtr->setNodeDisp(disp);
@@ -501,7 +519,7 @@ void
 AnalysisModel::setAccel(const Vector &accel)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
-  DOF_Group         *dofPtr;
+  DOF_Group   *dofPtr;
   
   while ((dofPtr = theDOFGrps()) != 0) 
     dofPtr->setNodeAccel(accel);        
@@ -531,40 +549,15 @@ AnalysisModel::incrVel(const Vector &vel)
 void 
 AnalysisModel::incrAccel(const Vector &accel)
 {
-    DOF_GrpIter &theDOFGrps = this->getDOFs();
+  DOF_GrpIter &theDOFGrps = this->getDOFs();
     DOF_Group         *dofPtr;
     
     while ((dofPtr = theDOFGrps()) != 0) 
-        dofPtr->incrNodeAccel(accel);        
+      dofPtr->incrNodeAccel(accel);        
 }        
 #endif
 
 
-int
-AnalysisModel::getTrialVel(Vector& v) 
-{
-  if (v.Size() != numEqn) {
-    return -1;
-  }
-  v.Zero();
-
-  DOF_GrpIter &theDOFs = this->getDOFs();
-  DOF_Group *dofPtr;
-  while ((dofPtr = theDOFs()) != 0) {
-    const ID &id = dofPtr->getID();
-    int idSize = id.Size();
-
-    const Vector &vel = dofPtr->getTrialVel();
-    for (int i=0; i < idSize; i++) {
-      int loc = id(i);
-      if (loc >= 0) {
-        v(loc) = vel(i);
-      }
-    }
-  }
-
-  return 0;
-}
 
 int
 AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
@@ -610,9 +603,9 @@ AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
 
 
 int 
-AnalysisModel::formVector(Integrator& assm, LinearSOE& soe)
+AnalysisModel::applyResidual(Integrator& assm, LinearSOE& soe)
 {
-  this->addModalDampingForce(&soe);
+  // this->addModalDampingForce(&soe);
 
   // loop through the DOF_Groups and add the unbalance
   DOF_GrpIter &theDOFs = this->getDOFs();
@@ -620,7 +613,7 @@ AnalysisModel::formVector(Integrator& assm, LinearSOE& soe)
   int res = 0;
 
   while ((dofPtr = theDOFs()) != nullptr) {
-    if (soe.addB( dofPtr->getUnbalance(&assm), dofPtr->getID()) <0) {
+    if (soe.addB( dofPtr->getUnbalance(&assm), dofPtr->getID()) <0) [[unlikely]] {
       res = -1;
     }
   }
@@ -629,7 +622,7 @@ AnalysisModel::formVector(Integrator& assm, LinearSOE& soe)
   FE_Element *elePtr;
   FE_EleIter &theEles2 = this->getFEs();    
   while ((elePtr = theEles2()) != nullptr) {
-    if (soe.addB(elePtr->getResidual(&assm), elePtr->getID()) < 0) {
+    if (soe.addB(elePtr->getResidual(&assm), elePtr->getID()) < 0) [[unlikely]] {
       res = -2;
     }
   }
@@ -637,190 +630,14 @@ AnalysisModel::formVector(Integrator& assm, LinearSOE& soe)
   return res;
 }
 
+
+
 int 
-AnalysisModel::formMatrix(Integrator& assm,  LinearSOE& theSOE)
+AnalysisModel::applyInertia(const Vector &v, Vector &res)
 {
-  int result = 0;
-
-  LinearSOE *theLinSOE = &theSOE;
-  AnalysisModel *theModel = this;
-  
-  // the loops to form and add the tangents are broken into two for 
-  // efficiency when performing parallel computations
-  
-  theLinSOE->zeroA();
-
-  // do modal damping
-  bool inclModalMatrix = theModel->inclModalDampingMatrix();
-  if (inclModalMatrix == true) {
-    const Vector *modalValues = theModel->getModalDampingFactors();
-    if (modalValues != 0) {
-      // this->addModalDampingMatrix(modalValues);
-    }
-  }
-
-
-  // loop through the DOF_Groups and add the unbalance
-  DOF_GrpIter &theDOFs = theModel->getDOFs();
-  DOF_Group *dofPtr; 
-  while ((dofPtr = theDOFs()) != nullptr) {
-    if (theLinSOE->addA(dofPtr->getTangent(&assm),dofPtr->getID()) <0) {
-      opserr << "TransientIntegrator::formTangent() - failed to addA:dof\n";
-      result = -1;
-    }
-  }    
-
-  // loop through the FE_Elements getting them to add the tangent    
-  FE_EleIter &theEles2 = theModel->getFEs();    
-  FE_Element *elePtr;    
-  while((elePtr = theEles2()) != nullptr) {
-    if (theLinSOE->addA(elePtr->getTangent(&assm),elePtr->getID()) < 0) {
-      opserr << "TransientIntegrator::formTangent() - failed to addA:ele\n";
-      result = -2;
-    }
-  }
-  return result;
-}
-
-
-int 
-AnalysisModel::addModalDampingForce(LinearSOE* theSOE)
-{
-  int res = 0;
-
-  theSOE->zeroB();
-
-  const Vector *modalDampingValues = this->getModalDampingFactors();
-
-  if (modalDampingValues == nullptr)
-    return 0;
-
-  int numModes = modalDampingValues->Size();
-
-  const Vector &eigenvalues = myDomain->getEigenvalues();
-  int numEigen = eigenvalues.Size();
-
-  if (numEigen < numModes) {
-    numModes = numEigen;
-    opserr << "WARNING: Having to reset numModes to : " << numModes 
-           << "as not enough eigenvalues. NOTE if you have done something to require new analysis or have not issued eigen command\n";
-  }
-
-  int numDOF = theSOE->getNumEqn();
-
-  if (eigenValues == 0 || *eigenValues != eigenvalues)
-    this->setupModal(theSOE, modalDampingValues);
-
-  Vector& vel = *work_vector;
-  this->getTrialVel(vel);
-
-  dampingForces->Zero();
-
-  for (int i=0; i<numModes; i++) {
-
-    double eigenvalue = (*eigenValues)(i);
-    double modalDampingValue = (*modalDampingValues)(i);
-    if (eigenvalue > 0 && modalDampingValue != 0.0) {
-      double wn = std::sqrt(eigenvalue);
-
-      double *eigenVectorI = &eigenVectors[numDOF*i];
-      double beta = 0.0;
-      
-      for (int j=0; j<numDOF; j++) {
-        double eij = eigenVectorI[j];
-        if (eij != 0) {
-          beta += eij * vel(j);
-        }
-      }
-
-      beta = -2.0 * modalDampingValue * wn * beta;
-
-      // Fdamp[j] = e[i][j] 
-      for (int j=0; j<numDOF; j++) {
-        double eij = eigenVectorI[j];
-        if (eij != 0)
-          (*dampingForces)(j) += beta * eij;
-      }
-    }
-  }
-
-  // why setB, not addB?
-  theSOE->setB(*dampingForces);
-  return res;
-}
-
-
-int 
-AnalysisModel::setupModal(LinearSOE* theSOE, const Vector *modalDampingValues)
-{
-  int numModes = modalDampingValues->Size();
-
-  const Vector &eigenvalues = myDomain->getEigenvalues();
-  int numEigen = eigenvalues.Size();
-
-  if (numEigen < numModes) 
-    numModes = numEigen;
-
-  int numDOF = theSOE->getNumEqn();
-
-  if (eigenValues == 0 || *eigenValues != eigenvalues) {
-    if (eigenValues != 0)
-      delete eigenValues;
-    if (eigenVectors != 0)
-      delete [] eigenVectors;
-    if (dampingForces != 0)
-      delete dampingForces;
-    if (work_vector != 0)
-      delete work_vector;
-    
-    eigenValues   = new Vector(eigenvalues);
-    dampingForces = new Vector(numDOF);
-    eigenVectors  = new double[numDOF*numModes];
-    work_vector   = new Vector(numDOF);
-
-    DOF_GrpIter &theDOFs2 = this->getDOFs();
-    DOF_Group *dofPtr;
-    while ((dofPtr = theDOFs2()) != 0) { 
-      const Matrix &dofEigenvectors =dofPtr->getEigenvectors();
-      const ID &dofID = dofPtr->getID();
-      for (int j=0; j<numModes; j++) {
-        for (int i=0; i<dofID.Size(); i++) {
-          int id = dofID(i);
-          if (id >= 0) 
-            eigenVectors[j*numDOF + id] = dofEigenvectors(i,j);
-        }
-      }
-    }
-
-    double *eigenVectors2 = new double[numDOF*numModes];
-
-    for (int i=0; i<numModes; i++) {
-      double *eigenVectorI = &eigenVectors[numDOF*i];    
-      double *mEigenVectorI = &eigenVectors2[numDOF*i];    
-      Vector v1(eigenVectorI,numDOF);
-      Vector v2(mEigenVectorI,numDOF);
-      this->doMv(v1, v2);
-    }
-
-    if (eigenVectors != nullptr)
-      delete [] eigenVectors;
-
-    eigenVectors = eigenVectors2;
-  }
-
-  return 0;
-}
-
-
-int 
-AnalysisModel::doMv(const Vector &v, Vector &res) {
-
-  int n = v.Size();
-  if (isDiagonal == true) {
-    for (int i=0; i<n; i++)
-      res[i] = diagMass[i]*v[i];
-    return 0;
-  }
+  // int n = v.Size();
+  assert(v.Size() == numEqn);
+  assert(res.Size() == numEqn);
 
   res.Zero();
 
@@ -835,9 +652,34 @@ AnalysisModel::doMv(const Vector &v, Vector &res) {
   // loop over the DOF_Groups
   DOF_Group *dofPtr;
   DOF_GrpIter &theDofs = this->getDOFs();
-  while ((dofPtr = theDofs()) != 0) {
+  while ((dofPtr = theDofs()) != nullptr) {
     const Vector &a = dofPtr->getM_Force(v, 1.0);      
     res.Assemble(a, dofPtr->getID(), 1.0);
+  }
+  return 0;
+}
+
+
+int 
+AnalysisModel::applyInertia(const Vector &v, LinearSOE& soe, double fact)
+{
+  assert(v.Size() == numEqn);
+  assert(soe.getNumEqn() == numEqn);
+
+  // loop over the FE_Elements
+  FE_Element *elePtr;
+  FE_EleIter &theEles = this->getFEs();    
+  while((elePtr = theEles()) != nullptr) {
+    const Vector &b = elePtr->getM_Force(v, 1.0);
+    soe.addB(b, elePtr->getID(), fact);
+  }
+
+  // loop over the DOF_Groups
+  DOF_Group *dofPtr;
+  DOF_GrpIter &theDofs = this->getDOFs();
+  while ((dofPtr = theDofs()) != 0) {
+    const Vector &a = dofPtr->getM_Force(v, 1.0);      
+    soe.addB(a, dofPtr->getID(), fact);
   }
   return 0;
 }
@@ -851,6 +693,7 @@ AnalysisModel::setNumEigenvectors(int numEigenvectors)
   while ((theNode = theNodes()) != 0)
     theNode->setNumEigenvectors(numEigenvectors);
 }
+
 
 void 
 AnalysisModel::setEigenvalues(const Vector &eigenvalues)
@@ -880,11 +723,21 @@ AnalysisModel::inclModalDampingMatrix()
   return myDomain->inclModalDampingMatrix();
 }
 
+int 
+AnalysisModel::setModalDamping(const Vector &modalDampingFactors)
+{
+  if (modalDamping != nullptr)
+    delete modalDamping;
+  modalDamping = new ModalDamping(*this, modalDampingFactors, this->getNumEqn());
+
+  return 0;
+}
+
 void 
 AnalysisModel::setEigenvector(int mode, const Vector &eigenvalue)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
-  DOF_Group         *dofPtr;
+  DOF_Group   *dofPtr;
   
   while ((dofPtr = theDOFGrps()) != nullptr) 
     dofPtr->setEigenvector(mode, eigenvalue);        

@@ -35,6 +35,7 @@
 #include <MovableObject.h>
 #include <TaggedIterator.hpp>
 #include <VectorOfTaggedObjects.h>
+#include <ArrayOfTaggedObjects.h>
 
 class TaggedObjectStorage;
 class Domain;
@@ -47,9 +48,10 @@ class ConstraintHandler;
 class Integrator;
 class LinearSOE;
 class OPS_Stream;
+class ModalDamping;
 
-using DOF_GrpIter = TaggedIterator<DOF_Group, VectorOfTaggedObjects>;
-using FE_EleIter = TaggedIterator<FE_Element, VectorOfTaggedObjects>;
+using DOF_GrpIter = TaggedIterator<DOF_Group, ArrayOfTaggedObjects>;
+using FE_EleIter = TaggedIterator<FE_Element, ArrayOfTaggedObjects>;
 
 class AnalysisModel: public MovableObject
 {
@@ -59,8 +61,8 @@ class AnalysisModel: public MovableObject
     void setLinks(Domain &, ConstraintHandler &);
 
     // called by Handler
-    bool addFE_Element(FE_Element *theFE_Ele);
-    bool addDOF_Group(DOF_Group *theDOF_Grp);
+    bool addFE_Element(FE_Element *);
+    bool addDOF_Group(DOF_Group *);
     void clearAll();
     void clearDOFGraph();                 // called by Numberer and Analysis
     void clearDOFGroupGraph();
@@ -87,8 +89,7 @@ class AnalysisModel: public MovableObject
 
     int getState(Vector&, Vector&, Vector&, int flag); // cmp
 
-    int formVector(Integrator&, LinearSOE&);
-    int formMatrix(Integrator&,  LinearSOE&);
+    int applyResidual(Integrator&, LinearSOE&);
 
 
     void setStateGradient(const Vector &du, const Vector &dv, const Vector &da, int grad, int ngrad);
@@ -116,6 +117,11 @@ class AnalysisModel: public MovableObject
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     Domain *getDomainPtr() const;
+    ModalDamping *getModalDamping() const {
+      return modalDamping;
+    }
+
+    int setModalDamping(const Vector &modalDampingFactors);
     
 
     // Store the eigenvalues and vectors in the domain
@@ -125,13 +131,13 @@ class AnalysisModel: public MovableObject
     const Vector *getModalDampingFactors();
     bool inclModalDampingMatrix();
 
-  private:
-    using Storage = VectorOfTaggedObjects;
+    int applyInertia(const Vector &v, Vector &res);
+    int applyInertia(const Vector& v, LinearSOE&, double c);
 
-    int addModalDampingForce(LinearSOE *);
-    int setupModal(LinearSOE*, const Vector *modalDampingValues);
-    int doMv(const Vector &v, Vector &res);
-    int getTrialVel(Vector &v);
+
+  private:
+    using Storage = ArrayOfTaggedObjects; //VectorOfTaggedObjects;
+
   
     Domain *myDomain;
     ConstraintHandler *myHandler;
@@ -152,10 +158,10 @@ class AnalysisModel: public MovableObject
 
     double   *eigenVectors;
     Vector   *eigenValues;
-    Vector   *dampingForces;
-    bool      isDiagonal;
-    double   *diagMass;
-    Vector   *work_vector = nullptr;
+    // bool      isDiagonal;
+    // double   *diagMass;
+
+    ModalDamping *modalDamping;
 };
 
 #endif
