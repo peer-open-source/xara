@@ -10,6 +10,7 @@ target_sources(OPS_SysOfEqn
     DomainSolver.cpp
     LinearSOE.cpp
     LinearSOESolver.cpp
+    WoodburyUpdate.cpp
   PUBLIC
     DomainSolver.h
     LinearSOE.h
@@ -32,6 +33,8 @@ add_subdirectory(profileSPD)
 #add_subdirectory(mumps)
 add_subdirectory(itpack)
 #add_subdirectory(pardiso)
-if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/apple/CMakeLists.txt")
-  add_subdirectory(apple)
-endif()
+
+# if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/apple/CMakeLists.txt")
+#   target_compile_definitions(OPS_Runtime PRIVATE XARA_HAVE_APPLE_SPARSE)
+#   add_subdirectory(apple)
+# endif()
