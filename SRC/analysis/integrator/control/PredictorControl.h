@@ -15,6 +15,7 @@
 //
 
 #include <cmath>
+#include <Logging.h>
 
 class PredictorControl {
     public:
@@ -36,7 +37,7 @@ class PredictorControl {
     }
     
     void reset(double step_size) {
-        current_count = 0;
+        current_count = 0; // target_count; // 0
         last_step = step_size;
         next_step = step_size;
     }
@@ -47,7 +48,21 @@ class PredictorControl {
     }
 
     double size() const {
-        double factor = std::pow(target_count / current_count, exponent);
+
+        double factor = current_count > 0? target_count/current_count : 1.0;
+        if (factor < 1.0)
+            // shrink fast
+            factor = std::pow(factor, exponent);
+        else 
+            // grow slow
+            factor = std::pow(factor, 1/exponent);
+
+        if (factor != 1.0) {
+            opsdbg << "  Resizing step: " 
+                   << "old step = " << last_step << ", "
+                   << "new step = " << last_step * factor << ", "
+                   << "scale = " << factor << "\n";
+        }
         double step = last_step * factor;
 
         if (step < min_size)
