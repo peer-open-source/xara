@@ -24,6 +24,8 @@ class Node;
 class NDMaterial;
 class Response;
 
+namespace OpenSees {
+
 class EightNodeQuad : public Element,
                    protected LegendreFixedQuadrilateral<9>
 {
@@ -124,4 +126,5 @@ private:
   Matrix *Ki;
 };
 
+} // namespace OpenSees
 #endif

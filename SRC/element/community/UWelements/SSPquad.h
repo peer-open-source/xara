@@ -48,6 +48,10 @@ class Response;
 
 namespace OpenSees {
 
+class PyLiq1;
+class TzLiq1;
+class QzLiq1;
+
 class SSPquad : public Element
 {
   public:

@@ -56,6 +56,8 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
+using namespace OpenSees;
+
 //static data
 double  BBarBrickUP::xl[4][8] ;
 double  BBarBrickUP::Shape[4][8][8];
@@ -1163,24 +1165,6 @@ BBarBrickUP::computeB( int node, int Gauss )
 
 //***********************************************************************
 
-Matrix  BBarBrickUP::transpose( int dim1,
-                                       int dim2,
-		                       const Matrix &M )
-{
-  int i ;
-  int j ;
-
-  Matrix Mtran( dim2, dim1 ) ;
-
-  for ( i = 0; i < dim1; i++ ) {
-     for ( j = 0; j < dim2; j++ )
-         Mtran(j,i) = M(i,j) ;
-  } // end for i
-
-  return Mtran ;
-}
-
-//**********************************************************************
 
 int  BBarBrickUP::sendSelf (int commitTag, Channel &theChannel)
 {

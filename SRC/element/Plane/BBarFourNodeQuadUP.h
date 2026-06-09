@@ -15,9 +15,6 @@
 #ifndef BBarFourNodeQuadUP_h
 #define BBarFourNodeQuadUP_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <Element.h>
 #include <Matrix.h>

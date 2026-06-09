@@ -59,6 +59,8 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
+using namespace OpenSees;
+
 //static data
 double  BrickUP::xl[4][8] ;
 
@@ -454,8 +456,8 @@ const Matrix&  BrickUP::getInitialStiff( )
       //transpose
       //BJtran = transpose( nstress, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
-	for (q=0; q<nstress; q++)
-	  BJtran(p,q) = BJ(q,p) ;
+        for (q=0; q<nstress; q++)
+          BJtran(p,q) = BJ(q,p) ;
       }//end for p
 
       //BJtranD = BJtran * dd ;
@@ -464,18 +466,18 @@ const Matrix&  BrickUP::getInitialStiff( )
       kk = 0 ;
       for ( k = 0; k < numberNodes; k++ ) {
 
-	BK = computeB( k, shp ) ;
+        BK = computeB( k, shp ) ;
 
 
-	//stiffJK =  BJtranD * BK  ;
-	stiffJK.addMatrixProduct(0.0,  BJtranD, BK, 1.0) ;
+        //stiffJK =  BJtranD * BK  ;
+        stiffJK.addMatrixProduct(0.0,  BJtranD, BK, 1.0) ;
 
-	for ( p = 0; p < ndf; p++ )  {
-	  for ( q = 0; q < ndf; q++ )
-	    stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
-	} //end for p
+        for ( p = 0; p < ndf; p++ )  {
+          for ( q = 0; q < ndf; q++ )
+            stiff( jj+p, kk+q ) += stiffJK( p, q ) ;
+        } //end for p
 
-	kk += ndff ;
+        kk += ndff ;
 
       } // end for k loop
 
@@ -1157,28 +1159,11 @@ BrickUP::computeB( int node, const double shp[4][8] )
 
 }
 
-//***********************************************************************
-
-Matrix  BrickUP::transpose( int dim1,
-                                       int dim2,
-		                       const Matrix &M )
-{
-  int i ;
-  int j ;
-
-  Matrix Mtran( dim2, dim1 ) ;
-
-  for ( i = 0; i < dim1; i++ ) {
-     for ( j = 0; j < dim2; j++ )
-         Mtran(j,i) = M(i,j) ;
-  } // end for i
-
-  return Mtran ;
-}
 
 //**********************************************************************
 
-int  BrickUP::sendSelf (int commitTag, Channel &theChannel)
+int
+BrickUP::sendSelf(int commitTag, Channel &theChannel)
 {
   int res = 0;
 

@@ -37,6 +37,8 @@
 #include <Node.h>
 #include <NDMaterial.h>
 
+namespace OpenSees {
+
 class TwentyEightNodeBrickUP : public Element {
 
 public :
@@ -192,6 +194,8 @@ private :
 	void compuLocalShapeFunction();
 	void Jacobian3d(int gaussPoint, double& xsj, int mode);
 	const Matrix&  getStiff( int flag );
-} ;
+};
+
+} // namespace OpenSees
 
 #endif
