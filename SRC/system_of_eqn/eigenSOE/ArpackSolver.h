@@ -42,6 +42,7 @@
 
 #include <EigenSolver.h>
 #include <ArpackSOE.h>
+#include <algorithm>
 #include <cstring> // memcpy, memset
 
 class LinearSOE;
@@ -70,6 +71,7 @@ class ArpackSolver : public EigenSolver
     ArpackSOE *theArpackSOE;
     int size;
     int numMode;
+
     struct EigenData {
       int ndf = 0;
       int numModesMax = 0;
@@ -94,30 +96,34 @@ class ArpackSolver : public EigenSolver
       }
 
       void reserve(int n, int nev) {
-        if (numModesMax < nev) {
+        const int nextNumModesMax = std::max(numModesMax, nev);
+        const bool resizeModes = nextNumModesMax != numModesMax;
+        const bool resizeVectors = resizeModes || ndf != n;
+
+        if (resizeModes) {
           if (eigenvalues != nullptr)
             delete [] eigenvalues;
-          eigenvalues = new double[nev]{};
-          numModesMax = nev;
+          eigenvalues = new double[nextNumModesMax]{};
         }
-        if (this->ndf != n || numModesMax < nev) {
+        if (resizeVectors) {
           if (eigenvectors != nullptr)
             delete [] eigenvectors;
 
-          eigenvectors = new double[n * nev]{};
+          eigenvectors = new double[n * nextNumModesMax]{};
           this->ndf = n;
         }
+        numModesMax = nextNumModesMax;
       }
     } solution;
     Vector theVector;
 
     double shift;
-    int iparam[11];
+    int iparam[14];
     int ipntr[14];
 
     void myCopy(int n, double *v, double *result);
     int  getNCV(int n, int nev);
-    int solveI(int numMode, bool generalized, bool findSmallest = true);
+    int  solveI(int numMode, bool generalized, bool findSmallest = true);
 };
 
 #endif
