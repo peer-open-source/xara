@@ -8,9 +8,9 @@
 // Mixed Presssure/Volume Nine Node Quadrilateral
 // Plane Strain (NOT PLANE STRESS)
 //
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
+#include <array>
 
 #include <ID.h> 
 #include <Vector.h>
@@ -70,6 +70,8 @@ class NineNodeMixedQuad : public Element {
     void Print( OPS_Stream &s, int flag );
 
   private : 
+    static constexpr int NEN = 9; // number of element nodes
+    static constexpr int NIP = 9; // number of integration points
 
     // static data
     static Matrix stiff ;
@@ -95,8 +97,6 @@ class NineNodeMixedQuad : public Element {
     
     //form residual and tangent					  
     void formResidAndTangent( int tang_flag ) ;
-
-    //inertia terms
     void formInertiaTerms( int tangFlag ) ;
 
     const Matrix& computeBbar( int node, 
@@ -106,12 +106,12 @@ class NineNodeMixedQuad : public Element {
 
     // shape function routine for four node quads
     void shape2dNine( double coor[2], 
-		  const double x[2][9], 
-		  double shp[3][9], 
-		  double &xsj ) ;
+                      const double x[2][9], 
+                      double shp[3][9], 
+                      double &xsj );
 
     // nodal coordinates
-    void computeBasis( ) ;
+    void computeBasis();
 
     // 1d quadratic shape functions
     double shape1d( int code, int node, double xi ) ;

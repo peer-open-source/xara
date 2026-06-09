@@ -73,12 +73,14 @@ connectedExternalNodes(9) , load(0), Ki(0)
 
 NineNodeMixedQuad::~NineNodeMixedQuad()
 {
-  for (int i=0 ; i<9; i++ ) {
+  for (int i=0 ; i<NEN; i++ ) {
+    nodePointers[i] = nullptr;
+  }
+  for (int i=0 ; i<NIP; i++ ) {
+    if (materialPointers[i] != nullptr)
+      delete materialPointers[i];
 
-    delete materialPointers[i] ;
-    materialPointers[i] = 0 ; 
-
-    nodePointers[i] = 0 ;
+    materialPointers[i] = nullptr;
   }
 
   if (load != 0)
@@ -92,7 +94,7 @@ NineNodeMixedQuad::~NineNodeMixedQuad()
 void 
 NineNodeMixedQuad::setDomain( Domain *theDomain ) 
 {  
-  for ( int i = 0; i<9; i++ ) 
+  for ( int i = 0; i<NEN; i++ ) 
     nodePointers[i] = theDomain->getNode( connectedExternalNodes(i)  ) ;
   
   if (theDomain != nullptr)
@@ -104,7 +106,7 @@ NineNodeMixedQuad::setDomain( Domain *theDomain )
 int 
 NineNodeMixedQuad::getNumExternalNodes( ) const
 {
-  return 9 ;
+  return NEN;
 } 
  
 
@@ -137,10 +139,10 @@ NineNodeMixedQuad::commitState()
   // call element commitState to do any base class stuff
   if ((success = this->Element::commitState()) != 0) {
     opserr << "NineNodeMixedQuad::commitState () - failed in base class\n";
-  }    
+  }
 
-  for (int i=0; i<9; i++ ) 
-    success += materialPointers[i]->commitState( ) ;
+  for (int i=0; i<NIP; i++ ) 
+    success += materialPointers[i]->commitState();
   
   return success ;
 }
@@ -369,8 +371,8 @@ NineNodeMixedQuad::getInitialStiff( )
           shpBar[p][q][r] += ( ProjInv(r,s) * rightHandSide[p][q][s] ) ;
       }//end for r
 
-    }//end for q
-  }//end for p
+    }
+  }
 
 
   // gauss loop 
@@ -381,10 +383,10 @@ NineNodeMixedQuad::getInitialStiff( )
     gaussPoint[1] = natCoorArray[1][i] ;
 
     //extract shape functions from saved array
-    for ( p=0; p<nShape; p++ ) {
-       for ( q=0; q<numberNodes; q++ )
-          shp[p][q]  = Shape[p][q][i] ;
-    } // end for p
+    for (int p=0; p<nShape; p++ ) {
+      for (int q=0; q<numberNodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
+    }
 
     dd = materialPointers[i]->getInitialTangent( ) ;
     dd *= dvol[i] ;
@@ -425,8 +427,8 @@ NineNodeMixedQuad::getInitialStiff( )
       }
 
       jj += ndf ;
-    }//end for j loop
-  }//end for i gauss loop 
+    } //end for j loop
+  } //end for i gauss loop 
 
   Ki = new Matrix(stiff);
 
