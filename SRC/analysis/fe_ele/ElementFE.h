@@ -90,24 +90,25 @@ class ElementFE: public FE_Element
     void  addLocalM_ForceSensitivity(int gradNumber, const Vector &accel, double fact = 1.0);
     void  addLocalD_ForceSensitivity(int gradNumber, const Vector &vel, double fact = 1.0);
 
-    // protected variables - a copy for each object of the class
+    //
     ID myID;
 
   private:
-    // private variables - a copy for each object of the class    
+    // private variables
     int numDOF;
     Element       &myEle;
-    Vector        *theResidual;
+    Vector        *theResidual, *vecY;
     Matrix        *theTangent;
     Integrator    *theIntegrator; // need for Subdomain
+    bool          own_workspace; // flag to indicate if this object owns the workspace or is using class wide objects
 
     //
     // static variables
     //
     static Matrix **theMatrices; // array of pointers to class wide matrices
-    static Vector **theVectors;  // array of pointers to class widde vectors
+    static Vector **VecsX;       // array of pointers to class widde vectors
+    static Vector **VecsY;       // array of pointers to class widde vectors
     static int numFEs;           // number of objects
-
 };
 
 #endif

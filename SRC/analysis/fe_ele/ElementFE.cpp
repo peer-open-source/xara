@@ -36,7 +36,8 @@
 
 // static variables initialisation
 Matrix **ElementFE::theMatrices; // pointers to class wide matrices
-Vector **ElementFE::theVectors;  // pointers to class widde vectors
+Vector **ElementFE::VecsX;       // pointers to class widde vectors
+Vector **ElementFE::VecsY;       // pointers to class widde vectors
 int ElementFE::numFEs(0);        // number of objects
 
 
@@ -73,27 +74,41 @@ ElementFE::ElementFE(int tag, Element *ele)
   // matrix and vector objects used to return tangent and residual
   if (numFEs == 0) {
     theMatrices = new Matrix *[MAX_NUM_DOF+1];
-    theVectors  = new Vector *[MAX_NUM_DOF+1];
+    VecsX  = new Vector *[MAX_NUM_DOF+1];
+    VecsY  = new Vector *[MAX_NUM_DOF+1];
 
     for (int i=0; i<MAX_NUM_DOF; i++) {
       theMatrices[i] = nullptr;
-      theVectors[i]  = nullptr;
+      VecsX[i]  = nullptr;
+      VecsY[i]  = nullptr;
     }
   }
 
   // Set up pointers to objects to return tangent Matrix and residual Vector.
   if (numDOF <= MAX_NUM_DOF) {
     // use class wide objects
-    if (theVectors[numDOF] == nullptr) {
-      theVectors[numDOF] = new Vector(numDOF);
+    if (theMatrices[numDOF] == nullptr) {
+      VecsX[numDOF] = new Vector(numDOF);
+      VecsY[numDOF] = new Vector(numDOF);
       theMatrices[numDOF] = new Matrix(numDOF,numDOF);
-      theResidual = theVectors[numDOF];
+
+      vecY        = VecsY[numDOF];
+      theResidual = VecsX[numDOF];
       theTangent  = theMatrices[numDOF];
 
     } else {
-      theResidual = theVectors[numDOF];
+      vecY        = VecsY[numDOF];
+      theResidual = VecsX[numDOF];
       theTangent  = theMatrices[numDOF];
     }
+    own_workspace = false;
+  }
+  else {
+    // create new objects
+    theResidual = new Vector(numDOF);
+    theTangent  = new Matrix(numDOF,numDOF);
+    vecY = new Vector(numDOF);
+    own_workspace = true;
   }
 
   numFEs++;
@@ -106,24 +121,29 @@ ElementFE::~ElementFE()
   numFEs--;
 
   // delete tangent and residual if created specially
-  if (numDOF > MAX_NUM_DOF) {
+  if (own_workspace) {
     if (theTangent != nullptr)
       delete theTangent;
     if (theResidual != nullptr) 
       delete theResidual;
+    if (vecY != nullptr)
+      delete vecY;
   }
 
   // if this is the last ElementFE, clean up the
   // storage for the matrix and vector objects
   if (numFEs == 0) {
     for (int i=0; i<MAX_NUM_DOF; i++) {
-      if (theVectors[i] != nullptr)
-          delete theVectors[i];
+      if (VecsX[i] != nullptr)
+        delete VecsX[i];
+      if (VecsY[i] != nullptr)
+        delete VecsY[i];
       if (theMatrices[i] != nullptr)
-          delete theMatrices[i];
+        delete theMatrices[i];
     }
     delete [] theMatrices;
-    delete [] theVectors;
+    delete [] VecsX;
+    delete [] VecsY;
   }
 }
 
@@ -376,7 +396,7 @@ ElementFE::getKi_Force(const Vector &disp, double fact)
 
 
 const Vector &
-ElementFE::getM_Force(const Vector &disp, double fact)
+ElementFE::getM_Force(const Vector &Accel, double fact)
 {
   // zero out the force vector
   theResidual->Zero();
@@ -386,24 +406,23 @@ ElementFE::getM_Force(const Vector &disp, double fact)
 
   // get the components we need out of the vector
   // and place in a temporary vector
-  static Vector tmp(0);
-  tmp.resize(numDOF);
+  Vector& accel = *vecY;
   for (int i=0; i<numDOF; i++) {
     int dof = myID(i);
     if (dof >= 0)
-      tmp(i) = disp(myID(i));
+      accel(i) = Accel(myID(i));
     else
-      tmp(i) = 0.0;
+      accel(i) = 0.0;
   }
 
-  theResidual->addMatrixVector(myEle.getMass(), tmp, fact);
+  theResidual->addMatrixVector(myEle.getMass(), accel, fact);
 
   return *theResidual;
 }
 
 
 const Vector &
-ElementFE::getC_Force(const Vector &disp, double fact)
+ElementFE::getC_Force(const Vector &Veloc, double fact)
 {
   // zero out the force vector
   theResidual->Zero();
@@ -414,17 +433,17 @@ ElementFE::getC_Force(const Vector &disp, double fact)
 
   // get the components we need out of the vector
   // and place in a temporary vector
-  Vector tmp(numDOF);
+  Vector & veloc = *vecY;
   for (int i=0; i<numDOF; i++) {
     int dof = myID(i);
     if (dof >= 0)
-      tmp(i) = disp(myID(i));
+      veloc(i) = Veloc(myID(i));
     else
-      tmp(i) = 0.0;
+      veloc(i) = 0.0;
   }
 
 
-  theResidual->addMatrixVector(myEle.getDamp(), tmp, fact);
+  theResidual->addMatrixVector(myEle.getDamp(), veloc, fact);
 
   return *theResidual;
 }
@@ -457,6 +476,7 @@ ElementFE::getLastResponse()
   return result;
 }
 
+
 void
 ElementFE::addM_Force(const Vector &accel, double fact)
 {
@@ -465,7 +485,7 @@ ElementFE::addM_Force(const Vector &accel, double fact)
 
   // get the components we need out of the vector
   // and place in a temporary vector
-  Vector tmp(numDOF);
+  Vector& tmp = *vecY;
   for (int i=0; i<numDOF; i++) {
     int loc = myID(i);
     if (loc >= 0)
