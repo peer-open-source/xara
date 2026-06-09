@@ -137,7 +137,7 @@ Tcl_CmdProc TclBasicBuilder_addFourNodeQuad;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadWithSensitivity;
 Tcl_CmdProc TclBasicBuilder_addConstantPressureVolumeQuad;
 Tcl_CmdProc TclBasicBuilder_addNineNodeMixedQuad;
-Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
+// Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addNineFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addBBarFourNodeQuadUP;
@@ -225,13 +225,27 @@ ElementLibrary = {
 //
 // Plane
 //
+  {"Q4",                        TclBasicBuilder_addFourNodeQuad},
   {"stdQuad",                   TclBasicBuilder_addFourNodeQuad},
   {"LagrangeQuad",              TclBasicBuilder_addFourNodeQuad},
   {"enhancedQuad",              TclBasicBuilder_addFourNodeQuad},
   {"quad",                      TclBasicBuilder_addFourNodeQuad},
-  {"quad9n",                    TclBasicBuilder_addFourNodeQuad},
-  {"quad8n",                    TclBasicBuilder_addFourNodeQuad},
   {"SSPquad",                   TclBasicBuilder_addFourNodeQuad},
+  // Q9
+  {"Q9",                        TclBasicBuilder_addFourNodeQuad},
+  {"quad9n",                    TclBasicBuilder_addFourNodeQuad},
+  // Q8
+  {"Q8",                        TclBasicBuilder_addFourNodeQuad},
+  {"quad8n",                    TclBasicBuilder_addFourNodeQuad},
+  // T3
+  {"T3",                        TclBasicBuilder_addFourNodeQuad},
+  {"tri31",                     TclBasicBuilder_addFourNodeQuad},
+  {"CST",                       TclBasicBuilder_addFourNodeQuad},
+  // T6
+  {"T6",                        TclBasicBuilder_addFourNodeQuad},
+  {"tri6n",                     TclBasicBuilder_addFourNodeQuad},
+  // {"tri6n",                     TclBasicBuilder_addSixNodeTri},
+
 
   {"quadWithSensitivity",       TclBasicBuilder_addFourNodeQuadWithSensitivity},
 
@@ -242,8 +256,6 @@ ElementLibrary = {
   {"nineNodeMixedQuad",         TclBasicBuilder_addNineNodeMixedQuad},
   {"nineNodeQuad",              TclBasicBuilder_addNineNodeMixedQuad}, // ??
 
-  {"tri6n",                     TclBasicBuilder_addSixNodeTri},
-  {"tri31",                     TclBasicBuilder_addFourNodeQuad},
 //
 // Frame
 //
@@ -294,13 +306,24 @@ ElementLibrary = {
   {"ShellMITC4Thermal",            TclBasicBuilder_addShell},
   {"ShellNLDKGQThermal",           TclBasicBuilder_addShell},
   {"ShellANDeS",                   TclDispatch_newShellANDeS},
+
   {"ShellQ4/F",                    TclBasicBuilder_addShell},
-  {"ShellQ4/S",                    TclBasicBuilder_addShell},
-  {"ShellQ4/U",                    TclBasicBuilder_addShell},
-  {"ShellQ4/L01",                  TclBasicBuilder_addShell},
-  {"ShellQ4/L02",                  TclBasicBuilder_addShell},
+  {"ShellQ4/T01",                  TclBasicBuilder_addShell},
+  {"ShellQ4/T02",                  TclBasicBuilder_addShell},
+  {"ShellQ4/ASD",                  TclBasicBuilder_addShell},
   {"ShellQ4/E5",                   TclBasicBuilder_addShell},
-  {"ShellQ4/P0",                   TclBasicBuilder_addShell},
+  // {"ShellQ4/S",                    TclBasicBuilder_addShell},
+  // {"ShellQ4/U",                    TclBasicBuilder_addShell},
+  // {"ShellQ4/P0",                   TclBasicBuilder_addShell},
+
+  {"PlateQ4/F",                    TclBasicBuilder_addShell},
+  {"PlateQ4/S",                    TclBasicBuilder_addShell},
+  {"PlateQ4/U",                    TclBasicBuilder_addShell},
+  {"PlateQ4/L01",                  TclBasicBuilder_addShell},
+  {"PlateQ4/L02",                  TclBasicBuilder_addShell},
+  {"PlateQ4/E5",                   TclBasicBuilder_addShell},
+  {"PlateQ4/P0",                   TclBasicBuilder_addShell},
+
   {"HeterosisPlate",               TclBasicBuilder_addShell},
 
 // U-P
@@ -311,17 +334,18 @@ ElementLibrary = {
 //
 // Brick
 //
-  {"BrickUP",                   TclBasicBuilder_addBrickUP},
-  {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
-  {"20NodeBrick",               TclBasicBuilder_addTwentyNodeBrick},
-  {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
-
   {"stdBrick",                  TclBasicBuilder_addBrick},
   {"H8E12",                     TclBasicBuilder_addBrick},
   {"bbarBrick",                 TclBasicBuilder_addBrick},
   {"bbarBrickWithSensitivity",  TclBasicBuilder_addBrick},
   {"flBrick",                   TclBasicBuilder_addBrick},
   {"SSPbrick",                  TclCommand_SSP_Element},
+
+  {"BrickUP",                   TclBasicBuilder_addBrickUP},
+  {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
+  {"20NodeBrick",               TclBasicBuilder_addTwentyNodeBrick},
+  {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
+
 //
 // Joint
 //
