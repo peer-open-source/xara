@@ -50,6 +50,10 @@ class TaggedObjectStorage;
 class GroundMotion;
 class MapOfTaggedObjects;
 
+// for applyResidual
+class AnalysisModel;
+class LinearSOE;
+
 class LoadPattern : public TaggedObject, public MovableObject
 {
   public:
@@ -64,7 +68,10 @@ class LoadPattern : public TaggedObject, public MovableObject
     Domain* getDomain() {return theDomain;}
 
     // methods to apply loads
+
+    // apply load at start of a step.
     virtual void applyLoad(double pseudoTime = 0.0);
+    virtual int applyResidual(AnalysisModel&, LinearSOE&, double) {return 0;};
     void setLoadConstant();
     void unsetLoadConstant();
     double getLoadFactor();

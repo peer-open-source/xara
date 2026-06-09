@@ -53,6 +53,7 @@ class UniformExcitation : public EarthquakePattern
 
     void setDomain(Domain *);    
     void applyLoad(double time);
+    int applyResidual(AnalysisModel &, LinearSOE &, double) override;
     int getDirection() {return theDof;}
 
     void Print(OPS_Stream &s, int flag);

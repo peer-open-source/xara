@@ -37,6 +37,10 @@
 #include <SP_ConstraintIter.h>
 #include <SP_Constraint.h>
 
+#include <AnalysisModel.h>
+#include <LinearSOE.h>
+#include <DOF_Group.h>
+
 #include <VectorND.h>
 #include <MatrixND.h>
 
@@ -198,6 +202,10 @@ NodeAcceleration(Node& node, int NDM, int theDof, int dof, double uaccel)
 void
 UniformExcitation::applyLoad(double time)
 {
+
+#if 1
+  currentTime = time;
+#else
   Domain *theDomain = this->getDomain();
   if (theDomain == nullptr)
       return;
@@ -221,51 +229,51 @@ UniformExcitation::applyLoad(double time)
 #else
       theNode->setNumColR(1);
 
-      
+
       if (ndm == 1) {
         if (theDof < 1)
           theNode->setR(theDof, 0, fact);
       }
       else if (ndm == 2) {
-          if (theDof < 2) {
-            theNode->setR(theDof, 0, fact);
-          }
-          else if (theDof == 2) {
-            double xCrd = crds(0);
-            double yCrd = crds(1);
-            theNode->setR(1, 0,  fact*xCrd);
-            theNode->setR(0, 0, -fact*yCrd);
-            theNode->setR(2, 0,  fact);
-          }
+        if (theDof < 2) {
+          theNode->setR(theDof, 0, fact);
+        }
+        else if (theDof == 2) {
+          double xCrd = crds(0);
+          double yCrd = crds(1);
+          theNode->setR(1, 0,  fact*xCrd);
+          theNode->setR(0, 0, -fact*yCrd);
+          theNode->setR(2, 0,  fact);
+        }
       }
       else if (ndm == 3) {
-          // Translational DOF
-          if (theDof < 3) {
-            theNode->setR(theDof, 0, fact);
-          }
+        // Translational DOF
+        if (theDof < 3) {
+          theNode->setR(theDof, 0, fact);
+        }
 
-          // Rotational DOFs
-          else if (theDof == 3) {
-            double yCrd = crds(1);
-            double zCrd = crds(2);
-            theNode->setR(1, 0, -fact*zCrd);
-            theNode->setR(2, 0,  fact*yCrd);
-            theNode->setR(3, 0,  fact);
-          }
-          else if (theDof == 4) {
-            double xCrd = crds(0);
-            double zCrd = crds(2);
-            theNode->setR(0, 0,  fact*zCrd);
-            theNode->setR(2, 0, -fact*xCrd);
-            theNode->setR(4, 0,  fact);
-          }
-          else if (theDof == 5) {
-            double xCrd = crds(0);
-            double yCrd = crds(1);
-            theNode->setR(0, 0, -fact*yCrd);
-            theNode->setR(1, 0,  fact*xCrd);
-            theNode->setR(5, 0,  fact);
-          }
+        // Rotational DOFs
+        else if (theDof == 3) {
+          double yCrd = crds(1);
+          double zCrd = crds(2);
+          theNode->setR(1, 0, -fact*zCrd);
+          theNode->setR(2, 0,  fact*yCrd);
+          theNode->setR(3, 0,  fact);
+        }
+        else if (theDof == 4) {
+          double xCrd = crds(0);
+          double zCrd = crds(2);
+          theNode->setR(0, 0,  fact*zCrd);
+          theNode->setR(2, 0, -fact*xCrd);
+          theNode->setR(4, 0,  fact);
+        }
+        else if (theDof == 5) {
+          double xCrd = crds(0);
+          double yCrd = crds(1);
+          theNode->setR(0, 0, -fact*yCrd);
+          theNode->setR(1, 0,  fact*xCrd);
+          theNode->setR(5, 0,  fact);
+        }
       }
 #endif
   }
@@ -302,7 +310,6 @@ UniformExcitation::applyLoad(double time)
               an[j] = 0.0;
           }
 
-
           // 2) Compute nodal forces
           for (int j=0; j<numNodes; j++) {
             int ndfj = std::min(theNodes[j]->getNumberDOF(), 6);
@@ -323,7 +330,54 @@ UniformExcitation::applyLoad(double time)
 #else 
   this->EarthquakePattern::applyLoad(time);
 #endif
+
+#endif
   return;
+}
+
+int
+UniformExcitation::applyResidual(AnalysisModel &theAnalysisModel, LinearSOE &theSOE, double c)
+{
+#if 0
+  return 0;
+#else
+  // Vector A(theSOE.getNumEqn()), B(theSOE.getNumEqn());
+  static Vector A(236);
+  A.resize(theAnalysisModel.getNumEqn());
+
+  Domain *theDomain = this->getDomain();
+  if (theDomain == nullptr)
+    return -1;
+
+  const double time = theDomain->getCurrentTime();
+
+  double accel = 0.0;
+  if (theMotion != nullptr)
+    accel = theMotion->getAccel(time)*fact;
+
+
+  NodeIter &theNodes = theDomain->getNodes();
+  Node *theNode;
+  while ((theNode = theNodes()) != nullptr) {
+    const ID& idn = theNode->getDOF_GroupPtr()->getID();
+    // int ndf = theNode->getNumberDOF();
+    const int ndf = idn.Size();
+    for (int i=0; i<ndf; i++) {
+      double a = 0.0;
+      if (idn(i) >=0 && (a = NodeAcceleration(*theNode, NDM, theDof, i, accel)) != 0)
+        A(idn(i)) = a;
+      else if (idn(i) >= 0)
+        A(idn(i)) = 0.0;
+    }
+  }
+
+  //
+  //
+  //
+  theAnalysisModel.applyInertia(A, theSOE, -c);
+
+  return 0;
+#endif
 }
 
 
