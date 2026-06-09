@@ -157,12 +157,6 @@ WoodburyUpdate::applyWoodburyCorrection(const Matrix& Qmat,
     assert(Qmat.noRows() == numDOF);
     assert(Qmat.noCols() == numModes);
 
-    // const Vector &innerX = innerSOE->getX();
-    // if (innerX.Size() != vectX->Size()) {
-    //     opserr << "WARNING WoodburyUpdate::applyWoodburyCorrection() - inner/wrapper X size mismatch\n";
-    //     return -1;
-    // }
-
 //
 //
 //
@@ -186,65 +180,3 @@ WoodburyUpdate::applyWoodburyCorrection(const Matrix& Qmat,
 
     return 0;
 }
-
-
-
-
-// int
-// WoodburyUpdate::saveSparseA(OPS_Stream &output, int baseIndex)
-// {
-//     if (innerSOE == nullptr)
-//         return -1;
-//     return innerSOE->saveSparseA(output, baseIndex);
-// }
-
-// int
-// WoodburyUpdate::getSparseA(ID &rowIndices, ID &colIndices, Vector &values,
-//                            int baseIndex)
-// {
-//     if (innerSOE == nullptr)
-//         return -1;
-//     return innerSOE->getSparseA(rowIndices, colIndices, values, baseIndex);
-// }
-
-
-#if 0
-
-// Ap = A_eff * p = A_s*p + Q*diag(dbar)*Q^T*p
-int
-WoodburyUpdate::formAp(const Vector &p, Vector &Ap)
-{
-    int res = innerSOE->formAp(p, Ap);
-    if (res < 0)
-        return res;
-    return applyModalMatvec(p, Ap);
-}
-
-// A*p += Q * diag(dbar) * Q^T * p  (caller must have set A*p = A_s*p via inner formAp first)
-int
-WoodburyUpdate::applyModalMatvec(const Vector &p, Vector &Ap)
-{
-    if (!basisValid || numModes <= 0)
-        return 0;
-
-    if (workV1 == nullptr)
-        return -1;
-
-    Matrix Qmat(eigenVectors, numDOF, numModes);
-    // workV1 = Q^T * p
-    if (workV1->addMatrixTransposeVector(0.0, Qmat, p, 1.0) < 0)
-        return -1;
-
-    // workV1 = diag(dbar) * Q^T * p
-    for (int i = 0; i < numModes; ++i)
-        (*workV1)(i) *= dBar[i];
-
-    // A*p += Q * workV1 = A*p + Q * diag(dbar) * Q^T * p
-    if (Ap.addMatrixVector(1.0, Qmat, *workV1, 1.0) < 0)
-        return -1;
-
-    return 0;
-}
-
-#endif
-
