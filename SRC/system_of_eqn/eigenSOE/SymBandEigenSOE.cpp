@@ -81,11 +81,11 @@ SymBandEigenSOE::setSize(Graph &theGraph)
       int otherNum = theAdjacency(i);
       int diff = vertexNum - otherNum;
       if (diff > 0) {
-	if (diff > numSuperD)
-	  numSuperD = diff;
+        if (diff > numSuperD)
+          numSuperD = diff;
       } else 
-	if (diff < -numSuperD)
-	  numSuperD = -diff;
+        if (diff < -numSuperD)
+          numSuperD = -diff;
     }
   }
   
@@ -110,8 +110,7 @@ SymBandEigenSOE::setSize(Graph &theGraph)
   EigenSolver *theSolvr = this->getSolver();
   int solverOK = theSolvr->setSize();
   if (solverOK < 0) {
-    opserr << "SymBandEigenSOE::setSize() -- solver failed in setSize()\n";
-			    
+    opserr << "solver failed in setSize()\n";
     return solverOK;
   } 
   
@@ -145,25 +144,25 @@ SymBandEigenSOE::addA(const Matrix &m, const ID &id, double fact)
             double *APtr = coliiPtr + (row-col);
             *APtr += m(j,i);
           }
-        }  // for j
+        }
       } 
-    }  // for i
+    }
   } else {
     for (int i = 0; i < idSize; i++) {
       int col = id(i);
       if (col < size && col >= 0) {
-	double *coliiPtr = A +(col+1)*(numSuperD+1) - 1;
-	int minColRow = col - (numSuperD+1) +1;
-	for (int j = 0; j < idSize; j++) {
-	  int row = id(j);
-	  if (row < size && row >= 0 && 
-	      row <= col && row >= minColRow) { // only add upper
-	    double *APtr = coliiPtr + (row-col);
-	    *APtr += m(j,i)*fact;
-	  }
-	}  // for j
+        double *coliiPtr = A +(col+1)*(numSuperD+1) - 1;
+        int minColRow = col - (numSuperD+1) +1;
+        for (int j = 0; j < idSize; j++) {
+          int row = id(j);
+          if (row < size && row >= 0 && 
+              row <= col && row >= minColRow) { // only add upper
+            double *APtr = coliiPtr + (row-col);
+            *APtr += m(j,i)*fact;
+          }
+        }
       } 
-    }  // for i
+    }
   }
 
   return 0;
@@ -193,10 +192,6 @@ SymBandEigenSOE::addM(const Matrix &m, const ID &id, double fact)
       delete [] M;
     M = new double[size];
     Msize = size;
-    if (M == 0) {
-      opserr << "WARNING SymBandEigenSOE::addM() - out of memory creating M for size: " << size << endln;
-      return -1;
-    }
     for (int i=0; i<size; i++)
       M[i] = 0.0;
   }
