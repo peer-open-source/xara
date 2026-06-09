@@ -379,7 +379,6 @@ IncrementalIntegrator::addModalDampingForce(const Vector *modalDampingValues)
     }
   }
 
-  // why setB, not addB?
   theSOE->setB(*dampingForces);
   
   return res;
