@@ -59,7 +59,7 @@ StaticIntegrator::formUnbalance()
   
   theLinSOE->zeroB();
 
-  if (this->getAnalysisModel()->formVector(*this, *theLinSOE) < 0)
+  if (this->getAnalysisModel()->applyResidual(*this, *theLinSOE) < 0)
     return -1;
 
   return 0;
