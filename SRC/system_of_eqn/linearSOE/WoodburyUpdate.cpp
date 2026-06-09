@@ -25,6 +25,7 @@
 
 // #include <math.h>
 #include <assert.h>
+#include <cstring>
 
 #include <OPS_Stream.h>
 #define LinSOE_TAGS_WoodburyUpdate 0
@@ -119,8 +120,8 @@ WoodburyUpdate::formWoodburyBasis(const Vector& V,
             return -3;
         }
         Vector &xcol = const_cast<Vector &>(innerSOE.getX());
-        memcpy(&(*woodburyZ)(0, activeCol), &xcol(0),
-               static_cast<size_t>(numDOF) * sizeof(double));
+        std::memcpy(&(*woodburyZ)(0, activeCol), &xcol(0),
+                    static_cast<size_t>(numDOF) * sizeof(double));
 
         ++activeCol;
     }
