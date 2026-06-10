@@ -23,11 +23,12 @@ class InelasticYS2DGNL : public UpdatedLagrangianBeam2D
   
   ~InelasticYS2DGNL();
   
-  virtual const 	Vector &getResistingForce(void);
-  virtual const	Matrix &getTangentStiff(void);
-  virtual int		commitState(void);
-  virtual int		update(void);
-  void Print(OPS_Stream &s, int flag =0);
+  virtual const 	Vector &getResistingForce();
+  virtual const	Matrix &getTangentStiff();
+  virtual int		commitState();
+  virtual int		update();
+
+  void Print(OPS_Stream &s, int flag);
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
@@ -69,11 +70,7 @@ private:
   
 
   YieldSurface_BC *ys1, *ys2;
-  char displayType;
-#ifdef _GRAPHCIS
-  Renderer *pView;
-  ColorMap *theMap;
-#endif
+  // char displayType;
 
   bool end1Plastify, end2Plastify;
   bool end1Plastify_hist, end2Plastify_hist;
@@ -88,8 +85,6 @@ private:
   bool init;
   bool updateKt;
 
-
-  
   const static int INSIDE, OUTSIDE, WITHIN;
   
   static double storage;
