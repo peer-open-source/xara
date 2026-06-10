@@ -36,11 +36,11 @@ FariaPlasticDamage3d::FariaPlasticDamage3d(int tag,
 : NDMaterial(tag,ND_TAG_PlasticDamageConcrete3d),
   E(E), nu(nu),
   ft(Ft), Fc(Fc), beta(beta), Ap(Ap), An(An), Bn(Bn),
-  density(density),
   retTangent(C),
+  retInitialTangent(Ce),
   retStress(sig),
   retStrain(eps),
-  retInitialTangent(Ce)
+  density(density)
 {
   this->revertToStart();
   this->commitState();
@@ -48,6 +48,11 @@ FariaPlasticDamage3d::FariaPlasticDamage3d(int tag,
 
 FariaPlasticDamage3d::FariaPlasticDamage3d()
   : NDMaterial(0, ND_TAG_PlasticDamageConcrete3d)
+  , retTangent(C)
+  , retInitialTangent(Ce)
+  , retStress(sig)
+  , retStrain(eps)
+  , density(0.0)
 {
 
 }
@@ -63,13 +68,15 @@ static inline void
 StrsInvar(const VectorND<6> &sig, double &sigoct, double &tauoct)
 {
   // normal stress
-  sigoct = (sig(0) + sig(1) + sig(2))/3.;
+  sigoct = (sig(0) + sig(1) + sig(2))/3.0;
   // shear stress
   double J2 = (std::pow((sig(0) - sig(1)),2) 
-            +  std::pow((sig(0) - sig(2)),2)
-            +  std::pow((sig(1) - sig(2)),2))/6.
-            +  std::pow(sig(3),2) + std::pow(sig(4),2) + std::pow(sig(5),2);
-  tauoct = std::sqrt(2./3.*J2);  
+            +  std::pow((sig(1) - sig(2)),2)
+            +  std::pow((sig(2) - sig(0)),2))/6.0
+            +  std::pow(sig(3),2)
+            +  std::pow(sig(4),2)
+            +  std::pow(sig(5),2);
+  tauoct = std::sqrt((2./3.)*J2);
 }
 
 
@@ -89,7 +96,7 @@ StrsDecA(const Vector &sig, VectorND<6> &sigpos, //VectorND<6> &signeg,
 #if 1
   for (int i=0; i<6; i++) {
     // positive and negative stress tensors
-    sigpos(i) = (sig(i) + std::fabs(sig(i))) / 2.;
+    sigpos(i) = (sig(i) + std::fabs(sig(i))) / 2.0;
   }
 
   // projection tensors
@@ -97,7 +104,7 @@ StrsDecA(const Vector &sig, VectorND<6> &sigpos, //VectorND<6> &signeg,
     return;
 
   for (int i=0; i<6; i++) {
-    (*Qpos)(i,i) = (1. + sgn(sig(i))) / 2.;
+    (*Qpos)(i,i) = (1.0 + sgn(sig(i))) / 2.0;
   }
   return;
 #else
@@ -182,12 +189,23 @@ positive_damage(double rp0, double rp, double Ap)
   return dp;
 }
 
+
 static double
-negative_surface(const VectorND<6> &signeg, double rn, double k)
+negative_equivalent_stress(const VectorND<6> &signeg, double k)
 {
   double sigoct, tauoct;
   StrsInvar(signeg, sigoct, tauoct);                  //  find octahedral stresses
-  return std::sqrt(std::sqrt(3.0)*(k*sigoct + tauoct)) - rn;    //  negative equivalent stress
+  double eta = k*sigoct + tauoct;
+  if (eta <= 0.0)
+    return 0.0;
+  return std::sqrt(std::sqrt(3.0)*eta);
+}
+
+
+static double
+negative_surface(const VectorND<6> &signeg, double rn, double k)
+{
+  return negative_equivalent_stress(signeg, k) - rn;    //  negative equivalent stress
 }
 
 int
@@ -195,15 +213,15 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
 {
 
   double F2c = 1.16*Fc; // f2c: biaxial compressive strength
-  double k = std::sqrt(2.0)*(F2c - Fc)/(2.*F2c - Fc);
+  double k = std::sqrt(2.0)*(F2c - Fc)/(2.0*F2c - Fc);
   // initial damage threshold
   double rp0 = ft/std::sqrt(E);
   double rn0 = std::sqrt((-k + std::sqrt(2.0))*Fc/std::sqrt(3.0));
 
-  constexpr static double toln = 1e-10,
-                          tolp = 1e-10;
-  constexpr static double dn_max = 1.0 - 1e-10,
-                          dp_max = 1.0 - 1e-7;
+  constexpr static double toln = 1e-5,
+                          tolp = 1e-5;
+  constexpr static double dn_max = 1.0 - 1e-5,
+                          dp_max = 1.0 - 1e-5;
 
   // retrieve history variables
   eps_p = eps_pCommit;
@@ -214,11 +232,12 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   dn = dnCommit;
 
   // elastic compliance
-  MatrixND<6,6> Se;
+  MatrixND<6,6> Se{};
   Ce.invert(Se);
 
   // current strain
-  eps = strain;
+  for (int i=0; i<6; i++)
+    eps(i) = strain(i);
 
   // incremental strain
   VectorND<6> Depse_tr = eps - eps_p; // ?[cmp]
@@ -248,8 +267,13 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
     // Correction
   
     //  norm of trial effective stress
-    double nrm = sqrt(pow(sige_tr(0),2) + pow(sige_tr(1),2) + pow(sige_tr(2),2) 
-               + 2*pow(sige_tr(3),2) + 2*pow(sige_tr(4),2) + 2*pow(sige_tr(5),2));
+    double nrm = std::sqrt(
+                 std::pow(sige_tr(0),2)
+               + std::pow(sige_tr(1),2)
+               + std::pow(sige_tr(2),2)
+               + 2.0*pow(sige_tr(3),2)
+               + 2.0*pow(sige_tr(4),2)
+               + 2.0*pow(sige_tr(5),2));
 
     // normalized trial effective stress
     VectorND<6> L_tr = sige_tr/nrm;
@@ -283,9 +307,9 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       for (int i=0; i<3; i++) 
         L_tr_temp(i) = L_tr(i);
       for (int i=3; i<6; i++)
-        L_tr_temp(i) = 2*L_tr(i);
+        L_tr_temp(i) = 2.0*L_tr(i);
 
-      double Dlam_Dnrm = 2.0*beta*E/pow(nrm,3)*sige_tr.dot(Deps);
+      double Dlam_Dnrm = 2.0*beta*E/std::pow(nrm,3)*sige_tr.dot(Deps);
 
       VectorND<6> Dlam_Deps = L_tr;
       Dlam_Deps *= -beta*E/nrm;       // Dlam_Deps = -beta*E/nrm*L_tr;
@@ -327,7 +351,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       rp = taup;                                   // update rp = max(taup, rp)
       // dp = 1. - rp0/rp * std::exp(Ap*(1. - rp/rp0));
       dp = positive_damage(rp0, rp, Ap);          // update dp
-      Ddp_Drp =  (Ap*rp + rp0)/(rp*rp) * std::exp(Ap*(1. - rp/rp0));        
+      Ddp_Drp =  (Ap*rp + rp0)/(rp*rp) * std::exp(Ap*(1.0 - rp/rp0));
       if (dp < 0) {
         dp = 0;
         Ddp_Drp = 0;
@@ -353,7 +377,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       rn += gn;
       // dn = 1. - rn0/rn*(1-An) - An*std::exp(Bn*(1. - rn/rn0));
       dn = negative_damage(rn0, rn, An, Bn); // update dn
-      Ddn_Drn = rn0/(rn*rn)*(1.-An) + An*Bn/rn0*std::exp(Bn*(1. - rn/rn0));
+      Ddn_Drn = rn0/(rn*rn)*(1.0-An) + An*Bn/rn0*std::exp(Bn*(1.0 - rn/rn0));
       if (dn < 0) {
         dn = 0;
         Ddn_Drn = 0;
@@ -381,30 +405,33 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       MatrixND<6,6> Dsigneg_Deps = Qneg*Cbar;
 
       VectorND<6> Dtaun_Dsigneg{};
-      if (gn <= toln) {
+      double sigoct, tauoct;
+      StrsInvar(signeg, sigoct, tauoct);             // find octahedral stresses
+      double eta = k*sigoct + tauoct;
+      double taun = eta <= 0.0 ? 0.0 : std::sqrt(std::sqrt(3.0)*eta);   // negative equivalent stress
+      if (taun <= toln) {
         Dtaun_Dsigneg.zero();
       }
       else {
-        double sigoct, tauoct;
-        StrsInvar(signeg, sigoct, tauoct);             // find octahedral stresses
-        double taun = sqrt((sqrt(3.)*(k*sigoct + tauoct)));   // negative equivalent stress
-
         // norm of deviatoric stress
         VectorND<6> s = Voight::IIdevMix*signeg;            // deviatoric stress
 
         double nrms = std::sqrt(s[0]*s[0] + s[1]*s[1] + s[2]*s[2]
                          + 2.0*(s[3]*s[3] + s[4]*s[4] + s[5]*s[5]));
         VectorND<6> n = s;
+        double sqrt_eta = std::sqrt(eta);
+        double Dtaun_Dsigoct = std::pow(3.0,0.25) * k/2.0/sqrt_eta;
+        Dtaun_Dsigneg.addVector(0.0, Voight::ivol, Dtaun_Dsigoct/3.0); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
         if (std::abs(nrms) <= 1e-8) //toln) 
           n.zero();
         else {
           n/=nrms;
-          double Dtaun_Dtauoct = std::pow(3,0.25) / 2./std::sqrt(k*sigoct + tauoct);
+          double Dtaun_Dtauoct = std::pow(3.0,0.25) / 2.0/sqrt_eta;
           Dtaun_Dsigneg.addVector(1.0,    n, Dtaun_Dtauoct/std::sqrt(3.0)); // += Dtaun_Dtauoct * Dtauoct_Dsigneg
         }
 
-        double Dtaun_Dsigoct = std::pow(3,0.25) * k/2./std::sqrt(k*sigoct + tauoct);
-        Dtaun_Dsigneg.addVector(0.0, Voight::ivol, Dtaun_Dsigoct/3.0); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
+        for (int i=3; i<6; i++)
+          Dtaun_Dsigneg(i) *= 2.0;
       }
 
       VectorND<6> Ddn_Deps = Dsigneg_Deps ^ Dtaun_Dsigneg;
@@ -427,8 +454,8 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       }
 
       // Ddp_Deps = Ddp_Drp * Dsigpos_Deps' * Dtaup_Dsigpos;
-      VectorND<6> Ddp_Deps = Dsigpos_Deps ^ Dtaup_Dsigpos;
-      Ddp_Deps *= Ddp_Drp; 
+      VectorND<6> Ddp_Deps{};
+      Ddp_Deps.addMatrixTransposeVector(0.0, Dsigpos_Deps, Dtaup_Dsigpos, Ddp_Drp);
 
       C.addMatrix(Dsigpos_Deps , (1.0 - dp));
       C.addTensorProduct(sigpos, Ddp_Deps, -1.0);
@@ -534,9 +561,10 @@ FariaPlasticDamage3d::revertToStart()
   // Ce.addMatrix(IIdevMix, 2*G);
 
   C = Ce;
+  Ccommit = Ce;
 
   double F2c = 1.16*Fc;
-  double k = std::sqrt(2.0)*(F2c - Fc)/(2.*F2c - Fc);
+  double k = std::sqrt(2.0)*(F2c - Fc)/(2.0*F2c - Fc);
 
   // initial damage threshold
   double rp0 = ft/std::sqrt(E);
@@ -546,6 +574,10 @@ FariaPlasticDamage3d::revertToStart()
   rn = rn0;
   dp = 0.;
   dn = 0.;
+  rpCommit = rp;
+  rnCommit = rn;
+  dpCommit = dp;
+  dnCommit = dn;
   return 0;
 }
 
@@ -563,10 +595,38 @@ FariaPlasticDamage3d::getCopy(const char *type)
 NDMaterial*
 FariaPlasticDamage3d::getCopy()
 {
-  FariaPlasticDamage3d *theCopy =
-    new FariaPlasticDamage3d(this->getTag(), E, nu, ft, Fc, beta, Ap, An, Bn, density);
+  auto *copy = new FariaPlasticDamage3d(this->getTag(),
+                                        E, nu,
+                                        ft,
+                                        Fc,
+                                        beta,
+                                        Ap,
+                                        An,
+                                        Bn,
+                                        density);
 
-  return theCopy;
+  copy->rp = rp;
+  copy->rn = rn;
+  copy->dp = dp;
+  copy->dn = dn;
+  copy->eps = eps;
+  copy->sig = sig;
+  copy->sige = sige;
+  copy->eps_p = eps_p;
+
+  copy->rpCommit = rpCommit;
+  copy->rnCommit = rnCommit;
+  copy->dpCommit = dpCommit;
+  copy->dnCommit = dnCommit;
+  copy->epsCommit = epsCommit;
+  copy->sigCommit = sigCommit;
+  copy->sigeCommit = sigeCommit;
+  copy->eps_pCommit = eps_pCommit;
+  copy->Ce = Ce;
+  copy->C = C;
+  copy->Ccommit = Ccommit;
+
+  return copy;
 }
 
 const char*
@@ -673,8 +733,21 @@ FariaPlasticDamage3d::recvSelf(int commitTag, Channel &theChannel,
     return res;
   }  
 
-  this->revertToStart();
-  this->commitState();
+  double G  = E/2./(1. +    nu);     // Shear modulus
+  double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
+  Ce.zero();
+  Ce.addMatrix(Voight::IIvol, K);
+  Ce.addMatrix(Voight::IIdevCon, 2.*G);
+
+  rp = rpCommit;
+  rn = rnCommit;
+  dp = dpCommit;
+  dn = dnCommit;
+  eps = epsCommit;
+  sig = sigCommit;
+  sige = sigeCommit;
+  eps_p = eps_pCommit;
+  C = Ccommit;
   
   return res;
 }

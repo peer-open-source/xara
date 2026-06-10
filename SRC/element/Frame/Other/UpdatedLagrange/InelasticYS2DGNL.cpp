@@ -4,28 +4,14 @@
 #include <Domain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-//#include <Renderer.h>
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef _NOGRAPHICS
-
-#else
-#ifdef _GLX    // Boris Jeremic added 23Oct2002
-#include <OpenGLRenderer.h>
-#endif         // Boris Jeremic added 23Oct2002
-#endif
 
 #include "InelasticYS2DGNL.h"
-#include <Renderer.h>
-// #include <WindowManager.h>
-// #include <PlainMap.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <string.h>
-//#define debug  1
-//#define fdebug 1
-//#define pdebug 1
 #define updateDebug 0
 #define plastkDebug 0
 
@@ -69,8 +55,8 @@ InelasticYS2DGNL::InelasticYS2DGNL(int tag, // double a, double e, double i,
   
   
   
-  if(ysEnd1==0) {
-      opserr << "WARNING - InelasticYS2DGNL(): ys1 = 0" << endln;
+  if (ysEnd1 == 0) {
+	opserr << "WARNING - InelasticYS2DGNL(): ys1 = 0" << endln;
   } else {
     ys1 =  ysEnd1->getCopy();
     ys1->setTransformation(2, 0, -1,  1);
@@ -90,9 +76,7 @@ InelasticYS2DGNL::InelasticYS2DGNL(int tag, // double a, double e, double i,
     // Positive disp at node 2 (tension) => Negative axial force
   }
   
-#ifdef _GRAPHICS
-  pView = 0;
-#endif
+
   end1Plastify = false;
   end2Plastify = false;
   end1Plastify_hist = false;
@@ -123,35 +107,32 @@ int InelasticYS2DGNL::update()
 // Step 1: Trial Elastic Forces
 //////////////////////////////////////////////////////////////////////
 
-	 // Get the local elastic stiffness matrix, store in Stiff
-     getLocalStiff(Stiff);
+    // Get the local elastic stiffness matrix, store in Stiff
+    getLocalStiff(Stiff);
 
-     // Add internal geometric stiffness matrix
-     addInternalGeomStiff(Stiff);
+    // Add internal geometric stiffness matrix
+    addInternalGeomStiff(Stiff);
 
-     // Get incremental local displacements  trial-conv.
-     getIncrNaturalDisp(disp);
-	 //getIncrLocalDisp(disp);   IMPORTANT - Do not change!!
+    // Get incremental local displacements  trial-conv.
+    getIncrNaturalDisp(disp);
+    //getIncrLocalDisp(disp);   IMPORTANT - Do not change!!
 
-     // Compute local incremental force
-     force = Stiff*disp;
+    // Compute local incremental force
+    force = Stiff*disp;
 
-Vector trial_force(6);
+	Vector trial_force(6);
 
-     // Compute total trial local force - store in trialForce
-     trial_force = eleForce_hist + force;	 
-	 computeTrueEleForce(trial_force);
-	 checkSpecialCases();
-	 return 0;
+    // Compute total trial local force - store in trialForce
+    trial_force = eleForce_hist + force;	 
+    computeTrueEleForce(trial_force);
+    checkSpecialCases();
+    return 0;
 }
 
 
 int InelasticYS2DGNL::computeTrueEleForce(Vector &trialForce)
 {
-	 // ys1->displayForcePoint(trialForce);
-	 // opserr << "\a";
 
-	 // opserr << "Trial Force = " << trialForce; opserr << "\a";
 
 //////////////////////////////////////////////////////////////////////
 // Step 2: Check and plastify ends if required
@@ -173,7 +154,7 @@ int InelasticYS2DGNL::computeTrueEleForce(Vector &trialForce)
 // Step 3: Drift control
 //////////////////////////////////////////////////////////////////////
 
-    if(end1Plastify)
+    if (end1Plastify)
     {
 
     	int d1 = ys1->getTrialForceLocation(eleForce);
@@ -1613,140 +1594,6 @@ void InelasticYS2DGNL::getLocalStiff(Matrix &K)
 */
 
 
-#ifdef _GRAPHICS
-
-int InelasticYS2DGNL::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-    // first determine the two end points of the element based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 2 3d vectors v1 and v2
-    //cerr << "Inside display self mode: " << displayMode << " fact " << fact <<"\n";
-
-	if(displayMode == DISPLAY_YS)
-	{
-		ys1->setView(&theViewer);
-		ys2->setView(&theViewer);
-
-		ys1->displaySelf(theViewer, 1, 1);
-		ys2->displaySelf(theViewer, 1, 1);
-		return 0;
-	}
-
-
-	this->UpdatedLagrangianBeam2D::displaySelf(theViewer, displayMode, fact);
-
-	static Vector v1(3);
-	static Vector v2(3);
-	Vector vc(3);
-
-	end1Ptr->getDisplayCrds(v1, fact, displayMode);
-	end2Ptr->getDisplayCrds(v2, fact, displayMode);
-
-	Vector rgb(3);
-	rgb(0) = 0;
-	rgb(1) = 0.9;
-	rgb(2) = 0;
-
-	double e = 0.05;
-
-	// not sure what's going on here - doesn't draw anything for mode shapes -ambaker1
-	if (displayMode == 1) //theViewer.drawLine(v1, v2, 1, 1);
-	{
-		if(end1Damage && !end1Plastify)
-		{
-			vc(2) = v1(2);
-			vc(0) = v1(0) + e*(v2(0) - v1(0));
-
-
-			vc(1) = v1(1) + e*(v2(1) - v1(1));
-
-			theViewer.drawPoint(vc, rgb, 3);
-		}
-
-		if(end2Damage && !end2Plastify)
-		{
-			vc(2) = v2(2);
-			vc(0) = v2(0) + e*(v1(0) - v2(0));
-			vc(1) = v2(1) + e*(v1(1) - v2(1));
-
-			theViewer.drawPoint(vc, rgb, 3);
-		}
-
-
-		if(!end1Plastify && !end2Plastify) return 0;
-
-		rgb(0) = 1;
-		rgb(1) = 0;
-		rgb(2) = 0;
-		if(end1Plastify)
-		{
-			vc(2) = v1(2);
-
-			vc(0) = v1(0) + e*(v2(0) - v1(0));
-			vc(1) = v1(1) + e*(v2(1) - v1(1));
-
-			theViewer.drawPoint(vc, rgb, 3);
-		}
-		if(end2Plastify)
-		{
-			vc(2) = v2(2);
-			vc(0) = v2(0) + e*(v1(0) - v2(0));
-			vc(1) = v2(1) + e*(v1(1) - v2(1));
-
-			theViewer.drawPoint(vc, rgb, 3);
-
-		}
-	}
-	return 0;
-
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Print/Render  Send/Recv
-//////////////////////////////////////////////////////////////////////
-void InelasticYS2DGNL::createView(char *title, double scale, int x, int y, int cx, int cy, char displaytype)
-{
-	displayType = displaytype;
-
-
-#ifdef _NOGRAPHICS
-
-#else
-#ifdef _GLX // Boris Jeremic added 23Oct2002
-theMap = new PlainMap();
-pView =  new OpenGLRenderer(title, x, y, cx, cy, *theMap);
-
- if(pView){
-   pView->setVRP(0.0, 0.0, 0.0);
-   pView->setVPN(0.0, 0.0, 1.0);
-   pView->setVUP(0.0, 1.0, 0.0);
-   pView->setFillMode("wire");             // wire mode
-   pView->setPlaneDist(1.0, -1.0);
-   pView->setPRP(0.0, 0.0, 10.0);
-   pView->setPortWindow(-1, 1, -1, 1);  // use the whole window
-   
-   pView->setViewWindow(-scale, scale, -scale, scale);
-   
-   pView->clearImage();
-   pView->startImage();
-   
-
-   ys1->setView(pView);
-   ys2->setView(pView);
-   
-   ys1->displaySelf(*pView, 10, 1);
-   ys2->displaySelf(*pView, 10, 1);
-pView->doneImage();
- 
- }
- else
-   opserr << "WARNING: InelasticYS2DGNL::createView - Renderer not available\n";
-#endif   // Boris Jeremic added 23Oct2002
-#endif
-
-}
-#endif
 
 
 void InelasticYS2DGNL::Print(OPS_Stream &s, int flag)

@@ -34,10 +34,12 @@ class ElasticPlaneStress : public NDMaterial {
 
   const char *getClassType() const {return "ElasticPlaneStress";}
 
-  NDMaterial* getCopy( );
+  NDMaterial* getCopy() override;
 
-  const char* getType( ) const override;
-  int getOrder( ) const override;
+  const char* getType() const override;
+  int getOrder() const override;
+
+  // mass per unit volume
   double getRho() override;
 
   int setTrialStrain( const Vector &strain_from_element) override;
@@ -55,7 +57,7 @@ class ElasticPlaneStress : public NDMaterial {
   int revertToStart() override;
 
   int sendSelf(int commitTag, Channel &) override;  
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) override;
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
   void Print(OPS_Stream &s, int flag) override;
 
