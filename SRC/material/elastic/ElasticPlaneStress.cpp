@@ -79,11 +79,10 @@ ElasticPlaneStress :: getOrder( ) const
   return 3 ; 
 } 
 
-// mass per unit volume
 double
 ElasticPlaneStress::getRho( )
 {
-  return rho ;
+  return rho;
 }
 
 
