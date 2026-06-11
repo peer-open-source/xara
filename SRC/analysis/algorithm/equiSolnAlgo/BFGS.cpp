@@ -259,7 +259,7 @@ void  BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator,
   static const double eps = 1.0e-16;
 
   //  int systemSize = ( theSOE->getB() ).Size();
-      int systemSize = theSOE->getNumEqn( );
+  int systemSize = theSOE->getNumEqn( );
 
 
   //compute z
@@ -271,8 +271,8 @@ void  BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator,
 
 
   if (theSOE->solve() < 0) {
-       opserr << "WARNING BFGS::solveCurrentStep() - ";
-       opserr << "the LinearSysOfEqn failed in solve()\n";        
+    opserr << "WARNING BFGS::solveCurrentStep() - ";
+    opserr << "the LinearSysOfEqn failed in solve()\n";        
    }            
   
   if ( z[nBFGS] == 0 ) 
@@ -281,7 +281,7 @@ void  BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator,
   *z[nBFGS] = theSOE->getX(); 
   //  *z[nBFGS] *= (-1.0);
 
-    int i;
+  int i;
   for ( i=1; i<=(nBFGS-1); i++ ) {
 
     if ( sdotr[i] < eps ) 
@@ -381,7 +381,7 @@ BFGS::recvSelf(int cTag,
                Channel &theChannel, 
                FEM_ObjectBroker &theBroker)
 {
-    return -1;
+  return -1;
 }
 
 
