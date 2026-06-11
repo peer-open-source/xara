@@ -57,11 +57,11 @@ class MixedBeamColumn2d : public Element
     ~MixedBeamColumn2d();
 
     // public methods to obtain information about dof & connectivity
-    int getNumExternalNodes(void) const;
+    int getNumExternalNodes() const;
     const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
-    int getNumDOF(void);
-    void setDomain(Domain *theDomain);
+    Node **getNodePtrs();
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element
     int commitState(void);
@@ -90,8 +90,9 @@ class MixedBeamColumn2d : public Element
     Response* setResponse(const char **argv, int argc, OPS_Stream &output);
     int getResponse(int responseID, Information &eleInfo);
 
-    const char *getClassType(void) const {return "MixedBeamColumn2d";};
+    const char *getClassType(void) const {return "MixedBeamColumn2d";}
     int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
+  
   private:
     // private member functions - only available to objects of the class
     Matrix getNld_hat(int sec, const Vector &v, double L, bool geomLinear);

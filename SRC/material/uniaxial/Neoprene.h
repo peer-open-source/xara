@@ -58,23 +58,22 @@ class Neoprene : public UniaxialMaterial
     ~Neoprene();
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void);
+    double getStrain();          
+    double getStress();
+    double getTangent();
+    double getInitialTangent();
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);    
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();    
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
-    
-    void Print(OPS_Stream &s, int flag =0);
-    
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
+    void Print(OPS_Stream &s, int flag);
+
   private:
     double commitStrain;
     double trialStrain;
