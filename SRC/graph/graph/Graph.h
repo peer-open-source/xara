@@ -68,8 +68,6 @@ class Graph
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
-  protected:
-    
   private:
     TaggedObjectStorage *myVertices;
     VertexIter *theVertexIter;

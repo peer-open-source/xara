@@ -75,8 +75,6 @@ class TimoshenkoSection3d : public SectionForceDeformation
 
     int setParameter(const char **argv, int argc, Parameter &param);
 
-  protected:
-    
   private:
     int numFibers;                   // number of fibers in the section
     NDMaterial **theMaterials; // array of pointers to materials

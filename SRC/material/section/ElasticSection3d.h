@@ -72,8 +72,6 @@ class ElasticSection3d : public FrameSection
 					      bool conditional);
   const Matrix& getInitialTangentSensitivity(int gradIndex);
 
- protected:
-  
  private:
   
   double E, A, Iz, Iy, G, J;

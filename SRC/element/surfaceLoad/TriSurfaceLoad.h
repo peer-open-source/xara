@@ -82,8 +82,6 @@ class TriSurfaceLoad : public Element
     Response *setResponse(const char **argv, int argc, OPS_Stream &output);
     int getResponse(int responseID, Information &eleInformation);
 
-  protected:
-    
   private:
 
   enum {SL_NUM_NODE = 3}; // number of nodes per element

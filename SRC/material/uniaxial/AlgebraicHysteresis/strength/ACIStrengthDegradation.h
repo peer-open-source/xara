@@ -57,8 +57,6 @@ class ACIStrengthDegradation : public StrengthDegradation
   
   void Print(OPS_Stream &s, int flag = 0);
   
- protected:
-  
  private:
   double V2;
   double d1, d2;

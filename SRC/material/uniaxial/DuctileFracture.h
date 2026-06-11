@@ -72,8 +72,6 @@ class DuctileFracture : public UniaxialMaterial
 	  int getResponse (int responseID, Information &matInformation);    
 	  bool hasFailed(void);  
 
- protected:
-  
  private:
 	  UniaxialMaterial *theMaterial;
 	  

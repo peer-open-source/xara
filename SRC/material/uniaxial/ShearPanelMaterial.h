@@ -89,8 +89,6 @@ public :
 
 	void Print(OPS_Stream &s, int flag = 0);
 
-protected:
-
 private:
 	// Backbone parameters
 	    double stress1p; double strain1p; double stress2p; double strain2p;

@@ -58,8 +58,6 @@ class CappedBackbone : public HystereticBackbone
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);    
   
- protected:
-  
  private:
   HystereticBackbone *theBackbone;
   HystereticBackbone *theCap;

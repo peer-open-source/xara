@@ -100,8 +100,6 @@ class ZeroLengthSection : public Element
     int commitSensitivity(int gradIndex, int numGrads);
 // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
 
     // private methods

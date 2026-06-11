@@ -75,8 +75,6 @@ class UniaxialJ2Plasticity : public UniaxialMaterial
 	double getStrainSensitivity(int gradIndex);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     // Material parameters
     double E;    // Elastic modulus

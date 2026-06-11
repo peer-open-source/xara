@@ -41,8 +41,6 @@ class DOF_Graph: public Graph
     DOF_Graph(AnalysisModel &theModel);
     ~DOF_Graph();
 
-  protected:
-    
   private:
     AnalysisModel &myModel;
 };

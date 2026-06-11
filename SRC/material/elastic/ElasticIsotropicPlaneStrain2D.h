@@ -71,8 +71,6 @@ class ElasticIsotropicPlaneStrain2D : public ElasticIsotropicMaterial
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);    
 
-  protected:
-
   private:
     static Vector sigma;        // Stress vector ... class-wide for returns
     static Matrix D;	        // Elastic constants

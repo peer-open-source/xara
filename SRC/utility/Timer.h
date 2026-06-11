@@ -69,8 +69,6 @@ class Timer
     virtual void Print(OPS_Stream &s) const;   
     friend OPS_Stream &operator<<(OPS_Stream &s, const Timer &E);    
 
-  protected:
-    
   private:
 
 #ifdef _WIN32

@@ -79,8 +79,6 @@ class J2PlateFibre : public NDMaterial
 				     bool conditional);
   int commitSensitivity(const Vector &depsdh, int gradIndex, int numGrads);
   
- protected:
-  
  private:
   double E;
   double nu;

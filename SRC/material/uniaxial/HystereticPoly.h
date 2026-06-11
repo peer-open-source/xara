@@ -83,8 +83,6 @@ class HystereticPoly : public UniaxialMaterial
 // AddingSensitivity:END ///////////////////////////////////////////
 
     
- protected:
-    
  private:
     /*** Material Properties ***/
     double k1;  // Initial stiffness

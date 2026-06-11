@@ -68,8 +68,6 @@ class HardeningMaterial2 : public UniaxialMaterial
   int commitSensitivity(double strainGradient, int gradNumber, int numGrads);
   // AddingSensitivity:END ///////////////////////////////////////////
   
- protected:
-  
  private:
   // Material parameters
   double E;           // Elastic modulus

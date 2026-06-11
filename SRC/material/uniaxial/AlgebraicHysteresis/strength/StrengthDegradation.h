@@ -54,8 +54,6 @@ class StrengthDegradation : public MaterialState
   virtual StrengthDegradation *getCopy(void) = 0;
   virtual StrengthDegradation *getCopy(UniaxialMaterial *u);
   
- protected:
-  
  private:
 
 };

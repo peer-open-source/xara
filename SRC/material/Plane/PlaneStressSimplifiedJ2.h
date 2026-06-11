@@ -71,8 +71,6 @@ class PlaneStressSimplifiedJ2 : public NDMaterial
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int responseID, Information &eleInformation);	
   
- protected:
-  
  private:
   
   int ndm;

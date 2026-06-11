@@ -78,8 +78,6 @@ class GenericSection1d : public SectionForceDeformation
     int   commitSensitivity(const Vector &dedh, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
     
- protected:
-
  private:
     UniaxialMaterial *theModel;
     int code;

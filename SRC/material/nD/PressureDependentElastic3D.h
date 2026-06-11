@@ -73,8 +73,6 @@ class PressureDependentElastic3D : public ElasticIsotropicMaterial
 
     void Print(OPS_Stream &s, int flag =0);
 
-  protected:
-
   private:
     double exp0;                 // exponent usually 0.6
     double p_ref;                // Reference pressure, usually atmosphere pressure, i.e. 100kPa

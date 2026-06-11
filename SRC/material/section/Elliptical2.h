@@ -68,8 +68,6 @@ class Elliptical2 : public SectionForceDeformation
 						bool conditional);
     int commitSensitivity(const Vector &dedh, int gradIndex, int numGrads);
 
-  protected:
-
   private:
 	double E[2];
 	double sigY[2];

@@ -57,8 +57,6 @@ class HystereticBackbone : public TaggedObject, public MovableObject
   virtual int setParameter(char **argv, int argc, Parameter &eleInformation);
   virtual int updateParameter(int responseID, Information &eleInformation);	
   
- protected:
-  
  private:
   
 };

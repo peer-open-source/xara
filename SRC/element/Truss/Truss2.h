@@ -96,8 +96,6 @@ class Truss2 : public Element
     int            commitSensitivity(int gradNumber, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     double computeCurrentStrain(void) const;
 	double computeCurrentNormalStrain(void) const;

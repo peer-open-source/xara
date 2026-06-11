@@ -67,8 +67,6 @@ public:
 
     void Print(OPS_Stream &s, int flag = 0);
 
-protected:
-
 private:
     Vector strainPoints;     // strain points on multi-linear curve
     Vector stressPoints;     // stress points on multi-linear curve

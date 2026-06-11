@@ -118,8 +118,6 @@ class ZeroLengthVG_HG : public Element
 
     void updateDir (const Vector& x, const Vector& y);
 
-  protected:
-    
   private:
     Etype elemType;
 

@@ -45,8 +45,6 @@ class VertexIter
     virtual void reset(void);
     virtual Vertex *operator()(void);
 
-  protected:
-    
   private:
     TaggedObjectIter &myIter;
 };

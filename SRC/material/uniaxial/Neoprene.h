@@ -75,8 +75,6 @@ class Neoprene : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag =0);
     
-  protected:
-    
   private:
     double commitStrain;
     double trialStrain;

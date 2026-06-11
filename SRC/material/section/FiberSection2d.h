@@ -89,8 +89,6 @@ class FiberSection2d : public FrameSection
     double getEnergy() const; // by SAJalali
     int   getIntegral(Field field, State state, double& value) const final;
 
-  protected:
-    
   private:
     struct FiberData {
       double area;

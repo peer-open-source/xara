@@ -79,8 +79,6 @@ class ASD_SMA_3K : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag =0);
 
-  protected:
-    
   private:
     // Material parameters (from input)
     double k1;		// Precompression Stiffness

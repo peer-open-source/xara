@@ -53,7 +53,6 @@ class CementedSoil : public HystereticBackbone {
   int recvSelf(int commitTag, Channel &theChannel,
                FEM_ObjectBroker &theBroker);
 
- protected:
  private:
   double pm;
   double pu;

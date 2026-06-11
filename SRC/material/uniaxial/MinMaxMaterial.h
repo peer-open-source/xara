@@ -77,8 +77,6 @@ class MinMaxMaterial : public UniaxialMaterial
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
     
-  protected:
-    
   private:
 	UniaxialMaterial *theMaterial;
 

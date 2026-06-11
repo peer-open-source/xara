@@ -88,8 +88,6 @@ class FatigueMaterial : public UniaxialMaterial
 
   //by SAJalali
   virtual double getEnergy(void) { return energy; }
-protected:
-  
  private:
 	 double energy, CStress; //SAJalali
 

@@ -83,8 +83,6 @@ class N4BiaxialTruss : public Element
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
 
-  protected:
-    
   private:
     int computeCurrentStrainBiaxial();
 	int computeCurrentStrainRate();

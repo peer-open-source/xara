@@ -51,8 +51,6 @@ class GraphPartitioner
     
     virtual int partition(Graph &theGraph, int numPart) =0;
 
-  protected:
-    
   private:
     
 };

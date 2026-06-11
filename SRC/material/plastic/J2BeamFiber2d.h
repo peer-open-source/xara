@@ -73,7 +73,6 @@ public:
   const Vector& getStressSensitivity(int gradIndex, bool conditional);
   int commitSensitivity(const Vector& depsdh, int gradIndex, int numGrads);
 
-protected:
 private:
   double E;
   double nu;

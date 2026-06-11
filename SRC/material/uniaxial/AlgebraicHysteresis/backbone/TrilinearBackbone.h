@@ -61,8 +61,6 @@ class TrilinearBackbone : public HystereticBackbone
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);    
   
- protected:
-  
  private:
   double E1, E2, E3;
   double e1, e2, e3;

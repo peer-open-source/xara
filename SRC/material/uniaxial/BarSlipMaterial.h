@@ -78,8 +78,6 @@ public :
 
 	void Print(OPS_Stream &s, int flag);
 
-protected:
-
 private:
 	// bond strength flag
    int bsflag;   // 1 --- weak or 0 --- strong bond strength

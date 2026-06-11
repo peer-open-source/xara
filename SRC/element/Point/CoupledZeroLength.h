@@ -101,8 +101,6 @@ class CoupledZeroLength : public Element {
     int commitSensitivity(int gradIndex, int numGrads);
 // AddingSensitivity:END ///////////////////////////////////////////
 
- protected:
-    
  private:
     Etype elemType;
   

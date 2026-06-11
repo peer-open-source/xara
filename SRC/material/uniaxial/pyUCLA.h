@@ -64,8 +64,6 @@ class pyUCLA : public UniaxialMaterial
 
    
 
-  protected:
-    
   private:
     // Material parameters
 	int    soilType;	// soilType (1 for soft clay)

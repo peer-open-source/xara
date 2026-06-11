@@ -67,8 +67,6 @@ class ElasticIsotropicBeamFiber : public ElasticIsotropicMaterial
     
     const Vector& getStressSensitivity(int gradIndex,
 				       bool conditional);
-  protected:
-
   private:
     static Matrix D;		// Elastic constants
     Vector3D Tepsilon;		// Trial strains

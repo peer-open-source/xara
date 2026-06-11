@@ -75,8 +75,6 @@ class APDVFD : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag);
     
-  protected:
-    
   private:
   
     double sgn(double dVariable);

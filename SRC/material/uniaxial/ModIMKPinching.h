@@ -80,8 +80,6 @@ class ModIMKPinching : public UniaxialMaterial
    
     void Print(OPS_Stream &s, int flag =0);
    
-  protected:
-   
   private:
        
     // Subroutines to be used inside the material

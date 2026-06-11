@@ -71,8 +71,6 @@ public:
 
     void Print(OPS_Stream &s, int flag =0);
 
-protected:
-
 private:
     double K1;
     double K2;

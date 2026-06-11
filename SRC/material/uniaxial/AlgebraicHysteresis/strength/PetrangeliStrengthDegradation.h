@@ -58,8 +58,6 @@ class PetrangeliStrengthDegradation : public StrengthDegradation
   
   void Print(OPS_Stream &s, int flag = 0);
   
- protected:
-  
  private:
   double V2;
   double e1, e2;

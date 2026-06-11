@@ -66,8 +66,6 @@ class SelfCenteringMaterial : public UniaxialMaterial
     
     void Print(OPS_Stream &, int flag) final;
 
-  protected:
-    
   private:
     // Material parameters (from input)
     double k1;		// Precompression Stiffness

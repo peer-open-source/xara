@@ -57,8 +57,6 @@ class ConstantUnloadingRule : public UnloadingRule
   
   void Print(OPS_Stream &s, int flag = 0);
 
- protected:
-    
  private:
   double alpha;
   double beta;

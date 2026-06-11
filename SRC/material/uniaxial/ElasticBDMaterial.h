@@ -69,8 +69,6 @@ class ElasticBDMaterial : public UniaxialMaterial
     int commitSensitivity(double strainGradient, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     double trialStrain;
     double trialStrainRate;

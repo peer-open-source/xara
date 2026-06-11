@@ -57,8 +57,6 @@ class KarsanUnloadingRule : public UnloadingRule
   
   void Print(OPS_Stream &s, int flag = 0);
   
- protected:
-  
  private:
   double epsc;
   double epscu;

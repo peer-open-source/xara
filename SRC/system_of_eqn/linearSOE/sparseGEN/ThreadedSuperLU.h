@@ -57,8 +57,6 @@ class ThreadedSuperLU : public SparseGenColLinSolver
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);        
     
-  protected:
-
   private:
     SuperMatrix A,L,U,B,AC;
     int *perm_r;

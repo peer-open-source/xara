@@ -30,8 +30,6 @@ class ReeseStiffClayBelowWS : public HystereticBackbone
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);    
   
- protected:
-  
  private:
   double Esi;
   double y50;

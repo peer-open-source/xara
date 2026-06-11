@@ -100,8 +100,6 @@ class FiberSection3dThermal : public FrameSection
 
 	double determineFiberTemperature(const Vector& , double , double);
     const Vector& getThermalElong();
-  protected:
-
   private:
     int numFibers, sizeFibers;                   // number of fibers in the section
     UniaxialMaterial **theMaterials; // array of pointers to materials

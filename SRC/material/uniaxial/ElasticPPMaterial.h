@@ -72,8 +72,6 @@ class ElasticPPMaterial : public UniaxialMaterial
 	//by SAJalali
 	virtual double getEnergy() { return EnergyP; };
 
-  protected:
-    
   private:
     double fyp, fyn;	// positive and negative yield stress
     double ezero;	// initial strain

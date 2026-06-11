@@ -53,7 +53,6 @@ public:
   void Print(OPS_Stream& s, int flag = 0);
 
 
-protected:
 private:
   /*** Material Properties ***/
   double fy;  // yield strength of bare steel

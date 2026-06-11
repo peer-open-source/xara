@@ -73,8 +73,6 @@ class ElasticWarpingShearSection2d: public SectionForceDeformation
 					      bool conditional);
   const Matrix& getInitialTangentSensitivity(int gradIndex);
   
- protected:
-  
  private:
   
   double E, A, I, G, alpha, J, B, C, section;

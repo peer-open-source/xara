@@ -65,8 +65,6 @@ class ElasticIsotropicAxiSymm : public ElasticIsotropicMaterial
     const char *getType (void) const;
     int getOrder (void) const;
 
-  protected:
-
   private:
   	static Vector sigma;	// Stress vector ... class-wide for returns
 	static Matrix D;	// Elastic constants

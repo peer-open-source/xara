@@ -108,8 +108,6 @@ class ZeroLengthND : public Element
     Response *setResponse(const char **argv, int argc, OPS_Stream &);
     int getResponse(int responseID, Information &);
     
-  protected:
-    
   private:
     // private methods
     void setUp (int Nd1, int Nd2, const Vector& x, const Vector& y);

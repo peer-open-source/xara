@@ -86,8 +86,6 @@ class FiberSection2dInt : public FrameSection
     int   commitSensitivity(const Vector& sectionDeformationGradient, int gradNumber, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     int numFibers;                   // number of fibers in the section
     UniaxialMaterial **theMaterials1; // array of pointers to materials

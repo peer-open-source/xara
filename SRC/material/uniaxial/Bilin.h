@@ -78,8 +78,6 @@ class Bilin : public UniaxialMaterial
   
   virtual double getEnergy(void) { return CEnrgtot; } //by SAJalali
 
- protected:
- 
  private:
   //my functions
   void interPoint(double& xInt, double& yInt, double x1,double y1,double m1,double x2,double y2,double m2);

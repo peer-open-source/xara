@@ -52,7 +52,6 @@ class LiquefiedSand : public HystereticBackbone {
   int recvSelf(int commitTag, Channel &theChannel,
                FEM_ObjectBroker &theBroker);
 
- protected:
  private:
   double X;
   double D;
