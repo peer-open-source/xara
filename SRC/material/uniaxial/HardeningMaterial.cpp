@@ -37,10 +37,14 @@
 #include <float.h>
 
 
-HardeningMaterial::HardeningMaterial(int tag, double e, double s,
-				     double hi, double hk, double n)
+HardeningMaterial::HardeningMaterial(int tag, 
+	                 double e, double s,
+				     double hi, double hk, double n,
+					 double rho
+)
 : UniaxialMaterial(tag,MAT_TAG_Hardening),
- E(e), sigmaY(s), Hiso(hi), Hkin(hk)
+ E(e), sigmaY(s), Hiso(hi), Hkin(hk),
+ density(rho)
 {
 	parameterID = 0;
 	SHVs = 0;
@@ -51,7 +55,7 @@ HardeningMaterial::HardeningMaterial(int tag, double e, double s,
 
 HardeningMaterial::HardeningMaterial()
 :UniaxialMaterial(0,MAT_TAG_Hardening),
- E(0.0), sigmaY(0.0), Hiso(0.0), Hkin(0.0)
+ E(0.0), sigmaY(0.0), Hiso(0.0), Hkin(0.0), density(0.0)
 {
 	parameterID = 0;
 	SHVs = 0;
@@ -176,7 +180,7 @@ UniaxialMaterial *
 HardeningMaterial::getCopy(void)
 {
   HardeningMaterial *theCopy =
-        new HardeningMaterial(this->getTag(), E, sigmaY, Hiso, Hkin);
+        new HardeningMaterial(this->getTag(), E, sigmaY, Hiso, Hkin, 0, density);
 
   // Copy committed history variables
   theCopy->CplasticStrain = CplasticStrain;
