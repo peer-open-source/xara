@@ -68,8 +68,6 @@ class CentralDifferenceNoDamping : public TransientIntegrator
 
     void Print(OPS_Stream &, int flag) final;        
     
-  protected:
-    
   private:
     int updateCount;    // method should only have one update per step
     Vector *U;          // disp response quantities at time t + deltaT

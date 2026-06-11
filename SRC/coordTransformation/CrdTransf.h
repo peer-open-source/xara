@@ -92,8 +92,6 @@ public:
     virtual double getLengthGrad() {return 0.0;}
     virtual double getd1overLdh() {return 0.0;}
     //
-protected:
-    
 private:
 };
 

@@ -51,8 +51,6 @@ class ExpressNewton: public EquiSolnAlgo
     
     void Print(OPS_Stream &, int flag) const final;    
     
-  protected:
-    
   private:
     int factorOnce;
     int nIter;

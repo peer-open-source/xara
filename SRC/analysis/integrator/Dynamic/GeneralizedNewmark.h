@@ -61,8 +61,6 @@ public:
     int computeSensitivities();
 
 
-protected:
-
 private:
     int formSensitivityRHS(int gradNum);
     int formIndependentSensitivityRHS();

@@ -69,9 +69,8 @@ class MovableObject
 
     virtual int setVariable(const char *variable, Information &);
     virtual int getVariable(const char *variable, Information &);
-    
-  protected:
-    
+
+
   private:
     ClassTag classTag;
     int dbTag;

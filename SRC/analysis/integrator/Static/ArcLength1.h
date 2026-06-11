@@ -62,8 +62,6 @@ class ArcLength1 : public StaticIntegrator
 
     void Print(OPS_Stream &, int flag) final;    
     
-  protected:
-    
   private:
     double arcLength2;
     double alpha2;

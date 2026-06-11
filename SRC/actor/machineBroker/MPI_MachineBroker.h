@@ -55,7 +55,7 @@ class MPI_MachineBroker : public MachineBroker
     Channel *getRemoteProcess(void);
     int freeProcess(Channel *);
 
-  protected:
+
     
   private:
     int rank;

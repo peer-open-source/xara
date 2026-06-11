@@ -74,8 +74,6 @@ class EQPath : public StaticIntegrator
 
     void Print(OPS_Stream &, int flag) final;    
     
-  protected:
-    
   private:
     double arclen,dl,m;
     double sign;

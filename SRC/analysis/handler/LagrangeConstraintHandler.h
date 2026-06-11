@@ -55,8 +55,6 @@ class LagrangeConstraintHandler : public ConstraintHandler
     virtual int sendSelf(int commitTag, Channel &);
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
-  protected:
-    
   private:
     double alphaSP;
     double alphaMP;

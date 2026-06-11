@@ -61,8 +61,6 @@ public:
     int sendSelf(int commitTag, Channel &) override;
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
-protected:
-
 private:
     double tolDisp;      // the tol on the norm used to test for convergence
     double tolUnbalance; // the tol on the norm used to test for convergence

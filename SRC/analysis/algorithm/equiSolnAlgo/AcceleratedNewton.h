@@ -62,7 +62,7 @@ class AcceleratedNewton: public EquiSolnAlgo
   virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
   void Print(OPS_Stream &, int flag) const final;    
   
- protected:
+
   
  private:
   int tangent;

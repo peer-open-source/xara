@@ -54,8 +54,6 @@ public:
   
   void Print(OPS_Stream &, int flag) const final;    
 
-protected:
-  
 private:
   int incrTangent;
   int factorOnce;

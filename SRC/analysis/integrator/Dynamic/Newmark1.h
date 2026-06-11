@@ -65,8 +65,6 @@ class Newmark1 : public TransientIntegrator
 
     void Print(OPS_Stream &, int flag) final;        
     
-  protected:
-    
   private:
     double gamma;
     double beta;

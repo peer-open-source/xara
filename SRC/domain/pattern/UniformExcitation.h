@@ -69,8 +69,7 @@ class UniformExcitation : public EarthquakePattern
     void applyLoadSensitivity(double time);
     
     const GroundMotion *getGroundMotion();
-    
- protected:
+
     
  private:
     GroundMotion *theMotion; // the ground motion

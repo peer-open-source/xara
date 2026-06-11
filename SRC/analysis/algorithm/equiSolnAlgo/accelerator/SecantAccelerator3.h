@@ -52,8 +52,6 @@ class SecantAccelerator3: public Accelerator
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);
 
- protected:
-  
  private:
   // Iteration count
   int iteration;

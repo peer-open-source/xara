@@ -64,9 +64,7 @@ class EigenAlgorithm : public SolutionAlgorithm
      virtual AnalysisModel *getAnalysisModelPtr() const;
      virtual EigenIntegrator *getEigenIntegratorPtr() const;
      virtual EigenSOE *getEigenSOEptr() const;
- 
-  protected:
-  
+
   private:
      AnalysisModel  *theModel;
      EigenIntegrator *theIntegrator;

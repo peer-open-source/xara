@@ -73,8 +73,6 @@ class HystereticEnergy : public DamageModel
     // method for this damage model to update itself according to its new parameters
     void update(void) {return;}
     
- protected:
-    
  private:
     
     double Etotal,Cpower;

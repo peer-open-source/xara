@@ -60,8 +60,6 @@ class DisplacementPath : public StaticIntegrator
 
     void Print(OPS_Stream &, int flag) final;    
     
-  protected:
-    
   private:
     int theNode;          // the node that is being followed
     int theDof;           // the dof at the node being followed

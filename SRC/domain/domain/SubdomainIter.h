@@ -47,8 +47,7 @@ class SubdomainIter
     virtual ~SubdomainIter() {};
 
     virtual Subdomain *operator()(void) =0;
-    
-  protected:
+
 
   private:    
 

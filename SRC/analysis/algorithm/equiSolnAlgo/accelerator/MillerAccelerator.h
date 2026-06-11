@@ -54,8 +54,6 @@ class MillerAccelerator: public Accelerator
   int sendSelf(int commitTag, Channel &);
   int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
 
- protected:
-  
  private:
   // Iteration count
   int iteration;

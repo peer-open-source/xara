@@ -55,8 +55,7 @@ class SolutionAlgorithm: public MovableObject
     // methods for monitoring the analysis during an algorithm
     virtual int  addRecorder(Recorder &theRecorder);    	
     virtual int  record(int track);    
-    
-  protected:
+
     
   private:
     Recorder **theRecorders;

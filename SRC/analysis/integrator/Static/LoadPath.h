@@ -58,8 +58,6 @@ class LoadPath : public StaticIntegrator
 
     void Print(OPS_Stream &, int flag) final;    
     
-  protected:
-    
   private:
     Vector *loadPath;
     int currentStep;

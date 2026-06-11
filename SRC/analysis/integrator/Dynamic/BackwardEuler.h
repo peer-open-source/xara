@@ -68,8 +68,6 @@ public:
     
     void Print(OPS_Stream &s, int flag = 0);        
     
- protected:
-
  private:
     int step;       // keep track of previous points performed
     int optn;       // type of BE scheme to use

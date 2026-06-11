@@ -54,8 +54,6 @@ class RaphsonAccelerator: public Accelerator
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);
 
- protected:
-  
  private:
   // Flag indicating which tangent to form
   int theTangent;

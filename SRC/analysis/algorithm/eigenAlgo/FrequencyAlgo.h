@@ -56,11 +56,6 @@ class FrequencyAlgo : public EigenAlgorithm
 			  FEM_ObjectBroker &theBroker);
      
      virtual void Print(OPS_Stream &s, int flag);
-  
-  protected:
-  
-  private:
-  
 };
 
 #endif

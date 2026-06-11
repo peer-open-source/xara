@@ -63,8 +63,6 @@ class CentralDifferenceAlternative : public TransientIntegrator
 
     void Print(OPS_Stream &, int flag) final;        
     
-  protected:
-    
   private:
     int updateCount;    // method should only have one update per step
     Vector *Ut, *Utp1;  // disp response quantities at time t and t + deltaT

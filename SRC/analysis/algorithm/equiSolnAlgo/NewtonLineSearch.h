@@ -55,8 +55,6 @@ class NewtonLineSearch: public EquiSolnAlgo
 
     void Print(OPS_Stream &, int flag) const final;    
     
-  protected:
-    
   private:
     LineSearch *theLineSearch;
 };

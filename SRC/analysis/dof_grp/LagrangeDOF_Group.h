@@ -75,7 +75,6 @@ class LagrangeDOF_Group: public DOF_Group
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
     
-  protected:
   private:
     // we don't have a physical Node, so we need a persistent storage
     // for the lagrange multipliers so that the lagrange FE can correctly compute the residual
