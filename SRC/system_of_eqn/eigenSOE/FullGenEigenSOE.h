@@ -56,8 +56,6 @@ public:
 
     friend class FullGenEigenSolver;
 
-protected:
-
 private:
     int size;
     double *A;

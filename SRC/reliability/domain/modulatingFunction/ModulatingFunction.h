@@ -49,8 +49,6 @@ public:
 	virtual double getMaxAmplitude() = 0;
 	virtual Filter *getFilter() = 0;
 
-protected:
-
 private:
 
 };

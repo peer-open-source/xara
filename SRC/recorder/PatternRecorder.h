@@ -58,8 +58,6 @@ class PatternRecorder: public Recorder
     int restart(void);    
     int flush(void);    
     
-  protected:
-    
   private:	
 	int thePattern;
     Domain *theDomain;

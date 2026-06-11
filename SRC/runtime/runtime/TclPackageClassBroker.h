@@ -92,7 +92,6 @@ public:
   int addUniaxialMaterial(int classTag, const char *lib, const char *funcName,
                           UniaxialMaterial *(*)(void));
 
-protected:
 private:
   DomainSolver *lastDomainSolver;
 };

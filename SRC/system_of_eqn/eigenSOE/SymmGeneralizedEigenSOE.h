@@ -49,8 +49,6 @@ public:
 
     friend class SymmGeneralizedEigenSolver;
 
-protected:
-
 private:
     int size;
     double *A;

@@ -37,8 +37,6 @@ class ReliabilityStorage
     virtual int setVariable(const char *variable, Information &);
     virtual int getVariable(const char *variable, Information &);
     
-  protected:
-    
   private:
 
     

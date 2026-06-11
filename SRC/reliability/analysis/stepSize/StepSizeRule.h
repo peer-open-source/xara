@@ -52,8 +52,6 @@ public:
 	virtual double getStepSize() =0;
 	virtual double getInitialStepSize() =0;
 
-protected:
-
 private:
 
 };

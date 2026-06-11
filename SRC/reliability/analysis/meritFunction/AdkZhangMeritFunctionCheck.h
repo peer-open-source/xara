@@ -61,8 +61,6 @@ public:
 				  const Vector &grad_G);*/
  /////E added byt K Fujimura
 
-protected:
-
 private:
 	double multi, add;
 	double a;

@@ -51,8 +51,6 @@ public:
 	double getMaxAmplitude();
 	Filter *getFilter();
 
-protected:
-
 private:
 	Filter *theFilter;
 	double a;

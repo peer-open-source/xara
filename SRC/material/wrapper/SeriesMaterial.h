@@ -69,8 +69,6 @@ class SeriesMaterial : public UniaxialMaterial
 			  
     int getResponse(int responseID, Information &matInformation);
     
-  protected:
-    
   private:
     double Tstrain;
     double Cstrain;

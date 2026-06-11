@@ -71,8 +71,6 @@ class ArpackSOE : public EigenSOE
 
 	int checkSameInt(int);
 
-  protected:
-    
   private:
     double *M;
     int Msize;

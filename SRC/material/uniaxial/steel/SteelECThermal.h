@@ -86,8 +86,6 @@ class SteelECThermal : public UniaxialMaterial
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
     
- protected:
-    
  private:
 
     /////For Temperature-dependent properties///////////////////////////////start

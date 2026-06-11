@@ -59,8 +59,6 @@ public:
     const Vector	&getCurvatures();
     const Vector	&getPrincipalAxes();
 
-protected:
-
 private:	
     ReliabilityDomain *theReliabilityDomain;
     Domain *theOpenSeesDomain;

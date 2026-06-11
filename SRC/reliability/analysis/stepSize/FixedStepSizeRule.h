@@ -49,8 +49,6 @@ public:
 	double	getInitialStepSize();
 
 
-protected:
-
 private:
 	double stepSize;
 

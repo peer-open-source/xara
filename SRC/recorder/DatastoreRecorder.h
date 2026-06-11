@@ -53,8 +53,6 @@ class DatastoreRecorder: public Recorder
     int playback(int commitTag);
     int restart(void);
     
-  protected:
-    
   private:	
     FE_Datastore *theDatastore;
 };

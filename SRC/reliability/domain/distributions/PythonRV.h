@@ -63,8 +63,6 @@ class PythonRV : public RandomVariable
   // other
   void Print(OPS_Stream &s, int flag = 0);
   
- protected:
-  
  private:
   PyObject *myFunction;
   

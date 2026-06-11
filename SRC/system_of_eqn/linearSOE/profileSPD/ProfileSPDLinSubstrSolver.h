@@ -63,8 +63,6 @@ class ProfileSPDLinSubstrSolver : public ProfileSPDLinDirectSolver,
     int sendSelf(int commitTag, Channel &) override;
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
     
-  protected:
-    
   private:
     int dSize;
     double *DU;

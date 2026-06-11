@@ -49,8 +49,6 @@ public:
     
     int gramSchmidt(const Vector &first, Matrix &R);
   
-protected:
-
 private:
 
 };

@@ -52,8 +52,6 @@ public:
 	virtual Vector meanSensitivityOf_x_to_u(const Vector &x, int rvTag) = 0;
 	virtual Vector stdvSensitivityOf_x_to_u(const Vector &x, int rvTag) = 0;
 
-protected:
-
 private:
 
 };

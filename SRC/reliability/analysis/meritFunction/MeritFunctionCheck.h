@@ -59,8 +59,6 @@ public:
 	virtual int updateMeritParameters(const Vector &u, double g,
 					  const Vector &grad_G) = 0;*/
 
-protected:
-
 private:
 
 };

@@ -92,8 +92,6 @@ class Steel02Fatigue : public UniaxialMaterial
     
     void Print(OPS_Stream &, int flag) final;
     
- protected:
-    
  private:
     // matpar : STEEL FIXED PROPERTIES
     double Fy;  //  = matpar(1)  : yield stress

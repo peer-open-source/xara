@@ -63,8 +63,6 @@ class DistributedBandGenLinSOE : public BandGenLinSOE
     int setProcessID(int processTag);
     int setChannels(int numChannels, Channel **theChannels);
 
-  protected:
-    
   private:
     int processID;
     int numChannels;

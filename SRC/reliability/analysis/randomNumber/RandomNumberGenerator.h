@@ -54,8 +54,6 @@ public:
 	virtual void setSeed(int)=0;
 
 
-protected:
-
 private:
 
 };

@@ -64,8 +64,6 @@ class EnvelopeDriftRecorder: public Recorder
 	       FEM_ObjectBroker &theBroker);
   virtual double getRecordedValue(int clmnId, int rowOffset, bool reset); //added by SAJalali
 
- protected:
-  
  private:	
   int initialize(void);
 

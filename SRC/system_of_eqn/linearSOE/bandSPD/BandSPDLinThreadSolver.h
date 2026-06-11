@@ -53,8 +53,6 @@ class BandSPDLinThreadSolver : public BandSPDLinSolver
     int sendSelf(Channel &theChannel, FEM_ObjectBroker &theBroker);
     int recvSelf(Channel &theChannel, FEM_ObjectBroker &theBroker);    
     
-  protected:
-
   private:
     int NP;
     int running;

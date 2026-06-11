@@ -42,8 +42,6 @@ public:
 	virtual ~ReliabilityAnalysis();
 	virtual int analyze(void) =0;
 
-protected:
-
 private:
     
 };

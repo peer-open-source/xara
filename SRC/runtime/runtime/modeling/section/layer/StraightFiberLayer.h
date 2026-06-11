@@ -37,7 +37,6 @@ public:
   int getNumReinfBars() const;
   std::vector<FiberCell> getReinfBars() const;
 
-protected:
 private:
   int nReinfBars;
   VectorND<2> initPosit;

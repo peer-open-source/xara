@@ -72,8 +72,6 @@ class SteelDRC : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag =0);
     
-  protected:
-    
   private:
 	double fyEng; // Yield stress in engineering coordinates
 	double eshEng; // Strain at onset of strain hardening in engineering coordinates

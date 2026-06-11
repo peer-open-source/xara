@@ -75,8 +75,6 @@ class Steel01Thermal : public UniaxialMaterial
     double getInitialTangentSensitivity(int gradIndex);
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
     
- protected:
-    
  private:
 
     double getThermalElongation(); //***JZ

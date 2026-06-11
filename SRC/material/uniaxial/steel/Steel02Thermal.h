@@ -76,8 +76,6 @@ class Steel02Thermal : public UniaxialMaterial
 
     int getVariable(const char *variable, Information &);
     
- protected:
-    
  private:
 
 //JZ 11/10 /////////////////////////////////////////////////////////////start

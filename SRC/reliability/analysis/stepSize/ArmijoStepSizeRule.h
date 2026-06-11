@@ -70,8 +70,6 @@ public:
 	double	getStepSize();
 	double	getInitialStepSize();
 
-protected:
-
 private:
     ReliabilityDomain *theReliabilityDomain;
 	FunctionEvaluator *theGFunEvaluator;

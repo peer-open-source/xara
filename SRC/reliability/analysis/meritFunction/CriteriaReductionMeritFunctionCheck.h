@@ -70,8 +70,6 @@ public:
 		int reschk=0);
 /////E added by K Fujimura /////
 
-protected:
-
 private:
 	ReliabilityConvergenceCheck *theReliabilityConvergenceCheck;
 

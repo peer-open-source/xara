@@ -103,8 +103,6 @@ class RemoveRecorder: public Recorder
    static Element** remEles;
    static Node** remNodes;
    
- protected:
-   
  private:	
    
    // Removable node (optional), number of elements, sections, and rules to check  

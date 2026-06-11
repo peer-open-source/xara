@@ -69,8 +69,6 @@ public:
 
 	Matrix  getDgDdispl();
 
-protected:
-
 private:
 	SensitivityAlgorithm *theSensAlgo;
 	Domain *theOpenSeesDomain;

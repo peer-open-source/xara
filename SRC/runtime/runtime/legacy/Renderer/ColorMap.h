@@ -48,8 +48,6 @@ class ColorMap
     virtual float getBlue(float value) =0;
     virtual int   getRGB(float value, float &red, float &green, float &blue) =0;
     virtual int   startImage() =0;
-  protected:
-    
   private:
 };
 

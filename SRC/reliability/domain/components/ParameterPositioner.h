@@ -58,8 +58,6 @@ public:
 	void setGradNumber(int gradNum) {gradNumber = gradNum;}
 	int getGradNumber(void) {return gradNumber;}
 
-protected:
-
 private:
 	int gradNumber; // 0,...,nparam-1
 

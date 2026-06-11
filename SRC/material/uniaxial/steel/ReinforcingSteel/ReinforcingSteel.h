@@ -79,8 +79,6 @@ class ReinforcingSteel : public UniaxialMaterial
   
   virtual double getEnergy() { return Energy; } //by SAJalali
 
- protected:
-  
  private:
 	 double Energy; //by SAJalali
 

@@ -54,8 +54,6 @@ public:
  	void    setSeed(int passedSeed=0);
     /////E added By K Fujimura /////
 
-protected:
-
 private:
 	Vector *generatedNumbers;
 	int seed;

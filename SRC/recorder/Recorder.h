@@ -60,8 +60,6 @@ class Recorder: public MovableObject, public TaggedObject
     virtual void Print(OPS_Stream &s, int flag); 
 	virtual double getRecordedValue(int clmnId, int rowOffset, bool reset) { return 0; } //added by SAJalali
 
-  protected:
-    
   private:	
     static int lastRecorderTag;
 };

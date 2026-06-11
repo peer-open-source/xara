@@ -49,8 +49,6 @@ public:
 
 	int analyze(void);
 
-protected:
-
 private:
 	double f0(Vector x, double assump, double betavar);
 	Vector fjs(Vector x, double assump, double betavar, double betavarmax, double betavarmin);

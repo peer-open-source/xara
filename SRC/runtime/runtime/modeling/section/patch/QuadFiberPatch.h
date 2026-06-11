@@ -42,7 +42,6 @@ public:
   int getNumCells() const;
   FiberCell** getCells() const;
 
-protected:
 private:
   int matID;
   int nDivIJ, nDivJK;

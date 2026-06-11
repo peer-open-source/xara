@@ -46,8 +46,6 @@ public:
 	
 	virtual const char* getExpression (void) = 0;
 
-protected:
-
 private:
 
 };

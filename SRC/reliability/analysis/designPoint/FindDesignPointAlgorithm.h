@@ -72,8 +72,6 @@ public:
 	virtual Matrix getJacobian_x_u();
 	/////E added by K Fujimura /////
 
-protected:
-
 private:
 
 };

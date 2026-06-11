@@ -57,8 +57,6 @@ public:
 	// other
 	void Print(OPS_Stream &s, int flag = 0);
 
-protected:
-
 private:
 	Vector xPoints;
 	Vector PDFpoints;

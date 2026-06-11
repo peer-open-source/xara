@@ -45,8 +45,6 @@ public:
 
 	virtual Vector findLimitStateSurface(int space, double g, Vector Direction, Vector thePoint) =0;
 
-protected:
-
 private:
 
 };

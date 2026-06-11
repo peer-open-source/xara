@@ -62,8 +62,6 @@ class NodeRecorderRMS: public Recorder
     
     virtual double getRecordedValue(int clmnId, int rowOffset, bool reset); //added by SAJalali
 
-  protected:
-    
   private:	
     int initialize(void);
 

@@ -78,8 +78,6 @@ class FullGenLinSOE : public LinearSOE
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-  protected:
-    
   private:
     int size;    
     double *A;

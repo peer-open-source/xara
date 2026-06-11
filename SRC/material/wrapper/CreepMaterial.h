@@ -87,8 +87,6 @@ public:
   Response *setResponse(const char **argv, int argc,OPS_Stream &theOutput);
   int getResponse(int responseID, Information &matInfo);
   
-protected:
-  
 private:
   UniaxialMaterial *wrappedMaterial;
   

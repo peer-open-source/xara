@@ -64,8 +64,6 @@ class ArpackSolver : public EigenSolver
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &theBroker);
 
-  protected:
-
   private:
     LinearSOE *theSOE;
     ArpackSOE *theArpackSOE;

@@ -58,8 +58,6 @@ class FilePlotter : public Recorder
     int setFile(char *newFile);
     int setCol(const ID &theCols);
 
-  protected:
-
   private:
     ColorMap *theMap;
     Renderer *theRenderer;

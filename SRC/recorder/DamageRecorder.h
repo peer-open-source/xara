@@ -65,8 +65,6 @@ class DamageRecorder: public Recorder
     int restart(void);    
     int flush();
     
-  protected:
-    
   private:	
 
     int eleID, numSec, dofID;

@@ -50,8 +50,6 @@ public:
 			const Vector &passedGradientInStandardNormalSpace) =0;
 	virtual const Vector &getSearchDirection() =0;
 
-protected:
-
 private:
 
 };

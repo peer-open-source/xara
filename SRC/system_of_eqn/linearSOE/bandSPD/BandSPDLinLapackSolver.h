@@ -51,8 +51,6 @@ class BandSPDLinLapackSolver : public BandSPDLinSolver
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
     
-  protected:
-
   private:
 
 };

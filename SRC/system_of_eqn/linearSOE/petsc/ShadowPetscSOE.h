@@ -78,8 +78,6 @@ class ShadowPetscSOE : public LinearSOE
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);    
     
-  protected:
-    
   private:
     MPI_Comm theComm; // a comm for communicating to the ActorPetscSOE's
                       // without using PETSC_COMM_WORLD

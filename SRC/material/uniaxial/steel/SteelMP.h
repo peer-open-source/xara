@@ -75,8 +75,6 @@ class SteelMP : public UniaxialMaterial
 	int    commitSensitivity        (double strainGradient, int gradNumber, int numGrads);
 // AddingSensitivity:END ///////////////////////////////////////////
     
-  protected:
-    
   private:
     /*** Material Properties ***/
     double fy;  // Yield stress

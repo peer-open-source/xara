@@ -81,8 +81,6 @@ public:
 	int setReliabilityConvergenceCheck(ReliabilityConvergenceCheck *theReliabilityConvergenceCheck);
 
 
-protected:
-
 private:
 
 	Vector getCurrentAxes12Point(int i, int j);

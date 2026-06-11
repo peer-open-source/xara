@@ -94,8 +94,6 @@ private:
 	int recordResultsOnNodes();
 	int recordResultsOnElements();
 
-protected:
-
 private:
 	private_data *m_data;
 };

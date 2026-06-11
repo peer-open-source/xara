@@ -46,8 +46,6 @@ public:
 	double getPDF(double b1, double b2);
 	double getCDF(double b1, double b2);
 
-protected:
-
 private:
 	double exponentialForm(double, double, double);
 	double SimpsonOwen(double, double, double, double);

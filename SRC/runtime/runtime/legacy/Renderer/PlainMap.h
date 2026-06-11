@@ -50,8 +50,6 @@ class PlainMap: public ColorMap
     int   getRGB(float value, float &red, float &green, float &blue);
     int   startImage();
 
-  protected:
-    
   private:
     float max, min;
     float maxLast, minLast;
