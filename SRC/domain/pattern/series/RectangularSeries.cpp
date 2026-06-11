@@ -36,68 +36,6 @@
 #include <Vector.h>
 #include <Channel.h>
 
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_RectangularSeries)
-{
-  // Pointer to a uniaxial material that will be returned
-  TimeSeries *theSeries = 0;
-  
-  int numRemainingArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numRemainingArgs < 2) {
-    opserr << " Rectangular <tag?> tStart tFinish <-factor cFactor>\n";
-    return 0;
-  }
-
-  int tag = 0;     // default tag = 0
-  double dData[3];
-  dData[2] = 1.0; // default cFactor = 1.0
-  int numData = 0;
-
-  // get tag if provided
-  if (numRemainingArgs == 3 || numRemainingArgs == 5) {
-    numData = 1;
-    if (OPS_GetIntInput(&numData, &tag) != 0) {
-      opserr << "WARNING invalid series tag in Rectangular tag? tStart tFinish <-factor cFactor>\n";
-      return 0;
-    }
-    numRemainingArgs -= 1;
-  }
-  
-  numData = 2;
-  if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid double data for RectangularSeries with tag: " << tag << endln;
-    return 0;
-  }    
-  numRemainingArgs -= 2;
-
-  while (numRemainingArgs > 1) {
-    const char *argvS = OPS_GetString();
-
-    if (strcmp(argvS,"-factor") == 0) {
-      numData = 1;
-      if (OPS_GetDouble(&numData, &dData[2]) != 0) {
-	opserr << "WARNING invalid shift in Trig Series with tag?" << tag << endln;
-	return 0;
-      }
-    } else {
-      opserr << "WARNING unknown option: " << argvS << "  in Rectangular Series with tag?" << tag << endln;      
-      return 0;
-    }      
-    numRemainingArgs -= 2;
-  }
-
-  theSeries = new RectangularSeries(tag, dData[0], dData[1], dData[2]);
-
-  if (theSeries == 0) {
-    opserr << "WARNING ran out of memory creating RectangularSeries with tag: " << tag << "\n";
-    return 0;
-  }
-
-  return theSeries;
-}
-
 
 RectangularSeries::RectangularSeries(int tag, 
 				     double startTime, 
@@ -124,7 +62,8 @@ RectangularSeries::~RectangularSeries()
 }
 
 TimeSeries *
-RectangularSeries::getCopy(void) {
+RectangularSeries::getCopy()
+{
   return new RectangularSeries(this->getTag(), tStart, tFinish, cFactor);
 }
 
