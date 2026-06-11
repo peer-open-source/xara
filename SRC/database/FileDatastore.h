@@ -120,8 +120,6 @@ class FileDatastore: public FE_Datastore
     // the commitState method
     int commitState(int commitTag);        
     
-  protected:
-
   private:
     // Private methods
     int resizeInt(int newSize);

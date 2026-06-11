@@ -65,8 +65,6 @@ class LimitCurve : public TaggedObject, public MovableObject
 
     virtual int revertToStart (void) = 0;        
 
-  protected:
-    
   private:
  
 

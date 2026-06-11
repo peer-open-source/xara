@@ -72,8 +72,6 @@ class RotationShearCurve : public LimitCurve
 	void setDegSlope(double V);
 	void getElemForces(void);		
 
-  protected:
-    
   private:
 	// Associated beam-colum element information
 	int curveTag;		// tag for shear curve

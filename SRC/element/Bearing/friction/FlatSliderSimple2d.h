@@ -92,8 +92,6 @@ public:
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
     
-protected:
-
 private:
     // private methods
     void setUp();

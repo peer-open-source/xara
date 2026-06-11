@@ -48,8 +48,6 @@ class ElementIter
 
     virtual Element *operator()(void) =0;
 
-  protected:
-    
   private:
 
 };

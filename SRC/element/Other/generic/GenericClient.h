@@ -112,8 +112,6 @@ public:
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInfo);
     
-protected:
-    
 private:
     // private attributes - a copy for each object of the class
     ID connectedExternalNodes;  // contains the tags of the end nodes

@@ -51,8 +51,6 @@ class ElementalLoadIter
     virtual ElementalLoad *operator()(void);
     virtual void reset(void);
 
-  protected:
-    
   private:
     TaggedObjectIter &myIter;
 };

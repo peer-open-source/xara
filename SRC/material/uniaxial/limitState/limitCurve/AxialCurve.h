@@ -78,8 +78,6 @@ class AxialCurve : public LimitCurve
 
 
 
-  protected:
-    
   private:
 
 	Tcl_Interp *theTclInterp;

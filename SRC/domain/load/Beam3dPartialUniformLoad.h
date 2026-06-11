@@ -50,8 +50,6 @@ class Beam3dPartialUniformLoad : public ElementalLoad
   
   const Vector &getSensitivityData(int gradNumber);
   
- protected:
-  
  private:
   double wTransya;
   double wTransza;

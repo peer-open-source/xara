@@ -137,8 +137,6 @@ class HeapNode : public Node
     // AddingSensitivity:END ///////////////////////////////////////////
 
 
-  protected:
-
   private:
     double *disp;
     double *vel, *accel;               // double arrays holding the vel and accel values

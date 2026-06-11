@@ -56,8 +56,6 @@ class OriginCentered : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag =0);
     
- protected:
-    
  private:
     // matpar : STEEL FIXED PROPERTIES
     double f1;  //  = matpar(1)

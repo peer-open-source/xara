@@ -64,13 +64,11 @@ public:
 
     void Print(OPS_Stream &s, int flag = 0);
 
-protected:
-
 private:
     double tStart;      // start time of time series (sec)
     double tFinish;     // end time of time series (sec)
     double period;      // period of MPAcc series (sec)
-    double gammaMP;  // ¦Ã factor in M&P pulse model 
+    double gammaMP;  // ï¿½ï¿½ factor in M&P pulse model 
     double nuMP;     // nu in degree in M&P pulse model
     double AFactor;   // the M&P velocity amplificarion factor(optional,default=1.0)
 };

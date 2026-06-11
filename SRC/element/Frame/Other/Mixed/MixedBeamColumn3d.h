@@ -85,8 +85,6 @@ class MixedBeamColumn3d : public Element
     int getResponse(int responseID, Information &eleInfo);
 
     const char *getClassType(void) const {return "MixedBeamColumn3d";};
-  protected:
-
   private:
     // Private Functions - Shape Functions
     Matrix getNld_hat(int sec, const Vector &v, double L, bool geomLinear);

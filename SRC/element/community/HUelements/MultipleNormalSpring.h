@@ -96,8 +96,6 @@ class MultipleNormalSpring : public Element
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &eleInfo);
   
- protected:
-  
  private:
   // private methods
   void setUp();

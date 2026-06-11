@@ -75,8 +75,6 @@ class MP_Joint2D : public MP_Constraint
     void Print(OPS_Stream &s, int flag =0);
 
 
-  protected:
-    
   private:
     int nodeRetained;			// to identify the retained node
     int nodeConstrained;		// to identify  the constrained node

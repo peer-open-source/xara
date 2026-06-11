@@ -119,8 +119,6 @@ public:
     Response* setResponse(const char** argv, int argc, OPS_Stream& s);
     int getResponse(int responseID, Information& eleInformation);
 
-protected:
-
 private:
     // private member functions - only available to objects of the class
     void CircularElasticGap(Matrix& kj, Vector& fj, double Ej, double Gapj, Vector di);

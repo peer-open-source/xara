@@ -67,8 +67,6 @@ class InterpolatedGroundMotion : public GroundMotion
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);    
     
-  protected:
-
   private:
     GroundMotion **theMotions;
     Vector *factors;

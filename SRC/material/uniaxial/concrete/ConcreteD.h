@@ -49,8 +49,6 @@ class ConcreteD : public UniaxialMaterial
     
     void Print(OPS_Stream &, int flag) final;
     
-  protected:
-    
   private:
 //InPut Parameters
 	double fcc;

@@ -48,8 +48,6 @@ class MP_ConstraintIter
     
     virtual MP_Constraint *operator()(void) =0;
     
-  protected:
-
   private:
 
 };

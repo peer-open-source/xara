@@ -71,8 +71,6 @@ class NodalThermalAction : public NodalLoad
   //int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   void Print(OPS_Stream &s, int flag =0);       
   
- protected:
-  
  private:
   double Temp[15]; //Temperature
   double TempApp[15]; //Temperature applied

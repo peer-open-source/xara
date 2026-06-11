@@ -72,8 +72,6 @@ public:
 
     void Print(OPS_Stream &s, int flag = 0);
 
-protected:
-
 private:
     double tStart;      // start time of time series (sec)
     double tFinish;     // end time of time series (sec)

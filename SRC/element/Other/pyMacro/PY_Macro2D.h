@@ -73,8 +73,6 @@ class PY_Macro2D : public Element
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
 
-  protected:
-
   private:
     double K;
     double py;

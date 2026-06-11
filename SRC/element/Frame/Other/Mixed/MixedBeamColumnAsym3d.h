@@ -99,8 +99,6 @@ class MixedBeamColumnAsym3d : public Element
 
     const char *getClassType(void) const {return "MixedBeamColumnAsym3d";};
 
-  protected:
-
   private:
     // Private Functions - Shape Functions
     Matrix getNld_hat(int sec, const Vector &v, double L, bool geomLinear);

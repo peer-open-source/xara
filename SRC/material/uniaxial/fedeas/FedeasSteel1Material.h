@@ -54,8 +54,6 @@ class FedeasSteel1Material : public FedeasMaterial
     double getInitialTangent(void);
     UniaxialMaterial *getCopy(void);
 
-  protected:
-
   private:
 
 };

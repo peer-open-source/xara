@@ -94,7 +94,6 @@ public:
     int            commitSensitivity           (int gradNumber, int numGrads);
 #endif
 
-protected:
 private:
   constexpr static int NDM = 2; // number of spatial dimensions
   constexpr static int NDF = 2; // number of DOFs per node

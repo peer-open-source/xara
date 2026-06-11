@@ -77,8 +77,6 @@ class Concrete02 : public UniaxialMaterial
     
     double getEnergy() { return TEnergy; }
 
- protected:
-    
  private:
     void Tens_Envlp (double epsc, double &sigc, double &Ect);
     void Compr_Envlp (double epsc, double &sigc, double &Ect);

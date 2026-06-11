@@ -83,8 +83,6 @@ class GroundMotion : public MovableObject
     // virtual int activateParameter(int parameterID);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-
   private:
     TimeSeries *theAccelSeries;  // Ground acceleration
     TimeSeries *theVelSeries;	 // Ground velocity

@@ -92,8 +92,6 @@ class MixedBeamColumn2d : public Element
 
     const char *getClassType(void) const {return "MixedBeamColumn2d";};
     int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
-  protected:
-
   private:
     // private member functions - only available to objects of the class
     Matrix getNld_hat(int sec, const Vector &v, double L, bool geomLinear);

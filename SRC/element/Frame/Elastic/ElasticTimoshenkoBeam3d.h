@@ -87,8 +87,6 @@ public:
     int setParameter (const char **argv, int argc, Parameter &);
     int updateParameter (int parameterID, Information &);
     
-protected:
-    
 private:
     // private methods
     void setUp();

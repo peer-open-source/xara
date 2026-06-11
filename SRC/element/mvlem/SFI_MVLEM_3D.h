@@ -98,8 +98,6 @@ public:
 
 	Response **theResponses;			// pointer to material responses needed for Concrete
 
-protected:
-
 private:
 
 	void setTransformationMatrix(void);

@@ -117,8 +117,6 @@ class AC3D8HexWithSensitivity: public Element
     // AddingSensitivity:END ///////////////////////////////////////////
 
     
-  protected:
-
   private:
     constexpr static int NEN = 8,          // number of nodes in element
                          NIP = 8;

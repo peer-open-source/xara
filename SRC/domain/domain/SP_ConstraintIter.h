@@ -48,8 +48,6 @@ class SP_ConstraintIter
     
     virtual SP_Constraint *operator()(void) =0;
     
-  protected:
-
   private:
 
 };

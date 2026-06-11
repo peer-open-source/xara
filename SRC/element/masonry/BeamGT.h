@@ -79,8 +79,6 @@ class BeamGT : public Element
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
 
-  protected:
-    
   private:
     // private member functions - only available to objects of the class
     double computeCurrentStrain(int mat) const;

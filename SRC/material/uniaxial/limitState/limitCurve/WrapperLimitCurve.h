@@ -60,8 +60,6 @@ class WrapperLimitCurve : public LimitCurve
 
 	int revertToStart(void);        
 	       
- protected:
-  
  private:
 	char *funcName;
 	limCrvObject *theLimCrv;

@@ -81,8 +81,6 @@ class NineFourNodeQuadUP : public Element
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-  protected:
-
   private:
 
     // private attributes - a copy for each object of the class

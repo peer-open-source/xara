@@ -45,8 +45,6 @@ class MatParameter : public Parameter
 
   virtual void setDomain(Domain *);
 
- protected:
-  
  private:
   Information theMatInfo;
   char *theParameterName;

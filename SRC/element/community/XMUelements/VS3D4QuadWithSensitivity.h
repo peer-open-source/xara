@@ -110,8 +110,6 @@ class VS3D4QuadWithSensitivity: public Element
     double get_Gauss_p_c(short order, short point_numb);
     double get_Gauss_p_w(short order, short point_numb);
 
-  protected:
-
   private:
     constexpr static int NEN = 4, 
                          NIP = 0;          // number of Gauss points; I dont think there are any.

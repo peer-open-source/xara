@@ -107,8 +107,6 @@ class TDConcreteNL : public UniaxialMaterial
 	Response *setResponse(const char **argv, int argc,OPS_Stream &theOutput);
 	int getResponse(int responseID, Information &matInfo);
     
- protected:
-    
  private:
     void Tens_Envlp (double epsc, double &sigc, double &Ect);
     void Compr_Envlp (double epsc, double &sigc, double &Ect);

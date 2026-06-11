@@ -103,8 +103,6 @@ class CatenaryCable : public Element
 
     Vector getEnergyVector();
 
-  protected:
-    
   private:
     void compute_lambda0(void) ;
     void compute_projected_lengths(void) ;

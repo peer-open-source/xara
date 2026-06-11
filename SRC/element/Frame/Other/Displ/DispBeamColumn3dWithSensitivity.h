@@ -103,8 +103,6 @@ class DispBeamColumn3dWithSensitivity : public Element
     // AddingSensitivity:END ///////////////////////////////////////////
 
 
-  protected:
-    
   private:
     const Matrix &getInitialBasicStiff(void);
 

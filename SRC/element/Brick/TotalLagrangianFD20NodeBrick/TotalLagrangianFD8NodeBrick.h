@@ -180,15 +180,7 @@ class TotalLagrangianFD8NodeBrick: public Element
 
 
 
-  protected:
-
-
-
-  private:
-
-
-
-    NDMaterial **theMaterial; // Pointer to the NDMaterial objects
+  private:rial **theMaterial; // Pointer to the NDMaterial objects
 
     ID  connectedExternalNodes; // Tags of TotalLagrangianFD20Brick nodes
 

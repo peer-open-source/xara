@@ -86,8 +86,6 @@ class BBarFourNodeQuadUP : public Element,
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-  protected:
-
   private:
     // private member functions - only objects of this class can call these
     double mixtureRho(int ipt);  // Mixture mass density at integration point i

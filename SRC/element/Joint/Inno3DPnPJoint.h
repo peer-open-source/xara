@@ -169,8 +169,6 @@ class Inno3DPnPJoint : public Element
     int updateParameter (int parameterID, Information &info);
     
   
-protected:
-
 private:
 
 	//private methods

@@ -63,8 +63,6 @@ class ImposedMotionSP1 : public SP_Constraint
 
     void Print(OPS_Stream &s, int flag);
 
-  protected:
-    
   private:
     int groundMotionTag;
     int patternTag;

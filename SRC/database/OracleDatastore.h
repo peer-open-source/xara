@@ -83,8 +83,6 @@ class OracleDatastore: public FE_Datastore
 	       ID &theID, 
 	       ChannelAddress *theAddress =0);    
     
-  protected:
-
   private:
     
     // private attributes

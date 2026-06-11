@@ -106,8 +106,6 @@ public:
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
     
-protected:
-
 private:
     // private attributes - a copy for each object of the class
     int numDIM;                     // actuator in 1d, 2d or 3d domain

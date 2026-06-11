@@ -48,8 +48,6 @@ class Pressure_ConstraintIter
     
     virtual Pressure_Constraint *operator()(void) =0;
     
-  protected:
-
   private:
 
 };

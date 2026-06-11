@@ -68,8 +68,6 @@ class FireLoadPattern : public LoadPattern
     // method to obtain a blank copy of the LoadPattern
     //FireLoadPattern *getCopy(void) =0;
     
- protected:
-
   private:
     //PK start
     TimeSeries *theSeries1;

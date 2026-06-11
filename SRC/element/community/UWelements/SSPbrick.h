@@ -88,8 +88,6 @@ class SSPbrick : public Element
 	int setParameter(const char **argv, int argc, Parameter &);
     int updateParameter(int parameterID, Information &);
 
-  protected:
-
   private:
 
 	static constexpr int nen = 8,

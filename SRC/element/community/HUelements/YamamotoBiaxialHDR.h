@@ -90,8 +90,6 @@ class YamamotoBiaxialHDR : public Element
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &eleInfo);
   
- protected:
-  
  private:
   //-------------------------------------------------------------------------------
   int setTrialStrain(const Vector &strain);
@@ -107,7 +105,7 @@ class YamamotoBiaxialHDR : public Element
   // private attributes - a copy for each object of the class
   ID connectedExternalNodes;        // contains the tags of the end nodes
   Node *theNodes[2];                // array of nodes
-  //  UniaxialMaterial **theMaterials;  // material‚ðnSpringŒÂ
+  //  UniaxialMaterial **theMaterials;  // materialï¿½ï¿½nSpringï¿½ï¿½
 
   // parameters
   //  int nSpring=1;

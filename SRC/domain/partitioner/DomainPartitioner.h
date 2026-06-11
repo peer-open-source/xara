@@ -91,8 +91,6 @@ class DomainPartitioner
 				 
 
     virtual GraphPartitioner* getGraphPartitioner();
-  protected:    
-    
   private:
     PartitionedDomain *myDomain; 
     GraphPartitioner  &thePartitioner;

@@ -91,8 +91,6 @@ class MultiFP2d : public Element
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &eleInformation);
   
- protected:
-  
  private:
   UniaxialMaterial *theFrictionModel;
   UniaxialMaterial *theVerticalModel;

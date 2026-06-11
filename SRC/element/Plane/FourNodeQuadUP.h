@@ -79,8 +79,6 @@ class FourNodeQuadUP : public Element,
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-  protected:
-
   private:
     constexpr static int NEN = 4;
     // private attributes - a copy for each object of the class

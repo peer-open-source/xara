@@ -94,8 +94,6 @@ class ConfinedConcrete01 : public UniaxialMaterial
   
   int getVariable(const char *variable, Information &);
   
- protected:
-  
  private:
   void setupAttardSetunge(double fpc, double stRatio, double Ec, double aggrType, 
 			  double concrType, double &epsc, double &fc, 

@@ -89,8 +89,6 @@ class ThermalActionWrapper : public ElementalLoad
 	       FEM_ObjectBroker &theBroker);
   void Print(OPS_Stream &s, int flag =0);       
   
- protected:
-  
  private:
   Matrix NodalLocs; // Location through the depth of section
   NodalThermalAction** theNodalTA;

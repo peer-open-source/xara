@@ -80,8 +80,6 @@ public:
 	double getStressSensitivity     (int gradNumber, bool conditional);
 	int    commitSensitivity        (double strainGradient, int gradNumber, int numGrads);
 	// AddingSensitivity:END ///////////////////////////////////////////
-protected:
-
 private:
 	//////////////////////////////////////////////////////////////////////////
 	//inputs

@@ -62,8 +62,6 @@ class Beam2dTempLoad : public ElementalLoad
 	       FEM_ObjectBroker &theBroker);
   void Print(OPS_Stream &s, int flag =0);       
   
- protected:
-  
  private:
   double Ttop1;	      // Temp change at top node 1 end of member	
   double Tbot1;       // Temp change at bottom node 1 end of member

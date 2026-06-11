@@ -39,8 +39,6 @@ class Concrete06 : public UniaxialMaterial
 
     int getVariable(const char *variable, Information &);
 
-   protected:
-
    private:
       /*** Material Properties ***/
 	double ecr;
