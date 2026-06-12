@@ -31,18 +31,24 @@
 #include <Parsing.h>
 #include <Vector.h>
 #include <string.h>
+#include <ModelRegistry.h>
+#include <assert.h>
 
-UniaxialMaterial*
-TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)
+
+int
+TclCommand_ReinforcingSteel(ClientData clientData, 
+                            Tcl_Interp *interp,
+                            Tcl_Size argc, 
+                            TCL_Char ** const argv)
 {
-  Tcl_Interp* interp = G3_getInterpreter(rt);
-  UniaxialMaterial *theMaterial = nullptr;
+  assert(clientData != nullptr);
+  ModelRegistry *model = static_cast<ModelRegistry*>(clientData);
 
   if (argc < 9) {
     opserr << "WARNING insufficient arguments\n";
     opserr << "Want: uniaxialMaterial ReinforcingSteel tag? fy? fu? Es? Esh? esh? eult? <-GABuck?> <-DMBuck?> <-CMFatigue?> <-MPCurveParams?> <-IsoHard?>" 
            << OpenSees::SignalMessageEnd;
-    return nullptr;
+    return TCL_ERROR;
   }
 
 
@@ -65,37 +71,38 @@ TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial ReinforcingSteel tag " << argv[2] 
            << OpenSees::SignalMessageEnd;
-    return nullptr;		
+    return TCL_ERROR;	
   }
   
   if (Tcl_GetDouble(interp, argv[3], &fy) != TCL_OK) {
-    opserr << "WARNING invalid fy" << OpenSees::SignalMessageEnd;
-    return nullptr;	
+    opserr << "WARNING invalid fy" 
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
   }
   
   if (Tcl_GetDouble(interp, argv[4], &fu) != TCL_OK) {
     opserr << "WARNING invalid fu" << OpenSees::SignalMessageEnd;
-    return nullptr;
+    return TCL_ERROR;
   }
   
   if (Tcl_GetDouble(interp, argv[5], &Es) != TCL_OK) {
     opserr << "WARNING invalid Es" << OpenSees::SignalMessageEnd;
-    return nullptr;	
+    return TCL_ERROR;
   }
  
   if (Tcl_GetDouble(interp, argv[6], &Esh) != TCL_OK) {
     opserr << "WARNING invalid Esh" << OpenSees::SignalMessageEnd;
-    return nullptr;	
+    return TCL_ERROR;
   }
   
   if (Tcl_GetDouble(interp, argv[7], &esh) != TCL_OK) {
     opserr << "WARNING invalid esh" << OpenSees::SignalMessageEnd;
-    return nullptr;	
+    return TCL_ERROR;
   }
   
   if (Tcl_GetDouble(interp, argv[8], &eult) != TCL_OK) {
     opserr << "WARNING invalid eult" << OpenSees::SignalMessageEnd;
-    return nullptr;	
+    return TCL_ERROR;
   }
   int argLoc = 9;
 
@@ -104,48 +111,49 @@ TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)
 	    if (argc < ++argLoc+4)  {
 	      opserr << "WARNING insufficient optional arguments for -GABuck\n";
 		    opserr << "Want: <-GABuck lsr? beta? r? gama?>" << OpenSees::SignalMessageEnd;
-		    return nullptr;
+		    return TCL_ERROR;
 	    }
       
 	    buckModel = 1;
 	    if (Tcl_GetDouble(interp, argv[argLoc++], &slen) != TCL_OK) {
 	      opserr << "WARNING invalid lsr\n";
-	      return nullptr;	
+	      return TCL_ERROR;
 	    }
 	    if (Tcl_GetDouble(interp, argv[argLoc++], &beta) != TCL_OK) {
         opserr << "WARNING invalid beta\n";
-        return nullptr;	
+        return TCL_ERROR;
       }
     
       if (Tcl_GetDouble(interp, argv[argLoc++], &r) != TCL_OK) {
         opserr << "WARNING invalid r\n";
-        return nullptr;	
+        return TCL_ERROR;
       }
     
       if (Tcl_GetDouble(interp, argv[argLoc++], &gama) != TCL_OK) {
         opserr << "WARNING invalid gama\n";
-        return nullptr;	
+        return TCL_ERROR;
       }
     }
 	  
     else if (strcmp(argv[argLoc],"-DMBuck") == 0) {
 	    if (argc < ++argLoc+1)  {
 	      opserr << "WARNING insufficient optional arguments for -DMBuck\n";
-		    opserr << "Want: <-DMBuck lsr? <alpha?>>" << OpenSees::SignalMessageEnd;
-		    return nullptr;
+		    opserr << "Want: <-DMBuck lsr? <alpha?>>" 
+               << OpenSees::SignalMessageEnd;
+		    return TCL_ERROR;
 	    }
 
 	    buckModel = 2;
 	    if (Tcl_GetDouble(interp, argv[argLoc++], &slen) != TCL_OK) {
 	      opserr << "WARNING invalid lsr\n";
-	      return nullptr;	
+	      return TCL_ERROR;
 	    }
       if (argc <= argLoc)  {
         beta = 1.0;
       } else if (argv[argLoc][0]!=45) {
         if (Tcl_GetDouble(interp, argv[argLoc++], &beta) != TCL_OK) {
           opserr << "WARNING invalid alpha\n";
-          return nullptr;	
+          return TCL_ERROR;
         }
       }
       if (beta<0.75 || beta>1.0)
@@ -156,19 +164,19 @@ TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)
 	    if (argc < ++argLoc+3)  {
 	      opserr << "WARNING insufficient optional arguments for -CMFatigue\n";
 		    opserr << "Want: <-CMFatigue Cf? alpha? Cd?>" << OpenSees::SignalMessageEnd;
-		    return nullptr;
+		    return TCL_ERROR;
 	    }
 	    if (Tcl_GetDouble(interp, argv[argLoc++], &Cf) != TCL_OK) {
         opserr << "WARNING invalid Cf\n";
-        return nullptr;	
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[argLoc++], &alpha) != TCL_OK) {
         opserr << "WARNING invalid alpha\n";
-        return nullptr;	
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[argLoc++], &Cd) != TCL_OK) {
         opserr << "WARNING invalid Cd\n";
-        return nullptr;	
+        return TCL_ERROR;
 	    }
 	  }
 
@@ -176,19 +184,19 @@ TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)
       if (argc < ++argLoc+3)  {
 	      opserr << "WARNING insufficient optional arguments for -MPCurveParams\n";
 		    opserr << "Want: <-CMFatigue R1? R2? R3?>" << OpenSees::SignalMessageEnd;
-		    return nullptr;
+		    return TCL_ERROR;
 	    }
       if (Tcl_GetDouble(interp, argv[argLoc++], &RC1) != TCL_OK) {
         opserr << "WARNING invalid RC1\n";
-        return nullptr;	
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[argLoc++], &RC2) != TCL_OK) {
         opserr << "WARNING invalid RC2\n";
-        return nullptr;	
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[argLoc++], &RC3) != TCL_OK) {
         opserr << "WARNING invalid RC3\n";
-        return nullptr;	
+        return TCL_ERROR;
 	    }
     }
     else if (strcmp(argv[argLoc],"-IsoHard") == 0) {
@@ -196,21 +204,21 @@ TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)
         a1 = 4.3;
         opserr << "uniaxialMaterial ReinforcingSteel -IsoHard: defaut values used\n";
       } else {
-        if (argv[argLoc][0]==45) {
+        if (argv[argLoc][0] == '-') {
           a1 = 4.3;
         } else {
           if (Tcl_GetDouble(interp, argv[argLoc++], &a1) != TCL_OK) {
             opserr << "WARNING invalid a1\n";
-            return nullptr;	
+            return TCL_ERROR;
           }
         }
         if (argc > argLoc) {
-          if (argv[argLoc][0]==45) {
+          if (argv[argLoc][0] == '-') {
             a1 = 4.3;
           } else {
             if (Tcl_GetDouble(interp, argv[argLoc++], &hardLim) != TCL_OK) {
               opserr << "WARNING invalid hardening limit\n";
-              return nullptr;	
+              return TCL_ERROR;
             }
           }
         }
@@ -220,13 +228,22 @@ TclCommand_ReinforcingSteel(G3_Runtime* rt, int argc, TCL_Char ** const argv)
     else {
 	    opserr << "WARNING did not recognize optional flag\n";
 	    opserr << "Possible Optional Flags: <-GABuck?> <-DMBuck?> <-CMFatigue?> <-MPCurveParams?> <-IsoHard?>" << OpenSees::SignalMessageEnd;
-	    return nullptr;
+	    return TCL_ERROR;
     }
   }
 
   // Parsing was successful, allocate the material
-  theMaterial = new ReinforcingSteel(tag, fy, fu, Es, Esh, esh, eult, buckModel, slen, beta, r, gama, Cf, alpha, Cd, RC1, RC2, RC3, a1, hardLim);
+  UniaxialMaterial *theMaterial = new ReinforcingSteel(
+                                        tag, fy, fu, 
+                                        Es, Esh, esh, eult, 
+                                        buckModel, slen, beta, r, 
+                                        gama, Cf, alpha, Cd, 
+                                        RC1, RC2, RC3, a1, hardLim);
 
-  return theMaterial;
-  // return -1;
+
+  if (model->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
+    delete theMaterial;
+    return TCL_ERROR;
+  }
+  return TCL_OK;
 }
