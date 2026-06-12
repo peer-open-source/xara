@@ -52,7 +52,9 @@ public:
                 double thickness,
                 double p, double r, 
                 double b1, double b2,
-                Element::MassSource mass_source);
+                Element::MassSource mass_source,
+                Element::MassType mass_type
+  );
 
   FourNodeQuad();
   ~FourNodeQuad();
@@ -66,13 +68,13 @@ public:
   int getNumDOF();
   void setDomain(Domain *);
 
-  // public methods to set the state of the element    
+  // set the state of the element    
   int commitState();
   int revertToLastCommit();
   int revertToStart();
   int update();
 
-  // public methods to obtain stiffness, mass, damping and residual information    
+  // obtain stiffness, mass, damping and residual information    
   const Matrix &getTangentStiff();
   const Matrix &getInitialStiff();    
   const Matrix &getMass();    
@@ -102,6 +104,7 @@ public:
   int            activateParameter           (int parameterID);
   const Vector & getResistingForceSensitivity(int gradNumber);
   int            commitSensitivity           (int gradNumber, int numGrads);
+
 
   // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial stresses.
   friend class PyLiq1;
@@ -139,6 +142,7 @@ private:
   Vector Q;                       // Applied nodal loads
   double b[2];                    // Body forces
   Element::MassSource mass_source;
+  Element::MassType mass_type;
 
   double appliedB[2];             // Body forces applied with load pattern, C.McGann, U.Washington
   int applyLoad;                  // flag for body force in load
@@ -153,7 +157,6 @@ private:
   double Xn[NEN][NDM];
 
   int parameterID;
-
 };
 
 } // namespace OpenSees
