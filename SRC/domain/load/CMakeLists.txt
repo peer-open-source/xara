@@ -7,8 +7,6 @@
 
 target_sources(OPS_Domain
   PRIVATE
-    Load.cpp
-    #ElementalLoad.cpp
     ElementalLoadIter.cpp
     Beam2dUniformLoad.cpp
     Beam2dPointLoad.cpp
@@ -21,8 +19,6 @@ target_sources(OPS_Domain
     SelfWeight.cpp
     LysmerVelocityLoader.cpp
   PUBLIC
-    Load.h
-    #ElementalLoad.h
     ElementalLoadIter.h
     NodalLoadIter.h
     Beam2dUniformLoad.h
@@ -58,4 +54,5 @@ target_sources(OPS_Thermal
 target_include_directories(OPS_Thermal
   PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes}
 )
+
 target_include_directories(OPS_Domain PUBLIC ${CMAKE_CURRENT_LIST_DIR})
