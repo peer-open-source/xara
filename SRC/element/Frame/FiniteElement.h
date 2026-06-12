@@ -68,42 +68,7 @@ public:
     int  getNumExternalNodes() const final {return nen;}
     int  getNumDOF() final {return nen*ndf;}
 
-
-    void setDomain(Domain *theDomain) final;
-//     {
-//       if (theDomain == nullptr) {
-//         for (int i=0; i<nen; i++)
-//           theNodes[i] = nullptr;
-//         return;
-//       }
-
-//       for (int i=0; i<nen; i++) {
-//         theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
-//         if (theNodes[i] == nullptr) {
-//           opserr << "FiniteElement::setDomain  tag: " 
-//                  << this->getTag() << " -- Node " 
-//                  << connectedExternalNodes(i) << " does not exist\n";
-//           return;
-//         }
-
-//         if (theNodes[i]->getNumberDOF() != ndf) {
-//           opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " << connectedExternalNodes(i) 
-//                   << " has incorrect number of DOF\n";
-//           opserr << " " << theNodes[i]->getNumberDOF() << " should be " << ndf << endln;
-//           return;
-//         }
-//       }
-
-//       if (theDomain != nullptr)
-//         this->Element::link(*theDomain);
-
-//       if (this->setState(State::Init) != 0)
-//         return;
-
-// //    if (this->setState(State::Pres) != 0)
-// //      return;
-//     }
-
+    void setDomain(Domain *) final;
 
     const Vector &
     getResistingForceIncInertia() override
@@ -169,37 +134,6 @@ public:
       return 0;
     }
 
-#if 0
-    // addInertia(a)
-    // addDamping()
-    virtual VectorND<nen*ndf>
-    getInertia(VectorND<nen*ndf>& accel) {
-      VectorND<nen*ndf> zero{};
-      return zero;
-    }
-
-    virtual int 
-    getLumpedInertia(VectorND<nen*ndf>& m) {
-      return -1;
-    }
-
-    virtual int addResidual(VectorND<nen*ndf>& R, double c, int flag) {
-      return 0;
-    }
-
-    virtual int addTangent(MatrixND<nen*ndf,nen*ndf>&k, double c, int flag) {
-      if (flag == 1) {
-        k.addMatrix(this->getMass(), c);
-      }
-      if (flag == 2) {
-        k.addMatrix(this->getTangentStiff(), c);
-      }
-      if (flag == 3) {
-        k.addMatrix(this->getInitialStiff(), c);
-      }
-      return 0;
-    }
-#endif
 
 protected:
 
