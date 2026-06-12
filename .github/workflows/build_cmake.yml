@@ -97,7 +97,7 @@ jobs:
   build-win32:
 
     name: Build on Windows
-    runs-on: [windows-latest]
+    runs-on: [windows-2022]
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -106,7 +106,7 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      # Enter the MSVC “Developer Command Prompt” so cl.exe & libs are usable
+      # Enter the MSVC "Developer Command Prompt" so cl.exe & libs are usable
       - name: Setup MSVC Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
         with:
