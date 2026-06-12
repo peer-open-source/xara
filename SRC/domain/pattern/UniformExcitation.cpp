@@ -436,7 +436,8 @@ UniformExcitation::applyLoadSensitivity(double time)
       return;
 
 
-    // set the vel and accel vector
+#if 0
+    // set the velocity and acceleration vector
     double uDotG = theMotion->getVel(time);
     double uDotDotG;
     if (parameterID != 0) { // Something is random in the motions
@@ -451,7 +452,6 @@ UniformExcitation::applyLoadSensitivity(double time)
       somethingRandomInMotions = true;
     }
 
-#if 0
     NodeIter &theNodes = theDomain->getNodes();
     Node *theNode;
     while ((theNode = theNodes()) != 0) 
