@@ -40,7 +40,7 @@
 int
 TclBasicBuilder_addDrainMaterial(ClientData clientData, 
                                  Tcl_Interp *interp,
-                                 int argc, 
+                                 Tcl_Size argc, 
                                  TCL_Char ** const argv)
 {
   assert(clientData != nullptr);

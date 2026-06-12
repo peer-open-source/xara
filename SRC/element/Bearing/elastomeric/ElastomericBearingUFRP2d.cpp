@@ -106,8 +106,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElastomericBearingUFRP2d)
     theMaterials[0] = OPS_getUniaxialMaterial(matTag);
     if (theMaterials[0] == 0)  {
 	opserr << "WARNING material model not found\n";
-	opserr << "uniaxialMaterial: " << matTag << endln;
-	opserr << "elastomericBearingUFRP element: " << tag << endln;
 	return 0;
     }
 
