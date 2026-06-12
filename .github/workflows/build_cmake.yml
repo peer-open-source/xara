@@ -75,6 +75,7 @@ jobs:
   build-mac:
     name: Mac Build
     runs-on: macos-latest
+    needs: build-ubuntu
     steps:
       - uses: actions/checkout@v3
         with:
@@ -98,6 +99,7 @@ jobs:
 
     name: Build on Windows
     runs-on: [windows-2022]
+    needs: build-ubuntu
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4

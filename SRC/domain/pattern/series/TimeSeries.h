@@ -47,12 +47,12 @@ class TimeSeries : public TaggedObject, public MovableObject
     TimeSeries(int classTag);
     virtual ~TimeSeries();
 
-    virtual TimeSeries *getCopy(void) =0;
+    virtual TimeSeries *getCopy() =0;
 
     // pure virtual functions
-    virtual double getFactor (double pseudoTime) = 0;
-    virtual double getDuration () = 0;
-    virtual double getPeakFactor () = 0;
+    virtual double getFactor(double pseudoTime) = 0;
+    virtual double getDuration() = 0;
+    virtual double getPeakFactor() = 0;
 
     virtual double getTimeIncr (double pseudoTime) = 0;
     // This is defined to be the time increment from the argument
@@ -61,7 +61,7 @@ class TimeSeries : public TaggedObject, public MovableObject
     // FROM THE PREVIOUS POINT IN THE PATH UP TO 'pseudoTime', WILL
     // DECIDE ONCE GroundMotionIntegrator IS IMPLEMENTED
 
-    virtual void Print(OPS_Stream &s, int flag = 0) = 0;        
+    virtual void Print(OPS_Stream &s, int flag) = 0;        
 
     // AddingSensitivity:BEGIN //////////////////////////////////////////
     virtual double getFactorSensitivity(double pseudoTime) {return 0.0;}
@@ -69,8 +69,6 @@ class TimeSeries : public TaggedObject, public MovableObject
     virtual int updateParameter(int parameterID, Information &info) {return 0;}
     virtual int activateParameter(int parameterID) {return 0;}
     // AddingSensitivity:BEGIN //////////////////////////////////////////
-
-  protected:
 
   private:
 };

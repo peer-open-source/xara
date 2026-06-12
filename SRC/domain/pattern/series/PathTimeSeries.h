@@ -68,7 +68,7 @@ class PathTimeSeries : public TimeSeries
     // destructor    
     ~PathTimeSeries();
     
-    TimeSeries *getCopy(void);
+    TimeSeries *getCopy();
 
     // method to get factor
     double getFactor(double pseudoTime);
@@ -81,10 +81,8 @@ class PathTimeSeries : public TimeSeries
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);    
-    
-  protected:
-    
+    void Print(OPS_Stream &s, int flag);    
+
   private:
     Vector *thePath;      // vector containing the data points
     Vector *time;		  // vector containing the time values of data points

@@ -1,53 +1,28 @@
 //===============================================================================
-
 //# COPYRIGHT (C): Woody's license (by BJ):
-
 //                 ``This    source  code is Copyrighted in
-
 //                 U.S.,  for  an  indefinite  period,  and anybody
-
 //                 caught  using it without our permission, will be
-
 //                 mighty good friends of ourn, cause we don't give
-
 //                 a  darn.  Hack it. Compile it. Debug it. Run it.
-
 //                 Yodel  it.  Enjoy it. We wrote it, that's all we
-
 //                 wanted to do.''
-
 //
-
 //# PROJECT:           Object Oriented Finite Element Program
-
 //# PURPOSE:           Finite Deformation Hyper-Elastic classes
-
 //# CLASS:
-
 //#
-
 //# VERSION:           0.6_(1803398874989) (golden section)
-
 //# LANGUAGE:          C++
-
 //# TARGET OS:         all...
-
 //# DESIGN:            Zhao Cheng, Boris Jeremic (jeremic@ucdavis.edu)
-
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
-
 //#
-
 //#
-
 //# DATE:              Sept2005              
-
 //# UPDATE HISTORY:    
-
 //#
-
 //#
-
 //===============================================================================
 
 #ifndef TOTALLAGRANGIANFD8BRICK_H
@@ -72,8 +47,6 @@
 
 #include <NDMaterial.h>
 
-
-
 #include <Information.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
@@ -83,7 +56,6 @@
 
 
 class TotalLagrangianFD8NodeBrick: public Element
-
 {
 
   public:
@@ -91,20 +63,17 @@ class TotalLagrangianFD8NodeBrick: public Element
     TotalLagrangianFD8NodeBrick(int tag,
 
     int node_numb_1,  int node_numb_2,  int node_numb_3,  int node_numb_4,
-
     int node_numb_5,  int node_numb_6,  int node_numb_7,  int node_numb_8,
 
     NDMaterial &m, double b1=0.0, double b2=0.0, double b3=0.0);
 
 
 
-    TotalLagrangianFD8NodeBrick ();
-
+    TotalLagrangianFD8NodeBrick();
     ~TotalLagrangianFD8NodeBrick();
 
-    
 
-    const char *getClassType(void) const {return "TotalLagrangianFD8NodeBrick";};
+    const char *getClassType() const {return "TotalLagrangianFD8NodeBrick";}
 
 
 
@@ -177,92 +146,51 @@ class TotalLagrangianFD8NodeBrick: public Element
 //    int updateParameter(int parameterID, Information &info);
 
 
+  private:
 
-
-
-  private:rial **theMaterial; // Pointer to the NDMaterial objects
-
+    NDMaterial **theMaterial; // Pointer to the NDMaterial objects
     ID  connectedExternalNodes; // Tags of TotalLagrangianFD20Brick nodes
-
     Node *theNodes[8];
 
-
-
     static Matrix K;    // Element stiffness Matrix
-
 //    static Matrix C;    // Element damping matrix
-
     static Matrix M;    // Element mass matrix
-
     static Vector P;    // Element resisting force vector
-
     static const double pts[2];   // Stores quadrature points
-
     static const double wts[2];   // Stores quadrature weights
-
     Vector *Q;     // Applied nodal loads
-
     Vector bf;     // Body forces
-
 
 
     double rho;    // Mass per unit volume
 
-
-
     double det_of_Jacobian;
-
-    
 
     Matrix *Ki;
 
-
-
   private:
-
-
-
     static const int  NumIntegrationPts;
-
     static const int  NumTotalGaussPts;
-
     static const int  NumNodes;
-
     static const int  NumDof;
-
     static const int  NumElemDof;
 
 
 
     tensor shapeFunction(double , double , double );
-
     tensor shapeFunctionDerivative(double , double , double );
 
-
-
     tensor Jacobian_3D(double , double , double);
-
     tensor Jacobian_3Dinv(double , double , double);
-
     tensor dh_Global(double , double , double);
-
     tensor getNodesCrds(void);
-
     tensor getNodesDisp(void);
 
-
-
     tensor getStiffnessTensor(void);
-
     tensor getRtensor(void);
-
     tensor getBodyForce(void);
-
     tensor getSurfaceForce(void);
-
     tensor getForces(void);
-
-    
 
 };
 

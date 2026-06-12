@@ -65,7 +65,7 @@ class TotalLagrangianFD20NodeBrick: public Element
     TotalLagrangianFD20NodeBrick ();
     ~TotalLagrangianFD20NodeBrick();
     
-    const char *getClassType(void) const {return "TotalLagrangianFD20NodeBrick";};
+    const char *getClassType(void) const {return "TotalLagrangianFD20NodeBrick";}
     
     int getNumExternalNodes () const;
     const ID &getExternalNodes ();
@@ -102,7 +102,9 @@ class TotalLagrangianFD20NodeBrick: public Element
 //    int updateParameter(int parameterID, Information &info);
 
 
-  private:rial **theMaterial; // Pointer to the NDMaterial objects
+  private:
+
+    NDMaterial **theMaterial; // Pointer to the NDMaterial objects
     ID  connectedExternalNodes; // Tags of TotalLagrangianFD20Brick nodes
     Node *theNodes[20];
 
