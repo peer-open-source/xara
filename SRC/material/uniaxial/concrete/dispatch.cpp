@@ -9,76 +9,76 @@
 int 
 TclCommand_newUniaxialConcrete04(ClientData cd, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
 {
-    UniaxialMaterial *theMaterial = nullptr;
-    int tag;
-    double fpc, epsc0, ft, epscu, Ec0, etu, beta;
+  UniaxialMaterial *theMaterial = nullptr;
 
-    if (argc != 10 && argc != 9 && argc != 7) {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: uniaxialMaterial Concrete04 tag? fpc? epsc0? epscu? "
-                "Ec0? <ft? etu? <beta?> >"
-             << OpenSees::SignalMessageEnd;
+  if (argc != 10 && argc != 9 && argc != 7) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Concrete04 tag? fpc? epsc0? epscu? "
+              "Ec0? <ft? etu? <beta?> >"
+            << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+
+  int tag;
+  double fpc, epsc0, ft, epscu, Ec0, etu, beta;
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << "WARNING invalid uniaxialMaterial Concrete04 tag" << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  // Read required Concrete04 material parameters
+
+  if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
+    opserr << "WARNING invalid Fpc" << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
+    opserr << "WARNING invalid epsc0" << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  if (Tcl_GetDouble(interp, argv[5], &epscu) != TCL_OK) {
+    opserr << "WARNING invalid epscu" << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  if (Tcl_GetDouble(interp, argv[6], &Ec0) != TCL_OK) {
+    opserr << "WARNING invalid Ec" << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+  if (argc == 9 || argc == 10) {
+    if (Tcl_GetDouble(interp, argv[7], &ft) != TCL_OK) {
+      opserr << "WARNING invalid Ft"
+              << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
-
-
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid uniaxialMaterial Concrete04 tag" << OpenSees::SignalMessageEnd;
+    if (Tcl_GetDouble(interp, argv[8], &etu) != TCL_OK) {
+      opserr << "WARNING invalid etu" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
-
-    // Read required Concrete04 material parameters
-
-    if (Tcl_GetDouble(interp, argv[3], &fpc) != TCL_OK) {
-      opserr << "WARNING invalid fpc" << OpenSees::SignalMessageEnd;
+  }
+  if (argc == 10) {
+    if (Tcl_GetDouble(interp, argv[9], &beta) != TCL_OK) {
+      opserr << "WARNING invalid beta" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
+  }
 
-    if (Tcl_GetDouble(interp, argv[4], &epsc0) != TCL_OK) {
-      opserr << "WARNING invalid epsc0" << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
+  // Parsing was successful, allocate the material
+  if (argc == 10) {
+    theMaterial =
+        new Concrete04(tag, fpc, epsc0, epscu, Ec0, ft, etu, beta);
 
-    if (Tcl_GetDouble(interp, argv[5], &epscu) != TCL_OK) {
-      opserr << "WARNING invalid epscu" << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
+  } else if (argc == 9) {
+    theMaterial = new Concrete04(tag, fpc, epsc0, epscu, Ec0, ft, etu);
 
-    if (Tcl_GetDouble(interp, argv[6], &Ec0) != TCL_OK) {
-      opserr << "WARNING invalid Ec0" << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-    if (argc == 9 || argc == 10) {
-      if (Tcl_GetDouble(interp, argv[7], &ft) != TCL_OK) {
-        opserr << "WARNING invalid ft"
-               << OpenSees::SignalMessageEnd;
-        return TCL_ERROR;
-      }
-      if (Tcl_GetDouble(interp, argv[8], &etu) != TCL_OK) {
-        opserr << "WARNING invalid etu" << OpenSees::SignalMessageEnd;
-        return TCL_ERROR;
-      }
-    }
-    if (argc == 10) {
-      if (Tcl_GetDouble(interp, argv[9], &beta) != TCL_OK) {
-        opserr << "WARNING invalid beta" << OpenSees::SignalMessageEnd;
-        return TCL_ERROR;
-      }
-    }
+  } else if (argc == 7) {
+    theMaterial = new Concrete04(tag, fpc, epsc0, epscu, Ec0);
+  }
 
-    // Parsing was successful, allocate the material
-    if (argc == 10) {
-      theMaterial =
-          new Concrete04(tag, fpc, epsc0, epscu, Ec0, ft, etu, beta);
-
-    } else if (argc == 9) {
-      theMaterial = new Concrete04(tag, fpc, epsc0, epscu, Ec0, ft, etu);
-
-    } else if (argc == 7) {
-      theMaterial = new Concrete04(tag, fpc, epsc0, epscu, Ec0);
-    }
-
-    return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
+  return ((ModelRegistry*)cd)->addTaggedObject<UniaxialMaterial>(*theMaterial);
 }
 
 
