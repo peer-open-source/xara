@@ -117,8 +117,6 @@ TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
     return (*tcl_cmd->second)(clientData, interp, argc, &argv[0]);
 
 
-  // Pointer to a uniaxial material that will be added to the model builder
-  UniaxialMaterial *theMaterial = nullptr;
 
   //
   // Check for packages
@@ -136,10 +134,14 @@ TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
       pack_name[i] = argv[1][i], i++;
 
     pack_name[i] = '\0';
-    theMaterial = (*tcl_uniaxial_package_table[pack_name])
+    int status = (*tcl_uniaxial_package_table[pack_name])
                   (clientData,interp,argc,(const char**)new_argv);
     delete[] new_argv;
+    return status;
   }
+
+  // Pointer to a uniaxial material that will be added to the model builder
+  UniaxialMaterial *theMaterial = nullptr;
 
   // Fedeas
 #if defined(_STEEL2) || defined(OPSDEF_UNIAXIAL_FEDEAS)
