@@ -61,7 +61,7 @@ public:
   Node **getNodePtrs();
 
   int getNumDOF();
-  void setDomain(Domain *theDomain);
+  void setDomain(Domain *);
 
   // public methods to set the state of the element
   int commitState();
@@ -82,17 +82,17 @@ public:
   const Vector &getResistingForceIncInertia();
 
   // public methods for element output
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-  void Print(OPS_Stream &s, int flag = 0);
+  void Print(OPS_Stream &s, int flag);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
-  int getResponse(int responseID, Information &eleInformation);
+  int getResponse(int responseID, Information &);
 
   int setParameter(const char **argv, int argc, Parameter &param);
-  int updateParameter(int parameterID, Information &info);
+  int updateParameter(int parameterID, Information &);
 
   // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial
   // stresses.
@@ -100,7 +100,6 @@ public:
   friend class TzLiq1;
   friend class QzLiq1; // Sumeet
 
-protected:
 private:
   // private attributes
 
@@ -143,5 +142,7 @@ private:
 
   Matrix *Ki;
 };
+
 } // namespace OpenSees
+
 #endif
