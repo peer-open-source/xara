@@ -478,7 +478,8 @@ RemoveRecorder::checkEleRemoval(Element *theEle, Response *eleResponse,
   return secFlag;
 }
 
-int RemoveRecorder::elimElem(int theEleTag, double timeStamp)
+int
+RemoveRecorder::elimElem(int theEleTag, double timeStamp)
 {
 
 #ifdef MMTDEBUG
@@ -488,7 +489,8 @@ int RemoveRecorder::elimElem(int theEleTag, double timeStamp)
 #endif
 
   Element *theEle = theDomain->removeElement(theEleTag);
-  if (theEle != 0) {
+  if (theEle != nullptr) {
+#if 0
     // we also have to remove any elemental loads from the domain
     LoadPatternIter &theLoadPatterns = theDomain->getLoadPatterns();
     LoadPattern *thePattern;
@@ -517,7 +519,7 @@ int RemoveRecorder::elimElem(int theEleTag, double timeStamp)
         }
       }
     }
-
+#endif
     // finally invoke the destructor on the element
     //    delete theEle;
     /////////////// M.Talaat : Avoid recorder trouble at element removal and just set it to zero after removing it from the domain!
@@ -544,11 +546,12 @@ int RemoveRecorder::elimElem(int theEleTag, double timeStamp)
   return 0;
 }
 
-int RemoveRecorder::elimNode(int theNodeTag, double timeStamp)
+int
+RemoveRecorder::elimNode(int theNodeTag, double timeStamp)
 {
   // remove from domain but do not delete yet!
   Node *theNode = theDomain->removeNode(theNodeTag);
-
+#if 0
   // go through all load patterns and remove associated loads and constraints
   LoadPatternIter &theLoadPatterns = theDomain->getLoadPatterns();
   LoadPattern *thePattern;
@@ -596,6 +599,7 @@ int RemoveRecorder::elimNode(int theNodeTag, double timeStamp)
 #endif
         SP_Constraint *theSPConstraint =
             thePattern->removeSP_Constraint(theSP->getTag());
+
         if (theSPConstraint != 0) {
 #ifdef MMTDEBUG
           opserr << "deleting SP_Constraint " << theSP->getTag() << endln;
@@ -605,7 +609,7 @@ int RemoveRecorder::elimNode(int theNodeTag, double timeStamp)
       }
     }
   }
-
+#endif
   // we also have to remove any sp constraints from the domain that do not belong to load patterns (support fixity)
   SP_ConstraintIter &theSPs = theDomain->getSPs();
   SP_Constraint *theSP;

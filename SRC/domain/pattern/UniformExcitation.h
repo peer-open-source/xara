@@ -17,13 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2008-02-29 20:47:00 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/pattern/UniformExcitation.h,v $
-                                                                        
-                                                                        
-// File: ~/domain/load/UniformExcitation.h
 //
 // Written: fmk 11/98
 // Revised:
@@ -35,33 +28,33 @@
 #ifndef UniformExcitation_h
 #define UniformExcitation_h
 
-#include <EarthquakePattern.h>
+#include <LoadPattern.h>
 
-class UniformExcitation : public EarthquakePattern
+class UniformExcitation : public LoadPattern
 {
   public:
     UniformExcitation();  
-    UniformExcitation(GroundMotion &theMotion, 
+    UniformExcitation(GroundMotion *, 
                       int ndm,
                       int dof, 
                       int tag, 
                       double vel0 = 0.0, 
                       double fact = 1.0);  
     ~UniformExcitation();
+    int getDirection() {return theDof;}
 
     const char* getClassType() const override {return "UniformExcitation";}
 
-    void setDomain(Domain *);    
-    void applyLoad(double time);
+    void setDomain(Domain *) override;
+    void applyLoad(double time) override;
     int applyResidual(AnalysisModel &, LinearSOE &, double) override;
-    int getDirection() {return theDof;}
+
+    bool addSP_Constraint(SP_Constraint *) override {return false;}
 
     void Print(OPS_Stream &s, int flag);
 
     int sendSelf(int tag, Channel &) override;
-    int recvSelf(int tag, Channel &, FEM_ObjectBroker &) override;    
-    
-    LoadPattern *getCopy();
+    int recvSelf(int tag, Channel &, FEM_ObjectBroker &) override;
 
     virtual int setParameter(const char **argv, int argc, Parameter &);
     virtual int  updateParameter(int parameterID, Information &);

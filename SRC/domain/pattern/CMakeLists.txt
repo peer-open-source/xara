@@ -6,24 +6,15 @@
 #==============================================================================
 target_sources(OPS_Domain
     PRIVATE
-        EarthquakePattern.cpp
         LoadPattern.cpp
         MultiSupportPattern.cpp
         UniformExcitation.cpp
         LoadCase.cpp
         StaticPattern.cpp
     PUBLIC
-        EarthquakePattern.h
         LoadPattern.h
         MultiSupportPattern.h
         UniformExcitation.h
-)
-
-target_sources(OPS_Domain
-    PRIVATE
-        FireLoadPattern.cpp
-    PUBLIC
-        FireLoadPattern.h
 )
 
 

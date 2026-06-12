@@ -17,16 +17,12 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2008-08-26 16:52:10 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/ElementalLoad.cpp,v $
-                                                                        
-                                                                        
+//
+// Description: This file contains the methods for class ElementalLoad.
+//
 // Written: fmk 11/95
 //          modified 11/01 for new design
-
-// Purpose: This file contains the methods for class ElementalLoad.
+//
 
 #include <ElementalLoad.h>
 #include <Logging.h>
@@ -34,13 +30,22 @@
 #include <Domain.h>
 
 ElementalLoad::ElementalLoad(int tag, int cTag, int theEleTag)
-  :Load(tag, cTag), eleTag(theEleTag), theElement(0)
+  : TaggedObject(tag)
+  , MovableObject(cTag)
+  , eleTag(theEleTag)
+  , theElement(nullptr)
+  , theDomain(nullptr)
+  , loadPatternTag(-1)
 {
 
 }
 
 ElementalLoad::ElementalLoad(int tag, int cTag)
-  :Load(tag, cTag), eleTag(0), theElement(0)
+  : 
+  TaggedObject(tag)
+  , MovableObject(cTag)
+  , eleTag(0)
+  , theElement(nullptr)
 {
 
 }
@@ -49,7 +54,10 @@ ElementalLoad::ElementalLoad(int tag, int cTag)
 // provided for the FEM_Object broker; the tag and elementTag need
 // to be supplied in recvSelf();
 ElementalLoad::ElementalLoad(int cTag)
-:Load(0, cTag), eleTag(0), theElement(0)
+ : TaggedObject(0)
+ , MovableObject(cTag)
+ , eleTag(0)
+ , theElement(nullptr)
 {
 
 }
@@ -61,50 +69,49 @@ ElementalLoad::~ElementalLoad()
 }
 
 
-void
-ElementalLoad::setDomain(Domain *theDomain)
+int
+ElementalLoad::setDomain(Domain *domain)
 {
-  this->Load::setDomain(theDomain);
+  this->theDomain = domain;
 
   if (theDomain == nullptr) {
-    theElement = 0;
-    return;
+    theElement = nullptr;
+    return 0;
   }
 
   theElement = theDomain->getElement(eleTag);
-  if (theElement == 0) {
+  if (theElement == nullptr) {
     opserr << "WARNING - ElementalLoad::setDomain - no ele with tag ";
     opserr << eleTag << " exists in the domain\n";
+    return -1;
   }
+  return 0;
 }
 
 void 
 ElementalLoad::applyLoad(double loadFactor) 
 {
-  if (theElement != 0)
+  if (theElement != nullptr)
     theElement->addLoad(this, loadFactor);
 }
 
 void 
 ElementalLoad::applyLoad(const Vector &loadFactors) 
 {
-  if (theElement != 0)
+  if (theElement != nullptr)
     theElement->addLoad(this, loadFactors);
 }
 
 const Vector&
 ElementalLoad::getSensitivityData(int gradIndex)
 {
-  static Vector trash(10);
-
-  return trash;
+  static Vector dummy(10);
+  return dummy;
 }
 
 int
-ElementalLoad::getElementTag(void) 
+ElementalLoad::getElementTag() const 
 {
-   return eleTag;
+  return eleTag;
 }
-
-
 

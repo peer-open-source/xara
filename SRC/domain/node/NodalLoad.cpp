@@ -29,47 +29,58 @@
 #include <Channel.h>
 #include <Information.h>
 #include <Parameter.h>
+#include <ID.h>
+#include <OPS_Stream.h>
+#include <Node.h>
 
 Vector NodalLoad::gradientVector(1);
 
 NodalLoad::NodalLoad(int theClasTag)
-:Load(0,theClasTag), 
- myNode(0), myNodePtr(0), load(0), konstant(false)
+ : TaggedObject(0)
+ , MovableObject(theClasTag)
+ , myNode(0)
+ , myNodePtr(nullptr), load(nullptr), konstant(false)
+ , loadPatternTag(-1)
+ , theDomain(nullptr)
 {
   parameterID = 0;
 }
 
 NodalLoad::NodalLoad(int tag, int node, int theClassTag)
-:Load(tag,theClassTag), 
- myNode(node), myNodePtr(0), load(0), konstant(false)
+ : TaggedObject(tag)
+ , MovableObject(theClassTag)
+ , myNode(node), myNodePtr(0), load(0), konstant(false)
 {
   parameterID = 0;
 }
 
 NodalLoad::NodalLoad(int tag, int node, const Vector &theLoad, bool isLoadConstant)
-:Load(tag, LOAD_TAG_NodalLoad), 
- myNode(node), myNodePtr(0), load(0), konstant(isLoadConstant)
+ : TaggedObject(tag)
+ , MovableObject(LOAD_TAG_NodalLoad)
+ , myNode(node), myNodePtr(0), load(0)
+ , konstant(isLoadConstant)
 {
-  load = new Vector(theLoad);    
-
+  load = new Vector(theLoad);
   parameterID = 0;
 }
 
 NodalLoad::~NodalLoad()
 {
-  if (load != 0)
+  if (load != nullptr)
     delete load;
 }
 
-void 
+int 
 NodalLoad::setDomain(Domain *newDomain)
 {
+  theDomain = newDomain;
+
   // first get myNodePtr
-  if (newDomain == 0)
-    return;
+  if (newDomain == nullptr)
+    return 0;
 
   // invoke the ancestor class method
-  this->Load::setDomain(newDomain);    
+  // this->Load::setDomain(newDomain);
 
   /*
   if (newDomain != 0) {
@@ -84,6 +95,7 @@ NodalLoad::setDomain(Domain *newDomain)
     }
   }
   */
+ return 0;
 }
 
 int 
@@ -166,8 +178,8 @@ NodalLoad::sendSelf(int cTag, Channel &theChannel)
   if (load != nullptr) {
     int result = theChannel.sendVector(dataTag, cTag, *load);
     if (result < 0) {
-        opserr << "NodalLoad::sendSelf - failed to Load data\n";
-        return result;
+      opserr << "NodalLoad::sendSelf - failed to Load data\n";
+      return result;
     }
   }    
 
@@ -210,7 +222,17 @@ NodalLoad::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"value\": " << "[]";
+    s << "\"node\": " << myNode << ", ";
+    s << "\"value\": " << "[";
+    if (load != nullptr) {
+      for (int i = 0; i < load->Size(); i++) {
+        s << (*load)(i);
+        if (i < load->Size() - 1) {
+          s << ",";
+        }
+      }
+    }
+    s << "]";
     s << "}";
     return;
   }
@@ -292,7 +314,6 @@ int
 NodalLoad::activateParameter(int passedParameterID)
 {
   parameterID = passedParameterID;
-  
   return 0;
 }
 
@@ -301,7 +322,6 @@ const Vector &
 NodalLoad::getExternalForceSensitivity(int gradNumber)
 {
   gradientVector(0) = (double)parameterID;
-  
   return gradientVector;
 }
 
@@ -314,7 +334,8 @@ NodalLoad::applyLoad(Vector& loadFactors)
 }
 
 const Vector&
-NodalLoad::getData(int& type) {
+NodalLoad::getData(int& type)
+{
   return *load;
 }
 

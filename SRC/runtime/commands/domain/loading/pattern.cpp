@@ -32,7 +32,7 @@
 #include <assert.h>
 #include <ModelRegistry.h>
 
-#include <runtimeAPI.h>
+
 #include <Logging.h>
 #include <Parsing.h>
 #include <Domain.h>
@@ -105,7 +105,6 @@ TclCommand_addPattern(ClientData clientData,
 
   int commandEndMarker = 3;
 
-  TimeSeries *theSeries = nullptr;
 
   int patternID;
   if (Tcl_GetInt(interp, argv[2], &patternID) != TCL_OK) {
@@ -142,22 +141,17 @@ TclCommand_addPattern(ClientData clientData,
       }
     }
 
-    StaticPattern* theStaticPattern = new StaticPattern(patternID, fact);
-    theSeries = TclSeriesCommand(clientData, interp, series_arg);
+    TimeSeries *theSeries = TclSeriesCommand(clientData, interp, series_arg);
 
     if (theSeries == nullptr) {
       opserr << OpenSees::PromptValueError 
              << "problem creating TimeSeries for LoadPattern "
              << patternID
              << OpenSees::SignalMessageEnd;
-
-      // clean up the memory and return an error
-      if (theStaticPattern != nullptr)
-        delete theStaticPattern;
       return TCL_ERROR;
     }
 
-    theStaticPattern->setTimeSeries(theSeries);
+    StaticPattern* theStaticPattern = new StaticPattern(patternID, fact, theSeries);
     builder->setCurrentPattern<StaticPattern>(theStaticPattern);
     thePattern = theStaticPattern;
   }
@@ -281,7 +275,7 @@ TclCommand_addPattern(ClientData clientData,
         new GroundMotion(dispSeries, velSeries, accelSeries, seriesIntegrator);
 
     // create the UniformExcitation Pattern
-    thePattern = new UniformExcitation(*theMotion, ndm, dir, patternID, vel0, fact);
+    thePattern = new UniformExcitation(theMotion, ndm, dir, patternID, vel0, fact);
 
     builder->setCurrentPattern<LoadPattern>(thePattern);
     // Added by MHS to prevent call to Tcl_Eval at end of this function
@@ -364,7 +358,7 @@ TclCommand_addPattern(ClientData clientData,
     theMotion = new GroundMotionRecord(accelFileName, dt, factor);
 
     // Create the UniformExcitation Pattern
-    thePattern = new UniformExcitation(*theMotion, ndm, dir, patternID);
+    thePattern = new UniformExcitation(theMotion, ndm, dir, patternID);
     builder->setCurrentPattern<LoadPattern>(thePattern);
   }
 

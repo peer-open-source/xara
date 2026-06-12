@@ -48,33 +48,33 @@ using namespace OpenSees;
 
 
 UniformExcitation::UniformExcitation()
-:EarthquakePattern(0, PATTERN_TAG_UniformExcitation), 
- theMotion(0), theDof(0), vel0(0.0), fact(0.0)
-, parameterID(0)
-, currentTime(0.0)
+ : LoadPattern(0, PATTERN_TAG_UniformExcitation, 1.0)
+ , theMotion(0), theDof(0), vel0(0.0), fact(0.0)
+ , parameterID(0)
+ , currentTime(0.0)
 {
 
 }
 
 
-UniformExcitation::UniformExcitation(GroundMotion &_theMotion, 
+UniformExcitation::UniformExcitation(GroundMotion *motion, 
                                      int ndm, 
                                      int dof, 
-                                     int tag, 
+                                     int tag,
                                      double velZero, double theFactor)
-:EarthquakePattern(tag, PATTERN_TAG_UniformExcitation), 
- theMotion(&_theMotion), theDof(dof), vel0(velZero), fact(theFactor)
-, parameterID(0)
-, currentTime(0.0)
+ : LoadPattern(tag, PATTERN_TAG_UniformExcitation, 1.0)
+ , theMotion(motion)
+ , theDof(dof), vel0(velZero), fact(theFactor)
+ , parameterID(0)
+ , currentTime(0.0)
 {
-  // add the motion to the list of ground motions
-  this->addMotion(*theMotion);
+
 }
 
 
 UniformExcitation::~UniformExcitation()
 {
-
+  delete theMotion;
 }
 
 
@@ -328,7 +328,37 @@ UniformExcitation::applyLoad(double time)
     }
   }
 #else 
-  this->EarthquakePattern::applyLoad(time);
+  // this->EarthquakePattern::applyLoad(time);
+  {
+    // see if quick return, i.e. no Ground Motions or domain set
+    if (numMotions == 0)
+      return;
+
+    // check if setLoadConstant() has been called
+    if (isConstant != true)
+      currentTime = time;
+
+    Domain *theDomain = this->getDomain();
+    if (theDomain == nullptr)
+      return;
+
+  #if 0
+    // set the vel and accel vector
+    for (int i=0; i<numMotions; i++)
+      (*uDotDotG)(i) = theMotions[i]->getAccel(currentTime);
+
+    NodeIter &theNodes = theDomain->getNodes();
+    Node *theNode;
+    while ((theNode = theNodes()) != nullptr)
+      theNode->addInertiaLoadToUnbalance(*uDotDotG, 1.0);
+
+
+    ElementIter &theElements = theDomain->getElements();
+    Element *theElement;
+    while ((theElement = theElements()) != nullptr) 
+      theElement->addInertiaLoadToUnbalance(*uDotDotG);
+  #endif
+  }
 #endif
 
 #endif
@@ -397,91 +427,60 @@ UniformExcitation::applyLoadSensitivity(double time)
   //   theNode->setR(theDof, 0, 1.0);
   // }
 
-  this->EarthquakePattern::applyLoadSensitivity(time);
+  // this->EarthquakePattern::applyLoadSensitivity(time);
+  {
+
+
+    Domain *theDomain = this->getDomain();
+    if (theDomain == nullptr)
+      return;
+
+
+    // set the vel and accel vector
+    double uDotG = theMotion->getVel(time);
+    double uDotDotG;
+    if (parameterID != 0) { // Something is random in the motions
+      uDotDotG = theMotion->getAccelSensitivity(time);
+    }
+    else {
+      uDotDotG = theMotion->getAccel(time);
+    }
+
+    bool somethingRandomInMotions = false;
+    if (parameterID != 0) {
+      somethingRandomInMotions = true;
+    }
+
+#if 0
+    NodeIter &theNodes = theDomain->getNodes();
+    Node *theNode;
+    while ((theNode = theNodes()) != 0) 
+      theNode->addInertiaLoadSensitivityToUnbalance(*uDotDotG, 1.0,  somethingRandomInMotions);
+
+
+    ElementIter &theElements = theDomain->getElements();
+    Element *theElement;
+    while ((theElement = theElements()) != 0) 
+      theElement->addInertiaLoadSensitivityToUnbalance(*uDotDotG,  somethingRandomInMotions);
+#endif
+  }
 
   return;
 }
 
 
 
-int 
+int
 UniformExcitation::sendSelf(int commitTag, Channel &theChannel)
 {
-  int dbTag = this->getDbTag();
-
-  static Vector data(6);
-  data(0) = this->getTag();
-  data(1) = theDof;
-  data(2) = vel0;
-  data(5) = fact;
-  data(3) = theMotion->getClassTag();
-  
-  int motionDbTag = theMotion->getDbTag();
-  if (motionDbTag == 0) {
-    motionDbTag = theChannel.getDbTag();
-    theMotion->setDbTag(motionDbTag);
-  }
-  data(4) = motionDbTag;
-
-  int res = theChannel.sendVector(dbTag, commitTag, data);
-  if (res < 0) {
-    opserr << "UniformExcitation::sendSelf() - channel failed to send data\n";
-    return res;
-  }
-      
-  res = theMotion->sendSelf(commitTag, theChannel);
-  if (res < 0) {
-    opserr << "UniformExcitation::sendSelf() - ground motion to send self\n";
-    return res;
-  }
-
-  return 0;
+  return -1;
 }
 
 
 int 
 UniformExcitation::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-  int dbTag = this->getDbTag();
-
-  static Vector data(6);
-  int res = theChannel.recvVector(dbTag, commitTag, data);
-  if (res < 0) {
-    opserr << "UniformExcitation::recvSelf() - channel failed to recv data\n";
-    return res;
-  }
-
-  this->setTag(int(data(0)));
-  theDof = int(data(1));
-  vel0 = data(2);
-  fact = data(5);
-  int motionClassTag = int(data(3));
-  int motionDbTag = int(data(4));
-
-  if (theMotion == 0 || theMotion->getClassTag() != motionClassTag) {
-    if (theMotion != 0)
-      delete theMotion;
-    theMotion = theBroker.getNewGroundMotion(motionClassTag);
-    if (theMotion == 0) {
-      opserr << "UniformExcitation::recvSelf() - could not create a grond motion\n";
-      return -3;
-    }
-
-    // have to set the motion in EarthquakePattern base class
-    if (numMotions == 0) 
-      this->addMotion(*theMotion);
-    else
-      theMotions[0] = theMotion;
-  }
-
-  theMotion->setDbTag(motionDbTag);
-  res = theMotion->recvSelf(commitTag, theChannel, theBroker);
-  if (res < 0) {
-      opserr << "UniformExcitation::recvSelf() - motion could not receive itself \n";
-      return res;
-  }
-
-  return 0;
+  return -1;
 }
 
 
@@ -505,10 +504,4 @@ UniformExcitation::Print(OPS_Stream &s, int flag)
   else {
     s << "UniformExcitation  " << this->getTag() << "\n";
   }
-}
-
-LoadPattern *
-UniformExcitation::getCopy()
-{
-  return new UniformExcitation(*theMotion, theDof, NDM, this->getTag(), vel0, fact);
 }

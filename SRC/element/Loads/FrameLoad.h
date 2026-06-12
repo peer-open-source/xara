@@ -28,7 +28,7 @@
 #include <GroupSO3.h>
 #include <FiniteElement.h>
 #include <ElementalLoad.h>
-#include <LoadPattern.h>
+#include <StaticPattern.h>
 #include <FrameSection.h>
 
 class Element;
@@ -59,7 +59,7 @@ public:
             std::vector<Vector3D>& p,
             std::vector<Vector3D>& m,
             std::vector<Vector3D>& r,
-            LoadPattern& pattern)
+            StaticPattern& pattern)
   : ElementalLoad(tag,classTag),
     basis(basis),
     shape(shape),
@@ -97,16 +97,17 @@ public:
       e->addLoad(this, 0.0);
   }
 
-  void
+  int
   setDomain(Domain *theDomain) final
   {
-    this->Load::setDomain(theDomain);
+    this->ElementalLoad::setDomain(theDomain);
   
     if (theDomain == nullptr) {
       for (auto e: elements)
         e->addLoad(this, 0.0);
-      return;
+      return 0;
     }
+    return 0;
   }
 
   void Print(OPS_Stream &s, int flag) final {}
@@ -173,6 +174,8 @@ public:
     if (w == 0.0)
       return;
 
+    // const Vector3D theta = LogSO3(R);
+    // const Matrix3D T = dLogSO3(theta);// TanSO3(theta);//
     for (unsigned q = 0; q < r.size(); q++) {
       Vector3D px,mx,rx;
       rx = r[q];
@@ -181,7 +184,7 @@ public:
       switch (basis) {
         case Embedding:
             px = p[q];
-            mx = m[q] + rx.cross(px);
+            mx = (m[q] + rx.cross(px));
             break;
         case Reference:
             px = R0 * p[q];
@@ -224,6 +227,9 @@ public:
     if (w == 0.0)
       return;
 
+    // const Vector3D theta = LogSO3(R);
+    // const Matrix3D T = TanSO3(theta);
+
     for (unsigned q = 0; q < r.size(); q++) {
       Vector3D px, mx, rx;
       rx = r[q];
@@ -246,6 +252,7 @@ public:
           mx = R * m[q] + rx.cross(px);
           break;
       }
+      // const Matrix3D dT = dTanSO3(theta, mx);
 
       double scale = -w*pattern.getLoadFactor();
       switch (shape) {
@@ -287,7 +294,7 @@ public:
       Vector3D rx = r[0];
       rx[0] = 0.0;
       // rx = R*(R0*rx);
-      rx = R0*rx;
+      // rx = R0*rx;
       switch (basis) {
         case Embedding:
           nm = R^p[0]; // + rx.cross(m[0]);
@@ -428,8 +435,8 @@ public:
     {
       Vector3D rx = r[0];
       rx[0] = 0.0;
-      // rx = R*(R0*rx);
-      rx = R0*rx;
+      rx = R*(R0*rx);
+      // rx = R0*rx;
       switch (basis) {
         case Embedding:
           n =  R^p[0];
@@ -583,7 +590,7 @@ private:
 private:
   const int basis;
   const int shape;
-  LoadPattern& pattern;
+  StaticPattern& pattern;
   std::vector<Vector3D> p;
   std::vector<Vector3D> m;
   std::vector<Vector3D> r;

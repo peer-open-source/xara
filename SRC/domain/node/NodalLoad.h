@@ -17,12 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2006-09-05 20:46:04 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/node/NodalLoad.h,v $
-                                                                        
-                                                                        
 #ifndef NodalLoad_h
 #define NodalLoad_h
 
@@ -33,40 +27,47 @@
 // Purpose: This file contains the class interface for NodalLoad.
 // NodalLoad is a class for applying nodal loads to the model.
 
-#include <Load.h>
+#include <MovableObject.h>
+#include <TaggedObject.h>
 #include <Node.h>
 #include <Vector.h>
+class Domain;
 
-class NodalLoad : public Load
+class NodalLoad : public TaggedObject, public MovableObject
 {
   public:
     NodalLoad(int classTag);
     NodalLoad(int tag, int node, int classTag);
     NodalLoad(int tag, int node, const Vector &load, bool isLoadConstant = false);
-    ~NodalLoad();
+    virtual ~NodalLoad();
 
-    virtual void setDomain(Domain *newDomain);
-    virtual int getNodeTag() const;
+    int setDomain(Domain *);
+    Domain *getDomain() const {return theDomain;}
+
+    int getNodeTag() const;
     virtual void applyLoad(double loadFactor);
     virtual void applyLoadSensitivity(double loadFactor);
-    
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    
-    virtual void Print(OPS_Stream &s, int flag =0);   
+
+
+    void setLoadPatternTag(int tag) {loadPatternTag = tag;}
+    int  getLoadPatternTag() const {return loadPatternTag;}
     
     // Sensitivity
-    int setParameter(const char **argv, int argc, Parameter &param);
-    int            updateParameter(int parameterID, Information &info);
+    int setParameter(const char **argv, int argc, Parameter &);
+    int            updateParameter(int parameterID, Information &);
     int            activateParameter(int parameterID);
     const Vector & getExternalForceSensitivity(int gradNumber);
 
-	//Change made by Liming for NodalThermalAction [SIF]
-	virtual void applyLoad(Vector& loadFactors);
-	virtual const Vector &getData(int& type);
-	//Change made by Liming for NodalThermalAction [SIF]
+    //Change made by Liming for NodalThermalAction [SIF]
+    virtual void applyLoad(Vector& loadFactors);
+    virtual const Vector &getData(int& type);
+    // Change made by Liming for NodalThermalAction [SIF]
 
-  protected:
+
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
+    
+    void Print(OPS_Stream &s, int flag) override;
 
   private:
     int  myNode;        // tag indicating associated Node objects tag
@@ -76,6 +77,9 @@ class NodalLoad : public Load
     // Sensitivity
     int parameterID;
     static Vector gradientVector;
+    Domain* theDomain;
+
+    int loadPatternTag;
 };
 
 #endif

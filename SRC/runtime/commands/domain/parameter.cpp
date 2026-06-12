@@ -25,7 +25,7 @@
 #include <Element.h>
 #include <Node.h>
 #include <NodeData.h>
-
+#include <StaticPattern.h>
 
 #include <Parameter.h>
 #include <ParameterIter.h>
@@ -130,8 +130,23 @@ TclCommand_parameter(ClientData clientData,
     }
 
     LoadPattern *thePattern = domain->getLoadPattern(patternTag);
+    if (thePattern == nullptr) {
+      opserr << OpenSees::PromptValueError
+             << "load pattern with tag " << patternTag
+             << " not found in domain\n";
+      return TCL_ERROR;
+    }
 
-    Parameter *newParameter = new LoadFactorParameter(paramTag, thePattern);
+    if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+      opserr << OpenSees::PromptValueError
+             << "load pattern with tag " << patternTag
+             << " is not a StaticPattern\n";
+      return TCL_ERROR;
+    }
+
+    StaticPattern *theStaticPattern = static_cast<StaticPattern *>(thePattern);
+
+    Parameter *newParameter = new LoadFactorParameter(paramTag, theStaticPattern);
 
     domain->addParameter(newParameter);
 
@@ -178,7 +193,8 @@ TclCommand_parameter(ClientData clientData,
 
       argStart = (theRV) ? 6 : 4;
 
-    } else if (argc > argStart && strstr(argv[argStart], "node") != 0) {
+    }
+    else if (argc > argStart && strstr(argv[argStart], "node") != 0) {
       if (argc < 4) {
         opserr << "WARNING parameter -- insufficient number of arguments for "
                   "parameter with tag "

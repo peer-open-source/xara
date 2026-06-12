@@ -17,54 +17,38 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
+
+#ifndef EarthquakePattern_h
+#define EarthquakePattern_h
+
 //
-// Purpose: This file contains the class definition for ElementalLoad.
-// ElementalLoad is an abstract class.
+// Written: fmk 11/98
+// Revised:
 //
-// Written: fmk 
-//
-#ifndef ElementalLoad_h
-#define ElementalLoad_h
+// Purpose: This file contains the class definition for EarthquakePattern.
+// EarthquakePattern is an abstract class.
 
+#include <LoadPattern.h>
 
-#include <ID.h>
-#include <MovableObject.h>
-#include <TaggedObject.h>
-#include <Vector.h>
+class GroundMotion;
+class Vector;
 
-class Domain;
-class Element;
-
-class ElementalLoad : public TaggedObject, public MovableObject
+class EarthquakePattern : public LoadPattern
 {
   public:
-    ElementalLoad(int tag, int classTag, int eleTag);
-    ElementalLoad(int tag, int classTag);
-    ElementalLoad(int classTag);
-    virtual ~ElementalLoad();
-
-    virtual int setDomain(Domain *);
-    Domain *getDomain() const {return theDomain;}
-
-    virtual void applyLoad(double loadfactor);
-    virtual void applyLoad(const Vector &loadfactors);
-    virtual void applyLoadSensitivity(double loadfactor) final {return;}
-    virtual const Vector &getData(int &type, double loadFactor) = 0;
-    virtual const Vector &getSensitivityData(int gradIndex);
-
-    virtual int getElementTag() const final;
-
-    void setLoadPatternTag(int tag) {loadPatternTag = tag;}
-    int  getLoadPatternTag() const {return loadPatternTag;}
-
-  protected:
-    int eleTag;
-    Element *theElement;
+    EarthquakePattern(int tag, int classTag);
+    virtual ~EarthquakePattern();
+    
+ protected:
+    int addMotion(GroundMotion &theMotion);
+    GroundMotion **theMotions;
+    int numMotions;
 
   private:
-    Domain* theDomain;
-    int loadPatternTag;
+    Vector *uDotG, *uDotDotG;
+    double currentTime;
+
+    int parameterID;
 };
 
 #endif
-

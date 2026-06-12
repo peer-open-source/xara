@@ -44,23 +44,18 @@ class MultiSupportPattern : public LoadPattern
     MultiSupportPattern(int tag);    
     MultiSupportPattern();    
     virtual ~MultiSupportPattern();
-
-    virtual void applyLoad(double time);
-    virtual bool addNodalLoad(NodalLoad *);
-    virtual bool addElementalLoad(ElementalLoad *);
-    
-    // methods for o/p
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    virtual void Print(OPS_Stream &s, int flag =0);        
-
-    // method to obtain a blank copy of the LoadPattern
-    virtual LoadPattern *getCopy();
-
     int addMotion(GroundMotion &, int tag);
-    GroundMotion *getMotion(int tag);        
+    GroundMotion *getMotion(int tag);
 
- protected:
+    // LoadPattern interface
+    virtual void applyLoad(double time);
+    
+    // MovableObject interface
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
+    // TaggedObject interface
+    void Print(OPS_Stream &s, int flag =0) override;
+  
 
  private:
     GroundMotion **theMotions;

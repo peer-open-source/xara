@@ -46,6 +46,7 @@ LoadPattern::LoadPattern(int tag, int clasTag, double fact)
     isConstant(false), 
     loadFactor(0.0), scaleFactor(fact), 
     theSeries(nullptr), 
+    theDomain(nullptr),
     currentGeoTag(0), lastGeoSendTag(-1),
     theNodalLoads(nullptr), theElementalLoads(nullptr), theSPs(nullptr), theNodIter(nullptr),
     theEleIter(nullptr), theSpIter(nullptr), lastChannel(0)
@@ -67,10 +68,15 @@ LoadPattern::LoadPattern()
   : TaggedObject(0), MovableObject(PATTERN_TAG_LoadPattern),
   isConstant(false),
   loadFactor(0.0), scaleFactor(1.0), 
-  theSeries(0), 
+  theSeries(nullptr),
+  theDomain(nullptr),
   currentGeoTag(0), lastGeoSendTag(-1), 
   dbSPs(0), dbNod(0), dbEle(0), theNodalLoads(0),
-  theElementalLoads(0), theSPs(0), theNodIter(0), theEleIter(0), theSpIter(0),
+  theElementalLoads(0), 
+  theSPs(0), 
+  theNodIter(0), 
+  theEleIter(0), 
+  theSpIter(0),
   lastChannel(0)
 {
   theNodalLoads     = new MapOfTaggedObjects();
@@ -116,21 +122,16 @@ LoadPattern::~LoadPattern()
     delete dLambdadh;
 }
 
-void LoadPattern::setTimeSeries(TimeSeries *theTimeSeries)
-{
-  // invoke the destructor on the old TimeSeries
-  if (theSeries != nullptr)
-    delete theSeries;
-
-  // set the pointer to the new series object
-  theSeries = theTimeSeries;
-}
 
 void
 LoadPattern::setDomain(Domain *theDomain)
 {
   // if subclass does not implement .. check for 0 pointer
   if (theNodalLoads != nullptr) {
+    // TODO: why sps and eles are guarded??
+
+
+#ifdef OLD_LOAD_PATTERN
     NodalLoad *nodLoad;
     NodalLoadIter &theNodalIter = this->getNodalLoads();
     while ((nodLoad = theNodalIter()) != nullptr)
@@ -140,7 +141,7 @@ LoadPattern::setDomain(Domain *theDomain)
     ElementalLoadIter &theElementalIter = this->getElementalLoads();
     while ((eleLoad = theElementalIter()) != nullptr)
       eleLoad->setDomain(theDomain);
-
+#endif
     SP_Constraint *theSP;
     SP_ConstraintIter &theSpConstraints = this->getSPs();
     while ((theSP = theSpConstraints()) != nullptr)
@@ -150,44 +151,6 @@ LoadPattern::setDomain(Domain *theDomain)
   this->theDomain = theDomain;
 }
 
-bool
-LoadPattern::addNodalLoad(NodalLoad *load)
-{
-  Domain *theDomain = this->getDomain();
-
-  bool result = theNodalLoads->addComponent(load);
-
-  if (result != true) {
-    opserr << "WARNING: LoadPattern::addNodalLoad() - load could not be added\n";
-    return result;
-  }
-
-  if (theDomain != nullptr)
-    load->setDomain(theDomain);
-
-  load->setLoadPatternTag(this->getTag());
-  currentGeoTag++;
-
-  return result;
-}
-
-bool
-LoadPattern::addElementalLoad(ElementalLoad *load)
-{
-  Domain *theDomain = this->getDomain();
-
-  bool result = theElementalLoads->addComponent(load);
-  if (result == true) {
-    if (theDomain != nullptr)
-      load->setDomain(theDomain);
-    load->setLoadPatternTag(this->getTag());
-    currentGeoTag++;
-  } else
-    opserr << "WARNING: LoadPattern::addElementalLoad() - load could not be "
-              "added\n";
-
-  return result;
-}
 
 bool
 LoadPattern::addSP_Constraint(SP_Constraint *theSp)
@@ -206,26 +169,13 @@ LoadPattern::addSP_Constraint(SP_Constraint *theSp)
   return result;
 }
 
-NodalLoadIter &
-LoadPattern::getNodalLoads()
-{
-  theNodIter->reset();
-  return *theNodIter;
-}
-
-ElementalLoadIter &
-LoadPattern::getElementalLoads()
-{
-  theEleIter->reset();
-  return *theEleIter;
-}
-
 SP_ConstraintIter &
 LoadPattern::getSPs()
 {
   theSpIter->reset();
   return *theSpIter;
 }
+
 
 void
 LoadPattern::clearAll()
@@ -240,29 +190,6 @@ LoadPattern::clearAll()
   }
 }
 
-NodalLoad *
-LoadPattern::removeNodalLoad(int tag)
-{
-  TaggedObject *obj = theNodalLoads->removeComponent(tag);
-  if (obj == 0)
-    return 0;
-  NodalLoad *result = (NodalLoad *)obj;
-  result->setDomain(nullptr);
-  currentGeoTag++;
-  return result;
-}
-
-ElementalLoad *LoadPattern::removeElementalLoad(int tag)
-{
-  TaggedObject *obj = theElementalLoads->removeComponent(tag);
-  if (obj == 0)
-    return 0;
-
-  ElementalLoad *result = (ElementalLoad *)obj;
-  result->setDomain(nullptr);
-  currentGeoTag++;
-  return result;
-}
 
 SP_Constraint *
 LoadPattern::removeSP_Constraint(int tag)
@@ -276,15 +203,18 @@ LoadPattern::removeSP_Constraint(int tag)
   return result;
 }
 
+
+
 void
 LoadPattern::applyLoad(double pseudoTime)
 {
+
+#ifdef OLD_LOAD_PATTERN
   // first determine the load factor
   if (theSeries != nullptr && isConstant != true) {
     loadFactor = theSeries->getFactor(pseudoTime);
     loadFactor *= scaleFactor;
   }
-
   {
     Load *nodLoad;
     NodalLoadIter &theNodalIter = this->getNodalLoads();
@@ -298,16 +228,19 @@ LoadPattern::applyLoad(double pseudoTime)
     while ((eleLoad = theElementalIter()) != nullptr)
       eleLoad->applyLoad(loadFactor);
   }
-
+#else
+  double loadFactor = this->getLoadFactor();
+#endif
   SP_Constraint *sp;
   SP_ConstraintIter &theIter = this->getSPs();
-  while ((sp = theIter()) != 0)
+  while ((sp = theIter()) != nullptr)
     sp->applyConstraint(loadFactor);
 }
 
 void LoadPattern::setLoadConstant() { isConstant = true; }
 
 void LoadPattern::unsetLoadConstant() { isConstant = false; }
+
 
 double
 LoadPattern::getLoadFactor()
@@ -318,536 +251,21 @@ LoadPattern::getLoadFactor()
     return 0.0;
 }
 
-int LoadPattern::sendSelf(int cTag, Channel &theChannel)
+
+int
+LoadPattern::sendSelf(int cTag, Channel &theChannel)
 {
-  // get my current database tag
-  // NOTE - dbTag equals 0 if not sending to a database OR has not yet been sent
-  int myDbTag = this->getDbTag();
-
-  // into an ID we place all info needed to determine state of LoadPattern
-  int numNodLd, numEleLd, numSPs;
-  ID lpData(11);
-
-  numNodLd = theNodalLoads->getNumComponents();
-  numEleLd = theElementalLoads->getNumComponents();
-  numSPs   = theSPs->getNumComponents();
-
-  lpData(10) = this->getTag();
-  lpData(0)  = currentGeoTag;
-  lpData(1)  = numNodLd;
-  lpData(2)  = numEleLd;
-  lpData(3)  = numSPs;
-
-  if (dbNod == 0) {
-    dbNod = theChannel.getDbTag();
-    dbEle = theChannel.getDbTag();
-    dbSPs = theChannel.getDbTag();
-  }
-
-  lpData(4) = dbNod;
-  lpData(5) = dbEle;
-  lpData(6) = dbSPs;
-
-  lpData(7) = static_cast<int>(isConstant);
-
-  if (theSeries != 0) {
-    int dbtag    = theSeries->getDbTag();
-    int classtag = theSeries->getClassTag();
-    if (dbtag == 0) {
-      dbtag = theChannel.getDbTag();
-      theSeries->setDbTag(dbtag);
-    }
-    lpData(8) = classtag;
-    lpData(9) = dbtag;
-  } else
-    lpData(8) = -1;
-
-  // see if we can save sending the vector containing just the load factor
-  // will happen in parallel if sending the loadPattern .. not in database
-
-  if (theChannel.sendID(myDbTag, cTag, lpData) < 0) {
-    opserr << "LoadPattern::sendSelf - channel failed to send the initial ID\n";
-    return -1;
-  }
-
-  Vector data(2);
-  data(0) = loadFactor;
-  data(1) = scaleFactor;
-  if (theChannel.sendVector(myDbTag, cTag, data) < 0) {
-    opserr << "LoadPattern::sendSelf - channel failed to send the Vector\n";
-    return -2;
-  }
-
-  if (theSeries != 0)
-    if (theSeries->sendSelf(cTag, theChannel) < 0) {
-      opserr << "LoadPattern::sendSelf - the TimeSeries failed to send\n";
-      return -3;
-    }
-
-  // now check if data defining the objects in the LoadPAttern needs to be sent
-  // NOTE THIS APPROACH MAY NEED TO CHANGE FOR VERY LARGE PROBLEMS IF CHANNEL CANNOT
-  // HANDLE VERY LARGE ID OBJECTS.
-
-  /*
-  if (theChannel.isDatastore() == 1) {
-    static ID theLastSendTag(1);
-    if (theChannel.recvID(myDbTag,0,theLastSendTag) == 0)
-      lastGeoSendTag = theLastSendTag(0);
-    else
-      lastGeoSendTag = -1;
-  }
-  */
-
-  if (lastChannel != theChannel.getTag() || lastGeoSendTag != currentGeoTag ||
-      theChannel.isDatastore() == 0) {
-
-    lastChannel = theChannel.getTag();
-
-    //
-    // into an ID we are gonna place the class and db tags for each node so can rebuild
-    // this ID we then send to the channel
-    //
-
-    // create the ID and get the node iter
-    if (numNodLd != 0) {
-      ID nodeData(numNodLd * 2);
-      Load *theNodalLoad;
-      NodalLoadIter &theNodes = this->getNodalLoads();
-      int loc                 = 0;
-
-      // loop over nodes in domain adding their classTag and dbTag to the ID
-      while ((theNodalLoad = theNodes()) != 0) {
-        nodeData(loc) = theNodalLoad->getClassTag();
-        int dbTag     = theNodalLoad->getDbTag();
-
-        // if dbTag still 0 get one from Channel;
-        // if this tag != 0 set the dbTag in node
-        if (dbTag == 0 &&
-            myDbTag !=
-                0) { // go get a new tag and setDbTag in ele if this not 0
-          dbTag = theChannel.getDbTag();
-          if (dbTag != 0)
-            theNodalLoad->setDbTag(dbTag);
-        }
-
-        nodeData(loc + 1) = dbTag;
-        loc += 2;
-      }
-
-      // now send the ID
-      if (theChannel.sendID(dbNod, currentGeoTag, nodeData) < 0) {
-        opserr << "LoadPattern::sendSelf - channel failed to send the "
-                  "NodalLoads ID\n";
-        return -4;
-      }
-    }
-
-    // we do the same for elemental loads as we did for nodal loads above .. see comments above!
-
-    if (numEleLd != 0) {
-      ID elementData(numEleLd * 2);
-      ElementalLoad *theEle;
-      ElementalLoadIter &theElements = this->getElementalLoads();
-      int loc                        = 0;
-
-      while ((theEle = theElements()) != 0) {
-        elementData(loc) = theEle->getClassTag();
-        int dbTag        = theEle->getDbTag();
-
-        if (dbTag == 0 &&
-            myDbTag !=
-                0) { // go get a new tag and setDbTag in ele if this not 0
-          dbTag = theChannel.getDbTag();
-          if (dbTag != 0)
-            theEle->setDbTag(dbTag);
-        }
-
-        elementData(loc + 1) = dbTag;
-        loc += 2;
-      }
-
-      // now send the ID
-      if (theChannel.sendID(dbEle, currentGeoTag, elementData) < 0) {
-        opserr << "Domain::send - channel failed to send the element ID\n";
-        return -5;
-      }
-    }
-
-    // we do the same for SP_Constraints as for NodalLoads above .. see comments above!
-
-    if (numSPs != 0) {
-      ID spData(numSPs * 2);
-      SP_Constraint *theSP;
-      SP_ConstraintIter &theSPs = this->getSPs();
-      int loc                   = 0;
-
-      while ((theSP = theSPs()) != 0) {
-        spData(loc) = theSP->getClassTag();
-        int dbTag   = theSP->getDbTag();
-
-        if (dbTag == 0 &&
-            myDbTag !=
-                0) { // go get a new tag and setDbTag in ele if this not 0
-          dbTag = theChannel.getDbTag();
-          if (dbTag != 0)
-            theSP->setDbTag(dbTag);
-        }
-
-        spData(loc + 1) = dbTag;
-        loc += 2;
-      }
-
-      if (theChannel.sendID(dbSPs, currentGeoTag, spData) < 0) {
-        opserr << "LoadPAttern::sendSelf - channel failed sending "
-                  "SP_Constraint ID\n";
-        return -6;
-      }
-    }
-
-    // set the lst send db tag so we don't have to do all that again
-    lastGeoSendTag = currentGeoTag;
-    if (theChannel.isDatastore() == 1) {
-      static ID theLastSendTag(1);
-      theLastSendTag(0) = lastGeoSendTag;
-      theChannel.sendID(myDbTag, 0, theLastSendTag);
-    }
-  }
-
-  // now we invoke sendSelf on all the NodalLoads, ElementalLoads and SP_Constraints
-  // which have been added to the LoadCase
-  Load *theNode;
-  NodalLoadIter &theNodes = this->getNodalLoads();
-  while ((theNode = theNodes()) != 0) {
-    if (theNode->sendSelf(cTag, theChannel) < 0) {
-      opserr << "LoadPattern::sendSelf - node with tag " << theNode->getTag()
-             << " failed in sendSelf\n";
-      return -7;
-    }
-  }
-
-  ElementalLoad *theEle;
-  ElementalLoadIter &theElements = this->getElementalLoads();
-  while ((theEle = theElements()) != 0) {
-    if (theEle->sendSelf(cTag, theChannel) < 0) {
-      opserr << "LoadPattern::sendSelf - element with tag " << theEle->getTag()
-             << " failed in sendSelf\n";
-      return -8;
-    }
-  }
-
-  SP_Constraint *theSP;
-  SP_ConstraintIter &theSPs = this->getSPs();
-  while ((theSP = theSPs()) != 0) {
-    if (theSP->sendSelf(cTag, theChannel) < 0) {
-
-      opserr << "LoadPattern::sendSelf - SP_Constraint: " << *theSP
-             << " failed sendSelf\n";
-      return -9;
-    }
-  }
-
-  // if we get here we are successful
-  return 0;
+  return -1;
 }
 
-int LoadPattern::recvSelf(int cTag, Channel &theChannel,
+int 
+LoadPattern::recvSelf(int cTag, Channel &theChannel,
                           FEM_ObjectBroker &theBroker)
 {
-
-  // get my current database tag
-  // NOTE - dbTag equals 0 if not sending to a database OR has not yet been sent
-  int myDbTag = this->getDbTag();
-
-  // into an ID we place all info needed to determine state of LoadPattern
-  int numNod, numEle, numSPs;
-  ID lpData(11);
-
-  if (theChannel.recvID(myDbTag, cTag, lpData) < 0) {
-    opserr << "LoadPattern::recvSelf - channel failed to recv the initial ID\n";
-    return -1;
-  }
-
-  isConstant = static_cast<bool>(lpData(7));
-
-  this->setTag(lpData(10));
-
-  Vector data(2);
-  if (theChannel.recvVector(myDbTag, cTag, data) < 0) {
-    opserr << "LoadPattern::recvSelf - channel failed to recv the Vector\n";
-    return -2;
-  }
-  loadFactor  = data(0);
-  scaleFactor = data(1);
-
-  // read data about the time series
-  if (lpData(8) != -1) {
-    if (theSeries == 0) {
-      theSeries = theBroker.getNewTimeSeries(lpData(8));
-    } else if (theSeries->getClassTag() != lpData(8)) {
-      delete theSeries;
-      theSeries = theBroker.getNewTimeSeries(lpData(8));
-    }
-    if (theSeries == 0) {
-      opserr << "LoadPattern::recvSelf - failed to create TimeSeries\n";
-      return -3;
-    }
-
-    theSeries->setDbTag(lpData(9));
-
-    if (theSeries->recvSelf(cTag, theChannel, theBroker) < 0) {
-      opserr << "LoadPattern::recvSelf - the TimeSeries failed to recv\n";
-      return -3;
-    }
-  }
-
-  /*
-  if (theChannel.isDatastore() == 1) {
-    static ID theLastSendTag(1);
-    if (theChannel.recvID(myDbTag,0,theLastSendTag) == 0)
-      lastGeoSendTag = theLastSendTag(0);
-  }
-  */
-
-  if (lastChannel != theChannel.getTag() || currentGeoTag != lpData(0) ||
-      theChannel.isDatastore() == 0) {
-
-    // clear out the all the components in the current load pattern
-    this->clearAll();
-    lastChannel   = theChannel.getTag();
-    currentGeoTag = lpData(0);
-
-    numNod = lpData(1);
-    numEle = lpData(2);
-    numSPs = lpData(3);
-    dbNod  = lpData(4);
-    dbEle  = lpData(5);
-    dbSPs  = lpData(6);
-
-    //
-    // now we rebuild the nodal loads
-    //
-
-    // first get the information from the domainData about the nodes
-    if (numNod != 0) {
-      ID nodeData(2 * numNod);
-
-      // now receive the ID about the nodes, class tag and dbTags
-      if (theChannel.recvID(dbNod, currentGeoTag, nodeData) < 0) {
-        opserr << "LoadPAttern::recvSelf - channel failed to recv the "
-                  "NodalLoad ID\n";
-        return -2;
-      }
-
-      // now for each NodalLoad we 
-      // 1) get a new node of the correct type from the ObjectBroker
-      // 2) ensure the node exists and set it's dbTag, 
-      // 3) we invoke recvSelf on this new blank node and 
-      // 4) add this node to the domain
-
-      int loc = 0;
-
-      for (int i = 0; i < numNod; i++) {
-        int classTag = nodeData(loc);
-        int dbTag    = nodeData(loc + 1);
-
-        NodalLoad *theNodalLoad = new NodalLoad(classTag); //theBroker.getNewNodalLoad(classTag);
-
-        theNodalLoad->setDbTag(dbTag);
-
-        if (theNodalLoad->recvSelf(cTag, theChannel, theBroker) < 0) {
-          opserr << "LoadPattern::recvSelf - NodalLoad with dbTag " << dbTag
-                 << " failed in recvSelf\n";
-          return -2;
-        }
-
-        if (this->addNodalLoad(theNodalLoad) == false) {
-          opserr << "LoadPattern::recvSelf - failed adding NodalLoad tagged "
-                 << theNodalLoad->getTag() << " into LP!\n";
-          return -3;
-        }
-
-        loc += 2;
-      }
-    }
-
-    //
-    // now we rebuild the ElementalLoads .. same as NodalLoads above .. see comments above
-    //
-
-    if (numEle != 0) {
-      ID eleData(2 * numEle);
-
-      if (theChannel.recvID(dbEle, currentGeoTag, eleData) < 0) {
-        opserr << "LoadPattern::recvSelf - channel failed to recv the EleLoad "
-                  "ID\n";
-        return -2;
-      }
-
-      int loc = 0;
-      for (int i = 0; i < numEle; i++) {
-        int classTag = eleData(loc);
-        int dbTag    = eleData(loc + 1);
-
-        ElementalLoad *theEle = theBroker.getNewElementalLoad(classTag);
-        if (theEle == 0) {
-          opserr << "LoadPattern::recv - cannot create ElementalLoad with "
-                    "classTag "
-                 << classTag 
-                 << "\n";
-          return -2;
-        }
-
-        theEle->setDbTag(dbTag);
-
-        if (theEle->recvSelf(cTag, theChannel, theBroker) < 0) {
-          opserr << "LoadPattern::recvSelf - Ele with dbTag " << dbTag
-                 << " failed in recvSelf\n";
-          return -2;
-        }
-
-        if (this->addElementalLoad(theEle) == false) {
-          opserr << "LoadPattern::recvSelf - could not add Ele with tag "
-                 << theEle->getTag() << " into LP!\n";
-          return -3;
-        }
-
-        loc += 2;
-      }
-    }
-
-    //
-    // now we rebuild the SP_Constraints .. same as nodes above .. see above if can't understand!!
-    //
-
-    if (numSPs != 0) {
-      ID spData(2 * numSPs);
-
-      if (theChannel.recvID(dbSPs, currentGeoTag, spData) < 0) {
-        opserr << "LoadPattern::recvSelf - channel failed to recv the "
-                  "SP_Constraints ID\n";
-        return -2;
-      }
-
-      int loc = 0;
-      for (int i = 0; i < numSPs; i++) {
-        int classTag = spData(loc);
-        int dbTag    = spData(loc + 1);
-
-        SP_Constraint *theSP = theBroker.getNewSP(classTag);
-        if (theSP == 0) {
-          opserr << "LoadPattern::recv - cannot create SP_Constraint with "
-                    "classTag "
-                 << classTag 
-                 << "\n";
-          return -2;
-        }
-        theSP->setDbTag(dbTag);
-
-        if (theSP->recvSelf(cTag, theChannel, theBroker) < 0) {
-          opserr << "LoadPattern::recvSelf - SP_Constraint with dbTag " << dbTag
-                 << " failed in recvSelf\n";
-          return -2;
-        }
-
-        if (this->addSP_Constraint(theSP) == false) {
-          opserr
-              << "LoadPattern::recvSelf - could not add SP_Constraint with tag "
-              << theSP->getTag() << " into LP!\n";
-
-          return -3;
-        }
-
-        loc += 2;
-      }
-    }
-
-    // now set the load pattern db count
-    currentGeoTag  = lpData(0);
-    lastGeoSendTag = currentGeoTag;
-
-  } else {
-    if (theSeries != 0)
-      if (theSeries->recvSelf(cTag, theChannel, theBroker) < 0) {
-        opserr << "LoadPattern::recvSelf - the TimeSeries failed to recv\n";
-        return -3;
-      }
-
-    NodalLoad *theNode;
-    NodalLoadIter &theNodes = this->getNodalLoads();
-    while ((theNode = theNodes()) != 0) {
-      if (theNode->recvSelf(cTag, theChannel, theBroker) < 0) {
-        opserr << "LoadPattern::recvSelf - node with tag " << theNode->getTag()
-               << " failed in recvSelf\n";
-        return -7;
-      }
-    }
-
-    ElementalLoad *theEle;
-    ElementalLoadIter &theElements = this->getElementalLoads();
-    while ((theEle = theElements()) != 0) {
-      if (theEle->recvSelf(cTag, theChannel, theBroker) < 0) {
-        opserr << "LoadPattern::recvSelf - element with tag "
-               << theEle->getTag() << " failed in recvSelf\n";
-        return -8;
-      }
-    }
-
-    SP_Constraint *theSP;
-    SP_ConstraintIter &theSPs = this->getSPs();
-    while ((theSP = theSPs()) != 0) {
-      if (theSP->recvSelf(cTag, theChannel, theBroker) < 0) {
-        opserr << "LoadPattern::recvSelf - SP_Constraint tagged "
-               << theSP->getTag() << "  failed recvSelf\n";
-        return -9;
-      }
-    }
-  }
-
-  return 0;
+  return -1;
 }
 
-void LoadPattern::Print(OPS_Stream &s, int flag)
-{
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"type\": \"Plain\"" << ", ";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"scale\": " << scaleFactor << ", ";
-    if (theSeries) {
-      s << "\"series\": ";
-      theSeries->Print(s, flag); 
-      s << ", ";
-    }
-    s << "\"nodes\": [\n";
-    theNodalLoads->Print(s, flag);
-    if ((theSPs->getNumComponents() > 0) && (theNodalLoads->getNumComponents() > 0))
-      s << ",\n";
-    theSPs->Print(s, flag);
-    s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "],\n";
-    s << OPS_PRINT_JSON_MATE_INDENT << "\"elements\": [\n";
-    //theElementalLoads->Print(s, flag);
-    s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "]\n";
-    s << OPS_PRINT_JSON_MATE_INDENT << "}";
-    return;
-  }
-  
-  else {
-    s << "Load Pattern: " << this->getTag() << "\n";
-    s << "  Scale Factor: " << scaleFactor
-      << "\n";
-    if (theSeries != 0)
-      theSeries->Print(s, flag);
-    s << "  Nodal Loads: \n";
-    theNodalLoads->Print(s, flag);
-    s << "\n  Elemental Loads: \n";
-    theElementalLoads->Print(s, flag);
-    s << "\n  Single Point Constraints: \n";
-    theSPs->Print(s, flag);
-  }
-}
-
-
-
+#if 0
 void 
 LoadPattern::applyLoadSensitivity(double pseudoTime)
 {
@@ -886,7 +304,9 @@ LoadPattern::applyLoadSensitivity(double pseudoTime)
   */
 }
 
-int LoadPattern::setParameter(const char **argv, int argc, Parameter &param)
+
+int 
+LoadPattern::setParameter(const char **argv, int argc, Parameter &param)
 {
   if (theSeries == nullptr) {
     opserr << "set/update/activate parameter is illegaly called in LoadPattern "
@@ -1182,3 +602,6 @@ double LoadPattern::getLoadFactorSensitivity(int gradIndex)
 }
 
 // AddingSensitivity:END //////////////////////////////////////
+
+#endif
+

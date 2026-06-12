@@ -1404,11 +1404,6 @@ LoadPattern *
 TclPackageClassBroker::getNewLoadPattern(int classTag)
 {
   switch (classTag) {
-  // case PATTERN_TAG_LoadPattern:
-  //   return new StaticPattern();
-
-  case PATTERN_TAG_UniformExcitation:
-    return new UniformExcitation();
 
   case PATTERN_TAG_MultiSupportPattern:
     return new MultiSupportPattern();

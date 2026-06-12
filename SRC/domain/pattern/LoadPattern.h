@@ -31,7 +31,6 @@
 // which is used to determine the load factor given the pseudo-time
 // to the model. 
 //
-// What: "@(#) LoadPattern.h, revA"
 
 #include <TaggedObject.h>
 #include <MovableObject.h>
@@ -64,54 +63,75 @@ class LoadPattern : public TaggedObject, public MovableObject
 
     // method to set the associated TimeSeries and Domain
     virtual void setDomain(Domain *);
-    void setTimeSeries(TimeSeries *);
-    Domain* getDomain() {return theDomain;}
+
 
     // methods to apply loads
 
     // apply load at start of a step.
-    virtual void applyLoad(double pseudoTime = 0.0);
-    virtual int applyResidual(AnalysisModel&, LinearSOE&, double) {return 0;};
+    virtual int applyResidual(AnalysisModel&, LinearSOE&, double) {return 0;}
     void setLoadConstant();
     void unsetLoadConstant();
-    double getLoadFactor();
-
-    // methods for o/p
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    virtual void Print(OPS_Stream &s, int flag);
 
 
     // methods to add loads
     virtual bool addSP_Constraint(SP_Constraint *);
+    virtual SP_ConstraintIter &getSPs();
+    virtual SP_Constraint *removeSP_Constraint(int tag);
+
+    virtual double getLoadFactor();
+
+#ifdef OLD_LOAD_PATTERN
+    virtual Domain* getDomain() {return theDomain;}
+    virtual void applyLoad(double pseudoTime = 0.0);
     virtual bool addNodalLoad(NodalLoad *);
     virtual bool addElementalLoad(ElementalLoad *);
     virtual NodalLoadIter     &getNodalLoads();
-    virtual ElementalLoadIter &getElementalLoads();    
-    virtual SP_ConstraintIter &getSPs();
+    virtual ElementalLoadIter &getElementalLoads();
     // methods to remove loads
     virtual NodalLoad *removeNodalLoad(int tag);
     virtual ElementalLoad *removeElementalLoad(int tag);
-    virtual SP_Constraint *removeSP_Constraint(int tag);
-    virtual void clearAll();
-
     // Sensitivity
     virtual void applyLoadSensitivity(double pseudoTime = 0.0);
     virtual int  setParameter(const char **argv, int argc, Parameter &param);
     virtual int  updateParameter(int parameterID, Information &info);
-    virtual int  activateParameter(int parameterID);
+    virtual int  activateParameter(int parameterID)
     virtual const Vector & getExternalForceSensitivity(int gradNumber);
-
     virtual int saveLoadFactorSensitivity(double dlambdadh, int gradIndex, int numGrads);
     virtual double getLoadFactorSensitivity(int gradIndex);
+#else
+protected:
+    virtual Domain* getDomain() {return theDomain;}
+
+public:
+    virtual void applyLoad(double pseudoTime = 0.0)=0;
+    // Sensitivity
+    virtual void applyLoadSensitivity(double pseudoTime = 0.0) {}
+    virtual int  setParameter(const char **argv, int argc, Parameter &) {return -1;};
+    virtual int  updateParameter(int parameterID, Information &) {return -1;};
+    virtual int  activateParameter(int parameterID) {return -1;};
+    virtual const Vector & getExternalForceSensitivity(int gradNumber) {
+      static Vector dummy(0);
+      return dummy;
+    }
+    virtual int saveLoadFactorSensitivity(double dlambdadh, int gradIndex, int numGrads) {return 0;}
+    virtual double getLoadFactorSensitivity(int gradIndex) {return 0.0;}
+#endif
+
+    virtual void clearAll();
 
 
-  protected:
-    bool   isConstant;     // to indicate whether setConstant has been called
-  
+    // methods for o/p
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    virtual void Print(OPS_Stream &s, int flag)=0;
+
     enum : int {
       PATTERN_TAG_StaticPattern = 1000
     };
+
+  protected:
+    bool   isConstant;     // to indicate whether setConstant has been called
+
 
   private:
     double loadFactor;     // current load factor
