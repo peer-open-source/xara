@@ -80,22 +80,27 @@ ElementalLoad::setDomain(Domain *domain)
   }
 
   theElement = theDomain->getElement(eleTag);
-  if (theElement == nullptr) {
-    opserr << "WARNING - ElementalLoad::setDomain - no ele with tag ";
-    opserr << eleTag << " exists in the domain\n";
-    return -1;
-  }
+
+  // NOTE(cmp):
+  //  This check is removed because FrameLoad does not have one element.
+  //  this->eleTag will be zero.
+
+  // if (theElement == nullptr) {
+  //   opserr << "WARNING - ElementalLoad::setDomain - no ele with tag ";
+  //   opserr << eleTag << " exists in the domain\n";
+  //   return -1;
+  // }
   return 0;
 }
 
-void 
+void
 ElementalLoad::applyLoad(double loadFactor) 
 {
   if (theElement != nullptr)
     theElement->addLoad(this, loadFactor);
 }
 
-void 
+void
 ElementalLoad::applyLoad(const Vector &loadFactors) 
 {
   if (theElement != nullptr)

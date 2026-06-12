@@ -316,8 +316,8 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     delete theP;
 
     return TCL_OK;
-
-  } else {
+  }
+  else {
     opserr << "WARNING: Incorrect arguments - want InitialStateAnalysis on, or "
               "InitialStateAnalysis off"
            << "\n";
@@ -381,11 +381,11 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;
 
+  Tcl_Obj *result = Tcl_NewListObj(0, nullptr);
+
   if (argc == 1) {
     LoadPattern *thePattern;
     LoadPatternIter &thePatterns = the_domain->getLoadPatterns();
-
-    char buffer[20];
 
     while ((thePattern = thePatterns()) != nullptr) {
       if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern)
@@ -395,15 +395,25 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       ElementalLoad *theLoad;
 
       while ((theLoad = theEleLoads()) != nullptr) {
-        sprintf(buffer, "%d ", theLoad->getClassTag());
-        Tcl_AppendResult(interp, buffer, NULL);
+        Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(theLoad->getClassTag()));
       }
     }
   }
-  else if (argc == 2) {
+  else {
+    // Either of:
+    // 1) getEleLoadClassTags <tag>
+    // 2) getEleLoadClassTags -pattern <tag>
     int patternTag;
+    int arg_pattern = 1;
+    if (argc == 3) {
+      if (strcmp(argv[1], "-pattern") != 0) {
+        opserr << OpenSees::PromptValueError << "unexpected argument " << argv[1] << "\n";
+        return TCL_ERROR;
+      }
+      arg_pattern = 2;
+    }
 
-    if (Tcl_GetInt(interp, argv[1], &patternTag) != TCL_OK) {
+    if (Tcl_GetInt(interp, argv[arg_pattern], &patternTag) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "failed to read patternTag\n";
       return TCL_ERROR;
     }
@@ -427,20 +437,13 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
     ElementalLoadIter theEleLoads = theStaticPattern->getElementalLoads();
 
-    char buffer[20];
-
     ElementalLoad *theLoad;
     while ((theLoad = theEleLoads()) != nullptr) {
-      sprintf(buffer, "%d ", theLoad->getClassTag());
-      Tcl_AppendResult(interp, buffer, NULL);
+      Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(theLoad->getClassTag()));
     }
   }
-  else {
-    opserr << OpenSees::PromptValueError << "unexpected arguments\n" 
-           << OpenSees::SignalMessageEnd;
-    return TCL_ERROR;
-  }
 
+  Tcl_SetObjResult(interp, result);
   return TCL_OK;
 }
 
@@ -454,11 +457,11 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   assert(clientData != nullptr);
   Domain *the_domain = (Domain*)clientData;
 
+  Tcl_Obj *result = Tcl_NewListObj(0, nullptr);
+
   if (argc == 1) {
     LoadPattern *thePattern;
     LoadPatternIter &thePatterns = the_domain->getLoadPatterns();
-
-    Tcl_Obj *result = Tcl_NewListObj(0, nullptr);
 
     while ((thePattern = thePatterns()) != nullptr) {
       if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern)
@@ -472,10 +475,8 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
         Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(theLoad->getElementTag()));
       }
     }
-
-    Tcl_SetObjResult(interp, result);
-
-  } else if (argc == 2) {
+  }
+  else if (argc == 2) {
     int patternTag;
 
     if (Tcl_GetInt(interp, argv[1], &patternTag) != TCL_OK) {
@@ -500,23 +501,23 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     ElementalLoadIter theEleLoads = theStaticPattern->getElementalLoads();
     ElementalLoad *theLoad;
 
-    char buffer[20];
-
     while ((theLoad = theEleLoads()) != nullptr) {
-      sprintf(buffer, "%d ", theLoad->getElementTag());
-      Tcl_AppendResult(interp, buffer, NULL);
+      Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(theLoad->getElementTag()));
     }
-
-  } else {
+  }
+  else {
     opserr << OpenSees::PromptValueError << "unexpectd arguments\n" << "\n";
     return TCL_ERROR;
   }
+
+  Tcl_SetObjResult(interp, result);
 
   return TCL_OK;
 }
 
 int
-getEleLoadData(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+getEleLoadData(ClientData clientData, 
+               Tcl_Interp *interp, Tcl_Size argc,
                TCL_Char ** const argv)
 {
   // getLoadData <patternTag?>
