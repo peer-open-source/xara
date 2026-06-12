@@ -40,8 +40,10 @@
 #include <Element.h>
 #include <ElementIter.h>
 #include <LoadPattern.h>
+#include <StaticPattern.h>
 #include <ElementalLoad.h>
 #include <ElementalLoadIter.h>
+
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
 #include <MP_Constraint.h>
@@ -226,6 +228,7 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 }
 
 
+#include <StaticPattern.h>
 
 int
 getLoadFactor(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
@@ -240,21 +243,30 @@ getLoadFactor(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     return TCL_ERROR;
   }
 
-  int pattern;
-  if (Tcl_GetInt(interp, argv[1], &pattern) != TCL_OK) {
+  int tag;
+  if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
-           << "reading load pattern tag -- getLoadFactor\n";
+           << "reading load pattern tag\n";
     return TCL_ERROR;
   }
 
-  LoadPattern *the_pattern = domain->getLoadPattern(pattern);
+  LoadPattern *the_pattern = domain->getLoadPattern(tag);
   if (the_pattern == nullptr) {
-    opserr << OpenSees::PromptValueError << "load pattern with tag " << pattern
-           << " not found in domain -- getLoadFactor\n";
+    opserr << OpenSees::PromptValueError << "load pattern with tag " << tag
+           << " not found in domain\n";
     return TCL_ERROR;
   }
 
-  double factor = the_pattern->getLoadFactor();
+  if (the_pattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+    opserr << OpenSees::PromptValueError 
+           << "load pattern with tag " << tag
+           << " is not a StaticPattern\n";
+    return TCL_ERROR;
+  }
+
+  StaticPattern* theStaticPattern = static_cast<StaticPattern*>(the_pattern);
+
+  double factor = theStaticPattern->getLoadFactor();
   Tcl_SetObjResult(interp, Tcl_NewDoubleObj(factor));
 
   return TCL_OK;
@@ -376,7 +388,10 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     char buffer[20];
 
     while ((thePattern = thePatterns()) != nullptr) {
-      ElementalLoadIter theEleLoads = thePattern->getElementalLoads();
+      if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern)
+        continue;
+      StaticPattern *theStaticPattern = static_cast<StaticPattern *>(thePattern);
+      ElementalLoadIter theEleLoads = theStaticPattern->getElementalLoads();
       ElementalLoad *theLoad;
 
       while ((theLoad = theEleLoads()) != nullptr) {
@@ -401,8 +416,16 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
+    if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+      opserr << OpenSees::PromptValueError 
+             << "load pattern with tag " << patternTag
+             << " is not a StaticPattern\n";
+      return TCL_ERROR;
+    }
 
-    ElementalLoadIter theEleLoads = thePattern->getElementalLoads();
+    StaticPattern *theStaticPattern = static_cast<StaticPattern *>(thePattern);
+
+    ElementalLoadIter theEleLoads = theStaticPattern->getElementalLoads();
 
     char buffer[20];
 
@@ -411,8 +434,8 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       sprintf(buffer, "%d ", theLoad->getClassTag());
       Tcl_AppendResult(interp, buffer, NULL);
     }
-
-  } else {
+  }
+  else {
     opserr << OpenSees::PromptValueError << "unexpected arguments\n" 
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
@@ -438,7 +461,11 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     Tcl_Obj *result = Tcl_NewListObj(0, nullptr);
 
     while ((thePattern = thePatterns()) != nullptr) {
-      ElementalLoadIter theEleLoads = thePattern->getElementalLoads();
+      if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern)
+        continue;
+
+      StaticPattern *theStaticPattern = static_cast<StaticPattern *>(thePattern);
+      ElementalLoadIter theEleLoads = theStaticPattern->getElementalLoads();
       ElementalLoad *theLoad;
 
       while ((theLoad = theEleLoads()) != nullptr) {
@@ -462,8 +489,15 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
              << " not found in domain\n";
       return TCL_ERROR;
     }
+    if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+      opserr << OpenSees::PromptValueError << "load pattern with tag " << patternTag
+             << " is not a StaticPattern\n";
+      return TCL_ERROR;
+    }
 
-    ElementalLoadIter theEleLoads = thePattern->getElementalLoads();
+    StaticPattern *theStaticPattern = static_cast<StaticPattern *>(thePattern);
+
+    ElementalLoadIter theEleLoads = theStaticPattern->getElementalLoads();
     ElementalLoad *theLoad;
 
     char buffer[20];
@@ -497,7 +531,10 @@ getEleLoadData(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     int typeEL;
 
     while ((thePattern = thePatterns()) != nullptr) {
-      ElementalLoadIter &theEleLoads = thePattern->getElementalLoads();
+      if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern)
+        continue;
+      StaticPattern *theStaticPattern = static_cast<StaticPattern *>(thePattern);
+      ElementalLoadIter &theEleLoads = theStaticPattern->getElementalLoads();
       ElementalLoad *theLoad;
 
       while ((theLoad = theEleLoads()) != nullptr) {
@@ -522,12 +559,20 @@ getEleLoadData(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
     LoadPattern *thePattern = the_domain->getLoadPattern(patternTag);
     if (thePattern == nullptr) {
-      opserr << OpenSees::PromptValueError << "load pattern with tag " << patternTag
+      opserr << OpenSees::PromptValueError 
+             << "load pattern with tag " << patternTag
              << " not found in domain\n";
       return TCL_ERROR;
     }
+    if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+      opserr << OpenSees::PromptValueError 
+             << "load pattern with tag " << patternTag
+             << " is not a StaticPattern\n";
+      return TCL_ERROR;
+    }
 
-    ElementalLoadIter theEleLoads = thePattern->getElementalLoads();
+    StaticPattern *theStaticPattern = static_cast<StaticPattern *>(thePattern);
+    ElementalLoadIter theEleLoads = theStaticPattern->getElementalLoads();
     ElementalLoad *theLoad;
 
     int typeEL;
