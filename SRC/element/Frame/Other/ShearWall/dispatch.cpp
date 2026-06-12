@@ -15,7 +15,6 @@
 #include <CrdTransf.h>
 
 #include "DispBeamColumn2dInt.h"
-#include <runtimeAPI.h>
 #include <ModelRegistry.h>
 #include <SectionForceDeformation.h>
 
