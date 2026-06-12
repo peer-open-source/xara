@@ -71,7 +71,7 @@ class TransformationFE: public ElementFE
     
   private:
     
-    // private variables - a copy for each object of the class        
+    // private variables      
     DOF_Group **theDOFs;
     int numSPs;
     SP_Constraint **theSPs;

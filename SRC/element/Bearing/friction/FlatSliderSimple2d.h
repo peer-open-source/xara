@@ -97,7 +97,7 @@ private:
     void setUp();
     double sgn(double x);
     
-    // private attributes - a copy for each object of the class
+    // private attributes
     ID connectedExternalNodes;          // contains the tags of the end nodes
     Node *theNodes[2];                  // array of nodes
     FrictionModel *theFrnMdl;           // pointer to friction model

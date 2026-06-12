@@ -95,7 +95,7 @@ private:
     double sgn(double x);
     double getCurrentTemp(double qy, double currentTemp, double v);
     
-    // Private attributes - a copy for each object of the class
+    // Private attributes
     ID connectedExternalNodes;         // Contains the tags of the end nodes
     Node *theNodes[2];                 // Array of nodes
     

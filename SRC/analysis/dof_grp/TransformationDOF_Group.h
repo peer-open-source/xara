@@ -120,7 +120,7 @@ class TransformationDOF_Group: public DOF_Group
 // AddingSensitivity:END //////////////////////////////////////
     
   private:
-    // private variables - a copy for each object of the class            
+    // private variables            
     MP_Constraint *theMP;
     Matrix *Trans;
     Matrix *modTangent;

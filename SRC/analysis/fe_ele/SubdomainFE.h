@@ -85,11 +85,11 @@ class SubdomainFE: public FE_Element
     virtual int  commitSensitivity           (int gradNum, int numGrads);
    
   protected:
-    // protected variables - a copy for each object of the class
+    // protected variables
     ID myID;
 
   private:
-    // private variables - a copy for each object of the class    
+    // private variables    
     int numDOF;
     Element       *myEle;
     Vector        *theResidual;

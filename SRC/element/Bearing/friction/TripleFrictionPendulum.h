@@ -175,7 +175,7 @@ private:
     double Dx, Dy, Dz;
     bool Conv;
     
-    // private attributes - a copy for each object of the class
+    // private attributes
     ID  externalNodes;  // contains the id's of end nodes
     Matrix trans;       // hold the transformation matrix, could use a Vector
                         // if ever bother to change the Vector interface for
