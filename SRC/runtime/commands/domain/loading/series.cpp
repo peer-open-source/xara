@@ -39,14 +39,9 @@
 #include <PulseSeries.h>
 #include <TriangleSeries.h>
 
-// extern OPS_Routine OPS_ConstantSeries;
 // extern OPS_Routine OPS_LinearSeries;
-// extern OPS_Routine OPS_TrigSeries;
 // extern OPS_Routine OPS_PulseSeries;
 // extern OPS_Routine OPS_PeerMotion;
-// extern OPS_Routine OPS_PeerNGAMotion;
-// extern OPS_Routine OPS_TriangleSeries;
-// extern OPS_Routine OPS_RectangularSeries;
 
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, 
                                        Tcl_Interp *interp,
@@ -56,7 +51,10 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 
 
 static void *
-TclDispatch_newLinearSeries(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, TCL_Char ** const argv)
+TclDispatch_newLinearSeries(ClientData clientData, 
+                            Tcl_Interp* interp, 
+                            Tcl_Size argc, 
+                            TCL_Char ** const argv)
 {
   int numRemainingArgs = argc;
 
@@ -404,25 +402,10 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
   }
 
 #if 0
-  else if (strcmp(argv[0], "Rectangular") == 0) {
-
-    void *theResult = OPS_RectangularSeries(rt, argc, argv);
-    if (theResult != 0)
-      theSeries = (TimeSeries *)theResult;
-
-  }
   else if ((strcmp(argv[0], "Pulse") == 0) ||
            (strcmp(argv[0], "PulseSeries") == 0)) {
 
     void *theResult = OPS_PulseSeries(rt, argc, argv);
-    if (theResult != 0)
-      theSeries = (TimeSeries *)theResult;
-
-  }
-  else if ((strcmp(argv[0], "Triangle") == 0) ||
-           (strcmp(argv[0], "TriangleSeries") == 0)) {
-
-    void *theResult = OPS_TriangleSeries(rt, argc, argv);
     if (theResult != 0)
       theSeries = (TimeSeries *)theResult;
 
@@ -784,7 +767,9 @@ TclSeriesCommand(ClientData clientData, Tcl_Interp *interp, TCL_Char * const arg
 
 
 int
-TclCommand_addTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc,
+TclCommand_addTimeSeries(ClientData clientData,
+                         Tcl_Interp *interp, 
+                         Tcl_Size argc,
                          TCL_Char ** const argv)
 {
   TimeSeries *theSeries = TclDispatch_newTimeSeries(clientData, interp, argc - 1, &argv[1]);
