@@ -52,12 +52,10 @@ InterpolatedGroundMotion::InterpolatedGroundMotion(GroundMotion **groundMotions,
   theMotions = new GroundMotion *[fact.Size()];
 
   for (int i=0; i<fact.Size(); i++)
-      theMotions[i] = groundMotions[i];
+    theMotions[i] = groundMotions[i];
   
   if (destroyMotions == true)
-    destroyMotions = 1;
-
-
+    this->destroyMotions = 1;
 }
 
 
@@ -73,7 +71,7 @@ InterpolatedGroundMotion::~InterpolatedGroundMotion()
 }
 
 double 
-InterpolatedGroundMotion::getDuration(void)
+InterpolatedGroundMotion::getDuration()
 {
   double value = 0.0;
   int numMotions = factors->Size();
@@ -86,7 +84,7 @@ InterpolatedGroundMotion::getDuration(void)
 }
 
 double 
-InterpolatedGroundMotion::getPeakAccel(void)
+InterpolatedGroundMotion::getPeakAccel()
 {
   double value = 0.0;
   double duration = this->getDuration();
@@ -101,7 +99,7 @@ InterpolatedGroundMotion::getPeakAccel(void)
 }
 
 double 
-InterpolatedGroundMotion::getPeakVel(void)
+InterpolatedGroundMotion::getPeakVel()
 {
   double value = 0.0;
   double duration = this->getDuration();
@@ -116,7 +114,7 @@ InterpolatedGroundMotion::getPeakVel(void)
 }
 
 double 
-InterpolatedGroundMotion::getPeakDisp(void)
+InterpolatedGroundMotion::getPeakDisp()
 {
   double value = 0.0;
   double duration = this->getDuration();
@@ -204,7 +202,6 @@ InterpolatedGroundMotion::getDispVelAccel(double time)
 int 
 InterpolatedGroundMotion::sendSelf(int commitTag, Channel &theChannel)
 {
-  opserr << "InterpolatedGroundMotion::sendSelf() -- not yet implemented" << endln;
   return -1;
 }
 
@@ -213,7 +210,6 @@ int
 InterpolatedGroundMotion::recvSelf(int commitTag, Channel &theChannel,
 				   FEM_ObjectBroker &theBroker)
 {
-  opserr << "InterpolatedGroundMotion::recvSelf() -- not yet impelemented" << endln;
   return -1;
 }
 
