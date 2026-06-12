@@ -43,7 +43,8 @@ EightNodeQuad::EightNodeQuad(int tag,
                            Element::MassSource mass_source
 )
 : Element (tag, ELE_TAG_EightNodeQuad),
-  theMaterial(0), connectedExternalNodes(NEN),
+  connectedExternalNodes(NEN),
+  theMaterial{},
   Q(NEN*2), applyLoad(0), 
   pressureLoad(NEN*2), 
   thickness(thickness), 
@@ -86,12 +87,13 @@ EightNodeQuad::EightNodeQuad(int tag,
   b[0] = b1;
   b[1] = b2;
 
-  // Allocate arrays of pointers to NDMaterials
-  theMaterial = new NDMaterial *[nip];
+  // // Allocate arrays of pointers to NDMaterials
+  // theMaterial = new NDMaterial *[nip];
 
   // Get copies of the material model for each integration point
   for (int i = 0; i < nip; i++) {
     theMaterial[i] = m.getCopy();
+    assert(theMaterial[i] != nullptr);
   }
 
 
@@ -102,8 +104,9 @@ EightNodeQuad::EightNodeQuad(int tag,
 }
 
 EightNodeQuad::EightNodeQuad()
-:Element(0,ELE_TAG_EightNodeQuad),
-  theMaterial(nullptr), connectedExternalNodes(NEN),
+: Element(0,ELE_TAG_EightNodeQuad),
+  theMaterial{},
+  connectedExternalNodes(NEN),
   Q(NEN*2), 
   applyLoad(0), 
   pressureLoad(NEN*2), thickness(0.0), pressure(0.0), Ki(0),
@@ -116,13 +119,9 @@ EightNodeQuad::EightNodeQuad()
 EightNodeQuad::~EightNodeQuad()
 {
   for (int i = 0; i < nip; i++) {
-    if (theMaterial[i])
+    if (theMaterial[i] != nullptr)
       delete theMaterial[i];
   }
-
-  // Delete the array of pointers to NDMaterial pointer arrays
-  if (theMaterial)
-    delete [] theMaterial;
 
   if (Ki != nullptr)
     delete Ki;
@@ -245,9 +244,9 @@ EightNodeQuad::update()
     VectorND<3> eps;
     eps.zero();
     for (int beta = 0; beta < NEN; beta++) {
-        eps(0) += shp[0][beta]*u[0][beta];
-        eps(1) += shp[1][beta]*u[1][beta];
-        eps(2) += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
+      eps(0) += shp[0][beta]*u[0][beta];
+      eps(1) += shp[1][beta]*u[1][beta];
+      eps(2) += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
     }
 
     // Set the material strain
@@ -380,7 +379,8 @@ EightNodeQuad::getMass()
   if (sum == 0.0)
     return K;
 
-  // Compute a lumped mass matrix
+  // Integrate mass matrix
+#if 0
   for (int i = 0; i < nip; i++) {
 
     // Determine Jacobian for this integration point
@@ -396,7 +396,19 @@ EightNodeQuad::getMass()
       K(ia,ia) += Nrho;
     }
   }
-
+#else
+  for (int i=0; i<nip; i++) {
+    double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+    dvol *= thickness*wts[i];
+    for (int j=0; j<NEN; j++) {
+      for (int k=0; k<NEN; k++) {
+        double m = shp[2][j]*shp[2][k]*rhoi[i]*dvol;
+        K(j*2, k*2) += m;
+        K(j*2+1, k*2+1) += m;
+      }
+    }
+  }
+#endif
   return K;
 }
 
@@ -585,32 +597,7 @@ EightNodeQuad::getResistingForceIncInertia()
   }
 
   static double a[NEN*NDF];
-
-  // const Vector &accel1 = theNodes[0]->getTrialAccel();
-  // const Vector &accel2 = theNodes[1]->getTrialAccel();
-  // const Vector &accel3 = theNodes[2]->getTrialAccel();
-  // const Vector &accel4 = theNodes[3]->getTrialAccel();
-  // const Vector &accel5 = theNodes[4]->getTrialAccel();
-  // const Vector &accel6 = theNodes[5]->getTrialAccel();
-  // const Vector &accel7 = theNodes[6]->getTrialAccel();
-  // const Vector &accel8 = theNodes[7]->getTrialAccel();
-
-  // a[0] = accel1(0);
-  // a[1] = accel1(1);
-  // a[2] = accel2(0);
-  // a[3] = accel2(1);
-  // a[4] = accel3(0);
-  // a[5] = accel3(1);
-  // a[6] = accel4(0);
-  // a[7] = accel4(1);
-  // a[8] = accel5(0);
-  // a[9] = accel5(1);
-  // a[10] = accel6(0);
-  // a[11] = accel6(1);
-  // a[12] = accel7(0);
-  // a[13] = accel7(1);
-  // a[14] = accel8(0);
-  // a[15] = accel8(1);
+  static Vector avec(a, NEN*NDF);
 
   for (int i=0; i<NEN; i++) {
     const Vector &accel = theNodes[i]->getTrialAccel();
@@ -622,11 +609,15 @@ EightNodeQuad::getResistingForceIncInertia()
   this->getResistingForce();
 
   // Compute the mass matrix
+#if 0
   const Matrix &M = this->getMass();
 
   // Take advantage of lumped mass matrix
   for (int i = 0; i < NDF*NEN; i++)
     P(i) += M(i,i)*a[i];
+#else 
+  P.addMatrixVector(1.0, this->getMass(), avec, 1.0);
+#endif
 
   // add the damping forces if rayleigh damping
   if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
@@ -745,15 +736,16 @@ EightNodeQuad::recvSelf(int commitTag, Channel &theChannel,
   for (int i = 0; i < NEN; i++)
     connectedExternalNodes(i) = idData(2*nip+i);
 
-  if (theMaterial == nullptr) {
+  if (theMaterial[0] == nullptr) 
+  {
     // Allocate new materials
-    theMaterial = new NDMaterial *[nip];
+    // theMaterial = new NDMaterial *[nip];
     for (int i = 0; i < nip; i++) {
       int matClassTag = idData(i);
       int matDbTag = idData(i+nip);
       // Allocate new material with the sent class tag
       theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-      if (theMaterial[i] == 0) {
+      if (theMaterial[i] == nullptr) {
         opserr << "EightNodeQuad::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
         return -1;
       }
@@ -983,10 +975,9 @@ int
 EightNodeQuad::getResponse(int responseID, Information &eleInfo)
 {
   if (responseID == 1) {
-
     return eleInfo.setVector(this->getResistingForce());
-
-  } else if (responseID == 3) {
+  }
+  else if (responseID == 3) {
 
     // Loop over the integration points
     static Vector stresses(3*nip);
@@ -1041,8 +1032,9 @@ EightNodeQuad::getResponse(int responseID, Information &eleInfo)
     }
 
     return eleInfo.setVector(stressAtNodes);
+  }
 
-  } else if (responseID == 4) {
+  else if (responseID == 4) {
 
     // Loop over the integration points
     static Vector stresses(3*nip);
@@ -1059,8 +1051,8 @@ EightNodeQuad::getResponse(int responseID, Information &eleInfo)
 
     return eleInfo.setVector(stresses);
 
-  } else
-
+  }
+  else
     return -1;
 }
 
@@ -1104,11 +1096,12 @@ EightNodeQuad::setParameter(const char **argv, int argc, Parameter &param)
   return res;
 }
 
+
 int
 EightNodeQuad::updateParameter(int parameterID, Information &info)
 {
-    int res = -1;
-        int matRes = res;
+  int res = -1;
+  int matRes = -1;
   switch (parameterID) {
     case -1:
       return -1;
@@ -1247,7 +1240,7 @@ EightNodeQuad::setPressureLoadAtNodes()
   pressureLoad.Zero();
 
   if (pressure == 0.0)
-      return;
+    return;
 
   const Vector &node1 = theNodes[0]->getCrds();
   const Vector &node2 = theNodes[1]->getCrds();
