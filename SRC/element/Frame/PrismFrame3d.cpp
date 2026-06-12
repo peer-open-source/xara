@@ -455,6 +455,7 @@ PrismFrame3d::getInitialStiff()
   return basic_system->getInitialGlobalStiffMatrix(Matrix(ki)); // TODO
 }
 
+
 const Vector &
 PrismFrame3d::getResistingForce()
 {
@@ -518,8 +519,8 @@ PrismFrame3d::getResistingForce()
   }
 #endif
   // Subtract other external nodal loads ... P_res = P_int - P_ext
-  if (total_mass != 0.0)
-    wrapper.addVector(1.0, p_iner, -1.0);
+  // if (total_mass != 0.0)
+  //   wrapper.addVector(1.0, p_iner, -1.0);
 
   return wrapper;
 }
