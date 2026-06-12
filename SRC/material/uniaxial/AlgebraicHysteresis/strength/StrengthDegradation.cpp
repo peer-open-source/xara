@@ -32,34 +32,6 @@
 
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
-#if 0
-#include <api/runtimeAPI.h>
-
-static MapOfTaggedObjects theStrengthDegradationObjects;
-
-bool OPS_addStrengthDegradation(StrengthDegradation *newComponent)
-{
-  return theStrengthDegradationObjects.addComponent(newComponent);
-}
-
-StrengthDegradation *OPS_getStrengthDegradation(int tag)
-{
-  TaggedObject *theResult = theStrengthDegradationObjects.getComponentPtr(tag);
-  if (theResult == 0) {
-    opserr << "StrengthDegradation *getStrengthDegradation(int tag) - none found with tag: " << tag << endln;
-    return 0;
-  }
-  StrengthDegradation *theMat = (StrengthDegradation *)theResult;
-
-  return theMat;  
-}
-
-void
-OPS_ADD_RUNTIME_VXV(OPS_clearAllStrengthDegradation)
-{
-  theStrengthDegradationObjects.clearAll();
-}
-#endif
 
 StrengthDegradation::StrengthDegradation(int tag, int classTag)
   :MaterialState(tag,classTag)
