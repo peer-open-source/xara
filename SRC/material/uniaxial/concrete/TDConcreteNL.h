@@ -53,7 +53,7 @@
  //----------------------------------------------------------------------------------------------------------------------------
 
  //----------------------------------------------------------------------------------------------------------------------------
- // Disclaimer: This software is provided �as is�, without any warranties, expressed or implied. In no event shall the developers be liable for any claim, damages, or liability arising from or in connection with this software.
+ // Disclaimer: This software is provided "as is", without any warranties, expressed or implied. In no event shall the developers be liable for any claim, damages, or liability arising from or in connection with this software.
  //----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -106,8 +106,6 @@ class TDConcreteNL : public UniaxialMaterial
 	//Added by AMK for recording Creep and Mechanical Strain:
 	Response *setResponse(const char **argv, int argc,OPS_Stream &theOutput);
 	int getResponse(int responseID, Information &matInfo);
-    
- protected:
     
  private:
     void Tens_Envlp (double epsc, double &sigc, double &Ect);

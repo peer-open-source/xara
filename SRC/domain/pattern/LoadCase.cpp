@@ -99,109 +99,6 @@ LoadCase::addSP_Constraint(SP_Constraint *spConstraint, int pattern)
   return true;
 }
 
-bool 
-LoadCase::addNodalLoad(NodalLoad *load, int pattern)
-{
-    int nodTag = load->getNodeTag();
-    Node *res = domain.getNode(nodTag);
-    if (res == 0) {
-      opserr << "LoadCase::addNodalLoad() - no node with tag " 
-             << nodTag <<  " exists in the model, not adding the nodal load " 
-             << *load << "\n";
-      return false;
-    }
-
-    // now add it to the pattern
-    TaggedObject *thePattern = theLoadPatterns->getComponentPtr(pattern);
-    if (thePattern == nullptr) {
-      opserr << "LoadCase::addNodalLoad() - no pattern with tag "
-	     << pattern << " in the model, not adding the nodal load "  
-             << *load << "\n";
-
-      return false;
-    }
-
-    LoadPattern *theLoadPattern = (LoadPattern *)thePattern;
-    bool result = theLoadPattern->addNodalLoad(load);
-    if (result == false) {
-      opserr << "LoadCase::addNodalLoad() - pattern with tag " 
-             << pattern << " could not add the load " << *load 
-             << "\n";
-
-      return false;
-    }
-
-    load->setDomain(&domain);    // done in LoadPattern::addNodalLoad()
-    //domain.domainChange(); // a nodal load does not change the domain
-
-    return result;
-}    
-
-
-bool 
-LoadCase::addElementalLoad(ElementalLoad *load, int pattern)
-{
-  // now add it to the pattern
-  TaggedObject *thePattern = theLoadPatterns->getComponentPtr(pattern);
-  if (thePattern == nullptr) {
-    opserr << "LoadCase::addElementalLoad() - no pattern with tag " << pattern
-            << "exits in  the model, not adding the ele load " << *load << "\n";
-
-    return false;
-  }
-  LoadPattern *theLoadPattern = (LoadPattern *)thePattern;
-
-  bool result = theLoadPattern->addElementalLoad(load);
-  if (result == false) {
-    opserr << "LoadCase::addElementalLoad() - no pattern with tag " << 
-    pattern << "in  the model, not adding the ele load" << *load << "\n";
-    return false;
-  }
-
-
-  // load->setDomain(&domain); // done in LoadPattern::addElementalLoad()
-  domain.domainChange();
-  return result;
-}
-
-
-
-int
-LoadCase::removeSP_Constraint(int theNode, int theDOF, int loadPatternTag)
-{
-  SP_Constraint *theSP = nullptr;
-  bool found = false;
-  int spTag = 0;
-
-  {
-    LoadPattern *thePattern = this->getLoadPattern(loadPatternTag);
-    if (thePattern != nullptr) {
-      SP_ConstraintIter &theSPs = thePattern->getSPs();
-      while ((found == false) && ((theSP = theSPs()) != 0)) {
-        int nodeTag = theSP->getNodeTag();
-        int dof = theSP->getDOF_Number();
-        if (nodeTag == theNode && dof == theDOF) {
-          spTag = theSP->getTag();
-          found = true;
-        }
-      }
-    }
-  }
-
-  if (found == true)
-    theSP = domain.removeSP_Constraint(spTag);
-
-  // mark the domain has having changed regardless if SP constraint
-  // was there or not
-  domain.domainChange();
-
-  if (theSP != nullptr) {
-    delete theSP;
-    return 1;
-  }
-   
-  return 0;
-}
 
 LoadPattern *
 LoadCase::removeLoadPattern(int tag)
@@ -222,7 +119,7 @@ LoadCase::removeLoadPattern(int tag)
   // now set the Domain pointer for all loads and SP constraints 
   // in the loadPattern to be 0
   //
-  
+#if 0
   NodalLoad *theNodalLoad;
   NodalLoadIter &theNodalLoads = result->getNodalLoads();
   while ((theNodalLoad = theNodalLoads()) != nullptr) {
@@ -234,6 +131,7 @@ LoadCase::removeLoadPattern(int tag)
   while ((theElementalLoad = theElementalLoads()) != nullptr) {
     // theElementalLoad->setDomain(0);
   }
+#endif
 
   int numSPs = 0;
   SP_Constraint *theSP_Constraint;
@@ -251,53 +149,6 @@ LoadCase::removeLoadPattern(int tag)
   // finally return the load pattern
   return result;    
 }    
-
-
-NodalLoad *
-LoadCase::removeNodalLoad(int tag, int loadPattern)
-{
-  // remove the object from the container            
-  LoadPattern *theLoadPattern = this->getLoadPattern(loadPattern);
-    
-  // if not there return 0    
-  if (theLoadPattern == nullptr)
-    return nullptr;
-    
-  return theLoadPattern->removeNodalLoad(tag);
-}    
-
-
-ElementalLoad *
-LoadCase::removeElementalLoad(int tag, int loadPattern)
-{
-  // remove the object from the container            
-  LoadPattern *theLoadPattern = this->getLoadPattern(loadPattern);
-    
-  // if not there return nullptr    
-  if (theLoadPattern == nullptr)
-    return nullptr;
-    
-  return theLoadPattern->removeElementalLoad(tag);
-}    
-
-
-SP_Constraint *
-LoadCase::removeSP_Constraint(int tag, int loadPattern)
-{
-  // remove the object from the container            
-  LoadPattern *theLoadPattern = this->getLoadPattern(loadPattern);
-    
-  // if not there return 0    
-  if (theLoadPattern == 0)
-    return 0;
-    
-  SP_Constraint *theSP = theLoadPattern->removeSP_Constraint(tag);
-  if (theSP != 0)
-    domain.domainChange();
-
-  return theSP;
-}    
-
 
 
 LoadCase::PatternIterator &

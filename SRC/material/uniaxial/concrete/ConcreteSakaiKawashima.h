@@ -56,8 +56,6 @@ class ConcreteSakaiKawashima : public UniaxialMaterial
   
   void Print(OPS_Stream &, int flag) final;  
   
- protected:
-  
  private:
   // input
   double YMc;    // initial Stiffness

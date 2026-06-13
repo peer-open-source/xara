@@ -73,7 +73,6 @@ class CoulombDamperMaterial : public UniaxialMaterial {
     // AddingSensitivity:END
     // ///////////////////////////////////////////
 
-   protected:
    private:
     double trialStrain;
     double trialStrainRate;

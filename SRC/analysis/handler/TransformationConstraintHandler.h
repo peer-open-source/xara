@@ -56,8 +56,6 @@ class TransformationConstraintHandler : public ConstraintHandler
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &);
 
-  protected:
-    
   private:
     int enforceSPs();
     FE_Element 	**theFEs;

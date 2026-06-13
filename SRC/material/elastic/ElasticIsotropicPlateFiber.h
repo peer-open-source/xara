@@ -67,8 +67,6 @@ class ElasticIsotropicPlateFiber : public ElasticIsotropicMaterial
     const char *getType() const override;
     int getOrder() const override;
     
-  protected:
-
   private:
     static Vector sigma;	// Stress vector ... class-wide for returns
     static Matrix D;		// Elastic constants

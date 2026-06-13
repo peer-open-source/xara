@@ -17,13 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2008-03-05 20:21:37 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/groundMotion/GroundMotion.h,v $
-                                                                        
-                                                                        
-// File: ~/earthquake/GroundMotion.h
 // 
 // Written: fmk 
 // Created: 05/98
@@ -51,12 +44,13 @@ class GroundMotion : public MovableObject
 		 TimeSeries *velSeries, 
 		 TimeSeries *accelSeries,
 		 TimeSeriesIntegrator *theIntegrator = 0,
-		 double dTintegration = 0.01, double fact = 1.0);
+		 double dTintegration = 0.01, 
+     double fact = 1.0);
     
     GroundMotion(int classTag);
     virtual ~GroundMotion();
 
-    virtual double getDuration(void);
+    virtual double getDuration();
 
     virtual double getPeakAccel();
     virtual double getPeakVel();
@@ -70,11 +64,10 @@ class GroundMotion : public MovableObject
     void setIntegrator(TimeSeriesIntegrator *integrator);
     TimeSeries *integrate(TimeSeries *theSeries, double delta = 0.01); 
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
-    const TimeSeries *getAccelSeries(void) const {return theAccelSeries;}
+    const TimeSeries *getAccelSeries() const {return theAccelSeries;}
 	
     // AddingSensitivity:BEGIN //////////////////////////////////////////
     virtual double getAccelSensitivity(double time);
@@ -82,8 +75,6 @@ class GroundMotion : public MovableObject
     //    virtual int updateParameter(int parameterID, Information &info);
     // virtual int activateParameter(int parameterID);
     // AddingSensitivity:END ///////////////////////////////////////////
-
-  protected:
 
   private:
     TimeSeries *theAccelSeries;  // Ground acceleration

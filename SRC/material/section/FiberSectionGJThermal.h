@@ -80,8 +80,6 @@ class FiberSectionGJThermal : public FrameSection
 
   int setParameter(const char **argv, int argc, Parameter &param);
 
- protected:
-
  private:
     int numFibers, sizeFibers;                   // number of fibers in the section
   UniaxialMaterial **theMaterials; // array of pointers to materials

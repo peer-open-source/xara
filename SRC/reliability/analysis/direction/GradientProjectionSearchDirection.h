@@ -54,8 +54,6 @@ class GradientProjectionSearchDirection : public SearchDirection
 			     double g, const Vector &gradG);
   const Vector &getSearchDirection();
   
- protected:
-
  private:
   Vector searchDirection;
   StepSizeRule *theStepSizeRule;

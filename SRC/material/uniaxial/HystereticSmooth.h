@@ -83,8 +83,6 @@ public:
 	// AddingSensitivity:END ///////////////////////////////////////////
 
 
-protected:
-
 private:
 	/*** Material Properties ***/
 	double ka;  // Initial stiffness

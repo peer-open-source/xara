@@ -45,15 +45,16 @@
  -------------------------------*/
  // Detailed descriptions of the model and its implementation can be found in the following:
  // (1) Knaack, A.M., Kurama, Y.C. 2018. Modeling Time-Dependent Deformations: Application for Reinforced Concrete Beams with 
- //     Recycled Concrete Aggregates. ACI Structural J. 115, 175–190. doi:10.14359/51701153
+ //     Recycled Concrete Aggregates. ACI Structural J. 115, 175-190. doi:10.14359/51701153
  // (2) Knaack, A.M., 2013. Sustainable concrete structures using recycled concrete aggregate: short-term and long-term behavior
  //     considering material variability. PhD Dissertation, Civil and Environmental Engineering and Earth Sciences, University of Notre Dame, Notre Dame, Indiana, USA, 680 pp.
+ //
  // A manual describing the use of the model and sample files can be found at:
  // <https://data.mendeley.com/datasets/z4gxnhchky/3>
  //----------------------------------------------------------------------------------------------------------------------------
 
  //----------------------------------------------------------------------------------------------------------------------------
- // Disclaimer: This software is provided “as is”, without any warranties, expressed or implied. In no event shall the developers be liable for any claim, damages, or liability arising from or in connection with this software.
+ // Disclaimer: This software is provided "as is", without any warranties, expressed or implied. In no event shall the developers be liable for any claim, damages, or liability arising from or in connection with this software.
  //----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -107,8 +108,6 @@ class TDConcrete : public UniaxialMaterial
 	//Added by AMK for recording Creep and Mechanical Strain:
 	Response *setResponse(const char **argv, int argc,OPS_Stream &theOutput);
 	int getResponse(int responseID, Information &matInfo);
-    
- protected:
     
  private:
     void Tens_Envlp (double epsc, double &sigc, double &Ect);

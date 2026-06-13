@@ -147,8 +147,6 @@ class BeamColumnJoint2d : public Element
   int updateParameter (int parameterID, Information &info);
   
   
- protected:
-  
  private:
   
   // private methods

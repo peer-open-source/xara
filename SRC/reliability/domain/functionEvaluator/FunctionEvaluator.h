@@ -105,8 +105,6 @@ public:
 	virtual void setPerformFuncCoeffIter(PerformanceFunctionCoefficientIter*);
 	*/
 
-protected:
-
 private:
 
 	int numberOfEvaluations;	

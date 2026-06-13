@@ -51,8 +51,6 @@ public:
 
 	int		analyze(void);
 
-protected:
-
 private:
 	void	checkvals(long int, double);
 	double	SCISfunc(const Vector&, const Matrix&, double);

@@ -103,8 +103,6 @@ class CatenaryCable : public Element
 
     Vector getEnergyVector();
 
-  protected:
-    
   private:
     void compute_lambda0(void) ;
     void compute_projected_lengths(void) ;
@@ -114,7 +112,7 @@ class CatenaryCable : public Element
     void computeMassByIntegration();
     void computeMassCloughStyle();
     void computeMassEquivalentTruss();
-    // private attributes - a copy for each object of the class
+    // private attributes
     ID  connectedExternalNodes;     // contains the tags of the end nodes
 
     Vector *theLoad;    // pointer to the load vector P

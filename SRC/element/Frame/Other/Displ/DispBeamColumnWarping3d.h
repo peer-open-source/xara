@@ -100,8 +100,6 @@ class DispBeamColumnWarping3d : public Element
     int            commitSensitivity(int gradNumber, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     const Matrix &getInitialBasicStiff(void);
 

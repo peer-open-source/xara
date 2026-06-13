@@ -51,8 +51,6 @@ class DrainClough2Material : public DrainMaterial
   
   UniaxialMaterial *getCopy(void);
   
-  protected:
-
   private:
 
 };

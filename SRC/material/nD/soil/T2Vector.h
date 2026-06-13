@@ -74,8 +74,6 @@ public:
   int isZero(void) const;
   int Zero(void);
 
-protected:
-
 private:
   Vector theT2Vector;
   Vector theDeviator;

@@ -58,8 +58,6 @@ class DVParameter : public Parameter
   virtual int sendSelf(int commitTag, Channel &theChannel);  
   virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
- protected:
-  
  private:
   DesignVariable *myDV;
   Parameter *myParam;

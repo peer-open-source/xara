@@ -83,8 +83,6 @@ class HystereticMaterial : public UniaxialMaterial
   //by SAJalali
   double getEnergy() { return CenergyD; }
 
- protected:
-  
  private:
   // Pinching parameters
   double pinchX;		// Deformation pinching

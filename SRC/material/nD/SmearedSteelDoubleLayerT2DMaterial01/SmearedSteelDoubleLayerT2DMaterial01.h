@@ -75,8 +75,6 @@ class SmearedSteelDoubleLayerT2DMaterial01 : public NDMaterial
 
 	  void Print(OPS_Stream& s, int flag = 0);
 
-  protected:
-
   private:
 	  
 	  int setTrialStrainPrincipalDirection(const Vector& v);									// calculate trial stress and tangent 

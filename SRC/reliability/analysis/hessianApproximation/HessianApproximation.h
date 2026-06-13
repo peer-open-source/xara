@@ -53,8 +53,6 @@ public:
 					       const Vector &searchDirection,
 					       double g_new,
 					       const Vector &gradG_new) = 0;
-protected:
-
 private:
 
 };

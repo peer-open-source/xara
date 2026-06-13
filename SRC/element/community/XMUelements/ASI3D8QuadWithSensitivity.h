@@ -103,8 +103,6 @@ class ASI3D8QuadWithSensitivity: public Element
     double get_Gauss_p_c(short order, short point_numb);
     double get_Gauss_p_w(short order, short point_numb);
 
-  protected:
-
   private:
     constexpr static int NEN = 8,          // number of element nodes
                          NIP = 0;          // NOTE: 4 and 8 were being used????

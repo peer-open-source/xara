@@ -92,14 +92,12 @@ public:
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
     
-protected:
-
 private:
     // private methods
     void setUp();
     double sgn(double x);
     
-    // private attributes - a copy for each object of the class
+    // private attributes
     ID connectedExternalNodes;          // contains the tags of the end nodes
     Node *theNodes[2];                  // array of nodes
     FrictionModel *theFrnMdl;           // pointer to friction model

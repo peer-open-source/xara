@@ -89,8 +89,6 @@ class EPPGapMaterial : public UniaxialMaterial
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     double commitStrain;
     double trialStrain;

@@ -86,8 +86,6 @@ class DowelType : public UniaxialMaterial
         FEM_ObjectBroker &theBroker);
     void Print(OPS_Stream &s, int flag =0);
 
-  protected:
-
   private:
     // 11 parameters for hysteresis
     double fi;      // reference intercept of pinching line

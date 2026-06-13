@@ -102,8 +102,6 @@ class PyLiq1 : public PySimple1
   
   void Print(OPS_Stream &s, int flag =0);
   
-  protected:
-    
   private:
   // Residual p (other parameters in PySimple1 base class)
   double pRes;

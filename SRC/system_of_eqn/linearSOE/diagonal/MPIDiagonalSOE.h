@@ -69,8 +69,6 @@ class MPIDiagonalSOE : public LinearSOE
 
     friend class MPIDiagonalSolver;
     
-  protected:
-    
   private:
     int actualNeighbors;
     //

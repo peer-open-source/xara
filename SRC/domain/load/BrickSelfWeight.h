@@ -17,11 +17,9 @@ class BrickSelfWeight : public ElementalLoad
 
     const Vector &getData(int &type, double loadFactor);
 
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel,  FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag =0);       
-
-  protected:
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);
 	
   private:
     static Vector data;

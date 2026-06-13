@@ -54,8 +54,6 @@ class StiffnessDegradation : public MaterialState
   virtual StiffnessDegradation *getCopy(void) = 0;
   virtual StiffnessDegradation *getCopy(UniaxialMaterial *u);
   
- protected:
-  
  private:
 };
 

@@ -41,8 +41,6 @@ class ParameterIter
 
     virtual Parameter *operator()(void) =0;
 
-  protected:
-    
   private:
 
 };

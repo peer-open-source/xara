@@ -57,8 +57,6 @@ public:
 	int removeGradientExpression(int rvTag);
 	const char* getGradientExpression(int rvTag);
 
-protected:
-
 private:
 	char *theExpression;
 

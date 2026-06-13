@@ -47,7 +47,6 @@ public:
   
   int setDamageWrapper(Tcl_Interp*, std::string);
 
-protected:
 private:
   UniaxialMaterial *theMaterial;
 

@@ -60,8 +60,6 @@ class SymSparseLinSOE : public LinearSOE
 
     friend class SymSparseLinSolver;
 
-  protected:
-    
   private:
     int size;            // order of A
     int nnz;             // number of non-zeros in A

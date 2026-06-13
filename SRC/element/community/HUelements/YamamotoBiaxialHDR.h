@@ -51,7 +51,7 @@ class YamamotoBiaxialHDR : public Element
   ~YamamotoBiaxialHDR();
   
   // method to get class type
-  const char *getClassType() const {return "YamamotoBiaxialHDR";};
+  const char *getClassType() const {return "YamamotoBiaxialHDR";}
   
   // public methods to obtain information about dof & connectivity    
   int getNumExternalNodes() const;
@@ -82,15 +82,12 @@ class YamamotoBiaxialHDR : public Element
   // public methods for element output
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-  int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
 
-  void Print(OPS_Stream &s, int flag = 0);    
+  void Print(OPS_Stream &s, int flag);    
   
   // public methods for element recorder
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &eleInfo);
-  
- protected:
   
  private:
   //-------------------------------------------------------------------------------
@@ -99,15 +96,12 @@ class YamamotoBiaxialHDR : public Element
   const double &getStress(int direction);
   const double &getTangent(int direction);
   const double &getInitialTangent(int direction);
-  //-------------------------------------------------------------------------------
-
-  // private methods
   void setUp();
+  //-------------------------------------------------------------------------------
   
-  // private attributes - a copy for each object of the class
+  // private attributes
   ID connectedExternalNodes;        // contains the tags of the end nodes
   Node *theNodes[2];                // array of nodes
-  //  UniaxialMaterial **theMaterials;  // material‚ðnSpringŒÂ
 
   // parameters
   //  int nSpring=1;

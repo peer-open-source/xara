@@ -54,8 +54,6 @@ public:
 
     void setReliabilityDomain(ReliabilityDomain* theRelDom);
 
-protected:
-
 private:
 
 	// Private data members

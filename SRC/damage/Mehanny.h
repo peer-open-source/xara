@@ -75,8 +75,6 @@ public:
   // method for this damage model to update itself according to its new parameters
   void update(void) {return;}
   
- protected:
-  
  private:
   int processData (double PDefo);
   // Model parameters

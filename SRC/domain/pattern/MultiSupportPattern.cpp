@@ -73,7 +73,7 @@ MultiSupportPattern::applyLoad(double time)
 {
   SP_Constraint *sp;
   SP_ConstraintIter &theIter = this->getSPs();
-  while ((sp = theIter()) != 0) {
+  while ((sp = theIter()) != nullptr) {
     sp->applyConstraint(time);
   }
 }
@@ -119,19 +119,6 @@ MultiSupportPattern::getMotion(int tag)
     return 0;
   else
     return theMotions[loc];
-}
-
-
-bool
-MultiSupportPattern::addNodalLoad(NodalLoad *)
-{
-  return false;
-}
-
-bool
-MultiSupportPattern::addElementalLoad(ElementalLoad *)
-{
-  return false;
 }
 
 
@@ -213,7 +200,7 @@ MultiSupportPattern::recvSelf(int commitTag, Channel &theChannel,
   }
   
   // clear out the all the components in the current load pattern
-  if (theMotions != 0) {
+  if (theMotions != nullptr) {
     for (int i=0; i<numMotions; i++)
       if (theMotions[i] != 0)
         delete theMotions[i];
@@ -268,7 +255,7 @@ MultiSupportPattern::recvSelf(int commitTag, Channel &theChannel,
       theMotionTags[i] = tag;
       theMotions[i] = theMotion;
 
-      //      this->addMotion(*theMotion, tag);
+      // this->addMotion(*theMotion, tag);
     }    
   }
 
@@ -278,22 +265,19 @@ MultiSupportPattern::recvSelf(int commitTag, Channel &theChannel,
 void 
 MultiSupportPattern::Print(OPS_Stream &s, int flag)
 {
-  s << "MultiSupportPattern  tag: " << this->getTag() 
-    << "   numMotions: " << numMotions << "\n";
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"" << this->getClassType();// << "\", ";
+    s << "}";
+  }
+  else {
+    s << "MultiSupportPattern  tag: " << this->getTag() 
+      << "   numMotions: " << numMotions << "\n";
 
-  SP_Constraint *sp;
-  SP_ConstraintIter &theIter = this->getSPs();
-  while ((sp = theIter()) != 0)
-    sp->Print(s, flag);
-  
-}
-
-LoadPattern *
-MultiSupportPattern::getCopy()
-{
-  MultiSupportPattern *theCopy = new MultiSupportPattern(this->getTag());
-  for (int i=0; i<numMotions; i++) {
-    theCopy->addMotion(*theMotions[i], theMotionTags[i]);
-  }  
-  return theCopy;
+    SP_Constraint *sp;
+    SP_ConstraintIter &theIter = this->getSPs();
+    while ((sp = theIter()) != 0)
+      sp->Print(s, flag);
+  }
 }

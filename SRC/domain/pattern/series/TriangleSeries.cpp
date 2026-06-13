@@ -38,85 +38,6 @@
 
 #include <math.h>
 
-#include <elementAPI.h>
-#define OPS_Export 
-
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_TriangleSeries)
-{
-    // Pointer to a uniaxial material that will be returned
-    TimeSeries *theSeries = 0;
-
-    int numRemainingArgs = OPS_GetNumRemainingInputArgs();
-
-    if (numRemainingArgs < 3) {
-        opserr << "WARNING: invalid num args Triangle <tag?> tStart tFinish period <-phaseShift shift> <-factor cFactor> <-zeroShift shift>\n";
-        return 0;
-    }
-
-    int tag = 0;      // default tag = 0
-    double dData[6];
-    dData[3] = 0.0;   // default phaseShift = 0.0
-    dData[4] = 1.0;   // default cFactor = 1.0
-    dData[5] = 0.0;   // default zeroShift = 0.0
-    int numData = 0;
-
-    // get tag if provided
-    if (numRemainingArgs == 4 || numRemainingArgs == 6 || numRemainingArgs == 8 || numRemainingArgs == 10) {
-        numData = 1;
-        if (OPS_GetIntInput(&numData, &tag) != 0) {
-            opserr << "WARNING invalid series tag in Triangle tag?" << endln;
-            return 0;
-        }
-        numRemainingArgs -= 1;
-    }
-
-    numData = 3;
-    if (OPS_GetDouble(&numData, dData) != 0) {
-        opserr << "WARNING invalid double data in Triangle Series with tag: " << tag << endln;
-        return 0;
-    }
-    numRemainingArgs -= 3;
-
-    // parse the optional args
-    while (numRemainingArgs > 1) {
-      const char *argvS = OPS_GetString();
-
-        if (strcmp(argvS,"-shift") == 0 || strcmp(argvS,"-phaseShift") == 0) {
-            numData = 1;
-            if (OPS_GetDouble(&numData, &dData[3]) != 0) {
-                opserr << "WARNING invalid phase shift in Triangle Series with tag?" << tag << endln;
-                return 0;
-            }
-        } else if (strcmp(argvS,"-factor") == 0) {
-            numData = 1;
-            if (OPS_GetDouble(&numData, &dData[4]) != 0) {
-                opserr << "WARNING invalid factor in Triangle Series with tag?" << tag << endln;
-                return 0;
-            }
-        } else if (strcmp(argvS,"-zeroShift") == 0) {
-            numData = 1;
-            if (OPS_GetDouble(&numData, &dData[5]) != 0) {
-                opserr << "WARNING invalid zero shift in Triangle Series with tag?" << tag << endln;
-                return 0;
-            }
-        } else {
-            opserr << "WARNING unknown option: " << argvS << "  in Triangle Series with tag?" << tag << endln;      
-            return 0;
-        }
-        numRemainingArgs -= 2;
-    }
-
-    theSeries = new TriangleSeries(tag, dData[0], dData[1], dData[2], dData[3], dData[4], dData[5]);
-
-    if (theSeries == 0) {
-        opserr << "WARNING ran out of memory creating Triangle Series with tag: " << tag << "\n";
-        return 0;
-    }
-
-    return theSeries;
-}
-
 
 TriangleSeries::TriangleSeries(int tag,
     double startTime, 
@@ -228,7 +149,8 @@ int TriangleSeries::recvSelf(int commitTag, Channel &theChannel,
 }
 
 
-void TriangleSeries::Print(OPS_Stream &s, int flag)
+void
+TriangleSeries::Print(OPS_Stream &s, int flag)
 {
     s << "Triangle Series" << endln;
     s << "\tFactor: " << cFactor << endln;

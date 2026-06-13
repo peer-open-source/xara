@@ -67,8 +67,6 @@ public:
   
   int analyze(void);
   
- protected:
-  
  private:
   
   ReliabilityDomain *theReliabilityDomain;

@@ -89,8 +89,6 @@ conditional);
     const Vector &getdedh(void); // MHS hack
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
 
     int numSections;

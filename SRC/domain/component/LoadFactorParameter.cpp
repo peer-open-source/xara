@@ -17,17 +17,16 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.9 $
-// $Date: 2008-08-26 15:43:43 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/component/LoadFactorParameter.cpp,v $
+
 
 #include <classTags.h>
 #include <LoadFactorParameter.h>
-#include <LoadPattern.h>
+#include <StaticPattern.h>
 
-LoadFactorParameter::LoadFactorParameter(int passedTag, LoadPattern *thePattern)
-  :Parameter(passedTag,1976), myPattern(thePattern), currentValue(0.0)
+LoadFactorParameter::LoadFactorParameter(int passedTag, StaticPattern *thePattern)
+  : Parameter(passedTag,1976)
+  , myPattern(thePattern)
+  , currentValue(0.0)
 {
 
 }
@@ -42,7 +41,6 @@ int
 LoadFactorParameter::update(int newValue)
 {
   currentValue = newValue;
-
   return 0;
 }
 
@@ -68,7 +66,7 @@ LoadFactorParameter::activate(bool active)
 */
 
 double
-LoadFactorParameter::getValue(void)
+LoadFactorParameter::getValue()
 {
   return currentValue;
 }
@@ -80,7 +78,7 @@ LoadFactorParameter::setValue(double newValue)
 }
 
 bool
-LoadFactorParameter::isImplicit(void)
+LoadFactorParameter::isImplicit()
 {
   return true;
 }
@@ -94,13 +92,13 @@ LoadFactorParameter::getSensitivity(int index)
 }
 
 double
-LoadFactorParameter::getPerturbation(void)
+LoadFactorParameter::getPerturbation()
 {
     return 0.005;
 }
 
 int 
-LoadFactorParameter::getPointerTag(void) 
+LoadFactorParameter::getPointerTag() 
 {
   return myPattern->getTag();
 }

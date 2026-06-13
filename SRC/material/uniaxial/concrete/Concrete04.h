@@ -76,8 +76,6 @@ class Concrete04 : public UniaxialMaterial
   int getMaterialType(void);
   // LOWES: end
   
- protected:
-  
  private:
   /*** Material Properties ***/
   double fpc;    // Compressive strength

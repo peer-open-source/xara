@@ -115,8 +115,6 @@ class NEESData: public FE_Datastore
     // the commitState method
     int commitState(int commitTag);        
     
-  protected:
-
   private:
     char         *dataBase;
     NEES_table    *tables;

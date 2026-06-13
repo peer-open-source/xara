@@ -74,8 +74,6 @@ class ThreePointCurve : public LimitCurve
 
 	int revertToStart(void);        
 
-  protected:
-    
   private:
 	// Associated beam-colum element information
 	int eleTag;			// tag for associated beam column element

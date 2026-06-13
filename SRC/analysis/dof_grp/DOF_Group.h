@@ -126,13 +126,13 @@ class DOF_Group: public TaggedObject
    protected:
     void  addLocalM_Force(const Vector &Udotdot, double fact = 1.0);     
 
-    // protected variables - a copy for each object of the class            
+    // protected variables            
     Vector *unbalance;
     Matrix *tangent;
     Node   *myNode;
     
   private:
-    // private variables - a copy for each object of the class        
+    // private variables        
     ID 	myID;
     int numDOF;
 

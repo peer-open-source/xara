@@ -41,8 +41,6 @@ class DOF_GroupGraph: public Graph
     DOF_GroupGraph(AnalysisModel &theModel);
     ~DOF_GroupGraph();
 
-  protected:
-    
   private:
     AnalysisModel &myModel;
 };

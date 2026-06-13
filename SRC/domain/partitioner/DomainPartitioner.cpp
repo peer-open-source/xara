@@ -579,6 +579,7 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
       }    
     }  
 
+#if 0
     ElementalLoadIter &theLoads = theLoadPattern->getElementalLoads();
     ElementalLoad *theLoad;
     while ((theLoad = theLoads()) != 0) {
@@ -598,6 +599,7 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
         }
       }   
     }
+#endif
   }
 
   // add the single point constraints, 
@@ -653,15 +655,14 @@ DomainPartitioner::partition(int numParts, bool usingMain, int mainPartitionTag,
     for (int i=0; i<numPartitions; i++) {
       int partition = theConstrainedNodesPartitions(i);
       if (partition != mainPartition) {
-	Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition);
-	if (numPartitions == 1) 
-	  myDomain->removeMP_Constraint(mpPtr->getTag());
-	int res = theSubdomain->addMP_Constraint(mpPtr);
-	if (res < 0)
-	  opserr << "DomainPartitioner::partition() - failed to add MP Constraint\n";
+        Subdomain *theSubdomain = myDomain->getSubdomainPtr(partition);
+        if (numPartitions == 1) 
+          myDomain->removeMP_Constraint(mpPtr->getTag());
+        int res = theSubdomain->addMP_Constraint(mpPtr);
+        if (res < 0)
+          opserr << "DomainPartitioner::partition() - failed to add MP Constraint\n";
         // else
           // opserr << "DomainPartitioner::partition() - add MP constraint for c = " << constrained << " r = " << retained << " to partition # " << partition <<  "\n";
-          
       }
     }
   }

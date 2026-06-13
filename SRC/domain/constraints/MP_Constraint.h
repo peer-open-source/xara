@@ -88,8 +88,6 @@ class MP_Constraint : public DomainComponent
     
     virtual void Print(OPS_Stream &s, int flag =0);
 
-  protected:
-    
   private:
     int nodeRetained;        // to identify the retained node
     int nodeConstrained;     // to identify  the constrained node

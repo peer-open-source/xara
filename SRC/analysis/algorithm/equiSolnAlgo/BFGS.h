@@ -45,7 +45,7 @@ class BFGS: public EquiSolnAlgo
 
     void Print(OPS_Stream &, int flag) const final;    
     
-  protected:
+
     
   private:
     void BFGSUpdate(IncrementalIntegrator *theIntegrator,

@@ -82,8 +82,6 @@ class Steel01 : public UniaxialMaterial
 	//by SAJalali
 	virtual double getEnergy() { return Energy; }
 
- protected:
-    
  private:
 	// Material Properties
     double fy;  // Yield stress

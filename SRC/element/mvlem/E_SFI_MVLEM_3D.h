@@ -1,5 +1,5 @@
 // Code written/implemented by:	Kristijan Kolozvari (kkolozvari@fullerton.edu)
-//								Carlos N. López
+//								Carlos N. Lï¿½pez
 //								Leonardo M. Massone
 //								 
 // User documentation available at: https://kkolozvari.github.io/E-SFI-MVLEM-3D/
@@ -21,7 +21,7 @@
 //    1........2 |-> x
 //
 // Reference:
-// Kristijan Kolozvari, Carlos N. López, Leonardo M. Massone (2023), “Efficient Three-dimensional Shear-flexure Interaction Model for Reinforced Concrete Walls”, Engineering Structures
+// Kristijan Kolozvari, Carlos N. Lï¿½pez, Leonardo M. Massone (2023), ï¿½Efficient Three-dimensional Shear-flexure Interaction Model for Reinforced Concrete Wallsï¿½, Engineering Structures
 //
 // Source: /usr/local/cvs/OpenSees/SRC/element/mvlem/E_SFI_MVLEM_3D.cpp
 //
@@ -94,8 +94,6 @@ public:
 	int getResponse(int responseID, Information& eleInformation);
 
 	//Response **theResponses;			// pointer to material responses needed for Concrete
-
-protected:
 
 private:
 

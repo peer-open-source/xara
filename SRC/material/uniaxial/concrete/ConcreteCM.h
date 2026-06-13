@@ -88,8 +88,6 @@ public:
 	int    commitSensitivity        (double strainGradient, int gradNumber, int numGrads);
 	// AddingSensitivity:END ///////////////////////////////////////////
 
-protected:
-
 private:
 
 	// Input parameters

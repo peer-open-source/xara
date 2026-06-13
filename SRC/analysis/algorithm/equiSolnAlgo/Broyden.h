@@ -56,8 +56,6 @@ class Broyden: public EquiSolnAlgo
 
     void Print(OPS_Stream &, int flag) const final;    
     
-  protected:
-    
   private:
     void BroydenUpdate( IncrementalIntegrator *theIntegrator,
                         LinearSOE *theSOE,

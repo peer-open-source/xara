@@ -75,8 +75,6 @@ class DistributedDiagonalSOE : public LinearSOE
 
     friend class DistributedDiagonalSolver;
     
-  protected:
-    
   private:
     int size;
     double *A, *B, *X;

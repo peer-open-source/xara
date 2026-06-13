@@ -84,8 +84,6 @@ class ModIMKPeakOriented : public UniaxialMaterial
     int getResponse (int responseID, Information &matInformation);    
 
    
-  protected:
-   
   private:
        
     // Subroutines to be used inside the material

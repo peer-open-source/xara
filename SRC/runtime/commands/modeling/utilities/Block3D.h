@@ -33,8 +33,6 @@ public:
   // generate elements
   const ID &getElementNodes(int i, int j, int k);
 
- protected:
-
  private:
 
   int nx; // number of elements x-direction

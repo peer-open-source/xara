@@ -60,8 +60,6 @@ class MyRCM: public GraphNumberer
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
     
-  protected:
-    
   private:
     int numVertex;
     ID *theRefResult;

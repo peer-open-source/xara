@@ -121,8 +121,6 @@ public:
     // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial stresses.    
     // friend class PyLiq1;
     // friend class TzLiq1;
-protected:
-
 private:
   // user supplied 
 	static int matCount;

@@ -74,8 +74,6 @@ double Gzx, double rho = 0.0);
     const Vector& getStressSensitivity(int gradIndex,
 				       bool conditional);
 
- protected:
-
   private:
     static Vector sigma;	// Stress vector ... class-wide for returns
     static Matrix D;		// Elastic constants

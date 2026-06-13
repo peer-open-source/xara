@@ -68,8 +68,6 @@ public:
         FEM_ObjectBroker &theBroker);
     
     void Print(OPS_Stream &s, int flag = 0);
-    
-protected:
 
 private:
     double muSlow;     // coefficient of friction at low velocity

@@ -74,8 +74,6 @@ public:
         FEM_ObjectBroker &theBroker);
     void Print(OPS_Stream &s, int flag = 0);
 
-protected:
-
 private:
     // material parameters
     double Ei;          // initial stiffness of material

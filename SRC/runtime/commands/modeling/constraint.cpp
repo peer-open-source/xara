@@ -24,7 +24,6 @@
 #include <vector>
 #include <GroupSO3.h>
 
-#include <runtimeAPI.h>
 #include <Vector3D.h>
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
@@ -128,8 +127,6 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
           return TCL_ERROR;
 
         } else {
-//        Tcl(buffer, "%d ", theSP->getTag());
-//        Tcl_AppendResult(interp, buffer, NULL);
           Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(theSP->getTag()));
         }
       }

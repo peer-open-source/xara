@@ -127,8 +127,6 @@ public:
 		this->_NDMGetType = getType;
 		this->_NDMGetOrder = getOrder;
 	}
-protected:
-
 private:
 	NDM_GetCopy _NDMGetCopy;
 	NDM_GetCopy_Type _NDMGetCopy_Type;

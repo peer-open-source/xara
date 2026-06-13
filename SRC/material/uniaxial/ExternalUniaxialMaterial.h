@@ -113,8 +113,6 @@ public:
 		return _Print(flag);
 	};
 
-protected:
-
 private:
 	UMSetTrialStrain _SetTrialStrain;
 	UMGetStress _GetStress;

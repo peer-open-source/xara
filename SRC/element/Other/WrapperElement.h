@@ -68,8 +68,6 @@ class WrapperElement : public Element
   virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   virtual void Print(OPS_Stream &s, int flag =0);    
   
- protected:
-  
  private:
   char *funcName;
   eleObject *theEle;

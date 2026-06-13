@@ -106,10 +106,8 @@ public:
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
     
-protected:
-
 private:
-    // private attributes - a copy for each object of the class
+    // private attributes
     int numDIM;                     // actuator in 1d, 2d or 3d domain
     int numDOF;                     // number of dof for actuator
     ID  connectedExternalNodes;     // contains the tags of the end nodes

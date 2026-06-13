@@ -52,8 +52,6 @@ class KrylovAccelerator2 : public Accelerator
   int recvSelf(int commitTag, Channel &theChannel, 
                FEM_ObjectBroker &theBroker);
 
- protected:
-  
  private:
   // Current dimension of Krylov subspace
   int dimension;

@@ -90,8 +90,6 @@ class Beam3dThermalAction : public ElementalLoad
 	       FEM_ObjectBroker &theBroker);
   void Print(OPS_Stream &s, int flag =0);       
   
- protected:
-  
  private:
   double Temp[25]; //Initial Temperature for using plain patterns
   double TempApp[25]; // Temperature applied

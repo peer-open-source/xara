@@ -67,8 +67,6 @@ class GSA_Recorder: public Recorder
     int restart(void);    
     int flush(void);    
     
-  protected:
-    
   private:	
     Domain *theDomain;
     int ndm, ndf;

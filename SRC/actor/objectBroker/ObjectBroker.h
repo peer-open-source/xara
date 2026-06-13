@@ -47,9 +47,6 @@ class ObjectBroker
   public:
     ObjectBroker();
     virtual ~ObjectBroker();
-
-    
-  protected:
     
   private:
 

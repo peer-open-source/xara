@@ -46,8 +46,6 @@ class FullGenLinLapackSolver : public FullGenLinSolver
 
     virtual double getDeterminant() override;
     
-  protected:
-
   private:
     int *iPiv;
     int sizeIpiv;

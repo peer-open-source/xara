@@ -60,8 +60,6 @@ class SymBandEigenSOE : public EigenSOE
     
     friend class SymBandEigenSolver;
 
-  protected:
-    
   private:
     int size;
     int numSuperD;

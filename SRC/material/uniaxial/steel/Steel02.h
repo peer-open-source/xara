@@ -82,8 +82,6 @@ class Steel02 : public UniaxialMaterial
     //by SAJalali
     virtual double getEnergy() { return EnergyP; };
 
- protected:
-    
  private:
 	 double EnergyP; //by SAJalali
 	 // matpar : STEEL FIXED PROPERTIES

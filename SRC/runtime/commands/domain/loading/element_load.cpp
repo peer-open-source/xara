@@ -22,6 +22,8 @@
 #include <vector>
 #include <cstddef>
 
+#include <StaticPattern.h>
+
 #include <ElementalLoad.h>
 #include <FrameLoad.h>
 #include <Beam2dPointLoad.h>
@@ -61,7 +63,7 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
   ArgumentTracker<Position> tracker;
 
 
-  LoadPattern *pattern = builder->getCurrentPattern<StaticPattern>();
+  StaticPattern *pattern = builder->getCurrentPattern<StaticPattern>();
 
   // eleLoad FrameForce $shape -n $n -offset $r -pattern $pattern -basis $basis -ele $ele
 
@@ -103,12 +105,18 @@ TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
                << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
-      pattern = builder->getDomain()->getLoadPattern(ptag);
-      if (pattern == nullptr) {
+      LoadPattern* genpat = builder->getDomain()->getLoadPattern(ptag);
+      if (genpat == nullptr) {
         opserr << OpenSees::PromptValueError 
                << "pattern " << argv[i+1] << " not found\n";
         return TCL_ERROR;
       }
+      if (genpat->getClassTag() != StaticPattern::PATTERN_TAG_StaticPattern) {
+        opserr << OpenSees::PromptValueError 
+               << "pattern " << argv[i+1] << " is not a StaticPattern\n";
+        return TCL_ERROR;
+      }
+      pattern = static_cast<StaticPattern*>(genpat);
       i++;
     }
     else if (strcmp(argv[i], "-basis") == 0) {

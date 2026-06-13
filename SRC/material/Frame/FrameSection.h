@@ -190,7 +190,8 @@ public:
 
   virtual 
   OpenSees::MatrixND<12,12>
-  getFullTangent(State state) noexcept {
+  getFullTangent(State state) noexcept 
+  {
     const Matrix& ks = (state == State::Init)
                       ? this->getInitialTangent()
                       : this->getSectionTangent();

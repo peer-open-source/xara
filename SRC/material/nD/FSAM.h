@@ -104,8 +104,6 @@ public:
 	const Vector &getCommittedStress(void); 
 	const Vector &getCommittedStrain(void);  
 
-protected:
-
 private:
 
 	// Determine trial stress and tangent

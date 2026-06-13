@@ -100,8 +100,6 @@ class DispBeamColumn3dThermal : public Element
     int            commitSensitivity(int gradNumber, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     const Matrix &getInitialBasicStiff(void);
 

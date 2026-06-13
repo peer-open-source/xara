@@ -48,8 +48,6 @@ class StandardEigenAlgo : public EigenAlgorithm
   
   virtual void Print(OPS_Stream &s, int flag) override;
   
- protected:
-  
  private:
   
 };

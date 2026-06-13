@@ -99,8 +99,6 @@ class Tri31 : public Element
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-  protected:
-    
   private:
 
     constexpr static int NDM = 2;      // number of dimensions

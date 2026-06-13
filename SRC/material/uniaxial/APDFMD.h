@@ -34,8 +34,6 @@ class APDFMD : public UniaxialMaterial
    
     void Print(OPS_Stream &s, int flag =0);
    
- protected:
-   
  private:
 
      double findstress1(double targetStrain, double K, double mq, double yi, double rezaAA, double rezaNN);

@@ -52,8 +52,6 @@ class Beam2dPartialUniformLoad : public ElementalLoad
   
   const Vector &getSensitivityData(int gradNumber);
   
- protected:
-  
  private:
   double wTrans_a;
   double wTrans_b;

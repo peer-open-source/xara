@@ -32,8 +32,6 @@ class PARDISOSymLinSolver : public LinearSOESolver
     int recvSelf(int cTag, 
 		 Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
-  protected:
-
   private:
 	  PARDISOSymLinSOE *theSOE;
 };

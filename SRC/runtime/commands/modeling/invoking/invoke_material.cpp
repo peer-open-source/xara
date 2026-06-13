@@ -141,6 +141,11 @@ MaterialTest_Commit(ClientData clientData, Tcl_Interp *interp,
 {
   NDMaterial *theMaterial = (NDMaterial*)clientData;
   const int status = theMaterial->commitState();
+  if (status != 0) {
+    opserr << OpenSees::PromptValueError 
+           << "failed to commit state\n";
+    return TCL_ERROR;
+  }
   return TCL_OK;
 }
 

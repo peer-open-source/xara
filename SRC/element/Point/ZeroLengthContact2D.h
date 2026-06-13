@@ -144,9 +144,6 @@ class ZeroLengthContact2D: public Element
   int getResponse(int responseID, Information &eleInformation);
 
 
- protected:
-
-
  private:
   //int    directionID;
   ID     connectedExternalNodes;         // contains the tags of the end nodes

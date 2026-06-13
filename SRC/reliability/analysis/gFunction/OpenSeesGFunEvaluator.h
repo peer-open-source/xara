@@ -72,8 +72,6 @@ class OpenSeesGFunEvaluator : public GFunEvaluator
   double	getG2(double g, double littleDt);
   */
   
- protected:
-  
  private:
 
   int setTclRandomVariables(const Vector &x);

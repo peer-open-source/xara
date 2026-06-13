@@ -63,8 +63,6 @@ public:
 	int getRVTag(void);
 	int getParamTag(void);
 
-protected:
-
 private:
 	int rvIndex;
 

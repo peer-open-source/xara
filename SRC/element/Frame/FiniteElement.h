@@ -37,22 +37,20 @@ public:
     FiniteElement(int tag, int classtag)
       : Element(tag, classtag),
         connectedExternalNodes(nen),
-        p_iner(nen*ndf),
         parameterID(0),
-        e_state(State::None),
-        cMass(1)
+        e_state(State::None)
     {
       for (int i=0; i<nen; i++)
         theNodes[i] = nullptr;
     }
 
-    FiniteElement(int tag, int classtag, std::array<int, nen>& nodes, int mass_flag)
+    FiniteElement(int tag, int classtag, 
+                  std::array<int, nen>& nodes, 
+                  int mass_flag=0)
       : Element(tag, classtag),
         connectedExternalNodes(nen),
-        p_iner(nen*ndf),
         parameterID(0),
-        e_state(State::None),
-        cMass(mass_flag)
+        e_state(State::None)
     {
       for (int i=0; i<nen; i++) {
         connectedExternalNodes(i) = nodes[i];
@@ -65,87 +63,27 @@ public:
     const ID& getExternalNodes() final {
       return connectedExternalNodes;
     }
+
     Node **getNodePtrs() final {return theNodes.data();}
     int  getNumExternalNodes() const final {return nen;}
     int  getNumDOF() final {return nen*ndf;}
-    void zeroLoad() override {
-    // TODO: need to reconcile with BasicFrame3d::zeroLoad()
-      p_iner.Zero();
-    }
 
-    // addInertia(a)
-    // addDamping()
-    virtual VectorND<nen*ndf>
-    getInertia(VectorND<nen*ndf>& accel) {
-      VectorND<nen*ndf> zero{};
-      return zero;
-    }
-
-    virtual int 
-    getLumpedInertia(VectorND<nen*ndf>& m) {
-      return -1;
-    }
-
-    virtual int addResidual(VectorND<nen*ndf>& R, double c, int flag) {
-      return 0;
-    }
-
-    virtual int addTangent(MatrixND<nen*ndf,nen*ndf>&k, double c, int flag) {
-      if (flag == 1) {
-        k.addMatrix(this->getMass(), c);
-      }
-      if (flag == 2) {
-        k.addMatrix(this->getTangentStiff(), c);
-      }
-      if (flag == 3) {
-        k.addMatrix(this->getInitialStiff(), c);
-      }
-      return 0;
-    }
-
-    void
-    setDomain(Domain *theDomain) final
-    {
-      if (theDomain == nullptr) {
-        for (int i=0; i<nen; i++)
-          theNodes[i] = nullptr;
-        return;
-      }
-
-      for (int i=0; i<nen; i++) {
-        theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
-        if (theNodes[i] == nullptr) {
-          opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " 
-                 << connectedExternalNodes(i) << " does not exist\n";
-          return;
-        }
-
-        if (theNodes[i]->getNumberDOF() != ndf) {
-          opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " << connectedExternalNodes(i) 
-                  << " has incorrect number of DOF\n";
-          opserr << " " << theNodes[i]->getNumberDOF() << " should be " << ndf << endln;
-          return;
-        }
-      }
-
-      if (theDomain != nullptr)
-        this->Element::link(*theDomain);
-
-      if (this->setState(State::Init) != 0)
-        return;
-
-//    if (this->setState(State::Pres) != 0)
-//      return;
-    }
-
+    void setDomain(Domain *) final;
 
     const Vector &
-    getResistingForceIncInertia()
+    getResistingForceIncInertia() override
     {
       static VectorND<nen*ndf> P_{0.0};
       static Vector P(P_);
+
+      //
+      // 1) static residual
+      //
       P = this->getResistingForce(); 
       
+      //
+      // 2) Rayleigh damping
+      //
       // add the damping forces if rayleigh damping
       if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
         P.addVector(1.0, this->getRayleighDampingForces(), 1.0);
@@ -153,20 +91,10 @@ public:
       // if (total_mass == 0.0)
       //   return P;
 
-      // add inertia forces from element mass
-
-      // if (cMass == 0)  {
-      //   // take advantage of lumped mass matrix
-      //   double m = total_mass/double(nen);
-      //   for (int i=0; i<nen; i++) {
-      //     const Vector& accel = theNodes[i]->getTrialAccel();
-      //     for (int j=0; j<3; j++) 
-      //       P[i*ndf+j] += m * accel(j);
-      //   }
-      // } else  
+      //
+      // 3) Inertial forces
+      //
       {
-        // TODO!!!! update for nen>2, ndf != 6
-        // use matrix-vector mult against consistent mass matrix
         VectorND<nen*ndf> accel{};
         for (int i=0; i<nen; i++) {
           const Vector& trialAccel = theNodes[i]->getTrialAccel();
@@ -206,6 +134,7 @@ public:
       return 0;
     }
 
+
 protected:
 
 #ifdef FEFT
@@ -244,19 +173,19 @@ protected:
       }
     }
 
-    //
-    std::array<Node*, nen> theNodes;
+protected:
+  //
+  std::array<Node*, nen> theNodes;
 
-    ID  connectedExternalNodes;    
+  ID  connectedExternalNodes;
 
-    Vector p_iner;
-
-    int  parameterID;
+  int  parameterID;
 
 private:
-    State  e_state;
-    int    cMass;
-    static MatrixND<ndf*nen,ndf*nen> D; // Damping matrix
-
+  State  e_state;
+  static MatrixND<ndf*nen,ndf*nen> D; // Damping matrix
+  static MatrixND<ndf*nen,ndf*nen> M; // Mass matrix
+  static MatrixND<ndf*nen,ndf*nen> K; // Stiffness matrix
 };
 
+#include "FiniteElement.tpp"

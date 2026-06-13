@@ -62,8 +62,6 @@ class PlasticDamageMaterial : public FedeasMaterial
 
     int invokeSubroutine(int ist);
     
- protected:
-    
  private:
     
 };

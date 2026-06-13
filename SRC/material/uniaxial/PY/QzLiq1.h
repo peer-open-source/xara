@@ -74,8 +74,6 @@ class QzLiq1 : public QzSimple1
     void Print(OPS_Stream &s, int flag =0);
 
    
-  protected:
-    
   private:
 
 	// Committed and trial values for q, z, and ru

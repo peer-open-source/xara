@@ -60,6 +60,8 @@
 #include <ShadowActorSubdomain.h>
 #include <actor/message/Message.h>
 
+#include <StaticPattern.h>
+
 int ShadowSubdomain::count                             = 0; // MHS
 int ShadowSubdomain::numShadowSubdomains               = 0;
 ShadowSubdomain **ShadowSubdomain::theShadowSubdomains = 0;
@@ -563,7 +565,8 @@ LoadPattern *ShadowSubdomain::removeLoadPattern(int loadTag)
   return result;
 }
 
-NodalLoad *ShadowSubdomain::removeNodalLoad(int loadTag, int loadPattern)
+NodalLoad *
+ShadowSubdomain::removeNodalLoad(int loadTag, int loadPattern)
 {
   // remove the object from the container
   TaggedObject *mc = theShadowLPs->getComponentPtr(loadPattern);
@@ -571,7 +574,12 @@ NodalLoad *ShadowSubdomain::removeNodalLoad(int loadTag, int loadPattern)
     return 0;
 
   LoadPattern *theLoadPattern = (LoadPattern *)mc;
-  NodalLoad *res              = theLoadPattern->removeNodalLoad(loadTag);
+
+  if (theLoadPattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+    return nullptr;
+  }
+  StaticPattern *theStaticPattern = (StaticPattern *)theLoadPattern;
+  NodalLoad *res = theStaticPattern->removeNodalLoad(loadTag);
   if (res == 0)
     return 0;
 
@@ -583,8 +591,8 @@ NodalLoad *ShadowSubdomain::removeNodalLoad(int loadTag, int loadPattern)
   return res;
 }
 
-ElementalLoad *ShadowSubdomain::removeElementalLoad(int loadTag,
-                                                    int loadPattern)
+ElementalLoad *
+ShadowSubdomain::removeElementalLoad(int loadTag, int loadPattern)
 {
   // remove the object from the container
   TaggedObject *mc = theShadowLPs->getComponentPtr(loadPattern);
@@ -592,7 +600,11 @@ ElementalLoad *ShadowSubdomain::removeElementalLoad(int loadTag,
     return 0;
 
   LoadPattern *theLoadPattern = (LoadPattern *)mc;
-  ElementalLoad *res          = theLoadPattern->removeElementalLoad(loadTag);
+  if (theLoadPattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+    return nullptr;
+  }
+  StaticPattern *theStaticPattern = (StaticPattern *)theLoadPattern;
+  ElementalLoad *res          = theStaticPattern->removeElementalLoad(loadTag);
   if (res == 0)
     return 0;
 

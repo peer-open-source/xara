@@ -66,8 +66,6 @@ class DistributedDisplacementControl : public StaticIntegrator
     int setProcessID(int processTag);
     int setChannels(int numChannels, Channel **theChannels);
     
-  protected:
-    
   private:
     int processID;         // processID
     Channel **theChannels; // Channel array

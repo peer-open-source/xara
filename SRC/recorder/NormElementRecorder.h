@@ -73,9 +73,6 @@ class NormElementRecorder: public Recorder
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
     
-  protected:
-
-    
   private:	
     int initialize(void);
 

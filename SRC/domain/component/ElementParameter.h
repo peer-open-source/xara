@@ -48,8 +48,6 @@ class ElementParameter : public Parameter
   virtual int sendSelf(int commitTag, Channel &theChannel);  
   virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
- protected:
-  
  private:
   Domain *theDomain;
   ID eleTags; // for each ele a tuple: eleTags, args index;

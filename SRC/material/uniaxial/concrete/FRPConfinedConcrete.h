@@ -71,8 +71,6 @@ class FRPConfinedConcrete : public UniaxialMaterial
 
   int getVariable(const char *varName, Information &theInfo);
   
- protected:
-  
  private:
   double fpc1;
   double fpc2;

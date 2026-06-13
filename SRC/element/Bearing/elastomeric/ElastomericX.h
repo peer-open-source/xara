@@ -88,14 +88,12 @@ public:
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInfo);
     
-protected:
-
 private:
     // Private methods
     void setUp();
     double sgn(double x);
     
-    // Private attributes - a copy for each object of the class
+    // Private attributes
     ID connectedExternalNodes;         // Contains the tags of the end nodes
     Node *theNodes[2];                 // Array of nodes
     

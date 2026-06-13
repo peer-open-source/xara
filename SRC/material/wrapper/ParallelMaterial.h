@@ -72,8 +72,6 @@ class ParallelMaterial : public UniaxialMaterial
 			  OPS_Stream &theOutputStream);
     int getResponse(int responseID, Information &matInformation);
 
-  protected:
-    
   private:
     double trialStrain;
     double trialStrainRate;

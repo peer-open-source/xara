@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.6 $
-// $Date: 2007-04-02 23:41:13 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/NewtonHallM.h,v $
-                                                                        
-                                                                        
 #ifndef NewtonHallM_h
 #define NewtonHallM_h
 
@@ -35,7 +30,6 @@
 // NewtonHallM. NewtonHallM is a class which performs a modified Newton-Raphson-Hall
 // solution algorithm in solving the equations
 // 
-// What: "@(#)NewtonHallM.h, revA"
 
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
@@ -50,14 +44,11 @@ class NewtonHallM: public EquiSolnAlgo
   int solveCurrentStep(void);    
     
   virtual int sendSelf(int commitTag, Channel &);
-  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
   void Print(OPS_Stream &, int flag) const final;    
   
   int getNumIterations() const override;
-  
- protected:
-  
-  
+
  private:
   int numIterations;
 

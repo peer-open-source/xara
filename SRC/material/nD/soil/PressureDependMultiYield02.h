@@ -124,8 +124,6 @@ public:
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-protected:
-
 private:
   // user supplied
 	static int matCount;

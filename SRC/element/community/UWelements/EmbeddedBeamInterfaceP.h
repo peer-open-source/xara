@@ -90,8 +90,6 @@ public:
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
 
-protected:
-
 private:
 
     int EBIP_numNodes, EBIP_numDOF, m_numSolidDOF;

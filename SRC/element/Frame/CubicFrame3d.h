@@ -103,8 +103,6 @@ public:
   // TaggedObject
   void Print(OPS_Stream& s, int flag) final;
 
-protected:
-
 private:
   void getBasicStiff(Matrix& kb, int initial = 0);
 private:

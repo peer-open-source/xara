@@ -30,7 +30,9 @@
 #include <TimeSeriesIntegrator.h>
 #include <ModelRegistry.h>
 
-extern TimeSeries *TclSeriesCommand(ClientData clientData, Tcl_Interp *interp,
+
+extern TimeSeries *TclSeriesCommand(ClientData clientData, 
+                                    Tcl_Interp *interp,
                                     TCL_Char * const arg);
 
 extern TimeSeriesIntegrator *TclDispatch_newSeriesIntegrator(ClientData clientData,
@@ -39,13 +41,15 @@ extern TimeSeriesIntegrator *TclDispatch_newSeriesIntegrator(ClientData clientDa
 
 static int
 TclCommand_newGroundMotion(ClientData, Tcl_Interp*,
-                       int argc,
-                       TCL_Char ** const argv,
-                       MultiSupportPattern *thePattern);
+                            Tcl_Size argc,
+                            TCL_Char ** const argv,
+                            MultiSupportPattern *thePattern);
 
 int
-TclCommand_addGroundMotion(ClientData clientData, Tcl_Interp *interp,
-                           int argc, TCL_Char ** const argv)
+TclCommand_addGroundMotion(ClientData clientData, 
+                           Tcl_Interp *interp,
+                           Tcl_Size argc, 
+                           TCL_Char ** const argv)
 
 {
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -60,22 +64,26 @@ TclCommand_addGroundMotion(ClientData clientData, Tcl_Interp *interp,
 
 
 static int
-TclCommand_newGroundMotion(ClientData clientData, Tcl_Interp* interp, int argc,
-                       TCL_Char ** const argv, MultiSupportPattern *thePattern)
+TclCommand_newGroundMotion(ClientData clientData, 
+                           Tcl_Interp* interp, 
+                           Tcl_Size argc,
+                           TCL_Char ** const argv, 
+                           MultiSupportPattern *thePattern)
 {
 
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
 
   // make sure at least one other argument to contain integrator
   if (argc < 4) {
-    opserr << OpenSees::PromptValueError << "invalid command - want: groundMotion tag type <args>\n";
-    opserr << "           valid types: AccelRecord and Interpolated \n";
+    opserr << OpenSees::PromptValueError 
+           << "invalid command - want: groundMotion tag type <args>\n";
     return TCL_ERROR;
   }
 
   int gMotionTag;
   if (Tcl_GetInt(interp, argv[1], &gMotionTag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid tag: groundMotion tag  type <args>\n";
+    opserr << OpenSees::PromptValueError 
+           << "invalid tag: groundMotion tag  type <args>\n";
     return TCL_ERROR;
   }
 
@@ -107,9 +115,9 @@ TclCommand_newGroundMotion(ClientData clientData, Tcl_Interp* interp, int argc,
           return TCL_ERROR;
         }
         currentArg++;
-
-      } else if ((strcmp(argv[currentArg], "-vel") == 0) ||
-                 (strcmp(argv[currentArg], "-velocity") == 0)) {
+      }
+      else if ((strcmp(argv[currentArg], "-vel") == 0) ||
+               (strcmp(argv[currentArg], "-velocity") == 0)) {
 
         currentArg++;
         velSeries = TclSeriesCommand(clientData, interp, argv[currentArg]);
@@ -230,18 +238,20 @@ TclCommand_newGroundMotion(ClientData clientData, Tcl_Interp* interp, int argc,
   }
 
   else {
-    opserr << OpenSees::PromptValueError << "unknown pattern type " << argv[1];
-    opserr << " - want: pattern patternType " << gMotionTag;
-    opserr << " \t valid types: Plain, UniformExcitation \n";
+    opserr << OpenSees::PromptValueError 
+           << "unknown pattern type " 
+           << argv[1]
+           << ". valid types: Plain, UniformExcitation \n";
     return TCL_ERROR;
   }
 
   // now add the load pattern to the modelBuilder
   if (theMotion != nullptr) {
     if (thePattern->addMotion(*theMotion, gMotionTag) < 0) {
-      opserr << OpenSees::PromptValueError << "could not add ground motion with tag " << gMotionTag;
-      opserr << " to pattern\n ";
-      delete theMotion; // free the memory, pattern destroys the time series
+      opserr << OpenSees::PromptValueError 
+             << "could not add ground motion with tag " << gMotionTag
+             << " to pattern\n ";
+      delete theMotion;
       return TCL_ERROR;
     }
   }

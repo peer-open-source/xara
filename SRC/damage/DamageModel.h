@@ -77,8 +77,6 @@ class DamageModel :  public TaggedObject, public MovableObject
 			 FEM_ObjectBroker &theBroker) = 0;
     virtual void Print(OPS_Stream &s, int flag =0) =0;
     
-  protected:
-    
   private:
 
 };

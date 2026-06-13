@@ -109,8 +109,6 @@ class Channel
 		    ID &theID, 
 		    ChannelAddress *theAddress =0) =0;      
 
-  protected:
-    
   private:
     static int numChannel;
     int tag;

@@ -55,8 +55,6 @@ public:
 	Vector findLimitStateSurface(int space, double g, Vector Direction, Vector thePoint);
 
 
-protected:
-
 private:
 	ReliabilityDomain *theReliabilityDomain;
 	ProbabilityTransformation *theProbabilityTransformation;

@@ -39,13 +39,7 @@ public:
     bool addLoadPattern(LoadPattern *);
     LoadPattern* getLoadPattern(int tag);
     LoadPattern* removeLoadPattern(int tag);
-    bool addSP_Constraint(SP_Constraint *, int loadPatternTag); 
-    bool addNodalLoad(NodalLoad *,         int loadPatternTag);
-    bool addElementalLoad(ElementalLoad *, int loadPatternTag);
-    NodalLoad     *removeNodalLoad(int tag, int loadPattern);
-    ElementalLoad *removeElementalLoad(int tag, int loadPattern);
-    SP_Constraint *removeSP_Constraint(int tag, int loadPattern);
-    int            removeSP_Constraint(int nodeTag, int dof, int loadPatternTag);
+    bool addSP_Constraint(SP_Constraint *, int loadPatternTag);
 
     using PatternStorage = MapOfTaggedObjects;
     using PatternIterator = TaggedIterator<LoadPattern, PatternStorage>;

@@ -108,10 +108,8 @@ class TPB1D : public Element
 
   void updateDir (const Vector& x, const Vector& y);
   
- protected:
-  
  private:
-  // private attributes - a copy for each object of the class
+  // private attributes
   ID  connectedExternalNodes;         // contains the tags of the end nodes
   int dimension;                      // = 1, 2, or 3 dimensions
   int numDOF;	                      // number of dof for TPB1D

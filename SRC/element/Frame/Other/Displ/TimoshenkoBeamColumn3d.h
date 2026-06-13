@@ -94,8 +94,6 @@ public:
   int            commitSensitivity(int gradNumber, int numGrads);
   // AddingSensitivity:END ///////////////////////////////////////////
   
-protected:
-  
 private:
   void getBasicStiff(Matrix &kb, int initial = 0);    
   

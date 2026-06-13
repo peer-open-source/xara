@@ -71,8 +71,6 @@ class Bond_SP01 : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag =0);
     
-  protected:
-    
   private:
     /*** anchorage condition ***/
     double db;				// rebar diameter

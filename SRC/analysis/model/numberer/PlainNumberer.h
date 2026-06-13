@@ -57,8 +57,6 @@ class PlainNumberer: public DOF_Numberer
     virtual int recvSelf(int commitTag, Channel &theChannel, 
 			 FEM_ObjectBroker &theBroker);
 
-  protected:
-
   private:
     
 };

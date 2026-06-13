@@ -81,8 +81,6 @@ public:
     
     void Print(OPS_Stream &s, int flag) final;
     
-protected:
-    
 private:
     double alphaI;
     double alphaF;

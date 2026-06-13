@@ -51,8 +51,6 @@ class DrainBilinearMaterial : public DrainMaterial
   
   UniaxialMaterial *getCopy(void);
 
-  protected:
-
   private:
 
 };

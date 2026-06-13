@@ -59,8 +59,6 @@ class PARDISOGenLinSOE : public LinearSOE
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
 	friend class PARDISOGenLinSolver;
-  protected:
-    
   private:
     int size;            // order of A
     int nnz;             // number of non-zeros in A

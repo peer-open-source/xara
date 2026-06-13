@@ -41,8 +41,6 @@ class DrainHardeningMaterial : public DrainMaterial
 	DrainHardeningMaterial(void);
     virtual ~DrainHardeningMaterial();
 
-  protected:
-
   private:
 
 };

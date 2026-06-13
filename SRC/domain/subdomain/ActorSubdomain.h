@@ -54,9 +54,6 @@ class ActorSubdomain: public Subdomain, public Actor
     virtual int  updateTimeDt(void);    
     virtual int  barrierCheck(int res);    
 
-  protected:
-
-    
   private:
     ID msgData;
     Vector *lastResponse;

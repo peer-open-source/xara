@@ -46,6 +46,7 @@
 #include <NodalLoad.h>
 #include <ElementalLoad.h>
 #include <LoadPattern.h>
+#include <StaticPattern.h>
 #include <Parameter.h>
 #include <Response.h>
 
@@ -690,22 +691,30 @@ Domain::addNodalLoad(NodalLoad *load, int pattern)
     Node *res = this->getNode(nodTag);
     if (res == 0) {
       opserr << "Domain::addNodalLoad() - no node with tag " << nodTag << 
-	" exists in the model, not adding the nodal load "  << *load << endln;
-	return false;
+      " exists in the model, not adding the nodal load "  << *load << endln;
+      return false;
     }
 
     // now add it to the pattern
     TaggedObject *thePattern = theLoadPatterns->getComponentPtr(pattern);
     if (thePattern == nullptr) {
       opserr << "Domain::addNodalLoad() - no pattern with tag "
-	     << pattern << " in the model, not adding the nodal load "  
-             << *load << "\n";
+            << pattern << " in the model, not adding the nodal load "  
+                  << *load << "\n";
 
       return false;
     }
 
     LoadPattern *theLoadPattern = (LoadPattern *)thePattern;
-    bool result = theLoadPattern->addNodalLoad(load);
+    if (theLoadPattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+      opserr << "Domain::addNodalLoad() - pattern with tag " << pattern
+             << " is not a StaticPattern, not adding the nodal load " 
+             << *load << "\n";
+      return false;
+    }
+    StaticPattern *theStaticPattern = (StaticPattern *)theLoadPattern;
+
+    bool result = theStaticPattern->addNodalLoad(load);
     if (result == false) {
       opserr << "Domain::addNodalLoad() - pattern with tag " 
              << pattern << " could not add the load " << *load 
@@ -724,27 +733,34 @@ Domain::addNodalLoad(NodalLoad *load, int pattern)
 bool 
 Domain::addElementalLoad(ElementalLoad *load, int pattern)
 {
-    // now add it to the pattern
-    TaggedObject *thePattern = theLoadPatterns->getComponentPtr(pattern);
-    if (thePattern == nullptr) {
-      opserr << "Domain::addElementalLoad() - no pattern with tag " << pattern
-             << "exits in  the model, not adding the ele load " << *load << endln;
+  // now add it to the pattern
+  TaggedObject *thePattern = theLoadPatterns->getComponentPtr(pattern);
+  if (thePattern == nullptr) {
+    opserr << "Domain::addElementalLoad() - no pattern with tag " << pattern
+            << "exits in  the model, not adding the ele load " << *load << endln;
 
-      return false;
-    }
-    LoadPattern *theLoadPattern = (LoadPattern *)thePattern;
+    return false;
+  }
+  LoadPattern *theLoadPattern = (LoadPattern *)thePattern;
 
-    bool result = theLoadPattern->addElementalLoad(load);
-    if (result == false) {
-      opserr << "Domain::addElementalLoad() - no pattern with tag " << 
-      pattern << "in  the model, not adding the ele load" << *load << endln;
-      return false;
-    }
+  if (theLoadPattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+    opserr << "Domain::addElementalLoad() - pattern with tag " << pattern
+           << " is not a StaticPattern, not adding the ele load " << *load << endln;
+    return false;
+  }
+  StaticPattern *theStaticPattern = (StaticPattern *)theLoadPattern;
+
+  bool result = theStaticPattern->addElementalLoad(*this, load);
+  if (result == false) {
+    opserr << "Failed to add elemental load to pattern with tag " << pattern
+           << " in the model, not adding the ele load " << *load << endln;
+    return false;
+  }
 
 
-    // load->setDomain(this); // done in LoadPattern::addElementalLoad()
-    this->domainChange();
-    return result;
+  // load->setDomain(this); // done in LoadPattern::addElementalLoad()
+  this->domainChange();
+  return result;
 }
 
 
@@ -1097,7 +1113,7 @@ Domain::removeLoadPattern(int tag)
     // now set the Domain pointer for all loads and SP constraints 
     // in the loadPattern to be 0
     //
-    
+#if 0
     NodalLoad *theNodalLoad;
     NodalLoadIter &theNodalLoads = result->getNodalLoads();
     while ((theNodalLoad = theNodalLoads()) != nullptr) {
@@ -1109,13 +1125,13 @@ Domain::removeLoadPattern(int tag)
     while ((theElementalLoad = theElementalLoads()) != nullptr) {
       // theElementalLoad->setDomain(0);
     }
-
+#endif
     int numSPs = 0;
     SP_Constraint *theSP_Constraint;
     SP_ConstraintIter &theSP_Constraints = result->getSPs();
     while ((theSP_Constraint = theSP_Constraints()) != nullptr) {
-	numSPs++;
-	// theSP_Constraint->setDomain(0);
+      numSPs++;
+      // theSP_Constraint->setDomain(0);
     }
 
     // mark the domain has having changed if numSPs > 0
@@ -1137,8 +1153,13 @@ Domain::removeNodalLoad(int tag, int loadPattern)
   // if not there return 0    
   if (theLoadPattern == nullptr)
     return nullptr;
+
+  if (theLoadPattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+    return nullptr;
+  }
+  StaticPattern *theStaticPattern = (StaticPattern *)theLoadPattern;
     
-  return theLoadPattern->removeNodalLoad(tag);
+  return theStaticPattern->removeNodalLoad(tag);
 }    
 
 
@@ -1151,8 +1172,12 @@ Domain::removeElementalLoad(int tag, int loadPattern)
   // if not there return nullptr    
   if (theLoadPattern == nullptr)
     return nullptr;
-    
-  return theLoadPattern->removeElementalLoad(tag);
+  
+  if (theLoadPattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
+    return nullptr;
+  }
+  StaticPattern *theStaticPattern = (StaticPattern *)theLoadPattern;
+  return theStaticPattern->removeElementalLoad(tag);
 }    
 
 

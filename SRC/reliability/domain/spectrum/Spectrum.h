@@ -47,8 +47,6 @@ public:
 	virtual double getMaxFrequency() = 0;
 	virtual double getAmplitude(double frequency) = 0;
 
-protected:
-
 private:
 
 };

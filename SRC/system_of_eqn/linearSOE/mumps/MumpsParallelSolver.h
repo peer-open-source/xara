@@ -72,8 +72,6 @@ class MumpsParallelSolver : public LinearSOESolver
 
   int setLinearSOE(MumpsParallelSOE &theSOE);
 
- protected:
-
  private:
 
   int initializeMumps(void);

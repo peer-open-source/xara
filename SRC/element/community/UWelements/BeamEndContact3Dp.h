@@ -87,8 +87,6 @@ class BeamEndContact3Dp : public Element
 	int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
 
-  protected:
-
   private:
 
     // member functions

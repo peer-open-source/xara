@@ -72,8 +72,6 @@ public:
 	const Vector& getStress();
 	const Vector& getStrain();
 
-protected:
-
 private:
 
 	int setTrialStrainPrincipalDirection(const Vector& v);									// calculate trial stress and tangent

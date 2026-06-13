@@ -62,8 +62,6 @@ class Vertex: public TaggedObject
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   
-  protected:
-    
   private:
     int myRef;
     double myWeight;

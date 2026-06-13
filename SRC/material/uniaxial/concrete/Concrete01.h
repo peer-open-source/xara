@@ -81,8 +81,6 @@ class Concrete01 : public UniaxialMaterial
   //by SAJalali
   double getEnergy() { return EnergyP; }
 
- protected:
-
  private:
   /*** Material Properties ***/
   double fpc;    // Compressive strength

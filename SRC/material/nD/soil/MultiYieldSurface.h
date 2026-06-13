@@ -40,8 +40,6 @@ public:
   // friend ostream & operator<< (ostream & os, const MultiYieldSurface & );  
   // friend istream & operator>> (istream & is, MultiYieldSurface & );
 
-protected:
-
 private:
   double theSize;
   Vector theCenter;  

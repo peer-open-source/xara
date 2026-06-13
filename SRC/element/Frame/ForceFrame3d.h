@@ -87,6 +87,10 @@ public:
     return this->BasicFrame3d::addLoad(theLoad, loadFactor);
   }
 
+  // bool hasMass() const final {
+  //   return (mass_flag != 0) || use_density;
+  // }
+
   /*
   const Vector &getResistingForceIncInertia();
   int addInertiaLoadToUnbalance(const Vector &accel); 
@@ -135,21 +139,12 @@ public:
   };
   
   enum : int {
-#if BASIC_TRANSFORM == 0
-    inx = -12, //  0
-    iny = -12, //  1
-    inz = -12, //  2
-    imx = -12, //  3
-#endif
     imy =   3, //  4
     imz =   1, //  5
     iwx =   6, //
     //
     jnx =   0, //  6
-#if BASIC_TRANSFORM == 0
-    jny = -12, //  7
-    jnz = -12, //  8
-#endif
+
     jmx =   5, //  9
     jmy =   4, // 10
     jmz =   2, // 11
@@ -174,12 +169,6 @@ public:
   // Functions
   //
   int update01();
-  int update02();
-  // int updateMixed02();
-  // int solveMixed02(const VectorND<NBV> &v_trial,
-  //                 VectorND<NBV> &q_pres,
-  //                 std::array<SectionState, NIP> &trial,
-  //                 double L) noexcept;
   int getInitialFlexibility(MatrixND<NBV,NBV> &Fe);
   int getInitialDeformations(Vector &v0);
 

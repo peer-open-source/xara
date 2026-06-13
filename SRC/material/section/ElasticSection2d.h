@@ -75,8 +75,6 @@ class ElasticSection2d: public FrameSection
 
   virtual int getIntegral(Field field, State state, double&) const override final;
   
- protected:
-  
  private:
   
   double E, A, I;

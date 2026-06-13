@@ -57,8 +57,6 @@ class ActorPetscSOE
     ~ActorPetscSOE();
     int run(void);
     
-  protected:
-    
   private:
     MPI_Comm theComm;
     PetscSOE *theSOE;  // the local portion of the SOE

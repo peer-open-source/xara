@@ -50,8 +50,6 @@ class ElementStateParameter : public Parameter
   int sendSelf(int commitTag, Channel &) override;  
   int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
- protected:
-  
  private:
   double currentValue;
 

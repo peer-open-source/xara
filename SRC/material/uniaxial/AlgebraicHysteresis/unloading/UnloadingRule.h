@@ -54,8 +54,6 @@ class UnloadingRule : public MaterialState
     virtual UnloadingRule *getCopy(void) = 0;
     virtual UnloadingRule *getCopy(UniaxialMaterial *u);
 
-  protected:
-    
   private:
 };
 

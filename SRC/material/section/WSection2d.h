@@ -66,8 +66,6 @@ class WSection2d : public SectionForceDeformation
 	       FEM_ObjectBroker &theBroker);
   void Print(OPS_Stream &s, int flag = 0);
   
- protected:
-  
  private:
   
   NDMaterial **theFibers;

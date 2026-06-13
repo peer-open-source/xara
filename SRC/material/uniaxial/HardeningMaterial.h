@@ -35,34 +35,37 @@
 class HardeningMaterial : public UniaxialMaterial
 {
   public:
-    HardeningMaterial(int tag, double E, double sigmaY,
-		      double K, double H, double eta = 0.0);
+    HardeningMaterial(int tag, 
+                      double E, double sigmaY,
+                      double K, double H, 
+                      double eta = 0.0,
+                      double rho = 0.0
+                    );
     HardeningMaterial();
     ~HardeningMaterial();
 
-    const char *getClassType(void) const {return "HardeningMaterial";};
+    const char *getClassType(void) const {return "HardeningMaterial";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void) {return E;};
+    double getStrain();          
+    double getStress();
+    double getTangent();
+    double getInitialTangent() {return E;};
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     
     // AddingSensitivity:BEGIN //////////////////////////////////////////
-    int setParameter (const char **argv, int argc, Parameter &param);
-    int    updateParameter          (int parameterID, Information &info);
+    int setParameter (const char **argv, int argc, Parameter &);
+    int    updateParameter          (int parameterID, Information &);
     int    activateParameter        (int parameterID);
     double getStressSensitivity     (int gradIndex, bool conditional);
     double getTangentSensitivity    (int gradIndex);
@@ -70,14 +73,13 @@ class HardeningMaterial : public UniaxialMaterial
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     // Material parameters
     double E;        // Elastic modulus
     double sigmaY;   // Yield stress
     double Hiso;     // Isotropic hardening parameter
     double Hkin;     // Kinematic hardening parameter
+    double density;  // Mass per unit volume
 
     // Committed history variables
     double CplasticStrain;    // Committed plastic strain

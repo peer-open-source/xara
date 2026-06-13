@@ -125,8 +125,6 @@ class TwentySevenNodeBrick: public Element
     Response *setResponse (const char **argv, int argc);
     int getResponse (int responseID, Information &eleInformation);
 
-  protected:
-
   private:
     // private attributes - a copy for each object of the class
 

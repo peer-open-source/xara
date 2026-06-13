@@ -73,8 +73,6 @@ class TzLiq1 : public TzSimple1 {
     void Print(OPS_Stream &s, int flag =0);
 
    
-  protected:
-    
   private:
 
 	// Committed and trial values for t, z, and ru

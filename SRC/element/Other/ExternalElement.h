@@ -155,8 +155,6 @@ class ExternalElement : public Element
 		this->_Ele_GetResponse = GetResponse;
 		this->_Ele_SetResponse = SetResponse;
 	}
-  protected:
-    
   private:
 	  Ele_GetClassType _Ele_GetClassType;
 	  Ele_GetNumExternalNodes _Ele_GetNumExternalNodes;

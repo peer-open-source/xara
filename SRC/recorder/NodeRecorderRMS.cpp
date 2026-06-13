@@ -697,7 +697,7 @@ NodeRecorderRMS::initialize(void)
   //
 
   char outputData[256];
-  char dataType[256];
+  char dataType[32];
 
   if (dataFlag == NodeData::DisplTrial) {
     strcpy(dataType,"D");

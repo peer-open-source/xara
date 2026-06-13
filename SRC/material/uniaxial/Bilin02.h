@@ -74,8 +74,6 @@ class Bilin02 : public UniaxialMaterial
  
   void Print(OPS_Stream &s, int flag =0);
  
- protected:
- 
  private:
   //my functions
   void interPoint(double& xInt, double& yInt, double x1,double y1,double m1,double x2,double y2,double m2);

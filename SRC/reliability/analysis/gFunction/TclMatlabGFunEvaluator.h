@@ -18,8 +18,6 @@ public:
 	int		evaluate_g(const Vector &passed_x);
 	double	get_g();
 
-protected:
-
 private:
 	double g;
 	Tcl_Interp *theTclInterp;

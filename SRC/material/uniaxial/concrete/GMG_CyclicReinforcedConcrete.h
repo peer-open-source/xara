@@ -74,8 +74,6 @@ public:
 	void Print(OPS_Stream &s, int flag = 0);
 
 
-protected:
-
 private:
 
 	void splineparam(double MtoRref, double dpeakpos, double dcappose, double dpeakneg, double dcapneg);

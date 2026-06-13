@@ -50,8 +50,6 @@ public:
 	double getAmplitude(double frequency);
 
 
-protected:
-
 private:
 	double minFreq;
 	double maxFreq;

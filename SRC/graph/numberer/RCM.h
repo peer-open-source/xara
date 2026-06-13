@@ -58,8 +58,6 @@ class RCM: public GraphNumberer
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
     
-  protected:
-    
   private:
     
     int numVertex;

@@ -67,8 +67,6 @@ class DiagonalSOE : public LinearSOE
     friend class DiagonalSolver;    
     friend class DiagonalDirectSolver;
     
-  protected:
-    
   private:
     int size;
     double *A, *B, *X;

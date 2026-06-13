@@ -55,8 +55,6 @@ class MaxNodeDispRecorder: public Recorder
 
     int restart(void);    
     
-  protected:
-    
   private:	
     ID theNodes;
     Vector maxDisp;

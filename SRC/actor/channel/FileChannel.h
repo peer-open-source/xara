@@ -104,10 +104,7 @@ class FileChannel : public Channel
 	void closeFile();
 	int setCommitStep(int commitTag);   
 
-	
-  protected:
-    
-    
+
   private:
     FILE * theFile;
     char fileNameBase[200];

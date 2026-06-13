@@ -66,8 +66,6 @@ class ElasticIsotropicThreeDimensional : public ElasticIsotropicMaterial
     
     const Vector& getStressSensitivity(int gradIndex, bool conditional) override;
 
- protected:
-
   private:
     static Vector sigma;	// Stress vector ... class-wide for returns
     static Matrix D;		// Elastic constants

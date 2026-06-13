@@ -67,8 +67,6 @@ public:
   virtual double getStiffnessMultiplier(void) = 0;
   
 
-protected:
-
 private:
 };
 

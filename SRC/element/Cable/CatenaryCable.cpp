@@ -102,8 +102,8 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CatenaryCableElement)
   if (numRemainingArgs != 13 )
   {
     opserr << "Got " << numRemainingArgs << " args. Expected 13\n";
-        opserr << "Invalid Args want: element CatenaryCable $tag $iNode $jNode $weight $E $A $L0 $alpha $temperature_change $rho $errorTol $Nsubsteps $massType\n";
-        return 0; // it's a CatenaryCableSection
+    opserr << "Invalid Args want: element CatenaryCable $tag $iNode $jNode $weight $E $A $L0 $alpha $temperature_change $rho $errorTol $Nsubsteps $massType\n";
+    return 0; // it's a CatenaryCableSection
   }
 
   int iData[3];
@@ -139,13 +139,6 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CatenaryCableElement)
   theElement = new CatenaryCable(iData[0], iData[1], iData[2], 
               dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7], Nsubsteps, massType);
 
-  
-  if (theElement == 0) {
-    opserr << "WARNING: out of memory: element CatenaryCable " << iData[0] << 
-      " $iNode $jNode ...\n";
-  }
-
-  
 
   return theElement;
 }
@@ -218,25 +211,25 @@ CatenaryCable::~CatenaryCable()
 int
 CatenaryCable::getNumExternalNodes() const
 {
-    return 2;
+  return 2;
 }
 
 const ID &
-CatenaryCable::getExternalNodes(void) 
+CatenaryCable::getExternalNodes() 
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 Node **
-CatenaryCable::getNodePtrs(void) 
+CatenaryCable::getNodePtrs() 
 {
   return theNodes;
 }
 
 int
-CatenaryCable::getNumDOF(void) 
+CatenaryCable::getNumDOF() 
 {
-    return 6;
+  return 6;
 }
 
 
@@ -360,11 +353,8 @@ CatenaryCable::revertToStart()
 }
 
 int
-CatenaryCable::update(void)
+CatenaryCable::update()
 {
-  // opserr << "CatenaryCable::update\n";
-
-
   const Vector &end1Crd = theNodes[0]->getCrds();
   const Vector &end2Crd = theNodes[1]->getCrds();
   const Vector &end1Disp = theNodes[0]->getTrialDisp();
@@ -394,15 +384,6 @@ CatenaryCable::update(void)
   ly0 = end2Crd(1) + end2Disp(1) - (end1Crd(1) + end1Disp(1));
   lz0 = end2Crd(2) + end2Disp(2) - (end1Crd(2) + end1Disp(2));
 
-  // opserr << "end1Crd = " << end1Crd << endln;
-  // opserr << "end1Disp = " << end1Disp << endln;
-  // opserr << "end2Crd = " << end2Crd << endln;
-  // opserr << "end2Disp = " << end2Disp << endln;
-
-  // opserr <<"   w1 = " <<  w1 << endln; 
-  // opserr <<"   w2 = " <<  w2 << endln; 
-  // opserr <<"   w3 = " <<  w3 << endln; 
-
 
   compute_lambda0();
 
@@ -418,7 +399,7 @@ CatenaryCable::update(void)
   else
     f30 = -(w3/2.)*(-lz0*((cosh(lambda0))/(sinh(lambda0))) + L0);
 
-  // #condicion de objetividad.
+  // condicion de objetividad.
   double theta = atan2(ly0 , lx0);
   
   double f10n = cos(theta)*f10 - sin(theta)*f20;
@@ -429,24 +410,11 @@ CatenaryCable::update(void)
   f2 = f20n;
   f3 = f30n;
 
-  // opserr <<"   lambda0 = " <<  lambda0 << endln; 
-  // opserr <<"   f10n = " <<  f10n << endln; 
-  // opserr <<"   f20n = " <<  f20n << endln; 
-  // opserr <<"   f30n = " <<  f30n << endln; 
-
 
   compute_projected_lengths();
 
 
-  // opserr <<"   f1 = " <<  f1 << endln; 
-  // opserr <<"   f2 = " <<  f2 << endln; 
-  // opserr <<"   f3 = " <<  f3 << endln; 
-
-  // opserr <<"   l1 = " <<  l1 << endln; 
-  // opserr <<"   l2 = " <<  l2 << endln; 
-  // opserr <<"   l3 = " <<  l3 << endln; 
-
-  //Misclosure vector   dl = sp.matrix([[lx0-lxi],[ly0-lyi],[lz0-lzi]], dtype = sp.double())
+  // Misclosure vector   
   static Vector dl(3);
   dl.Zero();
 
@@ -467,7 +435,6 @@ CatenaryCable::update(void)
   int iter_max = 0;
   double min_relative_error = 1/error_tol;
   int iter_min = 0;
-  // opserr << " update: relative_error = " << relative_error << endln;
 
   int iter = 0;
   while( relative_error > error_tol)
@@ -482,7 +449,7 @@ CatenaryCable::update(void)
       max_relative_error = relative_error;
       iter_max = iter;
     }
-    // opserr << " update: relative_error = " << relative_error << endln;
+
     f1 = Fi0(0);
     f2 = Fi0(1);
     f3 = Fi0(2);
@@ -562,7 +529,7 @@ CatenaryCable::update(void)
 
 
 const Matrix &
-CatenaryCable::getTangentStiff(void)
+CatenaryCable::getTangentStiff()
 {
   static Matrix K(3,3);
   K.Zero();
@@ -584,20 +551,19 @@ CatenaryCable::getTangentStiff(void)
   }
 
 
-  // opserr << "Stiffness = " << Stiffness << endln;
 
   return Stiffness;
 }
 
 
 const Matrix &
-CatenaryCable::getInitialStiff(void)
+CatenaryCable::getInitialStiff()
 {
-    return Stiffness;
+  return Stiffness;
 }
 
 const Matrix &
-CatenaryCable::getDamp(void)
+CatenaryCable::getDamp()
 {
   return ZeroMatrix;
 }
@@ -624,16 +590,14 @@ CatenaryCable::addLoad(ElementalLoad *theLoad, double loadFactor)
   const Vector &data = theLoad->getData(type, loadFactor);
   if (type == LOAD_TAG_Beam3dUniformLoad) 
   {
-      // opserr <<"CatenaryCable::addLoad - Uniform Load - loadFactor = " << loadFactor << endln; 
-      w1 = loadFactor*data(0);
-      w2 = loadFactor*data(1);
-      w3 = loadFactor*data(2);
-      // opserr <<  "   w = ("  <<  w1 <<  ", " <<  w2 << ", " <<  w3 << ")" << endln; 
-      
-      return 0;
+    w1 = loadFactor*data(0);
+    w2 = loadFactor*data(1);
+    w3 = loadFactor*data(2);
+
+    return 0;
   }
 
-  opserr <<"CatenaryCable::addLoad - load type (" << type <<") unknown for CatenaryCable with tag: " << this->getTag() << endln; 
+  opserr << "CatenaryCable::addLoad - load type (" << type <<") unknown for CatenaryCable with tag: " << this->getTag() << endln; 
   return -1;
 }
 
@@ -958,59 +922,18 @@ CatenaryCable::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &th
 void
 CatenaryCable::Print(OPS_Stream &s, int flag)
 {
-    /* compute the strain and axial force in the member
-    double strain, force;
-    strain = theMaterial->getStrain();
-    force = A * theMaterial->getStress();
-
-    if (flag == OPS_PRINT_CURRENTSTATE) { // print everything
-        s << "Element: " << this->getTag();
-        s << " type: CatenaryCable  iNode: " << connectedExternalNodes(0);
-        s << " jNode: " << connectedExternalNodes(1);
-        s << " Area: " << A << " Mass/Length: " << rho;
-        s << " cMass: " << cMass;
-
-        s << " \n\t strain: " << strain;
-        if (initialDisp != 0) {
-            s << " initialDisplacements: ";
-            for (int i = 0; i < dimension; i++)
-                s << initialDisp[i] << " ";
-        }
-
-        s << " axial load: " << force;
-
-        if (L != 0.0) {
-            int numDOF2 = numDOF / 2;
-            double temp;
-            for (int i = 0; i < dimension; i++) {
-                temp = cosX[i] * force;
-                (*theVector)(i) = -temp;
-                (*theVector)(i + numDOF2) = temp;
-            }
-            s << " \n\t unbalanced load: " << *theVector;
-        }
-
-        s << " \t Material: " << *theMaterial;
-        s << endln;
-    }
-    
-    if (flag == 1) {
-        s << this->getTag() << "  " << strain << "  ";
-        s << force << endln;
-    }*/
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"CatenaryCable\", ";
-        s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
-        s << "\"E\": " << E << ", ";
-        s << "\"A\": " << A << ", ";
-        s << "\"L0\": " << L0 << ", ";
-        s << "\"alpha\": " << alpha << ", ";
-        s << "\"deltaT\": " << temperature_change << ", ";
-        s << "\"massperlength\": " << rho << "\"}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "\t\t\t{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"CatenaryCable\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
+    s << "\"E\": " << E << ", ";
+    s << "\"A\": " << A << ", ";
+    s << "\"L0\": " << L0 << ", ";
+    s << "\"alpha\": " << alpha << ", ";
+    s << "\"deltaT\": " << temperature_change << ", ";
+    s << "\"massperlength\": " << rho << "\"}";
+  }
 }
 
 
@@ -1018,39 +941,39 @@ Response*
 CatenaryCable::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
 
-    Response *theResponse = 0;
+  Response *theResponse = 0;
 
-    output.tag("ElementOutput");
-    output.attr("eleType","CatenaryCable");
-    output.attr("eleTag",this->getTag());
-    output.attr("node1",connectedExternalNodes[0]);
-    output.attr("node2",connectedExternalNodes[1]);
+  output.tag("ElementOutput");
+  output.attr("eleType","CatenaryCable");
+  output.attr("eleTag",this->getTag());
+  output.attr("node1",connectedExternalNodes[0]);
+  output.attr("node2",connectedExternalNodes[1]);
 
-    // //
-    // // we compare argv[0] for known response types for the CatenaryCable
-    // //
+  // //
+  // // we compare argv[0] for known response types for the CatenaryCable
+  // //
 
 
-    if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
-        || (strcmp(argv[0],"globalForce") == 0) || (strcmp(argv[0],"globalForces") == 0))
-    {
-            output.tag("ResponseType", "f1");
-            output.tag("ResponseType", "f2");
-            output.tag("ResponseType", "f3");
-            output.tag("ResponseType", "f4");
-            output.tag("ResponseType", "f5");
-            output.tag("ResponseType", "f6");
-            theResponse =  new ElementResponse(this, 1, Vector(6));
+  if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
+      || (strcmp(argv[0],"globalForce") == 0) || (strcmp(argv[0],"globalForces") == 0))
+  {
+      output.tag("ResponseType", "f1");
+      output.tag("ResponseType", "f2");
+      output.tag("ResponseType", "f3");
+      output.tag("ResponseType", "f4");
+      output.tag("ResponseType", "f5");
+      output.tag("ResponseType", "f6");
+      theResponse =  new ElementResponse(this, 1, Vector(6));
 
-    } 
-    else if (strcmp(argv[0],"energy") == 0)
-    {
-            output.tag("ResponseType", "KineticEnergy");
-            output.tag("ResponseType", "PotentialEnergy");
-            theResponse =  new ElementResponse(this, 2, Vector(2));
-    }
+  } 
+  else if (strcmp(argv[0],"energy") == 0)
+  {
+          output.tag("ResponseType", "KineticEnergy");
+          output.tag("ResponseType", "PotentialEnergy");
+          theResponse =  new ElementResponse(this, 2, Vector(2));
+  }
 
-    return theResponse;
+  return theResponse;
 }
 
 int 
@@ -1091,25 +1014,22 @@ Vector CatenaryCable::getEnergyVector()
 
 
 
-void CatenaryCable::compute_lambda0(void)
+void
+CatenaryCable::compute_lambda0()
 {
 
-    lambda0 = 0;
-    if (lx0*lx0 + ly0*ly0 == 0)
-      lambda0 = 1e6;
-    else if( L0*L0 <= (lx0*lx0 + ly0*ly0 + lz0*lz0))
-      lambda0 = 0.2;
-    else if( L0*L0 > lx0*lx0 + ly0*ly0 + lz0*lz0)
-      lambda0 = SQRT(3*((L0*L0 - lz0*lz0) / (lx0*lx0 + ly0*ly0)) - 1);
+  lambda0 = 0;
+  if (lx0*lx0 + ly0*ly0 == 0)
+    lambda0 = 1e6;
+  else if( L0*L0 <= (lx0*lx0 + ly0*ly0 + lz0*lz0))
+    lambda0 = 0.2;
+  else if( L0*L0 > lx0*lx0 + ly0*ly0 + lz0*lz0)
+    lambda0 = SQRT(3*((L0*L0 - lz0*lz0) / (lx0*lx0 + ly0*ly0)) - 1);
 
-    // opserr << "L0 = " << L0 << endln;
-    // opserr << "lx0 = " << lx0 << endln;
-    // opserr << "ly0 = " << ly0 << endln;
-    // opserr << "lz0 = " << lz0 << endln;
 }
 
 
-void CatenaryCable::compute_projected_lengths(void)
+void CatenaryCable::compute_projected_lengths()
 {
     //Correct weights for acceleration
     // double acc1 = 0;
@@ -1256,7 +1176,8 @@ void CatenaryCable::computeMassEquivalentTruss()
   }
 }
 
-void CatenaryCable::computeMassByIntegration()
+void
+CatenaryCable::computeMassByIntegration()
 {
     opserr << "CatenaryCable::computeMass() -- Mass by integration not yet available -- Defaulting to lumped " << endln;
     computeMassLumped();  // To be implemented

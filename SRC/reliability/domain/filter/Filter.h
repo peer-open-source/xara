@@ -49,8 +49,6 @@ public:
 	virtual double getTimeOfMaxAmplitude() = 0;
 	virtual void setKickTime(double time);	///// added by K Fujimura /////
 
-protected:
-
 private:
 
 };

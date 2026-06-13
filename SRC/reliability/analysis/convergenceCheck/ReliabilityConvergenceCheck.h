@@ -56,8 +56,6 @@ public:
 	virtual double getCheck2()=0;
 	virtual int	checkG(double g) = 0;
 	//E Modified by K Fujimura 10/10/2004
-protected:
-
 private:
 
 };

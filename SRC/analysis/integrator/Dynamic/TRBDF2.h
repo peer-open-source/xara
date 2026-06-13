@@ -68,8 +68,6 @@ public:
     
     void Print(OPS_Stream &s, int flag = 0);
     
- protected:
-
  private:
     int step;      // a flag indicating whether trap or euler step
     double dt;     // last dt, if not same as previous we do trapezoidal step

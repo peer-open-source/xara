@@ -118,8 +118,6 @@ class AV3D4QuadWithSensitivity: public Element
     double get_Gauss_p_c(short order, short point_numb);
     double get_Gauss_p_w(short order, short point_numb);
 
-  protected:
-
   private:
     constexpr static int NEN = 4, NIP = 1;
     static const int numDOF;               // DOF number of element

@@ -90,8 +90,6 @@ public:
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
 
-protected:
-
 private:
     // private attributes - a copy for each object of the class
     int EBIL_numNodes, EBIL_numDOF, m_numSolidDOF;

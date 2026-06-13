@@ -329,8 +329,8 @@ EulerFrame3d::getResistingForce()
   pg += basic_system->linear.pushResponse(pf);
 
   // Subtract other external nodal loads ... P_res = P_int - P_ext
-  if (total_mass != 0.0)
-    wrapper.addVector(1.0, p_iner, -1.0);
+  // if (total_mass != 0.0)
+  //   wrapper.addVector(1.0, p_iner, -1.0);
 
   return wrapper;
 }

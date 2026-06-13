@@ -48,9 +48,7 @@ class NodeIter
 
     virtual Node *operator()() =0;
     
-  protected:
-
-  private:    
+  private:
 
 };
 

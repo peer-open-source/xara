@@ -62,8 +62,6 @@ public:
 /////////////////////////////////////
 //E  Modified by K Fujimura 10/10/2004
 /////////////////////////////////////
-protected:
-
 private:
 	double e1, e2;
 	double criterium1, criterium2;

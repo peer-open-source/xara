@@ -81,8 +81,6 @@ class BerkeleyDbDatastore: public FE_Datastore
 	     ID &theID, 
 	     ChannelAddress *theAddress =0);    
 
- protected:
-
  private:
   int dbTag;
 

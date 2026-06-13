@@ -48,8 +48,6 @@ class BandGenLinLapackSolver : public BandGenLinSolver
 
     virtual double getDeterminant() override;
     
-  protected:
-
   private:
     int *iPiv;
     int iPivSize;

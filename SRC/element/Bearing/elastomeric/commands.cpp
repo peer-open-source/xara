@@ -155,7 +155,6 @@ TclBasicBuilder_addElastomericBearingBoucWen(
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << "\n";
           return TCL_ERROR;
         }
         recvMat++;
@@ -169,8 +168,6 @@ TclBasicBuilder_addElastomericBearingBoucWen(
         }
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
-          opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << "\n";
           return TCL_ERROR;
         }
         recvMat++;
@@ -360,7 +357,6 @@ TclBasicBuilder_addElastomericBearingBoucWen(
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << "\n";
           return TCL_ERROR;
         }
         recvMat++;
@@ -375,7 +371,6 @@ TclBasicBuilder_addElastomericBearingBoucWen(
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << "\n";
           return TCL_ERROR;
         }
         recvMat++;
@@ -630,8 +625,6 @@ TclBasicBuilder_addElastomericBearingPlasticity(
         theMaterials[0] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[0] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << "\n";
-          opserr << "elastomericBearing element: " << tag << "\n";
           return TCL_ERROR;
         }
         recvMat++;
@@ -647,8 +640,6 @@ TclBasicBuilder_addElastomericBearingPlasticity(
         theMaterials[1] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[1] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << "\n";
-          opserr << "elastomericBearing element: " << tag << "\n";
           return TCL_ERROR;
         }
         recvMat++;
@@ -858,8 +849,6 @@ TclBasicBuilder_addElastomericBearingPlasticity(
         theMaterials[2] = builder->getTypedObject<UniaxialMaterial>(matTag);
         if (theMaterials[2] == 0) {
           opserr << "WARNING material model not found\n";
-          opserr << "uniaxialMaterial: " << matTag << "\n";
-          opserr << "elastomericBearing element: " << tag << "\n";
           return TCL_ERROR;
         }
         recvMat++;

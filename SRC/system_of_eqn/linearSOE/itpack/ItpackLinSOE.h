@@ -66,8 +66,6 @@ class ItpackLinSOE : public LinearSOE
 
     friend class ItpackLinSolver;
 
-  protected:
-    
   private:
     int size;            // order of A
     int nnz;             // number of non-zeros in A

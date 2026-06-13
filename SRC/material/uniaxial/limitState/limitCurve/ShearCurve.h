@@ -76,8 +76,6 @@ class ShearCurve : public LimitCurve
 	int    updateParameter          (int parameterID, Information &info);
 
 
-  protected:
-    
   private:
     void setDegSlope(double V, double Dshear); // sets degrading slope upon shear failure
 											   // based on calc drift at axial failure

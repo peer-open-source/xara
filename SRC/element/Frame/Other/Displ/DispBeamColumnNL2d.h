@@ -84,8 +84,6 @@ class DispBeamColumnNL2d : public Element
     int            commitSensitivity(int gradNumber, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     const Matrix &getInitialBasicStiff(void);
     void getBasicStiff(Matrix &kb, int initial = 0);

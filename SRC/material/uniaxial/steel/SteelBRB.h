@@ -84,8 +84,6 @@ class SteelBRB : public UniaxialMaterial
 // AddingSensitivity:END ///////////////////////////////////////////
 	
 
- protected:
-  
  private:
 
 

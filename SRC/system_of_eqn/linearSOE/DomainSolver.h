@@ -54,8 +54,6 @@ class DomainSolver: public LinearSOESolver
     virtual int setComputedXext(const Vector &) =0;
     virtual int solveXint() =0;
     
-  protected:
-    
   private:
 };
 

@@ -76,8 +76,6 @@ public:
     int saveSensitivity   (const Vector &v, int gradNum, int numGrads);
     int computeSensitivities() override;
 
-protected:
-
 private:
     int commitSensitivity (int gradNum, int numGrads);  
     int formSensitivityRHS(int gradNum);

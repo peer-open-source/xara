@@ -104,8 +104,6 @@ public:
 	int sendSelf(int commitTag, Channel &theChannel);
 	int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-protected:
-
 private:
 	// Private Attributes
 	ID connectedExternalNodes;              // contains tags of end nodes

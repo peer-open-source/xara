@@ -52,8 +52,6 @@ public:
 
 	int		analyze(void);
 
-protected:
-
 private:
 	double	PCMfunc(const Vector&, const Matrix&, double);
 	char fileName[256];

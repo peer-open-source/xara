@@ -54,8 +54,6 @@ public:
     void Print(OPS_Stream &s, int flag = 0);
 
 
-protected:
-
 private:
 // 25 Fixed input material parameters
     double  Ke;

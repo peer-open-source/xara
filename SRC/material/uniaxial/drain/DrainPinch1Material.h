@@ -51,8 +51,6 @@ class DrainPinch1Material : public DrainMaterial
     
     UniaxialMaterial *getCopy(void);
     
-  protected:
-
   private:
 
 };

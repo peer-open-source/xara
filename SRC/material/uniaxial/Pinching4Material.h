@@ -98,8 +98,6 @@ public :
 
 	double getEnergy(void) { return Tenergy; }
 
-protected:
-
 private:
 	// Backbone parameters
 	    double stress1p; double strain1p; double stress2p; double strain2p;

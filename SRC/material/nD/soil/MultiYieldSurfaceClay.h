@@ -110,8 +110,6 @@ public:
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-protected:
-
 private:
 	static int matCount;
 	static int* loadStagex;  //=0 if elastic; =1 if plastic

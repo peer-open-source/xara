@@ -69,8 +69,6 @@ class GroundMotionRecord : public GroundMotion
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);    
     
-  protected:
-
   private:
     TimeSeries *theAccelTimeSeries;  // Ground acceleration
     TimeSeries *theVelTimeSeries;	 // Ground velocity

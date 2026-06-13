@@ -47,8 +47,6 @@ class ConjugateGradientSolver : public LinearSOESolver
     virtual int formAp(const Vector &p, Vector &Ap) = 0;    
 //    virtual int setLinearSOE(LinearSOE &theSOE) =0;
 
-  protected:
-    
   private:
     Vector *r, *p, *Ap, *x;
     LinearSOE *theLinearSOE;

@@ -73,8 +73,6 @@ public:
     double getEigenvalue(int mode);
 
 
-protected:
-
 private:
 	Matrix *theMatrix;
 	Matrix *theLowerCholesky;

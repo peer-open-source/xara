@@ -52,6 +52,7 @@ class Element : public TaggedObject, public MovableObject
     virtual ~Element();
     enum class MassType {
         Translation,
+        Diagonal,
         General
     };
     enum class MassSource {

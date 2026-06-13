@@ -519,17 +519,17 @@ ConstantPressureVolumeQuad::getInitialStiff( )
       double BJ11 = shp[1][j][i]; 
       double BJ30 = shp[1][j][i];
       double BJ31 = shp[0][j][i];
-      
+
       BJtran.Zero( );
       BJtran(0,0) = shp[0][j][i] ;
       BJtran(1,1) = shp[1][j][i] ; 
       
       // BJ(2,0) for axi-symmetry 
-      
+
       BJtran(0,3) = shp[1][j][i]  ;
       BJtran(1,3) = shp[0][j][i]  ;
       
-      //compute residual 
+      // compute residual 
       
       double ltBJ00 = vol_avg_shp[0][j] ;
       double ltBJ01 = vol_avg_shp[1][j] ;
@@ -558,13 +558,12 @@ ConstantPressureVolumeQuad::getInitialStiff( )
       //littleBJtranBulk =  bulk * littleBJtran ;
       // littleBJtranBulk = littleBJtran ;
       // littleBJtranBulk *= bulk ;
-      
-      double B1, B2;
+
       // B1 = BJtranDone(0,0) + littleBJtranBulk(0,0);
       // B2 = BJtranDone(1,0) + littleBJtranBulk(1,0);
-      
-      B1 = BJ00*Pdev_dd_one_data[0] + BJ30*Pdev_dd_one_data[3] + ltBJ00 *bulk;
-      B2 = BJ11*Pdev_dd_one_data[1] + BJ31*Pdev_dd_one_data[3] + ltBJ01 *bulk;
+
+      double B1 = BJ00*Pdev_dd_one_data[0] + BJ30*Pdev_dd_one_data[3] + ltBJ00 *bulk;
+      double B2 = BJ11*Pdev_dd_one_data[1] + BJ31*Pdev_dd_one_data[3] + ltBJ01 *bulk;
       
       int colkk, colkkP1;
       for ( k = 0, kk=0, colkk =0, colkkP1 =8; 
@@ -579,7 +578,7 @@ ConstantPressureVolumeQuad::getInitialStiff( )
         double littleBK00 = vol_avg_shp[0][k];
         double littleBK01 = vol_avg_shp[1][k];
 
-        //compute stiffness matrix
+        // compute stiffness matrix
         
         stiff( jj,   kk   ) += Adata[0]*BK00 + Adata[6]*BK30 + B1 * littleBK00;
         stiff( jj+1, kk   ) += Adata[1]*BK00 + Adata[7]*BK30 + B2 * littleBK00;
@@ -597,7 +596,7 @@ ConstantPressureVolumeQuad::getInitialStiff( )
 
 
 const Matrix&
-ConstantPressureVolumeQuad :: getMass( ) 
+ConstantPressureVolumeQuad::getMass()
 {
   int tangFlag = 1 ;
 
@@ -605,12 +604,13 @@ ConstantPressureVolumeQuad :: getMass( )
   return mass ;
 } 
 
-void ConstantPressureVolumeQuad :: zeroLoad( )
+void
+ConstantPressureVolumeQuad::zeroLoad()
 {
-  if (load != 0)
+  if (load != nullptr)
     load->Zero();
 
-  return ;
+  return;
 }
 
 int 
@@ -623,9 +623,9 @@ ConstantPressureVolumeQuad::addLoad(ElementalLoad *theLoad, double loadFactor)
 int
 ConstantPressureVolumeQuad::addInertiaLoadToUnbalance(const Vector &accel)
 {
-  static const int numberGauss = 4 ;
-  static const int numberNodes = 4 ;
-  static const int ndf = 2 ;
+  static constexpr int numberGauss = 4 ;
+  static constexpr int numberNodes = 4 ;
+  static constexpr int ndf = 2 ;
 
   // check to see if have mass
   int haveRho = 0;
@@ -661,16 +661,16 @@ ConstantPressureVolumeQuad::addInertiaLoadToUnbalance(const Vector &accel)
 }
 
 
-//get residual
+
 const Vector&
-ConstantPressureVolumeQuad :: getResistingForce( ) 
+ConstantPressureVolumeQuad::getResistingForce() 
 {
   int tang_flag = 0 ; //don't get the tangent
 
   formResidAndTangent( tang_flag ) ;
 
   // subtract external loads 
-  if (load != 0)
+  if (load != nullptr)
     resid -= *load;
 
   return resid ;   
@@ -679,7 +679,7 @@ ConstantPressureVolumeQuad :: getResistingForce( )
 
 // get residual with inertia terms
 const Vector&
-ConstantPressureVolumeQuad::getResistingForceIncInertia( )
+ConstantPressureVolumeQuad::getResistingForceIncInertia()
 {
   int tang_flag = 0 ; //don't get the tangent
 
@@ -693,7 +693,7 @@ ConstantPressureVolumeQuad::getResistingForceIncInertia( )
   res = resid;
 
   // subtract external loads 
-  if (load != 0)
+  if (load != nullptr)
     res -= *load;
 
   // add the damping forces if rayleigh damping
@@ -706,15 +706,16 @@ ConstantPressureVolumeQuad::getResistingForceIncInertia( )
 //*****************************************************************************
 //form inertia terms
 
-void   ConstantPressureVolumeQuad::formInertiaTerms( int tangFlag ) 
+void
+ConstantPressureVolumeQuad::formInertiaTerms( int tangFlag ) 
 {
 
-  static const int ndm = 2 ;
-  static const int ndf = 2 ; 
-  static const int numberNodes = 4 ;
-  static const int numberGauss = 4 ;
-  static const int nShape = 3 ;
-  static const int massIndex = nShape - 1 ;
+  static constexpr int ndm = 2 ;
+  static constexpr int ndf = 2 ; 
+  static constexpr int numberNodes = 4 ;
+  static constexpr int numberGauss = 4 ;
+  static constexpr int nShape = 3 ;
+  static constexpr int massIndex = nShape - 1 ;
 
 
   static double shp[nShape][numberNodes] ;  //shape functions at a gauss point
@@ -729,16 +730,16 @@ void   ConstantPressureVolumeQuad::formInertiaTerms( int tangFlag )
   double temp, rho, massJK ;
 
 
-  //zero mass 
+  // zero mass 
   mass.Zero( ) ;
 
-  //gauss loop 
+  // gauss loop 
   for (int i = 0; i < numberGauss; i++ ) {
 
     // get shape functions
     double xsj ;  // determinant jacaobian matrix
     shape2d( sg[i], tg[i], xl, shp, xsj, sx ) ;
-    
+
     //volume element
     double dvol = wg[i] * xsj * thickness;
 
@@ -851,14 +852,14 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   static Matrix Pdev_dd_one(Pdev_dd_one_data, 4, 1); 
   static Matrix one_dd_Pdev(one_dd_Pdev_data, 1,4) ;
 
-  double bulk ;
+  double bulk;
   static Matrix BJtranD(2,4) ;
   static Matrix BJtranDone(2,1) ;
 
   static Matrix littleBJoneD(2,4) ;
   static Matrix littleBJtranBulk(2,1) ;
   
-  //zero stiffness and residual 
+  // zero stiffness and residual 
   if ( tang_flag == 1 ) 
     stiff.Zero();
   else
@@ -870,7 +871,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
   one(2) = 1.0 ;
   one(3) = 0.0 ;
 
-  //Pdev matrix
+  // Pdev matrix
   Pdev.Zero( ) ;
 
   Pdev(0,0) =  two3 ;
@@ -898,7 +899,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
   // Gauss loop to compute volume averaged shape functions
 
-  for ( i = 0; i < 4; i++ ){
+  for (int i = 0; i < 4; i++ ) {
     
     shape2d( sg[i], tg[i], xl, tmp_shp, xsj, sx ) ;
 
@@ -906,8 +907,8 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
     volume += dvol[i] ;
 
-    for ( k = 0; k < 3; k++ ){
-      for ( l = 0; l < 4; l++ ) {
+    for (int k = 0; k < 3; k++ ){
+      for (int l = 0; l < 4; l++ ) {
 
         shp[k][l][i] = tmp_shp[k][l] ;
 
@@ -919,8 +920,8 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
 
   // compute volume averaged shape functions
-  for ( k = 0; k < 3; k++ ){
-    for ( l = 0; l < 4; l++ ) 
+  for (int k = 0; k < 3; k++ ){
+    for (int l = 0; l < 4; l++ ) 
       vol_avg_shp[k][l] /= volume ; 
   }
 
@@ -931,7 +932,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
       const Vector &sigBar = materialPointers[i]->getStress();
 
-      pressure +=  one3 * ( sigBar(0) + sigBar(1) + sigBar(2) ) * dvol[i] ;
+      pressure +=  ( sigBar(0) + sigBar(1) + sigBar(2) )/3.0 * dvol[i] ;
       
     } // end for i
 
@@ -982,7 +983,7 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
       sig  = sigBar ;
 
       //sig -= (one3*trace)*one ;
-      sig.addVector(1.0,  one, -one3*trace ) ;
+      sig.addVector(1.0,  one, -trace/3.0 ) ;
       sig.addVector(1.0,  one, pressure ) ;
       
       //multilply by volume elements and compute 
@@ -1010,12 +1011,12 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
       for (p=0; p<2; p++) {
         for (q=0; q<4; q++) 
           BJtran(p,q) = BJ(q,p) ;
-      }//end for p
+      }
 
       for (p=0; p<2; p++) {
         for (q=0; q<1; q++) 
           littleBJtran(p,q) = littleBJ(q,p) ;
-      }//end for p
+      }
 
       **********************************************************************/
 
@@ -1038,8 +1039,8 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
 
       if ( tang_flag == 1 ) { //stiffness matrix
 
-        double ltBJ00 = vol_avg_shp[0][j] ;
-        double ltBJ01 = vol_avg_shp[1][j] ;
+        double ltBJ00 = vol_avg_shp[0][j];
+        double ltBJ01 = vol_avg_shp[1][j];
 
         //BJtranD          =  BJtran * Pdev_dd_Pdev ;
         // BJtranD.addMatrixProduct(0.0,  BJtran, Pdev_dd_Pdev, 1.0);
@@ -1066,12 +1067,11 @@ ConstantPressureVolumeQuad::formResidAndTangent( int tang_flag )
         // littleBJtranBulk = littleBJtran ;
         // littleBJtranBulk *= bulk ;
 
-        double B1, B2;
         // B1 = BJtranDone(0,0) + littleBJtranBulk(0,0);
         // B2 = BJtranDone(1,0) + littleBJtranBulk(1,0);
 
-        B1 = BJ00*Pdev_dd_one_data[0] + BJ30*Pdev_dd_one_data[3] + ltBJ00 *bulk;
-        B2 = BJ11*Pdev_dd_one_data[1] + BJ31*Pdev_dd_one_data[3] + ltBJ01 *bulk;
+        const double B1 = BJ00*Pdev_dd_one_data[0] + BJ30*Pdev_dd_one_data[3] + ltBJ00 *bulk;
+        const double B2 = BJ11*Pdev_dd_one_data[1] + BJ31*Pdev_dd_one_data[3] + ltBJ01 *bulk;
 
         int colkk, colkkP1;
         for ( k = 0, kk=0, colkk =0, colkkP1 =8; 

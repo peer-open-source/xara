@@ -98,8 +98,6 @@ class FourNodeQuad3d : public Element
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-  protected:
-    
   private:
     constexpr static int NEN = 4; // number of nodes
     constexpr static int NDF = 3; // number of DOFs per node

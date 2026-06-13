@@ -4,19 +4,36 @@
 *.txt   linguist-documentation
 *.tex   linguist-documentation
 
-SRC/quadrature/**  linguist-vendored
+#SRC/quadrature/**  linguist-vendored
 SRC/reliability/** linguist-vendored
-SRC/material/**    linguist-vendored
-SRC/element/**     linguist-vendored
-SRC/runtime/**     linguist-vendored
+SRC/tagged/** linguist-vendored
+SRC/threads/** linguist-vendored
+SRC/graph/** linguist-vendored
+SRC/actor/** linguist-vendored
+SRC/handler/**  linguist-vendored
+SRC/damping/**  linguist-vendored
+SRC/recorder/** linguist-vendored
+SRC/database/** linguist-vendored
+SRC/material/ucsd/** linguist-vendored
+SRC/material/Plane/** linguist-vendored
+SRC/material/Solid/** linguist-vendored
+SRC/mpm/linear_solvers/** linguist-vendored
+win32/** linguist-vendored
+
+SRC/element/adapter/**     linguist-vendored
+SRC/element/Other/**     linguist-vendored
 
 OTHER/arpack-ng/** linguist-vendored
+OTHER/ARPACK/**     linguist-vendored
+OTHER/AMGCL/**     linguist-vendored
+OTHER/BLAS/**      linguist-vendored
 OTHER/CBLAS/**     linguist-vendored
 OTHER/METIS/**     linguist-vendored
 OTHER/Tetgen/**    linguist-vendored
+OTHER/Triangle/**  linguist-vendored
+OTHER/Umfpack/**   linguist-vendored
 OTHER/AMD/**       linguist-vendored
 OTHER/eigenAPI/**  linguist-vendored
 
-tests/** linguist-detectable=true
 
 

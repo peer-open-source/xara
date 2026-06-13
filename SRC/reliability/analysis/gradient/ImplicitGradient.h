@@ -58,8 +58,6 @@ public:
 	int		computeGradient(double gFunValue);
 	const Vector &getGradient();
 
-protected:
-
 private:
 	//SensitivityAlgorithm *theSensAlgo;
            Integrator *theSensAlgo;//Abbas

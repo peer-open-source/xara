@@ -46,8 +46,6 @@ class CompositeResponse: public Response
   int addResponse(Response *);  
   int getResponse(void);
 
- protected:
-
  private:
   Response **theResponses;
   int numResponses;

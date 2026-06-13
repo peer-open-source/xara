@@ -43,8 +43,6 @@ class TaggedObjectIter
     virtual void reset() =0;
     virtual TaggedObject *operator()() =0;
 
-  protected:
-    
   private:
 
 };

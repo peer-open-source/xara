@@ -132,8 +132,6 @@ class ZeroLength : public Element
     void onDeactivate();
 
 
-  protected:
-    
   private:
     Etype elemType;
 

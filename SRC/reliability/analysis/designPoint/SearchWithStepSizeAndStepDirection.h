@@ -85,8 +85,6 @@ public:
 	const Vector &getGradientInOriginalSpace();
 	int getNumberOfEvaluations();
 
-protected:
-
 private:	
 
 	// The reliability domain and tools for the analysis

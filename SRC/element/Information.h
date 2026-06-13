@@ -80,9 +80,7 @@ class Information
     Matrix	*theMatrix; // pointer to a Matrix object, created elsewhere
     char        *theString; // pointer to string
 
-  protected:
-    
-  private:        
+  private:
 
 };
 

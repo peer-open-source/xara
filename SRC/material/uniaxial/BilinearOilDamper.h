@@ -85,8 +85,6 @@ class BilinearOilDamper : public UniaxialMaterial
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
     
-  protected:
-    
   private:
     // Fixed Input Material Variables
     double K;

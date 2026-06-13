@@ -76,8 +76,6 @@ class Maxwell : public UniaxialMaterial
     
     void Print(OPS_Stream &, int flag) final;
     
-  protected:
-    
   private:
     // Fixed Input Material Variables
     double K;

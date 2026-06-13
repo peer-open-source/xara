@@ -62,8 +62,6 @@ class PenaltySP_FE: public FE_Element
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
     void zeroTangent() final {tang.Zero();}
 
-  protected:
-    
   private:
     ID myID;
     double alpha;

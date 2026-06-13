@@ -47,8 +47,6 @@ class ConsoleErrorHandler : public ErrorHandler
     void warning(const char *, ...);
     void fatal(const char *, ...);
 
-  protected:
-    
   private:    
 };
 

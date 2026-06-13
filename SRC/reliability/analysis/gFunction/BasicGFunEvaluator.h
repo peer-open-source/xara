@@ -56,8 +56,6 @@ class BasicGFunEvaluator : public GFunEvaluator
 
   int tokenizeSpecials(TCL_Char *theExpression, Tcl_Obj *paramList);
 
- protected:
-
  private:
 
   int setTclRandomVariables(const Vector &x);

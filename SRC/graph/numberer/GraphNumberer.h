@@ -53,8 +53,6 @@ class GraphNumberer : public MovableObject
     virtual const ID &number(Graph &theGraph, int lastVertex = -1) =0;
     virtual const ID &number(Graph &theGraph, const ID &lastVertices) =0;
     
-  protected:
-    
   private:
     
 };

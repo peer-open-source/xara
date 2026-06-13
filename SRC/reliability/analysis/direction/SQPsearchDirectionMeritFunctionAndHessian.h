@@ -89,8 +89,6 @@ public:
 					   double g_new,
 					   const Vector &grad_G_new);
 
-protected:
-
 private:
 	//HessianApproximation *theHessianApproximation;
 

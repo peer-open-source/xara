@@ -98,7 +98,7 @@ private:
   static constexpr int NDM = 2;
   static constexpr int NDF = 2;
 
-  NDMaterial **theMaterial; // pointer to the ND material objects
+  std::array<NDMaterial *, nip> theMaterial; // pointers to the materials
 
   ID connectedExternalNodes; // Tags of quad nodes
 

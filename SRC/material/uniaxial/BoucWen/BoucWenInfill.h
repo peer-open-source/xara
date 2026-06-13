@@ -84,8 +84,6 @@ class BoucWenInfill : public UniaxialMaterial
     
     double getInitialTangent(void);
 
-  protected:
-    
   private:
 
     // Material parameters

@@ -94,8 +94,6 @@ class LysmerTriangle : public Element
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
 
-  protected:
-    
   private:
 
     // method to update base vectors g1 & g2

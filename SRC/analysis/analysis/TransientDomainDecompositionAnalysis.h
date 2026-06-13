@@ -86,8 +86,6 @@ class TransientDomainDecompositionAnalysis: public DomainDecompositionAnalysis
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-  protected:
-
   private:
     ConstraintHandler         *theConstraintHandler;
     DOF_Numberer         *theDOF_Numberer;

@@ -34,7 +34,6 @@
 #include <Vector.h>
 
 #include <quadrature/Plane/LegendreFixedQuadrilateral.h>
-// namespace OpenSees {template<int n, int m, typename T> struct MatrixND;};
 
 class Node;
 class NDMaterial;
@@ -67,7 +66,7 @@ public:
   Node **getNodePtrs();
 
   int getNumDOF();
-  void setDomain(Domain *theDomain);
+  void setDomain(Domain *);
 
   // public methods to set the state of the element
   int commitState();
@@ -87,10 +86,11 @@ public:
   const Vector &getResistingForce();
   const Vector &getResistingForceIncInertia();
 
-  // public methods for element output
+  // Interface for MovableObject
   int sendSelf(int commitTag, Channel &);
   int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
+  // Interface for TaggedObject
   void Print(OPS_Stream &s, int flag);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
@@ -106,7 +106,6 @@ public:
   friend class TzLiq1;
   friend class QzLiq1; // Sumeet
 
-protected:
 private:
   // private attributes - a copy for each object of the class
 
@@ -118,7 +117,7 @@ private:
   //
   // Constructor
   //
-  NDMaterial **theMaterial;     // pointer to the ND material objects
+  std::array<NDMaterial*, nip> theMaterial;     // pointer to the material copies
   ID connectedExternalNodes;    // Tags of nodes
   double b[2];                  // Body forces
 

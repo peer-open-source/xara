@@ -68,8 +68,6 @@ class LagrangeMP_FE: public FE_Element
 
     void zeroTangent() final {tang? tang->Zero() : void();};
     
-  protected:
-    
   private:
     ID myID;
     double alpha;

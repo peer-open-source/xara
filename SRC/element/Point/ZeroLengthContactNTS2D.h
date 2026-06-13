@@ -131,8 +131,6 @@ class ZeroLengthContactNTS2D: public Element
   Response *setResponse(const char **argv, int argc, OPS_Stream &output);
   int getResponse(int responseID, Information &eleInformation);
 
- protected:
-
  private:
   //int    directionID;
   ID     connectedExternalNodes;         // contains the tags of the end nodes

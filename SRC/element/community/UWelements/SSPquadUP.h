@@ -113,8 +113,6 @@ class SSPquadUP : public Element
     friend class TzLiq1;
     friend class QzLiq1; // Sumeet
 
-  protected:
-
   private:
 
     // member functions

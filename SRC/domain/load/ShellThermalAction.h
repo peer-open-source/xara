@@ -70,8 +70,6 @@ class ShellThermalAction : public ElementalLoad
 	       FEM_ObjectBroker &theBroker);
   void Print(OPS_Stream &s, int flag =0);       
   
- protected:
-  
  private:
   double Temp[9]; //Initial Temperature 
   double TempApp[9]; // Temperature applied

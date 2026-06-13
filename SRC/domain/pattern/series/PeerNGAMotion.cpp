@@ -57,55 +57,6 @@ int
 httpGet(char const *URL, char const *page, unsigned int port, char **dataPtr);
 
 
-#include <elementAPI.h>
-#define OPS_Export 
-
-OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PeerNGAMotion)
-{
-  // Pointer to a uniaxial material that will be returned
-  TimeSeries *theSeries = 0;
-  
-  int numRemainingArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numRemainingArgs < 2) {
-    opserr << "WARNING: invalid num args PeerNGAMotion <tag?> $eqMotion $factor\n";
-    return 0;
-  }
-
-  int tag = 0;     // default tag = 0
-  double factor = 0.0; 
-  int numData = 0;
-  const char *type = "-ACCEL";
-
-  // get tag if provided
-  if (numRemainingArgs == 3 || numRemainingArgs == 5 || numRemainingArgs == 7) {
-    numData = 1;
-    if (OPS_GetIntInput(&numData, &tag) != 0) {
-      opserr << "WARNING invalid series tag in Constant tag?" << endln;
-      return 0;
-    }
-    numRemainingArgs -= 1;
-  }
-
-  const char *eqMotion = OPS_GetString();
-
-  numData = 1;
-  if (OPS_GetDouble(&numData, &factor) != 0) {
-    opserr << "WARNING invalid shift in peerNGAMotion with tag?" << tag << endln;
-    return 0;
-  }
-  
-  theSeries = new PeerNGAMotion(tag, eqMotion, type, factor);
-
-  if (theSeries == 0) {
-    opserr << "WARNING ran out of memory creating PeerNGAMotion with tag: " << tag << "\n";
-    return 0;
-  }
-
-  return theSeries;
-}
-
-
 
 PeerNGAMotion::PeerNGAMotion()	
   :TimeSeries(TSERIES_TAG_PeerNGAMotion),

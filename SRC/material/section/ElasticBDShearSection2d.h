@@ -72,8 +72,6 @@ class ElasticBDShearSection2d: public SectionForceDeformation
 					      bool conditional);
   const Matrix& getInitialTangentSensitivity(int gradIndex);
   
- protected:
-  
  private:
   
   double E, b, d, G, alpha;

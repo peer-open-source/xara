@@ -31,18 +31,19 @@
 // 		member imposed by other structural members, as well as sliding and upthrow.
 //
 // References:
-// 	1. Avgenakis E. and Psycharis I.N. (2017) “Modeling of Rocking Elastic Flexible Bodies under Static
-//  		Loading Considering the Nonlinear Stress Distribution at Their Base.” Journal of Structural
-//		Engineering 143(7): 04017051.
-//	2. Avgenakis, E. and Psycharis, I. N. (2019) “Determination of the nonlinear displacement distribution
-//		of the semi-infinite strip–Application to deformable rocking bodies.” International Journal
+// 	1. Avgenakis E. and Psycharis I.N. (2017) 
+//      "Modeling of Rocking Elastic Flexible Bodies under Static
+//  		Loading Considering the Nonlinear Stress Distribution at Their Base."
+//      Journal of Structural Engineering 143(7): 04017051.
+//	2. Avgenakis, E. and Psycharis, I. N. (2019) "Determination of the nonlinear displacement distribution
+//		of the semi-infinite strip–Application to deformable rocking bodies." International Journal
 //		of Solids and Structures, 170, 22-37.
-//	3. Avgenakis E. and Psycharis I.N. (2020) “Modeling of inelastic rocking bodies under cyclic loading.”
+//	3. Avgenakis E. and Psycharis I.N. (2020) "Modeling of inelastic rocking bodies under cyclic loading."
 //		Journal of Engineering Mechanics 146(4): 04020020.
-// 	4. Avgenakis E. and Psycharis I.N. (2020) “An integrated macroelement formulation for the dynamic
-//		response of inelastic deformable rocking bodies.” Earthquake Engineering and Structural Dynamics,
+// 	4. Avgenakis E. and Psycharis I.N. (2020) "An integrated macroelement formulation for the dynamic
+//		response of inelastic deformable rocking bodies." Earthquake Engineering and Structural Dynamics,
 //      49(11), 1072-1094.
-
+//
 #include <RockingBC.h>
 #include <ElementalLoad.h>
 #include <elementAPI.h>

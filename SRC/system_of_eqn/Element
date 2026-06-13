@@ -49,8 +49,6 @@ class Element : public DomainComponent
     virtual void Print(ostream &s) const =0;   
     friend ostream &operator<<(ostream &s, const Element &E);    
     
-  protected:
-    
   private:
 };
 

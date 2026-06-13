@@ -66,8 +66,6 @@ class TclEvaluator : public FunctionEvaluator
 	double getResponseVariable(const char *label, int lsfTag, int rvTag);
 	double getResponseVariable(const char *label, int lsfTag);
   
- protected:
-  
  private:
 
 	Tcl_Interp *theTclInterp;

@@ -80,8 +80,6 @@ class InitStressNDMaterial : public NDMaterial
     int commitSensitivity(const Vector &depsdh, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     NDMaterial *theMaterial;
     Vector epsInit;

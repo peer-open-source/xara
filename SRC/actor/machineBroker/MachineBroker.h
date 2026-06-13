@@ -69,8 +69,6 @@ class MachineBroker
 			   int compDemand =0) =0;
     ********************************************** */
 
-  protected:
-    
   private:
     FEM_ObjectBroker *theObjectBroker;
 

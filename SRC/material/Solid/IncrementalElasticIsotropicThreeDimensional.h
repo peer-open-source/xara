@@ -79,8 +79,6 @@ class IncrementalElasticIsotropicThreeDimensional : public ElasticIsotropicMater
 				       bool conditional);
 
 
- protected:
-
   private:
     static Matrix D;  // Elastic constants
     Vector epsilon;   // Trial strains

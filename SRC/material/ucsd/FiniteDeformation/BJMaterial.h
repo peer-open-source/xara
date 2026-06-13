@@ -112,8 +112,6 @@ class BJMaterial : public NDMaterial
     virtual int            commitSensitivity        (Vector & strainGradient, int gradIndex, int numGrads);
 // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-
   private:
     static Matrix errMatrix;
     static Vector errVector;

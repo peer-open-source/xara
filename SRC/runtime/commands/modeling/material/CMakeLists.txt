@@ -4,7 +4,6 @@ target_sources(OPS_Runtime PRIVATE
   material.cpp
   nDMaterial.cpp
   uniaxial.cpp
-  uniaxialMaterial.cpp
   fedeas.cpp
   legacy.cpp
   wrapper.cpp

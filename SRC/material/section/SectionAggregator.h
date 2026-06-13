@@ -102,8 +102,6 @@ class SectionAggregator : public FrameSection
 
     FrameSection* getSection() {return theSection;}
 
-  protected:
-    
   private:
     
     FrameSection *theSection;

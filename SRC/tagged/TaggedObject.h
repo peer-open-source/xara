@@ -65,7 +65,7 @@ class TaggedObject
 inline int 
 TaggedObject::getTag() const
 {
-    return theTag;
+  return theTag;
 }
 
 #endif

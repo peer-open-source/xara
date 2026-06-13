@@ -27,7 +27,7 @@
 //   from SIAM Journal of Scientific Computing (Vol. 19, No. 3,
 //   pp. 728-765, May 1998)
 //
-// - Scott, M. “Software Frameworks for the Computational Simulation of Structural Systems.” 
+// - Scott, M. "Software Frameworks for the Computational Simulation of Structural Systems." 
 //   University of California, Berkeley, 2004. 
 //
 // Written: MHS
@@ -62,7 +62,7 @@ class AcceleratedNewton: public EquiSolnAlgo
   virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
   void Print(OPS_Stream &, int flag) const final;    
   
- protected:
+
   
  private:
   int tangent;

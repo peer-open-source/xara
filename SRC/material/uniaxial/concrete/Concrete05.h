@@ -42,8 +42,6 @@ class Concrete05 : public UniaxialMaterial
     
       void Print(OPS_Stream &, int flag) final;
 
-   protected:
-
    private:
       /*** Material Properties ***/
 

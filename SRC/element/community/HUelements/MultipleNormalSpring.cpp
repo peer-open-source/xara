@@ -46,7 +46,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
@@ -552,27 +551,17 @@ int MultipleNormalSpring::sendSelf(int commitTag, Channel &sChannel)
 }
 
 
-int MultipleNormalSpring::recvSelf(int commitTag, Channel &rChannel,
+int 
+MultipleNormalSpring::recvSelf(int commitTag, Channel &rChannel,
 				  FEM_ObjectBroker &theBroker)
 {
   return -1;
 }
 
 
-int MultipleNormalSpring::displaySelf(Renderer &theViewer,
-				      int displayMode, float fact, const char **modes, int numModes)
-{
-    static Vector v1(3);
-    static Vector v2(3);
 
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
-
-
-void MultipleNormalSpring::Print(OPS_Stream &s, int flag)
+void 
+MultipleNormalSpring::Print(OPS_Stream &s, int flag)
 {
   
   if (flag == 0)  {
@@ -590,7 +579,8 @@ void MultipleNormalSpring::Print(OPS_Stream &s, int flag)
 }
 
 
-Response* MultipleNormalSpring::setResponse(const char **argv, int argc,
+Response* 
+MultipleNormalSpring::setResponse(const char **argv, int argc,
 					   OPS_Stream &output)
 {
   Response *theResponse = 0;
@@ -639,7 +629,8 @@ Response* MultipleNormalSpring::setResponse(const char **argv, int argc,
       theResponse = new ElementResponse(this, 2, theVector);
     }
   // basic forces
-  else if (strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0)
+  else if (strcmp(argv[0],"basicForce") == 0 || 
+           strcmp(argv[0],"basicForces") == 0)
     {
       output.tag("ResponseType","qb1");
       output.tag("ResponseType","qb2");

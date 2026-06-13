@@ -51,8 +51,6 @@ public:
 	double getAmplitude(double frequency);
 
 
-protected:
-
 private:
 	Vector frequencies;
 	Vector amplitudes;

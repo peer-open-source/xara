@@ -17,13 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2010-02-04 00:37:42 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/groundMotion/GroundMotionRecord.cpp,v $
-                                                                        
-                                                                        
-// File: ~/earthquake/GroundMotionRecord.C
 // 
 // Written: fmk 
 // Created: 05/98
@@ -61,13 +54,7 @@ GroundMotionRecord::GroundMotionRecord(const char *fileNameAccel,
    theAccelTimeSeries(0), theVelTimeSeries(0), theDispTimeSeries(0),
    data(3), delta(dT)
 {
-
   theAccelTimeSeries = new PathSeries(0, fileNameAccel, timeStep, theFactor);
-
-  if (theAccelTimeSeries == 0) {
-    opserr << "GroundMotionRecord::GroundMotionRecord() - unable to create PathSeries\n";
-  }  
-
 }
 
 GroundMotionRecord::GroundMotionRecord(const char *fileNameAccel,
@@ -78,12 +65,7 @@ GroundMotionRecord::GroundMotionRecord(const char *fileNameAccel,
    theAccelTimeSeries(0), theVelTimeSeries(0), theDispTimeSeries(0),
    data(3), delta(dT)
 {
-
   theAccelTimeSeries = new PathTimeSeries(0, fileNameAccel, fileNameTime, theFactor);
-
-  if (theAccelTimeSeries == 0) {
-    opserr << "GroundMotionRecord::GroundMotionRecord() - unable to create PathSeries\n";
-  }
 }
 
 GroundMotionRecord::~GroundMotionRecord()
@@ -97,7 +79,7 @@ GroundMotionRecord::~GroundMotionRecord()
 }
 
 double 
-GroundMotionRecord::getDuration(void)
+GroundMotionRecord::getDuration()
 {
   if (theAccelTimeSeries != 0)
     return theAccelTimeSeries->getDuration();
@@ -106,7 +88,7 @@ GroundMotionRecord::getDuration(void)
 }
 
 double 
-GroundMotionRecord::getPeakAccel(void)
+GroundMotionRecord::getPeakAccel()
 {
   if (theAccelTimeSeries != 0)
     return theAccelTimeSeries->getPeakFactor();
@@ -116,7 +98,7 @@ GroundMotionRecord::getPeakAccel(void)
 }
 
 double 
-GroundMotionRecord::getPeakVel(void)
+GroundMotionRecord::getPeakVel()
 {
   if (theVelTimeSeries != 0)
     return theVelTimeSeries->getPeakFactor();
@@ -133,7 +115,7 @@ GroundMotionRecord::getPeakVel(void)
 }
 
 double 
-GroundMotionRecord::getPeakDisp(void)
+GroundMotionRecord::getPeakDisp()
 {
   if (theDispTimeSeries != 0)
     return theDispTimeSeries->getPeakFactor();
@@ -148,14 +130,14 @@ GroundMotionRecord::getPeakDisp(void)
   }
 
   // if theAccel is not 0, integrate vel series to get disp series
-  else if (theAccelTimeSeries != 0) {
+  else if (theAccelTimeSeries != nullptr) {
     theVelTimeSeries = this->integrate(theAccelTimeSeries, delta);
     if (theVelTimeSeries != 0) {
       theDispTimeSeries = this->integrate(theVelTimeSeries, delta);
       if (theDispTimeSeries != 0)
-	return theDispTimeSeries->getPeakFactor();      
+        return theDispTimeSeries->getPeakFactor();
       else
-	return 0.0;
+        return 0.0;
     } else
       return 0.0;
   }
@@ -215,14 +197,14 @@ GroundMotionRecord::getDisp(double time)
   }
 
   // if theAccel is not 0, integrate vel series to get disp series
-  else if (theAccelTimeSeries != 0) {
+  else if (theAccelTimeSeries != nullptr) {
     theVelTimeSeries = this->integrate(theAccelTimeSeries, delta);
     if (theVelTimeSeries != 0) {
       theDispTimeSeries = this->integrate(theVelTimeSeries, delta);
       if (theDispTimeSeries != 0)
-	return theDispTimeSeries->getFactor(time);      
+        return theDispTimeSeries->getFactor(time);
       else
-	return 0.0;
+        return 0.0;
     } else
       return 0.0;
   }
@@ -345,11 +327,11 @@ GroundMotionRecord::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
     int seriesDbTag = idData(1);
     if (theAccelTimeSeries == 0 || theAccelTimeSeries->getClassTag() != seriesClassTag) {
       if (theAccelTimeSeries != 0)
-	delete theAccelTimeSeries;
+        delete theAccelTimeSeries;
       theAccelTimeSeries = theBroker.getNewTimeSeries(seriesClassTag);
       if (theAccelTimeSeries == 0) {
-	opserr << "GroundMotionRecord::recvSelf - could not create a TimeSeries object\n";
-	return -2;
+        opserr << "GroundMotionRecord::recvSelf - could not create a TimeSeries object\n";
+        return -2;
       }
     }
     theAccelTimeSeries->setDbTag(seriesDbTag);
@@ -365,11 +347,11 @@ GroundMotionRecord::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
     int seriesDbTag = idData(3);
     if (theVelTimeSeries == 0 || theVelTimeSeries->getClassTag() != seriesClassTag) {
       if (theVelTimeSeries != 0)
-	delete theVelTimeSeries;
+        delete theVelTimeSeries;
       theVelTimeSeries = theBroker.getNewTimeSeries(seriesClassTag);
       if (theVelTimeSeries == 0) {
-	opserr << "GroundMotionRecord::recvSelf - could not create a TimeSeries object\n";
-	return -2;
+        opserr << "GroundMotionRecord::recvSelf - could not create a TimeSeries object\n";
+        return -2;
       }
     }
     theVelTimeSeries->setDbTag(seriesDbTag);
@@ -385,11 +367,11 @@ GroundMotionRecord::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroke
     int seriesDbTag = idData(5);
     if (theDispTimeSeries == 0 || theDispTimeSeries->getClassTag() != seriesClassTag) {
       if (theDispTimeSeries != 0)
-	delete theDispTimeSeries;
+        delete theDispTimeSeries;
       theDispTimeSeries = theBroker.getNewTimeSeries(seriesClassTag);
       if (theDispTimeSeries == 0) {
-	opserr << "GroundMotionRecord::recvSelf - could not create a TimeSeries object\n";
-	return -2;
+        opserr << "GroundMotionRecord::recvSelf - could not create a TimeSeries object\n";
+        return -2;
       }
     }
     theDispTimeSeries->setDbTag(seriesDbTag);

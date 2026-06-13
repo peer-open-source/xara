@@ -95,14 +95,12 @@ public:
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int parameterID, Information &info);
   
-protected:
-
 private:
     // private methods
     void setUp();
     double sgn(double x);
     
-    // private attributes - a copy for each object of the class
+    // private attributes
     ID connectedExternalNodes;          // contains the tags of the end nodes
     Node *theNodes[2];                  // array of nodes
     FrictionModel *theFrnMdl;           // pointer to friction model

@@ -47,8 +47,6 @@ public:
     
 	ReliabilityDomain *getReliabilityDomain();
     
-protected:
-
 private:
     Tcl_Interp *theInterp;
 };

@@ -55,6 +55,8 @@ class DRMLoadPattern : public LoadPattern
 
     void setMaps();
 
+    void Print(OPS_Stream &s, int flag) override {}
+
  private:
    Domain *myDomain;
    DRMInputHandler* myHandler;

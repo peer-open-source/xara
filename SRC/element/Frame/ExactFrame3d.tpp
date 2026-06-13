@@ -41,7 +41,9 @@
 //     International Journal of Solids and Structures, 27(3):371-393.
 //     doi: 10.1016/0020-7683(91)90089-x
 //
-// [5] Perez C.M., Filippou F.C., Mosalam K.M. (2025): Untitled work.
+// [5] Perez, Claudio M. 
+//     "Nonlinear Modeling of Frame Members for Rapid Infrastructure Assessment."
+//     Ph.D., University of California, Berkeley, 2026.
 //
 //===----------------------------------------------------------------------===//
 //
@@ -55,7 +57,7 @@
 #include <MatrixND.h>
 #include <VectorND.h>
 
-#include "for_int.tpp"
+#include <utility/Unroll.h>
 #include <CrdTransf.h>
 #include <FrameSection.h>
 #include <FrameTransform.h>
@@ -70,11 +72,11 @@
 
 namespace OpenSees {
 
-template<std::size_t nen, int nwm> static void
+template<std::size_t nen, int nwm> static inline void
 G_matrix(MatrixND<6+nwm,6+nwm> &G, 
          const VectorND<6+2*nwm>& s, const Vector3D& dx, 
          double shape[2][nen], 
-         int i, int j)
+         int i, int j) noexcept
 {
   //
   // This is the sum of Equation (B4), and the unnumbered equation between (B3) and (B4).
@@ -216,7 +218,6 @@ ExactFrame3d<nen,nwm>::revertToStart()
   }
   past = pres;
 
-  // Revert the element state to start
   // NOTE: This assumes that there are zero initial stresses?
   p.zero();
   K.zero();
@@ -306,19 +307,38 @@ ExactFrame3d<nen,nwm>::update()
 
     //
     //
+    const Matrix3D Rn = pres[i].rotation;
+#if 1
     const Matrix3D dR = ExpSO3(theta);
-    const Matrix3D R = dR*pres[i].rotation;
+    const Matrix3D R = dR*Rn;
+#else
+    Versor dq = Versor::from_vector(theta);
+    Versor q0 = Versor::from_matrix(pres[i].rotation);
+    // dq.normalize();
+    // q0.normalize();
+    const Matrix3D dR = MatrixFromVersor(dq);
+    Versor q1 = dq*q0;
+    q1.normalize();
+    const Matrix3D R = MatrixFromVersor(q1);
+#endif
 
     pres[i].rotation = R;
-
-    Vector3D omega = dR*pres[i].curvature;
+#if 1
+    Vector3D Omega0 = pres[i].curvature;
+    Vector3D kappa = Omega0 + (R^TExpSO3(theta))*dtheta;
+    pres[i].curvature = kappa;
+    // Vector3D omega = R*kappa;
+#else
+    const Vector3D omega = dR*pres[i].curvature;
 
     // TODO: choose 'R/L'
-//  pres[i].curvature = omega + TanSO3(theta, 'R')*dtheta;
+    // pres[i].curvature = omega + TanSO3(theta, 'R')*dtheta;
     pres[i].curvature = omega + TExpSO3(theta)*dtheta;
 
-    const Vector3D gamma = (R^dx) - D;
     const Vector3D kappa = R^pres[i].curvature;
+#endif
+    const Vector3D gamma = (R^dx) - D;
+
   
 
     VectorND<nsr> e {
@@ -409,10 +429,10 @@ ExactFrame3d<nen,nwm>::update()
       }
       Matrix3D R  = MatrixFromVersor(q);
 #ifndef _MSC_VER
-      for_int<nen>([&](auto i_) constexpr {
+      Unroll<0,nen>([&](auto i_) constexpr {
         constexpr int i = i_.value;
         load->addLoadAtPoint<i,nen,ndf>(p, xc, w*shp[0][i], jxs, R0, R);
-        for_int<nen>([&](auto j_) constexpr {
+        Unroll<0,nen>([&](auto j_) constexpr {
           constexpr int j = j_.value;
           load->addTangAtPoint<i,j,nen,ndf>(K, xc, w*shp[0][i]*shp[0][j], jxs, R0, R);
         });
@@ -489,12 +509,18 @@ ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
     //
     // Interpolate
     //
-    Vector3D dx {0.0};
+    Vector3D dx {0.0};//, dx_dh {0.0};
 
     for (unsigned j=0; j < nen; j++) {
       for (int l=0; l<3; l++)
         dx[l] += pres[i].shape[1][j]*xyz[j][l];
     }
+    // int ix = theNodes[j]->getCrdsSensitivity();
+    // if (ix != 0) {
+    //   for (int l=0; l<3; l++) {
+    //     dx_dh[l] += pres[i].shape[1][j]*xyz[j][l];
+    //   }
+    // }
 
     //
     //
@@ -549,17 +575,10 @@ ExactFrame3d<nen,nwm>::addLoad(ElementalLoad* theLoad, double loadFactor)
     FrameLoad* frame_load = (FrameLoad*)theLoad;
     if (!frame_load->conservative())
       frame_loads.insert(frame_load);
-    this->update(); // TODO?
+    // this->update(); // TODO?
   }
   else
     return -1;
-
-  // TODO: compute conservative load on flag == -1?
-#if 0
-  else {
-    c_loads[frame_load->getTag()] = VectorND<ndf*nn>{0.0};
-  }
-#endif
 
   return 0;
 }
@@ -630,12 +649,14 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
 
     theResponse = new ElementResponse(this, Respond::LocalForce, Vector(nen*ndf));
 
-  } else if (strcmp(argv[0], "RayleighForces") == 0 || 
+  }
+  else if (strcmp(argv[0], "RayleighForces") == 0 || 
              strcmp(argv[0], "rayleighForces") == 0) {
 
     theResponse = new ElementResponse(this, 12, Vector(12));
 
-  } else if (strcmp(argv[0], "sections") == 0) {
+  }
+  else if (strcmp(argv[0], "sections") == 0) {
     if (this->setState(State::Init) != 0)
       return nullptr;
 

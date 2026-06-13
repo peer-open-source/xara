@@ -67,9 +67,8 @@ class DomainDecompAlgo: public SolutionAlgorithm
 
     int sendSelf(int cTag, Channel &);
     int recvSelf(int cTag, Channel &, FEM_ObjectBroker &);
-    
-  protected:
-    
+  
+
   private:
     AnalysisModel	  *theModel;
     IncrementalIntegrator *theIntegrator;    

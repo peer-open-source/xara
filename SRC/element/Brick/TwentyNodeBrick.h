@@ -120,11 +120,7 @@ class TwentyNodeBrick: public Element
     Response *setResponse (const char **argv, int argc, Information &eleInformation, OPS_Stream &s);
     int getResponse (int responseID, Information &eleInformation);
         
-  protected:
-    
   private:
-    // private attributes - a copy for each object of the class
-
     //NDMaterial * **theMaterial; // pointer to the ND material objects
     
     int numDOF;                 // Number of element DOF

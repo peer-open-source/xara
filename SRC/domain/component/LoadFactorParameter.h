@@ -28,7 +28,7 @@
 #include <Parameter.h>
 #include <string.h>
 
-class LoadPattern;
+class StaticPattern;
 class MovableObject;
 class Channel;
 class FEM_ObjectBroker;
@@ -37,10 +37,10 @@ class Domain;
 class LoadFactorParameter : public Parameter
 {
  public:
-  LoadFactorParameter(int tag, LoadPattern *thePattern);
+  LoadFactorParameter(int tag, StaticPattern *);
   virtual ~LoadFactorParameter();
   
-  virtual void Print(OPS_Stream &s, int flag =0);
+  virtual void Print(OPS_Stream &s, int flag);
   
   virtual int update(int newValue); 
   virtual int update(double newValue); 
@@ -48,20 +48,18 @@ class LoadFactorParameter : public Parameter
   virtual double getValue(void);
   virtual void setValue(double newValue);
 
-  virtual bool isImplicit(void);
+  virtual bool isImplicit();
   virtual double getSensitivity(int index);
   virtual double getPerturbation(void);
   virtual const char *getType(void) {return "FEResponse";}
   virtual int getPointerTag(void);
 
-  virtual void setDomain(Domain *theDomain);
-  virtual int sendSelf(int commitTag, Channel &theChannel);  
-  virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  virtual void setDomain(Domain *);
+  virtual int sendSelf(int commitTag, Channel &);  
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
- protected:
-  
  private:
-  LoadPattern *myPattern;
+  StaticPattern *myPattern;
   
   double currentValue;
 };

@@ -108,8 +108,6 @@ class ZeroLengthRocking : public Element
     int setParameter (const char **argv, int argc, Parameter &param);
     int updateParameter (int parameterID, Information &info);
 
-  protected:
-    
   private:
     // private methods
     void   setUp ( int Nd1, int Nd2, const Vector& x, const Vector& y);

@@ -83,8 +83,6 @@ class BoucWenMaterial : public UniaxialMaterial
 	int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
     double  getInitialTangentSensitivity(int gradIndex);
 
-  protected:
-    
   private:
     // Material parameters
     double alpha;

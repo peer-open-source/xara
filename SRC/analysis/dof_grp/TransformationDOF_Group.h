@@ -119,10 +119,8 @@ class TransformationDOF_Group: public DOF_Group
 			const Vector &vdotdot, int gradNum, int numGrads);
 // AddingSensitivity:END //////////////////////////////////////
     
-  protected:
-    
   private:
-    // private variables - a copy for each object of the class            
+    // private variables            
     MP_Constraint *theMP;
     Matrix *Trans;
     Matrix *modTangent;

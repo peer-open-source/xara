@@ -42,8 +42,6 @@ class MaterialStageParameter : public Parameter
 
   virtual void setDomain(Domain *theDomain);
 
- protected:
-  
  private:
   Information theMatStageInfo;
 

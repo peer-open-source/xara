@@ -65,7 +65,7 @@ class TotalLagrangianFD20NodeBrick: public Element
     TotalLagrangianFD20NodeBrick ();
     ~TotalLagrangianFD20NodeBrick();
     
-    const char *getClassType(void) const {return "TotalLagrangianFD20NodeBrick";};
+    const char *getClassType(void) const {return "TotalLagrangianFD20NodeBrick";}
     
     int getNumExternalNodes () const;
     const ID &getExternalNodes ();
@@ -101,8 +101,6 @@ class TotalLagrangianFD20NodeBrick: public Element
 //    int setParameter(const char **argv, int argc, Information &info);
 //    int updateParameter(int parameterID, Information &info);
 
-
-  protected:
 
   private:
 

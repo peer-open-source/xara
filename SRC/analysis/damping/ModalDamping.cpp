@@ -14,6 +14,10 @@
 //===----------------------------------------------------------------------===//
 //
 // Written: Gustavo A. Araújo R.
+//          Claudio M. Perez
+//          Barbara Simpson
+//          Stanford University
+//
 // Created: 06/2026
 //
 

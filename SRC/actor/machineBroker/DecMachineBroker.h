@@ -50,8 +50,6 @@ class DecMachineBroker : public MachineBroker
 			   Channel &theChannel,
 			   int compDemand =0);
 
-  protected:
-    
   private:
     int currentMachine;
     int maxNumMachines;

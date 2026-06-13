@@ -58,7 +58,8 @@ NineNodeQuad::NineNodeQuad(int tag,
                            Element::MassSource mass_source
 )
 : Element (tag, ELE_TAG_NineNodeQuad),
-  theMaterial(0), connectedExternalNodes(NEN),
+  theMaterial{}, 
+  connectedExternalNodes(NEN),
   Q(2*NEN), applyLoad(0), pressureLoad(2*NEN), 
   thickness(thickness), 
   pressure(p), 
@@ -70,12 +71,10 @@ NineNodeQuad::NineNodeQuad(int tag,
   b[0] = b1;
   b[1] = b2;
 
-  // Allocate arrays of pointers to NDMaterials
-  theMaterial = new NDMaterial *[nip];
-
   // Get copies of the material model for each integration point
   for (int i = 0; i < nip; i++) {
     theMaterial[i] = m.getCopy();
+    assert(theMaterial[i] != nullptr);
   }
 
   // Set connected external node IDs
@@ -87,11 +86,13 @@ NineNodeQuad::NineNodeQuad(int tag,
 
 
 NineNodeQuad::NineNodeQuad()
-:Element (0,ELE_TAG_NineNodeQuad),
-  theMaterial(0), connectedExternalNodes(NEN),
- Q(2*NEN), applyLoad(0), pressureLoad(2*NEN), 
- thickness(0.0), pressure(0.0), Ki(0),
- mass_source(Element::MassSource::Material)
+: Element (0,ELE_TAG_NineNodeQuad),
+  theMaterial{}, 
+  connectedExternalNodes(NEN),
+  Q(2*NEN), applyLoad(0), pressureLoad(2*NEN), 
+  thickness(0.0), pressure(0.0),
+  Ki(0),
+  mass_source(Element::MassSource::Material)
 {
   for (int i=0; i<NEN; i++)
     theNodes[i] = nullptr;
@@ -104,10 +105,6 @@ NineNodeQuad::~NineNodeQuad()
     if (theMaterial[i])
       delete theMaterial[i];
   }
-
-  // Delete the array of pointers to NDMaterial pointer arrays
-  if (theMaterial)
-    delete [] theMaterial;
 
   if (Ki != nullptr)
     delete Ki;
@@ -243,9 +240,9 @@ NineNodeQuad::update()
     //eps = B*u;
     VectorND<3> eps{};
     for (int beta = 0; beta < NEN; beta++) {
-        eps[0] += shp[0][beta]*u[0][beta];
-        eps[1] += shp[1][beta]*u[1][beta];
-        eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
+      eps[0] += shp[0][beta]*u[0][beta];
+      eps[1] += shp[1][beta]*u[1][beta];
+      eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
     }
 
     // Set the material strain
@@ -725,19 +722,15 @@ NineNodeQuad::recvSelf(int commitTag, Channel &theChannel,
   for( int i = 0; i < NEN; i++)
     connectedExternalNodes(i) = idData(2*nip+i);
 
-  if (theMaterial == 0) {
+  if (theMaterial[0] == 0) {
     // Allocate new materials
-    theMaterial = new NDMaterial *[nip];
-    if (theMaterial == 0) {
-      opserr << "NineNodeQuad::recvSelf() - Could not allocate NDMaterial* array\n";
-      return -1;
-    }
+    // theMaterial = new NDMaterial *[nip];
     for (int i = 0; i < nip; i++) {
       int matClassTag = idData(i);
       int matDbTag = idData(i+nip);
       // Allocate new material with the sent class tag
       theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-      if (theMaterial[i] == 0) {
+      if (theMaterial[i] == nullptr) {
         opserr << "NineNodeQuad::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
         return -1;
       }

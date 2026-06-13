@@ -149,11 +149,11 @@ const char** DeprecatedUniaxialMaterials {
 typedef UniaxialMaterial*(G3_TclUniaxialPackage)(ClientData, Tcl_Interp *, int, TCL_Char ** const);
 G3_TclUniaxialPackage TclBasicBuilder_addFedeasMaterial;
 G3_TclUniaxialPackage TclBasicBuilder_addSnapMaterial;
-G3_TclUniaxialPackage TclBasicBuilder_addDrainMaterial;
-std::unordered_map<std::string, G3_TclUniaxialPackage *> tcl_uniaxial_package_table {
+Tcl_CmdProc TclBasicBuilder_addDrainMaterial;
+std::unordered_map<std::string, Tcl_CmdProc *> tcl_uniaxial_package_table {
   {"DRAIN",              TclBasicBuilder_addDrainMaterial },
-  {"SNAP",               TclBasicBuilder_addSnapMaterial  },
-  {"snap",               TclBasicBuilder_addSnapMaterial  },
+//   {"SNAP",               TclBasicBuilder_addSnapMaterial  },
+//   {"snap",               TclBasicBuilder_addSnapMaterial  },
 // #if defined(_STEEL2) || defined(OPSDEF_UNIAXIAL_FEDEAS)
 //{"FEDEAS",             TclBasicBuilder_addFedeasMaterial},
 // #endif
@@ -169,6 +169,8 @@ extern Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
 extern Tcl_CmdProc TclCommand_newFedeasSteel;
 extern Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
 extern Tcl_CmdProc TclCommand_newFedeasConcrete;
+// Steel
+extern Tcl_CmdProc TclCommand_ReinforcingSteel;
 // Wrapper
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
 extern Tcl_CmdProc TclCommand_newFatigueMaterial;
@@ -195,9 +197,9 @@ static Tcl_CmdProc TclDispatch_newUniaxialPinching4;
 extern Tcl_CmdProc TclDispatch_LegacyUniaxials;
 
 
-typedef UniaxialMaterial* (TclDispatch_UniaxialMaterial)(G3_Runtime*, int, TCL_Char ** const);
-TclDispatch_UniaxialMaterial TclCommand_ReinforcingSteel;
 
+
+namespace {
 
 template <OPS_Routine fn> static int
 dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const argv)
@@ -223,7 +225,8 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const a
   UniaxialMaterial* theMaterial = fn( rt, argc, argv );
 
   if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "Could not add uniaxialMaterial to the model builder.\n";
+    opserr << OpenSees::PromptValueError 
+           << "Could not add uniaxialMaterial to the model builder.\n";
     delete theMaterial;
     return TCL_ERROR;
   }
@@ -236,6 +239,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
 {
   assert(clientData != nullptr);
   return fn( clientData, interp, argc, argv );
+}
 }
 
 
@@ -293,7 +297,8 @@ UniaxialLibrary {
 // Concretes
     {"Concrete01",             dispatch<TclCommand_newFedeasConcrete>  },
     {"Concrete02",             dispatch<TclCommand_newFedeasConcrete>     },
-    {"Concrete04",             dispatch<TclCommand_newUniaxialConcrete04> },
+    {"Concrete04",             dispatch<TclCommand_newFedeasConcrete>     },
+    // {"Concrete04",             dispatch<TclCommand_newUniaxialConcrete04> },
     {"Concrete06",             dispatch<TclCommand_newUniaxialConcrete06> },
     {"Concrete07",             dispatch<TclCommand_newUniaxialConcrete07> },
 
@@ -361,7 +366,7 @@ UniaxialLibrary {
     {"APDFMD",               dispatch<OPS_APDFMD> },
     {"APDMD",                dispatch<OPS_APDMD> },
     {"APDVFD",               dispatch<OPS_APDVFD> },
-    {"Penalty",      dispatch<OPS_PenaltyMaterial>           },
+    {"Penalty",              dispatch<OPS_PenaltyMaterial>           },
 
     {"FedeasUniaxialDamage", dispatch<TclCommand_newFedeasUniaxialDamage>  },
     {"KikuchiAikenHDR",      dispatch<TclCommand_KikuchiAikenHDR>       },

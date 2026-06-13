@@ -50,8 +50,6 @@ class UmfpackGenLinSolver : public LinearSOESolver
 
     virtual double getDeterminant() override;
     
-  protected:
-
   private:
     void *Symbolic;
     double Control[UMFPACK_CONTROL], Info[UMFPACK_INFO];

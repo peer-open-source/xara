@@ -68,8 +68,6 @@ class LagrangeSP_FE: public FE_Element
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0); 
     void zeroTangent() final {tang? tang->Zero() : void();}
-  protected:
-    
   private:
     ID myID;
     double alpha;

@@ -88,8 +88,6 @@ class QzSimple2 : public UniaxialMaterial
     void Print(OPS_Stream &s, int flag =0);
 
    
-  protected:
-    
   private:
 
 	// Functions to get Q & z for each component individually

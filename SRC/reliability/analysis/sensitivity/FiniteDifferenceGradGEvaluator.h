@@ -66,8 +66,6 @@ public:
 
 	Matrix  getDgDdispl();
 
-protected:
-
 private:
 //	int computeDgDsomething();
 

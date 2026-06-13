@@ -77,8 +77,6 @@ public:
         int sendSelf(int commitTag, Channel &theChannel);
         int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-protected:
-
 private:
     static stresstensor Stress;   // Stress tensor
     static Tensor Dt;         // Elastic constants tensor

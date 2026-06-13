@@ -80,7 +80,6 @@ public:
     return 3;
   };
 
-protected:
 private:
   double rho;
   UniaxialMaterial** theMaterial; // pointer of the materials

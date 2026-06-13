@@ -46,8 +46,6 @@ class Concrete02Thermal : public UniaxialMaterial
     int getVariable(const char *variable, Information &);
 
     
- protected:
-    
  private:
     void Tens_Envlp (double epsc, double &sigc, double &Ect);
     void Compr_Envlp (double epsc, double &sigc, double &Ect);

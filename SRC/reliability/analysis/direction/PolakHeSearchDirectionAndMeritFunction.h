@@ -69,8 +69,6 @@ public:
 
 	int setAlpha(double alpha);
 
-protected:
-
 private:
 	Vector searchDirection;
 	double thetaFunction;

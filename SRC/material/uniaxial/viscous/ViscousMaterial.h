@@ -69,8 +69,6 @@ class ViscousMaterial : public UniaxialMaterial
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
     
-  protected:
-    
   private:
     double trialStrain;
     double trialRate;

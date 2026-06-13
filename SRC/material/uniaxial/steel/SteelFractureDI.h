@@ -88,8 +88,6 @@ public:
 	Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 	int getResponse(int responseID, Information &matInformation);
 
-protected:
-
 private:
 	// matpar : STEEL FIXED PROPERTIES
 	double Fy;  //  = matpar(1)  : yield stress

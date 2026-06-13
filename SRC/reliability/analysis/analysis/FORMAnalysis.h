@@ -60,8 +60,6 @@ public:
 	int analyze();
     int getStorage(const char *variable, int lsfTag, Vector &stuff);
 
-protected:
-
 private:
 	ReliabilityDomain *theReliabilityDomain;
 	FindDesignPointAlgorithm *theFindDesignPointAlgorithm;

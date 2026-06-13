@@ -76,8 +76,6 @@ class MEFI : public Element
 
     int getResponse(int responseID, Information &eleInformation);
 
-  protected:
-    
   private:
     //private attributes - a copy for each object of the class
     Node* theNodes[4];                       // external node pointers 

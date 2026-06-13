@@ -27,33 +27,43 @@
 #define ElementalLoad_h
 
 
-#include <Load.h>
+#include <ID.h>
+#include <MovableObject.h>
+#include <TaggedObject.h>
 #include <Vector.h>
 
+class Domain;
 class Element;
 
-class ElementalLoad : public Load
+class ElementalLoad : public TaggedObject, public MovableObject
 {
   public:
     ElementalLoad(int tag, int classTag, int eleTag);
     ElementalLoad(int tag, int classTag);
     ElementalLoad(int classTag);
-    ~ElementalLoad();
+    virtual ~ElementalLoad();
 
-    virtual void setDomain(Domain *theDomain);
+    virtual int setDomain(Domain *);
+    Domain *getDomain() const {return theDomain;}
+
     virtual void applyLoad(double loadfactor);
     virtual void applyLoad(const Vector &loadfactors);
+    virtual void applyLoadSensitivity(double loadfactor) final {return;}
     virtual const Vector &getData(int &type, double loadFactor) = 0;
     virtual const Vector &getSensitivityData(int gradIndex);
 
-    virtual int getElementTag();
+    virtual int getElementTag() const final;
+
+    void setLoadPatternTag(int tag) {loadPatternTag = tag;}
+    int  getLoadPatternTag() const {return loadPatternTag;}
 
   protected:
     int eleTag;
     Element *theElement;
 
   private:
-
+    Domain* theDomain;
+    int loadPatternTag;
 };
 
 #endif

@@ -96,8 +96,6 @@ class PileToe3D : public Element
     Response *setResponse(const char **argv, int argc, OPS_Stream &eleInfo);
     int getResponse(int responseID, Information &eleInformation);
 
-  protected:
-   
   private:
 
     // member functions

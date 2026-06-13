@@ -79,8 +79,6 @@ class MultiplierMaterial : public UniaxialMaterial
     
     double getEnergy(void);
 
-  protected:
-    
   private:
     UniaxialMaterial *theMaterial;
 

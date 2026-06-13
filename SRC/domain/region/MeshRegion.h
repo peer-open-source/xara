@@ -69,8 +69,6 @@ class MeshRegion : public DomainComponent
                          FEM_ObjectBroker &theBroker);
     virtual void Print(OPS_Stream &s, int flag =0);       
 
-  protected:
-    
   private:
     double alphaM, betaK, betaK0, betaKc;
 

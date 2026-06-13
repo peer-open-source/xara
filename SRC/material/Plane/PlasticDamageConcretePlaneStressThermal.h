@@ -120,8 +120,6 @@ class PlasticDamageConcretePlaneStressThermal : public NDMaterial
 	       FEM_ObjectBroker &theBroker);    
   void Print(OPS_Stream &, int flag) final;       
   
- protected:
-  
  private:
   // parameters
   double E;     // elastic modulus
