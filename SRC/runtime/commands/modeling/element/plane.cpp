@@ -335,6 +335,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
   double b2 = 0.0;
   TCL_Char *type = nullptr;
   Element::MassSource mass_source = Element::MassSource::Material;
+  Element::MassType mass_type = Element::MassType::Diagonal;
 
   if (true) {
     enum class Position : int {
@@ -391,6 +392,65 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
         }
         tracker.consume(Position::Density);
         mass_source = Element::MassSource::Element;
+      }
+      else if (strcmp(argv[i], "-pressure") == 0) {
+        i++;
+        if (i== argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "-pressure requires argument"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp, argv[i], &p) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "invalid pressure " << argv[i] 
+                 << "\n";
+          return TCL_ERROR;
+        }
+        tracker.consume(Position::Pressure);
+      }
+      else if (strcmp(argv[i], "-b") == 0) {
+        i++;
+        TCL_Char **b_argv = nullptr;
+        Tcl_Size b_argc;
+        if (i == argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "-b requires arguments"
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        if ((i < argc+1) && 
+            (Tcl_GetDouble(interp, argv[i], &b1) == TCL_OK) && 
+            (Tcl_GetDouble(interp, argv[i+1], &b2) == TCL_OK)
+          ) {
+          tracker.consume(Position::B1);
+          tracker.consume(Position::B2);
+        }
+        else if (Tcl_SplitList(interp, argv[i], &b_argc, &b_argv) == TCL_OK && b_argc == 2) {
+          if (Tcl_GetDouble(interp, b_argv[0], &b1) != TCL_OK) {
+            opserr << OpenSees::PromptValueError 
+                   << "invalid b1 " << b_argv[0] 
+                   << "\n";
+            Tcl_Free((char *)b_argv);
+            return TCL_ERROR;
+          }
+          if (Tcl_GetDouble(interp, b_argv[1], &b2) != TCL_OK) {
+            opserr << OpenSees::PromptValueError 
+                   << "invalid b2 " << b_argv[1] 
+                   << "\n";
+            Tcl_Free((char *)b_argv);
+            return TCL_ERROR;
+          }
+          tracker.consume(Position::B1);
+          tracker.consume(Position::B2);
+          Tcl_Free((char *)b_argv);
+        }
+        else {
+          opserr << OpenSees::PromptValueError 
+                 << "invalid b " << argv[i] 
+                 << "\n";
+          return TCL_ERROR;
+        }
       }
       else
         // continue;
@@ -567,7 +627,9 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
       // }
       else 
         theElement =
-            new FourNodeQuad(tag, nodes, *nd_mat, thickness, p, rho, b1, b2, mass_source);
+            new FourNodeQuad(tag, nodes, *nd_mat, thickness, 
+                             p, rho, b1, b2, 
+                             mass_source, mass_type);
     }
   }
 
