@@ -886,6 +886,32 @@ iterations_completed:
 
 
 
+
+template <int NIP, int nsr, int nwm, int shear_flag>
+const Matrix &
+ForceFrame3d<NIP,nsr,nwm,shear_flag>::getTangentStiff()
+{
+  const MatrixND<NBV,NBV>& kb = K_pres;
+
+  VectorND<NDF*2> pl{};
+
+  static MatrixND<2*NDF,2*NDF> kl{};
+  static Matrix Wrapper(kl);
+
+
+  ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
+  interp.expand(kb, kl);
+  interp.expand(q_pres, pl);
+  // const static MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix();
+  // kl = Tb*kb * Tb.transpose();
+  // pl = Tb * q_pres;
+
+  basic_system->t.push(kl, pl, Transform::Total);//&~Transform::Logarithm);
+  this->addLoadTangent(kl, 1.0);
+  return Wrapper;
+}
+
+
 template <int NIP, int nsr, int nwm, int shear_flag>
 void
 ForceFrame3d<NIP,nsr,nwm,shear_flag>::addLoadTangent(MatrixND<2*NDF,2*NDF>& K, double c)
@@ -2337,22 +2363,10 @@ ForceFrame3d<NIP,nsr,nwm,shear_flag>::getResistingForce()
   const double L = basic_system->getInitialLength();
 
   static VectorND<NDF*2> pl{};
-#if BASIC_TRANSFORM == 1
+
   ForceInterpolation<nsr,nwm,NBV,NDF,scheme> interp{};
   const MatrixND<2*NDF,NBV> Tb = interp.reshape_matrix();
   pl = Tb * q_pres;
-#else
-  pl.zero();
-  for (int i=0; i<NDF*2; i++) {
-    int ii = std::abs(iq[i]);
-    if (ii >= NBV)
-      continue;
-    pl[i] = q_pres[ii];
-  }
-
-  pl[0*NDF+0]  = -q_pres[jnx];      // Ni
-  pl[0*NDF+3]  = -q_pres[jmx];      // Ti
-#endif
 
   // 2. Element loads
   VectorND<NDF*2> pf{};
