@@ -54,8 +54,8 @@ computeJacobian(double L1, double L2,
   double tt = L2;
 
   for (int i = 0; i < 4; i++ ) {
-      shp[0][i] = s[i] * ( 0.5 + t[i]*tt ) ;
-      shp[1][i] = t[i] * ( 0.5 + s[i]*ss ) ;
+    shp[0][i] = s[i] * ( 0.5 + t[i]*tt ) ;
+    shp[1][i] = t[i] * ( 0.5 + s[i]*ss ) ;
   }
 
   // Construct jacobian and its inverse
@@ -102,10 +102,9 @@ EnhancedQuad::computeB( int node, const double shp[3][4] , MatrixND<3,2> & B)
   B(2,1) = shp[0][node];
 
   return;
-
 }
 
-//***********************************************************************
+
 // compute enhanced strain B-matrices
 
 template <typename MatT, typename BT>
@@ -135,7 +134,6 @@ computeBenhanced(int node,
     shape[1] = JinvTran[1][0] ;
 
     parameter = L1 / j ;
-
   }
   else if ( node == 1 ) {
     // second column of JinvTran 
@@ -163,7 +161,7 @@ Element( 0, ELE_TAG_EnhancedQuad ),
 connectedExternalNodes(4),
 alpha(4), thickness(0.0), load(0), Ki(0)
 { 
-  for ( int i = 0 ;  i < 4; i++ )
+  for ( int i = 0 ;  i < nip; i++ )
     materialPointers[i] = nullptr;
 
   // zero enhanced parameters
