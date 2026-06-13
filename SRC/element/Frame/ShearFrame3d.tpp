@@ -55,7 +55,7 @@
 #include <MatrixND.h>
 #include <VectorND.h>
 
-#include "for_int.tpp"
+#include <utility/Unroll.h>
 #include <CrdTransf.h>
 #include <FrameSection.h>
 #include <FrameTransform.h>
@@ -357,10 +357,10 @@ ShearFrame3d<nen,nwm>::update()
       }
       Matrix3D R  = MatrixFromVersor(q);
 #ifndef _MSC_VER
-      for_int<nen>([&](auto i_) constexpr {
+      Unroll<0,nen>([&](auto i_) constexpr {
         constexpr int i = i_.value;
         load->addLoadAtPoint<i,nen,ndf>(p, xc, w*shp[0][i], jxs, R0, R);
-        for_int<nen>([&](auto j_) constexpr {
+        Unroll<0,nen>([&](auto j_) constexpr {
           constexpr int j = j_.value;
           load->addTangAtPoint<i,j,nen,ndf>(K, xc, w*shp[0][i]*shp[0][j], jxs, R0, R);
         });
