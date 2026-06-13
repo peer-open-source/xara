@@ -605,9 +605,9 @@ AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
 int 
 AnalysisModel::applyResidual(Integrator& assm, LinearSOE& soe)
 {
-  // this->addModalDampingForce(&soe);
 
   // loop through the DOF_Groups and add the unbalance
+  // same as IncrementalIntegrator::formNodalUnbalance
   DOF_GrpIter &theDOFs = this->getDOFs();
   DOF_Group *dofPtr;
   int res = 0;
@@ -619,6 +619,7 @@ AnalysisModel::applyResidual(Integrator& assm, LinearSOE& soe)
   }
 
   // loop through the FE_Elements and add the residual
+  // same as IncrementalIntegrator::formElementResidual
   FE_Element *elePtr;
   FE_EleIter &theEles2 = this->getFEs();    
   while ((elePtr = theEles2()) != nullptr) {
