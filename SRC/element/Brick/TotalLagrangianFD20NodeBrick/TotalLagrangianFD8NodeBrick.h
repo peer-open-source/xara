@@ -68,7 +68,6 @@ class TotalLagrangianFD8NodeBrick: public Element
     NDMaterial &m, double b1=0.0, double b2=0.0, double b3=0.0);
 
 
-
     TotalLagrangianFD8NodeBrick();
     ~TotalLagrangianFD8NodeBrick();
 
@@ -78,49 +77,33 @@ class TotalLagrangianFD8NodeBrick: public Element
 
 
     int getNumExternalNodes () const;
-
     const ID &getExternalNodes ();
-
     Node **getNodePtrs();
 
 
 
     int getNumDOF ();
-
-    void setDomain(Domain *theDomain);
-
-
+    void setDomain(Domain *);
 
     int commitState ();
-
     int revertToLastCommit ();
-
     int revertToStart ();
-
     int update();
 
-
-
     const Matrix &getTangentStiff ();
-
     const Matrix &getInitialStiff();
-
     const Matrix &getMass ();
 
 
 
     void zeroLoad ();
-
     int addLoad(ElementalLoad *theLoad, double loadFactor);
-
     int addInertiaLoadToUnbalance(const Vector &accel);
 
 
 
     const Vector &getResistingForce ();
-
     const Vector &getResistingForceIncInertia ();
-
 
 
     // public methods for element output
@@ -131,7 +114,7 @@ class TotalLagrangianFD8NodeBrick: public Element
 
     int displaySelf (Renderer &theViewer, int displayMode, float fact);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
 
 
