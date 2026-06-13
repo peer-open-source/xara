@@ -822,8 +822,6 @@ TclPackageClassBroker::getNewCrdTransf(int classTag)
     return new LinearCrdTransf3d();
   case CRDTR_TAG_PDeltaCrdTransf3d:
     return new PDeltaCrdTransf3d();
-  case CRDTR_TAG_CorotCrdTransf3d:
-    return new CorotCrdTransf3d();
   default:
     opserr << "TclPackageClassBroker::getCrdTransf - ";
     opserr << " - no CrdTransf type exists for class tag ";

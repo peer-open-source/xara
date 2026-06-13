@@ -45,17 +45,14 @@
 #include <math.h>
 
 
-static int numRambergOsgoodSteel = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_RambergOsgoodSteel)
 {
+  static int numRambergOsgoodSteel = 0;
   if (numRambergOsgoodSteel == 0) {
     opslog << "RambergOsgoodSteel unaxial material - Written by R.Rahimi & R.Sepasdar & Dr. Mo. R. Banan Shiraz University Copyright 2012; \n";
     numRambergOsgoodSteel++;
   }
-
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
 
   int    iData[1];
   double dData[4];
@@ -75,13 +72,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_RambergOsgoodSteel)
     return 0;  
   }
  
-  theMaterial = new RambergOsgoodSteel(iData[0], dData[0], dData[1], dData[2], dData[3]);
+  return new RambergOsgoodSteel(iData[0], dData[0], dData[1], dData[2], dData[3]);
 
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type RambergOsgoodSteel\n";
-    return 0;
-  }
-  return theMaterial;
 }
 
 
@@ -245,17 +237,17 @@ RambergOsgoodSteel::setTrialStrain(double trialStrain, double strainRate)
   trialSig[1] = 1;
   double M=10;
   while ( M >= 0.0001) {
-      F[kk]= (trialSig[kk]/E0) + rezaAA*(pow((trialSig[kk]/sigs0),rezaNN)) - fabs(eps-epsr);
-      dF[kk]= (1/E0) + rezaAA*(1/sigs0)*rezaNN*(pow((trialSig[kk]/sigs0),(rezaNN-1)));
-      trialSig[kk+1]=trialSig[kk]-(F[kk]/dF[kk]);
-     
-      kk=kk+1;
-      sig=trialSig[kk];
-      M=fabs(sig-trialSig[kk-1]);
-      if (kk == 1000) {
-        opserr << "NewtonRaphson method does NOT converge at eps=" <<  eps << "\n";
-        M=0;
-      }
+    F[kk]= (trialSig[kk]/E0) + rezaAA*(pow((trialSig[kk]/sigs0),rezaNN)) - fabs(eps-epsr);
+    dF[kk]= (1/E0) + rezaAA*(1/sigs0)*rezaNN*(pow((trialSig[kk]/sigs0),(rezaNN-1)));
+    trialSig[kk+1]=trialSig[kk]-(F[kk]/dF[kk]);
+    
+    kk=kk+1;
+    sig=trialSig[kk];
+    M=fabs(sig-trialSig[kk-1]);
+    if (kk == 1000) {
+      opserr << "NewtonRaphson method does NOT converge at eps=" <<  eps << "\n";
+      M=0;
+    }
   }
  
   e = 1/((1/E0) + rezaAA*(1/sigs0)*rezaNN*(pow((sig/sigs0),(rezaNN-1))));

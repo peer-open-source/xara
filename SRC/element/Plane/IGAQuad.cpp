@@ -24,13 +24,13 @@
 #include <FEM_ObjectBroker.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
-#include <elementAPI.h>
 
 #include "IGA.h"
 
 #define ELE_TAG_IGAQuad 0
 
-
+#if 0
+#include <elementAPI.h>
 // Definiton of single element from the script input
 void* OPS_ADD_RUNTIME_VPV(OPS_IGAQuad)
 {
@@ -138,7 +138,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_IGAQuad)
                                         *mat,type,thk,data[0],data[1],data[2],data[3]);
         // elementTag, cp1, cp2, cp3, cp4. material pointer, type, thickness, load, pressure, density, Ki
 }
-
+#endif
 
 double IGAQuad::matrixData[324];
 Matrix IGAQuad::K(18,18);

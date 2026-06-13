@@ -63,7 +63,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousDamper)
   }
   
   // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
+  UniaxialMaterial *theMaterial = nullptr;
   
   int    iData[1];
   double dData[8];
