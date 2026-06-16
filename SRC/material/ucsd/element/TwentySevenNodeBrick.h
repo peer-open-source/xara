@@ -87,13 +87,13 @@ class TwentySevenNodeBrick: public Element
     const ID &getExternalNodes ();
     Node **getNodePtrs();
 
-    int getNumDOF ();
-    void setDomain(Domain *theDomain);
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element
-    int commitState ();
-    int revertToLastCommit ();
-    int revertToStart ();
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
     // update, Guanzhou added Apr. 2004 to update incremental strain in the domain
     int update();
@@ -126,9 +126,7 @@ class TwentySevenNodeBrick: public Element
     int getResponse (int responseID, Information &eleInformation);
 
   private:
-    // private attributes - a copy for each object of the class
-
-    //NDMaterial * **theMaterial; // pointer to the ND material objects
+    // private attributes
 
     int numDOF;          // Number of element DOF
     ID  connectedExternalNodes; // Tags of quad nodes
@@ -190,10 +188,10 @@ class TwentySevenNodeBrick: public Element
 
     tensor Jacobian_3D(tensor dh);
     tensor Jacobian_3Dinv(tensor dh);
-    tensor Nodal_Coordinates(void);
+    tensor Nodal_Coordinates();
 
-    tensor incr_disp(void);
-    tensor total_disp(void);
+    tensor incr_disp();
+    tensor total_disp();
 
     tensor total_disp(FILE *fp, double * u);
 
@@ -202,7 +200,7 @@ class TwentySevenNodeBrick: public Element
 
 
     int  get_global_number_of_node(int local_node_number);
-    int  get_Brick_Number(void);
+    int  get_Brick_Number();
 
 
     //int * get_LM(void);
@@ -213,14 +211,14 @@ class TwentySevenNodeBrick: public Element
     double get_Gauss_p_w(short order, short point_numb);
 
     // returns nodal forces for given stress field in an element
-    tensor nodal_forces(void);
+    tensor nodal_forces();
     // returns nodal forces for ITERATIVE stress field in an element
-    tensor iterative_nodal_forces(void);
+    tensor iterative_nodal_forces();
     // returns nodal forces for given constant stress field in the element
     tensor nodal_forces_from_stress(stresstensor & );
     // returns nodal forces for given incremental strain field in an element
     // by using the linearized constitutive tensor from the begining of the step !
-    tensor linearized_nodal_forces(void);
+    tensor linearized_nodal_forces();
     // updates Material point stresses and strains from given displacements
     tensor update_stress_strain(tensor & disp);
 
