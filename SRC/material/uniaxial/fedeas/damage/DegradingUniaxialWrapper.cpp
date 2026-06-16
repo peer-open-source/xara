@@ -1,3 +1,9 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
 //
 // ============================================================================
 // FEDEASLab - Release 5.1, July 2020
@@ -71,7 +77,7 @@ DegradingUniaxialWrapper::setTrialStrain(double strain, double temp,
 
     this->applyDamage(data, dstate, inputs, outputs);
 
-    this->m_stress = outputs[0];
+    this->m_stress  = outputs[0];
     this->m_tangent = outputs[1];
 
   } else {
