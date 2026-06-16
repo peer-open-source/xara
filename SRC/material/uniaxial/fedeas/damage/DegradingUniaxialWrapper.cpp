@@ -280,8 +280,8 @@ DegradingUniaxialWrapper::applyDamage(
   VectorND<2> psi{};
   
   // Dereference/cast input data structures
-  DamageState::Step past = state.past;
-  DamageState::Step pres = state.test;
+  DamageState::Step& past = state.past;
+  DamageState::Step& pres = state.test;
 
   // extract effective state variables
   pres.strain        = inputs[0];
