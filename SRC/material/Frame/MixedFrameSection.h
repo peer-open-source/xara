@@ -21,7 +21,6 @@
 #define MixedFrameSection_h
 #include <array>
 #include <memory>
-// #include <LegacyFrameSection.h>
 #include <FrameSection.h>
 #include <Vector.h>
 #include <vector>
@@ -30,6 +29,7 @@
 #include <VectorND.h>
 #include <Matrix3D.h>
 #include <Frame/Shape.h>
+#include <threads/thread_pool.hpp>
 
 class NDMaterial;
 class MaterialBuilder;
@@ -40,7 +40,12 @@ class MixedFrameSection : public FrameSection
 {
   public:
     using MixedType = Frame::Shape::MixedType;
-    MixedFrameSection(int tag, int reserve, MixedType type, bool wagner);
+  
+    MixedFrameSection(int tag, 
+                      int reserve, 
+                      MixedType type, 
+                      bool wagner, 
+                      concurrency_t num_threads );
   private:
     MixedFrameSection(const MixedFrameSection &);
   public:
@@ -237,8 +242,8 @@ class MixedFrameSection : public FrameSection
 
 
     static constexpr int MaxThreads = 12;
-    int num_threads = 8;
-    void *pool;        // thread pool
+    concurrency_t num_threads = 8;
+    std::shared_ptr<thread_pool> pool;        // thread pool
 
     inline int 
     RigidShape(const FiberData& fiber, double aw, MatrixND<3,6>& Ae) const noexcept {
@@ -403,4 +408,5 @@ class MixedFrameSection : public FrameSection
 };
 
 #endif
+
 } // namespace OpenSees
