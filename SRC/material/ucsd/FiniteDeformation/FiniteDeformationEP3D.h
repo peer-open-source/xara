@@ -22,8 +22,7 @@
 //# UPDATE HISTORY:
 //#
 //===============================================================================
-#ifndef FiniteDeformationEP3D_H
-#define FiniteDefornationEP3D_H
+#pragma once
 
 #include "BJMaterial.h"
 
@@ -143,5 +142,3 @@ private:
   static stresstensor static_stress; //Only for reference return
   static straintensor static_strain; //Only for reference return
 };
-
-#endif
