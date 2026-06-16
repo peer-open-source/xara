@@ -43,7 +43,9 @@ FrameFiberSection3d::FrameFiberSection3d(int tag,
                                          int num,
                                          const Frame::Shape& shape_data,
                                          double mass,
-                                         bool use_mass)
+                                         bool use_mass,
+                                         concurrency_t num_threads
+                                        )
   : FrameSection(tag, SEC_TAG_FrameFiberSection3d, mass, use_mass)
   , es{}, sr{}, tangent{}
   , e(es), s(sr), K_wrap(tangent.matrix)
@@ -107,14 +109,24 @@ int
 FrameFiberSection3d::setTrialSectionDeformation(const Vector &deforms)
 {
   e = deforms;
+  sr.zero();
+  s[imx] = tangent.matrix(imx, imx)*e(imx)
+         + tangent.matrix(imx, iny)*e(iny)
+         + tangent.matrix(imx, inz)*e(inz);
+  s[iny] = tangent.matrix(iny, iny)*e(iny)
+         + tangent.matrix(iny, inz)*e(inz)
+         + tangent.matrix(iny, imx)*e(imx);
+  s[inz] = tangent.matrix(inz, iny)*e(iny)
+         + tangent.matrix(inz, inz)*e(inz)
+         + tangent.matrix(inz, imx)*e(imx);
   return this->updateAxial(State::Pres, tangent, sr);
 }
+
 
 int
 FrameFiberSection3d::updateAxial(const State state_flag, 
                                  Tangent& tangent, VectorND<nsr>& sr) const
 {
-  sr.zero();
   tangent.zeroAxial();
   MatrixND<nsr,nsr> &ks = tangent.matrix;
 
@@ -799,12 +811,14 @@ FrameFiberSection3d::Print(OPS_Stream &s, int flag)
   const int numFibers = fibers->size();
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"" << this->getClassType() << "\", ";
 
     double mass;
     if (this->FrameSection::getIntegral(Field::Density, State::Init, mass) == 0)
-      s << "\"mass\": " << mass;
+      s << "\"mass\": " << mass << ", ";
+
+    s << "\"GJ\": " << *shape->J << ", ";
 
     s << "\"fibers\": [\n";
     for (int i = 0; i < numFibers; i++) {
