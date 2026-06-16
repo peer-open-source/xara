@@ -6,10 +6,9 @@
 //
 // Q1/E4 - Enhanced Four Node Quadrilateral Element
 //
-#include <stdio.h> 
 #include <string.h>
 #include <stdlib.h> 
-#include <math.h> 
+#include <math.h>
 
 #include <ID.h> 
 #include <Vector.h>
@@ -80,8 +79,9 @@ computeJacobian(double L1, double L2,
   return;
 }
 
+
 void 
-EnhancedQuad::computeB( int node, const double shp[3][4] , MatrixND<3,2> & B)
+EnhancedQuad::computeB(int node, const double shp[3][4] , MatrixND<3,2> & B)
 {
 // ---B Matrix in standard {1,2,3} mechanics notation---------------
 //
@@ -94,7 +94,7 @@ EnhancedQuad::computeB( int node, const double shp[3][4] , MatrixND<3,2> & B)
 // -------------------------------------------------------------------
 
 // static Matrix B(3,2) ;
-  B.zero( ) ;
+  B.zero();
 
   B(0,0) = shp[0][node];
   B(1,1) = shp[1][node];
@@ -125,7 +125,7 @@ computeBenhanced(int node,
   JinvTran[0][0] = Jinv(0,0) ;
   JinvTran[1][1] = Jinv(1,1) ;
   JinvTran[0][1] = Jinv(1,0) ;
-  JinvTran[1][0] = Jinv(0,1) ;      // residual 
+  JinvTran[1][0] = Jinv(0,1) ;
 
   double parameter ;
   if ( node == 0 ) {
@@ -165,7 +165,7 @@ alpha(4), thickness(0.0), load(0), Ki(0)
     materialPointers[i] = nullptr;
 
   // zero enhanced parameters
-  alpha.Zero( ) ;
+  alpha.Zero();
 }
 
 // full constructor
@@ -189,9 +189,9 @@ EnhancedQuad::EnhancedQuad(int tag,
     materialPointers[i] = theMaterial.getCopy() ;
 
   // zero enhanced parameters
-  alpha.Zero( ) ;
-
+  alpha.Zero();
 }
+
 
 // destructor 
 EnhancedQuad::~EnhancedQuad()
@@ -311,7 +311,7 @@ EnhancedQuad::getTangentStiff()
 
 
 const Matrix&
-EnhancedQuad::getInitialStiff( ) 
+EnhancedQuad::getInitialStiff()
 {
 
   if (Ki != 0)
@@ -389,11 +389,11 @@ EnhancedQuad::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 const Vector&
-EnhancedQuad::getResistingForce( ) 
+EnhancedQuad::getResistingForce()
 {
   int tang_flag = 0 ; // don't get the tangent
 
-  formResidAndTangent( tang_flag ) ;
+  formResidAndTangent(tang_flag);
 
   // subtract external loads 
   if (load != nullptr)
@@ -411,10 +411,10 @@ EnhancedQuad::getResistingForceIncInertia( )
   static Vector res(8);
 
   // do tangent and residual here 
-  formResidAndTangent( tang_flag ) ;
+  formResidAndTangent(tang_flag);
 
   // inertia terms
-  formInertiaTerms( tang_flag ) ;
+  formInertiaTerms( tang_flag );
 
   res = resid;
 
@@ -428,6 +428,7 @@ EnhancedQuad::getResistingForceIncInertia( )
 
   return res;
 }
+
 
 //*********************************************************************
 // form inertia terms
@@ -551,8 +552,8 @@ EnhancedQuad::formResidAndTangent( int tang_flag )
   int count = 0 ;
   do {
 
-    residE.Zero( ) ;
-    Kee.Zero( ) ;
+    residE.Zero();
+    Kee.Zero();
 
     // Gauss loop
     for (int i = 0; i < nip; i++ ) {
@@ -579,9 +580,9 @@ EnhancedQuad::formResidAndTangent( int tang_flag )
       // j-node loop to compute enhanced strain contributions
       for (int j = 0; j < nModes; j++ )  {
 
-        MatrixND<nstress,NDF> BJ ;      // B matrix node J
+        MatrixND<nstress,NDF> BJ{};      // B matrix node J
         // compute B matrix 
-        computeBenhanced( j, pts[i][0], pts[i][1], xsj[i], J0inv, BJ) ; 
+        computeBenhanced(j, pts[i][0], pts[i][1], xsj[i], J0inv, BJ) ; 
       
         // enhanced "displacements" 
         VectorND<NDF> Umode = {
@@ -673,8 +674,8 @@ EnhancedQuad::formResidAndTangent( int tang_flag )
   //
   // Gauss loop 
   //
-  static Matrix Kue(numberDOF,nEnhanced) ;
-  static Matrix Keu(nEnhanced,numberDOF) ;
+  static Matrix Kue(numberDOF,nEnhanced);
+  static Matrix Keu(nEnhanced,numberDOF);
   Kue.Zero();
   Keu.Zero();
   for (int i = 0; i < nip; i++ ) {
@@ -793,7 +794,7 @@ EnhancedQuad::computeBasis()
 }
 
 
-//************************************************************************
+//
 // shape function routine for four node quads
 void
 EnhancedQuad::shape2d(double ss, double tt, 
@@ -804,16 +805,16 @@ EnhancedQuad::shape2d(double ss, double tt,
   static constexpr double s[] = { -0.5,  0.5, 0.5, -0.5 } ;
   static constexpr double t[] = { -0.5, -0.5, 0.5,  0.5 } ;
 
-  static Matrix xs(2,2) ;
-  static Matrix sx(2,2) ;
+  static MatrixND<2,2> xs{};
+  static MatrixND<2,2> sx{};
 
   for (int i = 0; i < 4; i++ ) {
-    shp[2][i] = ( 0.5 + s[i]*ss )*( 0.5 + t[i]*tt ) ;
-    shp[0][i] = s[i] * ( 0.5 + t[i]*tt ) ;
-    shp[1][i] = t[i] * ( 0.5 + s[i]*ss ) ;
+    shp[2][i] = ( 0.5 + s[i]*ss )*( 0.5 + t[i]*tt );
+    shp[0][i] = s[i] * ( 0.5 + t[i]*tt );
+    shp[1][i] = t[i] * ( 0.5 + s[i]*ss );
   }
 
-  
+
   // Construct jacobian and its inverse
   for (int i = 0; i < 2; i++ ) {
     for (int j = 0; j < 2; j++ ) {
@@ -1138,7 +1139,7 @@ EnhancedQuad::recvSelf(int commitTag, Channel &theChannel,
 
 
 void
-EnhancedQuad::Print( OPS_Stream &s, int flag )
+EnhancedQuad::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_CURRENTSTATE) {
     s << "\n";
