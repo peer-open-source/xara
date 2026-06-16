@@ -1,3 +1,14 @@
+//
+// ============================================================================
+// FEDEASLab - Release 5.1, July 2020
+// Matlab Finite Elements for Design, Evaluation and Analysis of Structures
+// Professor Filip C. Filippou (filippou@berkeley.edu)
+// Department of Civil and Environmental Engineering, UC Berkeley
+// Copyright(c) 1998-2021. The Regents of the University of California. 
+// All Rights Reserved.
+// ============================================================================
+// Adapted from MATLAB source code by Claudio Perez                     07/2021
+//
 #include <functional> // std::hash
 #include <string>
 
@@ -7,112 +18,28 @@
 
 #include <Logging.h>
 #include <ModelRegistry.h>
+#include <VectorND.h>
+using namespace OpenSees;
 
-#ifdef OPS_USE_RUNTIME
-#  include <Parsing.h>
-#endif
 #include "DegradingUniaxialWrapper.h"
-#include "FedeasAPI.h"
 
 #define WRAPPER_CMD "FedeasUniaxialDamage"
 static const std::hash<std::string> hasher;
 static const int MatTag = hasher(WRAPPER_CMD);
 
-UniaxialMaterial *
-DegradingUniaxialWrapper::parseNew(Tcl_Interp* interp, void *cd, int argc,
-            TCL_Char ** const argv)
-{
-  // Pointer to the uniaxial material that will be returned
-  DegradingUniaxialWrapper *theMaterial = nullptr;
-  UniaxialMaterial *theWrappedMaterial  = nullptr;
-  ModelRegistry* builder = static_cast<ModelRegistry*>(cd);
-
-  int tags[2];
-
-  if (argc < 2) {
-    opserr << "WARNING invalid uniaxialMaterial " WRAPPER_CMD " $tag "
-              "$wrapTag <-damage $damageTag>"
-           << "\n";
-    return nullptr;
-  }
-
-  // Get wrapper tag
-  if (Tcl_GetInt(interp, argv[2], &tags[0]) != TCL_OK) {
-    opserr << "WARNING invalid uniaxialMaterial tag\n";
-    return nullptr;
-  }
-
-  // Get base tag
-  if (Tcl_GetInt(interp, argv[3], &tags[1]) != TCL_OK) {
-    opserr << "WARNING invalid uniaxialMaterial tag\n";
-    return nullptr;
-  }
-
-  // Get instance of base material
-  theWrappedMaterial = builder->getTypedObject<UniaxialMaterial>(tags[1]);
-
-  if (theWrappedMaterial == nullptr) {
-    opserr << "WARNING unable to retrieve uniaxialMaterial with tag" WRAPPER_CMD
-              " tag: "
-           << tags[1] << "\n";
-    return nullptr;
-  }
-
-  int argn = 4;
-  // const char *dmgtag = 0;
-  double Ccd = 0.5;
-  StateOperator *wrapper = new StateOperator;
-  while (argn < argc) {
-    const char *param = argv[argn];
-
-    if ((strcmp(param, "-damage") == 0) || 
-        (strcmp(param, "-dmg") == 0) ||
-        (strcmp(param, "-DMG") == 0)) {
-      *wrapper = *(StateOperator *)Tcl_GetAssocData(interp, 
-                                                    "fedeas::damage::UniaxialDamage", NULL);
-
-      wrapper->call(wrapper, interp, ISW_CREATE, argc - argn, &argv[1+argn], 0, 0, 0, 0, 0);
-      wrapper->call(wrapper, interp, ISW_MALLOC, 0, 0, 0, 0, 0, 0, 0);
-      argn++;
-
-    } else if ((strcmp(param, "-couple") == 0) ||
-               (strcmp(param, "-ccd") == 0) || 
-               (strcmp(param, "-Ccd") == 0)) {
-      Ccd = std::stod(argv[++argn]);
-
-    } else {
-      break;
-    }
-    argn++;
-  }
-
-  // Parsing was successful, allocate the material
-  theMaterial =
-      new DegradingUniaxialWrapper(tags[0], *theWrappedMaterial, wrapper);
-
-  theMaterial->setCoupling(Ccd);
-  return theMaterial;
-}
 
 DegradingUniaxialWrapper::DegradingUniaxialWrapper(int tag,
                                                    UniaxialMaterial &material,
-                                                   StateOperator *wrapper)
-    : UniaxialMaterial(tag, MatTag), theMaterial(0), m_stress(0.0)
+                                                   Data data)
+  : UniaxialMaterial(tag, MatTag)
+  , theMaterial(nullptr)
+  , m_stress(0.0)
+  , data(data)
 {
   theMaterial = material.getCopy();
   m_tangent = theMaterial->getInitialTangent();
-  this->degrade = wrapper;
-
-  if (theMaterial == 0) {
-    opserr << WRAPPER_CMD "::DegradingUniaxialWrapper -- failed to "
-              "get copy of material\n";
-  }
 }
 
-DegradingUniaxialWrapper::DegradingUniaxialWrapper()
-    : UniaxialMaterial(0, MatTag), theMaterial(0)
-{
-}
 
 DegradingUniaxialWrapper::~DegradingUniaxialWrapper()
 {
@@ -120,11 +47,6 @@ DegradingUniaxialWrapper::~DegradingUniaxialWrapper()
     delete theMaterial;
 }
 
-int
-DegradingUniaxialWrapper::setCoupling(double coupling_param)
-{
-  return 0;
-}
 
 int
 DegradingUniaxialWrapper::setTrialStrain(double strain, double temp,
@@ -137,17 +59,17 @@ DegradingUniaxialWrapper::setTrialStrain(double strain, double temp,
 
   // double strain_incr = trialStrain - pastStrain;
 
-  if (degrade) { //  && abs(strain_incr) > m_rate_tol){
+  if (true) { //  && abs(strain_incr) > m_rate_tol){
 
     double inputs[] = {
-        strain,
-        theMaterial->getStress(),
-        theMaterial->getTangent(),
+      strain,
+      theMaterial->getStress(),
+      theMaterial->getTangent(),
     };
 
     double outputs[2];
 
-    this->degrade->call(degrade, 0, ISW_UPDATE, 0, 0, 3, inputs, 2, outputs, 0);
+    this->applyDamage(data, dstate, inputs, outputs);
 
     this->m_stress = outputs[0];
     this->m_tangent = outputs[1];
@@ -166,157 +88,85 @@ DegradingUniaxialWrapper::setTrialStrain(double trialStrain, double strainRate)
 }
 
 double
-DegradingUniaxialWrapper::getTangent(void)
+DegradingUniaxialWrapper::getTangent()
 {
 
-  if (degrade)
+  if (true)
     return this->m_tangent;
   else
     return theMaterial->getTangent();
 }
 
 double
-DegradingUniaxialWrapper::getStress(void)
+DegradingUniaxialWrapper::getStress()
 {
-  if (degrade)
+  if (true)
     return m_stress;
   else
     return theMaterial->getStress();
 }
 
 double
-DegradingUniaxialWrapper::getInitialTangent(void)
+DegradingUniaxialWrapper::getInitialTangent()
 {
   return theMaterial->getInitialTangent();
 }
 
 double
-DegradingUniaxialWrapper::getDampTangent(void)
+DegradingUniaxialWrapper::getDampTangent()
 {
   return theMaterial->getDampTangent();
 }
 
 double
-DegradingUniaxialWrapper::getStrain(void)
+DegradingUniaxialWrapper::getStrain()
 {
   return theMaterial->getStrain();
 }
 
 double
-DegradingUniaxialWrapper::getStrainRate(void)
+DegradingUniaxialWrapper::getStrainRate()
 {
   return theMaterial->getStrainRate();
 }
 
 int
-DegradingUniaxialWrapper::commitState(void)
+DegradingUniaxialWrapper::commitState()
 {
-  degrade->call(degrade, 0, ISW_COMMIT, 0, 0, 0, 0, 0, 0, 0);
+  dstate.past = dstate.test;
   return theMaterial->commitState();
 }
 
 int
-DegradingUniaxialWrapper::revertToLastCommit(void)
+DegradingUniaxialWrapper::revertToLastCommit()
 {
   return theMaterial->revertToLastCommit();
 }
 
 int
-DegradingUniaxialWrapper::revertToStart(void)
+DegradingUniaxialWrapper::revertToStart()
 {
   return theMaterial->revertToStart();
 }
 
 UniaxialMaterial *
-DegradingUniaxialWrapper::getCopy(void)
+DegradingUniaxialWrapper::getCopy()
 {
-  // TODO!! call copy routine for degradation
-  StateOperator *damage = new StateOperator;
-  *damage = *degrade;
-  damage->call(damage, 0, ISW_MALLOC, 0, 0, 0, 0, 0, 0, 0);
-  DegradingUniaxialWrapper *theCopy =
-      new DegradingUniaxialWrapper(this->getTag(), *theMaterial, damage);
-
-  return theCopy;
+  return
+      new DegradingUniaxialWrapper(this->getTag(), *theMaterial, data);
 }
 
 int
 DegradingUniaxialWrapper::sendSelf(int cTag, Channel &theChannel)
 {
-  int dbTag = this->getDbTag();
-
-  static ID dataID(3);
-  dataID(0) = this->getTag();
-  dataID(1) = theMaterial->getClassTag();
-  int matDbTag = theMaterial->getDbTag();
-  if (matDbTag == 0) {
-    matDbTag = theChannel.getDbTag();
-    theMaterial->setDbTag(matDbTag);
-  }
-  dataID(2) = matDbTag;
-  if (theChannel.sendID(dbTag, cTag, dataID) < 0) {
-    opserr << WRAPPER_CMD "::sendSelf() - failed to send the ID\n";
-    return -1;
-  }
-
-  static Vector dataVec(3);
-  // dataVec(0) = minStrain;
-  // dataVec(1) = maxStrain;
-  dataVec(2) = 0.0;
-
-  if (theChannel.sendVector(dbTag, cTag, dataVec) < 0) {
-    opserr
-        << WRAPPER_CMD "::sendSelf() - failed to send the Vector\n";
-    return -2;
-  }
-
-  if (theMaterial->sendSelf(cTag, theChannel) < 0) {
-    opserr << WRAPPER_CMD "::sendSelf() - failed to send the "
-              "Material\n";
-    return -3;
-  }
-
-  return 0;
+  return -1;
 }
 
 int
 DegradingUniaxialWrapper::recvSelf(int cTag, Channel &theChannel,
                                    FEM_ObjectBroker &theBroker)
 {
-  int dbTag = this->getDbTag();
-
-  static ID dataID(3);
-  if (theChannel.recvID(dbTag, cTag, dataID) < 0) {
-    opserr << WRAPPER_CMD "::recvSelf() - failed to get the ID\n";
-    return -1;
-  }
-  this->setTag(int(dataID(0)));
-
-  if (theMaterial == 0) {
-    int matClassTag = int(dataID(1));
-    theMaterial = theBroker.getNewUniaxialMaterial(matClassTag);
-    if (theMaterial == 0) {
-      opserr << WRAPPER_CMD "::recvSelf() - failed to create "
-                "Material with classTag "
-             << dataID(0) << "\n";
-      return -2;
-    }
-  }
-  theMaterial->setDbTag(dataID(2));
-
-  static Vector dataVec(3);
-  if (theChannel.recvVector(dbTag, cTag, dataVec) < 0) {
-    opserr
-        << WRAPPER_CMD "::recvSelf() - failed to get the Vector\n";
-    return -3;
-  }
-
-  if (theMaterial->recvSelf(cTag, theChannel, theBroker) < 0) {
-    opserr << WRAPPER_CMD "::recvSelf() - failed to get the "
-              "Material\n";
-    return -4;
-  }
-  return 0;
+  return -1;
 }
 
 void
@@ -383,4 +233,165 @@ DegradingUniaxialWrapper::commitSensitivity(double strainGradient,
                                             int gradIndex, int numGrads)
 {
   return theMaterial->commitSensitivity(strainGradient, gradIndex, numGrads);
+}
+
+
+static inline double
+sgn(double val) {
+  return (double(0) < val) - (val < double(0));
+}
+
+
+
+int
+DegradingUniaxialWrapper::applyDamage(
+               const Data&  data,
+               DamageState& state,
+               const double inputs[3],
+               double response[2])
+{
+
+  // Workspace variables
+  double DvpDv, ka, kb;
+  double g      [2],
+          Dpsi   [2],
+          CwcIF  [2],
+          Hshe   [2],
+          DdDpsiM[2],
+          en_psi [2],
+          
+          DdDx   [2],
+          DdpDv  ,
+          DdnDv  ,
+          DPsi   [2],
+          DPsipDv,
+          DPsinDv,
+
+          DpsiDv ,
+          DpsipDv,
+          DpsinDv;
+
+  VectorND<2> psi{};
+  
+  // Dereference/cast input data structures
+  DamageState::Step past = state.past;
+  DamageState::Step pres = state.test;
+
+  // extract effective state variables
+  pres.strain        = inputs[0];
+  double base_stress = inputs[1];
+  double kt = DvpDv  = inputs[2];
+
+  // extract past history variables
+  VectorND<2> d     = past.d;
+  VectorND<2> vpEx  = past.vpEx;
+  VectorND<2> psiP  = past.psi;
+  VectorND<2> psiEx = past.psiEx;
+  // plastic deformation increments
+  double Dvp = pres.strain - past.strain;
+  double vp[2] = {pres.strain, past.strain};
+  
+  //
+  // State update algorithm
+  //
+
+  // splitting of effective hinge forces into +ve and -ve components (N, Mi, Mj)
+  pres.base_stress[pos]  = base_stress > 0.0 ? base_stress : 0.0;
+  pres.base_stress[neg]  = base_stress < 0.0 ? base_stress : 0.0;
+
+  // positive loading
+  if ((Dvp > 0.0) && (vp[PRES] > vpEx[pos])) {
+    CwcIF[pos] = 1.0;
+    if (vp[PAST] < vpEx[pos]) {
+      Dvp = vp[PRES] - vpEx[pos] + data.idx[pos].Cwc*(vpEx[pos] - vp[PAST]);
+    }
+    vpEx[pos] = vp[PRES];
+
+  } else {
+    CwcIF[pos] = data.idx[pos].Cwc;
+  }
+
+  // negative loading
+  if ((Dvp < 0.0) && (vp[PRES] < vpEx[neg])) {
+    CwcIF[neg] = 1.0;
+    if (vp[PAST] > vpEx[neg])
+      Dvp = vp[PRES] - vpEx[neg] + data.idx[neg].Cwc * (vpEx[neg] - vp[PAST]);
+    vpEx[neg] = vp[PRES];
+  } else {
+    CwcIF[neg] = data.idx[neg].Cwc;
+  }
+
+  // energy dissipation
+  // initialize the energy increment Dpsi
+  Dpsi[pos] = ((pres.base_stress[pos] + past.base_stress[pos])*0.5*Dvp);
+  Dpsi[neg] = ((pres.base_stress[neg] + past.base_stress[neg])*0.5*Dvp);
+
+  // calculate DPsi
+  // effect of coupling between +ve and -ve force (coupling damage coefficient Ccd)
+  DPsi[pos] = CwcIF[pos]*Dpsi[pos] + CwcIF[neg]*data.idx[pos].Ccd*Dpsi[neg];
+  DPsi[neg] = CwcIF[neg]*Dpsi[neg] + CwcIF[pos]*data.idx[neg].Ccd*Dpsi[pos];
+
+  
+  // update energy psi
+  for (int m=0; m < 2; m++) {
+    psi[m] = psiP[m] + DPsi[m];
+    DdDx[m]   = 0.0;
+    g[m]      = psi[m] - psiEx[m];
+    en_psi[m] = g[m] > data.tol;
+    psiEx[m]  = psiEx[m] + en_psi[m]*(psi[m] - psiEx[m]);
+
+    // damage indices
+    double psi_tild = (psiEx[m] - data.idx[m].psi_d0) / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
+    if (fabs(psi_tild) < data.tol) {
+      DdDx[m] = 0.0;
+    } else {
+
+      DmgResp dmgresp = data.idx[m].update(psi_tild);
+      DdDx[m] = dmgresp.dydx;
+      d[m] = std::min(1.-data.tol, dmgresp.y);
+    }
+    DdDpsiM[m] = en_psi[m]*DdDx[m] / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
+  }
+
+  // Update stress
+  response[0] = (1.-d[pos])*pres.base_stress[pos] + (1.-d[neg])*pres.base_stress[neg];
+
+  // tangent stiffness under damage
+  // Heavyside function for derivative of positive/negative forces
+  Hshe[pos] = (1. + sgn(base_stress))*0.5; 
+  Hshe[neg] = (1. - sgn(base_stress))*0.5;
+
+  // first contribution ka
+  ka = kt*((1.-d[pos])*Hshe[pos] + (1.-d[neg])*Hshe[neg]);
+
+  // second contribution kb: derivative of +ve psi and -ve psi wrt Dv; TODO: optimize
+  DpsipDv = 0.5*(kt*Dvp*Hshe[pos] + DvpDv*(pres.base_stress[pos] + past.base_stress[pos]));
+  DpsinDv = 0.5*(kt*Dvp*Hshe[neg] + DvpDv*(pres.base_stress[neg] + past.base_stress[neg]));
+  DpsiDv  = DpsipDv + DpsinDv;
+
+  // derivative of +ve Psi wrt Dv = DPsipDv; derivative of -ve Psi wrt Dv = DPsinDv
+  // for the axial contribution DPsipDv(1,:) and DPsinDv(1,:)
+  DPsipDv = CwcIF[pos]*DpsipDv + CwcIF[neg]*data.idx[pos].Ccd*DpsinDv;
+  DPsinDv = CwcIF[neg]*DpsinDv + CwcIF[pos]*data.idx[neg].Ccd*DpsipDv;
+
+  // scaling of DPsiDv by DdDpsiM to get DdpDv and DdnDv
+  DdpDv = DPsipDv * DdDpsiM[pos];
+  DdnDv = DPsinDv * DdDpsiM[neg];
+
+  // for second stiffness contribution scale damage index derivatives
+  // by +ve, -ve hinges forces
+  kb = - DdpDv*pres.base_stress[pos] - DdnDv*pres.base_stress[neg];
+
+  response[1] = ka + kb;
+
+  // Update current damage history variables
+  pres.d     = d;
+  pres.vpEx  = vpEx;
+  pres.psi   = psi;
+  pres.psiEx = psiEx;
+
+  state.past = past;
+  state.test = pres;
+ 
+  return 0;
 }
