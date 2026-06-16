@@ -46,13 +46,13 @@ class BbarBrick : public Element {
     // null constructor
     BbarBrick();
   
-    //full constructor
+    // full constructor
     BbarBrick(int tag, 
               const std::array<int, 8>& nodes,
               NDMaterial &theMaterial, 
-              double b1 = 0.0, double b2 = 0.0, double b3 = 0.0 ) ;
+              double b1 = 0.0, double b2 = 0.0, double b3 = 0.0 );
 
-    virtual ~BbarBrick( ) ;
+    virtual ~BbarBrick();
 
     const char *getClassType() const {return "BbarBrick";}
 
@@ -60,16 +60,16 @@ class BbarBrick : public Element {
     void setDomain( Domain *);
 
     //get the number of external nodes
-    int getNumExternalNodes() const ;
+    int getNumExternalNodes() const;
  
-    const ID &getExternalNodes( ) ;
+    const ID &getExternalNodes( );
     Node **getNodePtrs();
-    int getNumDOF( ) ;
+    int getNumDOF( );
 
     
-    int commitState( ) ;
-    int revertToLastCommit( ) ;
-    int revertToStart( ) ;
+    int commitState( );
+    int revertToLastCommit( );
+    int revertToStart( );
 
 	
     const Matrix &getTangentStiff( ) ;
@@ -85,14 +85,14 @@ class BbarBrick : public Element {
     const Vector &getResistingForceIncInertia() override;
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &) override;
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &) override;
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
       
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    int getResponse(int responseID, Information &);
 
-    int setParameter(const char **argv, int argc, Parameter &param);
-    int updateParameter(int parameterID, Information &info);
+    int setParameter(const char **argv, int argc, Parameter &);
+    int updateParameter(int parameterID, Information &);
 
     void Print( OPS_Stream &s, int flag ) override;
 
@@ -101,7 +101,8 @@ class BbarBrick : public Element {
     constexpr static int NST = 6; // number of stress components
     constexpr static int NIP = 8; // number of integration points
     constexpr static int NDF = 3; // number of degrees of freedom per node
-    //static data
+    constexpr static int NDM = 3; // number of dimensions
+
     // static Matrix stiff ;
     // static Vector resid ;
     MatrixND<NDF*NEN, NDF*NEN> stiff;
@@ -111,10 +112,13 @@ class BbarBrick : public Element {
     static Matrix damping ;
 
     // quadrature data
-    static const double root3 ;
-    static const double one_over_root3 ;    
-    static const double sg[2] ;
-    static const double wg[NIP] ;
+    static constexpr double root3 = 1.73205080757;
+    static constexpr double sg[2] = {
+      -1.0/root3, 1.0/root3
+    };
+    static constexpr double wg[NIP] = { 
+                              1.0, 1.0, 1.0, 1.0, 
+                              1.0, 1.0, 1.0, 1.0  } ;
 
   
     // node information
@@ -122,20 +126,19 @@ class BbarBrick : public Element {
     Node *nodePointers[NEN] ;    // pointers to nodes
 
     
-    std::array<NDMaterial*, NIP> materialPointers; //pointers to materials
-    // NDMaterial *materialPointers[NIP] ; //pointers to eight materials
+    std::array<NDMaterial*, NIP> materialPointers; // pointers to materials
 
     // local nodal coordinates
-    double xl[3][NEN] ; 
+    double xl[NDM][NEN] ; 
 
-    double b[3];		// Body forces
+    double b[NDM];		// Body forces
     
     double appliedB[3]; // Body forces applied with load pattern, C.McGann, U.Washington
     int applyLoad;      // flag for body force in load, C.McGann, U.Washington
 
     void formInertiaTerms( int tangFlag ) ; 
     void formResidAndTangent( int tang_flag, State state_flag ) ;
-    void computeBasis( );
+    void computeBasis();
 
     inline OpenSees::MatrixND<6,3> 
     computeBbar( int node, 

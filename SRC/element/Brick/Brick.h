@@ -26,15 +26,9 @@
 //
 // Eight node Brick element 
 //
-
-#ifndef BRICK_H
-#define BRICK_H
+#pragma once
 
 #include <array>
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <cmath> 
-
 #include <ID.h> 
 #include <Vector.h>
 #include <Matrix.h>
@@ -55,13 +49,13 @@ class Brick : public Element {
     // destructor 
     virtual ~Brick();
 
-    const char *getClassType() const {return "Brick";}
+    const char *getClassType() const final {return "Brick";}
 
-    void setDomain( Domain *) ;
-    int getNumExternalNodes( ) const ;
-    const ID &getExternalNodes( );
-    Node **getNodePtrs();
-    int getNumDOF( ) ;
+    void setDomain( Domain *) final;
+    int getNumExternalNodes( ) const final;
+    const ID &getExternalNodes() final;
+    Node **getNodePtrs() final;
+    int getNumDOF() final;
 
 
     int commitState();
@@ -69,21 +63,19 @@ class Brick : public Element {
     int revertToStart();
     int update();
 
-    //return stiffness matrix 
+    // return stiffness matrix 
     const Matrix &getTangentStiff();
     const Matrix &getInitialStiff();    
     const Matrix &getMass();    
 
     void zeroLoad();
-    int addLoad(ElementalLoad *theLoad, double loadFactor);
+    int addLoad(ElementalLoad *, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &);
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &);
     int getResponse(int responseID, Information &);
@@ -91,6 +83,9 @@ class Brick : public Element {
 
     int setParameter(const char **argv, int argc, Parameter &);
     int updateParameter(int parameterID, Information &);
+
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
 
     void Print( OPS_Stream &s, int flag);
 
@@ -103,13 +98,19 @@ class Brick : public Element {
     void formInertiaTerms( int tangFlag ) ;
     void formResidAndTangent( int tang_flag ) ;
     void computeBasis();
-    const Matrix& computeB( int node, const double shp[4][8] ) ;
+
+    const MatrixND<6,3>&
+    computeB(int node, 
+             const double shp[4][8],
+             MatrixND<6,3> &B
+    ) const noexcept;
   
 
     //
     // private attributes
     //
-    constexpr static int NEN = 8,  // number of element nodes
+    constexpr static unsigned int 
+                         NEN = 8,  // number of element nodes
                          NDM = 3,  // Spatial dimensions
                          NDF = 3,  // number of element dof
                          NIP = 8,  // number of integration points
@@ -132,20 +133,20 @@ class Brick : public Element {
     // static attributes
     //
 
-    static Matrix stiff ;
-    static Vector resid ;
+    static Matrix stiff;
+    static Vector resid;
     static Matrix mass ;
 
-    //quadrature data
-    static const double root3 ;
-    static const double one_over_root3 ;    
-    static const double sg[2] ;
-    static const double wg[NIP] ;
+    // quadrature data
+    static constexpr double root3 = 1.73205080757;
+    static constexpr double sg[2] = {
+      -1.0/root3, 1.0/root3
+    };
+    static constexpr double wg[NIP] = { 
+                              1.0, 1.0, 1.0, 1.0, 
+                              1.0, 1.0, 1.0, 1.0  } ;
   
     // local nodal coordinates, three coordinates for each node
-    double xl[3][8]; 
+    double xl[NDM][NEN]; 
 
 }; 
-
-#endif
-

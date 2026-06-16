@@ -49,16 +49,6 @@ using namespace OpenSees;
 Matrix  BbarBrick::mass(24,24) ;
 
 
-// quadrature data
-const double  BbarBrick::root3 = sqrt(3.0) ;
-const double  BbarBrick::one_over_root3 = 1.0 / root3 ;
-
-const double  BbarBrick::sg[] = { -one_over_root3,
-                                   one_over_root3  };
-
-const double  BbarBrick::wg[] = { 1.0, 1.0, 1.0, 1.0,
-                                  1.0, 1.0, 1.0, 1.0  } ;
-
 
 BbarBrick::BbarBrick()
  : Element( 0, ELE_TAG_BbarBrick )
@@ -77,7 +67,7 @@ BbarBrick::BbarBrick()
 }
 
 
-//*********************************************************************
+
 BbarBrick::BbarBrick(int tag,
                     const std::array<int, 8>& node_tags,
                     NDMaterial &theMaterial,
@@ -128,9 +118,9 @@ BbarBrick::~BbarBrick()
 void
 BbarBrick::setDomain( Domain *theDomain )
 {
-  //node pointers
+  // node pointers
   for (int i=0; i<8; i++ )
-    nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
+    nodePointers[i] = theDomain->getNode(connectedExternalNodes(i)) ;
 
   // compute basis vectors and local nodal coordinates
   computeBasis();
@@ -211,43 +201,6 @@ BbarBrick::revertToStart()
   return success ;
 }
 
-
-void
-BbarBrick::Print( OPS_Stream &s, int flag )
-{
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"" << this->getClassType() << "\", ";
-    s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-    for (int i = 1; i < 7; i++)
-        s << connectedExternalNodes(i) << ", ";
-    s << connectedExternalNodes(7) << "], ";
-    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
-    s << "\"material\": \"" << materialPointers[0]->getTag() << "\"}";
-    return;
-  }
-
-  if (flag == OPS_PRINT_CURRENTSTATE) {
-    s << "\n";
-    s << "Volume/Pressure Eight Node BbarBrick \n";
-    s << "Element Number: " << this->getTag() << "\n";
-    s << "Node 1 : " << connectedExternalNodes(0) << "\n";
-    s << "Node 2 : " << connectedExternalNodes(1) << "\n";
-    s << "Node 3 : " << connectedExternalNodes(2) << "\n";
-    s << "Node 4 : " << connectedExternalNodes(3) << "\n";
-    s << "Node 5 : " << connectedExternalNodes(4) << "\n";
-    s << "Node 6 : " << connectedExternalNodes(5) << "\n";
-    s << "Node 7 : " << connectedExternalNodes(6) << "\n";
-    s << "Node 8 : " << connectedExternalNodes(7) << "\n";
-    
-    s << "Material Information : \n ";
-    materialPointers[0]->Print(s, flag);
-    
-    s << "\n";
-  }
-
-}
 
 const Matrix&
 BbarBrick::getTangentStiff( )
@@ -706,8 +659,6 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
   static double Shape[nShape][NEN][numberGauss] ; //all the shape functions
   static double shpBar[nShape][NEN] ;  //mean value of shape functions
 
-  // static Vector residJ(ndf) ; //nodeJ residual
-  // static Matrix stiffJK(ndf,ndf) ; //nodeJK stiffness
   static VectorND<nstress> stress_ ;
   static Vector stress(stress_) ;  //stress
   static Matrix dd(nstress,nstress) ;  //material tangent
@@ -715,17 +666,14 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
 
   //---------B-matrices------------------------------------
 
-    // static Matrix BJ(nstress,ndf) ;      // B matrix node J
-    // static Matrix BJtran(ndf,nstress) ;
-    // static Matrix BK(nstress,ndf) ;      // B matrix node k
     static Matrix BJtranD(ndf,nstress) ;
 
   //-------------------------------------------------------
 
 
   // zero stiffness and residual
-  stiff.zero( );
-  resid.zero( );
+  stiff.zero();
+  resid.zero();
 
 
   int i, j, k, p, q ;
@@ -789,7 +737,9 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
   }
 
 
-  // gauss loop
+  //
+  // Gauss loop
+  //
   for (int i = 0; i < numberGauss; i++ ) {
 
     //extract shape functions from saved array
@@ -805,7 +755,7 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
     for (int j = 0; j < numberNodes; j++ )  {
 
       // compute B matrix
-      const MatrixND<6,3> BJ = computeBbar( j, shp, shpBar ) ;
+      const MatrixND<6,3> BJ = computeBbar(j, shp, shpBar) ;
 
       // nodal displacements
       VectorND<ndf> ul;
@@ -910,8 +860,8 @@ BbarBrick::computeBasis()
   }
 }
 
-//*************************************************************************
-//compute B
+
+// compute B
 
 MatrixND<6,3>
 BbarBrick::computeBbar( int node,
@@ -1412,5 +1362,41 @@ BbarBrick::updateParameter(int parameterID, Information &info)
       res = matRes;
     }
     return res;
+  }
+}
+
+
+void
+BbarBrick::Print( OPS_Stream &s, int flag )
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+    for (int i = 1; i < 7; i++)
+        s << connectedExternalNodes(i) << ", ";
+    s << connectedExternalNodes(7) << "], ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
+    s << "\"material\": \"" << materialPointers[0]->getTag() << "\"}";
+    return;
+  }
+
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "\n";
+    s << "Volume/Pressure Eight Node BbarBrick \n";
+    s << "Element Number: " << this->getTag() << "\n";
+    s << "Node 1 : " << connectedExternalNodes(0) << "\n";
+    s << "Node 2 : " << connectedExternalNodes(1) << "\n";
+    s << "Node 3 : " << connectedExternalNodes(2) << "\n";
+    s << "Node 4 : " << connectedExternalNodes(3) << "\n";
+    s << "Node 5 : " << connectedExternalNodes(4) << "\n";
+    s << "Node 6 : " << connectedExternalNodes(5) << "\n";
+    s << "Node 7 : " << connectedExternalNodes(6) << "\n";
+    s << "Node 8 : " << connectedExternalNodes(7) << "\n";
+    
+    s << "Material Information : \n ";
+    materialPointers[0]->Print(s, flag);
+    s << "\n";
   }
 }

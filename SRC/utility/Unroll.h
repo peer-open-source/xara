@@ -51,7 +51,7 @@ Repeat(F func) noexcept
 }
 #else
 template <std::size_t N, class F>
-[[gnu::always_inline]] inline constexpr void
+XARA_UNROLL_INLINE constexpr void
 Repeat(F func) noexcept
 {
   repeat_impl(func, std::make_index_sequence<N>{});
@@ -63,7 +63,7 @@ Repeat(F func) noexcept
 // Unroll<3, 4>(func); // generates 3
 // Unroll<3, 7>(func); // generates 3,4,5,6
 template <std::size_t Start, std::size_t Stop, class F>
-inline constexpr void
+XARA_UNROLL_INLINE constexpr void
 Unroll(F func) noexcept
 {
   static_assert(Stop >= Start, "Stop must be greater than or equal to Start");

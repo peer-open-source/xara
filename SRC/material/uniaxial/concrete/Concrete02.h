@@ -50,28 +50,27 @@ class Concrete02 : public UniaxialMaterial
     Concrete02(int tag, double _fc, double _epsc0, double _fcu,
 	     double _epscu);
 
-    Concrete02(void);
+    Concrete02();
 
     virtual ~Concrete02();
 
-    const char *getClassType(void) const {return "Concrete02";};    
+    const char *getClassType() const {return "Concrete02";}
     double getInitialTangent(void);
     UniaxialMaterial *getCopy(void);
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);      
-    double getStress(void);
-    double getTangent(void);
+    double getStrain();      
+    double getStress();
+    double getTangent();
     
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
     int getVariable(const char *variable, Information &);
     

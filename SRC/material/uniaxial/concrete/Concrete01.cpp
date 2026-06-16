@@ -25,7 +25,7 @@
 // Sensitivity:
 //
 //   Scott, Michael H., Paolo Franchin, Gregory L. Fenves, and Filip C. Filippou. 
-//     “Response Sensitivity for Nonlinear Beam–Column Elements.” 
+//     "Response Sensitivity for Nonlinear Beam–Column Elements." 
 //     Journal of Structural Engineering 130, no. 9 (2004): 1281–88. 
 //     https://doi.org/10.1061/(asce)0733-9445(2004)130:9(1281).
 //
@@ -420,7 +420,7 @@ Concrete01::revertToStart()
   return 0;
 }
 
-UniaxialMaterial* Concrete01::getCopy ()
+UniaxialMaterial* Concrete01::getCopy()
 {
    Concrete01* theCopy = new Concrete01(this->getTag(),
                                     fpc, epsc0, fpcu, epscu);
@@ -438,7 +438,7 @@ UniaxialMaterial* Concrete01::getCopy ()
    return theCopy;
 }
 
-int Concrete01::sendSelf (int commitTag, Channel& theChannel)
+int Concrete01::sendSelf(int commitTag, Channel& theChannel)
 {
    int res = 0;
    static Vector data(11);
@@ -509,30 +509,6 @@ int Concrete01::recvSelf (int commitTag, Channel& theChannel,
    return res;
 }
 
-void Concrete01::Print(OPS_Stream& s, int flag)
-{
-  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
-    s << "Concrete01, tag: " << this->getTag() << endln;
-    s << "  fpc: " << fpc << endln;
-    s << "  epsc0: " << epsc0 << endln;
-    s << "  fpcu: " << fpcu << endln;
-    s << "  epscu: " << epscu << endln;
-    return;
-  }
-  
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"Concrete01\", ";
-    s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
-    s << "\"fc\": " << fpc << ", ";
-    s << "\"epsc\": " << epsc0 << ", ";
-    s << "\"fcu\": " << fpcu << ", ";
-    s << "\"epscu\": " << epscu;
-    s << "}";
-    return;
-  }
-}
 
 
 
@@ -1061,4 +1037,31 @@ Concrete01::getVariable(const char *varName, Information &theInfo)
     return 0;
   } else
     return -1;
+}
+
+
+void
+Concrete01::Print(OPS_Stream& s, int flag)
+{
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
+    s << "Concrete01, tag: " << this->getTag() << endln;
+    s << "  fpc: " << fpc << endln;
+    s << "  epsc0: " << epsc0 << endln;
+    s << "  fpcu: " << fpcu << endln;
+    s << "  epscu: " << epscu << endln;
+    return;
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"Concrete01\", ";
+    s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
+    s << "\"fc\": " << fpc << ", ";
+    s << "\"epsc\": " << epsc0 << ", ";
+    s << "\"fcu\": " << fpcu << ", ";
+    s << "\"epscu\": " << epscu;
+    s << "}";
+    return;
+  }
 }

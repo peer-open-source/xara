@@ -37,7 +37,6 @@
 
 #include "SSPquadUP.h"
 
-#include <elementAPI.h>
 #include <Information.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
@@ -56,6 +55,10 @@
 #include <stdlib.h>
 using namespace OpenSees;
 
+
+#if 0
+
+#include <elementAPI.h>
 #define OPS_Export
 
 static int num_SSPquadUP = 0;
@@ -135,6 +138,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPquadUP)
 
     return theElement;
 }
+#endif
 
 // full constructor
 SSPquadUP::SSPquadUP(int tag, int Nd1, int Nd2, int Nd3, int Nd4, NDMaterial &theMat, 

@@ -20,12 +20,12 @@
 // initial stiffness. This is not ideal.
 //
 // [1] Mazars, J., P. Kotronis, F. Ragueneau, and G. Casaux. 
-//     “Using Multifiber Beams to Account for Shear and Torsion.” 
+//     "Using Multifiber Beams to Account for Shear and Torsion." 
 //     Computer Methods in Applied Mechanics and Engineering 195, no. 52 (2006): 7264–81. 
 //     https://doi.org/10.1016/j.cma.2005.05.053.
 //
 // [2] Kotronis, P., and Mazars, P. 
-//     “Simplified Modelling Strategies To Simulate The Dynamic Behaviour Of R/C Walls.” 
+//     "Simplified Modelling Strategies To Simulate The Dynamic Behaviour Of R/C Walls." 
 //     Journal of Earthquake Engineering 9, no. 2 (2005): 285–306. 
 //     https://doi.org/10.1080/13632460509350543.
 //

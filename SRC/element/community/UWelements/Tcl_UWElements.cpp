@@ -380,11 +380,6 @@ TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
       dData[8], dData[9], dData[10], dData[11], dData[12]);
   // LM change
 
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type SSPquadUP\n";
-    return 0;
-  }
-
   return theElement;
 }
 

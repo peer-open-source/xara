@@ -48,7 +48,7 @@ class Concrete01 : public UniaxialMaterial
   Concrete01 ();
   ~Concrete01();
 
-  const char *getClassType(void) const {return "Concrete01";};
+  const char *getClassType(void) const {return "Concrete01";}
   
   int setTrialStrain(double strain, double strainRate = 0.0); 
   int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
@@ -67,7 +67,7 @@ class Concrete01 : public UniaxialMaterial
   int recvSelf(int commitTag, Channel &theChannel, 
 	       FEM_ObjectBroker &theBroker);    
   
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &s, int flag);
   
   // AddingSensitivity:BEGIN //////////////////////////////////////////
   int    setParameter             (const char **argv, int argc, Parameter &param);
@@ -110,7 +110,7 @@ class Concrete01 : public UniaxialMaterial
   double Ttangent; // Not really a state variable, but declared here
   // for convenience
   
-  void determineTrialState (double dStrain);
+  void determineTrialState(double dStrain);
   
   void reload();
   void unload();

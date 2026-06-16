@@ -46,9 +46,9 @@ double ConstantPressureVolumeQuad :: one9  = 1.0 / 9.0 ;
 double ConstantPressureVolumeQuad :: root3 = sqrt(3.0) ;
 double ConstantPressureVolumeQuad :: one_over_root3 = 1.0 / root3 ;
 
-double ConstantPressureVolumeQuad :: sg[] = { -one_over_root3,  
-                                               one_over_root3, 
-                                               one_over_root3, 
+double ConstantPressureVolumeQuad :: sg[] = { -one_over_root3,
+                                               one_over_root3,
+                                               one_over_root3,
                                               -one_over_root3 } ;
 
 double ConstantPressureVolumeQuad :: tg[] = { -one_over_root3, 
@@ -60,9 +60,9 @@ double ConstantPressureVolumeQuad :: wg[] = { 1.0, 1.0, 1.0, 1.0 } ;
   
 
 
-ConstantPressureVolumeQuad::ConstantPressureVolumeQuad( ) :
-Element( 0, ELE_TAG_ConstantPressureVolumeQuad ),
-connectedExternalNodes(4), thickness(0.0), load(0)
+ConstantPressureVolumeQuad::ConstantPressureVolumeQuad()
+ : Element( 0, ELE_TAG_ConstantPressureVolumeQuad ),
+   connectedExternalNodes(4), thickness(0.0), load(0)
 { 
   for (int i=0; i<4; i++)
     materialPointers[i] = nullptr;
@@ -141,14 +141,15 @@ ConstantPressureVolumeQuad::getNodePtrs()
   return nodePointers;
 } 
 
-//return number of dofs
-int ConstantPressureVolumeQuad :: getNumDOF( ) 
+// return number of dofs
+int ConstantPressureVolumeQuad::getNumDOF() 
 {
   return 8 ;
 }
 
-//commit state
-int ConstantPressureVolumeQuad :: commitState( )
+
+int
+ConstantPressureVolumeQuad::commitState()
 {
   int success = 0 ;
 
@@ -158,24 +159,25 @@ int ConstantPressureVolumeQuad :: commitState( )
   }    
 
   for (int i = 0; i < 4; i++ ) 
-    success += materialPointers[i]->commitState( ) ;
+    success += materialPointers[i]->commitState();
   
   return success ;
 }
 
-//revert to last commit 
-int ConstantPressureVolumeQuad :: revertToLastCommit( ) 
+
+int
+ConstantPressureVolumeQuad::revertToLastCommit() 
 {
   int success = 0 ;
 
   for (int i = 0; i < 4; i++ ) 
-    success += materialPointers[i]->revertToLastCommit( ) ;
+    success += materialPointers[i]->revertToLastCommit( );
   
   return success ;
 }
     
 //revert to start 
-int ConstantPressureVolumeQuad::revertToStart( ) 
+int ConstantPressureVolumeQuad::revertToStart() 
 {
   int i ;
   int success = 0 ;
@@ -187,7 +189,7 @@ int ConstantPressureVolumeQuad::revertToStart( )
 }
 
 int
-ConstantPressureVolumeQuad :: update( ) 
+ConstantPressureVolumeQuad::update() 
 {
   // strains ordered  00, 11, 22, 01  
   //            i.e.  11, 22, 33, 12 
