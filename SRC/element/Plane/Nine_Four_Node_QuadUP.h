@@ -13,9 +13,7 @@
 // $Date: 2007-02-02 01:44:56 $
 // $Source: /usr/local/cvs/OpenSees/SRC/element/UP-ucsd/Nine_Four_Node_QuadUP.h,v $
 
-#ifndef NineFourNodeQuadUP_h
-#define NineFourNodeQuadUP_h
-
+#pragma once
 
 #include <Element.h>
 #include <Matrix.h>
@@ -43,26 +41,26 @@ class NineFourNodeQuadUP : public Element
     const ID &getExternalNodes(void);
     Node **getNodePtrs(void);
 
-    int getNumDOF(void);
-    void setDomain(Domain *theDomain);
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element
     int commitState(void);
     int revertToLastCommit(void);
     int revertToStart(void);
-    int update(void);
+    int update();
 
     // public methods to obtain stiffness, mass, damping and residual information
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getDamp(void);
-    const Matrix &getMass(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getDamp();
+    const Matrix &getMass();
 
     void zeroLoad();
-    int addLoad(ElementalLoad *theLoad, double loadFactor);
+    int addLoad(ElementalLoad *, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &);
@@ -82,9 +80,14 @@ class NineFourNodeQuadUP : public Element
 
   private:
 
-    // private attributes - a copy for each object of the class
+    // private attributes
 
-    NDMaterial **theMaterial; // pointer to the ND material objects
+    static constexpr int nintu = 9;
+    static constexpr int nintp = 4;
+    static constexpr int nenu = 9;
+    static constexpr int nenp = 4;
+
+    NDMaterial *theMaterial[nintu]; // pointer to the ND material objects
 
     ID connectedExternalNodes; // Tags of quad nodes
 
@@ -102,10 +105,6 @@ class NineFourNodeQuadUP : public Element
     double rho;			// Fluid mass per unit volume
     double kc;   // combined bulk modulus
     double perm[2];  // lateral/vertical permeability
-    static const int nintu;
-    static const int nintp;
-    static const int nenu;
-    static const int nenp;
 
     static double shgu[3][9][9];	// Stores shape functions and derivatives (overwritten)
     static double shgp[3][4][4];	// Stores shape functions and derivatives (overwritten)
@@ -126,5 +125,5 @@ class NineFourNodeQuadUP : public Element
 
     double *initNodeDispl;
 };
-}
-#endif
+
+} // namespace OpenSees
