@@ -10,10 +10,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Description: MixedFrameSection provides the abstraction of a 
-// 3D beam section discretized by fibers. The section stiffness and
-// stress resultants are obtained by summing fiber contributions.
-//
 // Written: cmp
 // Created: Jan. 2026
 //
@@ -121,6 +117,7 @@ class MixedFrameSection : public FrameSection
       WarpArray warp{{{0}}};
       OpenSees::VectorND<2> r;
     };
+
     int formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) ;//const;
 
     int solveMixed(const VectorND<nsr>& e, MatrixND<6,6>& Kee, Tangent& Ks);
@@ -240,13 +237,14 @@ class MixedFrameSection : public FrameSection
 
     Vector dedh;
 
-
     static constexpr int MaxThreads = 12;
     concurrency_t num_threads = 8;
-    std::shared_ptr<thread_pool> pool;        // thread pool
+    std::shared_ptr<thread_pool> pool;
 
     inline int 
-    RigidShape(const FiberData& fiber, double aw, MatrixND<3,6>& Ae) const noexcept {
+    RigidShape(const FiberData& fiber, double aw, MatrixND<3,6>& Ae)
+      const noexcept
+    {
       const VectorND<2>& r = fiber.r;
       Ae(0,0) = 1.0;
       Ae(1,1) = 1.0;
@@ -349,8 +347,10 @@ class MixedFrameSection : public FrameSection
     }
 
     inline void 
-    MixedShape(const FiberData& fiber, const Matrix3D& Gr, const Matrix3D& Gw, Matrix3D& An) const noexcept {
-      
+    MixedShape(const FiberData& fiber, const Matrix3D& Gr, const Matrix3D& Gw, Matrix3D& An) 
+      const noexcept
+    {
+
       constexpr static Matrix3D oneS {{
         0.0, 0.0, 0.0,
         0.0, 1.0, 0.0,
