@@ -101,7 +101,8 @@ int Steel01::setTrialStrain (double strain, double strainRate)
    return 0;
 }
 
-int Steel01::setTrial(double strain, double &stress, double &tangent, double strainRate)
+int
+Steel01::setTrial(double strain, double &stress, double &tangent, double strainRate)
 {
    // Reset history variables to last converged state
    TminStrain = CminStrain;
@@ -449,7 +450,8 @@ Steel01::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroke
    return res;
 }
 
-void Steel01::Print (OPS_Stream& s, int flag)
+void
+Steel01::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
@@ -461,7 +463,8 @@ void Steel01::Print (OPS_Stream& s, int flag)
     s << "\"a1\": " << a1 << ", ";
     s << "\"a2\": " << a2 << ", ";
     s << "\"a3\": " << a3 << ", ";
-    s << "\"a4\": " << a4;
+    s << "\"a4\": " << a4 << ", ";
+    s << "\"density\": " << density;
     s << "}";
     return;
   }
