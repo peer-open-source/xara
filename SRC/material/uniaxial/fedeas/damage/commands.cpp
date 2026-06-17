@@ -14,7 +14,7 @@
 #include "DegradingUniaxialWrapper.h"
 #include <ModelRegistry.h>
 
-#define WRAPPER_CMD "FedeasUniaxialDamage"
+#define WRAPPER_CMD "UniaxialDamage"
 // #define WRAPPER_CMD "FedeasDamage"
 
 
