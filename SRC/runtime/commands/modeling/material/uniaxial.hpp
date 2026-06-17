@@ -359,7 +359,6 @@ UniaxialLibrary {
     {"Fatigue",                dispatch<TclCommand_newFatigueMaterial> },
   
 // Other
-
     {"GNG",                  dispatch<OPS_GNGMaterial>                 },
     {"Bond_SP01",            dispatch<OPS_Bond_SP01>                 },
     {"Bond",                 dispatch<OPS_Bond_SP01>                 },
@@ -368,6 +367,7 @@ UniaxialLibrary {
     {"APDVFD",               dispatch<OPS_APDVFD> },
     {"Penalty",              dispatch<OPS_PenaltyMaterial>           },
 
+    {"UniaxialDamage",       dispatch<TclCommand_newFedeasUniaxialDamage>  },
     {"FedeasUniaxialDamage", dispatch<TclCommand_newFedeasUniaxialDamage>  },
     {"KikuchiAikenHDR",      dispatch<TclCommand_KikuchiAikenHDR>       },
     {"KikuchiAikenLRB",      dispatch<TclCommand_KikuchiAikenLRB>       },
