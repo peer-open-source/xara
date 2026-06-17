@@ -83,7 +83,7 @@ public:
   ~DegradingUniaxialWrapper();
 
   const char *
-  getClassType() const {return "DegradingUniaxialWrapper";}
+  getClassType() const {return "UniaxialDamage";}
 
   int    setTrialStrain(double strain, double strainRate = 0.0);
   int    setTrialStrain(double strain, double temperature, double strainRate);
