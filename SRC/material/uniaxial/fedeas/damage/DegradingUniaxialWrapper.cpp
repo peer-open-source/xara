@@ -29,7 +29,7 @@ using namespace OpenSees;
 
 #include "DegradingUniaxialWrapper.h"
 
-#define WRAPPER_CMD "FedeasUniaxialDamage"
+#define WRAPPER_CMD "UniaxialDamage"
 static const std::hash<std::string> hasher;
 static const int MatTag = hasher(WRAPPER_CMD);
 
@@ -184,10 +184,21 @@ DegradingUniaxialWrapper::Print(OPS_Stream &s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
-    s << "\"type\": \"" WRAPPER_CMD "\", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"material\": \"" << theMaterial->getTag() << "\", ";
+    for (int i=0; i<2; ++i) {
+      if (i == 0)
+        s << "\"pos\": {";
+      else
+        s << "\"neg\": {";
+      s << "\"Cwc\": " << data.idx[i].Cwc << ", ";
+      s << "\"Ccd\": " << data.idx[i].Ccd << "}";
+      if (i == 0)
+        s << ", ";
+    }
+    s << "}";
   }
 }
 
