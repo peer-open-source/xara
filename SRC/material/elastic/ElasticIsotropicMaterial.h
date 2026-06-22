@@ -41,10 +41,7 @@ class ElasticIsotropicMaterial : public NDMaterial
 {
   public:
     // Only called by subclasses to pass their tags to NDMaterialModel
-    ElasticIsotropicMaterial (int tag, int classTag, double E, double nu, double rho = 0.0);
-
-    // Called by clients
-    ElasticIsotropicMaterial(int tag, double E, double nu, double rho = 0.0);
+    ElasticIsotropicMaterial(int tag, int classTag, double E, double nu, double rho);
 
 
     virtual ~ElasticIsotropicMaterial();

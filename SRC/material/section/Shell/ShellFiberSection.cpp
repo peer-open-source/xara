@@ -43,6 +43,7 @@ ShellFiberSection::ShellFiberSection()
 
 }
 
+
 ShellFiberSection::ShellFiberSection(int tag,
                                      const FiberVector& inputFibers)
   : SectionForceDeformation(tag, SEC_TAG_ShellFiberSection),

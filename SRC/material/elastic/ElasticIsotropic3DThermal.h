@@ -71,23 +71,21 @@ class ElasticIsotropic3DThermal : public ElasticIsotropicMaterialThermal
     int getOrder() const;
 
     int sendSelf(int commitTag, Channel &);  
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
-    
- protected:
-	
-  private:
-    static Vector sigma;	// Stress vector ... class-wide for returns
-    static Matrix D;		// Elastic constants
-    Vector epsilon;	        // Trial strains
-    Vector Cepsilon;	        // Committed strain
-	
-    int softIndex;
-	double Temp;  //Temperature
-	double ThermalElong;  // eps(theata) = alpha *temperature
-	double E0T;//Elasticity modulus at temperature T
-	double E;
-	double Alpha; //Coefficient of thermal exmapnsion
-	double* redfactors;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
+private:
+  static Vector sigma;	// Stress vector ... class-wide for returns
+  static Matrix D;		// Elastic constants
+  Vector epsilon;	        // Trial strains
+  Vector Cepsilon;	        // Committed strain
+
+  int softIndex;
+  double Temp;  //Temperature
+  double ThermalElong;  // eps(theata) = alpha *temperature
+  double E0T;//Elasticity modulus at temperature T
+  double E;
+  double Alpha; //Coefficient of thermal exmapnsion
+  double* redfactors;
 };
 
 #endif

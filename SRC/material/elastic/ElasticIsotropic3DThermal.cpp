@@ -19,8 +19,8 @@
 ** ****************************************************************** */
 
 
-//Modified by Liming Jiang [http://openseesforfire.github.io]
-                                                                    
+// Modified by Liming Jiang [http://openseesforfire.github.io]
+//
 #include <ElasticIsotropic3DThermal.h>           
 #include <Logging.h>
 #include <Channel.h>
