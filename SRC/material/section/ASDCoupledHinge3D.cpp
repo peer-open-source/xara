@@ -908,25 +908,25 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ASDCoupledHinge3D)
 #endif
 
     // Create an elastic material for axial
-    UniaxialMaterial* matAxial = new ElasticMaterial(0, Kax, 0.0, Kax);
+    UniaxialMaterial* matAxial = new ElasticMaterial(0, Kax, 0.0, Kax, 0.0);
     if (matAxial == 0) {
         opserr << "ASDCoupledHinge3D could not create the new axial material" << endln;
         return 0;
     }
     // Create an elastic material for shear_y
-    UniaxialMaterial* matShearY = new ElasticMaterial(0, Kv_y, 0.0, Kv_y);
+    UniaxialMaterial* matShearY = new ElasticMaterial(0, Kv_y, 0.0, Kv_y, 0.0);
     if (matShearY == 0) {
         opserr << "ASDCoupledHinge3D could not create the new shearY material" << endln;
         return 0;
     }
     // Create an elastic material for shear_z
-    UniaxialMaterial* matShearZ = new ElasticMaterial(0, Kv_z, 0.0, Kv_z);
+    UniaxialMaterial* matShearZ = new ElasticMaterial(0, Kv_z, 0.0, Kv_z, 0.0);
     if (matShearZ == 0) {
         opserr << "ASDCoupledHinge3D could not create the new shearZ material" << endln;
         return 0;
     }
     // Create an elastic material for shear_z
-    UniaxialMaterial* matTorsion = new ElasticMaterial(0, Ktor, 0.0, Ktor);
+    UniaxialMaterial* matTorsion = new ElasticMaterial(0, Ktor, 0.0, Ktor, 0.0);
     if (matTorsion == 0) {
         opserr << "ASDCoupledHinge3D could not create the new torsion material" << endln;
         return 0;
