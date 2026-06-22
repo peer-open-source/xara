@@ -21,12 +21,12 @@
 // $Revision: 1.9 $
 // $Date: 2006-08-03 23:49:46 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/section/ElasticMembranePlateSection.h,v $
-
+//
 // Ed "C++" Love
 //
 //  Elastic Plate Section with membrane
 //
-
+//
 // Out-of-Plane stiffness modifier added by Pearl Ranchal
 // Supported by Degenkolb Engineers
 
@@ -45,14 +45,9 @@
 
 
 class ElasticMembranePlateSection : public SectionForceDeformation {
-
   //-------------------Declarations-------------------------------
-
 public:
-  //null constructor
   ElasticMembranePlateSection();
-
-  //full constructor
   ElasticMembranePlateSection(int tag,
                               double E,
                               double nu,
@@ -65,7 +60,7 @@ public:
   SectionForceDeformation* getCopy();
 
   const char*
-  getClassType(void) const
+  getClassType() const
   {
     return "ElasticMembranePlate";
   }
@@ -74,20 +69,16 @@ public:
 
   const ID& getType();
 
-  //swap history variables
+  // swap history variables
   int commitState();
-
   int revertToLastCommit();
-
   int revertToStart();
 
-  //get the strain and integrate plasticity equations
+  // get the strain and integrate plasticity equations
   int setTrialSectionDeformation(const Vector& strain_from_element);
 
   const Vector& getSectionDeformation();
-
   const Vector& getStressResultant();
-
   const Matrix& getSectionTangent();
 
   // send back the initial tangent
@@ -95,7 +86,7 @@ public:
 
   void Print(OPS_Stream& s, int flag);
 
-  //density per unit area
+  // density per unit area
   double getRho();
 
   int sendSelf(int commitTag, Channel&);
