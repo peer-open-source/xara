@@ -17,7 +17,6 @@
 
 #include <T2Vector.h>
 #include <MaterialResponse.h>
-#include <elementAPI.h>
 
 #include <fstream>            // Quan Gu   2013 March   HK
 using std::ofstream;          // Quan Gu   2013 March   HK
@@ -27,10 +26,11 @@ using std::ios;               // Quan Gu   2013 March   HK
 Vector LinearCap::tempVector(6);
 Matrix LinearCap::tempMatrix(6,6);
 
-static int numLinearCap = 0;
 
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_LinearCap) {
 
+  static int numLinearCap = 0;
   if (numLinearCap == 0) {
     numLinearCap++;
     opslog << "LinearCap nDmaterial - Written: Quan Gu and Zhijian Qiu \n";
@@ -82,6 +82,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_LinearCap) {
                       
   return theMaterial;
 }
+
 
 LinearCap::LinearCap( int    pTag,
               double pG,
@@ -154,12 +155,13 @@ LinearCap::LinearCap( const LinearCap & a)
 
 };
 
-LinearCap::~LinearCap( ) 
+LinearCap::~LinearCap() 
 {
     return;
 }
 
-double LinearCap::getRho()
+double 
+LinearCap::getRho()
 {
     return rho;
 }
@@ -194,50 +196,47 @@ int LinearCap::setTrialStrain(const Vector &pStrain)
 }
 
 
-int LinearCap::setTrialStrainIncr(const Vector &pStrainRate) 
+int
+LinearCap::setTrialStrainIncr(const Vector &pStrainRate) 
 {
  
  // ----- change to real strain instead of eng. strain
 // ---- since all strain in material is the true strain, not eng.strain. 
 
-    for (int i=0; i<3;i++) {
-        tempVector(i) =  pStrainRate(i);
-        tempVector(i+3) =  pStrainRate(i+3)/2.0;
-    }
-    
-    if (ndm==3 && pStrainRate.Size()==6) 
-       strain = CStrain-pStrainRate;
+  for (int i=0; i<3;i++) {
+      tempVector(i) =  pStrainRate(i);
+      tempVector(i+3) =  pStrainRate(i+3)/2.0;
+  }
+  
+  if (ndm==3 && pStrainRate.Size()==6) 
+      strain = CStrain-pStrainRate;
 
-    else if (ndm==2 && pStrainRate.Size()==3) {
-        strain[0] = CStrain[0]-pStrainRate[0];
-        strain[1] = CStrain[1]-pStrainRate[1];
-        strain[2] = 0.0;
-        strain[3] = CStrain[2]-pStrainRate[2];
-        strain[4] = 0.0;
-        strain[5] = 0.0;
-    }
-     else {
-        opserr << "Fatal:LinearCap:: Material dimension is: " << ndm << endln;
-        opserr << "But strain vector size is: " << pStrainRate.Size() << endln;
-        exit(-1);
-      }
-
-
+  else if (ndm==2 && pStrainRate.Size()==3) {
+      strain[0] = CStrain[0]-pStrainRate[0];
+      strain[1] = CStrain[1]-pStrainRate[1];
+      strain[2] = 0.0;
+      strain[3] = CStrain[2]-pStrainRate[2];
+      strain[4] = 0.0;
+      strain[5] = 0.0;
+  }
+  else {
+    opserr << "Fatal:LinearCap:: Material dimension is: " << ndm << endln;
+    opserr << "But strain vector size is: " << pStrainRate.Size() << endln;
+    exit(-1);
+  }
 
   return 0;
 }
 
 
 
-const Vector & LinearCap::getStrain()
-{       
-
-    if (ndm==3){
-        tempVector = -1.0*strain;
-        return tempVector;
-    
-    }
-
+const Vector &
+LinearCap::getStrain()
+{
+  if (ndm==3){
+    tempVector = -1.0*strain;
+    return tempVector;
+  }
   else {
     static Vector workV(3);   //, temp6(6);
     workV[0] = -1.0*strain[0];
@@ -245,20 +244,16 @@ const Vector & LinearCap::getStrain()
     workV[2] = -1.0*strain[3];
     return workV;
   }
-
 }
 
-int LinearCap::commitState()
+int
+LinearCap::commitState()
 {
-    //if (theMode!=4)
-    //opserr<<" stress is:"<<stress<<endln;  //debug only!
-
     CStrain = strain;
     CStress = stress;
     CPlastStrain = plastStrain;
 
     return 0;
-
 }
 
 int LinearCap::revertToLastCommit()
@@ -308,7 +303,8 @@ int LinearCap::recvSelf(int commitTag, Channel &theChannel,
            FEM_ObjectBroker &theBroker )  {return 0;};
 
 
-Response * LinearCap::setResponse (const char **argv, int argc, OPS_Stream &output)
+Response * 
+LinearCap::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
 
   if (strcmp(argv[0],"stress") == 0 || strcmp(argv[0],"stresses") == 0)
@@ -328,36 +324,37 @@ Response * LinearCap::setResponse (const char **argv, int argc, OPS_Stream &outp
 
 }
 
-int LinearCap::getResponse (int responseID, Information &matInfo)  {
-    
-        switch (responseID) {
-        case -1:
-            return -1;
-        case 1:
-            if (matInfo.theVector != 0)
-                *(matInfo.theVector) =stress;
-            return 0;
+int
+LinearCap::getResponse (int responseID, Information &matInfo)
+{
+    switch (responseID) {
+    case -1:
+        return -1;
+    case 1:
+        if (matInfo.theVector != 0)
+            *(matInfo.theVector) =stress;
+        return 0;
 
-        case 2:
-            if (matInfo.theVector != 0)
-                *(matInfo.theVector) = strain;
-            return 0;
+    case 2:
+        if (matInfo.theVector != 0)
+            *(matInfo.theVector) = strain;
+        return 0;
 
-        case 3:
-            if (matInfo.theMatrix != 0)
-                *(matInfo.theMatrix) = theTangent;
-            return 0;
+    case 3:
+        if (matInfo.theMatrix != 0)
+            *(matInfo.theMatrix) = theTangent;
+        return 0;
 
-        case 4:
-            if (matInfo.theVector != 0)
-                *(matInfo.theVector) = plastStrain;
-            return 0;
+    case 4:
+        if (matInfo.theVector != 0)
+            *(matInfo.theVector) = plastStrain;
+        return 0;
 
-        }
+    }
 
-        return NDMaterial::getResponse(responseID, matInfo);
-
+    return NDMaterial::getResponse(responseID, matInfo);
 };
+
 
 void
 LinearCap::Print(OPS_Stream &s, int flag)  {
@@ -378,22 +375,25 @@ LinearCap::Print(OPS_Stream &s, int flag)  {
   
 
 // --------------
-double LinearCap::failureEnvelop(double I){
-
+double 
+LinearCap::failureEnvelop(double I)
+{
     return alpha+theta*I; 
-};
+}
 
 
 // --------------
-double LinearCap::failureEnvelopDeriv(double I){
+double 
+LinearCap::failureEnvelopDeriv(double I)
+{
     return theta;
-};
+}
 
 
 
-int LinearCap::findMode(double normS, double I1){
-
-
+int
+LinearCap::findMode(double normS, double I1)
+{
     int mode =-1;
 
     if ((I1 <= T) && (normS <= failureEnvelop(T)))
@@ -408,18 +408,20 @@ int LinearCap::findMode(double normS, double I1){
         mode = 3;
     }
     return mode;
-};
+}
 
 
-const Matrix & LinearCap::getInitialTangent() { 
+const Matrix & 
+LinearCap::getInitialTangent()
+{ 
     return getTangent();
-};
+}
 
 
 
-const Vector & LinearCap::getStress() {    
-
-
+const Vector &
+LinearCap::getStress()
+{
     double CPlastStrainI1 = CPlastStrain(0)+CPlastStrain(1)+CPlastStrain(2);
     Vector CPlastStrainDev = CPlastStrain;
     Vector unitVector2(6);
@@ -652,74 +654,12 @@ const Vector & LinearCap::getStress() {
     workV[2] = -1.0*stress[3];
     return workV;
   }
-    
-    
 
 }
   
-const Matrix & LinearCap::getTangent() { 
-/*    
-    
-    static Vector tempStress(6);
-    static Matrix compTangent(6,6);
-    compTangent.Zero();
-
-    this->getStress(); 
-    tempStress = stress;
-    
-    // --- store strain
-
-    static Vector strain_save(6);
-    strain_save = strain;
-
-    
-    double perturb = 0.001;
-
-    for (int  i=0; i<6; i++) {
-    
-        if (fabs(strain(i))<1.0e-14) 
-            perturb =0.0000001;
-        else 
-            perturb =0.0001*strain(i);    
-
-        strain(i) += perturb;
-        this->getStress();
-
-
-        for (int j=0; j<6; j++)
-            compTangent(j,i) = (stress(j)-tempStress(j))/perturb;
-    
-        // --- recover strain ----
-        strain(i)  = strain_save(i); 
-
-    }
-
-   strain  = strain_save;
-    this->getStress();
- 
-
-  for ( i=0; i<6; i++)
-      for (int j=3; j<6; j++)
-          compTangent (i,j) /=2.0;
-
-  if (theMode==2){
- 
-   opserr<<"compTangent in getTangent "<< compTangent<<endln;    
-   opserr<<"theTangent in getTangent "<< theTangent<<endln;
-   opserr<<"----------------------------------------------------"<<endln;
- 
-      }
-
-
-  this->getStress();
-
-
-*/
-
-    //theTangent=compTangent;
-      
-
-//----------end debug ----------
+const Matrix & 
+LinearCap::getTangent() 
+{
 
   if (ndm==3) 
     return theTangent;
@@ -742,7 +682,7 @@ const Matrix & LinearCap::getTangent() {
 
 ///////////////////////// add sensitivity ///////////////////////////////////
 int 
-LinearCap::setParameter (const char **argv, int argc, Parameter &param)
+LinearCap::setParameter(const char **argv, int argc, Parameter &param)
 
 {    
     if (argc < 1)
@@ -826,267 +766,257 @@ LinearCap::updateParameter(int passedParameterID,Information &info)
     
  
     return 0;
-    }
+}
 
 
-int LinearCap::activateParameter(int passedParameterID){
+int
+LinearCap::activateParameter(int passedParameterID)
+{
     parameterID = passedParameterID;
     return 0;                        
-    }
+}
+
 
 const Vector &
-LinearCap::getStressSensitivity (int gradNumber, bool conditional) {
-    int static ii=0;
-    ii++;
-//if (ii==2165)
+LinearCap::getStressSensitivity (int gradNumber, bool conditional)
+{
+  int static ii=0;
+  ii++;
+  //if (ii==2165)
 
-    double GSensitivity = 0.0;
-    double KSensitivity = 0.0;
-    double rhoSensitivity = 0.0;  
-    double thetaSensitivity = 0.0;
-    double alphaSensitivity = 0.0;
-    double TSensitivity = 0.0;
+  double GSensitivity = 0.0;
+  double KSensitivity = 0.0;
+  double rhoSensitivity = 0.0;  
+  double thetaSensitivity = 0.0;
+  double alphaSensitivity = 0.0;
+  double TSensitivity = 0.0;
 
-    if (parameterID == 1) {  
-            GSensitivity = 1.0;
-    }
-    else if (parameterID == 2) {   
-            KSensitivity = 1.0;
-    }
-    else if (parameterID == 3) {   
-            rhoSensitivity = 1.0;
-    }
-    else if (parameterID == 4) {    
-            thetaSensitivity = 1.0;
-    }
-    else if (parameterID == 5) {   
-            alphaSensitivity = 1.0;
-    }
-    else if (parameterID == 6) {   
-            TSensitivity = 1.0;
-    }
-    else {
-
-            // Nothing random here, but may have to return something in any case
-
-    }
+  if (parameterID == 1) {  
+      GSensitivity = 1.0;
+  }
+  else if (parameterID == 2) {   
+      KSensitivity = 1.0;
+  }
+  else if (parameterID == 3) {   
+      rhoSensitivity = 1.0;
+  }
+  else if (parameterID == 4) {    
+      thetaSensitivity = 1.0;
+  }
+  else if (parameterID == 5) {   
+      alphaSensitivity = 1.0;
+  }
+  else if (parameterID == 6) {   
+      TSensitivity = 1.0;
+  }
+  else {
+      // Nothing random here, but may have to return something in any case
+  }
 
 
 // --- define history variables -----------
-    static Vector CStrainSensitivity(6);    CStrainSensitivity.Zero();
-    static Vector CStressSensitivity(6);       CStressSensitivity.Zero();
-    Vector CPlastStrainSensitivity(6);      CPlastStrainSensitivity.Zero();
-    Vector deltPlastStrainDev(6);
+  static Vector CStrainSensitivity(6);    CStrainSensitivity.Zero();
+  static Vector CStressSensitivity(6);       CStressSensitivity.Zero();
+  Vector CPlastStrainSensitivity(6);      CPlastStrainSensitivity.Zero();
+  Vector deltPlastStrainDev(6);
 
-    static Vector stressSensitivity(6);
-    stressSensitivity.Zero(); 
+  static Vector stressSensitivity(6);
+  stressSensitivity.Zero(); 
 
-    if (SHVs !=0) {
-        for (int i=0;i<6;i++)    {
-           CStrainSensitivity(i) = (*SHVs)(i,(gradNumber));
-           CStressSensitivity(i)= (*SHVs)(i+6,(gradNumber));
-           CPlastStrainSensitivity(i) = (*SHVs)(i+12,(gradNumber));
-        
-        }
-
-
+  if (SHVs !=0) {
+    for (int i=0;i<6;i++)    {
+        CStrainSensitivity(i) = (*SHVs)(i,(gradNumber));
+        CStressSensitivity(i)= (*SHVs)(i+6,(gradNumber));
+        CPlastStrainSensitivity(i) = (*SHVs)(i+12,(gradNumber));
     }
+  }
 
+  double CPlastStrainI1 = CPlastStrain(0)+CPlastStrain(1)+CPlastStrain(2);
 
-    double CPlastStrainI1 = CPlastStrain(0)+CPlastStrain(1)+CPlastStrain(2);
+  Vector CPlastStrainDev = CPlastStrain;
+  Vector unitVector2(6);
+  for (int   i=0; i<3; i++) {
+    unitVector2(i)=1.0;
+    unitVector2(i+3)=0.0;
+  }
 
-    Vector CPlastStrainDev = CPlastStrain;
-    Vector unitVector2(6);
-    for (int   i=0; i<3; i++) {
-            unitVector2(i)=1.0;
-            unitVector2(i+3)=0.0;
-    }
+  CPlastStrainDev.addVector(1.0, unitVector2, -CPlastStrainI1/3.0);
+  
+  double strainI1 = strain(0)+strain(1)+strain(2); 
+  Vector strainDev = strain;
+  strainDev.addVector(1.0, unitVector2, -1.0*strainI1/3.0);
 
-    CPlastStrainDev.addVector(1.0, unitVector2, -CPlastStrainI1/3.0);
-    
-    double strainI1 = strain(0)+strain(1)+strain(2); 
-    Vector strainDev = strain;
-    strainDev.addVector(1.0, unitVector2, -1.0*strainI1/3.0);
-
-    Vector TStressDev = 2.0 * shearModulus * (strainDev - CPlastStrainDev);
-    double TStressI1 = 3.0*bulkModulus * (strainI1 - CPlastStrainI1);
+  Vector TStressDev = 2.0 * shearModulus * (strainDev - CPlastStrainDev);
+  double TStressI1 = 3.0*bulkModulus * (strainI1 - CPlastStrainI1);
 
 // -------- sensitivity ----------
 
-    double CPlastStrainI1Sensitivity = CPlastStrainSensitivity(0)+CPlastStrainSensitivity(1)+CPlastStrainSensitivity(2);
+  double CPlastStrainI1Sensitivity = CPlastStrainSensitivity(0)+CPlastStrainSensitivity(1)+CPlastStrainSensitivity(2);
 
-    Vector CPlastStrainDevSensitivity = CPlastStrainSensitivity;
+  Vector CPlastStrainDevSensitivity = CPlastStrainSensitivity;
 
-    CPlastStrainDevSensitivity.addVector(1.0, unitVector2, -CPlastStrainI1Sensitivity/3.0);
+  CPlastStrainDevSensitivity.addVector(1.0, unitVector2, -CPlastStrainI1Sensitivity/3.0);
 
-    double strainI1Sensitivity = 0.0;                                // conditional sensitivity
+  double strainI1Sensitivity = 0.0;                                // conditional sensitivity
 
-    Vector strainDevSensitivity(6);   strainDevSensitivity.Zero();   // conditional sensitivity
+  Vector strainDevSensitivity(6);   strainDevSensitivity.Zero();   // conditional sensitivity
 
-    Vector TStressDevSensitivity(6);
-    
-    TStressDevSensitivity.addVector(0.0, strainDev, 2.0*GSensitivity);
-    TStressDevSensitivity.addVector(1.0, CPlastStrainDev, -2.0*GSensitivity);
-    TStressDevSensitivity.addVector(1.0, strainDevSensitivity, 2.0*shearModulus);
-    TStressDevSensitivity.addVector(1.0, CPlastStrainDevSensitivity, -2.0*shearModulus);
+  Vector TStressDevSensitivity(6);
+  
+  TStressDevSensitivity.addVector(0.0, strainDev, 2.0*GSensitivity);
+  TStressDevSensitivity.addVector(1.0, CPlastStrainDev, -2.0*GSensitivity);
+  TStressDevSensitivity.addVector(1.0, strainDevSensitivity, 2.0*shearModulus);
+  TStressDevSensitivity.addVector(1.0, CPlastStrainDevSensitivity, -2.0*shearModulus);
 
-    double TStressI1Sensitivity = 3.0*KSensitivity * (strainI1 - CPlastStrainI1)+3.0*bulkModulus * (strainI1Sensitivity - CPlastStrainI1Sensitivity);
- 
-    // Following are variables needed in each mode ..
+  double TStressI1Sensitivity = 3.0*KSensitivity * (strainI1 - CPlastStrainI1)+3.0*bulkModulus * (strainI1Sensitivity - CPlastStrainI1Sensitivity);
 
-    Vector deltPlastStrainDevSensitivity(6);   deltPlastStrainDevSensitivity.Zero();
-    double deltPlastStrainI1Sensitivity = 0.0; 
-    Vector stressDevSensitivity(6);  stressDevSensitivity.Zero(); 
+  // Following are variables needed in each mode ..
 
-    // ----- to be solved in each mode ...
-    double stressI1Sensitivity =0.0; 
-    double deltGammar1Sensitivity = 0.0;     
-    double deltGammar2Sensitivity = 0.0;    
+  Vector deltPlastStrainDevSensitivity(6);   deltPlastStrainDevSensitivity.Zero();
+  double deltPlastStrainI1Sensitivity = 0.0; 
+  Vector stressDevSensitivity(6);  stressDevSensitivity.Zero(); 
+
+  // ----- to be solved in each mode ...
+  double stressI1Sensitivity =0.0; 
+  double deltGammar1Sensitivity = 0.0;     
+  double deltGammar2Sensitivity = 0.0;    
 
 
 // ========  theMode is judged already ========
 
-    double normTS = pow( TStressDev && TStressDev, 0.5);    // cannot use norm() 
-    double normTSSensitivity = (TStressDev && TStressDevSensitivity) / normTS;   
+  double normTS = pow( TStressDev && TStressDev, 0.5);    // cannot use norm() 
+  double normTSSensitivity = (TStressDev && TStressDevSensitivity) / normTS;   
 
-    double normS =0.0;
-    double normSSensitivity = 0.0; 
+  double normS =0.0;
+  double normSSensitivity = 0.0; 
 
-    double deltGammar1 =0.0;
-    double deltGammar2 =0.0;
+  double deltGammar1 =0.0;
+  double deltGammar2 =0.0;
 
   if (theMode ==1) {
+    deltGammar2 = (T-TStressI1)/(9.0*bulkModulus);
+    this->stressI1 = T;
+    stressDev = TStressDev;
+    deltPlastStrainDev.Zero();
+    deltPlastStrainI1 = -3.0*deltGammar2;
 
-        deltGammar2 = (T-TStressI1)/(9.0*bulkModulus);
-        this->stressI1 = T;
-        stressDev = TStressDev;
-        deltPlastStrainDev.Zero();
-        deltPlastStrainI1 = -3.0*deltGammar2;
+    //==================== adding sensitivity here ============================
 
-   //==================== adding sensitivity here ============================
-
-        deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus;
-        stressI1Sensitivity = TSensitivity;
-        stressDevSensitivity = TStressDevSensitivity;
-        deltPlastStrainI1Sensitivity = -3.*deltGammar2Sensitivity;
-        deltPlastStrainDevSensitivity.Zero();
+    deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus;
+    stressI1Sensitivity = TSensitivity;
+    stressDevSensitivity = TStressDevSensitivity;
+    deltPlastStrainI1Sensitivity = -3.*deltGammar2Sensitivity;
+    deltPlastStrainDevSensitivity.Zero();
 
   }
 
-
-  else if (theMode ==2){
-        deltGammar1 = (normTS-failureEnvelop(T))/(2.0*shearModulus);
-        deltGammar2 = (T-TStressI1)/(9.0*bulkModulus) - deltGammar1*failureEnvelopDeriv(T); 
-        this->stressI1 = T;
-        normS =failureEnvelop(T);
-        stressDev.addVector(0.0, TStressDev, normS/ normTS);
-        deltPlastStrainDev.addVector( 0.0, TStressDev, deltGammar1/normTS);
-        deltPlastStrainI1 = -3.0 * (deltGammar1 * failureEnvelopDeriv(T)+deltGammar2);
-
-    //==================== adding sensitivity here ===================================
-        double failureEnvelopSensitivity = alphaSensitivity+thetaSensitivity*T + theta*TSensitivity;
-
-        double failureEnvelopDerivSensitivity = 0.0;
-               failureEnvelopDerivSensitivity = thetaSensitivity;
-
-        deltGammar1Sensitivity = ((normTSSensitivity-failureEnvelopSensitivity)*shearModulus-GSensitivity*(normTS-failureEnvelop(T)))/2./shearModulus/shearModulus;
-       
-        
-        
-        deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus
-                                -(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity);
-
-        stressI1Sensitivity = TSensitivity;
-
-
-        Vector nSensitivity(6);
-            nSensitivity.addVector(0.0, TStressDevSensitivity,1.0/normTS);
-            nSensitivity.addVector(1.0, TStressDev, -normTSSensitivity/normTS/normTS);
-
-        stressDevSensitivity.addVector(0.0, TStressDev, failureEnvelopSensitivity/normTS);
-        stressDevSensitivity.addVector(1.0, nSensitivity, failureEnvelop(T));
-
-/*
-        stressDevSensitivity.addVector(0.0, nSensitivity, normS);
-        stressDevSensitivity.addVector(1.0, TStressDev, normSSensitivity/normTS);
-*/        
-        
-            
-        deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
-        deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
-        deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity+deltGammar2Sensitivity);
-
-
-    } //theMode ==2
-
-  else if (theMode ==3){
-        
-        deltGammar1 = (normTS-failureEnvelop(TStressI1))/(2.0*shearModulus+9*bulkModulus*theta*theta);
-        normS = normTS - 2.0*shearModulus * deltGammar1;
-
-        stressI1 = 9*theta*bulkModulus*deltGammar1 + TStressI1;
-        stressDev.addVector(0.0, TStressDev, normS/ normTS);
-        deltPlastStrainDev.addVector(0.0, stressDev, deltGammar1/normS);
-        deltPlastStrainI1 = -3.0*deltGammar1*failureEnvelopDeriv(stressI1);
+  else if (theMode ==2) {
+    deltGammar1 = (normTS-failureEnvelop(T))/(2.0*shearModulus);
+    deltGammar2 = (T-TStressI1)/(9.0*bulkModulus) - deltGammar1*failureEnvelopDeriv(T); 
+    this->stressI1 = T;
+    normS =failureEnvelop(T);
+    stressDev.addVector(0.0, TStressDev, normS/ normTS);
+    deltPlastStrainDev.addVector( 0.0, TStressDev, deltGammar1/normTS);
+    deltPlastStrainI1 = -3.0 * (deltGammar1 * failureEnvelopDeriv(T)+deltGammar2);
 
     //==================== adding sensitivity here ===================================
+    double failureEnvelopSensitivity = alphaSensitivity+thetaSensitivity*T + theta*TSensitivity;
 
-        deltGammar1Sensitivity = (normTSSensitivity - alphaSensitivity - TStressI1Sensitivity * theta -TStressI1 * thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)
-                               - (normTS-failureEnvelop(TStressI1))*(2*GSensitivity+9*KSensitivity*theta*theta+18*bulkModulus*theta*thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)/(2*shearModulus+9*bulkModulus*theta*theta);
- 
-        normSSensitivity = normTSSensitivity-2.*GSensitivity*deltGammar1-2.*shearModulus*deltGammar1Sensitivity;  
-        Vector nSensitivity(6);
+    double failureEnvelopDerivSensitivity = 0.0;
+           failureEnvelopDerivSensitivity = thetaSensitivity;
+
+    deltGammar1Sensitivity = ((normTSSensitivity-failureEnvelopSensitivity)*shearModulus-GSensitivity*(normTS-failureEnvelop(T)))/2./shearModulus/shearModulus;
+    
+    
+    
+    deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus
+                            -(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity);
+
+    stressI1Sensitivity = TSensitivity;
+
+
+    Vector nSensitivity(6);
         nSensitivity.addVector(0.0, TStressDevSensitivity,1.0/normTS);
         nSensitivity.addVector(1.0, TStressDev, -normTSSensitivity/normTS/normTS);
-        stressI1Sensitivity = 9*bulkModulus*theta*deltGammar1Sensitivity + 9*KSensitivity*theta*deltGammar1+9*bulkModulus*thetaSensitivity*deltGammar1+TStressI1Sensitivity;
 
-        stressDevSensitivity.addVector(0.0, TStressDev, normSSensitivity/normTS);
-        stressDevSensitivity.addVector(1.0, nSensitivity, normS);
-        deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
-        deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
+    stressDevSensitivity.addVector(0.0, TStressDev, failureEnvelopSensitivity/normTS);
+    stressDevSensitivity.addVector(1.0, nSensitivity, failureEnvelop(T));
 
-        double failureEnvelopDerivSensitivity = thetaSensitivity;
+    /*
+    stressDevSensitivity.addVector(0.0, nSensitivity, normS);
+    stressDevSensitivity.addVector(1.0, TStressDev, normSSensitivity/normTS);
+    */        
+    
+        
+    deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
+    deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
+    deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity+deltGammar2Sensitivity);
 
-        deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(stressI1)+failureEnvelopDerivSensitivity*deltGammar1);
+  } //theMode ==2
 
+  else if (theMode ==3){
+    
+    deltGammar1 = (normTS-failureEnvelop(TStressI1))/(2.0*shearModulus+9*bulkModulus*theta*theta);
+    normS = normTS - 2.0*shearModulus * deltGammar1;
+
+    stressI1 = 9*theta*bulkModulus*deltGammar1 + TStressI1;
+    stressDev.addVector(0.0, TStressDev, normS/ normTS);
+    deltPlastStrainDev.addVector(0.0, stressDev, deltGammar1/normS);
+    deltPlastStrainI1 = -3.0*deltGammar1*failureEnvelopDeriv(stressI1);
+
+    //==================== adding sensitivity here ===================================
+
+    deltGammar1Sensitivity = (normTSSensitivity - alphaSensitivity - TStressI1Sensitivity * theta -TStressI1 * thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)
+                            - (normTS-failureEnvelop(TStressI1))*(2*GSensitivity+9*KSensitivity*theta*theta+18*bulkModulus*theta*thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)/(2*shearModulus+9*bulkModulus*theta*theta);
+
+    normSSensitivity = normTSSensitivity-2.*GSensitivity*deltGammar1-2.*shearModulus*deltGammar1Sensitivity;  
+    Vector nSensitivity(6);
+    nSensitivity.addVector(0.0, TStressDevSensitivity,1.0/normTS);
+    nSensitivity.addVector(1.0, TStressDev, -normTSSensitivity/normTS/normTS);
+    stressI1Sensitivity = 9*bulkModulus*theta*deltGammar1Sensitivity + 9*KSensitivity*theta*deltGammar1+9*bulkModulus*thetaSensitivity*deltGammar1+TStressI1Sensitivity;
+
+    stressDevSensitivity.addVector(0.0, TStressDev, normSSensitivity/normTS);
+    stressDevSensitivity.addVector(1.0, nSensitivity, normS);
+    deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
+    deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
+
+    double failureEnvelopDerivSensitivity = thetaSensitivity;
+
+    deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(stressI1)+failureEnvelopDerivSensitivity*deltGammar1);
 
   }
-  
-  else if (theMode ==4){
+  else if (theMode ==4) {
 
-        normS = normTS;
-        stressDev = TStressDev;
-        stressI1 = TStressI1;
-        deltPlastStrainDev.Zero();
-        deltPlastStrainI1 = 0.0;
+    normS = normTS;
+    stressDev = TStressDev;
+    stressI1 = TStressI1;
+    deltPlastStrainDev.Zero();
+    deltPlastStrainI1 = 0.0;
 
-      //==================== adding sensitivity here ===================================
+  //==================== adding sensitivity here ===================================
 
-        stressDevSensitivity = TStressDevSensitivity;  
-        stressI1Sensitivity = TStressI1Sensitivity;
-        deltPlastStrainDevSensitivity.Zero();
-        deltPlastStrainI1Sensitivity = 0.0;
-  
-
+    stressDevSensitivity = TStressDevSensitivity;  
+    stressI1Sensitivity = TStressI1Sensitivity;
+    deltPlastStrainDevSensitivity.Zero();
+    deltPlastStrainI1Sensitivity = 0.0;
   }
 
-    double plastStrainI1 = CPlastStrainI1 + deltPlastStrainI1;
-    Vector plastStrainDev = CPlastStrainDev + deltPlastStrainDev;
+  double plastStrainI1 = CPlastStrainI1 + deltPlastStrainI1;
+  Vector plastStrainDev = CPlastStrainDev + deltPlastStrainDev;
 
-    plastStrain.addVector(0.0,  plastStrainDev, 1.0);
-    plastStrain.addVector(1.0, unitVector2, plastStrainI1/3.0);
+  plastStrain.addVector(0.0,  plastStrainDev, 1.0);
+  plastStrain.addVector(1.0, unitVector2, plastStrainI1/3.0);
 
-    stress.addVector(0.0, stressDev,1.0);
-    stress.addVector(1.0, unitVector2, stressI1/3.0);
-  
-    stressSensitivity.addVector(0.0, stressDevSensitivity,1.0);
-    stressSensitivity.addVector(1.0, unitVector2,stressI1Sensitivity/3.0);  ///  qiuzhijian--getstressentivity
+  stress.addVector(0.0, stressDev,1.0);
+  stress.addVector(1.0, unitVector2, stressI1/3.0);
 
-    if (ndm==3){
-        tempVector.addVector(0.0, stressSensitivity,-1.0);
-        return tempVector;
-    }
+  stressSensitivity.addVector(0.0, stressDevSensitivity,1.0);
+  stressSensitivity.addVector(1.0, unitVector2,stressI1Sensitivity/3.0);  ///  qiuzhijian--getstressentivity
 
+  if (ndm==3){
+    tempVector.addVector(0.0, stressSensitivity,-1.0);
+    return tempVector;
+  }
   else {
     static Vector workV(3);//, temp6(6);
     workV[0] = -1.0*stressSensitivity[0];
@@ -1100,303 +1030,298 @@ LinearCap::getStressSensitivity (int gradNumber, bool conditional) {
 }
 
 int 
-LinearCap::commitSensitivity(const Vector & strainGradient, int gradNumber, int numGrads) {
- 
-    double GSensitivity = 0.0;
-    double KSensitivity = 0.0;
-    double rhoSensitivity = 0.0;
-    double thetaSensitivity = 0.0;    
-    double alphaSensitivity = 0.0;
-    double TSensitivity = 0.0;
+LinearCap::commitSensitivity(const Vector & strainGradient, int gradNumber, int numGrads)
+{
+  double GSensitivity = 0.0;
+  double KSensitivity = 0.0;
+  double rhoSensitivity = 0.0;
+  double thetaSensitivity = 0.0;    
+  double alphaSensitivity = 0.0;
+  double TSensitivity = 0.0;
 
-    static Vector stressSensitivity(6);
-    stressSensitivity.Zero();
+  static Vector stressSensitivity(6);
+  stressSensitivity.Zero();
 
-    static Vector strainSensitivity(6);
+  static Vector strainSensitivity(6);
 
-    if (ndm==3 && strainGradient.Size()==6) 
-         strainSensitivity = strainGradient;
-    else if (ndm==2 && strainGradient.Size()==3) {
-        strainSensitivity[0] = strainGradient[0];
-        strainSensitivity[1] = strainGradient[1];
-        strainSensitivity[2] = 0.0;
-        strainSensitivity[3] = strainGradient[2];
-        strainSensitivity[4] = 0.0;
-        strainSensitivity[5] = 0.0;
+  if (ndm==3 && strainGradient.Size()==6) 
+        strainSensitivity = strainGradient;
+  else if (ndm==2 && strainGradient.Size()==3) {
+      strainSensitivity[0] = strainGradient[0];
+      strainSensitivity[1] = strainGradient[1];
+      strainSensitivity[2] = 0.0;
+      strainSensitivity[3] = strainGradient[2];
+      strainSensitivity[4] = 0.0;
+      strainSensitivity[5] = 0.0;
 
-    }
-    else {
-        opserr << "Fatal:CapPlasticity:: Material dimension is: " << ndm << endln;
-        opserr << "But strain vector size is: " << strainGradient.Size() << endln;
-        exit(-1);
-    }
+  }
+  else {
+      opserr << "Fatal:CapPlasticity:: Material dimension is: " << ndm << endln;
+      opserr << "But strain vector size is: " << strainGradient.Size() << endln;
+      exit(-1);
+  }
 
-    strainSensitivity *=-1.0;
-    for (int j=3; j<6;j++)
-        strainSensitivity[j] /=2.0;
-    Vector plastStrainSensitivity(6);     plastStrainSensitivity.Zero();
-    //sour tstsopur teif (theMode!=4){
-    //opserr<<"strainSensitivity"<<strainSensitivity<<endln;
-    //}
+  strainSensitivity *=-1.0;
+  for (int j=3; j<6;j++)
+      strainSensitivity[j] /=2.0;
+  Vector plastStrainSensitivity(6);     plastStrainSensitivity.Zero();
+  //sour tstsopur teif (theMode!=4){
+  //opserr<<"strainSensitivity"<<strainSensitivity<<endln;
+  //}
 
-    if (parameterID == 1) {  
-        GSensitivity = 1.0;
-    }
-    else if (parameterID == 2) {   
-        KSensitivity = 1.0;
-    }
-    else if (parameterID == 3) {   
-        rhoSensitivity = 1.0;
-    }
-    else if (parameterID == 4) {    
-        thetaSensitivity = 1.0;
-    }
-    else if (parameterID == 5) {   
-        alphaSensitivity = 1.0;
-    }
-    else if (parameterID == 6) {   
-        TSensitivity = 1.0;
-    }
-    else {
+  if (parameterID == 1) {  
+      GSensitivity = 1.0;
+  }
+  else if (parameterID == 2) {   
+      KSensitivity = 1.0;
+  }
+  else if (parameterID == 3) {   
+      rhoSensitivity = 1.0;
+  }
+  else if (parameterID == 4) {    
+      thetaSensitivity = 1.0;
+  }
+  else if (parameterID == 5) {   
+      alphaSensitivity = 1.0;
+  }
+  else if (parameterID == 6) {   
+      TSensitivity = 1.0;
+  }
+  else {
 
-        // Nothing random here, but may have to return something in any case
+      // Nothing random here, but may have to return something in any case
 
-    }
+  }
 
-// --- define history variables -----------
-    static Vector CStrainSensitivity(6);        CStrainSensitivity.Zero();
-    static Vector CStressSensitivity(6);           CStressSensitivity.Zero();
-    static Vector CPlastStrainSensitivity(6);   CPlastStrainSensitivity.Zero();
+  // --- define history variables -----------
+  static Vector CStrainSensitivity(6);        CStrainSensitivity.Zero();
+  static Vector CStressSensitivity(6);           CStressSensitivity.Zero();
+  static Vector CPlastStrainSensitivity(6);   CPlastStrainSensitivity.Zero();
 
-    if (SHVs ==0) {
+  if (SHVs ==0) {
 
-       SHVs = new Matrix(18,numGrads);
-       SHVs->Zero();
-    }
+      SHVs = new Matrix(18,numGrads);
+      SHVs->Zero();
+  }
 
-    else{
+  else{
 
-        for (int i=0;i<6;i++)    {
-           CStrainSensitivity(i) = (*SHVs)(i,(gradNumber));
-           CStressSensitivity(i)= (*SHVs)(i+6,(gradNumber));
-           CPlastStrainSensitivity(i) = (*SHVs)(i+12,(gradNumber));
+      for (int i=0;i<6;i++)    {
+          CStrainSensitivity(i) = (*SHVs)(i,(gradNumber));
+          CStressSensitivity(i)= (*SHVs)(i+6,(gradNumber));
+          CPlastStrainSensitivity(i) = (*SHVs)(i+12,(gradNumber));
 
-        }
+      }
 
-    }
-
-
+  }
 
 
 
-// ----- follow the stress computational process ----------
 
-    double CPlastStrainI1 = CPlastStrain(0)+CPlastStrain(1)+CPlastStrain(2);
 
-    Vector CPlastStrainDev = CPlastStrain;
+  // ----- follow the stress computational process ----------
 
-    Vector unitVector2(6);
-    for ( int i=0; i<3; i++) {
-        unitVector2(i)=1.0;
-        unitVector2(i+3)=0.0;  
-    }
-    CPlastStrainDev.addVector(1.0, unitVector2, -CPlastStrainI1/3.0);
-    
-    double strainI1 = strain(0)+strain(1)+strain(2); 
+  double CPlastStrainI1 = CPlastStrain(0)+CPlastStrain(1)+CPlastStrain(2);
 
-    Vector strainDev = strain;
-    Vector deltPlastStrainDev(6); 
-    
-    strainDev.addVector(1.0, unitVector2, -1.0*strainI1/3.0);
+  Vector CPlastStrainDev = CPlastStrain;
 
-    Vector TStressDev = 2.0 * shearModulus * (strainDev - CPlastStrainDev);
- 
-    double TStressI1 = 3.0*bulkModulus * (strainI1 - CPlastStrainI1);
+  Vector unitVector2(6);
+  for ( int i=0; i<3; i++) {
+      unitVector2(i)=1.0;
+      unitVector2(i+3)=0.0;  
+  }
+  CPlastStrainDev.addVector(1.0, unitVector2, -CPlastStrainI1/3.0);
+  
+  double strainI1 = strain(0)+strain(1)+strain(2); 
+
+  Vector strainDev = strain;
+  Vector deltPlastStrainDev(6); 
+  
+  strainDev.addVector(1.0, unitVector2, -1.0*strainI1/3.0);
+
+  Vector TStressDev = 2.0 * shearModulus * (strainDev - CPlastStrainDev);
+
+  double TStressI1 = 3.0*bulkModulus * (strainI1 - CPlastStrainI1);
 
 // -------- sensitivity ----------
 
-    double CPlastStrainI1Sensitivity = CPlastStrainSensitivity(0)+CPlastStrainSensitivity(1)+CPlastStrainSensitivity(2);
+  double CPlastStrainI1Sensitivity = CPlastStrainSensitivity(0)+CPlastStrainSensitivity(1)+CPlastStrainSensitivity(2);
 
-    Vector CPlastStrainDevSensitivity = CPlastStrainSensitivity;
-    CPlastStrainDevSensitivity.addVector(1.0, unitVector2, -CPlastStrainI1Sensitivity/3.0);
+  Vector CPlastStrainDevSensitivity = CPlastStrainSensitivity;
+  CPlastStrainDevSensitivity.addVector(1.0, unitVector2, -CPlastStrainI1Sensitivity/3.0);
 
-    double strainI1Sensitivity = strainSensitivity(0)+strainSensitivity(1)+strainSensitivity(2);     // unconditional sensitivity
+  double strainI1Sensitivity = strainSensitivity(0)+strainSensitivity(1)+strainSensitivity(2);     // unconditional sensitivity
 
-    Vector strainDevSensitivity(6);   
-           strainDevSensitivity.addVector(0.0, strainSensitivity, 1.0);   // unconditional sensitivity
-           strainDevSensitivity.addVector(1.0, unitVector2, -1.0/3*strainI1Sensitivity);   // unconditional sensitivity
+  Vector strainDevSensitivity(6);   
+          strainDevSensitivity.addVector(0.0, strainSensitivity, 1.0);   // unconditional sensitivity
+          strainDevSensitivity.addVector(1.0, unitVector2, -1.0/3*strainI1Sensitivity);   // unconditional sensitivity
 
-    Vector TStressDevSensitivity(6);
-    
-    TStressDevSensitivity.addVector(0.0, strainDev, 2.0*GSensitivity);
-    TStressDevSensitivity.addVector(1.0, CPlastStrainDev, -2.0*GSensitivity);
+  Vector TStressDevSensitivity(6);
+  
+  TStressDevSensitivity.addVector(0.0, strainDev, 2.0*GSensitivity);
+  TStressDevSensitivity.addVector(1.0, CPlastStrainDev, -2.0*GSensitivity);
 
-    TStressDevSensitivity.addVector(1.0, strainDevSensitivity, 2.0*shearModulus);
-    TStressDevSensitivity.addVector(1.0, CPlastStrainDevSensitivity, -2.0*shearModulus);
+  TStressDevSensitivity.addVector(1.0, strainDevSensitivity, 2.0*shearModulus);
+  TStressDevSensitivity.addVector(1.0, CPlastStrainDevSensitivity, -2.0*shearModulus);
 
-    double TStressI1Sensitivity = 3.0*KSensitivity * (strainI1 - CPlastStrainI1)+3.0*bulkModulus * (strainI1Sensitivity - CPlastStrainI1Sensitivity);
- 
-    // Following are variables needed in each mode ..
-    Vector deltPlastStrainDevSensitivity(6);   deltPlastStrainDevSensitivity.Zero();
-    double deltPlastStrainI1Sensitivity = 0.0; 
-    Vector stressDevSensitivity(6);  stressDevSensitivity.Zero(); 
+  double TStressI1Sensitivity = 3.0*KSensitivity * (strainI1 - CPlastStrainI1)+3.0*bulkModulus * (strainI1Sensitivity - CPlastStrainI1Sensitivity);
 
-    // ----- to be solved in each mode ...
-    double stressI1Sensitivity =0.0; 
-    double hardening_kSensitivity =0.0;
-    double deltGammar1Sensitivity = 0.0;     
-    double deltGammar2Sensitivity = 0.0;    
+  // Following are variables needed in each mode ..
+  Vector deltPlastStrainDevSensitivity(6);   deltPlastStrainDevSensitivity.Zero();
+  double deltPlastStrainI1Sensitivity = 0.0; 
+  Vector stressDevSensitivity(6);  stressDevSensitivity.Zero(); 
+
+  // ----- to be solved in each mode ...
+  double stressI1Sensitivity =0.0; 
+  double hardening_kSensitivity =0.0;
+  double deltGammar1Sensitivity = 0.0;     
+  double deltGammar2Sensitivity = 0.0;    
 
 
 // ========  theMode is judged already ========
 
-    double normTS = pow( TStressDev && TStressDev, 0.5);   
-    double normTSSensitivity = (TStressDev && TStressDevSensitivity) / normTS;   
+  double normTS = pow( TStressDev && TStressDev, 0.5);   
+  double normTSSensitivity = (TStressDev && TStressDevSensitivity) / normTS;   
 
-    double normS =0.0;
-    double normSSensitivity = 0.0; 
+  double normS =0.0;
+  double normSSensitivity = 0.0; 
 
-    double deltGammar1 =0.0;
-    double deltGammar2 =0.0;
+  double deltGammar1 =0.0;
+  double deltGammar2 =0.0;
 
-    if (theMode ==1) {
+  if (theMode ==1) {
 
-        deltGammar2 = (T-TStressI1)/(9.0*bulkModulus);
-        this->stressI1 = T;
-        stressDev = TStressDev;
-        deltPlastStrainDev.Zero();
-        deltPlastStrainI1 = -3.0*deltGammar2;
+      deltGammar2 = (T-TStressI1)/(9.0*bulkModulus);
+      this->stressI1 = T;
+      stressDev = TStressDev;
+      deltPlastStrainDev.Zero();
+      deltPlastStrainI1 = -3.0*deltGammar2;
 
-   //==================== adding sensitivity here ============================
+  //==================== adding sensitivity here ============================
 
-        deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus;
-        stressI1Sensitivity = TSensitivity;
-        stressDevSensitivity = TStressDevSensitivity;
-        deltPlastStrainI1Sensitivity = -3.*deltGammar2Sensitivity;
-        deltPlastStrainDevSensitivity.Zero();
-    }
-
-
-    else if (theMode ==2){
-
-        deltGammar1 = (normTS-failureEnvelop(T))/(2.0*shearModulus);
-        deltGammar2 = (T-TStressI1)/(9.0*bulkModulus) - deltGammar1*failureEnvelopDeriv(T); 
-        this->stressI1 = T;
-        normS =failureEnvelop(T);
-        stressDev.addVector(0.0, TStressDev, normS/ normTS);
-        deltPlastStrainDev.addVector( 0.0, TStressDev, deltGammar1/normTS);
-        deltPlastStrainI1 = -3.0 * (deltGammar1 * failureEnvelopDeriv(T)+deltGammar2);
-
-    //==================== adding sensitivity here ===================================
-        double failureEnvelopSensitivity = alphaSensitivity+thetaSensitivity*T + theta*TSensitivity;
-
-        double failureEnvelopDerivSensitivity = 0.0;
-               failureEnvelopDerivSensitivity = thetaSensitivity;
-
-        deltGammar1Sensitivity = ((normTSSensitivity-failureEnvelopSensitivity)*shearModulus-GSensitivity*(normTS-failureEnvelop(T)))/2./shearModulus/shearModulus;
-       
-        
-        
-        deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus
-                                -(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity);
-
-        stressI1Sensitivity = TSensitivity;
+      deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus;
+      stressI1Sensitivity = TSensitivity;
+      stressDevSensitivity = TStressDevSensitivity;
+      deltPlastStrainI1Sensitivity = -3.*deltGammar2Sensitivity;
+      deltPlastStrainDevSensitivity.Zero();
+  }
 
 
-        Vector nSensitivity(6);
-        nSensitivity.addVector(0.0, TStressDevSensitivity,1.0/normTS);
-        nSensitivity.addVector(1.0, TStressDev, -normTSSensitivity/normTS/normTS);
+  else if (theMode ==2){
+
+      deltGammar1 = (normTS-failureEnvelop(T))/(2.0*shearModulus);
+      deltGammar2 = (T-TStressI1)/(9.0*bulkModulus) - deltGammar1*failureEnvelopDeriv(T); 
+      this->stressI1 = T;
+      normS =failureEnvelop(T);
+      stressDev.addVector(0.0, TStressDev, normS/ normTS);
+      deltPlastStrainDev.addVector( 0.0, TStressDev, deltGammar1/normTS);
+      deltPlastStrainI1 = -3.0 * (deltGammar1 * failureEnvelopDeriv(T)+deltGammar2);
+
+  //==================== adding sensitivity here ===================================
+      double failureEnvelopSensitivity = alphaSensitivity+thetaSensitivity*T + theta*TSensitivity;
+
+      double failureEnvelopDerivSensitivity = 0.0;
+              failureEnvelopDerivSensitivity = thetaSensitivity;
+
+      deltGammar1Sensitivity = ((normTSSensitivity-failureEnvelopSensitivity)*shearModulus-GSensitivity*(normTS-failureEnvelop(T)))/2./shearModulus/shearModulus;
+      
+      
+      
+      deltGammar2Sensitivity = ((TSensitivity-TStressI1Sensitivity)*bulkModulus-KSensitivity*(T-TStressI1))/9./bulkModulus/bulkModulus
+                              -(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity);
+
+      stressI1Sensitivity = TSensitivity;
+
+
+      Vector nSensitivity(6);
+      nSensitivity.addVector(0.0, TStressDevSensitivity,1.0/normTS);
+      nSensitivity.addVector(1.0, TStressDev, -normTSSensitivity/normTS/normTS);
 /*
-        stressDevSensitivity.addVector(0.0, nSensitivity, normS);
-        stressDevSensitivity.addVector(1.0, TStressDev, normSSensitivity/normTS);
+      stressDevSensitivity.addVector(0.0, nSensitivity, normS);
+      stressDevSensitivity.addVector(1.0, TStressDev, normSSensitivity/normTS);
 */
-        stressDevSensitivity.addVector(0.0, TStressDev, failureEnvelopSensitivity/normTS);
-        stressDevSensitivity.addVector(1.0, nSensitivity, failureEnvelop(T));
+      stressDevSensitivity.addVector(0.0, TStressDev, failureEnvelopSensitivity/normTS);
+      stressDevSensitivity.addVector(1.0, nSensitivity, failureEnvelop(T));
 
-        
-            
-        deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
-        deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
+      
+          
+      deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
+      deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
 
-        deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity+deltGammar2Sensitivity);
+      deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(T)+deltGammar1*failureEnvelopDerivSensitivity+deltGammar2Sensitivity);
 
+  } //theMode ==2
 
-    } //theMode ==2
+  else if (theMode ==3){
+      
+      deltGammar1 = (normTS-failureEnvelop(TStressI1))/(2.0*shearModulus+9*bulkModulus*theta*theta);
+      normS = normTS - 2.0*shearModulus * deltGammar1;
 
-    else if (theMode ==3){
-        
-        deltGammar1 = (normTS-failureEnvelop(TStressI1))/(2.0*shearModulus+9*bulkModulus*theta*theta);
-        normS = normTS - 2.0*shearModulus * deltGammar1;
+      stressI1 = 9*theta*bulkModulus*deltGammar1 + TStressI1;
+      stressDev.addVector(0.0, TStressDev, normS/ normTS);
+      deltPlastStrainDev.addVector(0.0, stressDev, deltGammar1/normS);
+      deltPlastStrainI1 = -3.0*deltGammar1*failureEnvelopDeriv(stressI1);
 
-        stressI1 = 9*theta*bulkModulus*deltGammar1 + TStressI1;
-        stressDev.addVector(0.0, TStressDev, normS/ normTS);
-        deltPlastStrainDev.addVector(0.0, stressDev, deltGammar1/normS);
-        deltPlastStrainI1 = -3.0*deltGammar1*failureEnvelopDeriv(stressI1);
+  //==================== adding sensitivity here ===================================
 
-    //==================== adding sensitivity here ===================================
+      deltGammar1Sensitivity = (normTSSensitivity - alphaSensitivity - TStressI1Sensitivity * theta -TStressI1 * thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)
+                              - (normTS-failureEnvelop(TStressI1))*(2*GSensitivity+9*KSensitivity*theta*theta+18*bulkModulus*theta*thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)/(2*shearModulus+9*bulkModulus*theta*theta);
 
-        deltGammar1Sensitivity = (normTSSensitivity - alphaSensitivity - TStressI1Sensitivity * theta -TStressI1 * thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)
-                               - (normTS-failureEnvelop(TStressI1))*(2*GSensitivity+9*KSensitivity*theta*theta+18*bulkModulus*theta*thetaSensitivity)/(2*shearModulus+9*bulkModulus*theta*theta)/(2*shearModulus+9*bulkModulus*theta*theta);
- 
-        normSSensitivity = normTSSensitivity-2.*GSensitivity*deltGammar1-2.*shearModulus*deltGammar1Sensitivity;  
-        Vector nSensitivity(6);
-        nSensitivity.addVector(0.0, TStressDevSensitivity,1.0/normTS);
-        nSensitivity.addVector(1.0, TStressDev, -normTSSensitivity/normTS/normTS);
-        stressI1Sensitivity = 9*bulkModulus*theta*deltGammar1Sensitivity + 9*KSensitivity*theta*deltGammar1+9*bulkModulus*thetaSensitivity*deltGammar1+TStressI1Sensitivity;
+      normSSensitivity = normTSSensitivity-2.*GSensitivity*deltGammar1-2.*shearModulus*deltGammar1Sensitivity;  
+      Vector nSensitivity(6);
+      nSensitivity.addVector(0.0, TStressDevSensitivity,1.0/normTS);
+      nSensitivity.addVector(1.0, TStressDev, -normTSSensitivity/normTS/normTS);
+      stressI1Sensitivity = 9*bulkModulus*theta*deltGammar1Sensitivity + 9*KSensitivity*theta*deltGammar1+9*bulkModulus*thetaSensitivity*deltGammar1+TStressI1Sensitivity;
 
-        stressDevSensitivity.addVector(0.0, TStressDev, normSSensitivity/normTS);
-        stressDevSensitivity.addVector(1.0, nSensitivity, normS);
-        deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
-        deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
+      stressDevSensitivity.addVector(0.0, TStressDev, normSSensitivity/normTS);
+      stressDevSensitivity.addVector(1.0, nSensitivity, normS);
+      deltPlastStrainDevSensitivity.addVector(0.0, TStressDev, deltGammar1Sensitivity/normTS);
+      deltPlastStrainDevSensitivity.addVector(1.0, nSensitivity, deltGammar1);
 
-        double failureEnvelopDerivSensitivity = thetaSensitivity;
+      double failureEnvelopDerivSensitivity = thetaSensitivity;
 
-        deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(stressI1)+failureEnvelopDerivSensitivity*deltGammar1);
+      deltPlastStrainI1Sensitivity=-3.*(deltGammar1Sensitivity*failureEnvelopDeriv(stressI1)+failureEnvelopDerivSensitivity*deltGammar1);
+  } 
+  else if (theMode ==4) {
+    normS = normTS;
+    stressDev = TStressDev;
+    stressI1 = TStressI1;
+    deltPlastStrainDev.Zero();
+    deltPlastStrainI1 = 0.0;
 
-    } 
-    else if (theMode ==4){
+  //==================== adding sensitivity here
 
-        normS = normTS;
-        stressDev = TStressDev;
-        stressI1 = TStressI1;
-        deltPlastStrainDev.Zero();
-        deltPlastStrainI1 = 0.0;
+    stressDevSensitivity = TStressDevSensitivity;  
+    stressI1Sensitivity = TStressI1Sensitivity;
+    deltPlastStrainDevSensitivity.Zero();
+    deltPlastStrainI1Sensitivity = 0.0;
+  }
 
-      //==================== adding sensitivity here ===================================
+  double plastStrainI1 = CPlastStrainI1 + deltPlastStrainI1;
+  Vector plastStrainDev = CPlastStrainDev + deltPlastStrainDev;
 
-        stressDevSensitivity = TStressDevSensitivity;  
-        stressI1Sensitivity = TStressI1Sensitivity;
-        deltPlastStrainDevSensitivity.Zero();
-        deltPlastStrainI1Sensitivity = 0.0;
+  plastStrain.addVector(0.0,  plastStrainDev, 1.0);
+  plastStrain.addVector(1.0, unitVector2, plastStrainI1/3.0);  
 
-    }
+  double plastStrainI1Sensitivity = CPlastStrainI1Sensitivity + deltPlastStrainI1Sensitivity;
+  Vector plastStrainDevSensitivity = CPlastStrainDevSensitivity + deltPlastStrainDevSensitivity;
 
-    double plastStrainI1 = CPlastStrainI1 + deltPlastStrainI1;
-    Vector plastStrainDev = CPlastStrainDev + deltPlastStrainDev;
-
-    plastStrain.addVector(0.0,  plastStrainDev, 1.0);
-    plastStrain.addVector(1.0, unitVector2, plastStrainI1/3.0);  
-  
-    double plastStrainI1Sensitivity = CPlastStrainI1Sensitivity + deltPlastStrainI1Sensitivity;
-    Vector plastStrainDevSensitivity = CPlastStrainDevSensitivity + deltPlastStrainDevSensitivity;
-
-    plastStrainSensitivity.addVector(0.0,  plastStrainDevSensitivity, 1.0);
-    plastStrainSensitivity.addVector(1.0, unitVector2, plastStrainI1Sensitivity/3.0);
-
-  
-
-    stress.addVector(0.0, stressDev,1.0);
-    stress.addVector(1.0, unitVector2, stressI1/3.0);
-
-    stressSensitivity.addVector(0.0, stressDevSensitivity,1.0);
-    stressSensitivity.addVector(1.0, unitVector2,stressI1Sensitivity/3.0); 
+  plastStrainSensitivity.addVector(0.0,  plastStrainDevSensitivity, 1.0);
+  plastStrainSensitivity.addVector(1.0, unitVector2, plastStrainI1Sensitivity/3.0);
 
 
-    for ( int i =0; i<6; i++) {
-        (*SHVs)(i, (gradNumber)) = strainSensitivity(i);
-        (*SHVs)(i+6,(gradNumber)) = stressSensitivity(i);
-        (*SHVs)(i+12,(gradNumber)) = plastStrainSensitivity(i);
-    }
 
-    return 0;
+  stress.addVector(0.0, stressDev,1.0);
+  stress.addVector(1.0, unitVector2, stressI1/3.0);
+
+  stressSensitivity.addVector(0.0, stressDevSensitivity,1.0);
+  stressSensitivity.addVector(1.0, unitVector2,stressI1Sensitivity/3.0); 
+
+
+  for ( int i =0; i<6; i++) {
+    (*SHVs)(i, (gradNumber)) = strainSensitivity(i);
+    (*SHVs)(i+6,(gradNumber)) = stressSensitivity(i);
+    (*SHVs)(i+12,(gradNumber)) = plastStrainSensitivity(i);
+  }
+  return 0;
 }

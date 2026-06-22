@@ -49,28 +49,28 @@
 #include <stdlib.h>
 
 
-ElasticOrthotropicMaterial::ElasticOrthotropicMaterial
-(int tag, int classTag, double ex, double ey, double ez,
-double nuxy, double nuyz, double nuzx,
-double gxy, double gyz, double gzx, double r)
-  :NDMaterial(tag, classTag), 
-Ex(ex), Ey(ey), Ez(ez),
-vxy(nuxy), vyz(nuyz), vzx(nuzx),
-Gxy(gxy), Gyz(gyz), Gzx(gzx), 
-rho(r),  parameterID(0)
+ElasticOrthotropicMaterial::ElasticOrthotropicMaterial(
+    int tag, int classTag, double ex, double ey, double ez,
+    double nuxy, double nuyz, double nuzx,
+    double gxy, double gyz, double gzx, double r)
+ : NDMaterial(tag, classTag), 
+  Ex(ex), Ey(ey), Ez(ez),
+  vxy(nuxy), vyz(nuyz), vzx(nuzx),
+  Gxy(gxy), Gyz(gyz), Gzx(gzx), 
+  rho(r),  parameterID(0)
 {
 
 }
 
-ElasticOrthotropicMaterial::ElasticOrthotropicMaterial
-(int tag, double ex, double ey, double ez,
-double nuxy, double nuyz, double nuzx,
-double gxy, double gyz, double gzx, double r)
-  :NDMaterial(tag, ND_TAG_ElasticOrthotropic), 
-Ex(ex), Ey(ey), Ez(ez),
-vxy(nuxy), vyz(nuyz), vzx(nuzx),
-Gxy(gxy), Gyz(gyz), Gzx(gzx), 
-rho(r),  parameterID(0)
+ElasticOrthotropicMaterial::ElasticOrthotropicMaterial(
+  int tag, double ex, double ey, double ez,
+  double nuxy, double nuyz, double nuzx,
+  double gxy, double gyz, double gzx, double r)
+ : NDMaterial(tag, ND_TAG_ElasticOrthotropic), 
+  Ex(ex), Ey(ey), Ez(ez),
+  vxy(nuxy), vyz(nuyz), vzx(nuzx),
+  Gxy(gxy), Gyz(gyz), Gzx(gzx), 
+  rho(r),  parameterID(0)
 {
 
 }
@@ -105,9 +105,9 @@ ElasticOrthotropicMaterial::getCopy (const char *type)
 int
 ElasticOrthotropicMaterial::setTrialStrain(const Vector &v)
 {
-    opserr << "ElasticOrthotropicMaterial::setTrialStrain -- subclass responsibility\n";
-    exit(-1);
-    return -1;
+  opserr << "ElasticOrthotropicMaterial::setTrialStrain -- subclass responsibility\n";
+  exit(-1);
+  return -1;
 }
 
 int
@@ -129,13 +129,13 @@ ElasticOrthotropicMaterial::setTrialStrainIncr(const Vector &v)
 int
 ElasticOrthotropicMaterial::setTrialStrainIncr (const Vector &v, const Vector &rate)
 {
-    opserr << "ElasticOrthotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-    exit(-1);
-    return -1;
+  opserr << "ElasticOrthotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
+  exit(-1);
+  return -1;
 }
 
 const Matrix&
-ElasticOrthotropicMaterial::getTangent (void)
+ElasticOrthotropicMaterial::getTangent()
 {
   opserr << "ElasticOrthotropicMaterial::getTangent -- subclass responsibility\n";
   exit(-1);
@@ -146,13 +146,13 @@ ElasticOrthotropicMaterial::getTangent (void)
 }
 
 const Matrix&
-ElasticOrthotropicMaterial::getInitialTangent (void)
+ElasticOrthotropicMaterial::getInitialTangent()
 {
   return this->getTangent();
 }
 
 const Vector&
-ElasticOrthotropicMaterial::getStress (void)
+ElasticOrthotropicMaterial::getStress()
 {
   opserr << "ElasticOrthotropicMaterial::getStress -- subclass responsibility\n";
   exit(-1);
@@ -163,7 +163,7 @@ ElasticOrthotropicMaterial::getStress (void)
 }
 
 const Vector&
-ElasticOrthotropicMaterial::getStrain (void)
+ElasticOrthotropicMaterial::getStrain()
 {
   opserr << "ElasticOrthotropicMaterial::getStrain -- subclass responsibility\n";
   exit(-1);
@@ -174,7 +174,7 @@ ElasticOrthotropicMaterial::getStrain (void)
 }
 
 int
-ElasticOrthotropicMaterial::commitState (void)
+ElasticOrthotropicMaterial::commitState()
 {
   opserr << "ElasticOrthotropicMaterial::commitState -- subclass responsibility\n";
   exit(-1);

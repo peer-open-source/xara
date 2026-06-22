@@ -24,10 +24,11 @@
 Vector ElasticOrthotropicThreeDimensional::sigma(6);
 Matrix ElasticOrthotropicThreeDimensional::D(6,6);
 
-ElasticOrthotropicThreeDimensional::ElasticOrthotropicThreeDimensional
-(int tag, double Ex, double Ey, double Ez,
- double vxy, double vyz, double vzx,
- double Gxy, double Gyz, double Gzx, double rho) :
+ElasticOrthotropicThreeDimensional::ElasticOrthotropicThreeDimensional(
+  int tag, double Ex, double Ey, double Ez,
+  double vxy, double vyz, double vzx,
+  double Gxy, double Gyz, double Gzx, double rho)
+ :
  ElasticOrthotropicMaterial(tag, 
  ND_TAG_ElasticOrthotropicThreeDimensional, Ex, Ey, Ez, vxy, vyz, vzx, Gxy, Gyz, Gzx, rho),
  epsilon(6), Cepsilon(6)
@@ -36,8 +37,9 @@ ElasticOrthotropicThreeDimensional::ElasticOrthotropicThreeDimensional
   Cepsilon.Zero();
 }
 
-ElasticOrthotropicThreeDimensional::ElasticOrthotropicThreeDimensional():
- ElasticOrthotropicMaterial (0, ND_TAG_ElasticOrthotropicThreeDimensional, 
+
+ElasticOrthotropicThreeDimensional::ElasticOrthotropicThreeDimensional()
+ : ElasticOrthotropicMaterial (0, ND_TAG_ElasticOrthotropicThreeDimensional, 
   0.0, 0.0, 0.0,  0.0, 0.0, 0.0,  0.0, 0.0, 0.0,  0.0),
  epsilon(6), Cepsilon(6)
 {
@@ -45,45 +47,46 @@ ElasticOrthotropicThreeDimensional::ElasticOrthotropicThreeDimensional():
   Cepsilon.Zero();
 }
 
-ElasticOrthotropicThreeDimensional::~ElasticOrthotropicThreeDimensional ()
+ElasticOrthotropicThreeDimensional::~ElasticOrthotropicThreeDimensional()
 {
 
 }
 
-int
-ElasticOrthotropicThreeDimensional::setTrialStrain (const Vector &strain)
-{
-  epsilon = strain;
-  return 0;
-}
 
 int
-ElasticOrthotropicThreeDimensional::setTrialStrain (const Vector &strain, const Vector &rate)
+ElasticOrthotropicThreeDimensional::setTrialStrain(const Vector &strain)
 {
   epsilon = strain;
   return 0;
 }
 
 int
-ElasticOrthotropicThreeDimensional::setTrialStrainIncr (const Vector &strain)
+ElasticOrthotropicThreeDimensional::setTrialStrain(const Vector &strain, const Vector &rate)
+{
+  epsilon = strain;
+  return 0;
+}
+
+int
+ElasticOrthotropicThreeDimensional::setTrialStrainIncr(const Vector &strain)
 {
   epsilon += strain;
   return 0;
 }
 
 int
-ElasticOrthotropicThreeDimensional::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+ElasticOrthotropicThreeDimensional::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   epsilon += strain;
   return 0;
 }
 
 const Matrix&
-ElasticOrthotropicThreeDimensional::getTangent (void)
+ElasticOrthotropicThreeDimensional::getTangent()
 {
-  double vyx = vxy*Ey/Ex;
-  double vzy = vyz*Ez/Ey;
-  double vxz = vzx*Ex/Ez;
+  const double vyx = vxy*Ey/Ex;
+  const double vzy = vyz*Ez/Ey;
+  const double vxz = vzx*Ex/Ez;
 
   double d = (1.0 - vxy*vyx-vyz*vzy-vzx*vxz - 2.0*vxy*vyz*vzx)/(Ex*Ey*Ez);
 
@@ -107,14 +110,15 @@ ElasticOrthotropicThreeDimensional::getTangent (void)
   return D;
 }
 
+
 const Matrix&
-ElasticOrthotropicThreeDimensional::getInitialTangent (void)
+ElasticOrthotropicThreeDimensional::getInitialTangent()
 {
   return this->getTangent();
 }
 
 const Vector&
-ElasticOrthotropicThreeDimensional::getStress (void)
+ElasticOrthotropicThreeDimensional::getStress()
 {
   double eps0 = epsilon(0);
   double eps1 = epsilon(1);
@@ -150,28 +154,29 @@ ElasticOrthotropicThreeDimensional::getStress (void)
   return sigma;
 }
 
+
 const Vector&
-ElasticOrthotropicThreeDimensional::getStrain (void)
+ElasticOrthotropicThreeDimensional::getStrain()
 {
   return epsilon;
 }
 
 int
-ElasticOrthotropicThreeDimensional::commitState (void)
+ElasticOrthotropicThreeDimensional::commitState()
 {
-  Cepsilon=epsilon;
+  Cepsilon = epsilon;
   return 0;
 }
 
 int
-ElasticOrthotropicThreeDimensional::revertToLastCommit (void)
+ElasticOrthotropicThreeDimensional::revertToLastCommit()
 {
   epsilon=Cepsilon;
   return 0;
 }
 
 int
-ElasticOrthotropicThreeDimensional::revertToStart (void)
+ElasticOrthotropicThreeDimensional::revertToStart()
 {
   epsilon.Zero();
   Cepsilon.Zero();
@@ -179,7 +184,7 @@ ElasticOrthotropicThreeDimensional::revertToStart (void)
 }
 
 NDMaterial*
-ElasticOrthotropicThreeDimensional::getCopy (void)
+ElasticOrthotropicThreeDimensional::getCopy()
 {
   ElasticOrthotropicThreeDimensional *theCopy =
     new ElasticOrthotropicThreeDimensional (this->getTag(), Ex, Ey, Ez, 
