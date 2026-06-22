@@ -29,7 +29,7 @@
 //
 #ifndef Matrix_h
 #define Matrix_h 
-#define NO_STATIC_WORK
+// #define NO_STATIC_WORK
 #include <assert.h>
 #include <cstddef>
 using std::size_t;
@@ -43,7 +43,6 @@ namespace OpenSees {
   template<int, int, typename T> struct MatrixND;
 }
 
-// #define NO_STATIC_WORK
 
 using Vector3D = OpenSees::VectorND<3,double>;
 
@@ -141,7 +140,7 @@ class Matrix
 
     // overloaded operators 
     inline double &operator()(int row, int col);
-    inline double  operator()(int row, int col) const;
+    inline const double&  operator()(int row, int col) const;
     Matrix         operator()(const ID &rows, const ID & cols) const; 
     Matrix        &operator=(const Matrix &M);
     Matrix        &operator=(Matrix &&M);
@@ -199,8 +198,6 @@ class Matrix
     friend class MPI_Channel;
     friend class MySqlDatastore;
 
-  protected:
-
   private:
     void Print(OPS_Stream &s, int flag) const;
 
@@ -255,9 +252,11 @@ Matrix::operator()(int row, int col)
 }
 
 
-inline double 
+inline const double&
 Matrix::operator()(int row, int col) const
-{ 
+{
+  assert(row >= 0 && row < numRows);
+  assert(col >= 0 && col < numCols);
 #ifdef _G3DEBUG
   if ((row < 0) || (row >= numRows)) {
     opserr << "Matrix::operator() - row " << row << " our of range [0, " <<  numRows-1 << endln;
