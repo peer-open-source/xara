@@ -56,23 +56,22 @@ class ElasticIsotropic3DThermal : public ElasticIsotropicMaterialThermal
     const Matrix &getTangent();
     const Matrix &getInitialTangent();
 
-	double setThermalTangentAndElongation(double &TempT, double &, double &);//J.Jiang add
-    const Vector& getTempAndElong( void);
+    double setThermalTangentAndElongation(double &TempT, double &, double &);//J.Jiang add
+    const Vector& getTempAndElong();
 
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
+    const Vector &getStress();
+    const Vector &getStrain();
     
-    int commitState (void);
-    int revertToLastCommit (void);
-    int revertToStart (void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
     
-    NDMaterial *getCopy (void);
-    const char *getType (void) const;
-    int getOrder (void) const;
+    NDMaterial *getCopy();
+    const char *getType() const;
+    int getOrder() const;
 
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     
  protected:
 	

@@ -348,7 +348,7 @@ ShellFiberSection::Print(OPS_Stream& s, int flag)
     for (std::size_t i = 0; i < fibers.size(); ++i) {
       const auto& [z, w, material] = fibers[i];
 
-      s << "Fiber " << i + 1
+      s << "Fiber " << int(i + 1)
         << ", z = " << z
         << ", weight = " << w << endln;
       material->Print(s, flag);
@@ -366,7 +366,7 @@ ShellFiberSection::Print(OPS_Stream& s, int flag)
     for (std::size_t i = 0; i < fibers.size(); ++i) {
       const auto& [z, w, material] = fibers[i];
 
-      s << OPS_PRINT_JSON_MATE_INDENT << "  {\"fiber\": " << i + 1 << ", ";
+      s << OPS_PRINT_JSON_MATE_INDENT << "  {\"fiber\": " << int(i + 1) << ", ";
       s << "\"zLoc\": " << z << ", ";
       s << "\"weight\": " << w << ", ";
       s << "\"material\": \"" << material->getTag() << "\"";
