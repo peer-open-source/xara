@@ -42,7 +42,6 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  Element *theElement = nullptr;
 
   // get the id and end nodes
   int tag, node, dof, ipPort;
@@ -157,7 +156,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
   }
 
   // now create the GenericClient
-  theElement = new GenericClient(tag, nodes, dofs, ipPort, ipAddr, ssl, udp,
+  Element* theElement = new GenericClient(tag, nodes, dofs, ipPort, ipAddr, ssl, udp,
                                  dataSize, doRayleigh);
 
   // cleanup dynamic memory
@@ -174,6 +173,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
 
   return TCL_OK;
 }
+
 
 int
 TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int argc,
