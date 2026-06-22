@@ -39,6 +39,7 @@ ShellFiberSection::ShellFiberSection()
     h(0.0),
     strainResultant(8)
 {
+
 }
 
 ShellFiberSection::ShellFiberSection(int tag,
@@ -334,6 +335,7 @@ ShellFiberSection::getSectionTangent()
 
   return this->tangent;
 }
+
 
 void
 ShellFiberSection::Print(OPS_Stream& s, int flag)

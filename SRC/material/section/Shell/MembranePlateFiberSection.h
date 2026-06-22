@@ -43,7 +43,9 @@ class MembranePlateFiberSection : public SectionForceDeformation {
 
 public:
   MembranePlateFiberSection();
-  MembranePlateFiberSection(int tag, double thickness, NDMaterial& Afiber);
+  MembranePlateFiberSection(int tag, double thickness, NDMaterial&);
+  // destructor
+  virtual ~MembranePlateFiberSection();
 
 
   const char*
@@ -52,8 +54,6 @@ public:
     return "MembranePlateFiberSection";
   }
 
-  // destructor
-  virtual ~MembranePlateFiberSection();
 
   // make a clone of this material
   SectionForceDeformation* getCopy();
@@ -88,8 +88,8 @@ public:
 
   void Print(OPS_Stream& s, int flag);
 
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+  int sendSelf(int commitTag, Channel&);
+  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
   int getResponse(int responseID, Information& info);
@@ -115,6 +115,6 @@ private:
 
   static ID array;
 
-}; //end of MembranePlateFiberSection declarations
+};
 
 #endif

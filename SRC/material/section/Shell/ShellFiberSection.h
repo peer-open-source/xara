@@ -79,8 +79,8 @@ public:
     return this->getSectionTangent();
   }
 
-  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
-  int getResponse(int responseID, Information& info);
+  Response* setResponse(const char** argv, int argc, OPS_Stream&);
+  int getResponse(int responseID, Information&);
 
   void Print(OPS_Stream& s, int flag);
 
@@ -89,7 +89,7 @@ public:
 
 private:
   void clearFibers();
-  void copyFiber(double z, double w, NDMaterial* material);
+  void copyFiber(double z, double w, NDMaterial*);
   int getNumFibers() const;
 
 private:
