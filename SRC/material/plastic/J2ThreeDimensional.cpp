@@ -13,9 +13,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Written: Ed "C++" Love
-// Do not ask Prashant about this code.  He has no clue.
-//
 // J2ThreeDimensional isotropic hardening material class
 //
 //  Elastic Model
@@ -48,15 +45,19 @@
 //
 //  set eta := 0 for rate independent case
 //
+//
+// Written: Ed "C++" Love
+//
+// Do not ask Prashant about this code.  He has no clue.
 
 #include <J2ThreeDimensional.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-//static vectors and matrices
-Vector J2ThreeDimensional ::strain_vec(6);
-Vector J2ThreeDimensional ::stress_vec(6);
-Matrix J2ThreeDimensional ::tangent_matrix(6, 6);
+// static vectors and matrices
+Vector J2ThreeDimensional::strain_vec(6);
+Vector J2ThreeDimensional::stress_vec(6);
+Matrix J2ThreeDimensional::tangent_matrix(6, 6);
 
 
 J2ThreeDimensional::J2ThreeDimensional()
@@ -206,7 +207,6 @@ J2ThreeDimensional::getTangent()
 
     }
   }
-
 
   return tangent_matrix;
 }
