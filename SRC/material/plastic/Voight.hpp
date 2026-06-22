@@ -31,8 +31,8 @@ Trace(const VectorND<6> &v)
 static inline VectorND<6> 
 Dev(const VectorND<6> &v)
 {
-  double mean = (v(0) + v(1) + v(2)) / 3.0;
   VectorND<6> dev = v;
+  double mean = (v(0) + v(1) + v(2)) / 3.0;
   dev(0) -= mean;
   dev(1) -= mean;
   dev(2) -= mean;
