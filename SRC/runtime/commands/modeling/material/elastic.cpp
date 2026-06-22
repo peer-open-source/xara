@@ -30,7 +30,7 @@
 #include <ElasticMaterial.h>
 #include <ElasticIsotropic.h>
 #include <ElasticIsotropicMaterial.h>
-#include <ElasticOrthotropicMaterial.h>
+#include <ElasticOrthotropicThreeDimensional.h>
 
 #include <ElasticIsotropicMaterial.h>
 #include "ElasticIsotropicPlaneStress2D.h"
@@ -244,7 +244,7 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
       (strcmp(argv[1], "Elastic") == 0)) {
     double E = consts.E;
     double nu = consts.nu;
-    if (builder->addTaggedObject<NDMaterial>(*new ElasticIsotropicMaterial(tag, E, nu, density)) != TCL_OK ) {
+    if (builder->addTaggedObject<NDMaterial>(*new ElasticIsotropicThreeDimensional(tag, E, nu, density)) != TCL_OK ) {
       return TCL_ERROR;
     }
     if (strcmp(argv[0], "material") == 0) {
@@ -777,7 +777,8 @@ TclCommand_newElasticOrthotropic(ClientData clientData,
   }
 
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
-  auto material = new ElasticOrthotropicMaterial(data.tag, data.Ex, data.Ey, data.Ez,
+  auto material = new ElasticOrthotropicThreeDimensional(data.tag, 
+                                                 data.Ex, data.Ey, data.Ez,
                                                  data.vxy, data.vyz, data.vzx,
                                                  data.Gxy, data.Gyz, data.Gzx,
                                                  data.density);
