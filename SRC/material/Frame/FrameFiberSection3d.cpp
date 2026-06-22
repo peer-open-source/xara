@@ -43,8 +43,7 @@ FrameFiberSection3d::FrameFiberSection3d(int tag,
                                          int num,
                                          const Frame::Shape& shape_data,
                                          double mass,
-                                         bool use_mass,
-                                         concurrency_t num_threads
+                                         bool use_mass
                                         )
   : FrameSection(tag, SEC_TAG_FrameFiberSection3d, mass, use_mass)
   , es{}, sr{}, tangent{}
