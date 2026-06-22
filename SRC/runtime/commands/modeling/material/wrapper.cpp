@@ -413,7 +413,6 @@ TclCommand_newFatigueMaterial(ClientData clientData, Tcl_Interp* interp, int arg
     return TCL_ERROR;
   }
   return TCL_OK;
-
 }
 
 
