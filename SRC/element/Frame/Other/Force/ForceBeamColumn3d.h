@@ -86,7 +86,7 @@ class ForceBeamColumn3d: public Element
   
   ~ForceBeamColumn3d();
 
-  const char *getClassType(void) const {return "ForceBeamColumn3d";};
+  const char *getClassType(void) const {return "ForceBeamColumn3d";}
   
   int getNumExternalNodes(void) const;
   const ID &getExternalNodes(void);
@@ -107,6 +107,8 @@ class ForceBeamColumn3d: public Element
   void zeroLoad(void);	
   int addLoad(ElementalLoad *theLoad, double loadFactor);
   int addInertiaLoadToUnbalance(const Vector &accel);
+
+  double getCharacteristicLength();
   
   const Vector &getResistingForce(void);
   const Vector &getResistingForceIncInertia(void);            
@@ -194,6 +196,8 @@ class ForceBeamColumn3d: public Element
   Matrix *Ki;
 
   bool isTorsion;
+
+  double current_section_lch;
 
   static Matrix theMatrix;
   static Vector theVector;
