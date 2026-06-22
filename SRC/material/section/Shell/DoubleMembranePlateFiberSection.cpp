@@ -67,8 +67,6 @@ OPS_ADD_RUNTIME_VPV(OPS_DoubleMembranePlateFiberSection)
   NDMaterial* theMaterial = OPS_getNDMaterial(idata[1]);
   if (theMaterial == 0) {
     opserr << "WARNING nD material does not exist\n";
-    opserr << "nD material: " << idata[1];
-    opserr << "\nPlateFiber section: " << idata[0] << endln;
     return 0;
   }
 
@@ -76,12 +74,11 @@ OPS_ADD_RUNTIME_VPV(OPS_DoubleMembranePlateFiberSection)
 }
 
 
-const double DoubleMembranePlateFiberSection::root56 = sqrt(5.0 / 6.0); //shear correction
+const double DoubleMembranePlateFiberSection::root56 = sqrt(5.0/6.0); //shear correction
 
 //static vector and matrices
 Vector DoubleMembranePlateFiberSection::stressResultant(8);
 Matrix DoubleMembranePlateFiberSection::tangent(8, 8);
-ID DoubleMembranePlateFiberSection::array(8);
 
 
 const double DoubleMembranePlateFiberSection::sg[] = {-1, -0.65465367, 0, 0.65465367, 1};
@@ -155,7 +152,7 @@ DoubleMembranePlateFiberSection::getCopy()
 }
 
 
-//send back order of strainResultant in vector form
+// send back order of strainResultant in vector form
 int
 DoubleMembranePlateFiberSection::getOrder() const
 {
@@ -163,11 +160,12 @@ DoubleMembranePlateFiberSection::getOrder() const
 }
 
 
-//send back order of strainResultant in vector form
+// send back order of strainResultant in vector form
 const ID&
 DoubleMembranePlateFiberSection::getType()
 {
   static bool initialized = false;
+  static ID array(8);
   if (!initialized) {
     array(0)    = SECTION_RESPONSE_FXX;
     array(1)    = SECTION_RESPONSE_FYY;
@@ -183,7 +181,7 @@ DoubleMembranePlateFiberSection::getType()
 }
 
 
-//swap history variables
+// swap history variables
 int
 DoubleMembranePlateFiberSection::commitState()
 {
@@ -230,13 +228,11 @@ double
 DoubleMembranePlateFiberSection::getRho()
 {
 
-  double weight;
-
   double rhoH = 0.0;
 
   for (int i = 0; i < numFibers; i++) {
 
-    weight = (0.5 * h) * wg[i];
+    double weight = (0.5 * h) * wg[i];
 
     rhoH += (theFibers[i]->getRho()) * weight;
     rhoH += (theFibers[i + numFibers]->getRho()) * weight;
@@ -246,7 +242,7 @@ DoubleMembranePlateFiberSection::getRho()
 }
 
 
-//receive the strainResultant
+// receive the strainResultant
 int
 DoubleMembranePlateFiberSection ::setTrialSectionDeformation(
     const Vector& strainResultant_from_element)
@@ -257,16 +253,13 @@ DoubleMembranePlateFiberSection ::setTrialSectionDeformation(
 
   int success = 0;
 
-  int i;
-
-  double z;
 
   strain(3) = root56 * strainResultant(6);
   strain(4) = root56 * strainResultant(7);
 
-  for (i = 0; i < numFibers; i++) {
+  for (int i = 0; i < numFibers; i++) {
 
-    z = 0.5 * (d + h) + (0.5 * h) * sg[i];
+    double z = 0.5 * (d + h) + (0.5 * h) * sg[i];
 
     strain(0) = strainResultant(0) - z * strainResultant(3);
 
@@ -287,13 +280,13 @@ DoubleMembranePlateFiberSection ::setTrialSectionDeformation(
 
     success += theFibers[i + numFibers]->setTrialStrain(strain);
 
-  } //end for i
+  } // end for i
 
   return success;
 }
 
 
-//send back the strainResultant
+// send back the strainResultant
 const Vector&
 DoubleMembranePlateFiberSection::getSectionDeformation()
 {
@@ -308,18 +301,15 @@ DoubleMembranePlateFiberSection::getStressResultant()
 
   static Vector stress(numFibers);
 
-  int i;
-
-  double z, weight;
 
   stressResultant.Zero();
 
-  for (i = 0; i < numFibers; i++) {
+  for (int i = 0; i < numFibers; i++) {
 
-    weight = (0.5 * h) * wg[i];
+    double weight = (0.5 * h) * wg[i];
 
 
-    z = 0.5 * (d + h) + (0.5 * h) * sg[i];
+    double z = 0.5 * (d + h) + (0.5 * h) * sg[i];
 
     stress = theFibers[i]->getStress();
 
@@ -385,18 +375,15 @@ DoubleMembranePlateFiberSection::getSectionTangent()
 
   static Matrix Asig(8, 5);
 
-  int i;
-
-  double z, weight;
 
   tangent.Zero();
 
-  for (i = 0; i < numFibers; i++) {
+  for (int i = 0; i < numFibers; i++) {
 
-    weight = (0.5 * h) * wg[i];
+    const double weight = (0.5 * h) * wg[i];
 
 
-    z = 0.5 * (d + h) + (0.5 * h) * sg[i];
+    double z = 0.5 * (d + h) + (0.5 * h) * sg[i];
 
     /*      //compute Aeps
 
