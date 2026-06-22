@@ -14,7 +14,7 @@
 //
 #include <string.h>
 #include <stdlib.h> 
-#include <math.h> 
+#include <math.h>
 
 #include <ID.h> 
 #include <Vector.h>
@@ -31,10 +31,10 @@
 
 
 double ConstantPressureVolumeQuad :: matrixData[64];
-Matrix ConstantPressureVolumeQuad :: stiff(matrixData,8,8)   ;
-Vector ConstantPressureVolumeQuad :: resid(8)     ;
-Matrix ConstantPressureVolumeQuad :: mass(8,8)    ;
-Matrix ConstantPressureVolumeQuad :: damping(8,8) ;
+Matrix ConstantPressureVolumeQuad :: stiff(matrixData,8,8);
+Vector ConstantPressureVolumeQuad :: resid(8);
+Matrix ConstantPressureVolumeQuad :: mass(8,8);
+Matrix ConstantPressureVolumeQuad :: damping(8,8);
  
 // volume-pressure constants
 double ConstantPressureVolumeQuad :: one3  = 1.0 / 3.0 ;
@@ -43,13 +43,13 @@ double ConstantPressureVolumeQuad :: four3 = 4.0 / 3.0 ;
 double ConstantPressureVolumeQuad :: one9  = 1.0 / 9.0 ;
     
 // quadrature data
-double ConstantPressureVolumeQuad :: root3 = sqrt(3.0) ;
-double ConstantPressureVolumeQuad :: one_over_root3 = 1.0 / root3 ;
+double ConstantPressureVolumeQuad :: root3 = sqrt(3.0);
+double ConstantPressureVolumeQuad :: one_over_root3 = 1.0/root3;
 
 double ConstantPressureVolumeQuad :: sg[] = { -one_over_root3,
                                                one_over_root3,
                                                one_over_root3,
-                                              -one_over_root3 } ;
+                                              -one_over_root3 };
 
 double ConstantPressureVolumeQuad :: tg[] = { -one_over_root3, 
                                               -one_over_root3, 
@@ -357,7 +357,7 @@ ConstantPressureVolumeQuad::getTangentStiff( )
 }    
 
 const Matrix&
-ConstantPressureVolumeQuad::getInitialStiff( ) 
+ConstantPressureVolumeQuad::getInitialStiff() 
 {
   
   static double tmp_shp[3][4] ; // shape functions
@@ -371,9 +371,6 @@ ConstantPressureVolumeQuad::getInitialStiff( )
   static Matrix sx(2,2) ; // inverse jacobian matrix 
 
   double dvol[4] ; //volume elements
-
-  double volume = 0.0 ; //volume of element
-
   double pressure = 0.0 ; //constitutive pressure  
 
   static Vector strain(4) ; //strain in vector form 
@@ -408,7 +405,7 @@ ConstantPressureVolumeQuad::getInitialStiff( )
   static Matrix Pdev_dd_one(Pdev_dd_one_data, 4, 1); 
   static Matrix one_dd_Pdev(one_dd_Pdev_data, 1,4) ;
 
-  double bulk ;
+  double bulk;
   static Matrix BJtranD(2,4) ;
   static Matrix BJtranDone(2,1) ;
 
@@ -424,8 +421,8 @@ ConstantPressureVolumeQuad::getInitialStiff( )
   one(2) = 1.0 ;
   one(3) = 0.0 ;
 
-  //Pdev matrix
-  Pdev.Zero( ) ;
+  // Pdev matrix
+  Pdev.Zero( );
 
   Pdev(0,0) =  two3 ;
   Pdev(0,1) = -1.0/3.0;
@@ -442,7 +439,7 @@ ConstantPressureVolumeQuad::getInitialStiff( )
   Pdev(3,3) = 1.0 ;
 
   //zero stuff
-  volume = 0.0 ;
+  double volume = 0.0;
 
   int i,  j,  k, l, p, q ;
   int jj, kk ;
@@ -479,9 +476,9 @@ ConstantPressureVolumeQuad::getInitialStiff( )
   for (int k = 0; k < 3; k++ ){
     for (int l = 0; l < 4; l++ )
       vol_avg_shp[k][l] /= volume ; 
-  } //end for k
+  }
 
-  //residual and tangent calculations gauss loop
+  // gauss loop
   for (int i = 0; i < 4; i++ ) {
 
     static Matrix dd(4,4);
@@ -512,7 +509,7 @@ ConstantPressureVolumeQuad::getInitialStiff( )
     
     bulk = one9 * ( dd(0,0) + dd(0,1) + dd(0,2)  
                     + dd(1,0) + dd(1,1) + dd(1,2) 
-                    + dd(2,0) + dd(2,1) + dd(2,2) ) ;
+                    + dd(2,0) + dd(2,1) + dd(2,2) );
     
     jj = 0 ;
     for (int j = 0; j < 4; j++ ) {
@@ -602,7 +599,7 @@ ConstantPressureVolumeQuad::getMass()
 {
   int tangFlag = 1 ;
 
-  formInertiaTerms( tangFlag ) ;
+  formInertiaTerms(tangFlag);
   return mass ;
 } 
 
@@ -709,7 +706,7 @@ ConstantPressureVolumeQuad::getResistingForceIncInertia()
 //form inertia terms
 
 void
-ConstantPressureVolumeQuad::formInertiaTerms( int tangFlag ) 
+ConstantPressureVolumeQuad::formInertiaTerms(int tangFlag) 
 {
 
   static constexpr int ndm = 2 ;
@@ -753,7 +750,7 @@ ConstantPressureVolumeQuad::formInertiaTerms( int tangFlag )
                           nodePointers[j]->getTrialAccel(),
                           shp[massIndex][j] ) ;
 
-    //density
+    // density
     rho = materialPointers[i]->getRho() ;
 
     //multiply acceleration by density to form momentum
@@ -1457,7 +1454,8 @@ ConstantPressureVolumeQuad :: recvSelf (int commitTag,
       // Allocate new material with the sent class tag
       materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
       if (materialPointers[i] == 0) {
-            opserr << "ConstantPressureVolumeQuad::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
+            opserr << "Broker could not create NDMaterial of class type " 
+                   << matClassTag << "\n";
             return -1;
       }
       // Now receive materials into the newly allocated space
