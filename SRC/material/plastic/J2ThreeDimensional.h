@@ -78,7 +78,6 @@ public:
                      double viscosity = 0,
                      double rho       = 0);
 
-  J2ThreeDimensional(int tag, double K, double G);
 
   ~J2ThreeDimensional();
 
@@ -91,18 +90,19 @@ public:
 
   int getOrder() const;
 
-  //get the strain and integrate plasticity equations
+  // get the strain and integrate plasticity equations
   int setTrialStrain(const Vector& strain_from_element);
 
   // unused trial strain functions
   int setTrialStrainIncr(const Vector& v);
 
   const Vector& getStrain();
-
   const Vector& getStress();
-
   const Matrix& getTangent();
   const Matrix& getInitialTangent();
+
+protected:
+  void index_map(int matrix_index, int& i, int& j) const final;
 
 private:
   //static vectors and matrices

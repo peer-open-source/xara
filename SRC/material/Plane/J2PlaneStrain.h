@@ -77,10 +77,10 @@ class J2PlaneStrain : public J2Plasticity {
   J2PlaneStrain( int tag, double K, double G );
   ~J2PlaneStrain();
 
-  NDMaterial* getCopy();
+  NDMaterial* getCopy() final;
   const char* getType( ) const ;
 
-  const char *getClassType() const {return "J2PlaneStrain";};
+  const char *getClassType() const final {return "J2PlaneStrain";}
 
   int getOrder( ) const ;
 
@@ -96,15 +96,19 @@ class J2PlaneStrain : public J2Plasticity {
   const Matrix& getTangent( );
   const Matrix& getInitialTangent( );
 
-  int commitState( ) ; 
-  int revertToLastCommit( ) ;
-  int revertToStart( ) ;
+  int commitState(); 
+  int revertToLastCommit( );
+  int revertToStart();
 
 
   int sendSelf(int commitTag, Channel &) ;  
   int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) ;
 
-  private :
+protected:
+  // matrix index to tensor index mapping
+  void index_map(int matrix_index, int& i, int& j) const final;
+
+private :
     
   //static vectors and matrices
   static Vector strain_vec ;     //strain in vector notation

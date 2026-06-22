@@ -12,11 +12,7 @@
 ** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.7 $
-// $Date: 2008-10-20 22:23:03 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/J2ThreeDimensional.cpp,v $
-
+//
 // Written: Ed "C++" Love
 // Do not ask Prashant about this code.  He has no clue.
 //
@@ -81,14 +77,8 @@ J2ThreeDimensional::J2ThreeDimensional(int tag,
                                         double rho)
  : J2Plasticity(tag, ND_TAG_J2ThreeDimensional, K, G, yield0, yield_infty, d, H, viscosity, rho)
 {
-
-}
-
-
-J2ThreeDimensional ::J2ThreeDimensional(int tag, double K, double G)
- : J2Plasticity(tag, ND_TAG_J2ThreeDimensional, K, G)
-{
-
+  this->zero();
+  this->plastic_integrator();
 }
 
 
@@ -122,9 +112,9 @@ J2ThreeDimensional::getOrder() const
 }
 
 
-//get the strain and integrate plasticity equations
+// get the strain and integrate plasticity equations
 int
-J2ThreeDimensional ::setTrialStrain(const Vector& strain_from_element)
+J2ThreeDimensional::setTrialStrain(const Vector& strain_from_element)
 {
   strain.Zero();
 
@@ -145,7 +135,7 @@ J2ThreeDimensional ::setTrialStrain(const Vector& strain_from_element)
 }
 
 
-//unused trial strain functions
+// unused trial strain functions
 
 int
 J2ThreeDimensional::setTrialStrainIncr(const Vector& v)
@@ -194,7 +184,7 @@ J2ThreeDimensional::getStress()
 }
 
 const Matrix&
-J2ThreeDimensional ::getTangent()
+J2ThreeDimensional::getTangent()
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -222,7 +212,7 @@ J2ThreeDimensional ::getTangent()
 }
 
 const Matrix&
-J2ThreeDimensional ::getInitialTangent()
+J2ThreeDimensional::getInitialTangent()
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -249,4 +239,54 @@ J2ThreeDimensional ::getInitialTangent()
   }
 
   return tangent_matrix;
+}
+
+
+void
+J2ThreeDimensional::index_map(int matrix_index, int& i, int& j) const
+{
+  switch (matrix_index + 1) { // add 1 for standard tensor indices
+
+  case 1:
+    i = 1;
+    j = 1;
+    break;
+
+  case 2:
+    i = 2;
+    j = 2;
+    break;
+
+  case 3:
+    i = 3;
+    j = 3;
+    break;
+
+  case 4:
+    i = 1;
+    j = 2;
+    break;
+
+  case 5:
+    i = 2;
+    j = 3;
+    break;
+
+  case 6:
+    i = 3;
+    j = 1;
+    break;
+
+
+  default:
+    i = 1;
+    j = 1;
+    break;
+
+  } //end switch
+
+  i--; //subtract 1 for C-indexing
+  j--;
+
+  return;
 }

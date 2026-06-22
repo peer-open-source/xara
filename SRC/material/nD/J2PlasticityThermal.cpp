@@ -78,7 +78,7 @@ void J2PlasticityThermal :: zero ( )
 
 
 //null constructor
-J2PlasticityThermal ::  J2PlasticityThermal( ) : 
+J2PlasticityThermal::J2PlasticityThermal( ) : 
 NDMaterial( ),
 epsilon_p_n(3,3),
 epsilon_p_nplus1(3,3),

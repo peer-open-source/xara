@@ -58,14 +58,14 @@ Vector J2PlaneStress::stress_vec(3) ;
 Matrix J2PlaneStress::tangent_matrix(3,3) ;
 
 //null constructor
-J2PlaneStress:: J2PlaneStress( ) : 
+J2PlaneStress::J2PlaneStress( ) : 
 J2Plasticity( ) 
 {
 
 }
 
 
-//full constructor
+// full constructor
 J2PlaneStress::
 J2PlaneStress(   int    tag, 
                  double K,
@@ -78,8 +78,9 @@ J2PlaneStress(   int    tag,
 		 double rho) : 
 J2Plasticity(tag, ND_TAG_J2PlaneStress, 
              K, G, yield0, yield_infty, d, H, viscosity, rho)
-{ 
-
+{
+  this->zero();
+  this->plastic_integrator();
 }
 
 
@@ -184,12 +185,14 @@ int J2PlaneStress::setTrialStrain( const Vector &strain_from_element )
 
 
 //unused trial strain functions
-int J2PlaneStress::setTrialStrain( const Vector &v, const Vector &r )
+int
+J2PlaneStress::setTrialStrain( const Vector &v, const Vector &r )
 { 
-   return this->setTrialStrain( v ) ;
+  return this->setTrialStrain( v ) ;
 } 
 
-int J2PlaneStress::setTrialStrainIncr( const Vector &v ) 
+int
+J2PlaneStress::setTrialStrainIncr( const Vector &v ) 
 {
   static Vector newStrain(3);
   newStrain(0) = strain(0,0) + v(0);
@@ -199,9 +202,10 @@ int J2PlaneStress::setTrialStrainIncr( const Vector &v )
   return this->setTrialStrain(newStrain);  
 }
 
-int J2PlaneStress::setTrialStrainIncr( const Vector &v, const Vector &r ) 
+int
+J2PlaneStress::setTrialStrainIncr( const Vector &v, const Vector &r ) 
 {
-    return this->setTrialStrainIncr(v);
+  return this->setTrialStrainIncr(v);
 }
 
 
@@ -227,7 +231,7 @@ J2PlaneStress::getStress( )
 }
 
 const Matrix&
-J2PlaneStress::getTangent( ) 
+J2PlaneStress::getTangent()
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -389,9 +393,9 @@ J2PlaneStress::recvSelf (int commitTag, Channel &theChannel,
 // plane stress different because of condensation on tangent
 // case 3 switched to 1-2 and case 4 to 3-3 
 void 
-J2PlaneStress::index_map( int matrix_index, int &i, int &j )
+J2PlaneStress::index_map( int matrix_index, int &i, int &j ) const
 {
-  switch ( matrix_index+1 ) { //add 1 for standard tensor indices
+  switch ( matrix_index+1 ) { // add 1 for standard tensor indices
 
     case 1 :
       i = 1 ; 

@@ -74,27 +74,21 @@ J2Plasticity(tag, ND_TAG_J2PlateFiber,
              K, G, yield0, yield_infty, d, H, viscosity, rho )
 { 
   commitEps22 =0.0;
+
+  this->zero();
+  this->plastic_integrator();
 }
 
 
-//elastic constructor
-J2PlateFiber :: 
-J2PlateFiber(   int    tag, 
-                 double K, 
-                 double G ) :
-J2Plasticity(tag, ND_TAG_J2PlateFiber, K, G )
-{ 
-  commitEps22 =0.0;
-}
 
-
-//destructor
-J2PlateFiber :: ~J2PlateFiber( ) 
+// destructor
+J2PlateFiber::~J2PlateFiber( ) 
 {  
 } 
 
 
-NDMaterial* J2PlateFiber :: getCopy( ) 
+NDMaterial* 
+J2PlateFiber::getCopy() 
 { 
   J2PlateFiber  *clone;
   clone = new J2PlateFiber();   // new instance of this class
@@ -104,25 +98,26 @@ NDMaterial* J2PlateFiber :: getCopy( )
 
 
 //send back type of material
-const char* J2PlateFiber :: getType( ) const 
+const char* 
+J2PlateFiber::getType() const 
 {
-  return "PlateFiber" ;
+  return "J2PlateFiber";
 }
 
 
-int J2PlateFiber :: getOrder( ) const 
+int 
+J2PlateFiber::getOrder() const 
 { 
   return 5 ; 
 } 
 
 
 int
-J2PlateFiber :: setTrialStrain( const Vector &strain_from_element ) 
+J2PlateFiber::setTrialStrain( const Vector &strain_from_element ) 
 {
   const double tolerance = 1e-8 ;
 
-  const int max_iterations = 25 ;
-  int iteration_counter  = 0 ;
+  constexpr static int max_iterations = 25 ;
 
   int i, j, k, l ;
   int ii, jj ;
@@ -146,7 +141,7 @@ J2PlateFiber :: setTrialStrain( const Vector &strain_from_element )
 
   // enforce the plane stress condition sigma_22 = 0 
   // solve for epsilon_22 
-  iteration_counter = 0 ;  
+  int iteration_counter = 0 ;  
   do {
 
      this->plastic_integrator( );
@@ -187,7 +182,7 @@ J2PlateFiber :: setTrialStrain( const Vector &strain_from_element )
 
 
 int 
-J2PlateFiber :: setTrialStrainIncr( const Vector &v ) 
+J2PlateFiber::setTrialStrainIncr( const Vector &v ) 
 {
   return -1 ;
 }
@@ -213,7 +208,7 @@ J2PlateFiber::getStrain()
 
 // send back the stress 
 const Vector& 
-J2PlateFiber :: getStress( ) 
+J2PlateFiber::getStress() 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
@@ -228,7 +223,7 @@ J2PlateFiber :: getStress( )
 }
 
 const Matrix& 
-J2PlateFiber :: getTangent( ) 
+J2PlateFiber::getTangent() 
 {
 
   // matrix to tensor mapping
@@ -249,8 +244,7 @@ J2PlateFiber :: getTangent( )
       index_map( ii, i, j ) ;
       index_map( jj, k, l ) ;
 
-      tangent_matrix(ii,jj) = tangent[i][j][k][l] ;
-
+      tangent_matrix(ii,jj) = tangent[i][j][k][l];
     }
   }
   return tangent_matrix ;
@@ -258,7 +252,7 @@ J2PlateFiber :: getTangent( )
 
 
 const Matrix& 
-J2PlateFiber :: getInitialTangent( ) 
+J2PlateFiber::getInitialTangent() 
 {
 
   // matrix to tensor mapping
@@ -269,25 +263,23 @@ J2PlateFiber :: getInitialTangent( )
   //   2           0 1  ( or 1 0 )
   //   3           1 2  ( or 2 1 )
   //   4           2 0  ( or 0 2 ) 
-    
-  int ii, jj ;
-  int i, j, k, l ;
+
 
   this->doInitialTangent();
 
-  for ( ii = 0; ii < 5; ii++ ) {
-    for ( jj = 0; jj < 5; jj++ ) {
-
+  for (int ii = 0; ii < 5; ii++ ) {
+    for (int jj = 0; jj < 5; jj++ ) {
+      int i, j, k, l ;
       index_map( ii, i, j ) ;
       index_map( jj, k, l ) ;
 
       tangent_matrix(ii,jj) = initialTangent[i][j][k][l] ;
 
-    } //end for j
-  } //end for i
+    } // end for j
+  } // end for i
        
 
-  return tangent_matrix ;
+  return tangent_matrix;
 } 
 
 int 
@@ -397,7 +389,8 @@ J2PlateFiber::recvSelf (int commitTag, Channel &theChannel,
 //matrix_index ---> tensor indices i,j
 // plane stress different because of condensation on tangent
 // case 3 switched to 1-2 and case 4 to 3-3 
-void J2PlateFiber :: index_map( int matrix_index, int &i, int &j )
+void
+J2PlateFiber::index_map( int matrix_index, int &i, int &j ) const
 {
   switch ( matrix_index+1 ) { //add 1 for standard tensor indices
 
@@ -437,11 +430,11 @@ void J2PlateFiber :: index_map( int matrix_index, int &i, int &j )
       j = 1 ;
       break ;
 
-  } //end switch
+  } // end switch
 
-i-- ; //subtract 1 for C-indexing
-j-- ;
+  i-- ; //subtract 1 for C-indexing
+  j-- ;
 
-return ; 
+  return ; 
 }
 

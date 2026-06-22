@@ -52,9 +52,6 @@
 //  set eta := 0 for rate independent case
 //
 
-#include <stdlib.h> 
-#include <math.h> 
-
 #include <Vector.h>
 #include <Matrix.h>
 
@@ -87,12 +84,12 @@ class J2PlaneStress : public J2Plasticity {
 
   ~J2PlaneStress( ) ;
 
-  const char *getClassType(void) const {return "J2PlaneStress";};
+  const char *getClassType(void) const {return "J2PlaneStress";}
 
-  NDMaterial* getCopy( ) ;
+  NDMaterial* getCopy( ) final;
 
   //send back type of material
-  const char* getType( ) const ;
+  const char* getType( ) const final;
 
   int getOrder( ) const ;
 
@@ -117,11 +114,15 @@ class J2PlaneStress : public J2Plasticity {
   int revertToStart( ) ;
 
   //sending and receiving
-  int sendSelf(int commitTag, Channel &theChannel) ;  
-  int recvSelf(int commitTag, Channel &theChannel, 
-               FEM_ObjectBroker &theBroker ) ;
-  
-  private : 
+  int sendSelf(int commitTag, Channel &) ;  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) ;
+
+protected:
+  //index mapping special for plane stress because of 
+  // condensation on tangent
+  void index_map( int matrix_index, int &i, int &j ) const final;
+
+private : 
   
   //static vectors and matrices
   static Vector strain_vec ;     //strain in vector notation
@@ -129,10 +130,6 @@ class J2PlaneStress : public J2Plasticity {
   static Matrix tangent_matrix ; //material tangent in matrix notation
 
   double commitEps22;
-
-  //index mapping special for plane stress because of 
-  // condensation on tangent
-  void index_map( int matrix_index, int &i, int &j ) ;
 
 } ; //end of J2PlaneStress declarations
 
