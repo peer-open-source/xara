@@ -11,8 +11,6 @@ target_sources(OPS_Element
     PRIVATE
         GenericClient.cpp
         GenericCopy.cpp
-        #TclGenericClientCommand.cpp
-        #TclGenericCopyCommand.cpp
     PUBLIC
         GenericClient.h
         GenericCopy.h
