@@ -241,14 +241,12 @@ ElasticMembranePlateSection::getInitialTangent()
   tangent(2, 2) = G;
 
 
-  G *=
-      (five6 *
-       (Ep /
-        Em)); //multiply by product of shear correction factor and ratio of bending to membrane moduli
+  // multiply by product of shear correction factor and ratio of bending to membrane moduli
+  G *= (five6 * (Ep / Em));
 
   double D = Ep * (h * h * h) / 12.0 / (1.0 - nu * nu); //bending modulus
 
-  //bending tangent terms
+  // bending tangent terms
 
   tangent(3, 3) = -D;
   tangent(4, 4) = -D;
