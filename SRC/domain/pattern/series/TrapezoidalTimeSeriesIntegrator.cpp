@@ -48,7 +48,7 @@ TrapezoidalTimeSeriesIntegrator::integrate(TimeSeries *theSeries, double delta)
 {	
   // Check for zero time step, before dividing to get number of steps
   if (delta <= 0.0) {
-    opserr << "TrapezoidalTimeSeriesIntegrator::integrate() Attempting to integrate usiing time step" <<
+    opserr << "TrapezoidalTimeSeriesIntegrator::integrate() Attempting to integrate using time step" <<
       delta << "<= 0\n";
     return 0;
    }
@@ -64,18 +64,14 @@ TrapezoidalTimeSeriesIntegrator::integrate(TimeSeries *theSeries, double delta)
 
   Vector *theInt = new Vector (numSteps);
 
-  double dummyTime;     // Dummy variable for integrating
-  double fi, fj;        //function values
-  double F;             //intergral value
 
-  dummyTime = theSeries->getStartTime();
+  double dummyTime = theSeries->getStartTime();
 
-  F = 0.0;
-
-  fi = 0.0;
+  double F = 0.0; // integral value
+  double fi = 0.0;
 
   for (long long i = 0; i < numSteps; i++, dummyTime += delta) {
-    fj = theSeries->getFactor(dummyTime);
+    double fj = theSeries->getFactor(dummyTime);
 
     // Apply the trapezoidal rule to update the integral
     F = F + 0.5 * delta * (fi + fj);
@@ -113,29 +109,17 @@ TrapezoidalTimeSeriesIntegrator::differentiate(TimeSeries *theSeries, double del
 
   Vector *theDif = new Vector (numSteps);
 
-  // Check that the Vector was allocated properly
-  if (theDif == 0 || theDif->Size() == 0) {
-    opserr << "TrapezoidalTimeSeriesIntegrator::differentiate() Ran out of memory allocating Vector " << endln;
+  double f = 0.0;       // derivative value
+  
+  // Dummy variable for integrating
+  double dummyTime = theSeries->getStartTime();
 
-    if (theDif != 0)
-      delete theDif;
 
-    return 0;
-  }
-
-  double dummyTime;     // Dummy variable for integrating
-  double Fi, Fj;        // function values
-  double f;             // derivative value
-      
-  dummyTime = theSeries->getStartTime();
-
-  f = 0.0;
-
-  Fi = 0.0;
+  double Fi = 0.0;
 
   //opserr<<"differentiate()\n";
   for (long long i = 0; i < numSteps; i++, dummyTime += delta) {
-    Fj = theSeries->getFactor(dummyTime);
+    double Fj = theSeries->getFactor(dummyTime);
 
     // Apply the trapezoidal rule to update the derivative
     f = 2.0 * (Fj - Fi) / delta - f;
@@ -146,11 +130,12 @@ TrapezoidalTimeSeriesIntegrator::differentiate(TimeSeries *theSeries, double del
   }
 
   // Set the method return value
-  PathSeries *returnSeries = new PathSeries (0, *theDif, delta, 1.0, true, false, theSeries->getStartTime());
+  PathSeries *returnSeries = new PathSeries(0, *theDif, delta, 1.0, true, false, theSeries->getStartTime());
   delete theDif;
 
   return returnSeries;
 }
+
 
 int
 TrapezoidalTimeSeriesIntegrator::sendSelf(int commitTag, Channel &theChannel)

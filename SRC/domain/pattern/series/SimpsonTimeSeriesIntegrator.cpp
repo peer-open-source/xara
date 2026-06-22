@@ -72,17 +72,6 @@ SimpsonTimeSeriesIntegrator::integrate(TimeSeries *theSeries, double delta)
     // create new vector for integrated values
     Vector *theInt = new Vector(numSteps);
     
-    // check that the Vector was allocated properly
-    if (theInt == 0 || theInt->Size() == 0)  {
-        opserr << "SimpsonTimeSeriesIntegrator::integrate() - ran out of memory allocating Vector of size "
-            << numSteps << endln;
-        
-        if (theInt != 0)
-            delete theInt;
-        
-        return 0;
-    }
-    
     double fi, fj, fk;
     
     // set the first two integrated values (assume that f(0) = 0)
@@ -138,16 +127,6 @@ TimeSeries* SimpsonTimeSeriesIntegrator::differentiate(TimeSeries *theSeries, do
   
   // create new vector for integrated values
   Vector *theDif = new Vector(numSteps);
-  
-  // check that the Vector was allocated properly
-  if (theDif == 0 || theDif->Size() == 0)  {
-    opserr << "SimpsonTimeSeriesIntegrator::differentiate() - ran out of memory allocating Vector " << endln;
-
-    if (theDif != 0)
-      delete theDif;
-    
-    return 0;
-  }
 
   double dummyTime = theSeries->getStartTime();
 
