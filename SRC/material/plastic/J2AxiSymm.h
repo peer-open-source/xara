@@ -76,14 +76,11 @@ public:
             double viscosity = 0,
             double rho = 0 );
 
-  J2AxiSymm( int tag, double K, double G );
-
   ~J2AxiSymm();
 
   const char *getClassType() const override {return "J2AxiSymm";}
 
   NDMaterial* getCopy( ) override;
-
   const char* getType( ) const override;
 
   int getOrder( ) const override;
@@ -101,19 +98,23 @@ public:
   const Matrix& getTangent() override;
   const Matrix& getInitialTangent() override;
 
-  //swap history variables
+  // swap history variables
   int commitState() override;
   int revertToLastCommit() override;
   int revertToStart() override;
 
-  //sending and receiving
+  // sending and receiving
   int sendSelf(int commitTag, Channel &) override;
   int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
 
+protected:
+  // matrix index to tensor index mapping
+  void index_map(int matrix_index, int& i, int& j) const final;
+
 private:
 
-  //static vectors and matrices
+  // static vectors and matrices
   static Vector strain_vec ;     //strain in vector notation
   static Vector stress_vec ;     //stress in vector notation
   static Matrix tangent_matrix ; //material tangent in matrix notation

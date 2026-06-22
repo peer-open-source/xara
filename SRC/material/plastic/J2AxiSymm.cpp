@@ -75,27 +75,21 @@ J2AxiSymm::J2AxiSymm(   int    tag,
 J2Plasticity( tag, ND_TAG_J2AxiSymm, 
 	      K, G, yield0, yield_infty, d, H, viscosity, rho )
 { 
-
-}
-
-
-J2AxiSymm :: 
-J2AxiSymm(   int    tag, 
-                 double K, 
-                 double G ) :
-J2Plasticity( tag, ND_TAG_J2AxiSymm, K, G )
-{ 
-
+  this->zero();
+  this->plastic_integrator();
 }
 
 
 
-//destructor
-J2AxiSymm :: ~J2AxiSymm( ) 
-{ } 
+// destructor
+J2AxiSymm::~J2AxiSymm() 
+{
+
+} 
 
 
-NDMaterial* J2AxiSymm :: getCopy( ) 
+NDMaterial* 
+J2AxiSymm::getCopy() 
 { 
   J2AxiSymm  *clone;
   clone = new J2AxiSymm() ;   //new instance of this class
@@ -104,21 +98,24 @@ NDMaterial* J2AxiSymm :: getCopy( )
 }
 
 
-//send back type of material
-const char* J2AxiSymm :: getType( ) const 
+// send back type of material
+const char* 
+J2AxiSymm::getType( ) const 
 {
-  return "AxiSymmetric2D" ;
+  return "AxiSymmetric2D";
 }
 
 
-int J2AxiSymm :: getOrder( ) const 
+int 
+J2AxiSymm::getOrder( ) const 
 { 
   return 4 ; 
 } 
 
 
 // get the strain and integrate plasticity equations
-int J2AxiSymm :: setTrialStrain( const Vector &strain_from_element) 
+int
+J2AxiSymm::setTrialStrain( const Vector &strain_from_element) 
 {
   strain.Zero( ) ;
 
@@ -138,25 +135,25 @@ int J2AxiSymm :: setTrialStrain( const Vector &strain_from_element)
 int
 J2AxiSymm::setTrialStrain( const Vector &v, const Vector &r )
 { 
-   return this->setTrialStrain( v ) ;
+  return this->setTrialStrain( v ) ;
 } 
 
 int
 J2AxiSymm::setTrialStrainIncr( const Vector &v ) 
 {
-    return -1 ;
+  return -1 ;
 }
 
 int
 J2AxiSymm::setTrialStrainIncr( const Vector &v, const Vector &r ) 
 {
-    return -1 ;
+  return -1 ;
 }
 
 
 
 const Vector&
-J2AxiSymm::getStrain( ) 
+J2AxiSymm::getStrain()
 {
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
@@ -168,7 +165,7 @@ J2AxiSymm::getStrain( )
 
 
 const Vector&
-J2AxiSymm::getStress( ) 
+J2AxiSymm::getStress() 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
@@ -179,8 +176,9 @@ J2AxiSymm::getStress( )
   return stress_vec ;
 }
 
+
 const Matrix&
-J2AxiSymm::getTangent( ) 
+J2AxiSymm::getTangent()
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -191,24 +189,24 @@ J2AxiSymm::getTangent( )
   //   3           0 1  ( or 1 0 )
   
   int ii, jj ;
-  int i, j, k, l ;
 
   for ( ii = 0; ii < 4; ii++ ) {
     for ( jj = 0; jj < 4; jj++ ) {
 
+      int i, j, k, l ;
       index_map( ii, i, j ) ;
       index_map( jj, k, l ) ;
 
       tangent_matrix(ii,jj) = tangent[i][j][k][l] ;
 
-    } //end for j
-  } //end for i
+    }
+  }
 
-  return tangent_matrix ;
+  return tangent_matrix;
 } 
 
 const Matrix&
-J2AxiSymm::getInitialTangent( ) 
+J2AxiSymm::getInitialTangent() 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -225,42 +223,88 @@ J2AxiSymm::getInitialTangent( )
 
   for ( ii = 0; ii < 4; ii++ ) {
     for ( jj = 0; jj < 4; jj++ ) {
-
       index_map( ii, i, j ) ;
       index_map( jj, k, l ) ;
-
       tangent_matrix(ii,jj) = initialTangent[i][j][k][l] ;
-
-    } //end for j
-  } //end for i
+    }
+  }
 
   return tangent_matrix ;
 } 
 
-//swap history variables
+// swap history variables
 int
-J2AxiSymm::commitState( )  
+J2AxiSymm::commitState()
 {
-  epsilon_p_n = epsilon_p_nplus1 ;
-  xi_n        = xi_nplus1 ;
-
+  epsilon_p_n = epsilon_p_nplus1;
+  xi_n        = xi_nplus1;
   return 0 ;
 }
 
 
 int
-J2AxiSymm::revertToLastCommit( )
+J2AxiSymm::revertToLastCommit()
 { 
-  return 0 ;
+  return 0;
 } 
 
 int
-J2AxiSymm::revertToStart( ) 
-
+J2AxiSymm::revertToStart()
 {  
-  this->zero( ) ;
-  return 0 ;
+  this->zero();
+  return 0;
 }
+
+
+void
+J2AxiSymm::index_map(int matrix_index, int& i, int& j) const
+{
+  switch (matrix_index + 1) { // add 1 for standard tensor indices
+
+  case 1:
+    i = 1;
+    j = 1;
+    break;
+
+  case 2:
+    i = 2;
+    j = 2;
+    break;
+
+  case 3:
+    i = 3;
+    j = 3;
+    break;
+
+  case 4:
+    i = 1;
+    j = 2;
+    break;
+
+  case 5:
+    i = 2;
+    j = 3;
+    break;
+
+  case 6:
+    i = 3;
+    j = 1;
+    break;
+
+
+  default:
+    i = 1;
+    j = 1;
+    break;
+
+  } //end switch
+
+  i--; //subtract 1 for C-indexing
+  j--;
+
+  return;
+}
+
 
 int
 J2AxiSymm::sendSelf (int commitTag, Channel &theChannel)
@@ -294,7 +338,7 @@ J2AxiSymm::sendSelf (int commitTag, Channel &theChannel)
 }
 
 int
-J2AxiSymm::recvSelf (int commitTag, Channel &theChannel, 
+J2AxiSymm::recvSelf(int commitTag, Channel &theChannel, 
 			 FEM_ObjectBroker &theBroker)
 {
 
