@@ -36,156 +36,13 @@
 #include <TCP_Socket.h>
 #include <UDP_Socket.h>
 #ifdef SSL
-    #include <TCP_SocketSSL.h>
+  #include <TCP_SocketSSL.h>
 #endif
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <elementAPI.h>
 
-
-void * OPS_ADD_RUNTIME_VPV(OPS_GenericClient)
-{
-    int ndf = OPS_GetNDF();
-    if (OPS_GetNumRemainingInputArgs() < 7) {
-        opserr << "WARNING insufficient arguments\n";
-        opserr << "Want: element genericClient eleTag -node Ndi Ndj ... -dof dofNdi -dof dofNdj ... -server ipPort <ipAddr> <-ssl> <-udp> <-dataSize size> <-noRayleigh>\n";
-        return 0;
-    }
-    
-    // tags
-    int tag;
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) {
-        opserr << "WARNING: invalid tag\n";
-        return 0;
-    }
-    
-    // nodes
-    const char* type = OPS_GetString();
-    if (strcmp(type, "-node") != 0) {
-        opserr << "WARNING expecting -node Ndi Ndj ...\n";
-        return 0;
-    }
-    ID nodes(32);
-    int numNodes = 0;
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-        int node;
-        numdata = 1;
-        int numArgs = OPS_GetNumRemainingInputArgs();
-        if (OPS_GetIntInput(&numdata, &node) < 0) {
-            if (numArgs > OPS_GetNumRemainingInputArgs()) {
-                // move current arg back by one
-                OPS_ResetCurrentInputArg(-1);
-            }
-            break;
-        }
-        nodes(numNodes++) = node;
-    }
-    nodes.resize(numNodes);
-    
-    // dofs
-    int numDOF = 0;
-    ID *dofs = new ID[numNodes];
-    for (int i = 0; i < numNodes; i++) {
-        type = OPS_GetString();
-        if (strcmp(type, "-dof") != 0 && strcmp(type, "-dir") != 0) {
-            opserr << "WARNING expecting -dof dofNd"
-                << i+1 << ", but got " << type << endln;
-            return 0;
-        }
-        ID dofsi(ndf);
-        int numDOFi = 0;
-        while (OPS_GetNumRemainingInputArgs() > 0) {
-            int dof;
-            numdata = 1;
-            int numArgs = OPS_GetNumRemainingInputArgs();
-            if (OPS_GetIntInput(&numdata, &dof) < 0) {
-                if (numArgs > OPS_GetNumRemainingInputArgs()) {
-                    // move current arg back by one
-                    OPS_ResetCurrentInputArg(-1);
-                }
-                break;
-            }
-            if (dof < 1 || ndf < dof) {
-                opserr << "WARNING invalid dof ID\n";
-                return 0;
-            }
-            dofsi(numDOFi++) = dof - 1;
-            numDOF++;
-        }
-        dofsi.resize(numDOFi);
-        dofs[i] = dofsi;
-    }
-    
-    // ipPort
-    int ipPort;
-    numdata = 1;
-    type = OPS_GetString();
-    if (strcmp(type, "-server") != 0) {
-        opserr << "WARNING expecting -server ipPort <ipAddr>\n";
-        return 0;
-    }
-    if (OPS_GetIntInput(&numdata, &ipPort) < 0) {
-        opserr << "WARNING: invalid ipPort\n";
-        return 0;
-    }
-    
-    // options
-    char* ipAddr = new char[10];
-    strcpy(ipAddr, "127.0.0.1");
-    int ssl = 0, udp = 0;
-    int dataSize = 256;
-    int doRayleigh = 1;
-    
-    while (OPS_GetNumRemainingInputArgs() > 0) {
-        type = OPS_GetString();
-        if (strcmp(type, "-ssl") != 0 &&
-            strcmp(type, "-udp") != 0 &&
-            strcmp(type, "-dataSize") != 0 &&
-            strcmp(type, "-noRayleigh") != 0 &&
-            strcmp(type, "-doRayleigh") != 0) {
-            delete[] ipAddr;
-            ipAddr = new char[strlen(type) + 1];
-            strcpy(ipAddr, type);
-        }
-        else if (strcmp(type, "-ssl") == 0) {
-            ssl = 1; udp = 0;
-        }
-        else if (strcmp(type, "-udp") == 0) {
-            udp = 1; ssl = 0;
-        }
-        else if (strcmp(type, "-dataSize") == 0) {
-            if (OPS_GetNumRemainingInputArgs() < 1) {
-                opserr << "WARNING wrong dataSize specified\n";
-                return 0;
-            }
-            numdata = 1;
-            if (OPS_GetIntInput(&numdata, &dataSize) < 0) {
-                opserr << "WARNING invalid dataSize value\n";
-                return 0;
-            }
-        }
-        else if (strcmp(type, "-doRayleigh") == 0) {
-            doRayleigh = 1;
-        }
-        else if (strcmp(type, "-noRayleigh") == 0) {
-            doRayleigh = 0;
-        }
-    }
-    
-    // create object
-    Element *theEle = new GenericClient(tag, nodes, dofs, ipPort,
-        ipAddr, ssl, udp, dataSize, doRayleigh);
-    
-    // cleanup dynamic memory
-    if (dofs != 0)
-        delete[] dofs;
-    delete[] ipAddr;
-    
-    return theEle;
-}
 
 
 // responsible for allocating the necessary space needed
@@ -205,26 +62,17 @@ GenericClient::GenericClient(int tag, ID nodes, ID *dof, int _port,
     // initialize nodes
     numExternalNodes = connectedExternalNodes.Size();
     theNodes = new Node* [numExternalNodes];
-    if (!theNodes)  {
-        opserr << "GenericClient::GenericClient() "
-            << "- failed to create node array\n";
-        exit(-1);
-    }
     
     // set node pointers to NULL
-    int i;
-    for (i=0; i<numExternalNodes; i++)
+
+    for (int i=0; i<numExternalNodes; i++)
         theNodes[i] = 0;
     
     // initialize dof
     theDOF = new ID [numExternalNodes];
-    if (!theDOF)  {
-        opserr << "GenericClient::GenericClient() "
-            << "- failed to create dof array\n";
-        exit(-1);
-    }
+
     numBasicDOF = 0;
-    for (i=0; i<numExternalNodes; i++)  {
+    for (int i=0; i<numExternalNodes; i++)  {
         theDOF[i] = dof[i];
         numBasicDOF += theDOF[i].Size();
     }
@@ -309,32 +157,37 @@ GenericClient::~GenericClient()
 }
 
 
-int GenericClient::getNumExternalNodes() const
+int 
+GenericClient::getNumExternalNodes() const
 {
     return numExternalNodes;
 }
 
 
-const ID& GenericClient::getExternalNodes()
+const ID& 
+GenericClient::getExternalNodes()
 {
     return connectedExternalNodes;
 }
 
 
-Node** GenericClient::getNodePtrs()
+Node** 
+GenericClient::getNodePtrs()
 {
     return theNodes;
 }
 
 
-int GenericClient::getNumDOF()
+int 
+GenericClient::getNumDOF()
 {
     return numDOF;
 }
 
 
 // to set a link to the enclosing Domain and to set the node pointers.
-void GenericClient::setDomain(Domain *theDomain)
+void 
+GenericClient::setDomain(Domain *theDomain)
 {
     // check Domain is not null - invoked when object removed from a domain
     int i;
@@ -505,7 +358,8 @@ const Matrix& GenericClient::getInitialStiff()
 }
 
 
-const Matrix& GenericClient::getDamp()
+const Matrix& 
+GenericClient::getDamp()
 {
     // zero the matrices
     theMatrix.Zero();
@@ -526,7 +380,8 @@ const Matrix& GenericClient::getDamp()
 }
 
 
-const Matrix& GenericClient::getMass()
+const Matrix& 
+GenericClient::getMass()
 {
     if (massFlag == false)  {
         // zero the matrices
@@ -552,7 +407,8 @@ void GenericClient::zeroLoad()
 }
 
 
-int GenericClient::addLoad(ElementalLoad *theLoad, double loadFactor)
+int 
+GenericClient::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
     opserr <<"GenericClient::addLoad() - "
         << "load type unknown for element: "
@@ -991,7 +847,8 @@ int GenericClient::getResponse(int responseID, Information &eleInfo)
 }
 
 
-int GenericClient::setupConnection()
+int 
+GenericClient::setupConnection()
 {
     // setup the connection
     if (udp)  {
