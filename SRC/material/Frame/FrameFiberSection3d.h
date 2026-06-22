@@ -44,14 +44,16 @@ class FrameFiberSection3d : public FrameSection
     FrameFiberSection3d(int tag,
                         int numFibers,
                         const Frame::Shape& shape,
-                        double mass, bool use_mass);
+                        double mass, 
+                        bool use_mass
+                      );
   private:
     FrameFiberSection3d(const FrameFiberSection3d &); 
   public:
     ~FrameFiberSection3d();
 
     const char *getClassType() const {
-      return "FrameFiberSection3d";
+      return "UniaxialFiberSection3d";
     }
 
     int   setTrialSectionDeformation(const Vector &e);
@@ -62,7 +64,12 @@ class FrameFiberSection3d : public FrameSection
     const Matrix &getSectionTangent();
     const Matrix &getInitialTangent();
 
-    MatrixND<12,12> getFullTangent(State state) noexcept override {
+    VectorND<12> getFullStress() noexcept final {
+      return sr;
+    }
+
+    MatrixND<12,12>
+    getFullTangent(State state) noexcept final {
       if (state == State::Pres)
         return tangent.matrix;
       else {
@@ -163,6 +170,12 @@ class FrameFiberSection3d : public FrameSection
         matrix(inx, inx) = 0.0;
         matrix(imz, imz) = 0.0;
         matrix(imy, imy) = 0.0;
+        matrix(imz, imy) = 0.0;
+        matrix(imy, imz) = 0.0;
+        matrix(inx, imz) = 0.0;
+        matrix(imz, inx) = 0.0;
+        matrix(inx, imy) = 0.0;
+        matrix(imy, inx) = 0.0;
       }
       void zeroShear() noexcept {
         matrix(iny, iny) = 0.0;
