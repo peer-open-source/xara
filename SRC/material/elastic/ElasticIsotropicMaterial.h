@@ -20,18 +20,16 @@
                        
 #ifndef ElasticIsotropicMaterial_h
 #define ElasticIsotropicMaterial_h
-
-// Written: MHS
-// Created: Feb 2000
-// Revision: A
 //
 // Description: This file contains the class definition for ElasticIsotropicMaterialModel.
 // ElasticIsotropicMaterialModel is an abstract base class and thus no objects of it's type
 // can be instantiated. It has pure virtual functions which must be
 // implemented in it's derived classes. 
 //
-// What: "@(#) ElasticIsotropicMaterial.h, revA"
-
+// Written: MHS
+// Created: Feb 2000
+// Revision: A
+//
 #include <NDMaterial.h>
 
 #include <Matrix.h>
@@ -46,16 +44,14 @@ class ElasticIsotropicMaterial : public NDMaterial
     ElasticIsotropicMaterial (int tag, int classTag, double E, double nu, double rho = 0.0);
 
     // Called by clients
-    ElasticIsotropicMaterial (int tag, double E, double nu, double rho = 0.0);
+    ElasticIsotropicMaterial(int tag, double E, double nu, double rho = 0.0);
 
-    // For parallel processing
-    ElasticIsotropicMaterial (void);
 
     virtual ~ElasticIsotropicMaterial();
 
     virtual const char *getClassType() const {return "ElasticIsotropicMaterial";}
 
-    virtual double getRho( ) ;
+    double getRho() override;
 
     virtual int setTrialStrain (const Vector &v);
     virtual int setTrialStrain (const Vector &v, const Vector &r);
@@ -66,8 +62,8 @@ class ElasticIsotropicMaterial : public NDMaterial
     virtual const Vector &getStress();
     virtual const Vector &getStrain();
 
-    virtual int commitState(void);
-    virtual int revertToLastCommit (void);
+    virtual int commitState();
+    virtual int revertToLastCommit();
     virtual int revertToStart();
     
     // Create a copy of material parameters AND state variables
