@@ -22,9 +22,7 @@
 // $Date: 2006-09-05 21:21:52 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticOrthotropicMaterial.h,v $
                                                                         
-                                                                        
-#ifndef ElasticOrthotropicMaterial_h
-#define ElasticOrthotropicMaterial_h
+#pragma once
 
 #include <NDMaterial.h>
 
@@ -95,6 +93,3 @@ class ElasticOrthotropicMaterial : public NDMaterial
   private:
 
 };
-
-
-#endif
