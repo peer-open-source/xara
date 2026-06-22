@@ -27,7 +27,7 @@ MatrixND(const T (&)[nc][nr])->MatrixND<nr, nc, T>;
 
 
 template <index_t nr, index_t nc, typename T>
-inline constexpr void
+constexpr void
 MatrixND<nr, nc, T>::zero() noexcept
 {
   values.fill(0.0);
@@ -360,6 +360,7 @@ MatrixND<nr, nc, T>::addDiagonal(const double diag) noexcept
 template <index_t nr, index_t nc, typename T>
 template <class MatT> inline
 void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
+  noexcept
 {
   for (int i=0; i<nr; i++)
     for (int j=0; j<nc; j++)
@@ -367,8 +368,9 @@ void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
 }
 
 template <index_t nr, index_t nc, typename T>
-inline void
+void
 MatrixND<nr, nc, T>::addTranspose(const MatrixND<nc,nr>& A, const double scale)
+  noexcept
 {
   for (int i=0; i<nr; i++)
     for (int j=0; j<nc; j++)
@@ -378,7 +380,7 @@ MatrixND<nr, nc, T>::addTranspose(const MatrixND<nc,nr>& A, const double scale)
 
 template <index_t nr, index_t nc, typename T>
 template <class VecA, class VecB>
-constexpr inline
+constexpr
 MatrixND<nr, nc, T>&
 MatrixND<nr, nc, T>::addTensorProduct(const VecA& a, const VecB& b, const double scale) noexcept
 {
@@ -467,15 +469,29 @@ template <index_t nr, index_t nc, typename T>
 template <class MatT, int nk> inline
 void
 MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A, 
-                                      const MatT& B, double scale) noexcept
+                                      const MatT& B, 
+                                      double scale) noexcept
 {
   if constexpr (nr*nc < BlasSize) {
-    Repeat<nr> ([&](auto i_) {
-      constexpr int i = i_.value;
-      Repeat<nc> ([&](auto j_) {
-        constexpr int j = j_.value;
-        for (int k=0; k < nk; k++)
-          (*this)(i,j) += scale*A(i,k)*B(k,j);
+    // Repeat<nr> ([&](auto i_) {
+    //   constexpr int i = i_.value;
+    //   Repeat<nc> ([&](auto j_) {
+    //     constexpr int j = j_.value;
+    //     for (int k=0; k < nk; k++)
+    //       (*this)(i,j) += scale*A(i,k)*B(k,j);
+    //   });
+    // });
+    Repeat<nc>([&](auto j_) {
+      constexpr int j = j_.value;
+      double* RESTRICT cj = &(*this)(0, j);    // column j of C, contiguous
+      Repeat<nk>([&](auto k_) {
+        constexpr int k = k_.value;
+        const double* RESTRICT ak = &A(0, k);   // column k of A, contiguous
+        const double bkj = scale * B(k, j); 
+        Repeat<nr>([&](auto i_) {
+          constexpr int i = i_.value;
+          cj[i] += bkj * ak[i];
+        });
       });
     });
   }
@@ -495,25 +511,59 @@ MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A,
 }
 
 
-#if 1
+
 template <index_t nr, index_t nc, typename T> 
 template <class MatT, int nk> inline
 void
 MatrixND<nr, nc, T>::addMatrixProduct(double scale_this, 
                                       const MatrixND<nr, nk, T>& A, 
-                                      const MatT& B, double scale) noexcept
+                                      const MatT& B, 
+                                      double scale) noexcept
 {
-  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+  if constexpr (nr*nc < BlasSize) {
+    static constexpr int nrnc = nr*nc;
+    if (scale_this == 0.0)
+      this->zero();
+    else if (scale_this != 1.0)
+      for (int i=0; i<nrnc; i++)
+        values[i] *= scale_this;
 
-  int m = nr,
-      n = nc,
-      k = nk;
-  DGEMM("N", "N", &m, &n, &k, &scale, 
-                              const_cast<double*>(&A(0,0)), &m,
-                              const_cast<double*>(&B(0,0)), &k,
-                              &scale_this,   &(*this)(0,0), &m);
+    Repeat<nc>([&](auto j_) {
+      constexpr int j = j_.value;
+      double* RESTRICT cj = &(*this)(0, j);    // column j of C, contiguous
+      Repeat<nk>([&](auto k_) {
+        constexpr int k = k_.value;
+        const double* RESTRICT ak = &A(0, k);   // column k of A, contiguous
+        const double bkj = scale * B(k, j);          // scale folded in once per (k,j)
+        Repeat<nr>([&](auto i_) {
+          constexpr int i = i_.value;
+          cj[i] += bkj * ak[i];                       // pure FMA, stride-1
+        });
+      });
+    });
+    // Repeat<nr> ([&](auto i_) {
+    //   constexpr int i = i_.value;
+    //   Repeat<nc> ([&](auto j_) {
+    //     constexpr int j = j_.value;
+    //     for (int k=0; k < nk; k++)
+    //       (*this)(i,j) += scale*A(i,k)*B(k,j);
+    //   });
+    // });
+  }
+  else
+  {
+    static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+
+    int m = nr,
+        n = nc,
+        k = nk;
+    DGEMM("N", "N", &m, &n, &k, &scale, 
+                                const_cast<double*>(&A(0,0)), &m,
+                                const_cast<double*>(&B(0,0)), &k,
+                                &scale_this,   &(*this)(0,0), &m);
+  }
 }
-#endif
+
 
 
 // A  = a*B'*C + b*A
