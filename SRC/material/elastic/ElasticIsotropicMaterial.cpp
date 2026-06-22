@@ -59,11 +59,6 @@ ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double
 
 }
 
-ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, double e, double nu, double r)
-  : NDMaterial(tag, ND_TAG_ElasticIsotropic), E(e), v(nu), rho(r), parameterID(0)
-{
-
-}
 
 ElasticIsotropicMaterial::~ElasticIsotropicMaterial()
 {

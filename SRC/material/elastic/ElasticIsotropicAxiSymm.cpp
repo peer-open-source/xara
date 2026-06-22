@@ -30,20 +30,20 @@ Matrix ElasticIsotropicAxiSymm::D(4,4);
 
 ElasticIsotropicAxiSymm::ElasticIsotropicAxiSymm
 (int tag, double E, double nu, double rho) :
- ElasticIsotropicMaterial (tag, ND_TAG_ElasticIsotropicAxiSymm, E, nu, rho),
+ ElasticIsotropicMaterial(tag, ND_TAG_ElasticIsotropicAxiSymm, E, nu, rho),
  epsilon(4)
 {
 
 }
 
 ElasticIsotropicAxiSymm::ElasticIsotropicAxiSymm():
- ElasticIsotropicMaterial (0, ND_TAG_ElasticIsotropicAxiSymm, 0.0, 0.0),
+ ElasticIsotropicMaterial(0, ND_TAG_ElasticIsotropicAxiSymm, 0.0, 0.0, 0.0),
  epsilon(4)
 {
 
 }
 
-ElasticIsotropicAxiSymm::~ElasticIsotropicAxiSymm ()
+ElasticIsotropicAxiSymm::~ElasticIsotropicAxiSymm()
 {
 
 }
@@ -51,67 +51,56 @@ ElasticIsotropicAxiSymm::~ElasticIsotropicAxiSymm ()
 int
 ElasticIsotropicAxiSymm::setTrialStrain (const Vector &strain)
 {
-	epsilon = strain;
-	return 0;
+  epsilon = strain;
+  return 0;
 }
 
 int
 ElasticIsotropicAxiSymm::setTrialStrain (const Vector &strain, const Vector &rate)
 {
-	epsilon = strain;
-	return 0;
+  epsilon = strain;
+  return 0;
 }
 
 int
 ElasticIsotropicAxiSymm::setTrialStrainIncr (const Vector &strain)
 {
-	epsilon+=strain;
-
-	return 0;
+  epsilon += strain;
+  return 0;
 }
 
 int
 ElasticIsotropicAxiSymm::setTrialStrainIncr (const Vector &strain, const Vector &rate)
 {
 	epsilon+=strain;
-
 	return 0;
 }
 
+
 const Matrix&
-ElasticIsotropicAxiSymm::getTangent (void)
+ElasticIsotropicAxiSymm::getTangent()
 {
-	double mu2 = E/(1.0+v);
-	double lam = v*mu2/(1.0-2.0*v);
-	double mu = 0.50*mu2;
+  double mu2 = E/(1.0+v);
+  double lam = v*mu2/(1.0-2.0*v);
+  double mu = 0.50*mu2;
 
-	D(0,0) = D(1,1) = D(2,2) = mu2+lam;
-	D(0,1) = D(1,0) = lam;
-	D(0,2) = D(2,0) = lam;
-	D(1,2) = D(2,1) = lam;
-	D(3,3) = mu;
+  D(0,0) = D(1,1) = D(2,2) = mu2+lam;
+  D(0,1) = D(1,0) = lam;
+  D(0,2) = D(2,0) = lam;
+  D(1,2) = D(2,1) = lam;
+  D(3,3) = mu;
 
-	return D;
+  return D;
 }
 
 const Matrix&
-ElasticIsotropicAxiSymm::getInitialTangent (void)
+ElasticIsotropicAxiSymm::getInitialTangent()
 {
-	double mu2 = E/(1.0+v);
-	double lam = v*mu2/(1.0-2.0*v);
-	double mu = 0.50*mu2;
-
-	D(0,0) = D(1,1) = D(2,2) = mu2+lam;
-	D(0,1) = D(1,0) = lam;
-	D(0,2) = D(2,0) = lam;
-	D(1,2) = D(2,1) = lam;
-	D(3,3) = mu;
-
-	return D;
+  return this->getTangent();
 }
 
 const Vector&
-ElasticIsotropicAxiSymm::getStress(void)
+ElasticIsotropicAxiSymm::getStress()
 {
   double mu2 = E/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
@@ -133,32 +122,32 @@ ElasticIsotropicAxiSymm::getStress(void)
 }
 
 const Vector&
-ElasticIsotropicAxiSymm::getStrain (void)
+ElasticIsotropicAxiSymm::getStrain()
 {
 	return epsilon;
 }
 
 int
-ElasticIsotropicAxiSymm::commitState (void)
+ElasticIsotropicAxiSymm::commitState()
 {
   return 0;
 }
 
 int
-ElasticIsotropicAxiSymm::revertToLastCommit (void)
+ElasticIsotropicAxiSymm::revertToLastCommit()
 {
   return 0;
 }
 
 int
-ElasticIsotropicAxiSymm::revertToStart (void)
+ElasticIsotropicAxiSymm::revertToStart()
 {
   epsilon.Zero();
   return 0;
 }
 
 NDMaterial*
-ElasticIsotropicAxiSymm::getCopy (void)
+ElasticIsotropicAxiSymm::getCopy()
 {
 	ElasticIsotropicAxiSymm *theCopy =
 		new ElasticIsotropicAxiSymm (this->getTag(), E, v, rho);
@@ -168,14 +157,16 @@ ElasticIsotropicAxiSymm::getCopy (void)
 	return theCopy;
 }
 
+
 const char*
-ElasticIsotropicAxiSymm::getType (void) const
+ElasticIsotropicAxiSymm::getType() const
 {
 	return "AxiSymmetric";
 }
 
+
 int
-ElasticIsotropicAxiSymm::getOrder (void) const
+ElasticIsotropicAxiSymm::getOrder() const
 {
 	return 4;
 }
