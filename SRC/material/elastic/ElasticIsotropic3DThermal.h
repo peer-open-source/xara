@@ -49,12 +49,12 @@ class ElasticIsotropic3DThermal : public ElasticIsotropicMaterialThermal
 
     const char *getClassType(void) const {return "ElasticIsotropic3DThermal";}
 
-    int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
-    int setTrialStrainIncr (const Vector &v);
-    int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+    int setTrialStrain(const Vector &v);
+    int setTrialStrain(const Vector &v, const Vector &r);
+    int setTrialStrainIncr(const Vector &v);
+    int setTrialStrainIncr(const Vector &v, const Vector &r);
+    const Matrix &getTangent();
+    const Matrix &getInitialTangent();
 
 	double setThermalTangentAndElongation(double &TempT, double &, double &);//J.Jiang add
     const Vector& getTempAndElong( void);
