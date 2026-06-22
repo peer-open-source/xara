@@ -49,14 +49,14 @@ ElasticIsotropicAxiSymm::~ElasticIsotropicAxiSymm()
 }
 
 int
-ElasticIsotropicAxiSymm::setTrialStrain (const Vector &strain)
+ElasticIsotropicAxiSymm::setTrialStrain(const Vector &strain)
 {
   epsilon = strain;
   return 0;
 }
 
 int
-ElasticIsotropicAxiSymm::setTrialStrain (const Vector &strain, const Vector &rate)
+ElasticIsotropicAxiSymm::setTrialStrain(const Vector &strain, const Vector &rate)
 {
   epsilon = strain;
   return 0;

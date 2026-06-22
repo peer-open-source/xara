@@ -20,6 +20,7 @@
 #include <FEM_ObjectBroker.h>
 #include <Information.h>
 #include <SensitiveResponse.h>
+#include <OPS_Stream.h>
 
 typedef SensitiveResponse<SectionForceDeformation> SectionResponse;
 
@@ -355,7 +356,7 @@ ShellFiberSection::Print(OPS_Stream& s, int flag)
     }
   }
 
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"ShellFiberSection\", ";
@@ -379,6 +380,7 @@ ShellFiberSection::Print(OPS_Stream& s, int flag)
     s << OPS_PRINT_JSON_MATE_INDENT << "]}";
   }
 }
+
 
 int
 ShellFiberSection::sendSelf(int commitTag, Channel& theChannel)

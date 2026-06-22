@@ -57,6 +57,7 @@ ElasticIsotropic3DThermal::ElasticIsotropic3DThermal
   }
 }
 
+
 ElasticIsotropic3DThermal::ElasticIsotropic3DThermal():
 	ElasticIsotropicMaterialThermal(0, ND_TAG_ElasticIsotropic3DThermal,0.0, 0.0, 0.0),
 	 Temp(0),ThermalElong(0) , epsilon(6), Cepsilon(6),softIndex(0)
@@ -65,34 +66,34 @@ ElasticIsotropic3DThermal::ElasticIsotropic3DThermal():
   Cepsilon.Zero();
 }
 
-ElasticIsotropic3DThermal::~ElasticIsotropic3DThermal ()
+ElasticIsotropic3DThermal::~ElasticIsotropic3DThermal()
 {
 
 }
 
 int
-ElasticIsotropic3DThermal::setTrialStrain (const Vector &strain)
-{
-  epsilon = strain;
-  return 0;
-}
-
-int
-ElasticIsotropic3DThermal::setTrialStrain (const Vector &strain, const Vector &rate)
+ElasticIsotropic3DThermal::setTrialStrain(const Vector &strain)
 {
   epsilon = strain;
   return 0;
 }
 
 int
-ElasticIsotropic3DThermal::setTrialStrainIncr (const Vector &strain)
+ElasticIsotropic3DThermal::setTrialStrain(const Vector &strain, const Vector &rate)
+{
+  epsilon = strain;
+  return 0;
+}
+
+int
+ElasticIsotropic3DThermal::setTrialStrainIncr(const Vector &strain)
 {
   epsilon += strain;
   return 0;
 }
 
 int
-ElasticIsotropic3DThermal::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+ElasticIsotropic3DThermal::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   epsilon += strain;
   return 0;
@@ -161,6 +162,8 @@ ElasticIsotropic3DThermal::getStress()
 	
   return sigma;
 }
+
+
 double
 ElasticIsotropic3DThermal::setThermalTangentAndElongation(double &TempT, double&ET, double&Elong)
 {
@@ -223,6 +226,7 @@ ElasticIsotropic3DThermal::setThermalTangentAndElongation(double &TempT, double&
 	ThermalElong = Elong;
 	return 0;
 }
+
 
 const Vector&
 ElasticIsotropic3DThermal::getStrain()

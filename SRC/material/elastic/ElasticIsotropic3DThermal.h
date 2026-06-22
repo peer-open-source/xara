@@ -47,7 +47,7 @@ class ElasticIsotropic3DThermal : public ElasticIsotropicMaterialThermal
     ElasticIsotropic3DThermal();
     ~ElasticIsotropic3DThermal();
 
-    const char *getClassType(void) const {return "ElasticIsotropic3DThermal";};
+    const char *getClassType(void) const {return "ElasticIsotropic3DThermal";}
 
     int setTrialStrain (const Vector &v);
     int setTrialStrain (const Vector &v, const Vector &r);
