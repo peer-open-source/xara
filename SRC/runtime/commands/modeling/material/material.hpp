@@ -63,14 +63,16 @@
 #include <runtimeAPI.h>
 #include <NDMaterial.h>
 
-extern Tcl_CmdProc TclCommand_addPlaneWrapper;
+extern Tcl_CmdProc TclCommand_newElasticMaterial;
+extern Tcl_CmdProc TclCommand_newElasticOrthotropic;
+// 
 extern Tcl_CmdProc TclCommand_newJ2Material;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 extern Tcl_CmdProc TclCommand_newConcreteMaterial;
-extern Tcl_CmdProc TclCommand_newElasticMaterial;
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
 extern Tcl_CmdProc TclCommand_newPlateRebar;
 extern Tcl_CmdProc TclCommand_newPlateFiber;
+extern Tcl_CmdProc TclCommand_addPlaneWrapper;
 
 extern OPS_Routine OPS_ElasticOrthotropicPlaneStress;
 extern OPS_Routine OPS_OrthotropicMaterial;
@@ -92,7 +94,7 @@ extern OPS_Routine OPS_RAFourSteelPCPlaneStressMaterial;
 extern OPS_Routine OPS_NewPlasticDamageConcretePlaneStress;
 extern OPS_Routine OPS_ElasticIsotropicMaterial;
 extern OPS_Routine OPS_IncrementalElasticIsotropicThreeDimensional;
-extern OPS_Routine OPS_ElasticOrthotropicMaterial;
+// extern OPS_Routine OPS_ElasticOrthotropicMaterial;
 extern OPS_Routine OPS_BoundingCamClayMaterial;
 extern OPS_Routine OPS_ContactMaterial2DMaterial;
 extern OPS_Routine OPS_ContactMaterial3DMaterial;
@@ -180,7 +182,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"ElasticIsotropic",                 dispatch<TclCommand_newElasticMaterial>},
   {"ElasticIsotropic3DThermal",        dispatch<OPS_ElasticIsotropicMaterialThermal>},
 // Orthotropic
-  {"ElasticOrthotropic",               dispatch<OPS_ElasticOrthotropicMaterial>},
+  {"ElasticOrthotropic",               dispatch<TclCommand_newElasticOrthotropic>},
   {"ElasticOrthotropicPlaneStress",    dispatch<OPS_ElasticOrthotropicPlaneStress>},
 //
 // Plasticity
@@ -224,7 +226,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"InitStrain",                       dispatch<TclCommand_addWrappingMaterial>},
   {"InitialStrain",                    dispatch<TclCommand_addWrappingMaterial>},
   {"InitStressMaterial",               dispatch<OPS_InitStressNDMaterial>},
-  {"OrthotropicMaterial",              dispatch<OPS_OrthotropicMaterial>},
+  {"Orthotropic",                      dispatch<OPS_OrthotropicMaterial>},
   {"Series3DMaterial",                 dispatch<OPS_Series3DMaterial>},
   {"Parallel3DMaterial",               dispatch<OPS_Parallel3DMaterial>},
   {"Parallel3D",                       dispatch<OPS_Parallel3DMaterial>},

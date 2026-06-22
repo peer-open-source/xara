@@ -45,11 +45,11 @@
 #include <Parameter.h>
 
 #include <OPS_Globals.h>
-#include <elementAPI.h>
 #include <string.h>
 #include <stdlib.h>
 
-
+#if 0
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicMaterial)
 {
   NDMaterial *theMaterial = 0;
@@ -88,7 +88,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicMaterial)
   
   return theMaterial;
 }
-
+#endif
 
 
 ElasticOrthotropicMaterial::ElasticOrthotropicMaterial

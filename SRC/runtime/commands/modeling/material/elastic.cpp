@@ -493,6 +493,301 @@ enum class MaterialSymmetry {
 };
 
 
+int 
+TclCommand_newElasticOrthotropic(ClientData clientData, 
+                                Tcl_Interp *interp,
+                                int argc, 
+                                TCL_Char ** const argv)
+{
+  // nDMaterial ElasticOrthotropic $tag $Ex $Ey $Ez $vxy $vyz $vzx $Gxy $Gyz $Gzx <$rho>
+  enum class Position : int {
+    Tag, Ex, Ey, Ez, vxy, vyz, vzx, Gxy, Gyz, Gzx, EndRequired,
+    Density, End
+  };
+  
+  ArgumentTracker<Position> tracker;
+  std::set<int> positional;
+  struct {
+    int tag;
+    double Ex, Ey, Ez;
+    double vxy, vyz, vzx;
+    double Gxy, Gyz, Gzx;
+    double density;
+  } data;
+
+  for (int i=2; i<argc; i++) {
+    if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.density) != TCL_OK) {
+          opserr << "Invalid density value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Density);
+    }
+    else if (strcmp(argv[i], "-Ex") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.Ex) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Ex);
+    }
+    else if (strcmp(argv[i], "-Ey") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.Ey) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Ey);
+    }
+    else if (strcmp(argv[i], "-Ez") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.Ez) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Ez);
+    }
+    else if (strcmp(argv[i], "-vxy") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.vxy) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::vxy);
+    }
+    else if (strcmp(argv[i], "-vyz") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.vyz) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::vyz);
+    }
+    else if (strcmp(argv[i], "-vzx") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.vzx) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::vzx);
+    }
+    else if (strcmp(argv[i], "-Gxy") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.Gxy) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Gxy);
+    }
+    else if (strcmp(argv[i], "-Gyz") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.Gyz) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Gyz);
+    }
+    else if (strcmp(argv[i], "-Gzx") == 0) {
+      if (++i >= argc) {
+          opserr << "Missing value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &data.Gzx) != TCL_OK) {
+          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          return TCL_ERROR;
+      }
+      tracker.consume(Position::Gzx);
+    }
+    else
+      positional.insert(i);
+  }
+
+  for (int i : positional) {
+    if (tracker.current() == Position::EndRequired)
+      tracker.increment();
+
+    switch (tracker.current()) {
+      case Position::Tag :
+        if (Tcl_GetInt(interp, argv[i], &data.tag) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid tag.\n";
+          return TCL_ERROR;           
+        }
+        tracker.increment();
+        break;
+      case Position::Ex:
+        if (Tcl_GetDouble (interp, argv[i], &data.Ex) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid Ex.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::Ey:
+        if (Tcl_GetDouble (interp, argv[i], &data.Ey) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid Ey.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::Ez:
+        if (Tcl_GetDouble (interp, argv[i], &data.Ez) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid Ez.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::vxy:
+        if (Tcl_GetDouble (interp, argv[i], &data.vxy) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid vxy.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::vyz:
+        if (Tcl_GetDouble (interp, argv[i], &data.vyz) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid vyz.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::vzx:
+        if (Tcl_GetDouble (interp, argv[i], &data.vzx) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid vzx.\n";
+          return TCL_ERROR;
+        } 
+        tracker.increment();
+        break;
+      case Position::Gxy:
+        if (Tcl_GetDouble (interp, argv[i], &data.Gxy) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid Gxy.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::Gyz:
+        if (Tcl_GetDouble (interp, argv[i], &data.Gyz) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid Gyz.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::Gzx:
+        if (Tcl_GetDouble (interp, argv[i], &data.Gzx) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid Gzx.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::Density:
+        if (Tcl_GetDouble (interp, argv[i], &data.density) != TCL_OK) {
+          opserr << OpenSees::PromptParseError << "invalid density.\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Position::EndRequired:
+      case Position::End:
+        opserr << OpenSees::PromptParseError << "unexpected argument " << argv[i] << ".\n";
+        return TCL_ERROR;
+    }
+  }
+
+  if (tracker.current() < Position::EndRequired) {
+    opserr << OpenSees::PromptParseError
+            << "missing required arguments: ";
+
+    while (tracker.current() != Position::EndRequired) {
+      switch (tracker.current()) {
+        case Position::Tag :
+          opserr << "tag ";
+          break;
+        case Position::Ex:
+          opserr << "Ex ";
+          break;
+        case Position::Ey:
+          opserr << "Ey ";
+          break;
+        case Position::Ez:
+          opserr << "Ez ";
+          break;
+        case Position::vxy:
+          opserr << "vxy ";
+          break;
+        case Position::vyz:
+          opserr << "vyz ";
+          break;
+        case Position::vzx:
+          opserr << "vzx ";
+          break;
+        case Position::Gxy:
+          opserr << "Gxy ";
+          break;
+        case Position::Gyz:
+          opserr << "Gyz ";
+          break;
+        case Position::Gzx:
+          opserr << "Gzx ";
+          break;
+        case Position::Density:
+          opserr << "density ";
+          break;
+
+        case Position::EndRequired:
+        case Position::End:
+        default:
+          break;
+      }
+
+      if (tracker.current() == Position::EndRequired)
+        break;
+
+      tracker.consume(tracker.current());
+    }
+
+    opserr << "\n";
+
+    return TCL_ERROR;
+  }
+
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  auto material = new ElasticOrthotropicMaterial(data.tag, data.Ex, data.Ey, data.Ez,
+                                                 data.vxy, data.vyz, data.vzx,
+                                                 data.Gxy, data.Gyz, data.Gzx,
+                                                 data.density);
+  if (builder->addTaggedObject<NDMaterial>(*material) != TCL_OK ) {
+    delete material;
+    return TCL_ERROR;
+  }
+  return TCL_OK;
+}
+
 #if 0
 int
 TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int argc, const char**const argv)

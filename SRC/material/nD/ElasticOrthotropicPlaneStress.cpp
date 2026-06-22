@@ -100,7 +100,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicPlaneStress)
     << "rho  = " << rho << endln;
 
 
-  NDMaterial *theMaterial =  new ElasticOrthotropicPlaneStress (tag, E1, E2, nu12, nu21, G12, rho);
+  NDMaterial *theMaterial =  new ElasticOrthotropicPlaneStress(tag, E1, E2, nu12, nu21, G12, rho);
   
   return theMaterial;
 }
