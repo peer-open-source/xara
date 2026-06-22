@@ -49,13 +49,13 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-Vector J2PlateFiber :: strain_vec(5) ;
-Vector J2PlateFiber :: stress_vec(5) ;
-Matrix J2PlateFiber :: tangent_matrix(5,5) ;
+Vector J2PlateFiber::strain_vec(5) ;
+Vector J2PlateFiber::stress_vec(5) ;
+Matrix J2PlateFiber::tangent_matrix(5,5) ;
 
 
-J2PlateFiber::J2PlateFiber( ) : 
-J2Plasticity( ) 
+J2PlateFiber::J2PlateFiber()
+ : J2Plasticity() 
 {
   commitEps22 =0.0;
 }
@@ -69,9 +69,9 @@ J2PlateFiber::J2PlateFiber(
                           double d,
                           double H,
                           double viscosity,
-                          double rho) : 
-J2Plasticity(tag, ND_TAG_J2PlateFiber, 
-             K, G, yield0, yield_infty, d, H, viscosity, rho )
+                          double rho)
+ : J2Plasticity(tag, ND_TAG_J2PlateFiber, 
+                K, G, yield0, yield_infty, d, H, viscosity, rho)
 { 
   commitEps22 =0.0;
 
@@ -81,9 +81,9 @@ J2Plasticity(tag, ND_TAG_J2PlateFiber,
 
 
 
-// destructor
-J2PlateFiber::~J2PlateFiber( ) 
-{  
+J2PlateFiber::~J2PlateFiber() 
+{
+
 } 
 
 
@@ -119,8 +119,6 @@ J2PlateFiber::setTrialStrain( const Vector &strain_from_element )
 
   constexpr static int max_iterations = 25 ;
 
-  int i, j, k, l ;
-  int ii, jj ;
 
   double eps22  =  strain(2,2) ;
   strain.Zero( ) ;
@@ -143,24 +141,23 @@ J2PlateFiber::setTrialStrain( const Vector &strain_from_element )
   // solve for epsilon_22 
   int iteration_counter = 0 ;  
   do {
+    this->plastic_integrator( );
+  
+    strain(2,2) -= stress(2,2) / tangent[2][2][2][2];
 
-     this->plastic_integrator( );
-    
-     strain(2,2) -= stress(2,2) / tangent[2][2][2][2];
-
-     iteration_counter++ ;
-     if ( iteration_counter > max_iterations ) {
-       opserr << "More than " << max_iterations ;
-       opserr << " iterations in setTrialStrain of J2PlateFiber \n" ;
-       break ;
-     }
-
+    iteration_counter++ ;
+    if ( iteration_counter > max_iterations ) {
+      opserr << "More than " << max_iterations ;
+      opserr << " iterations in setTrialStrain of J2PlateFiber \n" ;
+      break ;
+    }
   } while ( fabs(stress(2,2)) > tolerance ) ;
 
-  //modify tangent for plane stress 
+  // modify tangent for plane stress 
   for (int ii = 0; ii < 5; ii++ ) {
     for (int jj = 0; jj < 5; jj++ )  {
 
+      int i, j, k, l;
       index_map( ii, i, j ) ;
       index_map( jj, k, l ) ;
 
@@ -192,7 +189,6 @@ J2PlateFiber::setTrialStrainIncr( const Vector &v )
 const Vector&
 J2PlateFiber::getStrain() 
 {
-
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
 
@@ -294,9 +290,8 @@ J2PlateFiber::commitState( )
 }
 
 int 
-J2PlateFiber::revertToLastCommit( ) 
+J2PlateFiber::revertToLastCommit() 
 {
-
   strain(2,2) = commitEps22;
 
   return 0;
@@ -304,11 +299,11 @@ J2PlateFiber::revertToLastCommit( )
 
 
 int 
-J2PlateFiber::revertToStart( ) 
+J2PlateFiber::revertToStart() 
 {
   commitEps22 = 0.0;
 
-  this->zero( ) ;
+  this->zero();
   
   return 0;
 }
@@ -347,7 +342,7 @@ J2PlateFiber::sendSelf (int commitTag, Channel &theChannel)
 }
 
 int
-J2PlateFiber::recvSelf (int commitTag, Channel &theChannel, 
+J2PlateFiber::recvSelf(int commitTag, Channel &theChannel, 
 			FEM_ObjectBroker &theBroker)
 {
 
@@ -390,9 +385,10 @@ J2PlateFiber::recvSelf (int commitTag, Channel &theChannel,
 // plane stress different because of condensation on tangent
 // case 3 switched to 1-2 and case 4 to 3-3 
 void
-J2PlateFiber::index_map( int matrix_index, int &i, int &j ) const
+J2PlateFiber::index_map(int matrix_index, int &i, int &j ) const
 {
-  switch ( matrix_index+1 ) { //add 1 for standard tensor indices
+  // add 1 for standard tensor indices
+  switch ( matrix_index+1 ) {
 
     case 1 :
       i = 1 ; 

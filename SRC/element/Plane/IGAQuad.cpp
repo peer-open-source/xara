@@ -29,116 +29,6 @@
 
 #define ELE_TAG_IGAQuad 0
 
-#if 0
-#include <elementAPI.h>
-// Definiton of single element from the script input
-void* OPS_ADD_RUNTIME_VPV(OPS_IGAQuad)
-{
-    int ndm = OPS_GetNDM();
-    int ndf = OPS_GetNDF();
-
-    if (ndm != 2 || ndf != 2) {
-        opserr << "WARNING -- IGAquad element expects ndm=2 and ndf=2\n";
-        return 0;
-    }
-    
- /*   if (OPS_GetNumRemainingInputArgs() < 8) {
-        opserr << "WARNING insufficient arguments\n";
-        opserr << "Want: element IGAQuad eleTag? iNode? jNode? kNode? lNode? thk? type? matTag? <pressure? rho? b1? b2?>\n";
-        return 0;
-    }*/
-
-
-    //int num = OPS_GetNumRemainingInputArgs()-3;
-    // IGAQuadId, iNode, jNode, kNode, lNode: Now they are IGA control points
-    int num = 1;
-    int ex = 1, nex = 1, ey = 1, ney = 1;
-    OPS_GetIntInput(&num, &ex);
-    OPS_GetIntInput(&num, &nex);
-    OPS_GetIntInput(&num, &ey);
-    OPS_GetIntInput(&num, &ney);
-    num = 2;
-    int* obfs1 = new int[2];
-    OPS_GetIntInput(&num, obfs1);
-
-    num = (obfs1[0] + 1) * (obfs1[1] + 1);
-    int* CPIds = new int[num];
-    OPS_GetIntInput(&num, CPIds);
-
-    num = 1;
-    int numKnotVect_x=0;
-    OPS_GetIntInput(&num, &numKnotVect_x);
-    num = numKnotVect_x;
-    double* datax = new double[num];
-    OPS_GetDoubleInput(&num, datax);
-    Vector KnotVect_x1(numKnotVect_x);
-    for (int i = 1; i <= numKnotVect_x; i++) {
-      KnotVect_x1(i - 1) = datax[i - 1]; 
-    }
-    delete[] datax;
-    
-    int numKnotVect_y = 0;
-    OPS_GetIntInput(&num, &numKnotVect_y);
-    num = numKnotVect_y;
-    double* datay = new double[num];
-    OPS_GetDoubleInput(&num, datay);
-    Vector KnotVect_y1(numKnotVect_y);
-    for (int i = 1; i <= numKnotVect_y; i++) { 
-      KnotVect_y1(i - 1) = datay[i - 1]; 
-    }
-    delete[] datay;
-    
-    num = 2;
-    int numMults[2];
-    OPS_GetIntInput(&num, numMults);
-
-
-    //int num = 5;
-
-    double thk = 1.0;
-    num = 1;
-    if (OPS_GetDoubleInput(&num,&thk) < 0) {
-        opserr<<"WARNING: invalid double inputs\n";
-        return 0;
-    }
-
-    const char* type = OPS_GetString();
-
-    int matTag;
-    num = 1;
-    if (OPS_GetIntInput(&num,&matTag) < 0) {
-        opserr<<"WARNING: invalid matTag\n";
-        return 0;
-    }
-
-    NDMaterial* mat = OPS_getNDMaterial(matTag);
-    if (mat == 0) {
-        opserr << "WARNING material not found\n";
-        opserr << "Material: " << matTag;
-        //opserr << "\nIGAQuad element: " << idata[0] << endln;
-        return 0;
-    }
-
-    // p, rho, b1, b2
-    double data[4] = {0,0,0,0};
-    num = OPS_GetNumRemainingInputArgs();
-    if (num > 4) {
-        num = 4;
-    }
-    if (num > 0) {
-        if (OPS_GetDoubleInput(&num,data) < 0) {
-            opserr<<"WARNING: invalid integer data\n";
-            return 0;
-        }        
-    }
-    int tag = ex + ney * (ey - 1);
-    int numCPs1 = (obfs1[0] + 1) * (obfs1[1] + 1);
-    int ndof1 = numCPs1 * 2;
-    return new IGAQuad(tag,numCPs1,ex,nex,ey,ney,obfs1,ndof1,CPIds,KnotVect_x1,KnotVect_y1,numMults,
-                                        *mat,type,thk,data[0],data[1],data[2],data[3]);
-        // elementTag, cp1, cp2, cp3, cp4. material pointer, type, thickness, load, pressure, density, Ki
-}
-#endif
 
 double IGAQuad::matrixData[324];
 Matrix IGAQuad::K(18,18);
@@ -157,69 +47,67 @@ IGAQuad::IGAQuad(int tag, int numCPs1, int ex, int nex, int ey, int ney, int* ob
     theMaterial(0), connectedExternalNodes(4),
     Q(8), pressureLoad(8), thickness(t), applyLoad(0), pressure(p), rho(r), Ki(0)
 {
-    //int NGPss[2];
-    //for (int i = 1; i <= 2; i++) { NGPss[i - 1] = obfs[i - 1] + 1; }
-    numCPs = numCPs1;
-    //const int nCPs = numCPs;
-    ndof = ndof1;
-    //const int numDof = ndof;
-    obfs[0] = obfs1[0];
-    obfs[1] = obfs1[1];
-    delete[] obfs1;
-    KnotVect_y = KnotVect_y1;
-    KnotVect_x = KnotVect_x1;
-    //const int numMatrixData = ndof * ndof;
-    //static double matrixData[324];
-    //static Matrix K(numDof, numDof);
-    //static Vector P(numDof);
-    //static double shp[3][9];
-    //static double pts[9][2];
-    //static double wts[9];
+  //int NGPss[2];
+  //for (int i = 1; i <= 2; i++) { NGPss[i - 1] = obfs[i - 1] + 1; }
+  numCPs = numCPs1;
+  //const int nCPs = numCPs;
+  ndof = ndof1;
+  //const int numDof = ndof;
+  obfs[0] = obfs1[0];
+  obfs[1] = obfs1[1];
+  delete[] obfs1;
+  KnotVect_y = KnotVect_y1;
+  KnotVect_x = KnotVect_x1;
+  //const int numMatrixData = ndof * ndof;
+  //static double matrixData[324];
+  //static Matrix K(numDof, numDof);
+  //static Vector P(numDof);
+  //static double shp[3][9];
+  //static double pts[9][2];
+  //static double wts[9];
 
-    eleIdInfo.resize(4);
-    eleIdInfo(0) = ex;
-    eleIdInfo(1) = nex;
-    eleIdInfo(2) = ey;
-    eleIdInfo(3) = ney;
+  eleIdInfo.resize(4);
+  eleIdInfo(0) = ex;
+  eleIdInfo(1) = nex;
+  eleIdInfo(2) = ey;
+  eleIdInfo(3) = ney;
 
-    N0nx = new Matrix[obfs[0] + 1];
-    N0ny = new Matrix[obfs[1] + 1];
+  N0nx = new Matrix[obfs[0] + 1];
+  N0ny = new Matrix[obfs[1] + 1];
 
 
-    if (strcmp(type,"PlaneStrain") != 0 && strcmp(type,"PlaneStress") != 0
-        && strcmp(type,"PlaneStrain2D") != 0 && strcmp(type,"PlaneStress2D") != 0) {
-      opserr << "IGAQuad::IGAQuad -- improper material type: " << type << "for IGAQuad\n";
-      exit(-1);
-    }
+  if (strcmp(type,"PlaneStrain") != 0 && strcmp(type,"PlaneStress") != 0
+      && strcmp(type,"PlaneStrain2D") != 0 && strcmp(type,"PlaneStress2D") != 0) {
+    opserr << "IGAQuad::IGAQuad -- improper material type: " << type << "for IGAQuad\n";
+    exit(-1);
+  }
 
-    // Body forces
-    b[0] = b1;
-    b[1] = b2;
+  // Body forces
+  b[0] = b1;
+  b[1] = b2;
 
-    // Allocate arrays of pointers to NDMaterials
-    theMaterial = new NDMaterial *[numCPs];
-    //theNodes = new Node *[numCPs];
+  // Allocate arrays of pointers to NDMaterials
+  theMaterial = new NDMaterial *[numCPs];
+  //theNodes = new Node *[numCPs];
 
-    for (int i = 0; i < numCPs; i++) {
-      
-      // Get copies of the material model for each integration point
-      theMaterial[i] = m.getCopy(type);                        
+  for (int i = 0; i < numCPs; i++) {
+    // Get copies of the material model for each integration point
+    theMaterial[i] = m.getCopy(type);
+  }
 
-    }
-
-    // Set connected external node IDs
-    for (int i = 1; i <= numCPs; i++) {
-        connectedExternalNodes(i - 1) = CPIds[i - 1];
-        theNodes[i - 1] = 0;
-    }
-    delete[] CPIds;
-    //connectedExternalNodes(0) = nd1;
-    //connectedExternalNodes(1) = nd2;
-    //connectedExternalNodes(2) = nd3;
-    //connectedExternalNodes(3) = nd4;
-    
-    //for (int i=1; i<=numCPs; i++)
-    //  theNodes[i-1] = 0;
+  // Set connected external node IDs
+  for (int i = 1; i <= numCPs; i++) {
+      connectedExternalNodes(i - 1) = CPIds[i - 1];
+      theNodes[i - 1] = 0;
+  }
+  delete[] CPIds;
+  //connectedExternalNodes(0) = nd1;
+  //connectedExternalNodes(1) = nd2;
+  //connectedExternalNodes(2) = nd3;
+  //connectedExternalNodes(3) = nd4;
+  
+  //for (int i=1; i<=numCPs; i++)
+  //  theNodes[i-1] = 0;
 }
 
 
@@ -228,40 +116,39 @@ IGAQuad::IGAQuad()
   theMaterial(0), connectedExternalNodes(4), 
  Q(8), pressureLoad(8), thickness(0.0), applyLoad(0), pressure(0.0), Ki(0)
 {
-
-    for (int i=0; i<4; i++)
-      theNodes[i] = 0;
+  for (int i=0; i<4; i++)
+    theNodes[i] = nullptr;
 }
 
 IGAQuad::~IGAQuad()
 {    
   for (int i = 0; i < numCPs; i++) {
-      if (theMaterial[i]) {
-          delete theMaterial[i];
-      }
+    if (theMaterial[i]) {
+      delete theMaterial[i];
+    }
   }
   delete[] N0nx;
   delete[] N0ny;
   // Delete the array of pointers to NDMaterial pointer arrays
   if (theMaterial) {
-      delete[] theMaterial;
+    delete[] theMaterial;
   }
 
   if (Ki != 0) {
-      delete Ki;
+    delete Ki;
   }
 }
 
 int
 IGAQuad::getNumExternalNodes() const
 {
-    return numCPs;
+  return numCPs;
 }
 
 const ID&
 IGAQuad::getExternalNodes()
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 

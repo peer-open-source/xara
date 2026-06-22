@@ -14,6 +14,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#define _USE_MATH_DEFINES
 #include <tgmath.h>
 
 #ifndef NAN
@@ -80,8 +81,7 @@ double betacdf(double x, double a, double b) {
   if (x < 0.0) {
     return 0.0;
   } else if (x <= 1.0) {
-    double ans = 
-           incbeta(x, a, b); ///beta(a,b);
+    double ans = incbeta(x, a, b); ///beta(a,b);
     return ans > 1.0 ? 1.0 : ans;
   } else {
     return 1.0;
@@ -208,7 +208,7 @@ double phi(double x) {
 double cnd_manual(double x) {
   double L, K, w;
   /* constants */
-  double const a1 = 0.31938153, a2 = -0.356563782, a3 = 1.781477937;
+  double const a1 =  0.31938153,  a2 = -0.356563782, a3 = 1.781477937;
   double const a4 = -1.821255978, a5 = 1.330274429;
 
   L = fabs(x);
@@ -228,7 +228,9 @@ double std_normpdf(double x) {
   return exp(-pow(x, 2) * 0.5) / sqrt(2.0 * M_PI);
 }
 
-double std_normcdf(double x) { return 0.5 * erfc(-x * M_SQRT1_2); }
+double std_normcdf(double x) {
+  return 0.5 * erfc(-x * M_SQRT1_2); 
+}
 
 double std_lognpdf(double x, double shape) {
   return exp(-pow(log(x), 2) / (2.0 * shape * shape)) /

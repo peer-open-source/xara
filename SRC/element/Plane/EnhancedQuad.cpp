@@ -499,7 +499,7 @@ EnhancedQuad::formInertiaTerms( int tangFlag )
   }
 }
 
-//*********************************************************************
+
 // form residual and tangent
 int
 EnhancedQuad::formResidAndTangent( int tang_flag ) 
@@ -780,6 +780,7 @@ EnhancedQuad::update()
   computeBasis();
   return 0;
 }
+
 
 void
 EnhancedQuad::computeBasis() 
