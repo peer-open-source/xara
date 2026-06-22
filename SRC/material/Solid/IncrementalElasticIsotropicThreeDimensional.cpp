@@ -68,7 +68,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_IncrementalElasticIsotropicThreeDimensional)
 
 
 IncrementalElasticIsotropicThreeDimensional::IncrementalElasticIsotropicThreeDimensional(int tag, double E, double nu, double rho) :
- ElasticIsotropicMaterial (tag, ND_TAG_IncrementalElasticIsotropicThreeDimensional, E, nu, rho),
+ ElasticIsotropicMaterial(tag, ND_TAG_IncrementalElasticIsotropicThreeDimensional, E, nu, rho),
  epsilon(6), epsilon_n(6), sigma(6), sigma_n(6)
 {
   epsilon.Zero();
@@ -78,7 +78,7 @@ IncrementalElasticIsotropicThreeDimensional::IncrementalElasticIsotropicThreeDim
 }
 
 IncrementalElasticIsotropicThreeDimensional::IncrementalElasticIsotropicThreeDimensional():
- ElasticIsotropicMaterial (0, ND_TAG_IncrementalElasticIsotropicThreeDimensional, 0.0, 0.0),
+ ElasticIsotropicMaterial(0, ND_TAG_IncrementalElasticIsotropicThreeDimensional, 0.0, 0.0, 0.0),
  epsilon(6), epsilon_n(6), sigma(6), sigma_n(6)
 {
   epsilon.Zero();
@@ -93,7 +93,7 @@ IncrementalElasticIsotropicThreeDimensional::~IncrementalElasticIsotropicThreeDi
 }
 
 int
-IncrementalElasticIsotropicThreeDimensional::setTrialStrain (const Vector &strain)
+IncrementalElasticIsotropicThreeDimensional::setTrialStrain(const Vector &strain)
 {
   epsilon = strain;
 
