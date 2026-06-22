@@ -551,7 +551,7 @@ ForceBeamColumn3d::computeReactionSensitivity(double *dp0dh, int gradNumber)
 }
 
 const Vector &
-ForceBeamColumn3d::getResistingForce(void)
+ForceBeamColumn3d::getResistingForce()
 {
   // Will remove once we clean up the corotational 3d transformation -- MHS
   // crdTransf->update();
@@ -572,7 +572,7 @@ ForceBeamColumn3d::getResistingForce(void)
 }
 
 void
-ForceBeamColumn3d::initializeSectionHistoryVariables(void)
+ForceBeamColumn3d::initializeSectionHistoryVariables()
 {
   for (int i = 0; i < numSections; i++) {
     int order = sections[i]->getOrder();
@@ -583,6 +583,18 @@ ForceBeamColumn3d::initializeSectionHistoryVariables(void)
 
     vscommit[i] = Vector(order);
   }
+}
+
+double 
+ForceBeamColumn3d::getCharacteristicLength()
+{
+  // The default implementation of Element::getCharacteristicLength()
+  // returns the whole element length.
+  // However, FB element localizes only in a 1 integration point
+  // so we should return the i-th integration-point's length
+  if (current_section_lch > 0.0)
+      return current_section_lch;
+  return Element::getCharacteristicLength();
 }
 
 /********* NEWTON , SUBDIVIDE AND INITIAL ITERATIONS *********************/
@@ -726,6 +738,8 @@ ForceBeamColumn3d::update()
               double xL  = xi[i];
               double xL1 = xL-1.0;
               double wtL = wt[i]*L;
+
+              current_section_lch = wtL;
 
               // calculate total section forces
               // Ss = b*Se + bp*currDistrLoad;
