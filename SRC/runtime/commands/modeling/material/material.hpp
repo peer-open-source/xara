@@ -94,7 +94,6 @@ extern OPS_Routine OPS_RAFourSteelPCPlaneStressMaterial;
 extern OPS_Routine OPS_NewPlasticDamageConcretePlaneStress;
 extern OPS_Routine OPS_ElasticIsotropicMaterial;
 extern OPS_Routine OPS_IncrementalElasticIsotropicThreeDimensional;
-// extern OPS_Routine OPS_ElasticOrthotropicMaterial;
 extern OPS_Routine OPS_BoundingCamClayMaterial;
 extern OPS_Routine OPS_ContactMaterial2DMaterial;
 extern OPS_Routine OPS_ContactMaterial3DMaterial;
@@ -190,6 +189,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"J2",                               dispatch<TclCommand_newPlasticMaterial>},
   {"J2Plasticity",                     dispatch<TclCommand_newPlasticMaterial>},
   {"GeneralizedJ2",                    dispatch<TclCommand_newPlasticMaterial>},
+  {"NonlinearJ2",                      dispatch<TclCommand_newPlasticMaterial>},
   {"J2N",                              dispatch<TclCommand_newPlasticMaterial>},
   {"J2L",                              dispatch<TclCommand_newPlasticMaterial>},
   {"J2Thermal",                        dispatch<TclCommand_newPlasticMaterial>},
@@ -211,7 +211,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"ManzariDafalias",                  dispatch<OPS_ManzariDafaliasMaterial>},
   {"ManzariDafaliasRO",                dispatch<OPS_ManzariDafaliasMaterialRO>},
 
-
+//
   {"DruckerPragerThermal",             dispatch<OPS_DruckerPragerMaterialThermal> },
   {"TruncatedDP",                      dispatch<OPS_LinearCap     > },
   {"FSAM",                             dispatch<OPS_FSAMMaterial  > },
