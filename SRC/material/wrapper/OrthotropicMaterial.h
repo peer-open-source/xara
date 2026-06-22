@@ -50,24 +50,24 @@ public:
 	~OrthotropicMaterial();
 
 	// info
-	const char* getClassType(void) const { return "OrthotropicMaterial"; };
+	const char* getClassType(void) const { return "OrthotropicMaterial"; }
 
 	// density
-	double getRho(void);
+	double getRho();
 
 	// set state
 	int setTrialStrain(const Vector &strain);
 
 	// get state
-	const Vector &getStrain(void);
-	const Vector &getStress(void);
-	const Matrix &getTangent(void);
+	const Vector &getStrain();
+	const Vector &getStress();
+	const Matrix &getTangent();
 	const Matrix &getInitialTangent(void);
 
 	// handle state
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
 
 	// copy and others...
 	NDMaterial *getCopy(void);

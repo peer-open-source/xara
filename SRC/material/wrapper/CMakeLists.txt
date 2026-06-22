@@ -17,6 +17,7 @@ target_sources(OPS_Material
     InitStrainNDMaterial.cpp
     ParallelMaterial.cpp
     SeriesMaterial.cpp
+    OrthotropicMaterial.cpp
     # Plate
     PlateFiberMaterial.cpp
     PlateFromPlaneStressMaterial.cpp
@@ -33,15 +34,9 @@ target_sources(OPS_Material
     BeamFiberMaterial.cpp
     BeamFiberMaterial2d.cpp
     BeamFiberMaterial2dPS.cpp
+    FrameWrapper.cpp
   PUBLIC
     ParallelMaterial.h
     ContinuumUniaxial.h
     CreepMaterial.h
-
-#   PlateFiberMaterial.h
-#   PlateRebarMaterial.h
-#   PlateFiberMaterialThermal.h
-#   PlateRebarMaterialThermal.h
-#   PlateFromPlaneStressMaterial.h
-#   PlateFromPlaneStressMaterialThermal.h
 )
