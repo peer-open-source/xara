@@ -34,7 +34,7 @@ target_sources(OPS_Material
     BeamFiberMaterial.cpp
     BeamFiberMaterial2d.cpp
     BeamFiberMaterial2dPS.cpp
-    FrameWrapper.cpp
+    # FrameWrapper.cpp
   PUBLIC
     ParallelMaterial.h
     ContinuumUniaxial.h

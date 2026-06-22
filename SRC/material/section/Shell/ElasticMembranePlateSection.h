@@ -90,7 +90,7 @@ public:
 
   const Matrix& getSectionTangent();
 
-  //send back the initial tangent
+  // send back the initial tangent
   const Matrix& getInitialTangent();
 
   void Print(OPS_Stream& s, int flag);
@@ -109,7 +109,7 @@ private:
   double h;    // MembranePlate thickness
   double rhoH; //mass per unit 2D area
 
-  static const double five6; // =5/6 = shear correction factor
+  static const double five6; // =5.0/6.0; // shear correction factor
 
   Vector strain;
 
