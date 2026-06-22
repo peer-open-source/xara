@@ -48,48 +48,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if 0
-#include <elementAPI.h>
-void * OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicMaterial)
-{
-  NDMaterial *theMaterial = 0;
-  
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numArgs < 10) {
-    opserr << "Want: nDMaterial ElasticOrthotropic $tag $Ex $Ey $Ez $vxy $vyz $vzx $Gxy $Gyz $Gzx <$rho>" << endln;
-    return 0;	
-  }
-  
-  int iData[1];
-  double dData[10];
-  dData[9] = 0.0;
-  
-  int numData = 1;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag\n";
-    return 0;
-  }
-  
-  if (numArgs > 10) 
-    numData = 10;
-  else
-    numData = 9;
-  
-  if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: " << iData[0] <<"\n";
-    return 0;
-  }  
-  
-  theMaterial = new ElasticOrthotropicMaterial(iData[0], 
-	dData[0], dData[1], dData[2],
-	dData[3], dData[4], dData[5],
-	dData[6], dData[7], dData[8], dData[9]);
-  
-  return theMaterial;
-}
-#endif
-
 
 ElasticOrthotropicMaterial::ElasticOrthotropicMaterial
 (int tag, int classTag, double ex, double ey, double ez,
@@ -133,8 +91,8 @@ ElasticOrthotropicMaterial::getCopy (const char *type)
 {
   if (strcmp(type,"ThreeDimensional") == 0 || strcmp(type,"3D") == 0) {
     ElasticOrthotropicThreeDimensional *theModel;
-      theModel = new ElasticOrthotropicThreeDimensional (this->getTag(), Ex, Ey, Ez,
-                                                         vxy, vyz, vzx, Gxy, Gyz, Gzx, rho);
+      theModel = new ElasticOrthotropicThreeDimensional(this->getTag(), Ex, Ey, Ez,
+                                                        vxy, vyz, vzx, Gxy, Gyz, Gzx, rho);
 
     return theModel;
   }
@@ -145,7 +103,7 @@ ElasticOrthotropicMaterial::getCopy (const char *type)
 }
 
 int
-ElasticOrthotropicMaterial::setTrialStrain (const Vector &v)
+ElasticOrthotropicMaterial::setTrialStrain(const Vector &v)
 {
     opserr << "ElasticOrthotropicMaterial::setTrialStrain -- subclass responsibility\n";
     exit(-1);
@@ -153,19 +111,19 @@ ElasticOrthotropicMaterial::setTrialStrain (const Vector &v)
 }
 
 int
-ElasticOrthotropicMaterial::setTrialStrain (const Vector &v, const Vector &rate)
+ElasticOrthotropicMaterial::setTrialStrain(const Vector &v, const Vector &rate)
 {
-    opserr << "ElasticOrthotropicMaterial::setTrialStrain -- subclass responsibility\n";
-    exit(-1);
-    return -1;
+  opserr << "ElasticOrthotropicMaterial::setTrialStrain -- subclass responsibility\n";
+  exit(-1);
+  return -1;
 }
 
 int
-ElasticOrthotropicMaterial::setTrialStrainIncr (const Vector &v)
+ElasticOrthotropicMaterial::setTrialStrainIncr(const Vector &v)
 {
-    opserr << "ElasticOrthotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-    exit(-1);
-    return -1;
+  opserr << "ElasticOrthotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
+  exit(-1);
+  return -1;
 }
 
 int
