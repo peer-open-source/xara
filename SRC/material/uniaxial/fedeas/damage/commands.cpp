@@ -224,6 +224,9 @@ TclCommand_newFedeasUniaxialDamage(ClientData clientData, Tcl_Interp* interp, in
     new DegradingUniaxialWrapper(tags[0], *theWrappedMaterial, data);
 
 
-  builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
+  if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
+    delete theMaterial;
+    return TCL_ERROR;;
+  }
   return TCL_OK;
 }
