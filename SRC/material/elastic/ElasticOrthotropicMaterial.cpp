@@ -18,16 +18,16 @@
 **                                                                    **
 ** ****************************************************************** */
 //
+// Description: This file contains the class implementation for ElasticOrthotropicMaterial.
+//
+//
 // $Revision: 1.25 $                                                              
-// $Date: 2009-01-29 00:42:03 $                                                                  
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticOrthotropicMaterial.cpp,v $                                              
+// $Date: 2009-01-29 00:42:03 $       
+// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticOrthotropicMaterial.cpp,v $
+//                           
 // Written: MHS 
 // Created: Feb 2000
 // Revision: A
-//
-// Description: This file contains the class implementation for ElasticOrthotropicMaterial.
-//
-// What: "@(#) ElasticOrthotropicMaterial.C, revA"
 
 #include <string.h>
 
@@ -38,7 +38,7 @@
 #include <Information.h>
 #include <Parameter.h>
 
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -47,6 +47,7 @@ ElasticOrthotropicMaterial::ElasticOrthotropicMaterial(
     int tag, int classTag, double ex, double ey, double ez,
     double nuxy, double nuyz, double nuzx,
     double gxy, double gyz, double gzx, double r)
+
  : NDMaterial(tag, classTag), 
   Ex(ex), Ey(ey), Ez(ez),
   vxy(nuxy), vyz(nuyz), vzx(nuzx),
@@ -150,40 +151,39 @@ void
 ElasticOrthotropicMaterial::Print (OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-      s << "Elastic Isotropic Material Model" << endln;
-      s << "\tEx:  " << Ex << endln;
-      s << "\tEy:  " << Ey << endln;
-      s << "\tEz:  " << Ez << endln;
-      s << "\tvxy:  " << vxy << endln;
-      s << "\tvyz:  " << vyz << endln;
-      s << "\tvzx:  " << vzx << endln;
-      s << "\tGxy:  " << Gxy << endln;
-      s << "\tGyz:  " << Gyz << endln;
-      s << "\tGzx:  " << Gzx << endln;
-      s << "\trho:  " << rho << endln;
+    s << "Elastic Isotropic Material Model" << "\n";
+    s << "\tEx:  " << Ex << "\n";
+    s << "\tEy:  " << Ey << "\n";
+    s << "\tEz:  " << Ez << "\n";
+    s << "\tvxy:  " << vxy << "\n";
+    s << "\tvyz:  " << vyz << "\n";
+    s << "\tvzx:  " << vzx << "\n";
+    s << "\tGxy:  " << Gxy << "\n";
+    s << "\tGyz:  " << Gyz << "\n";
+    s << "\tGzx:  " << Gzx << "\n";
+    s << "\trho:  " << rho << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << "\t\t\t{";
-      s << "\"name\": \"" << this->getTag() << "\", ";
-      s << "\"type\": \"ElasticOrthotropicMaterial\", ";
-      s << "\"Ex\": " << Ex << ", ";
-      s << "\"Ey\": " << Ey << ", ";
-      s << "\"Ez\": " << Ez << ", ";
-      s << "\"nuxy\": " << vxy << ", ";
-      s << "\"nuyz\": " << vyz << ", ";
-      s << "\"nuzx\": " << vzx << ", ";
-      s << "\"Gxy\": " << Gxy << ", ";
-      s << "\"Gyz\": " << Gyz << ", ";
-      s << "\"Gzx\": " << Gzx << ", ";
-      s << "\"rho\": " << rho << "}";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"ElasticOrthotropicMaterial\", ";
+    s << "\"Ex\": " << Ex << ", ";
+    s << "\"Ey\": " << Ey << ", ";
+    s << "\"Ez\": " << Ez << ", ";
+    s << "\"nuxy\": " << vxy << ", ";
+    s << "\"nuyz\": " << vyz << ", ";
+    s << "\"nuzx\": " << vzx << ", ";
+    s << "\"Gxy\": " << Gxy << ", ";
+    s << "\"Gyz\": " << Gyz << ", ";
+    s << "\"Gzx\": " << Gzx << ", ";
+    s << "\"rho\": " << rho << "}";
   }
 }
 
 
 int
-ElasticOrthotropicMaterial::setParameter(const char **argv, int argc,
-				      Parameter &param)
+ElasticOrthotropicMaterial::setParameter(const char **argv, int argc, Parameter &param)
 {
   if (strcmp(argv[0],"Ex") == 0) {
     param.setValue(Ex);
