@@ -53,6 +53,7 @@ class TimeSeries : public TaggedObject, public MovableObject
     virtual double getFactor(double pseudoTime) = 0;
     virtual double getDuration() = 0;
     virtual double getPeakFactor() = 0;
+    virtual double getStartTime() const { return 0.0; }
 
     virtual double getTimeIncr (double pseudoTime) = 0;
     // This is defined to be the time increment from the argument

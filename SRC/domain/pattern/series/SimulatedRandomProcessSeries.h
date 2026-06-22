@@ -50,7 +50,7 @@ public:
 
     ~SimulatedRandomProcessSeries();
     
-    TimeSeries *getCopy(void);
+    TimeSeries *getCopy();
 
     // method to get load factor
     double getFactor(double pseudoTime);
@@ -60,13 +60,13 @@ public:
     double getDuration () {return 0.0;} // dummy function
     double getPeakFactor () {return 0.0;} // dummy function
     double getTimeIncr (double pseudoTime) {return 1.0;} // dummy function
+    double getStartTime() const override { return 0.0; } // dummy function
     
     // methods for output    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    void Print(OPS_Stream &s, int flag =0);    
+    void Print(OPS_Stream &s, int flag);    
     
 protected:
 	

@@ -48,7 +48,8 @@ class TimeSeriesIntegrator : public MovableObject
 
     virtual ~TimeSeriesIntegrator();
 
-    virtual TimeSeries* integrate(TimeSeries *theSeries, double delta) = 0;
+    virtual TimeSeries* integrate(TimeSeries *, double delta) = 0;
+    virtual TimeSeries* differentiate(TimeSeries *, double delta) = 0;
 
   private:
 };

@@ -50,7 +50,8 @@ SimpsonTimeSeriesIntegrator::~SimpsonTimeSeriesIntegrator()
 }
 
 
-TimeSeries* SimpsonTimeSeriesIntegrator::integrate(TimeSeries *theSeries, double delta)
+TimeSeries* 
+SimpsonTimeSeriesIntegrator::integrate(TimeSeries *theSeries, double delta)
 {
     // check for zero time step, before dividing to get number of steps
     if (delta <= 0.0)  {
@@ -114,6 +115,70 @@ TimeSeries* SimpsonTimeSeriesIntegrator::integrate(TimeSeries *theSeries, double
     }
     
     return returnSeries;
+}
+
+
+TimeSeries* SimpsonTimeSeriesIntegrator::differentiate(TimeSeries *theSeries, double delta)
+{
+  // check for zero time step, before dividing to get number of steps
+  if (delta <= 0.0)  {
+    opserr << "SimpsonTimeSeriesIntegrator::differentiate() - attempting to differentiate using time step "
+      << delta << "<= 0.0.\n";
+    return 0;
+  }
+  
+  // check a TimeSeries object was passed
+  if (theSeries == 0)  {
+    opserr << "SimpsonTimeSeriesIntegrator::differentiate() - no TimeSeries passed.\n";
+    return 0;
+  }
+  
+  // add one to get ceiling out of type cast
+  long long numSteps = (long long)(theSeries->getDuration()/delta + 1.0);
+  
+  // create new vector for integrated values
+  Vector *theDif = new Vector(numSteps);
+  
+  // check that the Vector was allocated properly
+  if (theDif == 0 || theDif->Size() == 0)  {
+    opserr << "SimpsonTimeSeriesIntegrator::differentiate() - ran out of memory allocating Vector " << endln;
+
+    if (theDif != 0)
+      delete theDif;
+    
+    return 0;
+  }
+
+  double dummyTime = theSeries->getStartTime();
+
+//   double Fi, Fj, Fk;  //function values
+//   double fi, fj, fk;  //derivative values
+  double Fi = 0.0;
+  double Fj = 0.0;
+
+  double fi = 0.0;
+  double fj = 0.0;
+
+  for (long long i = 0; i < numSteps; i++, dummyTime += delta)  {
+
+    double Fk = theSeries->getFactor(dummyTime);
+    // Apply the Simpson's rule to update the derivative
+    double fk = 3.0 * (Fk - Fi) / delta - fi - 4.0 * fj;
+
+    (*theDif)[i] = fk;
+
+    fi = fj;
+    fj = fk;
+
+    Fi = Fj;
+    Fj = Fk;
+  }
+
+  // set the method return value
+  PathSeries *returnSeries = new PathSeries(0, *theDif, delta, 1.0, true, false, theSeries->getStartTime());
+  delete theDif;
+  
+  return returnSeries;
 }
 
 

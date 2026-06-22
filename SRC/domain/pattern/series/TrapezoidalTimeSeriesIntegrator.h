@@ -47,14 +47,14 @@ class TrapezoidalTimeSeriesIntegrator : public TimeSeriesIntegrator
 
       ~TrapezoidalTimeSeriesIntegrator();
 
-      TimeSeries* integrate(TimeSeries *theTimeSeries, double delta);
+      TimeSeries* integrate(TimeSeries *theTimeSeries, double delta) override;
+      TimeSeries* differentiate(TimeSeries *theTimeSeries, double delta) override;
 
       // methods for output    
-      int sendSelf(int commitTag, Channel &theChannel);
-      int recvSelf(int commitTag, Channel &theChannel, 
-		   FEM_ObjectBroker &theBroker);
+      int sendSelf(int commitTag, Channel &) override;
+      int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &) override;
 
-      void Print(OPS_Stream &s, int flag =0);
+      void Print(OPS_Stream &s, int flag);
 
    private:
 };
