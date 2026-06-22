@@ -183,15 +183,15 @@ protected :
   static Matrix I; //rank 2 I
 
 
-  //parameters
-  static const double one3 ;
-  static const double two3 ;
-  static const double four3 ;
+  // parameters
+  static constexpr double one3 = 1.0/3.0;
+  static constexpr double two3 = 2.0/3.0;
+  static constexpr double four3 = 4.0/3.0;
   static const double root23 ;
   static const double root32 ;
 
-  //zero internal variables
-  void zero( ) ;
+  // zero internal variables
+  void zero();
 
   //plasticity integration routine
   int plastic_integrator( ) ;
