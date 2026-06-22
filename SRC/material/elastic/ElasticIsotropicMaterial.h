@@ -53,22 +53,12 @@ class ElasticIsotropicMaterial : public NDMaterial
 
     double getRho() override;
 
-    virtual int setTrialStrain (const Vector &v);
-    virtual int setTrialStrain (const Vector &v, const Vector &r);
-    virtual int setTrialStrainIncr (const Vector &v);
-    virtual int setTrialStrainIncr (const Vector &v, const Vector &r);
-    virtual const Matrix &getTangent(void);
-    virtual const Matrix &getInitialTangent(void);
-    virtual const Vector &getStress();
-    virtual const Vector &getStrain();
-
-    virtual int commitState();
-    virtual int revertToLastCommit();
-    virtual int revertToStart();
+    virtual const Matrix &getTangent();
+    virtual const Matrix &getInitialTangent();
     
     // Create a copy of material parameters AND state variables
     // Called by GenericSectionXD
-    NDMaterial *getCopy() override;
+    NDMaterial *getCopy() override=0;
 
     // Create a copy of just the material parameters
     // Called by the continuum elements
@@ -77,12 +67,12 @@ class ElasticIsotropicMaterial : public NDMaterial
     // Return a string indicating the type of material model
     virtual const char *getType() const;
 
-    virtual int getOrder() const;
+    int getOrder() const override=0;
     
     virtual int sendSelf(int commitTag, Channel &);  
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
-    
-    void Print(OPS_Stream &s, int flag = 0);
+
+    void Print(OPS_Stream &s, int flag) override;
 
     virtual int setParameter(const char **argv, int argc, Parameter &);
     virtual int updateParameter(int parameterID, Information &);
