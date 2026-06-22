@@ -19,6 +19,8 @@ target_sources(OPS_Material
     ElasticIsotropic3DThermal.cpp
     ElasticIsotropicMaterialThermal.cpp
     # Orthotropic
+    ElasticOrthotropicMaterial.cpp
+    ElasticOrthotropicPlaneStress.cpp
     ElasticOrthotropicThreeDimensional.cpp
   PUBLIC
     ElasticIsotropicPlaneStrain2D.h

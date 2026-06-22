@@ -18,7 +18,8 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-#include <ElasticOrthotropicThreeDimensional.h>           
+#include <ElasticOrthotropicThreeDimensional.h>
+#include <ElasticOrthotropicPlaneStress.h>    
 #include <Channel.h>
 
 Vector ElasticOrthotropicThreeDimensional::sigma(6);
@@ -183,12 +184,15 @@ ElasticOrthotropicThreeDimensional::revertToStart()
   return 0;
 }
 
+
 NDMaterial*
 ElasticOrthotropicThreeDimensional::getCopy()
 {
   ElasticOrthotropicThreeDimensional *theCopy =
-    new ElasticOrthotropicThreeDimensional (this->getTag(), Ex, Ey, Ez, 
-vxy, vyz, vzx, Gxy, Gyz, Gzx, rho);
+    new ElasticOrthotropicThreeDimensional(this->getTag(),
+                                           Ex, Ey, Ez, 
+                                           vxy, vyz, vzx, 
+                                           Gxy, Gyz, Gzx, rho);
   
   theCopy->epsilon = epsilon;
   theCopy->Cepsilon = Cepsilon;
@@ -196,14 +200,32 @@ vxy, vyz, vzx, Gxy, Gyz, Gzx, rho);
   return theCopy;
 }
 
+// NDMaterial*
+// ElasticOrthotropicThreeDimensional::getCopy(const char *type)
+// {
+//   if (strcmp(type,"ThreeDimensional") == 0 || strcmp(type,"3D") == 0) {
+//     return this->getCopy();
+//   }
+//   else if (strcmp(type,"PlaneStress") == 0 || strcmp(type,"2D") == 0) {
+//     ElasticOrthotropicPlaneStress *theCopy = new ElasticOrthotropicPlaneStress(this->getTag(),
+//                                                                                  Ex, Ey, Ez, 
+//                                                                                  vxy, vyz, vzx, 
+//                                                                                  Gxy, Gyz, Gzx, rho);
+
+//     return theCopy;
+//   }
+//   else
+//     return NDMaterial::getCopy(type);
+// }
+
 const char*
-ElasticOrthotropicThreeDimensional::getType (void) const
+ElasticOrthotropicThreeDimensional::getType() const
 {
   return "ThreeDimensional";
 }
 
 int
-ElasticOrthotropicThreeDimensional::getOrder (void) const
+ElasticOrthotropicThreeDimensional::getOrder() const
 {
   return 6;
 }

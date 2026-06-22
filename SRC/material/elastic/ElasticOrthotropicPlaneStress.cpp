@@ -50,8 +50,8 @@
 #include <elementAPI.h>
 
 // Vector ElasticOrthotropicPlaneStress :: strain_vec(3) ;
-Vector ElasticOrthotropicPlaneStress :: stress_vec(3) ;
-Matrix ElasticOrthotropicPlaneStress :: tangent_matrix(3,3) ;
+Vector ElasticOrthotropicPlaneStress::stress_vec(3) ;
+Matrix ElasticOrthotropicPlaneStress::tangent_matrix(3,3) ;
 
 
 void* OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicPlaneStress)
@@ -106,12 +106,8 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ElasticOrthotropicPlaneStress)
 }
 
 
-
-
-
-
-//null constructor
-ElasticOrthotropicPlaneStress ::  ElasticOrthotropicPlaneStress( ) : 
+// null constructor
+ElasticOrthotropicPlaneStress::ElasticOrthotropicPlaneStress( ) : 
   NDMaterial(0, ND_TAG_ElasticOrthotropicPlaneStress), 
   strain_vec(3),
   E1(0),
@@ -120,12 +116,13 @@ ElasticOrthotropicPlaneStress ::  ElasticOrthotropicPlaneStress( ) :
   nu21(0),
   G12(0),
   rho(0)
-{  
+{
+
 }
 
 
 //full constructor
-ElasticOrthotropicPlaneStress :: 
+ElasticOrthotropicPlaneStress:: 
 ElasticOrthotropicPlaneStress(int tag, 
                    double E1_,
                    double E2_,
@@ -146,36 +143,39 @@ ElasticOrthotropicPlaneStress(int tag,
 
 
 //destructor
-ElasticOrthotropicPlaneStress :: ~ElasticOrthotropicPlaneStress( ) 
+ElasticOrthotropicPlaneStress::~ElasticOrthotropicPlaneStress( ) 
 {
+
 }
 
 
-NDMaterial* ElasticOrthotropicPlaneStress :: getCopy( ) 
+NDMaterial* ElasticOrthotropicPlaneStress::getCopy() 
 { 
   ElasticOrthotropicPlaneStress  *clone;
-  clone = new ElasticOrthotropicPlaneStress( ) ;   //new instance of this class
+  clone = new ElasticOrthotropicPlaneStress( );
   *clone = *this ;                 //asignment to make copy
   return clone ;
 }
 
 
-const char* ElasticOrthotropicPlaneStress :: getType( ) const 
+const char*
+ElasticOrthotropicPlaneStress::getType() const 
 {
-  return "OrthotropicPlaneStress" ;
+  return "ElasticOrthotropicPlaneStress" ;
 }
 
 
-int ElasticOrthotropicPlaneStress :: getOrder( ) const 
+int
+ElasticOrthotropicPlaneStress::getOrder() const 
 { 
   return 3 ; 
 } 
 
 // mass per unit volume
 double
-ElasticOrthotropicPlaneStress::getRho( )
+ElasticOrthotropicPlaneStress::getRho()
 {
-  return rho ;
+  return rho;
 }
 
 //get the strain and integrate plasticity equations
@@ -188,23 +188,25 @@ ElasticOrthotropicPlaneStress :: setTrialStrain( const Vector &strain_from_eleme
 }
 
 
-//unused trial strain functions
-int ElasticOrthotropicPlaneStress :: setTrialStrain( const Vector &v, const Vector &r )
-{ 
-   opserr << "ElasticOrthotropicPlaneStress :: setTrialStrain( const Vector &v, const Vector &r ) -- should not be used! \n";
-   return this->setTrialStrain( v ) ;
+// unused trial strain functions
+int
+ElasticOrthotropicPlaneStress::setTrialStrain(const Vector &v, const Vector &r )
+{
+  return this->setTrialStrain( v ) ;
 } 
 
-int ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v ) 
+int
+ElasticOrthotropicPlaneStress::setTrialStrainIncr(const Vector &v ) 
 {
-   opserr << "ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v ) -- should not be used! \n";
-   return -1 ;
+  opserr << "ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v ) -- should not be used! \n";
+  return -1 ;
 }
 
-int ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
+int
+ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
 {
-   opserr << "ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r ) -- should not be used! \n";
-    return this->setTrialStrainIncr(v);
+  opserr << "ElasticOrthotropicPlaneStress :: setTrialStrainIncr( const Vector &v, const Vector &r ) -- should not be used! \n";
+  return this->setTrialStrainIncr(v);
 }
 
 
@@ -222,7 +224,8 @@ const Vector& ElasticOrthotropicPlaneStress :: getStress( )
   return stress_vec ;
 }
 
-const Matrix& ElasticOrthotropicPlaneStress :: getTangent( ) 
+const Matrix& 
+ElasticOrthotropicPlaneStress::getTangent()
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -301,19 +304,32 @@ ElasticOrthotropicPlaneStress::recvSelf(int commitTag, Channel &theChannel, FEM_
 }
 
 
-//print out material data
-void ElasticOrthotropicPlaneStress :: Print( OPS_Stream &s, int flag )
+// print out material data
+void
+ElasticOrthotropicPlaneStress::Print(OPS_Stream &s, int flag )
 {
-    s << endln ;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "{\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"E1\": " << E1 << ", ";
+    s << "\"E2\": " << E2 << ", ";
+    s << "\"nu12\": " << nu12 << ", ";
+    s << "\"nu21\": " << nu21 << ", ";
+    s << "\"G12\": " << G12 << ", ";
+    s << "\"rho\": " << rho << "}";
+  }
+  else {
+    s << "\n" ;
     s << "ElasticOrthotropicPlaneStress : " ; 
-    s << this->getType( ) << endln ;
-    s << "Elastic Modulus 1 =   " << E1        << endln ;
-    s << "Elastic Modulus 2 =   " << E2        << endln ;
-    s << "Poisson's ratio 12=  " << nu12       << endln ;
-    s << "Poisson's ratio 21=  " << nu21       << endln ;
-    s << "Shear constant G12=  " << G12       << endln ;
-    s << "mass density =        " << rho     << endln ;
-    s << endln ;
+    s << this->getType( ) << "\n" ;
+    s << "Elastic Modulus 1 =   " << E1        << "\n" ;
+    s << "Elastic Modulus 2 =   " << E2        << "\n" ;
+    s << "Poisson's ratio 12=  " << nu12       << "\n" ;
+    s << "Poisson's ratio 21=  " << nu21       << "\n" ;
+    s << "Shear constant G12=  " << G12       << "\n" ;
+    s << "mass density =        " << rho     << "\n" ;
+    s << "\n" ;
+  }
 }
 
 
@@ -321,7 +337,7 @@ void ElasticOrthotropicPlaneStress :: Print( OPS_Stream &s, int flag )
 // plane stress different because of condensation on tangent
 // case 3 switched to 1-2 and case 4 to 3-3 
 void 
-ElasticOrthotropicPlaneStress :: index_map( int matrix_index, int &i, int &j )
+ElasticOrthotropicPlaneStress::index_map( int matrix_index, int &i, int &j )
 {
   switch ( matrix_index+1 ) { //add 1 for standard tensor indices
 

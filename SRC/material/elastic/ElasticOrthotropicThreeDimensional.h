@@ -33,31 +33,34 @@
 class ElasticOrthotropicThreeDimensional : public ElasticOrthotropicMaterial
 {
   public:
-    ElasticOrthotropicThreeDimensional(int tag, double Ex, double Ey, 
-      double Ez, double vxy, double vyz, double vzx, double Gxy, double Gyz, 
-      double Gzx, double rho = 0.0);
+    ElasticOrthotropicThreeDimensional(int tag, 
+        double Ex, double Ey, 
+        double Ez, double vxy, double vyz, double vzx, double Gxy, double Gyz, 
+        double Gzx, double rho);
     ElasticOrthotropicThreeDimensional();
     ~ElasticOrthotropicThreeDimensional();
 
     const char *getClassType() const {return "ElasticOrthotropicThreeDimensional";}
 
-    int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
-    int setTrialStrainIncr (const Vector &v);
-    int setTrialStrainIncr (const Vector &v, const Vector &r);
+    NDMaterial *getCopy() override;
+    // NDMaterial *getCopy(const char *type) override;
+    const char *getType() const override;
+    int getOrder() const override;
+    
+    // state
+    int setTrialStrain(const Vector &v);
+    int setTrialStrain(const Vector &v, const Vector &r);
+    int setTrialStrainIncr(const Vector &v);
+    int setTrialStrainIncr(const Vector &v, const Vector &r);
     const Matrix &getTangent();
     const Matrix &getInitialTangent();
-    
+
     const Vector &getStress();
     const Vector &getStrain();
 
     int commitState();
     int revertToLastCommit();
     int revertToStart();
-    
-    NDMaterial *getCopy();
-    const char *getType() const;
-    int getOrder() const;
 
     int sendSelf(int commitTag, Channel &);  
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    

@@ -17,10 +17,10 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // $Revision: 1.25 $                                                              
 // $Date: 2009-01-29 00:42:03 $                                                                  
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticOrthotropicMaterial.cpp,v $                                                                
+// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticOrthotropicMaterial.cpp,v $                                              
 // Written: MHS 
 // Created: Feb 2000
 // Revision: A
@@ -32,13 +32,7 @@
 #include <string.h>
 
 #include <ElasticOrthotropicMaterial.h>
-//#include <ElasticOrthotropicPlaneStress2D.h>
-//#include <ElasticOrthotropicPlaneStrain2D.h>
-//#include <ElasticOrthotropicAxiSymm.h>
 #include <ElasticOrthotropicThreeDimensional.h>
-//#include <ElasticOrthotropicPlateFiber.h>
-//#include <ElasticOrthotropicBeamFiber.h>
-//#include <ElasticOrthotropicBeamFiber2d.h>
 
 #include <Channel.h>
 #include <Information.h>
@@ -57,44 +51,33 @@ ElasticOrthotropicMaterial::ElasticOrthotropicMaterial(
   Ex(ex), Ey(ey), Ez(ez),
   vxy(nuxy), vyz(nuyz), vzx(nuzx),
   Gxy(gxy), Gyz(gyz), Gzx(gzx), 
-  rho(r),  parameterID(0)
+  rho(r),
+  parameterID(0)
 {
 
 }
 
-ElasticOrthotropicMaterial::ElasticOrthotropicMaterial(
-  int tag, double ex, double ey, double ez,
-  double nuxy, double nuyz, double nuzx,
-  double gxy, double gyz, double gzx, double r)
- : NDMaterial(tag, ND_TAG_ElasticOrthotropic), 
-  Ex(ex), Ey(ey), Ez(ez),
-  vxy(nuxy), vyz(nuyz), vzx(nuzx),
-  Gxy(gxy), Gyz(gyz), Gzx(gzx), 
-  rho(r),  parameterID(0)
-{
-
-}
 
 ElasticOrthotropicMaterial::~ElasticOrthotropicMaterial()
 {
 	
 }
 
+
 double
 ElasticOrthotropicMaterial::getRho() 
 { 
-  return rho ;
+  return rho;
 }
 
-NDMaterial*
-ElasticOrthotropicMaterial::getCopy (const char *type)
-{
-  if (strcmp(type,"ThreeDimensional") == 0 || strcmp(type,"3D") == 0) {
-    ElasticOrthotropicThreeDimensional *theModel;
-      theModel = new ElasticOrthotropicThreeDimensional(this->getTag(), Ex, Ey, Ez,
-                                                        vxy, vyz, vzx, Gxy, Gyz, Gzx, rho);
 
-    return theModel;
+NDMaterial*
+ElasticOrthotropicMaterial::getCopy(const char *type)
+{
+  if (strcmp(type,"ThreeDimensional") == 0) {
+    return new ElasticOrthotropicThreeDimensional(this->getTag(),
+                                                  Ex, Ey, Ez,
+                                                  vxy, vyz, vzx, Gxy, Gyz, Gzx, rho);
   }
 
   // Handle other cases
@@ -102,129 +85,10 @@ ElasticOrthotropicMaterial::getCopy (const char *type)
     return NDMaterial::getCopy(type);
 }
 
-int
-ElasticOrthotropicMaterial::setTrialStrain(const Vector &v)
-{
-  opserr << "ElasticOrthotropicMaterial::setTrialStrain -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
+
 
 int
-ElasticOrthotropicMaterial::setTrialStrain(const Vector &v, const Vector &rate)
-{
-  opserr << "ElasticOrthotropicMaterial::setTrialStrain -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-int
-ElasticOrthotropicMaterial::setTrialStrainIncr(const Vector &v)
-{
-  opserr << "ElasticOrthotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-int
-ElasticOrthotropicMaterial::setTrialStrainIncr (const Vector &v, const Vector &rate)
-{
-  opserr << "ElasticOrthotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-const Matrix&
-ElasticOrthotropicMaterial::getTangent()
-{
-  opserr << "ElasticOrthotropicMaterial::getTangent -- subclass responsibility\n";
-  exit(-1);
-
-  // Just to make it compile
-  Matrix *ret = new Matrix();
-  return *ret;
-}
-
-const Matrix&
-ElasticOrthotropicMaterial::getInitialTangent()
-{
-  return this->getTangent();
-}
-
-const Vector&
-ElasticOrthotropicMaterial::getStress()
-{
-  opserr << "ElasticOrthotropicMaterial::getStress -- subclass responsibility\n";
-  exit(-1);
-    
-  // Just to make it compile
-  Vector *ret = new Vector();
-  return *ret;
-}
-
-const Vector&
-ElasticOrthotropicMaterial::getStrain()
-{
-  opserr << "ElasticOrthotropicMaterial::getStrain -- subclass responsibility\n";
-  exit(-1);
-
-  // Just to make it compile
-  Vector *ret = new Vector();
-  return *ret;
-}
-
-int
-ElasticOrthotropicMaterial::commitState()
-{
-  opserr << "ElasticOrthotropicMaterial::commitState -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-int
-ElasticOrthotropicMaterial::revertToLastCommit (void)
-{
-  opserr << "ElasticOrthotropicMaterial::revertToLastCommit -- subclass responsibility\n";
-  exit(-1);
-    
-  return -1;
-}
-
-int
-ElasticOrthotropicMaterial::revertToStart (void)
-{
-  opserr << "ElasticOrthotropicMaterial::revertToStart -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-NDMaterial*
-ElasticOrthotropicMaterial::getCopy (void)
-{
-  opserr << "ElasticOrthotropicMaterial::getCopy -- subclass responsibility\n";
-  exit(-1);
-  return 0;
-}
-
-const char*
-ElasticOrthotropicMaterial::getType (void) const
-{
-  opserr << "ElasticOrthotropicMaterial::getType -- subclass responsibility\n";
-  exit(-1);	
-
-  return 0;
-}
-
-int
-ElasticOrthotropicMaterial::getOrder (void) const
-{
-  opserr << "ElasticOrthotropicMaterial::getOrder -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-int
-ElasticOrthotropicMaterial::sendSelf (int commitTag, Channel &theChannel)
+ElasticOrthotropicMaterial::sendSelf(int commitTag, Channel &theChannel)
 {
   int res = 0;
 
@@ -251,8 +115,9 @@ ElasticOrthotropicMaterial::sendSelf (int commitTag, Channel &theChannel)
  return res;
 }
 
+
 int
-ElasticOrthotropicMaterial::recvSelf (int commitTag, Channel &theChannel, 
+ElasticOrthotropicMaterial::recvSelf(int commitTag, Channel &theChannel, 
 				    FEM_ObjectBroker &theBroker)
 {
   int res = 0;
@@ -280,39 +145,41 @@ ElasticOrthotropicMaterial::recvSelf (int commitTag, Channel &theChannel,
   return res;
 }
 
+
 void
 ElasticOrthotropicMaterial::Print (OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "Elastic Isotropic Material Model" << endln;
-        s << "\tEx:  " << Ex << endln;
-        s << "\tEy:  " << Ey << endln;
-        s << "\tEz:  " << Ez << endln;
-        s << "\tvxy:  " << vxy << endln;
-        s << "\tvyz:  " << vyz << endln;
-        s << "\tvzx:  " << vzx << endln;
-        s << "\tGxy:  " << Gxy << endln;
-        s << "\tGyz:  " << Gyz << endln;
-        s << "\tGzx:  " << Gzx << endln;
-        s << "\trho:  " << rho << endln;
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+      s << "Elastic Isotropic Material Model" << endln;
+      s << "\tEx:  " << Ex << endln;
+      s << "\tEy:  " << Ey << endln;
+      s << "\tEz:  " << Ez << endln;
+      s << "\tvxy:  " << vxy << endln;
+      s << "\tvyz:  " << vyz << endln;
+      s << "\tvzx:  " << vzx << endln;
+      s << "\tGxy:  " << Gxy << endln;
+      s << "\tGyz:  " << Gyz << endln;
+      s << "\tGzx:  " << Gzx << endln;
+      s << "\trho:  " << rho << endln;
+  }
 
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"ElasticOrthotropicMaterial\", ";
-        s << "\"Ex\": " << Ex << ", ";
-        s << "\"Ey\": " << Ey << ", ";
-        s << "\"Ez\": " << Ez << ", ";
-        s << "\"nuxy\": " << vxy << ", ";
-        s << "\"nuyz\": " << vyz << ", ";
-        s << "\"nuzx\": " << vzx << ", ";
-        s << "\"Gxy\": " << Gxy << ", ";
-        s << "\"Gyz\": " << Gyz << ", ";
-        s << "\"Gzx\": " << Gzx << ", ";
-        s << "\"rho\": " << rho << "}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << "\t\t\t{";
+      s << "\"name\": \"" << this->getTag() << "\", ";
+      s << "\"type\": \"ElasticOrthotropicMaterial\", ";
+      s << "\"Ex\": " << Ex << ", ";
+      s << "\"Ey\": " << Ey << ", ";
+      s << "\"Ez\": " << Ez << ", ";
+      s << "\"nuxy\": " << vxy << ", ";
+      s << "\"nuyz\": " << vyz << ", ";
+      s << "\"nuzx\": " << vzx << ", ";
+      s << "\"Gxy\": " << Gxy << ", ";
+      s << "\"Gyz\": " << Gyz << ", ";
+      s << "\"Gzx\": " << Gzx << ", ";
+      s << "\"rho\": " << rho << "}";
+  }
 }
+
 
 int
 ElasticOrthotropicMaterial::setParameter(const char **argv, int argc,
@@ -362,6 +229,7 @@ ElasticOrthotropicMaterial::setParameter(const char **argv, int argc,
   return -1;
 }
 
+
 int 
 ElasticOrthotropicMaterial::updateParameter(int parameterID, Information &info)
 { 
@@ -405,6 +273,5 @@ int
 ElasticOrthotropicMaterial::activateParameter(int paramID)
 {
   parameterID = paramID;
-
   return 0;
 }

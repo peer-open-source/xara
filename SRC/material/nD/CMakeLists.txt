@@ -10,10 +10,7 @@ target_sources(OPS_Material
     LinearCap.cpp
     FSAM.cpp
     AcousticMedium.cpp
-#   ElasticPlaneStress.cpp
     VonPapaDamage.cpp
-    ElasticOrthotropicMaterial.cpp
-    ElasticOrthotropicPlaneStress.cpp
 
     CycLiqCP.cpp
     CycLiqCP3D.cpp
@@ -39,8 +36,6 @@ target_sources(OPS_Material
     LinearCap.h
     FSAM.h
     AcousticMedium.h
-    ElasticOrthotropicMaterial.h
-    ElasticOrthotropicPlaneStress.h
     VonPapaDamage.h
     PressureDependentElastic3D.h
 
