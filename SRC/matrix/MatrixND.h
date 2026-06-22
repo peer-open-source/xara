@@ -52,14 +52,14 @@ namespace OpenSees {
 
 template <index_t NR, index_t NC, typename T=double>
 struct alignas(64) MatrixND {
-  static constexpr int BlasSize = 16*16;
+  static constexpr int BlasSize = 26*26;
   std::array<T, NR*NC> values;
 
   //
   // Indexing
   //
-  [[gnu::always_inline]] inline constexpr       T& operator()(int i, int j)       noexcept { return values[j*NR + i]; }
-  [[gnu::always_inline]] inline constexpr const T& operator()(int i, int j) const noexcept { return values[j*NR + i]; }
+  XARA_MATRIX_INLINE constexpr       T& operator()(int i, int j)       noexcept { return values[j*NR + i]; }
+  XARA_MATRIX_INLINE constexpr const T& operator()(int i, int j) const noexcept { return values[j*NR + i]; }
 
   inline constexpr T* data() noexcept { return values.data(); } // &(*this)(0,0); }
   inline constexpr const T* data() const noexcept { return values.data(); }
@@ -72,8 +72,8 @@ struct alignas(64) MatrixND {
   operator Matrix() { return Matrix(&(*this)(0,0), NR, NC);}
   operator const Matrix() const { return Matrix(&(*this)(0,0), NR, NC);}
   #endif
-  inline constexpr void zero() noexcept;
-  inline constexpr void Zero() noexcept { zero(); }
+  XARA_MATRIX_INLINE constexpr void zero() noexcept;
+  XARA_MATRIX_INLINE constexpr void Zero() noexcept { zero(); }
 
   constexpr T
   trace() const noexcept
@@ -88,21 +88,23 @@ struct alignas(64) MatrixND {
 
   const double norm() const noexcept;
 
-  constexpr double determinant() const ;
+  constexpr double determinant() const;
 
   inline constexpr MatrixND<NC, NR> transpose() const noexcept;
 
-  inline constexpr MatrixND<NR,NC,T>& addDiagonal(const double vol) noexcept;
+  XARA_MATRIX_INLINE constexpr 
+    MatrixND<NR,NC,T>& addDiagonal(const double vol) noexcept;
 
-  template <class MatT>
-    void addMatrix(const MatT& A, const double scale);
+  template <class MatT> XARA_MATRIX_INLINE
+    void addMatrix(const MatT& A, const double scale) noexcept;
 
-  void addTranspose(const MatrixND<NC,NR>& A, const double scale);
+  XARA_MATRIX_INLINE
+    void addTranspose(const MatrixND<NC,NR>& A, const double scale) noexcept;
 
   template <int nk> constexpr
     void setMatrixProduct(const MatrixND<NR,nk,T>& A, const MatrixND<nk,NC,T>& B, double scale) noexcept;
 
-  template <int nk> constexpr
+  template <int nk> XARA_MATRIX_INLINE constexpr
     void addMatrixProduct(const MatrixND<NR,nk,T>& A, 
                           const MatrixND<nk,NC>& B, 
                           double scale) noexcept;
@@ -111,10 +113,11 @@ struct alignas(64) MatrixND {
     void addMatrixTransposeProduct(double scale, const MatrixND<nk,NR,T>& B,
                                                  const MatrixND<nk,NC,T>& C) noexcept;
 
-  template <int nk> inline constexpr
-    void setMatrixTransposeProduct(const MatrixND<nk, NR, T>& B, const MatrixND<nk, NC, T>& C) noexcept;
+  template <int nk> XARA_MATRIX_INLINE constexpr
+    void setMatrixTransposeProduct(const MatrixND<nk, NR, T>& B,
+                                   const MatrixND<nk, NC, T>& C) noexcept;
 
-  template <int nk> constexpr
+  template <int nk> XARA_MATRIX_INLINE constexpr
     void addMatrixTransposeProduct(const MatrixND<nk, NR, T>& B, 
                                    const MatrixND<nk, NC, T>& C) noexcept;
 
@@ -135,7 +138,7 @@ struct alignas(64) MatrixND {
                               double scale) noexcept;
 
   // += A'BA
-  template <int nk> int 
+  template <int nk> XARA_MATRIX_INLINE int 
     addMatrixTripleProduct(double thisFact, 
                            const MatrixND<nk, NR, T> &, 
                            const MatrixND<nk, nk, T>&, 
@@ -175,7 +178,7 @@ struct alignas(64) MatrixND {
 
 
   template <int nb>
-  inline constexpr MatrixND<NR, nb, T>
+  XARA_MATRIX_INLINE constexpr MatrixND<NR, nb, T>
   bun(const MatrixND<nb,1,T>& b, double scale) const noexcept
   {
     static_assert(NC == 1, "MatrixND::bun: second argument must be a column vector.");
@@ -191,7 +194,7 @@ struct alignas(64) MatrixND {
  
 
   template <int row0, int row1, int col0, int col1>
-  inline MatrixND<row1-row0,col1-col0>
+  XARA_MATRIX_INLINE MatrixND<row1-row0,col1-col0>
   extract() const noexcept
   {
     MatrixND<row1-row0,col1-col0> m;
@@ -202,7 +205,7 @@ struct alignas(64) MatrixND {
   }
 
   template<int er, int ec>
-  inline constexpr MatrixND<er,ec>
+  XARA_MATRIX_INLINE constexpr MatrixND<er,ec>
   extract(int row0, int col0) const noexcept
   {
     MatrixND<er,ec> m;
@@ -213,11 +216,11 @@ struct alignas(64) MatrixND {
   }
 
   template <int init_row, int init_col, int nr, int nc> 
-  inline constexpr void
+  XARA_MATRIX_INLINE constexpr void
   insert(const MatrixND<nr, nc, double> &M) noexcept;
 
   template <int init_row, int init_col, int nr, int nc> 
-  inline constexpr void
+  XARA_MATRIX_INLINE constexpr void
   insert(const MatrixND<nr, nc, double> &M, double fact) noexcept;
 
   template <int nr, int nc> 
@@ -242,7 +245,7 @@ struct alignas(64) MatrixND {
   // Operators
   //
 
-  inline constexpr MatrixND &
+  XARA_MATRIX_INLINE constexpr MatrixND &
   operator=(const Matrix &other) noexcept
   {
     for (index_t j = 0; j < NC; ++j) {
@@ -253,7 +256,7 @@ struct alignas(64) MatrixND {
     return *this;
   }
 
-  constexpr MatrixND &
+  XARA_MATRIX_INLINE constexpr MatrixND &
   operator+=(const double value) noexcept {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
@@ -263,7 +266,7 @@ struct alignas(64) MatrixND {
     return *this;
   }
 
-  constexpr MatrixND &
+  XARA_MATRIX_INLINE constexpr MatrixND &
   operator+=(const MatrixND &other) noexcept {
     for (index_t j = 0; j < NC; ++j) {
       for (index_t i = 0; i < NR; ++i) {
@@ -273,7 +276,7 @@ struct alignas(64) MatrixND {
     return *this;
   }
   
-  constexpr MatrixND &
+  XARA_MATRIX_INLINE constexpr MatrixND &
   operator-=(const MatrixND &other) noexcept
   {
     for (index_t j = 0; j < NC; ++j)
@@ -283,7 +286,7 @@ struct alignas(64) MatrixND {
     return *this;
   }
 
-  inline constexpr MatrixND &
+  XARA_MATRIX_INLINE constexpr MatrixND &
   operator*=(T const scalar) noexcept
   {
     for (index_t j = 0; j < NC; ++j)
@@ -293,7 +296,7 @@ struct alignas(64) MatrixND {
     return *this;
   }
 
-  inline constexpr MatrixND &
+  XARA_MATRIX_INLINE constexpr MatrixND &
   operator/=(T const scalar) noexcept
   {
     for (index_t j = 0; j < NC; ++j)
@@ -303,7 +306,7 @@ struct alignas(64) MatrixND {
     return *this;
   }
 
-  inline constexpr VectorND<NC>
+  XARA_MATRIX_INLINE constexpr VectorND<NC>
   operator^(const VectorND<NR> &V) const noexcept
   {
     VectorND<NC> result;
@@ -347,7 +350,7 @@ struct alignas(64) MatrixND {
   }
 
   template <index_t J>
-  inline constexpr friend MatrixND<NR, J>
+  XARA_MATRIX_INLINE constexpr friend MatrixND<NR, J>
   operator*(const MatrixND<NR, NC> &left, const MatrixND<NC, J> &right) noexcept {
     MatrixND<NR, J> prod;
     // if constexpr (NR*NC > 13*13) {
@@ -406,7 +409,7 @@ struct alignas(64) MatrixND {
   }
 
   template <index_t K>
-  inline constexpr friend MatrixND<NC,K>
+  XARA_MATRIX_INLINE constexpr friend MatrixND<NC,K>
   operator^(const MatrixND<NR, NC> &left, const MatrixND<NR, K> &right) noexcept {
     MatrixND<NC, K> prod;
     if constexpr (NR*NC > 16) {
