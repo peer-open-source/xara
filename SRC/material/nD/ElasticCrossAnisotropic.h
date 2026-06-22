@@ -42,45 +42,45 @@ class ElasticCrossAnisotropic : public NDMaterial
 public:
   ElasticCrossAnisotropic(int tag,
                           double Ehp,
-			  double Evp,
-			  double nuhvp,
-			  double nuhhp,
-			  double Ghvp,
-			  double rhop = 0.0);
+                          double Evp,
+                          double nuhvp,
+                          double nuhhp,
+                          double Ghvp,
+                          double rhop = 0.0);
   ElasticCrossAnisotropic ();
   ~ElasticCrossAnisotropic ();
 
-        const char *getClassType(void) const {return "ElasticCrossAnisotropic";};
+  const char *getClassType(void) const {return "ElasticCrossAnisotropic";}
 
-        double getrho ();
-	double getMatParameter(int MatParameterID);
+  double getrho ();
+  double getMatParameter(int MatParameterID);
 
-        int setTrialStrain (const Tensor &v);
-        int setTrialStrain (const Tensor &v, const Tensor &r);
-        int setTrialStrainIncr (const Tensor &v);
-        int setTrialStrainIncr (const Tensor &v, const Tensor &r);
+  int setTrialStrain (const Tensor &v);
+  int setTrialStrain (const Tensor &v, const Tensor &r);
+  int setTrialStrainIncr (const Tensor &v);
+  int setTrialStrainIncr (const Tensor &v, const Tensor &r);
 
-        const Tensor &getTangentTensor (void);
-        const stresstensor& getStressTensor (void);
-        const straintensor& getStrainTensor (void);
+  const Tensor &getTangentTensor (void);
+  const stresstensor& getStressTensor (void);
+  const straintensor& getStrainTensor (void);
 
-        int commitState (void);
-        int revertToLastCommit (void);
-        int revertToStart (void);
+  int commitState (void);
+  int revertToLastCommit (void);
+  int revertToStart (void);
 
-        NDMaterial *getCopy (void);
-        NDMaterial *getCopy (const char *type);
-        const char *getType (void) const;
+  NDMaterial *getCopy ();
+  NDMaterial *getCopy (const char *type);
+  const char *getType () const;
 
-        void Print(OPS_Stream &s, int flag = 0);
+  void Print(OPS_Stream &s, int flag);
 
-        int sendSelf(int commitTag, Channel &theChannel);
-        int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
 private:
-    static stresstensor Stress;   // Stress tensor
-    static Tensor Dt;         // Elastic constants tensor
-    straintensor Strain;   // Strain tensor
+  static stresstensor Stress;   // Stress tensor
+  static Tensor Dt;         // Elastic constants tensor
+  straintensor Strain;   // Strain tensor
 
 // all the directions are relative so we call them "horizontal" and "vertical", take that
 // horizontal is one plane of anisotropy while vertical is the axes perpendicular to that plane.
