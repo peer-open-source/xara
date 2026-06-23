@@ -37,6 +37,7 @@
 //
 #include "BJvector.h"
 
+using namespace ucsd;
 
 BJvector::BJvector(int order_n, double initvalue):
   BJmatrix( 2, order_n, 1, initvalue)  {  }  // default constructor

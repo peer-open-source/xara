@@ -15,6 +15,7 @@
 //
 //
 #include <tcl.h>
+#include <vector>
 #include <Logging.h>
 #include <Parsing.h>
 #include <ModelRegistry.h>
@@ -44,6 +45,7 @@
 #include <BeamFiberMaterial2d.h>
 #include <BeamFiberMaterial2dPS.h>
 
+#include <Parallel3DMaterial.h>
 
 int
 TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
@@ -152,56 +154,57 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
 int
 TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {
-    if (argc < 4) {
-        opserr << "WARNING insufficient arguments\n";
-        opserr << "Want: uniaxialMaterial Parallel tag? tag1? tag2? ...";
-        opserr << " <-min min?> <-max max?>" << "\n";
-        return TCL_ERROR;
+  if (argc < 4) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: uniaxialMaterial Parallel tag? tag1? tag2? ...";
+    opserr << " <-min min?> <-max max?>" << "\n";
+    return TCL_ERROR;
+  }
+
+  int tag;
+  UniaxialMaterial* theMaterial = nullptr;
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
+
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << "WARNING invalid uniaxialMaterial Parallel tag" << "\n";
+    return TCL_ERROR;
+  }
+
+  int numMaterials = argc-3;
+  
+  if (numMaterials == 0) {
+    opserr << "WARNING no component material(s) provided\n";
+    return TCL_ERROR;
+  }
+
+  // Create an array to hold pointers to component materials
+  UniaxialMaterial **theMats = new UniaxialMaterial *[numMaterials];
+  
+  // For each material get the tag and ensure it exists in model already
+  for (int i=0; i<numMaterials; i++) {
+    int tagI;
+    if (Tcl_GetInt(interp, argv[i+3], &tagI) != TCL_OK) {
+      opserr << "WARNING invalid component tag " << argv[i+3] << "\n";
+      return TCL_ERROR;
     }
 
-    int tag;
-    UniaxialMaterial* theMaterial = nullptr;
-    ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
-
-    if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-        opserr << "WARNING invalid uniaxialMaterial Parallel tag" << "\n";
-        return TCL_ERROR;
-    }
-
-    int numMaterials = argc-3;
+    UniaxialMaterial *theMat = builder->getTypedObject<UniaxialMaterial>(tagI);
     
-    if (numMaterials == 0) {
-        opserr << "WARNING no component material(s) provided\n";
-        return TCL_ERROR;
-    }
-
-    // Create an array to hold pointers to component materials
-    UniaxialMaterial **theMats = new UniaxialMaterial *[numMaterials];
-    
-    // For each material get the tag and ensure it exists in model already
-    for (int i=0; i<numMaterials; i++) {
-      int tagI;
-      if (Tcl_GetInt(interp, argv[i+3], &tagI) != TCL_OK) {
-        opserr << "WARNING invalid component tag " << argv[i+3] << "\n";
-        return TCL_ERROR;
-      }
-
-      UniaxialMaterial *theMat = builder->getTypedObject<UniaxialMaterial>(tagI);
-      
-      if (theMat == nullptr) {
-        delete [] theMats;
-        return TCL_ERROR;
-      } else
-        theMats[i] = theMat;
-    }
-    
-    // Parsing was successful, allocate the material
-    theMaterial = new ParallelMaterial(tag, numMaterials, theMats);
-    builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
-    
-    delete [] theMats;
-    return TCL_OK;
+    if (theMat == nullptr) {
+      delete [] theMats;
+      return TCL_ERROR;
+    } else
+      theMats[i] = theMat;
+  }
+  
+  // Parsing was successful, allocate the material
+  theMaterial = new ParallelMaterial(tag, numMaterials, theMats);
+  builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
+  
+  delete [] theMats;
+  return TCL_OK;
 }
+
 
 // material type? tag? nd_tag?
 int
@@ -441,7 +444,6 @@ TclCommand_addPlaneWrapper(ClientData clientData, Tcl_Interp* interp, int argc, 
 
     if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
       opserr << "WARNING invalid matTag" << "\n";
-      opserr << "PlaneStress: " << matTag << "\n";
       return TCL_ERROR;
     }
 
@@ -457,7 +459,6 @@ TclCommand_addPlaneWrapper(ClientData clientData, Tcl_Interp* interp, int argc, 
            strcmp(argv[1], "PlaneStrain") == 0) {
     if (argc < 4) {
       opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: nDMaterial PlaneStrain tag? matTag?" << "\n";
       return TCL_ERROR;
     }
 
@@ -488,4 +489,182 @@ TclCommand_addPlaneWrapper(ClientData clientData, Tcl_Interp* interp, int argc, 
 
   return TCL_OK;
 
+}
+
+
+int
+TclCommand_addParallel3DMaterial(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
+{
+  assert(clientData != nullptr);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+
+  // Accept:
+  //   nDMaterial Parallel3D tag? matTag1? matTag2? ... <-weights w1? w2? ...>?
+  // or
+  //   nDMaterial Parallel3D tag? {matTag1? matTag2? ...} <-weights {w1? w2? ...}>?
+
+  const char* info =
+    "nDMaterial Parallel3D tag? matTag1? matTag2? ... <-weights w1? w2? ...>?";
+
+  if (argc < 4) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: " << info << "\n";
+    return TCL_ERROR;
+  }
+
+  int tag;
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << "WARNING invalid nDMaterial Parallel3D tag " << argv[2] << "\n";
+    return TCL_ERROR;
+  }
+
+  int weightLoc = -1;
+  for (int i = 3; i < argc; i++) {
+    if (strcmp(argv[i], "-weights") == 0) {
+      if (weightLoc >= 0) {
+        opserr << "WARNING nDMaterial Parallel3D cannot use -weights more than once\n";
+        return TCL_ERROR;
+      }
+      weightLoc = i;
+    }
+  }
+
+  int matStart = 3;
+  int matEnd   = (weightLoc >= 0) ? weightLoc : argc;
+
+  if (matEnd <= matStart) {
+    opserr << "WARNING nDMaterial Parallel3D requires at least one component material\n";
+    return TCL_ERROR;
+  }
+
+  std::vector<NDMaterial*> materials;
+  std::vector<double> weights;
+
+  bool freeMatArgv = false;
+  bool freeWeightArgv = false;
+
+  TCL_Char** matArgv = nullptr;
+  Tcl_Size matArgc = 0;
+
+  TCL_Char** weightArgv = nullptr;
+  Tcl_Size weightArgc = 0;
+
+  int result = TCL_ERROR;
+
+  //
+  // Material arguments.
+  //
+  if (matEnd - matStart == 1) {
+    // A single Tcl word may be either one material tag or a Tcl list of tags.
+    if (Tcl_SplitList(interp, argv[matStart], &matArgc, &matArgv) != TCL_OK) {
+      opserr << "WARNING invalid list of component material tags\n";
+      goto cleanup;
+    }
+    freeMatArgv = true;
+  }
+  else {
+    matArgc = matEnd - matStart;
+    matArgv = argv + matStart;
+  }
+
+  if (matArgc <= 0) {
+    opserr << "WARNING nDMaterial Parallel3D received an empty material list\n";
+    goto cleanup;
+  }
+
+  materials.reserve(static_cast<std::size_t>(matArgc));
+
+  for (Tcl_Size i = 0; i < matArgc; i++) {
+    int matTag;
+
+    if (Tcl_GetInt(interp, matArgv[i], &matTag) != TCL_OK) {
+      opserr << "WARNING invalid component material tag " << matArgv[i] << "\n";
+      goto cleanup;
+    }
+
+    NDMaterial *theMat = builder->getTypedObject<NDMaterial>(matTag);
+    if (theMat == nullptr) {
+      opserr << "WARNING could not find nDMaterial with tag " << matTag << "\n";
+      goto cleanup;
+    }
+
+    materials.push_back(theMat);
+  }
+
+  //
+  // Weight arguments.
+  //
+  if (weightLoc < 0) {
+    weights.assign(materials.size(), 1.0);
+  }
+  else {
+    int weightStart = weightLoc + 1;
+    int weightEnd   = argc;
+
+    if (weightEnd <= weightStart) {
+      opserr << "WARNING nDMaterial Parallel3D -weights requires at least one weight\n";
+      goto cleanup;
+    }
+
+    if (weightEnd - weightStart == 1) {
+      // A single Tcl word may be either one weight or a Tcl list of weights.
+      if (Tcl_SplitList(interp, argv[weightStart], &weightArgc, &weightArgv) != TCL_OK) {
+        opserr << "WARNING invalid list of Parallel3D weights\n";
+        goto cleanup;
+      }
+      freeWeightArgv = true;
+    }
+    else {
+      weightArgc = weightEnd - weightStart;
+      weightArgv = argv + weightStart;
+    }
+
+    if (weightArgc <= 0) {
+      opserr << "WARNING nDMaterial Parallel3D received an empty weight list\n";
+      goto cleanup;
+    }
+
+    if (weightArgc != matArgc) {
+      opserr << "WARNING nDMaterial Parallel3D got "
+             << matArgc << " component materials but "
+             << weightArgc << " weights\n";
+      goto cleanup;
+    }
+
+    weights.reserve(static_cast<std::size_t>(weightArgc));
+
+    for (Tcl_Size i = 0; i < weightArgc; i++) {
+      double weight;
+
+      if (Tcl_GetDouble(interp, weightArgv[i], &weight) != TCL_OK) {
+        opserr << "WARNING invalid Parallel3D weight " << weightArgv[i] << "\n";
+        goto cleanup;
+      }
+
+      weights.push_back(weight);
+    }
+  }
+
+  {
+    NDMaterial* theMat = new Parallel3DMaterial(tag, materials, weights);
+
+    if (builder->addTaggedObject<NDMaterial>(*theMat) != TCL_OK) {
+      delete theMat;
+      opserr << "WARNING could not add nDMaterial Parallel3D " << tag << "\n";
+      goto cleanup;
+    }
+  }
+
+  result = TCL_OK;
+
+cleanup:
+  if (freeMatArgv) {
+    Tcl_Free((char*)matArgv);
+  }
+
+  if (freeWeightArgv) {
+    Tcl_Free((char*)weightArgv);
+  }
+
+  return result;
 }

@@ -68,8 +68,10 @@
 // Jim Coplien : "Advanced C++ programing styles and idioms".
 // I tried to understand idioms and I think I succeded.
 
+// namespace ucsd {
+
 class BJvector : virtual public BJmatrix
-  {
+{
   public:
     BJvector(int order_n = 1, double initvalue = 0.0);  // default constructor
       
@@ -93,4 +95,7 @@ class BJvector : virtual public BJmatrix
     // THE ROW COUNTER STARTS FROM 1 ( NOT FROM 0 )
      
 };
+
+// } // namespace ucsd
+
 #endif

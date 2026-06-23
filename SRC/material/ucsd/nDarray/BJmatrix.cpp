@@ -37,13 +37,15 @@
 //
 #include "BJmatrix.h"
 
+using namespace ucsd;
 
 #define TINY  1e-20
-void BJmatrix::error(const char * msg1, const char * msg2)
-  {
-    ::fprintf(stderr,"BJmatrix error: %s %s\n", msg1, msg2);
-    exit( 1 );
-  }
+void 
+BJmatrix::error(const char * msg1, const char * msg2)
+{
+  ::fprintf(stderr,"BJmatrix error: %s %s\n", msg1, msg2);
+  exit(1);
+}
 
 //##############################################################################
 BJmatrix::BJmatrix(int rows, int columns, double initval):
@@ -327,28 +329,29 @@ BJmatrix& BJmatrix::operator=( const BJmatrix & rval)
 
 
 //#############################################################################
-void BJmatrix::write_standard(char *filename, const char *msg)
-  {
-    FILE *to;
-    if ((to = fopen(filename,"w")) == NULL)
-      error("cannot open or create BJmatrix output file",filename);
-    fprintf(to, "# %s: BJmatrix file written in \"standard\" format\n", filename);
-    time_t clock;
-    time(&clock);
-    fprintf(to, "# %s", asctime(localtime(&clock)));
-    fprintf(to, "# %s", msg);
-    fprintf(to, "rows= %d columns= %d", rows(), cols());
-    fprintf(to, ":::\n");
-    for ( int row=0; row<rows() ; row++ )
-      {
-        for( int col=0; col<cols() ; col++ )
-          {
-            fprintf(to, "%6.6g  ",mval(row,col));
-            if(ferror(to))
-              error("problem with BJmatrix output file ", filename);
-          }
-        fprintf(to, "\n");
-      }
+void 
+BJmatrix::write_standard(const char *filename, const char *msg)
+{
+  FILE *to;
+  if ((to = fopen(filename,"w")) == NULL)
+    error("cannot open or create BJmatrix output file",filename);
+  fprintf(to, "# %s: BJmatrix file written in \"standard\" format\n", filename);
+  time_t clock;
+  time(&clock);
+  fprintf(to, "# %s", asctime(localtime(&clock)));
+  fprintf(to, "# %s", msg);
+  fprintf(to, "rows= %d columns= %d", rows(), cols());
+  fprintf(to, ":::\n");
+  for ( int row=0; row<rows() ; row++ )
+    {
+      for( int col=0; col<cols() ; col++ )
+        {
+          fprintf(to, "%6.6g  ",mval(row,col));
+          if(ferror(to))
+            error("problem with BJmatrix output file ", filename);
+        }
+      fprintf(to, "\n");
+    }
 }
 
 //....//#############################################################################
@@ -949,7 +952,7 @@ BJmatrix BJmatrix::lu_decompose(BJmatrix & indx, int & d )
  // The loop over columns of Crout's method:
     for( row=0 ; row<rows() ; row++ )
       {
-        if ( row>0 )        // eqn ±.3. 1 ± except for row=col:
+        if ( row>0 )        // eqn ï¿½.3. 1 ï¿½ except for row=col:
           {
             for ( col=0 ; col <= row-1 ; col++ )
               {

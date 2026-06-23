@@ -63,13 +63,16 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ConcreteS)
     return new ConcreteS( tag, data[0], data[1], data[2], data[3], data[4]);
 }
 
+
 //null constructor
-ConcreteS::ConcreteS( ) : 
-NDMaterial(0, ND_TAG_ConcreteS ), 
+ConcreteS::ConcreteS()
+ : NDMaterial(0, ND_TAG_ConcreteS ), 
 strain0(3), strain(3), stress0(3), stress(3), stressd(3),
 tangent(3,3),eTangent(3,3),
 cStrain0(0),cStrain(0)
-{ }
+{
+
+}
 
 
 //full constructor
@@ -282,23 +285,23 @@ ConcreteS::setTrialStrain( const Vector &strainFromElement )
 
 
 const Vector& 
-ConcreteS::getStrain( )
+ConcreteS::getStrain()
 {
-  return strain ;
+  return strain;
 }
 
 
 const Vector&  
-ConcreteS::getStress( )
+ConcreteS::getStress()
 {
-  return stressd ;
+  return stressd;
 }
 
 
 const Matrix&  
-ConcreteS::getTangent( )
+ConcreteS::getTangent()
 {
-  return tangent ;
+  return tangent;
 }
 
 const Matrix&  

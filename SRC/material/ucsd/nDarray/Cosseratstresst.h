@@ -98,15 +98,15 @@ class Cosseratstresstensor : public BJtensor
 
     Cosseratstresstensor pqtheta2stress( double, double, double );
 
-    void report(char *) const;
-    void reportshort(char *) const;
-    void reportshortpqtheta(char *) const;
-    void reportSHORTpqtheta(char *) const;
-    void reportSHORTs1s2s3(char *) const;
-    void reportKLOTpqtheta(char *) const;
-    void reportshortI1J2J3(char *) const;
-    void reportAnim(void) const;
-    void reportTensor(char *) const;
+    void report(const char *) const;
+    void reportshort(const char *) const;
+    void reportshortpqtheta(const char *) const;
+    void reportSHORTpqtheta(const char *) const;
+    void reportSHORTs1s2s3(const char *) const;
+    void reportKLOTpqtheta(const char *) const;
+    void reportshortI1J2J3(const char *) const;
+    void reportAnim() const;
+    void reportTensor(const char *) const;
 
     //================================================================================
     // Overloaded Insertion Operator	  ZHaohui Added Aug. 13, 2000

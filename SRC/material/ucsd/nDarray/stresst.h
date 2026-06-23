@@ -26,11 +26,11 @@
 #ifndef STRESSTENSOR_H
 #define STRESSTENSOR_H
 
-// #include <OPS_Globals.h>
 #include "BJtensor.h"
 class Material_Model;
 class OPS_Stream;
 
+// namespace ucsd {
 
 class stresstensor : public BJtensor
 {
@@ -54,8 +54,7 @@ class stresstensor : public BJtensor
     stresstensor operator=(const BJtensor & rval);// tensor assignment to stresstensor
     stresstensor operator=(const nDarray & rval);// nDarray assignment to stresstensor
 
-    stresstensor deep_copy(void);
-    //..    stresstensor * p_deep_copy(void);
+    stresstensor deep_copy();
 
     //ini  // use "from" and initialize already allocated stress tensor from "from" values
     //ini      void Initialize( const stresstensor & from );
@@ -89,12 +88,12 @@ class stresstensor : public BJtensor
     double p_hydrostatic( ) const;
     double q_deviatoric( ) const;
 
-    tensor dpoverds( void  ) const;
-    tensor dqoverds( void ) const;
-    tensor dthetaoverds( void ) const;
-    tensor d2poverds2( void ) const;
-    tensor d2qoverds2( void  ) const;
-    tensor d2thetaoverds2( void ) const;
+    BJtensor dpoverds(  ) const;
+    BJtensor dqoverds( void ) const;
+    BJtensor dthetaoverds( void ) const;
+    BJtensor d2poverds2( ) const;
+    BJtensor d2qoverds2(  ) const;
+    BJtensor d2thetaoverds2( ) const;
 	     	          
 
 
@@ -103,15 +102,15 @@ class stresstensor : public BJtensor
 
     stresstensor pqtheta2stress( double, double, double );
 
-    void report(char *) const;
-    void reportshort(char *) const;
-    void reportshortpqtheta(char *) const;
-    void reportSHORTpqtheta(char *) const;
-    void reportSHORTs1s2s3(char *) const;
-    void reportKLOTpqtheta(char *) const;
-    void reportshortI1J2J3(char *) const;
-    void reportAnim(void) const;
-    void reportTensor(char *) const;
+    void report(const char *) const;
+    void reportshort(const char *) const;
+    void reportshortpqtheta(const char *) const;
+    void reportSHORTpqtheta(const char *) const;
+    void reportSHORTs1s2s3(const char *) const;
+    void reportKLOTpqtheta(const char *) const;
+    void reportshortI1J2J3(const char *) const;
+    void reportAnim() const;
+    void reportTensor(const char *) const;
 
     //================================================================================
     // Overloaded Insertion Operator	  ZHaohui Added Aug. 13, 2000
@@ -144,6 +143,8 @@ class stresstensor : public BJtensor
     //  
     //  
 };
+
+// } // namespace ucsd
 
 #endif
 

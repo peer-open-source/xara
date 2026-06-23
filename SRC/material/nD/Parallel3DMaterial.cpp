@@ -28,7 +28,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <OPS_Globals.h>
-#include <elementAPI.h>
 #include <DummyStream.h>
 #include <MaterialResponse.h>
 #include <ID.h>
@@ -68,144 +67,6 @@ namespace Parallel3DUtils {
 
 }
 
-void *OPS_ADD_RUNTIME_VPV(OPS_Parallel3DMaterial)
-{
-	// info
-	const char* info = "nDMaterial Parallel3D $tag    $tag1 $tag2 ... $tagN   <-weights $w1 $w2 ... $wN>";
-
-	// utility for parsing
-	static std::vector<char> my_buffer(1024);
-	auto get_string_input = []() -> std::string {
-		return OPS_GetStringFromAll(my_buffer.data(), static_cast<int>(my_buffer.size()));
-	};
-
-	// convert string to int
-	auto to_int = [](const std::string& x, bool& ok) {
-		std::size_t pos;
-		int res = 0;
-		try {
-			res = std::stoi(x, &pos);
-			ok = (pos == x.size());
-		}
-		catch (...) {
-			ok = false;
-		}
-		return res;
-	};
-
-	// convert string to double
-	auto to_double = [](const std::string& x, bool& ok) {
-		std::size_t pos;
-		double res = 0.0;
-		try {
-			res = std::stod(x, &pos);
-			ok = (pos == x.size());
-		}
-		catch (...) {
-			ok = false;
-		}
-		return res;
-	};
-
-	// check minimum required arguments
-	int argc = OPS_GetNumRemainingInputArgs();
-	if (argc < 2) {
-		opserr <<
-			"nDMaterial Parallel3D Error: Few arguments (< 2).\n"
-			"Want: " << info << ".\n";
-		return nullptr;
-	}
-
-	// the parsing stage
-	// -1 = invalid, 0 = read -materials, 1 = read -weights
-	int parsing_stage = 0;
-
-	// begin parsing
-	int counter = 0;
-	bool ok;
-	int tag = 0;
-	std::vector<NDMaterial*> materials;
-	std::vector<double> weights;
-	while (argc > 0) {
-		// read next word
-		std::string word = get_string_input();
-		++counter;
-		argc = OPS_GetNumRemainingInputArgs();
-		// check tag first
-		if (counter == 1) {
-			tag = to_int(word, ok);
-			if (!ok) {
-				opserr << "nDMaterial Parallel3D Error: Cannot get the wrapper material tag (wrong word: \"" << word.c_str() << "\".\n";
-				return nullptr;
-			}
-			continue;
-		}
-		// read material ids
-		if (parsing_stage == 0) {
-			int imaterial_tag = to_int(word, ok);
-			if (ok) {
-				NDMaterial* imaterial = OPS_getNDMaterial(imaterial_tag);
-				if (imaterial == nullptr) {
-					opserr <<
-						"nDMaterial Parallel3D Error: No existing NDMaterial with tag " <<
-						imaterial_tag << " for NDMaterial Parallel3D " << tag << ".\n";
-					return nullptr;
-				}
-				materials.push_back(imaterial);
-				continue;
-			}
-			else {
-				parsing_stage = -1;
-			}
-		}
-		// read weights
-		if (parsing_stage == 1) {
-			double iweight = to_double(word, ok);
-			if (ok) {
-				weights.push_back(iweight);
-				continue;
-			}
-			else {
-				parsing_stage = -1;
-			}
-		}
-		// check others
-		if (word == "-weights") {
-			if (weights.size() > 0) {
-				opserr << "nDMaterial Parallel3D Error: Cannot use the -weights keyword multiple times.\n";
-				return nullptr;
-			}
-			parsing_stage = 1;
-			continue;
-		}
-	}
-
-	// some final check
-	if (materials.size() == 0) {
-		opserr << "nDMaterial Parallel3D Error: No material provided.\n";
-		return nullptr;
-	}
-	if (weights.size() == 0) {
-		// no user-defined weights... by default use unit weight for all materials
-		weights.resize(materials.size(), 1.0);
-	}
-	else {
-		if (weights.size() != materials.size()) {
-			opserr << "nDMaterial Parallel3D Error: the number of materials (" << 
-				static_cast<int>(materials.size()) << ") must be equal to the number of weights (" <<
-				static_cast<int>(weights.size()) << ").\n";
-			return nullptr;
-		}
-	}
-
-	// create the series material wrapper
-	NDMaterial* result = new Parallel3DMaterial(tag, materials, weights);
-	if (result == nullptr) {
-		opserr << "WARNING could not create NDMaterial of type Parallel3D.\n";
-		return nullptr;
-	}
-	return result;
-}
 
 Parallel3DMaterial::Parallel3DMaterial(
 	int tag,
@@ -228,6 +89,7 @@ Parallel3DMaterial::Parallel3DMaterial(
 	}
 	computeInitialTangent();
 }
+
 
 Parallel3DMaterial::Parallel3DMaterial()
 	: NDMaterial(0, ND_TAG_Parallel3DMaterial)

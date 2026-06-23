@@ -30,12 +30,12 @@
 #ifndef STRAINTENSOR_HH
 #define STRAINTENSOR_HH
 
-// #include <OPS_Globals.h>
 #include "BJtensor.h"
 class OPS_Stream;
 
+// namespace ucsd {
 
-class straintensor : public tensor
+class straintensor : public BJtensor
 {
   public: // just send appropriate arguments to the base constructor
 
@@ -43,21 +43,21 @@ class straintensor : public tensor
     straintensor (int rank_of_tensor=2, double initval=0.0);
 // default constructor           // this is just PI/10^8 to check default constructor
 
-    straintensor ( double *values );
+    straintensor( double *values );
 
-    straintensor ( double initvalue );
+    straintensor( double initvalue );
 
     straintensor(const straintensor & x );
-    straintensor(const tensor & x); // copy-initializer
+    straintensor(const BJtensor & x); // copy-initializer
     straintensor(const nDarray & x); // copy-initializer
 
     //~straintensor( );
     
     straintensor operator=(const straintensor & rval); // straintensor assignment
-    straintensor operator=(const tensor & rval);// tensor assignment to straintensor
+    straintensor operator=(const BJtensor & rval);// tensor assignment to straintensor
     straintensor operator=(const nDarray & rval);// nDarray assignment to straintensor
 
-    straintensor deep_copy(void);
+    straintensor deep_copy();
 //..    straintensor * p_deep_copy(void);
 
 //ini  // use "from" and initialize already allocated strain tensor from "from" values
@@ -95,8 +95,8 @@ class straintensor : public tensor
     straintensor pqtheta2strain( double, double, double );
     straintensor evoleq2strain( double, double );
 
-    void report(char *) const;
-    void reportshort(char *) const;
+    void report(const char *) const;
+    void reportshort(const char *) const;
 
     friend OPS_Stream& operator<< (OPS_Stream& os, const straintensor & rhs);
 
@@ -106,6 +106,8 @@ class straintensor : public tensor
 //..friend void zroots(complex *, int , complex *, int );
 //..
 };
+
+// } // namespace ucsd
 
 #endif
 

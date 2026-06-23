@@ -54,7 +54,7 @@ straintensor::straintensor( const straintensor & x ):
       x.pc_nDarray_rep->n++;  // tell the rval it has another reference
 //      x.reference_count(+1);              // we're adding another reference.
       pc_nDarray_rep = x.pc_nDarray_rep;  // point to the new tensor_rep.
-// add the indices
+      // add the indices
       indices1 = x.indices1;
       indices2 = x.indices2;
     }
@@ -415,50 +415,50 @@ double straintensor::tau_octahedral() const    // Chen W.F. "plasticity for
 
 //##############################################################################
 double straintensor::ksi()  const                     // Chen W.F. "plasticity for
-  {                                            // Structural Engineers"
-    return( (this->Iinvariant1())/sqrt(3.0) ); // page 66
-  }
+{                                            // Structural Engineers"
+  return( (this->Iinvariant1())/sqrt(3.0) ); // page 66
+}
 
 
 //##############################################################################
-double straintensor::ro() const                        // Chen W.F. "plasticity for
-  {                                             // Structural Engineers"
-    double temp1 = this->Jinvariant2();         // page 68
-    double EPS = pow(d_macheps(),(1./2.));
-    if ( temp1 < 0.0 || fabs(temp1) < EPS )
-      {
-        temp1 = 0.0;
-      }
-    return( sqrt(2.0*(temp1)));
+double 
+straintensor::ro() const                        // Chen W.F. "plasticity for
+{                                             // Structural Engineers"
+  double temp1 = this->Jinvariant2();         // page 68
+  double EPS = pow(d_macheps(),(1./2.));
+  if ( temp1 < 0.0 || fabs(temp1) < EPS ) {
+    temp1 = 0.0;
   }
+  return( sqrt(2.0*(temp1)));
+}
 
 //##############################################################################
 double straintensor::p_hydrostatic() const         // Desai "Constitutive Laws
-  {                                         // for Engineering Materials"
-    // Joey modified to make it consistent with stress tensor
-    return( - (this->Iinvariant1())*ONEOVERTHREE );  // page 283
-    
-    //return( (this->Iinvariant1()) );    // page 283
-  }
+{                                         // for Engineering Materials"
+  // Joey modified to make it consistent with stress tensor
+  return( - (this->Iinvariant1())*ONEOVERTHREE );  // page 283
+  
+  //return( (this->Iinvariant1()) );    // page 283
+}
 
 
 //##############################################################################
 double straintensor::q_deviatoric() const        // Desai "Constitutive Laws
-  {                                       // for Engineering Materials"
+{                                       // for Engineering Materials"
 //     double temp1 = this->Jinvariant2();   // page 283
 //     return( sqrt(4.0/3.0*temp1) );
 
     double tempsqrt = 2./3.*(deviator()("ij")*deviator()("ij")).trace();
     double EPS = d_macheps();
-// this is because it might be close
-// to zero ( -1e-19 ) numericaly
-// but sqrt() does not accept it
+    // this is because it might be close
+    // to zero ( -1e-19 ) numericaly
+    // but sqrt() does not accept it
     if ( tempsqrt < 0.0 )
       {
-::fprintf(stdout,"tempsqrt < 0.0 || fabs(tempsqrt) < EPS in ");
-::fprintf(stdout," double straintensor::q_deviatoric() const\a\a\n");
-::fprintf(stderr,"tempsqrt < 0.0 || fabs(tempsqrt) < EPS in ");
-::fprintf(stderr," double straintensor::q_deviatoric() const \a\a\n");
+        ::fprintf(stdout,"tempsqrt < 0.0 || fabs(tempsqrt) < EPS in ");
+        ::fprintf(stdout," double straintensor::q_deviatoric() const\a\a\n");
+        ::fprintf(stderr,"tempsqrt < 0.0 || fabs(tempsqrt) < EPS in ");
+        ::fprintf(stderr," double straintensor::q_deviatoric() const \a\a\n");
         ::exit(1);
       }
     if ( fabs(tempsqrt) < EPS )
@@ -467,8 +467,7 @@ double straintensor::q_deviatoric() const        // Desai "Constitutive Laws
       }
      double temp1 = sqrt(tempsqrt);
      return(temp1);
-
-  }
+}
 
 
 //##############################################################################
@@ -582,7 +581,8 @@ straintensor straintensor::evoleq2strain( double evol, double eq )
 
 
 //##############################################################################
-void straintensor::report(char * msg) const
+void
+straintensor::report(const char * msg) const
   {
     ::printf("\n****************  strain tensor report ****************\n");
     if ( msg ) ::printf("%s",msg);
@@ -618,26 +618,20 @@ void straintensor::report(char * msg) const
     ::printf("ksi=%.6e, ro=%.6e, theta=%.6e=%.6e*PI \n",
               ksi(),    ro(),    theta(),  thetaPI());
 
-    if ( msg ) ::printf("%s",msg);
+    if ( msg )
+      ::printf("%s",msg);
+  
     ::printf("\n############  end of strain tensor report ############\n");
   }
 
 
 //##############################################################################
-void straintensor::reportshort(char * msg) const
-  {
-//    ::printf("\n         ****************** short strain tensor report ***\n");
-//    if ( msg ) ::printf("         %s",msg);
+void
+straintensor::reportshort(const char * msg) const
+{
+  this->print("st"," ");
+}
 
-    this->print("st"," ");
-
-//    ::printf("ksi = %.8e ,ro = %.8e ,theta = %.8e\n",
-//              ksi(),       ro(),      theta());
-
-//    ::printf("p=%.12e , q=%.12e , theta=%.12e*PI\n",
-//              p_hydrostatic(), q_deviatoric(), thetaPI());
-
-  }
 
 OPS_Stream& operator<< (OPS_Stream& os, const straintensor & rhs)
 {

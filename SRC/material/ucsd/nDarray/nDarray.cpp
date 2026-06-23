@@ -82,11 +82,7 @@ nDarray::nDarray(int rank_of_nDarray, double initval)
 
 // allocate memory for the actual nDarray as nDarray
    pc_nDarray_rep->pd_nDdata = new double [(size_t) pc_nDarray_rep->total_numb];
-     if (!pc_nDarray_rep->pd_nDdata)
-       {
-         ::fprintf(stderr,"\a\nInsufficient memory for array\n");
-         ::exit(1);
-       }
+
 
    pc_nDarray_rep->n = 1;  // so far, there's one reference
 

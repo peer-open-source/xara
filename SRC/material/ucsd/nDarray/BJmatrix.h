@@ -70,6 +70,7 @@
 
 //class vector;
 
+// namespace ucsd {
 
 class BJmatrix : public nDarray
   {
@@ -104,11 +105,12 @@ class BJmatrix : public nDarray
       BJmatrix & operator=(const BJmatrix & rval); // BJmatrix assignment
 
 // Write a "standard" BJmatrix file:
-      void write_standard(char *filename, const char *msg = "");
+      void write_standard(const char *filename, const char *msg = "");
 
 
       BJmatrix operator*( BJmatrix &); // BJmatrix multiplication
       BJmatrix operator*( double rval); // scalar multiplication
+
 //....      vector operator*( vector &); // vector multiplication
 //      vector operator*( double ); // vector multiplication
 
@@ -126,9 +128,10 @@ class BJmatrix : public nDarray
 //####      double & operator( )(int row, int col);
 // can be used to read or write an element.
 
-      BJmatrix transpose( );       // transpose a square BJmatrix
-      double determinant( );
-      BJmatrix inverse( );
+      BJmatrix transpose();       // transpose a square BJmatrix
+      double determinant();
+      BJmatrix inverse();
+
       double mmin( );            // find minimum element in the BJmatrix
       double mmax( );            // find maximum element in the BJmatrix
       double mean( );            // average all the elements of the BJmatrix
@@ -184,4 +187,6 @@ class BJmatrix : public nDarray
 //       void eigsrt(double * d, double ** v, int n);
           
 };
+
+// } // namespace ucsd
 #endif 

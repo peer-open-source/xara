@@ -42,6 +42,8 @@
 
 #include "BJtensor.h"
 
+using namespace ucsd;
+
 // just send appropriate arguments to the base constructor
 //##############################################################################
 BJtensor::BJtensor(int rank_of_BJtensor, double initval):
@@ -134,7 +136,8 @@ BJtensor::BJtensor(const nDarray & x):
 // IT IS NOT INHERITED so must be defined in all derived classes
 // See ARM page 306.
 //##############################################################################
-BJtensor& BJtensor::operator=( const BJtensor & rval)
+BJtensor& 
+BJtensor::operator=( const BJtensor & rval)
   {
     rval.pc_nDarray_rep->n++; // we're adding another reference.
 //    rval.reference_count(+1);  // tell the rval it has another reference
@@ -175,7 +178,8 @@ BJtensor& BJtensor::operator=( const BJtensor & rval)
 // Since only two BJtensors can be multiplied at the time ( binary operation )
 // only indices1 and indices2 are needed #
 // WATCH OUT THIS IS NOT STANDRAD AS YOU CANNOT QUARANTY THE ORDER OF EXECUTION!!!!
-BJtensor & BJtensor::operator()(const char *indices_from_user)
+BJtensor & 
+BJtensor::operator()(const char *indices_from_user)
   {
     if ( this->indices1 == NULL )
       {
@@ -831,27 +835,27 @@ BJtensor BJtensor::operator*( BJtensor & arg)
 // check for indices number: should be EQUAL than rank of BJtensor
    if ( this_indices_number != this->rank() )
      {
-::fprintf(stderr,"\a\n 'this' has more/less indices than expected:\n \
-this_indices_number = %d\n \
-this_indices = %s\n \
-this->rank() = %d\n",
-this_indices_number,
-this_indices,
-this->rank());
-::exit(1);
+      ::fprintf(stderr,"\a\n 'this' has more/less indices than expected:\n \
+      this_indices_number = %d\n \
+      this_indices = %s\n \
+      this->rank() = %d\n",
+      this_indices_number,
+      this_indices,
+      this->rank());
+      ::exit(1);
      }
 
    if ( arg_indices_number != arg.rank() )
-     {
-::fprintf(stderr,"\a\n 'arg' has more/less indices than expected:\n \
-arg_indices_number = %d\n \
-arg_indices = %s\n \
-arg.rank() = %d\n",
-arg_indices_number,
-arg_indices,
-arg.rank());
-::exit(1);
-     }
+    {
+      ::fprintf(stderr,"\a\n 'arg' has more/less indices than expected:\n \
+      arg_indices_number = %d\n \
+      arg_indices = %s\n \
+      arg.rank() = %d\n",
+      arg_indices_number,
+      arg_indices,
+      arg.rank());
+      ::exit(1);
+    }
 
 // counter for contracted indices
    int contr_counter = contracted_ind(this_indices,
@@ -967,12 +971,10 @@ arg.rank());
    for( t=0 ; t<contr_counter ; t++ )
      {
        inerr_dims[t] = this->dim()[this_contr[t]-1];
-//DEBUGprint       ::printf("    inerr_dims[%d] = %d\n",t,inerr_dims[t]);
      }
    for( ; t<MAX_TENS_ORD ; t++ )
      {
        inerr_dims[t] = 1;
-//DEBUGprint       ::printf("          the rest of inerr_dims[%d] = %d\n",t,inerr_dims[t]);
      }
 
 
@@ -980,14 +982,12 @@ arg.rank());
    for( t=0 ; t<MAX_TENS_ORD ; t++ )
      {
        lid[t] = 1;
-//DEBUGprint       ::printf("    lid[%d] = %d\n",t,lid[t]);
      }
 
    int *rid = new int[MAX_TENS_ORD];
    for( t=0 ;  t<MAX_TENS_ORD ; t++ )
      {
        rid[t] = 1;
-//DEBUGprint       ::printf("    rid[%d] = %d\n",t,rid[t]);
      }
 
    int *cd = new int[MAX_TENS_ORD];
@@ -1659,7 +1659,8 @@ int BJtensor::uncontracted_ind(int *tens_uncontr,
 
 //##############################################################################
 // BJtensorial division THE rval MUST BE 0 ORDER BJtensor
-BJtensor BJtensor::operator/( BJtensor & rval)
+BJtensor 
+BJtensor::operator/( BJtensor & rval)
  {
 // construct BJtensor using the same control numbers as for the
 // original one.
@@ -1742,7 +1743,8 @@ BJtensor BJtensor::transpose0110() const
 //##############################################################################
 ///* transpose function for 4th rank BJtensors:
 //     ijkl  -->> ikjl    */
-BJtensor BJtensor::transposeoverbar() const // same as transpose0110
+BJtensor 
+BJtensor::transposeoverbar() const // same as transpose0110
   {
 // construct BJtensor using the same control numbers as for the
 // original one and than transpose it.
@@ -1901,7 +1903,8 @@ BJtensor BJtensor::transpose11() const
 //##############################################################################
 ///* symmterize function for 2th rank BJtensors:
 //     ij  
-BJtensor BJtensor::symmetrize11() const
+BJtensor 
+BJtensor::symmetrize11() const
   {
 // construct BJtensor using the same control numbers as for the
 // original one and than symmetrize it.
@@ -2381,15 +2384,9 @@ BJtensor BJtensor::inverse_2()  const // invert BJtensor of even rank by
 
   BJmatrix converted = this->BJtensor2BJmatrix_2();
 
-//  converted.print("c","\n Converted:\n");
-
   BJmatrix converted_inverse = converted.inverse();
 
-//  converted_inverse.print("t","\n\n converted_inverse \n");
-
   BJtensor result = converted_inverse.BJmatrix2BJtensor_2();
-
-//  result.print("t","back to BJtensor result");
 
   return result;
 }
@@ -2411,11 +2408,9 @@ BJtensor BJtensor::inverse()  const // invert BJtensor of even rank by
 
   BJtensor result;
 
-//converted.print("c","\n Converted:\n");
 
   BJmatrix converted_inverse = converted.inverse();
 
-//converted_inverse.print("t","\n\n Converted_inverse \n");
 
   if ( BJmatrix_or_BJtensor4 == 4 ) 
     {
@@ -2424,7 +2419,6 @@ BJtensor BJtensor::inverse()  const // invert BJtensor of even rank by
   else if ( BJmatrix_or_BJtensor4 == 2 ) 
     {
       result = converted_inverse.BJmatrix2BJtensor_22();
-//result.print("r","\n\n result  = converted_inverse.BJmatrix2BJtensor_2();\n");
     }
   else 
     {
@@ -2432,7 +2426,6 @@ BJtensor BJtensor::inverse()  const // invert BJtensor of even rank by
       ::exit(1);
     }
 
-//    result.print("t","back to BJtensor result");
 #ifdef SASA
 //***** Dodao Sasa
 //  result.pc_nDarray_rep->dim=this->dim();

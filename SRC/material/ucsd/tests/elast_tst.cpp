@@ -22,6 +22,7 @@
 #include <limits.h>
 #include <math.h>
 #include <float.h>
+
 // nDarray tools
 #include "BJtensor.h"
 #include "stresst.h"
@@ -32,11 +33,11 @@
 
 int main(int argc, char *argv[])
 {
-  if (argc != 2)
-    {
-      puts("\a\n usage: elast_tst test01.std\n");
-      exit( 1 );
-    }
+  if (argc != 2) {
+    puts("\a\n usage: elast_tst test01.std\n");
+    exit( 1 );
+  }
+
 ::printf("\n\n-------------  MACHINE (CPU) DEPENDENT THINGS  --------------\n\n");
 
 // defining machine epsilon for different built in data types supported by C++
