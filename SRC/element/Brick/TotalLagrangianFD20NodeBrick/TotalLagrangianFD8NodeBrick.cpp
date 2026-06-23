@@ -712,13 +712,6 @@ FEM_ObjectBroker &theBroker)
 
 
 //=============================================================================
-int TotalLagrangianFD8NodeBrick::displaySelf (Renderer &theViewer, int displayMode, float fact)
-{
-     // Not implemtented yet
-     return 0;
-}
-
-//=============================================================================
 void TotalLagrangianFD8NodeBrick::Print(OPS_Stream &s, int flag)
 {
     s << "\nTotalLagrangianFD8NodeBrick, element id:  " << this->getTag() << endln;

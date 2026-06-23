@@ -34,6 +34,7 @@ TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, Tcl_
 //
   int tag;
   double Kmax, Kur, Rf, Fult, gap;
+  double density = 0.0;
 
   if (argc < 8) {
     opserr << "WARNING insufficient number of arguments\n";
@@ -69,33 +70,51 @@ TclCommand_HyperbolicGapMaterial(ClientData clientData, Tcl_Interp *interp, Tcl_
     opserr << "WARNING invalid gap\n";
     return TCL_ERROR;	
   }
-  
-  if (gap>=0) {
-    opserr << "Initial gap size must be negative for compression-only material, setting to negative\n";
 
+  for (int i=0; i<argc; i++) {
+    if (strcmp(argv[i], "-density") == 0) {
+      if (i + 1 >= argc) {
+        opserr << "WARNING missing density value\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i+1], &density) != TCL_OK) {
+        opserr << "WARNING invalid density\n";
+        return TCL_ERROR;
+      }
+    }
+  }
+  
+  if (gap >= 0) {
+    opserr << "Initial gap size must be negative for compression-only material, setting to negative\n";
     gap = -gap;
   }
+
   if (Fult>0) {
-      opserr << "Fult must be negative for compression-only material, setting to negative\n";
+    opserr << "Fult must be negative for compression-only material, setting to negative\n";
     Fult = -Fult;
   }
+
   if (Kmax == 0.0) {
-      opserr << "Kmax is zero, continuing with Kmax = Fult/0.002\n";
-      if (Fult != 0.0)
-          Kmax = fabs(Fult)/0.002;
-      else {
-          opserr << "Kmax and Fult are zero\n";
-          return TCL_ERROR;
-      }
+    opserr << "Kmax is zero, continuing with Kmax = Fult/0.002\n";
+    if (Fult != 0.0)
+      Kmax = fabs(Fult)/0.002;
+    else {
+      opserr << "Kmax and Fult are zero\n";
+      return TCL_ERROR;
+    }
   }
 
-  UniaxialMaterial *theMaterial = new HyperbolicGapMaterial(tag, Kmax, Kur, Rf, Fult, gap);
+  UniaxialMaterial *theMaterial = new HyperbolicGapMaterial(tag, 
+                                                            Kmax, 
+                                                            Kur, 
+                                                            Rf, 
+                                                            Fult, 
+                                                            gap, 
+                                                            density);
 
   ModelRegistry* builder = (ModelRegistry*)(clientData);
-  if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) == TCL_OK)
-    return TCL_OK;
-  else
+  if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK)
     return TCL_ERROR;
 
-  return TCL_ERROR;
+  return TCL_OK;
 }

@@ -11,8 +11,10 @@
 #include <Information.h>
 #include <Parameter.h>
 #include <string.h>
+
 #include <elementAPI.h>
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
+
 void * OPS_ADD_RUNTIME_VPV(OPS_ResilienceLow) {
 
   // Pointer to a uniaxial material that will be returned
@@ -35,21 +37,16 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ResilienceLow) {
     return 0;
   }
 
-  
-
   // Parsing was successful, allocate the material
   theMaterial = new ResilienceLow(iData[0], dData[0], dData[1], 
 			    dData[2], dData[3], dData[4] 
 			    );
 
-  
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type ResilienceLow\n";
-    return 0;
-  }
      
   return theMaterial;
 }
+
+
 ResilienceLow::ResilienceLow(int tag, double pPY, double pDPmax, double pPmax, double pKe,double pKd)
   :UniaxialMaterial(tag,MAT_TAG_ResilienceLow),
    strain(0.0), stress(0.0), tangent(0.0),

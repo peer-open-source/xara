@@ -50,12 +50,15 @@ class BWBF : public UniaxialMaterial
         double pinch_lamda,
         //
         double tolerance,
-        int maxNumIter);
+        int maxNumIter,
+        double density);
     ~BWBF();
 
     const char *getClassType() const {return "BWBF";}
 
     UniaxialMaterial *getCopy();
+
+    double getRho() override {return density;}
 
     int setTrialStrain(double strain, double strainRate = 0.0);
     int commitState();
@@ -107,6 +110,7 @@ class BWBF : public UniaxialMaterial
     double Ao;
 
     double delta_a, delta_v, delta_n;
+    double density;
 
     
     // History variables (trial and committed)

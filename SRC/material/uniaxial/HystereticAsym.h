@@ -138,8 +138,8 @@ class HystereticAsym : public UniaxialMaterial
 	double signum(double value);
 
 // AddingSensitivity:BEGIN //////////////////////////////////////////
-    int parameterID;
-	Matrix *SHVs;
+  int parameterID;
+  Matrix *SHVs;
 
   //double Dka;
   //double Dkb;

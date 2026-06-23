@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+#pragma once
 // $Revision: 1.3 $
 // $Date: 2007-06-08 00:38:39 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/Concrete02.h,v $
@@ -35,10 +35,6 @@
 ! by D. Sze and Filip C. Filippou in 1994
 -----------------------------------------------------------------------*/
 
-
-
-#ifndef Concrete02_h
-#define Concrete02_h
 
 #include <UniaxialMaterial.h>
 
@@ -58,7 +54,7 @@ class Concrete02 : public UniaxialMaterial
     double getInitialTangent(void);
     UniaxialMaterial *getCopy(void);
 
-    int setTrialStrain(double strain, double strainRate = 0.0); 
+    int setTrialStrain(double strain, double strainRate); 
     double getStrain();      
     double getStress();
     double getTangent();
@@ -77,8 +73,8 @@ class Concrete02 : public UniaxialMaterial
     double getEnergy() { return TEnergy; }
 
  private:
-    void Tens_Envlp (double epsc, double &sigc, double &Ect);
-    void Compr_Envlp (double epsc, double &sigc, double &Ect);
+    void Tens_Envlp(double epsc, double &sigc, double &Ect);
+    void Compr_Envlp(double epsc, double &sigc, double &Ect);
 
     // matpar : Concrete FIXED PROPERTIES
     double fc;    // concrete compression strength           : mp(1)
@@ -106,7 +102,3 @@ class Concrete02 : public UniaxialMaterial
     double TEnergy = 0.0;
     double CEnergy = 0.0;
 };
-
-
-#endif
-

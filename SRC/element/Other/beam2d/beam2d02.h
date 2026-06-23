@@ -49,36 +49,35 @@ class beam2d02 : public Element
 	     CrdTransf2d &theTrans, double rho = 0.0);
     ~beam2d02();
 
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
 
-    int getNumDOF(void);
-    void setDomain(Domain *theDomain);
+    int getNumDOF();
+    void setDomain(Domain *);
     
-    int commitState(void);
+    int commitState();
     int revertToLastCommit(void);        
     int revertToStart(void);            
     
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getMass(void);    
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getMass();    
 
-    void zeroLoad(void);	
+    void zeroLoad();	
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);            
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();            
     
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    int displaySelf(Renderer &theViewer, int displayMode, float fact);    
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     
   private:
-    const Matrix &getStiff(void);    
+    const Matrix &getStiff();    
     
     // private attributes - a copy for each object of the class        
     double A,E,I,M;

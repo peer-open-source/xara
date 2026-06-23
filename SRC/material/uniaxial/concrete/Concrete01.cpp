@@ -105,7 +105,8 @@ Concrete01::~Concrete01()
 }
 
 
-int Concrete01::setTrialStrain(double strain, double strainRate)
+int
+Concrete01::setTrialStrain(double strain, double strainRate)
 {
   // Reset trial history variables to last committed state
   TminStrain = CminStrain;
@@ -237,7 +238,8 @@ Concrete01::setTrial(double strain, double &stress, double &tangent, double stra
   return 0;
 }
 
-void Concrete01::determineTrialState (double dStrain)
+void
+Concrete01::determineTrialState(double dStrain)
 {  
   TminStrain = CminStrain;
   TendStrain = CendStrain;
@@ -270,7 +272,8 @@ void Concrete01::determineTrialState (double dStrain)
   
 }
 
-void Concrete01::reload()
+void
+Concrete01::reload()
 {
   if (Tstrain <= TminStrain) {
     
@@ -346,53 +349,57 @@ Concrete01::unload()
   }
 }
 
-double Concrete01::getStress()
+double 
+Concrete01::getStress()
 {
   return Tstress;
 }
 
-double Concrete01::getStrain()
+double 
+Concrete01::getStrain()
 {
   return Tstrain;
 }
 
-double Concrete01::getTangent()
+double 
+Concrete01::getTangent()
 {
   return Ttangent;
 }
 
-int Concrete01::commitState()
+int 
+Concrete01::commitState()
 {
-   // History variables
-   CminStrain = TminStrain;
-   CunloadSlope = TunloadSlope;
-   CendStrain = TendStrain;
+  // History variables
+  CminStrain = TminStrain;
+  CunloadSlope = TunloadSlope;
+  CendStrain = TendStrain;
 
-   //added by SAJalali
-   EnergyP += 0.5*(Cstress + Tstress)*(Tstrain - Cstrain);
+  //added by SAJalali
+  EnergyP += 0.5*(Cstress + Tstress)*(Tstrain - Cstrain);
 
-   // State variables
-   Cstrain = Tstrain;
-   Cstress = Tstress;
-   Ctangent = Ttangent;
+  // State variables
+  Cstrain = Tstrain;
+  Cstress = Tstress;
+  Ctangent = Ttangent;
 
-   return 0;
+  return 0;
 }
 
 int
 Concrete01::revertToLastCommit()
 {
-   // Reset trial history variables to last committed state
-   TminStrain = CminStrain;
-   TendStrain = CendStrain;
-   TunloadSlope = CunloadSlope;
+  // Reset trial history variables to last committed state
+  TminStrain = CminStrain;
+  TendStrain = CendStrain;
+  TunloadSlope = CunloadSlope;
 
-   // Recompute trial stress and tangent
-   Tstrain = Cstrain;
-   Tstress = Cstress;
-   Ttangent = Ctangent;
+  // Recompute trial stress and tangent
+  Tstrain = Cstrain;
+  Tstress = Cstress;
+  Ttangent = Ctangent;
 
-   return 0;
+  return 0;
 }
 
 int
@@ -422,20 +429,20 @@ Concrete01::revertToStart()
 
 UniaxialMaterial* Concrete01::getCopy()
 {
-   Concrete01* theCopy = new Concrete01(this->getTag(),
-                                    fpc, epsc0, fpcu, epscu);
+  Concrete01* theCopy = new Concrete01(this->getTag(),
+                                  fpc, epsc0, fpcu, epscu);
 
-   // Converged history variables
-   theCopy->CminStrain = CminStrain;
-   theCopy->CunloadSlope = CunloadSlope;
-   theCopy->CendStrain = CendStrain;
+  // Converged history variables
+  theCopy->CminStrain = CminStrain;
+  theCopy->CunloadSlope = CunloadSlope;
+  theCopy->CendStrain = CendStrain;
 
-   // Converged state variables
-   theCopy->Cstrain = Cstrain;
-   theCopy->Cstress = Cstress;
-   theCopy->Ctangent = Ctangent;
+  // Converged state variables
+  theCopy->Cstrain = Cstrain;
+  theCopy->Cstress = Cstress;
+  theCopy->Ctangent = Ctangent;
 
-   return theCopy;
+  return theCopy;
 }
 
 int Concrete01::sendSelf(int commitTag, Channel& theChannel)

@@ -44,14 +44,14 @@
 #include <OPS_Globals.h>
 
 
-static int numBilin02Materials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_Bilin02)
 {
+  static int numBilin02Materials = 0;
   if (numBilin02Materials == 0) {
     numBilin02Materials++;
     opserr << "Modified Ibarra-Medina-Krawinkler Model with Bilinear Hysteretic Response\n";   // Updated: Filipe Ribeiro and Andre Barbosa
-	opserr << "Implementation and Calibration for CPH and FLPH by F.L.A. Ribeiro and A.R. Barbosa\n";   // Updated: Filipe Ribeiro and Andre Barbosa
+    opserr << "Implementation and Calibration for CPH and FLPH by F.L.A. Ribeiro and A.R. Barbosa\n";   // Updated: Filipe Ribeiro and Andre Barbosa
   }
   
   // Pointer to a uniaxial material that will be returned

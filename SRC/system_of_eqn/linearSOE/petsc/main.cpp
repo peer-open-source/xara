@@ -31,7 +31,7 @@
 #include <SparseGenRowLinSOE.h>
 
 // init the global variabled defined in OPS_Globals.h
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 #include <StandardStream.h>
 
 StandardStream sserr;

@@ -63,6 +63,7 @@ ParseBoucWen(ClientData clientData, Tcl_Interp *interp,
   int iterations = 25;
   double tolerance = 1e-8;
   double n = 1.0;
+  double density = 0.0;
 
   // BoucWenOriginal-only
   double mu = 2.0, alphaNL = 0.0;
@@ -284,6 +285,16 @@ ParseBoucWen(ClientData clientData, Tcl_Interp *interp,
         return TCL_ERROR;
       }
       tracker.consume(Positions::Iterations);
+    }
+    else if (strcmp(argv[i], "-density") == 0) {
+      if (++i >= argc) {
+        opserr << "Missing value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
+        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        return TCL_ERROR;
+      }
     }
     else 
       positional.insert(i);
@@ -528,10 +539,10 @@ ParseBoucWen(ClientData clientData, Tcl_Interp *interp,
                  pinch_lamda,
                  //
                  tolerance, 
-                 iterations);
+                 iterations,
+                 density);
   }
   else if ((strcmp(argv[1], "BoucWen") == 0)) {
-
     theMaterial =
         new BoucWenMaterial(tag, alpha, E, n, gamma, beta, Ao, 
                             delta_a, delta_v, delta_n, 

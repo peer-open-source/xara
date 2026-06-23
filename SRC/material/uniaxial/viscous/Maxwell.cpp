@@ -32,17 +32,18 @@
 #include <Channel.h>
 #include <string.h>
 
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 
-static int numMaxwellMaterials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_Maxwell)
 {
+
+  static int numMaxwellMaterials = 0;
   if (numMaxwellMaterials == 0) {
     numMaxwellMaterials++;
     opslog << "Maxwell Model - D.Lignos, McGill University\n";
   }
-  
+
   // Pointer to a uniaxial material that will be returned
   UniaxialMaterial *theMaterial = 0;
   
@@ -80,11 +81,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Maxwell)
   theMaterial = new Maxwell(iData[0], 
 			    dData[0], dData[1], dData[2], dData[3], 
 			    iData[1]);
-  
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Maxwell Material\n";
-    return 0;
-  }
   
   return theMaterial;
 }

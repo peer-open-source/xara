@@ -533,15 +533,16 @@ TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
   return theElement;
 }
 
+#endif
 
-
-
+#if 0
 #include <element/community/UWelements/BeamContact3D.h>
 static Element*
 TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
+  static int num_BeamContact3D = 0;
 
   if (num_BeamContact3D == 0) {
     num_BeamContact3D++;
@@ -594,7 +595,7 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
   }
 
   int transfTag = iData[5];
-  CrdTransf *theTransf = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(transfTag);
+  CrdTransf *theTransf = builder->getTypedObject<CrdTransf>(transfTag);
   if (theTransf == 0) {
     opserr << "WARNING element BeamContact3D " << iData[0] << endln;
     opserr << " coordTransf: " << transfTag << "not found\n";
@@ -625,16 +626,13 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
                                  iData[4], dData[0], *theTransf, *theMaterial,
                                  dData[1], dData[2], icSwitch);
 
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type BeamContact3DElement\n";
-    return 0;
-  }
-
   return theElement;
 }
 
+#endif
 
 
+#if 0
 
 #include <element/community/UWelements/BeamContact3Dp.h>
 static Element*

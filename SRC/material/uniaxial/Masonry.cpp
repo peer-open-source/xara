@@ -13,24 +13,26 @@
 //
 #include <stdlib.h> 
 #include "Masonry.h" 
-#include <OPS_Globals.h> 
+#include <logging/Logging.h> 
 #include <float.h> 
+#include <string.h>
 #include <Vector.h> 
 #include <Channel.h> 
 #include <Information.h> 
 #include <algorithm> 
-#include <math.h> 
-#include "classTags.h" 
-#include "elementAPI.h" 
+#include <math.h>
+
+#include <classTags.h>
+#include <elementAPI.h>
 
 /******************************************************************************* 
 * GETTING STARTED : Create a new Uniaxial Material class named "Masonry"  
 *******************************************************************************/ 
- 
-static int numMasonry = 0; 
+
 
 void * OPS_ADD_RUNTIME_VPV(OPS_Masonry) 
 { 
+  static int numMasonry = 0; 
   // print out some KUDO's 
   if (numMasonry == 0) { 
     opslog << "Masonry unaxial material - Written by Gonzalo Torrisi based on Crisafulli material model, Copyright 2015\n"; 
@@ -153,15 +155,17 @@ Masonry::Masonry(int tag, double _Fm,     double _Ft,
   this->revertToLastCommit();   
 } 
  
-Masonry::Masonry(void): 
+Masonry::Masonry(): 
 UniaxialMaterial(0, MAT_TAG_Masonry), Fm(0),  Ft(0), Um(0),  Uult(0),   Ucl(0), Emo(0),   Length(0), Area1(0), Area2(0),  D1(0), 
 D2(0), Ach(0),  Are(0),  Ba(0), Bch(0),  Gun(0),    Gplu(0),  Gplr(0),  Exp1(0),   Exp2(0), IENV(0) 
 { 
- } 
-Masonry::~Masonry(void) 
+}
+
+Masonry::~Masonry() 
 { 
   // Does nothing 
-} 
+}
+
 /**************************************************************************** 
  *  PART II : Material State determination --> PROGRAM CORE                                                          * 
  ****************************************************************************/ 
@@ -208,43 +212,42 @@ Masonry::setTrialStrain(double strain, double strainRate)
   } 
   else 
   { 
-// ------------------------------------------------------------------------- 
-// Find case & Calculate Stress - Tangent:  
-//-------------------------------------------------------------------------- 
-this-> Stress_Tangent(U, DeltaU, cU, cS, cEt,  
-             Um, Fm, Emo, Ft, Uult, Ucl, Ach, Are, 
-           Ba, Bch, Gun, Gplu, Gplr, Exp1, Exp2,  
-       U1, S1, E1, U2, S2, E2, S, Et,  
-       FtRed, Upl, UunInt, UreInt, Uun, Sun, 
-           Eun, Ure, Sre, Ere, Uch, Sch, Ech, 
-           RuleNo, InnerCycleNo, IVIR ); 
+    // ------------------------------------------------------------------------- 
+    // Find case & Calculate Stress - Tangent:  
+    //-------------------------------------------------------------------------- 
+    this-> Stress_Tangent(U, DeltaU, cU, cS, cEt,  
+                Um, Fm, Emo, Ft, Uult, Ucl, Ach, Are, 
+              Ba, Bch, Gun, Gplu, Gplr, Exp1, Exp2,  
+          U1, S1, E1, U2, S2, E2, S, Et,  
+          FtRed, Upl, UunInt, UreInt, Uun, Sun, 
+              Eun, Ure, Sre, Ere, Uch, Sch, Ech, 
+              RuleNo, InnerCycleNo, IVIR ); 
   } 
-// CALCULATE FORCE & STIFFNESS (according to the level of the axial deformation) 
-if ((Area1 == Area2) || (cArea == Area2)) 
-{ 
-    Area = Area2; 
-} 
-else 
-{ 
-    if (D > D1) 
-    { 
-    Area = Area1; 
-    } 
-    else if (D < D2) 
-    { 
-    Area = Area2; 
-    } 
-    else  
-    { 
-    Area = Area1-(Area1-Area2)*(D1-D)/(D1-D2); 
-    } 
-} 
-cArea = Area; 
-Kfactor = Et*Area/Emo/Area1;    // stiffness coefficient factor 
-K = Kfactor*Ko;                               // current stiffness 
-F = S*Area;                                      // current force 
-return 0; 
- 
+  // CALCULATE FORCE & STIFFNESS (according to the level of the axial deformation) 
+  if ((Area1 == Area2) || (cArea == Area2)) 
+  { 
+      Area = Area2; 
+  } 
+  else 
+  { 
+      if (D > D1) 
+      { 
+      Area = Area1; 
+      } 
+      else if (D < D2) 
+      { 
+      Area = Area2; 
+      } 
+      else  
+      { 
+      Area = Area1-(Area1-Area2)*(D1-D)/(D1-D2); 
+      } 
+  } 
+  cArea = Area; 
+  Kfactor = Et*Area/Emo/Area1;    // stiffness coefficient factor 
+  K = Kfactor*Ko;                               // current stiffness 
+  F = S*Area;                                      // current force 
+  return 0; 
 } // end of Part II 
  
 /**************************************************************************** 

@@ -59,21 +59,21 @@ class PY_Macro2D : public Element
     const Matrix &getInitialStiff(void);
     const Matrix &getDamp(void);
     const Matrix &getMass(void);
-    double signum(double);
 
     const Vector &getResistingForce(void);
     const Vector &getResistingForceIncInertia(void);
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag =0);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    void Print(OPS_Stream &s, int flag);
 
-    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    int getResponse(int responseID, Information &);
 
   private:
+    double signum(double);
+
     double K;
     double py;
     double a;

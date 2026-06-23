@@ -47,12 +47,14 @@ BWBF::BWBF(int tag,
           double pinch_size,
           double pinch_lamda,
           double tolerance,
-          int MaxNumIter)
+          int MaxNumIter,
+          double density)
  : UniaxialMaterial(tag,MAT_TAG_BWBF),
   Fy(Fy), Ko(E), alpha(alpha), 
   n(n), beta(beta), gamma(1-beta), Ao(1.0), 
   delta_a(delta_a), delta_v(delta_v), delta_n(delta_n),
   pinch(pinch_start, pinch_slip, pinch_slope, pinch_size, pinch_rate, pinch_lamda),
+  density(density),
   tolerance(tolerance),
   maxNumIter(MaxNumIter)
 {
@@ -237,9 +239,10 @@ BWBF::getCopy()
   new BWBF(this->getTag(), Ko, Fy, alpha, n,
             beta, 
             delta_a, delta_v, delta_n,
-            0,0,0,0,0,0,
-            tolerance, maxNumIter);
+            0,0,0,0,0,0, // set below in assignment
+            tolerance, maxNumIter, density);
       
+  // copy pinching parameters
   (*theCopy) = (*this);
 
   return theCopy;

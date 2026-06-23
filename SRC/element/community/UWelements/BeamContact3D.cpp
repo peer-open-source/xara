@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
+//
 // Written: Kathryn A. Petek
 // Created: 06/05
 //
@@ -40,7 +40,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <Parameter.h>
@@ -48,9 +47,8 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h>
 
-
+#if 0
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -136,7 +134,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_BeamContact3D)
 
   return theElement;
 }
-
+#endif
 
 
 // constructors:
@@ -2051,15 +2049,6 @@ BeamContact3D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &th
   return 0;
 }
 
-
-int
-BeamContact3D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-#ifdef DEBUG
-        opserr << "BeamContact3D::displaySelf(Renderer &theViewer, int displayMode, float fact)" << endln;
-#endif
-  return 0;
-}
 
 
 void

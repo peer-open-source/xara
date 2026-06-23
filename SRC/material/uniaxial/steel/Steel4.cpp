@@ -30,7 +30,7 @@
 
 #include <stdlib.h>
 #include <Steel4.h>
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 #include <float.h>
 #include <Channel.h>
 #include <elementAPI.h>

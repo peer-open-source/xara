@@ -74,8 +74,6 @@ class TotalLagrangianFD8NodeBrick: public Element
 
     const char *getClassType() const {return "TotalLagrangianFD8NodeBrick";}
 
-
-
     int getNumExternalNodes () const;
     const ID &getExternalNodes ();
     Node **getNodePtrs();
@@ -94,8 +92,6 @@ class TotalLagrangianFD8NodeBrick: public Element
     const Matrix &getInitialStiff();
     const Matrix &getMass ();
 
-
-
     void zeroLoad ();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
@@ -107,19 +103,14 @@ class TotalLagrangianFD8NodeBrick: public Element
 
 
     // public methods for element output
-
     int sendSelf (int commitTag, Channel &theChannel);
-
     int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-
-    int displaySelf (Renderer &theViewer, int displayMode, float fact);
 
     void Print(OPS_Stream &s, int flag);
 
 
 
     Response *setResponse (const char **argv, int argc, OPS_Stream &s);
-
     int getResponse (int responseID, Information &eleInformation);
 
 

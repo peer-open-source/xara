@@ -142,6 +142,5 @@ class Steel2 : public UniaxialMaterial
     double eps;   //  = strain at current step
 };
 
-
 #endif
 

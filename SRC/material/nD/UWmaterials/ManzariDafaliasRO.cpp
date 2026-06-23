@@ -36,10 +36,12 @@
 #define fmin std::min
 #endif
 
-static int numManzariDafaliasMaterials = 0;
 
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_ManzariDafaliasMaterialRO)
 {
+  static int numManzariDafaliasMaterials = 0;
+
   if (numManzariDafaliasMaterials == 0) {
     numManzariDafaliasMaterials++;
     opslog << "ManzariDafaliasRO nDmaterial - Written: A.Ghofrani, P.Arduino, U.Washington\n";

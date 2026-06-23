@@ -4,7 +4,6 @@
 #include <Information.h>
 #include <Domain.h>
 #include <Node.h>
-#include <Renderer.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
@@ -134,25 +133,25 @@ PY_Macro2D::~PY_Macro2D()
 
 
 int
-PY_Macro2D::getNumExternalNodes(void) const
+PY_Macro2D::getNumExternalNodes() const
 {
   return 2;
 }
 
 const ID &
-PY_Macro2D::getExternalNodes(void)
+PY_Macro2D::getExternalNodes()
 {
   return connectedExternalNodes;
 }
 
 Node **
-PY_Macro2D::getNodePtrs(void)
+PY_Macro2D::getNodePtrs()
 {
   return theNodes;
 }
 
 int
-PY_Macro2D::getNumDOF(void)
+PY_Macro2D::getNumDOF()
 {
   return nDOF;
 }
@@ -352,14 +351,12 @@ PY_Macro2D::update(void)
 //	Tforce = py*Tz*TS;
 //	Ttangent = K*(1-(tanh(a*fabs(Tz))/tanh(a))*(b+g*signum(dU*Tz)))*TS;
 
-
-
   return 0;
 }
 
 
 const Matrix &
-PY_Macro2D::getTangentStiff(void)
+PY_Macro2D::getTangentStiff()
 {
   theMatrix.Zero();
   theMatrix = trans^trans;
@@ -370,7 +367,7 @@ PY_Macro2D::getTangentStiff(void)
 
 
 const Matrix &
-PY_Macro2D::getInitialStiff(void)
+PY_Macro2D::getInitialStiff()
 {
   theMatrix.Zero();
 
@@ -381,7 +378,7 @@ PY_Macro2D::getInitialStiff(void)
 }
 
 const Matrix &
-PY_Macro2D::getDamp(void)
+PY_Macro2D::getDamp()
 {
   theMatrix.Zero();
   return theMatrix;
@@ -448,7 +445,6 @@ PY_Macro2D::setResponse(const char **argv, int argc, OPS_Stream &output)
   // we compare argv[0] for known response types for the PY_Macro2D
   //
 
-
   if (strcmp(argv[0],"S")) {
     output.tag("ResponseType", "S1");
     theResponse = new ElementResponse(this, 3, 0.0);
@@ -458,28 +454,18 @@ PY_Macro2D::setResponse(const char **argv, int argc, OPS_Stream &output)
   return theResponse;
 }
 
- int
-   PY_Macro2D::getResponse(int responseID, Information &eleInfo)
- {
-   double strain;
 
-   switch (responseID) {
-   case 1:
-     return eleInfo.setDouble(S1);
-
-   default:
-     return 0;
-   }
- }
-
-int 
-PY_Macro2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
+int
+PY_Macro2D::getResponse(int responseID, Information &eleInfo)
 {
-    static Vector v1(3);
-    static Vector v2(3);
+  double strain;
 
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
+  switch (responseID) {
+  case 1:
+    return eleInfo.setDouble(S1);
 
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
+  default:
+    return 0;
+  }
 }
+

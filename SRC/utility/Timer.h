@@ -52,7 +52,7 @@
 #include <sys/resource.h>
 #endif
 
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 
 class Timer
 {

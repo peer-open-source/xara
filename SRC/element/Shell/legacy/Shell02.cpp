@@ -41,45 +41,12 @@
 #include <ErrorHandler.h>
 #include <Shell02.h>
 #include <R3vectors.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 
 #define min(a,b) ( (a)<(b) ? (a):(b) )
-
-void *
-OPS_NewShell02(void)
-{
-  Element *theElement = 0;
-  
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numArgs < 6) {
-    opserr << "Want: element Shell02 $tag $iNode $jNoe $kNode $lNode $secTag";
-    return 0;	
-  }
-  
-  int iData[6];
-  int numData = 6;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element Shell02 \n";
-    return 0;
-  }
-
-  SectionForceDeformation *theSection = OPS_GetSectionForceDeformation(iData[5]);
-
-  if (theSection == 0) {
-	opserr << "ERROR:  element Shell02 " << iData[0] << "section " << iData[5] << " not found\n";
-    return 0;
-  }
-  
-  theElement = new Shell02(iData[0], iData[1], iData[2], iData[3], iData[4], *theSection);
-
-  return theElement;
-}
 
 //static data
 Matrix  Shell02::stiff(24,24) ;
@@ -103,9 +70,9 @@ double Shell02::wg[4] ;
 
 /*
 const double  Shell02::sg[] = { -one_over_root3,  
-				one_over_root3, 
-				one_over_root3, 
-	                       -one_over_root3 } ;
+                one_over_root3, 
+                one_over_root3, 
+                           -one_over_root3 } ;
 
 const double  Shell02::tg[] = { -one_over_root3, 
                                -one_over_root3, 
@@ -126,43 +93,43 @@ connectedExternalNodes(4), load(0), Ki(0)
 
   //shear matrix pointers
   if ( GammaB1pointer == 0 ) {
-	GammaB1pointer = new Matrix*[4] ;      //four matrix pointers
-	GammaB1pointer[0] = new Matrix(1,3) ;  //
-	GammaB1pointer[1] = new Matrix(1,3) ;  //    four
-	GammaB1pointer[2] = new Matrix(1,3) ;  //  1x3 matrices
-	GammaB1pointer[3] = new Matrix(1,3) ;  //
+    GammaB1pointer = new Matrix*[4] ;      //four matrix pointers
+    GammaB1pointer[0] = new Matrix(1,3) ;  //
+    GammaB1pointer[1] = new Matrix(1,3) ;  //    four
+    GammaB1pointer[2] = new Matrix(1,3) ;  //  1x3 matrices
+    GammaB1pointer[3] = new Matrix(1,3) ;  //
   } //end if B1
 
   if ( GammaD1pointer == 0 ) {
-	GammaD1pointer = new Matrix*[4] ;
-	GammaD1pointer[0] = new Matrix(1,3) ;
-	GammaD1pointer[1] = new Matrix(1,3) ;
-	GammaD1pointer[2] = new Matrix(1,3) ;
-	GammaD1pointer[3] = new Matrix(1,3) ;
+    GammaD1pointer = new Matrix*[4] ;
+    GammaD1pointer[0] = new Matrix(1,3) ;
+    GammaD1pointer[1] = new Matrix(1,3) ;
+    GammaD1pointer[2] = new Matrix(1,3) ;
+    GammaD1pointer[3] = new Matrix(1,3) ;
   } //end if D1
 
   if ( GammaA2pointer == 0 ) {
-	GammaA2pointer = new Matrix*[4] ;
-	GammaA2pointer[0] = new Matrix(1,3) ;
-	GammaA2pointer[1] = new Matrix(1,3) ;
-	GammaA2pointer[2] = new Matrix(1,3) ;
-	GammaA2pointer[3] = new Matrix(1,3) ;
+    GammaA2pointer = new Matrix*[4] ;
+    GammaA2pointer[0] = new Matrix(1,3) ;
+    GammaA2pointer[1] = new Matrix(1,3) ;
+    GammaA2pointer[2] = new Matrix(1,3) ;
+    GammaA2pointer[3] = new Matrix(1,3) ;
   } //end if A2
 
   if ( GammaC2pointer == 0 ) {
-	GammaC2pointer = new Matrix*[4] ;
-	GammaC2pointer[0] = new Matrix(1,3) ;
-	GammaC2pointer[1] = new Matrix(1,3) ;
-	GammaC2pointer[2] = new Matrix(1,3) ;
-	GammaC2pointer[3] = new Matrix(1,3) ;
+    GammaC2pointer = new Matrix*[4] ;
+    GammaC2pointer[0] = new Matrix(1,3) ;
+    GammaC2pointer[1] = new Matrix(1,3) ;
+    GammaC2pointer[2] = new Matrix(1,3) ;
+    GammaC2pointer[3] = new Matrix(1,3) ;
   } //end if C2
 
   if ( Bhat == 0 ) {
-	Bhat = new Matrix*[4] ;
-	Bhat[0] = new Matrix(2,3) ;
-	Bhat[1] = new Matrix(2,3) ;
-	Bhat[2] = new Matrix(2,3) ;
-	Bhat[3] = new Matrix(2,3) ;
+    Bhat = new Matrix*[4] ;
+    Bhat[0] = new Matrix(2,3) ;
+    Bhat[1] = new Matrix(2,3) ;
+    Bhat[2] = new Matrix(2,3) ;
+    Bhat[3] = new Matrix(2,3) ;
   } //end if Bhat
 
   sg[0] = -one_over_root3;
@@ -187,9 +154,9 @@ connectedExternalNodes(4), load(0), Ki(0)
 Shell02::Shell02(  int tag, 
                          int node1,
                          int node2,
-   	                 int node3,
+                        int node3,
                          int node4,
-	                 SectionForceDeformation &theMaterial ) :
+                     SectionForceDeformation &theMaterial ) :
 Element( tag, ELE_TAG_Shell02 ),
 connectedExternalNodes(4), load(0), Ki(0)
 {
@@ -201,54 +168,48 @@ connectedExternalNodes(4), load(0), Ki(0)
   connectedExternalNodes(3) = node4 ;
 
   for ( i = 0 ;  i < 4; i++ ) {
-
-      materialPointers[i] = theMaterial.getCopy( ) ;
-
-      if (materialPointers[i] == 0) {
-	opserr << "Shell02::constructor - failed to get a material of type: ShellSection\n";
-      } //end if
-      
+    materialPointers[i] = theMaterial.getCopy( );      
   } //end for i 
 
   //shear matrix pointers
   if ( GammaB1pointer == 0 ) {
-	GammaB1pointer = new Matrix*[4] ;      //four matrix pointers
-	GammaB1pointer[0] = new Matrix(1,3) ;  //
-	GammaB1pointer[1] = new Matrix(1,3) ;  //    four
-	GammaB1pointer[2] = new Matrix(1,3) ;  //  1x3 matrices
-	GammaB1pointer[3] = new Matrix(1,3) ;  //
+    GammaB1pointer = new Matrix*[4] ;      //four matrix pointers
+    GammaB1pointer[0] = new Matrix(1,3) ;  //
+    GammaB1pointer[1] = new Matrix(1,3) ;  //    four
+    GammaB1pointer[2] = new Matrix(1,3) ;  //  1x3 matrices
+    GammaB1pointer[3] = new Matrix(1,3) ;  //
   } //end if B1
 
   if ( GammaD1pointer == 0 ) {
-	GammaD1pointer = new Matrix*[4] ;
-	GammaD1pointer[0] = new Matrix(1,3) ;
-	GammaD1pointer[1] = new Matrix(1,3) ;
-	GammaD1pointer[2] = new Matrix(1,3) ;
-	GammaD1pointer[3] = new Matrix(1,3) ;
+    GammaD1pointer = new Matrix*[4] ;
+    GammaD1pointer[0] = new Matrix(1,3) ;
+    GammaD1pointer[1] = new Matrix(1,3) ;
+    GammaD1pointer[2] = new Matrix(1,3) ;
+    GammaD1pointer[3] = new Matrix(1,3) ;
   } //end if D1
 
   if ( GammaA2pointer == 0 ) {
-	GammaA2pointer = new Matrix*[4] ;
-	GammaA2pointer[0] = new Matrix(1,3) ;
-	GammaA2pointer[1] = new Matrix(1,3) ;
-	GammaA2pointer[2] = new Matrix(1,3) ;
-	GammaA2pointer[3] = new Matrix(1,3) ;
+    GammaA2pointer = new Matrix*[4] ;
+    GammaA2pointer[0] = new Matrix(1,3) ;
+    GammaA2pointer[1] = new Matrix(1,3) ;
+    GammaA2pointer[2] = new Matrix(1,3) ;
+    GammaA2pointer[3] = new Matrix(1,3) ;
   } //end if A2
 
   if ( GammaC2pointer == 0 ) {
-	GammaC2pointer = new Matrix*[4] ;
-	GammaC2pointer[0] = new Matrix(1,3) ;
-	GammaC2pointer[1] = new Matrix(1,3) ;
-	GammaC2pointer[2] = new Matrix(1,3) ;
-	GammaC2pointer[3] = new Matrix(1,3) ;
+    GammaC2pointer = new Matrix*[4] ;
+    GammaC2pointer[0] = new Matrix(1,3) ;
+    GammaC2pointer[1] = new Matrix(1,3) ;
+    GammaC2pointer[2] = new Matrix(1,3) ;
+    GammaC2pointer[3] = new Matrix(1,3) ;
   } //end if C2
 
   if ( Bhat == 0 ) {
-	Bhat = new Matrix*[4] ;
-	Bhat[0] = new Matrix(2,3) ;
-	Bhat[1] = new Matrix(2,3) ;
-	Bhat[2] = new Matrix(2,3) ;
-	Bhat[3] = new Matrix(2,3) ;
+    Bhat = new Matrix*[4] ;
+    Bhat[0] = new Matrix(2,3) ;
+    Bhat[1] = new Matrix(2,3) ;
+    Bhat[2] = new Matrix(2,3) ;
+    Bhat[3] = new Matrix(2,3) ;
   } //end if Bhat
 
   sg[0] = -one_over_root3;
@@ -270,7 +231,7 @@ connectedExternalNodes(4), load(0), Ki(0)
 //******************************************************************
 
 //destructor 
-Shell02::~Shell02( )
+Shell02::~Shell02()
 {
   int i ;
   for ( i = 0 ;  i < 4; i++ ) {
@@ -281,7 +242,7 @@ Shell02::~Shell02( )
 
     nodePointers[i] = 0 ;
 
-  } //end for i
+  }
 
   if (load != 0)
     delete load;
@@ -313,8 +274,8 @@ void  Shell02::setDomain( Domain *theDomain )
 
   //assemble ddMembrane ;
   for ( i = 0; i < 3; i++ ) {
-      for ( j = 0; j < 3; j++ )
-         ddMembrane(i,j) = dd(i,j);
+    for ( j = 0; j < 3; j++ )
+        ddMembrane(i,j) = dd(i,j);
   } //end for i 
 
   //eigenvalues of ddMembrane
@@ -403,48 +364,7 @@ int  Shell02::revertToStart( )
   return success ;
 }
 
-//print out element data
-void  Shell02::Print( OPS_Stream &s, int flag )
-{
-  if (flag == -1) {
-    int eleTag = this->getTag();
-    s << "EL_QUAD4\t" << eleTag << "\t";
-    s << eleTag << "\t" << 1; 
-    s  << "\t" << connectedExternalNodes(0) << "\t" << connectedExternalNodes(1);
-    s  << "\t" << connectedExternalNodes(2) << "\t" << connectedExternalNodes(3) << "\t0.00";
-    s << endln;
-    s << "PROP_2D\t" << eleTag << "\t";
-    s << eleTag << "\t" << 1; 
-    s  << "\t" << -1 << "\tSHELL\t1.0\0.0";
-    s << endln;
-  } 
-  else if (flag < -1) {
-    int counter = (flag + 1) * -1;
-    int eleTag = this->getTag();
-    int i,j;
-    for ( i = 0; i < 4; i++ ) {
-      const Vector &stress = materialPointers[i]->getStressResultant();
-      
-      s << "STRESS\t" << eleTag << "\t" << counter << "\t" << i << "\tTOP";
-      for (j=0; j<6; j++)
-	s << "\t" << stress(j);
-      s << endln;
-    }
-  } else {
-    s << endln ;
-    s << "MITC4 Bbar Non-Locking Four Node Shell \n" ;
-    s << "Element Number: " << this->getTag() << endln ;
-    s << "Node 1 : " << connectedExternalNodes(0) << endln ;
-    s << "Node 2 : " << connectedExternalNodes(1) << endln ;
-    s << "Node 3 : " << connectedExternalNodes(2) << endln ;
-    s << "Node 4 : " << connectedExternalNodes(3) << endln ;
-    
-    s << "Material Information : \n " ;
-    materialPointers[0]->Print( s, flag ) ;
-    
-    s << endln ;
-  }
-}
+
 
 Response*
 Shell02::setResponse(const char **argv, int argc, OPS_Stream &output)
@@ -520,7 +440,7 @@ Shell02::setResponse(const char **argv, int argc, OPS_Stream &output)
     theResponse =  new ElementResponse(this, 2, Vector(32));
   } else if (strcmp(argv[0],"strains") ==0) {
 
-	  for (int i=0; i<4; i++) {
+      for (int i=0; i<4; i++) {
       output.tag("GaussPoint");
       output.attr("number",i+1);
       output.attr("eta",sg[i]);
@@ -581,7 +501,7 @@ Shell02::getResponse(int responseID, Information &eleInfo)
     break;
 
   case 3: // strains
-	for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
 
       // Get material stress response
       const Vector &deformation = materialPointers[i]->getSectionDeformation();
@@ -706,7 +626,7 @@ const Matrix&  Shell02::getInitialStiff( )
     //save shape functions
     for ( p = 0; p < 3; p++ ) {
       for ( q = 0; q < numnodes; q++ )
-	  Shape[p][q][i] = shp[p][q] ;
+      Shape[p][q][i] = shp[p][q] ;
     } // end for p
 
     //volume element to also be saved
@@ -719,16 +639,16 @@ const Matrix&  Shell02::getInitialStiff( )
       //compute B shear matrix for this node
       //Bhat[node] += (  dvol[i] * computeBshear(node,shp)  ) ;
       Bhat[node]->addMatrix(1.0, 
-			   computeBshear(node,shp),
-			   dvol[i] ) ;
+               computeBshear(node,shp),
+               dvol[i] ) ;
 
       //compute B-bar shear matrix for this node
       //Bhat[node] -= ( dvol[i] *
       //            computeBbarShear( node, sg[i], tg[i], J0inv ) 
       //                ) ;
       Bhat[node]->addMatrix(1.0, 
-			   computeBbarShear(node,sg[i],tg[i],J0inv),
-			   -dvol[i] ) ;
+               computeBbarShear(node,sg[i],tg[i],J0inv),
+               -dvol[i] ) ;
 
     } //end for node   
 
@@ -745,7 +665,7 @@ const Matrix&  Shell02::getInitialStiff( )
     //extract shape functions from saved array
     for ( p = 0; p < 3; p++ ) {
        for ( q = 0; q < numnodes; q++ )
-	  shp[p][q]  = Shape[p][q][i] ;
+      shp[p][q]  = Shape[p][q][i] ;
     } // end for p
 
     // j-node loop to compute strain 
@@ -766,16 +686,16 @@ const Matrix&  Shell02::getInitialStiff( )
 
       //save the B-matrix
       for (p=0; p<nstress; p++) {
-	for (q=0; q<ndf; q++ )
-	  saveB[p][q][j] = BJ(p,q) ;
+    for (q=0; q<ndf; q++ )
+      saveB[p][q][j] = BJ(p,q) ;
       }//end for p
 
       //drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-	//BdrillJ[p] = *drillPointer++ ;
-	BdrillJ[p] = *drillPointer ; //set p-th component
-	drillPointer++ ;             //pointer arithmetic
+    //BdrillJ[p] = *drillPointer++ ;
+    BdrillJ[p] = *drillPointer ; //set p-th component
+    drillPointer++ ;             //pointer arithmetic
       }//end for p
     } // end for j
   
@@ -804,75 +724,75 @@ const Matrix&  Shell02::getInitialStiff( )
 
       //extract BJ
       for (p=0; p<nstress; p++) {
-	for (q=0; q<ndf; q++ )
-	  BJ(p,q) = saveB[p][q][j]   ;
+    for (q=0; q<ndf; q++ )
+      BJ(p,q) = saveB[p][q][j]   ;
       }//end for p
 
       //multiply bending terms by (-1.0) for correct statement
       // of equilibrium  
       for ( p = 3; p < 6; p++ ) {
-	for ( q = 3; q < 6; q++ ) 
-	  BJ(p,q) *= (-1.0) ;
+    for ( q = 3; q < 6; q++ ) 
+      BJ(p,q) *= (-1.0) ;
       } //end for p
 
       //transpose 
       //BJtran = transpose( 8, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
-	for (q=0; q<nstress; q++) 
-	  BJtran(p,q) = BJ(q,p) ;
+    for (q=0; q<nstress; q++) 
+      BJtran(p,q) = BJ(q,p) ;
       }//end for p
 
       //drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-	BdrillJ[p] = *drillPointer ;
-	drillPointer++ ;
+    BdrillJ[p] = *drillPointer ;
+    drillPointer++ ;
       }//end for p
 
       //BJtranD = BJtran * dd ;
       BJtranD.addMatrixProduct(0.0, BJtran,dd,1.0 ) ;
       
       for (p=0; p<ndf; p++) 
-	BdrillJ[p] *= ( Ktt*dvol[i] ) ;
+    BdrillJ[p] *= ( Ktt*dvol[i] ) ;
       
       kk = 0 ;
       for ( k = 0; k < numnodes; k++ ) {
 
-	//Bmembrane = computeBmembrane( k, shp ) ;
-	
-	//Bbend = computeBbend( k, shp ) ;
-	
-	//Bshear = computeBbarShear( k, sg[i], tg[i], J0inv ) ;
+    //Bmembrane = computeBmembrane( k, shp ) ;
+    
+    //Bbend = computeBbend( k, shp ) ;
+    
+    //Bshear = computeBbarShear( k, sg[i], tg[i], J0inv ) ;
 
-	//Bshear += (*Bhat[k]) ;
-	
-	//BK = assembleB( Bmembrane, Bbend, Bshear ) ;
-	
-	//extract BK
-	for (p=0; p<nstress; p++) {
-	  for (q=0; q<ndf; q++ )
-	    BK(p,q) = saveB[p][q][k]   ;
-	}//end for p
-	
-	//drilling B matrix
-	drillPointer = computeBdrill( k, shp ) ;
-	for (p=0; p<ndf; p++ ) {
-	  BdrillK[p] = *drillPointer ;
-	  drillPointer++ ;
-	}//end for p
-	
-	//stiffJK = BJtranD * BK  ;
-	// +  transpose( 1,ndf,BdrillJ ) * BdrillK ; 
-	stiffJK.addMatrixProduct(0.0, BJtranD,BK,1.0 ) ;
-	
-	for ( p = 0; p < ndf; p++ )  {
-	  for ( q = 0; q < ndf; q++ ) {
-	    stiff( jj+p, kk+q ) += stiffJK(p,q) 
-	      + ( BdrillJ[p]*BdrillK[q] ) ;
-	  }//end for q
-	}//end for p
-	
-	kk += ndf ;
+    //Bshear += (*Bhat[k]) ;
+    
+    //BK = assembleB( Bmembrane, Bbend, Bshear ) ;
+    
+    //extract BK
+    for (p=0; p<nstress; p++) {
+      for (q=0; q<ndf; q++ )
+        BK(p,q) = saveB[p][q][k]   ;
+    }//end for p
+    
+    //drilling B matrix
+    drillPointer = computeBdrill( k, shp ) ;
+    for (p=0; p<ndf; p++ ) {
+      BdrillK[p] = *drillPointer ;
+      drillPointer++ ;
+    }//end for p
+    
+    //stiffJK = BJtranD * BK  ;
+    // +  transpose( 1,ndf,BdrillJ ) * BdrillK ; 
+    stiffJK.addMatrixProduct(0.0, BJtranD,BK,1.0 ) ;
+    
+    for ( p = 0; p < ndf; p++ )  {
+      for ( q = 0; q < ndf; q++ ) {
+        stiff( jj+p, kk+q ) += stiffJK(p,q) 
+          + ( BdrillJ[p]*BdrillK[q] ) ;
+      }//end for q
+    }//end for p
+    
+    kk += ndf ;
       } // end for k loop
       
       jj += ndf ;
@@ -1043,8 +963,8 @@ Shell02::formInertiaTerms( int tangFlag )
     for ( j = 0; j < numberNodes; j++ ) 
       //momentum += ( shp[massIndex][j] * nodePointers[j]->getTrialAccel() ) ;
       momentum.addVector(1.0,  
-			 nodePointers[j]->getTrialAccel(),
-			 shp[massIndex][j] ) ;
+             nodePointers[j]->getTrialAccel(),
+             shp[massIndex][j] ) ;
 
     //density
     rhoH = materialPointers[i]->getRho() ;
@@ -1054,34 +974,34 @@ Shell02::formInertiaTerms( int tangFlag )
 
     //residual and tangent calculations node loops
     //jj = 0 ;
-	for (j = 0, jj = 0; j < numberNodes; j++, jj += ndf) {
+    for (j = 0, jj = 0; j < numberNodes; j++, jj += ndf) {
 
-	  temp = shp[massIndex][j] * dvol;
-	  
-	  for (p = 0; p < 3; p++)
-	resid(jj + p) += (temp * momentum(p));
-	  
-	  if (tangFlag == 1 && rhoH != 0.0) {
-	  
-	//multiply by density
-	temp *= rhoH;
-	
-	//node-node translational mass
-	//kk = 0 ;
-	for (k = 0, kk = 0; k < numberNodes; k++, kk += ndf) {
-	
-	  massJK = temp * shp[massIndex][k];
-	  
-	  for (p = 0; p < 3; p++)
-	mass(jj + p, kk + p) += massJK;
-	  //kk += ndf ;
-		
-	} // end for k loop
-	
-	  } // end if tang_flag 
-	  
-	  //jj += ndf ;
-	} // end for j loop
+      temp = shp[massIndex][j] * dvol;
+      
+      for (p = 0; p < 3; p++)
+    resid(jj + p) += (temp * momentum(p));
+      
+      if (tangFlag == 1 && rhoH != 0.0) {
+      
+    //multiply by density
+    temp *= rhoH;
+    
+    //node-node translational mass
+    //kk = 0 ;
+    for (k = 0, kk = 0; k < numberNodes; k++, kk += ndf) {
+    
+      massJK = temp * shp[massIndex][k];
+      
+      for (p = 0; p < 3; p++)
+    mass(jj + p, kk + p) += massJK;
+      //kk += ndf ;
+        
+    } // end for k loop
+    
+      } // end if tang_flag 
+      
+      //jj += ndf ;
+    } // end for j loop
 
   } //end for i gauss loop 
 
@@ -1211,7 +1131,7 @@ Shell02::formResidAndTangent( int tang_flag )
     //save shape functions
     for ( p = 0; p < 3; p++ ) {
       for ( q = 0; q < numnodes; q++ )
-	  Shape[p][q][i] = shp[p][q] ;
+      Shape[p][q][i] = shp[p][q] ;
     } // end for p
 
     //volume element to also be saved
@@ -1224,16 +1144,16 @@ Shell02::formResidAndTangent( int tang_flag )
       //compute B shear matrix for this node
       //Bhat[node] += (  dvol[i] * computeBshear(node,shp)  ) ;
       Bhat[node]->addMatrix(1.0, 
-			   computeBshear(node,shp),
-			   dvol[i] ) ;
+               computeBshear(node,shp),
+               dvol[i] ) ;
 
       //compute B-bar shear matrix for this node
       //Bhat[node] -= ( dvol[i] *
       //            computeBbarShear( node, sg[i], tg[i], J0inv ) 
       //                ) ;
       Bhat[node]->addMatrix(1.0, 
-			   computeBbarShear(node,sg[i],tg[i],J0inv),
-			   -dvol[i] ) ;
+               computeBbarShear(node,sg[i],tg[i],J0inv),
+               -dvol[i] ) ;
 
     } //end for node   
 
@@ -1251,7 +1171,7 @@ Shell02::formResidAndTangent( int tang_flag )
     //extract shape functions from saved array
     for ( p = 0; p < 3; p++ ) {
        for ( q = 0; q < numnodes; q++ )
-	  shp[p][q]  = Shape[p][q][i] ;
+      shp[p][q]  = Shape[p][q][i] ;
     } // end for p
 
     //zero the strains
@@ -1273,8 +1193,8 @@ Shell02::formResidAndTangent( int tang_flag )
 
       //save the B-matrix
       for (p=0; p<nstress; p++) {
-	for (q=0; q<ndf; q++ )
-	  saveB[p][q][j] = BJ(p,q) ;
+    for (q=0; q<ndf; q++ )
+      saveB[p][q][j] = BJ(p,q) ;
       }//end for p
 
       //nodal "displacements" 
@@ -1287,14 +1207,14 @@ Shell02::formResidAndTangent( int tang_flag )
       //drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-	//BdrillJ[p] = *drillPointer++ ;
-	BdrillJ[p] = *drillPointer ; //set p-th component
-	drillPointer++ ;             //pointer arithmetic
+    //BdrillJ[p] = *drillPointer++ ;
+    BdrillJ[p] = *drillPointer ; //set p-th component
+    drillPointer++ ;             //pointer arithmetic
       }//end for p
 
       //drilling "strain" 
       for ( p = 0; p < ndf; p++ )
-	epsDrill +=  BdrillJ[p]*ul(p) ;
+    epsDrill +=  BdrillJ[p]*ul(p) ;
 
     } // end for j
   
@@ -1338,22 +1258,22 @@ Shell02::formResidAndTangent( int tang_flag )
 
       //extract BJ
       for (p=0; p<nstress; p++) {
-	for (q=0; q<ndf; q++ )
-	  BJ(p,q) = saveB[p][q][j] ;
+        for (q=0; q<ndf; q++ )
+          BJ(p,q) = saveB[p][q][j] ;
       }//end for p
 
       //multiply bending terms by (-1.0) for correct statement
       // of equilibrium  
       for ( p = 3; p < 6; p++ ) {
-	for ( q = 3; q < 6; q++ ) 
-	  BJ(p,q) *= (-1.0) ;
+        for ( q = 3; q < 6; q++ ) 
+          BJ(p,q) *= (-1.0) ;
       } //end for p
 
       //transpose 
       //BJtran = transpose( 8, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
-	for (q=0; q<nstress; q++) 
-	  BJtran(p,q) = BJ(q,p) ;
+        for (q=0; q<nstress; q++) 
+          BJtran(p,q) = BJ(q,p) ;
       }//end for p
 
       //residJ = BJtran * stress ;
@@ -1362,8 +1282,8 @@ Shell02::formResidAndTangent( int tang_flag )
       //drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-	BdrillJ[p] = *drillPointer ;
-	drillPointer++ ;
+        BdrillJ[p] = *drillPointer ;
+        drillPointer++ ;
       }//end for p
 
       //residual including drill
@@ -1372,46 +1292,46 @@ Shell02::formResidAndTangent( int tang_flag )
 
       if ( tang_flag == 1 ) {
 
-        //BJtranD = BJtran * dd ;
-	BJtranD.addMatrixProduct(0.0, BJtran,dd,1.0 ) ;
+          //BJtranD = BJtran * dd ;
+      BJtranD.addMatrixProduct(0.0, BJtran,dd,1.0 ) ;
 
-	for (p=0; p<ndf; p++) 
-	  BdrillJ[p] *= ( Ktt*dvol[i] ) ;
+      for (p=0; p<ndf; p++) 
+        BdrillJ[p] *= ( Ktt*dvol[i] ) ;
 
-      kk = 0 ;
-      for ( k = 0; k < numnodes; k++ ) {
+        kk = 0 ;
+        for ( k = 0; k < numnodes; k++ ) {
 
-        //Bmembrane = computeBmembrane( k, shp ) ;
-        //Bbend = computeBbend( k, shp ) ;
-        //Bshear = computeBbarShear( k, sg[i], tg[i], J0inv ) ;
-        //Bshear += (*Bhat[k]) ;
-        //BK = assembleB( Bmembrane, Bbend, Bshear ) ;
+          //Bmembrane = computeBmembrane( k, shp ) ;
+          //Bbend = computeBbend( k, shp ) ;
+          //Bshear = computeBbarShear( k, sg[i], tg[i], J0inv ) ;
+          //Bshear += (*Bhat[k]) ;
+          //BK = assembleB( Bmembrane, Bbend, Bshear ) ;
 
-	    //extract BK
-	    for (p=0; p<nstress; p++) {
-	  for (q=0; q<ndf; q++ )
-	    BK(p,q) = saveB[p][q][k]   ;
-	  }//end for p
+          // extract BK
+          for (p=0; p<nstress; p++) {
+            for (q=0; q<ndf; q++ )
+              BK(p,q) = saveB[p][q][k]   ;
+          }//end for p
 
-	  //drilling B matrix
-	  drillPointer = computeBdrill( k, shp ) ;
-	  for (p=0; p<ndf; p++ ) {
-	    BdrillK[p] = *drillPointer ;
-	    drillPointer++ ;
-	  }//end for p
-  
+          //drilling B matrix
+          drillPointer = computeBdrill( k, shp ) ;
+          for (p=0; p<ndf; p++ ) {
+            BdrillK[p] = *drillPointer ;
+            drillPointer++ ;
+          } //end for p
+      
           //stiffJK = BJtranD * BK  ;
-	  // +  transpose( 1,ndf,BdrillJ ) * BdrillK ; 
-	  stiffJK.addMatrixProduct(0.0, BJtranD,BK,1.0 ) ;
+          // +  transpose( 1,ndf,BdrillJ ) * BdrillK ; 
+          stiffJK.addMatrixProduct(0.0, BJtranD,BK,1.0 ) ;
 
-      for ( p = 0; p < ndf; p++ )  {
-	    for ( q = 0; q < ndf; q++ ) {
-	  stiff( jj+p, kk+q ) += stiffJK(p,q) 
-		                   + ( BdrillJ[p]*BdrillK[q] ) ;
-	    }//end for q
-      }//end for p
+          for ( p = 0; p < ndf; p++ )  {
+            for ( q = 0; q < ndf; q++ ) {
+              stiff( jj+p, kk+q ) += stiffJK(p,q) 
+                                  + ( BdrillJ[p]*BdrillK[q] ) ;
+            }//end for q
+          }//end for p
 
-      kk += ndf ;
+          kk += ndf ;
         } // end for k loop
 
       } // end if tang_flag 
@@ -1635,8 +1555,8 @@ Shell02::computeGamma( const double xl[2][4], const Matrix &J )
 
         GammaB1pointer[node]->Zero( ) ;
 
-	//( *GammaB1pointer[node] ) = e1Jtran*Bshear ;
-	GammaB1pointer[node]->addMatrixProduct(0.0, e1Jtran,Bshear,1.0 );
+    //( *GammaB1pointer[node] ) = e1Jtran*Bshear ;
+    GammaB1pointer[node]->addMatrixProduct(0.0, e1Jtran,Bshear,1.0 );
 
     } //end for node
  
@@ -1660,7 +1580,7 @@ Shell02::computeGamma( const double xl[2][4], const Matrix &J )
         GammaD1pointer[node]->Zero( ) ;
 
         //( *GammaD1pointer[node] ) = e1Jtran*Bshear ;
-	GammaD1pointer[node]->addMatrixProduct(0.0, e1Jtran,Bshear,1.0 );
+    GammaD1pointer[node]->addMatrixProduct(0.0, e1Jtran,Bshear,1.0 );
 
     } //end for node
  
@@ -1684,8 +1604,8 @@ Shell02::computeGamma( const double xl[2][4], const Matrix &J )
         GammaA2pointer[node]->Zero( ) ;
 
         //( *GammaA2pointer[node] ) = e2Jtran*Bshear ;
-	GammaA2pointer[node]->addMatrixProduct(0.0, e2Jtran,Bshear,1.0 );
-		   
+    GammaA2pointer[node]->addMatrixProduct(0.0, e2Jtran,Bshear,1.0 );
+           
 
     } //end for node
  
@@ -1709,7 +1629,7 @@ Shell02::computeGamma( const double xl[2][4], const Matrix &J )
         GammaC2pointer[node]->Zero( ) ;
 
         //( *GammaC2pointer[node] ) = e2Jtran*Bshear ;
-	GammaC2pointer[node]->addMatrixProduct(0.0, e2Jtran,Bshear,1.0 );
+    GammaC2pointer[node]->addMatrixProduct(0.0, e2Jtran,Bshear,1.0 );
 
     } //end for node
  
@@ -1911,7 +1831,7 @@ Shell02::computeBbend( int node, const double shp[3][4] )
 
 const Matrix&  
 Shell02::computeBbarShear( int node, double L1, double L2,
-			      const Matrix &Jinv ) 
+                  const Matrix &Jinv ) 
 {
     static Matrix Bshear(2,3) ;
     static Matrix BshearNat(2,3) ;
@@ -1923,7 +1843,7 @@ Shell02::computeBbarShear( int node, double L1, double L2,
 
     static Matrix temp1(1,3) ;
     static Matrix temp2(1,3) ;
-	
+    
     //JinvTran = transpose( 2, 2, Jinv ) ;
     JinvTran(0,0) = Jinv(0,0) ;
     JinvTran(1,1) = Jinv(1,1) ;
@@ -2013,7 +1933,7 @@ Shell02::computeBshear( int node, const double shp[3][4] )
 
 void   
 Shell02::computeJacobian( double L1, double L2,
-				    const double x[2][4], 
+                    const double x[2][4], 
                                     Matrix &JJ, 
                                     Matrix &JJinv )
 {
@@ -2040,7 +1960,7 @@ Shell02::computeJacobian( double L1, double L2,
     for ( j = 0; j < 2; j++ ) {
 
       for ( k = 0; k < 4; k++ )
-	  JJ(i,j) +=  x[i][k] * shp[j][k] ;
+      JJ(i,j) +=  x[i][k] * shp[j][k] ;
 
     } //end for j
   }  // end for i 
@@ -2063,9 +1983,9 @@ Shell02::computeJacobian( double L1, double L2,
 
 void  
 Shell02::shape2d( double ss, double tt, 
-		           const double x[2][4], 
-		           double shp[3][4], 
-		           double &xsj            )
+                   const double x[2][4], 
+                   double shp[3][4], 
+                   double &xsj            )
 
 { 
 
@@ -2080,22 +2000,19 @@ Shell02::shape2d( double ss, double tt,
   static double sx[2][2] ;
 
   for ( i = 0; i < 4; i++ ) {
-      shp[2][i] = ( 0.5 + s[i]*ss )*( 0.5 + t[i]*tt ) ;
-      shp[0][i] = s[i] * ( 0.5 + t[i]*tt ) ;
-      shp[1][i] = t[i] * ( 0.5 + s[i]*ss ) ;
-  } // end for i
+    shp[2][i] = ( 0.5 + s[i]*ss )*( 0.5 + t[i]*tt ) ;
+    shp[0][i] = s[i] * ( 0.5 + t[i]*tt ) ;
+    shp[1][i] = t[i] * ( 0.5 + s[i]*ss ) ;
+  }
 
   
   // Construct Jacobian and its inverse
   
   for ( i = 0; i < 2; i++ ) {
     for ( j = 0; j < 2; j++ ) {
-
       xs[i][j] = 0.0 ;
-
       for ( k = 0; k < 4; k++ )
-	  xs[i][j] +=  x[i][k] * shp[j][k] ;
-
+        xs[i][j] +=  x[i][k] * shp[j][k] ;
     } //end for j
   }  // end for i 
 
@@ -2118,26 +2035,6 @@ Shell02::shape2d( double ss, double tt,
   } // end for i
 
   return ;
-}
-	   
-//**********************************************************************
-
-Matrix  
-Shell02::transpose( int dim1, 
-                                       int dim2, 
-		                       const Matrix &M ) 
-{
-  int i ;
-  int j ;
-
-  Matrix Mtran( dim2, dim1 ) ;
-
-  for ( i = 0; i < dim1; i++ ) {
-     for ( j = 0; j < dim2; j++ ) 
-         Mtran(j,i) = M(i,j) ;
-  } // end for i
-
-  return Mtran ;
 }
 
 //**********************************************************************
@@ -2165,8 +2062,8 @@ int  Shell02::sendSelf (int commitTag, Channel &theChannel)
     // tag if we are sending to a database channel.
     if (matDbTag == 0) {
       matDbTag = theChannel.getDbTag();
-			if (matDbTag != 0)
-			  materialPointers[i]->setDbTag(matDbTag);
+            if (matDbTag != 0)
+              materialPointers[i]->setDbTag(matDbTag);
     }
     idData(i+4) = matDbTag;
   }
@@ -2209,8 +2106,8 @@ int  Shell02::sendSelf (int commitTag, Channel &theChannel)
 }
     
 int  Shell02::recvSelf (int commitTag, 
-		       Channel &theChannel, 
-		       FEM_ObjectBroker &theBroker)
+               Channel &theChannel, 
+               FEM_ObjectBroker &theBroker)
 {
   int res = 0;
   
@@ -2252,15 +2149,15 @@ int  Shell02::recvSelf (int commitTag,
       // Allocate new material with the sent class tag
       materialPointers[i] = theBroker.getNewSection(matClassTag);
       if (materialPointers[i] == 0) {
-	opserr << "Shell02::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;;
-	return -1;
+    opserr << "Shell02::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;;
+    return -1;
       }
       // Now receive materials into the newly allocated space
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "Shell02::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
+    opserr << "Shell02::recvSelf() - material " << i << "failed to recv itself\n";
+    return res;
       }
     }
   }
@@ -2272,19 +2169,19 @@ int  Shell02::recvSelf (int commitTag,
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (materialPointers[i]->getClassTag() != matClassTag) {
-	delete materialPointers[i];
-	materialPointers[i] = theBroker.getNewSection(matClassTag);
-	if (materialPointers[i] == 0) {
-	  opserr << "Shell02::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;
-	  exit(-1);
-	}
+    delete materialPointers[i];
+    materialPointers[i] = theBroker.getNewSection(matClassTag);
+    if (materialPointers[i] == 0) {
+      opserr << "Shell02::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;
+      exit(-1);
+    }
       }
       // Receive the material
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "Shell02::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
+    opserr << "Shell02::recvSelf() - material " << i << "failed to recv itself\n";
+    return res;
       }
     }
   }
@@ -2293,71 +2190,46 @@ int  Shell02::recvSelf (int commitTag,
 }
 //**************************************************************************
 
-int
-Shell02::displaySelf(Renderer &theViewer, int displayMode, float fact)
+
+void
+Shell02::Print( OPS_Stream &s, int flag )
 {
-    // first determine the end points of the quad based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 4 3d vectors v1 through v4
-    const Vector &end1Crd = nodePointers[0]->getCrds();
-    const Vector &end2Crd = nodePointers[1]->getCrds();	
-    const Vector &end3Crd = nodePointers[2]->getCrds();	
-    const Vector &end4Crd = nodePointers[3]->getCrds();	
-
-    static Matrix coords(4,3);
-    static Vector values(4);
-    static Vector P(24) ;
-
-    for (int j=0; j<4; j++)
-      values(j) = 0.0;
-
-    if (displayMode >= 0) {
-      const Vector &end1Disp = nodePointers[0]->getDisp();
-      const Vector &end2Disp = nodePointers[1]->getDisp();
-      const Vector &end3Disp = nodePointers[2]->getDisp();
-      const Vector &end4Disp = nodePointers[3]->getDisp();
+  if (flag == -1) {
+    int eleTag = this->getTag();
+    s << "EL_QUAD4\t" << eleTag << "\t";
+    s << eleTag << "\t" << 1; 
+    s  << "\t" << connectedExternalNodes(0) << "\t" << connectedExternalNodes(1);
+    s  << "\t" << connectedExternalNodes(2) << "\t" << connectedExternalNodes(3) << "\t0.00";
+    s << endln;
+    s << "PROP_2D\t" << eleTag << "\t";
+    s << eleTag << "\t" << 1; 
+    s  << "\t" << -1 << "\tSHELL\t1.0\0.0";
+    s << endln;
+  } 
+  else if (flag < -1) {
+    int counter = (flag + 1) * -1;
+    int eleTag = this->getTag();
+    int i,j;
+    for ( i = 0; i < 4; i++ ) {
+      const Vector &stress = materialPointers[i]->getStressResultant();
       
-      if (displayMode < 8 && displayMode > 0) {
-	for (int i=0; i<4; i++) {
-	  const Vector &stress = materialPointers[i]->getStressResultant();
-	  values(i) = stress(displayMode-1);
-	}
-      }
-
-      for (int i = 0; i < 3; i++) {
-	coords(0,i) = end1Crd(i) + end1Disp(i)*fact;
-	coords(1,i) = end2Crd(i) + end2Disp(i)*fact; 
-	coords(2,i) = end3Crd(i) + end3Disp(i)*fact; 
-	coords(3,i) = end4Crd(i) + end4Disp(i)*fact;
-      }
-    } else {
-      int mode = displayMode * -1;
-      const Matrix &eigen1 = nodePointers[0]->getEigenvectors();
-      const Matrix &eigen2 = nodePointers[1]->getEigenvectors();
-      const Matrix &eigen3 = nodePointers[2]->getEigenvectors();
-      const Matrix &eigen4 = nodePointers[3]->getEigenvectors();
-      if (eigen1.noCols() >= mode) {
-	for (int i = 0; i < 3; i++) {
-	  coords(0,i) = end1Crd(i) + eigen1(i,mode-1)*fact;
-	  coords(1,i) = end2Crd(i) + eigen2(i,mode-1)*fact;
-	  coords(2,i) = end3Crd(i) + eigen3(i,mode-1)*fact;
-	  coords(3,i) = end4Crd(i) + eigen4(i,mode-1)*fact;
-	}    
-      } else {
-	for (int i = 0; i < 3; i++) {
-	  coords(0,i) = end1Crd(i);
-	  coords(1,i) = end2Crd(i);
-	  coords(2,i) = end3Crd(i);
-	  coords(3,i) = end4Crd(i);
-	}    
-      }
+      s << "STRESS\t" << eleTag << "\t" << counter << "\t" << i << "\tTOP";
+      for (j=0; j<6; j++)
+        s << "\t" << stress(j);
+      s << endln;
     }
-
-    //opserr << coords;
-    int error = 0;
-
-    //error += theViewer.drawPolygon (coords, values);
-    error += theViewer.drawPolygon (coords, values);
-
-    return error;
+  } else {
+    s << endln ;
+    s << "MITC4 Bbar Non-Locking Four Node Shell \n" ;
+    s << "Element Number: " << this->getTag() << endln ;
+    s << "Node 1 : " << connectedExternalNodes(0) << endln ;
+    s << "Node 2 : " << connectedExternalNodes(1) << endln ;
+    s << "Node 3 : " << connectedExternalNodes(2) << endln ;
+    s << "Node 4 : " << connectedExternalNodes(3) << endln ;
+    
+    s << "Material Information : \n " ;
+    materialPointers[0]->Print( s, flag ) ;
+    
+    s << endln ;
+  }
 }

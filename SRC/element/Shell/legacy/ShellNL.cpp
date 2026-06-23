@@ -41,10 +41,10 @@
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #define min(a,b) ( (a)<(b) ? (a):(b) )
 
 
+#include <elementAPI.h>
 void *
 OPS_NewShellNL()
 {
@@ -1583,21 +1583,7 @@ ShellNL::shape2d( double ss, double tt,const double x[2][9],
   
   return ;
 }
-	   
-//**********************************************************************
-Matrix  
-ShellNL::transpose( int dim1,int dim2,const Matrix &M ) 
-{
-  int i ;
-  int j ;
-  Matrix Mtran( dim2, dim1 ) ;
 
-  for ( i = 0; i < dim1; i++ ) {
-     for ( j = 0; j < dim2; j++ ) 
-         Mtran(j,i) = M(i,j) ;
-  } // end for i
-  return Mtran ;
-}
 
 //**********************************************************************
 int  ShellNL::sendSelf (int commitTag,Channel &theChannel)

@@ -45,10 +45,10 @@
 #include <OPS_Globals.h>
 
 
-static int numBilinMaterials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_Bilin)
 {
+  static int numBilinMaterials = 0;
   if (numBilinMaterials == 0) {
     numBilinMaterials++;
     opserr << "WARNING: DO NOT USE THE \"Bilin\" MATERIAL, IT HAS BEEN REPLACED. Use \"IMKBilin\" or \"HystereticSM\" INSTEAD.\n";

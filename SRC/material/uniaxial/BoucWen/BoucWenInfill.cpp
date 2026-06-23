@@ -54,12 +54,10 @@ OPS_BoucWenInfill()
     if (numdata < 16) {
 	opserr << "WARNING: Insufficient arguments\n";
 	opserr << "Want: uniaxialMaterial BoucWenInfill tag? mass? alpha? beta0? eta0?" << endln
-		<< "n? k? xy? deltak? deltaf? psi? Zs? As? epsp? tol? maxNumIter?" << endln;
+		<< "n? k? xy? deltak? deltaf? psi? Zs? As? epsp? tol? maxNumIter?" << "\n";
 	return 0;
     }
 
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
 
   int    iData1[1];
   double dData[14];
@@ -68,7 +66,7 @@ OPS_BoucWenInfill()
 
   numData = 1;
   if (OPS_GetIntInput(&numData, iData1) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial BoucWenInfill tag" << endln;
+    opserr << "WARNING invalid uniaxialMaterial BoucWenInfill tag" << "\n";
     return 0;
   }
 
@@ -80,18 +78,14 @@ OPS_BoucWenInfill()
 
   numData = 1;
   if (OPS_GetIntInput(&numData, iData2) != 0) {
-    opserr << "WARNING invalid maxNumIter" << endln;
+    opserr << "WARNING invalid maxNumIter" << "\n";
     return 0;
   }
 
+  UniaxialMaterial *theMaterial = nullptr;
   theMaterial = new BoucWenInfill(iData1[0], dData[0], dData[1], dData[2],
   dData[3], dData[4], dData[5], dData[6], dData[7], dData[8], dData[9], 
-  dData[10], dData[11], dData[12], dData[13], iData2[0]);       
-
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type BoucWenInfill\n";
-    return 0;
-  }
+  dData[10], dData[11], dData[12], dData[13], iData2[0], 0.0);       
 
   return theMaterial;
 }
@@ -112,11 +106,14 @@ BoucWenInfill::BoucWenInfill(int tag,
 	double p_As,
 	double p_epsp,
 	double ptolerance,
-	int pMaxNumIter)
- :UniaxialMaterial(tag, MAT_TAG_BoucWenInfill),
+	int pMaxNumIter,
+    double p_density)
+ : UniaxialMaterial(tag, MAT_TAG_BoucWenInfill),
   xmax(0.0), xmaxp(0.0), mass(p_mass), alpha(p_alpha), beta0(p_beta0), eta0(p_eta0), n(p_n),
   k(p_k), xy(p_xy), deltak(p_deltak), deltaf(p_deltaf), psi(p_psi), 
-  Zs(p_Zs), As(p_As), epsp(p_epsp), tolerance(ptolerance), maxNumIter(pMaxNumIter)
+  Zs(p_Zs), As(p_As), epsp(p_epsp), 
+  tolerance(ptolerance), maxNumIter(pMaxNumIter), 
+  density(p_density)
 {
   // Initialize variables
   this->revertToStart();
@@ -126,7 +123,9 @@ BoucWenInfill::BoucWenInfill()
  :UniaxialMaterial(0, MAT_TAG_BoucWenInfill),
   xmax(0.0), xmaxp(0.0), mass(0.0), alpha(0.0), beta0(0.0), eta0(0.0), n(0.0),
   k(0.0), xy(0.0), deltak(0.0), deltaf(0.0), psi(0.0), 
-  Zs(0.0), As(0.0), epsp(0.0), tolerance(0.0), maxNumIter(0)
+  Zs(0.0), As(0.0), epsp(0.0), 
+  tolerance(0.0), maxNumIter(0),
+  density(0.0)
 {
 
 }
@@ -150,7 +149,7 @@ BoucWenInfill::signum(double value)
 
 
 int 
-BoucWenInfill::setTrialStrain (double strain, double strainRate)
+BoucWenInfill::setTrialStrain(double strain, double strainRate)
 {
 	// Set trial strain and compute strain increment
 	Tstrain = strain;
@@ -388,7 +387,7 @@ BoucWenInfill::getCopy(void)
 {
 	BoucWenInfill*theCopy =
 	new BoucWenInfill(this->getTag(), mass, alpha, beta0, eta0, n, k, xy,
-	deltak, deltaf, psi, Zs, As, epsp, tolerance, maxNumIter);
+	deltak, deltaf, psi, Zs, As, epsp, tolerance, maxNumIter, density);
     theCopy->xmax = xmax;
 	theCopy->xmaxp = xmaxp;
     theCopy->Tstrain = Tstrain;

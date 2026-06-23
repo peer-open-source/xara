@@ -42,9 +42,9 @@
 #include <string.h>
 #include <math.h>
 #include <ElementResponse.h>
-#include <elementAPI.h>
 #include <string>
 
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_BeamColumnJoint2d)
 {
     if (OPS_GetNumRemainingInputArgs() < 18) {

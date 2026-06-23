@@ -34,7 +34,7 @@
 #include <RandomVariable.h>
 #include <cmath>
 #include <classTags.h>
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 #include <float.h>
 
 // define common math constants needed by the random variables

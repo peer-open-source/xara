@@ -17,14 +17,8 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-      
+#pragma once
 
-#ifndef BoucWenInfill_h
-#define BoucWenInfill_h
-
-// Written by Stefano Sirotti (stefano.sirotti@unimore.it)
-// Created on January 2022
-//
 // Description: This file contains the class definition for 
 // BoucWenInfill material. BoucWenInfill material provides 
 // a hysteretic uniaxial material described by the Bouc-Wen law 
@@ -36,12 +30,12 @@
 // Development and validation of new bouc�wen data-driven hysteresis model 
 // for masonry infilled rc frames. 
 // Journal of Engineering Mechanics, 147(11), 04021092.
-// 
+//
+// Written by Stefano Sirotti (stefano.sirotti@unimore.it)
+// Created on January 2022
+//
 
 #include <UniaxialMaterial.h>
-#include <Matrix.h>
-
-
 
 class BoucWenInfill : public UniaxialMaterial
 {
@@ -61,30 +55,32 @@ class BoucWenInfill : public UniaxialMaterial
 	 double As,
 	 double epsp,
 	 double tolerance,
-	 int maxNumIter);
+	 int maxNumIter,
+     double density);
 	
     BoucWenInfill();
     ~BoucWenInfill();  
 
-    const char *getClassType(void) const {return "BoucWenInfill";};
+    const char *getClassType() const {return "BoucWenInfill";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
-    double signum(double);
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
-    UniaxialMaterial *getCopy(void);
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
-    void Print(OPS_Stream &s, int flag =0);
+    double getStrain();          
+    double getStress();
+    double getTangent();
+    double getInitialTangent();
+
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();
     
-    double getInitialTangent(void);
+    UniaxialMaterial *getCopy();
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
+    void Print(OPS_Stream &s, int flag);
 
   private:
+
+    double signum(double);
 
     // Material parameters
     double mass;
@@ -101,6 +97,9 @@ class BoucWenInfill : public UniaxialMaterial
 	double As;
 	double epsp;
     
+    double tolerance;
+    int maxNumIter;
+    double density;
     // History variables (trial and committed)
 	double xmaxp;
     double xmax;
@@ -110,13 +109,4 @@ class BoucWenInfill : public UniaxialMaterial
     
     // Other variables
     double Tstress, Ttangent;
-    
-    double tolerance;
-    int maxNumIter;
 };
-
-
-#endif
-
-
-

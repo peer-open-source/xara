@@ -32,8 +32,9 @@
 #include <Vector.h>
 #include <FEM_ObjectBroker.h>
 
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 #include <cmath>
+
 #include <elementAPI.h>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_SimpleFractureMaterial)

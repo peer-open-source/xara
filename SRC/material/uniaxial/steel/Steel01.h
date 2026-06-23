@@ -52,7 +52,7 @@ class Steel01 : public UniaxialMaterial
 
     const char *getClassType() const {return "Steel01";}
 
-    int setTrialStrain(double strain, double strainRate = 0.0); 
+    int setTrialStrain(double strain, double strainRate); 
     int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
     double getStrain();              
     double getStress();
@@ -71,15 +71,15 @@ class Steel01 : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag);
     
-// AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     int setParameter(const char **argv, int argc, Parameter &param);
     int    updateParameter          (int parameterID, Information &info);
     int    activateParameter        (int parameterID);
     double getStressSensitivity     (int gradIndex, bool conditional);
     double getInitialTangentSensitivity(int gradIndex);
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
-    // AddingSensitivity:END ///////////////////////////////////////////
-	//by SAJalali
+
+	// by SAJalali
 	virtual double getEnergy() { return Energy; }
 
  private:

@@ -47,19 +47,27 @@
 // The model is implemented as a compression-only gap material, thus the values
 // of Fult and gap should be negative.
 //
-#ifndef HyperbolicGapMaterial_h
-#define HyperbolicGapMaterial_h
+#pragma once
 
 #include <UniaxialMaterial.h>
 
 class HyperbolicGapMaterial : public UniaxialMaterial
 {
 public:
-    HyperbolicGapMaterial(int tag, double Kmax, double Kur, double Rf, double Fult, double gap);
+    HyperbolicGapMaterial(int tag,
+                          double Kmax, 
+                          double Kur, 
+                          double Rf, 
+                          double Fult, 
+                          double gap,
+                          double density);
     HyperbolicGapMaterial();
     ~HyperbolicGapMaterial();
 
     const char *getClassType() const {return "HyperbolicGapMaterial";}
+
+    UniaxialMaterial *getCopy();
+    double getRho() override {return density;}
 
     int setTrialStrain(double strain, double strainRate = 0.0);
     double getStrain();
@@ -71,12 +79,11 @@ public:
     int revertToLastCommit();
     int revertToStart();
 
-    UniaxialMaterial *getCopy();
 
     int sendSelf(int commitTag, Channel &);
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
 private:
     double Kmax;
@@ -84,7 +91,20 @@ private:
     double Rf;
     double Fult;
     double gap;
+    double density;
     double dStrain;
+
+    struct {
+        double strain;
+        double stress;
+        double tangent;
+        double strainMin;
+        double onsetOfUnloadingStrain;
+        double onsetOfUnloadingStress;
+        double onsetOfReloadingStrain;
+        double onsetOfReloadingStress;
+    } trial, commit;
+
     double Tstress;
     double Tstrain;
     double Ttangent;
@@ -106,5 +126,3 @@ private:
     void positiveIncrement(double dStrain);
     void negativeIncrement(double dStrain);
 };
-
-#endif
