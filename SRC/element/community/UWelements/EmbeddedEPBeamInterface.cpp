@@ -214,7 +214,7 @@ EmbeddedEPBeamInterface::EmbeddedEPBeamInterface(int tag, std::vector <int> beam
     
     theMat = new NDMaterial*[m_numEmbeddedPoints];
     for (int ii = 0; ii < m_numEmbeddedPoints; ii++)
-        theMat[ii] = OPS_getNDMaterial(matTag)->getCopy("3D");
+        theMat[ii] = OPS_getNDMaterial(matTag)->getCopy("ThreeDimensional");
 
     if (width > 0)
         m_intWidth = width;
