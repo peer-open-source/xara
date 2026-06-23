@@ -218,6 +218,7 @@ ElasticOrthotropicThreeDimensional::getCopy()
 //     return NDMaterial::getCopy(type);
 // }
 
+
 const char*
 ElasticOrthotropicThreeDimensional::getType() const
 {
