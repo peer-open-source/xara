@@ -44,9 +44,6 @@
 #define tensor BJtensor
 #endif
 
-// #ifndef tensor
-// #define Tensor ucsd::BJtensor
-// #endif
 
 // redefine Pi from math.h M_PI
 #ifndef PI
