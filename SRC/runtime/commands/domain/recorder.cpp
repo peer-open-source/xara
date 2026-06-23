@@ -1157,6 +1157,7 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   else if (strcmp(argv[1], "Pattern") == 0) {
+    // recorder Pattern filename? <startFlag> patternTag?
     if (argc < 4) {
       opserr << "WARNING recorder Pattern filename? <startFlag> patternTag?";
       return TCL_ERROR;
