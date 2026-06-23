@@ -213,7 +213,8 @@ CTestEnergyIncr::getMaxNumTests()
 }
 
 
-double CTestEnergyIncr::getRatioNumToMax()
+double
+CTestEnergyIncr::getRatioNumToMax()
 {
   double div = maxNumIter;
   return currentIter/div;
