@@ -1045,21 +1045,17 @@ BoundingCamClay::getResponse(int responseID, Information &matInfo)
 		case -1:
 			return -1;
 		case 1:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = getStress();
-			return 0;
+			return matInfo.setVector(this->getStress());
+
 		case 2:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = getStrain();
-			return 0;
+			return matInfo.setVector(this->getStrain());
+
 		case 3:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = GetState();
-			return 0;
+			return matInfo.setVector(this->GetState());
+
 		case 4:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = GetCenter();
-			return 0;
+			return matInfo.setVector(this->GetCenter());
+
 		default:
 			return -1;
 	}
