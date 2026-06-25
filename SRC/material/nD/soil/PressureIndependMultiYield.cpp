@@ -915,42 +915,31 @@ int PressureIndependMultiYield::getResponse (int responseID, Information &matInf
   case -1:
     return -1;
   case 1:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getCommittedStress();
-    return 0;
+    return matInfo.setVector(this->getCommittedStress());
+
   case 2:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getCommittedStrain();
-    return 0;
+    return matInfo.setVector(this->getCommittedStrain());
+
   case 3:
-    if (matInfo.theMatrix != 0)
-      *(matInfo.theMatrix) = getTangent();
-    return 0;
+    return matInfo.setMatrix(this->getTangent());
+
   case 4:
     if (matInfo.theMatrix != 0)
       getBackbone(*(matInfo.theMatrix));
     return 0;
 	// begin change by Alborz Ghofrani UW --- get 6 components of stress
   case 5:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(3);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(3));
+
   case 6:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(4);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(4));
   case 7:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(5);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(5));
   case 8:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(6);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(6));
   case 9:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(7);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(7));
+
 	// end change by Alborz Ghofrani UW
   default:
     return -1;
@@ -958,7 +947,7 @@ int PressureIndependMultiYield::getResponse (int responseID, Information &matInf
 }
 
 
-void PressureIndependMultiYield::getBackbone (Matrix & bb)
+void PressureIndependMultiYield::getBackbone(Matrix & bb)
 {
   double residualPress = residualPressx[matN];
   double refPressure = refPressurex[matN];
