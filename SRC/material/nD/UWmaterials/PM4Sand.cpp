@@ -515,33 +515,24 @@ PM4Sand::getResponse(int responseID, Information &matInfo)
 	case -1:
 		return -1;
 	case 1:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getStress();
-		return 0;
+		return matInfo.setVector(this->getStress());
 	case 2:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getStrain();
-		return 0;
+		return matInfo.setVector(this->getStrain());
+
 	case 3:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getState();
-		return 0;
+		return matInfo.setVector(this->getState());
+
 	case 4:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getAlpha();
-		return 0;
+		return matInfo.setVector(this->getAlpha());
+
 	case 5:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getFabric();
-		return 0;
+		return matInfo.setVector(this->getFabric());
+
 	case 6:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getAlpha_in();
-		return 0;
+		return matInfo.setVector(this->getAlpha_in());
 	case 7:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getTracker();
-		return 0;
+		return matInfo.setVector(this->getTracker());
+
 	default:
 		return -1;
 	}
