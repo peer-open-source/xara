@@ -31,11 +31,9 @@
 #include <ElementResponse.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #include <Parameter.h>
 #include <TimeSeries.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <limits>
 
@@ -466,8 +464,9 @@ namespace {
             node.z = PE(2, j);
         }
     }
-
 }
+
+#include <elementAPI.h>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ASDAbsorbingBoundary3D)
 {
