@@ -181,17 +181,12 @@ TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
       iData[7], iData[8], *theMaterial, dData[0], dData[1], dData[2], dData[3],
       dData[4], dData[5], dData[6], dData[7], dData[8], dData[9]);
 
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type SSPbrickUP\n";
-    return 0;
-  }
-
   return theElement;
 }
 
 
 
-
+#if 0
 #include <element/community/UWelements/SSPquad.h>
 static int
 TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
@@ -274,12 +269,10 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
   if (argi < argc-1) {
     if (Tcl_GetDouble(interp, argv[++argi], &b1) != TCL_OK) {
       opserr << "WARNING invalid b1\n";
-      opserr << "SSPquad element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[++argi], &b2) != TCL_OK) {
       opserr << "WARNING invalid b2\n";
-      opserr << "SSPquad element: " << tag << endln;
       return TCL_ERROR;
     }
   }
@@ -301,6 +294,7 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
 
   return TCL_OK;
 }
+#endif
 
 static Element*
 TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
