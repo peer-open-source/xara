@@ -233,30 +233,24 @@ ParkAng::getResponse(int responseID, Information &info)
 	case 1:
 		return info.setDouble( this->getDamage() );
 
-	case 2:
-		if(info.theVector!=0)
-		{
-			(*(info.theVector))(0) = TrialInfo[1];
-			(*(info.theVector))(1) = TrialInfo[0];
-			(*(info.theVector))(2) = TrialInfo[2];
-		}
-		return 0;
-
-	case 3:
-		if(info.theVector!=0)
-		{
-			(*(info.theVector))(0) = TrialInfo[0];
-			(*(info.theVector))(1) = TrialInfo[1];
-			(*(info.theVector))(2) = TrialInfo[2];
-			(*(info.theVector))(3) = TrialInfo[3];
-			(*(info.theVector))(4) = TrialInfo[4];
-			(*(info.theVector))(5) = TrialInfo[5];
-		}
-
-		return 0;
-
-	default:
+	case 2: {
+		double data[3] = {TrialInfo[1], TrialInfo[0], TrialInfo[2]};
+		Vector vec(data, 3);
+		return info.setVector(vec);
+	}
+	case 3: {
+		double data2[6] = {TrialInfo[0], 
+			               TrialInfo[1], 
+						   TrialInfo[2], 
+						   TrialInfo[3], 
+						   TrialInfo[4], 
+						   TrialInfo[5]};
+		Vector vec(data2, 6);
+		return info.setVector(vec);
+	}
+	default: {
 		return -1;
+	}
 	}
 }
 
