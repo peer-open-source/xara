@@ -248,7 +248,8 @@ init_obj_module(py::module &m)
         static_cast<int>(info.shape[1])
       );
     }))
-  ; 
+  ;
+
   py::class_<Node,    std::unique_ptr<Node,py::nodelete>>(m, "_Node")
   ;
   py::class_<Element, std::unique_ptr<Element,py::nodelete>>(m, "_Element")
