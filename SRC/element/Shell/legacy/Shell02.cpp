@@ -45,6 +45,7 @@
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
+#define ELE_TAG_Shell02 10020
 
 #define min(a,b) ( (a)<(b) ? (a):(b) )
 
@@ -133,8 +134,8 @@ connectedExternalNodes(4), load(0), Ki(0)
   } //end if Bhat
 
   sg[0] = -one_over_root3;
-  sg[1] = one_over_root3;
-  sg[2] = one_over_root3;
+  sg[1] =  one_over_root3;
+  sg[2] =  one_over_root3;
   sg[3] = -one_over_root3;  
 
   tg[0] = -one_over_root3;
@@ -152,11 +153,11 @@ connectedExternalNodes(4), load(0), Ki(0)
 //*********************************************************************
 //full constructor
 Shell02::Shell02(  int tag, 
-                         int node1,
-                         int node2,
-                        int node3,
-                         int node4,
-                     SectionForceDeformation &theMaterial ) :
+                    int node1,
+                    int node2,
+                  int node3,
+                    int node4,
+                SectionForceDeformation &theMaterial ) :
 Element( tag, ELE_TAG_Shell02 ),
 connectedExternalNodes(4), load(0), Ki(0)
 {
@@ -272,11 +273,11 @@ void  Shell02::setDomain( Domain *theDomain )
   //compute drilling stiffness penalty parameter
   const Matrix &dd = materialPointers[0]->getInitialTangent( ) ;
 
-  //assemble ddMembrane ;
+  // assemble ddMembrane ;
   for ( i = 0; i < 3; i++ ) {
     for ( j = 0; j < 3; j++ )
         ddMembrane(i,j) = dd(i,j);
-  } //end for i 
+  }
 
   //eigenvalues of ddMembrane
   eig = LovelyEig( ddMembrane ) ;
@@ -287,10 +288,10 @@ void  Shell02::setDomain( Domain *theDomain )
   //Ktt = dd(2,2);
 
   //basis vectors and local coordinates
-  computeBasis( ) ;
+  computeBasis() ;
 
-  if (in != nullptr)
-    this->Element::link(*in);
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 }
 
 
@@ -542,11 +543,8 @@ const Matrix&  Shell02::getInitialStiff( )
     return *Ki;
 
   static const int ndf = 6 ; //two membrane plus three bending plus one drill
-
   static const int nstress = 8 ; //three membrane, three moment, two shear
-
   static const int ngauss = 4 ;
-
   static const int numnodes = 4 ;
 
   int i,  j,  k, p, q ;
@@ -573,29 +571,29 @@ const Matrix&  Shell02::getInitialStiff( )
 
   //---------B-matrices------------------------------------
 
-    static Matrix BJ(nstress,ndf) ;      // B matrix node J
+  static Matrix BJ(nstress,ndf) ;      // B matrix node J
 
-    static Matrix BJtran(ndf,nstress) ;
+  static Matrix BJtran(ndf,nstress) ;
 
-    static Matrix BK(nstress,ndf) ;      // B matrix node k
+  static Matrix BK(nstress,ndf) ;      // B matrix node k
 
-    static Matrix BJtranD(ndf,nstress) ;
-
-
-    static Matrix Bbend(3,3) ;  // bending B matrix
-
-    static Matrix Bshear(2,3) ; // shear B matrix
-
-    static Matrix Bmembrane(3,2) ; // membrane B matrix
+  static Matrix BJtranD(ndf,nstress) ;
 
 
-    static double BdrillJ[ndf] ; //drill B matrix
+  static Matrix Bbend(3,3) ;  // bending B matrix
 
-    static double BdrillK[ndf] ;  
+  static Matrix Bshear(2,3) ; // shear B matrix
 
-    double *drillPointer ;
+  static Matrix Bmembrane(3,2) ; // membrane B matrix
 
-    static double saveB[nstress][ndf][numnodes] ;
+
+  static double BdrillJ[ndf] ; //drill B matrix
+
+  static double BdrillK[ndf] ;  
+
+  double *drillPointer ;
+
+  static double saveB[nstress][ndf][numnodes] ;
 
   //-------------------------------------------------------
 
@@ -807,7 +805,8 @@ const Matrix&  Shell02::getInitialStiff( )
     
 
 //return mass matrix
-const Matrix&  Shell02::getMass( ) 
+const Matrix&
+Shell02::getMass( ) 
 {
   int tangFlag = 1 ;
 
@@ -870,7 +869,8 @@ Shell02::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 //get residual
-const Vector&  Shell02::getResistingForce( ) 
+const Vector&
+Shell02::getResistingForce( ) 
 {
   int tang_flag = 0 ; //don't get the tangent
 
@@ -885,7 +885,8 @@ const Vector&  Shell02::getResistingForce( )
 
 
 //get residual with inertia terms
-const Vector&  Shell02::getResistingForceIncInertia( )
+const Vector&
+Shell02::getResistingForceIncInertia( )
 {
   static Vector res(24);
   int tang_flag = 0 ; //don't get the tangent
@@ -1114,15 +1115,15 @@ Shell02::formResidAndTangent( int tang_flag )
   double L2 = 0.0 ;
   computeJacobian( L1, L2, xl, J0, J0inv ) ; 
 
-  //compute the gamma's
+  // compute the gamma's
   computeGamma( xl, J0 ) ;
 
-  //zero Bhat = \frac{1}{volume} \int{  B - \bar{B} } \diff A
+  // zero Bhat = \frac{1}{volume} \int{  B - \bar{B} } \diff A
   for ( node = 0;  node < numnodes;  node++ ) {
     Bhat[node]->Zero( ) ;
   }
 
-  //gauss loop to compute Bhat's 
+  // gauss loop to compute Bhat's 
   for ( i = 0; i < ngauss; i++ ) {
 
     //get shape functions    
@@ -1165,14 +1166,14 @@ Shell02::formResidAndTangent( int tang_flag )
     Bhat[node]->operator/=(volume) ;
     
 
-  //gauss loop 
+  // gauss loop 
   for ( i = 0; i < ngauss; i++ ) {
 
     //extract shape functions from saved array
     for ( p = 0; p < 3; p++ ) {
-       for ( q = 0; q < numnodes; q++ )
-      shp[p][q]  = Shape[p][q][i] ;
-    } // end for p
+      for ( q = 0; q < numnodes; q++ )
+        shp[p][q]  = Shape[p][q][i] ;
+    }
 
     //zero the strains
     strain.Zero( ) ;
@@ -1193,9 +1194,9 @@ Shell02::formResidAndTangent( int tang_flag )
 
       //save the B-matrix
       for (p=0; p<nstress; p++) {
-    for (q=0; q<ndf; q++ )
-      saveB[p][q][j] = BJ(p,q) ;
-      }//end for p
+        for (q=0; q<ndf; q++ )
+          saveB[p][q][j] = BJ(p,q) ;
+      }
 
       //nodal "displacements" 
       const Vector &ul = nodePointers[j]->getTrialDisp( ) ;
@@ -1207,27 +1208,27 @@ Shell02::formResidAndTangent( int tang_flag )
       //drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-    //BdrillJ[p] = *drillPointer++ ;
-    BdrillJ[p] = *drillPointer ; //set p-th component
-    drillPointer++ ;             //pointer arithmetic
+      //BdrillJ[p] = *drillPointer++ ;
+        BdrillJ[p] = *drillPointer ; //set p-th component
+        drillPointer++ ;             //pointer arithmetic
       }//end for p
 
       //drilling "strain" 
       for ( p = 0; p < ndf; p++ )
-    epsDrill +=  BdrillJ[p]*ul(p) ;
+        epsDrill +=  BdrillJ[p]*ul(p) ;
 
     } // end for j
   
-    //send the strain to the material 
+    // send the strain to the material 
     success = materialPointers[i]->setTrialSectionDeformation( strain ) ;
 
     //compute the stress
     stress = materialPointers[i]->getStressResultant( ) ;
 
-    //drilling "stress" 
+    // drilling "stress" 
     tauDrill = Ktt * epsDrill ;
 
-    //multiply by volume element
+    // multiply by volume element
     stress   *= dvol[i] ;
     tauDrill *= dvol[i] ;
 
@@ -1292,11 +1293,11 @@ Shell02::formResidAndTangent( int tang_flag )
 
       if ( tang_flag == 1 ) {
 
-          //BJtranD = BJtran * dd ;
-      BJtranD.addMatrixProduct(0.0, BJtran,dd,1.0 ) ;
+        // BJtranD = BJtran * dd ;
+        BJtranD.addMatrixProduct(0.0, BJtran,dd,1.0 ) ;
 
-      for (p=0; p<ndf; p++) 
-        BdrillJ[p] *= ( Ktt*dvol[i] ) ;
+        for (p=0; p<ndf; p++) 
+          BdrillJ[p] *= ( Ktt*dvol[i] ) ;
 
         kk = 0 ;
         for ( k = 0; k < numnodes; k++ ) {
@@ -1349,7 +1350,7 @@ Shell02::formResidAndTangent( int tang_flag )
 //compute local coordinates and basis
 
 void   
-Shell02::computeBasis( ) 
+Shell02::computeBasis() 
 {
   //could compute derivatives \frac{ \partial {\bf x} }{ \partial L_1 } 
   //                     and  \frac{ \partial {\bf x} }{ \partial L_2 }
