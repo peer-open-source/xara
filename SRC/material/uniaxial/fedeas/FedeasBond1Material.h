@@ -42,13 +42,13 @@ class FedeasBond1Material : public FedeasMaterial
 		double u1n, double q1n, double u2n, double u3n, double q3n,
 		double s0, double bb);
 	FedeasBond1Material(int tag, const Vector &data);
-	FedeasBond1Material(void);
-    ~FedeasBond1Material();
+	FedeasBond1Material();
+  ~FedeasBond1Material();
 
-    const char *getClassType(void) const {return "FedeasBond1Material";};
-    
-    double getInitialTangent(void);
-    UniaxialMaterial *getCopy(void);
+  const char *getClassType() const {return "FedeasBond1Material";}
+  
+  double getInitialTangent();
+  UniaxialMaterial *getCopy();
 
   private:
 
