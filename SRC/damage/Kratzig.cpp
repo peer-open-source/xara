@@ -304,18 +304,20 @@ Kratzig::getResponse(int responseID, Information &info)
 	case 2:
 		return info.setDouble( TrialInfo[0] );
 
-	case 3:
-		if(info.theVector!=0)
-		{
-			(*(info.theVector))(0) = TrialInfo[4];
-			(*(info.theVector))(1) = TrialInfo[3];
-			(*(info.theVector))(2) = TrialInfo[6];
-			(*(info.theVector))(3) = TrialInfo[5];
-		}
+	case 3: {
+	    double data[4];
+		Vector vec(data, 4);
+		vec(0) = TrialInfo[4];
+		vec(1) = TrialInfo[3];
+		vec(2) = TrialInfo[6];
+		vec(3) = TrialInfo[5];
+	    return info.setVector(vec);
 		return 0;
+	}
 
-	default:
+	default: {
 		return -1;
+	}
 	}
 }
 
