@@ -125,6 +125,10 @@ SectionTest_Commit(ClientData clientData, Tcl_Interp *interp,
 {
   SectionForceDeformation *theSection = (SectionForceDeformation*)clientData;
   const int status = theSection->commitState();
+  if (status < 0) {
+    opserr << OpenSees::PromptValueError << "failed to commit section\n";
+    return TCL_ERROR;
+  }
   return TCL_OK;
 }
 
