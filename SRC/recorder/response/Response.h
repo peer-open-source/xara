@@ -29,8 +29,10 @@
 class ID;
 class Vector;
 class Matrix;
+class OPS_Stream;
 
 #include <Information.h>
+#include <fstream>
 
 class Response
 {
@@ -50,7 +52,7 @@ class Response
   virtual Information &getInformation(void);
 
   virtual void Print(OPS_Stream &s, int flag = 0);
-  virtual void Print(ofstream &s, int flag = 0);
+  virtual void Print(std::ofstream &s, int flag = 0);
 
  protected:
   Information myInfo;
