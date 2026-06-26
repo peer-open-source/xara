@@ -250,19 +250,17 @@ TclCommand_newBoucWenFamily(ClientData clientData, Tcl_Interp *interp,
           if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
               opserr << OpenSees::PromptParseError << "invalid tag.\n";
               return TCL_ERROR;           
-          } else {
-            tracker.increment();
-            break;
           }
+          tracker.increment();
+          break;
 
         case Position::eta:
           if (Tcl_GetDouble (interp, argv[i], &params.eta) != TCL_OK) {
               opserr << OpenSees::PromptParseError << "invalid eta.\n";
               return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
           }
+          tracker.increment();
+          break;
         case Position::k0:
           if (Tcl_GetDouble(interp, argv[i], &params.k0) != TCL_OK) {
               opserr << OpenSees::PromptParseError << "invalid k0.\n";
@@ -282,93 +280,83 @@ TclCommand_newBoucWenFamily(ClientData clientData, Tcl_Interp *interp,
         
         case Position::sig:
           if (Tcl_GetDouble(interp, argv[i], &params.sig) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid sig.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid sig.\n";
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
         
         case Position::lam:
           if (Tcl_GetDouble(interp, argv[i], &params.lam) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid lam.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid lam.\n";
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
         
         case Position::mup:
           if (Tcl_GetDouble(interp, argv[i], &params.mup) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid mup.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid mup." << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
         
         case Position::sigp:
           if (Tcl_GetDouble(interp, argv[i], &params.sigp) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid sigp.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid sigp." << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
         
         case Position::rsmax:
           if (Tcl_GetDouble(interp, argv[i], &params.rsmax) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid rsmax.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid rsmax." << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
         
         case Position::n:
           if (Tcl_GetDouble(interp, argv[i], &params.n) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid n.\n";
+              opserr << OpenSees::PromptParseError << "invalid n." << OpenSees::SignalMessageEnd;
               return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
           }
+          tracker.increment();
+          break;
         
         case Position::alpha:
           if (Tcl_GetDouble(interp, argv[i], &params.alpha) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid alpha.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid alpha." << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
         
         case Position::alpha1:
           if (Tcl_GetDouble(interp, argv[i], &params.alpha1) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid alpha1.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid alpha1." << OpenSees::SignalMessageEnd;
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
 
         case Position::alpha2:
           if (Tcl_GetDouble(interp, argv[i], &params.alpha2) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid alpha2.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid alpha2.\n";
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
         
         case Position::betam1:
           if (Tcl_GetDouble(interp, argv[i], &params.betam1) != TCL_OK) {
-              opserr << OpenSees::PromptParseError << "invalid betam1.\n";
-              return TCL_ERROR;
-          } else {
-            tracker.increment();
-            break;
+            opserr << OpenSees::PromptParseError << "invalid betam1.\n";
+            return TCL_ERROR;
           }
+          tracker.increment();
+          break;
 
         case Position::End:
           opserr << OpenSees::PromptParseError << "unexpected argument" << argv[i] << ".\n";
