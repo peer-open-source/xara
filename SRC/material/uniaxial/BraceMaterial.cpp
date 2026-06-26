@@ -23,7 +23,6 @@
 
 #include <BraceMaterial.h>
 #include <OPS_Globals.h>
-#include <OPS_Globals.h>
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
@@ -32,11 +31,7 @@
 #include <elementAPI.h>
 
 using namespace std;
-//ErrorHandler *g3ErrorHandler;
-static int numBilinMaterials = 0;
 
-
-static int numCastMaterials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_BraceMaterial)
 {
@@ -508,8 +503,9 @@ BraceMaterial::revertToLastCommit(void)
   Tstrain = Cstrain;
   return 0;
 }
+
 int
-BraceMaterial::revertToStart(void)
+BraceMaterial::revertToStart()
 {
   CrotMax = 0.0;
   CrotMin = 0.0;
@@ -528,8 +524,9 @@ BraceMaterial::revertToStart(void)
   Ttangent = E1p;
   return 0;
 }
+
 UniaxialMaterial*
-BraceMaterial::getCopy(void)
+BraceMaterial::getCopy()
 {
   BraceMaterial *theCopy = new BraceMaterial (this->getTag(),
 					      mom1p, rot1p, mom2p, rot2p, mom3p, rot3p,
@@ -740,6 +737,7 @@ BraceMaterial::posEnvlpTangent(double strain)
   else
     return E1p*1.0e-9;
 }
+
 double
 BraceMaterial::negEnvlpTangent(double strain)
 {
