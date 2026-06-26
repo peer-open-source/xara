@@ -173,9 +173,6 @@ void WeakRock::Print(OPS_Stream &s, int flag) {
   s << "\tyrm: " << yrm << endln;
 }
 
-int WeakRock::setVariable(char *argv) { return -1; }
-
-int WeakRock::getVariable(int varID, double &theValue) { return -1; }
 
 int WeakRock::sendSelf(int commitTag, Channel &theChannel) {
   int res = 0;

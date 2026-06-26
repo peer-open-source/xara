@@ -3,7 +3,7 @@
 #include <RaynorBackbone.h>
 #include <Vector.h>
 #include <Channel.h>
-
+#include <Logging.h>
 #include <math.h>
 
 RaynorBackbone::RaynorBackbone(int tag,double es,double f1,double f2,double epsh,double epsm,double c1,double ey):
@@ -11,10 +11,10 @@ RaynorBackbone::RaynorBackbone(int tag,double es,double f1,double f2,double epsh
   Es(es), fy(f1), fsu(f2),Epsilonsh(epsh),Epsilonsm(epsm), C1(c1), Ey(ey)
 {
   if (Epsilonsm <= Epsilonsh)
-    opserr << "RaynorBackbone::RaynorBackbone -- Esilonsm-Epsilonsh <= 0" << endln;
+    opserr << "RaynorBackbone::RaynorBackbone -- Esilonsm-Epsilonsh <= 0" << "\n";
 
   if (fy/Es > Epsilonsh) 
-    opserr << "RaynorBackbone::RaynorBackbone -- Esilony > Epsilonsh" << endln;
+    opserr << "RaynorBackbone::RaynorBackbone -- Esilony > Epsilonsh" << "\n";
   
 }
 
@@ -134,17 +134,6 @@ RaynorBackbone::Print(OPS_Stream &s, int flag)
   s << "\tEy: " << Ey << endln;
 }
 
-int
-RaynorBackbone::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-RaynorBackbone::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 RaynorBackbone::sendSelf(int commitTag, Channel &theChannel)

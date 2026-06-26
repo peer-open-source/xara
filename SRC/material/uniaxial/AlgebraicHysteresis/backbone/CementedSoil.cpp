@@ -198,13 +198,17 @@ HystereticBackbone *CementedSoil::getCopy(void) {
   return theCopy;
 }
 
-void CementedSoil::Print(OPS_Stream &s, int flag) {
-  s << "CementedSoil, tag: " << this->getTag() << endln;
-  s << "\tpM: " << pm << endln;
-  s << "\tpU: " << pu << endln;
-  s << "\tKpy: " << kpy << endln;
-  s << "\tz: " << depth << endln;
-  s << "\tb: " << diameter << endln;
+void
+CementedSoil::Print(OPS_Stream &s, int flag) 
+{
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+    s << "CementedSoil, tag: " << this->getTag() << "\n";
+    s << "\tpM: " << pm << "\n";
+    s << "\tpU: " << pu << "\n";
+    s << "\tKpy: " << kpy << "\n";
+    s << "\tz: " << depth << "\n";
+    s << "\tb: " << diameter << "\n";
+  }
 }
 
 int CementedSoil::setVariable(char *argv) { return -1; }

@@ -126,17 +126,6 @@ LinearCappedBackbone::Print (OPS_Stream &s, int flag)
   s << "\teRes: " << eRes << endln;
 }
 
-int
-LinearCappedBackbone::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-LinearCappedBackbone::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 LinearCappedBackbone::sendSelf(int cTag, Channel &theChannel)

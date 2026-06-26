@@ -67,10 +67,6 @@ OPS_MultilinearBackbone(void)
   }
   
   theBackbone = new MultilinearBackbone(iData[0], numPoints, e, s);
-  if (theBackbone == 0) {
-    opserr << "WARNING could not create MultilinearBackbone\n";
-    return 0;
-  }
 
   delete [] dData;
   

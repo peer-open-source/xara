@@ -40,14 +40,12 @@ class VuggyLimestone : public HystereticBackbone {
   double getTangent(double strain);
   double getEnergy(double strain);
 
-  double getYieldStrain(void);
+  double getYieldStrain();
 
-  HystereticBackbone *getCopy(void);
+  HystereticBackbone *getCopy();
 
-  void Print(OPS_Stream &s, int flag = 0);
+  void Print(OPS_Stream &s, int flag);
 
-  int setVariable(char *argv);
-  int getVariable(int varID, double &theValue);
 
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel,

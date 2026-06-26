@@ -36,7 +36,7 @@
 #include <elementAPI.h>
 
 void *
-OPS_TrilinearBackbone(void)
+OPS_TrilinearBackbone()
 {
   HystereticBackbone *theBackbone = 0;
 
@@ -61,16 +61,12 @@ OPS_TrilinearBackbone(void)
   }
 
   theBackbone = new TrilinearBackbone(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5]);
-  if (theBackbone == 0) {
-    opserr << "WARNING could not create TrilinearBackbone\n";
-    return 0;
-  }
 
   return theBackbone;
 }
 
 void *
-OPS_BilinearBackbone(void)
+OPS_BilinearBackbone()
 {
   HystereticBackbone *theBackbone = 0;
 

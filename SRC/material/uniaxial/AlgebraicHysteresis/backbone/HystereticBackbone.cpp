@@ -67,17 +67,6 @@ HystereticBackbone::~HystereticBackbone()
   
 }
 
-int 
-HystereticBackbone::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-HystereticBackbone::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 HystereticBackbone::setParameter(char **argv, int argc, Information &eleInformation)

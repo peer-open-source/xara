@@ -195,7 +195,9 @@ HystereticBackbone *LiquefiedSand::getCopy(void) {
   return theCopy;
 }
 
-void LiquefiedSand::Print(OPS_Stream &s, int flag) {
+void
+LiquefiedSand::Print(OPS_Stream &s, int flag) 
+{
   s << "LiquefiedSand, tag: " << this->getTag() << endln;
   s << "\tX: " << X << endln;
   s << "\tD: " << D << endln;
@@ -203,11 +205,10 @@ void LiquefiedSand::Print(OPS_Stream &s, int flag) {
   s << "\tmeter: " << meter << endln;
 }
 
-int LiquefiedSand::setVariable(char *argv) { return -1; }
 
-int LiquefiedSand::getVariable(int varID, double &theValue) { return -1; }
-
-int LiquefiedSand::sendSelf(int commitTag, Channel &theChannel) {
+int
+LiquefiedSand::sendSelf(int commitTag, Channel &theChannel)
+{
   int res = 0;
 
   static Vector data(5);
