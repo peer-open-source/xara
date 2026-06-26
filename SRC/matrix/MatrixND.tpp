@@ -53,15 +53,16 @@ constexpr double
 MatrixND<nr, nc, T>::determinant() const
 {
   static_assert(nr == nc, "Matrix must be square");
-  static_assert(nr > 1 && nr < 3, "Matrix must be 2x2");
+  static_assert(nr > 1 && nr < 4, "Matrix must be 2x2 or 3x3");
   if constexpr (nr == 2) {
     return (*this)(0,0) * (*this)(1,1) - (*this)(0,1) * (*this)(1,0);
   }
-  // if constexpr (nr == 3) {
-  //   return values[0][0] * (values[1][1] * values[2][2] - values[1][2] * values[2][1]) -
-  //          values[0][1] * (values[1][0] * values[2][2] - values[1][2] * values[2][0]) +
-  //          values[0][2] * (values[1][0] * values[2][1] - values[1][1] * values[2][0]);
-  // }
+  else if constexpr (nr == 3) {
+    const double t0 = (*this)(1,1)*(*this)(2,2) - (*this)(1,2)*(*this)(2,1);
+    const double t1 = (*this)(1,0)*(*this)(2,2) - (*this)(1,2)*(*this)(2,0);
+    const double t2 = (*this)(1,0)*(*this)(2,1) - (*this)(1,1)*(*this)(2,0);
+    return (*this)(0,0)*t0 - (*this)(0,1)*t1 + (*this)(0,2)*t2;
+  }
 }
 
 
