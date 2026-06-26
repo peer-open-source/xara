@@ -359,7 +359,7 @@ FrameFiberSection3d::setResponse(const char **argv, int argc, OPS_Stream &output
   Response *theResponse = nullptr;
   const int numFibers = fibers->size();
   
-  if (argc > 2 && strcmp(argv[0],"fiber") == 0) {
+  if (argc > 2 && ((strcmp(argv[0],"fiber") == 0))) {
 
     int key = numFibers;
     int passarg = 2;
@@ -445,8 +445,8 @@ FrameFiberSection3d::setResponse(const char **argv, int argc, OPS_Stream &output
       
       output.endTag();
     }
-  
-  } else if (strcmp(argv[0],"fiberData") == 0) {
+  }
+  else if (strcmp(argv[0],"fiberData") == 0) {
     int numData = numFibers*5;
     for (int j = 0; j < numFibers; j++) {
       output.tag("FiberOutput");
