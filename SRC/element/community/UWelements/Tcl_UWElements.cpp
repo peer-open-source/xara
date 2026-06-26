@@ -18,7 +18,7 @@
 
 static Element *TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 static Element *TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
-static int      TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
+// static int      TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 static Element *TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 
 int
@@ -30,10 +30,11 @@ TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
-  if (strcasecmp(argv[1], "SSPquad")==0) {
-    return TclCommand_addSSPquad(clientData, interp, argc, argv);
-  }
-  else if (strcasecmp(argv[1], "SSPquadUP")==0) {
+  // if (strcasecmp(argv[1], "SSPquad")==0) {
+  //   return TclCommand_addSSPquad(clientData, interp, argc, argv);
+  // }
+  // else 
+  if (strcasecmp(argv[1], "SSPquadUP")==0) {
     theEle = TclDispatch_SSPquadUP(clientData, interp, argc, argv);
   }
   else if (strcasecmp(argv[1], "SSPbrick")==0) {
