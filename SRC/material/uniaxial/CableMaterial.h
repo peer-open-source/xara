@@ -54,26 +54,25 @@ class CableMaterial : public UniaxialMaterial
     CableMaterial();    
     ~CableMaterial();
 
-    const char *getClassType(void) const {return "CableMaterial";};
+    const char *getClassType() const {return "CableMaterial";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
     int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
-    double getStrain(void) {return trialStrain;};
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void) {return 1.0e-8;}; 
+    double getStrain() {return trialStrain;};
+    double getStress();
+    double getTangent();
+    double getInitialTangent() {return 1.0e-8;}; 
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
     int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     
     //int setParameter(const char **argv, int argc, Information &info);
     //int updateParameter(int parameterID, Information &info);
