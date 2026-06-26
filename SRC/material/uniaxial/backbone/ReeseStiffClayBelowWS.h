@@ -17,7 +17,7 @@ class ReeseStiffClayBelowWS : public HystereticBackbone
   double getTangent(double strain);
   double getEnergy(double strain);
   
-  double getYieldStrain(void);
+  double getYieldStrain();
   
   HystereticBackbone *getCopy();
 

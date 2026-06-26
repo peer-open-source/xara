@@ -139,17 +139,6 @@ ReeseSandBackbone::Print(OPS_Stream &s, int flag)
   s << "\tpu: " << pu << "\n";
 }
 
-int
-ReeseSandBackbone::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-ReeseSandBackbone::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 ReeseSandBackbone::sendSelf(int commitTag, Channel &theChannel)
