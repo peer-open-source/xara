@@ -17,20 +17,20 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2007-10-26 04:29:24 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/ContinuumUniaxial.h,v $
-
-// Written: MHS
-// Created: June 2002
 //
 // Description: This file contains the class definition of ContinuumUniaxial.
 // The ContinuumUniaxial class is a wrapper class that performs static
 // condensation on a three-dimensional material model to give the 11
 // uniaxial stress component.
-
-#include <stdio.h> 
+//
+// $Revision: 1.1 $
+// $Date: 2007-10-26 04:29:24 $
+// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/ContinuumUniaxial.h,v $
+//
+// Written: MHS
+// Created: June 2002
+//
+#pragma once
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -39,11 +39,12 @@
 #include <ID.h> 
 #include <UniaxialMaterial.h>
 
+class MaterialBuilder;
 class NDMaterial;
 
 class ContinuumUniaxial: public UniaxialMaterial {
  public:
-  ContinuumUniaxial(int tag, NDMaterial &theMat);
+  ContinuumUniaxial(int tag, MaterialBuilder &);
   ContinuumUniaxial();
   virtual ~ContinuumUniaxial();
 
@@ -60,12 +61,11 @@ class ContinuumUniaxial: public UniaxialMaterial {
   int revertToStart();
   
   UniaxialMaterial *getCopy();
-  
+
   void Print(OPS_Stream &s, int flag);
   
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel,
-	       FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
   
   // AddingSensitivity:BEGIN //////////////////////////////////////////
   int setParameter (const char **argv, int argc, Parameter &param);
