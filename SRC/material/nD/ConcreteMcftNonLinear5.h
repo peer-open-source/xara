@@ -37,7 +37,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <MaterialResponse.h>
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 #include <TaggedObject.h>
@@ -67,24 +66,23 @@ public:
     int setTrialStrainIncr (const Vector &v);
     int setTrialStrainIncr (const Vector &v, const Vector &r);
     
-	const Vector &getStress (void);
-    const Vector &getStrain (void);   
-	const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+	const Vector &getStress();
+    const Vector &getStrain();   
+	const Matrix &getTangent();
+    const Matrix &getInitialTangent();
 
-    int commitState (void);
-    int revertToLastCommit (void);
-    int revertToStart (void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
-  virtual const char *getType (void) const ;
-  virtual int getOrder (void) const ;
+  virtual const char *getType () const ;
+  virtual int getOrder () const ;
 
-   void Print(OPS_Stream &s, int flag = 0);
+
    int sendSelf(int commitTag, Channel &theChannel);
    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-    Response *setResponse (const char **argv, int argc, 
-				   OPS_Stream &s);
+    Response *setResponse (const char **argv, int argc, OPS_Stream &s);
     int getResponse (int responseID, Information &matInformation);
 
 
