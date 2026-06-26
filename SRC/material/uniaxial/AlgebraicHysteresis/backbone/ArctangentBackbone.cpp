@@ -43,7 +43,7 @@ OPS_ArctangentBackbone(void)
   HystereticBackbone *theBackbone = 0;
 
   if (OPS_GetNumRemainingInputArgs() < 4) {
-    opserr << "Invalid number of args, want: hystereticBackbone Arctangent tag? K1? gamma? alpha?" << endln;
+    opserr << "Invalid number of args, want: hystereticBackbone Arctangent tag? K1? gamma? alpha?" << "\n";
     return 0;
   }
 
