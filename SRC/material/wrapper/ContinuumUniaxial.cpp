@@ -41,7 +41,7 @@ ContinuumUniaxial::ContinuumUniaxial():
   // Nothing to do
 }
 
-ContinuumUniaxial::ContinuumUniaxial(int tag, NDMaterial &theMat):
+ContinuumUniaxial::ContinuumUniaxial(int tag, MaterialBuilder &theMat):
   UniaxialMaterial(tag, MAT_TAG_ContinuumUniaxial), strain11(0.0),
   Tstrain22(0.0),Tstrain33(0.0),Tgamma12(0.0),Tgamma23(0.0),Tgamma31(0.0),
   Cstrain22(0.0),Cstrain33(0.0),Cgamma12(0.0),Cgamma23(0.0),Cgamma31(0.0),
@@ -50,21 +50,21 @@ ContinuumUniaxial::ContinuumUniaxial(int tag, NDMaterial &theMat):
 {
   // Get a copy of the material
   theMaterial = theMat.getCopy("ThreeDimensional");
-  
-  if (theMaterial == 0)
-    opserr << "ContinuumUniaxial::ContinuumUniaxial -- failed to get copy of material" << endln;
+
+  if (theMaterial == nullptr)
+    opserr << "ContinuumUniaxial::ContinuumUniaxial -- failed to get copy of material" << "\n";
 
   initialTangent = this->getTangent();
 }
 
-ContinuumUniaxial::~ContinuumUniaxial(void) 
+ContinuumUniaxial::~ContinuumUniaxial() 
 { 
-  if (theMaterial != 0)
+  if (theMaterial != nullptr)
     delete theMaterial;
 } 
 
 UniaxialMaterial*
-ContinuumUniaxial::getCopy(void) 
+ContinuumUniaxial::getCopy() 
 {
   ContinuumUniaxial *theCopy =
     new ContinuumUniaxial(this->getTag(), *theMaterial);
@@ -86,8 +86,9 @@ ContinuumUniaxial::getCopy(void)
   return theCopy;
 }
 
+
 int 
-ContinuumUniaxial::commitState(void)
+ContinuumUniaxial::commitState()
 {
   Cstrain22 = Tstrain22;
   Cstrain33 = Tstrain33;
@@ -99,7 +100,7 @@ ContinuumUniaxial::commitState(void)
 }
 
 int 
-ContinuumUniaxial::revertToLastCommit(void)
+ContinuumUniaxial::revertToLastCommit()
 {
   Tstrain22 = Cstrain22;
   Tstrain33 = Cstrain33;
@@ -111,7 +112,7 @@ ContinuumUniaxial::revertToLastCommit(void)
 }
 
 int
-ContinuumUniaxial::revertToStart(void)
+ContinuumUniaxial::revertToStart()
 {
   Tstrain22 = 0.0;
   Tstrain33 = 0.0;
@@ -135,13 +136,13 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
 
   strain11 = strain;
 
-  double norm;
   static Vector condensedStress(5);
   static Vector strainIncrement(5);
   static Vector threeDstrain(6);
   static Matrix dd22(5,5);
 
-  //newton loop to solve for out-of-plane strains
+  // newton loop to solve for out-of-plane strains
+  double norm;
   do {
     //set three dimensional strain
     threeDstrain(0) = strain11;
@@ -156,7 +157,7 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
       return -1;   
     }
 
-    //three dimensional stress
+    // three dimensional stress
     const Vector &threeDstress = theMaterial->getStress();
 
     const Matrix &threeDtangent = theMaterial->getTangent();
@@ -171,7 +172,7 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
 
     }
 
-    //set norm
+    // set norm
     norm = condensedStress.Norm();
 
     // Condensation 
@@ -190,7 +191,7 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
 }
 
 double
-ContinuumUniaxial::getStrain(void)
+ContinuumUniaxial::getStrain()
 {
   return strain11;
 }
@@ -232,7 +233,7 @@ ContinuumUniaxial::getTangent()
 }
 
 double
-ContinuumUniaxial::getInitialTangent(void)
+ContinuumUniaxial::getInitialTangent()
 {
   return initialTangent;
 }
@@ -468,7 +469,7 @@ ContinuumUniaxial::commitSensitivity(double depsdh, int gradIndex, int numGrads)
   sigma2.addVector(0.0, dd21, -depsdh);
 
   const Vector &threeDstress = theMaterial->getStressSensitivity(gradIndex, true);
-  //opserr << threeDstress;
+
   sigma2(0) -= threeDstress(1);
   sigma2(1) -= threeDstress(2);
   sigma2(2) -= threeDstress(3);
