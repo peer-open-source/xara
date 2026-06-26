@@ -530,24 +530,18 @@ SimplifiedJ2::getResponse(int responseID, Information& matInfo)
   switch (responseID) {
   case -1: return -1;
   case 1:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = stress;
-    return 0;
+    return matInfo.setVector(stress);
 
   case 2:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = strain;
-    return 0;
+    return matInfo.setVector(strain);
 
   case 3:
-    if (matInfo.theMatrix != 0)
-      *(matInfo.theMatrix) = theTangent;
-    return 0;
+    return matInfo.setMatrix(theTangent);
+
 
   case 4:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = plastStrainDev;
-    return 0;
+    return matInfo.setVector(plastStrainDev);
+
   }
 
   return 0;
