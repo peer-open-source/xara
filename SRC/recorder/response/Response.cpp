@@ -26,7 +26,7 @@
 // Created: Oct 2000
 //
 // Description: This file contains the Response class implementation
-
+#include <OPS_Stream.h>
 #include <Response.h>
 
 Response::Response()
@@ -54,7 +54,7 @@ Response::Response(const ID &val)
 }
 
 Response::Response(const Vector &val)
-:myInfo(val)
+: myInfo(val)
 {
 
 }
@@ -83,7 +83,7 @@ Response::Print(OPS_Stream &s, int flag)
 }
 
 void
-Response::Print(ofstream &s, int flag)
+Response::Print(std::ofstream &s, int flag)
 {
   myInfo.Print(s, flag);
 }
