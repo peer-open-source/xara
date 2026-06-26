@@ -42,8 +42,8 @@ class ManderBackbone : public HystereticBackbone
   double getTangent(double strain);
   double getEnergy(double strain);
   
-  double getYieldStrain(void);
-  HystereticBackbone *getCopy(void);
+  double getYieldStrain();
+  HystereticBackbone *getCopy();
 
   void Print(OPS_Stream &s, int flag);
   
