@@ -1092,38 +1092,37 @@ MultiYieldSurfaceClay::setResponse (const char **argv, int argc, OPS_Stream &the
 }
 
 
-int MultiYieldSurfaceClay::getResponse (int responseID, Information &matInfo)
+int
+MultiYieldSurfaceClay::getResponse(int responseID, Information &matInfo)
 {
 	switch (responseID) {
 		case -1:
 			return -1;
 		case 1:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = getCommittedStress();
-			return 0;
+			return matInfo.setVector(this->getCommittedStress());
+
 		case 2:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = getCommittedStrain();
-			return 0;
+			return matInfo.setVector(this->getCommittedStrain());
+
 		case 3:
-			if (matInfo.theMatrix != 0)
-				*(matInfo.theMatrix) = getTangent();
-			return 0;
+			return matInfo.setMatrix(this->getTangent());
+
 		case 4:
 			if (matInfo.theMatrix != 0) 
 				getBackbone(*(matInfo.theMatrix));
 			return 0;
 
 
-// for sensitivity use Quan Gu Fe.2.05
+        // for sensitivity use Quan Gu Fe.2.05
 		default:    // sensitivity
 			if (responseID>100 && responseID<500) {
 //				case responseID:   //G,k tao..
 
-				if (matInfo.theVector != 0) 
+				return matInfo.setVector(this->getCommittedStressSensitivity(responseID-100));
+				// if (matInfo.theVector != 0) 
 					
-					*(matInfo.theVector) = this->getCommittedStressSensitivity(responseID-100);
-					return 0;
+				// 	*(matInfo.theVector) = this->getCommittedStressSensitivity(responseID-100);
+				// 	return 0;
 
 			} // if
 
@@ -1131,21 +1130,19 @@ int MultiYieldSurfaceClay::getResponse (int responseID, Information &matInfo)
 
 //				case responseID:   //
 
-					if (matInfo.theVector != 0) 
-						*(matInfo.theVector) = this->getCommittedStrainSensitivity(responseID-500);
-					return 0;
+					return matInfo.setVector(this->getCommittedStrainSensitivity(responseID-500));
+					// if (matInfo.theVector != 0) 
+					// 	*(matInfo.theVector) = this->getCommittedStrainSensitivity(responseID-500);
+					// return 0;
 
 			} // if
 			return -1;
-
-
-
-
 	}
 }
 
 
-void MultiYieldSurfaceClay::getBackbone (Matrix & bb)
+void
+MultiYieldSurfaceClay::getBackbone(Matrix & bb)
 {
   double residualPress = residualPressx[matN];
   double refPressure = refPressurex[matN];
@@ -1159,7 +1156,7 @@ void MultiYieldSurfaceClay::getBackbone (Matrix & bb)
 		vol = bb(0,k*2);
 		if (vol<=0.) {
 			opserr <<k<< "\nNDMaterial " <<this->getTag()
-			  <<": invalid confinement for backbone recorder, " << vol << endln;
+			  << ": invalid confinement for backbone recorder, " << vol << "\n";
 			continue;
 		}
 		conHeig = vol + residualPress;
@@ -1176,22 +1173,31 @@ void MultiYieldSurfaceClay::getBackbone (Matrix & bb)
 				plastModulus = factor*theSurfaces[i-1].modulus();
 				elast_plast = 2*shearModulus*plastModulus/(2*shearModulus+plastModulus);
 				stress2 = factor*theSurfaces[i].size()/1.732050807568877;
-			  strain2 = 2*(stress2-stress1)/elast_plast + strain1;
+                strain2 = 2*(stress2-stress1)/elast_plast + strain1;
 				gre = stress2/strain2;
-        bb(i,k*2) = strain2; bb(i,k*2+1) = gre;
+                bb(i,k*2) = strain2; bb(i,k*2+1) = gre;
 			}
 		}
 	}
 
 }
 
-void MultiYieldSurfaceClay::Print(OPS_Stream &s, int flag )
+void
+MultiYieldSurfaceClay::Print(OPS_Stream &s, int flag)
 {
-  s << "MultiYieldSurfaceClay" << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\"";
+    s << "}";
+  }
+  else
+    s << "MultiYieldSurfaceClay" << "\n";
 }
 
 
-const Vector & MultiYieldSurfaceClay::getCommittedStress (void)
+const Vector &
+MultiYieldSurfaceClay::getCommittedStress()
 {
 	int ndm = ndmx[matN];
 	int numOfSurfaces = numOfSurfacesx[matN];
