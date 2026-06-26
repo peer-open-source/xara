@@ -32,72 +32,26 @@
 #include <OrthotropicMaterial.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <OPS_Globals.h>
-#include <elementAPI.h>
-
-void *OPS_ADD_RUNTIME_VPV(OPS_OrthotropicMaterial)
-{
-	// check arguments
-	int numArgs= OPS_GetNumRemainingInputArgs();
-	if (numArgs < 17) {
-		opserr << 
-			"nDMaterial Orthotropic Error: Few arguments (< 17).\n"
-			"nDMaterial Orthotropic $tag $theIsoMat $Ex $Ey $Ez $Gxy $Gyz $Gzx $vxy $vyz $vzx $Asigmaxx $Asigmayy $Asigmazz $Asigmaxyxy $Asigmayzyz $Asigmaxzxz.\n";
-		return nullptr;
-	}
-	
-	// get integer data
-	int iData[2];
-	int numData = 2;
-	if (OPS_GetInt(&numData, iData) != 0)  {
-		opserr << "nDMaterial Orthotropic Error: invalid nDMaterial tags.\n";
-		return nullptr;
-	}
-
-	// get double data
-	double dData[15];
-	numData = 15;
-	if (OPS_GetDouble(&numData, dData) != 0) {
-		opserr << "nDMaterial Orthotropic Error: invalid data for nDMaterial Orthotropic with tah " << iData[0] << ".\n";
-		return nullptr;
-	}
-
-	// get the isotropic material to map
-	NDMaterial *theIsoMaterial = OPS_getNDMaterial(iData[1]);
-	if (theIsoMaterial == 0) {
-		opserr << "WARNING: nDMaterial does not exist.\n";
-		opserr << "nDMaterial: " << iData[1] << "\n";
-		opserr << "nDMaterial Orthotropic: " << iData[0] << "\n";
-		return nullptr;
-	}
-
-	// create the orthotropic wrapper
-	NDMaterial* theOrthotropicMaterial = new OrthotropicMaterial(
-		iData[0], 
-		*theIsoMaterial,
-		dData[0], dData[1], dData[2], dData[3],
-		dData[4], dData[5], dData[6], dData[7],
-		dData[8], dData[9], dData[10], dData[11],
-		dData[12], dData[13], dData[14]);
-
-	// done
-	return theOrthotropicMaterial;
-}
+#include <Logging.h>
+#include <Matrix.h>
+#include <Vector.h>
+#include <cassert>
 
 OrthotropicMaterial::OrthotropicMaterial(
 	int tag, 
 	NDMaterial &theIsoMat,
-	double Ex, double Ey, double Ez, double Gxy, double Gyz, double Gzx,
+	double Ex, double Ey, double Ez, 
+	double Gxy, double Gyz, double Gzx,
 	double vxy, double vyz, double vzx,
-	double Asigmaxx, double Asigmayy, double Asigmazz, double Asigmaxyxy, double Asigmayzyz, double Asigmaxzxz)
+	double Asigmaxx, double Asigmayy, double Asigmazz, 
+	double Asigmaxyxy, double Asigmayzyz, double Asigmaxzxz)
 	: NDMaterial(tag, ND_TAG_OrthotropicMaterial)
 {
 	// copy the isotropic material
 	theIsotropicMaterial = theIsoMat.getCopy("ThreeDimensional");
-	if (theIsotropicMaterial == 0) {
-		opserr << "nDMaterial Orthotropic Error: failed to get a (3D) copy of the isotropic material\n";
-		exit(-1);
-	}
+	assert(theIsotropicMaterial != 0);
+	assert(Asigmaxx > 0.0 && Asigmayy > 0.0 && Asigmazz > 0.0);
+	assert(Asigmaxyxy > 0.0 && Asigmayzyz > 0.0 && Asigmaxzxz > 0.0);
 
 	// compute the initial orthotropic constitutive tensor
 	static Matrix C0(6, 6);
@@ -120,10 +74,7 @@ OrthotropicMaterial::OrthotropicMaterial(
 	C0(5, 5) = Gzx;
 
 	// compute the Asigma and its inverse
-	if (Asigmaxx <= 0 || Asigmayy <= 0 || Asigmazz <= 0 || Asigmaxyxy <= 0 || Asigmayzyz <= 0 || Asigmaxzxz <= 0) {
-		opserr << "nDMaterial Orthotropic Error: Asigma11, Asigma22, Asigma33, Asigma12, Asigma23, Asigma13 must be greater than 0.\n";
-		exit(-1);
-	}
+
 	static Matrix Asigma(6, 6);
 	Asigma.Zero();
 	Asigma(0, 0) = Asigmaxx;
@@ -135,7 +86,7 @@ OrthotropicMaterial::OrthotropicMaterial(
 	for (int i = 0; i < 6; ++i)
 		Asigma_inv(i) = 1.0 / Asigma(i, i);
 
-	// coompute the initial isotropic constitutive tensor and its inverse
+	// compute the initial isotropic constitutive tensor and its inverse
 	static Matrix C0iso(6, 6);
 	static Matrix C0iso_inv(6, 6);
 	C0iso = theIsotropicMaterial->getInitialTangent();
@@ -162,7 +113,7 @@ OrthotropicMaterial::~OrthotropicMaterial()
 		delete theIsotropicMaterial;
 }
 
-double OrthotropicMaterial::getRho(void)
+double OrthotropicMaterial::getRho()
 {
 	return theIsotropicMaterial->getRho();
 }
@@ -185,12 +136,12 @@ int OrthotropicMaterial::setTrialStrain(const Vector & strain)
 	return 0;
 }
 
-const Vector &OrthotropicMaterial::getStrain(void)
+const Vector &OrthotropicMaterial::getStrain()
 {
 	return epsilon;
 }
 
-const Vector &OrthotropicMaterial::getStress(void)
+const Vector &OrthotropicMaterial::getStress()
 {
 	// stress in isotropic space
 	const Vector& sigma_iso = theIsotropicMaterial->getStress();
@@ -383,7 +334,9 @@ int OrthotropicMaterial::setParameter(const char** argv, int argc, Parameter& pa
 	return theIsotropicMaterial->setParameter(argv, argc, param);
 }
 
-Response* OrthotropicMaterial::setResponse(const char** argv, int argc, OPS_Stream& s)
+
+Response* 
+OrthotropicMaterial::setResponse(const char** argv, int argc, OPS_Stream& s)
 {
 	if (argc > 0) {
 		if (strcmp(argv[0], "stress") == 0 || 
