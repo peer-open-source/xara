@@ -192,7 +192,6 @@ TclCommand_newFedeasUniaxialDamage(ClientData clientData, Tcl_Interp* interp, in
   DegradingUniaxialWrapper::Data data;
 
   int argn = 4;
-  double Ccd = 0.5;
   while (argn < argc) {
     const char *param = argv[argn];
 
