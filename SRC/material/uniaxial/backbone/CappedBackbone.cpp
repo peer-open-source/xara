@@ -172,17 +172,6 @@ CappedBackbone::Print(OPS_Stream &s, int flag)
   s << "\tCap: " << theCap->getTag() << endln;
 }
 
-int
-CappedBackbone::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-CappedBackbone::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 CappedBackbone::sendSelf(int cTag, Channel &theChannel)

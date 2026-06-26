@@ -139,17 +139,6 @@ ArctangentBackbone::Print(OPS_Stream &s, int flag)
   s << "\talpha: " << alpha << endln;
 }
 
-int
-ArctangentBackbone::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-ArctangentBackbone::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 ArctangentBackbone::sendSelf(int commitTag, Channel &theChannel)

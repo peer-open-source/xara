@@ -119,17 +119,6 @@ ReeseStiffClayBelowWS::Print(OPS_Stream &s, int flag)
   s << "\tPc: " << Pc << endln;
 }
 
-int
-ReeseStiffClayBelowWS::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-ReeseStiffClayBelowWS::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 ReeseStiffClayBelowWS::sendSelf(int commitTag, Channel &theChannel)
