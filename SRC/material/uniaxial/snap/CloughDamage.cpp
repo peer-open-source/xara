@@ -260,14 +260,12 @@ double CloughDamage::getStrain (void)
 int CloughDamage::recvSelf(int cTag, Channel &theChannel, 
 			       FEM_ObjectBroker &theBroker)
 {
-
 	return 0;
 }
 
 
 int CloughDamage::sendSelf(int cTag, Channel &theChannel)
 {
-
 	return 0;
 }
 
