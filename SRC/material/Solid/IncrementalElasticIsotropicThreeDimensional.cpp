@@ -442,18 +442,16 @@ IncrementalElasticIsotropicThreeDimensional::setResponse (const char **argv, int
 int
 IncrementalElasticIsotropicThreeDimensional::getResponse(int responseID, Information &matInfo)
 {
-    switch (responseID) {
-        case -1:
-            return -1;
-        case 1:
-            if (matInfo.theVector != 0)
-                *(matInfo.theVector) = getStress();
-            return 0;
-        case 2:
-            if (matInfo.theVector != 0)
-                *(matInfo.theVector) = getStrain();
-            return 0;
-        default:
-            return -1;
-    }
+  switch (responseID) {
+    case -1:
+        return -1;
+    case 1:
+      return matInfo.setVector(this->getStress());
+
+    case 2:
+      return matInfo.setVector(this->getStrain());
+
+    default:
+        return -1;
+  }
 }
