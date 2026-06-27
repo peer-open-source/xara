@@ -299,15 +299,10 @@ int AcousticMedium::getResponse (int responseID, Information &matInfo)  {
 		case -1:
 			return -1;
 		case 1:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = sigma;
-			return 0;
+      return matInfo.setVector(sigma);
 
 		case 2:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = epsilon;
-			return 0;
-
+			return matInfo.setVector(epsilon);
 
 		}
 
