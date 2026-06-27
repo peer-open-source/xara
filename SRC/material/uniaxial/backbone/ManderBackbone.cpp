@@ -28,8 +28,11 @@
 #include <ManderBackbone.h>
 #include <Vector.h>
 #include <Channel.h>
+#include <OPS_Stream.h>
 
 #include <math.h>
+
+#if 0
 #include <elementAPI.h>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_ManderBackbone)
@@ -64,6 +67,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ManderBackbone)
 
   return theBackbone;
 }
+#endif
 
 ManderBackbone::ManderBackbone(int tag, double f, double e, double E):
   HystereticBackbone(tag,BACKBONE_TAG_Mander),
@@ -72,267 +76,138 @@ ManderBackbone::ManderBackbone(int tag, double f, double e, double E):
   fpc = fabs(fpc);
   epsc = fabs(epsc);
   Ec = fabs(Ec);
-
   /*
-
   if (Ec <= fpc/epsc) {
-
     opserr << "ManderBackbone::ManderBackbone -- Ec <= Esec, setting Ec = 2*fpc/epsc" << endln;
-
     Ec = 2*fpc/epsc;
-
   }
-
   */
-
 }
-
-
 
 ManderBackbone::ManderBackbone():
-
   HystereticBackbone(0,BACKBONE_TAG_Mander),
-
   fpc(0.0), epsc(0.0), Ec(0.0)
-
 {
 
-
-
 }
-
-
 
 ManderBackbone::~ManderBackbone()
-
 {
-
-
 
 }
 
-
-
 double
-
 ManderBackbone::getTangent (double strain)
-
 {
-
   if (strain > 0.0)
-
     return 0.0;
-
   
-
   strain *= -1;
 
-
-
   double oneOverepsc = 1.0/epsc;
-
   
-
   double x = strain*oneOverepsc;
-
   double Esec = fpc*oneOverepsc;
-
   
-
   double r = Ec/(Ec-Esec);
-
   
-
   double xr = pow(x,r);
-
   double denom = r-1.0+xr;
-
   
-
   return Esec*r*(r-1.0)*(1.0-xr)/(denom*denom);
-
 }
 
-
-
 double
-
 ManderBackbone::getStress (double strain)
-
 {
-
   if (strain > 0.0)
-
     return 0.0;
-
   
-
   strain *= -1;
 
-
-
   double oneOverepsc = 1.0/epsc;
-
   
-
   double x = strain*oneOverepsc;
-
   double Esec = fpc*oneOverepsc;
-
   
-
   double r = Ec/(Ec-Esec);
-
   
-
   return -fpc*(x*r)/(r-1.0+pow(x,r));
-
 }
 
-
-
 double
-
 ManderBackbone::getEnergy (double strain)
-
 {
-
   return 0.0;
-
 }
-
-
 
 double
-
 ManderBackbone::getYieldStrain(void)
-
 {
-
   return epsc;
-
 }
-
-
 
 HystereticBackbone*
-
 ManderBackbone::getCopy(void)
-
 {
-
   ManderBackbone *theCopy =
-
     new ManderBackbone (this->getTag(), fpc, epsc, Ec);
-
   
-
   return theCopy;
-
 }
 
 
 
 void
-
 ManderBackbone::Print(OPS_Stream &s, int flag)
-
 {
-
-  s << "ManderBackbone, tag: " << this->getTag() << endln;
-
-  s << "\tfpc: " << fpc << endln;
-
-  s << "\tepsc: " << epsc << endln;
-
-  s << "\tEc: " << Ec << endln;
-
+  s << "ManderBackbone, tag: " << this->getTag() << "\n";
+  s << "\tfpc: " << fpc << "\n";
+  s << "\tepsc: " << epsc << "\n";
+  s << "\tEc: " << Ec << "\n";
 }
 
 
-
-
-
 int
-
 ManderBackbone::sendSelf(int commitTag, Channel &theChannel)
-
 {
-
   int res = 0;
-
   
-
   static Vector data(4);
-
   
-
   data(0) = this->getTag();
-
   data(1) = fpc;
-
   data(2) = epsc;
-
   data(3) = Ec;
-
   
-
   res += theChannel.sendVector(this->getDbTag(), commitTag, data);
 
   if (res < 0) {
-
-    opserr << "ManderBackbone::sendSelf -- could not send Vector" << endln;
-
     return res;
-
   }
-
   
-
   return res;
-
 }
 
-
-
 int
-
 ManderBackbone::recvSelf(int commitTag, Channel &theChannel, 
-
 			 FEM_ObjectBroker &theBroker)
-
 {
-
   int res = 0;
-
   
-
   static Vector data(4);
-
   
-
   res += theChannel.recvVector(this->getDbTag(), commitTag, data);
 
   if (res < 0) {
-
-    opserr << "ManderBackbone::recvSelf -- could not receive Vector" << endln;
-
     return res;
-
   }
-
   
-
   this->setTag(int(data(0)));
-
   fpc = data(1);
-
   epsc = data(2);
-
   Ec = data(3);
-
   
-
   return res;
 
 }
