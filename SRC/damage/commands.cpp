@@ -88,42 +88,37 @@ TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     
-    if ( argc > 8 )
-      {
-	if (Tcl_GetDouble(interp, argv[8], &abstol) != TCL_OK) {
-	  opserr << "WARNING invalid AbsTol\n";
-	  return TCL_ERROR;	
-	}
-	
-	if (Tcl_GetDouble(interp,argv[9], &reltol) != TCL_OK) {
-	  opserr << "WARNING invalid RelTol\n";
-	  return TCL_ERROR;
-	}
-	
-	
-	if ( argc == 12 )
-	  {
-	    
-	    if (Tcl_GetDouble(interp,argv[10], &posmodifier) != TCL_OK) {
-	      opserr << "WARNING invalid posmodifier\n";
-	      opserr << "Damage Mehanny : " << tag << "\n";
-	      return TCL_ERROR;
-	    }
-	    
-	    if (Tcl_GetDouble(interp,argv[11], &negmodifier) != TCL_OK) {
-	      opserr << "WARNING invalid negmodifier\n";
-	      opserr << "Damage Mehanny : " << tag << "\n";
-	      return TCL_ERROR;
-	    }
-	  }	else
-	    {
-	      posmodifier = negmodifier = 1.0;
-	    }
-      } else
-	{
-	  abstol = reltol = 0.0;
-	  posmodifier = negmodifier = 1.0;		
-	}
+    if ( argc > 8 )  {
+      if (Tcl_GetDouble(interp, argv[8], &abstol) != TCL_OK) {
+        opserr << "WARNING invalid AbsTol\n";
+        return TCL_ERROR;	
+      }
+      
+      if (Tcl_GetDouble(interp,argv[9], &reltol) != TCL_OK) {
+        opserr << "WARNING invalid RelTol\n";
+        return TCL_ERROR;
+      }
+
+      if ( argc == 12 )  {
+        if (Tcl_GetDouble(interp,argv[10], &posmodifier) != TCL_OK) {
+          opserr << "WARNING invalid posmodifier\n";
+          opserr << "Damage Mehanny : " << tag << "\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp,argv[11], &negmodifier) != TCL_OK) {
+          opserr << "WARNING invalid negmodifier\n";
+          opserr << "Damage Mehanny : " << tag << "\n";
+          return TCL_ERROR;
+        }
+      }	
+      else {
+          posmodifier = negmodifier = 1.0;
+      }
+    }
+    else {
+      abstol = reltol = 0.0;
+      posmodifier = negmodifier = 1.0;		
+    }
     
     // Parsing was successful, allocate the damage model
     theDamage = new Mehanny(tag, alpha , beta, gamma , ultimatePosDisp, ultimateNegDisp, abstol, reltol, posmodifier, negmodifier);
