@@ -297,24 +297,23 @@ Mehanny::getResponse(int responseID, Information &info)
   case -1:
     return -1;
     
-  case 1:
+  case 1: {
     return info.setDouble( this->getDamage() );
+  }
     
-  case 2:
+  case 2: {
     return info.setDouble( TrialPlasticDefo );
+  }
     
-  case 3:
-    if(info.theVector!=0)
-      {
-	(*(info.theVector))(0) = TrialPosPHC;
-	(*(info.theVector))(1) = TrialSumPosFHC;
-	(*(info.theVector))(2) = TrialNegPHC;
-	(*(info.theVector))(3) = TrialSumNegFHC;
-      }
-    return 0;
+  case 3: {
+    double data[4] = {TrialPosPHC, TrialSumPosFHC, TrialNegPHC, TrialSumNegFHC};
+    Vector vec(data, 4);
+    return info.setVector(vec);
+  }
     
-  default:
+  default: {
     return -1;
+  }
   }
 }
 
