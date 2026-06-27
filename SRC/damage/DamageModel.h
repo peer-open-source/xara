@@ -17,12 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-  
-                             
-// $Revision: 1.3 $
-// $Date: 2008-04-14 22:38:26 $
-// $Source: /usr/local/cvs/OpenSees/SRC/damage/DamageModel.h,v $
-                                                                        
 #ifndef DamageModel_h
 #define DamageModel_h         
                                                                
@@ -59,15 +53,15 @@ class DamageModel :  public TaggedObject, public MovableObject
     virtual ~DamageModel();
 
     virtual int setTrial(const Vector &trialVector) = 0;
-    virtual double getDamage (void) = 0;
-    virtual double getPosDamage (void) = 0;
-    virtual double getNegDamage (void) = 0;
+    virtual double getDamage () = 0;
+    virtual double getPosDamage () = 0;
+    virtual double getNegDamage () = 0;
+
+    virtual int commitState () = 0;
+    virtual int revertToLastCommit () = 0;    
+    virtual int revertToStart() = 0;        
     
-    virtual int commitState (void) = 0;
-    virtual int revertToLastCommit (void) = 0;    
-    virtual int revertToStart (void) = 0;        
-    
-    virtual DamageModel *getCopy (void) = 0;
+    virtual DamageModel *getCopy() = 0;
     
     virtual Response *setResponse(const char **argv, int argc, OPS_Stream &theOutputStream);
     virtual int getResponse(int responseID, Information &info);
