@@ -869,10 +869,21 @@ CreepMaterial::recvSelf(int commitTag, Channel &theChannel,
   return res;
 }
 
+
 void 
 CreepMaterial::Print(OPS_Stream &s, int flag)
 {
-  s << "CreepMaterial:(strain, stress, tangent) " << eps << " " << sig << " " << e << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"material\": \"" << wrappedMaterial->getTag() << "\"}";
+    return;
+  }
+  else {
+    s << "CreepMaterial:(strain, stress, tangent) " 
+      << eps << " " << sig << " " << e << "\n";
+  }
 }
 
 
