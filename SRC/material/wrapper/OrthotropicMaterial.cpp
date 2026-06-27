@@ -36,6 +36,7 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <cassert>
+#include <cstring>
 
 OrthotropicMaterial::OrthotropicMaterial(
 	int tag, 
@@ -215,17 +216,19 @@ NDMaterial * OrthotropicMaterial::getCopy(void)
 
 NDMaterial* OrthotropicMaterial::getCopy(const char* code)
 {
-	if (strcmp(code, "ThreeDimensional") == 0)
+	if (std::strcmp(code, "ThreeDimensional") == 0)
 		return getCopy();
 	return NDMaterial::getCopy(code);
 }
 
-const char* OrthotropicMaterial::getType(void) const
+const char* 
+OrthotropicMaterial::getType() const
 {
 	return "ThreeDimensional";
 }
 
-int OrthotropicMaterial::getOrder(void) const
+int
+OrthotropicMaterial::getOrder() const
 {
 	return 6;
 }
@@ -339,12 +342,12 @@ Response*
 OrthotropicMaterial::setResponse(const char** argv, int argc, OPS_Stream& s)
 {
 	if (argc > 0) {
-		if (strcmp(argv[0], "stress") == 0 || 
-			strcmp(argv[0], "stresses") == 0 || 
-			strcmp(argv[0], "strain") == 0 || 
-			strcmp(argv[0], "strains") == 0 ||
-			strcmp(argv[0], "Tangent") == 0 || 
-			strcmp(argv[0], "tangent") == 0) {
+		if (std::strcmp(argv[0], "stress") == 0 || 
+			std::strcmp(argv[0], "stresses") == 0 || 
+			std::strcmp(argv[0], "strain") == 0 || 
+			std::strcmp(argv[0], "strains") == 0 ||
+			std::strcmp(argv[0], "Tangent") == 0 || 
+			std::strcmp(argv[0], "tangent") == 0) {
 			// stresses, strain and tangent should be those of this adapter (orthotropic)
 			return NDMaterial::setResponse(argv, argc, s);
 		}
