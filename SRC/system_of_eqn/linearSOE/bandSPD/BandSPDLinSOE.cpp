@@ -165,6 +165,7 @@ BandSPDLinSOE::setSize(Graph &theGraph)
     return result;    
 }
 
+
 int 
 BandSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
 {
@@ -291,6 +292,7 @@ int
 BandSPDLinSOE::setB(const Vector &v, double fact)
 {
     assert(v.Size() == size);
+    double *b = &B(0);
 
     // check for a quick return 
     if (fact == 0.0)
@@ -298,15 +300,15 @@ BandSPDLinSOE::setB(const Vector &v, double fact)
 
     if (fact == 1.0) { // do not need to multiply if fact == 1.0
         for (int i=0; i<size; i++) {
-            B[i] = v(i);
+            b[i] = v(i);
         }
     } else if (fact == -1.0) {
         for (int i=0; i<size; i++) {
-            B[i] = -v(i);
+            b[i] = -v(i);
         }
     } else {
         for (int i=0; i<size; i++) {
-            B[i] = v(i) * fact;
+            b[i] = v(i) * fact;
         }
     }        
     return 0;
