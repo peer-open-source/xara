@@ -203,7 +203,8 @@ int OrthotropicMaterial::revertToStart(void)
 	return theIsotropicMaterial->revertToStart();
 }
 
-NDMaterial * OrthotropicMaterial::getCopy(void)
+NDMaterial * 
+OrthotropicMaterial::getCopy()
 {
 	OrthotropicMaterial *theCopy = new OrthotropicMaterial();
 	theCopy->setTag(getTag());
@@ -214,7 +215,8 @@ NDMaterial * OrthotropicMaterial::getCopy(void)
 	return theCopy;
 }
 
-NDMaterial* OrthotropicMaterial::getCopy(const char* code)
+NDMaterial* 
+OrthotropicMaterial::getCopy(const char* code)
 {
 	if (std::strcmp(code, "ThreeDimensional") == 0)
 		return getCopy();
