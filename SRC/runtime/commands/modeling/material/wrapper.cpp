@@ -15,9 +15,12 @@
 //
 //
 #include <tcl.h>
+#include <set>
 #include <vector>
 #include <Logging.h>
 #include <Parsing.h>
+#include <ArgumentTracker.h>
+
 #include <ModelRegistry.h>
 #include <NDMaterial.h>
 #include <UniaxialMaterial.h>
@@ -46,6 +49,7 @@
 #include <BeamFiberMaterial2dPS.h>
 
 #include <Parallel3DMaterial.h>
+#include <OrthotropicMaterial.h>
 
 int
 TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
@@ -667,4 +671,354 @@ cleanup:
   }
 
   return result;
+}
+
+
+
+int 
+TclCommand_addOrthotropicWrapper(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, TCL_Char** const argv)
+{
+  // nDMaterial Orthotropic $tag $theIsoMat $Ex $Ey $Ez $Gxy $Gyz $Gzx $vxy $vyz $vzx $Asigmaxx $Asigmayy $Asigmazz $Asigmaxyxy $Asigmayzyz $Asigmaxzxz.
+  assert(clientData != nullptr);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  enum class Positions : int {
+    Tag,
+    MaterialTag,
+    Ex, Ey, Ez,
+    Gxy, Gyz, Gzx,
+    NuXY, NuYZ, NuZX,
+    Axx, Ayy, Azz, 
+    Axyxy, Ayzyz, Axzxz,
+    EndRequired,
+    End
+  };
+
+  int tag, matTag;
+  struct {
+    double Ex, Ey, Ez;
+    double Gxy, Gyz, Gzx;
+    double NuXY, NuYZ, NuZX;
+    double Axx, Ayy, Azz, Axyxy, Ayzyz, Axzxz;
+  } data;
+
+  ArgumentTracker<Positions> tracker;
+  std::set<int> positions;
+
+  if (argc < 18) {
+    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
+    return TCL_ERROR;
+  }
+  if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "failed to read tag\n";
+    return TCL_ERROR;
+  }
+  tracker.consume(Positions::Tag);
+  if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "failed to read material tag\n";
+    return TCL_ERROR;
+  }
+  NDMaterial *threeDMaterial = builder->getTypedObject<NDMaterial>(matTag);
+  if (threeDMaterial == nullptr) {
+    return TCL_ERROR;
+  }
+  tracker.consume(Positions::MaterialTag);
+
+  int i=4;
+  while (i < argc) {
+    if (strcmp(argv[i], "-Ex") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Ex) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Ex\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Ex);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Ey") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Ey) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Ey\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Ey);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Ez") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Ez) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Ez\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Ez);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Gxy") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Gxy) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Gxy\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Gxy);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Gyz") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Gyz) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Gyz\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Gyz);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Gzx") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Gzx) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Gzx\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Gzx);
+      i += 2;
+    }
+    else if ((strcasecmp(argv[i], "-NuXY") == 0) || (strcmp(argv[i], "-vxy") == 0)) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.NuXY) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read NuXY\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::NuXY);
+      i += 2;
+    }
+    else if ((strcasecmp(argv[i], "-NuYZ") == 0) || (strcmp(argv[i], "-vyz") == 0)) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.NuYZ) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read NuYZ\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::NuYZ);
+      i += 2;
+    }
+    else if ((strcasecmp(argv[i], "-NuZX") == 0) || (strcmp(argv[i], "-vzx") == 0)) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.NuZX) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read NuZX\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::NuZX);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Axx") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Axx) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Axx\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Axx);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Ayy") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Ayy) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Ayy\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Ayy);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Azz") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Azz) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Azz\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Azz);
+      i += 2;
+    }
+    else if (strcasecmp(argv[i], "-Axyxy") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Axyxy) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Axyxy\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Axyxy);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Ayzyz") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Ayzyz) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Ayzyz\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Ayzyz);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Axzxz") == 0) {
+      if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Axzxz) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read Axzxz\n";
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::Axzxz);
+      i += 2;
+    }
+    else {
+      positions.insert(i);
+      i++;
+    }
+  }
+
+  for (int i: positions) {
+    if (tracker.current() == Positions::EndRequired) {
+      tracker.increment();
+    }
+
+    switch (tracker.current()) {
+      case Positions::Ex:
+        if (Tcl_GetDouble(interp, argv[i], &data.Ex) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Ex " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Ey:
+        if (Tcl_GetDouble(interp, argv[i], &data.Ey) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Ey " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Ez:
+        if (Tcl_GetDouble(interp, argv[i], &data.Ez) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Ez " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Gxy:
+        if (Tcl_GetDouble(interp, argv[i], &data.Gxy) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Gxy " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Gyz:
+        if (Tcl_GetDouble(interp, argv[i], &data.Gyz) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Gyz " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Gzx:
+        if (Tcl_GetDouble(interp, argv[i], &data.Gzx) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Gzx " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::NuXY:
+        if (Tcl_GetDouble(interp, argv[i], &data.NuXY) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read NuXY " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::NuYZ:
+        if (Tcl_GetDouble(interp, argv[i], &data.NuYZ) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read NuYZ " << argv[i] << "\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::NuZX:
+        if (Tcl_GetDouble(interp, argv[i], &data.NuZX) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read NuZX\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Axx:
+        if (Tcl_GetDouble(interp, argv[i], &data.Axx) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Axx\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Ayy:
+        if (Tcl_GetDouble(interp, argv[i], &data.Ayy) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Ayy\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Azz:
+        if (Tcl_GetDouble(interp, argv[i], &data.Azz) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Azz\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Axyxy:
+        if (Tcl_GetDouble(interp, argv[i], &data.Axyxy) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Axyxy\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Ayzyz:
+        if (Tcl_GetDouble(interp, argv[i], &data.Ayzyz) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Ayzyz\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::Axzxz:
+        if (Tcl_GetDouble(interp, argv[i], &data.Axzxz) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "failed to read Axzxz\n";
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::EndRequired:
+      case Positions::End:
+        opserr << OpenSees::PromptValueError << "unexpected argument " << argv[i] << "\n";
+        return TCL_ERROR;
+    }
+  }
+
+  if (tracker.current() < Positions::EndRequired) {
+    opserr << OpenSees::PromptValueError << "missing required arguments: ";
+    while (tracker.current() != Positions::End) {
+      switch (tracker.current()) {
+        case Positions::Ex: opserr << "Ex "; break;
+        case Positions::Ey: opserr << "Ey "; break;
+        case Positions::Ez: opserr << "Ez "; break;
+        case Positions::Gxy: opserr << "Gxy "; break;
+        case Positions::Gyz: opserr << "Gyz "; break;
+        case Positions::Gzx: opserr << "Gzx "; break;
+        case Positions::NuXY: opserr << "NuXY "; break;
+        case Positions::NuYZ: opserr << "NuYZ "; break;
+        case Positions::NuZX: opserr << "NuZX "; break;
+        case Positions::Axx: opserr << "Axx "; break;
+        case Positions::Ayy: opserr << "Ayy "; break;
+        case Positions::Azz: opserr << "Azz "; break;
+        case Positions::Axyxy: opserr << "Axyxy "; break;
+        case Positions::Ayzyz: opserr << "Ayzyz "; break;
+        case Positions::Axzxz: opserr << "Axzxz "; break;
+        default:
+          // Should not happen
+          assert(false);
+      }
+    }
+    opserr << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  if (data.Axx <= 0 || data.Ayy <= 0 || data.Azz <= 0) {
+    opserr << OpenSees::PromptValueError 
+           << "Axx, Ayy, and Azz must be positive\n";
+    return TCL_ERROR;
+  }
+  if (data.Axyxy <= 0 || data.Ayzyz <= 0 || data.Axzxz <= 0) {
+    opserr << OpenSees::PromptValueError 
+           << "Axyxy, Ayzyz, and Axzxz must be positive\n";
+    return TCL_ERROR;
+  }
+
+  NDMaterial *theMaterial = new OrthotropicMaterial(tag, *threeDMaterial,
+                                                   data.Ex, data.Ey, data.Ez,
+                                                   data.Gxy, data.Gyz, data.Gzx,
+                                                   data.NuXY, data.NuYZ, data.NuZX,
+                                                   data.Axx, data.Ayy, data.Azz,
+                                                   data.Axyxy, data.Ayzyz, data.Axzxz);
+
+  if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+    delete theMaterial;
+    return TCL_ERROR;
+  }
+
+  return TCL_OK;
 }
