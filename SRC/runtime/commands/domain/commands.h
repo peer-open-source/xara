@@ -14,17 +14,30 @@
 //===----------------------------------------------------------------------===//
 //
 
+//
+// NODES
+//
 // domain/node.cpp
 Tcl_CmdProc nodeCoord;
 Tcl_CmdProc nodeDOFs;
 Tcl_CmdProc nodeMass;
 Tcl_CmdProc nodePressure;
 Tcl_CmdProc nodeDisp;
+Tcl_CmdProc nodeVel;
+Tcl_CmdProc nodeAccel;
 Tcl_CmdProc nodeReaction;
 Tcl_CmdProc nodeUnbalance;
 Tcl_CmdProc nodeEigenvector;
-Tcl_CmdProc setNodeCoord;
 Tcl_CmdProc nodeRotation;
+// setters
+Tcl_CmdProc setNodeCoord;
+Tcl_CmdProc setNodeDisp;
+Tcl_CmdProc setNodeVel;
+Tcl_CmdProc setNodeAccel;
+Tcl_CmdProc setNodePressure;
+// other
+Tcl_CmdProc nodeBounds;
+
 
 // domain/region.cpp
 Tcl_CmdProc TclCommand_addMeshRegion;
@@ -149,17 +162,6 @@ Tcl_CmdProc findID;
 
 
 //
-Tcl_CmdProc nodeBounds;
-
-Tcl_CmdProc nodeVel;
-
-Tcl_CmdProc setNodeVel;
-
-Tcl_CmdProc setNodeDisp;
-
-Tcl_CmdProc setNodeAccel;
-
-Tcl_CmdProc nodeAccel;
 
 Tcl_CmdProc nodeResponse;
 
