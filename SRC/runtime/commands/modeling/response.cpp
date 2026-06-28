@@ -35,7 +35,7 @@
 
 
 static Response*
-setElementResponse(Domain& domain, int eleTag, const char **argv, int argc)
+setElementResponse(Domain& domain, int eleTag, const char **argv, Tcl_Size argc)
 {
   Element *theEle = domain.getElement(eleTag);
 
@@ -48,7 +48,9 @@ setElementResponse(Domain& domain, int eleTag, const char **argv, int argc)
 
 
 int 
-setResponse(ClientData clientData, Tcl_Interp *interp, int argc,
+setResponse(ClientData clientData, 
+            Tcl_Interp *interp, 
+            Tcl_Size argc,
             TCL_Char** const argv)
 {
   assert(clientData != nullptr);
@@ -62,18 +64,23 @@ setResponse(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "failed to read eleTag? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid element tag: " << argv[1]
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   Response *theResponse = setElementResponse(*theDomain, tag, argv + 2, argc - 2);
   if (theResponse == nullptr) {
-    opserr << OpenSees::PromptValueError << "could not set response for element " << tag << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "Failed to set response for element " << tag << "\n";
     return TCL_ERROR;
   }
 
   if (theResponse->getResponse() < 0) {
-    opserr << OpenSees::PromptValueError << "failed to get response" << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "Failed to get response" 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -86,6 +93,7 @@ setResponse(ClientData clientData, Tcl_Interp *interp, int argc,
                                                            &info.theVector(0));
 
   int id = theRegistry->addResponse(iresponse);
+
 
   uintptr_t addr = reinterpret_cast<uintptr_t>(&info.theVector(0));
 
@@ -112,30 +120,45 @@ getResponse(ClientData clientData, Tcl_Interp *interp, int argc,
 
   int id;
   if (Tcl_GetInt(interp, argv[1], &id) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "getResponse responseID? - could not read responseID? \n";
+    opserr << OpenSees::PromptValueError 
+           << "Invalid responseID: " << argv[1]
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
+  //
+  // Parsing complete.
+  // Now get the response from the registry, update the data, and 
+  // check that the data references created by setResponse are still valid.
+  //
   InterpreterResponse *theResponse = theRegistry->getResponse(id);
   if (theResponse == nullptr) {
-    opserr << OpenSees::PromptValueError << "could not find response with ID " << id << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "could not find response with ID " << id 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (theResponse->response->getResponse() < 0) {
-    opserr << OpenSees::PromptValueError << "failed to get response for ID " << id << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "Failed to get response for ID " << id 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   // Check the integrity of the response data
   Information &info = theResponse->response->getInformation();
   if (info.theVector.Size() != theResponse->size) {
-    opserr << OpenSees::PromptValueError << "response size mismatch" << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "response size mismatch" 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   if (&info.theVector(0) != theResponse->data) {
-    opserr << OpenSees::PromptValueError << "response data mismatch" << "\n";
+    opserr << OpenSees::PromptValueError 
+           << "response data mismatch" 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

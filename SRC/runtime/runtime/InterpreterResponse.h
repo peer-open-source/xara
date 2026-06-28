@@ -33,8 +33,8 @@ public:
   }
 
 public:
-  int size;
+  const int size;
   Type type;
-  double* data;
-  Response* response;
+  const double* data;
+  Response* const response;
 };
