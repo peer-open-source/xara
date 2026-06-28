@@ -67,17 +67,12 @@
 #include <Response.h>
 #include <packages.h>
 //
-// Global variables
-//
-class ModelBuilder;
-ModelBuilder          *theBuilder         = nullptr;
-//
 // Forward declarations
 //
 const char *getInterpPWD(Tcl_Interp *interp);
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
-                                       Tcl_Interp *interp, int cArg, int mArg,
-                                       TCL_Char ** const argv, Domain *domain);
+extern "C" int OPS_ResetInputNoBuilder(ClientData,
+                                       Tcl_Interp *, int cArg, int mArg,
+                                       TCL_Char ** const argv, Domain *);
 
 Tcl_CmdProc TclCommand_record;
 Tcl_CmdProc TclCommand_setLoadConst;
@@ -129,6 +124,8 @@ static struct {
   {"setNodeDisp",         &setNodeDisp},
   {"setNodeAccel",        &setNodeAccel},
   {"setNodeCoord",        &setNodeCoord},
+  {"setNodePressure",     &setNodePressure},
+
   {"nodeRotation",        &nodeRotation},
   {"getNodeTags",         &getNodeTags},
 
