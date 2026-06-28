@@ -108,8 +108,8 @@ public:
   // int getVariable(const char *variable, Information &);
 
 
-  Response *setResponse (const char **argv, int argc, OPS_Stream &output);
-  int getResponse (int responseID, Information &matInformation);
+  Response *setResponse(const char **argv, int argc, OPS_Stream &output);
+  int getResponse(int responseID, Information &matInformation);
 
 
 private :
