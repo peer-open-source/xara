@@ -20,6 +20,9 @@
 // This can be much more efficient, but requires extreme care at the interpreter
 // level which deals with raw pointers to data of the response's Information object.
 //
+// The lifetime of the allocated Response is managed by the ModelRegistry,
+// which is deleted when ModelRegistry is deleted.
+//
 /// Created: 06/2026
 //
 #include <Element.h>
