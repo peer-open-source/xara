@@ -1265,14 +1265,15 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
   }
 
   if (theMaterial == nullptr) {
-    opserr << "WARNING could not create nDMaterial " << argv[1];
+    opserr << OpenSees::PromptValueError 
+           << "could not create nDMaterial " << argv[1]
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
   // Now add the material to the modelBuilder
   if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
-
-    opserr << "WARNING could not add material to the domain\n";
+    opserr << OpenSees::PromptValueError << "could not add material to the domain\n";
     opserr << *theMaterial << "\n";
     delete theMaterial;
     return TCL_ERROR;
