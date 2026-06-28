@@ -38,6 +38,7 @@ class MultiSupportPattern;
 class OPS_Stream;
 class ID;
 class Domain;
+class InterpreterResponse;
 
 
 class ModelRegistry {
@@ -86,6 +87,17 @@ public:
 
   int  getCurrentSectionBuilder(int&);
   void setCurrentSectionBuilder(int);
+
+  int addResponse(InterpreterResponse* response) {
+    m_responses.push_back(response);
+    return m_responses.size() - 1;
+  }
+
+  InterpreterResponse* getResponse(int index) {
+    if (index < 0 || index >= m_responses.size())
+      return nullptr;
+    return m_responses[index];
+  }
 
   OpenSees::LoadCase& getLoadCase();
   int setLoadCase(std::string& name);
@@ -162,7 +174,7 @@ private:
 // OBJECT CONTAINERS
   std::unordered_map<std::string, std::unordered_map<int, TaggedObject*>> m_registry;
   std::unordered_map<std::string, OpenSees::LoadCase> m_cases;
-
+  std::vector<InterpreterResponse*> m_responses;
 };
 
 

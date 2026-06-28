@@ -59,6 +59,9 @@ ModelRegistry::~ModelRegistry()
       delete obj;
   }
 
+  for (InterpreterResponse* response : m_responses)
+    delete response;
+
   // set the pointers to 0
   theDomain = nullptr;
   tclEnclosingPattern = nullptr;
