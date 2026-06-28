@@ -34,7 +34,7 @@ public:
 
 public:
   const int size;
-  Type type;
+  const Type type;
   const double* data;
   Response* const response;
 };
