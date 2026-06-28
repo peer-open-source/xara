@@ -15,9 +15,7 @@
 //
 // Description: This file contains the class definition for
 // ModelRegistry. A ModelRegistry aims to be a threadsafe
-// alternative to the TclBasicBuilder class. This class adds the commands to
-// create the model for the standard models that can be generated using the
-// elements released with the g3 framework.
+// alternative to the TclBasicBuilder class. 
 //
 // Written: cmp
 // Created: 10/21
@@ -26,12 +24,14 @@
 
 #include <typeinfo>
 #include <string>
+#include <vector>
 #include <unordered_map>
 #include <LoadCase.h>
 #include <TaggedObject.h>
 #include <StaticPattern.h>
 #include <MultiSupportPattern.h>
 #include <Rotations.h>
+
 class LoadPattern;
 class StaticPattern;
 class MultiSupportPattern;
@@ -94,7 +94,7 @@ public:
   }
 
   InterpreterResponse* getResponse(int index) {
-    if (index < 0 || index >= m_responses.size())
+    if (index < 0 || index >= std::ssize(m_responses))
       return nullptr;
     return m_responses[index];
   }

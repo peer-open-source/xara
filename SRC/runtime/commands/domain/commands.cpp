@@ -22,8 +22,6 @@
 #include <elementAPI.h>
 #include <classTags.h>
 //
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <tgmath.h>
 #include <assert.h>
@@ -404,29 +402,34 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     int arg_pattern = 1;
     if (argc == 3) {
       if (strcmp(argv[1], "-pattern") != 0) {
-        opserr << OpenSees::PromptValueError << "unexpected argument " << argv[1] << "\n";
+        opserr << OpenSees::PromptValueError << "unexpected argument " 
+               << argv[1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       arg_pattern = 2;
     }
 
     if (Tcl_GetInt(interp, argv[arg_pattern], &patternTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "failed to read patternTag\n";
+      opserr << OpenSees::PromptValueError 
+             << "failed to read patternTag"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     LoadPattern *thePattern = the_domain->getLoadPattern(patternTag);
     if (thePattern == nullptr) {
       opserr << OpenSees::PromptValueError 
-             << "load pattern with tag " << patternTag
-             << " not found in domain"
+             << "Failed to find load pattern with tag " 
+             << patternTag
              << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
       opserr << OpenSees::PromptValueError 
              << "load pattern with tag " << patternTag
-             << " is not a StaticPattern\n";
+             << " is not a StaticPattern"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
@@ -477,7 +480,9 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     int patternTag;
 
     if (Tcl_GetInt(interp, argv[1], &patternTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "failed to read patternTag \n";
+      opserr << OpenSees::PromptValueError 
+             << "failed to read patternTag"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
