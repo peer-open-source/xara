@@ -45,16 +45,3 @@ ReliabilityStorage::getClassType(void) const
   return unknownClassType;
 }
 
-
-int 
-ReliabilityStorage::setVariable(const char *variable, Information &theInfo)
-{
-  return -1;
-}
-
-
-int 
-ReliabilityStorage::getVariable(const char *variable, Information &theInfo)
-{
-  return -1;
-}
