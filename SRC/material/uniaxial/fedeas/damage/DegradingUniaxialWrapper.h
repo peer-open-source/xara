@@ -159,7 +159,6 @@ private:
 
   // Enums used for readable array indices.
   enum {PAST, PRES};
-  enum {pos,   neg};
   // enum {ax, mi, mj};
   // Rows of Cin matrix; indicates moment sign, axial sign
   enum {pp, pn, np, nn};
