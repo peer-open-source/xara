@@ -17,6 +17,7 @@
 //
 #include <functional> // std::hash
 #include <string>
+#include <cmath>
 
 #include <ID.h>
 #include <Channel.h>
@@ -59,11 +60,7 @@ DegradingUniaxialWrapper::setTrialStrain(double strain, double temp,
                                          double strainRate)
 {
 
-  // double pastStrain = theMaterial->getStrain();
   theMaterial->setTrialStrain(strain, temp, strainRate);
-  // double trialStrain = theMaterial->getStrain();
-
-  // double strain_incr = trialStrain - pastStrain;
 
   if (true) { //  && abs(strain_incr) > m_rate_tol){
 
@@ -96,20 +93,13 @@ DegradingUniaxialWrapper::setTrialStrain(double trialStrain, double strainRate)
 double
 DegradingUniaxialWrapper::getTangent()
 {
-
-  if (true)
-    return this->m_tangent;
-  else
-    return theMaterial->getTangent();
+  return this->m_tangent;
 }
 
 double
 DegradingUniaxialWrapper::getStress()
 {
-  if (true)
-    return m_stress;
-  else
-    return theMaterial->getStress();
+  return m_stress;
 }
 
 double
@@ -155,12 +145,13 @@ DegradingUniaxialWrapper::revertToStart()
   return theMaterial->revertToStart();
 }
 
+
 UniaxialMaterial *
 DegradingUniaxialWrapper::getCopy()
 {
-  return
-      new DegradingUniaxialWrapper(this->getTag(), *theMaterial, data);
+  return  new DegradingUniaxialWrapper(this->getTag(), *theMaterial, data);
 }
+
 
 int
 DegradingUniaxialWrapper::sendSelf(int cTag, Channel &theChannel)
@@ -175,6 +166,7 @@ DegradingUniaxialWrapper::recvSelf(int cTag, Channel &theChannel,
   return -1;
 }
 
+
 void
 DegradingUniaxialWrapper::Print(OPS_Stream &s, int flag)
 {
@@ -187,7 +179,7 @@ DegradingUniaxialWrapper::Print(OPS_Stream &s, int flag)
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"" << this->getClassType() << "\", ";
-    s << "\"material\": \"" << theMaterial->getTag() << "\", ";
+    s << "\"material\": " << theMaterial->getTag() << ", ";
     for (int i=0; i<2; ++i) {
       if (i == 0)
         s << "\"pos\": {";
@@ -268,28 +260,18 @@ DegradingUniaxialWrapper::applyDamage(
                double response[2])
 {
 
+  enum {pos,   neg};
+  static constexpr double gtol = 1e-8;
+
   // Workspace variables
-  double DvpDv, ka, kb;
-  double g      [2],
-          Dpsi   [2],
+  double  Dpsi   [2],
           CwcIF  [2],
           Hshe   [2],
           DdDpsiM[2],
-          en_psi [2],
           
           DdDx   [2],
-          DdpDv  ,
-          DdnDv  ,
-          DPsi   [2],
-          DPsipDv,
-          DPsinDv,
+          DPsi   [2];
 
-          DpsiDv ,
-          DpsipDv,
-          DpsinDv;
-
-  VectorND<2> psi{};
-  
   // Dereference/cast input data structures
   DamageState::Step& past = state.past;
   DamageState::Step& pres = state.test;
@@ -297,7 +279,6 @@ DegradingUniaxialWrapper::applyDamage(
   // extract effective state variables
   pres.strain        = inputs[0];
   double base_stress = inputs[1];
-  double kt = DvpDv  = inputs[2];
 
   // extract past history variables
   VectorND<2> d     = past.d;
@@ -350,56 +331,111 @@ DegradingUniaxialWrapper::applyDamage(
 
   
   // update energy psi
+  VectorND<2> psi{};
   for (int m=0; m < 2; m++) {
     psi[m] = psiP[m] + DPsi[m];
+    double g  = psi[m] - psiEx[m];
     DdDx[m]   = 0.0;
-    g[m]      = psi[m] - psiEx[m];
-    en_psi[m] = g[m] > data.tol;
-    psiEx[m]  = psiEx[m] + en_psi[m]*(psi[m] - psiEx[m]);
+#if 1
+
+    if (g > gtol) {
+        psiEx[m] = psi[m];
+
+        double x = (psi[m] - data.idx[m].psi_d0)
+                    / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
+
+        DmgResp dmgresp = data.idx[m].update(x);
+
+        d[m] = std::min(1.0 - data.tol, dmgresp.y);
+
+        DdDpsiM[m] =
+            dmgresp.dydx
+          / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
+    }
+#else
+    double en_psi = g > data.tol;
+    psiEx[m]  = psiEx[m] + en_psi*(psi[m] - psiEx[m]);
 
     // damage indices
     double psi_tild = (psiEx[m] - data.idx[m].psi_d0) / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
-    if (fabs(psi_tild) < data.tol) {
+    if (std::fabs(psi_tild) < data.tol) {
       DdDx[m] = 0.0;
-    } else {
-
+    }
+    else {
       DmgResp dmgresp = data.idx[m].update(psi_tild);
       DdDx[m] = dmgresp.dydx;
       d[m] = std::min(1.-data.tol, dmgresp.y);
     }
     DdDpsiM[m] = en_psi[m]*DdDx[m] / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
+  #endif
   }
 
   // Update stress
-  response[0] = (1.-d[pos])*pres.base_stress[pos] + (1.-d[neg])*pres.base_stress[neg];
+  response[0] = (1. -d[pos])*pres.base_stress[pos] + (1.-d[neg])*pres.base_stress[neg];
 
   // tangent stiffness under damage
   // Heavyside function for derivative of positive/negative forces
   Hshe[pos] = (1. + sgn(base_stress))*0.5; 
   Hshe[neg] = (1. - sgn(base_stress))*0.5;
 
+  //
+  // Tangent
+  //
+  double kt = inputs[2];
+
+#if 0
   // first contribution ka
-  ka = kt*((1.-d[pos])*Hshe[pos] + (1.-d[neg])*Hshe[neg]);
+  double ka = kt*((1.-d[pos])*Hshe[pos] + (1.-d[neg])*Hshe[neg]);
 
   // second contribution kb: derivative of +ve psi and -ve psi wrt Dv; TODO: optimize
-  DpsipDv = 0.5*(kt*Dvp*Hshe[pos] + DvpDv*(pres.base_stress[pos] + past.base_stress[pos]));
-  DpsinDv = 0.5*(kt*Dvp*Hshe[neg] + DvpDv*(pres.base_stress[neg] + past.base_stress[neg]));
-  DpsiDv  = DpsipDv + DpsinDv;
+  double DvpDv  = inputs[2];
+  double DpsipDv = 0.5*(kt*Dvp*Hshe[pos] + DvpDv*(pres.base_stress[pos] + past.base_stress[pos]));
+  double DpsinDv = 0.5*(kt*Dvp*Hshe[neg] + DvpDv*(pres.base_stress[neg] + past.base_stress[neg]));
+  double DpsiDv  = DpsipDv + DpsinDv;
 
   // derivative of +ve Psi wrt Dv = DPsipDv; derivative of -ve Psi wrt Dv = DPsinDv
   // for the axial contribution DPsipDv(1,:) and DPsinDv(1,:)
-  DPsipDv = CwcIF[pos]*DpsipDv + CwcIF[neg]*data.idx[pos].Ccd*DpsinDv;
-  DPsinDv = CwcIF[neg]*DpsinDv + CwcIF[pos]*data.idx[neg].Ccd*DpsipDv;
+  double DPsipDv = CwcIF[pos]*DpsipDv + CwcIF[neg]*data.idx[pos].Ccd*DpsinDv;
+  double DPsinDv = CwcIF[neg]*DpsinDv + CwcIF[pos]*data.idx[neg].Ccd*DpsipDv;
 
   // scaling of DPsiDv by DdDpsiM to get DdpDv and DdnDv
-  DdpDv = DPsipDv * DdDpsiM[pos];
-  DdnDv = DPsinDv * DdDpsiM[neg];
+  double DdpDv = DPsipDv * DdDpsiM[pos];
+  double DdnDv = DPsinDv * DdDpsiM[neg];
 
   // for second stiffness contribution scale damage index derivatives
   // by +ve, -ve hinges forces
   kb = - DdpDv*pres.base_stress[pos] - DdnDv*pres.base_stress[neg];
 
   response[1] = ka + kb;
+#else 
+  {
+
+    double DseAvg_p =
+        0.5*(pres.base_stress[pos] + past.base_stress[pos]
+          + kt*Hshe[pos]*Dvp);
+
+    double DseAvg_n =
+        0.5*(pres.base_stress[neg] + past.base_stress[neg]
+          + kt*Hshe[neg]*Dvp);
+
+    double DPsipDv =
+        CwcIF[pos]*DseAvg_p
+      + data.idx[pos].Ccd*CwcIF[neg]*DseAvg_n;
+
+    double DPsinDv =
+        data.idx[neg].Ccd*CwcIF[pos]*DseAvg_p
+      + CwcIF[neg]*DseAvg_n;
+
+    double DdpDv = DdDpsiM[pos]*DPsipDv;
+    double DdnDv = DdDpsiM[neg]*DPsinDv;
+
+    response[1] =
+        kt*((1.0 - d[pos])*Hshe[pos] + (1.0 - d[neg])*Hshe[neg])
+      - DdpDv*pres.base_stress[pos]
+      - DdnDv*pres.base_stress[neg];
+  }
+#endif
+
 
   // Update current damage history variables
   pres.d     = d;
