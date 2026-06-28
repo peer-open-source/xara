@@ -13,6 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// Description: This file implements the setResponse and getResponse commands 
+// for the interpreter. These commands allow a Response object to 
+// be reused in the interpreter, as opposed to the eleResponse command 
+// which allocates a new Response object each time it is called. 
+// This can be much more efficient, but requires extreme care at the interpreter
+// level which deals with raw pointers to data of the response's Information object.
+//
+/// Created: 06/2026
+//
 #include <Element.h>
 #include <Domain.h>
 #include <Parsing.h>
