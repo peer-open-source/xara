@@ -556,42 +556,33 @@ SAniSandMS::setResponse(const char **argv, int argc, OPS_Stream &output)
 int
 SAniSandMS::getResponse(int responseID, Information &matInfo)
 {
-	// opserr << "responseID = " << responseID << endln;
 	switch (responseID) {
 	case -1:
 		return -1;
 	case 1:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getStress();
-		return 0;
+        return matInfo.setVector(this->getStress());
+
 	case 2:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getStrain();
-		return 0;
+		return matInfo.setVector(this->getStrain());
+
 	case 3:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getState();
-		return 0;
+		return matInfo.setVector(this->getState());
+
 	case 4:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getAlpha();
-		return 0;
+		return matInfo.setVector(this->getAlpha());
+
 	case 5:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getAlphaM();
-		return 0;
+		return matInfo.setVector(this->getAlphaM());
+
 	case 6:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getalpha_in();
-		return 0;
+		return matInfo.setVector(getalpha_in());
+
 	case 7:
-		if (matInfo.theDouble != 0)
-			matInfo.theDouble = getMM();
-		return 0;
+		return matInfo.setDouble(getMM());
+
 	case 8:
-		if (matInfo.theVector != 0)
-			*(matInfo.theVector) = getEStrain();
-		return 0;
+		return matInfo.setVector(this->getEStrain());
+
 	default:
 		return -1;
 	}
@@ -600,18 +591,14 @@ SAniSandMS::getResponse(int responseID, Information &matInfo)
 int
 SAniSandMS::sendSelf(int commitTag, Channel &theChannel)
 {
-
-	opserr << "SAniSandMS::sendSelf - not yet implemented! Contact https://github.com/jaabell" << endln;
-
-	return 0;
+	return -1;
 }
 
 int
 SAniSandMS::recvSelf(int commitTag, Channel &theChannel,
 	FEM_ObjectBroker &theBroker)
 {
-	opserr << "SAniSandMS::recvSelf - not yet implemented! Contact https://github.com/jaabell" << endln;
-	return 0;
+	return -1;
 }
 
 void SAniSandMS::Print(OPS_Stream &s, int flag)
