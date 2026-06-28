@@ -36,6 +36,8 @@
 #include <Logging.h>
 #include <Parsing.h> // For TCL_OK/ERROR
 
+#include <InterpreterResponse.h>
+
 using OpenSees::LoadCase;
 
 ModelRegistry::ModelRegistry(Domain &domain,
