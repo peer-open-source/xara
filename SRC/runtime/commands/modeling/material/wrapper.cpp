@@ -51,6 +51,13 @@
 #include <Parallel3DMaterial.h>
 #include <OrthotropicMaterial.h>
 
+#ifdef _MSC_VER 
+#  include <string.h>
+#  define strcasecmp _stricmp
+#else
+#  include <strings.h>
+#endif
+
 int
 TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
                                int argc, TCL_Char** const argv)
@@ -821,7 +828,7 @@ TclCommand_addOrthotropicWrapper(ClientData clientData, Tcl_Interp* interp, Tcl_
       tracker.consume(Positions::Azz);
       i += 2;
     }
-    else if (strcasecmp(argv[i], "-Axyxy") == 0) {
+    else if (strcmp(argv[i], "-Axyxy") == 0) {
       if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Axyxy) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "failed to read Axyxy\n";
         return TCL_ERROR;
