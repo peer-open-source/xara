@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2010-02-04 01:17:46 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/zeroLength/ZeroLengthND.h,v $
-                                                                        
+//
 // Written: MHS
 // Created: Sept 2000
 //
