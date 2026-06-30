@@ -14,7 +14,6 @@
 #else
 #  include <strings.h>
 #endif
-#define strcmp strcasecmp
 
 static Element *TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 static Element *TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
