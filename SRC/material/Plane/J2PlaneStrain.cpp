@@ -48,10 +48,10 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <Logging.h>
-//static vectors and matrices
-Vector J2PlaneStrain :: strain_vec(3) ;
-Vector J2PlaneStrain :: stress_vec(3) ;
-Matrix J2PlaneStrain :: tangent_matrix(3,3) ;
+// static vectors and matrices
+Vector J2PlaneStrain::strain_vec(3);
+Vector J2PlaneStrain::stress_vec(3);
+Matrix J2PlaneStrain::tangent_matrix(3,3) ;
 
 
 J2PlaneStrain::J2PlaneStrain()
@@ -89,13 +89,14 @@ J2Plasticity( tag, ND_TAG_J2PlaneStrain, K, G )
 }
 
 
-J2PlaneStrain :: ~J2PlaneStrain( ) 
+J2PlaneStrain::~J2PlaneStrain() 
 { 
 
 } 
 
 
-NDMaterial* J2PlaneStrain :: getCopy( ) 
+NDMaterial* 
+J2PlaneStrain::getCopy() 
 { 
   J2PlaneStrain  *clone;
   clone = new J2PlaneStrain() ;   //new instance of this class
