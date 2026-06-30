@@ -599,7 +599,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
     eta_u -= Knn_inv*r_mixed;
 
-  } while (++iter < 25); //&& converged == false);
+  } while (++iter < 25 && converged == false);
 
 
   if (!converged) {
@@ -1033,9 +1033,9 @@ MixedFrameSection::setResponse(const char **argv, int argc,
 
 
 int 
-MixedFrameSection::getResponse(int responseID, Information &sectInfo)
+MixedFrameSection::getResponse(int responseID, Information &info)
 {
-  return FrameSection::getResponse(responseID, sectInfo);
+  return FrameSection::getResponse(responseID, info);
 }
 
 
