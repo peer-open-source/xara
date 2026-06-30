@@ -54,7 +54,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ManzariDafaliasMaterialRO)
   if (numArgs < 22) {
     opserr << "Want: nDMaterial ManzariDafaliasRO tag? G0? nu? B? a1? gamma1? e_init? Mc? c? lambda_c? e0? ksi?" <<
 		" P_atm? m? h0? Ch? nb? A0? nd? z_max? cz? Rho? <kappa? IntScheme? TanType? JacoType? TolF? TolR?>" << endln;
-    return 0;	
+    return 0;
   }
   
   int tag;

@@ -39,31 +39,33 @@ void * OPS_ADD_RUNTIME_VPV(OPS_PressureIndependMultiYield)
 
     int argc = OPS_GetNumRemainingInputArgs() + 2;
 
-    const char * arg[] = {"nd", "rho", "refShearModul", "refBulkModul",
-		          "cohesi", "peakShearStra",
-		          "frictionAng (=0)", "refPress (=100)", "pressDependCoe (=0.0)",
-		          "numberOfYieldSurf (=20)"};
+    const char * arg[] = {
+          "nd", "rho", "refShearModul", "refBulkModul",
+          "cohesi", "peakShearStra",
+          "frictionAng (=0)", "refPress (=100)", "pressDependCoe (=0.0)",
+          "numberOfYieldSurf (=20)"
+    };
     if (argc < (3+numParam)) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: nDMaterial PressureIndependMultiYield tag? " << arg[0];
-	opserr << "? "<< "\n";
-	opserr << arg[1] << "? "<< arg[2] << "? "<< arg[3] << "? "<< "\n";
-	opserr << arg[4] << "? "<< arg[5] << "? "<< arg[6] << "? "<< "\n";
-	opserr << arg[7] << "? "<< arg[8] << "? "<< arg[9] << "? "<<"\n";
-	return 0;
+      opserr << "WARNING insufficient arguments\n";
+      opserr << "Want: nDMaterial PressureIndependMultiYield tag? " << arg[0];
+      opserr << "? "<< "\n";
+      opserr << arg[1] << "? "<< arg[2] << "? "<< arg[3] << "? "<< "\n";
+      opserr << arg[4] << "? "<< arg[5] << "? "<< arg[6] << "? "<< "\n";
+      opserr << arg[7] << "? "<< arg[8] << "? "<< arg[9] << "? "<<"\n";
+      return 0;
     }
     
     int tag;
     int numdata = 1;
     if (OPS_GetIntInput(&numdata, &tag) < 0) {
-	opserr << "WARNING invalid PressureIndependMultiYield tag" << "\n";
-	return 0;
+      opserr << "WARNING invalid PressureIndependMultiYield tag" << "\n";
+      return 0;
     }
 
     int nd;
     if (OPS_GetIntInput(&numdata, &nd) < 0) {
-	opserr << "WARNING invalid PressureIndependMultiYield nd" << "\n";
-	return 0;
+      opserr << "WARNING invalid PressureIndependMultiYield nd" << "\n";
+      return 0;
     }
 
     double param[8];
@@ -72,47 +74,47 @@ void * OPS_ADD_RUNTIME_VPV(OPS_PressureIndependMultiYield)
     param[7] = 0.0;
     numdata = 8;
     if (OPS_GetDoubleInput(&numdata, &param[0]) < 0) {
-	opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
-	return 0;
+      opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
+      return 0;
     }
 
     int numberOfYieldSurf = 20;
     numdata = 1;
     if (OPS_GetIntInput(&numdata, &numberOfYieldSurf) < 0) {
-	opserr << "WARNING invalid PressureIndependMultiYield numberOfYieldSurf" << "\n";
-	return 0;
+      opserr << "WARNING invalid PressureIndependMultiYield numberOfYieldSurf" << "\n";
+      return 0;
     }
 
     static double * gredu = 0;
     // user defined yield surfaces
     if (numberOfYieldSurf < 0 && numberOfYieldSurf > -40) {
-	numberOfYieldSurf = -int(numberOfYieldSurf);
-	numdata = int(2*numberOfYieldSurf);
-	gredu = new double[numdata];
-	if (OPS_GetDoubleInput(&numdata, gredu) < 0) {
-	    opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
-	    return 0;
-	}
+      numberOfYieldSurf = -int(numberOfYieldSurf);
+      numdata = int(2*numberOfYieldSurf);
+      gredu = new double[numdata];
+      if (OPS_GetDoubleInput(&numdata, gredu) < 0) {
+          opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
+          return 0;
+      }
     }
 
     PressureIndependMultiYield * temp =
-	new PressureIndependMultiYield (tag, nd, param[0], param[1], param[2],
-					param[3], param[4], param[5], param[6],
-					param[7], numberOfYieldSurf, gredu);
-    if (gredu != 0) {
-	delete [] gredu;
-	gredu = 0;
+      new PressureIndependMultiYield (tag, nd, param[0], param[1], param[2],
+              param[3], param[4], param[5], param[6],
+              param[7], numberOfYieldSurf, gredu);
+        if (gredu != 0) {
+      delete [] gredu;
+      gredu = 0;
     }
 
     return temp;
 }
 
 PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
-							double r, double refShearModul,
-							double refBulkModul,
-							double cohesi, double peakShearStra,
-							double frictionAng, double refPress, double pressDependCoe,
-							int numberOfYieldSurf, double * gredu)
+                double r, double refShearModul,
+                double refBulkModul,
+                double cohesi, double peakShearStra,
+                double frictionAng, double refPress, double pressDependCoe,
+                int numberOfYieldSurf, double * gredu)
  : NDMaterial(tag,ND_TAG_PressureIndependMultiYield), currentStress(),
    trialStress(), currentStrain(), strainRate()
 {
@@ -395,12 +397,14 @@ const Matrix & PressureIndependMultiYield::getTangent (void)
   if (loadStage!=1) {  //linear elastic
     for (int i=0;i<6;i++)
       for (int j=0;j<6;j++) {
-	theTangent(i,j) = 0.;
-	if (i==j) theTangent(i,j) += refShearModulus;
-	if (i<3 && j<3 && i==j) theTangent(i,j) += refShearModulus;
-	if (i<3 && j<3) theTangent(i,j) += (refBulkModulus - 2.*refShearModulus/3.);
+        theTangent(i,j) = 0.;
+        if (i==j)
+          theTangent(i,j) += refShearModulus;
+        if (i<3 && j<3 && i==j)
+          theTangent(i,j) += refShearModulus;
+        if (i<3 && j<3)
+          theTangent(i,j) += (refBulkModulus - 2.*refShearModulus/3.);
       }
-
   }
   else {
     double coeff;
@@ -429,10 +433,10 @@ const Matrix & PressureIndependMultiYield::getTangent (void)
 
     for (int i=0;i<6;i++)
       for (int j=0;j<6;j++) {
-	theTangent(i,j) = - coeff*devia[i]*devia[j];
+        theTangent(i,j) = - coeff*devia[i]*devia[j];
         if (i==j) theTangent(i,j) += refShearModulus;
         if (i<3 && j<3 && i==j) theTangent(i,j) += refShearModulus;
-	if (i<3 && j<3) theTangent(i,j) += (refBulkModulus - 2.*refShearModulus/3.);
+        if (i<3 && j<3) theTangent(i,j) += (refBulkModulus - 2.*refShearModulus/3.);
       }
   }
 
@@ -454,7 +458,8 @@ const Matrix & PressureIndependMultiYield::getTangent (void)
 }
 
 
-const Matrix & PressureIndependMultiYield::getInitialTangent (void)
+const Matrix & 
+PressureIndependMultiYield::getInitialTangent()
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 3;
