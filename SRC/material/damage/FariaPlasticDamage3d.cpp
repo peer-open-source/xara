@@ -11,13 +11,14 @@
 //===----------------------------------------------------------------------===//
 //
 // Written in Matlab: Thanh Do
-// Created: 07/16
+// Created: 07/26
 //
+#include <cmath>
 #include "FariaPlasticDamage3d.h"
 #include <Channel.h>
 #include <MatrixND.h>
-#include <cmath>
 #include <Voight.hpp>
+#include <MaterialResponse.h>
 
 #define MND
 using namespace OpenSees;
@@ -32,15 +33,16 @@ FariaPlasticDamage3d::FariaPlasticDamage3d(int tag,
                                            double Ap,
                                            double An, 
                                            double Bn,
-                                           double density)
+                                           double rho)
 : NDMaterial(tag,ND_TAG_PlasticDamageConcrete3d),
   E(E), nu(nu),
-  ft(Ft), Fc(Fc), beta(beta), Ap(Ap), An(An), Bn(Bn),
+  ft(std::fabs(Ft)), Fc(std::fabs(Fc)), 
+  beta(beta), Ap(Ap), An(An), Bn(Bn),
   retTangent(C),
   retInitialTangent(Ce),
   retStress(sig),
   retStrain(eps),
-  density(density)
+  density(rho)
 {
   this->revertToStart();
   this->commitState();
@@ -211,6 +213,10 @@ negative_surface(const VectorND<6> &signeg, double rn, double k)
 int
 FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
 {
+  bool plasticCorrection = false;
+  bool positiveDamageActive = false;
+  bool negativeDamageActive = false;
+
 
   double F2c = 1.16*Fc; // f2c: biaxial compressive strength
   double k = std::sqrt(2.0)*(F2c - Fc)/(2.0*F2c - Fc);
@@ -250,7 +256,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
 
   // elastic trial stress
   VectorND<6> sige_tr  =  sigeCommit;
-  sige_tr += Ce*Deps;
+  sige_tr.addMatrixVector(Ce, Deps, 1.0);
 
   // decomposition of trial stress tensor
   VectorND<6> sigpos{}, signeg = sige_tr;
@@ -260,20 +266,20 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   MatrixND<6,6> Cbar{};
   if (negative_surface(signeg, rn, k) <= (toln*rn0)) {
     // elastic state, accept trial response
-    sige = sige_tr;                                                    
-    Cbar = Ce;                                              
+    sige = sige_tr;
+    Cbar = Ce;
   }
   else {
     // Correction
-  
+
     //  norm of trial effective stress
     double nrm = std::sqrt(
-                 std::pow(sige_tr(0),2)
-               + std::pow(sige_tr(1),2)
-               + std::pow(sige_tr(2),2)
-               + 2.0*pow(sige_tr(3),2)
-               + 2.0*pow(sige_tr(4),2)
-               + 2.0*pow(sige_tr(5),2));
+                 sige_tr(0)*sige_tr(0)
+               + sige_tr(1)*sige_tr(1)
+               + sige_tr(2)*sige_tr(2)
+               + 2.0*sige_tr(3)*sige_tr(3)
+               + 2.0*sige_tr(4)*sige_tr(4)
+               + 2.0*sige_tr(5)*sige_tr(5));
 
     // normalized trial effective stress
     VectorND<6> L_tr = sige_tr/nrm;
@@ -299,6 +305,8 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
     }
 
     else {
+      plasticCorrection = true;
+
       //  update plastic strain
       eps_p += Deps_p;
 
@@ -348,6 +356,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       Ddp_Drp = 0;
     }
     else {                                         // positive damage evolves
+      positiveDamageActive = true;
       rp = taup;                                   // update rp = max(taup, rp)
       // dp = 1. - rp0/rp * std::exp(Ap*(1. - rp/rp0));
       dp = positive_damage(rp0, rp, Ap);          // update dp
@@ -373,6 +382,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       Ddn_Drn = 0;
     }
     else {                                  // negative damage evolves
+      negativeDamageActive = true;
       // rn = taun;                         // update rn
       rn += gn;
       // dn = 1. - rn0/rn*(1-An) - An*std::exp(Bn*(1. - rn/rn0));
@@ -461,6 +471,14 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       C.addTensorProduct(sigpos, Ddp_Deps, -1.0);
     }
   }
+
+  state[0] = (plasticCorrection || positiveDamageActive || negativeDamageActive)
+      ? State::Plastic
+      : State::Elastic;
+  state[1] = positiveDamageActive 
+           ? State::Plastic : State::Elastic; // positive damage state
+  state[2] = (negativeDamageActive || plasticCorrection)
+           ? State::Plastic : State::Elastic; // negative damage state
   return 0;
 }
 
@@ -753,7 +771,8 @@ FariaPlasticDamage3d::recvSelf(int commitTag, Channel &theChannel,
 }
 
 void 
-FariaPlasticDamage3d::Print(OPS_Stream &s, int flag) {
+FariaPlasticDamage3d::Print(OPS_Stream &s, int flag) 
+{
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"type\": \"" << this->getClassType() << "\", ";
@@ -776,3 +795,108 @@ FariaPlasticDamage3d::Print(OPS_Stream &s, int flag) {
     opserr << "tangent: " << Matrix(retTangent) << "\n";
   }
 }       
+
+
+
+
+Response*
+FariaPlasticDamage3d::setResponse(const char **argv, int argc, OPS_Stream &output)
+{
+  Response *theResponse = nullptr;
+  const char *matType = this->getType();
+
+  output.tag("NdMaterialOutput");
+  output.attr("matType",this->getClassType());
+  output.attr("matTag",this->getTag());
+
+  if (strcmp(argv[0],"stress") == 0 || strcmp(argv[0],"stresses") == 0) {
+    const Vector &res = this->getStress();
+    int size = res.Size();
+    
+    if ((strcmp(matType,"PlaneStress") == 0 && size == 3) ||
+        (strcmp(matType,"PlaneStrain") == 0 && size == 3)) {
+      output.tag("ResponseType","sigma11");
+      output.tag("ResponseType","sigma22");
+      output.tag("ResponseType","sigma12");
+    } else if (strcmp(matType,"ThreeDimensional") == 0 && size == 6) {
+      output.tag("ResponseType","sigma11");
+      output.tag("ResponseType","sigma22");
+      output.tag("ResponseType","sigma33");
+      output.tag("ResponseType","sigma12");
+      output.tag("ResponseType","sigma23");
+      output.tag("ResponseType","sigma13");
+    } else {
+      for (int i=0; i<size; i++) 
+      output.tag("ResponseType","UnknownStress");
+    }
+    theResponse =  new MaterialResponse(this, 1, this->getStress());
+
+  } 
+  else if (strcmp(argv[0],"strain") == 0 || strcmp(argv[0],"strains") == 0) {
+    const Vector &res = this->getStrain();
+    int size = res.Size();
+    if ((strcmp(matType,"PlaneStress") == 0 && size == 3) ||
+        (strcmp(matType,"PlaneStrain") == 0 && size == 3)) {
+      output.tag("ResponseType","eta11");
+      output.tag("ResponseType","eta22");
+      output.tag("ResponseType","eta12");
+    } else if (strcmp(matType,"ThreeDimensional") == 0 && size == 6) {
+      output.tag("ResponseType","eps11");
+      output.tag("ResponseType","eps22");
+      output.tag("ResponseType","eps33");
+      output.tag("ResponseType","eps12");
+      output.tag("ResponseType","eps23");
+      output.tag("ResponseType","eps13");
+    } else {
+      for (int i=0; i<size; i++) 
+        output.tag("ResponseType","UnknownStrain");
+    }      
+    theResponse =  new MaterialResponse(this, 2, this->getStrain());
+  }
+  else if (strcmp(argv[0], "isElastic") == 0) {
+    double data[1];
+    theResponse = new MaterialResponse(this, 20, Vector(&data[0], 1));
+  }
+  else if (strcmp(argv[0], "damage") == 0) {
+    double data[2];
+    theResponse = new MaterialResponse(this, 21, Vector(&data[0], 2));
+  }
+  output.endTag(); // NdMaterialOutput
+
+  return theResponse;
+}
+
+
+int
+FariaPlasticDamage3d::getResponse(int responseID, Information &info)
+{
+  switch (responseID) {
+    case 1:
+      return info.setVector(this->getStress());
+
+    case 2:
+      return info.setVector(this->getStrain());
+
+    case 4:
+      return info.setMatrix(this->getTangent());
+
+    case 20: {
+      double data[3];
+      data[0] = (state[0] == State::Elastic) ? 1.0 : 0.0;
+      data[1] = (state[1] == State::Elastic) ? 1.0 : 0.0;
+      data[2] = (state[2] == State::Elastic) ? 1.0 : 0.0;
+      return info.setVector(Vector(&data[0], 3));
+    }
+
+    case 21: {
+      double data[2];
+      data[0] = dp;
+      data[1] = dn;
+      return info.setVector(Vector(&data[0], 2));
+    }
+
+    default: {
+      return -1;
+    }
+  }
+}
