@@ -55,8 +55,6 @@
 using namespace OpenSees;
 
 class J2PlaneStrain : public J2Plasticity {
-
-
   public : 
 
   J2PlaneStrain( ) ;
@@ -110,10 +108,10 @@ protected:
 
 private :
     
-  //static vectors and matrices
+  // static vectors and matrices
   static Vector strain_vec ;     //strain in vector notation
   static Vector stress_vec ;     //stress in vector notation
   static Matrix tangent_matrix ; //material tangent in matrix notation
-} ; //end of J2PlaneStrain declarations
+};
 
 #endif
