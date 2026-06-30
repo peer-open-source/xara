@@ -453,31 +453,31 @@ double x0, y0, R0; // intersection
 // find the point where the line joining 0,0 and x,y
 // intersects the internal quad -> x_in, y_in (R_in)
 
-    if(x!=0)
+    if (x != 0)
     {
-    double x1 =0, y1 = 0;
-    double x2 = x, y2 = y;
-    double a_ext = (y1 - y2)/(x1 - x2);
-    double b_ext =  y1 - a_ext*x1;
-    double a_int, b_int;
+        double x1 =0, y1 = 0;
+        double x2 = x, y2 = y;
+        double a_ext = (y1 - y2)/(x1 - x2);
+        double b_ext =  y1 - a_ext*x1;
 
+        double a_int, b_int;
     // y = a_ext*x +b_ext
-        if(x > 0 && y >=0)
+        if (x > 0 && y >=0)
         {
             a_int = a1;
             b_int = b1;
         }
-        else if(x < 0 && y >= 0)
+        else if (x < 0 && y >= 0)
         {
             a_int = a2;
             b_int = b2;
         }
-        else if(x < 0 && y <= 0)
+        else if (x < 0 && y <= 0)
         {
             a_int = a3;
             b_int = b3;
         }
-        else if(x > 0 && y <= 0)
+        else if (x > 0 && y <= 0)
         {
              a_int = a4;
              b_int = b4;
@@ -485,7 +485,7 @@ double x0, y0, R0; // intersection
         else  // happened to be
             opserr << "YieldSurface_BC2D::getDrift(..) - condition not possible, x = " << x << ", y = " << y << endln;
 
-        if(driftDebug)
+        if (driftDebug)
         {
             opserr << "Equation Internal: a = " << a_int << ", b = " << b_int << "\n";
             opserr << "Equation External: a = " << a_ext << ", b = " << b_ext << "\n";
@@ -509,7 +509,7 @@ double x0, y0, R0; // intersection
 
     R0 = sqrt(x0*x0 + y0*y0);
 
-    if(driftDebug)
+    if (driftDebug)
     {
         opserr << "R_xy = " << R_xy << " (x= " << x << ", y= " << y << "), R0 = " << R0;
         opserr << " (x0= " << x0 << ", y0= " << y0 << ")\n";
