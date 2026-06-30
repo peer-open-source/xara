@@ -37,47 +37,15 @@
 #include <float.h>
 
 #include <OPS_Globals.h>
-#include <elementAPI.h>
 #include <string.h>
 #include <stdlib.h>
+#include <VectorND.h>
+#include <MatrixND.h>
+using namespace OpenSees;
 
 Vector J2PlateFibre::sigma(5);
 Matrix J2PlateFibre::D(5,5);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_J2PlateFibreMaterial)
-{
-  NDMaterial *theMaterial = 0;
-  
-  int numArgs = OPS_GetNumRemainingInputArgs();
-  
-  if (numArgs < 6) {
-    opserr << "Want: nDMaterial J2PlateFibre $tag $E $v $sigmaY $Hiso $Hkin <$rho>" << "\n";
-    return 0;	
-  }
-
-  int iData[1];
-  double dData[6];
-  dData[5] = 0.0;
-  
-  int numData = 1;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag\n";
-    return 0;
-  }
-  
-  if (numArgs > 6) 
-    numData = 6;
-  else
-    numData = 5;
-  
-  if (OPS_GetDouble(&numData, dData) != 0) {
-    opserr << "WARNING invalid data: " << iData[0] <<"\n";
-    return 0;
-  }  
-  
-  theMaterial = new J2PlateFibre(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4]);
-  return theMaterial;
-}
 
 J2PlateFibre::J2PlateFibre
 (int tag, double e, double v, double sy, double hi, double hk):
@@ -123,7 +91,7 @@ J2PlateFibre::J2PlateFibre():
 }
 
 
-J2PlateFibre::~J2PlateFibre ()
+J2PlateFibre::~J2PlateFibre()
 {
   if (SHVs != 0)
     delete SHVs;
@@ -172,8 +140,8 @@ J2PlateFibre::getTangent()
   sig[3] = G*(Tepsilon(3)-epsPn[3]);
   sig[4] = G*(Tepsilon(4)-epsPn[4]);
 
-  static const double one3 = 1.0/3;
-  static const double two3 = 2.0*one3;
+  static constexpr double one3 = 1.0/3.0;
+  static constexpr double two3 = 2.0/3.0;
   static const double root23 = sqrt(two3);
 
   double two3Hkin = two3*Hkin;
@@ -186,7 +154,7 @@ J2PlateFibre::getTangent()
   xsi[4] = sig[4] - Hkin*epsPn[4]/3.0;
 
   double q = sqrt(two3*(xsi[0]*xsi[0] + xsi[1]*xsi[1] - xsi[0]*xsi[1]) +
-		  2.0*(xsi[2]*xsi[2] + xsi[3]*xsi[3] + xsi[4]*xsi[4]));
+              2.0*(xsi[2]*xsi[2] + xsi[3]*xsi[3] + xsi[4]*xsi[4]));
   double F = q - root23*(sigmaY + Hiso*alphan);
 
   if (F < -100*DBL_EPSILON) {
@@ -263,7 +231,7 @@ J2PlateFibre::getTangent()
     }
 
     if (iter == maxIter) {
-      //opserr << "J2PlateFibre::getTangent -- maxIter reached " << R.Norm() << "\n";
+      opserr << "J2PlateFibre::getTangent -- maxIter reached " << R.Norm() << "\n";
     }
 
     alphan1 = alphan + dg*root23*q;
