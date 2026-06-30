@@ -17,10 +17,10 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // Written: Alborz Ghofrani, Pedro Arduino
 //			Nov 2014, University of Washington
-                                                                      
+//
 // Description: This file contains the implementation for the ManzariDafaliasRO class.
 
 #include <ManzariDafaliasRO.h>
