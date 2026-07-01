@@ -13,6 +13,7 @@
 
 #include "routines/xblas.h"
 #include "routines/cmx.h"
+#include <routines/small_solve.hpp>
 
 
 //  NOTE: Currently MATRIX_BRANCHING is NECCESSARY to avoid undefined behavior
@@ -282,6 +283,40 @@ MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 
 template <index_t NR, index_t NC, typename T>
 int
+MatrixND<NR,NC,T>::rsolve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept
+{
+  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+  static_assert(NR == NC);
+  static_assert(NR <= 8, "rsolve only supports matrices of size 6 or smaller");
+
+  if constexpr (NR == 1) {
+    return small_solve<1>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 2) {
+    return small_solve<2>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 3) {
+    return small_solve<3>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 4) {
+    return small_solve<4>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 5) {
+    return small_solve<5>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 6) {
+    return small_solve<6>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 7) {
+    return small_solve<7>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 8) {
+    return small_solve<8>(&(*this)(0,0), V.values, res.values);
+  }
+}
+
+template <index_t NR, index_t NC, typename T>
+int
 MatrixND<NR,NC,T>::solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept
 {
   static_assert(std::is_same_v<T,double>, "Only double storage is supported");
@@ -296,16 +331,17 @@ MatrixND<NR,NC,T>::solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcep
     res = Ainv * V;
     return 0;
   }
-
-  MatrixND<NR,NC> work = *this;
-  int pivot_ind[NR];
-  int nrhs = 1;
-  int nr = NR;
-  int nc = NC;
-  int info = 0;
-  res = V; // X will be overwritten with the solution
-  DGESV(&nr, &nrhs, &work(0,0), &nr, pivot_ind, res.values, &nc, &info);
-  return -abs(info);
+  else {
+    MatrixND<NR,NC> work = *this;
+    int pivot_ind[NR];
+    int nrhs = 1;
+    int nr = NR;
+    int nc = NC;
+    int info = 0;
+    res = V; // X will be overwritten with the solution
+    DGESV(&nr, &nrhs, &work(0,0), &nr, pivot_ind, res.values, &nc, &info);
+    return -abs(info);
+  }
 }
 
 
