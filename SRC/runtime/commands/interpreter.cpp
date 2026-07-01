@@ -24,7 +24,7 @@
 #include <Parsing.h>
 #include <Timer.h>
 #include "interpreter.h"
-#include <cmath.h>
+#include <cmath>
 
 static Tcl_ObjCmdProc *Tcl_putsCommand = nullptr;
 static Timer *theTimer = nullptr;
