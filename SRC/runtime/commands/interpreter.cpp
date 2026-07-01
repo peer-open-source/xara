@@ -24,6 +24,7 @@
 #include <Parsing.h>
 #include <Timer.h>
 #include "interpreter.h"
+#include <cmath.h>
 
 static Tcl_ObjCmdProc *Tcl_putsCommand = nullptr;
 static Timer *theTimer = nullptr;
@@ -598,8 +599,8 @@ defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
   sprintf(string, "set mm4 %.18e", mm*mm*mm*mm);   Tcl_Eval(interp, string);
   sprintf(string, "set cm4 %.18e", cm*cm*cm*cm);   Tcl_Eval(interp, string);
   sprintf(string, "set m4 %.18e", m*m*m*m);   Tcl_Eval(interp, string);
-  sprintf(string, "set pi %.18e", 2.0*asin(1.0));   Tcl_Eval(interp, string);
-  sprintf(string, "set PI %.18e", 2.0*asin(1.0));   Tcl_Eval(interp, string);
+  sprintf(string, "set pi %.18e", 2.0*std::asin(1.0));   Tcl_Eval(interp, string);
+  sprintf(string, "set PI %.18e", 2.0*std::asin(1.0));   Tcl_Eval(interp, string);
 
   // int res = simulationInfo.setForceUnit(force);
   // res += simulationInfo.setLengthUnit(length);
