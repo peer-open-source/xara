@@ -43,7 +43,7 @@ public:
   ~LinearFrameTransf();
 
   
-  // const char *getClassType() const override {return "LinearFrameTransf";}
+  const char *getClassType() const override {return "LinearFrameTransf";}
   
   FrameTransform<nn,ndf> *getCopy() const override;
 
@@ -51,7 +51,7 @@ public:
   double getInitialLength() final;
   double getDeformedLength() final;
   int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const override;
-  
+
   int initialize(std::array<Node*, nn>& ) final;
   int update() noexcept final;
   int commit() final;

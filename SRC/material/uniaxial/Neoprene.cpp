@@ -38,7 +38,7 @@
 #include <OPS_Globals.h>
 
 Neoprene::Neoprene(int tag, double e, double gap0)
-:UniaxialMaterial(tag,MAT_TAG_EPPGap),
+: UniaxialMaterial(tag,MAT_TAG_EPPGap),
  commitStrain(0.0), trialStrain(0.0), E(e), gap(gap0), minElasticYieldStrain(gap0) 
 {
       if (E <= 0.0) {
@@ -51,7 +51,7 @@ Neoprene::Neoprene(int tag, double e, double gap0)
 }
 
 Neoprene::Neoprene()
-:UniaxialMaterial(0,MAT_TAG_EPPGap),
+: UniaxialMaterial(0,MAT_TAG_EPPGap),
  E(0.0), gap(0.0), minElasticYieldStrain(0.0)
 {
 

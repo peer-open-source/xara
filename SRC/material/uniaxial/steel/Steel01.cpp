@@ -138,13 +138,10 @@ void Steel01::determineTrialState (double dStrain)
 
       double Esh = b*E0;
       double epsy = fy/E0;
-      
+
       double c1 = Esh*Tstrain;
-      
       double c2 = TshiftN*fyOneMinusB;
-
       double c3 = TshiftP*fyOneMinusB;
-
       double c = Cstress + E0*dStrain;
 
       /**********************************************************
@@ -173,9 +170,9 @@ void Steel01::determineTrialState (double dStrain)
       **************************************************************/
 
       if (fabs(Tstress-c) < DBL_EPSILON)
-	  Ttangent = E0;
+         Ttangent = E0;
       else
-	Ttangent = Esh;
+         Ttangent = Esh;
 
       //
       // Determine if a load reversal has occurred due to the trial strain

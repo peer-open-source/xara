@@ -31,6 +31,9 @@
 #include <NDMaterial.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
+#include <VectorND.h>
+#include <MatrixND.h>
+using namespace OpenSees;
 
 ContinuumUniaxial::ContinuumUniaxial():
   UniaxialMaterial(0, MAT_TAG_ContinuumUniaxial), strain11(0.0),
@@ -46,14 +49,14 @@ ContinuumUniaxial::ContinuumUniaxial(int tag, MaterialBuilder &theMat):
   Tstrain22(0.0),Tstrain33(0.0),Tgamma12(0.0),Tgamma23(0.0),Tgamma31(0.0),
   Cstrain22(0.0),Cstrain33(0.0),Cgamma12(0.0),Cgamma23(0.0),Cgamma31(0.0),
   initialTangent(0.0), theMaterial(0)
-
 {
   // Get a copy of the material
   theMaterial = theMat.getCopy("ThreeDimensional");
 
   if (theMaterial == nullptr)
-    opserr << "ContinuumUniaxial::ContinuumUniaxial -- failed to get copy of material" << "\n";
+    opserr << "ContinuumUniaxial: Failed to get copy of material" << "\n";
 
+  this->setTrialStrain(0.0);
   initialTangent = this->getTangent();
 }
 
@@ -136,13 +139,12 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
 
   strain11 = strain;
 
-  static Vector condensedStress(5);
-  static Vector strainIncrement(5);
-  static Vector threeDstrain(6);
-  static Matrix dd22(5,5);
+  static VectorND<5> condensedStress;
+  static VectorND<6> threeDstrain;
 
   // newton loop to solve for out-of-plane strains
   double norm;
+  int iter = 0;
   do {
     //set three dimensional strain
     threeDstrain(0) = strain11;
@@ -152,10 +154,10 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
     threeDstrain(4) = Tgamma23;
     threeDstrain(5) = Tgamma31;
 
-    if (theMaterial->setTrialStrain(threeDstrain) < 0) {
-      opserr << "ContinuumUniaxial::setTrialStrain -- setTrialStrain() failed on NDMaterial" << endln;
-      return -1;   
-    }
+    int status = theMaterial->setTrialStrain(threeDstrain);
+    if (status < 0)
+      return status;
+
 
     // three dimensional stress
     const Vector &threeDstress = theMaterial->getStress();
@@ -163,20 +165,20 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
     const Matrix &threeDtangent = theMaterial->getTangent();
 
     // out of plane stress and tangents
+    MatrixND<5,5> dd22{};
     for (int i=0; i<5; i++) {
-
       condensedStress(i) = threeDstress(i+1);
 
       for (int j=0; j<5; j++) 
         dd22(i,j) = threeDtangent(i+1,j+1);
-
     }
 
     // set norm
-    norm = condensedStress.Norm();
+    norm = condensedStress.norm();
 
-    // Condensation 
-    dd22.Solve(condensedStress, strainIncrement);
+    // Condensation
+    static VectorND<5> strainIncrement;
+    dd22.rsolve(condensedStress, strainIncrement);
 
     // Update
     Tstrain22 -= strainIncrement(0);
@@ -185,7 +187,8 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
     Tgamma23  -= strainIncrement(3);
     Tgamma31  -= strainIncrement(4);
 
-  } while (norm > tolerance);
+    iter++;
+  } while (norm > tolerance && iter < 25);
 
   return 0;
 }
@@ -206,31 +209,32 @@ ContinuumUniaxial::getStress()
 double
 ContinuumUniaxial::getTangent()
 {
-  static Matrix dd11(1,1);
-  static Matrix dd12(1,5);
-  static Matrix dd21(5,1);
-  static Matrix dd22(5,5);
-  static Matrix dd22invdd21(5,1);
 
   const Matrix &threeDtangent = theMaterial->getTangent();
 
-  dd11(0,0) = threeDtangent(0,0);
+  double dd11 = threeDtangent(0,0);
 
+  VectorND<5> dd21{};
+  VectorND<5> dd12{};
+  MatrixND<5,5> dd22{};
   for (int i=0; i<5; i++) {
-    dd12(0,i) = threeDtangent(0,i+1);
-    dd21(i,0) = threeDtangent(i+1,0);
+    dd12(i) = threeDtangent(0,i+1);
+    dd21(i) = threeDtangent(i+1,0);
     for (int j=0; j<5; j++) {
       dd22(i,j) = threeDtangent(i+1,j+1);
     }
   }
 
   // condensation 
-  dd22.Solve(dd21, dd22invdd21);
+  VectorND<5> dd22invdd21{};
+  dd22.rsolve(dd21, dd22invdd21);
   // dd11 -= (dd12*dd22invdd21);
-  dd11.addMatrixProduct(1.0, dd12, dd22invdd21, -1.0);
+  // dd11.addMatrixProduct(1.0, dd12, dd22invdd21, -1.0);
+  dd11 -= dd12.dot(dd22invdd21);
 
-  return dd11(0,0);
+  return dd11;
 }
+
 
 double
 ContinuumUniaxial::getInitialTangent()
@@ -241,10 +245,19 @@ ContinuumUniaxial::getInitialTangent()
 void  
 ContinuumUniaxial::Print(OPS_Stream &s, int flag)
 {
-  s << "ContinuumUniaxial, tag: " << this->getTag() << endln;
-  s << "\tWrapped material: "<< theMaterial->getTag() << endln;
-  
-  theMaterial->Print(s, flag);
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"material\": " << theMaterial->getTag() << "}";
+    return;
+  }
+  else {
+    s << "ContinuumUniaxial, tag: " << this->getTag() << "\n";
+    s << "\tWrapped material: "<< theMaterial->getTag() << "\n";
+    
+    theMaterial->Print(s, flag);
+  }
 }
 
 int 
@@ -287,7 +300,7 @@ ContinuumUniaxial::sendSelf(int commitTag, Channel &theChannel)
   // now send the materials data
   res = theMaterial->sendSelf(commitTag, theChannel);
   if (res < 0) 
-    opserr << "ContinuumUniaxial::sendSelf() - failed to send vector material" << endln;
+    opserr << "ContinuumUniaxial::sendSelf() - failed to send vector material" << "\n";
 
   return res;
 }
@@ -302,7 +315,7 @@ ContinuumUniaxial::recvSelf(int commitTag, Channel &theChannel,
   static ID idData(3);
   res = theChannel.recvID(this->getDbTag(), commitTag, idData);
   if (res < 0) {
-    opserr << "ContinuumUniaxial::sendSelf() - failed to send id data" << endln;
+    opserr << "ContinuumUniaxial::sendSelf() - failed to send id data" << "\n";
     return res;
   }
 
@@ -316,7 +329,7 @@ ContinuumUniaxial::recvSelf(int commitTag, Channel &theChannel,
       delete theMaterial;
     theMaterial = theBroker.getNewNDMaterial(matClassTag);
     if (theMaterial == 0) {
-      opserr << "ContinuumUniaxial::recvSelf() - failed to get a material of type: " << matClassTag << endln;
+      opserr << "ContinuumUniaxial::recvSelf() - failed to get a material of type: " << matClassTag << "\n";
       return -1;
     }
   }

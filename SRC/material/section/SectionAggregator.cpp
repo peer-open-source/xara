@@ -61,44 +61,50 @@ SectionAggregator::SectionAggregator (int tag, FrameSection &theSec,
   e(0), s(0), ks(0), fs(0), theCode(0),
   otherDbTag(0)
 {
-    theSection = theSec.getFrameCopy();
-    
-    if (!theSection) {
-      opserr << "SectionAggregator::SectionAggregator " << tag << " -- failed to get copy of section\n";
+  FrameStressLayout layout = {
+    FrameStress::N,
+    FrameStress::Vy,
+    FrameStress::Vz,
+    FrameStress::T,
+    FrameStress::My,
+    FrameStress::Mz
+  };
+  theSection = theSec.getFrameCopy(layout);
+  
+  if (!theSection) {
+    opserr << "SectionAggregator::SectionAggregator " << tag << " -- failed to get copy of section\n";
+    exit(-1);
+  }
+
+  if (!theAdds) {
+    opserr << "SectionAggregator::SectionAggregator " << tag << " -- null uniaxial material array passed\n";
+    exit(-1);
+  }
+  theAdditions = new UniaxialMaterial *[numMats];
+
+  for (int i = 0; i < numMats; i++) {
+    if (!theAdds[i]) {
+      opserr << "SectionAggregator::SectionAggregator " << tag << " -- null uniaxial material pointer passed\n";
       exit(-1);
-    }
+    }        
+    //theAdditions[i] = theAdds[i]->getCopy(this);
+    theAdditions[i] = theAdds[i]->getCopy();
+  }
 
-    if (!theAdds) {
-      opserr << "SectionAggregator::SectionAggregator " << tag << " -- null uniaxial material array passed\n";
-      exit(-1);
-    }
-    theAdditions = new UniaxialMaterial *[numMats];
+  int order = theSec.getOrder()+numAdds;
 
-    int i;
-    
-    for (i = 0; i < numMats; i++) {
-      if (!theAdds[i]) {
-        opserr << "SectionAggregator::SectionAggregator " << tag << " -- null uniaxial material pointer passed\n";
-        exit(-1);
-      }        
-      //theAdditions[i] = theAdds[i]->getCopy(this);
-      theAdditions[i] = theAdds[i]->getCopy();
-    }
+  if (order > MAX_ORDER) {
+    opserr << "SectionAggregator::SectionAggregator   " << tag << "  -- order too big, need to modify the #define in SectionAggregator.cpp to " <<
+    order << endln;
+    exit(-1);
+  }
 
-    int order = theSec.getOrder()+numAdds;
-
-    if (order > MAX_ORDER) {
-      opserr << "SectionAggregator::SectionAggregator   " << tag << "  -- order too big, need to modify the #define in SectionAggregator.cpp to " <<
-        order << endln;
-      exit(-1);
-    }
-
-    theCode = new ID(codeArea, order, false);
-    e = new Vector(workArea, order);
-    s = new Vector(&workArea[MAX_ORDER], order);
-    ks = new Matrix(&workArea[2*MAX_ORDER], order, order);
-    fs = new Matrix(&workArea[MAX_ORDER*(MAX_ORDER+2)], order, order);
-    matCodes = new ID(addCodes);   
+  theCode = new ID(codeArea, order, false);
+  e = new Vector(workArea, order);
+  s = new Vector(&workArea[MAX_ORDER], order);
+  ks = new Matrix(&workArea[2*MAX_ORDER], order, order);
+  fs = new Matrix(&workArea[MAX_ORDER*(MAX_ORDER+2)], order, order);
+  matCodes = new ID(addCodes);   
 }
 
 SectionAggregator::SectionAggregator (int tag, int numAdds,

@@ -27,7 +27,6 @@
 #else
 #  include <strings.h>
 #endif
-#define strcmp strcasecmp
 
 #include <Steel01.h>
 #include <Steel01Thermal.h>
@@ -60,6 +59,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
   //
   double rat=0.1, ft=0, Ets=0;
   // double beta =0.1, epstu = 0.0;
+  double density = 0.0;
 
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial tag\n";
@@ -70,14 +70,16 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
     if ((strcasecmp(argv[i], "-fpc") == 0) || 
         (strcasecmp(argv[i], "-Fc") == 0)) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &fpc) != TCL_OK) {
-        opserr << "Invalid value for option " 
-               << argv[i-1] 
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
                << ": " << argv[i]
-               << "\n";
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (tracker.contains(Positions::ft))
@@ -87,65 +89,89 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
     else if ((strcmp(argv[i], "-epsc0") == 0) || 
              (strcmp(argv[i], "-ec0") == 0)) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &epsc0) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << ": " << argv[i]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Positions::epsc0);
     }
     else if (strcasecmp(argv[i], "-fpcu") == 0 || strcasecmp(argv[i], "-Fcu") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &fpcu) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << ": " << argv[i]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Positions::fpcu);
     }
     else if (strcmp(argv[i], "-epscu") == 0 || strcmp(argv[i], "-ecu") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &epscu) != TCL_OK) {
-        opserr << "Invalid value for option " 
-               << argv[i-1] 
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
                << ": " << argv[i]
-               << "\n";
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Positions::epscu);
     }
-    else if (strcmp(argv[i], "-ft") == 0) {
+    else if (strcasecmp(argv[i], "-ft") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &ft) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << ": " << argv[i]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Positions::ft);
     }
     else if (strcmp(argv[i], "-Ec") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Ec) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << ": " << argv[i]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Positions::Ec);
     }
     else if (strcmp(argv[i], "-Ets") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Ets) != TCL_OK) {
@@ -156,7 +182,9 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
     }
     else if (strcmp(argv[i], "-rat") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &rat) != TCL_OK) {
@@ -164,6 +192,20 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
         return TCL_ERROR;
       }
       tracker.consume(Positions::rat);
+    }
+    else if ((strcmp(argv[i], "-density") == 0) || (strcmp(argv[i], "-rho") == 0)) {
+      if (++i >= argc) {
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
     }
     else 
       positional.insert(i);
@@ -192,42 +234,48 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
         break;
       case Positions::epsc0:
         if (Tcl_GetDouble(interp, argv[i], &epsc0) != TCL_OK) {
-          opserr << "Invalid value for ec0 " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for ec0 " << argv[i] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Positions::epsc0);
         break;
       case Positions::fpcu:
         if (Tcl_GetDouble(interp, argv[i], &fpcu) != TCL_OK) {
-          opserr << "Invalid value for Fcu " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for Fcu " << argv[i] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Positions::fpcu);
         break;
       case Positions::epscu:
         if (Tcl_GetDouble(interp, argv[i], &epscu) != TCL_OK) {
-          opserr << "Invalid value for ecu " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for ecu " << argv[i] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Positions::epscu);
         break;
       case Positions::rat:
         if (Tcl_GetDouble(interp, argv[i], &rat) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for option " << argv[i] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Positions::rat);
         break;
       case Positions::ft:
         if (Tcl_GetDouble(interp, argv[i], &ft) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for option " << argv[i] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Positions::ft);
         break;
       case Positions::Ets:
         if (Tcl_GetDouble(interp, argv[i], &Ets) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for option " << argv[i] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Positions::Ets);
@@ -235,7 +283,8 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
       
       case Positions::Ec:
         if (Tcl_GetDouble(interp, argv[i], &Ec) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError
+                 << "Invalid value for option " << argv[i] << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.consume(Positions::Ec);
@@ -256,7 +305,7 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
     while (tracker.current() != Positions::End) {
       switch (tracker.current()) {
         case Positions::fpc:
-          opserr << "fpc ";
+          opserr << "Fc ";
           break;
         case Positions::epsc0:
           opserr << "epsc0 ";
@@ -306,15 +355,15 @@ FedeasConcrParse(ClientData clientData, Tcl_Interp *interp,
   if (strcasecmp(argv[1], "Concrete1") == 0 ||
       strcasecmp(argv[1], "Concrete01") == 0) {
 
-    theMaterial = new Concrete01(tag, fpc, epsc0, fpcu, epscu);
+    theMaterial = new Concrete01(tag, fpc, epsc0, fpcu, epscu, density);
   }
 
   else if ((strcmp(argv[1], "concr2") == 0) ||
-           (strcmp(argv[1], "Concrete02") == 0)) {
+           (strcasecmp(argv[1], "Concrete02") == 0)) {
     theMaterial =
-        new Concrete02(tag, fpc, epsc0, fpcu, epscu, rat, ft, Ets);
+        new Concrete02(tag, fpc, epsc0, fpcu, epscu, rat, ft, Ets, density);
   }
-  else if ((strcmp(argv[1], "Concrete04") == 0)) {
+  else if ((strcasecmp(argv[1], "Concrete04") == 0)) {
     theMaterial =
         new Concrete04(tag, fpc, epsc0, epscu, Ec);
   }
@@ -348,6 +397,11 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
   double   R0 = 15.0,
           cR1 = 0.925,
           cR2 = 0.15;
+  
+  if (strstr(argv[1], "Steel01") != nullptr) {
+    a2 = 55.0;
+    a4 = 55.0;
+  }
   
   double sigini = 0.0, density = 0.0;
 
@@ -454,33 +508,48 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
     }
     else if (strcmp(argv[i], "-a4") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &a4) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << ": " << argv[i]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Positions::a4);
     }
     else if (strcmp(argv[i], "-sig0") == 0) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &sigini) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << ": " << argv[i]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Positions::sig0);
     }
-    else if (strcmp(argv[i], "-density") == 0) {
+    else if ((strcmp(argv[i], "-density") == 0) || (strcmp(argv[i], "-rho") == 0)) {
       if (++i >= argc) {
-        opserr << "Missing value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
-        opserr << "Invalid value for option " << argv[i-1] << "\n";
+        opserr << OpenSees::PromptValueError
+               << "Invalid value for option " << argv[i-1] 
+               << ": " << argv[i]
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
     }
@@ -499,114 +568,104 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
     switch (tracker.current()) {
       case Positions::Tag:
         if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
-          opserr << "invalid tag.\n";
+          opserr << OpenSees::PromptValueError << "invalid tag.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::fy :
         if (Tcl_GetDouble(interp, argv[i], &fy) != TCL_OK) {
-          opserr << "invalid Fy.\n";
+          opserr << OpenSees::PromptValueError << "invalid Fy.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::E:
         if (Tcl_GetDouble(interp, argv[i], &E) != TCL_OK) {
-          opserr << "invalid E.\n";
+          opserr << OpenSees::PromptValueError << "invalid E.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::b:
         if (Tcl_GetDouble(interp, argv[i], &b) != TCL_OK) {
-          opserr << "invalid b.\n";
+          opserr << OpenSees::PromptValueError << "invalid b.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::R0:
         if (Tcl_GetDouble(interp, argv[i], &R0) != TCL_OK) {
-          opserr << "invalid R0.\n";
+          opserr << OpenSees::PromptValueError << "invalid R0.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::cR1:
         if (Tcl_GetDouble(interp, argv[i], &cR1) != TCL_OK) {
-          opserr << "invalid cR1.\n";
+          opserr << OpenSees::PromptValueError << "invalid cR1.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::cR2:
         if (Tcl_GetDouble(interp, argv[i], &cR2) != TCL_OK) {
-          opserr << "invalid cR2.\n";
+          opserr << OpenSees::PromptValueError << "invalid cR2.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::a1:
         if (Tcl_GetDouble(interp, argv[i], &a1) != TCL_OK) {
-          opserr << "invalid a1.\n";
+          opserr << OpenSees::PromptValueError << "invalid a1.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::a2:
         if (Tcl_GetDouble(interp, argv[i], &a2) != TCL_OK) {
-          opserr << "invalid a2.\n";
+          opserr << OpenSees::PromptValueError << "invalid a2.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::a3:
         if (Tcl_GetDouble(interp, argv[i], &a3) != TCL_OK) {
-          opserr << "invalid a3.\n";
+          opserr << OpenSees::PromptValueError << "invalid a3.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::a4:
         if (Tcl_GetDouble(interp, argv[i], &a4) != TCL_OK) {
-          opserr << "invalid a4.\n";
+          opserr << OpenSees::PromptValueError << "invalid a4.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Positions::sig0:
-        if (Tcl_GetDouble(interp, argv[i], &a4) != TCL_OK) {
-          opserr << "invalid sig0.\n";
+        if (Tcl_GetDouble(interp, argv[i], &sigini) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "invalid sig0.\n";
           return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
 
       case Positions::EndRequired:
         // This will not be reached
         break;
 
       case Positions::End:
-        opserr << "unexpected argument " << argv[i] << ".\n";
+        opserr << OpenSees::PromptValueError 
+               << "unexpected argument " << argv[i] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
     }
   }
 
   // Check all required arguments are present
   if (tracker.current() < Positions::EndRequired) {
-    opserr << "missing required arguments: ";
+    opserr << OpenSees::PromptValueError << "missing required arguments: ";
     while (tracker.current() != Positions::EndRequired) {
       switch (tracker.current()) {
         case Positions::Tag :
@@ -658,14 +717,14 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
       tracker.consume(tracker.current());
     }
 
-    opserr << "\n";
+    opserr << OpenSees::SignalMessageEnd;
 
     return TCL_ERROR;
   }
 
 
   if (strcmp(argv[1], "Steel1") == 0 || 
-      strcmp(argv[1], "Steel01") == 0) {
+      strcasecmp(argv[1], "Steel01") == 0) {
     theMaterial = new Steel01(tag, fy, E, b, a1, a2, a3, a4, density);
   }
 
@@ -677,7 +736,7 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
     theMaterial = new Steel2(tag, fy, E, b, R0, cR1, cR2, a1, a2, a3, a4);
   }
 
-  else if ((strcmp(argv[1], "Steel02") == 0)) {
+  else if ((strcasecmp(argv[1], "Steel02") == 0)) {
     theMaterial = new Steel02(tag, 
                               fy, E, b, 
                               R0, cR1, cR2,
@@ -716,7 +775,7 @@ TclCommand_newFedeasSteel(ClientData clientData, Tcl_Interp *interp,
     return FedeasSteelParse<Positions>(clientData, interp, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "Steel02") == 0) || 
+  else if ((strcasecmp(argv[1], "Steel02") == 0) || 
            (strcmp(argv[1], "Steel2") == 0) || 
            (strcmp(argv[1], "Steel02Thermal") == 0) || 
            (strcmp(argv[1], "SteelMP") == 0)
@@ -742,7 +801,7 @@ TclCommand_newFedeasConcrete(ClientData clientData, Tcl_Interp *interp,
                           int argc, TCL_Char ** const argv)
 {
 
-  if (strcmp(argv[1], "Concrete01") == 0 ||
+  if (strcasecmp(argv[1], "Concrete01") == 0 ||
       strcmp(argv[1], "Concrete1") == 0) {
 
     // uniaxialMaterial Concrete01 tag? fpc? epsc0? fpcu? epscu?
@@ -757,7 +816,7 @@ TclCommand_newFedeasConcrete(ClientData clientData, Tcl_Interp *interp,
     return FedeasConcrParse<Positions>(clientData, interp, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "Concrete02") == 0) || 
+  else if ((strcasecmp(argv[1], "Concrete02") == 0) || 
            (strcmp(argv[1], "Concrete2") == 0) || 
            (strcmp(argv[1], "Concrete02Thermal") == 0)
   ) {
@@ -774,8 +833,8 @@ TclCommand_newFedeasConcrete(ClientData clientData, Tcl_Interp *interp,
     return FedeasConcrParse<Positions>(clientData, interp, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "Concrete04") == 0) ) {
-    
+  else if ((strcasecmp(argv[1], "Concrete04") == 0) ) {
+
     // uniaxialMaterial Concrete04 tag? fpc? epsc0? epscu? Ec0? <ft? etu? <beta?> >
     enum class Positions: int {
       Tag,

@@ -57,7 +57,10 @@ PlateFiberMaterial::PlateFiberMaterial(int tag, NDMaterial& the3DMaterial)
 
 
 //destructor
-PlateFiberMaterial::~PlateFiberMaterial() { delete theMaterial; }
+PlateFiberMaterial::~PlateFiberMaterial()
+{
+  delete theMaterial;
+}
 
 
 NDMaterial*
@@ -94,7 +97,7 @@ PlateFiberMaterial::getType() const
 }
 
 
-//swap history variables
+// swap history variables
 int
 PlateFiberMaterial::commitState()
 {
@@ -131,7 +134,7 @@ PlateFiberMaterial::getRho()
 }
 
 
-//receive the strain
+// receive the strain
 int
 PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
 {
@@ -155,7 +158,6 @@ PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
 
   // newton loop to solve for out-of-plane strains
   do {
-
     // set three dimensional strain
     threeDstrain(0) = this->strain(0); // xx
     threeDstrain(1) = this->strain(1); // yy
