@@ -175,6 +175,9 @@ struct alignas(64) MatrixND {
   int solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept;
   template<index_t n>
   int solve(const MatrixND<n, n>& M, MatrixND<n, n>& X) const noexcept;
+  // solve assuming no aliasing
+  XARA_MATRIX_INLINE
+  int rsolve(const VectorND<NR> &b, VectorND<NR> &x) const noexcept;
 
 
   template <int nb>
