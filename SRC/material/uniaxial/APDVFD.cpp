@@ -661,27 +661,35 @@ APDVFD::updateParameter(int parameterID, Information &info)
 void 
 APDVFD::Print(OPS_Stream &s, int flag)
 {
-    s << "APDVFD tag: " << this->getTag() << endln;
-    s << "  K: " << K << endln; 
-    s << "  G1: " << G1 << endln;
-    s << "  G2: " << G2 << endln;
-    s << "  Alpha: " << Alpha << endln;
-    s << "  L: " << L << endln;
-    s << "  LC: " << LC << endln;
-    s << "  DP: " << DP << endln;
-    s << "  DG: " << DG << endln;
-    s << "  N1: " << N1 << endln;
-    s << "  N2: " << N2 << endln;
-    s << "  DO1: " << DO1 << endln;
-    s << "  DO2: " << DO2 << endln;
-    s << "  DC: " << DC << endln;
-    s << "  S: " << S << endln;
-    s << "  HP: " << HP << endln;
-    s << "  HC: " << HC << endln;
-	s << "  LGap: " << LGap << endln; 
-	s << "  NM: " << NM << endln; 
-    s << "  RelTol: " << RelTol << endln;
-	s << "  AbsTol: " << AbsTol << endln;
-    s << "  MaxHalf: " << MaxHalf << endln;
-        
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\" ";
+    s << "}";
+    return;
+  }
+  else {
+    s << "APDVFD tag: " << this->getTag() << "\n";
+    s << "  K: " << K << "\n"; 
+    s << "  G1: " << G1 << "\n";
+    s << "  G2: " << G2 << "\n";
+    s << "  Alpha: " << Alpha << "\n";
+    s << "  L: " << L << "\n";
+    s << "  LC: " << LC << "\n";
+    s << "  DP: " << DP << "\n";
+    s << "  DG: " << DG << "\n";
+    s << "  N1: " << N1 << "\n";
+    s << "  N2: " << N2 << "\n";
+    s << "  DO1: " << DO1 << "\n";
+    s << "  DO2: " << DO2 << "\n";
+    s << "  DC: " << DC << "\n";
+    s << "  S: " << S << "\n";
+    s << "  HP: " << HP << "\n";
+    s << "  HC: " << HC << "\n";
+    s << "  LGap: " << LGap << "\n"; 
+    s << "  NM: " << NM << "\n"; 
+    s << "  RelTol: " << RelTol << "\n";
+    s << "  AbsTol: " << AbsTol << "\n";
+    s << "  MaxHalf: " << MaxHalf << "\n";
+  }
 }

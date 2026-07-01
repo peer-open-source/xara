@@ -738,19 +738,28 @@ TzLiq1::recvSelf(int cTag, Channel &theChannel,
 void 
 TzLiq1::Print(OPS_Stream &s, int flag)
 {
-    s << "TzLiq1, tag: " << this->getTag() << endln;
-    s << "  tzType: " << tzType << endln;
-    s << "  tult: " << tult << endln;
-    s << "  z50: " << z50 << endln;
-	s << "  dashpot: " << dashpot << endln;
-	if(TzConstructorType==1)
-	{
-		s << "  solidElem1: " << solidElem1 << endln;
-		s << "  solidElem2: " << solidElem2 << endln;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\" ";
+		s << "}";
+		return;
 	}
-	if(TzConstructorType==2)
-	{
-		s << "  Time Series Tag: " << theSeries->getTag() << endln;
+	else {
+		s << "TzLiq1, tag: " << this->getTag() << endln;
+		s << "  tzType: " << tzType << endln;
+		s << "  tult: " << tult << endln;
+		s << "  z50: " << z50 << endln;
+		s << "  dashpot: " << dashpot << endln;
+		if (TzConstructorType==1)
+		{
+			s << "  solidElem1: " << solidElem1 << endln;
+			s << "  solidElem2: " << solidElem2 << endln;
+		}
+		if (TzConstructorType==2)
+		{
+			s << "  Time Series Tag: " << theSeries->getTag() << endln;
+		}
 	}
 
 }

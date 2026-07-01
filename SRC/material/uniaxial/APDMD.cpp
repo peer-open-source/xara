@@ -546,5 +546,12 @@ APDMD::recvSelf(int commitTag, Channel &theChannel,
 void
 APDMD::Print(OPS_Stream &s, int flag)
 {
-  s << "APDMD:(strain, stress, tangent) " << eps << " " << sig  << endln;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\" ";
+		s << "}";
+		return;
+	}
+  s << "APDMD:(strain, stress, tangent) " << eps << " " << sig  << "\n";
 }

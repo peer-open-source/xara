@@ -28,7 +28,8 @@ namespace OpenSees {
 class NineFourNodeQuadUP : public Element
 {
   public:
-    NineFourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
+    NineFourNodeQuadUP(int tag, 
+      int nd1, int nd2, int nd3, int nd4,
 		  int nd5, int nd6, int nd7, int nd8, int nd9,
 		  NDMaterial &m, const char *type,
 		  double t, double bulk, double rhof, double perm1, double perm2,

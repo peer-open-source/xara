@@ -214,15 +214,15 @@ BBarFourNodeQuadUP::revertToStart()
 int
 BBarFourNodeQuadUP::update()
 {
-   // Collect displacements at each node into a local array
-   double u[NDM][NEN];
+  // Collect displacements at each node into a local array
+  double u[NDM][NEN];
 
-   for (int i=0; i<NEN; i++) {
-       const Vector &displ = theNodes[i]->getTrialDisp();
-       for (int j=0; j<NDM; j++) {
-          u[j][i] = displ[j];
-       }
-   }
+  for (int i=0; i<NEN; i++) {
+    const Vector &displ = theNodes[i]->getTrialDisp();
+    for (int j=0; j<NDM; j++) {
+      u[j][i] = displ[j];
+    }
+  }
 
 
   int ret = 0;
@@ -901,7 +901,7 @@ BBarFourNodeQuadUP::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_ELEM_INDENT << "{\n";
     s << "\"name\": " << this->getTag() << ",\n";
-    s << "\"type\": \"BBarFourNodeQuadUP\",\n";
+    s << "\"type\": \"" << this->getClassType() << "\",\n";
 
     s << "\"nodes\": [";
     const ID &nodes = this->getExternalNodes();
@@ -917,14 +917,14 @@ BBarFourNodeQuadUP::Print(OPS_Stream &s, int flag)
     s << "}";
   }
   else {
-    s << "\nBBarFourNodeQuadUP, element id:  " << this->getTag() << endln;
+    s << "\nBBarFourNodeQuadUP, element id:  " << this->getTag() << "\n";
     s << "\tConnected external nodes:  " << connectedExternalNodes;
-    s << "\tthickness:  " << thickness << endln;
-    s << "\tmass density:  " << rho << endln;
-    s << "\tsurface pressure:  " << pressure << endln;
-    s << "\tbody forces:  " << b[0] << ' ' << b[1] << endln;
+    s << "\tthickness:  " << thickness << "\n";
+    s << "\tmass density:  " << rho << "\n";
+    s << "\tsurface pressure:  " << pressure << "\n";
+    s << "\tbody forces:  " << b[0] << ' ' << b[1] << "\n";
     theMaterial[0]->Print(s,flag);
-    s << "\tStress (xx yy xy)" << endln;
+    s << "\tStress (xx yy xy)" << "\n";
     for (int i = 0; i < 4; i++)
       s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
   }
