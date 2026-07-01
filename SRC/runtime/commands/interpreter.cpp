@@ -470,8 +470,8 @@ defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
   }
 
   if (length == 0 || force == 0 || time == 0) {
-      opserr << "defaultUnits - missing a unit type want: defaultUnits -Force type? -Length type? -Time type?\n";
-      return -1;
+    opserr << "defaultUnits - missing a unit type want: defaultUnits -Force type? -Length type? -Time type?\n";
+    return -1;
   }
 
   double lb, kip, n, kn, mn, kgf, tonf;
@@ -479,34 +479,34 @@ defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
   double sec, msec;
 
   if ((strcmp(force, "lb") == 0) || (strcmp(force, "lbs") == 0)) {
-      lb = 1.0;
+    lb = 1.0;
   }
   else if ((strcmp(force, "kip") == 0) || (strcmp(force, "kips") == 0)) {
-      lb = 0.001;
+    lb = 0.001;
   }
   else if ((strcmp(force, "N") == 0)) {
-      lb = 4.4482216152605;
+    lb = 4.4482216152605;
   }
   else if ((strcmp(force, "kN") == 0) || (strcmp(force, "KN") == 0) || (strcmp(force, "kn") == 0)) {
-      lb = 0.0044482216152605;
+    lb = 0.0044482216152605;
   }
   else if ((strcmp(force, "mN") == 0) || (strcmp(force, "MN") == 0) || (strcmp(force, "mn") == 0)) {
-      lb = 0.0000044482216152605;
+    lb = 0.0000044482216152605;
   }
   else if ((strcmp(force, "kgf") == 0)) {
-      lb = 4.4482216152605 / 9.80665;
+    lb = 4.4482216152605 / 9.80665;
   }
   else if ((strcmp(force, "tonf") == 0)) {
-      lb = 4.4482216152605 / 9.80665 / 1000.0;
+    lb = 4.4482216152605 / 9.80665 / 1000.0;
   }
   else {
-      lb = 1.0;
-      opserr << "defaultUnits - unknown force type, valid options: lb, kip, N, kN, MN, kgf, tonf\n";
-      return TCL_ERROR;
+    lb = 1.0;
+    opserr << "defaultUnits - unknown force type, valid options: lb, kip, N, kN, MN, kgf, tonf\n";
+    return TCL_ERROR;
   }
 
   if ((strcmp(length, "in") == 0) || (strcmp(length, "inch") == 0)) {
-      in = 1.0;
+    in = 1.0;
   }
   else if ((strcmp(length, "ft") == 0) || (strcmp(length, "feet") == 0)) {
       in = 1.0 / 12.0;
@@ -601,7 +601,7 @@ defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
   sprintf(string, "set m4 %.18e", m*m*m*m);   Tcl_Eval(interp, string);
   sprintf(string, "set pi %.18e", 2.0*std::asin(1.0));   Tcl_Eval(interp, string);
   sprintf(string, "set PI %.18e", 2.0*std::asin(1.0));   Tcl_Eval(interp, string);
-
+  (void)temperature; // unused variable
   // int res = simulationInfo.setForceUnit(force);
   // res += simulationInfo.setLengthUnit(length);
   // res += simulationInfo.setTimeUnit(time);
