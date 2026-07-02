@@ -42,72 +42,6 @@
 #include <Information.h>
 #include <math.h>
 #include <float.h>
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_Concrete04)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if(numdata < 5) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: uniaxialMaterial Concrete04 tag? fpc? epsc0? epscu? Ec0?";
-	opserr << " <ft? etu? <beta?> >\n";
-	return 0;
-    }
-
-    int type = 1;
-
-    int tag;
-    numdata = 1;
-    if(OPS_GetIntInput(&numdata,&tag) < 0) {
-	opserr << "WARNING invalid tag\n";
-	return 0;
-    }
-
-    double data[4];
-    numdata = 4;
-    if(OPS_GetDoubleInput(&numdata,data) < 0) {
-	opserr << "WARNING invalid double data\n";
-	return 0;
-    }
-
-    numdata = OPS_GetNumRemainingInputArgs();
-    double data2[2];
-    if (numdata > 1) {
-	numdata = 2;
-	if (OPS_GetDoubleInput(&numdata,data2)<0) {
-	    opserr << "WARNING invalid double data\n";
-	    return 0;
-	}
-	type = 2;
-    }
-
-    numdata = OPS_GetNumRemainingInputArgs();
-    double beta;
-    if (numdata > 0) {
-	numdata = 1;
-	if (OPS_GetDoubleInput(&numdata,&beta)) {
-	    opserr << "WARNING invalid double data\n";
-	    return 0;
-	}
-	type = 3;
-    }
-
-    UniaxialMaterial* mat = 0;
-    if (type == 1) {
-	mat = new Concrete04(tag,data[0],data[1],data[2],data[3]);
-    } else if (type == 2) {
-	mat = new Concrete04(tag,data[0],data[1],data[2],data[3],data2[0],data2[1]);
-    } else if (type == 3) {
-	mat = new Concrete04(tag,data[0],data[1],data[2],data[3],data2[0],data2[1],beta);
-    }
-
-    if (mat == 0) {
-	opserr << "WARNING: failed to create Concrete04 material\n";
-	return 0;
-    }
-
-    return mat;
-}
 
 Concrete04::Concrete04
 (int tag, double FPC, double EPSC0, double EPSCU, double EC0, double FCT, double ETU)
@@ -133,6 +67,7 @@ Concrete04::Concrete04
   // Set trial values
   this->revertToLastCommit();
 }
+
 
 Concrete04::Concrete04
 (int tag, double FPC, double EPSC0, double EPSCU, double EC0, double FCT, double ETU, double BETA)
@@ -188,7 +123,6 @@ Concrete04::Concrete04():UniaxialMaterial(0, MAT_TAG_Concrete04),
 {
   // Set trial values
   this->revertToLastCommit();
-  
 }
 
 Concrete04::~Concrete04()
@@ -196,10 +130,11 @@ Concrete04::~Concrete04()
   // Does nothing
 }
 
-int Concrete04::setTrialStrain (double strain, double strainRate)
+int 
+Concrete04::setTrialStrain(double strain, double strainRate)
 {
 
-  /*// Reset trial history variables to last committed state*/
+  // Reset trial history variables to last committed state
   TminStrain = CminStrain;   
   TmaxStrain = CmaxStrain;   
   TendStrain = CendStrain;   
@@ -209,7 +144,7 @@ int Concrete04::setTrialStrain (double strain, double strainRate)
   Tstress = Cstress;   
   Ttangent = Ctangent;
 
-  /* // Set trial strain*/  
+  // Set trial strain
   if (fct == 0.0 && strain > 0.0) {    
     Tstrain = strain;
     Tstress = 0.0;    
@@ -218,7 +153,7 @@ int Concrete04::setTrialStrain (double strain, double strainRate)
     return 0;  
   }
 
-  /*// Determine change in strain from last converged state*/  
+  // Determine change in strain from last converged state
   double dStrain = strain - Cstrain;
 
   if (fabs(dStrain) < DBL_EPSILON)       
@@ -246,21 +181,21 @@ int Concrete04::setTrialStrain (double strain, double strainRate)
     if (Tstrain >= 0.0) {    /*// Material is in Tension-Reloading State*/      
       TmaxStrain = CmaxStrain;                  
       if (Tstrain < TmaxStrain) {        
-	Tstress = Tstrain * CUtenSlope;        
-	Ttangent = CUtenSlope;        
-	TUtenSlope = CUtenSlope;      
+        Tstress = Tstrain * CUtenSlope;        
+        Ttangent = CUtenSlope;        
+        TUtenSlope = CUtenSlope;      
       } else {        
-	TmaxStrain = Tstrain;        
-	TensEnvelope();        
-	setTenUnload();      
+        TmaxStrain = Tstrain;        
+        TensEnvelope();        
+        setTenUnload();      
       }        
     } else {
       if (Tstrain <= TendStrain) {          
-	Ttangent = TunloadSlope;          
-	Tstress = Ttangent * (Tstrain - TendStrain);        
+        Ttangent = TunloadSlope;          
+        Tstress = Ttangent * (Tstrain - TendStrain);        
       } else {          
-	Tstress = 0.0;          
-	Ttangent = 0.0;        
+        Tstress  = 0.0;
+        Ttangent = 0.0;        
       }        
     }  
   }    
@@ -288,7 +223,8 @@ void Concrete04::CompReload()
   }
 }
 
-void Concrete04::CompEnvelope()
+void 
+Concrete04::CompEnvelope()
 {
   if (Tstrain >= epscu) {
     double Esec = fpc/epsc0;
@@ -305,10 +241,11 @@ void Concrete04::CompEnvelope()
     Tstress = 0.0;
     Ttangent = 0.0;
   }
-  
 }
 
-void Concrete04::setCompUnloadEnv()	{
+void
+Concrete04::setCompUnloadEnv()
+{
   double tempStrain = TminStrain;
   
   if (tempStrain < epscu)
@@ -395,7 +332,8 @@ int Concrete04::commitState ()
   return 0;
 }
 
-int Concrete04::revertToLastCommit ()
+int
+Concrete04::revertToLastCommit()
 {
   /*// Reset trial history variables to last committed state*/
   TminStrain = CminStrain;   
@@ -407,14 +345,15 @@ int Concrete04::revertToLastCommit ()
   TUtenStress = CUtenStress;
   TUtenSlope = CUtenSlope;
   
-  /*// Recompute trial stress and tangent*/   
+  // Recompute trial stress and tangent
   Tstrain = Cstrain;   
   Tstress = Cstress;   
   Ttangent = Ctangent;
   return 0;
 }
 
-int Concrete04::revertToStart ()
+int
+Concrete04::revertToStart()
 {
   
   /*// History variables*/
@@ -424,20 +363,29 @@ int Concrete04::revertToStart ()
   /*// Reset trial variables and state*/   this->revertToLastCommit();      return 0;
 }
 
-UniaxialMaterial* Concrete04::getCopy ()
+UniaxialMaterial* 
+Concrete04::getCopy()
 {
   Concrete04* theCopy = new Concrete04(this->getTag(),
 				       fpc, epsc0, epscu, Ec0, fct, etu, beta);
   
   /*// Converged history variables*/
-  theCopy->CminStrain = CminStrain;   theCopy->CmaxStrain = CmaxStrain;   theCopy->CunloadSlope = CunloadSlope;   theCopy->CendStrain = CendStrain;   theCopy->CUtenSlope = CUtenSlope;
+  theCopy->CminStrain = CminStrain;   
+  theCopy->CmaxStrain = CmaxStrain;   
+  theCopy->CunloadSlope = CunloadSlope;   
+  theCopy->CendStrain = CendStrain;   
+  theCopy->CUtenSlope = CUtenSlope;
   
-  /*// Converged state variables*/   theCopy->Cstrain = Cstrain;   theCopy->Cstress = Cstress;   theCopy->Ctangent = Ctangent;
+  /*// Converged state variables*/   
+  theCopy->Cstrain = Cstrain;   
+  theCopy->Cstress = Cstress;   
+  theCopy->Ctangent = Ctangent;
   
   return theCopy;
 }
 
-int Concrete04::sendSelf (int commitTag, Channel& theChannel)
+int
+Concrete04::sendSelf(int commitTag, Channel& theChannel)
 {   
   int res = 0;   
 
