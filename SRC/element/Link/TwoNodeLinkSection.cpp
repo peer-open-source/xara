@@ -189,7 +189,8 @@ TwoNodeLinkSection::getNodePtrs()
 }
 
 
-int TwoNodeLinkSection::getNumDOF() 
+int
+TwoNodeLinkSection::getNumDOF() 
 {
   return numDOF;
 }
@@ -244,39 +245,39 @@ TwoNodeLinkSection::setDomain(Domain *theDomain)
 
   // now set the number of dof for element and set matrix and vector pointer
   if (numDIM == 1 && dofNd1 == 1)  {
-      numDOF = 2;
-      theMatrix = &TwoNodeLinkSectionM2;
-      theVector = &TwoNodeLinkSectionV2;
-      elemType  = D1N2;
+    numDOF = 2;
+    theMatrix = &TwoNodeLinkSectionM2;
+    theVector = &TwoNodeLinkSectionV2;
+    elemType  = D1N2;
   }
   else if (numDIM == 2 && dofNd1 == 2)  {
-      numDOF = 4;
-      theMatrix = &TwoNodeLinkSectionM4;
-      theVector = &TwoNodeLinkSectionV4;
-      elemType  = D2N4;
+    numDOF = 4;
+    theMatrix = &TwoNodeLinkSectionM4;
+    theVector = &TwoNodeLinkSectionV4;
+    elemType  = D2N4;
   }
   else if (numDIM == 2 && dofNd1 == 3)  {
-      numDOF = 6;
-      theMatrix = &TwoNodeLinkSectionM6;
-      theVector = &TwoNodeLinkSectionV6;
-      elemType  = D2N6;
+    numDOF = 6;
+    theMatrix = &TwoNodeLinkSectionM6;
+    theVector = &TwoNodeLinkSectionV6;
+    elemType  = D2N6;
   }
   else if (numDIM == 3 && dofNd1 == 3)  {
-      numDOF = 6;
-      theMatrix = &TwoNodeLinkSectionM6;
-      theVector = &TwoNodeLinkSectionV6;
-      elemType  = D3N6;
+    numDOF = 6;
+    theMatrix = &TwoNodeLinkSectionM6;
+    theVector = &TwoNodeLinkSectionV6;
+    elemType  = D3N6;
   }
   else if (numDIM == 3 && dofNd1 == 6)  {
-      numDOF = 12;
-      theMatrix = &TwoNodeLinkSectionM12;
-      theVector = &TwoNodeLinkSectionV12;
-      elemType  = D3N12;
+    numDOF = 12;
+    theMatrix = &TwoNodeLinkSectionM12;
+    theVector = &TwoNodeLinkSectionV12;
+    elemType  = D3N12;
   }
   else  {
-      opserr << "TwoNodeLinkSection::setDomain() can not handle "
-          << numDIM << "dofs at nodes in " << dofNd1 << " d problem\n";
-      return;
+    opserr << "TwoNodeLinkSection::setDomain() can not handle "
+        << numDIM << "dofs at nodes in " << dofNd1 << " d problem\n";
+    return;
   }
   
   // set the local displacement vector size
@@ -285,10 +286,10 @@ TwoNodeLinkSection::setDomain(Domain *theDomain)
   
   // allocate memory for the load vector
   if (theLoad == 0)
-      theLoad = new Vector(numDOF);
+    theLoad = new Vector(numDOF);
   else if (theLoad->Size() != numDOF)  {
-      delete theLoad;
-      theLoad = new Vector(numDOF);
+    delete theLoad;
+    theLoad = new Vector(numDOF);
   }
   
   // setup the transformation matrix for orientation
@@ -904,63 +905,66 @@ TwoNodeLinkSection::setResponse(const char **argv, int argc, OPS_Stream &output)
 }
 
 
-int TwoNodeLinkSection::getResponse(int responseID, Information &eleInfo)
+int
+TwoNodeLinkSection::getResponse(int responseID, Information &info)
 {
   int numDIR = theSection->getOrder();
-  
-    Vector defoAndForce(numDIR*2);
-    Vector &theVec = *(eleInfo.theVector);
-    ID &theID = *(eleInfo.theID);    
+
+  Vector defoAndForce(numDIR*2);
+  ID &theID = *(info.theID);    
+
+  switch (responseID)  {
+  case 1:  // global forces
+    return info.setVector(this->getResistingForce());
+      
+  case 2:  // local forces
+    theVector->Zero();
+    // determine resisting forces in local system
+    theVector->addMatrixTransposeVector(0.0, Tlb, qb, 1.0);
+    // add P-Delta effects to local forces
+    if (Mratio.Size() == 4)
+        this->addPDeltaForces(*theVector, qb);
     
-    switch (responseID)  {
-    case 1:  // global forces
-        return eleInfo.setVector(this->getResistingForce());
-        
-    case 2:  // local forces
-        theVector->Zero();
-        // determine resisting forces in local system
-        theVector->addMatrixTransposeVector(0.0, Tlb, qb, 1.0);
-        // add P-Delta effects to local forces
-        if (Mratio.Size() == 4)
-            this->addPDeltaForces(*theVector, qb);
-        
-        return eleInfo.setVector(*theVector);
-        
-    case 3:  // basic forces
-        return eleInfo.setVector(qb);
-        
-    case 4:  // local displacements
-        return eleInfo.setVector(ul);
-        
-    case 5:  // basic displacements
-        return eleInfo.setVector(ub);
-        
-    case 6:  // basic deformations and basic forces
-        defoAndForce.Zero();
-        defoAndForce.Assemble(ub,0);
-        defoAndForce.Assemble(qb,numDIR);
-        
-        return eleInfo.setVector(defoAndForce);
+    return info.setVector(*theVector);
+      
+  case 3:  // basic forces
+    return info.setVector(qb);
+      
+  case 4:  // local displacements
+    return info.setVector(ul);
+      
+  case 5:  // basic displacements
+    return info.setVector(ub);
+      
+  case 6:  // basic deformations and basic forces
+    defoAndForce.Zero();
+    defoAndForce.Assemble(ub,0);
+    defoAndForce.Assemble(qb,numDIR);
+    
+    return info.setVector(defoAndForce);
 
-    case 20:
-      theVec(0) = trans(0,0);
-      theVec(1) = trans(0,1);
-      theVec(2) = trans(0,2);
-      return 0;
-    case 21:
-      theVec(0) = trans(1,0);
-      theVec(1) = trans(1,1);
-      theVec(2) = trans(1,2);
-      return 0;
-    case 22:
-      theVec(0) = trans(2,0);
-      theVec(1) = trans(2,1);
-      theVec(2) = trans(2,2);
-      return 0;
-
-    default:
-        return -1;
-    }
+  case 20: {
+    double data[3] = {
+      trans(0,0), trans(0,1), trans(0,2)
+    };
+    return info.setVector(Vector(data, 3));
+  }
+  case 21: {
+    double data[3] = {
+      trans(1,0), trans(1,1), trans(1,2)
+    };
+    return info.setVector(Vector(data, 3));
+  }
+  case 22: {
+    double data[3] = {
+      trans(2,0), trans(2,1), trans(2,2)
+    };
+    return info.setVector(Vector(data, 3));
+  }
+  default: {
+    return -1;
+  }
+  }
 }
 
 
