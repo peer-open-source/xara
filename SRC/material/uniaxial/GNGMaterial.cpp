@@ -480,15 +480,15 @@ GNGMaterial::Print(OPS_Stream &s, int flag)
 	}
 	
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
-		s << "\"name\": \"" << this->getTag() << "\", ";
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
 		s << "\"type\": \"GNG\", ";
 		s << "\"E\": " << E << ", ";
 		s << "\"eta\": " << eta << ", ";
 		s << "\"sigY\": " << sigY << ", ";
 		s << "\"P\": " << P << ", ";
 		s << "\"plastic demand\": " << pdemand << ", ";
-		s << "\"ratchet count\": " << nratchet << ", ";
+		s << "\"ratchet count\": " << nratchet << "}";
 	}
 }
 
