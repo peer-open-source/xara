@@ -223,18 +223,18 @@ void
 PlateRebarMaterial::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-    s << "PlateRebar Material tag: " << this->getTag() << endln;
-    s << "angle: " << angle << endln;
-    s << "using uniaxial material: " << endln;
+    s << "PlateRebar Material tag: " << this->getTag() << "\n";
+    s << "angle: " << angle << "\n";
+    s << "using uniaxial material: " << "\n";
     theMat->Print(s, flag);
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"PlateRebarMaterial\", ";
     s << "\"angle\": " << angle << ", ";
-    s << "\"material\": \"" << theMat->getTag() << "\"}";
+    s << "\"material\": " << theMat->getTag() << "}";
   }
 }
 
