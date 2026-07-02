@@ -467,20 +467,20 @@ int Concrete04::recvSelf (int commitTag, Channel& theChannel,
 void Concrete04::Print (OPS_Stream& s, int flag)
 {
 	if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-		s << "Concrete04, tag: " << this->getTag() << endln;
-		s << "  fpc: " << fpc << endln;
-		s << "  epsc0: " << epsc0 << endln;
-		s << "  fct: " << fct << endln;
-		s << "  epscu: " << epscu << endln;
-		s << "  Ec0:  " << Ec0 << endln;
-		s << "  etu:  " << etu << endln;
-		s << "  beta: " << beta << endln;
+		s << "Concrete04, tag: " << this->getTag() << "\n";
+		s << "  fpc: " << fpc << "\n";
+		s << "  epsc0: " << epsc0 << "\n";
+		s << "  fct: " << fct << "\n";
+		s << "  epscu: " << epscu << "\n";
+		s << "  Ec0:  " << Ec0 << "\n";
+		s << "  etu:  " << etu << "\n";
+		s << "  beta: " << beta << "\n";
 	}
 
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
-		s << "\"name\": \"" << this->getTag() << "\", ";
-		s << "\"type\": \"Concrete04\", ";
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\", ";
 		s << "\"Ec\": " << Ec0 << ", ";
 		s << "\"fc\": " << fpc << ", ";
 		s << "\"epsc\": " << epsc0 << ", ";
