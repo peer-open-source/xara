@@ -31,20 +31,15 @@
 //
 #include <UniaxialMaterial.h>
 
-// Default values for isotropic hardening parameters a1, a2, a3, and a4
-#define STEEL_01_DEFAULT_A1        0.0
-#define STEEL_01_DEFAULT_A2       55.0
-#define STEEL_01_DEFAULT_A3        0.0
-#define STEEL_01_DEFAULT_A4       55.0
 
 class Steel01 : public UniaxialMaterial
 {
   public:
     Steel01(int tag, double fy, double E0, double b,
-       double a1 = STEEL_01_DEFAULT_A1, 
-       double a2 = STEEL_01_DEFAULT_A2,
-       double a3 = STEEL_01_DEFAULT_A3, 
-       double a4 = STEEL_01_DEFAULT_A4,
+       double a1, 
+       double a2,
+       double a3, 
+       double a4,
        double density = 0.0
     );
     Steel01();
