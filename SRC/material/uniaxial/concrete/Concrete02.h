@@ -42,17 +42,18 @@ class Concrete02 : public UniaxialMaterial
 {
   public:
     Concrete02(int tag, double _fc, double _epsc0, double _fcu,
-	     double _epscu, double _rat, double _ft, double _Ets);
-    Concrete02(int tag, double _fc, double _epsc0, double _fcu,
-	     double _epscu);
+	     double _epscu, double _rat, double _ft, double _Ets, double rho);
+    // Concrete02(int tag, double _fc, double _epsc0, double _fcu,
+	  //    double _epscu);
 
     Concrete02();
 
     virtual ~Concrete02();
 
     const char *getClassType() const {return "Concrete02";}
-    double getInitialTangent(void);
-    UniaxialMaterial *getCopy(void);
+    double getInitialTangent();
+    UniaxialMaterial *getCopy();
+    double getRho() override { return density; }
 
     int setTrialStrain(double strain, double strainRate); 
     double getStrain();      
@@ -84,6 +85,7 @@ class Concrete02 : public UniaxialMaterial
     double rat;   // ratio between unloading slope at epscu and original slope : mp(5)
     double ft;    // concrete tensile strength               : mp(6)
     double Ets;   // tension stiffening slope                : mp(7)
+    double density;
 
     // hstvP : Concerete HISTORY VARIABLES last committed step
     double ecminP;  //  hstP(1)
