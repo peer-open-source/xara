@@ -40,13 +40,12 @@
 #include <elementAPI.h>
 #define OPS_Export 
 
-static int num_pyUCLA = 0;
 
 OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_pyUCLA)
 {
+  static int num_pyUCLA = 0;
   if (num_pyUCLA == 0) {
     num_pyUCLA++;
-    //OPS_Error("pyUCLAMaterial unaxial material - Written by H.Shin, P.Arduino, U.Washington\n based on model of E.Taciroglu, C.Rha, J.Wallace, UCLA", 1);
     opslog << "pyUCLAMaterial unaxial material - Written by H.Shin, P.Arduino, U.Washington\n based on model of E.Taciroglu, C.Rha, J.Wallace, UCLA\n";
   }
 
