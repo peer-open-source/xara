@@ -85,8 +85,14 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
   if (strcmp(argv[1], "ContinuumWrapper") == 0 || strcmp(argv[1], "Continuum") == 0) {
     NDMaterial* inside = builder->getTypedObject<NDMaterial>(tagi);
     if (inside == nullptr) 
-        return TCL_ERROR;
-    
+      return TCL_ERROR;
+    NDMaterial*test = inside->getCopy("ThreeDimensional");
+    if (test == nullptr) {
+      delete test;
+      opserr << OpenSees::PromptValueError << "ContinuumUniaxial only works with 3D materials\n";
+      return TCL_ERROR;
+    }
+    delete test;
     return builder->addTypedObject<UniaxialMaterial>(tago, new ContinuumUniaxial(tago, *inside));
   }
 
@@ -132,8 +138,8 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
       if (argc == 5) {
         double evol;
         if (Tcl_GetDouble(interp, argv[4], &evol) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "failed to read initial value\n";
-            return TCL_ERROR;
+          opserr << OpenSees::PromptValueError << "failed to read initial value\n";
+          return TCL_ERROR;
         }
         for (int i = 0; i < 3; ++i)
           initial(i) = evol;
@@ -165,6 +171,9 @@ TclCommand_addWrappingMaterial(ClientData clientData, Tcl_Interp* interp,
 int
 TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv)
 {
+  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
+  assert(builder != nullptr);
+
   if (argc < 4) {
     opserr << "WARNING insufficient arguments\n";
     opserr << "Want: uniaxialMaterial Parallel tag? tag1? tag2? ...";
@@ -174,7 +183,6 @@ TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int ar
 
   int tag;
   UniaxialMaterial* theMaterial = nullptr;
-  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
 
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial Parallel tag" << "\n";
@@ -200,12 +208,11 @@ TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int ar
     }
 
     UniaxialMaterial *theMat = builder->getTypedObject<UniaxialMaterial>(tagI);
-    
     if (theMat == nullptr) {
       delete [] theMats;
       return TCL_ERROR;
-    } else
-      theMats[i] = theMat;
+    }
+    theMats[i] = theMat;
   }
   
   // Parsing was successful, allocate the material
@@ -715,24 +722,33 @@ TclCommand_addOrthotropicWrapper(ClientData clientData, Tcl_Interp* interp, Tcl_
     opserr << OpenSees::PromptValueError << "insufficient arguments\n";
     return TCL_ERROR;
   }
+
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "failed to read tag\n";
     return TCL_ERROR;
   }
   tracker.consume(Positions::Tag);
-  if (Tcl_GetInt(interp, argv[3], &matTag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "failed to read material tag\n";
-    return TCL_ERROR;
-  }
-  NDMaterial *threeDMaterial = builder->getTypedObject<NDMaterial>(matTag);
-  if (threeDMaterial == nullptr) {
-    return TCL_ERROR;
-  }
-  tracker.consume(Positions::MaterialTag);
 
-  int i=4;
+
+  int i=3;
   while (i < argc) {
-    if (strcmp(argv[i], "-Ex") == 0) {
+    if (strcmp(argv[i], "-material") == 0) {
+      if (i + 1 >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "Missing material tag."
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      if (Tcl_GetInt(interp, argv[i + 1], &matTag) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "failed to read material tag " << argv[i + 1]
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      tracker.consume(Positions::MaterialTag);
+      i += 2;
+    }
+    else if (strcmp(argv[i], "-Ex") == 0) {
       if (i + 1 >= argc || Tcl_GetDouble(interp, argv[i + 1], &data.Ex) != TCL_OK) {
         opserr << OpenSees::PromptValueError << "failed to read Ex\n";
         return TCL_ERROR;
@@ -864,9 +880,29 @@ TclCommand_addOrthotropicWrapper(ClientData clientData, Tcl_Interp* interp, Tcl_
     }
 
     switch (tracker.current()) {
+      case Positions::Tag:
+        if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "failed to read tag " << argv[i] 
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
+      case Positions::MaterialTag:
+        if (Tcl_GetInt(interp, argv[i], &matTag) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "failed to read material tag " << argv[i] 
+                 << OpenSees::SignalMessageEnd;
+          return TCL_ERROR;
+        }
+        tracker.increment();
+        break;
       case Positions::Ex:
         if (Tcl_GetDouble(interp, argv[i], &data.Ex) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "failed to read Ex " << argv[i] << "\n";
+          opserr << OpenSees::PromptValueError 
+                 << "failed to read Ex " << argv[i] 
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         tracker.increment();
@@ -980,18 +1016,19 @@ TclCommand_addOrthotropicWrapper(ClientData clientData, Tcl_Interp* interp, Tcl_
     opserr << OpenSees::PromptValueError << "missing required arguments: ";
     while (tracker.current() != Positions::End) {
       switch (tracker.current()) {
-        case Positions::Ex: opserr << "Ex "; break;
-        case Positions::Ey: opserr << "Ey "; break;
-        case Positions::Ez: opserr << "Ez "; break;
-        case Positions::Gxy: opserr << "Gxy "; break;
-        case Positions::Gyz: opserr << "Gyz "; break;
-        case Positions::Gzx: opserr << "Gzx "; break;
+        case Positions::MaterialTag:  opserr << "material "; break;
+        case Positions::Ex:   opserr << "Ex "; break;
+        case Positions::Ey:   opserr << "Ey "; break;
+        case Positions::Ez:   opserr << "Ez "; break;
+        case Positions::Gxy:  opserr << "Gxy "; break;
+        case Positions::Gyz:  opserr << "Gyz "; break;
+        case Positions::Gzx:  opserr << "Gzx "; break;
         case Positions::NuXY: opserr << "NuXY "; break;
         case Positions::NuYZ: opserr << "NuYZ "; break;
         case Positions::NuZX: opserr << "NuZX "; break;
-        case Positions::Axx: opserr << "Axx "; break;
-        case Positions::Ayy: opserr << "Ayy "; break;
-        case Positions::Azz: opserr << "Azz "; break;
+        case Positions::Axx:  opserr << "Axx "; break;
+        case Positions::Ayy:  opserr << "Ayy "; break;
+        case Positions::Azz:  opserr << "Azz "; break;
         case Positions::Axyxy: opserr << "Axyxy "; break;
         case Positions::Ayzyz: opserr << "Ayzyz "; break;
         case Positions::Axzxz: opserr << "Axzxz "; break;
@@ -1001,6 +1038,12 @@ TclCommand_addOrthotropicWrapper(ClientData clientData, Tcl_Interp* interp, Tcl_
       }
     }
     opserr << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+
+  NDMaterial *threeDMaterial = builder->getTypedObject<NDMaterial>(matTag);
+  if (threeDMaterial == nullptr) {
     return TCL_ERROR;
   }
 
