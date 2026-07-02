@@ -466,7 +466,6 @@ ArpackSOE::opM(int n, double *v, double *result)
   Vector y(result,n);
 
   if (mDiagonal == true) {
-
     if (n <= Msize) {
       for (int i=0; i<n; i++)
         result[i] = M[i]*v[i];
