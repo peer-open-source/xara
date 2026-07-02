@@ -179,33 +179,34 @@ void
 NineNodeMixedQuad::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-      s << "\t\t\t{";
-      s << "\"name\": " << this->getTag() << ", ";
-      s << "\"type\": \"NineNodeMixedQuad\", ";
-      s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-      for (int i = 1; i < 7; i++)
-          s << connectedExternalNodes(i) << ", ";
-      s << connectedExternalNodes(8) << "], ";
-      s << "\"material\": " << materialPointers[0]->getTag() << "}";
-      return;
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"NineNodeMixedQuad\", ";
+    s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+    for (int i = 1; i < 7; i++)
+      s << connectedExternalNodes(i) << ", ";
+    s << connectedExternalNodes(8) << "], ";
+    s << "\"material\": " << materialPointers[0]->getTag();
+    s << "}";
+    return;
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
-      s << endln;
-      s << "Nine Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
-      s << "Element Number " << this->getTag() << endln;
-      s << "Node 1 : " << connectedExternalNodes(0) << endln;
-      s << "Node 2 : " << connectedExternalNodes(1) << endln;
-      s << "Node 3 : " << connectedExternalNodes(2) << endln;
-      s << "Node 4 : " << connectedExternalNodes(3) << endln;
-      s << "Node 5 : " << connectedExternalNodes(4) << endln;
-      s << "Node 6 : " << connectedExternalNodes(5) << endln;
-      s << "Node 7 : " << connectedExternalNodes(6) << endln;
-      s << "Node 8 : " << connectedExternalNodes(7) << endln;
-      s << "Node 9 : " << connectedExternalNodes(8) << endln;
-      s << "Material Information : \n ";
-      materialPointers[0]->Print(s, flag);
-      s << endln;
+    s << "\n";
+    s << "Nine Node Quad -- Mixed Pressure/Volume -- Plane Strain \n";
+    s << "Element Number " << this->getTag() << "\n";
+    s << "Node 1 : " << connectedExternalNodes(0) << "\n";
+    s << "Node 2 : " << connectedExternalNodes(1) << "\n";
+    s << "Node 3 : " << connectedExternalNodes(2) << "\n";
+    s << "Node 4 : " << connectedExternalNodes(3) << "\n";
+    s << "Node 5 : " << connectedExternalNodes(4) << "\n";
+    s << "Node 6 : " << connectedExternalNodes(5) << "\n";
+    s << "Node 7 : " << connectedExternalNodes(6) << "\n";
+    s << "Node 8 : " << connectedExternalNodes(7) << "\n";
+    s << "Node 9 : " << connectedExternalNodes(8) << "\n";
+    s << "Material Information : \n ";
+    materialPointers[0]->Print(s, flag);
+    s << "\n";
   }
 }
 
