@@ -879,7 +879,7 @@ ReinforcingSteel::Print(OPS_Stream &s, int flag)
   }
   
   if (flag == 3) {
-      s << CStrain << "  " << CStress << "  " << CTangent << "\n";
+    s << CStrain << "  " << CStress << "  " << CTangent << "\n";
   }
   
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
@@ -897,11 +897,12 @@ ReinforcingSteel::Print(OPS_Stream &s, int flag)
 }
 
 int
-ReinforcingSteel::Sign(double x) {
+ReinforcingSteel::Sign(double x)
+{
   if(x<0.0)
-	return -1;
+    return -1;
   else
-	return 1;
+    return 1;
 }
 
 /*****************************************************************************************/
@@ -923,131 +924,133 @@ ReinforcingSteel::MPfunc(double a)
 int
 ReinforcingSteel::SetMP()
 {
-    double Rmin;
-    double a = 0.01;
-    double ao, ao_last;
-    double da;
-    int numIter;
-    int maxIter = 50;
-    bool converged;
+  double Rmin;
+  double a = 0.01;
+  double ao, ao_last;
+  double da;
+  int numIter;
+  int maxIter = 50;
+  bool converged;
 
-    if (TEb - TEsec == 0.0) {
-        TQ = 1.0;
-        Tfch = Tfb;
-    }
-    else {
-        if (TEsec != TEa) {
-            Rmin = (TEb - TEsec) / (TEsec - TEa);
-            if (Rmin < 0.0) {
-                opserr << "R is negative in ReinforcingSteel::SetMP()\n";
-                Rmin = 0.0;
-            }
-            if (TR <= Rmin)
-                TR = Rmin + 0.01;
-            
-            numIter = 0;
-            converged = false;
-            while (converged == false && numIter < maxIter) {
-                numIter++;
-                if (a > DBL_EPSILON) {
-                    if (MPfunc(a)*MPfunc(1.0 - a) > 0.0)
-                        a = a / 2.0;
-                    else
-                        converged = true;
-                }
-                else
-                    converged = true;
-            }
-            if (numIter >= maxIter) {
-                opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding a\n";
-                return -1;
-            }
+  if (TEb - TEsec == 0.0) {
+      TQ = 1.0;
+      Tfch = Tfb;
+  }
+  else {
+      if (TEsec != TEa) {
+          Rmin = (TEb - TEsec) / (TEsec - TEa);
+          if (Rmin < 0.0) {
+              opserr << "R is negative in ReinforcingSteel::SetMP()\n";
+              Rmin = 0.0;
+          }
+          if (TR <= Rmin)
+              TR = Rmin + 0.01;
+          
+          numIter = 0;
+          converged = false;
+          while (converged == false && numIter < maxIter) {
+              numIter++;
+              if (a > DBL_EPSILON) {
+                  if (MPfunc(a)*MPfunc(1.0 - a) > 0.0)
+                      a = a / 2.0;
+                  else
+                      converged = true;
+              }
+              else
+                  converged = true;
+          }
+          if (numIter >= maxIter) {
+              opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding a\n";
+              return -1;
+          }
 
-            ao = Rmin / TR;
-            if (ao >= 1.0)
-                ao = 0.999999;
+          ao = Rmin / TR;
+          if (ao >= 1.0)
+              ao = 0.999999;
 
-            numIter = 0;
-            converged = false;
-            while (converged == false && numIter < maxIter) {
-                numIter++;
-                if (a > DBL_EPSILON) {
-                    if (MPfunc(ao)*MPfunc(1.0 - a) < 0.0)
-                        ao = sqrt(ao);
-                    else
-                        converged = true;
-                }
-                else
-                    converged = true;
+          numIter = 0;
+          converged = false;
+          while (converged == false && numIter < maxIter) {
+              numIter++;
+              if (a > DBL_EPSILON) {
+                  if (MPfunc(ao)*MPfunc(1.0 - a) < 0.0)
+                      ao = sqrt(ao);
+                  else
+                      converged = true;
+              }
+              else
+                  converged = true;
 
-                if (ao > 0.999999)
-                    converged = true;
-            }
-            if (numIter >= maxIter) {
-                opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding ao\n";
-                return -2;
-            }
-            if (ao >= 1.0)
-                ao = 0.999999;
+              if (ao > 0.999999)
+                  converged = true;
+          }
+          if (numIter >= maxIter) {
+              opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding ao\n";
+              return -2;
+          }
+          if (ao >= 1.0)
+              ao = 0.999999;
 
-            numIter = 0;
-            converged = false;
-            while (converged == false && numIter < maxIter) {
-                numIter++;
-                ao_last = ao;
+          numIter = 0;
+          converged = false;
+          while (converged == false && numIter < maxIter) {
+              numIter++;
+              ao_last = ao;
 
-                da = 0.49*(1 - ao);
-                if (da > ao / 10.0)
-                    da = ao / 10.0;
-                if (ao + da >= 1.0)
-                    da = (1.0 - ao) / 10.0;
+              da = 0.49*(1 - ao);
+              if (da > ao / 10.0)
+                  da = ao / 10.0;
+              if (ao + da >= 1.0)
+                  da = (1.0 - ao) / 10.0;
 
-                double tempdenom = MPfunc(ao + da) - MPfunc(ao - da);
-                if (tempdenom != 0.0) {
-                    ao = ao - 2 * MPfunc(ao)*da / tempdenom;
-                    if (ao > 0.99999999999)
-                        ao = 0.99999999999;
-                    if (ao < 0.0) {
-                        ao = 0.0;
-                        converged = true;
-                    }
-                }
-                if (fabs(ao_last - ao) < 1.0E-4)
-                    converged = true;
-            }
-            if (numIter >= maxIter) {
-                opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding da and ao\n";
-                da = da / 100.0;
-                ao = ao_last;
-                ao = ao - 2 * MPfunc(ao)*da / (MPfunc(ao + da) - MPfunc(ao - da));
-                return -3;
-            }
-            if (ao > 0.99999999)
-                ao = 0.99999999;
-        }
-        else
-            ao = 0.99999999;
+              double tempdenom = MPfunc(ao + da) - MPfunc(ao - da);
+              if (tempdenom != 0.0) {
+                  ao = ao - 2 * MPfunc(ao)*da / tempdenom;
+                  if (ao > 0.99999999999)
+                      ao = 0.99999999999;
+                  if (ao < 0.0) {
+                      ao = 0.0;
+                      converged = true;
+                  }
+              }
+              if (fabs(ao_last - ao) < 1.0E-4)
+                  converged = true;
+          }
+          if (numIter >= maxIter) {
+              opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding da and ao\n";
+              da = da / 100.0;
+              ao = ao_last;
+              ao = ao - 2 * MPfunc(ao)*da / (MPfunc(ao + da) - MPfunc(ao - da));
+              return -3;
+          }
+          if (ao > 0.99999999)
+              ao = 0.99999999;
+      }
+      else
+          ao = 0.99999999;
 
-        TQ = (TEsec / TEa - ao) / (1 - ao);
-        double temp1 = pow(ao, TR);
-        double temp2 = pow(1.0 - temp1, 1.0 / TR);
-        double b = temp2 / ao;
-        Tfch = Tfa + TEa / b*(Teb - Tea);
-    }
+      TQ = (TEsec / TEa - ao) / (1 - ao);
+      double temp1 = pow(ao, TR);
+      double temp2 = pow(1.0 - temp1, 1.0 / TR);
+      double b = temp2 / ao;
+      Tfch = Tfa + TEa / b*(Teb - Tea);
+  }
 
-    if (fabs(Teb - Tea) < 1.0E-7)
-        TQ = 1.0;
+  if (fabs(Teb - Tea) < 1.0E-7)
+    TQ = 1.0;
 
-    return 0;
+  return 0;
 }
 
 double
-ReinforcingSteel::MP_f(double e) {
+ReinforcingSteel::MP_f(double e)
+{
   return Tfa+TEa*(e-Tea)*(TQ-(TQ-1.0)/pow(pow(fabs(TEa*(e-Tea)/(Tfch-Tfa)),TR)+1.0,1/TR));
 }
 
 double
-ReinforcingSteel::MP_E(double e) {
+ReinforcingSteel::MP_E(double e)
+{
   if(TR>100.0 || e==Tea) {
     return TEa;
   } else {
@@ -1056,26 +1059,28 @@ ReinforcingSteel::MP_E(double e) {
   }
 }
 
-void 
-ReinforcingSteel::SetTRp(void)
+double
+ReinforcingSteel::SetTRp()
 {
-  TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
+  TR = pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
+  return TR;
+}
+
+double
+ReinforcingSteel::SetTRn()
+{
+  TR = pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Tea-Teb));
+  return TR;
+}
+
+void 
+ReinforcingSteel::SetTRp1()
+{
+  TR = pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
 }
 
 void
-ReinforcingSteel::SetTRn(void)
-{
-  TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Tea-Teb));
-}
-
-void 
-ReinforcingSteel::SetTRp1(void)
-{
-  TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
-}
-
-void
-ReinforcingSteel::SetTRn1(void)
+ReinforcingSteel::SetTRn1()
 {
   TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Tea-Teb));
 }
@@ -1326,7 +1331,8 @@ ReinforcingSteel::Rule1(int res)
 	    T_ePlastic[2]=0.0;
 	    TBranchNum=3;
 	    Rule3(res);	  
-	  } else if (strain - eyp > -ZeroTol) {
+	  }
+    else if (strain - eyp > -ZeroTol) {
 	    double emin;
 	    // Reversal from Yield Plateau
 	    Tea=CStrain;
@@ -1387,16 +1393,18 @@ ReinforcingSteel::Rule2(int res)
   // check for load reversal
   if (TStrain-CStrain>0.0) {
 	if (strain+eshp< ZeroTol) {
-	  double emax;
 	  // reversal from strain hardening range
-	  Tea=CStrain;
-	  Temin=Tea-Teo_n;
+	  Tea = CStrain;
+	  Temin = Tea - Teo_n;
 	  if (CStrain < TeAbsMin) TeAbsMin = CStrain;
 	  
-	  if(Temax<eshp) 
-		emax=eshp+1.0E-14;
-	  else
-		emax=Temax;
+	  double emax;
+    {
+      if (Temax<eshp) 
+        emax = eshp + 1.0E-14;
+      else
+        emax = Temax;
+    }
 
 	  double ea   = Teo_n - eshp + fshp/Esp;
 	  double eb   = Teo_n + Temin - CStress/Esp;
