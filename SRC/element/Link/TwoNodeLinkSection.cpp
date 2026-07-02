@@ -969,7 +969,8 @@ TwoNodeLinkSection::getResponse(int responseID, Information &info)
 
 
 // set transformation matrix from global to local system
-void TwoNodeLinkSection::setTranGlobalLocal()
+void
+TwoNodeLinkSection::setTranGlobalLocal()
 {
   // resize transformation matrix and zero it
   Tgl.resize(numDOF,numDOF);
@@ -977,23 +978,23 @@ void TwoNodeLinkSection::setTranGlobalLocal()
   
   // switch on dimensionality of element
   switch (elemType)  {
-  case D1N2:
+    case D1N2:
       Tgl(0,0) = Tgl(1,1) = trans(0,0);
       break;
-  case D2N4:
+    case D2N4:
       Tgl(0,0) = Tgl(2,2) = trans(0,0);
       Tgl(0,1) = Tgl(2,3) = trans(0,1);
       Tgl(1,0) = Tgl(3,2) = trans(1,0);
       Tgl(1,1) = Tgl(3,3) = trans(1,1);
       break;
-  case D2N6:
+    case D2N6:
       Tgl(0,0) = Tgl(3,3) = trans(0,0);
       Tgl(0,1) = Tgl(3,4) = trans(0,1);
       Tgl(1,0) = Tgl(4,3) = trans(1,0);
       Tgl(1,1) = Tgl(4,4) = trans(1,1);
       Tgl(2,2) = Tgl(5,5) = trans(2,2);
       break;
-  case D3N6:
+    case D3N6:
       Tgl(0,0) = Tgl(3,3) = trans(0,0);
       Tgl(0,1) = Tgl(3,4) = trans(0,1);
       Tgl(0,2) = Tgl(3,5) = trans(0,2);
@@ -1004,7 +1005,7 @@ void TwoNodeLinkSection::setTranGlobalLocal()
       Tgl(2,1) = Tgl(5,4) = trans(2,1);
       Tgl(2,2) = Tgl(5,5) = trans(2,2);
       break;
-  case D3N12:
+    case D3N12:
       Tgl(0,0) = Tgl(3,3) = Tgl(6,6) = Tgl(9,9)   = trans(0,0);
       Tgl(0,1) = Tgl(3,4) = Tgl(6,7) = Tgl(9,10)  = trans(0,1);
       Tgl(0,2) = Tgl(3,5) = Tgl(6,8) = Tgl(9,11)  = trans(0,2);
