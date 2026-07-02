@@ -299,19 +299,20 @@ int ElasticMultiLinear::recvSelf(int cTag, Channel &theChannel,
 }
 
 
-void ElasticMultiLinear::Print(OPS_Stream &s, int flag)
+void
+ElasticMultiLinear::Print(OPS_Stream &s, int flag)
 {
 	if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-		s << "ElasticMultiLinear tag: " << this->getTag() << endln;
-		s << "Input Parameter: strainPoints: " << strainPoints << endln;
-		s << "Input Parameter: stressPoints: " << stressPoints << endln;
-		s << "Input Parameter: eta: " << eta << endln;
+		s << "ElasticMultiLinear tag: " << this->getTag() << "\n";
+		s << "Input Parameter: strainPoints: " << strainPoints << "\n";
+		s << "Input Parameter: stressPoints: " << stressPoints << "\n";
+		s << "Input Parameter: eta: " << eta << "\n";
 		s << "Current State: strain: " << trialStrain << " stress: ";
-		s << trialStress << " tangent: " << trialTangent << endln;
+		s << trialStress << " tangent: " << trialTangent << "\n";
 	}
     
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
 		s << "\"name\": \"" << this->getTag() << "\", ";
 		s << "\"type\": \"ElasticMultiLinear\", ";
 		s << "\"strainPoints\": [";
