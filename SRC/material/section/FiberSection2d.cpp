@@ -421,6 +421,7 @@ FiberSection2d::Print(OPS_Stream &s, int flag)
   }
 }
 
+
 Response*
 FiberSection2d::setResponse(const char **argv, int argc,
                             OPS_Stream &output)
