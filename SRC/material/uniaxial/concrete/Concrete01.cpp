@@ -50,9 +50,10 @@
 
 
 
-Concrete01::Concrete01(int tag, double FPC, double EPSC0, double FPCU, double EPSCU)
+Concrete01::Concrete01(int tag, double FPC, double EPSC0, double FPCU, double EPSCU, double rho)
   : UniaxialMaterial(tag, MAT_TAG_Concrete01),
     fpc(FPC), epsc0(EPSC0), fpcu(FPCU), epscu(EPSCU), 
+    density(rho),
     CminStrain(0.0), CendStrain(0.0),
     Cstrain(0.0), Cstress(0.0) 
 {
@@ -104,6 +105,24 @@ Concrete01::~Concrete01()
   // Does nothing
 }
 
+
+UniaxialMaterial* Concrete01::getCopy()
+{
+  Concrete01* theCopy = new Concrete01(this->getTag(),
+                                  fpc, epsc0, fpcu, epscu, density);
+
+  // Converged history variables
+  theCopy->CminStrain = CminStrain;
+  theCopy->CunloadSlope = CunloadSlope;
+  theCopy->CendStrain = CendStrain;
+
+  // Converged state variables
+  theCopy->Cstrain = Cstrain;
+  theCopy->Cstress = Cstress;
+  theCopy->Ctangent = Ctangent;
+
+  return theCopy;
+}
 
 int
 Concrete01::setTrialStrain(double strain, double strainRate)
@@ -427,23 +446,6 @@ Concrete01::revertToStart()
   return 0;
 }
 
-UniaxialMaterial* Concrete01::getCopy()
-{
-  Concrete01* theCopy = new Concrete01(this->getTag(),
-                                  fpc, epsc0, fpcu, epscu);
-
-  // Converged history variables
-  theCopy->CminStrain = CminStrain;
-  theCopy->CunloadSlope = CunloadSlope;
-  theCopy->CendStrain = CendStrain;
-
-  // Converged state variables
-  theCopy->Cstrain = Cstrain;
-  theCopy->Cstress = Cstress;
-  theCopy->Ctangent = Ctangent;
-
-  return theCopy;
-}
 
 int Concrete01::sendSelf(int commitTag, Channel& theChannel)
 {
