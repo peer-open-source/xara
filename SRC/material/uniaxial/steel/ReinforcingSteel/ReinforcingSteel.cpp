@@ -869,30 +869,31 @@ ReinforcingSteel::recvSelf(int cTag, Channel &theChannel,
 void 
 ReinforcingSteel::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "ReinforcingSteel, tag: " << this->getTag() << endln;
-        s << "  N2p: " << CFatDamage << endln;
-        //s << "  sigmaY: " << sigmaY << endln;
-        //s << "  Hiso: " << Hiso << endln;
-        //s << "  Hkin: " << Hkin << endln;
-        //s << "  eta: " << eta << endln;
-    }
-    
-    if (flag == 3) {
-        s << CStrain << "  " << CStress << "  " << CTangent << endln;
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"ReinforcingSteel\", ";
-        s << "\"E\": " << Es << ", ";
-        s << "\"Eh\": " << Esh << ", ";
-        s << "\"fy\": " << fy << ", ";
-        s << "\"fu\": " << fsu << ", ";
-        s << "\"epsh\": " << esh << ", ";
-        s << "\"epsu\": " << esu << "}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+    s << "ReinforcingSteel, tag: " << this->getTag() << "\n";
+    s << "  N2p: " << CFatDamage << "\n";
+    //s << "  sigmaY: " << sigmaY << "\n";
+    //s << "  Hiso: " << Hiso << "\n";
+    //s << "  Hkin: " << Hkin << "\n";
+    //s << "  eta: " << eta << "\n";
+  }
+  
+  if (flag == 3) {
+      s << CStrain << "  " << CStress << "  " << CTangent << "\n";
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"ReinforcingSteel\", ";
+    s << "\"E\": " << Es << ", ";
+    s << "\"Eh\": " << Esh << ", ";
+    s << "\"fy\": " << fy << ", ";
+    s << "\"fu\": " << fsu << ", ";
+    s << "\"epsh\": " << esh << ", ";
+    s << "\"epsu\": " << esu << "}";
+    return;
+  }
 }
 
 int
