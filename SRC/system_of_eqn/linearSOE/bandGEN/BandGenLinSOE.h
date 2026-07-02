@@ -48,7 +48,7 @@ class BandGenLinSOE : public LinearSOE
     
     virtual ~BandGenLinSOE();
 
-    virtual int getNumEqn(void) const;
+    virtual int getNumEqn() const;
     virtual int setSize(Graph &theGraph);
     
     virtual int addA(const Matrix &, const ID &, double fact = 1.0);
@@ -56,20 +56,19 @@ class BandGenLinSOE : public LinearSOE
     virtual int addB(const Vector &, const ID &, double fact = 1.0);    
     virtual int setB(const Vector &, double fact = 1.0);        
 
-    virtual void zeroA(void);
-    virtual void zeroB(void);
+    virtual void zeroA();
+    virtual void zeroB();
 
-    virtual const Vector &getX(void);
-    virtual const Vector &getB(void);
-    virtual double normRHS(void);
+    const Vector &getX() override;
+    virtual const Vector &getB();
+    virtual double normRHS();
 
     virtual void setX(int loc, double value);    
-    virtual void setX(const Vector &x);    
+    virtual void setX(const Vector &x);
 
-    virtual int setBandGenSolver(BandGenLinSolver &newSolver);    
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
     friend class BandGenLinLapackSolver;
 
   protected:
