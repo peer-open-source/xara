@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.8 $
-// $Date: 2007-05-03 23:03:01 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/section/DoubleMembranePlateFiberSection.cpp,v $
-
+//
 // Ed "C++" Love
 //
 //  Generic Plate Section with membrane
@@ -83,8 +79,9 @@ Matrix DoubleMembranePlateFiberSection::tangent(8, 8);
 
 const double DoubleMembranePlateFiberSection::sg[] = {-1, -0.65465367, 0, 0.65465367, 1};
 
-const double DoubleMembranePlateFiberSection::wg[] = {0.1, 0.5444444444, 0.7111111111, 0.5444444444,
-                                                      0.1};
+const double DoubleMembranePlateFiberSection::wg[] = {
+  0.1, 0.5444444444, 0.7111111111, 0.5444444444, 0.1
+};
 
 /*      from Ham-O
         case 5:
