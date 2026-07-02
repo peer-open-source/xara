@@ -10,21 +10,6 @@
 // anonymous namespace for utilities
 namespace {
 
-  /**
-  Converts a string into a vector of doubles using whitespace as delimiter
-  */
-  bool string_to_double(const std::string& text, double& num) {
-    num = 0.0;
-    try {
-      num = std::stod(text);
-      return true;
-    }
-    catch (...) {
-      return false;
-    }
-  }
-
-
   double bezier3(double xi,
     double x0, double x1, double x2,
     double y0, double y1, double y2)

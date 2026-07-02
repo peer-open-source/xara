@@ -268,8 +268,6 @@ DegradingUniaxialWrapper::applyDamage(
           CwcIF  [2],
           Hshe   [2],
           DdDpsiM[2],
-          
-          DdDx   [2],
           DPsi   [2];
 
   // Dereference/cast input data structures
@@ -335,9 +333,7 @@ DegradingUniaxialWrapper::applyDamage(
   for (int m=0; m < 2; m++) {
     psi[m] = psiP[m] + DPsi[m];
     double g  = psi[m] - psiEx[m];
-    DdDx[m]   = 0.0;
 #if 1
-
     if (g > gtol) {
         psiEx[m] = psi[m];
 
@@ -358,15 +354,16 @@ DegradingUniaxialWrapper::applyDamage(
 
     // damage indices
     double psi_tild = (psiEx[m] - data.idx[m].psi_d0) / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
+    double DdDx;
     if (std::fabs(psi_tild) < data.tol) {
-      DdDx[m] = 0.0;
+      DdDx = 0.0;
     }
     else {
       DmgResp dmgresp = data.idx[m].update(psi_tild);
-      DdDx[m] = dmgresp.dydx;
+      DdDx = dmgresp.dydx;
       d[m] = std::min(1.-data.tol, dmgresp.y);
     }
-    DdDpsiM[m] = en_psi[m]*DdDx[m] / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
+    DdDpsiM[m] = en_psi[m]*DdDx / (data.idx[m].psi_d1 - data.idx[m].psi_d0);
   #endif
   }
 
