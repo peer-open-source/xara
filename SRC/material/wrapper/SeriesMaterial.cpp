@@ -574,22 +574,22 @@ SeriesMaterial::recvSelf(int cTag, Channel &theChannel,
 void 
 SeriesMaterial::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "\nSeriesMaterial, tag: " << this->getTag() << endln;
-        s << "\tUniaxial Components" << endln;
-        for (int i = 0; i < numMaterials; i++)
-            s << "\t\tUniaxial Material, tag: " << theModels[i]->getTag() << endln;
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"SeriesMaterial\", ";
-        s << "\"materials\": [";
-        for (int i = 0; i < numMaterials - 1; i++)
-            s << "\"" << theModels[i]->getTag() << "\", ";
-        s << "\"" << theModels[numMaterials - 1]->getTag() << "\"]}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+      s << "\nSeriesMaterial, tag: " << this->getTag() << "\n";
+      s << "\tUniaxial Components" << "\n";
+      for (int i = 0; i < numMaterials; i++)
+        s << "\t\tUniaxial Material, tag: " << theModels[i]->getTag() << "\n";
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"SeriesMaterial\", ";
+    s << "\"materials\": [";
+    for (int i = 0; i < numMaterials - 1; i++)
+      s << theModels[i]->getTag() << ", ";
+    s << "" << theModels[numMaterials - 1]->getTag() << "]}";
+  }
 }
 
 Response*
@@ -614,7 +614,7 @@ SeriesMaterial::setResponse(const char **argv, int argc, OPS_Stream &theOutput)
     if (argc > 1) {
       int matNum = atoi(argv[1]) - 1;
       if (matNum >= 0 && matNum < numMaterials)
-	theResponse =  theModels[matNum]->setResponse(&argv[2], argc-2, theOutput);
+        theResponse =  theModels[matNum]->setResponse(&argv[2], argc-2, theOutput);
     }
   }
 
