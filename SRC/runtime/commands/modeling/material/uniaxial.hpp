@@ -164,13 +164,15 @@ std::unordered_map<std::string, Tcl_CmdProc *> tcl_uniaxial_package_table {
 extern Tcl_CmdProc TclCommand_newElasticUniaxialMaterial;
 // Plastic
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
-extern Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
+// extern Tcl_CmdProc TclCommand_newUniaxialJ2Plasticity;
 // Fedeas
 extern Tcl_CmdProc TclCommand_newFedeasSteel;
 extern Tcl_CmdProc TclCommand_newFedeasUniaxialDamage;
 extern Tcl_CmdProc TclCommand_newFedeasConcrete;
 // Steel
 extern Tcl_CmdProc TclCommand_ReinforcingSteel;
+// ASD
+extern Tcl_CmdProc TclCommand_addASDConcrete1D;
 // Wrapper
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
 extern Tcl_CmdProc TclCommand_newFatigueMaterial;
@@ -254,8 +256,8 @@ UniaxialLibrary {
 // Plasticity
 //
     {"ElasticPP",                dispatch<OPS_ElasticPPMaterial>              },
-    {"UniaxialJ2Plasticity",     dispatch<TclCommand_newUniaxialJ2Plasticity> },
     {"UVCuniaxial",              dispatch<OPS_UVCuniaxial>                    },
+    {"UniaxialJ2Plasticity",     dispatch<TclCommand_newPlasticMaterial>      },
     {"Hardening",                dispatch<TclCommand_newPlasticMaterial>      },
     {"Hardening2",               dispatch<TclCommand_newPlasticMaterial>      },
 //
@@ -350,7 +352,8 @@ UniaxialLibrary {
     {"InitStressMaterial",     dispatch<TclCommand_addWrappingMaterial>},
     {"InitialStress",          dispatch<TclCommand_addWrappingMaterial>},
     {"InitStress",             dispatch<TclCommand_addWrappingMaterial>},
-    {"ContinuumUniaxial",      dispatch<TclCommand_addWrappingMaterial>},
+    {"Continuum",              dispatch<TclCommand_addWrappingMaterial>},
+    {"ContinuumWrapper",       dispatch<TclCommand_addWrappingMaterial>},
     {"MinMaxMaterial",         dispatch<OPS_MinMaxMaterial>            },
     {"MinMax",                 dispatch<OPS_MinMaxMaterial>            },
     {"Series",                 dispatch<OPS_SeriesMaterial>            },
@@ -360,12 +363,12 @@ UniaxialLibrary {
   
 // Other
     {"GNG",                  dispatch<OPS_GNGMaterial>                 },
-    {"Bond_SP01",            dispatch<OPS_Bond_SP01>                 },
-    {"Bond",                 dispatch<OPS_Bond_SP01>                 },
+    {"Bond_SP01",            dispatch<OPS_Bond_SP01>                   },
+    {"Bond",                 dispatch<OPS_Bond_SP01>                   },
     {"APDFMD",               dispatch<OPS_APDFMD> },
     {"APDMD",                dispatch<OPS_APDMD> },
     {"APDVFD",               dispatch<OPS_APDVFD> },
-    {"Penalty",              dispatch<OPS_PenaltyMaterial>           },
+    {"Penalty",              dispatch<OPS_PenaltyMaterial>             },
 
     {"UniaxialDamage",       dispatch<TclCommand_newFedeasUniaxialDamage>  },
     {"FedeasUniaxialDamage", dispatch<TclCommand_newFedeasUniaxialDamage>  },
@@ -489,6 +492,7 @@ UniaxialLibrary {
 
     {"ASD_SMA_3K",             dispatch<OPS_ASD_SMA_3K>                },
 
+    // {"ASDConcrete1D",          dispatch<TclCommand_addASDConcrete1D>   },
     {"ASDConcrete1D",          dispatch<OPS_ASDConcrete1DMaterial>     },
 
     {"HystereticPoly",         dispatch<OPS_HystereticPoly>            },
