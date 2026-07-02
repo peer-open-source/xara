@@ -860,14 +860,15 @@ J2PlateFibre::Print(OPS_Stream &s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
-    s << "\"type\": \"J2PlateFibre\", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"E\": " << E << ", ";
     s << "\"nu\": " << nu << ", ";
     s << "\"fy\": " << sigmaY << ", ";
     s << "\"Hiso\": " << Hiso << ", ";
     s << "\"Hkin\": " << Hkin << "}";
+    return;
   }
   return;
 }

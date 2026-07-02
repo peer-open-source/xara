@@ -27,7 +27,11 @@
 
 #include "isotropy.h"
 
+// Uniaxial
 #include <HardeningMaterial.h>
+#include <UniaxialJ2Plasticity.h>
+
+// Multiaxial
 #include <SimplifiedJ2.h>
 #if defined(XARA_HAVE_GENERALIZEDJ2)
 #include <GeneralizedJ2.h>
@@ -768,7 +772,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   }
 
   //
-  // Create the material (TODO)
+  // Create the material
   //
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if ((strcmp(argv[1], "Hardening") == 0) ||
@@ -776,6 +780,15 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
 
     UniaxialMaterial* theMaterial = new HardeningMaterial(tag, consts.E, Fy, 
                                                           Hiso, kinematic.C[0], eta);
+    if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK ) {
+      delete theMaterial;
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  }
+  else if (strcmp(argv[1], "UniaxialJ2Plasticity") == 0) {
+    UniaxialMaterial* theMaterial = 
+      new UniaxialJ2Plasticity(tag, consts.E, Fy, kinematic.C[0], Hiso);
     if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -977,22 +990,39 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
     };
     return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
+
   else if ((strcmp(argv[1], "J2PlateFibre") == 0)) {
     // J2PlateFibre $tag $E $v $sigmaY $Hiso $Hkin <$rho>
     enum class Position : int {
-      Tag, E, G, YieldStress, EndRequired,
-      Hkin, Hiso,
-      Density,
+      Tag, 
+        E, Nu, YieldStress, 
+      EndRequired,
+        Hkin, Hiso,
+        Density,
       End,
-      Nu, K, Eta, Lambda, Theta, Hmix, Hsat,
-      SatStress, SatStress0,
-      Delta2, Rho, RhoBar, Atm
+        G, K, Eta, Lambda, Theta, Hmix, Hsat,
+        SatStress, SatStress0,
+        Delta2, Rho, RhoBar, Atm
     };
     return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
 
   // "UniaxialJ2Plasticity" tag? E? sigmaY? Hkin? <Hiso?>
   else if (strcmp(argv[1], "UniaxialJ2Plasticity") == 0) {
+    enum class Position : int {
+      Tag, 
+        E, YieldStress,
+      EndRequired, 
+        Hkin, Hiso,
+      End,
+      // Keyword-only arguments
+      Density,
+      // Unused
+      Eta, G, K, Nu, Lambda, Theta, Hmix, Hsat,
+      SatStress, SatStress0, 
+      Delta2, Rho, RhoBar, Atm,
+    };
+    return ParsePlasticity<Position>(clientData, interp, argc, argv);
   }
 
   else if (strcmp(argv[1], "HardeningMaterial") == 0 ||
@@ -1002,8 +1032,10 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
 
     // "Hardening"  tag?  E?  Y?  Hiso?  Hkin?
     enum class Position : int {
-      Tag, E, YieldStress, Hiso, EndRequired, 
-      Hkin,
+      Tag, 
+        E, YieldStress,
+      EndRequired, 
+        Hiso, Hkin,
       End,
       // Keyword-only arguments
       Density,
@@ -1082,7 +1114,7 @@ TclCommand_newPlasticMaterial(ClientData clientData, Tcl_Interp *interp,
   return TCL_ERROR;
 }
 
-
+#if 0
 #include <UniaxialJ2Plasticity.h>
 int
 TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char** const argv)
@@ -1136,7 +1168,6 @@ TclCommand_newUniaxialJ2Plasticity(ClientData clientData, Tcl_Interp *interp, in
 }
 
 
-#if 0
 
 int
 TclCommand_newJ2Simplified(ClientData clientData, Tcl_Interp* interp, int argc, const char** const argv)
