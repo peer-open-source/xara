@@ -36,7 +36,8 @@
 // wide section along the width of the abutment (to be scaled accordingly).
 // The hyperbolic force-displacement model is based on work by Duncan and Mokwa
 // (2001) and Shamsabadi et al. (2007) with calibrated parameters from UCSD
-// abutment tests.  This model matches very well with test data up to 7.64 cm of 
+// abutment tests.  
+// This model matches very well with test data up to 7.64 cm of 
 // longitudinal displacement.
 // Recommended values:
 // Kmax = 20300 kN/m of abutment width
