@@ -52,28 +52,27 @@ class Concrete04 : public UniaxialMaterial
   Concrete04 ();
   ~Concrete04();
 
-  const char *getClassType(void) const {return "Concrete04";};
+  const char *getClassType() const {return "Concrete04";}
   
   int setTrialStrain(double strain, double strainRate = 0.0); 
-  double getStrain(void);      
+  double getStrain();      
   double getStress(void);
   double getTangent(void);
   double getInitialTangent(void) {return Ec0;}
   
-  int commitState(void);
-  int revertToLastCommit(void);
+  int commitState();
+  int revertToLastCommit();
   int revertToStart(void);        
   
-  UniaxialMaterial *getCopy(void);
+  UniaxialMaterial *getCopy();
   
-  int sendSelf(int commitTag, Channel &theChannel);  
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);    
+  int sendSelf(int commitTag, Channel &);  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
   
   void Print(OPS_Stream &, int flag) final;
   
   // LOWES: add function for use with variable hinge lnegth model
-  int getMaterialType(void);
+  int getMaterialType();
   // LOWES: end
   
  private:
@@ -84,8 +83,7 @@ class Concrete04 : public UniaxialMaterial
   double Ec0;    // initial tangent
   double fct;   // Concrete tensile strength
   double etu;   // ultimate tensile strain              
-  double beta;  // exponential curve parameter, residual stress (as a factor of ft)
-  // at etu. 
+  double beta;  // exponential curve parameter, residual stress (as a factor of ft) at etu. 
   
   /*** CONVERGED History Variables ***/
   double CminStrain;   // Smallest previous concrete strain (compression)
@@ -118,12 +116,12 @@ class Concrete04 : public UniaxialMaterial
   double Ttangent; // Not really a state variable, but declared here
   // for convenience
   
-  void CompReload(void);
-  void CompEnvelope(void);
-  void setCompUnloadEnv(void);
-  void TensReload(void);
-  void TensEnvelope(void);
-  void setTenUnload(void);
+  void CompReload();
+  void CompEnvelope();
+  void setCompUnloadEnv();
+  void TensReload();
+  void TensEnvelope();
+  void setTenUnload();
 };
 
 
