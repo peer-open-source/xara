@@ -51,32 +51,6 @@ TclCommand_createArcLength1(ClientData clientData, Tcl_Interp* interp, int argc,
 }
 
 
-#include <analysis/integrator/Static/ArcLength.h>
-int
-TclCommand_createArcLength(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
-{
-  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
-
-  double arcLength;
-  double alpha;
-  if (OPS_GetNumRemainingInputArgs() < 2) {
-    opserr << "WARNING integrator ArcLength arcLength alpha \n";
-    return TCL_ERROR;
-  }
-
-  int numdata = 1;
-  if (OPS_GetDoubleInput(&numdata, &arcLength) < 0) {
-    opserr << "WARNING integrator ArcLength failed to read arc lenght\n";
-    return TCL_ERROR;
-  }
-  if (OPS_GetDoubleInput(&numdata, &alpha) < 0) {
-    opserr << "WARNING integrator ArcLength failed to read alpha\n";
-    return TCL_ERROR;
-  }
-  builder->set(*new ArcLength(arcLength, alpha));
-  return TCL_OK;
-}
-
 
 
 
