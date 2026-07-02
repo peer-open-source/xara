@@ -72,7 +72,6 @@ extern Tcl_CmdProc TclCommand_newConcreteMaterial;
 // concrete_asd.cpp
 extern Tcl_CmdProc TclCommand_addASDConcrete1D;
 extern Tcl_CmdProc TclCommand_addASDConcrete3D;
-extern OPS_Routine OPS_ASDConcrete3DMaterial;
 // wrapper.cpp
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
 extern Tcl_CmdProc TclCommand_addParallel3DMaterial;
@@ -83,7 +82,6 @@ extern Tcl_CmdProc TclCommand_addOrthotropicWrapper;
 
 extern OPS_Routine OPS_ElasticOrthotropicPlaneStress;
 extern OPS_Routine OPS_Series3DMaterial;
-extern OPS_Routine OPS_J2PlateFibreMaterial;
 extern OPS_Routine OPS_J2CyclicBoundingSurfaceMaterial;
 extern OPS_Routine OPS_ReinforcedConcretePlaneStressMaterial;
 extern OPS_Routine OPS_FAReinforcedConcretePlaneStressMaterial;
@@ -210,7 +208,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
 
   {"UVCplanestress",                   dispatch<OPS_UVCplanestress       > },
   {"UVCmultiaxial",                    dispatch<OPS_UVCmultiaxial        > },
-  {"J2PlateFibre",                     dispatch<OPS_J2PlateFibreMaterial >},
+  {"J2PlateFibre",                     dispatch<TclCommand_newPlasticMaterial >},
 //
   {"ManzariDafalias",                  dispatch<OPS_ManzariDafaliasMaterial>},
   {"ManzariDafaliasRO",                dispatch<OPS_ManzariDafaliasMaterialRO>},
@@ -254,7 +252,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
 //
   {"ReinforcedConcretePlaneStress",    dispatch<OPS_ReinforcedConcretePlaneStressMaterial>},
   {"PlaneStressLayeredMaterial",       dispatch<OPS_PlaneStressLayeredMaterial>},
-  {"ASDConcrete3D",                    dispatch<OPS_ASDConcrete3DMaterial>},
+  {"ASDConcrete3D",                    dispatch<TclCommand_addASDConcrete3D>},
   {"PlasticDamageConcrete",            dispatch<TclCommand_newConcreteMaterial>},
   {"FariaPlasticDamage",               dispatch<TclCommand_newConcreteMaterial>},
   {"PlasticDamageConcretePlaneStress", dispatch<OPS_NewPlasticDamageConcretePlaneStress>},
