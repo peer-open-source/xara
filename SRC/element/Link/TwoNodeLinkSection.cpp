@@ -517,7 +517,7 @@ int
 TwoNodeLinkSection::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
   opserr  << "load type unknown for element: "
-          << this->getTag() << endln;
+          << this->getTag() << "\n";
   return -1;
 }
 
