@@ -497,51 +497,38 @@ GNGMaterial::Print(OPS_Stream &s, int flag)
 Response* 
 GNGMaterial::setResponse(const char **argv, int argc, OPS_Stream &theOutput)
 {
-	
-  	if (strcmp(argv[0],"demand") == 0) {
-		 
-		return new MaterialResponse(this, 11, this->getStrain());
 
-	  }
-	else if (strcmp(argv[0],"ratchetCount") == 0) {
-	 
-		return new MaterialResponse(this, 12, this->getStrain());
+  if (strcmp(argv[0],"demand") == 0) {
+    return new MaterialResponse(this, 11, this->getStrain());
+  }
+  else if (strcmp(argv[0],"ratchetCount") == 0) {
+    return new MaterialResponse(this, 12, this->getStrain());
+  }
 
-	  } 	
-	  
-	  	  //by default, See if the response is one of the defaults
-	  Response *res =  UniaxialMaterial::setResponse(argv, argc, theOutput);
+  // by default, See if the response is one of the defaults
+  Response *res =  UniaxialMaterial::setResponse(argv, argc, theOutput);
 
-	  if (res != 0)      return res;
-	  else { 
-		  opserr<<"error in GNGMaterial::setResponse"<<endln;
-		  return 0;
-	  }
-	  
+  if (res != nullptr)
+    return res;
+  else {
+    opserr << "error in GNGMaterial::setResponse" << "\n";
+    return nullptr;
+  }
 }
 
 int 
 GNGMaterial::getResponse(int responseID, Information &matInfo)
 {
-	
-	if (responseID==11) {
-		
-		return matInfo.setDouble(pdemand);
-		
-	}
-	else if (responseID==12) {
-		
-		return matInfo.setDouble(nratchet);
-		
-	}
-
-	else {
-
-	  // Just call the base class method ... don't need to define
-	  // this function, but keeping it here just for clarity
-	  return UniaxialMaterial::getResponse(responseID, matInfo);
-	  
-	}
-	
+  if (responseID==11) {
+    return matInfo.setDouble(pdemand);
+  }
+  else if (responseID==12) {
+    return matInfo.setDouble(nratchet);
+  }
+  else {
+    // Just call the base class method ... don't need to define
+    // this function, but keeping it here just for clarity
+    return UniaxialMaterial::getResponse(responseID, matInfo);
+  }
 }
 
