@@ -41,14 +41,17 @@
 class Concrete01 : public UniaxialMaterial
 {
  public:
-  Concrete01(int tag, double fpc, double eco, double fpcu, double ecu);
+  Concrete01(int tag, double fpc, double eco, double fpcu, double ecu, double rho);
   Concrete01();
   ~Concrete01();
 
   const char *getClassType() const {return "Concrete01";}
+
+  double getRho() override { return density; }
   
   int setTrialStrain(double strain, double strainRate = 0.0); 
   int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
+  
   double getStrain();
   double getStress();
   double getTangent();
@@ -90,6 +93,7 @@ class Concrete01 : public UniaxialMaterial
   double epsc0;  // Strain at compressive strength
   double fpcu;   // Crushing strength
   double epscu;  // Strain at crushing strength
+  double density;
   
   /*** CONVERGED History Variables ***/
   double CminStrain;   // Smallest previous concrete strain (compression)
