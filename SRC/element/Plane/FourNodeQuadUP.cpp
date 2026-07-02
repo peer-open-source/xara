@@ -868,15 +868,15 @@ FourNodeQuadUP::recvSelf(int commitTag, Channel &theChannel,
       // Allocate new material with the sent class tag
       theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
       if (theMaterial[i] == 0) {
-  opserr << "FourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-  return -1;
+        opserr << "FourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
+        return -1;
       }
       // Now receive materials into the newly allocated space
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-  return res;
+        opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -889,20 +889,19 @@ opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itsel
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (theMaterial[i]->getClassTag() != matClassTag) {
-  delete theMaterial[i];
-  theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-  if (theMaterial[i] == 0) {
-opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
-
-    return -1;
-  }
+        delete theMaterial[i];
+        theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
+        if (theMaterial[i] == nullptr) {
+          opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
+          return -1;
+        }
       }
       // Receive the material
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-  return res;
+        opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
