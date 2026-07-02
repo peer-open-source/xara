@@ -50,18 +50,14 @@
 #include <elementAPI.h>
 #define OPS_Export
 
-static int num_PileToe3D = 0;
 
 OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PileToe3D)
 {
+  static int num_PileToe3D = 0;
   if (num_PileToe3D == 0) {
     num_PileToe3D++;
-    //OPS_Error("PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, U.Washington\n", 1);
     opslog <<"PileToe3D element - Written: P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
-
-  // Pointer to a uniaxial material that will be returned
-  Element *theElement = 0;
 
   int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
 
@@ -75,45 +71,40 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PileToe3D)
 
   int numData = 4;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer data: element PileToe3D" << endln;
+    opserr << "WARNING invalid integer data: element PileToe3D" << "\n";
     return 0;
   }
 
   numData = 1;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "WARNING invalid radius data: element PileToe3D " << iData[0] << endln;
+    opserr << "WARNING invalid radius data: element PileToe3D " << iData[0] << "\n";
     return 0;  
   }
 
   numData = 1;
   if (OPS_GetDoubleInput(&numData, &dData[1]) != 0) {
-    opserr << "WARNING invalid  k data: element PileToe3D " << iData[0] << endln;
+    opserr << "WARNING invalid  k data: element PileToe3D " << iData[0] << "\n";
     return 0;  
   }
 
   numData = 1;
   if (OPS_GetIntInput(&numData, &iData[4]) != 0) {
-    opserr << "WARNING invalid integer crdTransf data: element PileToe3D" << iData[0] << endln;
+    opserr << "WARNING invalid integer crdTransf data: element PileToe3D" << iData[0] << "\n";
     return 0;
   }
 
   int transfTag = iData[4];
   CrdTransf *theTransf = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(transfTag);
-  if (theTransf == 0) {
-    opserr << "WARNING element PileToe3D " << iData[0] << endln;
+  if (theTransf == nullptr) {
+    opserr << "WARNING element PileToe3D " << iData[0] << "\n";
     opserr << " coordTransf: " << transfTag << "not found\n";
     return 0;
   }
 
   // Parsing was successful, allocate the element
-  theElement = new PileToe3D(iData[0], iData[1], iData[2], iData[3], dData[0], dData[1], *theTransf);
+  return new PileToe3D(iData[0], iData[1], iData[2], iData[3], dData[0], dData[1], 
+                             *theTransf);
 
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type PileToe3D\n";
-    return 0;
-  }
-
-  return theElement;
 }
 
 
@@ -126,29 +117,30 @@ PileToe3D::PileToe3D(int tag, int Nd1, int BNd1, int BNd2, double rad, double k,
    mTangentStiffness(PT3D_NUM_DOF, PT3D_NUM_DOF),
    mInternalForces(PT3D_NUM_DOF)
 {
-        externalNodes(0) = Nd1;
-		externalBNodes(0) = BNd1;
-		externalBNodes(1) = BNd2;
+  externalNodes(0) = Nd1;
+  externalBNodes(0) = BNd1;
+  externalBNodes(1) = BNd2;
 
-        mRadius = rad;
-        mSubgradeCoeff = k;
-		mCC = mRadius;  // Initial value of mCC --> Total area 
-       
-        // get copy of the transformation & material object  
-        crdTransf = coordTransf.getCopy3d();
-       
-        // check it:         
-        if (!crdTransf) {
-		opserr << "Error: PileToe3D:PileToe3D: could not create copy of coordinate transformation object" << endln;
-            exit(-1);
-        }
-              
-        // element tag for debugging
-        MyTag = tag;
+  mRadius = rad;
+  mSubgradeCoeff = k;
+  mCC = mRadius;  // Initial value of mCC --> Total area 
+  
+  // get copy of the transformation & material object  
+  crdTransf = coordTransf.getCopy3d();
+  
+  // check it:         
+  if (!crdTransf) {
+    opserr << "Error: PileToe3D:PileToe3D: could not create copy of coordinate transformation object" << "\n";
+    exit(-1);
+  }
+        
+  // element tag for debugging
+  MyTag = tag;
 
-        // set initialization to true for setDomain function
-	    mInitialize = true;
+  // set initialization to true for setDomain function
+  mInitialize = true;
 }
+
 
 PileToe3D::PileToe3D()
  :Element(0,ELE_TAG_PileToe3D),    
@@ -158,10 +150,10 @@ PileToe3D::PileToe3D()
    mTangentStiffness(PT3D_NUM_DOF, PT3D_NUM_DOF),
    mInternalForces(PT3D_NUM_DOF)
 {
-    mRadius         = 0.0;
-    mSubgradeCoeff  = 0.0;
-    mCC             = 0.0;
-    mInitialize     = false;
+  mRadius         = 0.0;
+  mSubgradeCoeff  = 0.0;
+  mCC             = 0.0;
+  mInitialize     = false;
 }
 
 
@@ -172,45 +164,45 @@ PileToe3D::~PileToe3D()
 
 
 int
-PileToe3D::getNumExternalNodes(void) const
+PileToe3D::getNumExternalNodes() const
 {
-    return PT3D_NUM_NODE;
+  return PT3D_NUM_NODE;
 }
 
 int
-PileToe3D::getNumExternalBNodes(void) const
+PileToe3D::getNumExternalBNodes() const
 {
-    return 2;
+  return 2;
 }
 
 const ID &
-PileToe3D::getExternalNodes(void)
+PileToe3D::getExternalNodes()
 {
-    return externalNodes;
+  return externalNodes;
 }
 
 const ID &
-PileToe3D::getExternalBNodes(void)
+PileToe3D::getExternalBNodes()
 {
-    return externalBNodes;
+  return externalBNodes;
 }
 
 Node **
-PileToe3D::getNodePtrs(void)
+PileToe3D::getNodePtrs()
 {
-        return theNodes;                        
+  return theNodes;                        
 }
 
 Node **
-PileToe3D::getBNodePtrs(void)
+PileToe3D::getBNodePtrs()
 {
-        return theBNodes;                        
+  return theBNodes;                        
 }
 
 int
-PileToe3D::getNumDOF(void)
+PileToe3D::getNumDOF()
 {
-    return PT3D_NUM_DOF;
+  return PT3D_NUM_DOF;
 }
 
 void
@@ -237,22 +229,21 @@ PileToe3D::setDomain(Domain *theDomain)
 
   // only perform these steps during initial creation of element
   if (mInitialize) {
-
-	// initialize coordinate vectors
-	//const Vector &mIcrd_1 = theNodes[0]->getCrds();
-	// coordinate matrix
-	//mNodeCrd(0,0) = mIcrd_1(0);  
+    // initialize coordinate vectors
+    //const Vector &mIcrd_1 = theNodes[0]->getCrds();
+    // coordinate matrix
+    //mNodeCrd(0,0) = mIcrd_1(0);  
   }
 
   //Initialize Coordinate Transformation
   if (crdTransf->initialize(theBNodes[0], theBNodes[1])) {
-	  // Add some error check
+    // Add some error check
   }
 
   double L = crdTransf->getInitialLength();
 
   if (L == 0.0) {
-	// Add some error check
+    // Add some error check
   }
 
   // call the base class method
@@ -264,15 +255,15 @@ PileToe3D::setDomain(Domain *theDomain)
 int
 PileToe3D::commitState()
 {
-     int retVal = 0;
-     // call element commitState to do any base class stuff
-     if ((retVal = this->Element::commitState()) != 0) {
-        opserr << "PileToe3D::commitState () - failed in base class";
-      }    
-      //retVal = theMaterial->commitState();
-      retVal += crdTransf->commitState();
-      
-	  return retVal;
+    int retVal = 0;
+    // call element commitState to do any base class stuff
+    if ((retVal = this->Element::commitState()) != 0) {
+      opserr << "PileToe3D::commitState () - failed in base class";
+    }    
+    //retVal = theMaterial->commitState();
+    retVal += crdTransf->commitState();
+    
+  return retVal;
 }
 
 
@@ -302,32 +293,32 @@ PileToe3D::update(void)
 }
 
 const Matrix &
-PileToe3D::getTangentStiff(void)
+PileToe3D::getTangentStiff()
 {
 	//double mPi   = 4.0*atan(1);
 	const double mPi = 3.1415926535897;
-    double mArea     = mPi* mRadius*mRadius;
-	double mII       = mPi*mRadius*mRadius*mRadius*mRadius/4.0;
-    // initialize Kt
-    mTangentStiffness.Zero();
+  double mArea     = mPi* mRadius*mRadius;
+  double mII       = mPi*mRadius*mRadius*mRadius*mRadius/4.0;
+  // initialize Kt
+  mTangentStiffness.Zero();
 
 	/*
 	mTangentStiffness(0,0) = mSubgradeCoeff*mArea;
 	mTangentStiffness(1,1) = mSubgradeCoeff*mArea;
 	mTangentStiffness(2,2) = mSubgradeCoeff*mArea;
-	mTangentStiffness(3,3) = mSubgradeCoeff*mII;	
+	mTangentStiffness(3,3) = mSubgradeCoeff*mII;
 	mTangentStiffness(4,4) = mSubgradeCoeff*mII;
-	mTangentStiffness(5,5) = mSubgradeCoeff*mII;	
+	mTangentStiffness(5,5) = mSubgradeCoeff*mII;
 	
 	mTangentStiffness(0,0) = mSubgradeCoeff*mArea;
 	mTangentStiffness(4,4) = mSubgradeCoeff*mII;
-	mTangentStiffness(5,5) = mSubgradeCoeff*mII;	
+	mTangentStiffness(5,5) = mSubgradeCoeff*mII;
 	*/
-    mTangentStiffness(2,2) = mSubgradeCoeff*mArea;
-	mTangentStiffness(3,3) = mSubgradeCoeff*mII;
-	mTangentStiffness(4,4) = mSubgradeCoeff*mII;	
+  mTangentStiffness(2,2) = mSubgradeCoeff*mArea;
+  mTangentStiffness(3,3) = mSubgradeCoeff*mII;
+  mTangentStiffness(4,4) = mSubgradeCoeff*mII;
 
-    return mTangentStiffness;
+  return mTangentStiffness;
 }
 
 const Matrix &
