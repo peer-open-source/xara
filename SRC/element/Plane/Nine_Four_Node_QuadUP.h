@@ -37,18 +37,19 @@ class NineFourNodeQuadUP : public Element
 
     NineFourNodeQuadUP();
     virtual ~NineFourNodeQuadUP();
-    const char *getClassType(void) const {return "NineFourNodeQuadUP";}
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
-
+  
+    // Basic public methods
+    const char *getClassType() const {return "NineFourNodeQuadUP";}
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
     int getNumDOF();
     void setDomain(Domain *);
 
     // public methods to set the state of the element
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
     int update();
 
     // public methods to obtain stiffness, mass, damping and residual information
@@ -69,7 +70,7 @@ class NineFourNodeQuadUP : public Element
     void Print(OPS_Stream &, int flag) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
 
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
@@ -80,7 +81,6 @@ class NineFourNodeQuadUP : public Element
     friend class QzLiq1; // Sumeet
 
   private:
-
     // private attributes
 
     static constexpr int nintu = 9;
@@ -113,16 +113,16 @@ class NineFourNodeQuadUP : public Element
     static double shlu[3][9][9];	// Stores shape functions and derivatives
     static double shlp[3][4][4];	// Stores shape functions and derivatives
     static double shlq[3][9][4];	// Stores shape functions and derivatives
-    static double wu[9];		// Stores quadrature weights
-    static double wp[4];		// Stores quadrature weights
-    static double dvolu[9];  // Stores detJacobian (overwritten)
-    static double dvolp[4];  // Stores detJacobian (overwritten)
-    static double dvolq[4];  // Stores detJacobian (overwritten)
+    static double wu[9];		      // Stores quadrature weights
+    static double wp[4];		      // Stores quadrature weights
+    static double dvolu[9];       // Stores detJacobian (overwritten)
+    static double dvolp[4];       // Stores detJacobian (overwritten)
+    static double dvolq[4];       // Stores detJacobian (overwritten)
 
     // private member functions - only objects of this class can call these
     double mixtureRho(int ipt);  // Mixture mass density at integration point i
     void shapeFunction(double *w, int nint, int nen, int mode);
-    void globalShapeFunction(double *dvol, double *w, int nint, int nen, int mode);
+    int globalShapeFunction(double *dvol, double *w, int nint, int nen, int mode);
 
     double *initNodeDispl;
 };

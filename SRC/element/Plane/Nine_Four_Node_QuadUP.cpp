@@ -240,7 +240,9 @@ NineFourNodeQuadUP::update()
   int ret = 0;
 
   // Determine Jacobian for this integration point
-  this->globalShapeFunction(dvolu, wu, nintu, nenu, 0);
+  if (this->globalShapeFunction(dvolu, wu, nintu, nenu, 0) != 0) {
+    return -1;
+  }
 
   // Loop over the integration points
   for (i = 0; i < nintu; i++) {
@@ -319,7 +321,7 @@ NineFourNodeQuadUP::getTangentStiff()
 }
 
 const Matrix &
-NineFourNodeQuadUP::getInitialStiff ()
+NineFourNodeQuadUP::getInitialStiff()
 {
   if (Ki != 0) return *Ki;
 
@@ -506,19 +508,19 @@ NineFourNodeQuadUP::zeroLoad(void)
 int
 NineFourNodeQuadUP::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-    // Added option for applying body forces in load pattern: C.McGann, U.Washington
-    int type;
-    const Vector &data = theLoad->getData(type, loadFactor);
-    if (type == LOAD_TAG_SelfWeight) {
-        applyLoad = 1;
-        appliedB[0] += loadFactor*data(0)*b[0];
-        appliedB[1] += loadFactor*data(1)*b[1];
-        return 0;
-    } else {
-        opserr << "NineFourNodeQuadUP::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
-        return -1;
-    } 
+  // Added option for applying body forces in load pattern: C.McGann, U.Washington
+  int type;
+  const Vector &data = theLoad->getData(type, loadFactor);
+  if (type == LOAD_TAG_SelfWeight) {
+    applyLoad = 1;
+    appliedB[0] += loadFactor*data(0)*b[0];
+    appliedB[1] += loadFactor*data(1)*b[1];
+    return 0;
+  } else {
+    opserr << "NineFourNodeQuadUP::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
     return -1;
+  } 
+  return -1;
 }
 
 int
@@ -967,19 +969,18 @@ NineFourNodeQuadUP::updateParameter(int parameterID, Information &info)
 }
 
 
-void
+int
 NineFourNodeQuadUP::globalShapeFunction(double *dvol, double *w, int nint, int nen, int mode)
 {
   static double coord[2][9], xs[2][2], temp;
 
-
   for (int i=0; i<3; i++) {
     for (int j=0; j<nen; j++) {
-    for (int k=0; k<nint; k++) {
-      if (mode==0) shgu[i][j][k] = shlu[i][j][k];
-      if (mode==1) shgp[i][j][k] = shlp[i][j][k];
-      if (mode==2) shgq[i][j][k] = shlq[i][j][k];
-    }
+      for (int k=0; k<nint; k++) {
+        if (mode==0) shgu[i][j][k] = shlu[i][j][k];
+        if (mode==1) shgp[i][j][k] = shlp[i][j][k];
+        if (mode==2) shgq[i][j][k] = shlq[i][j][k];
+      }
     }
   }
 
@@ -1006,7 +1007,7 @@ NineFourNodeQuadUP::globalShapeFunction(double *dvol, double *w, int nint, int n
     if (det < 0.0) {
       opserr << "WARNING NineFourNodeQuadUP: Determinant<=0 in tag "
               << this->getTag();
-      exit(-1);
+      return -1;
     }
 
     for (int i=0; i<nen; i++) {
@@ -1030,6 +1031,8 @@ NineFourNodeQuadUP::globalShapeFunction(double *dvol, double *w, int nint, int n
     dvol[m] = w[m]*thickness*det;
 
   } // end of m loop
+
+  return 0;
 }
 
 
