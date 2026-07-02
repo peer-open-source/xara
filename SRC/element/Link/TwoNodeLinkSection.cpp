@@ -522,11 +522,12 @@ TwoNodeLinkSection::addLoad(ElementalLoad *theLoad, double loadFactor)
 }
 
 
-int TwoNodeLinkSection::addInertiaLoadToUnbalance(const Vector &accel)
+int
+TwoNodeLinkSection::addInertiaLoadToUnbalance(const Vector &accel)
 {
   // check for quick return
   if (mass == 0.0)  {
-      return 0;
+    return 0;
   }
   
   // get R * accel from the nodes
@@ -1301,7 +1302,7 @@ TwoNodeLinkSection::setParameter(const char **argv, int argc, Parameter &param)
   int result = -1;
   
   if (argc < 1)
-      return -1;
+    return -1;
   
   if (strcmp(argv[0], "section") == 0) {
     if (argc > 1) {
