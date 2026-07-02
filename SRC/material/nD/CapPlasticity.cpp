@@ -31,10 +31,6 @@
 #include <MaterialResponse.h>
 
 #include <elementAPI.h>
-
-#include <fstream>            // Quan Gu   2013 March   HK
-using std::ofstream;          // Quan Gu   2013 March   HK
-using std::ios;               // Quan Gu   2013 March   HK
   
 
 Vector CapPlasticity::tempVector(6);
@@ -434,6 +430,7 @@ int CapPlasticity::getResponse (int responseID, Information &matInfo)  {
   
   return NDMaterial::getResponse(responseID, matInfo);
 }
+
 
 void
 CapPlasticity::Print(OPS_Stream &s, int flag)
