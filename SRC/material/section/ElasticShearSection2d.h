@@ -28,6 +28,7 @@
 #include <FrameSection.h>
 #include <Matrix.h>
 #include <Vector.h>
+#include <Frame/Shape.h>
 
 class Channel;
 class FEM_ObjectBroker;
@@ -45,7 +46,7 @@ class ElasticShearSection2d: public FrameSection
   int revertToLastCommit(void);
   int revertToStart(void);
   
-  const char *getClassType(void) const {return "ElasticShearSection2d";};
+  const char *getClassType(void) const {return "ElasticShearSection2d";}
   
   int setTrialSectionDeformation(const Vector&);
   const Vector &getSectionDeformation(void);
@@ -59,6 +60,15 @@ class ElasticShearSection2d: public FrameSection
   FrameSection *getFrameCopy();
   const ID &getType();
   int getOrder(void) const;
+
+  int getShape(Frame::Shape& shape) {
+    shape.A = A;
+    shape.Iz = I;
+    shape.E = E;
+    shape.G = G;
+    shape.Ay = A;
+    return 0;
+  }
   
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel,
@@ -76,8 +86,6 @@ class ElasticShearSection2d: public FrameSection
   const Matrix& getSectionFlexibilitySensitivity(int gradIndex);  
   const Matrix& getInitialFlexibilitySensitivity(int gradIndex);  
 
- protected:
-  
  private:
   
   double E, A, I, G, alpha;
