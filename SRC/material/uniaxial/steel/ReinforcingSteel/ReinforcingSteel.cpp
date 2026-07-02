@@ -1392,87 +1392,89 @@ ReinforcingSteel::Rule2(int res)
  
   // check for load reversal
   if (TStrain-CStrain>0.0) {
-	if (strain+eshp< ZeroTol) {
-	  // reversal from strain hardening range
-	  Tea = CStrain;
-	  Temin = Tea - Teo_n;
-	  if (CStrain < TeAbsMin) TeAbsMin = CStrain;
-	  
-	  double emax;
-    {
-      if (Temax<eshp) 
-        emax = eshp + 1.0E-14;
-      else
-        emax = Temax;
-    }
+    if (strain+eshp < ZeroTol) {
+      // reversal from strain hardening range
+      Tea = CStrain;
+      Temin = Tea - Teo_n;
+      if (CStrain < TeAbsMin) TeAbsMin = CStrain;
+      
+      double emax;
+      {
+        if (Temax<eshp) 
+          emax = eshp + 1.0E-14;
+        else
+          emax = Temax;
+      }
 
-	  double ea   = Teo_n - eshp + fshp/Esp;
-	  double eb   = Teo_n + Temin - CStress/Esp;
-	  double krev = exp(Temin/(5000*eyp*eyp));
-	  double eop=ea*krev+eb*(1.0-krev);
-    if (eop<Teo_p) {
-      emax+=(Teo_p-eop);
-      Teo_p=eop;
+      double ea   = Teo_n - eshp + fshp/Esp;
+      double eb   = Teo_n + Temin - CStress/Esp;
+      double krev = exp(Temin/(5000*eyp*eyp));
+      double eop=ea*krev+eb*(1.0-krev);
+      if (eop<Teo_p) {
+        emax+=(Teo_p-eop);
+        Teo_p=eop;
+      }
+        Teb=Teo_p+emax;
+      
+      // set stress dependent curve parameters 
+      Tfa=CStress;
+      Cfa[1]=CStress;
+      TEa=ReturnSlope(Temax + Teo_p -Tea);
+
+      updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
+      Tfb= Backbone_f(emax);
+      TEb= Backbone_E(emax);
+      
+      SetTRp();
+      TEsec = (Tfb-Tfa)/(Teb-Tea);
+      res += SetMP();
+      
+      T_ePlastic[2]=0.0;
+      TBranchNum=4;
+      Rule4(res);
+
     }
+    else if (strain+eyp < ZeroTol) {
+      double emax;
+      // reversal form yield plateau
+      Tea=CStrain;
+      Temin=Tea-Teo_n;
+      if (CStrain < TeAbsMin) TeAbsMin = CStrain;
+
+      Tfa=CStress;
+      Cfa[1]=CStress;
+      TEa=ReturnSlope(Temax + Teo_p -Tea);
+
+      double pr=(Temin+eyp)/(eyp-eshp);
+      emax=eyp+pr*(eshp-eyp);
+      Teo_p=Tea-Tfa/Esp;
       Teb=Teo_p+emax;
-	  
-	  // set stress dependent curve parameters 
-	  Tfa=CStress;
-    Cfa[1]=CStress;
-	  TEa=ReturnSlope(Temax + Teo_p -Tea);
+      
+      // stress dependent curve parameters
+      updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
+      Tfb= Backbone_f(emax);
+      TEb=1.0/(1.0/Esp+pr*(1.0/Eshp - 1.0/Esp));
+      
+      SetTRp();
+      TEsec = (Tfb-Tfa)/(Teb-Tea);
+      if (TEsec<TEb) TEb=TEsec*0.999;
+      if (TEsec>TEa) TEa=TEsec*1.001;
+      res += SetMP();
+      
+      T_ePlastic[2]=0.0;
+      TBranchNum=4;
+      Rule4(res);
 
-    updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
-	  Tfb= Backbone_f(emax);
-	  TEb= Backbone_E(emax);
-	  
-	  SetTRp();
-	  TEsec = (Tfb-Tfa)/(Teb-Tea);
-	  res += SetMP();
-		
-	  T_ePlastic[2]=0.0;
-	  TBranchNum=4;
-	  Rule4(res);
-
-	} else if (strain+eyp < ZeroTol) {
-	  double emax;
-	  // reversal form yield plateau
-	  Tea=CStrain;
-	  Temin=Tea-Teo_n;
-	  if (CStrain < TeAbsMin) TeAbsMin = CStrain;
-
-	  Tfa=CStress;
-    Cfa[1]=CStress;
-	  TEa=ReturnSlope(Temax + Teo_p -Tea);
-
-	  double pr=(Temin+eyp)/(eyp-eshp);
-	  emax=eyp+pr*(eshp-eyp);
-	  Teo_p=Tea-Tfa/Esp;
-	  Teb=Teo_p+emax;
-	  
-	  // stress dependent curve parameters
-    updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
-	  Tfb= Backbone_f(emax);
-	  TEb=1.0/(1.0/Esp+pr*(1.0/Eshp - 1.0/Esp));
-	  
-	  SetTRp();
-	  TEsec = (Tfb-Tfa)/(Teb-Tea);
-	  if (TEsec<TEb) TEb=TEsec*0.999;
-	  if (TEsec>TEa) TEa=TEsec*1.001;
-	  res += SetMP();
-	  
-	  T_ePlastic[2]=0.0;
-	  TBranchNum=4;
-	  Rule4(res);
-
-	} else if (strain<ZeroTol) {
-	  //if(Temin>strain) Temin=strain;
-	  TStress  = Backbone_f(strain);
-	  TTangent = Backbone_E(strain);
-	} else {
-	  TBranchNum=1;
-	  Rule1(res);
-	}
-  } else {
+    } else if (strain<ZeroTol) {
+      //if(Temin>strain) Temin=strain;
+      TStress  = Backbone_f(strain);
+      TTangent = Backbone_E(strain);
+    } else {
+      TBranchNum=1;
+      Rule1(res);
+    }
+  }
+  else {
     TStress  = Backbone_f(strain);
     TTangent = Backbone_E(strain);
 	  //if(Temax>0.0) {
@@ -1495,14 +1497,14 @@ ReinforcingSteel::Rule3(int res)
 
 	Tea=CStrain;
 	double dere = Cea[2]-Tea-fyp/(1.2*Esp);
-    if (dere<0.0)
-	  dere=0.0;
+  if (dere<0.0)
+    dere=0.0;
 	else if (dere>fyp/3/Esp)
 	  dere=fyp/3/Esp;
-	Teb=Teo_p+Temax+dere;
+	Teb = Teo_p+Temax+dere;
 
-	Tfa=CStress;
-	TEa=ReturnSlope(Cea[2]-CStrain);
+	Tfa = CStress;
+	TEa = ReturnSlope(Cea[2]-CStrain);
 
   updateHardeningLoaction(TeCumPlastic+Teb-Tea-(Backbone_f(Teb-Teo_p)-Tfa)/Esp);
 	Tfb= Backbone_f(Teb-Teo_p);
@@ -1522,7 +1524,8 @@ ReinforcingSteel::Rule3(int res)
 	T_ePlastic[3]=0.0;
 	TBranchNum=5;
 	Rule5(res);
-  } else {
+  }
+  else {
 	  if (TStrain - Teb <= ZeroTol) {
 	    T_ePlastic[1]=T_ePlastic[2];
 	    TBranchNum=2;
@@ -1545,33 +1548,34 @@ int
 ReinforcingSteel::Rule4(int res)
 {
   if (TStrain-CStrain < 0.0) {
-	if(Temax<CStrain-Teo_p) Temax=CStrain-Teo_p;
+    if(Temax<CStrain-Teo_p) Temax=CStrain-Teo_p;
 
-	Tea=CStrain;
-	double dere = Cea[2]-Tea+fyp/(1.2*Esp);
-    if (dere>0.0)
-	  dere=0.0;
-	else if (dere<-fyp/3/Esp)
-	  dere=-fyp/3/Esp;
-	Teb=Teo_n+Temin+dere;
+    Tea=CStrain;
+    double dere = Cea[2]-Tea+fyp/(1.2*Esp);
+      if (dere>0.0)
+      dere=0.0;
+    else if (dere<-fyp/3/Esp)
+      dere=-fyp/3/Esp;
+    Teb=Teo_n+Temin+dere;
 
-	Tfa=CStress;
-	TEa=ReturnSlope(CStrain-Cea[2]); 
+    Tfa=CStress;
+    TEa=ReturnSlope(CStrain-Cea[2]); 
 
-  updateHardeningLoaction(TeCumPlastic+Tea-Teb-(Tfa-Backbone_f(Teb-Teo_n))/Esp);
-	Tfb= Backbone_f(Teb-Teo_n);
-	TEb= Backbone_E(Teb-Teo_n);
-	
-	SetTRn();
-	TEsec = (Tfb-Tfa)/(Teb-Tea); 
-	if (TEsec<TEb) TEb=TEsec*0.999;
-	if (TEsec>TEa) TEa=TEsec*1.001;
-	res += SetMP();
-	
-	T_ePlastic[3]=0.0;
-	TBranchNum=6;
-	Rule6(res);
-  } else {
+    updateHardeningLoaction(TeCumPlastic+Tea-Teb-(Tfa-Backbone_f(Teb-Teo_n))/Esp);
+    Tfb= Backbone_f(Teb-Teo_n);
+    TEb= Backbone_E(Teb-Teo_n);
+    
+    SetTRn();
+    TEsec = (Tfb-Tfa)/(Teb-Tea); 
+    if (TEsec<TEb) TEb=TEsec*0.999;
+    if (TEsec>TEa) TEa=TEsec*1.001;
+    res += SetMP();
+    
+    T_ePlastic[3]=0.0;
+    TBranchNum=6;
+    Rule6(res);
+  }
+  else {
 	  if (TStrain - Teb >= -ZeroTol) {
 	    T_ePlastic[0]=T_ePlastic[2];
 	    TBranchNum=1;
