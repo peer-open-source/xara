@@ -243,7 +243,7 @@ void
 ElasticBilin::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"E1P\": "   << E1P << ", ";
@@ -252,7 +252,8 @@ ElasticBilin::Print(OPS_Stream &s, int flag)
     s << "\"E1N\": "   << E1N << ", ";
     s << "\"E2N\": "   << E2N << ", ";
     s << "\"eps2N\": " << eps2N << "}";
-  } else {
+  }
+  else {
     s << "ElasticBilin tag: " << this->getTag() << endln;
     s << "Input Parameters: E1P: " << E1P << " E2P: " << E2P << " eps2P: " << eps2P;
     s << "  E1N: " << E1N << " E2N: " << E2N << " eps2N: " << eps2N << endln;
